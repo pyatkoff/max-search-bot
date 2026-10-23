@@ -75,10 +75,14 @@ final class ManagerTourSelectionShareService
         if (!$link) return null;
         $p=self::publication((int)$link['conversation_id'],$link['publication_id']);
         if (!$p) return null;
-        $offers=[];
+        $offers=[];$groups=[];
         foreach ($p['selection']['offers'] as $i=>$offer) {
             $s=$offer['snapshot'];$details=$s['quoted_details']??[];
+            // Public ordinal only. Do not expose private draft/group identities.
+            $groupKey=isset($offer['hotel_group'])?'manual:'.$offer['hotel_group']:'offer:'.$i;
+            if (!array_key_exists($groupKey,$groups)) $groups[$groupKey]=count($groups);
             $offers[]=[
+                'hotel_group'=>$groups[$groupKey],
                 'index'=>$i,'hotel'=>(string)$s['hotel'],'departure'=>(string)$s['departure'],
                 'date_from'=>(string)$s['date_from'],'nights'=>(int)$s['nights'],'adults'=>(int)$s['adults'],'children'=>count($s['child_ages']),
                 'room'=>(string)$s['room'],'meal'=>(string)$s['meal'],'amount'=>(string)$s['amount'],'currency'=>(string)$s['currency'],

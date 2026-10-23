@@ -19,6 +19,40 @@ function cachePublication(string $id): void {
     $q=$pdo->prepare('SELECT offer_id FROM manager_tour_selection_cards WHERE publication_id=? ORDER BY card_index');$q->execute([$id]);$ids=$q->fetchAll(PDO::FETCH_COLUMN);
     foreach ($selection['offers'] as $i=>$offer) foreach ([0,1,2] as $photo) TourSelectionPhotoStore::image(TourSelectionPhotoStore::offerKey((int)$ids[$i]),0,$photo,$offer['presentation']['photos'][$photo]['url'],static fn():string=>file_get_contents(dirname(__DIR__).'/assets/owner-tour-cards/compact-v1/cover.jpg'));
 }
+function groupingChecks(): void {
+    global $pdo;
+    $original=$pdo;
+    try {
+        $pdo=deliveryDb();
+        $pdo->exec('CREATE TABLE manager_tour_selection_links(conversation_id INTEGER PRIMARY KEY,version INTEGER,token TEXT UNIQUE,publication_id TEXT,is_active INTEGER,updated_by_manager_id INTEGER,updated_at TEXT);CREATE TABLE manager_tour_selection_link_history(conversation_id INTEGER,version INTEGER,publication_id TEXT,is_active INTEGER,manager_id INTEGER,created_at TEXT,PRIMARY KEY(conversation_id,version));');
+        $draft=deliveryDraft();$one=$draft['offers'][0];
+        $two=$one;$two['id']=str_repeat('b',32);$two['date_from']='2027-06-12';$two['room']='Другой номер';$two['amount']='260000';$two['flights']='Другой перелёт';$two['photos'][2]['url']='https://photos.example.org/other-room.jpg';
+        $three=$one;$three['id']=str_repeat('c',32);$three['amount']='270000';
+        $draft['offers']=[$one,$two,$three];
+        $before=ManagerTourSelectionPublicationDraft::build($draft);
+        deliveryCheck('legacy publication metadata remains absent, without hotel-name matching',!isset($before['offers'][0]['hotel_group']));
+        deliverySave($draft);$old=ManagerTourSelectionDeliveryService::prepare(7,1,1)['publication'];cachePublication($old['id']);
+        $published=shareCommand(7,1,0,$old['id'],true);$token=substr($published['share']['path'],strlen('/selection/?t='));
+        deliveryCheck('identical hotel names alone remain three public groups',count(array_unique(array_column(ManagerTourSelectionShareService::read($token)['offers'],'hotel_group')))===3);
+        $oldJson=$pdo->query('SELECT selection_json FROM manager_tour_selection_publications')->fetchColumn();
+        $draft['offers'][0]['hotel_group']=$one['id'];$draft['offers'][1]['hotel_group']=$one['id'];
+        $after=ManagerTourSelectionPublicationDraft::build($draft);
+        deliveryCheck('grouping preserves every exact native snapshot and presentation',array_column($before['offers'],'snapshot')===array_column($after['offers'],'snapshot')&&array_column($before['offers'],'presentation')===array_column($after['offers'],'presentation'));
+        $bad=$draft;$bad['offers'][0]['hotel_group']='<script>';
+        deliveryCheck('forged grouping type and HTML are rejected',ManagerTourSelectionDraft::normalize($bad)===null&&ManagerTourSelectionDraft::normalize(array_replace($draft,['offers'=>[array_replace($one,['hotel_group'=>12])]]))===null);
+        deliverySave($draft,1);$next=ManagerTourSelectionDeliveryService::prepare(7,1,2)['publication'];cachePublication($next['id']);
+        deliveryCheck('regrouping reuses canonical offers and callbacks, without another native quote',array_column($old['cards'],'offer_id')===array_column($next['cards'],'offer_id')&&(int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE event_type='tour_offer_prepared'")->fetchColumn()===3);
+        deliveryCheck('preview does not silently regroup an existing shared page',count(array_unique(array_column(ManagerTourSelectionShareService::read($token)['offers'],'hotel_group')))===3);
+        $updated=shareCommand(7,1,1,$next['id'],true);$public=ManagerTourSelectionShareService::read($token);
+        deliveryCheck('explicit grouping update keeps URL and separate variants',$updated['share']['path']===$published['share']['path']&&array_column($public['offers'],'hotel_group')===[0,0,1]&&array_column($public['offers'],'amount')===['240000','260000','270000']&&$public['offers'][1]['date_from']==='2027-06-12'&&$public['offers'][1]['room']==='Другой номер'&&$public['offers'][1]['flights']==='Другой перелёт');
+        $q=$pdo->prepare('SELECT selection_json FROM manager_tour_selection_publications WHERE publication_id=?');$q->execute([$old['id']]);
+        deliveryCheck('previous immutable publication and native choice contract stay intact',$q->fetchColumn()===$oldJson&&!str_contains(json_encode($public),$one['id']));
+        $selection=$public;$h=static fn(string $v):string=>htmlspecialchars($v,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');ob_start();require dirname(__DIR__).'/selection/view.php';$html=ob_get_clean();
+        deliveryCheck('real public renderer has two hotel headers and three separately anchored exact variants',substr_count($html,'<article class="offer"')===2&&substr_count($html,'<h2>')===2&&substr_count($html,'class="offerVariant"')===3&&str_contains($html,'id="variant-2"')&&str_contains($html,'260 000,00'));
+        deliveryCheck('grouped room images stay with their own variants',substr_count($html,'class="variantRoom"')===2&&str_contains($html,'card=1&amp;photo=2'));
+        deliveryCheck('grouping creates no send, like, read marker or routing change',(int)$pdo->query("SELECT COUNT(*) FROM messages WHERE direction='outbound'")->fetchColumn()===0&&(int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE event_type='tour_offer_liked'")->fetchColumn()===0&&(int)$pdo->query('SELECT last_read_message_id FROM manager_conversation_reads LIMIT 1')->fetchColumn()===0);
+    } finally {$pdo=$original;(new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$pdo);}
+}
 try {
     $draft=deliveryDraft();$draft['intro']='Комментарий для туриста <script>alert(1)</script>';
     deliverySave($draft);$prepared=ManagerTourSelectionDeliveryService::prepare(7,1,1);$id=$prepared['publication']['id'];$before=shareRows();
@@ -52,6 +86,7 @@ try {
     $pdo->exec('UPDATE projects SET is_active=0');deliveryCheck('inactive project closes public reads',ManagerTourSelectionShareService::read($newToken)===null);$pdo->exec('UPDATE projects SET is_active=1');
     deliveryCheck('public sharing never sends or invents a tourist choice',(int)$pdo->query("SELECT COUNT(*) FROM messages WHERE direction='outbound'")->fetchColumn()===0&&(int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE event_type='tour_offer_liked'")->fetchColumn()===0);
     deliveryCheck('history preserves all five explicit revisions',(int)$pdo->query('SELECT COUNT(*) FROM manager_tour_selection_link_history')->fetchColumn()===5);
+    groupingChecks();
     // Exercise the unmodified public controllers and ManagerHttp over real HTTP.
     $http=sys_get_temp_dir().'/tour-share-http-'.bin2hex(random_bytes(8));mkdir($http,0700);mkdir($http.'/manager',0700);mkdir($http.'/selection',0700);mkdir($http.'/sessions',0700);$process=null;
     try {
