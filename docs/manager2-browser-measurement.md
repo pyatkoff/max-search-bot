@@ -6,7 +6,7 @@ It measures the installed shell and source-matched static assets using the
 existing `tests/visual/fixtures/personal-workspace.js` transport. It does not
 measure production API, SQL, network latency or real customer conversations.
 
-## Frozen protocol
+## Frozen workspace protocol (`manager2-workspace-v1`)
 
 - Playwright **1.55.0**, Chromium and WebKit, one page at a time per job.
 - Viewports, in order: **390×844, 430×844, 768×844, 1440×900, 390×420**, device
@@ -56,6 +56,50 @@ send/upload function is called. Audio/document metadata must remain lazy: any
 unplanned local or external request fails the run. Service-worker/push state is
 the existing fixture stub, not a real OS delivery or cache measurement.
 
+## Complete reply protocol (`manager2-reply-v1`)
+
+Select `--journey reply` to measure the actual installed frontend through AI and
+ordinary text sending. The default CLI `--journey workspace` preserves the
+frozen no-send protocol above. PR measurement jobs explicitly select `reply`;
+manual dispatch defaults to `workspace` and exposes the same choice.
+
+The engines, viewports, 200-row Inbox, 600-message source, three fresh-context
+startup observations, three discarded warmups and 30 measured cycles are the
+same. Each cycle contains **both** fixed cohorts, prepared first and generated
+second. Each cohort starts with client B fully open, then performs:
+
+| Phase | Required finish state |
+| --- | --- |
+| Open A from Inbox | Correct 200-message transcript; authorized reply controls ready |
+| Open AI | Exact synthetic proposal visible and insertion enabled; prepared or generated response parsed |
+| Insert AI | Revision and latest-message validation parsed; exact text in composer; preview closed |
+| Manager edit | Native input event adopts the exact edited multiline text |
+| Explicit send | Prepared cohort: confirmation parsed, composer empty, exactly one matching manager message in transcript |
+| Lost acknowledgement | Generated cohort: synthetic transport accepts one message then aborts its response; exact draft remains and button offers receipt checking |
+| Explicit receipt check | Same operation ID confirms the existing send; composer empty and exactly one matching manager message; no second send |
+| Full cycle | One continuous span from the A-open native event through the confirmed transcript, including driver gaps and phase verification |
+
+The transport accepts only the fixed synthetic text, manager/client, CSRF token
+and operation shape. It checks generated-draft provenance, rejects a duplicate
+operation, and requires an existing operation before confirming a receipt.
+Each cohort asserts exactly one send; only the generated cohort has one receipt
+request. The request is intercepted locally: **zero real customer/provider
+sends, AI model calls or production data writes**. Other mutations remain denied.
+
+Each reply shard has **393 raw records** (3 startup + 30×13); ten shards have
+**3,930 records**, including 600 full-cycle observations. Prepared contributes
+five phases plus its aggregate; generated contributes six plus its aggregate.
+A one-cycle protocol check has 14 records. Aggregates overlap their component
+phases: never add them to compute total time. Both cohorts retain 30 observations
+per engine/viewport and are reported separately, without pooling hosts or modes.
+
+AI/provider responses are immediate synthetic fixtures; one acknowledgement is
+deliberately lost. The automated edit/click sequence includes no human thinking
+time. These measurements describe frontend state/rendering and automation
+overhead, **not natural production response time, AI latency or channel latency**.
+The secondary card is observed separately and, as in the workspace protocol,
+its post-open observation wait is included in the continuous full-cycle span.
+
 ## Timing and raw evidence
 
 The meter is installed before application scripts. A native event capture starts
@@ -91,7 +135,8 @@ bytes. Resource Timing sizes may be zero for routed resources; zero does not
 establish zero transfer. Unsupported long-task reporting, server/SQL and wire
 bytes explicitly remain `not_measured`.
 
-`manifest.json` records exact product SHA/tree, tooling HEAD and three script
+`manifest.json` records the explicit protocol ID, expected raw-record count,
+exact product SHA/tree, tooling HEAD and three script
 hashes, dataset SHA, installed HTML/assets/worker hashes, engine version,
 Playwright/Node/platform/CPU identity, cache and sample protocol. `summary.json`
 contains grouped medians/ranges and the SHA-256 of the raw JSONL. Final viewport
@@ -122,6 +167,7 @@ For a local run with a verified installed-static directory:
 npm install --no-save --package-lock=false @playwright/test@1.55.0
 npx playwright install --with-deps chromium
 node tools/measure_manager2_browser.js --engine chromium \
+  --journey reply \
   --product-sha <40-character-deployed-sha> --assets <installed-directory> \
   --output <new-result-directory> --samples 30 --warmups 3 --cold 3
 ```
