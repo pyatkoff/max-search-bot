@@ -87,6 +87,14 @@ This directory is the owned interface boundary for the manager product. Changes 
 8. Production verification requires real HTTP entrypoint smoke in addition to static regression and screenshot QA.
 9. Bounded list visibility uses a fresh batch of manager/project/source/group permissions through `ManagerConversationAccessPolicy`; it never retains permissions across mutations or replaces singleton write authorization. Existing production visibility probes report numeric `load_ms` for their real-database reads without adding probes or exposing transcript data.
 
+The read-only `pipeline-api.php` detail releases its PHP session lock after
+authentication, CSRF and exact conversation visibility/edit checks, before loading
+secondary card data. A slow card therefore cannot serialize a same-account
+transcript request behind those loaders. Card writes retain their existing session
+lock; no shared auth, session-cookie or mutation owner is changed. The actual HTTP
+concurrency regression uses isolated sessions and synthetic secondary loaders;
+its timings establish this causal lock boundary, not production response times.
+
 ## Refactor sequence
 
 1. **Done:** entrypoint stability, single `index.php`, cache-busted assets and real production HTTP smoke.
