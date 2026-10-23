@@ -1,6 +1,6 @@
 {
   "schema": "anytour.funnel.autopilot_state.v1",
-  "updated_at_utc": "2026-10-23T14:24:15.823Z",
+  "updated_at_utc": "2026-10-23T14:55:33.550Z",
   "owner": "direct-demand-funnel",
   "automation": {
     "id": "6ada8f0084888191b12c6619c12fb35c",
@@ -43,11 +43,11 @@
   "artifacts": {
     "report": {
       "library_file_id": "libfile_81ae550da16881918bb6840b686d507f",
-      "version": 30
+      "version": 31
     },
     "archive": {
       "library_file_id": "libfile_1b69bb58e8d4819186e7ea461ef60cb6",
-      "version": 30
+      "version": 31
     },
     "canonical_hotel_knowledge": {
       "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
@@ -87,7 +87,7 @@
     },
     "existing_post_review": {
       "library_file_id": "libfile_25486df816e88191b44ed4051858e99f",
-      "version": 11,
+      "version": 12,
       "preview_member": "existing-post-review/anytour-existing-posts-review-20261023.html",
       "text_review_member": "existing-post-review/manual-text-review-107.json",
       "adaptations_member": "existing-post-review/existing-post-adaptations-12.json",
@@ -226,6 +226,25 @@
       "feed_reuse_member": "existing-post-review/v08-feed-reuse.json",
       "media_prefix": "existing-post-review/v08-media/",
       "preview_version": 11
+    },
+    "media_np08_review": {
+      "n08_review_member": "existing-post-review/n08-manual-review.json",
+      "p08_review_member": "existing-post-review/p08-manual-review.json",
+      "current_asset_groups_member": "existing-post-review/p08-video-asset-groups.json",
+      "n08_asset_groups_member": "existing-post-review/n08-video-asset-groups.json",
+      "n08_media_prefix": "existing-post-review/n08-media/",
+      "p08_media_prefix": "existing-post-review/p08-media/",
+      "validation_member": "existing-post-review/np08-validation.json",
+      "preview_version": 12
+    },
+    "proposal_preflight": {
+      "member": "existing-post-review/preflight117-current.json",
+      "preview_section": "preflight117",
+      "proposal_rows": 117,
+      "distinct_exact_after_bodies": 48,
+      "distinct_adaptation_keys": 37,
+      "preview_caption_cards": 47,
+      "ready_for_channel_write": 0
     }
   },
   "operations": {
@@ -306,20 +325,24 @@
     "video_v08_samples": "DONE_5_NEW_DISTINCT_CLIPS_80_SAMPLED_FRAMES_3_SAVED_ASSET_REUSES",
     "video_source_deduplication": "DONE_46_VIDEO_POST_RECORDS_33_NATIVE_ASSET_REFERENCES_13_DUPLICATE_PAIRS",
     "video_v08_binding": "DONE_1_REUSED_CAPTION_AND_COLLECTION_KEY_1_NEW_NOT_APPLIED_PROPOSAL_NO_NEW_IDS",
-    "video_v08_save": "DONE_REPORT_ARCHIVE_V30_PREVIEW_V11"
+    "video_v08_save": "DONE_REPORT_ARCHIVE_V30_PREVIEW_V11",
+    "media_n08_samples": "DONE_8_NEW_SOURCES_128_FRAMES_VISUALLY_READ_SPEECH_UNRESOLVED",
+    "media_p08_samples": "DONE_LAST_8_NEW_SOURCES_128_FRAMES_VISUALLY_READ_SPEECH_UNRESOLVED",
+    "media_initial_sample_coverage": "DONE_ALL33_NATIVE_VIDEO_SOURCES_HAVE_SAMPLED_FRAMES_NOT_FULL_AUDIOVISUAL_REVIEW",
+    "proposal_preflight117": "DONE_EXACT_POSTS_HASHES_LENGTHS_GATES_AND_MOBILE_SEARCHABLE_TABLE_NO_WRITES",
+    "media_np08_save": "DONE_REPORT_ARCHIVE_V31_PREVIEW_V12_N08_P08_SAVED_TOGETHER"
   },
   "next_steps": [
-    "Read current own checkpoint/head, #55 and scoped instructions. Same sole traffic package; no subagents, foreign claims/PR/CI or duplicate WIP.",
-    "All saved direct/forwarded captions remain DONE:582posts/392variants;44truly textless.626records=610MAX+16savedTGsnapshots,not fullTGhistory. Original579+47outer-text projection retained. M015-M017 exact forwarded-origin resolution DONE,not a missing-attachment retry.",
-    "V08 targets M010-M014,M018-M020 DONE as partial media/source review:5new clips80sampled frames,3exact saved asset reuses. Five new clips have no visible hotel names and speech unresolved. No full playback/manual audio/property approval.",
-    "Full historical47-record asset-reference audit DONE:46video publications,33distinct nativevideo references,13duplicate pairs.17sources have saved sample evidence applicable to30post records. Reuse source clips/frames/transcripts for pairs; no duplicate source downloads, ASR or caption/feed keys. Native asset identity does not establish hotel identity.",
-    "Next bounded block:8distinct unseen sources M031-M035,M037-M039 using saved exact attachment refs. Then remaining M040-M047. Use v08-video-asset-groups.json; skip every M002-M030 and M036 already sampled or mapped to exact saved samples. Preserve original media; do not swap image covers to bypass video holds.",
-    "ASR automatic-approval telemetry egress rejection remains. Do not rerun or bypass. Six saved machine transcripts are not manual audio approval. M008/M009 and M010-M014 speech unresolved; exact duplicates inherit the same limitation.",
-    "RoyalAtlantisIcon caption/hash/inactive collection key reused for one further exact post proposal; identity remains held.117NOT_APPLIED proposals=44text/photo+73video holds. Fresh exact post/version/media/buttons/canonical context and applicable owner authority required before any write. No new runtime IDs.",
-    "Current Library guards30/30/11,identities retained. Shared hotel archive92 read-only. Original99drafts/356feedrows/99bindings/5verifiedIDs/3supplierholds/24styledvariants/116priorproposals/12brandedcovers/6sourcecards and prior media unchanged. Private posts/media/transcripts/queries not committed to publicGitHub.",
-    "Wordstat unchanged blocked,no repeated attempts/full exports. No new channel publication/bulk old-post edit/live feed/RK/spend/tourist send/production merge/deploy/Metrica or schedules changes. Safe preparation remains available."
+    "Read fresh own checkpoint/head and #55 before writes. Same sole traffic package, no subagents or foreign claims/PR/CI. N08/P08 are DONE and were saved together once at Library31/31/12; do not redo either block.",
+    "All saved direct/forwarded captions remain DONE:582posts/392variants;44truly textless,626records=610MAX+16savedTGsnapshots,not fullTGhistory. M015-M017forward resolution DONE; no repeated missing-attachment or full history export.",
+    "Initial visual sampling DONE for all33native video sources in the historical47outer-blank queue.486sampled frames;13duplicate pairs keep46post refs separate.1greeting fully read,46posts partial,0unseen. This is not full playback/manual audio or media approval across all626posts. Do not repeat frame sampling merely for status.",
+    "ASR telemetry automatic-approval rejection unchanged; no retry/bypass. Six saved machine transcripts remain machine evidence only. The16new N08/P08clips have no visible property titles and speech is unresolved; no hotel binding from faces, office signs, clothes or adjacent posts.",
+    "Use existing preflight117-current.json as one projection, not a new queue/database:117unique posts=111MAX+6TG,48exact after-body texts/37adaptation keys,47preview cards. All hashes and length<=758UTF16verified,117entry IDs absent,64identityholds,73videoholds,0ready for channel write. Prior proposals and old2post experiment remain unchanged.",
+    "Next finite safe preparation: bounded read-only exact-post snapshot input for44text/photo paths using canonical reader and saved exact refs. Establish current reader/runtime capability/access before execution. No installation/import/recovery/worker/production mutation as analysis; no ID issuance from placeholders. Keep video path limitations separate.",
+    "Current Library guards31/31/12,identities preserved. Shared hotel archive92read-only. Original99drafts/356feedrows/99bindings/5verifiedIDs/3supplierholds/24styledvariants/117proposals/12brandedcovers/6sourcecards and prior media retained. No private posts,media,transcripts orqueries on publicGitHub.",
+    "Wordstat remains blocked; no repeated unchanged failures/full Direct export. New publication,bulk live edit,activefeed,RK/spend/tourist sends,production merge/deploy/Metrica and schedule changes remain outside this preparation action."
   ],
-  "publication_blocker": "New-funnel publication destination/authority absent;117proposals remain NOT_APPLIED,73video holds. Saved texts remain582posts/392variants,44truly textless. Historical47-record media queue includes46video publications/33distinct assets;30post records have partial/reused evidence,16unseen,46still require full audiovisual review. Preparation continues; ASR rejection unchanged.",
+  "publication_blocker": "117proposals remain NOT_APPLIED:117entry URLs not issued,64identity lookup holds,73video transport holds,all require fresh exact native post/context readback and applicable owner authority. New-funnel destination/authority not supplied. All33queued sources now sampled but46post records still require full audiovisual review. Safe preparation of exact read-only binding input remains available; task not fully blocked.",
   "coordination": "Own audit/direct-demand-20261022 branch only; no foreign claims, CI, paused hotel tasks or production flows.",
   "completed_preparation": {
     "generated_at_utc": "2026-10-23T06:42:57.737448+00:00",
@@ -738,6 +761,34 @@
       "archive_bytes": 303642253,
       "archive_sha256": "8112cb97e02fb1ae395c9f92ab4cd66c1a983ef57f5fe6605c2ae746d67e2128",
       "guarded_library_versions": "29/29/10_TO_30/30/11"
+    },
+    "media_np08": {
+      "new_sources": 16,
+      "new_sampled_frames": 256,
+      "all33sources_have_saved_samples": true,
+      "cumulative_sampled_frames": 486,
+      "unseen_sources": 0,
+      "full_video_review_not_claimed": true,
+      "manual_audio_review_not_claimed": true,
+      "new_asr_executions": 0,
+      "all117proposals_and_original_body_hashes_preserved": true,
+      "unique_exact_posts117": true,
+      "caption_utf16_under1024": true,
+      "preview_disabled_cta": 47,
+      "preview_images_loaded": 31,
+      "preflight_rows": 117,
+      "corendon_filter_matches": 1,
+      "filter_restores_all": true,
+      "mobile_page_and_preflight_horizontal_overflow": false,
+      "page_errors": [],
+      "source92unchanged": true,
+      "new_ids_or_channel_writes": 0,
+      "zip_crc": "PASS",
+      "zip_members": 450,
+      "archive_bytes": 404122659,
+      "archive_sha256": "cb865db475202a92bfc1450ac17fc39841982a9fa99abd562ecc5e99f5958af9",
+      "guarded_library_versions": "30/30/11_TO_31/31/12",
+      "all_original99drafts_356feedrows_99bindings_5verifiedIDs_3supplierholds_preserved": true
     }
   },
   "catalog_evidence": {
@@ -777,58 +828,24 @@
     "validation_sequence": "Use set -e for dependent preparation/write sequences. Resolve any failed preflight before saving. Batch07's overly broad all-declared assertion found1scope caution;17declarations and that separately labelled caution were reviewed before the Library write. The original completed batch bytes and canonical knowledge kinds were preserved."
   },
   "latest_completed_block": {
-    "name": "V08: five new visual samples, exact reuse of three clips,13duplicate pairs grouped across46video posts; one caption binding reused",
-    "state": "DONE",
-    "idempotency_key": "V08-M010-M014-M018-M020-five-new80frames-three-reuses-plus-full47-asset-reference-audit-20261023-v1",
-    "completed_at_utc": "2026-10-23T14:24:15.823Z",
-    "source_demand_archive_version": 29,
-    "source_knowledge_version": 92,
-    "target_post_records": 8,
-    "new_distinct_video_assets_downloaded": 5,
-    "new_sampled_video_frames_visually_read": 80,
-    "exact_saved_native_asset_reuses_in_target": 3,
-    "saved_machine_transcript_reuses": 3,
-    "new_asr_executions": 0,
-    "full_videos_viewed": 0,
-    "audio_tracks_manually_listened": 0,
-    "all_video_post_records_in_historical47_queue": 46,
-    "distinct_native_video_references": 33,
-    "duplicate_pairs": 13,
-    "distinct_video_sources_with_saved_partial_evidence": 17,
-    "records_with_partial_evidence_including_exact_asset_reuse": 30,
+    "name": "N08/P08: initial samples complete for33queued video sources; searchable117-proposal readiness matrix; full speech/media review still pending",
+    "completed_at_utc": "2026-10-23T14:55:33.550Z",
+    "new_video_sources": 16,
+    "new_sampled_frames_visually_read": 256,
+    "cumulative_unique_sampled_video_frames": 486,
+    "distinct_video_sources_sampled": 33,
+    "partial_post_records_including_exact_asset_reuse": 46,
+    "unseen_sources": 0,
     "new_caption_bodies": 0,
-    "reused_caption_bodies": 1,
-    "new_feed_collection_keys": 0,
-    "reused_feed_collection_keys": 1,
-    "new_proposed_post_patches": 1,
-    "cumulative_proposed_post_patches": 117,
-    "cumulative_patch_text_photo_path": 44,
-    "cumulative_patch_video_holds": 73,
-    "preview_caption_variants": 47,
-    "caption_and_feed_key_reuse_unchanged": true,
-    "new_hotel_identities_verified": 0,
-    "new_local_hotel_ids": 0,
-    "new_entry_ids": 0,
+    "new_proposals": 0,
+    "cumulative_proposals": 117,
+    "ready_for_channel_write": 0,
     "new_runtime_ids": 0,
-    "new_cover_images": 0,
-    "new_posts": 0,
-    "actual_channel_writes": 0,
-    "source_knowledge_modified": false,
-    "parallel_hotel_profiles_created": false,
-    "unknown_writes": [],
-    "save_receipt": {
-      "report_version": 30,
-      "archive_version": 30,
-      "preview_version": 11,
-      "expected_previous_demand_versions": 29,
-      "expected_previous_preview_version": 10,
-      "all_local_metadata_applied": true
-    },
-    "limitations": [
-      "Five new clips are talking-head videos without visible property names in80sampled frames. Speech unresolved; no identity inferred from face, office, clothing or adjacent posts.",
-      "Exact native video ID reuse establishes an asset reference only, not hotel identity/full playback/manual audio approval. Post/channel IDs remain distinct.",
-      "Three targets reuse M002/M003/M004 source bytes, frames and saved transcripts; no new ASR. Royal Atlantis Icon remains an ASR candidate under identity/video holds.",
-      "All13duplicate pairs in the historical47-record queue are now mapped. Old sample evidence can be reused for paired posts but full audiovisual review is still incomplete."
+    "channel_writes": 0,
+    "save_versions": [
+      31,
+      31,
+      12
     ]
   },
   "catalog_export_lookup": {
@@ -893,12 +910,12 @@
     "each_new_post_has_explicit_eligibility_checks": true
   },
   "last_run_readback": {
-    "own_branch_head_before_write": "d5e93f06896f8b90218d605c576c80a2f8d6a9f4",
+    "own_branch_head_before_write": "5b8541598885a29bafe42cecd42b1ee16fc76743",
     "same_package_current_executor_handoff": true,
-    "coordination_issue55_updated_at_utc": "2026-10-23T14:22:11Z",
+    "coordination_issue55_updated_at_utc": "2026-10-23T14:29:18Z",
     "source_archive_library_version": 92,
-    "demand_library_versions_before_write": 29,
-    "existing_review_preview_version_before_write": 10,
+    "demand_library_versions_before_write": 30,
+    "existing_review_preview_version_before_write": 11,
     "foreign_claims_untouched": true,
     "scope_instructions_reused_from_current_same_executor_package": true,
     "root_AGENTS_sha": "a064aff67d42ddd69a12d9b0393501d116d1307d",
@@ -909,7 +926,7 @@
     "full_CI_or_unchanged_baseline_repeated": false,
     "wordstat_access_blocker_unchanged": true,
     "blocked_wordstat_retried": false,
-    "current_task": "Owner continuation advances same sole traffic package with next8media records and exact source-reference deduplication. Five new visual samples; three old clips reused;13duplicate pairs mapped. No repeated ASR or native history export.",
+    "current_task": "Scheduled continuation started N08; owner's later 'Дальше' explicitly continues same operation and adds final P08+preflight117. No second executor/WIP. N08/P08saved once on original Library30guard.",
     "private_source_materials_committed": false,
     "fresh_native_message_read_performed": false
   },
@@ -1762,7 +1779,7 @@
     }
   },
   "media_only_review_operation": {
-    "state": "EXACT_NATIVE_VIDEO_GROUPS_MAPPED_PARTIAL_REVIEW_REMAINS",
+    "state": "INITIAL_SAMPLED_VISUAL_COVERAGE_COMPLETE_FULL_AUDIOVISUAL_REVIEW_PENDING",
     "inventory_records": 47,
     "video_containing_records": 46,
     "image_containing_records": 2,
@@ -1770,19 +1787,19 @@
     "records_without_returned_attachments": 0,
     "inventory_count_correction": "Original outer blank47=43top-level video+2images-1mixed+3forward wrappers. Nested media resolves all3; derived text partition582+44=626. Original capture/inventory preserved.",
     "source_images_viewed": 2,
-    "video_assets_sampled": 17,
-    "sampled_frame_count": 230,
+    "video_assets_sampled": 33,
+    "sampled_frame_count": 486,
     "full_videos_reviewed": 0,
     "audio_tracks_reviewed": 0,
     "fully_reviewed_records": 1,
-    "partially_reviewed_records": 30,
+    "partially_reviewed_records": 46,
     "records_still_requiring_full_review": 46,
     "media_review_member": "existing-post-review/z30-media-review.json",
     "source_inventory_not_modified": true,
     "no_hotel_identity_inferred_from_adjacent_posts": true,
     "no_single_hotel_bound_to_mixed_promotions": true,
     "machine_transcripts_editorially_read": 6,
-    "unseen_records": 16,
+    "unseen_records": 0,
     "media_review_members": [
       "existing-post-review/z30-media-review.json",
       "existing-post-review/m08-manual-review.json",
@@ -1797,46 +1814,21 @@
     "original_top_level_records_without_attachments": 3,
     "unique_native_video_references": 33,
     "duplicate_pairs": 13,
-    "distinct_video_assets_sampled": 17,
-    "partially_reviewed_record_scope": "Includes exact native asset reference reuse. Five newly sampled unique clips; no additional full playback/manual audio approval.",
-    "unseen_distinct_video_sources": 16,
-    "asset_groups_member": "existing-post-review/v08-video-asset-groups.json"
+    "distinct_video_assets_sampled": 33,
+    "partially_reviewed_record_scope": "Saved sample evidence for all33native sources reused across46post records; no full audiovisual approval.",
+    "unseen_distinct_video_sources": 0,
+    "asset_groups_member": "existing-post-review/p08-video-asset-groups.json",
+    "initial_sample_coverage_complete": true,
+    "all626_indexed_post_media_reviewed": false
   },
   "next_pending_media_block": {
-    "state": "PENDING_NEXT_8_DISTINCT_UNSEEN_SAVED_VIDEO_SAMPLES",
-    "source_asset_groups_member": "existing-post-review/v08-video-asset-groups.json",
-    "source_inventory_member": "existing-post-review/u40-media-only-47.json",
-    "target_max_video_records": 8,
-    "record_ids": [
-      "M031",
-      "M032",
-      "M033",
-      "M034",
-      "M035",
-      "M037",
-      "M038",
-      "M039"
-    ],
-    "remaining_unseen_unique_sources": 16,
-    "remaining_after_target": [
-      "M040",
-      "M041",
-      "M042",
-      "M043",
-      "M044",
-      "M045",
-      "M046",
-      "M047"
-    ],
-    "do_not_redownload_or_repeat_frames_for": [
-      "M001",
-      "M002-M030",
-      "M036"
-    ],
-    "duplicate_pairs_already_mapped": true,
-    "asr_reexecution_blocked_by_automatic_approval_review": true,
-    "no_hotel_identity_inference_from_adjacency": true,
-    "full_video_or_audio_approval_not_claimed": true
+    "state": "DONE_ALL33_INITIAL_SAMPLES_SPEECH_AND_FULL_PLAYBACK_PENDING",
+    "record_ids": [],
+    "source_asset_groups_member": "existing-post-review/p08-video-asset-groups.json",
+    "unseen_distinct_sources": 0,
+    "do_not_repeat_sampling_for_status": true,
+    "full_video_or_audio_approval_not_claimed": true,
+    "asr_reexecution_blocked_by_automatic_approval_review": true
   },
   "media_m08_review_operation": {
     "state": "BOUNDED_PREPARATION_DONE_REMAINING_ASR_BLOCKED",
@@ -2004,5 +1996,102 @@
       "Three targets reuse M002/M003/M004 source bytes, frames and saved transcripts; no new ASR. Royal Atlantis Icon remains an ASR candidate under identity/video holds.",
       "All13duplicate pairs in the historical47-record queue are now mapped. Old sample evidence can be reused for paired posts but full audiovisual review is still incomplete."
     ]
+  },
+  "media_n08_review_operation": {
+    "state": "DONE",
+    "idempotency_key": "N08-M031-M035-M037-M039-eight-source128frames-20261023-v1",
+    "completed_at_utc": "2026-10-23T14:55:33.550Z",
+    "source_demand_archive_version": 30,
+    "source_knowledge_version": 92,
+    "new_unique_video_sources": 8,
+    "new_sampled_frames_visually_read": 128,
+    "new_transcripts": 0,
+    "full_videos_viewed": 0,
+    "audio_tracks_manually_listened": 0,
+    "new_caption_bodies": 0,
+    "new_post_patch_proposals": 0,
+    "new_feed_collection_keys": 0,
+    "new_hotel_identities_verified": 0,
+    "new_runtime_ids": 0,
+    "channel_writes": 0,
+    "canonical_hotel_knowledge_modified": false,
+    "asr_reexecution_after_rejection": false,
+    "distinct_video_sources_with_partial_evidence_after_block": 25,
+    "partial_post_records_after_block": 38,
+    "unseen_distinct_sources_after_block": 8,
+    "save_note": "Completed locally before owner continuation; saved together with P08 on the same Library30 guard, not a separate version."
+  },
+  "media_p08_review_operation": {
+    "state": "DONE",
+    "idempotency_key": "P08-M040-M047-eight-source128frames-and-preflight117-20261023-v1",
+    "completed_at_utc": "2026-10-23T14:55:33.550Z",
+    "source_demand_archive_version": 30,
+    "source_knowledge_version": 92,
+    "new_unique_video_sources": 8,
+    "new_sampled_frames_visually_read": 128,
+    "new_transcripts": 0,
+    "full_videos_viewed": 0,
+    "audio_tracks_manually_listened": 0,
+    "new_caption_bodies": 0,
+    "new_post_patch_proposals": 0,
+    "new_feed_collection_keys": 0,
+    "new_hotel_identities_verified": 0,
+    "new_runtime_ids": 0,
+    "channel_writes": 0,
+    "canonical_hotel_knowledge_modified": false,
+    "asr_reexecution_after_rejection": false,
+    "includes_own_n08_unsaved_review_on_same_guard": true,
+    "distinct_video_sources_with_partial_evidence_after_block": 33,
+    "partial_post_records_after_block": 46,
+    "unseen_distinct_sources_after_block": 0,
+    "cumulative_unique_sampled_frames": 486,
+    "cumulative_fully_reviewed_media_records": 1,
+    "media_records_still_requiring_full_review": 46,
+    "save_receipt": {
+      "report_version": 31,
+      "archive_version": 31,
+      "preview_version": 12,
+      "expected_previous_demand_versions": 30,
+      "expected_previous_preview_version": 11,
+      "all_local_metadata_applied": true
+    },
+    "limitations": [
+      "All16new clips are talking-head addresses without property/destination names in sampled frames. Speech unresolved; no hotel/context/collection assigned.",
+      "All33queued native video sources now have sample evidence, applicable to46posts through exact native asset references. This is not full video playback, manual audio listening or full media review of all626indexed posts.",
+      "ASR automatic approval rejection remains unchanged and was not retried or bypassed.",
+      "117proposals unchanged; no new caption bodies, cover images, active links, IDs, posts, channel edits or feed uploads."
+    ]
+  },
+  "proposal_preflight_operation": {
+    "state": "DONE",
+    "completed_at_utc": "2026-10-23T14:55:33.550Z",
+    "member": "existing-post-review/preflight117-current.json",
+    "unique_exact_post_rows": 117,
+    "by_platform": {
+      "max": 111,
+      "telegram": 6
+    },
+    "distinct_exact_after_text_bodies": 48,
+    "distinct_adaptation_keys": 37,
+    "preview_caption_cards": 47,
+    "maximum_after_utf16": 758,
+    "all_before_after_hashes_verified": true,
+    "entry_not_issued": 117,
+    "local_hotel_id_not_assigned": 117,
+    "identity_lookup_holds": 64,
+    "video_transport_holds": 73,
+    "text_photo_transport_paths": 44,
+    "fresh_exact_post_version_media_buttons_context_read_required": 117,
+    "ready_for_channel_write": 0,
+    "all_original_proposals_unchanged": true,
+    "source_is_not_fresh_native_readback": true,
+    "searchable_mobile_cards_checked": true,
+    "old_two_post_experiment_not_replayed": true
+  },
+  "next_preparation_block": {
+    "state": "PENDING_BOUNDED_READ_ONLY_EXACT_POST_BINDING_INPUT",
+    "source_member": "existing-post-review/preflight117-current.json",
+    "priority": "Prepare a reviewable bounded read-only snapshot request for the44text/photo transport paths, preserving exact existing post/channel refs and canonical context constraints. Reuse current canonical reader, no production install or writes. Reconcile live reader capability/access before execution; do not infer missing input from empty wrappers.",
+    "no_entry_issuance_or_channel_write_authorized_by_this_plan": true
   }
 }
