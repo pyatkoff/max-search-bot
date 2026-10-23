@@ -54,6 +54,21 @@ function harness(){
 const deferred=()=>{let resolve;return{promise:new Promise(r=>resolve=r),resolve}};
 const tests=[];function test(name,run){tests.push({name,run})}
 
+test('unanswered work stays visible without AI and fresh no-contact remains separate',async()=>{
+  const h=harness();h.data.clear();h.data.set(101,h.item(101,{recommendation:null,operational:{awaiting_manager_reply:true,due_task:false}}));h.A.activate(7);await h.A.open();await h.click('[data-assistant-filter="actions"]');assert.ok(h.body.querySelector('[data-assistant-client="101"]'));await h.A.loadDetail(101);assert.match(h.$('assistantDetail').textContent,/Обращение без записанного ответа/);assert.match(h.$('assistantDetail').textContent,/Нет свежего разбора/);assert.equal(h.$('assistantPlan'),null);
+  h.data.set(101,h.item(101,{operational:{awaiting_manager_reply:true,due_task:false},recommendation:{...h.item().recommendation,next_action:'no_contact'}}));await h.A.loadDetail(101);assert.equal(h.$('assistantDetail').querySelector('.assistantOperational'),null);assert.match(h.$('assistantDetail').textContent,/Дождаться клиента/);assert.equal(h.body.querySelector('[data-assistant-client="101"]'),null);
+  h.advance(3600001);await h.A.loadDetail(101);assert.ok(h.body.querySelector('[data-assistant-client="101"]'));assert.match(h.$('assistantDetail').textContent,/Обращение без записанного ответа/);h.onlyReads();
+});
+test('a future task marked today never becomes an arrived reminder',async()=>{
+  const h=harness();h.data.set(101,h.item(101,{recommendation:null,tasks:[{id:1,title:'Future today',status:'open',due_state:'today',due_at_utc:'2999-01-01 10:00:00'}],operational:{awaiting_manager_reply:false,due_task:false}}));h.A.activate(7);await h.A.open(101);assert.equal(h.$('assistantDetail').querySelector('.assistantOperational'),null);assert.doesNotMatch(h.body.querySelector('[data-assistant-client="101"]').textContent,/Наступил/);h.onlyReads();
+});
+test('changed ordering discards old pages and restarts once without consuming own input',async()=>{
+  const h=harness();let n=0;h.setHook((url,action,p)=>{if(action!=='list')return; n++;return n===1?{ok:true,items:[h.item(101)],has_more:true,next_cursor:'v1.old.101'}:n===2?{ok:false,error:'list_changed'}:{ok:true,items:[h.item(102,{recommendation:null,operational:{awaiting_manager_reply:true}})],has_more:false,next_cursor:null}});h.A.activate(7);await h.A.open();await h.A.loadList(true);assert.equal(n,3);assert.deepEqual(h.calls.map(c=>c.cursor||null),[null,'v1.old.101',null]);assert.equal(h.body.querySelector('[data-assistant-client="101"]'),null);assert.ok(h.body.querySelector('[data-assistant-client="102"]'));assert.equal(h.$('replyText').value,'Unsent customer reply');assert.equal(h.$('replyFile').file,h.file);h.onlyReads();
+});
+test('list refresh and continuation preserve an unfinished existing deadline form',async()=>{
+  const h=harness();h.A.activate(7);await h.A.open(101);const host=h.$('assistantTaskEditor');host.innerHTML='<form><input id="assistantDue" value="2026-11-01T10:00"></form>';const form=host.querySelector('form'),input=h.$('assistantDue');input.value='2026-12-12T15:42';const before=h.calls.length;await h.A.loadList(true);await h.A.loadList(false);assert.equal(h.calls.length,before);assert.equal(host.querySelector('form'),form);assert.equal(input.value,'2026-12-12T15:42');assert.match(h.$('assistantStatus').textContent,/Сохраните или отмените/);h.onlyReads();
+});
+
 test('assistant return delegates loaded-history preservation to the canonical conversation owner',async()=>{
   const h=harness();h.A.activate(7);await h.A.open(101);await h.click('#assistantConversation');
   assert.equal(h.opened.length,1);assert.equal(h.opened[0].id,101);

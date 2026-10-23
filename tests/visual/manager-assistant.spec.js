@@ -17,7 +17,7 @@ async function setupAssistant(page){
   await page.route('**/manager/assistant-api.php',async route=>{
     const d=route.request().postDataJSON();calls.push(d);expect(d.csrf).toBe('fixture-csrf');
     let result,status=200,raw;
-    if(d.action==='list')result=d.cursor?{ok:true,items:[items.get(901)],has_more:false,next_cursor:null}:{ok:true,items:[items.get(11),items.get(12)],has_more:true,next_cursor:12};
+    if(d.action==='list')result=d.cursor?{ok:true,items:[items.get(901)],has_more:false,next_cursor:null}:{ok:true,items:[items.get(11),items.get(12)],has_more:true,next_cursor:'v1.'+'a'.repeat(64)+'.12'};
     else if(d.action==='detail'){
       const next=detailResponses.shift();
       result=next&&Object.prototype.hasOwnProperty.call(next,'result')?next.result:{ok:true,item:items.get(Number(d.conversation_id))};
@@ -44,7 +44,7 @@ async function capture(page,browser,width,label){const directory=path.join(root,
 for(const width of [390,430,768,1440])test('Manager assistant unifies list and current-client advice without touching reply '+width,async({page,browserName})=>{
   await page.setViewportSize({width,height:900});const s=await setupAssistant(page);expect(s.calls).toEqual([]);
   await page.locator('#assistantOpen').click();await expect(page.locator('[data-assistant-client]')).toHaveCount(2);expect(s.calls.map(c=>c.action)).toEqual(['list']);await bounded(page);await capture(page,browserName,width,'list');
-  await page.locator('#assistantMore').click();await expect(page.locator('[data-assistant-client]')).toHaveCount(3);await expect(page.locator('#assistantMore')).toBeHidden();expect(s.calls.at(-1).cursor).toBe(12);
+  await page.locator('#assistantMore').click();await expect(page.locator('[data-assistant-client]')).toHaveCount(3);await expect(page.locator('#assistantMore')).toBeHidden();expect(s.calls.at(-1).cursor).toBe('v1.'+'a'.repeat(64)+'.12');
 await page.locator('[data-assistant-client="11"]').click();await expect(page.locator('#assistantDetail')).toContainText('Сравнить выбранные отели на двоих.');await expect(page.locator('#assistantPlan')).toBeVisible();if(width<768)await expect(page.locator('.assistantToolbar')).toBeHidden();await page.locator('.assistantSource summary').click();await expect(page.locator('.assistantSource')).toContainText('Сообщений в основании: 1');await bounded(page);await capture(page,browserName,width,'client');
   await page.locator('[data-assistant-decision="done"]').click();await expect(page.locator('#assistantDetail')).toContainText('Отмечено выполненным');expect(s.calls.filter(c=>c.action==='decision')).toHaveLength(1);
   if(width<768)await page.locator('#assistantBack').click();await page.locator('[data-assistant-client="12"]').click();await expect(page.locator('#assistantDetail')).toContainText('Дождаться клиента');await expect(page.locator('#assistantPlan')).toHaveCount(0);await expect(page.locator('[data-assistant-decision]')).toHaveCount(0);
@@ -154,4 +154,45 @@ test('late periodic assistant reads cannot steal client navigation focus or acco
   else if(destination==='close'){await expect(page.locator('#assistantDialog')).not.toBeVisible();await expect(page.locator('#assistantOpen')).toBeFocused()}
   else{await expect(page.locator('#assistantDetail')).toContainText('Дождаться клиента');await expect(page.locator('#assistantDetail h3')).toHaveText('Клиент выбирает отель')}
   });clean(s);
+});
+
+for(const viewport of [{width:390,height:844},{width:430,height:844},{width:768,height:844},{width:1440,height:844},{width:390,height:420}])test(`assistant operational priority without AI and changed-order recovery ${viewport.width}x${viewport.height}`,async({page,browserName})=>{
+  await page.setViewportSize(viewport);const s=await setupAssistant(page);
+  const own={...s.items.get(11),recommendation:null,operational:{awaiting_manager_reply:true,due_task:false}};
+  const due={...s.items.get(12),recommendation:null,operational:{awaiting_manager_reply:false,due_task:true},tasks:[{id:31,title:'Проверить ответ поставщика',status:'open',due_state:'overdue',due_at_utc:'2026-01-01 10:00:00'}]};
+  s.items.clear();s.items.set(11,own);s.items.set(12,due);for(let id=100;id<120;id++)s.items.set(id,{...own,conversation_id:id,display_name:'Клиент '+id,operational:{awaiting_manager_reply:false,due_task:false}});
+  let changed=false,restarted=false;
+  await page.route('**/manager/assistant-api.php',async route=>{
+    const d=route.request().postDataJSON();s.calls.push(d);expect(d.csrf).toBe('fixture-csrf');let result,status=200;
+    if(d.action==='detail')result={ok:true,item:s.items.get(Number(d.conversation_id))};
+    else if(d.action==='list'){
+      if(d.cursor&&!changed){changed=true;s.items.get(11).operational.awaiting_manager_reply=false;result={ok:false,error:'list_changed'};status=409}
+      else{
+        if(changed&&!d.cursor)restarted=true;
+        const all=[...s.items.values()].sort((a,b)=>Number(b.operational.awaiting_manager_reply)-Number(a.operational.awaiting_manager_reply)||Number(b.operational.due_task)-Number(a.operational.due_task)||b.conversation_id-a.conversation_id);
+        const offset=d.cursor?all.findIndex(i=>i.conversation_id===Number(d.cursor.split('.').at(-1)))+1:0,items=all.slice(offset,offset+20),more=offset+items.length<all.length;
+        result={ok:true,items,has_more:more,next_cursor:more?'v1.'+(changed?'b':'a').repeat(64)+'.'+items.at(-1).conversation_id:null};
+      }
+    }else throw Error('Unexpected write '+d.action);
+    return route.fulfill({status,contentType:'application/json',body:JSON.stringify(result)});
+  });
+  await page.evaluate(()=>WorkspaceV2Conversation.open(11));await page.locator('#replyText').fill('Мой ответ остаётся в черновике');await page.locator('#replyFile').setInputFiles({name:'retained.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic retained file')});
+  const selection=await page.locator('#mediaSelection').textContent();
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  await page.locator('#messages').hover();const beforeWheel=await page.locator('#messages').evaluate(box=>box.scrollTop);
+  await page.mouse.wheel(0,-250);
+  // WebKit marks reading intent before its native wheel animation finishes.
+  // Capture the baseline only after the requested real scroll has completed.
+  await expect.poll(()=>page.locator('#messages').evaluate(box=>box.scrollTop)).toBe(Math.max(0,beforeWheel-250));
+  await expect.poll(()=>page.evaluate(()=>WorkspaceV2Jump.isFollowingLatest())).toBe(false);
+  await page.evaluate(()=>{const host=document.querySelector('#messages');window.priorityReading={node:host.querySelector('[data-scroll-message-key]'),host,top:host.scrollTop}});
+  if(viewport.width<=740)await page.locator('#mobileBack').click();
+  await page.locator('#assistantOpen').click();await expect(page.locator('[data-assistant-client]')).toHaveCount(20);await expect(page.locator('[data-assistant-client="11"]')).toBeVisible();await expect(page.locator('[data-assistant-client="12"]')).toBeVisible();await page.locator('[data-assistant-filter="actions"]').click();await expect(page.locator('[data-assistant-client]')).toHaveCount(2);
+  await bounded(page);await capture(page,browserName,viewport.width,`operational-list-${viewport.height}`);
+  await page.locator('[data-assistant-client="11"]').click();await expect(page.locator('.assistantOperational')).toContainText('Обращение без записанного ответа');await expect(page.locator('#assistantDetail')).toContainText('Нет свежего разбора');await expect(page.locator('#assistantPlan')).toHaveCount(0);await bounded(page);await capture(page,browserName,viewport.width,`operational-detail-${viewport.height}`);
+  await page.locator('#assistantConversation').click();await expect(page.locator('#replyText')).toHaveValue('Мой ответ остаётся в черновике');await expect(page.locator('#mediaSelection')).toHaveText(selection);expect(await page.evaluate(()=>({host:priorityReading.host===document.querySelector('#messages'),scroll:Math.round(priorityReading.host.scrollTop-priorityReading.top),node:!!priorityReading.node?.isConnected}))).toEqual({host:true,scroll:0,node:true});
+  if(viewport.width<=740)await page.locator('#mobileBack').click();
+  await page.locator('#assistantOpen').click();await page.locator('[data-assistant-filter="all"]').click();await page.locator('#assistantMore').click();await expect.poll(()=>restarted).toBe(true);await expect(page.locator('[data-assistant-client]')).toHaveCount(20);await expect(page.locator('[data-assistant-client="11"]')).toHaveCount(0);await expect(page.locator('[data-assistant-client="12"]')).toBeVisible();
+  expect(s.calls.filter(c=>c.action==='list'&&c.cursor)).toHaveLength(1);await page.locator('#assistantMore').click();await expect(page.locator('[data-assistant-client]')).toHaveCount(22);await expect(page.locator('#assistantMore')).toBeHidden();await page.locator('[data-assistant-filter="actions"]').click();await expect(page.locator('[data-assistant-client]')).toHaveCount(1);await expect(page.locator('[data-assistant-client="12"]')).toBeVisible();
+  await page.locator('#assistantClose').click();await expect(page.locator('#replyText')).toHaveValue('Мой ответ остаётся в черновике');await expect(page.locator('#mediaSelection')).toHaveText(selection);clean(s);
 });

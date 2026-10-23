@@ -14,6 +14,9 @@ final class AssistantFixtureStatement extends PDOStatement
         if ($this->owner->afterDecisionWrite!==null && preg_match('/\A(?:INSERT INTO|UPDATE) manager_assistant_decisions\b/i',$this->queryString)) {
             $hook=$this->owner->afterDecisionWrite; $this->owner->afterDecisionWrite=null; $hook($this->owner);
         }
+        if($this->owner->afterTaskRead!==null&&str_contains($this->queryString,'FROM lead_tasks t LEFT JOIN managers')){
+            $hook=$this->owner->afterTaskRead;$this->owner->afterTaskRead=null;$hook($this->owner);
+        }
         return $result;
     }
 }
@@ -24,17 +27,21 @@ final class AssistantFixturePdo extends PDO
     public bool $guard = false;
     public int $businessWriteAttempts = 0;
     public int $privateWrites = 0;
+    public int $operationalReads = 0;
     public ?Closure $afterDecisionWrite = null;
+    public ?Closure $afterTaskRead = null;
 
     public function __construct()
     {
         parent::__construct('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC,PDO::ATTR_STRINGIFY_FETCHES=>false]);
         $this->setAttribute(PDO::ATTR_STATEMENT_CLASS,[AssistantFixtureStatement::class,[$this]]);
         // Keep PHP 8.2 CI compatibility; PDO's alias is deprecated only in 8.5.
+        @$this->sqliteCreateFunction('JSON_UNQUOTE',static fn($v)=>$v);
         @$this->sqliteCreateFunction('UTC_TIMESTAMP',static fn():string=>gmdate('Y-m-d H:i:s'));
     }
     public function observe(string $sql): void
     {
+        if(str_contains($sql,' AS awaiting_manager_reply,')&&str_contains($sql,'FROM conversations c WHERE c.manager_id=?'))++$this->operationalReads;
         if (!$this->guard || preg_match('/\A\s*SELECT\b/i',$sql)) return;
         if (preg_match('/\A\s*(?:INSERT\s+INTO|UPDATE|DELETE\s+FROM)\s+(?:manager_prepared_replies|manager_assistant_decisions)\b/i',$sql)) { ++$this->privateWrites; return; }
         ++$this->businessWriteAttempts;
@@ -185,6 +192,18 @@ try {
     $pdo->mutate('UPDATE managers SET is_active=0 WHERE id=1');
     assistantCheck('inactive manager cannot read feed or dialog',empty(ManagerAssistantService::listing(1)['ok']) && empty(ManagerAssistantService::detail(1,1)['ok']));
 
+    // Reproduce the real priority boundary: old unanswered and due clients must
+    // precede twenty newer answered clients even without a prepared proposal.
+    $pdo=assistantFixture();
+    $pdo->mutate("DELETE FROM lead_tasks; INSERT INTO conversations SELECT 2,customer_id,project_key,source_id,channel,entry_channel,attribution_region,attribution_campaign,status,lead_stage_key,manager_id,started_at,last_message_at,closed_at,external_chat_id,is_test FROM conversations WHERE id=1");
+    for($id=3;$id<=22;++$id)$pdo->mutate("INSERT INTO conversations SELECT $id,customer_id,project_key,source_id,channel,entry_channel,attribution_region,attribution_campaign,status,lead_stage_key,manager_id,started_at,last_message_at,closed_at,external_chat_id,is_test FROM conversations WHERE id=1");
+    $pdo->mutate("INSERT INTO lead_tasks VALUES(1,2,'Arrived own reminder','2000-01-01 10:00:00','open',0,1,1,NULL,NULL,NULL,'2026-10-19 10:00:00','2026-10-19 10:00:00')");
+    $before=assistantBusinessState($pdo);$private=$pdo->privateWrites;
+    $priority=ManagerAssistantService::listing(1);
+    assistantCheck('old unanswered and arrived reminder precede the first page boundary',array_slice(array_column($priority['items']??[],'conversation_id'),0,2)===[1,2]);
+    assistantCheck('operational facts do not depend on a fresh AI proposal',($priority['items'][0]['operational']['awaiting_manager_reply']??false)===true&&($priority['items'][1]['operational']['due_task']??false)===true&&$priority['items'][0]['recommendation']===null);
+    assistantCheck('priority reads preserve all business and private state',assistantBusinessState($pdo)===$before&&$private===$pdo->privateWrites&&$pdo->businessWriteAttempts===0);
+
     $pdo=assistantFixture();
     for ($id=2;$id<=235;++$id) $pdo->mutate("INSERT INTO conversations SELECT ".$id.",customer_id,project_key,source_id,channel,entry_channel,attribution_region,attribution_campaign,status,lead_stage_key,manager_id,started_at,last_message_at,closed_at,external_chat_id,is_test FROM conversations WHERE id=1");
     $before=assistantBusinessState($pdo); $ids=[]; $cursor=null; $pages=0;
@@ -193,12 +212,48 @@ try {
         if (empty($page['ok']) || ++$pages>20) throw new RuntimeException('FAIL pagination unavailable');
         array_push($ids,...array_column($page['items'],'conversation_id')); $cursor=$page['next_cursor'];
     } while ($page['has_more']);
-    assistantCheck('keyset pagination reaches all 235 own active clients without the old 200 cap',$ids===range(235,1) && $pages===12 && $cursor===null);
+    assistantCheck('keyset pagination reaches all 235 own active clients without the old 200 cap',$ids===array_merge([1],range(235,2)) && $pages===12 && $cursor===null);
     assistantCheck('unanalysed clients are honest unavailable rows rather than fabricated work',$page['items'][0]['analysis_state']==='unavailable' && $page['items'][0]['recommendation']===null && $page['coverage']===['scope'=>'own_active','analysis'=>'current_prepared_only'] && assistantBusinessState($pdo)===$before && $pdo->businessWriteAttempts===0);
     $pdo->mutate("INSERT INTO conversation_sources VALUES(9,'Restricted',1,9,'none',NULL,0); UPDATE conversations SET source_id=9 WHERE id>=216");
     $hidden=ManagerAssistantService::listing(1,null,20); $next=ManagerAssistantService::listing(1,$hidden['next_cursor'],20);
-    assistantCheck('a hidden page advances the cursor without leaking inaccessible clients',$hidden['items']===[] && $hidden['has_more'] && $hidden['next_cursor']===216 && array_column($next['items'],'conversation_id')===range(215,196));
-    assistantCheck('invalid page parameters are rejected',(ManagerAssistantService::listing(1,null,21)['error']??'')==='invalid_request' && (ManagerAssistantService::listing(1,0)['error']??'')==='invalid_request');
+    assistantCheck('hidden clients do not consume the priority page or leak through continuation',array_column($hidden['items'],'conversation_id')===array_merge([1],range(215,197)) && $hidden['has_more'] && is_string($hidden['next_cursor']) && array_column($next['items'],'conversation_id')===range(196,177));
+    foreach(['owner'=>"UPDATE conversations SET manager_id=2 WHERE id=1",'inactive actor'=>"UPDATE managers SET is_active=0 WHERE id=1",'revoked source'=>"INSERT INTO conversation_sources VALUES(9,'Restricted',1,9,'none',NULL,0);UPDATE conversations SET source_id=9 WHERE id=1"]as$name=>$sql){
+        $pdo=assistantFixture();$pdo->afterTaskRead=static function(AssistantFixturePdo $db)use($sql):void{$db->mutate($sql);};$raced=ManagerAssistantService::listing(1);
+        assistantCheck('late '.$name.' change cannot disclose an already hydrated page',empty($raced['ok'])&&!isset($raced['items'])&&$pdo->businessWriteAttempts===0);
+    }
+
+    // Continuation is bound to current full authorized operational ordering.
+    foreach([
+        'reply changes priority'=>"INSERT INTO messages VALUES(3,1,'outbound','manager','Answer','2026-10-19 10:02:00','website',NULL,'1','receipt')",
+        'owner changes'=>"UPDATE conversations SET manager_id=2 WHERE id=20",
+        'source access revoked'=>"INSERT INTO conversation_sources VALUES(9,'Restricted',1,9,'none',NULL,0); UPDATE conversations SET source_id=9 WHERE id=20",
+        'task becomes arrived'=>"INSERT INTO lead_tasks VALUES(99,20,'Now due','2000-01-01 10:00:00','open',0,1,1,NULL,NULL,NULL,'2026-10-19 10:00:00','2026-10-19 10:00:00')",
+        'client closed'=>"UPDATE conversations SET status='closed' WHERE id=20"
+    ]as$name=>$sql){
+        $pdo=assistantFixture();for($id=2;$id<=225;++$id)$pdo->mutate("INSERT INTO conversations SELECT $id,customer_id,project_key,source_id,channel,entry_channel,attribution_region,attribution_campaign,status,lead_stage_key,manager_id,started_at,last_message_at,closed_at,external_chat_id,is_test FROM conversations WHERE id=1");
+        $first=ManagerAssistantService::listing(1);$old=$first['next_cursor'];$pdo->mutate($sql);
+        $stale=ManagerAssistantService::listing(1,$old);$fresh=ManagerAssistantService::listing(1);
+        assistantCheck($name.' rejects an old cursor without returning a mixed page',($stale['error']??'')==='list_changed'&&!isset($stale['items'])&&!empty($fresh['ok'])&&$fresh['next_cursor']!==$old);
+    }
+    $pdo=assistantFixture();for($id=2;$id<=25;++$id)$pdo->mutate("INSERT INTO conversations SELECT $id,customer_id,project_key,source_id,channel,entry_channel,attribution_region,attribution_campaign,status,lead_stage_key,manager_id,started_at,last_message_at,closed_at,external_chat_id,is_test FROM conversations WHERE id=1");
+    $reads=$pdo->operationalReads;$first=ManagerAssistantService::listing(1);
+    assistantCheck('only two full-scope metadata statements regardless of page hydration',$pdo->operationalReads-$reads===2);
+    $pdo->mutate("INSERT INTO messages VALUES(3,1,'inbound','customer','Another condition','2026-10-19 10:02:00','website',NULL,'PRIVATE','PRIVATE')");
+    assistantCheck('same-priority traffic cannot starve continuation',!empty(ManagerAssistantService::listing(1,$first['next_cursor'])['ok']));
+    assistantCheck('another actor cannot replay the ordering receipt',(ManagerAssistantService::listing(2,$first['next_cursor'])['error']??'')==='list_changed');
+
+    foreach(['callback','start','bot_started']as$type){
+        $pdo=assistantFixture();$pdo->mutate("UPDATE messages SET metadata_json='{\"type\":\"$type\"}' WHERE id=2; DELETE FROM lead_tasks");
+        assistantCheck($type.' is not an unanswered human message',ManagerAssistantService::detail(1,1)['item']['operational']['awaiting_manager_reply']===false);
+    }
+    foreach(['future'=>"UPDATE lead_tasks SET due_at_utc='2999-01-01 00:00:00'",'completed'=>"UPDATE lead_tasks SET status='done'",'foreign'=>"UPDATE lead_tasks SET assigned_manager_id=2"]as$name=>$sql){
+        $pdo=assistantFixture();$pdo->mutate($sql);$item=ManagerAssistantService::detail(1,1)['item'];
+        assistantCheck($name.' tasks do not become arrived work',$item['operational']['due_task']===false&&($name!=='foreign'||$item['tasks']===[]));
+    }
+    $pdo=assistantFixture();$pdo->mutate('UPDATE lead_tasks SET assigned_manager_id=NULL');
+    assistantCheck('existing unassigned arrived task remains actionable',ManagerAssistantService::detail(1,1)['item']['operational']['due_task']===true);
+
+    assistantCheck('invalid page parameters are rejected',(ManagerAssistantService::listing(1,null,21)['error']??'')==='invalid_request' && (ManagerAssistantService::listing(1,'bad')['error']??'')==='invalid_request');
 
     $endpoint=file_get_contents(dirname(__DIR__).'/manager/assistant-api.php');
     assistantCheck('assistant endpoint requires canonical auth CSRF and POST with closed actions',str_contains($endpoint,"REQUEST_METHOD") && str_contains($endpoint,'requireManager()') && str_contains($endpoint,'requireCsrf($data)') && str_contains($endpoint,"['detail','decision']") && str_contains($endpoint,'unknown_action') && strpos($endpoint,'initializeReadOnly()')<strpos($endpoint,'requireManager()'));

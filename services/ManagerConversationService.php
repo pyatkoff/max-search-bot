@@ -47,8 +47,9 @@ class ManagerConversationService
     }
 
     /** Read state is independent of a recorded manager reply. Callbacks are not customer messages. */
-    private static function awaitingManagerReplySql(string $conversationAlias='c'): string
+    public static function awaitingManagerReplySql(string $conversationAlias='c'): string
     {
+        $conversationAlias=preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/D',$conversationAlias)?$conversationAlias:'c';
         $first=self::awaitingFirstReplySql($conversationAlias);
         $type="COALESCE(JSON_UNQUOTE(JSON_EXTRACT(CASE WHEN JSON_VALID(mc.metadata_json) THEN mc.metadata_json ELSE '{}' END,'$.type')),'message')";
         return "({$conversationAlias}.status='manager' AND ({$first} OR EXISTS (SELECT 1 FROM messages mc WHERE mc.conversation_id={$conversationAlias}.id AND mc.direction='inbound' AND mc.sender_type='customer' AND {$type} NOT IN ('callback','start','bot_started') AND mc.id>COALESCE((SELECT MAX(mo.id) FROM messages mo WHERE mo.conversation_id={$conversationAlias}.id AND mo.direction='outbound' AND mo.sender_type='manager'),0))))";
