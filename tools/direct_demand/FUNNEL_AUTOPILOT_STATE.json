@@ -1,6 +1,6 @@
 {
   "schema": "anytour.funnel.autopilot_state.v1",
-  "updated_at_utc": "2026-10-23T07:08:45.586232+00:00",
+  "updated_at_utc": "2026-10-23T07:13:44.342247+00:00",
   "owner": "direct-demand-funnel",
   "automation": {
     "id": "6ada8f0084888191b12c6619c12fb35c",
@@ -102,9 +102,11 @@
     "scoped_content_review_20261023_07": "DONE",
     "reviewed_content_batch_20261023_08": "DONE",
     "owner_channel_style_review": "PARTIAL_3_MAX_POSTS_2_COVERS_TELEGRAM_HISTORY_PENDING",
-    "owner_canva_visual_reference": "DONE_READ_ONLY_22_PAGE_GRID_AND_PAGE15_DETAILS"
+    "owner_canva_visual_reference": "DONE_READ_ONLY_22_PAGE_GRID_AND_PAGE15_DETAILS",
+    "native_post_reader_capability_review": "DONE_CODE_AND_OFFICIAL_API_ONLY_RUNTIME_RIGHTS_NOT_VERIFIED"
   },
   "next_steps": [
+    "Owner correction: use bots/native saved post registry to expand channel review, not browser login as the primary route. First find an existing authorized read-only execution route to list enabled channel IDs, saved post_versions and a bounded MAX history page; check current bot rights. Do not run worker --run, recover --apply, mutate channel config, replay webhooks or consume Telegram getUpdates. Current code/API capability verified, live access not yet. Prepare old-post→hotel/selection→canonical entry mapping; apply button changes only to concrete authorized posts.",
     "Owner Canva reference resolved: inspect channel-review/canva-owner-reference-20261023.json before making covers.22page grid reviewed; theme15 enlarged with MontserratBold and pastel-blue background. Hotel posts use pages9–12; selections15–16 or19. Produce a few reviewable covers/texts from confirmed photos without altering original source. No new cover created yet. Source template dates/cities/prices do not transfer automatically.",
     "Owner correction23October: prioritize editorial adaptation of shown examples using existing posts and branded covers before more fact-only draft production.3MAXpost texts/2covers reviewed; Telegram/fullMAXhistory still pending. Preserve provenance and do not claim full style/hotel audit. Read channel-review/channel-editorial-review-20261023.json. Owner supplied Canva master is opened/reviewed; use archived22page reference. Existing public channels are reference sources, not authorized new-funnel publication destinations.",
     "Current99drafts (76hotel/23selection); preserve all prior94payloads,40full-name/country content references,5nativeIDs,4covers and3supplier-notice holds.",
@@ -325,6 +327,15 @@
     "canva_source_modified": false,
     "canva_archived_reference": "channel-review/canva-owner-reference-20261023.json",
     "canva_new_covers_generated": 0
+  },
+  "native_post_access_review": {
+    "reviewed_main_sha": "f31769918fb0aadfcc09f9bb2a305111a9c58fc7",
+    "max_history": "Official GET/messages supports admin channel history; existing transport/reconciliation implements bounded reads. Use canonical runtime credentials without exposing them.",
+    "telegram_history": "Use stored post_publications/post_versions observations; Telegram Bot API has no general channel-history/getMessage method. Do not consume live updates with getUpdates while webhook active.",
+    "buttons": "Existing ChannelPostButtonTransport supports text/photos MAX attachments-only PUT and Telegram editMessageReplyMarkup; rights checked. Non-photo media held for attention.",
+    "existing_post_import": "Ordinary reconciliation starts at activation and deliberately excludes older posts. Reading for analysis must not apply recover/import/button worker operations.",
+    "runtime_status": "Not checked: no provider message list, registry rows or current bot rights read in this pass; only current main code and official docs.",
+    "new_funnel_publication_authorized": false
   }
 }
 
