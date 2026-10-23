@@ -1,6 +1,6 @@
 {
   "schema": "anytour.funnel.autopilot_state.v1",
-  "updated_at_utc": "2026-10-23T06:45:16.291154+00:00",
+  "updated_at_utc": "2026-10-23T07:00:51.356386+00:00",
   "owner": "direct-demand-funnel",
   "automation": {
     "id": "6ada8f0084888191b12c6619c12fb35c",
@@ -43,11 +43,11 @@
   "artifacts": {
     "report": {
       "library_file_id": "libfile_81ae550da16881918bb6840b686d507f",
-      "version": 12
+      "version": 13
     },
     "archive": {
       "library_file_id": "libfile_1b69bb58e8d4819186e7ea461ef60cb6",
-      "version": 12
+      "version": 13
     },
     "canonical_hotel_knowledge": {
       "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
@@ -67,6 +67,10 @@
       "latest_batch_member": "funnel-content-batches/20261023-content-08.json",
       "entry_binding_review_member": "funnel-entry-binding-review.json",
       "latest_review_member": "funnel-content-reviews/20261023-content-07-scope-review.json"
+    },
+    "channel_editorial_review": {
+      "archive_member": "channel-review/channel-editorial-review-20261023.json",
+      "status": "BOUNDED_MAX_REVIEW_COMPLETE_TELEGRAM_HISTORY_PENDING"
     }
   },
   "operations": {
@@ -96,9 +100,11 @@
     "reviewed_content_batch_20261023_07": "DONE",
     "saved_72_dto_name_country_audit": "DONE",
     "scoped_content_review_20261023_07": "DONE",
-    "reviewed_content_batch_20261023_08": "DONE"
+    "reviewed_content_batch_20261023_08": "DONE",
+    "owner_channel_style_review": "PARTIAL_3_MAX_POSTS_2_COVERS_TELEGRAM_HISTORY_PENDING"
   },
   "next_steps": [
+    "Owner correction23October: prioritize editorial adaptation of shown examples using existing posts and branded covers before more fact-only draft production.3MAXpost texts/2covers reviewed; Telegram/fullMAXhistory still pending. Preserve provenance and do not claim full style/hotel audit. Read channel-review/channel-editorial-review-20261023.json. Figma link still missing. Existing public channels are reference sources, not authorized new-funnel publication destinations.",
     "Current99drafts (76hotel/23selection); preserve all prior94payloads,40full-name/country content references,5nativeIDs,4covers and3supplier-notice holds.",
     "The35full-name proposals from the saved pass are content-reviewed:28prepared across batches05/06,7held,0pending. Do not recreate or rerun the same full-name pass absent changed sources. New identity evidence is required for held rebrands/comparison/research-only cases.",
     "Saved72DTO vs500name/country audit completed:3exact matches already bound,0newIDs;5prior identities including explicit aliases retained. Inspected release definitions for canonical bridge export/canonical catalogue tests and sync: no ready export artifact declared in these3definitions. Do not rescan same captures/definitions or restart any job. Further catalogue progress needs a new authorized catalogue source/export or newly available supported name discovery; do not infer global export absence.",
@@ -192,7 +198,9 @@
     "wordstat": "Current Wordstat is Yandex Search API. Connected folder and suitable Search API credential not found in available tools/local environment/Direct repository config; other server accounts were not inspected. No frequency requests issued.",
     "catalog_name_discovery": "Legacy hotel-search and provider gateway GET returned403; do not bypass or repeatedly retry unchanged requests.",
     "palma_cover": "Four inspected photos show or belong to El Palacio; no Palma cover selected.",
-    "crystal_prestige_identity": "Saved claim top500_6571cf8381e22724_run04_c05 says the short Crystal Prestige name has only research-level association with Prestige Elite. This candidate was explicitly skipped; no property post or ID assigned."
+    "crystal_prestige_identity": "Saved claim top500_6571cf8381e22724_run04_c05 says the short Crystal Prestige name has only research-level association with Prestige Elite. This candidate was explicitly skipped; no property post or ID assigned.",
+    "telegram_history": "Public t.me/s/anytour returned Site Unavailable via retrieval and browser; no Telegram posts read.",
+    "max_history": "Three public post pages readable; full webMAX requires QR/phone sign-in. Native post buttons not inspected."
   },
   "retry_policy": {
     "blocked_wordstat": "Retry only after a new authorized credential/connector/folder appears; continue content meanwhile.",
@@ -273,9 +281,9 @@
     "each_new_post_has_explicit_eligibility_checks": true
   },
   "last_run_readback": {
-    "own_branch_head_before_write": "7290c4fc366406afca062bd0354b992116252ae4",
+    "own_branch_head_before_write": "ba3d68b9d8b197cc4c527bdfd9763deb8163cc57",
     "source_archive_library_version": 92,
-    "demand_library_versions_before_write": 11,
+    "demand_library_versions_before_write": 12,
     "scope_instructions_read": true,
     "foreign_claims_untouched": true,
     "blocked_catalog_routes_retried": false,
@@ -301,5 +309,16 @@
     "old_name_after_ex_excluded": true,
     "new_native_ids_issued": 0,
     "total_prepared_across_batches_05_06": 28
+  },
+  "editorial_review": {
+    "max_public_post_bodies_read": 3,
+    "original_covers_visually_reviewed": 2,
+    "telegram_post_bodies_read": 0,
+    "full_channel_history_reviewed": false,
+    "drafts_are_fact_grounded_editorial_adaptation_pending": 99,
+    "figma_url_recovery": "NOT_FOUND_IN_BOUNDED_PRIOR_CONTEXT_SEARCH",
+    "old_max_post_read": "404; not associated with public @anytour",
+    "publication_destination_authorized": false
   }
 }
+
