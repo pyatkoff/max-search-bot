@@ -1,6 +1,7 @@
 (function(){
 const W=window.WorkspaceV2;if(!W)return;const {S,$,api}=W;
 let adapter=null,version=0,shortViewport=null,placementBound=false,state={key:'',messages:[],before:0,hasMore:false,gapFrontier:0,paging:false,error:'',flight:null};
+const recoveryPageLimit=10;
 const positive=id=>Number.isSafeInteger(Number(id))&&Number(id)>0;
 function key(){const context=adapter?.capture();return context?JSON.stringify([context.conversationId,context.managerId,context.authGeneration,context.openGeneration]):''}
 function metadata(detail){const h=detail?.history;return h&&typeof h.has_more==='boolean'&&['latest','older'].includes(h.mode)&&Number.isSafeInteger(Number(h.before_id))&&Number(h.before_id)>=0&&Number.isSafeInteger(Number(h.page_size))&&Number(h.page_size)>0&&Number(h.page_size)<=200?h:null}
@@ -24,14 +25,14 @@ function placeControls(root){
  root.classList.toggle('compact',compact);root.classList.toggle('menuAction',!!menu);
  return{compact,menu,focus:moved&&restoreFocus?focused:null};
 }
-function render(){const root=ensureControls(),button=$('conversationLoadOlder'),status=$('conversationHistoryStatus');if(!root)return;const {compact,menu,focus}=placeControls(root),current=state.key&&state.key===key()&&!S.authExpired,visible=!!current&&(state.hasMore||state.paging||!!state.error),text=state.error||(state.paging?'Переписка и ответ остаются доступны.':(Number(S.detail?.read_state?.first_unread_id)>0&&Number(S.detail.read_state.first_unread_id)<Math.min(...state.messages.filter(m=>positive(m.id)).map(m=>Number(m.id))))?'Есть непрочитанные сообщения в предыдущей части. Загрузите историю, чтобы их прочитать.':state.gapFrontier?'Между загруженными частями могут быть сообщения. Загрузите предыдущие, чтобы заполнить промежуток.':'');root.classList.toggle('hidden',!visible||(!!menu&&!text));if(menu)menu.hidden=!visible;if(button){button.disabled=state.paging||!state.hasMore||!adapter?.canLoad();button.textContent=compact?(state.paging?'Загрузка…':state.error?'Повторить':'История'):(state.paging?'Загружаем предыдущие…':state.error?'Повторить загрузку предыдущих':'Загрузить предыдущие сообщения');const label=state.error?'Повторить загрузку предыдущих сообщений':'Загрузить предыдущие сообщения';button.setAttribute('aria-label',label);button.title=label}if(status)status.textContent=text;const scope=$('conversationSearchScope');if(scope&&current&&metadata(S.detail))scope.textContent='Поиск по '+state.messages.length+' загруженным сообщениям. '+(state.hasMore?'Предыдущие сообщения можно загрузить отдельно. ':'')+'Цитаты не проверяются.';if(focus&&visible){if(!menu||focus!==button||!window.Manager2Presentation?.focusConversationTool?.(button.id))focus.focus?.({preventScroll:true})}}
+function render(){const root=ensureControls(),button=$('conversationLoadOlder'),status=$('conversationHistoryStatus');if(!root)return;const {compact,menu,focus}=placeControls(root),current=state.key&&state.key===key()&&!S.authExpired,visible=!!current&&(state.hasMore||state.paging||!!state.error),text=state.error||(state.recovery?'Восстанавливаем пропущенные сообщения. Переписка и ответ доступны.':state.recoveryLimited?'Есть ещё пропущенные сообщения. Продолжите загрузку истории.':state.paging?'Переписка и ответ остаются доступны.':(Number(S.detail?.read_state?.first_unread_id)>0&&Number(S.detail.read_state.first_unread_id)<Math.min(...state.messages.filter(m=>positive(m.id)).map(m=>Number(m.id))))?'Есть непрочитанные сообщения в предыдущей части. Загрузите историю, чтобы их прочитать.':state.gapFrontier?'Между загруженными частями могут быть сообщения. Загрузите предыдущие, чтобы заполнить промежуток.':'');root.classList.toggle('hidden',!visible||(!!menu&&!text));if(menu)menu.hidden=!visible;if(button){button.disabled=state.paging||!!state.recovery||!state.hasMore||!adapter?.canLoad();button.textContent=compact?(state.paging?'Загрузка…':state.error?'Повторить':'История'):(state.paging?'Загружаем предыдущие…':state.error?'Повторить загрузку предыдущих':'Загрузить предыдущие сообщения');const label=state.error?'Повторить загрузку предыдущих сообщений':'Загрузить предыдущие сообщения';button.setAttribute('aria-label',label);button.title=label}if(status)status.textContent=text;const scope=$('conversationSearchScope');if(scope&&current&&metadata(S.detail))scope.textContent='Поиск по '+state.messages.length+' загруженным сообщениям. '+(state.hasMore?'Предыдущие сообщения можно загрузить отдельно. ':'')+'Цитаты не проверяются.';if(focus&&visible){if(!menu||focus!==button||!window.Manager2Presentation?.focusConversationTool?.(button.id))focus.focus?.({preventScroll:true})}}
 function reset(){version++;state={key:'',messages:[],before:0,hasMore:false,gapFrontier:0,paging:false,error:'',flight:null};render()}
 function invalidateReads(){
  const currentKey=key(),previous=state.key&&JSON.parse(state.key),current=currentKey&&JSON.parse(currentKey);
  if(!previous||!current||previous.slice(0,3).some((value,index)=>value!==current[index])){reset();return}
  // Navigation revokes pending work, not the still-visible authorized history.
  // Rebind only this same account/session/conversation to its new open generation.
- version++;state.key=currentKey;state.paging=false;state.flight=null;render();
+ version++;state.key=currentKey;state.paging=false;state.flight=null;state.recovery=null;render();
 }
 function applyLatest(detail,{reset:restart=false,retainLoaded=false}={}){
  const h=metadata(detail),next=sortedUnion(detail?.messages||[]),currentKey=key();if(!h){reset();return next}
@@ -49,15 +50,47 @@ function applyLatest(detail,{reset:restart=false,retainLoaded=false}={}){
  if(h.has_more&&cutoff&&priorMax&&cutoff>priorMax&&!positiveRows.some(m=>priorIds.has(Number(m.id)))&&state.messages.some(m=>priorIds.has(Number(m.id)))){state.gapFrontier=state.gapFrontier||priorMax;state.before=cutoff;state.hasMore=true}
  render();return state.messages;
 }
-async function loadOlder(){
+async function loadOlderPage({automatic=false}={}){
  if(!adapter?.canLoad()||state.key!==key()||!state.hasMore||!positive(state.before))return false;
  if(state.flight)return state.flight;
  const captured=adapter.capture(),capturedVersion=version,record=state,before=state.before,target=Number(S.current);record.paging=true;record.error='';render();
- const current=()=>version===capturedVersion&&state===record&&record.before===before&&adapter.isCurrent(captured)&&record.key===key();
+ const current=()=>version===capturedVersion&&state===record&&record.before===before&&adapter.isCurrent(captured)&&record.key===key()&&(!automatic||adapter.canRecover?.());
  // Revoke stale reads before the transport can apply global auth recovery.
  const work=(async()=>{try{const detail=await api('detail',{conversation_id:target,before_id:before},{isCurrent:current});if(!current())return false;if(!detail?.ok){if([403,404].includes(detail?.http_status))adapter.accessLost();else record.error='Не удалось загрузить предыдущие сообщения. Уже загруженная переписка и черновик сохранены.';return false}const h=metadata(detail),rows=detail.messages;if(Number(detail.conversation?.id)!==target||!h||h.mode!=='older'||!Array.isArray(rows)||rows.length>Number(h.page_size)||Number(h.before_id)!==(rows.length?Math.min(...rows.map(m=>Number(m.id))):0)||rows.some(m=>!positive(m?.id)||Number(m.id)>=before)||Number(h.before_id)>=before||(h.has_more&&!positive(h.before_id))){record.error='Не удалось подтвердить предыдущую часть переписки. Повторите загрузку.';return false}const lower=h.has_more?Number(h.before_id):0,kept=record.messages.filter(m=>!positive(m.id)||Number(m.id)<lower||Number(m.id)>=before);record.messages=sortedUnion([...kept,...rows]);record.before=Number(h.before_id);if(record.gapFrontier&&(!h.has_more||lower<=record.gapFrontier))record.gapFrontier=0;record.hasMore=h.has_more;record.error='';S.detail={...S.detail,messages:record.messages,has_manager_reply:typeof S.detail.has_manager_reply==='boolean'?S.detail.has_manager_reply:detail.has_manager_reply};adapter.render(record.messages,{preserveScroll:true,prepend:true});window.WorkspaceV2Conversation?.acceptReadPage(detail);return true}catch(e){if(current())record.error='Не удалось загрузить предыдущие сообщения. Уже загруженная переписка и черновик сохранены.';return false}})();
  const flight=work.finally(()=>{if(state===record&&record.flight===flight){record.flight=null;record.paging=false;render()}});record.flight=flight;return flight;
 }
+function recoverGap({explicit=false}={}){
+ const record=state;
+ if(record.recovery)return record.recovery.promise;
+ if(!record.gapFrontier||record.key!==key()||!adapter?.canRecover?.()||(!explicit&&(record.error||record.recoveryLimited)))return Promise.resolve(false);
+ const captured=adapter.capture(),capturedVersion=version,flight={promise:null};
+ const current=()=>state===record&&version===capturedVersion&&record.key===key()&&adapter.isCurrent(captured)&&adapter.canRecover();
+ record.recovery=flight;record.recoveryLimited=false;if(explicit)record.error='';render();
+ flight.promise=Promise.resolve().then(async()=>{
+  let pages=0;
+  while(current()&&record.gapFrontier&&!record.error&&pages<recoveryPageLimit){
+   if(record.flight){await record.flight;if(!current()||record.error)return false;continue}
+   const before=record.before;pages++;
+   const loaded=await loadOlderPage({automatic:true});
+   if(!current())return false;
+   // A concurrent latest page can replace this cursor. Retry the new cursor,
+   // never apply the obsolete interval or start a parallel page request.
+   if(!loaded&&(record.error||record.before===before))return false;
+  }
+  if(current()&&record.gapFrontier&&pages===recoveryPageLimit)record.recoveryLimited=true;
+  return current()&&!record.gapFrontier;
+ }).catch(()=>{if(current())record.error='Не удалось восстановить переписку. Уже загруженные сообщения и черновик сохранены.';return false}).finally(()=>{
+  if(record.recovery===flight){record.recovery=null;if(state===record)render()}
+ });
+ return flight.promise;
+}
+function loadOlder(){return state.gapFrontier&&adapter?.canRecover?recoverGap({explicit:true}):loadOlderPage()}
+function pauseRecovery(){
+ if(!state.recovery)return;
+ // Returning to this view must not wait for a disconnected background request.
+ // Its late response remains fenced by the History generation.
+ version++;state.recovery=null;state.flight=null;state.paging=false;render();
+}
 function bind(value){adapter=value;ensureControls();render()}
-window.WorkspaceV2History={bind,reset,invalidateReads,render,applyLatest,loadOlder,getState:()=>({before_id:state.before,has_more:state.hasMore,paging:state.paging,error:state.error,has_gap:!!state.gapFrontier,loaded:state.messages.length})};
+window.WorkspaceV2History={bind,reset,invalidateReads,render,applyLatest,loadOlder,recoverGap,pauseRecovery,getState:()=>({before_id:state.before,has_more:state.hasMore,paging:state.paging,error:state.error,has_gap:!!state.gapFrontier,recovering:!!state.recovery,recovery_limited:!!state.recoveryLimited,loaded:state.messages.length})};
 })();

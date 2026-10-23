@@ -261,6 +261,12 @@ after confirmed progress rather than optimistically hiding every unread badge.
 Hidden tabs/mobile Inbox, failed or superseded reads, account changes and foreign
 owner/supervisor views acknowledge nothing. Failed acknowledgements preserve unread,
 draft/File and the viewport. History with an unavailable unread prefix stays unread
-and offers the existing explicit older-page control. Automatic gap recovery and
-initial navigation to the first unread are the next slice, not established here.
+and offers the existing explicit older-page control. Disjoint latest and retained
+windows now recover their missing interval automatically through the same bounded
+history transport, stopping once the retained frontier is bridged. Recovery keeps
+the reading anchor, message/media DOM, draft and selected files. It pauses while
+hidden, resumes on return or network reconnection, and rejects old context responses.
+A page failure or the ten-page cycle limit requires explicit continuation through
+the existing history control; it never drains untouched older history automatically.
+Initial navigation to the first unread remains the next slice.
 No second transcript/read store, migration or provider delivery/read receipt is added.

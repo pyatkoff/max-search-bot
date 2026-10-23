@@ -73,7 +73,7 @@ function setReplyStatus(text='',kind=''){const el=$('replyStatus');if(!el)return
 function ensureLoadStatus(){let el=$('conversationLoadStatus');if(el)return el;el=document.createElement('div');el.id='conversationLoadStatus';el.className='conversationLoadStatus hidden';el.setAttribute('aria-live','polite');const zone=$('conversationZone'),head=zone?.querySelector('.conversationHead');if(zone&&head)head.insertAdjacentElement('afterend',el);return el}
 function setLoadStatus(text='',kind=''){const el=ensureLoadStatus();if(!el)return;el.textContent=text;el.className='conversationLoadStatus'+(kind?' '+kind:'')+(text?'':' hidden')}
 function setRefreshStatus(text=''){let el=$('conversationRefreshStatus');if(!el&&text){el=document.createElement('div');el.id='conversationRefreshStatus';el.setAttribute('aria-live','polite');const head=$('conversationZone')?.querySelector('.conversationHead');head?.insertAdjacentElement('afterend',el)}if(!el)return;el.textContent=text;el.className='conversationLoadStatus error'+(text?'':' hidden')}
-function setBusy(value){busy=!!value;if(busy)refreshEpoch++;applyInteractionState();window.WorkspaceV2History?.render()}
+function setBusy(value){busy=!!value;if(busy)refreshEpoch++;applyInteractionState();window.WorkspaceV2History?.render();if(!busy)void window.WorkspaceV2History?.recoverGap?.()}
 function lifecycleBlocked(){return !!lifecycleIssue&&!S.authExpired&&lifecycleIssue.target===Number(S.current)&&lifecycleIssue.manager===Number(S.manager?.id)&&lifecycleIssue.auth===S.authGeneration}
 function deliverySuspended(){return String(S.detail?.delivery_failure?.category||'')==='suspended'}
 function applyComposerState(){const suspended=deliverySuspended(),send=$('sendReply'),reply=$('replyText'),file=$('replyFile');if(send){send.disabled=busy||suspended||!!opening||accessLost||lifecycleBlocked();send.textContent=busy?(lifecycleFlight?'Подождите…':'Отправляем…'):'Отправить'}if(reply)reply.disabled=busy||suspended||!!opening||accessLost;if(file)file.disabled=busy||suspended||!!opening||accessLost;document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>{b.disabled=busy||suspended||!!opening||accessLost});const emoji=$('emojiToggle');if(emoji)emoji.disabled=!canInsertEmoji();if(!canInsertEmoji())closeEmojiPicker();window.WorkspaceV2ReplyEditor?.sync()}
@@ -338,7 +338,7 @@ async function refreshVisible(){
     if(actionsChanged)renderActions(c);
     if(choicesChanged)window.WorkspaceV2TourChoices?.enhanceCard(c);
     if(Number(c.manager_id)!==Number(S.manager.id)||c.status!=='manager')clearCurrentReply(target);
-    acceptReadPage(d);return true;
+    acceptReadPage(d);void window.WorkspaceV2History?.recoverGap?.();return true;
   }catch(e){if(stillCurrent())setRefreshStatus('Не удалось обновить переписку. Показаны последние загруженные сообщения.');return false}
   finally{if(refreshPending===flight)refreshPending=null}
 }
@@ -399,6 +399,7 @@ async function open(id,options={}){
   window.WorkspaceV2Inbox?.markActive(target);
   if(window.WorkspaceV2Mobile?.isMobile())window.WorkspaceV2Mobile.conversationOpened(target,{historyMode:options.mobileHistory||'push'});else $('conversationZone').classList.add('open');
   acceptReadPage(d);
+  void window.WorkspaceV2History?.recoverGap?.();
   void leadRequest.then(p=>{
     if(!validContext()||Number(S.current)!==target||Number(S.detail?.conversation?.id)!==target)return;
     if(p?.ok){S.detail.lead=p;window.WorkspaceV2LeadCard?.render(p,S.detail.conversation)}else window.WorkspaceV2LeadCard?.renderUnavailable(S.detail.conversation);
@@ -582,8 +583,8 @@ function bind(){
   if(bound)return;bound=true;
   const form=$('composer'),reply=$('replyText');
   $('messages')?.addEventListener('scroll',scheduleRead,{passive:true});
-  document.addEventListener('visibilitychange',scheduleRead);window.addEventListener('focus',scheduleRead);window.addEventListener('resize',scheduleRead,{passive:true});
-  window.WorkspaceV2History?.bind({capture:historyContext,isCurrent:isCurrentHistory,canLoad:()=>!!S.current&&!S.authExpired&&!busy&&!opening&&!accessLost&&Number(S.detail?.conversation?.id)===Number(S.current),render:renderMessages,accessLost:loseHistoryAccess});
+  document.addEventListener('visibilitychange',()=>{scheduleRead();if(document.visibilityState==='hidden')window.WorkspaceV2History?.pauseRecovery?.()});window.addEventListener('online',()=>{void refreshVisible()});window.addEventListener('focus',scheduleRead);window.addEventListener('resize',scheduleRead,{passive:true});
+  window.WorkspaceV2History?.bind({capture:historyContext,isCurrent:isCurrentHistory,canRecover:canRefreshVisible,canLoad:()=>!!S.current&&!S.authExpired&&!busy&&!opening&&!accessLost&&Number(S.detail?.conversation?.id)===Number(S.current),render:renderMessages,accessLost:loseHistoryAccess});
   bindEmojiPicker();
   window.WorkspaceV2ConversationSearch?.bind();
   $('conversationSearchOpen')?.setAttribute('aria-keyshortcuts','Control+Alt+F');
