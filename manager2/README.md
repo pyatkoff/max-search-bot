@@ -245,3 +245,22 @@ identity-free `/manager2/analytics.php` uses the canonical protected endpoint;
 legacy mutation visibility and ordinary sending remain separate from extended
 reads. See [supervision and analytics](../docs/MANAGER_SUPERVISION_ANALYTICS.md)
 for exact cohort/event/current-state definitions, freshness and grant boundaries.
+
+
+## Explicit personal read acknowledgement
+
+Transcript detail and history requests no longer mark messages read. The current,
+visible, focused conversation records only customer rows actually intersecting its
+viewport and not covered by another surface. `ack_read` uses the existing authenticated
+CSRF transport and a bounded batch of at most200 IDs. Canonical access and the captured
+assignment/project/source/state are rechecked under the conversation lock. The existing
+personal marker advances through actual unread rows only, stopping before any row
+not shown; globally nonconsecutive IDs are valid. Inbox rereads authoritative counts
+after confirmed progress rather than optimistically hiding every unread badge.
+
+Hidden tabs/mobile Inbox, failed or superseded reads, account changes and foreign
+owner/supervisor views acknowledge nothing. Failed acknowledgements preserve unread,
+draft/File and the viewport. History with an unavailable unread prefix stays unread
+and offers the existing explicit older-page control. Automatic gap recovery and
+initial navigation to the first unread are the next slice, not established here.
+No second transcript/read store, migration or provider delivery/read receipt is added.

@@ -60,7 +60,7 @@ test('quick reply is editable appended text, preserves attachments and refuses s
 
 test('next waiting follows only current loaded selection, keeps filters and makes no assignment or pre-read',async()=>{
  const h=await setup(),reads=[],rows=[{id:101,awaiting_manager_reply:1},{id:104,status:'ai',unread_count:2},{id:102,awaiting_manager_reply:1},{id:103,awaiting_first_reply:1}];h.W.S.queue='mine';h.W.S.search='same selection';h.window.WorkspaceV2Inbox.getLoadedSelection=()=>rows;h.window.WorkspaceV2Inbox.markRead=id=>reads.push(id);await h.draft('Saved A');
- assert.equal(await h.C.nextWaiting(),true);assert.equal(h.W.S.current,102);assert.equal(h.W.S.queue,'mine');assert.equal(h.W.S.search,'same selection');assert.deepEqual(reads,[102]);h.C.restoreDraft(101);assert.equal(h.ids.get('replyText').value,'Saved A');assertNoMutations(h);
+ assert.equal(await h.C.nextWaiting(),true);assert.equal(h.W.S.current,102);assert.equal(h.W.S.queue,'mine');assert.equal(h.W.S.search,'same selection');assert.deepEqual(reads,[]);h.C.restoreDraft(101);assert.equal(h.ids.get('replyText').value,'Saved A');assertNoMutations(h);
 });
 
 test('dirty task and revoked access stop next transition without marking the next client read',async()=>{

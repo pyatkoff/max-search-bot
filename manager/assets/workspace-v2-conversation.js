@@ -1,6 +1,40 @@
 (function(){
 const W=window.WorkspaceV2,{S,$,api,pipe,statusText}=W;let bound=false,busy=false,openSeq=0,opening=0,refreshEpoch=0,refreshPending=null,accessLost=false;const drafts=new Map();
 let lifecycleFlight=null,lifecycleIssue=null;
+let readView=null,readTimer=0;
+function acceptReadPage(detail){
+  const state=detail?.read_state,key=JSON.stringify(captureReplyContext());
+  if(!state?.acknowledge||detail.supervisor_read||detail.owner_read){readView=null;return}
+  if(!readView||readView.key!==key||readView.context!==state.context)readView={key,context:state.context,seen:new Set(),last:0,pending:false,attempt:''};
+  readView.last=Math.max(readView.last,Number(state.last_read_message_id)||0);readView.attempt='';scheduleRead();
+}
+function readCurrent(view){return view===readView&&view.key===JSON.stringify(captureReplyContext())&&canRefreshVisible()&&!accessLost&&document.hasFocus?.()!==false&&!S.detail?.supervisor_read&&!S.detail?.owner_read}
+function scheduleRead(){if(readTimer)return;readTimer=setTimeout(()=>{readTimer=0;void acknowledgeShown()},120)}
+async function acknowledgeShown(){
+  const view=readView,box=$('messages');if(!view||!readCurrent(view)||view.pending||!box?.getBoundingClientRect)return;
+  const rect=box.getBoundingClientRect();if(rect.height<=0||rect.width<=0)return;
+  const customer=new Set((S.detail?.messages||[]).filter(m=>m.direction==='inbound'&&m.sender_type==='customer').map(m=>Number(m.id)));
+  for(const node of box.children){
+    const id=Number(node.dataset.scrollMessageKey);if(id<=view.last||!customer.has(id))continue;
+    const r=node.getBoundingClientRect(),top=Math.max(rect.top,r.top,0),bottom=Math.min(rect.bottom,r.bottom,window.innerHeight),left=Math.max(rect.left,r.left,0),right=Math.min(rect.right,r.right,window.innerWidth);
+    if(bottom<=top||right<=left)continue;
+    const hit=document.elementFromPoint?.((left+right)/2,(top+bottom)/2);if(hit&&!node.contains(hit))continue;
+    view.seen.add(id);
+  }
+  const ids=[...view.seen].filter(id=>id>view.last).sort((a,b)=>a-b).slice(0,200),attempt=JSON.stringify(ids);
+  if(!ids.length||view.attempt===attempt)return;view.attempt=attempt;view.pending=true;
+  try{
+    const result=await api('ack_read',{conversation_id:Number(S.current),message_ids:ids,read_context:view.context},{isCurrent:()=>readCurrent(view)});
+    if(!readCurrent(view)||result?.ok!==true||result.read_state?.context!==view.context)return;
+    const previous=view.last;view.last=Math.max(view.last,Number(result.read_state.last_read_message_id)||0);S.detail.read_state=result.read_state;window.WorkspaceV2History?.render();
+    for(const id of view.seen)if(id<=view.last)view.seen.delete(id);
+    if(view.last>previous){
+      // Inbox rereads authoritative counts, including any newer unseen arrival.
+      void Promise.resolve(window.WorkspaceV2Inbox?.load({preserveScroll:true})).catch(()=>{});
+      if(view.seen.size)scheduleRead();
+    }
+  }catch(e){}finally{view.pending=false}
+}
 const replySessionKey='workspaceV2.replySession.v1',draftLifetime=24*60*60*1000,maxStoredDrafts=20,maxStoredDraftLength=20000;
 let replySessionOwner=0,savedSelection=0,draftSequence=0;
 let photoViewer=null;
@@ -117,7 +151,7 @@ function bindEmojiPicker(){
   window.addEventListener('popstate',()=>closeEmojiPicker());
   window.addEventListener('pagehide',()=>closeEmojiPicker());
 }
-function suspendForAuthRecovery(){window.WorkspaceV2ReplyEditor?.close(false);window.WorkspaceV2History?.reset();W.HandoffCancellation?.render($('handoffCancellation'),null);window.WorkspaceV2QuickReplies?.resetSession();window.WorkspaceV2ConversationSearch?.reset();closeEmojiPicker();closePhotoViewer(false);openSeq++;opening=0;refreshEpoch++;if(lifecycleFlight){lifecycleFlight=null;setBusy(false)}clearLifecycleIssue();setRefreshStatus();$('composer')?.classList.add('hidden')}
+function suspendForAuthRecovery(){readView=null;window.WorkspaceV2ReplyEditor?.close(false);window.WorkspaceV2History?.reset();W.HandoffCancellation?.render($('handoffCancellation'),null);window.WorkspaceV2QuickReplies?.resetSession();window.WorkspaceV2ConversationSearch?.reset();closeEmojiPicker();closePhotoViewer(false);openSeq++;opening=0;refreshEpoch++;if(lifecycleFlight){lifecycleFlight=null;setBusy(false)}clearLifecycleIssue();setRefreshStatus();$('composer')?.classList.add('hidden')}
 function resetForIdentityChange(){
   suspendForAuthRecovery();accessLost=false;drafts.clear();savedSelection=0;replySessionOwner=0;removeReplySession();S.current=0;S.detail=null;
   const reply=$('replyText');if(reply)reply.value='';autoGrow();setReplyStatus();setLoadStatus();
@@ -304,7 +338,7 @@ async function refreshVisible(){
     if(actionsChanged)renderActions(c);
     if(choicesChanged)window.WorkspaceV2TourChoices?.enhanceCard(c);
     if(Number(c.manager_id)!==Number(S.manager.id)||c.status!=='manager')clearCurrentReply(target);
-    if(!d.supervisor_read)window.WorkspaceV2Inbox?.markRead(target);return true;
+    acceptReadPage(d);return true;
   }catch(e){if(stillCurrent())setRefreshStatus('Не удалось обновить переписку. Показаны последние загруженные сообщения.');return false}
   finally{if(refreshPending===flight)refreshPending=null}
 }
@@ -362,8 +396,9 @@ async function open(id,options={}){
   if(Number(c.manager_id)!==manager||c.status!=='manager'){drafts.delete(target);persistReplySession();$('replyText').value='';autoGrow();window.WorkspaceV2Media?.clear()}else if(switching)restoreDraft(S.current);
   renderMessages(S.detail.messages||[],{stickToBottom:options.stickToBottom===true||switching,preserveScroll:options.preserveMessageScroll===true&&!switching,resetRows:switching});
   window.WorkspaceV2ConversationSearch?.setState('ready');renderLeadLoading(c);
-  if(!d.supervisor_read)window.WorkspaceV2Inbox?.markRead(target);window.WorkspaceV2Inbox?.markActive(target);
+  window.WorkspaceV2Inbox?.markActive(target);
   if(window.WorkspaceV2Mobile?.isMobile())window.WorkspaceV2Mobile.conversationOpened(target,{historyMode:options.mobileHistory||'push'});else $('conversationZone').classList.add('open');
+  acceptReadPage(d);
   void leadRequest.then(p=>{
     if(!validContext()||Number(S.current)!==target||Number(S.detail?.conversation?.id)!==target)return;
     if(p?.ok){S.detail.lead=p;window.WorkspaceV2LeadCard?.render(p,S.detail.conversation)}else window.WorkspaceV2LeadCard?.renderUnavailable(S.detail.conversation);
@@ -546,6 +581,8 @@ async function sendReply(){
 function bind(){
   if(bound)return;bound=true;
   const form=$('composer'),reply=$('replyText');
+  $('messages')?.addEventListener('scroll',scheduleRead,{passive:true});
+  document.addEventListener('visibilitychange',scheduleRead);window.addEventListener('focus',scheduleRead);window.addEventListener('resize',scheduleRead,{passive:true});
   window.WorkspaceV2History?.bind({capture:historyContext,isCurrent:isCurrentHistory,canLoad:()=>!!S.current&&!S.authExpired&&!busy&&!opening&&!accessLost&&Number(S.detail?.conversation?.id)===Number(S.current),render:renderMessages,accessLost:loseHistoryAccess});
   bindEmojiPicker();
   window.WorkspaceV2ConversationSearch?.bind();
@@ -564,5 +601,5 @@ function bind(){
   reply.addEventListener('keydown',e=>{if(!e.isComposing&&e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();form.requestSubmit()}});
   document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>b.onclick=()=>addQuickReply(b.dataset.reply))
 }
-window.WorkspaceV2Conversation={bind,open,cancelPendingOpen,refreshVisible,captureRefreshContext:historyContext,activateReplySession,rememberSelection,getSavedSelection:()=>savedSelection,getOpenGeneration:()=>openSeq,suspendForAuthRecovery,resetForIdentityChange,refreshLeadData,renderMessages,loadOlder,renderHeader,renderDeliveryFailure,messageTime,sendReply,saveDraft,restoreDraft,setLoadStatus,captureReplyContext,insertQuickReply,insertAiDraft,openSearch,nextWaiting};
+window.WorkspaceV2Conversation={acceptReadPage,bind,open,cancelPendingOpen,refreshVisible,captureRefreshContext:historyContext,activateReplySession,rememberSelection,getSavedSelection:()=>savedSelection,getOpenGeneration:()=>openSeq,suspendForAuthRecovery,resetForIdentityChange,refreshLeadData,renderMessages,loadOlder,renderHeader,renderDeliveryFailure,messageTime,sendReply,saveDraft,restoreDraft,setLoadStatus,captureReplyContext,insertQuickReply,insertAiDraft,openSearch,nextWaiting};
 })();

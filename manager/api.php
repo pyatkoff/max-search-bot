@@ -99,7 +99,6 @@ if($action==='detail'){
     try{
         $d=ManagerConversationService::detail($conversationId,(int)$m['id'],$beforeId,200,false);
         if($d){
-            $lastPageMessageId=$d['messages']?(int)$d['messages'][count($d['messages'])-1]['id']:0;
             $d['messages']=ManagerMessageMediaService::hydrate((array)($d['messages']??[]));
         }
     }catch(Throwable $e){out(['ok'=>false,'error'=>'conversation_load_failed'],500);}
@@ -127,8 +126,15 @@ if($action==='detail'){
     }
     $supervisor=(int)($d['conversation']['manager_id']??0)!==(int)$m['id']&&ManagerSupervisorAccessService::canRead((int)$m['id'],$d['conversation']);
     $d['supervisor_read']=$supervisor;
-    if($beforeId===0&&!$supervisor&&!$capturedSupervisor)ManagerReadService::markRead((int)$m['id'],$conversationId,$lastPageMessageId);
+    $d['read_state']=ManagerReadService::snapshot((int)$m['id'],$d['conversation']);
     out(['ok'=>true]+$d);
+}
+if($action==='ack_read'){
+    $ids=$data['message_ids']??null;$context=$data['read_context']??null;
+    if(!is_array($ids)||!is_string($context))out(['ok'=>false,'error'=>'invalid_read_ack'],422);
+    try{$result=ManagerReadService::acknowledge((int)$m['id'],(int)($data['conversation_id']??0),$ids,$context);}
+    catch(Throwable $e){out(['ok'=>false,'error'=>'read_ack_failed'],500);}
+    out($result,!empty($result['ok'])?200:($result['error']==='invalid_read_ack'?422:409));
 }
 if($action==='take'){
     if(!$isAdmin&&!ManagerAvailabilityService::isWorking((int)$m['id'])) out(['ok'=>false,'error'=>'not_working','error_message'=>'Смена выключена. Начните смену, чтобы взять диалог.'],409);
