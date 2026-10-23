@@ -268,5 +268,13 @@ the reading anchor, message/media DOM, draft and selected files. It pauses while
 hidden, resumes on return or network reconnection, and rejects old context responses.
 A page failure or the ten-page cycle limit requires explicit continuation through
 the existing history control; it never drains untouched older history automatically.
-Initial navigation to the first unread remains the next slice.
+Fresh conversation opening positions the first personal unread customer message
+with preceding context. When it lies outside the recent window, the explicit
+initial read returns bounded context and the actual latest tail (at most200 rows
+combined); the existing gap owner fills their declared interval. No whole-history
+drain is needed before the initial message is shown. Refresh and same-dialogue
+reopening preserve the reader's position; explicit latest still opens the tail.
+Foreign owner/supervisor previews keep latest-window semantics and never seek or
+acknowledge another manager's unread. Initial loading failure and obsolete results
+retain the existing selected dialogue, draft and file guards.
 No second transcript/read store, migration or provider delivery/read receipt is added.

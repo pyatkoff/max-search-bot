@@ -86,6 +86,13 @@ function restore(position,{stickToBottom=false,preserveScroll=false}={}){
   align({syncIntent:false});observeRows();schedule();
 }
 function isFollowingLatest(){onScroll();return followingLatest}
+function scrollToMessage(id){
+  const box=$('messages'),row=box&&[...box.children].find(node=>Number(node.dataset.scrollMessageKey)===Number(id));
+  if(!row)return false;
+  followingLatest=false;smoothJump=false;
+  readingAnchor={row,key:row.dataset.scrollMessageKey||'',offset:Math.min(80,box.clientHeight/4)};
+  align({syncIntent:false});schedule();return true;
+}
 function scrollToLatest({smooth=false}={}){
   const box=$('messages');if(!box)return;followingLatest=true;readingAnchor=null;smoothJump=smooth;
   rememberGeometry(box);box.scrollTo({top:box.scrollHeight,behavior:smooth?'smooth':'auto'});
@@ -114,5 +121,5 @@ function bind(){
   window.addEventListener('resize',schedule,{passive:true});update();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
-window.WorkspaceV2Jump={bind,update,scrollToLatest,distanceFromLatest,capture,restore,isFollowingLatest};
+window.WorkspaceV2Jump={bind,update,scrollToLatest,scrollToMessage,distanceFromLatest,capture,restore,isFollowingLatest};
 })();

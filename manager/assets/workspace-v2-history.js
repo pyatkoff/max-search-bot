@@ -48,6 +48,9 @@ function applyLatest(detail,{reset:restart=false,retainLoaded=false}={}){
  // overlap may skip an unknown number of this conversation's messages.
  const priorIds=new Set(previous.filter(m=>positive(m.id)).map(m=>Number(m.id))),priorMax=priorIds.size?Math.max(...priorIds):0;
  if(h.has_more&&cutoff&&priorMax&&cutoff>priorMax&&!positiveRows.some(m=>priorIds.has(Number(m.id)))&&state.messages.some(m=>priorIds.has(Number(m.id)))){state.gapFrontier=state.gapFrontier||priorMax;state.before=cutoff;state.hasMore=true}
+ // An initial unread response can contain its bounded context and the latest
+ // tail. Repair only the server-declared interval through the existing owner.
+ if(h.mode==='latest'&&positive(h.initial_unread_id)&&positive(h.gap_frontier)&&positive(h.gap_before_id)&&Number(h.initial_unread_id)<=Number(h.gap_frontier)&&Number(h.gap_frontier)<Number(h.gap_before_id)&&[h.initial_unread_id,h.gap_frontier,h.gap_before_id].every(id=>positiveRows.some(m=>Number(m.id)===Number(id)))){state.gapFrontier=Number(h.gap_frontier);state.before=Number(h.gap_before_id);state.hasMore=true}
  render();return state.messages;
 }
 async function loadOlderPage({automatic=false}={}){
