@@ -1,16 +1,16 @@
 {
     "ok": true,
-    "generated_at": "2026-10-23T07:49:45+00:00",
+    "generated_at": "2026-10-23T08:32:08+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 17,
-        "raw_sessions": 17,
+        "sessions": 20,
+        "raw_sessions": 20,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 17,
+            "resolved": 20,
             "unresolved": 0
         },
         "started": 12,
@@ -18,35 +18,37 @@
         "tours_opened": 5,
         "site_opened": 0,
         "post_tour_manager_cta_shown": 0,
-        "manager_requested": 13,
+        "manager_requested": 16,
         "manager_replied": 11,
         "customer_replied_after_manager": 5,
         "phone_received": 0,
         "manager_response": {
             "answered_in_90s": 0,
             "answered_after_90s": 11,
-            "still_unanswered": 0,
+            "still_unanswered": 3,
             "measured_responses": 11,
             "avg_seconds": 22327,
             "max_seconds": 44069
         },
         "drop_points": {
             "manager_replied": 6,
+            "manager_requested": 5,
             "customer_replied_after_manager": 5,
             "collecting_needs": 2,
-            "tours_opened": 2,
-            "manager_requested": 2
+            "tours_opened": 2
         },
         "flags": {
-            "repeated_callback_input": 1
+            "manager_requested_no_reply": 3,
+            "repeated_callback_input": 1,
+            "excessive_turns": 1
         },
         "calendar_day": {
-            "conversations_started": 12,
+            "conversations_started": 15,
             "needs_collected_from_started": 4,
             "tours_opened_from_started": 4,
             "site_opened": 0,
             "post_tour_manager_cta_shown": 0,
-            "manager_requested": 9,
+            "manager_requested": 12,
             "manager_replied": 7,
             "customer_replied_after_manager": 1
         }
