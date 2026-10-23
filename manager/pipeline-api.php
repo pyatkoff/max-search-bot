@@ -66,6 +66,9 @@ if(!$c)ManagerHttp::respond(['ok'=>false,'error'=>'not_found'],404);
 $can=ManagerHttp::canEditConversation($c,$m);
 
 if($action==='detail'){
+    // Authentication, CSRF and conversation access are already checked. A slow
+    // secondary card must not hold up transcript requests in the same session.
+    session_write_close();
     $degraded=[];
     $pipeline=pipelineDetailPart('pipeline',$id,static fn()=>SalesPipelineService::conversationSnapshot($id),['stage'=>null,'stage_history'=>[],'tags'=>[],'outcome'=>['outcome'=>'open']],$degraded);
     $tasks=pipelineDetailPart('tasks',$id,static fn()=>LeadTaskService::listForConversation($id),[],$degraded);
