@@ -1,6 +1,6 @@
 {
   "schema": "anytour.funnel.autopilot_state.v1",
-  "updated_at_utc": "2026-10-23T23:32:49Z",
+  "updated_at_utc": "2026-10-23T23:50:41Z",
   "owner": "direct-demand-funnel",
   "automation": {
     "id": "6ada8f0084888191b12c6619c12fb35c",
@@ -9,7 +9,7 @@
     "timezone": "Europe/Kaliningrad",
     "enabled_verified_at_utc": "2026-10-22T22:39:46.922Z"
   },
-  "status": "PREPARING_NEXT_EXISTING_NHA_TRANG_FIVE_SELECTIONS_AFTER_H11_NATIVE_READ_ACCESS_PENDING",
+  "status": "PREPARING_NEXT_EXISTING_EGYPT_SELECTIONS_AFTER_H12_NATIVE_READ_ACCESS_PENDING",
   "channel": null,
   "scope": {
     "prepare_catalog_matches": true,
@@ -43,11 +43,11 @@
   "artifacts": {
     "report": {
       "library_file_id": "libfile_81ae550da16881918bb6840b686d507f",
-      "version": 44
+      "version": 45
     },
     "archive": {
       "library_file_id": "libfile_1b69bb58e8d4819186e7ea461ef60cb6",
-      "version": 45
+      "version": 46
     },
     "canonical_hotel_knowledge": {
       "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
@@ -87,7 +87,7 @@
     },
     "existing_post_review": {
       "library_file_id": "libfile_25486df816e88191b44ed4051858e99f",
-      "version": 25,
+      "version": 26,
       "preview_member": "existing-post-review/anytour-existing-posts-review-20261023.html",
       "text_review_member": "existing-post-review/manual-text-review-107.json",
       "adaptations_member": "existing-post-review/existing-post-adaptations-12.json",
@@ -396,6 +396,24 @@
       "next_safe_block_member": "existing-post-review/h11/h11-next-safe-block.json",
       "report_section": "h11-existing-selections",
       "private_materials_only_in_library": true
+    },
+    "existing_h12_selection_corrections": {
+      "adaptations_member": "existing-post-review/h12/content.json",
+      "patches_member": "existing-post-review/h12/h12-existing-patches-2.NOT-APPLIED.json",
+      "preflight_member": "existing-post-review/h12/preflight171-current.NOT-APPLIED.json",
+      "map_member": "existing-post-review/h12/h12-existing63-171post-map.NOT-APPLIED.json",
+      "combined_XML_reused_unchanged": "existing-post-review/h8/h8-existing63.INCOMPLETE-DRAFT.xml",
+      "selection_binding_review_member": "existing-post-review/h12/h12-selection-binding-review.NOT-APPLIED.json",
+      "cover_manifest_member": "existing-post-review/h12/h12-cover-manifest.NOT-APPLIED.json",
+      "canonical_claim_reuse_member": "existing-post-review/h12/h12-canonical-claim-reuse.json",
+      "reused_H11_fact_evidence_member": "existing-post-review/h12/h12-reused-h11-evidence.json",
+      "photo_receipts_member": "existing-post-review/h12/h12-photo-receipts.json",
+      "source_read_gaps_member": "existing-post-review/h12/h12-source-read-gaps.json",
+      "lossless_packaging_member": "existing-post-review/h12/lossless-packaging-receipt.PRIVATE.json",
+      "validation_member": "existing-post-review/h12/h12-validation.json",
+      "next_safe_block_member": "existing-post-review/h12/h12-next-safe-block.json",
+      "report_section": "h12-existing-selections",
+      "private_materials_only_in_library": true
     }
   },
   "operations": {
@@ -407,7 +425,7 @@
     "wordstat_access": "BLOCKED_NO_CONNECTED_SEARCH_API_ACCESS",
     "first_post_drafts": "DONE",
     "inactive_feed_templates": "DONE",
-    "active_operation": "NONE_H11_TERMINAL_SAVED_NEXT_PREPARATION_R007_R012",
+    "active_operation": "NONE_H12_TERMINAL_SAVED_NEXT_PREPARATION_R023_R032",
     "catalog_cohort_492_read": "DONE",
     "first_native_catalog_bindings": "DONE",
     "five_additional_posts": "DONE",
@@ -490,18 +508,19 @@
     "existing_h9_selection_corrections": "DONE_3_SELECTION_CAPTIONS_3_OWNER_COVERS_6_EXACT_SAVED_POST_PROPOSALS_UNLINKED_NOT_APPLIED",
     "existing_h9_summary_correction": "DONE_READBACK_FOUND_H8_DELTA_COUNTERS_REBUILT_H9_SUMMARY_AND_SAVED_ARCHIVE_ONLY",
     "existing_h10_selection_corrections": "DONE_4_SELECTION_CAPTIONS_4_OWNER_COVERS_4_EXACT_SAVED_POST_PROPOSALS_UNLINKED_NOT_APPLIED",
-    "existing_h11_selection_corrections": "DONE_3CAPTIONS_3OWNER_COVERS_4SAVED_POSTS_NOT_APPLIED_LIB44_45_25"
+    "existing_h11_selection_corrections": "DONE_3CAPTIONS_3OWNER_COVERS_4SAVED_POSTS_NOT_APPLIED_LIB44_45_25",
+    "existing_h12_selection_corrections": "DONE_2CAPTIONS_2OWNER_COVERS_2SAVED_MAX_POSTS_NOT_APPLIED_LIB45_46_26"
   },
   "next_steps": [
-    "Continue same sole traffic package from saved report44/archive45/preview25. H4–H11 and previous reviews are DONE;no repeated builds/downloads/native experiments for status.",
-    "Next finite block:R007/R012existing five-hotel NhaTrang selections. Read exact members;reuse exact existing Vietnam facts/photos;verify SeasideBoutique identity. Old prices/weather claims not current.",
-    "169saved post candidates represent73subjects/74bodies;94video holds/75text-photo paths.155candidates mapped to63inactive collection drafts;14selection candidates across10subjects remain unlinked. Not published posts,current native readbacks or active destinations.",
-    "Preserve source attachment arrays/order and exact before hashes. Existing completed native edits are not replay candidates;read access does not authorize mass edits or new publication.",
-    "Readonly native/registry request remains PREPARED_NOT_EXECUTED. Wordstat/ASR blockers unchanged;no duplicate export,full CI or prior browser baseline.",
-    "Same report/archive/preview identities and guards44/45/25;canonical hotel source92read-only. Raw posts/media/queries remain private. No production,RK/spend,tourist sends or unauthorized native writes.",
-    "Before appending the next block, resolve archive size budget losslessly:current536590909bytes versus536870912per-file maximum. Do not repeat oversized prepare or discard prior media/evidence. Keep actual saved artifact guards44/45/25."
+    "Continue same sole traffic package from saved report45/archive46/preview26.H4–H12 and previous reviews DONE;no repeat builds/downloads/native experiments for status.",
+    "Next finite block:R023/R032 existing Egypt selections,not yet in current171proposals. Read complete member lists and exact holiday conditions before adapting. Reuse exact canonical facts/photos;no guessed local IDs or selection bindings.",
+    "171saved post candidates represent75subjects/76exact bodies;94video holds/77text-photo paths.155mapped to63inactive collections;16selection candidates across12subjects unlinked. Not published posts,fresh native readbacks or active destinations.",
+    "Preserve original media arrays/order and before hashes. All completed native edits remain DONE. Applicable fresh owner/channel receipt required for any future write;reading or button access does not authorize bulk publication.",
+    "Readonly native/registry request remains PREPARED_NOT_EXECUTED.Wordstat/ASR blockers unchanged;no duplicate export,full CI or prior baseline.",
+    "Same report/archive/preview identities with guards45/46/26;canonical92read-only.Raw posts/media/queries private.No production,RK/spend,tourist sends or unauthorized channel writes.",
+    "Preflight archive budget before next save:535981136bytes versus536870912cap,889776bytes headroom.H12 losslessly changed full-query-analysis.json compression to ZIP_BZIP2;its uncompressed SHA and all901unowned prior members preserved.Evidence deletion and oversized retries forbidden."
   ],
-  "publication_blocker": "165current saved-post proposals NOT_APPLIED:165entry URLs unissued,all165local catalog identities unverified(112explicit source lookup flags),94video transport holds.155targets have63prepared existing collection mappings;10selection targets across7subject drafts remain explicitly unlinked pending exact canonical selection/member scope. All require fresh exact native post/media/buttons/context readback and applicable owner authority. Supplier/season/service/eligibility holds retained;H10adds exactAI/NYE/room/beach conditions. Known-channel reading and two old-post experiments do not authorize new funnel destinations or mass native edits. Safe existing-selection preparation remains available.",
+  "publication_blocker": "171saved-post candidates NOT_APPLIED:171entry URLs unissued,all171local catalog identities unverified(118explicit source lookup flags),94video transport holds/77text-photo paths.155targets have63prepared inactive collection mappings;16selection targets across12subjects remain unlinked pending exact canonical selection/member scope. All require fresh exact native post/media/buttons/context readback and applicable owner authority. Seasonal/package/current-service holds retained;H12 adds Avari actual fitness/spa reopening and exact ArtNest category/alias checks. Known-channel reading and two completed old-post experiments do not authorize new destinations,mass native edits or new publication. Safe existing-selection preparation continues.",
   "coordination": "Own audit/direct-demand-20261022 branch only; no foreign claims, CI, paused hotel tasks or production flows.",
   "completed_preparation": {
     "generated_at_utc": "2026-10-23T06:42:57.737448+00:00",
@@ -1185,6 +1204,53 @@
       "new_IDs": 0,
       "guarded_library_versions": "43/44/24_TO_44/45/25",
       "full_CI_or_unchanged_browser_baselines_repeated": false
+    },
+    "existing_h12": {
+      "all2before_hashes_media_arrays_order_and_buttons_match": true,
+      "two_captions_utf16_under1024": true,
+      "prior169preflight_rows_and63maprows_and14unlinked_rows_unchanged": true,
+      "all171equal155mapped_plus16unlinked": true,
+      "existing63_XML_bytes_unchanged": true,
+      "complete_five_hotel_lists_preserved": true,
+      "canonical_claims_reused": 12,
+      "canonical_profiles_for_evidence_only": 6,
+      "canonical_source92_read_only": true,
+      "new_shared_hotel_profiles": 0,
+      "two1080square_owner_covers": true,
+      "changed_preview_widths": [
+        390,
+        1440
+      ],
+      "disabled_buttons": 2,
+      "enabled_buttons": 0,
+      "loaded_images": 2,
+      "overflow": 0,
+      "selected_source_images_visually_read": 2,
+      "source_photograph_authenticity_not_independently_claimed": true,
+      "prior_photo_reused_byte_identical": 1,
+      "new_selected_ArtNest_room_photo": 1,
+      "unselected_skybar_photo_not_archived": true,
+      "inline_preview_2posts_at320_390_736_pass": true,
+      "current_summary_and_map_deltas_rebuilt_without_prior_batch_counters": true,
+      "Seaside_exact_NhaTrang_not_other_resorts": true,
+      "EmeraldBay_NhaTrang_not_PhuQuoc": true,
+      "GreenBeach_not_GreenWorld": true,
+      "ArtNest_old_Superior_alias_not_autoassigned": true,
+      "Avari_planned_reopening_not_claimed_as_actual": true,
+      "old_prices_departures_universal_board_and_weather_guarantees_removed": true,
+      "QueenAnn_road_crossing_retained_transfer_hold_explicit": true,
+      "archive_members": 933,
+      "new_archive_members": 29,
+      "all901other_prior_members_byte_preserved": true,
+      "lossless_ZIP_BZIP2_method12_only_full_query_analysis_JSON": true,
+      "uncompressed_full_query_JSON_sha256": "7b23b8e778a1fce4379a4c2702c4e13d91a02c7002c9962a4816bfe066d4f83c",
+      "Python_and_InfoZIP6_read_pass": true,
+      "archive_size_bytes": 535981136,
+      "evidence_removed": 0,
+      "channel_writes": 0,
+      "new_IDs": 0,
+      "guarded_library_versions": "44/45/25_TO_45/46/26",
+      "full_CI_or_unchanged_browser_baselines_repeated": false
     }
   },
   "catalog_evidence": {
@@ -1222,26 +1288,26 @@
     "rejected_photos": "Do not select the four saved Palma/El Palacio images again.",
     "working_files": "Use current archive funnel-content-preparation.json as active state. Add only new reviewed inputs with prepare_funnel_content.py --append-drafts. Reusing a completed batch ID with identical bytes skips; different bytes are rejected. Baseline --drafts, package_expanded_funnel.py and historical attach pass can replace/reset newer preparation or report counts; do not rerun them over the active package.",
     "validation_sequence": "Use set -e for dependent preparation/write sequences. Resolve any failed preflight before saving. Batch07's overly broad all-declared assertion found1scope caution;17declarations and that separately labelled caution were reviewed before the Library write. The original completed batch bytes and canonical knowledge kinds were preserved.",
-    "library_archive_size": "Library per-file limit536870912bytes. CurrentZIP536590909bytes;only280003bytes headroom. Preflight proposed archive size before upload. Initial H11 oversized prepare was rejected before invocation;guarded save completed after lossless deflate9 and reuse of exact existing H10 font. Do not retry an oversized request or remove prior evidence; resolve lossless packaging within the same archive identity first."
+    "library_archive_size": "Library per-file limit536870912bytes.CurrentZIP535981136bytes/889776headroom.Preflight before upload.H12 losslessly recompressed existing full-query-analysis.json to standardZIP_BZIP2 method12;uncompressed184186645bytes/SHA7b23b8e778a1fce4379a4c2702c4e13d91a02c7002c9962a4816bfe066d4f83c preserved,Python/InfoZIP6readPASS.All other compression types retained.No prior evidence removed.Current guards45/46/26.No oversized request attempted H12."
   },
   "latest_completed_block": {
-    "name": "H11:three preserved-selection caption/cover drafts for four saved MAX/TG posts;winter,room and FB scope explicit;unlinked contexts",
-    "new_caption_bodies": 3,
-    "new_cover_designs": 3,
-    "new_exact_post_candidates": 4,
-    "total_prepared_subjects": 73,
-    "total_exact_caption_bodies": 74,
-    "total_saved_post_candidates": 169,
-    "total_selection_binding_holds": 14,
+    "name": "H12:two preserved five-hotel NhaTrang selection caption/cover drafts for two saved MAX posts;exact property/room/current service and season scope retained;unlinked contexts",
+    "new_caption_bodies": 2,
+    "new_cover_designs": 2,
+    "new_exact_post_candidates": 2,
+    "total_prepared_subjects": 75,
+    "total_exact_caption_bodies": 76,
+    "total_saved_post_candidates": 171,
+    "total_selection_binding_holds": 16,
     "new_entry_IDs": 0,
     "actual_channel_writes": 0,
     "ready_for_native_write": 0,
     "save_versions": [
-      44,
       45,
-      25
+      46,
+      26
     ],
-    "completed_at_utc": "2026-10-23T23:32:49Z"
+    "completed_at_utc": "2026-10-23T23:50:41Z"
   },
   "catalog_export_lookup": {
     "searched_library_read_only": true,
@@ -1305,15 +1371,15 @@
     "each_new_post_has_explicit_eligibility_checks": true
   },
   "last_run_readback": {
-    "own_branch_head_before_write": "eeb44d500fad301d3d571e7bd35b12e9c511f551",
+    "own_branch_head_before_write": "75ae55991b839fd0a85de3291a59fff6fa3a7be6",
     "same_package_current_executor_handoff": true,
     "coordination_issue55_updated_at_utc": "2026-10-23T23:14:04Z",
     "source_archive_library_version": 92,
     "demand_library_versions_before_write": {
-      "report": 43,
-      "archive": 44
+      "report": 44,
+      "archive": 45
     },
-    "existing_review_preview_version_before_write": 24,
+    "existing_review_preview_version_before_write": 25,
     "foreign_claims_untouched": true,
     "scope_instructions_reused_from_current_same_executor_package": true,
     "root_AGENTS_sha": "a064aff67d42ddd69a12d9b0393501d116d1307d",
@@ -1324,25 +1390,28 @@
     "full_CI_or_unchanged_baseline_repeated": false,
     "wordstat_access_blocker_unchanged": true,
     "blocked_wordstat_retried": false,
-    "current_task": "H11:3selection caption/owner-cover drafts for4saved MAX/TG posts.73subjects/74bodies/169candidates;155mapped to63inactive drafts+14unlinked. Source evidence14post-scoped records,no matching canonical profiles substituted. No channel writes. Owner preview made readable inline.",
+    "current_task": "H12:2five-hotel selection caption/owner-cover drafts for2saved MAX posts.75subjects/76bodies/171candidates;155mapped to63inactive drafts+16unlinked. Canonical12claims/6profiles+5scoped sources+2prior exact hotel fact groups.No channel writes.Readable inline preview2posts.",
     "private_source_materials_committed": false,
     "fresh_native_message_read_performed": false,
     "demand_library_versions_after_write": {
-      "report": 44,
-      "archive": 45
+      "report": 45,
+      "archive": 46
     },
-    "existing_review_preview_version_after_write": 25,
-    "source_main_reviewed_sha": "885dce2b223512bb6bdd007d373b9f908f1af33b",
+    "existing_review_preview_version_after_write": 26,
+    "source_main_reviewed_sha": "f445610e1b60e1b29afbbdcf93f84fc2dc195c95",
     "START_HERE_sha": "43e7827432279012382767de6b6335684c6d54c2",
     "ASR_reexecuted_after_rejection": false,
-    "coordination_latest_comment_id": 6376610131,
-    "latest_coordination_updated_comment_read": 6376610131,
+    "coordination_latest_comment_id": 6376962866,
+    "latest_coordination_updated_comment_read": 6376962866,
     "source_instructions_read_on_current_main": true,
-    "completed_at_utc": "2026-10-23T23:32:49Z",
+    "completed_at_utc": "2026-10-23T23:50:41Z",
     "all_comments_endpoint_failed_transport_twice": true,
     "newest_comments_read_with_bounded_since_API": true,
-    "library_prepare_initial_size_rejected_before_action": true,
-    "library_prepare_size_issue_resolved_by_lossless_archive_compression_and_existing_font_reuse": true
+    "library_prepare_initial_size_rejected_before_action": false,
+    "library_prepare_size_issue_resolved_by_lossless_archive_compression_and_existing_font_reuse": true,
+    "coordination_last_read_comment_at_utc": "2026-10-23T23:42:46Z",
+    "source_instructions_reread_after_constructor_release": true,
+    "lossless_BZIP2_single_JSON_member_preserved_uncompressed_bytes": true
   },
   "latest_source_checks": {
     "read_on": "2026-10-23",
@@ -2596,14 +2665,14 @@
     "prior_video_transport_hold_preserved_for_amended_video_target": true
   },
   "next_preparation_block": {
-    "state": "PENDING_EXACT_NHA_TRANG_FIVE_SELECTIONS",
+    "state": "PENDING_EXACT_EGYPT_SELECTION_READ",
     "source_review_member": "existing-post-review/manual-text-review-107.json",
     "review_ids": [
-      "R007",
-      "R012"
+      "R023",
+      "R032"
     ],
-    "details_member": "existing-post-review/h11/h11-next-safe-block.json",
-    "next_action": "Read exact five-hotel lists;reuse exact scoped Vietnam facts/photos,verify SeasideBoutique identity and other members. Remove old prices and guaranteed autumn weather. Preserve full member lists;keep contexts unlinked unless canonically assigned. No native/Wordstat/ASR replay.",
+    "details_member": "existing-post-review/h12/h12-next-safe-block.json",
+    "next_action": "Read exact Rixos Egypt and NewYear Egypt saved selection membership/season context. Reuse verified exact hotel facts/photos and owner cover style;remove old prices and unsupported wind/heating/gala guarantees. Preserve all original members and unlinked context until canonical binding. Verify current ownership first;no native/Wordstat/ASR replay.",
     "no_subagents": true
   },
   "existing_text_photo_binding44_operation": {
@@ -3829,6 +3898,139 @@
         43,
         44,
         24
+      ],
+      "all_local_metadata_applied": true
+    },
+    "unknown_writes": []
+  },
+  "existing_h12_selection_corrections_operation": {
+    "state": "DONE_TWO_FIVE_HOTEL_SELECTION_DRAFTS_AND_OWNER_COVERS_TWO_SAVED_MAX_PROPOSALS_UNLINKED_NOT_APPLIED",
+    "idempotency_key": "H12-R007-R012-2fivehotelselections2covers2targets-20261024-v1",
+    "completed_at_utc": "2026-10-23T23:50:41Z",
+    "same_executor_continuation": true,
+    "no_subagents": true,
+    "source_demand_archive_version": 45,
+    "source_knowledge_version": 92,
+    "source_snapshot_at_utc": "2026-10-23T07:28:41Z",
+    "source_review_ids": [
+      "R007",
+      "R012"
+    ],
+    "new_selection_caption_bodies": 2,
+    "new_caption_bodies": 2,
+    "source_review_groups": 2,
+    "new_exact_saved_post_candidates": 2,
+    "new_owner_template_cover_designs": 2,
+    "new_PNG_JPG_exports": 4,
+    "canonical_claims_reused": 12,
+    "canonical_profiles_with_reused_facts": 6,
+    "new_scoped_source_records": 5,
+    "prior_exact_hotel_fact_groups_reused": 2,
+    "canonical_source_version_read": 92,
+    "canonical_source_modified": false,
+    "new_shared_hotel_profiles": 0,
+    "total_prepared_subjects": 75,
+    "total_exact_caption_bodies": 76,
+    "total_saved_post_candidates": 171,
+    "current_feed_collections": 63,
+    "mapped_existing_post_candidates": 155,
+    "new_unlinked_selection_subjects": 2,
+    "new_unlinked_selection_post_candidates": 2,
+    "total_unlinked_selection_subjects": 12,
+    "total_unlinked_selection_post_candidates": 16,
+    "new_collection_keys": 0,
+    "newly_reconciled_root_collections": 0,
+    "new_video_holds": 0,
+    "total_video_holds": 94,
+    "total_text_photo_paths": 77,
+    "new_additional_season_program_service_hold_targets": 2,
+    "new_selection_scope_holds": 2,
+    "total_selection_scope_holds": 16,
+    "new_selected_photo_downloads": 1,
+    "existing_photos_reused_byte_identical": 1,
+    "excluded_scratch_only_photo_candidates": 1,
+    "fresh_native_reads": 0,
+    "new_catalog_or_selection_IDs": 0,
+    "new_entry_IDs": 0,
+    "active_destinations": 0,
+    "native_media_arrays_modified": 0,
+    "actual_channel_writes": 0,
+    "ready_for_native_write": 0,
+    "platforms": {
+      "max": 162,
+      "telegram": 9
+    },
+    "adaptations_member": "existing-post-review/h12/content.json",
+    "patches_member": "existing-post-review/h12/h12-existing-patches-2.NOT-APPLIED.json",
+    "preflight_member": "existing-post-review/h12/preflight171-current.NOT-APPLIED.json",
+    "map_member": "existing-post-review/h12/h12-existing63-171post-map.NOT-APPLIED.json",
+    "combined_XML_reused_unchanged": "existing-post-review/h8/h8-existing63.INCOMPLETE-DRAFT.xml",
+    "selection_binding_review_member": "existing-post-review/h12/h12-selection-binding-review.NOT-APPLIED.json",
+    "cover_manifest_member": "existing-post-review/h12/h12-cover-manifest.NOT-APPLIED.json",
+    "canonical_claim_reuse_member": "existing-post-review/h12/h12-canonical-claim-reuse.json",
+    "reused_H11_fact_evidence_member": "existing-post-review/h12/h12-reused-h11-evidence.json",
+    "photo_receipts_member": "existing-post-review/h12/h12-photo-receipts.json",
+    "source_read_gaps_member": "existing-post-review/h12/h12-source-read-gaps.json",
+    "lossless_packaging_member": "existing-post-review/h12/lossless-packaging-receipt.PRIVATE.json",
+    "validation_member": "existing-post-review/h12/h12-validation.json",
+    "next_safe_block_member": "existing-post-review/h12/h12-next-safe-block.json",
+    "report_section": "h12-existing-selections",
+    "private_materials_only_in_library": true,
+    "validation": {
+      "all2before_hashes_media_arrays_order_and_buttons_match": true,
+      "two_captions_utf16_under1024": true,
+      "prior169preflight_rows_and63maprows_and14unlinked_rows_unchanged": true,
+      "all171equal155mapped_plus16unlinked": true,
+      "existing63_XML_bytes_unchanged": true,
+      "complete_five_hotel_lists_preserved": true,
+      "canonical_claims_reused": 12,
+      "canonical_profiles_for_evidence_only": 6,
+      "canonical_source92_read_only": true,
+      "new_shared_hotel_profiles": 0,
+      "two1080square_owner_covers": true,
+      "changed_preview_widths": [
+        390,
+        1440
+      ],
+      "disabled_buttons": 2,
+      "enabled_buttons": 0,
+      "loaded_images": 2,
+      "overflow": 0,
+      "selected_source_images_visually_read": 2,
+      "source_photograph_authenticity_not_independently_claimed": true,
+      "prior_photo_reused_byte_identical": 1,
+      "new_selected_ArtNest_room_photo": 1,
+      "unselected_skybar_photo_not_archived": true,
+      "inline_preview_2posts_at320_390_736_pass": true,
+      "current_summary_and_map_deltas_rebuilt_without_prior_batch_counters": true,
+      "Seaside_exact_NhaTrang_not_other_resorts": true,
+      "EmeraldBay_NhaTrang_not_PhuQuoc": true,
+      "GreenBeach_not_GreenWorld": true,
+      "ArtNest_old_Superior_alias_not_autoassigned": true,
+      "Avari_planned_reopening_not_claimed_as_actual": true,
+      "old_prices_departures_universal_board_and_weather_guarantees_removed": true,
+      "QueenAnn_road_crossing_retained_transfer_hold_explicit": true,
+      "archive_members": 933,
+      "new_archive_members": 29,
+      "all901other_prior_members_byte_preserved": true,
+      "lossless_ZIP_BZIP2_method12_only_full_query_analysis_JSON": true,
+      "uncompressed_full_query_JSON_sha256": "7b23b8e778a1fce4379a4c2702c4e13d91a02c7002c9962a4816bfe066d4f83c",
+      "Python_and_InfoZIP6_read_pass": true,
+      "archive_size_bytes": 535981136,
+      "evidence_removed": 0,
+      "channel_writes": 0,
+      "new_IDs": 0,
+      "guarded_library_versions": "44/45/25_TO_45/46/26",
+      "full_CI_or_unchanged_browser_baselines_repeated": false
+    },
+    "save_receipt": {
+      "report_version": 45,
+      "archive_version": 46,
+      "preview_version": 26,
+      "expected_previous_versions": [
+        44,
+        45,
+        25
       ],
       "all_local_metadata_applied": true
     },
