@@ -1,6 +1,6 @@
 {
   "schema": "anytour.funnel.autopilot_state.v1",
-  "updated_at_utc": "2026-10-23T08:51:55Z",
+  "updated_at_utc": "2026-10-23T09:02:39.192Z",
   "owner": "direct-demand-funnel",
   "automation": {
     "id": "6ada8f0084888191b12c6619c12fb35c",
@@ -124,15 +124,17 @@
     "owner_exact_old_post_edit_library": "DONE_VERSION_17",
     "editorial24_styled_posts": "DONE_20_HOTEL_4_SELECTION_24_COVERS",
     "editorial24_bindings_feed": "DONE_24_BINDINGS_24_INACTIVE_COLLECTIONS_NO_NEW_IDS",
-    "editorial24_save": "DONE_REPORT_ARCHIVE_V18_AND_STANDALONE_PREVIEW"
+    "editorial24_save": "DONE_REPORT_ARCHIVE_V18_AND_STANDALONE_PREVIEW",
+    "existing_posts_first_owner_priority": "RECORDED_REVIEW_AND_ADAPT_BEFORE_NEW_BATCH"
   },
   "next_steps": [
-    "First styled batch DONE in demand artifacts v18:20hotels+4Egypt selections,24real-photo covers,24bindings and owner-format incomplete feed. Reuse editorial24 operation receipt; do not recreate the same batch or issue IDs while channel is undesignated. Await owner review without repeatedly requesting the channel.",
-    "Next finite preparation block: inspect the12native-index groups that already have a fact draft and were not selected in editorial24; retain Galina supplier publication hold. Select exact-property photographs and prepare a bounded second batch only after scoped source review. Sugar Marina Art Karon and Lagoon Villas Naiyang are separate hotels; never transfer photo/fact by brand similarity.",
-    "Remaining55native-name groups need fact grounding before styled post approval. All82groups are indexed, not all approved. Do not rerun completed MAX history export or two-post edit experiment. Telegram scope remains16savedbusinessposts, not full history.",
-    "Keep original99factdrafts,319claimrefs,356inactivefeedrows,99entrybindings,5verifiednativeIDs and3supplierholds. Styled variants reuse facts and do not increase these totals.",
-    "Channel for new funnel remains undesignated. Before any new publication require fresh explicit owner/channel receipt; edit rights and the two completed old-post tests do not grant mass publication/edits,ads,feed activation or spending. Production merge/deploy remains prohibited.",
-    "Wordstat remains BLOCKED_NO_CONNECTED_SEARCH_API_ACCESS. Do not substitute Direct impressions for full Yandex demand, and do not repeat unchanged access failures. Catalog identity joins remain evidence-based, not positional TOP500 joins."
+    "Owner correction23Oct: EXISTING_POST_REUSE_FIRST. Before another new-post batch, substantively review the existing channel materials. Index626businessposts (MAX610 history to API exhaustion;Telegram16saved snapshots only),393distincttextvariants; indexing is not individual content/photo/fact approval. Do not claim full Telegram history.",
+    "Next finite block: review existing dedicated hotel posts and selections starting with163posts covering82Direct-namegroups, then additional TOP500/need-based matches. Deduplicate text for review, but retain each actual post/channel/media/button separately. Record per post: reusable as is / needs text-or-button adaptation / unsuitable-or-stale. Distinguish dedicated hotel posts from broad deals and brand-only mentions.",
+    "Prioritize ready individual hotel posts with matching content and real photographs. Use the already prepared24variants as proposed adaptations; create a new post only when existing materials cannot cover the intended hotel/need. Keep manager first-person authorship and attributed reviews intact; do not treat old price/date/availability or search wording as current property proof.",
+    "Before any authorized actual edit, read back the exact current post/version/media/button/issued context. Use canonical ID/yclid/chat matching only. The completed Turunc MAX and Telegram1751 edits must not be replayed. MAX344video posts retain current transport holds; no bypass. This reprioritization changes preparation order and does not grant mass edits,publication,feed activation,production,RK or spend.",
+    "Record the remaining Telegram history gap separately;16savedbusinesssnapshots do not cover all Telegram posts. Seek an existing permitted read-only source without consuming webhook updates, importing/recovering old posts or creating runtime writes merely for analysis.",
+    "Preserve current24styledvariants,99factdrafts,319claimrefs,356inactivefeedrows,99entrybindings,5verifiednativeIDs and3supplierholds. Library demand artifacts v18 and styled preview remain current; this owner correction is in the canonical funnel checkpoint.",
+    "Channel for new funnel remains undesignated. Existing source channels are references; require fresh explicit owner/channel receipt for new publication. Wordstat remains BLOCKED_NO_CONNECTED_SEARCH_API_ACCESS; no repeated unchanged failures or full Direct exports."
   ],
   "publication_blocker": "New funnel destination channel not explicitly designated by owner; no new posts/entry IDs or active feed destinations. Content/covers/bindings/feed preparation continues.",
   "coordination": "Own audit/direct-demand-20261022 branch only; no foreign claims, CI, paused hotel tasks or production flows.",
@@ -511,6 +513,25 @@
       "remaining_with_prepared_fact_draft": 12,
       "remaining_needing_fact_grounding": 55,
       "all_reference_posts_individually_approved": false
-    }
+    },
+    "followup_priority": "Adapt suitable existing posts first; preserve24variants as source material, not24mandatory new publications."
+  },
+  "owner_reprioritization": {
+    "recorded_at_utc": "2026-10-23T09:02:39.192Z",
+    "owner_instruction": "Сначала изучить и доработать существующие посты в каналах; новые посты — для незакрытых запросов.",
+    "priority": "EXISTING_POST_REUSE_FIRST",
+    "full_manual_review_completed": false,
+    "coverage": {
+      "indexed_business_posts": 626,
+      "max_history_posts": 610,
+      "telegram_saved_posts": 16,
+      "distinct_text_variants": 393,
+      "direct_name_groups": 82,
+      "direct_mention_posts": 163
+    },
+    "telegram_full_history_available": false,
+    "completed_two_post_edit_test_is_not_mass_edit_authorization": true,
+    "existing_24_drafts_retained_as_adaptation_material": true,
+    "new_batch_creation_deferred_until_reuse_gap_identified": true
   }
 }
