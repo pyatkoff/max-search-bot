@@ -19,6 +19,12 @@ on:
         description: 'Exact deployed source SHA; empty uses this workflow SHA'
         required: false
         type: string
+      journey:
+        description: 'Frozen workspace protocol or complete AI reply journey'
+        required: true
+        default: workspace
+        type: choice
+        options: [workspace, reply]
 
 permissions:
   contents: read
@@ -31,6 +37,7 @@ concurrency:
 
 env:
   PRODUCT_SHA: ${{ inputs.product_sha || github.event.pull_request.base.sha || github.sha }}
+  JOURNEY: ${{ inputs.journey || 'reply' }}
 
 jobs:
   input:
@@ -100,13 +107,14 @@ jobs:
           COLD: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft && '1' || '3' }}
         run: >-
           node tools/measure_manager2_browser.js --engine "$ENGINE"
+          --journey "$JOURNEY"
           --widths "$WIDTH"
           --product-sha "$PRODUCT_SHA" --assets measurement-input
           --output measurement-result --samples "$SAMPLES" --warmups "$WARMUPS" --cold "$COLD"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: manager2-measurement-${{ matrix.engine }}-${{ matrix.width }}-${{ github.sha }}
+          name: manager2-measurement-${{ env.JOURNEY }}-${{ matrix.engine }}-${{ matrix.width }}-${{ github.sha }}
           path: measurement-result/
           if-no-files-found: error
           retention-days: 30
