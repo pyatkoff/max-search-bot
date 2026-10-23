@@ -1,6 +1,6 @@
 {
   "schema": "anytour.funnel.autopilot_state.v1",
-  "updated_at_utc": "2026-10-23T04:45:06.549Z",
+  "updated_at_utc": "2026-10-23T05:38:39.887Z",
   "owner": "direct-demand-funnel",
   "automation": {
     "id": "6ada8f0084888191b12c6619c12fb35c",
@@ -43,11 +43,11 @@
   "artifacts": {
     "report": {
       "library_file_id": "libfile_81ae550da16881918bb6840b686d507f",
-      "version": 10
+      "version": 11
     },
     "archive": {
       "library_file_id": "libfile_1b69bb58e8d4819186e7ea461ef60cb6",
-      "version": 10
+      "version": 11
     },
     "canonical_hotel_knowledge": {
       "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
@@ -64,8 +64,9 @@
       "draft_input_member": "funnel-post-drafts-input.json",
       "report_section": "Новые посты и подборки",
       "catalog_review_member": "funnel-catalog-review.json",
-      "latest_batch_member": "funnel-content-batches/20261023-content-06.json",
-      "entry_binding_review_member": "funnel-entry-binding-review.json"
+      "latest_batch_member": "funnel-content-batches/20261023-content-07.json",
+      "entry_binding_review_member": "funnel-entry-binding-review.json",
+      "latest_review_member": "funnel-content-reviews/20261023-content-07-scope-review.json"
     }
   },
   "operations": {
@@ -91,14 +92,17 @@
     "reviewed_content_batch_20261023_05": "DONE",
     "full_name_false_match_guard": "DONE",
     "reviewed_content_batch_20261023_06": "DONE",
-    "supplier_notice_publication_holds": "DONE"
+    "supplier_notice_publication_holds": "DONE",
+    "reviewed_content_batch_20261023_07": "DONE",
+    "saved_72_dto_name_country_audit": "DONE",
+    "scoped_content_review_20261023_07": "DONE"
   },
   "next_steps": [
-    "Current88drafts (76hotel/12selection);31safe original exact-label references and40full-name/country references prepared. Preserve5nativeIDs/4covers, all prior content and3supplier-notice holds.",
+    "Current94drafts (76hotel/18selection); preserve31safe original exact-label references,40full-name/country references,5nativeIDs,4covers and3supplier-notice holds.",
     "The35full-name proposals from the saved pass are content-reviewed:28prepared across batches05/06,7held,0pending. Do not recreate or rerun the same full-name pass absent changed sources. New identity evidence is required for held rebrands/comparison/research-only cases.",
-    "Prioritize native catalogue evidence: audit already saved72nativeDTOs against500name rows and canonical profile names/countries, with explicit full/former names and sections; verify selected real supplied IDs through the supported content-only read if a new candidate emerges. No numeric equality or positional joins. Otherwise use supported read-only existing-export lookup; no paused LOCAL/MATCH jobs or unchanged403 routes.",
-    "Continue remaining24 of36 selected country×need themes using scoped saved facts. Twelve themes now prepared: Egypt heated/sand/reef/family/waterpark/first-line; Turkey first-line/waterpark/family; Vietnam family/waterpark; Thailand first-line. Next prioritize Turkey adults-only/heated-pool and Vietnam first-line if saved exact-property evidence permits; never infer facts from query words.",
-    "Entry review has88rows;3published supplier-notice conditions explicitly require confirmation before publication. All runtime IDs/URLs remain null/inactive; content SHA/draft key are not issued IDs.",
+    "Saved72DTO vs500name/country audit completed:3exact matches already bound,0newIDs;5prior identities including explicit aliases retained. Inspected release definitions for canonical bridge export/canonical catalogue tests and sync: no ready export artifact declared in these3definitions. Do not rescan same captures/definitions or restart any job. Further catalogue progress needs a new authorized catalogue source/export or newly available supported name discovery; do not infer global export absence.",
+    "18of36selected need themes prepared. Latest:Vietnamfirst-line,Turkeyadult-format/heated-pool/sand,Egyptadult-format,Thailandfamily. Continue remaining18 themes with verified saved scope; prioritize winter/family where the existing facts support season and child-age conditions. No requested feature is a hotel fact;16+ is not18+.",
+    "Entry review has94rows;3supplier-notice holds require review before publication. All runtime IDs/URLs null/inactive; content SHA/draft key are not issued IDs.",
     "Find an attributable Palma de Mirette cover through saved official sources. The four El Palacio photos stay excluded.",
     "Retry Wordstat only after a new authorized Search API credential/folder/connector appears. The lack of frequency and channel does not block independent preparation.",
     "Wait for owner channel only for publication and canonical post/entry ID issuance. No real campaigns, paid traffic, production changes or customer sends."
@@ -106,14 +110,14 @@
   "publication_blocker": "Owner will provide channel later. This does not block preparation.",
   "coordination": "Own audit/direct-demand-20261022 branch only; no foreign claims, CI, paused hotel tasks or production flows.",
   "completed_preparation": {
-    "generated_at_utc": "2026-10-23T04:42:36.127309+00:00",
+    "generated_at_utc": "2026-10-23T05:34:07.877783+00:00",
     "direct_candidates": 317,
     "direct_exact_name_references": 32,
     "top500_rows": 500,
     "top500_exact_name_references": 494,
     "verified_catalog_ids": 5,
-    "post_drafts": 88,
-    "source_claim_references": 288,
+    "post_drafts": 94,
+    "source_claim_references": 306,
     "draft_feed_records": 356,
     "upload_ready_feed_records": 0,
     "channel": null,
@@ -122,13 +126,13 @@
     "verified_catalog_source_references": 6,
     "selected_draft_covers": 4,
     "hotel_post_drafts": 76,
-    "thematic_post_drafts": 12,
+    "thematic_post_drafts": 18,
     "direct_observed_full_name_references": 40,
     "supplier_notice_holds": 3
   },
   "validation": {
-    "post_drafts": 88,
-    "claim_references_resolved": 288,
+    "post_drafts": 94,
+    "claim_references_resolved": 306,
     "collection_keys_unique": 356,
     "collection_destinations": 0,
     "selected_cover_records": 4,
@@ -138,15 +142,15 @@
     "provenance_hashes": "PASSED",
     "source_knowledge_modified": false,
     "hotel_post_drafts": 76,
-    "thematic_post_drafts": 12,
+    "thematic_post_drafts": 18,
     "batch_idempotence": "SAME_COMPLETED_BATCH_SKIPS_WITHOUT_MUTATION",
     "prior_catalog_bindings_preserved": 5,
     "prior_cover_photos_preserved": 4,
-    "entry_binding_rows": 88,
-    "entry_binding_payload_hashes": "PASSED_ALL_88",
+    "entry_binding_rows": 94,
+    "entry_binding_payload_hashes": "PASSED_ALL_94",
     "entry_context_ids_issued": 0,
     "entry_destinations_active": 0,
-    "feed_post_pairing": "PASSED_ALL_88",
+    "feed_post_pairing": "PASSED_ALL_94",
     "observed_full_name_links": 40,
     "corrupted_name_country_row_or_native_identity_evidence_rejected": "PASSED_5_CASES",
     "public_preparation_script_compiled": true,
@@ -155,7 +159,11 @@
     "prior_12_full_name_links_preserved": true,
     "supplier_notice_holds": 3,
     "supplier_notice_hold_projection": "PASSED_3_POSTS_AND_BINDING_ROWS",
-    "supplier_notice_claim_scope": "PASSED_OWN_POST_CLAIMS_ONLY"
+    "supplier_notice_claim_scope": "PASSED_OWN_POST_CLAIMS_ONLY",
+    "latest_batch_declared_references": 17,
+    "latest_batch_scope_caution_references": 1,
+    "scope_caution_primary_source_review": "PASSED_WITH_ORIGINAL_KIND_PRESERVED",
+    "new_native_ids": 0
   },
   "catalog_evidence": {
     "requested_ids": 492,
@@ -165,7 +173,16 @@
     "distinct_hotel_identities": 5,
     "source_references_bound": 6,
     "selected_draft_covers": 4,
-    "rejected_sister_hotel_photos": 4
+    "rejected_sister_hotel_photos": 4,
+    "saved_name_country_audit": {
+      "saved_dtos": 72,
+      "top500_name_rows": 500,
+      "exact_matches_already_bound": 3,
+      "new_native_ids": 0,
+      "prior_identities_retained": 5,
+      "scope": "Saved cohort only; no current full-catalogue coverage inference",
+      "capture_hashes_in_private_batch": true
+    }
   },
   "blockers": {
     "channel": "Owner will provide later; preparation continues.",
@@ -178,15 +195,16 @@
     "blocked_wordstat": "Retry only after a new authorized credential/connector/folder appears; continue content meanwhile.",
     "catalog_403": "Do not repeat unchanged rejected legacy discovery routes. Prefer existing completed LOCAL export/artifact; never enumerate guessed IDs.",
     "rejected_photos": "Do not select the four saved Palma/El Palacio images again.",
-    "working_files": "Use current archive funnel-content-preparation.json as active state. Add only new reviewed inputs with prepare_funnel_content.py --append-drafts. Reusing a completed batch ID with identical bytes skips; different bytes are rejected. Baseline --drafts, package_expanded_funnel.py and historical attach pass can replace/reset newer preparation or report counts; do not rerun them over the active package."
+    "working_files": "Use current archive funnel-content-preparation.json as active state. Add only new reviewed inputs with prepare_funnel_content.py --append-drafts. Reusing a completed batch ID with identical bytes skips; different bytes are rejected. Baseline --drafts, package_expanded_funnel.py and historical attach pass can replace/reset newer preparation or report counts; do not rerun them over the active package.",
+    "validation_sequence": "Use set -e for dependent preparation/write sequences. Resolve any failed preflight before saving. Batch07's overly broad all-declared assertion found1scope caution;17declarations and that separately labelled caution were reviewed before the Library write. The original completed batch bytes and canonical knowledge kinds were preserved."
   },
   "latest_completed_block": {
-    "batch_id": "20261023-content-06",
-    "input_sha256": "dae5e7dc697abcb652b6dc713c153fcb7b55712e3f156e6ac7ccb193efa04ce6",
-    "completed_at_utc": "2026-10-23T04:42:36.127309+00:00",
-    "new_drafts": 13,
-    "new_hotels": 13,
-    "new_selections": 0,
+    "batch_id": "20261023-content-07",
+    "input_sha256": "4c4b921ed0ebdea945da5caac49918cf5be3a75ac55574ca5fe6be473858d4fc",
+    "completed_at_utc": "2026-10-23T05:34:07.877783+00:00",
+    "new_drafts": 6,
+    "new_hotels": 0,
+    "new_selections": 6,
     "skipped": [],
     "source_version": 92
   },
@@ -197,12 +215,18 @@
     "blocked_discovery_routes_retried": false,
     "original_owner_csv_library_title_search_matches": 0,
     "read_only_workflow_inspected": "search3-local-hotel-catalog.yml only runs disposable fixture tests; it exports no hotel data.",
-    "workflow_run_lookup": "Generic fetch rejected the workflow-filename route as INVALID_ARGUMENT; no export availability inferred."
+    "workflow_run_lookup": "Generic fetch rejected the workflow-filename route as INVALID_ARGUMENT; no export availability inferred.",
+    "additional_read_only_definitions": [
+      "validate-match-anytour-canonical-bridge-export-v1.yml",
+      "search3-anytour-canonical-catalog.yml",
+      "sync-anytour-catalog.yml"
+    ],
+    "definition_findings": "Two disposable-test workflows and one sync workflow on release/search3-production-ready-v1 declare no ready hotel-export artifact. This is not a complete historical artifact inventory."
   },
   "entry_binding_review": {
-    "prepared_post_rows": 88,
+    "prepared_post_rows": 94,
     "hotel_rows": 76,
-    "selection_rows": 12,
+    "selection_rows": 18,
     "rows_with_verified_hotel_ids": 5,
     "rows_with_selected_covers": 4,
     "issued_context_ids": 0,
@@ -231,17 +255,15 @@
   },
   "thematic_content_coverage": {
     "selected_demand_themes": 36,
-    "prepared_theme_posts": 12,
-    "remaining_theme_posts": 24,
+    "prepared_theme_posts": 18,
+    "remaining_theme_posts": 18,
     "latest_prepared_keys": [
-      "EG_waterpark",
-      "EG_first_line",
-      "TR_first_line",
-      "TR_waterpark",
-      "TR_family",
-      "VN_family",
-      "VN_waterpark",
-      "TH_first_line"
+      "VN_first_line",
+      "TR_adults_only",
+      "TR_heated_pool",
+      "EG_adults_only",
+      "TR_sandy_beach",
+      "TH_family"
     ],
     "facts_reused_from_canonical_archive_version": 92,
     "new_live_property_verification": false,
@@ -249,21 +271,21 @@
     "each_new_post_has_explicit_eligibility_checks": true
   },
   "last_run_readback": {
-    "own_branch_head_before_write": "ad735e1c3ca8ac4adb489315f5f00bc5108769e9",
+    "own_branch_head_before_write": "18c56b7ce1bfa9fb10a371db453d41cadfd5cb94",
     "source_archive_library_version": 92,
-    "demand_library_versions_before_write": 9,
+    "demand_library_versions_before_write": 10,
     "scope_instructions_read": true,
     "foreign_claims_untouched": true,
     "blocked_catalog_routes_retried": false,
     "blocked_wordstat_retried": false,
-    "connected_wordstat_tools": 0,
-    "new_live_source_readbacks": 3
+    "new_live_source_readbacks": 1
   },
   "latest_source_checks": {
-    "scoped_operator_notice_readbacks": 3,
-    "archived_readbacks_total": 4,
+    "scoped_operator_source_readbacks": 1,
+    "archived_post_readbacks": 4,
+    "archived_separate_content_reviews": 1,
     "read_on": "2026-10-23",
-    "details_in_private_batch": true,
+    "details_in_private_review": true,
     "no_current_prices_or_availability_collected": true,
     "hotel_knowledge_archive_modified": false
   },
