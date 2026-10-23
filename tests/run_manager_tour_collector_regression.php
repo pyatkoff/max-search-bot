@@ -1,0 +1,26 @@
+<?php
+declare(strict_types=1);
+require_once __DIR__.'/support/manager-tour-collector.php';
+$pdo=deliveryDb();collectorSchema($pdo);collectorScenarios($pdo);
+require_once dirname(__DIR__).'/services/ManagerTourSelectionShareService.php';
+$pdo=deliveryDb();collectorSchema($pdo);
+$pdo->exec('CREATE TABLE manager_tour_selection_links(conversation_id INTEGER PRIMARY KEY,version INTEGER,token TEXT UNIQUE,publication_id TEXT,is_active INTEGER,updated_by_manager_id INTEGER,updated_at TEXT);CREATE TABLE manager_tour_selection_link_history(conversation_id INTEGER,version INTEGER,publication_id TEXT,is_active INTEGER,manager_id INTEGER,created_at TEXT,PRIMARY KEY(conversation_id,version));');
+$session=str_repeat('1',64);$device=str_repeat('2',32);$connection=str_repeat('3',32);
+$view=ManagerTourSelectionCollectorSession::view(7,1,$session,$device);
+ManagerTourSelectionCollectorSession::connect(7,1,$session,['device_id'=>$device,'connection_id'=>$connection,'binding'=>$view['target']['binding'],'confirm_current_trip'=>true]);
+$observation=collectorObservation();$command=['operation_id'=>'collector-publication-001','connection_id'=>$connection,'observation'=>$observation];
+ManagerTourSelectionService::import(7,1,$session,$command);
+$draft=ManagerTourSelectionService::get(7,1)['selection']['draft'];$draft['offers'][0]['photos']=deliveryDraft()['offers'][0]['photos'];$draft['offers'][0]['amount']='210000';
+deliverySave($draft,1);$built=ManagerTourSelectionPublicationDraft::build($draft);$without=$draft;unset($without['offers'][0]['import_source']);$manual=ManagerTourSelectionPublicationDraft::build($without);
+deliveryCheck('private provenance does not alter native snapshot presentation or creation fence',$built['ok']&&$built['offers'][0]['snapshot']===$manual['offers'][0]['snapshot']&&$built['offers'][0]['presentation']===$manual['offers'][0]['presentation']&&$built['offers'][0]['import_source']['fields']['amount']==='200000');
+$prepared=ManagerTourSelectionDeliveryService::prepare(7,1,2);$publication=$prepared['publication']['id'];
+$q=$pdo->prepare('SELECT selection_json FROM manager_tour_selection_publications WHERE publication_id=?');$q->execute([$publication]);$frozen=$q->fetchColumn();
+$token=str_repeat('f',64);$pdo->prepare('INSERT INTO manager_tour_selection_links VALUES(?,?,?,?,?,?,?)')->execute([1,1,$token,$publication,1,7,gmdate('Y-m-d H:i:s')]);
+$page=ManagerTourSelectionShareService::read($token);$json=json_encode($page,JSON_THROW_ON_ERROR);
+deliveryCheck('public projection excludes raw source quote external IDs original price and exact ages',!str_contains($json,'import_source')&&!str_contains($json,'quote_id')&&!str_contains($json,'200000')&&!str_contains($json,'b2b.fstravel.com')&&!str_contains($json,'child_ages')&&$page['offers'][0]['amount']==='210000');
+$room=$observation;$room['keys']['room']='21';$room['quote_id']='0x'.str_repeat('b',64);$room['offer']['room']=$room['raw']['room']='Family / 2AD';
+ManagerTourSelectionService::import(7,1,$session,array_replace($command,['operation_id'=>'collector-publication-002','observation'=>$room]));
+$q->execute([$publication]);
+deliveryCheck('later imports preserve existing public URL and immutable shown version',ManagerTourSelectionShareService::read($token)===$page&&$q->fetchColumn()===$frozen&&ManagerTourSelectionShareService::get(7,1)['share']['path']==='/selection/?t='.$token);
+deliveryCheck('import and preview still make no native create or confirmed tourist choice',(int)$pdo->query("SELECT COUNT(*) FROM messages WHERE direction='outbound'")->fetchColumn()===0&&(int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE event_type='tour_offer_liked'")->fetchColumn()===0);
+echo "COLLECTOR TOTAL {$checks} PASS\n";
