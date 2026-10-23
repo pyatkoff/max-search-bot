@@ -1,6 +1,6 @@
 {
   "schema": "anytour.funnel.autopilot_state.v1",
-  "updated_at_utc": "2026-10-23T15:38:06.347Z",
+  "updated_at_utc": "2026-10-23T16:10:16.450Z",
   "owner": "direct-demand-funnel",
   "automation": {
     "id": "6ada8f0084888191b12c6619c12fb35c",
@@ -9,7 +9,7 @@
     "timezone": "Europe/Kaliningrad",
     "enabled_verified_at_utc": "2026-10-22T22:39:46.922Z"
   },
-  "status": "PREPARING_EXISTING_POST_BINDINGS_AND_SOURCE_MEDIA_NATIVE_READ_ACCESS_PENDING",
+  "status": "PREPARING_EXISTING_FEED_REUSE_AFTER_ALBUM_MEDIA_REVIEW_NATIVE_READ_ACCESS_PENDING",
   "channel": null,
   "scope": {
     "prepare_catalog_matches": true,
@@ -43,11 +43,11 @@
   "artifacts": {
     "report": {
       "library_file_id": "libfile_81ae550da16881918bb6840b686d507f",
-      "version": 32
+      "version": 33
     },
     "archive": {
       "library_file_id": "libfile_1b69bb58e8d4819186e7ea461ef60cb6",
-      "version": 32
+      "version": 33
     },
     "canonical_hotel_knowledge": {
       "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
@@ -87,7 +87,7 @@
     },
     "existing_post_review": {
       "library_file_id": "libfile_25486df816e88191b44ed4051858e99f",
-      "version": 13,
+      "version": 14,
       "preview_member": "existing-post-review/anytour-existing-posts-review-20261023.html",
       "text_review_member": "existing-post-review/manual-text-review-107.json",
       "adaptations_member": "existing-post-review/existing-post-adaptations-12.json",
@@ -253,7 +253,18 @@
       "image_inventory_member": "existing-post-review/b44-image-inventory.json",
       "source_cover_review_member": "existing-post-review/b44-cover-review.NOT-APPLIED.json",
       "preview_library_file_id": "libfile_25486df816e88191b44ed4051858e99f",
-      "preview_version": 13,
+      "preview_version": 14,
+      "private_evidence_only_in_library": true
+    },
+    "existing_album11_review": {
+      "review_member": "existing-post-review/al11-paired-media-review.NOT-APPLIED.json",
+      "image_receipts_member": "existing-post-review/al11-image-receipts.json",
+      "caption_amendment_member": "existing-post-review/al11-caption-amendments.NOT-APPLIED.json",
+      "recovered_feed_member_receipt": "existing-post-review/al11-existing-feed-member-repair.json",
+      "validation_member": "existing-post-review/al11-final-validation.json",
+      "media_prefix": "existing-post-review/al11-media/",
+      "preview_library_file_id": "libfile_25486df816e88191b44ed4051858e99f",
+      "preview_version": 14,
       "private_evidence_only_in_library": true
     }
   },
@@ -343,14 +354,16 @@
     "media_np08_save": "DONE_REPORT_ARCHIVE_V31_PREVIEW_V12_N08_P08_SAVED_TOGETHER"
   },
   "next_steps": [
-    "Continue the same sole traffic package from this checkpoint. B44saved32/32/13 is DONE;117original proposals unchanged; no subagents or foreign claims/PR/CI.",
-    "Use corrected preflight117-current.json:117exact posts=111MAX+6TG,48exact after-body texts,47adaptation keys and47preview cards.32derived labels corrected.117proposed context bindings remain unassigned;64source identity flags do not imply53verified native IDs.",
-    "B44exact platform/channel/post/before-body matches44/44from historical capture;19hotels+1selection.13known historical registry records require fresh reuse verification;31not captured is not proof of current absence.12hotel knowledge refs reused,7separate saved-source drafts; no local IDs guessed.",
-    "B44native read input and exact SELECT are PREPARED_NOT_EXECUTED.38MAXexact GET+6TGregistry targets. Connected native/runtime executor absent; main does not verify installed SHA. No installs/import/recovery/workers/getUpdates/edit probes/entry issuance.",
-    "Next bounded safe preparation: existing11MAXalbum posts/87photo occurrences/61distinct native references from b44-image-inventory.json. Reuse saved exact evidence before downloads; preserve all photos/order.16single-source covers already read,all branded;7carry time/promo copy. Four TGsource images were not read; no invented media approval.",
-    "All626stored indexed captions582direct/forwarded/392variants and prior33video-source486frame sample pass remain DONE. Full video/audio approval remains pending. ASR automatic-approval rejection stays in force; do not retry/bypass.",
-    "Current Library guards32/32/13; canonical hotel archive92read-only. Original99drafts/356feedrows/99bindings/5verifiedIDs/3supplierholds/24styledvariants/117proposals/12brandedcovers/6sourcecards and video evidence retained. No raw private material on public GitHub.",
-    "Wordstat blocker unchanged; no repeated unchanged access failures or fullDirect export. New publication/bulk live edit/activefeed/RK/spend/tourist sends/production merge or deploy/Metrica remain outside preparation authority."
+    "Continue the same sole traffic package from saved33/33/14. AL11 image-source review and6media previews+1heldset are DONE. No repeat downloads or album review merely for status; no subagents/foreign claims/PR/CI.",
+    "Current selected B44photo scope:38MAXposts/77native refs/114image occurrences have source-image review;4TGimage refs/6post rows do not. Do not expand this to full media approval of626indexed posts.",
+    "Preserve all11original album orders. Three pairs have the same native image set in different order. One visualisation-like set stays held pending actual source-type confirmation. Photo does not prove room occupancy, pool heat, access, season or current availability.",
+    "Use corrected preflight117current with47adaptation keys/48prepared body variants. One explicit paragraph-removal amendment covers6exact prior proposals(5text/photo+1video);original117proposal bytes and original video hold remain. Original47caption cards and7media-review cards count different entities;0ready for native write.",
+    "Next finite safe preparation: reconcile9existing batch draftXML files and declared reuse JSON with117exact-post rows and current media/caption amendment. Retain actual existing collection keys, source names and all identity/video/season/publication holds; no guessed destination or active placeholder URL.",
+    "Previously omitted prepared feed member was restored exactly and is DONE. One existing collection row recovered;0newkeys/IDs/destinations. Original candidate identity/video holds remain. Do not redo old M08speech/source generation.",
+    "B44exact native/registry read request is PREPARED_NOT_EXECUTED.38MAXexactGET+6TGregistry targets; current connected runtime reader insufficient. Fresh registry SELECT alone does not verify current TGkeyboard. No installs,imports,recovery,workers,getUpdates,edit probes or repeated old2post experiments.",
+    "Prior33video-source486frame initial sample review stays DONE but full speech/media review pending. ASR automatic-approval rejection remains; no retry/bypass. Wordstat remains blocked; no repeated unchanged failures/fullDirectexport.",
+    "Current Library guards33/33/14 and canonical hotel archive92read-only. Original99drafts/356feedrows/99bindings/5verifiedIDs/3supplierholds/24styledvariants/117source proposals/12branded covers/6sourcecards remain. Raw query/post/media materials stay private.",
+    "New publication,bulk channel writes,livefeed,RK/spend/tourist sends,production merge/deploy,protectedcontracts/Metrica and foreign schedule/model changes remain outside this preparation action."
   ],
   "publication_blocker": "117proposals remain NOT_APPLIED:117entry URLs not issued,64identity lookup holds,73video transport holds,all require fresh exact native post/context readback and applicable owner authority. New-funnel destination/authority not supplied. All33queued sources now sampled but46post records still require full audiovisual review. Safe preparation of exact read-only binding input remains available; task not fully blocked.",
   "coordination": "Own audit/direct-demand-20261022 branch only; no foreign claims, CI, paused hotel tasks or production flows.",
@@ -821,6 +834,35 @@
       "archive_bytes": 411494532,
       "archive_sha256": "73ef60fc55d635ed0afed6d47df590fb9786397006482d9c77c1502f96b9d726",
       "source_knowledge92_unmodified": true
+    },
+    "existing_album11_review": {
+      "original_image_sha256_checks": "61/61PASS",
+      "original_order_and_exact_target_checks": "11/11PASS",
+      "equal_native_image_set_different_order_pairs": 3,
+      "current_caption_amendment_sha256_checks": "6/6PASS",
+      "old_source_proposal_members_changed": 0,
+      "new_facility_claims": 0,
+      "browser_mobile_width": 390,
+      "browser_desktop_width": 1440,
+      "image_elements_loaded": 62,
+      "unloaded_images": 0,
+      "all54CTA_disabled": true,
+      "source_photo_caption_preview_cards": 6,
+      "held_source_card": 1,
+      "search_partial_and_exact_terms": "PASS",
+      "horizontal_overflow": false,
+      "javascript_errors": 0,
+      "browser_layout_validation_reused_after_text_only_paragraph_removal": true,
+      "zip_crc": "PASS_SOURCE_CRC_AND_FINAL_OWNED_MEMBER_READBACK_REUSE",
+      "archive_members": 577,
+      "archive_bytes": 439860309,
+      "archive_sha256": "47bdcd6ed6d433d4cda9892bc235c1eb7b93a3eeab639992ca06cfd9b440c76c",
+      "omitted_prior_feed_member_restored": true,
+      "restored_feed_XML_parsed": true,
+      "restored_feed_description_hash_matches_existing_reuse": true,
+      "restored_feed_has_no_URL_or_entry": true,
+      "canonical_source92_modified": false,
+      "full_CI_repeated": false
     }
   },
   "catalog_evidence": {
@@ -860,29 +902,33 @@
     "validation_sequence": "Use set -e for dependent preparation/write sequences. Resolve any failed preflight before saving. Batch07's overly broad all-declared assertion found1scope caution;17declarations and that separately labelled caution were reviewed before the Library write. The original completed batch bytes and canonical knowledge kinds were preserved."
   },
   "latest_completed_block": {
-    "name": "B44: exact saved-post binding checks, corrected47adaptation keys, bounded readonly input and16branded source-cover review",
-    "completed_at_utc": "2026-10-23T15:38:06.347Z",
-    "exact_posts": 44,
-    "hotels": 19,
-    "thematic_selections": 1,
-    "historical_registry_records": 13,
-    "not_found_in_historical_registry_capture": 31,
-    "existing_knowledge_hotel_references": 12,
-    "additional_existing_profile_reference_reused": 1,
-    "source_cover_images_visually_read": 16,
-    "source_cover_post_occurrences": 27,
-    "all_source_covers_already_branded": true,
-    "source_covers_with_time_or_promotional_copy": 7,
-    "new_caption_bodies": 0,
-    "new_proposals": 0,
+    "name": "AL11: all selected native album images read; six source-photo/caption review previews, one held set and explicit one-caption refinement",
+    "completed_at_utc": "2026-10-23T16:10:16.450Z",
+    "album_post_rows": 11,
+    "ordered_album_groups": 11,
+    "distinct_image_sets": 8,
+    "distinct_native_image_refs": 61,
+    "source_image_occurrences": 87,
+    "exact_source_image_files_saved": 61,
+    "read_failures": 0,
+    "same_content_different_order_pairs": 3,
+    "source_photo_caption_previews": 6,
+    "held_media_sets": 1,
+    "existing_caption_revision_count": 1,
+    "caption_revision_exact_post_targets": 6,
+    "existing_video_target_still_held": 1,
+    "previously_declared_inactive_feed_member_recovered": 1,
+    "new_feed_collection_keys": 0,
+    "new_cover_images": 0,
     "new_hotel_profiles": 0,
-    "new_runtime_ids": 0,
+    "new_entry_ids": 0,
+    "new_posts": 0,
     "fresh_native_post_reads": 0,
     "channel_writes": 0,
     "save_versions": [
-      32,
-      32,
-      13
+      33,
+      33,
+      14
     ]
   },
   "catalog_export_lookup": {
@@ -947,12 +993,12 @@
     "each_new_post_has_explicit_eligibility_checks": true
   },
   "last_run_readback": {
-    "own_branch_head_before_write": "753e2638317c27bfa385b6f0a9cdd5156080ea3d",
+    "own_branch_head_before_write": "7740c6a6eedd13cff32f0f432fec6a217b7893b2",
     "same_package_current_executor_handoff": true,
-    "coordination_issue55_updated_at_utc": "2026-10-23T15:05:47Z",
+    "coordination_issue55_updated_at_utc": "2026-10-23T15:37:18Z",
     "source_archive_library_version": 92,
-    "demand_library_versions_before_write": 31,
-    "existing_review_preview_version_before_write": 12,
+    "demand_library_versions_before_write": 32,
+    "existing_review_preview_version_before_write": 13,
     "foreign_claims_untouched": true,
     "scope_instructions_reused_from_current_same_executor_package": true,
     "root_AGENTS_sha": "a064aff67d42ddd69a12d9b0393501d116d1307d",
@@ -963,11 +1009,11 @@
     "full_CI_or_unchanged_baseline_repeated": false,
     "wordstat_access_blocker_unchanged": true,
     "blocked_wordstat_retried": false,
-    "current_task": "Owner's repeated 'Дальше' and scheduled continuation explicitly continued the same sole-executor B44 package. One Library batch32/32/13; no duplicate WIP or publication.",
+    "current_task": "Same sole executor continued owner's existing AL11 package through source image review, media pairing, explicit caption refinement and exact inactive feed-member recovery. No second WIP or native publication.",
     "private_source_materials_committed": false,
     "fresh_native_message_read_performed": false,
-    "demand_library_versions_after_write": 32,
-    "existing_review_preview_version_after_write": 13,
+    "demand_library_versions_after_write": 33,
+    "existing_review_preview_version_after_write": 14,
     "source_main_reviewed_sha": "cab4ea70c54de898391456a958b1dbce1576ca88",
     "START_HERE_sha": "43e7827432279012382767de6b6335684c6d54c2",
     "ASR_reexecuted_after_rejection": false
@@ -2105,8 +2151,8 @@
     ]
   },
   "proposal_preflight_operation": {
-    "state": "DONE_DERIVED_LABEL_AND_KEY_NORMALIZATION_CORRECTED",
-    "completed_at_utc": "2026-10-23T15:38:06.347Z",
+    "state": "DONE_WITH_EXPLICIT_SINGLE_CAPTION_AMENDMENT",
+    "completed_at_utc": "2026-10-23T16:10:16.450Z",
     "member": "existing-post-review/preflight117-current.json",
     "unique_exact_post_rows": 117,
     "by_platform": {
@@ -2135,16 +2181,22 @@
     "local_catalog_id_unverified": 117,
     "identity_lookup_holds_are_explicit_original_flags_not_verified_IDs": true,
     "historical_registry_records_found_for44subset": 13,
-    "source_proposals_changed": false
+    "source_proposals_changed": false,
+    "caption_amendment_member": "existing-post-review/al11-caption-amendments.NOT-APPLIED.json",
+    "caption_amendment_target_rows": 6,
+    "original117source_proposals_unchanged": true,
+    "all_current_prepared_body_hashes_verified": true,
+    "prior_video_transport_hold_preserved_for_amended_video_target": true
   },
   "next_preparation_block": {
-    "state": "PENDING_BOUNDED_EXISTING_ALBUM_IMAGE_REVIEW",
-    "source_member": "existing-post-review/b44-image-inventory.json",
-    "exact_album_post_rows": 11,
-    "image_occurrences": 87,
-    "max_distinct_album_image_refs": 61,
-    "next_action": "Reuse exact native/photo-hash receipts before new downloads. Read remaining existing MAX album images and preserve the ordered full albums, keeping brand/style observations separate from hotel/room/season proof. No new covers, IDs or channel writes inferred.",
-    "native_request_dependency": "B44readonly request is already PREPARED. Execute only if a sufficient existing read-only runtime path becomes available and installed source/project/channel guards are freshly verified; otherwise keep precise blocker and do not redo preparation or full history."
+    "state": "PENDING_RECONCILE_EXISTING_BATCH_FEEDS_WITH_CORRECTED_POST_REUSE_PLAN",
+    "source_preflight_member": "existing-post-review/preflight117-current.json",
+    "source_media_review_member": "existing-post-review/al11-paired-media-review.NOT-APPLIED.json",
+    "caption_amendment_member": "existing-post-review/al11-caption-amendments.NOT-APPLIED.json",
+    "known_existing_batch_XML_files": 9,
+    "next_action": "Read actual existing XML and declared reuse JSON before building one inactive consistency index: source collection key/name/body hash, exact eligible post refs, selection/hotel scope, saved media refs and all holds. Reuse keys and explicit caption amendment; do not duplicate collections or infer hotel/source/post IDs by position. Recovered prior XML is DONE, not a new generation.",
+    "no_publication_destination_choice_or_entry_issuance_authorized": true,
+    "native_read_dependency": "B44bounded read-only request already prepared. Execute only with sufficient existing private readonly capability and fresh installed/project/channel guards. Do not repeat full history/access failures or install a new reader."
   },
   "existing_text_photo_binding44_operation": {
     "state": "DONE_OFFLINE_PREPARATION_NATIVE_READ_NOT_EXECUTED",
@@ -2231,5 +2283,97 @@
     "source_covers_changed": 0,
     "new_facts_from_images": 0,
     "channel_writes": 0
+  },
+  "existing_album11_review_operation": {
+    "state": "DONE_SELECTED_ALBUM_SOURCE_IMAGES_READ_AND_MEDIA_PREVIEWS_SAVED",
+    "idempotency_key": "AL11-61nativeimages-11orderedalbums-sixpairedpreviews-onehold-20261023-v1",
+    "completed_at_utc": "2026-10-23T16:10:16.450Z",
+    "source_demand_archive_version": 32,
+    "source_knowledge_version": 92,
+    "same_executor_owner_continuation": true,
+    "no_subagents": true,
+    "selected_album_post_rows": 11,
+    "ordered_album_groups": 11,
+    "distinct_unordered_content_sets": 8,
+    "image_occurrences": 87,
+    "distinct_native_source_refs": 61,
+    "exact_byte_distinct_files": 61,
+    "source_files_saved": 61,
+    "source_read_failures": 0,
+    "source_images_visually_read_on_ordered_sheets": 61,
+    "sheet_images_per_source_resolution_px": 480,
+    "full_resolution_originals_retained": true,
+    "same_content_different_order_pairs": 3,
+    "same_order_reuse_pairs": 0,
+    "original_native_album_orders_preserved": 11,
+    "source_images_changed": 0,
+    "visual_identity_does_not_assign_local_catalog_ids": true,
+    "selected_source_caption_media_previews": 6,
+    "held_media_sets": 1,
+    "visually_suspected_render_assets": 6,
+    "confirmed_render_source_classifications": 0,
+    "existing_caption_bodies_reused_unchanged": 6,
+    "existing_caption_revision_count": 1,
+    "caption_revision_action": "Remove one internal production paragraph through explicit derived amendment; no new facility/price/season facts.",
+    "caption_revision_exact_post_targets": 6,
+    "caption_revision_text_photo_targets": 5,
+    "caption_revision_video_targets_with_original_hold_preserved": 1,
+    "original117source_proposal_members_unchanged": true,
+    "original99drafts356feedrows99bindings_unchanged": true,
+    "derived_current_preflight_rows_refined": 6,
+    "distinct_prepared_after_bodies_still": 48,
+    "distinct_adaptation_keys_still": 47,
+    "original_caption_cards_still": 47,
+    "new_media_review_cards": 7,
+    "all_prepared_CTA_buttons_disabled": 54,
+    "previously_declared_feed_member_repair": {
+      "state": "DONE_EXISTING_LOCAL_PREPARED_BYTES_RESTORED_TO_ARCHIVE",
+      "source_member": "existing-post-review/m08-existing-feed-1.INCOMPLETE-DRAFT.xml",
+      "repair_member": "existing-post-review/al11-existing-feed-member-repair.json",
+      "restored_collection_rows": 1,
+      "new_collection_keys": 0,
+      "new_caption_bodies": 0,
+      "bytes_preserved_exactly": true,
+      "identity_hold": true,
+      "video_transport_hold": true,
+      "active_destination": false,
+      "new_entry_id": false,
+      "ASR_reexecuted": false
+    },
+    "combined_selected_B44_MAX_native_image_refs_read": 77,
+    "combined_selected_B44_MAX_image_occurrences_read": 114,
+    "combined_selected_B44_MAX_post_rows_with_source_image_review": 38,
+    "remaining_B44_Telegram_image_refs_without_review": 4,
+    "remaining_B44_Telegram_post_rows_without_image_read": 6,
+    "all626channel_post_media_reviewed": false,
+    "full_native_or_physical_facility_approval_claimed": false,
+    "fresh_native_message_reads": 0,
+    "production_database_reads": 0,
+    "new_local_catalog_ids": 0,
+    "new_entry_ids": 0,
+    "new_posts": 0,
+    "actual_channel_writes": 0,
+    "live_feed_uploads": 0,
+    "shared_knowledge_modified": false,
+    "ASR_reexecuted_after_rejection": false,
+    "unknown_writes": [],
+    "save_receipt": {
+      "report_version": 33,
+      "archive_version": 33,
+      "preview_version": 14,
+      "expected_previous_demand_versions": 32,
+      "expected_previous_preview_version": 13,
+      "all_local_metadata_applied": true
+    },
+    "limitations": [
+      "All source images were read at contact-sheet resolution with full-size originals retained; no forensic image authenticity, native current-post readback or physical hotel verification.",
+      "Three pairs share native image sets but have different order; they remain eleven separate native albums.",
+      "The held source set looks like architectural visualisations. Source type remains unconfirmed; no current real-facility image claim.",
+      "Same or similar visual scenes with different native IDs and different file hashes were not merged as exact duplicates.",
+      "Six media previews reuse original source images; one prior caption is refined through an explicit amendment. No new marketing covers or native posts.",
+      "Four Telegram image refs/sixpost rows still have no source download path in the capture. No BotAPI getFile/getUpdates/probe or webhook change inferred.",
+      "B44readonly native/registry request remains PREPARED_NOT_EXECUTED due insufficient connected runtime read capability; no source install/config/secret change.",
+      "Publication,bulk live edit,production/RK/spend authority unchanged."
+    ]
   }
 }
