@@ -1,6 +1,6 @@
 {
   "schema": "anytour.funnel.autopilot_state.v1",
-  "updated_at_utc": "2026-10-23T16:10:16.450Z",
+  "updated_at_utc": "2026-10-23T16:47:21.365Z",
   "owner": "direct-demand-funnel",
   "automation": {
     "id": "6ada8f0084888191b12c6619c12fb35c",
@@ -43,11 +43,11 @@
   "artifacts": {
     "report": {
       "library_file_id": "libfile_81ae550da16881918bb6840b686d507f",
-      "version": 33
+      "version": 34
     },
     "archive": {
       "library_file_id": "libfile_1b69bb58e8d4819186e7ea461ef60cb6",
-      "version": 33
+      "version": 34
     },
     "canonical_hotel_knowledge": {
       "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
@@ -87,7 +87,7 @@
     },
     "existing_post_review": {
       "library_file_id": "libfile_25486df816e88191b44ed4051858e99f",
-      "version": 14,
+      "version": 15,
       "preview_member": "existing-post-review/anytour-existing-posts-review-20261023.html",
       "text_review_member": "existing-post-review/manual-text-review-107.json",
       "adaptations_member": "existing-post-review/existing-post-adaptations-12.json",
@@ -266,6 +266,13 @@
       "preview_library_file_id": "libfile_25486df816e88191b44ed4051858e99f",
       "preview_version": 14,
       "private_evidence_only_in_library": true
+    },
+    "existing_batch_feed_consistency": {
+      "index_member": "existing-post-review/f09-existing-feed-consistency.NOT-APPLIED.json",
+      "combined_XML_member": "existing-post-review/f09-existing-feed-36.INCOMPLETE-DRAFT.xml",
+      "validation_member": "existing-post-review/f09-validation.PRIVATE.json",
+      "report_section": "f09-feed-consistency",
+      "private_materials_only_in_library": true
     }
   },
   "operations": {
@@ -902,33 +909,19 @@
     "validation_sequence": "Use set -e for dependent preparation/write sequences. Resolve any failed preflight before saving. Batch07's overly broad all-declared assertion found1scope caution;17declarations and that separately labelled caution were reviewed before the Library write. The original completed batch bytes and canonical knowledge kinds were preserved."
   },
   "latest_completed_block": {
-    "name": "AL11: all selected native album images read; six source-photo/caption review previews, one held set and explicit one-caption refinement",
-    "completed_at_utc": "2026-10-23T16:10:16.450Z",
-    "album_post_rows": 11,
-    "ordered_album_groups": 11,
-    "distinct_image_sets": 8,
-    "distinct_native_image_refs": 61,
-    "source_image_occurrences": 87,
-    "exact_source_image_files_saved": 61,
-    "read_failures": 0,
-    "same_content_different_order_pairs": 3,
-    "source_photo_caption_previews": 6,
-    "held_media_sets": 1,
-    "existing_caption_revision_count": 1,
-    "caption_revision_exact_post_targets": 6,
-    "existing_video_target_still_held": 1,
-    "previously_declared_inactive_feed_member_recovered": 1,
-    "new_feed_collection_keys": 0,
-    "new_cover_images": 0,
-    "new_hotel_profiles": 0,
-    "new_entry_ids": 0,
-    "new_posts": 0,
-    "fresh_native_post_reads": 0,
+    "name": "F09: 36 existing inactive collections reconciled with88exact saved post candidates;29remaining targets isolated",
+    "completed_at_utc": "2026-10-23T16:47:21.365Z",
+    "collection_rows": 36,
+    "covered_exact_post_targets": 88,
+    "remaining_post_targets": 29,
+    "new_collection_keys": 0,
+    "caption_amendment_targets": 6,
+    "ready_for_import": 0,
     "channel_writes": 0,
     "save_versions": [
-      33,
-      33,
-      14
+      34,
+      34,
+      15
     ]
   },
   "catalog_export_lookup": {
@@ -993,12 +986,12 @@
     "each_new_post_has_explicit_eligibility_checks": true
   },
   "last_run_readback": {
-    "own_branch_head_before_write": "7740c6a6eedd13cff32f0f432fec6a217b7893b2",
+    "own_branch_head_before_write": "2f36a49671a7d2814b538e7e8a035b11f5735dd1",
     "same_package_current_executor_handoff": true,
-    "coordination_issue55_updated_at_utc": "2026-10-23T15:37:18Z",
+    "coordination_issue55_updated_at_utc": "2026-10-23T16:28:06Z",
     "source_archive_library_version": 92,
-    "demand_library_versions_before_write": 32,
-    "existing_review_preview_version_before_write": 13,
+    "demand_library_versions_before_write": 33,
+    "existing_review_preview_version_before_write": 14,
     "foreign_claims_untouched": true,
     "scope_instructions_reused_from_current_same_executor_package": true,
     "root_AGENTS_sha": "a064aff67d42ddd69a12d9b0393501d116d1307d",
@@ -1009,12 +1002,12 @@
     "full_CI_or_unchanged_baseline_repeated": false,
     "wordstat_access_blocker_unchanged": true,
     "blocked_wordstat_retried": false,
-    "current_task": "Same sole executor continued owner's existing AL11 package through source image review, media pairing, explicit caption refinement and exact inactive feed-member recovery. No second WIP or native publication.",
+    "current_task": "F09 same traffic preparation package:9actual XMLs ->36existing keys ->88exact saved target candidates; remaining29targets kept explicit. No native read/write or publication.",
     "private_source_materials_committed": false,
     "fresh_native_message_read_performed": false,
-    "demand_library_versions_after_write": 33,
-    "existing_review_preview_version_after_write": 14,
-    "source_main_reviewed_sha": "cab4ea70c54de898391456a958b1dbce1576ca88",
+    "demand_library_versions_after_write": 34,
+    "existing_review_preview_version_after_write": 15,
+    "source_main_reviewed_sha": "2334ed3b14ccadd9a9c1a6ff4c90615e855a7e68",
     "START_HERE_sha": "43e7827432279012382767de6b6335684c6d54c2",
     "ASR_reexecuted_after_rejection": false
   },
@@ -2189,14 +2182,10 @@
     "prior_video_transport_hold_preserved_for_amended_video_target": true
   },
   "next_preparation_block": {
-    "state": "PENDING_RECONCILE_EXISTING_BATCH_FEEDS_WITH_CORRECTED_POST_REUSE_PLAN",
-    "source_preflight_member": "existing-post-review/preflight117-current.json",
-    "source_media_review_member": "existing-post-review/al11-paired-media-review.NOT-APPLIED.json",
-    "caption_amendment_member": "existing-post-review/al11-caption-amendments.NOT-APPLIED.json",
-    "known_existing_batch_XML_files": 9,
-    "next_action": "Read actual existing XML and declared reuse JSON before building one inactive consistency index: source collection key/name/body hash, exact eligible post refs, selection/hotel scope, saved media refs and all holds. Reuse keys and explicit caption amendment; do not duplicate collections or infer hotel/source/post IDs by position. Recovered prior XML is DONE, not a new generation.",
-    "no_publication_destination_choice_or_entry_issuance_authorized": true,
-    "native_read_dependency": "B44bounded read-only request already prepared. Execute only with sufficient existing private readonly capability and fresh installed/project/channel guards. Do not repeat full history/access failures or install a new reader."
+    "state": "PENDING_READ_ROOT356_EDITORIAL24_FOR_REMAINING11_EXISTING_SUBJECTS",
+    "post_target_count": 29,
+    "subject_key_count": 11,
+    "next_action": "Read actual root356 feed records, editorial24 and original12 adaptation/claim references. Resolve only explicit stable key/subject/claim evidence; preserve separate properties and variants, reuse existing keys, do not infer native hotel IDs or make active destinations. F09 nine-batch reconcile is DONE; B44 current-native readonly dependency remains prepared but unexecuted."
   },
   "existing_text_photo_binding44_operation": {
     "state": "DONE_OFFLINE_PREPARATION_NATIVE_READ_NOT_EXECUTED",
@@ -2374,6 +2363,69 @@
       "Four Telegram image refs/sixpost rows still have no source download path in the capture. No BotAPI getFile/getUpdates/probe or webhook change inferred.",
       "B44readonly native/registry request remains PREPARED_NOT_EXECUTED due insufficient connected runtime read capability; no source install/config/secret change.",
       "Publication,bulk live edit,production/RK/spend authority unchanged."
+    ]
+  },
+  "existing_batch_feed_consistency_operation": {
+    "state": "DONE_EXISTING_NINE_BATCH_XMLS_RECONCILED_INACTIVE",
+    "idempotency_key": "F09-36existingcollections-88exacttargets-29remaining-20261023-v1",
+    "completed_at_utc": "2026-10-23T16:47:21.365Z",
+    "source_demand_version": 33,
+    "source_knowledge_version": 92,
+    "same_executor_continuation": true,
+    "no_subagents": true,
+    "source_XML_files": 9,
+    "distinct_existing_collection_keys": 36,
+    "new_collection_keys": 0,
+    "covered_adaptation_keys": 36,
+    "covered_exact_post_targets": 88,
+    "unlinked_to_these_batches_adaptation_keys": 11,
+    "unlinked_to_these_batches_post_targets": 29,
+    "hotel_collections": 33,
+    "selection_collections": 3,
+    "explicit_existing_caption_amendment_targets": 6,
+    "source_photo_pairing_subjects": 7,
+    "original_description_equals_source_caption_rows": 2,
+    "source_XML_descriptions_preserved": true,
+    "unequal_feed_description_and_caption_not_treated_as_conflict": true,
+    "original117proposal_members_unchanged": true,
+    "root356_and_editorial24_feeds_unchanged": true,
+    "all_source_holds_retained": true,
+    "publication_destination_selected": false,
+    "fresh_native_reads": 0,
+    "new_local_hotel_ids": 0,
+    "new_entry_ids": 0,
+    "active_destinations": 0,
+    "channel_writes": 0,
+    "live_campaign_writes": 0,
+    "ready_for_import": 0,
+    "unknown_writes": [],
+    "index_member": "existing-post-review/f09-existing-feed-consistency.NOT-APPLIED.json",
+    "combined_XML_member": "existing-post-review/f09-existing-feed-36.INCOMPLETE-DRAFT.xml",
+    "validation_member": "existing-post-review/f09-validation.PRIVATE.json",
+    "validation": {
+      "distinct_collection_keys": true,
+      "exact117_target_partition": true,
+      "current_caption_hashes": true,
+      "source_XML_and_proposals_unchanged": true,
+      "inactive_null_destinations": true,
+      "visual_browser": "NOT_RUN_NO_LOCAL_BROWSER_IN_FRESH_EXECUTOR; unchanged AL11 visual baseline not repeated"
+    },
+    "save_receipt": {
+      "report_version": 34,
+      "archive_version": 34,
+      "preview_version": 15,
+      "expected_previous_versions": [
+        33,
+        33,
+        14
+      ],
+      "all_local_metadata_applied": true
+    },
+    "limitations": [
+      "Exact saved target association is a reuse candidate, not current native-state verification or channel publication authority.",
+      "No catalog ID is inferred from adaptation name, photo, transcript or collection key.",
+      "The remaining11 subjects are unlinked to these nine XMLs only; original root356/editorial24 not presumed absent.",
+      "Wordstat/catalog/native executor blockers unchanged; no retries, ASR bypass or secret discovery."
     ]
   }
 }
