@@ -67,10 +67,15 @@ for(const width of [390,430,768,1440])test('selection editor preserves order con
   await open(page);await page.locator('#tsEmptyAdd').click();await page.locator('#ts-hotel').fill('Тихий отель у моря');await page.locator('#ts-amount').fill('240000');await page.locator('#ts-adults').fill('2');await page.locator('#ts-child_ages').fill('0, 4, 4');await save(page);
   await page.locator('#tsAdd').click();await page.locator('#ts-hotel').fill('Семейный вариант');await page.locator('[data-ts-action="up"]').click();await save(page);
   expect(s.drafts.get(11).draft.offers.map(x=>x.hotel)).toEqual(['Семейный вариант','Тихий отель у моря']);
+  const groupTarget=s.drafts.get(11).draft.offers[1].id;
+  await page.locator('#ts-hotel-group').selectOption('o:'+groupTarget);await save(page);
+  const group=s.drafts.get(11).draft.offers[0].hotel_group;expect(group).toMatch(/^[a-f0-9]{32}$/);expect(s.drafts.get(11).draft.offers[1].hotel_group).toBe(group);
+  await expect(page.locator('.tsGroupLabel')).toContainText('вариантов 2');
   await page.locator('[data-ts-field="selected"]').uncheck();await save(page);expect(s.drafts.get(11).draft.offers[0].selected).toBe(false);
   await page.locator('[data-ts-select]').nth(1).click();await expect(page.locator('#ts-child_ages')).toHaveValue('0, 4, 4');
   expect(await page.evaluate(()=>document.querySelector('#tourSelectionDialog').scrollWidth-document.querySelector('#tourSelectionDialog').clientWidth)).toBeLessThanOrEqual(1);
   await page.setViewportSize({width,height:420});await expect(page.locator('#tsSave')).toBeInViewport();await expect(page.locator('#tsClose')).toBeInViewport();await page.setViewportSize({width,height:900});
+  await page.locator('#tsGrouping').scrollIntoViewIfNeeded();await expect(page.locator('#ts-hotel-group')).toBeInViewport();
   fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-selection-${browserName}-${width}.png`)});
   await page.locator('#tsClose').click();await expect(page.locator('#replyText')).toHaveValue('Ответ клиенту остаётся в переписке');
   await page.reload();await expect.poll(()=>page.evaluate(()=>!!WorkspaceV2.S.workspaceBound&&!WorkspaceV2.S.booting)).toBe(true);if(!await page.locator('#tourSelectionOpen').count())await page.locator('#inboxList [data-conversation-id="11"]').click();await open(page);await expect(page.locator('[data-ts-select]')).toHaveCount(2);clean(s);
@@ -197,12 +202,43 @@ for(const width of [390,430,768,1440])test('public selection has exact terms and
   expect(built.ok).toBe(true);const s=built.offers[0].snapshot;
   const selection={title:'Отдых у моря',intro:'Подобрали варианты под ваше путешествие.',version:2,updated_at:'2026-10-22 12:00:00',offers:[{...s,index:0,children:2,destination:'Турция, Лара',flights:'Рейсы уточняются',inclusions:'Трансфер',constraints:'Доплаты необходимо проверить',observed_at:'2026-10-22T10:00:00Z',photos:['cover','beach','room'].map(x=>'/'+x+'.jpg')}]};
   delete selection.offers[0].child_ages;
+  selection.offers[0].hotel_group=0;
+  selection.offers.push({...copy(selection.offers[0]),index:1,hotel_group:0,room:'Номер с видом на море',date_from:'2027-06-12',amount:'260000',flights:'Другой перелёт'});
+  selection.offers.push({...copy(selection.offers[0]),index:2,hotel_group:1,amount:'270000'});
+
   const html=execFileSync('php',['-r',`$selection=json_decode(stream_get_contents(STDIN),true); function selectionEscape(string $v):string{return htmlspecialchars($v,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');} $h='selectionEscape';require getcwd().'/selection/view.php';`],{cwd:root,input:JSON.stringify(selection),encoding:'utf8'});
   await page.route('https://selection-fixture.invalid/**',route=>{const p=new URL(route.request().url()).pathname;if(p==='/selection/')return route.fulfill({contentType:'text/html',body:html});if(p==='/selection/selection.css')return route.fulfill({contentType:'text/css',body:fs.readFileSync(path.join(root,'selection/selection.css'))});if(/^\/(cover|beach|room)\.jpg$/.test(p))return route.fulfill({contentType:'image/jpeg',body:fs.readFileSync(path.join(root,'assets/owner-tour-cards/compact-v1',p.slice(1)))});throw new Error('Unexpected public request '+p)});
-  await page.setViewportSize({width,height:1000});await page.goto('https://selection-fixture.invalid/selection/');await expect(page.locator('.offer')).toHaveCount(1);await expect(page.locator('.party')).toContainText('детей 2');await expect(page.locator('.fareNotice')).toContainText('требуют подтверждения');
+  await page.setViewportSize({width,height:1000});await page.goto('https://selection-fixture.invalid/selection/');await expect(page.locator('.offer')).toHaveCount(2);await expect(page.locator('.offerVariant')).toHaveCount(3);await expect(page.locator('.party').first()).toContainText('детей 2');await expect(page.locator('.fareNotice').first()).toContainText('требуют подтверждения');await expect(page.locator('#variant-2')).toContainText('260 000,00');await expect(page.locator('#variant-2')).toContainText('2027-06-12');await expect(page.locator('.variantRoom')).toHaveCount(2);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);expect(await page.locator('body').innerText()).not.toContain('child_ages');
+  // Native lazy loading need not fetch below-fold photos until they are viewed.
+  // Visit every image and require a successful load before the full-page capture.
+  for(const photo of await page.locator('img').all()){
+    await photo.scrollIntoViewIfNeeded();
+    await expect.poll(()=>photo.evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true);
+  }
+  await page.evaluate(()=>scrollTo(0,0));await expect.poll(()=>page.evaluate(()=>scrollY)).toBe(0);
   await expect.poll(()=>page.locator('img').evaluateAll(imgs=>imgs.every(i=>i.complete&&i.naturalWidth>0))).toBe(true);
   await page.locator('img').evaluateAll(imgs=>Promise.all(imgs.map(img=>img.decode())));
   await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
   fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',fullPage:true,path:path.join(root,'manager2-artifacts',`tour-selection-public-${browserName}-${width}.png`)});
+});
+
+
+test('explicit hotel grouping survives reload and renaming separates only that offer',async({page})=>{
+  const source=completeDraft(),other=copy(source.offers[0]);other.id='b'.repeat(32);other.room='Другой номер';source.offers.push(other);
+  const s=await fixture(page,{draft:source});await open(page);
+  // Equal names do not silently group. Choose the other exact offer explicitly.
+  expect(s.drafts.get(11).draft.offers.every(x=>!x.hotel_group)).toBe(true);
+  await page.locator('#ts-hotel-group').selectOption('o:'+other.id);await save(page);let group=s.drafts.get(11).draft.offers[0].hotel_group;
+  expect(group).toMatch(/^[a-f0-9]{32}$/);expect(group).not.toBe(other.id);
+  // Any valid stored key is allowed, including an existing offer's ID.
+  // An ungrouped offer must stay in its own namespace after rename.
+  group=other.id;const stored=s.drafts.get(11);stored.version++;stored.draft.offers.forEach(x=>x.hotel_group=group);
+  await page.locator('#tsClose').click();await page.reload();await expect.poll(()=>page.evaluate(()=>!!WorkspaceV2.S.workspaceBound&&!WorkspaceV2.S.booting)).toBe(true);
+  if(!await page.locator('#tourSelectionOpen').count())await page.locator('#inboxList [data-conversation-id="11"]').click();await open(page);
+  await expect(page.locator('#ts-hotel-group')).toHaveValue('g:'+group);
+  await page.locator('[data-ts-select="'+other.id+'"]').click();
+  await page.locator('#ts-hotel').fill('Другая гостиница');await save(page);
+  expect(s.drafts.get(11).draft.offers[1].hotel_group).toBeUndefined();expect(s.drafts.get(11).draft.offers[0].hotel_group).toBe(group);
+  await expect(page.locator('#ts-hotel-group')).toHaveValue('');await expect(page.locator('.tsGroupLabel')).toHaveCount(0);expect(s.creations()).toBe(0);clean(s);
 });
