@@ -1,6 +1,6 @@
 {
   "schema": "anytour.funnel.autopilot_state.v1",
-  "updated_at_utc": "2026-10-23T07:41:24.300732+00:00",
+  "updated_at_utc": "2026-10-23T08:09:03.338032+00:00",
   "owner": "direct-demand-funnel",
   "automation": {
     "id": "6ada8f0084888191b12c6619c12fb35c",
@@ -43,11 +43,11 @@
   "artifacts": {
     "report": {
       "library_file_id": "libfile_81ae550da16881918bb6840b686d507f",
-      "version": 15
+      "version": 17
     },
     "archive": {
       "library_file_id": "libfile_1b69bb58e8d4819186e7ea461ef60cb6",
-      "version": 15
+      "version": 17
     },
     "canonical_hotel_knowledge": {
       "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
@@ -109,9 +109,12 @@
     "native_post_reader_capability_review": "DONE_RUNTIME_ADMIN_EDIT_VERIFIED_ALL_8_CHANNELS",
     "native_channel_history_read": "DONE_MAX_4_CHANNELS_TO_API_EXHAUSTION_TELEGRAM_17_SAVED_WITH_TESTS",
     "native_post_reuse_groups": "DONE_82_GROUPS_NOT_APPROVED_DESTINATIONS",
-    "native_materials_library_write": "DONE_VERSION_15_BOTH_ARTIFACTS"
+    "native_materials_library_write": "DONE_VERSION_15_BOTH_ARTIFACTS",
+    "owner_exact_old_post_edit": "DONE_TWO_POSTS_TEXT_BUTTON_PHOTOS_AND_CURRENT_CONTEXT_VERIFIED",
+    "owner_exact_old_post_edit_library": "DONE_VERSION_17"
   },
   "next_steps": [
+    "Exact two-post owner test DONE in archivev17. MAX28JulyTurunc and Telegram15OctoberSunrise Remal text/photo/button/current-context readback passed. Telegram2premiumemoji became plain Unicode;standard styles/links preserved. No customer click observed. Do not repeat these writes or treat this as authorization for mass edits,new post publication,feed activation or a new funnel channel. Continue editorial reuse/draft preparation using archived sources.",
     "Use channel-review/native-post-reuse-plan-20261023.json and native-channel-review-20261023.json in current archive v15. MAX history index complete:610businessposts;Telegram16savedbusinessposts.82Direct-name groups,27linked to existing prepared draft keys. Mention is not local identity. Do not repeat completed read-only export or request browser login for the same material.",
     "Next finite block: review three dedicated hotel references (Seagull,Sunrise Remal Resort,Sugar Marina Lagoon Villas Naiyang) against current canonical knowledge and prepared drafts. Choose reuse/adapt/new post per query intent, retaining exact properties/sections and supplier holds. Historical ads do not prove current seasonal facts. Do not publish or edit existing buttons.",
     "Follow with a small reviewable batch of styled evergreen posts/covers based on the reviewed owner Canva source. Keep old deal prices, dates, urgency and first-person manager experiences out of new claims. Generic destination art is not a hotel photograph. See four native image notes and22page Canva reference.",
@@ -194,7 +197,16 @@
     "native_review_archive_crc": "PASSED",
     "native_prior_99_draft_payloads_unchanged": true,
     "native_report_archive_provenance_hash": "PASSED",
-    "library_version_guard": "PASSED_14_TO_15_BOTH_ARTIFACTS"
+    "library_version_guard": "PASSED_14_TO_15_BOTH_ARTIFACTS",
+    "old_post_text_edits_verified": 2,
+    "old_post_buttons_verified": 2,
+    "old_post_photos_preserved": 2,
+    "old_post_updated_contexts_verified": 2,
+    "old_post_customer_sends": 0,
+    "old_post_new_funnel_destinations": 0,
+    "old_post_prior_99_drafts_preserved": true,
+    "old_post_archive_crc": "PASSED",
+    "old_post_library_version_guard": "PASSED_15_TO_16_TO_17"
   },
   "catalog_evidence": {
     "requested_ids": 492,
@@ -232,17 +244,15 @@
     "validation_sequence": "Use set -e for dependent preparation/write sequences. Resolve any failed preflight before saving. Batch07's overly broad all-declared assertion found1scope caution;17declarations and that separately labelled caution were reviewed before the Library write. The original completed batch bytes and canonical knowledge kinds were preserved."
   },
   "latest_completed_block": {
-    "completed_at_utc": "2026-10-23T07:41:24.300732+00:00",
-    "name": "Read-only native channel history, reusable-post index and style review",
-    "customer_posts": 626,
-    "direct_candidate_groups": 82,
-    "top500_name_mentions": 76,
-    "manual_examples": 7,
-    "new_images_reviewed": 4,
+    "name": "Two exact owner-authorized old-post edits with canonical context buttons",
+    "completed_at_utc": "2026-10-23T08:09:03.338032+00:00",
+    "old_posts_edited": 2,
+    "photos_and_buttons_verified": 2,
+    "current_contexts_verified": 2,
     "new_posts_published": 0,
-    "buttons_changed": 0,
-    "new_native_ids": 0,
-    "archive_member": "channel-review/native-post-reuse-plan-20261023.json"
+    "actual_customer_click_observed": false,
+    "telegram_custom_emoji_fallback": 2,
+    "archive_member": "channel-review/old-post-edit/review.json"
   },
   "catalog_export_lookup": {
     "searched_library_read_only": true,
@@ -398,5 +408,31 @@
     "library_report_version": 15,
     "library_archive_version": 15,
     "retry_policy": "DONE: do not rerun unchanged export. Telegram general history is unavailable via Bot API; use saved observations or a newly supplied source. No blind provider/write retries."
+  },
+  "owner_old_post_edit_operation": {
+    "state": "DONE_VERIFIED",
+    "authorization": "Owner explicitly asked23October2026 to slightly edit selected old posts and add canonical context buttons. Applies only to selected two existing posts;not mass publication or a new funnel destination.",
+    "installed_sha": "addb34ee848f9f5381445ad762f075d7ccb99c57",
+    "preview_run": 39921397653,
+    "first_apply_run": 39921732831,
+    "completed_run": 39922038770,
+    "completed_artifact_id": 12487383339,
+    "completed_artifact_sha256": "c09fbe820bee4b147e26c742eedb9979552fd283bc8cb0743dcd0231e739d834",
+    "max_original_post_date": "2026-07-28",
+    "telegram_original_post_date": "2026-10-15",
+    "old_posts_edited": 2,
+    "canonical_buttons_confirmed": 2,
+    "updated_registry_contexts_verified": 2,
+    "photo_identity_verified": 2,
+    "new_posts_published": 0,
+    "new_funnel_feed_destinations_activated": 0,
+    "actual_customer_click_observed": false,
+    "customer_sends": 0,
+    "max_text_initial_call": "Proven local attachments-only allowlist rejection before network;preserved receipt and used separate exactly-scoped strict-TLS text operation after unchanged readback. No blind provider retry.",
+    "telegram_custom_emoji_fallback": 2,
+    "telegram_standard_styles_and_links_preserved": true,
+    "archive_review_member": "channel-review/old-post-edit/review.json",
+    "private_receipt_member": "channel-review/old-post-edit/finish.json",
+    "repeat_policy": "DONE:no further writes to these posts absent a new instruction. One-shot workflow removed;script closed. No second button or regenerated token."
   }
 }

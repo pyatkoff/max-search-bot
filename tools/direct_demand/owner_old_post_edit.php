@@ -2,7 +2,7 @@
 declare(strict_types=1);
 // Explicit owner-authorized two-post operation. Streamed CLI, never installed.
 if(PHP_SAPI!=='cli')exit(2);
-$mode='apply';
+$mode='closed';
 $root='/var/www/anytoour/data/www/app.anytoour.ru';
 $expected='addb34ee848f9f5381445ad762f075d7ccb99c57';
 $dir='/var/www/anytoour/data/channel-post-operations/funnel-owner-edits';
