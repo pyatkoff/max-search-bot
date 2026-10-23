@@ -1,6 +1,6 @@
 {
   "schema": "anytour.funnel.autopilot_state.v1",
-  "updated_at_utc": "2026-10-23T07:21:45.900713+00:00",
+  "updated_at_utc": "2026-10-23T07:28:25.967459+00:00",
   "owner": "direct-demand-funnel",
   "automation": {
     "id": "6ada8f0084888191b12c6619c12fb35c",
@@ -82,7 +82,7 @@
     "wordstat_access": "BLOCKED_NO_CONNECTED_SEARCH_API_ACCESS",
     "first_post_drafts": "DONE",
     "inactive_feed_templates": "DONE",
-    "active_operation": "NATIVE_CHANNEL_READ_WORKFLOW_TO_BE_PUSHED",
+    "active_operation": "NATIVE_CHANNEL_READ_MEDIA_URLS_AND_REMAINING_HISTORY_PREPARED",
     "catalog_cohort_492_read": "DONE",
     "first_native_catalog_bindings": "DONE",
     "five_additional_posts": "DONE",
@@ -338,7 +338,7 @@
     "new_funnel_publication_authorized": false
   },
   "native_channel_read_operation": {
-    "state": "PREPARED_NOT_STARTED",
+    "state": "FIRST_READ_DONE",
     "installed_sha_required": "f31769918fb0aadfcc09f9bb2a305111a9c58fc7",
     "max_history_pages_per_channel": 3,
     "page_size": 100,
@@ -347,6 +347,17 @@
     "database_mode": "READ_ONLY_TRANSACTION",
     "provider_calls": "Read-only MAX GET and Telegram identity/rights only",
     "private_output": "OpenSSL CMS AES256GCM encrypted;ephemeral recipient private key stays outside GitHub",
-    "no_publication_or_configuration_changes": true
+    "no_publication_or_configuration_changes": true,
+    "run_id": 39917220314,
+    "artifact_id": 12485711332,
+    "artifact_sha256": "45f6c0b4e8e53c6125a58218716709dcb821b770fe3e4aa898a6a56858487f27",
+    "channels": 8,
+    "posts": 603,
+    "max_posts": 586,
+    "telegram_posts": 17,
+    "test_channel_posts": 3,
+    "customer_channel_posts": 600,
+    "current_bot_rights": "All8registered channels admin and edit verified;MAX read allowed on4",
+    "gap": "Initial text-only projection omitted media/post_url; publicMAX history still bounded at3pages. Followup expands to10pages and includes these known omitted fields. No writes."
   }
 }

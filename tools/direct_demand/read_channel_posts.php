@@ -21,7 +21,7 @@ try {
     $q=$pdo->prepare('SELECT pc.id,pc.platform,pc.bot_key,pc.channel_id,pc.display_name,pc.button_text,pc.is_enabled,pc.config_version FROM post_channels pc JOIN projects p ON p.id=pc.project_id WHERE p.project_key=? AND p.is_active=1 ORDER BY pc.platform,pc.id LIMIT 21');
     $q->execute([ProjectConfig::projectId()]);$channels=$q->fetchAll(PDO::FETCH_ASSOC);
     if(count($channels)>20)throw new RuntimeException('channel_limit');
-    $out=['ok'=>true,'schema'=>'anytour.funnel.native_channel_read.v1','generated_at_utc'=>gmdate('c'),'installed_sha'=>$sha,'read_only'=>true,'limits'=>['channels'=>20,'saved_posts_per_channel'=>200,'max_history_pages_per_channel'=>3,'max_history_page_size'=>100],'channels'=>[]];
+    $out=['ok'=>true,'schema'=>'anytour.funnel.native_channel_read.v1','generated_at_utc'=>gmdate('c'),'installed_sha'=>$sha,'read_only'=>true,'limits'=>['channels'=>20,'saved_posts_per_channel'=>200,'max_history_pages_per_channel'=>10,'max_history_page_size'=>100],'channels'=>[]];
     foreach($channels as $channel){
         $platform=(string)$channel['platform'];$identity=$identities[$platform]??null;
         if(!$identity || $identity['bot_key']!==$channel['bot_key'])continue;
@@ -35,7 +35,7 @@ try {
         $channel['history_posts']=[];$channel['history_complete']=false;
         if($platform==='max' && !empty($channel['bot_rights']['read_ready'])){
             $upper=(int)floor(microtime(true)*1000);$seen=[];
-            for($page=0;$page<3;$page++){
+            for($page=0;$page<10;$page++){
                 $r=ChannelPostApiTransport::buttonRequest('max','GET','/messages',['chat_id'=>(string)$channel['channel_id'],'from'=>$upper,'to'=>1,'count'=>100],null);
                 if(!readable($r,'max')){$channel['history_error']=['page'=>$page+1,'http'=>(int)($r['http']??0)];break;}
                 $messages=$r['data']['messages']??null;if(!is_array($messages)){$channel['history_error']=['page'=>$page+1,'reason'=>'invalid_list'];break;}
@@ -77,7 +77,7 @@ function rights(string $platform,string $channelId,string $bot):array{
 }
 function trimSnapshot($s):array{
     if(!is_array($s))return [];$out=[];
-    foreach(['text','photos','keyboard','markup','metadata','forward']as $key)if(array_key_exists($key,$s))$out[$key]=dropTokens($s[$key]);
+    foreach(['text','attachments','keyboard','markup','metadata','forward','post_url','format']as $key)if(array_key_exists($key,$s))$out[$key]=dropTokens($s[$key]);
     return $out;
 }
 function dropTokens($v){if(!is_array($v))return $v;$r=[];foreach($v as $k=>$x){if(in_array((string)$k,['token','access_token','claim_token','start_payload'],true))continue;$r[$k]=dropTokens($x);}return $r;}
