@@ -222,6 +222,35 @@ def build(root, knowledge_path, draft_path):
     return summary
 
 
+def validate_observed_name_reference(draft, index, countries, candidates):
+    """A saved full name + country permits content reuse, never a native ID."""
+    reference = draft.get('content_name_reference')
+    if reference is None:
+        return None
+    key = reference['knowledge_profile_key']
+    if draft['knowledge_profile_keys'] != [key]:
+        raise ValueError('Observed name reference must name one content profile')
+    name = index['hotel_names'][key]
+    if reference['profile_name'] != name or reference['profile_country'] != countries.get(key):
+        raise ValueError('Content profile name/country mismatch')
+    country_label = reference['observed_country_literal']
+    if COUNTRY.get(country_label) != countries.get(key):
+        raise ValueError('Observed country does not match content profile')
+    query = reference['observed_normalized_query']
+    aliases = candidates[draft['source_candidate_key']]['query_aliases']
+    observed = next((a for a in aliases if a['normalized_query'] == query), None)
+    if observed is None or reference['source_row_index_0based'] not in observed['source_row_indices_0based']:
+        raise ValueError('Name reference is not a saved observed source row')
+    # Dotless Turkish i is an explicit orthographic fold, not a fuzzy match.
+    fold = lambda value: normalized_name(value.replace('ı', 'i').replace('İ', 'I'))
+    if (len(query) > 180 or ' ' + fold(name) + ' ' not in ' ' + fold(query) + ' '
+            or ' ' + fold(country_label) + ' ' not in ' ' + fold(query) + ' '):
+        raise ValueError('Full profile name and country must occur in the same observed query')
+    if reference.get('catalog_identity_verified') is not False:
+        raise ValueError('Observed name cannot certify a native catalogue identity')
+    return reference
+
+
 def append_reviewed_batch(root, knowledge_path, batch_path):
     """Append reviewed drafts without rebuilding or losing catalog/media work."""
     out = root / 'deliverables'
@@ -241,11 +270,18 @@ def append_reviewed_batch(root, knowledge_path, batch_path):
     with zipfile.ZipFile(knowledge_path) as archive:
         index_bytes = archive.read(batch['knowledge_index_member'])
         index = json.loads(index_bytes)
+        baseline = json.loads(archive.read(index['baseline']['full_snapshot_ref']))
+    countries = {r['hotel_key']: r['country'] for name in
+                 ('hotel_properties', 'regional_research_properties', 'new_research_hotels')
+                 for r in baseline[name]}
+    candidates = {r['demand_candidate_key']: r for r in
+                  read_json(root / 'expanded_hotel_shortlist.json')['candidates']}
     added = []
     for draft in batch['drafts']:
         key = draft['source_candidate_key']
         if key not in feed_by_source:
             raise ValueError('Draft has no existing funnel/feed source: ' + key)
+        name_reference = validate_observed_name_reference(draft, index, countries, candidates)
         proof = []
         for cid in draft['claim_ids']:
             variants = index['claims'][cid]
@@ -279,10 +315,23 @@ def append_reviewed_batch(root, knowledge_path, batch_path):
                                     'version': batch['knowledge_library_version'],
                                     'index_member': batch['knowledge_index_member'],
                                     'index_sha256': hashlib.sha256(index_bytes).hexdigest(),
-                                    'new_live_property_verification': False})
+                                    'new_live_property_verification': bool(draft.get('source_readbacks'))})
         row['post_draft_key'] = draft['draft_key']
         if draft.get('feed_description'):
             row['description'] = draft['feed_description']
+        if name_reference:
+            reference_row = next(r for r in data['name_references']
+                                 if r['source'] == 'direct' and r['source_key'] == key)
+            if reference_row.get('knowledge_profile_key') not in (None, name_reference['knowledge_profile_key']):
+                raise ValueError('Existing content reference disagrees; review instead of overwriting')
+            reference_row.update(match_status='OBSERVED_FULL_PROFILE_NAME_CONTENT_REFERENCE_ONLY',
+                                 knowledge_profile_key=name_reference['knowledge_profile_key'],
+                                 knowledge_profile_name=name_reference['profile_name'],
+                                 knowledge_country=name_reference['profile_country'],
+                                 claim_id_count=sum(any(v['record'].get('hotel_key') == name_reference['knowledge_profile_key']
+                                                        for v in variants) for variants in index['claims'].values()),
+                                 content_name_reference=name_reference,
+                                 note='Full name and country observed in one saved query; native catalogue identity remains unverified.')
         added.append(draft)
     data['post_drafts'].extend(added)
     theme_keys = {r['source_candidate_key'] for r in data['draft_feed_records'] if r['kind'] == 'selection'}
@@ -294,6 +343,9 @@ def append_reviewed_batch(root, knowledge_path, batch_path):
                    hotel_post_drafts=sum(d['kind'] == 'hotel' for d in data['post_drafts']),
                    thematic_post_drafts=sum(d['kind'] == 'selection' for d in data['post_drafts']),
                    source_claim_references=sum(len(d['proof']) for d in data['post_drafts']))
+    summary['direct_observed_full_name_references'] = sum(
+        r['source'] == 'direct' and r['match_status'] == 'OBSERVED_FULL_PROFILE_NAME_CONTENT_REFERENCE_ONLY'
+        for r in data['name_references'])
     completed = {'batch_id': batch['batch_id'], 'input_sha256': batch_hash,
                  'completed_at_utc': now, 'new_drafts': len(added),
                  'new_hotels': sum(d['kind'] == 'hotel' for d in added),
@@ -370,11 +422,18 @@ def append_reviewed_batch(root, knowledge_path, batch_path):
     cards = []
     for draft in added:
         urls = sorted({s['url'] for p in draft['proof'] for s in p['sources'] if s.get('url')})
-        checks = draft.get('selection_eligibility', {}).get('required_checks', [])
+        checks = (draft.get('selection_eligibility', {}).get('required_checks')
+                  or draft.get('editorial_required_checks', []))
+        name_reference = draft.get('content_name_reference')
         cards.append('<details><summary>' + esc(draft['title']) + '</summary><p>' +
                      esc(draft['body']).replace('\n\n', '</p><p>').replace('\n', '<br>') +
                      '</p><p><b>Кнопка:</b> ' + esc(draft['button_label']) + ' · адрес ещё не выдан</p>' +
-                     ('<small>Перед включением в подборку: ' + esc('; '.join(checks)) + '</small>' if checks else '') +
+                     ('<small>Связь для подготовки текста: полное название «' + esc(name_reference['profile_name']) +
+                      '» и страна «' + esc(name_reference['observed_country_literal']) +
+                      '» найдены в одном сохранённом запросе. ID каталога этим не подтверждён.</small>' if name_reference else '') +
+                     ('<small>Перед публикацией: ' + esc('; '.join(checks)) + '</small>' if checks else '') +
+                     ''.join('<small>Актуализация источника ' + esc(r['read_on']) + ': ' +
+                             esc(r['finding']) + '</small>' for r in draft.get('source_readbacks', [])) +
                      '<small>Основание: ' + ', '.join(esc(x) for x in draft['claim_ids']) + '</small><small>' +
                      ' · '.join('<a href="' + esc(u) + '">Источник</a>' for u in urls) + '</small></details>')
     section = ('<!-- FUNNEL_BATCH_' + esc(batch['batch_id']) + '_BEGIN --><section><h2>Новые посты и подборки</h2><p><b>Черновики: ' +
@@ -382,7 +441,7 @@ def append_reviewed_batch(root, knowledge_path, batch_path):
                str(summary['thematic_post_drafts']) + '. Добавлено за проход: ' + str(len(added)) +
                '. Коллекций фида — ' + str(summary['draft_feed_records']) + '; активных адресов перехода — 0.</p>' +
                '<p class="note">Факты повторно использованы из гостиничной базы версии ' + str(batch['knowledge_library_version']) +
-               '. Это подготовка контента: новая проверка сайтов, цен и услуг на даты поездки в этом проходе не выполнялась. ID и фотографии новых отелей ещё требуют проверки.</p>' +
+               '. Отдельные актуализации источников указаны в карточках. Цены, наличие и услуги на даты поездки не подтверждены; ID и фотографии новых отелей ещё требуют проверки.</p>' +
                ''.join(cards) + ('<p class="note">Пропущены неоднозначные названия: ' +
                esc('; '.join(x['source_candidate_key'] for x in batch.get('skipped', []))) +
                '. Сначала требуется проверка идентичности.</p>' if batch.get('skipped') else '') +
