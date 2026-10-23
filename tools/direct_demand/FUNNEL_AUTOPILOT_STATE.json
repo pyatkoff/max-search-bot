@@ -1,6 +1,6 @@
 {
   "schema": "anytour.funnel.autopilot_state.v1",
-  "updated_at_utc": "2026-10-23T03:40:28.138Z",
+  "updated_at_utc": "2026-10-23T04:45:06.549Z",
   "owner": "direct-demand-funnel",
   "automation": {
     "id": "6ada8f0084888191b12c6619c12fb35c",
@@ -43,11 +43,11 @@
   "artifacts": {
     "report": {
       "library_file_id": "libfile_81ae550da16881918bb6840b686d507f",
-      "version": 9
+      "version": 10
     },
     "archive": {
       "library_file_id": "libfile_1b69bb58e8d4819186e7ea461ef60cb6",
-      "version": 9
+      "version": 10
     },
     "canonical_hotel_knowledge": {
       "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
@@ -64,7 +64,7 @@
       "draft_input_member": "funnel-post-drafts-input.json",
       "report_section": "Новые посты и подборки",
       "catalog_review_member": "funnel-catalog-review.json",
-      "latest_batch_member": "funnel-content-batches/20261023-content-05.json",
+      "latest_batch_member": "funnel-content-batches/20261023-content-06.json",
       "entry_binding_review_member": "funnel-entry-binding-review.json"
     }
   },
@@ -89,14 +89,16 @@
     "reviewed_content_batch_20261023_04": "DONE",
     "observed_full_name_reference_pass": "DONE",
     "reviewed_content_batch_20261023_05": "DONE",
-    "full_name_false_match_guard": "DONE"
+    "full_name_false_match_guard": "DONE",
+    "reviewed_content_batch_20261023_06": "DONE",
+    "supplier_notice_publication_holds": "DONE"
   },
   "next_steps": [
-    "Current75drafts (63hotel/12selection).31safe original exact-label references and27 saved full-name/country references have content. Preserve completed batches,5nativeIDs and4covers.",
-    "13 remaining full-name proposals from this pass need content/identity review. The strengthened guard requires candidate-anchor compatibility and rejects names found only after ex. Query comparisons, old names, sister sections and network labels never certify identity.7held candidates are recorded; do not auto-retry without new evidence.",
-    "Locate an existing completed LOCAL data export/artifact through supported read-only GitHub tools; the inspected local-hotel-catalog workflow is fixture testing, not a catalogue export. Do not dispatch or resume paused LOCAL/MATCH jobs or repeat unchanged403 routes.",
+    "Current88drafts (76hotel/12selection);31safe original exact-label references and40full-name/country references prepared. Preserve5nativeIDs/4covers, all prior content and3supplier-notice holds.",
+    "The35full-name proposals from the saved pass are content-reviewed:28prepared across batches05/06,7held,0pending. Do not recreate or rerun the same full-name pass absent changed sources. New identity evidence is required for held rebrands/comparison/research-only cases.",
+    "Prioritize native catalogue evidence: audit already saved72nativeDTOs against500name rows and canonical profile names/countries, with explicit full/former names and sections; verify selected real supplied IDs through the supported content-only read if a new candidate emerges. No numeric equality or positional joins. Otherwise use supported read-only existing-export lookup; no paused LOCAL/MATCH jobs or unchanged403 routes.",
     "Continue remaining24 of36 selected country×need themes using scoped saved facts. Twelve themes now prepared: Egypt heated/sand/reef/family/waterpark/first-line; Turkey first-line/waterpark/family; Vietnam family/waterpark; Thailand first-line. Next prioritize Turkey adults-only/heated-pool and Vietnam first-line if saved exact-property evidence permits; never infer facts from query words.",
-    "Entry-binding review has75rows. Content hashes and draft collection keys are not issued IDs. All runtime destinations null/inactive; only5 native hotel rows and4covers confirmed.",
+    "Entry review has88rows;3published supplier-notice conditions explicitly require confirmation before publication. All runtime IDs/URLs remain null/inactive; content SHA/draft key are not issued IDs.",
     "Find an attributable Palma de Mirette cover through saved official sources. The four El Palacio photos stay excluded.",
     "Retry Wordstat only after a new authorized Search API credential/folder/connector appears. The lack of frequency and channel does not block independent preparation.",
     "Wait for owner channel only for publication and canonical post/entry ID issuance. No real campaigns, paid traffic, production changes or customer sends."
@@ -104,14 +106,14 @@
   "publication_blocker": "Owner will provide channel later. This does not block preparation.",
   "coordination": "Own audit/direct-demand-20261022 branch only; no foreign claims, CI, paused hotel tasks or production flows.",
   "completed_preparation": {
-    "generated_at_utc": "2026-10-23T03:38:47.258787+00:00",
+    "generated_at_utc": "2026-10-23T04:42:36.127309+00:00",
     "direct_candidates": 317,
     "direct_exact_name_references": 32,
     "top500_rows": 500,
     "top500_exact_name_references": 494,
     "verified_catalog_ids": 5,
-    "post_drafts": 75,
-    "source_claim_references": 244,
+    "post_drafts": 88,
+    "source_claim_references": 288,
     "draft_feed_records": 356,
     "upload_ready_feed_records": 0,
     "channel": null,
@@ -119,13 +121,14 @@
     "wordstat_access": "BLOCKED_NO_CONNECTED_SEARCH_API_ACCESS",
     "verified_catalog_source_references": 6,
     "selected_draft_covers": 4,
-    "hotel_post_drafts": 63,
+    "hotel_post_drafts": 76,
     "thematic_post_drafts": 12,
-    "direct_observed_full_name_references": 27
+    "direct_observed_full_name_references": 40,
+    "supplier_notice_holds": 3
   },
   "validation": {
-    "post_drafts": 75,
-    "claim_references_resolved": 244,
+    "post_drafts": 88,
+    "claim_references_resolved": 288,
     "collection_keys_unique": 356,
     "collection_destinations": 0,
     "selected_cover_records": 4,
@@ -134,22 +137,25 @@
     "zip_crc": "PASSED",
     "provenance_hashes": "PASSED",
     "source_knowledge_modified": false,
-    "hotel_post_drafts": 63,
+    "hotel_post_drafts": 76,
     "thematic_post_drafts": 12,
     "batch_idempotence": "SAME_COMPLETED_BATCH_SKIPS_WITHOUT_MUTATION",
     "prior_catalog_bindings_preserved": 5,
     "prior_cover_photos_preserved": 4,
-    "entry_binding_rows": 75,
-    "entry_binding_payload_hashes": "PASSED_ALL_75",
+    "entry_binding_rows": 88,
+    "entry_binding_payload_hashes": "PASSED_ALL_88",
     "entry_context_ids_issued": 0,
     "entry_destinations_active": 0,
-    "feed_post_pairing": "PASSED_ALL_75",
-    "observed_full_name_links": 27,
+    "feed_post_pairing": "PASSED_ALL_88",
+    "observed_full_name_links": 40,
     "corrupted_name_country_row_or_native_identity_evidence_rejected": "PASSED_5_CASES",
     "public_preparation_script_compiled": true,
     "real_false_name_proposals_rejected": 4,
     "isolated_old_name_after_ex_rejected": true,
-    "prior_12_full_name_links_preserved": true
+    "prior_12_full_name_links_preserved": true,
+    "supplier_notice_holds": 3,
+    "supplier_notice_hold_projection": "PASSED_3_POSTS_AND_BINDING_ROWS",
+    "supplier_notice_claim_scope": "PASSED_OWN_POST_CLAIMS_ONLY"
   },
   "catalog_evidence": {
     "requested_ids": 492,
@@ -175,42 +181,13 @@
     "working_files": "Use current archive funnel-content-preparation.json as active state. Add only new reviewed inputs with prepare_funnel_content.py --append-drafts. Reusing a completed batch ID with identical bytes skips; different bytes are rejected. Baseline --drafts, package_expanded_funnel.py and historical attach pass can replace/reset newer preparation or report counts; do not rerun them over the active package."
   },
   "latest_completed_block": {
-    "batch_id": "20261023-content-05",
-    "input_sha256": "e68f0ebe63a09d964cc868a3b9a34d0ae12768dc8d1e158f9d613b479e2e46ac",
-    "completed_at_utc": "2026-10-23T03:38:47.258787+00:00",
-    "new_drafts": 15,
-    "new_hotels": 15,
+    "batch_id": "20261023-content-06",
+    "input_sha256": "dae5e7dc697abcb652b6dc713c153fcb7b55712e3f156e6ac7ccb193efa04ce6",
+    "completed_at_utc": "2026-10-23T04:42:36.127309+00:00",
+    "new_drafts": 13,
+    "new_hotels": 13,
     "new_selections": 0,
-    "skipped": [
-      {
-        "source_candidate_key": "moreno_horizon",
-        "reason": "Existing hold: exact Horizon facts too limited; old Moreno Spa facts cannot be transferred."
-      },
-      {
-        "source_candidate_key": "sunrise_azalea",
-        "reason": "The candidate points to Azalea; matched Aster occurs only after ex. Requires independent rename evidence."
-      },
-      {
-        "source_candidate_key": "sun_heaven",
-        "reason": "Matched Club Sun Heaven is an ex-name; current Sun Heaven identity requires independent evidence."
-      },
-      {
-        "source_candidate_key": "v_grand_sahl_hasheesh",
-        "reason": "Pyramisa occurs after ex in a V Grand query; rename/continuity not established by query words."
-      },
-      {
-        "source_candidate_key": "saphia_nha_trang",
-        "reason": "Ocean Star is another hotel in a comparison query; not the Saphia candidate."
-      },
-      {
-        "source_candidate_key": "crystal_prestige_pearl",
-        "reason": "Existing research-only identity association remains held."
-      },
-      {
-        "source_candidate_key": "crystal_waterworld",
-        "reason": "Saved property facts use former Waterworld name; current Aqua Collection association based on title needs independent confirmation."
-      }
-    ],
+    "skipped": [],
     "source_version": 92
   },
   "catalog_export_lookup": {
@@ -223,13 +200,14 @@
     "workflow_run_lookup": "Generic fetch rejected the workflow-filename route as INVALID_ARGUMENT; no export availability inferred."
   },
   "entry_binding_review": {
-    "prepared_post_rows": 75,
-    "hotel_rows": 63,
+    "prepared_post_rows": 88,
+    "hotel_rows": 76,
     "selection_rows": 12,
     "rows_with_verified_hotel_ids": 5,
     "rows_with_selected_covers": 4,
     "issued_context_ids": 0,
-    "active_destinations": 0
+    "active_destinations": 0,
+    "supplier_notice_holds": 3
   },
   "content_reference_coverage": {
     "direct_exact_knowledge_name_references": 32,
@@ -238,9 +216,9 @@
       "crystal_prestige_pearl"
     ],
     "catalog_identity_status": "Only5nativeIDs verified; content coverage does not expand catalog certification.",
-    "direct_observed_full_name_references": 27,
-    "covered_observed_full_name_references": 27,
-    "native_identity_status": "Only5nativeIDs verified;27full-name/country references permit content reuse, never native IDs.",
+    "direct_observed_full_name_references": 40,
+    "covered_observed_full_name_references": 40,
+    "native_identity_status": "Only5nativeIDs verified;40saved full-name/country links allow content reuse only.",
     "additional_holds": [
       "moreno_horizon: Existing hold: exact Horizon facts too limited; old Moreno Spa facts cannot be transferred.",
       "sunrise_azalea: The candidate points to Azalea; matched Aster occurs only after ex. Requires independent rename evidence.",
@@ -271,17 +249,19 @@
     "each_new_post_has_explicit_eligibility_checks": true
   },
   "last_run_readback": {
-    "own_branch_head_before_write": "378e080e86d7c25c199c9b5f75660ba140e800fb",
+    "own_branch_head_before_write": "ad735e1c3ca8ac4adb489315f5f00bc5108769e9",
     "source_archive_library_version": 92,
-    "demand_library_versions_before_write": 8,
+    "demand_library_versions_before_write": 9,
     "scope_instructions_read": true,
     "foreign_claims_untouched": true,
     "blocked_catalog_routes_retried": false,
     "blocked_wordstat_retried": false,
-    "new_live_source_readbacks": 0
+    "connected_wordstat_tools": 0,
+    "new_live_source_readbacks": 3
   },
   "latest_source_checks": {
-    "scoped_operator_notice_readbacks": 1,
+    "scoped_operator_notice_readbacks": 3,
+    "archived_readbacks_total": 4,
     "read_on": "2026-10-23",
     "details_in_private_batch": true,
     "no_current_prices_or_availability_collected": true,
@@ -289,12 +269,13 @@
   },
   "name_proposal_audit": {
     "saved_query_name_proposals_detected": 35,
-    "new_hotel_drafts": 15,
+    "new_hotel_drafts": 13,
     "held": 7,
-    "remaining_not_content_reviewed": 13,
+    "remaining_not_content_reviewed": 0,
     "full_profile_name_and_country_checked_against_saved_rows": true,
     "candidate_anchor_compatibility_required": true,
     "old_name_after_ex_excluded": true,
-    "new_native_ids_issued": 0
+    "new_native_ids_issued": 0,
+    "total_prepared_across_batches_05_06": 28
   }
 }

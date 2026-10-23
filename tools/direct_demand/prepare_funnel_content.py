@@ -343,6 +343,14 @@ def append_reviewed_batch(root, knowledge_path, batch_path):
                                  note='Full name and country observed in one saved query; native catalogue identity remains unverified.')
         added.append(draft)
     data['post_drafts'].extend(added)
+    by_draft = {d['draft_key']: d for d in data['post_drafts']}
+    for update in batch.get('existing_publication_holds', []):
+        by_draft[update['draft_key']]['publication_hold'] = update['publication_hold']
+    for draft in data['post_drafts']:
+        hold = draft.get('publication_hold')
+        if hold and (not hold.get('reason') or not hold.get('claim_ids')
+                     or not set(hold['claim_ids']) <= set(draft['claim_ids'])):
+            raise ValueError('A publication hold must cite claims already attached to its own post')
     theme_keys = {r['source_candidate_key'] for r in data['draft_feed_records'] if r['kind'] == 'selection'}
     for draft in data['post_drafts']:
         draft.setdefault('kind', 'selection' if draft['source_candidate_key'] in theme_keys else 'hotel')
@@ -355,6 +363,7 @@ def append_reviewed_batch(root, knowledge_path, batch_path):
     summary['direct_observed_full_name_references'] = sum(
         r['source'] == 'direct' and r['match_status'] == 'OBSERVED_FULL_PROFILE_NAME_CONTENT_REFERENCE_ONLY'
         for r in data['name_references'])
+    summary['supplier_notice_holds'] = sum(bool(d.get('publication_hold')) for d in data['post_drafts'])
     completed = {'batch_id': batch['batch_id'], 'input_sha256': batch_hash,
                  'completed_at_utc': now, 'new_drafts': len(added),
                  'new_hotels': sum(d['kind'] == 'hotel' for d in added),
@@ -385,6 +394,8 @@ def append_reviewed_batch(root, knowledge_path, batch_path):
             missing.append('catalog_identity')
         if not draft.get('images', {}).get('urls'):
             missing.append('cover')
+        if draft.get('publication_hold'):
+            missing.append('supplier_confirmation_for_published_notice')
         binding_rows.append({'draft_key': draft['draft_key'], 'title': draft['title'],
                              'source_candidate_key': draft['source_candidate_key'],
                              'draft_collection_key': row['draft_collection_key'],
@@ -398,6 +409,7 @@ def append_reviewed_batch(root, knowledge_path, batch_path):
                              'entry_url': None, 'bot_button_url': None,
                              'button_label': draft['button_label'],
                              'selected_cover_urls': draft.get('images', {}).get('urls', []),
+                             'publication_hold': draft.get('publication_hold'),
                              'missing_for_publication': missing, 'active': False})
     assert len({r['draft_key'] for r in binding_rows}) == len(binding_rows)
     assert len({r['draft_collection_key'] for r in binding_rows}) == len(binding_rows)
@@ -415,6 +427,7 @@ def append_reviewed_batch(root, knowledge_path, batch_path):
                                 'rows_with_selected_covers': sum(bool(r['selected_cover_urls']) for r in binding_rows),
                                 'issued_context_ids': 0, 'active_destinations': 0},
                     'rows': binding_rows}
+    entry_review['summary']['supplier_notice_holds'] = summary['supplier_notice_holds']
     data['entry_binding_review_file'] = 'funnel-entry-binding-review.json'
     # Change only descriptions in the existing incomplete XML, preserving catalog and photo work.
     xml_path = out / 'funnel-collections.INCOMPLETE-DRAFT.xml'
@@ -460,6 +473,8 @@ def append_reviewed_batch(root, knowledge_path, batch_path):
                                else ('Подборка' if r['context_kind'] == 'selection' else 'ID ещё не подтверждён')) +
                            '</td><td><code>' + esc(r['draft_collection_key']) + '</code></td><td>' +
                            ('Выбрана для черновика' if r['selected_cover_urls'] else 'Не выбрана') +
+                           '</td><td>' + ('Требуется сверка с поставщиком: ' + esc(r['publication_hold']['reason'])
+                                          if r['publication_hold'] else 'Итоговая редакционная проверка') +
                            '</td></tr>' for r in binding_rows)
     binding_section = ('<!-- FUNNEL_BINDING_REVIEW_BEGIN --><section><h2>Связи постов и входов</h2><p>Собрана таблица для ' +
                        str(len(binding_rows)) + ' подготовленных постов. С подтверждённым LOCAL ID — ' +
@@ -467,7 +482,7 @@ def append_reviewed_batch(root, knowledge_path, batch_path):
                        str(entry_review['summary']['rows_with_selected_covers']) + '. '
                        'Для всех ещё требуются канал, post ID и выданный действующим механизмом ID входа; адреса перехода пустые.</p>' +
                        '<details><summary>Пост → отель/подборка → коллекция</summary><div class="scroll"><table><thead><tr>' +
-                       '<th>Пост</th><th>Контекст / LOCAL ID</th><th>Коллекция черновика</th><th>Обложка</th></tr></thead><tbody>' +
+                       '<th>Пост</th><th>Контекст / LOCAL ID</th><th>Коллекция черновика</th><th>Обложка</th><th>Проверки перед публикацией</th></tr></thead><tbody>' +
                        binding_table + '</tbody></table></div></details><p class="note">В JSON сохранён хеш текста и кнопки каждого черновика. '
                        'Это контроль версии для будущей привязки, он не используется как ID входа. yclid сохраняется на входе; '
                        'дальнейшее сопоставление — по chat ID. Рекламный трафик не запускался.</p></section><!-- FUNNEL_BINDING_REVIEW_END -->')
