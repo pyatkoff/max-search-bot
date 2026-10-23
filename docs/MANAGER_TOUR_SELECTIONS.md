@@ -1,7 +1,7 @@
 # Manager2 tour selection constructor
 
 Owner specification: AnyTour_selection_development_spec_2026-10-22.docx.
-Coordination: issue #55, source claim 6335241336.
+Coordination: issue #55; current bounded FUN&SUN source6363740796 and continuation6364355850/6364539352. Historical source6335241336 owns the first draft slice only.
 
 ## First implementation slice: editable draft
 
@@ -37,6 +37,59 @@ Required regression includes actual HTTP auth/CSRF/access and save recovery,
 validation, conflicts and unchanged transcript/read markers. The real PHP shell
 and production JS/CSS are used by synthetic Playwright cases at 390, 430, 768 and
 1440 px, including lost responses and conflicting edits.
+
+## Bounded FUN&SUN browser collector
+
+`extensions/selection-collector/` is the MV3 package for the observed public
+`https://b2b.fstravel.com/search_tour` template. The installable ZIP is built
+from an explicit file list and checked against the exact source in regression.
+Its README owns installation/update instructions and the supported-source limits;
+physical Chrome/Yandex acceptance is separate from local/CI browser fixtures.
+
+The Manager2 selection sidebar opens `/manager/tour-selection-collector.php`.
+This bridge uses the canonical `/manager/` session and ManagerHttpClient/CSRF;
+it never starts a separate Manager2 cookie/session or exports a bearer login.
+Migration057 stores revocable 12-hour connection metadata bound to the same
+session hash, current actor, exact conversation/assignment/project/source and
+trip binding. Every import and import-status request rechecks these fences
+under the canonical draft parent locks. Account, access, source, session or trip
+changes stop the connection. Manager2 can revoke it without deleting the draft.
+
+The extension keeps the selected client/trip in its own UI, never the third-party
+TO DOM. Each clicked row first becomes a durable local intent with its original
+destination; explicit destination confirmation permits canonical server append.
+One server draft receives different tabs. Worker/browser restart and transport
+loss retain the intent; status checks its exact normalized payload/hash before a
+permitted identical retry. Reconnecting requires the original client/trip;
+changing the active destination blocks old local rows rather than retargeting.
+Queue bounds are50 pending plus20 recent saved rows; the canonical draft retains
+its existing20-offer bound. Removing a queue row never deletes a saved offer.
+
+`ManagerTourSelectionImportDraft` accepts only bounded source observations and
+cross-checks the row's visible current price/currency/date/party with normalized
+conditions and a secret-free search URL. The adapter waits for a stable row/form
+and refuses mismatches or changed templates. CSS old-price text is not the current
+amount. Raw quote/room/meal/placement/tour/program/SPO IDs, original conditions and
+observation time stay separate from editable manager price. No local hotel match,
+photo, selected flight, baggage, fuel or full-fare verification is invented.
+
+`ManagerTourSelectionService::import` appends to the fresh draft using the existing
+draft/operation store and locks. Exact same quote+terms deduplicates without a new
+draft revision or overwriting manual price. Changed price or equivalent-looking
+rows with different opaque IDs require explicit variant review; hidden flight/fare
+identity is not guessed. Normal editor CAS conflicts protect concurrent edits,
+and retained source provenance cannot be forged/replaced by ordinary save.
+Private publication entries freeze this provenance; native snapshot/presentation
+and delivery fingerprints are unchanged, public projection excludes it. Import
+never changes the active public URL/version/history, prepares or sends a card,
+marks read, creates an inquiry, calls AI, or accesses TO credentials/cookies.
+
+Protected API actions: `collector_get`, `collector_connect`, `collector_revoke`,
+`collector_import`, `collector_operation`. The last action returns only exact
+intent saved/missing status and server count, with current connection fences.
+No second draft store, sender, authentication owner or customer contact flow.
+First-source limitations and natural A7–A8, full V1 and owner-only native
+acceptance remain explicit in the canonical specification and latest#55 receipt.
 
 ## Native preview and explicit manager delivery
 

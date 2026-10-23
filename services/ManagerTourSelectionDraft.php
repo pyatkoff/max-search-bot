@@ -72,6 +72,17 @@ final class ManagerTourSelectionDraft
             if ($url===null || $url==='' || !in_array($photo['kind']??null,['cover','beach','room'],true) || !is_bool($photo['illustrative']??null)) return null;
             $out['photos'][]=['url'=>$url,'kind'=>$photo['kind'],'illustrative'=>$photo['illustrative']];
         }
+        if (array_key_exists('import_source',$input)) {
+            require_once __DIR__.'/ManagerTourSelectionImportDraft.php';
+            $source=$input['import_source'];
+            if (!is_array($source) || array_diff(array_keys($source),['adapter','url','observed_at','quote_id','keys','fields','raw'])) return null;
+            $import=ManagerTourSelectionImportDraft::normalize([
+                'adapter'=>$source['adapter']??null,'url'=>$source['url']??null,'observed_at'=>$source['observed_at']??null,
+                'quote_id'=>$source['quote_id']??null,'keys'=>$source['keys']??null,'offer'=>$source['fields']??null,'raw'=>$source['raw']??null,
+            ]);
+            if ($import===null) return null;
+            $out['import_source']=ManagerTourSelectionImportDraft::source($import);
+        }
         // Do not silently accept a forged verification/identity/publication flag.
         if (array_diff(array_keys($input),array_keys($out))) return null;
         return $out;

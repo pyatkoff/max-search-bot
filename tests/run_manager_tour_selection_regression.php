@@ -76,17 +76,19 @@ $pdo->exec('UPDATE managers SET is_active=0 WHERE id=8');tsCheck('deactivated ma
 $pdo->exec('UPDATE conversations SET manager_id=8 WHERE id=1');
 tsCheck('draft workflow never changes customer transcript shifts or read markers',tsState()===$before);
 // Actual HTTP endpoint and unmodified Manager auth/CSRF use isolated fixtures.
+require_once __DIR__.'/support/manager-tour-collector.php';
 $httpRoot=sys_get_temp_dir().'/manager-tour-selection-http-'.bin2hex(random_bytes(8));
 mkdir($httpRoot,0700);mkdir($httpRoot.'/manager',0700);mkdir($httpRoot.'/sessions',0700);$process=null;$httpDb=null;
 try {
     $httpDb=new PDO('sqlite:'.$httpRoot.'/fixture.sqlite',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
     foreach ($pdo->query("SELECT sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")->fetchAll(PDO::FETCH_COLUMN) as $sql) $httpDb->exec($sql);
+    collectorSchema($httpDb);
     foreach (['projects','manager_projects','managers','customers','manager_customer_names','conversations','conversation_sources','manager_group_members','messages','manager_conversation_reads','conversation_events'] as $table) {
         foreach ($pdo->query('SELECT * FROM '.$table)->fetchAll() as $row) {$q=$httpDb->prepare('INSERT INTO '.$table.' ('.implode(',',array_keys($row)).') VALUES ('.implode(',',array_fill(0,count($row),'?')).')');$q->execute(array_values($row));}
     }
     $sourceRoot=dirname(__DIR__);
     file_put_contents($httpRoot.'/config.php',str_replace('\\n',"\n",'<?php\nrequire_once '.var_export($sourceRoot.'/services/ManagerRequestContext.php',true).';\n'.'$fixturePdo=new PDO('.var_export('sqlite:'.$httpRoot.'/fixture.sqlite',true).',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);\n'.'(new ReflectionProperty(ConversationDb::class,"pdo"))->setValue(null,$fixturePdo);\n'.'ProjectConfig::resetForTests(["id"=>"notes-fixture","brand"=>["name"=>"Synthetic workspace"]]);\nProjectAccessService::initializeReadOnly();\n'));
-    copy($sourceRoot.'/manager/tour-selections-api.php',$httpRoot.'/manager/tour-selections-api.php');symlink($sourceRoot.'/manager/lib',$httpRoot.'/manager/lib');symlink($sourceRoot.'/services',$httpRoot.'/services');
+    copy($sourceRoot.'/manager/tour-selections-api.php',$httpRoot.'/manager/tour-selections-api.php');copy($sourceRoot.'/manager/tour-selection-collector.php',$httpRoot.'/manager/tour-selection-collector.php');symlink($sourceRoot.'/manager/assets',$httpRoot.'/manager/assets');symlink($sourceRoot.'/manager/lib',$httpRoot.'/manager/lib');symlink($sourceRoot.'/services',$httpRoot.'/services');
     file_put_contents($httpRoot.'/manager/fixture-session.php','<?php require dirname(__DIR__)."/config.php";require __DIR__."/lib/ManagerHttp.php";ManagerHttp::startJson();$_SESSION["manager_id"]=(int)($_GET["id"]??7);$_SESSION["csrf"]="selection-synthetic-csrf";ManagerHttp::respond(["ok"=>true]);');
     $socket=stream_socket_server('tcp://127.0.0.1:0',$errno,$errstr);if (!$socket) throw new RuntimeException('Cannot allocate notes loopback fixture');$address=(string)stream_socket_get_name($socket,false);fclose($socket);
     $process=proc_open([PHP_BINARY,'-d','session.save_path='.$httpRoot.'/sessions','-S',$address,'-t',$httpRoot],[0=>['pipe','r'],1=>['file',$httpRoot.'/server.log','a'],2=>['file',$httpRoot.'/server.log','a']],$pipes);if (!is_resource($process)) throw new RuntimeException('Cannot start notes loopback fixture');fclose($pipes[0]);
@@ -95,7 +97,7 @@ try {
         $headers=['Content-Type: application/json'];if ($cookie!=='') $headers[]='Cookie: '.$cookie;
         $context=stream_context_create(['http'=>['method'=>$method,'header'=>implode("\r\n",$headers),'content'=>$method==='POST'?json_encode($data,JSON_THROW_ON_ERROR):'','ignore_errors'=>true,'timeout'=>3]]);$body=file_get_contents('http://'.$address.$path,false,$context);$responseHeaders=$http_response_header??[];
         preg_match('/^HTTP\/[^ ]+ ([0-9]+)/',(string)($responseHeaders[0]??''),$status);$responseCookie='';foreach ($responseHeaders as $h) if (preg_match('/^Set-Cookie: (anytour_manager_panel=[^;]+)/i',$h,$m)) $responseCookie=$m[1];
-        return ['status'=>(int)($status[1]??0),'body'=>json_decode((string)$body,true),'cookie'=>$responseCookie];
+        return ['status'=>(int)($status[1]??0),'body'=>json_decode((string)$body,true),'cookie'=>$responseCookie,'raw'=>(string)$body,'headers'=>$responseHeaders];
     };
 
     $anonymous=$request(['action'=>'get','conversation_id'=>1]);tsCheck('actual selection endpoint rejects anonymous401',$anonymous['status']===401);
@@ -110,6 +112,27 @@ try {
     $recovered=$request(['action'=>'operation','operation_id'=>$write['operation_id']]+$base,$cookie);
     tsCheck('actual operation read recovers successful save',$recovered['status']===200&&$recovered['body']['found']&&$recovered['body']['saved_version']===1);
     tsCheck('actual forged verification flag rejected422',$request(['action'=>'save','version'=>1,'draft'=>['title'=>'Forge','intro'=>'','offers'=>[array_replace($offer,['price_verified'=>true])]],'operation_id'=>'http-selection-forge-001']+$base,$cookie)['status']===422);
+    $device=str_repeat('a',32);$connection=str_repeat('b',32);
+    $collector=$request(['action'=>'collector_get','device_id'=>$device]+$base,$cookie);
+    tsCheck('actual collector reads only minimal current target',$collector['status']===200&&$collector['body']['target']['actor']===8&&!isset($collector['body']['selection']));
+    $page=$request([],$cookie,'GET','/manager/tour-selection-collector.php?conversation_id=1');
+    tsCheck('actual bridge uses canonical Manager session with private no-store HTML',$page['status']===200&&str_contains($page['raw'],'"actor":8')&&str_contains(implode('\n',$page['headers']),'private, no-store')&&str_contains(implode('\n',$login['headers']),'path=/manager/'));
+    $connect=['action'=>'collector_connect','device_id'=>$device,'connection_id'=>$connection,'binding'=>$collector['body']['target']['binding'],'confirm_current_trip'=>true]+$base;
+    tsCheck('actual collector connection needs current CSRF',$request(array_diff_key($connect,['csrf'=>true]),$cookie)['status']===403);
+    tsCheck('actual session-bound collector connect returns one durable connection',$request($connect,$cookie)['body']['connection']['id']===$connection&&$request($connect,$cookie)['body']['connection']['id']===$connection);
+    $import=['action'=>'collector_import','connection_id'=>$connection,'operation_id'=>'http-collector-intent-0001','observation'=>collectorObservation()]+$base;
+    $status=array_replace($import,['action'=>'collector_operation']);
+    tsCheck('actual import status is explicit before creation',$request($status,$cookie)['body']['found']===false);
+    $added=$request($import,$cookie);
+    tsCheck('actual protected HTTP import appends to canonical draft',$added['status']===200&&$added['body']['count']===2&&$added['body']['saved_version']===2);
+    $confirmed=$request($status,$cookie);
+    tsCheck('actual HTTP lost-response check retains exact intent and returns no draft',$confirmed['status']===200&&$confirmed['body']['found']===true&&!isset($confirmed['body']['selection'])&&$request($import,$cookie)['body']['saved_version']===2);
+    tsCheck('actual status cannot reuse a receipt for another payload',$request($status+['as_variant'=>true],$cookie)['status']===409);
+    $secondCookie=$request([],'','GET','/manager/fixture-session.php?id=8')['cookie'];
+    tsCheck('actual new login session cannot inherit old collector metadata',$request($status,$secondCookie)['status']===409&&$request($import,$secondCookie)['status']===409);
+    tsCheck('actual colleague cannot use author connection',$request($import,$colleague)['status']===403);
+    $revoked=$request(['action'=>'collector_revoke']+$base,$cookie);
+    tsCheck('actual revoke prevents both writes and receipt status',$revoked['status']===200&&$request($import,$cookie)['status']===409&&$request($status,$cookie)['status']===409);
     $httpDb->exec('UPDATE conversations SET manager_id=7 WHERE id=1');
     tsCheck('actual reassignment blocks former manager403',$request(['action'=>'save','version'=>1,'draft'=>$other,'operation_id'=>'http-selection-reassigned-001']+$base,$cookie)['status']===403);
     $httpDb->exec('DELETE FROM manager_projects WHERE manager_id=8');
