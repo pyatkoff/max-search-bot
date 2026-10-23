@@ -1,6 +1,6 @@
 {
   "schema": "anytour.funnel.autopilot_state.v1",
-  "updated_at_utc": "2026-10-23T14:00:19.752Z",
+  "updated_at_utc": "2026-10-23T14:13:18.853Z",
   "owner": "direct-demand-funnel",
   "automation": {
     "id": "6ada8f0084888191b12c6619c12fb35c",
@@ -43,11 +43,11 @@
   "artifacts": {
     "report": {
       "library_file_id": "libfile_81ae550da16881918bb6840b686d507f",
-      "version": 28
+      "version": 29
     },
     "archive": {
       "library_file_id": "libfile_1b69bb58e8d4819186e7ea461ef60cb6",
-      "version": 28
+      "version": 29
     },
     "canonical_hotel_knowledge": {
       "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
@@ -87,7 +87,7 @@
     },
     "existing_post_review": {
       "library_file_id": "libfile_25486df816e88191b44ed4051858e99f",
-      "version": 9,
+      "version": 10,
       "preview_member": "existing-post-review/anytour-existing-posts-review-20261023.html",
       "text_review_member": "existing-post-review/manual-text-review-107.json",
       "adaptations_member": "existing-post-review/existing-post-adaptations-12.json",
@@ -203,6 +203,19 @@
       "asset_receipt_member": "existing-post-review/m08-asset-receipts.json",
       "media_prefix": "existing-post-review/m08-media/",
       "preview_version": 9
+    },
+    "forward_e03_review": {
+      "review_member": "existing-post-review/e03-forward-review.json",
+      "projection_member": "existing-post-review/e03-forward-projection.json",
+      "binding_member": "existing-post-review/e03-forward-binding-plan.NOT-APPLIED.json",
+      "adaptations_member": "existing-post-review/e03-existing-adaptations-1.json",
+      "patches_member": "existing-post-review/e03-existing-patches-1.NOT-APPLIED.json",
+      "feed_member": "existing-post-review/e03-existing-feed-1.INCOMPLETE-DRAFT.xml",
+      "canonical_reuse_member": "existing-post-review/e03-canonical-claim-reuse.json",
+      "source_fact_member": "existing-post-review/e03-post-fact-checks.json",
+      "asset_receipt_member": "existing-post-review/e03-asset-receipts.json",
+      "media_prefix": "existing-post-review/e03-media/",
+      "preview_version": 10
     }
   },
   "operations": {
@@ -275,20 +288,24 @@
     "media_m08_speech_review": "DONE_6_SAVED_MACHINE_TRANSCRIPTS_EDITORIALLY_READ_NOT_MANUAL_LISTENING",
     "media_m08_remaining_speech": "BLOCKED_AUTOMATIC_APPROVAL_REVIEW_TELEMETRY_EGRESS",
     "media_m08_adaptation": "DONE_1_IDENTITY_HELD_CAPTION_1_NOT_APPLIED_VIDEO_PROPOSAL_1_INACTIVE_COLLECTION",
-    "media_m08_save": "DONE_REPORT_ARCHIVE_V28_PREVIEW_V9"
+    "media_m08_save": "DONE_REPORT_ARCHIVE_V28_PREVIEW_V9",
+    "forward_e03_resolution": "DONE_3_EXACT_SOURCE_LINKS_SAVED_NESTED_TEXT_AND_VIDEOS_RECOVERED_NO_NATIVE_API_CALL",
+    "forward_e03_media": "DONE_3_BRANDED_SOURCE_VIDEOS_48_FRAMES_VISUALLY_READ_AUDIO_UNREVIEWED",
+    "forward_e03_adaptation": "DONE_1_CORENDON_SOURCE_CAPTION_1_NOT_APPLIED_PROPOSAL_1_INACTIVE_COLLECTION_NO_WRAPPER_EDIT",
+    "forward_e03_save": "DONE_REPORT_ARCHIVE_V29_PREVIEW_V10"
   },
   "next_steps": [
-    "Read back current checkpoint, own head and fresh coordination before any write. Preserve same sole traffic package; no subagents, foreign claims or duplicate WIP.",
-    "All saved nonempty texts remain DONE:392 variants/579posts. Index626=610MAX+16savedTGsnapshots, not full Telegram history. Do not replay text blocks or full exports.",
-    "M002-M009: eight source clips and96sampled frames retained in existing archive. Six machine transcripts editor read, no manual listening or full video viewing. M008/M009 speech unresolved. Automatic approval review rejected further ASR due unknown telemetry egress; do not retry or bypass.",
-    "Next bounded unaffected work: exact read-only attachment readback for M015/M016/M017 using saved post references; missing capture is not proof empty. No import, recovery, publication or button-worker invocation as analysis.",
-    "Royal Atlantis Icon candidate: one fact-scoped caption and inactive feed row, exact post/name/catalog identity still held. Do not confuse Royal Atlantis Spa&Resort/Beach. No guessed native ID. Five destination themes remain briefs until verified member criteria/season/conditions.",
-    "Media totals:47records;1greeting fully read,9partial,37unseen;46still require full review. M036 mixed Rixos promotion remains partial; reuse saved clip/images without duplicate download. No single hotel inferred from adjacent posts.",
-    "Preserve115exact NOT-APPLIED proposals:44text/photo paths,71video holds. No bulk-edit or new-publication authority inferred from two completed old-post tests. Fresh exact context, media, buttons and applicable owner receipt required before any write.",
-    "Original99drafts/356rows/99bindings/5verifiedIDs/3supplierholds/24styledvariants/114priorproposals/12covers/6sourcecards retained. Shared hotel archive92 read-only. Current Library guards28/28/9, identities unchanged. No raw media/transcripts/queries/private material on publicGitHub.",
-    "Wordstat remains blocked; do not repeat unchanged attempts. No active feed/RK/spend/new post/tourist send/production merge/deploy/Metrica changes. Continue safe preparation; task is not fully blocked."
+    "Read back own fresh head/checkpoint, current #55 and scoped instructions before writes; same sole traffic package, no subagents or foreign claims/PR/CI.",
+    "All saved direct or exactly forwarded texts read:582posts/392variants from626records.610MAX+16savedTGsnapshots is not full Telegram history. Original top-level579text+47blank index preserved; derived582text+44truly textless supersedes only current reporting.",
+    "M015/M016/M017 DONE: forwarded text and video are inside metadata.link.message. All3exact source channel+mid/body hashes match already reviewed originals. Saved3original videos+48sampled frames. No native API read or full video/manual audio approval claimed; do not repeat the missing-attachment operation.",
+    "Corendon caption is for the original source post; forward wrapper not rewritten.1new inactive collection and1NOT_APPLIED video proposal, cumulative116=44text/photo+72video holds. Four canonical claim refs reused; male occupancy, AI/UAI/night drinks, service charges and season retain exact-package checks.",
+    "Wyndham Royal Lee overview redirects to generic Phuket search; do not infer a rename, closure, native ID or transfer Phuket Airport facts. Four-property Phuket selection stays distinct with no current price/stock/8-hotel-night claims. No new hotel database.",
+    "Next bounded unseen media block:max8records M010-M014,M018-M020. Use saved exact attachment refs; preserve original videos. Reuse downloaded M001,M002-M009,M015-M017,M036. Review speech only through a permitted path; automatic-approval telemetry rejection must not be retried or bypassed.",
+    "Historical47outer-blank media records:1full greeting+12partial+34unseen;46still require full review. True textless44 includes43not fully reviewed;3forwarded captioned records also have incomplete media. No single-property binding from neighbours or mixed promo.",
+    "Current Library guards29/29/10, identities preserved. Shared hotel archive92 read-only. Original99drafts/356feedrows/99bindings/5IDs/3supplierholds/24styledvariants/115priorproposals/12brandedcovers/6sourcecards unchanged. Raw private posts/media/transcripts/queries remain out of publicGitHub.",
+    "Wordstat unchanged blocked, no repeated full Direct/history exports. No bulk old-post writes/new-publication/livefeed/RK/spend/tourist send/production merge/deploy/Metrica changes. Continue safe preparation; no schedule changes."
   ],
-  "publication_blocker": "New-funnel publication destination/authority absent;115 proposals NOT_APPLIED,71with video holds. All saved nonempty texts read;46media records still require full review. Further ASR blocked by automatic approval review; other read-only preparation remains available.",
+  "publication_blocker": "New-funnel destination/authority absent;116proposals NOT_APPLIED,72video holds. All saved direct/forwarded texts now read:582posts/392variants;44truly textless. Wider historical47-record media queue still has46requiring full review. Preparation remains allowed; ASR block unchanged.",
   "coordination": "Own audit/direct-demand-20261022 branch only; no foreign claims, CI, paused hotel tasks or production flows.",
   "completed_preparation": {
     "generated_at_utc": "2026-10-23T06:42:57.737448+00:00",
@@ -644,6 +661,38 @@
       "archive_bytes": 225527644,
       "archive_sha256": "0f430f7a1b7dde9df3d4e77002a032e9b8d16ab2fe09e4fd706d5959fcd05d9d",
       "guarded_library_versions": "27/27/8_TO_28/28/9"
+    },
+    "forward_e03": {
+      "exact_source_links": 3,
+      "hashes_match_saved_originals": true,
+      "source_and_wrapper_ids_separate": true,
+      "boundary_cases_pass": 5,
+      "cumulative_proposals": 116,
+      "prior115proposals_preserved": true,
+      "all_unowned_prior_archive_members_byte_preserved": true,
+      "original99drafts_356feedrows_99bindings_5IDs_3supplierholds_preserved": true,
+      "prior12brandedcovers_6sourcecards_preserved": true,
+      "canonical_claim_refs_resolved": 4,
+      "source92untouched": true,
+      "caption_utf16_under1024": true,
+      "feed_collections": 1,
+      "feed_destinations": 0,
+      "preview_cta_disabled": 47,
+      "preview_images_loaded": 31,
+      "preview_unloaded_images": 0,
+      "mobile_horizontal_overflow": false,
+      "page_errors": [],
+      "source_frames_visually_read": 48,
+      "full_videos_viewed": 0,
+      "audio_manually_listened": 0,
+      "new_runtime_ids": 0,
+      "new_posts": 0,
+      "channel_writes": 0,
+      "zip_crc": "PASS",
+      "zip_members": 370,
+      "archive_bytes": 228371075,
+      "archive_sha256": "c529a8a9f380c367afa47551c4db24bf4591e0f60321967604e0950884c80ec6",
+      "guarded_library_versions": "28/28/9_TO_29/29/10"
     }
   },
   "catalog_evidence": {
@@ -683,52 +732,69 @@
     "validation_sequence": "Use set -e for dependent preparation/write sequences. Resolve any failed preflight before saving. Batch07's overly broad all-declared assertion found1scope caution;17declarations and that separately labelled caution were reviewed before the Library write. The original completed batch bytes and canonical knowledge kinds were preserved."
   },
   "latest_completed_block": {
-    "name": "M08 media:96 sampled frames / six saved speech transcripts, one identity-held hotel caption; ASR stopped by automatic approval review",
-    "completed_at_utc": "2026-10-23T14:00:19.752Z",
-    "state": "BOUNDED_PREPARATION_DONE_REMAINING_ASR_BLOCKED",
-    "idempotency_key": "media-M002-M009-eightclips-96frames-sixsavedtranscripts-20261023-v1",
-    "source_archive_version": 27,
+    "name": "E03: recover three forwarded posts and original branded videos; prepare Corendon source caption; correct 582/44 partition",
+    "state": "DONE",
+    "idempotency_key": "forward-M015-M017-three-exact-origins-and-corendon-source-caption-20261023-v1",
+    "completed_at_utc": "2026-10-23T14:13:18.853Z",
+    "source_demand_archive_version": 28,
     "source_knowledge_version": 92,
-    "record_range": "M002-M009",
-    "sampled_video_assets": 8,
-    "frames_visually_read": 96,
-    "machine_transcripts_editorially_read": 6,
+    "source_capture_at_utc": "2026-10-23T07:28:41+00:00",
+    "forward_wrappers_recovered": 3,
+    "exact_source_links": 3,
+    "source_match_rule": "Exact source channel+mid and SHA256 of stored nested body versus saved original. Not adjacent-post inference.",
+    "nested_texts_substantively_read": 3,
+    "new_distinct_text_variants": 0,
+    "source_video_assets_recovered": 3,
+    "source_video_frames_visually_read": 48,
     "full_videos_viewed": 0,
     "audio_tracks_manually_listened": 0,
+    "cumulative_text_posts_including_forwards_reviewed": 582,
+    "cumulative_distinct_text_variants_reviewed": 392,
+    "true_textless_records": 44,
+    "original_outer_blank_records": 47,
+    "missing_capture_attachments_after_nested_resolution": 0,
+    "cumulative_partial_media_records": 12,
+    "cumulative_full_media_records": 1,
+    "unseen_media_records": 34,
+    "media_records_still_requiring_full_review": 46,
     "new_caption_adaptations": 1,
+    "cumulative_preview_caption_variants": 47,
     "new_proposed_post_patches": 1,
-    "cumulative_proposed_post_patches": 115,
+    "cumulative_proposed_post_patches": 116,
     "cumulative_patch_text_photo_path": 44,
-    "cumulative_patch_video_holds": 71,
-    "source_post_identity_verified": 0,
-    "new_local_hotel_ids": 0,
-    "new_context_ids": 0,
-    "new_runtime_ids": 0,
+    "cumulative_patch_video_holds": 72,
     "new_inactive_feed_collections": 1,
     "new_feed_destinations": 0,
     "new_cover_images": 0,
-    "new_posts": 0,
-    "actual_channel_writes": 0,
-    "nonhotel_editorial_briefs": 5,
-    "unresolved_speech_records": 2,
+    "existing_source_branded_frames_added_to_review": 3,
+    "canonical_claim_refs_reused": 4,
+    "new_scoped_primary_fact_refs": 3,
+    "source_redirect_cautions": 1,
     "canonical_hotel_archive_modified": false,
     "parallel_hotel_profiles_created": false,
-    "asr_rejection_retried": false,
+    "new_native_ids": 0,
+    "new_entry_ids": 0,
+    "new_posts": 0,
+    "actual_channel_writes": 0,
+    "forward_wrapper_edit_proposed": false,
+    "source_and_wrapper_identity_not_merged": true,
+    "fresh_native_api_read_performed": false,
+    "asr_rerun_after_rejection": false,
     "unknown_writes": [],
     "save_receipt": {
-      "report_version": 28,
-      "archive_version": 28,
-      "preview_version": 9,
-      "expected_previous_demand_versions": 27,
-      "expected_previous_preview_version": 8,
+      "report_version": 29,
+      "archive_version": 29,
+      "preview_version": 10,
+      "expected_previous_demand_versions": 28,
+      "expected_previous_preview_version": 9,
       "all_local_metadata_applied": true
     },
     "limitations": [
-      "A noisy machine transcript suggests Royal Atlantis Icon; this is not an exact post identity or native catalog ID.",
-      "Five clips concern destinations rather than named hotels; references to another post are not a hotel binding.",
-      "Old weather, price, flight, safety and promotional claims not treated as current verified hotel facts.",
-      "Original videos preserved, not replaced with photos. Source audio was not manually listened to; all eight media records remain partial.",
-      "Two official pages support a scoped candidate draft only; shared hotel archive92 remains unchanged."
+      "Saved forward bodies resolve three apparent missing attachments; no fresh native message/version read claimed.",
+      "Phuket four-property selection remains held for current criteria/member IDs; no current stock or prices inferred.",
+      "Corendon source caption prepared; male occupancy and AI/UAI/fees/date conditions still require exact package confirmation.",
+      "Wyndham Royal Lee old official overview redirects to generic search; this is not evidence of renaming to Phuket Airport or closure.",
+      "All three clips are already owner branded. Preserve original videos; no image substitution to bypass video holds. Sampled visual frames only, not full playback/manual audio."
     ]
   },
   "catalog_export_lookup": {
@@ -793,15 +859,15 @@
     "each_new_post_has_explicit_eligibility_checks": true
   },
   "last_run_readback": {
-    "own_branch_head_before_write": "c5cea5268a50dd2339b11a4a3f02358903480bcd",
+    "own_branch_head_before_write": "03621a7ce983573cfdff2f3dffd1fe71d82a10eb",
     "same_package_current_executor_handoff": true,
-    "coordination_issue55_updated_at_utc": "2026-10-23T13:33:48Z",
+    "coordination_issue55_updated_at_utc": "2026-10-23T14:08:08Z",
     "source_archive_library_version": 92,
-    "demand_library_versions_before_write": 27,
-    "existing_review_preview_version_before_write": 8,
+    "demand_library_versions_before_write": 28,
+    "existing_review_preview_version_before_write": 9,
     "foreign_claims_untouched": true,
     "scope_instructions_reused_from_current_same_executor_package": true,
-    "root_AGENTS_sha": "3116040042fb1106a7f72c48cfee5e6b8689db32",
+    "root_AGENTS_sha": "a064aff67d42ddd69a12d9b0393501d116d1307d",
     "nested_tools_AGENTS": "NOT_FOUND_UNCHANGED_SCOPE",
     "nested_direct_demand_AGENTS": "NOT_FOUND_UNCHANGED_SCOPE",
     "full_direct_export_repeated": false,
@@ -809,8 +875,9 @@
     "full_CI_or_unchanged_baseline_repeated": false,
     "wordstat_access_blocker_unchanged": true,
     "blocked_wordstat_retried": false,
-    "current_task": "Owner continuation advances the same single traffic preparation package: M002-M009 media samples, six persisted speech reviews and one inactive identity-held candidate draft. No duplicated package.",
-    "private_source_materials_committed": false
+    "current_task": "Owner continuation resolves the three planned apparent-missing-media records from existing nested source snapshots and prepares one Corendon caption in the same sole traffic package.",
+    "private_source_materials_committed": false,
+    "fresh_native_message_read_performed": false
   },
   "latest_source_checks": {
     "read_on": "2026-10-23",
@@ -1425,9 +1492,11 @@
     }
   },
   "next_pending_text_block": {
+    "state": "DONE_ALL_DIRECT_AND_EXACT_FORWARDED_SAVED_TEXTS_READ",
     "nonempty_texts": 0,
     "represented_posts": 0,
-    "state": "DONE_ALL_SAVED_NONEMPTY_TEXTS_READ"
+    "cumulative_distinct_variants": 392,
+    "cumulative_posts_including_forwards": 582
   },
   "remaining_x40_review_operation": {
     "state": "DONE",
@@ -1659,48 +1728,62 @@
     }
   },
   "media_only_review_operation": {
-    "state": "BOUNDED_M08_REVIEW_DONE_FULL_MEDIA_PENDING",
+    "state": "SAVED_FORWARD_WRAPPERS_RESOLVED_PARTIAL_MEDIA_QUEUE_REMAINS",
     "inventory_records": 47,
-    "video_containing_records": 43,
+    "video_containing_records": 46,
     "image_containing_records": 2,
     "mixed_records": 1,
-    "records_without_returned_attachments": 3,
-    "inventory_count_correction": "43+2-1+3=47; historical two-empty count superseded",
+    "records_without_returned_attachments": 0,
+    "inventory_count_correction": "Original outer blank47=43top-level video+2images-1mixed+3forward wrappers. Nested media resolves all3; derived text partition582+44=626. Original capture/inventory preserved.",
     "source_images_viewed": 2,
-    "video_assets_sampled": 9,
-    "sampled_frame_count": 102,
+    "video_assets_sampled": 12,
+    "sampled_frame_count": 150,
     "full_videos_reviewed": 0,
     "audio_tracks_reviewed": 0,
     "fully_reviewed_records": 1,
-    "partially_reviewed_records": 9,
+    "partially_reviewed_records": 12,
     "records_still_requiring_full_review": 46,
     "media_review_member": "existing-post-review/z30-media-review.json",
     "source_inventory_not_modified": true,
     "no_hotel_identity_inferred_from_adjacent_posts": true,
     "no_single_hotel_bound_to_mixed_promotions": true,
     "machine_transcripts_editorially_read": 6,
-    "unseen_records": 37,
+    "unseen_records": 34,
     "media_review_members": [
       "existing-post-review/z30-media-review.json",
-      "existing-post-review/m08-manual-review.json"
-    ]
+      "existing-post-review/m08-manual-review.json",
+      "existing-post-review/e03-forward-review.json"
+    ],
+    "original_outer_blank_records": 47,
+    "true_textless_records": 44,
+    "video_containing_records_including_nested": 46,
+    "top_level_video_records": 43,
+    "forwarded_nested_video_records": 3,
+    "original_top_level_records_without_attachments": 3
   },
   "next_pending_media_block": {
-    "state": "PENDING_EXACT_MISSING_ATTACHMENT_READBACK_OR_PERMITTED_SPEECH_REVIEW",
+    "state": "PENDING_NEXT_8_UNSEEN_SAVED_VIDEO_SAMPLES",
     "source_member": "existing-post-review/u40-media-only-47.json",
-    "missing_attachment_record_ids": [
+    "target_max_video_records": 8,
+    "record_ids": [
+      "M010",
+      "M011",
+      "M012",
+      "M013",
+      "M014",
+      "M018",
+      "M019",
+      "M020"
+    ],
+    "completed_forward_resolution": [
       "M015",
       "M016",
       "M017"
     ],
-    "target_max_records": 3,
-    "do_not_replay_downloaded_records": "M001,M002-M009,M036",
-    "speech_unresolved_records": [
-      "M008",
-      "M009"
-    ],
+    "skip_downloaded_records": "M001,M002-M009,M015-M017,M036",
     "asr_reexecution_blocked_by_automatic_approval_review": true,
-    "no_identity_inference_from_adjacency": true
+    "no_hotel_identity_inference_from_adjacency": true,
+    "full_video_or_audio_approval_not_claimed": true
   },
   "media_m08_review_operation": {
     "state": "BOUNDED_PREPARATION_DONE_REMAINING_ASR_BLOCKED",
@@ -1748,6 +1831,71 @@
       "Old weather, price, flight, safety and promotional claims not treated as current verified hotel facts.",
       "Original videos preserved, not replaced with photos. Source audio was not manually listened to; all eight media records remain partial.",
       "Two official pages support a scoped candidate draft only; shared hotel archive92 remains unchanged."
+    ]
+  },
+  "forward_e03_review_operation": {
+    "state": "DONE",
+    "idempotency_key": "forward-M015-M017-three-exact-origins-and-corendon-source-caption-20261023-v1",
+    "completed_at_utc": "2026-10-23T14:13:18.853Z",
+    "source_demand_archive_version": 28,
+    "source_knowledge_version": 92,
+    "source_capture_at_utc": "2026-10-23T07:28:41+00:00",
+    "forward_wrappers_recovered": 3,
+    "exact_source_links": 3,
+    "source_match_rule": "Exact source channel+mid and SHA256 of stored nested body versus saved original. Not adjacent-post inference.",
+    "nested_texts_substantively_read": 3,
+    "new_distinct_text_variants": 0,
+    "source_video_assets_recovered": 3,
+    "source_video_frames_visually_read": 48,
+    "full_videos_viewed": 0,
+    "audio_tracks_manually_listened": 0,
+    "cumulative_text_posts_including_forwards_reviewed": 582,
+    "cumulative_distinct_text_variants_reviewed": 392,
+    "true_textless_records": 44,
+    "original_outer_blank_records": 47,
+    "missing_capture_attachments_after_nested_resolution": 0,
+    "cumulative_partial_media_records": 12,
+    "cumulative_full_media_records": 1,
+    "unseen_media_records": 34,
+    "media_records_still_requiring_full_review": 46,
+    "new_caption_adaptations": 1,
+    "cumulative_preview_caption_variants": 47,
+    "new_proposed_post_patches": 1,
+    "cumulative_proposed_post_patches": 116,
+    "cumulative_patch_text_photo_path": 44,
+    "cumulative_patch_video_holds": 72,
+    "new_inactive_feed_collections": 1,
+    "new_feed_destinations": 0,
+    "new_cover_images": 0,
+    "existing_source_branded_frames_added_to_review": 3,
+    "canonical_claim_refs_reused": 4,
+    "new_scoped_primary_fact_refs": 3,
+    "source_redirect_cautions": 1,
+    "canonical_hotel_archive_modified": false,
+    "parallel_hotel_profiles_created": false,
+    "new_native_ids": 0,
+    "new_entry_ids": 0,
+    "new_posts": 0,
+    "actual_channel_writes": 0,
+    "forward_wrapper_edit_proposed": false,
+    "source_and_wrapper_identity_not_merged": true,
+    "fresh_native_api_read_performed": false,
+    "asr_rerun_after_rejection": false,
+    "unknown_writes": [],
+    "save_receipt": {
+      "report_version": 29,
+      "archive_version": 29,
+      "preview_version": 10,
+      "expected_previous_demand_versions": 28,
+      "expected_previous_preview_version": 9,
+      "all_local_metadata_applied": true
+    },
+    "limitations": [
+      "Saved forward bodies resolve three apparent missing attachments; no fresh native message/version read claimed.",
+      "Phuket four-property selection remains held for current criteria/member IDs; no current stock or prices inferred.",
+      "Corendon source caption prepared; male occupancy and AI/UAI/fees/date conditions still require exact package confirmation.",
+      "Wyndham Royal Lee old official overview redirects to generic search; this is not evidence of renaming to Phuket Airport or closure.",
+      "All three clips are already owner branded. Preserve original videos; no image substitution to bypass video holds. Sampled visual frames only, not full playback/manual audio."
     ]
   }
 }
