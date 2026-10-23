@@ -130,6 +130,7 @@ return [
         'php tests/run_virtual_reply_client_regression.php',
         'php tests/run_virtual_reply_source_regression.php',
         'php tests/run_virtual_reply_store_regression.php',
+        'php tests/run_virtual_reply_review_browser_regression.php',
         'php tests/run_virtual_reply_sampling_regression.php',
         'php tests/run_virtual_reply_control_protocol_regression.php',
         'php tests/run_virtual_reply_control_store_regression.php',
