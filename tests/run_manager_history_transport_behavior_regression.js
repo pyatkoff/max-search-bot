@@ -460,6 +460,17 @@ async function runSuite({historySource=canonicalHistory()}={}) {
     const pending=h.C.open(102);await h.C.open(103);const detail=h.W.S.detail;old.resolve(response({...h.latest(102,[message(10),message(20)]),history:{mode:'latest',has_more:false,before_id:10,page_size:200,initial_unread_id:20}}));await pending;
     assert.equal(h.W.S.current,103);assert.equal(h.W.S.detail,detail);assert.deepEqual(anchors,[]);assert.equal(h.W.S.authExpired,false);
   });
+  test('expanded latest coverage resumes initial unread repair without waiting for a stalled obsolete page',async()=>{
+    const h=make(),old=deferred(),current=deferred();h.ids.get('messages').removeChild=node=>{node.remove();return node;};
+    h.setHook((url,r)=>{
+      if(url!=='api.php'||r.action!=='detail')return null;
+      if(r.before_id===922)return old.promise;if(r.before_id===802)return current.promise;
+      if(r.before_id)return response(h.older(101,rows(r.before_id-200,r.before_id-1)));
+      const d=h.latest(101,r.open_unread?[...rows(181,300),...rows(922,1001)]:rows(802,1001));if(r.open_unread)Object.assign(d.history,{initial_unread_id:201,gap_frontier:300,gap_before_id:922});return response(d);
+    });await h.start();await settleRecovery();assert.deepEqual(olderCalls(h).map(r=>r.before_id),[922]);await h.draft('Current unread draft');const file={name:'unread-current.txt'};h.setFile(file);
+    await h.C.refreshVisible();await settleRecovery();assert.deepEqual(olderCalls(h).map(r=>r.before_id),[922,802]);old.resolve(response({ok:false,error:'unauthorized'},401));await settleRecovery();assert.equal(h.W.S.authExpired,false);assert.equal(h.H.getState().paging,true);
+    current.resolve(response(h.older(101,rows(602,801))));await h.H.recoverGap();assert.equal(h.H.getState().has_gap,false);assert.equal(h.ids.get('replyText').value,'Current unread draft');assert.equal(h.getFile(),file);assert.equal(h.readMarks.length,0);
+  });
   let failed=0;
   for(const {name,run} of cases) {
     try {await run(); console.log('PASS '+name);} catch(error) {failed++; console.error('FAIL '+name+'\n'+error.stack);}
