@@ -18,6 +18,7 @@ try {
     foreach ($seed->query("SELECT name,sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'manager_tour_selection_%'")->fetchAll() as $table) {
         $sql=preg_replace('/\bINTEGER PRIMARY KEY AUTOINCREMENT\b/','BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY',$table['sql']);
         $sql=preg_replace('/\bINTEGER\b/','BIGINT',$sql);
+        $sql=str_replace('created_at TEXT DEFAULT CURRENT_TIMESTAMP','created_at DATETIME DEFAULT CURRENT_TIMESTAMP',$sql);
         $sql=preg_replace('/\ACREATE TABLE /','CREATE TEMPORARY TABLE ',$sql);
         $native->exec($sql);
         foreach ($seed->query('SELECT * FROM '.$table['name'])->fetchAll() as $row) {
