@@ -9,7 +9,7 @@ const {createHarness, response, deferred, hidden} = require('./run_manager_reaut
 const canonicalHistory = () => fs.readFileSync(path.join(__dirname, '../manager/assets/workspace-v2-history.js'), 'utf8');
 const message = id => ({id, sender_type:'customer', text:'Synthetic history '+id});
 const olderCalls = h => h.calls.filter(r => r.action === 'detail' && r.before_id);
-const stableHistory = h => { const {paging, ...state} = h.H.getState(); return state; };
+const stableHistory = h => { const {paging, recovering, ...state} = h.H.getState(); return state; };
 
 function createHistoryHarness({mobile=false, historySource=canonicalHistory()}={}) {
   const h = createHarness({mobile});
@@ -87,6 +87,68 @@ async function runSuite({historySource=canonicalHistory()}={}) {
   const settle=(pending,outcome,h)=>pending.resolve(outcome==='network' ? Promise.reject(new Error('Synthetic outage')) : response(outcome==='200'?h.older():{ok:false,error:'synthetic'},Number(outcome)));
 
   const rows=(first,last)=>Array.from({length:last-first+1},(_,i)=>message(first+i));
+  const settleRecovery=()=>new Promise(resolve=>setImmediate(resolve));
+  function recoveryFixture(h,{tail=800,older}={}) {
+    // Enable Conversation's real retained-row renderer in this DOM fixture.
+    const box=h.ids.get('messages');box.removeChild=node=>{node.remove();return node};
+    const data={tail};
+    h.installFetch(older||((r)=>response(h.older(101,rows(Math.max(1,r.before_id-200),r.before_id-1),r.before_id>201))),id=>h.latest(id,rows(Math.max(1,data.tail-199),data.tail),data.tail>200));
+    return data;
+  }
+  test('reconnect automatically bridges a multi-page gap without draining older history or replacing current input',async()=>{
+    const h=make(),data=recoveryFixture(h);await h.start();const saved=await protectCurrent(h),row=h.ids.get('messages').children[0];
+    data.tail=1400;await h.C.refreshVisible();await settleRecovery();
+    assert.equal(h.H.getState().has_gap,false);assert.equal(h.H.getState().before_id,601);assert.equal(h.H.getState().has_more,true);
+    assert.deepEqual(olderCalls(h).map(r=>r.before_id),[1201,1001,801]);
+    assert.deepEqual(Array.from(h.W.S.detail.messages,m=>m.id),Array.from({length:800},(_,i)=>601+i));
+    assert.equal(h.ids.get('messages').children[0]===row,true);assert.equal(saved.audio.parentElement===row,true);assert.equal(saved.audio.currentTime,42);
+    assert.equal(h.ids.get('replyText').value,'Exact current synthetic draft');assert.equal(h.getFile(),saved.file);assert.equal(h.ids.get('messages').scrollTop,25);
+    assert.equal(h.calls.some(r=>['send','take','release','close','reopen'].includes(r.action)),false);
+  });
+  test('automatic gap failure stops until explicit retry and keeps the draft and file',async()=>{
+    const h=make(),data=recoveryFixture(h,{older:()=>response({ok:false},500)});await h.start();const saved=await protectCurrent(h);
+    data.tail=1400;await h.C.refreshVisible();await settleRecovery();assert.equal(olderCalls(h).length,1);assert.equal(h.H.getState().has_gap,true);assert.match(h.H.getState().error,/черновик сохранены/);
+    await h.C.refreshVisible();await settleRecovery();assert.equal(olderCalls(h).length,1,'a successful latest read does not blindly replay failed gap pages');
+    recoveryFixture(h,{tail:1400});assert.equal(await h.H.loadOlder(),true);assert.equal(h.H.getState().has_gap,false);
+    assert.equal(h.ids.get('replyText').value,'Exact current synthetic draft');assert.equal(h.getFile(),saved.file);
+  });
+  test('automatic recovery pauses in a hidden tab and resumes the same gap on return',async()=>{
+    const h=make(),hold=deferred(),data=recoveryFixture(h,{older:()=>hold.promise});await h.start();const saved=await protectCurrent(h);
+    data.tail=1400;await h.C.refreshVisible();await settleRecovery();assert.equal(olderCalls(h).length,1);
+    h.document.visibilityState='hidden';hold.resolve(response({ok:false},401));await settleRecovery();
+    assert.equal(h.W.S.authExpired,false);assert.equal(h.H.getState().has_gap,true);assert.equal(olderCalls(h).length,1);
+    h.document.visibilityState='visible';recoveryFixture(h,{tail:1400});await h.C.refreshVisible();await settleRecovery();
+    assert.equal(h.H.getState().has_gap,false);assert.equal(h.getFile(),saved.file);assert.equal(h.ids.get('replyText').value,'Exact current synthetic draft');
+  });
+  test('new arrivals during gap recovery move its frontier without letting the obsolete page erase it',async()=>{
+    const h=make(),hold=deferred();let first=true;const data=recoveryFixture(h,{older:r=>first?(first=false,hold.promise):response(h.older(101,rows(r.before_id-200,r.before_id-1)))});await h.start();
+    data.tail=1400;await h.C.refreshVisible();await settleRecovery();assert.equal(olderCalls(h)[0].before_id,1201);
+    data.tail=2000;await h.C.refreshVisible();hold.resolve(response(h.older(101,rows(1001,1200))));await settleRecovery();
+    assert.equal(h.H.getState().has_gap,false);assert.deepEqual(Array.from(h.W.S.detail.messages,m=>m.id),Array.from({length:1400},(_,i)=>601+i));
+    assert.equal(olderCalls(h)[1].before_id,1801);assert.equal(new Set(h.W.S.detail.messages.map(m=>m.id)).size,1400);
+  });
+  test('a stalled hidden recovery cannot block return and its late 401 cannot expire the recovered view',async()=>{
+    const h=make(),hold=deferred(),data=recoveryFixture(h,{older:()=>hold.promise});await h.start();const saved=await protectCurrent(h);
+    data.tail=1400;await h.C.refreshVisible();await settleRecovery();assert.equal(olderCalls(h).length,1);
+    h.document.visibilityState='hidden';h.documentEvents.get('visibilitychange')();assert.equal(h.H.getState().recovering,false);
+    h.document.visibilityState='visible';recoveryFixture(h,{tail:1400});await h.C.refreshVisible();await settleRecovery();assert.equal(h.H.getState().has_gap,false);
+    const count=h.calls.length;hold.resolve(response({ok:false},401));await settleRecovery();assert.equal(h.W.S.authExpired,false);assert.equal(h.calls.length,count);
+    assert.equal(h.ids.get('replyText').value,'Exact current synthetic draft');assert.equal(h.getFile(),saved.file);
+  });
+  test('network return starts canonical visible recovery and late A cannot expire B',async()=>{
+    const h=make(),data=recoveryFixture(h);await h.start();data.tail=1400;h.events.get('online')();await settleRecovery();
+    assert.equal(h.H.getState().has_gap,false);assert.equal(olderCalls(h).length,3);
+    const hold=deferred();data.tail=2000;h.installFetch(()=>hold.promise,id=>h.latest(id,rows(id===101?1801:1,id===101?2000:3),id===101));
+    await h.C.refreshVisible();await settleRecovery();await h.C.open(102);await h.draft('Current B draft');const file={name:'current-b.txt'};h.setFile(file);
+    const count=h.calls.length;hold.resolve(response({ok:false},401));await settleRecovery();assert.equal(h.W.S.authExpired,false);assert.equal(h.W.S.current,102);assert.equal(h.calls.length,count);
+    assert.equal(h.ids.get('replyText').value,'Current B draft');assert.equal(h.getFile(),file);
+  });
+  test('very large reconnect gaps stop after ten pages and continue only on explicit intent',async()=>{
+    const h=make(),data=recoveryFixture(h,{tail:200});await h.start();data.tail=3000;await h.C.refreshVisible();await settleRecovery();
+    assert.equal(olderCalls(h).length,10);assert.equal(h.H.getState().has_gap,true);assert.equal(h.H.getState().recovery_limited,true);
+    await h.C.refreshVisible();await settleRecovery();assert.equal(olderCalls(h).length,10);
+    assert.equal(await h.H.loadOlder(),true);assert.equal(olderCalls(h).length,14);assert.equal(h.H.getState().has_gap,false);assert.equal(h.W.S.detail.messages.length,3000);
+  });
   async function loadedHistory(options={}) {
     const h=make(options);
     h.installFetch(()=>response(h.older(101,rows(401,600))),id=>h.latest(id,rows(601,800)));
@@ -183,17 +245,16 @@ async function runSuite({historySource=canonicalHistory()}={}) {
     assert.equal(olderCalls(h).length,count); assert.equal(h.H.getState().has_more,false);
   });
 
-  test('failed navigation and subsequent refresh keep the active gap cursor until explicit pages fill it',async()=>{
+  test('failed automatic gap repair survives failed navigation and resumes only on explicit retry',async()=>{
     const h=await loadedHistory();
-    h.installFetch(()=>{throw new Error('Unexpected older read')},id=>h.latest(id,rows(1001,1200)));
-    assert.equal(await h.C.refreshVisible(),true);
+    h.installFetch(()=>response({ok:false},500),id=>h.latest(id,rows(1001,1200)));
+    assert.equal(await h.C.refreshVisible(),true);await settleRecovery();
     const saved=stableHistory(h); assert.equal(saved.has_gap,true); assert.equal(saved.before_id,1001);
     failedTarget(h,'500'); assert.equal(await h.C.open(102),false); assert.deepEqual(stableHistory(h),saved);
     h.installFetch(r=>response(h.older(101,r.before_id===1001?rows(801,1000):rows(601,800))),id=>h.latest(id,rows(1001,1200)));
     assert.equal(await h.C.refreshVisible(),true); assert.deepEqual(stableHistory(h),saved);
     const marks=h.readMarks.length;
-    assert.equal(await h.H.loadOlder(),true); assert.equal(h.H.getState().before_id,801);
-    assert.equal(h.H.getState().has_gap,true); assert.equal(await h.H.loadOlder(),true);
+    assert.equal(await h.H.loadOlder(),true);assert.equal(olderCalls(h).length,4);
     assert.equal(h.H.getState().has_gap,false); assert.equal(h.readMarks.length,marks);
     assert.deepEqual(Array.from(h.W.S.detail.messages,m=>m.id),Array.from({length:800},(_,i)=>401+i));
   });
@@ -308,9 +369,12 @@ async function runSuite({historySource=canonicalHistory()}={}) {
         h.installFetch(()=>pending.promise,id=>h.latest(id,[message(801),message(901)]));
         assert.equal(await h.C.refreshVisible(),true);
         assert.equal(h.H.getState().has_gap,true); assert.equal(h.H.getState().before_id,801);
+        // This obsolete transport must stay harmless while the newly detected
+        // automatic repair is paused in the background. Active repair is covered above.
+        h.document.visibilityState='hidden';
       }
       const saved=await protectCurrent(h); settle(pending,outcome,h);
-      assert.equal(await load,false); assertCurrentProtected(h,saved); assert.equal(olderCalls(h).length,1);
+      assert.equal(await load,false);if(context==='new gap cursor')await settleRecovery();assertCurrentProtected(h,saved); assert.equal(olderCalls(h).length,1);
     });
   }
 
