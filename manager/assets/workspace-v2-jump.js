@@ -5,6 +5,12 @@ let lastGeometry=null,lastRows=[];const observedRows=new Set();
 function distanceFromLatest(){const box=$('messages');if(!box)return 0;return Math.max(0,box.scrollHeight-box.scrollTop-box.clientHeight)}
 function geometry(box){return {top:box.scrollTop,height:box.clientHeight,total:box.scrollHeight,width:box.clientWidth}}
 function sameSize(a,b){return !!a&&a.height===b.height&&a.total===b.total&&a.width===b.width}
+function setScrollTop(box,top){
+  const target=Math.max(0,Math.min(top,box.scrollHeight-box.clientHeight));
+  // Even an unchanged scrollTop assignment cancels WebKit's native wheel
+  // animation. Resize/anchor maintenance must write only a real correction.
+  if(Math.abs(box.scrollTop-target)>.5)box.scrollTop=target;
+}
 function findAnchor(box){
   const edge=box.getBoundingClientRect().top;
   const row=[...box.children].find(el=>el.getBoundingClientRect().bottom>edge+1);
@@ -36,11 +42,11 @@ function update(){const button=ensureButton(),box=$('messages');if(!button||!box
 function align({syncIntent=true}={}){
   const box=$('messages');if(!box||!Number(S.current||0)||S.authExpired)return;
   if(syncIntent)syncScrollIntent();
-  if(followingLatest){smoothJump=false;box.scrollTop=box.scrollHeight;readingAnchor=null;}
+  if(followingLatest){smoothJump=false;setScrollTop(box,box.scrollHeight);readingAnchor=null;}
   else if(readingAnchor){
     const row=anchorRow(readingAnchor,box);
     const focus=readingAnchor.focus,node=focus?.node===document.activeElement&&box.contains(focus.node)?focus.node:row;
-    if(node)box.scrollTop+=node.getBoundingClientRect().top-box.getBoundingClientRect().top-(node===focus?.node?focus.offset:readingAnchor.offset);
+    if(node)setScrollTop(box,box.scrollTop+node.getBoundingClientRect().top-box.getBoundingClientRect().top-(node===focus?.node?focus.offset:readingAnchor.offset));
   }
   if(!followingLatest)readingAnchor=findAnchor(box);
   rememberGeometry(box);update();
@@ -75,7 +81,7 @@ function restore(position,{stickToBottom=false,preserveScroll=false}={}){
   const box=$('messages');if(!box)return;
   smoothJump=false;followingLatest=stickToBottom||(preserveScroll&&position?.followingLatest===true);
   readingAnchor=followingLatest?null:preserveScroll?position?.anchor||null:null;
-  if(!followingLatest&&preserveScroll&&position)box.scrollTop=position.top;
+  if(!followingLatest&&preserveScroll&&position)setScrollTop(box,position.top);
   if(!followingLatest&&!readingAnchor)readingAnchor=findAnchor(box);
   align({syncIntent:false});observeRows();schedule();
 }
