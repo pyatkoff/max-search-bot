@@ -1,6 +1,6 @@
 {
   "schema": "anytour.funnel.autopilot_state.v1",
-  "updated_at_utc": "2026-10-23T20:38:55.425Z",
+  "updated_at_utc": "2026-10-23T21:46:16.200Z",
   "owner": "direct-demand-funnel",
   "automation": {
     "id": "6ada8f0084888191b12c6619c12fb35c",
@@ -43,11 +43,11 @@
   "artifacts": {
     "report": {
       "library_file_id": "libfile_81ae550da16881918bb6840b686d507f",
-      "version": 38
+      "version": 39
     },
     "archive": {
       "library_file_id": "libfile_1b69bb58e8d4819186e7ea461ef60cb6",
-      "version": 38
+      "version": 39
     },
     "canonical_hotel_knowledge": {
       "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
@@ -87,7 +87,7 @@
     },
     "existing_post_review": {
       "library_file_id": "libfile_25486df816e88191b44ed4051858e99f",
-      "version": 19,
+      "version": 20,
       "preview_member": "existing-post-review/anytour-existing-posts-review-20261023.html",
       "text_review_member": "existing-post-review/manual-text-review-107.json",
       "adaptations_member": "existing-post-review/existing-post-adaptations-12.json",
@@ -309,6 +309,18 @@
       "validation_member": "existing-post-review/h5/h5-validation.json",
       "report_section": "h5-existing-variants",
       "private_materials_only_in_library": true
+    },
+    "existing_h6_post_corrections": {
+      "adaptations_member": "existing-post-review/h6/content.json",
+      "patches_member": "existing-post-review/h6/h6-existing-patches-7.NOT-APPLIED.json",
+      "preflight_member": "existing-post-review/h6/preflight138-current.NOT-APPLIED.json",
+      "map_member": "existing-post-review/h6/h6-existing55-138post-map.NOT-APPLIED.json",
+      "feed_member": "existing-post-review/h6/h6-existing55.INCOMPLETE-DRAFT.xml",
+      "cover_manifest_member": "existing-post-review/h6/h6-cover-manifest.NOT-APPLIED.json",
+      "variant_review_member": "existing-post-review/h6/h6-related-variant-review.NOT-APPLIED.json",
+      "validation_member": "existing-post-review/h6/h6-validation.json",
+      "report_section": "h6-existing-posts",
+      "private_materials_only_in_library": true
     }
   },
   "operations": {
@@ -396,7 +408,8 @@
     "proposal_preflight117": "DONE_EXACT_POSTS_HASHES_LENGTHS_GATES_AND_MOBILE_SEARCHABLE_TABLE_NO_WRITES",
     "media_np08_save": "DONE_REPORT_ARCHIVE_V31_PREVIEW_V12_N08_P08_SAVED_TOGETHER",
     "existing_h4_corrections": "DONE_4_DRAFTS_4_COVERS_51_COLLECTIONS_121_POST_CANDIDATES_NO_WRITES",
-    "existing_h5_variant_reuse": "DONE_10_MORE_EXACT_SAVED_TARGETS_REUSE4_H4_CAPTIONS_AND_COVERS_131_INACTIVE_CANDIDATES"
+    "existing_h5_variant_reuse": "DONE_10_MORE_EXACT_SAVED_TARGETS_REUSE4_H4_CAPTIONS_AND_COVERS_131_INACTIVE_CANDIDATES",
+    "existing_h6_corrections": "DONE_4_CAPTIONS_4_COVERS_7_NOT_APPLIED_POST_TARGETS_55_EXISTING_KEYS_138_INACTIVE_CANDIDATES"
   },
   "next_steps": [
     "Continue the same sole traffic package from saved33/33/14. AL11 image-source review and6media previews+1heldset are DONE. No repeat downloads or album review merely for status; no subagents/foreign claims/PR/CI.",
@@ -949,6 +962,30 @@
       "page_errors": 0,
       "source_knowledge_modified": false,
       "new_ASR": 0
+    },
+    "existing_h6": {
+      "all7before_hashes_match": true,
+      "all7original_media_arrays_order_and_buttons_preserved": true,
+      "four_captions_under1024_UTF16": true,
+      "four_owner_template_covers_1080_square": true,
+      "selected_photos_and_grid_visually_read": true,
+      "all138exact_targets_unique": true,
+      "all138caption_hashes_match": true,
+      "prior131preflight_rows_unchanged": true,
+      "all55collection_caption_target_sets_match": true,
+      "prior_XML_proposals_covers_and_media_unchanged": true,
+      "new_feed_collection_rows": 55,
+      "new_feed_destinations": 0,
+      "changed_preview_widths": [
+        390,
+        1440
+      ],
+      "section_and_card_overflow": false,
+      "all_images_loaded": true,
+      "disabled_buttons": 4,
+      "after_QA_count_label_changes_only": true,
+      "source_knowledge_modified": false,
+      "new_ASR": 0
     }
   },
   "catalog_evidence": {
@@ -988,23 +1025,22 @@
     "validation_sequence": "Use set -e for dependent preparation/write sequences. Resolve any failed preflight before saving. Batch07's overly broad all-declared assertion found1scope caution;17declarations and that separately labelled caution were reviewed before the Library write. The original completed batch bytes and canonical knowledge kinds were preserved."
   },
   "latest_completed_block": {
-    "name": "H5:ten additional saved single-hotel post candidates reuse four H4captions/covers;multi-hotel selections kept separate",
-    "completed_at_utc": "2026-10-23T20:38:55.425Z",
-    "new_exact_post_candidates": 10,
-    "reused_caption_bodies": 4,
-    "reused_cover_designs": 4,
-    "new_caption_bodies": 0,
-    "total_prepared_subjects": 51,
-    "total_exact_caption_bodies": 52,
-    "total_saved_post_candidates": 131,
-    "multi_hotel_selection_posts_kept_separate": 3,
+    "name": "H6:four scoped hotel caption and branded cover drafts for seven saved existing posts;Rewaya operation hold retained",
+    "completed_at_utc": "2026-10-23T21:46:16.200Z",
+    "new_caption_bodies": 4,
+    "new_cover_designs": 4,
+    "new_exact_post_candidates": 7,
+    "total_prepared_subjects": 55,
+    "total_exact_caption_bodies": 56,
+    "total_saved_post_candidates": 138,
+    "additional_operation_hold_targets": 2,
     "new_entry_IDs": 0,
     "actual_channel_writes": 0,
     "ready_for_native_write": 0,
     "save_versions": [
-      38,
-      38,
-      19
+      39,
+      39,
+      20
     ]
   },
   "catalog_export_lookup": {
@@ -1069,12 +1105,12 @@
     "each_new_post_has_explicit_eligibility_checks": true
   },
   "last_run_readback": {
-    "own_branch_head_before_write": "74f8f3f8ab9d8b8ed68094af6120f26fdc49ed6c",
+    "own_branch_head_before_write": "5f21251064eb4677425e7838c1f6184e0e9d4493",
     "same_package_current_executor_handoff": true,
-    "coordination_issue55_updated_at_utc": "2026-10-23T19:19:00Z",
+    "coordination_issue55_updated_at_utc": "2026-10-23T21:26:15Z",
     "source_archive_library_version": 92,
-    "demand_library_versions_before_write": 37,
-    "existing_review_preview_version_before_write": 18,
+    "demand_library_versions_before_write": 38,
+    "existing_review_preview_version_before_write": 19,
     "foreign_claims_untouched": true,
     "scope_instructions_reused_from_current_same_executor_package": true,
     "root_AGENTS_sha": "a064aff67d42ddd69a12d9b0393501d116d1307d",
@@ -1085,16 +1121,16 @@
     "full_CI_or_unchanged_baseline_repeated": false,
     "wordstat_access_blocker_unchanged": true,
     "blocked_wordstat_retried": false,
-    "current_task": "H5:6saved text variants/10exact post candidates reuse4H4captions and covers;3mixed selection posts remain separate. Current51keys/131saved candidates, inactive. No new fact, hotel profile, native read, IDs or writes.",
+    "current_task": "H6:4exact subject drafts/4owner covers for7saved post targets.8post-scoped source facts with9pages;canonical v92 lacks exact profiles. Rewaya official placeholder vs operator description held;no operating-state conclusion or native writes.",
     "private_source_materials_committed": false,
     "fresh_native_message_read_performed": false,
-    "demand_library_versions_after_write": 38,
-    "existing_review_preview_version_after_write": 19,
+    "demand_library_versions_after_write": 39,
+    "existing_review_preview_version_after_write": 20,
     "source_main_reviewed_sha": "2334ed3b14ccadd9a9c1a6ff4c90615e855a7e68",
     "START_HERE_sha": "43e7827432279012382767de6b6335684c6d54c2",
     "ASR_reexecuted_after_rejection": false,
     "coordination_latest_comment_id": 6371815231,
-    "latest_coordination_updated_comment_read": 6371316241
+    "latest_coordination_updated_comment_read": 6375056658
   },
   "latest_source_checks": {
     "read_on": "2026-10-23",
@@ -1151,6 +1187,15 @@
       "index_member": "plan156/working-knowledge-index.json",
       "index_sha256": "e3ec73f149fe4b4646adc9ee30fc3bdf19db70bdcccda5a32f9680bc355a669a",
       "same_as_H4": true,
+      "source_read_only": true,
+      "no_new_shared_claims_or_profiles": true
+    },
+    "h6_canonical_read": {
+      "version": 92,
+      "index_member": "plan156/working-knowledge-index.json",
+      "index_sha256": "e3ec73f149fe4b4646adc9ee30fc3bdf19db70bdcccda5a32f9680bc355a669a",
+      "exact_selected_profiles": 0,
+      "similar_Rewaya_Majestic_Inn_not_merged": true,
       "source_read_only": true,
       "no_new_shared_claims_or_profiles": true
     }
@@ -2289,19 +2334,19 @@
     "state": "PENDING_SCOPED_FACT_REUSE_FOR_NEXT_FOUR_SINGLE_HOTEL_GROUPS",
     "source_review_member": "existing-post-review/manual-text-review-107.json",
     "review_ids": [
-      "R017",
-      "R019",
-      "R021",
-      "R036"
+      "R042",
+      "R047",
+      "R060",
+      "R061"
     ],
     "subject_keys": [
-      "mira_meridia",
-      "invidia_coral_beach",
-      "pickalbatros_blu_spa_hurghada",
-      "rewaya_luxury"
+      "riu_palace_phuket",
+      "libra_nha_trang",
+      "fun_sun_lurea_beach",
+      "xanadu_club_makadi"
     ],
-    "already_prepared51_subjects_excluded": true,
-    "next_action": "Read exact saved posts and current canonical hotel knowledge; check exact property/rebranding/corpus/sea access/age/room/meal scopes. Reuse canonical facts and media first; scoped official-source corrections only for gaps. Distinguish Rewaya Luxury from Majestic/Inn; do not assign local IDs by name. Preserve video/media holds and original arrays/order; use existing root collection keys where evidenced. No H4/H5 replay or native/Wordstat/ASR retry.",
+    "already_prepared55_subjects_excluded": true,
+    "next_action": "Read exact saved groups and current canonical knowledge, reuse existing fact/photo records first. Verify RIU opening/drink hours, Libra distance not old ratings as current, Lurea season-specific Toucan/drinks, Xanadu16+beach zone not whole hotel. Preserve video arrays and scope; reuse existing root collection IDs only when exact join evidenced. H6 Rewaya remains operation/package-held, no native/catalog ID guess. Do not replay H4/H5/H6 or blocked Wordstat/native/ASR calls.",
     "no_subagents": true
   },
   "existing_text_photo_binding44_operation": {
@@ -2831,6 +2876,86 @@
         37,
         37,
         18
+      ],
+      "all_local_metadata_applied": true
+    }
+  },
+  "existing_h6_post_corrections_operation": {
+    "state": "DONE_FOUR_POST_SCOPED_DRAFTS_AND_OWNER_COVERS_SEVEN_SAVED_TARGETS_NOT_APPLIED",
+    "idempotency_key": "H6-R017-R019-R021-R036-R055-4captions4covers7targets-20261023-v1",
+    "completed_at_utc": "2026-10-23T21:46:16.200Z",
+    "same_executor_continuation": true,
+    "no_subagents": true,
+    "source_demand_archive_version": 38,
+    "source_knowledge_version": 92,
+    "source_review_ids": [
+      "R017",
+      "R019",
+      "R021",
+      "R036",
+      "R055"
+    ],
+    "source_snapshot_at_utc": "2026-10-23T07:28:41Z",
+    "new_caption_bodies": 4,
+    "new_owner_template_cover_designs": 4,
+    "new_PNG_JPG_exports": 8,
+    "new_exact_saved_post_proposals": 7,
+    "additional_same_body_variant_targets_reused": 2,
+    "post_scoped_fact_records": 8,
+    "source_pages_used": 9,
+    "canonical_exact_profiles_for_these_four": 0,
+    "canonical_index_read": "plan156/working-knowledge-index.json",
+    "shared_hotel_database_modified": false,
+    "source_photo_bytes_preserved": true,
+    "new_shared_hotel_profiles": 0,
+    "source_photos_visually_read": 4,
+    "unused_lobby_candidate_not_used_as_cover": true,
+    "Mira_AVIF_viewed_via_browser_only": true,
+    "prepared_subjects": 55,
+    "total_caption_bodies": 56,
+    "total_exact_saved_post_candidates": 138,
+    "current_inactive_feed_collections": 55,
+    "new_collection_keys": 0,
+    "existing_root_collection_keys_reused": 4,
+    "prior131preflight_rows_unchanged": true,
+    "new_video_holds": 1,
+    "total_video_holds": 80,
+    "total_text_photo_paths": 58,
+    "platforms": {
+      "max": 132,
+      "telegram": 6
+    },
+    "new_operation_and_package_publication_hold_targets": 2,
+    "Rewaya_native_catalog_identity_and_operation_unverified": true,
+    "Rewaya_official_placeholder_not_used_as_closure_or_availability_proof": true,
+    "Rewaya_Majestic_and_Inn_kept_separate": true,
+    "testimonial_and_selection_groups_preserved": [
+      "R016",
+      "R051"
+    ],
+    "fresh_native_reads": 0,
+    "new_local_hotel_ids": 0,
+    "new_entry_ids": 0,
+    "channel_writes": 0,
+    "active_destinations": 0,
+    "ready_for_channel_write": 0,
+    "unknown_writes": [],
+    "adaptations_member": "existing-post-review/h6/content.json",
+    "patches_member": "existing-post-review/h6/h6-existing-patches-7.NOT-APPLIED.json",
+    "preflight_member": "existing-post-review/h6/preflight138-current.NOT-APPLIED.json",
+    "map_member": "existing-post-review/h6/h6-existing55-138post-map.NOT-APPLIED.json",
+    "feed_member": "existing-post-review/h6/h6-existing55.INCOMPLETE-DRAFT.xml",
+    "variant_review_member": "existing-post-review/h6/h6-related-variant-review.NOT-APPLIED.json",
+    "cover_manifest_member": "existing-post-review/h6/h6-cover-manifest.NOT-APPLIED.json",
+    "validation_member": "existing-post-review/h6/h6-validation.json",
+    "save_receipt": {
+      "report_version": 39,
+      "archive_version": 39,
+      "preview_version": 20,
+      "expected_previous_versions": [
+        38,
+        38,
+        19
       ],
       "all_local_metadata_applied": true
     }
