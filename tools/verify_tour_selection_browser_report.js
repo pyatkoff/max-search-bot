@@ -66,6 +66,7 @@ if(require.main===module){
     const [reportFile,expectedFile,browser,...extra]=process.argv.slice(2);
     check(reportFile&&expectedFile&&!extra.length,'Usage: verify_tour_selection_browser_report.js REPORT EXPECTED chromium|webkit');
     const root=process.cwd(),p=reuse.provenance(process.env);
+    require('./browser_qa_environment.js').assertExecution(p.execution);
     inventory.assertCleanSource(root,p.testedSha);
     const report=JSON.parse(fs.readFileSync(reportFile,'utf8')),expected=JSON.parse(fs.readFileSync(expectedFile,'utf8'));
     const cases=verifyReport(report,expected,browser),files=verifyCaptures(root,browser);

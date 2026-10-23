@@ -4,6 +4,9 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - '.github/browser-qa/**'
+      - 'tools/browser_qa_environment.json'
+      - 'tools/browser_qa_environment.js'
       - 'manager/**'
       - 'services/ManagerIncomingNotificationService.php'
       - 'services/ProjectAccessService.php'
@@ -23,6 +26,7 @@ on:
 
 permissions:
   contents: read
+  packages: read
 
 jobs:
   change-scope:
@@ -32,25 +36,30 @@ jobs:
     needs: change-scope
     if: needs.change-scope.outputs.mode == 'full'
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/pyatkoff/max-search-bot-browser-qa@sha256:7b95d1abd4105d9fa3d2af76a7e3c832e5bfe6afe43d091bbe8cdc18814a9c5a
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+      options: --init --shm-size=1g
+    defaults:
+      run:
+        shell: "bash /opt/manager2-qa/run {0}"
     timeout-minutes: 12
     strategy:
       fail-fast: false
       matrix:
         browser: [chromium, webkit]
+    env:
+      QA_BROWSER_IMAGE: ghcr.io/pyatkoff/max-search-bot-browser-qa@sha256:7b95d1abd4105d9fa3d2af76a7e3c832e5bfe6afe43d091bbe8cdc18814a9c5a
+      TZ: UTC
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-          extensions: mbstring, pdo_sqlite
-          coverage: none
-      - name: Install browser
+      - name: Verify the prepared native runtime
         run: |
-          npm install --no-save --package-lock=false @playwright/test@1.55.0
-          npx playwright install --with-deps ${{ matrix.browser }}
+          chown "$(id -u):$(id -g)" "$HOME"
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          node /opt/manager2-qa/verify-runtime.js --require-source
       - name: Sound controller unit regression
         run: node tests/notification-sound/client.unit.js
       - name: Read-only authentication bootstrap regression

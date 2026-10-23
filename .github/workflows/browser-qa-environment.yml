@@ -1,0 +1,96 @@
+name: Prepare browser QA environment
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/browser-qa/**'
+      - '.github/workflows/browser-qa-environment.yml'
+  push:
+    branches: [main]
+    paths:
+      - '.github/browser-qa/**'
+      - '.github/workflows/browser-qa-environment.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: browser-qa-image-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+    env:
+      QA_IMAGE_TAG: ghcr.io/pyatkoff/max-search-bot-browser-qa:run-${{ github.run_id }}-${{ github.run_attempt }}
+      QA_CAN_PUBLISH: ${{ github.repository == 'pyatkoff/max-search-bot' && (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository || github.event_name != 'pull_request' && github.ref == 'refs/heads/main') }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bind the exact prepared-environment recipe
+        id: recipe
+        run: |
+          recipe_sha="$(node -e "process.stdout.write(require('./.github/browser-qa/verify-runtime').recipeSha('.github/browser-qa'))")"
+          echo "sha=$recipe_sha" >> "$GITHUB_OUTPUT"
+          echo "Prepared environment recipe: $recipe_sha"
+      - uses: docker/setup-buildx-action@v3
+      - name: Build the prepared runtime once
+        uses: docker/build-push-action@v6
+        with:
+          context: .github/browser-qa
+          load: true
+          platforms: linux/amd64
+          tags: ${{ env.QA_IMAGE_TAG }}
+          build-args: QA_RECIPE_SHA=${{ steps.recipe.outputs.sha }}
+          cache-from: type=gha,scope=manager2-browser-qa-v1
+          cache-to: type=gha,mode=max,scope=manager2-browser-qa-v1
+      - name: Verify PHP and native Chromium Firefox WebKit before publication
+        run: |
+          mkdir browser-qa-evidence
+          docker run --name browser-qa-preflight --init --shm-size=1g \
+            --entrypoint /opt/manager2-qa/run "$QA_IMAGE_TAG" \
+            -- node /opt/manager2-qa/preflight.js | tee browser-qa-evidence/native-preflight.log
+          docker cp browser-qa-preflight:/opt/manager2-qa/runtime.json browser-qa-evidence/runtime.json
+          for browser in chromium firefox webkit; do
+            docker cp "browser-qa-preflight:/opt/manager2-qa/preflight-$browser.png" "browser-qa-evidence/preflight-$browser.png"
+          done
+          docker rm browser-qa-preflight
+      - name: Sign in to the repository package registry
+        if: env.QA_CAN_PUBLISH == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish and record the immutable environment digest
+        if: env.QA_CAN_PUBLISH == 'true'
+        env:
+          QA_RECIPE_SHA: ${{ steps.recipe.outputs.sha }}
+          QA_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          docker push "$QA_IMAGE_TAG"
+          image_ref="$(docker inspect --format '{{index .RepoDigests 0}}' "$QA_IMAGE_TAG")"
+          [[ "$image_ref" =~ ^ghcr.io/pyatkoff/max-search-bot-browser-qa@sha256:[a-f0-9]{64}$ ]]
+          QA_IMAGE_REF="$image_ref" node <<'JS'
+          const fs=require('node:fs');
+          const runtime=JSON.parse(fs.readFileSync('browser-qa-evidence/runtime.json','utf8'));
+          if(runtime.recipeSha!==process.env.QA_RECIPE_SHA)throw new Error('Built recipe mismatch');
+          const receipt={schema:1,repository:process.env.GITHUB_REPOSITORY,sourceSha:process.env.GITHUB_SHA,headSha:process.env.QA_HEAD_SHA,runId:process.env.GITHUB_RUN_ID,runAttempt:process.env.GITHUB_RUN_ATTEMPT,image:process.env.QA_IMAGE_REF,...runtime};
+          fs.writeFileSync('browser-qa-evidence/environment-receipt.json',JSON.stringify(receipt,null,2)+'\n');
+          console.log('Published immutable QA image: '+receipt.image);
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-qa-environment-${{ github.sha }}
+          path: browser-qa-evidence/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Remove the temporary verification container
+        if: always()
+        run: docker rm -f browser-qa-preflight >/dev/null 2>&1 || true

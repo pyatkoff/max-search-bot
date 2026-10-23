@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# Remove only the official base image's known default, not arbitrary overrides.
+# Native evidence still uses the canonical strict environment guard unchanged.
+if [[ ${PLAYWRIGHT_BROWSERS_PATH+x} ]]; then
+  [[ "$PLAYWRIGHT_BROWSERS_PATH" == /ms-playwright ]] || { echo 'Unexpected browser path override' >&2; exit 1; }
+  unset PLAYWRIGHT_BROWSERS_PATH
+fi
+cache="${HOME:?}/.cache/ms-playwright"
+mkdir -p "$(dirname "$cache")"
+if [[ -e "$cache" || -L "$cache" ]]; then
+  [[ "$(readlink -f "$cache")" == /ms-playwright ]] || { echo 'Unexpected browser cache directory' >&2; exit 1; }
+else
+  ln -s /ms-playwright "$cache"
+fi
+if [[ -n ${GITHUB_WORKSPACE:-} && "$PWD" == "$GITHUB_WORKSPACE" ]]; then
+  if [[ -e node_modules || -L node_modules ]]; then
+    [[ -L node_modules && "$(readlink -f node_modules)" == /opt/manager2-qa/node_modules ]] || { echo 'Unexpected local browser package' >&2; exit 1; }
+  else
+    ln -s /opt/manager2-qa/node_modules node_modules
+  fi
+fi
+if [[ ${1:-} == -- ]]; then
+  shift
+  exec "$@"
+fi
+exec /bin/bash --noprofile --norc -e -o pipefail "$@"
