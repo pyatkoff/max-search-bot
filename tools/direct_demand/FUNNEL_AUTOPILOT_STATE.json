@@ -1,6 +1,6 @@
 {
   "schema": "anytour.funnel.autopilot_state.v1",
-  "updated_at_utc": "2026-10-23T08:09:03.338032+00:00",
+  "updated_at_utc": "2026-10-23T08:51:55Z",
   "owner": "direct-demand-funnel",
   "automation": {
     "id": "6ada8f0084888191b12c6619c12fb35c",
@@ -43,11 +43,11 @@
   "artifacts": {
     "report": {
       "library_file_id": "libfile_81ae550da16881918bb6840b686d507f",
-      "version": 17
+      "version": 18
     },
     "archive": {
       "library_file_id": "libfile_1b69bb58e8d4819186e7ea461ef60cb6",
-      "version": 17
+      "version": 18
     },
     "canonical_hotel_knowledge": {
       "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
@@ -74,6 +74,16 @@
       "analysis_member": "channel-review/native-channel-review-20261023.json",
       "status": "NATIVE_HISTORY_INDEX_COMPLETE_SELECTED_SAMPLES_REVIEWED",
       "raw_private_data_only_in_library": true
+    },
+    "editorial24": {
+      "library_file_id": "libfile_6d036b8377408191b22dc0f8a6872dae",
+      "version": 0,
+      "preview_member": "editorial24/anytour-funnel-posts-24-20261023.html",
+      "posts_member": "editorial24/editorial-posts-24.json",
+      "bindings_member": "editorial24/editorial-bindings-24.json",
+      "feed_member": "editorial24/funnel-collections-24.INCOMPLETE-DRAFT.xml",
+      "photo_provenance_member": "editorial24/editorial-photo-provenance.json",
+      "native82_disposition_member": "editorial24/native-82-disposition.json"
     }
   },
   "operations": {
@@ -111,25 +121,20 @@
     "native_post_reuse_groups": "DONE_82_GROUPS_NOT_APPROVED_DESTINATIONS",
     "native_materials_library_write": "DONE_VERSION_15_BOTH_ARTIFACTS",
     "owner_exact_old_post_edit": "DONE_TWO_POSTS_TEXT_BUTTON_PHOTOS_AND_CURRENT_CONTEXT_VERIFIED",
-    "owner_exact_old_post_edit_library": "DONE_VERSION_17"
+    "owner_exact_old_post_edit_library": "DONE_VERSION_17",
+    "editorial24_styled_posts": "DONE_20_HOTEL_4_SELECTION_24_COVERS",
+    "editorial24_bindings_feed": "DONE_24_BINDINGS_24_INACTIVE_COLLECTIONS_NO_NEW_IDS",
+    "editorial24_save": "DONE_REPORT_ARCHIVE_V18_AND_STANDALONE_PREVIEW"
   },
   "next_steps": [
-    "Exact two-post owner test DONE in archivev17. MAX28JulyTurunc and Telegram15OctoberSunrise Remal text/photo/button/current-context readback passed. Telegram2premiumemoji became plain Unicode;standard styles/links preserved. No customer click observed. Do not repeat these writes or treat this as authorization for mass edits,new post publication,feed activation or a new funnel channel. Continue editorial reuse/draft preparation using archived sources.",
-    "Use channel-review/native-post-reuse-plan-20261023.json and native-channel-review-20261023.json in current archive v15. MAX history index complete:610businessposts;Telegram16savedbusinessposts.82Direct-name groups,27linked to existing prepared draft keys. Mention is not local identity. Do not repeat completed read-only export or request browser login for the same material.",
-    "Next finite block: review three dedicated hotel references (Seagull,Sunrise Remal Resort,Sugar Marina Lagoon Villas Naiyang) against current canonical knowledge and prepared drafts. Choose reuse/adapt/new post per query intent, retaining exact properties/sections and supplier holds. Historical ads do not prove current seasonal facts. Do not publish or edit existing buttons.",
-    "Follow with a small reviewable batch of styled evergreen posts/covers based on the reviewed owner Canva source. Keep old deal prices, dates, urgency and first-person manager experiences out of new claims. Generic destination art is not a hotel photograph. See four native image notes and22page Canva reference.",
-    "Button admin/edit rights verified; text/photo path available,344MAXbusinesspostswithvideoheldbycurrenttransport. Use canonical issued context only after owner designates destination. Current source channels are references,not new-funnel publication authorization.",
-    "Current99drafts (76hotel/23selection); preserve all prior94payloads,40full-name/country content references,5nativeIDs,4covers and3supplier-notice holds.",
-    "The35full-name proposals from the saved pass are content-reviewed:28prepared across batches05/06,7held,0pending. Do not recreate or rerun the same full-name pass absent changed sources. New identity evidence is required for held rebrands/comparison/research-only cases.",
-    "Saved72DTO vs500name/country audit completed:3exact matches already bound,0newIDs;5prior identities including explicit aliases retained. Inspected release definitions for canonical bridge export/canonical catalogue tests and sync: no ready export artifact declared in these3definitions. Do not rescan same captures/definitions or restart any job. Further catalogue progress needs a new authorized catalogue source/export or newly available supported name discovery; do not infer global export absence.",
-    "23of36selected themes prepared. Latest: SriLanka beach/family, Maldives family, UAE beach/family. Continue13remaining themes only with sufficient saved scope; winter/adult-only/reef facts require season, hotel-wide age or reef-access evidence. Do not duplicate prepared themes.",
-    "Entry review has99rows;3supplier-notice holds remain. All issued runtime IDs/URLs null/inactive.",
-    "Find an attributable Palma de Mirette cover through saved official sources. The four El Palacio photos stay excluded.",
-    "Retry Wordstat only after a new authorized Search API credential/folder/connector appears. The lack of frequency and channel does not block independent preparation.",
-    "Wait for owner channel only for publication and canonical post/entry ID issuance. No real campaigns, paid traffic, production changes or customer sends.",
-    "Potential distinct existing-catalogue source discovered in canonical source metadata: inputs/catalog-snapshot/profiles-remaining20.json and saved catalog_profile_* records reference anytour namespace hotel-details read API. Not yet audited for reusable identity DTOs or current revision; inspect saved evidence read-only before deciding a bounded supported current read. No guessed IDs and no assumption these are local-tv IDs."
+    "First styled batch DONE in demand artifacts v18:20hotels+4Egypt selections,24real-photo covers,24bindings and owner-format incomplete feed. Reuse editorial24 operation receipt; do not recreate the same batch or issue IDs while channel is undesignated. Await owner review without repeatedly requesting the channel.",
+    "Next finite preparation block: inspect the12native-index groups that already have a fact draft and were not selected in editorial24; retain Galina supplier publication hold. Select exact-property photographs and prepare a bounded second batch only after scoped source review. Sugar Marina Art Karon and Lagoon Villas Naiyang are separate hotels; never transfer photo/fact by brand similarity.",
+    "Remaining55native-name groups need fact grounding before styled post approval. All82groups are indexed, not all approved. Do not rerun completed MAX history export or two-post edit experiment. Telegram scope remains16savedbusinessposts, not full history.",
+    "Keep original99factdrafts,319claimrefs,356inactivefeedrows,99entrybindings,5verifiednativeIDs and3supplierholds. Styled variants reuse facts and do not increase these totals.",
+    "Channel for new funnel remains undesignated. Before any new publication require fresh explicit owner/channel receipt; edit rights and the two completed old-post tests do not grant mass publication/edits,ads,feed activation or spending. Production merge/deploy remains prohibited.",
+    "Wordstat remains BLOCKED_NO_CONNECTED_SEARCH_API_ACCESS. Do not substitute Direct impressions for full Yandex demand, and do not repeat unchanged access failures. Catalog identity joins remain evidence-based, not positional TOP500 joins."
   ],
-  "publication_blocker": "Owner will provide channel later. This does not block preparation.",
+  "publication_blocker": "New funnel destination channel not explicitly designated by owner; no new posts/entry IDs or active feed destinations. Content/covers/bindings/feed preparation continues.",
   "coordination": "Own audit/direct-demand-20261022 branch only; no foreign claims, CI, paused hotel tasks or production flows.",
   "completed_preparation": {
     "generated_at_utc": "2026-10-23T06:42:57.737448+00:00",
@@ -206,7 +211,27 @@
     "old_post_new_funnel_destinations": 0,
     "old_post_prior_99_drafts_preserved": true,
     "old_post_archive_crc": "PASSED",
-    "old_post_library_version_guard": "PASSED_15_TO_16_TO_17"
+    "old_post_library_version_guard": "PASSED_15_TO_16_TO_17",
+    "editorial24": {
+      "cover_count": 24,
+      "cover_dimensions_pass": true,
+      "caption_utf16_under_1024": true,
+      "binding_body_fingerprints_match": true,
+      "feed_collections": 24,
+      "feed_destination_urls": 0,
+      "new_runtime_ids": 0,
+      "photos_displayed": 24,
+      "preview_filters_pass": true,
+      "mobile_width": 390,
+      "mobile_horizontal_overflow": false,
+      "page_errors": 0,
+      "source_knowledge_unchanged": true,
+      "original_99_fact_payloads_unchanged": true,
+      "original_356_feed_rows_unchanged": true,
+      "original_99_entry_bindings_unchanged": true,
+      "library_versions_guarded": "17_TO_18",
+      "zip_crc": "PASSED"
+    }
   },
   "catalog_evidence": {
     "requested_ids": 492,
@@ -244,15 +269,27 @@
     "validation_sequence": "Use set -e for dependent preparation/write sequences. Resolve any failed preflight before saving. Batch07's overly broad all-declared assertion found1scope caution;17declarations and that separately labelled caution were reviewed before the Library write. The original completed batch bytes and canonical knowledge kinds were preserved."
   },
   "latest_completed_block": {
-    "name": "Two exact owner-authorized old-post edits with canonical context buttons",
-    "completed_at_utc": "2026-10-23T08:09:03.338032+00:00",
-    "old_posts_edited": 2,
-    "photos_and_buttons_verified": 2,
-    "current_contexts_verified": 2,
+    "name": "24 styled editorial variants with real photographs and inactive owner-format feed",
+    "completed_at_utc": "2026-10-23T08:51:55Z",
+    "hotel_posts": 20,
+    "selection_posts": 4,
+    "covers": 24,
+    "cover_dimensions": "1080x1080",
+    "distinct_source_photographs": 21,
+    "reused_claim_references": 75,
+    "distinct_reused_claims": 70,
+    "verified_local_ids_in_batch": 4,
+    "global_verified_local_ids_preserved": 5,
+    "original_fact_drafts_preserved": 99,
+    "global_feed_rows_preserved": 356,
+    "entry_binding_rows_preserved": 99,
+    "new_bindings": 24,
+    "new_inactive_feed_collections": 24,
     "new_posts_published": 0,
-    "actual_customer_click_observed": false,
-    "telegram_custom_emoji_fallback": 2,
-    "archive_member": "channel-review/old-post-edit/review.json"
+    "new_context_ids_issued": 0,
+    "active_destinations": 0,
+    "old_posts_edited_this_batch": 0,
+    "supplier_notice_holds_preserved": 3
   },
   "catalog_export_lookup": {
     "searched_library_read_only": true,
@@ -316,14 +353,16 @@
     "each_new_post_has_explicit_eligibility_checks": true
   },
   "last_run_readback": {
-    "own_branch_head_before_write": "faf740d7e8b5ebe712463d2a68f84c1f9be8e9d3",
+    "own_branch_head_before_write": "4d5624dbdb77d877d150f245e5f567392b24ec0a",
     "source_archive_library_version": 92,
-    "demand_library_versions_before_write": 13,
+    "demand_library_versions_before_write": 17,
     "scope_instructions_read": true,
+    "workstream_coordination": "issue55 top updated 2026-10-23T08:36:09Z; sole traffic/funnel package; no publisher or foreign claims acquired",
     "foreign_claims_untouched": true,
     "blocked_catalog_routes_retried": false,
     "blocked_wordstat_retried": false,
-    "new_live_source_readbacks": 0
+    "full_direct_export_repeated": false,
+    "full_baseline_or_ci_repeated": false
   },
   "latest_source_checks": {
     "scoped_operator_source_readbacks": 0,
@@ -434,5 +473,44 @@
     "archive_review_member": "channel-review/old-post-edit/review.json",
     "private_receipt_member": "channel-review/old-post-edit/finish.json",
     "repeat_policy": "DONE:no further writes to these posts absent a new instruction. One-shot workflow removed;script closed. No second button or regenerated token."
+  },
+  "editorial24_operation": {
+    "status": "DONE",
+    "idempotency_key": "editorial24-20261023-v1",
+    "owner_handoff": "Interactive owner 'давай' followed by same-package automation handoff; current executor only.",
+    "review_status": "READY_FOR_OWNER_REVIEW_NOT_PUBLICATION",
+    "all_24_caption_copies_reviewed": true,
+    "all_24_cover_exports_visually_checked": true,
+    "source_photographs_only": true,
+    "original_canva_unchanged": true,
+    "canonical_hotel_archive_modified": false,
+    "new_hotel_database_created": false,
+    "photos_are_not_room_or_season_proof": true,
+    "price_or_availability_claims_added": false,
+    "publication_channel_receipt": null,
+    "unknown_writes": [],
+    "save_receipt": {
+      "report": {
+        "library_file_id": "libfile_81ae550da16881918bb6840b686d507f",
+        "previous_version": 17,
+        "current_version": 18
+      },
+      "archive": {
+        "library_file_id": "libfile_1b69bb58e8d4819186e7ea461ef60cb6",
+        "previous_version": 17,
+        "current_version": 18
+      },
+      "preview": {
+        "library_file_id": "libfile_6d036b8377408191b22dc0f8a6872dae",
+        "current_version": 0
+      },
+      "all_local_metadata_applied": true
+    },
+    "native82_disposition": {
+      "first_batch_source_reviewed": 15,
+      "remaining_with_prepared_fact_draft": 12,
+      "remaining_needing_fact_grounding": 55,
+      "all_reference_posts_individually_approved": false
+    }
   }
 }
