@@ -6,6 +6,7 @@ require_once dirname(__DIR__,2).'/services/ManagerAiDraftFeedbackService.php';
 /** Same isolated real-service suite runs on SQLite and the existing native MySQL gate. */
 function managerSupervisorRegression(): void
 {
+    managerWorkspaceOwnerRegression();
     $p=managerSupervisorFixture();
     $check=static fn(string $name,bool $ok)=>preparedReplyCheck('supervisor '.$name,$ok);
     $scopeBefore=$p->query('SELECT * FROM managers ORDER BY id')->fetchAll();$projectBefore=$p->query('SELECT * FROM manager_projects ORDER BY manager_id,project_id')->fetchAll();
@@ -91,4 +92,37 @@ function managerSupervisorFixture(): PreparedReplyPdo
     $p->exec("INSERT INTO managers VALUES(4,'reviewer-account','Supervisor','manager','',1,0),(5,'colleague','Colleague','manager','',1,1),(6,'new-owner','New owner','manager','',1,1);INSERT INTO manager_projects VALUES(4,1),(5,1),(6,1);INSERT INTO conversation_sources VALUES(11,'Allowed source',1,9,'none',NULL,0,1,'telegram'),(12,'Excluded source',1,10,'none',NULL,0,1,'telegram'),(21,'Other project',1,11,'none',NULL,0,2,'telegram');INSERT INTO manager_group_members VALUES(1,9),(5,9),(6,9);UPDATE conversations SET source_id=11;");
     $p->guard=true;$p->supervisorWrites=true;
     return $p;
+}
+
+/** Owner reads use the existing admin role, never a named login or a fake assignment. */
+function managerWorkspaceOwnerRegression(): void
+{
+    $p=managerSupervisorFixture();$check=static fn(string $n,bool $ok)=>preparedReplyCheck('workspace owner '.$n,$ok);
+    $before=managerSupervisorBusiness($p);$scopes=ManagerSupervisorAccessService::scopes(2);
+    $check('derives full current project access without an employee grant',count($scopes)===1&&$scopes[0]['access_mode']==='owner'&&$scopes[0]['include_unsourced']&&(int)$p->query('SELECT COUNT(*) FROM manager_supervision')->fetchColumn()===0);
+    $canonical=ManagerAiDraftContextService::snapshot(101,1);$view=ManagerAiDraftContextService::viewerSnapshot(101,2);
+    $check('foreign active answer keeps actual employee context',!empty($view['ok'])&&$view['owner_read']&&$view['owner_id']===1&&$view['revision']===$canonical['revision']);
+    $job=preparedReplyQueue($canonical);$saved=ManagerPreparedReplyService::complete($job,$canonical['revision'],preparedReplyProposal());$ready=ManagerPreparedReplyService::prepared(101,1,$view);
+    $check('reads current ready answer of actual assigned manager',!empty($saved['ok'])&&!empty($ready['prepared'])&&$ready['job_id']===$job);
+    $detail=ManagerConversationService::detail(101,2);
+    $check('foreign transcript exposes owner AI without a read mark',$detail['owner_read']&&$detail['supervisor_read']&&$before['manager_conversation_reads']===managerSupervisorBusiness($p)['manager_conversation_reads']);
+    $check('existing project fence still denies another project admin',empty(ManagerAiDraftContextService::viewerSnapshot(101,3)['ok']));
+    foreach(['ai','closed'] as $status){
+        $p->mutate("UPDATE conversations SET manager_id=NULL,status='$status' WHERE id=101");$v=ManagerAiDraftContextService::viewerSnapshot(101,2);
+        $check('explicit analysis available without taking '.$status,!empty($v['ok'])&&$v['owner_read']&&$v['owner_id']===0&&empty(ManagerPreparedReplyService::prepared(101,0,$v)['prepared']));
+    }
+    $p->mutate("UPDATE conversations SET manager_id=NULL,status='waiting_manager' WHERE id=101");
+    $waiting=ManagerAiDraftContextService::preparationSnapshot(101,0);$view=ManagerAiDraftContextService::viewerSnapshot(101,2);
+    $check('unassigned waiting client keeps canonical preparation revision',!empty($view['ok'])&&$view['owner_id']===0&&$view['revision']===$waiting['revision']);
+    $queued=ManagerPreparedReplyService::enqueue([preparedReplyRow($waiting,['manager_id'=>0])]);$job=$queued['job_ids'][0]??'';$saved=ManagerPreparedReplyService::complete($job,$waiting['revision'],preparedReplyProposal());
+    $check('waiting ready answer can be viewed before any take',!empty($saved['ok'])&&!empty(ManagerPreparedReplyService::prepared(101,0,$view)['prepared'])&&$p->query('SELECT manager_id FROM conversations WHERE id=101')->fetchColumn()===null);
+    $p->mutate("UPDATE conversations SET manager_id=1,status='manager',project_key='other',source_id=21 WHERE id=101;INSERT INTO manager_projects VALUES(1,2),(2,2);INSERT INTO manager_group_members VALUES(1,11)");
+    ProjectConfig::resetForTests(['id'=>'other']);$canonical=ManagerAiDraftContextService::snapshot(101,1);$q=ManagerPreparedReplyService::enqueue([preparedReplyRow($canonical,['project_key'=>'other'])]);$job=$q['job_ids'][0]??'';$saved=ManagerPreparedReplyService::complete($job,$canonical['revision'],preparedReplyProposal());
+    ProjectConfig::resetForTests(['id'=>'anytour']);$view=ManagerAiDraftContextService::viewerSnapshot(101,2);
+    $check('owner can read ready answer across explicitly accessible projects',!empty($saved['ok'])&&!empty($view['ok'])&&!empty(ManagerPreparedReplyService::prepared(101,1,$view)['prepared']));
+    $check('cross-project prepared read is not granted to an ordinary manager',empty(ManagerPreparedReplyService::prepared(101,1,$canonical)['prepared']));
+    $p->mutate('DELETE FROM manager_projects WHERE manager_id=2 AND project_id=2');
+    $check('project revoke discards even an earlier owner snapshot',empty(ManagerAiDraftContextService::viewerSnapshot(101,2)['ok'])&&empty(ManagerPreparedReplyService::prepared(101,1,$view)['prepared']));
+    $p->mutate("UPDATE conversations SET project_key='anytour',source_id=11;UPDATE managers SET role='manager' WHERE id=2");
+    $check('admin downgrade removes owner AI and scopes',ManagerSupervisorAccessService::scopes(2)===[]&&empty(ManagerAiDraftContextService::viewerSnapshot(101,2)['ok']));
 }

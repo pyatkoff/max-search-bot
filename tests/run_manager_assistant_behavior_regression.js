@@ -88,6 +88,11 @@ for(const [screen,id,mode] of [['conversation',101,'none'],['conversation',102,'
   const h=harness();h.window.WorkspaceV2Mobile={getScreen:()=>screen};h.A.activate(7);await h.A.open(id);await h.click('#assistantConversation');assert.equal(h.opened[0].opts.mobileHistory,mode);h.onlyReads();
 });
 
+test('workspace owner sees team identity and cannot change another manager decision',async()=>{
+  const h=harness();h.S.manager.role='admin';h.data.set(101,h.item(101,{project_name:'AnyTour',manager_name:'Другой менеджер',manager_id:9,can_decide:false}));h.A.activate(7);await h.A.open(101);
+  assert.match(h.$('assistantTitle').textContent,/владельца/);assert.match(h.$('assistantSubtitle').textContent,/всей команды/);assert.match(h.$('assistantDetail').textContent,/Другой менеджер/);assert.equal(h.$('assistantDetail').querySelector('[data-assistant-decision]'),null);h.onlyReads();
+});
+
 test('activation is lazy and exposes current-owner controls without transport',async()=>{
   const h=harness();h.A.activate(7);h.A.bind();assert.equal(h.calls.length,0);assert.equal(h.$('assistantOpen').disabled,false);assert.equal(h.$('assistantClientOpen').hidden,false);h.S.detail.conversation.manager_id=8;h.A.sync();assert.equal(h.$('assistantClientOpen').hidden,true);assert.equal(h.calls.length,0);
 });

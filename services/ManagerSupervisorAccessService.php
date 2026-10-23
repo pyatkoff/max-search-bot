@@ -12,6 +12,18 @@ final class ManagerSupervisorAccessService
         try {
             ProjectAccessService::initializeReadOnly();
             $pdo=ConversationDb::connection();
+            // The existing administrator role is the workspace owner's full
+            // read capability. Resolve its current projects on every request;
+            // a separate employee-supervision grant must not narrow it.
+            $q=$pdo->prepare("SELECT p.id AS project_id,p.project_key,p.display_name,m.role FROM projects p JOIN manager_projects mp ON mp.project_id=p.id JOIN managers m ON m.id=mp.manager_id WHERE m.id=? AND m.is_active=1 AND m.role='admin' AND p.is_active=1 ORDER BY p.id");
+            $q->execute([$actor]);$owned=array_values(array_filter($q->fetchAll(PDO::FETCH_ASSOC),static fn(array $row):bool=>ManagerAuthService::isAdmin($row)));
+            if($owned){
+                $q=$pdo->prepare('SELECT s.project_id,s.id,s.display_name,s.channel FROM conversation_sources s JOIN manager_projects mp ON mp.project_id=s.project_id WHERE mp.manager_id=? AND s.is_active=1 ORDER BY s.id');
+                $q->execute([$actor]);$sources=[];
+                foreach($q->fetchAll(PDO::FETCH_ASSOC) as $row)$sources[(int)$row['project_id']][]=['id'=>(int)$row['id'],'name'=>(string)$row['display_name'],'channel'=>(string)($row['channel']??'')];
+                foreach($owned as &$scope){unset($scope['role']);$scope['project_id']=(int)$scope['project_id'];$scope['version']=0;$scope['include_unsourced']=true;$scope['access_mode']='owner';$scope['sources']=$sources[$scope['project_id']]??[];}
+                return $owned;
+            }
             $q=$pdo->prepare('SELECT g.project_id,g.version,g.include_unsourced,p.project_key,p.display_name FROM manager_supervision g JOIN managers m ON m.id=g.manager_id JOIN manager_projects mp ON mp.manager_id=g.manager_id AND mp.project_id=g.project_id JOIN projects p ON p.id=g.project_id WHERE g.manager_id=? AND m.is_active=1 AND p.is_active=1 AND g.enabled=1 ORDER BY p.id');
             $q->execute([$actor]);$scopes=$q->fetchAll(PDO::FETCH_ASSOC);
             if (!$scopes) return [];
@@ -27,6 +39,7 @@ final class ManagerSupervisorAccessService
     {
         foreach($scopes as $scope){
             if ((string)($conversation['project_key']??'')!==$scope['project_key']) continue;
+            if(($scope['access_mode']??'')==='owner')return true;
             $source=(int)($conversation['source_id']??0);
             if ($source===0) return $scope['include_unsourced'];
             return in_array($source,array_column($scope['sources'],'id'),true);
@@ -45,6 +58,7 @@ final class ManagerSupervisorAccessService
         if (!in_array($alias,['c'],true)) throw new InvalidArgumentException('invalid_alias');
         $parts=[];
         foreach($scopes as $scope){
+            if(($scope['access_mode']??'')==='owner'){$parts[]="$alias.project_key=?";$args[]=$scope['project_key'];continue;}
             $ids=array_column($scope['sources'],'id');$sources=[];
             if($ids){$sources[]="$alias.source_id IN (".implode(',',array_fill(0,count($ids),'?')).')';}
             if($scope['include_unsourced'])$sources[]="($alias.source_id IS NULL OR $alias.source_id=0)";

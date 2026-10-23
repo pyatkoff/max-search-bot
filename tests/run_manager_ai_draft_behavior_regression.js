@@ -46,6 +46,14 @@ test('supervisor reads and explicitly prepares foreign AI without insertion or a
   await h.insert();assert.equal(h.aiCalls().filter(c=>c.action==='validate').length,0);assert.equal(h.ids.get('replyText').value,'Existing private draft');assert.equal(h.getFile(),file);
   await h.click('aiDraftRetry');assert.equal(h.aiCalls().at(-1).action,'generate');assertNoMutations(h);
 });
+for(const state of ['waiting_manager','ai','closed'])test('workspace owner explicitly analyzes '+state+' without taking or inserting',async()=>{
+  const h=await harness(data=>response(data.action==='prepared'?{ok:true,prepared:false}:generated()),{manager2:false});
+  h.W.S.manager.role='admin';h.W.S.detail.conversation.manager_id=null;h.W.S.detail.conversation.status=state;h.W.S.detail.owner_read=true;h.ids.get('composer').classList.add('hidden');h.ai.sync();const start=h.aiCalls().length;
+  h.ai.openSupervisor();await tick();assert.deepEqual(h.aiCalls().slice(start).map(c=>c.action),['prepared','generate']);assert.match(h.ids.get('aiDraftStatus').textContent,/Режим владельца/);assert.equal(h.ids.get('aiDraftInsert').hidden,true);assertNoMutations(h);
+});
+test('owner role loss invalidates a late generated preview',async()=>{
+  const pending=deferred(),h=await harness(()=>pending.promise);h.W.S.manager.role='admin';h.W.S.detail.conversation.manager_id=null;h.W.S.detail.conversation.status='waiting_manager';h.W.S.detail.owner_read=true;h.ids.get('composer').classList.add('hidden');h.ai.sync();h.ai.openSupervisor();h.W.S.manager.role='manager';h.ai.sync();pending.resolve(response(prepared()));await tick();assert.equal(h.ids.get('aiDraftPanel').textContent.includes('Уточните удобные даты'),false);assertNoMutations(h);
+});
 test('supervisor late foreign response cannot survive a reassignment or scope loss',async()=>{
   for(const change of [h=>{h.W.S.detail.conversation.manager_id=10},h=>{h.W.S.detail.supervisor_read=false},h=>{h.W.S.authGeneration++}]){
     const pending=deferred(),h=await harness(()=>pending.promise);h.W.S.detail.conversation.manager_id=9;h.W.S.detail.supervisor_read=true;h.ids.get('composer').classList.add('hidden');h.ai.sync();h.ai.openSupervisor();change(h);h.ai.sync();pending.resolve(response(prepared({supervisor_read:true,owner_id:9})));await tick();assert.equal(h.ids.get('aiDraftInsert').hidden,true);assert.equal(h.ids.get('aiDraftPanel').textContent.includes('Уточните удобные даты'),false);assertNoMutations(h);
