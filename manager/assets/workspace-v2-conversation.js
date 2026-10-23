@@ -378,7 +378,8 @@ async function open(id,options={}){
   // never holds the authorized transcript or composer behind a slow card request.
   // Card editors need catalog options; the transcript and composer do not.
   const leadRequest=Promise.all([Promise.resolve().then(()=>pipe('detail',{conversation_id:target},{isCurrent:validContext})),W.whenCatalogReady?.()]).then(([lead])=>lead).catch(()=>null);
-  let d;try{d=await api('detail',{conversation_id:target},{signal:options.signal,isCurrent:validContext})}catch(e){d=null}
+  const openUnread=switching&&options.stickToBottom!==true;
+  let d;try{d=await api('detail',{conversation_id:target,...(openUnread?{open_unread:true}:{})},{signal:options.signal,isCurrent:validContext})}catch(e){d=null}
   if(opening===seq)opening=0;
   if(!validContext()||(options.restoreSession&&savedSelection!==target))return false;
   if(!d?.ok||Number(d.conversation?.id)!==target){
@@ -398,6 +399,7 @@ async function open(id,options={}){
   window.WorkspaceV2ConversationSearch?.setState('ready');renderLeadLoading(c);
   window.WorkspaceV2Inbox?.markActive(target);
   if(window.WorkspaceV2Mobile?.isMobile())window.WorkspaceV2Mobile.conversationOpened(target,{historyMode:options.mobileHistory||'push'});else $('conversationZone').classList.add('open');
+  if(openUnread&&Number(d.history?.initial_unread_id)>0)window.WorkspaceV2Jump?.scrollToMessage?.(Number(d.history.initial_unread_id));
   acceptReadPage(d);
   void window.WorkspaceV2History?.recoverGap?.();
   void leadRequest.then(p=>{

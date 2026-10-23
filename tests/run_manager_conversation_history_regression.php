@@ -18,6 +18,7 @@ final class HistoryFixtureStatement extends PDOStatement
     public function execute(?array $params=null): bool
     {
         $this->owner->executed[]=['sql'=>$this->queryString,'args'=>$params??[]];
+        if(str_starts_with($this->queryString,'SELECT EXISTS(SELECT 1 FROM messages')&&$this->owner->beforeReplyCheck){$callback=$this->owner->beforeReplyCheck;$this->owner->beforeReplyCheck=null;$callback($this->owner);}
         if(str_starts_with($this->queryString,'SELECT id,channel,direction,metadata_json')&&$this->owner->failHydration)throw new RuntimeException('synthetic_hydration_failure');
         if(str_starts_with($this->queryString,'INSERT INTO manager_conversation_reads')){
             $this->owner->readWrites++;
@@ -38,7 +39,7 @@ final class HistoryFixturePdo extends PDO
     public array $executed=[];
     public int $readWrites=0;
     public bool $failHydration=false;
-    public $afterPage=null,$beforeReadWrite=null;
+    public $afterPage=null,$beforeReadWrite=null,$beforeReplyCheck=null;
     public function __construct()
     {
         parent::__construct('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
@@ -234,3 +235,30 @@ check('inactive account refuses read write',$r['status']===409&&cursor($pdo)===0
 foreach([[],[0],['2'],[true],range(1,201)] as $ids){$pdo=fixture(5);$state=apiDetail(['conversation_id'=>1])['body']['read_state'];$r=shown($state,$ids);check('invalid read batch '.json_encode(array_slice($ids,0,3)).' writes nothing',$r['status']===422&&$pdo->readWrites===0);}
 $pdo=fixture(5);$state=apiDetail(['conversation_id'=>1])['body']['read_state'];$pdo->exec("INSERT INTO messages VALUES(6,1,'inbound','customer','Arrived after display','2026-10-14 00:00:01','telegram',NULL)");$r=shown($state,[2,3,4,5]);
 check('arrival after display stays unread in authoritative count',cursor($pdo)===5&&$r['body']['read_state']['unread_count']===1);
+
+// Explicit initial-unread reads must seek an old prefix without draining history.
+$pdo=fixture(10001);$opened=apiDetail(['conversation_id'=>1,'open_unread'=>true]);
+check('initial open includes first unread beyond latest 200 with preceding context',in_array(1,ids($opened['body']),true)&&in_array(2,ids($opened['body']),true)&&($opened['body']['history']['initial_unread_id']??0)===2);
+check('initial unread includes current tail within one bounded response',in_array(10001,ids($opened['body']),true)&&count(ids($opened['body']))<=200&&cursor($pdo)===0&&$pdo->readWrites===0);
+
+$pdo=fixture(10001);$pdo->exec('INSERT INTO manager_conversation_reads VALUES(1,1,200,CURRENT_TIMESTAMP)');$opened=apiDetail(['conversation_id'=>1,'open_unread'=>true])['body'];
+check('old unread seek includes twenty actual preceding rows and recent tail',array_slice(ids($opened),0,21)===range(181,201)&&end($opened['messages'])['id']==10001&&count(ids($opened))===200&&$opened['history']['initial_unread_id']===201);
+check('initial interval supplies explicit actual frontier and tail cursor',$opened['history']['gap_frontier']===300&&$opened['history']['gap_before_id']===9922&&$opened['history']['has_more']);
+check('old unread opening uses three bounded transcript queries not sequential pages',count(transcriptPageQueries($pdo))===3&&$pdo->readWrites===0&&cursor($pdo)===200);
+$pdo=fixture(10001);$pdo->exec('INSERT INTO manager_conversation_reads VALUES(1,1,9801,CURRENT_TIMESTAMP)');$opened=apiDetail(['conversation_id'=>1,'open_unread'=>true])['body'];
+check('first unread at previous latest boundary receives preceding context',array_slice(ids($opened),0,21)===range(9782,9802)&&$opened['history']['initial_unread_id']===9802);
+$pdo=fixture(600);$pdo->exec('UPDATE messages SET id=-id');$pdo->exec('UPDATE messages SET id=-id*10');$pdo->exec('INSERT INTO manager_conversation_reads VALUES(1,1,2000,CURRENT_TIMESTAMP)');$opened=apiDetail(['conversation_id'=>1,'open_unread'=>true])['body'];
+check('unread context is selected by real rows across sparse global IDs',array_slice(ids($opened),0,21)===range(1810,2010,10)&&$opened['history']['initial_unread_id']===2010&&$opened['history']['gap_frontier']===3000);
+$pdo=fixture(500);$pdo->exec('INSERT INTO manager_conversation_reads VALUES(1,1,450,CURRENT_TIMESTAMP)');$opened=apiDetail(['conversation_id'=>1,'open_unread'=>true])['body'];
+check('unread already inside latest page adds no context query or gap',ids($opened)===range(301,500)&&$opened['history']['initial_unread_id']===451&&!isset($opened['history']['gap_frontier'])&&count(transcriptPageQueries($pdo))===1);
+$pdo=fixture(500);$pdo->exec('INSERT INTO manager_conversation_reads VALUES(1,1,500,CURRENT_TIMESTAMP)');$opened=apiDetail(['conversation_id'=>1,'open_unread'=>true])['body'];
+check('fully read conversation keeps ordinary latest opening',ids($opened)===range(301,500)&&!isset($opened['history']['initial_unread_id'])&&$pdo->readWrites===0);
+$pdo=fixture(500);$pdo->exec('UPDATE conversations SET manager_id=2 WHERE id=1');$opened=apiDetail(['conversation_id'=>1,'open_unread'=>true])['body'];
+check('foreign owner read does not seek or change personal unread',ids($opened)===range(301,500)&&!isset($opened['history']['initial_unread_id'])&&!$opened['read_state']['acknowledge']&&$pdo->readWrites===0);
+$pdo=fixture(500);$pdo->exec('DELETE FROM manager_projects WHERE manager_id=1');$opened=apiDetail(['conversation_id'=>1,'open_unread'=>true]);
+check('initial unread seek retains fresh project access fence',$opened['status']===404&&transcriptPageQueries($pdo)===[]&&$pdo->readWrites===0);
+foreach([1,'true',null,[],0] as $flag){$pdo=fixture(5);$r=apiDetail(['conversation_id'=>1,'open_unread'=>$flag]);check('invalid initial unread flag '.json_encode($flag),$r['status']===422&&$pdo->executed===[]);}
+$pdo=fixture(500);$r=apiDetail(['conversation_id'=>1,'open_unread'=>true,'before_id'=>400]);check('older page cannot double as an unread opening',$r['status']===422&&$pdo->executed===[]);
+$pdo=fixture(500);$pdo->exec("UPDATE conversations SET status='closed' WHERE id=1");$pdo->beforeReplyCheck=static function(HistoryFixturePdo $db):void{$db->exec("UPDATE managers SET role='manager' WHERE id=1");};$r=apiDetail(['conversation_id'=>1]);
+check('owner presentation rechecks current role after transcript and metadata reads',empty($r['body']['owner_read'])&&$pdo->readWrites===0);
+echo "FINAL TOTAL $passed | FAIL 0\n";

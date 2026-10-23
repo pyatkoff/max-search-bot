@@ -96,8 +96,10 @@ if($action==='detail'){
     if((!is_int($cursor)&&!(is_string($cursor)&&preg_match('/^(?:0|[1-9][0-9]*)$/D',$cursor)))
         ||filter_var($cursor,FILTER_VALIDATE_INT,['options'=>['min_range'=>0]])===false)out(['ok'=>false,'error'=>'invalid_history_cursor'],422);
     $beforeId=(int)$cursor;
+    $openUnread=array_key_exists('open_unread',$data)?$data['open_unread']:false;
+    if(!is_bool($openUnread)||($openUnread&&$beforeId>0))out(['ok'=>false,'error'=>'invalid_unread_open'],422);
     try{
-        $d=ManagerConversationService::detail($conversationId,(int)$m['id'],$beforeId,200,false);
+        $d=ManagerConversationService::detail($conversationId,(int)$m['id'],$beforeId,200,false,$openUnread);
         if($d){
             $d['messages']=ManagerMessageMediaService::hydrate((array)($d['messages']??[]));
         }

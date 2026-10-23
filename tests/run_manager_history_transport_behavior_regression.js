@@ -446,6 +446,31 @@ async function runSuite({historySource=canonicalHistory()}={}) {
     assert.equal(h.calls.some(r=>['send','take','release','close','reopen'].includes(r.action)),false);
   });
 
+  test('first-unread intent and anchor apply only to a current fresh opening',async()=>{
+    const h=make(),anchors=[];h.window.WorkspaceV2Jump={capture:()=>null,restore(){},update(){},isFollowingLatest:()=>false,scrollToMessage:id=>anchors.push(id)};
+    const initial=id=>{const d=h.latest(id,[message(10),message(20),message(30)]);d.history.initial_unread_id=20;return d;};
+    h.installFetch(()=>{throw Error('Unexpected older request');},initial);await h.start();
+    const first=h.calls.find(r=>r.action==='detail'&&!r.before_id&&r.conversation_id===101);assert.equal(first.open_unread,true);assert.deepEqual(anchors,[20]);
+    await h.C.refreshVisible();assert.equal(h.calls.filter(r=>r.action==='detail'&&!r.before_id).at(-1).open_unread,undefined);assert.deepEqual(anchors,[20]);
+    await h.C.open(102,{stickToBottom:true});assert.equal(h.calls.filter(r=>r.action==='detail'&&!r.before_id).at(-1).open_unread,undefined);assert.deepEqual(anchors,[20]);
+  });
+  test('obsolete first-unread opening cannot move the current conversation',async()=>{
+    const h=make(),anchors=[],old=deferred();h.window.WorkspaceV2Jump={capture:()=>null,restore(){},update(){},isFollowingLatest:()=>false,scrollToMessage:id=>anchors.push(id)};await h.start();
+    h.setHook((url,r)=>url==='api.php'&&r.action==='detail'?(r.conversation_id===102?old.promise:response(h.latest(r.conversation_id))):null);
+    const pending=h.C.open(102);await h.C.open(103);const detail=h.W.S.detail;old.resolve(response({...h.latest(102,[message(10),message(20)]),history:{mode:'latest',has_more:false,before_id:10,page_size:200,initial_unread_id:20}}));await pending;
+    assert.equal(h.W.S.current,103);assert.equal(h.W.S.detail,detail);assert.deepEqual(anchors,[]);assert.equal(h.W.S.authExpired,false);
+  });
+  test('expanded latest coverage resumes initial unread repair without waiting for a stalled obsolete page',async()=>{
+    const h=make(),old=deferred(),current=deferred();h.ids.get('messages').removeChild=node=>{node.remove();return node;};
+    h.setHook((url,r)=>{
+      if(url!=='api.php'||r.action!=='detail')return null;
+      if(r.before_id===922)return old.promise;if(r.before_id===802)return current.promise;
+      if(r.before_id)return response(h.older(101,rows(r.before_id-200,r.before_id-1)));
+      const d=h.latest(101,r.open_unread?[...rows(181,300),...rows(922,1001)]:rows(802,1001));if(r.open_unread)Object.assign(d.history,{initial_unread_id:201,gap_frontier:300,gap_before_id:922});return response(d);
+    });await h.start();await settleRecovery();assert.deepEqual(olderCalls(h).map(r=>r.before_id),[922]);await h.draft('Current unread draft');const file={name:'unread-current.txt'};h.setFile(file);
+    await h.C.refreshVisible();await settleRecovery();assert.deepEqual(olderCalls(h).map(r=>r.before_id),[922,802]);old.resolve(response({ok:false,error:'unauthorized'},401));await settleRecovery();assert.equal(h.W.S.authExpired,false);assert.equal(h.H.getState().paging,true);
+    current.resolve(response(h.older(101,rows(602,801))));await h.H.recoverGap();assert.equal(h.H.getState().has_gap,false);assert.equal(h.ids.get('replyText').value,'Current unread draft');assert.equal(h.getFile(),file);assert.equal(h.readMarks.length,0);
+  });
   let failed=0;
   for(const {name,run} of cases) {
     try {await run(); console.log('PASS '+name);} catch(error) {failed++; console.error('FAIL '+name+'\n'+error.stack);}
