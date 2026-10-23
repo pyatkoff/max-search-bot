@@ -94,4 +94,26 @@ check('web inquiries are bounded with explicit omission and malformed entries st
   const html=ui.markup({offers:[],web_inquiries:items});assert.equal((html.match(/class="leadDetails tourChoice"/g)||[]).length,5);assert(html.includes('список неполный'));assert(!html.includes('Web hotel 5<'));
   for(const value of [null,{}, {public_offer:null},{public_offer:{hotel:''}}])assert.equal(ui.markup({offers:[],web_inquiries:[value]}),'');
 });
+const search=()=>({price_state_now:'checked',observation:{capturedAt:1792756800000,source:'anex',hotel:{name:'Search sea hotel',resort:'Лара'},trip:{origin:'Москва',departure:'2027-06-12',nights:7,stayEnd:'2027-06-19',adults:2,childAges:[0,0,12]},stay:{room:'Exact search family room',meal:'Всё включено',placement:'2+3',operator:'ANEX'},flights:{state:'selected',outward:[{label:'Selected outward 10:00'}],inward:[{label:'Selected inward 19:00'}]},price:{amount:'231456.50',currency:'RUB',state:'checked',description:'PRIVATE_DESCRIPTION',finalPriceVerified:false}}});
+check('search inquiry retains the exact selected pair and infant ages separately from native likes',()=>{
+ const html=ui.markup({offers:[],search_inquiries:[search()]});for(const value of ['Выбранные туры из поиска','Search sea hotel','231 456,50 ₽ за всех','Возраст детей: 0, 0, 12','Exact search family room','Selected outward 10:00','Selected inward 19:00','12.06.2027','Полную стоимость и наличие необходимо подтвердить'])assert(html.includes(value),value);
+ for(const value of ['Понравившиеся туры','Обращения из веб-подборки','PRIVATE_DESCRIPTION','19.06.2027','<button','<form'])assert(!html.includes(value),value);
+});
+check('search expiry estimate and unknown deferred price remain honest',()=>{
+ const item=search();item.price_state_now='expired';assert(ui.markup({offers:[],search_inquiries:[item]}).includes('Срок расчёта истёк'));item.price_state_now='estimated';item.observation.price.state='estimated';assert(ui.markup({offers:[],search_inquiries:[item]}).includes('Расчётная сумма'));
+ item.observation.price.amount=null;item.observation.flights={state:'manager-deferred',outward:[],inward:[]};const html=ui.markup({offers:[],search_inquiries:[item]});for(const value of ['Цена не указана','Цена неизвестна','Подбор рейсов с менеджером'])assert(html.includes(value),value);assert(!html.includes('Selected outward'));
+});
+check('structured flight leg retains both airports and baggage beside the return pair',()=>{
+ const item=search();item.observation.flights.outward=[{number:'ZF123',carrier:'Example Air',departure:{date:'12.06.2027',time:'10:00',town:'Москва',port:'Внуково',portCode:'VKO'},arrival:{date:'12.06.2027',time:'14:00',town:'Анталья',port:'Анталья',portCode:'AYT'},baggage:'20 кг',carryOn:'5 кг'}];const html=ui.markup({offers:[],search_inquiries:[item]});for(const value of ['ZF123','Example Air','Внуково VKO','Анталья AYT','Багаж: 20 кг','Ручная кладь: 5 кг','Selected inward 19:00'])assert(html.includes(value),value);
+});
+check('search text is escaped and retained binding and capability details stay absent',()=>{
+ const item=search();item.binding={record_id:'PRIVATE_RECORD'};item.token='PRIVATE_TOKEN';item.observation.hotel.name='<img src=x onerror="searchBad()">';item.observation.stay.room='<script>bad()</script>';item.observation.flights.outward=[{label:'<a href="javascript:bad()">flight</a>'}];const html=ui.markup({offers:[],search_inquiries:[item]});for(const value of ['<img','<script','<a ','PRIVATE_','onerror="searchBad()"'])assert(!html.includes(value),value);for(const value of ['&lt;img','&lt;script','&lt;a'])assert(html.includes(value),value);
+});
+check('mixed origin histories retain separate sections and bounded search coverage',()=>{
+ const html=ui.markup({offers:[offer()],web_inquiries:[inquiry()],search_inquiries:Array.from({length:8},search)});assert.equal((html.match(/class="leadDetails tourChoice"/g)||[]).length,7);assert(html.includes('список неполный'));for(const value of ['Понравившиеся туры','Обращения из веб-подборки','Выбранные туры из поиска'])assert.equal(html.split(value).length-1,1);
+});
+check('bad search timestamps never break the remaining customer card',()=>{
+ for(const capturedAt of [null,0,-1,NaN,9007199254740991]){const item=search();item.observation.capturedAt=capturedAt;assert(ui.markup({offers:[offer()],search_inquiries:[item]}).includes('Hotel Sea'));}
+ for(const value of [null,{}, {observation:null},{observation:{hotel:{name:''}}}])assert.equal(ui.markup({offers:[],search_inquiries:[value]}),'');
+});
 console.log('PASS manager tour choices '+checks+' checks');

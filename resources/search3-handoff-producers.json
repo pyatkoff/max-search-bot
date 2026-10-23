@@ -1,0 +1,12 @@
+{
+    "schema": 1,
+    "keys": {
+        "search3-anytour-v1": {
+            "producer": "search3",
+            "project": "anytour",
+            "not_before": 1792792045,
+            "not_after": 1800568105,
+            "public_key": "vreerv0j3wsOQqcz40lcYby3VhEX+lirikoeNETdx7c="
+        }
+    }
+}

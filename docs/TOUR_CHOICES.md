@@ -1,5 +1,10 @@
 # Sent offers and tourist preferences
 
+The bounded selected Search3 tour receiver uses the same native inquiry owners;
+its [dedicated input/auth/provenance contract](SEARCH3_TOUR_HANDOFF.md) remains
+activation-held until accepted producer signing and retained server facts exist.
+Local source/tests are not a connected or installed Search3→bot proof.
+
 This is the first slice of the owner-approved card → preference → Manager2 path.
 It records what was offered and what the tourist explicitly liked. It does not
 book a tour, verify a current price, request a manager or change lead routing.

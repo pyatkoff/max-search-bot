@@ -51,6 +51,7 @@ return [
         'php tests/run_dialogue_application_regression.php',
         'php tests/run_tour_choice_regression.php',
         'php tests/run_tour_choice_dispatch_regression.php',
+        'php tests/run_search3_tour_handoff_regression.php',
         'php tests/run_owner_tour_choice_trial_regression.php',
         'php tests/run_tour_offer_card_renderer_regression.php',
         'php tests/run_owner_tour_photo_choice_trial_regression.php',
