@@ -37,6 +37,9 @@ final class ManagerTourSelectionPublicationDraft
             catch (InvalidArgumentException $e) {$errors[]=['offer_id'=>$offer['id'],'position'=>$index+1,'fields'=>['photos']];continue;}
             if (preg_match_all('/./us',$card['plain_text'])>3500) return ['ok'=>false,'error'=>'card_too_long','position'=>$index+1];
             $entry=['draft_offer_id'=>$offer['id'],'snapshot'=>$snapshot,'presentation'=>$presentation];
+            // Private source observation is frozen for staff history. Public pages
+            // continue using their explicit snapshot allowlist, never this field.
+            if (isset($offer['import_source'])) $entry['import_source']=$offer['import_source'];
             // Page grouping is publication metadata, not different native quote
             // conditions: regrouping cannot create another native delivery.
             if (isset($offer['hotel_group'])) $entry['hotel_group']=$offer['hotel_group'];
