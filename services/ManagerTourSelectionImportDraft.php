@@ -12,6 +12,10 @@ final class ManagerTourSelectionImportDraft
             require_once __DIR__.'/ManagerTourSelectionAnexImportDraft.php';
             return ManagerTourSelectionAnexImportDraft::normalize($input);
         }
+        if (($input['adapter']??null)==='tourvisor-snapshot-v1') {
+            require_once __DIR__.'/ManagerTourSelectionTourvisorImportDraft.php';
+            return ManagerTourSelectionTourvisorImportDraft::normalize($input);
+        }
         if (($input['adapter']??null)!=='funsun-b2b-v1') return null;
         $url=$input['url']??null;
         if (!is_string($url) || strlen($url)>2048) return null;
@@ -74,6 +78,10 @@ final class ManagerTourSelectionImportDraft
     public static function fingerprint(array $source,bool $withPrice=true): string
     {
         $data=['keys'=>$source['keys'],'fields'=>$source['fields'],'raw_alternatives'=>$source['raw']['flight_alternatives']??'','tariff'=>$source['raw']['tariff']??''];
+        if (($source['adapter']??null)==='tourvisor-snapshot-v1') {
+            $data['price_basis']=$source['raw']['price_basis'];
+            if ($withPrice) $data['shown_price_parts']=[$source['raw']['base_price'],$source['raw']['fuel_price']];
+        }
         if (!$withPrice) unset($data['fields']['amount']);
         return hash('sha256',json_encode($data,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR));
     }

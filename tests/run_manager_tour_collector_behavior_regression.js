@@ -48,7 +48,7 @@ async function itemState(w,operation,state){await until(async()=>(await w.status
  require('node:child_process').execFileSync('python3',[__dirname+'/../extensions/selection-collector/build_package.py','--check'],{stdio:'pipe'});
  check('installable package matches actual extension sources',true);
  const manifest=JSON.parse(fs.readFileSync(__dirname+'/../extensions/selection-collector/manifest.json','utf8'));
- check('MV3 collector has no cookie credential or arbitrary-origin permissions',manifest.manifest_version===3&&manifest.permissions.join(',')==='storage,alarms'&&manifest.host_permissions.length===3&&manifest.host_permissions.every(x=>/^https:\/\/(?:b2b\.fstravel\.com\/search_tour|agent\.anextour\.ru\/search\/tour|app\.anytoour\.ru\/manager\/tour-selection-collector\.php)\*$/.test(x)));
+ check('MV3 collector has no cookie credential or arbitrary-origin permissions',manifest.manifest_version===3&&manifest.permissions.join(',')==='storage,alarms'&&manifest.host_permissions.length===4&&manifest.host_permissions.every(x=>/^https:\/\/(?:b2b\.fstravel\.com\/search_tour|agent\.anextour\.ru\/search\/tour|pro\.tourvisor\.ru\/search|app\.anytoour\.ru\/manager\/tour-selection-collector\.php)\*$/.test(x)));
  const db={},server=provider();let w=worker(db,server,{popupSupported:false});
  check('foreign page cannot read client identity or enqueue',(await w.send({type:'status'},{url:'https://evil.example/'})).ok===false&&(await w.send({type:'enqueue',observation:observation('x')},{url:'https://evil.example/'})).ok===false);
  check('TO content cannot read extension target',(await w.send({type:'status'},{url:'https://b2b.fstravel.com/search_tour'})).ok===false);
@@ -89,5 +89,15 @@ async function itemState(w,operation,state){await until(async()=>(await w.status
  check('ANEX stages through the same durable destination queue',(await w.send({type:'enqueue',observation:anex},anexSender)).ok&&db.items.at(-1).state==='destination'&&server.creates===5);
  const anexId=db.items.at(-1).operation_id;w=worker(db,server);await w.send({type:'confirm',operation_id:anexId});await itemState(w,anexId,'saved');
  check('ANEX worker restart retains destination and uses canonical receipt then import',server.creates===6&&server.calls.filter(x=>x.operation_id===anexId).map(x=>x.action).join(',')==='operation,import');
+ const tvSender={url:'https://pro.tourvisor.ru/search#tvtourid=1234567890',tab:{id:22}},tv={...observation('Synthetic TV'),adapter:'tourvisor-snapshot-v1',raw:{price:'160000 RUB',party_price_confirmation:'one_room_two_adults'}};
+ check('TV content cannot read target or borrow another adapter',(await w.send({type:'status'},tvSender)).ok===false&&(await w.send({type:'enqueue',observation:anex},tvSender)).ok===false);
+ check('other sources cannot enqueue TV snapshot',(await w.enqueue(tv)).ok===false);
+ await w.send({type:'enqueue',observation:tv},tvSender);let tvId=db.items.at(-1).operation_id;
+ check('TV content cannot self-confirm a whole-party price',db.items.at(-1).observation.raw.party_price_confirmation==='pending'&&(await w.send({type:'confirm',operation_id:tvId})).ok===false&&server.creates===6);
+ await w.disconnect();await w.connect(makeTarget(11,'c'.repeat(32)));await w.send({type:'reconnect',operation_id:tvId});tvId=db.items.at(-1).operation_id;
+ check('TV reconnect returns unconfirmed intent to destination review',db.items.at(-1).state==='destination'&&server.creates===6);
+ w=worker(db,server);check('TV restart retains unconfirmed price basis',(await w.send({type:'confirm',operation_id:tvId,confirm_price_basis:false})).ok===false);
+ await w.send({type:'confirm',operation_id:tvId,confirm_price_basis:true});await itemState(w,tvId,'saved');
+ check('TV explicit price plus destination confirmation uses canonical receipt and import',server.creates===7&&server.calls.filter(x=>x.operation_id===tvId).every(x=>x.observation.raw.party_price_confirmation==='one_room_two_adults'));
  console.log('COLLECTOR WORKER TOTAL '+checks+' PASS');
 })().catch(error=>{console.error(error);process.exitCode=1});

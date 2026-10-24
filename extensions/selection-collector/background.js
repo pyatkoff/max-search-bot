@@ -3,10 +3,10 @@ const bridgeOrigin='https://app.anytoour.ru',bridgePath='/manager/tour-selection
 const id=()=>Array.from(crypto.getRandomValues(new Uint8Array(16)),x=>x.toString(16).padStart(2,'0')).join('');
 const bridges=new Map(),requests=new Map(),bridgeReady=new Set();let serial=Promise.resolve(),processing=false,inFlight='';
 const exclusive=fn=>{const p=serial.then(fn,fn);serial=p.catch(()=>{});return p};
-function kind(sender){try{const u=new URL(sender.url||sender.tab?.url||'');if(u.origin===bridgeOrigin&&u.pathname===bridgePath)return'bridge';if(u.origin==='https://b2b.fstravel.com'&&u.pathname==='/search_tour')return'funsun';if(u.origin==='https://agent.anextour.ru'&&u.pathname==='/search/tour')return'anex';if(u.protocol==='chrome-extension:'&&u.host===chrome.runtime.id)return'popup'}catch{}return''}
+function kind(sender){try{const u=new URL(sender.url||sender.tab?.url||'');if(u.origin===bridgeOrigin&&u.pathname===bridgePath)return'bridge';if(u.origin==='https://b2b.fstravel.com'&&u.pathname==='/search_tour')return'funsun';if(u.origin==='https://agent.anextour.ru'&&u.pathname==='/search/tour')return'anex';if(u.origin==='https://pro.tourvisor.ru'&&u.pathname==='/search')return'tourvisor';if(u.protocol==='chrome-extension:'&&u.host===chrome.runtime.id)return'popup'}catch{}return''}
 async function state(){const s=await chrome.storage.local.get(['device','target','items']);if(!s.device){s.device=id();await chrome.storage.local.set({device:s.device})}return {...s,items:Array.isArray(s.items)?s.items:[]}}
 function same(a,b){return a&&b&&a.actor===b.actor&&a.conversation_id===b.conversation_id&&a.binding===b.binding&&a.connection?.id===b.connection?.id}
-async function announce(){for(const tab of await chrome.tabs.query({url:['https://b2b.fstravel.com/search_tour*','https://agent.anextour.ru/search/tour*']}))void chrome.tabs.sendMessage(tab.id,{type:'target_changed'}).catch(()=>{});await chrome.action.setBadgeText({text:String((await state()).items.filter(x=>x.state!=='saved').length||'')})}
+async function announce(){for(const tab of await chrome.tabs.query({url:['https://b2b.fstravel.com/search_tour*','https://agent.anextour.ru/search/tour*','https://pro.tourvisor.ru/search*']}))void chrome.tabs.sendMessage(tab.id,{type:'target_changed'}).catch(()=>{});await chrome.action.setBadgeText({text:String((await state()).items.filter(x=>x.state!=='saved').length||'')})}
 async function relay(item,action,reconnect=true){
  const s=await state();if(!same(s.target,item.target))return{ok:false,error:'connection_changed'};
  const entry=Array.from(bridges.entries()).find(([,b])=>same(b.target,item.target));
@@ -43,8 +43,9 @@ async function handle(m,sender){
  if(e.type==='disconnected'){const was=b.target;b.target=null;await exclusive(async()=>{const s=await state();if(same(s.target,was)){for(const item of s.items)if(item.state!=='saved'&&item.operation_id!==inFlight){item.state='blocked';item.error='connection_changed'}await chrome.storage.local.set({target:null,items:s.items})}});await announce();return{ok:true}}
  return{ok:false};
  }
- if(['funsun','anex'].includes(role)&&m.type==='enqueue'){
- if(!m.observation||m.observation.adapter!==({funsun:'funsun-b2b-v1',anex:'anex-agent-v1'}[role])||JSON.stringify(m.observation).length>16000)return{ok:false,error:'Данные предложения не поддерживаются.'};
+ if(['funsun','anex','tourvisor'].includes(role)&&m.type==='enqueue'){
+ if(!m.observation||m.observation.adapter!==({funsun:'funsun-b2b-v1',anex:'anex-agent-v1',tourvisor:'tourvisor-snapshot-v1'}[role])||JSON.stringify(m.observation).length>16000)return{ok:false,error:'Данные предложения не поддерживаются.'};
+ if(role==='tourvisor'){if(!m.observation.raw||typeof m.observation.raw!=='object')return{ok:false};m.observation.raw.party_price_confirmation='pending'};
  const r=await exclusive(async()=>{const s=await state();if(!s.target)return{ok:false,error:'Подключите клиента: Manager2 → Подборка → Сборщик туров.'};
  if(s.items.filter(x=>x.state!=='saved').length>=50)return{ok:false,error:'Проверьте очередь расширения: в ней уже 50 предложений.'};
  s.items=s.items.filter(x=>x.state!=='saved').concat(s.items.filter(x=>x.state==='saved').slice(-20));
@@ -61,8 +62,9 @@ async function handle(m,sender){
  const expected={confirm:'destination',retry:'waiting',variant:'review',reconnect:'blocked'};if(item.state!==expected[m.type])return{ok:false};
  if(m.type==='reconnect'){const t=s.target;if(!t||item.target.actor!==t.actor||item.target.conversation_id!==t.conversation_id||item.target.binding!==t.binding)return{ok:false};item.target=t;item.operation_id=id()}
  if(!same(item.target,s.target))return{ok:false};
+ if(item.observation.adapter==='tourvisor-snapshot-v1'&&item.observation.raw.party_price_confirmation!=='one_room_two_adults'&&m.type!=='reconnect'){if(m.type!=='confirm'||m.confirm_price_basis!==true)return{ok:false};item.observation.raw.party_price_confirmation='one_room_two_adults'}
  if(m.type==='variant'){if(item.state!=='review')return{ok:false};item.as_variant=true;item.operation_id=id()}
- item.state='queued';item.error=null}
+ item.state=item.observation.adapter==='tourvisor-snapshot-v1'&&item.observation.raw.party_price_confirmation!=='one_room_two_adults'?'destination':'queued';item.error=null}
  await chrome.storage.local.set({items:s.items});return{ok:true}});await announce();if(result.ok)void process();return result;
  }
  return{ok:false};

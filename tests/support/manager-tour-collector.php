@@ -52,6 +52,41 @@ function collectorSchema(PDO $pdo): void
     else $pdo->exec('CREATE TABLE manager_tour_selection_collectors(connection_id TEXT PRIMARY KEY,manager_id INTEGER,conversation_id INTEGER,device_id TEXT,session_hash TEXT,binding_hash TEXT,created_at TEXT,expires_at TEXT,revoked_at TEXT)');
 }
 
+function tourvisorCollectorObservation(): array
+{
+    return ['adapter'=>'tourvisor-snapshot-v1','url'=>'https://pro.tourvisor.ru/search?ts_dosearch=1&s_form_mode=0&s_nights_from=11&s_nights_to=11&s_directflight=0&s_regular=1&x_hotel_codes=502&s_j_date_from=29.10.2026&s_j_date_to=29.10.2026&s_adults=2&s_meal=7&s_flyfrom=1&s_country=1','observed_at'=>'2026-10-24T11:00:00Z','quote_id'=>'tv-snapshot-1234567890',
+        'keys'=>['hotel'=>'502','meal'=>'7','departure'=>'1','country'=>'1','operator'=>'13'],
+        'offer'=>['hotel'=>'Синтетический Tourvisor','destination'=>'Египет, Хургада','departure'=>'Москва','date_from'=>'2026-10-29','nights'=>11,'adults'=>2,'child_ages'=>[],'room'=>'standard room','meal'=>'AI - Все Включено','amount'=>'160000','currency'=>'RUB','stars'=>3],
+        'raw'=>['hotel'=>'Синтетический Tourvisor 3*','destination'=>'Египет, Хургада','date'=>'29 октября','nights'=>'11 ночей','room'=>'standard room','meal'=>'AI - Все Включено','party'=>'2 взрослых','price'=>'160 000 РУБ','price_basis'=>'за номер','base_price'=>'144 000 РУБ','fuel_price'=>'16 000 РУБ','tariff'=>'Synthetic Egypt PROMO','flight_alternatives'=>'XX999 Москва - Хургада; XX998 Хургада - Москва','party_price_confirmation'=>'one_room_two_adults']];
+}
+
+function tourvisorCollectorScenarios(PDO $pdo,string $session,string $connection): void
+{
+    $observation=tourvisorCollectorObservation();$normalized=ManagerTourSelectionImportDraft::normalize($observation);
+    deliveryCheck('TV snapshot retains shown basis included fuel and private handle without claiming verified fare',$normalized!==null&&$normalized['offer']['photos']===[]&&str_contains($normalized['offer']['constraints'],'топливо уже включено')&&$normalized['quote_id']===$observation['quote_id']);
+    foreach (['hotel','destination','date','nights','room','meal','party','price','price_basis','base_price','fuel_price','party_price_confirmation'] as $key) {$bad=$observation;$bad['raw'][$key].=' changed';deliveryCheck('TV rejects changed raw '.$key,ManagerTourSelectionImportDraft::normalize($bad)===null);}
+    foreach (['token=private','%74oken=private','s_adults=2','s_adults[]=2'] as $extra) {$bad=$observation;$bad['url'].='&'.$extra;deliveryCheck('TV rejects unknown secret duplicate and array URL input',ManagerTourSelectionImportDraft::normalize($bad)===null);}
+    foreach (['s_j_date_from=29.10.2026'=>'s_j_date_from=28.10.2026','s_adults=2'=>'s_adults=3','s_country=1'=>'s_country=4','x_hotel_codes=502'=>'x_hotel_codes=502,503'] as $from=>$to) {$bad=$observation;$bad['url']=str_replace($from,$to,$bad['url']);deliveryCheck('TV rejects unbound search or unsupported template',ManagerTourSelectionImportDraft::normalize($bad)===null);}
+    $bad=$observation;$bad['raw']['party_price_confirmation']='pending';deliveryCheck('TV cannot import a room price before explicit party confirmation',ManagerTourSelectionImportDraft::normalize($bad)===null);
+    $bad=$observation;$bad['quote_id']='invented-hotel-price-key';deliveryCheck('TV refuses a fabricated quote fingerprint',ManagerTourSelectionImportDraft::normalize($bad)===null);
+    $count=count(ManagerTourSelectionService::get(7,1)['selection']['draft']['offers']);
+    $command=['operation_id'=>'tv-snapshot-mixed-0001','connection_id'=>$connection,'observation'=>$observation];
+    $first=ManagerTourSelectionService::import(7,1,$session,$command);deliveryCheck('TV appends to the same mixed-source canonical draft',$first['ok']&&$first['count']===$count+1);
+    $selection=ManagerTourSelectionService::get(7,1)['selection'];$i=count($selection['draft']['offers'])-1;$selection['draft']['offers'][$i]['amount']='170000';deliverySave($selection['draft'],$selection['version']);
+    $repeat=ManagerTourSelectionService::import(7,1,$session,array_replace($command,['operation_id'=>'tv-snapshot-repeat-0001']));
+    deliveryCheck('TV same snapshot repeat preserves original source and manual price',$repeat['state']==='already_added'&&$repeat['count']===$count+1&&ManagerTourSelectionService::get(7,1)['selection']['draft']['offers'][$i]['amount']==='170000');
+    $again=$observation;$again['quote_id']='tv-snapshot-1234567891';
+    deliveryCheck('TV regenerated handle does not silently dedup or append equivalent terms',ManagerTourSelectionService::import(7,1,$session,array_replace($command,['operation_id'=>'tv-regenerated-0001','observation'=>$again]))['error']==='ambiguous_offer');
+    $price=$again;$price['offer']['amount']='161000';$price['raw']['price']='161 000 РУБ';$price['raw']['base_price']='145 000 РУБ';
+    deliveryCheck('TV changed price under new handle requires price review',ManagerTourSelectionService::import(7,1,$session,array_replace($command,['operation_id'=>'tv-price-change-0001','observation'=>$price]))['error']==='source_price_changed');
+    $parts=$observation;$parts['raw']['base_price']='143 000 РУБ';$parts['raw']['fuel_price']='17 000 РУБ';
+    deliveryCheck('TV changed included-fuel split is not mistaken for the identical snapshot',ManagerTourSelectionService::import(7,1,$session,array_replace($command,['operation_id'=>'tv-parts-change-0001','observation'=>$parts]))['error']==='source_price_changed');
+    $room=$again;$room['offer']['room']=$room['raw']['room']='sea view';
+    deliveryCheck('TV distinct room remains a distinct exact variant',ManagerTourSelectionService::import(7,1,$session,array_replace($command,['operation_id'=>'tv-room-change-0001','observation'=>$room]))['count']===$count+2);
+    deliveryCheck('TV explicit ambiguity decision uses the existing variant path',ManagerTourSelectionService::import(7,1,$session,array_replace($command,['operation_id'=>'tv-variant-choice-0001','observation'=>$again,'as_variant'=>true]))['count']===$count+3);
+    deliveryCheck('TV retains canonical session fence',ManagerTourSelectionService::import(7,1,str_repeat('9',64),array_replace($command,['operation_id'=>'tv-foreign-session-0001']))['error']==='connection_changed');
+}
+
 function collectorScenarios(PDO $pdo): void
 {
     $session=str_repeat('1',64);$device=str_repeat('2',32);$conn=str_repeat('3',32);$observation=collectorObservation();
@@ -94,6 +129,7 @@ function collectorScenarios(PDO $pdo): void
     $local=ManagerTourSelectionService::get(7,1)['selection'];$server=$local['draft'];$server['intro']='Правка другой вкладки';deliverySave($server,$local['version']);
     $local['draft']['intro']='Мой старый экран';deliveryCheck('stale editor cannot replace imports or another editors text',deliverySave($local['draft'],$local['version'])['error']==='conflict');
     anexCollectorScenarios($pdo,$session,$conn);
+    tourvisorCollectorScenarios($pdo,$session,$conn);
     deliveryCheck('another PHP session cannot inherit collector connection',ManagerTourSelectionService::import(7,1,str_repeat('4',64),array_replace($command,['operation_id'=>'collector-session-cross-01']))['error']==='connection_changed');
     deliveryCheck('status rechecks the current session connection before receipt disclosure',ManagerTourSelectionService::importOperation(7,1,str_repeat('4',64),$command)['error']==='connection_changed');
     deliveryCheck('another client cannot inherit collector connection',ManagerTourSelectionService::import(7,2,$session,array_replace($command,['operation_id'=>'collector-client-cross-01']))['error']==='connection_changed');
