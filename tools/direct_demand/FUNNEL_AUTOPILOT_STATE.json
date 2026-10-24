@@ -1,6 +1,6 @@
 {
   "schema": "anytour.funnel.autopilot_state.v1",
-  "updated_at_utc": "2026-10-24T08:47:00Z",
+  "updated_at_utc": "2026-10-24T09:40:00Z",
   "owner": "direct-demand-funnel",
   "automation": {
     "id": "6ada8f0084888191b12c6619c12fb35c",
@@ -9,7 +9,7 @@
     "timezone": "Europe/Kaliningrad",
     "enabled_verified_at_utc": "2026-10-22T22:39:46.922Z"
   },
-  "status": "H21_TWO_H19_OWNER_COVERS_COMPLETE_EXPLICIT_SAME_PACKET_MEDIA_COMPANION_NOT_APPLIED",
+  "status": "H22_TWO_MALDIVES_TEXTS_FOUR_SAVED_MAX_TARGETS_COVERS_PENDING_NOT_APPLIED",
   "channel": null,
   "scope": {
     "prepare_catalog_matches": true,
@@ -43,11 +43,11 @@
   "artifacts": {
     "report": {
       "library_file_id": "libfile_81ae550da16881918bb6840b686d507f",
-      "version": 54
+      "version": 55
     },
     "archive": {
       "library_file_id": "libfile_1b69bb58e8d4819186e7ea461ef60cb6",
-      "version": 55
+      "version": 56
     },
     "canonical_hotel_knowledge": {
       "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
@@ -87,7 +87,7 @@
     },
     "existing_post_review": {
       "library_file_id": "libfile_25486df816e88191b44ed4051858e99f",
-      "version": 35,
+      "version": 36,
       "preview_member": "existing-post-review/anytour-existing-posts-review-20261023.html",
       "text_review_member": "existing-post-review/manual-text-review-107.json",
       "adaptations_member": "existing-post-review/existing-post-adaptations-12.json",
@@ -526,6 +526,24 @@
       "output_media_is_same_packet_companion": true,
       "media_in_base_ZIP": false,
       "private_materials_only_in_library": true
+    },
+    "current_packet_continuation": {
+      "library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
+      "version": 1,
+      "content_member": "existing-post-review/h22/content.json",
+      "patches_member": "existing-post-review/h22/existing-patches-4.NOT-APPLIED.json",
+      "preflight_member": "existing-post-review/h22/preflight186-current.NOT-APPLIED.json",
+      "map_member": "existing-post-review/h22/existing63-186post-map.NOT-APPLIED.json",
+      "summary_member": "existing-post-review/h22/summary.json",
+      "validation_member": "existing-post-review/h22/validation.json",
+      "next_safe_block_member": "existing-post-review/h22/next-safe-block.json",
+      "canonical_readback_member": "existing-post-review/h22/canonical-readback.json",
+      "preview_library_file_id": "libfile_c1f06826dd408191bed3e0cb8103e379",
+      "preview_version": 1,
+      "base_pointer_member": "existing-post-review/current-continuation.json",
+      "same_packet_continuation_not_second_attribution_store": true,
+      "base_ZIP_alone_not_complete_current_packet": true,
+      "private_materials_only_in_library": true
     }
   },
   "operations": {
@@ -537,7 +555,7 @@
     "wordstat_access": "BLOCKED_NO_CONNECTED_SEARCH_API_ACCESS",
     "first_post_drafts": "DONE",
     "inactive_feed_templates": "DONE",
-    "active_operation": "NONE_H21_COVERS_COMPLETE_NEXT_R038_R041_FULL_SELECTIONS",
+    "active_operation": "NONE_H22_TEXTS_SAVED_NEXT_TWO_OWNER_COVERS",
     "catalog_cohort_492_read": "DONE",
     "first_native_catalog_bindings": "DONE",
     "five_additional_posts": "DONE",
@@ -630,16 +648,18 @@
     "existing_h18_selection_covers": "DONE_2OWNER_COVERS_FOR_H17TEXTS_0NEW_TARGETS_NOT_APPLIED_LIB51_52_32",
     "existing_h19_selection_corrections": "DONE_2TEXTS_4SAVED_MAX_TARGETS_0COVERS_THREE_PHUQUOC_NAMES_HELD_LIB52_53_33",
     "existing_h20_identity_review": "DONE_POST_SCOPED3NAMES_REVIEW_NO_NATIVE_IDS_182PROPOSALS_UNCHANGED_LIB53_54_34",
-    "existing_h21_selection_covers": "DONE_2OWNER_COVERS_H19BODIES_UNCHANGED_EXPLICIT_COMPANION_NOT_APPLIED"
+    "existing_h21_selection_covers": "DONE_2OWNER_COVERS_H19BODIES_UNCHANGED_EXPLICIT_COMPANION_NOT_APPLIED",
+    "existing_h22_selection_corrections": "DONE_2FULLTEXTS_4SAVED_MAX_TARGETS_NO_COVERS_NO_WRITES"
   },
   "next_steps": [
-    "H21 complete: two owner-style1080square JPG covers for H19R035/R037 from exact official PullmanPhuQuoc and GreenBeachHotelNhaTrang gallery photos, both property labels visible. Full original5/4member bodies remain unchanged.",
-    "Current packet is base archive plus explicit H21 output-media companion, with its own saved readable preview. Do not call base ZIP physically complete for H21 photos/covers. Existing3Libraryidentities preserved; companion is output media only, NOT hotel/sourceDB.",
-    "Next finite block R038/R041: saved original Maldives selections, verify exact composition and local-island/resort transfer/meal distinctions. Check current182preflight before appending;32manual107selection rows remain without these prepared H4-H19 adaptations; corpus not complete channel.",
-    "All83subjects/84bodies/182saved candidates unchanged;155mapped/63INACTIVEcollections+27unlinked20subjects.94video holds/88textphoto paths,129explicit identitylookup holds.All182native identities remain unverified;no issuedIDs/URLs/nativewrites.",
-    "H20identity review remains authoritative: HomesteadSeaview Group2CuaLap external support/indirect Ola bridge only;SK MP135 secondaryaddress candidate;MaisonThuSonasea vsMaisonDuBenTram aliasconflict, no auto merge/photo transfer.",
-    "BaseZIP536865393bytes/headroom5519bytes. Preserve all existing evidence/current BZIP2 methods. Do not add large media, repeat compression baselines or remove records; use same-packet output companion for future independent media and cap preflight for metadata.",
-    "No Wordstat/ASR/native/Direct/fullCI replay. No production/RK/spend/tourist/newpost actions; current read/edit access is not publication authorization."
+    "H22done:two Maldives full texts for4saved MAXtargets.R0386members/R0414members;old prices/dates/stars/BB-HB blanketpromises removed;no Maldives-by-Turkey-price claim.",
+    "Next finite block:finish both exact selection owner covers from verified original member official photography.KaaniBeach distinct from Palm/Grand/Village;label photo identity.No generic whole-selection property photo implication.",
+    "Current complete preparation is baseZIP plus SAME existing output companion libfile_f7a0d7e76c188191b2d5bc59adfd430d v1;no new artifact identity/db/task. H22full186preflight and resolved63collection31unlinked map there;baseZIP current-continuation.json records source hashes. H19map now historical latestbase,do not treat it as current186snapshot.",
+    "85subjects/86bodies/186saved candidates;155mapped/63INACTIVEcollections+31unlinked22subjects.94video holds/92textphoto paths;133explicit identityholds.186native identities unverified;0newIDs/URLs/writes.",
+    "Five officialpost-scoped sources: Arena boat access/Maafushi,AraamuDhiffushi,KaaniBeachMaafushi,SeasonThulusdhoo,KandimaDhaalu transfer alternatives. No guarantee of duration/direct seaplane landing,freetransfer,board/currentprice/availability.",
+    "Malahini officialhome/FAQ parsedempty andCoral403;search snippets not promoted to facts. Retain name only;do not retryidenticalfailures. Canonical92six exactprofilematches0;sourceunmodified.",
+    "BaseZIP536866411bytes/4501headroom. Do not force newmedia/preflightfullsnapshots into base or repeatedly recompress/deleteold evidence. Same companion stores currentcontinuation,all H21prior18nonpreviewmembers preserved exactly.",
+    "Known Wordstat/ASR/nativewrites/production/RK/spend blockers unchanged.Constructor currentANEXsource6382564407/6382573334 foreignclaims untouched;its sourceaccess authorization is not traffic publishing permission."
   ],
   "publication_blocker": "176saved candidates NOT_APPLIED:all176entry URLs unissued/local catalog identities unverified(123explicit lookup flags),94video holds/82text-photo paths.155mapped to63inactive collections;21selection targets across16subjects unlinked.H15two text drafts and H16two branded covers complete for2savedMAXposts.No fresh native read/external apply.All need current exact post/media/buttons/context read and applicable owner authority.Huayuan hot-spring closure/Argyle historical maintenance and package/identity/season holds retained.Photographs illustrate named properties only,not current services.No mass native publication,RK/spend authority.",
   "coordination": "Own audit/direct-demand-20261022 branch only; no foreign claims, CI, paused hotel tasks or production flows.",
@@ -1745,6 +1765,46 @@
       "guarded_versions": "53/54/34_TO_54/55/35",
       "new_companion_media_artifacts": 2,
       "all5saved_local_metadata_applied": true
+    },
+    "existing_h22": {
+      "prior182rows_exact": true,
+      "all186targets_unique": true,
+      "all6and4members_preserved": true,
+      "all4before_hashes_and_media_preserved": true,
+      "new_IDs": 0,
+      "native_writes": 0,
+      "canonical92_readonly": true,
+      "all63collections155mapped_unchanged": true,
+      "all31unlinked_no_entry_or_URL": true,
+      "malahini_name_only": true,
+      "old_prices_dates_stars_and_meal_promises_removed": true,
+      "body_utf16": [
+        800,
+        692
+      ],
+      "bytes": 536866411,
+      "cap": 536870912,
+      "entries": 1060,
+      "unowned_prior_member_count": 1056,
+      "unowned_bytes_crc_preserved": true,
+      "unmodified_raw_local_records_SHA256": "42eb150e0e1e6dc894325858032ab6969feb891c696d6c2ed1d3e4edba75272b",
+      "unchanged_compressed_bytes_exact": true,
+      "compression_only_members": [],
+      "all_stage_members_readback_equal": true,
+      "preview_widths": [
+        320,
+        390,
+        736,
+        1440
+      ],
+      "main_link_section_widths": [
+        390,
+        1440
+      ],
+      "disabled_CTA": 2,
+      "overflow": false,
+      "companion_prior18nonpreviewmembers_exact": true,
+      "originalH21preview_retained_withH22append": true
     }
   },
   "catalog_evidence": {
@@ -1785,21 +1845,33 @@
     "library_archive_size": "Current536730088bytes/limit536870912/headroom140824;guards49/50/30.H16preserved all existing evidence and losslessly BZIP2compressed18existingJSONmembers:per-member originaluncompressedSHA,CRC/size and Python/InfoZIP6readPASS recorded inH16lossless-packaging.json.Other prior compression types unchanged.Preserve current root/current-fileBZIP2method on updates;preflight new byte budget before upload.No oversized request/evidence deletion.Unselected new largeOGexcluded with provenance,not prior evidence."
   },
   "latest_completed_block": {
-    "name": "H21: two owner covers and readable full-body Vietnam preview, same-packet explicit media companion; not applied",
-    "new_caption_bodies": 0,
-    "new_cover_designs": 2,
-    "new_exact_post_candidates": 0,
-    "total_prepared_subjects": 83,
-    "total_exact_caption_bodies": 84,
-    "total_saved_post_candidates": 182,
-    "new_entry_IDs": 0,
+    "name": "H22:two full Maldives text drafts for4saved MAXposts,6/4originalmembers preserved,coverspending;notapplied",
+    "total_prepared_subjects": 85,
+    "total_exact_caption_bodies": 86,
+    "total_saved_post_candidates": 186,
+    "mapped_existing_post_candidates": 155,
+    "current_feed_collections": 63,
+    "total_unlinked_selection_post_candidates": 31,
+    "total_unlinked_selection_subjects": 22,
+    "total_video_holds": 94,
+    "total_text_photo_paths": 92,
+    "identity_lookup_holds": 133,
+    "new_caption_bodies": 2,
+    "new_exact_saved_post_candidates": 4,
+    "new_covers": 0,
+    "new_IDs": 0,
     "actual_channel_writes": 0,
-    "ready_for_native_write": 0,
-    "completed_at_utc": "2026-10-24T08:47:00Z",
+    "platforms": {
+      "max": 177,
+      "telegram": 9
+    },
+    "completed_at_utc": "2026-10-24T09:40:00Z",
     "save_versions": [
-      54,
       55,
-      35
+      56,
+      36,
+      1,
+      1
     ]
   },
   "catalog_export_lookup": {
@@ -1864,15 +1936,15 @@
     "each_new_post_has_explicit_eligibility_checks": true
   },
   "last_run_readback": {
-    "own_branch_head_before_write": "132411e1e101f053ee646b6a280156c7d39d29ce",
+    "own_branch_head_before_write": "9f428999372cad25951adc6f80491b790e5ba637",
     "same_package_current_executor_handoff": true,
     "coordination_issue55_updated_at_utc": "2026-10-24T08:23:25Z",
     "source_archive_library_version": 92,
     "demand_library_versions_before_write": {
-      "report": 53,
-      "archive": 54
+      "report": 54,
+      "archive": 55
     },
-    "existing_review_preview_version_before_write": 34,
+    "existing_review_preview_version_before_write": 35,
     "foreign_claims_untouched": true,
     "scope_instructions_reused_from_current_same_executor_package": true,
     "root_AGENTS_sha": "a064aff67d42ddd69a12d9b0393501d116d1307d",
@@ -1883,16 +1955,16 @@
     "full_CI_or_unchanged_baseline_repeated": false,
     "wordstat_access_blocker_unchanged": true,
     "blocked_wordstat_retried": false,
-    "current_task": "H21: finish2H19owner covers from exact officialphotos; full5/4bodies untouched, companion outputmedia saved; no nativewrites.",
+    "current_task": "H22:R038/R041 full6/4membertext drafts,current186preflight/map continuation.No covers/nativewrites.",
     "private_source_materials_committed": false,
     "fresh_native_message_read_performed": false,
     "source_main_reviewed_sha": "cdd594f6e53fa1f2c4293aae3cc8d9b68867e1ab",
     "START_HERE_sha": "43e7827432279012382767de6b6335684c6d54c2",
     "ASR_reexecuted_after_rejection": false,
-    "coordination_latest_comment_id": 6381951626,
-    "latest_coordination_updated_comment_read": 6381951626,
+    "coordination_latest_comment_id": 6382573334,
+    "latest_coordination_updated_comment_read": 6382573334,
     "source_instructions_read_on_current_main": true,
-    "completed_at_utc": "2026-10-24T08:47:00Z",
+    "completed_at_utc": "2026-10-24T09:40:00Z",
     "all_comments_endpoint_failed_transport_twice": true,
     "newest_comments_read_with_bounded_since_API": true,
     "library_prepare_initial_size_rejected_before_action": false,
@@ -1906,10 +1978,10 @@
     "unchanged_compressed_records_exact_verified": true,
     "source_knowledge92_read_only": true,
     "demand_library_versions_after_write": {
-      "report": 54,
-      "archive": 55
+      "report": 55,
+      "archive": 56
     },
-    "existing_review_preview_version_after_write": 35
+    "existing_review_preview_version_after_write": 36
   },
   "latest_source_checks": {
     "read_on": "2026-10-23",
@@ -3163,12 +3235,12 @@
     "prior_video_transport_hold_preserved_for_amended_video_target": true
   },
   "next_preparation_block": {
-    "state": "PENDING_TWO_UNPREPARED_MALDIVES_SELECTIONS",
+    "state": "PENDING_TWO_H22_OWNER_COVERS",
     "review_ids": [
       "R038",
       "R041"
     ],
-    "action": "Read saved exact original members/bodies/media/buttons and current182preflight, then prepare full selections. Distinguish local islands/resorts, exact identities/transfer/meal conditions. Do not reuse old prices/current availability or issue IDs. Same scoped output-companion strategy for new media.",
+    "action": "Use exact verified original member official photos,visibly label property;KaaniBeach must not use Palm/Grand photos. Preserve six/four full bodies,Malahini name-only hold. Continue existing same-packet companion identities. No nativewrites.",
     "native_writes_allowed": false
   },
   "existing_text_photo_binding44_operation": {
@@ -5415,6 +5487,110 @@
         }
       ],
       "dependent_save_order": "Companion create completed/read receipt;then base3guarded replacements"
+    }
+  },
+  "existing_h22_selection_corrections_operation": {
+    "state": "DONE_TWO_FULL_MALDIVES_TEXTS_FOUR_SAVED_MAX_TARGETS_COVERS_PENDING_NOT_APPLIED",
+    "idempotency_key": "H22-R038-R041-6and4members-2texts4MAXtargets-20261024-v1",
+    "completed_at_utc": "2026-10-24T09:40:00Z",
+    "same_executor_continuation": true,
+    "no_subagents": true,
+    "source_demand_archive_version": 55,
+    "canonical_source_version": 92,
+    "total_prepared_subjects": 85,
+    "total_exact_caption_bodies": 86,
+    "total_saved_post_candidates": 186,
+    "mapped_existing_post_candidates": 155,
+    "current_feed_collections": 63,
+    "total_unlinked_selection_post_candidates": 31,
+    "total_unlinked_selection_subjects": 22,
+    "total_video_holds": 94,
+    "total_text_photo_paths": 92,
+    "identity_lookup_holds": 133,
+    "new_caption_bodies": 2,
+    "new_exact_saved_post_candidates": 4,
+    "new_covers": 0,
+    "new_IDs": 0,
+    "actual_channel_writes": 0,
+    "platforms": {
+      "max": 177,
+      "telegram": 9
+    },
+    "library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
+    "version": 1,
+    "content_member": "existing-post-review/h22/content.json",
+    "patches_member": "existing-post-review/h22/existing-patches-4.NOT-APPLIED.json",
+    "preflight_member": "existing-post-review/h22/preflight186-current.NOT-APPLIED.json",
+    "map_member": "existing-post-review/h22/existing63-186post-map.NOT-APPLIED.json",
+    "summary_member": "existing-post-review/h22/summary.json",
+    "validation_member": "existing-post-review/h22/validation.json",
+    "next_safe_block_member": "existing-post-review/h22/next-safe-block.json",
+    "canonical_readback_member": "existing-post-review/h22/canonical-readback.json",
+    "preview_library_file_id": "libfile_c1f06826dd408191bed3e0cb8103e379",
+    "preview_version": 1,
+    "base_pointer_member": "existing-post-review/current-continuation.json",
+    "same_packet_continuation_not_second_attribution_store": true,
+    "base_ZIP_alone_not_complete_current_packet": true,
+    "private_materials_only_in_library": true,
+    "new_shared_profiles": 0,
+    "new_post_scoped_sources": 5,
+    "validation": {
+      "prior182rows_exact": true,
+      "all186targets_unique": true,
+      "all6and4members_preserved": true,
+      "all4before_hashes_and_media_preserved": true,
+      "new_IDs": 0,
+      "native_writes": 0,
+      "canonical92_readonly": true,
+      "all63collections155mapped_unchanged": true,
+      "all31unlinked_no_entry_or_URL": true,
+      "malahini_name_only": true,
+      "old_prices_dates_stars_and_meal_promises_removed": true,
+      "body_utf16": [
+        800,
+        692
+      ],
+      "bytes": 536866411,
+      "cap": 536870912,
+      "entries": 1060,
+      "unowned_prior_member_count": 1056,
+      "unowned_bytes_crc_preserved": true,
+      "unmodified_raw_local_records_SHA256": "42eb150e0e1e6dc894325858032ab6969feb891c696d6c2ed1d3e4edba75272b",
+      "unchanged_compressed_bytes_exact": true,
+      "compression_only_members": [],
+      "all_stage_members_readback_equal": true,
+      "preview_widths": [
+        320,
+        390,
+        736,
+        1440
+      ],
+      "main_link_section_widths": [
+        390,
+        1440
+      ],
+      "disabled_CTA": 2,
+      "overflow": false,
+      "companion_prior18nonpreviewmembers_exact": true,
+      "originalH21preview_retained_withH22append": true
+    },
+    "unknown_writes": [],
+    "save_receipt": {
+      "versions": [
+        55,
+        56,
+        36,
+        1,
+        1
+      ],
+      "expected_previous_versions": [
+        54,
+        55,
+        35,
+        0,
+        0
+      ],
+      "all_local_metadata_applied": true
     }
   }
 }
