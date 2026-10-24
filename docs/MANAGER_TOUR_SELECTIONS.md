@@ -406,6 +406,6 @@ natural owner acceptance and A1–A8 remain separate from fixtures/CI/publicatio
 
 Preview retains the immutable native renderer text and highlights its exact hotel
 and whole-party price. Telegram preview provides three horizontally scrollable
-4:3 photos; MAX keeps the three-photo mosaic. This is a browser representation,
+4:3 photos with previous/next buttons and a photo counter; MAX keeps the three-photo mosaic. This is a browser representation,
 not physical native acceptance. No terms, publication, delivery or recipient
 contract changes; source text is escaped, never interpreted as HTML.

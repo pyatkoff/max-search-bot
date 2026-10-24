@@ -23,3 +23,6 @@
 .tsPhotos.tsPhotoSlideshow{display:flex;aspect-ratio:auto;gap:0;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:thin}
 .tsPhotoSlideshow img{flex:0 0 100%;width:100%;height:auto;aspect-ratio:4/3;scroll-snap-align:start;object-fit:cover}
 .tsPhotoSlideshow:focus-visible{outline:3px solid #81b7a3;outline-offset:-3px}
+
+.tsPhotoNav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:-4px 0 10px;color:#526b5c;font-size:12px}
+.tsPhotoNav button{border:1px solid #d6e1da;background:#fff;border-radius:8px;min-width:44px;min-height:36px;color:#264b3b;font:18px Arial,sans-serif}

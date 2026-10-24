@@ -227,8 +227,10 @@ for(const width of [390,430,768,1440])test('selection customer preview and expli
   await expect(page.locator('.tsCardTitle')).toHaveText('Синтетический отель у моря');await expect(page.locator('.tsCardPrice')).toHaveText('240 000 ₽ за 4 человека');
   await expect(page.locator('.tsPhotoSlideshow')).toHaveCount(1);await expect(page.locator('.tsPhotoMosaic')).toHaveCount(0);
   expect(await page.locator('.tsPhotos').evaluate(el=>el.scrollWidth>el.clientWidth*2.8)).toBe(true);
-  await page.locator('.tsPhotos').evaluate(el=>{el.scrollLeft=el.clientWidth});await expect.poll(()=>page.locator('.tsPhotos').evaluate(el=>Math.round(el.scrollLeft/el.clientWidth))).toBe(1);
-  await page.locator('.tsPhotos').evaluate(el=>{el.scrollLeft=0});
+  await expect(page.getByRole('button',{name:'Предыдущее фото'})).toBeDisabled();await expect(page.locator('.tsPhotoPosition')).toHaveText('Фото 1 из 3');
+  await page.getByRole('button',{name:'Следующее фото'}).click();await expect.poll(()=>page.locator('.tsPhotos').evaluate(el=>Math.round(el.scrollLeft/el.clientWidth))).toBe(1);await expect(page.locator('.tsPhotoPosition')).toHaveText('Фото 2 из 3');
+  await page.locator('.tsPhotos').evaluate(el=>{el.scrollLeft=el.clientWidth*2});await expect(page.locator('.tsPhotoPosition')).toHaveText('Фото 3 из 3');await expect(page.getByRole('button',{name:'Следующее фото'})).toBeDisabled();
+  await page.getByRole('button',{name:'Предыдущее фото'}).click();await expect(page.locator('.tsPhotoPosition')).toHaveText('Фото 2 из 3');await page.getByRole('button',{name:'Предыдущее фото'}).click();await expect(page.locator('.tsPhotoPosition')).toHaveText('Фото 1 из 3');
   await expect(page.locator('.tsCardText')).toContainText('240 000 ₽ за 4 человека');await expect(page.locator('.tsCardText')).toContainText('Топливный сбор необходимо проверить');expect(s.creations()).toBe(0);
   await expect(page.locator('#tsSend')).toBeEnabled();expect(await page.evaluate(()=>document.querySelector('#tourSelectionDialog').scrollWidth-document.querySelector('#tourSelectionDialog').clientWidth)).toBeLessThanOrEqual(1);
   await page.setViewportSize({width,height:420});await expect(page.locator('#tsSend')).toBeInViewport();await expect(page.locator('#tsClose')).toBeInViewport();await page.setViewportSize({width,height:900});
