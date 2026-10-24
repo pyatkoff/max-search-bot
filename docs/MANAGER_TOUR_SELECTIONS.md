@@ -340,3 +340,34 @@ live manager import, natural owner-only native use and whole V1 remain separate
 from source/fixture/CI validation. Tourvisor is still unimplemented: its observed
 regenerated `tvtourid` and operator link shared by different rooms do not prove
 stable exact offer identity. Do not use either alone as a deduplication key.
+
+## Third bounded source: Tourvisor card snapshots
+
+`tourvisor-snapshot-v1` uses the same dispatcher, durable extension queue,
+destination confirmation and canonical draft/receipt/ambiguity owners. It reads
+only the open card and visible card menu on `pro.tourvisor.ru/search`; initial
+support is the observed ANEX-operated Moscow/Egypt, two-adult/no-child, RUB, AI,
+exact-date template. No TO request, booking, share, cart or customer action runs.
+The menu's general search URL supplies the explicit date/year, hotel and party
+basis; it is not advertised as an exact provider permalink. A matching operator
+menu/card reference, snapshot handle and 750ms unchanged observation are required.
+
+The snapshot handle survives card reload but may change on another row opening.
+It proves neither a stable underlying quote nor fare identity. The same handle
+and exact terms deduplicate; a new handle with the same conditions is refused
+by canonical ambiguity review, and changed prices retain price-review semantics.
+Different shown rooms/programs/flights remain separate. A changed base/fuel split
+under the same total cannot silently reuse the earlier snapshot. Original terms
+and manual edits keep their independent immutable provenance.
+
+Because the source says “за номер”, the popup requires an explicit manager
+confirmation of one room for the shown two adults before any server import.
+Source content cannot self-confirm; reconnect/restart cannot bypass this state.
+Base plus shown fuel must equal the displayed total; fuel is never added twice.
+This manager acknowledgement does not mark a full fare verified. Visible flight
+text is retained as an observation, with its selected/current status unverified.
+The source amount/basis/time remain visible separately from manager price.
+The existing publication, native envelope/sender, auth, ACL and session contracts
+are unchanged. Version0.3.0 adds only this search host to extension permissions.
+Physical Chrome/Yandex permission/install/live import, the mixed-source full path,
+natural owner acceptance and A1–A8 remain separate from fixtures/CI/publication.
