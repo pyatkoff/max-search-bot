@@ -189,7 +189,7 @@ final class ManagerTourSelectionService
         $suffix=$lock && $pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?' FOR UPDATE':'';
         $q=$pdo->prepare('SELECT version,draft_json,updated_by_manager_id,updated_at FROM manager_tour_selection_drafts WHERE conversation_id=?'.$suffix);
         $q->execute([$id]); $row=$q->fetch(PDO::FETCH_ASSOC);
-        $draft=$row?ManagerTourSelectionDraft::normalize(json_decode((string)$row['draft_json'],true,32,JSON_THROW_ON_ERROR)):ManagerTourSelectionDraft::empty();
+        $draft=$row?ManagerTourSelectionDraft::restoreStored(json_decode((string)$row['draft_json'],true,32,JSON_THROW_ON_ERROR)):ManagerTourSelectionDraft::empty();
         if ($draft===null) throw new RuntimeException('Invalid stored selection draft');
         return ['conversation_id'=>$id,'version'=>$row?(int)$row['version']:0,'draft'=>$draft,'can_edit'=>$context['can_edit'],'updated_at'=>$row['updated_at']??null,'updated_by_manager_id'=>$row?(int)$row['updated_by_manager_id']:null];
     }
