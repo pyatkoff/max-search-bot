@@ -632,10 +632,10 @@ for(const width of [390,430,768,1440])test(`Tourvisor source amount stays separa
 
 
 for(const width of [390,430,768,1440])test('FUN&SUN ordinary AJAX result adds with compact checkmark without copying a link at '+width,async({page,browserName})=>{
- await page.setViewportSize({width,height:900});const s=await sourceFixture(page,{ajax:true});
+ await page.setViewportSize({width,height:900});const s=await sourceFixture(page,{ajax:true});await s.search();
  const extracted=await s.read();expect(extracted.error).toBeUndefined();expect(extracted.value.url).toContain('PROGRAMINC=0');expect(page.url()).toBe('https://b2b.fstravel.com/search_tour');
  const normalized=JSON.parse(execFileSync('php',['-r',`require 'services/ManagerTourSelectionImportDraft.php';echo json_encode(ManagerTourSelectionImportDraft::normalize(json_decode(stream_get_contents(STDIN),true)),JSON_THROW_ON_ERROR);`],{cwd:root,input:JSON.stringify(extracted.value),encoding:'utf8'}));expect(normalized.offer.amount).toBe('237017');expect(normalized.keys.program).toBe('114');
- await collectorSourceRuntime(page);await page.addScriptTag({path:path.join(root,'extensions/selection-collector/content.js')});
+ await collectorSourceRuntime(page);await page.addScriptTag({path:path.join(root,'extensions/selection-collector/content.js')});await s.search();
  const add=page.getByRole('button',{name:'В подборку AnyTour',exact:true}),edit=page.getByRole('button',{name:'✎ Изменить цену',exact:true});
  const rect=await add.boundingBox(),pencil=await edit.boundingBox();expect(rect.width).toBe(32);expect(rect.height).toBe(32);expect(pencil.y).toBe(rect.y);expect(pencil.width).toBe(32);expect(pencil.x-rect.x).toBe(36);
  expect(await add.evaluate(e=>getComputedStyle(e,'::before').content)).toContain('✓');expect(await edit.evaluate(e=>getComputedStyle(e,'::before').content)).toContain('✎');expect(await add.evaluate(e=>getComputedStyle(e,'::after').content)).toBe('none');
@@ -643,16 +643,27 @@ for(const width of [390,430,768,1440])test('FUN&SUN ordinary AJAX result adds wi
  fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-compact-ajax-${browserName}-${width}.png`)});
 });
 
-test('FUN&SUN submitted link refuses loading stale duplicate foreign and changed child conditions',async({page})=>{
- const s=await sourceFixture(page,{ajax:true});const link=page.locator('#samo-link-to-page a'),original=await link.getAttribute('href');
+test('FUN&SUN search generation refuses loading old rows changed forms and child ages',async({page})=>{
+ const s=await sourceFixture(page,{ajax:true});await s.search();expect((await s.read()).value).toBeDefined();
  await page.locator('button.load').evaluate(e=>e.disabled=true);expect((await s.read()).error).toContain('окончания поиска');await page.locator('button.load').evaluate(e=>e.disabled=false);
  await page.locator('[name=CHECKIN_BEG]').fill('04.06.2027');expect((await s.read()).error).toContain('Нажмите «Искать»');await page.locator('[name=CHECKIN_BEG]').fill('05.06.2027');
- for(const href of ['https://evil.example/search_tour?'+new URL(original).searchParams,original+'&ADULT=2','https://user@b2b.fstravel.com/search_tour?'+new URL(original).searchParams,original+'#other','https://b2b.fstravel.com/other?'+new URL(original).searchParams]){await link.evaluate((e,href)=>e.setAttribute('href',href),href);expect((await s.read()).value).toBeUndefined()}
- await link.evaluate((e,href)=>e.setAttribute('href',href),original);await page.evaluate(()=>{const link=document.querySelector('#samo-link-to-page a');link.after(link.cloneNode(true))});expect((await s.read()).value).toBeUndefined();await link.last().evaluate(e=>e.remove());
- await page.evaluate(()=>{document.querySelector('[name=CHILD] option').value='1';const e=document.querySelector('tr.price_info');e.classList.replace('child-0','child-1');const a=document.querySelector('#samo-link-to-page a'),u=new URL(a.href);u.searchParams.set('CHILD','1');u.searchParams.set('AGE1','4');a.href=u.href});
- expect((await s.read()).value.offer.child_ages).toEqual([4]);await page.evaluate(()=>document.querySelector('[name=AGE1] option').value='5');expect((await s.read()).error).toContain('Возраст ребёнка');
+ // The mutable page link is neither evidence nor a navigation target.
+ await page.locator('#samo-link-to-page a').evaluate(e=>e.href='https://evil.example/search_tour?ADULT=2');expect((await s.read()).value).toBeDefined();
+ await page.evaluate(()=>window.fixtureHoldSearch=true);await page.getByRole('button',{name:'Искать',exact:true}).click();expect((await s.read()).error).toContain('новых результатов');
+ await page.evaluate(()=>{const row=document.querySelector('tr.price_info'),parent=row.parentElement;row.remove();parent.append(row)});expect((await s.read()).error).toContain('новых результатов');
+ await page.evaluate(()=>{window.fixtureHoldSearch=false;document.querySelector('[name=CHILD] option').value='1';document.querySelector('tr.price_info').classList.replace('child-0','child-1')});await s.search();expect((await s.read()).value.offer.child_ages).toEqual([4]);
+ await page.evaluate(()=>document.querySelector('[name=AGE1] option').value='5');expect((await s.read()).error).toContain('Возраст ребёнка');
+ await s.search();expect((await s.read()).value.offer.child_ages).toEqual([5]);
 });
 
-test('FUN&SUN stale submitted link cannot fall back to a matching old address',async({page})=>{
- const s=await sourceFixture(page);await page.evaluate(()=>{const box=document.createElement('div');box.id='samo-link-to-page';const a=document.createElement('a'),url=new URL(location.href);url.searchParams.set('ADULT','3');a.href=url.href;box.append(a);document.body.append(box)});expect((await s.read()).error).toContain('Нажмите «Искать»');
+test('FUN&SUN changed price during settled capture never enqueues',async({page})=>{
+ const s=await sourceFixture(page,{ajax:true});await collectorSourceRuntime(page);await page.addScriptTag({path:path.join(root,'extensions/selection-collector/content.js')});await s.search();
+ await page.getByRole('button',{name:'В подборку AnyTour',exact:true}).click({noWaitAfter:true});await page.locator('.price').evaluate(e=>{e.textContent='240000 RUB';e.dataset.convertedPriceNumber='240000'});await expect(page.getByRole('button',{name:'Не добавлено',exact:true})).toBeVisible();expect(await page.evaluate(()=>collectorStaged.length)).toBe(0);
+});
+
+test('collector popup requests a readable width before native viewport autosizing',async({page,browserName})=>{
+ await page.setViewportSize({width:40,height:600});const s=await pricePopupFixture(page);await expect(page.locator('#target')).toContainText('Синтетическая Анна');
+ const geometry=await page.evaluate(()=>({root:document.documentElement.getBoundingClientRect().width,body:document.body.getBoundingClientRect().width,min:getComputedStyle(document.documentElement).minWidth}));expect(geometry.root).toBe(370);expect(geometry.body).toBe(370);expect(geometry.min).toBe('370px');
+ await page.setViewportSize({width:390,height:600});await expect(page.getByRole('button',{name:'Открыть Manager2',exact:true})).toBeInViewport();await page.getByLabel('Итоговая цена, RUB',{exact:true}).scrollIntoViewIfNeeded();await expect(page.getByLabel('Итоговая цена, RUB',{exact:true})).toBeInViewport();await page.evaluate(()=>scrollTo(0,0));expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);expect(s.commands.every(x=>x.type==='status')).toBe(true);
+ fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-popup-width-${browserName}.png`)});
 });

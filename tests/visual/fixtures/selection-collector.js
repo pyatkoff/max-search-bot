@@ -16,7 +16,8 @@ async function sourceFixture(page,options={}){
  }
  const calls=[];await page.route('**/*',route=>route.request().url()===url?route.fulfill({contentType:'text/html',body:html}):route.abort());
  await page.goto(url);await page.addStyleTag({path:path.join(root,'extensions/selection-collector/content.css')});await page.addScriptTag({path:path.join(root,'extensions/selection-collector/funsun.js')});
- return {calls,read:()=>page.evaluate(()=>{try{return {value:AnyTourFunsun.extract(document,document.querySelector('tr.price_info'),location.href,'2026-10-23T11:00:00Z')}}catch(e){return {error:e.message}}})};
+ if(options.ajax)await page.evaluate(()=>{window.fixtureFunsunObserver=AnyTourFunsun.observe(document);document.querySelector('button.load').addEventListener('click',e=>{if(window.fixtureHoldSearch)return;const old=document.querySelector('tr.price_info'),row=old.cloneNode(true);row.querySelectorAll('[data-anytour-actions],[data-anytour-note]').forEach(el=>el.remove());old.remove();e.target.disabled=true;setTimeout(()=>{document.querySelector('tbody').append(row);e.target.disabled=false},50)})});
+ return {calls,search:async()=>{await page.getByRole('button',{name:'Искать',exact:true}).click();await page.locator('tr.price_info').waitFor({state:'visible'})},read:()=>page.evaluate(()=>{try{return {value:window.fixtureFunsunObserver?fixtureFunsunObserver.extract(document.querySelector('tr.price_info'),location.href,'2026-10-23T11:00:00Z'):AnyTourFunsun.extract(document,document.querySelector('tr.price_info'),location.href,'2026-10-23T11:00:00Z')}}catch(e){return {error:e.message}}})};
 }
 async function bridgeFixture(page){
  const calls=[],events=[],errors=[];let connected=false;

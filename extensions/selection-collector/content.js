@@ -1,12 +1,12 @@
 (function(){
-'use strict';let scheduled=false;
+'use strict';let scheduled=false;const source=AnyTourFunsun.observe(document);
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 async function refreshTarget(){/* Client identity stays in extension-owned UI, never in TO page DOM. */}
 async function collect(row,button,editing=false){
  if(button.disabled)return;button.disabled=true;AnyTourCollectorClient.label(button,'Проверяем условия…');
  try{const ticket=await AnyTourCollectorClient.begin(button,editing);if(!ticket)return;
  if(!row.isConnected||!row.getClientRects().length)throw new Error('Строка больше не отображается.');
- const before=AnyTourFunsun.extract(document,row,location.href);await delay(750);const after=AnyTourFunsun.extract(document,row,location.href);
+ const before=source.extract(row,location.href);await delay(750);const after=source.extract(row,location.href);
  before.observed_at=after.observed_at;if(!row.isConnected||!row.getClientRects().length||JSON.stringify(before)!==JSON.stringify(after))throw new Error('Условия ещё меняются. Дождитесь окончания поиска.');
  await AnyTourCollectorClient.append(button,ticket,after,editing);
  }catch(e){AnyTourCollectorClient.label(button,'Не добавлено');button.title=e.message;const note=row.querySelector('[data-anytour-note]')||document.createElement('div');note.dataset.anytourNote='1';note.setAttribute('role','status');note.textContent=e.message;button.parentElement.append(note)}
