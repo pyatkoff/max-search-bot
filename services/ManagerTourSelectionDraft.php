@@ -13,20 +13,31 @@ final class ManagerTourSelectionDraft
 
     public static function normalize($input): ?array
     {
+        return self::normalizeInput($input,false);
+    }
+
+    /** Preserve pre-existing drafts for authorized correction, never new writes. */
+    public static function restoreStored($input): ?array
+    {
+        return self::normalizeInput($input,true);
+    }
+
+    private static function normalizeInput($input,bool $stored): ?array
+    {
         if (!is_array($input) || array_diff(array_keys($input), ['title','intro','offers'])) return null;
         $title=self::text($input['title']??'',120); $intro=self::text($input['intro']??'',1200,true);
         $offers=$input['offers']??null;
         if ($title===null || $intro===null || !is_array($offers) || !array_is_list($offers) || count($offers)>self::MAX_OFFERS) return null;
         $result=['title'=>$title,'intro'=>$intro,'offers'=>[]]; $ids=[];
         foreach ($offers as $offer) {
-            $item=self::offer($offer);
+            $item=self::offer($offer,$stored);
             if ($item===null || isset($ids[$item['id']])) return null;
             $ids[$item['id']]=true; $result['offers'][]=$item;
         }
         return $result;
     }
 
-    private static function offer($input): ?array
+    private static function offer($input,bool $stored): ?array
     {
         if (!is_array($input) || !is_string($input['id']??null) || !preg_match('/\A[a-f0-9]{32}\z/D',$input['id']) || !is_bool($input['selected']??null)) return null;
         $out=['id'=>$input['id'],'selected'=>$input['selected']];
@@ -58,7 +69,7 @@ final class ManagerTourSelectionDraft
         if (!is_string($amount) || ($amount!=='' && (!preg_match('/\A(?:0|[1-9][0-9]{0,8})(?:\.[0-9]{1,2})?\z/D',$amount) || (float)$amount<=0))) return null;
         if (!in_array($input['currency']??'RUB',['RUB','EUR','USD'],true)) return null;
         $out['amount']=$amount; $out['currency']=$input['currency']??'RUB';
-        $out['source_url']=self::url($input['source_url']??'');
+        $out['source_url']=self::url($input['source_url']??'',$stored);
         if ($out['source_url']===null) return null;
         $observed=$input['observed_at']??'';
         if (!is_string($observed) || ($observed!=='' && (!preg_match('/\A[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z\z/D',$observed) || gmdate('Y-m-d\TH:i:s\Z',strtotime($observed))!==$observed))) return null;
@@ -68,7 +79,7 @@ final class ManagerTourSelectionDraft
         $out['photos']=[];
         foreach ($photos as $photo) {
             if (!is_array($photo) || array_diff(array_keys($photo),['url','kind','illustrative'])) return null;
-            $url=self::url($photo['url']??null);
+            $url=self::url($photo['url']??null,$stored);
             if ($url===null || $url==='' || !in_array($photo['kind']??null,['cover','beach','room'],true) || !is_bool($photo['illustrative']??null)) return null;
             $out['photos'][]=['url'=>$url,'kind'=>$photo['kind'],'illustrative'=>$photo['illustrative']];
         }
@@ -96,7 +107,7 @@ final class ManagerTourSelectionDraft
         return $value;
     }
 
-    private static function url($value): ?string
+    private static function url($value,bool $stored): ?string
     {
         if ($value==='') return '';
         if (!is_string($value) || strlen($value)>2048 || preg_match('/[\x00-\x20\x7f]/',$value)) return null;
@@ -104,7 +115,12 @@ final class ManagerTourSelectionDraft
         if (!$p || ($p['scheme']??'')!=='https' || empty($p['host']) || isset($p['user']) || isset($p['pass']) || isset($p['fragment'])) return null;
         $host=strtolower($p['host']);
         if (!str_contains($host,'.') || filter_var($host,FILTER_VALIDATE_IP) || !preg_match('/\A[a-z0-9.-]+\z/D',$host) || str_ends_with($host,'.local') || str_ends_with($host,'.localhost')) return null;
-        if (isset($p['query']) && preg_match('/(?:\A|&)(?:[^=&]*(?:token|password|secret|api[_-]?key|authorization|session|jwt)[^=&]*)=/i',$p['query'])) return null;
+        // Match parsed parameter names, not their URL-encoded spelling. Values
+        // and the retained URL stay untouched (a harmless value may say token).
+        foreach (explode('&',$p['query']??'') as $parameter) {
+            $name=strstr($parameter,'=',true);
+            if ($name!==false && preg_match('/(?:token|password|secret|api[_-]?key|authorization|session|jwt)/i',$stored?$name:urldecode($name))) return null;
+        }
         return $value;
     }
 }

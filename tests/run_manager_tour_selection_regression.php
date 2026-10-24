@@ -58,6 +58,38 @@ foreach ([['adults'=>0],['nights'=>61],['amount'=>'-10'],['amount'=>'1e6'],['amo
     $invalid=$draft;$invalid['offers'][0]=array_replace($offer,$bad);
     tsCheck('invalid offer rejected '.implode(',',array_keys($bad)),ManagerTourSelectionDraft::normalize($invalid)===null);
 }
+// Query names are URL-encoded by normal browsers; credentials must not bypass
+// the same source/photo policy merely because one name byte is escaped.
+$urlState=ManagerTourSelectionService::get(8,1)['selection'];
+$urlReceipts=(int)$pdo->query('SELECT COUNT(*) FROM manager_tour_selection_operations')->fetchColumn();
+foreach (['access%5F%74oken','%50ASSWORD','client%5fsecret','api%2Dkey','%61uthorization','s%65ssion','%6awt'] as $key) {
+    foreach (['source_url','photos'] as $field) {
+        $invalid=$draft;$url='https://example.invalid/tour?'.$key.'=synthetic-only';
+        $invalid['offers'][0][$field]=$field==='source_url'?$url:[['url'=>$url,'kind'=>'cover','illustrative'=>false]];
+        tsCheck('encoded sensitive query name rejected for '.$field,ManagerTourSelectionDraft::normalize($invalid)===null&&tsSave($invalid,2)['error']==='invalid_draft');
+    }
+}
+tsCheck('rejected credential URLs preserve draft revision receipts and transcript',ManagerTourSelectionService::get(8,1)['selection']===$urlState&&(int)$pdo->query('SELECT COUNT(*) FROM manager_tour_selection_operations')->fetchColumn()===$urlReceipts&&tsState()===$before);
+$safeUrl='https://example.invalid/tour?tour%49d=77&note=access_token&query=a%26b%3Dc&flag';
+$safe=$draft;$safe['offers'][0]['source_url']=$safeUrl;$safe['offers'][0]['photos']=[['url'=>$safeUrl,'kind'=>'cover','illustrative'=>false]];
+$safeNormalized=ManagerTourSelectionDraft::normalize($safe);
+tsCheck('safe encoded names values separators and bare flags retain exact URL bytes',$safeNormalized!==null&&$safeNormalized['offers'][0]['source_url']===$safeUrl&&$safeNormalized['offers'][0]['photos'][0]['url']===$safeUrl);
+$storedJson=$pdo->query('SELECT draft_json FROM manager_tour_selection_drafts WHERE conversation_id=1')->fetchColumn();
+$legacy=$urlState['draft'];$legacy['offers'][0]['source_url']='https://example.invalid/tour?access%5F%74oken=synthetic-only';
+$legacy['offers'][0]['photos']=[['url'=>'https://example.invalid/image?api%2Dkey=synthetic-only','kind'=>'cover','illustrative'=>false]];
+$legacyJson=json_encode($legacy,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);
+$replaceStored=$pdo->prepare('UPDATE manager_tour_selection_drafts SET draft_json=? WHERE conversation_id=1');
+try {
+    // Simulate bytes saved before this fix, without accepting them as a command.
+    $replaceStored->execute([$legacyJson]);
+    $restored=ManagerTourSelectionService::get(8,1)['selection'];
+    tsCheck('pre-fix stored source and photo URLs remain readable without rewrite',$restored['draft']===$legacy&&$restored['version']===$urlState['version']&&$pdo->query('SELECT draft_json FROM manager_tour_selection_drafts WHERE conversation_id=1')->fetchColumn()===$legacyJson);
+    $oldReceipt=ManagerTourSelectionService::operation(8,1,'selection-create-stable-001');
+    tsCheck('legacy draft keeps original operation receipt recovery',$oldReceipt['found']&&$oldReceipt['saved_version']===1&&$oldReceipt['selection']===$restored);
+    tsCheck('stored compatibility cannot bypass strict save validation',tsSave($restored['draft'],2)['error']==='invalid_draft'&&(int)$pdo->query('SELECT COUNT(*) FROM manager_tour_selection_operations')->fetchColumn()===$urlReceipts&&$pdo->query('SELECT draft_json FROM manager_tour_selection_drafts WHERE conversation_id=1')->fetchColumn()===$legacyJson);
+    $restored['draft']['offers'][0]['source_url']=$safeUrl;$restored['draft']['offers'][0]['photos'][0]['url']=$safeUrl;
+    tsCheck('authorized editor can correct legacy URLs without dropping other offers',ManagerTourSelectionDraft::normalize($restored['draft'])===$restored['draft']);
+} finally {$replaceStored->execute([$storedJson]);}
 $duplicates=$draft;$duplicates['offers'][]=$offer;tsCheck('duplicate offer IDs rejected',ManagerTourSelectionDraft::normalize($duplicates)===null);
 $tooMany=$draft;$tooMany['offers']=array_map(static fn(int $i):array=>array_replace($offer,['id'=>str_pad(dechex($i),32,'0',STR_PAD_LEFT)]),range(1,21));tsCheck('bounded20 offers enforced',ManagerTourSelectionDraft::normalize($tooMany)===null);
 $unsafe=$draft;$unsafe['offers'][0]['hotel']="Unsafe\0hotel";tsCheck('control characters rejected',ManagerTourSelectionDraft::normalize($unsafe)===null);
