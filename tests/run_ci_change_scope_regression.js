@@ -14,6 +14,26 @@ const doc = 'docs/MANAGER_PREPARED_REPLIES.md';
 const tour = 'manager/assets/workspace-v2-tour-selection.js';
 const tourService = 'services/ManagerTourSelectionShareService.php';
 const tourDoc = 'docs/MANAGER_TOUR_SELECTIONS.md';
+const collectorPage = 'manager/tour-selection-collector.php';
+const collectorPrice = 'extensions/selection-collector/price-adjustment.js';
+// Actual PR1108 changed only this component, despite touching more than its
+// original editor allowlist. Keep its complete path shape as a regression.
+const collector1108 = [
+  tourDoc, 'extensions/selection-collector/README.md',
+  'extensions/selection-collector/anex-content.js',
+  'extensions/selection-collector/anytour-selection-collector.zip',
+  'extensions/selection-collector/collector-client.js',
+  'extensions/selection-collector/content.css',
+  'extensions/selection-collector/content.js',
+  'extensions/selection-collector/funsun.js',
+  'extensions/selection-collector/manifest.json',
+  'extensions/selection-collector/popup.css',
+  'extensions/selection-collector/tourvisor-content.js',
+  'services/ManagerTourSelectionImportDraft.php',
+  'tests/support/manager-tour-collector.php',
+  'tests/visual/fixtures/selection-collector.js',
+  'tests/visual/manager-tour-selection.spec.js',
+];
 const browserSpec = 'tests/visual/manager-ai-draft.spec.js';
 const sharedSpec = "const {test}=require('@playwright/test');\ntest('AI baseline',()=>{});\n";
 const fixtureImport = "const {startOAuthFixture}=require('./fixtures/oauth-consent');\n";
@@ -28,6 +48,34 @@ check(classify([{ status: 'M', path: 'tests/visual/manager-ai-draft.spec.js' }])
 for(const file of [tour,tourService,'selection/view.php','selection/selection.css','manager/tour-selections-api.php','tests/visual/manager-tour-selection.spec.js'])check(classify([{status:'M',path:file}]),'tour-selection','existing isolated selection owner: '+file);
 check(classify([{status:'M',path:tour},{status:'M',path:tourDoc}]),'tour-selection','selection with its documentation');
 check(classify([{status:'M',path:tourDoc}]),'full','selection documentation alone does not narrow');
+check(classify([{status:'M',path:collectorPage}]),'tour-selection','PR1104 collector-page copy stays component-scoped');
+check(classify(collector1108.map(path=>({status:'M',path}))),'tour-selection','PR1108 collector package and import-boundary path shape');
+for(const file of ['manager/assets/tour-selection-collector.js','manager/assets/tour-selection-collector.css',
+  'services/ManagerTourSelectionAnexImportDraft.php','services/ManagerTourSelectionTourvisorImportDraft.php',
+  'tests/run_manager_tour_collector_behavior_regression.js','tests/run_manager_tour_collector_regression.php',
+  'tests/mysql/manager-tour-collector.php','extensions/selection-collector/background.js',
+  'extensions/selection-collector/bridge.js','extensions/selection-collector/build_package.py',
+  'extensions/selection-collector/anex.js','extensions/selection-collector/tourvisor.js',
+  'extensions/selection-collector/popup.html','extensions/selection-collector/popup.js',collectorPrice]) {
+  check(classify([{status:'M',path:file}]),'tour-selection','reviewed collector dependency: '+file);
+}
+check(classify([{status:'M',path:'extensions/selection-collector/README.md'}]),'full','collector README alone does not narrow');
+check(classify([{status:'M',path:tourDoc},{status:'M',path:'extensions/selection-collector/README.md'}]),'full','component documentation only stays full');
+check(classify([{status:'A',path:collectorPrice,oldMode:'000000',newMode:'100644'}]),'tour-selection','reviewed price-calculator addition is component-only');
+for(const change of [
+  {status:'A',path:collectorPrice},
+  {status:'A',path:collectorPrice,oldMode:'100644',newMode:'100644'},
+  ...['100755','120000','160000'].map(newMode=>({status:'A',path:collectorPrice,oldMode:'000000',newMode})),
+  {status:'M',path:collectorPage,oldMode:'100644',newMode:'100755'},
+  ...['D','R100','C100','T','U'].map(status=>({status,path:collectorPrice})),
+])check(classify([change]),'full','collector addition/status/mode boundary');
+for(const file of ['extensions/selection-collector/new-adapter.js','extensions/selection-collector/popup.js/extra',
+  './extensions/selection-collector/popup.js','manager/assets/tour-selection-collector.js.bak',
+  'services/ManagerTourSelectionDraft.php','services/ManagerTourSelectionCollectorSession.php',
+  'services/TourSelectionBotEntryService.php','tests/visual/fixtures/internal-notes.js','manager/lib/http.php']) {
+  check(classify([{status:'M',path:collectorPage},{status:'M',path:file}]),'full','collector unknown/shared neighbor stays full: '+file);
+}
+check(classify([{status:'A',path:'extensions/selection-collector/new-adapter.js',oldMode:'000000',newMode:'100644'}]),'full','new unreviewed adapters never inherit component scope');
 for(const file of ['manager/_bootstrap.php','manager/assets/workspace-v2.js','services/ManagerAuthService.php','services/TourOfferCallbackService.php','tests/visual/fixtures/internal-notes.js','tests/visual/manager-media-compose.spec.js','migrations/056_future.sql',oauth,'tools/ci_change_scope.js','.github/workflows/workspace-v2-visual-qa.yml'])check(classify([{status:'M',path:tour},{status:'M',path:file}]),'full','selection mixed/shared change: '+file);
 for(const status of ['A','D','R100','C100','T','U',undefined])check(classify([{status,path:tour}]),'full','selection requires existing regular modification: '+status);
 check(classify([{status:'M',path:tour,oldMode:'100644',newMode:'100755'}]),'full','selection mode changes stay full');
@@ -69,6 +117,8 @@ try {
   git(['config', 'core.filemode', 'true']);
   put(oauth, 'base\n'); put(doc, 'docs\n'); put('manager/_bootstrap.php', 'shared\n');
   put(tour,'base selection\n');put(tourService,'<?php // base\n');put(tourDoc,'selection docs\n');
+  put(collectorPage,'collector page base\n');
+  for(const file of collector1108)put(file,'collector dependency base\n');
   put(browserSpec, sharedSpec);
   git(['add', '.']); git(['commit', '-qm', 'base']);
   const base = git(['rev-parse', 'HEAD']);
@@ -92,6 +142,17 @@ try {
     check(lastProof,proof,'additional component proof only for its CI-rule edits');
   }
   commitCase('selection UI change',()=>put(tour,'changed selection\n'),'tour-selection');
+  commitCase('PR1104 isolated collector copy',()=>put(collectorPage,'collector title changed\n'),'tour-selection');
+  commitCase('PR1108 complete collector diff',()=>{for(const file of collector1108)put(file,'changed collector dependency\n');},'tour-selection');
+  commitCase('reviewed collector calculator addition',()=>put(collectorPrice,'module.exports = {};\n'),'tour-selection');
+  commitCase('unreviewed new adapter addition',()=>put('extensions/selection-collector/new-adapter.js','unknown\n'),'full');
+  commitCase('collector with shared bootstrap',()=>{put(collectorPage,'changed\n');put('manager/_bootstrap.php','shared changed\n');},'full');
+  commitCase('collector rename',()=>fs.renameSync(path.join(temp,collectorPage),path.join(temp,'manager/renamed-collector.php')),'full');
+  commitCase('collector deletion',()=>fs.unlinkSync(path.join(temp,collectorPage)),'full');
+  commitCase('collector symlink addition',()=>fs.symlinkSync('popup.js',path.join(temp,collectorPrice)),'full');
+  commitCase('collector executable addition',()=>{put(collectorPrice,'module.exports = {};\n');fs.chmodSync(path.join(temp,collectorPrice),0o755);},'full');
+  commitCase('collector mode change',()=>fs.chmodSync(path.join(temp,collectorPage),0o755),'full');
+  commitCase('collector documentation only',()=>put('extensions/selection-collector/README.md','collector docs changed\n'),'full');
   commitCase('selection private/public server owner',()=>put(tourService,'<?php // changed\n'),'tour-selection');
   commitCase('selection with docs',()=>{put(tour,'changed\n');put(tourDoc,'updated\n');},'tour-selection');
   commitCase('selection plus shared bootstrap',()=>{put(tour,'changed\n');put('manager/_bootstrap.php','shared changed\n');},'full');

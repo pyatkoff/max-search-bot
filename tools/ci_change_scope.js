@@ -14,9 +14,44 @@ const OAUTH_PATHS = new Set([
 ]);
 const FIXTURE = 'tests/visual/fixtures/oauth-consent.js';
 const DOCUMENT = 'docs/MANAGER_PREPARED_REPLIES.md';
-// Existing component owners only. Shared auth, shell, callbacks, fixtures,
-// migrations and CI files deliberately cannot select this browser scope.
+// Explicit collector owners. These files are consumed by the selection page,
+// its MV3 package and dedicated regressions, not by other workspace UI specs.
+// Unknown adapters/helpers still require review; this is never a prefix match.
+const TOUR_COLLECTOR_PATHS = new Set([
+  'manager/tour-selection-collector.php',
+  'manager/assets/tour-selection-collector.js',
+  'manager/assets/tour-selection-collector.css',
+  'services/ManagerTourSelectionImportDraft.php',
+  'services/ManagerTourSelectionAnexImportDraft.php',
+  'services/ManagerTourSelectionTourvisorImportDraft.php',
+  'tests/run_manager_tour_collector_regression.php',
+  'tests/run_manager_tour_collector_behavior_regression.js',
+  'tests/support/manager-tour-collector.php',
+  'tests/mysql/manager-tour-collector.php',
+  'tests/visual/fixtures/selection-collector.js',
+  'extensions/selection-collector/README.md',
+  'extensions/selection-collector/manifest.json',
+  'extensions/selection-collector/background.js',
+  'extensions/selection-collector/bridge.js',
+  'extensions/selection-collector/collector-client.js',
+  'extensions/selection-collector/funsun.js',
+  'extensions/selection-collector/content.js',
+  'extensions/selection-collector/anex.js',
+  'extensions/selection-collector/anex-content.js',
+  'extensions/selection-collector/tourvisor.js',
+  'extensions/selection-collector/tourvisor-content.js',
+  'extensions/selection-collector/content.css',
+  'extensions/selection-collector/popup.html',
+  'extensions/selection-collector/popup.js',
+  'extensions/selection-collector/popup.css',
+  'extensions/selection-collector/price-adjustment.js',
+  'extensions/selection-collector/build_package.py',
+  'extensions/selection-collector/anytour-selection-collector.zip',
+]);
+// Shared auth, shell, bot callbacks/fixtures, migrations and CI files cannot
+// select this scope. In particular the shared TourChoice draft stays excluded.
 const TOUR_SELECTION_PATHS = new Set([
+  ...TOUR_COLLECTOR_PATHS,
   'manager/assets/workspace-v2-tour-selection.js',
   'manager/assets/workspace-v2-tour-selection.css',
   'manager/tour-selections-api.php',
@@ -34,7 +69,7 @@ const TOUR_SELECTION_PATHS = new Set([
   'tests/visual/manager-tour-selection.spec.js',
   'docs/MANAGER_TOUR_SELECTIONS.md',
 ]);
-const TOUR_DOCUMENT = 'docs/MANAGER_TOUR_SELECTIONS.md';
+const TOUR_DOCUMENTS = new Set(['docs/MANAGER_TOUR_SELECTIONS.md', 'extensions/selection-collector/README.md']);
 const TOUR_CI_PROOF_PATHS = new Set([
   'tools/ci_change_scope.js', 'tools/verify_tour_selection_browser_report.js',
   '.github/workflows/ci-change-scope.yml', '.github/workflows/workspace-v2-visual-qa.yml',
@@ -51,8 +86,14 @@ function classifyChanges(changes) {
   for (const change of changes) {
     if (!change || !paths.has(change.path)) return full('outside_reviewed_allowlist');
     if (change.previousPath !== undefined) return full('rename_or_copy');
-    if (change.status !== 'M' && !(change.status === 'A' && !tour && change.path === FIXTURE)) {
+    const collectorAddition = tour && change.status === 'A' && TOUR_COLLECTOR_PATHS.has(change.path);
+    if (change.status !== 'M' && !collectorAddition && !(change.status === 'A' && !tour && change.path === FIXTURE)) {
       return full('unsupported_change_status');
+    }
+    // Only these exact reviewed collector paths may be introduced, with real
+    // Git addition modes. Do not grant a generic component/new-file exception.
+    if (collectorAddition && (change.oldMode !== '000000' || change.newMode !== '100644')) {
+      return full('unreviewed_component_addition_mode');
     }
     const hasModes = change.oldMode !== undefined || change.newMode !== undefined;
     if (hasModes) {
@@ -60,7 +101,7 @@ function classifyChanges(changes) {
       if (change.status === 'M' && change.oldMode !== change.newMode) return full('file_mode_change');
       if (change.status === 'A' && change.oldMode !== '000000') return full('invalid_addition_mode');
     }
-    if (change.path !== (tour ? TOUR_DOCUMENT : DOCUMENT)) hasCode = true;
+    if (!(tour ? TOUR_DOCUMENTS.has(change.path) : change.path === DOCUMENT)) hasCode = true;
   }
   return hasCode ? { mode: tour ? 'tour-selection' : 'oauth', reason: tour ? 'bounded_tour_selection_changes' : 'bounded_oauth_changes' } : full('documentation_only');
 }

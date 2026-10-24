@@ -37,8 +37,8 @@ For non-component changes the existing full path and its screenshot proof remain
 
 ## Tour-selection component
 
-The `tour-selection` scope accepts regular-file **modifications only**, within
-the exact existing owners listed in `TOUR_SELECTION_PATHS`:
+The `tour-selection` scope accepts regular-file modifications within the exact
+owners listed in `TOUR_SELECTION_PATHS`:
 
 - the selection JS/CSS and `manager/tour-selections-api.php` /
   `manager/tour-selection-photo.php`;
@@ -49,23 +49,47 @@ the exact existing owners listed in `TOUR_SELECTION_PATHS`:
 - the three dedicated PHP regressions, their private fixture, the single
   `manager-tour-selection.spec.js` and the dedicated selection document.
 
+The audited collector family uses the same component runner:
+
+- `manager/tour-selection-collector.php` and its own bridge JS/CSS;
+- the three dedicated import drafts (`ManagerTourSelectionImportDraft`,
+  `ManagerTourSelectionAnexImportDraft`, `ManagerTourSelectionTourvisorImportDraft`);
+- the exact shipped files in `extensions/selection-collector`, including its
+  manifest, worker, bridge, three adapters, popup/price editor, styles,
+  reproducible Python packager, ZIP and README;
+- the collector PHP/worker regressions, its private PHP/MySQL fixtures and
+  `tests/visual/fixtures/selection-collector.js`.
+
+These are explicit file paths in the selector, not a directory exemption.
+Only these audited collector paths may also be initial regular-file additions,
+with raw Git modes `000000` to `100644`; an unknown new extension/helper file
+still takes full coverage. A collector README or selection-document change on
+its own does not select component coverage. Workflow triggers include the
+extension packager/ZIP/JSON as well as JS/CSS so packaging-only changes cannot
+silently miss their native gate.
+
 These services are called by the selection controllers/component, not the
-shared Inbox/notification/media/auth owners. The private PHP fixture is used by
-the delivery/share regressions. The browser spec has no consumers in another
-spec; its shared `internal-notes` setup is **not** in the allowlist. A change to
-that setup, auth, shell, shared callbacks, another feature, migrations, a new
-file, mode or CI rules takes `full`. A combined OAuth/selection diff is also full.
+shared Inbox/notification/media/auth owners. The private PHP fixtures are used
+by the selection/collector delivery regressions. The browser spec and collector
+browser fixture have no consumers in another spec; the shared `internal-notes`
+setup is **not** in the allowlist. Collector session/CSRF handling and the draft
+owner shared with bot callbacks are also outside this scope. A change to shared
+setup, auth, shell, shared callbacks, another feature, migrations, an unaudited
+new file, mode or CI rules takes `full`. A combined OAuth/selection diff is also full.
 The selector does not infer dependencies from broad directory globs.
 
 Selection keeps **all five required PHP groups, syntax, inventory and native
 prepared/delivery MySQL coverage**. Only browser scope narrows. Chromium and
 WebKit execute the whole selection spec, including editor, exact conditions,
 lost responses/UNKNOWN, readonly access, preview/send, publish/revoke, pending
-photos and the anonymous public page. The initial inventory is29 cases per
-engine, compared with the then-current full752/731 inventories. New component
-cases are listed and all must run too; there is no grep/sample selection.
+photos and the anonymous public page. It also executes every collector case for
+the shipped adapters, one-click import, optional price editor, destination/row
+freshness, popup geometry and uncertain-result recovery. The inventory is
+freshly listed on each run; all current cases must execute without grep or
+sampling. A fixture proof does not replace physical Chrome/Яндекс installation
+and an authorized live source/import acceptance.
 
-`verify_tour_selection_browser_report.js` requires the29 existing mandatory
+`verify_tour_selection_browser_report.js` retains the29 original mandatory
 contracts, exact agreement with the fresh native `--list`, one unretried passing
 result per case and all16 editor/preview/share/public captures per engine at
 390/430/768/1440. It rejects skips, expected failures, missing/duplicate/foreign

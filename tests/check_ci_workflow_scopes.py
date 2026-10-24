@@ -47,6 +47,9 @@ visual_document=load('workspace-v2-visual-qa.yml')
 visual_events=visual_document.get('on',visual_document.get(True))
 visual_paths=visual_events['pull_request']['paths']
 component_paths=json.loads(subprocess.check_output(['node','-e',"process.stdout.write(JSON.stringify([...require('./tools/ci_change_scope').TOUR_SELECTION_PATHS]))"],cwd=root))
+regression_document=load('regression-tests.yml')
+regression_events=regression_document.get('on',regression_document.get(True))
+check('paths' not in regression_events['pull_request'] and 'paths-ignore' not in regression_events['pull_request'], 'every component change retains required backend regression invocation')
 for component_path in component_paths:
     if not component_path.endswith('.md'):
         check(any(fnmatch.fnmatchcase(component_path,pattern) for pattern in visual_paths),'component path would skip its native gate: '+component_path)
