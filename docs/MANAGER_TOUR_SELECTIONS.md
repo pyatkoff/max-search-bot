@@ -307,3 +307,36 @@ and inconsistent party ages remain explicit manual work. Budget is request
 metadata, never the offer price. Unsupported projects, unavailable catalog/state
 or unbound starts retain the normal blank manual path. Closing/navigating rejects
 late results; no trip store, migration, model or pipeline/auth owner is added.
+
+
+## Second bounded source: agency ANEX rows
+
+`anex-agent-v1` extends the same import dispatcher through
+`ManagerTourSelectionAnexImportDraft`; FUN&SUN grammar is unchanged. The source
+adapter reads only the explicitly clicked rendered search row and current form
+on `agent.anextour.ru/search/tour`, retaining opaque CLAIM, hotel/SPO/tariff and
+raw terms. It supports only the observed Moscow/Turkey, two-adult, no-child,
+RUB, exact-date DBL template. Other conditions fail closed to manual entry.
+The extension source role is fenced to its own adapter/origin; it cannot read
+client identity, borrow FUN&SUN grammar or send an import until the existing
+extension destination confirmation. No new store, session, sender or migration.
+
+A form-control interaction invalidates the current document until the searched
+result is reloaded: readonly date text omits the year, so matching day/month alone
+cannot prove a fresh result. A 750ms unchanged row/form check then excludes
+changing async results; price text must
+be one current row amount. Commission/additional-service amounts are not parsed
+into the offer. Hotel names alone do not establish local match. Full fare,
+mandatory fuel, selected flights, baggage, photos and return flight remain
+unknown. The booking restriction seen in this account is not a search outage;
+import never clicks a provider booking/price action or creates an inquiry.
+The same canonical locks, session/assignment/source/parent fences, intent
+recovery, source provenance, manual price preservation and explicit variant
+review apply to mixed-source drafts and old FUN&SUN imports.
+
+Version0.2.0 adds the exact ANEX search host permission; installation/update
+requires the manager's ordinary browser approval. Real Chrome/Yandex installation,
+live manager import, natural owner-only native use and whole V1 remain separate
+from source/fixture/CI validation. Tourvisor is still unimplemented: its observed
+regenerated `tvtourid` and operator link shared by different rooms do not prove
+stable exact offer identity. Do not use either alone as a deduplication key.

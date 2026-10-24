@@ -8,6 +8,10 @@ final class ManagerTourSelectionImportDraft
     public static function normalize($input): ?array
     {
         if (!is_array($input) || array_diff(array_keys($input),['adapter','url','observed_at','quote_id','keys','offer','raw'])) return null;
+        if (($input['adapter']??null)==='anex-agent-v1') {
+            require_once __DIR__.'/ManagerTourSelectionAnexImportDraft.php';
+            return ManagerTourSelectionAnexImportDraft::normalize($input);
+        }
         if (($input['adapter']??null)!=='funsun-b2b-v1') return null;
         $url=$input['url']??null;
         if (!is_string($url) || strlen($url)>2048) return null;

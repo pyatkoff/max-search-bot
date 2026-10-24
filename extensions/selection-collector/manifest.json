@@ -1,14 +1,59 @@
 {
   "manifest_version": 3,
   "name": "AnyTour — в подборку",
-  "version": "0.1.0",
-  "description": "Добавление отображённых предложений FUN&SUN в выбранную подборку Manager2.",
-  "permissions": ["storage", "alarms"],
-  "host_permissions": ["https://b2b.fstravel.com/search_tour*", "https://app.anytoour.ru/manager/tour-selection-collector.php*"],
-  "background": {"service_worker": "background.js"},
-  "action": {"default_popup": "popup.html", "default_title": "Подборка AnyTour"},
+  "version": "0.2.0",
+  "description": "Добавление отображённых предложений FUN&SUN и ограниченного шаблона ANEX в выбранную подборку Manager2.",
+  "permissions": [
+    "storage",
+    "alarms"
+  ],
+  "host_permissions": [
+    "https://b2b.fstravel.com/search_tour*",
+    "https://agent.anextour.ru/search/tour*",
+    "https://app.anytoour.ru/manager/tour-selection-collector.php*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Подборка AnyTour"
+  },
   "content_scripts": [
-    {"matches": ["https://b2b.fstravel.com/search_tour*"], "js": ["funsun.js", "content.js"], "css": ["content.css"], "run_at": "document_idle"},
-    {"matches": ["https://app.anytoour.ru/manager/tour-selection-collector.php*"], "js": ["bridge.js"], "run_at": "document_idle"}
+    {
+      "matches": [
+        "https://b2b.fstravel.com/search_tour*"
+      ],
+      "js": [
+        "funsun.js",
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://agent.anextour.ru/search/tour*"
+      ],
+      "js": [
+        "anex.js",
+        "anex-content.js"
+      ],
+      "css": [
+        "content.css"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://app.anytoour.ru/manager/tour-selection-collector.php*"
+      ],
+      "js": [
+        "bridge.js"
+      ],
+      "run_at": "document_idle"
+    }
   ]
 }

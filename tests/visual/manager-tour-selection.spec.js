@@ -3,7 +3,7 @@ const fs=require('node:fs'),path=require('node:path');
 const {execFileSync}=require('node:child_process');
 const {setup,root}=require('./fixtures/internal-notes');
 const copy=x=>JSON.parse(JSON.stringify(x));
-const {sourceFixture,bridgeFixture}=require('./fixtures/selection-collector');
+const {sourceFixture,bridgeFixture,anexSourceFixture}=require('./fixtures/selection-collector');
 function searchInquiryProjection(mode){
   return JSON.parse(execFileSync('php',['-r',`
     require getcwd().'/tests/support/search3-tour-handoff.php';
@@ -366,7 +366,7 @@ for(const width of [390,430,768,1440])test('collector connection preserves exact
 for(const width of [390,430,768,1440])test('collector imported source survives manual edits in responsive editor at '+width,async({page,browserName})=>{
  await page.setViewportSize({width,height:900});const imported=JSON.parse(execFileSync('php',['-r',`require 'tests/support/manager-tour-collector.php';$i=ManagerTourSelectionImportDraft::normalize(collectorObservation());$o=$i['offer'];$o['id']=str_repeat('a',32);$o['import_source']=ManagerTourSelectionImportDraft::source($i);echo json_encode(['title'=>'Лето у моря','intro'=>'','offers'=>[$o]],JSON_THROW_ON_ERROR);`],{cwd:root,encoding:'utf8'}));
  const s=await fixture(page,{draft:imported});await page.locator('#replyText').fill('Сохранённый ответ');await page.locator('#replyFile').setInputFiles({name:'collector.txt',mimeType:'text/plain',buffer:Buffer.from('synthetic')});await open(page);
- await page.locator('.tsImportedSource').scrollIntoViewIfNeeded();await expect(page.locator('.tsImportedSource')).toContainText('200000 RUB');await expect(page.locator('.tsImportedSource')).toContainText('не подтверждены');await expect(page.locator('#tsCollector')).toHaveText('Сборщик FUN&SUN');
+ await page.locator('.tsImportedSource').scrollIntoViewIfNeeded();await expect(page.locator('.tsImportedSource')).toContainText('200000 RUB');await expect(page.locator('.tsImportedSource')).toContainText('не подтверждены');await expect(page.locator('#tsCollector')).toHaveText('Сборщик туров');
  await page.locator('#ts-amount').fill('210000');await save(page);expect(s.drafts.get(11).draft.offers[0].import_source.fields.amount).toBe('200000');expect(s.drafts.get(11).draft.offers[0].amount).toBe('210000');
  await page.locator('.tsImportedSource').scrollIntoViewIfNeeded();fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-imported-${browserName}-${width}.png`)});
  await page.setViewportSize({width,height:420});await expect(page.locator('#tsSave')).toBeInViewport();await expect(page.locator('#tsClose')).toBeInViewport();expect(await page.locator('#tourSelectionDialog').evaluate(e=>e.scrollWidth-e.clientWidth)).toBeLessThanOrEqual(1);
@@ -456,4 +456,37 @@ test('selection late trip response cannot append to another client',async({page}
 
 test('selection unbound trip keeps manual editing available without false conditions',async({page})=>{
  const s=await fixture(page);await open(page);await page.locator('#tsTripAdd').click();await expect(page.locator('#tsEditor')).toContainText('Нет подходящих сохранённых условий');await expect(page.locator('#tsTripApply')).toHaveCount(0);await page.locator('#tsTripCancel').click();await page.locator('#tsEmptyAdd').click();await expect(page.locator('#ts-adults')).toHaveValue('');await page.locator('#tsClose').click();clean(s,['trip_context']);
+});
+
+
+test('ANEX actual extractor payload passes canonical PHP source validation and refuses changed forms',async({page})=>{
+ const s=await anexSourceFixture(page),first=await s.read();expect(first.error).toBeUndefined();expect(first.value.quote_id).toBe(s.quote);expect(first.value.offer.room).toBe('Standard Room / DBL');expect(first.value.offer.amount).toBe('177323');expect(first.value.url).not.toContain('CLAIM');
+ const normalized=JSON.parse(execFileSync('php',['-r',`require 'services/ManagerTourSelectionImportDraft.php';echo json_encode(ManagerTourSelectionImportDraft::normalize(json_decode(stream_get_contents(STDIN),true)),JSON_THROW_ON_ERROR);`],{cwd:root,input:JSON.stringify(first.value),encoding:'utf8'}));expect(normalized.offer.source_label).toBe('ANEX · цена со страницы');expect(normalized.offer.photos).toEqual([]);
+ await page.locator('[data-testid=ADULT]').fill('3 взрослых');expect((await s.read()).error).toContain('Условия формы изменились');await page.locator('[data-testid=ADULT]').fill('2 взрослых');
+ await page.locator('[data-testid=CHECKIN_BEG]').fill('26.10');expect((await s.read()).error).toContain('точной даты');await page.locator('[data-testid=CHECKIN_BEG]').fill('25.10');
+ await page.locator('#nativePrice').evaluate(e=>e.textContent='177 323 ₽ 12 413 ₽');expect((await s.read()).error).toContain('одной суммой');await page.locator('#nativePrice').evaluate(e=>e.textContent='177 323 ₽');
+ await page.locator('#info>div').nth(7).locator('button').nth(1).evaluate(e=>e.textContent='2 PAX');expect((await s.read()).error).toContain('размещение');
+ expect(s.calls).toEqual([s.url]);
+});
+for(const width of [390,430,768,1440])test(`ANEX source action stages exact settled row without booking at ${width}`,async({page,browserName})=>{
+ await page.setViewportSize({width,height:900});const s=await anexSourceFixture(page);
+ await page.evaluate(()=>{window.collectorStaged=[];window.nativeCreates=0;document.querySelector('#nativePrice').onclick=()=>nativeCreates++;window.chrome={runtime:{sendMessage:async m=>{collectorStaged.push(m);return{ok:true}}}}});
+ await page.addScriptTag({path:path.join(root,'extensions/selection-collector/anex-content.js')});await page.getByRole('button',{name:'В подборку AnyTour',exact:true}).click();await expect(page.getByRole('button',{name:'Проверьте в AnyTour'})).toBeVisible();
+ expect(await page.evaluate(()=>collectorStaged.length)).toBe(1);expect(await page.evaluate(()=>collectorStaged[0].observation.offer.amount)).toBe('177323');expect(await page.evaluate(()=>nativeCreates)).toBe(0);expect(await page.locator('body').innerText()).not.toContain('Синтетическая Анна');
+ fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-anex-${browserName}-${width}.png`)});
+ await page.getByRole('button',{name:'Проверьте в AnyTour'}).click({noWaitAfter:true});await page.locator('#nativePrice').evaluate(e=>e.textContent='180 000 ₽');await expect(page.getByRole('button',{name:'Не добавлено'})).toBeVisible();expect(await page.evaluate(()=>collectorStaged.length)).toBe(1);expect(await page.evaluate(()=>nativeCreates)).toBe(0);
+ await page.setViewportSize({width,height:420});await expect(page.getByRole('button',{name:'Не добавлено'})).toBeVisible();expect(s.calls).toEqual([s.url]);
+});
+
+for(const width of [390,430,768,1440])test(`ANEX imported terms show their actual source in the existing editor ${width}`,async({page,browserName})=>{
+ await page.setViewportSize({width,height:900});const imported=JSON.parse(execFileSync('php',['-r',`require 'tests/support/manager-tour-collector.php';$i=ManagerTourSelectionImportDraft::normalize(anexCollectorObservation());$o=$i['offer'];$o['id']=str_repeat('a',32);$o['import_source']=ManagerTourSelectionImportDraft::source($i);echo json_encode(['title'=>'Смешанная подборка','intro'=>'','offers'=>[$o]],JSON_THROW_ON_ERROR);`],{cwd:root,encoding:'utf8'}));
+ const s=await fixture(page,{draft:imported});await page.locator('#replyText').fill('Неотправленный ответ');await open(page);await expect(page.locator('.tsImportedSource')).toContainText('Исходные условия ANEX');await expect(page.locator('.tsImportedSource')).toContainText('177323 RUB');await expect(page.locator('#tsCollector')).toHaveText('Сборщик туров');
+ await page.locator('#ts-amount').fill('180000');await save(page);expect(s.drafts.get(11).draft.offers[0].import_source.fields.amount).toBe('177323');
+ await page.locator('.tsImportedSource').scrollIntoViewIfNeeded();fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-anex-editor-${browserName}-${width}.png`)});
+ await page.locator('#tsClose').click();await expect(page.locator('#replyText')).toHaveValue('Неотправленный ответ');clean(s);
+});
+
+test('ANEX form interaction invalidates old result even when displayed day month is unchanged',async({page})=>{
+ await anexSourceFixture(page);await page.evaluate(()=>{window.collectorStaged=[];window.chrome={runtime:{sendMessage:async m=>{collectorStaged.push(m);return{ok:true}}}}});await page.addScriptTag({path:path.join(root,'extensions/selection-collector/anex-content.js')});
+ await page.locator('[data-testid=CHECKIN_BEG]').click();await page.getByRole('button',{name:'В подборку AnyTour',exact:true}).click();await expect(page.getByRole('button',{name:'Не добавлено'})).toBeVisible();await expect(page.locator('[data-anytour-note]')).toContainText('обновите страницу');expect(await page.evaluate(()=>collectorStaged.length)).toBe(0);
 });

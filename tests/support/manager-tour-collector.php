@@ -12,6 +12,40 @@ function collectorObservation(): array
         'raw'=>['hotel'=>'Синтетический отель 5*','date'=>'05.06.2027, сб','nights'=>'7','room'=>'Standard / 2AD','meal'=>'Ultra All Inclusive','price'=>'200 000 RUB','party'=>'2AD','tour'=>'Synthetic tour','flight_alternatives'=>'вылеты: 01:00, 02:00','tariff'=>'Synthetic tariff']];
 }
 
+function anexCollectorObservation(): array
+{
+    return ['adapter'=>'anex-agent-v1','url'=>'https://agent.anextour.ru/search/tour?ADULT=2&CHILD=0&CHECKIN_BEG=20261025&CHECKIN_END=20261025&NIGHTMIN=7&NIGHTMAX=7&CURRENCY=1&STATEINC=3&TOWNFROM=moskva','observed_at'=>'2026-10-24T09:30:00Z','quote_id'=>'0x'.str_repeat('b',268),
+        'keys'=>['hotel'=>'100','country'=>'3','departure'=>'moskva','spo'=>'AYT-12345'],
+        'offer'=>['hotel'=>'Синтетический ANEX','destination'=>'Турция, Белек','departure'=>'Москва','date_from'=>'2026-10-25','nights'=>7,'adults'=>2,'child_ages'=>[],'room'=>'Standard Room / DBL','meal'=>'UAI','amount'=>'177323','currency'=>'RUB','stars'=>5],
+        'raw'=>['hotel'=>'Синтетический ANEX5 *','resort'=>'Белек','date'=>'25 окт. 2026 вс','nights'=>'7','room'=>'Standard Room','placement'=>'DBL','meal'=>'UAI','price'=>'177 323 ₽','party'=>'2 взрослых','tariff'=>'ANEX Light','departure'=>'Москва','country'=>'Турция']];
+}
+
+function anexCollectorScenarios(PDO $pdo,string $session,string $connection): void
+{
+    $observation=anexCollectorObservation();$normalized=ManagerTourSelectionImportDraft::normalize($observation);
+    deliveryCheck('ANEX source-specific row contract retains opaque identity and unknown fare',$normalized!==null&&$normalized['offer']['photos']===[]&&str_contains($normalized['offer']['constraints'],'топливо'));
+    foreach (['price','date','room','placement','meal','party','departure','country','hotel'] as $key) {$bad=$observation;$bad['raw'][$key].=' altered';deliveryCheck('ANEX raw '.$key.' cannot disagree with normalized fields',ManagerTourSelectionImportDraft::normalize($bad)===null);}
+    foreach (['token=secret','%74oken=secret','CLAIM=opaque','ADULT=2','ADULT[]=2'] as $extra) {$bad=$observation;$bad['url'].='&'.$extra;deliveryCheck('ANEX source URL rejects unknown secret or duplicate query',ManagerTourSelectionImportDraft::normalize($bad)===null);}
+    foreach (['CHILD=0'=>'CHILD=1','ADULT=2'=>'ADULT=3','STATEINC=3'=>'STATEINC=4','CHECKIN_BEG=20261025'=>'CHECKIN_BEG=20261026','NIGHTMIN=7'=>'NIGHTMIN=8'] as $from=>$to) {$bad=$observation;$bad['url']=str_replace($from,$to,$bad['url']);deliveryCheck('ANEX unsupported or contradictory form is refused',ManagerTourSelectionImportDraft::normalize($bad)===null);}
+    $bad=$observation;$bad['adapter']='funsun-b2b-v1';deliveryCheck('ANEX cannot borrow FUNSUN source grammar',ManagerTourSelectionImportDraft::normalize($bad)===null);
+    $bad=$observation;$bad['raw']['price']='177 323 ₽ 12 413 ₽';deliveryCheck('ANEX price never absorbs commission or additional-service amounts',ManagerTourSelectionImportDraft::normalize($bad)===null);
+    $base=ManagerTourSelectionService::get(7,1)['selection'];$count=count($base['draft']['offers']);
+    $command=['connection_id'=>$connection,'operation_id'=>'anex-mixed-source-0001','observation'=>$observation];
+    $added=ManagerTourSelectionService::import(7,1,$session,$command);
+    deliveryCheck('ANEX appends through the same canonical mixed-source draft',$added['ok']&&$added['count']===$count+1&&ManagerTourSelectionService::get(7,1)['selection']['draft']['offers'][0]===$base['draft']['offers'][0]);
+    deliveryCheck('ANEX lost response resolves exact receipt without another append',ManagerTourSelectionService::importOperation(7,1,$session,$command)['found']&&ManagerTourSelectionService::import(7,1,$session,$command)['saved_version']===$added['saved_version']&&count(ManagerTourSelectionService::get(7,1)['selection']['draft']['offers'])===$count+1);
+    $state=ManagerTourSelectionService::get(7,1)['selection'];$state['draft']['offers'][$count]['amount']='180000';$state['draft']['offers'][$count]['rationale']='Сохранённая ручная правка';deliverySave($state['draft'],$state['version']);
+    $dup=ManagerTourSelectionService::import(7,1,$session,array_replace($command,['operation_id'=>'anex-mixed-source-0002']));
+    deliveryCheck('ANEX duplicate preserves manual price and original source amount',$dup['state']==='already_added'&&ManagerTourSelectionService::get(7,1)['selection']['draft']['offers'][$count]['amount']==='180000'&&ManagerTourSelectionService::get(7,1)['selection']['draft']['offers'][$count]['import_source']['fields']['amount']==='177323');
+    $price=$observation;$price['quote_id']='0x'.str_repeat('c',268);$price['offer']['amount']='181000';$price['raw']['price']='181 000 ₽';
+    deliveryCheck('ANEX changed opaque quote and price requires explicit review',ManagerTourSelectionService::import(7,1,$session,array_replace($command,['operation_id'=>'anex-mixed-price-0001','observation'=>$price]))['error']==='source_price_changed');
+    $room=$observation;$room['quote_id']='0x'.str_repeat('d',268);$room['raw']['room']='Sea View';$room['offer']['room']='Sea View / DBL';
+    deliveryCheck('ANEX equal amount with different room remains separate',ManagerTourSelectionService::import(7,1,$session,array_replace($command,['operation_id'=>'anex-mixed-room-0001','observation'=>$room]))['count']===$count+2);
+    $tariff=$observation;$tariff['quote_id']='0x'.str_repeat('e',268);$tariff['raw']['tariff']='EARLY BOOKING TURKEY';$tariff['keys']['spo']='AYT-12346';
+    deliveryCheck('ANEX separate tariff of same hotel retains its own choice',ManagerTourSelectionService::import(7,1,$session,array_replace($command,['operation_id'=>'anex-mixed-tariff-0001','observation'=>$tariff]))['count']===$count+3);
+    $foreign=ManagerTourSelectionService::import(7,1,str_repeat('9',64),array_replace($command,['operation_id'=>'anex-foreign-session-0001']));deliveryCheck('ANEX uses the canonical live connection fences',$foreign['error']==='connection_changed');
+}
+
 function collectorSchema(PDO $pdo): void
 {
     if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql') $pdo->exec(file_get_contents(dirname(__DIR__,2).'/migrations/057_manager_tour_selection_collectors.sql'));
@@ -59,6 +93,7 @@ function collectorScenarios(PDO $pdo): void
     deliveryCheck('normal save cannot rewrite original imported observation',deliverySave($forged['draft'],$forged['version'])['error']==='source_changed');
     $local=ManagerTourSelectionService::get(7,1)['selection'];$server=$local['draft'];$server['intro']='Правка другой вкладки';deliverySave($server,$local['version']);
     $local['draft']['intro']='Мой старый экран';deliveryCheck('stale editor cannot replace imports or another editors text',deliverySave($local['draft'],$local['version'])['error']==='conflict');
+    anexCollectorScenarios($pdo,$session,$conn);
     deliveryCheck('another PHP session cannot inherit collector connection',ManagerTourSelectionService::import(7,1,str_repeat('4',64),array_replace($command,['operation_id'=>'collector-session-cross-01']))['error']==='connection_changed');
     deliveryCheck('status rechecks the current session connection before receipt disclosure',ManagerTourSelectionService::importOperation(7,1,str_repeat('4',64),$command)['error']==='connection_changed');
     deliveryCheck('another client cannot inherit collector connection',ManagerTourSelectionService::import(7,2,$session,array_replace($command,['operation_id'=>'collector-client-cross-01']))['error']==='connection_changed');
