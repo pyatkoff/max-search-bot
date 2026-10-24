@@ -12,7 +12,7 @@ async function sourceFixture(page,options={}){
   const submitted=new URL(sourceUrl);submitted.searchParams.set('PROGRAMINC','0');
   html=html.replace('<select name="PROGRAMINC"><option value="114">Промо</option></select>','<select name="PROGRAMINC"><option value="0">----</option></select>');
   html=html.replace('</form>',`<button class="load" type="button">Искать</button></form><div id="samo-link-to-page"><a href="${submitted.href.replaceAll('&','&amp;')}">Ссылка на эту страницу</a></div>`);
-  html=html.replace('<style>',`<style>button{width:100%;height:55px;padding:18px;font:24px serif;border-radius:20px}button::after{content:'HOST'}.td_price{min-width:100px;width:118px}.td_price .price{font-weight:bold;white-space:nowrap}`);
+  html=html.replace('<style>',`<style>button{width:100%;height:55px;padding:18px;font:24px serif;border-radius:20px}[data-anytour-add]::after{content:'HOST'}.td_price{min-width:100px;width:118px}.td_price .price{font-weight:bold;white-space:nowrap}`);
  }
  const calls=[];await page.route('**/*',route=>route.request().url()===url?route.fulfill({contentType:'text/html',body:html}):route.abort());
  await page.goto(url);await page.addStyleTag({path:path.join(root,'extensions/selection-collector/content.css')});await page.addScriptTag({path:path.join(root,'extensions/selection-collector/funsun.js')});
