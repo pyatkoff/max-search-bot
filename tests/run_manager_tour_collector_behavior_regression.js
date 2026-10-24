@@ -11,12 +11,12 @@ const observation=hotel=>({adapter:'funsun-b2b-v1',offer:{hotel,amount:'200000',
 
 // Execute the actual MV3 worker against persistent storage and a synthetic
 // canonical bridge. This verifies queue protocol, not a physical browser install.
-function worker(db,server,{popupSupported=true,now=()=>Date.now()}={}){
+function worker(db,server,{popupSupported=true,now=()=>Date.now(),priceEditorSupported=true}={}){
  let listener,alarm,nonce='',current=db.target?clone(db.target):null;
  const sender=target=>({id:'fixture-extension',url:'https://app.anytoour.ru/manager/tour-selection-collector.php?conversation_id='+target.conversation_id,tab:{id:10,url:'https://app.anytoour.ru/manager/tour-selection-collector.php?conversation_id='+target.conversation_id}});
  const popup={url:'chrome-extension://fixture-extension/popup.html'},to={url:'https://b2b.fstravel.com/search_tour?FILTER=1',tab:{id:20}};
  const send=(message,from=popup)=>new Promise(resolve=>listener(message,from,resolve));
- async function connect(target,selected=true){current=clone(target);const hello=await send({type:'bridge_hello'},sender(target));nonce=hello.nonce;return send({type:'bridge_event',event:{nonce,type:'connected',target,connection:target.connection,selected}},sender(target))}
+ async function connect(target,selected=true){current=clone(target);const hello=await send({type:'bridge_hello'},sender(target));nonce=hello.nonce;return send({type:'bridge_event',event:{nonce,type:'connected',target,connection:target.connection,selected,features:priceEditorSupported?{manager_price:1}:{} }},sender(target))}
  const chrome={runtime:{id:'fixture-extension',onMessage:{addListener(fn){listener=fn}},onStartup:{addListener(){}}},
   storage:{local:{async get(keys){return Object.fromEntries(keys.filter(k=>k in db).map(k=>[k,clone(db[k])]))},async set(value){Object.assign(db,clone(value))}}},
   action:{async setBadgeText(){},...(popupSupported?{async openPopup(){}}:{})},
@@ -33,14 +33,15 @@ function worker(db,server,{popupSupported=true,now=()=>Date.now()}={}){
  return {send,connect,enqueue:input=>send({type:'enqueue',observation:input},to),status:()=>send({type:'status'}),alarm:()=>alarm(),disconnect:()=>send({type:'bridge_event',event:{nonce,type:'disconnected'}},sender(current))};
 }
 function provider(){return {receipts:new Map(),calls:[],creates:0,mode:'',async receive(c){
- this.calls.push(clone(c));const hash=JSON.stringify([c.connection_id,c.observation,c.as_variant]),old=this.receipts.get(c.operation_id);
+ this.calls.push(clone(c));const hash=JSON.stringify([c.connection_id,c.observation,c.as_variant,c.manager_amount??null]),old=this.receipts.get(c.operation_id),ack=Object.hasOwn(c,'manager_amount')&&this.mode!=='legacy_amount'?{manager_amount:c.manager_amount}:{};
  if(old&&old.hash!==hash)return{ok:false,error:'operation_mismatch'};
- if(c.action==='operation'){if(this.mode==='offline'){this.mode='';return{ok:false,error:'network_error'}}if(this.mode==='malformed_status'){this.mode='';return{ok:true}}return{ok:true,found:!!old,count:this.creates,saved_version:old?.version??null}}
+ if(c.action==='operation'){if(this.mode==='offline'){this.mode='';return{ok:false,error:'network_error'}}if(this.mode==='malformed_status'){this.mode='';return{ok:true}}return{ok:true,found:!!old,count:this.creates,saved_version:old?.version??null,...ack}}
  if(this.mode==='price'){this.mode='';return{ok:false,error:'source_price_changed'}}
+ if(this.mode==='manual_conflict'){this.mode='';return{ok:false,error:'manual_price_conflict'}}
  if(!old){this.creates++;this.receipts.set(c.operation_id,{hash,version:this.creates})}
  if(this.mode==='lost'){this.mode='';return{ok:false,error:'network_error'}}
  if(this.mode==='malformed_import'){this.mode='';return{ok:true,state:'added'}}
- return{ok:true,state:'added',count:this.creates,saved_version:this.creates};
+ return{ok:true,state:'added',count:this.creates,saved_version:this.creates,...ack};
 }}}
 async function stage(w,hotel){assert.equal((await w.enqueue(observation(hotel))).ok,true);const s=await w.status();return s.items.at(-1).operation_id}
 async function itemState(w,operation,state){await until(async()=>(await w.status()).items.find(x=>x.operation_id===operation)?.state===state)}
@@ -146,5 +147,45 @@ async function itemState(w,operation,state){await until(async()=>(await w.status
  check('ANEX direct add uses the same canonical queue',directServer.creates===4);
  const tvTicket=await direct.send({type:'begin_add'},tvSender),tvDirect=await direct.send({type:'enqueue',ticket:tvTicket.ticket,observation:tv},tvSender);
  check('click capture cannot bypass unresolved TV price basis',tvDirect.ok&&tvDirect.state==='destination'&&directDb.items.at(-1).observation.raw.party_price_confirmation==='pending'&&directServer.creates===4);
+ const money=require('../extensions/selection-collector/price-adjustment.js');
+ check('price calculator retains cents and locale input without float drift',money.total('195\u00a0432,10')==='195432.10'&&money.adjust('237017','discount','2','percent')==='232276.66'&&money.adjust('237017','markup','2','percent')==='241757.34');
+ check('fixed amount half-cent rounding and rounding to thousands are explicit',money.adjust('237017','discount','12.50','amount')==='237004.50'&&money.adjust('1.25','discount','2','percent')==='1.22'&&money.adjust('200999.99','markup','0','amount','thousand')==='201000');
+ for(const bad of ['0','-1','1e3','1+2','12.345','1000000000','NaN']){let rejected=false;try{money.total(bad)}catch{rejected=true}check('invalid manual amount '+bad+' is not a calculation',rejected)}
+ for(const args of [['200000','discount','100','percent'],['999999999.99','markup','0.01','amount'],['200000','discount','1','percent','unexpected']]){let rejected=false;try{money.adjust(...args)}catch{rejected=true}check('invalid or overflowing adjustment cannot become an amount',rejected)}
+
+ const editDb={},editServer=provider();let editor=worker(editDb,editServer,{popupSupported:false});await editor.connect(makeTarget());
+ const editReceive=editServer.receive.bind(editServer);editServer.receive=async c=>{assert.ok(editDb.items.some(x=>x.operation_id===c.operation_id&&x.state==='queued'&&x.manager_amount===c.manager_amount),'adjusted intent durable before bridge lookup/create');return editReceive(c)};
+ const capture=async(input=observation('Before add'),sender=funsunSender)=>{const t=await editor.send({type:'begin_add'},sender);return editor.send({type:'enqueue_edit',ticket:t.ticket,observation:input,manager_amount:'1'},sender)};
+ check('source cannot open an editor without a captured destination ticket',(await editor.send({type:'enqueue_edit',observation:observation('No ticket')},funsunSender)).ok===false);
+ let editing=await capture();let editId=editing.operation_id;
+ check('pencil durably stages the source without import or source-supplied manual price',editing.ok&&editing.state==='editing'&&editServer.calls.length===0&&!Object.hasOwn(editDb.items[0],'manager_amount')&&editDb.items[0].observation.offer.amount==='200000');
+ const draft={amount:'195432.10',action:'discount',value:'2.5',basis:'percent',round:'none',price_basis:false};
+ check('third party source cannot write the private editor or confirm an import',(await editor.send({type:'edit_draft',operation_id:editId,draft},funsunSender)).ok===false&&(await editor.send({type:'save_edit',operation_id:editId,manager_amount:'195432.10'},funsunSender)).ok===false);
+ await editor.send({type:'edit_draft',operation_id:editId,draft});editor=worker(editDb,editServer,{popupSupported:false});editor.alarm();await sleep(20);
+ check('popup close and worker restart preserve editable input without provider calls',editDb.items[0].edit_draft.amount==='195432.10'&&editDb.items[0].state==='editing'&&editServer.calls.length===0);
+ await editor.send({type:'remove',operation_id:editId});await editor.connect(makeTarget(12,'b'.repeat(32)));editor.alarm();await sleep(20);
+ check('cancelled pre-add edit stays cancelled across destination changes and cannot import',editDb.items[0].state==='cancelled'&&editServer.creates===0&&(await editor.send({type:'add_status',operation_id:editId},funsunSender)).state==='cancelled'&&(await editor.send({type:'save_edit',operation_id:editId,manager_amount:'195432.10'})).ok===false);
+ await editor.connect(makeTarget());editing=await capture();editId=editing.operation_id;await editor.send({type:'edit_draft',operation_id:editId,draft});await editor.connect(makeTarget(12,'b'.repeat(32)));
+ check('client switch blocks editing instead of moving its adjusted price',(await editor.send({type:'save_edit',operation_id:editId,manager_amount:'195432.10'})).ok===false&&editServer.creates===0);
+ await editor.connect(makeTarget(11,'c'.repeat(32)));await editor.send({type:'reconnect',operation_id:editId});const restored=editDb.items.find(x=>x.state==='editing');editId=restored.operation_id;
+ check('reconnect preserves pre-add fields and still needs explicit Save',restored.edit_draft.amount==='195432.10'&&restored.needs_edit_confirmation&&editServer.creates===0);
+ for(const amount of ['',null,0,'0','-1','1e3','12.345','1000000000'])check('worker rejects invalid final amount '+String(amount),(await editor.send({type:'save_edit',operation_id:editId,manager_amount:amount})).ok===false&&editServer.creates===0);
+ editServer.mode='lost';await editor.send({type:'save_edit',operation_id:editId,manager_amount:'195432.10'});await itemState(editor,editId,'waiting');
+ check('adjusted intent is durable before create and sends original and manual amounts separately',editDb.items.find(x=>x.operation_id===editId).manager_amount==='195432.10'&&editServer.calls.filter(x=>x.operation_id===editId).every(x=>x.manager_amount==='195432.10'&&x.observation.offer.amount==='200000')&&editServer.creates===1);
+ check('UNKNOWN adjusted import cannot be edited or resubmitted as another price',(await editor.send({type:'edit_draft',operation_id:editId,draft:{...draft,amount:'180000'}})).ok===false&&(await editor.send({type:'save_edit',operation_id:editId,manager_amount:'180000'})).ok===false);
+ editor=worker(editDb,editServer);editor.alarm();await itemState(editor,editId,'saved');
+ check('lost adjusted reply recovers the same hash and does not append again',editServer.creates===1&&editServer.calls.filter(x=>x.operation_id===editId&&x.action==='import').length===1);
+ let editTV=await capture(tv,tvSender);const tvEditId=editTV.operation_id;
+ check('pencil cannot bypass TV room price basis',(await editor.send({type:'save_edit',operation_id:tvEditId,manager_amount:'150000',confirm_price_basis:false})).ok===false&&editDb.items.at(-1).state==='editing'&&editServer.creates===1);
+ await editor.send({type:'save_edit',operation_id:tvEditId,manager_amount:'150000',confirm_price_basis:true});await itemState(editor,tvEditId,'saved');
+ check('TV adjusted price keeps explicit basis and original source amount',editServer.calls.filter(x=>x.operation_id===tvEditId).every(x=>x.manager_amount==='150000'&&x.observation.offer.amount==='200000'&&x.observation.raw.party_price_confirmation==='one_room_two_adults')&&editServer.creates===2);
+ editServer.mode='manual_conflict';const conflict=await capture();await editor.send({type:'save_edit',operation_id:conflict.operation_id,manager_amount:'190000'});await itemState(editor,conflict.operation_id,'review');
+ check('existing manual-price conflict cannot be converted into a duplicate variant',(await editor.send({type:'variant',operation_id:conflict.operation_id})).ok===false&&editServer.creates===2);
+ const legacyDb={},legacyServer=provider();let legacy=worker(legacyDb,legacyServer,{priceEditorSupported:false});await legacy.connect(makeTarget());let t=await legacy.send({type:'begin_add'},funsunSender),stagedEdit=await legacy.send({type:'enqueue_edit',ticket:t.ticket,observation:observation('Old bridge')},funsunSender);await legacy.send({type:'save_edit',operation_id:stagedEdit.operation_id,manager_amount:'190000'});await itemState(legacy,stagedEdit.operation_id,'waiting');
+ check('already open old bridge cannot silently discard an adjusted amount',legacyServer.calls.length===0&&legacyDb.items[0].error==='bridge_update_required');
+ legacy=worker(legacyDb,legacyServer);legacy.alarm();await itemState(legacy,stagedEdit.operation_id,'saved');check('updated bridge resumes the same adjusted intent without retargeting',legacyServer.creates===1&&legacyServer.calls.every(c=>c.operation_id===stagedEdit.operation_id&&c.manager_amount==='190000'));
+ legacyServer.mode='legacy_amount';t=await legacy.send({type:'begin_add'},funsunSender);stagedEdit=await legacy.send({type:'enqueue_edit',ticket:t.ticket,observation:observation('Old backend')},funsunSender);await legacy.send({type:'save_edit',operation_id:stagedEdit.operation_id,manager_amount:'180000'});await itemState(legacy,stagedEdit.operation_id,'waiting');
+ check('canonical lookup must acknowledge the final amount before any append',legacyServer.calls.filter(c=>c.operation_id===stagedEdit.operation_id).every(c=>c.action==='operation')&&legacyServer.creates===1);
+ legacyServer.mode='';legacy.alarm();await itemState(legacy,stagedEdit.operation_id,'saved');check('canonical amount acknowledgement permits exact recovery once',legacyServer.creates===2&&legacyServer.calls.filter(c=>c.operation_id===stagedEdit.operation_id&&c.action==='import').length===1);
  console.log('COLLECTOR WORKER TOTAL '+checks+' PASS');
 })().catch(error=>{console.error(error);process.exitCode=1});

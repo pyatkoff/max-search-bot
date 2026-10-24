@@ -5,7 +5,7 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parent
 FILES = ("manifest.json", "background.js", "bridge.js", "collector-client.js", "funsun.js", "content.js", "anex.js", "anex-content.js", "tourvisor.js", "tourvisor-content.js",
-         "content.css", "popup.html", "popup.js", "popup.css", "README.md")
+         "content.css", "popup.html", "price-adjustment.js", "popup.js", "popup.css", "README.md")
 TARGET = ROOT / "anytour-selection-collector.zip"
 
 if sys.argv[1:] == ["--check"]:

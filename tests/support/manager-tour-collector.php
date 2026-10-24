@@ -87,6 +87,40 @@ function tourvisorCollectorScenarios(PDO $pdo,string $session,string $connection
     deliveryCheck('TV retains canonical session fence',ManagerTourSelectionService::import(7,1,str_repeat('9',64),array_replace($command,['operation_id'=>'tv-foreign-session-0001']))['error']==='connection_changed');
 }
 
+function collectorPriceEditScenarios(PDO $pdo,string $session,string $connection): void
+{
+    $observations=[collectorObservation(),anexCollectorObservation(),tourvisorCollectorObservation()];
+    foreach ($observations as $index=>$observation) {
+        $observation['quote_id']=$index===2?'tv-snapshot-1234567899':'0x'.str_repeat('f',$index===0?64:268);
+        if ($index===1) {$observation['raw']['room']='Price edit room';$observation['offer']['room']='Price edit room / DBL';}
+        else $observation['offer']['room']=$observation['raw']['room']='Price edit room / 2AD';
+        if ($index===0) $observation['keys']['room']='29';
+        $before=ManagerTourSelectionService::get(7,1)['selection'];
+        $command=['operation_id'=>'collector-price-editor-'.$index,'connection_id'=>$connection,'observation'=>$observation,'manager_amount'=>'195432.10'];
+        $source=ManagerTourSelectionImportDraft::source(ManagerTourSelectionImportDraft::normalize($observation));
+        $missing=ManagerTourSelectionService::importOperation(7,1,$session,$command);
+        deliveryCheck('adjusted command preflight '.$index.' acknowledges the exact amount without an append',$missing['ok']&&!$missing['found']&&$missing['manager_amount']==='195432.10'&&ManagerTourSelectionService::get(7,1)['selection']===$before);
+        $added=ManagerTourSelectionService::import(7,1,$session,$command);
+        $after=ManagerTourSelectionService::get(7,1)['selection'];$offer=$after['draft']['offers'][count($after['draft']['offers'])-1];
+        deliveryCheck('pre-add price '.$index.' appends once and keeps raw observed price distinct',$added['ok']&&$added['state']==='added'&&count($after['draft']['offers'])===count($before['draft']['offers'])+1&&$offer['amount']==='195432.10'&&$offer['import_source']===$source&&$offer['photos']===[]&&$after['updated_by_manager_id']===7);
+        $found=ManagerTourSelectionService::importOperation(7,1,$session,$command);$repeat=ManagerTourSelectionService::import(7,1,$session,$command);
+        deliveryCheck('pre-add price '.$index.' lost-response receipt preserves the exact amount and version',$found['found']&&$found['manager_amount']==='195432.10'&&$repeat['manager_amount']==='195432.10'&&$repeat['saved_version']===$added['saved_version']&&ManagerTourSelectionService::get(7,1)['selection']['version']===$after['version']);
+        deliveryCheck('pre-add price '.$index.' cannot reuse intent for another final amount',ManagerTourSelectionService::importOperation(7,1,$session,array_replace($command,['manager_amount'=>'195432.11']))['error']==='operation_mismatch');
+        $without=$command;unset($without['manager_amount']);deliveryCheck('pre-add price '.$index.' receipt cannot be mistaken for an unadjusted import',ManagerTourSelectionService::importOperation(7,1,$session,$without)['error']==='operation_mismatch');
+        $same=ManagerTourSelectionService::import(7,1,$session,array_replace($command,['operation_id'=>'collector-price-same-'.$index,'manager_amount'=>'195432.1']));
+        deliveryCheck('pre-add price '.$index.' equivalent decimal is an exact duplicate without a new version',$same['state']==='already_added'&&$same['saved_version']===$after['version']);
+        $conflict=ManagerTourSelectionService::import(7,1,$session,array_replace($command,['operation_id'=>'collector-price-conflict-'.$index,'manager_amount'=>'190000','as_variant'=>true]));
+        deliveryCheck('pre-add price '.$index.' cannot overwrite a prior manual amount or bypass dedup as a variant',$conflict['error']==='manual_price_conflict'&&ManagerTourSelectionService::get(7,1)['selection']===$after);
+        $plain=ManagerTourSelectionService::import(7,1,$session,array_replace($without,['operation_id'=>'collector-price-plain-'.$index]));
+        deliveryCheck('ordinary repeat '.$index.' preserves the adjusted amount',$plain['state']==='already_added'&&ManagerTourSelectionService::get(7,1)['selection']['draft']['offers'][count($after['draft']['offers'])-1]['amount']==='195432.10');
+        foreach (['',null,0,false,[],'0','-1','1e3','12.345','1000000000','NaN','0012','1,00'] as $bad) {
+            $invalid=ManagerTourSelectionService::import(7,1,$session,array_replace($command,['operation_id'=>'collector-price-invalid-'.$index,'manager_amount'=>$bad]));
+            deliveryCheck('invalid adjusted amount is rejected before any append',$invalid['error']==='invalid_import'&&ManagerTourSelectionService::get(7,1)['selection']['version']===$after['version']);
+        }
+        deliveryCheck('adjusted import still requires the original live session',ManagerTourSelectionService::import(7,1,str_repeat('9',64),array_replace($command,['operation_id'=>'collector-price-session-'.$index]))['error']==='connection_changed');
+    }
+}
+
 function collectorScenarios(PDO $pdo): void
 {
     $session=str_repeat('1',64);$device=str_repeat('2',32);$conn=str_repeat('3',32);$observation=collectorObservation();
@@ -130,6 +164,7 @@ function collectorScenarios(PDO $pdo): void
     $local['draft']['intro']='Мой старый экран';deliveryCheck('stale editor cannot replace imports or another editors text',deliverySave($local['draft'],$local['version'])['error']==='conflict');
     anexCollectorScenarios($pdo,$session,$conn);
     tourvisorCollectorScenarios($pdo,$session,$conn);
+    collectorPriceEditScenarios($pdo,$session,$conn);
     deliveryCheck('another PHP session cannot inherit collector connection',ManagerTourSelectionService::import(7,1,str_repeat('4',64),array_replace($command,['operation_id'=>'collector-session-cross-01']))['error']==='connection_changed');
     deliveryCheck('status rechecks the current session connection before receipt disclosure',ManagerTourSelectionService::importOperation(7,1,str_repeat('4',64),$command)['error']==='connection_changed');
     deliveryCheck('another client cannot inherit collector connection',ManagerTourSelectionService::import(7,2,$session,array_replace($command,['operation_id'=>'collector-client-cross-01']))['error']==='connection_changed');
