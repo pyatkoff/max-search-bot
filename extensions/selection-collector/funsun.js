@@ -8,13 +8,17 @@ const dayKey=iso=>iso?.replaceAll('-','');
 const text=(row,selector)=>{const nodes=row.querySelectorAll(selector);if(nodes.length!==1)fail('Изменилась строка предложения. Добавьте тур вручную.');const e=nodes[0];if(e.closest('[hidden],[aria-hidden="true"]'))fail('Поле скрыто. Импорт остановлен.');return clean(e.innerText??e.textContent)};
 function form(doc,href){
  const url=new URL(href);if(url.origin!=='https://b2b.fstravel.com'||url.pathname!=='/search_tour'||url.username||url.password)fail('Поддерживается выдача FUN&SUN «Туры с перелетом».');
+ const loaders=doc.querySelectorAll('button.load');if(loaders.length>1||Array.from(loaders).some(e=>e.disabled||e.getAttribute('aria-busy')==='true'))fail('Дождитесь окончания поиска.');
+ const links=doc.querySelectorAll('#samo-link-to-page a');let result=url;
+ if(links.length){if(links.length!==1)fail('Не удалось определить выполненный поиск. Нажмите «Искать» ещё раз.');result=new URL(links[0].getAttribute('href'),url);if(result.origin!==url.origin||result.pathname!==url.pathname||result.username||result.password||result.port||result.hash)fail('Не удалось определить выполненный поиск. Нажмите «Искать» ещё раз.');}
  const out={};for(const key of fields){const nodes=doc.querySelectorAll('[name="'+key+'"]');if(nodes.length!==1||nodes[0].disabled)fail('Форма ещё загружается или изменилась.');const e=nodes[0];out[key]={value:e.value,text:clean(e.selectedOptions?.[0]?.textContent||e.value)}}
  const from=date(out.CHECKIN_BEG.value),to=date(out.CHECKIN_END.value);if(!from||!to||from>to)fail('Дождитесь установившихся дат формы.');
- // The bounded adapter requires a result URL matching the form. An old AJAX result
- // cannot inherit changed party/ages or asynchronous country/date resets.
- for(const key of fields.filter(k=>k!=='PROGRAMINC')){const expected=key.startsWith('CHECKIN_')?dayKey(date(out[key].value)):out[key].value;if(url.searchParams.get(key)!==expected)fail('Условия формы изменились. Откройте «Ссылка на эту страницу» после поиска и повторите.');}
+ // FUN&SUN updates this DOM link when submitting an AJAX search, while the
+ // address bar stays unchanged. Bind its submitted conditions to the settled
+ // form and exact row; never construct result provenance from live inputs.
+ for(const key of fields.filter(k=>k!=='PROGRAMINC')){const expected=key.startsWith('CHECKIN_')?dayKey(date(out[key].value)):out[key].value;if(result.searchParams.getAll(key).length!==1||result.searchParams.get(key)!==expected)fail('Условия изменились. Нажмите «Искать» и дождитесь результатов.');}
  const adults=Number(out.ADULT.value),children=Number(out.CHILD.value);if(!Number.isInteger(adults)||adults<1||adults>20||!Number.isInteger(children)||children<0||children>3)fail('Состав туристов не поддерживается.');
- const ages=[];for(let i=1;i<=children;i++){const e=doc.querySelector('select[name="AGE'+i+'"]');const value=e?.value;if(!e||e.disabled||!/^\d{1,2}$/.test(value||'')||Number(value)>17||url.searchParams.get('AGE'+i)!==value)fail('Возраст ребёнка не привязан к результату поиска. Откройте актуальную ссылку после поиска.');ages.push(Number(value));}
+ const ages=[];for(let i=1;i<=children;i++){const e=doc.querySelector('select[name="AGE'+i+'"]');const value=e?.value;if(!e||e.disabled||!/^\d{1,2}$/.test(value||'')||Number(value)>17||result.searchParams.getAll('AGE'+i).length!==1||result.searchParams.get('AGE'+i)!==value)fail('Возраст ребёнка изменился. Нажмите «Искать» и дождитесь результатов.');ages.push(Number(value));}
  return {values:out,from,to,adults,children,ages,url};
 }
 function extract(doc,row,href,at=new Date().toISOString().replace(/\.\d{3}Z$/,'Z')){

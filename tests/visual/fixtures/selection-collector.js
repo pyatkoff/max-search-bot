@@ -5,9 +5,17 @@ function sourceHtml(){
  const select=(key,value,label=value)=>`<select name="${key}"><option value="${value}">${label}</option></select>`;
  return `<!doctype html><html lang="ru"><meta charset="utf-8"><style>body{font:16px system-ui;padding:24px}td{padding:12px}.price::before{content:attr(data-converted_price_old);display:block;text-decoration:line-through;color:#777}</style><h1>Синтетическая выдача FUN&SUN</h1><form>${select('ADULT','2')}${select('CHILD','0')}${select('NIGHTS_FROM','7')}${select('NIGHTS_TILL','7')}${select('STATEINC','18803','Турция')}${select('TOWNFROMINC','274286','Москва')}${select('CURRENCY','1','RUB')}${select('PROGRAMINC','114','Промо')}<input name="CHECKIN_BEG" value="05.06.2027"><input name="CHECKIN_END" value="05.06.2027">${select('AGE1','4')}${select('AGE2','6')}${select('AGE3','12')}</form><table><tbody><tr class="price_info adult-2 child-0 spoKey-60" data-hotel="10" data-room="20" data-meal="30" data-htplace="40" data-tour="78" data-ptype="114" data-townfrom="274286" data-state="18803" data-checkin="20270605" data-nights="7" data-cat-claim="0x${'a'.repeat(64)}"><td class="arrival"><span class="samo_format_date" data-date="05.06.2027">05.06.2027, сб</span><span class="popup-note" title="Вылеты: 01:00, 02:00; Эконом"></span></td><td class="tour-nights">7</td><td class="link-hotel"><a href="#hotel">Синтетический отель 5*</a> (Лара)</td><td class="hotel-room">Standard / 2AD</td><td class="hotel-meals">Ultra All Inclusive</td><td class="tour">Synthetic tour</td><td class="type_price">Synthetic tariff</td><td class="td_price"><span class="price" data-converted-price-number="237017" data-converted_price_old="259304 RUB" data-currency_title="RUB" data-currency="1">237 017 RUB</span></td></tr></tbody></table></html>`;
 }
-async function sourceFixture(page){
- const calls=[];await page.route('**/*',route=>route.request().url()===sourceUrl?route.fulfill({contentType:'text/html',body:sourceHtml()}):route.abort());
- await page.goto(sourceUrl);await page.addScriptTag({path:path.join(root,'extensions/selection-collector/funsun.js')});
+async function sourceFixture(page,options={}){
+ let url=sourceUrl,html=sourceHtml();
+ if(options.ajax){
+  url='https://b2b.fstravel.com/search_tour';
+  const submitted=new URL(sourceUrl);submitted.searchParams.set('PROGRAMINC','0');
+  html=html.replace('<select name="PROGRAMINC"><option value="114">Промо</option></select>','<select name="PROGRAMINC"><option value="0">----</option></select>');
+  html=html.replace('</form>',`<button class="load" type="button">Искать</button></form><div id="samo-link-to-page"><a href="${submitted.href.replaceAll('&','&amp;')}">Ссылка на эту страницу</a></div>`);
+  html=html.replace('<style>',`<style>button{width:100%;height:55px;padding:18px;font:24px serif;border-radius:20px}button::after{content:'HOST'}.td_price{min-width:100px;width:118px}.td_price .price{font-weight:bold;white-space:nowrap}`);
+ }
+ const calls=[];await page.route('**/*',route=>route.request().url()===url?route.fulfill({contentType:'text/html',body:html}):route.abort());
+ await page.goto(url);await page.addStyleTag({path:path.join(root,'extensions/selection-collector/content.css')});await page.addScriptTag({path:path.join(root,'extensions/selection-collector/funsun.js')});
  return {calls,read:()=>page.evaluate(()=>{try{return {value:AnyTourFunsun.extract(document,document.querySelector('tr.price_info'),location.href,'2026-10-23T11:00:00Z')}}catch(e){return {error:e.message}}})};
 }
 async function bridgeFixture(page){

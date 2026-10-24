@@ -409,3 +409,23 @@ and whole-party price. Telegram preview provides three horizontally scrollable
 4:3 photos with previous/next buttons and a photo counter; MAX keeps the three-photo mosaic. This is a browser representation,
 not physical native acceptance. No terms, publication, delivery or recipient
 contract changes; source text is escaped, never interpreted as HTML.
+
+
+## Ordinary FUN&SUN AJAX results and compact source actions (0.5.1)
+
+The extractor reads the observed `#samo-link-to-page a` submitted search URL
+without navigating. It requires one same-origin/path link, unique exact parameters
+matching the current form (including each child age), a non-loading search button,
+the exact result row and the existing750ms stability check. Missing result-link
+markup retains legacy exact-address compatibility; a present stale/foreign link
+cannot fall back to a matching old address. Only allowlisted reconstructed search
+fields enter private provenance. PROGRAMINC0 means the observed unfiltered program
+selector, while exact row program/tour/SPO IDs remain mandatory. No price, full-fare
+or flight verification is inferred.
+
+The source row uses compact32px checkmark/pencil actions with accessible names,
+tooltips and separate saved/waiting/review/error symbols. The target client remains
+inside the extension. Existing queue/ticket/receipt/session/UNKNOWN and explicit
+price-basis confirmation contracts are unchanged. This removes manual share-link
+copying from ordinary completed FUN&SUN searches; physical owner import remains
+a separate acceptance step.
