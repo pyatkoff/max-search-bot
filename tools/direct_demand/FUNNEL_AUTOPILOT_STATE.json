@@ -1,6 +1,6 @@
 {
   "schema": "anytour.funnel.autopilot_state.v1",
-  "updated_at_utc": "2026-10-24T21:17:00.403123+00:00",
+  "updated_at_utc": "2026-10-24T21:47:01.717Z",
   "owner": "direct-demand-funnel",
   "automation": {
     "id": "6ada8f0084888191b12c6619c12fb35c",
@@ -9,7 +9,7 @@
     "timezone": "Europe/Kaliningrad",
     "enabled_verified_at_utc": "2026-10-22T22:39:46.922Z"
   },
-  "status": "OWNER_R2_PLAN_REVISED_S1_INTENT_DEMAND_ROUTE_AUDIT_NEXT_NOT_TRAFFIC_RELEASE",
+  "status": "R2_S1_AUDIT10_S2_REFERENCE3_PREPARED_S3_NEXT_NO_NATIVE_RELEASE",
   "channel": null,
   "scope": {
     "prepare_catalog_matches": true,
@@ -43,11 +43,11 @@
   "artifacts": {
     "report": {
       "library_file_id": "libfile_81ae550da16881918bb6840b686d507f",
-      "version": 67
+      "version": 68
     },
     "archive": {
       "library_file_id": "libfile_1b69bb58e8d4819186e7ea461ef60cb6",
-      "version": 68
+      "version": 69
     },
     "canonical_hotel_knowledge": {
       "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
@@ -87,7 +87,7 @@
     },
     "existing_post_review": {
       "library_file_id": "libfile_25486df816e88191b44ed4051858e99f",
-      "version": 48,
+      "version": 49,
       "preview_member": "existing-post-review/anytour-existing-posts-review-20261023.html",
       "text_review_member": "existing-post-review/manual-text-review-107.json",
       "adaptations_member": "existing-post-review/existing-post-adaptations-12.json",
@@ -529,7 +529,7 @@
     },
     "current_packet_continuation": {
       "library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
-      "version": 13,
+      "version": 14,
       "content_member": "existing-post-review/h32/content.json",
       "patches_member": "existing-post-review/h32/existing-patches-4.NOT-APPLIED.json",
       "preflight_member": "existing-post-review/h32/preflight204-current.NOT-APPLIED.json",
@@ -537,16 +537,23 @@
       "summary_member": "existing-post-review/h32/summary.json",
       "validation_member": "existing-post-review/h32/validation.json",
       "canonical_claim_reuse_member": "existing-post-review/h32/canonical-claim-reuse.json",
-      "next_safe_block_member": "existing-post-review/p34/plan.json",
+      "next_safe_block_member": "existing-post-review/p35/intent-audit.PRIVATE.json",
       "preview_library_file_id": "libfile_c1f06826dd408191bed3e0cb8103e379",
-      "preview_version": 13,
+      "preview_version": 14,
       "base_pointer_member": "existing-post-review/current-continuation.json",
       "same_packet_continuation_not_second_attribution_store": true,
       "base_ZIP_alone_not_complete_current_packet": true,
       "private_materials_only_in_library": true,
       "current_cover_manifest_member": "existing-post-review/h33/photo-cover-provenance.json",
       "current_strategy_member": "existing-post-review/p34/plan.json",
-      "strategy_review_member": "existing-post-review/p34/review.html"
+      "strategy_review_member": "existing-post-review/p34/review.html",
+      "current_r2_routes_member": "existing-post-review/p35/routes.json",
+      "current_r2_binding_member": "existing-post-review/p35/binding-review-3.NOT-APPLIED.json",
+      "current_r2_feed_member": "existing-post-review/p35/feed-3.INCOMPLETE-DRAFT.json",
+      "current_r2_photo_manifest_member": "existing-post-review/p35/photo-provenance.json",
+      "current_r2_review_member": "existing-post-review/p35/review.html",
+      "r2_reference_routes": 3,
+      "r2_counts_not_additive_to_baseline": true
     },
     "existing_h23_selection_covers": {
       "library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
@@ -643,13 +650,40 @@
     },
     "current_funnel_strategy": {
       "library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
-      "version": 13,
+      "version": 14,
       "revision": "OWNER_PLAN_REVISION_20261024",
       "plan_member": "existing-post-review/p34/plan.json",
       "initial_candidate_member": "existing-post-review/p34/initial-candidates.PRIVATE.json",
       "readable_plan_library_file_id": "libfile_c1f06826dd408191bed3e0cb8103e379",
-      "readable_plan_version": 13,
-      "review_member": "existing-post-review/p34/review.html"
+      "readable_plan_version": 14,
+      "review_member": "existing-post-review/p34/review.html",
+      "current_step": "S3_REVIEW_PACKET_EXTENSION"
+    },
+    "r2_reference_packet": {
+      "library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
+      "version": 14,
+      "readable_preview_library_file_id": "libfile_c1f06826dd408191bed3e0cb8103e379",
+      "readable_preview_version": 14,
+      "routes_member": "existing-post-review/p35/routes.json",
+      "audit_member": "existing-post-review/p35/intent-audit.PRIVATE.json",
+      "binding_member": "existing-post-review/p35/binding-review-3.NOT-APPLIED.json",
+      "feed_member": "existing-post-review/p35/feed-3.INCOMPLETE-DRAFT.json",
+      "photo_manifest_member": "existing-post-review/p35/photo-provenance.json",
+      "validation_member": "existing-post-review/p35/validation.json",
+      "source_read_receipts_member": "existing-post-review/p35/source-read-receipts.json",
+      "review_member": "existing-post-review/p35/review.html",
+      "hashes": {
+        "routes.json": "32748dbe2001de36646e32a303280bb1b160cf1380d8122e8e230a3bd4dd1a7e",
+        "intent-audit.PRIVATE.json": "cf66efa3cc59d9f485be015a5ae1d6bddf25c05a139cfa67aa76b9ed4e0a0e94",
+        "binding-review-3.NOT-APPLIED.json": "04cdfc086da0ae166a95cb09f8f9576bbf50baee30fa050c90566d51c5ee709a",
+        "feed-3.INCOMPLETE-DRAFT.json": "1f196452d714b0ab8f85be434ac515718aa02333dd20abbb9a85a1fd5aeac994",
+        "photo-provenance.json": "066f69b06a18417598c597982d4bc2e47a6ed8ffc87583b87259edd6dfc4f1cb"
+      },
+      "prepared_editorial_routes": 3,
+      "issued_entry_ids": 0,
+      "active_destinations": 0,
+      "real_bot_path_tested": false,
+      "private_materials_only_in_library": true
     }
   },
   "operations": {
@@ -767,18 +801,21 @@
     "existing_h31_selection_cover": "DONE_R054_OWNER_TEMPLATE_COVER_NOT_APPLIED",
     "existing_h32_selection_corrections": "DONE_TWO_FULL3MEMBER_TEXTS_FOUR_SAVED_MAX_TARGETS_COVERS_PENDING_NOT_APPLIED",
     "existing_h33_selection_covers": "DONE_TWO_H32_REVIEW_COVERS_NOT_APPLIED",
-    "plan_revision_r2": "DONE_OWNER_PLAN_REVISION_AND_SAME_TASK_PROMPT_HANDOFF"
+    "plan_revision_r2": "DONE_OWNER_PLAN_REVISION_AND_SAME_TASK_PROMPT_HANDOFF",
+    "r2_S1_intent_audit": "DONE_BOUNDED_AUDIT10_AND_DISPOSITIONS_NOT_CATALOG_VERIFICATION",
+    "r2_S2_reference_routes": "DONE_THREE_COMPLETE_EDITORIAL_REFERENCE_DRAFTS_NOT_TRAFFIC_RELEASE",
+    "r2_P35_library_save": "DONE_FIVE_GUARDED_REPLACEMENTS_68_69_49_14_14"
   },
   "next_steps": [
-    "S1:Read current P34plan.json and preliminary10existing candidates;verify intent/last7/currentONwhereavailable,season,canonicalidentity,existingpost/fact/photo gaps;rank and select3complete reference routes.No rawhotelquerytobroadnetworkpost.",
-    "S2:Prepare3whole reference routes(hotel/season/family):queryintent+copy+relevantcover+specificCTA+expectedexistingcontext+exactremainingblocker.8/10editorialrubric/nozero andno criticalfactual/identityerror;notconversionproof.",
-    "S3:Extend accepted editorial approach to reviewpacket upto10routes,without quotasfilledbynameonlyposts;reuseexistingcontent whereintentfits.No automatic archive-orderR058/R059progression.",
-    "S4:Maintain same canonical map/feed format;realIDs/URLs onlythrough existingmechanism+applicablefreshreceipt;unresolvedrecords inactive,null,no secondstore.",
-    "S5:Review concrete packet/destinations/limits;publication/nativechanges/livefeed/RK/spend needfresh exactownerauthority;no newpermission impliedbystrategyrevision.",
-    "S6:After authorized launch useactual canonicalfunnel data;missingstages remainunmeasured;qualifiedinquirycost anddownstreamoutcomes whenavailable,no newMetricagoals/store. Do not infer victoryfromsmallsamples.",
-    "Preserve all priorDONE/UNKNOWNreadback rules,scope,canonicalhotelarchive readonly,Wordstat/ASR blockers andpausedlearning/CRM. No fullCI/Direct/nativebaseline repetitionforstatus."
+    "S1/S2 P35 prepared: 10 candidates have bounded intent/material audits and dispositions; 3 complete editorial reference routes have copy, covers, local CTA review, expected context and exact remaining holds. Do not replay without new evidence.",
+    "S3: Extend the same packet toward up to10 suitable routes from the audited priorities and relevant existing materials. Split seasonal country demand by actual region/intent; preserve unresolved identity/brand/supplier/video holds. A shorter useful packet is allowed; do not fill a quota with names.",
+    "Read current companion14 P35 routes/audit/review first. Existing baseline204/preflight/map and root99/356 are preserved overlapping historical preparation slices, not accepted traffic destinations or additive counts.",
+    "S4: Maintain the existing canonical ID/yclid/chat matching contract and collection format. P35 feed3/binding rows are an inactive review projection, not a second attribution store; no IDs/URLs have been issued.",
+    "Before native changes/publication/live-feed/RK/spending, require the exact fresh owner/channel/action/budget receipt and verify actual context through the existing permitted mechanism. Current preview CTA is a local review toggle, not a real bot test.",
+    "S5/S6: Owner acceptance and authorized measurement remain open; self-editorial 9/8/8 is neither independent business acceptance nor conversion evidence. Use real observed funnel stages only, and no new Metrika goals.",
+    "Do not retry unchanged Wordstat/ASR blockers or full CI/Direct/native baselines for status. Preserve paused learning/CRM and all foreign ownership."
   ],
-  "publication_blocker": "R2trafficacceptance notperformed.204savedcandidates/95bodies retained aspreparedmaterials,notrelease:151explicitidentityholds/94videoholds;155mappedto63inactivecollections,49unlinked31subjects. Newtrafficpackage followsS1intentrouteaudit→3referencewhole routes→upto10reviewroutes. Exactowner/channelreceipt,canonicalidentity/entry/context andseparatepublication/livefeed/RK/spendauthority stillrequired. Currentreviewcovers notproof ofconversion.",
+  "publication_blocker": "P35 three editorial reference drafts are saved, not released. Exact catalog identity, native destination, issued entry URL, real bot context and applicable owner/channel/action receipt remain unverified. No new publication/native send/live-feed/RK/spending. Baseline204 and its identity/video/supplier holds remain unchanged; editorial scores do not remove these gates.",
   "coordination": "Own audit/direct-demand-20261022 branch only; no foreign claims, CI, paused hotel tasks or production flows.",
   "completed_preparation": {
     "generated_at_utc": "2026-10-23T06:42:57.737448+00:00",
@@ -2665,6 +2702,50 @@
       "prior204preflight_map_and_all95bodies_preserved": true,
       "no_publication_or_paid_changes": true,
       "editorial_score_not_conversion_evidence": true
+    },
+    "p35_intent_reference3": {
+      "audited_candidates": 10,
+      "six_hotel_month_metric_totals_reconciled_to_saved_rows": true,
+      "hotel_last7_from_same_saved_rows": true,
+      "theme_last7_is_all_cluster_not_qualified_subset": true,
+      "ON_snapshot_date": "2026-10-22",
+      "full_export_repeated": false,
+      "reference_routes": 3,
+      "caption_utf16_under1024": true,
+      "canonical_claim_refs_resolved": 8,
+      "source_knowledge_version": 92,
+      "source_knowledge_unchanged": true,
+      "new_covers": 3,
+      "new_photo_downloads": 3,
+      "existing_photo_reused": 1,
+      "generated_hotel_photos": 0,
+      "all_covers_visually_inspected": true,
+      "preview_widths_passed": [
+        320,
+        390,
+        736,
+        1440
+      ],
+      "document_overflow": false,
+      "local_CTA_toggles_passed": 3,
+      "real_bot_path_tested": false,
+      "active_destinations": 0,
+      "issued_entry_ids": 0,
+      "native_writes": 0,
+      "paid_changes": 0,
+      "prior_222_companion_nonpreview_members_preserved": true,
+      "prior_1056_unowned_base_members_preserved": true,
+      "base_archive_bytes": 536869762,
+      "base_archive_cap": 536870912,
+      "base_near_cap_keep_new_content_in_existing_companion": true,
+      "unchanged_raw_compressed_records_SHA256": "42eb150e0e1e6dc894325858032ab6969feb891c696d6c2ed1d3e4edba75272b",
+      "editorial_scores": [
+        9,
+        8,
+        8
+      ],
+      "self_editorial_not_conversion_evidence": true,
+      "all_five_guarded_saves_verified": true
     }
   },
   "catalog_evidence": {
@@ -2705,7 +2786,7 @@
     "library_archive_size": "Current536730088bytes/limit536870912/headroom140824;guards49/50/30.H16preserved all existing evidence and losslessly BZIP2compressed18existingJSONmembers:per-member originaluncompressedSHA,CRC/size and Python/InfoZIP6readPASS recorded inH16lossless-packaging.json.Other prior compression types unchanged.Preserve current root/current-fileBZIP2method on updates;preflight new byte budget before upload.No oversized request/evidence deletion.Unselected new largeOGexcluded with provenance,not prior evidence."
   },
   "latest_completed_block": {
-    "name": "P34:entiretrafficplan revised byowner;completeintentroutes andquality/measurementgates;S1next;no newcontentortrafficrelease",
+    "name": "P35: bounded intent audit10 and three whole editorial reference routes; S3 next; no native release",
     "total_prepared_subjects": 94,
     "total_exact_caption_bodies": 95,
     "total_saved_post_candidates": 204,
@@ -2716,24 +2797,26 @@
     "total_video_holds": 94,
     "total_text_photo_paths": 110,
     "identity_lookup_holds": 151,
-    "new_caption_bodies": 0,
+    "new_caption_bodies": 3,
     "new_exact_saved_post_candidates": 0,
-    "new_covers": 0,
+    "new_covers": 3,
     "new_IDs": 0,
     "actual_channel_writes": 0,
     "platforms": {
       "max": 195,
       "telegram": 9
     },
-    "completed_at_utc": "2026-10-24T21:17:00.403123+00:00",
+    "completed_at_utc": "2026-10-24T21:47:01.717Z",
     "save_versions": [
-      67,
       68,
-      48,
-      13,
-      13
+      69,
+      49,
+      14,
+      14
     ],
-    "strategy_revision": "OWNER_PLAN_REVISION_20261024"
+    "strategy_revision": "OWNER_PLAN_REVISION_20261024",
+    "r2_reference_routes": 3,
+    "r2_counts_not_additive_to_baseline_slices": true
   },
   "catalog_export_lookup": {
     "searched_library_read_only": true,
@@ -2797,15 +2880,15 @@
     "each_new_post_has_explicit_eligibility_checks": true
   },
   "last_run_readback": {
-    "own_branch_head_before_write": "7cb0db1db22b1e7815f536f5d4bc291e39455ab0",
+    "own_branch_head_before_write": "dd51c29c3033197cc6ca0cc8651198f5e112365d",
     "same_package_current_executor_handoff": true,
     "coordination_issue55_updated_at_utc": "2026-10-24T21:02:10Z",
     "source_archive_library_version": 92,
     "demand_library_versions_before_write": {
-      "report": 66,
-      "archive": 67
+      "report": 67,
+      "archive": 68
     },
-    "existing_review_preview_version_before_write": 47,
+    "existing_review_preview_version_before_write": 48,
     "foreign_claims_untouched": true,
     "scope_instructions_reused_from_current_same_executor_package": true,
     "root_AGENTS_sha": "a064aff67d42ddd69a12d9b0393501d116d1307d",
@@ -2816,16 +2899,16 @@
     "full_CI_or_unchanged_baseline_repeated": false,
     "wordstat_access_blocker_unchanged": true,
     "blocked_wordstat_retried": false,
-    "current_task": "P34:ownerentirefunnelstrategyrevision;no newposts/covers/IDs/nativewrites",
+    "current_task": "P35 S1 audit10 + S2 three editorial reference routes",
     "private_source_materials_committed": false,
     "fresh_native_message_read_performed": false,
     "source_main_reviewed_sha": "7b90a3075a6a9dcb72e9a58fca6526d86a1e3033",
     "START_HERE_sha": "43e7827432279012382767de6b6335684c6d54c2",
     "ASR_reexecuted_after_rejection": false,
-    "coordination_latest_comment_id": 6389491396,
+    "coordination_latest_comment_id": 6389775612,
     "latest_coordination_updated_comment_read": 6385968271,
     "source_instructions_read_on_current_main": true,
-    "completed_at_utc": "2026-10-24T21:17:00.403123+00:00",
+    "completed_at_utc": "2026-10-24T21:47:01.717Z",
     "all_comments_endpoint_failed_transport_twice": true,
     "newest_comments_read_with_bounded_since_API": true,
     "library_prepare_initial_size_rejected_before_action": false,
@@ -2839,10 +2922,10 @@
     "unchanged_compressed_records_exact_verified": true,
     "source_knowledge92_read_only": true,
     "demand_library_versions_after_write": {
-      "report": 67,
-      "archive": 68
+      "report": 68,
+      "archive": 69
     },
-    "existing_review_preview_version_after_write": 48,
+    "existing_review_preview_version_after_write": 49,
     "foreign_constructor_research_claim_6384270497_untouched": true,
     "foreign_constructor_research_claim_6384270497_and_checkpoint6384733869_untouched": true,
     "constructor_research6384270497_RELEASED_6384908447_observed": true,
@@ -2858,7 +2941,14 @@
     "automation_prompt_only_change": true,
     "automation_prompt_only_update_verified": true,
     "automation_id": "6ada8f0084888191b12c6619c12fb35c",
-    "automation_schedule_enabled_timezone_unchanged": true
+    "automation_schedule_enabled_timezone_unchanged": true,
+    "coordination_latest_comment_updated_at_utc": "2026-10-24T21:30:23Z",
+    "own_source_claim_comment_id": 6389691638,
+    "foreign_constructor_PR1108_source6389404392_checkpoint6389775612_untouched": true,
+    "current_native_catalog_refresh_performed": false,
+    "real_bot_path_tested": false,
+    "automation_prompt_changed_this_pass": false,
+    "automation_schedule_enabled_models_budgets_unchanged": true
   },
   "latest_source_checks": {
     "read_on": "2026-10-23",
@@ -4117,10 +4207,12 @@
     "prior_video_transport_hold_preserved_for_amended_video_target": true
   },
   "next_preparation_block": {
-    "state": "S1_INTENT_DEMAND_ROUTE_AUDIT",
+    "state": "S3_REVIEW_PACKET_EXTENSION",
     "revision": "OWNER_PLAN_REVISION_20261024",
-    "action": "Readback/rank the 10 preliminary existing candidates, audit existing post/identity/fact/photo gaps, select 3 complete reference routes. Do not start R058/R059 merely by archive order.",
+    "action": "Read P35 audit and the three saved reference routes; extend the same review packet with suitable existing materials toward up to10 routes. Keep disputed identities on hold and split broad seasonal traffic by actual intent/region. Do not fill quota with name-only posts.",
     "source_plan_member": "existing-post-review/p34/plan.json",
+    "source_packet_member": "existing-post-review/p35/routes.json",
+    "source_audit_member": "existing-post-review/p35/intent-audit.PRIVATE.json",
     "source_plan_library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
     "native_writes_allowed": false
   },
@@ -7859,7 +7951,7 @@
     "same_workstream": true,
     "no_new_queue": true,
     "unit_of_completion": "Связка спрос → релевантный пост и фото → конкретная кнопка → существующий бот с сохранённым контекстом → квалифицированное обращение.",
-    "current_step": "S1_INTENT_DEMAND_ROUTE_AUDIT",
+    "current_step": "S3_REVIEW_PACKET_EXTENSION",
     "stages": [
       {
         "id": "S1",
@@ -7936,18 +8028,19 @@
       "Manager2/constructor/SEARCH/INT/LOCAL/MATCH,pausedlearningCRM,models/budgets/settings unchanged.Wordstat/ASRblockers unchanged,notretried.No fullCI/Direct/nativebaseline reruns."
     ],
     "artifact_library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
-    "artifact_version": 13,
+    "artifact_version": 14,
     "plan_member": "existing-post-review/p34/plan.json",
     "plan_SHA256": "079d14dcf69eab1b5bdd8722c4f849b61560486bb80804f3263641b16785fc70",
     "readable_plan_library_file_id": "libfile_c1f06826dd408191bed3e0cb8103e379",
-    "readable_plan_version": 13,
+    "readable_plan_version": 14,
     "explicit_handoff": {
-      "from_context": "owner_interactive_plan_revision",
+      "from_context": "P35_same_executor_interactive_and_scheduled_continuation",
       "to_existing_automation": "6ada8f0084888191b12c6619c12fb35c",
       "same_executor": true,
       "no_parallel_package": true,
-      "start_at": "S1_INTENT_DEMAND_ROUTE_AUDIT",
-      "instruction": "Resume same package from this revised current step after this plan checkpoint; do not continue R058/R059 by archive order."
+      "source_claim_issue55_comment_id": 6389691638,
+      "start_at": "S3_REVIEW_PACKET_EXTENSION",
+      "instruction": "P35 S1/S2 is prepared and saved. Continue the same packet from current P35 audit/routes toward up to10 suitable review routes; do not replay S1/S2 or resume archive-order R058/R059 without new evidence."
     },
     "automation_prompt_revision": "OWNER_PLAN_REVISION_20261024",
     "automation_prompt_verified": true,
@@ -8012,6 +8105,11 @@
       "prior204preflight_map_and_all95bodies_preserved": true,
       "no_publication_or_paid_changes": true,
       "editorial_score_not_conversion_evidence": true
+    },
+    "stage_progress": {
+      "S1": "BOUNDED_AUDIT10_DONE_WITH_IDENTITY_AND_SOURCE_GAPS_RETAINED",
+      "S2": "THREE_EDITORIAL_REFERENCE_ROUTES_PREPARED_NOT_OWNER_ACCEPTED_OR_NATIVE_VERIFIED",
+      "S3": "NEXT_PREPARATION"
     }
   },
   "plan_revision_operation": {
@@ -8042,5 +8140,35 @@
       ],
       "all_local_metadata_applied": true
     }
+  },
+  "reference_packet_operation": {
+    "state": "DONE_VERIFIED_EDITORIAL_PACKET_NOT_PUBLICATION",
+    "idempotency_key": "P35-intent-audit10-reference3-20261024-v1",
+    "completed_at_utc": "2026-10-24T21:47:01.717Z",
+    "audited_candidates": 10,
+    "new_editorial_caption_variants": 3,
+    "new_covers": 3,
+    "review_feed_rows": 3,
+    "new_native_post_candidates": 0,
+    "new_IDs": 0,
+    "native_writes": 0,
+    "paid_changes": 0,
+    "real_bot_path_tested": false,
+    "all_five_library_saves_verified": true,
+    "versions_after": [
+      68,
+      69,
+      49,
+      14,
+      14
+    ],
+    "prior_versions": [
+      67,
+      68,
+      48,
+      13,
+      13
+    ],
+    "model_budget_schedule_enabled_changes": false
   }
 }
