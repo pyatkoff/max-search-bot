@@ -401,3 +401,11 @@ The existing publication, native envelope/sender, auth, ACL and session contract
 are unchanged. Version0.3.0 adds only this search host to extension permissions.
 Physical Chrome/Yandex permission/install/live import, the mixed-source full path,
 natural owner acceptance and A1–A8 remain separate from fixtures/CI/publication.
+
+## Channel-specific customer preview
+
+Preview retains the immutable native renderer text and highlights its exact hotel
+and whole-party price. Telegram preview provides three horizontally scrollable
+4:3 photos; MAX keeps the three-photo mosaic. This is a browser representation,
+not physical native acceptance. No terms, publication, delivery or recipient
+contract changes; source text is escaped, never interpreted as HTML.
