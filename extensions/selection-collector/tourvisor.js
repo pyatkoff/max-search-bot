@@ -6,7 +6,9 @@ const text=(root,selector)=>clean(one(root,selector).innerText);
 function extract(doc,href,now=new Date().toISOString().replace(/\.\d{3}Z$/,'Z')){
  const page=new URL(href);if(page.origin!=='https://pro.tourvisor.ru'||page.pathname!=='/search'||!/^#tvtourid=[1-9]\d{5,15}$/.test(page.hash))fail('Откройте конкретную карточку Tourvisor.');
  const card=one(doc,'.TVTourCardWindow'),snapshot=page.hash.slice(10),link=new URL(card.getAttribute('data-tvtourlink')||'');
- if(link.hash!==page.hash||link.origin!=='https://app.anytour.online'||link.pathname!=='/'||link.search)fail('Снимок карточки Tourvisor не совпал.');
+ // This agency-configured share address is read only for its snapshot fragment.
+ // It is never followed, persisted, or trusted as a Manager/TO origin.
+ if(link.hash!==page.hash||link.protocol!=='https:'||link.username||link.password||link.port||link.pathname!=='/'||link.search)fail('Снимок карточки Tourvisor не совпал.');
  const menu=one(doc,'.TVMenuControl'),search=one(menu,'a.TVSearchLinkItem'),url=new URL(search.getAttribute('href'),page.origin);
  const required=['ts_dosearch','s_form_mode','s_nights_from','s_nights_to','s_directflight','s_regular','x_hotel_codes','s_j_date_from','s_j_date_to','s_adults','s_meal','s_flyfrom','s_country'];
  if(url.origin!==page.origin||url.pathname!=='/search'||url.hash||url.username||url.password||url.port||Array.from(url.searchParams).length!==required.length||required.some(k=>url.searchParams.getAll(k).length!==1)||Array.from(url.searchParams).some(([k,v])=>!required.includes(k)||!/^\d[\d.]{0,11}$/.test(v)))fail('Откройте меню именно этой карточки; условия поиска не поддерживаются.');
