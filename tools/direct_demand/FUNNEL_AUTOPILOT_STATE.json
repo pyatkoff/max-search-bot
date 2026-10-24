@@ -1,6 +1,6 @@
 {
   "schema": "anytour.funnel.autopilot_state.v1",
-  "updated_at_utc": "2026-10-24T21:47:01.717Z",
+  "updated_at_utc": "2026-10-24T22:32:37.911Z",
   "owner": "direct-demand-funnel",
   "automation": {
     "id": "6ada8f0084888191b12c6619c12fb35c",
@@ -9,7 +9,7 @@
     "timezone": "Europe/Kaliningrad",
     "enabled_verified_at_utc": "2026-10-22T22:39:46.922Z"
   },
-  "status": "R2_S1_AUDIT10_S2_REFERENCE3_PREPARED_S3_NEXT_NO_NATIVE_RELEASE",
+  "status": "R2_S2_REWORK3_REVIEWABLE_NUMERIC_ACCEPTANCE_AND_NATIVE_PATH_PENDING",
   "channel": null,
   "scope": {
     "prepare_catalog_matches": true,
@@ -43,11 +43,11 @@
   "artifacts": {
     "report": {
       "library_file_id": "libfile_81ae550da16881918bb6840b686d507f",
-      "version": 68
+      "version": 69
     },
     "archive": {
       "library_file_id": "libfile_1b69bb58e8d4819186e7ea461ef60cb6",
-      "version": 69
+      "version": 70
     },
     "canonical_hotel_knowledge": {
       "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
@@ -87,7 +87,7 @@
     },
     "existing_post_review": {
       "library_file_id": "libfile_25486df816e88191b44ed4051858e99f",
-      "version": 49,
+      "version": 50,
       "preview_member": "existing-post-review/anytour-existing-posts-review-20261023.html",
       "text_review_member": "existing-post-review/manual-text-review-107.json",
       "adaptations_member": "existing-post-review/existing-post-adaptations-12.json",
@@ -650,16 +650,48 @@
     },
     "current_funnel_strategy": {
       "library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
-      "version": 14,
+      "version": 15,
       "revision": "OWNER_PLAN_REVISION_20261024",
       "plan_member": "existing-post-review/p34/plan.json",
       "initial_candidate_member": "existing-post-review/p34/initial-candidates.PRIVATE.json",
       "readable_plan_library_file_id": "libfile_c1f06826dd408191bed3e0cb8103e379",
-      "readable_plan_version": 14,
+      "readable_plan_version": 15,
       "review_member": "existing-post-review/p34/review.html",
-      "current_step": "S3_REVIEW_PACKET_EXTENSION"
+      "current_step": "S2_REWORK_REVIEWABLE_MATCHED_PREPARATION_NEXT",
+      "latest_correction": "P36_SAME3_TEXT_IMAGE_CTA_REWORK",
+      "current_review_member": "existing-post-review/p36/review.html"
     },
     "r2_reference_packet": {
+      "library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
+      "version": 15,
+      "readable_preview_library_file_id": "libfile_c1f06826dd408191bed3e0cb8103e379",
+      "readable_preview_version": 15,
+      "routes_member": "existing-post-review/p36/routes.json",
+      "audit_member": "existing-post-review/p36/intent-revision.PRIVATE.json",
+      "binding_member": "existing-post-review/p36/binding-review-3.NOT-APPLIED.json",
+      "feed_member": "existing-post-review/p36/feed-3.INCOMPLETE-DRAFT.json",
+      "photo_manifest_member": "existing-post-review/p36/photo-provenance.json",
+      "validation_member": "existing-post-review/p36/validation.json",
+      "source_read_receipts_member": "existing-post-review/p36/source-read-receipts.json",
+      "review_member": "existing-post-review/p36/review.html",
+      "hashes": {
+        "routes.json": "18edee632ba9dd115b174ca4fc01c1a5df4956f0a9cf7ec24ded5571f08fa49a",
+        "intent-revision.PRIVATE.json": "2bda0567e2b8a400f987aec9b3db2dffd96d57a4da6ce0aa12408a2f1add9ee2",
+        "binding-review-3.NOT-APPLIED.json": "97237cb86193a6a87623cffef87d5168a2103b68bf54787a894b809e55cf0376",
+        "feed-3.INCOMPLETE-DRAFT.json": "6840e92b1dca49c885e255553ca234ea8e1f87386d3f49787fc9b5af2a1d8223",
+        "photo-provenance.json": "efa7f4349cc2d97e0606db671ee4959325447cac91657c24059a2249a30e2719",
+        "validation.json": "04c1aaf91f136aab1580a9331119a45b7e4226538a1e96bf9c05fe4a1f41f25d"
+      },
+      "prepared_editorial_routes": 3,
+      "issued_entry_ids": 0,
+      "active_destinations": 0,
+      "real_bot_path_tested": false,
+      "private_materials_only_in_library": true,
+      "parent_audit_member": "existing-post-review/p35/intent-audit.PRIVATE.json",
+      "previous_9_8_8_superseded": true,
+      "numeric_rubric_acceptance_pending": true
+    },
+    "r2_reference_packet_prior_P35": {
       "library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
       "version": 14,
       "readable_preview_library_file_id": "libfile_c1f06826dd408191bed3e0cb8103e379",
@@ -804,18 +836,21 @@
     "plan_revision_r2": "DONE_OWNER_PLAN_REVISION_AND_SAME_TASK_PROMPT_HANDOFF",
     "r2_S1_intent_audit": "DONE_BOUNDED_AUDIT10_AND_DISPOSITIONS_NOT_CATALOG_VERIFICATION",
     "r2_S2_reference_routes": "DONE_THREE_COMPLETE_EDITORIAL_REFERENCE_DRAFTS_NOT_TRAFFIC_RELEASE",
-    "r2_P35_library_save": "DONE_FIVE_GUARDED_REPLACEMENTS_68_69_49_14_14"
+    "r2_P35_library_save": "DONE_FIVE_GUARDED_REPLACEMENTS_68_69_49_14_14",
+    "r2_S2_rework_P36": "DONE_SAME_THREE_REVISED_NOT_TRAFFIC_ACCEPTED",
+    "r2_P36_library_save": "DONE_FIVE_GUARDED_REPLACEMENTS_69_70_50_15_15",
+    "r2_P36_prompt_handoff": "DONE_PROMPT_ONLY_READBACK_SCHEDULE_ENABLED_UNCHANGED"
   },
   "next_steps": [
-    "S1/S2 P35 prepared: 10 candidates have bounded intent/material audits and dispositions; 3 complete editorial reference routes have copy, covers, local CTA review, expected context and exact remaining holds. Do not replay without new evidence.",
-    "S3: Extend the same packet toward up to10 suitable routes from the audited priorities and relevant existing materials. Split seasonal country demand by actual region/intent; preserve unresolved identity/brand/supplier/video holds. A shorter useful packet is allowed; do not fill a quota with names.",
-    "Read current companion14 P35 routes/audit/review first. Existing baseline204/preflight/map and root99/356 are preserved overlapping historical preparation slices, not accepted traffic destinations or additive counts.",
-    "S4: Maintain the existing canonical ID/yclid/chat matching contract and collection format. P35 feed3/binding rows are an inactive review projection, not a second attribution store; no IDs/URLs have been issued.",
-    "Before native changes/publication/live-feed/RK/spending, require the exact fresh owner/channel/action/budget receipt and verify actual context through the existing permitted mechanism. Current preview CTA is a local review toggle, not a real bot test.",
-    "S5/S6: Owner acceptance and authorized measurement remain open; self-editorial 9/8/8 is neither independent business acceptance nor conversion evidence. Use real observed funnel stages only, and no new Metrika goals.",
-    "Do not retry unchanged Wordstat/ASR blockers or full CI/Direct/native baselines for status. Preserve paused learning/CRM and all foreign ownership."
+    "P36 revised the same3 S2 reference drafts after owner critique: text/image/CTA match improved; earlier9/8/8 superseded. Read current companion15 P36 routes/review first. Do not replay unchanged P36 or treat it as three traffic-accepted routes.",
+    "Next bounded preparation block: inspect saved forms and existing ad context for narrow family/two-bedroom intent and heated-pool commercial fit. Do not allocate broad family/winter clicks to these narrow angles. Current ON is unknown; use dated saved metrics only. Replace or narrow a route if evidence fails.",
+    "Continue useful source-backed preparation and read-only canonical destination resolution; extend toward up to10 only when intent, image, factual scope and continuation align. Numerical editorial acceptance remains pending; do not assign9 automatically from completed HTML/fact checks or fill a count quota.",
+    "P36 inactive feed/binding3 reuse existing collection identities; no issued IDs/active URL or actual bot-path proof. Keep canonical ID/yclid/chat-ID mechanism only; no second store, keyword macro, runtime/dialog or Metrika changes.",
+    "Before native sends/edits/publication/live-feed/RK/spend, require exact fresh action/channel/budget receipt and verify actual context through permitted existing mechanism. Read/admin access and old tests are not new permission.",
+    "P35 audit10 and baseline204/95/root99/356 remain saved overlapping preparation slices, not additive or traffic accepted. Preserve all supplier/video/identity holds and paused learning/CRM.",
+    "Wordstat/ASR blockers remain unchanged; no retry without new basis and no full CI/Direct/native baseline for status."
   ],
-  "publication_blocker": "P35 three editorial reference drafts are saved, not released. Exact catalog identity, native destination, issued entry URL, real bot context and applicable owner/channel/action receipt remain unverified. No new publication/native send/live-feed/RK/spending. Baseline204 and its identity/video/supplier holds remain unchanged; editorial scores do not remove these gates.",
+  "publication_blocker": "Current P36 three routes have no verified issued entry IDs/active destinations or real bot-path verification. Numeric/editorial acceptance is pending. Exact fresh native/channel/action and separate paid/budget permissions remain required; readonly/admin access and old tests are not new authorization.",
   "coordination": "Own audit/direct-demand-20261022 branch only; no foreign claims, CI, paused hotel tasks or production flows.",
   "completed_preparation": {
     "generated_at_utc": "2026-10-23T06:42:57.737448+00:00",
@@ -2786,7 +2821,7 @@
     "library_archive_size": "Current536730088bytes/limit536870912/headroom140824;guards49/50/30.H16preserved all existing evidence and losslessly BZIP2compressed18existingJSONmembers:per-member originaluncompressedSHA,CRC/size and Python/InfoZIP6readPASS recorded inH16lossless-packaging.json.Other prior compression types unchanged.Preserve current root/current-fileBZIP2method on updates;preflight new byte budget before upload.No oversized request/evidence deletion.Unselected new largeOGexcluded with provenance,not prior evidence."
   },
   "latest_completed_block": {
-    "name": "P35: bounded intent audit10 and three whole editorial reference routes; S3 next; no native release",
+    "name": "P36: same3 text/photo/CTA rework; numerical acceptance and real bot path pending; no traffic release",
     "total_prepared_subjects": 94,
     "total_exact_caption_bodies": 95,
     "total_saved_post_candidates": 204,
@@ -2806,17 +2841,20 @@
       "max": 195,
       "telegram": 9
     },
-    "completed_at_utc": "2026-10-24T21:47:01.717Z",
+    "completed_at_utc": "2026-10-24T22:32:37.911Z",
     "save_versions": [
-      68,
       69,
-      49,
-      14,
-      14
+      70,
+      50,
+      15,
+      15
     ],
     "strategy_revision": "OWNER_PLAN_REVISION_20261024",
     "r2_reference_routes": 3,
-    "r2_counts_not_additive_to_baseline_slices": true
+    "r2_counts_not_additive_to_baseline_slices": true,
+    "reference_revision": "P36",
+    "previous_9_8_8_superseded": true,
+    "numeric_rubric_acceptance_pending": true
   },
   "catalog_export_lookup": {
     "searched_library_read_only": true,
@@ -3069,6 +3107,25 @@
       "current_prices_or_availability_collected": false,
       "hotel_page_prices_or_weather_not_used_as_current_tour_facts": true,
       "details_in_private_artifact_member": "existing-post-review/h10/content.json"
+    },
+    "P36": {
+      "checked_at_utc": "2026-10-24T22:32:37.911Z",
+      "canonical_archive_read_only_version": 92,
+      "canonical_index_SHA256": "e3ec73f149fe4b4646adc9ee30fc3bdf19db70bdcccda5a32f9680bc355a669a",
+      "fresh_public_pages": 3,
+      "selected_original_photos": 5,
+      "existing_export_period": [
+        "2026-09-23",
+        "2026-10-22"
+      ],
+      "last7_period": [
+        "2026-10-16",
+        "2026-10-22"
+      ],
+      "current_ON_not_verified": true,
+      "own_ads_not_wordstat": true,
+      "full_export_repeated": false,
+      "private_source_materials_only_in_Library": true
     }
   },
   "name_proposal_audit": {
@@ -7951,7 +8008,7 @@
     "same_workstream": true,
     "no_new_queue": true,
     "unit_of_completion": "Связка спрос → релевантный пост и фото → конкретная кнопка → существующий бот с сохранённым контекстом → квалифицированное обращение.",
-    "current_step": "S3_REVIEW_PACKET_EXTENSION",
+    "current_step": "S2_REWORK_REVIEWABLE_MATCHED_PREPARATION_NEXT",
     "stages": [
       {
         "id": "S1",
@@ -8028,21 +8085,21 @@
       "Manager2/constructor/SEARCH/INT/LOCAL/MATCH,pausedlearningCRM,models/budgets/settings unchanged.Wordstat/ASRblockers unchanged,notretried.No fullCI/Direct/nativebaseline reruns."
     ],
     "artifact_library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
-    "artifact_version": 14,
+    "artifact_version": 15,
     "plan_member": "existing-post-review/p34/plan.json",
     "plan_SHA256": "079d14dcf69eab1b5bdd8722c4f849b61560486bb80804f3263641b16785fc70",
     "readable_plan_library_file_id": "libfile_c1f06826dd408191bed3e0cb8103e379",
-    "readable_plan_version": 14,
+    "readable_plan_version": 15,
     "explicit_handoff": {
-      "from_context": "P35_same_executor_interactive_and_scheduled_continuation",
+      "from_context": "P36_same_executor_interactive_owner_approved_rework",
       "to_existing_automation": "6ada8f0084888191b12c6619c12fb35c",
       "same_executor": true,
       "no_parallel_package": true,
-      "source_claim_issue55_comment_id": 6389691638,
-      "start_at": "S3_REVIEW_PACKET_EXTENSION",
-      "instruction": "P35 S1/S2 is prepared and saved. Continue the same packet from current P35 audit/routes toward up to10 suitable review routes; do not replay S1/S2 or resume archive-order R058/R059 without new evidence."
+      "source_claim_issue55_comment_id": 6390198047,
+      "start_at": "P36_MATCHED_PREPARATION_NEXT",
+      "instruction": "After own P36 RELEASE continue the same packet from current P36, first narrow-intent saved-data fit/destinations; do not replay P35/P36 or mass-grow on superseded9/8/8."
     },
-    "automation_prompt_revision": "OWNER_PLAN_REVISION_20261024",
+    "automation_prompt_revision": "P36_REWORK_SAME3_CURRENT_OVER_P34_HISTORICAL_NEXT_ACTION",
     "automation_prompt_verified": true,
     "automation_schedule_and_enabled_unchanged": true,
     "validation": {
@@ -8108,8 +8165,18 @@
     },
     "stage_progress": {
       "S1": "BOUNDED_AUDIT10_DONE_WITH_IDENTITY_AND_SOURCE_GAPS_RETAINED",
-      "S2": "THREE_EDITORIAL_REFERENCE_ROUTES_PREPARED_NOT_OWNER_ACCEPTED_OR_NATIVE_VERIFIED",
-      "S3": "NEXT_PREPARATION"
+      "S2": "SAME_THREE_REWORK_REVIEWABLE_NOT_NUMERICALLY_ACCEPTED_OR_NATIVE_VERIFIED",
+      "S3": "MATCHED_PREPARATION_ONLY_NO_AUTOMATIC_MASS_GROWTH"
+    },
+    "latest_owner_correction": {
+      "name": "P36",
+      "owner_instruction": "как сам оцениваешь? тебе все нравится? -> давай",
+      "client_date": "2026-10-25",
+      "same_three_before_growth": true,
+      "old_9_8_8_superseded": true,
+      "not_a_new_queue": true,
+      "reviewable_rework_not_publication": true,
+      "numeric_acceptance_pending": true
     }
   },
   "plan_revision_operation": {
@@ -8169,6 +8236,78 @@
       13,
       13
     ],
+    "model_budget_schedule_enabled_changes": false,
+    "current_S2_acceptance_superseded_by": "P36_rework_numeric_acceptance_pending"
+  },
+  "reference_rework_operation": {
+    "state": "DONE_VERIFIED_REVIEWABLE_REWORK_NOT_PUBLICATION",
+    "idempotency_key": "P36-same3-rework-20261025-v1",
+    "completed_at_utc": "2026-10-24T22:32:37.911Z",
+    "revised_routes": 3,
+    "revised_caption_variants": 3,
+    "new_covers": 3,
+    "selected_source_photos": 5,
+    "new_selected_source_downloads": 4,
+    "reused_selected_source_photos": 1,
+    "canonical_claim_refs": 6,
+    "source_archive_version": 92,
+    "native_post_candidates_added": 0,
+    "new_IDs": 0,
+    "native_writes": 0,
+    "paid_changes": 0,
+    "real_bot_path_tested": false,
+    "previous_scores_superseded": true,
+    "numeric_editorial_acceptance_pending": true,
+    "all_five_library_saves_verified": true,
+    "versions_after": [
+      69,
+      70,
+      50,
+      15,
+      15
+    ],
+    "prior_versions": [
+      68,
+      69,
+      49,
+      14,
+      14
+    ],
+    "validation": {
+      "base": {
+        "bytes": 536866134,
+        "cap": 536870912,
+        "entries": 1060,
+        "unowned_prior_members_crc_bytes_preserved": 1056,
+        "unchanged_raw_compressed_records_exact": true,
+        "raw_SHA256": "42eb150e0e1e6dc894325858032ab6969feb891c696d6c2ed1d3e4edba75272b",
+        "owned_members": [
+          "existing-post-review/anytour-existing-posts-review-20261023.html",
+          "existing-post-review/current-continuation.json",
+          "funnel-content-preparation.json",
+          "report.html"
+        ],
+        "current_stage_members_readback_equal": true,
+        "owned_preparation_JSON_minified_losslessly": true,
+        "other_preparation_root_fields_semantically_preserved": true
+      },
+      "companion": {
+        "entries": 282,
+        "bytes": 49903004,
+        "prior_nonpreview_members_byte_preserved": 251,
+        "current_preview_exact": true,
+        "all_new_members_exact": true
+      },
+      "responsive_widths": [
+        320,
+        390,
+        736,
+        1440
+      ],
+      "local_CTA_toggles_only": true,
+      "source_photograph_bytes_preserved": true,
+      "caption_and_binding_hashes_match": true
+    },
     "model_budget_schedule_enabled_changes": false
   }
 }
