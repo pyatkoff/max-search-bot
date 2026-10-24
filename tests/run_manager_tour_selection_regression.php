@@ -109,6 +109,43 @@ $pdo->exec('UPDATE conversations SET manager_id=8 WHERE id=1');
 tsCheck('draft workflow never changes customer transcript shifts or read markers',tsState()===$before);
 // Actual HTTP endpoint and unmodified Manager auth/CSRF use isolated fixtures.
 require_once __DIR__.'/support/manager-tour-collector.php';
+
+// Optional trip proposal uses the existing start boundary; it never writes a draft.
+require_once dirname(__DIR__).'/services/ManagerTourSelectionTripContext.php';
+$row=static fn($id,$status,$value)=>['ID'=>$id,'UF_STATUS'=>$status,'UF_VALUE'=>$value];
+$rows=[$row(17,73,'05.06.2027'),$row(16,72,'7'),$row(15,69,'0, 6'),$row(14,68,'2'),$row(13,67,'2'),$row(12,66,'4'),$row(11,65,'1'),$row(10,64,''),$row(9,66,'8')];
+$project=static fn($rows,$binding=[8,1])=>ManagerTourSelectionTripContext::project($rows,$binding,'2026-10-24',static fn($id)=>'Москва',static fn($id)=>'Турция');
+$proposal=$project($rows);
+tsCheck('trip exact fields preserve infant and omit all quote fields',$proposal['fields']===['departure'=>'Москва','destination'=>'Турция','adults'=>2,'child_ages'=>[0,6],'date_from'=>'2027-06-05','nights'=>7]&&!isset($proposal['fields']['amount']));
+tsCheck('trip fields cannot claim current enquiry from wizard start',$proposal['state']==='saved'&&strlen($proposal['revision'])===64);
+tsCheck('missing start refuses historical values',$project([$row(9,65,'1')])['fields']===[]);
+tsCheck('new empty start cannot inherit old values',$project([$row(20,64,''),...$rows])['fields']===[]);
+$r=$rows;$r[0]['UF_VALUE']='05.06.2025';tsCheck('past date is shown but never seeds a past offer',!isset($project($r)['fields']['date_from'])&&$project($r)['state']==='historical');
+$r=$rows;$r[1]['UF_VALUE']='7-10';tsCheck('night range never invents exact offer duration',!isset($project($r)['fields']['nights']));
+$r=$rows;$r[2]['UF_VALUE']='6';tsCheck('age mismatch prevents apparently complete adult-only seed',!isset($project($r)['fields']['adults'])&&!isset($project($r)['fields']['child_ages']));
+$r=$rows;$r[4]['UF_VALUE']='2oops';tsCheck('malformed stored adult count is not silently cast',!isset($project($r)['fields']['adults']));
+$r=$rows;$r[5]['UF_VALUE']='5';tsCheck('raw state change invalidates revision even with identical directory label',$project($r)['revision']!==$proposal['revision']);
+tsCheck('actor assignment selection bindings affect trip revision',$project($rows,[90,1])['revision']!==$proposal['revision']);
+$pdo->exec("CREATE TABLE runtime_dialogue_state(id INTEGER PRIMARY KEY,project_key TEXT,chat_id TEXT,status_id INTEGER,value_text TEXT);CREATE TABLE catalog_departures(id INTEGER,name TEXT,is_active INTEGER);CREATE TABLE catalog_countries(id INTEGER,name TEXT,is_active INTEGER);INSERT INTO catalog_departures VALUES(1,'Москва',1);INSERT INTO catalog_countries VALUES(4,'Турция',1);UPDATE projects SET project_key='anytour' WHERE id=1;UPDATE conversations SET project_key='anytour',external_chat_id='trip-fixture' WHERE id=1;");
+(new ReflectionProperty(HotelDatabase::class,'pdo'))->setValue(null,$pdo);
+foreach(array_reverse(array_slice($rows,0,8)) as $r){$q=$pdo->prepare('INSERT INTO runtime_dialogue_state VALUES(?,?,?,?,?)');$q->execute([$r['ID'],'anytour','trip-fixture',$r['UF_STATUS'],$r['UF_VALUE']]);}
+$state=tsState();$draftState=ManagerTourSelectionService::get(8,1);$counts=$pdo->query('SELECT COUNT(*) FROM manager_tour_selection_operations')->fetchColumn();
+$trip=ManagerTourSelectionTripContext::read(8,1);
+tsCheck('authorized actual readonly trip projection does not alter business or drafts',$trip['ok']&&$trip['trip']['fields']['departure']==='Москва'&&tsState()===$state&&ManagerTourSelectionService::get(8,1)===$draftState&&$pdo->query('SELECT COUNT(*) FROM manager_tour_selection_operations')->fetchColumn()===$counts);
+$rev=$trip['trip']['revision'];
+tsCheck('trip application requires explicit confirmation',ManagerTourSelectionTripContext::read(8,1,$rev,false)['error']==='trip_changed');
+tsCheck('confirmed unchanged trip returns same six seed fields',ManagerTourSelectionTripContext::read(8,1,$rev,true)['trip']['fields']===$trip['trip']['fields']);
+$pdo->exec("UPDATE runtime_dialogue_state SET value_text='3' WHERE status_id=67");
+tsCheck('changed trip cannot apply stale proposal',ManagerTourSelectionTripContext::read(8,1,$rev,true)['error']==='trip_changed');
+$pdo->exec("UPDATE runtime_dialogue_state SET value_text='2' WHERE status_id=67;INSERT INTO messages VALUES(12,1,'New synthetic enquiry')");
+tsCheck('new message invalidates shown trip basis',ManagerTourSelectionTripContext::read(8,1,$rev,true)['error']==='trip_changed');$pdo->exec('DELETE FROM messages WHERE id=12');
+tsCheck('foreign and inactive trip readers are denied',ManagerTourSelectionTripContext::read(9,1)['error']==='not_found'&&ManagerTourSelectionTripContext::read(10,1)['error']==='unauthorized');
+tsCheck('readonly colleague cannot request seed',ManagerTourSelectionTripContext::read(7,1)['error']==='forbidden');
+$pdo->exec('UPDATE conversation_sources SET is_active=0 WHERE id=1');tsCheck('inactive source stops trip projection',empty(ManagerTourSelectionTripContext::read(8,1)['ok']));$pdo->exec('UPDATE conversation_sources SET is_active=1 WHERE id=1');
+$pdo->beginTransaction();tsCheck('borrowed transaction is refused without consuming it',ManagerTourSelectionTripContext::read(8,1)['error']==='trip_unavailable'&&$pdo->inTransaction());$pdo->rollBack();
+$pdo->exec("INSERT INTO runtime_dialogue_state VALUES(30,'anytour','trip-fixture',64,'')");tsCheck('new saved trip invalidates old seed',ManagerTourSelectionTripContext::read(8,1,$rev,true)['error']==='trip_changed');
+$pdo->exec("UPDATE projects SET project_key='notes-fixture' WHERE id=1;UPDATE conversations SET project_key='notes-fixture',external_chat_id=NULL WHERE id=1;");HotelDatabase::resetForTests();
+
 $httpRoot=sys_get_temp_dir().'/manager-tour-selection-http-'.bin2hex(random_bytes(8));
 mkdir($httpRoot,0700);mkdir($httpRoot.'/manager',0700);mkdir($httpRoot.'/sessions',0700);$process=null;$httpDb=null;
 try {
@@ -136,6 +173,12 @@ try {
     $login=$request([],'','GET','/manager/fixture-session.php?id=8');$cookie=$login['cookie'];$base=['conversation_id'=>1,'csrf'=>'selection-synthetic-csrf'];
     tsCheck('actual selection endpoint requires CSRF403',$request(['action'=>'get','conversation_id'=>1],$cookie)['status']===403);
     tsCheck('actual selection endpoint requires POST405',$request([],$cookie,'GET')['status']===405);
+    foreach(['trip_context','trip_apply'] as $tripAction){
+        tsCheck('actual '.$tripAction.' rejects anonymous before reading conditions',$request(['action'=>$tripAction,'conversation_id'=>1])['status']===401);
+        tsCheck('actual '.$tripAction.' requires CSRF before reading conditions',$request(['action'=>$tripAction,'conversation_id'=>1],$cookie)['status']===403);
+    }
+    tsCheck('actual unsupported trip context returns unavailable503',$request(['action'=>'trip_context']+$base,$cookie)['status']===503);
+    tsCheck('actual trip apply rejects a missing revision409',$request(['action'=>'trip_apply','confirm_current_trip'=>true]+$base,$cookie)['status']===409);
     $write=['action'=>'save','version'=>0,'draft'=>$draft,'operation_id'=>'http-selection-create-stable-001']+$base;
     $created=$request($write,$cookie);tsCheck('actual selection HTTP create and stable replay',$created['status']===200&&$created['body']['selection']['version']===1&&$request($write,$cookie)['body']===$created['body']);
     $colleague=$request([],'','GET','/manager/fixture-session.php?id=7')['cookie'];

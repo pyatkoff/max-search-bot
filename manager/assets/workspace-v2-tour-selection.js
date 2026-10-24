@@ -3,7 +3,7 @@
 const W=window.WorkspaceV2,{S,$,esc}=W,endpoint='tour-selections-api.php';
 let dialog=null,context=null,epoch=0,version=0,draft=null,selected='',canEdit=false,dirty=false,busy=false,loading=false,pending=null,conflict=null,timer=0,returnFocus=null,rawAges={};
 const sessions=new Map();
-let comparison=null;
+let comparison=null,tripPanel=null;
 let publication=null,preview=false,sending=false,photoFailures=0,photoPending=0,photoEpoch=0,sharing=false,interestLoading=false;
 function actor(){return S.authExpired?0:Number(S.manager?.id||0)}
 function capture(c=S.detail?.conversation){return {actor:actor(),conversation:Number(c?.id||0),auth:Number(S.authGeneration||0),open:Number(window.WorkspaceV2Conversation?.getOpenGeneration?.()||0)}}
@@ -36,8 +36,8 @@ async function request(action,data={}){
     return token===epoch&&current(target)?result:{ok:false,error:'stale_context'};
   }catch(e){return {ok:false,error:current(target)?'network_error':'stale_context'}}finally{clearTimeout(timeout)}
 }
-function close(){clearTimeout(timer);timer=0;stash();if(dialog?.open)dialog.close()}
-function suspend(){stash();clearTimeout(timer);timer=0;epoch++;context=null;draft=null;pending=null;conflict=null;comparison=null;dirty=false;busy=false;loading=false;canEdit=false;publication=null;preview=false;sending=false;sharing=false;if(dialog?.open)dialog.close();$('tourSelectionOpen')?.remove()}
+function close(){tripPanel=null;clearTimeout(timer);timer=0;stash();if(dialog?.open)dialog.close()}
+function suspend(){tripPanel=null;stash();clearTimeout(timer);timer=0;epoch++;context=null;draft=null;pending=null;conflict=null;comparison=null;dirty=false;busy=false;loading=false;canEdit=false;publication=null;preview=false;sending=false;sharing=false;if(dialog?.open)dialog.close();$('tourSelectionOpen')?.remove()}
 function activate(){if(context&&!current())suspend()}
 function sync(c){
   if(context&&!current())suspend();
@@ -58,6 +58,7 @@ function ensure(){
   dialog.innerHTML=`<div class="tsShell"><header class="tsHead"><div><span class="tsKicker">Подборка туров</span><h2 id="tsTitle"></h2><p id="tsRecipient"></p></div><button id="tsClose" type="button" class="tsClose" aria-label="Закрыть подборку">×</button></header><div id="tsStatus" class="tsStatus" role="status" aria-live="polite"></div><div id="tsRecovery" class="tsRecovery" hidden></div><div class="tsLayout"><aside class="tsSidebar"><div class="tsListHead"><strong id="tsCount">Варианты</strong><button id="tsAdd" type="button">+ Добавить</button></div><div id="tsList" class="tsList"></div><div class="tsSidebarHint">Черновик сохраняется для этого клиента. Добавление варианта ничего не отправляет.</div></aside><main id="tsEditor" class="tsEditor"></main></div><footer class="tsFooter"><span id="tsSaved">Загружаем черновик…</span><button id="tsSave" type="button" class="tsPrimary">Сохранить</button><button id="tsDone" type="button">Готово</button></footer></div>`;
   document.body.appendChild(dialog);
   const footer=dialog.querySelector('.tsFooter');
+  const tripButton=document.createElement('button');tripButton.id='tsTripAdd';tripButton.type='button';tripButton.textContent='Добавить по условиям поездки';tripButton.onclick=showTrip;dialog.querySelector('.tsListHead').after(tripButton);
   const collector=document.createElement('button');collector.id='tsCollector';collector.type='button';collector.textContent='Сборщик FUN&SUN';collector.onclick=()=>{if(current()&&canEdit)window.open('tour-selection-collector.php?conversation_id='+context.conversation,'_blank','noopener')};dialog.querySelector('.tsSidebarHint').append(collector);
   for(const [name,label,handler] of [['tsHistory','История отправки',showHistory],['tsPreview','Предпросмотр',showPreview],['tsEdit','К редактированию',()=>{preview=false;render()}],['tsShare','Общая ссылка',showShare],['tsSend','Отправить подборку',sendAll]]){const button=document.createElement('button');button.id=name;button.type='button';button.textContent=label;button.onclick=handler;footer.insertBefore(button,$('tsDone'))}
   $('tsClose').onclick=close;$('tsDone').onclick=()=>{if(preview)close();else if(dirty&&!busy&&!pending&&!conflict)void save();else close()};$('tsSave').onclick=()=>save();$('tsAdd').onclick=add;
@@ -69,7 +70,7 @@ function ensure(){
 }
 async function open(c){
   if(!actor()||Number(c.id)!==Number(S.current))return;
-  close();epoch++;context=capture(c);version=0;draft=empty();selected='';dirty=false;busy=false;pending=null;conflict=null;comparison=null;rawAges={};canEdit=false;publication=null;preview=false;sending=false;sharing=false;interestLoading=false;restore();ensure();returnFocus=$('tourSelectionOpen')?.closest('details')?.querySelector('summary')||$('tourSelectionOpen');
+  close();tripPanel=null;epoch++;context=capture(c);version=0;draft=empty();selected='';dirty=false;busy=false;pending=null;conflict=null;comparison=null;rawAges={};canEdit=false;publication=null;preview=false;sending=false;sharing=false;interestLoading=false;restore();ensure();returnFocus=$('tourSelectionOpen')?.closest('details')?.querySelector('summary')||$('tourSelectionOpen');
   $('tsTitle').textContent=c.display_name||'Турист';$('tsRecipient').textContent=(c.channel==='telegram'?'Telegram':c.channel==='max'?'MAX':String(c.channel||''))+' · Сначала предпросмотр, затем отправка';
   render();if(!dialog.open)dialog.showModal();await load();
 }
@@ -82,6 +83,34 @@ async function load(){
   else if(snapshot.version!==version&&!pending){conflict=snapshot;if(comparison){draft=clone(snapshot.draft);rawAges={}}}
   render();status(!canEdit?'Просмотр. Править может ответственный менеджер или администратор.':dirty?'Восстановлены ваши несохранённые правки.':'Черновик загружен.');
   if(pending)recovery('pending');else if(conflict)recovery('conflict');
+}
+function validTrip(t){
+  if(!t||!['saved','historical','unbound'].includes(t.state)||typeof t.revision!=='string'||t.revision!==''&&!/^[a-f0-9]{64}$/.test(t.revision)||!t.fields||typeof t.fields!=='object'||Array.isArray(t.fields)||!Array.isArray(t.details)||!Array.isArray(t.warnings))return false;
+  if([...t.details,...t.warnings].some(x=>typeof x!=='string'||x.length>1200))return false;
+  return Object.entries(t.fields).every(([k,v])=>['destination','departure'].includes(k)?typeof v==='string'&&v.length<=160:k==='date_from'?typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v):k==='nights'?Number.isInteger(v)&&v>0&&v<=60:k==='adults'?Number.isInteger(v)&&v>0&&v<=20:k==='child_ages'?Array.isArray(v)&&v.length<=12&&v.every(x=>Number.isInteger(x)&&x>=0&&x<=17):false);
+}
+async function showTrip(){
+  if(!editable()||busy||draft.offers.length>=20)return;
+  const token=epoch,panel={trip:null};tripPanel=panel;busy=true;clearTimeout(timer);render();
+  const result=await request('trip_context');if(token!==epoch)return;busy=false;
+  if(tripPanel!==panel||!dialog.open){controls();return}
+  if(!result?.ok||!validTrip(result.trip)){tripPanel=null;render();status(result?.error==='trip_changed'?'Условия изменились. Откройте их заново.':'Не удалось загрузить условия поездки. Можно добавить предложение вручную.',true);return}
+  panel.trip=result.trip;render();
+}
+function renderTrip(){
+  const t=tripPanel.trip,editor=$('tsEditor');
+  editor.innerHTML='<section class="tsTripPanel"><h3>Последние сохранённые условия</h3><p>Проверьте по переписке, что это текущая поездка. Сохранённые параметры могут относиться к прежнему запросу.</p>'+(t?'<ul>'+[...(t.details||[]),...(t.warnings||[])].map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>':'<p>Загружаем условия…</p>')+(t?.revision&&Object.keys(t.fields||{}).length?'<label class="tsTripConfirm"><input id="tsTripConfirm" type="checkbox"> Это условия текущей поездки</label><button id="tsTripApply" type="button" class="tsPrimary" disabled>Добавить с этими условиями</button>':t?'<p>Нет подходящих сохранённых условий. Добавьте предложение вручную.</p>':'')+'<button id="tsTripCancel" type="button">Вернуться к редактору</button></section>';
+  $('tsTripCancel').disabled=busy;$('tsTripCancel').onclick=()=>{tripPanel=null;render();if(dirty)changed()};
+  if($('tsTripConfirm')){$('tsTripConfirm').disabled=busy;$('tsTripConfirm').onchange=()=>{$('tsTripApply').disabled=busy||!$('tsTripConfirm').checked};$('tsTripApply').onclick=applyTrip;}
+}
+async function applyTrip(){
+  const panel=tripPanel;if(!panel?.trip?.revision||!$('tsTripConfirm')?.checked||!editable()||busy||draft.offers.length>=20)return;
+  const token=epoch;busy=true;render();
+  const result=await request('trip_apply',{revision:panel.trip.revision,confirm_current_trip:true});if(token!==epoch)return;busy=false;
+  if(tripPanel!==panel||!dialog.open){controls();return}
+  if(!result?.ok||!validTrip(result.trip)||result.trip.revision!==panel.trip.revision){tripPanel=null;render();status(result?.error==='trip_changed'?'Условия поездки или подборка изменились. Откройте условия заново.':'Не удалось проверить условия поездки. Ваши варианты сохранены.',true);return}
+  const offer=newOffer();for(const key of ['destination','departure','date_from','nights','adults','child_ages'])if(Object.hasOwn(result.trip.fields,key))offer[key]=clone(result.trip.fields[key]);
+  tripPanel=null;draft.offers.push(offer);selected=offer.id;changed();render();$('ts-hotel')?.focus();
 }
 function newOffer(){return {id:id(),selected:true,hotel:'',destination:'',departure:'',room:'',meal:'',source_label:'',rationale:'',compromise:'',flights:'',inclusions:'',constraints:'',stars:null,nights:null,adults:null,date_from:'',child_ages:[],amount:'',currency:'RUB',source_url:'',observed_at:'',photos:[]}}
 function add(){if(!editable()||draft.offers.length>=20)return;const item=newOffer();draft.offers.push(item);selected=item.id;changed();render();$('ts-hotel')?.focus()}
@@ -146,9 +175,11 @@ function renderList(){
 }
 function render(){
   if(!draft||!dialog)return;
+  dialog.classList.toggle('tsTripMode',!!tripPanel);
   if(preview&&publication){renderPreview();controls();return}
   dialog.classList.remove('tsPreviewMode');
   if(!item())selected=draft.offers[0]?.id||'';renderList();const editor=$('tsEditor'),offer=item();
+  if(tripPanel){renderTrip();controls();return}
   if(!offer){editor.innerHTML='<div class="tsEmpty"><span aria-hidden="true">＋</span><h3>Соберите подборку для клиента</h3><p>Добавьте найденный тур, укажите условия и общую цену. Варианты сохранятся здесь отдельно от переписки.</p><button type="button" id="tsEmptyAdd" class="tsPrimary">Добавить предложение</button></div>';$('tsEmptyAdd').onclick=add;controls();return}
   editor.innerHTML=`<div class="tsEditorHead"><h3>Условия предложения</h3><div class="tsOrder"><button type="button" data-ts-action="up" aria-label="Поднять предложение">↑</button><button type="button" data-ts-action="down" aria-label="Опустить предложение">↓</button><button type="button" data-ts-action="remove">Удалить</button></div></div><label class="tsInclude"><input data-ts-field="selected" type="checkbox" ${offer.selected?'checked':''}> Включить в подборку</label><div class="tsFields">${input('hotel','Название отеля','text','maxlength="191"')}${input('stars','Звёздность','number','min="0" max="5"')}${input('destination','Страна и курорт','text','maxlength="160"')}${input('departure','Вылет из','text','maxlength="160"')}${input('date_from','Дата вылета','date')}${input('nights','Ночей','number','min="1" max="60"')}${input('adults','Взрослых','number','min="1" max="20"')}${input('child_ages','Возраст детей через запятую','text','inputmode="numeric" placeholder="Например, 4, 10" maxlength="60"')}${input('room','Номер и размещение','text','maxlength="300"')}${input('meal','Питание','text','maxlength="160"')}${input('amount','Цена за всех','text','inputmode="decimal" placeholder="Например, 240000" maxlength="12"')}<label for="ts-currency">Валюта<select id="ts-currency" data-ts-field="currency">${['RUB','EUR','USD'].map(v=>`<option ${offer.currency===v?'selected':''}>${v}</option>`).join('')}</select></label>${textarea('rationale','Почему рекомендуем')}${textarea('compromise','Что важно учесть')}</div><details class="tsDetails"><summary>Источник и дополнительные условия</summary><div class="tsFields">${input('source_label','Туроператор или источник','text','maxlength="160"')}${input('source_url','Ссылка на предложение','url','maxlength="2048" placeholder="https://…"')}${textarea('flights','Перелёт и багаж')}${textarea('inclusions','Что включено')}${textarea('constraints','Непроверенные условия и доплаты')}</div></details><p class="tsPriceHint">Сохранение черновика не подтверждает актуальность цены. Перед отправкой условия потребуется проверить.</p>`;
   const grouping=document.createElement('section');grouping.id='tsGrouping';grouping.className='tsGrouping';editor.insertBefore(grouping,editor.querySelector('.tsDetails'));renderGrouping();
@@ -161,7 +192,7 @@ function render(){
 function controls(){
   if(!dialog)return;const disabled=!editable();
   $('tsAdd').disabled=disabled||busy||(draft?.offers.length||0)>=20;$('tsSave').disabled=disabled||busy||!dirty||invalidAges();$('tsDone').disabled=busy||loading||(!preview&&invalidAges());
-  $('tsSaved').textContent=busy?'Сохраняем…':pending?'Результат сохранения уточняется':conflict?'Есть конфликт правок':dirty?'Не все изменения сохранены':version?'Сохранено на сервере':'Новый черновик';
+  $('tsSaved').textContent=busy?(tripPanel?'Проверяем условия поездки…':'Сохраняем…'):pending?'Результат сохранения уточняется':conflict?'Есть конфликт правок':dirty?'Не все изменения сохранены':version?'Сохранено на сервере':'Новый черновик';
   $('tsEditor')?.querySelectorAll('input,textarea,select,[data-ts-action],#tsEmptyAdd').forEach(x=>{x.disabled=disabled||busy});
   $('tsSave').hidden=preview;$('tsPreview').hidden=preview;$('tsEdit').hidden=!preview;$('tsSend').hidden=!preview;$('tsHistory').hidden=preview;
   $('tsCollector').hidden=preview;$('tsCollector').disabled=!canEdit||busy||loading||sending||sharing;
@@ -170,6 +201,8 @@ function controls(){
   if($('tsInterest')){$('tsInterest').disabled=busy||loading||sending||sharing||interestLoading;$('tsInterest').textContent=interestLoading?'Загружаем активность…':'Активность подборки'}
   const publish=$('tsPublish');if(publish)publish.disabled=!canEdit||busy||sending||sharing||dirty||!!pending||!!conflict||photoPending>0||photoFailures>0;
   if(sharing){$('tsEdit').disabled=true;$('tsDone').disabled=true}else $('tsDone').disabled=false;
+  $('tsTripAdd').hidden=preview;$('tsTripAdd').disabled=disabled||busy||!!tripPanel||(draft?.offers.length||0)>=20;
+  if(tripPanel){for(const id of ['tsAdd','tsSave','tsDone','tsPreview','tsHistory','tsCollector'])$(id).disabled=true;}
   const cards=publication?.cards||[],unknown=cards.some(x=>['reserved','unknown'].includes(x.state)),known=cards.some(x=>x.state==='known'),remaining=cards.filter(x=>x.state!=='delivered').length;
   $('tsSend').disabled=sending||sharing||!publication?.can_send||unknown||!remaining||photoFailures>0||photoPending>0;
   $('tsSend').textContent=sending?'Отправляем…':unknown?'Результат неизвестен':photoPending?'Загружаем фото…':known?'Проверить доставку':remaining?'Отправить варианты ('+remaining+')':'Подборка отправлена';

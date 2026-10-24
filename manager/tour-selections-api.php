@@ -7,6 +7,7 @@ require_once dirname(__DIR__).'/services/ManagerTourSelectionDeliveryService.php
 require_once dirname(__DIR__).'/services/ManagerTourSelectionShareService.php';
 require_once dirname(__DIR__).'/services/ManagerTourSelectionCollectorSession.php';
 require_once dirname(__DIR__).'/services/ManagerTourSelectionInterestService.php';
+require_once dirname(__DIR__).'/services/ManagerTourSelectionTripContext.php';
 ManagerHttp::startJson(); $manager=ManagerHttp::requireManager();
 if (($_SERVER['REQUEST_METHOD']??'')!=='POST') ManagerHttp::respond(['ok'=>false,'error'=>'method_not_allowed'],405);
 $data=ManagerHttp::body(); ManagerHttp::requireCsrf($data);
@@ -21,6 +22,8 @@ try {
         'collector_revoke'=>ManagerTourSelectionCollectorSession::revoke((int)$manager['id'],$id,$collectorSession),
         'collector_import'=>ManagerTourSelectionService::import((int)$manager['id'],$id,$collectorSession,$data),
         'collector_operation'=>ManagerTourSelectionService::importOperation((int)$manager['id'],$id,$collectorSession,$data),
+        'trip_context'=>ManagerTourSelectionTripContext::read((int)$manager['id'],$id),
+        'trip_apply'=>is_string($data['revision']??null)?ManagerTourSelectionTripContext::read((int)$manager['id'],$id,$data['revision'],($data['confirm_current_trip']??false)===true):['ok'=>false,'error'=>'trip_changed'],
         'get'=>ManagerTourSelectionService::get((int)$manager['id'],$id),
         'save'=>ManagerTourSelectionService::save((int)$manager['id'],$id,$data),
         'operation'=>ManagerTourSelectionService::operation((int)$manager['id'],$id,is_string($data['operation_id']??null)?$data['operation_id']:''),
@@ -37,5 +40,5 @@ try {
     error_log('MANAGER_TOUR_SELECTION_FAILURE '.get_class($e));
     ManagerHttp::respond(['ok'=>false,'error'=>'storage_unavailable'],503);
 }
-$status=!empty($result['ok'])?200:match($result['error']??'') {'unauthorized'=>401,'forbidden'=>403,'not_found'=>404,'conflict','operation_mismatch','share_changed','trip_changed','connection_changed','source_price_changed','ambiguous_offer'=>409,'unknown_action'=>400,default=>422};
+$status=!empty($result['ok'])?200:match($result['error']??'') {'unauthorized'=>401,'forbidden'=>403,'not_found'=>404,'conflict','operation_mismatch','share_changed','trip_changed','connection_changed','source_price_changed','ambiguous_offer'=>409,'unknown_action'=>400,'trip_unavailable'=>503,default=>422};
 ManagerHttp::respond($result,$status);
