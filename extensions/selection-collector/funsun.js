@@ -3,6 +3,13 @@
 const fields=['TOWNFROMINC','STATEINC','CHECKIN_BEG','CHECKIN_END','NIGHTS_FROM','NIGHTS_TILL','ADULT','CHILD','CURRENCY','PROGRAMINC'];
 const clean=s=>String(s||'').replace(/\s+/gu,' ').trim();
 const fail=message=>{throw new Error(message)};
+const canonicalKey=value=>/^[1-9]\d{0,11}$/.test(value||'')?value:null;
+function rowKey(row,attr,classPrefix){
+ const raw=row.getAttribute('data-'+attr),data=canonicalKey(raw);
+ const classes=[...new Set(Array.from(row.classList).map(value=>value.startsWith(classPrefix)?canonicalKey(value.slice(classPrefix.length)):null).filter(Boolean))];
+ if(classes.length>1||(data&&classes.length===1&&data!==classes[0])||(raw!==null&&raw!==''&&!data))fail('В строке расходятся точные идентификаторы условий.');
+ const value=data||classes[0];if(!value)fail('В строке нет точного идентификатора условий.');return value;
+}
 const date=s=>{const m=/^(\d{2})\.(\d{2})\.(\d{4})$/.exec(s||'');if(!m)return null;const iso=m[3]+'-'+m[2]+'-'+m[1];const d=new Date(iso+'T00:00:00Z');return !isNaN(d)&&d.toISOString().slice(0,10)===iso?iso:null};
 const dayKey=iso=>iso?.replaceAll('-','');
 const text=(row,selector)=>{const nodes=row.querySelectorAll(selector);if(nodes.length!==1)fail('Изменилась строка предложения. Добавьте тур вручную.');const e=nodes[0];if(e.closest('[hidden],[aria-hidden="true"]'))fail('Поле скрыто. Импорт остановлен.');return clean(e.innerText??e.textContent)};
@@ -40,8 +47,8 @@ function observe(doc){
 function extract(doc,row,href,at=new Date().toISOString().replace(/\.\d{3}Z$/,'Z'),submitted=null){
  const f=form(doc,href,submitted),v=f.values;
  if(!row?.matches('tr.price_info')||row.closest('[hidden],[aria-hidden="true"]'))fail('Выберите отображённую строку предложения.');
- const attrs={hotel:'hotel',room:'room',meal:'meal',placement:'htplace',tour:'tour',program:'ptype',departure:'townfrom',country:'state'},keys={};
- for(const [key,attr]of Object.entries(attrs)){const value=row.getAttribute('data-'+attr);if(!/^[1-9]\d{0,11}$/.test(value||''))fail('В строке нет точного идентификатора условий.');keys[key]=value}
+ const attrs={hotel:['hotel','hotelKey-'],room:['room','roomKey-'],meal:['meal','mealKey-'],placement:['htplace','htPlaceKey-'],tour:['tour','tourKey-'],program:['ptype','programTypeKey-'],departure:['townfrom','townFromKey-'],country:['state','stateKey-']},keys={};
+ for(const [key,[attr,classPrefix]]of Object.entries(attrs))keys[key]=rowKey(row,attr,classPrefix);
  const classes=Array.from(row.classList),spo=classes.map(x=>/^spoKey-([1-9]\d*)$/.exec(x)).find(Boolean);if(!spo)fail('Не определён тариф предложения.');keys.spo=spo[1];
  const checkin=row.getAttribute('data-checkin'),nights=Number(row.getAttribute('data-nights'));
  const day=text(row,'.arrival .samo_format_date'),dayNode=row.querySelector('.arrival .samo_format_date'),iso=date(dayNode?.getAttribute('data-date'));
