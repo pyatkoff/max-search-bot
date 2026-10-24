@@ -21,7 +21,7 @@ function worker(db,server,{popupSupported=true}={}){
   storage:{local:{async get(keys){return Object.fromEntries(keys.filter(k=>k in db).map(k=>[k,clone(db[k])]))},async set(value){Object.assign(db,clone(value))}}},
   action:{async setBadgeText(){},...(popupSupported?{async openPopup(){}}:{})},
   alarms:{create(){},onAlarm:{addListener(fn){alarm=fn}}},
-  tabs:{async query({url}){return url.includes('fstravel')?[{id:20,url:to.url}]:current?[sender(current).tab]:[]},async create(){throw new Error('unexpected new tab')},async sendMessage(tab,message){
+  tabs:{async query({url}){return (Array.isArray(url)?url.some(x=>x.includes('fstravel')):url.includes('fstravel'))?[{id:20,url:to.url}]:current?[sender(current).tab]:[]},async create(){throw new Error('unexpected new tab')},async sendMessage(tab,message){
    if(tab===20)return;
    if(message.type==='bridge_reconnect'){await connect(current,false);return}
    if(message.type!=='bridge_command')throw new Error('unknown bridge message');
@@ -48,7 +48,7 @@ async function itemState(w,operation,state){await until(async()=>(await w.status
  require('node:child_process').execFileSync('python3',[__dirname+'/../extensions/selection-collector/build_package.py','--check'],{stdio:'pipe'});
  check('installable package matches actual extension sources',true);
  const manifest=JSON.parse(fs.readFileSync(__dirname+'/../extensions/selection-collector/manifest.json','utf8'));
- check('MV3 collector has no cookie credential or arbitrary-origin permissions',manifest.manifest_version===3&&manifest.permissions.join(',')==='storage,alarms'&&manifest.host_permissions.length===2&&manifest.host_permissions.every(x=>/^https:\/\/(?:b2b\.fstravel\.com\/search_tour|app\.anytoour\.ru\/manager\/tour-selection-collector\.php)\*$/.test(x)));
+ check('MV3 collector has no cookie credential or arbitrary-origin permissions',manifest.manifest_version===3&&manifest.permissions.join(',')==='storage,alarms'&&manifest.host_permissions.length===3&&manifest.host_permissions.every(x=>/^https:\/\/(?:b2b\.fstravel\.com\/search_tour|agent\.anextour\.ru\/search\/tour|app\.anytoour\.ru\/manager\/tour-selection-collector\.php)\*$/.test(x)));
  const db={},server=provider();let w=worker(db,server,{popupSupported:false});
  check('foreign page cannot read client identity or enqueue',(await w.send({type:'status'},{url:'https://evil.example/'})).ok===false&&(await w.send({type:'enqueue',observation:observation('x')},{url:'https://evil.example/'})).ok===false);
  check('TO content cannot read extension target',(await w.send({type:'status'},{url:'https://b2b.fstravel.com/search_tour'})).ok===false);
@@ -82,5 +82,12 @@ async function itemState(w,operation,state){await until(async()=>(await w.status
  const revoke=await stage(w,'Synthetic F');await w.disconnect();
  check('revoke blocks local pending rows and clears chosen target',db.target===null&&db.items.find(x=>x.operation_id===revoke).state==='blocked');
  check('disconnected collector refuses new observations',(await w.enqueue(observation('Synthetic G'))).ok===false);
+ const anexSender={url:'https://agent.anextour.ru/search/tour?ADULT=2',tab:{id:21}},anex={...observation('Synthetic ANEX'),adapter:'anex-agent-v1'};
+ check('ANEX cannot read client identity or borrow FUNSUN adapter',(await w.send({type:'status'},anexSender)).ok===false&&(await w.send({type:'enqueue',observation:observation('Spoof')},anexSender)).ok===false);
+ await w.connect(makeTarget());
+ check('FUNSUN cannot borrow ANEX adapter',(await w.enqueue(anex)).ok===false);
+ check('ANEX stages through the same durable destination queue',(await w.send({type:'enqueue',observation:anex},anexSender)).ok&&db.items.at(-1).state==='destination'&&server.creates===5);
+ const anexId=db.items.at(-1).operation_id;w=worker(db,server);await w.send({type:'confirm',operation_id:anexId});await itemState(w,anexId,'saved');
+ check('ANEX worker restart retains destination and uses canonical receipt then import',server.creates===6&&server.calls.filter(x=>x.operation_id===anexId).map(x=>x.action).join(',')==='operation,import');
  console.log('COLLECTOR WORKER TOTAL '+checks+' PASS');
 })().catch(error=>{console.error(error);process.exitCode=1});

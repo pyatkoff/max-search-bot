@@ -4,7 +4,7 @@ import sys
 import zipfile
 
 ROOT = Path(__file__).resolve().parent
-FILES = ("manifest.json", "background.js", "bridge.js", "funsun.js", "content.js",
+FILES = ("manifest.json", "background.js", "bridge.js", "funsun.js", "content.js", "anex.js", "anex-content.js",
          "content.css", "popup.html", "popup.js", "popup.css", "README.md")
 TARGET = ROOT / "anytour-selection-collector.zip"
 
