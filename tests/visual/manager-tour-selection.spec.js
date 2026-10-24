@@ -81,7 +81,7 @@ async function fixture(page,options={}){
     if(d.action==='prepare'){
       const built=JSON.parse(execFileSync('php',['-r',`require getcwd().'/services/ManagerTourSelectionPublicationDraft.php'; $draft=json_decode(stream_get_contents(STDIN),true); $result=ManagerTourSelectionPublicationDraft::build($draft); if ($result['ok']) foreach ($result['offers'] as &$offer) $offer['card']=TourOfferCardRenderer::render($offer['snapshot'],$offer['presentation'],'tour_like_1_'.str_repeat('a',24)); echo json_encode($result,JSON_THROW_ON_ERROR);`],{cwd:root,input:JSON.stringify(snapshot(d.conversation_id).draft),encoding:'utf8'}));
       if(!built.ok)return reply(built,422);
-      publication=publication||{id:'a'.repeat(32),draft_version:d.version,title:built.title,channel:'telegram',can_send:!options.readOnly,cards:built.offers.map((offer,i)=>({index:i,offer_id:i+1,state:'pending',snapshot:offer.snapshot,text:offer.card.plain_text,photos:[0,1,2].map(p=>'tour-selection-photo.php?publication_id='+'a'.repeat(32)+'&card='+i+'&photo='+p+'&conversation_id='+d.conversation_id)}))};
+      publication=publication||{id:'a'.repeat(32),draft_version:d.version,title:built.title,channel:options.channel||'telegram',can_send:!options.readOnly,cards:built.offers.map((offer,i)=>({index:i,offer_id:i+1,state:'pending',snapshot:offer.snapshot,text:offer.card.plain_text,photos:[0,1,2].map(p=>'tour-selection-photo.php?publication_id='+'a'.repeat(32)+'&card='+i+'&photo='+p+'&conversation_id='+d.conversation_id)}))};
       return reply({ok:true,publication:copy(publication)});
     }
     if(d.action==='interest')return reply(options.interest||{ok:false,error:'observations_unavailable'},options.interest?.ok?200:503);
@@ -223,12 +223,28 @@ const deliveryActions=['prepare','history','publication','send'];
 for(const width of [390,430,768,1440])test('selection customer preview and explicit send preserve composer at '+width,async({page,browserName})=>{
   await page.setViewportSize({width,height:900});const s=await fixture(page,{draft:completeDraft()});await page.locator('#replyText').fill('Мой ответ остаётся здесь');await open(page);
   await expect(page.locator('#ts-photo-cover')).toHaveValue('https://photos.example.org/cover.jpg');await page.locator('#tsPreview').click();await expect(page.locator('.tsPreviewCard')).toHaveCount(1);await expect(page.locator('.tsPhotos img')).toHaveCount(3);
+  expect(await page.locator('.tsCardText').textContent()).toBe(s.publication().cards[0].text);
+  await expect(page.locator('.tsCardTitle')).toHaveText('Синтетический отель у моря');await expect(page.locator('.tsCardPrice')).toHaveText('240 000 ₽ за 4 человека');
+  await expect(page.locator('.tsPhotoSlideshow')).toHaveCount(1);await expect(page.locator('.tsPhotoMosaic')).toHaveCount(0);
+  expect(await page.locator('.tsPhotos').evaluate(el=>el.scrollWidth>el.clientWidth*2.8)).toBe(true);
+  await page.locator('.tsPhotos').evaluate(el=>{el.scrollLeft=el.clientWidth});await expect.poll(()=>page.locator('.tsPhotos').evaluate(el=>Math.round(el.scrollLeft/el.clientWidth))).toBe(1);
+  await page.locator('.tsPhotos').evaluate(el=>{el.scrollLeft=0});
   await expect(page.locator('.tsCardText')).toContainText('240 000 ₽ за 4 человека');await expect(page.locator('.tsCardText')).toContainText('Топливный сбор необходимо проверить');expect(s.creations()).toBe(0);
   await expect(page.locator('#tsSend')).toBeEnabled();expect(await page.evaluate(()=>document.querySelector('#tourSelectionDialog').scrollWidth-document.querySelector('#tourSelectionDialog').clientWidth)).toBeLessThanOrEqual(1);
   await page.setViewportSize({width,height:420});await expect(page.locator('#tsSend')).toBeInViewport();await expect(page.locator('#tsClose')).toBeInViewport();await page.setViewportSize({width,height:900});
   await expect.poll(()=>s.pending.size).toBeLessThanOrEqual(2);fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-selection-preview-${browserName}-${width}.png`)});
   await page.locator('#tsSend').click();await expect(page.locator('#tsStatus')).toContainText('Подборка отправлена');expect(s.creations()).toBe(1);await expect(page.locator('.tsDeliveryState')).toHaveText('✓ Отправлен');await expect(page.locator('#tsSend')).toBeDisabled();
   await page.locator('#tsClose').click();await expect(page.locator('#replyText')).toHaveValue('Мой ответ остаётся здесь');await open(page);await page.locator('#tsHistory').click();await page.getByRole('button',{name:/Версия 1/}).click();await expect(page.locator('.tsDeliveryState')).toHaveText('✓ Отправлен');expect(s.creations()).toBe(1);await expect.poll(()=>s.pending.size).toBeLessThanOrEqual(2);clean(s,deliveryActions);
+});
+
+for(const width of [390,430,768,1440])test('selection MAX preview retains mosaic and escaped canonical caption at '+width,async({page,browserName})=>{
+  await page.setViewportSize({width,height:900});const draft=completeDraft();draft.offers[0].hotel='Отель <img src=x onerror=alert(1)> & море';draft.offers[0].constraints='<b>Доплату проверить</b>';
+  const s=await fixture(page,{draft,channel:'max'});await open(page);await page.locator('#tsPreview').click();
+  await expect(page.locator('.tsPhotoMosaic')).toHaveCount(1);await expect(page.locator('.tsPhotoSlideshow')).toHaveCount(0);
+  await expect(page.locator('.tsPhotos img')).toHaveCount(3);await expect(page.locator('.tsCardTitle')).toHaveText(draft.offers[0].hotel);await expect(page.locator('.tsCardPrice')).toHaveText('240 000 ₽ за 4 человека');
+  expect(await page.locator('.tsCardText').textContent()).toBe(s.publication().cards[0].text);await expect(page.locator('.tsCardText img,.tsCardText b,.tsCardText script')).toHaveCount(0);
+  expect(await page.locator('.tsPhotos').evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThanOrEqual(1);await expect(page.locator('#tsSend')).toBeEnabled();expect(s.creations()).toBe(0);
+  fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-selection-max-preview-${browserName}-${width}.png`)});clean(s,deliveryActions);
 });
 
 test('selection lost creation response checks saved result without another send',async({page})=>{
