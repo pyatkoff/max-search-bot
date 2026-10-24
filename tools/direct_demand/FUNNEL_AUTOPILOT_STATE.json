@@ -1,6 +1,6 @@
 {
   "schema": "anytour.funnel.autopilot_state.v1",
-  "updated_at_utc": "2026-10-24T22:32:37.911Z",
+  "updated_at_utc": "2026-10-24T23:42:07.614Z",
   "owner": "direct-demand-funnel",
   "automation": {
     "id": "6ada8f0084888191b12c6619c12fb35c",
@@ -9,7 +9,7 @@
     "timezone": "Europe/Kaliningrad",
     "enabled_verified_at_utc": "2026-10-22T22:39:46.922Z"
   },
-  "status": "R2_S2_REWORK3_REVIEWABLE_NUMERIC_ACCEPTANCE_AND_NATIVE_PATH_PENDING",
+  "status": "R2_P37_SAVED_INTENT_AUDIT_DONE_FAMILY_GENERIC_MATCH_HELD_AD_CREATIVE_GAP",
   "channel": null,
   "scope": {
     "prepare_catalog_matches": true,
@@ -650,22 +650,22 @@
     },
     "current_funnel_strategy": {
       "library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
-      "version": 15,
+      "version": 16,
       "revision": "OWNER_PLAN_REVISION_20261024",
       "plan_member": "existing-post-review/p34/plan.json",
       "initial_candidate_member": "existing-post-review/p34/initial-candidates.PRIVATE.json",
       "readable_plan_library_file_id": "libfile_c1f06826dd408191bed3e0cb8103e379",
-      "readable_plan_version": 15,
+      "readable_plan_version": 16,
       "review_member": "existing-post-review/p34/review.html",
-      "current_step": "S2_REWORK_REVIEWABLE_MATCHED_PREPARATION_NEXT",
+      "current_step": "P37_FIT_AUDIT_DONE_TWO_ROOM_ANGLE_AND_EXACT_AD_PROMISE_NEXT",
       "latest_correction": "P36_SAME3_TEXT_IMAGE_CTA_REWORK",
       "current_review_member": "existing-post-review/p36/review.html"
     },
     "r2_reference_packet": {
       "library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
-      "version": 15,
+      "version": 16,
       "readable_preview_library_file_id": "libfile_c1f06826dd408191bed3e0cb8103e379",
-      "readable_preview_version": 15,
+      "readable_preview_version": 16,
       "routes_member": "existing-post-review/p36/routes.json",
       "audit_member": "existing-post-review/p36/intent-revision.PRIVATE.json",
       "binding_member": "existing-post-review/p36/binding-review-3.NOT-APPLIED.json",
@@ -689,7 +689,9 @@
       "private_materials_only_in_library": true,
       "parent_audit_member": "existing-post-review/p35/intent-audit.PRIVATE.json",
       "previous_9_8_8_superseded": true,
-      "numeric_rubric_acceptance_pending": true
+      "numeric_rubric_acceptance_pending": true,
+      "P36_content_last_changed_at_companion_version": 15,
+      "intent_eligibility_superseded_by_P37": true
     },
     "r2_reference_packet_prior_P35": {
       "library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
@@ -716,6 +718,19 @@
       "active_destinations": 0,
       "real_bot_path_tested": false,
       "private_materials_only_in_library": true
+    },
+    "current_saved_intent_audit": {
+      "library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
+      "version": 16,
+      "audit_member": "existing-post-review/p37/intent-fit.PRIVATE.json",
+      "audit_sha256": "b19dd8adc650adc836f9467aa622c208d3b752e443b7e3bdec3898edad43f5a6",
+      "review_member": "existing-post-review/p37/review.html",
+      "preview_library_file_id": "libfile_c1f06826dd408191bed3e0cb8103e379",
+      "preview_version": 16,
+      "private_source_data_only_in_Library": true,
+      "additive_supplement_not_second_store": true,
+      "base_archive_version": 70,
+      "P36_current_continuation_pointer_unchanged": true
     }
   },
   "operations": {
@@ -839,16 +854,18 @@
     "r2_P35_library_save": "DONE_FIVE_GUARDED_REPLACEMENTS_68_69_49_14_14",
     "r2_S2_rework_P36": "DONE_SAME_THREE_REVISED_NOT_TRAFFIC_ACCEPTED",
     "r2_P36_library_save": "DONE_FIVE_GUARDED_REPLACEMENTS_69_70_50_15_15",
-    "r2_P36_prompt_handoff": "DONE_PROMPT_ONLY_READBACK_SCHEDULE_ENABLED_UNCHANGED"
+    "r2_P36_prompt_handoff": "DONE_PROMPT_ONLY_READBACK_SCHEDULE_ENABLED_UNCHANGED",
+    "r2_P37_saved_intent_fit": "DONE_18_SAVED_FORMS_AUDITED_NO_NEW_EXPORT",
+    "r2_P37_save": "DONE_PREVIEW16_COMPANION16_GUARDED_REPLACEMENTS"
   },
   "next_steps": [
-    "P36 revised the same3 S2 reference drafts after owner critique: text/image/CTA match improved; earlier9/8/8 superseded. Read current companion15 P36 routes/review first. Do not replay unchanged P36 or treat it as three traffic-accepted routes.",
-    "Next bounded preparation block: inspect saved forms and existing ad context for narrow family/two-bedroom intent and heated-pool commercial fit. Do not allocate broad family/winter clicks to these narrow angles. Current ON is unknown; use dated saved metrics only. Replace or narrow a route if evidence fails.",
-    "Continue useful source-backed preparation and read-only canonical destination resolution; extend toward up to10 only when intent, image, factual scope and continuation align. Numerical editorial acceptance remains pending; do not assign9 automatically from completed HTML/fact checks or fill a count quota.",
-    "P36 inactive feed/binding3 reuse existing collection identities; no issued IDs/active URL or actual bot-path proof. Keep canonical ID/yclid/chat-ID mechanism only; no second store, keyword macro, runtime/dialog or Metrika changes.",
-    "Before native sends/edits/publication/live-feed/RK/spend, require exact fresh action/channel/budget receipt and verify actual context through permitted existing mechanism. Read/admin access and old tests are not new permission.",
-    "P35 audit10 and baseline204/95/root99/356 remain saved overlapping preparation slices, not additive or traffic accepted. Preserve all supplier/video/identity holds and paused learning/CRM.",
-    "Wordstat/ASR blockers remain unchanged; no retry without new basis and no full CI/Direct/native baseline for status."
+    "P37 DONE:18 saved explicit-Egypt room/heating forms reviewed, source indices and exact AdId/AdGroupId privately preserved in companion16 existing-post-review/p37/intent-fit.PRIVATE.json. Read it and current preview16; do not rerun unchanged scan.",
+    "Prepare a matching Egypt two-room angle without assuming children or equating two rooms with two bedrooms. Reuse existing room facts/materials and collection identities; keep current P36 family draft as narrower conditional review. Do not allocate its generic two-room clicks to explicit two-bedroom demand.",
+    "Resolve exact advertising promise and final landing URL for the saved relevant ad IDs using an already authorized readonly source/capability. Reviewed source contains IDs but no creative text/landing URL. A missing creative remains a specific gap, not evidence of an ad mismatch.",
+    "Basic heated-pool subset is3 forms/3 impressions/1 click, last7=0/0; other area/multi-condition/informational/pasted forms are excluded or held. Current ON is unknown. These are dated own-ad metrics, not market frequency or proven commercial scale.",
+    "P36 routes/bindings/feed/photos unchanged in companion16. Base70 current-continuation expected15 describes preserved P36 content; P37 is an additive source-audit supplement referenced by this checkpoint, not a second attribution store. No actual entry IDs/URLs or real bot-path proof.",
+    "Continue useful matched preparation toward up to10 only with intent/image/facts/continuation alignment; no automatic score9, mass growth, archive-order restart, or quota filling. Broad parent slices and historical preparation counts are not additive or traffic accepted.",
+    "Native/publication/test/send/edit/live-feed/RK/spend require exact fresh action/channel/budget receipt. No runtime/neighboring work, models/budgets/schedule/enabled changes; paused learning/CRM and Wordstat/ASR holds remain."
   ],
   "publication_blocker": "Current P36 three routes have no verified issued entry IDs/active destinations or real bot-path verification. Numeric/editorial acceptance is pending. Exact fresh native/channel/action and separate paid/budget permissions remain required; readonly/admin access and old tests are not new authorization.",
   "coordination": "Own audit/direct-demand-20261022 branch only; no foreign claims, CI, paused hotel tasks or production flows.",
@@ -2821,7 +2838,7 @@
     "library_archive_size": "Current536730088bytes/limit536870912/headroom140824;guards49/50/30.H16preserved all existing evidence and losslessly BZIP2compressed18existingJSONmembers:per-member originaluncompressedSHA,CRC/size and Python/InfoZIP6readPASS recorded inH16lossless-packaging.json.Other prior compression types unchanged.Preserve current root/current-fileBZIP2method on updates;preflight new byte budget before upload.No oversized request/evidence deletion.Unselected new largeOGexcluded with provenance,not prior evidence."
   },
   "latest_completed_block": {
-    "name": "P36: same3 text/photo/CTA rework; numerical acceptance and real bot path pending; no traffic release",
+    "name": "P37:18-form saved intent audit; two-room/two-bedroom distinction and ad-creative gap; no new traffic routes",
     "total_prepared_subjects": 94,
     "total_exact_caption_bodies": 95,
     "total_saved_post_candidates": 204,
@@ -2832,27 +2849,25 @@
     "total_video_holds": 94,
     "total_text_photo_paths": 110,
     "identity_lookup_holds": 151,
-    "new_caption_bodies": 3,
+    "new_caption_bodies": 0,
     "new_exact_saved_post_candidates": 0,
-    "new_covers": 3,
+    "new_covers": 0,
     "new_IDs": 0,
     "actual_channel_writes": 0,
     "platforms": {
       "max": 195,
       "telegram": 9
     },
-    "completed_at_utc": "2026-10-24T22:32:37.911Z",
-    "save_versions": [
-      69,
-      70,
-      50,
-      15,
-      15
-    ],
+    "completed_at_utc": "2026-10-24T23:42:07.614Z",
+    "save_versions": {
+      "base": 70,
+      "preview": 16,
+      "companion": 16
+    },
     "strategy_revision": "OWNER_PLAN_REVISION_20261024",
     "r2_reference_routes": 3,
     "r2_counts_not_additive_to_baseline_slices": true,
-    "reference_revision": "P36",
+    "reference_revision": "P37_SOURCE_AUDIT_SUPPLEMENT",
     "previous_9_8_8_superseded": true,
     "numeric_rubric_acceptance_pending": true
   },
@@ -8008,7 +8023,7 @@
     "same_workstream": true,
     "no_new_queue": true,
     "unit_of_completion": "Связка спрос → релевантный пост и фото → конкретная кнопка → существующий бот с сохранённым контекстом → квалифицированное обращение.",
-    "current_step": "S2_REWORK_REVIEWABLE_MATCHED_PREPARATION_NEXT",
+    "current_step": "P37_FIT_AUDIT_DONE_TWO_ROOM_ANGLE_AND_EXACT_AD_PROMISE_NEXT",
     "stages": [
       {
         "id": "S1",
@@ -8085,19 +8100,19 @@
       "Manager2/constructor/SEARCH/INT/LOCAL/MATCH,pausedlearningCRM,models/budgets/settings unchanged.Wordstat/ASRblockers unchanged,notretried.No fullCI/Direct/nativebaseline reruns."
     ],
     "artifact_library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
-    "artifact_version": 15,
+    "artifact_version": 16,
     "plan_member": "existing-post-review/p34/plan.json",
     "plan_SHA256": "079d14dcf69eab1b5bdd8722c4f849b61560486bb80804f3263641b16785fc70",
     "readable_plan_library_file_id": "libfile_c1f06826dd408191bed3e0cb8103e379",
-    "readable_plan_version": 15,
+    "readable_plan_version": 16,
     "explicit_handoff": {
-      "from_context": "P36_same_executor_interactive_owner_approved_rework",
+      "from_context": "P37_same_automation_executor",
       "to_existing_automation": "6ada8f0084888191b12c6619c12fb35c",
       "same_executor": true,
       "no_parallel_package": true,
-      "source_claim_issue55_comment_id": 6390198047,
-      "start_at": "P36_MATCHED_PREPARATION_NEXT",
-      "instruction": "After own P36 RELEASE continue the same packet from current P36, first narrow-intent saved-data fit/destinations; do not replay P35/P36 or mass-grow on superseded9/8/8."
+      "source_claim_issue55_comment_id": 6390968487,
+      "start_at": "P37_NEXT_TWO_ROOM_INTENT_AND_EXACT_CREATIVE",
+      "instruction": "Read same companion16 P37 and checkpoint first; P36 base pointer version15 is a preserved content snapshot, P37 is a source-audit supplement. Do not replay P36 or P37. Continue narrower evidence-backed preparation, not mass growth."
     },
     "automation_prompt_revision": "P36_REWORK_SAME3_CURRENT_OVER_P34_HISTORICAL_NEXT_ACTION",
     "automation_prompt_verified": true,
@@ -8165,7 +8180,7 @@
     },
     "stage_progress": {
       "S1": "BOUNDED_AUDIT10_DONE_WITH_IDENTITY_AND_SOURCE_GAPS_RETAINED",
-      "S2": "SAME_THREE_REWORK_REVIEWABLE_NOT_NUMERICALLY_ACCEPTED_OR_NATIVE_VERIFIED",
+      "S2": "P36_DRAFTS_RETAINED_P37_FAMILY_GENERIC_MATCH_HELD_NOT_TRAFFIC_ACCEPTED",
       "S3": "MATCHED_PREPARATION_ONLY_NO_AUTOMATIC_MASS_GROWTH"
     },
     "latest_owner_correction": {
@@ -8309,5 +8324,92 @@
       "caption_and_binding_hashes_match": true
     },
     "model_budget_schedule_enabled_changes": false
+  },
+  "saved_intent_fit_operation": {
+    "state": "DONE_VERIFIED_PRIVATE_SOURCE_AUDIT_NOT_TRAFFIC_ACCEPTANCE",
+    "idempotency_key": "P37-saved-room-heat-fit-20261025-v1",
+    "completed_at_utc": "2026-10-24T23:42:07.614Z",
+    "source_archive_version": 70,
+    "source_period": [
+      "2026-09-23",
+      "2026-10-22"
+    ],
+    "last7": [
+      "2026-10-16",
+      "2026-10-22"
+    ],
+    "reviewed_query_forms": 18,
+    "explicit_geography_and_regex_bounded": true,
+    "implicit_hotel_only_geography_outside_scan": true,
+    "own_ads_not_wordstat": true,
+    "full_source_export_repeated": false,
+    "two_room_unspecified": {
+      "forms": 4,
+      "all": {
+        "rows": 6,
+        "impressions": 7,
+        "clicks": 3
+      },
+      "ON_at_export": {
+        "rows": 1,
+        "impressions": 1,
+        "clicks": 0
+      },
+      "UNKNOWN_at_export": {
+        "rows": 1,
+        "impressions": 1,
+        "clicks": 1
+      },
+      "last7": {
+        "rows": 1,
+        "impressions": 1,
+        "clicks": 0
+      }
+    },
+    "basic_heated_pool": {
+      "forms": 3,
+      "all": {
+        "rows": 3,
+        "impressions": 3,
+        "clicks": 1
+      },
+      "ON_at_export": {
+        "rows": 3,
+        "impressions": 3,
+        "clicks": 1
+      },
+      "UNKNOWN_at_export": {
+        "rows": 0,
+        "impressions": 0,
+        "clicks": 0
+      },
+      "last7": {
+        "rows": 0,
+        "impressions": 0,
+        "clicks": 0
+      }
+    },
+    "explicit_two_bedroom_phrase_in_bounded_scan": 0,
+    "decision": "P36 family two-bedroom draft held as default for generic two-room queries; children not explicit in clicked forms. Pool basic intent remains conditional preparation only. Broad family/winter metrics not allocated.",
+    "ad_context_gap": "Exact saved AdId and AdGroupId exist; title/body/final landing URL not present in reviewed source. This pass did not obtain ad creative or prove the complete ad/post path.",
+    "current_ON_unverified": true,
+    "source_originals_unchanged": true,
+    "prior_companion_nonpreview_members_byte_preserved": 281,
+    "base70_and_P36_route_binding_feed_photo_bytes_unchanged": true,
+    "base_pointer_expected15_is_historical_P36_content_snapshot": true,
+    "issued_IDs": 0,
+    "native_writes": 0,
+    "paid_changes": 0,
+    "new_caption_bodies": 0,
+    "new_covers": 0,
+    "versions_after": {
+      "preview": 16,
+      "companion": 16
+    },
+    "responsive_new_notice_only": [
+      390,
+      1440
+    ],
+    "prior_baselines_not_repeated": true
   }
 }
