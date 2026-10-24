@@ -246,9 +246,23 @@ async function reconcile(){
   controls();recovery('pending');status(result?.ok?'Подтверждение ещё не найдено. Можно повторить тот же запрос с защитой от дублей.':error(result),true);
   if(result?.ok&&!result.found&&validSnapshot(result.selection)&&result.selection.can_edit){const button=document.createElement('button');button.type='button';button.textContent='Повторить это сохранение';button.onclick=()=>{if(pending&&!busy&&current())void submit(pending)};$('tsRecovery').appendChild(button)}
 }
+function previewCaption(card){
+  const text=String(card.text||''),lines=text.split('\n'),hotel=card.snapshot?.hotel;
+  // Use the immutable renderer text; never reconstruct terms or accept HTML.
+  if(lines.length<3||typeof hotel!=='string'||!hotel||!lines[0].startsWith(hotel))return esc(text);
+  return '<strong class="tsCardTitle">'+esc(hotel)+'</strong>'+esc(lines[0].slice(hotel.length))+'\n<strong class="tsCardPrice">'+esc(lines[1])+'</strong>\n'+esc(lines.slice(2).join('\n'));
+}
 function renderPreview(){
   dialog.classList.add('tsPreviewMode');photoFailures=0;photoPending=publication.cards.length*3;const imageRun=++photoEpoch,token=epoch,publicationId=publication.id;
-  $('tsEditor').innerHTML='<div class="tsPreviewHeading"><h3>Предпросмотр подборки</h3><p>'+esc(publication.channel==='telegram'?'Telegram — карусель из трёх фото.':'MAX — мозаика из трёх фото.')+' Проверьте фото, условия и общую цену. «Нравится» сохранит именно показанный вариант.</p></div><div class="tsPreviewCards">'+publication.cards.map(card=>`<article class="tsPreviewCard" data-ts-card="${card.index}"><div class="tsPhotos">${card.photos.map((url,i)=>`<img src="${esc(url)}" alt="${['Отель','Пляж или бассейн','Пример интерьера номера'][i]}" referrerpolicy="no-referrer">`).join('')}</div><p class="tsCardText">${esc(card.text)}</p><span class="tsLikePreview">♡ Нравится</span><p class="tsDeliveryState" data-ts-state="${card.index}"></p></article>`).join('')+'</div>';
+  $('tsEditor').innerHTML='<div class="tsPreviewHeading"><h3>Предпросмотр подборки</h3><p>'+esc(publication.channel==='telegram'?'Telegram — карусель из трёх фото.':'MAX — мозаика из трёх фото.')+' Проверьте фото, условия и общую цену. «Нравится» сохранит именно показанный вариант.</p></div><div class="tsPreviewCards">'+publication.cards.map(card=>`<article class="tsPreviewCard" data-ts-card="${card.index}"><div class="tsPhotos ${publication.channel==='telegram'?'tsPhotoSlideshow':'tsPhotoMosaic'}" ${publication.channel==='telegram'?'tabindex="0" role="region" aria-label="Фото отеля: листайте три фотографии"':''}>${card.photos.map((url,i)=>`<img src="${esc(url)}" alt="${['Отель','Пляж или бассейн','Пример интерьера номера'][i]}" referrerpolicy="no-referrer">`).join('')}</div>${publication.channel==='telegram'?'<div class="tsPhotoNav"><button type="button" data-ts-photo-step="-1" aria-label="Предыдущее фото">←</button><span class="tsPhotoPosition" aria-live="polite">Фото 1 из 3</span><button type="button" data-ts-photo-step="1" aria-label="Следующее фото">→</button></div>':''}<p class="tsCardText">${previewCaption(card)}</p><span class="tsLikePreview">♡ Нравится</span><p class="tsDeliveryState" data-ts-state="${card.index}"></p></article>`).join('')+'</div>';
+  $('tsEditor').querySelectorAll('.tsPreviewCard').forEach(card=>{
+    const gallery=card.querySelector('.tsPhotoSlideshow'),nav=card.querySelector('.tsPhotoNav');if(!gallery||!nav)return;
+    const images=gallery.querySelectorAll('img'),position=nav.querySelector('.tsPhotoPosition'),buttons=nav.querySelectorAll('button');
+    const index=()=>Math.max(0,Math.min(images.length-1,Math.round(gallery.scrollLeft/Math.max(1,gallery.clientWidth))));
+    const update=()=>{const i=index();position.textContent='Фото '+(i+1)+' из '+images.length;buttons[0].disabled=i===0;buttons[1].disabled=i===images.length-1;};
+    for(const button of buttons)button.onclick=()=>{const i=Math.max(0,Math.min(images.length-1,index()+Number(button.dataset.tsPhotoStep)));gallery.scrollLeft=i*gallery.clientWidth;update();};
+    gallery.addEventListener('scroll',update,{passive:true});update();
+  });
   const active=()=>imageRun===photoEpoch&&token===epoch&&preview&&publication?.id===publicationId&&current();
   $('tsEditor').querySelectorAll('img').forEach(img=>{
     img.addEventListener('load',()=>{if(active()){photoPending--;controls()}},{once:true});

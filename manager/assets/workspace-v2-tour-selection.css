@@ -18,3 +18,11 @@
 .tsTripPanel{max-width:640px;padding:4px 0 20px}.tsTripPanel h3{margin:0 0 12px}.tsTripPanel p,.tsTripPanel li{line-height:1.5;overflow-wrap:anywhere}.tsTripPanel ul{padding-left:22px}.tsTripPanel button{margin:8px 8px 0 0;white-space:normal;min-height:40px}.tsTripConfirm{display:flex;gap:10px;align-items:center;margin:18px 0}.tsTripConfirm input{flex:0 0 auto;width:20px;height:20px}
 
 #tsTripAdd{display:block;width:100%;margin:0 0 12px;border:1px solid #b4cbbd;border-radius:9px;padding:9px;background:#fff;color:#264b3b;font:inherit;white-space:normal}.tsTripMode .tsSidebar{display:none}.tsTripMode .tsLayout{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr)}.tsTripPanel button{border:1px solid #d6e1da;border-radius:9px;padding:8px 11px;font:inherit;background:#fff;color:#264b3b}
+
+.tsCardTitle{font-size:15px;color:#1d3028}.tsCardPrice{font-size:17px;color:#17483d}
+.tsPhotos.tsPhotoSlideshow{display:flex;aspect-ratio:auto;gap:0;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:thin}
+.tsPhotoSlideshow img{flex:0 0 100%;width:100%;height:auto;aspect-ratio:4/3;scroll-snap-align:start;object-fit:cover}
+.tsPhotoSlideshow:focus-visible{outline:3px solid #81b7a3;outline-offset:-3px}
+
+.tsPhotoNav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:-4px 0 10px;color:#526b5c;font-size:12px}
+.tsPhotoNav button{border:1px solid #d6e1da;background:#fff;border-radius:8px;min-width:44px;min-height:36px;color:#264b3b;font:18px Arial,sans-serif}
