@@ -27,6 +27,8 @@ async function fixture(page,options={}){
   await page.route('**/manager/tour-selections-api.php',async route=>{
     const d=route.request().postDataJSON();calls.push(copy(d));expect(d.csrf).toBe('fixture-csrf');expect([11,12]).toContain(d.conversation_id);
     const reply=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
+    if(d.action==='trip_context')return reply({ok:true,trip:options.trip||{state:'unbound',revision:'',fields:{},details:[],warnings:[]}});
+    if(d.action==='trip_apply'){if(options.tripMode==='changed')return reply({ok:false,error:'trip_changed'},409);if(options.tripMode==='denied')return reply({ok:false,error:'forbidden'},403);if(d.confirm_current_trip!==true||d.revision!==options.trip?.revision)throw new Error('Unconfirmed trip');if(options.holdTrip)await new Promise(resolve=>held=resolve);return reply({ok:true,trip:options.trip});}
     if(d.action==='get')return reply({ok:true,selection:snapshot(d.conversation_id)});
     if(d.action==='share')return reply({ok:true,share:copy(share)});
     if(['publish','revoke'].includes(d.action)){
@@ -66,7 +68,7 @@ async function fixture(page,options={}){
   });
   await expect.poll(()=>page.evaluate(()=>!!WorkspaceV2.S.workspaceBound&&!WorkspaceV2.S.booting)).toBe(true);
   await page.locator('#inboxList [data-conversation-id="11"]').click();await expect(page.locator('#tourSelectionOpen')).toBeAttached();
-  return {...base,calls,drafts,receipts,snapshot,creations:()=>creations,publication:()=>publication,heldPhotos:()=>heldPhotos.length,holdPhotos:()=>{options.holdPhotos=true},releasePhotos:()=>{options.holdPhotos=false;heldPhotos.splice(0).forEach(resolve=>resolve())},release:()=>held?.(),setFail:x=>fail=x};
+  return {...base,calls,drafts,receipts,snapshot,creations:()=>creations,publication:()=>publication,heldPhotos:()=>heldPhotos.length,holdPhotos:()=>{options.holdPhotos=true},releasePhotos:()=>{options.holdPhotos=false;heldPhotos.splice(0).forEach(resolve=>resolve())},release:()=>held?.(),setFail:x=>fail=x,setTripMode:x=>options.tripMode=x};
 }
 async function open(page){if(!await page.locator('#tourSelectionOpen').isVisible())await page.locator('#m2ConversationMenuToggle').click();await page.locator('#tourSelectionOpen').click();await expect(page.locator('#tourSelectionDialog')).toBeVisible();await expect(page.locator('#tsStatus')).toContainText(/загружен|Просмотр|Восстановлены/)}
 
@@ -427,4 +429,31 @@ test('public interest observes visible hotels without changing exact bot links o
  const second=calls.filter(x=>x.kind==='page_view')[1];expect(second.visitor_id).toBe(first.visitor_id);expect(second.event_id).not.toBe(first.event_id);
  const link=page.locator('#variant-2 .botActions a');await expect(link).toHaveAttribute('href',offer.bot_links.telegram);await link.click();await expect.poll(()=>calls.some(x=>x.kind==='bot_open'&&x.card_index===1&&x.platform==='telegram')).toBe(true);
  expect(calls.every(x=>['page_view','hotel_view','bot_open'].includes(x.kind))).toBe(true);expect(unexpected).toEqual([]);
+});
+
+function knownTrip(){return {state:'saved',revision:'a'.repeat(64),fields:{departure:'Москва',destination:'Турция',date_from:'2027-06-05',nights:7,adults:2,child_ages:[0,6]},details:['Вылет: Москва','Направление: Турция','Состав: 2 взрослых, детей: 2 (0, 6)','Сохранённая дата: 05.06.2027','Ночей: 7','Бюджет поездки: 240000 RUB за всех (не цена предложения)'],warnings:[]};}
+for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420}])test(`selection explicit trip prefill preserves prior offers and composer ${viewport.width}x${viewport.height}`,async({page,browserName})=>{
+ await page.setViewportSize(viewport);const original=completeDraft(),s=await fixture(page,{draft:original,trip:knownTrip()});
+ await page.locator('#replyText').fill('Синтетический ответ не отправляется');await page.locator('#replyFile').setInputFiles({name:'trip-unsent.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic only')});
+ await open(page);expect(s.calls.filter(x=>x.action.startsWith('trip_'))).toHaveLength(0);
+ await page.locator('#tsTripAdd').click();await expect(page.locator('#tsTripApply')).toBeDisabled();await expect(page.locator('#tsEditor')).toContainText('Москва');await expect(page.locator('#tsEditor')).toContainText('не цена предложения');
+ await page.locator('#tsTripCancel').click();expect(s.calls.filter(x=>x.action==='save')).toHaveLength(0);expect(s.drafts.get(11).draft).toEqual(original);
+ await page.locator('#tsTripAdd').click();await page.locator('#tsTripConfirm').check();await expect(page.locator('#tsTripApply')).toBeEnabled();
+ fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-selection-trip-${browserName}-${viewport.width}x${viewport.height}.png`)});
+ await page.locator('#tsTripApply').click();await expect(page.locator('#ts-departure')).toHaveValue('Москва');await expect(page.locator('#ts-destination')).toHaveValue('Турция');await expect(page.locator('#ts-date_from')).toHaveValue('2027-06-05');await expect(page.locator('#ts-nights')).toHaveValue('7');await expect(page.locator('#ts-adults')).toHaveValue('2');await expect(page.locator('#ts-child_ages')).toHaveValue('0, 6');
+ for(const key of ['hotel','room','meal','amount'])await expect(page.locator('#ts-'+key)).toHaveValue('');
+ await save(page);const stored=s.drafts.get(11).draft;expect(stored.offers).toHaveLength(2);expect(stored.offers[0]).toEqual(original.offers[0]);expect(stored.offers[1].photos).toEqual([]);expect(stored.offers[1].import_source).toBeUndefined();
+ await page.locator('#tsClose').click();await expect(page.locator('#replyText')).toHaveValue('Синтетический ответ не отправляется');await expect(page.locator('#mediaSelection')).toContainText('trip-unsent.txt');
+ await page.reload();await page.locator('#replyText').waitFor({state:'visible'});await open(page);await page.locator('[data-ts-select]').nth(1).click();await expect(page.locator('#ts-child_ages')).toHaveValue('0, 6');clean(s,['trip_context','trip_apply']);
+});
+test('selection changed trip is not applied and manual path remains available',async({page})=>{
+ const s=await fixture(page,{trip:knownTrip(),tripMode:'changed'});await open(page);await page.locator('#tsTripAdd').click();await page.locator('#tsTripConfirm').check();await page.locator('#tsTripApply').click();await expect(page.locator('#tsStatus')).toContainText('изменились');expect(s.calls.filter(x=>x.action==='save')).toHaveLength(0);await expect(page.locator('#tsEmptyAdd')).toBeVisible();await page.locator('#tsEmptyAdd').click();await expect(page.locator('#ts-departure')).toHaveValue('');await page.locator('#tsClose').click();clean(s,['trip_context','trip_apply']);
+});
+test('selection late trip response cannot append to another client',async({page})=>{
+ const s=await fixture(page,{trip:knownTrip(),holdTrip:true});await open(page);await page.locator('#tsTripAdd').click();await page.locator('#tsTripConfirm').check();await page.locator('#tsTripApply').click();await page.locator('#tsClose').click();if(await page.locator('#mobileBack').isVisible())await page.locator('#mobileBack').click();
+ await page.locator('#inboxList [data-conversation-id="12"]').click();await open(page);s.release();await expect(page.locator('#tsEmptyAdd')).toBeVisible();expect(s.calls.filter(x=>x.action==='save')).toHaveLength(0);clean(s,['trip_context','trip_apply']);
+});
+
+test('selection unbound trip keeps manual editing available without false conditions',async({page})=>{
+ const s=await fixture(page);await open(page);await page.locator('#tsTripAdd').click();await expect(page.locator('#tsEditor')).toContainText('Нет подходящих сохранённых условий');await expect(page.locator('#tsTripApply')).toHaveCount(0);await page.locator('#tsTripCancel').click();await page.locator('#tsEmptyAdd').click();await expect(page.locator('#ts-adults')).toHaveValue('');await page.locator('#tsClose').click();clean(s,['trip_context']);
 });

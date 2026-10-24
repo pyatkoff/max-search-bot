@@ -292,3 +292,18 @@ separately. Browser blockers, storage/network errors or capability expiry can
 hide events; a failed activity read says unavailable instead of zero. Manager2
 timestamps use the existing Moscow formatter; text/File/context remain owned
 by the conversation component. Natural/physical owner-onlyA1–A8 remain OPEN.
+
+## Explicit saved-trip prefill
+
+“Добавить по условиям поездки” reads a bounded optional proposal through the
+constructor's own `trip_context` endpoint. It reuses the AnyTour wizard start
+boundary and canonical value projection. The displayed saved basis is never
+automatically described as the current enquiry: the manager confirms it before
+`trip_apply` rechecks its exact revision, account/conversation/source/assignment,
+selection version and latest message. The read does not create a draft or send.
+Only a new offer receives the six known compatible fields. Existing recovered,
+manual and imported offers are unchanged. Past dates, inexact dates/night ranges
+and inconsistent party ages remain explicit manual work. Budget is request
+metadata, never the offer price. Unsupported projects, unavailable catalog/state
+or unbound starts retain the normal blank manual path. Closing/navigating rejects
+late results; no trip store, migration, model or pipeline/auth owner is added.

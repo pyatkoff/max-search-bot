@@ -14,3 +14,7 @@
 .tsLayout{overflow:hidden}
 @media(max-width:767px) and (max-height:500px){.tsConflictMode .tsShell{overflow-y:auto}.tsConflictMode .tsHead,.tsConflictMode .tsStatus,.tsConflictMode .tsRecovery,.tsConflictMode .tsFooter{flex-shrink:0}.tsConflictMode .tsLayout{flex:0 0 350px}}
 @media(max-width:767px) and (max-height:500px){.tsHead{padding-top:10px;padding-bottom:10px}.tsHead p{display:none}.tsSidebar{padding-top:6px;padding-bottom:6px}.tsList{max-height:65px}}
+
+.tsTripPanel{max-width:640px;padding:4px 0 20px}.tsTripPanel h3{margin:0 0 12px}.tsTripPanel p,.tsTripPanel li{line-height:1.5;overflow-wrap:anywhere}.tsTripPanel ul{padding-left:22px}.tsTripPanel button{margin:8px 8px 0 0;white-space:normal;min-height:40px}.tsTripConfirm{display:flex;gap:10px;align-items:center;margin:18px 0}.tsTripConfirm input{flex:0 0 auto;width:20px;height:20px}
+
+#tsTripAdd{display:block;width:100%;margin:0 0 12px;border:1px solid #b4cbbd;border-radius:9px;padding:9px;background:#fff;color:#264b3b;font:inherit;white-space:normal}.tsTripMode .tsSidebar{display:none}.tsTripMode .tsLayout{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr)}.tsTripPanel button{border:1px solid #d6e1da;border-radius:9px;padding:8px 11px;font:inherit;background:#fff;color:#264b3b}
