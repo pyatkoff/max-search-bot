@@ -3,6 +3,7 @@
 const W=window.WorkspaceV2,{S,$,esc}=W,endpoint='tour-selections-api.php';
 let dialog=null,context=null,epoch=0,version=0,draft=null,selected='',canEdit=false,dirty=false,busy=false,loading=false,pending=null,conflict=null,timer=0,returnFocus=null,rawAges={};
 const sessions=new Map();
+let comparison=null;
 let publication=null,preview=false,sending=false,photoFailures=0,photoPending=0,photoEpoch=0,sharing=false,interestLoading=false;
 function actor(){return S.authExpired?0:Number(S.manager?.id||0)}
 function capture(c=S.detail?.conversation){return {actor:actor(),conversation:Number(c?.id||0),auth:Number(S.authGeneration||0),open:Number(window.WorkspaceV2Conversation?.getOpenGeneration?.()||0)}}
@@ -13,15 +14,17 @@ function id(){const data=new Uint8Array(16);crypto.getRandomValues(data);return 
 function empty(){return {title:'Подборка туров',intro:'',offers:[]}}
 function stash(){
   if(!context||!draft)return;
-  const data={draft:clone(draft),version,selected,dirty,rawAges:clone(rawAges),pending:pending?clone(pending):null,conflict:conflict?clone(conflict):null,at:Date.now()};
+  const data={draft:clone(draft),version,selected,dirty,rawAges:clone(rawAges),pending:pending?clone(pending):null,conflict:conflict?clone(conflict):null,comparison:comparison?clone(comparison):null,at:Date.now()};
   sessions.set(key(),data);
   try{if(dirty||pending||conflict)sessionStorage.setItem(key(),JSON.stringify(data));else sessionStorage.removeItem(key())}catch(e){}
 }
 function restore(){
   let data=sessions.get(key());
   try{if(!data)data=JSON.parse(sessionStorage.getItem(key())||'null')}catch(e){}
-  if(!data||Date.now()-Number(data.at||0)>86400000||!data.draft||!Array.isArray(data.draft.offers)||data.draft.offers.length>20||JSON.stringify(data).length>300000)return false;
-  draft=clone(data.draft);version=Number(data.version||0);selected=String(data.selected||'');dirty=!!data.dirty;rawAges=data.rawAges||{};pending=data.pending||null;conflict=data.conflict||null;return true;
+  const bounded=value=>value&&Array.isArray(value.offers)&&value.offers.length<=20&&JSON.stringify(value).length<=300000;
+  // A conflict envelope can contain displayed, server and original local terms.
+  if(!data||Date.now()-Number(data.at||0)>86400000||!bounded(data.draft)||JSON.stringify(data).length>900000||data.conflict&&!bounded(data.conflict.draft)||data.comparison&&(!data.conflict||!bounded(data.comparison.draft)))return false;
+  draft=clone(data.draft);version=Number(data.version||0);selected=String(data.selected||'');dirty=!!data.dirty;rawAges=data.rawAges||{};pending=data.pending||null;conflict=data.conflict||null;comparison=data.comparison||null;return true;
 }
 function status(text,error=false){const el=$('tsStatus');if(el){el.textContent=text;el.classList.toggle('tsError',error)}}
 function error(result){return {forbidden:'Отправить подборку может менеджер, который ведёт диалог.',not_found:'Доступ к диалогу изменился.',invalid_draft:'Проверьте даты, сумму, возраст детей и ссылки.',conflict:'Подборку изменил другой сотрудник. Ваши правки сохранены отдельно.',storage_unavailable:'Сервер пока не подтвердил действие.',network_error:'Нет связи с сервером. Проверьте результат в истории отправки.',operation_mismatch:'Не удалось сопоставить сохранение. Требуется проверка.',draft_changed:'Подборка изменилась. Загрузите актуальный черновик.',empty_selection:'Включите хотя бы один вариант в подборку.',unsupported_channel:'Подборки доступны в личных Telegram и MAX диалогах этого проекта.',preparation_failed:'Не удалось подготовить фото или подтвердить получателя. Карточка не отправлена.',delivery_rejected:'Канал отклонил этот вариант. Можно повторить отправку; доставленные карточки не повторятся.',delivery_unknown:'Результат отправки неизвестен. Проверьте переписку; повторная отправка заблокирована.',delivery_unverified:'Карточка создана. Нажмите «Проверить доставку».',delivery_in_progress:'Отправка уже начата в другой вкладке.'}[result?.error]||'Не удалось подтвердить действие. Ваши правки сохранены.'}
@@ -34,7 +37,7 @@ async function request(action,data={}){
   }catch(e){return {ok:false,error:current(target)?'network_error':'stale_context'}}finally{clearTimeout(timeout)}
 }
 function close(){clearTimeout(timer);timer=0;stash();if(dialog?.open)dialog.close()}
-function suspend(){stash();clearTimeout(timer);timer=0;epoch++;context=null;draft=null;pending=null;conflict=null;dirty=false;busy=false;loading=false;canEdit=false;publication=null;preview=false;sending=false;sharing=false;if(dialog?.open)dialog.close();$('tourSelectionOpen')?.remove()}
+function suspend(){stash();clearTimeout(timer);timer=0;epoch++;context=null;draft=null;pending=null;conflict=null;comparison=null;dirty=false;busy=false;loading=false;canEdit=false;publication=null;preview=false;sending=false;sharing=false;if(dialog?.open)dialog.close();$('tourSelectionOpen')?.remove()}
 function activate(){if(context&&!current())suspend()}
 function sync(c){
   if(context&&!current())suspend();
@@ -66,7 +69,7 @@ function ensure(){
 }
 async function open(c){
   if(!actor()||Number(c.id)!==Number(S.current))return;
-  close();epoch++;context=capture(c);version=0;draft=empty();selected='';dirty=false;busy=false;pending=null;conflict=null;rawAges={};canEdit=false;publication=null;preview=false;sending=false;sharing=false;interestLoading=false;restore();ensure();returnFocus=$('tourSelectionOpen')?.closest('details')?.querySelector('summary')||$('tourSelectionOpen');
+  close();epoch++;context=capture(c);version=0;draft=empty();selected='';dirty=false;busy=false;pending=null;conflict=null;comparison=null;rawAges={};canEdit=false;publication=null;preview=false;sending=false;sharing=false;interestLoading=false;restore();ensure();returnFocus=$('tourSelectionOpen')?.closest('details')?.querySelector('summary')||$('tourSelectionOpen');
   $('tsTitle').textContent=c.display_name||'Турист';$('tsRecipient').textContent=(c.channel==='telegram'?'Telegram':c.channel==='max'?'MAX':String(c.channel||''))+' · Сначала предпросмотр, затем отправка';
   render();if(!dialog.open)dialog.showModal();await load();
 }
@@ -76,7 +79,7 @@ async function load(){
   if(!result?.ok||!validSnapshot(result.selection)){status(error(result),true);if([403,404].includes(result?.http_status))canEdit=false;recovery('read');controls();return}
   const snapshot=result.selection;canEdit=snapshot.can_edit;
   if(!dirty&&!pending&&!conflict){draft=clone(snapshot.draft);version=snapshot.version}
-  else if(snapshot.version!==version&&!pending)conflict=snapshot;
+  else if(snapshot.version!==version&&!pending){conflict=snapshot;if(comparison){draft=clone(snapshot.draft);rawAges={}}}
   render();status(!canEdit?'Просмотр. Править может ответственный менеджер или администратор.':dirty?'Восстановлены ваши несохранённые правки.':'Черновик загружен.');
   if(pending)recovery('pending');else if(conflict)recovery('conflict');
 }
@@ -173,12 +176,13 @@ function controls(){
   if(item()){const at=draft.offers.findIndex(x=>x.id===selected);const up=dialog.querySelector('[data-ts-action="up"]'),down=dialog.querySelector('[data-ts-action="down"]');if(up)up.disabled=disabled||busy||at===0;if(down)down.disabled=disabled||busy||at===draft.offers.length-1}
 }
 function recovery(kind){
-  const root=$('tsRecovery');if(!root)return;root.hidden=!kind;root.replaceChildren();if(!kind)return;
+  const root=$('tsRecovery');if(!root)return;dialog.classList.toggle('tsConflictMode',kind==='conflict');root.hidden=!kind;root.replaceChildren();if(!kind)return;
   const text=document.createElement('p');text.textContent=kind==='conflict'?'На сервере есть другая версия. Ваши правки сохранены; выберите, с какой версией продолжить.':kind==='pending'?'Сервер мог сохранить изменения. Сначала проверьте результат, чтобы не перезаписать чужую правку.':'Не удалось загрузить подборку. Ваши локальные правки сохранены.';root.appendChild(text);
   const button=(label,fn)=>{const el=document.createElement('button');el.type='button';el.textContent=label;el.onclick=fn;root.appendChild(el)};
   if(kind==='conflict'){
-    button('Показать версию коллеги',()=>{if(!conflict||busy)return;draft=clone(conflict.draft);version=conflict.version;canEdit=conflict.can_edit;rawAges={};dirty=false;conflict=null;stash();render();recovery('');status('Загружена версия с сервера.');});
-    button('Продолжить с моими правками',()=>{if(!conflict||busy)return;version=conflict.version;canEdit=conflict.can_edit;conflict=null;dirty=true;stash();render();recovery('');status('Ваш вариант в редакторе. Проверьте его и нажмите «Сохранить».');});
+    if(!comparison)button('Показать версию коллеги',()=>{if(!conflict||busy||comparison)return;comparison={draft:clone(draft),rawAges:clone(rawAges),selected};draft=clone(conflict.draft);rawAges={};stash();render();recovery('conflict');status('Просмотр версии коллеги. Ваши правки сохранены; выберите, с какой версией продолжить.');});
+    button('Продолжить с моими правками',()=>{if(!conflict||busy)return;if(comparison){draft=clone(comparison.draft);rawAges=clone(comparison.rawAges);selected=comparison.selected}version=conflict.version;canEdit=conflict.can_edit;conflict=null;comparison=null;dirty=true;stash();render();recovery('');status('Ваш вариант в редакторе. Проверьте его и нажмите «Сохранить».');});
+    if(comparison)button('Продолжить с версией коллеги',()=>{if(!conflict||busy)return;draft=clone(conflict.draft);version=conflict.version;canEdit=conflict.can_edit;rawAges={};dirty=false;conflict=null;comparison=null;stash();render();recovery('');status('Выбрана версия с сервера.');});
   }else if(kind==='pending')button('Проверить сохранение',()=>reconcile());
   else button('Повторить загрузку',()=>load());
 }
