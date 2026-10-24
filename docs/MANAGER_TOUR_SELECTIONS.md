@@ -26,6 +26,14 @@ explicit identical retry. A stale revision never silently replaces a colleague's
 draft. Unsaved edits are scoped to manager and conversation in session storage;
 late responses from another conversation/authentication generation are discarded.
 
+When versions conflict, “Показать версию коллеги” is a read-only comparison,
+not a decision to discard local edits. The original draft, selected offer and
+unparsed child-age input remain in the same account/conversation recovery
+envelope across close and reload. The manager explicitly continues with their
+own edits or the server version. Choosing local edits adopts only the latest
+observed revision for the normal optimistic save; comparison never saves,
+publishes or sends, and a later colleague edit can still cause a new conflict.
+
 This slice has no customer sending, public page, verified-fare action, photo
 downloader, AI/search import or browser extension. Stored draft revisions are
 editable and are not immutable offer snapshots. These are subsequent portions

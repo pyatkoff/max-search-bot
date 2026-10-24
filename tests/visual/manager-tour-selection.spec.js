@@ -114,6 +114,37 @@ test('selection conflict keeps local conditions until explicit choice',async({pa
   await page.getByRole('button',{name:'Продолжить с моими правками'}).click();await save(page);expect(s.drafts.get(11).draft.offers[0].hotel).toBe('Моя новая версия');clean(s);
 });
 
+for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420}])test(`selection colleague comparison retains local recovery ${viewport.width}x${viewport.height}`,async({page,browserName})=>{
+  await page.setViewportSize(viewport);const s=await fixture(page);await open(page);await page.locator('#tsEmptyAdd').click();await page.locator('#ts-hotel').fill('Первый вариант');await save(page);
+  const other=copy(s.drafts.get(11));other.version++;other.draft.offers[0].hotel='Вариант коллеги';other.draft.offers[0].child_ages=[8];s.drafts.set(11,other);
+  await page.locator('#ts-hotel').fill('Мои новые условия');await page.locator('#ts-child_ages').fill('4, 10');await page.locator('#tsSave').click();await expect(page.locator('#tsRecovery')).toContainText('другая версия');
+  const writes=s.calls.filter(x=>x.action==='save').length;
+  await page.getByRole('button',{name:'Показать версию коллеги',exact:true}).click();await expect(page.locator('#ts-hotel')).toHaveValue('Вариант коллеги');
+  await expect(page.getByRole('button',{name:'Продолжить с моими правками',exact:true})).toBeVisible();await expect(page.locator('#tsSave')).toBeDisabled();
+  fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-selection-conflict-${browserName}-${viewport.width}x${viewport.height}.png`)});
+  await page.locator('#tsClose').click();await open(page);await expect(page.locator('#ts-hotel')).toHaveValue('Вариант коллеги');
+  await page.reload();await page.locator('#replyText').waitFor({state:'visible'});await open(page);await expect(page.locator('#ts-hotel')).toHaveValue('Вариант коллеги');
+  await page.getByRole('button',{name:'Продолжить с моими правками',exact:true}).click();await expect(page.locator('#ts-hotel')).toHaveValue('Мои новые условия');await expect(page.locator('#ts-child_ages')).toHaveValue('4, 10');
+  expect(s.calls.filter(x=>x.action==='save')).toHaveLength(writes);await save(page);expect(s.drafts.get(11).draft.offers[0].hotel).toBe('Мои новые условия');expect(s.drafts.get(11).draft.offers[0].child_ages).toEqual([4,10]);clean(s);
+});
+
+test('selection comparison preserves a full draft and invalid age input after reload',async({page})=>{
+  const draft=completeDraft();draft.offers=Array.from({length:20},(_,i)=>({...copy(draft.offers[0]),id:i.toString(16).padStart(32,'0'),flights:'f'.repeat(1200),constraints:'c'.repeat(1200),rationale:'r'.repeat(600),compromise:'m'.repeat(600),inclusions:'i'.repeat(600),photos:['cover','beach','room'].map(kind=>({kind,url:'https://photos.example.org/'+kind+'?ref='+'a'.repeat(1000),illustrative:true}))}));
+  const s=await fixture(page,{draft});await open(page);await page.locator('#ts-hotel').fill('Мои условия с ошибкой ввода');await page.locator('#ts-child_ages').fill('4, возраст');await page.locator('#tsClose').click();
+  const other=copy(s.drafts.get(11));other.version++;other.draft.offers[0].hotel='Серверный вариант';s.drafts.set(11,other);
+  await open(page);await page.getByRole('button',{name:'Показать версию коллеги',exact:true}).click();await page.reload();await page.locator('#replyText').waitFor({state:'visible'});await open(page);
+  await page.getByRole('button',{name:'Продолжить с моими правками',exact:true}).click();await expect(page.locator('#ts-hotel')).toHaveValue('Мои условия с ошибкой ввода');await expect(page.locator('#ts-child_ages')).toHaveValue('4, возраст');await expect(page.locator('#tsSave')).toBeDisabled();
+  expect(s.calls.filter(x=>x.action==='save')).toHaveLength(0);await page.locator('#ts-child_ages').fill('4, 10');await save(page);expect(s.drafts.get(11).draft.offers).toHaveLength(20);expect(s.drafts.get(11).draft.offers[1]).toEqual(draft.offers[1]);clean(s);
+});
+
+test('selection comparison accepts a newer server version only by explicit choice',async({page})=>{
+  const s=await fixture(page,{draft:completeDraft()});await open(page);await page.locator('#ts-hotel').fill('Мой вариант');
+  const other=copy(s.drafts.get(11));other.version++;other.draft.offers[0].hotel='Версия два';s.drafts.set(11,other);await page.locator('#tsSave').click();await page.getByRole('button',{name:'Показать версию коллеги',exact:true}).click();
+  other.version++;other.draft.offers[0].hotel='Версия три';s.drafts.set(11,copy(other));await page.locator('#tsClose').click();await open(page);await expect(page.locator('#ts-hotel')).toHaveValue('Версия три');
+  const writes=s.calls.filter(x=>x.action==='save').length;await page.getByRole('button',{name:'Продолжить с версией коллеги',exact:true}).click();await expect(page.locator('#tsSaved')).toHaveText('Сохранено на сервере');
+  await page.reload();await page.locator('#replyText').waitFor({state:'visible'});await open(page);await expect(page.locator('#ts-hotel')).toHaveValue('Версия три');expect(s.calls.filter(x=>x.action==='save')).toHaveLength(writes);clean(s);
+});
+
 test('lost save response reconciles without another mutation',async({page})=>{
   const s=await fixture(page,{fail:'after'});await open(page);await page.locator('#tsEmptyAdd').click();await page.locator('#ts-hotel').fill('Сохранённый вариант');await page.locator('#tsSave').click();await expect(page.getByRole('button',{name:'Проверить сохранение'})).toBeVisible();
   await page.getByRole('button',{name:'Проверить сохранение'}).click();await expect(page.locator('#tsSaved')).toHaveText('Сохранено на сервере');expect(s.calls.filter(x=>x.action==='save')).toHaveLength(1);clean(s);
