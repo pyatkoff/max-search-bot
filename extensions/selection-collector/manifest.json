@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "AnyTour — в подборку",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Импорт отображённых предложений FUN&SUN, ограниченного ANEX и снимков Tourvisor в одну подборку Manager2.",
   "permissions": [
     "storage",
@@ -26,6 +26,7 @@
         "https://b2b.fstravel.com/search_tour*"
       ],
       "js": [
+        "collector-client.js",
         "funsun.js",
         "content.js"
       ],
@@ -39,6 +40,7 @@
         "https://agent.anextour.ru/search/tour*"
       ],
       "js": [
+        "collector-client.js",
         "anex.js",
         "anex-content.js"
       ],

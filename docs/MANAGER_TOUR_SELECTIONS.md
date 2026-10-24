@@ -64,8 +64,16 @@ under the canonical draft parent locks. Account, access, source, session or trip
 changes stop the connection. Manager2 can revoke it without deleting the draft.
 
 The extension keeps the selected client/trip in its own UI, never the third-party
-TO DOM. Each clicked row first becomes a durable local intent with its original
-destination; explicit destination confirmation permits canonical server append.
+TO DOM. The manager explicitly connects the current client/trip once. A normal
+FUN&SUN/ANEX row click then uses a short-lived single-use worker ticket bound
+before extraction to that target, source role, tab and document. Target/connection
+changes reject the click rather than retargeting. Only the opaque local ticket
+and the source's own bounded operation state return to the TO content script.
+The existing local intent is durable before canonical receipt lookup/append;
+the source button says saved only after a known saved revision. Waiting/lost
+results remain pending and another click reads that same operation. Legacy rows
+without a ticket retain explicit destination review. Tourvisor's unresolved
+per-room price basis and changed-price/ambiguous variants still require review.
 One server draft receives different tabs. Worker/browser restart and transport
 loss retain the intent; status checks its exact normalized payload/hash before a
 permitted identical retry. Reconnecting requires the original client/trip;

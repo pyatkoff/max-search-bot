@@ -6,12 +6,12 @@ for(const type of ['click','keydown','input','change'])document.addEventListener
 async function collect(anchor,button){
  if(button.disabled)return;button.disabled=true;button.textContent='Проверяем условия…';
  try{
+  const ticket=await AnyTourCollectorClient.begin(button);if(!ticket)return;
   if(formTouched)throw new Error('Форма ANEX менялась. Завершите поиск и обновите страницу результата перед импортом.');
   const before=AnyTourAnex.extract(document,anchor,location.href);await new Promise(r=>setTimeout(r,750));
   const after=AnyTourAnex.extract(document,anchor,location.href);before.observed_at=after.observed_at;
   if(formTouched||JSON.stringify(before)!==JSON.stringify(after))throw new Error('Условия ANEX ещё меняются. Дождитесь окончания поиска.');
-  const r=await chrome.runtime.sendMessage({type:'enqueue',observation:after});if(!r.ok)throw new Error(r.error||'Не удалось сохранить очередь.');
-  button.textContent='Проверьте в AnyTour';button.title='Подтвердите клиента в расширении. Туристу ничего не отправлено.';
+  await AnyTourCollectorClient.append(button,ticket,after);
  }catch(e){button.textContent='Не добавлено';button.title=e.message;let note=button.parentElement.querySelector('[data-anytour-note]');if(!note){note=document.createElement('div');note.dataset.anytourNote='1';note.setAttribute('role','status');button.parentElement.append(note)}note.textContent=e.message}
  finally{button.disabled=false}
 }
