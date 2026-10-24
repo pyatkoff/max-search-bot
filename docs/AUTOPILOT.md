@@ -11,7 +11,7 @@ This is the default execution order for autonomous work.
 5. Classify evidence using the repository priority order.
 6. If a production/user defect is confirmed, fix only that defect plus the smallest required regression.
 7. If no higher-priority defect exists, take the smallest useful roadmap slice.
-8. Run required checks and any focused regression locally/CI.
+8. Verify the changed behavior with the focused regression and relevant actual-source UI first; then run the required CI selected for the complete final diff.
 9. Open PR with explicit behavior/non-behavior scope.
 10. Merge only after required CI is green.
 11. Verify deploy, migrations, smoke, diagnostics and production SHA.
@@ -45,6 +45,46 @@ Avoid speculative behavior changes when only old/historical diagnostic noise exi
 Prefer one logical product or architecture slice per PR. Small related test/diagnostic changes belong in the same PR; unrelated cleanup does not.
 
 For architecture work, preserve behavior first. Extract one owner/boundary, switch callers, verify, then remove dead code later.
+
+## Finish the user path before broad verification
+
+Choose a slice that completes an observable user action, including its error or
+recovery state. For the selection collector, first verify the real search-row
+action, popup/editor and saved draft with the shipped scripts and styles. Use a
+current authorized source session when available; otherwise mark live extension
+acceptance open. Synthetic source fixtures and a green full-panel run do not
+prove that the installed extension works on the operator's current page.
+
+Use focused regressions and changed desktop/mobile states while iterating.
+Resolve known fixture wiring, styling and interaction failures before asking CI
+to certify the candidate. Group related behavior fixes and fixture corrections
+into that finished slice; a checkpoint does not need its own docs/report PR.
+The final complete diff determines component or full coverage through
+`docs/CI_SCOPES.md`; do not add broad manual browser replays to
+a component change. Full coverage remains mandatory for shared owners and CI
+rule changes. A later source edit needs its own selected current-head checks.
+
+Each reviewer reads a run's original evidence once and records the result;
+independent acceptance still requires that reviewer's own verification. Reuse
+that verification for the same immutable evidence instead of downloading and
+checking it again for each status update. Retry only failed/cancelled jobs on
+the same source when allowed; a new head or a new failure is new evidence.
+Keep one product WIP and preserve the normal sole-publisher/install gates.
+
+Independent source work and focused checks may proceed in parallel. Reserve
+the shared main/deploy publisher only after current-head required CI and
+artifact acceptance are complete and fresh-main admission is ready. If admission
+requires another source sync and CI before merge, release the publisher while
+those checks run so another ready direction can publish. Reacquire only after
+fresh claims/main/gates are checked. After merge, keep the sole publisher through
+installed verification and explicit terminal release; do not overlap deploys.
+
+Status updates lead with the user-visible effect and remaining blocker. Test
+counts and artifact receipts support that conclusion; they are not the product
+result or evidence of a live path that has not been exercised.
+Keep one current checkpoint with links to its accepted evidence. Add a new
+checkpoint for a result, blocker or ownership transition, not every unchanged
+CI poll; preserve the existing claim and terminal-release records.
 
 ## Merge/deploy gate
 
