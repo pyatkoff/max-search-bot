@@ -1,6 +1,6 @@
 {
   "schema": "anytour.funnel.autopilot_state.v1",
-  "updated_at_utc": "2026-10-24T13:40:42.912547+00:00",
+  "updated_at_utc": "2026-10-24T14:38:49.312084+00:00",
   "owner": "direct-demand-funnel",
   "automation": {
     "id": "6ada8f0084888191b12c6619c12fb35c",
@@ -9,7 +9,7 @@
     "timezone": "Europe/Kaliningrad",
     "enabled_verified_at_utc": "2026-10-22T22:39:46.922Z"
   },
-  "status": "H26_TWO_FULL_HAINAN5_KHAOLAK4_TEXTS_FOUR_SAVED_MAX_TARGETS_COVERS_PENDING_NOT_APPLIED",
+  "status": "H27_TWO_OWNER_COVERS_HAINAN_KHAOLAK_FULL_TEXTS_AND194MAP_UNCHANGED_NOT_APPLIED",
   "channel": null,
   "scope": {
     "prepare_catalog_matches": true,
@@ -43,11 +43,11 @@
   "artifacts": {
     "report": {
       "library_file_id": "libfile_81ae550da16881918bb6840b686d507f",
-      "version": 59
+      "version": 60
     },
     "archive": {
       "library_file_id": "libfile_1b69bb58e8d4819186e7ea461ef60cb6",
-      "version": 60
+      "version": 61
     },
     "canonical_hotel_knowledge": {
       "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
@@ -87,7 +87,7 @@
     },
     "existing_post_review": {
       "library_file_id": "libfile_25486df816e88191b44ed4051858e99f",
-      "version": 40,
+      "version": 41,
       "preview_member": "existing-post-review/anytour-existing-posts-review-20261023.html",
       "text_review_member": "existing-post-review/manual-text-review-107.json",
       "adaptations_member": "existing-post-review/existing-post-adaptations-12.json",
@@ -529,7 +529,7 @@
     },
     "current_packet_continuation": {
       "library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
-      "version": 5,
+      "version": 6,
       "content_member": "existing-post-review/h26/content.json",
       "patches_member": "existing-post-review/h26/existing-patches-4.NOT-APPLIED.json",
       "preflight_member": "existing-post-review/h26/preflight194-current.NOT-APPLIED.json",
@@ -537,14 +537,15 @@
       "summary_member": "existing-post-review/h26/summary.json",
       "validation_member": "existing-post-review/h26/validation.json",
       "canonical_claim_reuse_member": "existing-post-review/h26/canonical-claim-reuse.json",
-      "next_safe_block_member": "existing-post-review/h26/next-safe-block.json",
+      "next_safe_block_member": "existing-post-review/h27/next-safe-block.json",
       "source_read_limits_member": "existing-post-review/h26/source-read-limits.json",
       "preview_library_file_id": "libfile_c1f06826dd408191bed3e0cb8103e379",
-      "preview_version": 5,
+      "preview_version": 6,
       "base_pointer_member": "existing-post-review/current-continuation.json",
       "same_packet_continuation_not_second_attribution_store": true,
       "base_ZIP_alone_not_complete_current_packet": true,
-      "private_materials_only_in_library": true
+      "private_materials_only_in_library": true,
+      "current_cover_manifest_member": "existing-post-review/h27/photo-cover-provenance.json"
     },
     "existing_h23_selection_covers": {
       "library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
@@ -581,6 +582,23 @@
       "preview_version": 4,
       "media_in_base_ZIP": false,
       "private_materials_only_in_library": true
+    },
+    "existing_h27_selection_covers": {
+      "library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
+      "version": 6,
+      "cover_manifest_member": "existing-post-review/h27/photo-cover-provenance.json",
+      "render_member": "existing-post-review/h27/cover-render.html",
+      "validation_member": "existing-post-review/h27/validation.json",
+      "preview_validation_member": "existing-post-review/h27/preview-validation.json",
+      "canonical_readback_member": "existing-post-review/h27/canonical-readback.json",
+      "next_safe_block_member": "existing-post-review/h27/next-safe-block.json",
+      "original_content_member": "existing-post-review/h26/content.json",
+      "preflight_reused_unchanged": "existing-post-review/h26/preflight194-current.NOT-APPLIED.json",
+      "map_reused_unchanged": "existing-post-review/h26/existing63-194post-map.NOT-APPLIED.json",
+      "preview_library_file_id": "libfile_c1f06826dd408191bed3e0cb8103e379",
+      "preview_version": 6,
+      "media_in_base_ZIP": false,
+      "private_materials_only_in_library": true
     }
   },
   "operations": {
@@ -592,7 +610,7 @@
     "wordstat_access": "BLOCKED_NO_CONNECTED_SEARCH_API_ACCESS",
     "first_post_drafts": "DONE",
     "inactive_feed_templates": "DONE",
-    "active_operation": "NONE_H26_TEXTS_SAVED_NEXT_TWO_OWNER_COVERS",
+    "active_operation": "NONE_H27_SAVED_NEXT_R050_R051_ORIGINALS_READ",
     "catalog_cohort_492_read": "DONE",
     "first_native_catalog_bindings": "DONE",
     "five_additional_posts": "DONE",
@@ -690,18 +708,18 @@
     "existing_h23_selection_covers": "DONE_2OWNER_COVERS_H22TEXTS_UNCHANGED_NO_NATIVE_WRITES",
     "existing_h24_selection_corrections": "DONE_2FULL4MEMBERTEXTS_4SAVED_MAX_TARGETS_NO_COVERS_NO_NATIVEWRITES",
     "existing_h25_selection_covers": "DONE_2OWNER_COVERS_H24TEXTS_190PREFLIGHT_MAP_UNCHANGED_NO_NATIVEWRITES",
-    "existing_h26_selection_corrections": "DONE_2FULL5AND4TEXTS_4SAVEDMAXTARGETS_NO_COVERS_NO_NATIVEWRITES"
+    "existing_h26_selection_corrections": "DONE_2FULL5AND4TEXTS_4SAVEDMAXTARGETS_NO_COVERS_NO_NATIVEWRITES",
+    "existing_h27_selection_covers": "DONE_2OWNER_COVERS_H26TEXTS_194PREFLIGHT_MAP_UNCHANGED_NO_NATIVEWRITES"
   },
   "next_steps": [
-    "H26done:2full5/4member Hainan/KhaoLak drafts for4savedMAXposts;oldprices/dates/stars/nightpromotion removed.No newIDs/destinations/nativewrites.",
-    "Next finiteblock:2ownerstyle coversR048/R049,exactmember originalphotos.HainanpreferPearlRiver/YalongMangrove;KhaoLakexactBhandari/Kantary/Outrigger/Graceland.Preserve5/4texts,labelproperty,hold ambiguousSwissotel/Harman names.",
-    "Currentpacket=baseZIPv60+samecompanion libfile_f7a0d7e76c188191b2d5bc59adfd430d v5;H26current194preflight/resolved63collection39unlinkedmap incompanion.Basecurrent-continuation.json carrieshashes.H24/H22/H19snapshots historical;do not treatbaseZIPalone ascomplete.",
-    "89subjects/90bodies/194savedcandidates;155mapped/63INACTIVEcollections+39unlinked26subjects.94videoholds/100textphotopaths,141identityholds.194native identitiesunverified;no issuedIDs/activeURLs.",
-    "Canonical92 currentindexe3ec73..readonly;1exactGracelandprofile/1PoolView-vs-PoolAccessclaimreused.NohotelDBchanges/nativelocalIDassigned.9freshprimaryhotel/operator/tourismboardpages.",
-    "OldSwissotel&GrandMercure combinedlabel retained1originalmember;currentAccorC305/C306 separateat sameaddress,cannot assign either ID.OceanoldLanvsKOMPASexNarada aliasunresolved;Yalonglocationonly.HarmanCoral403,nameonly,no location/servicesclaim,noidenticalretry.",
-    "KhaoLakBhandariless10minwalk village,Kantarysuite/villa,OutriggerBangsakbeachfront,Graceland12kmcentre;no unconditionalHB/calmsea/uncrowdedbeach/AI-inclusionpromise.Rates/roomservice attravelunverified.",
-    "Base536869346bytes/headroom1566;all1056nonownedCRC/size and rawcompressedrecords exact,no deletion/recompression.Companion8688088bytes114entries,all93priornonpreviewmembers exact.",
-    "Foreignconstructorresearch6384733869 continuesclaim6384270497,no sourceruntime/publisher;installedPR1103RELEASEbaseline unchanged.Manager2/SEARCH/INT/LOCAL/MATCH,pausedlearningCRM,models/budgets/settings untouched.No production/RK/spend/tourist/newpostactions.Wordstat/ASRblockers unchanged,notretried."
+    "H27done:two labeled ownerstyle1080squareJPGcovers forR048/R049.PearlRiverGarden fromSanyaTourismBoard propertypage;KhaolakBhandari officialpoolphoto.Two originaldownloads24Oct2026,visuallyreviewed,full5/4texts unchanged.",
+    "Next finiteblock:read exact saved R050Hainan/R051budgetTurkey originals,check prioradaptation coverage and current194preflight before preparing fullmembertexts.No nativewrites.",
+    "Currentpacket=baseZIPv61+samecompanion libfile_f7a0d7e76c188191b2d5bc59adfd430d v6;current194preflight/map remainH26,H27covermanifest incompanion.Basecurrent-continuation.json version6guard.BaseZIPalone notphysicallycomplete currentpacket.",
+    "89subjects/90bodies/194savedcandidates;155mapped/63INACTIVEcollections+39unlinked26subjects.94videoholds/100textphotopaths,141identityholds.194nativeidentitiesunverified,no issuedIDs/activeURLs.",
+    "Canonical92 currentindexe3ec73..readonly,H26Gracelandclaimreuse unchanged.No hotelprofilescreated orpropertyfacts inferred fromimages.Harman403nameonly,SwissotelC305/GrandMercureC306 split,OceanoldLanvsNarada alias unresolved;PhuQuocidentity/Huayuanholds retained.",
+    "Base536868752bytes/headroom2160;all1056nonownedCRC/size andrawcompressedrecords exact,no deletion/recompression.Companion11771205bytes131entries,all113priornonpreviewmembers exact;2selectedoriginalphotosand2coverssaved.",
+    "Constructorresearch6384270497RELEASED6384908447;freshsource6385353806/PR1104head755c0b1 handoff6385404338 CIpending,no publisherclaimed;reservedpaths/operations untouched.Installed1103/f6d6510 unchanged.No fullCI/native/Direct baseline reruns.",
+    "No production/RK/spend/tourist/newpost actions;Manager2/constructor/SEARCH/INT/LOCAL/MATCH andpausedlearningCRM/models/budgets/settings unchanged.Wordstat/ASRblockers unchanged,notretried."
   ],
   "publication_blocker": "176saved candidates NOT_APPLIED:all176entry URLs unissued/local catalog identities unverified(123explicit lookup flags),94video holds/82text-photo paths.155mapped to63inactive collections;21selection targets across16subjects unlinked.H15two text drafts and H16two branded covers complete for2savedMAXposts.No fresh native read/external apply.All need current exact post/media/buttons/context read and applicable owner authority.Huayuan hot-spring closure/Argyle historical maintenance and package/identity/season holds retained.Photographs illustrate named properties only,not current services.No mass native publication,RK/spend authority.",
   "coordination": "Own audit/direct-demand-20261022 branch only; no foreign claims, CI, paused hotel tasks or production flows.",
@@ -2075,6 +2093,83 @@
       "full4and4member_bodies_exact": true,
       "disabled_CTA": 2,
       "overflow": false
+    },
+    "existing_h27": {
+      "two_source_photos_and_final_covers_visually_read": true,
+      "original_logo_and_Montserrat_reused": true,
+      "no_hotel_facts_inferred_from_photo": true,
+      "all_H26_full5and4texts_and194preflight_map_bytes_unchanged": true,
+      "canonical92_read_only": true,
+      "new_bodies": 0,
+      "new_targets": 0,
+      "new_IDs": 0,
+      "native_writes": 0,
+      "preview": {
+        "results": [
+          {
+            "width": 320,
+            "selection": "six",
+            "overflow": false,
+            "body_exact": true
+          },
+          {
+            "width": 320,
+            "selection": "four",
+            "overflow": false,
+            "body_exact": true
+          },
+          {
+            "width": 390,
+            "selection": "six",
+            "overflow": false,
+            "body_exact": true
+          },
+          {
+            "width": 390,
+            "selection": "four",
+            "overflow": false,
+            "body_exact": true
+          },
+          {
+            "width": 736,
+            "selection": "six",
+            "overflow": false,
+            "body_exact": true
+          },
+          {
+            "width": 736,
+            "selection": "four",
+            "overflow": false,
+            "body_exact": true
+          }
+        ],
+        "standalone_widths": [
+          390,
+          1440
+        ],
+        "full5and4bodies_unchanged": true,
+        "one_correct_cover_per_card": true,
+        "disabled_CTA": 2,
+        "overflow": false
+      },
+      "base_archive": {
+        "bytes": 536868752,
+        "cap": 536870912,
+        "entries": 1060,
+        "unowned_prior_member_count": 1056,
+        "unowned_bytes_crc_preserved": true,
+        "unmodified_raw_local_records_SHA256": "42eb150e0e1e6dc894325858032ab6969feb891c696d6c2ed1d3e4edba75272b",
+        "unchanged_compressed_bytes_exact": true,
+        "compression_only_members": [],
+        "all_stage_members_readback_equal": true
+      },
+      "companion": {
+        "bytes": 11771205,
+        "entries": 131,
+        "prior_nonpreview_members_preserved": 113,
+        "all_new_bytes_exact": true,
+        "H26bodies194preflight_map_unchanged": true
+      }
     }
   },
   "catalog_evidence": {
@@ -2115,7 +2210,7 @@
     "library_archive_size": "Current536730088bytes/limit536870912/headroom140824;guards49/50/30.H16preserved all existing evidence and losslessly BZIP2compressed18existingJSONmembers:per-member originaluncompressedSHA,CRC/size and Python/InfoZIP6readPASS recorded inH16lossless-packaging.json.Other prior compression types unchanged.Preserve current root/current-fileBZIP2method on updates;preflight new byte budget before upload.No oversized request/evidence deletion.Unselected new largeOGexcluded with provenance,not prior evidence."
   },
   "latest_completed_block": {
-    "name": "H26:two fullHainan5/KhaoLak4selectiontexts for4savedMAXposts,coverspending;notapplied",
+    "name": "H27:two labeled owner covers for full5/4Hainan/KhaoLak texts;194candidates unchanged;notapplied",
     "total_prepared_subjects": 89,
     "total_exact_caption_bodies": 90,
     "total_saved_post_candidates": 194,
@@ -2126,22 +2221,22 @@
     "total_video_holds": 94,
     "total_text_photo_paths": 100,
     "identity_lookup_holds": 141,
-    "new_caption_bodies": 2,
-    "new_exact_saved_post_candidates": 4,
-    "new_covers": 0,
+    "new_caption_bodies": 0,
+    "new_exact_saved_post_candidates": 0,
+    "new_covers": 2,
     "new_IDs": 0,
     "actual_channel_writes": 0,
     "platforms": {
       "max": 185,
       "telegram": 9
     },
-    "completed_at_utc": "2026-10-24T13:40:42.912547+00:00",
+    "completed_at_utc": "2026-10-24T14:38:49.312084+00:00",
     "save_versions": [
-      59,
       60,
-      40,
-      5,
-      5
+      61,
+      41,
+      6,
+      6
     ]
   },
   "catalog_export_lookup": {
@@ -2206,15 +2301,15 @@
     "each_new_post_has_explicit_eligibility_checks": true
   },
   "last_run_readback": {
-    "own_branch_head_before_write": "c13f2e6e5052d117ef3e385ae08b5f3bf64afb57",
+    "own_branch_head_before_write": "ab55b69651ab4ae9f35fa3322342cf4aec025a6d",
     "same_package_current_executor_handoff": true,
     "coordination_issue55_updated_at_utc": "2026-10-24T13:22:23Z",
     "source_archive_library_version": 92,
     "demand_library_versions_before_write": {
-      "report": 58,
-      "archive": 59
+      "report": 59,
+      "archive": 60
     },
-    "existing_review_preview_version_before_write": 39,
+    "existing_review_preview_version_before_write": 40,
     "foreign_claims_untouched": true,
     "scope_instructions_reused_from_current_same_executor_package": true,
     "root_AGENTS_sha": "a064aff67d42ddd69a12d9b0393501d116d1307d",
@@ -2225,16 +2320,16 @@
     "full_CI_or_unchanged_baseline_repeated": false,
     "wordstat_access_blocker_unchanged": true,
     "blocked_wordstat_retried": false,
-    "current_task": "H26:R048Hainan5/R049KhaoLak4fulltextdrafts,194preflight/mapcontinuation,no covers/nativewrites.",
+    "current_task": "H27:two ownerstyle covers forR048/R049,exactH26bodies194preflight/map unchanged,no nativewrites.",
     "private_source_materials_committed": false,
     "fresh_native_message_read_performed": false,
     "source_main_reviewed_sha": "f6d6510e4df20b4eac56b51ed6dd73db3e66098d",
     "START_HERE_sha": "43e7827432279012382767de6b6335684c6d54c2",
     "ASR_reexecuted_after_rejection": false,
-    "coordination_latest_comment_id": 6384733869,
-    "latest_coordination_updated_comment_read": 6384733869,
+    "coordination_latest_comment_id": 6385404338,
+    "latest_coordination_updated_comment_read": 6385404338,
     "source_instructions_read_on_current_main": true,
-    "completed_at_utc": "2026-10-24T13:40:42.912547+00:00",
+    "completed_at_utc": "2026-10-24T14:38:49.312084+00:00",
     "all_comments_endpoint_failed_transport_twice": true,
     "newest_comments_read_with_bounded_since_API": true,
     "library_prepare_initial_size_rejected_before_action": false,
@@ -2248,12 +2343,14 @@
     "unchanged_compressed_records_exact_verified": true,
     "source_knowledge92_read_only": true,
     "demand_library_versions_after_write": {
-      "report": 59,
-      "archive": 60
+      "report": 60,
+      "archive": 61
     },
-    "existing_review_preview_version_after_write": 40,
+    "existing_review_preview_version_after_write": 41,
     "foreign_constructor_research_claim_6384270497_untouched": true,
-    "foreign_constructor_research_claim_6384270497_and_checkpoint6384733869_untouched": true
+    "foreign_constructor_research_claim_6384270497_and_checkpoint6384733869_untouched": true,
+    "constructor_research6384270497_RELEASED_6384908447_observed": true,
+    "foreign_constructor_source6385353806_PR1104_head755c0b1_untouched": true
   },
   "latest_source_checks": {
     "read_on": "2026-10-23",
@@ -3507,12 +3604,12 @@
     "prior_video_transport_hold_preserved_for_amended_video_target": true
   },
   "next_preparation_block": {
-    "state": "PENDING_TWO_H26_OWNER_COVERS",
+    "state": "PENDING_READ_ORIGINALS",
     "review_ids": [
-      "R048",
-      "R049"
+      "R050",
+      "R051"
     ],
-    "action": "Exactverified member originalphotos;HainanpreferPearlRiver/YalongMangrove;KhaoLakBhandari/Kantary/Outrigger/Graceland.Labelproperty,preserve full5/4texts,no ambiguousSwissotelcombinedphotoorHarman substitution.Samecompanion/basepointer,no nativewrites.",
+    "action": "Read exact saved R050Hainan/R051budgetTurkey originals and current194preflight;check priorcoverage before preparing fullmember texts;canonicalfacts readonly,no nativewrites.",
     "native_writes_allowed": false
   },
   "existing_text_photo_binding44_operation": {
@@ -6351,5 +6448,147 @@
       ],
       "all_local_metadata_applied": true
     }
+  },
+  "existing_h27_selection_covers_operation": {
+    "state": "DONE_TWO_H26_OWNER_COVERS_READABLE_PREVIEW_NOT_APPLIED",
+    "idempotency_key": "H27-H26-R048-R049-2ownerJPGcovers-20261024-v1",
+    "completed_at_utc": "2026-10-24T14:38:49.312084+00:00",
+    "same_executor_continuation": true,
+    "no_subagents": true,
+    "source_demand_archive_version": 60,
+    "source_companion_version": 5,
+    "canonical_source_version": 92,
+    "new_covers": 2,
+    "new_JPG_exports": 2,
+    "new_selected_photo_downloads": 2,
+    "new_caption_bodies": 0,
+    "new_targets": 0,
+    "new_IDs": 0,
+    "actual_channel_writes": 0,
+    "total_prepared_subjects": 89,
+    "total_exact_caption_bodies": 90,
+    "total_saved_post_candidates": 194,
+    "mapped_candidates": 155,
+    "inactive_collections": 63,
+    "unlinked_candidates": 39,
+    "unlinked_subjects": 26,
+    "video_holds": 94,
+    "text_photo_paths": 100,
+    "identity_lookup_holds": 141,
+    "library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
+    "version": 6,
+    "cover_manifest_member": "existing-post-review/h27/photo-cover-provenance.json",
+    "render_member": "existing-post-review/h27/cover-render.html",
+    "validation_member": "existing-post-review/h27/validation.json",
+    "preview_validation_member": "existing-post-review/h27/preview-validation.json",
+    "canonical_readback_member": "existing-post-review/h27/canonical-readback.json",
+    "next_safe_block_member": "existing-post-review/h27/next-safe-block.json",
+    "original_content_member": "existing-post-review/h26/content.json",
+    "preflight_reused_unchanged": "existing-post-review/h26/preflight194-current.NOT-APPLIED.json",
+    "map_reused_unchanged": "existing-post-review/h26/existing63-194post-map.NOT-APPLIED.json",
+    "base_pointer_member": "existing-post-review/current-continuation.json",
+    "preview_library_file_id": "libfile_c1f06826dd408191bed3e0cb8103e379",
+    "preview_version": 6,
+    "media_in_base_ZIP": false,
+    "source_photo_labels": [
+      "Pearl River Garden Hotel Sanya",
+      "Khaolak Bhandari Resort & Spa"
+    ],
+    "private_materials_only_in_library": true,
+    "validation": {
+      "two_source_photos_and_final_covers_visually_read": true,
+      "original_logo_and_Montserrat_reused": true,
+      "no_hotel_facts_inferred_from_photo": true,
+      "all_H26_full5and4texts_and194preflight_map_bytes_unchanged": true,
+      "canonical92_read_only": true,
+      "new_bodies": 0,
+      "new_targets": 0,
+      "new_IDs": 0,
+      "native_writes": 0,
+      "preview": {
+        "results": [
+          {
+            "width": 320,
+            "selection": "six",
+            "overflow": false,
+            "body_exact": true
+          },
+          {
+            "width": 320,
+            "selection": "four",
+            "overflow": false,
+            "body_exact": true
+          },
+          {
+            "width": 390,
+            "selection": "six",
+            "overflow": false,
+            "body_exact": true
+          },
+          {
+            "width": 390,
+            "selection": "four",
+            "overflow": false,
+            "body_exact": true
+          },
+          {
+            "width": 736,
+            "selection": "six",
+            "overflow": false,
+            "body_exact": true
+          },
+          {
+            "width": 736,
+            "selection": "four",
+            "overflow": false,
+            "body_exact": true
+          }
+        ],
+        "standalone_widths": [
+          390,
+          1440
+        ],
+        "full5and4bodies_unchanged": true,
+        "one_correct_cover_per_card": true,
+        "disabled_CTA": 2,
+        "overflow": false
+      },
+      "base_archive": {
+        "bytes": 536868752,
+        "cap": 536870912,
+        "entries": 1060,
+        "unowned_prior_member_count": 1056,
+        "unowned_bytes_crc_preserved": true,
+        "unmodified_raw_local_records_SHA256": "42eb150e0e1e6dc894325858032ab6969feb891c696d6c2ed1d3e4edba75272b",
+        "unchanged_compressed_bytes_exact": true,
+        "compression_only_members": [],
+        "all_stage_members_readback_equal": true
+      },
+      "companion": {
+        "bytes": 11771205,
+        "entries": 131,
+        "prior_nonpreview_members_preserved": 113,
+        "all_new_bytes_exact": true,
+        "H26bodies194preflight_map_unchanged": true
+      }
+    },
+    "save_receipt": {
+      "versions": [
+        60,
+        61,
+        41,
+        6,
+        6
+      ],
+      "expected_previous_versions": [
+        59,
+        60,
+        40,
+        5,
+        5
+      ],
+      "all_local_metadata_applied": true
+    },
+    "unknown_writes": []
   }
 }
