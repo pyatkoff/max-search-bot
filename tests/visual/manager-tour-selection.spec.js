@@ -391,6 +391,8 @@ test('explicit hotel grouping survives reload and renaming separates only that o
 
 test('collector exact source row retains current price and fails on changing conditions',async({page})=>{
  const s=await sourceFixture(page);let r=await s.read();expect(r.error).toBeUndefined();expect(r.value.offer.amount).toBe('237017');expect(r.value.raw.price).toBe('237 017 RUB');expect(r.value.offer.child_ages).toEqual([]);expect(r.value.raw.flight_alternatives).toContain('01:00');expect(r.value.offer).not.toHaveProperty('flights');
+ await page.locator('tr.price_info').evaluate(e=>['hotel','room','meal','htplace','tour','ptype','townfrom','state'].forEach(key=>e.removeAttribute('data-'+key)));r=await s.read();expect(r.error).toBeUndefined();expect(r.value.keys).toEqual({hotel:'10',room:'20',meal:'30',placement:'40',tour:'78',program:'114',departure:'274286',country:'18803',spo:'60'});
+ await page.locator('tr.price_info').evaluate(e=>e.dataset.room='21');expect((await s.read()).error).toContain('расходятся точные идентификаторы');await page.locator('tr.price_info').evaluate(e=>e.dataset.room='20');
  expect(await page.locator('.price').evaluate(e=>getComputedStyle(e,'::before').content)).toContain('259304');
  await page.locator('[name=CHECKIN_BEG]').fill('06.06.2027');expect((await s.read()).error).toContain('Дождитесь установившихся дат');await page.locator('[name=CHECKIN_BEG]').fill('04.06.2027');expect((await s.read()).error).toContain('Нажмите «Искать»');await page.locator('[name=CHECKIN_BEG]').fill('05.06.2027');
  await page.evaluate(()=>document.querySelector('[name=STATEINC]').options[0].value='99');expect((await s.read()).error).toContain('Нажмите «Искать»');await page.evaluate(()=>document.querySelector('[name=STATEINC]').options[0].value='18803');
