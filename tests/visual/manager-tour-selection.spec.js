@@ -516,8 +516,8 @@ for(const width of [390,430,768,1440])test(`ANEX imported terms show their actua
 });
 
 test('ANEX form interaction invalidates old result even when displayed day month is unchanged',async({page})=>{
- await anexSourceFixture(page);await page.evaluate(()=>{window.collectorStaged=[];window.chrome={runtime:{sendMessage:async m=>{collectorStaged.push(m);return{ok:true}}}}});await page.addScriptTag({path:path.join(root,'extensions/selection-collector/anex-content.js')});
- await page.locator('[data-testid=CHECKIN_BEG]').click();await page.getByRole('button',{name:'В подборку AnyTour',exact:true}).click();await expect(page.getByRole('button',{name:'Не добавлено'})).toBeVisible();await expect(page.locator('[data-anytour-note]')).toContainText('обновите страницу');expect(await page.evaluate(()=>collectorStaged.length)).toBe(0);
+ await anexSourceFixture(page);await collectorSourceRuntime(page);await page.addScriptTag({path:path.join(root,'extensions/selection-collector/anex-content.js')});
+ await page.locator('[data-testid=CHECKIN_BEG]').click();await page.getByRole('button',{name:'В подборку AnyTour',exact:true}).click();await expect(page.getByRole('button',{name:'Не добавлено'})).toBeVisible();await expect(page.locator('[data-anytour-note]')).toContainText('обновите страницу');expect(await page.evaluate(()=>collectorStaged.length)).toBe(0);expect(await page.evaluate(()=>collectorRequests.map(x=>x.type))).toEqual(['begin_add']);
 });
 
 test('Tourvisor actual snapshot extractor and canonical PHP retain the same source terms',async({page})=>{
