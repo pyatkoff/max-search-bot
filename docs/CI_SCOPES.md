@@ -66,7 +66,9 @@ with raw Git modes `000000` to `100644`; an unknown new extension/helper file
 still takes full coverage. A collector README or selection-document change on
 its own does not select component coverage. Workflow triggers include the
 extension packager/ZIP/JSON as well as JS/CSS so packaging-only changes cannot
-silently miss their native gate.
+silently miss their native gate. The extension README alone does not trigger
+native UI, preserving its prior documentation-only behavior; changing it with
+code/package files still triggers the gate. Backend regression stays unfiltered.
 
 These services are called by the selection controllers/component, not the
 shared Inbox/notification/media/auth owners. The private PHP fixtures are used
