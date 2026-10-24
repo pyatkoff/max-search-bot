@@ -229,7 +229,7 @@ function photoLink(url,name,label){
 }
 function looksLikeImage(a,url){const probe=String(a?.name||url||'').split('?')[0].toLowerCase();return a?.type==='image'||/\.(png|jpe?g|gif|webp|bmp|avif)$/.test(probe)}
 function mediaFallback(node,a,url,label='Вложение'){node.onerror=()=>{const link=document.createElement('a');link.textContent='Не удалось загрузить: '+(a?.name||label)+'. Открыть файл';if(url){link.href=url;link.target='_blank';link.rel='noopener'}node.replaceWith(link)}}
-function renderAttachments(root,items){
+function renderAttachments(root,items,pendingControls){
   if(!Array.isArray(items)||!items.length)return;
   const wrap=document.createElement('div');wrap.className='attachments';
   items.forEach(a=>{
@@ -243,8 +243,8 @@ function renderAttachments(root,items){
       n.src=url;preview.appendChild(n);wrap.appendChild(preview);
       const open=photoLink(url,a.name,'Открыть фото');open.textContent='Открыть фото';wrap.appendChild(open);return;
     }
-    if(a.type==='video'&&url){n=document.createElement('video');n.preload='none';n.src=url;n.controls=true;mediaFallback(n,a,url,'Видео')}
-    else if(a.type==='audio'&&url){n=document.createElement('audio');n.preload='none';n.src=url;n.controls=true;mediaFallback(n,a,url,'Аудио')}
+    if(a.type==='video'&&url){n=document.createElement('video');n.preload='none';n.src=url;pendingControls.push(n);mediaFallback(n,a,url,'Видео')}
+    else if(a.type==='audio'&&url){n=document.createElement('audio');n.preload='none';n.src=url;pendingControls.push(n);mediaFallback(n,a,url,'Аудио')}
     else{n=document.createElement('a');n.textContent='📎 '+(a.name||'Вложение');if(url){n.href=url;n.target='_blank';n.rel='noopener'}}
     wrap.appendChild(n);
   });root.appendChild(wrap);
@@ -286,7 +286,7 @@ function renderServiceActionDetails(root,action){
 const messageRows=new WeakMap();
 function messageFingerprint(m){return JSON.stringify([m.direction,m.sender_type,m.text,m.created_at,m.attachments||[],m.linked_message||null,m.service_action||null])}
 function messageContentFingerprint(m){return JSON.stringify([m.direction,m.sender_type,m.text,m.attachments||[],m.linked_message||null,m.service_action||null])}
-function createMessageRow(m){const n=document.createElement('div');const event=serviceAction(m),who=event?'service':m.sender_type==='customer'?'customer':m.sender_type==='manager'?'manager':'ai',whoLabel=event?'Действие клиента':who==='customer'?'Турист':who==='manager'?'Менеджер':'Бот';n.className=event?'msg serviceAction':'msg '+who;n.dataset.sender=who;if(Number.isSafeInteger(Number(m.id))&&Number(m.id)>0)n.dataset.scrollMessageKey=String(m.id);const sender=document.createElement('span');sender.className='messageSender';sender.textContent=whoLabel;n.appendChild(sender);renderLinkedMessage(n,m);const body=document.createElement('div');body.className='msgBody';if(event)body.textContent=event.label;else renderMessageBody(body,m);n.appendChild(body);if(event)renderServiceActionDetails(n,event);renderAttachments(n,m.attachments||[]);const meta=document.createElement('div');meta.className='msgMeta';meta.textContent=messageTime(m.created_at||'');meta.title=window.ManagerTime.format(m.created_at,{year:true})+' МСК';n.appendChild(meta);return n}
+function createMessageRow(m,pendingControls){const n=document.createElement('div');const event=serviceAction(m),who=event?'service':m.sender_type==='customer'?'customer':m.sender_type==='manager'?'manager':'ai',whoLabel=event?'Действие клиента':who==='customer'?'Турист':who==='manager'?'Менеджер':'Бот';n.className=event?'msg serviceAction':'msg '+who;n.dataset.sender=who;if(Number.isSafeInteger(Number(m.id))&&Number(m.id)>0)n.dataset.scrollMessageKey=String(m.id);const sender=document.createElement('span');sender.className='messageSender';sender.textContent=whoLabel;n.appendChild(sender);renderLinkedMessage(n,m);const body=document.createElement('div');body.className='msgBody';if(event)body.textContent=event.label;else renderMessageBody(body,m);n.appendChild(body);if(event)renderServiceActionDetails(n,event);renderAttachments(n,m.attachments||[],pendingControls);const meta=document.createElement('div');meta.className='msgMeta';meta.textContent=messageTime(m.created_at||'');meta.title=window.ManagerTime.format(m.created_at,{year:true})+' МСК';n.appendChild(meta);return n}
 function emptyMessageRow(){const empty=document.createElement('div');empty.className='conversationEmpty';empty.innerHTML='<div class="conversationEmptyIcon">💬</div><strong>Сообщений пока нет</strong><span>История диалога появится здесь.</span>';return empty}
 function retireMessageMedia(row){
   for(const media of [...row.querySelectorAll('audio'),...row.querySelectorAll('video')]){
@@ -304,17 +304,20 @@ function restoreMessageSelection(saved){
   const anchor=point(saved.anchor),focus=point(saved.focus);if(anchor&&focus)window.getSelection?.()?.setBaseAndExtent(anchor.node,anchor.offset,focus.node,focus.offset);
 }
 function renderMessages(messages,{stickToBottom=false,preserveScroll=false,prepend=false,resetRows=false,selectionSnapshot=null}={}){
-  const rows=messages||[];if(photoViewer&&!rows.some(m=>(m.attachments||[]).some(a=>a?.url===photoViewer.url)))closePhotoViewer(false);
+  const pendingControls=[],rows=messages||[];if(photoViewer&&!rows.some(m=>(m.attachments||[]).some(a=>a?.url===photoViewer.url)))closePhotoViewer(false);
   const box=$('messages'),selection=resetRows?null:selectionSnapshot||captureMessageSelection(box),position=window.WorkspaceV2Jump?.capture(),distanceFromBottom=Math.max(0,box.scrollHeight-box.scrollTop-box.clientHeight),previousTop=box.scrollTop,previousHeight=box.scrollHeight;
   if(typeof box.insertBefore==='function'&&typeof box.removeChild==='function'){
     const existing=new Map();if(!resetRows)[...box.children].forEach(node=>{const record=messageRows.get(node);if(record)existing.set(record.key,node)});
-    const syntheticCounts=new Map();const desired=rows.map(m=>{const kind=[m.sender_type||'',m.direction||'',m.service_action?.type||''].join(':'),ordinal=syntheticCounts.get(kind)||0;if(!validId(Number(m.id)))syntheticCounts.set(kind,ordinal+1);const key=validId(Number(m.id))?'id:'+Number(m.id):'synthetic:'+kind+':'+ordinal,fingerprint=messageFingerprint(m),contentFingerprint=messageContentFingerprint(m),current=existing.get(key),record=current&&messageRows.get(current);if(current&&record?.contentFingerprint===contentFingerprint){if(record.fingerprint!==fingerprint){const meta=[...current.children].find(node=>node.className==='msgMeta');if(meta){meta.textContent=messageTime(m.created_at||'');meta.title=window.ManagerTime.format(m.created_at,{year:true})+' МСК'}messageRows.set(current,{key,fingerprint,contentFingerprint})}existing.delete(key);return current}const node=createMessageRow(m);messageRows.set(node,{key,fingerprint,contentFingerprint});return node});
+    const syntheticCounts=new Map();const desired=rows.map(m=>{const kind=[m.sender_type||'',m.direction||'',m.service_action?.type||''].join(':'),ordinal=syntheticCounts.get(kind)||0;if(!validId(Number(m.id)))syntheticCounts.set(kind,ordinal+1);const key=validId(Number(m.id))?'id:'+Number(m.id):'synthetic:'+kind+':'+ordinal,fingerprint=messageFingerprint(m),contentFingerprint=messageContentFingerprint(m),current=existing.get(key),record=current&&messageRows.get(current);if(current&&record?.contentFingerprint===contentFingerprint){if(record.fingerprint!==fingerprint){const meta=[...current.children].find(node=>node.className==='msgMeta');if(meta){meta.textContent=messageTime(m.created_at||'');meta.title=window.ManagerTime.format(m.created_at,{year:true})+' МСК'}messageRows.set(current,{key,fingerprint,contentFingerprint})}existing.delete(key);return current}const node=createMessageRow(m,pendingControls);messageRows.set(node,{key,fingerprint,contentFingerprint});return node});
     if(!desired.length){const prior=[...box.children].find(node=>node.className==='conversationEmpty');desired.push(prior||emptyMessageRow())}
     const retained=new Set(desired);[...box.children].forEach(node=>{if(!retained.has(node)){retireMessageMedia(node);box.removeChild(node)}});
     let cursor=box.firstChild;for(const node of desired){if(node===cursor)cursor=cursor.nextSibling;else box.insertBefore(node,cursor)}
   }else{
-    const frag=document.createDocumentFragment();rows.forEach(m=>frag.appendChild(createMessageRow(m)));if(!frag.childNodes.length)frag.appendChild(emptyMessageRow());[...box.children].forEach(retireMessageMedia);box.replaceChildren(frag);
+    const frag=document.createDocumentFragment();rows.forEach(m=>frag.appendChild(createMessageRow(m,pendingControls)));if(!frag.childNodes.length)frag.appendChild(emptyMessageRow());[...box.children].forEach(retireMessageMedia);box.replaceChildren(frag);
   }
+  // WebKit initializes native control UI on connection. Enable new players only
+  // after the complete row batch is connected; retained players stay untouched.
+  for(const media of pendingControls)media.controls=true;
   if(stickToBottom)box.scrollTop=box.scrollHeight;else if(preserveScroll)box.scrollTop=prepend?previousTop+box.scrollHeight-previousHeight:Math.max(0,box.scrollHeight-box.clientHeight-distanceFromBottom);
   window.WorkspaceV2Jump?.restore(position,{stickToBottom,preserveScroll});window.WorkspaceV2ConversationSearch?.rendered();restoreMessageSelection(selection);window.WorkspaceV2History?.render();
 }

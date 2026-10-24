@@ -60,7 +60,7 @@ the existing fixture stub, not a real OS delivery or cache measurement.
 
 Select `--journey reply` to measure the actual installed frontend through AI and
 ordinary text sending. The default CLI `--journey workspace` preserves the
-frozen no-send protocol above. PR measurement jobs explicitly select `reply`;
+frozen no-send protocol above. PR measurement jobs explicitly select `open`;
 manual dispatch defaults to `workspace` and exposes the same choice.
 
 The engines, viewports, 200-row Inbox, 600-message source, three fresh-context
@@ -99,6 +99,31 @@ time. These measurements describe frontend state/rendering and automation
 overhead, **not natural production response time, AI latency or channel latency**.
 The secondary card is observed separately and, as in the workspace protocol,
 its post-open observation wait is included in the continuous full-cycle span.
+
+## Paired opening comparison (`manager2-open-v1`)
+
+`--journey open` isolates the expensive opening phase instead of repeating the
+unchanged AI/send or workspace series. Each runner compares the verified installed
+baseline against the candidate's exact `manager/assets/workspace-v2-conversation.js`.
+Only that one asset is overridden in the candidate context; the installed shell,
+other assets, synthetic dataset and transport remain identical. The manifest
+records both asset hashes and the candidate tooling SHA. This is a synthetic
+candidate comparison, not a claim that the candidate was already installed.
+
+Each viewport has separate baseline/candidate contexts with three discarded
+warmups and 30 native B→A opens per cohort. Their order alternates per sample,
+starting with baseline, on the same runner. Each cohort also has three separate
+fresh-context startup observations. All 200 message rows and ten audio players
+must be present, with native controls enabled and `preload=none`; reply readiness,
+secondary-card milestones and strict unexpected-request guards still apply.
+There are **66 records per shard**, **660 across ten shards**, including 600
+measured opens. A one-sample/one-warmup/one-startup check has four records.
+
+The normal event/state/two-frame meter is unchanged. The comparison adds no
+per-row profiler or geometry interception. Report each cohort's median/range and
+paired sample differences; keep runner/engine/viewport identities separate.
+Startup is context evidence, not the target of this opening optimization.
+Natural production, physical-device, model/channel and stable-P95 limits remain.
 
 ## Timing and raw evidence
 
