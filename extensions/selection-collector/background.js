@@ -1,11 +1,15 @@
 'use strict';
 const bridgeOrigin='https://app.anytoour.ru',bridgePath='/manager/tour-selection-collector.php';
 const id=()=>Array.from(crypto.getRandomValues(new Uint8Array(16)),x=>x.toString(16).padStart(2,'0')).join('');
-const bridges=new Map(),requests=new Map(),bridgeReady=new Set();let serial=Promise.resolve(),processing=false,inFlight='';
+const bridges=new Map(),requests=new Map(),bridgeReady=new Set(),addTickets=new Map();let serial=Promise.resolve(),processing=false,inFlight='';
 const exclusive=fn=>{const p=serial.then(fn,fn);serial=p.catch(()=>{});return p};
 function kind(sender){try{const u=new URL(sender.url||sender.tab?.url||'');if(u.origin===bridgeOrigin&&u.pathname===bridgePath)return'bridge';if(u.origin==='https://b2b.fstravel.com'&&u.pathname==='/search_tour')return'funsun';if(u.origin==='https://agent.anextour.ru'&&u.pathname==='/search/tour')return'anex';if(u.origin==='https://pro.tourvisor.ru'&&u.pathname==='/search')return'tourvisor';if(u.protocol==='chrome-extension:'&&u.host===chrome.runtime.id)return'popup'}catch{}return''}
 async function state(){const s=await chrome.storage.local.get(['device','target','items']);if(!s.device){s.device=id();await chrome.storage.local.set({device:s.device})}return {...s,items:Array.isArray(s.items)?s.items:[]}}
 function same(a,b){return a&&b&&a.actor===b.actor&&a.conversation_id===b.conversation_id&&a.binding===b.binding&&a.connection?.id===b.connection?.id}
+const sourceRoles=['funsun','anex','tourvisor'];
+function sourceOwner(role,sender){return Number.isInteger(sender.tab?.id)&&sender.tab.id>=0&&(!Number.isInteger(sender.frameId)||sender.frameId===0)?{role,tab:sender.tab.id,document:sender.documentId||''}:null}
+function ownsSource(owner,role,sender){const current=sourceOwner(role,sender);return !!owner&&!!current&&owner.role===current.role&&owner.tab===current.tab&&owner.document===current.document}
+function pruneTickets(){for(const [key,ticket]of addTickets)if(Date.now()-ticket.at>60000)addTickets.delete(key);while(addTickets.size>=64)addTickets.delete(addTickets.keys().next().value)}
 async function announce(){for(const tab of await chrome.tabs.query({url:['https://b2b.fstravel.com/search_tour*','https://agent.anextour.ru/search/tour*','https://pro.tourvisor.ru/search*']}))void chrome.tabs.sendMessage(tab.id,{type:'target_changed'}).catch(()=>{});await chrome.action.setBadgeText({text:String((await state()).items.filter(x=>x.state!=='saved').length||'')})}
 async function relay(item,action,reconnect=true){
  const s=await state();if(!same(s.target,item.target))return{ok:false,error:'connection_changed'};
@@ -22,8 +26,9 @@ async function relay(item,action,reconnect=true){
 async function updateItem(operation,patch){await exclusive(async()=>{const s=await state();const at=s.items.findIndex(i=>i.operation_id===operation);if(at<0)return;s.items[at]={...s.items[at],...patch};await chrome.storage.local.set({items:s.items})});await announce()}
 async function process(){if(processing)return;processing=true;try{
  for(;;){const s=await state(),item=s.items.find(i=>i.state==='queued'&&same(i.target,s.target));if(!item)break;inFlight=item.operation_id;
- let r=await relay(item,'operation');if(r.ok&&r.found){await updateItem(item.operation_id,{state:'saved',error:null});continue}
- if(r.ok&&r.found===false)r=await relay(item,'import');
+ let r=await relay(item,'operation');if(r.ok&&r.found===true&&Number.isSafeInteger(r.saved_version)&&r.saved_version>0){await updateItem(item.operation_id,{state:'saved',error:null});continue}
+ if(r.ok&&r.found===false){r=await relay(item,'import');if(r.ok&&(!['added','already_added','saved'].includes(r.state)||!Number.isSafeInteger(r.saved_version)||r.saved_version<=0))r={ok:false,error:'storage_unavailable'}}
+ else if(r.ok)r={ok:false,error:'storage_unavailable'};
  if(r.ok)await updateItem(item.operation_id,{state:'saved',error:null});
  else{const current=await state(),changed=!same(item.target,current.target),review=['source_price_changed','ambiguous_offer'].includes(r.error),wait=['network_error','storage_unavailable','bridge_unavailable'].includes(r.error);await updateItem(item.operation_id,{state:changed?'blocked':review?'review':wait?'waiting':'blocked',error:changed?'connection_changed':r.error});if(wait)break}
  }
@@ -43,14 +48,29 @@ async function handle(m,sender){
  if(e.type==='disconnected'){const was=b.target;b.target=null;await exclusive(async()=>{const s=await state();if(same(s.target,was)){for(const item of s.items)if(item.state!=='saved'&&item.operation_id!==inFlight){item.state='blocked';item.error='connection_changed'}await chrome.storage.local.set({target:null,items:s.items})}});await announce();return{ok:true}}
  return{ok:false};
  }
- if(['funsun','anex','tourvisor'].includes(role)&&m.type==='enqueue'){
+ if(sourceRoles.includes(role)&&m.type==='begin_add')return exclusive(async()=>{
+ const owner=sourceOwner(role,sender);if(!owner)return{ok:false};const s=await state();
+ if(!s.target)return{ok:false,error:'Подключите клиента: Manager2 → Подборка → Сборщик туров.'};
+ pruneTickets();const ticket=id();addTickets.set(ticket,{owner,target:s.target,at:Date.now()});return{ok:true,ticket};
+ });
+ if(sourceRoles.includes(role)&&m.type==='add_status'){
+ const s=await state(),item=s.items.find(x=>x.operation_id===m.operation_id);
+ if(!item||!ownsSource(item.source,role,sender))return{ok:false};
+ return same(item.target,s.target)?{ok:true,state:item.state,error:item.error||null}:{ok:true,state:'blocked',error:'connection_changed'};
+ }
+ if(sourceRoles.includes(role)&&m.type==='enqueue'){
  if(!m.observation||m.observation.adapter!==({funsun:'funsun-b2b-v1',anex:'anex-agent-v1',tourvisor:'tourvisor-snapshot-v1'}[role])||JSON.stringify(m.observation).length>16000)return{ok:false,error:'Данные предложения не поддерживаются.'};
  if(role==='tourvisor'){if(!m.observation.raw||typeof m.observation.raw!=='object')return{ok:false};m.observation.raw.party_price_confirmation='pending'};
  const r=await exclusive(async()=>{const s=await state();if(!s.target)return{ok:false,error:'Подключите клиента: Manager2 → Подборка → Сборщик туров.'};
+ let ticket=null;if(Object.hasOwn(m,'ticket')){
+ ticket=addTickets.get(m.ticket);addTickets.delete(m.ticket);
+ if(!ticket||Date.now()-ticket.at>60000||!ownsSource(ticket.owner,role,sender)||!same(ticket.target,s.target))return{ok:false,error:'Клиент или подключение изменились. Проверьте подборку в расширении и нажмите ещё раз.'};
+ }
  if(s.items.filter(x=>x.state!=='saved').length>=50)return{ok:false,error:'Проверьте очередь расширения: в ней уже 50 предложений.'};
  s.items=s.items.filter(x=>x.state!=='saved').concat(s.items.filter(x=>x.state==='saved').slice(-20));
- const operation_id=id();s.items.push({operation_id,observation:m.observation,target:s.target,state:'destination',as_variant:false,created_at:new Date().toISOString()});await chrome.storage.local.set({items:s.items});return{ok:true}});
- if(r.ok){await announce();try{if(typeof chrome.action.openPopup==='function')void chrome.action.openPopup().catch(()=>{})}catch{}}return r;
+ const operation_id=ticket?m.ticket:id(),direct=!!ticket&&role!=='tourvisor',item={operation_id,observation:m.observation,target:ticket?ticket.target:s.target,state:direct?'queued':'destination',as_variant:false,created_at:new Date().toISOString()};
+ if(ticket)item.source=ticket.owner;s.items.push(item);await chrome.storage.local.set({items:s.items});return ticket?{ok:true,operation_id,state:item.state}:{ok:true}});
+ if(r.ok){await announce();if(r.state==='queued')void process();else try{if(typeof chrome.action.openPopup==='function')void chrome.action.openPopup().catch(()=>{})}catch{}}return r;
  }
  if(role!=='popup')return{ok:false};
  if(m.type==='status'){const s=await state();return{ok:true,target:s.target||null,items:s.items}}

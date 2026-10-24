@@ -11,7 +11,7 @@ const observation=hotel=>({adapter:'funsun-b2b-v1',offer:{hotel,amount:'200000',
 
 // Execute the actual MV3 worker against persistent storage and a synthetic
 // canonical bridge. This verifies queue protocol, not a physical browser install.
-function worker(db,server,{popupSupported=true}={}){
+function worker(db,server,{popupSupported=true,now=()=>Date.now()}={}){
  let listener,alarm,nonce='',current=db.target?clone(db.target):null;
  const sender=target=>({id:'fixture-extension',url:'https://app.anytoour.ru/manager/tour-selection-collector.php?conversation_id='+target.conversation_id,tab:{id:10,url:'https://app.anytoour.ru/manager/tour-selection-collector.php?conversation_id='+target.conversation_id}});
  const popup={url:'chrome-extension://fixture-extension/popup.html'},to={url:'https://b2b.fstravel.com/search_tour?FILTER=1',tab:{id:20}};
@@ -29,16 +29,17 @@ function worker(db,server,{popupSupported=true}={}){
    await send({type:'bridge_event',event:{type:'result',nonce:message.nonce,request_id:command.request_id,result}},sender(current));
   }}
  };
- vm.runInNewContext(source,{chrome,crypto:webcrypto,URL,Uint8Array,Map,Set,Promise,setTimeout,clearTimeout},{filename:'collector-background.js'});
+ vm.runInNewContext(source,{chrome,crypto:webcrypto,URL,Uint8Array,Map,Set,Promise,setTimeout,clearTimeout,Date:class extends Date{static now(){return now()}}},{filename:'collector-background.js'});
  return {send,connect,enqueue:input=>send({type:'enqueue',observation:input},to),status:()=>send({type:'status'}),alarm:()=>alarm(),disconnect:()=>send({type:'bridge_event',event:{nonce,type:'disconnected'}},sender(current))};
 }
 function provider(){return {receipts:new Map(),calls:[],creates:0,mode:'',async receive(c){
  this.calls.push(clone(c));const hash=JSON.stringify([c.connection_id,c.observation,c.as_variant]),old=this.receipts.get(c.operation_id);
- if(old&&old!==hash)return{ok:false,error:'operation_mismatch'};
- if(c.action==='operation'){if(this.mode==='offline'){this.mode='';return{ok:false,error:'network_error'}}return{ok:true,found:!!old,count:this.creates}}
+ if(old&&old.hash!==hash)return{ok:false,error:'operation_mismatch'};
+ if(c.action==='operation'){if(this.mode==='offline'){this.mode='';return{ok:false,error:'network_error'}}if(this.mode==='malformed_status'){this.mode='';return{ok:true}}return{ok:true,found:!!old,count:this.creates,saved_version:old?.version??null}}
  if(this.mode==='price'){this.mode='';return{ok:false,error:'source_price_changed'}}
- if(!old){this.creates++;this.receipts.set(c.operation_id,hash)}
+ if(!old){this.creates++;this.receipts.set(c.operation_id,{hash,version:this.creates})}
  if(this.mode==='lost'){this.mode='';return{ok:false,error:'network_error'}}
+ if(this.mode==='malformed_import'){this.mode='';return{ok:true,state:'added'}}
  return{ok:true,state:'added',count:this.creates,saved_version:this.creates};
 }}}
 async function stage(w,hotel){assert.equal((await w.enqueue(observation(hotel))).ok,true);const s=await w.status();return s.items.at(-1).operation_id}
@@ -99,5 +100,51 @@ async function itemState(w,operation,state){await until(async()=>(await w.status
  w=worker(db,server);check('TV restart retains unconfirmed price basis',(await w.send({type:'confirm',operation_id:tvId,confirm_price_basis:false})).ok===false);
  await w.send({type:'confirm',operation_id:tvId,confirm_price_basis:true});await itemState(w,tvId,'saved');
  check('TV explicit price plus destination confirmation uses canonical receipt and import',server.creates===7&&server.calls.filter(x=>x.operation_id===tvId).every(x=>x.observation.raw.party_price_confirmation==='one_room_two_adults'));
+
+ const directDb={},directServer=provider(),funsunSender={url:'https://b2b.fstravel.com/search_tour?FILTER=1',tab:{id:20},documentId:'source-document',frameId:0};let clock=1000;
+ let direct=worker(directDb,directServer,{popupSupported:false,now:()=>clock});
+ check('one click cannot begin before explicit client trip connection',(await direct.send({type:'begin_add'},funsunSender)).ok===false);
+ await direct.connect(makeTarget());
+ const begin=()=>direct.send({type:'begin_add'},funsunSender);
+ const enqueue=(ticket,hotel='Direct')=>direct.send({type:'enqueue',ticket,observation:observation(hotel)},funsunSender);
+ const read=operation=>direct.send({type:'add_status',operation_id:operation},funsunSender);
+ check('foreign page and subframe cannot obtain an add ticket',(await direct.send({type:'begin_add'},{url:'https://evil.example/',tab:{id:20}})).ok===false&&(await direct.send({type:'begin_add'},{...funsunSender,frameId:2})).ok===false);
+ const ticket=await begin();
+ check('click ticket reveals no client trip or connection',ticket.ok&&Object.keys(ticket).sort().join(',')==='ok,ticket'&&/^[a-f0-9]{32}$/.test(ticket.ticket));
+ const receive=directServer.receive.bind(directServer);directServer.receive=async command=>{assert.ok(directDb.items.some(x=>x.operation_id===command.operation_id&&x.state==='queued'),'intent durable before canonical bridge call');return receive(command)};
+ const added=await enqueue(ticket.ticket);await itemState(direct,added.operation_id,'saved');
+ check('one source click saves without a popup confirmation or popup API',added.ok&&added.state==='queued'&&directServer.creates===1&&directServer.calls.map(x=>x.action).join(',')==='operation,import');
+ const own=await read(added.operation_id);
+ check('source receives only its operation state',own.ok&&own.state==='saved'&&Object.keys(own).sort().join(',')==='error,ok,state');
+ check('another tab document or source cannot read that operation',(await direct.send({type:'add_status',operation_id:added.operation_id},{...funsunSender,tab:{id:99}})).ok===false&&(await direct.send({type:'add_status',operation_id:added.operation_id},{...funsunSender,documentId:'other-document'})).ok===false&&(await direct.send({type:'add_status',operation_id:added.operation_id},anexSender)).ok===false);
+ check('a consumed click ticket cannot append another intent',(await enqueue(ticket.ticket)).ok===false&&directDb.items.length===1);
+ let stale=await begin();await direct.connect(makeTarget(12,'b'.repeat(32)));
+ check('client change during extraction refuses rather than retargets',(await enqueue(stale.ticket)).ok===false&&directDb.items.length===1&&directServer.creates===1);
+ check('old saved operation is not presented as saved for the new target',(await read(added.operation_id)).state==='blocked');
+ await direct.connect(makeTarget());stale=await begin();await direct.connect({...makeTarget(),binding:'f'.repeat(64)});
+ check('changed trip binding rejects the captured click',(await enqueue(stale.ticket)).ok===false&&directDb.items.length===1);
+ await direct.connect(makeTarget());stale=await begin();await direct.connect(makeTarget(11,'c'.repeat(32)));
+ check('same client with replacement connection rejects old click',(await enqueue(stale.ticket)).ok===false&&directDb.items.length===1);
+ stale=await begin();await direct.disconnect();check('revocation before enqueue cannot import',(await enqueue(stale.ticket)).ok===false&&directServer.creates===1);
+ await direct.connect(makeTarget());stale=await begin();clock+=60001;
+ check('expired capture cannot authorize a later append',(await enqueue(stale.ticket)).ok===false&&directDb.items.length===1);
+ stale=await begin();check('another source document cannot consume a ticket',(await direct.send({type:'enqueue',ticket:stale.ticket,observation:observation('Wrong document')},{...funsunSender,documentId:'other-document'})).ok===false);
+ stale=await begin();direct=worker(directDb,directServer,{now:()=>clock});
+ check('worker restart does not revive a non-durable click ticket',(await enqueue(stale.ticket)).ok===false&&directDb.items.length===1);
+ await direct.connect(makeTarget());directServer.mode='lost';let command=await enqueue((await begin()).ticket,'Lost direct');await itemState(direct,command.operation_id,'waiting');
+ check('lost direct save does not report success',(await read(command.operation_id)).state==='waiting'&&directServer.creates===2);
+ direct=worker(directDb,directServer,{now:()=>clock});direct.alarm();await itemState(direct,command.operation_id,'saved');
+ check('durable one click recovery reads receipt without a second append',directServer.creates===2&&directServer.calls.filter(x=>x.operation_id===command.operation_id&&x.action==='import').length===1);
+ directServer.mode='malformed_status';command=await enqueue((await begin()).ticket,'Bad receipt');await itemState(direct,command.operation_id,'waiting');
+ check('malformed status cannot become saved or authorize append',(await read(command.operation_id)).state==='waiting'&&directServer.calls.filter(x=>x.operation_id===command.operation_id&&x.action==='import').length===0);
+ directServer.mode='malformed_import';direct.alarm();await until(()=>directServer.creates===3);await itemState(direct,command.operation_id,'waiting');
+ check('positive import without saved revision remains unconfirmed',(await read(command.operation_id)).state==='waiting'&&directServer.creates===3);
+ direct.alarm();await itemState(direct,command.operation_id,'saved');check('malformed import recovery uses known saved receipt',directServer.creates===3);
+ directServer.mode='price';command=await enqueue((await begin()).ticket,'Changed price');await itemState(direct,command.operation_id,'review');
+ check('direct add preserves mandatory changed price review',(await read(command.operation_id)).state==='review'&&directServer.creates===3);
+ const anexTicket=await direct.send({type:'begin_add'},anexSender),anexDirect=await direct.send({type:'enqueue',ticket:anexTicket.ticket,observation:anex},anexSender);await itemState(direct,anexDirect.operation_id,'saved');
+ check('ANEX direct add uses the same canonical queue',directServer.creates===4);
+ const tvTicket=await direct.send({type:'begin_add'},tvSender),tvDirect=await direct.send({type:'enqueue',ticket:tvTicket.ticket,observation:tv},tvSender);
+ check('click capture cannot bypass unresolved TV price basis',tvDirect.ok&&tvDirect.state==='destination'&&directDb.items.at(-1).observation.raw.party_price_confirmation==='pending'&&directServer.creates===4);
  console.log('COLLECTOR WORKER TOTAL '+checks+' PASS');
 })().catch(error=>{console.error(error);process.exitCode=1});

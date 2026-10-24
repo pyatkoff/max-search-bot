@@ -4,6 +4,19 @@ const {execFileSync}=require('node:child_process');
 const {setup,root}=require('./fixtures/internal-notes');
 const copy=x=>JSON.parse(JSON.stringify(x));
 const {sourceFixture,bridgeFixture,anexSourceFixture,tourvisorSourceFixture}=require('./fixtures/selection-collector');
+async function collectorSourceRuntime(page,mode='saved'){
+ await page.evaluate(mode=>{
+  window.collectorStaged=[];window.collectorRequests=[];window.collectorResult=mode==='lost_response'?'saved':mode;
+  window.chrome={runtime:{sendMessage:async m=>{
+   collectorRequests.push(m);
+   if(m.type==='begin_add')return{ok:true,ticket:'a'.repeat(32)};
+   if(m.type==='enqueue'){collectorStaged.push(m);if(mode==='lost_response')throw new Error('Synthetic lost enqueue reply');return{ok:true,operation_id:m.ticket,state:'queued'}}
+   if(m.type==='add_status')return{ok:true,state:collectorResult,error:collectorResult==='review'?'source_price_changed':null};
+   throw new Error('Unexpected collector command');
+  },onMessage:{addListener(){}}}};
+ },mode);
+ await page.addScriptTag({path:path.join(root,'extensions/selection-collector/collector-client.js')});
+}
 function searchInquiryProjection(mode){
   return JSON.parse(execFileSync('php',['-r',`
     require getcwd().'/tests/support/search3-tour-handoff.php';
@@ -344,11 +357,26 @@ test('collector exact source row retains current price and fails on changing con
  expect(s.calls).toEqual([]);
 });
 
-test('collector source button stages only a settled row without third party client identity',async({page})=>{
- await sourceFixture(page);await page.evaluate(()=>{window.collectorStaged=[];window.chrome={runtime:{sendMessage:async m=>{collectorStaged.push(m);return{ok:true}},onMessage:{addListener(){}}}}});
- await page.addScriptTag({path:path.join(root,'extensions/selection-collector/content.js')});await page.getByRole('button',{name:'В подборку AnyTour'}).click();await expect(page.getByRole('button',{name:'Проверьте в AnyTour'})).toBeVisible();
+for(const width of [390,430,768,1440])test('collector source button saves a settled row in one click without third party client identity at '+width,async({page,browserName})=>{
+ await page.setViewportSize({width,height:900});await sourceFixture(page);await collectorSourceRuntime(page);
+ await page.addScriptTag({path:path.join(root,'extensions/selection-collector/content.js')});await page.getByRole('button',{name:'В подборку AnyTour'}).click();await expect(page.getByRole('button',{name:'✓ В подборке'})).toBeVisible();
  expect(await page.evaluate(()=>collectorStaged.length)).toBe(1);expect(await page.evaluate(()=>collectorStaged[0].observation.offer.amount)).toBe('237017');expect(await page.locator('body').innerText()).not.toContain('Синтетическая Анна');
- await page.getByRole('button',{name:'Проверьте в AnyTour'}).click({noWaitAfter:true});await page.locator('.price').evaluate(e=>{e.textContent='240000 RUB';e.setAttribute('data-converted-price-number','240000')});await expect(page.getByRole('button',{name:'Не добавлено'})).toBeVisible();expect(await page.evaluate(()=>collectorStaged.length)).toBe(1);
+ expect(await page.evaluate(()=>collectorRequests.map(x=>x.type))).toEqual(['begin_add','enqueue','add_status']);expect(await page.evaluate(()=>collectorStaged[0].ticket)).toBe('a'.repeat(32));
+ fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-one-click-funsun-${browserName}-${width}.png`)});
+ await page.getByRole('button',{name:'✓ В подборке'}).click({noWaitAfter:true});await page.locator('.price').evaluate(e=>{e.textContent='240000 RUB';e.setAttribute('data-converted-price-number','240000')});await expect(page.getByRole('button',{name:'Не добавлено'})).toBeVisible();expect(await page.evaluate(()=>collectorStaged.length)).toBe(1);
+});
+
+for(const mode of ['waiting','review'])test('collector source '+mode+' never claims saved or blindly repeats append',async({page})=>{
+ await page.setViewportSize({width:390,height:900});await sourceFixture(page);await collectorSourceRuntime(page,mode);await page.addScriptTag({path:path.join(root,'extensions/selection-collector/content.js')});
+ await page.getByRole('button',{name:'В подборку AnyTour'}).click();const label=mode==='waiting'?'В очереди AnyTour':'Проверьте в AnyTour';await expect(page.getByRole('button',{name:label})).toBeEnabled();await expect(page.getByRole('button',{name:'✓ В подборке'})).toHaveCount(0);
+ await page.getByRole('button',{name:label}).click();expect(await page.evaluate(()=>collectorStaged.length)).toBe(1);expect(await page.evaluate(()=>collectorRequests.filter(x=>x.type==='begin_add').length)).toBe(1);
+ if(mode==='waiting'){await page.evaluate(()=>collectorResult='saved');await page.getByRole('button',{name:label}).click();await expect(page.getByRole('button',{name:'✓ В подборке'})).toBeVisible();expect(await page.evaluate(()=>collectorStaged.length)).toBe(1)}
+});
+
+test('collector source lost enqueue reply checks the exact preallocated operation',async({page})=>{
+ await sourceFixture(page);await collectorSourceRuntime(page,'lost_response');await page.addScriptTag({path:path.join(root,'extensions/selection-collector/content.js')});
+ await page.getByRole('button',{name:'В подборку AnyTour'}).click();await expect(page.getByRole('button',{name:'✓ В подборке'})).toBeVisible();
+ expect(await page.evaluate(()=>collectorStaged.length)).toBe(1);expect(await page.evaluate(()=>collectorRequests.at(-1))).toEqual({type:'add_status',operation_id:'a'.repeat(32)});
 });
 
 for(const width of [390,430,768,1440])test('collector connection preserves exact destination at '+width,async({page,browserName})=>{
@@ -468,13 +496,14 @@ test('ANEX actual extractor payload passes canonical PHP source validation and r
  await page.locator('#info>div').nth(7).locator('button').nth(1).evaluate(e=>e.textContent='2 PAX');expect((await s.read()).error).toContain('размещение');
  expect(s.calls).toEqual([s.url]);
 });
-for(const width of [390,430,768,1440])test(`ANEX source action stages exact settled row without booking at ${width}`,async({page,browserName})=>{
+for(const width of [390,430,768,1440])test(`ANEX source action saves exact settled row in one click without booking at ${width}`,async({page,browserName})=>{
  await page.setViewportSize({width,height:900});const s=await anexSourceFixture(page);
- await page.evaluate(()=>{window.collectorStaged=[];window.nativeCreates=0;document.querySelector('#nativePrice').onclick=()=>nativeCreates++;window.chrome={runtime:{sendMessage:async m=>{collectorStaged.push(m);return{ok:true}}}}});
- await page.addScriptTag({path:path.join(root,'extensions/selection-collector/anex-content.js')});await page.getByRole('button',{name:'В подборку AnyTour',exact:true}).click();await expect(page.getByRole('button',{name:'Проверьте в AnyTour'})).toBeVisible();
+ await collectorSourceRuntime(page);await page.evaluate(()=>{window.nativeCreates=0;document.querySelector('#nativePrice').onclick=()=>nativeCreates++});
+ await page.addScriptTag({path:path.join(root,'extensions/selection-collector/anex-content.js')});await page.getByRole('button',{name:'В подборку AnyTour',exact:true}).click();await expect(page.getByRole('button',{name:'✓ В подборке'})).toBeVisible();
  expect(await page.evaluate(()=>collectorStaged.length)).toBe(1);expect(await page.evaluate(()=>collectorStaged[0].observation.offer.amount)).toBe('177323');expect(await page.evaluate(()=>nativeCreates)).toBe(0);expect(await page.locator('body').innerText()).not.toContain('Синтетическая Анна');
  fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-anex-${browserName}-${width}.png`)});
- await page.getByRole('button',{name:'Проверьте в AnyTour'}).click({noWaitAfter:true});await page.locator('#nativePrice').evaluate(e=>e.textContent='180 000 ₽');await expect(page.getByRole('button',{name:'Не добавлено'})).toBeVisible();expect(await page.evaluate(()=>collectorStaged.length)).toBe(1);expect(await page.evaluate(()=>nativeCreates)).toBe(0);
+ expect(await page.evaluate(()=>collectorRequests.map(x=>x.type))).toEqual(['begin_add','enqueue','add_status']);
+ await page.getByRole('button',{name:'✓ В подборке'}).click({noWaitAfter:true});await page.locator('#nativePrice').evaluate(e=>e.textContent='180 000 ₽');await expect(page.getByRole('button',{name:'Не добавлено'})).toBeVisible();expect(await page.evaluate(()=>collectorStaged.length)).toBe(1);expect(await page.evaluate(()=>nativeCreates)).toBe(0);
  await page.setViewportSize({width,height:420});await expect(page.getByRole('button',{name:'Не добавлено'})).toBeVisible();expect(s.calls).toEqual([s.url]);
 });
 
