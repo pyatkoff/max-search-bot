@@ -56,7 +56,7 @@ final class ManagerTourSelectionImportDraft
         $day=substr($offer['date_from'],8,2).'.'.substr($offer['date_from'],5,2).'.'.substr($offer['date_from'],0,4);
         if (!preg_match('/\A'.preg_quote($day,'/').'(?:, (?:пн|вт|ср|чт|пт|сб|вс))?\z/uD',$raw['date'])) return null;
         foreach (['ADULT'=>(string)$offer['adults'],'CHILD'=>(string)count($ages),'STATEINC'=>$keys['country'],'TOWNFROMINC'=>$keys['departure']] as $key=>$value) if (($query[$key]??null)!==$value) return null;
-        foreach (['CURRENCY','PROGRAMINC'] as $key) if (!preg_match('/\A[1-9][0-9]{0,11}\z/D',$query[$key]??'')) return null;
+        if (!preg_match('/\A[1-9][0-9]{0,11}\z/D',$query['CURRENCY']??'') || !preg_match('/\A(?:0|[1-9][0-9]{0,11})\z/D',$query['PROGRAMINC']??'')) return null;
         foreach (['CHECKIN_BEG','CHECKIN_END'] as $key) {
             $value=$query[$key]??'';
             if (!preg_match('/\A([0-9]{4})([0-9]{2})([0-9]{2})\z/D',$value,$m) || !checkdate((int)$m[2],(int)$m[3],(int)$m[1])) return null;

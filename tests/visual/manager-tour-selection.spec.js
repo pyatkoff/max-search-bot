@@ -392,12 +392,12 @@ test('explicit hotel grouping survives reload and renaming separates only that o
 test('collector exact source row retains current price and fails on changing conditions',async({page})=>{
  const s=await sourceFixture(page);let r=await s.read();expect(r.error).toBeUndefined();expect(r.value.offer.amount).toBe('237017');expect(r.value.raw.price).toBe('237 017 RUB');expect(r.value.offer.child_ages).toEqual([]);expect(r.value.raw.flight_alternatives).toContain('01:00');expect(r.value.offer).not.toHaveProperty('flights');
  expect(await page.locator('.price').evaluate(e=>getComputedStyle(e,'::before').content)).toContain('259304');
- await page.locator('[name=CHECKIN_BEG]').fill('06.06.2027');expect((await s.read()).error).toContain('Дождитесь установившихся дат');await page.locator('[name=CHECKIN_BEG]').fill('04.06.2027');expect((await s.read()).error).toContain('Условия формы изменились');await page.locator('[name=CHECKIN_BEG]').fill('05.06.2027');
- await page.evaluate(()=>document.querySelector('[name=STATEINC]').options[0].value='99');expect((await s.read()).error).toContain('Условия формы изменились');await page.evaluate(()=>document.querySelector('[name=STATEINC]').options[0].value='18803');
+ await page.locator('[name=CHECKIN_BEG]').fill('06.06.2027');expect((await s.read()).error).toContain('Дождитесь установившихся дат');await page.locator('[name=CHECKIN_BEG]').fill('04.06.2027');expect((await s.read()).error).toContain('Нажмите «Искать»');await page.locator('[name=CHECKIN_BEG]').fill('05.06.2027');
+ await page.evaluate(()=>document.querySelector('[name=STATEINC]').options[0].value='99');expect((await s.read()).error).toContain('Нажмите «Искать»');await page.evaluate(()=>document.querySelector('[name=STATEINC]').options[0].value='18803');
  await page.locator('.price').evaluate(e=>e.textContent='259304 RUB 237017 RUB');expect((await s.read()).error).toContain('Цена или валюта');await page.locator('.price').evaluate(e=>e.textContent='237 017 RUB');
  await page.locator('.price').evaluate(e=>e.dataset.currency_title='USD');expect((await s.read()).error).toContain('Цена или валюта');await page.locator('.price').evaluate(e=>e.dataset.currency_title='RUB');
  await page.locator('tr.price_info').evaluate(e=>e.dataset.checkin='20270606');expect((await s.read()).error).toContain('Строка не соответствует');await page.locator('tr.price_info').evaluate(e=>e.dataset.checkin='20270605');
- await page.evaluate(()=>document.querySelector('[name=CHILD]').options[0].value='1');expect((await s.read()).error).toContain('Условия формы изменились');
+ await page.evaluate(()=>document.querySelector('[name=CHILD]').options[0].value='1');expect((await s.read()).error).toContain('Нажмите «Искать»');
  expect(s.calls).toEqual([]);
 });
 
@@ -614,7 +614,7 @@ test('Tourvisor refuses stale menu mismatched handle and changing price basis',a
 
 for(const width of [390,430,768,1440])test(`Tourvisor settled snapshot stages without native action at ${width}`,async({page,browserName})=>{
  await page.setViewportSize({width,height:900});await tourvisorSourceFixture(page);await page.evaluate(()=>{window.collectorStaged=[];window.nativeCreates=0;document.querySelector('#nativeContinue').onclick=()=>nativeCreates++;window.chrome={runtime:{sendMessage:async m=>{collectorStaged.push(m);return{ok:true}}}}});
- await page.addScriptTag({path:path.join(root,'extensions/selection-collector/tourvisor-content.js')});await page.getByRole('button',{name:'В подборку AnyTour',exact:true}).click();await expect(page.getByRole('button',{name:'Проверьте цену и клиента в AnyTour'})).toBeVisible();expect(await page.evaluate(()=>collectorStaged.length)).toBe(1);expect(await page.evaluate(()=>nativeCreates)).toBe(0);expect(await page.locator('body').innerText()).not.toContain('Синтетическая Анна');
+ await page.addScriptTag({path:path.join(root,'extensions/selection-collector/collector-client.js')});await page.addScriptTag({path:path.join(root,'extensions/selection-collector/tourvisor-content.js')});await page.getByRole('button',{name:'В подборку AnyTour',exact:true}).click();await expect(page.getByRole('button',{name:'Проверьте цену и клиента в AnyTour'})).toBeVisible();expect(await page.evaluate(()=>collectorStaged.length)).toBe(1);expect(await page.evaluate(()=>nativeCreates)).toBe(0);expect(await page.locator('body').innerText()).not.toContain('Синтетическая Анна');
  fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-tv-${browserName}-${width}.png`)});
  await page.getByRole('button',{name:'Проверьте цену и клиента в AnyTour'}).click({noWaitAfter:true});await page.locator('.TVTourCardPriceValue').evaluate(e=>e.textContent='161 000');await expect(page.getByRole('button',{name:'Не добавлено'})).toBeVisible();expect(await page.evaluate(()=>collectorStaged.length)).toBe(1);expect(await page.evaluate(()=>nativeCreates)).toBe(0);await page.setViewportSize({width,height:420});await page.getByRole('button',{name:'Не добавлено'}).scrollIntoViewIfNeeded();await expect(page.getByRole('button',{name:'Не добавлено'})).toBeInViewport();
 });
@@ -628,4 +628,42 @@ test('Tourvisor popup requires explicit room price basis and keeps destination v
 for(const width of [390,430,768,1440])test(`Tourvisor source amount stays separate from manager edits at ${width}`,async({page,browserName})=>{
  await page.setViewportSize({width,height:900});const imported=JSON.parse(execFileSync('php',['-r',`require 'tests/support/manager-tour-collector.php';$i=ManagerTourSelectionImportDraft::normalize(tourvisorCollectorObservation());$o=$i['offer'];$o['id']=str_repeat('a',32);$o['import_source']=ManagerTourSelectionImportDraft::source($i);echo json_encode(['title'=>'Три источника','intro'=>'','offers'=>[$o]],JSON_THROW_ON_ERROR);`],{cwd:root,encoding:'utf8'}));
  const s=await fixture(page,{draft:imported});await page.locator('#replyText').fill('Неотправленный ответ');await open(page);await expect(page.locator('.tsImportedSource')).toContainText('Исходные условия Tourvisor');await expect(page.locator('.tsImportedSource')).toContainText('за номер');await page.locator('#ts-amount').fill('170000');await save(page);expect(s.drafts.get(11).draft.offers[0].import_source.fields.amount).toBe('160000');await page.locator('.tsImportedSource').scrollIntoViewIfNeeded();fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-tv-editor-${browserName}-${width}.png`)});await page.locator('#tsClose').click();await expect(page.locator('#replyText')).toHaveValue('Неотправленный ответ');clean(s);
+});
+
+
+for(const width of [390,430,768,1440])test('FUN&SUN ordinary AJAX result adds with compact checkmark without copying a link at '+width,async({page,browserName})=>{
+ await page.setViewportSize({width,height:900});const s=await sourceFixture(page,{ajax:true});await s.search();
+ const extracted=await s.read();expect(extracted.error).toBeUndefined();expect(extracted.value.url).toContain('PROGRAMINC=0');expect(page.url()).toBe('https://b2b.fstravel.com/search_tour');
+ const normalized=JSON.parse(execFileSync('php',['-r',`require 'services/ManagerTourSelectionImportDraft.php';echo json_encode(ManagerTourSelectionImportDraft::normalize(json_decode(stream_get_contents(STDIN),true)),JSON_THROW_ON_ERROR);`],{cwd:root,input:JSON.stringify(extracted.value),encoding:'utf8'}));expect(normalized.offer.amount).toBe('237017');expect(normalized.keys.program).toBe('114');
+ await collectorSourceRuntime(page);await page.addScriptTag({path:path.join(root,'extensions/selection-collector/content.js')});await s.search();
+ const add=page.getByRole('button',{name:'В подборку AnyTour',exact:true}),edit=page.getByRole('button',{name:'✎ Изменить цену',exact:true});
+ const rect=await add.boundingBox(),pencil=await edit.boundingBox();expect(rect.width).toBe(32);expect(rect.height).toBe(32);expect(pencil.y).toBe(rect.y);expect(pencil.width).toBe(32);expect(pencil.x-rect.x).toBe(36);
+ expect(await add.evaluate(e=>getComputedStyle(e,'::before').content)).toContain('✓');expect(await edit.evaluate(e=>getComputedStyle(e,'::before').content)).toContain('✎');expect(await add.evaluate(e=>getComputedStyle(e,'::after').content)).toBe('none');
+ await add.click();const saved=page.getByRole('button',{name:'✓ В подборке',exact:true});await expect(saved).toHaveAttribute('data-anytour-state','saved');expect(await page.evaluate(()=>collectorStaged.length)).toBe(1);expect(page.url()).toBe('https://b2b.fstravel.com/search_tour');expect(s.calls).toEqual([]);
+ fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-compact-ajax-${browserName}-${width}.png`)});
+});
+
+test('FUN&SUN search generation refuses loading old rows changed forms and child ages',async({page})=>{
+ const s=await sourceFixture(page,{ajax:true});await s.search();expect((await s.read()).value).toBeDefined();
+ await page.locator('button.load').evaluate(e=>e.disabled=true);expect((await s.read()).error).toContain('окончания поиска');await page.locator('button.load').evaluate(e=>e.disabled=false);
+ await page.locator('[name=CHECKIN_BEG]').fill('04.06.2027');expect((await s.read()).error).toContain('Нажмите «Искать»');await page.locator('[name=CHECKIN_BEG]').fill('05.06.2027');
+ // The mutable page link is neither evidence nor a navigation target.
+ await page.locator('#samo-link-to-page a').evaluate(e=>e.href='https://evil.example/search_tour?ADULT=2');expect((await s.read()).value).toBeDefined();
+ await page.evaluate(()=>window.fixtureHoldSearch=true);await page.getByRole('button',{name:'Искать',exact:true}).click();expect((await s.read()).error).toContain('новых результатов');
+ await page.evaluate(()=>{const row=document.querySelector('tr.price_info'),parent=row.parentElement;row.remove();parent.append(row)});expect((await s.read()).error).toContain('новых результатов');
+ await page.evaluate(()=>{window.fixtureHoldSearch=false;document.querySelector('[name=CHILD] option').value='1';document.querySelector('tr.price_info').classList.replace('child-0','child-1')});await s.search();expect((await s.read()).value.offer.child_ages).toEqual([4]);
+ await page.evaluate(()=>document.querySelector('[name=AGE1] option').value='5');expect((await s.read()).error).toContain('Возраст ребёнка');
+ await s.search();expect((await s.read()).value.offer.child_ages).toEqual([5]);
+});
+
+test('FUN&SUN changed price during settled capture never enqueues',async({page})=>{
+ const s=await sourceFixture(page,{ajax:true});await collectorSourceRuntime(page);await page.addScriptTag({path:path.join(root,'extensions/selection-collector/content.js')});await s.search();
+ await page.getByRole('button',{name:'В подборку AnyTour',exact:true}).click({noWaitAfter:true});await page.locator('.price').evaluate(e=>{e.textContent='240000 RUB';e.dataset.convertedPriceNumber='240000'});await expect(page.getByRole('button',{name:'Не добавлено',exact:true})).toBeVisible();expect(await page.evaluate(()=>collectorStaged.length)).toBe(0);
+});
+
+test('collector popup requests a readable width before native viewport autosizing',async({page,browserName})=>{
+ await page.setViewportSize({width:40,height:600});const s=await pricePopupFixture(page);await expect(page.locator('#target')).toContainText('Синтетическая Анна');
+ const geometry=await page.evaluate(()=>({root:document.documentElement.getBoundingClientRect().width,body:document.body.getBoundingClientRect().width,min:getComputedStyle(document.documentElement).minWidth}));expect(geometry.root).toBe(370);expect(geometry.body).toBe(370);expect(geometry.min).toBe('370px');
+ await page.setViewportSize({width:390,height:600});await expect(page.getByRole('button',{name:'Открыть Manager2',exact:true})).toBeInViewport();await page.getByLabel('Итоговая цена, RUB',{exact:true}).scrollIntoViewIfNeeded();await expect(page.getByLabel('Итоговая цена, RUB',{exact:true})).toBeInViewport();await page.evaluate(()=>scrollTo(0,0));expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);expect(s.commands.every(x=>x.type==='status')).toBe(true);
+ fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-popup-width-${browserName}.png`)});
 });

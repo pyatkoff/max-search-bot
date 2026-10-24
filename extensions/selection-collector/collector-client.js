@@ -3,6 +3,14 @@
 // Only local operation state crosses back to a TO content script. No client,
 // trip, connection capability or server response body enters the source DOM.
 const pending=new WeakMap(),pause=()=>new Promise(r=>setTimeout(r,250));
+function label(button,message){
+ button.textContent=message;button.setAttribute('aria-label',message);
+ const state=message==='✓ В подборке'?'saved':message==='Не добавлено'?'error':message==='В очереди AnyTour'?'waiting':message.startsWith('Проверьте')?'review':message==='Правка в AnyTour'?'editing':message==='Сохраняем…'||message==='Проверяем условия…'?'busy':'idle';
+ button.dataset.anytourState=state;button.title=message;
+}
+function actions(cell){
+ let group=cell.querySelector('[data-anytour-actions]');if(!group){group=document.createElement('div');group.dataset.anytourActions='1';group.setAttribute('role','group');group.setAttribute('aria-label','AnyTour: добавить или изменить цену');cell.append(group)}return group;
+}
 function note(button,message){
  let el=button.parentElement?.querySelector('[data-anytour-note]');if(!button.parentElement)return;
  if(!el){el=document.createElement('div');el.dataset.anytourNote='1';el.setAttribute('role','status');button.parentElement.append(el)}
@@ -11,19 +19,19 @@ function note(button,message){
 async function follow(button,operation){
  for(let attempt=0;attempt<40&&button.isConnected;attempt++){
   let result;try{result=await chrome.runtime.sendMessage({type:'add_status',operation_id:operation})}catch{}
-  if(!result?.ok){button.textContent='Проверьте в AnyTour';note(button,'Результат пока не подтверждён. Проверьте очередь в расширении AnyTour. Повторного добавления нет.');return}
-  if(result.state==='cancelled'){pending.delete(button);button.textContent=button.dataset.anytourEdit?'✎ Изменить цену':'В подборку AnyTour';note(button,'Правка отменена. Тур не добавлен.');return 'cancelled'}
-  if(result.state==='editing'){button.textContent='Правка в AnyTour';note(button,'Откройте значок расширения AnyTour: там можно изменить цену и явно добавить тур. Пока он не добавлен.');return}
-  if(result.state==='saved'){pending.delete(button);button.textContent='✓ В подборке';note(button,'');button.title='Предложение сохранено в выбранной подборке. Туристу ничего не отправлено.';return}
+  if(!result?.ok){label(button,'Проверьте в AnyTour');note(button,'Результат пока не подтверждён. Проверьте очередь в расширении AnyTour. Повторного добавления нет.');return}
+  if(result.state==='cancelled'){pending.delete(button);label(button,button.dataset.anytourEdit?'✎ Изменить цену':'В подборку AnyTour');note(button,'Правка отменена. Тур не добавлен.');return 'cancelled'}
+  if(result.state==='editing'){label(button,'Правка в AnyTour');note(button,'Откройте значок расширения AnyTour: там можно изменить цену и явно добавить тур. Пока он не добавлен.');return}
+  if(result.state==='saved'){pending.delete(button);label(button,'✓ В подборке');note(button,'');button.title='Предложение сохранено в выбранной подборке. Туристу ничего не отправлено.';return}
   if(result.state!=='queued'){
    const message=result.state==='waiting'?'Очередь сохранена, но сервер ещё не подтвердил добавление. Откройте расширение AnyTour.':result.error==='connection_changed'?'Клиент или поездка изменились. Проверьте исходную операцию в расширении AnyTour.':'Нужна проверка цены, похожего варианта или подключения. Откройте расширение AnyTour.';
-   button.textContent=result.state==='waiting'?'В очереди AnyTour':'Проверьте в AnyTour';note(button,message);return;
+   label(button,result.state==='waiting'?'В очереди AnyTour':'Проверьте в AnyTour');note(button,message);return;
   }
-  button.textContent='Сохраняем…';await pause();
+  label(button,'Сохраняем…');await pause();
  }
- if(button.isConnected){button.textContent='В очереди AnyTour';note(button,'Предложение в очереди. Откройте расширение AnyTour или нажмите здесь, чтобы проверить результат без нового добавления.')}
+ if(button.isConnected){label(button,'В очереди AnyTour');note(button,'Предложение в очереди. Откройте расширение AnyTour или нажмите здесь, чтобы проверить результат без нового добавления.')}
 }
-window.AnyTourCollectorClient=Object.freeze({
+window.AnyTourCollectorClient=Object.freeze({label,actions,
  async begin(button,editing=false){
   const operation=pending.get(button);if(operation){if(editing)try{await chrome.runtime.sendMessage({type:'show_edit',operation_id:operation})}catch{}if(await follow(button,operation)!=='cancelled')return null}
   const result=await chrome.runtime.sendMessage({type:'begin_add'});

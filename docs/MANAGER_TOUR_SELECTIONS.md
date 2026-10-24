@@ -409,3 +409,30 @@ and whole-party price. Telegram preview provides three horizontally scrollable
 4:3 photos with previous/next buttons and a photo counter; MAX keeps the three-photo mosaic. This is a browser representation,
 not physical native acceptance. No terms, publication, delivery or recipient
 contract changes; source text is escaped, never interpreted as HTML.
+
+
+## Ordinary FUN&SUN AJAX results and compact source actions (0.5.1)
+
+The source content script captures immutable allowlisted conditions at the
+ordinary native Search click/submit. Only newly inserted result row nodes after
+that search use its context; old or reinserted existing row nodes cannot acquire
+it. Changed form/child ages/program labels, loading and old-generation rows reject
+import, with the existing exact row/price/ID and750ms stability checks. Initial
+legacy exact-address imports remain compatible until a new search is attempted.
+The live share link is deliberately ignored: further observation showed it can
+change on input blur without a search, so it cannot prove submitted conditions.
+Only allowlisted reconstructed search fields enter private provenance. PROGRAMINC0
+means the observed unfiltered program selector; exact row program/tour/SPO IDs stay
+mandatory. No price, full-fare or flight verification is inferred.
+
+The source row uses compact32px checkmark/pencil actions with accessible names,
+tooltips and separate saved/waiting/review/error symbols. The target client remains
+inside the extension. Existing queue/ticket/receipt/session/UNKNOWN and explicit
+price-basis confirmation contracts are unchanged. This removes manual share-link
+copying from ordinary completed FUN&SUN searches; physical owner import remains
+a separate acceptance step.
+
+The popup declares its370px root/body minimum before Chrome's native viewport
+autosizing. A body-only width capped to100vw could collapse to the initial narrow
+viewport. Browser fixtures exercise that40px bootstrap then readable390px content
+and scrolling; actual installed owner popup geometry is a separate acceptance.
