@@ -1,6 +1,6 @@
 {
   "schema": "anytour.funnel.autopilot_state.v1",
-  "updated_at_utc": "2026-10-24T15:39:59.243587+00:00",
+  "updated_at_utc": "2026-10-24T16:37:10.099130+00:00",
   "owner": "direct-demand-funnel",
   "automation": {
     "id": "6ada8f0084888191b12c6619c12fb35c",
@@ -9,7 +9,7 @@
     "timezone": "Europe/Kaliningrad",
     "enabled_verified_at_utc": "2026-10-22T22:39:46.922Z"
   },
-  "status": "H28_TWO_FULL_YALONG6_TURKEY4_TEXTS_FOUR_SAVED_MAX_TARGETS_COVERS_PENDING_NOT_APPLIED",
+  "status": "H29_TWO_FULL_YALONG6_TURKEY4_COVER_TEXT_PREVIEWS_NOT_APPLIED",
   "channel": null,
   "scope": {
     "prepare_catalog_matches": true,
@@ -43,11 +43,11 @@
   "artifacts": {
     "report": {
       "library_file_id": "libfile_81ae550da16881918bb6840b686d507f",
-      "version": 61
+      "version": 62
     },
     "archive": {
       "library_file_id": "libfile_1b69bb58e8d4819186e7ea461ef60cb6",
-      "version": 62
+      "version": 63
     },
     "canonical_hotel_knowledge": {
       "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
@@ -87,7 +87,7 @@
     },
     "existing_post_review": {
       "library_file_id": "libfile_25486df816e88191b44ed4051858e99f",
-      "version": 42,
+      "version": 43,
       "preview_member": "existing-post-review/anytour-existing-posts-review-20261023.html",
       "text_review_member": "existing-post-review/manual-text-review-107.json",
       "adaptations_member": "existing-post-review/existing-post-adaptations-12.json",
@@ -529,7 +529,7 @@
     },
     "current_packet_continuation": {
       "library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
-      "version": 7,
+      "version": 8,
       "content_member": "existing-post-review/h28/content.json",
       "patches_member": "existing-post-review/h28/existing-patches-4.NOT-APPLIED.json",
       "preflight_member": "existing-post-review/h28/preflight198-current.NOT-APPLIED.json",
@@ -540,11 +540,12 @@
       "next_safe_block_member": "existing-post-review/h28/next-safe-block.json",
       "source_read_limits_member": "existing-post-review/h28/source-read-limits.json",
       "preview_library_file_id": "libfile_c1f06826dd408191bed3e0cb8103e379",
-      "preview_version": 7,
+      "preview_version": 8,
       "base_pointer_member": "existing-post-review/current-continuation.json",
       "same_packet_continuation_not_second_attribution_store": true,
       "base_ZIP_alone_not_complete_current_packet": true,
-      "private_materials_only_in_library": true
+      "private_materials_only_in_library": true,
+      "current_cover_manifest_member": "existing-post-review/h29/photo-cover-provenance.json"
     },
     "existing_h23_selection_covers": {
       "library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
@@ -598,6 +599,14 @@
       "preview_version": 6,
       "media_in_base_ZIP": false,
       "private_materials_only_in_library": true
+    },
+    "existing_h29_selection_covers": {
+      "library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
+      "version": 8,
+      "cover_manifest_member": "existing-post-review/h29/photo-cover-provenance.json",
+      "review_member": "existing-post-review/h29/review.html",
+      "preview_library_file_id": "libfile_c1f06826dd408191bed3e0cb8103e379",
+      "preview_version": 8
     }
   },
   "operations": {
@@ -609,7 +618,7 @@
     "wordstat_access": "BLOCKED_NO_CONNECTED_SEARCH_API_ACCESS",
     "first_post_drafts": "DONE",
     "inactive_feed_templates": "DONE",
-    "active_operation": "NONE_H28_TEXTS_SAVED_NEXT_TWO_OWNER_COVERS",
+    "active_operation": null,
     "catalog_cohort_492_read": "DONE",
     "first_native_catalog_bindings": "DONE",
     "five_additional_posts": "DONE",
@@ -709,12 +718,13 @@
     "existing_h25_selection_covers": "DONE_2OWNER_COVERS_H24TEXTS_190PREFLIGHT_MAP_UNCHANGED_NO_NATIVEWRITES",
     "existing_h26_selection_corrections": "DONE_2FULL5AND4TEXTS_4SAVEDMAXTARGETS_NO_COVERS_NO_NATIVEWRITES",
     "existing_h27_selection_covers": "DONE_2OWNER_COVERS_H26TEXTS_194PREFLIGHT_MAP_UNCHANGED_NO_NATIVEWRITES",
-    "existing_h28_selection_corrections": "DONE_2FULL6AND4TEXTS_4SAVEDMAXTARGETS_NO_COVERS_NO_NATIVEWRITES"
+    "existing_h28_selection_corrections": "DONE_2FULL6AND4TEXTS_4SAVEDMAXTARGETS_NO_COVERS_NO_NATIVEWRITES",
+    "existing_h29_selection_covers": "DONE_TWO_REVIEW_COVERS_NOT_APPLIED"
   },
   "next_steps": [
-    "H28done:2full6/4memberYalong/Turkeydrafts for4savedMAXposts;oldprices/dates/stars/weather/30mincityguarantees removed.No newIDs/destinations/nativewrites.",
-    "Next finiteblock:2ownerstylecoversR050/R051.Exactmemberoriginals:YalongArgyle/GoldenPalm/Oceanpreferred;avoid closedPullmanpool orPalaceunconfirmedpool.TurkeyMiraH6reuseorKaia/Carettaofficial;labelproperty,preservefull6/4texts.",
-    "Currentpacket=baseZIPv62+samecompanion libfile_f7a0d7e76c188191b2d5bc59adfd430d v7;H28current198preflight/resolved63collection43unlinkedmap incompanion.Basecurrent-continuation.json hashes.H26/H24/H22/H19snapshots historical;notbaseZIPalone.",
+    "H29done:2reviewcovers+full6/4texts;Mira exactH6photo reused,Yalongtypographicvariant;allH28content/198preflight/map bytes unchanged.No nativewrites.",
+    "Next existing-plan block:read remaining source rows/current198map and choose nonduplicate criteria/content gap; strategy discussion remains proposal,not automatic plan handoff.",
+    "Currentpacket=baseZIPv63+samecontinuationv8;H28content/198preflight/map unchanged,H29covermanifest/review added.No issuednewIDs or activeentryURLs.",
     "91subjects/92bodies/198savedcandidates;155mapped/63INACTIVEcollections+43unlinked28subjects.94videoholds/104textphotopaths,145identityholds.198nativeidentitiesunverified;noissuedIDs/activeURLs.",
     "Canonical92currentindexe3ec73..readonly;1SealifeBuketprofile/beachclaim reused,no localID orcurrenttariff proof.ArgyleH15/OceanH26/MiraH6evidence reused,Miraofficialreadrefreshed.6newpostscopedprimarysources,no newsharedprofiles.",
     "Pullman6467YalongBay(not7126Oceanview):official01Sep-30Nov2026closure mainbuilding/mainpool/rainbowslide/KidsClub;villasindependent notblanketavailable. Currentdatednotice explicitly inbody;do notautoselectmainroom orpromiseclosedfacilities.",
@@ -723,7 +733,7 @@
     "Freshmain4188da7565ee0676262c0b101696e6ace846bf9c constructor1104installedRELEASE6385684577;currentconstructor1105head d84a61b/source6385829205 checkpoint6385968271 CIpending,publisherfree,ownedpaths untouched.No production/RK/spend/tourist/newpostactions.",
     "Manager2/constructor/SEARCH/INT/LOCAL/MATCH,pausedlearningCRM,models/budgets/settings unchanged.Wordstat/ASRblockers unchanged,notretried.No fullCI/Direct/nativebaseline reruns."
   ],
-  "publication_blocker": "176saved candidates NOT_APPLIED:all176entry URLs unissued/local catalog identities unverified(123explicit lookup flags),94video holds/82text-photo paths.155mapped to63inactive collections;21selection targets across16subjects unlinked.H15two text drafts and H16two branded covers complete for2savedMAXposts.No fresh native read/external apply.All need current exact post/media/buttons/context read and applicable owner authority.Huayuan hot-spring closure/Argyle historical maintenance and package/identity/season holds retained.Photographs illustrate named properties only,not current services.No mass native publication,RK/spend authority.",
+  "publication_blocker": "198saved candidates NOT_APPLIED:entry URLs unissued/native identities unverified;145explicit lookup flags;94video holds/104text-photo paths.155mapped to63inactive collections;43unlinked candidates across28subjects.91subjects/92bodies.2H29reviewcovers added;Yalongtypographic variant not owner-approved. No new funnel destination or bulk publication/RK/spend authority. Current exactpost/media/button/context readback and applicableownerreceipt remain required.",
   "coordination": "Own audit/direct-demand-20261022 branch only; no foreign claims, CI, paused hotel tasks or production flows.",
   "completed_preparation": {
     "generated_at_utc": "2026-10-23T06:42:57.737448+00:00",
@@ -2237,6 +2247,71 @@
       "full4and4member_bodies_exact": true,
       "disabled_CTA": 2,
       "overflow": false
+    },
+    "existing_h29": {
+      "base_archive": {
+        "bytes": 536870719,
+        "cap": 536870912,
+        "entries": 1060,
+        "unowned_prior_member_count": 1056,
+        "unowned_bytes_crc_preserved": true,
+        "unmodified_raw_local_records_SHA256": "42eb150e0e1e6dc894325858032ab6969feb891c696d6c2ed1d3e4edba75272b",
+        "unchanged_compressed_bytes_exact": true,
+        "compression_only_members": [],
+        "all_stage_members_readback_equal": true
+      },
+      "companion": {
+        "bytes": 12792390,
+        "entries": 163,
+        "prior_nonpreview_members_preserved": 150,
+        "all_new_bytes_exact": true
+      },
+      "preview": {
+        "results": [
+          {
+            "width": 320,
+            "full_bodies_exact": true,
+            "images_loaded": 2,
+            "disabled_CTA": 2,
+            "overflow": false
+          },
+          {
+            "width": 390,
+            "full_bodies_exact": true,
+            "images_loaded": 2,
+            "disabled_CTA": 2,
+            "overflow": false
+          },
+          {
+            "width": 736,
+            "full_bodies_exact": true,
+            "images_loaded": 2,
+            "disabled_CTA": 2,
+            "overflow": false
+          },
+          {
+            "width": 1440,
+            "full_bodies_exact": true,
+            "images_loaded": 2,
+            "disabled_CTA": 2,
+            "overflow": false
+          }
+        ],
+        "existing_preview_widths": [
+          390,
+          1440
+        ],
+        "full6and4_bodies_unchanged": true,
+        "native_writes": 0
+      },
+      "two_final_covers_visually_reviewed": true,
+      "prior_H28_content_preflight_map_bytes_unchanged": true,
+      "new_bodies": 0,
+      "new_targets": 0,
+      "new_IDs": 0,
+      "native_writes": 0,
+      "Mira_original_reused_exact": true,
+      "Yalong_typographic_variant_approval_not_claimed": true
     }
   },
   "catalog_evidence": {
@@ -2277,7 +2352,7 @@
     "library_archive_size": "Current536730088bytes/limit536870912/headroom140824;guards49/50/30.H16preserved all existing evidence and losslessly BZIP2compressed18existingJSONmembers:per-member originaluncompressedSHA,CRC/size and Python/InfoZIP6readPASS recorded inH16lossless-packaging.json.Other prior compression types unchanged.Preserve current root/current-fileBZIP2method on updates;preflight new byte budget before upload.No oversized request/evidence deletion.Unselected new largeOGexcluded with provenance,not prior evidence."
   },
   "latest_completed_block": {
-    "name": "H28:two fullYalong6/Turkey4selectiontexts for4savedMAXposts,coverspending;notapplied",
+    "name": "H29:two completeYalong6/Turkey4cover+textreviews;1exactMiraphoto/1typographicfallback;notapplied",
     "total_prepared_subjects": 91,
     "total_exact_caption_bodies": 92,
     "total_saved_post_candidates": 198,
@@ -2288,22 +2363,22 @@
     "total_video_holds": 94,
     "total_text_photo_paths": 104,
     "identity_lookup_holds": 145,
-    "new_caption_bodies": 2,
-    "new_exact_saved_post_candidates": 4,
-    "new_covers": 0,
+    "new_caption_bodies": 0,
+    "new_exact_saved_post_candidates": 0,
+    "new_covers": 2,
     "new_IDs": 0,
     "actual_channel_writes": 0,
     "platforms": {
       "max": 189,
       "telegram": 9
     },
-    "completed_at_utc": "2026-10-24T15:39:59.243587+00:00",
+    "completed_at_utc": "2026-10-24T16:37:10.099130+00:00",
     "save_versions": [
-      61,
       62,
-      42,
-      7,
-      7
+      63,
+      43,
+      8,
+      8
     ]
   },
   "catalog_export_lookup": {
@@ -2368,15 +2443,15 @@
     "each_new_post_has_explicit_eligibility_checks": true
   },
   "last_run_readback": {
-    "own_branch_head_before_write": "93f3f0157a6bf8d7b7d78f10bf3d786fd7035bb1",
+    "own_branch_head_before_write": "02258f1371f5a34cbd3f90ac6a333c1087bb7591",
     "same_package_current_executor_handoff": true,
-    "coordination_issue55_updated_at_utc": "2026-10-24T13:22:23Z",
+    "coordination_issue55_updated_at_utc": "2026-10-24T16:12:14Z",
     "source_archive_library_version": 92,
     "demand_library_versions_before_write": {
-      "report": 60,
-      "archive": 61
+      "report": 61,
+      "archive": 62
     },
-    "existing_review_preview_version_before_write": 41,
+    "existing_review_preview_version_before_write": 42,
     "foreign_claims_untouched": true,
     "scope_instructions_reused_from_current_same_executor_package": true,
     "root_AGENTS_sha": "a064aff67d42ddd69a12d9b0393501d116d1307d",
@@ -2387,16 +2462,16 @@
     "full_CI_or_unchanged_baseline_repeated": false,
     "wordstat_access_blocker_unchanged": true,
     "blocked_wordstat_retried": false,
-    "current_task": "H28:R050Yalong6/R051budgetTurkey4fulltextdrafts,198preflight/mapcontinuation,no covers/nativewrites.",
+    "current_task": "H29:two cover/text review drafts;H28bodies/198preflight/map unchanged;notapplied",
     "private_source_materials_committed": false,
     "fresh_native_message_read_performed": false,
-    "source_main_reviewed_sha": "4188da7565ee0676262c0b101696e6ace846bf9c",
+    "source_main_reviewed_sha": "2d869cdf99a52da740570be083ca14173c729410",
     "START_HERE_sha": "43e7827432279012382767de6b6335684c6d54c2",
     "ASR_reexecuted_after_rejection": false,
-    "coordination_latest_comment_id": 6385968271,
+    "coordination_latest_comment_id": 6386473244,
     "latest_coordination_updated_comment_read": 6385968271,
     "source_instructions_read_on_current_main": true,
-    "completed_at_utc": "2026-10-24T15:39:59.243587+00:00",
+    "completed_at_utc": "2026-10-24T16:37:10.099130+00:00",
     "all_comments_endpoint_failed_transport_twice": true,
     "newest_comments_read_with_bounded_since_API": true,
     "library_prepare_initial_size_rejected_before_action": false,
@@ -2410,15 +2485,16 @@
     "unchanged_compressed_records_exact_verified": true,
     "source_knowledge92_read_only": true,
     "demand_library_versions_after_write": {
-      "report": 61,
-      "archive": 62
+      "report": 62,
+      "archive": 63
     },
-    "existing_review_preview_version_after_write": 42,
+    "existing_review_preview_version_after_write": 43,
     "foreign_constructor_research_claim_6384270497_untouched": true,
     "foreign_constructor_research_claim_6384270497_and_checkpoint6384733869_untouched": true,
     "constructor_research6384270497_RELEASED_6384908447_observed": true,
     "foreign_constructor_source6385353806_PR1104_head755c0b1_untouched": true,
-    "foreign_constructor_PR1104_RELEASE6385684577_and_PR1105_source6385829205_checkpoint6385968271_untouched": true
+    "foreign_constructor_PR1104_RELEASE6385684577_and_PR1105_source6385829205_checkpoint6385968271_untouched": true,
+    "foreign_constructor_source6386473244_untouched": true
   },
   "latest_source_checks": {
     "read_on": "2026-10-23",
@@ -3672,12 +3748,8 @@
     "prior_video_transport_hold_preserved_for_amended_video_target": true
   },
   "next_preparation_block": {
-    "state": "PENDING_TWO_H28_OWNER_COVERS",
-    "review_ids": [
-      "R050",
-      "R051"
-    ],
-    "action": "Exactverified member originalphotos;YalongpreferArgyle/GoldenPalm/Ocean;avoidclosedPullmanpool/unconfirmedPalacepool.TurkeyMiraH6originalreuseorKaia/Carettaofficial.Labelproperty,preservefull6/4texts,no nativewrites.",
+    "state": "PENDING_EXISTING_PLAN_CONTINUATION",
+    "action": "Read remaining saved review rows and current198map before next bounded prep; no replay DONE. Strategy proposal not accepted; no changed routing/publication/spend authority.",
     "native_writes_allowed": false
   },
   "existing_text_photo_binding44_operation": {
@@ -6789,6 +6861,111 @@
         41,
         6,
         6
+      ],
+      "all_local_metadata_applied": true
+    }
+  },
+  "existing_h29_selection_covers_operation": {
+    "state": "DONE_TWO_REVIEW_COVERS_NOT_APPLIED",
+    "idempotency_key": "H29-R050-R051-2reviewcovers-20261024-v1",
+    "completed_at_utc": "2026-10-24T16:37:10.099130+00:00",
+    "same_executor_continuation": true,
+    "no_subagents": true,
+    "source_demand_archive_version": 62,
+    "source_companion_version": 7,
+    "new_covers": 2,
+    "new_selected_photo_downloads": 0,
+    "reused_photos": 1,
+    "typographic_covers": 1,
+    "new_caption_bodies": 0,
+    "new_targets": 0,
+    "new_IDs": 0,
+    "actual_channel_writes": 0,
+    "library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
+    "version": 8,
+    "cover_manifest_member": "existing-post-review/h29/photo-cover-provenance.json",
+    "render_member": "existing-post-review/h29/cover-render.html",
+    "validation": {
+      "base_archive": {
+        "bytes": 536870719,
+        "cap": 536870912,
+        "entries": 1060,
+        "unowned_prior_member_count": 1056,
+        "unowned_bytes_crc_preserved": true,
+        "unmodified_raw_local_records_SHA256": "42eb150e0e1e6dc894325858032ab6969feb891c696d6c2ed1d3e4edba75272b",
+        "unchanged_compressed_bytes_exact": true,
+        "compression_only_members": [],
+        "all_stage_members_readback_equal": true
+      },
+      "companion": {
+        "bytes": 12792390,
+        "entries": 163,
+        "prior_nonpreview_members_preserved": 150,
+        "all_new_bytes_exact": true
+      },
+      "preview": {
+        "results": [
+          {
+            "width": 320,
+            "full_bodies_exact": true,
+            "images_loaded": 2,
+            "disabled_CTA": 2,
+            "overflow": false
+          },
+          {
+            "width": 390,
+            "full_bodies_exact": true,
+            "images_loaded": 2,
+            "disabled_CTA": 2,
+            "overflow": false
+          },
+          {
+            "width": 736,
+            "full_bodies_exact": true,
+            "images_loaded": 2,
+            "disabled_CTA": 2,
+            "overflow": false
+          },
+          {
+            "width": 1440,
+            "full_bodies_exact": true,
+            "images_loaded": 2,
+            "disabled_CTA": 2,
+            "overflow": false
+          }
+        ],
+        "existing_preview_widths": [
+          390,
+          1440
+        ],
+        "full6and4_bodies_unchanged": true,
+        "native_writes": 0
+      },
+      "two_final_covers_visually_reviewed": true,
+      "prior_H28_content_preflight_map_bytes_unchanged": true,
+      "new_bodies": 0,
+      "new_targets": 0,
+      "new_IDs": 0,
+      "native_writes": 0,
+      "Mira_original_reused_exact": true,
+      "Yalong_typographic_variant_approval_not_claimed": true
+    },
+    "unknown_writes": [],
+    "strategy_discussion_is_proposal_not_accepted_plan": true,
+    "save_receipt": {
+      "versions": [
+        62,
+        63,
+        43,
+        8,
+        8
+      ],
+      "expected_previous_versions": [
+        61,
+        62,
+        42,
+        7,
+        7
       ],
       "all_local_metadata_applied": true
     }
