@@ -1,6 +1,6 @@
 {
   "schema": "anytour.funnel.autopilot_state.v1",
-  "updated_at_utc": "2026-10-24T06:39:00Z",
+  "updated_at_utc": "2026-10-24T07:41:00Z",
   "owner": "direct-demand-funnel",
   "automation": {
     "id": "6ada8f0084888191b12c6619c12fb35c",
@@ -9,7 +9,7 @@
     "timezone": "Europe/Kaliningrad",
     "enabled_verified_at_utc": "2026-10-22T22:39:46.922Z"
   },
-  "status": "H19_VIETNAM_TWO_SELECTION_TEXTS_FOUR_MAX_TARGETS_COMPLETE_COVERS_AND_THREE_PHUQUOC_IDENTITIES_PENDING",
+  "status": "H20_PHUQUOC_THREE_NAME_REVIEW_COMPLETE_ONE_EXTERNAL_PROPERTY_SUPPORTED_ONE_ADDRESS_CANDIDATE_ONE_ALIAS_CONFLICT_COVERS_PENDING",
   "channel": null,
   "scope": {
     "prepare_catalog_matches": true,
@@ -43,11 +43,11 @@
   "artifacts": {
     "report": {
       "library_file_id": "libfile_81ae550da16881918bb6840b686d507f",
-      "version": 52
+      "version": 53
     },
     "archive": {
       "library_file_id": "libfile_1b69bb58e8d4819186e7ea461ef60cb6",
-      "version": 53
+      "version": 54
     },
     "canonical_hotel_knowledge": {
       "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
@@ -87,7 +87,7 @@
     },
     "existing_post_review": {
       "library_file_id": "libfile_25486df816e88191b44ed4051858e99f",
-      "version": 33,
+      "version": 34,
       "preview_member": "existing-post-review/anytour-existing-posts-review-20261023.html",
       "text_review_member": "existing-post-review/manual-text-review-107.json",
       "adaptations_member": "existing-post-review/existing-post-adaptations-12.json",
@@ -497,6 +497,15 @@
       "preview_section": "h19-existing-selections",
       "feed_reused_unchanged": "existing-post-review/h8/h8-existing63.INCOMPLETE-DRAFT.xml",
       "private_materials_only_in_library": true
+    },
+    "existing_h20_identity_review": {
+      "review_member": "existing-post-review/h20/identity-review.NOT-APPLIED.json",
+      "canonical_readback_member": "existing-post-review/h20/canonical-readback.json",
+      "validation_member": "existing-post-review/h20/validation.json",
+      "preview_validation_member": "existing-post-review/h20/preview-validation.json",
+      "next_safe_block_member": "existing-post-review/h20/next-safe-block.json",
+      "report_section": "h20-identity-review",
+      "private_materials_only_in_library": true
     }
   },
   "operations": {
@@ -508,7 +517,7 @@
     "wordstat_access": "BLOCKED_NO_CONNECTED_SEARCH_API_ACCESS",
     "first_post_drafts": "DONE",
     "inactive_feed_templates": "DONE",
-    "active_operation": "NONE_H19_TEXTS_SAVED_NEXT_THREE_PHUQUOC_IDENTITIES_AND_TWO_COVERS",
+    "active_operation": "NONE_H20_IDENTITY_REVIEW_SAVED_NEXT_TWO_H19_COVERS_WITH_REFINED_HOLDS",
     "catalog_cohort_492_read": "DONE",
     "first_native_catalog_bindings": "DONE",
     "five_additional_posts": "DONE",
@@ -599,16 +608,17 @@
     "existing_h16_selection_covers": "DONE_2OWNER_COVERS_FOR_H15TEXTS_0NEW_TARGETS_NOT_APPLIED_LIB49_50_30",
     "existing_h17_selection_corrections": "DONE_2TEXTS_2SAVED_MAX_TARGETS_0COVERS_NOT_APPLIED_LIB50_51_31",
     "existing_h18_selection_covers": "DONE_2OWNER_COVERS_FOR_H17TEXTS_0NEW_TARGETS_NOT_APPLIED_LIB51_52_32",
-    "existing_h19_selection_corrections": "DONE_2TEXTS_4SAVED_MAX_TARGETS_0COVERS_THREE_PHUQUOC_NAMES_HELD_LIB52_53_33"
+    "existing_h19_selection_corrections": "DONE_2TEXTS_4SAVED_MAX_TARGETS_0COVERS_THREE_PHUQUOC_NAMES_HELD_LIB52_53_33",
+    "existing_h20_identity_review": "DONE_POST_SCOPED3NAMES_REVIEW_NO_NATIVE_IDS_182PROPOSALS_UNCHANGED_LIB53_54_34"
   },
   "next_steps": [
-    "Continue same sole traffic package.H19two texts complete4exact savedMAXtargets;fivePhuQuoc/fourNhaTrang members retained,not published;2coverspending.",
-    "Next finite block:reconcile exact SKBoutique/HomesteadSeaView(exOla)/MaisonThu(exMaisonDuVietnam) property/address+oldname evidence.3names intentionally have no service claims.No guessed canonical IDs or all-beachfront promise.Then complete2owner-style covers from exact member photos.",
-    "Counts83subjects/84bodies/182saved candidates;155mapped to63INACTIVE collections+27unlinked across20subjects.94video holds/88text-photo paths;129explicit identitylookup holds.All182native identities unverified.",
-    "Current binding map is SAME map version using guarded immutable H17base+append4to23unlinked=27.Reader MUST use H19resolve_binding_map.py or equivalent;not a standalone collections snapshot.Base SHA guarded.63collections155mapped/old23unlinked unchanged;no second attribution store or active URLs.",
-    "Archive536838085bytes/headroom32827.Preflight size before next save.62remaining oldsmallJSON losslessly BZIP2packed;all1020nonownedCRC/size preserved,unmodified compressed records exact;InfoZIP64changedJSONPASS.Old source/covers/media not removed.",
-    "Canonical92exact9profiles absent;near DendroHotel rejected as DendroGold.Facts post-scoped primary sources24Oct only:Rigel city/300m;DendroGold public-beach scope amid boilerplate conflict;Grand5km vs Center/Luxury separate;GreenBeach central TranQuangKhai vsGreenWorld;WaverlyOngLang and PullmanA248beachfront separate.No visa/currentprices/board/weather promises.",
-    "Native/registry PREPARED_NOT_EXECUTED;historical two edits DONE.Wordstat blocker/ASR rejection unchanged,no replay.No production/RK/spend/newposts/tourist sends."
+    "Continue same sole traffic package.H20review complete:one externally supportedSeaview property,one SKaddress candidate,one materialMaison alias conflict.No canonical/native IDs assigned;182candidate bodies/targets unchanged.",
+    "Next finite block:finishH19two owner-style selection covers using exact verified original members.Waverly/Pullman available forPhuQuoc and exactNhaTrang member;do not wait for unresolvedSK/Maison to use a different alreadyverified original member.No generic cover identity.",
+    "HomesteadSeaview matches Group2CuaLap inCoral+government;Ola row matchesCoral phone/address,indirect alias bridge NOT dated legalrename.DifferentHomesteadResort143/143A/GardenView118/2 not merged.SK primaryoperator title only;MP135MarinaSquare remains secondaryaddress candidate.MaisonThuSonasea vsMaisonDuBenTram conflicts;old ex-label not proof.",
+    "Unchanged83subjects/84bodies/182saved candidates;155mapped to63INACTIVE collections+27unlinked across20subjects.94video holds/88textphoto paths;129explicit identitylookup holds.182native identities unverified;no issuedIDs/URLs/writes.",
+    "Current map remains H19guarded H17base+append4;use H19resolve_binding_map.py.Never treat delta as full snapshot.All collections/prior body hashes/XMLs/media unchanged.",
+    "Archive536851079bytes/headroom19833bytes:cannot simply add large media.Preflight first.Preserve existing IDs/history and all source evidence.If necessary save output media as an explicit companion artifact of THIS packet with references,not another hotel/sourceDB;don't call singleZIP physicallycomplete for external media.Do not repeatedly recompress baselines for tiny gains or delete evidence.",
+    "Homesteadofficialsite one400timeout,CrystalBayproperty403,BookingSKantirobot not bypassed.BGparseddescription absent afterboundedread:do not replay identical attempts.Wordstat blocker/ASR rejection unchanged.No native/production/RK/spend/tourists/newposts."
   ],
   "publication_blocker": "176saved candidates NOT_APPLIED:all176entry URLs unissued/local catalog identities unverified(123explicit lookup flags),94video holds/82text-photo paths.155mapped to63inactive collections;21selection targets across16subjects unlinked.H15two text drafts and H16two branded covers complete for2savedMAXposts.No fresh native read/external apply.All need current exact post/media/buttons/context read and applicable owner authority.Huayuan hot-spring closure/Argyle historical maintenance and package/identity/season holds retained.Photographs illustrate named properties only,not current services.No mass native publication,RK/spend authority.",
   "coordination": "Own audit/direct-demand-20261022 branch only; no foreign claims, CI, paused hotel tasks or production flows.",
@@ -1644,6 +1654,36 @@
       "archive_members": 1038,
       "archive_bytes": 536838085,
       "guarded_versions": "51/52/32_TO_52/53/33"
+    },
+    "existing_h20": {
+      "all182preflight_body_hashes_and_saved_targets_unchanged": true,
+      "whole5member_PhUQuoc_selection_unchanged": true,
+      "current27unlinked_map_and63inactiveXML_unchanged": true,
+      "source92_readonly": true,
+      "external_evidence_not_native_ID": true,
+      "Ola_bridge_inference_not_direct_rename_proof": true,
+      "Maison_alias_conflict_no_auto_merge": true,
+      "SK_secondary_address_not_promoted_to_operator_fact": true,
+      "new_IDs": 0,
+      "new_bodies": 0,
+      "new_targets": 0,
+      "new_covers": 0,
+      "new_native_Wordstat_ASR_CI_replays": 0,
+      "changed_preview_widths": [
+        390,
+        1440
+      ],
+      "identity_review_articles": 3,
+      "source_links": 8,
+      "overflow": false,
+      "all1035nonowned_CRC_size_preserved": true,
+      "all_unmodified_compressed_records_exact": true,
+      "all_compression_methods_unchanged": true,
+      "all_owned_stage_members_readback_equal": true,
+      "archive_bytes": 536851079,
+      "archive_members": 1047,
+      "source_version": 53,
+      "guarded_versions": "52/53/33_TO_53/54/34"
     }
   },
   "catalog_evidence": {
@@ -1684,23 +1724,22 @@
     "library_archive_size": "Current536730088bytes/limit536870912/headroom140824;guards49/50/30.H16preserved all existing evidence and losslessly BZIP2compressed18existingJSONmembers:per-member originaluncompressedSHA,CRC/size and Python/InfoZIP6readPASS recorded inH16lossless-packaging.json.Other prior compression types unchanged.Preserve current root/current-fileBZIP2method on updates;preflight new byte budget before upload.No oversized request/evidence deletion.Unselected new largeOGexcluded with provenance,not prior evidence."
   },
   "latest_completed_block": {
-    "name": "H19:two Vietnam selection text drafts,four saved MAX targets,5/4members;PhuQuoc3names held;two covers pending,not applied",
-    "new_caption_bodies": 2,
+    "name": "H20:post-scoped PhuQuoc3name review,1external property supported/1address candidate/1alias conflict;no new draft or native ID",
+    "new_caption_bodies": 0,
     "new_cover_designs": 0,
-    "new_exact_post_candidates": 4,
+    "new_exact_post_candidates": 0,
     "total_prepared_subjects": 83,
     "total_exact_caption_bodies": 84,
     "total_saved_post_candidates": 182,
-    "total_selection_binding_holds": 27,
     "new_entry_IDs": 0,
     "actual_channel_writes": 0,
     "ready_for_native_write": 0,
     "save_versions": [
-      52,
       53,
-      33
+      54,
+      34
     ],
-    "completed_at_utc": "2026-10-24T06:39:00Z"
+    "completed_at_utc": "2026-10-24T07:41:00Z"
   },
   "catalog_export_lookup": {
     "searched_library_read_only": true,
@@ -1764,15 +1803,15 @@
     "each_new_post_has_explicit_eligibility_checks": true
   },
   "last_run_readback": {
-    "own_branch_head_before_write": "0db6b20276ccb13b88bd20a023e2ef971782a905",
+    "own_branch_head_before_write": "7e5edfefface9cbbc5bf8ce76850100c6a3802fc",
     "same_package_current_executor_handoff": true,
-    "coordination_issue55_updated_at_utc": "2026-10-24T05:23:49Z",
+    "coordination_issue55_updated_at_utc": "2026-10-24T07:34:17Z",
     "source_archive_library_version": 92,
     "demand_library_versions_before_write": {
-      "report": 51,
-      "archive": 52
+      "report": 52,
+      "archive": 53
     },
-    "existing_review_preview_version_before_write": 32,
+    "existing_review_preview_version_before_write": 33,
     "foreign_claims_untouched": true,
     "scope_instructions_reused_from_current_same_executor_package": true,
     "root_AGENTS_sha": "a064aff67d42ddd69a12d9b0393501d116d1307d",
@@ -1783,21 +1822,21 @@
     "full_CI_or_unchanged_baseline_repeated": false,
     "wordstat_access_blocker_unchanged": true,
     "blocked_wordstat_retried": false,
-    "current_task": "H19:two full Vietnam selection drafts4savedMAXtargets,5/4original members;3PhuQuocnamesheld;0covers/IDs/nativewrites.Guarded same-map base+append4 resolves27unlinked.",
+    "current_task": "H20post-scoped3name review forR035.SupportedexternalSeaview;SKaddress candidate;Maison aliasconflict.No body/target/ID/nativewrite changes.",
     "private_source_materials_committed": false,
     "fresh_native_message_read_performed": false,
     "demand_library_versions_after_write": {
-      "report": 52,
-      "archive": 53
+      "report": 53,
+      "archive": 54
     },
-    "existing_review_preview_version_after_write": 33,
+    "existing_review_preview_version_after_write": 34,
     "source_main_reviewed_sha": "46c3dd0991a38bac5908d0300a0aa150faf06cbd",
     "START_HERE_sha": "43e7827432279012382767de6b6335684c6d54c2",
     "ASR_reexecuted_after_rejection": false,
-    "coordination_latest_comment_id": 6380344720,
-    "latest_coordination_updated_comment_read": 6380344720,
+    "coordination_latest_comment_id": 6381507263,
+    "latest_coordination_updated_comment_read": 6381507263,
     "source_instructions_read_on_current_main": true,
-    "completed_at_utc": "2026-10-24T06:39:00Z",
+    "completed_at_utc": "2026-10-24T07:41:00Z",
     "all_comments_endpoint_failed_transport_twice": true,
     "newest_comments_read_with_bounded_since_API": true,
     "library_prepare_initial_size_rejected_before_action": false,
@@ -3063,14 +3102,15 @@
     "prior_video_transport_hold_preserved_for_amended_video_target": true
   },
   "next_preparation_block": {
-    "state": "PENDING_H19_TWO_COVERS_AND_THREE_PHUQUOC_IDENTITIES",
+    "state": "H19_TWO_OWNER_COVERS_PENDING_WITH_REFINED_IDENTITY_HOLDS",
     "review_ids": [
       "R035",
       "R037"
     ],
-    "action": "Reconcile SKBoutique/HomesteadSeaView/MaisonThu exact addresses and oldname evidence,then owner-style covers using exact member photos;do not infer facts from alias.Not native writes.",
-    "map_read_requires_base_plus_append_resolver": true,
-    "archive_size_preflight_required": true
+    "action": "Prepare2owner-style covers from alreadyverified exact member property photos,not unresolvedSK/Maison labels;read guarded current map withH19resolver.Preserve all5/4members and currentbodies.",
+    "archive_cap_preflight_required": true,
+    "large_cover_media_must_not_be_forced_into_capped_archive": true,
+    "native_writes_allowed": false
   },
   "existing_text_photo_binding44_operation": {
     "state": "DONE_OFFLINE_PREPARATION_NATIVE_READ_NOT_EXECUTED",
@@ -5133,6 +5173,77 @@
         51,
         52,
         32
+      ],
+      "all_local_metadata_applied": true
+    },
+    "unknown_writes": []
+  },
+  "existing_h20_identity_review_operation": {
+    "state": "DONE_POST_SCOPED_THREE_NAME_REVIEW_NO_NATIVE_ID_ASSIGNMENT",
+    "idempotency_key": "H20-R035-3nameReview-noBodyChanges-20261024-v1",
+    "completed_at_utc": "2026-10-24T07:41:00Z",
+    "same_executor_continuation": true,
+    "no_subagents": true,
+    "source_demand_archive_version": 53,
+    "canonical_source_version": 92,
+    "externally_supported_property": 1,
+    "secondary_address_candidate": 1,
+    "material_alias_conflict": 1,
+    "new_bodies": 0,
+    "new_targets": 0,
+    "new_covers": 0,
+    "new_IDs": 0,
+    "new_channel_writes": 0,
+    "total_prepared_subjects": 83,
+    "total_exact_caption_bodies": 84,
+    "total_saved_post_candidates": 182,
+    "review_member": "existing-post-review/h20/identity-review.NOT-APPLIED.json",
+    "canonical_readback_member": "existing-post-review/h20/canonical-readback.json",
+    "validation_member": "existing-post-review/h20/validation.json",
+    "preview_validation_member": "existing-post-review/h20/preview-validation.json",
+    "next_safe_block_member": "existing-post-review/h20/next-safe-block.json",
+    "report_section": "h20-identity-review",
+    "private_materials_only_in_library": true,
+    "validation": {
+      "all182preflight_body_hashes_and_saved_targets_unchanged": true,
+      "whole5member_PhUQuoc_selection_unchanged": true,
+      "current27unlinked_map_and63inactiveXML_unchanged": true,
+      "source92_readonly": true,
+      "external_evidence_not_native_ID": true,
+      "Ola_bridge_inference_not_direct_rename_proof": true,
+      "Maison_alias_conflict_no_auto_merge": true,
+      "SK_secondary_address_not_promoted_to_operator_fact": true,
+      "new_IDs": 0,
+      "new_bodies": 0,
+      "new_targets": 0,
+      "new_covers": 0,
+      "new_native_Wordstat_ASR_CI_replays": 0,
+      "changed_preview_widths": [
+        390,
+        1440
+      ],
+      "identity_review_articles": 3,
+      "source_links": 8,
+      "overflow": false,
+      "all1035nonowned_CRC_size_preserved": true,
+      "all_unmodified_compressed_records_exact": true,
+      "all_compression_methods_unchanged": true,
+      "all_owned_stage_members_readback_equal": true,
+      "archive_bytes": 536851079,
+      "archive_members": 1047,
+      "source_version": 53,
+      "guarded_versions": "52/53/33_TO_53/54/34"
+    },
+    "save_receipt": {
+      "versions": [
+        53,
+        54,
+        34
+      ],
+      "expected_previous_versions": [
+        52,
+        53,
+        33
       ],
       "all_local_metadata_applied": true
     },
