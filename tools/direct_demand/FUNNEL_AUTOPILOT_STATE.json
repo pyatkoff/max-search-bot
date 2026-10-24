@@ -1,6 +1,6 @@
 {
   "schema": "anytour.funnel.autopilot_state.v1",
-  "updated_at_utc": "2026-10-24T11:41:00Z",
+  "updated_at_utc": "2026-10-24T12:43:31.044011+00:00",
   "owner": "direct-demand-funnel",
   "automation": {
     "id": "6ada8f0084888191b12c6619c12fb35c",
@@ -9,7 +9,7 @@
     "timezone": "Europe/Kaliningrad",
     "enabled_verified_at_utc": "2026-10-22T22:39:46.922Z"
   },
-  "status": "H24_TWO_FOUR_MEMBER_NHATRANG_PHUKET_TEXTS_FOUR_SAVED_TARGETS_COVERS_PENDING_NOT_APPLIED",
+  "status": "H25_TWO_OWNER_COVERS_NHATRANG_PHUKET_FULL_TEXTS_AND190MAP_UNCHANGED_NOT_APPLIED",
   "channel": null,
   "scope": {
     "prepare_catalog_matches": true,
@@ -43,11 +43,11 @@
   "artifacts": {
     "report": {
       "library_file_id": "libfile_81ae550da16881918bb6840b686d507f",
-      "version": 57
+      "version": 58
     },
     "archive": {
       "library_file_id": "libfile_1b69bb58e8d4819186e7ea461ef60cb6",
-      "version": 58
+      "version": 59
     },
     "canonical_hotel_knowledge": {
       "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
@@ -87,7 +87,7 @@
     },
     "existing_post_review": {
       "library_file_id": "libfile_25486df816e88191b44ed4051858e99f",
-      "version": 38,
+      "version": 39,
       "preview_member": "existing-post-review/anytour-existing-posts-review-20261023.html",
       "text_review_member": "existing-post-review/manual-text-review-107.json",
       "adaptations_member": "existing-post-review/existing-post-adaptations-12.json",
@@ -529,7 +529,7 @@
     },
     "current_packet_continuation": {
       "library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
-      "version": 3,
+      "version": 4,
       "content_member": "existing-post-review/h24/content.json",
       "patches_member": "existing-post-review/h24/existing-patches-4.NOT-APPLIED.json",
       "preflight_member": "existing-post-review/h24/preflight190-current.NOT-APPLIED.json",
@@ -538,13 +538,14 @@
       "validation_member": "existing-post-review/h24/validation.json",
       "canonical_claim_reuse_member": "existing-post-review/h24/canonical-claim-reuse.json",
       "reused_Libra_member": "existing-post-review/h24/reused-H7-Libra-evidence.json",
-      "next_safe_block_member": "existing-post-review/h24/next-safe-block.json",
+      "next_safe_block_member": "existing-post-review/h25/next-safe-block.json",
       "preview_library_file_id": "libfile_c1f06826dd408191bed3e0cb8103e379",
-      "preview_version": 3,
+      "preview_version": 4,
       "base_pointer_member": "existing-post-review/current-continuation.json",
       "same_packet_continuation_not_second_attribution_store": true,
       "base_ZIP_alone_not_complete_current_packet": true,
-      "private_materials_only_in_library": true
+      "private_materials_only_in_library": true,
+      "current_cover_manifest_member": "existing-post-review/h25/photo-cover-provenance.json"
     },
     "existing_h23_selection_covers": {
       "library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
@@ -563,6 +564,24 @@
       "preview_version": 2,
       "media_in_base_ZIP": false,
       "private_materials_only_in_library": true
+    },
+    "existing_h25_selection_covers": {
+      "library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
+      "version": 4,
+      "cover_manifest_member": "existing-post-review/h25/photo-cover-provenance.json",
+      "render_member": "existing-post-review/h25/cover-render.html",
+      "validation_member": "existing-post-review/h25/validation.json",
+      "preview_validation_member": "existing-post-review/h25/preview-validation.json",
+      "canonical_readback_member": "existing-post-review/h25/canonical-readback.json",
+      "next_safe_block_member": "existing-post-review/h25/next-safe-block.json",
+      "original_content_member": "existing-post-review/h24/content.json",
+      "preflight_reused_unchanged": "existing-post-review/h24/preflight190-current.NOT-APPLIED.json",
+      "map_reused_unchanged": "existing-post-review/h24/existing63-190post-map.NOT-APPLIED.json",
+      "base_pointer_member": "existing-post-review/current-continuation.json",
+      "preview_library_file_id": "libfile_c1f06826dd408191bed3e0cb8103e379",
+      "preview_version": 4,
+      "media_in_base_ZIP": false,
+      "private_materials_only_in_library": true
     }
   },
   "operations": {
@@ -574,7 +593,7 @@
     "wordstat_access": "BLOCKED_NO_CONNECTED_SEARCH_API_ACCESS",
     "first_post_drafts": "DONE",
     "inactive_feed_templates": "DONE",
-    "active_operation": "NONE_H24_TEXTS_SAVED_NEXT_TWO_OWNER_COVERS",
+    "active_operation": "NONE_H25_SAVED_NEXT_R048_R049_ORIGINALS_READ",
     "catalog_cohort_492_read": "DONE",
     "first_native_catalog_bindings": "DONE",
     "five_additional_posts": "DONE",
@@ -670,18 +689,17 @@
     "existing_h21_selection_covers": "DONE_2OWNER_COVERS_H19BODIES_UNCHANGED_EXPLICIT_COMPANION_NOT_APPLIED",
     "existing_h22_selection_corrections": "DONE_2FULLTEXTS_4SAVED_MAX_TARGETS_NO_COVERS_NO_WRITES",
     "existing_h23_selection_covers": "DONE_2OWNER_COVERS_H22TEXTS_UNCHANGED_NO_NATIVE_WRITES",
-    "existing_h24_selection_corrections": "DONE_2FULL4MEMBERTEXTS_4SAVED_MAX_TARGETS_NO_COVERS_NO_NATIVEWRITES"
+    "existing_h24_selection_corrections": "DONE_2FULL4MEMBERTEXTS_4SAVED_MAX_TARGETS_NO_COVERS_NO_NATIVEWRITES",
+    "existing_h25_selection_covers": "DONE_2OWNER_COVERS_H24TEXTS_190PREFLIGHT_MAP_UNCHANGED_NO_NATIVEWRITES"
   },
   "next_steps": [
-    "H24done:2full4memberNhaTrang/Phuket texts for4savedMAXtargets;oldprices/dates/stars/nightpromotion removed.No new IDs,destinations orwrites.",
-    "Next finite block:2ownerstyle covers forR043/R044 from exact verified original member officialphotography.Label actualproperty,not generic beach/resort. Same output-companion identities;no freshfullnative/CI/Directreplay.",
-    "Current preparation=baseZIP+samecompanion libfile_f7a0d7e76c188191b2d5bc59adfd430d v3.H24full190preflight/resolved63collection35unlinkedmap there. Basecurrent-continuation.json carries hashes;H22/H19snapshots now historical;do not treat baseZIPalone ascomplete currentpacket.",
-    "87subjects/88bodies/190saved candidates;155mapped/63INACTIVEcollections+35unlinked24subjects.94video holds/96textphoto paths,137explicit identityholds.190native identities unverified;no issued IDs/activeURLs.",
-    "Canonical92 read current indexe3ec73..readonly:2exactprofilesTND/WyndhamGardenKamala,2claim records reused. RigelH19andLibraH7facts/source cautions reused;6new primary pages read. No sharedprofilescreated,localIDsnotassigned.",
-    "WyndhamGardenKamala officialFAQ notbeachfront,walkroute underpass;no directroadcrossing promise or unconditional buggy/shuttlewait. NotWyndhamGrandNaiHarn.TNDNoView/CityViewnotmerged;oldCicilialabelnotnewlegalrenameproof.",
-    "Bonjourofficialhome+reservation boundedtimeouts;KOMPAS exactoperatorpage read,17/2ABCNguyenThiMinhKhai.No identicalretry.KataBeachStudio exactprimarydescription unresolved:nameonly,nokitchen/balcony/pool/distance facts. Libra privatebeach serviceconflict unchanged,nofreechairs.",
-    "BaseZIP536866598bytes/headroom4314;all1056nonownedCRC/size andcompressedrecords preserved,no deletion/recompression. Companion55priornonpreviewmembers preserved,newH24content/preflight/map appended.",
-    "Pausedlearning/CRM,models/budgets/settings and foreignconstructorPR1103/source6383354878+6383587494 untouched.No production/RK/spend/tourist/newpost actions.Wordstat/ASR blockers unchanged,not retried."
+    "H25done:two labeled ownerstyle1080squareJPGcovers forR043/R044.NhaTrangLibra original reused exact from baseH7;Phuketibis7273 original downloaded from officialAccor gallery24Oct2026.Full4/4texts unchanged.",
+    "Next finite block:read exact savedR048Hainan5/R049KhaoLak4 originals,check prior adaptation coverage and current190preflight before preparing text.No native writes.",
+    "Current packet=baseZIPv59+samecompanion libfile_f7a0d7e76c188191b2d5bc59adfd430d v4;current190preflight/map remain H24;H25covermanifest in companion.Basecurrent-continuation.json version4guard;Libra sourceoriginal remains baseH7.",
+    "87subjects/88bodies/190saved candidates;155mapped/63INACTIVEcollections+35unlinked24subjects.94videoholds/96textphotopaths,137identityholds.190native identitiesunverified,no newIDs/activeURLs.",
+    "Canonical92 readonly exactindexe3ec73..,no hotelDB changes.KataStudio nameonly,Libra privatebeach/floorconflicts,Huayuanhot-spring andPhuQuocidentityholds unchanged.No facilityfacts inferred from coverphotos.",
+    "Base536866394bytes/headroom4518,all1056nonowned CRC/size and raw compressedrecords exact;companion94entries8472072bytes,all75priornonpreviewmembers exact.No original members deleted/recompressed.",
+    "Constructor PR1103 installed RELEASE/sourcepublisherreleased;new6384270497constructor researchonlyclaim untouched.Manager2physicalextension restriction unchanged.No foreignclaims/settings/models/budgets/pausedlearningCRM/production/RK/spend/tourist/newpost actions.Wordstat/ASRblockers unchanged,not retried."
   ],
   "publication_blocker": "176saved candidates NOT_APPLIED:all176entry URLs unissued/local catalog identities unverified(123explicit lookup flags),94video holds/82text-photo paths.155mapped to63inactive collections;21selection targets across16subjects unlinked.H15two text drafts and H16two branded covers complete for2savedMAXposts.No fresh native read/external apply.All need current exact post/media/buttons/context read and applicable owner authority.Huayuan hot-spring closure/Argyle historical maintenance and package/identity/season holds retained.Photographs illustrate named properties only,not current services.No mass native publication,RK/spend authority.",
   "coordination": "Own audit/direct-demand-20261022 branch only; no foreign claims, CI, paused hotel tasks or production flows.",
@@ -1915,6 +1933,83 @@
       ],
       "disabled_CTA": 2,
       "overflow": false
+    },
+    "existing_h25": {
+      "two_final_covers_visually_read": true,
+      "one_source_photo_reused_byte_exact": true,
+      "one_official_Accor_photo_downloaded": true,
+      "H24bodies190preflight_and_map_exact": true,
+      "canonical92_read_only": true,
+      "new_bodies": 0,
+      "new_targets": 0,
+      "new_IDs": 0,
+      "native_writes": 0,
+      "preview": {
+        "results": [
+          {
+            "width": 320,
+            "selection": "six",
+            "overflow": false,
+            "body_exact": true
+          },
+          {
+            "width": 320,
+            "selection": "four",
+            "overflow": false,
+            "body_exact": true
+          },
+          {
+            "width": 390,
+            "selection": "six",
+            "overflow": false,
+            "body_exact": true
+          },
+          {
+            "width": 390,
+            "selection": "four",
+            "overflow": false,
+            "body_exact": true
+          },
+          {
+            "width": 736,
+            "selection": "six",
+            "overflow": false,
+            "body_exact": true
+          },
+          {
+            "width": 736,
+            "selection": "four",
+            "overflow": false,
+            "body_exact": true
+          }
+        ],
+        "standalone_widths": [
+          390,
+          1440
+        ],
+        "full4and4bodies_unchanged": true,
+        "one_correct_cover_per_card": true,
+        "disabled_CTA": 2,
+        "overflow": false
+      },
+      "base_archive": {
+        "bytes": 536866394,
+        "cap": 536870912,
+        "entries": 1060,
+        "unowned_prior_member_count": 1056,
+        "unowned_bytes_crc_preserved": true,
+        "unmodified_raw_local_records_SHA256": "42eb150e0e1e6dc894325858032ab6969feb891c696d6c2ed1d3e4edba75272b",
+        "unchanged_compressed_bytes_exact": true,
+        "compression_only_members": [],
+        "all_stage_members_readback_equal": true
+      },
+      "companion": {
+        "bytes": 8472072,
+        "entries": 94,
+        "prior_nonpreview_members_preserved": 75,
+        "all_new_bytes_exact": true,
+        "H24bodies190preflight_and_map_exact": true
+      }
     }
   },
   "catalog_evidence": {
@@ -1955,7 +2050,7 @@
     "library_archive_size": "Current536730088bytes/limit536870912/headroom140824;guards49/50/30.H16preserved all existing evidence and losslessly BZIP2compressed18existingJSONmembers:per-member originaluncompressedSHA,CRC/size and Python/InfoZIP6readPASS recorded inH16lossless-packaging.json.Other prior compression types unchanged.Preserve current root/current-fileBZIP2method on updates;preflight new byte budget before upload.No oversized request/evidence deletion.Unselected new largeOGexcluded with provenance,not prior evidence."
   },
   "latest_completed_block": {
-    "name": "H24:two fullNhaTrang/Phuket four-member selections for4saved MAXposts,coverspending;notapplied",
+    "name": "H25:two labeled owner covers for full4/4NhaTrang/Phuket texts;190candidates unchanged;notapplied",
     "total_prepared_subjects": 87,
     "total_exact_caption_bodies": 88,
     "total_saved_post_candidates": 190,
@@ -1966,22 +2061,22 @@
     "total_video_holds": 94,
     "total_text_photo_paths": 96,
     "identity_lookup_holds": 137,
-    "new_caption_bodies": 2,
-    "new_exact_saved_post_candidates": 4,
-    "new_covers": 0,
+    "new_caption_bodies": 0,
+    "new_exact_saved_post_candidates": 0,
+    "new_covers": 2,
     "new_IDs": 0,
     "actual_channel_writes": 0,
     "platforms": {
       "max": 181,
       "telegram": 9
     },
-    "completed_at_utc": "2026-10-24T11:41:00Z",
+    "completed_at_utc": "2026-10-24T12:43:31.044011+00:00",
     "save_versions": [
-      57,
       58,
-      38,
-      3,
-      3
+      59,
+      39,
+      4,
+      4
     ]
   },
   "catalog_export_lookup": {
@@ -2046,15 +2141,15 @@
     "each_new_post_has_explicit_eligibility_checks": true
   },
   "last_run_readback": {
-    "own_branch_head_before_write": "40c57846cad7288c5d6262e09670f078276059e2",
+    "own_branch_head_before_write": "109440cf352188fe73acb067d30189daec5d8e15",
     "same_package_current_executor_handoff": true,
     "coordination_issue55_updated_at_utc": "2026-10-24T11:21:09Z",
     "source_archive_library_version": 92,
     "demand_library_versions_before_write": {
-      "report": 56,
-      "archive": 57
+      "report": 57,
+      "archive": 58
     },
-    "existing_review_preview_version_before_write": 37,
+    "existing_review_preview_version_before_write": 38,
     "foreign_claims_untouched": true,
     "scope_instructions_reused_from_current_same_executor_package": true,
     "root_AGENTS_sha": "a064aff67d42ddd69a12d9b0393501d116d1307d",
@@ -2065,16 +2160,16 @@
     "full_CI_or_unchanged_baseline_repeated": false,
     "wordstat_access_blocker_unchanged": true,
     "blocked_wordstat_retried": false,
-    "current_task": "H24:R043/R044 full4/4text drafts,190preflight/map continuation,no covers/nativewrites.",
+    "current_task": "H25:two ownerstyle covers forR043/R044,exact H24bodies/190preflight/map unchanged,no nativewrites.",
     "private_source_materials_committed": false,
     "fresh_native_message_read_performed": false,
-    "source_main_reviewed_sha": "ff08afc16e2a0cd08047a3730aadc080eb0a672f",
+    "source_main_reviewed_sha": "f6d6510e4df20b4eac56b51ed6dd73db3e66098d",
     "START_HERE_sha": "43e7827432279012382767de6b6335684c6d54c2",
     "ASR_reexecuted_after_rejection": false,
-    "coordination_latest_comment_id": 6383587494,
-    "latest_coordination_updated_comment_read": 6383587494,
+    "coordination_latest_comment_id": 6384270497,
+    "latest_coordination_updated_comment_read": 6384270497,
     "source_instructions_read_on_current_main": true,
-    "completed_at_utc": "2026-10-24T11:41:00Z",
+    "completed_at_utc": "2026-10-24T12:43:31.044011+00:00",
     "all_comments_endpoint_failed_transport_twice": true,
     "newest_comments_read_with_bounded_since_API": true,
     "library_prepare_initial_size_rejected_before_action": false,
@@ -2088,10 +2183,11 @@
     "unchanged_compressed_records_exact_verified": true,
     "source_knowledge92_read_only": true,
     "demand_library_versions_after_write": {
-      "report": 57,
-      "archive": 58
+      "report": 58,
+      "archive": 59
     },
-    "existing_review_preview_version_after_write": 38
+    "existing_review_preview_version_after_write": 39,
+    "foreign_constructor_research_claim_6384270497_untouched": true
   },
   "latest_source_checks": {
     "read_on": "2026-10-23",
@@ -3345,12 +3441,12 @@
     "prior_video_transport_hold_preserved_for_amended_video_target": true
   },
   "next_preparation_block": {
-    "state": "PENDING_TWO_H24_OWNER_COVERS",
+    "state": "PENDING_READ_ORIGINALS",
     "review_ids": [
-      "R043",
-      "R044"
+      "R048",
+      "R049"
     ],
-    "action": "Use exact original verified member officialphotos.Libra/Rigel/TND/Bonjour and ibis7273/Baumancasa/GardenKamala available candidates.Label property,preserve full4/4texts.KataStudio nameonly/no guessed facilities. Same companion/base pointer and no nativewrites.",
+    "action": "Read exact saved Hainan5/KhaoLak4 originals and current190preflight before preparing fullmember texts;no native writes.",
     "native_writes_allowed": false
   },
   "existing_text_photo_binding44_operation": {
@@ -5918,5 +6014,145 @@
       ],
       "all_local_metadata_applied": true
     }
+  },
+  "existing_h25_selection_covers_operation": {
+    "state": "DONE_TWO_H24_OWNER_COVERS_READABLE_PREVIEW_NOT_APPLIED",
+    "idempotency_key": "H25-H24-R043-R044-2ownerJPGcovers-20261024-v1",
+    "completed_at_utc": "2026-10-24T12:43:31.044011+00:00",
+    "same_executor_continuation": true,
+    "no_subagents": true,
+    "source_demand_archive_version": 58,
+    "source_companion_version": 3,
+    "canonical_source_version": 92,
+    "new_covers": 2,
+    "new_JPG_exports": 2,
+    "new_selected_photo_downloads": 1,
+    "reused_selected_photos": 1,
+    "new_caption_bodies": 0,
+    "new_targets": 0,
+    "new_IDs": 0,
+    "actual_channel_writes": 0,
+    "total_prepared_subjects": 87,
+    "total_exact_caption_bodies": 88,
+    "total_saved_post_candidates": 190,
+    "mapped_candidates": 155,
+    "inactive_collections": 63,
+    "unlinked_candidates": 35,
+    "unlinked_subjects": 24,
+    "video_holds": 94,
+    "text_photo_paths": 96,
+    "identity_lookup_holds": 137,
+    "library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
+    "version": 4,
+    "cover_manifest_member": "existing-post-review/h25/photo-cover-provenance.json",
+    "render_member": "existing-post-review/h25/cover-render.html",
+    "validation_member": "existing-post-review/h25/validation.json",
+    "preview_validation_member": "existing-post-review/h25/preview-validation.json",
+    "canonical_readback_member": "existing-post-review/h25/canonical-readback.json",
+    "next_safe_block_member": "existing-post-review/h25/next-safe-block.json",
+    "original_content_member": "existing-post-review/h24/content.json",
+    "preflight_reused_unchanged": "existing-post-review/h24/preflight190-current.NOT-APPLIED.json",
+    "map_reused_unchanged": "existing-post-review/h24/existing63-190post-map.NOT-APPLIED.json",
+    "base_pointer_member": "existing-post-review/current-continuation.json",
+    "preview_library_file_id": "libfile_c1f06826dd408191bed3e0cb8103e379",
+    "preview_version": 4,
+    "media_in_base_ZIP": false,
+    "Libra_original_reused_from_base_H7": true,
+    "private_materials_only_in_library": true,
+    "validation": {
+      "two_final_covers_visually_read": true,
+      "one_source_photo_reused_byte_exact": true,
+      "one_official_Accor_photo_downloaded": true,
+      "H24bodies190preflight_and_map_exact": true,
+      "canonical92_read_only": true,
+      "new_bodies": 0,
+      "new_targets": 0,
+      "new_IDs": 0,
+      "native_writes": 0,
+      "preview": {
+        "results": [
+          {
+            "width": 320,
+            "selection": "six",
+            "overflow": false,
+            "body_exact": true
+          },
+          {
+            "width": 320,
+            "selection": "four",
+            "overflow": false,
+            "body_exact": true
+          },
+          {
+            "width": 390,
+            "selection": "six",
+            "overflow": false,
+            "body_exact": true
+          },
+          {
+            "width": 390,
+            "selection": "four",
+            "overflow": false,
+            "body_exact": true
+          },
+          {
+            "width": 736,
+            "selection": "six",
+            "overflow": false,
+            "body_exact": true
+          },
+          {
+            "width": 736,
+            "selection": "four",
+            "overflow": false,
+            "body_exact": true
+          }
+        ],
+        "standalone_widths": [
+          390,
+          1440
+        ],
+        "full4and4bodies_unchanged": true,
+        "one_correct_cover_per_card": true,
+        "disabled_CTA": 2,
+        "overflow": false
+      },
+      "base_archive": {
+        "bytes": 536866394,
+        "cap": 536870912,
+        "entries": 1060,
+        "unowned_prior_member_count": 1056,
+        "unowned_bytes_crc_preserved": true,
+        "unmodified_raw_local_records_SHA256": "42eb150e0e1e6dc894325858032ab6969feb891c696d6c2ed1d3e4edba75272b",
+        "unchanged_compressed_bytes_exact": true,
+        "compression_only_members": [],
+        "all_stage_members_readback_equal": true
+      },
+      "companion": {
+        "bytes": 8472072,
+        "entries": 94,
+        "prior_nonpreview_members_preserved": 75,
+        "all_new_bytes_exact": true,
+        "H24bodies190preflight_and_map_exact": true
+      }
+    },
+    "save_receipt": {
+      "versions": [
+        58,
+        59,
+        39,
+        4,
+        4
+      ],
+      "expected_previous_versions": [
+        57,
+        58,
+        38,
+        3,
+        3
+      ],
+      "all_local_metadata_applied": true
+    },
+    "unknown_writes": []
   }
 }
