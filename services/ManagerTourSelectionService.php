@@ -106,7 +106,17 @@ final class ManagerTourSelectionService
         if ($import===null) return self::error('invalid_import');
         $variant=$input['as_variant']??false;
         if (!is_bool($variant)) return self::error('invalid_import');
-        $hash=hash('sha256',json_encode(['collector-v1',$conversationId,$connection,$import,$variant],JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR));
+        $managerAmount=null;
+        if (array_key_exists('manager_amount',$input)) {
+            $edited=$import['offer'];$edited['amount']=$input['manager_amount'];
+            $checked=ManagerTourSelectionDraft::normalize(['title'=>'Импорт','intro'=>'','offers'=>[$edited]]);
+            if ($checked===null || $checked['offers'][0]['amount']==='') return self::error('invalid_import');
+            $managerAmount=$checked['offers'][0]['amount'];
+        }
+        // Absent adjustment preserves every existing collector-v1 receipt hash.
+        $intent=$managerAmount===null?['collector-v1',$conversationId,$connection,$import,$variant]:['collector-v2',$conversationId,$connection,$import,$variant,$managerAmount];
+        $hash=hash('sha256',json_encode($intent,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR));
+        $priceAck=$managerAmount===null?[]:['manager_amount'=>$managerAmount];
         $source=ManagerTourSelectionImportDraft::source($import);
         $fingerprint=ManagerTourSelectionImportDraft::fingerprint($source);
         $conditions=ManagerTourSelectionImportDraft::fingerprint($source,false);
@@ -128,11 +138,11 @@ final class ManagerTourSelectionService
                 $receipt=self::receipt($pdo,$actor,$operation,true);
                 if ($receipt) {
                     if ((int)$receipt['conversation_id']!==$conversationId || !hash_equals($receipt['request_hash'],$hash)) {$pdo->rollBack();return self::error('operation_mismatch');}
-                    $result=['ok'=>true,'state'=>'saved','saved_version'=>(int)$receipt['saved_version'],'count'=>count($current['draft']['offers'])];
+                    $result=['ok'=>true,'state'=>'saved','saved_version'=>(int)$receipt['saved_version'],'count'=>count($current['draft']['offers'])]+$priceAck;
                     if ($readOnly) $result['found']=true;
                     $pdo->commit();return $result;
                 }
-                if ($readOnly) {$pdo->commit();return ['ok'=>true,'found'=>false,'count'=>count($current['draft']['offers'])];}
+                if ($readOnly) {$pdo->commit();return ['ok'=>true,'found'=>false,'count'=>count($current['draft']['offers'])]+$priceAck;}
                 $duplicate=null;
                 foreach ($current['draft']['offers'] as $old) {
                     if (!isset($old['import_source'])) continue;
@@ -141,7 +151,10 @@ final class ManagerTourSelectionService
                     $sameQuote=hash_equals($s['quote_id'],$source['quote_id']);
                     $sameConditions=hash_equals(ManagerTourSelectionImportDraft::fingerprint($s,false),$conditions);
                     $sameTerms=hash_equals(ManagerTourSelectionImportDraft::fingerprint($s),$fingerprint);
-                    if ($sameQuote && $sameTerms) {$duplicate=$old['id'];break;}
+                    if ($sameQuote && $sameTerms) {
+                        if ($managerAmount!==null && self::amountKey($old['amount'])!==self::amountKey($managerAmount)) {$pdo->rollBack();return self::error('manual_price_conflict');}
+                        $duplicate=$old['id'];break;
+                    }
                     if (!$variant && ($sameQuote || $sameConditions)) {
                         $pdo->rollBack();return self::error($sameConditions&&!$sameTerms?'source_price_changed':'ambiguous_offer')+['existing_offer_id'=>$old['id']];
                     }
@@ -150,6 +163,7 @@ final class ManagerTourSelectionService
                 if ($duplicate===null) {
                     if (count($current['draft']['offers'])>=ManagerTourSelectionDraft::MAX_OFFERS) {$pdo->rollBack();return self::error('selection_full');}
                     $offer=$import['offer'];$offerId=bin2hex(random_bytes(16));$offer['id']=$offerId;$offer['import_source']=$source;
+                    if ($managerAmount!==null) $offer['amount']=$managerAmount;
                     $current['draft']['offers'][]=$offer;
                     $draft=ManagerTourSelectionDraft::normalize($current['draft']);
                     if ($draft===null) throw new LogicException('Import produced invalid draft');
@@ -162,7 +176,7 @@ final class ManagerTourSelectionService
                     }
                 }
                 $q=$pdo->prepare('INSERT INTO manager_tour_selection_operations(manager_id,operation_id,conversation_id,request_hash,saved_version,created_at) VALUES(?,?,?,?,?,?)');$q->execute([$actor,$operation,$conversationId,$hash,$next,$now]);
-                $result=['ok'=>true,'state'=>$duplicate===null?'added':'already_added','offer_id'=>$offerId,'saved_version'=>$next,'count'=>count($current['draft']['offers'])];
+                $result=['ok'=>true,'state'=>$duplicate===null?'added':'already_added','offer_id'=>$offerId,'saved_version'=>$next,'count'=>count($current['draft']['offers'])]+$priceAck;
                 $pdo->commit();return $result;
             } catch(Throwable $e) {
                 if ($pdo->inTransaction()) $pdo->rollBack();
@@ -171,6 +185,12 @@ final class ManagerTourSelectionService
             }
         }
         throw new LogicException('Unreachable import retry');
+    }
+
+    private static function amountKey(string $amount): string
+    {
+        [$whole,$fraction]=explode('.',$amount.'.');
+        return $whole.'.'.str_pad($fraction,2,'0');
     }
 
     private static function context(int $actor,int $conversationId): array

@@ -10,12 +10,38 @@ async function collectorSourceRuntime(page,mode='saved'){
   window.chrome={runtime:{sendMessage:async m=>{
    collectorRequests.push(m);
    if(m.type==='begin_add')return{ok:true,ticket:'a'.repeat(32)};
-   if(m.type==='enqueue'){collectorStaged.push(m);if(mode==='lost_response')throw new Error('Synthetic lost enqueue reply');return{ok:true,operation_id:m.ticket,state:'queued'}}
+   if(m.type==='enqueue'||m.type==='enqueue_edit'){collectorStaged.push(m);if(mode==='lost_response')throw new Error('Synthetic lost enqueue reply');return{ok:true,operation_id:m.ticket,state:m.type==='enqueue_edit'?'editing':'queued'}}
    if(m.type==='add_status')return{ok:true,state:collectorResult,error:collectorResult==='review'?'source_price_changed':null};
+   if(m.type==='show_edit')return{ok:true};
    throw new Error('Unexpected collector command');
   },onMessage:{addListener(){}}}};
  },mode);
  await page.addScriptTag({path:path.join(root,'extensions/selection-collector/collector-client.js')});
+}
+async function pricePopupFixture(page,options={}){
+ const target={actor:7,conversation_id:11,binding:'b'.repeat(64),connection:{id:'c'.repeat(32)},client:'Синтетическая Анна',trip:'Лето у моря',channel:'telegram',count:0},operation='e'.repeat(32),tv=options.tv===true;
+ const item={operation_id:operation,state:options.state||'editing',needs_edit_confirmation:true,target:copy(target),observation:{adapter:tv?'tourvisor-snapshot-v1':'funsun-b2b-v1',offer:{hotel:'Синтетический отель',date_from:'2027-06-05',nights:7,room:'Standard / 2AD',amount:'237017',currency:'RUB'},raw:tv?{party_price_confirmation:'pending'}:{price:'237017 RUB'}},...(options.error?{error:options.error}:{})};
+ const state={ok:true,target,items:[item]},commands=[];let lost=options.lost===true;
+ await page.route('https://collector.fixture/**',async route=>{
+  const file=new URL(route.request().url()).pathname.slice(1);
+  if(file==='fixture-command'){
+   const m=route.request().postDataJSON();commands.push(copy(m));let reply={ok:true};
+   if(m.type==='status')reply=copy(state);
+   else if(m.type==='edit_draft'&&item.state==='editing')item.edit_draft=copy(m.draft);
+   else if(m.type==='remove'){item.state='cancelled';delete item.edit_draft;}
+   else if(m.type==='save_edit'&&item.state==='editing'){
+    item.manager_amount=m.manager_amount;item.needs_edit_confirmation=false;item.state=options.result||'saved';if(item.state==='saved')target.count=1;
+    if(lost){lost=false;return route.abort('failed')}
+   }else reply={ok:false};
+   return route.fulfill({contentType:'application/json',body:JSON.stringify(reply)});
+  }
+  if(!['popup.html','popup.css','popup.js','price-adjustment.js'].includes(file))return route.abort();
+  return route.fulfill({contentType:file.endsWith('.html')?'text/html':file.endsWith('.css')?'text/css':'application/javascript',body:fs.readFileSync(path.join(root,'extensions/selection-collector',file))});
+ });
+ await page.addInitScript(()=>{
+  const listeners=[];window.chrome={runtime:{sendMessage:async m=>{const response=await fetch('/fixture-command',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(m)});const r=await response.json();if(['edit_draft','save_edit','remove'].includes(m.type)&&r.ok)for(const fn of listeners)queueMicrotask(()=>fn());return r}},storage:{onChanged:{addListener(fn){listeners.push(fn)}}}};
+ });
+ await page.goto('https://collector.fixture/popup.html');return{state,commands,operation};
 }
 function searchInquiryProjection(mode){
   return JSON.parse(execFileSync('php',['-r',`
@@ -379,6 +405,14 @@ test('collector source lost enqueue reply checks the exact preallocated operatio
  expect(await page.evaluate(()=>collectorStaged.length)).toBe(1);expect(await page.evaluate(()=>collectorRequests.at(-1))).toEqual({type:'add_status',operation_id:'a'.repeat(32)});
 });
 
+for(const source of [{name:'funsun',fixture:sourceFixture,script:'content.js',amount:'237017'},{name:'anex',fixture:anexSourceFixture,script:'anex-content.js',amount:'177323'},{name:'tourvisor',fixture:tourvisorSourceFixture,script:'tourvisor-content.js',amount:'160000'}])test('source pencil '+source.name+' captures for private editing without importing or exposing a client',async({page,browserName})=>{
+ await page.setViewportSize({width:390,height:900});await source.fixture(page);await collectorSourceRuntime(page,'editing');await page.addScriptTag({path:path.join(root,'extensions/selection-collector',source.script)});
+ await page.getByRole('button',{name:'✎ Изменить цену',exact:true}).click();await expect(page.getByRole('button',{name:'Правка в AnyTour',exact:true})).toBeVisible();
+ expect(await page.evaluate(()=>collectorStaged.length)).toBe(1);expect(await page.evaluate(()=>collectorStaged[0].type)).toBe('enqueue_edit');expect(await page.evaluate(()=>collectorStaged[0].observation.offer.amount)).toBe(source.amount);expect(await page.locator('body').innerText()).not.toContain('Синтетическая Анна');
+ await page.getByRole('button',{name:'Правка в AnyTour',exact:true}).click();expect(await page.evaluate(()=>collectorStaged.length)).toBe(1);expect(await page.evaluate(()=>collectorRequests.filter(x=>x.type==='show_edit').length)).toBe(1);
+ fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-pencil-source-${source.name}-${browserName}.png`)});
+});
+
 for(const width of [390,430,768,1440])test('collector connection preserves exact destination at '+width,async({page,browserName})=>{
  await page.setViewportSize({width,height:900});const s=await bridgeFixture(page);await expect(page.locator('#collectorTarget')).toContainText('Синтетическая Анна');await s.hello();await expect(page.locator('#collectorStatus')).toContainText('Проверьте клиента');await expect(page.locator('#collectorConnect')).toBeDisabled();
  await page.locator('#collectorConfirm').check();await page.locator('#collectorConnect').click();await expect(page.locator('#collectorStatus')).toContainText('Подключено');expect(s.calls.filter(x=>x.action==='collector_connect')).toHaveLength(1);
@@ -403,10 +437,33 @@ for(const width of [390,430,768,1440])test('collector imported source survives m
 
 test('collector popup clearly separates destination review waiting and saved rows',async({page,browserName})=>{
  const ext=path.join(root,'extensions/selection-collector'),states=['destination','waiting','review','blocked','saved'];let data={ok:true,target:{client:'Синтетическая Анна',channel:'telegram',trip:'Лето у моря',count:1},items:states.map((state,i)=>({operation_id:String(i),state,error:state==='review'?'source_price_changed':null,target:{client:'Синтетическая Анна',trip:'Лето у моря'},observation:{offer:{hotel:'Синтетический вариант '+i,date_from:'2027-06-05',nights:7,room:'Standard / 2AD',amount:'200000',currency:'RUB'}}}))};
- await page.setViewportSize({width:390,height:800});await page.route('https://collector.fixture/**',route=>{const file=new URL(route.request().url()).pathname.slice(1);if(!['popup.html','popup.css','popup.js'].includes(file))return route.abort();return route.fulfill({contentType:file.endsWith('.html')?'text/html':file.endsWith('.css')?'text/css':'application/javascript',body:fs.readFileSync(path.join(ext,file))})});
+ await page.setViewportSize({width:390,height:800});await page.route('https://collector.fixture/**',route=>{const file=new URL(route.request().url()).pathname.slice(1);if(!['popup.html','popup.css','popup.js','price-adjustment.js'].includes(file))return route.abort();return route.fulfill({contentType:file.endsWith('.html')?'text/html':file.endsWith('.css')?'text/css':'application/javascript',body:fs.readFileSync(path.join(ext,file))})});
  await page.addInitScript(data=>{window.popupCommands=[];window.chrome={runtime:{sendMessage:async m=>{popupCommands.push(m);return m.type==='status'?data:{ok:true}}},storage:{onChanged:{addListener(){}}}}},data);await page.goto('https://collector.fixture/popup.html');
  await expect(page.locator('.item')).toHaveCount(5);await expect(page.getByRole('button',{name:'Добавить для этого клиента'})).toHaveCount(1);await expect(page.getByRole('button',{name:'Проверить и продолжить'})).toHaveCount(1);await expect(page.getByRole('button',{name:'Добавить отдельным вариантом'})).toHaveCount(1);await expect(page.getByRole('button',{name:'Продолжить с новым подключением этой поездки'})).toHaveCount(1);expect(await page.evaluate(()=>popupCommands.some(x=>x.type!=='status'))).toBe(false);expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
  fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',fullPage:true,path:path.join(root,'manager2-artifacts',`tour-collector-popup-${browserName}.png`)});
+});
+
+for(const width of [390,430,768,1440])test('collector pre-add price editor preserves source and typed price until explicit save at '+width,async({page,browserName})=>{
+ await page.setViewportSize({width,height:900});const s=await pricePopupFixture(page);await expect(page.locator('#target')).toContainText('Синтетическая Анна');await expect(page.locator('.item')).toContainText('Цена ТО: 237017 RUB');
+ await page.getByText('Скидка или наценка',{exact:true}).click();await page.getByLabel('Размер изменения',{exact:true}).fill('2');await page.getByRole('button',{name:'Рассчитать от цены ТО',exact:true}).click();await expect(page.getByLabel('Итоговая цена, RUB',{exact:true})).toHaveValue('232276.66');
+ await page.getByRole('button',{name:'Рассчитать от цены ТО',exact:true}).click();await expect(page.getByLabel('Итоговая цена, RUB',{exact:true})).toHaveValue('232276.66');expect(s.commands.filter(x=>x.type==='save_edit')).toHaveLength(0);
+ await expect.poll(()=>s.state.items[0].edit_draft?.amount).toBe('232276.66');await page.reload();await expect(page.getByLabel('Итоговая цена, RUB',{exact:true})).toHaveValue('232276.66');expect(s.state.items[0].observation.offer.amount).toBe('237017');
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',fullPage:true,path:path.join(root,'manager2-artifacts',`tour-preadd-price-${browserName}-${width}.png`)});
+ await page.setViewportSize({width,height:420});await page.getByRole('button',{name:'Добавить с этой ценой',exact:true}).scrollIntoViewIfNeeded();await expect(page.getByRole('button',{name:'Добавить с этой ценой',exact:true})).toBeInViewport();await page.getByRole('button',{name:'Добавить с этой ценой',exact:true}).click();await expect(page.locator('.item')).toContainText('Сохранено в подборке');await expect(page.locator('.item')).toContainText('Цена в подборке: 232276.66 RUB');expect(s.commands.filter(x=>x.type==='save_edit')).toEqual([{type:'save_edit',operation_id:s.operation,manager_amount:'232276.66'}]);
+});
+
+test('pre-add cancel removes only the unconfirmed edit and reload does not import it',async({page})=>{
+ const s=await pricePopupFixture(page);await page.getByLabel('Итоговая цена, RUB',{exact:true}).fill('-1');await expect(page.getByRole('button',{name:'Добавить с этой ценой',exact:true})).toBeDisabled();await page.getByLabel('Итоговая цена, RUB',{exact:true}).fill('220000');await expect(page.getByRole('button',{name:'Добавить с этой ценой',exact:true})).toBeEnabled();await page.getByRole('button',{name:'Отмена',exact:true}).click();await expect(page.locator('.item')).toHaveCount(0);await page.reload();await expect(page.locator('.item')).toHaveCount(0);expect(s.state.items[0].state).toBe('cancelled');expect(s.commands.filter(x=>x.type==='save_edit')).toHaveLength(0);
+});
+test('pre-add lost Save response reads the existing result without another Save',async({page})=>{
+ const s=await pricePopupFixture(page,{lost:true});await page.getByLabel('Итоговая цена, RUB',{exact:true}).fill('220000');await page.getByRole('button',{name:'Добавить с этой ценой',exact:true}).click();await expect(page.locator('.item')).toContainText('Сохранено в подборке');await expect(page.getByRole('button',{name:'Добавить с этой ценой',exact:true})).toHaveCount(0);expect(s.commands.filter(x=>x.type==='save_edit')).toHaveLength(1);expect(s.commands.at(-1).type).toBe('status');
+});
+test('TV pre-add editor cannot replace the required room price basis with a discount',async({page})=>{
+ const s=await pricePopupFixture(page,{tv:true});await page.getByLabel('Итоговая цена, RUB',{exact:true}).fill('220000');await expect(page.getByRole('button',{name:'Добавить с этой ценой',exact:true})).toBeDisabled();await page.getByRole('checkbox').check();await page.getByRole('button',{name:'Добавить с этой ценой',exact:true}).click();await expect(page.locator('.item')).toContainText('Сохранено в подборке');expect(s.commands.filter(x=>x.type==='save_edit')).toEqual([{type:'save_edit',operation_id:s.operation,manager_amount:'220000',confirm_price_basis:true}]);
+});
+test('unconfirmed adjusted price remains waiting and existing price conflict offers no duplicate bypass',async({page})=>{
+ const s=await pricePopupFixture(page,{result:'waiting'});await page.getByLabel('Итоговая цена, RUB',{exact:true}).fill('220000');await page.getByRole('button',{name:'Добавить с этой ценой',exact:true}).click();await expect(page.locator('.item')).toContainText('Нет подтверждения сервера');await expect(page.locator('.item')).not.toContainText('Цена в подборке:');await expect(page.getByLabel('Итоговая цена, RUB',{exact:true})).toHaveCount(0);expect(s.commands.filter(x=>x.type==='save_edit')).toHaveLength(1);
+ s.state.items[0].state='review';s.state.items[0].error='manual_price_conflict';await page.reload();await expect(page.locator('.item')).toContainText('Этот тур уже есть с другой ручной ценой');await expect(page.getByRole('button',{name:'Добавить отдельным вариантом',exact:true})).toHaveCount(0);
 });
 
 for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420}])test('selection interest separates anonymous native and automated signals '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
@@ -545,7 +602,7 @@ for(const width of [390,430,768,1440])test(`Tourvisor settled snapshot stages wi
 
 test('Tourvisor popup requires explicit room price basis and keeps destination visible',async({page,browserName})=>{
  const ext=path.join(root,'extensions/selection-collector'),data={ok:true,target:{client:'Синтетическая Анна',channel:'telegram',trip:'Синтетическая поездка',count:0},items:[{operation_id:'tv1',state:'destination',target:{client:'Синтетическая Анна',trip:'Синтетическая поездка'},observation:{adapter:'tourvisor-snapshot-v1',offer:{hotel:'Синтетический Tourvisor',date_from:'2026-10-29',nights:11,room:'standard room',amount:'160000',currency:'RUB'},raw:{party_price_confirmation:'pending'}}}]};
- await page.setViewportSize({width:390,height:800});await page.route('https://collector.fixture/**',route=>{const file=new URL(route.request().url()).pathname.slice(1);if(!['popup.html','popup.css','popup.js'].includes(file))return route.abort();return route.fulfill({contentType:file.endsWith('.html')?'text/html':file.endsWith('.css')?'text/css':'application/javascript',body:fs.readFileSync(path.join(ext,file))})});await page.addInitScript(data=>{window.popupCommands=[];window.chrome={runtime:{sendMessage:async m=>{popupCommands.push(m);return m.type==='status'?data:{ok:true}}},storage:{onChanged:{addListener(){}}}}},data);await page.goto('https://collector.fixture/popup.html');
+ await page.setViewportSize({width:390,height:800});await page.route('https://collector.fixture/**',route=>{const file=new URL(route.request().url()).pathname.slice(1);if(!['popup.html','popup.css','popup.js','price-adjustment.js'].includes(file))return route.abort();return route.fulfill({contentType:file.endsWith('.html')?'text/html':file.endsWith('.css')?'text/css':'application/javascript',body:fs.readFileSync(path.join(ext,file))})});await page.addInitScript(data=>{window.popupCommands=[];window.chrome={runtime:{sendMessage:async m=>{popupCommands.push(m);return m.type==='status'?data:{ok:true}}},storage:{onChanged:{addListener(){}}}}},data);await page.goto('https://collector.fixture/popup.html');
  const confirm=page.getByRole('button',{name:'Подтвердить цену и добавить для этого клиента'});await expect(confirm).toBeDisabled();await expect(page.locator('#items')).toContainText('цена источника за номер');await expect(page.locator('#items')).toContainText('Синтетическая Анна');await page.getByRole('checkbox').check();await expect(confirm).toBeEnabled();fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',fullPage:true,path:path.join(root,'manager2-artifacts',`tour-tv-popup-${browserName}.png`)});await confirm.click();expect(await page.evaluate(()=>popupCommands.filter(m=>m.type==='confirm'))).toEqual([{type:'confirm',operation_id:'tv1',confirm_price_basis:true}]);
 });
 

@@ -78,8 +78,30 @@ One server draft receives different tabs. Worker/browser restart and transport
 loss retain the intent; status checks its exact normalized payload/hash before a
 permitted identical retry. Reconnecting requires the original client/trip;
 changing the active destination blocks old local rows rather than retargeting.
-Queue bounds are50 pending plus20 recent saved rows; the canonical draft retains
+Queue bounds are50 pending plus20 recent saved/cancelled rows; the canonical draft retains
 its existing20-offer bound. Removing a queue row never deletes a saved offer.
+
+The adjacent pencil captures the same settled row/destination but stages an
+extension-owned price editor without a server import. The client/trip, original
+amount, discount/markup calculator, rounding and direct final amount stay in the
+extension UI. Edit inputs persist in the existing local queue across popup close
+and worker restart. Only explicit “Добавить с этой ценой” freezes the final amount
+and queues the canonical command; cancellation remains a bounded local terminal
+state and never creates a server offer. Reconnection does not auto-confirm an
+unfinished price edit. Tourvisor still requires its explicit room/party basis.
+
+The optional `manager_amount` is separate from the normalized source observation.
+The canonical import validates it through ManagerTourSelectionDraft, stores it in
+the editable offer and preserves the original import_source byte-for-byte. Absent
+adjustment retains the collector-v1 receipt hash. Adjusted commands use a distinct
+hash including the exact final amount; status/retry carries that same amount.
+Changing an UNKNOWN command is refused. An exact existing offer with another
+manual amount returns `manual_price_conflict`, without overwrite, duplicate,
+receipt or variant bypass. The manager reviews that existing offer in Manager2.
+An adjustment alone never verifies the full fare or sends/publishes anything.
+The bridge advertises manager-price support and canonical import-status must
+acknowledge the exact final amount before append. An already-open older bridge
+or backend cannot silently ignore the adjustment: it stays waiting for update.
 
 `ManagerTourSelectionImportDraft` accepts only bounded source observations and
 cross-checks the row's visible current price/currency/date/party with normalized
