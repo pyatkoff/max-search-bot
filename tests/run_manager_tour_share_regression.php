@@ -61,8 +61,7 @@ function automaticGalleryChecks(): void {
         foreach ([1,2,3] as $count) {
             $pdo=deliveryDb();$pdo->exec('CREATE TABLE manager_tour_selection_links(conversation_id INTEGER PRIMARY KEY,version INTEGER,token TEXT UNIQUE,publication_id TEXT,is_active INTEGER,updated_by_manager_id INTEGER,updated_at TEXT);CREATE TABLE manager_tour_selection_link_history(conversation_id INTEGER,version INTEGER,publication_id TEXT,is_active INTEGER,manager_id INTEGER,created_at TEXT,PRIMARY KEY(conversation_id,version));');
             $observation=collectorObservation();$base='https://apigate-tui.fstravel.com/api/geocontent/static/Hotel/00180000-ac11-0242-6c05-08d9934f9e4b/';$observation['photos']=array_slice(array_map(static fn(string $k):string=>$base.$k.'-Source-share.jpg',['MainPhoto','Gallery','InsideOfTheRoom']),0,$count);
-            $import=ManagerTourSelectionImportDraft::normalize($observation);$offer=$import['offer'];$offer['id']=str_repeat('a',32);$offer['import_source']=ManagerTourSelectionImportDraft::source($import);$draft=['title'=>'Фото из источника','intro'=>'','offers'=>[$offer]];
-            deliverySave($draft);$pub=ManagerTourSelectionDeliveryService::prepare(7,1,1)['publication']['id'];
+            $saved=collectorImportedDraft($pdo,$observation);$draft=$saved['draft'];$pub=ManagerTourSelectionDeliveryService::prepare(7,1,1)['publication']['id'];
             deliveryCheck('automatic gallery cannot publish before every actual image is reviewed',shareCommand(7,1,0,$pub,true)['error']==='preparation_failed');
             cachePublication($pub);$published=shareCommand(7,1,0,$pub,true);deliveryCheck('automatic '.$count.'-photo gallery publishes without extra manual photos',$published['ok']);
             $token=substr($published['share']['path'],strlen('/selection/?t='));$selection=ManagerTourSelectionShareService::read($token);
