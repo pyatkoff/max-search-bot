@@ -8,6 +8,12 @@ require_once dirname(__DIR__).'/services/ManagerLeadInboxService.php';
 final class InboxDecorationStatement extends PDOStatement
 {
     public static array $rows=[];
+    public static int $taskQueries=0;
+    public function execute(?array $params=null): bool
+    {
+        if(str_starts_with($this->queryString,'SELECT')&&str_contains($this->queryString,'lead_tasks'))++self::$taskQueries;
+        return parent::execute($params);
+    }
     public function fetchAll(int $mode=PDO::FETCH_DEFAULT,mixed ...$args): array
     {
         $rows=parent::fetchAll($mode,...$args);
@@ -73,7 +79,7 @@ $lastTask=++$tid;$insertTask->execute([$lastTask,202,'no-date-newer',null,1,'ope
 $input=array_map(static fn(int $id)=>['id'=>$id,'display_name'=>'lead-'.$id,'project_key'=>'test','channel'=>'max','source_id'=>1],array_merge(range(1,200),[202]));
 $beforeMessages=$pdo->query('SELECT * FROM messages ORDER BY id')->fetchAll();
 $beforeTasks=$pdo->query('SELECT * FROM lead_tasks ORDER BY id')->fetchAll();
-InboxDecorationStatement::$rows=[];$started=hrtime(true);$actual=ManagerLeadInboxService::decorate($input);$milliseconds=(hrtime(true)-$started)/1e6;$work=InboxDecorationStatement::$rows;
+InboxDecorationStatement::$rows=[];InboxDecorationStatement::$taskQueries=0;$started=hrtime(true);$actual=ManagerLeadInboxService::decorate($input);$milliseconds=(hrtime(true)-$started)/1e6;$work=InboxDecorationStatement::$rows;
 $byId=array_column($actual,null,'id');
 decorationCheck('input order and cardinality are unchanged',array_column($actual,'id')===array_column($input,'id'));
 decorationCheck('valid empty snapshot masks all older and spoofed messages',$byId[1]['trip_summary']==='');
@@ -90,6 +96,7 @@ decorationCheck('existing contact and origin fields remain available',$byId[1]['
 decorationCheck('filters retain hidden overdue work and closed cleanup semantics',count(ManagerLeadInboxService::filter($actual,'','','overdue'))===199&&count(ManagerLeadInboxService::filter($actual,'','','pinned'))===201&&ManagerLeadInboxService::filter($actual,'','','none')===[]);
 decorationCheck('decoration does not change messages or tasks',$beforeMessages===$pdo->query('SELECT * FROM messages ORDER BY id')->fetchAll()&&$beforeTasks===$pdo->query('SELECT * FROM lead_tasks ORDER BY id')->fetchAll());
 decorationCheck('only one task row per lead crosses PDO',($work['tasks']??PHP_INT_MAX)===201);
+decorationCheck('display count and urgency share one batch task query',InboxDecorationStatement::$taskQueries===1);
 decorationCheck('historical summary transfer is bounded to current candidates and unresolved fallback',($work['summaries']??PHP_INT_MAX)<1200);
 
 // Native CI and local paired runs load the exact pinned pre-change source.
