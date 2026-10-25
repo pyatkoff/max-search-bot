@@ -94,6 +94,7 @@ async function fixture(page,options={}){
       if(options.readOnly)return reply({ok:false,error:'forbidden'},403);
       if(d.share_version!==share.version)return reply({ok:false,error:'share_changed'},409);
       share={version:share.version+1,active:d.action==='publish',publication_id:d.publication_id,path:d.action==='publish'?'/selection/?t='+'d'.repeat(64):null};
+      if(share.active&&options.hostedShare){share.public_url=options.hostedShare==='spoof'?'https://other.invalid/?t='+'d'.repeat(64):'https://tours.anytoour.ru/?t='+'d'.repeat(64);share.preview_path=share.path+'&preview=1800000000.'+'e'.repeat(64);share.preview_url=share.public_url+'&preview=1800000000.'+'e'.repeat(64);}
       if(options.shareMode==='after'){options.shareMode='';return route.abort('failed')}
       return reply({ok:true,share:copy(share)});
     }
@@ -349,6 +350,14 @@ for(const width of [390,430,768,1440])test('selection shared link explicit publi
   await page.getByRole('button',{name:'Отозвать ссылку',exact:true}).click();await expect(input).toHaveCount(0);await expect(page.locator('#tsRecovery')).toContainText('Ссылка отозвана');
   await page.locator('#tsClose').click();await expect(page.locator('#replyText')).toHaveValue('Несохранённый ответ менеджера');
   clean(s,[...deliveryActions,'share','publish','revoke']);
+});
+
+for(const hostedShare of ['ready','spoof'])test('selection dedicated host links preserve tokens and reject other origins '+hostedShare,async({page})=>{
+  const s=await fixture(page,{draft:completeDraft(),hostedShare});await open(page);await page.locator('#tsPreview').click();await expect(page.locator('#tsSend')).toBeEnabled();await page.locator('#tsShare').click();await page.getByRole('button',{name:'Опубликовать эту версию',exact:true}).click();
+  const expected=(hostedShare==='ready'?'https://tours.anytoour.ru/?t=':new URL('/selection/?t=',page.url()).href)+'d'.repeat(64);
+  await expect(page.getByRole('textbox',{name:'Общая ссылка на подборку'})).toHaveValue(expected);
+  await expect(page.getByRole('link',{name:'Открыть страницу',exact:true})).toHaveAttribute('href',expected+'&preview=1800000000.'+'e'.repeat(64));
+  expect(s.creations()).toBe(0);clean(s,[...deliveryActions,'share','publish']);
 });
 
 test('selection lost publish response reads status without another publication',async({page})=>{
