@@ -1,0 +1,280 @@
+name: Eight Turkey hotel knowledge model acceptance
+
+on:
+  push:
+    branches: [audit/hotel-tr-eight-model-acceptance-20261025]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hotel-tr-eight-model-acceptance
+  cancel-in-progress: false
+
+jobs:
+  control:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      EXPECTED_INSTALLED_SHA: 2fc37f6e4af9c6c5a69234742c3f9183155a1f76
+      EXPECTED_CONTROL_SHA256: 6e8c0ed3e3f303e995fef5d3434cbb3acca8de36b90da9e5ad13877ea99fc572
+    steps:
+      - name: Checkout the accepted installed source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.EXPECTED_INSTALLED_SHA }}
+          fetch-depth: 0
+      - name: Verify current main and prepare the exact synthetic control
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$GITHUB_REPOSITORY" = 'pyatkoff/max-search-bot'
+          [[ "$EXPECTED_INSTALLED_SHA" =~ ^[a-f0-9]{40}$ ]]
+          [[ "$EXPECTED_CONTROL_SHA256" =~ ^[a-f0-9]{64}$ ]]
+          git fetch --no-tags origin refs/heads/main:refs/remotes/origin/main
+          test "$(git rev-parse HEAD)" = "$EXPECTED_INSTALLED_SHA"
+          test "$(git rev-parse refs/remotes/origin/main)" = "$EXPECTED_INSTALLED_SHA"
+          cat > "$RUNNER_TEMP/control.php" <<'CONTROL_PHP'
+          <?php
+          declare(strict_types=1);
+          
+          /** Fixed synthetic comparison. No bootstrap, DB, cached drafts or delivery. */
+          ini_set('display_errors', '0');
+          error_reporting(0);
+          umask(0077);
+          const APP_ROOT = '/var/www/anytoour/data/www/app.anytoour.ru';
+          const CONTROL_SCHEMA = 'hotel_tr_eight_synthetic_model_acceptance_v1';
+          const MAX_RECEIPT_BYTES = 524288;
+          const MAX_MODEL_CALLS = 16;
+          
+          function encoded(array $value): string
+          {
+              return json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+          }
+          function sourceSha(string $root): ?string
+          {
+              $process = proc_open(['git', 'rev-parse', 'HEAD'], [0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']], $pipes, $root);
+              if (!is_resource($process)) return null;
+              fclose($pipes[0]);
+              $value = stream_get_contents($pipes[1],128); fclose($pipes[1]);
+              stream_get_contents($pipes[2],1024); fclose($pipes[2]);
+              $status = proc_close($process);
+              $sha = trim(is_string($value) ? $value : '');
+              return $status === 0 && preg_match('/\A[a-f0-9]{40}\z/D',$sha) === 1 ? $sha : null;
+          }
+          function flushReceipt($stream, array $receipt): void
+          {
+              $bytes = encoded($receipt)."\n";
+              if (strlen($bytes)>MAX_RECEIPT_BYTES || !rewind($stream) || !ftruncate($stream,0)
+                  || fwrite($stream,$bytes)!==strlen($bytes) || !fflush($stream)
+                  || (function_exists('fsync') && !fsync($stream))) throw new RuntimeException('receipt_write_failed');
+          }
+          function failBeforeCalls(string $reason, string $expected): never
+          {
+              echo encoded(['schema'=>CONTROL_SCHEMA,'status'=>'held','reason'=>$reason,
+                  'expected_installed_sha'=>$expected,'model_calls_started'=>0,'automatic_retry_allowed'=>false])."\n";
+              exit(2);
+          }
+          
+          $expected = $argv[1] ?? '';
+          $preflightOnly = count($argv) === 3 && $argv[2] === '--preflight';
+          if ((!$preflightOnly && count($argv)!==2) || preg_match('/\A[a-f0-9]{40}\z/D',$expected)!==1) failBeforeCalls('invalid_arguments','');
+          $root = $preflightOnly ? (string)getcwd() : APP_ROOT;
+          if (realpath((string)getcwd())!==realpath($root) || sourceSha($root)!==$expected) failBeforeCalls('source_mismatch',$expected);
+          
+          // All questions are newly authored synthetic controls, not archived customers.
+          // Criteria are frozen before any provider output and never added to its input.
+          $cases = json_decode(<<<'FROZEN_CASES_JSON'
+          [{"key":"avia_eco_and_short_stay_rights","source_id":"157359","anytour_id":4101,"facts":3,"sources":2,"name":"AVIA RESORT & SPA","room":"Superior Eco / UAI","question":"В Avia Resort смотрим Superior Eco на двоих взрослых и детей 4 и 9 лет, на 6 ночей летом 2027. Можно ли разместиться всем в нём и считать его тем же номером, что Superior Land? По UAI будут бесплатно любой импортный алкоголь и по ужину в каждом ресторане?","criteria":["Superior Eco is24sqm/max3total/up to1child: stated2AD+2CH does not fit the published limit; no automatic SuperiorLand equivalence.","Schauinsland UAI basis is25Jun–30Nov2026, not current2027 tariff proof; selected local drinks in open bars/minibar water-soft drinks are scoped.","Imported alcohol/fresh juice/bottled-canned drinks excluded separately from included minibar; one a-la visit only for stays7+nights/reservation, not each restaurant or guaranteed6-night entitlement.","Useful concrete mismatch and exact room/tariff check, no repeated party questionnaire or invented availability."]},{"key":"club_aqua_fifth_guest_conflict","source_id":"1077","anytour_id":477,"facts":3,"sources":3,"name":"CLUB AQUA PLAZA (EX. SUNEOCLUB AQUA PLAZA)","room":"Superior Family","question":"Club Aqua Plaza: двое взрослых и трое детей 4, 8 и 12 лет. У Superior Family написано 4+1, значит размещение впятером подтверждено? А обычный Family или Standard Land View можно считать равнозначной заменой, если нужны две спальни с дверью?","criteria":["Preserve source-only SuperiorFamily contradiction4+1 versus Max4; five-person admission is unconfirmed, not guaranteed or universally rejected.","Ordinary Family max4/39–43sqm including balcony/two bedrooms with connecting door is a separate category.","StandardLandView max2/20–24sqm/Frenchbed is not Family; source has no exact child-age formula or current tariff availability.","Use supported category distinctions and exact room-code/party verification; no invented five places or age decoding."]},{"key":"dream_october_aquapark_and_ai","source_id":"109900","anytour_id":3726,"facts":3,"sources":2,"name":"DREAM FUN WORLD","room":"Standard / All Inclusive","question":"Dream Fun World, 5 ночей с 10 октября 2027, двое взрослых и ребёнок ростом 115 см. Аквапарк точно будет доступен ребёнку? Всё включено означает бесплатные напитки после полуночи и ужин в любом a la carte каждый вечер?","criteria":["Aquapark published roughly1Apr–1Oct2027/weather and120cmthreshold:10October and115cm cannot be guaranteed eligible; no actual opening inferred.","AI10–24/localdrinks; aftermidnight drinks/imported/specialwines/freshjuice/roomservice paid as published.","One selected a-la visit per stay/reservation and official5-night minimum, not unlimited evenings; exact2027 tariff rights require confirmation.","Do not ask again about date/nights/party/height or invent offer price/availability."]},{"key":"hane_partition_and_connecting","source_id":"28666","anytour_id":2077,"facts":4,"sources":4,"name":"PRIMASOL HANE FAMILY RESORT (EX. FAMILY HANE RESORT)","room":"Family Room With Partition","question":"Hane Family Resort для двоих взрослых и детей 4, 8 и 12 лет. Нам нужны две спальни с закрывающейся дверью. Подойдёт Family Room With Partition? В другом описании вижу double и три single — значит всех пятерых точно разместят? Чем отличается Connecting Door?","criteria":["Partition/type-a is visual separation, not a closed bedroom; officialConnectingDoor/type-b has parent/small bedroom with connecting door.","TravelixFB1/FB2Main andFB3/FB4NewBuilding36–40sqm/twobedrooms are supplier-specific2026categories, not automatic alias to exact booked room.","Double+3single or Standard extra sofa/cot request does not prove party formula or child-age admission for2+3.","Explain precise category/privacy distinction and verify roomcode/ages/beds, without guaranteeing future room or asking known composition."]},{"key":"jadore_family_short_stay_and_drinks","source_id":"46672","anytour_id":2432,"facts":4,"sources":3,"name":"JADORE DELUXE HOTEL & SPA","room":"Family Room with 2 Room / UAI","question":"В Jadore Deluxe хотим Family Room with 2 Room: двое взрослых и дети 5 и 10 лет, 4 ночи в мае 2027. Раз для Standard у Coral написано UAI, значит у нас тоже любой импортный алкоголь и бесплатный ужин во всех a la carte? С размещением детей всё уже подтверждено?","criteria":["NamedFamily2Room40sqm publishes2+2/3+1/4AD, but child-age definition/beds/current availability remain unverified.","CoralUAI rowsStandardROH/ComfortROH/StandardSideSeaView do not prove exact Family booking entitlement.","DERTOUR15Mar–30Nov2026selected international spirits bybarmenu10–01/minibar scope does not mean allbrands or2027guarantee.","A-la one/week and separately one service at7nights;4nightrights unknown, seasonal/weather closures retained; useful checks without repeated input."]},{"key":"side_moon_night_alcohol_and_room","source_id":"111129","anytour_id":3742,"facts":3,"sources":4,"name":"SIDE MOON PALACE HOTEL","room":"Aile Odasi / Ultra All Inclusive","question":"Side Moon Palace: трое взрослых и ребёнок 8 лет, Aile Odası. Можно гарантировать две закрывающиеся спальни и 42 м²? Ещё обещают UAI: ночные перекусы и напитки 24 часа означают бесплатный алкоголь всю ночь и любые a la carte? В концепции конец сезона 31 ноября — это надёжная дата?","criteria":["PublishedAileOdasi max4AD/double+2single does not establish exact3AD+child tariff or doors/42sqm; preserve room/document discrepancies rather than picking a convenient value.","Night snack00–06 and selectedsoftdrinks24h do not imply24halcohol; selectedimported drinks have no statedtime in retained section.","A-la quota and paid-drink list are not disclosed, so no free-all-rights claim.","31November is invalid and retained source limitation; no silent repair or end-of-season/current operation guarantee."]},{"key":"vox_age_and_room_occupancy","source_id":"111045","anytour_id":3737,"facts":4,"sources":3,"name":"VOX MARIS RESORT ADULTS ONLY 16+","room":"Standard Room","question":"Vox Maris: двое взрослых и сын, которому на даты поездки будет 16 лет. Нам говорят, что это строго 18+, но в Standard 30 м² есть double и single. Можно ли по этим данным подтвердить наш заезд и размещение втроём? Swim Up Standard или Family — равнозначные варианты?","criteria":["Officialsince2025age16+ not18+; published policy permits age16 in principle, exact future tariff/operation still unverified.","Standard30sqm double+single does not state maximum occupancy and cannot guarantee3.","SwimUp25sqm/max2 specific Fibula-official linkage cannot admit3; Family35sqm/twobedrooms/double+3single is separate and beds do not prove maximum or door.","Give age/category distinction without inventing child-age tariff or asking again age/party."]},{"key":"akra_winter_beach_and_bb","source_id":"1146","anytour_id":516,"facts":4,"sources":3,"name":"AKRA ANTALYA","room":"Standard / BB","question":"Akra Antalya, январь 2027, двое взрослых и ребёнок 3 лет; одному взрослому трудно ходить по ступенькам. Выбрали BB. Можно рассчитывать на песчаный пологий пляж без лестниц, работающие открытые зоны и все напитки бесплатно? Пометка The251 18+ означает, что с ребёнком нельзя во весь отель?","criteria":["AkraAntalya cliff/platform beach with lift is not sandy gradual entry and does not prove complete step-free route; no substitution ofKemer/V/Sorgun.","Beach/outdoor facilitiesApr–Nov/weather; winter28Cstatement does not guarantee January openbeach/outdoor zones; officialyearroundindoor versusTUIseasonal conflict remains.","BB is breakfast; RO/BB/HB/FB available listings andpaidvenues do not proveAI/current freealldrinks or absenceofAIuniversally.","The25118+ is venue-level, not entire hotel; preserve exactfutureconditions/route checks without repeat mobility/party questionnaire."]}]
+          FROZEN_CASES_JSON, true, 32, JSON_THROW_ON_ERROR);
+          
+          $generalCriteria = ['Customer draft must use the supported evidence conditionally and answer the current question.',
+              'No invented price, availability, completed checks/actions or promise of a search that was not run.',
+              'No unrelated hotel facts, repeated known conditions or hidden source conflict in draft/reason/checks.',
+              'Safety-only refusal is insufficient when a useful supported distinction is available.',
+              'Single generated pair per hotel is a bounded development control, not independent accuracy or natural/UI evidence.'];
+          
+          $receipt = ['schema'=>CONTROL_SCHEMA,'status'=>'preflighting','installed_sha'=>$expected,
+              'started_at_utc'=>gmdate('Y-m-d\TH:i:s\Z'),'model_calls_started'=>0,'max_model_calls'=>MAX_MODEL_CALLS,
+              'automatic_retry_allowed'=>false,'synthetic_only'=>true,
+              'selector_kind'=>'explicitly_synthetic_capability_not_native_SQL_proof',
+              'general_review_criteria'=>$generalCriteria,'frozen_cases'=>$cases,
+              'criteria_sha256'=>hash('sha256',encoded(['general'=>$generalCriteria,'cases'=>$cases])),
+              'natural_customer_or_UI_confirmation'=>false,'production_data_writes'=>0,'customer_sends'=>0,
+              'preflight'=>[],'results'=>[]];
+          $stream = null;
+          try {
+              if (!$preflightOnly) {
+                  ob_start();
+                  try { require APP_ROOT.'/config.php'; } finally { ob_end_clean(); }
+              }
+              require $root.'/services/ManagerAiDraftService.php';
+              $work = [];
+              foreach ($cases as $index=>$case) {
+                  $id = 910000 + $index*10;
+                  $context = ['conversation_id'=>900100+$index,'as_of_message_id'=>$id+3,
+                      'history_incomplete'=>false,'media_unread'=>false,'selections_link_unread'=>false,'messages'=>[
+                          ['id'=>$id+1,'sender_type'=>'customer','event_type'=>'message','text'=>$case['question']],
+                          ['id'=>$id+2,'sender_type'=>'manager','event_type'=>'message','text'=>'В выбранной веб-подборке указан вариант '.$case['room'].'. Условия конкретного тарифа ещё не подтверждены.'],
+                          ['id'=>$id+3,'sender_type'=>'customer','event_type'=>'unknown','text'=>'Обращение из веб-подборки · вариант 1: '.$case['name']],
+                      ]];
+                  $selector = ['project_key'=>'anytour',
+                      'source_identity'=>['adapter'=>'tourvisor-snapshot-v1','hotel'=>$case['source_id'],'country'=>'4'],
+                      'selected_hotel'=>$case['name'],'selected_room'=>$case['room'],
+                      'provenance'=>['message_id'=>$id+3,'event_id'=>990100+$index,
+                          'publication_sha256'=>hash('sha256','synthetic-tr-eight-publication-'.$case['key']),
+                          'source_sha256'=>hash('sha256','synthetic-tr-eight-source-'.$case['key'])]];
+                  $hotel = ManagerHotelKnowledge::capture($selector,time());
+                  if (($hotel['status']??null)!=='available' || count($hotel['facts']??[])!==$case['facts']
+                      || count($hotel['sources']??[])!==$case['sources']
+                      || ($hotel['hotel_ref']??null)!==['catalog'=>'anytour','id'=>$case['anytour_id']]) throw new RuntimeException('accepted_group_unavailable');
+                  $class = new ReflectionClass(ManagerAiDraftReferenceContext::class);
+                  $reference = $class->newInstanceWithoutConstructor();
+                  $binding = (new ReflectionMethod(ManagerAiDraftReferenceContext::class,'binding'))->invoke(null,$context);
+                  $class->getConstructor()->invoke($reference,$binding,['hotel_reference'=>$hotel]);
+                  $baseline = ManagerAiDraftService::prepareInput($context);
+                  $candidate = ManagerAiDraftService::prepareInput($context,null,null,$reference);
+                  if (!isset($baseline['context'],$candidate['context']) || ($baseline['preflight']??null)!==null
+                      || ($candidate['preflight']??null)!==null || !empty($baseline['images']) || !empty($candidate['images'])
+                      || ($candidate['context']['hotel_reference']??null)!==$hotel) throw new RuntimeException('input_unavailable');
+                  $plain = $candidate['context']; unset($plain['hotel_reference']);
+                  if ($plain!==$baseline['context']) throw new RuntimeException('non_hotel_context_difference');
+                  $order = $index%2===0 ? ['baseline','candidate'] : ['candidate','baseline'];
+                  $receipt['preflight'][$case['key']] = ['frozen_context'=>$context,
+                      'frozen_context_sha256'=>hash('sha256',encoded($context)),
+                      'binding_revision'=>$hotel['binding_revision'],'knowledge_revision'=>$hotel['knowledge_revision'],
+                      'claim_ids'=>array_column($hotel['facts'],'id'),'source_ids'=>array_column($hotel['sources'],'id'),
+                      'record_hashes'=>$hotel['record_hashes'],'admission'=>$candidate['hotel_reference_admission'],
+                      'call_order'=>$order,'arms'=>[]];
+                  foreach ($order as $arm) {
+                      $prepared = $arm==='baseline' ? $baseline : $candidate;
+                      $instructions = ManagerAiDraftService::instructions($prepared['context']);
+                      $body = ManagerDraftClient::requestBody($instructions,$prepared['context'],[]);
+                      if (($body['model']??null)!=='gpt-6.1-sol' || ($body['reasoning']['effort']??null)!=='low'
+                          || ($body['service_tier']??null)!=='default' || ($body['store']??null)!==false
+                          || strlen(encoded($body))>ManagerDraftClient::MAX_REQUEST_BYTES) throw new RuntimeException('profile_or_wire_mismatch');
+                      $receipt['preflight'][$case['key']]['arms'][$arm] = ['request_sha256'=>hash('sha256',encoded($body)),
+                          'instructions_sha256'=>hash('sha256',$instructions),'request_bytes'=>strlen(encoded($body)),
+                          'requested_profile'=>['model'=>$body['model'],'reasoning'=>$body['reasoning'],'service_tier'=>$body['service_tier'],'store'=>$body['store']]];
+                      $work[] = ['case_key'=>$case['key'],'arm'=>$arm,'context'=>$context,
+                          'capability'=>$arm==='baseline' ? null : $reference,'body'=>$body];
+                  }
+              }
+              if (count($work)!==MAX_MODEL_CALLS || sourceSha($root)!==$expected) throw new RuntimeException('workload_or_source_mismatch');
+              $receipt['hotel_policy_sha256'] = hash('sha256',ManagerHotelKnowledge::instructions());
+              $receipt['protocol_sha256'] = hash_file('sha256',__FILE__);
+              $receipt['status'] = 'preflight_complete';
+              if ($preflightOnly) { echo encoded($receipt)."\n"; exit(0); }
+          
+              $directory = '/tmp/anytour-hotel-model-control';
+              if (!file_exists($directory) && !mkdir($directory,0700)) throw new RuntimeException('private_directory_unavailable');
+              $stat = @lstat($directory);
+              if (!is_array($stat) || ($stat['mode']&0170000)!==0040000 || ($stat['mode']&0777)!==0700
+                  || (function_exists('posix_geteuid') && $stat['uid']!==posix_geteuid())) throw new RuntimeException('private_directory_invalid');
+              $path = $directory.'/'.$expected.'-tr-eight-v1.json';
+              $stream = @fopen($path,'x');
+              if (!is_resource($stream)) failBeforeCalls('existing_or_unavailable_receipt_do_not_repeat',$expected);
+              if (!chmod($path,0600) || !flock($stream,LOCK_EX|LOCK_NB)) throw new RuntimeException('receipt_lock_failed');
+              flushReceipt($stream,$receipt);
+          
+              foreach ($work as $item) {
+                  if (sourceSha($root)!==$expected || $receipt['model_calls_started']>=MAX_MODEL_CALLS) throw new RuntimeException('source_or_call_budget_mismatch');
+                  $key = $item['case_key'].':'.$item['arm'];
+                  $receipt['status'] = 'model_call_started_outcome_unknown';
+                  $receipt['model_calls_started']++;
+                  $receipt['results'][$key] = ['state'=>'started_outcome_unknown','case_key'=>$item['case_key'],'arm'=>$item['arm'],
+                      'request_sha256'=>hash('sha256',encoded($item['body'])),'model_metadata'=>null];
+                  flushReceipt($stream,$receipt);
+                  $metadata = null; $body = $item['body']; $started = microtime(true);
+                  $result = ManagerAiDraftService::generate($item['context'],
+                      static function(string $policy,array $payload,array $images) use (&$metadata,$body):array {
+                          if (ManagerDraftClient::requestBody($policy,$payload,$images)!==$body) return ['_error'=>'provider_unavailable'];
+                          return ManagerDraftClient::requestJson($policy,$payload,static function(array $value) use (&$metadata):void {$metadata=$value;},$images);
+                      },null,null,$item['capability']);
+                  $receipt['results'][$key] += ['duration_ms'=>(int)round((microtime(true)-$started)*1000)];
+                  $receipt['results'][$key]['state'] = !empty($result['ok']) ? 'validated_response' : 'error_or_unknown';
+                  $receipt['results'][$key]['model_metadata'] = $metadata;
+                  $receipt['results'][$key]['validated_result_or_safe_error'] = $result;
+                  $receipt['results'][$key]['installed_sha_after_call'] = sourceSha($root);
+                  $receipt['status'] = 'arm_finished';
+                  flushReceipt($stream,$receipt);
+                  if ($receipt['results'][$key]['installed_sha_after_call']!==$expected || empty($result['ok'])) throw new RuntimeException('arm_or_source_not_validated');
+              }
+              $receipt['status'] = 'completed_requires_content_review';
+              $receipt['finished_at_utc'] = gmdate('Y-m-d\TH:i:s\Z');
+              $receipt['model_use_accepted'] = null;
+              flushReceipt($stream,$receipt);
+              echo encoded($receipt)."\n";
+          } catch (Throwable $ignored) {
+              $receipt['status'] = 'stopped_no_automatic_retry';
+              $receipt['finished_at_utc'] = gmdate('Y-m-d\TH:i:s\Z');
+              if (is_resource($stream)) { try { flushReceipt($stream,$receipt); } catch (Throwable $alsoIgnored) {} }
+              echo encoded($receipt)."\n";
+              exit(2);
+          } finally {
+              if (is_resource($stream)) {flock($stream,LOCK_UN);fclose($stream);}
+          }
+          CONTROL_PHP
+          test "$(sha256sum "$RUNNER_TEMP/control.php" | cut -d' ' -f1)" = "$EXPECTED_CONTROL_SHA256"
+          chmod 600 "$RUNNER_TEMP/control.php"
+      - name: Prepare the existing canonical SSH identity
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          key_file="$RUNNER_TEMP/deploy_key"
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key_file"; else printf '%s\n' "$raw" | tr -d '\r' > "$key_file"; fi
+          else
+            decoded="$(printf '%s' "$raw" | base64 --decode 2>/dev/null || true)"
+            [[ "$decoded" == *"PRIVATE KEY"* ]] || { echo 'Canonical SSH identity unavailable'; exit 1; }
+            printf '%s\n' "$decoded" | tr -d '\r' > "$key_file"
+          fi
+          chmod 600 "$key_file"
+          ssh-keygen -y -f "$key_file" >/dev/null
+      - name: Check installed source and perform at most sixteen unsent synthetic model calls
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          ssh_opts=(-i "$RUNNER_TEMP/deploy_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10)
+          root='/var/www/anytoour/data/www/app.anytoour.ru'
+          # Only the separately reviewed synthetic program goes to a mode-0600
+          # temporary file. No application, config or database data is copied.
+          remote_script="$(ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "set -eu; umask 077; cd '$root'; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_INSTALLED_SHA'; git diff --quiet; git diff --cached --quiet; mktemp /tmp/hotel-reference-control-$EXPECTED_INSTALLED_SHA.XXXXXX.php")"
+          [[ "$remote_script" =~ ^/tmp/hotel-reference-control-[a-f0-9]{40}\.[A-Za-z0-9]{6}\.php$ ]]
+          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "set -eu; umask 077; cat > '$remote_script'; chmod 600 '$remote_script'; test \"\$(sha256sum '$remote_script' | cut -d' ' -f1)\" = '$EXPECTED_CONTROL_SHA256'" < "$RUNNER_TEMP/control.php"
+          set +e
+          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "set -eu; cd '$root'; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_INSTALLED_SHA'; git diff --quiet; git diff --cached --quiet; php '$remote_script' '$EXPECTED_INSTALLED_SHA' 2>/dev/null" > "$RUNNER_TEMP/hotel-model-control.json"
+          status=$?
+          set -e
+          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "rm -f '$remote_script'" >/dev/null 2>&1 || true
+          rm -f "$RUNNER_TEMP/deploy_key" "$RUNNER_TEMP/control.php"
+          # Provider errors/outcome-unknown must remain visible, not retried.
+          python3 - "$RUNNER_TEMP/hotel-model-control.json" <<'PY'
+          import json, pathlib, sys
+          p = pathlib.Path(sys.argv[1])
+          if p.stat().st_size > 524288:
+              raise SystemExit('Synthetic receipt exceeds approved bound')
+          d = json.loads(p.read_text())
+          assert d['schema'] == 'hotel_tr_eight_synthetic_model_acceptance_v1'
+          assert d.get('model_calls_started', 0) <= 16
+          print(json.dumps({'status': d['status'], 'calls_started': d.get('model_calls_started', 0), 'automatic_retry_allowed': False}))
+          PY
+          exit "$status"
+      - name: Preserve the synthetic-only result for independent review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hotel-tr-eight-model-acceptance-${{ env.EXPECTED_INSTALLED_SHA }}
+          path: ${{ runner.temp }}/hotel-model-control.json
+          if-no-files-found: warn
+          retention-days: 7
+
