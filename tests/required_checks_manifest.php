@@ -305,6 +305,7 @@ return [
         'python3 tests/run_max_attribution_key.py',
         'python3 tests/run_conversion_observations.py',
         'python3 tests/run_conversion_profiles.py',
+        'python3 tests/run_conversion_snapshot.py',
         'php tests/run_max_private_avatar_probe_regression.php',
         'php tests/run_max_owner_tour_preview_regression.php',
         'php tests/run_telegram_owner_tour_preview_regression.php',
