@@ -110,3 +110,52 @@ the declared development group, later independent held-out semantic assessment,
 later outcome validation and authorized advertising delivery. First automation
 does not wait for purchases, and passing its development examples does not
 establish general accuracy or justify turning profiles into ad values.
+
+## Canonical snapshot adapter
+
+`python3 tools/profile_conversion_snapshot.py /private/received-snapshot.json`
+normalizes the existing bounded canonical snapshot row shape and calls the
+installed extractor. It reads a file/stdin only: no live reader, database,
+provider/model, worker, capture, new schedule or real-data processing is enabled.
+
+The envelope has exactly schema_version1, received_at, extracted_at, snapshot
+and trips. `snapshot` uses the existing capture schema: schema_version1,
+captured_at, database_writes=false, conversion_uploads=0 and cases; bounded
+capture metadata may also be present. Each case supplies subject without episode,
+started_at, messages_complete, events_complete, messages, tour_choices and the
+exact source_clock `database_persistence_normalized_to_utc_not_provider_occurrence`.
+Optional events are ignored because their mixed writer clocks are not accepted
+as temporal or semantic evidence. They are never promoted to a stage.
+
+Each original message has id, direction, sender_type, text, recorded_at, type
+and metadata_revision. The SHA256 metadata revision is required. Only inbound
+customer and outbound manager pairs map to those roles; contradictory pairs,
+bots and system roles stay other. Only type=message is text; callbacks/start and
+other actions cannot become customer statements. Every row is validated before
+the extractor excludes old-trip content. Conflicting IDs, unknown clocks,
+future rows, foreign or duplicate trip mappings fail atomically.
+
+`trips` contains one exact matching four-field subject, brand_key and
+trip_start_message_id per case. This is the accepted producer's episode marker,
+not a new manual CRM stage or an answer lookup. It must reference a nonempty
+customer text. Brand and canonical identity are producer assertions, not
+authenticated or inferred by this adapter. Runtime collection and independent
+episode interpretation remain separate admission steps.
+
+Require capture <= actual central receipt <= extraction. Messages first become
+available at the supplied actual receipt; semantic facts at extraction. Receipt
+and source lag are reported separately. Completeness is true only if all history
+and native-choice flags are complete AND capture reaches the prediction second;
+an older snapshot stays incomplete even if its original history was complete.
+This conservative adapter does not solve source-to-prediction lag by backdating
+features. Nonempty native offers also keep completeness false: this adapter does
+not interpret their selected/booking state, so their mere availability cannot
+certify full progression coverage. Available choice projections require a bounded
+offers list. Output contains source/input receipt hashes and text-free profile
+references, not raw messages. It is private analytical data. No P, commission,
+value, attribution choice, future label or export policy is introduced.
+
+The source-shaped regression runner tests normalization → typed profile → the
+canonical observation, receipt timing, incomplete/stale coverage, episode/role
+isolation, metadata integrity, and atomic redacted CLI failures. Synthetic
+acceptance is not a new live source receipt or held-out semantic accuracy.
