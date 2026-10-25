@@ -1,0 +1,82 @@
+name: Accept first private advertising delivery
+on:
+  push:
+    branches: [audit/advertising-transport-first-import-20261026]
+permissions:
+  contents: read
+jobs:
+  accept:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      EXPECTED_RUNTIME_SHA: 104727bde18708586dc6e9c07fd230a96c414d72
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare the existing canonical SSH identity
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          key_file="$RUNNER_TEMP/transport_accept_key"
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key_file"; else printf '%s\n' "$raw" | tr -d '\r' > "$key_file"; fi
+          else
+            decoded="$(printf '%s' "$raw" | base64 --decode 2>/dev/null || true)"
+            [[ "$decoded" == *"PRIVATE KEY"* ]] || { echo invalid_existing_identity; exit 1; }
+            printf '%s\n' "$decoded" | tr -d '\r' > "$key_file"
+          fi
+          chmod 600 "$key_file"
+          ssh-keygen -y -f "$key_file" >/dev/null
+      - name: Import bounded actual pages and enable the existing scheduler
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os,re,socket,subprocess,hashlib,base64,json
+          from pathlib import Path
+          host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER'];expected=os.environ['EXPECTED_RUNTIME_SHA']
+          if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9.-]{0,252}',host) or not re.fullmatch(r'[A-Za-z0-9_][A-Za-z0-9_.-]{0,63}',user) or not re.fullmatch(r'[a-f0-9]{40}',expected):raise SystemExit('invalid_fixed_target')
+          if {v[4][0] for v in socket.getaddrinfo(host,22,type=socket.SOCK_STREAM)}!={'5.45.122.54'}:raise SystemExit('canonical_target_changed')
+          pinned=[]
+          for attempt in range(2):
+              scan=subprocess.run(['ssh-keyscan','-T','10',host],capture_output=True,text=True,timeout=30)
+              for line in scan.stdout.splitlines():
+                  p=line.split()
+                  if len(p)!=3 or p[0].startswith('#'):continue
+                  try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(p[2],validate=True)).digest()).decode().rstrip('=')
+                  except ValueError:continue
+                  if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':pinned.append(line)
+              if pinned:break
+          if not pinned:raise SystemExit('canonical_host_pin_not_seen')
+          temp=Path(os.environ['RUNNER_TEMP']);known=temp/'transport_accept_hosts';known.write_text('\n'.join(pinned)+'\n');known.chmod(0o600)
+          pins={'services/AdvertisingVisitTransport.php': 'a60378fc7692418c3bed37cd8f59b3a1ab409315', 'services/AdvertisingVisitFeedProtocol.php': '08579591f1c2069bae3cfd027f1f71203b9fe319', 'services/AdvertisingVisitContract.php': 'c38a4d4ba4af9fcd10e9efade1e4aadf4dc3a7f4', 'services/AdvertisingVisitImportService.php': '07549d3080f3c55d5bd39b78bea65aeed4aeb721', 'services/AdvertisingVisitJournalReader.php': 'f32aa830d85bfc1459767636e646a121a5046445', 'services/AdvertisingVisitRepository.php': 'efce3a4a75299bd666868cae02a19813147f8b82', 'services/ProjectConfig.php': '538b596981f2c61fbf524e18756bf672578948f6', 'services/TourSearchHandoffService.php': '4db4da454a9a9403935e0139441650066c30627a', 'tools/advertising_visit_transport.php': '5f754f6dd2bb5172887bb3bd02b0004daa1acd29', 'cron_metrika.php': '5ef30a50e7732e51741875203b07d7de90c937b0', 'services/ConversationDb.php': 'bb6281faf55aca7beeae7f8a57389d19751936f7'}
+          php='<?php\nini_set(\'display_errors\',\'0\'); error_reporting(0);\n$phase=\'preflight\';\nfunction emitReceipt(string $stage,array $data): void {echo json_encode([\'stage\'=>$stage]+$data,JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES)."\\n";}\nfunction requireReceipt(bool $condition): void {if(!$condition)throw new RuntimeException(\'advertising_transport_audit_precondition\');}\ntry {\n    require_once getcwd().\'/config.php\';\n    require_once getcwd().\'/services/ProjectConfig.php\';\n    require_once getcwd().\'/services/ConversationDb.php\';\n    require_once getcwd().\'/services/AdvertisingVisitTransport.php\';\n    requireReceipt(ProjectConfig::projectId()===\'anytour\');\n    $t=new AdvertisingVisitTransport();\n    $before=$t->status();\n    requireReceipt($before[\'initialized\']===true && $before[\'enabled\']===false && $before[\'last_run\']===null);\n    requireReceipt($t->publicKeys()[\'public_fingerprint\']===\'73461e5a03df3afecb663d43135e88a42bdf4ac038e4ee5baac8d7dae58860c9\');\n    emitReceipt(\'before\',$before);\n    $pdo=ConversationDb::connection(); $repo=new AdvertisingVisitRepository($pdo);\n    $snapshot=static function()use($pdo,$repo):array {\n        $q=$pdo->prepare("SELECT COUNT(*) AS observations,COUNT(DISTINCT source_cursor) AS distinct_cursors,COUNT(DISTINCT visit_id) AS visits,SUM(identity_status=\'verified\') AS verified_identities,SUM(client_id<>\'\') AS with_client_id,SUM(yclid<>\'\') AS with_yclid,COUNT(DISTINCT CASE WHEN identity_status=\'verified\' THEN external_user_id ELSE NULL END) AS verified_people FROM advertising_visit_observations WHERE project_key=? AND source_key=? AND platform=? AND counter_id=?");\n        $q->execute(array_values(AdvertisingVisitTransport::SCOPE));$row=$q->fetch(PDO::FETCH_ASSOC);\n        foreach($row as $k=>$v)$row[$k]=(int)$v;\n        $cp=$repo->checkpoint(AdvertisingVisitTransport::SCOPE);\n        return $row+[\'cursor\'=>$cp[\'cursor\'],\'anchor_present\'=>$cp[\'fingerprint\']!==null];\n    };\n    $initial=$snapshot();emitReceipt(\'database_before\',$initial);\n    requireReceipt($initial[\'observations\']===0 && $initial[\'cursor\']===\'0\' && $initial[\'anchor_present\']===false);\n    $previous=$initial;\n    foreach([\'first\',\'retry\',\'enable\'] as $step){\n        $phase=$step;\n        requireReceipt($t->status()[\'enabled\']===false);\n        $result=$step===\'enable\'?$t->enable($pdo):$t->pull($pdo,null,null,true);\n        $db=$snapshot();\n        emitReceipt($step,[\'receipt\'=>$result,\'database\'=>$db]);\n        requireReceipt($result[\'status\']===\'imported\' && $result[\'conversion_uploads\']===0 && $result[\'observations\']<=100);\n        requireReceipt($db[\'observations\']===$previous[\'observations\']+$result[\'inserted\'] && $db[\'distinct_cursors\']===$db[\'observations\'] && $db[\'cursor\']===$result[\'cursor\'] && $db[\'anchor_present\']===true);\n        requireReceipt($step!==\'first\'||($result[\'observations\']>0 && $result[\'inserted\']>0));\n        $previous=$db;\n    }\n    $phase=\'final\';$after=$t->status();\n    requireReceipt($after[\'initialized\']===true && $after[\'enabled\']===true && $after[\'conversion_uploads\']===0);\n    emitReceipt(\'after\',$after);\n} catch(Throwable $e){\n    $error=preg_match(\'/\\\\Aadvertising_(?:transport|visit)_[a-z_]+\\\\z/D\',$e->getMessage())?$e->getMessage():\'advertising_transport_audit_failed\';\n    emitReceipt(\'failure\',[\'phase\'=>$phase,\'error\'=>$error]);exit(1);\n}\n'
+          commands=['set -euo pipefail','cd /var/www/anytoour/data/www/app.anytoour.ru',f'test "$(git rev-parse HEAD)" = "{expected}"']
+          for path,sha in pins.items():
+              if not re.fullmatch(r'[A-Za-z0-9_./-]+',path) or '..' in path or not re.fullmatch(r'[a-f0-9]{40}',sha):raise SystemExit('invalid_source_pin')
+              commands.append(f'test "$(git hash-object {path})" = "{sha}"')
+          commands += ["php <<'ANYTOUR_FIXED_ACCEPT'",php.rstrip(),'ANYTOUR_FIXED_ACCEPT',f'test "$(git rev-parse HEAD)" = "{expected}"']
+          for path,sha in pins.items():commands.append(f'test "$(git hash-object {path})" = "{sha}"')
+          run=subprocess.run(['ssh','-i',str(temp/'transport_accept_key'),'-o','BatchMode=yes','-o','StrictHostKeyChecking=yes','-o','UserKnownHostsFile='+str(known),'-o','ConnectTimeout=10',user+'@'+host,'bash -se'],input='\n'.join(commands)+'\n',capture_output=True,text=True,timeout=85)
+          allowed={'before','database_before','first','retry','enable','after','failure'}
+          receipts=[]
+          for line in run.stdout.splitlines():
+              try:value=json.loads(line)
+              except ValueError:raise SystemExit('unexpected_private_output_not_published')
+              if not isinstance(value,dict) or value.get('stage') not in allowed:raise SystemExit('unexpected_private_output_not_published')
+              receipts.append(value)
+          # The fixed PHP script emits only the aggregate contracts reviewed above.
+          for value in receipts:print(json.dumps(value,sort_keys=True))
+          print(json.dumps({'installed_sha':expected,'run_id':os.environ['GITHUB_RUN_ID'],'source_pins_verified':len(pins),'operation_exit':run.returncode,'unexpected_stderr':bool(run.stderr),'conversion_uploads':0},sort_keys=True))
+          if run.returncode or run.stderr or [v['stage'] for v in receipts]!=['before','database_before','first','retry','enable','after']:raise SystemExit('first_delivery_not_accepted_do_not_replay')
+          PY
+      - name: Remove runner-only private deployment identity
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/transport_accept_key" "$RUNNER_TEMP/transport_accept_hosts"
