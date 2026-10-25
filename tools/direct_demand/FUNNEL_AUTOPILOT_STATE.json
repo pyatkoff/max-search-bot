@@ -1,6 +1,6 @@
 {
   "schema": "anytour.funnel.autopilot_state.v1",
-  "updated_at_utc": "2026-10-25T11:06:18.440Z",
+  "updated_at_utc": "2026-10-25T11:21:59.110Z",
   "owner": "direct-demand-funnel",
   "automation": {
     "id": "6ada8f0084888191b12c6619c12fb35c",
@@ -9,7 +9,7 @@
     "timezone": "Europe/Kaliningrad",
     "enabled_verified_at_utc": "2026-10-22T22:39:46.922Z"
   },
-  "status": "R3_P45_OWNER_AUTHORIZED_CHANNEL_BATCH_PUBLICATION_IN_PROGRESS",
+  "status": "R3_P47_THREE_CHANNEL_POSTS_PUBLISHED_CANONICAL_BUTTON_CONTEXT_VERIFIED_REAL_ENTRY_OPEN",
   "channel": {
     "platform": "max",
     "public_url": "https://max.ru/channel_anytour",
@@ -889,6 +889,21 @@
       "canonical_reuse_member": "existing-post-review/p45/canonical-reuse.json",
       "preview_library_file_id": "libfile_c1f06826dd408191bed3e0cb8103e379",
       "preview_version": 24
+    },
+    "current_published_channel_batch": {
+      "library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
+      "version": 26,
+      "member": "existing-post-review/p47/published-posts.json",
+      "receipt_member": "existing-post-review/p47/publication-receipt.json",
+      "feed_member": "existing-post-review/p47/current5-feed.INCOMPLETE-DRAFT.json",
+      "canonical_plan_member": "existing-post-review/p34/plan.json",
+      "preview_library_file_id": "libfile_c1f06826dd408191bed3e0cb8103e379",
+      "preview_version": 25,
+      "archive_sha256": "d2df9e9efa2cead4eca602461cce372f67fcc65764837c05a32bd512ababf9d2",
+      "prior_members_preserved_byte_exact": 387,
+      "new_covers": 0,
+      "new_hotel_profiles": 0,
+      "saved_identity_metadata_verified": true
     }
   },
   "operations": {
@@ -900,20 +915,7 @@
     "wordstat_access": "BLOCKED_NO_CONNECTED_SEARCH_API_ACCESS",
     "first_post_drafts": "DONE",
     "inactive_feed_templates": "DONE",
-    "active_operation": {
-      "kind": "OWNER_CHANNEL_FIRST_REVIEWED_BATCH",
-      "claim": 6396843325,
-      "executor": "interactive_same_packet",
-      "state": "PREPARED_NOT_YET_PROVIDER_EXECUTED",
-      "target": "https://max.ru/channel_anytour",
-      "keys": [
-        "alma_cam_ranh",
-        "EG_family",
-        "phuket_five_naiyang_kata_karon"
-      ],
-      "installed_sha": "158ce9723e29c97bd82dfcd8002ca2485d88f7e1",
-      "replay_policy": "Read durable per-post receipt and actual provider/registry state before any retry; UNKNOWN never creates again."
-    },
+    "active_operation": null,
     "catalog_cohort_492_read": "DONE",
     "first_native_catalog_bindings": "DONE",
     "five_additional_posts": "DONE",
@@ -1047,17 +1049,20 @@
     "r3_P45_Alma_revision": "DONE_ONE_REVISED_BODY_COVER_CONTEXT_UNCHOSEN_CATEGORY",
     "r3_P45_save": "DONE_PREVIEW24_COMPANION24_EXPECTED23_GUARDED_SAVES",
     "r3_Alma_identity_readback101": "DONE_FOCUSED_READONLY_RESEARCH_BINDING_UNRESOLVED_NO_NATIVE_ID",
-    "max_public_slug_url_fix": "DONE_PR1125_INSTALLED_158ce972_TERMINAL6396843140"
+    "max_public_slug_url_fix": "DONE_PR1125_INSTALLED_158ce972_TERMINAL6396843140",
+    "owner_channel_batch1": "DONE_3_NATIVE_POSTS_3_CANONICAL_BUTTONS_NO_DUPLICATE_CREATES",
+    "owner_channel_batch1_save": "DONE_PREVIEW25_COMPANION26_GUARDED_SAVES_METADATA_APPLIED",
+    "owner_channel_batch1_cleanup": "DONE_40188453643_TRANSIENT_KEY_REMOVED_DURABLE_RECEIPT_RETAINED"
   },
   "next_steps": [
-    "Interactive current executor owns channel operation6396843325. Publish exact three reviewed prepared posts after fixed target/rights/config/source preflight; stop ambiguous result and read receipt, no duplicate create.",
-    "Verify real provider MID/content/photo/unique canonical button and resolve actual issued token to immutable post context. Leave local catalogue IDs unresolved rather than manufacture them; post-context mechanism does not require them.",
-    "Do not resume old S1/prep/no-channel/capped55 loops or automatic content growth. Automation hands off to active interactive operation and never duplicates source/native writes. Next checkpoint/terminal receipt governs.",
-    "Actual live ad creative/landing remains unavailable (recorded capability gap), not proof of mismatch. Own ads352/16,last7 54/1 do not prove suite interest, all-commercial clicks or conversion. Canonical factual source92 unmodified and all earlier holds retained.",
-    "Five drafts remain, not six. Four other current feed rows unchanged; Alma row same key/inactive,IDs/URLs null. Gate3 paid launch still needs separate budget/action/channel/duration/sample/stop receipts; editor/business/real-path acceptance distinct.",
-    "Same P44 plan and task retained; no schedule/enabled/models/budgets/runtime/foreign changes or repeated fullCI/Direct/native baselines."
+    "DONE: Alma publication55/version67, Egypt two-room56/68, Phuket ART/LAGOON57/69. Use actual native URLs/tokens in owner_channel_publication_batch1 and same companion26/p47; no placeholder IDs or duplicate creation.",
+    "Interactive batch operation6396843325 completed and will release in #1122; active_operation=null. Next executor receives only this same checkpoint/handoff and reads fresh receipts before any operation.",
+    "Next first-path gate: read an actual permitted personal entry from these published buttons and verify canonical post snapshot/yclid/chat matching. Server-side token resolution and HTML preview are not physical customer entry or conversion proof. Do not manufacture test events/customer dialogs.",
+    "Owner publication consent extends beyond Alma to reviewed factual content in this exact channel; it is not automatic approval of archived95texts/204candidates or all held themes. Continue one evidence-backed useful item, retain supplier/video/identity/factual holds; no return to quota3→10 or broad audits.",
+    "Current five-row feed remains INCOMPLETE/disabled; actual published post/button references are saved as audit-only data. No live-feed/RK/spend or Metrika changes. Paid stage needs separate budget/limit/duration/sample/stop receipts and meaningful business definitions.",
+    "Reuse current sources101 and unchanged saved demand23Sep–22Oct appropriately. Do not retry Wordstat/ad-read/ASR/room403 or unchanged fullCI/Direct/native baseline without new grounds. No automation schedule/enabled/model/budget changes."
   ],
-  "publication_blocker": "Prior blanket publication prohibition superseded by explicit owner consent25Oct for selected channel. Runtime URL fix PR1125 installed/verified158ce. First reviewed3-post channel operation6396843325 prepared, not yet executed. No paid authorization; physical/personal/yclid path acceptance not claimed.",
+  "publication_blocker": "Resolved for the first3 reviewed owner-authorized channel posts: true native URLs/MIDs and existing mechanism-issued p_ tokens confirmed. Exact local hotel catalogue IDs remain unresolved and were not invented; they are not required by canonical publication-context contract. Real personal/phone entry and live yclid/chat matching still need actual observed event; paid launch remains separately unapproved.",
   "coordination": "Own audit/direct-demand-20261022 branch only; canonical coordination #1122 by explicit #55 continuation. No foreign claims, CI, paused hotel tasks or production flows.",
   "completed_preparation": {
     "generated_at_utc": "2026-10-23T06:42:57.737448+00:00",
@@ -3010,7 +3015,7 @@
     }
   },
   "blockers": {
-    "channel": "Canonical selected channel is registered; old absence/pending-inspection blocker superseded by6395635957. Foundation posts do not bind Alma or grant its publication/test. Reported /channel_anytour/{token} adapter gap needs runtime-owner review before canonical hotel destination readback.",
+    "channel": "RESOLVED: selected channel registered, public-slug adapter PR1125 installed,3reviewed posts published with unique canonical buttons and exact immutable context resolution. No channel question or publication retry required.",
     "wordstat": "Current Wordstat is Yandex Search API. Connected folder and suitable Search API credential not found in available tools/local environment/Direct repository config; other server accounts were not inspected. No frequency requests issued.",
     "catalog_name_discovery": "Legacy hotel-search and provider gateway GET returned403; do not bypass or repeatedly retry unchanged requests.",
     "palma_cover": "Four inspected photos show or belong to El Palacio; no Palma cover selected.",
@@ -3029,39 +3034,12 @@
     "library_archive_size": "Current536730088bytes/limit536870912/headroom140824;guards49/50/30.H16preserved all existing evidence and losslessly BZIP2compressed18existingJSONmembers:per-member originaluncompressedSHA,CRC/size and Python/InfoZIP6readPASS recorded inH16lossless-packaging.json.Other prior compression types unchanged.Preserve current root/current-fileBZIP2method on updates;preflight new byte budget before upload.No oversized request/evidence deletion.Unselected new largeOGexcluded with provenance,not prior evidence."
   },
   "latest_completed_block": {
-    "name": "P45: same Alma hotel-intent body/cover revised, expected room category null; exact dependency prepared",
-    "total_prepared_subjects": 94,
-    "total_exact_caption_bodies": 95,
-    "total_saved_post_candidates": 204,
-    "mapped_existing_post_candidates": 155,
-    "current_feed_collections": 63,
-    "total_unlinked_selection_post_candidates": 49,
-    "total_unlinked_selection_subjects": 31,
-    "total_video_holds": 94,
-    "total_text_photo_paths": 110,
-    "identity_lookup_holds": 151,
-    "new_caption_bodies": 1,
-    "new_exact_saved_post_candidates": 0,
-    "new_covers": 1,
-    "new_IDs": 0,
-    "actual_channel_writes": 0,
-    "platforms": {
-      "max": 195,
-      "telegram": 9
-    },
-    "completed_at_utc": "2026-10-25T06:40:00Z",
-    "save_versions": {
-      "base": 70,
-      "preview": 24,
-      "companion": 24
-    },
-    "strategy_revision": "OWNER_PLAN_OPTIMIZATION_20261025",
-    "r2_reference_routes": 5,
-    "r2_counts_not_additive_to_baseline_slices": true,
-    "reference_revision": "P45_ALMA_ACCEPTANCE",
-    "previous_9_8_8_superseded": true,
-    "numeric_rubric_acceptance_pending": true,
-    "numeric_launch_gate_removed": true
+    "id": "P47_OWNER_AUTHORIZED_FIRST_CHANNEL_BATCH",
+    "state": "3_NATIVE_POSTS_PUBLISHED_AND_CANONICAL_BUTTON_CONTEXT_VERIFIED",
+    "completed_at_utc": "2026-10-25T11:21:59.110Z",
+    "private_materials_only_in_Library": true,
+    "scope": "same traffic workstream, existing post registry",
+    "remaining": "Actual personal/phone/yclid entry not yet observed; no paid acceptance"
   },
   "catalog_export_lookup": {
     "searched_library_read_only": true,
@@ -8208,13 +8186,13 @@
   },
   "strategy_revision": {
     "revision": "OWNER_PLAN_OPTIMIZATION_20261025",
-    "state": "ACCEPTED_FOR_PREPARATION_NOT_PUBLICATION",
+    "state": "OWNER_AUTHORIZED_CHANNEL_PUBLICATION_COMPLETED_NOT_PAID_OR_BUSINESS_ACCEPTANCE",
     "accepted_owner_instruction": "давай план оптимизируем",
     "accepted_at_utc": "2026-10-25T06:27:09Z",
     "same_workstream": true,
     "no_new_queue": true,
     "unit_of_completion": "Связка спрос → релевантный пост и фото → конкретная кнопка → существующий бот с сохранённым контекстом → квалифицированное обращение.",
-    "current_step": "S2_EXACT_DESTINATION_AND_AUTHORIZED_PATH",
+    "current_step": "S2_POSTS_BUTTONS_AND_CANONICAL_CONTEXT_VERIFIED_PERSONAL_ENTRY_OPEN",
     "stages": [
       {
         "id": "S1",
@@ -8267,7 +8245,9 @@
     ],
     "real_path_verified": false,
     "business_result_unmeasured": true,
-    "editorial_Alma_package_prepared": true
+    "editorial_Alma_package_prepared": true,
+    "native_posts_and_canonical_tokens_verified": true,
+    "owner_publication_scope": "Explicit25Oct consent permits reviewed factual posts beyond Alma in channel_anytour; paid/other protected scope unchanged."
   },
   "plan_revision_operation": {
     "state": "DONE_OWNER_PLAN_REVISION_AND_SAME_TASK_PROMPT_HANDOFF",
@@ -9319,5 +9299,85 @@
     "customer_dialogue_sends": false,
     "settings_or_schedule_changes": false,
     "catalogue_identity_rule": "Leave unresolved supplier/local hotel IDs empty. Existing canonical p_ publication/version snapshot is the bot-context owner; no invented mapping or attribution store."
+  },
+  "owner_channel_publication_batch1": {
+    "state": "DONE_NATIVE_PUBLICATIONS_AND_CANONICAL_TOKEN_READBACK",
+    "source_claim": 6396724215,
+    "operation_claim": 6396843325,
+    "installed_code_release": 6396843140,
+    "installed_sha": "158ce9723e29c97bd82dfcd8002ca2485d88f7e1",
+    "code_PR": 1125,
+    "posted_on": "2026-10-25",
+    "target_channel": "https://max.ru/channel_anytour",
+    "run": 40187937870,
+    "posts": [
+      {
+        "body_photo_button_verified": true,
+        "button_url": "https://max.ru/id9704048781_1_bot?start=p_iEmni1vrrOQMJ5VI2C8E3iJ7",
+        "canonical_token_resolved": true,
+        "cover_sha256": "c3962036f2f02bd7d4b4a6762423cb57414f1347db891b9ad4bf69cfdfebacc9",
+        "key": "alma_cam_ranh",
+        "message_id": "mid.ffffb6caf0606fed01a172bdf5ce19a9",
+        "photo_id": "47308313096",
+        "post_url": "https://max.ru/channel_anytour/AaFyvfXOGak",
+        "publication_id": 55,
+        "real_customer_entry_tested": false,
+        "start_payload": "p_iEmni1vrrOQMJ5VI2C8E3iJ7",
+        "text_sha256": "5e07432a3ad57258be69d07ad34f0cc7b965ed89ed586075ca5a5c7601258e3e",
+        "version_id": 67,
+        "yclid_live_tested": false
+      },
+      {
+        "body_photo_button_verified": true,
+        "button_url": "https://max.ru/id9704048781_1_bot?start=p_KsmCUYOYOuTCbJ35WRshx20e",
+        "canonical_token_resolved": true,
+        "cover_sha256": "1bae890068c7095fad56a7f294395979201e5744a7899d12919a08ecc3c61b55",
+        "key": "EG_family",
+        "message_id": "mid.ffffb6caf0606fed01a172c3e7247955",
+        "photo_id": "47309482248",
+        "post_url": "https://max.ru/channel_anytour/AaFyw-ckeVU",
+        "publication_id": 56,
+        "real_customer_entry_tested": false,
+        "start_payload": "p_KsmCUYOYOuTCbJ35WRshx20e",
+        "text_sha256": "4cb9f6f1f095fcdc262ae36f476b09023284392fc6482eb0b39d1634d85b0cbf",
+        "version_id": 68,
+        "yclid_live_tested": false
+      },
+      {
+        "body_photo_button_verified": true,
+        "button_url": "https://max.ru/id9704048781_1_bot?start=p_wlHd0Yp13Ap4qo5ajZT7UYti",
+        "canonical_token_resolved": true,
+        "cover_sha256": "4289464500aa6a5f4b2a7d4a9a0516aab6f92a07e9bba0eb3961792e96b051f0",
+        "key": "phuket_five_naiyang_kata_karon",
+        "message_id": "mid.ffffb6caf0606fed01a172c3efcf55ba",
+        "photo_id": "47309492232",
+        "post_url": "https://max.ru/channel_anytour/AaFyw-_PVbo",
+        "publication_id": 57,
+        "real_customer_entry_tested": false,
+        "start_payload": "p_wlHd0Yp13Ap4qo5ajZT7UYti",
+        "text_sha256": "4ffc333d4360fa6f59cf3f8de511a865e6fbb97b6da5c3581083fe3814a50754",
+        "version_id": 69,
+        "yclid_live_tested": false
+      }
+    ],
+    "native_create_attempts_total": 3,
+    "upload_attempts_total": 3,
+    "duplicate_creates": 0,
+    "first_run": 40187501536,
+    "readonly_reconciliation": 40187655398,
+    "first_mid_reused_without_create": true,
+    "operational_errors_resolved": [
+      "Upload response list index0 was not a photo ID; real exact-MID/photo/body/timestamp readback adopted without create",
+      "Operational URL readback regex delimiter corrected; no further Alma create"
+    ],
+    "cleanup_run": 40188453643,
+    "transient_crypto_key_removed": true,
+    "durable_receipt_retained": true,
+    "real_personal_start_observed": false,
+    "yclid_live_observed": false,
+    "paid_or_live_feed_changes": false,
+    "customer_dialogue_sends": false,
+    "publisher_main_held": false,
+    "all_library_saves_verified": true
   }
 }
