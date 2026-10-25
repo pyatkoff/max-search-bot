@@ -1,6 +1,6 @@
 {
   "schema": "anytour.funnel.autopilot_state.v1",
-  "updated_at_utc": "2026-10-25T06:40:00Z",
+  "updated_at_utc": "2026-10-25T08:40:32.695Z",
   "owner": "direct-demand-funnel",
   "automation": {
     "id": "6ada8f0084888191b12c6619c12fb35c",
@@ -1026,13 +1026,13 @@
   },
   "next_steps": [
     "P45 DONE: one Alma revision688UTF16, one cover using2original exact-suite photos,12saved clicked forms read and canonical92 reused readonly. General hotel request no longer assigns suite interest; exact70m2 suite is example only. Local390/1440 preview and cover inspected, not real bot proof.",
-    "S2 BLOCKED pending exact dependency: canonical exact Alma ID/readback, exact channel/post/action receipt, existing mechanism-issued entryID/finalURL, authorized phone path preserving yclid/chat context and unchosen room category. Single handoff in P45 RELEASE/#55; source file existing-post-review/p45/dependency-handoff.NOT-EXECUTED.json. No native/paid permission.",
+    "S2 BLOCKED: fresh owner-selected MAX channel https://max.ru/channel_anytour is recorded in receipt6395426869; independent readonly inspection owns its diagnostic operation. Await its terminal result/explicit handoff, then exact canonical Alma hotel/channel/post/entry/finalURL plus specific action/test receipt. No duplicate workflow/registry inspection; no native or paid permission inferred. Existing P45 dependency handoff remains the only request.",
     "Next pass first read fresh #55/checkpoint/receipt for THIS dependency; no repeat P45 content or unchanged capability probes. If no new information/authorization, quiet skip. No new hotel/seasonal/cover growth to replace gate2.",
     "Actual live ad creative/landing remains unavailable (recorded capability gap), not proof of mismatch. Own ads352/16,last7 54/1 do not prove suite interest, all-commercial clicks or conversion. Canonical factual source92 unmodified and all earlier holds retained.",
     "Five drafts remain, not six. Four other current feed rows unchanged; Alma row same key/inactive,IDs/URLs null. Gate3 paid launch still needs separate budget/action/channel/duration/sample/stop receipts; editor/business/real-path acceptance distinct.",
     "Same P44 plan and task retained; no schedule/enabled/models/budgets/runtime/foreign changes or repeated fullCI/Direct/native baselines."
   ],
-  "publication_blocker": "Current P36 three routes have no verified issued entry IDs/active destinations or real bot-path verification. Numeric/editorial acceptance is pending. Exact fresh native/channel/action and separate paid/budget permissions remain required; readonly/admin access and old tests are not new authorization.",
+  "publication_blocker": "P45 Alma package is prepared; owner-selected MAX channel https://max.ru/channel_anytour is now recorded by fresh #55 receipt6395426869. Independent readonly channel inspection has no terminal result/handoff observed. Exact canonical Alma hotel/channel/post/entry/finalURL and specific native action/test receipt remain missing; real path and paid launch unverified/unapproved.",
   "coordination": "Own audit/direct-demand-20261022 branch only; no foreign claims, CI, paused hotel tasks or production flows.",
   "completed_preparation": {
     "generated_at_utc": "2026-10-23T06:42:57.737448+00:00",
@@ -2985,7 +2985,7 @@
     }
   },
   "blockers": {
-    "channel": "Known source channels and two completed exact-post edit receipts do not designate a new funnel publication destination or authorize bulk edits; preparation continues.",
+    "channel": "Owner-selected MAX channel https://max.ru/channel_anytour recorded in #55 receipt6395426869 (25Oct08:30:52Z), replacing absence of a selected channel. Separate readonly inspection is active; no canonical registration/exact Alma destination or publication/test/paid authorization inferred.",
     "wordstat": "Current Wordstat is Yandex Search API. Connected folder and suitable Search API credential not found in available tools/local environment/Direct repository config; other server accounts were not inspected. No frequency requests issued.",
     "catalog_name_discovery": "Legacy hotel-search and provider gateway GET returned403; do not bypass or repeatedly retry unchanged requests.",
     "palma_cover": "Four inspected photos show or belong to El Palacio; no Palma cover selected.",
@@ -9159,5 +9159,26 @@
     "all_private_materials_only_in_Library": true,
     "automation_changes": false,
     "publisher_reserved": false
+  },
+  "channel_setup_receipt_readback": {
+    "observed_at_utc": "2026-10-25T08:40:32.695Z",
+    "source_url": "https://github.com/pyatkoff/max-search-bot/issues/55#issuecomment-6395426869",
+    "source_created_at_utc": "2026-10-25T08:30:52Z",
+    "owner_selected_public_url": "https://max.ru/channel_anytour",
+    "existing_bot_admin": "OWNER_CONFIRMED_IN_COORDINATION_NOT_INDEPENDENTLY_VERIFIED_BY_THIS_WORKSTREAM",
+    "read_only_inspection": {
+      "branch": "audit/max-catalog-channel-20261025",
+      "owner_scope_comment": 6395426869,
+      "state": "INDEPENDENT_READ_SCOPE_ACTIVE_NO_TERMINAL_HANDOFF_OBSERVED"
+    },
+    "canonical_channel_id": null,
+    "exact_Alma_post_id": null,
+    "canonical_Alma_hotel_id": null,
+    "issued_entry_id": null,
+    "final_entry_url": null,
+    "exact_Alma_native_action_receipt": null,
+    "native_path_verified": false,
+    "interpretation": "Channel selection is fresh evidence and supersedes absence of an owner-selected channel. It is not proof of canonical registration, an Alma destination, or permission for native publication/edit/test/paid action.",
+    "next_action": "Consume terminal channel-inspection receipt/explicit dependency handoff when available; do not duplicate its Actions/API/registry operation or ask for the channel again. Continue the same P45 S2 only after exact required binding and action receipt."
   }
 }
