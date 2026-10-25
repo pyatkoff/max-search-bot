@@ -259,7 +259,7 @@ final class ManagerPreparedReplyService
                 'latest_message_id'=>(int)$row['latest_message_id'],
                 'context'=>$input['context'],'image_inputs'=>$input['images']??[],
                 'company_knowledge'=>['facts'=>$knowledge->facts(),'revision'=>$knowledge->revision()],
-                'instructions'=>ManagerAiDraftService::instructions(),'instruction_revision'=>$row['instruction_revision']];
+                'instructions'=>ManagerAiDraftService::instructions($input['context']),'instruction_revision'=>$row['instruction_revision']];
         } catch (Throwable $ignored) { return self::failure('job_unavailable'); }
     }
 

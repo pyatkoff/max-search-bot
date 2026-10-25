@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "version": "2026-10-25.2",
+  "project_key": "anytour",
+  "bindings": [
+    {
+      "status": "accepted",
+      "source_identity": {
+        "adapter": "tourvisor-snapshot-v1",
+        "hotel": "9374",
+        "country": "1"
+      },
+      "accepted_source_names": [
+        "SUNRISE ARABIAN BEACH RESORT"
+      ],
+      "accepted_binding": {
+        "project_key": "anytour",
+        "research_hotel_key": "top500_51ebbafe5fb689d9",
+        "hotel_ref": {
+          "catalog": "anytour",
+          "id": 1554
+        },
+        "accepted_chain": [
+          {
+            "namespace": "legacy_catalog/catalog_hotels.id",
+            "id": 9374
+          },
+          {
+            "namespace": "anytour",
+            "id": 1554,
+            "catalog_revision": 1
+          },
+          {
+            "namespace": "local-tv",
+            "id": 9374,
+            "catalog_revision": 3
+          }
+        ],
+        "identity_anchor": {
+          "research_source_id": "top500_51ebbafe5fb689d9_enrich04_20261019_s01",
+          "research_source_record_sha256": "de8a3523af356352af90641e5c86b0015fa337aca78712176cec44827119c861",
+          "official_url": "https://www.sunrise-resorts.com/arabian-beach-resort",
+          "address": "86 Pyramisa Road, Sharm El Sheikh, E, Sharm El Sheikh, South Sinai Governorate 46619, Egypt",
+          "country": "Egypt",
+          "city": "Sharm El Sheikh"
+        },
+        "proofs": {
+          "anytour-legacy-9374.raw": "e26ee6c031f269e0b60aece50795c71f1c3c7a318ecef96275cbaa5b3f66011f",
+          "local-tv-old-anytour-1554.raw": "3ae35a94856caedd2b9de690090dc76fa9b8704383c66abde80b4f832dc77071",
+          "official-identity-anchor.json": "c51430053dcd2b1cd9d338df4fdd2a3727cc0fe723819082f6ff77536ffbbf10"
+        }
+      },
+      "binding_revision": "9e5935e38383c902e66b5ad41388f059f676637e71a093c7d99005c8185e510a",
+      "bundle_file": "anytour-1554-family-suite.json",
+      "bundle_sha256": "eb4c4f6cac5e567d3144ca40b631d59ffec396b909b019afd8bb79e5add82c18",
+      "approval": {
+        "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
+        "common_version": 100,
+        "member": "hotel-reference-cohort-20261025/accepted-binding.json",
+        "scope": "Research join consumes existing typed catalogue chain; no native MATCH mutation or current offer verification."
+      }
+    }
+  ]
+}

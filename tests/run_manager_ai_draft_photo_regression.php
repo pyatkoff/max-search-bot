@@ -74,6 +74,35 @@ $largeBody=ManagerDraftClient::requestBody('test',$largeRead['context'],$largeRe
 photoCheck('bounded real image payloads above the text-only cap reach the transport',count($largeBody['input'][1]['content'])===3
     &&strlen(json_encode($largeBody))>ManagerDraftClient::MAX_REQUEST_BYTES
     &&strlen(json_encode($largeBody))<ManagerDraftClient::MAX_REQUEST_BYTES+ManagerDraftClient::MAX_IMAGE_REQUEST_BYTES);
+// Synthetic server capability; the separate context suite verifies real SQL
+// identity selection. Images must retain their own unchanged transport budget.
+$hotel=ManagerHotelKnowledge::capture(['project_key'=>'anytour',
+    'source_identity'=>['adapter'=>'tourvisor-snapshot-v1','hotel'=>'9374','country'=>'1'],
+    'provenance'=>['message_id'=>502,'event_id'=>900,'publication_sha256'=>str_repeat('a',64),'source_sha256'=>str_repeat('b',64)],
+    'selected_hotel'=>'SUNRISE ARABIAN BEACH RESORT','selected_room'=>'Family Suite'],time());
+$referenceClass=new ReflectionClass(ManagerAiDraftReferenceContext::class);
+$makeReference=static function(array $hotel)use($referenceClass,$context):ManagerAiDraftReferenceContext{
+    $ref=$referenceClass->newInstanceWithoutConstructor();
+    $binding=(new ReflectionMethod(ManagerAiDraftReferenceContext::class,'binding'))->invoke(null,$context);
+    $referenceClass->getConstructor()->invoke($ref,$binding,['hotel_reference'=>$hotel]);return $ref;
+};
+$photoCapability=ManagerAiDraftPhotoContext::capture($context,7,'anytour','max',$many,null);
+$photoReader=static fn(array $normalized):?array=>$photoCapability->read($normalized,static fn()=>photoFile($large));
+$imageBaseline=ManagerAiDraftService::prepareInput($context,null,null,null,$photoReader);
+$imageHotel=ManagerAiDraftService::prepareInput($context,null,null,$makeReference($hotel),$photoReader);
+$withoutHotel=$imageHotel['context'];unset($withoutHotel['hotel_reference']);
+$hotelBody=ManagerDraftClient::requestBody(ManagerAiDraftService::instructions(),$imageHotel['context'],$imageHotel['images']);
+photoCheck('hotel evidence preserves exact real image parts and photo-read coverage',
+    ($imageHotel['context']['hotel_reference']['status']??'')==='available'
+    &&$withoutHotel===$imageBaseline['context']&&$imageHotel['images']===$imageBaseline['images']
+    &&strlen(json_encode($hotelBody))>ManagerDraftClient::MAX_REQUEST_BYTES
+    &&strlen(json_encode($hotelBody))<ManagerDraftClient::MAX_REQUEST_BYTES+ManagerDraftClient::MAX_IMAGE_REQUEST_BYTES);
+$hotel['facts'][0]['text']=str_repeat('Оговорка "не входит" \\ ',1200);
+$omitted=ManagerAiDraftService::prepareInput($context,null,null,$makeReference($hotel),$photoReader);
+$withoutHotel=$omitted['context'];unset($withoutHotel['hotel_reference']);
+photoCheck('image allowance cannot admit an oversized hotel group or discard photo evidence',
+    empty($omitted['context']['hotel_reference']['facts'])
+    &&$withoutHotel===$imageBaseline['context']&&$omitted['images']===$imageBaseline['images']);
 foreach([['https://private.invalid/image','high'],['data:image/svg+xml;base64,PHN2Zz4=','high'],['data:image/png;base64,AA==','low']]as[$url,$detail]){
     $rejected=false;try{ManagerDraftClient::requestBody('test',[],[['type'=>'input_image','image_url'=>$url,'detail'=>$detail]]);}catch(InvalidArgumentException $e){$rejected=true;}
     photoCheck('transport accepts only bounded inline raster image capabilities '.$detail.'/'.$url[0],$rejected);
