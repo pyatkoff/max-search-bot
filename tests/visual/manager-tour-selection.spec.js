@@ -667,7 +667,7 @@ for(const width of [390,430,768,1440])test(`ANEX source action saves exact settl
  fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-anex-${browserName}-${width}.png`)});
  expect(await page.evaluate(()=>collectorRequests.map(x=>x.type))).toEqual(['begin_add','enqueue','add_status']);
  await page.getByRole('button',{name:'✓ В подборке'}).click({noWaitAfter:true});await page.locator('#nativePrice').evaluate(e=>e.textContent='180 000 ₽');await expect(page.getByRole('button',{name:'Не добавлено'})).toBeVisible();expect(await page.evaluate(()=>collectorStaged.length)).toBe(1);expect(await page.evaluate(()=>nativeCreates)).toBe(0);
- await page.setViewportSize({width,height:420});await expect(page.getByRole('button',{name:'Не добавлено'})).toBeVisible();expect(s.calls).toEqual([s.url]);
+ await page.setViewportSize({width,height:420});await expect(page.getByRole('button',{name:'Не добавлено'})).toBeVisible();expect(await page.evaluate(()=>collectorStaged[0].observation.photos)).toEqual(s.photos);expect(s.calls.slice().sort()).toEqual([s.url,s.galleryUrl,...s.photos].sort());
 });
 
 for(const width of [390,430,768,1440])test(`ANEX imported terms show their actual source in the existing editor ${width}`,async({page,browserName})=>{
