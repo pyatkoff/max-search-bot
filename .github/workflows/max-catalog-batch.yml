@@ -1,0 +1,96 @@
+name: Prepare owner MAX catalogue publication envelope
+on:
+  push:
+    branches: [audit/max-catalog-batch-20261025]
+    paths: [.github/workflows/max-catalog-batch.yml]
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: max-catalog-batch-envelope-20261025
+  cancel-in-progress: false
+env:
+  EXPECTED_PRODUCTION_SHA: 1f5e4e6d4e0033bf054cc11d19c9708a1f5518f6
+jobs:
+  inspect:
+    if: github.ref == 'refs/heads/audit/max-catalog-batch-20261025'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.EXPECTED_PRODUCTION_SHA }}
+          persist-credentials: false
+      - name: Verify current released production source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_PRODUCTION_SHA"
+          test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = "$EXPECTED_PRODUCTION_SHA"
+          conclusion=$(gh api "repos/pyatkoff/max-search-bot/actions/runs?head_sha=$EXPECTED_PRODUCTION_SHA&per_page=100" --jq '[.workflow_runs[] | select(.name=="Deploy production")] | max_by(.id) | .conclusion')
+          test "$conclusion" = success
+      - name: Prepare private publication envelope key
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          cat > "$RUNNER_TEMP/channel-probe.php" <<'PHP'
+          <?php
+          declare(strict_types=1);
+          ini_set('display_errors','0');ini_set('log_errors','0');
+          try {
+           $dir='/tmp/anytour-channel-batch-20261025-v1';
+           if(is_link($dir))throw new RuntimeException('invalid_operation_directory');
+           umask(0077);if(!is_dir($dir)&&!mkdir($dir,0700))throw new RuntimeException('directory_failed');
+           $lock=fopen($dir.'/key.lock','c+');if(!$lock||!flock($lock,LOCK_EX|LOCK_NB))throw new RuntimeException('operation_busy');
+           $path=$dir.'/envelope-key.pem';
+           if(is_link($path))throw new RuntimeException('invalid_key_path');
+           if(!is_file($path)){
+            $key=openssl_pkey_new(['private_key_bits'=>3072,'private_key_type'=>OPENSSL_KEYTYPE_RSA]);
+            if(!$key||!openssl_pkey_export($key,$private))throw new RuntimeException('key_failed');
+            $f=fopen($path,'x');if(!$f||fwrite($f,$private)!==strlen($private)||!fflush($f))throw new RuntimeException('key_write_failed');if(function_exists('fsync'))fsync($f);fclose($f);chmod($path,0600);
+           }
+           $key=openssl_pkey_get_private(file_get_contents($path));$details=$key?openssl_pkey_get_details($key):false;
+           if(!is_array($details)||($details['bits']??0)!==3072)throw new RuntimeException('invalid_existing_key');
+           echo json_encode(['ok'=>true,'operation'=>'channel-batch-20261025-v1','public_key_base64'=>base64_encode($details['key']),'public_key_sha256'=>hash('sha256',$details['key'])],JSON_THROW_ON_ERROR),PHP_EOL;
+           flock($lock,LOCK_UN);fclose($lock);
+          }catch(Throwable $e){echo json_encode(['ok'=>false,'error'=>'key_preparation_failed']),PHP_EOL;exit(2);}
+          
+          PHP
+          php -l "$RUNNER_TEMP/channel-probe.php"
+      - name: Prepare existing server connection
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else
+            printf '%s' "$raw" | base64 --decode > "$RUNNER_TEMP/channel_key"
+          fi
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+      - name: Prepare private server envelope key
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-probe.php" > "$RUNNER_TEMP/channel-probe.json" || probe_status=$?
+          python3 - <<'PY'
+          import json,os
+          with open(os.environ['RUNNER_TEMP']+'/channel-probe.json')as f:d=json.load(f)
+          assert d['ok'] is True and d['operation']=='channel-batch-20261025-v1' and len(d['public_key_base64'])<2000
+          print(json.dumps(d,ensure_ascii=False,sort_keys=True))
+          PY
+          test "${probe_status:-0}" = 0
+      - name: Remove ephemeral files
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-probe.php" "$RUNNER_TEMP/channel-probe.json"
