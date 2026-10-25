@@ -17,7 +17,7 @@ function cachePublication(string $id): void {
     global $pdo;
     $q=$pdo->prepare('SELECT selection_json FROM manager_tour_selection_publications WHERE publication_id=?');$q->execute([$id]);$selection=json_decode($q->fetchColumn(),true);
     $q=$pdo->prepare('SELECT offer_id FROM manager_tour_selection_cards WHERE publication_id=? ORDER BY card_index');$q->execute([$id]);$ids=$q->fetchAll(PDO::FETCH_COLUMN);
-    foreach ($selection['offers'] as $i=>$offer) foreach ([0,1,2] as $photo) TourSelectionPhotoStore::image(TourSelectionPhotoStore::offerKey((int)$ids[$i]),0,$photo,$offer['presentation']['photos'][$photo]['url'],static fn():string=>file_get_contents(dirname(__DIR__).'/assets/owner-tour-cards/compact-v1/cover.jpg'));
+    foreach ($selection['offers'] as $i=>$offer) foreach (array_keys($offer['presentation']['photos']) as $photo) TourSelectionPhotoStore::image(TourSelectionPhotoStore::offerKey((int)$ids[$i]),0,$photo,$offer['presentation']['photos'][$photo]['url'],static fn():string=>file_get_contents(dirname(__DIR__).'/assets/owner-tour-cards/compact-v1/cover.jpg'));
 }
 function groupingChecks(): void {
     global $pdo;
@@ -53,6 +53,29 @@ function groupingChecks(): void {
         deliveryCheck('grouping creates no send, like, read marker or routing change',(int)$pdo->query("SELECT COUNT(*) FROM messages WHERE direction='outbound'")->fetchColumn()===0&&(int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE event_type='tour_offer_liked'")->fetchColumn()===0&&(int)$pdo->query('SELECT last_read_message_id FROM manager_conversation_reads LIMIT 1')->fetchColumn()===0);
     } finally {$pdo=$original;(new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$pdo);}
 }
+function automaticGalleryChecks(): void {
+    global $pdo;
+    require_once __DIR__.'/support/manager-tour-collector.php';
+    $original=$pdo;
+    try {
+        foreach ([1,2,3] as $count) {
+            $pdo=deliveryDb();$pdo->exec('CREATE TABLE manager_tour_selection_links(conversation_id INTEGER PRIMARY KEY,version INTEGER,token TEXT UNIQUE,publication_id TEXT,is_active INTEGER,updated_by_manager_id INTEGER,updated_at TEXT);CREATE TABLE manager_tour_selection_link_history(conversation_id INTEGER,version INTEGER,publication_id TEXT,is_active INTEGER,manager_id INTEGER,created_at TEXT,PRIMARY KEY(conversation_id,version));');
+            $observation=collectorObservation();$base='https://apigate-tui.fstravel.com/api/geocontent/static/Hotel/00180000-ac11-0242-6c05-08d9934f9e4b/';$observation['photos']=array_slice(array_map(static fn(string $k):string=>$base.$k.'-Source-share.jpg',['MainPhoto','Gallery','InsideOfTheRoom']),0,$count);
+            $import=ManagerTourSelectionImportDraft::normalize($observation);$offer=$import['offer'];$offer['id']=str_repeat('a',32);$offer['import_source']=ManagerTourSelectionImportDraft::source($import);$draft=['title'=>'Фото из источника','intro'=>'','offers'=>[$offer]];
+            deliverySave($draft);$pub=ManagerTourSelectionDeliveryService::prepare(7,1,1)['publication']['id'];
+            deliveryCheck('automatic gallery cannot publish before every actual image is reviewed',shareCommand(7,1,0,$pub,true)['error']==='preparation_failed');
+            cachePublication($pub);$published=shareCommand(7,1,0,$pub,true);deliveryCheck('automatic '.$count.'-photo gallery publishes without extra manual photos',$published['ok']);
+            $token=substr($published['share']['path'],strlen('/selection/?t='));$selection=ManagerTourSelectionShareService::read($token);
+            deliveryCheck('public gallery projects only the actual cached image count',count($selection['offers'][0]['photos'])===$count&&$selection['offers'][0]['photo_layout']==='gallery-v1'&&!str_contains(json_encode($selection),'apigate-tui'));
+            $h=static fn($s):string=>htmlspecialchars((string)$s,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');ob_start();require dirname(__DIR__).'/selection/view.php';$html=ob_get_clean();
+            deliveryCheck('public gallery renders without invented beach or room captions',substr_count($html,'alt="Фото отеля ')===$count&&!str_contains($html,'Пример интерьера номера')&&str_contains($html,'photoCount'.$count));
+            foreach (range(0,$count-1) as $i) deliveryCheck('public gallery reads only its reviewed immutable bytes',ManagerTourSelectionShareService::photo($token,1,0,$i)!==null);
+            if($count<3) deliveryCheck('missing extra gallery slot stays absent',ManagerTourSelectionShareService::photo($token,1,0,$count)===null);
+            shareCommand(7,1,1,$pub,false);deliveryCheck('revoking the automatic gallery closes its photos too',ManagerTourSelectionShareService::read($token)===null&&ManagerTourSelectionShareService::photo($token,1,0,0)===null);
+        }
+    } finally {$pdo=$original;(new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$original);}
+}
+
 try {
     $draft=deliveryDraft();$draft['intro']='Комментарий для туриста <script>alert(1)</script>';
     deliverySave($draft);$prepared=ManagerTourSelectionDeliveryService::prepare(7,1,1);$id=$prepared['publication']['id'];$before=shareRows();
@@ -90,6 +113,7 @@ try {
     $interestPdo=deliveryDb();interestScenarios($interestPdo);
     (new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$pdo);
     groupingChecks();
+    automaticGalleryChecks();
     require_once __DIR__.'/fixtures/tour_selection_bot_entry.php';
     tourSelectionBotEntryChecks();
     // Exercise the unmodified public controllers and ManagerHttp over real HTTP.

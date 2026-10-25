@@ -46,7 +46,7 @@ function deliveryDraft(string $hotel='Синтетический отель'): a
     return ['title'=>'К морю','intro'=>'','offers'=>[['id'=>str_repeat('a',32),'selected'=>true,'hotel'=>$hotel,'destination'=>'Турция, Лара','departure'=>'Москва','date_from'=>'2027-06-05','nights'=>7,'adults'=>2,'child_ages'=>[4,4],'room'=>'Семейный номер','meal'=>'Всё включено','amount'=>'240000','currency'=>'RUB','rationale'=>'Песчаный пляж','compromise'=>'Компактный номер','flights'=>'Время рейсов уточняется','inclusions'=>'Трансфер','constraints'=>'Топливный сбор необходимо проверить','source_label'=>'Синтетический источник','source_url'=>'https://catalog.example.org/offer/1','observed_at'=>'2026-10-22T10:00:00Z','photos'=>array_map(static fn(string $kind):array=>['kind'=>$kind,'url'=>'https://photos.example.org/'.$kind.'.jpg','illustrative'=>true],['cover','beach','room'])]]];
 }
 function deliverySave(array $draft,int $version=0,int $conversation=1): array {return ManagerTourSelectionService::save(7,$conversation,['version'=>$version,'draft'=>$draft,'operation_id'=>bin2hex(random_bytes(16))]);}
-function deliveryImages(): array {return array_map(static fn(int $i):array=>['path'=>__FILE__,'mime'=>'image/jpeg','sha256'=>str_repeat((string)$i,64)],[1,2,3]);}
+function deliveryImages($id=null,$index=null,?array $offer=null): array {return array_map(static fn(int $i):array=>['path'=>__FILE__,'mime'=>'image/jpeg','sha256'=>str_repeat((string)$i,64)],range(1,$offer===null?3:count($offer['presentation']['photos'])));}
 function deliveryTransport(array &$state): TourSelectionNativeTransport
 {
     return new TourSelectionNativeTransport(static function(string $channel,string $method,string $path,array $query,array $body,array $images) use (&$state):array {
@@ -64,7 +64,7 @@ function deliveryTransport(array &$state): TourSelectionNativeTransport
             return ['data'=>$message];
         }
         if ($path==='/messages'&&$method==='POST') {
-            ++$state['creates'];$card=$state['card'];$state['native']=['body'=>['mid'=>'mid.sent.'.$state['creates'],'text'=>$card['plain_text'],'attachments'=>array_merge([['type'=>'image','payload'=>['photo'=>'a']],['type'=>'image','payload'=>['photo'=>'b']],['type'=>'image','payload'=>['photo'=>'c']]],$card['max']['attachments']),'markup'=>$card['max_markup']],'sender'=>['user_id'=>999],'recipient'=>['user_id'=>202,'chat_id'=>555,'chat_type'=>'dialog']];
+            ++$state['creates'];$card=$state['card'];$state['native']=['body'=>['mid'=>'mid.sent.'.$state['creates'],'text'=>$card['plain_text'],'attachments'=>array_merge(array_map(static fn(int $i):array=>['type'=>'image','payload'=>['photo'=>(string)$i]],range(1,count($card['presentation']['photos']))),$card['max']['attachments']),'markup'=>$card['max_markup']],'sender'=>['user_id'=>999],'recipient'=>['user_id'=>202,'chat_id'=>555,'chat_type'=>'dialog']];
             return ['data'=>['message'=>$state['native']]];
         }
         if (str_starts_with($path,'/messages/mid.sent.')) return ['data'=>!empty($state['readback'])?$state['native']:null];

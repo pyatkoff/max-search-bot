@@ -64,6 +64,10 @@ async function fixture(page,options={}){
     const headers={'Cache-Control':'private, no-store'};
     return options.photoError?route.fulfill({status:404,headers,body:''}):route.fulfill({contentType:'image/jpeg',headers,body:fs.readFileSync(path.join(root,'assets/owner-tour-cards/compact-v1',(['cover','beach','room'][Number(new URL(route.request().url()).searchParams.get('photo'))]||'cover')+'.jpg'))});
   });
+  await page.route('https://apigate-tui.fstravel.com/api/geocontent/static/Hotel/**',route=>{
+    const url=route.request().url(),kind=url.includes('MainPhoto')?'cover':url.includes('InsideOfTheRoom')?'room':'beach';
+    return route.fulfill({contentType:'image/jpeg',body:fs.readFileSync(path.join(root,'assets/owner-tour-cards/compact-v1',kind+'.jpg'))});
+  });
   const photoUploads=[],uploadedFiles=new Map();let heldUpload=null;
   await page.route(/\/manager\/tour-selection-photo\.php(?:\?|$)/,async route=>{
     if(route.request().method()==='GET'){
@@ -97,7 +101,7 @@ async function fixture(page,options={}){
     if(d.action==='prepare'){
       const built=JSON.parse(execFileSync('php',['-r',`require getcwd().'/services/ManagerTourSelectionPublicationDraft.php'; $draft=json_decode(stream_get_contents(STDIN),true); $result=ManagerTourSelectionPublicationDraft::build($draft); if ($result['ok']) foreach ($result['offers'] as &$offer) $offer['card']=TourOfferCardRenderer::render($offer['snapshot'],$offer['presentation'],'tour_like_1_'.str_repeat('a',24)); echo json_encode($result,JSON_THROW_ON_ERROR);`],{cwd:root,input:JSON.stringify(snapshot(d.conversation_id).draft),encoding:'utf8'}));
       if(!built.ok)return reply(built,422);
-      publication=publication||{id:'a'.repeat(32),draft_version:d.version,title:built.title,channel:options.channel||'telegram',can_send:!options.readOnly,cards:built.offers.map((offer,i)=>({index:i,offer_id:i+1,state:'pending',snapshot:offer.snapshot,text:offer.card.plain_text,photos:[0,1,2].map(p=>'tour-selection-photo.php?publication_id='+'a'.repeat(32)+'&card='+i+'&photo='+p+'&conversation_id='+d.conversation_id)}))};
+      publication=publication||{id:'a'.repeat(32),draft_version:d.version,title:built.title,channel:options.channel||'telegram',can_send:!options.readOnly,cards:built.offers.map((offer,i)=>({index:i,offer_id:i+1,state:'pending',snapshot:offer.snapshot,text:offer.card.plain_text,photos:offer.presentation.photos.map((_,p)=>'tour-selection-photo.php?publication_id='+'a'.repeat(32)+'&card='+i+'&photo='+p+'&conversation_id='+d.conversation_id),...(offer.presentation.layout==='gallery-v1'?{photo_layout:'gallery-v1'}:{})}))};
       return reply({ok:true,publication:copy(publication)});
     }
     if(d.action==='interest')return reply(options.interest||{ok:false,error:'observations_unavailable'},options.interest?.ok?200:503);
@@ -840,4 +844,40 @@ test('selection uploaded photo can be removed or replaced by an ordinary source 
 test('selection lost final photo chunk confirms the same image without another upload operation',async({page})=>{
  const draft=completeDraft(),s=await fixture(page,{draft,uploadMode:'after_final'});await open(page);await page.locator('#ts-upload-cover').setInputFiles(path.join(root,'assets/owner-tour-cards/compact-v1','cover.jpg'));await expect(page.locator('#tsUploadRetry')).toBeEnabled();const count=s.photoUploads.length,last=copy(s.photoUploads[count-1]);expect(count).toBe(last.part_count);expect(s.drafts.get(11).version).toBe(1);await expect(page.locator('#ts-photo-cover')).toHaveValue(draft.offers[0].photos[0].url);
  await page.locator('#tsUploadRetry').click();await expect(page.locator('#tsStatus')).toContainText('Фото добавлено');expect(s.photoUploads).toHaveLength(count+1);expect(s.photoUploads[count]).toEqual(last);expect(s.uploadedFiles.size).toBe(1);expect(s.drafts.get(11).version).toBe(2);clean(s);
+});
+
+function automaticPhotoDraft(count=3){
+ const code=`require 'tests/support/manager-tour-collector.php';$o=collectorObservation();$base='https://apigate-tui.fstravel.com/api/geocontent/static/Hotel/00180000-ac11-0242-6c05-08d9934f9e4b/';$o['photos']=array_slice(array_map(static fn($k)=>$base.$k.'-Source-automatic.jpg',['MainPhoto','Gallery','InsideOfTheRoom']),0,(int)$argv[1]);$i=ManagerTourSelectionImportDraft::normalize($o);if(!$i)throw new RuntimeException('invalid automatic fixture');$offer=$i['offer'];$offer['id']=str_repeat('a',32);$offer['import_source']=ManagerTourSelectionImportDraft::source($i);echo json_encode(['title'=>'Автоматические фото','intro'=>'','offers'=>[$offer]],JSON_THROW_ON_ERROR);`;
+ return JSON.parse(execFileSync('php',['-r',code,String(count)],{cwd:root,encoding:'utf8'}));
+}
+for(const source of [{name:'FUNSUN',fixture:sourceFixture,script:'content.js'},{name:'ANEX',fixture:anexSourceFixture,script:'anex-content.js'}])test('automatic gallery '+source.name+' one click captures source photos without file input',async({page})=>{
+ await source.fixture(page);await collectorSourceRuntime(page);await page.addScriptTag({path:path.join(root,'extensions/selection-collector',source.script)});
+ await page.getByRole('button',{name:'В подборку AnyTour',exact:true}).click();await expect(page.getByRole('button',{name:'✓ В подборке',exact:true})).toBeVisible();
+ const observations=await page.evaluate(()=>collectorStaged.map(x=>x.observation));expect(observations).toHaveLength(1);expect(observations[0].photos).toHaveLength(3);expect(new Set(observations[0].photos).size).toBe(3);expect(await page.locator('iframe').count()).toBe(0);expect(await page.locator('input[type=file]').count()).toBe(0);
+ expect(await page.locator('body').innerText()).not.toContain('Синтетическая Анна');
+});
+test('automatic gallery source changes while photos load cannot enqueue a stale offer',async({page})=>{
+ await sourceFixture(page);let release;await page.route('https://b2b.fstravel.com/hotel/10',async route=>{await new Promise(r=>release=r);await route.fulfill({contentType:'text/html',body:'<img class="slider-img" src="https://apigate-tui.fstravel.com/api/geocontent/static/Hotel/00180000-ac11-0242-6c05-08d9934f9e4b/MainPhoto-Source-test.jpg">'})});
+ await collectorSourceRuntime(page);await page.addScriptTag({path:path.join(root,'extensions/selection-collector/content.js')});await page.getByRole('button',{name:'В подборку AnyTour',exact:true}).click();await expect.poll(()=>!!release).toBe(true);
+ await page.locator('.price').evaluate(e=>{e.setAttribute('data-converted-price-number','250000');e.textContent='250 000 RUB'});release();await expect(page.locator('[data-anytour-note]')).toContainText('Условия изменились');expect(await page.evaluate(()=>collectorStaged.length)).toBe(0);
+});
+test('automatic gallery Tourvisor copies only exact card photo prefixes',async({page})=>{
+ await tourvisorSourceFixture(page,{photos:true});const value=await page.evaluate(()=>AnyTourTourvisor.extract(document,location.href,'2026-10-24T11:00:00Z'));expect(value.photos).toHaveLength(3);value.raw.party_price_confirmation='one_room_two_adults';
+ const normalized=JSON.parse(execFileSync('php',['-r',`require 'services/ManagerTourSelectionImportDraft.php';echo json_encode(ManagerTourSelectionImportDraft::normalize(json_decode(stream_get_contents(STDIN),true)),JSON_THROW_ON_ERROR);`],{cwd:root,input:JSON.stringify(value),encoding:'utf8'}));expect(normalized.offer.photos).toHaveLength(3);expect(normalized.photos).toEqual(value.photos);
+ await page.locator('.TVPreviewGalleryItem').first().evaluate(e=>e.style.backgroundImage='url("https://static.tourvisor.ru/hotel_pics/verybig/1/503-1.jpg")');expect((await page.evaluate(()=>AnyTourTourvisor.extract(document,location.href))).photos).toHaveLength(2);
+});
+for(const width of [390,430,768,1440])test('automatic gallery editor is ready without manual uploads at '+width,async({page,browserName})=>{
+ await page.setViewportSize({width,height:900});const draft=automaticPhotoDraft(),s=await fixture(page,{draft});await open(page);await expect(page.locator('.tsAutomaticPhotoStatus')).toContainText('Фото добавлены автоматически');await expect(page.locator('.tsAutomaticPhotos .tsUploadedThumb')).toHaveCount(3);
+ await page.locator('.tsAutomaticPhotos').scrollIntoViewIfNeeded();await expect.poll(()=>page.locator('.tsAutomaticPhotos img').evaluateAll(xs=>xs.every(x=>x.complete&&x.naturalWidth>0))).toBe(true);
+ expect(await page.locator('.tsPhotoReplace').evaluateAll(xs=>xs.every(x=>!x.open))).toBe(true);expect(await page.locator('body').evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({path:path.join(root,'manager2-artifacts',`tour-selection-auto-photos-${browserName}-${width}.png`)});
+ await page.locator('#tsPreview').click();await expect(page.locator('.tsPhotos img')).toHaveCount(3);await expect(page.locator('.tsCardText')).toContainText('Фотографии отеля.');expect(s.photoUploads).toHaveLength(0);expect(s.creations()).toBe(0);clean(s,deliveryActions);
+});
+for(const channel of ['telegram','max'])for(const count of [1,2,3])test('automatic gallery '+channel+' preview uses '+count+' actual photos',async({page,browserName})=>{
+ await page.setViewportSize({width:390,height:900});const draft=automaticPhotoDraft(count),s=await fixture(page,{draft,channel});await open(page);await page.locator('#tsPreview').click();await expect(page.locator('.tsPhotos img')).toHaveCount(count);await expect(page.locator('#tsSend')).toBeEnabled();await expect(page.locator('.tsCardText')).toContainText('Интерьер выбранного номера может отличаться');await expect(page.locator('.tsPhotos')).toHaveClass(new RegExp('tsPhotoCount'+count));
+ if(count===1){await expect(page.locator('.tsPhotoNav')).toHaveCount(0);fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({path:path.join(root,'manager2-artifacts',`tour-selection-auto-one-${channel}-${browserName}-390.png`)})}
+ expect(s.photoUploads).toHaveLength(0);expect(s.creations()).toBe(0);clean(s,deliveryActions);
+});
+test('automatic gallery replacement is optional and keeps original source material',async({page})=>{
+ const draft=automaticPhotoDraft(2),s=await fixture(page,{draft});await open(page);await page.locator('.tsPhotoReplace').first().locator('summary').click();await page.locator('#ts-photo-cover').fill('https://photos.example.org/replacement.jpg');await save(page);expect(s.drafts.get(11).draft.offers[0].photos[0].url).toBe('https://photos.example.org/replacement.jpg');expect(s.drafts.get(11).draft.offers[0].import_source).toEqual(draft.offers[0].import_source);expect(s.photoUploads).toHaveLength(0);clean(s);
 });

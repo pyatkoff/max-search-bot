@@ -62,7 +62,8 @@ final class ManagerTourSelectionDeliveryService
         foreach ($publication['cards'] as $row) {
             $offer=$publication['selection']['offers'][(int)$row['card_index']];$card=TourOfferCardRenderer::render($offer['snapshot'],$offer['presentation'],$row['callback_data']);
             $cards[]=['index'=>(int)$row['card_index'],'offer_id'=>(int)$row['offer_id'],'state'=>$row['state'],'text'=>$card['plain_text'],'snapshot'=>$offer['snapshot'],
-                'photos'=>array_map(static fn(int $i):string=>self::photoUrl($conversation,$id,(int)$row['card_index'],$i),[0,1,2])];
+                'photos'=>array_map(static fn(int $i):string=>self::photoUrl($conversation,$id,(int)$row['card_index'],$i),array_keys($offer['presentation']['photos'])),
+                ...(($offer['presentation']['layout']??'')==='gallery-v1'?['photo_layout'=>'gallery-v1']:[])];
         }
         return ['ok'=>true,'publication'=>['id'=>$id,'draft_version'=>(int)$publication['draft_version'],'created_at'=>$publication['created_at'],
             'title'=>$publication['selection']['title'],'channel'=>$context['conversation']['channel'],
@@ -98,12 +99,12 @@ final class ManagerTourSelectionDeliveryService
         if ($q->fetchColumn()) return self::error('delivery_unknown');
         // Preparation can be retried: it never creates a customer message.
         try {
-            $files=$images?$images($id,$index,$offer):array_map(static fn(int $i):array=>TourSelectionPhotoStore::image(self::imageKey((int)$row['offer_id']),0,$i,$offer['presentation']['photos'][$i]['url']),[0,1,2]);
-            if (!is_array($files) || count($files)!==3) throw new RuntimeException('invalid_photo');
+            $files=$images?$images($id,$index,$offer):array_map(static fn(int $i):array=>TourSelectionPhotoStore::image(self::imageKey((int)$row['offer_id']),0,$i,$offer['presentation']['photos'][$i]['url']),array_keys($offer['presentation']['photos']));
+            if (!is_array($files) || count($files)!==count($offer['presentation']['photos'])) throw new RuntimeException('invalid_photo');
             $identity=$transport->prepare($context['transport_binding'],$files);
         } catch (Throwable $e) {return self::error('preparation_failed');}
         $receipt=['actor'=>$actor,'identity'=>$identity,'image_hashes'=>array_column($files,'sha256'),'native'=>null];
-        if (count($receipt['image_hashes'])!==3) return self::error('preparation_failed');
+        if (count($receipt['image_hashes'])!==count($offer['presentation']['photos'])) return self::error('preparation_failed');
         $pdo=ConversationDb::connection();self::begin($pdo);
         try {
             $fresh=self::context($actor,$conversation,true);

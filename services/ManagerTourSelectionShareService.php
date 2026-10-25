@@ -46,7 +46,7 @@ final class ManagerTourSelectionShareService
                 // Compare exact terms rather than rejecting its original revision.
                 if ($current!==$stored['selection']) {$pdo->rollBack();return self::error('draft_changed');}
                 // All public photos must already have been inspected/cached in preview.
-                foreach ($stored['cards'] as $i=>$card) foreach ([0,1,2] as $photo) {
+                foreach ($stored['cards'] as $i=>$card) foreach (array_keys($stored['selection']['offers'][$i]['presentation']['photos']) as $photo) {
                     $url=$stored['selection']['offers'][$i]['presentation']['photos'][$photo]['url']??'';
                     if (!TourSelectionPhotoStore::cached(TourSelectionPhotoStore::offerKey((int)$card['offer_id']),0,$photo,$url)) {$pdo->rollBack();return self::error('preparation_failed');}
                 }
@@ -92,7 +92,8 @@ final class ManagerTourSelectionShareService
                 'destination'=>(string)($details['destination']??''),'flights'=>(string)($details['flights']??''),
                 'inclusions'=>(string)($details['inclusions']??''),'constraints'=>(string)($details['constraints']??''),
                 'observed_at'=>(string)($details['observed_at']??''),'price_verified'=>false,
-                'photos'=>array_map(static fn(int $photo):string=>'photo.php?'.http_build_query(['t'=>$token,'v'=>$link['version'],'card'=>$i,'photo'=>$photo]),[0,1,2]),
+                'photos'=>array_map(static fn(int $photo):string=>'photo.php?'.http_build_query(['t'=>$token,'v'=>$link['version'],'card'=>$i,'photo'=>$photo]),array_keys($offer['presentation']['photos'])),
+                ...(($offer['presentation']['layout']??'')==='gallery-v1'?['photo_layout'=>'gallery-v1']:[]),
             ];
         }
         return ['title'=>(string)$p['selection']['title'],'intro'=>(string)$p['selection']['intro'],'version'=>(int)$link['version'],'updated_at'=>$link['updated_at'],'offers'=>$offers];
@@ -136,7 +137,7 @@ final class ManagerTourSelectionShareService
     private static function publicOffer(string $token,int $card): array
     {
         $offer=self::read($token)['offers'][$card]??[];
-        unset($offer['bot_links'],$offer['photos'],$offer['hotel_group']);
+        unset($offer['bot_links'],$offer['photos'],$offer['hotel_group'],$offer['photo_layout']);
         return $offer;
     }
 

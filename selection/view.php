@@ -11,13 +11,13 @@ declare(strict_types=1);
 <?php
 $groups=[];
 foreach ($selection['offers'] as $offer) {
-    $key=isset($offer['hotel_group'])?'group:'.$offer['hotel_group']:'offer:'.$offer['index'];
+    $key=isset($offer['hotel_group'])&&($offer['photo_layout']??'')!=='gallery-v1'?'group:'.$offer['hotel_group']:'offer:'.$offer['index'];
     $groups[$key][]=$offer;
 }
 foreach ($groups as $variants): $cover=$variants[0];$grouped=count($variants)>1;
 ?>
 <article class="offer"<?= $grouped?'':' id="variant-'.($cover['index']+1).'"' ?>>
-<div class="photos<?= $grouped?' sharedPhotos':'' ?>"><?php foreach (($grouped?array_slice($cover['photos'],0,2):$cover['photos']) as $i=>$photo): ?><figure><img src="<?= $h($photo) ?>" alt="<?= ['Вид отеля','Пляж или территория','Пример интерьера номера'][$i] ?>" loading="lazy" referrerpolicy="no-referrer" width="800" height="600"><?php if ($i===2): ?><figcaption>Пример интерьера номера</figcaption><?php endif; ?></figure><?php endforeach; ?></div>
+<div class="photos<?= $grouped?' sharedPhotos':'' ?> photoCount<?= count($cover['photos']) ?>"><?php foreach (($grouped?array_slice($cover['photos'],0,2):$cover['photos']) as $i=>$photo): ?><figure><img src="<?= $h($photo) ?>" alt="<?= ($cover['photo_layout']??'')==='gallery-v1'?'Фото отеля '.($i+1):['Вид отеля','Пляж или территория','Пример интерьера номера'][$i] ?>" loading="lazy" referrerpolicy="no-referrer" width="800" height="600"><?php if ($i===2&&($cover['photo_layout']??'')!=='gallery-v1'): ?><figcaption>Пример интерьера номера</figcaption><?php endif; ?></figure><?php endforeach; ?></div>
 <div class="offerBody"><h2 data-interest-hotel data-interest-card="<?= (int)$cover['index'] ?>"><?= $h($cover['hotel']) ?></h2>
 <?php if ($grouped): ?><p class="groupHint">Несколько предложений одного отеля — сравните даты, номера и цены.</p><?php endif; ?>
 <?php foreach ($variants as $offer): ?>

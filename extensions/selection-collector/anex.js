@@ -41,5 +41,11 @@ function extract(doc,anchor,href,at=new Date().toISOString().replace(/\.\d{3}Z$/
  if(Object.values(raw).some(s=>s.length>1200)||hm[1].trim().length>191||room.length>290)fail('Слишком длинные условия ANEX.');
  return {adapter:'anex-agent-v1',url:safe.href,observed_at:at,quote_id:quote.toLowerCase(),keys:{hotel,country:'3',departure:'moskva',spo},raw,offer:{hotel:hm[1].trim(),stars:Number(hm[2]),destination:'Турция, '+resort,departure:'Москва',date_from:iso,nights:Number(nights),adults:2,child_ages:[],room:room+' / DBL',meal,amount:pm[1].replaceAll(' ',''),currency:'RUB'}};
 }
-root.AnyTourAnex={extract,anchors,resultRow};
+function photos(doc,hotel){
+ const page=new URL(doc.location.href);if(page.origin!=='https://agent.anextour.ru'||page.pathname!=='/search/tour'||page.searchParams.getAll('HOTEL_INC').length!==1||page.searchParams.get('HOTEL_INC')!==hotel||page.searchParams.get('TAB_ACTIVE')!=='description')return [];
+ return [...new Set(Array.from(doc.querySelectorAll('[role="tabpanel"] #sliderPhoto img')).map(e=>e.getAttribute('src')).filter(s=>{
+  try{const u=new URL(s);return u.origin==='https://files.anextour.ru'&&/^\/hotel\/hotels\/[a-z0-9_/-]+\/o[1-9]\d*$/.test(u.pathname)&&!u.hash&&!u.username&&!u.password&&!u.port&&Array.from(u.searchParams).length===1&&u.searchParams.get('hotelCode')===hotel}catch{return false}
+ }))].slice(0,3);
+}
+root.AnyTourAnex={extract,anchors,resultRow,photos};
 })(typeof window==='undefined'?module.exports:window);

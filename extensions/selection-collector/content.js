@@ -8,6 +8,11 @@ async function collect(row,button,editing=false){
  if(!row.isConnected||!row.getClientRects().length)throw new Error('Строка больше не отображается.');
  const before=source.extract(row,location.href);await delay(750);const after=source.extract(row,location.href);
  before.observed_at=after.observed_at;if(!row.isConnected||!row.getClientRects().length||JSON.stringify(before)!==JSON.stringify(after))throw new Error('Условия ещё меняются. Дождитесь окончания поиска.');
+ AnyTourCollectorClient.label(button,'Добавляем фото…');
+ const photos=await AnyTourCollectorClient.gallery('/hotel/'+after.keys.hotel,doc=>AnyTourFunsun.photos(doc,after.keys.hotel));
+ const fresh=source.extract(row,location.href);fresh.observed_at=after.observed_at;
+ if(!row.isConnected||!row.getClientRects().length||JSON.stringify(fresh)!==JSON.stringify(after))throw new Error('Условия изменились во время загрузки фото. Добавьте текущий вариант заново.');
+ after.photos=photos;
  await AnyTourCollectorClient.append(button,ticket,after,editing);
  }catch(e){AnyTourCollectorClient.label(button,'Не добавлено');button.title=e.message;const note=row.querySelector('[data-anytour-note]')||document.createElement('div');note.dataset.anytourNote='1';note.setAttribute('role','status');note.dataset.anytourTone='error';note.textContent=e.message;button.parentElement.append(note)}
  finally{button.disabled=false}
