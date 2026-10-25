@@ -43,6 +43,26 @@ function anexCollectorObservation(): array
         'raw'=>['hotel'=>'Синтетический ANEX5 *','resort'=>'Белек','date'=>'25 окт. 2026 вс','nights'=>'7','room'=>'Standard Room','placement'=>'DBL','meal'=>'UAI','price'=>'177 323 ₽','party'=>'2 взрослых','tariff'=>'ANEX Light','departure'=>'Москва','country'=>'Турция']];
 }
 
+function anexEgyptCollectorObservation(bool $light=true,string $airport='HRG'): array
+{
+    $o=anexCollectorObservation();$o['url']=str_replace(['STATEINC=3','20261025','NIGHTMIN=7','NIGHTMAX=7'],['STATEINC=11','20261029','NIGHTMIN=11','NIGHTMAX=11'],$o['url']);
+    $o['keys']['country']='11';$o['keys']['spo']=$airport.'-12345-MOW'.($light?' Anex Light':'');
+    $o['offer']=array_replace($o['offer'],['destination'=>'Египет, Хургада','date_from'=>'2026-10-29','nights'=>11,'meal'=>'AI','amount'=>'148039']);
+    $o['raw']=array_replace($o['raw'],['country'=>'Египет','resort'=>'Хургада','date'=>'29 окт. 2026 чт','nights'=>'11','meal'=>'AI','price'=>'148 039 ₽','tariff'=>$light?'ANEX Light':'']);
+    $o['photos']=array_map(static fn(int $i):string=>'https://files.anextour.ru/hotel/hotels/egypt/synthetic/o'.$i.'?&hotelCode=100',[1,2,3]);return $o;
+}
+
+/** Three independent source contracts, one Egypt trip, real canonical import owner. */
+function collectorEgyptMixedDraft(PDO $pdo,array $anex): array
+{
+    $fs=collectorObservation();$fs['url']=str_replace(['20270605','NIGHTS_FROM=7','NIGHTS_TILL=7','STATEINC=1&'],['20261029','NIGHTS_FROM=11','NIGHTS_TILL=11','STATEINC=18498&'],$fs['url']);$fs['keys']['country']='18498';
+    $fs['offer']=array_replace($fs['offer'],['destination'=>'Египет, Хургада','date_from'=>'2026-10-29','nights'=>11,'meal'=>'AI']);$fs['raw']=array_replace($fs['raw'],['date'=>'29.10.2026, чт','nights'=>'11','meal'=>'AI']);
+    $base='https://apigate-tui.fstravel.com/api/geocontent/static/Hotel/00180000-ac11-0242-6c05-08d9934f9e4b/';$fs['photos']=array_map(static fn(string $kind):string=>$base.$kind.'-Source-mixed.jpg',['MainPhoto','Gallery','InsideOfTheRoom']);
+    collectorImportedDraft($pdo,$fs);$tv=tourvisorCollectorObservation();$tv['photos']=array_map(static fn(int $i):string=>'https://static.tourvisor.ru/hotel_pics/verybig/1/502-'.$i.'.jpg',[1,2,3]);
+    foreach ([$anex,$tv] as $n=>$observation){$r=ManagerTourSelectionService::import(7,1,str_repeat('1',64),['operation_id'=>'egypt-mixed-source-000'.($n+1),'connection_id'=>str_repeat('3',32),'observation'=>$observation]);if(empty($r['ok'])||$r['count']!==$n+2)throw new RuntimeException('Mixed Egypt canonical import failed');}
+    return ManagerTourSelectionService::get(7,1)['selection'];
+}
+
 function anexCollectorScenarios(PDO $pdo,string $session,string $connection): void
 {
     $observation=anexCollectorObservation();$normalized=ManagerTourSelectionImportDraft::normalize($observation);
