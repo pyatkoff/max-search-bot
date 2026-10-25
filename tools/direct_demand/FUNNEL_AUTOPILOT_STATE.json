@@ -1,6 +1,6 @@
 {
   "schema": "anytour.funnel.autopilot_state.v1",
-  "updated_at_utc": "2026-10-25T01:40:21.777Z",
+  "updated_at_utc": "2026-10-25T02:40:52.073Z",
   "owner": "direct-demand-funnel",
   "automation": {
     "id": "6ada8f0084888191b12c6619c12fb35c",
@@ -9,7 +9,7 @@
     "timezone": "Europe/Kaliningrad",
     "enabled_verified_at_utc": "2026-10-22T22:39:46.922Z"
   },
-  "status": "R2_P39_PROPOSED_AD_POST_CONTEXT3_READY_FOR_REVIEW_NOT_LIVE_VERIFIED",
+  "status": "R2_P40_FOURTH_HOTEL_REFERENCE_REVIEWABLE_WITH_POST_SCOPED_CONFLICTS_NO_TRAFFIC_RELEASE",
   "channel": null,
   "scope": {
     "prepare_catalog_matches": true,
@@ -650,22 +650,22 @@
     },
     "current_funnel_strategy": {
       "library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
-      "version": 18,
+      "version": 19,
       "revision": "OWNER_PLAN_REVISION_20261024",
       "plan_member": "existing-post-review/p34/plan.json",
       "initial_candidate_member": "existing-post-review/p34/initial-candidates.PRIVATE.json",
       "readable_plan_library_file_id": "libfile_c1f06826dd408191bed3e0cb8103e379",
-      "readable_plan_version": 18,
+      "readable_plan_version": 19,
       "review_member": "existing-post-review/p34/review.html",
-      "current_step": "P39_CURRENT3_REVIEW_PACKAGE_READY_NEXT_EXACT_HOTEL_SOURCE",
+      "current_step": "S3_BOUNDED_SOURCE_FIT_FOUR_REFERENCE_DRAFTS_NOT_ACCEPTED",
       "latest_correction": "P36_SAME3_TEXT_IMAGE_CTA_REWORK",
       "current_review_member": "existing-post-review/p36/review.html"
     },
     "r2_reference_packet": {
       "library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
-      "version": 18,
+      "version": 19,
       "readable_preview_library_file_id": "libfile_c1f06826dd408191bed3e0cb8103e379",
-      "readable_preview_version": 18,
+      "readable_preview_version": 19,
       "routes_member": "existing-post-review/p36/routes.json",
       "audit_member": "existing-post-review/p36/intent-revision.PRIVATE.json",
       "binding_member": "existing-post-review/p36/binding-review-3.NOT-APPLIED.json",
@@ -682,7 +682,7 @@
         "photo-provenance.json": "efa7f4349cc2d97e0606db671ee4959325447cac91657c24059a2249a30e2719",
         "validation.json": "04c1aaf91f136aab1580a9331119a45b7e4226538a1e96bf9c05fe4a1f41f25d"
       },
-      "prepared_editorial_routes": 3,
+      "prepared_editorial_routes": 4,
       "issued_entry_ids": 0,
       "active_destinations": 0,
       "real_bot_path_tested": false,
@@ -695,7 +695,8 @@
       "family_revision_member": "existing-post-review/p38/route.json",
       "family_revision_binding_member": "existing-post-review/p38/binding.NOT-APPLIED.json",
       "family_revision_feed_member": "existing-post-review/p38/feed.INCOMPLETE-DRAFT.json",
-      "current_consolidated_feed_member": "existing-post-review/p39/current3-feed.INCOMPLETE-DRAFT.json"
+      "current_consolidated_feed_member": "existing-post-review/p40/current4-feed.INCOMPLETE-DRAFT.json",
+      "additional_Golf_Beach_member": "existing-post-review/p40/route.json"
     },
     "r2_reference_packet_prior_P35": {
       "library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
@@ -773,6 +774,24 @@
       "proposed_not_live_creative": true,
       "source_feed_rows_copied_exactly": true,
       "existing_canonical_issuance_only": true
+    },
+    "current_golf_beach_reference": {
+      "library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
+      "version": 19,
+      "route_member": "existing-post-review/p40/route.json",
+      "route_sha256": "f6bb1c025513f0347061e189783358f01e6882833e16f6617e6ec50200f8ae03",
+      "cover_member": "existing-post-review/p40/cover.jpg",
+      "binding_member": "existing-post-review/p40/binding.NOT-APPLIED.json",
+      "current_feed_member": "existing-post-review/p40/current4-feed.INCOMPLETE-DRAFT.json",
+      "source_read_member": "existing-post-review/p40/source-read.PRIVATE.json",
+      "photo_member": "existing-post-review/p40/photo-sources.json",
+      "demand_evidence_member": "existing-post-review/p40/demand-evidence.PRIVATE.json",
+      "review_member": "existing-post-review/p40/review.html",
+      "validation_member": "existing-post-review/p40/validation.json",
+      "preview_library_file_id": "libfile_c1f06826dd408191bed3e0cb8103e379",
+      "preview_version": 19,
+      "private_materials_only_in_Library": true,
+      "post_scoped_source_use_not_new_hotel_profile": true
     }
   },
   "operations": {
@@ -903,16 +922,18 @@
     "r2_P38_save": "DONE_PREVIEW17_COMPANION17_GUARDED_REPLACEMENTS",
     "r2_P38_ad_creative_capability": "BLOCKED_NO_CONNECTED_DIRECT_AD_READ_CAPABILITY",
     "r2_P39_proposed_ad_compatibility": "DONE_THREE_PROPOSED_ADS_TWELVE_ILLUSTRATIVE_BOUNDARIES_NOT_LIVE_CREATIVE",
-    "r2_P39_save": "DONE_PREVIEW18_COMPANION18_GUARDED_REPLACEMENTS"
+    "r2_P39_save": "DONE_PREVIEW18_COMPANION18_GUARDED_REPLACEMENTS",
+    "r2_P40_Golf_Beach": "DONE_EXACT_HOTEL_SOURCE_FIT_DRAFT_COVER_INACTIVE_BINDING",
+    "r2_P40_save": "DONE_PREVIEW19_COMPANION19_GUARDED_REPLACEMENTS"
   },
   "next_steps": [
-    "P39 DONE: three explicitly proposed ad drafts, twelve illustrative eligibility scenarios and current3 exact inactive feed-row projection are saved in companion18. These are proposed creative, not current live ad exports; scenarios are editorial examples, not new observed demand or runtime tests.",
-    "Current3 review package resolves P36 Alma/heated-pool plus P38 two-room revision, with P39 ad/post/expected-context compatibility and exact source references. P36/P37/P38 originals, base70 and source92 remain unchanged. Numeric/editorial and business acceptance, actual issued IDs/destinations and real bot-path proof remain OPEN.",
-    "Next bounded useful source block: inspect already-audited exact-hotel pickalbatros_golf_beach candidate from P35 against current saved post, exact property/category photos and canonical facts. Prepare a whole matched draft only if source/intent supports it; preserve identity/supplier/video holds and do not fill a count quota. Do not choose next archive number.",
-    "Actual Direct creative/landing read remains BLOCKED_NO_CONNECTED_DIRECT_AD_READ_CAPABILITY; no retry without a new available capability/source. Proposed ad promise is never evidence of the original live ad; no credential/settings/runtime/browser bypass.",
-    "Current consolidated feed3 is an inactive view of existing P36/P38 rows copied exactly, not a new registry/store; no new IDs or active URL. Existing canonical ID/yclid/chat matching and collection identities remain sole mechanism. Base pointer expected15 is a retained P36 snapshot; latest supplements resolve through this checkpoint and companion18.",
-    "Source demand is dated own-ad exposure, not Wordstat/whole market; narrow room/heating cohorts do not inherit broad family/winter metrics. Current ON is unknown. Keep unsupported area/swimup/occupancy/room-layout requirements held; explicit tourist words win over post context.",
-    "Before native tests/sends/edits/publication/live-feed/RK/spending require exact fresh owner/channel/action/budget receipt. Preserve paused learning/CRM, Wordstat/ASR blockers and all foreign claims. No full CI/Direct/native baseline solely for status; models/budgets/schedule/enabled unchanged."
+    "P40 DONE: fourth whole reference draft Golf Beach reuses root prepared text with fresh post-scoped operator/official source check, actual named-hotel photo, CTA, inactive existing-key binding and current4 feed projection. Companion/preview19 current; no traffic acceptance or actual IDs/URLs.",
+    "Next useful bounded source block: read saved P35 TH_winter intent and existing relevant posts/canonical facts; split region/date-specific commercial intent from broad weather/country queries before proposing a seasonal route. Prepare only a source-supported region-specific whole draft; do not resume archive order or fill a quota.",
+    "P40 Executive area48(operator)/60(official hub) and occupancy conflict are explicit holds omitted from caption; category/contract/travel-party verification remains required. Fresh official sandy-lagoon/jetty description is post-scoped source evidence, not an update to canonical hotel archive or a blanket safe-entry guarantee.",
+    "Room-category image returned403; no retry/bypass. Official named-hotel territory photo was read separately and labelled; it proves neither room type, pontoon/lagoon details nor cabana inclusion. Preserve exact provenance.",
+    "Current four references resolve P36 Alma/heated-pool +P38 two-room +P40 Golf Beach; current4 inactive feed is same existing collection format, not a new attribution store. Base70 expected companion15 remains historical P36 snapshot; current supplements resolve via this checkpoint. Prior204/95 and root99/356 remain nonadditive.",
+    "Actual Direct creative/landing read remains unavailable; do not retry unchanged blocked capability/Wordstat/ASR. Saved monthly Golf exposure308/8 and last7=33/1 are own-ad historical metrics, not market frequency, qualified commercial scale, current ON or new ad conversion.",
+    "Before native tests/sends/edits/publication/live-feed/RK/spending require exact fresh owner/channel/action/budget receipt and real context verification. Numeric/editorial/business acceptance and issued destinations remain OPEN. No foreign/runtime/model/budget/schedule/enabled changes; paused learning/CRM preserved."
   ],
   "publication_blocker": "Current P36 three routes have no verified issued entry IDs/active destinations or real bot-path verification. Numeric/editorial acceptance is pending. Exact fresh native/channel/action and separate paid/budget permissions remain required; readonly/admin access and old tests are not new authorization.",
   "coordination": "Own audit/direct-demand-20261022 branch only; no foreign claims, CI, paused hotel tasks or production flows.",
@@ -2885,7 +2906,7 @@
     "library_archive_size": "Current536730088bytes/limit536870912/headroom140824;guards49/50/30.H16preserved all existing evidence and losslessly BZIP2compressed18existingJSONmembers:per-member originaluncompressedSHA,CRC/size and Python/InfoZIP6readPASS recorded inH16lossless-packaging.json.Other prior compression types unchanged.Preserve current root/current-fileBZIP2method on updates;preflight new byte budget before upload.No oversized request/evidence deletion.Unselected new largeOGexcluded with provenance,not prior evidence."
   },
   "latest_completed_block": {
-    "name": "P39: proposed ad/post/context compatibility3 and illustrative boundaries12; no live-ad or bot-path proof",
+    "name": "P40: Golf Beach whole reference draft, source-conflict-safe copy and official hotel cover; no traffic release",
     "total_prepared_subjects": 94,
     "total_exact_caption_bodies": 95,
     "total_saved_post_candidates": 204,
@@ -2896,25 +2917,25 @@
     "total_video_holds": 94,
     "total_text_photo_paths": 110,
     "identity_lookup_holds": 151,
-    "new_caption_bodies": 0,
+    "new_caption_bodies": 1,
     "new_exact_saved_post_candidates": 0,
-    "new_covers": 0,
+    "new_covers": 1,
     "new_IDs": 0,
     "actual_channel_writes": 0,
     "platforms": {
       "max": 195,
       "telegram": 9
     },
-    "completed_at_utc": "2026-10-25T01:40:21.777Z",
+    "completed_at_utc": "2026-10-25T02:40:52.073Z",
     "save_versions": {
       "base": 70,
-      "preview": 18,
-      "companion": 18
+      "preview": 19,
+      "companion": 19
     },
     "strategy_revision": "OWNER_PLAN_REVISION_20261024",
-    "r2_reference_routes": 3,
+    "r2_reference_routes": 4,
     "r2_counts_not_additive_to_baseline_slices": true,
-    "reference_revision": "P39_PROPOSED_CREATIVE_COMPATIBILITY",
+    "reference_revision": "P40_GOLF_BEACH",
     "previous_9_8_8_superseded": true,
     "numeric_rubric_acceptance_pending": true
   },
@@ -8070,7 +8091,7 @@
     "same_workstream": true,
     "no_new_queue": true,
     "unit_of_completion": "Связка спрос → релевантный пост и фото → конкретная кнопка → существующий бот с сохранённым контекстом → квалифицированное обращение.",
-    "current_step": "P39_CURRENT3_REVIEW_PACKAGE_READY_NEXT_EXACT_HOTEL_SOURCE",
+    "current_step": "S3_BOUNDED_SOURCE_FIT_FOUR_REFERENCE_DRAFTS_NOT_ACCEPTED",
     "stages": [
       {
         "id": "S1",
@@ -8147,19 +8168,19 @@
       "Manager2/constructor/SEARCH/INT/LOCAL/MATCH,pausedlearningCRM,models/budgets/settings unchanged.Wordstat/ASRblockers unchanged,notretried.No fullCI/Direct/nativebaseline reruns."
     ],
     "artifact_library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
-    "artifact_version": 18,
+    "artifact_version": 19,
     "plan_member": "existing-post-review/p34/plan.json",
     "plan_SHA256": "079d14dcf69eab1b5bdd8722c4f849b61560486bb80804f3263641b16785fc70",
     "readable_plan_library_file_id": "libfile_c1f06826dd408191bed3e0cb8103e379",
-    "readable_plan_version": 18,
+    "readable_plan_version": 19,
     "explicit_handoff": {
-      "from_context": "P39_same_scheduled_executor",
+      "from_context": "P40_same_scheduled_executor",
       "to_existing_automation": "6ada8f0084888191b12c6619c12fb35c",
       "same_executor": true,
       "no_parallel_package": true,
-      "source_claim_issue55_comment_id": 6392025985,
-      "start_at": "P39_NEXT_EXACT_HOTEL_SOURCE_FIT",
-      "instruction": "Read companion18 current3 compatibility and P36/P38 current route pointers. Do not replay P36–P39 or unavailable ad-read. Continue useful exact-hotel source fit from saved P35 priorities, preserving all holds; no mass-growth/traffic acceptance by count."
+      "source_claim_issue55_comment_id": 6392513529,
+      "start_at": "P40_NEXT_SEASONAL_REGION_INTENT_SPLIT",
+      "instruction": "Read companion19 P40 exact-hotel draft and conflicts. Do not replay P36–P40/source downloads/403 or unavailable ad-read. Next bounded saved-demand seasonal region split; no quota filling or native release."
     },
     "automation_prompt_revision": "P36_REWORK_SAME3_CURRENT_OVER_P34_HISTORICAL_NEXT_ACTION",
     "automation_prompt_verified": true,
@@ -8228,7 +8249,7 @@
     "stage_progress": {
       "S1": "BOUNDED_AUDIT10_DONE_WITH_IDENTITY_AND_SOURCE_GAPS_RETAINED",
       "S2": "CURRENT3_COPY_COVER_CTA_PROPOSED_AD_CONTEXT_PACKAGE_REVIEWABLE_REAL_DESTINATIONS_AND_BUSINESS_ACCEPTANCE_OPEN",
-      "S3": "MATCHED_PREPARATION_ONLY_NO_AUTOMATIC_MASS_GROWTH"
+      "S3": "FOUR_REVIEWABLE_DRAFTS_TOTAL_NOT_NUMERIC_OR_BUSINESS_ACCEPTED"
     },
     "latest_owner_correction": {
       "name": "P36",
@@ -8535,5 +8556,50 @@
     "new_mobile_section_visually_reviewed": true,
     "capability_blockers_not_retried": true,
     "full_baselines_not_repeated": true
+  },
+  "golf_beach_reference_operation": {
+    "state": "DONE_REVIEWABLE_DRAFT_NOT_TRAFFIC_ACCEPTANCE",
+    "idempotency_key": "P40-golf-beach-reference-20261025-v1",
+    "completed_at_utc": "2026-10-25T02:40:52.073Z",
+    "caption_utf16": 676,
+    "new_reference_draft": 1,
+    "new_cover": 1,
+    "source_photos": 1,
+    "new_post_scoped_fact_conflicts": 3,
+    "source_archive_version": 92,
+    "canonical_archive_unmodified": true,
+    "existing_feed_identity_reused": true,
+    "current_review_routes": 4,
+    "traffic_accepted_routes": 0,
+    "issued_IDs": 0,
+    "active_URLs": 0,
+    "native_writes": 0,
+    "paid_changes": 0,
+    "real_bot_path_tested": false,
+    "numeric_editorial_acceptance_pending": true,
+    "route_sha256": "f6bb1c025513f0347061e189783358f01e6882833e16f6617e6ec50200f8ae03",
+    "photo_source_sha256": "6a09717fb6250f14f97c52d1a4cc684714c9aefadd49b62ff4c7e8dcef302c5b",
+    "body_cover_binding_hashes_consistent": true,
+    "prior_nonpreview_members_byte_preserved": 303,
+    "companion_bytes": 52041219,
+    "source_claim": 6392513529,
+    "all_saves_verified": true,
+    "versions_after": {
+      "preview": 19,
+      "companion": 19
+    },
+    "new_section_responsive": [
+      390,
+      1440
+    ],
+    "local_CTA_toggle_only": true,
+    "original_photo_bytes_preserved": true,
+    "source_pages_refreshed": 3,
+    "room_image_HTTP403_not_retried": true,
+    "Executive_area_conflict_omitted_from_body": true,
+    "occupancy_conflict_not_generalized": true,
+    "catalog_identity_unverified": true,
+    "source_export_not_repeated": true,
+    "canonical_source_archive_unmodified": true
   }
 }
