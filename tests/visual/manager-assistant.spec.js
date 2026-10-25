@@ -36,11 +36,15 @@ test('AI usage clears private comparisons after an account or permission change'
   }
 });
 test('AI usage rejects a late prior-filter page and never retries an uncertain review automatically',async({page})=>{
+  const firstPage=page.waitForResponse(r=>r.url().endsWith('/manager/ai-usage-api.php')&&r.request().postDataJSON().action==='list');
   const s=await setupAiUsage(page);let release;
   try{
-    await expect(page.locator('[data-usage-case]')).toHaveCount(20);let held=false;
-    await page.route('**/manager/ai-usage-api.php',async route=>{const d=route.request().postDataJSON();if(d.action==='list'&&d.project_key===''){const response=await route.fetch(),body=await response.json();body.items[0].display_name='OBSOLETE FILTER';held=true;await new Promise(resolve=>release=resolve);return route.fulfill({response,json:body})}return route.fallback()});
-    await page.getByRole('button',{name:'Обновить',exact:true}).click();await expect.poll(()=>held).toBe(true);await page.locator('#usageProject').selectOption('anytour');await expect(page.locator('[data-usage-case]')).toHaveCount(20);release();await expect(page.locator('#usageCases')).not.toContainText('OBSOLETE FILTER');
+    await expect(page.locator('[data-usage-case]')).toHaveCount(20);const original=await(await firstPage).json();let held=false;
+    // Reorder copies of the actual initial API response. route.fetch would write
+    // Secure cookies into WebKit's HTTP-only fixture jar before delivery.
+    await page.route('**/manager/ai-usage-api.php',async route=>{const d=route.request().postDataJSON();if(d.action!=='list')return route.fallback();const body=JSON.parse(JSON.stringify(original));if(d.project_key===''){body.items[0].display_name='OBSOLETE FILTER';held=true;await new Promise(resolve=>release=resolve)}return route.fulfill({contentType:'application/json',json:body})});
+    const delayed=page.waitForResponse(r=>r.url().endsWith('/manager/ai-usage-api.php')&&r.request().postDataJSON().action==='list'&&r.request().postDataJSON().project_key==='');
+    await page.getByRole('button',{name:'Обновить',exact:true}).click();await expect.poll(()=>held).toBe(true);await page.locator('#usageProject').selectOption('anytour');await expect(page.locator('[data-usage-case]')).toHaveCount(20);release();await(await delayed).finished();await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));await expect(page.locator('#usageCases')).not.toContainText('OBSOLETE FILTER');
     await page.unroute('**/manager/ai-usage-api.php');await page.getByRole('button',{name:'Обновить',exact:true}).click();await expect(page.locator('[data-usage-case]')).toHaveCount(20);let reviews=0;
     await page.route('**/manager/ai-usage-api.php',route=>{if(route.request().postDataJSON().action!=='review')return route.fallback();reviews++;return route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({ok:false,error:'unavailable'})})});
     const card=page.locator('[data-usage-case]').first();await card.getByRole('button',{name:'Отметить просмотренным',exact:true}).click();await expect(card.locator('.usageCaseStatus')).toContainText('Обновите отчёт');expect(reviews).toBe(1);await expect(card.getByRole('button',{name:'Отметить просмотренным',exact:true})).toBeEnabled();usageClean(s);
