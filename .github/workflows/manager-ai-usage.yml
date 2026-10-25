@@ -38,8 +38,13 @@ jobs:
           php-version: '8.3'
           extensions: mbstring, pdo_mysql
           coverage: none
+      - name: Load the exact installed source for read-count and output comparison
+        run: |
+          git fetch --no-tags --depth=1 origin 0e56c5549f5d3dd91a6484cd1c152ad4f237f53e
+          git show 0e56c5549f5d3dd91a6484cd1c152ad4f237f53e:services/ManagerAiUsageService.php > "$RUNNER_TEMP/manager-ai-usage-before-batch.php"
       - name: Verify current permissions, real-use provenance, paging and forward review migration
         env:
+          MANAGER_AI_USAGE_BASELINE_FILE: ${{ runner.temp }}/manager-ai-usage-before-batch.php
           MANAGER_AI_USAGE_MYSQL_DSN: mysql:host=127.0.0.1;port=3306;dbname=manager_ai_usage_test;charset=utf8mb4
           MANAGER_AI_USAGE_MYSQL_USER: root
           MANAGER_AI_USAGE_MYSQL_PASSWORD: ai-usage-fixture-only

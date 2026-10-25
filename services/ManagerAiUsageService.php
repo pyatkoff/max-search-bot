@@ -48,12 +48,13 @@ final class ManagerAiUsageService
                     if($mode==='new'&&$reviewed)continue;
                     $case+=['display_name'=>(string)$row['display_name'],'manager_name'=>(string)$row['manager_name'],'project_key'=>$row['project_key'],
                         'channel'=>$row['channel'],'reviewed'=>$reviewed,'updated_since_review'=>$row['reviewed_revision']!==null&&!$reviewed];
-                    $case+=self::question($pdo,$case);unset($case['latest_message_id']);$items[]=$case;
+                    $items[]=$case;
                     if(count($items)===self::PAGE_SIZE){$more=$more||$index<count($rows)-1;break;}
                 }
                 if(count($rows)<=$batch&&!$more)break;
             }
             $limited=$scanned===self::SCAN_LIMIT&&$more;
+            $items=self::questions($pdo,$items);
             $pdo->commit();$started=false;
             if($scopes!==self::ownerScopes($actor))return self::error('forbidden');
             $cursor=$more&&$before!==null?'v1.'.base64_encode(json_encode(['actor'=>$actor,'access'=>$accessRevision,'filters'=>$filters,'before'=>$before,'since'=>$since,'end'=>$end],JSON_THROW_ON_ERROR)):null;
@@ -116,13 +117,34 @@ final class ManagerAiUsageService
         $q=$pdo->prepare('SELECT draft_id,conversation_id,manager_id,project_key,context_revision,instruction_revision,latest_message_id,preparation_job_id,SUBSTR(proposal_json,1,32769) AS proposal_json,created_at,insert_requested_at FROM manager_ai_drafts WHERE draft_id IN ('.implode(',',array_fill(0,count($ids),'?')).')');
         $q->execute($ids);$out=[];foreach($q->fetchAll(PDO::FETCH_ASSOC) as $row)$out[$row['draft_id']]=$row;$q->closeCursor();return$out;
     }
-    private static function question(PDO $pdo,array $case): array
+    /** Hydrate only the accepted page, retaining each use's own history cutoff. */
+    private static function questions(PDO $pdo,array $cases): array
     {
-        $q=$pdo->prepare("SELECT id,SUBSTR(text,1,8001) AS text,SUBSTR(metadata_json,1,8193) AS metadata_json FROM messages WHERE conversation_id=? AND direction='inbound' AND sender_type='customer' AND id<=? ORDER BY id DESC LIMIT 1");
-        $q->execute([$case['conversation_id'],$case['latest_message_id']]);$row=$q->fetch(PDO::FETCH_ASSOC);$q->closeCursor();
+        if(!$cases)return[];
+        $targets=[];$args=[];$idType=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?'UNSIGNED':'INTEGER';
+        foreach($cases as $case){
+            $targets[]="SELECT CAST(? AS {$idType}) AS message_id,CAST(? AS {$idType}) AS conversation_id,CAST(? AS {$idType}) AS latest_message_id";
+            array_push($args,$case['message_id'],$case['conversation_id'],$case['latest_message_id']);
+        }
+        $sql='SELECT targets.message_id AS case_message_id,m.id,SUBSTR(m.text,1,8001) AS text,SUBSTR(m.metadata_json,1,8193) AS metadata_json FROM ('.implode(' UNION ALL ',$targets).") targets
+            LEFT JOIN messages m ON m.id=(SELECT qm.id FROM messages qm
+                WHERE qm.conversation_id=targets.conversation_id AND qm.direction='inbound' AND qm.sender_type='customer'
+                    AND qm.id<=targets.latest_message_id ORDER BY qm.id DESC LIMIT 1)";
+        $q=$pdo->prepare($sql);$q->execute($args);$rows=[];
+        foreach($q->fetchAll(PDO::FETCH_ASSOC) as $row)$rows[(int)$row['case_message_id']]=$row;
+        $q->closeCursor();
+        foreach($cases as &$case){
+            $row=$rows[$case['message_id']]??null;
+            $case+=self::questionFields($row&&$row['id']!==null?$row:null,$case['generated_at']);
+            unset($case['latest_message_id']);
+        }unset($case);
+        return$cases;
+    }
+    private static function questionFields(?array $row,string $generatedAt): array
+    {
         if(!$row)return['question_text'=>null,'question_edited'=>false,'question_truncated'=>false];
         $text=htmlspecialchars_decode((string)$row['text'],ENT_QUOTES);if(preg_match('//u',$text)!==1)return['question_text'=>null,'question_edited'=>false,'question_truncated'=>false];
-        $meta=json_decode((string)$row['metadata_json'],true,16);$edited=is_array($meta)&&is_string($meta['edited_at']??null)&&$meta['edited_at']>=$case['generated_at'];
+        $meta=json_decode((string)$row['metadata_json'],true,16);$edited=is_array($meta)&&is_string($meta['edited_at']??null)&&$meta['edited_at']>=$generatedAt;
         return['question_text'=>mb_substr($text,0,8000,'UTF-8'),'question_edited'=>$edited,'question_truncated'=>mb_strlen($text,'UTF-8')>8000];
     }
     private static function cursor($encoded): ?array
