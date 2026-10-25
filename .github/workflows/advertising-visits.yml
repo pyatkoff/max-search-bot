@@ -3,10 +3,17 @@ on:
   pull_request:
     paths:
       - services/AdvertisingVisit*.php
+      - services/AdvertisingSignal*.php
+      - services/MetrikaConversionGoalService.php
+      - services/IncomingUpdateDispatcher.php
       - migrations/063_advertising_visits.sql
+      - migrations/064_advertising_signals.sql
       - tests/run_advertising_visits_regression.php
+      - tests/run_advertising_signals_regression.php
       - tests/mysql/advertising-visits.php
+      - tests/mysql/advertising-signals.php
       - tools/advertising_visits.php
+      - tools/advertising_signals.php
       - .github/workflows/advertising-visits.yml
 permissions:
   contents: read
@@ -36,9 +43,16 @@ jobs:
           extensions: pdo_sqlite, pdo_mysql
           coverage: none
       - run: php tests/run_advertising_visits_regression.php
+      - run: php tests/run_advertising_signals_regression.php
       - name: Verify the actual forward migration and imports on native MySQL
         env:
           ADVERTISING_VISITS_MYSQL_DSN: mysql:host=127.0.0.1;port=3306;dbname=maxbot_advertising_test;charset=utf8mb4
           ADVERTISING_VISITS_MYSQL_USER: root
           ADVERTISING_VISITS_MYSQL_PASS: advertising-fixture-only
         run: php tests/mysql/advertising-visits.php
+      - name: Verify signal migration, source evidence and late identity on native MySQL
+        env:
+          ADVERTISING_VISITS_MYSQL_DSN: mysql:host=127.0.0.1;port=3306;dbname=maxbot_advertising_test;charset=utf8mb4
+          ADVERTISING_VISITS_MYSQL_USER: root
+          ADVERTISING_VISITS_MYSQL_PASS: advertising-fixture-only
+        run: php tests/mysql/advertising-signals.php

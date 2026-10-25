@@ -30,6 +30,7 @@ class IncomingUpdateDispatcher
 
         ConversationRecorder::inbound($incoming);
         ConversationAttributionService::syncByChat($platform,$chatId);
+        MetrikaConversionGoalService::observeIncoming($incoming);
         MetrikaConversionGoalService::customerActivity($platform,$chatId,$type);
         // Preferences are independent of AI/manager ownership. The application
         // acknowledges the native callback and the action preserves routing/state.

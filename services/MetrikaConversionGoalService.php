@@ -2,6 +2,7 @@
 require_once __DIR__ . '/ConversationDb.php';
 require_once __DIR__ . '/ProjectConfig.php';
 require_once __DIR__ . '/MaxChannelConversionOutbox.php';
+require_once __DIR__ . '/AdvertisingSignalService.php';
 
 /**
  * Conversation-aware owner for higher-funnel Yandex Metrika conversion goals.
@@ -11,6 +12,11 @@ require_once __DIR__ . '/MaxChannelConversionOutbox.php';
  */
 class MetrikaConversionGoalService
 {
+    /** Keep local source evidence even when the legacy advertising queue cannot match it. */
+    public static function observeIncoming(array $incoming): void
+    {
+        AdvertisingSignalService::incoming($incoming);
+    }
     private const CUSTOMER_ACTIVITY_GOAL = 'max_bot_activity_start';
     private const BOT_PLATFORMS = ['max','telegram'];
     private const CUSTOMER_ACTIVITY_TYPES = ['message','callback','contact'];
@@ -66,6 +72,7 @@ class MetrikaConversionGoalService
     /** The persisted handoff, including direct/night entries, owns this stage. */
     public static function managerRequest(int $conversationId, ?callable $queue = null): bool
     {
+        AdvertisingSignalService::request($conversationId);
         try{
             $managed=self::managedChannelConversation($conversationId);
             if(!$managed||!MaxChannelConversionOutbox::sharedGoalsActive($managed['settings']))return false;
