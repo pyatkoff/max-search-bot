@@ -26,6 +26,16 @@ try {
     checkHosting($missing['web_roots_available']===0&&$missing['domains']===[],'missing visibility is not absence claim');
     symlink($dir.'/vhosts/test.conf',$dir.'/vhosts/linked.conf');
     checkHosting(selectionHostingInventory([],[$dir.'/vhosts'])['truncated']===true,'symlink configuration excluded');
+    mkdir($dir.'/www/d.anytoour.ru');
+    file_put_contents($dir.'/www/d.anytoour.ru/index.html','SYNTHETIC_BODY_MUST_STAY_UNREAD');
+    file_put_contents($dir.'/vhosts/d.anytoour.ru.conf',"server_name d.anytoour.ru;\nroot ".$dir."/www/d.anytoour.ru;\nssl_certificate /private/cert;\n");
+    $detail=selectionHostingDetail($dir.'/www',[$dir.'/vhosts']);
+    checkHosting($detail['domain']==='d.anytoour.ru'&&$detail['directory'],'exact host only');
+    checkHosting($detail['public_entries'][0]['name']==='index.html','entry metadata only');
+    checkHosting($detail['vhosts'][0]['document_roots']===['d.anytoour.ru'],'root relation');
+    checkHosting($detail['vhosts'][0]['tls_configured']===true,'configuration not TLS proof');
+    checkHosting(!$detail['dns_checked']&&!$detail['tls_checked'],'offline detail never invents network proof');
+    checkHosting(!str_contains(json_encode($detail),'SYNTHETIC_BODY_MUST_STAY_UNREAD'),'no page body export');
     echo 'HOSTING INVENTORY: '.$n." PASS\n";
 } finally {
     $it=new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir,FilesystemIterator::SKIP_DOTS),RecursiveIteratorIterator::CHILD_FIRST);

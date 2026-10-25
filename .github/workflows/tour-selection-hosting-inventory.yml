@@ -38,7 +38,7 @@ jobs:
           ssh-keygen -y -f "$key_file" >/dev/null
           opts=(-i "$key_file" -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$RUNNER_TEMP/selection_inventory_known_hosts" -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=2)
           ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'git -C /var/www/anytoour/data/www/app.anytoour.ru rev-parse HEAD' > "$RUNNER_TEMP/selection_inventory_source.txt"
-          ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" php < modules/tour-selections/hosting_inventory.php > "$RUNNER_TEMP/selection_hosting_inventory.json"
+          ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'php -- --host-detail' < modules/tour-selections/hosting_inventory.php > "$RUNNER_TEMP/selection_hosting_inventory.json"
           python3 - "$RUNNER_TEMP/selection_hosting_inventory.json" <<'PY'
           import json,sys
           data=json.load(open(sys.argv[1]))
