@@ -42,22 +42,6 @@ jobs:
           if(PHP_SAPI!=='cli')exit(2);
           ini_set('display_errors','0');ini_set('log_errors','0');
           $out=['ok'=>false,'mode'=>'read_only','target'=>'https://max.ru/channel_anytour','database_writes'=>0,'provider_writes'=>0,'http'=>[]];
-          function listChats(?string $marker,array &$out):array{
-           $query=['count'=>100];if($marker!==null)$query['marker']=$marker;
-           $url='https://platform-api2.max.ru/chats?'.http_build_query($query,'','&',PHP_QUERY_RFC3986);
-           $raw='';$ch=curl_init($url);
-           curl_setopt_array($ch,MaxTlsConfig::strictCurlOptions()+[
-            CURLOPT_CUSTOMREQUEST=>'GET',CURLOPT_FOLLOWLOCATION=>false,CURLOPT_RETURNTRANSFER=>false,
-            CURLOPT_CONNECTTIMEOUT=>3,CURLOPT_TIMEOUT=>10,
-            CURLOPT_HTTPHEADER=>['Authorization: '.MAX_SEARCH_TOKEN,'Accept: application/json'],
-            CURLOPT_WRITEFUNCTION=>static function($h,string $s)use(&$raw):int{if(strlen($raw)+strlen($s)>2097152)return 0;$raw.=$s;return strlen($s);}
-           ]);
-           $sent=curl_exec($ch);$http=(int)curl_getinfo($ch,CURLINFO_HTTP_CODE);$failed=$sent===false||curl_errno($ch)!==0;curl_close($ch);
-           $out['http'][]=['operation'=>'list_bot_chats','status'=>$http,'transport_error'=>$failed];
-           if($failed||$http!==200)throw new RuntimeException('chat_list_unavailable');
-           $data=json_decode($raw,true,32,JSON_THROW_ON_ERROR);if(!is_array($data['chats']??null))throw new RuntimeException('chat_list_invalid');
-           return $data;
-          }
           try{
            ob_start();try{require getcwd().'/config.php';require_once getcwd().'/services/ChannelPostRuntime.php';}finally{ob_end_clean();}
            $identity=ChannelPostRuntime::identity('max');
@@ -66,21 +50,28 @@ jobs:
            $out['http'][]=['operation'=>'bot_identity','status'=>(int)($r['http']??0)];
            if(!empty($r['transport_error'])||(int)($r['http']??0)!==200||($r['data']['is_bot']??false)!==true||($r['data']['username']??'')!=='id9704048781_1_bot')throw new RuntimeException('provider_bot_mismatch');
            $out['bot_username']=$r['data']['username'];
-           $marker=null;$seen=[];$matches=[];$finished=false;
-           for($page=0;$page<5;$page++){
-            $data=listChats($marker,$out);
-            foreach($data['chats']as $chat){
-             if(($chat['type']??'')!=='channel')continue;
-             $link=(string)($chat['link']??'');$u=parse_url($link);
-             if(!is_array($u)||($u['scheme']??'')!=='https'||($u['host']??'')!=='max.ru'||rtrim((string)($u['path']??''),'/')!=='/channel_anytour')continue;
-             $id=(string)($chat['chat_id']??'');if(!preg_match('/\A-[1-9][0-9]{0,19}\z/',$id))throw new RuntimeException('invalid_target_id');
-             $matches[$id]=['channel_id'=>$id,'title'=>(string)($chat['title']??''),'link'=>$link,'participants_count'=>$chat['participants_count']??null];
-            }
-            $next=$data['marker']??null;if($next===null||$next===''){$finished=true;break;}
-            $marker=(string)$next;if(isset($seen[$marker]))throw new RuntimeException('pagination_repeated');$seen[$marker]=true;
+           $pdo=ConversationDb::connection();$pdo->exec('START TRANSACTION READ ONLY');
+           try{
+            $q=$pdo->prepare("SELECT c.channel_id,c.display_name,c.is_enabled,s.source_key FROM post_channels c JOIN projects p ON p.id=c.project_id JOIN conversation_sources s ON s.id=c.source_id AND s.project_id=c.project_id WHERE p.project_key=? AND c.platform='max' AND c.bot_key=? ORDER BY c.id LIMIT 26");
+            $q->execute(['anytour',$identity['bot_key']]);$candidates=$q->fetchAll(PDO::FETCH_ASSOC);
+            $q=$pdo->prepare("SELECT s.id,s.source_key,s.handling_mode FROM conversation_sources s JOIN projects p ON p.id=s.project_id WHERE p.project_key=? AND p.is_active=1 AND s.channel='max' AND s.is_active=1 AND s.handling_mode IN('manager','ask') ORDER BY s.id LIMIT 20");
+            $q->execute(['anytour']);$out['eligible_sources']=$q->fetchAll(PDO::FETCH_ASSOC);
+           }finally{$pdo->rollBack();}
+           $out['registered_candidates']=[];$matches=[];
+           if(count($candidates)>25)throw new RuntimeException('registry_read_limit');
+           foreach($candidates as $candidate){
+            $id=(string)$candidate['channel_id'];if(!preg_match('/\A-[1-9][0-9]{0,19}\z/',$id))continue;
+            $r=ChannelPostApiTransport::buttonRequest('max','GET','/chats/'.$id,[],null);
+            $out['http'][]=['operation'=>'registered_channel_metadata','status'=>(int)($r['http']??0)];
+            $chat=$r['data']??[];
+            if(!empty($r['transport_error'])||(int)($r['http']??0)!==200||!is_array($chat))continue;
+            if(($chat['type']??'')!=='channel'||(string)($chat['chat_id']??'')!==$id)continue;
+            $link=(string)($chat['link']??'');$u=parse_url($link);
+            $out['registered_candidates'][]=['channel_id'=>$id,'title'=>(string)($chat['title']??''),'link'=>$link,'status'=>$chat['status']??null,'source_key'=>$candidate['source_key'],'is_enabled'=>(bool)$candidate['is_enabled']];
+            if(!is_array($u)||($u['scheme']??'')!=='https'||($u['host']??'')!=='max.ru'||rtrim((string)($u['path']??''),'/')!=='/channel_anytour')continue;
+            $matches[$id]=['channel_id'=>$id,'title'=>(string)($chat['title']??''),'link'=>$link,'participants_count'=>$chat['participants_count']??null];
            }
-           $out['list_complete']=$finished;
-           if(count($matches)!==1)throw new RuntimeException(count($matches)>1?'target_ambiguous':($finished?'target_not_in_bot_chats':'target_not_found_in_read_limit'));
+           if(count($matches)!==1)throw new RuntimeException(count($matches)>1?'target_ambiguous':'target_not_in_registry');
            $target=array_values($matches)[0];$id=$target['channel_id'];$out['channel']=$target;
            $channel=['platform'=>'max','channel_id'=>$id,'bot_key'=>$identity['bot_key'],'canonical_bot_username'=>$identity['canonical_bot_username']??$identity['bot_key'],'bot_url'=>$identity['bot_url']];
            $out['rights']=(new ChannelPostButtonTransport())->verifyChannel($channel);
@@ -102,7 +93,7 @@ jobs:
             $q->execute(['anytour']);$out['eligible_sources']=$q->fetchAll(PDO::FETCH_ASSOC);
            }finally{$pdo->rollBack();}
            $out['server_utc']=gmdate('c');$out['ok']=true;
-          }catch(Throwable $e){$allowed=['chat_list_unavailable','chat_list_invalid','configured_bot_mismatch','provider_bot_mismatch','invalid_target_id','pagination_repeated','target_ambiguous','target_not_in_bot_chats','target_not_found_in_read_limit','target_rights_not_ready','posts_read_failed','unexpected_post_channel'];$out['error']=in_array($e->getMessage(),$allowed,true)?$e->getMessage():'bounded_probe_failed';}
+          }catch(Throwable $e){$allowed=['registry_read_limit','target_not_in_registry','configured_bot_mismatch','provider_bot_mismatch','invalid_target_id','pagination_repeated','target_ambiguous','target_not_in_bot_chats','target_not_found_in_read_limit','target_rights_not_ready','posts_read_failed','unexpected_post_channel'];$out['error']=in_array($e->getMessage(),$allowed,true)?$e->getMessage():'bounded_probe_failed';}
           echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;exit($out['ok']?0:2);
           PHP
           php -l "$RUNNER_TEMP/channel-probe.php"
