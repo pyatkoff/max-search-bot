@@ -4,11 +4,15 @@ const fields=['TOWNFROMINC','STATEINC','CHECKIN_BEG','CHECKIN_END','NIGHTS_FROM'
 const clean=s=>String(s||'').replace(/\s+/gu,' ').trim();
 const fail=message=>{throw new Error(message)};
 const canonicalKey=value=>/^[1-9]\d{0,11}$/.test(value||'')?value:null;
+const keyNames={hotel:'отеля',room:'номера',meal:'питания',htplace:'размещения',tour:'тура',ptype:'программы',townfrom:'города вылета',state:'страны'};
+function keyError(attr,reason,message){fail(message+' (FS-'+attr+'-'+reason+').');}
 function rowKey(row,attr,classPrefix){
  const raw=row.getAttribute('data-'+attr),data=canonicalKey(raw);
  const classes=[...new Set(Array.from(row.classList).map(value=>value.startsWith(classPrefix)?canonicalKey(value.slice(classPrefix.length)):null).filter(Boolean))];
- if(classes.length>1||(data&&classes.length===1&&data!==classes[0])||(raw!==null&&raw!==''&&!data))fail('В строке расходятся точные идентификаторы условий.');
- const value=data||classes[0];if(!value)fail('В строке нет точного идентификатора условий.');return value;
+ if(classes.length>1)keyError(attr,'multiple','Неоднозначные данные '+keyNames[attr]+'. Повторите поиск или добавьте вариант вручную');
+ if(data&&classes.length===1&&data!==classes[0])keyError(attr,'mismatch','Не совпадают данные '+keyNames[attr]+'. Повторите поиск или добавьте вариант вручную');
+ if(raw!==null&&raw!==''&&!data)keyError(attr,'format','Формат данных '+keyNames[attr]+' пока не поддерживается. Добавьте вариант вручную');
+ const value=data||classes[0];if(!value)keyError(attr,'missing','Нет точных данных '+keyNames[attr]+'. Добавьте вариант вручную');return value;
 }
 const date=s=>{const m=/^(\d{2})\.(\d{2})\.(\d{4})$/.exec(s||'');if(!m)return null;const iso=m[3]+'-'+m[2]+'-'+m[1];const d=new Date(iso+'T00:00:00Z');return !isNaN(d)&&d.toISOString().slice(0,10)===iso?iso:null};
 const dayKey=iso=>iso?.replaceAll('-','');

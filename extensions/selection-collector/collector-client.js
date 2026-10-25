@@ -11,17 +11,17 @@ function label(button,message){
 function actions(cell){
  let group=cell.querySelector('[data-anytour-actions]');if(!group){group=document.createElement('div');group.dataset.anytourActions='1';group.setAttribute('role','group');group.setAttribute('aria-label','AnyTour: добавить или изменить цену');cell.append(group)}return group;
 }
-function note(button,message){
+function note(button,message,tone='error'){
  let el=button.parentElement?.querySelector('[data-anytour-note]');if(!button.parentElement)return;
  if(!el){el=document.createElement('div');el.dataset.anytourNote='1';el.setAttribute('role','status');button.parentElement.append(el)}
- el.textContent=message;button.title=message;
+ el.dataset.anytourTone=tone;el.textContent=message;button.title=message;
 }
 async function follow(button,operation){
  for(let attempt=0;attempt<40&&button.isConnected;attempt++){
   let result;try{result=await chrome.runtime.sendMessage({type:'add_status',operation_id:operation})}catch{}
   if(!result?.ok){label(button,'Проверьте в AnyTour');note(button,'Результат пока не подтверждён. Проверьте очередь в расширении AnyTour. Повторного добавления нет.');return}
-  if(result.state==='cancelled'){pending.delete(button);label(button,button.dataset.anytourEdit?'✎ Изменить цену':'В подборку AnyTour');note(button,'Правка отменена. Тур не добавлен.');return 'cancelled'}
-  if(result.state==='editing'){label(button,'Правка в AnyTour');note(button,'Откройте значок расширения AnyTour: там можно изменить цену и явно добавить тур. Пока он не добавлен.');return}
+  if(result.state==='cancelled'){pending.delete(button);label(button,button.dataset.anytourEdit?'✎ Изменить цену':'В подборку AnyTour');note(button,'Правка отменена. Тур не добавлен.','info');return 'cancelled'}
+  if(result.state==='editing'){label(button,'Правка в AnyTour');note(button,'Откройте значок расширения AnyTour: там можно изменить цену и явно добавить тур. Пока он не добавлен.','info');return}
   if(result.state==='saved'){pending.delete(button);label(button,'✓ В подборке');note(button,'');button.title='Предложение сохранено в выбранной подборке. Туристу ничего не отправлено.';return}
   if(result.state!=='queued'){
    const message=result.state==='waiting'?'Очередь сохранена, но сервер ещё не подтвердил добавление. Откройте расширение AnyTour.':result.error==='connection_changed'?'Клиент или поездка изменились. Проверьте исходную операцию в расширении AnyTour.':'Нужна проверка цены, похожего варианта или подключения. Откройте расширение AnyTour.';

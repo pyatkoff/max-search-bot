@@ -13,3 +13,4 @@
 [data-anytour-add]:focus-visible{outline:3px solid #b88635!important;outline-offset:2px!important}
 [data-anytour-note]{display:block!important;flex:1 0 100%!important;max-width:220px!important;white-space:normal!important;overflow-wrap:anywhere!important;color:#8c3027!important;font:12px/1.4 system-ui!important;margin:2px 0 0!important}
 [data-anytour-note]:empty{display:none!important}
+[data-anytour-note][data-anytour-tone="info"]{color:#415e4f!important}

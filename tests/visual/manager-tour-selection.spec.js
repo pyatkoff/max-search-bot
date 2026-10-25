@@ -440,7 +440,7 @@ test('explicit hotel grouping survives reload and renaming separates only that o
 test('collector exact source row retains current price and fails on changing conditions',async({page})=>{
  const s=await sourceFixture(page);let r=await s.read();expect(r.error).toBeUndefined();expect(r.value.offer.amount).toBe('237017');expect(r.value.raw.price).toBe('237 017 RUB');expect(r.value.offer.child_ages).toEqual([]);expect(r.value.raw.flight_alternatives).toContain('01:00');expect(r.value.offer).not.toHaveProperty('flights');
  await page.locator('tr.price_info').evaluate(e=>['hotel','room','meal','htplace','tour','ptype','townfrom','state'].forEach(key=>e.removeAttribute('data-'+key)));r=await s.read();expect(r.error).toBeUndefined();expect(r.value.keys).toEqual({hotel:'10',room:'20',meal:'30',placement:'40',tour:'78',program:'114',departure:'274286',country:'18803',spo:'60'});
- await page.locator('tr.price_info').evaluate(e=>e.dataset.room='21');expect((await s.read()).error).toContain('расходятся точные идентификаторы');await page.locator('tr.price_info').evaluate(e=>e.dataset.room='20');
+ await page.locator('tr.price_info').evaluate(e=>e.dataset.room='21');expect((await s.read()).error).toContain('FS-room-mismatch');await page.locator('tr.price_info').evaluate(e=>e.dataset.room='20');
  expect(await page.locator('.price').evaluate(e=>getComputedStyle(e,'::before').content)).toContain('259304');
  await page.locator('[name=CHECKIN_BEG]').fill('06.06.2027');expect((await s.read()).error).toContain('Дождитесь установившихся дат');await page.locator('[name=CHECKIN_BEG]').fill('04.06.2027');expect((await s.read()).error).toContain('Нажмите «Искать»');await page.locator('[name=CHECKIN_BEG]').fill('05.06.2027');
  await page.evaluate(()=>document.querySelector('[name=STATEINC]').options[0].value='99');expect((await s.read()).error).toContain('Нажмите «Искать»');await page.evaluate(()=>document.querySelector('[name=STATEINC]').options[0].value='18803');
@@ -449,6 +449,33 @@ test('collector exact source row retains current price and fails on changing con
  await page.locator('tr.price_info').evaluate(e=>e.dataset.checkin='20270606');expect((await s.read()).error).toContain('Строка не соответствует');await page.locator('tr.price_info').evaluate(e=>e.dataset.checkin='20270605');
  await page.evaluate(()=>document.querySelector('[name=CHILD]').options[0].value='1');expect((await s.read()).error).toContain('Нажмите «Искать»');
  expect(s.calls).toEqual([]);
+});
+
+test('FUN&SUN identity errors distinguish field cause and unsupported external rows without exposing raw values',async({page})=>{
+ const s=await sourceFixture(page),original=await page.locator('tr.price_info').getAttribute('class');
+ for(const [attr,prefix,value]of [['hotel','hotelKey-','10'],['room','roomKey-','20'],['meal','mealKey-','30'],['htplace','htPlaceKey-','40'],['tour','tourKey-','78'],['ptype','programTypeKey-','114'],['townfrom','townFromKey-','274286'],['state','stateKey-','18803']]){
+  await page.locator('tr.price_info').evaluate((e,{attr,prefix})=>{e.setAttribute('data-'+attr,'999');},{attr,prefix});
+  expect((await s.read()).error).toContain('FS-'+attr+'-mismatch');
+  await page.locator('tr.price_info').evaluate((e,{attr,value})=>e.setAttribute('data-'+attr,value),{attr,value});
+  expect((await s.read()).error).toBeUndefined();
+ }
+ await page.locator('tr.price_info').evaluate(e=>e.classList.add('roomKey-21'));expect((await s.read()).error).toContain('FS-room-multiple');
+ await page.locator('tr.price_info').evaluate(e=>{e.classList.remove('roomKey-21');e.dataset.room='0'});expect((await s.read()).error).toContain('FS-room-format');
+ await page.locator('tr.price_info').evaluate(e=>e.dataset.room='<img src=x onerror=secret>');let r=await s.read();expect(r.error).toContain('FS-room-format');expect(r.error).not.toContain('secret');expect(r.error).not.toContain('<img');
+ await page.locator('tr.price_info').evaluate(e=>{e.removeAttribute('data-room');e.classList.remove('roomKey-20')});expect((await s.read()).error).toContain('FS-room-missing');
+ await page.locator('tr.price_info').evaluate((e,original)=>{e.className=original;e.dataset.room='20';e.dataset.hotel='-2883989';e.classList.replace('hotelKey-10','hotelKey--2883989');e.dataset.htplace=e.dataset.room='-2147483647';e.classList.replace('roomKey-20','roomKey--2147483647');e.classList.replace('htPlaceKey-40','htPlaceKey--2147483647');e.classList.replace('spoKey-60','spoKey-')},original);
+ r=await s.read();expect(r.error).toContain('FS-hotel-format');expect(r.error).toContain('вручную');expect(r.error).not.toContain('расходятся');expect(s.calls).toEqual([]);
+});
+
+for(const width of [390,430,768,1440])test('FUN&SUN unsupported inventory and real failures stay distinct from pencil guidance at '+width,async({page,browserName})=>{
+ await page.setViewportSize({width,height:900});await sourceFixture(page);await collectorSourceRuntime(page,'editing');await page.addScriptTag({path:path.join(root,'extensions/selection-collector/content.js')});
+ await page.locator('tr.price_info').evaluate(e=>{e.dataset.hotel='-2883989';e.classList.replace('hotelKey-10','hotelKey--2883989')});
+ await page.getByRole('button',{name:'В подборку AnyTour',exact:true}).click();const note=page.locator('[data-anytour-note]');await expect(note).toContainText('FS-hotel-format');await expect(note).toContainText('вручную');await expect(note).toHaveCSS('color','rgb(140, 48, 39)');expect(await page.evaluate(()=>collectorStaged.length)).toBe(0);
+ fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-selection-source-error-${browserName}-${width}.png`)});
+ await page.locator('tr.price_info').evaluate(e=>{e.dataset.hotel='10';e.classList.replace('hotelKey--2883989','hotelKey-10')});await page.getByRole('button',{name:'✎ Изменить цену',exact:true}).click();await expect(note).toContainText('Откройте значок расширения');await expect(note).toHaveCSS('color','rgb(65, 94, 79)');expect(await page.evaluate(()=>collectorStaged.length)).toBe(1);
+ await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-selection-source-guidance-${browserName}-${width}.png`)});
+ await page.locator('tr.price_info').evaluate(e=>e.dataset.room='21');await page.getByRole('button',{name:'Не добавлено',exact:true}).click();await expect(note).toContainText('FS-room-mismatch');await expect(note).toHaveCSS('color','rgb(140, 48, 39)');expect(await page.evaluate(()=>collectorStaged.length)).toBe(1);expect(await page.evaluate(()=>collectorRequests.filter(x=>x.type==='enqueue').length)).toBe(0);
+ expect(await page.locator('body').innerText()).not.toContain('Синтетическая Анна');
 });
 
 for(const width of [390,430,768,1440])test('collector source button saves a settled row in one click without third party client identity at '+width,async({page,browserName})=>{
@@ -475,7 +502,7 @@ test('collector source lost enqueue reply checks the exact preallocated operatio
 
 for(const source of [{name:'funsun',fixture:sourceFixture,script:'content.js',amount:'237017'},{name:'anex',fixture:anexSourceFixture,script:'anex-content.js',amount:'177323'},{name:'tourvisor',fixture:tourvisorSourceFixture,script:'tourvisor-content.js',amount:'160000'}])test('source pencil '+source.name+' captures for private editing without importing or exposing a client',async({page,browserName})=>{
  await page.setViewportSize({width:390,height:900});await source.fixture(page);await page.addStyleTag({path:path.join(root,'extensions/selection-collector/content.css')});await collectorSourceRuntime(page,'editing');await page.addScriptTag({path:path.join(root,'extensions/selection-collector',source.script)});
- await page.getByRole('button',{name:'✎ Изменить цену',exact:true}).click();await expect(page.getByRole('button',{name:'Правка в AnyTour',exact:true})).toBeVisible();
+ await page.getByRole('button',{name:'✎ Изменить цену',exact:true}).click();await expect(page.getByRole('button',{name:'Правка в AnyTour',exact:true})).toBeVisible();await expect(page.locator('[data-anytour-note]')).toHaveCSS('color','rgb(65, 94, 79)');
  expect(await page.evaluate(()=>collectorStaged.length)).toBe(1);expect(await page.evaluate(()=>collectorStaged[0].type)).toBe('enqueue_edit');expect(await page.evaluate(()=>collectorStaged[0].observation.offer.amount)).toBe(source.amount);expect(await page.locator('body').innerText()).not.toContain('Синтетическая Анна');
  await page.getByRole('button',{name:'Правка в AnyTour',exact:true}).click();expect(await page.evaluate(()=>collectorStaged.length)).toBe(1);expect(await page.evaluate(()=>collectorRequests.filter(x=>x.type==='show_edit').length)).toBe(1);
  fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-pencil-source-${source.name}-${browserName}.png`)});
