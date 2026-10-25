@@ -299,6 +299,7 @@ return [
         'php tests/run_manager_read_profile_regression.php',
         'php tests/run_max_subscription_attribution_policy.php',
         'php tests/run_max_channel_attribution.php',
+        'php tests/run_advertising_visits_regression.php',
         'python3 tests/run_max_attribution_key.py',
         'python3 tests/run_conversion_observations.py',
         'php tests/run_max_private_avatar_probe_regression.php',
