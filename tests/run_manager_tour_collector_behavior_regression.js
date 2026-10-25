@@ -46,30 +46,70 @@ function provider(){return {receipts:new Map(),calls:[],creates:0,mode:'',async 
 async function stage(w,hotel){assert.equal((await w.enqueue(observation(hotel))).ok,true);const s=await w.status();return s.items.at(-1).operation_id}
 async function itemState(w,operation,state){await until(async()=>(await w.status()).items.find(x=>x.operation_id===operation)?.state===state)}
 
+// Drive the shipped gallery reader through changing rendered documents. The
+// clock advances at its real poll boundary; no source request or photo is made.
+async function gallerySequence(sequence){
+ let tick=0,removed=false;
+ const href='https://b2b.fstravel.com/hotel/10',window={};
+ const frame={style:{},isConnected:false,setAttribute(){},remove(){removed=true;this.isConnected=false},
+  get contentDocument(){return {location:new URL(sequence(tick).url||href),tick}}};
+ const document={createElement:()=>frame,body:{append(){frame.isConnected=true}}};
+ vm.runInNewContext(fs.readFileSync(__dirname+'/../extensions/selection-collector/collector-client.js','utf8'),
+  {window,document,location:{href:'https://b2b.fstravel.com/search_tour',origin:'https://b2b.fstravel.com'},URL,Map,WeakMap,Set,Promise,
+   setTimeout(fn){tick++;if(sequence(tick).detached)frame.isConnected=false;Promise.resolve().then(fn)}},
+  {filename:'collector-client.js'});
+ const photos=await window.AnyTourCollectorClient.gallery(href,doc=>{
+  const state=sequence(doc.tick);if(state.error)throw new Error('changing source');return state.photos;
+ },doc=>sequence(doc.tick).accepted===true);
+ return {photos:Array.from(photos),tick,removed};
+}
+
 (async()=>{
  require('node:child_process').execFileSync('python3',[__dirname+'/../extensions/selection-collector/build_package.py','--check'],{stdio:'pipe'});
  check('installable package matches actual extension sources',true);
  const manifest=JSON.parse(fs.readFileSync(__dirname+'/../extensions/selection-collector/manifest.json','utf8'));
 
  {
+ const early=['early-1','early-2','early-3'],settled=['hotel-1','hotel-2','hotel-3'];
+ let r=await gallerySequence(t=>({photos:t<2?early:settled}));
+ check('three initial photos cannot skip gallery settling',JSON.stringify(r.photos)===JSON.stringify(settled)&&r.tick>=5&&r.removed);
+ r=await gallerySequence(t=>({photos:t===0?early:[]}));
+ check('a disappearing gallery cannot return its previous photos',r.photos.length===0&&r.removed);
+ r=await gallerySequence(t=>({photos:['photo-'+t,'other-'+t,'last-'+t]}));
+ check('a continuously changing gallery expires without an arbitrary snapshot',r.photos.length===0&&r.removed);
+ r=await gallerySequence(t=>({photos:['partial'],...(t>=2?{url:'https://b2b.fstravel.com/unrelated',accepted:false}:{})}));
+ check('navigation away clears an earlier partial gallery',r.photos.length===0&&r.removed);
+ r=await gallerySequence(t=>({photos:['partial'],error:t>=2}));
+ check('an unreadable changed document cannot return its prior gallery',r.photos.length===0&&r.removed);
+ r=await gallerySequence(t=>({photos:['partial'],detached:t>=2}));
+ check('a detached source frame cannot return unsettled photos',r.photos.length===0&&r.removed);
+ r=await gallerySequence(()=>({photos:['only-photo']}));
+ check('one stable actual image remains one image',r.photos.join(',')==='only-photo'&&r.tick>=3&&r.removed);
+ }
+
+ {
  const photoFixture=(file)=>{const context={window:{},URL,Set};vm.runInNewContext(fs.readFileSync(__dirname+'/../extensions/selection-collector/'+file,'utf8'),context);return context.window};
  const fun=photoFixture('funsun.js').AnyTourFunsun,anex=photoFixture('anex.js').AnyTourAnex,tv=photoFixture('tourvisor.js').AnyTourTourvisor;
  const base='https://apigate-tui.fstravel.com/api/geocontent/static/Hotel/00180000-ac11-0242-6c05-08d9934f9e4b/';
  const funPhotos=['MainPhoto','Gallery','InsideOfTheRoom'].map((x,i)=>base+x+'-Source-photo'+i+'.jpg');
- const doc=(pathname,urls)=>({location:new URL('https://b2b.fstravel.com'+pathname),querySelectorAll:()=>urls.map(src=>({getAttribute:()=>src}))});
- check('FUNSUN automatically selects three real gallery slots from its exact hotel page',JSON.stringify(fun.photos(doc('/hotel/10',funPhotos),'10'))===JSON.stringify(funPhotos));
- check('FUNSUN gallery never follows a similarly named different hotel',fun.photos(doc('/hotel/11',funPhotos),'10').length===0);
- check('FUNSUN gallery excludes logos and tracking source URLs',fun.photos(doc('/hotel/10',['https://b2b.fstravel.com/logo.svg',funPhotos[0]+'?token=secret']),'10').length===0);
- check('FUNSUN refuses mixed gallery UUIDs',fun.photos(doc('/hotel/10',[funPhotos[0],funPhotos[1].replace('00180000','00280000')]),'10').length===0);
- check('one available hotel image stays one image instead of duplicates',fun.photos(doc('/hotel/10',[funPhotos[0],funPhotos[0]]),'10').length===1);
+ const readFun=(doc,keys,name='Синтетический отель')=>fun.photos(doc,keys,name);
+ const doc=(pathname,urls,name='Синтетический отель')=>({location:new URL('https://b2b.fstravel.com'+pathname),querySelectorAll:s=>s==='h2'?[{innerText:name,getClientRects:()=>[{}]}]:urls.map(src=>({getAttribute:()=>src}))});
+ check('numeric gallery refuses a different loaded hotel heading',readFun(doc('/hotel/10',funPhotos,'Другой отель'),'10','Синтетический отель').length===0);
+ check('numeric gallery refuses an unfinished hotel heading',readFun(doc('/hotel/10',funPhotos,''),'10','Синтетический отель').length===0);
+ check('partner gallery refuses a different loaded hotel heading',readFun(doc('/hotel/-10?partner=HBK',['https://hbpro.expert/resource/hotel/photo_1200/11/22/101.jpg'],'Другой отель'),{hotel:'-10',partner:'HBK'},'Синтетический отель').length===0);
+ check('FUNSUN automatically selects three real gallery slots from its exact hotel page',JSON.stringify(readFun(doc('/hotel/10',funPhotos),'10'))===JSON.stringify(funPhotos));
+ check('FUNSUN gallery never follows a similarly named different hotel',readFun(doc('/hotel/11',funPhotos),'10').length===0);
+ check('FUNSUN gallery excludes logos and tracking source URLs',readFun(doc('/hotel/10',['https://b2b.fstravel.com/logo.svg',funPhotos[0]+'?token=secret']),'10').length===0);
+ check('FUNSUN refuses mixed gallery UUIDs',readFun(doc('/hotel/10',[funPhotos[0],funPhotos[1].replace('00180000','00280000')]),'10').length===0);
+ check('one available hotel image stays one image instead of duplicates',readFun(doc('/hotel/10',[funPhotos[0],funPhotos[0]]),'10').length===1);
  const partnerKeys={hotel:'-10',partner:'HBK'},partnerPhotos=[101,102,103].map(i=>'https://hbpro.expert/resource/hotel/photo_1200/11/22/'+i+'.jpg');
- check('partner gallery retains its signed hotel and exact partner URL',JSON.stringify(fun.photos(doc('/hotel/-10?partner=HBK',partnerPhotos),partnerKeys))===JSON.stringify(partnerPhotos));
- check('partner gallery rejects lost or changed partner identity',fun.photos(doc('/hotel/-10',partnerPhotos),partnerKeys).length===0&&fun.photos(doc('/hotel/-11?partner=HBK',partnerPhotos),partnerKeys).length===0&&fun.photos(doc('/hotel/-10?partner=EVIL',partnerPhotos),partnerKeys).length===0);
- check('partner and native photo grammars cannot borrow each other',fun.photos(doc('/hotel/-10?partner=HBK',funPhotos),partnerKeys).length===0&&fun.photos(doc('/hotel/10',partnerPhotos),'10').length===0);
- check('partner gallery refuses mixed hotel prefixes and secret query values',fun.photos(doc('/hotel/-10?partner=HBK',[partnerPhotos[0],partnerPhotos[1].replace('/11/22/','/11/23/')]),partnerKeys).length===0&&fun.photos(doc('/hotel/-10?partner=HBK',[partnerPhotos[0]+'?token=secret']),partnerKeys).length===0);
+ check('partner gallery retains its signed hotel and exact partner URL',JSON.stringify(readFun(doc('/hotel/-10?partner=HBK',partnerPhotos),partnerKeys))===JSON.stringify(partnerPhotos));
+ check('partner gallery rejects lost or changed partner identity',readFun(doc('/hotel/-10',partnerPhotos),partnerKeys).length===0&&readFun(doc('/hotel/-11?partner=HBK',partnerPhotos),partnerKeys).length===0&&readFun(doc('/hotel/-10?partner=EVIL',partnerPhotos),partnerKeys).length===0);
+ check('partner and native photo grammars cannot borrow each other',readFun(doc('/hotel/-10?partner=HBK',funPhotos),partnerKeys).length===0&&readFun(doc('/hotel/10',partnerPhotos),'10').length===0);
+ check('partner gallery refuses mixed hotel prefixes and secret query values',readFun(doc('/hotel/-10?partner=HBK',[partnerPhotos[0],partnerPhotos[1].replace('/11/22/','/11/23/')]),partnerKeys).length===0&&readFun(doc('/hotel/-10?partner=HBK',[partnerPhotos[0]+'?token=secret']),partnerKeys).length===0);
  const canonicalDoc=(name,href='https://b2b.fstravel.com/hotel/europe/turkey/synthetic-hotel')=>({location:new URL(href),querySelectorAll:s=>s==='h2'?[{innerText:name,getClientRects:()=>[{}]}]:funPhotos.map(src=>({getAttribute:()=>src}))});
- check('numeric native hotel navigation may use its matching canonical page',fun.photos(canonicalDoc('Синтетический отель'),'10','Синтетический отель').length===3);
- check('canonical gallery refuses wrong header origin and another numeric ID',fun.photos(canonicalDoc('Чужой отель'),'10','Синтетический отель').length===0&&fun.photos(canonicalDoc('Синтетический отель','https://evil.example/hotel/europe/turkey/synthetic-hotel'),'10','Синтетический отель').length===0&&fun.photos(canonicalDoc('Синтетический отель','https://b2b.fstravel.com/hotel/11'),'10','Синтетический отель').length===0);
+ check('numeric native hotel navigation may use its matching canonical page',readFun(canonicalDoc('Синтетический отель'),'10','Синтетический отель').length===3);
+ check('canonical gallery refuses wrong header origin and another numeric ID',readFun(canonicalDoc('Чужой отель'),'10','Синтетический отель').length===0&&readFun(canonicalDoc('Синтетический отель','https://evil.example/hotel/europe/turkey/synthetic-hotel'),'10','Синтетический отель').length===0&&readFun(canonicalDoc('Синтетический отель','https://b2b.fstravel.com/hotel/11'),'10','Синтетический отель').length===0);
  const anexUrl='https://agent.anextour.ru/search/tour?HOTEL_INC=100&TAB_ACTIVE=description';
  const anexPhotos=[1,2,3].map(i=>'https://files.anextour.ru/hotel/hotels/turkey/synthetic/o'+i+'?&hotelCode=100');
  const adoc=(href,urls)=>({location:new URL(href),querySelectorAll:()=>urls.map(src=>({getAttribute:()=>src}))});
