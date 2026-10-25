@@ -1,0 +1,54 @@
+name: Manager inbox decoration
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'services/ManagerLeadInboxService.php'
+      - 'services/TripSummaryProjection.php'
+      - 'services/LeadTaskService.php'
+      - 'tests/run_manager_inbox_decoration_regression.php'
+      - '.github/workflows/manager-inbox-decoration.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  native-mysql:
+    name: inbox decoration / native MySQL
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: decoration-fixture-only
+          MYSQL_DATABASE: manager_inbox_decoration_test
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -pdecoration-fixture-only"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo_mysql
+          coverage: none
+      - name: Retain the exact installed baseline for paired evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          baseline_sha='02ba06a3bc4c9f0b7493d20671dfa565722c166d'
+          git merge-base --is-ancestor "$baseline_sha" HEAD
+          baseline_file="$RUNNER_TEMP/inbox-decoration-baseline.php"
+          git show "$baseline_sha:services/ManagerLeadInboxService.php" > "$baseline_file"
+          echo "MANAGER_INBOX_DECORATION_BASELINE_FILE=$baseline_file" >> "$GITHUB_ENV"
+      - name: Compare full projection and read volume on native MySQL
+        env:
+          MANAGER_INBOX_DECORATION_MYSQL_DSN: mysql:host=127.0.0.1;port=3306;dbname=manager_inbox_decoration_test;charset=utf8mb4
+          MANAGER_INBOX_DECORATION_MYSQL_USER: root
+          MANAGER_INBOX_DECORATION_MYSQL_PASSWORD: decoration-fixture-only
+        run: php tests/run_manager_inbox_decoration_regression.php
