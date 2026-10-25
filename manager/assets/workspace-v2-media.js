@@ -38,7 +38,7 @@ function render(noticeFirst=false){
  if(f.type?.startsWith('image/')&&typeof URL?.createObjectURL==='function'&&item!==box){if(!row.url)row.url=URL.createObjectURL(f);item.querySelector('.mediaPreview').textContent='';const img=document.createElement('img');img.src=row.url;img.alt='';item.querySelector('.mediaPreview').appendChild(img)}
  });
  box.setAttribute?.('aria-label',`Выбрано файлов: ${rows.length} из ${MAX_FILES}. Список можно прокручивать.`);
- box.querySelector('.mediaSelectionHint').textContent=state.notice||`Файлов: ${rows.length} из ${MAX_FILES}. Отправятся отдельно; подпись — к первому. Выбранные файлы сохраняются до обновления страницы.`;box.classList.remove('hidden');
+ box.querySelector('.mediaSelectionHint').textContent=state.notice||`Файлов: ${rows.length} из ${MAX_FILES}. Отправятся отдельно; подпись — к первому. Выбранные файлы сохраняются до обновления страницы.`;box.classList.remove('hidden');if(noticeFirst)box.scrollTop=0;
 }
 function addFiles(incoming){
  const rows=files(),added=Array.from(incoming||[]);let rejected=0;

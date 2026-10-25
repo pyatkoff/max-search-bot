@@ -122,7 +122,7 @@ for(const viewport of [{width:390,height:844},{width:430,height:844},{width:768,
  // Re-selecting the exact File must retain the same UNKNOWN fence after removal.
  await page.evaluate(()=>WorkspaceV2Media.addFiles([window.uncertainFile]));await page.locator('#sendReply').click();
  await expect(page.locator('#replyStatus')).toContainText('неизвестен');expect(s.uploads).toHaveLength(1);
- await page.locator('.mediaRemove').last().click();await page.locator('#replyText').fill('Новая подпись после проверки');await page.locator('#sendReply').click();
+ await page.locator('.mediaRemove').last().click();await expect(page.locator('.mediaSelectionHint')).toBeInViewport({ratio:1});await page.locator('#replyText').fill('Новая подпись после проверки');await page.locator('#sendReply').click();
  await expect(page.locator('.mediaSelectedItem')).toHaveCount(0);await expect(page.locator('#replyText')).toHaveValue('');
  expect(s.uploads).toHaveLength(2);expect(s.uploads[1]).toContain('Билеты.pdf');expect(s.uploads[1]).toContain('Новая подпись после проверки');expect(s.uploads[1]).not.toContain('Маршрут.txt');
  await page.locator('#replyText').fill('Следующий ответ');await page.locator('#sendReply').click();
