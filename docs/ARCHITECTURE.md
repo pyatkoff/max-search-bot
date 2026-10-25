@@ -106,6 +106,15 @@ Target UI responsibilities:
 - Tasks/reminders: manager follow-up work;
 - Admin: managers, projects, sources, routing, pipeline catalog and audit history.
 
+`ManagerLeadInboxService` decorates only its supplied visible conversation IDs.
+It reads one newest summary candidate per lead, then keyset pages of at most256
+only for malformed/unsupported candidates until `TripSummaryProjection` recognizes
+a snapshot or history ends. A valid empty snapshot masks older trips. Open-task
+reads return one displayed task plus count/earliest-deadline aggregates per lead;
+pin ordering and `LeadTaskService` operational urgency remain separate. The
+required actual-PDO regression and native MySQL paired fixture verify complete
+projection equality and transferred-row bounds against the pinned prior source.
+
 Do not let `manager/workspace-v2.php` become another monolith. Incrementally extract:
 - `manager/assets/workspace.css`;
 - `manager/assets/workspace.js`;

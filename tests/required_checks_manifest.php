@@ -284,6 +284,7 @@ return [
         'php tests/run_manager_task_mutation_state_regression.php',
         'php tests/run_manager_conversation_lifecycle_state_regression.php',
         'php tests/run_manager_inbox_load_integrity_regression.php',
+        'php tests/run_manager_inbox_decoration_regression.php',
         'node tests/run_manager_inbox_fallback_behavior_regression.js',
         'php tests/run_manager_lead_mutation_navigation_integrity_regression.php',
         'php tests/run_manager_workspace_v2_send_context_integrity_regression.php',
