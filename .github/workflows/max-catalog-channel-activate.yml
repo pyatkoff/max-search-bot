@@ -1,0 +1,110 @@
+name: Activate owner MAX catalog channel
+on:
+  push:
+    branches: [audit/max-catalog-channel-20261025]
+    paths: [.github/workflows/max-catalog-channel-activate.yml]
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: max-catalog-channel-activate-20261025
+  cancel-in-progress: false
+env:
+  EXPECTED_PRODUCTION_SHA: dd477798e06b6727b6e4cc84fa7fbb4763dc18da
+jobs:
+  inspect:
+    if: github.ref == 'refs/heads/audit/max-catalog-channel-20261025'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.EXPECTED_PRODUCTION_SHA }}
+          persist-credentials: false
+      - name: Verify current released production source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_PRODUCTION_SHA"
+          test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = "$EXPECTED_PRODUCTION_SHA"
+          conclusion=$(gh api "repos/pyatkoff/max-search-bot/actions/runs?head_sha=$EXPECTED_PRODUCTION_SHA&per_page=100" --jq '[.workflow_runs[] | select(.name=="Deploy production")] | max_by(.id) | .conclusion')
+          test "$conclusion" = success
+      - name: Prepare fixed owner-authorized channel registration
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          cat > "$RUNNER_TEMP/channel-probe.php" <<'PHP'
+          <?php
+           declare(strict_types=1);
+           if(PHP_SAPI!=='cli')exit(2);
+           ini_set('display_errors','0');ini_set('log_errors','0');
+           $out=['ok'=>false,'mode'=>'owner_channel_registration','target'=>'https://max.ru/channel_anytour','channel_id'=>'-80492244209683','provider_writes'=>0,'registry_write_attempted'=>false];
+           try{
+            ob_start();try{require getcwd().'/config.php';require_once getcwd().'/services/ChannelPostRuntime.php';}finally{ob_end_clean();}
+            $identity=ChannelPostRuntime::identity('max');
+            if(!$identity||$identity['project_key']!=='anytour'||$identity['bot_key']!=='id9704048781_1_bot')throw new RuntimeException('configured_bot_mismatch');
+            $r=ChannelPostApiTransport::buttonRequest('max','GET','/chats/-80492244209683',[],null);
+            if(!empty($r['transport_error'])||(int)($r['http']??0)!==200||($r['data']['type']??'')!=='channel'||(string)($r['data']['chat_id']??'')!=='-80492244209683'||($r['data']['link']??'')!=='https://max.ru/channel_anytour'||($r['data']['status']??'')!=='active')throw new RuntimeException('exact_channel_identity_failed');
+            $pdo=ConversationDb::connection();$registry=new ChannelPostRegistryService($pdo);
+            $sourceKey='max_anytour_msk1';
+            $q=$pdo->prepare("SELECT s.source_key,s.handling_mode FROM conversation_sources s JOIN projects p ON p.id=s.project_id WHERE p.project_key='anytour' AND p.is_active=1 AND s.source_key=? AND s.channel='max' AND s.is_active=1 AND s.handling_mode='manager' LIMIT 1");$q->execute([$sourceKey]);
+            if(!$q->fetch(PDO::FETCH_ASSOC))throw new RuntimeException('existing_manager_source_required');
+            $config=['project_key'=>'anytour','platform'=>'max','channel_id'=>'-80492244209683','source_key'=>$sourceKey,'display_name'=>'Anytour — каталог','button_text'=>'✈️ Рассчитать на мои даты','is_enabled'=>true,'expected_version'=>0,'bot_key'=>$identity['bot_key'],'canonical_bot_username'=>$identity['bot_key'],'bot_url'=>$identity['bot_url']];
+            $verification=(new ChannelPostButtonTransport())->verifyChannel($config);$out['verification']=$verification;
+            if(($verification['state']??'')!=='ready')throw new RuntimeException('channel_rights_not_ready');
+            $existing=$registry->channel('anytour','max',$identity['bot_key'],'-80492244209683',false);
+            if($existing){
+             foreach(['source_key','display_name','button_text','bot_key','bot_url'] as $key)if((string)($existing[$key]??'')!==(string)$config[$key])throw new RuntimeException('existing_configuration_conflict');
+             if((int)$existing['is_enabled']!==1)throw new RuntimeException('existing_configuration_conflict');
+             $row=$existing;$out['result']='already_registered';
+            }else{
+             $out['registry_write_attempted']=true;
+             $row=$registry->configureChannel($config);$out['result']='registered';
+            }
+            $fresh=$registry->channel('anytour','max',$identity['bot_key'],'-80492244209683');
+            if(!$fresh||(int)$fresh['id']!==(int)$row['id']||$fresh['source_key']!==$sourceKey||(int)$fresh['is_enabled']!==1||$fresh['button_text']!==$config['button_text'])throw new RuntimeException('registration_readback_failed');
+            $q=$pdo->prepare('SELECT enabled_since_ms FROM post_channel_reconciliation WHERE post_channel_id=? LIMIT 1');$q->execute([(int)$fresh['id']]);
+            if(!$q->fetch(PDO::FETCH_ASSOC))throw new RuntimeException('reconciliation_readback_failed');
+            $out['channel']=array_intersect_key($fresh,array_flip(['id','project_key','platform','channel_id','source_key','display_name','button_text','bot_key','bot_url','is_enabled','config_version']));
+            $out['server_utc']=gmdate('c');$out['ok']=true;
+           }catch(Throwable $e){$allowed=['configured_bot_mismatch','exact_channel_identity_failed','existing_manager_source_required','channel_rights_not_ready','existing_configuration_conflict','registration_readback_failed','reconciliation_readback_failed','channel_configuration_conflict'];$out['error']=in_array($e->getMessage(),$allowed,true)?$e->getMessage():'bounded_registration_failed';}
+           echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;exit($out['ok']?0:2);
+          PHP
+          php -l "$RUNNER_TEMP/channel-probe.php"
+      - name: Prepare existing server connection
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else
+            printf '%s' "$raw" | base64 --decode > "$RUNNER_TEMP/channel_key"
+          fi
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+      - name: Register exactly the owner-selected catalogue channel
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-probe.php" > "$RUNNER_TEMP/channel-probe.json" || probe_status=$?
+          python3 - <<'PY'
+          import json,os
+          with open(os.environ['RUNNER_TEMP']+'/channel-probe.json')as f:d=json.load(f)
+          assert d['mode']=='owner_channel_registration' and d['channel_id']=='-80492244209683' and d['provider_writes']==0
+          print(json.dumps(d,ensure_ascii=False,sort_keys=True))
+          PY
+          test "${probe_status:-0}" = 0
+      - name: Remove ephemeral files
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-probe.php" "$RUNNER_TEMP/channel-probe.json"
