@@ -1,0 +1,40 @@
+name: Read Telegram and MAX Metrika mechanics
+on:
+  push:
+    branches: [audit/telegram-metrika-20261025]
+    paths:
+      - .github/workflows/telegram-metrika-readonly.yml
+      - audit/telegram-metrika-readonly.php
+      - audit/telegram-metrika-runner.py
+permissions:
+  contents: read
+concurrency:
+  group: telegram-metrika-owner-20261025
+  cancel-in-progress: false
+jobs:
+  read:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Check PHP reader syntax
+        run: php -l audit/telegram-metrika-readonly.php
+      - name: Read aggregate bot mechanics with existing server credentials
+        env:
+          SSH_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          SSH_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          SSH_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          READER_SHA256: 735ff6ce918398f495043b2f20556e42adbbda1af7c44031e5fc0280ee93f065
+          REPORT_PUBLIC_KEY_B64: LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQm9qQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FZOEFNSUlCaWdLQ0FZRUF5YVk2VXYva1AyOVJBK0RISit6VwpMMkZORXh4UDRVeUZSK1d0UDdvN1BSTVNCbUtLdXRvM1BwRko2YlNZbUhiUkpnSlg3cEZDNHZUQW10OHB4WlQwCi8zWVV0RE9Za2NYY0FQMmRTbXNoc0VuNDNweU1jOTIvSjBKM0ttK3FaSG9rcXlsaC9EMVVldFQ5bC9wOTY1Q1MKeFhWUjBmRXZpOVdSZW4vRmtDK2JJMjRmY042Z09XUlUyQWIzUkRBVG9pRUsvK0hKMnZBSFdRdzhab0ZOcGRFKwphOWhWRmYzOHZ4d3dTbHVHMDBoeWlFQ3BvOWF4Smx2cG9JdmR6c1JiNzBxR3dCYURTUkMyczhyajJWbW0zWDVZCkpQcm1mZGF0YTlJVENZT2x2amQ0VzJJTUUwN1pGcUg4cVNFVWpPbmQrdk1aUzgzNFpQSFB5N3NnZmlBa1pGVnMKbXhUeWpyN3V1M3l2RkhDcnQ1L21RM3NjTVhWTGJ2clZqbmVzbnBmbUw1RWpXNytmM3JKcGtyRUk2d0YxRUxBRQpqd0p5bDFUajVVNy9OR1dCZEdqQ0hvMDNpSlZpdi9aalU4cTZPUUdkaU9ucnQ3SW1xRWZBREVuUkJpOGp0SHZlCmxkV2FFd0Zyb0pkV1p3anlOWkc4VFdmT3RqR1BCK3lsUkxzMlBrQ1pGR3RoQWdNQkFBRT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg==
+        run: python3 audit/telegram-metrika-runner.py
+      - name: Retain ciphertext only
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: telegram-metrika-mechanics-20261018-20261024
+          path: encrypted-goals/*.enc.json
+          retention-days: 3
+          if-no-files-found: error
