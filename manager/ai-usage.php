@@ -1,4 +1,7 @@
-<!doctype html>
+<?php
+require_once __DIR__.'/lib/ManagerHttp.php';
+if(($managerAiUsagePresentation??'')!=='manager2')ManagerHttp::start();
+?><!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><base href="/manager/"><title>Применения AI · AnyTour</title>
 <link rel="stylesheet" href="assets/manager-ai-usage.css?v=<?=filemtime(__DIR__.'/assets/manager-ai-usage.css')?>">
 <script src="assets/manager-http-client.js" defer></script><script src="assets/manager-time.js" defer></script><script src="assets/manager-ai-usage.js?v=<?=filemtime(__DIR__.'/assets/manager-ai-usage.js')?>" defer></script></head>
