@@ -1,5 +1,18 @@
 # Manager2 tour selection constructor
 
+## Independent public presentation package
+
+`modules/tour-selections/` defines the first separately identifiable public-page
+artifact and synthetic offline preview. Its explicit manifest packages the exact
+canonical `selection/view.php`, CSS and activity script; no runtime source is
+copied or moved, and existing links remain unchanged. Package identity is stable
+across unrelated commits, while a separate receipt retains actual provenance and
+declared backend compatibility fingerprints. See its README for build/verification
+and the read-only existing-host inventory. This is the first extraction step, not
+an independently installed public host, changed release permission or accepted V1.
+Editor, collector, immutable publications, rights and native sender keep their
+existing canonical owners and current mandatory checks.
+
 ## Settled and identified source galleries (0.6.4)
 
 FUN&SUN gallery reads now require the loaded hotel heading to match the exact
