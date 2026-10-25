@@ -108,14 +108,40 @@ selector until another explicit native inquiry; manager replies do not replace i
 This narrow first scope does not claim general hotel-name understanding.
 
 `ManagerHotelKnowledge` reads only repository-owned `knowledge/hotels/manifest.json`
-and its bounded, approved file. The initial accepted map is the observed
-Tourvisor source 9374/country1 → existing anytour1554. The common v100 acceptance
-and typed catalogue chain are retained in the manifest; no native MATCH is changed.
-The complete Family Suite group contains three declarations and three sources.
-Its whole-file SHA, record hashes, approval and namespace are checked before use.
-Unknown occupancy, the unresolved window note, operator-specific room formulas
-and `valid_at_travel=unverified` remain explicit. This is conditional published
-information, not room/tariff equivalence, future operation or price authority.
+and its bounded, approved file. It accepts the explicitly evidenced source-country
+pairs `1` → Egypt and `4` → Turkey; neither a country name nor a hotel-name match
+creates a catalogue join. The original Tourvisor9374/country1 → anytour1554
+Family Suite approval remains unchanged, alongside six additional Egypt groups
+and eight Turkey groups. These fifteen bounded groups retain54 saved declarations
+and42 source records, including source-only conflict context; they are not fifteen
+complete hotel passports or a count of distinct hotels in the research base.
+Each manifest approval names an actual saved common version and member. No native
+MATCH is changed.
+
+The server Tourvisor snapshot normalizer accepts those same two exact country
+codes paired with their corresponding destination text. The remaining bounded
+Moscow/two-adult/no-child/ANEX13/AI/RUB profile and price/date/source checks stay
+unchanged. The installed browser collector's Tourvisor extractor remains Egypt-only:
+this server readiness does not establish an observed Turkey DOM/operator-link
+profile, Turkey capture in that extension, or a natural Turkey inquiry. The
+constructor owns that separate extraction/packaging acceptance.
+
+The whole-file SHA, raw record hashes, approval and namespace are checked before
+use. An explicitly empty source `limitations` string is preserved: no source-specific
+limitation was recorded. Missing, null, malformed, whitespace-only or overlong
+values remain invalid. Empty source text does not remove the sealed group's
+category, season and future-tariff caveats or establish unrestricted service.
+Source and claim records are not rewritten to satisfy the reader.
+
+The Turkey groups retain, among other limits, Avia's supplier/season-specific UAI,
+Club Aqua Plaza and Hane's distinct room categories, Dream Fun World's midnight
+charges and weather-dependent aquapark periods, J'adore's room/restaurant rights,
+Side Moon's contradictory Family descriptions and impossible31November date,
+Vox Maris's16+ rule and unresolved room admission, and Akra Antalya's cliff access,
+pool-season conflict and RO/BB/HB/FB descriptions. Unknown ages, beds, doors,
+operator codes and `valid_at_travel=unverified` remain explicit. This is conditional
+published information, not room/tariff equivalence, future operation or price
+authority. Unrelated additions leave existing per-hotel revisions unchanged.
 
 Hotel evidence is budgeted last, after existing posts/routes, selection and photo
 evidence. Both the whole hotel JSON and its actual encoded text-request increment

@@ -7,6 +7,7 @@ final class ManagerHotelKnowledge
 {
     public const MAX_REFERENCE_BYTES = 16384;
     private const MAX_MANIFEST_BYTES = 65536;
+    private const SOURCE_COUNTRIES = ['1'=>'Egypt', '4'=>'Turkey'];
 
     /** Shared by generation and the captured per-hotel policy revision. */
     public static function instructions(): string
@@ -103,10 +104,10 @@ HOTEL;
             if (isset($identities[$sourceKey]) || isset($hotels[$hotelKey])) return [null, 'manifest_ambiguous'];
             $identities[$sourceKey] = true; $hotels[$hotelKey] = true;
             $local = $core['accepted_chain'][2];
-            // This first accepted source map is the saved Egypt/Tourvisor edge.
-            // Other countries need their own accepted identity evidence/slice.
+            // Each admitted country needs its own approved typed source edge.
+            // Country labels cannot authorize a different source namespace.
             if ((string)$local['id'] !== $entry['source_identity']['hotel']
-                || $entry['source_identity']['country'] !== '1' || $core['identity_anchor']['country'] !== 'Egypt') return [null, 'manifest_invalid'];
+                || (self::SOURCE_COUNTRIES[$entry['source_identity']['country']] ?? null) !== $core['identity_anchor']['country']) return [null, 'manifest_invalid'];
             if (self::canonical($entry['source_identity']) === self::canonical($selector['source_identity'])) {
                 // Identity still comes from the accepted typed bridge. This
                 // negative consistency guard stops a retained native key from
@@ -175,7 +176,11 @@ HOTEL;
             if (!self::record($source, $core['research_hotel_key']) || isset($sources[$source['id']])
                 || !self::httpsUrl($source['url'] ?? null)
                 || !in_array($source['kind'] ?? null, ['official','operator'], true)
-                || !self::text($source['read_scope'] ?? null, 2000) || !self::text($source['limitations'] ?? null, 2000)
+                || !self::text($source['read_scope'] ?? null, 2000)
+                // Explicit empty means no source-specific limit was recorded.
+                // Preserve it and the sealed group caveats; missing or malformed
+                // fields remain invalid. Never fabricate source text to fit.
+                || (!self::text($source['limitations'] ?? null, 2000) && ($source['limitations'] ?? null) !== '')
                 || !array_key_exists('publication_date', $source) || !self::dateOrNull($source['publication_date'])
                 || !self::date($source['retrieved_on'] ?? null)) return false;
             $sources[$source['id']] = true;

@@ -323,29 +323,84 @@ $knowledgeDigest=static fn($value):string=>hash('sha256',$canonicalKnowledge->in
 $loadKnowledge=static fn($m,$bytes,int $now)=>$readKnowledge->invoke(null,$m,$bytes,$selector,$now);
 $now=1893455999; // The second before 2030, deliberately not the wall clock.
 $current=$loadKnowledge($manifest,$bundleBytes,$now);
+// Pure synthetic approvals exercise reader formats only; they do not accept a
+// real research/catalogue join or create a Library approval/publication.
+$countryFixture=$manifest;
+$countryFixture['bindings'][0]['source_identity']['country']='4';
+$countryFixture['bindings'][0]['accepted_binding']['identity_anchor']['country']='Turkey';
+$countryFixture['bindings'][0]['binding_revision']=$knowledgeDigest($countryFixture['bindings'][0]['accepted_binding']);
+$countryBundle=$bundle;
+$countryBundle['binding_revision']=$countryFixture['bindings'][0]['binding_revision'];
+$countryBytes=$canonicalKnowledge->invoke(null,$countryBundle);
+$countryFixture['bindings'][0]['bundle_sha256']=hash('sha256',$countryBytes);
+$countrySelector=$selector;$countrySelector['source_identity']['country']='4';
+$countryRead=$readKnowledge->invoke(null,$countryFixture,$countryBytes,$countrySelector,$now);
+draftCheck('an explicitly approved Turkey/source-country4 pair can preserve its entire sealed group',
+    ($countryRead['status']??'')==='available' && ($countryRead['facts']??null)===$bundle['facts']);
+foreach ([['4','Egypt'],['1','Turkey'],['2','Turkey']] as [$countryId,$anchorCountry]) {
+    $wrongCountry=$countryFixture;
+    $wrongCountry['bindings'][0]['source_identity']['country']=$countryId;
+    $wrongCountry['bindings'][0]['accepted_binding']['identity_anchor']['country']=$anchorCountry;
+    $wrongCountry['bindings'][0]['binding_revision']=$knowledgeDigest($wrongCountry['bindings'][0]['accepted_binding']);
+    $countryHeld=$readKnowledge->invoke(null,$wrongCountry,$countryBytes,$countrySelector,$now);
+    draftCheck('country '.$countryId.' and anchor '.$anchorCountry.' cannot cross the approved country namespace',
+        ($countryHeld['status']??'')==='held' && ($countryHeld['facts']??null)===[]);
+}
+$emptyLimits=$bundle;$emptyLimits['sources'][0]['limitations']='';
+$emptyLimits['record_hashes']['sources'][$emptyLimits['sources'][0]['id']]=$knowledgeDigest($emptyLimits['sources'][0]);
+$emptyBytes=$canonicalKnowledge->invoke(null,$emptyLimits);
+$emptyManifest=$manifest;$emptyManifest['bindings'][0]['bundle_sha256']=hash('sha256',$emptyBytes);
+$emptyRead=$loadKnowledge($emptyManifest,$emptyBytes,$now);
+draftCheck('an explicit empty source limitation is retained without inventing a statement or losing group caveats',
+    ($emptyRead['status']??'')==='available'
+    && ($emptyRead['sources'][0]['limitations']??null)===''
+    && ($emptyRead['material_limits']??null)===$bundle['material_limits']
+    && ($emptyRead['future_operation_verified']??null)===false);
+foreach (['missing','null','wrong-type','whitespace','control','oversize'] as $badLimit) {
+    $badLimitBundle=$bundle;
+    if ($badLimit==='missing') unset($badLimitBundle['sources'][0]['limitations']);
+    else $badLimitBundle['sources'][0]['limitations']=match($badLimit) {
+        'null'=>null,'wrong-type'=>[],'whitespace'=>" \t ",'control'=>"bad\0limit",'oversize'=>str_repeat('x',2001),
+    };
+    $badLimitBundle['record_hashes']['sources'][$badLimitBundle['sources'][0]['id']]=$knowledgeDigest($badLimitBundle['sources'][0]);
+    $badLimitBytes=$canonicalKnowledge->invoke(null,$badLimitBundle);
+    $badLimitManifest=$manifest;$badLimitManifest['bindings'][0]['bundle_sha256']=hash('sha256',$badLimitBytes);
+    draftCheck('source limitations '.$badLimit.' remains invalid despite a fresh whole-file and record seal',
+        $loadKnowledge($badLimitManifest,$badLimitBytes,$now)['status']==='held');
+}
 $cohort=[
-    '241'=>[81,'albatros_makadi','ALBATROS MAKADI RESORT',4],
-    '240'=>[80,'happy_life_village','HAPPY LIFE VILLAGE',3],
-    '268'=>[99,'jaz_makadi_saraya','JAZ MAKADI SARAYA RESORT (EX. IBEROTEL MAKADI SARAYA RESORT)',5],
-    '1981'=>[877,'jaz_neo_naama','JAZ NEO NAAMA BAY (EX. SOLYMAR NAAMA BAY)',4],
-    '12111'=>[1654,'movenpick_sharm','MOVENPICK RESORT SHARM EL SHEIKH NAAMA BAY',3],
-    '498'=>[228,'titanic_beach','TITANIC BEACH SPA & AQUA PARK',4],
+    '241'=>[81,'albatros_makadi','ALBATROS MAKADI RESORT',4,'1'],
+    '240'=>[80,'happy_life_village','HAPPY LIFE VILLAGE',3,'1'],
+    '268'=>[99,'jaz_makadi_saraya','JAZ MAKADI SARAYA RESORT (EX. IBEROTEL MAKADI SARAYA RESORT)',5,'1'],
+    '1981'=>[877,'jaz_neo_naama','JAZ NEO NAAMA BAY (EX. SOLYMAR NAAMA BAY)',4,'1'],
+    '12111'=>[1654,'movenpick_sharm','MOVENPICK RESORT SHARM EL SHEIKH NAAMA BAY',3,'1'],
+    '498'=>[228,'titanic_beach','TITANIC BEACH SPA & AQUA PARK',4,'1'],
+    '157359'=>[4101,'avia_resort','AVIA RESORT & SPA',3,'4'],
+    '1077'=>[477,'club_aqua_plaza','CLUB AQUA PLAZA (EX. SUNEOCLUB AQUA PLAZA)',3,'4'],
+    '109900'=>[3726,'dream_fun_world','DREAM FUN WORLD',3,'4'],
+    '28666'=>[2077,'hane_family','PRIMASOL HANE FAMILY RESORT (EX. FAMILY HANE RESORT)',4,'4'],
+    '46672'=>[2432,'jadore_deluxe','JADORE DELUXE HOTEL & SPA',4,'4'],
+    '111129'=>[3742,'side_moon_palace','SIDE MOON PALACE HOTEL',3,'4'],
+    '111045'=>[3737,'vox_maris','VOX MARIS RESORT ADULTS ONLY 16+',4,'4'],
+    '1146'=>[516,'akra_antalya','AKRA ANTALYA',4,'4'],
 ];
-foreach ($cohort as $sourceId=>[$anytourId,$researchKey,$sourceName,$factCount]) {
+foreach ($cohort as $sourceId=>[$anytourId,$researchKey,$sourceName,$factCount,$sourceCountry]) {
+    $cohortLabel=($sourceCountry==='4'?'Turkey':'Egypt').' cohort '.$sourceId;
     $cohortApproved=null;
     foreach ($manifest['bindings'] as $cohortEntry) {
         if (($cohortEntry['source_identity']['hotel']??'')===(string)$sourceId) $cohortApproved=$cohortEntry;
     }
-    draftCheck('Egypt cohort '.$sourceId.' has its own explicit source-to-catalogue approval',
+    draftCheck($cohortLabel.' has its own explicit source-to-catalogue approval',
         $cohortApproved!==null && $cohortApproved['accepted_binding']['hotel_ref']===['catalog'=>'anytour','id'=>$anytourId]);
     if ($cohortApproved===null) continue;
     $cohortBytes=file_get_contents(dirname(__DIR__).'/knowledge/hotels/'.$cohortApproved['bundle_file']);
     $cohortBundle=json_decode($cohortBytes,true,32,JSON_THROW_ON_ERROR);
     $cohortSelector=$selector;
     $cohortSelector['source_identity']['hotel']=(string)$sourceId;
+    $cohortSelector['source_identity']['country']=$sourceCountry;
     $cohortSelector['selected_hotel']=$sourceName;
     $cohortCaptured=ManagerHotelKnowledge::capture($cohortSelector,$now);
-    draftCheck('Egypt cohort '.$sourceId.' preserves its complete group, caveats and exact raw record hashes',
+    draftCheck($cohortLabel.' preserves its complete group, caveats and exact raw record hashes',
         ($cohortCaptured['status']??'')==='available'
         && ($cohortCaptured['hotel_ref']??null)===['catalog'=>'anytour','id'=>$anytourId]
         && ($cohortCaptured['research_hotel_key']??'')===$researchKey
@@ -357,18 +412,18 @@ foreach ($cohort as $sourceId=>[$anytourId,$researchKey,$sourceName,$factCount])
     $cohortReference=draftHotelReferenceFixture(draftContext(),$baselineRefs+['hotel_reference'=>$cohortCaptured]);
     $cohortInput=ManagerAiDraftService::prepareInput(draftContext(),null,null,$cohortReference);
     $cohortWire=ManagerDraftClient::requestBody(ManagerAiDraftService::instructions($cohortInput['context']),$cohortInput['context']);
-    draftCheck('Egypt cohort '.$sourceId.' fits the real request wire without dropping baseline or source restrictions',
+    draftCheck($cohortLabel.' fits the real request wire without dropping baseline or source restrictions',
         ($cohortInput['context']['hotel_reference']??null)===$cohortCaptured
         && $cohortInput['context']['origin_posts']===$baselineRefs['origin_posts']
         && $cohortInput['context']['travel_reference']===$baselineRefs['travel_reference']
         && strlen(json_encode($cohortWire,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=ManagerDraftClient::MAX_REQUEST_BYTES);
     foreach (['country','catalogue-number','different-name'] as $cohortMismatch) {
         $cohortWrong=$cohortSelector;
-        if ($cohortMismatch==='country') $cohortWrong['source_identity']['country']='2';
+        if ($cohortMismatch==='country') $cohortWrong['source_identity']['country']=$sourceCountry==='4'?'1':'4';
         if ($cohortMismatch==='catalogue-number') $cohortWrong['source_identity']['hotel']=(string)$anytourId;
         if ($cohortMismatch==='different-name') $cohortWrong['selected_hotel']='SUNRISE ARABIAN BEACH RESORT';
         $cohortHeld=ManagerHotelKnowledge::capture($cohortWrong,$now);
-        draftCheck('Egypt cohort '.$sourceId.' rejects '.$cohortMismatch.' rather than borrowing a neighbouring packet',
+        draftCheck($cohortLabel.' rejects '.$cohortMismatch.' rather than borrowing a neighbouring packet',
             ($cohortHeld['status']??'')==='held' && ($cohortHeld['facts']??null)===[] && ($cohortHeld['sources']??null)===[]);
     }
     $cohortCrossed=$cohortBundle;
@@ -381,8 +436,15 @@ foreach ($cohort as $sourceId=>[$anytourId,$researchKey,$sourceName,$factCount])
     }
     unset($cohortEntry);
     $cohortCrossedResult=$readKnowledge->invoke(null,$cohortCrossedManifest,$cohortCrossedBytes,$cohortSelector,$now);
-    draftCheck('Egypt cohort '.$sourceId.' rejects a re-sealed fact belonging to a different research hotel',
+    draftCheck($cohortLabel.' rejects a re-sealed fact belonging to a different research hotel',
         ($cohortCrossedResult['status']??'')==='held' && ($cohortCrossedResult['facts']??null)===[]);
+    if ($sourceCountry==='1') {
+        $cohortEgyptOnly=$manifest;
+        $cohortEgyptOnly['bindings']=array_values(array_filter($manifest['bindings'],static fn(array $entry):bool=>$entry['source_identity']['country']==='1'));
+        $cohortBeforeTR=$readKnowledge->invoke(null,$cohortEgyptOnly,$cohortBytes,$cohortSelector,$now);
+        draftCheck($cohortLabel.' keeps its existing per-hotel revision after unrelated Turkey bindings are added',
+            $cohortBeforeTR['knowledge_revision']===$cohortCaptured['knowledge_revision']);
+    }
 }
 $cohortOnlyOriginal=$manifest;$cohortOnlyOriginal['bindings']=[$manifest['bindings'][0]];
 draftCheck('adding the Egypt cohort leaves the original Sunrise per-hotel revision unchanged',
