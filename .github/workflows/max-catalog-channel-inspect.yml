@@ -57,6 +57,9 @@ jobs:
             $q=$pdo->prepare("SELECT s.id,s.source_key,s.handling_mode FROM conversation_sources s JOIN projects p ON p.id=s.project_id WHERE p.project_key=? AND p.is_active=1 AND s.channel='max' AND s.is_active=1 AND s.handling_mode IN('manager','ask') ORDER BY s.id LIMIT 20");
             $q->execute(['anytour']);$out['eligible_sources']=$q->fetchAll(PDO::FETCH_ASSOC);
            }finally{$pdo->rollBack();}
+           // Public MAX page https://max.ru/channel_anytour returns linkInfo.channel.channelId=80492244209683.
+           // Treat as candidate only; provider GET must verify exact public link before any further action.
+           $candidates[]=['channel_id'=>'-80492244209683','source_key'=>'unregistered_public_metadata','is_enabled'=>0];
            $out['registered_candidates']=[];$matches=[];
            if(count($candidates)>25)throw new RuntimeException('registry_read_limit');
            foreach($candidates as $candidate){
