@@ -36,6 +36,12 @@ if($action==='login'){
     out(['ok'=>true,'manager'=>$m+['supervision_available'=>ManagerSupervisorAccessService::scopes((int)$m['id'])!==[]],'projects'=>$m['projects']??[],'csrf'=>ManagerHttp::csrf(true)]);
 }
 
+// These transcript reads need existing project metadata, never its legacy UPSERT.
+// Initialize before manager resolution can enter the shared bootstrap.
+if(in_array($action,['detail','message_target'],true)&&ManagerHttp::managerId()>0){
+    try{ProjectAccessService::initializeReadOnly();}
+    catch(Throwable $ignored){out(['ok'=>false,'error'=>'project_unavailable'],503);}
+}
 $m=ManagerHttp::requireManager();
 $isAdmin=ManagerHttp::isAdmin($m);
 if($action==='me') out(['ok'=>true,'manager'=>$m+['supervision_available'=>ManagerSupervisorAccessService::scopes((int)$m['id'])!==[]],'projects'=>$m['projects']??[],'csrf'=>ManagerHttp::csrf(true)]);
