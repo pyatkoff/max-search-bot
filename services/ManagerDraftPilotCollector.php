@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__.'/ManagerAiDraftContextService.php';
 require_once __DIR__.'/InternalOwnerDialogueScope.php';
+require_once __DIR__.'/ManagerPreparationEligibility.php';
 
 /**
  * One-off private pilot input. Returns bounded, redacted context in memory only.
@@ -29,7 +30,7 @@ final class ManagerDraftPilotCollector
         bool $includeUnassigned = false,
         ?array $selection = null
     ): array {
-        if ($selection !== null && (!in_array($selection['lane'] ?? null, ['waiting','due','active'], true)
+        if ($selection !== null && (!in_array($selection['lane'] ?? null, ['fresh','waiting','due','active'], true)
             || !is_int($selection['after_id'] ?? null) || $selection['after_id'] < 0)) return self::failure('invalid_selection');
         if (!array_is_list($managerIds) || !$managerIds || count($managerIds) > 2000) {
             return self::failure('invalid_cohort');
@@ -69,6 +70,13 @@ final class ManagerDraftPilotCollector
                 if ($id <= 0 || isset($seen[$id])) continue;
                 $seen[$id] = true;
                 try {
+                    if (($selection['lane']??null)==='fresh') {
+                        $input=ManagerPreparationEligibility::input($pdo,$id,$capturedAtUtc);
+                        if($input===null){self::skip($skipped,'changed_since_selection');continue;}
+                        if(ManagerPreparationEligibility::handled($pdo,$id,$actor,(string)$candidate['project_key'],$input,true)!==null){
+                            self::skip($skipped,'already_prepared');continue;
+                        }
+                    }
                     // candidatePage has committed: canonical capture owns a new
                     // read-only transaction and initializes before legacy auth.
                     $captured = $snapshot($id, $actor);
@@ -179,7 +187,11 @@ final class ManagerDraftPilotCollector
                 // pilot retains its original recent/unanswered read contract.
                 $sql .= "AND c.project_key=? AND customer_last.created_at<=? AND ";
                 array_push($args, ProjectConfig::projectId(), $capturedAtUtc);
-                if ($selection['lane'] === 'waiting') $sql .= $waiting;
+                if ($selection['lane'] === 'fresh') {
+                    $sql .= ManagerPreparationEligibility::sql('c.id',$driver);
+                    array_push($args,...ManagerPreparationEligibility::window($capturedAtUtc));
+                }
+                elseif ($selection['lane'] === 'waiting') $sql .= $waiting;
                 else {
                     $sql .= "NOT ({$waiting}) AND ".($selection['lane'] === 'active' ? "NOT ({$due})" : $due);
                     $args[] = $capturedAtUtc;
@@ -279,3 +291,4 @@ final class ManagerDraftPilotCollector
         return ['ok'=>false, 'error'=>$error];
     }
 }
+
