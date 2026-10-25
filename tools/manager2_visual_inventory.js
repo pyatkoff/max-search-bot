@@ -34,7 +34,7 @@ const PART_ZERO = Object.freeze([
   'workspace-v2-layout','workspace-notification-diagnostics','manager-browser-push-state',
   'workspace-timezone','workspace-conversation-scroll','manager2-workspace',
   'manager2-inbox-compact','manager-admin-load','manager-personal-workspace',
-  'manager-customer-name','manager-media-compose',
+  'manager-customer-name','manager-media-compose','manager-transcript-history',
 ].map(name=>'tests/visual/'+name+'.spec.js'));
 const PART_COUNT = 2;
 function partitionSpecs(browser, part) {

@@ -64,7 +64,7 @@ try {
     assert.equal(baseline.harnessDigest,reviewedHarnessDigest);
     assert.match(baseline.commonDigest,/^[a-f0-9]{64}$/);assert.equal(sourceManifest(root,original).commonDigest,baseline.commonDigest);
   });
-  check('whole-spec partitions preserve every main spec exactly once with layout owned by zero',()=>{
+  check('whole-spec partitions preserve every main spec exactly once with layout and history owned by zero',()=>{
     assert.equal(PART_COUNT,2);
     for(const browser of ['chromium','webkit']) {
       const parts=Array.from({length:PART_COUNT},(_,part)=>partitionSpecs(browser,part));
@@ -72,6 +72,9 @@ try {
       assert.deepEqual([...union].sort(),[...mainSpecs(browser)].sort());
       assert(parts.every(part=>part.length>0));
       assert(!union.includes('tests/visual/manager-avatar-cache.spec.js'));
+      const history='tests/visual/manager-transcript-history.spec.js';
+      assert(parts[0].includes(history));
+      assert(!parts[1].includes(history));
       for(const invalid of [-1,2,'0',null,0.5])assert.throws(()=>partitionSpecs(browser,invalid),/Invalid browser partition/);
     }
     assert(partitionSpecs('chromium',0).includes('tests/visual/workspace-v2-layout.spec.js'));
