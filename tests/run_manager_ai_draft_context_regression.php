@@ -796,6 +796,18 @@ INSERT INTO catalog_countries VALUES(1,'Египет',1),(4,'Турция',1),(9
         !isset(draftWorkingInput(draftContextCapture($pdo))['context']['working_selection']));
     draftContextCheck('working draft presence cannot bypass the unchanged reply ownership scope',empty(ManagerAiDraftContextService::snapshot(1,3)['ok']));
 
+    $pdo=draftContextFixture();draftWorkingSave($pdo,draftWorkingOffers());
+    $pdo->exec("INSERT INTO manager_projects VALUES(1,2); UPDATE conversations SET project_key='other' WHERE id=1");
+    $otherProject=draftContextCapture($pdo);
+    draftContextCheck('an authorized different project cannot borrow AnyTour working evidence',
+        !empty($otherProject['ok']) && !isset(draftWorkingInput($otherProject)['context']['working_selection']));
+    $pdo=draftContextFixture();draftWorkingSave($pdo,draftWorkingOffers());
+    $pdo->exec("ALTER TABLE conversations ADD COLUMN is_test INTEGER NOT NULL DEFAULT 0; UPDATE conversations SET status='waiting_manager',manager_id=NULL WHERE id=1");
+    $waitingWorking=ManagerAiDraftContextService::preparationSnapshot(1,0);
+    draftContextCheck('the actual waiting-worker authorization path retains the same private working input without taking a chat',
+        !empty($waitingWorking['ok']) && !empty(draftWorkingInput($waitingWorking)['context']['working_selection']['offers'])
+        && $pdo->query('SELECT manager_id FROM conversations WHERE id=1')->fetchColumn()===null && $pdo->writeAttempts===0);
+
     // Original import is evidence of its own observed terms, not of manager edits.
     [$pdo,$workingPublication]=draftHotelFixture();
     $originalSource=$workingPublication['offers'][0]['import_source'];

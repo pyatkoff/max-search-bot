@@ -45,13 +45,15 @@ final class ManagerAiDraftService
         if (isset($normalized['error'])) return $normalized;
         $normalized['verified_company_facts'] = $knowledge?->facts() ?? [];
         $hotelReference = null;
+        $workingSelection = null;
         if ($references !== null) {
             $extra = $references->forContext($normalized);
             if ($extra === null) return ['error'=>'invalid_context'];
             // Captured evidence owns revision, but hotel admission is last: it
             // cannot evict posts/routes, selection observations or photo evidence.
             $hotelReference = $extra['hotel_reference'] ?? null;
-            unset($extra['hotel_reference']);
+            $workingSelection = $extra['working_selection'] ?? null;
+            unset($extra['hotel_reference'], $extra['working_selection']);
             $plain = $normalized;
             $normalized += $extra;
             try {
@@ -108,7 +110,28 @@ final class ManagerAiDraftService
         if (is_array($hotelReference)) {
             [$normalized, $hotelAdmission] = self::admitHotelReference($normalized, $hotelReference);
         }
-        return ['context'=>$normalized,'preflight'=>null,'images'=>$images,'hotel_reference_admission'=>$hotelAdmission];
+        $workingAdmission = null;
+        if (is_array($workingSelection)) {
+            [$normalized, $workingAdmission] = self::admitWorkingSelection($normalized, $workingSelection);
+        }
+        return ['context'=>$normalized,'preflight'=>null,'images'=>$images,'hotel_reference_admission'=>$hotelAdmission]
+            + ($workingAdmission===null?[]:['working_selection_admission'=>$workingAdmission]);
+    }
+
+    /** Optional working variants are last and can never displace existing evidence. */
+    private static function admitWorkingSelection(array $baseline,array $working): array
+    {
+        $receipt=['status'=>'omitted','reason'=>'evidence_budget'];
+        try {
+            $raw=json_encode($working,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+            if(strlen($raw)>ManagerTourSelectionReferenceContext::MAX_EVIDENCE_BYTES)return [$baseline,$receipt];
+            $encode=static fn(array $context):string=>json_encode(ManagerDraftClient::requestBody(self::instructions($context),$context),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+            $before=strlen($encode($baseline));$candidate=$baseline+['working_selection'=>$working];$after=strlen($encode($candidate));
+            if($after-$before>ManagerTourSelectionReferenceContext::MAX_EVIDENCE_BYTES)return [$baseline,$receipt];
+            if($after>ManagerDraftClient::MAX_REQUEST_BYTES)return [$baseline,['status'=>'omitted','reason'=>'request_budget']];
+            return [$candidate,['status'=>'available','reason'=>null,'offers'=>count($working['offers']),
+                'evidence_utf8_bytes'=>strlen($raw),'text_request_bytes'=>$after,'wire_increment_bytes'=>$after-$before]];
+        }catch(Throwable $ignored){return [$baseline,$receipt];}
     }
 
     /** Whole captured group or a bounded unknown. Never edits the useful baseline. */
@@ -179,7 +202,9 @@ next_action: clarify — существенное уточнение; answer_que
 5. Слова об оплате, файл, договор, заявка и подтверждение оператора различай; это не выполненные тобой действия. При жалобе признай неудобство без выдуманной причины, гарантий, возврата или контакта с поставщиком.
 PROMPT;
         return $instructions . (($context['hotel_reference']['status'] ?? null) === 'available'
-            ? "\n\n".ManagerHotelKnowledge::instructions() : '');
+            ? "\n\n".ManagerHotelKnowledge::instructions() : '')
+            . (($context['working_selection']['status'] ?? null) === 'available'
+            ? "\n\n".ManagerTourSelectionReferenceContext::instructions() : '');
     }
 
     public static function responseSchema(): array

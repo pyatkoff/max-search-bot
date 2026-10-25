@@ -158,6 +158,38 @@ No continuously changing capture timestamp enters a revision.
 Tests prove controlled data admission and stale/budget behavior. They do not prove
 actual model use or a natural customer result; those remain separate acceptance.
 
+## Working constructor variants
+
+The existing authorized read snapshot may also read the current persisted
+constructor draft through `ManagerTourSelectionReferenceContext`: one bounded
+primary-key SELECT, no page/provider call or write. Only normalized included
+AnyTour variants reach `working_selection`. It is a manager's editable working
+set, not a tourist preference, proof of sending, current-trip criteria or a
+verified fare. Excluded variants, draft/offer IDs, private URLs, raw source keys
+and photo bytes are not projected. Phone/email text uses the shared redactor;
+other personal text may remain in free-form notes, as in the authorized transcript.
+Photos remain explicitly unread.
+Original normalized supplier conditions stay separate from manager changes;
+their differing fields are listed rather than silently promoted to source facts.
+
+The whole group and its actual encoded request increment, including conditional
+instructions, must fit32KiB and the existing196608-byte text envelope. Admission
+is last, after all existing transcript/company/post/route/selection/photo/hotel
+evidence. Overflow omits the whole optional group without shortening that
+baseline. Empty, invalid, unsupported or unavailable drafts leave the old input
+and base instructions unchanged; absence is unknown, not proof of no offers.
+Version, exact stored-content hash and policy revision participate in the existing
+manual/preparation stale checks, without a continuously changing capture time.
+Posted fields cannot populate this server-owned evidence.
+
+Both explicit generation and private preparation use the same input. With useful
+matching variants, the helper can compare supported conditions, the in-budget
+choice and a justified10–20% alternative; it must preserve actual request scope,
+source age, unverified costs and material unknowns. This is candidate-context
+delivery, not automatic live search, ranking accuracy, constructor mutation or
+independent proof of model quality. Native collector/use and fresh real reply
+acceptance remain separate; the regression uses only synthetic data and a spy.
+
 ## Knowledge and output
 
 Generalized communication procedures and approved project-specific company facts
