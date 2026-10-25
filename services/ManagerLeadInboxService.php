@@ -15,12 +15,54 @@ class ManagerLeadInboxService
         $in=implode(',',array_fill(0,count($ids),'?'));$pdo=ConversationDb::connection();$lead=[];
         $q=$pdo->prepare("SELECT c.id,c.lead_outcome,c.lead_close_reason,c.lead_outcome_note,c.lead_sale_amount,c.lead_sale_date,cu.phone,cu.email FROM conversations c JOIN customers cu ON cu.id=c.customer_id WHERE c.id IN ({$in})");$q->execute($ids);foreach($q->fetchAll() as $item)$lead[(int)$item['id']]=$item;
         $closeReasons=SalesPipelineService::closeReasonOptions();
-        $summaries=[];$q=$pdo->prepare("SELECT conversation_id,text,metadata_json FROM messages WHERE conversation_id IN ({$in}) AND sender_type='ai' AND direction='outbound' AND (text LIKE '%Готово! Проверьте параметры%' OR metadata_json LIKE '%\"trip_summary\"%') ORDER BY id DESC");$q->execute($ids);
-        foreach($q->fetchAll() as $message){$id=(int)($message['conversation_id']??0);if($id<=0||array_key_exists($id,$summaries))continue;$summary=TripSummaryProjection::fromMessage($message);if($summary!==null)$summaries[$id]=$summary;}
-        $tasks=[];$taskRows=[];$openTaskCounts=[];$taskOrder=LeadTaskService::openTaskOrderSql('t');$q=$pdo->prepare("SELECT t.id,t.conversation_id,t.title,t.due_at_utc,t.is_pinned,CASE WHEN t.due_at_utc IS NOT NULL AND t.due_at_utc<UTC_TIMESTAMP() THEN 1 ELSE 0 END AS overdue FROM lead_tasks t WHERE t.conversation_id IN ({$in}) AND t.status='open' ORDER BY t.conversation_id ASC,{$taskOrder}");$q->execute($ids);
-        foreach($q->fetchAll() as $task){$id=(int)($task['conversation_id']??0);if($id<=0)continue;$openTaskCounts[$id]=(int)($openTaskCounts[$id]??0)+1;if(!array_key_exists($id,$tasks))$tasks[$id]=$task;$taskRows[$id][]=$task;}
+        $summaries=self::latestSummaries($pdo,$ids);
+        // One displayed task and one deadline/count aggregate per conversation.
+        // Pinning chooses the card's task; the earliest deadline independently
+        // chooses its operational urgency through the existing task owner.
+        $tasks=[];$taskRows=[];$openTaskCounts=[];$taskOrder=LeadTaskService::openTaskOrderSql('t');
+        $q=$pdo->prepare("SELECT t.id,t.conversation_id,t.title,t.due_at_utc,t.is_pinned,
+            CASE WHEN t.due_at_utc IS NOT NULL AND t.due_at_utc<UTC_TIMESTAMP() THEN 1 ELSE 0 END AS overdue,
+            totals.open_task_count,totals.first_due_at_utc,
+            CASE WHEN totals.first_due_at_utc IS NOT NULL AND totals.first_due_at_utc<UTC_TIMESTAMP() THEN 1 ELSE 0 END AS first_overdue
+            FROM (SELECT conversation_id,COUNT(*) AS open_task_count,MIN(due_at_utc) AS first_due_at_utc
+                FROM lead_tasks WHERE conversation_id IN ({$in}) AND status='open' GROUP BY conversation_id) totals
+            JOIN lead_tasks t ON t.id=(SELECT t.id FROM lead_tasks t WHERE t.conversation_id=totals.conversation_id AND t.status='open' ORDER BY {$taskOrder} LIMIT 1)
+            ORDER BY t.conversation_id ASC");$q->execute($ids);
+        foreach($q->fetchAll() as $task){$id=(int)$task['conversation_id'];$openTaskCounts[$id]=(int)$task['open_task_count'];$tasks[$id]=$task;$taskRows[$id]=[$task];if($task['first_due_at_utc']!==null)$taskRows[$id][]=['due_at_utc'=>$task['first_due_at_utc'],'overdue'=>$task['first_overdue']];}
         $operationalStates=[];foreach($taskRows as $id=>$rowsForLead)$operationalStates[$id]=LeadTaskService::operationalProjection($rowsForLead);
         foreach($rows as &$row){$id=(int)($row['id']??0);$meta=$lead[$id]??[];$task=$tasks[$id]??[];$operational=$operationalStates[$id]??LeadTaskService::operationalProjection([]);$row['lead_outcome']=(string)($meta['lead_outcome']?:'open');$closedOutcome=$row['lead_outcome']!=='open';$row['lead_close_reason']=$meta['lead_close_reason']??null;$row['lead_close_reason_label']=$row['lead_close_reason']!==null?($closeReasons[(string)$row['lead_close_reason']]??(string)$row['lead_close_reason']):null;$row['lead_outcome_note']=$meta['lead_outcome_note']??null;$row['lead_sale_amount']=$meta['lead_sale_amount']??null;$row['lead_sale_date']=$meta['lead_sale_date']??null;$row['contact_phone']=$meta['phone']??null;$row['contact_email']=$meta['email']??null;$row['trip_summary']=$summaries[$id]??'';$row['next_task_id']=$task['id']??null;$row['next_task_title']=$task['title']??null;$row['next_task_due_at_utc']=$task['due_at_utc']??null;$row['next_task_pinned']=!empty($task['is_pinned']);$row['next_task_overdue']=!empty($task['overdue']);$row['next_task_due_state']=LeadTaskService::dueState($row['next_task_due_at_utc'],$row['next_task_overdue']);$row['open_task_count']=(int)($openTaskCounts[$id]??0);$row['operational_task_state']=$operational['state'];$row['operational_task_due_state']=$closedOutcome?'closed':$operational['due_state'];$row['operational_task_rank']=$closedOutcome?4:$operational['rank'];$row['operational_task_due_at_utc']=$operational['due_at_utc']??null;$row['project_label']=self::projectLabel($row);$row['origin_label']=self::originLabel($row);}unset($row);return$rows;
+    }
+
+    /** Read newest candidates in bounded pages; only unresolved leads continue. */
+    private static function latestSummaries(PDO $pdo,array $ids): array
+    {
+        $summaries=[];$pending=[];$before=null;$batchSize=256;
+        $in=implode(',',array_fill(0,count($ids),'?'));
+        $candidate="sender_type='ai' AND direction='outbound' AND (text LIKE '%Готово! Проверьте параметры%' OR metadata_json LIKE '%\"trip_summary\"%')";
+        $q=$pdo->prepare("SELECT m.id,m.conversation_id,m.text,m.metadata_json FROM messages m
+            JOIN (SELECT conversation_id,MAX(id) AS last_id FROM messages WHERE conversation_id IN ({$in}) AND {$candidate} GROUP BY conversation_id) latest
+            ON latest.last_id=m.id AND latest.conversation_id=m.conversation_id");$q->execute($ids);
+        foreach($q->fetchAll() as $message){
+            $id=(int)$message['conversation_id'];$summary=TripSummaryProjection::fromMessage($message);
+            if($summary!==null)$summaries[$id]=$summary;else$pending[$id]=true;
+        }
+        $q->closeCursor();
+        // Unsupported/malformed latest candidates still fall back through the
+        // canonical parser, including a newer legacy or valid empty snapshot.
+        while($pending){
+            $args=array_keys($pending);$in=implode(',',array_fill(0,count($args),'?'));
+            $cursor=$before===null?'':' AND id<?';if($before!==null)$args[]=$before;
+            $q=$pdo->prepare("SELECT id,conversation_id,text,metadata_json FROM messages WHERE conversation_id IN ({$in}) AND {$candidate}{$cursor} ORDER BY id DESC LIMIT {$batchSize}");$q->execute($args);
+            $messages=$q->fetchAll();$q->closeCursor();
+            foreach($messages as $message){
+                $before=(int)$message['id'];$id=(int)$message['conversation_id'];
+                if(!isset($pending[$id]))continue;
+                $summary=TripSummaryProjection::fromMessage($message);
+                if($summary!==null){$summaries[$id]=$summary;unset($pending[$id]);}
+            }
+            if(count($messages)<$batchSize)break;
+        }
+        return$summaries;
     }
 
     /** Compatibility projection; LeadTaskService owns task urgency semantics. */
