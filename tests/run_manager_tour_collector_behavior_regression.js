@@ -62,6 +62,14 @@ async function itemState(w,operation,state){await until(async()=>(await w.status
  check('FUNSUN gallery excludes logos and tracking source URLs',fun.photos(doc('/hotel/10',['https://b2b.fstravel.com/logo.svg',funPhotos[0]+'?token=secret']),'10').length===0);
  check('FUNSUN refuses mixed gallery UUIDs',fun.photos(doc('/hotel/10',[funPhotos[0],funPhotos[1].replace('00180000','00280000')]),'10').length===0);
  check('one available hotel image stays one image instead of duplicates',fun.photos(doc('/hotel/10',[funPhotos[0],funPhotos[0]]),'10').length===1);
+ const partnerKeys={hotel:'-10',partner:'HBK'},partnerPhotos=[101,102,103].map(i=>'https://hbpro.expert/resource/hotel/photo_1200/11/22/'+i+'.jpg');
+ check('partner gallery retains its signed hotel and exact partner URL',JSON.stringify(fun.photos(doc('/hotel/-10?partner=HBK',partnerPhotos),partnerKeys))===JSON.stringify(partnerPhotos));
+ check('partner gallery rejects lost or changed partner identity',fun.photos(doc('/hotel/-10',partnerPhotos),partnerKeys).length===0&&fun.photos(doc('/hotel/-11?partner=HBK',partnerPhotos),partnerKeys).length===0&&fun.photos(doc('/hotel/-10?partner=EVIL',partnerPhotos),partnerKeys).length===0);
+ check('partner and native photo grammars cannot borrow each other',fun.photos(doc('/hotel/-10?partner=HBK',funPhotos),partnerKeys).length===0&&fun.photos(doc('/hotel/10',partnerPhotos),'10').length===0);
+ check('partner gallery refuses mixed hotel prefixes and secret query values',fun.photos(doc('/hotel/-10?partner=HBK',[partnerPhotos[0],partnerPhotos[1].replace('/11/22/','/11/23/')]),partnerKeys).length===0&&fun.photos(doc('/hotel/-10?partner=HBK',[partnerPhotos[0]+'?token=secret']),partnerKeys).length===0);
+ const canonicalDoc=(name,href='https://b2b.fstravel.com/hotel/europe/turkey/synthetic-hotel')=>({location:new URL(href),querySelectorAll:s=>s==='h2'?[{innerText:name,getClientRects:()=>[{}]}]:funPhotos.map(src=>({getAttribute:()=>src}))});
+ check('numeric native hotel navigation may use its matching canonical page',fun.photos(canonicalDoc('Синтетический отель'),'10','Синтетический отель').length===3);
+ check('canonical gallery refuses wrong header origin and another numeric ID',fun.photos(canonicalDoc('Чужой отель'),'10','Синтетический отель').length===0&&fun.photos(canonicalDoc('Синтетический отель','https://evil.example/hotel/europe/turkey/synthetic-hotel'),'10','Синтетический отель').length===0&&fun.photos(canonicalDoc('Синтетический отель','https://b2b.fstravel.com/hotel/11'),'10','Синтетический отель').length===0);
  const anexUrl='https://agent.anextour.ru/search/tour?HOTEL_INC=100&TAB_ACTIVE=description';
  const anexPhotos=[1,2,3].map(i=>'https://files.anextour.ru/hotel/hotels/turkey/synthetic/o'+i+'?&hotelCode=100');
  const adoc=(href,urls)=>({location:new URL(href),querySelectorAll:()=>urls.map(src=>({getAttribute:()=>src}))});

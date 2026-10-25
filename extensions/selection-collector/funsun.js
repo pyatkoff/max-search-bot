@@ -4,15 +4,24 @@ const fields=['TOWNFROMINC','STATEINC','CHECKIN_BEG','CHECKIN_END','NIGHTS_FROM'
 const clean=s=>String(s||'').replace(/\s+/gu,' ').trim();
 const fail=message=>{throw new Error(message)};
 const canonicalKey=value=>/^[1-9]\d{0,11}$/.test(value||'')?value:null;
+const partnerKey=value=>/^-[1-9]\d{0,11}$/.test(value||'')&&value!=='-2147483647'?value:null;
+const unknownRoomKey=value=>value==='-2147483647'?value:null;
 const keyNames={hotel:'отеля',room:'номера',meal:'питания',htplace:'размещения',tour:'тура',ptype:'программы',townfrom:'города вылета',state:'страны'};
 function keyError(attr,reason,message){fail(message+' (FS-'+attr+'-'+reason+').');}
-function rowKey(row,attr,classPrefix){
- const raw=row.getAttribute('data-'+attr),data=canonicalKey(raw);
- const classes=[...new Set(Array.from(row.classList).map(value=>value.startsWith(classPrefix)?canonicalKey(value.slice(classPrefix.length)):null).filter(Boolean))];
+function rowKey(row,attr,classPrefix,parse=canonicalKey){
+ const raw=row.getAttribute('data-'+attr),data=parse(raw);
+ const classes=[...new Set(Array.from(row.classList).map(value=>value.startsWith(classPrefix)?parse(value.slice(classPrefix.length)):null).filter(Boolean))];
  if(classes.length>1)keyError(attr,'multiple','Неоднозначные данные '+keyNames[attr]+'. Повторите поиск или добавьте вариант вручную');
  if(data&&classes.length===1&&data!==classes[0])keyError(attr,'mismatch','Не совпадают данные '+keyNames[attr]+'. Повторите поиск или добавьте вариант вручную');
  if(raw!==null&&raw!==''&&!data)keyError(attr,'format','Формат данных '+keyNames[attr]+' пока не поддерживается. Добавьте вариант вручную');
  const value=data||classes[0];if(!value)keyError(attr,'missing','Нет точных данных '+keyNames[attr]+'. Добавьте вариант вручную');return value;
+}
+function partnerHotel(row){
+ const links=row.querySelectorAll('.link-hotel a');if(links.length!==1)return null;
+ try{const url=new URL(links[0].getAttribute('href'),'https://b2b.fstravel.com'),hotel=/^\/hotel\/(-[1-9]\d{0,11})$/.exec(url.pathname)?.[1];
+  if(url.origin!=='https://b2b.fstravel.com'||url.username||url.password||url.port||url.hash||!partnerKey(hotel)||url.search!=='?partner=HBK')return null;
+  return {hotel,url:url.href};
+ }catch{return null}
 }
 const date=s=>{const m=/^(\d{2})\.(\d{2})\.(\d{4})$/.exec(s||'');if(!m)return null;const iso=m[3]+'-'+m[2]+'-'+m[1];const d=new Date(iso+'T00:00:00Z');return !isNaN(d)&&d.toISOString().slice(0,10)===iso?iso:null};
 const dayKey=iso=>iso?.replaceAll('-','');
@@ -51,9 +60,14 @@ function observe(doc){
 function extract(doc,row,href,at=new Date().toISOString().replace(/\.\d{3}Z$/,'Z'),submitted=null){
  const f=form(doc,href,submitted),v=f.values;
  if(!row?.matches('tr.price_info')||row.closest('[hidden],[aria-hidden="true"]'))fail('Выберите отображённую строку предложения.');
- const attrs={hotel:['hotel','hotelKey-'],room:['room','roomKey-'],meal:['meal','mealKey-'],placement:['htplace','htPlaceKey-'],tour:['tour','tourKey-'],program:['ptype','programTypeKey-'],departure:['townfrom','townFromKey-'],country:['state','stateKey-']},keys={};
- for(const [key,[attr,classPrefix]]of Object.entries(attrs))keys[key]=rowKey(row,attr,classPrefix);
- const classes=Array.from(row.classList),spo=classes.map(x=>/^spoKey-([1-9]\d*)$/.exec(x)).find(Boolean);if(!spo)fail('Не определён тариф предложения.');keys.spo=spo[1];
+ const partner=partnerHotel(row),attrs={hotel:['hotel','hotelKey-'],room:['room','roomKey-'],meal:['meal','mealKey-'],placement:['htplace','htPlaceKey-'],tour:['tour','tourKey-'],program:['ptype','programTypeKey-'],departure:['townfrom','townFromKey-'],country:['state','stateKey-']},keys={};
+ for(const [key,[attr,classPrefix]]of Object.entries(attrs))keys[key]=rowKey(row,attr,classPrefix,partner?(key==='hotel'?partnerKey:['room','placement'].includes(key)?unknownRoomKey:canonicalKey):canonicalKey);
+ const classes=Array.from(row.classList);
+ if(partner){
+  if(keys.hotel!==partner.hotel)keyError('hotel','mismatch','Не совпадает отель в ссылке и строке. Повторите поиск');
+  if(classes.filter(c=>c.startsWith('spoKey-')).join(',')!=='spoKey-')fail('Не определён формат тарифа партнёрского предложения.');
+  keys.spo='';keys.partner='HBK';
+ }else{const spo=classes.map(x=>/^spoKey-([1-9]\d*)$/.exec(x)).find(Boolean);if(!spo)fail('Не определён тариф предложения.');keys.spo=spo[1];}
  const checkin=row.getAttribute('data-checkin'),nights=Number(row.getAttribute('data-nights'));
  const day=text(row,'.arrival .samo_format_date'),dayNode=row.querySelector('.arrival .samo_format_date'),iso=date(dayNode?.getAttribute('data-date'));
  if(!iso||!day.startsWith(dayNode.getAttribute('data-date'))||dayKey(iso)!==checkin||iso<f.from||iso>f.to||!Number.isInteger(nights)||nights<1||nights>60||nights<Number(v.NIGHTS_FROM.value)||nights>Number(v.NIGHTS_TILL.value)||text(row,'.tour-nights')!==String(nights)||keys.country!==v.STATEINC.value||keys.departure!==v.TOWNFROMINC.value||!classes.includes('adult-'+f.adults)||!classes.includes('child-'+f.children))fail('Строка не соответствует текущей форме. Выполните поиск заново.');
@@ -65,15 +79,31 @@ function extract(doc,row,href,at=new Date().toISOString().replace(/\.\d{3}Z$/,'Z
  const hotel=star?title.slice(0,star.index).trim():title,place=text(row,'.link-hotel').replace(title,'').trim().replace(/^\(|\)$/g,'');
  const safe=sourceUrl(f);
  const raw={hotel:title,date:day,nights:String(nights),room,meal,price:rawPrice,party:f.adults+'AD'+(f.children?' + '+f.children+'CH ('+f.ages.join(', ')+')':''),tour:text(row,'.tour'),flight_alternatives:clean(row.querySelector('.arrival .popup-note')?.getAttribute('title')||''),tariff:row.querySelector('.type_price')?text(row,'.type_price'):''};
+ if(partner)raw.hotel_url=partner.url;
  if(hotel.length>191||room.length>300||meal.length>160||Object.values(raw).some(x=>x.length>1200))fail('Слишком длинные условия. Импорт остановлен.');
  return {adapter:'funsun-b2b-v1',url:safe.href,observed_at:at,quote_id:quote,keys,raw,offer:{hotel,destination:clean(v.STATEINC.text+(place?', '+place:'')),departure:v.TOWNFROMINC.text,date_from:iso,nights,adults:f.adults,child_ages:f.ages,room,meal,amount,currency,stars:star?Number(star[1]):null}};
 }
-function photos(doc,hotel){
- if(doc.location.pathname!=='/hotel/'+hotel)return [];
- const urls=Array.from(doc.querySelectorAll('img.slider-img')).map(e=>e.getAttribute('src')).filter(s=>typeof s==='string'&&/^https:\/\/apigate-tui\.fstravel\.com\/api\/geocontent\/static\/Hotel\/[a-f0-9-]{36}\/(?:MainPhoto|Gallery|InsideOfTheRoom)-Source-[a-z0-9]+\.(?:jpg|jpeg|png)$/i.test(s));
- const groups=new Set(urls.map(s=>s.split('/')[7]));if(groups.size!==1)return [];
+function galleryDocument(doc,keys,name=''){
+ if(typeof keys==='string')keys={hotel:keys};
+ if(keys.partner==='HBK'? !partnerKey(keys.hotel) : !!keys.partner||!canonicalKey(keys.hotel))return false;
+ if(doc.location.origin&&doc.location.origin!=='https://b2b.fstravel.com')return false;
+ const expected='/hotel/'+keys.hotel;
+ if(doc.location.pathname===expected){return keys.partner==='HBK'?doc.location.search==='?partner=HBK':!doc.location.search;}
+ // FUN&SUN replaces numeric native URLs with a canonical hotel slug after load.
+ // The navigation starts from that exact numeric ID; the rendered hotel heading
+ // must still match the clicked row. This is not a catalogue/name-based join.
+ if(keys.partner||!canonicalKey(keys.hotel)||!name||doc.location.origin!=='https://b2b.fstravel.com'||doc.location.search||doc.location.hash||!/^\/hotel\/[a-z0-9-]+(?:\/[a-z0-9-]+)+$/i.test(doc.location.pathname))return false;
+ const heading=Array.from(doc.querySelectorAll('h2')).find(e=>e.getClientRects().length&&clean(e.innerText??e.textContent));
+ return clean(heading?.innerText??heading?.textContent).normalize('NFKC').toLocaleLowerCase('ru')===clean(name).normalize('NFKC').toLocaleLowerCase('ru');
+}
+function photos(doc,keys,name=''){
+ if(typeof keys==='string')keys={hotel:keys};
+ if(!galleryDocument(doc,keys,name))return [];
+ const partner=keys.partner==='HBK',pattern=partner?/^https:\/\/hbpro\.expert\/resource\/hotel\/photo_1200\/([1-9]\d{0,9}\/[1-9]\d{0,9})\/[1-9]\d{0,11}\.jpg$/:/^https:\/\/apigate-tui\.fstravel\.com\/api\/geocontent\/static\/Hotel\/([a-f0-9-]{36})\/(?:MainPhoto|Gallery|InsideOfTheRoom)-Source-[a-z0-9]+\.(?:jpg|jpeg|png)$/i;
+ const urls=Array.from(doc.querySelectorAll('img.slider-img')).map(e=>e.getAttribute('src')).filter(s=>typeof s==='string'&&pattern.test(s));
+ const groups=new Set(urls.map(s=>pattern.exec(s)[1]));if(groups.size!==1)return [];
  const cover=urls.find(s=>s.includes('/MainPhoto-')),room=urls.find(s=>s.includes('/InsideOfTheRoom-'));
  return [...new Set([cover,urls.find(s=>s!==cover&&s!==room),room,...urls].filter(Boolean))].slice(0,3);
 }
-root.AnyTourFunsun={extract,form,observe,photos};
+root.AnyTourFunsun={extract,form,observe,photos,galleryDocument};
 })(typeof window==='undefined'?module.exports:window);

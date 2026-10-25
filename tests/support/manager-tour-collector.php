@@ -24,6 +24,17 @@ function collectorImportedDraft(PDO $pdo,array $observation,int $conversation=1)
     return ManagerTourSelectionService::get(7,$conversation)['selection'];
 }
 
+function partnerCollectorObservation(): array
+{
+    $o=collectorObservation();$o['quote_id']='0x'.str_repeat('d',268);
+    $o['keys']=array_replace($o['keys'],['hotel'=>'-10','room'=>'-2147483647','placement'=>'-2147483647','spo'=>'','partner'=>'HBK']);
+    $o['offer']['room']=$o['raw']['room']='DOUBLE STANDARD / 2ADL';
+    $o['raw']['hotel_url']='https://b2b.fstravel.com/hotel/-10?partner=HBK';
+    $o['raw']['tariff']='Информация о тарифе в корзине';
+    $o['photos']=array_map(static fn(int $i):string=>'https://hbpro.expert/resource/hotel/photo_1200/11/22/'.$i.'.jpg',[101,102,103]);
+    return $o;
+}
+
 function anexCollectorObservation(): array
 {
     return ['adapter'=>'anex-agent-v1','url'=>'https://agent.anextour.ru/search/tour?ADULT=2&CHILD=0&CHECKIN_BEG=20261025&CHECKIN_END=20261025&NIGHTMIN=7&NIGHTMAX=7&CURRENCY=1&STATEINC=3&TOWNFROM=moskva','observed_at'=>'2026-10-24T09:30:00Z','quote_id'=>'0x'.str_repeat('b',268),
