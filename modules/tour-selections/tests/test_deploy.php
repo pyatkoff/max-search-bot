@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+if (PHP_SAPI!=='cli') {http_response_code(404);exit;}
 require_once dirname(__DIR__).'/deploy.php';
 $root=dirname(__DIR__,3);$payload=$argv[1]??'';
 $dir=sys_get_temp_dir().'/selection-host-test-'.bin2hex(random_bytes(8));
