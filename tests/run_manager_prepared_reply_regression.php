@@ -28,6 +28,8 @@ final class PreparedReplyPdo extends PDO
     public array $executed = [];
     public ?Closure $beforeCursorUpdate = null;
     public ?Closure $beforeRetire = null;
+    public ?Closure $beforeLegacyBindingRead = null;
+    public ?Closure $beforeInputAnnotation = null;
     public bool $failSnapshotOnce = false;
 
     public function __construct()
@@ -68,6 +70,8 @@ final class PreparedReplyPdo extends PDO
         }
         if ($this->failSnapshotOnce && preg_match('/\bFROM messages\b/i',$sql)){$this->failSnapshotOnce=false;throw new RuntimeException('synthetic_snapshot_failure');}
         if ($this->beforeRetire !== null && str_contains($sql,"WHERE job_id=? AND status='pending' AND context_revision=")){$callback=$this->beforeRetire;$this->beforeRetire=null;$callback($this);}
+        if ($this->beforeLegacyBindingRead !== null && str_starts_with($sql,'SELECT * FROM manager_prepared_replies WHERE conversation_id=? AND manager_id=? AND project_key=? AND context_revision=?')){$callback=$this->beforeLegacyBindingRead;$this->beforeLegacyBindingRead=null;$callback($this);}
+        if ($this->beforeInputAnnotation !== null && str_starts_with($sql,'UPDATE manager_prepared_replies SET customer_input_revision=')){$callback=$this->beforeInputAnnotation;$this->beforeInputAnnotation=null;$callback($this);}
         $this->executed[] = $sql;
         if (preg_match('/\A\s*SELECT\b/i', $sql)) return;
         if ($this->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql'
@@ -350,6 +354,94 @@ function preparedReplyReconciliationBoundaries(): void
     preparedReplyCheck('ready no_contact rows remain immutable and are not regenerated',($pass['reconciliation']['checked']??-1)===0&&$cache===$pdo->query('SELECT * FROM manager_prepared_replies')->fetchAll());
 }
 
+/** Current native snapshots may learn a NULL lookup hint, never rewrite a result. */
+function preparedReplyLegacyInputCoverage(): void
+{
+    $fullReads=static fn(PreparedReplyPdo $pdo):array=>array_values(array_filter($pdo->executed,static fn(string $sql):bool=>str_starts_with($sql,'SELECT id,metadata_json FROM messages')));
+    $legacy=static function(array $changes=[]):array{
+        $pdo=preparedReplyFixture();$snapshot=preparedReplySnapshot();$job=preparedReplyQueue($snapshot);
+        if(!(ManagerPreparedReplyService::complete($job,$snapshot['revision'],preparedReplyProposal($changes))['ok']??false))throw new RuntimeException('FAIL legacy fixture completion');
+        $pdo->mutate('UPDATE manager_prepared_replies SET customer_input_revision=NULL');
+        return [$pdo,$snapshot,$job];
+    };
+    foreach([
+        'draft'=>[],
+        'no_contact'=>['should_draft'=>false,'draft'=>null,'next_action'=>'no_contact','reason'=>'Нового ответа не требуется.'],
+        'human_check'=>['should_draft'=>false,'draft'=>null,'next_action'=>'check_offer','reason'=>'Менеджеру нужно проверить предложение.'],
+    ] as $case=>$changes){
+        [$pdo,$snapshot,$job]=$legacy($changes);$source=preparedReplySourceState($pdo);
+        $before=$pdo->query('SELECT * FROM manager_prepared_replies')->fetch();$pdo->executed=[];
+        $first=ManagerPreparedReplyService::collectAndEnqueue([1]);$reads=$fullReads($pdo);
+        $after=$pdo->query('SELECT * FROM manager_prepared_replies')->fetch();
+        $expected=$before;$expected['customer_input_revision']=ManagerPreparationEligibility::input($pdo,101);
+        preparedReplyCheck('legacy '.$case.' learns only the exact auxiliary input hint after canonical validation',($first['ok']??false)&&$first['queue']['inserted']===0&&$first['queue']['existing']===1&&count($reads)>0&&$after===$expected);
+        for($pass=0;$pass<2;$pass++){
+            $pdo->executed=[];$again=ManagerPreparedReplyService::collectAndEnqueue([1]);$reads=$fullReads($pdo);
+            preparedReplyCheck('legacy '.$case.' subsequent pass '.$pass.' performs no full hydration or replacement',($again['ok']??false)&&$again['exported_count']===0&&$again['queue']['inserted']===0&&$reads===[]&&$pdo->query('SELECT * FROM manager_prepared_replies')->fetch()===$after);
+        }
+        preparedReplyCheck('legacy '.$case.' leaves every business row and read marker untouched',preparedReplySourceState($pdo)===$source&&$pdo->sourceWriteAttempts===0&&!$pdo->inTransaction());
+    }
+    [$pdo,$snapshot,$job]=$legacy();
+    $pdo->mutate("UPDATE manager_prepared_replies SET created_at='2020-01-01 00:00:00',prepared_at='2020-01-01 00:00:01',expires_at='2020-01-01 01:00:01'");
+    $before=$pdo->query('SELECT * FROM manager_prepared_replies')->fetch();ManagerPreparedReplyService::collectAndEnqueue([1]);
+    $after=$pdo->query('SELECT * FROM manager_prepared_replies')->fetch();$expected=$before;$expected['customer_input_revision']=ManagerPreparationEligibility::input($pdo,101);
+    preparedReplyCheck('expired legacy completion may learn input without extending preview or changing original provenance',$after===$expected&&!(ManagerPreparedReplyService::prepared(101,1,$snapshot)['prepared']??false));
+    $pdo->mutate("INSERT INTO messages VALUES(3,101,'inbound','customer','Клик','2026-10-19 10:02:00','telegram','{\"type\":\"callback\"}','synthetic','synthetic')");
+    $pdo->executed=[];$again=ManagerPreparedReplyService::collectAndEnqueue([1]);
+    preparedReplyCheck('later callback cannot rehydrate or reopen an annotated legacy completion',$again['exported_count']===0&&$again['queue']['inserted']===0&&$fullReads($pdo)===[]);
+    foreach([
+        'text_edit'=>"UPDATE messages SET text='Другие даты и бюджет.' WHERE id=2",
+        'media_edit'=>"UPDATE messages SET text='',metadata_json='{\"type\":\"message\",\"attachments\":[{\"type\":\"image\",\"id\":\"changed-fixture\"}]}' WHERE id=2",
+        'new_input'=>"INSERT INTO messages VALUES(3,101,'inbound','customer','Новый запрос',".$pdo->quote(gmdate('Y-m-d H:i:s')).",'telegram',NULL,'synthetic','synthetic')",
+    ] as $case=>$sql){
+        [$pdo,$snapshot,$job]=$legacy();ManagerPreparedReplyService::collectAndEnqueue([1]);$pdo->mutate($sql);
+        $pass=ManagerPreparedReplyService::collectAndEnqueue([1]);$jobs=ManagerPreparedReplyService::pending(20)['jobs']??[];
+        preparedReplyCheck($case.' is not suppressed by the learned legacy hint',($pass['ok']??false)&&$pass['queue']['inserted']===1&&count($jobs)===1&&$jobs[0]['job_id']!==$job);
+    }
+    foreach([
+        'checksum_corruption'=>"UPDATE manager_prepared_replies SET proposal_sha256='".str_repeat('a',64)."'",
+        'valid_hash_invalid_schema'=>"UPDATE manager_prepared_replies SET proposal_json='{}',proposal_sha256='".hash('sha256','{}')."'",
+        'different_context'=>"UPDATE manager_prepared_replies SET context_revision='".str_repeat('a',64)."'",
+        'different_instruction'=>"UPDATE manager_prepared_replies SET instruction_revision='".str_repeat('b',64)."'",
+        'different_latest'=>"UPDATE manager_prepared_replies SET latest_message_id=1",
+        'missing_completion_time'=>"UPDATE manager_prepared_replies SET prepared_at=NULL",
+        'completion_before_creation'=>"UPDATE manager_prepared_replies SET prepared_at='2000-01-01 00:00:00'",
+        'inconsistent_preview_expiry'=>"UPDATE manager_prepared_replies SET expires_at='2020-01-01 00:00:00'",
+    ] as $case=>$sql){
+        [$pdo,$snapshot,$job]=$legacy();$pdo->mutate($sql);ManagerPreparedReplyService::collectAndEnqueue([1]);
+        $q=$pdo->prepare('SELECT customer_input_revision FROM manager_prepared_replies WHERE job_id=?');$q->execute([$job]);
+        preparedReplyCheck($case.' cannot manufacture a legacy handled-input hint',$q->fetchColumn()===null);
+    }
+    foreach([
+        'source_edit'=>"UPDATE messages SET text='Поменялись условия во время проверки.' WHERE id=2",
+        'owner_change'=>'UPDATE conversations SET manager_id=2',
+        'project_change'=>"UPDATE conversations SET project_key='other'",
+    ] as $case=>$sql){
+        [$pdo,$snapshot,$job]=$legacy();
+        $pdo->beforeLegacyBindingRead=static function(PreparedReplyPdo $pdo)use($sql):void{$pdo->mutate($sql);};
+        ManagerPreparedReplyService::collectAndEnqueue([1]);
+        $q=$pdo->prepare('SELECT customer_input_revision FROM manager_prepared_replies WHERE job_id=?');$q->execute([$job]);
+        preparedReplyCheck($case.' before legacy learning leaves the old hint unknown',$q->fetchColumn()===null&&$pdo->beforeLegacyBindingRead===null);
+    }
+    foreach([
+        'concurrent_proposal'=>"UPDATE manager_prepared_replies SET proposal_json='{}',proposal_sha256='".hash('sha256','{}')."'",
+        'concurrent_expiry'=>"UPDATE manager_prepared_replies SET expires_at='2000-01-01 00:00:00'",
+        'concurrent_hint'=>"UPDATE manager_prepared_replies SET customer_input_revision='".str_repeat('c',64)."'",
+        'concurrent_created_at'=>"UPDATE manager_prepared_replies SET created_at='2000-01-01 00:00:00'",
+        'concurrent_prepared_at'=>"UPDATE manager_prepared_replies SET prepared_at='2000-01-01 00:00:00'",
+        'concurrent_row_owner'=>'UPDATE manager_prepared_replies SET manager_id=2',
+    ] as $case=>$sql){
+        [$pdo,$snapshot,$job]=$legacy();$expected=null;
+        $pdo->beforeInputAnnotation=static function(PreparedReplyPdo $pdo)use($sql,&$expected):void{$pdo->mutate($sql);$expected=$pdo->query('SELECT * FROM manager_prepared_replies')->fetch();};
+        ManagerPreparedReplyService::collectAndEnqueue([1]);
+        preparedReplyCheck($case.' rejects a stale auxiliary compare-and-set',$expected!==null&&$pdo->beforeInputAnnotation===null&&$pdo->query('SELECT * FROM manager_prepared_replies')->fetch()===$expected);
+    }
+    [$pdo,$snapshot,$job]=$legacy();
+    $pdo->beforeInputAnnotation=static function(PreparedReplyPdo $pdo):void{$pdo->mutate("UPDATE messages SET text='Изменение после последней проверки.' WHERE id=2");};
+    ManagerPreparedReplyService::collectAndEnqueue([1]);$pass=ManagerPreparedReplyService::collectAndEnqueue([1]);
+    preparedReplyCheck('late source edit never matches an obsolete annotation and still opens fresh work',($pass['ok']??false)&&$pass['queue']['inserted']===1&&count(ManagerPreparedReplyService::pending(20)['jobs']??[])===1);
+}
+
 function preparedReplyRun(): void
 {
     global $preparedReplyPassed;
@@ -359,6 +451,7 @@ function preparedReplyRun(): void
     managerSupervisorRegression();
     preparedReplyReferenceRecovery();
     preparedReplyReconciliationBoundaries();
+    preparedReplyLegacyInputCoverage();
 
     foreach (['telegram'=>1,'max'=>2] as $channel=>$internalId) {
         foreach (['pending','ready'] as $state) {
@@ -888,4 +981,5 @@ try {
         } catch (Throwable $ignored) { fwrite(STDERR, "FAIL MySQL fixture cleanup\n"); exit(1); }
     }
 }
+
 

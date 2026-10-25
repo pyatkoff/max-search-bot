@@ -20,12 +20,14 @@ final class ManagerTourSelectionTourvisorImportDraft
             $query[$key]=$value;
         }
         if (array_diff($required,array_keys($query))) return null;
-        foreach (['ts_dosearch'=>'1','s_form_mode'=>'0','s_directflight'=>'0','s_regular'=>'1','s_adults'=>'2','s_meal'=>'7','s_flyfrom'=>'1','s_country'=>'1'] as $key=>$value) if ($query[$key]!==$value) return null;
+        foreach (['ts_dosearch'=>'1','s_form_mode'=>'0','s_directflight'=>'0','s_regular'=>'1','s_adults'=>'2','s_meal'=>'7','s_flyfrom'=>'1'] as $key=>$value) if ($query[$key]!==$value) return null;
+        $countryName=['1'=>'Египет','4'=>'Турция'][$query['s_country']]??null;
+        if ($countryName===null) return null;
         $quote=$input['quote_id']??null;
         if (!is_string($quote) || !preg_match('/\Atv-snapshot-[1-9][0-9]{5,15}\z/D',$quote)) return null;
         $keys=$input['keys']??null;
         if (!is_array($keys) || count($keys)!==5 || array_diff(array_keys($keys),['hotel','meal','departure','country','operator'])) return null;
-        foreach (['hotel'=>$query['x_hotel_codes'],'meal'=>'7','departure'=>'1','country'=>'1','operator'=>'13'] as $key=>$value) if (($keys[$key]??null)!==$value || !preg_match('/\A[1-9][0-9]{0,11}\z/D',$value)) return null;
+        foreach (['hotel'=>$query['x_hotel_codes'],'meal'=>'7','departure'=>'1','country'=>$query['s_country'],'operator'=>'13'] as $key=>$value) if (($keys[$key]??null)!==$value || !preg_match('/\A[1-9][0-9]{0,11}\z/D',$value)) return null;
         ksort($keys);
         $raw=$input['raw']??null;
         $rawKeys=['hotel','destination','date','nights','room','meal','party','price','price_basis','base_price','fuel_price','tariff','flight_alternatives','party_price_confirmation'];
@@ -43,7 +45,7 @@ final class ManagerTourSelectionTourvisorImportDraft
         $offer=$draft['offers'][0];
         if ($offer['observed_at']==='' || $offer['adults']!==2 || $offer['child_ages']!==[] || $offer['currency']!=='RUB' || $offer['departure']!=='Москва' || $offer['stars']===null) return null;
         foreach (['hotel','destination','date_from','nights','room','meal','amount'] as $key) if ($offer[$key]===null || $offer[$key]==='') return null;
-        if ($raw['hotel']!==$offer['hotel'].' '.$offer['stars'].'*' || $raw['destination']!==$offer['destination'] || !str_starts_with($raw['destination'],'Египет, ') || $raw['room']!==$offer['room'] || $raw['meal']!==$offer['meal'] || $raw['meal']!=='AI - Все Включено' || $raw['party']!=='2 взрослых' || $raw['nights']!==$offer['nights'].' ночей') return null;
+        if ($raw['hotel']!==$offer['hotel'].' '.$offer['stars'].'*' || $raw['destination']!==$offer['destination'] || !str_starts_with($raw['destination'],$countryName.', ') || $raw['room']!==$offer['room'] || $raw['meal']!==$offer['meal'] || $raw['meal']!=='AI - Все Включено' || $raw['party']!=='2 взрослых' || $raw['nights']!==$offer['nights'].' ночей') return null;
         $months=['января'=>'01','февраля'=>'02','марта'=>'03','апреля'=>'04','мая'=>'05','июня'=>'06','июля'=>'07','августа'=>'08','сентября'=>'09','октября'=>'10','ноября'=>'11','декабря'=>'12'];
         if (!preg_match('/\A([1-9]|[12][0-9]|3[01]) ([а-я]+)\z/uD',$raw['date'],$m) || !isset($months[$m[2]])) return null;
         foreach (['s_j_date_from','s_j_date_to'] as $key) if (!preg_match('/\A([0-9]{2})\.([0-9]{2})\.([0-9]{4})\z/D',$query[$key],$d) || !checkdate((int)$d[2],(int)$d[1],(int)$d[3])) return null;

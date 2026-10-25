@@ -125,24 +125,25 @@ function draftContextMessageReads(DraftContextPdo $pdo): array
 }
 
 /** Synthetic native inquiry; actual source/publication normalizers own the shape. */
-function draftHotelFixture(string $hotelId = '9374', string $hotelName = 'SUNRISE ARABIAN BEACH RESORT'): array
+function draftHotelFixture(string $hotelId = '9374', string $hotelName = 'SUNRISE ARABIAN BEACH RESORT', string $countryId = '1'): array
 {
     require_once dirname(__DIR__).'/services/ManagerTourSelectionPublicationDraft.php';
     require_once dirname(__DIR__).'/services/ManagerTourSelectionImportDraft.php';
     $pdo = draftContextFixture(1);
+    $destination=$countryId==='4'?'Турция, Анталья':'Египет, Шарм-эль-Шейх';
     $observation = [
         'adapter'=>'tourvisor-snapshot-v1',
-        'url'=>'https://pro.tourvisor.ru/search?ts_dosearch=1&s_form_mode=0&s_nights_from=11&s_nights_to=11&s_directflight=0&s_regular=1&x_hotel_codes='.$hotelId.'&s_j_date_from=29.10.2026&s_j_date_to=29.10.2026&s_adults=2&s_meal=7&s_flyfrom=1&s_country=1',
+        'url'=>'https://pro.tourvisor.ru/search?ts_dosearch=1&s_form_mode=0&s_nights_from=11&s_nights_to=11&s_directflight=0&s_regular=1&x_hotel_codes='.$hotelId.'&s_j_date_from=29.10.2026&s_j_date_to=29.10.2026&s_adults=2&s_meal=7&s_flyfrom=1&s_country='.$countryId,
         'observed_at'=>'2026-10-16T11:00:00Z','quote_id'=>'tv-snapshot-1234567890',
-        'keys'=>['hotel'=>$hotelId,'meal'=>'7','departure'=>'1','country'=>'1','operator'=>'13'],
-        'offer'=>['hotel'=>$hotelName,'destination'=>'Египет, Шарм-эль-Шейх','departure'=>'Москва',
+        'keys'=>['hotel'=>$hotelId,'meal'=>'7','departure'=>'1','country'=>$countryId,'operator'=>'13'],
+        'offer'=>['hotel'=>$hotelName,'destination'=>$destination,'departure'=>'Москва',
             'date_from'=>'2026-10-29','nights'=>11,'adults'=>2,'child_ages'=>[],'room'=>'Family Suite',
             'meal'=>'AI - Все Включено','amount'=>'160000','currency'=>'RUB','stars'=>5],
-        'raw'=>['hotel'=>$hotelName.' 5*','destination'=>'Египет, Шарм-эль-Шейх','date'=>'29 октября',
+        'raw'=>['hotel'=>$hotelName.' 5*','destination'=>$destination,'date'=>'29 октября',
             'nights'=>'11 ночей','room'=>'Family Suite','meal'=>'AI - Все Включено','party'=>'2 взрослых',
             'price'=>'160 000 РУБ','price_basis'=>'за номер','base_price'=>'144 000 РУБ','fuel_price'=>'16 000 РУБ',
             'tariff'=>'Synthetic source tariff','flight_alternatives'=>'Synthetic unselected flights','party_price_confirmation'=>'one_room_two_adults'],
-        'photos'=>array_map(static fn(int $i): string=>'https://static.tourvisor.ru/hotel_pics/verybig/1/'.$hotelId.'-'.$i.'.jpg',[1,2,3]),
+        'photos'=>array_map(static fn(int $i): string=>'https://static.tourvisor.ru/hotel_pics/verybig/'.$countryId.'/'.$hotelId.'-'.$i.'.jpg',[1,2,3]),
     ];
     $normalized = ManagerTourSelectionImportDraft::normalize($observation);
     if ($normalized === null) throw new RuntimeException('FAIL hotel fixture source normalization');
@@ -599,23 +600,51 @@ INSERT INTO catalog_countries VALUES(1,'Египет',1),(4,'Турция',1),(9
     }
     // Each new retained typed edge passes through real publication/source
     // normalization and the current authorized SQL snapshot, not a name lookup.
-    $egyptCohort=[
-        '241'=>[81,'albatros_makadi','ALBATROS MAKADI RESORT',4],
-        '240'=>[80,'happy_life_village','HAPPY LIFE VILLAGE',3],
-        '268'=>[99,'jaz_makadi_saraya','JAZ MAKADI SARAYA RESORT (EX. IBEROTEL MAKADI SARAYA RESORT)',5],
-        '1981'=>[877,'jaz_neo_naama','JAZ NEO NAAMA BAY (EX. SOLYMAR NAAMA BAY)',4],
-        '12111'=>[1654,'movenpick_sharm','MOVENPICK RESORT SHARM EL SHEIKH NAAMA BAY',3],
-        '498'=>[228,'titanic_beach','TITANIC BEACH SPA & AQUA PARK',4],
+    [, $cohortTurkeyPublication]=draftHotelFixture('157359','AVIA RESORT & SPA','4');
+    $cohortTurkeySource=$cohortTurkeyPublication['offers'][0]['import_source'];
+    $cohortTurkeyObservation=array_intersect_key($cohortTurkeySource,array_flip(['adapter','url','observed_at','quote_id','keys','raw','photos']));
+    $cohortTurkeyObservation['offer']=$cohortTurkeySource['fields'];
+    foreach (['url-country','key-country','destination','unsupported-country','photo-country','party','meal','operator'] as $cohortSourceMismatch) {
+        $cohortBadSource=$cohortTurkeyObservation;
+        if ($cohortSourceMismatch==='url-country') $cohortBadSource['url']=str_replace('s_country=4','s_country=1',$cohortBadSource['url']);
+        elseif ($cohortSourceMismatch==='key-country') $cohortBadSource['keys']['country']='1';
+        elseif ($cohortSourceMismatch==='destination') $cohortBadSource['offer']['destination']=$cohortBadSource['raw']['destination']='Египет, Хургада';
+        elseif ($cohortSourceMismatch==='unsupported-country') {
+            $cohortBadSource['url']=str_replace('s_country=4','s_country=2',$cohortBadSource['url']);
+            $cohortBadSource['keys']['country']='2';
+        } elseif ($cohortSourceMismatch==='photo-country') $cohortBadSource['photos'][0]=str_replace('/verybig/4/','/verybig/1/',$cohortBadSource['photos'][0]);
+        elseif ($cohortSourceMismatch==='party') {$cohortBadSource['offer']['adults']=3;$cohortBadSource['raw']['party']='3 взрослых';}
+        elseif ($cohortSourceMismatch==='meal') $cohortBadSource['offer']['meal']=$cohortBadSource['raw']['meal']='HB';
+        elseif ($cohortSourceMismatch==='operator') $cohortBadSource['keys']['operator']='1';
+        draftContextCheck('Turkey server source rejects '.$cohortSourceMismatch.' while retaining the original bounded profile',
+            ManagerTourSelectionImportDraft::normalize($cohortBadSource)===null);
+    }
+    $hotelCohort=[
+        '241'=>[81,'albatros_makadi','ALBATROS MAKADI RESORT',4,'1'],
+        '240'=>[80,'happy_life_village','HAPPY LIFE VILLAGE',3,'1'],
+        '268'=>[99,'jaz_makadi_saraya','JAZ MAKADI SARAYA RESORT (EX. IBEROTEL MAKADI SARAYA RESORT)',5,'1'],
+        '1981'=>[877,'jaz_neo_naama','JAZ NEO NAAMA BAY (EX. SOLYMAR NAAMA BAY)',4,'1'],
+        '12111'=>[1654,'movenpick_sharm','MOVENPICK RESORT SHARM EL SHEIKH NAAMA BAY',3,'1'],
+        '498'=>[228,'titanic_beach','TITANIC BEACH SPA & AQUA PARK',4,'1'],
+        '157359'=>[4101,'avia_resort','AVIA RESORT & SPA',3,'4'],
+        '1077'=>[477,'club_aqua_plaza','CLUB AQUA PLAZA (EX. SUNEOCLUB AQUA PLAZA)',3,'4'],
+        '109900'=>[3726,'dream_fun_world','DREAM FUN WORLD',3,'4'],
+        '28666'=>[2077,'hane_family','PRIMASOL HANE FAMILY RESORT (EX. FAMILY HANE RESORT)',4,'4'],
+        '46672'=>[2432,'jadore_deluxe','JADORE DELUXE HOTEL & SPA',4,'4'],
+        '111129'=>[3742,'side_moon_palace','SIDE MOON PALACE HOTEL',3,'4'],
+        '111045'=>[3737,'vox_maris','VOX MARIS RESORT ADULTS ONLY 16+',4,'4'],
+        '1146'=>[516,'akra_antalya','AKRA ANTALYA',4,'4'],
     ];
-    foreach ($egyptCohort as $sourceId=>[$anytourId,$researchKey,$sourceName,$factCount]) {
-        [$pdo]=draftHotelFixture((string)$sourceId,$sourceName);
+    foreach ($hotelCohort as $sourceId=>[$anytourId,$researchKey,$sourceName,$factCount,$sourceCountry]) {
+        $cohortLabel=($sourceCountry==='4'?'Turkey':'Egypt').' cohort '.$sourceId;
+        [$pdo]=draftHotelFixture((string)$sourceId,$sourceName,$sourceCountry);
         $cohortBefore=[];
         foreach (['messages','conversation_events','manager_tour_selection_publications','conversations','manager_conversation_reads'] as $table) {
             $cohortBefore[$table]=$pdo->query('SELECT * FROM '.$table)->fetchAll();
         }
         $cohortSnapshot=draftContextCapture($pdo);
         $cohortHotel=draftHotelReference($cohortSnapshot);
-        draftContextCheck('Egypt cohort '.$sourceId.' resolves its own complete evidence through the native inquiry selector',
+        draftContextCheck($cohortLabel.' resolves its own complete evidence through the native inquiry selector',
             ($cohortHotel['status']??'')==='available'
             && ($cohortHotel['hotel_ref']??null)===['catalog'=>'anytour','id'=>$anytourId]
             && ($cohortHotel['research_hotel_key']??'')===$researchKey
@@ -625,19 +654,24 @@ INSERT INTO catalog_countries VALUES(1,'Египет',1),(4,'Турция',1),(9
             && ($cohortHotel['future_operation_verified']??null)===false);
         $cohortAfter=[];
         foreach (array_keys($cohortBefore) as $table) $cohortAfter[$table]=$pdo->query('SELECT * FROM '.$table)->fetchAll();
-        draftContextCheck('Egypt cohort '.$sourceId.' leaves every source row, event and read marker unchanged',
+        draftContextCheck($cohortLabel.' leaves every source row, event and read marker unchanged',
             $cohortBefore===$cohortAfter);
         $cohortAgain=draftContextCapture($pdo);
-        draftContextCheck('Egypt cohort '.$sourceId.' has stable preparation and manual revisions without a new observation',
+        draftContextCheck($cohortLabel.' has stable preparation and manual revisions without a new observation',
             $cohortAgain['revision']===$cohortSnapshot['revision']
             && $cohortAgain['preparation_revision']===$cohortSnapshot['preparation_revision']);
         $pdo->exec("INSERT INTO messages VALUES(2,1,'inbound','customer','Теперь другой отель','2026-10-17 12:01:00','telegram',NULL,'PRIVATE','PRIVATE')");
         $cohortChanged=draftContextCapture($pdo);
         $cohortHeld=draftHotelReference($cohortChanged);
-        draftContextCheck('Egypt cohort '.$sourceId.' suspends all old facts after newer tourist intent',
+        draftContextCheck($cohortLabel.' suspends all old facts after newer tourist intent',
             ($cohortHeld['facts']??null)===[] && ($cohortHeld['sources']??null)===[]
             && $cohortChanged['revision']!==$cohortSnapshot['revision']
             && $cohortChanged['preparation_revision']!==$cohortSnapshot['preparation_revision']);
+        [$cohortWrongCountry]=draftHotelFixture((string)$sourceId,$sourceName,$sourceCountry==='4'?'1':'4');
+        $cohortWrongHotel=draftHotelReference(draftContextCapture($cohortWrongCountry));
+        draftContextCheck($cohortLabel.' cannot cross into the other admitted country through a normalized inquiry',
+            ($cohortWrongHotel['status']??'')!=='available'
+            && ($cohortWrongHotel['facts']??null)===[] && ($cohortWrongHotel['sources']??null)===[]);
     }
     [$pdo] = draftHotelFixture('9375');
     $otherHotel = draftHotelReference(draftContextCapture($pdo));
