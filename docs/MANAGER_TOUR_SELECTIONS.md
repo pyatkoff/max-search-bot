@@ -540,3 +540,50 @@ Regression covers every identity field, unsupported external/sentinel inventory,
 raw-value privacy, no enqueue on failure and error/info transitions at all four
 widths. Native provider/cart actions, import destination, queue, manual price and
 publication/send owners are unchanged; physical failing-row retest remains open.
+
+## Automatic source galleries — collector 0.6.0
+
+Owner correction25Oct: managers will not collect and upload hotel photos by hand.
+The ordinary supported import now captures the source hotel's photographs:
+
+- FUN&SUN reads the exact `/hotel/<native hotel ID>` gallery, allowing only its
+  `apigate-tui` Hotel image paths and one consistent gallery UUID.
+- ANEX renders the exact observed description link in a temporary same-origin
+  frame. Only `#sliderPhoto` CDN images with the same `hotelCode` are accepted.
+- Tourvisor reads the existing exact card's slider/preview images; country and
+  native hotel ID must match the `static.tourvisor.ru/hotel_pics/verybig` prefix.
+
+FUN&SUN/ANEX use the source site's own rendered gallery, with no API credential,
+request interception, booking click or new extension origin permission. A bounded
+15-second temporary frame is removed on completion. A small in-memory gallery
+cache is hotel/URL scoped. Exact source terms and the click's destination ticket
+are checked again after loading; changed terms never enqueue the earlier offer.
+The existing queue, source limitations, price adjustment and UNKNOWN receipts stay
+in charge. A gallery lookup does not broaden accepted quote identities.
+
+Gallery URLs are optional private `import_source.photos` material, independent of
+price/conditions fingerprints. Legacy observations without that field retain the
+same normalization and receipt input. Re-adding the exact quote may fill an empty
+legacy gallery without another offer or overwriting the manager's price, text or
+already chosen photos. Normal draft save cannot forge imported provenance.
+
+Automatically captured galleries use the new explicit `gallery-v1` presentation,
+with one to three distinct source images, neutral hotel-photo captions and no
+assertion that the pictured room is the selected category. No duplicate/fake photo
+is invented to meet a three-image quota. Empty/unavailable source galleries remain
+explicitly incomplete, with a source retry instruction. File/URL replacement is
+optional. The private PhotoStore, byte/MIME/dimension limits, guarded preview,
+reviewed-only public image cache and explicit native send/publish fences remain.
+
+Legacy full three-photo presentations keep their renderer layout, caption and
+creation identity. New gallery cardinality flows through preview, public page,
+native preparation and strict response-count verification. Public pages expose
+only their protected cached image URLs, not source image URLs or import metadata;
+revocation closes all actual images. Gallery variants render independently rather
+than borrowing another variant's presumed beach/room images.
+
+This package touches the shared card renderer/native transport as required for
+one/two-photo galleries, so unchanged CI selection requires FULL coverage. Focused
+source/worker, canonical import/enrichment, legacy receipt, renderer, native count,
+public cache/revoke and desktop/mobile editor/preview regressions are included.
+A source fixture is not physical Chrome/Yandex installed-extension acceptance.

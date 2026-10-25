@@ -2,7 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__.'/../services/MaxTlsConfig.php';
 
-/** Three-photo cards only. Creation is called after the durable application fence. */
+/** Bounded hotel-photo cards. Creation follows the durable application fence. */
 final class TourSelectionNativeTransport
 {
     private $exchange;
@@ -10,6 +10,7 @@ final class TourSelectionNativeTransport
 
     public function prepare(array $binding,array $images): array
     {
+        if (!array_is_list($images) || count($images)<1 || count($images)>3) throw new RuntimeException('invalid_photo');
         $channel=$binding['channel'];$request=$this->exchange;
         $me=$request($channel,$channel==='max'?'GET':'POST',$channel==='max'?'/me':'getMe',[],[],[]);
         $bot=self::decimal($me['data']['user_id']??$me['data']['id']??null);
@@ -37,7 +38,7 @@ final class TourSelectionNativeTransport
             if (!is_string($token) || $token==='' || strlen($token)>4096) throw new RuntimeException('photo_upload_unavailable');
             $tokens[]=$token;
         }
-        if (count($tokens)!==3) throw new RuntimeException('photo_upload_unavailable');
+        if (count($tokens)!==count($images)) throw new RuntimeException('photo_upload_unavailable');
         return ['bot'=>$bot,'user'=>$user,'chat'=>$chat,'tokens'=>$tokens];
     }
 
@@ -67,10 +68,12 @@ final class TourSelectionNativeTransport
     public static function matches(string $channel,array $card,array $identity,string $mid,$message): bool
     {
         if (!is_array($message) || self::messageId($channel,$message)!==$mid) return false;
+        $photoCount=count($card['presentation']['photos']??[]);
+        if ($photoCount<1 || $photoCount>3) return false;
         if ($channel==='telegram') {
             if (self::decimal($message['chat']['id']??null)!==$identity['user'] || ($message['chat']['type']??'')!=='private' || self::decimal($message['from']['id']??null)!==$identity['bot'] || ($message['from']['is_bot']??false)!==true) return false;
             $blocks=$message['rich_message']['blocks']??null;$wanted=$card['telegram']['rich_message']['blocks'];
-            if (!is_array($blocks) || count($blocks)!==5 || ($blocks[0]['type']??'')!=='slideshow' || count($blocks[0]['blocks']??[])!==3) return false;
+            if (!is_array($blocks) || count($blocks)!==5 || ($blocks[0]['type']??'')!=='slideshow' || count($blocks[0]['blocks']??[])!==$photoCount) return false;
             foreach ($blocks[0]['blocks'] as $block) {
                 if (($block['type']??'')!=='photo' || !is_array($block['photo']??null) || !$block['photo']) return false;
                 foreach ($block['photo'] as $p) if (!is_array($p) || !is_string($p['file_id']??null) || $p['file_id']==='' || (int)($p['width']??0)<1 || (int)($p['height']??0)<1) return false;
@@ -80,10 +83,10 @@ final class TourSelectionNativeTransport
         }
         if (self::decimal($message['sender']['user_id']??null)!==$identity['bot'] || self::decimal($message['recipient']['user_id']??null)!==$identity['user'] || (string)($message['recipient']['chat_id']??'')!==$identity['chat'] || ($message['recipient']['chat_type']??'')!=='dialog' || ($message['body']['text']??null)!==$card['plain_text']) return false;
         $attachments=$message['body']['attachments']??null;$markup=$message['body']['markup']??null;
-        if (!is_array($attachments) || count($attachments)!==4 || !is_array($markup) || count($markup)!==2) return false;
-        foreach ([0,1,2] as $i) if (($attachments[$i]['type']??'')!=='image' || empty($attachments[$i]['payload'])) return false;
+        if (!is_array($attachments) || count($attachments)!==$photoCount+1 || !is_array($markup) || count($markup)!==2) return false;
+        foreach (range(0,$photoCount-1) as $i) if (($attachments[$i]['type']??'')!=='image' || empty($attachments[$i]['payload'])) return false;
         foreach ($card['max_markup'] as $span) if (!in_array($span,$markup,true)) return false;
-        return $attachments[3]==$card['max']['attachments'][0];
+        return $attachments[$photoCount]==$card['max']['attachments'][0];
     }
 
     public static function messageId(string $channel,array $message): ?string
