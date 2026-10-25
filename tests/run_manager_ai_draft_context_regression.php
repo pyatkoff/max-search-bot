@@ -808,6 +808,15 @@ INSERT INTO catalog_countries VALUES(1,'Египет',1),(4,'Турция',1),(9
         !empty($waitingWorking['ok']) && !empty(draftWorkingInput($waitingWorking)['context']['working_selection']['offers'])
         && $pdo->query('SELECT manager_id FROM conversations WHERE id=1')->fetchColumn()===null && $pdo->writeAttempts===0);
 
+    $pdo=draftContextFixture();draftWorkingSave($pdo,draftWorkingOffers());
+    $pdo->exec("UPDATE messages SET text='Сравните номера и питание этих вариантов' WHERE id=1; UPDATE messages SET direction='outbound',sender_type='manager',text='Сравню варианты' WHERE id=2");
+    $promisedInput=draftWorkingInput(draftContextCapture($pdo));
+    draftContextCheck('new working evidence carries the conditional fulfillment rule without treating a past promise as a contact trigger',
+        !empty($promisedInput['context']['working_selection']['offers'])
+        && $promisedInput['context']['messages'][1]['sender_type']==='manager'
+        && str_contains(ManagerAiDraftService::instructions($promisedInput['context']),'не выбирай no_contact только из-за этого прежнего обещания')
+        && str_contains(ManagerAiDraftService::instructions($promisedInput['context']),'Сам рабочий черновик не создаёт повода писать туристу'));
+
     // Original import is evidence of its own observed terms, not of manager edits.
     [$pdo,$workingPublication]=draftHotelFixture();
     $originalSource=$workingPublication['offers'][0]['import_source'];

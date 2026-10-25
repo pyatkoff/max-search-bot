@@ -189,6 +189,10 @@ source age, unverified costs and material unknowns. This is candidate-context
 delivery, not automatic live search, ranking accuracy, constructor mutation or
 independent proof of model quality. Native collector/use and fresh real reply
 acceptance remain separate; the regression uses only synthetic data and a spy.
+The working draft alone never triggers contact. For an open current comparison,
+new supported variants may fulfill the manager's earlier comparison promise;
+that promise is not a reason to suppress the actual substantive comparison.
+Stop/purchase and price-verification boundaries remain unchanged.
 
 ## Knowledge and output
 

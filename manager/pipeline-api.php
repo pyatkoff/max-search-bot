@@ -11,6 +11,7 @@ require_once $baseDir.'/services/ManagerWorkspaceFilterService.php';
 require_once $baseDir.'/services/SalesPipelineService.php';
 require_once $baseDir.'/services/SalesPipelineCatalogAdminService.php';
 require_once $baseDir.'/services/LeadTaskService.php';
+require_once $baseDir.'/services/ProjectAccessService.php';
 
 ManagerHttp::startJson();
 
@@ -33,6 +34,11 @@ function pipelineCatalogSaveStatus(array $result):int
 
 $data=ManagerHttp::body();
 $action=(string)($data['action']??'');
+// A secondary card read verifies the configured project without repairing it.
+if($action==='detail'&&ManagerHttp::managerId()>0){
+    try{ProjectAccessService::initializeReadOnly();}
+    catch(Throwable $ignored){ManagerHttp::respond(['ok'=>false,'error'=>'project_unavailable'],503);}
+}
 $m=ManagerHttp::requireManager();
 ManagerHttp::requireCsrf($data);
 $isAdmin=ManagerHttp::isAdmin($m);
