@@ -10,7 +10,7 @@ concurrency:
   group: funnel-public-post-trial-20261025
   cancel-in-progress: false
 env:
-  EXPECTED_PRODUCTION_SHA: 85abf40bba1727c8883f5468c593f3d494bfb0d7
+  EXPECTED_PRODUCTION_SHA: 6038d3198c178bc07e7e795adc6311a55d729b3f
 jobs:
   inspect:
     if: github.ref == 'refs/heads/audit/funnel-public-post-trial-20261025'
