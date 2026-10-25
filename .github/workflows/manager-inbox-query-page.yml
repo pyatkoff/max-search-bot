@@ -8,6 +8,7 @@ on:
       - 'services/ManagerConversationAccessPolicy.php'
       - 'services/RoutingAccessService.php'
       - 'tests/mysql/manager-inbox-query-page.php'
+      - 'tests/run_manager_inbox_query_page_regression.php'
       - '.github/workflows/manager-inbox-query-page.yml'
 
 permissions:
@@ -35,22 +36,24 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
-          extensions: mbstring, pdo_mysql
+          extensions: mbstring, pdo_mysql, pdo_sqlite
           coverage: none
       - name: Retain the exact accepted production service for paired evidence
         shell: bash
         run: |
           set -euo pipefail
           test "$GITHUB_REPOSITORY" = 'pyatkoff/max-search-bot'
-          baseline_sha='038888fb9f5297ce0700f20187208006e0dee2e1'
+          baseline_sha='bc9d104b1f9619d5d6cbb0a7ee05dced06376abf'
           git cat-file -e "$baseline_sha^{commit}"
           git merge-base --is-ancestor "$baseline_sha" HEAD
           baseline_file="$RUNNER_TEMP/manager-inbox-query-baseline.php"
           git show "$baseline_sha:services/ManagerConversationService.php" > "$baseline_file"
           echo "MANAGER_INBOX_QUERY_BASELINE_FILE=$baseline_file" >> "$GITHUB_ENV"
-      - name: Compare canonical Mine pages and same-data native costs
+      - name: Compare canonical Inbox pages and same-data native costs
         env:
           MANAGER_INBOX_QUERY_TEST_MYSQL_DSN: mysql:host=127.0.0.1;port=3306;dbname=manager_inbox_query_page_test;charset=utf8mb4
           MANAGER_INBOX_QUERY_TEST_MYSQL_USER: root
           MANAGER_INBOX_QUERY_TEST_MYSQL_PASSWORD: inbox-page-test-only
-        run: php tests/mysql/manager-inbox-query-page.php
+        run: |
+          php tests/run_manager_inbox_query_page_regression.php
+          php tests/mysql/manager-inbox-query-page.php

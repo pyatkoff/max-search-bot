@@ -225,5 +225,47 @@ queryPageCheck('admin manager filter cannot make another assignment a personal N
 queryPageCheck('admin requested history remains a separate shared projection',ManagerQueueProjectionService::counts(7,'anytour')['requested']===['count'=>4,'unread'=>7]);
 queryPageCheck('all queue projections remain read-only',$queueSnapshot()===$beforeQueueReads);
 
+// The latest row is selected by its conversation/id, never timestamp or text.
+$previewIds=range(201,209);
+foreach($previewIds as $id)$insert->execute([$id,1,'anytour',1,'max','ai','new',null,'2026-10-15 10:00:00','2026-10-15 10:00:'.str_pad((string)($id-200),2,'0',STR_PAD_LEFT),0]);
+$previewMessages=[
+    [202,'inbound','customer','show_tours','{"type":"callback"}'],
+    [203,'inbound','customer','tour_like_synthetic','{"type":"callback"}'],
+    [204,'outbound','ai','show_tours','{"type":"callback"}'],
+    [205,'outbound','manager','Ответ &amp; привет 👋','{}'],
+    [206,'inbound','customer','','{"attachments":[{"type":"photo"}]}'],
+    [207,'inbound','customer','Malformed metadata','{invalid'],
+    [208,'inbound','customer','Higher ID with older time',null],
+    [209,'outbound','manager','Identical timestamps','{}'],
+];
+foreach($previewMessages as [$id,$direction,$sender,$text,$meta]){
+    $message->execute([$id*10,$id,'outbound','ai','Old unrelated fields','{"type":"callback"}','2026-10-16 10:00:00']);
+    $message->execute([$id*10+3,$id,$direction,$sender,$text,$meta,$id===209?'2026-10-16 10:00:00':'2026-10-15 10:00:00']);
+}
+$message->execute([900000,99999,'inbound','customer','Foreign newest row','{}','2026-10-17 10:00:00']);
+$previewBefore=$queueSnapshot();$previewPage=null;
+$previewArgs=[7,'all',200,'anytour','','',0,['ids'=>$previewIds]];
+$previewRows=ManagerConversationService::list(...[...$previewArgs,&$previewPage]);
+$previewSql=$pdo->lastListSql;$previewSqlArgs=$pdo->lastListArgs;$previewById=array_column($previewRows,null,'id');
+queryPageCheck('latest-row join retains empty conversations and nullable message fields',count($previewRows)===9&&$previewById[201]['last_text']===null&&$previewById[201]['last_direction']===null&&$previewById[201]['last_sender_type']===null&&$previewById[201]['last_preview_text']==='');
+queryPageCheck('callback previews use the same exact row direction sender and metadata',$previewById[202]['last_preview_text']==='Нажата кнопка «Показать туры»'&&$previewById[203]['last_preview_text']==='Нажата кнопка «Нравится»'&&$previewById[204]['last_preview_text']==='show_tours');
+queryPageCheck('empty attachment Unicode malformed and null metadata keep their original text',$previewById[205]['last_text']==='Ответ &amp; привет 👋'&&$previewById[206]['last_text']===''&&$previewById[207]['last_preview_text']==='Malformed metadata'&&$previewById[208]['last_text']==='Higher ID with older time');
+queryPageCheck('message selection ignores foreign IDs and reversed or equal timestamps',$previewById[208]['last_direction']==='inbound'&&$previewById[208]['last_sender_type']==='customer'&&$previewById[209]['last_text']==='Identical timestamps'&&!str_contains(json_encode($previewRows),'Foreign newest row'));
+$baselineFile=getenv('MANAGER_INBOX_QUERY_BASELINE_FILE');
+if(is_string($baselineFile)&&$baselineFile!==''){
+    $source=(string)file_get_contents($baselineFile);
+    if(hash('sha256',$source)!=='ecbd74848d10d0c4c3d91fcd8a38af63b490ee3793c6e9b1e5e987f23140e636')throw new RuntimeException('preview_baseline_identity_mismatch');
+    $source=str_replace('class ManagerConversationService','class PreviewBaselineManagerConversationService',$source,$replacements);
+    if($replacements!==1)throw new RuntimeException('preview_baseline_class_mismatch');
+    $code='';foreach(token_get_all($source) as $token){if(!is_array($token)){$code.=$token;continue;}if($token[0]===T_OPEN_TAG)continue;$code.=$token[0]===T_DIR?var_export(dirname(__DIR__).'/services',true):$token[1];}eval($code);
+    $baselinePage=null;$baselineRows=PreviewBaselineManagerConversationService::list(...[...$previewArgs,&$baselinePage]);
+    queryPageCheck('every preview field and candidate metadata equal exact installed source',$baselineRows===$previewRows&&$baselinePage===$previewPage);
+}
+$plan=$pdo->prepare('EXPLAIN QUERY PLAN '.$previewSql);$plan->execute($previewSqlArgs);
+$lookups=count(array_filter($plan->fetchAll(),static fn(array $row):bool=>preg_match('/\b(?:SEARCH|SCAN) mm\b/',$row['detail'])===1));
+queryPageCheck('actual SQLite plan resolves the latest message only once',$lookups===1);
+queryPageCheck('preview projection changes no transcript ownership or read state',$queueSnapshot()===$previewBefore);
+echo 'PREVIEW_PLAN '.json_encode(['driver'=>'sqlite','candidate_rows'=>count($previewRows),'latest_message_lookups'=>$lookups],JSON_THROW_ON_ERROR)."\n";
+
 echo 'TOTAL '.($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);

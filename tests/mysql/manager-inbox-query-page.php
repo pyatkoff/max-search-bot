@@ -65,7 +65,7 @@ function inboxNativeBaseline(): void
     $path = getenv('MANAGER_INBOX_QUERY_BASELINE_FILE');
     if (!is_string($path) || !is_file($path) || !is_readable($path)) throw new RuntimeException('baseline_missing');
     $source = (string)file_get_contents($path);
-    if (hash('sha256', $source) !== 'cc1adb91cdfd6de766af5d6bec36405afcb39598c8e1b13abddaa240f1356ed0') throw new RuntimeException('baseline_identity_mismatch');
+    if (hash('sha256', $source) !== 'ecbd74848d10d0c4c3d91fcd8a38af63b490ee3793c6e9b1e5e987f23140e636') throw new RuntimeException('baseline_identity_mismatch');
     $source = str_replace('class ManagerConversationService', 'class BaselineManagerConversationService', $source, $replacements);
     if ($replacements !== 1) throw new RuntimeException('baseline_class_mismatch');
     $code = '';
@@ -107,10 +107,12 @@ function inboxNativePlan(PDO $pdo, string $sql, array $args): array
 {
     $q = $pdo->prepare('EXPLAIN FORMAT=JSON ' . $sql); $q->execute($args);
     $raw = json_decode((string)$q->fetchColumn(), true, 64, JSON_THROW_ON_ERROR); $q->closeCursor();
-    $summary = ['nodes'=>0,'access'=>[],'max_estimated_rows'=>0.0];
+    $summary = ['nodes'=>0,'access'=>[],'max_estimated_rows'=>0.0,'latest_message_lookups'=>0,'latest_row_joins'=>0];
     $walk = function (array $node) use (&$walk, &$summary): void {
         if (isset($node['table']) && is_array($node['table'])) {
             ++$summary['nodes'];
+            if (($node['table']['table_name'] ?? '') === 'mm') ++$summary['latest_message_lookups'];
+            if (($node['table']['table_name'] ?? '') === 'last_message') ++$summary['latest_row_joins'];
             $access = strtolower((string)($node['table']['access_type'] ?? 'other'));
             if (!in_array($access, ['system','const','eq_ref','ref','fulltext','ref_or_null','index_merge','unique_subquery','index_subquery','range','index','all'], true)) $access = 'other';
             $summary['access'][$access] = ($summary['access'][$access] ?? 0) + 1;
@@ -119,6 +121,14 @@ function inboxNativePlan(PDO $pdo, string $sql, array $args): array
         foreach ($node as $child) if (is_array($child)) $walk($child);
     };
     $walk($raw); ksort($summary['access']); return $summary;
+}
+
+/** Actual logical key reads for only the captured native list statement. */
+function inboxNativeKeyReads(PDO $pdo,string $sql,array $args): array
+{
+    $snapshot=static fn():int=>(int)$pdo->query("SHOW SESSION STATUS LIKE 'Handler_read_key'")->fetch(PDO::FETCH_NUM)[1];
+    $before=$snapshot();$q=$pdo->prepare($sql);$q->execute($args);$rows=$q->fetchAll();$q->closeCursor();
+    return ['handler_read_key'=>$snapshot()-$before,'rows'=>$rows];
 }
 
 function inboxNativeMedian(array $values): float
@@ -257,8 +267,13 @@ try {
     inboxNativeCheck('all read-only comparisons preserve read cursors and conversation business state', inboxNativeReadState($pdo) === $initialReads && $pdo->query('SELECT id,status,manager_id FROM conversations ORDER BY id')->fetchAll() === $businessBefore);
 
     // Both plans run outside all measured list intervals; no EXPLAIN ANALYZE.
-    echo 'PLAN before ' . json_encode(inboxNativePlan($pdo,$before['sql'],$before['args']),JSON_THROW_ON_ERROR) . "\n";
-    echo 'PLAN after ' . json_encode(inboxNativePlan($pdo,$after['sql'],$after['args']),JSON_THROW_ON_ERROR) . "\n";
+    $beforePlan=inboxNativePlan($pdo,$before['sql'],$before['args']);$afterPlan=inboxNativePlan($pdo,$after['sql'],$after['args']);
+    echo 'PLAN before ' . json_encode($beforePlan,JSON_THROW_ON_ERROR) . "\n";
+    echo 'PLAN after ' . json_encode($afterPlan,JSON_THROW_ON_ERROR) . "\n";
+    inboxNativeCheck('native plan resolves the latest message once and joins one exact row',$beforePlan['latest_message_lookups']===4&&$afterPlan['latest_message_lookups']===1&&$afterPlan['latest_row_joins']===1);
+    $beforeReads=inboxNativeKeyReads($pdo,$before['sql'],$before['args']);$afterReads=inboxNativeKeyReads($pdo,$after['sql'],$after['args']);
+    inboxNativeCheck('actual native logical key reads decrease with identical captured SQL rows',$beforeReads['rows']===$afterReads['rows']&&$afterReads['handler_read_key']<$beforeReads['handler_read_key']);
+    echo 'PREVIEW_READS '.json_encode(['driver'=>'mysql','candidate_rows'=>count($afterReads['rows']),'before'=>$beforeReads['handler_read_key'],'after'=>$afterReads['handler_read_key'],'production_latency'=>null],JSON_THROW_ON_ERROR)."\n";
     // Two warmups each, then alternating order against exactly the same rows.
     for ($warm = 0; $warm < 2; ++$warm) foreach ([BaselineManagerConversationService::class,ManagerConversationService::class] as $class) inboxNativeRun($pdo,$class,$arguments);
     $samples = ['before'=>[],'after'=>[]]; $execSamples = $samples; $counts = $samples;
@@ -271,7 +286,33 @@ try {
     }
     inboxNativeCheck('all40 timed native samples preserve values, metadata and equal SQL counts', count($samples['before']) === 20 && count($samples['after']) === 20 && array_unique([...$counts['before'],...$counts['after']]) === [$before['sql_count']]);
     inboxNativeCheck('benchmark never advances a read marker or mutates conversation state', inboxNativeReadState($pdo) === $initialReads && $pdo->query('SELECT id,status,manager_id FROM conversations ORDER BY id')->fetchAll() === $businessBefore);
-    echo 'EVIDENCE ' . json_encode(['scope'=>'synthetic_native_service_list','base_sha'=>'038888fb9f5297ce0700f20187208006e0dee2e1',
+    foreach(['all','closed','waiting','attention','requested'] as $queue)inboxNativePair($pdo,'latest-message projection in '.$queue,[7,$queue,200,'*','','',0,[]]);
+    // New isolated preview cases do not enter the previously measured Mine page.
+    $previewIds=range(701,709);
+    foreach($previewIds as $id)$conversation->execute([$id,1,'native-inbox',1,'max','ai','new',null,'2026-10-15 10:00:00','2026-10-15 10:00:'.str_pad((string)($id-700),2,'0',STR_PAD_LEFT),0]);
+    $previewMessages=[
+        [702,'inbound','customer','show_tours','{"type":"callback"}'],
+        [703,'inbound','customer','tour_like_synthetic','{"type":"callback"}'],
+        [704,'outbound','ai','show_tours','{"type":"callback"}'],
+        [705,'outbound','manager','Ответ &amp; привет 👋','{}'],
+        [706,'inbound','customer','','{"attachments":[{"type":"photo"}]}'],
+        [707,'inbound','customer','Malformed metadata','{invalid'],
+        [708,'inbound','customer','Higher ID with older time',null],
+        [709,'outbound','manager','Identical timestamps','{}'],
+    ];
+    foreach($previewMessages as [$id,$direction,$sender,$text,$meta]){
+        $message->execute([$id*100,$id,'outbound','ai','max','Old unrelated fields','{"type":"callback"}','2026-10-16 10:00:00']);
+        $message->execute([$id*100+3,$id,$direction,$sender,'max',$text,$meta,$id===709?'2026-10-16 10:00:00':'2026-10-15 10:00:00']);
+    }
+    $previewSnapshot=static fn():array=>[inboxNativeReadState($pdo),$pdo->query('SELECT * FROM conversations WHERE id BETWEEN 701 AND 709 ORDER BY id')->fetchAll(),$pdo->query('SELECT * FROM messages WHERE conversation_id BETWEEN 701 AND 709 ORDER BY id')->fetchAll()];
+    $previewBusinessBefore=$previewSnapshot();
+    [, $preview]=inboxNativePair($pdo,'empty callback attachment Unicode malformed and reversed-time previews',[7,'all',200,'native-inbox','','',0,['ids'=>$previewIds]]);
+    $previewById=array_column($preview['rows'],null,'id');
+    inboxNativeCheck('native latest-row join retains empty conversations and nullable fields',count($previewById)===9&&$previewById[701]['last_text']===null&&$previewById[701]['last_direction']===null&&$previewById[701]['last_sender_type']===null&&$previewById[701]['last_preview_text']==='');
+    inboxNativeCheck('native callback labels depend on the same row sender direction and metadata',$previewById[702]['last_preview_text']==='Нажата кнопка «Показать туры»'&&$previewById[703]['last_preview_text']==='Нажата кнопка «Нравится»'&&$previewById[704]['last_preview_text']==='show_tours');
+    inboxNativeCheck('native higher IDs retain empty Unicode malformed null and equal-time values',$previewById[705]['last_text']==='Ответ &amp; привет 👋'&&$previewById[706]['last_text']===''&&$previewById[707]['last_preview_text']==='Malformed metadata'&&$previewById[708]['last_text']==='Higher ID with older time'&&$previewById[709]['last_text']==='Identical timestamps');
+    inboxNativeCheck('native preview comparisons preserve complete fixture business and read state',$previewSnapshot()===$previewBusinessBefore);
+    echo 'EVIDENCE ' . json_encode(['scope'=>'synthetic_native_service_list','base_sha'=>'bc9d104b1f9619d5d6cbb0a7ee05dced06376abf',
         'owned_fixture_rows'=>count(array_filter($fixtures,static fn(array $f):bool=>$f['project']==='native-inbox'&&$f['owner']===7&&$f['status']==='manager'&&!$f['isTest'])),
         'sample_count_each'=>20,'order'=>'alternating','cache_state'=>'two_warmups_each_uncontrolled_server_cache','result_sha256'=>hash('sha256',json_encode([$before['rows'],$before['metadata']],JSON_THROW_ON_ERROR)),
         'full_list_ms'=>$samples,'list_execute_ms'=>$execSamples,'sql_counts'=>$counts,
