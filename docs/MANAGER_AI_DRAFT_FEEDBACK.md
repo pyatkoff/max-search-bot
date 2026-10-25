@@ -132,3 +132,12 @@ comparison reappears; a stale tab cannot mark its newer revision viewed. A lost
 response is checked by refreshing, without automatic mutation retry. Deleting
 the canonical message/account cascades its minimal review metadata. No new
 capture, learning queue, model work or scheduled report is introduced.
+
+Only the accepted page hydrates tourist questions, in one bounded SQL statement
+for at most20 applications. Every target retains its own conversation and draft
+message cutoff; several applications in one dialogue must not share a single
+latest-question lookup. Edit labels still compare against each proposal's own
+generation time. Missing text, Unicode bounds and single HTML decoding are
+unchanged. The actual-PDO regression checks constant query growth and complete
+output equality against the pinned installed source in SQLite and native MySQL;
+query-count reduction is not a production-latency measurement.
