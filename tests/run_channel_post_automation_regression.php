@@ -158,6 +158,25 @@ $event = ChannelPostIncomingAdapter::fromUpdate('max', channelPostUpdate($fixtur
 channelPostCheck('actual external MAX mid retained, no URL decoding', $event['external_message_id'], $fixtures['max']['body']['mid']);
 channelPostCheck('caption whitespace kept exactly', $event['snapshot']['text'], $fixtures['max']['body']['text']);
 channelPostCheck('provider-native markup retained', $event['snapshot']['markup'], $fixtures['max']['body']['markup']);
+$publicPost = $fixtures['max'];
+$publicPost['url'] = 'https://max.ru/channel_anytour/AaFyQVMSUW4';
+$publicEvent = ChannelPostIncomingAdapter::fromUpdate('max', channelPostUpdate($publicPost));
+channelPostCheck('MAX provider public-slug permalink retained', $publicEvent['snapshot']['post_url'], $publicPost['url']);
+channelPostCheck('MAX public slug never selects publication identity', [$publicEvent['channel_id'], $publicEvent['external_message_id']], [$event['channel_id'], $event['external_message_id']]);
+foreach (['http://max.ru/channel_anytour/Post', 'https://max.ru.evil.test/channel_anytour/Post', 'https://user@max.ru/channel_anytour/Post', 'https://max.ru:443/channel_anytour/Post', 'https://max.ru/channel_anytour/Post?start=other', 'https://max.ru/channel_anytour/Post#other', 'https://max.ru/channel_anytour/../Post', 'https://max.ru/channel%5fanytour/Post', "https://max.ru/channel_anytour/Post\n", 'https://max.ru/c/-222/Other'] as $badPublicUrl) {
+    $invalidPublic = $publicPost; $invalidPublic['url'] = $badPublicUrl;
+    channelPostCheck('MAX unsafe or other numeric channel permalink rejected ' . $badPublicUrl, ChannelPostIncomingAdapter::maxSnapshot($invalidPublic)['post_url'], '');
+}
+$invalidPublic = $publicPost; $invalidPublic['recipient']['chat_type'] = 'dialog';
+channelPostCheck('MAX public permalink requires channel envelope', ChannelPostIncomingAdapter::maxSnapshot($invalidPublic)['post_url'], '');
+$invalidPublic = $publicPost; $invalidPublic['recipient']['chat_id'] = 'invalid';
+channelPostCheck('MAX public permalink requires canonical recipient ID', ChannelPostIncomingAdapter::maxSnapshot($invalidPublic)['post_url'], '');
+[$publicStore, $publicProvider, $publicTransport, $publicService] = channelPostScenario($publicPost);
+$publicQueued = channelPostReceive($publicService, $publicPost);
+channelPostCheck('MAX public permalink uses registered recipient and existing token owner', array_values($publicStore->posts)[0]['snapshot']['post_url'], $publicPost['url']);
+$publicUnmanaged = $publicPost; $publicUnmanaged['recipient']['chat_id'] = -222;
+channelPostCheck('MAX valid public URL cannot admit an unregistered recipient', channelPostReceive($publicService, $publicUnmanaged)['queued'], false);
+channelPostCheck('MAX public URL observation performs no network access', count($publicProvider->calls), 0);
 channelPostCheck('channel envelope recognized without customer sender', ChannelPostIncomingAdapter::isChannelUpdate('max', ['message' => ['recipient' => ['chat_type' => 'channel']]]));
 channelPostCheck('ordinary MAX conversation excluded', ChannelPostIncomingAdapter::fromUpdate('max', ['update_type' => 'message_created', 'message' => ['recipient' => ['chat_type' => 'dialog']]]), null);
 channelPostCheck('ordinary Telegram conversation excluded', ChannelPostIncomingAdapter::isChannelUpdate('telegram', ['message' => $fixtures['telegram']]), false);
@@ -742,3 +761,4 @@ foreach(['max','telegram'] as $platform){
 
 echo 'Channel post automation: ' . $passed . ' passed, ' . $failed . ' failed' . PHP_EOL;
 exit($failed === 0 ? 0 : 1);
+
