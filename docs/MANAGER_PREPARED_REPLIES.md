@@ -264,10 +264,83 @@ optional metadata from older clients. It is never an authorization source or
 forwarded to the preparation store. Tool argument allowlists, bounded limits and
 current administrator/project checks remain strict; non-object metadata is rejected.
 
-MCP exposes only the pending inventory, a fresh context for one job and saving a
-prepared result. There is no send, reassignment, customer-edit or provider tool.
+Ordinary preparation exposes the pending inventory, a fresh context for one job,
+saving a prepared result and the read-only retained-candidate tool below. Separate
+virtual-review tools keep their existing scope. There is no send, reassignment,
+customer-edit or supplier-search tool.
 The worker is deliberately an administrator-scoped capability for assigned-manager
 contexts; ordinary manager HTTP draft permissions remain strict reply ownership.
+
+### Retained Search3 candidates
+
+`read_tour_candidates` is the first bounded consumer bridge for task #1141. It
+reuses Search3's existing DB-first read endpoint under
+`https://anytoour.ru/_preview/search3-local-candidate/data/search3-local-results-read-v1.php`.
+This is the retained listing surface, not approval or deployment of the separate
+Search3 product/UI release. Search3 remains the sole owner of scope compatibility,
+supplier integrations, normalized offers, identity bindings, pricing and storage.
+The consumer adds no adapter, refresh, retry, table, cron or paid model call.
+
+An active current-project administrator and active requesting OAuth connection
+are required before reading, and checked again after the bounded source read.
+No job or customer identity is required: the tool does not open old conversations,
+fabricate preparation jobs, read private history, mark messages read or change
+subscriptions. Discovery keeps the existing OAuth scopes. The manual model client
+still has no tools; this does not silently add a supplier call to manual generation.
+
+Call only for an actual current request or explicit manager search. Supply exact
+active catalogue departure/country names, explicit ISO date bounds, night bounds,
+adults and every child's travel age. Existing `TravelDirectoryRepository` resolves
+names against its canonical active catalogues; there is no guessed name/foreign-ID
+join or automatic Moscow replacement. Missing names remain unresolved. Route
+availability and missing trip requirements are still separate questions; this
+reader does not infer them from a post, click or an old wizard. Child-age sorting
+preserves duplicates. Date windows are at most21 days; night ranges are1..28 with
+width at most10, matching the existing reader's contract.
+
+Optional `meal_id` uses the existing catalogue's four documented choices
+(`7` all-inclusive, `3` breakfast, `4` half-board, `5` full-board); omission means
+no meal filter, not a tourist's consent to any meal. The existing Egypt/Turkish
+resort working-default policy belongs to the consultation instructions, not a
+country-wide inference in this reader. Optional `stars_min` is a minimum and
+`max_price` is an exact decimal RUB amount for the entire stated party. No budget
+expansion, per-person multiplication or fuel/fee arithmetic is performed.
+
+One fixed-origin HTTPS POST has no cookies, credentials, proxy, redirects or
+automatic retries. Public IPv4 resolution is pinned to verified TLS; connect and
+total cURL bounds are1 and5 seconds. The body cap is4MiB, JSON depth48. The response
+must identify the existing schema/source and exactly echo the canonical request
+scope and its digest. Its generated timestamp must be current within the stated
+clock tolerance; this never renews an offer's observation time or listing TTL.
+Wrong envelopes, non-JSON, oversized or unavailable reads are unknown, not empty
+availability. Access denial has a separate fixed reason; raw error bodies are
+never returned.
+
+The projection rechecks exact local hotel identity, dates/nights/party (including
+duplicate ages), source scope, literal listing price/currency, observation/expiry
+and no-booking authority. Expired, contradictory or unsupported records are
+withheld and counted. Minimum category is rechecked against the accepted profile;
+the source still owns meal/filter semantics. Room, meal, placement and operator
+remain literal source labels or explicit nulls, not inferred equivalences.
+Descriptions, photos, links, raw supplier references and arbitrary metadata are
+not projected. Hotel properties and media remain uninspected. Source text is
+untrusted data, never a new instruction.
+
+Up to12 complete candidate records (default8) fit a separate32KiB response.
+Distinct hotels precede a second exact stay, ordered by observed price rather
+than claimed quality. Omission/rejection/source coverage are explicit. A hotel
+minimum is never substituted for a particular room's price. The amount retains
+its exact source stay/party and observation time; even a historically verified
+listing remains `current_price_verified=false`, `refresh_required=true`, with
+unknown current availability and no booking/selection authority.
+
+The tool returns `no_retained_candidates` / `existing_live_search_required` when
+the valid cache has no usable matches, and `unavailable` for source/catalogue
+failures. Neither proves that the market has no tours. Useful cached candidates
+can support a private comparison, with exact current price/availability and all
+additional tourist constraints left for verification through the existing Search3
+owner. This first slice does not start/poll live searches, mutate constructor
+variants, verify send-time prices or establish natural customer/model acceptance.
 
 MCP Events uses protocol `2026-07-28`. The event `manager_replies.pending` is scoped
 to the current project. Migration 046 stores private subscriptions, OAuth connection
