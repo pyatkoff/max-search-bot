@@ -13,6 +13,11 @@ an independently installed public host, changed release permission or accepted V
 Editor, collector, immutable publications, rights and native sender keep their
 existing canonical owners and current mandatory checks.
 
+Owner-requested25Oct server reads confirmed `d.anytoour.ru` already exists with
+valid DNS/TLS, but currently hosts `anytour-yandex-autopilot`0.1.0 (Direct/Metrica),
+not this constructor. Its root returns403 and retains its existing Python project.
+No existing host was overwritten; a dedicated constructor binding remains open.
+
 ## Settled and identified source galleries (0.6.4)
 
 FUN&SUN gallery reads now require the loaded hotel heading to match the exact

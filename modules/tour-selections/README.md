@@ -59,11 +59,22 @@ specification. They must not gain parallel stores or senders.
 
 ## Existing-host inventory
 
-`tour-selection-hosting-inventory.yml` runs only on main changes to its own probe
-or workflow, or an explicit main manual run. It uses the existing canonical SSH
+`tour-selection-hosting-inventory.yml` runs only on an explicit main manual run,
+with three fixed read-only operations. It uses the existing canonical SSH
 identity read-only. The CLI probe lists bounded owned document-root directory
 names and declared nginx/Apache hostnames; it emits only `anytoour.ru` names and
 availability/truncation flags. It does not bootstrap the app, access customer/DB
 data, read certificates/private keys, change hosting/configuration, or test all
 discovered URLs. Missing visibility is not evidence that a domain is absent.
 Directory/vhost existence does not establish current DNS/TLS or a selection app.
+
+The owner-requested25Oct commissioning reads are consumed, not scheduled:
+40225971588 found the existing `d.anytoour.ru` directory and vhost;
+40226320888 confirmed DNS and strict HTTPS HEAD403 (curl0/SSLverify0);
+40226614056 identified `anytour-yandex-autopilot`0.1.0 / “AnyTour Yandex Direct &
+Metrica Autopilot”, with its existing Python sources. That host belongs to the
+advertising project and must not be overwritten by the constructor. No hosting
+configuration, file, package or application on that host was changed. The temporary
+exact source-branch probe trigger has been removed; merging this package does not
+rerun those consumed observations. A constructor host still needs its own explicit
+binding and accepted publication boundary.

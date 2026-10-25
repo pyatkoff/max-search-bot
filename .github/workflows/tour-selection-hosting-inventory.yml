@@ -1,19 +1,21 @@
 name: Selection existing hosting inventory
 
 on:
-  push:
-    branches: [main, 'feat/selection-module-release-20261025']
-    paths:
-      - 'modules/tour-selections/hosting_inventory.php'
-      - '.github/workflows/tour-selection-hosting-inventory.yml'
   workflow_dispatch:
+    inputs:
+      operation:
+        description: Read-only hosting facts to inspect
+        type: choice
+        required: true
+        default: inventory
+        options: [inventory, d-host-detail, d-project-identity]
 
 permissions:
   contents: read
 
 jobs:
   inventory:
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feat/selection-module-release-20261025'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -23,6 +25,7 @@ jobs:
           DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          INVENTORY_OPERATION: ${{ inputs.operation }}
         shell: bash
         run: |
           set -euo pipefail
@@ -37,8 +40,14 @@ jobs:
           chmod 600 "$key_file"
           ssh-keygen -y -f "$key_file" >/dev/null
           opts=(-i "$key_file" -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$RUNNER_TEMP/selection_inventory_known_hosts" -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=2)
+          case "$INVENTORY_OPERATION" in
+            inventory) remote_probe='php' ;;
+            d-host-detail) remote_probe='php -- --host-detail' ;;
+            d-project-identity) remote_probe='php -- --project-identity' ;;
+            *) echo 'Unknown read-only inventory operation' >&2; exit 2 ;;
+          esac
           ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'git -C /var/www/anytoour/data/www/app.anytoour.ru rev-parse HEAD' > "$RUNNER_TEMP/selection_inventory_source.txt"
-          ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'php -- --project-identity' < modules/tour-selections/hosting_inventory.php > "$RUNNER_TEMP/selection_hosting_inventory.json"
+          ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "$remote_probe" < modules/tour-selections/hosting_inventory.php > "$RUNNER_TEMP/selection_hosting_inventory.json"
           python3 - "$RUNNER_TEMP/selection_hosting_inventory.json" <<'PY'
           import json,sys
           data=json.load(open(sys.argv[1]))
