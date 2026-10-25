@@ -20,7 +20,11 @@ stableCheck('manager index is redirect-free and owns the workspace implementatio
 stableCheck('explicit index canonicalizes without network navigation',strpos($core,'history.replaceState')!==false&&strpos($core,"location.replace(")===false&&strpos($core,'/\\/index\\.php$/')!==false&&strpos($core,'workspace-v2')===false);
 stableCheck('opening a lead does not force a full inbox reload',strpos($conversation,"await window.WorkspaceV2Inbox?.load()")===false&&strpos($conversation,'WorkspaceV2Inbox?.markActive')!==false);
 $listRender=explode('async function load(',explode('function renderList(',$inbox,2)[1]??'',2)[0];
-stableCheck('inbox refresh preserves scroll and restores a replaced reading anchor',strpos($listRender,'scrollTop=box.scrollTop')!==false&&strpos($listRender,'if(preserveScroll){')!==false&&strpos($listRender,'box.scrollTop=scrollTop')!==false&&strpos($listRender,'currentAnchor')!==false&&strpos($listRender,'anchorTop')!==false&&strpos($listRender,'}else box.scrollTop=0')!==false);
+// Scroll restoration is a behavior contract: the actual-source Node runner
+// covers retained rows, moved anchors, clamping, explicit reset and no-op writes.
+// Keep it in the canonical Manager gate without pinning assignment syntax here.
+$requiredChecks=require $root.'/tests/required_checks_manifest.php';
+stableCheck('inbox scroll and reading-anchor behavior has a required actual-source regression',in_array('node tests/run_manager_inbox_fallback_behavior_regression.js',$requiredChecks['manager']??[],true)&&is_file($root.'/tests/run_manager_inbox_fallback_behavior_regression.js'));
 stableCheck('inbox refresh reconciles native rows instead of clearing the list',strpos($listRender,'reconcileListNodes(box,nodes)')!==false&&strpos($listRender,'record?.scope===scope&&record.signature===signature')!==false&&strpos($listRender,'box.replaceChildren')===false&&strpos($listRender,'box.innerHTML')===false&&strpos($inbox,'box.insertBefore(node,cursor)')!==false);
 stableCheck('inbox DOM metadata is weakly owned and selection is restored without moving it to changed text',strpos($inbox,'const rowViews=new WeakMap()')!==false&&strpos($inbox,'anchor.textContent!==saved.anchorText')!==false&&strpos($inbox,'focus.textContent!==saved.focusText')!==false&&strpos($listRender,'restoreListSelection(box,selection)')!==false);
 stableCheck('same-conversation refresh can preserve transcript position',strpos($conversation,'distanceFromBottom')!==false&&strpos($conversation,'preserveMessageScroll')!==false&&strpos($conversation,'stickToBottom')!==false);
