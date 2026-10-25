@@ -118,6 +118,52 @@ no public feed, automatic copy, cron, source credential/config change, goal
 emission or bot-handler wiring here. Manual PHP upload and real
 Telegram/Bitrix/writability checks remain pending.
 
+## Telegram signals before source installation
+
+The canonical dispatcher now asks the existing conversion-goal owner to observe
+an exact persisted Telegram input before its legacy goal-queue call. The same
+owner observes a persisted manager request even if its MAX-only queue cannot
+accept it. The observer writes only `advertising_signals`; it cannot send a goal,
+change conversation state, own a funnel stage or train a probability model.
+
+The first observed `customer_activity`, `manager_request` and `customer_reply`
+per scoped conversation are immutable and independently deduplicated. These are
+observations since installation, not historical first-ever actions or distinct
+people/clicks. Source IDs reference canonical message/event rows. Timestamps use
+those rows' existing database-recorded time, distinct from observation capture;
+they are not a reconstruction of an earlier native messenger timestamp.
+
+Incoming observation requires the exact recorded native message/callback ID,
+matching recorded input kind, current project, non-test active private Telegram
+conversation and consistent customer-channel identity. Missing source rows,
+negative group chats, other brands/platforms and callbacks-as-replies are rejected.
+A reply additionally needs a real waiting-manager event, subsequent manager event
+and prior outbound manager message. Same-second message ordering uses IDs, and
+the evidence references are retained without text, profiles or raw payloads.
+Storage failures are swallowed by the observer and do not alter the legacy queue
+result. It never opens or commits a transaction; observations inside an existing
+transaction roll back with their canonical evidence.
+
+The runtime scope is explicitly AnyTour/Telegram/tgmini/counter98615635; other
+brands need their own reviewed scope. Migration064 adds only the analytic table;
+the applied063 and canonical business tables are unchanged. Existing MAX policy,
+goal semantics, conversion upload, configuration and schedules stay unchanged.
+
+`tools/advertising_signals.php status` and `preview` require the same four explicit
+scope arguments as the visit CLI. They check the active project, are CLI-only and
+read-only, and return aggregates without customer IDs, ClientIDs or source paths.
+Preview accepts `--after_id=0 --limit=100` for bounded keyset reads.
+
+Identity assessment is computed on read, never frozen as a final attribution:
+only verified same-scope entries at or before the event are eligible, and both
+observation and receiving times must be available at assessment time. Zero known
+ClientIDs means `missing`, one distinct ID means provisionally `unique`, and two
+or more means `ambiguous` with no winner. Repeated entries with one ID do not add
+ambiguity. Later verified information can assess earlier retained signals while
+preserving event time; another late browser ID can revoke a prior unique result.
+There is no claim of complete source history, a chosen advertising lookback or
+an export-ready match. Uncertainty is never represented as zero purchase chance.
+
 ## Following implementation
 
 1. Confirm the uploaded Mini App package, private writable storage, signature
@@ -126,8 +172,8 @@ Telegram/Bitrix/writability checks remain pending.
    without creating another invitation or double-counting a save request.
 3. Add an authenticated feed/client or verified private copy using the existing signed
    server-to-server pattern, persist source progress and reconcile failures.
-4. Connect Telegram events behind the existing goal owners; repair only the
-   already evidenced handoff/customer-reply gaps with behavior regressions.
+4. Verify natural Telegram signal capture and connect the actual source transport;
+   then decide the explicit attribution/export policy behind existing goal owners.
 5. Add versioned current-trip/brand-aware predictions, retaining evidence time,
    confidence and budget semantics. Decide export timing and deduplication before
    any monetary event is emitted. No top-percent cutoff is fixed by this storage

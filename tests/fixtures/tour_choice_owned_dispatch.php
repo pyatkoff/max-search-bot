@@ -11,7 +11,7 @@ class DialogueApplication {public $calls=[]; public function dispatch(array $inc
 class DiagnosticLogger {public static $events=[];public static function log(...$args):void {self::$events[]=$args[1]??'';}}
 class ConversationRecorder {public static function inbound(...$args):bool {return true;}}
 class ConversationAttributionService {public static function syncByChat(...$args):void {}}
-class MetrikaConversionGoalService {public static function customerActivity(...$args):void {} public static function customerReplyAfterManager(...$args):void {}}
+class MetrikaConversionGoalService {public static function observeIncoming(...$args):void {} public static function customerActivity(...$args):void {} public static function customerReplyAfterManager(...$args):void {}}
 class ConversationDb {public static $pdo;public static function isConfigured():bool{return true;}public static function connection():PDO{return self::$pdo;}}
 class ProjectConfig {public static function projectId():string{return 'anytour';}}
 class IntegrationRegistry {public static $calls=0;public static function messenger(){++self::$calls;throw new RuntimeException('Unexpected provider send');}}
