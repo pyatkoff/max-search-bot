@@ -87,14 +87,18 @@ function galleryDocument(doc,keys,name=''){
  if(typeof keys==='string')keys={hotel:keys};
  if(keys.partner==='HBK'? !partnerKey(keys.hotel) : !!keys.partner||!canonicalKey(keys.hotel))return false;
  if(doc.location.origin&&doc.location.origin!=='https://b2b.fstravel.com')return false;
+ // The URL can be correct before the source has loaded this hotel's content.
+ // Require the rendered heading for numeric/partner pages as well as slugs.
+ if(!name)return false;
+ const heading=Array.from(doc.querySelectorAll('h2')).find(e=>e.getClientRects().length&&clean(e.innerText??e.textContent));
+ if(clean(heading?.innerText??heading?.textContent).normalize('NFKC').toLocaleLowerCase('ru')!==clean(name).normalize('NFKC').toLocaleLowerCase('ru'))return false;
  const expected='/hotel/'+keys.hotel;
  if(doc.location.pathname===expected){return keys.partner==='HBK'?doc.location.search==='?partner=HBK':!doc.location.search;}
  // FUN&SUN replaces numeric native URLs with a canonical hotel slug after load.
  // The navigation starts from that exact numeric ID; the rendered hotel heading
  // must still match the clicked row. This is not a catalogue/name-based join.
  if(keys.partner||!canonicalKey(keys.hotel)||!name||doc.location.origin!=='https://b2b.fstravel.com'||doc.location.search||doc.location.hash||!/^\/hotel\/[a-z0-9-]+(?:\/[a-z0-9-]+)+$/i.test(doc.location.pathname))return false;
- const heading=Array.from(doc.querySelectorAll('h2')).find(e=>e.getClientRects().length&&clean(e.innerText??e.textContent));
- return clean(heading?.innerText??heading?.textContent).normalize('NFKC').toLocaleLowerCase('ru')===clean(name).normalize('NFKC').toLocaleLowerCase('ru');
+ return true;
 }
 function photos(doc,keys,name=''){
  if(typeof keys==='string')keys={hotel:keys};
