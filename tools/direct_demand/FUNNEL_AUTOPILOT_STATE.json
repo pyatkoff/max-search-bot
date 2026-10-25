@@ -1,6 +1,6 @@
 {
   "schema": "anytour.funnel.autopilot_state.v1",
-  "updated_at_utc": "2026-10-25T06:27:09Z",
+  "updated_at_utc": "2026-10-25T06:40:00Z",
   "owner": "direct-demand-funnel",
   "automation": {
     "id": "6ada8f0084888191b12c6619c12fb35c",
@@ -9,7 +9,7 @@
     "timezone": "Europe/Kaliningrad",
     "enabled_verified_at_utc": "2026-10-22T22:39:46.922Z"
   },
-  "status": "R3_P44_PLAN_OPTIMIZED_ONE_ALMA_ACCEPTANCE_PACKAGE_NEXT_NOT_TRAFFIC_RELEASE",
+  "status": "R3_P45_ALMA_EDITORIAL_PACKAGE_PREPARED_S2_EXACT_DESTINATION_RECEIPT_BLOCKED",
   "channel": null,
   "scope": {
     "prepare_catalog_matches": true,
@@ -663,9 +663,9 @@
     },
     "r2_reference_packet": {
       "library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
-      "version": 23,
+      "version": 24,
       "readable_preview_library_file_id": "libfile_c1f06826dd408191bed3e0cb8103e379",
-      "readable_preview_version": 23,
+      "readable_preview_version": 24,
       "routes_member": "existing-post-review/p36/routes.json",
       "audit_member": "existing-post-review/p36/intent-revision.PRIVATE.json",
       "binding_member": "existing-post-review/p36/binding-review-3.NOT-APPLIED.json",
@@ -695,10 +695,11 @@
       "family_revision_member": "existing-post-review/p38/route.json",
       "family_revision_binding_member": "existing-post-review/p38/binding.NOT-APPLIED.json",
       "family_revision_feed_member": "existing-post-review/p38/feed.INCOMPLETE-DRAFT.json",
-      "current_consolidated_feed_member": "existing-post-review/p42/current5-feed.INCOMPLETE-DRAFT.json",
+      "current_consolidated_feed_member": "existing-post-review/p45/current5-feed.INCOMPLETE-DRAFT.json",
       "additional_Golf_Beach_member": "existing-post-review/p40/route.json",
       "additional_Phuket_member": "existing-post-review/p42/route.json",
-      "no_automatic_growth_before_first_path": true
+      "no_automatic_growth_before_first_path": true,
+      "current_Alma_member": "existing-post-review/p45/route.json"
     },
     "r2_reference_packet_prior_P35": {
       "library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
@@ -863,6 +864,21 @@
       "preview_version": 23,
       "prior_plan_review_preview_preserved_exact": true,
       "private_artifacts_only_in_Library": true
+    },
+    "current_Alma_acceptance": {
+      "library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
+      "version": 24,
+      "route_member": "existing-post-review/p45/route.json",
+      "route_sha256": "4d0a87ae7581c2554d91ee521c1218a288a9a1a6072e66f5e7e31f3f5c3ac6fc",
+      "review_member": "existing-post-review/p45/review.html",
+      "binding_member": "existing-post-review/p45/binding.NOT-APPLIED.json",
+      "dependency_member": "existing-post-review/p45/dependency-handoff.NOT-EXECUTED.json",
+      "cover_member": "existing-post-review/p45/cover.jpg",
+      "feed_member": "existing-post-review/p45/current5-feed.INCOMPLETE-DRAFT.json",
+      "evidence_member": "existing-post-review/p45/intent-evidence.PRIVATE.json",
+      "canonical_reuse_member": "existing-post-review/p45/canonical-reuse.json",
+      "preview_library_file_id": "libfile_c1f06826dd408191bed3e0cb8103e379",
+      "preview_version": 24
     }
   },
   "operations": {
@@ -1004,15 +1020,17 @@
     "r2_P43_save": "DONE_PREVIEW22_COMPANION22_GUARDED_REPLACEMENTS",
     "r3_P44_plan_optimization": "DONE_CANONICAL_P34_PLAN_REVISED_FOUR_STAGES_ONE_FOCUS_NO_QUOTA",
     "r3_P44_save": "DONE_PREVIEW23_COMPANION23_EXPECTED22_GUARDED_SAVES",
-    "r3_P44_same_task_prompt": "DONE_PROMPT_ONLY_EXACT_READBACK_SCHEDULE_ENABLED_MODELS_BUDGETS_UNCHANGED"
+    "r3_P44_same_task_prompt": "DONE_PROMPT_ONLY_EXACT_READBACK_SCHEDULE_ENABLED_MODELS_BUDGETS_UNCHANGED",
+    "r3_P45_Alma_revision": "DONE_ONE_REVISED_BODY_COVER_CONTEXT_UNCHOSEN_CATEGORY",
+    "r3_P45_save": "DONE_PREVIEW24_COMPANION24_EXPECTED23_GUARDED_SAVES"
   },
   "next_steps": [
-    "P44 owner correction is authoritative: same canonical p34/plan.json now OWNER_PLAN_OPTIMIZATION_20261025, four stages and one active Alma acceptance package. Old3→10 growth and automatic next PhuQuoc are superseded, all P34–P43 evidence/holds retained.",
-    "Next finite allowed block: revise existing Alma reference for exact named-hotel intent. The70m2 suite and its true photo are one example, not the implied demand of all Alma queries. Reuse saved facts/images; assemble one readable view of intent/post/cover/CTA/expected existing context and exact destination/action gaps. Do not claim this content revision already done in P44.",
-    "Reuse P35–P43 demand, audit only the focus's unresolved intent/source field.352/16 and last7 54/1 are own ads23Sep–22Oct, not all commercially qualified and not suite demand or conversion. CurrentON unknown. No broad country/theme/Top500/catalog or cover-series growth without a focus-specific reason.",
-    "Then existing canonical exact post/channel/entry binding and actual path require corresponding fresh receipt. Until issued, IDs/URL remain null/inactive. HTML disclosure is not a bot test. If access/receipt blocks it: prepare one exact dependency handoff/readback; do not compensate by making new posts or repeat channel questions.",
-    "Limited launch and spend need separate explicit action/channel and paid budget/limits/duration/sample/stop receipts. Observe canonical context entries and substantive/qualified inquiries; missing steps unavailable, cost only actual spend. Numeric editor score is not launch/business acceptance; small samples not winner proof.",
-    "Golf/P38two-room/heated/P42Phuket retained as reuse reserve; P43PhuQuoc brief deferred, no sixth route. Expand only after first path technically verified and an evidence-backed need is identified. Unchanged blockers/CI/Direct/native baselines not repeated; no protected/foreign/runtime/schedule/enabled/models/budgets changes."
+    "P45 DONE: one Alma revision688UTF16, one cover using2original exact-suite photos,12saved clicked forms read and canonical92 reused readonly. General hotel request no longer assigns suite interest; exact70m2 suite is example only. Local390/1440 preview and cover inspected, not real bot proof.",
+    "S2 BLOCKED pending exact dependency: canonical exact Alma ID/readback, exact channel/post/action receipt, existing mechanism-issued entryID/finalURL, authorized phone path preserving yclid/chat context and unchosen room category. Single handoff in P45 RELEASE/#55; source file existing-post-review/p45/dependency-handoff.NOT-EXECUTED.json. No native/paid permission.",
+    "Next pass first read fresh #55/checkpoint/receipt for THIS dependency; no repeat P45 content or unchanged capability probes. If no new information/authorization, quiet skip. No new hotel/seasonal/cover growth to replace gate2.",
+    "Actual live ad creative/landing remains unavailable (recorded capability gap), not proof of mismatch. Own ads352/16,last7 54/1 do not prove suite interest, all-commercial clicks or conversion. Canonical factual source92 unmodified and all earlier holds retained.",
+    "Five drafts remain, not six. Four other current feed rows unchanged; Alma row same key/inactive,IDs/URLs null. Gate3 paid launch still needs separate budget/action/channel/duration/sample/stop receipts; editor/business/real-path acceptance distinct.",
+    "Same P44 plan and task retained; no schedule/enabled/models/budgets/runtime/foreign changes or repeated fullCI/Direct/native baselines."
   ],
   "publication_blocker": "Current P36 three routes have no verified issued entry IDs/active destinations or real bot-path verification. Numeric/editorial acceptance is pending. Exact fresh native/channel/action and separate paid/budget permissions remain required; readonly/admin access and old tests are not new authorization.",
   "coordination": "Own audit/direct-demand-20261022 branch only; no foreign claims, CI, paused hotel tasks or production flows.",
@@ -2985,7 +3003,7 @@
     "library_archive_size": "Current536730088bytes/limit536870912/headroom140824;guards49/50/30.H16preserved all existing evidence and losslessly BZIP2compressed18existingJSONmembers:per-member originaluncompressedSHA,CRC/size and Python/InfoZIP6readPASS recorded inH16lossless-packaging.json.Other prior compression types unchanged.Preserve current root/current-fileBZIP2method on updates;preflight new byte budget before upload.No oversized request/evidence deletion.Unselected new largeOGexcluded with provenance,not prior evidence."
   },
   "latest_completed_block": {
-    "name": "P44: owner plan optimized to one Alma acceptance package and four gates; count-led growth deferred",
+    "name": "P45: same Alma hotel-intent body/cover revised, expected room category null; exact dependency prepared",
     "total_prepared_subjects": 94,
     "total_exact_caption_bodies": 95,
     "total_saved_post_candidates": 204,
@@ -2996,25 +3014,25 @@
     "total_video_holds": 94,
     "total_text_photo_paths": 110,
     "identity_lookup_holds": 151,
-    "new_caption_bodies": 0,
+    "new_caption_bodies": 1,
     "new_exact_saved_post_candidates": 0,
-    "new_covers": 0,
+    "new_covers": 1,
     "new_IDs": 0,
     "actual_channel_writes": 0,
     "platforms": {
       "max": 195,
       "telegram": 9
     },
-    "completed_at_utc": "2026-10-25T06:27:09Z",
+    "completed_at_utc": "2026-10-25T06:40:00Z",
     "save_versions": {
       "base": 70,
-      "preview": 23,
-      "companion": 23
+      "preview": 24,
+      "companion": 24
     },
     "strategy_revision": "OWNER_PLAN_OPTIMIZATION_20261025",
     "r2_reference_routes": 5,
     "r2_counts_not_additive_to_baseline_slices": true,
-    "reference_revision": "P44_PLAN_OPTIMIZATION",
+    "reference_revision": "P45_ALMA_ACCEPTANCE",
     "previous_9_8_8_superseded": true,
     "numeric_rubric_acceptance_pending": true,
     "numeric_launch_gate_removed": true
@@ -4427,12 +4445,12 @@
     "prior_video_transport_hold_preserved_for_amended_video_target": true
   },
   "next_preparation_block": {
-    "state": "S1_ONE_ALMA_ACCEPTANCE_PACKAGE",
+    "state": "S2_WAIT_EXACT_DESTINATION_RECEIPT_READBACK_ONLY",
     "revision": "OWNER_PLAN_OPTIMIZATION_20261025",
-    "action": "Next finite allowed block: revise existing Alma reference for exact named-hotel intent. The70m2 suite and its true photo are one example, not the implied demand of all Alma queries. Reuse saved facts/images; assemble one readable view of intent/post/cover/CTA/expected existing context and exact destination/action gaps. Do not claim this content revision already done in P44.",
+    "action": "Next pass first read fresh #55/checkpoint/receipt for THIS dependency; no repeat P45 content or unchanged capability probes. If no new information/authorization, quiet skip. No new hotel/seasonal/cover growth to replace gate2.",
     "source_plan_member": "existing-post-review/p34/plan.json",
-    "source_reference_member": "existing-post-review/p36/routes.json#alma_cam_ranh",
-    "source_plan_library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
+    "source_reference_member": "existing-post-review/p45/route.json",
+    "dependency_member": "existing-post-review/p45/dependency-handoff.NOT-EXECUTED.json",
     "native_writes_allowed": false
   },
   "existing_text_photo_binding44_operation": {
@@ -8170,7 +8188,7 @@
     "same_workstream": true,
     "no_new_queue": true,
     "unit_of_completion": "Связка спрос → релевантный пост и фото → конкретная кнопка → существующий бот с сохранённым контекстом → квалифицированное обращение.",
-    "current_step": "S1_ONE_ALMA_ACCEPTANCE_PACKAGE",
+    "current_step": "S2_EXACT_DESTINATION_AND_AUTHORIZED_PATH",
     "stages": [
       {
         "id": "S1",
@@ -8222,7 +8240,8 @@
       }
     ],
     "real_path_verified": false,
-    "business_result_unmeasured": true
+    "business_result_unmeasured": true,
+    "editorial_Alma_package_prepared": true
   },
   "plan_revision_operation": {
     "state": "DONE_OWNER_PLAN_REVISION_AND_SAME_TASK_PROMPT_HANDOFF",
@@ -9077,5 +9096,68 @@
     "automation_prompt_only_updated": true,
     "schedule_enabled_timezone_title_timing_mode_unchanged": true,
     "readable_preview_history_collapsed_not_deleted": true
+  },
+  "Alma_acceptance_revision_operation": {
+    "state": "EDITORIAL_PREPARED_NOT_TRAFFIC_ACCEPTED_GATE2_BLOCKED",
+    "completed_at_utc": "2026-10-25T06:40:00Z",
+    "source_claim": 6394446470,
+    "previous_release": 6394385309,
+    "focused_browser": [
+      {
+        "width": 390,
+        "localDisclosure": true,
+        "realBotPath": false
+      },
+      {
+        "width": 1440,
+        "localDisclosure": true,
+        "realBotPath": false
+      }
+    ],
+    "mobile_cover_and_view_inspected": true,
+    "caption_utf16": 688,
+    "body_sha256": "e04e3c8c71bd13a3c5879e22d018cea0aa21b36f1fa32bc80647645d6d7c3994",
+    "canonical_version": 92,
+    "canonical_source_unmodified": true,
+    "saved_forms_read": 12,
+    "saved_source_photos_reused": 2,
+    "new_source_photos": 0,
+    "new_caption_revisions": 1,
+    "new_cover_revisions": 1,
+    "current_reference_drafts": 5,
+    "new_routes": 0,
+    "expected_room_category_null": true,
+    "issued_IDs": 0,
+    "active_destinations": 0,
+    "native_writes": 0,
+    "paid_changes": 0,
+    "new_hotel_profiles": 0,
+    "gate1": "EDITORIAL_PACKAGE_PREPARED_NOT_BUSINESS_ACCEPTANCE",
+    "gate2": "BLOCKED_EXACT_DESTINATION_AND_ACTION_RECEIPT",
+    "real_bot_path_tested": false,
+    "cover_sha256": "c3962036f2f02bd7d4b4a6762423cb57414f1347db891b9ad4bf69cfdfebacc9",
+    "route_sha256": "4d0a87ae7581c2554d91ee521c1218a288a9a1a6072e66f5e7e31f3f5c3ac6fc",
+    "prior_nonowned_members_preserved": 366,
+    "canonical_plan_progress_only_updated": true,
+    "versions_after": {
+      "preview": 24,
+      "companion": 24
+    },
+    "all_saves_verified": true,
+    "companion_bytes": 59070859,
+    "dependency_handoff_prepared": true
+  },
+  "last_run_readback_P45": {
+    "checkpoint_blob_before": "c2f9586071bd01773d0fb8df55f4f169aa563792",
+    "own_branch_head_before": "52d13aadd73b7e615f7b9289d923a6aa17b512b8",
+    "main": "7420ab3aab82955f08a19fc3a1e07706a1dba1ed",
+    "root_AGENTS_sha": "a064aff67d42ddd69a12d9b0393501d116d1307d",
+    "source_claim": 6394446470,
+    "foreign_constructor6394000813_and_Manager2_6394394593_untouched": true,
+    "canonical_source92_readonly": true,
+    "live_ad_or_native_capability_not_retried": true,
+    "all_private_materials_only_in_Library": true,
+    "automation_changes": false,
+    "publisher_reserved": false
   }
 }
