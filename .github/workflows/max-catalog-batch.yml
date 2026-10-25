@@ -1,4 +1,4 @@
-name: Read back owner MAX catalogue uncertain attempt
+name: Publish owner MAX catalogue reviewed batch
 on:
   push:
     branches: [audit/max-catalog-batch-20261025]
@@ -65,7 +65,7 @@ jobs:
             printf '%s' "$raw" | base64 --decode > "$RUNNER_TEMP/channel_key"
           fi
           ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
-      - name: Read exact uncertain attempt without writes
+      - name: Publish exact reviewed posts and verify canonical buttons
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
