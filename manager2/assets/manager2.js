@@ -249,6 +249,15 @@
     // that button before focusing it instead of leaving focus inside hidden UI.
     conversationMenu.open=true;button.focus({preventScroll:true});return true;
   }
+  function registerConversationTool(button){
+    if(!button||conversationToolButtons.includes(button))return false;
+    if(!conversationMenu)initConversationMenu();
+    if(!conversationMenuActions)return false;
+    conversationToolButtons.push(button);
+    conversationMenuActions.before(button);
+    button.addEventListener('click',()=>conversationMenu.open=false);
+    return true;
+  }
   function initConversationMenu(){
     const root=$('conversationActions');if(!root)return;
     conversationMenu=document.createElement('details');conversationMenu.className='m2ConversationMenu';conversationMenu.hidden=true;
@@ -358,6 +367,6 @@
     document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.m2ConversationMenu[open]').forEach(d=>{d.open=false;d.querySelector('summary').focus()})});
     updateClock();setInterval(updateClock,60000);syncNavigation();
   }
-  window.Manager2Presentation={enhanceLeadCard,enhanceTasks,enhanceConversationActions,focusConversationTool,conversationHistoryTarget,revealTaskDraft,budgetFact,navigate,syncNavigation,enhanceInbox,enhanceInboxMarkers,ownershipSignal,formatInboxActivity,openClientCard,closeClientCard,syncClientCard,revealInboxSearch,syncPersonalChrome};
+  window.Manager2Presentation={enhanceLeadCard,enhanceTasks,enhanceConversationActions,focusConversationTool,registerConversationTool,conversationHistoryTarget,revealTaskDraft,budgetFact,navigate,syncNavigation,enhanceInbox,enhanceInboxMarkers,ownershipSignal,formatInboxActivity,openClientCard,closeClientCard,syncClientCard,revealInboxSearch,syncPersonalChrome};
   init();
 })();

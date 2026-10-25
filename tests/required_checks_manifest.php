@@ -172,6 +172,8 @@ return [
         'php tests/run_manager_personal_workspace_regression.php',
         'node tests/run_manager_personal_workspace_behavior_regression.js',
         'php tests/run_manager_internal_note_regression.php',
+        'php tests/run_manager_client_event_regression.php',
+        'node tests/run_manager_client_events_behavior_regression.js',
         'php tests/run_manager_tour_selection_regression.php',
         'php tests/run_manager_tour_collector_regression.php',
         'node tests/run_manager_tour_collector_behavior_regression.js',

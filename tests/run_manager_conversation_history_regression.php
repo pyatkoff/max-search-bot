@@ -261,4 +261,32 @@ foreach([1,'true',null,[],0] as $flag){$pdo=fixture(5);$r=apiDetail(['conversati
 $pdo=fixture(500);$r=apiDetail(['conversation_id'=>1,'open_unread'=>true,'before_id'=>400]);check('older page cannot double as an unread opening',$r['status']===422&&$pdo->executed===[]);
 $pdo=fixture(500);$pdo->exec("UPDATE conversations SET status='closed' WHERE id=1");$pdo->beforeReplyCheck=static function(HistoryFixturePdo $db):void{$db->exec("UPDATE managers SET role='manager' WHERE id=1");};$r=apiDetail(['conversation_id'=>1]);
 check('owner presentation rechecks current role after transcript and metadata reads',empty($r['body']['owner_read'])&&$pdo->readWrites===0);
+// Exact quoted originals remain a lazy read-only view, not a full-history drain.
+function targetFixture(int $count=1001): HistoryFixturePdo
+{
+    $pdo=fixture($count);$pdo->exec('ALTER TABLE messages ADD COLUMN external_message_id TEXT COLLATE NOCASE');
+    $pdo->prepare('UPDATE messages SET external_message_id=? WHERE id=?')->execute(['mid.synthetic-original',50]);
+    $pdo->prepare('UPDATE messages SET metadata_json=? WHERE id=?')->execute([json_encode(['linked_message'=>['type'=>'reply','mid'=>'mid.synthetic-original']]),$count]);
+    $pdo->executed=[];return$pdo;
+}
+function apiTarget(array $data,int $managerId=1): array
+{
+    global$apiDetail;$action='message_target';$m=['id'=>$managerId];
+    try{eval($apiDetail);}catch(HistoryApiResponse $response){return['status'=>$response->status,'body'=>$response->body];}
+    throw new RuntimeException('message_target_branch_did_not_respond');
+}
+$pdo=targetFixture();$r=apiTarget(['conversation_id'=>1,'source_message_id'=>1001]);
+check('exact quote resolves old original with bounded ascending context',$r['status']===200&&$r['body']['available']&&$r['body']['target_message_id']===50&&ids($r['body'])===range(30,70)&&$r['body']['context']===['has_before'=>true,'has_after'=>true]);
+check('quote lookup and bounded hydration never acknowledge display',$pdo->readWrites===0&&cursor($pdo)===0&&!isset($r['body']['read_state'])&&count(transcriptPageQueries($pdo))===2);
+$queries=array_filter($pdo->executed,static fn($q)=>str_starts_with($q['sql'],'SELECT id,channel,direction,metadata_json'));check('target hydrates only the bounded context',count($queries)===1&&count(array_values($queries)[0]['args'])===41);
+$pdo=targetFixture();$pdo->exec("UPDATE messages SET sender_type='manager',text='Оригинал &amp; детали' WHERE id=50");$r=apiTarget(['conversation_id'=>1,'source_message_id'=>1001]);check('context uses canonical stored manager-text decoding',$r['body']['messages'][20]['text']==='Оригинал & детали');
+$pdo=targetFixture();$r=apiTarget(['conversation_id'=>1,'source_message_id'=>1001],2);check('denied quote lookup reads no messages',$r['status']===404&&array_filter($pdo->executed,static fn($q)=>str_contains($q['sql'],'FROM messages'))===[]&&$pdo->readWrites===0);
+$pdo=targetFixture();$pdo->exec("UPDATE messages SET conversation_id=2 WHERE id=50");$r=apiTarget(['conversation_id'=>1,'source_message_id'=>1001]);check('quote original cannot cross conversation boundary',$r['status']===200&&!$r['body']['available']&&!isset($r['body']['messages']));
+$pdo=targetFixture();$pdo->exec("UPDATE messages SET channel='max' WHERE id=50");$r=apiTarget(['conversation_id'=>1,'source_message_id'=>1001]);check('provider ids cannot cross channel boundary',!$r['body']['available']);
+$pdo=targetFixture();$pdo->exec("UPDATE messages SET external_message_id='MID.SYNTHETIC-ORIGINAL' WHERE id=50");$r=apiTarget(['conversation_id'=>1,'source_message_id'=>1001]);check('case-insensitive database collation cannot select another provider id',!$r['body']['available']);
+$pdo=targetFixture();$pdo->exec("UPDATE messages SET external_message_id='mid.synthetic-original' WHERE id=51");$r=apiTarget(['conversation_id'=>1,'source_message_id'=>1001]);check('ambiguous legacy provider identity is unavailable',!$r['body']['available']&&!isset($r['body']['target_message_id']));
+$pdo=targetFixture();$pdo->exec("UPDATE messages SET metadata_json='invalid' WHERE id=1001");$r=apiTarget(['conversation_id'=>1,'source_message_id'=>1001]);check('missing or malformed stored quote is explicit unavailable',!$r['body']['available']);
+$pdo=targetFixture();$pdo->afterPage=static fn($db)=>$db->exec('DELETE FROM manager_projects WHERE manager_id=1');$r=apiTarget(['conversation_id'=>1,'source_message_id'=>1001]);check('permission loss during context load rejects captured original',$r['status']===404&&$pdo->readWrites===0);
+$pdo=targetFixture();$pdo->failHydration=true;$r=apiTarget(['conversation_id'=>1,'source_message_id'=>1001]);check('quote hydration failure is recoverable without a read write',$r['status']===500&&$r['body']['error']==='message_target_failed'&&$pdo->readWrites===0);
+foreach([-1,0,'01','bad',true,1.2,'999999999999999999999'] as $invalid){$pdo=targetFixture();$r=apiTarget(['conversation_id'=>1,'source_message_id'=>$invalid]);check('invalid quote source rejected before lookup '.json_encode($invalid),$r['status']===422&&$pdo->executed===[]);}
 echo "FINAL TOTAL $passed | FAIL 0\n";

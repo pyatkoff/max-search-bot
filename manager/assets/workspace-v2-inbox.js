@@ -103,6 +103,12 @@ function reconcileListNodes(box,nodes){
  }
  while(cursor){const next=cursor.nextSibling;cursor.remove();cursor=next;}
 }
+function setListScrollTop(box,top){
+ const target=Math.max(0,Math.min(top,box.scrollHeight-box.clientHeight));
+ // Equal scroll writes interrupt WebKit wheel momentum even with retained rows.
+ // Restore only an actual position change, within the list's current range.
+ if(Math.abs(box.scrollTop-target)>.5)box.scrollTop=target;
+}
 function renderList(rows,{preserveScroll=true}={}){
  rows=window.WorkspaceV2PersonalWorkspace?.enhanceRows(rows)||rows;
  const personalInfo=window.WorkspaceV2PersonalWorkspace?.selectionInfo?.();refreshSelectionScope();
@@ -157,10 +163,10 @@ function renderList(rows,{preserveScroll=true}={}){
  window.WorkspaceV2CustomerAvatar?.enhanceInbox(rows);
  window.WorkspaceV2PersonalWorkspace?.rendered({changedNodes});
  if(preserveScroll){
-   box.scrollTop=scrollTop;
+   setListScrollTop(box,scrollTop);
    const currentAnchor=anchor?.isConnected?anchor:nodes.find(node=>node.dataset.conversationId===anchor?.dataset.conversationId&&anchor);
-   if(currentAnchor?.parentNode===box)box.scrollTop+=currentAnchor.getBoundingClientRect().top-anchorTop;
- }else box.scrollTop=0;
+   if(currentAnchor?.parentNode===box)setListScrollTop(box,box.scrollTop+currentAnchor.getBoundingClientRect().top-anchorTop);
+ }else setListScrollTop(box,0);
  if(focusId&&(!focused.isConnected||document.activeElement===document.body)){
    const remaining=[...box.querySelectorAll('.leadItem')],next=remaining.find(node=>node.dataset.conversationId===focusId)||remaining[Math.min(focusIndex,remaining.length-1)],
      target=(focusAction==='self'?next:next?.querySelector(focusAction))||$('m2PinnedToggle');

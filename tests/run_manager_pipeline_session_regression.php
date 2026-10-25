@@ -16,6 +16,8 @@ function cardCopy(string $relative):void {
     if(!is_dir(dirname($target)))mkdir(dirname($target),0700,true);copy($source,$target);
     preg_match_all("~require_once\\s+__DIR__\\s*\\.\\s*'([^']+)'~",(string)file_get_contents($source),$matches);
     foreach($matches[1]as$dependency)cardCopy(dirname($relative).'/'.$dependency);
+    preg_match_all("~require_once\\s+\\\$baseDir\\s*\\.\\s*'([^']+)'~",(string)file_get_contents($source),$baseMatches);
+    foreach($baseMatches[1]as$dependency)if(!in_array($dependency,['/config.php','/maxsearchclass.php'],true))cardCopy(ltrim($dependency,'/'));
 }
 function cardStart(string $address,string $path,array $data=[],string $cookie='',string $hold=''):array {
     global $streams;$stream=stream_socket_client('tcp://'.$address,$errno,$error,2);
@@ -40,7 +42,7 @@ function cardWait(string $file):void {$deadline=microtime(true)+3;while(!is_file
 
 try {
     mkdir($tmp,0700);mkdir($tmp.'/sessions',0700);mkdir($tmp.'/manager',0700);
-    foreach(['manager/pipeline-api.php','manager/lib/ManagerHttp.php','services/ManagerRequestContext.php','services/ManagerConversationService.php',
+    foreach(['manager/pipeline-api.php','manager/api.php','manager/lib/ManagerHttp.php','services/ManagerRequestContext.php','services/ManagerConversationService.php',
         'services/ManagerLeadInboxService.php','services/ManagerQueueProjectionService.php','services/ManagerWorkspaceFilterService.php',
         'services/SalesPipelineCatalogAdminService.php','services/LeadTaskService.php']as$dependency)cardCopy($dependency);
     file_put_contents($tmp.'/config.php',"<?php require_once __DIR__.'/services/ProjectConfig.php';ProjectConfig::resetForTests(['id'=>'fixture','brand'=>['name'=>'Fixture']]);\n");
@@ -61,6 +63,7 @@ class CardSessionStatement {
         }
         if(str_starts_with($sql,'SELECT p.id,p.project_key,p.display_name FROM projects p JOIN manager_projects ')){$this->rows=[['id'=>1,'project_key'=>'fixture','display_name'=>'Fixture']];return true;}
         if(str_starts_with($sql,'SELECT 1 FROM manager_projects mp JOIN projects ')){$this->rows=$args[1]==='fixture'?[[1]]:[];return true;}
+        if(str_contains($sql,' AS unread_count ')){cardFixtureGate(($GLOBALS['action']??'')==='counts'?'counts':'list');return true;}
         if(str_starts_with($sql,'SELECT c.id,c.project_key,c.source_id,c.channel,')){
             $id=(int)$args[0];if(in_array($id,[42,43,44,45],true))$this->rows=[['id'=>$id,'project_key'=>$id===43?'denied':'fixture','source_id'=>$id===44?99:0,'channel'=>'max','status'=>'manager','manager_id'=>$id===45?9:7,'external_chat_id'=>'synthetic','phone'=>null,'email'=>null]];return true;
         }
@@ -88,10 +91,11 @@ function cardFixtureGate(string $kind):void {
 class SalesPipelineService {
     static function conversationSnapshot($id):array{cardFixtureGate('read');return ['stage'=>null,'stage_history'=>[],'tags'=>[],'outcome'=>['outcome'=>'open']];}
     static function setStage(...$args):bool{cardFixtureGate('write');return true;}
+    static function decorateConversationRows(array $rows):array{return $rows;}
 }
 PHP);
     file_put_contents($tmp.'/services/LeadTaskService.php','<?php class LeadTaskService {static function listForConversation($id):array{if(($_SERVER["HTTP_X_FIXTURE_HOLD"]??"")==="degraded")throw new RuntimeException("Synthetic card failure");return [];} }');
-    file_put_contents($tmp.'/services/ManagerDeliveryStateService.php','<?php class ManagerDeliveryStateService {static function activeFailure($id){return null;} }');
+    file_put_contents($tmp.'/services/ManagerDeliveryStateService.php','<?php class ManagerDeliveryStateService {static function activeFailure($id){return null;} static function activeFailures($ids):array{return [];} static function withoutSuspendedRecipients(array $rows):array{return $rows;} }');
     file_put_contents($tmp.'/manager/fixture-session.php', <<<'PHP'
 <?php
 require_once __DIR__.'/lib/ManagerHttp.php';session_id((string)$_GET['session']);ManagerHttp::startJson();
@@ -130,6 +134,44 @@ PHP);
         $samples[]=['same_session_ms'=>$elapsed,'completed_while_card_held'=>$completed,'different_session_ms'=>$other['ms']];
     }
     echo 'SYNTHETIC_HTTP_SAMPLES '.json_encode($samples,JSON_THROW_ON_ERROR)."\n";
+    $listSamples=[];
+    for($cycle=0;$cycle<3;$cycle++){
+        @unlink($tmp.'/list.entered');@unlink($tmp.'/list.release');
+        $held=cardStart($first,'/manager/pipeline-api.php',['action'=>'list','queue'=>'all','project_key'=>'fixture','csrf'=>'fixture-csrf'],$cookies['own'],'list');cardWait($tmp.'/list.entered');
+        $sibling=cardStart($second,'/manager/fixture-transcript.php',['csrf'=>'fixture-csrf'],$cookies['own']);
+        $completed=cardPoll($sibling,0.75);$elapsed=round((hrtime(true)-$sibling['start'])/1e6,2);
+        cardCheck('same-session transcript completes before held Inbox list '.$cycle,$completed);
+        touch($tmp.'/list.release');$list=cardFinish($held);$siblingResult=cardFinish($sibling);
+        cardCheck('Inbox list and transcript retain HTTP payload and actor '.$cycle,$list['status']===200&&$list['body']===['ok'=>true,'conversations'=>[]]&&$siblingResult['status']===200&&$siblingResult['body']['actor']===7);
+        $listSamples[]=['same_session_ms'=>$elapsed,'completed_while_list_held'=>$completed];
+    }
+    echo 'SYNTHETIC_INBOX_HTTP_SAMPLES '.json_encode($listSamples,JSON_THROW_ON_ERROR)."\n";
+    foreach([['anonymous','',401],['inactive',$cookies['inactive'],401],['bad CSRF',$cookies['own'],403]]as[$label,$cookie,$status]){
+        $before=is_file($tmp.'/loads.jsonl')?count(file($tmp.'/loads.jsonl')):0;
+        $response=cardRequest($second,'/manager/pipeline-api.php',['action'=>'list','queue'=>'all','csrf'=>$label==='bad CSRF'?'wrong':'fixture-csrf'],$cookie);
+        $after=is_file($tmp.'/loads.jsonl')?count(file($tmp.'/loads.jsonl')):0;
+        cardCheck($label.' Inbox list is denied before loading rows',$response['status']===$status&&!isset($response['body']['conversations'])&&$before===$after);
+    }
+
+    $countSamples=[];
+    for($cycle=0;$cycle<3;$cycle++){
+        @unlink($tmp.'/counts.entered');@unlink($tmp.'/counts.release');
+        $held=cardStart($first,'/manager/api.php',['action'=>'counts','project_key'=>'fixture','csrf'=>'fixture-csrf'],$cookies['own'],'counts');cardWait($tmp.'/counts.entered');
+        $sibling=cardStart($second,'/manager/fixture-transcript.php',['csrf'=>'fixture-csrf'],$cookies['own']);
+        $completed=cardPoll($sibling,0.75);$elapsed=round((hrtime(true)-$sibling['start'])/1e6,2);
+        cardCheck('same-session transcript completes before held queue counts '.$cycle,$completed);
+        touch($tmp.'/counts.release');$counts=cardFinish($held);$siblingResult=cardFinish($sibling);
+        cardCheck('queue counts and transcript retain HTTP payload and actor '.$cycle,$counts['status']===200&&$counts['body']===['ok'=>true,'counts'=>['waiting'=>['count'=>0,'unread'=>0],'requested'=>['count'=>0,'unread'=>0],'mine'=>['count'=>0,'unread'=>0],'notification_unread'=>0]]&&$siblingResult['status']===200&&$siblingResult['body']['actor']===7);
+        $countSamples[]=['same_session_ms'=>$elapsed,'completed_while_counts_held'=>$completed];
+    }
+    echo 'SYNTHETIC_COUNTS_HTTP_SAMPLES '.json_encode($countSamples,JSON_THROW_ON_ERROR)."\n";
+    foreach([['anonymous','',401],['inactive',$cookies['inactive'],401],['bad CSRF',$cookies['own'],403]]as[$label,$cookie,$status]){
+        $before=is_file($tmp.'/loads.jsonl')?count(file($tmp.'/loads.jsonl')):0;
+        $response=cardRequest($second,'/manager/api.php',['action'=>'counts','csrf'=>$label==='bad CSRF'?'wrong':'fixture-csrf'],$cookie);
+        $after=is_file($tmp.'/loads.jsonl')?count(file($tmp.'/loads.jsonl')):0;
+        cardCheck($label.' queue counts are denied before loading rows',$response['status']===$status&&!isset($response['body']['counts'])&&$before===$after);
+    }
+
     foreach([['anonymous','',42,'fixture-csrf',401],['inactive',$cookies['inactive'],42,'fixture-csrf',401],
         ['bad CSRF',$cookies['own'],42,'wrong',403],['denied project',$cookies['own'],43,'fixture-csrf',404],
         ['denied routing group',$cookies['own'],44,'fixture-csrf',404],['missing conversation',$cookies['own'],999,'fixture-csrf',404]]as[$label,$cookie,$id,$csrf,$status]){
@@ -145,12 +187,14 @@ PHP);
     cardCheck('write action retains same-session serialization',!cardPoll($sibling,0.1));touch($tmp.'/write.release');
     $write=cardFinish($write);$sibling=cardFinish($sibling);cardCheck('write and following authenticated read finish normally',$write['status']===200&&$write['body']['ok']&&$sibling['status']===200);
     $loads=array_map(static fn($line)=>json_decode($line,true),file($tmp.'/loads.jsonl',FILE_IGNORE_NEW_LINES));
-    cardCheck('only card reads release the session before secondary loaders',array_filter($loads,static fn($row)=>$row['action']==='detail'&&$row['kind']==='read'&&$row['active'])===[]&&count(array_filter($loads,static fn($row)=>$row['kind']==='write'&&$row['active']))===1);
+    cardCheck('card reads release the session before secondary loaders',array_filter($loads,static fn($row)=>$row['action']==='detail'&&$row['kind']==='read'&&$row['active'])===[]&&count(array_filter($loads,static fn($row)=>$row['kind']==='write'&&$row['active']))===1);
+    cardCheck('Inbox list releases the session before loading rows',count(array_filter($loads,static fn($row)=>$row['action']==='list'&&$row['kind']==='list'))===3&&array_filter($loads,static fn($row)=>$row['action']==='list'&&$row['active'])===[]);
+    cardCheck('queue counts release the session before all three canonical list reads',count(array_filter($loads,static fn($row)=>$row['action']==='counts'&&$row['kind']==='counts'))===9&&array_filter($loads,static fn($row)=>$row['action']==='counts'&&$row['active'])===[]);
     $queries=array_map(static fn($line)=>json_decode($line,true),file($tmp.'/queries.jsonl',FILE_IGNORE_NEW_LINES));
-    cardCheck('conversation visibility is checked while session is still locked',array_filter($queries,static fn($row)=>str_starts_with($row['sql'],'SELECT c.id,c.project_key,c.source_id,c.channel,')&&!$row['active'])===[]);
+    cardCheck('conversation visibility is checked while session is still locked',array_filter($queries,static fn($row)=>str_starts_with($row['sql'],'SELECT c.id,c.project_key,c.source_id,c.channel,')&&str_ends_with($row['sql'],'WHERE c.id=? LIMIT 1')&&!$row['active'])===[]);
 } catch(Throwable $error){cardCheck('bounded actual HTTP/session fixture completes',false);echo $error->getMessage()."\n";if(is_file($tmp.'/server.log'))echo substr((string)file_get_contents($tmp.'/server.log'),-4000);}
 finally {
-    if(is_dir($tmp)){touch($tmp.'/read.release');touch($tmp.'/write.release');}
+    if(is_dir($tmp)){touch($tmp.'/read.release');touch($tmp.'/write.release');touch($tmp.'/list.release');touch($tmp.'/counts.release');}
     foreach($streams as$stream)if(is_resource($stream))fclose($stream);
     foreach($servers as$server){proc_terminate($server['process']);proc_close($server['process']);}
     if(is_dir($tmp))cardRemove($tmp);

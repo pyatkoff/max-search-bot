@@ -33,6 +33,8 @@ function showAuthRecovery(message=''){
   window.WorkspaceV2QuickReplies?.resetSession();window.WorkspaceV2CustomerName?.resetSession();window.WorkspaceV2CustomerAvatar?.resetSession();
   window.WorkspaceV2PersonalWorkspace?.suspend();
 window.WorkspaceV2InternalNotes?.suspend();
+  window.WorkspaceV2ClientEvents?.suspend();
+  window.WorkspaceV2MessageNavigation?.reset();
   window.WorkspaceV2Assistant?.suspend();
   window.WorkspaceV2TourSelection?.suspend();
   S.authExpired=true;
@@ -76,6 +78,8 @@ function applyIdentity(me){
   window.WorkspaceV2Sound?.activate(S.manager?.id);
   window.WorkspaceV2PersonalWorkspace?.activate(S.manager?.id);
 window.WorkspaceV2InternalNotes?.activate(S.manager?.id);
+  window.WorkspaceV2ClientEvents?.activate(S.manager?.id);
+  window.WorkspaceV2MessageNavigation?.reset();
   window.WorkspaceV2Assistant?.activate(S.manager?.id);
   window.WorkspaceV2TourSelection?.activate(S.manager?.id);
   window.WorkspaceV2Media?.init();window.WorkspaceV2Media?.configure(S.csrf,S.current||0);
@@ -111,6 +115,8 @@ function bindWorkspaceOnce(){
   if(S.workspaceBound)return;
   window.WorkspaceV2Filters?.bind();window.WorkspaceV2Conversation?.bind();window.WorkspaceV2Inbox?.bind();window.WorkspaceV2Kanban?.bind();window.WorkspaceV2Mobile?.bind();window.WorkspaceV2Shortcuts?.bind();window.WorkspaceV2QuickReplies?.bind();window.WorkspaceV2PersonalWorkspace?.bind();
 window.WorkspaceV2InternalNotes?.bind();
+  window.WorkspaceV2ClientEvents?.bind();
+  window.WorkspaceV2MessageNavigation?.bind();
   window.WorkspaceV2Assistant?.bind();
   S.workspaceBound=true;window.WorkspaceV2CustomerName?.configure({onUpdated:applyCustomerName});
 }

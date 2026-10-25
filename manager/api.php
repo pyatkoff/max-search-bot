@@ -88,6 +88,9 @@ if($action==='list'){
 }
 if($action==='counts'){
     $projectKey=(string)($data['project_key']??'*');
+    // Auth and CSRF are captured; these read-only projections must not hold
+    // the account's session lock while three bounded queue lists are loaded.
+    session_write_close();
     out(['ok'=>true,'counts'=>ManagerQueueProjectionService::counts((int)$m['id'],$projectKey)]);
 }
 if($action==='detail'){
@@ -130,6 +133,22 @@ if($action==='detail'){
     $d['supervisor_read']=$supervisor;
     $d['read_state']=ManagerReadService::snapshot((int)$m['id'],$d['conversation']);
     out(['ok'=>true]+$d);
+}
+if($action==='message_target'){
+    foreach(['conversation_id','source_message_id'] as $field){
+        $id=$data[$field]??null;
+        if((!is_int($id)&&!(is_string($id)&&preg_match('/^[1-9][0-9]*$/D',$id)))
+            ||filter_var($id,FILTER_VALIDATE_INT,['options'=>['min_range'=>1]])===false)out(['ok'=>false,'error'=>'invalid_message_target'],422);
+    }
+    // Session identity/CSRF are captured; the service owns fresh visibility.
+    session_write_close();
+    try{
+        $target=ManagerConversationService::linkedMessageTarget((int)$data['conversation_id'],(int)$m['id'],(int)$data['source_message_id']);
+        if($target&&!empty($target['available']))$target['messages']=ManagerMessageMediaService::hydrate($target['messages']);
+        if($target&&!ManagerConversationService::visibleConversation((int)$data['conversation_id'],(int)$m['id'],true))$target=null;
+    }catch(Throwable $e){out(['ok'=>false,'error'=>'message_target_failed'],500);}
+    if(!$target)out(['ok'=>false,'error'=>'not_found'],404);
+    out(['ok'=>true]+$target);
 }
 if($action==='ack_read'){
     $ids=$data['message_ids']??null;$context=$data['read_context']??null;
