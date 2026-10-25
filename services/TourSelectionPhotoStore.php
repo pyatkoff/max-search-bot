@@ -29,6 +29,53 @@ final class TourSelectionPhotoStore
         return $meta+['path'=>$base.'.bin'];
     }
 
+    private const UPLOAD_URL='https://app.anytoour.ru/manager/tour-selection-photo.php?';
+
+    /** Same private byte owner and quota as reviewed images; no public asset URL. */
+    public static function upload(int $actor,int $conversation,string $offer,string $kind,string $operation,string $bytes): array
+    {
+        if ($actor<=0 || $conversation<=0 || !preg_match('/\A[a-f0-9]{32}\z/D',$offer) || !preg_match('/\A[a-f0-9]{32}\z/D',$operation) || !in_array($kind,['cover','beach','room'],true)) throw new RuntimeException('invalid_photo');
+        $key=substr(hash('sha256','draft-upload:'.$actor.':'.$conversation.':'.$offer.':'.$kind.':'.$operation),0,32);
+        $url=self::uploadUrl($conversation,$key);
+        $image=self::image($key,0,0,$url,static fn(string $unused):string=>$bytes);
+        // Same operation is immutable, including a concurrent different upload.
+        if (!hash_equals($image['sha256'],hash('sha256',$bytes))) throw new RuntimeException('operation_mismatch');
+        return ['url'=>$url,'sha256'=>$image['sha256'],'bytes'=>$image['bytes'],'mime'=>$image['mime']];
+    }
+
+    public static function uploadUrl(int $conversation,string $key): string
+    {
+        return self::UPLOAD_URL.'conversation_id='.$conversation.'&draft_photo='.$key;
+    }
+
+    private static function uploadReference(string $url): ?array
+    {
+        if (!preg_match('~\A'.preg_quote(self::UPLOAD_URL,'~').'conversation_id=([1-9][0-9]*)&draft_photo=([a-f0-9]{32})\z~D',$url,$m) || (string)(int)$m[1]!==$m[1]) return null;
+        return ['conversation'=>(int)$m[1],'key'=>$m[2]];
+    }
+
+    public static function uploaded(int $conversation,string $key): ?array
+    {
+        if ($conversation<=0 || !preg_match('/\A[a-f0-9]{32}\z/D',$key)) return null;
+        return self::cached($key,0,0,self::uploadUrl($conversation,$key));
+    }
+
+    /** Uploaded references cannot be carried to another client, even by an admin. */
+    public static function forConversation(string $url,int $conversation): bool
+    {
+        if (!str_starts_with($url,self::UPLOAD_URL)) return true;
+        $ref=self::uploadReference($url);
+        return $ref!==null && $ref['conversation']===$conversation && self::uploaded($conversation,$ref['key'])!==null;
+    }
+
+    private static function sourceBytes(string $url): string
+    {
+        if (!str_starts_with($url,self::UPLOAD_URL)) return self::download($url);
+        $ref=self::uploadReference($url);$image=$ref?self::uploaded($ref['conversation'],$ref['key']):null;
+        if (!$image) throw new RuntimeException('invalid_photo');
+        return (string)file_get_contents($image['path']);
+    }
+
     public static function publicAddress(string $ip): bool
     {
         if (!filter_var($ip,FILTER_VALIDATE_IP,FILTER_FLAG_IPV4|FILTER_FLAG_NO_PRIV_RANGE|FILTER_FLAG_NO_RES_RANGE)) return false;
@@ -71,7 +118,7 @@ final class TourSelectionPhotoStore
             }
             // Hard bound on retained private material; no opportunistic removal of sent photos.
             if (count(glob($root.'/*.bin')?:[])>=1024) throw new RuntimeException('photo_capacity');
-            $bytes=$download?$download($url):self::download($url);
+            $bytes=$download?$download($url):self::sourceBytes($url);
             if (!is_string($bytes) || $bytes==='' || strlen($bytes)>self::MAX_BYTES) throw new RuntimeException('invalid_photo');
             $size=getimagesizefromstring($bytes);$mime=(new finfo(FILEINFO_MIME_TYPE))->buffer($bytes);
             if (!$size || !in_array($mime,['image/jpeg','image/png'],true) || ($size['mime']??'')!==$mime || $size[0]<100 || $size[1]<100 || $size[0]>12000 || $size[1]>12000 || $size[0]*$size[1]>24000000) throw new RuntimeException('invalid_photo');

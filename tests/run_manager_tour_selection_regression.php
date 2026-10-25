@@ -157,6 +157,7 @@ try {
     }
     $sourceRoot=dirname(__DIR__);
     file_put_contents($httpRoot.'/config.php',str_replace('\\n',"\n",'<?php\nrequire_once '.var_export($sourceRoot.'/services/ManagerRequestContext.php',true).';\n'.'$fixturePdo=new PDO('.var_export('sqlite:'.$httpRoot.'/fixture.sqlite',true).',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);\n'.'(new ReflectionProperty(ConversationDb::class,"pdo"))->setValue(null,$fixturePdo);\n'.'ProjectConfig::resetForTests(["id"=>"notes-fixture","brand"=>["name"=>"Synthetic workspace"]]);\nProjectAccessService::initializeReadOnly();\n'));
+    mkdir($httpRoot.'-private',0700);file_put_contents($httpRoot.'/config.php',"\nrequire_once ".var_export($sourceRoot.'/services/DiagnosticLogger.php',true).";\nDiagnosticLogger::setFile(".var_export($httpRoot.'-private/events.log',true).");\n",FILE_APPEND);copy($sourceRoot.'/manager/tour-selection-photo.php',$httpRoot.'/manager/tour-selection-photo.php');
     copy($sourceRoot.'/manager/tour-selections-api.php',$httpRoot.'/manager/tour-selections-api.php');copy($sourceRoot.'/manager/tour-selection-collector.php',$httpRoot.'/manager/tour-selection-collector.php');symlink($sourceRoot.'/manager/assets',$httpRoot.'/manager/assets');symlink($sourceRoot.'/manager/lib',$httpRoot.'/manager/lib');symlink($sourceRoot.'/services',$httpRoot.'/services');
     file_put_contents($httpRoot.'/manager/fixture-session.php','<?php require dirname(__DIR__)."/config.php";require __DIR__."/lib/ManagerHttp.php";ManagerHttp::startJson();$_SESSION["manager_id"]=(int)($_GET["id"]??7);$_SESSION["csrf"]="selection-synthetic-csrf";ManagerHttp::respond(["ok"=>true]);');
     $socket=stream_socket_server('tcp://127.0.0.1:0',$errno,$errstr);if (!$socket) throw new RuntimeException('Cannot allocate notes loopback fixture');$address=(string)stream_socket_get_name($socket,false);fclose($socket);
@@ -183,6 +184,18 @@ try {
     $created=$request($write,$cookie);tsCheck('actual selection HTTP create and stable replay',$created['status']===200&&$created['body']['selection']['version']===1&&$request($write,$cookie)['body']===$created['body']);
     $colleague=$request([],'','GET','/manager/fixture-session.php?id=7')['cookie'];
     tsCheck('actual visible colleague reads without acquiring edit rights',$request(['action'=>'get']+$base,$colleague)['status']===200&&$request(['action'=>'get']+$base,$colleague)['body']['selection']['can_edit']===false&&$request($write,$colleague)['status']===403);
+    $photoPath='/manager/tour-selection-photo.php';$imageBytes=file_get_contents($sourceRoot.'/assets/owner-tour-cards/compact-v1/cover.jpg');
+    $upload=['action'=>'upload','version'=>1,'offer_id'=>$draft['offers'][0]['id'],'kind'=>'cover','operation_id'=>str_repeat('d',32),'image_base64'=>base64_encode($imageBytes)]+$base;
+    tsCheck('actual photo upload rejects anonymous and missing CSRF',$request($upload,'','POST',$photoPath)['status']===401&&$request(array_diff_key($upload,['csrf'=>true]),$cookie,'POST',$photoPath)['status']===403);
+    tsCheck('actual photo upload refuses readonly colleague',$request($upload,$colleague,'POST',$photoPath)['status']===403);
+    $uploaded=$request($upload,$cookie,'POST',$photoPath);$photoUrl=$uploaded['body']['photo']['url']??'';
+    tsCheck('actual protected file upload returns only a private immutable reference',$uploaded['status']===200&&str_starts_with($photoUrl,'https://app.anytoour.ru/manager/tour-selection-photo.php?conversation_id=1&draft_photo=')&&!isset($uploaded['body']['path']));
+    tsCheck('actual upload retry is idempotent',$request($upload,$cookie,'POST',$photoPath)['body']===$uploaded['body']);
+    $localPhoto='/manager/tour-selection-photo.php?'.parse_url($photoUrl,PHP_URL_QUERY);$imageRead=$request([],$cookie,'GET',$localPhoto);
+    tsCheck('actual uploaded read returns exact bytes privately and anonymous is denied',$imageRead['status']===200&&hash('sha256',$imageRead['raw'])===hash('sha256',$imageBytes)&&str_contains(implode('\n',$imageRead['headers']),'private, no-store')&&$request([],'','GET',$localPhoto)['status']===401);
+    tsCheck('upload never mutates draft version',$request(['action'=>'get']+$base,$cookie)['body']['selection']['version']===1);
+    tsCheck('actual upload rejects a stale draft',$request(array_replace($upload,['version'=>2]),$cookie,'POST',$photoPath)['status']===409);
+    tsCheck('actual photo endpoint bounds JSON body before image decoding',$request(array_replace($upload,['image_base64'=>str_repeat('A',3000000)]),$cookie,'POST',$photoPath)['status']===413);
     tsCheck('actual stale version returns409 and current draft',$request(['action'=>'save','version'=>0,'draft'=>$other,'operation_id'=>'http-selection-stale-001']+$base,$cookie)['status']===409);
     $recovered=$request(['action'=>'operation','operation_id'=>$write['operation_id']]+$base,$cookie);
     tsCheck('actual operation read recovers successful save',$recovered['status']===200&&$recovered['body']['found']&&$recovered['body']['saved_version']===1);
@@ -211,6 +224,7 @@ try {
     $httpDb->exec('UPDATE conversations SET manager_id=7 WHERE id=1');
     tsCheck('actual reassignment blocks former manager403',$request(['action'=>'save','version'=>1,'draft'=>$other,'operation_id'=>'http-selection-reassigned-001']+$base,$cookie)['status']===403);
     $httpDb->exec('DELETE FROM manager_projects WHERE manager_id=8');
+    tsCheck('actual revoked project cannot read uploaded image',$request([],$cookie,'GET',$localPhoto)['status']===404);
     tsCheck('actual project revocation blocks read404',$request(['action'=>'get']+$base,$cookie)['status']===404);
     $httpDb->exec('INSERT INTO manager_projects VALUES(8,1)');$httpDb->exec('UPDATE managers SET is_active=0 WHERE id=8');
     tsCheck('actual session rechecks inactive account401',$request(['action'=>'get']+$base,$cookie)['status']===401);
@@ -218,7 +232,7 @@ try {
     tsCheck('actual unavailable storage returns503 not empty success',$request(['action'=>'get']+$base,$cookie)['status']===503);
 } finally {
     if (is_resource($process)) {proc_terminate($process);proc_close($process);}$httpDb=null;
-    $remove=static function(string $path) use(&$remove):void {if (is_link($path)||is_file($path)) {unlink($path);return;}if (is_dir($path)) {foreach (scandir($path)?:[] as $name) if ($name!=='.'&&$name!=='..') $remove($path.'/'.$name);rmdir($path);}};$remove($httpRoot);
+    $remove=static function(string $path) use(&$remove):void {if (is_link($path)||is_file($path)) {unlink($path);return;}if (is_dir($path)) {foreach (scandir($path)?:[] as $name) if ($name!=='.'&&$name!=='..') $remove($path.'/'.$name);rmdir($path);}};$remove($httpRoot);$remove($httpRoot.'-private');
 }
 $pdo->exec('DROP TABLE manager_tour_selection_drafts');$thrown=false;try{ManagerTourSelectionService::get(8,1);}catch(PDOException $e){$thrown=true;}tsCheck('missing schema is failure not an empty successful selection',$thrown);
 echo "TOTAL {$passed} | PASS {$passed} | FAIL 0\n";

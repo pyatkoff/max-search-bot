@@ -5,6 +5,7 @@ require_once __DIR__.'/ConversationDb.php';
 require_once __DIR__.'/ManagerConversationService.php';
 require_once __DIR__.'/ManagerConversationAccessPolicy.php';
 require_once __DIR__.'/ManagerTourSelectionDraft.php';
+require_once __DIR__.'/TourSelectionPhotoStore.php';
 
 /** Protected drafts. No provider calls, customer messages or transcript reads. */
 final class ManagerTourSelectionService
@@ -14,6 +15,37 @@ final class ManagerTourSelectionService
         $context=self::context($actor,$conversationId);
         if (isset($context['error'])) return $context;
         return ['ok'=>true,'selection'=>self::view(ConversationDb::connection(),$context)];
+    }
+
+    /** File intake does not save a draft or create any customer/provider action. */
+    public static function uploadPhoto(int $actor,int $conversationId,array $input): array
+    {
+        $context=self::context($actor,$conversationId);
+        if (isset($context['error'])) return $context;
+        if (!$context['can_edit']) return self::error('forbidden');
+        $version=$input['version']??null;$offer=$input['offer_id']??null;$kind=$input['kind']??null;$op=$input['operation_id']??null;$encoded=$input['image_base64']??null;
+        if (!is_int($version) || $version<1 || !is_string($offer) || !preg_match('/\A[a-f0-9]{32}\z/D',$offer) || !is_string($op) || !self::validOperation($op) || !in_array($kind,['cover','beach','room'],true)) return self::error('invalid_photo');
+        $current=self::view(ConversationDb::connection(),$context);
+        if ($current['version']!==$version || !in_array($offer,array_column($current['draft']['offers'],'id'),true)) return self::error('draft_changed');
+        if (!is_string($encoded) || strlen($encoded)>intdiv(TourSelectionPhotoStore::MAX_BYTES+2,3)*4 || !preg_match('/\A[A-Za-z0-9+\/]+={0,2}\z/D',$encoded)) return self::error('invalid_photo');
+        $bytes=base64_decode($encoded,true);
+        if ($bytes===false || $bytes==='' || strlen($bytes)>TourSelectionPhotoStore::MAX_BYTES) return self::error('invalid_photo');
+        try {$image=TourSelectionPhotoStore::upload($actor,$conversationId,$offer,$kind,$op,$bytes);}
+        catch (RuntimeException $e) {return self::error(in_array($e->getMessage(),['invalid_photo','photo_busy','photo_capacity','operation_mismatch'],true)?$e->getMessage():'photo_storage_unavailable');}
+        // No DB/session lock is held while validating/writing bytes. Recheck the
+        // current account, source/project/assignment and exact draft afterwards.
+        $fresh=self::context($actor,$conversationId);
+        if (isset($fresh['error'])) return $fresh;
+        if (!$fresh['can_edit']) return self::error('forbidden');
+        $latest=self::view(ConversationDb::connection(),$fresh);
+        if ($latest['version']!==$version || $fresh['conversation']!==$context['conversation']) return self::error('draft_changed');
+        return ['ok'=>true,'operation_id'=>$op,'photo'=>['url'=>$image['url'],'kind'=>$kind,'illustrative'=>true],'sha256'=>$image['sha256']];
+    }
+
+    public static function uploadedPhoto(int $actor,int $conversationId,string $key): ?array
+    {
+        $context=self::context($actor,$conversationId);
+        return isset($context['error'])?null:TourSelectionPhotoStore::uploaded($conversationId,$key);
     }
 
     public static function operation(int $actor,int $conversationId,string $operation): array
@@ -60,6 +92,7 @@ final class ManagerTourSelectionService
                 $sources=[];
                 foreach ($current['draft']['offers'] as $old) if (isset($old['import_source'])) $sources[$old['id']]=$old['import_source'];
                 foreach ($draft['offers'] as $offer) {
+                    foreach ($offer['photos'] as $photo) if (!TourSelectionPhotoStore::forConversation($photo['url'],$conversationId)) {$pdo->rollBack();return self::error('invalid_photo');}
                     if (($sources[$offer['id']]??null)!==($offer['import_source']??null)) {$pdo->rollBack();return self::error('source_changed');}
                 }
                 $next=$version+1; $now=gmdate('Y-m-d H:i:s'); $json=json_encode($draft,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);

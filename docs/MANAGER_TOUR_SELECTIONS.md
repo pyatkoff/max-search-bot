@@ -478,3 +478,33 @@ source/conditions preserved and independent room photos. Wrong group, same name,
 readonly, stale actor/conversation/auth and concurrent-save boundaries remain
 covered. This is source/fixture acceptance, not physical Chrome/Yandex import,
 source-photo capture, full-fare verification or owner-native A1–A8 completion.
+
+
+## First photos from a local file
+
+Each cover, beach/territory and illustrative room slot also accepts an explicit
+JPEG/PNG file from desktop or mobile. The existing direct URL path remains.
+The assigned manager first saves the ordinary draft, then uploads one bounded
+file against its exact offer, version and current access. Upload does not save
+the draft or send/publish anything; its confirmed reference is attached by the
+ordinary optimistic save. An uncertain reply offers an explicit identical-file,
+identical-operation retry or cancellation. Switching conversation/account,
+closing, conflict or changed access prevents a late reference being applied.
+
+`TourSelectionPhotoStore` remains the only image byte owner: the same private
+root, 2MiB/file, JPEG/PNG/dimension validation, immutable hash-checked bytes,
+0700/0600 modes and 1024-file quota. Upload references are canonical HTTPS inputs
+to the existing publication/cache pipeline. They require current Manager access
+and cannot be moved to another conversation by save or prepare. Public readers
+still see only explicitly published cached bytes; revocation closes those reads.
+No second store, renderer/sender or public draft-upload capability is introduced.
+No file name, local path or base64 data is stored in the draft or publication.
+Room images remain illustrative and upload does not establish a catalogue match,
+source photo evidence or a verified fare. Original bytes are retained; native
+formatting/physical acceptance and automatic TO photo capture remain separate.
+
+Protected HTTP/file-byte and browser cases cover fresh auth/CSRF/project/access,
+readonly/stale draft, same/different retry, bad/oversized bytes, cross-client
+references, device-file intake, lost replies, cancel, late responses and original
+reply/File preservation. Required widths390/430/768/1440 plus short height are
+covered. Installed release and natural/physical mixed-source A1–A8 remain distinct.

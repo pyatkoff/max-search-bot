@@ -73,6 +73,33 @@ try {
     $image=TourSelectionPhotoStore::image(str_repeat('a',32),0,0,'https://photos.example.org/cover.jpg',$download);
     $repeat=TourSelectionPhotoStore::image(str_repeat('a',32),0,0,'https://photos.example.org/cover.jpg',$download);
     deliveryCheck('actual JPEG bytes are retained privately and reused without another download',$downloads===1&&$repeat['sha256']===$image['sha256']&&hash_file('sha256',$image['path'])===$image['sha256']&&(fileperms($image['path'])&0777)===0600&&str_starts_with($image['path'],$photoDirectory.'/'));
+    $raw=file_get_contents(dirname(__DIR__).'/assets/owner-tour-cards/compact-v1/cover.jpg');
+    $upload=['version'=>1,'offer_id'=>str_repeat('a',32),'kind'=>'cover','operation_id'=>str_repeat('c',32),'image_base64'=>base64_encode($raw)];
+    $pdo=deliveryDb();deliverySave(deliveryDraft());
+    $beforeMessages=(int)$pdo->query('SELECT COUNT(*) FROM messages')->fetchColumn();
+    $u=ManagerTourSelectionService::uploadPhoto(7,1,$upload);$url=$u['photo']['url'];
+    deliveryCheck('photo file upload retains exact private bytes without a draft or message write',$u['ok']&&$u['sha256']===hash('sha256',$raw)&&ManagerTourSelectionService::get(7,1)['selection']['version']===1&&(int)$pdo->query('SELECT COUNT(*) FROM messages')->fetchColumn()===$beforeMessages);
+    $retry=ManagerTourSelectionService::uploadPhoto(7,1,$upload);
+    deliveryCheck('same file retry returns the identical immutable reference',$retry===$u);
+    $different=$upload;$different['image_base64']=base64_encode(file_get_contents(dirname(__DIR__).'/assets/owner-tour-cards/compact-v1/beach.jpg'));
+    deliveryCheck('different bytes cannot replace a completed upload operation',ManagerTourSelectionService::uploadPhoto(7,1,$different)['error']==='operation_mismatch');
+    deliveryCheck('readonly and stale draft cannot upload',ManagerTourSelectionService::uploadPhoto(8,1,$upload)['error']==='forbidden'&&ManagerTourSelectionService::uploadPhoto(7,1,array_replace($upload,['version'=>2]))['error']==='draft_changed');
+    foreach (['<svg onload="alert(1)"></svg>',str_repeat('x',TourSelectionPhotoStore::MAX_BYTES+1),'not an image'] as $bytes) {
+        $bad=array_replace($upload,['operation_id'=>bin2hex(random_bytes(16)),'image_base64'=>base64_encode($bytes)]);
+        deliveryCheck('non-image or oversized uploaded bytes are rejected',ManagerTourSelectionService::uploadPhoto(7,1,$bad)['error']==='invalid_photo');
+    }
+    $withFile=deliveryDraft();$withFile['offers'][0]['photos'][0]=$u['photo'];$saved=deliverySave($withFile,1);
+    $foreign=deliverySave($withFile,0,2);
+    deliveryCheck('file reference saves only in its original conversation',$saved['ok']&&$foreign['error']==='invalid_photo');
+    $prepared=ManagerTourSelectionDeliveryService::prepare(7,1,2);$cardId=$prepared['publication']['id'];
+    $cached=ManagerTourSelectionDeliveryService::photo(7,1,$cardId,0,0);
+    deliveryCheck('uploaded bytes feed the canonical preview cache without a network download',$prepared['ok']&&$cached['sha256']===hash('sha256',$raw));
+    $copy=$pdo->prepare('INSERT INTO manager_tour_selection_drafts(conversation_id,version,draft_json,updated_by_manager_id,updated_at) VALUES(2,1,?,7,?)');$copy->execute([json_encode($withFile),gmdate('Y-m-d H:i:s')]);
+    deliveryCheck('legacy forged cross-client reference cannot prepare',ManagerTourSelectionDeliveryService::prepare(7,2,1)['error']==='invalid_photo');
+    $asset=parse_url($url);parse_str($asset['query'],$params);$pdo->exec('UPDATE conversations SET manager_id=8 WHERE id=1');
+    deliveryCheck('reassignment removes former manager upload permission',ManagerTourSelectionService::uploadPhoto(7,1,$upload)['error']==='forbidden');
+    $pdo->exec('DELETE FROM manager_projects WHERE manager_id=7');
+    deliveryCheck('project revocation removes private photo access',ManagerTourSelectionService::uploadedPhoto(7,1,$params['draft_photo'])===null);
     file_put_contents($image['path'],'corrupted');$blocked=false;
     try {TourSelectionPhotoStore::image(str_repeat('a',32),0,0,'https://photos.example.org/cover.jpg',$download);} catch (RuntimeException $e) {$blocked=true;}
     deliveryCheck('changed frozen image bytes fail closed without source refresh',$blocked&&$downloads===1);
