@@ -347,6 +347,13 @@ source customer. Native inquiry totals can include other native conversations;
 the activity projection exposes no identity, contact, quote or transcript.
 Those inquiries remain in their actual canonical Manager2 conversation.
 
+Hotel observations show the saved hotel name without implying interest in a
+particular room. Bot-link intents show that immutable card's renderer price,
+party, dates, room and meal, with an in-page jump to its complete preview.
+Historical activity never borrows current draft terms; navigation rechecks the
+same authenticated conversation, publication and open preview. The jump creates
+no observation, native choice, inquiry, draft write or send.
+
 The public page issues a domain-separated signed15-minute capability for its
 current link version. Ordinary GET/HEAD is not a browser view. Visible JavaScript
 reports after one second; a hotel heading must be at least half visible.
