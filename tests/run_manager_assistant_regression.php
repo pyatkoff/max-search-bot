@@ -84,7 +84,7 @@ CREATE TABLE conversation_events(id INTEGER PRIMARY KEY,conversation_id INTEGER,
 CREATE TABLE messages(id INTEGER PRIMARY KEY,conversation_id INTEGER,direction TEXT,sender_type TEXT,text TEXT,created_at TEXT,channel TEXT,metadata_json TEXT,sender_id TEXT,external_message_id TEXT);
 CREATE INDEX idx_messages_conversation ON messages(conversation_id,id);
 CREATE TABLE manager_conversation_reads(manager_id INTEGER,conversation_id INTEGER,last_read_message_id INTEGER,updated_at TEXT,PRIMARY KEY(manager_id,conversation_id));
-CREATE TABLE manager_prepared_replies(job_id CHAR(64) PRIMARY KEY,conversation_id INTEGER NOT NULL,manager_id INTEGER NOT NULL,project_key TEXT NOT NULL,context_revision CHAR(64) NOT NULL,instruction_revision CHAR(64) NOT NULL,latest_message_id INTEGER NOT NULL,status TEXT NOT NULL,proposal_json TEXT,proposal_sha256 CHAR(64),created_at TEXT NOT NULL,prepared_at TEXT,expires_at TEXT);
+CREATE TABLE manager_prepared_replies(job_id CHAR(64) PRIMARY KEY,conversation_id INTEGER NOT NULL,manager_id INTEGER NOT NULL,project_key TEXT NOT NULL,context_revision CHAR(64) NOT NULL,instruction_revision CHAR(64) NOT NULL,latest_message_id INTEGER NOT NULL,status TEXT NOT NULL,proposal_json TEXT,proposal_sha256 CHAR(64),created_at TEXT NOT NULL,prepared_at TEXT,expires_at TEXT,customer_input_revision CHAR(64));
 CREATE TABLE manager_assistant_decisions(manager_id INTEGER,conversation_id INTEGER,project_key TEXT,recommendation_revision TEXT,context_revision TEXT,instruction_revision TEXT,decision TEXT,created_at TEXT,updated_at TEXT,PRIMARY KEY(manager_id,conversation_id,recommendation_revision));
 CREATE TABLE lead_tasks(id INTEGER PRIMARY KEY,conversation_id INTEGER,title TEXT,due_at_utc TEXT,status TEXT,is_pinned INTEGER,assigned_manager_id INTEGER,created_by_manager_id INTEGER,completed_at_utc TEXT,reminder_attempted_at_utc TEXT,reminder_notified_at_utc TEXT,created_at TEXT,updated_at TEXT);
 INSERT INTO projects VALUES(1,'anytour','Synthetic project',1),(2,'other','Other project',1);
@@ -100,6 +100,7 @@ INSERT INTO lead_tasks VALUES(1,1,'Проверить варианты','2000-01
 INSERT INTO lead_tasks VALUES(2,1,'Проверить перелёт',NULL,'open',1,1,1,NULL,NULL,NULL,'2026-10-19 10:00:00','2026-10-19 10:00:00');
 INSERT INTO lead_tasks VALUES(3,1,'Уже сделано',NULL,'done',0,1,1,'2026-10-19 10:00:00',NULL,NULL,'2026-10-19 10:00:00','2026-10-19 10:00:00');
 ");
+    $pdo->prepare('UPDATE messages SET created_at=? WHERE id=2')->execute([gmdate('Y-m-d H:i:s',time()-60)]);
     $pdo->guard=true;
     return $pdo;
 }
@@ -269,3 +270,4 @@ try {
     fwrite(STDERR,($error instanceof RuntimeException && str_starts_with($error->getMessage(),'FAIL ')?$error->getMessage():'FAIL synthetic manager assistant fixture')."\n");
     exit(1);
 }
+
