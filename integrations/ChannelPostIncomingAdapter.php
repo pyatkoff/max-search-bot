@@ -98,7 +98,7 @@ final class ChannelPostIncomingAdapter
         if (count($media) > self::maxPhotoLimit() || count($attachments) > 12) $reason = 'attachment_limit';
         $channelId = self::channelId($message['recipient']['chat_id'] ?? null);
         $url = (string)($message['url'] ?? '');
-        if ($url !== '' && !self::maxPostUrlAllowed($url, $channelId)) $url = '';
+        if ($url !== '' && !self::maxPostUrlAllowed($url, $channelId, ($message['recipient']['chat_type'] ?? '') === 'channel')) $url = '';
         return [
             'text' => $body['text'] ?? '', 'format' => 'native', 'attachments' => $media,
             'markup' => $body['markup'] ?? [], 'keyboard' => $keyboard,
@@ -216,8 +216,15 @@ final class ChannelPostIncomingAdapter
         return $milliseconds ? (string)$value : (string)((int)$value * 1000);
     }
 
-    private static function maxPostUrlAllowed(string $url, string $channelId): bool
+    private static function maxPostUrlAllowed(string $url, string $channelId, bool $channelMessage): bool
     {
-        return $channelId !== '' && strlen($url) <= 300 && (bool)preg_match('/\Ahttps:\/\/max\.ru\/c\/' . preg_quote($channelId, '/') . '\/[A-Za-z0-9_-]{1,100}\z/', $url);
+        if ($channelId === '' || strlen($url) > 300) return false;
+        if (preg_match('/\Ahttps:\/\/max\.ru\/c\/' . preg_quote($channelId, '/') . '\/[A-Za-z0-9_-]{1,100}\z/D', $url)) return true;
+        // MAX also reports public-slug permalinks in the authenticated message
+        // envelope. Keep that exact URL as metadata, like Telegram's username;
+        // never infer a channel ID from it. Registry admission still uses only
+        // the message's exact recipient ID and the registered project/bot.
+        return $channelMessage && (bool)preg_match('/\Ahttps:\/\/max\.ru\/[A-Za-z][A-Za-z0-9_]{0,63}\/[A-Za-z0-9_-]{1,100}\z/D', $url);
     }
 }
+

@@ -183,6 +183,17 @@ $pdo->exec('DROP TRIGGER reject_post_event');
 postCheck('retry after rollback records one entry and one pointer event', $registry->recordEntry(100, $first, 'atomic-failure') !== null && (int)$pdo->query('SELECT COUNT(*) FROM post_entries')->fetchColumn() === $entryCount + 1);
 postCheck('administration list contains bounded safe configuration and state counts', count($registry->listChannels('anytour')) === 2 && !str_contains(json_encode($registry->listChannels('anytour')), 'PRIVATE') && $registry->listChannels('anex') === []);
 
+$publicChannel = $registry->channel('anytour', 'max', 'id9704048781_1_bot', '-80095447388179');
+$publicMessage = ['recipient'=>['chat_type'=>'channel','chat_id'=>-80095447388179], 'timestamp'=>1791972290000, 'url'=>'https://max.ru/fixture_channel/PublicPost', 'body'=>['mid'=>'public-provider-fixture','text'=>'Public channel fixture','attachments'=>[]]];
+$publicPublication = $registry->registerProviderObservation('anytour', 'id9704048781_1_bot', $publicChannel, $publicMessage, 1);
+postCheck('provider public permalink survives canonical registry snapshot', $publicPublication !== null && $publicPublication['snapshot']['post_url'] === $publicMessage['url']);
+$publicEntry = $registry->recordEntry(100, $publicPublication, 'public-provider-entry');
+postCheck('public permalink reaches immutable manager context through existing entry', $publicEntry !== null && $registry->managerContext(100, 'anytour')['current']['post_url'] === $publicMessage['url']);
+$publicWrongRecipient = $publicMessage; $publicWrongRecipient['recipient']['chat_id'] = -999;
+postCheck('public permalink does not bypass exact provider recipient admission', $registry->registerProviderObservation('anytour', 'id9704048781_1_bot', $publicChannel, $publicWrongRecipient, 1) === null);
+postCheck('public permalink token retains project and bot isolation', $registry->resolveToken('anex', 'max', 'id9704048781_1_bot', $publicPublication['start_payload']) === null && $registry->resolveToken('anytour', 'max', 'id9704048781_2_bot', $publicPublication['start_payload']) === null);
+
 $sql = (string)file_get_contents(dirname(__DIR__) . '/migrations/033_channel_post_context.sql');
 postCheck('production schema preserves binary token equality and persistent identity uniqueness', str_contains($sql, 'uq_post_publications_identity') && str_contains($sql, 'uq_post_publications_token') && str_contains($sql, 'uq_post_entries_event') && substr_count($sql, 'COLLATE ascii_bin') >= 10 && !preg_match('/^\s*(?:INSERT|UPDATE|DELETE)\b/m', preg_replace('/^--.*$/m', '', $sql)));
 echo 'OK ' . $passed . " channel post registry checks\n";
+
