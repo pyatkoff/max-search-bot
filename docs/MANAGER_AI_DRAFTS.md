@@ -232,3 +232,13 @@ without later outcomes or current selection-page contents. Generated results are
 reviewed against evidence separately from manually prepared reference replies.
 Do not publish plaintext examples, model inputs/outputs, private URLs or credentials
 in GitHub, Actions logs or artifacts.
+
+## Older-history presentation and client freshness
+
+The client retains fingerprints of messages captured when a proposal/check
+started. Prepending an already-existing older page does not invalidate that
+proposal or restart its request. New activity, changes/removal of captured
+messages, owner/account/auth/navigation changes still invalidate it. The
+canonical server revision is separately validated before insertion, including
+history or reference edits the client has not observed. This is not a
+latest-message-ID-only freshness contract or an additional cache/send owner.

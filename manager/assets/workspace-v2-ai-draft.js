@@ -10,7 +10,7 @@
   const conversation=()=>window.WorkspaceV2Conversation;
   const context=()=>conversation()?.captureReplyContext();
   const latestMessageId=()=>Array.isArray(S.detail?.messages)?S.detail.messages.reduce((latest,message)=>{const id=Number(message.id);return Number.isSafeInteger(id)&&id>latest?id:latest},0):0;
-  const messageState=()=>JSON.stringify(S.detail?.messages||[]);
+  const messageState=ids=>JSON.stringify((S.detail?.messages||[]).filter(message=>!ids||ids.has(String(message.id))));
   const validDraftId=value=>typeof value==='string'&&/^[a-f0-9]{32}$/.test(value);
   function canCompose(){
     const form=$('composer'),reply=$('replyText'),c=S.detail?.conversation,issue=$('conversationLifecycleStatus');
@@ -23,8 +23,8 @@
     return !!saved&&!!current&&Object.keys(current).every(key=>current[key]===saved[key]);
   }
   const ownerBinding=()=>JSON.stringify([S.detail?.conversation?.manager_id,S.detail?.conversation?.status,S.detail?.conversation?.project_key,S.detail?.conversation?.source_id,S.detail?.supervisor_read,S.detail?.owner_read,S.manager?.role]);
-  function snapshot(){return {context:context(),latest:latestMessageId(),messages:messageState(),owner:ownerBinding()}}
-  function currentSnapshot(saved){return canAnalyze()&&sameContext(saved?.context)&&saved.latest===latestMessageId()&&saved.messages===messageState()&&saved.owner===ownerBinding()}
+  function snapshot(){const ids=new Set((S.detail?.messages||[]).map(message=>String(message.id)));return {context:context(),latest:latestMessageId(),messageIds:ids,messages:messageState(ids),owner:ownerBinding()}}
+  function currentSnapshot(saved){return canAnalyze()&&sameContext(saved?.context)&&saved.latest===latestMessageId()&&saved.messages===messageState(saved.messageIds)&&saved.owner===ownerBinding()}
   function timeValue(value){const parsed=window.ManagerTime?.parse?.(value)||new Date(String(value||'').replace(' ','T')+(/(?:Z|[+-]\d{2}:?\d{2})$/.test(String(value||''))?'':'Z'));return Number.isNaN(parsed.getTime())?0:parsed.getTime()}
   function timeLabel(value){return window.ManagerTime?.format?window.ManagerTime.format(value)+' '+window.ManagerTime.label:''}
   function hideNotice(hidden){if(notice&&notice.hidden!==hidden)notice.hidden=hidden}

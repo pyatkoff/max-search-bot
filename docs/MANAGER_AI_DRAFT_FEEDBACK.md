@@ -106,3 +106,29 @@ added to instructions, company knowledge or training.
 The summary separately counts prepared proposals and linked prepared messages
 (unchanged or changed). Private samples label `prepared` versus `generated` and
 retain the proposed/current texts for review. Source job identities stay private.
+
+## Owner review of real applications
+
+`/manager2/ai-usage.php` (also linked from team Analytics for the existing owner
+role) reads the canonical draft/send provenance through `ManagerAiUsageService`.
+It pages20 valid applications in current owner projects, over7 or30 days; each
+read scans at most1000 candidate records in40-row batches and advances a bound
+keyset cursor across malformed or unavailable records. Scope and session are
+checked freshly; cursor access/filter/actor bindings expire after one hour.
+Test/internal-owner cases and unsupported/media provenance are excluded. A
+viewer or foreign project never gains access through a saved report link.
+
+The report shows the proposal, actual author's message and last tourist message
+before preparation, with explicit later-edit/unavailable/truncation labels. It
+never represents a changed current text as the original sent version. Original
+send equality remains distinct from later edits and from quality. The existing
+seven-day diagnostic counters and ten private samples keep their contract.
+
+Forward migration061 stores only `(manager_id,message_id,case_revision,
+reviewed_at)`. An explicit CSRF-protected command marks the exact comparison
+viewed; it does not acknowledge chat, assign clients, generate or send. Marks
+are private per owner and shared across that owner's devices. A later changed
+comparison reappears; a stale tab cannot mark its newer revision viewed. A lost
+response is checked by refreshing, without automatic mutation retry. Deleting
+the canonical message/account cascades its minimal review metadata. No new
+capture, learning queue, model work or scheduled report is introduced.

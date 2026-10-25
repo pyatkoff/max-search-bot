@@ -1,0 +1,46 @@
+name: Manager AI usage
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'services/ManagerAiUsageService.php'
+      - 'services/ManagerAiDraftFeedbackReport.php'
+      - 'services/ManagerSupervisorAccessService.php'
+      - 'manager/ai-usage-api.php'
+      - 'migrations/061_manager_ai_usage_reviews.sql'
+      - 'tests/run_manager_ai_usage_regression.php'
+      - 'tests/support/manager-ai-usage-fixture.php'
+      - '.github/workflows/manager-ai-usage.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  native-mysql:
+    name: AI usage review / native MySQL
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: ai-usage-fixture-only
+          MYSQL_DATABASE: manager_ai_usage_test
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -pai-usage-fixture-only"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo_mysql
+          coverage: none
+      - name: Verify current permissions, real-use provenance, paging and forward review migration
+        env:
+          MANAGER_AI_USAGE_MYSQL_DSN: mysql:host=127.0.0.1;port=3306;dbname=manager_ai_usage_test;charset=utf8mb4
+          MANAGER_AI_USAGE_MYSQL_USER: root
+          MANAGER_AI_USAGE_MYSQL_PASSWORD: ai-usage-fixture-only
+        run: php tests/run_manager_ai_usage_regression.php
