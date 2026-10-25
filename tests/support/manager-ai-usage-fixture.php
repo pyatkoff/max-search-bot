@@ -2,6 +2,7 @@
 declare(strict_types=1);
 if(PHP_SAPI!=='cli'&&!defined('MANAGER_AI_USAGE_HTTP_FIXTURE')){http_response_code(404);exit;}
 require_once dirname(__DIR__,2).'/services/ManagerAiUsageService.php';
+require_once dirname(__DIR__,2).'/services/ManagerAiDraftService.php';
 
 final class ManagerAiUsageFixture
 {
@@ -50,7 +51,8 @@ private static function seed(PDO $p,int $n,array $changes=[]): void
     $metadata=['project_key'=>$project,'ai_draft'=>['draft_id'=>$draft,'text_matches_proposal'=>$n%2===1,'sent_text_sha256'=>hash('sha256',$sent)]];
     $q=$p->prepare('INSERT INTO messages VALUES(?,?,?,?,?,?,?,?,?)');$q->execute([$question,$cid,'inbound','customer','', 'telegram','Question '.$n,null,'2026-10-25 09:59:00']);
     $q->execute([$message,$cid,'outbound','manager','7','telegram',htmlspecialchars($sent,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8'),json_encode($metadata),'2026-10-25 10:02:00']);
-    $q=$p->prepare('INSERT INTO manager_ai_drafts VALUES(?,?,?,?,?,?,?,?,?,?,?)');$q->execute([$draft,$cid,7,$project,str_repeat('a',64),str_repeat('b',64),$question,json_encode($proposal),'2026-10-25 10:00:00','2026-10-25 10:01:00',$n%3===0?str_repeat('c',64):null]);
+    $instruction=$n%2?hash('sha256',ManagerAiDraftService::instructions()):str_repeat('b',64);
+    $q=$p->prepare('INSERT INTO manager_ai_drafts VALUES(?,?,?,?,?,?,?,?,?,?,?)');$q->execute([$draft,$cid,7,$project,str_repeat('a',64),$instruction,$question,json_encode($proposal),'2026-10-25 10:00:00','2026-10-25 10:01:00',$n%3===0?str_repeat('c',64):null]);
 }
 
 }
