@@ -126,12 +126,12 @@ final class ManagerTourSelectionShareService
         $identity=ChannelPostRuntime::identity($platform);if (!$identity) return null;
         $version=(int)base_convert($m[2],36,10);$card=(int)base_convert($m[3],36,10);
         if (base_convert((string)$version,10,36)!==$m[2] || $card>=20) return null;
-        $q=ConversationDb::connection()->prepare('SELECT l.* FROM manager_tour_selection_links l JOIN conversations c ON c.id=l.conversation_id JOIN projects p ON p.project_key=c.project_key JOIN conversation_sources cs ON cs.id=c.source_id AND cs.is_active=1 WHERE l.token LIKE ? AND l.is_active=1 AND p.is_active=1 AND c.project_key=? LIMIT 2');
+        $q=ConversationDb::connection()->prepare('SELECT l.*,COALESCE(c.manager_id,l.updated_by_manager_id) AS contact_manager_id FROM manager_tour_selection_links l JOIN conversations c ON c.id=l.conversation_id JOIN projects p ON p.project_key=c.project_key JOIN conversation_sources cs ON cs.id=c.source_id AND cs.is_active=1 WHERE l.token LIKE ? AND l.is_active=1 AND p.is_active=1 AND c.project_key=? LIMIT 2');
         $q->execute([$m[1].'%',ProjectConfig::projectId()]);$links=$q->fetchAll(PDO::FETCH_ASSOC);
         if (count($links)!==1 || (int)$links[0]['version']!==$version) return null;
         $link=$links[0];$p=self::publication((int)$link['conversation_id'],$link['publication_id']);
         if (!$p || !isset($p['cards'][$card],$p['selection']['offers'][$card]) || !hash_equals(self::entryMac($identity,$link,$p,$card),$m[4])) return null;
-        return ['conversation_id'=>(int)$link['conversation_id'],'publication_id'=>$link['publication_id'],'version'=>$version,'card'=>$card,'public_offer'=>self::publicOffer($link['token'],$card),'token'=>$link['token']];
+        return ['conversation_id'=>(int)$link['conversation_id'],'contact_manager_id'=>(int)$link['contact_manager_id'],'publication_id'=>$link['publication_id'],'version'=>$version,'card'=>$card,'public_offer'=>self::publicOffer($link['token'],$card),'token'=>$link['token']];
     }
 
     private static function publicOffer(string $token,int $card): array

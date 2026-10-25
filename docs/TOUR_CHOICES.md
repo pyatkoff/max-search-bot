@@ -95,6 +95,27 @@ the initial canonical greeting. Rejection and already-owned inquiry acknowledgem
 also save their once intent before sending and never repeat an UNKNOWN outcome.
 An open/page visit is not an inquiry, a like or a sale.
 
+### Shared selection referrals keep the responsible manager
+
+Owner clarification25Oct: a different native visitor follows a forwarded public
+selection into their own dialogue with the same responsible selection manager.
+The private bot-entry context resolves the source conversation's current manager
+(or the explicit publisher when unassigned); no manager ID is accepted from the
+page or exposed by its public projection. The verified visitor's own Recorder
+identity, exact public offer and immutable version remain separate from the
+original client, contact and transcript.
+
+`ManagerConversationService::assignSelectionReferralInTransaction` is the sole
+assignment owner for this narrow entry path. Account/source/target locks and fresh
+project/source visibility precede the assignment; assignment history and its
+system event commit in the same transaction as the inquiry and Inbox action.
+A dedicated referral does not enable a shift or change ordinary routing policy.
+Repeat entry reuses the dialogue, inquiry and assignment. An existing foreign
+owner is preserved; inactive/revoked/ineligible manager access leaves the inquiry
+durable with an explicit staff-facing assignment notice for canonical handoff,
+rather than claiming the same manager was assigned. Search3 entries retain their
+existing generic handoff path. No additional sender, store or schema is added.
+
 
 ## Selection activity projection
 
