@@ -84,7 +84,14 @@ async function handle(m,sender){
  }
  if(role!=='popup')return{ok:false};
  if(m.type==='status'){const s=await state();return{ok:true,target:s.target||null,items:s.items}}
- if(m.type==='open_manager'){await chrome.tabs.create({url:'https://app.anytoour.ru/manager2/'});return{ok:true}}
+ if(m.type==='open_manager'){
+ const s=await state();let target=null;
+ if(Object.hasOwn(m,'operation_id')){const item=s.items.find(x=>x.operation_id===m.operation_id);if(!item||!same(m.target,item.target))return{ok:false,error:'connection_changed'};target=item.target}
+ else if(Object.hasOwn(m,'target')){if(!same(m.target,s.target))return{ok:false,error:'connection_changed'};target=s.target}
+ if(target&&(!Number.isSafeInteger(target.actor)||target.actor<=0||!Number.isSafeInteger(target.conversation_id)||target.conversation_id<=0))return{ok:false};
+ const url=bridgeOrigin+'/manager2/'+(target?'?selection='+target.conversation_id+'&collector_actor='+target.actor+'#conversation='+target.conversation_id:'');
+ await chrome.tabs.create({url});return{ok:true};
+ }
  if(m.type==='edit_draft')return exclusive(async()=>{
  const s=await state(),item=s.items.find(x=>x.operation_id===m.operation_id),d=m.draft;
  if(!item||item.state!=='editing'||!same(item.target,s.target)||!d||typeof d!=='object'||Array.isArray(d)||Object.keys(d).sort().join(',')!=='action,amount,basis,price_basis,round,value'||typeof d.amount!=='string'||d.amount.length>32||typeof d.value!=='string'||d.value.length>32||!['discount','markup'].includes(d.action)||!['percent','amount'].includes(d.basis)||!['none','unit','ten','hundred','thousand'].includes(d.round)||typeof d.price_basis!=='boolean')return{ok:false};

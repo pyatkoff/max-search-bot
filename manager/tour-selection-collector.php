@@ -10,7 +10,7 @@ $config=['actor'=>(int)$manager['id'],'csrf'=>ManagerHttp::csrf(true),'conversat
 session_write_close();
 $assetVersion=static fn(string $file):string=>htmlspecialchars((string)filemtime(__DIR__.'/assets/'.$file),ENT_QUOTES,'UTF-8');
 ?><!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AnyTour — сборщик предложений</title><link rel="stylesheet" href="assets/tour-selection-collector.css?v=<?=$assetVersion('tour-selection-collector.css')?>"></head><body>
-<main class="collector"><a href="/manager2/">← В Manager2</a><p class="kicker">Конструктор подборок</p><h1>Сборщик предложений</h1>
+<main class="collector"><a id="collectorOpenSelection" href="/manager2/">← В Manager2</a><p class="kicker">Конструктор подборок</p><h1>Сборщик предложений</h1>
 <p>Предложения из браузера попадут только в выбранную здесь подборку. Отправка туристу выполняется отдельно в Manager2.</p>
 <section id="collectorTarget" aria-label="Клиент и поездка"><h2>Загружаем подборку…</h2></section>
 <label class="consent"><input id="collectorConfirm" type="checkbox"> Подтверждаю: это подборка текущей поездки клиента.</label>

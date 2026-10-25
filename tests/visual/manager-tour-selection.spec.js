@@ -32,7 +32,8 @@ async function pricePopupFixture(page,options={}){
    else if(m.type==='save_edit'&&item.state==='editing'){
     item.manager_amount=m.manager_amount;item.needs_edit_confirmation=false;item.state=options.result||'saved';if(item.state==='saved')target.count=1;
     if(lost){lost=false;return route.abort('failed')}
-   }else reply={ok:false};
+   }else if(m.type==='open_manager')reply={ok:options.openFailure!==true};
+   else reply={ok:false};
    return route.fulfill({contentType:'application/json',body:JSON.stringify(reply)});
   }
   if(!['popup.html','popup.css','popup.js','price-adjustment.js'].includes(file))return route.abort();
@@ -105,11 +106,43 @@ async function fixture(page,options={}){
     if(fail==='hold'){fail='';await new Promise(resolve=>held=resolve)}
     return reply({ok:true,saved_version:receipts.get(d.operation_id).version,selection:snapshot(d.conversation_id)});
   });
+  if(options.deniedEntry)await page.route('**/manager/api.php',route=>{const d=route.request().postDataJSON();return d.action==='detail'&&Number(d.conversation_id)===11?route.fulfill({status:403,contentType:'application/json',body:'{"ok":false,"error":"forbidden"}'}):route.fallback()});
+  if(options.entry)await page.goto('http://127.0.0.1:4173/manager2/'+options.entry);
   await expect.poll(()=>page.evaluate(()=>!!WorkspaceV2.S.workspaceBound&&!WorkspaceV2.S.booting)).toBe(true);
-  await page.locator('#inboxList [data-conversation-id="11"]').click();await expect(page.locator('#tourSelectionOpen')).toBeAttached();
+  if(!options.entry){await page.locator('#inboxList [data-conversation-id="11"]').click();await expect(page.locator('#tourSelectionOpen')).toBeAttached()}
   return {...base,calls,drafts,receipts,snapshot,creations:()=>creations,publication:()=>publication,heldPhotos:()=>heldPhotos.length,holdPhotos:()=>{options.holdPhotos=true},releasePhotos:()=>{options.holdPhotos=false;heldPhotos.splice(0).forEach(resolve=>resolve())},release:()=>held?.(),setFail:x=>fail=x,setTripMode:x=>options.tripMode=x};
 }
 async function open(page){if(!await page.locator('#tourSelectionOpen').isVisible())await page.locator('#m2ConversationMenuToggle').click();await page.locator('#tourSelectionOpen').click();await expect(page.locator('#tourSelectionDialog')).toBeVisible();await expect(page.locator('#tsStatus')).toContainText(/загружен|Просмотр|Восстановлены/)}
+
+for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420}])test('collector opens the exact selection after authorized conversation navigation '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
+ await page.setViewportSize(viewport);const s=await fixture(page,{draft:completeDraft(),entry:'?selection=11&collector_actor=7#conversation=11'});
+ await expect(page.locator('#tourSelectionDialog')).toBeVisible();await expect(page.locator('#ts-hotel')).toHaveValue('Синтетический отель у моря');await expect(page.locator('#ts-amount')).toHaveValue('240000');expect(s.calls.map(x=>x.action)).toEqual(['get']);
+ expect(await page.evaluate(()=>WorkspaceV2.S.current)).toBe(11);expect(new URL(page.url()).searchParams.has('selection')).toBe(false);expect(new URL(page.url()).searchParams.has('collector_actor')).toBe(false);await expect(page.locator('#tsClose')).toBeInViewport();
+ fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`collector-navigation-${browserName}-${viewport.width}x${viewport.height}.png`)});
+ await page.locator('#tsClose').click();await page.evaluate(()=>WorkspaceV2TourSelection.sync(WorkspaceV2.S.detail.conversation));await expect(page.locator('#tourSelectionDialog')).not.toBeVisible();expect(s.calls.map(x=>x.action)).toEqual(['get']);clean(s);
+});
+
+for(const entry of ['?selection=11&collector_actor=8#conversation=11','?selection=11&collector_actor=7#conversation=12','?selection=11&selection=12&collector_actor=7#conversation=11','?selection=11&collector_actor=7','?selection=011&collector_actor=7#conversation=11'])test('collector navigation refuses an unmatched selection hint '+entry,async({page})=>{
+ const s=await fixture(page,{draft:completeDraft(),entry});await expect(page.locator('#tourSelectionDialog')).not.toBeVisible();expect(s.calls).toEqual([]);clean(s);
+});
+
+test('collector direct selection never opens after a denied conversation read',async({page})=>{
+ const s=await fixture(page,{draft:completeDraft(),entry:'?selection=11&collector_actor=7#conversation=11',deniedEntry:true});await expect(page.locator('#tourSelectionDialog')).not.toBeVisible();expect(s.calls).toEqual([]);expect(await page.evaluate(()=>WorkspaceV2.S.current)).toBe(0);clean(s);
+});
+
+test('collector selection link leaves the original tab reply and selected file intact',async({page})=>{
+ const s=await fixture(page,{draft:completeDraft()});await page.locator('#replyText').fill('Мой ответ остаётся в исходной вкладке');await page.locator('#replyFile').setInputFiles({name:'keep.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic, never sent')});const other=await page.context().newPage();
+ const next=await fixture(other,{draft:completeDraft(),entry:'?selection=11&collector_actor=7#conversation=11'});await expect(other.locator('#tourSelectionDialog')).toBeVisible();await expect(page.locator('#replyText')).toHaveValue('Мой ответ остаётся в исходной вкладке');await expect(page.locator('#mediaSelection')).toContainText('keep.txt');expect(await page.evaluate(()=>WorkspaceV2Media.hasFile())).toBe(true);expect(s.calls).toEqual([]);expect(next.calls.map(x=>x.action)).toEqual(['get']);clean(s);clean(next);await other.close();
+});
+
+test('collector popup opens current and saved-row selections with captured targets',async({page})=>{
+ const s=await pricePopupFixture(page,{state:'saved'});await page.getByRole('button',{name:'Открыть подборку',exact:true}).click();expect(s.commands.find(x=>x.type==='open_manager')).toEqual({type:'open_manager',target:s.state.target});
+ s.state.target={...s.state.target,conversation_id:12,client:'Другой синтетический клиент'};await page.reload();await page.getByRole('button',{name:'Открыть эту подборку',exact:true}).click();expect(s.commands.filter(x=>x.type==='open_manager').at(-1)).toEqual({type:'open_manager',target:s.state.items[0].target,operation_id:s.operation});expect(s.commands.some(x=>['confirm','save_edit','retry','variant'].includes(x.type))).toBe(false);
+});
+
+test('collector stale popup navigation explains the changed target without an import',async({page})=>{
+ const s=await pricePopupFixture(page,{state:'saved',openFailure:true});await page.getByRole('button',{name:'Открыть подборку',exact:true}).click();await expect(page.locator('#notice')).toContainText('Клиент или очередь изменились');expect(s.commands.filter(x=>x.type==='open_manager')).toHaveLength(1);expect(s.commands.some(x=>['confirm','save_edit','retry','variant'].includes(x.type))).toBe(false);
+});
 
 for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420}])for(const mode of ['selected','deferred'])test(`Manager2 Search3 native inquiry ${mode} preserves exact conditions and draft ${viewport.width}x${viewport.height}`,async({page,browserName})=>{
   await page.setViewportSize(viewport);const s=await fixture(page);
@@ -436,6 +469,7 @@ for(const source of [{name:'funsun',fixture:sourceFixture,script:'content.js',am
 
 for(const width of [390,430,768,1440])test('collector connection preserves exact destination at '+width,async({page,browserName})=>{
  await page.setViewportSize({width,height:900});const s=await bridgeFixture(page);await expect(page.locator('#collectorTarget')).toContainText('Синтетическая Анна');await s.hello();await expect(page.locator('#collectorStatus')).toContainText('Проверьте клиента');await expect(page.locator('#collectorConnect')).toBeDisabled();
+ await expect(page.locator('#collectorOpenSelection')).toHaveAttribute('href','/manager2/?selection=11&collector_actor=7#conversation=11');
  await page.locator('#collectorConfirm').check();await page.locator('#collectorConnect').click();await expect(page.locator('#collectorStatus')).toContainText('Подключено');expect(s.calls.filter(x=>x.action==='collector_connect')).toHaveLength(1);
  const before=s.calls.length;await s.command({action:'import',actor:8});await s.command({action:'import',conversation_id:12});expect(s.calls).toHaveLength(before);
  await s.command({action:'operation'});await expect.poll(()=>s.events.some(e=>e.type==='result'&&e.result.found===false)).toBe(true);expect(s.calls.at(-1).action).toBe('collector_operation');
@@ -444,6 +478,11 @@ for(const width of [390,430,768,1440])test('collector connection preserves exact
  await page.locator('#collectorRevoke').click();await expect(page.locator('#collectorStatus')).toContainText('отозван');await expect(page.locator('#collectorRevoke')).toBeDisabled();expect(s.errors).toEqual([]);
  fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-collector-${browserName}-${width}.png`)});
  await page.setViewportSize({width,height:420});await page.locator('#collectorConfirm').scrollIntoViewIfNeeded();await expect(page.locator('#collectorConfirm')).toBeInViewport();
+});
+
+test('collector return link clears stale identity after access is lost',async({page})=>{
+ const s=await bridgeFixture(page);await s.hello();await expect(page.locator('#collectorOpenSelection')).toHaveText('← Открыть эту подборку');
+ await page.route('**/manager/tour-selections-api.php',route=>route.fulfill({status:403,contentType:'application/json',body:'{"ok":false,"error":"forbidden"}'}));await page.locator('#collectorRefresh').click();await expect(page.locator('#collectorStatus')).toContainText('нет права');await expect(page.locator('#collectorOpenSelection')).toHaveAttribute('href','/manager2/');await expect(page.locator('#collectorTarget')).toBeEmpty();expect(s.errors).toEqual([]);
 });
 
 for(const width of [390,430,768,1440])test('collector imported source survives manual edits in responsive editor at '+width,async({page,browserName})=>{
@@ -666,6 +705,6 @@ test('FUN&SUN changed price during settled capture never enqueues',async({page})
 test('collector popup requests a readable width before native viewport autosizing',async({page,browserName})=>{
  await page.setViewportSize({width:40,height:600});const s=await pricePopupFixture(page);await expect(page.locator('#target')).toContainText('Синтетическая Анна');
  const geometry=await page.evaluate(()=>({root:document.documentElement.getBoundingClientRect().width,body:document.body.getBoundingClientRect().width,min:getComputedStyle(document.documentElement).minWidth}));expect(geometry.root).toBe(370);expect(geometry.body).toBe(370);expect(geometry.min).toBe('370px');
- await page.setViewportSize({width:390,height:600});await expect(page.getByRole('button',{name:'Открыть Manager2',exact:true})).toBeInViewport();await page.getByLabel('Итоговая цена, RUB',{exact:true}).scrollIntoViewIfNeeded();await expect(page.getByLabel('Итоговая цена, RUB',{exact:true})).toBeInViewport();await page.evaluate(()=>scrollTo(0,0));expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);expect(s.commands.every(x=>x.type==='status')).toBe(true);
+ await page.setViewportSize({width:390,height:600});await expect(page.getByRole('button',{name:'Открыть подборку',exact:true})).toBeInViewport();await page.getByLabel('Итоговая цена, RUB',{exact:true}).scrollIntoViewIfNeeded();await expect(page.getByLabel('Итоговая цена, RUB',{exact:true})).toBeInViewport();await page.evaluate(()=>scrollTo(0,0));expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);expect(s.commands.every(x=>x.type==='status')).toBe(true);
  fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-popup-width-${browserName}.png`)});
 });

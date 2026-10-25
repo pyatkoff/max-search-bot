@@ -436,3 +436,21 @@ The popup declares its370px root/body minimum before Chrome's native viewport
 autosizing. A body-only width capped to100vw could collapse to the initial narrow
 viewport. Browser fixtures exercise that40px bootstrap then readable390px content
 and scrolling; actual installed owner popup geometry is a separate acceptance.
+
+## Collector return to the exact selection (0.5.3)
+
+The popup opens the displayed client's selection directly instead of the generic
+Inbox. A click captures the active target; a changed client/connection refuses
+that stale navigation. Each saved/review row can instead open its original
+selection, even after the active collector changes. The bridge return link uses
+the same path and clears its displayed identity/link after access loss.
+
+The URL contains only the conversation and expected manager IDs, never a session,
+connection capability or customer name. Existing canonical conversation navigation
+performs its normal authentication/access read first. The selection module consumes
+the one-time matching hint after that read, verifies the expected account and current
+conversation generation, then loads the ordinary draft/recovery envelope. A denied
+read, another account, mismatched target or newer navigation cannot open the editor.
+The hint is removed before opening; refresh/close do not reopen it. No auth, shared
+navigation, selection persistence, publication or sending owner is duplicated.
+Opening occurs in a new tab, leaving the original reply and selected files intact.

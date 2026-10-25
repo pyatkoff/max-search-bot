@@ -1,6 +1,10 @@
 (function(){
 'use strict';
 const W=window.WorkspaceV2,{S,$,esc}=W,endpoint='tour-selections-api.php';
+// A navigation hint only: the canonical workspace opens/authorizes the exact
+// conversation first. No selection write or send is implied by this URL.
+let collectorIntent=(()=>{const u=new URL(location.href),value=u.searchParams.get('selection'),owner=u.searchParams.get('collector_actor');if(u.searchParams.getAll('selection').length!==1||u.searchParams.getAll('collector_actor').length!==1||!/^\d+$/.test(value||'')||!/^\d+$/.test(owner||''))return null;const conversation=Number(value),manager=Number(owner);return Number.isSafeInteger(conversation)&&conversation>0&&String(conversation)===value&&Number.isSafeInteger(manager)&&manager>0&&String(manager)===owner&&u.hash==='#conversation='+value?{conversation,manager}:null})();
+function clearCollectorIntent(){collectorIntent=null;const u=new URL(location.href);u.searchParams.delete('selection');u.searchParams.delete('collector_actor');history.replaceState(history.state,'',u.pathname+u.search+u.hash)}
 let dialog=null,context=null,epoch=0,version=0,draft=null,selected='',canEdit=false,dirty=false,busy=false,loading=false,pending=null,conflict=null,timer=0,returnFocus=null,rawAges={};
 const sessions=new Map();
 let comparison=null,tripPanel=null;
@@ -38,7 +42,7 @@ async function request(action,data={}){
 }
 function close(){tripPanel=null;clearTimeout(timer);timer=0;stash();if(dialog?.open)dialog.close()}
 function suspend(){tripPanel=null;stash();clearTimeout(timer);timer=0;epoch++;context=null;draft=null;pending=null;conflict=null;comparison=null;dirty=false;busy=false;loading=false;canEdit=false;publication=null;preview=false;sending=false;sharing=false;if(dialog?.open)dialog.close();$('tourSelectionOpen')?.remove()}
-function activate(){if(context&&!current())suspend()}
+function activate(){if(context&&!current())suspend();if(collectorIntent&&actor()&&collectorIntent.manager!==actor())clearCollectorIntent()}
 function sync(c){
   if(context&&!current())suspend();
   // Keep the narrow client-name row available to the existing client-card action.
@@ -47,6 +51,7 @@ function sync(c){
   const root=mobile?document.querySelector('.m2ConversationMenu>div'):document.querySelector('.conversationTitleRow');if(!root)return;
   let button=$('tourSelectionOpen');
   if(!actor()||Number(c?.id)!==Number(S.current)){button?.remove();return}
+  if(collectorIntent){const intent=collectorIntent,target=capture(c);clearCollectorIntent();if(intent.manager===target.actor&&intent.conversation===target.conversation)queueMicrotask(()=>{if(current(target))void open(c)})}
   if(!button){button=document.createElement('button');button.id='tourSelectionOpen';button.type='button';button.className='tsOpen';button.textContent='Подборка';button.setAttribute('aria-haspopup','dialog');button.setAttribute('aria-controls','tourSelectionDialog');root.appendChild(button)}
   if(button.parentElement!==root)root.appendChild(button);
   button.onclick=()=>{const menu=button.closest('details');if(menu)menu.open=false;void open(c)};
