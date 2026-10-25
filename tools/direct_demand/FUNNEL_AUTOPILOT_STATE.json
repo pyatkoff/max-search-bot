@@ -1,6 +1,6 @@
 {
   "schema": "anytour.funnel.autopilot_state.v1",
-  "updated_at_utc": "2026-10-25T10:35:32.682Z",
+  "updated_at_utc": "2026-10-25T10:46:20.863Z",
   "owner": "direct-demand-funnel",
   "automation": {
     "id": "6ada8f0084888191b12c6619c12fb35c",
@@ -1032,12 +1032,13 @@
     "r3_P44_save": "DONE_PREVIEW23_COMPANION23_EXPECTED22_GUARDED_SAVES",
     "r3_P44_same_task_prompt": "DONE_PROMPT_ONLY_EXACT_READBACK_SCHEDULE_ENABLED_MODELS_BUDGETS_UNCHANGED",
     "r3_P45_Alma_revision": "DONE_ONE_REVISED_BODY_COVER_CONTEXT_UNCHOSEN_CATEGORY",
-    "r3_P45_save": "DONE_PREVIEW24_COMPANION24_EXPECTED23_GUARDED_SAVES"
+    "r3_P45_save": "DONE_PREVIEW24_COMPANION24_EXPECTED23_GUARDED_SAVES",
+    "r3_Alma_identity_readback101": "DONE_FOCUSED_READONLY_RESEARCH_BINDING_UNRESOLVED_NO_NATIVE_ID"
   },
   "next_steps": [
     "P45 DONE: one Alma revision688UTF16, one cover using2original exact-suite photos,12saved clicked forms read and canonical92 reused readonly. General hotel request no longer assigns suite interest; exact70m2 suite is example only. Local390/1440 preview and cover inspected, not real bot proof.",
-    "S2 BLOCKED: consume terminal channel receipt6395635957 (registered post_channels9/provider-80492244209683/config_version1, three foundation posts) without replay. Runtime-owner dependency: review reported public-slug URL validation/snapshot.post_url gap using existing canonical adapter/registry, then provide exact Alma hotel/post/issued entry/finalURL and specific native action/test receipt. No traffic runtime claim or foundation permission expansion.",
-    "Next pass first read current #55 continuation pointer, fresh #1122 receipts and own checkpoint for THIS dependency; P45 handoff6396569344 delivered/read back. Do not duplicate it or repeat P45 content/unchanged capability probes. If no new information/authorization, quiet skip; no new hotel/seasonal/cover growth to replace gate2.",
+    "S2 BLOCKED: registered channel9/provider-80492244209683 is confirmed. Current common archive101 focused Alma row365 still explicitly unresolved, not a live-catalogue absence claim. Same handoff6396569344 refined: exact typed accepted hotel catalogue readback plus reported public-slug adapter resolution, then exact post/entry/finalURL and specific action/test receipt. No runtime/MATCH claim, publication permission or catalogue ID inferred.",
+    "Read current #55→#1122 pointer/receipts for this same S2 handoff. Reuse Alma101 saved identity readback; do not repeat unchanged source/capability/preflight/Direct/native tests. No new content growth while blocked. Interactive continuation remains same packet; active_operation=null after release.",
     "Actual live ad creative/landing remains unavailable (recorded capability gap), not proof of mismatch. Own ads352/16,last7 54/1 do not prove suite interest, all-commercial clicks or conversion. Canonical factual source92 unmodified and all earlier holds retained.",
     "Five drafts remain, not six. Four other current feed rows unchanged; Alma row same key/inactive,IDs/URLs null. Gate3 paid launch still needs separate budget/action/channel/duration/sample/stop receipts; editor/business/real-path acceptance distinct.",
     "Same P44 plan and task retained; no schedule/enabled/models/budgets/runtime/foreign changes or repeated fullCI/Direct/native baselines."
@@ -9260,5 +9261,29 @@
       "next_action": "Use an explicitly designated canonical coordination continuation once available; do not create another product queue or edit foreign coordination paths. Do not claim this handoff delivered.",
       "no_external_Alma_or_paid_action": true
     }
-  ]
+  ],
+  "Alma_identity_dependency_readback": {
+    "state": "SAVED_CANONICAL_RESEARCH_BINDING_STILL_UNRESOLVED",
+    "observed_at_utc": "2026-10-25T10:46:20.863Z",
+    "source_claim": 6396640918,
+    "source_library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
+    "source_version": 101,
+    "source_read_only": true,
+    "source_member": "structure/delivery-preflight/cohort-preflight.json",
+    "source_pointer": "/rows/365",
+    "source_member_sha256": "bcc5fd5f171ae29e90377d88b787e94ae25c1991a11b4cf8e5c6c177864ec6bb",
+    "current_knowledge_member": "integration-tr-20261025/working-knowledge-index.json",
+    "current_knowledge_member_sha256": "daa661fc2b7b2c7d68b7e8c8abadd07cf21b3ce18cf25a878d8ea1c2f2f7d281",
+    "research_key": "top500_76352132cfdfb031",
+    "research_key_not_runtime_id": true,
+    "catalogue_target_id": null,
+    "identity_verified": false,
+    "result": "Two saved binding records explicitly unresolved; no accepted typed bridge in this Alma preflight row. This does not assert absence of Alma in current live catalogue.",
+    "P45_suite_claim_unchanged": true,
+    "P45_body_cover_feed_preview_unchanged": true,
+    "identity_handoff": "https://github.com/pyatkoff/max-search-bot/issues/1122#issuecomment-6396569344",
+    "live_catalogue_lookup_performed": false,
+    "live_catalogue_capability_probe_retried": false,
+    "next_action": "Existing catalogue/integration owner supplies exact typed accepted catalogue readback for Alma; same S2 adapter/destination/action dependencies remain. Traffic does not accept MATCH edges or mutate catalogue."
+  }
 }
