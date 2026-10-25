@@ -404,6 +404,9 @@ function preparedReplyLegacyInputCoverage(): void
         'different_context'=>"UPDATE manager_prepared_replies SET context_revision='".str_repeat('a',64)."'",
         'different_instruction'=>"UPDATE manager_prepared_replies SET instruction_revision='".str_repeat('b',64)."'",
         'different_latest'=>"UPDATE manager_prepared_replies SET latest_message_id=1",
+        'missing_completion_time'=>"UPDATE manager_prepared_replies SET prepared_at=NULL",
+        'completion_before_creation'=>"UPDATE manager_prepared_replies SET prepared_at='2000-01-01 00:00:00'",
+        'inconsistent_preview_expiry'=>"UPDATE manager_prepared_replies SET expires_at='2020-01-01 00:00:00'",
     ] as $case=>$sql){
         [$pdo,$snapshot,$job]=$legacy();$pdo->mutate($sql);ManagerPreparedReplyService::collectAndEnqueue([1]);
         $q=$pdo->prepare('SELECT customer_input_revision FROM manager_prepared_replies WHERE job_id=?');$q->execute([$job]);
@@ -424,6 +427,9 @@ function preparedReplyLegacyInputCoverage(): void
         'concurrent_proposal'=>"UPDATE manager_prepared_replies SET proposal_json='{}',proposal_sha256='".hash('sha256','{}')."'",
         'concurrent_expiry'=>"UPDATE manager_prepared_replies SET expires_at='2000-01-01 00:00:00'",
         'concurrent_hint'=>"UPDATE manager_prepared_replies SET customer_input_revision='".str_repeat('c',64)."'",
+        'concurrent_created_at'=>"UPDATE manager_prepared_replies SET created_at='2000-01-01 00:00:00'",
+        'concurrent_prepared_at'=>"UPDATE manager_prepared_replies SET prepared_at='2000-01-01 00:00:00'",
+        'concurrent_row_owner'=>'UPDATE manager_prepared_replies SET manager_id=2',
     ] as $case=>$sql){
         [$pdo,$snapshot,$job]=$legacy();$expected=null;
         $pdo->beforeInputAnnotation=static function(PreparedReplyPdo $pdo)use($sql,&$expected):void{$pdo->mutate($sql);$expected=$pdo->query('SELECT * FROM manager_prepared_replies')->fetch();};
