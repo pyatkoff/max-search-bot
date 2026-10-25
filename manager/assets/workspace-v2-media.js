@@ -15,16 +15,19 @@ function preserveDraft(id=state.conversationId){save(files(),id)}
 function restoreDraft(id=state.conversationId){if(input())input().value='';state.restored=attachmentDrafts.get(draftKey(id))||[];state.notice='';render()}
 function resetDrafts(){attachmentDrafts.forEach(revoke);attachmentDrafts.clear();captionSent.clear();state.restored=[];if(input())input().value='';state.notice='';render()}
 function clear(){revoke(files());save([]);if(input())input().value='';state.notice='';render()}
-function render(){
+function render(noticeFirst=false){
  const rows=files(),box=selection();if(!box)return;box.setAttribute?.('data-sending',String(state.busy));
  if(!rows.length&&!state.notice){box.textContent='';box.classList.add('hidden');return}
- box.innerHTML=rows.map((row,index)=>`<div class="mediaSelectedItem"><span class="mediaPreview"></span><span class="mediaFileInfo"><span class="mediaFileName"></span><span class="mediaFileSize"></span></span><button class="mediaRemove" type="button" data-index="${index}" aria-label="Убрать вложение ${index+1}">×</button></div>`).join('')+'<div class="mediaSelectionHint" role="status"></div>';
+ const hint='<div class="mediaSelectionHint" role="status"></div>';
+ box.innerHTML=(noticeFirst?hint:'')+rows.map((row,index)=>`<div class="mediaSelectedItem"><span class="mediaPreview"></span><span class="mediaFileInfo"><span class="mediaFileName"></span><span class="mediaFileSize"></span></span><button class="mediaRemove" type="button" data-index="${index}" aria-label="Убрать вложение ${index+1}">×</button></div>`).join('')+(noticeFirst?'':hint);
  // querySelector fallback keeps the small non-browser context harness supported.
  const items=box.querySelectorAll?Array.from(box.querySelectorAll('.mediaSelectedItem')):rows.map(()=>box);
  items.forEach((item,index)=>{const row=rows[index],f=row.file;item.querySelector('.mediaFileName').textContent=f.name||'Скриншот';item.querySelector('.mediaFileSize').textContent=row.status==='unknown'?'Исход неизвестен — повтор заблокирован':state.busy&&state.sendingRow===row?'Отправляем '+state.progress:Number(f.size||0)<1024*1024?`${(Number(f.size||0)/1024).toFixed(1)} КБ`:`${(Number(f.size||0)/1024/1024).toFixed(2)} МБ`;
- const remove=item.querySelector('.mediaRemove');remove.disabled=state.busy||row.status==='unknown';remove.onclick=()=>{
-  if(state.busy||row.status==='unknown')return;
-  const focused=document.activeElement===remove,current=files();revoke([current[index]]);current.splice(index,1);save(current);state.notice='';render();
+ const remove=item.querySelector('.mediaRemove');remove.disabled=state.busy;remove.title=row.status==='unknown'?'Убрать только из черновика. Файл и подпись могли отправиться.':'';remove.onclick=()=>{
+  if(state.busy)return;
+  const focused=document.activeElement===remove,current=files(),uncertain=current[index]?.status==='unknown';revoke([current[index]]);current.splice(index,1);save(current);
+  // Removing a local row neither resolves delivery nor clears uncertainFiles.
+  state.notice=uncertain?'Файл убран только из черновика. Файл и подпись могли отправиться; повтор файла заблокирован.':'';render(uncertain);
   if(focused){
    const buttons=Array.from(selection()?.querySelectorAll?.('.mediaRemove')||[]);
    const next=buttons.slice(index).find(button=>!button.disabled)||buttons.slice(0,index).reverse().find(button=>!button.disabled)||$('replyText');
