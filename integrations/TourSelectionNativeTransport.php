@@ -85,7 +85,15 @@ final class TourSelectionNativeTransport
         $attachments=$message['body']['attachments']??null;$markup=$message['body']['markup']??null;
         if (!is_array($attachments) || count($attachments)!==$photoCount+1 || !is_array($markup) || count($markup)!==2) return false;
         foreach (range(0,$photoCount-1) as $i) if (($attachments[$i]['type']??'')!=='image' || empty($attachments[$i]['payload'])) return false;
-        foreach ($card['max_markup'] as $span) if (!in_array($span,$markup,true)) return false;
+        // JSON object member order is not significant; keep exact typed span values.
+        $expected=$card['max_markup'];
+        foreach ($markup as $span) {
+            if (!is_array($span) || count($span)!==3) return false;
+            $key=array_search(['type'=>$span['type']??null,'from'=>$span['from']??null,'length'=>$span['length']??null],$expected,true);
+            if ($key===false) return false;
+            unset($expected[$key]);
+        }
+        if ($expected!==[]) return false;
         return $attachments[$photoCount]==$card['max']['attachments'][0];
     }
 

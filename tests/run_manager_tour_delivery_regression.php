@@ -35,13 +35,41 @@ deliveryCheck('unknown creation can never be replayed',ManagerTourSelectionDeliv
 $pdo->exec('DELETE FROM manager_projects WHERE manager_id=7');
 deliveryCheck('revoked visibility also denies history and images',ManagerTourSelectionDeliveryService::history(7,1)['error']==='not_found'&&ManagerTourSelectionDeliveryService::photo(7,1,$id,0,0)===null);
 
-$pdo=deliveryDb();deliverySave(deliveryDraft(),0,2);$max=ManagerTourSelectionDeliveryService::prepare(7,2,1);$pub=$max['publication']['id'];
-$q=$pdo->prepare('SELECT callback_data FROM manager_tour_selection_cards WHERE publication_id=?');$q->execute([$pub]);$cb=$q->fetchColumn();
-$offer=ManagerTourSelectionPublicationDraft::build(deliveryDraft())['offers'][0];$state=['calls'=>[],'creates'=>0,'readback'=>false,'card'=>TourOfferCardRenderer::render($offer['snapshot'],$offer['presentation'],$cb)];$transport=deliveryTransport($state);
+$pdo=deliveryDb();$maxDraft=deliveryDraft();$maxDraft['offers'][]=array_replace($maxDraft['offers'][0],['id'=>str_repeat('b',32),'hotel'=>'Второй отель','amount'=>'250000']);deliverySave($maxDraft,0,2);$max=ManagerTourSelectionDeliveryService::prepare(7,2,1);$pub=$max['publication']['id'];
+$q=$pdo->prepare('SELECT callback_data FROM manager_tour_selection_cards WHERE publication_id=? ORDER BY card_index');$q->execute([$pub]);$callbacks=$q->fetchAll(PDO::FETCH_COLUMN);$cb=$callbacks[0];
+$offers=ManagerTourSelectionPublicationDraft::build($maxDraft)['offers'];$offer=$offers[0];$card=TourOfferCardRenderer::render($offer['snapshot'],$offer['presentation'],$cb);$state=['calls'=>[],'creates'=>0,'readback'=>false,'card'=>$card];$transport=deliveryTransport($state);
 $unverified=ManagerTourSelectionDeliveryService::send(7,2,$pub,0,$transport,'deliveryImages');
-deliveryCheck('MAX known MID is retained when native readback is temporarily unavailable',$unverified['error']==='delivery_unverified'&&$unverified['publication']['cards'][0]['state']==='known'&&$state['creates']===1);
+deliveryCheck('MAX known MID is retained and second offer stays pending when native readback is unavailable',$unverified['error']==='delivery_unverified'&&array_column($unverified['publication']['cards'],'state')===['known','pending']&&$state['creates']===1);
+$blocked=ManagerTourSelectionDeliveryService::send(7,2,$pub,1,$transport,'deliveryImages');
+deliveryCheck('unverified first card blocks a second native creation',$blocked['error']==='delivery_unknown'&&$state['creates']===1);
+$incoming=MaxIncomingAdapter::fromUpdate(['update_type'=>'message_callback','callback'=>['callback_id'=>'synthetic-max-like','payload'=>$cb,'user'=>['user_id'=>202]],'message'=>$state['native']]);$incoming['project_key']='anytour';
+deliveryCheck('known native card cannot accept a choice before canonical delivery',!TourChoiceService::like($pdo,$incoming)['ok']&&(int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE event_type='tour_offer_delivered'")->fetchColumn()===0);
+$identity=['bot'=>'999','user'=>'202','chat'=>'555'];$native=$state['native'];$mid=$native['body']['mid'];
+deliveryCheck('exact MAX readback fixture matches all native card fields',TourSelectionNativeTransport::matches('max',$card,$identity,$mid,$native));
+foreach (['type','from','length','string_from','string_length','extra_field','extra_span','malformed_span','missing_field','duplicate_span'] as $mutation) {
+    $bad=$native;
+    if ($mutation==='type') $bad['body']['markup'][0]['type']='emphasized';
+    elseif ($mutation==='from') ++$bad['body']['markup'][0]['from'];
+    elseif ($mutation==='length') ++$bad['body']['markup'][0]['length'];
+    elseif ($mutation==='string_from') $bad['body']['markup'][0]['from']=(string)$bad['body']['markup'][0]['from'];
+    elseif ($mutation==='string_length') $bad['body']['markup'][0]['length']=(string)$bad['body']['markup'][0]['length'];
+    elseif ($mutation==='extra_field') $bad['body']['markup'][0]['extra']='unexpected';
+    elseif ($mutation==='extra_span') $bad['body']['markup'][]=$bad['body']['markup'][0];
+    elseif ($mutation==='malformed_span') $bad['body']['markup'][0]='strong';
+    elseif ($mutation==='missing_field') unset($bad['body']['markup'][0]['length']);
+    elseif ($mutation==='duplicate_span') $bad['body']['markup'][1]=$bad['body']['markup'][0];
+    deliveryCheck('MAX readback rejects altered or malformed markup '.$mutation,!TourSelectionNativeTransport::matches('max',$card,$identity,$mid,$bad));
+}
+// JSON object member order is not formatting evidence. Preserve exact typed values.
+$state['native']['body']['markup']=array_map(static fn(array $span):array=>['from'=>$span['from'],'length'=>$span['length'],'type'=>$span['type']],$native['body']['markup']);
 $state['readback']=true;$recovered=ManagerTourSelectionDeliveryService::send(7,2,$pub,0,$transport,'deliveryImages');
-deliveryCheck('known-MID recovery verifies without another creation',$recovered['ok']&&$recovered['publication']['cards'][0]['state']==='delivered'&&$state['creates']===1);
+deliveryCheck('known-MID recovery accepts reordered markup keys without another creation',$recovered['ok']&&array_column($recovered['publication']['cards'],'state')===['delivered','pending']&&$state['creates']===1&&(int)$pdo->query("SELECT COUNT(*) FROM messages WHERE direction='outbound'")->fetchColumn()===1&&(int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE event_type='tour_offer_delivered'")->fetchColumn()===1);
+$liked=TourChoiceService::like($pdo,$incoming);
+deliveryCheck('MAX callback selects the exact first quote after native recovery',$liked['ok']&&$liked['changed']&&$liked['offer']['snapshot']['amount']==='240000'&&$liked['offer']['snapshot']['hotel']===$maxDraft['offers'][0]['hotel']);
+$state['card']=TourOfferCardRenderer::render($offers[1]['snapshot'],$offers[1]['presentation'],$callbacks[1]);
+$second=ManagerTourSelectionDeliveryService::send(7,2,$pub,1,$transport,'deliveryImages');
+$again=ManagerTourSelectionDeliveryService::send(7,2,$pub,1,$transport,'deliveryImages');
+deliveryCheck('second pending MAX offer creates and records exactly once after first recovery',$second['ok']&&$again['ok']&&array_column($again['publication']['cards'],'state')===['delivered','delivered']&&$state['creates']===2&&(int)$pdo->query("SELECT COUNT(*) FROM messages WHERE direction='outbound'")->fetchColumn()===2&&(int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE event_type='tour_offer_delivered'")->fetchColumn()===2);
 // A confirmed native creation remains recoverable when the local mirror fails.
 $pdo=deliveryDb();deliverySave(deliveryDraft());$prepared=ManagerTourSelectionDeliveryService::prepare(7,1,1);$publication=$prepared['publication']['id'];$state=['calls'=>[],'creates'=>0];$transport=deliveryTransport($state);
 $pdo->exec("CREATE TRIGGER reject_selection_mirror BEFORE INSERT ON messages WHEN NEW.direction='outbound' BEGIN SELECT RAISE(ABORT,'synthetic mirror failure'); END");
