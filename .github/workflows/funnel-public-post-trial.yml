@@ -51,7 +51,7 @@ jobs:
             $registry=new ChannelPostRegistryService($pdo);
             $channel=$registry->channel('anytour','max',$identity['bot_key'],'-80492244209683');
             $p=$registry->publication(55);
-            if(!$channel||(int)$channel['id']!==9||$channel['source_key']!=='max_anytour_msk1'||!$p||$p['state']!=='sent'||(int)$p['post_channel_id']!==9||$p['project_key']!=='anytour'||(string)$p['channel_id']!=='-80492244209683')throw new RuntimeException('REGISTRY_MISMATCH');
+            if(!$channel||(int)$channel['id']!==9||$channel['source_key']!=='max_anytour_msk1'||!$p||$p['state']!=='sent'||(int)($p['channel']['id']??0)!==9||$p['project_key']!=='anytour'||(string)$p['channel_id']!=='-80492244209683')throw new RuntimeException('REGISTRY_MISMATCH');
             $button='https://max.ru/id9704048781_1_bot?start=p_iEmni1vrrOQMJ5VI2C8E3iJ7';
             $resolved=$registry->resolveToken('anytour','max',$identity['bot_key'],'p_iEmni1vrrOQMJ5VI2C8E3iJ7');
             if(!$resolved||(int)$resolved['publication_id']!==55)throw new RuntimeException('TOKEN_MISMATCH');
