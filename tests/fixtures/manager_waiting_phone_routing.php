@@ -9,7 +9,7 @@ class DialogueApplication { public $calls=[]; public function dispatch($i){$this
 class DiagnosticLogger { public static function log(...$args){} }
 class ConversationRecorder { public static $incoming=[];public static function inbound($i){self::$incoming[]=$i;} }
 class ConversationAttributionService { public static function syncByChat(...$args){} }
-class MetrikaConversionGoalService {public static function customerActivity(...$args){} public static function customerReplyAfterManager(...$args){} }
+class MetrikaConversionGoalService {public static function observeIncoming(...$args){} public static function customerActivity(...$args){} public static function customerReplyAfterManager(...$args){} }
 class SourceHandlingService { public static function handle($i){return false;} }
 class ConversationControlService {public static $status='waiting_manager'; public static function statusByChat(...$args){return ['id'=>1,'status'=>self::$status];} public static function resumeAiByChat(...$args){self::$status='ai';return true;} }
 class ManagerPushService { public static $calls=[];public static function notifyConversation(...$args){self::$calls[]=$args;} }
