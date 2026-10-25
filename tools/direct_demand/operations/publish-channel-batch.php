@@ -111,14 +111,20 @@ try{
  }
  ob_start();try{require getcwd().'/config.php';require_once getcwd().'/services/ChannelPostRuntime.php';require_once getcwd().'/services/ChannelPostEntryService.php';require_once getcwd().'/services/MaxTransport.php';}finally{ob_end_clean();}
  $identity=ChannelPostRuntime::identity('max');insist(is_array($identity)&&$identity['project_key']==='anytour'&&$identity['bot_key']===BOT_KEY,'configured_bot_changed');
- $registry=new ChannelPostRegistryService();$channel=currentChannel($registry);insist(((new ChannelPostButtonTransport())->verifyChannel($channel)['state']??'')==='ready','channel_rights_not_ready');
- insist(!is_link(OPERATION_DIR.'/publication-receipt.json'),'invalid_receipt_path');$lock=fopen(OPERATION_DIR.'/publication-receipt.json','c+');insist($lock!==false&&flock($lock,LOCK_EX|LOCK_NB),'publication_operation_busy');
- $raw=stream_get_contents($lock);$state=$raw===''?['operation'=>OPERATION,'channel_id'=>TARGET_CHANNEL,'posts'=>[]]:json_decode($raw,true,64,JSON_THROW_ON_ERROR);insist(is_array($state)&&($state['operation']??'')===OPERATION&&($state['channel_id']??'')===TARGET_CHANNEL,'receipt_scope_changed');
- foreach($rows as $row){publishOne($row,$lock,$state,$registry,$out);usleep(600000);}
- $out['ok']=true;$out['server_utc']=gmdate('c');$out['installed_sha']=EXPECTED_INSTALLED_SHA;
-}catch(Throwable $e){
- $known=['invalid_operation_directory','invalid_key_path','invalid_execution_context','envelope_key_missing','batch_size_changed','envelope_scope_changed','envelope_unwrap_failed','envelope_decryption_failed','prepared_row_changed','configured_bot_changed','installed_source_changed','channel_configuration_changed','provider_channel_identity_changed','channel_rights_not_ready','invalid_receipt_path','publication_operation_busy','receipt_scope_changed','receipt_write_failed','receipt_sync_failed','prepared_body_changed','saved_post_changed','invalid_saved_mid','post_read_failed','recent_read_failed','duplicate_text_requires_review','existing_same_text_requires_review','previous_post_outcome_unknown','upload_outcome_unknown','upload_endpoint_failed','upload_host_requires_review','cover_bytes_changed','cover_write_failed','cover_upload_failed','uploaded_photo_token_missing','post_outcome_unknown','created_mid_invalid','published_readback_mismatch','registry_observation_failed','unique_button_or_content_unverified','canonical_post_url_missing','canonical_entry_resolution_mismatch'];
- $out['error']=in_array($e->getMessage(),$known,true)?$e->getMessage():'bounded_publication_failed';
-}
-if(is_resource($lock)){flock($lock,LOCK_UN);fclose($lock);}
+
+ $registry=new ChannelPostRegistryService();$channel=currentChannel($registry);
+ $raw=file_get_contents(OPERATION_DIR.'/publication-receipt.json');$state=json_decode($raw,true,64,JSON_THROW_ON_ERROR);
+ $recent=readRecent();$out['recent_count']=count($recent);$out['state_summary']=[];
+ foreach($rows as $row){
+  $saved=$state['posts'][$row['key']]??[];$out['state_summary'][]=['key'=>$row['key'],'post_started'=>!empty($saved['post_started']),'mid_known'=>!empty($saved['mid']),'upload_token_saved'=>!empty($saved['upload_token']),'uploaded_photo_id'=>$saved['uploaded_photo_id']??null];$comparisons=[];
+  foreach($recent as $m){if(!is_array($m))continue;
+   $text=(string)($m['body']['text']??'');$attachments=(array)($m['body']['attachments']??[]);$images=array_values(array_filter($attachments,static fn($a)=>is_array($a)&&($a['type']??'')==='image'));
+   if($text!==$row['text']&&count($images)===0)continue;
+   $image=$images[0]['payload']??[];
+   $comparisons[]=['mid'=>(string)($m['body']['mid']??''),'timestamp'=>$m['timestamp']??null,'recipient_channel'=>($m['recipient']['chat_type']??'')==='channel','recipient_id_equal'=>(string)($m['recipient']['chat_id']??'')===TARGET_CHANNEL,'text_equal'=>$text===$row['text'],'text_length'=>mb_strlen($text),'expected_length'=>mb_strlen($row['text']),'text_sha256'=>hash('sha256',$text),'image_count'=>count($images),'image_payload_keys'=>array_keys($image),'photo_id_type'=>get_debug_type($image['photo_id']??null),'photo_id'=>(string)($image['photo_id']??''),'photo_id_equals_uploaded'=>isset($saved['uploaded_photo_id'])&&(string)($image['photo_id']??'')===(string)$saved['uploaded_photo_id'],'token_equals_uploaded'=>isset($saved['upload_token'])&&is_string($image['token']??null)&&hash_equals($saved['upload_token'],$image['token']),'attachment_types'=>array_column($attachments,'type')];
+  }
+  $out['comparisons'][$row['key']]=$comparisons;
+ }
+ $out['ok']=true;
+}catch(Throwable $e){$out['error']='bounded_readback_probe_failed';}
 echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;exit($out['ok']?0:2);
