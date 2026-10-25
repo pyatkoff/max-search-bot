@@ -1,5 +1,20 @@
 # Manager2 tour selection constructor
 
+## Settled and identified source galleries (0.6.4)
+
+FUN&SUN gallery reads now require the loaded hotel heading to match the exact
+clicked row for numeric and HBK pages too; an exact requested URL alone is not
+loaded-content evidence. All temporary gallery frames require an unchanged,
+accepted nonempty image set across the settling interval, including three-image
+sets. Empty, unreadable or changed documents reset the candidate; expiry/removal
+returns no unsettled last set. One/two stable images remain valid without filler.
+The existing bounded frame lifetime, cache and source/target rechecks are intact.
+
+This prevents premature/unbound extraction, not incorrect media supplied by the
+provider itself. Existing imported photographs, sent versions and tourist choices
+are not rewritten. Live provider-content correspondence and physical installation
+remain separate acceptance from source/fixture checks.
+
 ## Forwarded visitors return to the selection manager
 
 Owner clarification25Oct: verified Telegram/MAX entry from a shared selection
