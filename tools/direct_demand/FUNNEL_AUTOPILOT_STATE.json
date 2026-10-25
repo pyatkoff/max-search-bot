@@ -1,6 +1,6 @@
 {
   "schema": "anytour.funnel.autopilot_state.v1",
-  "updated_at_utc": "2026-10-25 04:44:26 UTC",
+  "updated_at_utc": "2026-10-25T05:41:14Z",
   "owner": "direct-demand-funnel",
   "automation": {
     "id": "6ada8f0084888191b12c6619c12fb35c",
@@ -9,7 +9,7 @@
     "timezone": "Europe/Kaliningrad",
     "enabled_verified_at_utc": "2026-10-22T22:39:46.922Z"
   },
-  "status": "R2_P42_PHUKET_TWO_COMPARABLE_EXAMPLES_DRAFTED_NO_TRAFFIC_ACCEPTANCE",
+  "status": "R2_P43_VN_WINTER_INTENT_SPLIT_DONE_PHUQUOC_R035_REUSE_BRIEF_NO_SIXTH_ROUTE",
   "channel": null,
   "scope": {
     "prepare_catalog_matches": true,
@@ -663,9 +663,9 @@
     },
     "r2_reference_packet": {
       "library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
-      "version": 21,
+      "version": 22,
       "readable_preview_library_file_id": "libfile_c1f06826dd408191bed3e0cb8103e379",
-      "readable_preview_version": 21,
+      "readable_preview_version": 22,
       "routes_member": "existing-post-review/p36/routes.json",
       "audit_member": "existing-post-review/p36/intent-revision.PRIVATE.json",
       "binding_member": "existing-post-review/p36/binding-review-3.NOT-APPLIED.json",
@@ -835,6 +835,20 @@
       "source_review": "R054",
       "private_source_materials_only_in_Library": true,
       "post_scoped_source_use_not_new_hotel_profile": true
+    },
+    "current_VN_winter_intent_split": {
+      "library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
+      "version": 22,
+      "audit_member": "existing-post-review/p43/intent-split.PRIVATE.json",
+      "audit_sha256": "3747a33f412f0bfa268a5c58a5a162c2031a8757e002ddd9de25a72c69b4c77f",
+      "reuse_brief_member": "existing-post-review/p43/reuse-brief.PRIVATE.json",
+      "reuse_brief_sha256": "b7478496f81ceb1ac6d64991c74970b5cdb4a87adcd334ec8ec760fab1d8553f",
+      "review_member": "existing-post-review/p43/review.html",
+      "validation_member": "existing-post-review/p43/validation.json",
+      "preview_library_file_id": "libfile_c1f06826dd408191bed3e0cb8103e379",
+      "preview_version": 22,
+      "private_source_materials_only_in_Library": true,
+      "no_new_hotel_profiles": true
     }
   },
   "operations": {
@@ -971,15 +985,17 @@
     "r2_P41_saved_Thai_region_split": "DONE_BOUNDED760_FORMS_19_CLICKED_PHUKET_FORMS_READ",
     "r2_P41_save": "DONE_PREVIEW20_COMPANION20_GUARDED_REPLACEMENTS",
     "r2_P42_Phuket_comparison": "DONE_R054_NARROWED_TWO_EXAMPLES_ONE_BODY_COVER_INACTIVE_BINDING",
-    "r2_P42_save": "DONE_PREVIEW21_COMPANION21_GUARDED_REPLACEMENTS"
+    "r2_P42_save": "DONE_PREVIEW21_COMPANION21_GUARDED_REPLACEMENTS",
+    "r2_P43_VN_saved_intent_split": "DONE_BOUNDED907_FORMS_32_NAMED_CLICKED_FORMS_READ",
+    "r2_P43_save": "DONE_PREVIEW22_COMPANION22_GUARDED_REPLACEMENTS"
   },
   "next_steps": [
-    "P42 DONE: historical R054 exact two saved targets/media/holds read back; five-name source narrowed to two comparable ART Karon / LAGOON NaiYang examples. One743UTF16 draft, one800x800 cover/two labelled real photos, explicit CTA/expected existing context. P36–P41 history and four current feed rows preserved, no new shared hotel profiles.",
-    "P42 source scope: ART exact DeluxePoolAccess30–34m2 and published1/2-minute walking estimates; LAGOON exact PoolAccessVilla48m2 and published5-minute drive. Main copy avoids minute-level ART discrepancy, private-pool promise and future operation claims. Exact crossings/steps and current transport remain gaps; not a physical route audit.",
-    "P41 demand reused without a new scan/export.21 clicked-tour/cost signals after one ambiguous held do not prove demand for the two named hotels, PoolAccess or this comparison angle; current ON unknown. Do not assign broadThai/country or Phuket metrics to hotel/category rows.",
-    "Next bounded source within the same P34/P35 plan: VN_winter saved forms by actual resort/date/commercial intent, then choose a suitable existing post and readonly canonical facts; do not send all Vietnam winter traffic to one resort. Read earlier evidence before redoing, do not fill up-to10 quota with names or repeat P36–P42.",
-    "Current5 are reviewable drafts,0traffic/business accepted; actual ad creative/destinations, exact canonical selection and post/entry IDs, native button path OPEN. P42 existing collection_key=null, inactive fifth feed row has no fake ID or active URL. Base70 companion15 pointer remains historical P36 snapshot; current supplements resolve through checkpoint/companion21.",
-    "Native send/edit/test/publication/live-feed/RK/spend require precise fresh owner/channel/action/budget receipts. Do not retry unchanged ad-read/Wordstat/ASR/room403 blockers or full CI/Direct/native baselines. No schedule/enabled/model/budget/runtime/foreign changes."
+    "P43 DONE:907bounded saved forms split by country/resort/date/heuristic intent; all32named-resort forms with clicks manually read. No new export/Wordstat and no automatic assignment of country queries to one resort. Historical VN_winter172clicks and P43 broader/different scope must not be added or replaced.",
+    "P43 PhuQuoc14open tour/cost forms20impressions/15clicks(last7clicks5), separate Vinpearl network query1click held; do not allocate these15clicks to Waverly/Pullman or exact category/meal. NhaTrang3generic tour clicks,2AI/direct-flight conditions held. Exact Swandor KamRanh1click is not Alma demand; actual departure and party/date constraints retained. CurrentON unknown.",
+    "Next bounded block: R035 exact saved targets/photos and existing identity/supplier holds; current canonical hotel archive readonly, then compare Waverly Resort (not Villas/Residences) and Pullman A248 with the same useful fields: exact room/area/layout, real published beach route, board and useful compromise. Use separately labelled true photos; shrink/replace if facts insufficient. No new shared hotel profile and no bare name list.",
+    "R035 SKBoutique/Homestead-Ola/MaisonThu-MaisonDuVietnam identity/rename holds remain; not silently included. Country-only Vietnam, explicit Vinpearl, other resort, AI-only and required direct-flight queries do not default to a two-Accor post. Winter words do not prove climate/weather/waves, price, route or future operation.",
+    "Current5 reviewable drafts and current5 inactive feed preserved,0traffic/business accepted; sixth not claimed. Actual ads/canonical issued post/selection/entry IDs and real bot path OPEN. Base70 companion15 pointer remains P36 historical snapshot; current supplements resolve through checkpoint/companion22.",
+    "No native send/edit/test/publication/live-feed/RK/spend without precise fresh receipt; no unchanged blocked ad-read/Wordstat/ASR/room403 or fullCI/Direct/native replay. No schedule/enabled/model/budget/runtime/foreign changes."
   ],
   "publication_blocker": "Current P36 three routes have no verified issued entry IDs/active destinations or real bot-path verification. Numeric/editorial acceptance is pending. Exact fresh native/channel/action and separate paid/budget permissions remain required; readonly/admin access and old tests are not new authorization.",
   "coordination": "Own audit/direct-demand-20261022 branch only; no foreign claims, CI, paused hotel tasks or production flows.",
@@ -2952,7 +2968,7 @@
     "library_archive_size": "Current536730088bytes/limit536870912/headroom140824;guards49/50/30.H16preserved all existing evidence and losslessly BZIP2compressed18existingJSONmembers:per-member originaluncompressedSHA,CRC/size and Python/InfoZIP6readPASS recorded inH16lossless-packaging.json.Other prior compression types unchanged.Preserve current root/current-fileBZIP2method on updates;preflight new byte budget before upload.No oversized request/evidence deletion.Unselected new largeOGexcluded with provenance,not prior evidence."
   },
   "latest_completed_block": {
-    "name": "P42: R054 narrowed to two comparable Phuket examples; whole draft/cover/CTA and inactive binding, no traffic acceptance",
+    "name": "P43: saved VN winter resort/intent audit907forms and R035 PhuQuoc reuse brief; no sixth draft claimed",
     "total_prepared_subjects": 94,
     "total_exact_caption_bodies": 95,
     "total_saved_post_candidates": 204,
@@ -2963,25 +2979,25 @@
     "total_video_holds": 94,
     "total_text_photo_paths": 110,
     "identity_lookup_holds": 151,
-    "new_caption_bodies": 1,
+    "new_caption_bodies": 0,
     "new_exact_saved_post_candidates": 0,
-    "new_covers": 1,
+    "new_covers": 0,
     "new_IDs": 0,
     "actual_channel_writes": 0,
     "platforms": {
       "max": 195,
       "telegram": 9
     },
-    "completed_at_utc": "2026-10-25 04:44:26 UTC",
+    "completed_at_utc": "2026-10-25T05:41:14Z",
     "save_versions": {
       "base": 70,
-      "preview": 21,
-      "companion": 21
+      "preview": 22,
+      "companion": 22
     },
     "strategy_revision": "OWNER_PLAN_REVISION_20261024",
     "r2_reference_routes": 5,
     "r2_counts_not_additive_to_baseline_slices": true,
-    "reference_revision": "P42_PHUKET_TWO_EXAMPLES",
+    "reference_revision": "P43_VN_REGION_INTENT_SPLIT",
     "previous_9_8_8_superseded": true,
     "numeric_rubric_acceptance_pending": true
   },
@@ -4393,11 +4409,11 @@
     "prior_video_transport_hold_preserved_for_amended_video_target": true
   },
   "next_preparation_block": {
-    "state": "S3_EXISTING_PACKET_SUITABLE_ROUTE_REVIEW",
+    "state": "S3_SUITABLE_PHUQUOC_SOURCE_COMPARISON",
     "revision": "OWNER_PLAN_REVISION_20261024",
-    "action": "Next bounded source within the same P34/P35 plan: VN_winter saved forms by actual resort/date/commercial intent, then choose a suitable existing post and readonly canonical facts; do not send all Vietnam winter traffic to one resort. Read earlier evidence before redoing, do not fill up-to10 quota with names or repeat P36–P42.",
+    "action": "Next bounded block: R035 exact saved targets/photos and existing identity/supplier holds; current canonical hotel archive readonly, then compare Waverly Resort (not Villas/Residences) and Pullman A248 with the same useful fields: exact room/area/layout, real published beach route, board and useful compromise. Use separately labelled true photos; shrink/replace if facts insufficient. No new shared hotel profile and no bare name list.",
     "source_plan_member": "existing-post-review/p34/plan.json",
-    "source_audit_member": "existing-post-review/p35/intent-audit.PRIVATE.json",
+    "source_reuse_member": "existing-post-review/p43/reuse-brief.PRIVATE.json",
     "source_plan_library_file_id": "libfile_f7a0d7e76c188191b2d5bc59adfd430d",
     "native_writes_allowed": false
   },
@@ -8794,6 +8810,115 @@
     "library_versions_before": 20,
     "library_versions_after": 21,
     "private_source_materials_committed": false,
+    "publisher_reserved": false,
+    "automation_changes": false
+  },
+  "VN_winter_intent_split_operation": {
+    "state": "DONE_SAVED_SOURCE_AUDIT_AND_REUSE_BRIEF_NOT_ROUTE_ACCEPTANCE",
+    "idempotency_key": "P43-VN-winter-saved-region-intent-split-20261025-v1",
+    "completed_at_utc": "2026-10-25T05:41:14Z",
+    "source_claim": 6393979877,
+    "previous_release": 6393568763,
+    "source_version": 70,
+    "source_member": "source-query-report.json",
+    "source_sha256": "39cad5ede25e1caf9554f687da825fa5e202fabe00e191e37d64b405c25b9264",
+    "period": [
+      "2026-09-23",
+      "2026-10-22"
+    ],
+    "bounded_forms": 907,
+    "manually_read_named_clicked_forms": 32,
+    "manual_summary": {
+      "HOLD_AI_OR_DIRECT_FLIGHT_CONDITION": {
+        "forms": 2,
+        "impressions": 2,
+        "clicks": 2,
+        "last7_clicks": 0
+      },
+      "HOLD_UNSPECIFIED_OR_INFORMATIONAL": {
+        "forms": 10,
+        "impressions": 12,
+        "clicks": 10,
+        "last7_clicks": 1
+      },
+      "PHU_QUOC_TOUR_COMPARISON_CANDIDATE": {
+        "forms": 14,
+        "impressions": 20,
+        "clicks": 15,
+        "last7_clicks": 5
+      },
+      "NHA_TRANG_TOUR_CANDIDATE": {
+        "forms": 3,
+        "impressions": 3,
+        "clicks": 3,
+        "last7_clicks": 0
+      },
+      "HOLD_NAMED_NETWORK": {
+        "forms": 1,
+        "impressions": 1,
+        "clicks": 1,
+        "last7_clicks": 1
+      },
+      "COMPARE_REGIONS_NOT_SINGLE_RESORT": {
+        "forms": 1,
+        "impressions": 1,
+        "clicks": 1,
+        "last7_clicks": 1
+      },
+      "EXACT_SWANDOR_NOT_ALMA": {
+        "forms": 1,
+        "impressions": 1,
+        "clicks": 1,
+        "last7_clicks": 1
+      }
+    },
+    "current_ON_unknown": true,
+    "classification_of_unclicked_forms_heuristic": true,
+    "existing_R035_reuse_brief_prepared": true,
+    "new_captions": 0,
+    "new_covers": 0,
+    "new_reference_routes": 0,
+    "current_reference_drafts": 5,
+    "new_IDs": 0,
+    "native_writes": 0,
+    "paid_changes": 0,
+    "new_hotel_profiles": 0,
+    "canonical_hotel_archive_unmodified": true,
+    "prior_five_routes_unchanged": true,
+    "full_export_not_repeated": true,
+    "audit_sha256": "3747a33f412f0bfa268a5c58a5a162c2031a8757e002ddd9de25a72c69b4c77f",
+    "new_section_browser_widths": [
+      390,
+      1440
+    ],
+    "new_section_mobile_visually_inspected": true,
+    "prior_nonpreview_members_byte_preserved": 347,
+    "companion_bytes": 53476947,
+    "all_saves_verified": true,
+    "versions_after": {
+      "preview": 22,
+      "companion": 22
+    },
+    "PhuQuoc_selected_for_source_verification_not_accepted": true,
+    "R035_first_three_identity_holds_retained": true,
+    "named_Swandor_not_reassigned_to_Alma": true,
+    "current_ad_creative_and_issued_destination_gaps_retained": true
+  },
+  "last_run_readback_P43": {
+    "own_branch_head_before_write": "5ce945e2d89028bf3277567f027974ea6d1b8015",
+    "checkpoint_blob_before": "325c04e64c0628871f438d68ba57ce3ddf30c4cb",
+    "main_read": "2e7ce45ac520630ea0348eda54ffc791d857e5aa",
+    "root_AGENTS_sha": "a064aff67d42ddd69a12d9b0393501d116d1307d",
+    "START_HERE_sha": "43e7827432279012382767de6b6335684c6d54c2",
+    "foreign_Manager2_source6393601593_untouched": true,
+    "constructor_release6393910941_observed": true,
+    "own_claim": 6393979877,
+    "explicit_handoff_from": 6393568763,
+    "base_version70_and_current_companion21_materialized_with_fresh_helpers": true,
+    "private_source_materials_committed": false,
+    "full_baselines_not_repeated": true,
+    "library_versions_before": 21,
+    "library_versions_after": 22,
     "publisher_reserved": false,
     "automation_changes": false
   }
