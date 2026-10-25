@@ -45,11 +45,43 @@ function extract(doc,anchor,href,at=new Date().toISOString().replace(/\.\d{3}Z$/
  if(Object.values(raw).some(s=>s.length>1200)||hm[1].trim().length>191||room.length>290)fail('Слишком длинные условия ANEX.');
  return {adapter:'anex-agent-v1',url:safe.href,observed_at:at,quote_id:quote.toLowerCase(),keys:{hotel,country,departure:'moskva',spo},raw,offer:{hotel:hm[1].trim(),stars:Number(hm[2]),destination:countryName+', '+resort,departure:'Москва',date_from:iso,nights:Number(nights),adults:2,child_ages:[],room:room+' / DBL',meal,amount:pm[1].replaceAll(' ',''),currency:'RUB'}};
 }
+function observe(doc){
+ let invalidated=false,current=null,rows=new WeakMap();const seen=new WeakSet();
+ const remember=()=>doc.querySelectorAll('a[href*="TAB_ACTIVE=description"]').forEach(a=>seen.add(a));remember();
+ function sorting(target){
+  const group=target?.closest?.('#search-filter-anchor');if(!group||doc.querySelectorAll('#search-filter-anchor').length!==1)return false;
+  const button=target.closest('button');if(button?.type==='button'&&clean(button.textContent)==='По цене')return true;
+  const label=target.closest('label'),radio=target.matches('input')?target:label?.querySelector('input');
+  return !!radio&&radio.type==='radio'&&radio.name==='PARTITION_PRICE'&&label?.contains(radio)&&clean(label.textContent)===(radio.value===''?'По умолчанию':radio.value==='32'?'По отелю':null);
+ }
+ // The visible date omits the year: touching a condition stays invalid until a
+ // native search produces new anchor nodes. Sorting never clears this fence.
+ for(const type of ['click','keydown','input','change'])doc.addEventListener(type,e=>{
+  if(!e.target?.closest?.('input,button,[role="combobox"],[role="option"]')||sorting(e.target)||anchors(doc).some(a=>resultRow(a).contains(e.target)))return;
+  invalidated=true;current=null;rows=new WeakMap();remember();
+ },true);
+ doc.addEventListener('submit',e=>{
+  const form=e.target,button=e.submitter,fields=['TOWNFROM','STATEINC','ADULT','CURRENCY','CHECKIN_BEG','NIGHTMIN','NIGHTMAX'];
+  if(form?.tagName!=='FORM'||button?.form!==form||button.type!=='submit'||clean(button.textContent)!=='Найти тур'||fields.some(key=>form.querySelectorAll('input[data-testid="'+key+'"]').length!==1))return;
+  invalidated=true;current={};rows=new WeakMap();remember();
+ },true);
+ new MutationObserver(records=>{for(const record of records)for(const node of record.addedNodes){
+  if(node.nodeType!==1)continue;
+  for(const a of [node,...node.querySelectorAll('a[href*="TAB_ACTIVE=description"]')]){
+   if(!a.matches('a[href*="TAB_ACTIVE=description"]')||seen.has(a))continue;
+   seen.add(a);if(current)rows.set(a,current);
+  }
+ }}).observe(doc.body,{childList:true,subtree:true});
+ return {extract(anchor,href,at){
+  if(invalidated&&(!current||rows.get(anchor)!==current))fail('Нажмите «Найти тур» и дождитесь новых результатов ANEX перед добавлением.');
+  return extract(doc,anchor,href,at);
+ }};
+}
 function photos(doc,hotel){
  const page=new URL(doc.location.href);if(page.origin!=='https://agent.anextour.ru'||page.pathname!=='/search/tour'||page.searchParams.getAll('HOTEL_INC').length!==1||page.searchParams.get('HOTEL_INC')!==hotel||page.searchParams.get('TAB_ACTIVE')!=='description')return [];
  return [...new Set(Array.from(doc.querySelectorAll('[role="tabpanel"] #sliderPhoto img')).map(e=>e.getAttribute('src')).filter(s=>{
   try{const u=new URL(s);return u.origin==='https://files.anextour.ru'&&/^\/hotel\/hotels\/[a-z0-9_/-]+\/o[1-9]\d*$/.test(u.pathname)&&!u.hash&&!u.username&&!u.password&&!u.port&&Array.from(u.searchParams).length===1&&u.searchParams.get('hotelCode')===hotel}catch{return false}
  }))].slice(0,3);
 }
-root.AnyTourAnex={extract,anchors,resultRow,photos};
+root.AnyTourAnex={extract,observe,anchors,resultRow,photos};
 })(typeof window==='undefined'?module.exports:window);
