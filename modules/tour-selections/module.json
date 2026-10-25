@@ -9,6 +9,7 @@
     "activity.js": "selection/activity.js"
   },
   "backend_inputs": [
+    "services/ManagerTourSelectionPublicHost.php",
     "selection/index.php",
     "selection/activity.php",
     "selection/photo.php",

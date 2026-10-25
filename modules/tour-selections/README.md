@@ -57,6 +57,37 @@ define atomic artifact activation/rollback and its own installed receipt. Editor
 and collector remain separate surfaces of the same constructor and the existing
 specification. They must not gain parallel stores or senders.
 
+## Owner-created dedicated host
+
+The owner created tours.anytoour.ru on25October. The dedicated host workflow
+runs only on main, after the canonical production deployment succeeds. It checks
+fresh authoritative main and installed identity before touching that exact host.
+The existing app, DB, cached images, immutable versions, revoke and bot-entry
+owners remain canonical; no config, manager app or credentials are copied.
+
+deploy.php validates the exact source/payload and refuses foreign site content.
+Only the recorded ISPmanager placeholder or its own three front controllers and
+two asset links are admissible; ACME .well-known is preserved. Versioned views
+and assets live outside document roots. Atomic current-release activation keeps
+the packaged view and its two static assets together. Initial rollback restores
+the exact archived placeholder; later rollback restores the previous release.
+The fixed CLI uses only the owner-created site and this project's release root.
+
+The public wrappers expose only index, reviewed-photo and signed-activity routes.
+They set the exact tours origin; the original app endpoint still accepts only
+its original origin. Anonymous fetches create no manager session. Strict-TLS
+smoke requires the unavailable page and headers, exact CSS/JS, closed config/
+manager routes and correct origin rejection before a private deployment receipt
+enables optional public/preview URLs. The UI accepts only the exact tours origin
+with the existing token. Existing app paths and signed previews remain available.
+
+Any declared backend or presentation drift invalidates that receipt and falls
+back to existing app links until a matching public release is verified. Unrelated
+commits keep the package identity and receipt valid. A failed smoke automatically
+rolls back the pending installation and does not enable new links. This technical
+host verification does not replace valid-photo, physical mixed-source import,
+different-account bot continuation or the remaining V1 acceptance.
+
 ## Existing-host inventory
 
 `tour-selection-hosting-inventory.yml` runs only on an explicit main manual run,
