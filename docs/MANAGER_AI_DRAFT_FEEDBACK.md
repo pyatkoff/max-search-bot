@@ -141,3 +141,19 @@ generation time. Missing text, Unicode bounds and single HTML decoding are
 unchanged. The actual-PDO regression checks constant query growth and complete
 output equality against the pinned installed source in SQLite and native MySQL;
 query-count reduction is not a production-latency measurement.
+
+The owner view also compares each validated row's existing `instruction_revision`
+with the current **base** `ManagerAiDraftService::instructions()` hash. The
+read-only `base_instruction_current` observation is evaluated at each read, not
+at the send-window cutoff. It does not identify the complete
+context-specific hotel policy, knowledge, model/profile or provider-served prompt,
+and is not a quality verdict. No hashes or new fields enter public diagnostics.
+It does not change scope, filters, cursors, case revisions or review marks: a
+policy update must not resurrect an already reviewed old comparison. An older
+API response without this observation displays an unknown edition, never current.
+
+The existing draft-row time is displayed separately from send time. For manual
+generation it is the saved-draft time; for a prepared answer it is the first
+persisted preview/provenance time, **not** the worker's preparation time. Neither
+timestamp alone proves which complete model input was used. Reading the report
+does not create a new preview, draft, review mark or customer read acknowledgement.

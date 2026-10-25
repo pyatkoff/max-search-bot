@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "version": "2026-10-25.3",
+  "version": "2026-10-25.4",
   "project_key": "anytour",
   "bindings": [
     {
@@ -406,6 +406,470 @@
         "common_version": 104,
         "member": "hotel-knowledge-eg-cohort-20261025/titanic_beach/accepted-binding.json",
         "scope": "Research join and sealed saved-evidence group only; no native MATCH mutation, new property research, current offer or natural/runtime acceptance credit."
+      }
+    },
+    {
+      "source_identity": {
+        "adapter": "tourvisor-snapshot-v1",
+        "hotel": "157359",
+        "country": "4"
+      },
+      "accepted_source_names": [
+        "AVIA RESORT & SPA"
+      ],
+      "accepted_binding": {
+        "project_key": "anytour",
+        "research_hotel_key": "avia_resort",
+        "hotel_ref": {
+          "catalog": "anytour",
+          "id": 4101
+        },
+        "accepted_chain": [
+          {
+            "namespace": "legacy_catalog/catalog_hotels.id",
+            "id": 157359
+          },
+          {
+            "namespace": "anytour",
+            "id": 4101,
+            "catalog_revision": 1
+          },
+          {
+            "namespace": "local-tv",
+            "id": 157359,
+            "catalog_revision": 3
+          }
+        ],
+        "identity_anchor": {
+          "research_source_id": "avia_resort_s01",
+          "research_source_record_sha256": "d689c18d4270f9a2cf3815a97c3dbc665cbb06bc8d3663e267c3e5ffda74c67a",
+          "official_url": "https://www.aviaresort.com/en",
+          "address": "Gündoğdu, 27 Sok, 07600 Manavgat/Antalya, Турция",
+          "country": "Turkey",
+          "city": "Side / Gundogdu"
+        },
+        "proofs": {
+          "catalogue-tr-eight.raw": "bc5b9bd2bf081f3be170355f39b11f336fb5d5d550a18951704d737325f1fefe",
+          "local-tr-eight.raw": "cfad20d13051206fc806acfecac33aac20f7d3165632d8972ad68b5b33b642c9",
+          "official-identity-anchor.json": "2ee764cffd0ef314bad95ff6d23afdedf4cb841e59af74142ed0f8b3327c49c3",
+          "saved-passport.json": "cccfaeba7abb33a4745dd9078617282fd42af79775d64178966185b47d878310"
+        }
+      },
+      "binding_revision": "4a03c4a2f438b5b2f9efb87489df733ad29c7ee94edbc01c47775f23c50ba325",
+      "bundle_file": "anytour-4101-room-meal-plan.json",
+      "bundle_sha256": "e43031dd5865f8b3a89851679bff020601067da2f1f19e78bedc29136a1eb9df",
+      "status": "accepted",
+      "approval": {
+        "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
+        "common_version": 107,
+        "member": "hotel-knowledge-tr-cohort-20261025/avia_resort/accepted-binding.json",
+        "scope": "Accepted typed Turkey research join and unchanged sealed saved records; scoped conditional published information only. No native MATCH write, current tariff, operation, model-use or natural/UI confirmation."
+      }
+    },
+    {
+      "source_identity": {
+        "adapter": "tourvisor-snapshot-v1",
+        "hotel": "1077",
+        "country": "4"
+      },
+      "accepted_source_names": [
+        "CLUB AQUA PLAZA (EX. SUNEOCLUB AQUA PLAZA)"
+      ],
+      "accepted_binding": {
+        "project_key": "anytour",
+        "research_hotel_key": "club_aqua_plaza",
+        "hotel_ref": {
+          "catalog": "anytour",
+          "id": 477
+        },
+        "accepted_chain": [
+          {
+            "namespace": "legacy_catalog/catalog_hotels.id",
+            "id": 1077
+          },
+          {
+            "namespace": "anytour",
+            "id": 477,
+            "catalog_revision": 1
+          },
+          {
+            "namespace": "local-tv",
+            "id": 1077,
+            "catalog_revision": 3
+          }
+        ],
+        "identity_anchor": {
+          "research_source_id": "club_aqua_plaza_s01",
+          "research_source_record_sha256": "b8279dc05093cff181eff5109571c3e1df98530a474712eb3e5313953f44ea5b",
+          "official_url": "https://www.clubaquaplaza.com/",
+          "address": "Okurcalar mahallesi, Alara Mevkii, Alanya/Antalya, 07415 Аланья, Турция",
+          "country": "Turkey",
+          "city": "Alanya / Okurcalar"
+        },
+        "proofs": {
+          "catalogue-tr-eight.raw": "bc5b9bd2bf081f3be170355f39b11f336fb5d5d550a18951704d737325f1fefe",
+          "local-tr-eight.raw": "cfad20d13051206fc806acfecac33aac20f7d3165632d8972ad68b5b33b642c9",
+          "official-identity-anchor.json": "3f93a35827920625c5b4ae42fe3a6247af1053ede7438f2ec84e421fe9292b0c",
+          "saved-passport.json": "8b528f1f2a262d6fe1b3e8f7e756e1d15c030386b4f571612c7ca4bad4d2c802"
+        }
+      },
+      "binding_revision": "bbed1cc6f72734a9cc81cd79060a69d833b7f2204265c97fb17471c5884cbc53",
+      "bundle_file": "anytour-477-family-rooms.json",
+      "bundle_sha256": "2a5fb87f7b7b22eb00cf95cf6820a0a488c0b9e72d24d0f09dd4a588ead584dd",
+      "status": "accepted",
+      "approval": {
+        "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
+        "common_version": 107,
+        "member": "hotel-knowledge-tr-cohort-20261025/club_aqua_plaza/accepted-binding.json",
+        "scope": "Accepted typed Turkey research join and unchanged sealed saved records; scoped conditional published information only. No native MATCH write, current tariff, operation, model-use or natural/UI confirmation."
+      }
+    },
+    {
+      "source_identity": {
+        "adapter": "tourvisor-snapshot-v1",
+        "hotel": "109900",
+        "country": "4"
+      },
+      "accepted_source_names": [
+        "DREAM FUN WORLD"
+      ],
+      "accepted_binding": {
+        "project_key": "anytour",
+        "research_hotel_key": "dream_fun_world",
+        "hotel_ref": {
+          "catalog": "anytour",
+          "id": 3726
+        },
+        "accepted_chain": [
+          {
+            "namespace": "legacy_catalog/catalog_hotels.id",
+            "id": 109900
+          },
+          {
+            "namespace": "anytour",
+            "id": 3726,
+            "catalog_revision": 1
+          },
+          {
+            "namespace": "local-tv",
+            "id": 109900,
+            "catalog_revision": 3
+          }
+        ],
+        "identity_anchor": {
+          "research_source_id": "dream_fun_world_s01",
+          "research_source_record_sha256": "b9aff69f2d3b1d8214e96e98a305ae3a8f30315c2898b7a053b82a99638ca89a",
+          "official_url": "https://dreamfunworld.com.tr/en/",
+          "address": "Kumoy Cd., Ilica, Манавгат 070100 Турция",
+          "country": "Turkey",
+          "city": "Side / Ilica / Kumkoy"
+        },
+        "proofs": {
+          "catalogue-tr-eight.raw": "bc5b9bd2bf081f3be170355f39b11f336fb5d5d550a18951704d737325f1fefe",
+          "local-tr-eight.raw": "cfad20d13051206fc806acfecac33aac20f7d3165632d8972ad68b5b33b642c9",
+          "official-identity-anchor.json": "7c7499f06f2e98846925a51717f56ecd8d06bc2c1196414b828963507a5ec112",
+          "saved-passport.json": "b4062a7cdd1bbd75fde8fe13dd6aaa3cdbce18f90b73919960fc61ce16cbc39b"
+        }
+      },
+      "binding_revision": "f4e04f3dbbfe8138cb665a481d3efdc9a42ed05a4f53b61e68a447122e50df16",
+      "bundle_file": "anytour-3726-meal-season.json",
+      "bundle_sha256": "26ddf8052bf7c9d6cbe0477d90352371d4417f6953a09ab0a3c53f6a21fa0e4a",
+      "status": "accepted",
+      "approval": {
+        "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
+        "common_version": 107,
+        "member": "hotel-knowledge-tr-cohort-20261025/dream_fun_world/accepted-binding.json",
+        "scope": "Accepted typed Turkey research join and unchanged sealed saved records; scoped conditional published information only. No native MATCH write, current tariff, operation, model-use or natural/UI confirmation."
+      }
+    },
+    {
+      "source_identity": {
+        "adapter": "tourvisor-snapshot-v1",
+        "hotel": "28666",
+        "country": "4"
+      },
+      "accepted_source_names": [
+        "PRIMASOL HANE FAMILY RESORT (EX. FAMILY HANE RESORT)"
+      ],
+      "accepted_binding": {
+        "project_key": "anytour",
+        "research_hotel_key": "hane_family",
+        "hotel_ref": {
+          "catalog": "anytour",
+          "id": 2077
+        },
+        "accepted_chain": [
+          {
+            "namespace": "legacy_catalog/catalog_hotels.id",
+            "id": 28666
+          },
+          {
+            "namespace": "anytour",
+            "id": 2077,
+            "catalog_revision": 1
+          },
+          {
+            "namespace": "local-tv",
+            "id": 28666,
+            "catalog_revision": 3
+          }
+        ],
+        "identity_anchor": {
+          "research_source_id": "hane_family_s01",
+          "research_source_record_sha256": "c233e7954a6ca0919d5d9259b68fb364427a4e219e44aaae264573dde41a0490",
+          "official_url": "https://hanehotels.com/hane-family/en/",
+          "address": "Evrenseki, 07600 Manavgat/Antalya, Турция",
+          "country": "Turkey",
+          "city": "Side / Evrenseki"
+        },
+        "proofs": {
+          "catalogue-tr-eight.raw": "bc5b9bd2bf081f3be170355f39b11f336fb5d5d550a18951704d737325f1fefe",
+          "local-tr-eight.raw": "cfad20d13051206fc806acfecac33aac20f7d3165632d8972ad68b5b33b642c9",
+          "official-identity-anchor.json": "157bfc009ad0c9dba312537b1db2b925f2a80c76977d00de0b7482e93481f19a",
+          "saved-passport.json": "53629286f1b055c7e307437226e7872050e8d760c1e3bf2a91fe381c6c69d2ce"
+        }
+      },
+      "binding_revision": "e0a053d0a74605606f75b61051aa3f4cc5cec49643b80fe8e1944763d6278ae2",
+      "bundle_file": "anytour-2077-family-rooms.json",
+      "bundle_sha256": "9448e4786c294422f4e279cf9fdb1f5d8043c902b1f1874e6bd35282c4cc5487",
+      "status": "accepted",
+      "approval": {
+        "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
+        "common_version": 107,
+        "member": "hotel-knowledge-tr-cohort-20261025/hane_family/accepted-binding.json",
+        "scope": "Accepted typed Turkey research join and unchanged sealed saved records; scoped conditional published information only. No native MATCH write, current tariff, operation, model-use or natural/UI confirmation."
+      }
+    },
+    {
+      "source_identity": {
+        "adapter": "tourvisor-snapshot-v1",
+        "hotel": "46672",
+        "country": "4"
+      },
+      "accepted_source_names": [
+        "JADORE DELUXE HOTEL & SPA"
+      ],
+      "accepted_binding": {
+        "project_key": "anytour",
+        "research_hotel_key": "jadore_deluxe",
+        "hotel_ref": {
+          "catalog": "anytour",
+          "id": 2432
+        },
+        "accepted_chain": [
+          {
+            "namespace": "legacy_catalog/catalog_hotels.id",
+            "id": 46672
+          },
+          {
+            "namespace": "anytour",
+            "id": 2432,
+            "catalog_revision": 1
+          },
+          {
+            "namespace": "local-tv",
+            "id": 46672,
+            "catalog_revision": 3
+          }
+        ],
+        "identity_anchor": {
+          "research_source_id": "jadore_deluxe_s02",
+          "research_source_record_sha256": "1a102817220b71321ff3cabfc510e24154974a196cde95724c0aa80c978d6023",
+          "official_url": "https://www.jadorehotel.com/en/accommodations/family-room.php",
+          "address": "Kumeevler Mevkii, Side, Titreyengöl Cd. No:35, 07600 Manavgat/Antalya, Турция",
+          "country": "Turkey",
+          "city": "Side / Sorgun"
+        },
+        "proofs": {
+          "catalogue-tr-eight.raw": "bc5b9bd2bf081f3be170355f39b11f336fb5d5d550a18951704d737325f1fefe",
+          "local-tr-eight.raw": "cfad20d13051206fc806acfecac33aac20f7d3165632d8972ad68b5b33b642c9",
+          "official-identity-anchor.json": "8c41a3749f513afc6031c57f9758f60b9fe6d921f56d34ee0ef379e9e7f476c7",
+          "saved-passport.json": "915df740e81c28cbc98fe7d5f513a7c09cbe13f0ecb66f239ccc1a741720fa9a"
+        }
+      },
+      "binding_revision": "ba6585917f16fed8eb778d93f46b2fffaa0453b879a00a8646cfa64a2f2fa518",
+      "bundle_file": "anytour-2432-family-meal-rights.json",
+      "bundle_sha256": "8be2df789dd6374d55b6a622011ff4cedaf4923dca6e49f7ba7bc96e222519a7",
+      "status": "accepted",
+      "approval": {
+        "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
+        "common_version": 107,
+        "member": "hotel-knowledge-tr-cohort-20261025/jadore_deluxe/accepted-binding.json",
+        "scope": "Accepted typed Turkey research join and unchanged sealed saved records; scoped conditional published information only. No native MATCH write, current tariff, operation, model-use or natural/UI confirmation."
+      }
+    },
+    {
+      "source_identity": {
+        "adapter": "tourvisor-snapshot-v1",
+        "hotel": "111129",
+        "country": "4"
+      },
+      "accepted_source_names": [
+        "SIDE MOON PALACE HOTEL"
+      ],
+      "accepted_binding": {
+        "project_key": "anytour",
+        "research_hotel_key": "side_moon_palace",
+        "hotel_ref": {
+          "catalog": "anytour",
+          "id": 3742
+        },
+        "accepted_chain": [
+          {
+            "namespace": "legacy_catalog/catalog_hotels.id",
+            "id": 111129
+          },
+          {
+            "namespace": "anytour",
+            "id": 3742,
+            "catalog_revision": 1
+          },
+          {
+            "namespace": "local-tv",
+            "id": 111129,
+            "catalog_revision": 3
+          }
+        ],
+        "identity_anchor": {
+          "research_source_id": "side_moon_palace_s01",
+          "research_source_record_sha256": "d76b57829500c4e279baf93b51ce25b9c1767f1b3fb2a9592a8908aab2873fe3",
+          "official_url": "https://sidemoonpalace.com/tr",
+          "address": "Sorgun mahallesi, 8234 sokak, No: 3/2, 07600, Sorgun, 07600 Manavgat/Antalya, Турция",
+          "country": "Turkey",
+          "city": "Side / Sorgun"
+        },
+        "proofs": {
+          "catalogue-tr-eight.raw": "bc5b9bd2bf081f3be170355f39b11f336fb5d5d550a18951704d737325f1fefe",
+          "local-tr-eight.raw": "cfad20d13051206fc806acfecac33aac20f7d3165632d8972ad68b5b33b642c9",
+          "official-identity-anchor.json": "ef09f8e7204f688126fdb7c32c5f89c618c24fd96261f44f8b66d876adbcd110",
+          "saved-passport.json": "893d859984bece323924c8866c22d3f95888b494c37237c3ad1e761bad638c1e"
+        }
+      },
+      "binding_revision": "c6215832e1a1ab2125d108fa0913c702ae59d0b70055b00232b7307a99ceb5ff",
+      "bundle_file": "anytour-3742-family-meal-rights.json",
+      "bundle_sha256": "2b8679767ab52d42104681ce3485c3fc3594b229028e2a75466e6d308280b6bd",
+      "status": "accepted",
+      "approval": {
+        "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
+        "common_version": 107,
+        "member": "hotel-knowledge-tr-cohort-20261025/side_moon_palace/accepted-binding.json",
+        "scope": "Accepted typed Turkey research join and unchanged sealed saved records; scoped conditional published information only. No native MATCH write, current tariff, operation, model-use or natural/UI confirmation."
+      }
+    },
+    {
+      "source_identity": {
+        "adapter": "tourvisor-snapshot-v1",
+        "hotel": "111045",
+        "country": "4"
+      },
+      "accepted_source_names": [
+        "VOX MARIS RESORT ADULTS ONLY 16+"
+      ],
+      "accepted_binding": {
+        "project_key": "anytour",
+        "research_hotel_key": "vox_maris",
+        "hotel_ref": {
+          "catalog": "anytour",
+          "id": 3737
+        },
+        "accepted_chain": [
+          {
+            "namespace": "legacy_catalog/catalog_hotels.id",
+            "id": 111045
+          },
+          {
+            "namespace": "anytour",
+            "id": 3737,
+            "catalog_revision": 1
+          },
+          {
+            "namespace": "local-tv",
+            "id": 111045,
+            "catalog_revision": 3
+          }
+        ],
+        "identity_anchor": {
+          "research_source_id": "vox_maris_s01",
+          "research_source_record_sha256": "2344c5466d71a786e4be8e01f87d65c79c51d4b312b67317b9ed037a8cd7ad47",
+          "official_url": "https://voxmarisresort.com/",
+          "address": "Side, 508. Sk. No:1, 07330 Manavgat/Antalya, Турция",
+          "country": "Turkey",
+          "city": "Side / Manavgat"
+        },
+        "proofs": {
+          "catalogue-tr-eight.raw": "bc5b9bd2bf081f3be170355f39b11f336fb5d5d550a18951704d737325f1fefe",
+          "local-tr-eight.raw": "cfad20d13051206fc806acfecac33aac20f7d3165632d8972ad68b5b33b642c9",
+          "official-identity-anchor.json": "4e036badfb8f9d7fa9155efef77d569578dbf2b9a46f49b3dc9d08cd03b5cf28",
+          "saved-passport.json": "b929ff5f761716e362120ab1bfea37a059a070a3beab76fbf46e02888b365c00"
+        }
+      },
+      "binding_revision": "712467ef585d31864c83253cd2e50890308b3198f387b8d146a97d6666f3af95",
+      "bundle_file": "anytour-3737-age-rooms.json",
+      "bundle_sha256": "b3277a0e9297b51d156d900a320daa06019e31e623bfc3ef9b781e1c0f66e480",
+      "status": "accepted",
+      "approval": {
+        "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
+        "common_version": 107,
+        "member": "hotel-knowledge-tr-cohort-20261025/vox_maris/accepted-binding.json",
+        "scope": "Accepted typed Turkey research join and unchanged sealed saved records; scoped conditional published information only. No native MATCH write, current tariff, operation, model-use or natural/UI confirmation."
+      }
+    },
+    {
+      "source_identity": {
+        "adapter": "tourvisor-snapshot-v1",
+        "hotel": "1146",
+        "country": "4"
+      },
+      "accepted_source_names": [
+        "AKRA ANTALYA"
+      ],
+      "accepted_binding": {
+        "project_key": "anytour",
+        "research_hotel_key": "akra_antalya",
+        "hotel_ref": {
+          "catalog": "anytour",
+          "id": 516
+        },
+        "accepted_chain": [
+          {
+            "namespace": "legacy_catalog/catalog_hotels.id",
+            "id": 1146
+          },
+          {
+            "namespace": "anytour",
+            "id": 516,
+            "catalog_revision": 1
+          },
+          {
+            "namespace": "local-tv",
+            "id": 1146,
+            "catalog_revision": 3
+          }
+        ],
+        "identity_anchor": {
+          "research_source_id": "akra_antalya_v2_city_s07",
+          "research_source_record_sha256": "7a0a046686e067bef4fc1f49f11f6c00780b29c06babe20855db35a2bc4e9dc5",
+          "official_url": "https://www.akrahotels.com/en/offers/cop31-antalya-hotels/",
+          "address": "Lara Yolu Muratpaşa, 07100 Анталья, Турция",
+          "country": "Turkey",
+          "city": "Antalya / Muratpasa"
+        },
+        "proofs": {
+          "catalogue-tr-eight.raw": "bc5b9bd2bf081f3be170355f39b11f336fb5d5d550a18951704d737325f1fefe",
+          "local-tr-eight.raw": "cfad20d13051206fc806acfecac33aac20f7d3165632d8972ad68b5b33b642c9",
+          "official-identity-anchor.json": "84d7619c76cd26ac6e0d4f08d6c1391ed57887f6c4d2b94614f63db7635f8bd7",
+          "saved-passport.json": "f824f7aa9331c64edfb6017694f170a0d4c54dc4d5a87c899b2f1a4bc364d342"
+        }
+      },
+      "binding_revision": "06ad29d8c8643f285018601d23f958c811eb92af44ab9347405de183719d61b9",
+      "bundle_file": "anytour-516-access-meal-plans.json",
+      "bundle_sha256": "cf62301ddc79648cfc34c5e885652fd8483a6eb46ff0f76a5662a328d58197a3",
+      "status": "accepted",
+      "approval": {
+        "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
+        "common_version": 107,
+        "member": "hotel-knowledge-tr-cohort-20261025/akra_antalya/accepted-binding.json",
+        "scope": "Accepted typed Turkey research join and unchanged sealed saved records; scoped conditional published information only. No native MATCH write, current tariff, operation, model-use or natural/UI confirmation."
       }
     }
   ]

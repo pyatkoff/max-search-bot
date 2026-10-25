@@ -4,6 +4,7 @@ const fs=require('node:fs'),path=require('node:path');
 const root=path.resolve(__dirname,'../..'),sourceRoot=process.env.M2_QA_SOURCE_ROOT||root,origin='http://127.0.0.1:4173';
 const shell=execFileSync('php',['manager2/index.php'],{cwd:sourceRoot,encoding:'utf8'});
 const {startOAuthFixture}=require('./fixtures/oauth-consent');
+const {setupAiUsage}=require('./fixtures/manager-ai-usage');
 const proposal=(changes={})=>({ok:true,should_draft:true,draft:'Какие даты поездки вам удобны?',next_action:'clarify',reason:'В запросе не указаны даты вылета.',checks:[],evidence_message_ids:[35],history_incomplete:false,revision:'1'.repeat(64),latest_message_id:35,draft_id:'d'.repeat(32),...changes});
 const prepared=(changes={})=>proposal({prepared:true,prepared_at:'2026-10-19T10:30:00Z',source:'chatgpt',draft_id:null,...changes});
 // Render the actual PHP shell and canonical assets. Every identity, message,
@@ -291,10 +292,27 @@ for(const viewport of [{width:390,height:844},{width:430,height:844},{width:768,
 });
 
 for(const viewport of [{width:390,height:844},{width:430,height:844},{width:768,height:844},{width:1440,height:844},{width:390,height:420}])test('Owner AI opens a waiting client before take and preserves draft '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
-  await page.setViewportSize(viewport);const state=await setup(page,{owner:true,ownerState:'waiting_manager'});await page.evaluate(()=>WorkspaceV2Conversation.open(12));await page.locator('#replyText').fill('Мой ответ другому клиенту');await page.locator('#replyFile').setInputFiles({name:'owner-file.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic owner File')});
-  await page.evaluate(()=>WorkspaceV2Conversation.open(11));await page.getByRole('button',{name:'AI · Просмотр',exact:true}).click();await expect(page.locator('#aiDraftPanel')).toBeVisible();await expect(page.locator('#aiDraftStatus')).toContainText('Режим владельца');await expect(page.locator('#aiDraftInsert')).toBeHidden();await expect(page.locator('#composer')).toBeHidden();
+  // Follow the real Inbox/Back path and await the selected client's visible state.
+  const openClient=async(id,name)=>{if(await page.locator('#mobileBack').isVisible()){await page.locator('#mobileBack').click();await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-mobile-screen','inbox')}await page.locator(`#inboxList [data-conversation-id="${id}"] .m2RowOpen`).click();await expect(page.locator('#conversationTitle')).toHaveText(name)};
+  await page.setViewportSize(viewport);const state=await setup(page,{owner:true,ownerState:'waiting_manager'});await openClient(12,'Алексей Иванов');await expect(page.locator('#replyText')).toBeEnabled();await page.locator('#replyText').fill('Мой ответ другому клиенту');await page.locator('#replyFile').setInputFiles({name:'owner-file.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic owner File')});
+  await openClient(11,'Анна Морозова');await page.getByRole('button',{name:'AI · Просмотр',exact:true}).click();await expect(page.locator('#aiDraftPanel')).toBeVisible();await expect(page.locator('#aiDraftStatus')).toContainText('Режим владельца');await expect(page.locator('#aiDraftInsert')).toBeHidden();await expect(page.locator('#composer')).toBeHidden();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);const box=await page.locator('#aiDraftPanel').boundingBox();expect(box.x).toBeGreaterThanOrEqual(0);expect(box.x+box.width).toBeLessThanOrEqual(viewport.width+1);expect(box.y+box.height).toBeLessThanOrEqual(viewport.height+1);const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});await page.screenshot({animations:'disabled',path:path.join(directory,'owner-ai-'+browserName+'-'+viewport.width+'-'+viewport.height+'.png')});
-  await page.locator('#aiDraftRetry').click();await expect.poll(()=>state.aiCalls().filter(c=>c.action==='generate').length).toBe(1);await page.locator('#aiDraftPanel .aiDraftClose').click();await page.evaluate(()=>WorkspaceV2Conversation.open(12));await expect(page.locator('#replyText')).toHaveValue('Мой ответ другому клиенту');await expect(page.locator('#mediaSelection')).toContainText('owner-file.txt');expect(state.aiCalls().filter(c=>c.action==='validate')).toEqual([]);clean(state);
+  await page.locator('#aiDraftRetry').click();await expect.poll(()=>state.aiCalls().filter(c=>c.action==='generate').length).toBe(1);await page.locator('#aiDraftPanel .aiDraftClose').click();await openClient(12,'Алексей Иванов');await expect(page.locator('#replyText')).toBeEnabled();await expect(page.locator('#replyText')).toHaveValue('Мой ответ другому клиенту');await expect(page.locator('#mediaSelection')).toContainText('owner-file.txt');expect(state.aiCalls().filter(c=>c.action==='validate')).toEqual([]);clean(state);
+});
+for(const viewport of [{width:390,height:844},{width:1440,height:900}])test('AI usage distinguishes base-rule editions without replay or review '+viewport.width,async({page,browserName})=>{
+  await page.setViewportSize(viewport);const state=await setupAiUsage(page);
+  try{
+    const cases=page.locator('#usageCases .usageCase');await expect(cases).toHaveCount(20);await expect(page.locator('#usageStatus')).toHaveText('Готово.');
+    const current=cases.nth(0).locator('.usageProvenance'),previous=cases.nth(1).locator('.usageProvenance'),preparedPreview=cases.nth(2).locator('.usageProvenance');
+    await expect(current).toContainText('Общие правила: текущая редакция');await expect(current).toContainText('Черновик сохранён:');
+    await expect(previous).toContainText('Общие правила: прежняя редакция');
+    await expect(preparedPreview).toContainText('Первый просмотр готового ответа:');await expect(preparedPreview).not.toContainText('Черновик сохранён:');
+    await expect(preparedPreview).toHaveAttribute('title',/не время его подготовки/);await expect(current).toHaveAttribute('title',/не подтверждает модель/);
+    await expect(cases.nth(0).locator('.usageCaseHeader')).toContainText('Отправлено');
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+    const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});await page.screenshot({animations:'disabled',path:path.join(directory,'ai-usage-base-rules-'+browserName+'-'+viewport.width+'.png')});
+    expect(state.calls.map(c=>c.action)).toEqual(['identity','list']);expect(state.errors).toEqual([]);expect(state.unexpected).toEqual([]);
+  }finally{await state.cleanup()}
 });
 // Keep the report's case locations in the audited, existing spec inventory.
 (function supervisorAnalyticsCases(){

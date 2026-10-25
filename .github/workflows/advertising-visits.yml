@@ -6,6 +6,7 @@ on:
       - migrations/063_advertising_visits.sql
       - tests/run_advertising_visits_regression.php
       - tests/mysql/advertising-visits.php
+      - tools/advertising_visits.php
       - .github/workflows/advertising-visits.yml
 permissions:
   contents: read

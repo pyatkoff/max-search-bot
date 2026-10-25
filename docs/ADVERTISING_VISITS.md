@@ -3,8 +3,8 @@
 Owner direction, 25 October 2026: model future tour purchases from current signals;
 preserve all available observations while keeping export cutoffs configurable.
 Telegram and MAX collection, conversations and Yandex integrations live on
-different servers. This slice supplies the private receiving store and page
-contract. It does not activate a producer, HTTP endpoint, background import,
+different servers. This slice supplies the private receiving store, page contract
+and manual-journal reader. It does not activate an HTTP endpoint, background import,
 prediction, Metrika goal or advertising strategy.
 
 ## Confirmed source boundary
@@ -81,13 +81,50 @@ page. Both commands require explicit `--project_key`, `--source_key`, `--platfor
 `--counter_id` arguments. Output contains aggregates only; failures do not print
 payloads, private IDs, SQL, credentials or source JSON. HTTP execution returns404.
 
+## Mini App manual journal
+
+Capture package `anytour-tgmini-20261025-1` is based on the supplied files;
+installed bytes and a live pass are still unverified. It writes
+`entries-v1.jsonl` outside the document root before invitation/subscription.
+Its envelope has exactly `schema_version`, the four scope fields and
+`observation`, following the row contract above. A source cursor is the row's
+byte offset plus one. Entry IDs are stable across journal transport retries;
+a new save request creates another entry. ClientID stays empty if the existing
+2.5-second API/cookie wait expires; late enrichment is not yet implemented.
+Telegram verification uses its production Ed25519 key, fresh auth_date and
+sodium. Unverified IDs remain explicit. Legacy bot_start fallback may supply
+metadata from a previous /start within a day, not proof of a new advertising click.
+
+The existing CLI also accepts `journal-validate` and `journal-import`, with the
+same four explicit scope arguments plus `--journal=/absolute/private/file`.
+Validation checks the first bounded page without runtime bootstrap or SQL.
+Import verifies the active project and resumes from the database checkpoint;
+no caller-supplied offset can skip data. Each invocation reads up to 100 rows under
+a shared source-file lock and imports one atomic page. Aggregate output includes
+`has_more`; invoke again while true. A completed-file retry adds no observations.
+
+Only a regular local file with no group/world permissions is accepted. Limits
+are 512 MiB per file, 4096 bytes per line, 100 rows and 262144 encoded bytes per page.
+Every byte offset, scope and row is checked before the page writes anything.
+Resume compares the last committed observation's fingerprint to the copied file.
+Changed/truncated anchors, unterminated records, wrong scope and unknown fields
+fail closed; source data and checkpoint remain coupled by the existing database
+transaction. Concurrent importers cannot append stale overlapping pages.
+
+Copy the journal through an authenticated access-controlled channel into private
+storage and preserve mode 0600. This CLI does not authenticate a sender: a local
+JSON assertion alone cannot prove that Telegram verified an identity. There is
+no public feed, automatic copy, cron, source credential/config change, goal
+emission or bot-handler wiring here. Manual PHP upload and real
+Telegram/Bitrix/writability checks remain pending.
+
 ## Following implementation
 
-1. Locate the actual Mini App runtime and confirm its installed source. Reuse
-   existing subscription export; preserve the current channel-opening path.
-2. Verify initData, save every entry before subscription, use documented Metrika
-   getClientID and append later enrichment with the original visit identity.
-3. Add a bounded authenticated feed and client using the existing signed
+1. Confirm the uploaded Mini App package, private writable storage, signature
+   status, ClientID and the existing channel-opening path on its actual runtime.
+2. Add late ClientID enrichment with its original visit identity if required,
+   without creating another invitation or double-counting a save request.
+3. Add an authenticated feed/client or verified private copy using the existing signed
    server-to-server pattern, persist source progress and reconcile failures.
 4. Connect Telegram events behind the existing goal owners; repair only the
    already evidenced handoff/customer-reply gaps with behavior regressions.

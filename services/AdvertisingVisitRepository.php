@@ -8,6 +8,20 @@ final class AdvertisingVisitRepository
     private PDO $pdo;
     public function __construct(PDO $pdo) { $this->pdo = $pdo; }
 
+    /** Read-only resume token anchored to the last committed observation. */
+    public function checkpoint(array $scope): array
+    {
+        $scope = AdvertisingVisitContract::scope($scope);
+        $q = $this->pdo->prepare('SELECT c.last_cursor,o.payload_sha256 FROM advertising_visit_cursors c LEFT JOIN advertising_visit_observations o ON o.project_key=c.project_key AND o.source_key=c.source_key AND o.platform=c.platform AND o.counter_id=c.counter_id AND o.source_cursor=c.last_cursor WHERE c.project_key=? AND c.source_key=? AND c.platform=? AND c.counter_id=? LIMIT 1');
+        $q->execute(array_values($scope));
+        $row = $q->fetch(PDO::FETCH_ASSOC);
+        if (!$row || $row['last_cursor'] === '0') return ['cursor'=>'0','fingerprint'=>null];
+        if (!is_string($row['payload_sha256']) || !preg_match('/\A[a-f0-9]{64}\z/D', $row['payload_sha256'])) {
+            throw new RuntimeException('advertising_visit_checkpoint_missing_observation');
+        }
+        return ['cursor'=>(string)$row['last_cursor'],'fingerprint'=>$row['payload_sha256']];
+    }
+
     /** A feed checkpoint and its complete observation page commit together. */
     public function importPage(array $page, int $receivedAt): array
     {

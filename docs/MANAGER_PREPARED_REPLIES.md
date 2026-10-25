@@ -73,8 +73,15 @@ not deleted or repurposed. Compare-and-set still prevents a slower pass rewindin
 progress. Neither one pass nor aggregate counters promise complete coverage.
 
 Migration062 adds a nullable private customer-input digest and lookup index to
-the existing work table. No transcript is copied and old ready rows are not
-backfilled or rewritten. The digest binds the latest genuine customer's ID, text,
+the existing work table. No transcript is copied and there is no blanket migration
+backfill. A legacy ready row with a null digest may learn that auxiliary lookup
+hint only after a fresh canonical snapshot exactly matches its original context,
+latest-message and instruction revisions, its saved proposal validates byte-for-byte,
+and current source/input/owner checks still match. No proposal, provenance, status,
+prepared timestamp or preview expiry changes. Unknown or changed legacy evidence
+never gets a guessed digest from a message ID or age. The first verified scheduled
+pass may still capture that context; later passes skip it before reading history,
+including after preview TTL expiry. The digest binds the latest genuine customer's ID, text,
 timestamp, channel and attachment/event metadata, separately from full context
 and instruction revisions. An unchanged completed decision, including no-contact
 and human-check results, remains handled after its one-hour preview TTL or a
@@ -358,4 +365,5 @@ callbacks immediately. Existing source messages and assignments remain unchanged
 Official references: [MCP Events](https://developers.openai.com/plugins/build/mcp-events),
 [OAuth](https://developers.openai.com/plugins/build/auth),
 [custom MCP connection](https://developers.openai.com/plugins/quickstart).
+
 

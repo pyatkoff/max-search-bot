@@ -206,6 +206,21 @@ try{
         startCheck('fresh explicit start queues regardless of old delivery evidence: '.json_encode($latest),count(ManagerHandoffDispatchService::$calls),$calls+1);
     }
 
+    // Exercise the actual unchanged handler caller, not just the URL codec.
+    $ctx=static fn(string $offer):string=>rtrim(strtr(base64_encode(json_encode(['post_id'=>'55','offer_id'=>$offer],JSON_UNESCAPED_SLASHES)),'+/','-_'),'=');
+    foreach (['Alma:January_BB','Alma:February_AI'] as $offer) {
+        $payload='1234567890123456_region_213_campaign_42_ctx1_'.$ctx($offer);
+        fixtureStart(990100,$payload);
+        $saved=MaxSearchApi::getTrafficMeta(-990100);
+        startCheck('real handler persists current exact offer: '.$offer,[$saved['post_id']??null,$saved['offer_id']??null],['55',$offer]);
+        $greeting=MaxSearchApi::$greetings[count(MaxSearchApi::$greetings)-1];
+        startCheck('real handler passes exact context to original renderer: '.$offer,[$greeting['meta']['post_id']??null,$greeting['meta']['offer_id']??null],['55',$offer]);
+    }
+    fixtureStart(990101,'9876543210123456_region_39_campaign_43_ctx1_'.$ctx('Alma:OtherUser'));
+    startCheck('real handler keeps distinct user contexts',MaxSearchApi::getTrafficMeta(-990100)['offer_id']??null,'Alma:February_AI');
+    fixtureStart(990100,'');
+    startCheck('real ordinary restart clears previous offer hint',isset(MaxSearchApi::getTrafficMeta(-990100)['post_id']),false);
+
     $before=count(MaxSearchApi::$greetings);$pdo->exec('DROP TABLE customers');
     fixtureStart(990007);
     startCheck('known manager source fails closed on recorder failure',count(MaxSearchApi::$greetings),$before);

@@ -150,6 +150,97 @@ function advertisingVisitAssertions(PDO $pdo, callable $check): void
     for ($i=1;$i<=100;$i++) $rows[] = advertisingVisitRow((string)$i,['visit_id'=>'full-'.$i]);
     $r = $full->import(advertisingVisitPage($rows,'0',null,['source_key'=>'full-page']),$now);
     $check('a full hundred-observation page commits correctly', $r === ['inserted'=>100,'replayed'=>0,'cursor'=>'100']);
+    advertisingVisitJournalAssertions($pdo, $check, $now);
+}
+
+/** Exact envelope and byte-offset cursors of the delivered Mini App package. */
+function advertisingVisitJournalFixture(array $scope, int $count): string
+{
+    $text = '';
+    for ($i=0;$i<$count;$i++) {
+        $changes = ['visit_id'=>'journal-'.$i];
+        if ($i===0) $changes += ['identity_status'=>'missing','external_user_id'=>'','client_id'=>''];
+        if ($i===1) $changes += ['identity_status'=>'unverified'];
+        $row = advertisingVisitRow((string)(strlen($text)+1), $changes);
+        $text .= json_encode(['schema_version'=>1]+$scope+['observation'=>$row],JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES)."\n";
+    }
+    return $text;
+}
+
+function advertisingVisitJournalAssertions(PDO $pdo, callable $check, int $now): void
+{
+    $scope = advertisingVisitScope(['source_key'=>'journal']);
+    $repo = new AdvertisingVisitRepository($pdo);
+    $service = new AdvertisingVisitImportService($repo,$scope);
+    $file = tempnam(sys_get_temp_dir(),'advertising-journal-');
+    if ($file === false) throw new RuntimeException('journal_fixture_failed');
+    chmod($file,0600);
+    $reject = static function(callable $call, string $expected, string $name) use ($check): void {
+        try { $call(); $check($name,false); }
+        catch (Throwable $e) { $check($name,$e->getMessage()===$expected); }
+    };
+    $initial = ['cursor'=>'0','fingerprint'=>null];
+    try {
+        $check('new journal checkpoint is read without creating observations', $repo->checkpoint($scope)===$initial);
+        file_put_contents($file,'');
+        $read=AdvertisingVisitJournalReader::read($file,$scope,$initial,$now);
+        $check('empty journal has an empty page and no invented identity', $read['page']['observations']===[] && !$read['has_more']);
+        $text=advertisingVisitJournalFixture($scope,101);
+        file_put_contents($file,$text);
+        $read=AdvertisingVisitJournalReader::read($file,$scope,$initial,$now);
+        $check('journal pagination bounds the first page at one hundred', count($read['page']['observations'])===100 && $read['has_more']);
+        $check('journal byte cursors remain strings', is_string($read['page']['next_cursor']) && $read['page']['observations'][0]['source_cursor']==='1');
+        $check('journal preserves missing and unverified identities', $read['page']['observations'][0]['identity_status']==='missing' && $read['page']['observations'][1]['identity_status']==='unverified');
+        $first=$service->importJournal($file,$now);
+        $check('journal imports its page and commits its cursor', $first['inserted']===100 && $first['has_more'] && $first['cursor']===$read['page']['next_cursor']);
+        $checkpoint=$repo->checkpoint($scope);
+        $check('checkpoint anchors the committed last-row fingerprint', $checkpoint['cursor']===$first['cursor'] && $checkpoint['fingerprint']===AdvertisingVisitContract::fingerprint($read['page']['observations'][99]));
+        $second=$service->importJournal($file,$now);
+        $check('journal resumes exactly after the committed observation', $second['inserted']===1 && !$second['has_more'] && AdvertisingVisitContract::compare($second['cursor'],$first['cursor'])>0);
+        $last=$repo->checkpoint($scope);
+        $again=$service->importJournal($file,$now);
+        $check('completed journal retry creates no duplicate observations', $again===['inserted'=>0,'replayed'=>0,'cursor'=>$second['cursor'],'has_more'=>false]);
+        $history=$repo->verifiedHistory($scope,'18446744073709551615',100);
+        $check('journal cannot promote unverified IDs into matching history', count($history)===99 && $history[0]['client_id']==='17929400001234567890');
+        $offset=(int)$last['cursor']-1;
+        $changed=substr($text,0,$offset).str_replace('17929400001234567890','17929400001234567891',substr($text,$offset));
+        file_put_contents($file,$changed);
+        $reject(static fn()=>$service->importJournal($file,$now),'advertising_visit_journal_anchor_changed','changed committed anchor is rejected before import');
+        $check('anchor failure preserves the receiving checkpoint', $repo->checkpoint($scope)===$last);
+        file_put_contents($file,substr($text,0,$offset));
+        $reject(static fn()=>$service->importJournal($file,$now),'advertising_visit_journal_checkpoint','truncated journal cannot jump to its checkpoint');
+        file_put_contents($file,$text);
+        $huge=['cursor'=>'18446744073709551615','fingerprint'=>str_repeat('a',64)];
+        $reject(static fn()=>AdvertisingVisitJournalReader::read($file,$scope,$huge,$now),'advertising_visit_journal_checkpoint','journal byte offsets cannot overflow integers');
+        $bad=['cursor'=>'2','fingerprint'=>str_repeat('a',64)];
+        $reject(static fn()=>AdvertisingVisitJournalReader::read($file,$scope,$bad,$now),'advertising_visit_journal_checkpoint','resume requires a record boundary');
+        $lock=fopen($file,'rb');flock($lock,LOCK_EX);
+        $reject(static fn()=>AdvertisingVisitJournalReader::read($file,$scope,$initial,$now),'advertising_visit_journal_busy','concurrent writer cannot expose partial rows');
+        flock($lock,LOCK_UN);fclose($lock);
+        chmod($file,0644);
+        $reject(static fn()=>AdvertisingVisitJournalReader::read($file,$scope,$initial,$now),'advertising_visit_journal_file','publicly readable copied journals are rejected');
+        chmod($file,0600);
+        $reject(static fn()=>AdvertisingVisitJournalReader::read('php://input',$scope,$initial,$now),'advertising_visit_journal_file','journal input cannot be a stream wrapper');
+        $foreign=advertisingVisitScope(['source_key'=>'foreign-journal']);
+        $reject(static fn()=>AdvertisingVisitJournalReader::read($file,$foreign,$initial,$now),'advertising_visit_journal_scope','journal cannot cross source scope');
+        $damaged=advertisingVisitScope(['source_key'=>'damaged-journal']);
+        $damagedService=new AdvertisingVisitImportService($repo,$damaged);
+        $two=advertisingVisitJournalFixture($damaged,2);
+        file_put_contents($file,substr($two,0,-1));
+        $reject(static fn()=>$damagedService->importJournal($file,$now),'advertising_visit_journal_incomplete','unterminated later row rejects the complete page');
+        $check('invalid journal page writes no rows or checkpoint', $repo->checkpoint($damaged)===$initial && $repo->verifiedHistory($damaged,'18446744073709551615')===[]);
+        $one=advertisingVisitJournalFixture($scope,1);
+        $record=json_decode($one,true);$record['observation']['source_cursor']='2';
+        file_put_contents($file,json_encode($record)."\n");
+        $reject(static fn()=>AdvertisingVisitJournalReader::read($file,$scope,$initial,$now),'advertising_visit_journal_offset','stored cursor must equal physical row offset');
+        $record=json_decode($one,true);$record['initData']='must-not-enter';
+        file_put_contents($file,json_encode($record)."\n");
+        $reject(static fn()=>AdvertisingVisitJournalReader::read($file,$scope,$initial,$now),'advertising_visit_journal_record','unknown envelope fields cannot enter storage');
+        file_put_contents($file,str_repeat('x',4097)."\n");
+        $reject(static fn()=>AdvertisingVisitJournalReader::read($file,$scope,$initial,$now),'advertising_visit_journal_incomplete','journal lines are bounded before JSON decoding');
+        file_put_contents($file,"{bad json}\n");
+        $reject(static fn()=>AdvertisingVisitJournalReader::read($file,$scope,$initial,$now),'advertising_visit_journal_record','invalid JSON fails without exposing source text');
+    } finally { @unlink($file); }
 }
 
 if (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) {
@@ -171,5 +262,23 @@ if (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) {
     $decoded=json_decode($out,true);
     if ($code!==0 || $error!=='' || $decoded!==['status'=>'validated','observations'=>1,'database_writes'=>false] || str_contains($out,'184467')) throw new RuntimeException('cli_validation_boundary_failed');
     echo 'PASS CLI validates without database configuration or private IDs in output'.PHP_EOL;
-    echo 'ADVERTISING VISITS REGRESSION PASSED '.($passed+1).PHP_EOL;
+    $file=tempnam(sys_get_temp_dir(),'advertising-journal-cli-');
+    if($file===false)throw new RuntimeException('cli_journal_fixture_failed');
+    try {
+        chmod($file,0600);file_put_contents($file,advertisingVisitJournalFixture($scope,1));
+        $args[2]='journal-validate';$args[]='--journal='.$file;
+        $p=proc_open($args,[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes);
+        if(!is_resource($p))throw new RuntimeException('cli_journal_fixture_failed');
+        fclose($pipes[0]);$out=stream_get_contents($pipes[1]);$error=stream_get_contents($pipes[2]);fclose($pipes[1]);fclose($pipes[2]);$code=proc_close($p);
+        $decoded=json_decode($out,true);
+        if($code!==0||$error!==''||$decoded!==['status'=>'validated','observations'=>1,'database_writes'=>false,'cursor'=>'1','has_more'=>false]||str_contains($out,'184467')||str_contains($out,$file))throw new RuntimeException('cli_journal_validation_boundary_failed');
+        echo 'PASS CLI journal validation needs no bootstrap and reveals no private data'.PHP_EOL;
+        file_put_contents($file,"{bad json}\n");
+        $p=proc_open($args,[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes);
+        if(!is_resource($p))throw new RuntimeException('cli_journal_fixture_failed');
+        fclose($pipes[0]);$out=stream_get_contents($pipes[1]);$error=stream_get_contents($pipes[2]);fclose($pipes[1]);fclose($pipes[2]);$code=proc_close($p);
+        if($code!==1||$out!==''||json_decode($error,true)!==['status'=>'failed','error'=>'advertising_visit_journal_record']||str_contains($error,$file))throw new RuntimeException('cli_journal_error_boundary_failed');
+        echo 'PASS CLI journal errors reveal only a fixed enum'.PHP_EOL;
+    } finally { @unlink($file); }
+    echo 'ADVERTISING VISITS REGRESSION PASSED '.($passed+3).PHP_EOL;
 }
