@@ -590,7 +590,7 @@ for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,
  await page.locator('#tsInterestPanel h3').scrollIntoViewIfNeeded();expect(await page.locator('#tourSelectionDialog').evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThanOrEqual(1);
  await expect(page.locator('#tsClose')).toBeInViewport();await expect(page.locator('#tsDone')).toBeInViewport();
  await variants.first().locator('h4').evaluate(el=>el.scrollIntoView({block:'start'}));
- fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-interest-${browserName}-${viewport.width}x${viewport.height}.png`)});
+ fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-selection-interest-${browserName}-${viewport.width}x${viewport.height}.png`)});
  for(const [i,index]of [1,2].entries()){
   await variants.nth(i).getByRole('button',{name:'Показать карточку варианта '+(index+1),exact:true}).click();
   await expect(page.locator('.tsPreviewCard[data-ts-card="'+index+'"] .tsCardTitle')).toBeInViewport();
@@ -1001,7 +1001,7 @@ for(const width of [390,430,768,1440])test('automatic gallery editor is ready wi
  await page.locator('.tsAutomaticPhotos').evaluate(el=>el.scrollIntoView({block:'start'}));await expect.poll(()=>page.locator('.tsAutomaticPhotos img').evaluateAll(xs=>xs.every(x=>x.complete&&x.naturalWidth>0))).toBe(true);
  expect(await page.locator('.tsPhotoReplace').evaluateAll(xs=>xs.every(x=>!x.open))).toBe(true);expect(await page.locator('body').evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({path:path.join(root,'manager2-artifacts',`tour-selection-auto-photos-${browserName}-${width}.png`)});
- await page.locator('#tsPreview').click();await expect(page.locator('.tsPhotos img')).toHaveCount(3);await expect(page.locator('.tsCardText')).toContainText('Фотографии отеля.');expect(s.photoUploads).toHaveLength(0);expect(s.creations()).toBe(0);clean(s,deliveryActions);
+ await page.locator('#tsPreview').click();await expect(page.locator('.tsPhotos img')).toHaveCount(3);await expect(page.locator('.tsCardText')).toContainText('Фотографии отеля.');await expect(page.locator('#tsSend')).toBeEnabled();expect(s.photoUploads).toHaveLength(0);expect(s.creations()).toBe(0);clean(s,deliveryActions);
 });
 for(const channel of ['telegram','max'])for(const count of [1,2,3])test('automatic gallery '+channel+' preview uses '+count+' actual photos',async({page,browserName})=>{
  await page.setViewportSize({width:390,height:900});const draft=automaticPhotoDraft(count),s=await fixture(page,{draft,channel});await page.evaluate(c=>{WorkspaceV2.S.detail.conversation.channel=c},channel);await open(page);await page.locator('#tsPreview').click();await expect(page.locator('.tsPhotos img')).toHaveCount(count);await expect(page.locator('#tsSend')).toBeEnabled();await expect(page.locator('.tsCardText')).toContainText('Интерьер выбранного номера может отличаться');await expect(page.locator('.tsPhotos')).toHaveClass(new RegExp('tsPhotoCount'+count));
