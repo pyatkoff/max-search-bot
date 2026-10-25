@@ -36,6 +36,14 @@ try {
     checkHosting($detail['vhosts'][0]['tls_configured']===true,'configuration not TLS proof');
     checkHosting(!$detail['dns_checked']&&!$detail['tls_checked'],'offline detail never invents network proof');
     checkHosting(!str_contains(json_encode($detail),'SYNTHETIC_BODY_MUST_STAY_UNREAD'),'no page body export');
+    file_put_contents($dir.'/www/d.anytoour.ru/README.md',"# Synthetic constructor\nPRIVATE_TOKEN=DO_NOT_EXPORT\n");
+    file_put_contents($dir.'/www/d.anytoour.ru/pyproject.toml',"[project]\nname = 'synthetic-selection'\nversion = '0.1.0'\ndependencies = ['fastapi', 'uvicorn']\n");
+    mkdir($dir.'/www/d.anytoour.ru/src');file_put_contents($dir.'/www/d.anytoour.ru/src/app.py','DO_NOT_EXECUTE');
+    $identity=selectionHostingProjectIdentity($dir.'/www/d.anytoour.ru');
+    checkHosting($identity['package_name']==='synthetic-selection'&&$identity['package_version']==='0.1.0','TOML identity');
+    checkHosting($identity['frameworks']===['fastapi','uvicorn'],'known framework names only');
+    checkHosting($identity['source_files']===['app.py'],'source filenames only');
+    checkHosting(!str_contains(json_encode($identity),'DO_NOT_EXPORT')&&!str_contains(json_encode($identity),'DO_NOT_EXECUTE'),'no file body or execution');
     echo 'HOSTING INVENTORY: '.$n." PASS\n";
 } finally {
     $it=new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir,FilesystemIterator::SKIP_DOTS),RecursiveIteratorIterator::CHILD_FIRST);

@@ -83,7 +83,41 @@ function selectionHostingDetail(string $webRoot,array $vhostDirectories,bool $ne
     return $result;
 }
 
+/** Recognize an existing project without importing it or exporting file bodies. */
+function selectionHostingProjectIdentity(string $root):array {
+    $result=['schema'=>1,'ok'=>true,'domain'=>'d.anytoour.ru','configuration_changed'=>false,
+        'readme_heading'=>null,'package_name'=>null,'package_version'=>null,'frameworks'=>[],'source_files'=>[]];
+    foreach (['README.md','pyproject.toml'] as $name) {
+        $file=$root.'/'.$name;if (!is_file($file)||is_link($file)||!is_readable($file)||filesize($file)>32768) continue;
+        $text=file_get_contents($file);if ($text===false) continue;
+        if ($name==='README.md'&&preg_match('/^#\s+([^\r\n]{1,160})/m',$text,$m)) $result['readme_heading']=$m[1];
+        if ($name==='pyproject.toml') {
+            if (preg_match('/^name\s*=\s*[\"\']([a-zA-Z0-9_.-]{1,80})[\"\']/m',$text,$m)) $result['package_name']=$m[1];
+            if (preg_match('/^version\s*=\s*[\"\']([a-zA-Z0-9_.-]{1,40})[\"\']/m',$text,$m)) $result['package_version']=$m[1];
+            foreach (['fastapi','flask','django','uvicorn','pydantic','starlette','httpx','sqlite','sqlalchemy'] as $framework) {
+                if (stripos($text,$framework)!==false) $result['frameworks'][]=$framework;
+            }
+        }
+    }
+    $src=$root.'/src';
+    if (is_dir($src)&&!is_link($src)) {
+        $it=new RecursiveIteratorIterator(new RecursiveDirectoryIterator($src,FilesystemIterator::SKIP_DOTS));
+        $it->setMaxDepth(2);
+        foreach ($it as $file) {
+            if (count($result['source_files'])>=64) break;
+            $relative=substr($file->getPathname(),strlen($src)+1);
+            if (!$file->isLink()&&$file->isFile()&&preg_match('/\A[a-zA-Z0-9_\/-]+\.(?:py|html|css|js)\z/D',$relative)) $result['source_files'][]=$relative;
+        }
+        sort($result['source_files']);
+    }
+    return $result;
+}
+
 if (!defined('ANYTOUR_SELECTION_HOSTING_INVENTORY_LIBRARY')) {
+    if (in_array('--project-identity',$argv??[],true)) {
+        echo json_encode(selectionHostingProjectIdentity('/var/www/anytoour/data/www/d.anytoour.ru'),JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR).PHP_EOL;
+        exit;
+    }
     if (in_array('--host-detail',$argv??[],true)) {
         echo json_encode(selectionHostingDetail('/var/www/anytoour/data/www',
             ['/etc/nginx/vhosts/anytoour','/etc/apache2/vhosts/anytoour','/etc/httpd/conf/vhosts/anytoour'],true),JSON_THROW_ON_ERROR).PHP_EOL;
