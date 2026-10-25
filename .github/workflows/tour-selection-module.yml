@@ -1,0 +1,55 @@
+name: Tour selection public module
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'modules/tour-selections/**'
+      - 'selection/**'
+      - 'services/ManagerTourSelection*.php'
+      - 'services/TourSelection*.php'
+      - 'services/TourChoiceService.php'
+      - '.github/workflows/tour-selection-module.yml'
+  push:
+    branches: [main, 'selection-preview/**']
+    paths:
+      - 'modules/tour-selections/**'
+      - 'selection/**'
+      - 'services/ManagerTourSelection*.php'
+      - 'services/TourSelection*.php'
+      - 'services/TourChoiceService.php'
+      - '.github/workflows/tour-selection-module.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: selection-module-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/selection-preview/') }}
+
+jobs:
+  module:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: Verify independent package and read-only inventory boundaries
+        run: |
+          python3 -m unittest discover -s modules/tour-selections/tests -p test_package.py -v
+          php modules/tour-selections/tests/test_hosting_inventory.php
+      - name: Build exact public presentation and synthetic preview
+        run: |
+          python3 modules/tour-selections/build.py build --output "$RUNNER_TEMP/selection-public"
+          python3 modules/tour-selections/build.py verify --output "$RUNNER_TEMP/selection-public"
+          node --check "$RUNNER_TEMP/selection-public/payload/activity.js"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: selection-public-${{ github.sha }}
+          path: ${{ runner.temp }}/selection-public
+          if-no-files-found: error
+          retention-days: 14

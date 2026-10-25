@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "name": "anytour-selection-public",
+  "version": "0.1.0",
+  "contract": "selection-php-view-v1",
+  "files": {
+    "view.php": "selection/view.php",
+    "selection.css": "selection/selection.css",
+    "activity.js": "selection/activity.js"
+  },
+  "backend_inputs": [
+    "selection/index.php",
+    "selection/activity.php",
+    "selection/photo.php",
+    "services/ManagerTourSelectionShareService.php",
+    "services/ManagerTourSelectionInterestService.php",
+    "services/TourSelectionBotEntryService.php",
+    "services/TourSelectionPhotoStore.php",
+    "services/ManagerTourSelectionPublicationDraft.php",
+    "services/ManagerTourSelectionDeliveryService.php",
+    "services/ManagerTourSelectionService.php",
+    "services/TourChoiceService.php"
+  ]
+}
