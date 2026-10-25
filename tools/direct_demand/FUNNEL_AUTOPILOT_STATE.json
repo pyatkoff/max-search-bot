@@ -1,6 +1,6 @@
 {
   "schema": "anytour.funnel.autopilot_state.v1",
-  "updated_at_utc": "2026-10-25T09:34:42.947Z",
+  "updated_at_utc": "2026-10-25T09:35:15.863Z",
   "owner": "direct-demand-funnel",
   "automation": {
     "id": "6ada8f0084888191b12c6619c12fb35c",
@@ -3002,7 +3002,8 @@
     "crystal_prestige_identity": "Saved claim top500_6571cf8381e22724_run04_c05 says the short Crystal Prestige name has only research-level association with Prestige Elite. This candidate was explicitly skipped; no property post or ID assigned.",
     "telegram_history": "Only 16 saved business snapshots read in the indexed material; full Telegram history unavailable. Prior web-reader failure is historical and superseded by saved native snapshots.",
     "max_history": "Native MAX history index complete at 610 business posts; individual full-media/property verification is incomplete. Prior web login limitation is historical, not a blocker on saved text preparation.",
-    "media_asr": "Automatic approval review rejected continuing local ASR because the environment initiated a Microsoft telemetry-domain request with unknown payload. No user authorization for this egress. Do not rerun or bypass; six persisted results retained, two speech records unresolved. No claim of zero prior network transfer."
+    "media_asr": "Automatic approval review rejected continuing local ASR because the environment initiated a Microsoft telemetry-domain request with unknown payload. No user authorization for this egress. Do not rerun or bypass; six persisted results retained, two speech records unresolved. No claim of zero prior network transfer.",
+    "coordination": "GitHub #55 new comment rejected403: commenting disabled above2500comments. Updated dependency saved in this checkpoint but NOT delivered as a #55comment; no automatic identical retry or new coordination issue."
   },
   "retry_policy": {
     "blocked_wordstat": "Retry only after a new authorized credential/connector/folder appears; continue content meanwhile.",
@@ -9231,5 +9232,16 @@
       "interpretation": "Channel selection is fresh evidence and supersedes absence of an owner-selected channel. It is not proof of canonical registration, an Alma destination, or permission for native publication/edit/test/paid action.",
       "next_action": "Consume terminal channel-inspection receipt/explicit dependency handoff when available; do not duplicate its Actions/API/registry operation or ask for the channel again. Continue the same P45 S2 only after exact required binding and action receipt."
     }
-  ]
+  ],
+  "coordination_handoff_delivery": {
+    "state": "BLOCKED_GITHUB_55_COMMENT_LIMIT",
+    "target": "https://github.com/pyatkoff/max-search-bot/issues/55",
+    "attempted_action": "Post same-P45 dependency receipt readback and public-slug adapter dependency handoff",
+    "outcome": "GitHub403: Commenting is disabled on issues with more than 2500 comments",
+    "delivered": false,
+    "retry_without_new_basis": false,
+    "preserved_dependency_path": "channel_setup_receipt_readback.reported_adapter_gap",
+    "next_action": "Use an explicitly designated canonical coordination continuation once available; do not create another product queue or edit foreign coordination paths. Do not claim this handoff delivered.",
+    "no_external_Alma_or_paid_action": true
+  }
 }
