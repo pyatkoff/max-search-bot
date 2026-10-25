@@ -1,0 +1,62 @@
+name: Selection host capability preflight
+on:
+  push:
+    branches: [audit/selection-host-capabilities-20261025]
+permissions:
+  contents: read
+jobs:
+  read-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify exact current main before SSH credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin refs/heads/main:refs/remotes/origin/main
+          test "$(git rev-parse refs/remotes/origin/main)" = 7254dc1765ea6f17dc435814645a121371f46283
+      - name: Inspect only deployment capabilities and the proposed public host
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          key_file="$RUNNER_TEMP/selection_capability_key"
+          trap 'rm -f "$key_file"' EXIT
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key_file"; else printf '%s\n' "$raw" | tr -d '\r' > "$key_file"; fi
+          else
+            printf '%s' "$raw" | base64 --decode | tr -d '\r' > "$key_file"
+          fi
+          chmod 600 "$key_file"
+          ssh-keygen -y -f "$key_file" >/dev/null
+          opts=(-i "$key_file" -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$RUNNER_TEMP/selection_capability_known_hosts" -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=2)
+          actual=$(ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'git -C /var/www/anytoour/data/www/app.anytoour.ru rev-parse HEAD')
+          test "$actual" = 7254dc1765ea6f17dc435814645a121371f46283
+          cat > "$RUNNER_TEMP/selection_capability.php" <<'PHP'
+          <?php
+          declare(strict_types=1);
+          if (PHP_SAPI!=='cli') exit(2);
+          $host='tours.anytoour.ru';
+          $r=['ok'=>true,'configuration_changed'=>false,'effective_uid'=>function_exists('posix_geteuid')?posix_geteuid():null,
+              'webroot_writable'=>is_writable('/var/www/anytoour/data/www'),
+              'nginx_vhost_directory_writable'=>is_writable('/etc/nginx/vhosts/anytoour'),
+              'apache_vhost_directory_writable'=>is_writable('/etc/apache2/vhosts/anytoour'),
+              'mgrctl_executable'=>is_executable('/usr/local/mgr5/sbin/mgrctl'),
+              'dns_write_access'=>'not_inspected','proposed_host'=>$host,
+              'proposed_directory_exists'=>is_dir('/var/www/anytoour/data/www/'.$host),
+              'dns_resolves'=>(gethostbynamel($host)?:[])!==[]];
+          if ($r['dns_resolves']&&function_exists('curl_init')) {
+              $c=curl_init('https://'.$host.'/');
+              curl_setopt_array($c,[CURLOPT_NOBODY=>true,CURLOPT_RETURNTRANSFER=>true,CURLOPT_FOLLOWLOCATION=>false,
+                  CURLOPT_CONNECTTIMEOUT=>5,CURLOPT_TIMEOUT=>10,CURLOPT_SSL_VERIFYPEER=>true,CURLOPT_SSL_VERIFYHOST=>2]);
+              curl_exec($c);$r['https']=['http_code'=>curl_getinfo($c,CURLINFO_RESPONSE_CODE),'curl_errno'=>curl_errno($c),
+                  'ssl_verify_result'=>curl_getinfo($c,CURLINFO_SSL_VERIFYRESULT)];curl_close($c);
+          }
+          echo json_encode($r,JSON_THROW_ON_ERROR).PHP_EOL;
+          PHP
+          ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" php < "$RUNNER_TEMP/selection_capability.php"
