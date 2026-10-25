@@ -454,7 +454,7 @@ function preparedReplyRun(): void
             'project_inactive'=>'UPDATE projects SET is_active=0 WHERE id=1',
             'inactive_manager'=>'UPDATE managers SET is_active=0 WHERE id=1',
             'status_closed'=>"UPDATE conversations SET status='closed'",
-            'max_suspended'=>"INSERT INTO conversation_events VALUES(1,101,'manager_message_failed','manager','{\"category\":\"suspended\"}','2026-10-19 10:02:00')",
+            'max_suspended'=>"INSERT INTO conversation_events VALUES(1,101,'manager_message_failed','manager','{\"category\":\"suspended\"}','".gmdate('Y-m-d H:i:s')."')",
             'test_conversation'=>'UPDATE conversations SET is_test=1',
         };
         $pdo->mutate($sql);
@@ -565,6 +565,20 @@ function preparedReplyAutomaticFreshness(): void
             ($pass['ok']??false)&&($pass['candidate_count']??-1)===0&&($pass['queue']['inserted']??-1)===0
             &&ManagerPreparedReplyService::pending(20)['jobs']===[]&&preparedReplySourceState($pdo)===$before&&$pdo->sourceWriteAttempts===0);
         preparedReplyCheck($case.' remains available to explicit manual AI', (preparedReplySnapshot()['ok']??false));
+    }
+    $pdo=preparedReplyFixture();$snap=preparedReplySnapshot();$job=preparedReplyQueue($snap);
+    $pdo->mutate("UPDATE messages SET created_at='2020-01-01 00:00:00' WHERE id=2");
+    $before=preparedReplySourceState($pdo);$cache=$pdo->query('SELECT * FROM manager_prepared_replies')->fetchAll();
+    preparedReplyCheck('today-created legacy job cannot expose archived source context or save a reply',
+        ManagerPreparedReplyService::pending(20)['jobs']===[]&&!(ManagerPreparedReplyService::context($job)['ok']??false)
+        &&!(ManagerPreparedReplyService::complete($job,$snap['revision'],preparedReplyProposal())['ok']??false)
+        &&$pdo->query('SELECT * FROM manager_prepared_replies')->fetchAll()===$cache&&preparedReplySourceState($pdo)===$before);
+    foreach(['audio','photo','file'] as $type){
+        $pdo=preparedReplyFixture();$pdo->guard=false;
+        $pdo->prepare("UPDATE messages SET text='',metadata_json=? WHERE id=2")->execute([json_encode(['attachments'=>[['type'=>$type]]],JSON_THROW_ON_ERROR)]);
+        $pdo->guard=true;$before=preparedReplySourceState($pdo);
+        $pass=ManagerPreparedReplyService::collectAndEnqueue([1]);
+        preparedReplyCheck($type.' customer attachment is not discarded because text is empty',($pass['ok']??false)&&$pass['queue']['inserted']===1&&preparedReplySourceState($pdo)===$before&&$pdo->sourceWriteAttempts===0);
     }
 }
 

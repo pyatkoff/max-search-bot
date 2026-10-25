@@ -188,7 +188,7 @@ final class ManagerDraftPilotCollector
                 $sql .= "AND c.project_key=? AND customer_last.created_at<=? AND ";
                 array_push($args, ProjectConfig::projectId(), $capturedAtUtc);
                 if ($selection['lane'] === 'fresh') {
-                    $sql .= ManagerPreparationEligibility::sql('c.id',$driver);
+                    $sql .= ManagerPreparationEligibility::currentSql('customer_last','c.id');
                     array_push($args,...ManagerPreparationEligibility::window($capturedAtUtc));
                 }
                 elseif ($selection['lane'] === 'waiting') $sql .= $waiting;

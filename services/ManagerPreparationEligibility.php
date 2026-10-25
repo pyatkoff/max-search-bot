@@ -24,7 +24,13 @@ final class ManagerPreparationEligibility
     public static function sql(string $conversation, string $driver): string
     {
         return 'EXISTS (SELECT 1 FROM messages fresh_input WHERE fresh_input.id='.self::latestSql($conversation,$driver)
-            ." AND fresh_input.created_at>=? AND fresh_input.created_at<=? AND fresh_input.id>COALESCE((SELECT MAX(human_reply.id) FROM messages human_reply WHERE human_reply.conversation_id={$conversation} AND human_reply.direction='outbound' AND human_reply.sender_type='manager'),0))";
+            .' AND '.self::currentSql('fresh_input',$conversation).')';
+    }
+
+    /** Reuse an already-joined latest input instead of resolving it twice. */
+    public static function currentSql(string $message,string $conversation): string
+    {
+        return "{$message}.created_at>=? AND {$message}.created_at<=? AND {$message}.id>COALESCE((SELECT MAX(human_reply.id) FROM messages human_reply WHERE human_reply.conversation_id={$conversation} AND human_reply.direction='outbound' AND human_reply.sender_type='manager'),0)";
     }
 
     public static function window(?string $now=null): array
@@ -40,7 +46,7 @@ final class ManagerPreparationEligibility
     {
         $driver=(string)$pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
         $q=$pdo->prepare('SELECT mi.id,mi.text,mi.created_at,mi.channel,mi.metadata_json FROM messages mi WHERE mi.conversation_id=? AND mi.id='
-            .self::latestSql('mi.conversation_id',$driver).' AND '.self::sql('mi.conversation_id',$driver));
+            .self::latestSql('mi.conversation_id',$driver).' AND '.self::currentSql('mi','mi.conversation_id'));
         $q->execute(array_merge([$cid],self::window($now)));
         $row=$q->fetch(PDO::FETCH_ASSOC);
         if(!$row)return null;
