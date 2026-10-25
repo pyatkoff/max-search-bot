@@ -1,0 +1,86 @@
+name: Read-only owner selection HEAD acceptance
+on:
+  push:
+    branches: [audit/tours-owner-head-20261025]
+    paths: ['.github/workflows/tours-owner-head.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  readiness:
+    if: github.ref == 'refs/heads/audit/tours-owner-head-20261025'
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Inspect only the owner-created tours host
+        env:
+          DEPLOY_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          key_file="$RUNNER_TEMP/tours-readiness-key"
+          trap 'rm -f "$key_file"' EXIT
+          if [[ "$DEPLOY_KEY" == *"PRIVATE KEY"* ]]; then
+            if [[ "$DEPLOY_KEY" == *'\n'* ]]; then printf '%b\n' "$DEPLOY_KEY" | tr -d '\r' > "$key_file"; else printf '%s\n' "$DEPLOY_KEY" | tr -d '\r' > "$key_file"; fi
+          else
+            printf '%s' "$DEPLOY_KEY" | base64 --decode | tr -d '\r' > "$key_file"
+          fi
+          chmod 600 "$key_file"
+          ssh-keygen -y -f "$key_file" >/dev/null
+          opts=(-i "$key_file" -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$RUNNER_TEMP/tours-known-hosts" -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=2)
+          actual="$(ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'git -C /var/www/anytoour/data/www/app.anytoour.ru rev-parse HEAD')"
+          test "$actual" = c5d3f13c2b06bdc4345b74b64cca4a5a7c8993fa
+          ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'php' <<'PHP'
+          <?php
+          declare(strict_types=1);
+          $root='/var/www/anytoour/data/www/app.anytoour.ru';
+          require_once $root.'/config.php';
+          require_once $root.'/services/ConversationDb.php';
+          require_once $root.'/services/ManagerTourSelectionPublicHost.php';
+          function ownerHead(string $url): array {
+              $c=curl_init($url);
+              curl_setopt_array($c,[CURLOPT_NOBODY=>true,CURLOPT_HEADER=>true,CURLOPT_RETURNTRANSFER=>true,CURLOPT_FOLLOWLOCATION=>false,
+                  CURLOPT_SSL_VERIFYPEER=>true,CURLOPT_SSL_VERIFYHOST=>2,CURLOPT_CONNECTTIMEOUT=>10,CURLOPT_TIMEOUT=>20]);
+              $headers=curl_exec($c);
+              $r=['status'=>(int)curl_getinfo($c,CURLINFO_RESPONSE_CODE),'ssl'=>(int)curl_getinfo($c,CURLINFO_SSL_VERIFYRESULT),
+                  'errno'=>curl_errno($c),'mime'=>(string)curl_getinfo($c,CURLINFO_CONTENT_TYPE),'bytes'=>(int)curl_getinfo($c,CURLINFO_CONTENT_LENGTH_DOWNLOAD),
+                  'no_store'=>is_string($headers)&&stripos($headers,'no-store')!==false,'cookie'=>is_string($headers)&&stripos($headers,'Set-Cookie:')!==false];
+              curl_close($c);return $r;
+          }
+          try {
+              $pdo=ConversationDb::connection();
+              // These are the two fixed owner-preview conversations in the canonical owner tool.
+              $sql="SELECT l.conversation_id,l.token,l.version FROM manager_tour_selection_links l
+                  JOIN conversations c ON c.id=l.conversation_id
+                  JOIN projects p ON p.project_key=c.project_key AND p.is_active=1
+                  JOIN conversation_sources cs ON cs.id=c.source_id AND cs.is_active=1
+                  WHERE c.project_key='anytour' AND l.is_active=1
+                  AND ((c.id=1 AND c.channel='telegram') OR (c.id=2 AND c.channel='max'))
+                  ORDER BY c.id LIMIT 2";
+              $rows=$pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+              $out=['ok'=>true,'available'=>count($rows)>0,'candidates'=>count($rows),'original_pages_ok'=>0,'hosted_pages_ok'=>0,
+                  'same_cached_photos_ok'=>0,'generated_urls_ok'=>0,'unchanged'=>true,'head_only'=>true,'database_write'=>false,'customer_send'=>false,'model_calls'=>0];
+              foreach ($rows as $row) {
+                  $token=$row['token'];$version=(int)$row['version'];
+                  if (!is_string($token)||!preg_match('/\A[a-f0-9]{64}\z/D',$token)||$version<1)throw new RuntimeException('invalid_owner_link');
+                  $old=ownerHead('https://app.anytoour.ru/selection/?t='.$token);
+                  $new=ownerHead('https://tours.anytoour.ru/?t='.$token);
+                  $oldPhoto=ownerHead('https://app.anytoour.ru/selection/photo.php?t='.$token.'&v='.$version.'&card=0&photo=0');
+                  $newPhoto=ownerHead('https://tours.anytoour.ru/photo.php?t='.$token.'&v='.$version.'&card=0&photo=0');
+                  $clean=static fn(array $r):bool=>$r['status']===200&&$r['ssl']===0&&$r['errno']===0&&!$r['cookie']&&$r['no_store'];
+                  $out['original_pages_ok']+=(int)$clean($old);$out['hosted_pages_ok']+=(int)$clean($new);
+                  $out['same_cached_photos_ok']+=(int)($clean($oldPhoto)&&$clean($newPhoto)&&$oldPhoto['bytes']>0&&$oldPhoto['bytes']===$newPhoto['bytes']
+                      &&$oldPhoto['mime']===$newPhoto['mime']&&in_array($newPhoto['mime'],['image/jpeg','image/png'],true));
+                  $out['generated_urls_ok']+=(int)(ManagerTourSelectionPublicHost::url('/selection/?t='.$token)==='https://tours.anytoour.ru/?t='.$token);
+              }
+              $out['unchanged']=$pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC)===$rows;
+              foreach(['original_pages_ok','hosted_pages_ok','same_cached_photos_ok','generated_urls_ok']as$key)
+                  if($out[$key]!==count($rows))$out['ok']=false;
+              $out['ok']=$out['ok']&&$out['unchanged'];
+              echo json_encode($out,JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES)."\n";
+              if(!$out['ok'])exit(1);
+          } catch(Throwable $ignored) {fwrite(STDERR,"owner_head_acceptance_unavailable\n");exit(1);}
+          PHP
+          test "$(ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'git -C /var/www/anytoour/data/www/app.anytoour.ru rev-parse HEAD')" = c5d3f13c2b06bdc4345b74b64cca4a5a7c8993fa
