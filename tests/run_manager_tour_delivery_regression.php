@@ -88,6 +88,17 @@ try {
         $bad=array_replace($upload,['operation_id'=>bin2hex(random_bytes(16)),'image_base64'=>base64_encode($bytes)]);
         deliveryCheck('non-image or oversized uploaded bytes are rejected',ManagerTourSelectionService::uploadPhoto(7,1,$bad)['error']==='invalid_photo');
     }
+    $maximum=str_pad($raw,TourSelectionPhotoStore::MAX_BYTES,"\0");$pieces=str_split(base64_encode($maximum),96000);$chunked=array_replace($upload,['operation_id'=>str_repeat('e',32),'part_index'=>0,'part_count'=>count($pieces),'image_bytes'=>strlen($maximum),'image_sha256'=>hash('sha256',$maximum),'image_base64'=>$pieces[0]]);
+    $partial=ManagerTourSelectionService::uploadPhoto(7,1,$chunked);
+    deliveryCheck('partial maximum-size upload returns no usable photo',$partial['ok']&&$partial['state']==='receiving'&&!isset($partial['photo']));
+    deliveryCheck('same chunk retry does not advance or duplicate it',ManagerTourSelectionService::uploadPhoto(7,1,$chunked)===$partial);
+    $badChunk=$chunked;$badChunk['image_base64']=base64_encode(str_repeat('x',72000));
+    deliveryCheck('changed bytes cannot replace an acknowledged partial chunk',ManagerTourSelectionService::uploadPhoto(7,1,$badChunk)['error']==='operation_mismatch');
+    foreach($pieces as $index=>$part)if($index>0)$finished=ManagerTourSelectionService::uploadPhoto(7,1,array_replace($chunked,['part_index'=>$index,'image_base64'=>$part]));
+    deliveryCheck('two MiB JPEG completes through bounded small requests',$finished['ok']&&$finished['sha256']===hash('sha256',$maximum)&&isset($finished['photo']));
+    deliveryCheck('completed chunk retry returns the same immutable reference',ManagerTourSelectionService::uploadPhoto(7,1,$chunked)===$finished);
+    $badHash=array_replace($chunked,['operation_id'=>str_repeat('f',32),'image_bytes'=>strlen($raw),'part_count'=>intdiv(strlen($raw)+71999,72000),'image_sha256'=>str_repeat('0',64)]);$badPieces=str_split(base64_encode($raw),96000);foreach($badPieces as $index=>$part)$badResult=ManagerTourSelectionService::uploadPhoto(7,1,array_replace($badHash,['part_index'=>$index,'image_base64'=>$part]));
+    deliveryCheck('assembled bytes must match the whole-file hash',$badResult['error']==='invalid_photo');
     $withFile=deliveryDraft();$withFile['offers'][0]['photos'][0]=$u['photo'];$saved=deliverySave($withFile,1);
     $foreign=deliverySave($withFile,0,2);
     deliveryCheck('file reference saves only in its original conversation',$saved['ok']&&$foreign['error']==='invalid_photo');

@@ -185,10 +185,11 @@ try {
     $colleague=$request([],'','GET','/manager/fixture-session.php?id=7')['cookie'];
     tsCheck('actual visible colleague reads without acquiring edit rights',$request(['action'=>'get']+$base,$colleague)['status']===200&&$request(['action'=>'get']+$base,$colleague)['body']['selection']['can_edit']===false&&$request($write,$colleague)['status']===403);
     $photoPath='/manager/tour-selection-photo.php';$imageBytes=file_get_contents($sourceRoot.'/assets/owner-tour-cards/compact-v1/cover.jpg');
-    $upload=['action'=>'upload','version'=>1,'offer_id'=>$draft['offers'][0]['id'],'kind'=>'cover','operation_id'=>str_repeat('d',32),'image_base64'=>base64_encode($imageBytes)]+$base;
+    $upload=['action'=>'upload','version'=>1,'offer_id'=>$draft['offers'][0]['id'],'kind'=>'cover','operation_id'=>str_repeat('d',32),'image_base64'=>substr(base64_encode($imageBytes),0,96000),'part_index'=>0,'part_count'=>intdiv(strlen($imageBytes)+71999,72000),'image_bytes'=>strlen($imageBytes),'image_sha256'=>hash('sha256',$imageBytes)]+$base;
     tsCheck('actual photo upload rejects anonymous and missing CSRF',$request($upload,'','POST',$photoPath)['status']===401&&$request(array_diff_key($upload,['csrf'=>true]),$cookie,'POST',$photoPath)['status']===403);
     tsCheck('actual photo upload refuses readonly colleague',$request($upload,$colleague,'POST',$photoPath)['status']===403);
-    $uploaded=$request($upload,$cookie,'POST',$photoPath);$photoUrl=$uploaded['body']['photo']['url']??'';
+    $partial=$request($upload,$cookie,'POST',$photoPath);tsCheck('actual partial upload is not a completed photo',$partial['status']===200&&($partial['body']['state']??'')==='receiving'&&!isset($partial['body']['photo']));
+    $parts=str_split(base64_encode($imageBytes),96000);$uploaded=$partial;foreach($parts as $index=>$part)if($index>0)$uploaded=$request(array_replace($upload,['part_index'=>$index,'image_base64'=>$part]),$cookie,'POST',$photoPath);$photoUrl=$uploaded['body']['photo']['url']??'';
     tsCheck('actual protected file upload returns only a private immutable reference',$uploaded['status']===200&&str_starts_with($photoUrl,'https://app.anytoour.ru/manager/tour-selection-photo.php?conversation_id=1&draft_photo=')&&!isset($uploaded['body']['path']));
     tsCheck('actual upload retry is idempotent',$request($upload,$cookie,'POST',$photoPath)['body']===$uploaded['body']);
     $localPhoto='/manager/tour-selection-photo.php?'.parse_url($photoUrl,PHP_URL_QUERY);$imageRead=$request([],$cookie,'GET',$localPhoto);

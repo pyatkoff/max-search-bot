@@ -508,3 +508,16 @@ readonly/stale draft, same/different retry, bad/oversized bytes, cross-client
 references, device-file intake, lost replies, cancel, late responses and original
 reply/File preservation. Required widths390/430/768/1440 plus short height are
 covered. Installed release and natural/physical mixed-source A1–A8 remain distinct.
+
+
+Production request-size probe found a pre-application body limit: large JSON and
+multipart requests return HTML500, while the bounded96kB JSON body reaches
+canonical401 without authentication. File intake therefore transfers ordered
+72kB binary chunks (96kB base64), with a visible percentage, within the same
+PhotoStore owner. Whole size/hash, part count/index/hash and immutable operation
+are checked; duplicate chunks cannot replace bytes. One bounded private `.part`
+and small manifest remain unreadable as a photo until the final whole-file hash
+and image validation pass. Incomplete files consume the existing1024-slot quota;
+no server config or storage/byte budget is enlarged. Lost first or final replies
+resume only the same captured chunk/operation after an explicit retry. The
+unreleased large-request implementation is superseded, not production accepted.

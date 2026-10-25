@@ -191,14 +191,14 @@ async function choosePhoto(input){
   if(file.size===0||file.size>2097152||file.type&&!['image/jpeg','image/png'].includes(file.type)){input.value='';status('Выберите JPEG или PNG до 2 МБ. Прежнее фото сохранено.',true);return}
   clearTimeout(timer);if(dirty)await save();
   if(token!==epoch||!current(target)||dirty||busy||pending||conflict||!editable()||item()?.id!==offer.id||!dialog?.open)return;
-  photoUpload={target,epoch:token,offer:offer.id,kind,version,operation:id(),file,encoded:null,controller:null,loading:false};
+  photoUpload={target,epoch:token,offer:offer.id,kind,version,operation:id(),file,encoded:null,hash:null,nextPart:0,progress:0,controller:null,loading:false};
   await submitPhotoUpload();
 }
 function renderUploadNotice(){
   $('tsUploadNotice')?.remove();if(!photoUpload||!$('tsEditor'))return;
   const notice=document.createElement('section');notice.id='tsUploadNotice';notice.className='tsUploadNotice';
-  const text=document.createElement('p');text.textContent=photoUpload.loading?'Загружаем фото…':'Ответ о загрузке не подтверждён. Повторите этот же файл или отмените. Прежнее фото сохранено.';notice.append(text);
-  for(const [id,label] of [['tsUploadRetry','Повторить загрузку фото'],['tsUploadCancel','Отменить загрузку']]){const b=document.createElement('button');b.type='button';b.id=id;b.textContent=label;b.disabled=photoUpload.loading;notice.append(b)}
+  const text=document.createElement('p');text.textContent=photoUpload.loading?'Загружаем фото… '+photoUpload.progress+'%':'Ответ о загрузке не подтверждён. Повторите этот же файл или отмените. Прежнее фото сохранено.';notice.append(text);
+  for(const [id,label] of [['tsUploadRetry','Повторить загрузку фото'],['tsUploadCancel','Отменить загрузку']]){const b=document.createElement('button');b.type='button';b.id=id;b.textContent=label;b.disabled=id==='tsUploadRetry'&&photoUpload.loading;b.hidden=id==='tsUploadRetry'&&photoUpload.loading;notice.append(b)}
   $('tsEditor').prepend(notice);
 }
 async function submitPhotoUpload(){
@@ -208,8 +208,17 @@ async function submitPhotoUpload(){
   try {
     if(!upload.encoded)upload.encoded=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result).split(',')[1]||'');reader.onerror=()=>reject(new Error('file_read'));reader.readAsDataURL(upload.file)});
     if(!uploadCurrent(upload)){if(photoUpload===upload)cancelPhotoUpload(false);return;}
-    upload.controller=new AbortController();const timeout=setTimeout(()=>upload.controller.abort(),30000);
-    try {result=await W.request('tour-selection-photo.php','upload',{conversation_id:upload.target.conversation,version:upload.version,offer_id:upload.offer,kind:upload.kind,operation_id:upload.operation,image_base64:upload.encoded},{signal:upload.controller.signal,isCurrent:()=>uploadCurrent(upload)});} finally {clearTimeout(timeout)}
+    if(!upload.hash)upload.hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',await upload.file.arrayBuffer())),x=>x.toString(16).padStart(2,'0')).join('');
+    const count=Math.ceil(upload.encoded.length/96000);
+    for(let index=upload.nextPart;index<count;index++){
+      if(!uploadCurrent(upload)){if(photoUpload===upload)cancelPhotoUpload(false);return;}
+      upload.controller=new AbortController();const timeout=setTimeout(()=>upload.controller.abort(),30000);
+      try {result=await W.request('tour-selection-photo.php','upload',{conversation_id:upload.target.conversation,version:upload.version,offer_id:upload.offer,kind:upload.kind,operation_id:upload.operation,image_base64:upload.encoded.slice(index*96000,(index+1)*96000),part_index:index,part_count:count,image_bytes:upload.file.size,image_sha256:upload.hash},{signal:upload.controller.signal,isCurrent:()=>uploadCurrent(upload)});} finally {clearTimeout(timeout)}
+      if(!uploadCurrent(upload)){if(photoUpload===upload)cancelPhotoUpload(false);return;}
+      if(!result?.ok||result.operation_id!==upload.operation||result.photo)break;
+      if(result.state!=='receiving'||result.part_index!==index||index===count-1){result={ok:false,error:'invalid_response'};break;}
+      upload.nextPart=index+1;upload.progress=Math.floor(upload.nextPart/count*100);controls();renderUploadNotice();
+    }
   }catch(e){result={ok:false,error:'network_error'}}
   if(!uploadCurrent(upload)){if(photoUpload===upload)cancelPhotoUpload(false);return;}
   upload.loading=false;busy=false;
@@ -217,7 +226,7 @@ async function submitPhotoUpload(){
     const offer=item(),photos=new Map(offer.photos.map(x=>[x.kind,x]));photos.set(upload.kind,{url:result.photo.url,kind:upload.kind,illustrative:true});offer.photos=['cover','beach','room'].filter(k=>photos.has(k)).map(k=>photos.get(k));photoUpload=null;changed();render();
     status('Фото загружено. Сохраняем вариант…');await save();if(current()&&!dirty&&!pending&&!conflict)status('Фото добавлено. Сообщения туристу не отправлялись.');return;
   }
-  const failures={invalid_photo:'Файл не подходит. Нужен JPEG или PNG до 2 МБ, не меньше 100 × 100 пикселей.',photo_capacity:'Хранилище фото заполнено. Прежнее фото сохранено.',photo_storage_unavailable:'Не удалось сохранить фото. Прежнее фото сохранено.',operation_mismatch:'Этот ключ загрузки уже занят другим файлом. Выберите файл заново.',draft_changed:'Подборка изменилась в другой вкладке. Откройте её заново перед загрузкой.',forbidden:'Доступ к изменению подборки изменился.',not_found:'Доступ к подборке изменился.'};
+  const failures={invalid_photo:'Файл не подходит. Нужен JPEG или PNG до 2 МБ, не меньше 100 × 100 пикселей.',photo_capacity:'Хранилище фото заполнено. Прежнее фото сохранено.',photo_storage_unavailable:'Не удалось сохранить фото. Прежнее фото сохранено.',operation_mismatch:'Файл отличается от начатой загрузки. Выберите его заново.',draft_changed:'Подборка изменилась в другой вкладке. Откройте её заново перед загрузкой.',forbidden:'Доступ к изменению подборки изменился.',not_found:'Доступ к подборке изменился.'};
   if(failures[result?.error]){photoUpload=null;render();status(failures[result.error],true);return}
   controls();renderUploadNotice();status('Загрузка не подтверждена. Повторите этот же файл или отмените.',true);
 }
@@ -289,7 +298,7 @@ function render(){
 function controls(){
   if(!dialog)return;const disabled=!editable();
   $('tsAdd').disabled=disabled||busy||(draft?.offers.length||0)>=20;$('tsSave').disabled=disabled||busy||!dirty||invalidAges();$('tsDone').disabled=busy||loading||(!preview&&invalidAges());
-  $('tsSaved').textContent=photoUpload?.loading?'Загружаем фото…':photoUpload?'Загрузка фото не подтверждена':busy?(tripPanel?'Проверяем условия поездки…':'Сохраняем…'):pending?'Результат сохранения уточняется':conflict?'Есть конфликт правок':dirty?'Не все изменения сохранены':version?'Сохранено на сервере':'Новый черновик';
+  $('tsSaved').textContent=photoUpload?.loading?'Загружаем фото… '+photoUpload.progress+'%':photoUpload?'Загрузка фото не подтверждена':busy?(tripPanel?'Проверяем условия поездки…':'Сохраняем…'):pending?'Результат сохранения уточняется':conflict?'Есть конфликт правок':dirty?'Не все изменения сохранены':version?'Сохранено на сервере':'Новый черновик';
   $('tsEditor')?.querySelectorAll('input,textarea,select,[data-ts-action],[data-ts-copy-photos],[data-ts-fix-offer],[data-ts-remove-photo],#tsEmptyAdd').forEach(x=>{x.disabled=disabled||busy});
   $('tsSave').hidden=preview;$('tsPreview').hidden=preview;$('tsEdit').hidden=!preview;$('tsSend').hidden=!preview;$('tsHistory').hidden=preview;
   $('tsCollector').hidden=preview;$('tsCollector').disabled=!!photoUpload||!canEdit||busy||loading||sending||sharing;

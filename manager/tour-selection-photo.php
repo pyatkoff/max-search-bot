@@ -7,13 +7,13 @@ ManagerHttp::start();$manager=ManagerHttp::requireManager();
 header('Cache-Control: private, no-store');header('X-Content-Type-Options: nosniff');header('Referrer-Policy: no-referrer');
 if (($_SERVER['REQUEST_METHOD']??'')==='POST') {
     header('Content-Type: application/json; charset=utf-8');
-    $limit=intdiv(TourSelectionPhotoStore::MAX_BYTES+2,3)*4+4096;
+    $limit=96000+4096;
     $body=(string)file_get_contents('php://input',false,null,0,$limit+1);
     if (strlen($body)>$limit) ManagerHttp::respond(['ok'=>false,'error'=>'invalid_photo'],413);
     $data=json_decode($body,true);if (!is_array($data)) $data=[];
     ManagerHttp::requireCsrf($data);session_write_close();
     $conversation=$data['conversation_id']??null;
-    if (($data['action']??'')!=='upload' || !is_int($conversation) || $conversation<=0) ManagerHttp::respond(['ok'=>false,'error'=>'invalid_photo'],422);
+    if (($data['action']??'')!=='upload' || !array_key_exists('part_index',$data) || !is_int($conversation) || $conversation<=0) ManagerHttp::respond(['ok'=>false,'error'=>'invalid_photo'],422);
     try {$result=ManagerTourSelectionService::uploadPhoto((int)$manager['id'],$conversation,$data);}
     catch (Throwable $e) {$result=['ok'=>false,'error'=>'photo_storage_unavailable'];}
     $status=!empty($result['ok'])?200:match($result['error']??'') {'unauthorized'=>401,'forbidden'=>403,'not_found'=>404,'draft_changed','operation_mismatch'=>409,'photo_storage_unavailable','photo_busy','photo_capacity'=>503,default=>422};

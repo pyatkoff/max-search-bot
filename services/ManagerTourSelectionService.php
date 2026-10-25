@@ -30,7 +30,13 @@ final class ManagerTourSelectionService
         if (!is_string($encoded) || strlen($encoded)>intdiv(TourSelectionPhotoStore::MAX_BYTES+2,3)*4 || !preg_match('/\A[A-Za-z0-9+\/]+={0,2}\z/D',$encoded)) return self::error('invalid_photo');
         $bytes=base64_decode($encoded,true);
         if ($bytes===false || $bytes==='' || strlen($bytes)>TourSelectionPhotoStore::MAX_BYTES) return self::error('invalid_photo');
-        try {$image=TourSelectionPhotoStore::upload($actor,$conversationId,$offer,$kind,$op,$bytes);}
+        try {
+            if (array_key_exists('part_index',$input)) {
+                foreach (['part_index','part_count','image_bytes'] as $field) if (!is_int($input[$field]??null)) return self::error('invalid_photo');
+                if (!is_string($input['image_sha256']??null) || strlen($encoded)>96000) return self::error('invalid_photo');
+                $image=TourSelectionPhotoStore::uploadChunk($actor,$conversationId,$offer,$kind,$op,$bytes,$input['part_index'],$input['part_count'],$input['image_bytes'],$input['image_sha256']);
+            } else $image=TourSelectionPhotoStore::upload($actor,$conversationId,$offer,$kind,$op,$bytes);
+        }
         catch (RuntimeException $e) {return self::error(in_array($e->getMessage(),['invalid_photo','photo_busy','photo_capacity','operation_mismatch'],true)?$e->getMessage():'photo_storage_unavailable');}
         // No DB/session lock is held while validating/writing bytes. Recheck the
         // current account, source/project/assignment and exact draft afterwards.
@@ -38,7 +44,8 @@ final class ManagerTourSelectionService
         if (isset($fresh['error'])) return $fresh;
         if (!$fresh['can_edit']) return self::error('forbidden');
         $latest=self::view(ConversationDb::connection(),$fresh);
-        if ($latest['version']!==$version || $fresh['conversation']!==$context['conversation']) return self::error('draft_changed');
+        if ($latest['version']!==$version || array_intersect_key($fresh['conversation'],array_flip(['id','project_key','source_id','manager_id','customer_id','channel','status']))!==array_intersect_key($context['conversation'],array_flip(['id','project_key','source_id','manager_id','customer_id','channel','status']))) return self::error('draft_changed');
+        if (!isset($image['url'])) return ['ok'=>true,'operation_id'=>$op]+$image;
         return ['ok'=>true,'operation_id'=>$op,'photo'=>['url'=>$image['url'],'kind'=>$kind,'illustrative'=>true],'sha256'=>$image['sha256']];
     }
 
