@@ -61,8 +61,8 @@ jobs:
             if(!$snapshot||!ChannelPostIncomingAdapter::containsOnlyButton($snapshot,$button,(string)$channel['button_text']))throw new RuntimeException('BUTTON_MISMATCH');
             $url=(string)($r['data']['url']??'');
             if($url!=='https://max.ru/channel_anytour/AaFyvfXOGak')throw new RuntimeException('POST_URL_MISMATCH');
-            $photos=0;foreach($r['data']['body']['attachments']??[]as$a)if(($a['type']??'')==='photo')$photos++;
-            if($photos!==1)throw new RuntimeException('PHOTO_MISMATCH');
+            $photos=0;foreach($r['data']['body']['attachments']??[]as$a)if(($a['type']??'')==='image')$photos++;
+            if($photos!==1||($snapshot['metadata']['capability']??'')!=='supported')throw new RuntimeException('PHOTO_MISMATCH');
             $out+=['post_id'=>55,'post_url'=>$url,'button_url'=>$button,'button_label'=>(string)$channel['button_text'],'post_photo_count'=>$photos,'provider_post_get_http'=>200,'canonical_token_resolved'=>true,'source_key'=>$channel['source_key'],'server_utc'=>gmdate('c')];
             $out['ok']=true;
            }finally{$pdo->rollBack();}
