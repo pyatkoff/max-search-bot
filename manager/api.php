@@ -101,6 +101,10 @@ if($action==='detail'){
     $beforeId=(int)$cursor;
     $openUnread=array_key_exists('open_unread',$data)?$data['open_unread']:false;
     if(!is_bool($openUnread)||($openUnread&&$beforeId>0))out(['ok'=>false,'error'=>'invalid_unread_open'],422);
+    // Identity, CSRF and request arguments are captured. The read-only loaders
+    // enforce conversation access; slow history must not lock this session's
+    // card, newer transcript or reply requests behind SQL/media hydration.
+    session_write_close();
     try{
         $d=ManagerConversationService::detail($conversationId,(int)$m['id'],$beforeId,200,false,$openUnread);
         if($d){
