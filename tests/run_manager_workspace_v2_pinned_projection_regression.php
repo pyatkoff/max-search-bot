@@ -16,7 +16,7 @@ function ppCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo 
 $order=LeadTaskService::openTaskOrderSql('t');
 ppCheck('canonical open task order prioritizes pinned work',strpos($order,'t.is_pinned=1')!==false&&strpos($order,'t.due_at_utc ASC')!==false&&strpos($order,'t.is_pinned=1')<strpos($order,'t.due_at_utc ASC'));
 ppCheck('task detail list consumes canonical priority order',strpos($taskService,"\$order=self::openTaskOrderSql('t')")!==false&&strpos($taskService,'ORDER BY CASE WHEN t.status=\'open\' THEN 0 ELSE 1 END,{$order}')!==false);
-ppCheck('inbox projection consumes same canonical priority order',strpos($inboxService,"LeadTaskService::openTaskOrderSql('t')")!==false&&strpos($inboxService,'ORDER BY t.conversation_id ASC,{$taskOrder}')!==false);
+ppCheck('inbox projection consumes same canonical priority order',strpos($inboxService,"LeadTaskService::openTaskOrderSql('t')")!==false&&strpos($inboxService,'ORDER BY {$taskOrder} LIMIT 1')!==false);
 ppCheck('inbox batch projection includes pinned state',strpos($inboxService,'t.is_pinned')!==false&&strpos($inboxService,"next_task_pinned")!==false);
 ppCheck('inbox visibly marks projected pinned task',strpos($inboxJs,'c.next_task_pinned')!==false&&strpos($inboxJs,"taskPinned?'📌'")!==false&&strpos($inboxCss,'.leadTaskCompact.pinned')!==false);
 ppCheck('inbox explains when all-open urgency is more urgent than the projected pinned task',strpos($inboxJs,'function hiddenTaskUrgency(c)')!==false&&strpos($inboxJs,'operational_task_due_state')!==false&&strpos($inboxJs,'Ещё есть просроченная')!==false&&strpos($inboxJs,'Ещё есть на сегодня')!==false);
