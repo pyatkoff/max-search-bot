@@ -1,0 +1,38 @@
+name: Read Metrika goals for the completed owner-requested week
+on:
+  push:
+    branches: [audit/yandex-goals-weekly-20261025]
+    paths:
+      - .github/workflows/yandex-goals-weekly-readonly.yml
+      - audit/yandex-goals-weekly-readonly.py
+      - audit/yandex-goals-weekly-runner.py
+permissions:
+  contents: read
+concurrency:
+  group: metrika-goals-weekly-owner-20261025
+  cancel-in-progress: false
+jobs:
+  read:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Read fixed counter with existing server credentials
+        env:
+          SSH_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          SSH_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          SSH_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          READER_SHA256: db918838a782a9e3a71a86ed93879950df61615fa08def3bf67124fdd42cce58
+          REPORT_PUBLIC_KEY_B64: LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQm9qQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FZOEFNSUlCaWdLQ0FZRUF0UWFtazJDSjlHVUtvM3FubCswVgpSQThhb3ByUVVUWVFaVGl0WVFBaVZUR2FGck9kcXlXUEoyaDhBK041Lys2SWYxTGNKWVF3R0U2QlpLK0ZwdUtzCkx2ME9rZ1BtbldzcU5EME1lSVlBNk5sWngyaWVsYzZlelo5MVhsTFlVM0pGc3Y3aFMwTVh2R1MzVXFGaTlPTUsKZWMzNlpFaTJUTmxNNzVHcFNmcy9GaXJEZGtJcHRmK2tLdmdDMG5EZTdKdWpXZ1E5aEhYcHBmZEovREtGZHVTbApwZ09TaWpXVUs0NmJKcWhtOVFQc2ZlRmdLdGdaVnRNY2dDWkVPN1cxSVUwVEZ1MCt2M3B1bGgxWWJva2RZUGVUCnY2aml1Kyt0VnpVVDJYdGY1ZGhHY3ZmOFY3R0RTZFB3YUpiSkVqSzNPT3E0aGEyNzlzMjJYOU9xYnE2OFh6L2oKT0h5Ukl1N21uYXo5cHIwUUQydEcwcjFMUCtNemhQaUtjS3hhUUtFTVBkVEF3eUJWRmZ5MVIreE1kS3ptbGx3TwpJS0VXcndiekRtWERiaCtpckxiWklnbHFiNHhkR01jSDAxbzhWMS80RXFubkJHVWlTMXRGbWVXc29aczg1QUllCmZlMkhaTDcyalZJSklNNDRVYUtDR0diUk55M0RwR2NiMWhsUFFvN2xJSkxWQWdNQkFBRT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg==
+        run: python3 audit/yandex-goals-weekly-runner.py
+      - name: Retain ciphertext only
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: metrika-goals-98615635-week-20261018-20261024
+          path: encrypted-goals/*.enc.json
+          retention-days: 3
+          if-no-files-found: error
