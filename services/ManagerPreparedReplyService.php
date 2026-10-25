@@ -6,6 +6,7 @@ require_once __DIR__.'/ManagerAiDraftContextService.php';
 require_once __DIR__.'/ManagerAiDraftService.php';
 require_once __DIR__.'/InternalOwnerDialogueScope.php';
 require_once __DIR__.'/ManagerDraftPilotCollector.php';
+require_once __DIR__.'/ManagerPreparationEligibility.php';
 
 /** Private work metadata and reviewed proposals; never a transcript or delivery queue. */
 final class ManagerPreparedReplyService
@@ -33,6 +34,11 @@ final class ManagerPreparedReplyService
                 if (!is_int($cid) || $cid <= 0 || !is_int($actor) || $actor < 0 || !self::revision($revision)
                     || !is_int($latest) || $latest <= 0 || !self::project($project)
                     || $project !== ProjectConfig::projectId()) { ++$out['skipped']; continue; }
+                if(self::projectFor($pdo,$cid,$actor)!==$project){++$out['skipped'];continue;}
+                $input=ManagerPreparationEligibility::input($pdo,$cid);
+                if($input===null){++$out['skipped'];continue;}
+                $handled=ManagerPreparationEligibility::handled($pdo,$cid,$actor,$project,$input);
+                if($handled!==null){++$out['existing'];$out['job_ids'][]=$handled;continue;}
                 $snapshot = ManagerAiDraftContextService::preparationSnapshot($cid, $actor);
                 if (!self::matches($snapshot, $revision, $latest) || self::projectFor($pdo, $cid, $actor) !== $project) {
                     ++$out['skipped']; continue;
@@ -44,21 +50,22 @@ final class ManagerPreparedReplyService
                 $previous = self::latestBinding($pdo, $cid, $actor, $project, $revision, $instruction);
                 if ($previous !== null) {
                     if (!$renewExpired || (self::timestamp($previous['expires_at']) ?? PHP_INT_MAX) > time()
-                        || self::noContact($previous, $snapshot)) {
+                        || $previous['status']==='ready') {
                         ++$out['existing']; $out['job_ids'][] = $previous['job_id']; continue;
                     }
                     $id = hash('sha256', json_encode(['manager_prepared_renewal_v1',$id,$previous['job_id']], JSON_THROW_ON_ERROR));
                 }
                 $now = time();
                 try {
+                    if(ManagerPreparationEligibility::input($pdo,$cid)!==$input){++$out['skipped'];continue;}
                     // An edited/new message must not wait behind its obsolete pending revision.
                     $q = $pdo->prepare("UPDATE manager_prepared_replies SET expires_at=? WHERE conversation_id=? AND project_key=? AND status='pending' AND job_id<>? AND expires_at>?");
                     $q->execute([self::utc($now),$cid,$project,$id,self::utc($now)]);
                     $q = $pdo->prepare("SELECT COUNT(*) FROM manager_prepared_replies WHERE project_key=? AND status='pending' AND expires_at>?");
                     $q->execute([$project,self::utc($now)]);
                     if ((int)$q->fetchColumn() >= self::MAX_PENDING) { ++$out['skipped']; continue; }
-                    $q = $pdo->prepare("INSERT INTO manager_prepared_replies (job_id,conversation_id,manager_id,project_key,context_revision,instruction_revision,latest_message_id,status,created_at,expires_at) VALUES (?,?,?,?,?,?,?,'pending',?,?)");
-                    $q->execute([$id,$cid,$actor,$project,$revision,$instruction,$latest,self::utc($now),self::utc($now+self::TTL_SECONDS)]);
+                    $q = $pdo->prepare("INSERT INTO manager_prepared_replies (job_id,conversation_id,manager_id,project_key,context_revision,instruction_revision,latest_message_id,status,created_at,expires_at,customer_input_revision) VALUES (?,?,?,?,?,?,?,'pending',?,?,?)");
+                    $q->execute([$id,$cid,$actor,$project,$revision,$instruction,$latest,self::utc($now),self::utc($now+self::TTL_SECONDS),$input]);
                     ++$out['inserted']; $out['job_ids'][] = $id;
                 } catch (Throwable $ignored) {
                     // A concurrent enqueue of the deterministic job is the same work item.
@@ -78,7 +85,7 @@ final class ManagerPreparedReplyService
             if ($pdo->inTransaction()) return self::failure('queue_unavailable');
             $project = ProjectConfig::projectId();
             if (!self::project($project)) return self::failure('queue_unavailable');
-            $q = $pdo->prepare("SELECT lane,after_id,version FROM manager_preparation_cursors WHERE project_key=? AND lane IN ('waiting','due','active')");
+            $q = $pdo->prepare("SELECT lane,after_id,version FROM manager_preparation_cursors WHERE project_key=? AND lane='waiting'");
             $q->execute([$project]);
             $states = [];
             foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $row) {
@@ -91,23 +98,19 @@ final class ManagerPreparedReplyService
             $candidates = 0; $rows = []; $pages = [];
             $capture = static function(string $lane, int $limit, bool $wrap) use ($pdo,$managerIds,$capturedAtUtc,&$pages,&$states,&$candidates,&$rows): void {
                 $cursor = $pages[$lane]['next_cursor'] ?? $states[$lane]['after_id'] ?? 0;
-                $page = ManagerDraftPilotCollector::collect($pdo,$managerIds,$limit,null,null,$capturedAtUtc,true,['lane'=>$lane,'after_id'=>$cursor]);
+                $page = ManagerDraftPilotCollector::collect($pdo,$managerIds,$limit,null,null,$capturedAtUtc,true,['lane'=>'fresh','after_id'=>$cursor]);
                 if (empty($page['ok'])) throw new RuntimeException('collection_failed');
                 if ($wrap && $cursor > 0 && $page['candidate_count'] === 0) {
-                    $page = ManagerDraftPilotCollector::collect($pdo,$managerIds,$limit,null,null,$capturedAtUtc,true,['lane'=>$lane,'after_id'=>0]);
+                    $page = ManagerDraftPilotCollector::collect($pdo,$managerIds,$limit,null,null,$capturedAtUtc,true,['lane'=>'fresh','after_id'=>0]);
                     if (empty($page['ok'])) throw new RuntimeException('collection_failed');
                 }
                 $candidates += $page['candidate_count'];
                 array_push($rows, ...$page['conversations']);
                 $pages[$lane] = $page;
             };
-            // Reserve progress for every lane even under a continuously busy
-            // waiting queue. Reuse spare capacity without exceeding20 candidate captures.
-            foreach (['waiting'=>10,'due'=>5,'active'=>5] as $lane=>$quota) $capture($lane,$quota,true);
-            foreach (['waiting','due','active'] as $lane) {
-                if ($candidates >= self::MAX_BATCH) break;
-                if ($pages[$lane]['next_cursor'] > 0) $capture($lane,self::MAX_BATCH-$candidates,false);
-            }
+            // Only recent unanswered input enters automatic work. Existing due
+            // tasks and answered active chats are not a recurring archive sweep.
+            $capture('waiting',self::MAX_BATCH,true);
             // A race can move a client between lanes; enqueue each binding once.
             $unique = [];
             foreach ($rows as $row) $unique[$row['conversation_id']] = $row;
@@ -147,7 +150,9 @@ final class ManagerPreparedReplyService
         foreach($rows as $row){
             ++$stats['checked'];$next=(int)$row['conversation_id'];
             if (!self::validRow($row)){++$stats['deferred'];continue;}
-            $snapshot=ManagerAiDraftContextService::preparationSnapshot((int)$row['conversation_id'],(int)$row['manager_id']);
+            try{$input=ManagerPreparationEligibility::input($pdo,(int)$row['conversation_id']);}
+            catch(Throwable $ignored){++$stats['deferred'];continue;}
+            $snapshot=$input===null?['ok'=>false,'error'=>'reply_not_allowed']:ManagerAiDraftContextService::preparationSnapshot((int)$row['conversation_id'],(int)$row['manager_id']);
             $available=($snapshot['ok']??false)===true;
             if (!$available && !in_array($snapshot['error']??'', ['unauthorized','not_found','reply_not_allowed','suspended','invalid_conversation_id'],true)){
                 // Storage/transport uncertainty is not proof of stale work.
@@ -177,59 +182,28 @@ final class ManagerPreparedReplyService
         return $stats;
     }
 
-    /** Worker inventory has no message text, customer identity, links or draft body. */
+    /** Worker inventory: one bounded metadata read, never archive/full context. */
     public static function pending(int $limit = self::MAX_BATCH): array
     {
         if ($limit < 1 || $limit > self::MAX_BATCH) return self::failure('invalid_limit');
         try {
-            $pdo = ConversationDb::connection();
-            if ($pdo->inTransaction()) return self::failure('queue_unavailable');
+            $pdo=ConversationDb::connection();
+            if($pdo->inTransaction())return self::failure('queue_unavailable');
             $sql = "SELECT j.job_id,j.conversation_id,j.manager_id,j.project_key,j.context_revision,j.instruction_revision,j.latest_message_id,j.created_at,j.expires_at FROM manager_prepared_replies j WHERE j.project_key=? AND j.status='pending' AND j.created_at<=? AND j.expires_at>? AND j.instruction_revision=?"
                 ." AND EXISTS (SELECT 1 FROM conversations c LEFT JOIN managers m ON m.id=c.manager_id WHERE c.id=j.conversation_id AND c.project_key=j.project_key AND c.is_test=0 AND NOT ".InternalOwnerDialogueScope::conversationSql('c')." AND ((c.manager_id=j.manager_id AND c.status='manager' AND m.is_active=1) OR (j.manager_id=0 AND c.manager_id IS NULL AND c.status='waiting_manager' AND EXISTS (SELECT 1 FROM managers a JOIN manager_projects ap ON ap.manager_id=a.id JOIN projects p ON p.id=ap.project_id WHERE a.is_active=1 AND a.role='admin' AND p.is_active=1 AND p.project_key=j.project_key))))"
                 .' AND j.latest_message_id=(SELECT MAX(pm.id) FROM messages pm WHERE pm.conversation_id=j.conversation_id)';
-            $now = self::utc(time());
-            $params = [ProjectConfig::projectId(),$now,$now,self::instructionRevision()];
-            $order = ' ORDER BY j.created_at,j.job_id LIMIT '.$limit;
-            if ($limit < 3) {
-                // One or two slots cannot reserve all three lanes. Preserve FIFO
-                // rather than starving ordinary work in these explicit tiny reads.
-                $q = $pdo->prepare($sql.$order);
-                $q->execute($params);
-                $selected = $q->fetchAll(PDO::FETCH_ASSOC);
-            } else {
-                // Match the collector's genuine-human/due-task classification at
-                // read time: a reply or task edit can change priority after enqueue.
-                $metadata = "CASE WHEN JSON_VALID(mc.metadata_json) THEN mc.metadata_json ELSE '{}' END";
-                $type = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql'
-                    ? "JSON_UNQUOTE(JSON_EXTRACT({$metadata},'$.type'))" : "JSON_EXTRACT({$metadata},'$.type')";
-                $lane = "CASE WHEN COALESCE((SELECT MAX(mc.id) FROM messages mc WHERE mc.conversation_id=j.conversation_id AND mc.direction='inbound' AND mc.sender_type='customer' AND COALESCE({$type},'message') NOT IN ('callback','start','bot_started')),0)>COALESCE((SELECT MAX(mo.id) FROM messages mo WHERE mo.conversation_id=j.conversation_id AND mo.direction='outbound' AND mo.sender_type='manager'),0) THEN 'waiting' WHEN EXISTS (SELECT 1 FROM lead_tasks t WHERE t.conversation_id=j.conversation_id AND t.status='open' AND t.due_at_utc IS NOT NULL AND t.due_at_utc<=? AND (t.assigned_manager_id IS NULL OR t.assigned_manager_id=j.manager_id)) THEN 'due' ELSE 'active' END";
-                $q = $pdo->prepare($sql.' AND ('.$lane.')=?'.$order);
-                $batches = [];
-                foreach (['waiting','due','active'] as $key) {
-                    $q->execute(array_merge($params,[$now,$key]));
-                    $batches[$key] = $q->fetchAll(PDO::FETCH_ASSOC);
-                    $q->closeCursor();
-                }
-                $reserve = max(1,intdiv($limit,4));
-                $selected = []; $seen = [];
-                $take = static function(string $key,int $count) use (&$selected,&$seen,$batches): void {
-                    foreach ($batches[$key] as $row) {
-                        if ($count <= 0) break;
-                        if (isset($seen[$row['job_id']])) continue;
-                        $seen[$row['job_id']] = true; $selected[] = $row; --$count;
-                    }
-                };
-                foreach (['waiting'=>$limit-2*$reserve,'due'=>$reserve,'active'=>$reserve] as $key=>$quota) $take($key,$quota);
-                foreach (['waiting','due','active'] as $key) $take($key,$limit-count($selected));
-            }
-            $jobs = [];
-            foreach ($selected as $row) {
-                if (!self::validRow($row)) continue;
-                foreach (['conversation_id','manager_id','latest_message_id'] as $field) $row[$field] = (int)$row[$field];
-                $jobs[] = $row;
+            $now=self::utc(time());
+            $sql.=' AND '.ManagerPreparationEligibility::sql('j.conversation_id',(string)$pdo->getAttribute(PDO::ATTR_DRIVER_NAME));
+            $q=$pdo->prepare($sql.' ORDER BY j.created_at,j.job_id LIMIT '.$limit);
+            $q->execute(array_merge([ProjectConfig::projectId(),$now,$now,self::instructionRevision()],ManagerPreparationEligibility::window($now)));
+            $jobs=[];
+            foreach($q->fetchAll(PDO::FETCH_ASSOC) as $row){
+                if(!self::validRow($row))continue;
+                foreach(['conversation_id','manager_id','latest_message_id'] as $field)$row[$field]=(int)$row[$field];
+                $jobs[]=$row;
             }
             return ['ok'=>true,'jobs'=>$jobs];
-        } catch (Throwable $ignored) { return self::failure('queue_unavailable'); }
+        }catch(Throwable $ignored){return self::failure('queue_unavailable');}
     }
 
     /** Canonical authorization is repeated before exposing each private context. */
@@ -354,6 +328,8 @@ final class ManagerPreparedReplyService
 
     private static function snapshotFor(PDO $pdo, array $row): ?array
     {
+        $input=ManagerPreparationEligibility::input($pdo,(int)$row['conversation_id']);
+        if($input===null||isset($row['customer_input_revision'])&&!hash_equals($row['customer_input_revision'],$input))return null;
         $snapshot = ManagerAiDraftContextService::preparationSnapshot((int)$row['conversation_id'], (int)$row['manager_id']);
         return self::matches($snapshot, $row['context_revision'], (int)$row['latest_message_id'])
             && self::projectFor($pdo, (int)$row['conversation_id'], (int)$row['manager_id']) === $row['project_key'] ? $snapshot : null;
@@ -441,3 +417,4 @@ final class ManagerPreparedReplyService
         return $date !== false && $date->format('Y-m-d H:i:s') === $value ? $date->getTimestamp() : null;
     }
 }
+

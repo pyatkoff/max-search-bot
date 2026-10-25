@@ -49,84 +49,55 @@ not verified current prices, availability, booking consent or instructions.
 
 ## Queue and freshness
 
-The existing subscription-gated cron collects at most20 candidates per pass through
-`ManagerPreparedReplyService::collectAndEnqueue` and the canonical collector. It
-reserves10 places for clients awaiting a human reply,5 for arrived open tasks and5
-for other active assigned clients; unused places return to the busy lanes. Each
-lane progresses by conversation ID and wraps at its end. Three collection lanes and one `verify` lane reuse the versioned private
-project cursor rows from migration050 across cron invocations;
-compare-and-set prevents a slower overlapping pass from rewinding progress. This
-is scan metadata for the existing queue, not another generation or task store.
-Neither a bounded pass nor its counters claim that every client has fresh analysis.
+The existing subscription-gated cron selects at most20 **recent unanswered**
+customer inputs per pass. Recency means the actual latest genuine customer
+message was created within72 hours of capture, not the job's creation timestamp.
+Callback/start/bot-started events cannot open work or refresh that age. A human
+manager reply suppresses automatic work; an arrived task or an active assignment
+alone does not reopen an answered or archived chat. This is an automatic workload
+boundary, not a deletion or a claim that an older customer never needs help.
+Explicit manual AI and regeneration keep their existing authorized scope and full
+history. Empty text does not exclude real voice, photos or other media.
 
-The worker inventory preserves those priorities after collection. A normal20-job
-read reserves10 unanswered enquiries,5 arrived tasks and5 other active clients,
-then fills unused capacity from available lanes. Each lane remains oldest-first.
-Classification uses current genuine customer/manager messages and existing open,
-arrived, actual-owner tasks; callbacks/start events and future/completed/foreign
-tasks do not elevate work. Limits3–19 reserve at least one slot per lane; explicit
-limits1–2 retain global oldest-first progress because they cannot reserve all three.
-Three fixed bounded metadata reads return at most three times the requested limit,
-with no per-client query, context/photo load, job consumption or new priority store.
-All ordinary pending eligibility and later context/save fences remain in force.
+The cheap SQL source gate runs before the candidate limit/full context capture,
+and again in enqueue, pending inventory and context/save. Old already-issued jobs
+cannot bypass it. Pending reads now use one bounded metadata query; they neither
+hydrate histories/photos nor consume work. Canonical source/project/owner/delivery
+authorization and exact context/instruction fences remain authoritative. Test,
+closed, self-service and scoped internal-owner conversations stay excluded;
+off-shift active owners and lawful unassigned waiting enquiries remain eligible.
 
-Preparation is not restricted to the former72-hour tail: an older waiting client,
-an arrived reminder or an answered active client can need fresh advice. Closed,
-self-service, test and exact internal-owner demo conversations remain excluded.
-The same genuine inbound-message filter rejects callback/start/bot-started-only
-entries. Due tasks must be open, have arrived and belong to the actual assigned
-owner (or have no task assignee). Future/completed/other-owner tasks do not elevate
-a client. Source/project/owner/delivery visibility is rechecked through canonical
-snapshots and after capture; off-shift active owners remain eligible. The original
-one-off pilot `collect` default keeps its bounded recent/unanswered contract.
-Collector reads never hydrate ordinary HTTP detail or mark messages read.
+The automatic scan reuses the existing versioned waiting cursor; bounded full
+validation retains its verify cursor. Old due/active cursor rows are left alone,
+not deleted or repurposed. Compare-and-set still prevents a slower pass rewinding
+progress. Neither one pass nor aggregate counters promise complete coverage.
 
-Assigned snapshots enforce owner/project/source visibility and delivery restrictions.
-Unassigned waiting preparation uses the same separate read-only project-admin
-scope and owner zero, without assignment or manual-send authority. No reminder,
-message, unread marker, shift, routing rule, model profile, budget or schedule is
-changed. Opening the assistant does not collect or generate work.
+Migration062 adds a nullable private customer-input digest and lookup index to
+the existing work table. No transcript is copied and old ready rows are not
+backfilled or rewritten. The digest binds the latest genuine customer's ID, text,
+timestamp, channel and attachment/event metadata, separately from full context
+and instruction revisions. An unchanged completed decision, including no-contact
+and human-check results, remains handled after its one-hour preview TTL or a
+route/knowledge/post/instruction refresh. A new message or edit to that latest
+input permits new work. A pure later click does not. The collector checks this
+small binding before opening a full snapshot. Live unfinished work is also skipped
+there; bounded reconciliation still checks its exact canonical source.
 
-An already-ready unassigned proposal can be reviewed after a real manager takes
-the conversation. A separate evidence digest must still match every source
-message/edit/metadata, project/source/channel, approved knowledge and reference
-projection; the current assigned owner's authorization and normal expiry remain
-mandatory. The returned insertion revision is the fresh owner-specific revision.
-An unfinished pre-take job cannot complete after take. No source, read marker,
-assignment or lifecycle event is changed by either lookup or preparation.
+Pending work still expires after an hour. Only unfinished expired work may renew
+as a new immutable deterministic job. Completed proposals and provenance remain
+immutable; expiry never authorizes a stale insertion or another model call.
+Normal context/instruction/owner revalidation, idempotent completion and conflicting
+completion rejection are unchanged. Reconciliation expires only confirmed obsolete
+pending rows through exact-binding compare-and-set, never ready results. Storage
+uncertainty is deferred, not treated as proof of staleness. The queue keeps its
+200-pending soft cap and existing cron flock. No message, task, assignment, unread
+marker, shift, routing, AI profile, budget, send or schedule is changed.
 
-`ManagerPreparedReplyService` persists bindings and validated proposals in migration
-044, without copying transcripts into the queue. Job identity binds conversation,
-assigned owner, project, context revision and instructions. Same-context work is
-deduplicated; repeating the same completion is idempotent, while conflicting content
-is rejected. Superseded pending revisions expire. The pending cap of 200 is a soft
-operational bound under independently concurrent collectors; canonical cron uses flock.
-
-Pending work expires after an hour. Completed results remain available for an hour
-after preparation and are returned only for a freshly matching context/instruction
-revision and current authorization. Ordinary enqueue calls do not silently regenerate expired identities. The scheduled
-collector can renew an expired unchanged result as a new deterministic immutable
-job, preserving the old proposal and feedback provenance. Concurrent/repeated
-passes share the active job and its original TTL. A validated unchanged
-`no_contact` proposal is not regenerated merely because time passed; changed
-source/context/instructions can establish new work. No result or frozen worker
-contract is overwritten, and an expired worker cannot complete the renewed job. Active pending inventory skips
-obvious owner/status/latest-message changes; fine-grained source access is checked
-again before exposing context or completing work. The same scheduled pass first validates at most20 active pending bindings against
-fresh canonical full snapshots (including reference/post/knowledge revisions,
-not merely latest message ID). Its separate rotating `verify` cursor advances
-past currently valid jobs and wraps; one limited pass is not full coverage.
-Confirmed obsolete/revoked pending rows release capacity through an exact-binding
-compare-and-set expiry. Ready results/concurrent completion remain immutable.
-Storage uncertainty defers validation rather than expiring by guess. A still
-permitted new revision enters only canonical enqueue with fresh access/revision
-rechecks and deterministic deduplication; source changes during that recheck may
-safely defer replacement to the ordinary collector. Unchanged no_contact is not
-regenerated. Counters distinguish checked, retired, inserted renewals and deferred.
-This bounded maintenance adds no schema, model call, worker claim or schedule.
-Pending/UI reads stay metadata-only; they do not hydrate all job contexts or write
-queue state. Old context/save refusals remain mandatory until reconciliation or
-expiry. These are not a send reservation; the existing send path remains authoritative.
+An already-ready unassigned proposal can still be reviewed after lawful take if
+the separate evidence digest matches every source message/edit/metadata,
+project/source/channel and approved knowledge/reference projection. Current owner
+authorization, normal preview expiry and fresh owner-specific insertion revision
+remain mandatory. Unfinished pre-take work cannot complete after take.
 
 The worker reads each bounded canonical context separately and uses the exact
 server-owned instructions and approved knowledge facts returned with it. Unread
@@ -387,3 +358,4 @@ callbacks immediately. Existing source messages and assignments remain unchanged
 Official references: [MCP Events](https://developers.openai.com/plugins/build/mcp-events),
 [OAuth](https://developers.openai.com/plugins/build/auth),
 [custom MCP connection](https://developers.openai.com/plugins/quickstart).
+
