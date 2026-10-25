@@ -1,0 +1,97 @@
+# Advertising entries for predictive conversions
+
+Owner direction, 25 October 2026: model future tour purchases from current signals;
+preserve all available observations while keeping export cutoffs configurable.
+Telegram and MAX collection, conversations and Yandex integrations live on
+different servers. This slice supplies the private receiving store and page
+contract. It does not activate a producer, HTTP endpoint, background import,
+prediction, Metrika goal or advertising strategy.
+
+## Confirmed source boundary
+
+The owner supplied `/tgmini/index.php`, `save.php` and `bot_webhook.php`. The first
+posts Telegram ID, ClientID, initData and advertising metadata; save logs the pair
+and supplies only ClientID to `TelegramSubApi::getLink()/getLinkNew()`.
+The provided save version has signature verification disabled and may receive an
+empty ClientID after the frontend's 2.5-second wait. An unverified posted Telegram
+ID must never become a verified identity merely because a page was imported.
+
+Read-only static tracker inspection on 25 October, run40211239879 at
+audit3968913c63954ad06e51a6a28353b405110ab888, confirms that getLink and getLinkNew
+call saveLink, which persists UF_CLIENT_ID and an empty UF_CHAT_ID in the shared
+Telegram main store. saveQuery fills UF_CHAT_ID upon subscription; processJoin
+copies the link's ClientID into join-conversion storage. This existing path is
+useful for subscribers but does not create the direct pre-subscription pair.
+No PHP/bootstrap/database/log execution or server write occurred in that audit.
+The Mini App itself was not found under the three inspected tracker roots; this
+does not identify its actual host or prove installed equality with the uploads.
+
+## Record and scope
+
+One feed is explicitly scoped by `project_key`, `source_key`, `platform` and
+`counter_id`. The trusted importer configuration, not the incoming JSON, owns
+that scope. Telegram and MAX numeric identities are separate. Brand/project and
+counter scopes never mix even if their decimal IDs happen to be equal.
+
+Every advertising entry has a source-generated `visit_id` stable across transport
+retries. A repeated ad entry gets a new visit ID even when ClientID is unchanged.
+Each observation/enrichment has an immutable positive decimal `source_cursor`.
+The producer must persist cursor order and make only committed observations
+visible in its feed; an allocated sequence number alone must not authorize
+advancing past an uncommitted transaction. IDs and cursors are JSON strings,
+including values beyond signed 64-bit range. Timestamps are Unix seconds.
+
+An initial observation can contain empty ClientID, YCLID and user ID; its identity
+status is `missing`. A supplied but unvalidated messenger ID is `unverified`.
+Only a source that actually validated Telegram initData (or the platform's
+authenticated identity) may assert `verified`. This database does not perform
+Telegram signature verification and has no public ingestion route.
+`verifiedHistory()` returns bounded candidate observations with a nonempty
+ClientID; it deliberately does not select an attribution winner. The existing
+owner-selected MAX latest-known-ClientID policy and original event time remain
+unchanged. Late availability of a link is distinct from the ad-entry time.
+
+Later enrichment appends another observation for the same visit. Empty or
+unverified later observations do not erase earlier verified ClientIDs. History is
+immutable about the original entry time and cannot bind one entry to two
+different verified messenger users. Conflicts roll back the complete page. It is
+never converted into a fabricated zero purchase probability. Raw initData,
+credentials, names, transcripts, arbitrary URLs and unknown fields are rejected.
+
+## Atomic page import
+
+Schema1 pages carry the four scope fields, `after_cursor`, `next_cursor` and up to
+100 strictly ordered observations. Each row has exactly `source_cursor`,
+`visit_id`, `visit_at_unix`, `observed_at_unix`, `external_user_id`,
+`identity_status`, `client_id`, `yclid`, `campaign_id`, `region_id`.
+The next cursor must equal the last row, or the after cursor for an empty page.
+The transport must bound raw bodies at262144bytes before JSON decoding.
+
+The importer validates the complete page before writing. MySQL serializes each
+feed through its cursor-row lock; the observations and checkpoint commit in one
+transaction. A changed replay, gap, stale overlapping append or row conflict rolls
+the whole page back. An old exact replay verifies all original row fingerprints
+and never moves the stored cursor backward. No outer business transaction is
+silently committed. Migration063 owns all schema; runtime code performs no DDL.
+
+`tools/advertising_visits.php validate` reads one bounded JSON page from stdin
+without loading runtime configuration or opening a database. `import` loads the
+existing conversation connection, verifies its active project and writes the
+page. Both commands require explicit `--project_key`, `--source_key`, `--platform`,
+`--counter_id` arguments. Output contains aggregates only; failures do not print
+payloads, private IDs, SQL, credentials or source JSON. HTTP execution returns404.
+
+## Following implementation
+
+1. Locate the actual Mini App runtime and confirm its installed source. Reuse
+   existing subscription export; preserve the current channel-opening path.
+2. Verify initData, save every entry before subscription, use documented Metrika
+   getClientID and append later enrichment with the original visit identity.
+3. Add a bounded authenticated feed and client using the existing signed
+   server-to-server pattern, persist source progress and reconcile failures.
+4. Connect Telegram events behind the existing goal owners; repair only the
+   already evidenced handoff/customer-reply gaps with behavior regressions.
+5. Add versioned current-trip/brand-aware predictions, retaining evidence time,
+   confidence and budget semantics. Decide export timing and deduplication before
+   any monetary event is emitted. No top-percent cutoff is fixed by this storage
+   slice; late purchases will calibrate the predictions as they arrive.
