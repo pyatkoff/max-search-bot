@@ -15,6 +15,38 @@ final class ManagerAiDraftFeedbackReport
         'edited_messages','manager_message_rows','manager_text_messages','unlinked_manager_text_messages',
         'unresolved_reference_messages','invalid_reference_messages','unclassifiable_message_rows','media_messages_excluded'];
 
+    /** Pure historical proof for the protected usage view; never a send permission. */
+    public static function inspectUsage(array $message,array $draft,string $projectKey,DateTimeImmutable $now): ?array
+    {
+        $metadata=self::metadata($message['metadata_json']??null);$proposal=self::proposal($draft['proposal_json']??null);
+        $ref=$metadata['ai_draft']??null;$created=self::timestamp($draft['created_at']??null);
+        $requested=self::timestamp($draft['insert_requested_at']??null);$sent=self::timestamp($message['created_at']??null);
+        if(!$metadata||!$proposal||!$proposal['should_draft']||!is_array($ref)||array_is_list($ref)||count($ref)!==3
+            ||!self::hex($ref['draft_id']??null,32)||!is_bool($ref['text_matches_proposal']??null)||!self::hex($ref['sent_text_sha256']??null,64)
+            ||!self::positive($message['id']??null)||!self::positive($message['conversation_id']??null)||!self::positive($message['sender_id']??null)
+            ||!self::positive($draft['manager_id']??null)||!self::positive($draft['latest_message_id']??null)
+            ||($draft['draft_id']??null)!==$ref['draft_id']||($draft['project_key']??null)!==$projectKey||($message['project_key']??null)!==$projectKey
+            ||($metadata['project_key']??null)!==$projectKey||(int)($draft['conversation_id']??0)!==(int)$message['conversation_id']
+            ||(int)$draft['manager_id']!==(int)$message['sender_id']||!self::hex($draft['context_revision']??null,64)||!self::hex($draft['instruction_revision']??null,64)
+            ||(($draft['preparation_job_id']??null)!==null&&!self::hex($draft['preparation_job_id'],64))
+            ||($message['direction']??null)!=='outbound'||($message['sender_type']??null)!=='manager'
+            ||!in_array($message['channel']??null,['max','telegram','website'],true)||$message['channel']!==($message['conversation_channel']??null)
+            ||(array_key_exists('attachments',$metadata)&&(!is_array($metadata['attachments'])||$metadata['attachments']))
+            ||$created===null||$requested===null||$sent===null||$requested<$created||$sent<$requested||$sent-$created>86400||$sent>=$now->getTimestamp()
+            ||$ref['text_matches_proposal']!==hash_equals(hash('sha256',trim($proposal['draft'])),$ref['sent_text_sha256']))return null;
+        $stored=$message['text']??null;if(!is_string($stored)||preg_match('//u',$stored)!==1)return null;
+        $raw=htmlspecialchars_decode($stored,ENT_QUOTES);$initial=self::text($raw,1,20000)&&strlen($stored)<=120000&&hash_equals($ref['sent_text_sha256'],hash('sha256',trim($raw)));
+        preg_match_all('/./us',$raw,$characters);$truncated=count($characters[0])>6000||strlen($stored)>120000;
+        $edited=self::timestamp($metadata['edited_at']??null);$edited=$edited!==null&&$edited>=$sent&&$edited<=$now->getTimestamp();
+        return ['message_id'=>(int)$message['id'],'conversation_id'=>(int)$message['conversation_id'],
+            'latest_message_id'=>(int)$draft['latest_message_id'],'manager_id'=>(int)$draft['manager_id'],
+            'source'=>($draft['preparation_job_id']??null)!==null?'prepared':'generated','proposed_text'=>trim($proposal['draft']),
+            'current_sent_text'=>implode('',array_slice($characters[0],0,6000)),'current_sent_text_truncated'=>$truncated,
+            'initial_text_available'=>$initial,'recorded_text_matches_proposal'=>$ref['text_matches_proposal'],'edited'=>$edited,
+            'reason'=>$proposal['reason'],'generated_at'=>$draft['created_at'],'sent_at'=>$message['created_at'],
+            'case_revision'=>hash('sha256',json_encode([$message['id'],$ref['draft_id'],$message['created_at'],$ref['sent_text_sha256'],hash('sha256',$stored),hash('sha256',$draft['proposal_json']),$metadata['edited_at']??null],JSON_THROW_ON_ERROR))];
+    }
+
     /**
      * Trusted private CLI boundary; no auth/config bootstrap and no business writes.
      * Own transaction uses driver isolation. Time bounds are immutable, while current

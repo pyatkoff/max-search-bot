@@ -246,6 +246,25 @@ for(const phase of ['prepared','generation','preview','validation'])test('new me
   assert.equal(h.ids.get('aiDraftInsert').hidden,true);assert.match(h.ids.get('aiDraftStatus').textContent,/изменилась/);
   assert.equal(h.ids.get('replyText').value,'Сохранить текст');assert.equal(h.getFile(),file);assert.equal(h.aiCalls().length,['generation','validation'].includes(phase)?2:1);assertNoMutations(h);
 });
+for(const phase of ['prepared','generation','validation'])test('loading older history preserves the current '+phase+' operation and still validates before insertion',async()=>{
+  const pending=deferred();
+  const h=await harness(data=>data.action==='validate'?(phase==='validation'?pending.promise:response({ok:true,revision:'synthetic-revision-1',latest_message_id:8})):phase==='generation'?(data.action==='prepared'?response({ok:true,prepared:false}):pending.promise):phase==='prepared'?pending.promise:response(prepared()));
+  await h.draft('Сохранить текст');const file={name:'keep-history.txt'};h.setFile(file);await h.click('aiDraftOpen');
+  if(phase==='generation')await h.click('aiDraftRetry');if(phase==='validation')await h.insert();
+  const calls=h.aiCalls().length;h.W.S.detail.messages.unshift({id:1,sender_type:'customer',text:'Older existing message'});h.observe();assert.equal(h.aiCalls().length,calls);
+  pending.resolve(response(phase==='validation'?{ok:true,revision:'synthetic-revision-1',latest_message_id:8}:phase==='generation'?generated():prepared()));await tick();
+  if(phase!=='validation')await h.insert();
+  assert.ok(h.ids.get('replyText').value.includes(generated().draft));assert.ok(h.ids.get('replyText').value.includes('Сохранить текст'));assert.equal(h.getFile(),file);
+  assert.equal(h.aiCalls().filter(c=>c.action==='validate').length,1);assertNoMutations(h);
+});
+test('edits to captured messages still invalidate after older history was added',async()=>{
+  const h=await harness();await h.click('aiDraftOpen');h.W.S.detail.messages.unshift({id:1,sender_type:'customer',text:'Older'});h.observe();h.W.S.detail.messages.find(m=>m.id===5).text='Edited captured history';h.observe();await h.insert();
+  assert.match(h.ids.get('aiDraftStatus').textContent,/изменилась/);assert.equal(h.aiCalls().length,1);assertNoMutations(h);
+});
+test('older-page loading never bypasses a changed server context revision',async()=>{
+  const h=await harness(data=>data.action==='prepared'?response(prepared()):response({ok:false,error:'context_stale'},409));await h.draft('Own reply');await h.click('aiDraftOpen');h.W.S.detail.messages.unshift({id:1,sender_type:'customer',text:'Older'});h.observe();await h.insert();
+  assert.equal(h.ids.get('replyText').value,'Own reply');assert.equal(h.aiCalls().filter(c=>c.action==='validate').length,1);assertNoMutations(h);
+});
 test('same-ID edits also invalidate the preview',async()=>{
   const h=await harness();await h.click('aiDraftOpen');h.W.S.detail.messages[1].text='Synthetic edited request';h.observe();await h.insert();
   assert.match(h.ids.get('aiDraftStatus').textContent,/изменилась/);assert.equal(h.aiCalls().length,1);assertNoMutations(h);

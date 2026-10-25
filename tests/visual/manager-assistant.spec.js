@@ -1,6 +1,61 @@
 const {test,expect}=require('@playwright/test');
 const fs=require('node:fs'),path=require('node:path');
 const {setup,root}=require('./fixtures/internal-notes');
+const {setupAiUsage}=require('./fixtures/manager-ai-usage');
+
+// AI_USAGE_CASES_BEGIN — same production page/API on an isolated local database.
+function usageClean(s){expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.calls.every(c=>['identity','list','review'].includes(c.action))).toBe(true)}
+async function usageCapture(page,browser,width,label){const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});await page.screenshot({animations:'disabled',path:path.join(directory,`assistant-usage-${browser}-${width}-${label}.png`)})}
+for(const width of [390,430,768,1440])test('AI usage real owner comparison and explicit review '+width,async({page,browserName})=>{
+  await page.setViewportSize({width,height:900});const s=await setupAiUsage(page);
+  try{
+    await expect(page.locator('[data-usage-case]')).toHaveCount(20);expect(s.calls.filter(c=>c.action==='review')).toHaveLength(0);
+    await page.getByLabel('Только с правками').check();await expect(page.locator('[data-usage-case]').first()).toHaveAttribute('data-usage-case','10046');
+    await expect(page.locator('[data-usage-case]').first()).toContainText('Светлана');await expect(page.locator('[data-usage-case]').first()).toContainText('до 220 тысяч рублей');
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);await usageCapture(page,browserName,width,'overview');
+    const card=page.locator('[data-usage-case]').first();await card.locator('.usageComparison').scrollIntoViewIfNeeded();await usageCapture(page,browserName,width,'comparison');
+    await card.getByRole('button',{name:'Отметить просмотренным',exact:true}).click();await expect(card.getByRole('button',{name:'Просмотрено',exact:true})).toBeDisabled();expect(s.calls.filter(c=>c.action==='review')).toHaveLength(1);
+    await page.getByRole('button',{name:'Обновить',exact:true}).click();await expect(page.locator('[data-usage-case]').first()).toHaveAttribute('data-usage-case','10044');
+    await page.getByRole('button',{name:'Все применения',exact:true}).click();await expect(page.locator('[data-usage-case]').first()).toHaveAttribute('data-usage-case','10046');await expect(page.locator('[data-usage-case]').first().getByRole('button',{name:'Просмотрено',exact:true})).toBeDisabled();
+    await page.setViewportSize({width,height:420});expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);usageClean(s);
+  }finally{await s.cleanup()}
+});
+test('AI usage keyset paging visits all real cases without repeating a page',async({page})=>{
+  const s=await setupAiUsage(page);try{await expect(page.locator('[data-usage-case]')).toHaveCount(20);await page.getByRole('button',{name:'Показать ещё',exact:true}).click();await expect(page.locator('[data-usage-case]')).toHaveCount(40);await page.getByRole('button',{name:'Показать ещё',exact:true}).click();await expect(page.locator('[data-usage-case]')).toHaveCount(47);await expect(page.locator('#usageMore')).toBeHidden();const ids=await page.locator('[data-usage-case]').evaluateAll(nodes=>nodes.map(n=>n.dataset.usageCase));expect(new Set(ids).size).toBe(47);expect(s.calls.filter(c=>c.action==='review')).toHaveLength(0);usageClean(s)}finally{await s.cleanup()}
+});
+test('AI usage renders hostile text inertly and labels a later message edit',async({page})=>{
+  const s=await setupAiUsage(page);try{
+    await expect(page.locator('[data-usage-case]')).toHaveCount(20);
+    await page.route('**/manager/ai-usage-api.php',async route=>{if(route.request().postDataJSON().action!=='list')return route.fallback();const response=await route.fetch(),body=await response.json();Object.assign(body.items[0],{question_text:'<img src=x onerror="window.usageInjected=1">',proposed_text:'<script>window.usageInjected=1</script>',current_sent_text:'Later edited reply',initial_text_available:false,edited:true});return route.fulfill({response,json:body})});
+    await page.getByRole('button',{name:'Обновить',exact:true}).click();const card=page.locator('[data-usage-case]').first();await expect(card).toContainText('Текст сообщения сейчас');await expect(card).toContainText('Первоначальный текст для сравнения недоступен');await expect(card.locator('img,script')).toHaveCount(0);expect(await page.evaluate(()=>window.usageInjected)).toBeUndefined();usageClean(s);
+  }finally{await s.cleanup()}
+});
+test('AI usage clears private comparisons after an account or permission change',async({page})=>{
+  for(const outcome of ['account','forbidden']){
+    const s=await setupAiUsage(page);try{await expect(page.locator('[data-usage-case]')).toHaveCount(20);await page.route('**/manager/ai-usage-api.php',route=>route.fulfill({status:outcome==='forbidden'?403:200,contentType:'application/json',body:JSON.stringify(outcome==='forbidden'?{ok:false,error:'forbidden'}:{ok:true,viewer_id:999,items:[]})}));await page.getByRole('button',{name:'Обновить',exact:true}).click();await expect(page.locator('#usageApp')).toBeHidden();await expect(page.locator('[data-usage-case]')).toHaveCount(0);usageClean(s)}finally{await s.cleanup();await page.unroute('**/manager/ai-usage-api.php')}
+  }
+});
+test('AI usage rejects a late prior-filter page and never retries an uncertain review automatically',async({page})=>{
+  const s=await setupAiUsage(page);let release;
+  try{
+    await expect(page.locator('[data-usage-case]')).toHaveCount(20);let held=false;
+    await page.route('**/manager/ai-usage-api.php',async route=>{const d=route.request().postDataJSON();if(d.action==='list'&&d.project_key===''){const response=await route.fetch(),body=await response.json();body.items[0].display_name='OBSOLETE FILTER';held=true;await new Promise(resolve=>release=resolve);return route.fulfill({response,json:body})}return route.fallback()});
+    await page.getByRole('button',{name:'Обновить',exact:true}).click();await expect.poll(()=>held).toBe(true);await page.locator('#usageProject').selectOption('anytour');await expect(page.locator('[data-usage-case]')).toHaveCount(20);release();await expect(page.locator('#usageCases')).not.toContainText('OBSOLETE FILTER');
+    await page.unroute('**/manager/ai-usage-api.php');await page.getByRole('button',{name:'Обновить',exact:true}).click();await expect(page.locator('[data-usage-case]')).toHaveCount(20);let reviews=0;
+    await page.route('**/manager/ai-usage-api.php',route=>{if(route.request().postDataJSON().action!=='review')return route.fallback();reviews++;return route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({ok:false,error:'unavailable'})})});
+    const card=page.locator('[data-usage-case]').first();await card.getByRole('button',{name:'Отметить просмотренным',exact:true}).click();await expect(card.locator('.usageCaseStatus')).toContainText('Обновите отчёт');expect(reviews).toBe(1);await expect(card.getByRole('button',{name:'Отметить просмотренным',exact:true})).toBeEnabled();usageClean(s);
+  }finally{release?.();await s.cleanup()}
+});
+for(const width of [390,1440])test('AI usage owner entry follows the existing Analytics identity '+width,async({page,browserName})=>{
+  await page.setViewportSize({width,height:900});const s=await setupAiUsage(page);
+  try{
+    await expect(page.locator('[data-usage-case]')).toHaveCount(20);let role='admin';
+    await page.route('**/manager/supervision-api.php',route=>{const d=route.request().postDataJSON();return route.fulfill({contentType:'application/json',body:JSON.stringify(d.action==='identity'?{ok:true,manager:{id:1,role},csrf:'fixture-usage-csrf'}:d.action==='scope'?{ok:true,viewer_id:1,scopes:[{project_key:'anytour',display_name:'AnyTour',sources:[]}],managers:[]}:{ok:false,error:'analytics_unavailable',viewer_id:1})})});
+    await page.goto(s.origin+'/manager2/analytics.php');await expect(page.locator('#analyticsAiUsage')).toBeVisible();await expect(page.locator('#analyticsAiUsage')).toHaveAttribute('href','/manager2/ai-usage.php');expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);await usageCapture(page,browserName,width,'entry');
+    role='manager';await page.reload();await expect(page.locator('#analyticsAiUsage')).toBeHidden();usageClean(s);
+  }finally{await s.cleanup()}
+});
+// AI_USAGE_CASES_END
 
 // The fixture renders the real Manager2 PHP shell and production assets. These
 // extra routes are local synthetic assistant reads/decisions, never live data.
