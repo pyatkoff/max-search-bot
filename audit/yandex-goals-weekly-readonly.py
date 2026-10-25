@@ -162,8 +162,10 @@ def collect(get):
         for row in engines.get('data', []):
             dims = row.get('dimensions', [])
             dim = dims[0] if len(dims) == 1 else {}
-            name, value = dim.get('name', ''), dim.get('id')
-            if re.search(r'(яндекс[.\s]*директ|yandex[.\s]*direct)', name, re.I):
+            name, value = dim.get('name') or '', dim.get('id')
+            if not isinstance(name, str):
+                raise Stop('ENGINE_NAME_INVALID')
+            if value == 'ya_direct' and re.search(r'(яндекс[.:\s]*директ|yandex[.:\s]*direct)', name, re.I):
                 if not isinstance(value, str) or not re.fullmatch(r'[A-Za-z0-9_.-]{1,100}', value):
                     raise Stop('DIRECT_ENGINE_ID_INVALID')
                 metrics = row.get('metrics', [])
