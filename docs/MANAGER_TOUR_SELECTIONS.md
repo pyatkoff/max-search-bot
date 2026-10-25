@@ -1,5 +1,17 @@
 # Manager2 tour selection constructor
 
+## ANEX Egypt: one direction across the three collectors (0.6.2)
+
+The existing ANEX adapter also accepts the observed Moscow/Egypt result profile:
+STATEINC11, two adults/no children, RUB, DBL, exact date and ordinary nights. Its
+10-cell row and literal HRG/SSH-MOW SPO (with optional Anex Light) are validated
+independently from the legacy Turkey profile. An absent tariff label stays empty;
+10+1 hotel/flight nights are explicitly refused rather than flattened. The same
+hotelCode-bound gallery and canonical import/receipt/manual-price owners apply.
+FUN&SUN, ANEX and Tourvisor can therefore populate one Egypt trip. Actual-source
+fixture integration and installed physical Chrome/Yandex/natural A1–A8 acceptance
+remain distinct; this adds no live-fare verification, catalogue match or sender.
+
 Owner specification: AnyTour_selection_development_spec_2026-10-22.docx.
 Coordination: issue #55; anonymous interest source6367229738 follows installed FUN&SUN1091/RELEASE6366634955. Historical source6335241336 owns the first draft slice only.
 
