@@ -86,7 +86,7 @@ jobs:
            foreach($r['data']['messages']as $m){
             if((string)($m['recipient']['chat_id']??'')!==$id||($m['recipient']['chat_type']??'')!=='channel')throw new RuntimeException('unexpected_post_channel');
             $types=[];foreach((array)($m['body']['attachments']??[])as $a){$t=(string)($a['type']??'other');$types[$t]=($types[$t]??0)+1;}
-            $out['posts'][]=['message_id'=>(string)($m['body']['mid']??''),'published_ms'=>$m['timestamp']??null,'text'=>mb_substr((string)($m['body']['text']??''),0,4500,'UTF-8'),'attachment_types'=>$types,'link'=>$m['link']??null];
+            $out['posts'][]=['message_id'=>(string)($m['body']['mid']??''),'published_ms'=>$m['timestamp']??null,'text'=>mb_substr((string)($m['body']['text']??''),0,4500,'UTF-8'),'attachment_types'=>$types,'public_url'=>$m['url']??null,'accepted_snapshot_url'=>ChannelPostIncomingAdapter::maxSnapshot($m)['post_url']??null];
            }
            $pdo=ConversationDb::connection();$pdo->exec('START TRANSACTION READ ONLY');
            try{
