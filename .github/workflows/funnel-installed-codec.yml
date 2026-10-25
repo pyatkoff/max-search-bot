@@ -1,0 +1,109 @@
+name: Verify installed funnel codec without customer traffic
+on:
+  push:
+    branches: [audit/funnel-installed-codec-20261025]
+    paths: [.github/workflows/funnel-installed-codec.yml]
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: funnel-installed-codec-20261025
+  cancel-in-progress: false
+env:
+  EXPECTED_PRODUCTION_SHA: 2fc37f6e4af9c6c5a69234742c3f9183155a1f76
+jobs:
+  inspect:
+    if: github.ref == 'refs/heads/audit/funnel-installed-codec-20261025'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.EXPECTED_PRODUCTION_SHA }}
+          persist-credentials: false
+      - name: Verify current released production source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_PRODUCTION_SHA"
+          test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = "$EXPECTED_PRODUCTION_SHA"
+          conclusion=$(gh api "repos/pyatkoff/max-search-bot/actions/runs?head_sha=$EXPECTED_PRODUCTION_SHA&per_page=100" --jq '[.workflow_runs[] | select(.name=="Deploy production")] | max_by(.id) | .conclusion')
+          test "$conclusion" = success
+      - name: Prepare isolated installed service probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          cat > "$RUNNER_TEMP/codec-probe.php" <<'PHP'
+          <?php
+          declare(strict_types=1);
+          if(PHP_SAPI!=='cli')exit(2);
+          ini_set('display_errors','0');ini_set('log_errors','0');umask(0077);
+          $out=['ok'=>false,'mode'=>'isolated_installed_codec','database_writes'=>0,'provider_requests'=>0,'customer_sends'=>0,'natural_max_click_verified'=>false];$temp=null;$passed=0;
+          try {
+           require getcwd().'/services/TrafficAttributionService.php';
+           $check=static function(bool $ok)use(&$passed):void{if(!$ok)throw new RuntimeException('CODEC_CHECK_FAILED');$passed++;};
+           $context=['post_id'=>'55','offer_id'=>'synthetic:codec_read_only'];
+           $token=rtrim(strtr(base64_encode(json_encode($context,JSON_UNESCAPED_SLASHES)),'+/','-_'),'=');
+           $base='1234567890123456_region_213_campaign_42';$raw=$base.'_ctx1_'.$token;
+           $p=TrafficAttributionService::parseStartPayload($raw);
+           $check($p['yclid']==='1234567890123456'&&$p['region_id']==='213'&&$p['campaign_id']==='42');
+           $check($p['post_id']==='55'&&$p['offer_id']===$context['offer_id']);
+           $legacy=TrafficAttributionService::parseStartPayload($base);$check(!isset($legacy['post_id'],$legacy['offer_id']));
+           $url='https://max.ru/id9704048781_2_bot';
+           $check(TrafficAttributionService::buildMiniappUrl($url,$p)===$url.'?startapp='.$base);
+           $check(TrafficAttributionService::buildMiniappUrl($url,$p,'',true)===$url.'?startapp='.$raw);
+           $other=TrafficAttributionService::buildMiniappUrl($url,$p,'2234567890123456',true);$check(strpos($other,'_ctx1_')===false);
+           $bad=TrafficAttributionService::parseStartPayload($base.'_ctx1_'.rtrim(strtr(base64_encode('{"post_id":55,"offer_id":"x"}'),'+/','-_'),'='));$check(!isset($bad['post_id']));
+           $temp=sys_get_temp_dir().'/funnel-codec-'.bin2hex(random_bytes(12));if(!mkdir($temp,0700))throw new RuntimeException('TEMP_FAILED');
+           $saved=TrafficAttributionService::save($temp,'1',$p['yclid'],$p['region_id'],$p['campaign_id'],$raw);
+           $check(is_array($saved)&&$saved['offer_id']===$context['offer_id']);
+           $check(TrafficAttributionService::get($temp,'1')['post_id']==='55');
+           $check(TrafficAttributionService::get($temp,'2')===[]);
+           TrafficAttributionService::save($temp,'1',$p['yclid'],$p['region_id'],$p['campaign_id'],$base);
+           $cleared=TrafficAttributionService::get($temp,'1');$check(!isset($cleared['post_id'],$cleared['offer_id']));
+           $out['ok']=true;$out['checks_passed']=$passed;$out['service_sha256']=hash_file('sha256',getcwd().'/services/TrafficAttributionService.php');
+          }catch(Throwable $e){$out['code']='INSTALLED_CODEC_PROBE_FAILED';}
+          finally{
+           if($temp!==null&&is_dir($temp)){foreach(glob($temp.'/traffic/*')?:[]as$f)unlink($f);if(is_dir($temp.'/traffic'))rmdir($temp.'/traffic');rmdir($temp);}
+           $out['temporary_files_removed']=$temp===null||!file_exists($temp);
+          }
+          echo json_encode($out,JSON_UNESCAPED_SLASHES),PHP_EOL;exit($out['ok']&&$out['temporary_files_removed']?0:2);
+          PHP
+          php -l "$RUNNER_TEMP/codec-probe.php"
+      - name: Prepare existing server connection
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/codec_key"; else printf '%s\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/codec_key"; fi
+          else
+            printf '%s' "$raw" | base64 --decode > "$RUNNER_TEMP/codec_key"
+          fi
+          ssh-keygen -y -f "$RUNNER_TEMP/codec_key" >/dev/null
+      - name: Verify the exact installed service with isolated temporary files
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          ssh -i "$RUNNER_TEMP/codec_key" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$RUNNER_TEMP/codec_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; test \"\$(git hash-object services/TrafficAttributionService.php)\" = d74c1ab20340e99297b432b7165c8271a1cf7d53; php" < "$RUNNER_TEMP/codec-probe.php" > "$RUNNER_TEMP/codec-probe.json" || probe_status=$?
+          python3 - <<'PY'
+          import json,os
+          with open(os.environ['RUNNER_TEMP']+'/codec-probe.json')as f:d=json.load(f)
+          assert d['mode']=='isolated_installed_codec' and d['database_writes']==0 and d['provider_requests']==0 and d['customer_sends']==0 and d['temporary_files_removed'] is True and d['checks_passed']==11
+          print(json.dumps(d,ensure_ascii=False,sort_keys=True))
+          PY
+          test "${probe_status:-0}" = 0
+      - name: Remove ephemeral files
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/codec_key" "$RUNNER_TEMP/codec_known_hosts" "$RUNNER_TEMP/codec-probe.php" "$RUNNER_TEMP/codec-probe.json"
