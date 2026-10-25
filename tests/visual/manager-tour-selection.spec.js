@@ -708,3 +708,52 @@ test('collector popup requests a readable width before native viewport autosizin
  await page.setViewportSize({width:390,height:600});await expect(page.getByRole('button',{name:'Открыть подборку',exact:true})).toBeInViewport();await page.getByLabel('Итоговая цена, RUB',{exact:true}).scrollIntoViewIfNeeded();await expect(page.getByLabel('Итоговая цена, RUB',{exact:true})).toBeInViewport();await page.evaluate(()=>scrollTo(0,0));expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);expect(s.commands.every(x=>x.type==='status')).toBe(true);
  fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-popup-width-${browserName}.png`)});
 });
+
+
+function mixedPhotoDraft(){
+ const draft=JSON.parse(execFileSync('php',['-r',`require 'tests/support/manager-tour-collector.php';$offers=[];foreach([collectorObservation(),anexCollectorObservation(),tourvisorCollectorObservation()] as $n=>$raw){$i=ManagerTourSelectionImportDraft::normalize($raw);$o=$i['offer'];$o['id']=str_repeat(dechex($n+10),32);$o['import_source']=ManagerTourSelectionImportDraft::source($i);$offers[]=$o;}echo json_encode(['title'=>'Три источника','intro'=>'','offers'=>$offers],JSON_THROW_ON_ERROR);`],{cwd:root,encoding:'utf8'}));
+ draft.offers[0].photos=copy(completeDraft().offers[0].photos);
+ draft.offers[1].photos=[{kind:'room',url:'https://photos.example.org/anex-room.jpg',illustrative:true}];
+ draft.offers[2].photos=[{kind:'cover',url:'https://photos.example.org/own-cover.jpg',illustrative:false},{kind:'room',url:'https://photos.example.org/tourvisor-room.jpg',illustrative:true}];
+ return draft;
+}
+for(const width of [390,430,768,1440])test('selection same-hotel photo reuse keeps mixed source terms and own room at '+width,async({page,browserName})=>{
+ await page.setViewportSize({width,height:900});const original=mixedPhotoDraft(),s=await fixture(page,{draft:original});await open(page);
+ await page.locator('[data-ts-select="'+original.offers[1].id+'"]').click();await expect(page.locator('[data-ts-copy-photos]')).toHaveCount(0);
+ await page.locator('#ts-hotel-group').selectOption('o:'+original.offers[0].id);await expect(page.locator('[data-ts-copy-photos]')).toBeVisible();await expect(page.locator('#ts-photo-cover')).toHaveValue('');
+ await page.locator('#tsPhotoReuse').scrollIntoViewIfNeeded();fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-selection-photo-reuse-${browserName}-${width}.png`)});
+ await page.locator('[data-ts-copy-photos]').click();await expect(page.locator('#ts-photo-cover')).toHaveValue('https://photos.example.org/cover.jpg');await expect(page.locator('#ts-photo-beach')).toHaveValue('https://photos.example.org/beach.jpg');await expect(page.locator('#ts-photo-room')).toHaveValue('https://photos.example.org/anex-room.jpg');
+ await save(page);await page.locator('[data-ts-select="'+original.offers[2].id+'"]').click();const group=s.drafts.get(11).draft.offers[0].hotel_group;await page.locator('#ts-hotel-group').selectOption('g:'+group);
+ await page.locator('#tsPhotoSource').selectOption(original.offers[0].id);await page.locator('[data-ts-copy-photos]').click();await expect(page.locator('#ts-photo-cover')).toHaveValue('https://photos.example.org/own-cover.jpg');await expect(page.locator('#ts-photo-room')).toHaveValue('https://photos.example.org/tourvisor-room.jpg');await save(page);
+ const stored=s.drafts.get(11).draft;for(let i=0;i<3;i++){const before=copy(original.offers[i]),after=copy(stored.offers[i]);delete before.photos;delete after.photos;delete after.hotel_group;expect(after).toEqual(before);}
+ await page.locator('#tsPreview').click();await expect(page.locator('.tsPreviewCard')).toHaveCount(3);await expect(page.locator('.tsPreviewHeading')).toBeInViewport();await expect(page.locator('.tsPreviewCard .tsPhotos').first()).toBeInViewport();await expect(page.locator('#tsSend')).toBeEnabled();expect(s.creations()).toBe(0);expect(s.calls.filter(x=>x.action==='prepare')).toHaveLength(1);clean(s,deliveryActions);
+ fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-selection-mixed-photo-preview-${browserName}-${width}.png`)});
+});
+for(const width of [390,430,768,1440])test('selection preview correction opens exact missing variant and photo field at '+width,async({page,browserName})=>{
+ await page.setViewportSize({width,height:900});const draft=completeDraft();draft.offers.push({...copy(draft.offers[0]),id:'b'.repeat(32),hotel:'Другой вариант <b>с моря</b>',room:'',photos:[]});const s=await fixture(page,{draft});await open(page);await page.locator('#tsPreview').click();
+ await expect(page.locator('#tsPreviewIssues')).toBeVisible();await expect(page.locator('#tsPreviewIssues [data-ts-fix-offer]')).toHaveCount(2);await expect(page.locator('#tsPreviewIssues b')).toHaveCount(0);
+ fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-selection-preview-issues-${browserName}-${width}.png`)});
+ await page.getByRole('button',{name:'Вариант 2: три фото',exact:true}).click();await expect(page.locator('#ts-photo-cover')).toBeFocused();await expect(page.locator('#ts-photo-cover')).toBeInViewport();await expect(page.locator('#ts-hotel')).toHaveValue(draft.offers[1].hotel);await expect(page.locator('#ts-photo-room')).toHaveValue('');
+ fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-selection-photo-correction-${browserName}-${width}.png`)});
+ await page.setViewportSize({width,height:420});await page.getByRole('button',{name:'Вариант 2: номер',exact:true}).click();await expect(page.locator('#ts-room')).toBeFocused();await expect(page.locator('#ts-room')).toBeInViewport();await expect(page.locator('#tsClose')).toBeInViewport();expect(await page.locator('#tourSelectionDialog').evaluate(e=>e.scrollWidth-e.clientWidth)).toBeLessThanOrEqual(1);
+ await page.locator('#ts-room').fill('Мой номер');await expect(page.locator('#tsPreviewIssues')).toBeHidden();await page.locator('#tsClose').click();expect(s.creations()).toBe(0);clean(s,deliveryActions);
+});
+test('selection photo reuse needs explicit current grouping and never copies a room',async({page})=>{
+ const draft=completeDraft();draft.offers.push({...copy(draft.offers[0]),id:'b'.repeat(32),photos:[]});const s=await fixture(page,{draft});await open(page);await page.locator('[data-ts-select="'+'b'.repeat(32)+'"]').click();await expect(page.locator('[data-ts-copy-photos]')).toHaveCount(0);
+ await page.locator('#ts-hotel-group').selectOption('o:'+draft.offers[0].id);await page.locator('[data-ts-copy-photos]').click();await expect(page.locator('#ts-photo-room')).toHaveValue('');await page.locator('#ts-photo-cover').fill('');await expect(page.locator('[data-ts-copy-photos]')).toBeVisible();await page.locator('#ts-hotel').fill('Иной отель');await expect(page.locator('[data-ts-copy-photos]')).toHaveCount(0);await save(page);
+ expect(s.drafts.get(11).draft.offers[1].hotel_group).toBeUndefined();expect(s.drafts.get(11).draft.offers[1].photos.map(x=>x.kind)).toEqual(['beach']);clean(s);
+});
+test('selection photo reuse stays read only',async({page})=>{
+ const draft=completeDraft();draft.offers[0].hotel_group='c'.repeat(32);draft.offers.push({...copy(draft.offers[0]),id:'b'.repeat(32),photos:[]});const s=await fixture(page,{draft,readOnly:true});await open(page);await page.locator('[data-ts-select="'+'b'.repeat(32)+'"]').click();await expect(page.locator('[data-ts-copy-photos]')).toBeDisabled();await expect(page.locator('#tsPhotoSource')).toBeDisabled();await page.locator('#tsClose').click();expect(s.calls.map(x=>x.action)).toEqual(['get']);clean(s);
+});
+
+for(const changedContext of ['conversation','actor','auth'])test('selection photo reuse refuses stale '+changedContext,async({page})=>{
+ const draft=completeDraft();draft.offers[0].hotel_group='c'.repeat(32);draft.offers.push({...copy(draft.offers[0]),id:'b'.repeat(32),photos:[]});const s=await fixture(page,{draft});await open(page);await page.locator('[data-ts-select="'+'b'.repeat(32)+'"]').click();
+ await page.evaluate(mode=>{const s=WorkspaceV2.S;if(mode==='conversation')s.current=12;else if(mode==='actor')s.manager.id=8;else s.authGeneration++;document.querySelector('[data-ts-copy-photos]').click()},changedContext);
+ await expect(page.locator('#ts-photo-cover')).toHaveValue('');expect(s.calls.map(x=>x.action)).toEqual(['get']);expect(s.drafts.get(11).draft).toEqual(draft);await page.locator('#tsClose').click();clean(s);
+});
+test('selection copied hotel photos use ordinary optimistic conflict recovery',async({page})=>{
+ const draft=completeDraft();draft.offers[0].hotel_group='c'.repeat(32);draft.offers.push({...copy(draft.offers[0]),id:'b'.repeat(32),photos:[copy(draft.offers[0].photos[2])]});const s=await fixture(page,{draft});await open(page);await page.locator('[data-ts-select="'+'b'.repeat(32)+'"]').click();
+ const server=copy(s.drafts.get(11));server.version++;server.draft.offers[1].amount='260000';s.drafts.set(11,server);await page.locator('[data-ts-copy-photos]').click();await page.locator('#tsSave').click();await expect(page.locator('#tsRecovery')).toContainText('другая версия');expect(s.drafts.get(11)).toEqual(server);await expect(page.locator('#ts-photo-cover')).toHaveValue('https://photos.example.org/cover.jpg');
+ await expect(page.locator('#tsPreview')).toBeDisabled();await page.locator('#tsClose').click();expect(s.creations()).toBe(0);clean(s);
+});
