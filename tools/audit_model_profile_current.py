@@ -7,6 +7,9 @@ import pyrage
 ROOT=Path(__file__).resolve().parents[1]
 MAX_BYTES=2*1024*1024
 
+class FixedFailure(Exception):
+    pass
+
 def run():
     host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER'];expected=os.environ['EXPECTED_RUNTIME_SHA']
     mode=os.environ['PROFILE_MODE'];expected_digest=os.environ.get('EXPECTED_INPUT_DIGEST','')
@@ -26,9 +29,15 @@ def run():
     php=(ROOT/'tools/audit_model_profile_current.php').read_bytes()
     if b'__CUTOFF_EPOCH__' in php: raise ValueError()
     encoded=base64.b64encode(php).decode()
-    commands=['set -euo pipefail','cd /var/www/anytoour/data/www/app.anytoour.ru',f'test "$(git rev-parse HEAD)" = "{expected}"','git diff --quiet HEAD -- services project.php tools/build_conversion_observations.py',"printf '%s' '"+encoded+"' | base64 --decode | php",f'test "$(git rev-parse HEAD)" = "{expected}"','git diff --quiet HEAD -- services project.php tools/build_conversion_observations.py']
+    guard=f'test "$(git rev-parse HEAD)" = "{expected}" || {{ echo runtime_sha_moved >&2; exit 21; }}'
+    clean='git diff --quiet HEAD -- services project.php tools/build_conversion_observations.py || { echo pinned_source_dirty >&2; exit 22; }'
+    commands=['set -euo pipefail','cd /var/www/anytoour/data/www/app.anytoour.ru',guard,clean,"printf '%s' '"+encoded+"' | base64 --decode | php",guard,clean]
     result=subprocess.run(['ssh','-i',str(temp/'model_profile_key'),'-o','BatchMode=yes','-o','StrictHostKeyChecking=yes','-o','UserKnownHostsFile='+str(known),'-o','ConnectTimeout=10',user+'@'+host,'bash -se'],input='\n'.join(commands)+'\n',capture_output=True,text=True,timeout=90)
-    if result.returncode or result.stderr or len(result.stdout.encode())>MAX_BYTES: raise ValueError()
+    if result.returncode or result.stderr:
+        safe=result.stderr.strip()
+        if re.fullmatch(r'(?:runtime_sha_moved|pinned_source_dirty|fixed_profile_read_failed:(?:bootstrap|clock|candidates|detail|serialize):(?:[A-Z0-9]{5}|none):[0-9]{1,6})',safe): raise FixedFailure(safe)
+        raise FixedFailure('remote_read_failed_exit_'+str(result.returncode))
+    if len(result.stdout.encode())>MAX_BYTES: raise ValueError()
     data=json.loads(result.stdout)
     if data.get('database_writes') is not False or data.get('conversion_uploads')!=0 or not 0<=len(data['cases'])<=5 or not 0<=data['candidate_count']<=12: raise ValueError()
     frozen={k:v for k,v in data.items() if k!='captured_at'}
@@ -52,4 +61,5 @@ def run():
 
 if __name__=='__main__':
     try: run()
+    except FixedFailure as exc: sys.exit(str(exc))
     except Exception: sys.exit('fixed_profile_operation_failed')
