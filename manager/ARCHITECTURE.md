@@ -57,6 +57,10 @@ This directory is the owned interface boundary for the manager product. Changes 
   alone does not grant it. Fresh access is checked again before returning data;
   employee names are projected only to admins. Opening the view does not load a
   second transcript, acknowledge messages or add a request to ordinary card load.
+  On Manager2, the real bound button registers with the existing conversation
+  tools menu, preserving room for the client name and favorite on narrow screens.
+  The presentation helper only moves that node and restores its menu/focus;
+  the event module retains all loading, access and dialog ownership.
 - `assets/manager-time.js` — shared UTC/offset → Moscow display and Moscow deadline input boundary. Device timezone must not change Manager timestamps or entered deadlines; date-only values and server-owned business-day/urgency rules remain separate.
 - `assets/workspace-v2-lead-card.*` — structured lead information/composition owner; delegate feature-specific subviews rather than growing another monolith.
 - `assets/workspace-v2-tasks.*` — lead-task presentation and task mutation orchestration owner. It captures the source conversation for create/update/toggle/pin requests and keeps per-lead/task in-flight guards outside rerendered DOM; task persistence/business semantics remain server-owned.
