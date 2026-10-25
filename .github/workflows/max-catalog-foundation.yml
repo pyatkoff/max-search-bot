@@ -1,0 +1,152 @@
+name: Publish owner MAX catalogue foundation
+on:
+  push:
+    branches: [audit/max-catalog-channel-20261025]
+    paths: [.github/workflows/max-catalog-foundation.yml]
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: max-catalog-foundation-20261025
+  cancel-in-progress: false
+env:
+  EXPECTED_PRODUCTION_SHA: dd477798e06b6727b6e4cc84fa7fbb4763dc18da
+jobs:
+  inspect:
+    if: github.ref == 'refs/heads/audit/max-catalog-channel-20261025'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.EXPECTED_PRODUCTION_SHA }}
+          persist-credentials: false
+      - name: Verify current released production source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_PRODUCTION_SHA"
+          test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = "$EXPECTED_PRODUCTION_SHA"
+          conclusion=$(gh api "repos/pyatkoff/max-search-bot/actions/runs?head_sha=$EXPECTED_PRODUCTION_SHA&per_page=100" --jq '[.workflow_runs[] | select(.name=="Deploy production")] | max_by(.id) | .conclusion')
+          test "$conclusion" = success
+      - name: Prepare exactly three foundation posts
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          cat > "$RUNNER_TEMP/channel-probe.php" <<'PHP'
+          <?php
+          declare(strict_types=1);
+          if(PHP_SAPI!=='cli')exit(2);
+          ini_set('display_errors','0');ini_set('log_errors','0');
+          const CATALOG_CHANNEL_ID='-80492244209683';
+          $out=['ok'=>false,'mode'=>'owner_catalogue_foundation','target'=>'https://max.ru/channel_anytour','posts'=>[],'post_write_attempts'=>0,'pin_write_attempts'=>0];
+          function check(bool $v,string $e):void{if(!$v)throw new RuntimeException($e);}
+          function fixedRequest(string $method,string $path,array $query,?array $body):array{
+           check(($method==='POST'&&$path==='/messages'&&$query===['chat_id'=>CATALOG_CHANNEL_ID,'disable_link_preview'=>'true'])||($method==='PUT'&&$path==='/chats/'.CATALOG_CHANNEL_ID.'/pin'&&$query===[])||($method==='GET'&&$path==='/chats/'.CATALOG_CHANNEL_ID.'/pin'&&$query===[]),'request_outside_fixed_scope');
+           $url='https://platform-api2.max.ru'.$path;if($query)$url.='?'.http_build_query($query,'','&',PHP_QUERY_RFC3986);
+           $raw='';$ch=curl_init($url);$opts=MaxTlsConfig::strictCurlOptions()+[CURLOPT_CUSTOMREQUEST=>$method,CURLOPT_FOLLOWLOCATION=>false,CURLOPT_RETURNTRANSFER=>false,CURLOPT_CONNECTTIMEOUT=>3,CURLOPT_TIMEOUT=>12,CURLOPT_HTTPHEADER=>['Authorization: '.MAX_SEARCH_TOKEN,'Accept: application/json','Content-Type: application/json'],CURLOPT_WRITEFUNCTION=>static function($h,string $s)use(&$raw):int{if(strlen($raw)+strlen($s)>1048576)return 0;$raw.=$s;return strlen($s);}];
+           if($body!==null)$opts[CURLOPT_POSTFIELDS]=json_encode($body,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);curl_setopt_array($ch,$opts);$sent=curl_exec($ch);$http=(int)curl_getinfo($ch,CURLINFO_HTTP_CODE);$failed=$sent===false||curl_errno($ch)!==0;curl_close($ch);$d=$failed?null:json_decode($raw,true,64);
+           return ['http'=>$http,'transport_error'=>$failed,'data'=>is_array($d)?$d:null];
+          }
+          function saveState($fh,array $s):void{check(ftruncate($fh,0)&&rewind($fh),'state_write_failed');$raw=json_encode($s,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);check(fwrite($fh,$raw)===strlen($raw)&&fflush($fh),'state_write_failed');if(function_exists('fsync'))check(fsync($fh),'state_write_failed');}
+          function readRecent():array{
+           $r=ChannelPostApiTransport::buttonRequest('max','GET','/messages',['chat_id'=>CATALOG_CHANNEL_ID,'from'=>(int)floor(microtime(true)*1000),'to'=>1,'count'=>30],null);
+           check(empty($r['transport_error'])&&(int)$r['http']===200&&is_array($r['data']['messages']??null),'post_read_failed');return $r['data']['messages'];
+          }
+          function exactMessage(array $m,string $text):bool{return (string)($m['recipient']['chat_id']??'')===CATALOG_CHANNEL_ID&&($m['recipient']['chat_type']??'')==='channel'&&($m['body']['text']??'')===$text;}
+          function foundation(string $key,string $html,$fh,array &$state,ChannelPostRegistryService $registry,array $channel,array &$out):array{
+           $text=strip_tags($html);$hash=hash('sha256',$html);$saved=$state['posts'][$key]??null;
+           check(!$saved||($saved['hash']??'')===$hash,'prepared_copy_changed');
+           $matches=[];foreach(readRecent() as $m)if(exactMessage($m,$text))$matches[]=$m;
+           check(count($matches)<=1,'duplicate_body_requires_review');$message=$matches[0]??null;
+           if($saved&&($saved['mid']??'')!==''){
+            $r=ChannelPostApiTransport::buttonRequest('max','GET','/messages/'.$saved['mid'],[],null);check(empty($r['transport_error'])&&(int)$r['http']===200,'saved_post_read_failed');$m=$r['data'];check(is_array($m)&&exactMessage($m,$text),'saved_post_content_changed');$message=$m;
+           }
+           if(!$message){
+            check(!$saved,'previous_post_outcome_unknown');
+            $state['posts'][$key]=['hash'=>$hash,'state'=>'write_started','started_ms'=>(int)floor(microtime(true)*1000)];saveState($fh,$state);
+            $out['post_write_attempts']++;$r=fixedRequest('POST','/messages',['chat_id'=>CATALOG_CHANNEL_ID,'disable_link_preview'=>'true'],['text'=>$html,'format'=>'html']);
+            $m=$r['data']['message']??null;
+            if(empty($r['transport_error'])&&(int)$r['http']===200&&is_array($m)&&exactMessage($m,$text))$message=$m;
+            else{foreach(readRecent() as $m)if(exactMessage($m,$text))$matches[]=$m;check(count($matches)===1,'post_outcome_requires_review');$message=$matches[0];}
+           }
+           $mid=(string)($message['body']['mid']??'');check(preg_match('/\A[A-Za-z0-9_.-]{1,191}\z/',$mid)===1,'invalid_created_post_id');
+           $state['posts'][$key]=['hash'=>$hash,'state'=>'published','mid'=>$mid];saveState($fh,$state);
+           $r=ChannelPostApiTransport::buttonRequest('max','GET','/messages/'.$mid,[],null);check(empty($r['transport_error'])&&(int)$r['http']===200&&is_array($r['data'])&&exactMessage($r['data'],$text),'created_post_readback_failed');$message=$r['data'];
+           $publication=$registry->registerProviderObservation('anytour','id9704048781_1_bot',$channel,$message,1);check(is_array($publication),'publication_binding_failed');
+           $service=new ChannelPostAutomationService($registry);$service->processPublication('anytour','max','id9704048781_1_bot',(int)$publication['publication_id'],(int)$publication['version_id']);
+           $current=$registry->publication((int)$publication['publication_id']);check(is_array($current),'publication_readback_failed');
+           $button=ChannelPostButtonTransport::buttonUrl($current);$verified=false;$snapshot=null;
+           for($read=0;$read<6;$read++){
+            $r=ChannelPostApiTransport::buttonRequest('max','GET','/messages/'.$mid,[],null);check(empty($r['transport_error'])&&(int)$r['http']===200&&is_array($r['data'])&&exactMessage($r['data'],$text),'button_post_readback_failed');$snapshot=ChannelPostIncomingAdapter::maxSnapshot($r['data']);
+            $current=$registry->publication((int)$publication['publication_id']);
+            if(is_array($snapshot)&&is_array($current)&&$current['state']==='sent'&&ChannelPostIncomingAdapter::containsOnlyButton($snapshot,$button,(string)$channel['button_text'])){$verified=true;break;}
+            if($read<5)usleep(700000);
+           }
+           check($verified,'unique_button_not_verified');
+           $url=(string)($snapshot['post_url']??'');check($url!=='','public_post_url_missing');
+           $receipt=['key'=>$key,'message_id'=>$mid,'post_url'=>$url,'publication_id'=>(int)$current['publication_id'],'version_id'=>(int)$current['version_id'],'button_url'=>$button,'button_verified'=>true];$out['posts'][]=$receipt;return $receipt;
+          }
+          $fh=null;
+          try{
+           ob_start();try{require getcwd().'/config.php';require_once getcwd().'/services/ChannelPostRuntime.php';}finally{ob_end_clean();}
+           $identity=ChannelPostRuntime::identity('max');check(is_array($identity)&&$identity['project_key']==='anytour'&&$identity['bot_key']==='id9704048781_1_bot','configured_bot_mismatch');
+           $registry=new ChannelPostRegistryService();$channel=$registry->channel('anytour','max','id9704048781_1_bot',CATALOG_CHANNEL_ID);check(is_array($channel)&&(int)$channel['id']===9&&(int)$channel['config_version']===1&&$channel['source_key']==='max_anytour_msk1'&&$channel['canonical_bot_username']==='id9704048781_1_bot','registered_channel_changed');
+           $r=ChannelPostApiTransport::buttonRequest('max','GET','/chats/'.CATALOG_CHANNEL_ID,[],null);check(empty($r['transport_error'])&&(int)$r['http']===200&&($r['data']['link']??'')==='https://max.ru/channel_anytour'&&($r['data']['type']??'')==='channel','channel_identity_changed');
+           check(((new ChannelPostButtonTransport())->verifyChannel($channel)['state']??'')==='ready','channel_rights_not_ready');
+           $file=rtrim(sys_get_temp_dir(),'/').'/anytour-max-catalogue-foundation-20261025.json';check(!is_link($file),'invalid_state_file');umask(0077);$fh=fopen($file,'c+');check($fh!==false&&flock($fh,LOCK_EX|LOCK_NB),'operation_already_running');$raw=stream_get_contents($fh);$state=$raw===''?['channel_id'=>CATALOG_CHANNEL_ID,'posts'=>[]]:json_decode($raw,true,32,JSON_THROW_ON_ERROR);check(is_array($state)&&($state['channel_id']??'')===CATALOG_CHANNEL_ID,'state_scope_mismatch');
+           $company=foundation('company_v1',"<b>Энитур — ваш отпуск начинается с выбора 🌍</b>\n\nПомогаем подобрать направление, отель, номер и питание под ваши даты, состав и бюджет. Сравниваем варианты и объясняем различия, чтобы вам было проще выбрать.\n\nВ этом канале — отели и подборки для разных поездок. Понравился вариант? Кнопка под постом откроет нашего бота: менеджер увидит, какой вариант вас заинтересовал.\n\n✈️ Нажмите «Рассчитать на мои даты» — начнём подбор вашего отпуска.",$fh,$state,$registry,$channel,$out);
+           usleep(600000);
+           $services=foundation('services_v1',"<b>Какой отдых подбираем ✈️</b>\n\n🏖 Пляжный отдых и «всё включено».\n👨‍👩‍👧‍👦 Поездки с детьми и семейные номера.\n💙 Отпуск вдвоём.\n🏨 Тур в конкретный отель.\n\nСравним варианты на ваши даты и стоимость на весь состав. Перед выбором проверим условия конкретного предложения: номер, питание, перелёт и трансфер.\n\nУже выбрали отель? Пришлите менеджеру его название или ссылку. Пока выбираете направление? Расскажите о датах, городе вылета и пожеланиях.\n\n👇 Нажмите «Рассчитать на мои даты» и продолжите в боте.",$fh,$state,$registry,$channel,$out);
+           usleep(600000);
+           $companyUrl=htmlspecialchars($company['post_url'],ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');$servicesUrl=htmlspecialchars($services['post_url'],ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');
+           $navigation=foundation('navigation_v1',"<b>Энитур: с чего начать 🌍</b>\n\nℹ️ <a href=\"{$companyUrl}\">О компании и подборе тура</a>\n✈️ <a href=\"{$servicesUrl}\">Варианты отдыха и наши услуги</a>\n\nПод каждым отелем и подборкой будет своя кнопка «Рассчитать на мои даты». Она передаст менеджеру выбранный вариант — можно сразу обсуждать поездку.\n\nЕсли пока не определились с отелем, нажмите кнопку под этим постом. Укажите город вылета, даты, состав и примерный бюджет — подберём подходящие варианты.",$fh,$state,$registry,$channel,$out);
+           $pin=ChannelPostApiTransport::buttonRequest('max','GET','/chats/'.CATALOG_CHANNEL_ID,[],null);check(empty($pin['transport_error'])&&(int)$pin['http']===200,'pin_readback_failed');$pinned=(string)($pin['data']['pinned_message']['body']['mid']??'');
+           if($pinned!==$navigation['message_id']){
+            check($pinned==='','existing_pin_requires_review');check(empty($state['pin_started']),'previous_pin_outcome_unknown');$state['pin_started']=true;saveState($fh,$state);$out['pin_write_attempts']++;$pin=fixedRequest('PUT','/chats/'.CATALOG_CHANNEL_ID.'/pin',[],['message_id'=>$navigation['message_id'],'notify'=>false]);
+            check(empty($pin['transport_error'])&&(int)$pin['http']===200&&($pin['data']['success']??false)===true,'pin_not_confirmed');
+           }
+           $r=ChannelPostApiTransport::buttonRequest('max','GET','/chats/'.CATALOG_CHANNEL_ID,[],null);check(empty($r['transport_error'])&&(int)$r['http']===200&&(string)($r['data']['pinned_message']['body']['mid']??'')===$navigation['message_id'],'pin_readback_failed');
+           $out['pinned_post_url']=$navigation['post_url'];$out['ok']=true;$out['server_utc']=gmdate('c');
+          }catch(Throwable $e){$allowed=['request_outside_fixed_scope','state_write_failed','post_read_failed','prepared_copy_changed','duplicate_body_requires_review','saved_post_read_failed','saved_post_content_changed','previous_post_outcome_unknown','post_outcome_requires_review','invalid_created_post_id','created_post_readback_failed','publication_binding_failed','publication_readback_failed','button_post_readback_failed','unique_button_not_verified','public_post_url_missing','configured_bot_mismatch','registered_channel_changed','channel_identity_changed','channel_rights_not_ready','invalid_state_file','operation_already_running','state_scope_mismatch','existing_pin_requires_review','previous_pin_outcome_unknown','pin_not_confirmed','pin_readback_failed'];$out['error']=in_array($e->getMessage(),$allowed,true)?$e->getMessage():'bounded_foundation_failed';}
+          if(is_resource($fh)){flock($fh,LOCK_UN);fclose($fh);}
+          echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;exit($out['ok']?0:2);
+          PHP
+          php -l "$RUNNER_TEMP/channel-probe.php"
+      - name: Prepare existing server connection
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else
+            printf '%s' "$raw" | base64 --decode > "$RUNNER_TEMP/channel_key"
+          fi
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+      - name: Publish fixed foundation posts and verify unique buttons
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-probe.php" > "$RUNNER_TEMP/channel-probe.json" || probe_status=$?
+          python3 - <<'PY'
+          import json,os
+          with open(os.environ['RUNNER_TEMP']+'/channel-probe.json')as f:d=json.load(f)
+          assert d['mode']=='owner_catalogue_foundation' and d['target']=='https://max.ru/channel_anytour' and d['post_write_attempts']<=3 and d['pin_write_attempts']<=1
+          print(json.dumps(d,ensure_ascii=False,sort_keys=True))
+          PY
+          test "${probe_status:-0}" = 0
+      - name: Remove ephemeral files
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-probe.php" "$RUNNER_TEMP/channel-probe.json"
