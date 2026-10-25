@@ -454,3 +454,27 @@ read, another account, mismatched target or newer navigation cannot open the edi
 The hint is removed before opening; refresh/close do not reopen it. No auth, shared
 navigation, selection persistence, publication or sending owner is duplicated.
 Opening occurs in a new tab, leaving the original reply and selected files intact.
+
+
+## Mixed draft photo review
+
+After the manager explicitly groups variants as the same hotel, the editor can
+copy missing cover and beach/pool photo URLs from a chosen exact variant in that
+group. It is an explicit local draft edit through the ordinary optimistic save
+and recovery path. Equal hotel names alone do not enable it. Existing images,
+room images, observed source terms and manual prices are preserved. The copied
+URLs are independent values; regrouping or editing one variant does not change
+another or a frozen publication. This does not verify hotel identity or photos.
+
+Canonical `prepare` errors now offer direct links to each incomplete variant's
+field or first missing photo. These are the server builder's returned errors,
+not a second readiness/validation owner. Editing or reloading clears the old
+check; a fresh preview remains required. Preview starts at its heading/first
+card even if the editor was scrolled down to photos. No action sends or publishes.
+
+Synthetic mixed FUN&SUN + ANEX + Tourvisor drafts exercise grouped hotel photo
+reuse and the complete three-card preview at 390/430/768/1440, with exact original
+source/conditions preserved and independent room photos. Wrong group, same name,
+readonly, stale actor/conversation/auth and concurrent-save boundaries remain
+covered. This is source/fixture acceptance, not physical Chrome/Yandex import,
+source-photo capture, full-fare verification or owner-native A1–A8 completion.

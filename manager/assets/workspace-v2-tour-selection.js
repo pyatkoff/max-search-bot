@@ -7,7 +7,7 @@ let collectorIntent=(()=>{const u=new URL(location.href),value=u.searchParams.ge
 function clearCollectorIntent(){collectorIntent=null;const u=new URL(location.href);u.searchParams.delete('selection');u.searchParams.delete('collector_actor');history.replaceState(history.state,'',u.pathname+u.search+u.hash)}
 let dialog=null,context=null,epoch=0,version=0,draft=null,selected='',canEdit=false,dirty=false,busy=false,loading=false,pending=null,conflict=null,timer=0,returnFocus=null,rawAges={};
 const sessions=new Map();
-let comparison=null,tripPanel=null;
+let comparison=null,tripPanel=null,previewIssues=[];
 let publication=null,preview=false,sending=false,photoFailures=0,photoPending=0,photoEpoch=0,sharing=false,interestLoading=false;
 function actor(){return S.authExpired?0:Number(S.manager?.id||0)}
 function capture(c=S.detail?.conversation){return {actor:actor(),conversation:Number(c?.id||0),auth:Number(S.authGeneration||0),open:Number(window.WorkspaceV2Conversation?.getOpenGeneration?.()||0)}}
@@ -41,7 +41,7 @@ async function request(action,data={}){
   }catch(e){return {ok:false,error:current(target)?'network_error':'stale_context'}}finally{clearTimeout(timeout)}
 }
 function close(){tripPanel=null;clearTimeout(timer);timer=0;stash();if(dialog?.open)dialog.close()}
-function suspend(){tripPanel=null;stash();clearTimeout(timer);timer=0;epoch++;context=null;draft=null;pending=null;conflict=null;comparison=null;dirty=false;busy=false;loading=false;canEdit=false;publication=null;preview=false;sending=false;sharing=false;if(dialog?.open)dialog.close();$('tourSelectionOpen')?.remove()}
+function suspend(){tripPanel=null;previewIssues=[];stash();clearTimeout(timer);timer=0;epoch++;context=null;draft=null;pending=null;conflict=null;comparison=null;dirty=false;busy=false;loading=false;canEdit=false;publication=null;preview=false;sending=false;sharing=false;if(dialog?.open)dialog.close();$('tourSelectionOpen')?.remove()}
 function activate(){if(context&&!current())suspend();if(collectorIntent&&actor()&&collectorIntent.manager!==actor())clearCollectorIntent()}
 function sync(c){
   if(context&&!current())suspend();
@@ -71,11 +71,15 @@ function ensure(){
   dialog.addEventListener('close',()=>{if(current()&&returnFocus?.isConnected)returnFocus.focus({preventScroll:true})});
   $('tsList').addEventListener('click',event=>{const button=event.target.closest('[data-ts-select]');if(button){selected=button.dataset.tsSelect;render()}});
   $('tsEditor').addEventListener('input',edit);$('tsEditor').addEventListener('change',edit);
-  $('tsEditor').addEventListener('click',event=>{const action=event.target.closest('[data-ts-action]')?.dataset.tsAction;if(action)mutate(action)});
+  $('tsEditor').addEventListener('click',event=>{
+    if(event.target.closest('[data-ts-copy-photos]')){copyHotelPhotos();return}
+    const fix=event.target.closest('[data-ts-fix-offer]');if(fix){fixPreviewIssue(fix.dataset.tsFixOffer,fix.dataset.tsFixField);return}
+    const action=event.target.closest('[data-ts-action]')?.dataset.tsAction;if(action)mutate(action);
+  });
 }
 async function open(c){
   if(!actor()||Number(c.id)!==Number(S.current))return;
-  close();tripPanel=null;epoch++;context=capture(c);version=0;draft=empty();selected='';dirty=false;busy=false;pending=null;conflict=null;comparison=null;rawAges={};canEdit=false;publication=null;preview=false;sending=false;sharing=false;interestLoading=false;restore();ensure();returnFocus=$('tourSelectionOpen')?.closest('details')?.querySelector('summary')||$('tourSelectionOpen');
+  close();tripPanel=null;previewIssues=[];epoch++;context=capture(c);version=0;draft=empty();selected='';dirty=false;busy=false;pending=null;conflict=null;comparison=null;rawAges={};canEdit=false;publication=null;preview=false;sending=false;sharing=false;interestLoading=false;restore();ensure();returnFocus=$('tourSelectionOpen')?.closest('details')?.querySelector('summary')||$('tourSelectionOpen');
   $('tsTitle').textContent=c.display_name||'Турист';$('tsRecipient').textContent=(c.channel==='telegram'?'Telegram':c.channel==='max'?'MAX':String(c.channel||''))+' · Сначала предпросмотр, затем отправка';
   render();if(!dialog.open)dialog.showModal();await load();
 }
@@ -83,7 +87,7 @@ function validSnapshot(value){return value&&Number(value.conversation_id)===cont
 async function load(){
   loading=true;controls();const token=epoch,result=await request('get');if(token!==epoch)return;loading=false;
   if(!result?.ok||!validSnapshot(result.selection)){status(error(result),true);if([403,404].includes(result?.http_status))canEdit=false;recovery('read');controls();return}
-  const snapshot=result.selection;canEdit=snapshot.can_edit;
+  const snapshot=result.selection;previewIssues=[];canEdit=snapshot.can_edit;
   if(!dirty&&!pending&&!conflict){draft=clone(snapshot.draft);version=snapshot.version}
   else if(snapshot.version!==version&&!pending){conflict=snapshot;if(comparison){draft=clone(snapshot.draft);rawAges={}}}
   render();status(!canEdit?'Просмотр. Править может ответственный менеджер или администратор.':dirty?'Восстановлены ваши несохранённые правки.':'Черновик загружен.');
@@ -122,7 +126,7 @@ function add(){if(!editable()||draft.offers.length>=20)return;const item=newOffe
 function editable(){return current()&&canEdit&&!loading&&!pending&&!conflict&&!preview&&!sending}
 function invalidAges(){return draft?.offers.some(x=>Object.hasOwn(rawAges,x.id)&&!validAges(rawAges[x.id]))}
 function validAges(value){const raw=String(value).trim();return raw===''||/^\d{1,2}(?:\s*,\s*\d{1,2})*$/.test(raw)&&raw.split(',').length<=12&&raw.split(',').every(x=>Number(x)>=0&&Number(x)<=17)}
-function changed(){dirty=true;stash();status(invalidAges()?'Возраст детей укажите числами от 0 до 17 через запятую.':'Есть несохранённые изменения.',invalidAges());controls();clearTimeout(timer);timer=setTimeout(()=>{if(editable()&&!busy&&!invalidAges()&&dialog?.open)void save()},900)}
+function changed(){previewIssues=[];$('tsPreviewIssues')?.remove();dirty=true;stash();status(invalidAges()?'Возраст детей укажите числами от 0 до 17 через запятую.':'Есть несохранённые изменения.',invalidAges());controls();clearTimeout(timer);timer=setTimeout(()=>{if(editable()&&!busy&&!invalidAges()&&dialog?.open)void save()},900)}
 function item(){return draft?.offers.find(x=>x.id===selected)}
 function edit(event){
   if(event.target.id==='ts-hotel-group'&&editable()){
@@ -131,12 +135,12 @@ function edit(event){
       const other=draft.offers.find(x=>x.id!==offer.id&&(value==='g:'+x.hotel_group||value==='o:'+x.id));if(!other)return;
       const group=other.hotel_group||id();offer.hotel_group=group;other.hotel_group=group;
     }else delete offer.hotel_group;
-    changed();renderList();renderGrouping();$('ts-hotel-group')?.focus({preventScroll:true});return;
+    changed();renderList();renderGrouping();renderPhotoReuse();$('ts-hotel-group')?.focus({preventScroll:true});return;
   }
   if(event.target.dataset.tsPhoto&&editable()){
     const offer=item(),kind=event.target.dataset.tsPhoto;if(!offer)return;const photos=new Map(offer.photos.map(x=>[x.kind,x]));
     if(event.target.value.trim())photos.set(kind,{kind,url:event.target.value.trim(),illustrative:true});else photos.delete(kind);
-    offer.photos=['cover','beach','room'].filter(x=>photos.has(x)).map(x=>photos.get(x));changed();return;
+    offer.photos=['cover','beach','room'].filter(x=>photos.has(x)).map(x=>photos.get(x));changed();renderPhotoReuse();return;
   }
   const input=event.target,key=input.dataset.tsField;if(!key||!editable())return;
   const offer=item();if(!offer)return;
@@ -144,7 +148,7 @@ function edit(event){
   if(['stars','nights','adults'].includes(key)){value=value===''?null:Number(value);if(value!==null&&!Number.isInteger(value))return}
   if(key==='child_ages'){rawAges[offer.id]=String(value);if(!validAges(value)){changed();return}const raw=String(value).trim();value=raw?raw.split(',').map(x=>Number(x.trim())):[]}
   if(key==='hotel'&&offer.hotel!==value){delete offer.hotel_group;}
-  offer[key]=value;changed();renderList();if(key==='hotel')renderGrouping();
+  offer[key]=value;changed();renderList();if(key==='hotel'){renderGrouping();renderPhotoReuse();}
 }
 function mutate(action){
   if(!editable()||busy)return;const at=draft.offers.findIndex(x=>x.id===selected);if(at<0)return;
@@ -172,6 +176,46 @@ function renderGrouping(){
   root.innerHTML='<label for="ts-hotel-group">Варианты одного отеля<select id="ts-hotel-group"><option value="">Отдельный отель</option>'+[...options].map(([key,name])=>`<option value="${esc(key)}" ${'g:'+offer.hotel_group===key?'selected':''}>Тот же отель: ${esc(name)}</option>`).join('')+'</select></label><p>Объединяйте только один и тот же отель. На общей странице фото будут общими, условия и цены — отдельными. Изменение названия снимает объединение этого варианта.</p>';
   $('ts-hotel-group').disabled=!editable()||busy;
 }
+// Reuse only explicit same-hotel cover/territory photos. Each room stays its
+// own illustrative image; a copy never links subsequent edits or overwrites data.
+function reusablePhotos(offer,source){
+  if(!offer?.hotel_group||offer.id===source?.id||offer.hotel_group!==source?.hotel_group)return [];
+  return ['cover','beach'].flatMap(kind=>{
+    const found=source.photos.filter(x=>x.kind===kind);
+    return !offer.photos.some(x=>x.kind===kind)&&found.length===1?[found[0]]:[];
+  });
+}
+function renderPhotoReuse(){
+  const root=$('tsPhotoReuse'),offer=item();if(!root||!offer)return;
+  const previous=$('tsPhotoSource')?.value;
+  const candidates=draft.offers.flatMap((source,index)=>{const photos=reusablePhotos(offer,source);return photos.length?[{source,index,photos}]:[]});
+  root.hidden=!candidates.length;root.replaceChildren();if(!candidates.length)return;
+  root.innerHTML='<label for="tsPhotoSource">Фото этого отеля из подборки<select id="tsPhotoSource">'+candidates.map(({source,index,photos})=>`<option value="${esc(source.id)}">Вариант ${index+1} · ${esc(source.hotel)} · ${photos.map(x=>x.kind==='cover'?'отель':'пляж или бассейн').join(', ')}</option>`).join('')+'</select></label><button type="button" data-ts-copy-photos>Подставить фото отеля</button><p>Только пустые поля отеля и пляжа. Фото номера остаётся отдельным. Отели объединены вашим выбором.</p>';
+  if(candidates.some(x=>x.source.id===previous))$('tsPhotoSource').value=previous;
+  root.querySelectorAll('select,button').forEach(x=>{x.disabled=!editable()||busy});
+}
+function copyHotelPhotos(){
+  if(!editable()||busy)return;
+  const offer=item(),source=draft.offers.find(x=>x.id===$('tsPhotoSource')?.value),photos=reusablePhotos(offer,source);if(!photos.length)return;
+  const combined=new Map(offer.photos.map(x=>[x.kind,x]));for(const photo of photos)combined.set(photo.kind,clone(photo));
+  offer.photos=['cover','beach','room'].filter(x=>combined.has(x)).map(x=>combined.get(x));changed();render();
+  status('Фото отеля подставлены. Проверьте фото номера перед предпросмотром.');
+  const field=$('ts-photo-room');field?.focus();field?.scrollIntoView({block:'center'});
+}
+const previewFieldNames={hotel:'отель',departure:'вылет',date_from:'дату',nights:'ночи',adults:'состав',room:'номер',meal:'питание',amount:'общую цену',photos:'три фото',conditions:'условия'};
+function renderPreviewIssues(){
+  $('tsPreviewIssues')?.remove();
+  const issues=previewIssues.filter(x=>draft.offers.some(o=>o.id===x.offer_id&&o.selected));if(!issues.length)return;
+  const panel=document.createElement('section');panel.id='tsPreviewIssues';panel.className='tsPreviewIssues';panel.setAttribute('aria-label','Что заполнить для предпросмотра');
+  panel.innerHTML='<h3>Что заполнить для предпросмотра</h3><p>Нажмите, чтобы перейти к нужному полю. После правок откройте предпросмотр ещё раз.</p><div>'+issues.map(issue=>issue.fields.map(field=>`<button type="button" data-ts-fix-offer="${esc(issue.offer_id)}" data-ts-fix-field="${esc(field)}">Вариант ${draft.offers.findIndex(x=>x.id===issue.offer_id)+1}: ${esc(previewFieldNames[field])}</button>`).join('')).join('')+'</div>';
+  $('tsEditor').prepend(panel);panel.querySelectorAll('button').forEach(x=>{x.disabled=!editable()||busy});
+}
+function fixPreviewIssue(offerId,field){
+  if(!editable()||busy||!previewIssues.some(x=>x.offer_id===offerId&&x.fields.includes(field))||!draft.offers.some(x=>x.id===offerId&&x.selected))return;
+  selected=offerId;render();
+  const firstPhoto=['cover','beach','room'].find(kind=>!item().photos.some(x=>x.kind===kind))||'cover';
+  const target=$(field==='photos'?'ts-photo-'+firstPhoto:field==='conditions'?'ts-hotel':'ts-'+field);target?.focus();target?.scrollIntoView({block:'center'});
+}
 function renderList(){
   const list=$('tsList');if(!list||!draft)return;
   $('tsCount').textContent='Варианты · '+draft.offers.length;
@@ -193,12 +237,13 @@ function render(){
   const photoSection=document.createElement('section');photoSection.className='tsPhotoFields';
   photoSection.innerHTML='<h3>Три фото для карточки</h3><p>Прямые HTTPS-ссылки на фото отеля, пляжа и номера. Фото номера будет отмечено как пример интерьера.</p><div class="tsFields">'+[['cover','Отель'],['beach','Пляж или бассейн'],['room','Номер']].map(([kind,label])=>`<label class="tsWide" for="ts-photo-${kind}">${esc(label)}<input id="ts-photo-${kind}" type="url" data-ts-photo="${kind}" maxlength="2048" placeholder="https://…/photo.jpg" value="${esc(offer.photos.find(x=>x.kind===kind)?.url||'')}" ${!editable()||busy?'disabled':''}></label>`).join('')+'</div>';
   editor.insertBefore(photoSection,editor.querySelector('.tsPriceHint'));
+  const reuse=document.createElement('div');reuse.id='tsPhotoReuse';reuse.className='tsPhotoReuse';photoSection.querySelector('.tsFields').before(reuse);renderPhotoReuse();renderPreviewIssues();
 }
 function controls(){
   if(!dialog)return;const disabled=!editable();
   $('tsAdd').disabled=disabled||busy||(draft?.offers.length||0)>=20;$('tsSave').disabled=disabled||busy||!dirty||invalidAges();$('tsDone').disabled=busy||loading||(!preview&&invalidAges());
   $('tsSaved').textContent=busy?(tripPanel?'Проверяем условия поездки…':'Сохраняем…'):pending?'Результат сохранения уточняется':conflict?'Есть конфликт правок':dirty?'Не все изменения сохранены':version?'Сохранено на сервере':'Новый черновик';
-  $('tsEditor')?.querySelectorAll('input,textarea,select,[data-ts-action],#tsEmptyAdd').forEach(x=>{x.disabled=disabled||busy});
+  $('tsEditor')?.querySelectorAll('input,textarea,select,[data-ts-action],[data-ts-copy-photos],[data-ts-fix-offer],#tsEmptyAdd').forEach(x=>{x.disabled=disabled||busy});
   $('tsSave').hidden=preview;$('tsPreview').hidden=preview;$('tsEdit').hidden=!preview;$('tsSend').hidden=!preview;$('tsHistory').hidden=preview;
   $('tsCollector').hidden=preview;$('tsCollector').disabled=!canEdit||busy||loading||sending||sharing;
   $('tsPreview').disabled=busy||loading||sending||!canEdit||!!pending||!!conflict||invalidAges();$('tsHistory').disabled=busy||loading||sending;$('tsEdit').disabled=sending;
@@ -260,6 +305,7 @@ function previewCaption(card){
 function renderPreview(){
   dialog.classList.add('tsPreviewMode');photoFailures=0;photoPending=publication.cards.length*3;const imageRun=++photoEpoch,token=epoch,publicationId=publication.id;
   $('tsEditor').innerHTML='<div class="tsPreviewHeading"><h3>Предпросмотр подборки</h3><p>'+esc(publication.channel==='telegram'?'Telegram — карусель из трёх фото.':'MAX — мозаика из трёх фото.')+' Проверьте фото, условия и общую цену. «Нравится» сохранит именно показанный вариант.</p></div><div class="tsPreviewCards">'+publication.cards.map(card=>`<article class="tsPreviewCard" data-ts-card="${card.index}"><div class="tsPhotos ${publication.channel==='telegram'?'tsPhotoSlideshow':'tsPhotoMosaic'}" ${publication.channel==='telegram'?'tabindex="0" role="region" aria-label="Фото отеля: листайте три фотографии"':''}>${card.photos.map((url,i)=>`<img src="${esc(url)}" alt="${['Отель','Пляж или бассейн','Пример интерьера номера'][i]}" referrerpolicy="no-referrer">`).join('')}</div>${publication.channel==='telegram'?'<div class="tsPhotoNav"><button type="button" data-ts-photo-step="-1" aria-label="Предыдущее фото">←</button><span class="tsPhotoPosition" aria-live="polite">Фото 1 из 3</span><button type="button" data-ts-photo-step="1" aria-label="Следующее фото">→</button></div>':''}<p class="tsCardText">${previewCaption(card)}</p><span class="tsLikePreview">♡ Нравится</span><p class="tsDeliveryState" data-ts-state="${card.index}"></p></article>`).join('')+'</div>';
+  $('tsEditor').scrollTop=0;
   $('tsEditor').querySelectorAll('.tsPreviewCard').forEach(card=>{
     const gallery=card.querySelector('.tsPhotoSlideshow'),nav=card.querySelector('.tsPhotoNav');if(!gallery||!nav)return;
     const images=gallery.querySelectorAll('img'),position=nav.querySelector('.tsPhotoPosition'),buttons=nav.querySelectorAll('button');
@@ -286,8 +332,10 @@ async function showPreview(){
   if(!current()||busy||sending||pending||conflict||invalidAges())return;
   clearTimeout(timer);if(dirty)await save();if(dirty||busy||pending||conflict||!current())return;
   const token=epoch;busy=true;controls();status('Готовим предпросмотр…');const result=await request('prepare',{version});if(token!==epoch)return;busy=false;
-  if(result?.ok&&result.publication){publication=result.publication;preview=true;render();status('Предпросмотр готов. Проверьте подборку перед отправкой.');return}
-  const names={hotel:'отель',departure:'вылет',date_from:'дату',nights:'ночи',adults:'состав',room:'номер',meal:'питание',amount:'общую цену',photos:'три фото',conditions:'условия'};
+  if(result?.ok&&result.publication){previewIssues=[];publication=result.publication;preview=true;render();status('Предпросмотр готов. Проверьте подборку перед отправкой.');return}
+  previewIssues=result?.error==='incomplete_offers'&&Array.isArray(result.fields)?result.fields.filter(x=>draft.offers.some(o=>o.id===x.offer_id&&o.selected)&&Array.isArray(x.fields)).map(x=>({offer_id:x.offer_id,fields:x.fields.filter(f=>Object.hasOwn(previewFieldNames,f))})):[];
+  renderPreviewIssues();if(previewIssues.length)$('tsPreviewIssues')?.scrollIntoView({block:'start'});
+  const names=previewFieldNames;
   if(result?.error==='card_too_long'){status('Сократите пояснения и дополнительные условия в варианте '+result.position+'. Условия не будут обрезаны при отправке.',true);controls();return}
   status(result?.error==='incomplete_offers'?'Заполните '+(result.fields||[]).map(x=>'в варианте '+x.position+': '+x.fields.map(f=>names[f]||f).join(', ')).join('; ')+'.':error(result),true);controls();
 }
