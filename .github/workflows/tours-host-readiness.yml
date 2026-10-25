@@ -1,0 +1,60 @@
+name: Tours host readiness after owner creation
+on:
+  push:
+    branches: [audit/tours-host-readiness-20261025]
+    paths: ['.github/workflows/tours-host-readiness.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  readiness:
+    if: github.ref == 'refs/heads/audit/tours-host-readiness-20261025'
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Inspect only the owner-created tours host
+        env:
+          DEPLOY_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          key_file="$RUNNER_TEMP/tours-readiness-key"
+          trap 'rm -f "$key_file"' EXIT
+          if [[ "$DEPLOY_KEY" == *"PRIVATE KEY"* ]]; then
+            if [[ "$DEPLOY_KEY" == *'\n'* ]]; then printf '%b\n' "$DEPLOY_KEY" | tr -d '\r' > "$key_file"; else printf '%s\n' "$DEPLOY_KEY" | tr -d '\r' > "$key_file"; fi
+          else
+            printf '%s' "$DEPLOY_KEY" | base64 --decode | tr -d '\r' > "$key_file"
+          fi
+          chmod 600 "$key_file"
+          ssh-keygen -y -f "$key_file" >/dev/null
+          opts=(-i "$key_file" -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$RUNNER_TEMP/tours-known-hosts" -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=2)
+          actual="$(ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'git -C /var/www/anytoour/data/www/app.anytoour.ru rev-parse HEAD')"
+          test "$actual" = aed4d04ad3fdd6c06f5ce3d8fc9ac3ae57d56bfa
+          ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'php' <<'PHP'
+          <?php
+          declare(strict_types=1);
+          $root='/var/www/anytoour/data/www/tours.anytoour.ru';
+          $backend='/var/www/anytoour/data/www/app.anytoour.ru';
+          $files=is_dir($root)?array_values(array_diff(scandir($root),['.','..'])):[];
+          $known=['index.html','index.htm','index.php','cgi-bin','webstat','.well-known','robots.txt'];
+          $placeholder=$root.'/index.html';
+          $body=is_file($placeholder)&&filesize($placeholder)<65536?file_get_contents($placeholder):'';
+          $out=[
+              'ok'=>true,'configuration_changed'=>false,'production_sha'=>'aed4d04ad3fdd6c06f5ce3d8fc9ac3ae57d56bfa',
+              'root_exists'=>is_dir($root),'root_is_symlink'=>is_link($root),
+              'root_realpath_matches'=>realpath($root)===$root,'root_writable'=>is_writable($root),
+              'root_owned_by_current_user'=>function_exists('posix_geteuid')&&is_dir($root)?fileowner($root)===posix_geteuid():null,
+              'entry_count'=>count($files),'unknown_entry_count'=>count(array_diff($files,$known)),
+              'known_entries'=>array_values(array_intersect($known,$files)),
+              'default_placeholder'=>is_string($body)&&str_contains($body,'Website tours.anytoour.ru is ready.'),
+              'placeholder_sha256'=>is_file($placeholder)?hash_file('sha256',$placeholder):null,
+              'php_version'=>PHP_VERSION,'curl_available'=>extension_loaded('curl'),'pdo_mysql_available'=>extension_loaded('pdo_mysql'),
+              'backend_config_readable'=>is_readable($backend.'/config.php'),
+              'backend_selection_readable'=>is_readable($backend.'/selection/index.php')&&is_readable($backend.'/selection/photo.php')&&is_readable($backend.'/selection/activity.php'),
+              'open_basedir_configured'=>ini_get('open_basedir')!=='',
+          ];
+          echo json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)."\n";
+          PHP
+          test "$(ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'git -C /var/www/anytoour/data/www/app.anytoour.ru rev-parse HEAD')" = aed4d04ad3fdd6c06f5ce3d8fc9ac3ae57d56bfa
