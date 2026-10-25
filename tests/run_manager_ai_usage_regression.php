@@ -4,6 +4,8 @@ if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
 require_once dirname(__DIR__).'/services/ManagerAiUsageService.php';
 $passed=0;
 function usageCheck(string $name,bool $ok): void{global$passed;if(!$ok)throw new RuntimeException('FAIL '.$name);++$passed;echo 'PASS '.$name."\n";}
+/** Keep every old output field exact; only the intentional new observation is additive. */
+function usageHistoricalOutput(array $result): array{foreach($result['items']??[] as $i=>$unused)unset($result['items'][$i]['base_instruction_current']);return$result;}
 require_once __DIR__.'/support/manager-ai-usage-fixture.php';
 final class AiUsageReadStatement extends PDOStatement
 {
@@ -37,7 +39,8 @@ if(is_string($baselinePath)&&$baselinePath!==''){
 $ids=[];$first=$r;$pages=0;
 do{usageCheck('each page retains current owner and project scope',$r['ok']&&$r['viewer_id']===1&&count($r['items'])<=20&&count(array_filter($r['items'],static fn($x)=>$x['project_key']!=='anytour'))===0);
     usageCheck('each selected case keeps its own source question',count(array_filter($r['items'],static fn($x)=>$x['question_text']!=='Question '.($x['message_id']-10000)))===0);
-    if($baselinePage!==null)usageCheck('complete page equals the exact installed source',$r===$baselinePage);
+    usageCheck('current common rules are observed from the validated stored hash without changing the page',count(array_filter($r['items'],static fn($x)=>!is_bool($x['base_instruction_current']??null)||$x['base_instruction_current']!==($x['message_id']%2===1)))===0);
+    if($baselinePage!==null)usageCheck('all prior page fields equal the exact installed source',usageHistoricalOutput($r)===$baselinePage);
     array_push($ids,...array_column($r['items'],'message_id'));if(!$r['has_more'])break;
     if($baselineClass!==null)$baselinePage=$baselineClass::read(1,['cursor'=>$r['next_cursor']],$now);
     $r=$read(['cursor'=>$r['next_cursor']]);if(++$pages>10)throw new RuntimeException('pagination_loop');}while(true);
@@ -45,6 +48,8 @@ usageCheck('all47valid applications traverse exactly once without foreign test m
 $case=$first['items'][0];usageCheck('historical author is separate from current assignee',$case['manager_id']===7&&$case['manager_name']==='Historical author'&&$case['display_name']==='Working name');
 usageCheck('source question proposed text reason and real sent text are available',$case['question_text']==='Question 47'&&$case['proposed_text']==='AI proposal 47'&&$case['current_sent_text']==='AI proposal 47'&&$case['reason']==='Synthetic reason'&&$case['initial_text_available']);
 usageCheck('prepared and generated sources are distinguished',count(array_filter($first['items'],static fn($x)=>$x['source']==='prepared'))>0&&count(array_filter($first['items'],static fn($x)=>$x['source']==='generated'))>0);
+usageCheck('stored draft time remains distinct from the later send time',$case['generated_at']==='2026-10-25 10:00:00'&&$case['sent_at']==='2026-10-25 10:02:00');
+usageCheck('a request cannot relabel old common rules as current',array_column($read(['base_instruction_current'=>true])['items'],'base_instruction_current','message_id')[10046]===false);
 usageCheck('read does not create review marks or change business records',(int)$pdo->query('SELECT COUNT(*) FROM manager_ai_usage_reviews')->fetchColumn()===0&&$beforeBusiness===$business());
 usageCheck('ordinary inactive and unknown accounts cannot read owner report',$read([],3)['error']==='forbidden'&&$read([],4)['error']==='forbidden'&&$read([],999)['error']==='forbidden');
 $other=$read([],2);usageCheck('another owner receives only their current project',$other['ok']&&array_column($other['items'],'message_id')===[10051]);
@@ -56,6 +61,11 @@ usageCheck('explicit review records only exact per-owner revision',$ack['ok']&&(
 $reviewRows=$pdo->query('SELECT * FROM manager_ai_usage_reviews')->fetchAll();ManagerAiUsageService::review(1,$case['message_id'],$case['case_revision'],$now->modify('+10 seconds'));
 usageCheck('repeating a confirmed review is idempotent and preserves first timestamp',$reviewRows===$pdo->query('SELECT * FROM manager_ai_usage_reviews')->fetchAll());
 usageCheck('reviewed revision disappears from new and remains in all',!in_array($case['message_id'],array_column($read()['items'],'message_id'),true)&&$read(['mode'=>'all'])['items'][0]['reviewed']);
+$changeInstruction=$pdo->prepare('UPDATE manager_ai_drafts SET instruction_revision=? WHERE draft_id=?');
+$caseDraft=str_pad(dechex(47),32,'0',STR_PAD_LEFT);$changeInstruction->execute([str_repeat('b',64),$caseDraft]);
+$olderRules=$read(['mode'=>'all'])['items'][0];
+usageCheck('a different common-rule observation never resurrects an already reviewed comparison',!$olderRules['base_instruction_current']&&$olderRules['reviewed']&&$olderRules['case_revision']===$case['case_revision']&&!in_array($case['message_id'],array_column($read()['items'],'message_id'),true));
+$changeInstruction->execute([hash('sha256',ManagerAiDraftService::instructions()),$caseDraft]);
 $pdo->exec('INSERT INTO manager_projects VALUES(2,1)');usageCheck('review marker is personal to its owner',in_array($case['message_id'],array_column($read([],2)['items'],'message_id'),true));
 $q=$pdo->prepare('UPDATE messages SET text=?,metadata_json=? WHERE id=?');$meta=json_decode($pdo->query('SELECT metadata_json FROM messages WHERE id=10047')->fetchColumn(),true);$meta['edited_at']='2026-10-25 10:05:00';$q->execute(['Later manager edit',json_encode($meta),10047]);
 $updated=$read()['items'][0];usageCheck('later message edit reappears as an updated comparison without inventing initial sent text',$updated['message_id']===10047&&$updated['updated_since_review']&&!$updated['reviewed']&&!$updated['initial_text_available']&&$updated['edited']&&$updated['current_sent_text']==='Later manager edit');
@@ -83,19 +93,19 @@ usageCheck('shared dialogue retains a separate question at each draft cutoff',$e
 usageCheck('missing source question retains explicit null fields',$edge[10044]['question_text']===null&&!$edge[10044]['question_edited']&&!$edge[10044]['question_truncated']);
 usageCheck('Unicode question bound counts characters and marks truncation',$edge[10043]['question_text']===str_repeat('Ж',8000)&&$edge[10043]['question_truncated']);
 usageCheck('HTML source is decoded once without interpreting literal entities',$edge[10042]['question_text']===$literal);
-if($baselineClass!==null)usageCheck('shared cutoffs missing edited and bounded text equal installed output',$edgePage===$baselineClass::read(1,[],$now));
+if($baselineClass!==null)usageCheck('shared cutoffs missing edited and bounded text equal installed output',usageHistoricalOutput($edgePage)===$baselineClass::read(1,[],$now));
 $pdo->exec("UPDATE manager_ai_drafts SET latest_message_id=1100,created_at='2026-10-25 09:59:00' WHERE draft_id='".str_pad(dechex(45),32,'0',STR_PAD_LEFT)."'");
 $pdo->exec("UPDATE messages SET created_at='2026-10-25 09:58:30',metadata_json='".'{"edited_at":"2026-10-25 09:59:45"}'."' WHERE id=1097");
 $editPage=$read();$editCases=array_column($editPage['items'],null,'message_id');
 usageCheck('the same source edit is labelled against each proposal generation time',$editCases[10045]['question_text']==='Newer source'&&$editCases[10046]['question_text']==='Newer source'&&$editCases[10045]['question_edited']&&!$editCases[10046]['question_edited']);
-if($baselineClass!==null)usageCheck('shared question edit labels equal exact installed output',$editPage===$baselineClass::read(1,[],$now));
+if($baselineClass!==null)usageCheck('shared question edit labels equal exact installed output',usageHistoricalOutput($editPage)===$baselineClass::read(1,[],$now));
 // Cutoffs retain integer identity beyond a floating-point exact-number boundary.
 $largeCutoff=9007199254740993;
 foreach([[$largeCutoff-1,'Before large cutoff'],[$largeCutoff,'Exact large cutoff'],[$largeCutoff+1,'Future large cutoff']] as [$id,$text])$insertSource->execute([$id,146,'inbound','customer','','telegram',$text,null,'2026-10-25 09:58:30']);
 $largeUpdate=$pdo->prepare('UPDATE manager_ai_drafts SET latest_message_id=? WHERE draft_id=?');$largeUpdate->execute([$largeCutoff,str_pad(dechex(45),32,'0',STR_PAD_LEFT)]);
 $largePage=$read();$largeCases=array_column($largePage['items'],null,'message_id');
 usageCheck('integer cutoff neither rounds into future history nor crosses another use',$largeCases[10045]['question_text']==='Exact large cutoff'&&$largeCases[10046]['question_text']==='Newer source');
-if($baselineClass!==null)usageCheck('large integer cutoffs equal exact installed output',$largePage===$baselineClass::read(1,[],$now));
+if($baselineClass!==null)usageCheck('large integer cutoffs equal exact installed output',usageHistoricalOutput($largePage)===$baselineClass::read(1,[],$now));
 // A page of unusable provenance cannot hide lower valid sends or loop forever.
 $pdo->beginTransaction();$insert=$pdo->prepare('INSERT INTO messages VALUES(?,?,?,?,?,?,?,?,?)');for($i=0;$i<1005;$i++)$insert->execute([20000+$i,101,'outbound','manager','7','telegram','Synthetic','{"ai_draft":{"draft_id":"bad"}}','2026-10-25 11:00:00']);$pdo->commit();
 $limited=$read();usageCheck('scan limit is explicit and keyset cursor advances over unusable records',$limited['ok']&&$limited['items']===[]&&$limited['scan_limited']&&$limited['has_more']&&is_string($limited['next_cursor']));
@@ -105,3 +115,4 @@ echo 'READ_FIXTURE '.json_encode(['driver'=>$pdo->getAttribute(PDO::ATTR_DRIVER_
 usageCheck('twenty cases need no per-case SELECT growth over one case',$single['ok']&&count($single['items'])===1&&$pageReads<=$singleReads+1);
 if($baselineReads!==null)usageCheck('paired page removes at least nineteen SELECT round trips',$baselineReads-$pageReads>=19);
 echo 'TOTAL '.$passed.' | PASS '.$passed.' | FAIL 0'."\n";
+
