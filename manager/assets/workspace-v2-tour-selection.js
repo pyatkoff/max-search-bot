@@ -419,7 +419,7 @@ async function showInterest(){
   const root=$('tsInterestPanel');if(!root)return;root.replaceChildren();root.hidden=false;root.scrollIntoView({block:'start'});
   if(!result?.ok||!result.interest){root.textContent='Активность сейчас недоступна. Это не означает, что просмотров не было.';return}
   const data=result.interest,number=v=>Number.isSafeInteger(v)&&v>=0?v:0;
-  const add=(tag,text)=>{const node=document.createElement(tag);node.textContent=text;root.appendChild(node);return node};
+  const add=(tag,text,parent=root)=>{const node=document.createElement(tag);node.textContent=text;parent.appendChild(node);return node};
   add('h3','Активность этой версии');
   add('p','За последние '+number(data.window_days)+' дней. Это анонимные сигналы браузера, а не подтверждение личности или прочтения. Блокировщики и недоступная связь могут скрыть часть событий.');
   const grid=document.createElement('dl');grid.className='tsInterestCounts';root.appendChild(grid);
@@ -430,7 +430,29 @@ async function showInterest(){
   }
   const native=data.native||{};
   add('p','Подтверждено в ботах: «Нравится» — '+number(native.liked)+', обращений — '+number(native.inquiries)+'. Переход по кнопке сам по себе обращением не считается.');
-  for(const row of data.variants||[]){if(!Number.isInteger(row.index)||row.index<0||row.index>=publication.cards.length)continue;if(number(row.hotel_views))add('p','Отель в варианте '+(row.index+1)+': показов — '+number(row.hotel_views)+'.');if(number(row.bot_opens))add('p','Вариант '+(row.index+1)+': переходов к боту — '+number(row.bot_opens)+'.')}
+  const variants=(data.variants||[]).filter(row=>Number.isInteger(row.index)).map(row=>({row,card:publication.cards.find(card=>card.index===row.index)})).filter(item=>item.card);
+  if(variants.some(({row})=>number(row.hotel_views))){
+    add('h4','Просмотренные отели');
+    for(const {row,card} of variants)if(number(row.hotel_views))add('p',card.snapshot.hotel+': показов — '+number(row.hotel_views)+'.').className='tsInterestHotel';
+    add('p','Просмотр отеля не означает выбор конкретного номера или цены.');
+  }
+  if(variants.some(({row})=>number(row.bot_opens))){
+    add('h4','Переходы к точным вариантам');
+    add('p','Условия взяты из этой сохранённой версии. Актуальность цены не проверена.');
+    for(const {row,card} of variants)if(number(row.bot_opens)){
+      const item=add('article','');item.className='tsInterestOffer';
+      add('h4','Вариант '+(card.index+1)+' · '+card.snapshot.hotel,item);
+      // Keep the renderer's exact price/party/date/room/meal text, not current draft fields.
+      add('p',String(card.text||'').split('\n').slice(1,6).join('\n'),item).className='tsInterestTerms';
+      add('p','Переходов к боту — '+number(row.bot_opens)+'. Это ещё не обращение.',item);
+      const button=add('button','Показать карточку варианта '+(card.index+1),item);button.type='button';button.className='tsInterestJump';
+      button.onclick=()=>{
+        if(token!==epoch||!current()||!dialog.open||!preview||publication?.id!==id)return;
+        const target=dialog.querySelector('.tsPreviewCard[data-ts-card="'+card.index+'"]');if(!target)return;
+        target.tabIndex=-1;target.focus({preventScroll:true});(target.querySelector('.tsCardText')||target).scrollIntoView({block:'start'});
+      };
+    }
+  }
   if(data.last_browser_at)add('p','Последний сигнал браузера: '+window.ManagerTime.format(data.last_browser_at,{year:true})+' МСК.');
   const automated=[];
   for(const [bucket,label] of [['preview','События предпросмотра'],['robot','События распознанной автоматизации']]){

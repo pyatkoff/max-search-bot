@@ -74,6 +74,16 @@ foreach (['author','reviewer'] as $role) {
 virtualCheck('ordinary instruction revision also changes with shared policy',hash('sha256',ManagerAiDraftService::instructions())!==hash('sha256',str_replace($policy,'',ManagerAiDraftService::instructions())));
 virtualCheck('frozen caller contract stays exact after current shared policy is loaded',VirtualReplyClient::requestBody('author','FROZEN_AUTHOR_CONTRACT_BEFORE_SHARED_POLICY',$payload)['input'][0]['content'][0]['text']==='FROZEN_AUTHOR_CONTRACT_BEFORE_SHARED_POLICY');
 
+// These checks bind current rule bytes to real envelopes, not model responses.
+$pairRule='«Двое/на двоих» — исходно двое взрослых без уточнения гипотетических детей; явный ребёнок/иной состав важнее.';
+$directQuestionRule='При уточнении сразу задай существенные вопросы без пересказа и «подберу/посмотрю».';
+$usefulAnswerRule='Сохраняй полезный подтверждённый ответ; не обещай необеспеченные действия/сроки.';
+foreach (['ordinary'=>$ordinary,'author'=>$author,'reviewer'=>$reviewer] as $role=>$request) {
+    $instruction=$request['input'][0]['content'][0]['text'];
+    virtualCheck($role.' current envelope carries pair default and explicit-child precedence once',substr_count($instruction,$pairRule)===1);
+    virtualCheck($role.' current envelope carries direct necessary-question rule once',substr_count($instruction,$directQuestionRule)===1);
+    virtualCheck($role.' current envelope preserves useful factual answers rather than enforcing questions only',substr_count($instruction,$usefulAnswerRule)===1);
+}
 
 // Synthetic window shapes remain source data; this instruction edit never parses or narrows them.
 $windowRule='Каникулы/отпуск — исходное окно поездки без повторного подтверждения. Диапазон вылета не задаёт срок возвращения; «начиная с» не задаёт конец. Уточняй неясный смысл периода или конфликт с длительностью/дорогой; выход за окно согласуй.';
@@ -148,3 +158,4 @@ if (!defined('OPENAI_API_KEY')) virtualCheck('unconfigured client stops before a
 
 echo "\nVirtual reply client: $passed passed, $failed failed\n";
 exit($failed===0?0:1);
+
