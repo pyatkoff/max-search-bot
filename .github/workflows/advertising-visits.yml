@@ -3,6 +3,11 @@ on:
   pull_request:
     paths:
       - services/AdvertisingVisit*.php
+      - modules/tgmini-identity/**
+      - tools/build_tgmini_feed.py
+      - tools/advertising_visit_transport.php
+      - cron_metrika.php
+      - tests/run_advertising_visit_transport_regression.php
       - services/AdvertisingSignal*.php
       - services/MetrikaConversionGoalService.php
       - services/IncomingUpdateDispatcher.php
@@ -40,9 +45,10 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          extensions: pdo_sqlite, pdo_mysql
+          extensions: pdo_sqlite, pdo_mysql, sodium, curl
           coverage: none
       - run: php tests/run_advertising_visits_regression.php
+      - run: php tests/run_advertising_visit_transport_regression.php
       - run: php tests/run_advertising_signals_regression.php
       - name: Verify the actual forward migration and imports on native MySQL
         env:

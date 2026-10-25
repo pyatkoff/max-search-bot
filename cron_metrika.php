@@ -6,6 +6,22 @@ if (PHP_SAPI !== 'cli') {
 
 require_once(__DIR__ . '/config.php');
 
+// Optional private entry sync uses this scheduler after the existing uploader
+// finishes, including its empty-queue exits. It cannot change the upload result.
+register_shutdown_function(static function (): void {
+    try {
+        require_once __DIR__.'/services/AdvertisingVisitTransport.php';
+        $entrySync=AdvertisingVisitTransport::tick();
+        if (($entrySync['status']??'off')!=='off') {
+            require_once __DIR__.'/services/DiagnosticLogger.php';
+            DiagnosticLogger::log('advertising_transport','tick',$entrySync);
+        }
+    } catch (Throwable $ignored) {
+        require_once __DIR__.'/services/DiagnosticLogger.php';
+        DiagnosticLogger::warning('advertising_transport','tick_failed');
+    }
+});
+
 header('Content-Type: text/plain; charset=utf-8');
 
 $queueFile = __DIR__ . '/metrika_offline_queue.csv';
