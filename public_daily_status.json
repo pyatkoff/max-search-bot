@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-10-25T16:55:33+00:00",
+    "generated_at": "2026-10-25T17:14:10+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
@@ -13,27 +13,27 @@
             "resolved": 51,
             "unresolved": 0
         },
-        "started": 36,
+        "started": 37,
         "needs_collected": 21,
         "tours_opened": 20,
         "site_opened": 0,
         "post_tour_manager_cta_shown": 0,
         "manager_requested": 44,
-        "manager_replied": 27,
-        "customer_replied_after_manager": 8,
+        "manager_replied": 29,
+        "customer_replied_after_manager": 9,
         "phone_received": 0,
         "manager_response": {
             "answered_in_90s": 1,
-            "answered_after_90s": 26,
-            "still_unanswered": 2,
-            "measured_responses": 27,
-            "avg_seconds": 10781,
+            "answered_after_90s": 28,
+            "still_unanswered": 0,
+            "measured_responses": 29,
+            "avg_seconds": 10158,
             "max_seconds": 51556
         },
         "drop_points": {
-            "manager_replied": 19,
-            "manager_requested": 17,
-            "customer_replied_after_manager": 8,
+            "manager_replied": 20,
+            "manager_requested": 15,
+            "customer_replied_after_manager": 9,
             "tours_opened": 3,
             "collecting_needs": 3,
             "needs_collected": 1
@@ -42,7 +42,6 @@
             "excessive_turns": 3,
             "repeated_callback_input": 2,
             "repeated_same_input": 2,
-            "manager_requested_no_reply": 2,
             "rapid_date_reselection": 1
         },
         "calendar_day": {
@@ -52,8 +51,8 @@
             "site_opened": 0,
             "post_tour_manager_cta_shown": 0,
             "manager_requested": 39,
-            "manager_replied": 23,
-            "customer_replied_after_manager": 4
+            "manager_replied": 25,
+            "customer_replied_after_manager": 5
         }
     },
     "local_date": "2026-10-25",
