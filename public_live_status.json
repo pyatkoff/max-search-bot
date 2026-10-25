@@ -1,49 +1,50 @@
 {
     "ok": true,
-    "generated_at": "2026-10-25T16:07:31+00:00",
+    "generated_at": "2026-10-25T16:34:55+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
     "channel": "max",
     "summary": {
-        "sessions": 27,
-        "raw_sessions": 27,
+        "sessions": 15,
+        "raw_sessions": 15,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 27,
+            "resolved": 15,
             "unresolved": 0
         },
-        "started": 19,
-        "needs_collected": 7,
-        "tours_opened": 6,
+        "started": 11,
+        "needs_collected": 8,
+        "tours_opened": 7,
         "site_opened": 0,
         "post_tour_manager_cta_shown": 0,
-        "manager_requested": 22,
-        "manager_replied": 18,
-        "customer_replied_after_manager": 5,
+        "manager_requested": 10,
+        "manager_replied": 6,
+        "customer_replied_after_manager": 1,
         "phone_received": 0,
         "manager_response": {
             "answered_in_90s": 1,
-            "answered_after_90s": 17,
-            "still_unanswered": 0,
-            "measured_responses": 18,
-            "avg_seconds": 7859,
-            "max_seconds": 51556
+            "answered_after_90s": 5,
+            "still_unanswered": 1,
+            "measured_responses": 6,
+            "avg_seconds": 2190,
+            "max_seconds": 4650
         },
         "drop_points": {
-            "manager_replied": 13,
-            "customer_replied_after_manager": 5,
+            "manager_replied": 5,
             "manager_requested": 4,
-            "collecting_needs": 3,
-            "tours_opened": 1,
-            "needs_collected": 1
+            "collecting_needs": 2,
+            "tours_opened": 2,
+            "needs_collected": 1,
+            "customer_replied_after_manager": 1
         },
         "flags": {
             "rapid_date_reselection": 1,
             "repeated_callback_input": 1,
-            "excessive_turns": 1
+            "excessive_turns": 1,
+            "manager_requested_no_reply": 1
         }
     },
-    "since_utc": "2026-10-25 15:07:31",
+    "since_utc": "2026-10-25 15:34:55",
     "public_redacted": true
 }
