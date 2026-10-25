@@ -521,3 +521,22 @@ and image validation pass. Incomplete files consume the existing1024-slot quota;
 no server config or storage/byte budget is enlarged. Lost first or final replies
 resume only the same captured chunk/operation after an explicit retry. The
 unreleased large-request implementation is superseded, not production accepted.
+
+## Collector 0.5.4: truthful source errors and editing guidance
+
+The owner's Egypt screenshot was reproduced on the same displayed prices:
+external inventory uses negative hotel IDs, room/placement sentinel values and
+an empty SPO, while the naturally imported IL Mercato row has complete native
+IDs. These unsupported rows remain rejected by the existing exact-identity
+contract. They now receive a field-specific unsupported-format message and a
+manual-entry instruction instead of a false claim that two IDs disagree.
+Missing IDs, multiple IDs and actual mismatches have distinct safe FS codes; raw
+attribute values, source HTML, client identity and session data are never echoed.
+Acceptance, class fallback and backend normalization are unchanged.
+
+The normal pencil/editing instruction and explicit cancellation are neutral
+information, not red errors. Real failures reset the tone even after editing.
+Regression covers every identity field, unsupported external/sentinel inventory,
+raw-value privacy, no enqueue on failure and error/info transitions at all four
+widths. Native provider/cart actions, import destination, queue, manual price and
+publication/send owners are unchanged; physical failing-row retest remains open.

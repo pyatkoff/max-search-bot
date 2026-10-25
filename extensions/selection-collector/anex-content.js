@@ -12,7 +12,7 @@ async function collect(anchor,button,editing=false){
   const after=AnyTourAnex.extract(document,anchor,location.href);before.observed_at=after.observed_at;
   if(formTouched||JSON.stringify(before)!==JSON.stringify(after))throw new Error('Условия ANEX ещё меняются. Дождитесь окончания поиска.');
   await AnyTourCollectorClient.append(button,ticket,after,editing);
- }catch(e){AnyTourCollectorClient.label(button,'Не добавлено');button.title=e.message;let note=button.parentElement.querySelector('[data-anytour-note]');if(!note){note=document.createElement('div');note.dataset.anytourNote='1';note.setAttribute('role','status');button.parentElement.append(note)}note.textContent=e.message}
+ }catch(e){AnyTourCollectorClient.label(button,'Не добавлено');button.title=e.message;let note=button.parentElement.querySelector('[data-anytour-note]');if(!note){note=document.createElement('div');note.dataset.anytourNote='1';note.setAttribute('role','status');button.parentElement.append(note)}note.dataset.anytourTone='error';note.textContent=e.message}
  finally{button.disabled=false}
 }
 function scan(){scheduled=false;for(const anchor of AnyTourAnex.anchors(document)){const cell=AnyTourAnex.resultRow(anchor).children[1];if(cell.querySelector('[data-anytour-add]'))continue;for(const editing of [false,true]){const b=document.createElement('button');b.type='button';b.dataset.anytourAdd='1';if(editing)b.dataset.anytourEdit='1';AnyTourCollectorClient.label(b,editing?'✎ Изменить цену':'В подборку AnyTour');b.title=editing?'Изменить цену перед добавлением':'Добавить без изменения цены';b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();void collect(anchor,b,editing)});AnyTourCollectorClient.actions(cell).append(b)}}}
