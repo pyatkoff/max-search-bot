@@ -50,6 +50,29 @@ async function itemState(w,operation,state){await until(async()=>(await w.status
  require('node:child_process').execFileSync('python3',[__dirname+'/../extensions/selection-collector/build_package.py','--check'],{stdio:'pipe'});
  check('installable package matches actual extension sources',true);
  const manifest=JSON.parse(fs.readFileSync(__dirname+'/../extensions/selection-collector/manifest.json','utf8'));
+
+ {
+ const photoFixture=(file)=>{const context={window:{},URL,Set};vm.runInNewContext(fs.readFileSync(__dirname+'/../extensions/selection-collector/'+file,'utf8'),context);return context.window};
+ const fun=photoFixture('funsun.js').AnyTourFunsun,anex=photoFixture('anex.js').AnyTourAnex,tv=photoFixture('tourvisor.js').AnyTourTourvisor;
+ const base='https://apigate-tui.fstravel.com/api/geocontent/static/Hotel/00180000-ac11-0242-6c05-08d9934f9e4b/';
+ const funPhotos=['MainPhoto','Gallery','InsideOfTheRoom'].map((x,i)=>base+x+'-Source-photo'+i+'.jpg');
+ const doc=(pathname,urls)=>({location:new URL('https://b2b.fstravel.com'+pathname),querySelectorAll:()=>urls.map(src=>({getAttribute:()=>src}))});
+ check('FUNSUN automatically selects three real gallery slots from its exact hotel page',JSON.stringify(fun.photos(doc('/hotel/10',funPhotos),'10'))===JSON.stringify(funPhotos));
+ check('FUNSUN gallery never follows a similarly named different hotel',fun.photos(doc('/hotel/11',funPhotos),'10').length===0);
+ check('FUNSUN gallery excludes logos and tracking source URLs',fun.photos(doc('/hotel/10',['https://b2b.fstravel.com/logo.svg',funPhotos[0]+'?token=secret']),'10').length===0);
+ check('FUNSUN refuses mixed gallery UUIDs',fun.photos(doc('/hotel/10',[funPhotos[0],funPhotos[1].replace('00180000','00280000')]),'10').length===0);
+ check('one available hotel image stays one image instead of duplicates',fun.photos(doc('/hotel/10',[funPhotos[0],funPhotos[0]]),'10').length===1);
+ const anexUrl='https://agent.anextour.ru/search/tour?HOTEL_INC=100&TAB_ACTIVE=description';
+ const anexPhotos=[1,2,3].map(i=>'https://files.anextour.ru/hotel/hotels/turkey/synthetic/o'+i+'?&hotelCode=100');
+ const adoc=(href,urls)=>({location:new URL(href),querySelectorAll:()=>urls.map(src=>({getAttribute:()=>src}))});
+ check('ANEX gallery requires its exact native hotel code',anex.photos(adoc(anexUrl,anexPhotos),'100').length===3&&anex.photos(adoc(anexUrl,anexPhotos),'101').length===0);
+ check('ANEX refuses a mixed hotel image and credentials',anex.photos(adoc(anexUrl,[anexPhotos[0].replace('hotelCode=100','hotelCode=101'),anexPhotos[0]+'&token=secret']),'100').length===0);
+ check('ANEX does not copy placeholders or duplicate photos',anex.photos(adoc(anexUrl,[anexPhotos[0],anexPhotos[0],'data:image/gif;base64,AA']),'100').length===1);
+ const tvPhotos=[1,2,3].map(i=>'https://static.tourvisor.ru/hotel_pics/verybig/1/502-'+i+'.jpg');
+ const tcard=urls=>({querySelectorAll:()=>urls.map(src=>({style:{backgroundImage:'url("'+src+'")'}}))});
+ check('Tourvisor gallery is bound to source country and hotel image prefix',tv.photos(tcard(tvPhotos),'502','1').length===3&&tv.photos(tcard(tvPhotos),'503','1').length===0&&tv.photos(tcard(tvPhotos),'502','2').length===0);
+ check('Tourvisor excludes operator logos unrelated hotels and query tokens',tv.photos(tcard(['https://tourvisor.ru/pics/operators/mobilelogo/13.svg',tvPhotos[0]+'?token=secret',tvPhotos[1].replace('/502-','/503-')]),'502','1').length===0);
+ }
  check('MV3 collector has no cookie credential or arbitrary-origin permissions',manifest.manifest_version===3&&manifest.permissions.join(',')==='storage,alarms'&&manifest.host_permissions.length===4&&manifest.host_permissions.every(x=>/^https:\/\/(?:b2b\.fstravel\.com\/search_tour|agent\.anextour\.ru\/search\/tour|pro\.tourvisor\.ru\/search|app\.anytoour\.ru\/manager\/tour-selection-collector\.php)\*$/.test(x)));
  const navDb={target:makeTarget(),items:[{operation_id:'1'.repeat(32),state:'saved',target:makeTarget(12,'b'.repeat(32)),observation:observation('Previous client')}]},navServer=provider(),nav=worker(navDb,navServer,{allowManagerOpen:true});
  await nav.send({type:'open_manager',target:clone(navDb.target)});

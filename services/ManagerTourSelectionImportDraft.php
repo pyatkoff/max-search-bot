@@ -7,14 +7,16 @@ final class ManagerTourSelectionImportDraft
 {
     public static function normalize($input): ?array
     {
-        if (!is_array($input) || array_diff(array_keys($input),['adapter','url','observed_at','quote_id','keys','offer','raw'])) return null;
+        if (!is_array($input) || array_diff(array_keys($input),['adapter','url','observed_at','quote_id','keys','offer','raw','photos'])) return null;
         if (($input['adapter']??null)==='anex-agent-v1') {
             require_once __DIR__.'/ManagerTourSelectionAnexImportDraft.php';
-            return ManagerTourSelectionAnexImportDraft::normalize($input);
+            $normalized=ManagerTourSelectionAnexImportDraft::normalize($input);
+            return $normalized===null?null:self::withPhotos($input,$normalized);
         }
         if (($input['adapter']??null)==='tourvisor-snapshot-v1') {
             require_once __DIR__.'/ManagerTourSelectionTourvisorImportDraft.php';
-            return ManagerTourSelectionTourvisorImportDraft::normalize($input);
+            $normalized=ManagerTourSelectionTourvisorImportDraft::normalize($input);
+            return $normalized===null?null:self::withPhotos($input,$normalized);
         }
         if (($input['adapter']??null)!=='funsun-b2b-v1') return null;
         $url=$input['url']??null;
@@ -66,13 +68,47 @@ final class ManagerTourSelectionImportDraft
         foreach (['NIGHTS_FROM','NIGHTS_TILL'] as $key) if (!preg_match('/\A[1-9][0-9]?\z/D',$query[$key]??'') || (int)$query[$key]>60) return null;
         if ($offer['nights']<(int)$query['NIGHTS_FROM'] || $offer['nights']>(int)$query['NIGHTS_TILL']) return null;
         foreach ($ages as $i=>$age) if (($query['AGE'.($i+1)]??null)!==(string)$age) return null;
-        return ['adapter'=>'funsun-b2b-v1','url'=>$url,'observed_at'=>$offer['observed_at'],'quote_id'=>strtolower($quote),'keys'=>$keys,'offer'=>$offer,'raw'=>$raw];
+        return self::withPhotos($input,['adapter'=>'funsun-b2b-v1','url'=>$url,'observed_at'=>$offer['observed_at'],'quote_id'=>strtolower($quote),'keys'=>$keys,'offer'=>$offer,'raw'=>$raw]);
+    }
+
+    /** Source gallery material is separate from quote identity and verified facts. */
+    private static function withPhotos(array $input,array $normalized): ?array
+    {
+        if (!array_key_exists('photos',$input)) return $normalized;
+        $photos=$input['photos'];
+        if (!is_array($photos) || !array_is_list($photos) || count($photos)>3 || count(array_unique($photos,SORT_REGULAR))!==count($photos)) return null;
+        $group=null;
+        foreach ($photos as $url) {
+            if (!is_string($url)) return null;
+            $p=parse_url($url);
+            if (!$p || ($p['scheme']??'')!=='https' || isset($p['port']) || isset($p['fragment']) || isset($p['user']) || isset($p['pass'])) return null;
+            if ($normalized['adapter']==='funsun-b2b-v1') {
+                if (!preg_match('~\Ahttps://apigate-tui\.fstravel\.com/api/geocontent/static/Hotel/([a-f0-9-]{36})/(?:MainPhoto|Gallery|InsideOfTheRoom)-Source-[a-z0-9]+\.(?:jpg|jpeg|png)\z~iD',$url,$m)) return null;
+                if ($group!==null && $group!==$m[1]) return null;
+                $group=$m[1];
+            } elseif ($normalized['adapter']==='anex-agent-v1') {
+                if (($p['host']??'')!=='files.anextour.ru' || !preg_match('~\A/hotel/hotels/[a-z0-9_/-]+/o[1-9][0-9]*\z~D',$p['path']??'')) return null;
+                // The observed CDN explicitly binds each image to its source hotel.
+                if (!preg_match('/\A&?hotelCode='.preg_quote($normalized['keys']['hotel'],'/').'\z/D',$p['query']??'')) return null;
+            } else {
+                $path='~\A/hotel_pics/verybig/'.preg_quote($normalized['keys']['country'],'~').'/'.preg_quote($normalized['keys']['hotel'],'~').'-[1-9][0-9]*\.(?:jpg|jpeg|png)\z~iD';
+                if (($p['host']??'')!=='static.tourvisor.ru' || !preg_match($path,$p['path']??'') || isset($p['query'])) return null;
+            }
+        }
+        $offer=$normalized['offer'];$offer['photos']=[];
+        foreach ($photos as $i=>$url) $offer['photos'][]=['url'=>$url,'kind'=>['cover','beach','room'][$i],'illustrative'=>true];
+        $draft=ManagerTourSelectionDraft::normalize(['title'=>'Импорт','intro'=>'','offers'=>[$offer]]);
+        if ($draft===null) return null;
+        $normalized['offer']=$draft['offers'][0];$normalized['photos']=$photos;
+        return $normalized;
     }
 
     public static function source(array $input): array
     {
         $fields=array_intersect_key($input['offer'],array_flip(['hotel','destination','departure','date_from','nights','adults','child_ages','room','meal','amount','currency','stars']));
-        return ['adapter'=>$input['adapter'],'url'=>$input['url'],'observed_at'=>$input['observed_at'],'quote_id'=>$input['quote_id'],'keys'=>$input['keys'],'fields'=>$fields,'raw'=>$input['raw']];
+        $source=['adapter'=>$input['adapter'],'url'=>$input['url'],'observed_at'=>$input['observed_at'],'quote_id'=>$input['quote_id'],'keys'=>$input['keys'],'fields'=>$fields,'raw'=>$input['raw']];
+        if (isset($input['photos'])) $source['photos']=$input['photos'];
+        return $source;
     }
 
     public static function fingerprint(array $source,bool $withPrice=true): string

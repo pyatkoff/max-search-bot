@@ -11,6 +11,11 @@ async function collect(anchor,button,editing=false){
   const before=AnyTourAnex.extract(document,anchor,location.href);await new Promise(r=>setTimeout(r,750));
   const after=AnyTourAnex.extract(document,anchor,location.href);before.observed_at=after.observed_at;
   if(formTouched||JSON.stringify(before)!==JSON.stringify(after))throw new Error('Условия ANEX ещё меняются. Дождитесь окончания поиска.');
+  AnyTourCollectorClient.label(button,'Добавляем фото…');
+  const photos=await AnyTourCollectorClient.gallery(anchor.href,doc=>AnyTourAnex.photos(doc,after.keys.hotel));
+  const fresh=AnyTourAnex.extract(document,anchor,location.href);fresh.observed_at=after.observed_at;
+  if(formTouched||JSON.stringify(fresh)!==JSON.stringify(after))throw new Error('Условия ANEX изменились во время загрузки фото. Добавьте текущий вариант заново.');
+  after.photos=photos;
   await AnyTourCollectorClient.append(button,ticket,after,editing);
  }catch(e){AnyTourCollectorClient.label(button,'Не добавлено');button.title=e.message;let note=button.parentElement.querySelector('[data-anytour-note]');if(!note){note=document.createElement('div');note.dataset.anytourNote='1';note.setAttribute('role','status');button.parentElement.append(note)}note.dataset.anytourTone='error';note.textContent=e.message}
  finally{button.disabled=false}

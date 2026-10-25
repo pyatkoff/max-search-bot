@@ -95,4 +95,11 @@ cardAssert(str_contains($compact['plain_text'],'С 5 июня 2027 · 7 ноче
     'Compact layout omits a computed return without dropping substantive rationale or compromises');
 cardReject(cardSnapshot(['is_demo'=>false]),cardPresentation(['layout'=>'compact-v1']),$callback,'Compact visual samples cannot remove the unverified-price notice from a real offer');
 foreach (['other','',false] as $layout) cardReject(cardSnapshot(),cardPresentation(['layout'=>$layout]),$callback,'Only the fixed compact revision is an accepted layout');
+foreach ([1,2,3] as $photoCount) {
+    $presentation=cardPresentation(['layout'=>'gallery-v1']);$presentation['photos']=array_slice($presentation['photos'],0,$photoCount);
+    $gallery=TourOfferCardRenderer::render(cardSnapshot(['is_demo'=>false]),$presentation,$callback);
+    cardAssert(count($gallery['telegram']['rich_message']['blocks'][0]['blocks'])===$photoCount,'Automatic gallery keeps its actual photo count');
+    cardAssert(str_contains($gallery['plain_text'],'Фотографии отеля.')&&!str_contains($gallery['plain_text'],'Фото номера —'),'Automatic gallery makes no selected-room image assertion');
+}
+foreach ([[],array_merge(cardPresentation()['photos'],[cardPresentation()['photos'][0]])] as $photos) cardReject(cardSnapshot(),cardPresentation(['layout'=>'gallery-v1','photos'=>$photos]),$callback,'Automatic gallery still requires one to three ordered photos');
 echo "TOUR OFFER CARD RENDERER: $checks checks PASSED\n";

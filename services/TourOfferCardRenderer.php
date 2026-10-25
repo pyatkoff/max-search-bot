@@ -30,7 +30,7 @@ final class TourOfferCardRenderer
         $basis = $partySize === 1 ? 'за одного' : ($partySize === 2 ? 'за двоих' : 'за '.$partySize.' '.self::plural($partySize, ['человек','человека','человек']));
         $price = self::amount($snapshot['amount']).' '.['RUB'=>'₽', 'EUR'=>'€', 'USD'=>'$'][$snapshot['currency']].' '.$basis;
         $conditions = [
-            '📅 '.($compact || ($presentation['layout'] ?? '') === 'departure-v1' ? 'С '.self::dates($snapshot['date_from'], $snapshot['date_from']) : self::dates($snapshot['date_from'], $snapshot['date_to'])).' · '.$snapshot['nights'].' '.self::plural($snapshot['nights'], ['ночь','ночи','ночей']),
+            '📅 '.($compact || in_array($presentation['layout'] ?? '', ['departure-v1','gallery-v1'],true) ? 'С '.self::dates($snapshot['date_from'], $snapshot['date_from']) : self::dates($snapshot['date_from'], $snapshot['date_to'])).' · '.$snapshot['nights'].' '.self::plural($snapshot['nights'], ['ночь','ночи','ночей']),
             '✈️ '.$snapshot['departure'].' · '.self::party($snapshot),
             '🛏️ '.$snapshot['room'],
             '🍽️ '.$snapshot['meal'],
@@ -47,7 +47,8 @@ final class TourOfferCardRenderer
         $footer = [];
         if ($snapshot['is_demo']) $footer[] = $compact ? 'Демо: цена и условия — пример.' : 'Демо: даты, цена и условия — пример.';
         if (!$compact) $footer[] = 'Актуальность цены не проверена.';
-        if ($presentation['room_illustrative']) $footer[] = $compact ? 'Фото номера — пример интерьера.' : 'Фото номера — пример интерьера отеля.';
+        if (($presentation['layout']??'')==='gallery-v1') $footer[]='Фотографии отеля. Интерьер выбранного номера может отличаться.';
+        elseif ($presentation['room_illustrative']) $footer[] = $compact ? 'Фото номера — пример интерьера.' : 'Фото номера — пример интерьера отеля.';
         $footer = implode("\n", $footer);
         $plain = $heading."\n".$price."\n".$details."\n\n".$footer;
         $photos = [];
@@ -84,15 +85,16 @@ final class TourOfferCardRenderer
     {
         if (array_diff(array_keys($input), ['destination','inclusions','photos','room_illustrative','layout']) !== []
             || !is_bool($input['room_illustrative'] ?? null)) throw new InvalidArgumentException('Invalid offer presentation');
-        if (array_key_exists('layout', $input) && !in_array($input['layout'], ['compact-v1','departure-v1'], true)) throw new InvalidArgumentException('Invalid card layout');
+        if (array_key_exists('layout', $input) && !in_array($input['layout'], ['compact-v1','departure-v1','gallery-v1'], true)) throw new InvalidArgumentException('Invalid card layout');
         $destination = self::text($input['destination'] ?? '', 200, true);
         $inclusions = $input['inclusions'] ?? [];
         if (!is_array($inclusions) || !array_is_list($inclusions) || count($inclusions) > 6) throw new InvalidArgumentException('Invalid included services');
         foreach ($inclusions as &$inclusion) $inclusion = self::text($inclusion, 300);
         unset($inclusion);
         $photos = $input['photos'] ?? null;
-        if (!is_array($photos) || !array_is_list($photos) || count($photos) !== 3) throw new InvalidArgumentException('Three ordered photos required');
-        foreach (['cover','beach','room'] as $index=>$role) {
+        $gallery=($input['layout']??'')==='gallery-v1';
+        if (!is_array($photos) || !array_is_list($photos) || ($gallery?(count($photos)<1 || count($photos)>3):count($photos)!==3)) throw new InvalidArgumentException('Ordered hotel photos required');
+        foreach (array_slice(['cover','beach','room'],0,count($photos)) as $index=>$role) {
             $photo = $photos[$index];
             if (!is_array($photo) || array_diff(array_keys($photo), ['role','url']) !== [] || ($photo['role'] ?? null) !== $role
                 || !self::photoUrl($photo['url'] ?? null)) throw new InvalidArgumentException('Invalid photo source');

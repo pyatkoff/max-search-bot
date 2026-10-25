@@ -86,10 +86,11 @@ final class ManagerTourSelectionDraft
         if (array_key_exists('import_source',$input)) {
             require_once __DIR__.'/ManagerTourSelectionImportDraft.php';
             $source=$input['import_source'];
-            if (!is_array($source) || array_diff(array_keys($source),['adapter','url','observed_at','quote_id','keys','fields','raw'])) return null;
+            if (!is_array($source) || array_diff(array_keys($source),['adapter','url','observed_at','quote_id','keys','fields','raw','photos'])) return null;
             $import=ManagerTourSelectionImportDraft::normalize([
                 'adapter'=>$source['adapter']??null,'url'=>$source['url']??null,'observed_at'=>$source['observed_at']??null,
                 'quote_id'=>$source['quote_id']??null,'keys'=>$source['keys']??null,'offer'=>$source['fields']??null,'raw'=>$source['raw']??null,
+                ...(array_key_exists('photos',$source)?['photos'=>$source['photos']]:[]),
             ]);
             if ($import===null) return null;
             $out['import_source']=ManagerTourSelectionImportDraft::source($import);

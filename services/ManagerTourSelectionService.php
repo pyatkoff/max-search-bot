@@ -199,12 +199,22 @@ final class ManagerTourSelectionService
                         $pdo->rollBack();return self::error($sameConditions&&!$sameTerms?'source_price_changed':'ambiguous_offer')+['existing_offer_id'=>$old['id']];
                     }
                 }
-                $next=$current['version'];$now=gmdate('Y-m-d H:i:s');$offerId=$duplicate;
+                $next=$current['version'];$now=gmdate('Y-m-d H:i:s');$offerId=$duplicate;$changed=false;
                 if ($duplicate===null) {
                     if (count($current['draft']['offers'])>=ManagerTourSelectionDraft::MAX_OFFERS) {$pdo->rollBack();return self::error('selection_full');}
                     $offer=$import['offer'];$offerId=bin2hex(random_bytes(16));$offer['id']=$offerId;$offer['import_source']=$source;
                     if ($managerAmount!==null) $offer['amount']=$managerAmount;
                     $current['draft']['offers'][]=$offer;
+                    $changed=true;
+                } elseif (!empty($source['photos'])) {
+                    // Re-adding a legacy photo-less import enriches that same
+                    // offer. Never overwrite photos already chosen by staff.
+                    foreach ($current['draft']['offers'] as &$old) if ($old['id']===$duplicate && $old['photos']===[]) {
+                        $old['photos']=$import['offer']['photos'];$old['import_source']['photos']=$source['photos'];$changed=true;break;
+                    }
+                    unset($old);
+                }
+                if ($changed) {
                     $draft=ManagerTourSelectionDraft::normalize($current['draft']);
                     if ($draft===null) throw new LogicException('Import produced invalid draft');
                     $next++;$json=json_encode($draft,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);

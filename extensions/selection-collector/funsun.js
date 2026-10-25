@@ -68,5 +68,12 @@ function extract(doc,row,href,at=new Date().toISOString().replace(/\.\d{3}Z$/,'Z
  if(hotel.length>191||room.length>300||meal.length>160||Object.values(raw).some(x=>x.length>1200))fail('Слишком длинные условия. Импорт остановлен.');
  return {adapter:'funsun-b2b-v1',url:safe.href,observed_at:at,quote_id:quote,keys,raw,offer:{hotel,destination:clean(v.STATEINC.text+(place?', '+place:'')),departure:v.TOWNFROMINC.text,date_from:iso,nights,adults:f.adults,child_ages:f.ages,room,meal,amount,currency,stars:star?Number(star[1]):null}};
 }
-root.AnyTourFunsun={extract,form,observe};
+function photos(doc,hotel){
+ if(doc.location.pathname!=='/hotel/'+hotel)return [];
+ const urls=Array.from(doc.querySelectorAll('img.slider-img')).map(e=>e.getAttribute('src')).filter(s=>typeof s==='string'&&/^https:\/\/apigate-tui\.fstravel\.com\/api\/geocontent\/static\/Hotel\/[a-f0-9-]{36}\/(?:MainPhoto|Gallery|InsideOfTheRoom)-Source-[a-z0-9]+\.(?:jpg|jpeg|png)$/i.test(s));
+ const groups=new Set(urls.map(s=>s.split('/')[7]));if(groups.size!==1)return [];
+ const cover=urls.find(s=>s.includes('/MainPhoto-')),room=urls.find(s=>s.includes('/InsideOfTheRoom-'));
+ return [...new Set([cover,urls.find(s=>s!==cover&&s!==room),room,...urls].filter(Boolean))].slice(0,3);
+}
+root.AnyTourFunsun={extract,form,observe,photos};
 })(typeof window==='undefined'?module.exports:window);

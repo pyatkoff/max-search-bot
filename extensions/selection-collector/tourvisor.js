@@ -31,7 +31,12 @@ function extract(doc,href,now=new Date().toISOString().replace(/\.\d{3}Z$/,'Z'))
  if(Array.from(priceRoot.querySelectorAll('.TVTourCardPriceWaiter')).some(visible))fail('Цена ещё загружается.');
  const flights=text(card,'.TVTourCardInfoFlights');if(!flights||flights.length>800)fail('Дождитесь условий карточки.');
  const raw={hotel:title,destination,date,nights:nightsText,room,meal,party,price:amount+' РУБ',price_basis:basis,base_price:clean(parts[1])+' РУБ',fuel_price:clean(parts[2])+' РУБ',tariff,flight_alternatives:flights,party_price_confirmation:'pending'};
- return {adapter:'tourvisor-snapshot-v1',url:url.href,observed_at:now,quote_id:'tv-snapshot-'+snapshot,keys:{hotel:q.x_hotel_codes,meal:q.s_meal,departure:q.s_flyfrom,country:q.s_country,operator:'13'},offer:{hotel:hotel[1],destination,departure:'Москва',date_from:iso,nights:+n[1],adults:2,child_ages:[],room,meal,amount:value(amount),currency:'RUB',stars:+hotel[2]},raw};
+ const gallery=photoUrls(card,q.x_hotel_codes,q.s_country);
+ return {adapter:'tourvisor-snapshot-v1',url:url.href,observed_at:now,quote_id:'tv-snapshot-'+snapshot,keys:{hotel:q.x_hotel_codes,meal:q.s_meal,departure:q.s_flyfrom,country:q.s_country,operator:'13'},offer:{hotel:hotel[1],destination,departure:'Москва',date_from:iso,nights:+n[1],adults:2,child_ages:[],room,meal,amount:value(amount),currency:'RUB',stars:+hotel[2]},raw,...(gallery.length?{photos:gallery}:{})};
 }
-root.AnyTourTourvisor={extract};
+function photoUrls(card,hotel,country){
+ const pattern=new RegExp('^https://static\\.tourvisor\\.ru/hotel_pics/verybig/'+country+'/'+hotel+'-[1-9]\\d*\\.(?:jpg|jpeg|png)$','i');
+ return [...new Set(Array.from(card.querySelectorAll('.TVPhotoSliderItem,.TVPreviewGalleryItem')).map(e=>/^url\(["']?(.*?)["']?\)$/.exec(e.style.backgroundImage)?.[1]).filter(url=>typeof url==='string'&&pattern.test(url)))].slice(0,3);
+}
+root.AnyTourTourvisor={extract,photos:photoUrls};
 })(typeof window==='undefined'?globalThis:window);

@@ -12,6 +12,18 @@ function collectorObservation(): array
         'raw'=>['hotel'=>'Синтетический отель 5*','date'=>'05.06.2027, сб','nights'=>'7','room'=>'Standard / 2AD','meal'=>'Ultra All Inclusive','price'=>'200 000 RUB','party'=>'2AD','tour'=>'Synthetic tour','flight_alternatives'=>'вылеты: 01:00, 02:00','tariff'=>'Synthetic tariff']];
 }
 
+/** Real canonical import setup; ordinary save must never invent provenance. */
+function collectorImportedDraft(PDO $pdo,array $observation,int $conversation=1): array
+{
+    collectorSchema($pdo);$session=str_repeat('1',64);$device=str_repeat('2',32);$connection=str_repeat('3',32);
+    $view=ManagerTourSelectionCollectorSession::view(7,$conversation,$session,$device);
+    $connected=ManagerTourSelectionCollectorSession::connect(7,$conversation,$session,['device_id'=>$device,'connection_id'=>$connection,'binding'=>$view['target']['binding'],'confirm_current_trip'=>true]);
+    if (empty($connected['ok'])) throw new RuntimeException('Synthetic collector connection failed');
+    $result=ManagerTourSelectionService::import(7,$conversation,$session,['operation_id'=>bin2hex(random_bytes(16)),'connection_id'=>$connection,'observation'=>$observation]);
+    if (empty($result['ok'])) throw new RuntimeException('Synthetic automatic photo import failed');
+    return ManagerTourSelectionService::get(7,$conversation)['selection'];
+}
+
 function anexCollectorObservation(): array
 {
     return ['adapter'=>'anex-agent-v1','url'=>'https://agent.anextour.ru/search/tour?ADULT=2&CHILD=0&CHECKIN_BEG=20261025&CHECKIN_END=20261025&NIGHTMIN=7&NIGHTMAX=7&CURRENCY=1&STATEINC=3&TOWNFROM=moskva','observed_at'=>'2026-10-24T09:30:00Z','quote_id'=>'0x'.str_repeat('b',268),
