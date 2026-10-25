@@ -1,6 +1,6 @@
 {
   "schema": "anytour.funnel.autopilot_state.v1",
-  "updated_at_utc": "2026-10-25T09:35:15.863Z",
+  "updated_at_utc": "2026-10-25T10:35:32.682Z",
   "owner": "direct-demand-funnel",
   "automation": {
     "id": "6ada8f0084888191b12c6619c12fb35c",
@@ -1037,13 +1037,13 @@
   "next_steps": [
     "P45 DONE: one Alma revision688UTF16, one cover using2original exact-suite photos,12saved clicked forms read and canonical92 reused readonly. General hotel request no longer assigns suite interest; exact70m2 suite is example only. Local390/1440 preview and cover inspected, not real bot proof.",
     "S2 BLOCKED: consume terminal channel receipt6395635957 (registered post_channels9/provider-80492244209683/config_version1, three foundation posts) without replay. Runtime-owner dependency: review reported public-slug URL validation/snapshot.post_url gap using existing canonical adapter/registry, then provide exact Alma hotel/post/issued entry/finalURL and specific native action/test receipt. No traffic runtime claim or foundation permission expansion.",
-    "Next pass first read fresh #55/checkpoint/receipt for THIS dependency; no repeat P45 content or unchanged capability probes. If no new information/authorization, quiet skip. No new hotel/seasonal/cover growth to replace gate2.",
+    "Next pass first read current #55 continuation pointer, fresh #1122 receipts and own checkpoint for THIS dependency; P45 handoff6396569344 delivered/read back. Do not duplicate it or repeat P45 content/unchanged capability probes. If no new information/authorization, quiet skip; no new hotel/seasonal/cover growth to replace gate2.",
     "Actual live ad creative/landing remains unavailable (recorded capability gap), not proof of mismatch. Own ads352/16,last7 54/1 do not prove suite interest, all-commercial clicks or conversion. Canonical factual source92 unmodified and all earlier holds retained.",
     "Five drafts remain, not six. Four other current feed rows unchanged; Alma row same key/inactive,IDs/URLs null. Gate3 paid launch still needs separate budget/action/channel/duration/sample/stop receipts; editor/business/real-path acceptance distinct.",
     "Same P44 plan and task retained; no schedule/enabled/models/budgets/runtime/foreign changes or repeated fullCI/Direct/native baselines."
   ],
   "publication_blocker": "P45 Alma editorial package prepared. Channel AnyTour is registered (post_channels.id9/-80492244209683/config_version1) and three foundation posts completed under separate owner scope. Channel receipt6395635957 reports public-slug URL validation gap leaving snapshot.post_url blank; runtime owner review/readback is needed. Exact canonical Alma hotel/post/issued entry/finalURL and specific Alma native action/test receipt remain missing; real path and paid launch unverified/unapproved.",
-  "coordination": "Own audit/direct-demand-20261022 branch only; no foreign claims, CI, paused hotel tasks or production flows.",
+  "coordination": "Own audit/direct-demand-20261022 branch only; canonical coordination #1122 by explicit #55 continuation. No foreign claims, CI, paused hotel tasks or production flows.",
   "completed_preparation": {
     "generated_at_utc": "2026-10-23T06:42:57.737448+00:00",
     "direct_candidates": 317,
@@ -3003,7 +3003,7 @@
     "telegram_history": "Only 16 saved business snapshots read in the indexed material; full Telegram history unavailable. Prior web-reader failure is historical and superseded by saved native snapshots.",
     "max_history": "Native MAX history index complete at 610 business posts; individual full-media/property verification is incomplete. Prior web login limitation is historical, not a blocker on saved text preparation.",
     "media_asr": "Automatic approval review rejected continuing local ASR because the environment initiated a Microsoft telemetry-domain request with unknown payload. No user authorization for this egress. Do not rerun or bypass; six persisted results retained, two speech records unresolved. No claim of zero prior network transfer.",
-    "coordination": "GitHub #55 new comment rejected403: commenting disabled above2500comments. Updated dependency saved in this checkpoint but NOT delivered as a #55comment; no automatic identical retry or new coordination issue."
+    "coordination": "RESOLVED: #55 explicitly designates #1122 as canonical continuation. Previously403-undelivered P45 dependency is now comment6396569344, readback verified. Historical #55 cap remains; use #1122."
   },
   "retry_policy": {
     "blocked_wordstat": "Retry only after a new authorized credential/connector/folder appears; continue content meanwhile.",
@@ -9234,14 +9234,31 @@
     }
   ],
   "coordination_handoff_delivery": {
-    "state": "BLOCKED_GITHUB_55_COMMENT_LIMIT",
-    "target": "https://github.com/pyatkoff/max-search-bot/issues/55",
-    "attempted_action": "Post same-P45 dependency receipt readback and public-slug adapter dependency handoff",
-    "outcome": "GitHub403: Commenting is disabled on issues with more than 2500 comments",
-    "delivered": false,
-    "retry_without_new_basis": false,
-    "preserved_dependency_path": "channel_setup_receipt_readback.reported_adapter_gap",
-    "next_action": "Use an explicitly designated canonical coordination continuation once available; do not create another product queue or edit foreign coordination paths. Do not claim this handoff delivered.",
-    "no_external_Alma_or_paid_action": true
-  }
+    "state": "DELIVERED_AND_READ_BACK_IN_CANONICAL_CONTINUATION",
+    "target": "https://github.com/pyatkoff/max-search-bot/issues/1122",
+    "canonical_pointer_source": "https://github.com/pyatkoff/max-search-bot/issues/55",
+    "comment_id": 6396569344,
+    "comment_url": "https://github.com/pyatkoff/max-search-bot/issues/1122#issuecomment-6396569344",
+    "created_at_utc": "2026-10-25T10:35:16Z",
+    "delivered": true,
+    "readback_verified": true,
+    "dependency": "Existing P45 S2: channel-owner reported public-slug URL validation/snapshot gap to runtime integration owner; then exact canonical Alma destination/entry and specific action receipt.",
+    "no_runtime_file_claimed": true,
+    "no_new_product_queue": true,
+    "no_external_Alma_or_paid_action": true,
+    "next_action": "Read fresh exact dependency outcome/Alma receipt in #1122. Do not post this handoff again without changed evidence or repeat capped #55 write."
+  },
+  "coordination_handoff_delivery_history": [
+    {
+      "state": "BLOCKED_GITHUB_55_COMMENT_LIMIT",
+      "target": "https://github.com/pyatkoff/max-search-bot/issues/55",
+      "attempted_action": "Post same-P45 dependency receipt readback and public-slug adapter dependency handoff",
+      "outcome": "GitHub403: Commenting is disabled on issues with more than 2500 comments",
+      "delivered": false,
+      "retry_without_new_basis": false,
+      "preserved_dependency_path": "channel_setup_receipt_readback.reported_adapter_gap",
+      "next_action": "Use an explicitly designated canonical coordination continuation once available; do not create another product queue or edit foreign coordination paths. Do not claim this handoff delivered.",
+      "no_external_Alma_or_paid_action": true
+    }
+  ]
 }
