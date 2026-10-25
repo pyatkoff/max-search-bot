@@ -6,7 +6,7 @@ const pending=new WeakMap(),pause=()=>new Promise(r=>setTimeout(r,250));
 const galleries=new Map();
 // Render only the exact same-origin hotel/description page. The source site's
 // own UI loads its gallery; no cookies, page scripts or client data are copied.
-async function gallery(href,read){
+async function gallery(href,read,acceptCanonical=null){
  const url=new URL(href,location.href);
  if(url.origin!==location.origin||url.username||url.password||url.port||url.hash)return [];
  if(galleries.has(url.href))return galleries.get(url.href);
@@ -17,7 +17,7 @@ async function gallery(href,read){
   frame.src=url.href;document.body.append(frame);
   let best=[],stable=0;
   try{for(let i=0;i<60&&frame.isConnected;i++){
-   try{const doc=frame.contentDocument;if(doc&&doc.location.href===url.href){const photos=[...new Set(read(doc))].slice(0,3);if(photos.length){stable=JSON.stringify(photos)===JSON.stringify(best)?stable+1:0;best=photos;if(best.length===3||stable>=3)return best}}}catch{}
+   try{const doc=frame.contentDocument;if(doc&&(doc.location.href===url.href||(doc.location.origin===url.origin&&acceptCanonical?.(doc)))){const photos=[...new Set(read(doc))].slice(0,3);if(photos.length){stable=JSON.stringify(photos)===JSON.stringify(best)?stable+1:0;best=photos;if(best.length===3||stable>=3)return best}}}catch{}
    await pause();
   }return best}finally{frame.remove()}
  })();

@@ -7,6 +7,13 @@ function sourceHtml(){
 }
 async function sourceFixture(page,options={}){
  let url=sourceUrl,html=sourceHtml();
+ if(options.partner){
+  const u=new URL(url);u.searchParams.set('PROGRAMINC','0');url=u.href;
+  html=html.replace('<select name="PROGRAMINC"><option value="114">Промо</option></select>','<select name="PROGRAMINC"><option value="0">----</option></select>')
+   .replaceAll('hotelKey-10','hotelKey--10').replaceAll('roomKey-20','roomKey--2147483647').replaceAll('htPlaceKey-40','htPlaceKey--2147483647').replace('spoKey-60','spoKey-').replace('programTypeKey-114','programTypeKey-5')
+   .replace('data-hotel="10"','data-hotel="-10"').replace('data-room="20"','data-room="-2147483647"').replace('data-htplace="40"','data-htplace="-2147483647"').replace('data-ptype="114"','data-ptype="5"')
+   .replace('href="#hotel"','href="https://b2b.fstravel.com/hotel/-10?partner=HBK"').replace('Standard / 2AD','DOUBLE STANDARD / 2ADL').replace('Synthetic tariff','Информация о тарифе в корзине');
+ }
  if(options.ajax){
   url='https://b2b.fstravel.com/search_tour';
   const submitted=new URL(sourceUrl);submitted.searchParams.set('PROGRAMINC','0');
@@ -14,14 +21,20 @@ async function sourceFixture(page,options={}){
   html=html.replace('</form>',`<button class="load" type="button">Искать</button></form><div id="samo-link-to-page"><a href="${submitted.href.replaceAll('&','&amp;')}">Ссылка на эту страницу</a></div>`);
   html=html.replace('<style>',`<style>button{width:100%;height:55px;padding:18px;font:24px serif;border-radius:20px}[data-anytour-add]::after{content:'HOST'}.td_price{min-width:100px;width:118px}.td_price .price{font-weight:bold;white-space:nowrap}`);
  }
- const calls=[];await page.route('**/*',route=>{
+ const calls=[],galleryRequests=[],partnerPhotos=[101,102,103].map(i=>'https://hbpro.expert/resource/hotel/photo_1200/11/22/'+i+'.jpg'),nativePhotos=['MainPhoto','Gallery','InsideOfTheRoom'].map((kind,i)=>'https://apigate-tui.fstravel.com/api/geocontent/static/Hotel/00180000-ac11-0242-6c05-08d9934f9e4b/'+kind+'-Source-test'+i+'.jpg'),canonical='/hotel/europe/turkey/synthetic-hotel';
+ const gallery=photos=>'<meta charset="utf-8"><h2>Синтетический отель</h2>'+photos.map(src=>'<img class="slider-img" src="'+src+'">').join('');
+ await page.route('**/*',route=>{
   const target=new URL(route.request().url());
-  if(target.origin==='https://b2b.fstravel.com'&&target.pathname==='/hotel/10')return route.fulfill({contentType:'text/html',body:'<h2>Синтетический отель</h2>'+['MainPhoto','Gallery','InsideOfTheRoom'].map((kind,i)=>'<img class="slider-img" src="https://apigate-tui.fstravel.com/api/geocontent/static/Hotel/00180000-ac11-0242-6c05-08d9934f9e4b/'+kind+'-Source-test'+i+'.jpg">').join('')});
-  return route.request().url()===url?route.fulfill({contentType:'text/html',body:html}):route.abort();
+  if(target.origin==='https://b2b.fstravel.com'&&target.pathname==='/hotel/10'){galleryRequests.push(target.href);return route.fulfill({contentType:'text/html',body:options.canonical?'<script>location.replace('+JSON.stringify(canonical)+')</script>':gallery(nativePhotos)})}
+  if(target.origin==='https://b2b.fstravel.com'&&target.pathname===canonical&&options.canonical){galleryRequests.push(target.href);return route.fulfill({contentType:'text/html',body:gallery(nativePhotos)})}
+  if(target.href==='https://b2b.fstravel.com/hotel/-10?partner=HBK'&&options.partner){galleryRequests.push(target.href);return route.fulfill({contentType:'text/html',body:gallery(partnerPhotos)})}
+  if([...nativePhotos,...partnerPhotos].includes(target.href)){galleryRequests.push(target.href);return route.fulfill({contentType:'image/jpeg',body:fs.readFileSync(path.join(root,'assets/owner-tour-cards/compact-v1/cover.jpg'))})}
+  if(route.request().url()===url)return route.fulfill({contentType:'text/html',body:html});
+  calls.push(route.request().url());return route.abort();
  });
  await page.goto(url);await page.addStyleTag({path:path.join(root,'extensions/selection-collector/content.css')});await page.addScriptTag({path:path.join(root,'extensions/selection-collector/funsun.js')});
  if(options.ajax)await page.evaluate(()=>{window.fixtureFunsunObserver=AnyTourFunsun.observe(document);document.querySelector('button.load').addEventListener('click',e=>{if(window.fixtureHoldSearch)return;const old=document.querySelector('tr.price_info'),row=old.cloneNode(true);row.querySelectorAll('[data-anytour-actions],[data-anytour-note]').forEach(el=>el.remove());old.remove();e.target.disabled=true;setTimeout(()=>{document.querySelector('tbody').append(row);e.target.disabled=false},50)})});
- return {calls,search:async()=>{await page.getByRole('button',{name:'Искать',exact:true}).click();await page.locator('tr.price_info').waitFor({state:'visible'})},read:()=>page.evaluate(()=>{try{return {value:window.fixtureFunsunObserver?fixtureFunsunObserver.extract(document.querySelector('tr.price_info'),location.href,'2026-10-23T11:00:00Z'):AnyTourFunsun.extract(document,document.querySelector('tr.price_info'),location.href,'2026-10-23T11:00:00Z')}}catch(e){return {error:e.message}}})};
+ return {calls,galleryRequests,partnerPhotos,nativePhotos,search:async()=>{await page.getByRole('button',{name:'Искать',exact:true}).click();await page.locator('tr.price_info').waitFor({state:'visible'})},read:()=>page.evaluate(()=>{try{return {value:window.fixtureFunsunObserver?fixtureFunsunObserver.extract(document.querySelector('tr.price_info'),location.href,'2026-10-23T11:00:00Z'):AnyTourFunsun.extract(document,document.querySelector('tr.price_info'),location.href,'2026-10-23T11:00:00Z')}}catch(e){return {error:e.message}}})};
 }
 async function bridgeFixture(page){
  const calls=[],events=[],errors=[];let connected=false;

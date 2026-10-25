@@ -30,8 +30,17 @@ final class ManagerTourSelectionImportDraft
         if (!is_string($quote) || !preg_match('/\A0x[0-9a-fA-F]{32,1024}\z/D',$quote)) return null;
         $keys=$input['keys']??null;
         $required=['hotel','room','meal','placement','tour','program','spo','departure','country'];
+        $partner=is_array($keys)&&($keys['partner']??null)==='HBK';
+        if($partner)$required[]='partner';
         if (!is_array($keys) || array_diff(array_keys($keys),$required) || array_diff($required,array_keys($keys))) return null;
-        foreach ($keys as $v) if (!is_string($v) || !preg_match('/\A[1-9][0-9]{0,11}\z/D',$v)) return null;
+        foreach ($keys as $key=>$v) {
+            if (!is_string($v)) return null;
+            if($partner&&$key==='partner'){if($v!=='HBK')return null;}
+            elseif($partner&&$key==='hotel'){if(!preg_match('/\A-[1-9][0-9]{0,11}\z/D',$v)||$v==='-2147483647')return null;}
+            elseif($partner&&in_array($key,['room','placement'],true)){if($v!=='-2147483647')return null;}
+            elseif($partner&&$key==='spo'){if($v!=='')return null;}
+            elseif(!preg_match('/\A[1-9][0-9]{0,11}\z/D',$v))return null;
+        }
         ksort($keys);
         $offer=$input['offer']??null;
         if (!is_array($offer) || array_diff(array_keys($offer),['hotel','destination','departure','date_from','nights','adults','child_ages','room','meal','amount','currency','stars'])) return null;
@@ -44,7 +53,8 @@ final class ManagerTourSelectionImportDraft
         $offer=$draft['offers'][0];
         foreach (['hotel','departure','destination','date_from','nights','adults','room','meal','amount'] as $k) if ($offer[$k]===null || $offer[$k]==='') return null;
         $raw=$input['raw']??null;
-        if (!is_array($raw) || array_diff(array_keys($raw),['hotel','date','nights','room','meal','price','party','tour','flight_alternatives','tariff'])) return null;
+        if (!is_array($raw) || array_diff(array_keys($raw),['hotel','date','nights','room','meal','price','party','tour','flight_alternatives','tariff',...($partner?['hotel_url']:[])])) return null;
+        if($partner&&($raw['hotel_url']??null)!=='https://b2b.fstravel.com/hotel/'.$keys['hotel'].'?partner=HBK')return null;
         foreach (['hotel','date','nights','room','meal','price','party'] as $k) if (!isset($raw[$k]) || !is_string($raw[$k]) || trim($raw[$k])==='') return null;
         foreach ($raw as $v) if (!is_string($v) || strlen($v)>1200 || preg_match('//u',$v)!==1 || preg_match('/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/',$v)) return null;
         ksort($raw);
@@ -83,7 +93,10 @@ final class ManagerTourSelectionImportDraft
             $p=parse_url($url);
             if (!$p || ($p['scheme']??'')!=='https' || isset($p['port']) || isset($p['fragment']) || isset($p['user']) || isset($p['pass'])) return null;
             if ($normalized['adapter']==='funsun-b2b-v1') {
-                if (!preg_match('~\Ahttps://apigate-tui\.fstravel\.com/api/geocontent/static/Hotel/([a-f0-9-]{36})/(?:MainPhoto|Gallery|InsideOfTheRoom)-Source-[a-z0-9]+\.(?:jpg|jpeg|png)\z~iD',$url,$m)) return null;
+                $pattern=($normalized['keys']['partner']??null)==='HBK'
+                    ?'~\Ahttps://hbpro\.expert/resource/hotel/photo_1200/([1-9][0-9]{0,9}/[1-9][0-9]{0,9})/[1-9][0-9]{0,11}\.jpg\z~D'
+                    :'~\Ahttps://apigate-tui\.fstravel\.com/api/geocontent/static/Hotel/([a-f0-9-]{36})/(?:MainPhoto|Gallery|InsideOfTheRoom)-Source-[a-z0-9]+\.(?:jpg|jpeg|png)\z~iD';
+                if (!preg_match($pattern,$url,$m)) return null;
                 if ($group!==null && $group!==$m[1]) return null;
                 $group=$m[1];
             } elseif ($normalized['adapter']==='anex-agent-v1') {
