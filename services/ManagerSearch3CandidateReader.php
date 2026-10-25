@@ -226,12 +226,14 @@ final class ManagerSearch3CandidateReader
     private static function digest(mixed $v): bool {return is_string($v)&&preg_match('/\A[a-f0-9]{64}\z/D',$v)===1;}
     private static function date(mixed $v): ?string
     {
-        if (!is_string($v)) return null;$d=DateTimeImmutable::createFromFormat('!Y-m-d',$v,new DateTimeZone('UTC'));
+        if (!is_string($v)||!preg_match('/\A[0-9]{4}-[0-9]{2}-[0-9]{2}\z/D',$v)) return null;
+        $d=DateTimeImmutable::createFromFormat('!Y-m-d',$v,new DateTimeZone('UTC'));
         return $d&&$d->format('Y-m-d')===$v?$v:null;
     }
     private static function time(mixed $v): ?int
     {
-        if (!is_string($v)) return null;$d=DateTimeImmutable::createFromFormat('!Y-m-d\TH:i:s\Z',$v,new DateTimeZone('UTC'));
+        if (!is_string($v)||!preg_match('/\A[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z\z/D',$v)) return null;
+        $d=DateTimeImmutable::createFromFormat('!Y-m-d\TH:i:s\Z',$v,new DateTimeZone('UTC'));
         return $d&&$d->format('Y-m-d\TH:i:s\Z')===$v?$d->getTimestamp():null;
     }
     private static function decimal(string $v): string

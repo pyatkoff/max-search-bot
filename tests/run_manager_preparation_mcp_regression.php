@@ -189,7 +189,7 @@ function preparationCandidateChecks(): void
         &&count($large['candidates'])>0&&strlen($large['candidates'][0]['room_raw'])===800);
     $mode=null;
     foreach ([['url'=>'https://private.invalid/'],['job_id'=>'old'],['departure_id'=>101],['currency'=>'EUR'],['child_ages'=>[4,'4',9]],
-        ['date_from'=>'2027-02-30'],['date_to'=>'2027-07-05'],['nights_max'=>28],['meal_id'=>'999'],['adults'=>true],
+        ['date_from'=>'2027-02-30'],['date_from'=>"2027-06-03\x00"],['date_to'=>'2027-07-05'],['nights_max'=>28],['meal_id'=>'999'],['adults'=>true],
         ['max_price'=>100000],['max_price'=>'1e6'],['stars_min'=>null],['limit'=>13]] as $bad) {
         $before=count($requests);$rejected=false;try {$reader->read(array_replace($args,$bad));} catch (InvalidArgumentException $e) {$rejected=true;}
         preparationMcpCheck('invalid candidate arguments cause no HTTP request '.json_encode(array_keys($bad)),$rejected&&count($requests)===$before);
