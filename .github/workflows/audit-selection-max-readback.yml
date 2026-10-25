@@ -1,0 +1,57 @@
+name: Readonly existing MAX selection readback
+on:
+  push:
+    branches: [audit/selection-max-readback-20261025]
+permissions:
+  contents: read
+concurrency:
+  group: readonly-selection-max-readback-20261025
+  cancel-in-progress: false
+jobs:
+  readback:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Pin authoritative source before credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = 'pyatkoff/max-search-bot'
+          git fetch --no-tags origin refs/heads/main:refs/remotes/origin/main
+          test "$(git rev-parse refs/remotes/origin/main)" = '1f5e4e6d4e0033bf054cc11d19c9708a1f5518f6'
+          test "$(git rev-parse HEAD^)" = '1f5e4e6d4e0033bf054cc11d19c9708a1f5518f6'
+          test "$(git diff --name-only HEAD^ HEAD)" = '.github/workflows/audit-selection-max-readback.yml'
+      - name: Prepare existing runtime credential
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          key_file="$RUNNER_TEMP/selection_readback_key"
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key_file"; else printf '%s\n' "$raw" | tr -d '\r' > "$key_file"; fi
+          else
+            printf '%s' "$raw" | base64 --decode > "$key_file"
+          fi
+          chmod 600 "$key_file"
+          ssh-keygen -y -f "$key_file" >/dev/null
+      - name: One readonly existing-MID comparison
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          printf '%s' 'PD9waHAKZGVjbGFyZShzdHJpY3RfdHlwZXM9MSk7CmluaV9zZXQoJ2Rpc3BsYXlfZXJyb3JzJywnMCcpOwplcnJvcl9yZXBvcnRpbmcoMCk7CiRzdGFnZT0nYm9vdHN0cmFwJzsKdHJ5IHsKICAgIHJlcXVpcmUgZ2V0Y3dkKCkuJy9jb25maWcucGhwJzsKICAgIHJlcXVpcmUgZ2V0Y3dkKCkuJy9zZXJ2aWNlcy9Db252ZXJzYXRpb25EYi5waHAnOwogICAgcmVxdWlyZSBnZXRjd2QoKS4nL3NlcnZpY2VzL1RvdXJPZmZlckNhcmRSZW5kZXJlci5waHAnOwogICAgcmVxdWlyZSBnZXRjd2QoKS4nL2ludGVncmF0aW9ucy9Ub3VyU2VsZWN0aW9uTmF0aXZlVHJhbnNwb3J0LnBocCc7CiAgICAkcGRvPUNvbnZlcnNhdGlvbkRiOjpjb25uZWN0aW9uKCk7CiAgICAkcGRvLT5leGVjKCdTRVQgVFJBTlNBQ1RJT04gUkVBRCBPTkxZJyk7CiAgICAkcGRvLT5iZWdpblRyYW5zYWN0aW9uKCk7CiAgICAkc3RhZ2U9J3B1YmxpY2F0aW9uJzsKICAgICRxPSRwZG8tPnByZXBhcmUoJ1NFTEVDVCBwdWJsaWNhdGlvbl9pZCxjb252ZXJzYXRpb25faWQsYmluZGluZ19qc29uLHNlbGVjdGlvbl9qc29uIEZST00gbWFuYWdlcl90b3VyX3NlbGVjdGlvbl9wdWJsaWNhdGlvbnMgV0hFUkUgZHJhZnRfdmVyc2lvbj04IEFORCBjcmVhdGVkX2F0PT8gTElNSVQgMicpOwogICAgJHEtPmV4ZWN1dGUoWycyMDI2LTEwLTI1IDEwOjMxOjMyJ10pOyRyb3dzPSRxLT5mZXRjaEFsbChQRE86OkZFVENIX0FTU09DKTsKICAgIGlmKGNvdW50KCRyb3dzKSE9PTEpdGhyb3cgbmV3IFJ1bnRpbWVFeGNlcHRpb24oKTsKICAgICRwPSRyb3dzWzBdOyRiaW5kaW5nPWpzb25fZGVjb2RlKCRwWydiaW5kaW5nX2pzb24nXSx0cnVlLDE2LEpTT05fVEhST1dfT05fRVJST1IpOyRzZWxlY3Rpb249anNvbl9kZWNvZGUoJHBbJ3NlbGVjdGlvbl9qc29uJ10sdHJ1ZSw0OCxKU09OX1RIUk9XX09OX0VSUk9SKTsKICAgIGlmKCgkYmluZGluZ1sncHJvamVjdF9rZXknXT8/bnVsbCkhPT0nYW55dG91cid8fCgkYmluZGluZ1snY2hhbm5lbCddPz9udWxsKSE9PSdtYXgnfHxjb3VudCgkc2VsZWN0aW9uWydvZmZlcnMnXT8/W10pIT09Mil0aHJvdyBuZXcgUnVudGltZUV4Y2VwdGlvbigpOwogICAgJHN0YWdlPSdzZWxlY3Rpb24nOwogICAgJHMwPSRzZWxlY3Rpb25bJ29mZmVycyddWzBdWydzbmFwc2hvdCddOyRzMT0kc2VsZWN0aW9uWydvZmZlcnMnXVsxXVsnc25hcHNob3QnXTsKICAgIGlmKGhhc2goJ3NoYTI1NicsJHMwWydob3RlbCddLid8Jy4kczBbJ2Ftb3VudCddLid8Jy4kczFbJ2hvdGVsJ10uJ3wnLiRzMVsnYW1vdW50J10pIT09JzIzNzI0YzVkYTUwYzE4YTMwM2Y3ZTdjZjJkYTRmYmYwZjA3MGM0MzFjODg4ODczOTFkNjBjMjUwOTdhNDZjOTcnKXRocm93IG5ldyBSdW50aW1lRXhjZXB0aW9uKCk7CiAgICAkc3RhZ2U9J2xlZGdlcic7CiAgICAkcT0kcGRvLT5wcmVwYXJlKCdTRUxFQ1QgYy5jYXJkX2luZGV4LGMuY2FsbGJhY2tfZGF0YSxkLnN0YXRlLGQucmVjZWlwdF9qc29uIEZST00gbWFuYWdlcl90b3VyX3NlbGVjdGlvbl9jYXJkcyBjIEpPSU4gbWFuYWdlcl90b3VyX3NlbGVjdGlvbl9kZWxpdmVyaWVzIGQgT04gZC5vZmZlcl9pZD1jLm9mZmVyX2lkIFdIRVJFIGMucHVibGljYXRpb25faWQ9PyBPUkRFUiBCWSBjLmNhcmRfaW5kZXggTElNSVQgMycpOwogICAgJHEtPmV4ZWN1dGUoWyRwWydwdWJsaWNhdGlvbl9pZCddXSk7JGNhcmRzPSRxLT5mZXRjaEFsbChQRE86OkZFVENIX0FTU09DKTsKICAgIGlmKGNvdW50KCRjYXJkcykhPT0yfHwkY2FyZHNbMF1bJ3N0YXRlJ10hPT0na25vd24nfHwkY2FyZHNbMV1bJ3N0YXRlJ10hPT0ncGVuZGluZycpdGhyb3cgbmV3IFJ1bnRpbWVFeGNlcHRpb24oKTsKICAgICRzdGFnZT0ncmVjZWlwdCc7CiAgICAkcj1qc29uX2RlY29kZSgkY2FyZHNbMF1bJ3JlY2VpcHRfanNvbiddLHRydWUsNjQsSlNPTl9USFJPV19PTl9FUlJPUik7JGlkZW50aXR5PSRyWydpZGVudGl0eSddOyRtaWQ9JHJbJ25hdGl2ZSddWydtaWQnXT8/bnVsbDsKICAgIGlmKCFpc19zdHJpbmcoJG1pZCl8fCFwcmVnX21hdGNoKCcvXEFbQS1aYS16MC05Xy4tXXsxLDE5MX1cei9EJywkbWlkKXx8KHN0cmluZykkaWRlbnRpdHlbJ3VzZXInXSE9PShzdHJpbmcpJGJpbmRpbmdbJ2V4dGVybmFsX3VzZXJfaWQnXSl0aHJvdyBuZXcgUnVudGltZUV4Y2VwdGlvbigpOwogICAgJGNhcmQ9VG91ck9mZmVyQ2FyZFJlbmRlcmVyOjpyZW5kZXIoJHMwLCRzZWxlY3Rpb25bJ29mZmVycyddWzBdWydwcmVzZW50YXRpb24nXSwkY2FyZHNbMF1bJ2NhbGxiYWNrX2RhdGEnXSk7CiAgICAkcGRvLT5yb2xsQmFjaygpOwogICAgJHN0YWdlPSduYXRpdmVfZ2V0JzsKICAgICRyZXNwb25zZT1Ub3VyU2VsZWN0aW9uTmF0aXZlVHJhbnNwb3J0OjpleGNoYW5nZSgnbWF4JywnR0VUJywnL21lc3NhZ2VzLycucmF3dXJsZW5jb2RlKCRtaWQpLFtdLFtdLFtdKTsKICAgICRtPSRyZXNwb25zZVsnZGF0YSddWydtZXNzYWdlJ10/PyRyZXNwb25zZVsnZGF0YSddPz9udWxsOwogICAgaWYoIWlzX2FycmF5KCRtKSl0aHJvdyBuZXcgUnVudGltZUV4Y2VwdGlvbigpOwogICAgJGE9JG1bJ2JvZHknXVsnYXR0YWNobWVudHMnXT8/W107JG1hcmt1cD0kbVsnYm9keSddWydtYXJrdXAnXT8/W107JG49Y291bnQoJGNhcmRbJ3ByZXNlbnRhdGlvbiddWydwaG90b3MnXSk7CiAgICAkb3V0PVsnb2snPT50cnVlLCdzdGF0ZXMnPT5bJ2tub3duJywncGVuZGluZyddLCdtYXRjaGVzJz0+VG91clNlbGVjdGlvbk5hdGl2ZVRyYW5zcG9ydDo6bWF0Y2hlcygnbWF4JywkY2FyZCwkaWRlbnRpdHksJG1pZCwkbSksCiAgICAgICdpZGVudGl0eSc9PlsnbWlkJz0+VG91clNlbGVjdGlvbk5hdGl2ZVRyYW5zcG9ydDo6bWVzc2FnZUlkKCdtYXgnLCRtKT09PSRtaWQsJ2JvdCc9PihzdHJpbmcpKCRtWydzZW5kZXInXVsndXNlcl9pZCddPz8nJyk9PT0kaWRlbnRpdHlbJ2JvdCddLCd1c2VyJz0+KHN0cmluZykoJG1bJ3JlY2lwaWVudCddWyd1c2VyX2lkJ10/PycnKT09PSRpZGVudGl0eVsndXNlciddLCdjaGF0Jz0+KHN0cmluZykoJG1bJ3JlY2lwaWVudCddWydjaGF0X2lkJ10/PycnKT09PSRpZGVudGl0eVsnY2hhdCddLCdkaWFsb2cnPT4oJG1bJ3JlY2lwaWVudCddWydjaGF0X3R5cGUnXT8/JycpPT09J2RpYWxvZyddLAogICAgICAndGV4dF9lcXVhbCc9PigkbVsnYm9keSddWyd0ZXh0J10/P251bGwpPT09JGNhcmRbJ3BsYWluX3RleHQnXSwncGhvdG9fY291bnQnPT4kbiwnYXR0YWNobWVudF9jb3VudCc9PmNvdW50KCRhKSwnbWFya3VwX2NvdW50Jz0+Y291bnQoJG1hcmt1cCksJ3NwYW5zJz0+W10sJ2ltYWdlcyc9PltdXTsKICAgIGZvcmVhY2goJGNhcmRbJ21heF9tYXJrdXAnXSBhcyAkc3Bhbil7JHN0cmljdD1mYWxzZTskZmllbGRzPWZhbHNlO2ZvcmVhY2goJG1hcmt1cCBhcyAkZ290KXtpZigkc3Bhbj09PSRnb3QpJHN0cmljdD10cnVlO2lmKGlzX2FycmF5KCRnb3QpJiZjb3VudCgkZ290KT09PTMmJigkZ290Wyd0eXBlJ10/P251bGwpPT09JHNwYW5bJ3R5cGUnXSYmKCRnb3RbJ2Zyb20nXT8/bnVsbCk9PT0kc3BhblsnZnJvbSddJiYoJGdvdFsnbGVuZ3RoJ10/P251bGwpPT09JHNwYW5bJ2xlbmd0aCddKSRmaWVsZHM9dHJ1ZTt9JG91dFsnc3BhbnMnXVtdPVsnc3RyaWN0Jz0+JHN0cmljdCwnZmllbGRzX2VxdWFsJz0+JGZpZWxkc107fQogICAgZm9yZWFjaChyYW5nZSgwLCRuLTEpIGFzICRpKSRvdXRbJ2ltYWdlcyddW109WydpbWFnZSc9PigkYVskaV1bJ3R5cGUnXT8/bnVsbCk9PT0naW1hZ2UnLCdwYXlsb2FkJz0+IWVtcHR5KCRhWyRpXVsncGF5bG9hZCddKV07CiAgICAkaz0kYVskbl0/P1tdOyR3YW50ZWQ9JGNhcmRbJ21heCddWydhdHRhY2htZW50cyddWzBdOyRidXR0b249JGtbJ3BheWxvYWQnXVsnYnV0dG9ucyddWzBdWzBdPz9bXTskd2I9JHdhbnRlZFsncGF5bG9hZCddWydidXR0b25zJ11bMF1bMF07CiAgICAkb3V0WydrZXlib2FyZCddPVsnZXF1YWwnPT4kaz09JHdhbnRlZCwndHlwZSc9Pigka1sndHlwZSddPz9udWxsKT09PSdpbmxpbmVfa2V5Ym9hcmQnLCdyb3dzJz0+Y291bnQoJGtbJ3BheWxvYWQnXVsnYnV0dG9ucyddPz9bXSksJ2J1dHRvbnMnPT5jb3VudCgka1sncGF5bG9hZCddWydidXR0b25zJ11bMF0/P1tdKSwnYnV0dG9uX3R5cGUnPT4oJGJ1dHRvblsndHlwZSddPz9udWxsKT09PSR3YlsndHlwZSddLCd0ZXh0Jz0+KCRidXR0b25bJ3RleHQnXT8/bnVsbCk9PT0kd2JbJ3RleHQnXSwnY2FsbGJhY2snPT4oJGJ1dHRvblsncGF5bG9hZCddPz9udWxsKT09PSR3YlsncGF5bG9hZCddLCdpbnRlbnRfcHJlc2VudCc9PmFycmF5X2tleV9leGlzdHMoJ2ludGVudCcsJGJ1dHRvbiksJ2ludGVudF9kZWZhdWx0Jz0+KCRidXR0b25bJ2ludGVudCddPz9udWxsKT09PSdkZWZhdWx0JywndW5rbm93bl9idXR0b25fa2V5cyc9PmNvdW50KGFycmF5X2RpZmYoYXJyYXlfa2V5cygkYnV0dG9uKSxbJ3R5cGUnLCd0ZXh0JywncGF5bG9hZCcsJ2ludGVudCddKSldOwogICAgZWNobyBqc29uX2VuY29kZSgkb3V0LEpTT05fVEhST1dfT05fRVJST1IpLiJcbiI7Cn0gY2F0Y2goVGhyb3dhYmxlICRlKSB7CiAgICBpZihpc3NldCgkcGRvKSYmJHBkby0+aW5UcmFuc2FjdGlvbigpKSRwZG8tPnJvbGxCYWNrKCk7CiAgICBlY2hvIGpzb25fZW5jb2RlKFsnb2snPT5mYWxzZSwncmVhc29uJz0+J3JlYWRiYWNrX3Byb2JlX3VuYXZhaWxhYmxlJywnc3RhZ2UnPT4kc3RhZ2VdKS4iXG4iOwogICAgZXhpdCgyKTsKfQo=' | base64 --decode > "$RUNNER_TEMP/readback.php"
+          php -l "$RUNNER_TEMP/readback.php" >/dev/null
+          ssh -i "$RUNNER_TEMP/selection_readback_key" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 "$DEPLOY_USER@$DEPLOY_HOST" "cd /var/www/anytoour/data/www/app.anytoour.ru && test \"\$(git rev-parse HEAD)\" = '1f5e4e6d4e0033bf054cc11d19c9708a1f5518f6' && git diff --quiet && git diff --cached --quiet && php -d display_errors=0" < "$RUNNER_TEMP/readback.php" 2>/dev/null
+      - name: Remove ephemeral runner files
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/selection_readback_key" "$RUNNER_TEMP/readback.php"
