@@ -1,0 +1,110 @@
+name: Export owner MAX2 post routes (read only)
+on:
+  push:
+    branches: [audit/max2-funnel-post-routes-20261025]
+    paths: [.github/workflows/max2-funnel-post-routes.yml]
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: max2-funnel-post-routes-20261025
+  cancel-in-progress: false
+env:
+  EXPECTED_PRODUCTION_SHA: 8572b366e050a61246914e0426ed68a85222689e
+jobs:
+  inspect:
+    if: github.ref == 'refs/heads/audit/max2-funnel-post-routes-20261025'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.EXPECTED_PRODUCTION_SHA }}
+          persist-credentials: false
+      - name: Verify current released production source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_PRODUCTION_SHA"
+          test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = "$EXPECTED_PRODUCTION_SHA"
+          conclusion=$(gh api "repos/pyatkoff/max-search-bot/actions/runs?head_sha=$EXPECTED_PRODUCTION_SHA&per_page=100" --jq '[.workflow_runs[] | select(.name=="Deploy production")] | max_by(.id) | .conclusion')
+          test "$conclusion" = success
+      - name: Prepare fixed GET-only channel probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          cat > "$RUNNER_TEMP/channel-probe.php" <<'PHP'
+          <?php
+          declare(strict_types=1);
+          if(PHP_SAPI!=='cli')exit(2);
+          ini_set('display_errors','0');ini_set('log_errors','0');
+          $out=['ok'=>false,'mode'=>'read_only','database_writes'=>0,'provider_writes'=>0];
+          try {
+           ob_start();try{require getcwd().'/config.php';require_once getcwd().'/services/ChannelPostRuntime.php';}finally{ob_end_clean();}
+           $identity=ChannelPostRuntime::identity('max');
+           if(!$identity||$identity['project_key']!=='anytour'||$identity['bot_key']!=='id9704048781_1_bot')throw new RuntimeException('BOT_MISMATCH');
+           $id='-80492244209683';$url='https://max.ru/channel_anytour';
+           $r=ChannelPostApiTransport::buttonRequest('max','GET','/chats/'.$id,[],null);
+           if(!empty($r['transport_error'])||(int)$r['http']!==200||($r['data']['link']??'')!==$url||(string)($r['data']['chat_id']??'')!==$id)throw new RuntimeException('CHANNEL_MISMATCH');
+           $pdo=ConversationDb::connection();$pdo->exec('START TRANSACTION READ ONLY');
+           try {
+            $registry=new ChannelPostRegistryService($pdo);$channel=$registry->channel('anytour','max',$identity['bot_key'],$id);
+            if(!$channel||(int)$channel['id']!==9||$channel['source_key']!=='max_anytour_msk1')throw new RuntimeException('REGISTRY_MISMATCH');
+            $q=$pdo->prepare('SELECT id FROM post_publications WHERE post_channel_id=? ORDER BY id LIMIT 1001');$q->execute([9]);$ids=$q->fetchAll(PDO::FETCH_COLUMN);
+            if(count($ids)>1000)throw new RuntimeException('EXPORT_BOUND');
+            $posts=[];
+            foreach($ids as $publicationId){
+             $p=$registry->publication((int)$publicationId);if(!$p||$p['state']!=='sent')continue;
+             if($p['project_key']!=='anytour'||$p['platform']!=='max'||$p['bot_key']!==$identity['bot_key']||(string)$p['channel_id']!==$id)throw new RuntimeException('POST_SCOPE');
+             $r=ChannelPostApiTransport::buttonRequest('max','GET','/messages/'.$p['message_id'],[],null);
+             if(!empty($r['transport_error'])||(int)$r['http']!==200||($r['data']['recipient']['chat_type']??'')!=='channel'||(string)($r['data']['recipient']['chat_id']??'')!==$id)throw new RuntimeException('POST_READ');
+             $postUrl=(string)($r['data']['url']??'');
+             if(!preg_match('~\\Ahttps://max\\.ru/channel_anytour/[A-Za-z0-9_-]{1,100}\\z~D',$postUrl))throw new RuntimeException('POST_URL');
+             $posts[]=['post_id'=>(string)$p['publication_id'],'post_url'=>$postUrl];
+             usleep(100000);
+            }
+            if(!$posts)throw new RuntimeException('NO_POSTS');
+            $out['route_projection']=['schema_version'=>1,'project_id'=>'1538','platform'=>'max','channel_id'=>$id,'channel_url'=>$url,'source_registry'=>'anytour/post_channels/9','publications'=>$posts];
+           }finally{$pdo->rollBack();}
+           $out['ok']=true;
+          }catch(Throwable $e){$out['error']=in_array($e->getMessage(),['BOT_MISMATCH','CHANNEL_MISMATCH','REGISTRY_MISMATCH','EXPORT_BOUND','POST_SCOPE','POST_READ','POST_URL','NO_POSTS'],true)?$e->getMessage():'EXPORT_UNAVAILABLE';}
+          echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),PHP_EOL;exit($out['ok']?0:2);
+          PHP
+          php -l "$RUNNER_TEMP/channel-probe.php"
+      - name: Prepare existing server connection
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else
+            printf '%s' "$raw" | base64 --decode > "$RUNNER_TEMP/channel_key"
+          fi
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+      - name: Read target channel through existing bot API
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-probe.php" > "$RUNNER_TEMP/channel-probe.json" || probe_status=$?
+          python3 - <<'PY'
+          import json,os
+          with open(os.environ['RUNNER_TEMP']+'/channel-probe.json')as f:d=json.load(f)
+          assert d['mode']=='read_only' and d['database_writes']==0 and d['provider_writes']==0
+          print(json.dumps(d,ensure_ascii=False,sort_keys=True))
+          PY
+          test "${probe_status:-0}" = 0
+      - name: Remove ephemeral files
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-probe.php" "$RUNNER_TEMP/channel-probe.json"
