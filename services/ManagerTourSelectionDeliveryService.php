@@ -18,7 +18,9 @@ final class ManagerTourSelectionDeliveryService
             if (!$context['can_edit']) {$pdo->rollBack();return self::error('forbidden');}
             $q=$pdo->prepare('SELECT version,draft_json FROM manager_tour_selection_drafts WHERE conversation_id=?'.self::lock($pdo));$q->execute([$conversation]);$row=$q->fetch(PDO::FETCH_ASSOC);
             if (!$row || (int)$row['version']!==$version) {$pdo->rollBack();return self::error('draft_changed');}
-            $draft=json_decode($row['draft_json'],true,32,JSON_THROW_ON_ERROR);$selection=ManagerTourSelectionPublicationDraft::build($draft);
+            $draft=json_decode($row['draft_json'],true,32,JSON_THROW_ON_ERROR);
+            foreach ($draft['offers']??[] as $offer) foreach ($offer['photos']??[] as $photo) if (!TourSelectionPhotoStore::forConversation((string)($photo['url']??''),$conversation)) {$pdo->rollBack();return self::error('invalid_photo');}
+            $selection=ManagerTourSelectionPublicationDraft::build($draft);
             if (!$selection['ok']) {$pdo->rollBack();return $selection;}
             unset($selection['ok']);$json=self::json($selection);$hash=hash('sha256',self::json(self::binding($context)).$json);
             $q=$pdo->prepare('SELECT publication_id FROM manager_tour_selection_publications WHERE conversation_id=? AND draft_hash=?');$q->execute([$conversation,$hash]);$existing=$q->fetchColumn();

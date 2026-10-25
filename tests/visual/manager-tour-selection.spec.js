@@ -64,6 +64,21 @@ async function fixture(page,options={}){
     const headers={'Cache-Control':'private, no-store'};
     return options.photoError?route.fulfill({status:404,headers,body:''}):route.fulfill({contentType:'image/jpeg',headers,body:fs.readFileSync(path.join(root,'assets/owner-tour-cards/compact-v1',(['cover','beach','room'][Number(new URL(route.request().url()).searchParams.get('photo'))]||'cover')+'.jpg'))});
   });
+  const photoUploads=[],uploadedFiles=new Map();let heldUpload=null;
+  await page.route(/\/manager\/tour-selection-photo\.php(?:\?|$)/,async route=>{
+    if(route.request().method()==='GET'){
+      const key=new URL(route.request().url()).searchParams.get('draft_photo');if(!key)return route.fallback();const photo=uploadedFiles.get(key);if(!photo?.complete)return route.fulfill({status:404,body:''});
+      return route.fulfill({contentType:'image/jpeg',headers:{'Cache-Control':'private, no-store'},body:fs.readFileSync(path.join(root,'assets/owner-tour-cards/compact-v1',photo.kind+'.jpg'))});
+    }
+    const d=route.request().postDataJSON();photoUploads.push(copy(d));expect(d.action).toBe('upload');expect(d.csrf).toBe('fixture-csrf');expect(d.conversation_id).toBe(11);
+    if(options.uploadMode==='invalid')return route.fulfill({status:422,contentType:'application/json',body:JSON.stringify({ok:false,error:'invalid_photo'})});
+    expect(d.image_base64.length).toBeLessThanOrEqual(96000);expect(d.part_index).toBeGreaterThanOrEqual(0);expect(d.part_count).toBe(Math.ceil(d.image_bytes/72000));
+    let photo=uploadedFiles.get(d.operation_id);if(!photo){photo={parts:new Map(),complete:false,url:'https://app.anytoour.ru/manager/tour-selection-photo.php?conversation_id=11&draft_photo='+d.operation_id,kind:d.kind,illustrative:true};uploadedFiles.set(d.operation_id,photo)}
+    photo.parts.set(d.part_index,Buffer.from(d.image_base64,'base64'));photo.complete=photo.parts.size===d.part_count;
+    if(options.uploadMode==='after'||options.uploadMode==='after_final'&&photo.complete){options.uploadMode='';return route.abort('failed')}
+    if(options.uploadMode==='hold')await new Promise(resolve=>heldUpload=resolve);
+    return route.fulfill({contentType:'application/json',body:JSON.stringify(photo.complete?{ok:true,operation_id:d.operation_id,photo:{url:photo.url,kind:photo.kind,illustrative:true},sha256:d.image_sha256}:{ok:true,operation_id:d.operation_id,state:'receiving',part_index:d.part_index,received:photo.parts.size})});
+  });
   await page.route('**/manager/tour-selections-api.php',async route=>{
     const d=route.request().postDataJSON();calls.push(copy(d));expect(d.csrf).toBe('fixture-csrf');expect([11,12]).toContain(d.conversation_id);
     const reply=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
@@ -110,7 +125,7 @@ async function fixture(page,options={}){
   if(options.entry)await page.goto('http://127.0.0.1:4173/manager2/'+options.entry);
   await expect.poll(()=>page.evaluate(()=>!!WorkspaceV2.S.workspaceBound&&!WorkspaceV2.S.booting)).toBe(true);
   if(!options.entry){await page.locator('#inboxList [data-conversation-id="11"]').click();await expect(page.locator('#tourSelectionOpen')).toBeAttached()}
-  return {...base,calls,drafts,receipts,snapshot,creations:()=>creations,publication:()=>publication,heldPhotos:()=>heldPhotos.length,holdPhotos:()=>{options.holdPhotos=true},releasePhotos:()=>{options.holdPhotos=false;heldPhotos.splice(0).forEach(resolve=>resolve())},release:()=>held?.(),setFail:x=>fail=x,setTripMode:x=>options.tripMode=x};
+  return {...base,calls,drafts,receipts,snapshot,photoUploads,uploadedFiles,releaseUpload:()=>heldUpload?.(),creations:()=>creations,publication:()=>publication,heldPhotos:()=>heldPhotos.length,holdPhotos:()=>{options.holdPhotos=true},releasePhotos:()=>{options.holdPhotos=false;heldPhotos.splice(0).forEach(resolve=>resolve())},release:()=>held?.(),setFail:x=>fail=x,setTripMode:x=>options.tripMode=x};
 }
 async function open(page){if(!await page.locator('#tourSelectionOpen').isVisible())await page.locator('#m2ConversationMenuToggle').click();await page.locator('#tourSelectionOpen').click();await expect(page.locator('#tourSelectionDialog')).toBeVisible();await expect(page.locator('#tsStatus')).toContainText(/загружен|Просмотр|Восстановлены/)}
 
@@ -756,4 +771,46 @@ test('selection copied hotel photos use ordinary optimistic conflict recovery',a
  const draft=completeDraft();draft.offers[0].hotel_group='c'.repeat(32);draft.offers.push({...copy(draft.offers[0]),id:'b'.repeat(32),photos:[copy(draft.offers[0].photos[2])]});const s=await fixture(page,{draft});await open(page);await page.locator('[data-ts-select="'+'b'.repeat(32)+'"]').click();
  const server=copy(s.drafts.get(11));server.version++;server.draft.offers[1].amount='260000';s.drafts.set(11,server);await page.locator('[data-ts-copy-photos]').click();await page.locator('#tsSave').click();await expect(page.locator('#tsRecovery')).toContainText('другая версия');expect(s.drafts.get(11)).toEqual(server);await expect(page.locator('#ts-photo-cover')).toHaveValue('https://photos.example.org/cover.jpg');
  await expect(page.locator('#tsPreview')).toBeDisabled();await page.locator('#tsClose').click();expect(s.creations()).toBe(0);clean(s);
+});
+
+
+for(const width of [390,430,768,1440])test('selection local photo files save into exact draft and preview without touching composer at '+width,async({page,browserName})=>{
+ await page.setViewportSize({width,height:900});const original=completeDraft();original.offers[0].photos=[];const s=await fixture(page,{draft:original});await page.locator('#replyText').fill('Мой ответ клиенту');await page.locator('#replyFile').setInputFiles({name:'chat-file.txt',mimeType:'text/plain',buffer:Buffer.from('synthetic chat')});await open(page);
+ for(const kind of ['cover','beach','room']){await page.locator('#ts-upload-'+kind).setInputFiles(path.join(root,'assets/owner-tour-cards/compact-v1',kind+'.jpg'));await expect(page.locator('#tsStatus')).toContainText('Фото добавлено');await expect(page.locator('#tsSaved')).toHaveText('Сохранено на сервере');}
+ expect(s.photoUploads).toHaveLength(['cover','beach','room'].reduce((n,k)=>n+Math.ceil(fs.statSync(path.join(root,'assets/owner-tour-cards/compact-v1',k+'.jpg')).size/72000),0));expect(s.uploadedFiles.size).toBe(3);const stored=s.drafts.get(11).draft;expect(stored.offers[0].photos.map(x=>x.kind)).toEqual(['cover','beach','room']);const terms=copy(stored);terms.offers[0].photos=[];expect(terms).toEqual(original);await expect(page.locator('.tsUploadedThumb')).toHaveCount(3);await expect(page.locator('.tsPhotoUrl')).toHaveCount(3);expect(await page.locator('.tsPhotoUrl input').evaluateAll(xs=>xs.every(x=>x.value===''))).toBe(true);
+ for(const img of await page.locator('.tsUploadedThumb').all()){await img.scrollIntoViewIfNeeded();await expect.poll(()=>img.evaluate(x=>x.complete&&x.naturalWidth>0)).toBe(true);await img.evaluate(x=>x.decode());}
+ await page.locator('#ts-upload-room').scrollIntoViewIfNeeded();fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-selection-photo-files-${browserName}-${width}.png`)});
+ await page.setViewportSize({width,height:420});await expect(page.locator('#tsClose')).toBeInViewport();await expect(page.locator('#tsPreview')).toBeInViewport();expect(await page.locator('#tourSelectionDialog').evaluate(x=>x.scrollWidth-x.clientWidth)).toBeLessThanOrEqual(1);await page.setViewportSize({width,height:900});
+ await page.locator('#tsPreview').click();await expect(page.locator('.tsPreviewCard')).toHaveCount(1);await expect(page.locator('#tsSend')).toBeEnabled();expect(s.creations()).toBe(0);await page.locator('#tsClose').click();await expect(page.locator('#replyText')).toHaveValue('Мой ответ клиенту');await expect(page.locator('#mediaSelection')).toContainText('chat-file.txt');await open(page);await expect(page.locator('.tsUploadedThumb')).toHaveCount(3);await expect.poll(()=>s.pending.size).toBeLessThanOrEqual(2);clean(s,deliveryActions);
+});
+test('selection lost photo upload reply retries identical file and operation only explicitly',async({page})=>{
+ const draft=completeDraft(),s=await fixture(page,{draft,uploadMode:'after'});await open(page);await page.locator('#ts-upload-cover').setInputFiles(path.join(root,'assets/owner-tour-cards/compact-v1','cover.jpg'));await expect(page.locator('#tsUploadRetry')).toBeEnabled();await expect(page.locator('#tsPreview')).toBeDisabled();await expect(page.locator('#ts-photo-cover')).toHaveValue(draft.offers[0].photos[0].url);expect(s.photoUploads).toHaveLength(1);expect(s.uploadedFiles.size).toBe(1);
+ await page.locator('#tsUploadRetry').click();await expect(page.locator('#tsStatus')).toContainText('Фото добавлено');expect(s.photoUploads).toHaveLength(s.photoUploads[0].part_count+1);expect(s.photoUploads[1]).toEqual(s.photoUploads[0]);expect(s.uploadedFiles.size).toBe(1);expect(s.creations()).toBe(0);clean(s);
+});
+test('selection cancelled uncertain photo keeps prior source and permits manual input',async({page})=>{
+ const draft=completeDraft(),s=await fixture(page,{draft,uploadMode:'after'});await open(page);await page.locator('#ts-upload-cover').setInputFiles(path.join(root,'assets/owner-tour-cards/compact-v1','cover.jpg'));await expect(page.locator('#tsUploadRetry')).toBeEnabled();await page.locator('#tsUploadCancel').click();await expect(page.locator('#ts-photo-cover')).toHaveValue(draft.offers[0].photos[0].url);await expect(page.locator('#ts-photo-cover')).toBeEnabled();expect(s.drafts.get(11).draft).toEqual(draft);expect(s.photoUploads).toHaveLength(1);clean(s);
+});
+test('selection invalid local photo and server rejection preserve previous photo',async({page})=>{
+ const draft=completeDraft(),s=await fixture(page,{draft,uploadMode:'invalid'});await open(page);await page.locator('#ts-upload-cover').setInputFiles({name:'bad.svg',mimeType:'image/svg+xml',buffer:Buffer.from('<svg/>')});await expect(page.locator('#tsStatus')).toContainText('JPEG или PNG');expect(s.photoUploads).toHaveLength(0);
+ await page.locator('#ts-upload-cover').setInputFiles(path.join(root,'assets/owner-tour-cards/compact-v1','cover.jpg'));await expect(page.locator('#tsStatus')).toContainText('Файл не подходит');await expect(page.locator('#ts-photo-cover')).toHaveValue(draft.offers[0].photos[0].url);expect(s.drafts.get(11).draft).toEqual(draft);clean(s);
+});
+test('selection late photo response cannot populate a newly opened client',async({page})=>{
+ const s=await fixture(page,{draft:completeDraft(),uploadMode:'hold'});await open(page);await page.locator('#ts-upload-cover').setInputFiles(path.join(root,'assets/owner-tour-cards/compact-v1','cover.jpg'));await expect.poll(()=>s.photoUploads.length).toBe(1);await page.locator('#tsClose').click();await page.locator('#inboxList [data-conversation-id="12"]').click();await open(page);s.releaseUpload();await expect(page.locator('#tsEmptyAdd')).toBeVisible();expect(s.drafts.has(12)).toBe(false);expect(s.calls.filter(x=>x.action==='save')).toHaveLength(0);clean(s);
+});
+test('selection read only cannot choose a file',async({page})=>{
+ const s=await fixture(page,{draft:completeDraft(),readOnly:true});await open(page);await expect(page.locator('#ts-upload-cover')).toBeDisabled();await expect(page.locator('#ts-upload-room')).toBeDisabled();expect(s.photoUploads).toHaveLength(0);clean(s);
+});
+
+test('selection file chosen during draft save cannot follow the same offer id to another client',async({page})=>{
+ const s=await fixture(page,{draft:completeDraft(),fail:'hold'});s.drafts.set(12,{version:1,draft:completeDraft()});await open(page);await page.locator('#ts-hotel').fill('Правка первого клиента');await page.locator('#ts-upload-cover').setInputFiles(path.join(root,'assets/owner-tour-cards/compact-v1','cover.jpg'));await expect.poll(()=>s.calls.filter(x=>x.action==='save').length).toBe(1);await page.locator('#tsClose').click();await page.locator('#inboxList [data-conversation-id="12"]').click();await open(page);s.release();await expect(page.locator('#ts-hotel')).toHaveValue(completeDraft().offers[0].hotel);expect(s.photoUploads).toHaveLength(0);expect(s.drafts.get(12).version).toBe(1);clean(s);
+});
+
+test('selection uploaded photo can be removed or replaced by an ordinary source URL',async({page})=>{
+ const draft=completeDraft(),s=await fixture(page,{draft});await open(page);await page.locator('#ts-upload-cover').setInputFiles(path.join(root,'assets/owner-tour-cards/compact-v1','cover.jpg'));await expect(page.locator('#tsStatus')).toContainText('Фото добавлено');await page.locator('.tsPhotoSlot').first().locator('summary').click();await page.locator('#ts-photo-cover').fill('https://photos.example.org/replacement.jpg');await save(page);expect(s.drafts.get(11).draft.offers[0].photos[0].url).toBe('https://photos.example.org/replacement.jpg');
+ await page.locator('#ts-upload-cover').setInputFiles(path.join(root,'assets/owner-tour-cards/compact-v1','cover.jpg'));await expect(page.locator('#tsStatus')).toContainText('Фото добавлено');await page.locator('[data-ts-remove-photo="cover"]').click();await save(page);expect(s.drafts.get(11).draft.offers[0].photos).toEqual(draft.offers[0].photos.slice(1));await page.locator('#tsPreview').click();await expect(page.locator('#tsStatus')).toContainText('три фото');expect(s.creations()).toBe(0);clean(s,deliveryActions);
+});
+
+test('selection lost final photo chunk confirms the same image without another upload operation',async({page})=>{
+ const draft=completeDraft(),s=await fixture(page,{draft,uploadMode:'after_final'});await open(page);await page.locator('#ts-upload-cover').setInputFiles(path.join(root,'assets/owner-tour-cards/compact-v1','cover.jpg'));await expect(page.locator('#tsUploadRetry')).toBeEnabled();const count=s.photoUploads.length,last=copy(s.photoUploads[count-1]);expect(count).toBe(last.part_count);expect(s.drafts.get(11).version).toBe(1);await expect(page.locator('#ts-photo-cover')).toHaveValue(draft.offers[0].photos[0].url);
+ await page.locator('#tsUploadRetry').click();await expect(page.locator('#tsStatus')).toContainText('Фото добавлено');expect(s.photoUploads).toHaveLength(count+1);expect(s.photoUploads[count]).toEqual(last);expect(s.uploadedFiles.size).toBe(1);expect(s.drafts.get(11).version).toBe(2);clean(s);
 });

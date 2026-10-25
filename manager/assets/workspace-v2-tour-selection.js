@@ -7,7 +7,7 @@ let collectorIntent=(()=>{const u=new URL(location.href),value=u.searchParams.ge
 function clearCollectorIntent(){collectorIntent=null;const u=new URL(location.href);u.searchParams.delete('selection');u.searchParams.delete('collector_actor');history.replaceState(history.state,'',u.pathname+u.search+u.hash)}
 let dialog=null,context=null,epoch=0,version=0,draft=null,selected='',canEdit=false,dirty=false,busy=false,loading=false,pending=null,conflict=null,timer=0,returnFocus=null,rawAges={};
 const sessions=new Map();
-let comparison=null,tripPanel=null,previewIssues=[];
+let comparison=null,tripPanel=null,previewIssues=[],photoUpload=null;
 let publication=null,preview=false,sending=false,photoFailures=0,photoPending=0,photoEpoch=0,sharing=false,interestLoading=false;
 function actor(){return S.authExpired?0:Number(S.manager?.id||0)}
 function capture(c=S.detail?.conversation){return {actor:actor(),conversation:Number(c?.id||0),auth:Number(S.authGeneration||0),open:Number(window.WorkspaceV2Conversation?.getOpenGeneration?.()||0)}}
@@ -40,8 +40,8 @@ async function request(action,data={}){
     return token===epoch&&current(target)?result:{ok:false,error:'stale_context'};
   }catch(e){return {ok:false,error:current(target)?'network_error':'stale_context'}}finally{clearTimeout(timeout)}
 }
-function close(){tripPanel=null;clearTimeout(timer);timer=0;stash();if(dialog?.open)dialog.close()}
-function suspend(){tripPanel=null;previewIssues=[];stash();clearTimeout(timer);timer=0;epoch++;context=null;draft=null;pending=null;conflict=null;comparison=null;dirty=false;busy=false;loading=false;canEdit=false;publication=null;preview=false;sending=false;sharing=false;if(dialog?.open)dialog.close();$('tourSelectionOpen')?.remove()}
+function close(){cancelPhotoUpload(false);tripPanel=null;clearTimeout(timer);timer=0;stash();if(dialog?.open)dialog.close()}
+function suspend(){cancelPhotoUpload(false);tripPanel=null;previewIssues=[];stash();clearTimeout(timer);timer=0;epoch++;context=null;draft=null;pending=null;conflict=null;comparison=null;dirty=false;busy=false;loading=false;canEdit=false;publication=null;preview=false;sending=false;sharing=false;if(dialog?.open)dialog.close();$('tourSelectionOpen')?.remove()}
 function activate(){if(context&&!current())suspend();if(collectorIntent&&actor()&&collectorIntent.manager!==actor())clearCollectorIntent()}
 function sync(c){
   if(context&&!current())suspend();
@@ -72,6 +72,9 @@ function ensure(){
   $('tsList').addEventListener('click',event=>{const button=event.target.closest('[data-ts-select]');if(button){selected=button.dataset.tsSelect;render()}});
   $('tsEditor').addEventListener('input',edit);$('tsEditor').addEventListener('change',edit);
   $('tsEditor').addEventListener('click',event=>{
+    if(event.target.closest('#tsUploadRetry')){void submitPhotoUpload();return}
+    if(event.target.closest('#tsUploadCancel')){cancelPhotoUpload();return}
+    const remove=event.target.closest('[data-ts-remove-photo]');if(remove&&editable()&&!busy){item().photos=item().photos.filter(x=>x.kind!==remove.dataset.tsRemovePhoto);changed();render();status('Фото убрано из варианта. История отправки сохранена.');return}
     if(event.target.closest('[data-ts-copy-photos]')){copyHotelPhotos();return}
     const fix=event.target.closest('[data-ts-fix-offer]');if(fix){fixPreviewIssue(fix.dataset.tsFixOffer,fix.dataset.tsFixField);return}
     const action=event.target.closest('[data-ts-action]')?.dataset.tsAction;if(action)mutate(action);
@@ -123,12 +126,13 @@ async function applyTrip(){
 }
 function newOffer(){return {id:id(),selected:true,hotel:'',destination:'',departure:'',room:'',meal:'',source_label:'',rationale:'',compromise:'',flights:'',inclusions:'',constraints:'',stars:null,nights:null,adults:null,date_from:'',child_ages:[],amount:'',currency:'RUB',source_url:'',observed_at:'',photos:[]}}
 function add(){if(!editable()||draft.offers.length>=20)return;const item=newOffer();draft.offers.push(item);selected=item.id;changed();render();$('ts-hotel')?.focus()}
-function editable(){return current()&&canEdit&&!loading&&!pending&&!conflict&&!preview&&!sending}
+function editable(){return current()&&canEdit&&!loading&&!pending&&!conflict&&!preview&&!sending&&!photoUpload}
 function invalidAges(){return draft?.offers.some(x=>Object.hasOwn(rawAges,x.id)&&!validAges(rawAges[x.id]))}
 function validAges(value){const raw=String(value).trim();return raw===''||/^\d{1,2}(?:\s*,\s*\d{1,2})*$/.test(raw)&&raw.split(',').length<=12&&raw.split(',').every(x=>Number(x)>=0&&Number(x)<=17)}
 function changed(){previewIssues=[];$('tsPreviewIssues')?.remove();dirty=true;stash();status(invalidAges()?'Возраст детей укажите числами от 0 до 17 через запятую.':'Есть несохранённые изменения.',invalidAges());controls();clearTimeout(timer);timer=setTimeout(()=>{if(editable()&&!busy&&!invalidAges()&&dialog?.open)void save()},900)}
 function item(){return draft?.offers.find(x=>x.id===selected)}
 function edit(event){
+  if(event.target.dataset.tsUpload){if(event.type==='change')void choosePhoto(event.target);return}
   if(event.target.id==='ts-hotel-group'&&editable()){
     const offer=item(),value=event.target.value;if(!offer)return;
     if(value){
@@ -176,6 +180,56 @@ function renderGrouping(){
   root.innerHTML='<label for="ts-hotel-group">Варианты одного отеля<select id="ts-hotel-group"><option value="">Отдельный отель</option>'+[...options].map(([key,name])=>`<option value="${esc(key)}" ${'g:'+offer.hotel_group===key?'selected':''}>Тот же отель: ${esc(name)}</option>`).join('')+'</select></label><p>Объединяйте только один и тот же отель. На общей странице фото будут общими, условия и цены — отдельными. Изменение названия снимает объединение этого варианта.</p>';
   $('ts-hotel-group').disabled=!editable()||busy;
 }
+function cancelPhotoUpload(redraw=true){
+  const upload=photoUpload;if(!upload)return;photoUpload=null;upload.controller?.abort();busy=false;
+  if(redraw&&current()&&dialog?.open){render();status('Загрузка отменена. Прежние фото сохранены.')}
+}
+function uploadCurrent(upload){return photoUpload===upload&&current(upload.target)&&epoch===upload.epoch&&dialog?.open&&selected===upload.offer&&version===upload.version}
+async function choosePhoto(input){
+  const file=input.files?.[0],offer=item(),kind=input.dataset.tsUpload,target=capture(),token=epoch;
+  if(!file||!offer||!editable()||busy)return;
+  if(file.size===0||file.size>2097152||file.type&&!['image/jpeg','image/png'].includes(file.type)){input.value='';status('Выберите JPEG или PNG до 2 МБ. Прежнее фото сохранено.',true);return}
+  clearTimeout(timer);if(dirty)await save();
+  if(token!==epoch||!current(target)||dirty||busy||pending||conflict||!editable()||item()?.id!==offer.id||!dialog?.open)return;
+  photoUpload={target,epoch:token,offer:offer.id,kind,version,operation:id(),file,encoded:null,hash:null,nextPart:0,progress:0,controller:null,loading:false};
+  await submitPhotoUpload();
+}
+function renderUploadNotice(){
+  $('tsUploadNotice')?.remove();if(!photoUpload||!$('tsEditor'))return;
+  const notice=document.createElement('section');notice.id='tsUploadNotice';notice.className='tsUploadNotice';
+  const text=document.createElement('p');text.textContent=photoUpload.loading?'Загружаем фото… '+photoUpload.progress+'%':'Ответ о загрузке не подтверждён. Повторите этот же файл или отмените. Прежнее фото сохранено.';notice.append(text);
+  for(const [id,label] of [['tsUploadRetry','Повторить загрузку фото'],['tsUploadCancel','Отменить загрузку']]){const b=document.createElement('button');b.type='button';b.id=id;b.textContent=label;b.disabled=id==='tsUploadRetry'&&photoUpload.loading;b.hidden=id==='tsUploadRetry'&&photoUpload.loading;notice.append(b)}
+  $('tsEditor').prepend(notice);
+}
+async function submitPhotoUpload(){
+  const upload=photoUpload;if(!upload||upload.loading||!uploadCurrent(upload)||!canEdit||pending||conflict||sending||preview)return;
+  upload.loading=true;busy=true;controls();renderUploadNotice();status('Загружаем фото…');
+  let result;
+  try {
+    if(!upload.encoded)upload.encoded=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result).split(',')[1]||'');reader.onerror=()=>reject(new Error('file_read'));reader.readAsDataURL(upload.file)});
+    if(!uploadCurrent(upload)){if(photoUpload===upload)cancelPhotoUpload(false);return;}
+    if(!upload.hash)upload.hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',await upload.file.arrayBuffer())),x=>x.toString(16).padStart(2,'0')).join('');
+    const count=Math.ceil(upload.encoded.length/96000);
+    for(let index=upload.nextPart;index<count;index++){
+      if(!uploadCurrent(upload)){if(photoUpload===upload)cancelPhotoUpload(false);return;}
+      upload.controller=new AbortController();const timeout=setTimeout(()=>upload.controller.abort(),30000);
+      try {result=await W.request('tour-selection-photo.php','upload',{conversation_id:upload.target.conversation,version:upload.version,offer_id:upload.offer,kind:upload.kind,operation_id:upload.operation,image_base64:upload.encoded.slice(index*96000,(index+1)*96000),part_index:index,part_count:count,image_bytes:upload.file.size,image_sha256:upload.hash},{signal:upload.controller.signal,isCurrent:()=>uploadCurrent(upload)});} finally {clearTimeout(timeout)}
+      if(!uploadCurrent(upload)){if(photoUpload===upload)cancelPhotoUpload(false);return;}
+      if(!result?.ok||result.operation_id!==upload.operation||result.photo)break;
+      if(result.state!=='receiving'||result.part_index!==index||index===count-1){result={ok:false,error:'invalid_response'};break;}
+      upload.nextPart=index+1;upload.progress=Math.floor(upload.nextPart/count*100);controls();renderUploadNotice();
+    }
+  }catch(e){result={ok:false,error:'network_error'}}
+  if(!uploadCurrent(upload)){if(photoUpload===upload)cancelPhotoUpload(false);return;}
+  upload.loading=false;busy=false;
+  if(result?.ok&&result.operation_id===upload.operation&&result.photo?.kind===upload.kind&&typeof result.photo.url==='string'&&new RegExp('^https://app\\.anytoour\\.ru/manager/tour-selection-photo\\.php\\?conversation_id='+upload.target.conversation+'&draft_photo=[a-f0-9]{32}$').test(result.photo.url)){
+    const offer=item(),photos=new Map(offer.photos.map(x=>[x.kind,x]));photos.set(upload.kind,{url:result.photo.url,kind:upload.kind,illustrative:true});offer.photos=['cover','beach','room'].filter(k=>photos.has(k)).map(k=>photos.get(k));photoUpload=null;changed();render();
+    status('Фото загружено. Сохраняем вариант…');await save();if(current()&&!dirty&&!pending&&!conflict)status('Фото добавлено. Сообщения туристу не отправлялись.');return;
+  }
+  const failures={invalid_photo:'Файл не подходит. Нужен JPEG или PNG до 2 МБ, не меньше 100 × 100 пикселей.',photo_capacity:'Хранилище фото заполнено. Прежнее фото сохранено.',photo_storage_unavailable:'Не удалось сохранить фото. Прежнее фото сохранено.',operation_mismatch:'Файл отличается от начатой загрузки. Выберите его заново.',draft_changed:'Подборка изменилась в другой вкладке. Откройте её заново перед загрузкой.',forbidden:'Доступ к изменению подборки изменился.',not_found:'Доступ к подборке изменился.'};
+  if(failures[result?.error]){photoUpload=null;render();status(failures[result.error],true);return}
+  controls();renderUploadNotice();status('Загрузка не подтверждена. Повторите этот же файл или отмените.',true);
+}
 // Reuse only explicit same-hotel cover/territory photos. Each room stays its
 // own illustrative image; a copy never links subsequent edits or overwrites data.
 function reusablePhotos(offer,source){
@@ -214,7 +268,7 @@ function fixPreviewIssue(offerId,field){
   if(!editable()||busy||!previewIssues.some(x=>x.offer_id===offerId&&x.fields.includes(field))||!draft.offers.some(x=>x.id===offerId&&x.selected))return;
   selected=offerId;render();
   const firstPhoto=['cover','beach','room'].find(kind=>!item().photos.some(x=>x.kind===kind))||'cover';
-  const target=$(field==='photos'?'ts-photo-'+firstPhoto:field==='conditions'?'ts-hotel':'ts-'+field);target?.focus();target?.scrollIntoView({block:'center'});
+  const target=$(field==='photos'?'ts-photo-'+firstPhoto:field==='conditions'?'ts-hotel':'ts-'+field);if(target?.closest('details'))target.closest('details').open=true;target?.focus();target?.scrollIntoView({block:'center'});
 }
 function renderList(){
   const list=$('tsList');if(!list||!draft)return;
@@ -235,23 +289,26 @@ function render(){
   if(offer.import_source){const source=document.createElement('section');source.className='tsImportedSource';const title=document.createElement('h3');title.textContent='Исходные условия '+(offer.import_source.adapter==='anex-agent-v1'?'ANEX':offer.import_source.adapter==='tourvisor-snapshot-v1'?'Tourvisor':'FUN&SUN');source.append(title);for(const text of [offer.import_source.fields.amount+' '+offer.import_source.fields.currency+(offer.import_source.adapter==='tourvisor-snapshot-v1'?' за номер · менеджер подтвердил 1 номер на 2 взрослых · ':' за весь состав · ')+offer.import_source.observed_at,offer.import_source.raw.room+' · '+offer.import_source.raw.meal,'Цена со страницы. Полная стоимость, рейсы, фото и соответствие каталогу не подтверждены. Ручная сумма выше хранится отдельно.']){const p=document.createElement('p');p.textContent=text;source.append(p)}const link=document.createElement('a');link.href=offer.import_source.url;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Открыть исходный поиск';source.append(link);editor.insertBefore(source,editor.querySelector('.tsDetails'))}
   controls();recovery(conflict?'conflict':pending?'pending':'');
   const photoSection=document.createElement('section');photoSection.className='tsPhotoFields';
-  photoSection.innerHTML='<h3>Три фото для карточки</h3><p>Прямые HTTPS-ссылки на фото отеля, пляжа и номера. Фото номера будет отмечено как пример интерьера.</p><div class="tsFields">'+[['cover','Отель'],['beach','Пляж или бассейн'],['room','Номер']].map(([kind,label])=>`<label class="tsWide" for="ts-photo-${kind}">${esc(label)}<input id="ts-photo-${kind}" type="url" data-ts-photo="${kind}" maxlength="2048" placeholder="https://…/photo.jpg" value="${esc(offer.photos.find(x=>x.kind===kind)?.url||'')}" ${!editable()||busy?'disabled':''}></label>`).join('')+'</div>';
+  photoSection.innerHTML='<h3>Три фото для карточки</h3><p>Выберите реальные фото этого отеля с устройства: JPEG или PNG до 2 МБ. Фото номера будет отмечено как пример интерьера. Загруженные файлы доступны сотрудникам с доступом к этому клиенту.</p><div class="tsFields">'+[['cover','Отель'],['beach','Пляж или бассейн'],['room','Номер']].map(([kind,label])=>{const url=offer.photos.find(x=>x.kind===kind)?.url||'',uploaded=/^https:\/\/app\.anytoour\.ru\/manager\/tour-selection-photo\.php\?conversation_id=/.test(url);return `<div class="tsWide tsPhotoSlot"><h4>${label}</h4>${uploaded?`<img class="tsUploadedThumb" loading="lazy" decoding="async" src="${esc(url)}" alt="${label==='Номер'?'Пример интерьера номера':label}" referrerpolicy="no-referrer">`:''}<label class="tsFileLabel" for="ts-upload-${kind}">${uploaded?'Заменить фото':'Выбрать фото'}: ${label}<input id="ts-upload-${kind}" type="file" data-ts-upload="${kind}" accept="image/jpeg,image/png" ${!editable()||busy?'disabled':''}></label>${uploaded?'<p class="tsUploadedLabel">Фото добавлено в черновик</p><button type="button" data-ts-remove-photo="'+kind+'">Убрать фото</button><details class="tsPhotoUrl"><summary>Заменить по ссылке</summary>':''}<label for="ts-photo-${kind}">${uploaded?'Ссылка на новое фото':'Или HTTPS-ссылка'}<input id="ts-photo-${kind}" type="url" data-ts-photo="${kind}" maxlength="2048" placeholder="https://…/photo.jpg" value="${esc(uploaded?'':url)}" ${!editable()||busy?'disabled':''}></label>${uploaded?'</details>':''}</div>`}).join('')+'</div>';
   editor.insertBefore(photoSection,editor.querySelector('.tsPriceHint'));
-  const reuse=document.createElement('div');reuse.id='tsPhotoReuse';reuse.className='tsPhotoReuse';photoSection.querySelector('.tsFields').before(reuse);renderPhotoReuse();renderPreviewIssues();
+  photoSection.querySelectorAll('.tsUploadedThumb').forEach(img=>img.addEventListener('error',()=>{img.alt='Не удалось показать фото';const label=img.closest('.tsPhotoSlot').querySelector('.tsUploadedLabel');if(label)label.textContent='Фото не удалось показать. Замените его или проверьте предпросмотр.'}));
+  photoSection.querySelectorAll('[data-ts-remove-photo]').forEach(x=>{x.disabled=!editable()||busy});
+  const reuse=document.createElement('div');reuse.id='tsPhotoReuse';reuse.className='tsPhotoReuse';photoSection.querySelector('.tsFields').before(reuse);renderPhotoReuse();renderPreviewIssues();renderUploadNotice();
 }
 function controls(){
   if(!dialog)return;const disabled=!editable();
   $('tsAdd').disabled=disabled||busy||(draft?.offers.length||0)>=20;$('tsSave').disabled=disabled||busy||!dirty||invalidAges();$('tsDone').disabled=busy||loading||(!preview&&invalidAges());
-  $('tsSaved').textContent=busy?(tripPanel?'Проверяем условия поездки…':'Сохраняем…'):pending?'Результат сохранения уточняется':conflict?'Есть конфликт правок':dirty?'Не все изменения сохранены':version?'Сохранено на сервере':'Новый черновик';
-  $('tsEditor')?.querySelectorAll('input,textarea,select,[data-ts-action],[data-ts-copy-photos],[data-ts-fix-offer],#tsEmptyAdd').forEach(x=>{x.disabled=disabled||busy});
+  $('tsSaved').textContent=photoUpload?.loading?'Загружаем фото… '+photoUpload.progress+'%':photoUpload?'Загрузка фото не подтверждена':busy?(tripPanel?'Проверяем условия поездки…':'Сохраняем…'):pending?'Результат сохранения уточняется':conflict?'Есть конфликт правок':dirty?'Не все изменения сохранены':version?'Сохранено на сервере':'Новый черновик';
+  $('tsEditor')?.querySelectorAll('input,textarea,select,[data-ts-action],[data-ts-copy-photos],[data-ts-fix-offer],[data-ts-remove-photo],#tsEmptyAdd').forEach(x=>{x.disabled=disabled||busy});
   $('tsSave').hidden=preview;$('tsPreview').hidden=preview;$('tsEdit').hidden=!preview;$('tsSend').hidden=!preview;$('tsHistory').hidden=preview;
-  $('tsCollector').hidden=preview;$('tsCollector').disabled=!canEdit||busy||loading||sending||sharing;
-  $('tsPreview').disabled=busy||loading||sending||!canEdit||!!pending||!!conflict||invalidAges();$('tsHistory').disabled=busy||loading||sending;$('tsEdit').disabled=sending;
+  $('tsCollector').hidden=preview;$('tsCollector').disabled=!!photoUpload||!canEdit||busy||loading||sending||sharing;
+  $('tsPreview').disabled=!!photoUpload||busy||loading||sending||!canEdit||!!pending||!!conflict||invalidAges();$('tsHistory').disabled=!!photoUpload||busy||loading||sending;$('tsEdit').disabled=sending;
   $('tsShare').hidden=!preview;$('tsShare').disabled=busy||loading||sending||sharing;
   if($('tsInterest')){$('tsInterest').disabled=busy||loading||sending||sharing||interestLoading;$('tsInterest').textContent=interestLoading?'Загружаем активность…':'Активность подборки'}
   const publish=$('tsPublish');if(publish)publish.disabled=!canEdit||busy||sending||sharing||dirty||!!pending||!!conflict||photoPending>0||photoFailures>0;
   if(sharing){$('tsEdit').disabled=true;$('tsDone').disabled=true}else $('tsDone').disabled=false;
   $('tsTripAdd').hidden=preview;$('tsTripAdd').disabled=disabled||busy||!!tripPanel||(draft?.offers.length||0)>=20;
+  $('tsList')?.querySelectorAll('button').forEach(x=>{x.disabled=!!photoUpload||busy});
   if(tripPanel){for(const id of ['tsAdd','tsSave','tsDone','tsPreview','tsHistory','tsCollector'])$(id).disabled=true;}
   const cards=publication?.cards||[],unknown=cards.some(x=>['reserved','unknown'].includes(x.state)),known=cards.some(x=>x.state==='known'),remaining=cards.filter(x=>x.state!=='delivered').length;
   $('tsSend').disabled=sending||sharing||!publication?.can_send||unknown||!remaining||photoFailures>0||photoPending>0;
