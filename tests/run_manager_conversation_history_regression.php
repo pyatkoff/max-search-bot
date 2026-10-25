@@ -104,6 +104,56 @@ INSERT INTO conversations VALUES(1,10,'anytour',0,'telegram','','','','manager',
 }
 function cursor(HistoryFixturePdo $pdo,int $managerId=1): int{return(int)$pdo->query('SELECT COALESCE(MAX(last_read_message_id),0) FROM manager_conversation_reads WHERE manager_id='.$managerId.' AND conversation_id=1')->fetchColumn();}
 function ids(array $detail): array{return array_map('intval',array_column($detail['messages'],'id'));}
+
+// Child mode pauses a real transcript read with a native files-backed session.
+// No application bootstrap/configuration, network or production connection.
+if(PHP_SAPI==='cli'&&($argv[1]??'')==='--session-read-probe'){
+    $directory=realpath((string)($argv[2]??''));$mode=$argv[3]??'';
+    if(!$directory||dirname($directory)!==realpath(sys_get_temp_dir())||!preg_match('/^manager-detail-session-[a-f0-9]{16}$/D',basename($directory))||!in_array($mode,['latest','older'],true))exit(2);
+    session_save_path($directory);session_name('manager_detail_fixture');session_id('transcript-fixture');
+    if(!session_start())throw new RuntimeException('native_session_start_failed');
+    $seed=['manager_id'=>1,'csrf'=>'synthetic-session-token'];$_SESSION=$seed;session_write_close();
+    $seedHash=hash_file('sha256',$directory.'/sess_transcript-fixture');
+    if(!session_start())throw new RuntimeException('native_session_reopen_failed');
+    $pdo=fixture(501);
+    $pdo->afterPage=static function()use($directory,$seedHash):void{
+        file_put_contents($directory.'/ready.tmp',json_encode(['seed_hash'=>$seedHash],JSON_THROW_ON_ERROR));rename($directory.'/ready.tmp',$directory.'/ready');
+        $until=microtime(true)+10;
+        while(!is_file($directory.'/continue')){if(microtime(true)>$until)throw new RuntimeException('session_probe_barrier_timeout');usleep(10000);clearstatcache();}
+    };
+    $response=apiDetail(['conversation_id'=>1]+($mode==='older'?['before_id'=>302]:[]));$page=ids($response['body']);
+    file_put_contents($directory.'/result',json_encode(['status'=>$response['status'],'ok'=>$response['body']['ok'],'count'=>count($page),'first'=>reset($page),'last'=>end($page),'read_writes'=>$pdo->readWrites,'cursor'=>cursor($pdo),'session_closed'=>session_status()===PHP_SESSION_NONE,'identity_preserved'=>$_SESSION===$seed],JSON_THROW_ON_ERROR));
+    exit;
+}
+
+/** A second PHP process probes the actual native lock while SQL is paused. */
+function historySessionProbe(string $mode):array
+{
+    $directory=sys_get_temp_dir().'/manager-detail-session-'.bin2hex(random_bytes(8));
+    if(!mkdir($directory,0700))throw new RuntimeException('session_probe_directory_failed');
+    $process=null;$pipes=[];
+    try{
+        $process=proc_open([PHP_BINARY,'-d','session.use_cookies=0','-d','session.cache_limiter=','-d','session.save_handler=files',__FILE__,'--session-read-probe',$directory,$mode],[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes);
+        if(!is_resource($process))throw new RuntimeException('session_probe_process_failed');
+        fclose($pipes[0]);unset($pipes[0]);$until=microtime(true)+10;
+        while(!is_file($directory.'/ready')){if(microtime(true)>$until||!proc_get_status($process)['running'])throw new RuntimeException('session_probe_not_ready');usleep(10000);clearstatcache();}
+        $ready=json_decode((string)file_get_contents($directory.'/ready'),true,4,JSON_THROW_ON_ERROR);
+        $lock=fopen($directory.'/sess_transcript-fixture','r+');if(!$lock)throw new RuntimeException('session_probe_file_missing');
+        $available=flock($lock,LOCK_EX|LOCK_NB);if($available)flock($lock,LOCK_UN);fclose($lock);
+        $paused=proc_get_status($process)['running'];$unchanged=hash_file('sha256',$directory.'/sess_transcript-fixture')===$ready['seed_hash'];
+        file_put_contents($directory.'/continue','continue');
+        $stdout=stream_get_contents($pipes[1]);$stderr=stream_get_contents($pipes[2]);fclose($pipes[1]);fclose($pipes[2]);$pipes=[];
+        $exit=proc_close($process);$process=null;
+        if($exit!==0||$stderr!==''||$stdout!==''||!is_file($directory.'/result'))throw new RuntimeException('session_probe_child_failed');
+        return ['lock_available'=>$available,'sql_still_paused'=>$paused,'session_file_unchanged'=>$unchanged,'response'=>json_decode((string)file_get_contents($directory.'/result'),true,8,JSON_THROW_ON_ERROR)];
+    }finally{
+        file_put_contents($directory.'/continue','continue');
+        if(is_resource($process)){proc_terminate($process);proc_close($process);}
+        foreach($pipes as $pipe)if(is_resource($pipe))fclose($pipe);
+        foreach(glob($directory.'/*')?:[] as $file)unlink($file);rmdir($directory);
+    }
+}
+
 $passed=0;
 function check(string $name,bool $ok): void{global$passed;if(!$ok)throw new RuntimeException('FAIL '.$name);$passed++;echo'PASS '.$name."\n";}
 
@@ -289,4 +339,11 @@ $pdo=targetFixture();$pdo->exec("UPDATE messages SET metadata_json='invalid' WHE
 $pdo=targetFixture();$pdo->afterPage=static fn($db)=>$db->exec('DELETE FROM manager_projects WHERE manager_id=1');$r=apiTarget(['conversation_id'=>1,'source_message_id'=>1001]);check('permission loss during context load rejects captured original',$r['status']===404&&$pdo->readWrites===0);
 $pdo=targetFixture();$pdo->failHydration=true;$r=apiTarget(['conversation_id'=>1,'source_message_id'=>1001]);check('quote hydration failure is recoverable without a read write',$r['status']===500&&$r['body']['error']==='message_target_failed'&&$pdo->readWrites===0);
 foreach([-1,0,'01','bad',true,1.2,'999999999999999999999'] as $invalid){$pdo=targetFixture();$r=apiTarget(['conversation_id'=>1,'source_message_id'=>$invalid]);check('invalid quote source rejected before lookup '.json_encode($invalid),$r['status']===422&&$pdo->executed===[]);}
+if(PHP_SAPI==='cli')foreach(['latest','older'] as $mode){
+    $probe=historySessionProbe($mode);$response=$probe['response'];
+    echo 'SESSION_PROBE '.json_encode(['mode'=>$mode,'lock_available_during_sql'=>$probe['lock_available'],'original_request_still_paused'=>$probe['sql_still_paused']],JSON_THROW_ON_ERROR)."\n";
+    check($mode.' transcript releases the native session while its read is paused',$probe['lock_available']&&$probe['sql_still_paused']);
+    check($mode.' read preserves session identity CSRF and stored bytes',$probe['session_file_unchanged']&&$response['identity_preserved']&&$response['session_closed']);
+    check($mode.' concurrent read preserves exact page and performs no acknowledgement',$response['status']===200&&$response['ok']&&$response['count']===200&&$response['first']===($mode==='older'?102:302)&&$response['last']===($mode==='older'?301:501)&&$response['read_writes']===0&&$response['cursor']===0);
+}
 echo "FINAL TOTAL $passed | FAIL 0\n";
