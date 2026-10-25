@@ -1,5 +1,21 @@
 # Manager2 tour selection constructor
 
+## ANEX search and result controls (0.6.3)
+
+The existing adapter now tracks native ANEX form submissions. After a condition
+interaction, only previously unseen result anchors added after that submission
+can use its generation. Reused/reinserted old anchors, unfinished searches, late
+responses with other conditions and query/form/row disagreement remain blocked. The full date with year
+still has to agree between the row, source link and current search URL; a matching
+day/month alone cannot recover an invalidated result. The same generation is
+checked before and after the settling interval and gallery collection.
+
+Only the observed price-sort button and two PARTITION_PRICE radio choices inside
+the unique result header are exempt from form invalidation. They never clear an
+existing invalidation; an unknown header control stays conservative. No host
+permissions, source/backend contract, draft, price, receipt or sender owner changes.
+Physical source installation and natural A1–A8 remain separate acceptance.
+
 ## ANEX Egypt: one direction across the three collectors (0.6.2)
 
 The existing ANEX adapter also accepts the observed Moscow/Egypt result profile:

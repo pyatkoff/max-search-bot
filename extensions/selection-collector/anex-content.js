@@ -1,20 +1,16 @@
 (function(){
-'use strict';let scheduled=false,formTouched=false;
-// Readonly date inputs omit the year. Any form interaction invalidates this
-// document's result generation, even when its visible day/month stays equal.
-for(const type of ['click','keydown','input','change'])document.addEventListener(type,e=>{if(!e.target?.closest?.('input,button,[role="combobox"],[role="option"]'))return;if(AnyTourAnex.anchors(document).some(a=>AnyTourAnex.resultRow(a).contains(e.target)))return;formTouched=true},true);
+'use strict';let scheduled=false;const source=AnyTourAnex.observe(document);
 async function collect(anchor,button,editing=false){
  if(button.disabled)return;button.disabled=true;AnyTourCollectorClient.label(button,'Проверяем условия…');
  try{
   const ticket=await AnyTourCollectorClient.begin(button,editing);if(!ticket)return;
-  if(formTouched)throw new Error('Форма ANEX менялась. Завершите поиск и обновите страницу результата перед импортом.');
-  const before=AnyTourAnex.extract(document,anchor,location.href);await new Promise(r=>setTimeout(r,750));
-  const after=AnyTourAnex.extract(document,anchor,location.href);before.observed_at=after.observed_at;
-  if(formTouched||JSON.stringify(before)!==JSON.stringify(after))throw new Error('Условия ANEX ещё меняются. Дождитесь окончания поиска.');
+  const before=source.extract(anchor,location.href);await new Promise(r=>setTimeout(r,750));
+  const after=source.extract(anchor,location.href);before.observed_at=after.observed_at;
+  if(JSON.stringify(before)!==JSON.stringify(after))throw new Error('Условия ANEX ещё меняются. Дождитесь окончания поиска.');
   AnyTourCollectorClient.label(button,'Добавляем фото…');
   const photos=await AnyTourCollectorClient.gallery(anchor.href,doc=>AnyTourAnex.photos(doc,after.keys.hotel));
-  const fresh=AnyTourAnex.extract(document,anchor,location.href);fresh.observed_at=after.observed_at;
-  if(formTouched||JSON.stringify(fresh)!==JSON.stringify(after))throw new Error('Условия ANEX изменились во время загрузки фото. Добавьте текущий вариант заново.');
+  const fresh=source.extract(anchor,location.href);fresh.observed_at=after.observed_at;
+  if(JSON.stringify(fresh)!==JSON.stringify(after))throw new Error('Условия ANEX изменились во время загрузки фото. Добавьте текущий вариант заново.');
   after.photos=photos;
   await AnyTourCollectorClient.append(button,ticket,after,editing);
  }catch(e){AnyTourCollectorClient.label(button,'Не добавлено');button.title=e.message;let note=button.parentElement.querySelector('[data-anytour-note]');if(!note){note=document.createElement('div');note.dataset.anytourNote='1';note.setAttribute('role','status');button.parentElement.append(note)}note.dataset.anytourTone='error';note.textContent=e.message}
