@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "version": "2026-10-25.2",
+  "version": "2026-10-25.3",
   "project_key": "anytour",
   "bindings": [
     {
@@ -58,6 +58,354 @@
         "common_version": 100,
         "member": "hotel-reference-cohort-20261025/accepted-binding.json",
         "scope": "Research join consumes existing typed catalogue chain; no native MATCH mutation or current offer verification."
+      }
+    },
+    {
+      "source_identity": {
+        "adapter": "tourvisor-snapshot-v1",
+        "hotel": "241",
+        "country": "1"
+      },
+      "accepted_source_names": [
+        "ALBATROS MAKADI RESORT"
+      ],
+      "accepted_binding": {
+        "project_key": "anytour",
+        "research_hotel_key": "albatros_makadi",
+        "hotel_ref": {
+          "catalog": "anytour",
+          "id": 81
+        },
+        "accepted_chain": [
+          {
+            "namespace": "legacy_catalog/catalog_hotels.id",
+            "id": 241
+          },
+          {
+            "namespace": "anytour",
+            "id": 81,
+            "catalog_revision": 1
+          },
+          {
+            "namespace": "local-tv",
+            "id": 241,
+            "catalog_revision": 3
+          }
+        ],
+        "identity_anchor": {
+          "research_source_id": "albatros_makadi_s01",
+          "research_source_record_sha256": "d1c37965e23146fbb5c79a0ff0299274ca17872a90ffdd98c7227a5f05ac41fe",
+          "official_url": "https://www.pickalbatros.com/makadi-resort",
+          "address": "afaga Road, Makadi Bay, P.O. BOX 642, Hurghada, Red Sea, Egypt",
+          "country": "Egypt",
+          "city": "Hurghada / Makadi Bay"
+        },
+        "proofs": {
+          "catalogue-legacy20.raw": "0cd8e60cee6e4cd34e5803433f5590e1cce884d8f3d36c6c2ec13fb0871084fa",
+          "local-six.raw": "ea54373161372a4c5c202b45936aec086a722e67b6d2035c3232ce4440095158",
+          "official-identity-anchor.json": "9dcd5c95076ebb9b17870730fe7acf8d967ba60d830318505ac60f84e3cac328",
+          "saved-passport.json": "80e81f80d10711c7fbd69894fc53ce292ebd63ff433360030cc0f46c2927cdb1"
+        }
+      },
+      "binding_revision": "b43a27ff2d0a9d18f2aba893e08dd5fb17fbe5d2fa8715afc3ebb43dbfcb2f9d",
+      "bundle_file": "anytour-81-rooms.json",
+      "bundle_sha256": "55cd9c9a612b42a1c68587d6c4ddcb9904a9c76b82bd9a23fa76ebe3b1677b11",
+      "status": "accepted",
+      "approval": {
+        "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
+        "common_version": 104,
+        "member": "hotel-knowledge-eg-cohort-20261025/albatros_makadi/accepted-binding.json",
+        "scope": "Research join and sealed saved-evidence group only; no native MATCH mutation, new property research, current offer or natural/runtime acceptance credit."
+      }
+    },
+    {
+      "source_identity": {
+        "adapter": "tourvisor-snapshot-v1",
+        "hotel": "240",
+        "country": "1"
+      },
+      "accepted_source_names": [
+        "HAPPY LIFE VILLAGE"
+      ],
+      "accepted_binding": {
+        "project_key": "anytour",
+        "research_hotel_key": "happy_life_village",
+        "hotel_ref": {
+          "catalog": "anytour",
+          "id": 80
+        },
+        "accepted_chain": [
+          {
+            "namespace": "legacy_catalog/catalog_hotels.id",
+            "id": 240
+          },
+          {
+            "namespace": "anytour",
+            "id": 80,
+            "catalog_revision": 1
+          },
+          {
+            "namespace": "local-tv",
+            "id": 240,
+            "catalog_revision": 3
+          }
+        ],
+        "identity_anchor": {
+          "research_source_id": "happy_life_village_s01",
+          "research_source_record_sha256": "6cf45832e5188ec73453da4d7e9162f6c9770f1ffc2c5a87a475fc0ecf1c3f62",
+          "official_url": "https://www.happylifehotel.com/indexd.htm",
+          "address": "Wady Quonay, Dahab, Egypt",
+          "country": "Egypt",
+          "city": "Dahab"
+        },
+        "proofs": {
+          "catalogue-legacy20.raw": "0cd8e60cee6e4cd34e5803433f5590e1cce884d8f3d36c6c2ec13fb0871084fa",
+          "local-six.raw": "ea54373161372a4c5c202b45936aec086a722e67b6d2035c3232ce4440095158",
+          "official-identity-anchor.json": "fa6f99eb636ff1810eeef9abd7505952ae28a89e684bec1c5516ca8e4c1f61e6",
+          "saved-passport.json": "20f143ee10ef2f00673ff6689874e8ca3662158ed3b66085557a12fa696cc299"
+        }
+      },
+      "binding_revision": "2b90d1e68d2c86bdb5b4edbc40e7b7c56f4c0771f6a4b21bf2111fdd82043c7b",
+      "bundle_file": "anytour-80-meal-plans.json",
+      "bundle_sha256": "125d770e8d876be2bae3df858f9acc3621a76fdf0b00fc24aa6598044dfbb1f2",
+      "status": "accepted",
+      "approval": {
+        "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
+        "common_version": 104,
+        "member": "hotel-knowledge-eg-cohort-20261025/happy_life_village/accepted-binding.json",
+        "scope": "Research join and sealed saved-evidence group only; no native MATCH mutation, new property research, current offer or natural/runtime acceptance credit."
+      }
+    },
+    {
+      "source_identity": {
+        "adapter": "tourvisor-snapshot-v1",
+        "hotel": "268",
+        "country": "1"
+      },
+      "accepted_source_names": [
+        "JAZ MAKADI SARAYA RESORT (EX. IBEROTEL MAKADI SARAYA RESORT)"
+      ],
+      "accepted_binding": {
+        "project_key": "anytour",
+        "research_hotel_key": "jaz_makadi_saraya",
+        "hotel_ref": {
+          "catalog": "anytour",
+          "id": 99
+        },
+        "accepted_chain": [
+          {
+            "namespace": "legacy_catalog/catalog_hotels.id",
+            "id": 268
+          },
+          {
+            "namespace": "anytour",
+            "id": 99,
+            "catalog_revision": 1
+          },
+          {
+            "namespace": "local-tv",
+            "id": 268,
+            "catalog_revision": 3
+          }
+        ],
+        "identity_anchor": {
+          "research_source_id": "jaz_makadi_saraya_s01",
+          "research_source_record_sha256": "2677cb2481db64f23f18f6cb27a30a4244e62942a17f599f94934dae93320440",
+          "official_url": "https://www.jazhotels.com/hoteldetail/20-egypt-hurghada-makadi-bay-jaz-makadi-saraya-resort/overview",
+          "address": "Makadi Bay, Madinat Makadi, P.O. Box 178, Hurghada, Red Sea, Egypt",
+          "country": "Egypt",
+          "city": "Hurghada / Madinat Makadi"
+        },
+        "proofs": {
+          "catalogue-legacy20.raw": "0cd8e60cee6e4cd34e5803433f5590e1cce884d8f3d36c6c2ec13fb0871084fa",
+          "local-six.raw": "ea54373161372a4c5c202b45936aec086a722e67b6d2035c3232ce4440095158",
+          "official-identity-anchor.json": "d5d348b08706aaad480485579392ab4bfbd64b74e146109b9c7b3c8414b943a0",
+          "saved-passport.json": "c6d25c19da19b54353e9ab7bcde05314adf3857155ec74885057f517833bb9e3"
+        }
+      },
+      "binding_revision": "b10039fd57248b8a3c9f728532dcce2cb8f4c9987da8b8f8abba497ab15e9c55",
+      "bundle_file": "anytour-99-apartments.json",
+      "bundle_sha256": "42a64028c34517b805f157024e3fca77441ceb83f60db8590f78980526ea01ec",
+      "status": "accepted",
+      "approval": {
+        "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
+        "common_version": 104,
+        "member": "hotel-knowledge-eg-cohort-20261025/jaz_makadi_saraya/accepted-binding.json",
+        "scope": "Research join and sealed saved-evidence group only; no native MATCH mutation, new property research, current offer or natural/runtime acceptance credit."
+      }
+    },
+    {
+      "source_identity": {
+        "adapter": "tourvisor-snapshot-v1",
+        "hotel": "1981",
+        "country": "1"
+      },
+      "accepted_source_names": [
+        "JAZ NEO NAAMA BAY (EX. SOLYMAR NAAMA BAY)"
+      ],
+      "accepted_binding": {
+        "project_key": "anytour",
+        "research_hotel_key": "jaz_neo_naama",
+        "hotel_ref": {
+          "catalog": "anytour",
+          "id": 877
+        },
+        "accepted_chain": [
+          {
+            "namespace": "legacy_catalog/catalog_hotels.id",
+            "id": 1981
+          },
+          {
+            "namespace": "anytour",
+            "id": 877,
+            "catalog_revision": 1
+          },
+          {
+            "namespace": "local-tv",
+            "id": 1981,
+            "catalog_revision": 3
+          }
+        ],
+        "identity_anchor": {
+          "research_source_id": "jaz_neo_naama_s01",
+          "research_source_record_sha256": "4ac26fd3712682f2832a500a3602c30d4929dbb8f980f8edc5cec3870607adf4",
+          "official_url": "https://www.jazhotels.com/hoteldetail/7-egypt-sharm-el-sheikh-jaz-neo-naama-bay/rooms",
+          "address": "Naama Bay, Qesm Sharm Ash Sheikh, South Sinai Governorate, Египет",
+          "country": "Egypt",
+          "city": "Sharm El Sheikh / Naama Bay"
+        },
+        "proofs": {
+          "catalogue-legacy20.raw": "0cd8e60cee6e4cd34e5803433f5590e1cce884d8f3d36c6c2ec13fb0871084fa",
+          "local-six.raw": "ea54373161372a4c5c202b45936aec086a722e67b6d2035c3232ce4440095158",
+          "official-identity-anchor.json": "4f6fd4503509fffab467c1e90338214e25dceccb07afbd47fcd68009272e0522",
+          "saved-passport.json": "43ec9a9f0faefc17d8e0759e2b90085a6f7fd79a4b0f88b0981668bafbc15c40"
+        }
+      },
+      "binding_revision": "a58330908983221f708c37f543a725800a9b8fe10c59e85149bd036c088fa911",
+      "bundle_file": "anytour-877-family-rooms.json",
+      "bundle_sha256": "30d13adf7d8a74da44653525e9c28f873cf6159e4535b17b07cee34cdf93e7ca",
+      "status": "accepted",
+      "approval": {
+        "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
+        "common_version": 104,
+        "member": "hotel-knowledge-eg-cohort-20261025/jaz_neo_naama/accepted-binding.json",
+        "scope": "Research join and sealed saved-evidence group only; no native MATCH mutation, new property research, current offer or natural/runtime acceptance credit."
+      }
+    },
+    {
+      "source_identity": {
+        "adapter": "tourvisor-snapshot-v1",
+        "hotel": "12111",
+        "country": "1"
+      },
+      "accepted_source_names": [
+        "MOVENPICK RESORT SHARM EL SHEIKH NAAMA BAY"
+      ],
+      "accepted_binding": {
+        "project_key": "anytour",
+        "research_hotel_key": "movenpick_sharm",
+        "hotel_ref": {
+          "catalog": "anytour",
+          "id": 1654
+        },
+        "accepted_chain": [
+          {
+            "namespace": "legacy_catalog/catalog_hotels.id",
+            "id": 12111
+          },
+          {
+            "namespace": "anytour",
+            "id": 1654,
+            "catalog_revision": 1
+          },
+          {
+            "namespace": "local-tv",
+            "id": 12111,
+            "catalog_revision": 3
+          }
+        ],
+        "identity_anchor": {
+          "research_source_id": "movenpick_sharm_s01",
+          "research_source_record_sha256": "19b9770133ceb6f9798b10c70f63a02c6841d04e0e823e0f7b344da816f85de4",
+          "official_url": "https://all.accor.com/hotel/B4L5/index.en.shtml",
+          "address": "Naama Bay, 46619, South Sinai, Sharm El Sheikh, Egypt",
+          "country": "Egypt",
+          "city": "Sharm El Sheikh / Naama Bay"
+        },
+        "proofs": {
+          "catalogue-legacy20.raw": "0cd8e60cee6e4cd34e5803433f5590e1cce884d8f3d36c6c2ec13fb0871084fa",
+          "local-six.raw": "ea54373161372a4c5c202b45936aec086a722e67b6d2035c3232ce4440095158",
+          "official-identity-anchor.json": "17fac0742238c96ff3a3d84dc224d964d573524e9b1c540be583780b175be3c6",
+          "saved-passport.json": "08e0109f430960ac1424fbe6a5ba128ba4ab5fb99dff30a5168ff09054aceeff"
+        }
+      },
+      "binding_revision": "c54c6897b472ba8da23d365498d18c4cb166114687e232c564ce5def937c3213",
+      "bundle_file": "anytour-1654-beach-access.json",
+      "bundle_sha256": "0b677078c8558d193801a09f73e83d34d3841020ee07d4b399951eaecb9e3cee",
+      "status": "accepted",
+      "approval": {
+        "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
+        "common_version": 104,
+        "member": "hotel-knowledge-eg-cohort-20261025/movenpick_sharm/accepted-binding.json",
+        "scope": "Research join and sealed saved-evidence group only; no native MATCH mutation, new property research, current offer or natural/runtime acceptance credit."
+      }
+    },
+    {
+      "source_identity": {
+        "adapter": "tourvisor-snapshot-v1",
+        "hotel": "498",
+        "country": "1"
+      },
+      "accepted_source_names": [
+        "TITANIC BEACH SPA & AQUA PARK"
+      ],
+      "accepted_binding": {
+        "project_key": "anytour",
+        "research_hotel_key": "titanic_beach",
+        "hotel_ref": {
+          "catalog": "anytour",
+          "id": 228
+        },
+        "accepted_chain": [
+          {
+            "namespace": "legacy_catalog/catalog_hotels.id",
+            "id": 498
+          },
+          {
+            "namespace": "anytour",
+            "id": 228,
+            "catalog_revision": 1
+          },
+          {
+            "namespace": "local-tv",
+            "id": 498,
+            "catalog_revision": 3
+          }
+        ],
+        "identity_anchor": {
+          "research_source_id": "titanic_beach_s01",
+          "research_source_record_sha256": "5e6cb870cd7182b3f980ffa8a95733014a15347ebce21aa836d4eb5558c7b94b",
+          "official_url": "https://www.hwaidak-hotels.com/hotels/titanic-beach",
+          "address": "Sahl Hashish Rd, Hurghada, Red Sea Governorate 1961702, Египет",
+          "country": "Egypt",
+          "city": "Hurghada"
+        },
+        "proofs": {
+          "catalogue-legacy20.raw": "0cd8e60cee6e4cd34e5803433f5590e1cce884d8f3d36c6c2ec13fb0871084fa",
+          "local-six.raw": "ea54373161372a4c5c202b45936aec086a722e67b6d2035c3232ce4440095158",
+          "official-identity-anchor.json": "f843847172c607f505635ea120ddfdce961fa4364493111116fe8c09f961422a",
+          "saved-passport.json": "5feb124b7eac47a2a553b12cc9d796a85e81e661a21de4be7fcc3459d7750c50"
+        }
+      },
+      "binding_revision": "7d1c40c829fb01e180929c68541190a249b0df18affa1c696ceff62e1b42fc6d",
+      "bundle_file": "anytour-228-meal-rights.json",
+      "bundle_sha256": "7428782af920be16a59d7b59373b967bde6863dd5b7ce83692dba4bfaa07e4db",
+      "status": "accepted",
+      "approval": {
+        "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
+        "common_version": 104,
+        "member": "hotel-knowledge-eg-cohort-20261025/titanic_beach/accepted-binding.json",
+        "scope": "Research join and sealed saved-evidence group only; no native MATCH mutation, new property research, current offer or natural/runtime acceptance credit."
       }
     }
   ]

@@ -597,6 +597,48 @@ INSERT INTO catalog_countries VALUES(1,'Египет',1),(4,'Турция',1),(9
         draftContextCheck($case.' withholds hotel facts while preserving the authorized draft context',
             ($held['status']??'')!=='available' && ($held['facts']??null)===[] && ($held['sources']??null)===[]);
     }
+    // Each new retained typed edge passes through real publication/source
+    // normalization and the current authorized SQL snapshot, not a name lookup.
+    $egyptCohort=[
+        '241'=>[81,'albatros_makadi','ALBATROS MAKADI RESORT',4],
+        '240'=>[80,'happy_life_village','HAPPY LIFE VILLAGE',3],
+        '268'=>[99,'jaz_makadi_saraya','JAZ MAKADI SARAYA RESORT (EX. IBEROTEL MAKADI SARAYA RESORT)',5],
+        '1981'=>[877,'jaz_neo_naama','JAZ NEO NAAMA BAY (EX. SOLYMAR NAAMA BAY)',4],
+        '12111'=>[1654,'movenpick_sharm','MOVENPICK RESORT SHARM EL SHEIKH NAAMA BAY',3],
+        '498'=>[228,'titanic_beach','TITANIC BEACH SPA & AQUA PARK',4],
+    ];
+    foreach ($egyptCohort as $sourceId=>[$anytourId,$researchKey,$sourceName,$factCount]) {
+        [$pdo]=draftHotelFixture((string)$sourceId,$sourceName);
+        $cohortBefore=[];
+        foreach (['messages','conversation_events','manager_tour_selection_publications','conversations','manager_conversation_reads'] as $table) {
+            $cohortBefore[$table]=$pdo->query('SELECT * FROM '.$table)->fetchAll();
+        }
+        $cohortSnapshot=draftContextCapture($pdo);
+        $cohortHotel=draftHotelReference($cohortSnapshot);
+        draftContextCheck('Egypt cohort '.$sourceId.' resolves its own complete evidence through the native inquiry selector',
+            ($cohortHotel['status']??'')==='available'
+            && ($cohortHotel['hotel_ref']??null)===['catalog'=>'anytour','id'=>$anytourId]
+            && ($cohortHotel['research_hotel_key']??'')===$researchKey
+            && count($cohortHotel['facts']??[])===$factCount
+            && !empty($cohortHotel['material_limits']['unknowns'])
+            && ($cohortHotel['room_tariff_equivalence_verified']??null)===false
+            && ($cohortHotel['future_operation_verified']??null)===false);
+        $cohortAfter=[];
+        foreach (array_keys($cohortBefore) as $table) $cohortAfter[$table]=$pdo->query('SELECT * FROM '.$table)->fetchAll();
+        draftContextCheck('Egypt cohort '.$sourceId.' leaves every source row, event and read marker unchanged',
+            $cohortBefore===$cohortAfter);
+        $cohortAgain=draftContextCapture($pdo);
+        draftContextCheck('Egypt cohort '.$sourceId.' has stable preparation and manual revisions without a new observation',
+            $cohortAgain['revision']===$cohortSnapshot['revision']
+            && $cohortAgain['preparation_revision']===$cohortSnapshot['preparation_revision']);
+        $pdo->exec("INSERT INTO messages VALUES(2,1,'inbound','customer','Теперь другой отель','2026-10-17 12:01:00','telegram',NULL,'PRIVATE','PRIVATE')");
+        $cohortChanged=draftContextCapture($pdo);
+        $cohortHeld=draftHotelReference($cohortChanged);
+        draftContextCheck('Egypt cohort '.$sourceId.' suspends all old facts after newer tourist intent',
+            ($cohortHeld['facts']??null)===[] && ($cohortHeld['sources']??null)===[]
+            && $cohortChanged['revision']!==$cohortSnapshot['revision']
+            && $cohortChanged['preparation_revision']!==$cohortSnapshot['preparation_revision']);
+    }
     [$pdo] = draftHotelFixture('9375');
     $otherHotel = draftHotelReference(draftContextCapture($pdo));
     draftContextCheck('an exact normalized source for another native hotel cannot borrow the accepted research binding',
