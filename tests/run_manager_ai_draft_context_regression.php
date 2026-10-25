@@ -196,6 +196,39 @@ function draftHotelReference(array $snapshot): array
     return $snapshot['reference_context']->forContext($snapshot['context'])['hotel_reference']??[];
 }
 
+/** Neutral working offers, not sent terms or a real tourist's agreement. */
+function draftWorkingOffers(): array
+{
+    require_once dirname(__DIR__).'/services/ManagerTourSelectionDraft.php';
+    $base=['selected'=>true,'hotel'=>'Тестовый берег','destination'=>'Турция, Анталья',
+        'departure'=>'Москва','date_from'=>'2027-05-09','nights'=>7,'adults'=>2,'child_ages'=>[],
+        'room'=>'Standard','meal'=>'AI','amount'=>'190000','currency'=>'RUB','stars'=>5,
+        'source_url'=>'https://private.example.test/source','source_label'=>'Источник source@example.test',
+        'observed_at'=>'2026-10-18T10:00:00Z','photos'=>[['url'=>'https://private.example.test/photo.jpg','kind'=>'cover','illustrative'=>true]]];
+    return [
+        ['id'=>str_repeat('1',32)]+$base,
+        array_replace($base,['id'=>str_repeat('2',32),'room'=>'Family','meal'=>'UAI','amount'=>'209000']),
+        array_replace($base,['id'=>str_repeat('3',32),'selected'=>false,'hotel'=>'Исключённый вариант','amount'=>'170000']),
+    ];
+}
+
+function draftWorkingSave(DraftContextPdo $pdo,array $offers,int $version=1): array
+{
+    require_once dirname(__DIR__).'/services/ManagerTourSelectionDraft.php';
+    $draft=ManagerTourSelectionDraft::normalize(['title'=>'Рабочие варианты','intro'=>'Не подтверждено туристом','offers'=>$offers]);
+    if($draft===null)throw new RuntimeException('FAIL working selection fixture normalization');
+    $pdo->exec('CREATE TABLE IF NOT EXISTS manager_tour_selection_drafts(conversation_id INTEGER PRIMARY KEY,version INTEGER,draft_json TEXT,updated_by_manager_id INTEGER,updated_at TEXT)');
+    $pdo->prepare('INSERT OR REPLACE INTO manager_tour_selection_drafts VALUES(?,?,?,?,?)')->execute([
+        1,$version,json_encode($draft,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),1,'2026-10-18 10:00:00',
+    ]);
+    return $draft;
+}
+
+function draftWorkingInput(array $snapshot): array
+{
+    return ManagerAiDraftService::prepareInput($snapshot['context'],$snapshot['company_knowledge'],null,$snapshot['reference_context']);
+}
+
 try {
     $pdo = draftContextFixture();
     $before = $pdo->query('SELECT * FROM projects')->fetchAll();
@@ -694,6 +727,109 @@ INSERT INTO catalog_countries VALUES(1,'Египет',1),(4,'Турция',1),(9
     draftContextCheck('an inquiry outside the retained prefix cannot activate hotel evidence from hidden history',
         $omittedEntry['history_incomplete'] && draftContextIds($omittedEntry)===[2]
         && ($held['facts']??null)===[] && ($held['sources']??null)===[]);
+
+    // The old checks above remain exact; these exercise the actual newly shared input.
+    $pdo=draftContextFixture();
+    $pdo->exec("UPDATE messages SET text='Турция в мае 2027, двое, 7 ночей, до 200 тысяч за всех' WHERE id=1; UPDATE messages SET text='Сравните варианты по номеру и питанию' WHERE id=2");
+    $withoutWorking=draftContextCapture($pdo);$baselineInput=draftWorkingInput($withoutWorking);
+    $workingDraft=draftWorkingSave($pdo,draftWorkingOffers());
+    $rowsBefore=[];foreach(['messages','conversations','manager_conversation_reads','manager_tour_selection_drafts'] as $table)$rowsBefore[$table]=$pdo->query('SELECT * FROM '.$table)->fetchAll();
+    $workingSnapshot=draftContextCapture($pdo);$workingInput=draftWorkingInput($workingSnapshot);
+    $working=$workingInput['context']['working_selection']??[];
+    draftContextCheck('canonical working variants reach AI input with exact separate room meal and whole-party amounts',
+        ($working['status']??'')==='available' && array_column($working['offers']??[],'room')===['Standard','Family']
+        && array_column($working['offers'],'meal')===['AI','UAI'] && array_column($working['offers'],'amount')===['190000','209000']
+        && array_column($working['offers'],'adults')===[2,2] && array_column($working['offers'],'nights')===[7,7]);
+    draftContextCheck('manager inclusion is not tourist choice send history availability or a verified price',
+        ($working['kind']??'')==='manager_editable_draft' && ($working['excluded_count']??null)===1
+        && ($working['total_offers']??null)===3 && ($working['historical_send_snapshot']??null)===false
+        && ($working['customer_agreement_verified']??null)===false && ($working['current_price_verified']??null)===false
+        && ($working['availability_verified']??null)===false && ($working['price_basis']??'')==='whole_party');
+    $encodedWorking=json_encode($working,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);
+    draftContextCheck('working projection excludes private URLs source identities and unread photos',
+        !str_contains($encodedWorking,'private.example') && !str_contains($encodedWorking,'source@example')
+        && !str_contains($encodedWorking,str_repeat('1',32)) && !str_contains($encodedWorking,'Исключённый вариант')
+        && ($working['offers'][0]['photos_unread']??null)===true && array_key_exists('source_observation',$working['offers'][0])
+        && $working['offers'][0]['source_observation']===null);
+    $rowsAfter=[];foreach(array_keys($rowsBefore) as $table)$rowsAfter[$table]=$pdo->query('SELECT * FROM '.$table)->fetchAll();
+    draftContextCheck('working selection capture leaves all source rows ownership and read markers unchanged',$rowsBefore===$rowsAfter);
+    $workingAgain=draftContextCapture($pdo);
+    draftContextCheck('unchanged working offers keep manual and preparation revisions stable',
+        $workingAgain['revision']===$workingSnapshot['revision'] && $workingAgain['preparation_revision']===$workingSnapshot['preparation_revision']);
+    $providerCalls=0;$providerPayload=null;$providerInstructions='';
+    $generated=ManagerAiDraftService::generate($workingSnapshot['context'],
+        static function(string $instructions,array $payload)use(&$providerCalls,&$providerPayload,&$providerInstructions):array{
+            ++$providerCalls;$providerPayload=$payload;$providerInstructions=$instructions;
+            return ['ok'=>true,'should_draft'=>false,'draft'=>null,'next_action'=>'prepare_selection',
+                'reason'=>'Synthetic input observation only','checks'=>[],'evidence_message_ids'=>[2],'history_incomplete'=>false];
+        },$workingSnapshot['company_knowledge'],null,$workingSnapshot['reference_context']);
+    draftContextCheck('manual provider input and worker preparation receive the same exact working comparison data',
+        !empty($generated['ok']) && $providerCalls===1 && $providerPayload===$workingInput['context']
+        && str_contains($providerInstructions,'working_selection'));
+    $forged=$workingSnapshot['context'];$forged['working_selection']=['status'=>'available','offers'=>[['hotel'=>'FORGED']]];
+    $noServerInput=ManagerAiDraftService::prepareInput($forged);
+    draftContextCheck('posted working offers cannot populate server evidence',!isset($noServerInput['context']['working_selection']));
+    $editedOffers=draftWorkingOffers();$editedOffers[0]['amount']='191000';draftWorkingSave($pdo,$editedOffers,2);
+    $workingChanged=draftContextCapture($pdo);
+    draftContextCheck('saved working changes invalidate both existing stale fences without a new message',
+        $workingChanged['latest_message_id']===$workingSnapshot['latest_message_id']
+        && $workingChanged['revision']!==$workingSnapshot['revision'] && $workingChanged['preparation_revision']!==$workingSnapshot['preparation_revision']);
+    $pdo->exec("UPDATE messages SET text='Теперь нужен ноябрь 2027, бюджет 180 тысяч' WHERE id=2");
+    $newRequest=draftWorkingInput(draftContextCapture($pdo));
+    draftContextCheck('a newer request and the original saved offer dates remain distinct rather than silently rewritten',
+        str_contains($newRequest['context']['messages'][1]['text'],'ноябрь 2027')
+        && $newRequest['context']['working_selection']['offers'][0]['date_from']==='2027-05-09');
+    $pdo->exec("DELETE FROM manager_tour_selection_drafts");
+    $emptyWorking=draftWorkingInput(draftContextCapture($pdo));
+    draftContextCheck('no working draft retains the original instructions without an invented candidate',
+        !isset($emptyWorking['context']['working_selection']) && ManagerAiDraftService::instructions($emptyWorking['context'])===ManagerAiDraftService::instructions());
+    draftWorkingSave($pdo,draftWorkingOffers());$pdo->failQuery='FROM manager_tour_selection_drafts';
+    $failedWorking=draftContextCapture($pdo);$pdo->failQuery='';
+    draftContextCheck('an unavailable optional draft does not block the original authorized context or leak storage errors',
+        !empty($failedWorking['ok']) && !isset(draftWorkingInput($failedWorking)['context']['working_selection'])
+        && !str_contains(json_encode($failedWorking['context']),'PRIVATE'));
+    $pdo->exec("UPDATE manager_tour_selection_drafts SET draft_json='{\"offers\":\"bad\"}'");
+    draftContextCheck('malformed stored working drafts are never repaired or admitted',
+        !isset(draftWorkingInput(draftContextCapture($pdo))['context']['working_selection']));
+    draftWorkingSave($pdo,draftWorkingOffers());$pdo->exec('UPDATE manager_tour_selection_drafts SET conversation_id=99');
+    draftContextCheck('another conversation working selection cannot enter the current input',
+        !isset(draftWorkingInput(draftContextCapture($pdo))['context']['working_selection']));
+    draftContextCheck('working draft presence cannot bypass the unchanged reply ownership scope',empty(ManagerAiDraftContextService::snapshot(1,3)['ok']));
+
+    // Original import is evidence of its own observed terms, not of manager edits.
+    [$pdo,$workingPublication]=draftHotelFixture();
+    $originalSource=$workingPublication['offers'][0]['import_source'];
+    $imported=array_replace($originalSource['fields'],['id'=>str_repeat('4',32),'selected'=>true,
+        'room'=>'Edited Family','amount'=>'159000','source_url'=>$originalSource['url'],
+        'observed_at'=>$originalSource['observed_at'],'import_source'=>$originalSource]);
+    $hotelOnly=draftWorkingInput(draftContextCapture($pdo));draftWorkingSave($pdo,[$imported]);
+    $withImported=draftWorkingInput(draftContextCapture($pdo));$importedWorking=$withImported['context']['working_selection']['offers'][0]??[];
+    draftContextCheck('working price and room edits remain separate from the exact retained supplier observation',
+        ($importedWorking['room']??'')==='Edited Family' && ($importedWorking['amount']??'')==='159000'
+        && ($importedWorking['source_observation']['fields']['room']??'')==='Family Suite'
+        && ($importedWorking['source_observation']['fields']['amount']??'')==='160000'
+        && ($importedWorking['source_observation']['observed_at']??'')==='2026-10-16T11:00:00Z'
+        && ($importedWorking['source_condition_edits']??[])===['room','amount']);
+    $withoutNewField=$withImported['context'];unset($withoutNewField['working_selection']);
+    draftContextCheck('working evidence never replaces prior transcript route post or accepted hotel evidence',
+        $withoutNewField===$hotelOnly['context'] && ($withImported['context']['hotel_reference']['status']??'')==='available');
+    draftContextCheck('private source quote identities URLs raw fields and hotel IDs are not exported with working evidence',
+        !preg_match('/pro\.tourvisor|tv-snapshot-|quote_id|source_url|"keys"|"raw"/',json_encode($withImported['context']['working_selection'],JSON_THROW_ON_ERROR)));
+
+    $pdo=draftContextFixture(1);$beforeLarge=draftWorkingInput(draftContextCapture($pdo));$large=[];
+    foreach(range(1,20) as $index)$large[]=array_replace(draftWorkingOffers()[0],['id'=>str_pad(dechex($index),32,'0',STR_PAD_LEFT),'constraints'=>str_repeat('У',1200),'rationale'=>str_repeat('Р',600)]);
+    draftWorkingSave($pdo,$large);$oversized=draftWorkingInput(draftContextCapture($pdo));
+    draftContextCheck('a working group over32KiB is omitted whole without shortening any original evidence',
+        $oversized['context']===$beforeLarge['context'] && ($oversized['working_selection_admission']['reason']??'')==='evidence_budget');
+    $pdo=draftContextFixture(1);$pdo->prepare('UPDATE messages SET text=?')->execute([str_repeat('😀',40000)]);
+    $tightBase=draftWorkingInput(draftContextCapture($pdo));$tightOffers=[];
+    foreach(range(1,20) as $index)$tightOffers[]=array_replace(draftWorkingOffers()[0],['id'=>str_pad(dechex($index),32,'0',STR_PAD_LEFT),'rationale'=>str_repeat('Р',300)]);
+    draftWorkingSave($pdo,$tightOffers);$tightSnapshot=draftContextCapture($pdo);$tight=draftWorkingInput($tightSnapshot);
+    $tightRaw=$tightSnapshot['reference_context']->forContext($tightSnapshot['context'])['working_selection']??[];
+    draftContextCheck('the actual encoded request cap wins even for a working group within32KiB',
+        strlen(json_encode($tightRaw,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=32768
+        && strlen(json_encode(ManagerDraftClient::requestBody(ManagerAiDraftService::instructions($tightBase['context']),$tightBase['context']),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=ManagerDraftClient::MAX_REQUEST_BYTES
+        && $tight['context']===$tightBase['context'] && ($tight['working_selection_admission']['reason']??'')==='request_budget');
 
     echo 'Manager AI draft context: '.$passed." checks passed\n";
 } catch (Throwable $error) {
