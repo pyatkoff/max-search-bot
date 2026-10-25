@@ -148,9 +148,10 @@ final class TourSelectionHostDeployment
         $pendingFile=$this->releases.'/pending.json';
         if (!is_file($pendingFile)) return ['ok'=>true,'rolled_back'=>false];
         $pending=self::json($pendingFile);$this->guardSite();
-        if (is_link($this->releases.'/current') && $this->current()!==$pending['target']) throw new RuntimeException('host_operation_changed');
-        if (is_string($pending['previous'])) self::link($pending['previous'],$this->releases.'/current');
-        else {
+        $current=is_link($this->releases.'/current')?$this->current():null;
+        if ($current!==$pending['target'] && $current!==$pending['previous']) throw new RuntimeException('host_operation_changed');
+        if (is_string($pending['previous']) && $current!==$pending['previous']) self::link($pending['previous'],$this->releases.'/current');
+        elseif ($pending['previous']===null) {
             foreach (self::ROUTES as $route) if (is_file($this->site.'/'.$route)) unlink($this->site.'/'.$route);
             foreach (self::ASSETS as $asset) if (is_link($this->site.'/'.$asset)) unlink($this->site.'/'.$asset);
             if (is_link($this->releases.'/current')) unlink($this->releases.'/current');
