@@ -49,6 +49,7 @@ final class ManagerPreparedReplyService
                 // the old result/provenance. Only the scheduled collector opts in.
                 $previous = self::latestBinding($pdo, $cid, $actor, $project, $revision, $instruction);
                 if ($previous !== null) {
+                    self::rememberLegacyInput($pdo, $previous, $snapshot, $input);
                     if (!$renewExpired || (self::timestamp($previous['expires_at']) ?? PHP_INT_MAX) > time()
                         || $previous['status']==='ready') {
                         ++$out['existing']; $out['job_ids'][] = $previous['job_id']; continue;
@@ -351,6 +352,34 @@ final class ManagerPreparedReplyService
         return $row && self::validRow($row) ? $row : null;
     }
 
+    /** Learn only an exactly verified legacy cache binding, never guess from IDs/age. */
+    private static function rememberLegacyInput(PDO $pdo, array $row, array $snapshot, string $input): void
+    {
+        if (($row['customer_input_revision'] ?? null) !== null || $row['status'] !== 'ready'
+            || !self::matches($snapshot, $row['context_revision'], (int)$row['latest_message_id'])
+            || !hash_equals(self::instructionRevision(), $row['instruction_revision'])) return;
+        $created = self::timestamp($row['created_at'] ?? null);
+        $prepared = self::timestamp($row['prepared_at'] ?? null);
+        $expires = self::timestamp($row['expires_at'] ?? null);
+        // Expired genuine completions remain handled, malformed lifetimes do not.
+        if ($created === null || $prepared === null || $expires === null
+            || $prepared < $created || $prepared > time() || $expires !== $prepared + self::TTL_SECONDS) return;
+        $json = $row['proposal_json'] ?? null;
+        if (!is_string($json) || strlen($json) > self::MAX_PROPOSAL_BYTES
+            || !self::revision($row['proposal_sha256'] ?? null)
+            || !hash_equals($row['proposal_sha256'], hash('sha256', $json))) return;
+        $proposal = json_decode($json, true);
+        if (!is_array($proposal) || self::validatedJson($proposal, $snapshot) !== $json
+            || ManagerPreparationEligibility::input($pdo, (int)$row['conversation_id']) !== $input
+            || self::projectFor($pdo, (int)$row['conversation_id'], (int)$row['manager_id']) !== $row['project_key']) return;
+        // This nullable lookup hint is not proposal/provenance/preview freshness.
+        // A concurrent completion/edit must not replace or extend any result.
+        $q = $pdo->prepare("UPDATE manager_prepared_replies SET customer_input_revision=? WHERE job_id=? AND customer_input_revision IS NULL AND status='ready' AND context_revision=? AND instruction_revision=? AND latest_message_id=? AND proposal_sha256=? AND proposal_json=? AND expires_at=? AND created_at=? AND prepared_at=? AND conversation_id=? AND manager_id=? AND project_key=?");
+        $q->execute([$input, $row['job_id'], $row['context_revision'], $row['instruction_revision'],
+            $row['latest_message_id'], $row['proposal_sha256'], $json, $row['expires_at'], $row['created_at'], $row['prepared_at'],
+            $row['conversation_id'], $row['manager_id'], $row['project_key']]);
+    }
+
     private static function noContact(array $row, array $snapshot): bool
     {
         $json = $row['proposal_json'] ?? null;
@@ -417,4 +446,5 @@ final class ManagerPreparedReplyService
         return $date !== false && $date->format('Y-m-d H:i:s') === $value ? $date->getTimestamp() : null;
     }
 }
+
 
