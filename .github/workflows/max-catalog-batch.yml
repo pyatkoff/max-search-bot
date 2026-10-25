@@ -1,4 +1,4 @@
-name: Publish owner MAX catalogue reviewed batch
+name: Close verified owner MAX catalogue publication operation
 on:
   push:
     branches: [audit/max-catalog-batch-20261025]
@@ -15,11 +15,11 @@ jobs:
   inspect:
     if: github.ref == 'refs/heads/audit/max-catalog-batch-20261025'
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ env.EXPECTED_PRODUCTION_SHA }}
           persist-credentials: false
       - name: Verify current released production source
         env:
@@ -27,29 +27,34 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_PRODUCTION_SHA"
           test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = "$EXPECTED_PRODUCTION_SHA"
           conclusion=$(gh api "repos/pyatkoff/max-search-bot/actions/runs?head_sha=$EXPECTED_PRODUCTION_SHA&per_page=100" --jq '[.workflow_runs[] | select(.name=="Deploy production")] | max_by(.id) | .conclusion')
           test "$conclusion" = success
-      - name: Prepare reviewed encrypted batch
+      - name: Prepare bounded receipt closure
         shell: bash
         run: |
           set -euo pipefail
           umask 077
-          python3 - <<'PY'
-          import json,base64,os,hashlib,pathlib
-          rows=[('alma_cam_ranh','82f2a59190f5ea359bb9b1ee621bf25ec147a2899b3de223fdd099f3559e8b2f'),('EG_family','0e9f4fd37129e7c43c3950b76c6f7c9023ce04943d53f25826c9615c960adeed'),('phuket_five_naiyang_kata_karon','71e08af20e4692dc359381255da06ec1ac5121fba4b1d2a5e85ce7a44b83d764')]
-          envelopes=[]
-          for key,digest in rows:
-            raw=pathlib.Path('.github/traffic-publish/'+key+'.encrypted.json').read_bytes()
-            assert hashlib.sha256(raw).hexdigest()==digest
-            envelopes.append(json.loads(raw))
-          encoded=base64.b64encode(json.dumps(envelopes,separators=(',',':')).encode()).decode()
-          script=pathlib.Path('tools/direct_demand/operations/publish-channel-batch.php').read_text()
-          assert script.startswith('<?php\ndeclare(strict_types=1);\n')
-          header="<?php\ndeclare(strict_types=1);\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst ENVELOPES_BASE64='"+encoded+"';\n"
-          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-probe.php').write_text(header+script.split('<?php\ndeclare(strict_types=1);\n',1)[1])
-          PY
+          cat > "$RUNNER_TEMP/channel-probe.php" <<'PHP'
+          <?php
+          declare(strict_types=1);
+          ini_set('display_errors','0');ini_set('log_errors','0');
+          $dir='/tmp/anytour-channel-batch-20261025-v1';$f=null;
+          try{
+           if(is_link($dir)||!is_dir($dir)||is_link($dir.'/publication-receipt.json'))throw new RuntimeException();
+           $f=fopen($dir.'/publication-receipt.json','r+');if(!$f||!flock($f,LOCK_EX|LOCK_NB))throw new RuntimeException();
+           $s=json_decode(stream_get_contents($f),true,64,JSON_THROW_ON_ERROR);
+           $ids=['alma_cam_ranh'=>55,'EG_family'=>56,'phuket_five_naiyang_kata_karon'=>57];
+           if(($s['operation']??'')!=='channel-batch-20261025-v1'||($s['channel_id']??'')!=='-80492244209683'||count($s['posts']??[])!==3)throw new RuntimeException();
+           foreach($ids as $key=>$id){$p=$s['posts'][$key]??[];if(($p['state']??'')!=='verified'||(int)($p['receipt']['publication_id']??0)!==$id||empty($p['receipt']['canonical_token_resolved']))throw new RuntimeException();unset($s['posts'][$key]['upload_token']);}
+           $s['operation_closed']=true;$s['transient_upload_tokens_removed']=true;
+           if(!rewind($f)||!ftruncate($f,0))throw new RuntimeException();$raw=json_encode($s,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);if(fwrite($f,$raw)!==strlen($raw)||!fflush($f)||(function_exists('fsync')&&!fsync($f)))throw new RuntimeException();
+           $path=$dir.'/envelope-key.pem';if(is_link($path))throw new RuntimeException();if(is_file($path)&&!unlink($path))throw new RuntimeException();
+           echo json_encode(['ok'=>true,'operation'=>'channel-batch-20261025-v1','target'=>'https://max.ru/channel_anytour','operation_closed'=>true,'transient_key_removed'=>!is_file($path),'receipt_retained'=>true,'post_write_attempts'=>0,'upload_attempts'=>0,'posts'=>[]]),PHP_EOL;
+          }catch(Throwable $e){echo json_encode(['ok'=>false,'error'=>'bounded_cleanup_failed']),PHP_EOL;exit(2);}finally{if(is_resource($f)){flock($f,LOCK_UN);fclose($f);}}
+          
+          PHP
           php -l "$RUNNER_TEMP/channel-probe.php"
       - name: Prepare existing server connection
         env:
@@ -65,7 +70,7 @@ jobs:
             printf '%s' "$raw" | base64 --decode > "$RUNNER_TEMP/channel_key"
           fi
           ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
-      - name: Publish exact reviewed posts and verify canonical buttons
+      - name: Close verified receipt and remove transient encryption material
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -77,7 +82,7 @@ jobs:
           python3 - <<'PY'
           import json,os
           with open(os.environ['RUNNER_TEMP']+'/channel-probe.json')as f:d=json.load(f)
-          assert d['operation']=='channel-batch-20261025-v1' and d['target']=='https://max.ru/channel_anytour' and d['post_write_attempts']<=3 and d['upload_attempts']<=3 and len(d['posts'])<=3
+          assert d['ok'] is True and d['operation']=='channel-batch-20261025-v1' and d['operation_closed'] is True and d['transient_key_removed'] is True
           print(json.dumps(d,ensure_ascii=False,sort_keys=True))
           PY
           test "${probe_status:-0}" = 0
@@ -85,5 +90,3 @@ jobs:
         if: always()
         shell: bash
         run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-probe.php" "$RUNNER_TEMP/channel-probe.json"
-
-# Resume after exact existing-MID readback; no repeated create.
