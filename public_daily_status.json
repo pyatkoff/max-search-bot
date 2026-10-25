@@ -1,16 +1,16 @@
 {
     "ok": true,
-    "generated_at": "2026-10-25T09:37:39+00:00",
+    "generated_at": "2026-10-25T10:14:41+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 16,
-        "raw_sessions": 16,
+        "sessions": 17,
+        "raw_sessions": 17,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 16,
+            "resolved": 17,
             "unresolved": 0
         },
         "started": 12,
@@ -18,21 +18,21 @@
         "tours_opened": 7,
         "site_opened": 0,
         "post_tour_manager_cta_shown": 0,
-        "manager_requested": 14,
-        "manager_replied": 8,
+        "manager_requested": 15,
+        "manager_replied": 9,
         "customer_replied_after_manager": 3,
         "phone_received": 0,
         "manager_response": {
             "answered_in_90s": 0,
-            "answered_after_90s": 8,
+            "answered_after_90s": 9,
             "still_unanswered": 0,
-            "measured_responses": 8,
-            "avg_seconds": 29432,
+            "measured_responses": 9,
+            "avg_seconds": 26275,
             "max_seconds": 51556
         },
         "drop_points": {
             "manager_requested": 6,
-            "manager_replied": 5,
+            "manager_replied": 6,
             "customer_replied_after_manager": 3,
             "tours_opened": 1,
             "collecting_needs": 1
@@ -42,13 +42,13 @@
             "excessive_turns": 1
         },
         "calendar_day": {
-            "conversations_started": 12,
+            "conversations_started": 13,
             "needs_collected_from_started": 6,
             "tours_opened_from_started": 6,
             "site_opened": 0,
             "post_tour_manager_cta_shown": 0,
-            "manager_requested": 12,
-            "manager_replied": 7,
+            "manager_requested": 13,
+            "manager_replied": 8,
             "customer_replied_after_manager": 2
         }
     },
