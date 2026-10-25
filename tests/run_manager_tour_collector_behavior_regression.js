@@ -11,8 +11,8 @@ const observation=hotel=>({adapter:'funsun-b2b-v1',offer:{hotel,amount:'200000',
 
 // Execute the actual MV3 worker against persistent storage and a synthetic
 // canonical bridge. This verifies queue protocol, not a physical browser install.
-function worker(db,server,{popupSupported=true,now=()=>Date.now(),priceEditorSupported=true}={}){
- let listener,alarm,nonce='',current=db.target?clone(db.target):null;
+function worker(db,server,{popupSupported=true,now=()=>Date.now(),priceEditorSupported=true,allowManagerOpen=false}={}){
+ let listener,alarm,nonce='',current=db.target?clone(db.target):null;const opened=[];
  const sender=target=>({id:'fixture-extension',url:'https://app.anytoour.ru/manager/tour-selection-collector.php?conversation_id='+target.conversation_id,tab:{id:10,url:'https://app.anytoour.ru/manager/tour-selection-collector.php?conversation_id='+target.conversation_id}});
  const popup={url:'chrome-extension://fixture-extension/popup.html'},to={url:'https://b2b.fstravel.com/search_tour?FILTER=1',tab:{id:20}};
  const send=(message,from=popup)=>new Promise(resolve=>listener(message,from,resolve));
@@ -21,7 +21,7 @@ function worker(db,server,{popupSupported=true,now=()=>Date.now(),priceEditorSup
   storage:{local:{async get(keys){return Object.fromEntries(keys.filter(k=>k in db).map(k=>[k,clone(db[k])]))},async set(value){Object.assign(db,clone(value))}}},
   action:{async setBadgeText(){},...(popupSupported?{async openPopup(){}}:{})},
   alarms:{create(){},onAlarm:{addListener(fn){alarm=fn}}},
-  tabs:{async query({url}){return (Array.isArray(url)?url.some(x=>x.includes('fstravel')):url.includes('fstravel'))?[{id:20,url:to.url}]:current?[sender(current).tab]:[]},async create(){throw new Error('unexpected new tab')},async sendMessage(tab,message){
+  tabs:{async query({url}){return (Array.isArray(url)?url.some(x=>x.includes('fstravel')):url.includes('fstravel'))?[{id:20,url:to.url}]:current?[sender(current).tab]:[]},async create(options){if(!allowManagerOpen)throw new Error('unexpected new tab');opened.push(clone(options));return{id:99,...options}},async sendMessage(tab,message){
    if(tab===20)return;
    if(message.type==='bridge_reconnect'){await connect(current,false);return}
    if(message.type!=='bridge_command')throw new Error('unknown bridge message');
@@ -30,7 +30,7 @@ function worker(db,server,{popupSupported=true,now=()=>Date.now(),priceEditorSup
   }}
  };
  vm.runInNewContext(source,{chrome,crypto:webcrypto,URL,Uint8Array,Map,Set,Promise,setTimeout,clearTimeout,Date:class extends Date{static now(){return now()}}},{filename:'collector-background.js'});
- return {send,connect,enqueue:input=>send({type:'enqueue',observation:input},to),status:()=>send({type:'status'}),alarm:()=>alarm(),disconnect:()=>send({type:'bridge_event',event:{nonce,type:'disconnected'}},sender(current))};
+ return {send,connect,opened,enqueue:input=>send({type:'enqueue',observation:input},to),status:()=>send({type:'status'}),alarm:()=>alarm(),disconnect:()=>send({type:'bridge_event',event:{nonce,type:'disconnected'}},sender(current))};
 }
 function provider(){return {receipts:new Map(),calls:[],creates:0,mode:'',async receive(c){
  this.calls.push(clone(c));const hash=JSON.stringify([c.connection_id,c.observation,c.as_variant,c.manager_amount??null]),old=this.receipts.get(c.operation_id),ack=Object.hasOwn(c,'manager_amount')&&this.mode!=='legacy_amount'?{manager_amount:c.manager_amount}:{};
@@ -51,6 +51,16 @@ async function itemState(w,operation,state){await until(async()=>(await w.status
  check('installable package matches actual extension sources',true);
  const manifest=JSON.parse(fs.readFileSync(__dirname+'/../extensions/selection-collector/manifest.json','utf8'));
  check('MV3 collector has no cookie credential or arbitrary-origin permissions',manifest.manifest_version===3&&manifest.permissions.join(',')==='storage,alarms'&&manifest.host_permissions.length===4&&manifest.host_permissions.every(x=>/^https:\/\/(?:b2b\.fstravel\.com\/search_tour|agent\.anextour\.ru\/search\/tour|pro\.tourvisor\.ru\/search|app\.anytoour\.ru\/manager\/tour-selection-collector\.php)\*$/.test(x)));
+ const navDb={target:makeTarget(),items:[{operation_id:'1'.repeat(32),state:'saved',target:makeTarget(12,'b'.repeat(32)),observation:observation('Previous client')}]},navServer=provider(),nav=worker(navDb,navServer,{allowManagerOpen:true});
+ await nav.send({type:'open_manager',target:clone(navDb.target)});
+ check('collector opens the exact active selection instead of the generic inbox',nav.opened.at(-1)?.url==='https://app.anytoour.ru/manager2/?selection=11&collector_actor=7#conversation=11');
+ const oldTarget=clone(navDb.target);navDb.target=makeTarget(13,'c'.repeat(32));const beforeNav=nav.opened.length;
+ check('stale active-selection click cannot navigate to a replacement client',(await nav.send({type:'open_manager',target:oldTarget})).ok===false&&nav.opened.length===beforeNav);
+ await nav.send({type:'open_manager',operation_id:'1'.repeat(32),target:makeTarget(12,'b'.repeat(32))});
+ check('saved-row selection remains bound to its original client',nav.opened.at(-1)?.url==='https://app.anytoour.ru/manager2/?selection=12&collector_actor=7#conversation=12');
+ check('removed queue row cannot become a different selection',(await nav.send({type:'open_manager',operation_id:'2'.repeat(32),target:oldTarget})).ok===false);
+ check('TO source cannot open a client selection',(await nav.send({type:'open_manager',target:navDb.target},{url:'https://b2b.fstravel.com/search_tour',tab:{id:20}})).ok===false);
+ await nav.send({type:'open_manager'});check('unconnected legacy popup keeps the ordinary Manager2 entry',nav.opened.at(-1)?.url==='https://app.anytoour.ru/manager2/'&&navServer.creates===0&&navServer.calls.length===0);
  const db={},server=provider();let w=worker(db,server,{popupSupported:false});
  check('foreign page cannot read client identity or enqueue',(await w.send({type:'status'},{url:'https://evil.example/'})).ok===false&&(await w.send({type:'enqueue',observation:observation('x')},{url:'https://evil.example/'})).ok===false);
  check('TO content cannot read extension target',(await w.send({type:'status'},{url:'https://b2b.fstravel.com/search_tour'})).ok===false);

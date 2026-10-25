@@ -4,6 +4,10 @@ const labels={editing:'Правка перед добавлением · тур 
 const errors={source_price_changed:'В источнике другая цена. Существующая цена и ручные правки не изменены.',ambiguous_offer:'Тождество тарифа и рейсов не доказано. Можно явно добавить отдельный вариант.',manual_price_conflict:'Этот тур уже есть с другой ручной ценой. Откройте подборку в Manager2 и проверьте её. Повтор не изменил прежний тур.',connection_changed:'Подключите эту же поездку заново в Manager2.',bridge_unavailable:'Нужна открытая вкладка сборщика Manager2.',invalid_import:'Шаблон или условия источника не прошли проверку.'};
 const forms=new Map(),writes=new Map(),busy=new Set();let rendering=false,again=false;
 errors.bridge_update_required='Обновите открытую вкладку сборщика в Manager2. Эта версия ещё не подтверждает ручную цену; повторного добавления нет.';
+async function openManager(target,operation_id){
+ try{const r=await chrome.runtime.sendMessage({type:'open_manager',...(target?{target}:{}),...(operation_id?{operation_id}:{})});if(!r?.ok){$('notice').textContent='Клиент или очередь изменились. Проверьте показанную подборку и откройте её снова.';await render()}}
+ catch{$('notice').textContent='Не удалось открыть Manager2. Попробуйте ещё раз.'}
+}
 function persist(operation,draft){forms.set(operation,{...draft});const {calculator_open,...saved}=draft;const p=chrome.runtime.sendMessage({type:'edit_draft',operation_id:operation,draft:saved}).catch(()=>({ok:false}));writes.set(operation,p);void p.then(r=>{if(!r?.ok&&!busy.has(operation))$('notice').textContent='Правка пока не подтверждена. Проверьте подключение перед добавлением.'});}
 async function command(type,operation_id,extra={}){
  if(busy.has(operation_id))return;busy.add(operation_id);$('notice').textContent='';
@@ -41,6 +45,7 @@ async function render(){if(rendering){again=true;return}rendering=true;again=fal
  const s=await chrome.runtime.sendMessage({type:'status'});
  const focused=document.activeElement,focus=focused?.dataset.priceField?{operation:focused.closest('[data-operation]')?.dataset.operation,field:focused.dataset.priceField,start:focused.selectionStart,end:focused.selectionEnd}:null;
  $('target').replaceChildren();if(s.target){$('target').append(text('h2',s.target.client),text('p',s.target.channel+' · '+s.target.trip),text('p','В подборке: '+s.target.count));}else $('target').append(text('p','Подборка пока не подключена.'));
+ $('manager').textContent=s.target?'Открыть подборку':'Открыть Manager2';$('manager').onclick=()=>openManager(s.target);
  document.querySelector('main>.hint').hidden=s.items.some(x=>x.state==='editing');
  const root=$('items');root.replaceChildren();for(const item of s.items.slice().reverse().filter(x=>x.state!=='cancelled')){const box=document.createElement('article');box.className='item';box.dataset.operation=item.operation_id;const o=item.observation.offer;box.append(text('h2',o.hotel),text('p',o.date_from+' · '+o.nights+' ночей · '+o.room),text('p','Цена ТО: '+o.amount+' '+o.currency+(item.observation.adapter==='tourvisor-snapshot-v1'?' · за номер':' за весь состав')),text('p','Клиент: '+item.target.client+' · '+item.target.trip),text('p',labels[item.state]||'Требуется проверка'));if(item.manager_amount)box.append(text('p',(item.state==='saved'?'Цена в подборке: ':'Выбранная цена: ')+item.manager_amount+' '+o.currency));if(item.error){const e=text('p',errors[item.error]||'Нужна проверка подключения или предложения.');e.className='error';box.append(e)}
  const button=(label,type)=>{const b=text('button',label);b.onclick=()=>command(type,item.operation_id);box.append(b)};
@@ -49,11 +54,12 @@ async function render(){if(rendering){again=true;return}rendering=true;again=fal
  if(item.state==='editing')priceEditor(item,box);
  if(item.state==='review'&&item.error!=='manual_price_conflict')button('Добавить отдельным вариантом','variant');
  if(item.state==='blocked')button('Продолжить с новым подключением этой поездки','reconnect');
+ if(['saved','review'].includes(item.state)){const b=text('button','Открыть эту подборку');b.onclick=()=>openManager(item.target,item.operation_id);box.append(b)}
  if(item.state!=='queued'){const b=text('button',item.state==='editing'?'Отмена':item.state==='saved'?'Убрать из списка':'Убрать из очереди');b.className='secondary';b.onclick=()=>command('remove',item.operation_id);box.append(b)}
  if(busy.has(item.operation_id))for(const el of box.querySelectorAll('input,select,button'))el.disabled=true;
  root.append(box)}
  if(focus){const el=root.querySelector('[data-operation="'+focus.operation+'"] [data-price-field="'+focus.field+'"]');if(el&&!el.disabled){el.focus({preventScroll:true});if(typeof el.setSelectionRange==='function'&&Number.isInteger(focus.start))el.setSelectionRange(focus.start,focus.end)}}
  const active=new Set(s.items.filter(x=>x.needs_edit_confirmation).map(x=>x.operation_id));for(const key of forms.keys())if(!active.has(key)){forms.delete(key);writes.delete(key)}
  }catch{$('notice').textContent='Расширение временно недоступно. Очередь сохранена.'}finally{rendering=false;if(again)void render()}}
-$('manager').onclick=()=>chrome.runtime.sendMessage({type:'open_manager'});void render();chrome.storage.onChanged.addListener(()=>void render());
+void render();chrome.storage.onChanged.addListener(()=>void render());
 })();

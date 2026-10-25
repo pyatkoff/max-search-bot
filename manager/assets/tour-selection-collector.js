@@ -10,13 +10,14 @@ function controls(){$('collectorConnect').disabled=busy||!device||!target||!$('c
 function emit(type,data={}){document.dispatchEvent(new CustomEvent('anytour-collector-page',{detail:{type,nonce,...(type==='connected'?{features:{manager_price:1}}:{}),...data}}))}
 async function request(action,data={}){return ManagerHttpClient.request(action,{conversation_id:config.conversation_id,...data},config.csrf,'tour-selections-api.php')}
 function render(){
- const root=$('collectorTarget');root.replaceChildren();if(!target)return;
+ const root=$('collectorTarget'),open=$('collectorOpenSelection');root.replaceChildren();open.href='/manager2/';open.textContent='← В Manager2';if(!target)return;
  const h=document.createElement('h2');h.textContent=target.client;root.append(h);
+ open.href='/manager2/?selection='+target.conversation_id+'&collector_actor='+config.actor+'#conversation='+target.conversation_id;open.textContent='← Открыть эту подборку';
  for(const text of [target.channel+' · '+target.trip,'Диалог с '+target.started_at,(target.dates.length?'Даты в подборке: '+target.dates.join(', '):'В подборке пока нет дат — проверьте текущую поездку.'),'На сервере: '+target.count+' предложений']){const p=document.createElement('p');p.textContent=text;root.append(p)}
  controls();
 }
 async function refresh(){const token=++epoch;busy=true;controls();const r=await request('collector_get',{device_id:device});if(token!==epoch)return;busy=false;
- if(!r.ok||r.target?.actor!==config.actor){target=null;connection=null;controls();status(errors[r.error]||'Не удалось прочитать подборку.',true);emit('disconnected');return}
+ if(!r.ok||r.target?.actor!==config.actor||r.target?.conversation_id!==config.conversation_id){target=null;connection=null;render();controls();status(errors[r.error]||'Не удалось прочитать подборку.',true);emit('disconnected');return}
  target=r.target;connection=r.connection;render();
  if(connection){status('Подключено. Новые предложения сохранятся для показанного клиента.');emit('connected',{target,connection,selected:false})}
  else status(device?'Проверьте клиента и текущую поездку, затем подключите подборку.':'Откройте расширение AnyTour. Подборка ещё не подключена.');
