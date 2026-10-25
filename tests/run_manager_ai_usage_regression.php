@@ -115,4 +115,3 @@ echo 'READ_FIXTURE '.json_encode(['driver'=>$pdo->getAttribute(PDO::ATTR_DRIVER_
 usageCheck('twenty cases need no per-case SELECT growth over one case',$single['ok']&&count($single['items'])===1&&$pageReads<=$singleReads+1);
 if($baselineReads!==null)usageCheck('paired page removes at least nineteen SELECT round trips',$baselineReads-$pageReads>=19);
 echo 'TOTAL '.$passed.' | PASS '.$passed.' | FAIL 0'."\n";
-

@@ -3,6 +3,7 @@ declare(strict_types=1);
 require_once __DIR__.'/ManagerSupervisorAccessService.php';
 require_once __DIR__.'/InternalOwnerDialogueScope.php';
 require_once __DIR__.'/ManagerAiDraftFeedbackReport.php';
+require_once __DIR__.'/ManagerAiDraftService.php';
 
 /** Owner review of recorded real sends. Never generates, sends or acknowledges chat. */
 final class ManagerAiUsageService
@@ -20,6 +21,9 @@ final class ManagerAiUsageService
             $scopes=self::ownerScopes($actor);if(!$scopes)return self::error('forbidden');
             $project=$input['project_key']??'';$mode=$input['mode']??'new';$days=$input['days']??7;$changed=$input['changed_only']??false;
             if(!is_string($project)||strlen($project)>64||!in_array($mode,['new','all'],true)||!in_array($days,[7,30],true)||!is_bool($changed))return self::error('invalid_request');
+            // This stored hash versions the common instruction only, not the
+            // full context-specific prompt, hotel evidence or model profile.
+            $baseInstruction=hash('sha256',ManagerAiDraftService::instructions());
             $accessRevision=hash('sha256',json_encode($scopes,JSON_THROW_ON_ERROR));
             $filters=[$project,$mode,$days,$changed];$before=null;$end=$now->format('Y-m-d H:i:s');$since=$now->modify('-'.$days.' days')->format('Y-m-d H:i:s');
             if(($input['cursor']??null)!==null){
@@ -46,7 +50,8 @@ final class ManagerAiUsageService
                     if(!$case||($changed&&$case['recorded_text_matches_proposal']&&$case['initial_text_available']))continue;
                     $reviewed=is_string($row['reviewed_revision'])&&hash_equals($row['reviewed_revision'],$case['case_revision']);
                     if($mode==='new'&&$reviewed)continue;
-                    $case+=['display_name'=>(string)$row['display_name'],'manager_name'=>(string)$row['manager_name'],'project_key'=>$row['project_key'],
+                    $case+=['base_instruction_current'=>hash_equals($baseInstruction,$drafts[$draftId]['instruction_revision']),
+                        'display_name'=>(string)$row['display_name'],'manager_name'=>(string)$row['manager_name'],'project_key'=>$row['project_key'],
                         'channel'=>$row['channel'],'reviewed'=>$reviewed,'updated_since_review'=>$row['reviewed_revision']!==null&&!$reviewed];
                     $items[]=$case;
                     if(count($items)===self::PAGE_SIZE){$more=$more||$index<count($rows)-1;break;}
