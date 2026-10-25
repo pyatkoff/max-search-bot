@@ -10,7 +10,7 @@ concurrency:
   group: max-catalog-channel-read-20261025
   cancel-in-progress: false
 env:
-  EXPECTED_PRODUCTION_SHA: 0f90e362752af7f5d459505808a4de017b4008a1
+  EXPECTED_PRODUCTION_SHA: dd477798e06b6727b6e4cc84fa7fbb4763dc18da
 jobs:
   inspect:
     if: github.ref == 'refs/heads/audit/max-catalog-channel-20261025'
