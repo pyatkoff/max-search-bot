@@ -5,6 +5,7 @@ declare(strict_types=1);
 require_once __DIR__.'/ChannelPostRegistryService.php';
 require_once __DIR__.'/TravelDirectoryRepository.php';
 require_once __DIR__.'/ManagerAiTextRedactor.php';
+require_once __DIR__.'/ManagerHotelReferenceContext.php';
 
 /** Server-owned, bounded source evidence. No HTTP, provider calls or writes. */
 final class ManagerAiDraftReferenceContext
@@ -41,7 +42,8 @@ final class ManagerAiDraftReferenceContext
             try { $travel = self::travelRoutes($texts, time()); }
             catch (Throwable $ignored) { /* Unknown directory evidence stays unknown. */ }
         }
-        return new self(self::binding($context), ['origin_posts'=>$posts,'travel_reference'=>$travel]);
+        $hotel = ManagerHotelReferenceContext::capture($pdo, $conversation, $context);
+        return new self(self::binding($context), ['origin_posts'=>$posts,'travel_reference'=>$travel,'hotel_reference'=>$hotel]);
     }
 
     public function forContext(array $context): ?array

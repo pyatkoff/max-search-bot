@@ -92,6 +92,46 @@ closure, delivery suspension, account changes or CSRF rotation invalidate the
 result. A separate fresh `validate` precedes insertion. These are read-time checks,
 not a reservation; the existing send path remains authoritative at send time.
 
+## Accepted hotel reference
+
+`ManagerHotelReferenceContext` reads the latest retained customer activity inside
+the existing authorized read snapshot. The first supported selector is a native
+`tour_web_inquiry`: its server-written message metadata and unique canonical
+event must identify the exact immutable publication and card, with the same
+frozen public offer. A forwarded public selection can belong to another
+conversation in the same project; no donor identity or binding is projected.
+The normalized import must still name the published hotel and preserve its URL,
+observation and destination. Editable labels cannot carry another hotel's source.
+Names, URL numbers, Search3 UI IDs, anonymous views and native likes do not select
+hotel knowledge in this version. Any later customer text/action suspends the
+selector until another explicit native inquiry; manager replies do not replace it.
+This narrow first scope does not claim general hotel-name understanding.
+
+`ManagerHotelKnowledge` reads only repository-owned `knowledge/hotels/manifest.json`
+and its bounded, approved file. The initial accepted map is the observed
+Tourvisor source 9374/country1 → existing anytour1554. The common v100 acceptance
+and typed catalogue chain are retained in the manifest; no native MATCH is changed.
+The complete Family Suite group contains three declarations and three sources.
+Its whole-file SHA, record hashes, approval and namespace are checked before use.
+Unknown occupancy, the unresolved window note, operator-specific room formulas
+and `valid_at_travel=unverified` remain explicit. This is conditional published
+information, not room/tariff equivalence, future operation or price authority.
+
+Hotel evidence is budgeted last, after existing posts/routes, selection and photo
+evidence. Both the whole hotel JSON and its actual encoded text-request increment
+(including the conditional developer policy) must fit 16KiB and the existing
+196608-byte text envelope. The entire related group is admitted or withheld;
+conversation and other evidence are never shortened to make it fit. Separate
+image limits remain unchanged. The base instruction text is unchanged when no
+hotel group is admitted; the hotel's policy hash joins its captured revision.
+The same context-specific instructions are delivered to manual and prepared
+consumers. Selector, accepted evidence, policy or explicit validity changes use
+the existing stale/access fences, including lawful waiting-to-owner continuity.
+No continuously changing capture timestamp enters a revision.
+
+Tests prove controlled data admission and stale/budget behavior. They do not prove
+actual model use or a natural customer result; those remain separate acceptance.
+
 ## Knowledge and output
 
 Generalized communication procedures and approved project-specific company facts

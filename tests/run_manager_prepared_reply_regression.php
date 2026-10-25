@@ -18,7 +18,7 @@ final class PreparedReplyStatement extends PDOStatement
 
 final class PreparedReplyPdo extends PDO
 {
-    public const TABLES = ['manager_supervision_sources','manager_supervision','admin_audit_log','manager_assignments','lead_stage_history','manager_preparation_cursors','lead_tasks','manager_prepared_replies','manager_conversation_reads','messages','conversation_events','manager_group_members','conversation_sources','conversations','manager_customer_names','customers','manager_projects','managers','projects'];
+    public const TABLES = ['manager_tour_selection_publications','manager_supervision_sources','manager_supervision','admin_audit_log','manager_assignments','lead_stage_history','manager_preparation_cursors','lead_tasks','manager_prepared_replies','manager_conversation_reads','messages','conversation_events','manager_group_members','conversation_sources','conversations','manager_customer_names','customers','manager_projects','managers','projects'];
     public static bool $mysqlFixture = false;
     public bool $guard = false;
     public bool $supervisorWrites = false;
@@ -609,6 +609,7 @@ function preparedReplyRun(): void
     $writes = $pdo->cacheWrites;
     preparedReplyCheck('a different runtime project cannot enumerate or complete another project work', (ManagerPreparedReplyService::pending(20)['jobs'] ?? null) === [] && (ManagerPreparedReplyService::context($job)['ok'] ?? false) === false && (ManagerPreparedReplyService::complete($job, $snapshot['revision'], $hold)['ok'] ?? false) === false && (ManagerPreparedReplyService::prepared(101, 1, $snapshot)['prepared'] ?? false) === false && $pdo->cacheWrites === $writes);
     preparedReplyCheck('all cache operations finish without source writes or transaction leakage', $pdo->sourceWriteAttempts === 0 && !$pdo->inTransaction());
+    preparedReplyHotelRun();
     preparedReplySelectionRun();
     preparedReplyWaitingRun();
     preparedReplyCoverage();
@@ -702,6 +703,136 @@ function preparedReplyWaitingRun(): void
         $cacheBefore = $pdo->query('SELECT * FROM manager_prepared_replies')->fetchAll();
         preparedReplyCheck($case.' blocks waiting context and saving without repair', !(ManagerPreparedReplyService::context($job)['ok'] ?? false) && !(ManagerPreparedReplyService::complete($job,$waiting['revision'],$proposal)['ok'] ?? false) && $pdo->query('SELECT * FROM manager_prepared_replies')->fetchAll() === $cacheBefore && $pdo->sourceWriteAttempts === 0);
     }
+}
+
+/** Synthetic native inquiry using the canonical import/publication boundaries. */
+function preparedReplyHotelFixture(bool $waiting = false): array
+{
+    require_once dirname(__DIR__).'/services/ManagerTourSelectionPublicationDraft.php';
+    require_once dirname(__DIR__).'/services/ManagerTourSelectionImportDraft.php';
+    $pdo=preparedReplyFixture();
+    $observation=[
+        'adapter'=>'tourvisor-snapshot-v1',
+        'url'=>'https://pro.tourvisor.ru/search?ts_dosearch=1&s_form_mode=0&s_nights_from=11&s_nights_to=11&s_directflight=0&s_regular=1&x_hotel_codes=9374&s_j_date_from=29.10.2026&s_j_date_to=29.10.2026&s_adults=2&s_meal=7&s_flyfrom=1&s_country=1',
+        'observed_at'=>'2026-10-18T11:00:00Z','quote_id'=>'tv-snapshot-1234567890',
+        'keys'=>['hotel'=>'9374','meal'=>'7','departure'=>'1','country'=>'1','operator'=>'13'],
+        'offer'=>['hotel'=>'SUNRISE ARABIAN BEACH RESORT','destination'=>'Египет, Шарм-эль-Шейх','departure'=>'Москва',
+            'date_from'=>'2026-10-29','nights'=>11,'adults'=>2,'child_ages'=>[],'room'=>'Family Suite',
+            'meal'=>'AI - Все Включено','amount'=>'160000','currency'=>'RUB','stars'=>5],
+        'raw'=>['hotel'=>'SUNRISE ARABIAN BEACH RESORT 5*','destination'=>'Египет, Шарм-эль-Шейх','date'=>'29 октября',
+            'nights'=>'11 ночей','room'=>'Family Suite','meal'=>'AI - Все Включено','party'=>'2 взрослых',
+            'price'=>'160 000 РУБ','price_basis'=>'за номер','base_price'=>'144 000 РУБ','fuel_price'=>'16 000 РУБ',
+            'tariff'=>'Synthetic tariff','flight_alternatives'=>'Synthetic unselected flights','party_price_confirmation'=>'one_room_two_adults'],
+        'photos'=>array_map(static fn(int $i): string=>'https://static.tourvisor.ru/hotel_pics/verybig/1/9374-'.$i.'.jpg',[1,2,3]),
+    ];
+    $normalized=ManagerTourSelectionImportDraft::normalize($observation);
+    if ($normalized===null) throw new RuntimeException('FAIL prepared hotel source fixture');
+    $offer=$normalized['offer'];$offer['import_source']=ManagerTourSelectionImportDraft::source($normalized);
+    $publication=ManagerTourSelectionPublicationDraft::build(['title'=>'Synthetic hotel publication','intro'=>'','offers'=>[$offer]]);
+    if (empty($publication['ok'])) throw new RuntimeException('FAIL prepared hotel publication fixture');
+    unset($publication['ok']);
+    $s=$publication['offers'][0]['snapshot'];$d=$s['quoted_details'];
+    $public=['index'=>0,'hotel'=>$s['hotel'],'departure'=>$s['departure'],'date_from'=>$s['date_from'],
+        'nights'=>$s['nights'],'adults'=>$s['adults'],'children'=>count($s['child_ages']),'room'=>$s['room'],'meal'=>$s['meal'],
+        'amount'=>$s['amount'],'currency'=>$s['currency'],'rationale'=>$s['rationale'],'compromise'=>$s['compromise'],
+        'destination'=>$d['destination'],'flights'=>$d['flights'],'inclusions'=>$d['inclusions'],'constraints'=>$d['constraints'],
+        'observed_at'=>$d['observed_at'],'price_verified'=>false];
+    $publicationId=str_repeat('d',32);
+    $pdo->guard=false;
+    try {
+        // This optional table exists only in these fixtures; old captures must
+        // continue to treat absent source schema as unknown without repairing it.
+        $pdo->exec('CREATE TABLE manager_tour_selection_publications(publication_id CHAR(32) PRIMARY KEY,conversation_id INTEGER,draft_version INTEGER,draft_hash CHAR(64),created_by_manager_id INTEGER,binding_json TEXT,selection_json TEXT,created_at TEXT)');
+        $pdo->exec("INSERT INTO conversations SELECT 102,customer_id,project_key,source_id,channel,entry_channel,attribution_region,attribution_campaign,status,lead_stage_key,manager_id,started_at,last_message_at,closed_at,'PRIVATE donor chat',is_test FROM conversations WHERE id=101");
+        $pdo->prepare('INSERT INTO manager_tour_selection_publications VALUES(?,?,?,?,?,?,?,?)')->execute([
+            $publicationId,102,1,str_repeat('e',64),1,
+            json_encode(['project_key'=>'anytour','channel'=>'telegram','external_chat_id'=>'PRIVATE donor chat','external_user_id'=>'PRIVATE donor user'],JSON_THROW_ON_ERROR),
+            json_encode($publication,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),'2026-10-19 09:59:00',
+        ]);
+        $payload=['schema'=>1,'entry_key'=>str_repeat('f',64),'publication_id'=>$publicationId,'link_version'=>1,'variant'=>1,'public_offer'=>$public];
+        $pdo->prepare('INSERT INTO conversation_events VALUES(?,?,?,?,?,?)')->execute([
+            999,101,'tour_web_inquiry','customer',json_encode($payload,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR),'2026-10-19 10:01:00',
+        ]);
+        $pdo->prepare('UPDATE messages SET text=?,metadata_json=? WHERE id=2')->execute([
+            'Обращение из веб-подборки · вариант 1: '.$public['hotel'],
+            json_encode(['type'=>'tour_web_inquiry','native_event_type'=>'bot_started','publication_id'=>$publicationId,'variant'=>1,'link_version'=>1],JSON_THROW_ON_ERROR),
+        ]);
+        if ($waiting) $pdo->exec("UPDATE conversations SET manager_id=NULL,status='waiting_manager' WHERE id=101");
+    } finally { $pdo->guard=true; }
+    $snapshot=$waiting?ManagerAiDraftContextService::preparationSnapshot(101,0):preparedReplySnapshot();
+    $queued=ManagerPreparedReplyService::enqueue([preparedReplyRow($snapshot,['manager_id'=>$waiting?0:1])]);
+    if (empty($snapshot['ok'])||empty($queued['job_ids'][0])) throw new RuntimeException('FAIL prepared hotel capture and queue');
+    return [$pdo,$snapshot,$queued['job_ids'][0],$publication];
+}
+
+function preparedReplyHotelRun(): void
+{
+    [$pdo,$snapshot,$job]=preparedReplyHotelFixture();
+    $sourceBefore=preparedReplySourceState($pdo);
+    $publicationBefore=$pdo->query('SELECT * FROM manager_tour_selection_publications')->fetchAll();
+    $cacheBefore=$pdo->query('SELECT * FROM manager_prepared_replies')->fetchAll();
+    $worker=ManagerPreparedReplyService::context($job);$hotel=$worker['context']['hotel_reference']??[];
+    $manual=$snapshot['reference_context']->forContext($snapshot['context'])['hotel_reference']??[];
+    preparedReplyCheck('prepared worker receives the same exact hotel facts sources and revision as manual capture',
+        ($worker['ok']??false)&&$worker['revision']===$snapshot['revision']&&$hotel===$manual
+        &&($hotel['hotel_ref']??null)===['catalog'=>'anytour','id'=>1554]
+        &&count($hotel['facts']??[])===3&&count($hotel['sources']??[])===3);
+    preparedReplyCheck('hotel worker input is private-minimized and reading does not persist evidence or mutate the source',
+        !str_contains(json_encode($worker,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR),'PRIVATE')
+        &&preparedReplySourceState($pdo)===$sourceBefore
+        &&$pdo->query('SELECT * FROM manager_tour_selection_publications')->fetchAll()===$publicationBefore
+        &&$pdo->query('SELECT * FROM manager_prepared_replies')->fetchAll()===$cacheBefore
+        &&$pdo->sourceWriteAttempts===0&&!$pdo->inTransaction());
+    // A supplied proposal proves the cache/read boundary, not model semantics.
+    $proposal=preparedReplyProposal(['draft'=>'По опубликованной планировке в Family Suite две спальни с соединяющей дверью. Допустимый состав и условия на ваши даты нужно проверить.',
+        'next_action'=>'check_offer','reason'=>'Сохранены область категории и неизвестная применимость.','checks'=>['Уточнить допуск состава по выбранному тарифу.']]);
+    $saved=ManagerPreparedReplyService::complete($job,$snapshot['revision'],$proposal);
+    $ready=ManagerPreparedReplyService::prepared(101,1,$snapshot);
+    preparedReplyCheck('hotel-informed controlled proposal saves and reads through the ordinary eight-field cache',
+        ($saved['ok']??false)&&($ready['proposal']??null)===$proposal
+        &&preparedReplySourceState($pdo)===$sourceBefore&&$pdo->sourceWriteAttempts===0);
+    $pdo->mutate("INSERT INTO messages VALUES(3,101,'inbound','customer','Теперь другой отель','2026-10-19 10:02:00','telegram',NULL,'PRIVATE','PRIVATE')");
+    preparedReplyCheck('a new customer intent rejects the old ready hotel proposal at fresh insertion lookup',
+        !(ManagerPreparedReplyService::prepared(101,1,$snapshot)['prepared']??false)&&$pdo->sourceWriteAttempts===0);
+
+    foreach (['new_customer_intent','same_message_metadata','frozen_publication_version'] as $case) {
+        [$pdo,$snapshot,$job,$publication]=preparedReplyHotelFixture();
+        if ($case==='new_customer_intent') $pdo->mutate("INSERT INTO messages VALUES(3,101,'inbound','customer','Рассмотрим другой отель','2026-10-19 10:02:00','telegram',NULL,'PRIVATE','PRIVATE')");
+        elseif ($case==='same_message_metadata') $pdo->mutate("UPDATE messages SET metadata_json='{\"type\":\"tour_web_inquiry\",\"native_event_type\":\"bot_started\",\"publication_id\":\"".str_repeat('d',32)."\",\"variant\":2,\"link_version\":1}' WHERE id=2");
+        else {
+            $publication['title']='Changed immutable publication version';
+            $pdo->guard=false;
+            try {$pdo->prepare('UPDATE manager_tour_selection_publications SET selection_json=?')->execute([json_encode($publication,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR)]);}
+            finally {$pdo->guard=true;}
+        }
+        $current=preparedReplySnapshot();
+        preparedReplyCheck($case.' changes hotel evidence revision even when the visible message ID is unchanged',
+            ($current['ok']??false)&&$current['revision']!==$snapshot['revision']
+            &&$current['preparation_revision']!==$snapshot['preparation_revision']
+            &&($case==='new_customer_intent'||$current['latest_message_id']===$snapshot['latest_message_id']));
+        preparedReplyCheck($case.' refuses old worker context and completion without source repair',
+            (ManagerPreparedReplyService::context($job)['error']??'')==='stale_context'
+            &&(ManagerPreparedReplyService::complete($job,$snapshot['revision'],$proposal)['error']??'')==='stale_context'
+            &&$pdo->sourceWriteAttempts===0&&!$pdo->inTransaction());
+    }
+
+    [$pdo,$waiting,$job]=preparedReplyHotelFixture(true);
+    $worker=ManagerPreparedReplyService::context($job);
+    preparedReplyCheck('unassigned waiting worker can read its own accepted hotel inquiry without assigning anyone',
+        ($worker['ok']??false)&&($worker['context']['hotel_reference']['status']??'')==='available'
+        &&(int)$pdo->query('SELECT COUNT(*) FROM conversations WHERE id=101 AND manager_id IS NOT NULL')->fetchColumn()===0);
+    preparedReplyCheck('waiting hotel proposal completes through the existing owner-free preparation boundary',
+        (ManagerPreparedReplyService::complete($job,$waiting['revision'],$proposal)['ok']??false));
+    $pdo->mutate("UPDATE conversations SET manager_id=1,status='manager' WHERE id=101");
+    $taken=preparedReplySnapshot();$ready=ManagerPreparedReplyService::prepared(101,1,$taken);
+    preparedReplyCheck('lawful take preserves hotel preparation evidence while creating a fresh owner insertion revision',
+        $taken['preparation_revision']===$waiting['revision']&&$taken['revision']!==$waiting['revision']
+        &&($ready['proposal']??null)===$proposal&&$ready['revision']===$taken['revision']
+        &&$pdo->sourceWriteAttempts===0);
+    preparedReplyCheck('hotel continuity never permits the old waiting worker or old owner-free client revision',
+        !(ManagerPreparedReplyService::context($job)['ok']??false)
+        &&!(ManagerPreparedReplyService::complete($job,$waiting['revision'],$proposal)['ok']??false)
+        &&!(ManagerPreparedReplyService::prepared(101,1,$waiting)['prepared']??false));
 }
 
 function preparedReplySelectionRun(): void

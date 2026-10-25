@@ -124,6 +124,77 @@ function draftContextMessageReads(DraftContextPdo $pdo): array
     return array_values(array_filter($pdo->executed, static fn(string $sql): bool => str_contains($sql, 'FROM messages')));
 }
 
+/** Synthetic native inquiry; actual source/publication normalizers own the shape. */
+function draftHotelFixture(string $hotelId = '9374', string $hotelName = 'SUNRISE ARABIAN BEACH RESORT'): array
+{
+    require_once dirname(__DIR__).'/services/ManagerTourSelectionPublicationDraft.php';
+    require_once dirname(__DIR__).'/services/ManagerTourSelectionImportDraft.php';
+    $pdo = draftContextFixture(1);
+    $observation = [
+        'adapter'=>'tourvisor-snapshot-v1',
+        'url'=>'https://pro.tourvisor.ru/search?ts_dosearch=1&s_form_mode=0&s_nights_from=11&s_nights_to=11&s_directflight=0&s_regular=1&x_hotel_codes='.$hotelId.'&s_j_date_from=29.10.2026&s_j_date_to=29.10.2026&s_adults=2&s_meal=7&s_flyfrom=1&s_country=1',
+        'observed_at'=>'2026-10-16T11:00:00Z','quote_id'=>'tv-snapshot-1234567890',
+        'keys'=>['hotel'=>$hotelId,'meal'=>'7','departure'=>'1','country'=>'1','operator'=>'13'],
+        'offer'=>['hotel'=>$hotelName,'destination'=>'Египет, Шарм-эль-Шейх','departure'=>'Москва',
+            'date_from'=>'2026-10-29','nights'=>11,'adults'=>2,'child_ages'=>[],'room'=>'Family Suite',
+            'meal'=>'AI - Все Включено','amount'=>'160000','currency'=>'RUB','stars'=>5],
+        'raw'=>['hotel'=>$hotelName.' 5*','destination'=>'Египет, Шарм-эль-Шейх','date'=>'29 октября',
+            'nights'=>'11 ночей','room'=>'Family Suite','meal'=>'AI - Все Включено','party'=>'2 взрослых',
+            'price'=>'160 000 РУБ','price_basis'=>'за номер','base_price'=>'144 000 РУБ','fuel_price'=>'16 000 РУБ',
+            'tariff'=>'Synthetic source tariff','flight_alternatives'=>'Synthetic unselected flights','party_price_confirmation'=>'one_room_two_adults'],
+        'photos'=>array_map(static fn(int $i): string=>'https://static.tourvisor.ru/hotel_pics/verybig/1/'.$hotelId.'-'.$i.'.jpg',[1,2,3]),
+    ];
+    $normalized = ManagerTourSelectionImportDraft::normalize($observation);
+    if ($normalized === null) throw new RuntimeException('FAIL hotel fixture source normalization');
+    $offer = $normalized['offer'];
+    $offer['import_source'] = ManagerTourSelectionImportDraft::source($normalized);
+    $publication = ManagerTourSelectionPublicationDraft::build(['title'=>'Synthetic publication','intro'=>'','offers'=>[$offer]]);
+    if (empty($publication['ok'])) throw new RuntimeException('FAIL hotel fixture publication normalization');
+    unset($publication['ok']);
+    $id = str_repeat('a',32);
+    $public = draftHotelPublicOffer($publication['offers'][0]);
+    $pdo->exec("CREATE TABLE manager_tour_selection_publications(publication_id TEXT PRIMARY KEY,conversation_id INTEGER,draft_version INTEGER,draft_hash TEXT,created_by_manager_id INTEGER,binding_json TEXT,selection_json TEXT,created_at TEXT);
+INSERT INTO conversations SELECT 2,customer_id,project_key,source_id,channel,entry_channel,attribution_region,attribution_campaign,status,lead_stage_key,manager_id,started_at,last_message_at,closed_at,'PRIVATE donor chat' FROM conversations WHERE id=1;");
+    $pdo->prepare('INSERT INTO manager_tour_selection_publications VALUES(?,?,?,?,?,?,?,?)')->execute([
+        $id,2,1,str_repeat('b',64),1,json_encode(['project_key'=>'anytour','channel'=>'telegram',
+            'external_chat_id'=>'PRIVATE donor chat','external_user_id'=>'PRIVATE donor user'],JSON_THROW_ON_ERROR),
+        json_encode($publication,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),'2026-10-17 11:59:00',
+    ]);
+    $payload = ['schema'=>1,'entry_key'=>str_repeat('c',64),'publication_id'=>$id,'link_version'=>1,'variant'=>1,'public_offer'=>$public];
+    // Different ID sequences are deliberate: an event ID is never a message ID.
+    $pdo->prepare('INSERT INTO conversation_events VALUES(?,?,?,?,?,?)')->execute([
+        999,1,'tour_web_inquiry','customer',json_encode($payload,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR),'2026-10-17 12:00:00',
+    ]);
+    $pdo->prepare('UPDATE messages SET text=?,metadata_json=? WHERE id=1')->execute([
+        'Обращение из веб-подборки · вариант 1: '.$public['hotel'],
+        json_encode(['type'=>'tour_web_inquiry','native_event_type'=>'bot_started','publication_id'=>$id,'variant'=>1,'link_version'=>1],JSON_THROW_ON_ERROR),
+    ]);
+    return [$pdo,$publication,$payload];
+}
+
+/** Same explicit public terms as the share reader; private source never leaks. */
+function draftHotelPublicOffer(array $entry): array
+{
+    $s=$entry['snapshot'];$details=$s['quoted_details']??[];
+    return ['index'=>0,'hotel'=>$s['hotel'],'departure'=>$s['departure'],'date_from'=>$s['date_from'],
+        'nights'=>$s['nights'],'adults'=>$s['adults'],'children'=>count($s['child_ages']),
+        'room'=>$s['room'],'meal'=>$s['meal'],'amount'=>$s['amount'],'currency'=>$s['currency'],
+        'rationale'=>$s['rationale'],'compromise'=>$s['compromise'],'destination'=>$details['destination']??'',
+        'flights'=>$details['flights']??'','inclusions'=>$details['inclusions']??'','constraints'=>$details['constraints']??'',
+        'observed_at'=>$details['observed_at']??'','price_verified'=>false];
+}
+
+function draftHotelRewrite(DraftContextPdo $pdo,array $publication,array $payload): void
+{
+    $pdo->prepare('UPDATE manager_tour_selection_publications SET selection_json=?')->execute([json_encode($publication,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR)]);
+    $pdo->prepare('UPDATE conversation_events SET payload_json=? WHERE id=999')->execute([json_encode($payload,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR)]);
+}
+
+function draftHotelReference(array $snapshot): array
+{
+    return $snapshot['reference_context']->forContext($snapshot['context'])['hotel_reference']??[];
+}
+
 try {
     $pdo = draftContextFixture();
     $before = $pdo->query('SELECT * FROM projects')->fetchAll();
@@ -474,6 +545,80 @@ INSERT INTO catalog_countries VALUES(1,'Египет',1),(4,'Турция',1),(9
         if (is_link($restoreTarget)||is_file($restoreTarget)) unlink($restoreTarget);
         rmdir($restoreDir);
     }
+    [$pdo,$publication,$entryPayload] = draftHotelFixture();
+    $before = [];
+    foreach (['messages','conversation_events','manager_tour_selection_publications','conversations','manager_conversation_reads'] as $table) $before[$table]=$pdo->query('SELECT * FROM '.$table)->fetchAll();
+    $hotelSnapshot = draftContextCapture($pdo);
+    $hotel = draftHotelReference($hotelSnapshot);
+    draftContextCheck('current canonical native inquiry resolves the accepted typed hotel without comparing event and message IDs',
+        ($hotel['status']??'')==='available' && ($hotel['hotel_ref']??null)===['catalog'=>'anytour','id'=>1554]
+        && count($hotel['facts']??[])===3 && count($hotel['sources']??[])===3);
+    $after = [];
+    foreach (array_keys($before) as $table) $after[$table]=$pdo->query('SELECT * FROM '.$table)->fetchAll();
+    draftContextCheck('hotel capture leaves publication source, events, messages, ownership and read markers byte-exact', $before===$after);
+    $safeHotel = json_encode($hotel,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);
+    draftContextCheck('hotel evidence preserves scope and uncertainty without leaking private donor or collector identities',
+        str_contains($safeHotel,'Max Occupancy') && str_contains($safeHotel,'unverified')
+        && str_contains($safeHotel,'окн') && !str_contains($safeHotel,'PRIVATE')
+        && !str_contains($safeHotel,'tv-snapshot-') && !str_contains($safeHotel,'pro.tourvisor.ru'));
+    $hotelAgain = draftContextCapture($pdo);
+    draftContextCheck('identical hotel evidence has stable manual and preparation fingerprints',
+        $hotelAgain['revision']===$hotelSnapshot['revision']
+        && $hotelAgain['preparation_revision']===$hotelSnapshot['preparation_revision']
+        && draftHotelReference($hotelAgain)===$hotel);
+    $pdo->exec("INSERT INTO messages VALUES(2,1,'outbound','manager','Проверю условия выбранного варианта','2026-10-17 12:01:00','telegram',NULL,'PRIVATE','PRIVATE')");
+    $managerContinued = draftContextCapture($pdo);
+    draftContextCheck('manager text does not replace the latest explicit tourist hotel inquiry',
+        (draftHotelReference($managerContinued)['hotel_ref']??null)===$hotel['hotel_ref']);
+    $pdo->exec("INSERT INTO messages VALUES(3,1,'inbound','customer','Теперь давайте другой отель','2026-10-17 12:02:00','telegram',NULL,'PRIVATE','PRIVATE')");
+    $newIntent = draftContextCapture($pdo);$newHotel = draftHotelReference($newIntent);
+    draftContextCheck('later customer text suspends the old hotel and invalidates both evidence fingerprints',
+        ($newHotel['facts']??null)===[] && ($newHotel['sources']??null)===[]
+        && $newIntent['revision']!==$managerContinued['revision']
+        && $newIntent['preparation_revision']!==$managerContinued['preparation_revision']
+        && $newIntent['reference_context']->revision()!==$managerContinued['reference_context']->revision());
+
+    $hotelCases = [
+        'wrong donor project'=>static function(DraftContextPdo $db,array &$pub,array &$payload): void {$db->exec("UPDATE conversations SET project_key='other' WHERE id=2");},
+        'wrong immutable binding project'=>static function(DraftContextPdo $db,array &$pub,array &$payload): void {$db->exec("UPDATE manager_tour_selection_publications SET binding_json='{\"project_key\":\"other\"}'");},
+        'forged message metadata without canonical event'=>static function(DraftContextPdo $db,array &$pub,array &$payload): void {$db->exec('DELETE FROM conversation_events');},
+        'different frozen public offer'=>static function(DraftContextPdo $db,array &$pub,array &$payload): void {$payload['public_offer']['room']='Different room';draftHotelRewrite($db,$pub,$payload);},
+        'edited hotel with retained source provenance'=>static function(DraftContextPdo $db,array &$pub,array &$payload): void {$pub['offers'][0]['snapshot']['hotel']='Different hotel 5★';$payload['public_offer']=draftHotelPublicOffer($pub['offers'][0]);draftHotelRewrite($db,$pub,$payload);},
+        'changed observed time outside frozen source'=>static function(DraftContextPdo $db,array &$pub,array &$payload): void {$pub['offers'][0]['snapshot']['quoted_details']['observed_at']='2026-10-25T10:00:00Z';$payload['public_offer']=draftHotelPublicOffer($pub['offers'][0]);draftHotelRewrite($db,$pub,$payload);},
+        'missing private source observation'=>static function(DraftContextPdo $db,array &$pub,array &$payload): void {unset($pub['offers'][0]['import_source']);draftHotelRewrite($db,$pub,$payload);},
+        'wrong immutable link version'=>static function(DraftContextPdo $db,array &$pub,array &$payload): void {$payload['link_version']=2;draftHotelRewrite($db,$pub,$payload);},
+        'future canonical event'=>static function(DraftContextPdo $db,array &$pub,array &$payload): void {$db->exec("UPDATE conversation_events SET created_at='2026-10-17 12:00:01' WHERE id=999");},
+        'anonymous event does not authorize an inquiry'=>static function(DraftContextPdo $db,array &$pub,array &$payload): void {$db->exec("UPDATE conversation_events SET event_type='hotel_view' WHERE id=999");},
+    ];
+    foreach ($hotelCases as $case=>$mutate) {
+        [$pdo,$publication,$entryPayload] = draftHotelFixture();
+        $mutate($pdo,$publication,$entryPayload);
+        $held = draftHotelReference(draftContextCapture($pdo));
+        draftContextCheck($case.' withholds hotel facts while preserving the authorized draft context',
+            ($held['status']??'')!=='available' && ($held['facts']??null)===[] && ($held['sources']??null)===[]);
+    }
+    [$pdo] = draftHotelFixture('9375');
+    $otherHotel = draftHotelReference(draftContextCapture($pdo));
+    draftContextCheck('an exact normalized source for another native hotel cannot borrow the accepted research binding',
+        ($otherHotel['facts']??null)===[] && ($otherHotel['sources']??null)===[]);
+    [$pdo] = draftHotelFixture('9374','SAVOY');
+    $differentProperty = draftHotelReference(draftContextCapture($pdo));
+    draftContextCheck('a self-consistent different property label cannot borrow the accepted Sunrise native key',
+        ($differentProperty['status']??'')!=='available'
+        && ($differentProperty['facts']??null)===[] && ($differentProperty['sources']??null)===[]);
+    [$pdo] = draftHotelFixture();
+    $pdo->exec("UPDATE conversation_events SET created_at='2026-10-17 11:59:59' WHERE id=999");
+    draftContextCheck('previous-second canonical event is valid independently of the message sequence',
+        (draftHotelReference(draftContextCapture($pdo))['status']??'')==='available');
+    [$pdo] = draftHotelFixture();
+    $pdo->prepare('INSERT INTO messages VALUES(?,?,?,?,?,?,?,?,?,?)')->execute([
+        2,1,'outbound','manager',str_repeat('я',40000),'2026-10-17 12:01:00','telegram',null,'PRIVATE','PRIVATE',
+    ]);
+    $omittedEntry = draftContextCapture($pdo);$held = draftHotelReference($omittedEntry);
+    draftContextCheck('an inquiry outside the retained prefix cannot activate hotel evidence from hidden history',
+        $omittedEntry['history_incomplete'] && draftContextIds($omittedEntry)===[2]
+        && ($held['facts']??null)===[] && ($held['sources']??null)===[]);
+
     echo 'Manager AI draft context: '.$passed." checks passed\n";
 } catch (Throwable $error) {
     fwrite(STDERR, ($error instanceof RuntimeException && str_starts_with($error->getMessage(),'FAIL ') ? $error->getMessage() : 'FAIL synthetic context fixture')."\n");
