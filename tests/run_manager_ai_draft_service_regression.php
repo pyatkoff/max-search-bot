@@ -656,6 +656,39 @@ draftCheck('metadata observer never expands the eight-field manager result',$ser
 
 $prompt=ManagerAiDraftService::instructions();
 draftCheck('actual provider receives current shared policy once',substr_count($captured[0],TourConsultationPolicy::instructions())===1 && substr_count($prompt,TourConsultationPolicy::instructions())===1);
+// Exact instruction delivery, not a claim that a model obeyed these rules.
+$pairRule='«Двое/на двоих» — исходно двое взрослых без уточнения гипотетических детей; явный ребёнок/иной состав важнее.';
+$directQuestionRule='При уточнении сразу задай существенные вопросы без пересказа и «подберу/посмотрю».';
+$usefulAnswerRule='Сохраняй полезный подтверждённый ответ; не обещай необеспеченные действия/сроки.';
+draftCheck('ordinary provider receives unqualified pair default with explicit-child exception once',substr_count($captured[0],$pairRule)===1 && substr_count($prompt,$pairRule)===1);
+draftCheck('ordinary provider receives direct necessary-question rule without empty introduction once',substr_count($captured[0],$directQuestionRule)===1 && substr_count($prompt,$directQuestionRule)===1);
+draftCheck('ordinary provider preserves useful answers and rejects unsupported promises in its instruction',substr_count($prompt,$usefulAnswerRule)===1);
+
+// Synthetic calibration inputs are transported verbatim. Injected results below
+// exercise transport/result preservation only; they do not measure model judgment.
+$consultationInputs=[
+    'unqualified_pair'=>[['id'=>103,'sender_type'=>'customer','text'=>'Хотим в Египет на двоих в декабре.']],
+    'explicit_minor'=>[['id'=>103,'sender_type'=>'customer','text'=>'На двоих: я и дочь 8 лет, хотим в Египет.']],
+    'unknown_minor_age'=>[['id'=>103,'sender_type'=>'customer','text'=>'Нас двое: я и ребёнок, хотим к морю.']],
+    'two_families'=>[['id'=>103,'sender_type'=>'customer','text'=>'Нужен отдых в Турции для двух семей.']],
+    'changed_party'=>[
+        ['id'=>101,'sender_type'=>'customer','text'=>'Сначала планировали поехать вдвоём.'],
+        ['id'=>102,'sender_type'=>'manager','text'=>'На какой период ориентируетесь?'],
+        ['id'=>103,'sender_type'=>'customer','text'=>'Теперь поедем: два взрослых и ребёнок 7 лет.'],
+    ],
+    'useful_answer_before_question'=>[['id'=>103,'sender_type'=>'customer','text'=>'В заявке я указал 14 ночей. Какую длительность вы учитываете и сколько будет стоить поездка?']],
+];
+foreach ($consultationInputs as $case=>$messages) {
+    $input=draftContext();$input['messages']=$messages;$before=$input;$seen=[];$invocations=0;
+    $expected=draftResult();$expected['draft']='На какой общий бюджет ориентируетесь?';
+    $expected['reason']='Синтетическая проверка сохранности исходных данных и результата без вызова модели.';
+    if ($case==='useful_answer_before_question') $expected['draft']='В заявке 14 ночей. Из какого города планируете вылет?';
+    $actual=ManagerAiDraftService::generate($input,static function(string $instructions,array $payload)use(&$seen,&$invocations,$expected):array {
+        ++$invocations;$seen=[$instructions,$payload];return $expected;
+    });
+    draftCheck($case.' source and injected result survive canonical provider transport unchanged',
+        $invocations===1 && $input===$before && ($seen[1]['messages']??null)===$messages && $actual===$expected);
+}
 draftCheck('date correction retains known city, party and budget rather than restarting intake',
     str_contains($prompt,'Поправка даты, месяца или сезона в продолжающемся подборе заменяет период')
     && str_contains($prompt,'Не спрашивай город заново только из-за перехода с мая на март')
@@ -688,3 +721,4 @@ draftCheck('transport refuses incomplete cURL option configuration',str_contains
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);
+
