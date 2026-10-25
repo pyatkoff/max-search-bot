@@ -5,7 +5,9 @@ preserve all available observations while keeping export cutoffs configurable.
 Telegram and MAX collection, conversations and Yandex integrations live on
 different servers. This slice supplies the private receiving store, page contract
 and manual-journal reader. It does not activate an HTTP endpoint, background import,
-prediction, Metrika goal or advertising strategy.
+prediction, Metrika goal or advertising strategy. The opt-in private HTTPS
+delivery below reuses this receiver; it stays off until explicitly provisioned
+and enabled after source installation.
 
 ## Confirmed source boundary
 
@@ -84,7 +86,10 @@ payloads, private IDs, SQL, credentials or source JSON. HTTP execution returns40
 ## Mini App manual journal
 
 Capture package `anytour-tgmini-20261025-1` is based on the supplied files;
-installed bytes and a live pass are still unverified. It writes
+its complete installed bytes are not independently audited. On25October the
+owner's real passage and an independent readiness GET confirmed a fresh
+verified Telegram identity with nonempty ClientID and YCLID
+([receipt1137/6403369948](https://github.com/pyatkoff/max-search-bot/pull/1137#issuecomment-6403369948)). It writes
 `entries-v1.jsonl` outside the document root before invitation/subscription.
 Its envelope has exactly `schema_version`, the four scope fields and
 `observation`, following the row contract above. A source cursor is the row's
@@ -114,9 +119,77 @@ transaction. Concurrent importers cannot append stale overlapping pages.
 Copy the journal through an authenticated access-controlled channel into private
 storage and preserve mode 0600. This CLI does not authenticate a sender: a local
 JSON assertion alone cannot prove that Telegram verified an identity. There is
-no public feed, automatic copy, cron, source credential/config change, goal
-emission or bot-handler wiring here. Manual PHP upload and real
-Telegram/Bitrix/writability checks remain pending.
+no unauthenticated feed, goal emission or bot-handler wiring here. The source
+capture/writability passage is confirmed as above; central receipt of the same
+source data and private delivery acceptance remain separate checks.
+
+## Opt-in authenticated source delivery
+
+`AdvertisingVisitTransport` reads exactly
+`https://tg.rhat.ru/tgmini/tgmini_identity_feed.php`, AnyTour/tgmini/telegram/
+98615635. It has no caller-supplied URL, redirect, HTTP or certificate bypass.
+The transport does not use `1.txt`, Bitrix, another brand's feed or an old
+latest-ClientID cache. A wrong-counter journal fails closed; separate mixed
+counter history before using this fixed feed. No row is silently discarded.
+
+`key-init` creates independent Ed25519 signing and X25519 response-encryption
+secrets in `max-search-bot-advertising-transport/receiver.json`, beside and
+outside the application document root (0700directory/0600file). A retry reuses
+the keys; no rotation or existing secret/config edit is performed. Only the
+public keys/fingerprint leave the receiver. The source package contains those
+public keys, never a shared bearer or either private secret.
+
+The exact body (at most2048bytes) is domain-separated and signed. The source
+authenticates it before opening a journal, checks project/platform/counter,
+timestamp(-120/+60seconds), nonce and anchored checkpoint, then reads one
+existing locked100-row page. The response is a sodium sealed box addressed to
+the separate receiver key. Inside it are the exact request digest and source
+time. Receiver limits400000wire bytes, validates the binding and complete
+original page contract, and commits through `AdvertisingVisitImportService`.
+The source never deletes or advances its history. Replayed signed read requests
+have no acknowledgement side effect and cannot expose plaintext to a holder
+of the request; response nonces/digests prevent substituting an earlier reply.
+HTTPS authenticates the fixed source host; sealed-box encryption alone is not
+sender authentication.
+
+Build and installation are explicit:
+
+1. Run `php tools/advertising_visit_transport.php key-init` on the installed
+   receiver. Keep its private file there. `public-keys` returns only public data.
+2. Build with `python3 tools/build_tgmini_feed.py --request-public-key=HEX64
+   --response-public-key=HEX64 --output=/private/upload/tgmini`.
+3. Back up the current source capture helper outside the public site. Upload
+   only `tgmini_identity_capture.php` and `tgmini_identity_feed.php` into the
+   existing `/tgmini/`. `index.php`, `save.php`, webhook, private journal and
+   status script stay in place. The helper's path-only method reuses its exact
+   storage owner; capture format and redirect remain unchanged. Source code is
+   packaged for PHP7.4+ with private-namespace compatibility helpers. The
+   capture-helper build becomes `anytour-tgmini-20261026-2`.
+4. Run `php tools/advertising_visit_transport.php once` for one authenticated
+   page import. Its output contains counts/cursor only. This does not enable a
+   recurring reader. `enable` accepts and commits one page before atomically
+   enabling the worker. Failed auth/HTTP/TLS/page validation never enables it.
+5. `status` returns readiness and aggregate last-success telemetry. `disable`
+   removes only the enable receipt; all keys, source history and DB observations
+   remain intact. Subsequent `enable` resumes the DB checkpoint.
+
+No new scheduler is installed. The existing five-minute `cron_metrika.php`
+registers an isolated shutdown worker after its normal uploader finishes,
+including an empty-queue exit. Unconfigured/disabled is a no-op with no network
+or DB access. Once enabled, one page per tick is serialized by a private local
+lock and the existing DB cursor transaction. Failure is reported as an aggregate
+private diagnostic; the uploader result and goal semantics stay unchanged.
+Source calls are bounded to2seconds connect/4seconds total. A lost reply,
+source restart or lock conflict leaves the committed cursor unchanged for retry.
+
+The CLI is HTTP-inaccessible. Private telemetry never includes customer/native
+IDs, ClientID/YCLID, raw initData, request signatures, source lines or key data.
+Importing an entry does not emit any conversion or select an attribution winner.
+Source upload, first actual row receipt and recurring delivery acceptance must
+each be recorded separately from local tests, required CI and installed code.
+
+Protocol primitives: [sodium signatures](https://www.php.net/manual/en/function.sodium-crypto-sign-detached.php)
+and [sealed boxes](https://www.php.net/manual/en/function.sodium-crypto-box-seal.php).
 
 ## Telegram signals before source installation
 

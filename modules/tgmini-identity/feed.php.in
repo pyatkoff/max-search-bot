@@ -1,0 +1,22 @@
+// Generated with the installed receiver's PUBLIC keys. No source/receiver private key here.
+$scope=['project_key'=>'anytour','source_key'=>'tgmini','platform'=>'telegram','counter_id'=>'98615635'];
+$signPublic=hex2bin('__REQUEST_PUBLIC_KEY__');
+$boxPublic=hex2bin('__RESPONSE_PUBLIC_KEY__');
+try {
+    if (($_SERVER['REQUEST_METHOD']??'')!=='POST' || ($_SERVER['QUERY_STRING']??'')!=='') throw new \RuntimeException('denied');
+    $raw=file_get_contents('php://input',false,null,0,AdvertisingVisitFeedProtocol::MAX_REQUEST+1);
+    if (!is_string($raw)) throw new \RuntimeException('denied');
+    $request=AdvertisingVisitFeedProtocol::authenticate($raw,(string)($_SERVER['HTTP_X_ANYTOUR_SIGNATURE']??''),$signPublic,$scope,time());
+} catch (\Throwable $ignored) {
+    http_response_code(404);header('Cache-Control: no-store');exit;
+}
+try {
+    require_once __DIR__.'/tgmini_identity_capture.php';
+    $capture=new \TgminiIdentityCapture();
+    $read=AdvertisingVisitJournalReader::read($capture->privateJournalPathForTransfer(),$scope,$request['checkpoint'],time());
+    $wire=AdvertisingVisitFeedProtocol::seal($raw,$read,$boxPublic,time());
+    header('Content-Type: application/octet-stream');header('Cache-Control: no-store');header('X-Content-Type-Options: nosniff');
+    echo $wire;
+} catch (\Throwable $ignored) {
+    http_response_code(503);header('Cache-Control: no-store');
+}
