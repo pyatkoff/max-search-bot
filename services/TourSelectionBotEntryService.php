@@ -62,6 +62,12 @@ final class TourSelectionBotEntryService
         try {
             $search=($entry['origin']??'')==='search3';
             if ($search&&!Search3TourHandoffService::lockProject($pdo)) {$pdo->rollBack();return ['ok'=>false,'error'=>'unavailable'];}
+            // Same lock order as canonical manager writes: account before
+            // conversations. The identity is private server-resolved context.
+            if(!$search&&!empty($entry['contact_manager_id'])) {
+                $suffix=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?' FOR UPDATE':'';
+                $q=$pdo->prepare('SELECT id FROM managers WHERE id=?'.$suffix);$q->execute([$entry['contact_manager_id']]);
+            }
             $ids=array_unique(array_filter([(int)($entry['conversation_id']??0),(int)$target['id']]));sort($ids,SORT_NUMERIC);
             $suffix=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?' FOR UPDATE':'';
             foreach ($ids as $id) {$q=$pdo->prepare('SELECT id FROM conversations WHERE id=?'.$suffix);$q->execute([$id]);}
@@ -70,6 +76,7 @@ final class TourSelectionBotEntryService
             $method=$search?'searchInquiryInTransaction':'webInquiryInTransaction';
             $result=TourChoiceService::$method($pdo,(int)$actual['id'],(string)$in['user']['external_user_id'],hash('sha256',$payload),$fresh);
             if (!$result['ok']) {$pdo->rollBack();return $result;}
+            $referral=$search?null:ManagerConversationService::assignSelectionReferralInTransaction((int)$actual['id'],(int)$fresh['conversation_id'],(int)$fresh['contact_manager_id']);
             if ($result['changed']) {
                 // A labelled projection of the verified native action, not a
                 // fabricated literal message or a native callback/delivery.
@@ -77,14 +84,19 @@ final class TourSelectionBotEntryService
                 $now=gmdate('Y-m-d H:i:s');
                 $metadata=$search?['type'=>'tour_search_inquiry','native_event_type'=>$in['type'],'handoff_id'=>$fresh['handoff_id']]
                     :['type'=>'tour_web_inquiry','native_event_type'=>$in['type'],'publication_id'=>$fresh['publication_id'],'variant'=>$fresh['card']+1,'link_version'=>$fresh['version']];
+                $assignmentNotice='';
+                if(!$search&&!in_array($referral['state'],['assigned','same_manager'],true)) {
+                    $metadata['selection_manager_assignment']=$referral['state'];
+                    $assignmentNotice=' · Назначение менеджеру подборки требует проверки.';
+                }
                 $label=$search?'Обращение из поиска: ':'Обращение из веб-подборки · вариант '.($fresh['card']+1).': ';
                 $q=$pdo->prepare('INSERT INTO messages(conversation_id,direction,sender_type,sender_id,channel,external_message_id,text,metadata_json,created_at) VALUES(?,?,?,?,?,?,?,?,?)');
                 $q->execute([$actual['id'],'inbound','customer',(string)$in['user']['external_user_id'],$in['platform'],null,
-                    $label.$fresh['public_offer']['hotel'],
+                    $label.$fresh['public_offer']['hotel'].$assignmentNotice,
                     json_encode($metadata,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR),$now]);
                 $q=$pdo->prepare('UPDATE conversations SET last_message_at=? WHERE id=?');$q->execute([$now,$actual['id']]);
             }
-            $pdo->commit();return $result+['previous_status'=>$actual['status'],'public_offer'=>$fresh['public_offer']];
+            $pdo->commit();return $result+['previous_status'=>$actual['status'],'public_offer'=>$fresh['public_offer']]+($search?[]:['selection_manager'=>$referral]);
         } catch (Throwable $e) {if ($pdo->inTransaction()) $pdo->rollBack();throw $e;}
     }
 
@@ -139,10 +151,11 @@ final class TourSelectionBotEntryService
             $handoffResult=ManagerHandoffDispatchService::dispatch($chat,$platform,'',false,null,true);
             if (empty($handoffResult['queue_applied'])) throw new RuntimeException('selection_entry_handoff_pending');
         }
-        if (!empty($result['changed']) && in_array($result['previous_status'],['waiting_manager','manager'],true)) {
+        $assigned=!empty($result['selection_manager']['assigned']);
+        if ((!empty($result['changed']) && in_array($result['previous_status'],['waiting_manager','manager'],true))||$assigned) {
             $text='Обращение по варианту «'.htmlspecialchars($result['public_offer']['hotel'],ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8').'» сохранено. Менеджер увидит показанные условия.';
             // Durable inquiry is the once intent; unknown feedback is not replayed.
-            try {if ($feedback) $feedback($in,$text);else IntegrationRegistry::messenger()->send($chat,$text);} catch (Throwable $ignored) {}
+            if(!empty($result['changed']))try {if ($feedback) $feedback($in,$text);else IntegrationRegistry::messenger()->send($chat,$text);} catch (Throwable $ignored) {}
             try {ManagerPushService::notifyConversation((int)$result['conversation_id'],str_starts_with($payload,'s3_')?'Обращение из поиска':'Обращение по веб-подборке');} catch (Throwable $ignored) {}
         }
         return true;

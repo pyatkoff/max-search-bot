@@ -345,6 +345,40 @@ class ManagerConversationService
         return self::takeResult($conversationId,$managerId)['ok'];
     }
 
+    /**
+     * PHP-only referral from a verified shared-selection bot entry. The caller
+     * owns its transaction and locks the source/target conversations in ID order.
+     * This is an assignment, not a manager's manual take or a routing-policy edit.
+     */
+    public static function assignSelectionReferralInTransaction(int $conversationId,int $originId,int $managerId): array
+    {
+        $pdo=ConversationDb::connection();
+        if(!$pdo->inTransaction())throw new LogicException('Selection referral requires the inquiry transaction');
+        if($conversationId<=0||$originId<=0||$managerId<=0)return ['state'=>'unavailable','assigned'=>false];
+        $q=$pdo->prepare('SELECT id,project_key,source_id,status,manager_id FROM conversations WHERE id IN (?,?)');
+        $q->execute([$originId,$conversationId]);$rows=[];
+        foreach($q->fetchAll(PDO::FETCH_ASSOC) as $row)$rows[(int)$row['id']]=$row;
+        $target=$rows[$conversationId]??null;$origin=$rows[$originId]??null;
+        if(!$target||!$origin||$target['project_key']!==$origin['project_key']
+            ||!in_array($target['status'],['ai','waiting_manager','manager'],true))return ['state'=>'unavailable','assigned'=>false];
+        if(!empty($origin['manager_id'])&&(int)$origin['manager_id']!==$managerId)return ['state'=>'state_changed','assigned'=>false];
+        if(!empty($target['manager_id']))return ['state'=>(int)$target['manager_id']===$managerId&&$target['status']==='manager'?'same_manager':'existing_owner','assigned'=>false];
+        if($conversationId===$originId)return ['state'=>'unavailable','assigned'=>false];
+        $manager=ManagerAuthService::byId($managerId);
+        // A dedicated referral is independent of a shift. Evaluate the normal
+        // source/project visibility of the resulting assigned conversation;
+        // never enable a shift, bypass source access or widen a supervisor read.
+        $assigned=$target;$assigned['status']='manager';$assigned['manager_id']=$managerId;
+        if(!$manager||!ManagerConversationAccessPolicy::canView($managerId,$origin)
+            ||!ManagerConversationAccessPolicy::canView($managerId,$assigned))return ['state'=>'unavailable','assigned'=>false];
+        $q=$pdo->prepare("UPDATE conversations SET status='manager',manager_id=? WHERE id=? AND manager_id IS NULL AND status IN ('ai','waiting_manager')");
+        $q->execute([$managerId,$conversationId]);
+        if($q->rowCount()!==1)return ['state'=>'state_changed','assigned'=>false];
+        $pdo->prepare('INSERT INTO manager_assignments(conversation_id,manager_id,assignment_type) VALUES(?,?,?)')->execute([$conversationId,$managerId,'selection_referral']);
+        ConversationControlService::event($conversationId,'manager_selection_referral','system',null,['manager_id'=>$managerId]);
+        return ['state'=>'assigned','assigned'=>true];
+    }
+
     /** Explicit UNKNOWN check: current technical state, not an operation receipt. */
     public static function lifecycleState(int $conversationId,int $managerId): ?array
     {
