@@ -87,7 +87,9 @@ jobs:
             if($read<5)usleep(700000);
            }
            check($verified,'unique_button_not_verified');
-           $url=(string)($snapshot['post_url']??'');check($url!=='','public_post_url_missing');
+           // MAX returns public-slug URLs for this verified owner-selected channel.
+           // Read from the same provider response whose recipient and body were verified above.
+           $url=(string)($r['data']['url']??'');check(preg_match('/\Ahttps:\/\/max\.ru\/channel_anytour\/[A-Za-z0-9_-]{1,100}\z/',$url)===1,'public_post_url_missing');
            $receipt=['key'=>$key,'message_id'=>$mid,'post_url'=>$url,'publication_id'=>(int)$current['publication_id'],'version_id'=>(int)$current['version_id'],'button_url'=>$button,'button_verified'=>true];$out['posts'][]=$receipt;return $receipt;
           }
           $fh=null;
