@@ -15,7 +15,12 @@ maiCheck('idempotent result exits before assignment insert',preg_match("/if\(\(s
 maiCheck('reassign serializes on canonical conversation row',preg_match('/function reassign.*?accessibleConversation\(\$conversationId,\$adminId,true\)/s',$service)===1);
 maiCheck('reassign releases prior active assignment before insert',preg_match('/UPDATE manager_assignments SET released_at=NOW\(\).*?INSERT INTO manager_assignments.*?admin_reassign/s',$service)===1);
 maiCheck('reopen serializes on canonical conversation row',preg_match('/function reopen.*?accessibleConversation\(\$conversationId,\$managerId,true\)/s',$service)===1);
-maiCheck('manager assignment writes remain centralized in conversation owner',substr_count($service,'INSERT INTO manager_assignments')===3);
+$foreignAssignmentWriter=false;
+foreach(glob(__DIR__.'/../services/*.php') as $path){
+    if(basename($path)==='ManagerConversationService.php')continue;
+    if(str_contains((string)file_get_contents($path),'INSERT INTO manager_assignments'))$foreignAssignmentWriter=true;
+}
+maiCheck('manager assignment writes remain centralized in conversation owner',substr_count($service,'INSERT INTO manager_assignments')===4&&!$foreignAssignmentWriter);
 maiCheck('legacy migration releases assignments inconsistent with canonical conversation state',strpos($migration,"c.status<>'manager' OR c.manager_id IS NULL OR a.manager_id<>c.manager_id")!==false);
 maiCheck('legacy migration deduplicates remaining active rows',strpos($migration,'HAVING COUNT(*)>1')!==false && strpos($migration,'a.id<>duplicates.keep_id')!==false);
 maiCheck('repair migration re-applies canonical-state cleanup',strpos($repairMigration,"c.status<>'manager' OR c.manager_id IS NULL OR a.manager_id<>c.manager_id")!==false);

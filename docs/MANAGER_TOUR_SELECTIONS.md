@@ -1,5 +1,17 @@
 # Manager2 tour selection constructor
 
+## Forwarded visitors return to the selection manager
+
+Owner clarification25Oct: verified Telegram/MAX entry from a shared selection
+creates the visitor's own dialogue and routes a new unassigned visitor to the same
+responsible selection manager. The URL identifies the immutable public variant,
+not the visitor. Source-client history/contact are never copied. The canonical
+assignment owner commits assignment/history together with the exact inquiry;
+repeat entry reuses both. Ordinary source/project permissions and operator shifts
+remain intact. Existing foreign ownership and unavailable manager access are
+explicit staff-facing exceptions, never silent reassignment or a false same-manager
+success. See `TOUR_CHOICES.md` for the transaction and recovery contract.
+
 ## ANEX search and result controls (0.6.3)
 
 The existing adapter now tracks native ANEX form submissions. After a condition
