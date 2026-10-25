@@ -49,7 +49,7 @@ try {
         $eq=$pdo->prepare('SELECT id,event_type,actor_type,payload_json,created_at FROM conversation_events WHERE conversation_id=? ORDER BY id DESC LIMIT 81');$eq->execute([(int)$c['id']]);$events=$eq->fetchAll();$eventsComplete=count($events)<=80;$events=array_reverse(array_slice($events,0,80));
         foreach ($events as &$e) {
             if (strlen((string)$e['payload_json'])>10000) {$oversize=true;break;}
-            $e=['id'=>(string)$e['id'],'kind'=>(string)$e['event_type'],'actor_type'=>(string)$e['actor_type'],'payload_json'=>(string)$e['payload_json'],'recorded_at'=>profileUtc((string)$e['created_at'],$zone)];
+            $e=['id'=>(string)$e['id'],'kind'=>(string)$e['event_type'],'actor_type'=>(string)$e['actor_type'],'payload_json'=>(string)$e['payload_json'],'stored_created_at'=>(string)$e['created_at'],'clock_basis'=>'not_asserted_mixed_application_and_database_writers'];
         }unset($e);
         if ($oversize) {$skipped['payload_oversize']++;continue;}
         $cases[]=['subject'=>['project_key'=>'anytour','platform'=>(string)$c['channel'],'customer_key'=>'customer:'.(string)$c['customer_id'],'conversation_id'=>(string)$c['id']],

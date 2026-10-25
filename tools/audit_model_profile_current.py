@@ -18,16 +18,18 @@ def run():
     if mode not in {'capture','fence'} or not re.fullmatch(r'[a-f0-9]{40}',expected): raise ValueError()
     if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9.-]{0,252}',host) or not re.fullmatch(r'[A-Za-z0-9_][A-Za-z0-9_.-]{0,63}',user): raise ValueError()
     PHASE='host_key'
-    if {v[4][0] for v in socket.getaddrinfo(host,22,type=socket.SOCK_STREAM)}!={'5.45.122.54'}: raise ValueError()
-    scan=subprocess.run(['ssh-keyscan','-T','10',host],capture_output=True,text=True,timeout=30)
+    if {v[4][0] for v in socket.getaddrinfo(host,22,type=socket.SOCK_STREAM)}!={'5.45.122.54'}: raise FixedFailure('canonical_target_changed')
     pinned=[]
-    for line in scan.stdout.splitlines():
-        p=line.split()
-        if len(p)!=3 or p[0].startswith('#'): continue
-        try: fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(p[2],validate=True)).digest()).decode().rstrip('=')
-        except ValueError: continue
-        if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0': pinned.append(line)
-    if not pinned: raise ValueError()
+    for scan_attempt in range(2):
+        scan=subprocess.run(['ssh-keyscan','-T','10',host],capture_output=True,text=True,timeout=30)
+        for line in scan.stdout.splitlines():
+            p=line.split()
+            if len(p)!=3 or p[0].startswith('#'): continue
+            try: fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(p[2],validate=True)).digest()).decode().rstrip('=')
+            except ValueError: continue
+            if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0': pinned.append(line)
+        if pinned: break
+    if not pinned: raise FixedFailure('canonical_host_pin_not_seen')
     temp=Path(os.environ['RUNNER_TEMP']);known=temp/'model_profile_hosts';known.write_text('\n'.join(pinned)+'\n');known.chmod(0o600)
     PHASE='source';php=(ROOT/'tools/audit_model_profile_current.php').read_bytes()
     if b'__CUTOFF_EPOCH__' in php: raise ValueError()
