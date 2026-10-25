@@ -38,6 +38,25 @@ This directory is the owned interface boundary for the manager product. Changes 
 - A fresh conversation switch may explicitly request `open_unread=true` on canonical detail. Eligible personal reads return `history.initial_unread_id`; owner/supervisor previews do not seek another manager's unread. If the target lacks preceding context in the latest200, the same service selects up to20 preceding and100 following actual rows plus the latest80 (at most200 total). Explicit `gap_frontier`/`gap_before_id` seed the existing bounded gap repair, without another history transport/store. Jump positions the target after the mobile conversation becomes visible, preserving context above it; refresh, same-dialogue reopening and explicit latest do not reposition the reader.
 - Authorization-only attachment, message-edit and outgoing-send reads use `visibleConversation()` without loading or marking the transcript. Opening a cached attachment, looking up edit candidates, editing an earlier manager message or attempting a send must leave newly arrived customer messages unread until the active visible conversation acknowledges their display.
 - `assets/workspace-v2-jump.js` — transcript viewport owner: follows latest messages through composer/viewport/media layout changes, preserves a visible message anchor while reading history, and exposes the explicit jump control. It never renders or fetches messages; Conversation establishes viewport intent after composing the reply controls.
+- `assets/workspace-v2-message-navigation.*` — quote-to-original navigation and
+  return anchors. The protected `message_target` read resolves the quote from its
+  stored source row in the same conversation and channel; the browser cannot
+  choose a provider identifier or a foreign conversation. An already rendered
+  original uses Jump; an older original opens a bounded context view through the
+  canonical safe message renderer. That view leaves the main transcript, media
+  DOM, single-gap history cursor, drafts and read acknowledgements unchanged.
+  Account, auth, navigation and access loss revoke pending lookups and clear the
+  secondary view. Unavailable or ambiguous originals remain explicit.
+- `ManagerClientEventService`, `client-events-api.php` and
+  `assets/workspace-v2-client-events.*` — lazy read-only client event view over
+  existing conversation events, stage/name history, notes and tasks. It owns no
+  event store or mutations. Each source has a bounded keyset read and an initial
+  high-water ID; paging never relies on OFFSET or loads every record. Notes and
+  tasks explicitly show their current contents, not a fabricated edit history.
+  Ordinary conversation visibility protects note/name data; extended supervision
+  alone does not grant it. Fresh access is checked again before returning data;
+  employee names are projected only to admins. Opening the view does not load a
+  second transcript, acknowledge messages or add a request to ordinary card load.
 - `assets/manager-time.js` — shared UTC/offset → Moscow display and Moscow deadline input boundary. Device timezone must not change Manager timestamps or entered deadlines; date-only values and server-owned business-day/urgency rules remain separate.
 - `assets/workspace-v2-lead-card.*` — structured lead information/composition owner; delegate feature-specific subviews rather than growing another monolith.
 - `assets/workspace-v2-tasks.*` — lead-task presentation and task mutation orchestration owner. It captures the source conversation for create/update/toggle/pin requests and keeps per-lead/task in-flight guards outside rerendered DOM; task persistence/business semantics remain server-owned.
@@ -102,6 +121,15 @@ transcript request behind those loaders. Card writes retain their existing sessi
 lock; no shared auth, session-cookie or mutation owner is changed. The actual HTTP
 concurrency regression uses isolated sessions and synthetic secondary loaders;
 its timings establish this causal lock boundary, not production response times.
+
+Read-only Inbox list and queue-count projections also release the PHP session
+lock after authentication, CSRF and captured request identity. Their canonical
+loaders keep fresh data-access checks and perform no session writes. The same
+actual HTTP regression holds each projection open while a same-session request
+completes; write actions retain their existing serialization. This is a session
+concurrency boundary, not evidence that database queries or production p95 are
+faster. Inbox viewport restoration, like Jump, skips an unchanged scrollTop
+assignment so retained list renders do not unnecessarily interrupt native scroll.
 
 ## Refactor sequence
 

@@ -46,6 +46,10 @@ if($action==='save_close_reason'){ManagerHttp::requireAdmin($m);$r=SalesPipeline
 if($action==='list'){
     $queue=(string)($data['queue']??'waiting');
     $managerFilter=$isAdmin?(string)($data['manager_filter']??''):'';
+    // Identity, CSRF and request filters are captured above. The read-only
+    // loaders perform their own fresh visibility checks without session writes.
+    // A slow Inbox read must not serialize transcript or reply requests.
+    session_write_close();
     $rows=ManagerConversationService::list((int)$m['id'],$queue,200,(string)($data['project_key']??'*'),$managerFilter,(string)($data['lead_stage_key']??''),(int)($data['lead_tag_id']??0));
     $sourceId=(int)($data['source_id']??0);
     if($sourceId===-1)$rows=array_values(array_filter($rows,static fn($r):bool=>(int)($r['source_id']??0)<=0));

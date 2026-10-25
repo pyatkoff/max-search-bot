@@ -4,7 +4,10 @@ const path=require('node:path');
 const vm=require('node:vm');
 
 class Node{
-  constructor(tag='#text',text=''){this.tag=tag;this.children=[];this.value=text;this.dataset={};}
+  constructor(tag='#text',text=''){this.tag=tag;this.children=[];this.value=text;this.dataset={};this.attributes=new Map();}
+  setAttribute(name,value){this.attributes.set(String(name),String(value));}
+  getAttribute(name){return this.attributes.get(String(name))??null;}
+  removeAttribute(name){this.attributes.delete(String(name));}
   set textContent(value){this.value=String(value);this.children=[];}
   get textContent(){return this.value+this.children.map(n=>n.textContent).join('');}
   set innerHTML(_){throw new Error('Transcript content must never enter an HTML parser');}

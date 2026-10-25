@@ -20,6 +20,36 @@ function harness(overrides = {}, result = {ok: false, http_status: 500}) {
   return {S, calls, list, status, inbox: context.window.WorkspaceV2Inbox};
 }
 
+// Synthetic layout exposes actual scroll assignments separately from the final
+// position: assigning the same value can interrupt a native browser gesture.
+function renderHarness() {
+  let top = 0;
+  const scrollWrites = [];
+  class Element {
+    constructor() { this.children=[];this.dataset={};this.className='';this.textContent='';this.parentNode=null;this.classList={toggle(){}}; }
+    setAttribute() {}
+    removeAttribute() {}
+    get firstChild() { return this.children[0] || null; }
+    get nextSibling() { return this.parentNode?.children[this.parentNode.children.indexOf(this)+1] || null; }
+    get isConnected() { return this===list || !!this.parentNode?.isConnected; }
+    get scrollHeight() { return this.children.length*40; }
+    get clientHeight() { return 80; }
+    get scrollTop() { return top=Math.max(0,Math.min(top,this.scrollHeight-this.clientHeight)); }
+    set scrollTop(value) { scrollWrites.push(value);top=Math.max(0,Math.min(value,this.scrollHeight-this.clientHeight)); }
+    getBoundingClientRect() { const y=this===list?20:20+this.parentNode.children.indexOf(this)*40-list.scrollTop;return {top:y,bottom:y+(this===list?80:40)}; }
+    querySelectorAll() { return this.children.filter(node=>node.className.startsWith('leadItem')&&node.dataset.conversationId); }
+    querySelector(selector) { return selector==='.empty'?this.children.find(node=>node.className==='empty')||null:null; }
+    contains(node) { return node===this||this.children.includes(node); }
+    insertBefore(node,before) { node.remove();const index=before?this.children.indexOf(before):this.children.length;this.children.splice(index,0,node);node.parentNode=this; }
+    remove() { if(this.parentNode){const siblings=this.parentNode.children;siblings.splice(siblings.indexOf(this),1);this.parentNode=null;} }
+  }
+  const list=new Element(),S={queue:'all',manager:{id:7,role:'manager'},authGeneration:1};
+  const document={activeElement:null,getElementById:id=>id==='inboxList'?list:null,querySelector:()=>null,createElement:()=>new Element()};
+  const window={ManagerTime:{format:()=>''},WorkspaceV2:{S,$:document.getElementById,esc:String,statusText:String}};
+  vm.runInNewContext(source,{window,document,Intl,Number,Map,Set,JSON});
+  return {list,scrollWrites,render:window.WorkspaceV2Inbox.renderList};
+}
+
 (async () => {
   for (const filter of [
     {leadSearch: 'Анна'}, {leadTaskFilter: 'overdue'}, {leadOutcomeFilter: 'won'},
@@ -63,5 +93,27 @@ function harness(overrides = {}, result = {ok: false, http_status: 500}) {
   resolve({ok: false, http_status: 500});
   await assert.rejects(filteredRequest, {message: 'inbox_list_failed'});
   assert.equal(filtered.calls.length, 0, 'changing controls does not loosen an in-flight filtered request');
+
+  const h=renderHarness(),rows=Array.from({length:10},(_,index)=>({id:index+1,display_name:'Synthetic client '+index,status:'manager'}));
+  h.render(rows,{preserveScroll:false});h.list.scrollTop=80;h.scrollWrites.length=0;
+  const retained=[...h.list.children],anchor=retained[2],anchorTop=anchor.getBoundingClientRect().top;
+  h.render(rows,{preserveScroll:true});
+  assert.deepEqual(h.list.children,retained,'unchanged rows keep their DOM identity');
+  assert.equal(h.list.scrollTop,80);
+  assert.deepEqual(h.scrollWrites,[],'an unchanged refresh must not assign even an equal scrollTop');
+  const arrived={id:99,display_name:'New synthetic client',status:'manager'};
+  h.render([arrived,...rows],{preserveScroll:true});
+  assert.equal(h.list.children[3],anchor,'a new arrival retains the reading anchor');
+  assert.equal(anchor.getBoundingClientRect().top,anchorTop,'a new arrival preserves the reading position');
+  assert.deepEqual(h.scrollWrites,[120],'a real anchor displacement still writes its correction');
+  h.scrollWrites.length=0;h.render(rows.slice(0,2),{preserveScroll:true});
+  assert.equal(h.list.scrollTop,0,'a shorter list clamps the old position to its actual scroll range');
+  assert.deepEqual(h.scrollWrites,[],'a clamped position does not need a redundant out-of-range write');
+  h.render(rows,{preserveScroll:false});h.list.scrollTop=120;h.scrollWrites.length=0;
+  h.render(rows,{preserveScroll:false});
+  assert.equal(h.list.scrollTop,0,'explicit navigation still resets the list to the start');
+  assert.deepEqual(h.scrollWrites,[0]);
+  h.scrollWrites.length=0;h.render(rows,{preserveScroll:false});
+  assert.deepEqual(h.scrollWrites,[],'explicit start is also a no-op when already at the start');
   console.log('Inbox fallback behavior passed');
 })().catch(error => { console.error(error); process.exitCode = 1; });

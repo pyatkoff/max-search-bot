@@ -290,6 +290,50 @@ class ManagerConversationService
         return$detail;
     }
 
+    /**
+     * Resolve a stored quote inside this exact visible conversation. The browser
+     * supplies the source row, never a provider ID or another conversation.
+     * A bounded context peek does not hydrate the transcript or acknowledge it.
+     */
+    public static function linkedMessageTarget(int $conversationId,int $managerId,int $sourceMessageId): ?array
+    {
+        if($conversationId<=0||$managerId<=0||$sourceMessageId<=0)throw new InvalidArgumentException('invalid_message_target');
+        $conversation=self::visibleConversation($conversationId,$managerId,true);if(!$conversation)return null;
+        $pdo=ConversationDb::connection();
+        $q=$pdo->prepare('SELECT id,channel,metadata_json FROM messages WHERE conversation_id=? AND id=? LIMIT 1');
+        $q->execute([$conversationId,$sourceMessageId]);$source=$q->fetch();
+        $result=['conversation_id'=>$conversationId,'source_message_id'=>$sourceMessageId,'available'=>false];
+        $metadata=$source?json_decode((string)($source['metadata_json']??''),true):null;
+        $link=is_array($metadata)&&is_array($metadata['linked_message']??null)?$metadata['linked_message']:[];
+        $mid=is_string($link['mid']??null)?trim($link['mid']):'';
+        if($source&&in_array($link['type']??null,['reply','forward'],true)&&strlen($mid)<=255&&preg_match('/^(?:mid\.)?[A-Za-z0-9_-]+$/D',$mid)){
+            // Provider identifiers are conversation/channel scoped. Refuse an
+            // ambiguous legacy mirror instead of picking a plausible original.
+            $q=$pdo->prepare('SELECT id,external_message_id FROM messages WHERE conversation_id=? AND channel=? AND external_message_id=? ORDER BY id LIMIT 2');
+            $q->execute([$conversationId,(string)$source['channel'],$mid]);$matches=$q->fetchAll();
+            if(count($matches)===1&&hash_equals($mid,(string)$matches[0]['external_message_id'])&&(int)$matches[0]['id']!==$sourceMessageId){
+                $target=(int)$matches[0]['id'];
+                $q=$pdo->prepare('SELECT id,direction,sender_type,text,created_at FROM messages WHERE conversation_id=? AND id<? ORDER BY id DESC LIMIT 21');
+                $q->execute([$conversationId,$target]);$prior=$q->fetchAll();
+                $q=$pdo->prepare('SELECT id,direction,sender_type,text,created_at FROM messages WHERE conversation_id=? AND id>=? ORDER BY id ASC LIMIT 22');
+                $q->execute([$conversationId,$target]);$after=$q->fetchAll();
+                if($after&&(int)$after[0]['id']===$target){
+                    $beforeLimited=count($prior)>20;$afterLimited=count($after)>21;
+                    $messages=array_merge(array_reverse(array_slice($prior,0,20)),array_slice($after,0,21));
+                    foreach($messages as &$message)if(($message['sender_type']??'')==='manager')$message['text']=html_entity_decode((string)$message['text'],ENT_QUOTES|ENT_HTML5,'UTF-8');
+                    unset($message);
+                    $result+=['target_message_id'=>$target,'messages'=>$messages,'context'=>['has_before'=>$beforeLimited,'has_after'=>$afterLimited]];
+                    $result['available']=true;
+                }
+            }
+        }
+        // Recheck every role after the reads; changed assignment/source/project
+        // cannot authorize exposing a captured context under obsolete access.
+        $fresh=self::visibleConversation($conversationId,$managerId,true);if(!$fresh)return null;
+        foreach(['manager_id','project_key','source_id','status','channel'] as $key)if($fresh[$key]!==$conversation[$key])return null;
+        return$result;
+    }
+
     private static function accessibleConversation(int $conversationId,int $managerId,bool $forUpdate=false): ?array
     {
         RoutingAccessService::ensureSchema();$sql='SELECT id,project_key,source_id,status,manager_id,external_chat_id,started_at,last_message_at FROM conversations WHERE id=? LIMIT 1'.($forUpdate?' FOR UPDATE':'');
