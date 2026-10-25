@@ -106,7 +106,7 @@ function publishOne(array $row,$lock,array &$state,ChannelPostRegistryService $r
  }
  insist($verified,'unique_button_or_content_unverified');
  $resolved=ChannelPostEntryService::resolve('max',(string)$p['start_payload'],$registry);$url=(string)($snapshot['post_url']??'');
- insist(preg_match('~\Ahttps://max\.ru/channel_anytour/[A-Za-z0-9_-]{1,100}\z/D',$url)===1,'canonical_post_url_missing');
+ insist(preg_match('~\Ahttps://max\.ru/(?:channel_anytour|c/-80492244209683)/[A-Za-z0-9_-]{1,100}\z~D',$url)===1,'canonical_post_url_missing');
  insist(is_array($resolved)&&(int)$resolved['publication_id']===(int)$p['publication_id']&&(int)$resolved['version_id']===(int)$p['version_id']&&$resolved['snapshot']['text']===$text&&($resolved['snapshot']['post_url']??'')===$url&&$resolved['source_key']==='max_anytour_msk1','canonical_entry_resolution_mismatch');
  $receipt=['key'=>$key,'post_url'=>$url,'message_id'=>$mid,'publication_id'=>(int)$p['publication_id'],'version_id'=>(int)$p['version_id'],'start_payload'=>(string)$p['start_payload'],'button_url'=>ChannelPostButtonTransport::buttonUrl($p),'text_sha256'=>$row['text_sha256'],'cover_sha256'=>$row['cover_sha256'],'photo_id'=>$state['posts'][$key]['photo_id']??null,'body_photo_button_verified'=>true,'canonical_token_resolved'=>true,'real_customer_entry_tested'=>false,'yclid_live_tested'=>false];
  $state['posts'][$key]['state']='verified';$state['posts'][$key]['receipt']=$receipt;durable($lock,$state);$out['posts'][]=$receipt;
