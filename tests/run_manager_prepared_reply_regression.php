@@ -420,6 +420,7 @@ function preparedReplyRun(): void
 {
     global $preparedReplyPassed;
     $startedWith = $preparedReplyPassed;
+    preparedReplyAutomaticFreshness();
     require_once __DIR__.'/support/manager-supervision-regression.php';
     managerSupervisorRegression();
     preparedReplyReferenceRecovery();
@@ -614,6 +615,23 @@ function preparedReplyRun(): void
     preparedReplyWaitingRun();
     preparedReplyCoverage();
     echo 'Manager prepared replies'.(PreparedReplyPdo::$mysqlFixture ? ' (MySQL)' : '').': '.($preparedReplyPassed - $startedWith)." checks passed\n";
+}
+
+/** The source message age, not today's queue capture, defines automatic work. */
+function preparedReplyAutomaticFreshness(): void
+{
+    foreach (['archive','answered','callback','start','bot_started'] as $case) {
+        $pdo=preparedReplyFixture();
+        if ($case==='archive') $pdo->mutate("UPDATE messages SET created_at='2020-01-01 00:00:00'");
+        elseif ($case==='answered') $pdo->mutate("INSERT INTO messages VALUES(3,101,'outbound','manager','Ответ уже дан','2026-10-19 10:02:00','telegram',NULL,'synthetic','synthetic')");
+        else $pdo->mutate("UPDATE messages SET metadata_json='{\"type\":\"$case\"}' WHERE id=2");
+        $before=preparedReplySourceState($pdo);
+        $pass=ManagerPreparedReplyService::collectAndEnqueue([1]);
+        preparedReplyCheck($case.' is not automatic preparation merely because it is still active',
+            ($pass['ok']??false)&&($pass['candidate_count']??-1)===0&&($pass['queue']['inserted']??-1)===0
+            &&ManagerPreparedReplyService::pending(20)['jobs']===[]&&preparedReplySourceState($pdo)===$before&&$pdo->sourceWriteAttempts===0);
+        preparedReplyCheck($case.' remains available to explicit manual AI', (preparedReplySnapshot()['ok']??false));
+    }
 }
 
 function preparedReplySelectionFixture(): array
@@ -922,3 +940,4 @@ try {
         } catch (Throwable $ignored) { fwrite(STDERR, "FAIL MySQL fixture cleanup\n"); exit(1); }
     }
 }
+
