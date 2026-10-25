@@ -3,8 +3,8 @@ const {execFileSync}=require('node:child_process');
 const fs=require('node:fs'),path=require('node:path');
 const root=path.resolve(__dirname,'../..'),origin='http://127.0.0.1:4173';
 const shell=execFileSync('php',['manager2/index.php'],{cwd:root,encoding:'utf8'});
-async function setup(page,{failSecond=false,unknown=false,unknownSecond=false,holdFirst=false,suspendedSecond=false,failedRefresh=false}={}){
- const uploads=[],errors=[],held=[];let lists=0,details=0;
+async function setup(page,{failSecond=false,unknown=false,unknownSecond=false,holdFirst=false,suspendedSecond=false,failedRefresh=false,allowTextSend=false}={}){
+ const uploads=[],texts=[],errors=[],held=[];let lists=0,details=0;
  const manager={id:7,display_name:'Мария',role:'manager',is_working:true};
  const conversation=id=>({id,customer_id:id,display_name:id===11?'Анна':'Алексей',manager_id:manager.id,status:'manager',channel:'telegram'});
  page.on('pageerror',e=>errors.push(e.message));
@@ -33,6 +33,7 @@ async function setup(page,{failSecond=false,unknown=false,unknownSecond=false,ho
    if(d.action==='counts')return reply({ok:true,counts:{mine:{count:2}}});
    if(d.action==='detail'){details++;if(failedRefresh&&details>1)return reply({ok:false,error:'temporary_failure'},503);return reply({ok:true,conversation:conversation(d.conversation_id),messages:[{id:1,sender_type:'customer',text:'Здравствуйте!',created_at:'2026-10-14 08:00:00'}]})}
    if(d.action==='edit_candidates')return reply({ok:true,messages:[],candidates:[]});
+   if(d.action==='send'&&allowTextSend){expect(d.csrf).toBe('fixture');expect(d.conversation_id).toBe(11);expect(d.operation_id).toMatch(/^[a-f0-9]{32}$/);texts.push(d);return reply({ok:true})}
    throw new Error('Unexpected API '+d.action);
   }
   if(url.pathname==='/manager/pipeline-api.php'){
@@ -49,7 +50,7 @@ async function setup(page,{failSecond=false,unknown=false,unknownSecond=false,ho
   throw new Error('Unexpected endpoint '+url.pathname);
  });
  await page.goto(origin+'/manager2/');await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);await page.locator('[data-conversation-id="11"]').click();await expect(page.locator('#composer')).toBeVisible();
- return{uploads,errors,switchManager:next=>Object.assign(manager,next),release:()=>held.shift()?.(),lists:()=>lists};
+ return{uploads,texts,errors,switchManager:next=>Object.assign(manager,next),release:()=>held.shift()?.(),lists:()=>lists};
 }
 const files=[{name:'Маршрут.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic')},{name:'Билеты.pdf',mimeType:'application/pdf',buffer:Buffer.from('%PDF synthetic')}];
 for(const width of [390,430,768,1440])for(const height of [900,420])test(`selection ${width}x${height}`,async({page,browserName})=>{
@@ -95,11 +96,38 @@ test('partial receipt clears confirmed caption and retries remaining file withou
  const s=await setup(page,{failSecond:true});await page.locator('#replyText').fill('Подпись');await page.locator('#replyFile').setInputFiles(files);await page.locator('#sendReply').click();await expect(page.locator('#replyStatus')).toContainText('Отправлено файлов: 1');await expect(page.locator('#replyText')).toHaveValue('');await expect(page.locator('.mediaSelectedItem')).toHaveCount(1);await page.locator('#sendReply').click();await expect(page.locator('#replyStatus')).toContainText('Отправлено');expect(s.uploads).toHaveLength(3);expect(s.uploads[0]).toContain('Маршрут.txt');expect(s.uploads[2]).toContain('Билеты.pdf');expect(s.uploads[2]).not.toContain('Подпись');expect(s.errors).toEqual([]);
 });
 test('unknown transport outcome cannot be repeated and explicitly pasted screenshot stays local',async({page})=>{
- const s=await setup(page,{unknown:true});await page.evaluate(async()=>{const canvas=document.createElement('canvas');canvas.width=64;canvas.height=32;canvas.getContext('2d').fillRect(0,0,64,32);const blob=await new Promise(resolve=>canvas.toBlob(resolve));const dt=new DataTransfer();dt.items.add(new File([blob],'Screenshot.png',{type:'image/png'}));document.getElementById('replyText').dispatchEvent(new ClipboardEvent('paste',{clipboardData:dt,bubbles:true,cancelable:true}))});await expect.poll(()=>page.locator('.mediaPreview img').evaluate(img=>img.naturalWidth)).toBe(64);await expect(page.locator('.mediaSelectedItem')).toHaveCount(1);expect(s.uploads).toHaveLength(0);await page.locator('#sendReply').click();await expect(page.locator('#replyStatus')).toContainText('неизвестен');await expect(page.locator('.mediaRemove')).toBeDisabled();await page.locator('#sendReply').click();expect(s.uploads).toHaveLength(1);expect(s.errors).toEqual([]);
+ const s=await setup(page,{unknown:true});await page.evaluate(async()=>{const canvas=document.createElement('canvas');canvas.width=64;canvas.height=32;canvas.getContext('2d').fillRect(0,0,64,32);const blob=await new Promise(resolve=>canvas.toBlob(resolve));const dt=new DataTransfer();dt.items.add(new File([blob],'Screenshot.png',{type:'image/png'}));document.getElementById('replyText').dispatchEvent(new ClipboardEvent('paste',{clipboardData:dt,bubbles:true,cancelable:true}))});await expect.poll(()=>page.locator('.mediaPreview img').evaluate(img=>img.naturalWidth)).toBe(64);await expect(page.locator('.mediaSelectedItem')).toHaveCount(1);expect(s.uploads).toHaveLength(0);await page.locator('#sendReply').click();await expect(page.locator('#replyStatus')).toContainText('неизвестен');await expect(page.locator('.mediaRemove')).toBeEnabled();await page.locator('#sendReply').click();expect(s.uploads).toHaveLength(1);expect(s.errors).toEqual([]);
 });
 
 test('unknown second receipt clears only the confirmed caption and blocks the remaining file',async({page})=>{
- const s=await setup(page,{unknownSecond:true});await page.locator('#replyText').fill('Подпись');await page.locator('#replyFile').setInputFiles(files);await page.locator('#sendReply').click();await expect(page.locator('#replyStatus')).toContainText('Отправлено файлов: 1');await expect(page.locator('#replyStatus')).toContainText('неизвестен');await expect(page.locator('#replyText')).toHaveValue('');await expect(page.locator('.mediaSelectedItem')).toHaveCount(1);await expect(page.locator('.mediaFileName')).toHaveText('Билеты.pdf');await expect(page.locator('.mediaRemove')).toBeDisabled();await page.locator('#sendReply').click();expect(s.uploads).toHaveLength(2);expect(s.errors).toEqual([]);
+ const s=await setup(page,{unknownSecond:true});await page.locator('#replyText').fill('Подпись');await page.locator('#replyFile').setInputFiles(files);await page.locator('#sendReply').click();await expect(page.locator('#replyStatus')).toContainText('Отправлено файлов: 1');await expect(page.locator('#replyStatus')).toContainText('неизвестен');await expect(page.locator('#replyText')).toHaveValue('');await expect(page.locator('.mediaSelectedItem')).toHaveCount(1);await expect(page.locator('.mediaFileName')).toHaveText('Билеты.pdf');await expect(page.locator('.mediaRemove')).toBeEnabled();await page.locator('#sendReply').click();expect(s.uploads).toHaveLength(2);expect(s.errors).toEqual([]);
+});
+
+for(const viewport of [{width:390,height:844},{width:430,height:844},{width:768,height:844},{width:1440,height:900},{width:390,height:420}])test(`uncertain attachment removal ${viewport.width}x${viewport.height}`,async({page,browserName})=>{
+ await page.setViewportSize(viewport);const s=await setup(page,{unknown:true,allowTextSend:true});
+ await page.locator('#replyText').fill('Первоначальная подпись');
+ await page.evaluate(()=>document.getElementById('replyFile').addEventListener('change',event=>{window.uncertainFile=event.target.files[0]},{capture:true,once:true}));
+ await page.locator('#replyFile').setInputFiles(files);await page.locator('#sendReply').click();
+ await expect(page.locator('#replyStatus')).toContainText('неизвестен');
+ await expect(page.locator('.mediaRemove').first()).toBeEnabled();
+ fs.mkdirSync('manager-media-artifacts',{recursive:true});
+ const capture=suffix=>page.screenshot({path:`manager-media-artifacts/${browserName}-${viewport.width}-${viewport.height}-uncertain-${suffix}.png`});
+ await capture('retained');await page.locator('.mediaRemove').first().click();
+ await expect(page.locator('.mediaSelectedItem')).toHaveCount(1);await expect(page.locator('.mediaFileName')).toHaveText('Билеты.pdf');
+ await expect(page.locator('.mediaSelectionHint')).toContainText('только из черновика');
+ await expect(page.locator('.mediaSelectionHint')).toContainText('подпись');
+ await expect(page.locator('.mediaSelectionHint')).toBeInViewport({ratio:1});
+ await expect(page.locator('#replyText')).toHaveValue('Первоначальная подпись');expect(s.uploads).toHaveLength(1);expect(s.texts).toHaveLength(0);
+ await capture('removed');
+ // Re-selecting the exact File must retain the same UNKNOWN fence after removal.
+ await page.evaluate(()=>WorkspaceV2Media.addFiles([window.uncertainFile]));await page.locator('#sendReply').click();
+ await expect(page.locator('#replyStatus')).toContainText('неизвестен');expect(s.uploads).toHaveLength(1);
+ await page.locator('.mediaRemove').last().click();await expect(page.locator('.mediaSelectionHint')).toBeInViewport({ratio:1});await page.locator('#replyText').fill('Новая подпись после проверки');await page.locator('#sendReply').click();
+ await expect(page.locator('.mediaSelectedItem')).toHaveCount(0);await expect(page.locator('#replyText')).toHaveValue('');
+ expect(s.uploads).toHaveLength(2);expect(s.uploads[1]).toContain('Билеты.pdf');expect(s.uploads[1]).toContain('Новая подпись после проверки');expect(s.uploads[1]).not.toContain('Маршрут.txt');
+ await page.locator('#replyText').fill('Следующий ответ');await page.locator('#sendReply').click();
+ await expect(page.locator('#replyText')).toHaveValue('');expect(s.texts).toHaveLength(1);expect(s.texts[0].text).toBe('Следующий ответ');expect(s.uploads).toHaveLength(2);expect(s.errors).toEqual([]);
+ await capture('continued');
 });
 
 test('pending attachment stops after switching client and old-account response cannot alter new files',async({page})=>{

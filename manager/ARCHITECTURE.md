@@ -44,6 +44,10 @@ This directory is the owned interface boundary for the manager product. Changes 
 - `assets/workspace-v2-stage-history.js` — sales-stage history presentation owner; stage-history persistence and semantics remain in `SalesPipelineService`.
 - `assets/workspace-v2-pipeline.*` and `workspace-v2-kanban.*` — sales pipeline editor/board UI owner. Pipeline code owns sales mutations and editor state, not inbox filters.
 - `assets/workspace-v2-media.*` — outbound media UI owner.
+- After an uncertain media response, an explicit removal affects only the local
+  draft row, never delivery or the account/conversation/file retry fence. The UI
+  warns that the file and caption may already have been sent. Removal stays
+  blocked while sending; further text/files require their ordinary explicit send.
 - `assets/workspace-v2-notifications.*` — notification UI and browser subscription activation/repair owner, shared by the workspace and authenticated `push-enable.php` shell. Native jobs keep ownership until actual settlement, independently of bounded UI waits; origin Web Locks serialize supported tabs. Without Web Locks, the pending-job guard protects one page; cross-tab native serialization is not guaranteed. A click captures the installation capability/version before permission/worker/native waits. A newly observed revocation requires another explicit click. Account-scoped operation records in local storage survive lost responses/reload and reconcile through read-only receipt lookup; they never trigger blind replay. Connection-list reads are lazy and cannot hold the Inbox/composer. The service worker displays notifications and handles navigation/sound coordination, but never persists or recreates a subscription, including old `SYNC_PUSH` messages.
 - `assets/workspace-v2-mobile.*` — mobile navigation/layout owner only; business behavior stays in feature modules.
 - `assets/manager-http-client.js` — small shared same-origin JSON transport owner for admin/routing pages; pages continue to own their CSRF/session state and business-specific error copy.
