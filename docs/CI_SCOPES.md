@@ -140,6 +140,17 @@ matrices, assertions, per-job timeouts, report/PNG gates and failed-only retry
 rules are unchanged. Image transfer and container startup still take time;
 removing package installation does not establish an end-to-end latency SLA.
 
+## Full browser workload allocation
+
+Full Chromium and WebKit coverage keeps two whole-spec parts. The transcript
+history spec belongs to part zero, alongside its existing layout/CLI and daily
+cache ownership. Accepted native reports showed substantially more case work in
+part one; moving the complete history spec balances both engines without
+splitting shared fixtures or changing the spec/case inventory. The source-bound
+registry identity changes with ownership, so the first run executes fresh full
+coverage. Exact union, report and screenshot gates remain mandatory; this is a
+workload allocation, not an end-to-end timing guarantee.
+
 ## Failed-job-only retries
 
 The successful `selection` job publishes the immutable plan artifact ID.
