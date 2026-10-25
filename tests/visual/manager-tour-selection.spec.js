@@ -922,7 +922,7 @@ for(const source of [{name:'FUNSUN',fixture:sourceFixture,script:'content.js'},{
  expect(await page.locator('body').innerText()).not.toContain('Синтетическая Анна');
 });
 test('automatic gallery source changes while photos load cannot enqueue a stale offer',async({page})=>{
- await sourceFixture(page);let release;await page.route('https://b2b.fstravel.com/hotel/10',async route=>{await new Promise(r=>release=r);await route.fulfill({contentType:'text/html',body:'<img class="slider-img" src="https://apigate-tui.fstravel.com/api/geocontent/static/Hotel/00180000-ac11-0242-6c05-08d9934f9e4b/MainPhoto-Source-test.jpg">'})});
+ await sourceFixture(page);let release;await page.route('https://b2b.fstravel.com/hotel/10',async route=>{await new Promise(r=>release=r);await route.fulfill({contentType:'text/html',body:'<h2>Синтетический отель</h2><img class="slider-img" src="https://apigate-tui.fstravel.com/api/geocontent/static/Hotel/00180000-ac11-0242-6c05-08d9934f9e4b/MainPhoto-Source-test.jpg">'})});
  await collectorSourceRuntime(page);await page.addScriptTag({path:path.join(root,'extensions/selection-collector/content.js')});await page.getByRole('button',{name:'В подборку AnyTour',exact:true}).click();await expect.poll(()=>!!release).toBe(true);
  await page.locator('.price').evaluate(e=>{e.setAttribute('data-converted-price-number','250000');e.textContent='250 000 RUB'});release();await expect(page.locator('[data-anytour-note]')).toContainText('Условия изменились');expect(await page.evaluate(()=>collectorStaged.length)).toBe(0);
 });
