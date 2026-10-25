@@ -39,6 +39,26 @@ def value(profile, field):
 
 
 class ProfileTests(unittest.TestCase):
+    def test_negated_other_seller_purchase_is_not_a_terminal_outcome(self):
+        p = extract(message("Мы не купили в другом агентстве"))
+        self.assertNotIn(p["current_stage"]["value"], tool.base.NEGATIVE)
+
+    def test_negated_trip_refusal_is_not_abandonment(self):
+        p = extract(message("Мы не от поездки отказываемся, а от этого отеля"))
+        self.assertNotIn(p["current_stage"]["value"], tool.base.NEGATIVE)
+
+    def test_negated_comparison_is_not_customer_comparison(self):
+        p = extract(message("Мы не сравниваем, просто уточняем"))
+        self.assertNotEqual(p["current_stage"]["value"], "comparing")
+
+    def test_affirmed_intent_after_negated_purchase_is_retained(self):
+        p = extract(message("Мы не купили в другом агентстве. Давайте бронировать"))
+        self.assertEqual(p["current_stage"]["value"], "booking_intent")
+
+    def test_later_affirmed_comparison_after_negated_occurrence(self):
+        p = extract(message("Мы не сравниваем цены, но сравниваем условия"))
+        self.assertEqual(p["current_stage"]["value"], "comparing")
+
     def test_total_budget_keeps_agency_default_basis(self):
         p = extract(message("Бюджет до 240 тыс. рублей, на 8 ночей"))
         b = value(p, "budget")

@@ -10,7 +10,7 @@ from datetime import date
 
 import build_conversion_observations as base
 
-VERSION = "ru_trip_prefix_rules_v1"
+VERSION = "ru_trip_prefix_rules_v1_1"
 MAX_BYTES = 2 * 1024 * 1024
 MAX_CASES = 100
 MAX_MESSAGES = 500
@@ -42,6 +42,12 @@ def text_match(pattern, text):
 
 def negated(text, start):
     return bool(text_match(r"(?:\bне|\bне надо|\bне хотим|\bне рассматриваем)\s*$", text[max(0, start-30):start]))
+
+
+def affirmed(pattern, text):
+    """A negated occurrence cannot establish a stage; another occurrence may."""
+    return next((m for m in re.finditer(pattern, text, re.I)
+                 if not negated(text, m.start())), None)
 
 
 def reference(message, span=None):
@@ -273,21 +279,21 @@ def extract_case(case, extracted):
         stage = None
         guarded = bool(text_match(r"\?|\bесли\b|\bпока не\b|\bне\s+(?:будем|готов\w*|хотим|давайте|оплатил\w*|забронировал\w*|выбираем|бер[её]м)\b", text))
         if not guarded:
-            if text_match(r"(?:купили|забронировали)\s+(?:тур\s+)?(?:в другом агентстве|у других|у другого)", text):
+            if affirmed(r"(?:купили|забронировали)\s+(?:тур\s+)?(?:в другом агентстве|у других|у другого)", text):
                 stage = "purchased_elsewhere"
-            elif text_match(r"(?:оплатили|оплатила|оплатил)\s+(?:тур\s+)?у вас", text):
+            elif affirmed(r"(?:оплатили|оплатила|оплатил)\s+(?:тур\s+)?у вас", text):
                 stage = "paid"
-            elif text_match(r"(?:забронировали|забронировал|забронировала)\s+(?:тур\s+)?у вас", text):
+            elif affirmed(r"(?:забронировали|забронировал|забронировала)\s+(?:тур\s+)?у вас", text):
                 stage = "booking_confirmed"
-            elif text_match(r"давайте\s+(?:бронировать|забронируем)|готов[ыа]?\s+бронировать|хотим\s+забронировать|^забронируйте\b", text):
+            elif affirmed(r"давайте\s+(?:бронировать|забронируем)|готов[ыа]?\s+бронировать|хотим\s+забронировать|^забронируйте\b", text):
                 stage = "booking_intent"
-            elif text_match(r"(?:выбираем|берем|берём)\s+(?:этот|первый|второй|третий)\s+(?:тур|вариант|отель)", text) and not text_match(r"\bне\s+(?:выбираем|берем|берём)", text):
+            elif affirmed(r"(?:выбираем|берем|берём)\s+(?:этот|первый|второй|третий)\s+(?:тур|вариант|отель)", text) and not affirmed(r"\bне\s+(?:выбираем|берем|берём)", text):
                 stage = "offer_selected"
-            elif text_match(r"отпуск отменили|поездку отменили|тур больше не нужен|от поездки отказываемся", text):
+            elif affirmed(r"отпуск отменили|поездку отменили|тур больше не нужен|от поездки отказываемся", text):
                 stage = "declined"
-        if stage is None and text_match(r"уже\s+(?:купили|оплатили|забронировали)", text):
+        if stage is None and affirmed(r"уже\s+(?:купили|оплатили|забронировали)", text):
             add("purchase_report", "seller_unresolved", m)
-        if stage is None and text_match(r"сравниваем|чем отличаются|какой из (?:этих|двух)", text):
+        if stage is None and affirmed(r"сравниваем|чем отличаются|какой из (?:этих|двух)", text):
             stage = "comparing"
         if stage is None and (coverage or text_match(r"\bтур\w*\b|путев\w*|путёв\w*|предложения|хотим отдых", text)):
             stage = "clarifying" if previous_manager and ("?" in previous_manager["text"]) else "request"
