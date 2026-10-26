@@ -1,0 +1,102 @@
+name: Match bounded Metrika queue event clock provenance
+on:
+  push:
+    branches: [audit/metrika-clock-provenance-20261026]
+permissions:
+  contents: read
+concurrency:
+  group: anytour-metrika-clock-provenance
+  cancel-in-progress: false
+jobs:
+  read:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pin current installed main before credentials
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin refs/heads/main
+          test "$(git rev-parse FETCH_HEAD)" = '6010fd982619ceeb3dbfa609308468a241966806'
+      - name: Prepare existing canonical SSH credential
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          key_file="$RUNNER_TEMP/deploy_key"
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          rm -f "$key_file"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key_file"; else printf '%s\n' "$raw" | tr -d '\r' > "$key_file"; fi
+          else
+            decoded="$(printf '%s' "$raw" | base64 --decode 2>/dev/null || true)"
+            [[ "$decoded" == *"PRIVATE KEY"* ]] || { echo "canonical deploy key is invalid"; exit 1; }
+            printf '%s\n' "$decoded" | tr -d '\r' > "$key_file"
+          fi
+          chmod 600 "$key_file"
+          ssh-keygen -y -f "$key_file" >/dev/null
+      - name: Read aggregate queue clock metadata only
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          cat > "$RUNNER_TEMP/read.php" <<'PHP'
+          <?php
+          declare(strict_types=1);
+          try{
+           chdir('/var/www/anytoour/data/www/app.anytoour.ru');require_once 'config.php';
+           $now=time();$paths=['queue'=>'metrika_offline_queue.csv','processing'=>'metrika_offline_processing.csv'];
+           $rows=[];$bytes=0;$count=0;$held=[];
+           foreach($paths as$kind=>$path){
+            clearstatcache(true,$path);if(is_link($path))throw new RuntimeException('unsafe');
+            if(!is_file($path))continue;
+            $f=fopen($path,'rb');if(!$f||!flock($f,LOCK_SH|LOCK_NB))throw new RuntimeException('busy');
+            $held[]=$f;$s=fstat($f);if($bytes+$s['size']>65536)throw new RuntimeException('queue_bound');
+            $raw=$s['size']?fread($f,$s['size']):'';if(strlen($raw)!==$s['size'])throw new RuntimeException('changed');$bytes+=strlen($raw);
+            $m=fopen('php://temp','r+');fwrite($m,$raw);rewind($m);$line=0;
+            while(($r=fgetcsv($m))!==false){$line++;if(++$count>100)throw new RuntimeException('row_bound');if(count($r)<3||strcasecmp(trim($r[2]),'DateTime')===0)continue;
+             $date=trim((string)$r[2]);if(!preg_match('/^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$/',$date))continue;
+             $at=strtotime($date);if(!$at)continue;
+             $rows[]=['file'=>$kind,'line'=>$line,'yclid'=>trim((string)$r[0]),'target'=>trim((string)$r[1]),'naive_at'=>$at,'future_now'=>$at>$now,'witnesses'=>[]];
+            }fclose($m);
+            $s2=fstat($f);clearstatcache(true,$path);$named=@stat($path);if(!$named||$s['ino']!==$named['ino']||$s['size']!==$named['size']||$s['mtime']!==$named['mtime']||$s!==$s2)throw new RuntimeException('changed');
+           }
+           // Fixed canonical path from DiagnosticLogger89f1b6d; no filePath() chmod/mkdir side effect.
+           $log=dirname(getcwd()).'/max-search-bot-private-logs/structured_events.log';
+           if(is_link($log)||!is_file($log))throw new RuntimeException('log_missing');
+           $f=fopen($log,'rb');if(!$f||!flock($f,LOCK_SH|LOCK_NB))throw new RuntimeException('busy');$held[]=$f;
+           $st=fstat($f);$start=max(0,$st['size']-1048576);fseek($f,$start);$raw=fread($f,min(1048576,$st['size']));if($start>0){$pos=strpos($raw,"\n");$raw=$pos===false?'':substr($raw,$pos+1);}
+           $lines=explode("\n",$raw);if(end($lines)==='')array_pop($lines);$truncated=count($lines)>2000;$lines=array_slice($lines,-2000);
+           $events=0;
+           foreach($lines as$l){
+            $v=json_decode($l,true);if(!is_array($v)||($v['component']??'')!=='metrika'||($v['event']??'')!=='goal_queued')continue;
+            if(!preg_match('/(?:Z|[+-]\\d{2}:\\d{2})$/',(string)($v['ts']??'')))continue;
+            try{$d=new DateTimeImmutable($v['ts']);}catch(Throwable $e){continue;}
+            $data=$v['data']??[];$wall=strtotime($d->format('Y-m-d H:i:s'));$events++;
+            foreach($rows as&$r){if((string)($data['yclid']??'')!==$r['yclid']||(string)($data['target']??'')!==$r['target']||abs($wall-$r['naive_at'])>2)continue;
+             $r['witnesses'][(string)$d->getTimestamp()]=['offset_seconds'=>$d->getOffset(),'original_epoch'=>$d->getTimestamp(),'queue_vs_witness_wall_seconds'=>$r['naive_at']-$wall];
+            }unset($r);
+           }
+           $after=fstat($f);clearstatcache(true,$log);$named=@stat($log);if(!$named||$st['ino']!==$named['ino']||$st['size']!==$named['size']||$st['mtime']!==$named['mtime']||$st!==$after)throw new RuntimeException('changed');
+           $result=[];
+           foreach($rows as$r){$w=array_values($r['witnesses']);$one=count($w)===1?$w[0]:null;
+            $result[]=['queue_file'=>$r['file'],'line'=>$r['line'],'future_under_cli_now'=>$r['future_now'],'witness_count'=>count($w),'unambiguous'=>!!$one,'writer_offset_seconds'=>$one['offset_seconds']??null,'witness_age_seconds'=>$one?$now-$one['original_epoch']:null,'wrong_parse_shift_seconds'=>$one?$r['naive_at']-$one['original_epoch']:null];
+           }
+           echo json_encode(['ok'=>true,'available'=>true,'observed_at_utc'=>gmdate('Y-m-d\\TH:i:s\\Z',$now),'cli_timezone'=>date_default_timezone_get(),'queue_bytes'=>$bytes,'queue_rows'=>$count,'log_tail_bytes'=>strlen($raw),'log_complete_lines'=>count($lines),'log_window_partial'=>$start>0||$truncated,'metrika_witness_events'=>$events,'rows'=>$result,'writes'=>0,'api_calls'=>0,'db_reads'=>0],JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES).PHP_EOL;
+          }catch(Throwable $e){echo json_encode(['ok'=>true,'available'=>false,'reason'=>in_array($e->getMessage(),['unsafe','busy','queue_bound','row_bound','changed','log_missing'],true)?$e->getMessage():'unavailable','automatic_retry'=>false,'writes'=>0,'api_calls'=>0]).PHP_EOL;}
+          finally{foreach($held??[]as$f){if(is_resource($f)){flock($f,LOCK_UN);fclose($f);}}}
+          
+          PHP
+          opts=(-i "$RUNNER_TEMP/deploy_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=15)
+          dir="/tmp/anytour-metrika-clock-${GITHUB_RUN_ID}"
+          ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; umask 077; mkdir '$dir'; chmod 700 '$dir'"
+          trap 'ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "rm -f \"$dir/read.php\"; rmdir \"$dir\"" >/dev/null 2>&1 || true' EXIT
+          scp "${opts[@]}" "$RUNNER_TEMP/read.php" "$DEPLOY_USER@$DEPLOY_HOST:$dir/read.php"
+          ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '6010fd982619ceeb3dbfa609308468a241966806'; php -d display_errors=0 '$dir/read.php'; test \"\$(git rev-parse HEAD)\" = '6010fd982619ceeb3dbfa609308468a241966806'"
+      - name: Remove runner credential and temporary audit code
+        if: always()
+        run: rm -f "$RUNNER_TEMP/deploy_key" "$RUNNER_TEMP/read.php"
