@@ -166,3 +166,61 @@ The source-shaped regression runner tests normalization → typed profile → th
 canonical observation, receipt timing, incomplete/stale coverage, episode/role
 isolation, metadata integrity, and atomic redacted CLI failures. Synthetic
 acceptance is not a new live source receipt or held-out semantic accuracy.
+
+## Selecting new dialogue-review episodes
+
+`tools/ModeledConversionCandidateSelection.php` owns the bounded metadata query
+and pure private read plan. It opens no connection, executes no SQL, reads no
+source text, changes no exposure ledger and enables no collector. It replaces
+the **selection logic** of the closed one-shot audit, not that operation's
+permission or execution. The corrected collector still needs an authorized
+producer/current data scope; this module is not a new runtime hook.
+
+`candidateQuery(from, through, platform)` returns prepared SQL and bindings for
+at most100 AnyTour MAX/Telegram conversations with recorded customer text in the
+database-local persistence-time window. The caller owns clock normalization,
+read-only transactions, project/access checks and actual execution. The fence
+applies before latest-activity ranking; equal times use conversation ID order.
+There is no registration/start-date, manager-assignment, budget or stage filter.
+Explicit owner/test/foreign project rows stay excluded. Text presence defines a
+dialogue-review population, **not all advertising visitors**. Metadata callbacks
+or arbitrary text cannot establish a semantic trip anchor. Reaching100 does not
+prove whether more candidates exist.
+
+`plan(rows, ledger, excludedPeople, from, cutoff)` receives at most100 metadata
+episodes with five-field subject, anchor_id, context_from, last_activity_at,
+identity_status (bound/unknown), trip_status (accepted/unknown), access_status
+(allowed/denied/unknown) and source_message_count. Those statuses and anchors
+are authorized producer assertions, not authenticated or inferred by this tool.
+The producer must verify that the anchor is current-trip customer text and the
+declared count covers **all** source message rows before role/trip filtering.
+Any missing/truncated prefix retains its actual coverage elsewhere.
+
+The private ledger has episodes/people maps from episodeKey/groupKey to explicit
+unseen/reviewed/unknown assertions. No entry means unknown. Ledger completeness
+and the truth of an unseen assertion remain the producer's responsibility;
+absence alone never proves freshness. Current explicit person exclusions always
+win. A new episode of a reviewed person may be selected for development, while
+its person exposure remains reviewed. `unseen_person_candidate` is only a
+producer-asserted candidate flag, **not accepted independent holdout quality**.
+All linked trips/platforms of a person retain one project-scoped group for
+later splitting. Unresolved canonical identity, trip or access stays excluded
+from a fresh text-read plan, with its reason retained; no identity is guessed.
+
+The plan preserves every unique metadata decision/reason, is stable under row
+or subject-field order and ignores exact duplicates. Conflicting episode rows
+fail atomically. At most5episodes/50source rows each/250planned message rows are
+selected. Every actual fetch, including later-rejected manager/other/action
+rows, consumes the caller's real read budget. Do not fetch limit+1text rows to
+discover a50row limit: pre-count metadata or use a properly budgeted window.
+The result reports planned reads separately from actual reads/operations0 and
+capture_authorized=false/export_allowed=false. It neither consumes nor grants
+a source operation. Future collector receipts must report their own actual
+counts, cutoff, exclusions and source/semantic coverage.
+
+The SQLite regression reproduces the old empty new-person/assigned-manager
+selection and proves admission of old unassigned conversations with fresh
+activity, source fences, owner/test isolation and bounded metadata. Pure tests
+cover exact episode/person exclusions, unknown exposure, returning persons,
+grouping, conflicts and read budgets. This is code/synthetic acceptance only;
+the closed zero-case real audit and old five development cases are not rerun.
