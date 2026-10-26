@@ -1,0 +1,38 @@
+name: Read fixed owner Direct account feed metadata
+on:
+  push:
+    branches: [audit/direct-feed-preflight-20261026]
+    paths:
+      - .github/workflows/direct-feed-preflight-readonly.yml
+      - audit/direct-feed-readonly.py
+      - audit/direct-feed-runner.py
+permissions:
+  contents: read
+concurrency:
+  group: direct-feed-preflight-owner-20261026
+  cancel-in-progress: false
+jobs:
+  read:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Read fixed client and feed metadata with existing server token
+        env:
+          SSH_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          SSH_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          SSH_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          READER_SHA256: dcb631888baf53ab8d1e4378fd891c251785abf6dded391533874dafa1c015b3
+          REPORT_PUBLIC_KEY_B64: LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQm9qQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FZOEFNSUlCaWdLQ0FZRUEyeVJSTHNUOU5HWVQwa0pUUDVmNQpveG9OYnR5cFkwMmwvWWZPM3Zwb053VHdnQUJPL0N1MHh4NEhsd1huOVp4WXhQZ1B3UjhaRmFRNHN1VUdhbmxSCklUZ0lXN3kwSGMwRFFWNUgwT2l3SzhXbi9vMjBneTBZd1kxM2RjQjlwbWJ4VVE2S1pPd2l4VEd3VloyUElCbjQKYmI4V2xxMWJsNGRGaDBCYlh5QWMzRjR3T2xlNFpySEFENDBzWWo3SEhjd3VEbW1CQS9nbFhEbFVjVHdQUWRudAoxT2o2V1RCODJIazlSU2hQdlZaZ0VtajNqOVJ3ZFhmTmFPZG1IVTVmNGRCWGVwYU1pQzVYN09WNzd4U3BUbWxXCjUyNlc1cVFOS3BUdkJ5MmNKb01GNVFsVUpreXZVTW4rK1JyRU9EWkFUNW1MZ1dnOUxnTXE1YlA1OGR1VGMwcWkKNWVOTWJGSVgyRDhjSnpKaDA4MVBkMjNQaFZrMkVUbFRVUmhhdnhrMm4yRTlNaE8vakN4Ry9WNWNHTkF5anNaSQpHUlV1K3ZtYlhHQXZWaUxscGh1dmhqcjRyZUs3SUd0Q2NzNVArOVgvTmJ1M0NpRGducnBQWkVrUENuVDBuMTJYCkVVTGUzS2VKWjlKMDZBNURvYU1xWUNzQzUzdk14dWJHMW9XQ1UvQUtoZDBMQWdNQkFBRT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg==
+        run: python3 audit/direct-feed-runner.py
+      - name: Retain ciphertext only
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: direct-feed-preflight-owner-20261026
+          path: encrypted-direct-feed/*.enc.json
+          retention-days: 3
+          if-no-files-found: error
