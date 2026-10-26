@@ -10,7 +10,7 @@ concurrency:
   group: max-hotel-posts-six-20261026
   cancel-in-progress: false
 env:
-  EXPECTED_PRODUCTION_SHA: b8ac82fd9debf189cf86691c386313333fff761e
+  EXPECTED_PRODUCTION_SHA: 90e29306298b6ad8ebccb0a1edfc37e5c9fa41da
 jobs:
   inspect:
     if: github.ref == 'refs/heads/audit/max-hotel-posts-six-20261026'

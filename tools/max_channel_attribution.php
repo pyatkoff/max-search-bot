@@ -37,7 +37,8 @@ try{
         }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}
         $s=MaxChannelConversionOutbox::settings($pdo);
     }
-    $counts=[];$q=$pdo->prepare('SELECT state,COUNT(*) AS c FROM max_channel_conversion_outbox WHERE project_key=? GROUP BY state');$q->execute([$s['project_key']]);
+    $platformWhere=(new MaxChannelConversionOutbox($pdo))->hasPlatform()?" AND platform='max'":'';
+    $counts=[];$q=$pdo->prepare('SELECT state,COUNT(*) AS c FROM max_channel_conversion_outbox WHERE project_key=?'.$platformWhere.' GROUP BY state');$q->execute([$s['project_key']]);
     foreach($q->fetchAll(PDO::FETCH_ASSOC) as $r)$counts[$r['state']]=(int)$r['c'];
     echo json_encode(['ok'=>true,'operation'=>$action,'mode'=>$s['mode'],'goal_set'=>$s['goal_set'],'shared_goals_activated_at_unix'=>$s['shared_goals_activated_at_unix'],'counter_id'=>$s['counter_id'],'activated_at_unix'=>$s['activated_at_unix'],'queue_counts'=>$counts,'transition'=>$transition,'conversion_requests'=>0],JSON_UNESCAPED_SLASHES)."\n";
 }catch(Throwable $e){
