@@ -66,6 +66,18 @@ check('paths' not in regression_events['pull_request'] and 'paths-ignore' not in
 for component_path in component_paths:
     if not component_path.endswith('.md'):
         check(visual_triggered(component_path),'component path would skip its native gate: '+component_path)
+editor_manifest='modules/tour-selections/editor.json'
+check(visual_triggered(editor_manifest),'manifest-only releases and contract changes need their selected native gate')
+editor_document=load('tour-selection-editor-module.yml')
+editor_events=editor_document.get('on',editor_document.get(True))
+for event in ['pull_request','push']:
+    for editor_path in [editor_manifest,'manager/assets/workspace-v2-tour-selection.js','manager/assets/workspace-v2-tour-selection.css']:
+        check(any(fnmatch.fnmatchcase(editor_path,pattern) for pattern in editor_events[event]['paths']),event+' must retain the exact editor package gate: '+editor_path)
+editor_steps='\n'.join(step.get('run','') for step in editor_document['jobs']['editor-module']['steps'])
+for command in ['python3 tests/run_tour_selection_editor_module.py','node tests/run_tour_selection_editor_host.js',
+                'python3 modules/tour-selections/build-editor.py build','python3 modules/tour-selections/build-editor.py verify',
+                'php modules/tour-selections/tests/test_editor_deploy.php','php tests/run_tour_selection_editor_private.php']:
+    check(command in editor_steps,'component scope cannot remove package, host, install/rollback or private HTTP proof: '+command)
 collector_readme='extensions/selection-collector/README.md'
 check(not visual_triggered(collector_readme),'collector README-only change must not launch the full native panel')
 for runtime_path in ['extensions/selection-collector/popup.js','extensions/selection-collector/manifest.json',
