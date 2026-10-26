@@ -586,7 +586,32 @@ INSERT INTO catalog_countries VALUES(1,'Египет',1),(4,'Турция',1),(9
     $hotel = draftHotelReference($hotelSnapshot);
     draftContextCheck('current canonical native inquiry resolves the accepted typed hotel without comparing event and message IDs',
         ($hotel['status']??'')==='available' && ($hotel['hotel_ref']??null)===['catalog'=>'anytour','id'=>1554]
-        && count($hotel['facts']??[])===3 && count($hotel['sources']??[])===3);
+        && count($hotel['facts']??[])===6 && count($hotel['sources']??[])===3);
+    $sunriseExpectedIds=['top500_51ebbafe5fb689d9_mass36_c01','top500_51ebbafe5fb689d9_c03','top500_51ebbafe5fb689d9_mass36_c02',
+        'HOTEL-EG-MANUAL-20261025-SHARM-COAST-05_c07','HOTEL-EG-MANUAL-20261025-SHARM-COAST-05_c08','HOTEL-EG-MANUAL-20261025-SHARM-COAST-05_c12'];
+    $sunriseInput=draftWorkingInput($hotelSnapshot);
+    $sunriseWire=ManagerDraftClient::requestBody(ManagerAiDraftService::instructions($sunriseInput['context']),$sunriseInput['context']);
+    $sunrisePayload=json_decode($sunriseWire['input'][1]['content'][0]['text'],true,32,JSON_THROW_ON_ERROR);
+    $sunrisePlain=$sunriseInput['context'];unset($sunrisePlain['hotel_reference']);
+    $sunrisePlainWire=ManagerDraftClient::requestBody(ManagerAiDraftService::instructions($sunrisePlain),$sunrisePlain);
+    $sunriseWireBytes=strlen(json_encode($sunriseWire,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+    $sunrisePlainBytes=strlen(json_encode($sunrisePlainWire,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+    draftContextCheck('native Sunrise inquiry keeps the complete six-fact group through preparation and the actual bounded request',
+        ($sunriseInput['context']['hotel_reference']??null)===$hotel
+        && ($sunrisePayload['hotel_reference']??null)===$hotel
+        && array_diff($sunriseExpectedIds,array_column($hotel['facts']??[],'id'))===[]
+        && str_contains($sunriseWire['input'][0]['content'][0]['text'],ManagerHotelKnowledge::instructions())
+        && $sunriseWireBytes<=196608 && $sunriseWireBytes-$sunrisePlainBytes<=16384
+        && ($hotel['selected_room']??'')==='Family Suite'
+        && ($hotel['room_tariff_equivalence_verified']??null)===false
+        && ($hotel['future_operation_verified']??null)===false);
+    $sunriseStored=json_decode($pdo->query('SELECT selection_json FROM manager_tour_selection_publications')->fetchColumn(),true,32,JSON_THROW_ON_ERROR);
+    draftContextCheck('new hotel facilities never rewrite the exact frozen supplier observation or its selected room and party',
+        ($sunriseStored['offers'][0]['import_source']??null)===$publication['offers'][0]['import_source']
+        && ($sunriseStored['offers'][0]['import_source']['observed_at']??'')==='2026-10-16T11:00:00Z'
+        && ($sunriseStored['offers'][0]['import_source']['fields']['room']??'')==='Family Suite'
+        && ($sunriseStored['offers'][0]['import_source']['fields']['adults']??null)===2
+        && ($sunriseStored['offers'][0]['import_source']['fields']['child_ages']??null)===[]);
     $after = [];
     foreach (array_keys($before) as $table) $after[$table]=$pdo->query('SELECT * FROM '.$table)->fetchAll();
     draftContextCheck('hotel capture leaves publication source, events, messages, ownership and read markers byte-exact', $before===$after);

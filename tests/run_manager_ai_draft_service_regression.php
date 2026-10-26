@@ -298,7 +298,7 @@ $reference=draftHotelReferenceFixture(draftContext(),$baselineRefs+['hotel_refer
 $ready=ManagerAiDraftService::prepareInput(draftContext(),null,null,$reference);
 draftCheck('accepted complete hotel group is appended after existing references',
     ($ready['context']['hotel_reference']['status']??'')==='available'
-    &&count($ready['context']['hotel_reference']['facts'])===3
+    &&count($ready['context']['hotel_reference']['facts'])===6
     &&count($ready['context']['hotel_reference']['sources'])===3
     &&$ready['context']['origin_posts']===$baselineRefs['origin_posts']
     &&$ready['context']['travel_reference']===$baselineRefs['travel_reference']);
@@ -323,6 +323,70 @@ $knowledgeDigest=static fn($value):string=>hash('sha256',$canonicalKnowledge->in
 $loadKnowledge=static fn($m,$bytes,int $now)=>$readKnowledge->invoke(null,$m,$bytes,$selector,$now);
 $now=1893455999; // The second before 2030, deliberately not the wall clock.
 $current=$loadKnowledge($manifest,$bundleBytes,$now);
+$sunriseFacts=array_column($ready['context']['hotel_reference']['facts']??[],null,'id');
+$sunriseSources=array_column($ready['context']['hotel_reference']['sources']??[],null,'id');
+$sunriseLimits=$ready['context']['hotel_reference']['material_limits']??[];
+$sunriseOriginalHashes=['claims'=>[
+    'top500_51ebbafe5fb689d9_mass36_c01'=>'e5902399d12878287bf16ad35b228dccb5ee908a2c599627a7479808e8d9e69a',
+    'top500_51ebbafe5fb689d9_c03'=>'549b33405c373c3fd2436ffd26bd85b031a92b880ec1ce1d54bc93116636fd91',
+    'top500_51ebbafe5fb689d9_mass36_c02'=>'1095872828a1be08eb064bd28e15e63d1710b88c6cd8077c38b207e0befd7951',
+], 'sources'=>[
+    'top500_51ebbafe5fb689d9_mass36_s01'=>'dd7f0a92249db75b123bc84eb62912095e22d375f3ca4c44789f90ca69cd3ac1',
+    'top500_51ebbafe5fb689d9_mass36_s02'=>'34f5ca2f3362fbe75118e38c68af7930fa0850d8274098e2575d23cee9237222',
+    'top500_51ebbafe5fb689d9_s01'=>'6bbee9afe6959fd53975f3977e033195eab2b2eaf6bd44df8e731c505d18c7f9',
+]];
+$sunriseOriginalIntact=true;
+foreach ($sunriseOriginalHashes as $kind=>$hashes) foreach ($hashes as $id=>$hash) {
+    $records=$kind==='claims'?$sunriseFacts:$sunriseSources;
+    $sunriseOriginalIntact=$sunriseOriginalIntact && isset($records[$id])
+        && $knowledgeDigest($records[$id])===$hash && ($bundle['record_hashes'][$kind][$id]??'')===$hash;
+}
+$sunriseOriginalUnknowns=[
+    'Официальное Max Occupancy не заполнено; опубликованные кровати не доказывают допустимый состав.',
+    'Замечание KOMPAS об отсутствии окна в детской зоне не разрешено официальной планировкой.',
+    'Alpitour 3AD+1CH относится к его продукту; возраст допуска комнаты не установлен.',
+    'Применимость на даты поездки, выбранный номер и тариф требуют проверки.',
+];
+draftCheck('Sunrise expansion retains every original Family Suite atom, source observation and unresolved limit',
+    $sunriseOriginalIntact && count($sunriseSources)===3
+    && array_diff($sunriseOriginalUnknowns,$sunriseLimits['unknowns']??[])===[]);
+$sunrisePrefix='HOTEL-EG-MANUAL-20261025-SHARM-COAST-05_';
+$sunriseNewAtoms=[
+    'c07'=>['named pools','eb476ab6be06a79df9ae6472e3add349148444f12c2e634c5277cddb7025a795'],
+    'c08'=>['Relax / Royal Club pool','bafa2b6bec6121df85bde833b380e7d85eb2db90356d08e2e8b71b59bf2cdf78'],
+    'c12'=>['Island 3 / cot / nanny','6c28542b3c7e5affc01068232eba13b434f2e5d5e4cbdcd32e9a52bd7fdc8e98'],
+];
+foreach ($sunriseNewAtoms as $suffix=>[$scopeKey,$rawHash]) {
+    $atom=$sunriseFacts[$sunrisePrefix.$suffix]??[];
+    $projection=$sunriseLimits['consumer_projection'][$sunrisePrefix.$suffix]??[];
+    $raw=$atom;unset($raw['declared']);
+    draftCheck('Sunrise '.$suffix.' keeps the exact facility atom with only the approved declaration marker',
+        ($atom['kind']??'')==='operator_declared' && ($atom['declared']??null)===true
+        && ($atom['scope']??null)===['key'=>$scopeKey,'kind'=>'facility']
+        && ($atom['valid_at_travel']??'')==='unverified'
+        && $knowledgeDigest($raw)===$rawHash
+        && ($projection['added_metadata']??null)===['declared'=>true]
+        && ($projection['raw_record_sha256']??'')===$rawHash
+        && ($projection['projected_record_sha256']??'')===$knowledgeDigest($atom));
+}
+draftCheck('Sunrise keeps the new scoped reading separate from the unchanged 19 October source',
+    count($sunriseLimits['source_read_updates']??[])===1
+    && $knowledgeDigest($sunriseLimits['source_read_updates'][0]??[])==='8911a02d06a6910719791cec6df9d6f28f5633c255324fc6f9c7737354d9c0d0'
+    && ($sunriseSources['top500_51ebbafe5fb689d9_s01']['retrieved_on']??'')==='2026-10-19');
+$sunriseWire=ManagerDraftClient::requestBody(ManagerAiDraftService::instructions($ready['context']),$ready['context']);
+$sunriseWirePayload=json_decode($sunriseWire['input'][1]['content'][0]['text'],true,32,JSON_THROW_ON_ERROR);
+$sunrisePlain=$ready['context'];unset($sunrisePlain['hotel_reference']);
+$sunrisePlainWire=ManagerDraftClient::requestBody(ManagerAiDraftService::instructions($sunrisePlain),$sunrisePlain);
+$sunriseWireBytes=strlen(json_encode($sunriseWire,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+$sunrisePlainBytes=strlen(json_encode($sunrisePlainWire,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+draftCheck('all six Sunrise facts and every limit reach the actual encoded request within its unchanged budgets',
+    ($sunriseWirePayload['hotel_reference']??null)===$ready['context']['hotel_reference']
+    && count($sunriseWirePayload['hotel_reference']['facts']??[])===6
+    && str_contains($sunriseWire['input'][0]['content'][0]['text'],ManagerHotelKnowledge::instructions())
+    && $sunriseWireBytes<=196608 && $sunriseWireBytes-$sunrisePlainBytes<=16384
+    && ($sunriseWirePayload['hotel_reference']['room_tariff_equivalence_verified']??null)===false
+    && ($sunriseWirePayload['hotel_reference']['future_operation_verified']??null)===false
+    && ($sunriseWirePayload['hotel_reference']['coverage']['complete']??null)===false);
 // Pure synthetic approvals exercise reader formats only; they do not accept a
 // real research/catalogue join or create a Library approval/publication.
 $countryFixture=$manifest;

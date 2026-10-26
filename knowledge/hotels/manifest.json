@@ -52,12 +52,12 @@
       },
       "binding_revision": "9e5935e38383c902e66b5ad41388f059f676637e71a093c7d99005c8185e510a",
       "bundle_file": "anytour-1554-family-suite.json",
-      "bundle_sha256": "eb4c4f6cac5e567d3144ca40b631d59ffec396b909b019afd8bb79e5add82c18",
+      "bundle_sha256": "eb954b291c1c97aad86ebc05283809dacc68a30a9b1a04030c37d373f84f8da4",
       "approval": {
-        "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
-        "common_version": 100,
-        "member": "hotel-reference-cohort-20261025/accepted-binding.json",
-        "scope": "Research join consumes existing typed catalogue chain; no native MATCH mutation or current offer verification."
+        "library_file_id": "libfile_c910872c18948191a00715ea5972df60",
+        "common_version": 1,
+        "member": "consumer175/sunrise-arabian/accepted-binding.json",
+        "scope": "Existing typed identity; six source-scoped declarations with full old Family Suite limits, separate r02 and metadata-only declaration projection. No future-operation, tariff or model-use proof."
       }
     },
     {
