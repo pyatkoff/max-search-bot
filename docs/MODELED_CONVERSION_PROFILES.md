@@ -308,10 +308,17 @@ retain the exact unprocessed cursor. They do not certify complete trip history.
 A window may omit older source facts until a later profile update; it never turns
 missing information into zero or erases the underlying journal.
 
-Every profile binds the exact journal cursor, immutable source revision references,
+Every profile binds its separate work cursor and immutable information fence,
+immutable source revision references,
 adapter/extractor/processor source hashes and actual semantic availability.
-Only the derived index advanced through that cursor selects inputs; later journal
-or native-latest changes cannot enrich an earlier profile. Snapshot versions,
+The bounded work cursor enumerates affected scopes. Each calculation independently
+freezes the available journal information fence and selects the latest revision of
+already-known source IDs within it. Thus an already received clock normalization
+is usable now even when its revision lies beyond the work cursor. Revisions beyond
+the information fence, mutable native tables and future arrivals cannot enter that
+profile. Exact chosen references stay frozen; later catch-up never rewrites an old
+prediction. Reassigned source ownership is an explicit omission, and revocation or
+an unchecked older exclusion keeps facts denied until restoration is observed. Snapshot versions,
 references and cursor commit together. Repeated empty/retried ticks do not create
 another profile version or monetary value. Source edits, reversion and removal
 recompute the affected scopes; scope revocation invalidates current usable facts,
