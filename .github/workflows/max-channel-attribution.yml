@@ -52,10 +52,10 @@ jobs:
           coverage: none
       - name: Exercise native queue, claims, timestamps and transport state transitions
         run: php tests/run_max_channel_attribution.php
-      - name: Exercise SELECT-only tracker lookup and counter precedence
-        run: php tests/test_max_tracker_mysql.php
       - name: Exercise Telegram bridge in the same native outbox without MAX lookup or duplicate POST
         run: php tests/run_telegram_dialogue_conversions_regression.php
+      - name: Exercise SELECT-only tracker lookup and counter precedence
+        run: php tests/test_max_tracker_mysql.php
       - name: Exercise real HTTP signature, bounds and database lookup
         run: python3 tests/run_max_attribution_http.py
 
