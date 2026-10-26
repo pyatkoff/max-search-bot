@@ -1,5 +1,36 @@
 # Automatic factual profiles — offline tools and admitted journal
 
+## Grounded deterministic wizard inputs (v1_9)
+
+New explicit wizard applications can emit `wizard_value_applied` into the existing
+private conversation event history. This is best-effort observation after the
+unchanged update-only application succeeds, not a new state owner. The receipt
+binds the exact newly mirrored inbound message ID, input kind and content digest
+to the exact applied field/storage value. Context is request-local and cleared
+before every inbound, including duplicates and failures. Plain EditFlow snapshot
+restoration and general AI application do not opt in. Observer failure does not
+change application success, progression, search or delivery.
+
+The existing journal adapter admits a receipt only with the original customer
+message in the same allowed bounded scope and immutable information fence. Both
+sources must have resolved clocks and unedited first revisions; forwarding,
+missing/changed/wrong-role inputs, incorrect callback field/value, contradictory
+receipts and future evidence fail closed. Legacy empty age separators cannot
+become a customer-stated zero age. Original observations remain in the journal.
+
+Accepted facts use `canonical_wizard_application`, with separate event and input
+references and their own actual availability. They describe the successfully
+applied deterministic input, not acceptance of subsequent bot summaries or
+offers. Composition, nights and departure date are typed; city/country/meal/class
+native directory values remain exact references with unresolved labels. Buttons
+do not become customer text, a positive stage or a completed trip. Unknown trip,
+partial prefix, null probabilities/commission/EV and disabled export persist.
+
+Old frozen examples without these receipts remain unresolved. Synthetic controls
+prove the code path only; installation, a natural new receipt, useful live profile
+and measured predictive benefit require separate evidence. No start/cursor reset,
+new capture, provider/model call, schedule, store or advertising goal is added.
+
 The admitted-journal runtime path is documented at the end of this file. The
 original file/stdin tools below still have no live source reader themselves.
 
@@ -380,5 +411,3 @@ purchase probabilities, baseline improvement or advertising export permission.
 Real installed activation/first derived profile/natural scheduler receipt must
 be recorded separately. Existing frozen development error counts remain unchanged
 until exact replay; no old source or paid model is invoked by these controls.
-
-

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Offline contract/meaning tests; synthetic examples are not held-out accuracy."""
 import copy
+import hashlib
 import json
 from pathlib import Path
 import subprocess
@@ -690,9 +691,120 @@ def journal_document(*rows):
                        "rows": list(rows), "window_limited": False, "access_denied": False}]}
 
 
+def wizard_receipt(input_row, field, value, identifier="19"):
+    row = journal_row(identifier)
+    row["source_kind"] = row["snapshot"]["source_kind"] = "event"
+    row["snapshot"]["source_created_at_unix"] += 1
+    payload = input_row["snapshot"]["payload"]
+    row["snapshot"]["payload"] = {"event_type": "wizard_value_applied", "actor_type": "system",
+        "payload_json": json.dumps({"version": 1, "origin": "existing_wizard_step_application",
+            "input_message_id": input_row["source_id"], "input_kind": json.loads(payload["metadata_json"])["type"],
+            "input_text_sha256": hashlib.sha256(payload["text"].encode()).hexdigest(),
+            "field": field, "storage_value": value})}
+    return row
+
+
 class JournalProfileTests(unittest.TestCase):
     def build(self, *rows):
         return journal.profile(journal_document(*rows), J_EXTRACT)["profiles"][0]
+
+    def test_successful_short_answer_and_buttons_build_one_grounded_profile(self):
+        rows = []
+        values = [("2", "adults", "2", "message"), ("child_1", "children", "1", "callback"),
+                  ("7", "child_ages", "7", "message"), ("nights_6_8", "nights", "6-8", "callback"),
+                  ("pick_date_15.12.2026", "date", "15.12.2026", "callback"),
+                  ("pick_country_4", "country", "4", "callback")]
+        for i, (text, field, value, kind) in enumerate(values, 1):
+            row = journal_row(str(i), text=text)
+            row["snapshot"]["payload"]["metadata_json"] = json.dumps({"type": kind})
+            rows += [row, wizard_receipt(row, field, value, str(i+10))]
+        result = self.build(*rows); p = result["profile"]
+        self.assertEqual([p["party"][k]["value"] for k in ("adults", "children", "child_ages")], [2, 1, [7]])
+        self.assertEqual(p["fields"]["duration"]["value"], {"minimum":6,"maximum":8,"unit":"nights"})
+        self.assertEqual(p["fields"]["dates"]["value"]["start_day"], 15)
+        self.assertEqual(p["fields"]["destination_reference"]["value"]["id"], "4")
+        self.assertEqual(p["fields"]["destination"]["status"], "unknown")
+        fact = p["party"]["adults"]
+        self.assertEqual(fact["basis"], "canonical_wizard_application")
+        self.assertEqual([r["source"] for r in fact["references"]], ["event", "message"])
+        self.assertEqual(fact["available_at"], J_EXTRACT)
+        self.assertEqual(result["coverage"]["applied_wizard_fields"], 6)
+        self.assertFalse(p["target_admission"]["eligible"])
+        self.assertIsNone(p["expected_value_rub"])
+        self.assertEqual(self.build(*rows[::2])["profile"]["party"]["adults"]["status"], "unknown")
+
+    def test_applied_callback_is_not_customer_dialogue_or_positive_stage(self):
+        row = journal_row(text="adults_2")
+        row["snapshot"]["payload"]["metadata_json"] = '{"type":"callback"}'
+        p = self.build(row, wizard_receipt(row,"adults","2"))["profile"]
+        self.assertEqual(p["party"]["adults"]["value"], 2)
+        self.assertEqual(p["current_stage"]["status"], "unknown")
+        self.assertFalse(p["observation_input"]["evidence"])
+
+    def test_application_needs_matching_unedited_customer_input_not_current_state(self):
+        for mutation in [lambda r:r["snapshot"]["payload"].update(text="3"),
+                         lambda r:r["snapshot"]["payload"].update(sender_type="ai"),
+                         lambda r:r["snapshot"]["payload"].update(direction="outbound"),
+                         lambda r:r["snapshot"]["payload"].update(metadata_json='{"type":"message","linked_message":{"type":"forward"}}'),
+                         lambda r:r.update(source_version_no=2),
+                         lambda r:r["snapshot"].update(source_created_at_unix=1793005202)]:
+            row = journal_row(text="2"); receipt = wizard_receipt(row,"adults","2"); mutation(row)
+            result = self.build(row,receipt)
+            self.assertEqual(result["profile"]["party"]["adults"]["status"], "unknown")
+            self.assertEqual(result["coverage"]["applied_wizard_fields"], 0)
+
+    def test_missing_input_wrong_question_and_unsupported_receipt_stay_unknown(self):
+        row = journal_row(text="adults_2"); row["snapshot"]["payload"]["metadata_json"] = '{"type":"callback"}'
+        self.assertEqual(self.build(wizard_receipt(row,"adults","2"))["coverage"]["errors"], {"wizard_input_missing_or_ambiguous":1})
+        for field, value in [("children","2"),("adults","3"),("adults","999"),("budget","200000")]:
+            result = self.build(row,wizard_receipt(row,field,value))
+            self.assertEqual(result["coverage"]["applied_wizard_fields"], 0)
+        receipt = wizard_receipt(row,"adults","2"); receipt["snapshot"]["payload"]["actor_type"] = "ai"
+        self.assertEqual(self.build(row,receipt)["coverage"]["applied_wizard_fields"], 0)
+
+    def test_receipt_repeat_is_idempotent_and_conflict_is_not_an_accepted_value(self):
+        row = journal_row(text="2")
+        first = wizard_receipt(row,"adults","2","18"); second = wizard_receipt(row,"adults","2","19")
+        one = self.build(row,first); twice = self.build(row,first,second)
+        self.assertEqual(one["profile"], twice["profile"])
+        second = wizard_receipt(row,"adults","3","19")
+        p = self.build(row,first,second)
+        self.assertEqual(p["profile"]["party"]["adults"]["status"], "unknown")
+        self.assertEqual(p["coverage"]["errors"]["conflicting_wizard_application"], 1)
+
+    def test_receipt_has_its_own_availability_and_respects_frozen_fence(self):
+        row = journal_row(text="2"); receipt = wizard_receipt(row,"adults","2")
+        receipt["observed_at_unix"] -= 1
+        p = self.build(row,receipt)["profile"]
+        self.assertEqual(p["party"]["adults"]["references"][0]["available_at"], "2026-10-26T09:09:59Z")
+        self.assertEqual(p["party"]["adults"]["references"][1]["available_at"], J_REQUEST)
+        receipt["observed_at_unix"] = 1793005801
+        with self.assertRaises(base.InvalidObservation): self.build(row,receipt)
+        receipt = wizard_receipt(row,"adults","2","21")
+        with self.assertRaises(base.InvalidObservation): self.build(row,receipt)
+
+    def test_application_is_not_retrofitted_to_edited_or_deleted_source(self):
+        row = journal_row(text="2"); receipt = wizard_receipt(row,"adults","2")
+        receipt["source_version_no"] = 2
+        self.assertEqual(self.build(row,receipt)["coverage"]["applied_wizard_fields"], 0)
+        row["snapshot"] = {"source_kind":"message","source_id":"1","source_status":"deleted"}
+        self.assertEqual(self.build(row,wizard_receipt(journal_row(text="2"),"adults","2"))["coverage"]["applied_wizard_fields"], 0)
+
+    def test_wizard_storage_is_exact_not_a_new_interpretation_of_ids_or_ages(self):
+        for field, raw in [("child_ages","7,, 8"),("child_ages","18"),("nights","8-6"),
+                           ("date","31.02.2027"),("country","04"),("stars","6")]:
+            self.assertIsNone(tool.wizard_value(field,raw))
+        for field in ("city","country","meal","stars"):
+            target, value = tool.wizard_value(field,"4")
+            self.assertTrue(target.endswith("reference"))
+            self.assertEqual(value["label_status"], "unresolved")
+
+    def test_applied_legacy_empty_age_separator_is_not_a_customer_zero_age(self):
+        for text, raw in [("7,", "7, 0"),("7,,8","7, 0, 8"),(" ","0")]:
+            row = journal_row(text=text)
+            p = self.build(row,wizard_receipt(row,"child_ages",raw))
+            self.assertEqual(p["profile"]["party"]["child_ages"]["status"], "unknown")
+            self.assertEqual(p["coverage"]["applied_wizard_fields"], 0)
 
     def test_profile_keeps_budget_unit_party_without_certifying_trip_or_target(self):
         p = self.build(journal_row())
@@ -833,4 +945,3 @@ class JournalProfileTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
-

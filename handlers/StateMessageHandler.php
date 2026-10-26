@@ -69,7 +69,8 @@ class StateMessageHandler
                     if(!ExistingWizardStepApplicationService::apply(
                         $chat_id,
                         MaxSearchApi::$statusCityChoose,
-                        $cityId
+                        $cityId,
+                        true
                     )) return;
                     if(!EditFlowService::finishIfNeeded($chat_id,'city'))
                         MaxSearchApi::showCountryButtons($chat_id);
@@ -93,7 +94,8 @@ class StateMessageHandler
                     if(!ExistingWizardStepApplicationService::apply(
                         $chat_id,
                         MaxSearchApi::$statusContryChoose,
-                        $countryId
+                        $countryId,
+                        true
                     )) return;
                     if(!EditFlowService::finishIfNeeded($chat_id,'country'))
                         MaxSearchApi::showAdultsButtons($chat_id);
