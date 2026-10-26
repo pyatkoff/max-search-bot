@@ -543,5 +543,152 @@ class ProfileTests(unittest.TestCase):
         self.assertEqual(json.loads(result.stdout), tool.extract_document(data))
 
 
+
+# Current admitted-journal controls reuse this canonical test entrypoint.
+import profile_conversion_journal as journal
+import build_conversion_observations as base
+
+J_REQUEST = "2026-10-26T09:10:00Z"
+J_EXTRACT = "2026-10-26T09:10:01Z"
+
+
+def journal_row(identifier="1", text="Бюджет до 200 тыс на всех, 2 взрослых", **extra):
+    snap = {"source_kind": "message", "source_id": identifier, "source_status": "present",
+            "project_key": "anytour", "platform": "telegram", "conversation_id": "10", "customer_key": "7",
+            "payload_status": "copied", "source_created_at_unix": 1793005200,
+            "source_timestamp_basis": "database_session_timezone_to_unix",
+            "payload": {"direction": "inbound", "sender_type": "customer", "text": text,
+                        "metadata_json": '{"type":"message"}'}}
+    snap.update(extra)
+    return {"journal_id": identifier, "source_kind": "message", "source_id": identifier,
+            "source_version_no": 1, "observed_at_unix": 1793005800, "snapshot": snap}
+
+
+def journal_document(*rows):
+    return {"schema_version": 1, "requested_at": J_REQUEST, "journal_cursor": "20",
+            "cases": [{"subject": {"project_key": "anytour", "platform": "telegram", "customer_key": "7", "conversation_id": "10"},
+                       "rows": list(rows), "window_limited": False, "access_denied": False}]}
+
+
+class JournalProfileTests(unittest.TestCase):
+    def build(self, *rows):
+        return journal.profile(journal_document(*rows), J_EXTRACT)["profiles"][0]
+
+    def test_profile_keeps_budget_unit_party_without_certifying_trip_or_target(self):
+        p = self.build(journal_row())
+        self.assertEqual(p["profile"]["fields"]["budget"]["value"]["maximum"], 200000)
+        self.assertEqual(p["profile"]["party"]["adults"]["value"], 2)
+        self.assertEqual(p["profile"]["trip_status"], "unknown")
+        self.assertEqual(p["coverage"]["exposure"], "unknown")
+        self.assertEqual(p["coverage"]["identity_assurance"], "canonical_source_assertion")
+        self.assertEqual(p["profile"]["prediction_features"]["feature_scope"], "unresolved_conversation_prefix")
+        self.assertFalse(p["profile"]["target_admission"]["eligible"])
+        self.assertEqual(p["profile"]["target_admission"]["reason"], "trip_boundary_unresolved")
+        self.assertIsNone(p["profile"]["expected_value_rub"])
+
+    def test_manager_quote_is_not_customer_budget_even_without_metadata_type(self):
+        row = journal_row(text="Стоимость 400000 рублей")
+        row["snapshot"]["payload"].update(direction="outbound", sender_type="manager", metadata_json="{}")
+        p = self.build(row)["profile"]
+        self.assertEqual(p["fields"]["budget"]["status"], "unknown")
+        self.assertTrue(p["manager_quotes"])
+
+    def test_native_empty_array_manager_metadata_and_forwarded_text_keep_speaker_boundaries(self):
+        row = journal_row(text="Стоимость 400000 рублей")
+        row["snapshot"]["payload"].update(direction="outbound", sender_type="manager", metadata_json="[]")
+        self.assertTrue(self.build(row)["profile"]["manager_quotes"])
+        row = journal_row()
+        row["snapshot"]["payload"]["metadata_json"] = '{"type":"message","linked_message":{"type":"forward"}}'
+        p = self.build(row)
+        self.assertEqual(p["profile"]["fields"]["budget"]["status"], "unknown")
+        self.assertEqual(p["coverage"]["errors"]["forwarded_statement_owner_unresolved"], 1)
+
+    def test_actions_other_speaker_and_wrong_direction_cannot_raise_stage(self):
+        for metadata, direction, speaker in [('{"type":"callback"}', "inbound", "customer"),
+                                               ('{}', "inbound", "customer"),
+                                               ('{"type":"message"}', "outbound", "customer"),
+                                               ('{"type":"message"}', "inbound", "ai")]:
+            row = journal_row(text="Давайте бронировать")
+            row["snapshot"]["payload"].update(metadata_json=metadata, direction=direction, sender_type=speaker)
+            self.assertEqual(self.build(row)["profile"]["current_stage"]["status"], "unknown")
+
+    def test_booking_words_in_unresolved_trip_do_not_create_training_label(self):
+        p = self.build(journal_row(text="Давайте бронировать"))["profile"]
+        self.assertEqual(p["current_stage"]["value"], "booking_intent")
+        self.assertFalse(p["observation"]["eligible"])
+        self.assertIsNone(p["observation"]["label"]["value"])
+        self.assertTrue(all(r["confidence"] == "medium" for r in p["observation_input"]["evidence"] if r["id"].startswith("rules:")))
+
+    def test_legacy_unknown_and_future_source_clock_stay_unresolved(self):
+        for value in [None, 0, 1793005801]:
+            p = self.build(journal_row(source_created_at_unix=value))
+            self.assertEqual(p["coverage"]["errors"], {"source_clock_unresolved": 1})
+            self.assertEqual(p["profile"]["fields"]["budget"]["status"], "unknown")
+
+    def test_copied_source_can_be_stale_but_semantics_becomes_available_only_now(self):
+        p = self.build(journal_row())["profile"]
+        fact = p["prediction_features"]["facts"]["fields.budget"]
+        self.assertEqual(fact["available_at"], J_EXTRACT)
+        self.assertEqual(fact["last_source_recorded_at"], "2026-10-26T09:00:00Z")
+        self.assertEqual(fact["seconds_since_source_record"], 601)
+
+    def test_source_scope_revision_and_late_receipt_are_not_silently_accepted(self):
+        for mutator in [lambda r:r["snapshot"].update(customer_key="8"),
+                        lambda r:r["snapshot"].update(project_key="anex"),
+                        lambda r:r.update(observed_at_unix=1793005801),
+                        lambda r:r.update(source_id="99")]:
+            row = journal_row(); mutator(row)
+            with self.assertRaises(base.InvalidObservation):
+                self.build(row)
+
+    def test_scope_revocation_cannot_keep_older_customer_facts(self):
+        doc = journal_document(journal_row())
+        doc["cases"][0]["access_denied"] = True
+        p = journal.profile(doc, J_EXTRACT)["profiles"][0]
+        self.assertEqual(p["access_status"], "denied")
+        self.assertFalse(p["profile"]["prediction_features"]["facts"])
+
+    def test_deletion_and_events_retain_provenance_without_interpreted_intent(self):
+        row = journal_row(); row["snapshot"] = {"source_kind":"message", "source_id":"1", "source_status":"deleted"}
+        p = self.build(row)
+        self.assertEqual(p["coverage"]["errors"], {"deleted": 1})
+        self.assertEqual(p["source_references"][0]["source_status"], "deleted")
+        row = journal_row(); row["source_kind"] = row["snapshot"]["source_kind"] = "event"
+        row["snapshot"]["payload"] = {"event_type":"booking_intent"}
+        self.assertEqual(self.build(row)["coverage"]["errors"], {"uninterpreted_event": 1})
+
+    def test_raw_text_is_not_in_normalized_result_and_duplicate_revisions_fail(self):
+        row = journal_row(text="private-unrecognized-fixture")
+        self.assertNotIn("private-unrecognized-fixture", json.dumps(self.build(row)))
+        with self.assertRaises(base.InvalidObservation):
+            journal.profile(journal_document(row, row), J_EXTRACT)
+
+    def test_bounded_window_keeps_explicit_incompleteness_without_zero_value(self):
+        doc = journal_document(journal_row())
+        doc["cases"][0]["window_limited"] = True
+        p = journal.profile(doc, J_EXTRACT)["profiles"][0]
+        self.assertTrue(p["coverage"]["window_limited"])
+        self.assertFalse(p["profile"]["prefix_complete"])
+        self.assertIsNone(p["profile"]["purchase_with_us_probability"])
+
+    def test_source_revision_never_invents_an_edit_occurrence_time(self):
+        row = journal_row(); row["source_version_no"] = 2
+        p = self.build(row)
+        self.assertEqual(p["coverage"]["errors"]["source_revision_chronology_unresolved"], 1)
+        self.assertEqual(p["profile"]["fields"]["budget"]["value"]["maximum"], 200000)
+
+    def test_trip_status_malformed_types_fail_redacted_contract(self):
+        for value in [None, [], {}, True, 1, "invented"]:
+            c = case(message("budget fixture")); c["trip_status"] = value
+            with self.assertRaises(base.InvalidObservation):
+                tool.extract_case(c, CUTOFF)
+
+    def test_unresolved_trip_cannot_claim_complete_history(self):
+        c = case(message("Давайте бронировать")); c["trip_status"] = "unknown"
+        with self.assertRaises(base.InvalidObservation):
+            tool.extract_case(c, CUTOFF)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
