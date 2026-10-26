@@ -1,0 +1,141 @@
+name: Diagnose canonical host keyscan without credentials
+on:
+  push:
+    branches: [audit/canonical-host-keyscan-diagnosis-20261027]
+permissions:
+  contents: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      EXPECTED_MAIN_SHA: 90e29306298b6ad8ebccb0a1edfc37e5c9fa41da
+      EXPECTED_HOST_FINGERPRINT: SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require exact current main
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "pyatkoff/max-search-bot"
+          git fetch --no-tags origin refs/heads/main
+          test "$(git rev-parse FETCH_HEAD)" = "$EXPECTED_MAIN_SHA"
+      - name: Diagnose two prior-form keyscans without credentials or login
+        env:
+          CANONICAL_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          import base64
+          import hashlib
+          import json
+          import os
+          import re
+          import socket
+          import subprocess
+          import time
+
+          host = os.environ["CANONICAL_HOST"]
+          expected = os.environ["EXPECTED_HOST_FINGERPRINT"]
+          expected_dns = {"5.45.122.54"}
+
+          resolved = socket.getaddrinfo(host, 22, type=socket.SOCK_STREAM)
+          addresses = {row[4][0] for row in resolved}
+          families = sorted({"ipv4" if row[0] == socket.AF_INET else "ipv6" if row[0] == socket.AF_INET6 else "other" for row in resolved})
+
+          def stderr_categories(stderr):
+              counts = {}
+              for line in stderr.splitlines():
+                  lower = line.lower()
+                  if not line.strip():
+                      continue
+                  if line.startswith("#"):
+                      category = "remote_banner"
+                  elif "timed out" in lower or "timeout" in lower:
+                      category = "timeout"
+                  elif "connection refused" in lower:
+                      category = "connection_refused"
+                  elif "connection reset" in lower:
+                      category = "connection_reset"
+                  elif "no route to host" in lower or "network is unreachable" in lower:
+                      category = "network_unreachable"
+                  elif "name or service not known" in lower or "temporary failure in name resolution" in lower:
+                      category = "resolution_failure"
+                  elif "invalid format" in lower or "invalid key" in lower:
+                      category = "invalid_key_output"
+                  elif "getaddrinfo" in lower:
+                      category = "getaddrinfo_failure"
+                  else:
+                      category = "other"
+                  counts[category] = counts.get(category, 0) + 1
+              return counts
+
+          attempts = []
+          all_fingerprints = set()
+          for number in (1, 2):
+              started = time.monotonic()
+              proc = subprocess.run(
+                  ["ssh-keyscan", "-T", "10", host],
+                  capture_output=True,
+                  text=True,
+                  timeout=30,
+              )
+              elapsed_ms = round((time.monotonic() - started) * 1000)
+              key_lines = []
+              key_types = set()
+              fingerprints = set()
+              for line in proc.stdout.splitlines():
+                  parts = line.split()
+                  if len(parts) != 3 or parts[0].startswith("#"):
+                      continue
+                  try:
+                      decoded = base64.b64decode(parts[2], validate=True)
+                  except ValueError:
+                      continue
+                  fingerprint = "SHA256:" + base64.b64encode(hashlib.sha256(decoded).digest()).decode().rstrip("=")
+                  key_lines.append(line)
+                  key_types.add(parts[1])
+                  fingerprints.add(fingerprint)
+                  all_fingerprints.add(fingerprint)
+              attempts.append({
+                  "attempt": number,
+                  "rc": proc.returncode,
+                  "elapsed_ms": elapsed_ms,
+                  "stdout_noncomment_lines": len(key_lines),
+                  "key_types": sorted(key_types),
+                  "fingerprints": sorted(fingerprints),
+                  "accepted_pin_seen": expected in fingerprints,
+                  "stderr_line_count": len([line for line in proc.stderr.splitlines() if line.strip()]),
+                  "stderr_categories": stderr_categories(proc.stderr),
+              })
+
+          receipt = {
+              "ok": True,
+              "operation": "credentialless_canonical_host_keyscan_diagnosis",
+              "repository": "pyatkoff/max-search-bot",
+              "main_sha": os.environ["EXPECTED_MAIN_SHA"],
+              "dns": {
+                  "result_count": len(resolved),
+                  "unique_address_count": len(addresses),
+                  "families": families,
+                  "exact_expected_set": addresses == expected_dns,
+              },
+              "attempts": attempts,
+              "accepted_pin_seen_any": expected in all_fingerprints,
+              "distinct_fingerprints": sorted(all_fingerprints),
+              "ssh_login_attempts": 0,
+              "ssh_identity_loaded": False,
+              "database_calls": 0,
+              "api_calls": 0,
+              "source_reads": 0,
+              "model_calls": 0,
+              "provider_calls": 0,
+              "customer_calls": 0,
+              "conversion_calls": 0,
+              "writes": 0,
+          }
+          encoded = json.dumps(receipt, sort_keys=True, separators=(",", ":"))
+          if len(encoded) > 32768:
+              raise SystemExit("receipt_bound")
+          print(encoded)
+          PY
