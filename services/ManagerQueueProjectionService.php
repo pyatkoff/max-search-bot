@@ -12,9 +12,9 @@ class ManagerQueueProjectionService
 
     public static function counts(int $managerId,string $projectKey='*'): array
     {
-        $rawWaiting=ManagerConversationService::list($managerId,'waiting',200,$projectKey);
-        $requested=ManagerConversationService::list($managerId,'requested',200,$projectKey);
-        $mine=ManagerConversationService::list($managerId,'mine',200,$projectKey);
+        $rawWaiting=ManagerConversationService::queueCountRows($managerId,'waiting',$projectKey);
+        $requested=ManagerConversationService::queueCountRows($managerId,'requested',$projectKey);
+        $mine=ManagerConversationService::queueCountRows($managerId,'mine',$projectKey);
         $waiting=self::actionableRows('waiting',$rawWaiting);
 
         $waitingUnread=array_filter($waiting,static function($row){return empty($row['manager_id']);});
