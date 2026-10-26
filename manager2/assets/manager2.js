@@ -351,6 +351,16 @@
     $('conversationTitle').addEventListener('click',e=>openClientCard(e.currentTarget));
     document.querySelectorAll('[data-m2-nav]').forEach(b=>b.addEventListener('click',()=>navigate(b.dataset.m2Nav)));
     const dialog=$('m2Notifications');
+    const logout=$('m2Logout'),logoutError=$('m2LogoutError');
+    logout.onclick=async()=>{
+      if(S.logoutPending)return;
+      logout.disabled=true;logout.textContent='Выходим…';logoutError.hidden=true;
+      try{
+        const result=await W.logout();
+        if(result?.ok){dialog.close();return}
+        logoutError.textContent='Не удалось подтвердить выход. Проверьте соединение и попробуйте ещё раз.';logoutError.hidden=false;
+      }finally{logout.disabled=false;logout.textContent='Выйти'}
+    };
     $('m2NotificationButton').onclick=()=>{notificationOpener=document.activeElement;dialog.showModal();window.WorkspaceV2Notifications?.openConnections($('m2NotificationSlot'))};
     $('m2NotificationsClose').onclick=()=>dialog.close();dialog.addEventListener('close',()=>notificationOpener?.focus({preventScroll:true}));
     dialog.addEventListener('click',e=>{if(e.target!==dialog)return;const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close()});

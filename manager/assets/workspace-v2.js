@@ -8,6 +8,7 @@ function canonicalizeManagerUrl(){
 canonicalizeManagerUrl();
 const S={csrf:'',manager:null,projects:[],filterSources:[],filterManagers:[],filterOptionsReady:false,current:0,queue:'waiting',viewMode:'list',leadProjectFilter:'*',leadSourceFilter:0,leadManagerFilter:'',leadStageFilter:'',leadTagFilter:0,leadOutcomeFilter:'',leadTaskFilter:'',leadSearch:'',pipeline:{stages:[],tags:[],outcomes:{},closeReasons:{}},detail:null,searchTimer:null,authExpired:false,authGeneration:0,workspaceBound:false,booting:false};
 let catalogReady=Promise.resolve();
+let logoutFlight=null;
 const $=id=>document.getElementById(id);
 function esc(v){const d=document.createElement('div');d.textContent=v??'';return d.innerHTML}
 function showFatal(message){const box=$('inboxList');if(box){box.innerHTML=`<div class="empty"><strong>${esc(message)}</strong></div>`}const composer=$('composer');if(composer)composer.classList.add('hidden')}
@@ -54,6 +55,7 @@ function hideAuthRecovery(){
   document.body.classList.remove('managerAuthOpen');
 }
 async function request(url,action,data={},options={}){
+  if(S.logoutPending)throw new Error('logout_pending');
   if(S.authExpired){showAuthRecovery();throw new Error('unauthorized')}
   const generation=S.authGeneration;
   const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({action,csrf:S.csrf,...data}),...(options.signal?{signal:options.signal}:{})});
@@ -68,6 +70,37 @@ async function request(url,action,data={},options={}){
 const api=(action,data={},options)=>request('api.php',action,data,options);
 const pipe=(action,data={},options)=>request('pipeline-api.php',action,data,options);
 const notificationEvents=cursor=>request('notification-events.php','poll',{cursor});
+function logout(){
+  if(logoutFlight)return logoutFlight;
+  const csrf=S.csrf;
+  if(S.authExpired)S.authGeneration++;
+  showAuthRecovery('Завершаем сеанс…');
+  S.logoutPending=true;$('managerAuthSubmit').disabled=true;
+  logoutFlight=(async()=>{
+    try{
+      // Auth recovery locks protected work immediately; only this captured
+      // CSRF request may finish the existing session. Never replay an action.
+      const r=await fetch('api.php',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({action:'logout',csrf})});
+      const j=await r.json().catch(()=>null);
+      if(r.status!==401&&(!r.ok||j?.ok!==true))throw new Error('logout_unconfirmed');
+      window.WorkspaceV2Conversation?.resetForIdentityChange();
+      window.WorkspaceV2Media?.resetDrafts?.();
+      S.manager=null;S.csrf='';S.projects=[];S.current=0;S.detail=null;
+      ['inboxList','kanbanBoard','leadCard'].forEach(id=>$(id)?.replaceChildren());
+      $('managerName').textContent='Кабинет менеджера';
+      $('managerAuthLogin').value='';
+      showAuthRecovery('Вы вышли из аккаунта.');
+      // A fresh shell drops every in-memory module and any conversation URL.
+      history.replaceState(null,'',location.pathname+location.search);
+      location.reload();
+      return{ok:true};
+    }catch(e){
+      showAuthRecovery('Не удалось подтвердить выход. Проверьте соединение и повторите попытку.');
+      return{ok:false,error:'logout_unconfirmed'};
+    }finally{S.logoutPending=false;logoutFlight=null;$('managerAuthSubmit').disabled=false}
+  })();
+  return logoutFlight;
+}
 function statusText(s){return{ai:'С ботом',waiting_manager:'Ждёт менеджера',manager:'У менеджера',closed:'Диалог закрыт'}[s]||s||''}
 function outcomeText(s){return S.pipeline.outcomes[s]||{open:'В работе',won:'Продажа',lost:'Отказ'}[s]||'В работе'}
 function formatWait(seconds){const s=Math.max(0,Number(seconds||0));if(s<60)return'<1 мин';const m=Math.floor(s/60);if(m<60)return`${m} мин`;const h=Math.floor(m/60),r=m%60;return`${h} ч${r?` ${r} мин`:''}`}
@@ -179,18 +212,21 @@ async function resumeAuthenticated(me){
   else if(savedConversationId===window.WorkspaceV2Conversation?.getSavedSelection()&&savedConversationId&&!S.authExpired&&!S.current&&window.WorkspaceV2Conversation?.getOpenGeneration()===conversationGeneration)await window.WorkspaceV2Conversation?.open(savedConversationId,{restoreSession:true,mobileHistory:window.WorkspaceV2Mobile?.reloadHistoryMode?.()||'none'});
 }
 async function loginFromRecovery(){
+  if(S.logoutPending)return;
   const login=$('managerAuthLogin').value.trim(),password=$('managerAuthPassword').value;
   const submit=$('managerAuthSubmit'),error=$('managerAuthError');
   if(!login||!password)return;
   const submitLabel=submit.textContent;
+  const generation=S.authGeneration;
   submit.disabled=true;submit.textContent='Входим…';error.classList.add('hidden');
   try{
     const r=await fetch('api.php',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({action:'login',login,password})});
     const j=await r.json().catch(()=>({ok:false,error:'invalid_response'}));
+    if(generation!==S.authGeneration||S.logoutPending)return;
     if(!r.ok||!j?.ok){error.textContent=r.status===401?'Неверный логин или пароль.':'Не удалось войти. Проверьте соединение и попробуйте ещё раз.';error.classList.remove('hidden');return}
     await resumeAuthenticated(j);
   }catch(e){error.textContent='Нет связи с сервером. Попробуйте ещё раз.';error.classList.remove('hidden')}
-  finally{submit.disabled=false;submit.textContent=submitLabel}
+  finally{submit.disabled=!!S.logoutPending;submit.textContent=submitLabel}
 }
 async function boot(){
   if(S.booting)return;
@@ -202,5 +238,5 @@ async function boot(){
   }catch(e){if(!S.authExpired)showStartupFailure()}
   finally{S.booting=false}
 }
-window.WorkspaceV2={S,$,esc,api,pipe,request,notificationEvents,statusText,outcomeText,formatWait,val,tripField,boot,showFatal,showAuthRecovery,showStartupFailure,openNotificationConversation,discardNotificationIntent,whenCatalogReady:()=>catalogReady};
+window.WorkspaceV2={S,$,esc,api,pipe,request,notificationEvents,statusText,outcomeText,formatWait,val,tripField,boot,logout,showFatal,showAuthRecovery,showStartupFailure,openNotificationConversation,discardNotificationIntent,whenCatalogReady:()=>catalogReady};
 })();
