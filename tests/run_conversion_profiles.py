@@ -39,6 +39,81 @@ def value(profile, field):
 
 
 class ProfileTests(unittest.TestCase):
+    def test_explicit_adult_count_with_people_word_keeps_composition(self):
+        for text in ["4 человека взрослых", "4 человек взрослых", "4 чел. взрослых"]:
+            with self.subTest(text=text):
+                p = extract(message(text))
+                self.assertEqual(p["party"]["adults"]["value"], 4)
+                self.assertEqual(p["party"]["total"]["value"], 4)
+                self.assertIsNone(p["party"]["children"]["value"])
+
+    def test_people_word_does_not_override_explicit_components_or_negation(self):
+        for text in ["4 человека: 3 взрослых, 1 ребенок", "Не 2 человека взрослых, а 3 взрослых, 1 ребенок"]:
+            with self.subTest(text=text):
+                p = extract(message(text))
+                self.assertEqual(p["party"]["adults"]["value"], 3)
+        self.assertIsNone(extract(message("4 человека взрослых", "manager"))["party"]["adults"]["value"])
+
+    def test_duration_options_keep_disjoint_choices_and_whole_source_span(self):
+        for text in ["На 6 ,9 ночей", "На 6, 9 ночей", "На 9 или 6 ночей", "На 6, 9 или 12 ночей"]:
+            with self.subTest(text=text):
+                p = extract(message(text)); d = value(p, "duration")
+                self.assertEqual(d["options"], [6, 9, 12] if "12" in text else [6, 9])
+                self.assertEqual((d["minimum"], d["maximum"], d["unit"]), (6, 12 if "12" in text else 9, "nights"))
+                span = p["fields"]["duration"]["references"][0]["span"]
+                self.assertIn("6", text[slice(*span)])
+                self.assertIn("9", text[slice(*span)])
+
+    def test_duration_options_preserve_day_unit_and_do_not_change_ranges(self):
+        self.assertEqual(value(extract(message("6 или 9 дней")), "duration")["unit"], "days")
+        self.assertEqual(value(extract(message("6–9 ночей")), "duration"),
+                         {"minimum": 6, "maximum": 9, "unit": "nights"})
+
+    def test_invalid_duration_cannot_become_a_valid_numeric_suffix(self):
+        for text in ["6,5 ночей", "106 ночей", "6-9, 12 ночей", "Не 6 или 9 ночей", "0 или 9 ночей"]:
+            with self.subTest(text=text):
+                self.assertIsNone(value(extract(message(text)), "duration"))
+        self.assertIsNone(value(extract(message("На 6 или 9 ночей", "manager")), "duration"))
+
+    def test_ordinal_date_window_keeps_both_bounds_and_whole_span(self):
+        for text in ["Вылет с 6 го по 9 сентября включительно", "Вылет с 6-го по 9-го сентября", "Вылет 6–9 сентября"]:
+            with self.subTest(text=text):
+                p = extract(message(text)); d = value(p, "dates")
+                self.assertEqual((d["start_day"], d["end_day"], d["start_month"], d["year"]), (6, 9, 9, None))
+                self.assertEqual(d["window_kind"], "departure")
+                span = p["fields"]["dates"]["references"][0]["span"]
+                self.assertIn("6", text[slice(*span)])
+
+    def test_open_date_bound_is_not_an_exact_date_or_invented_next_day(self):
+        for text in ["После 6 сентября", "После 06.09"]:
+            with self.subTest(text=text):
+                d = value(extract(message(text)), "dates")
+                self.assertEqual((d["start_day"], d["start_month"], d["start_inclusive"]), (6, 9, False))
+                self.assertIsNone(d["end_day"])
+                self.assertIsNone(d["end_month"])
+                self.assertIsNone(d["year"])
+
+    def test_upper_date_bound_keeps_qualified_inclusivity(self):
+        for text, inclusive in [("До 6 сентября", None), ("До 6 сентября включительно", True),
+                                ("Раньше 06.09", False), ("Не позднее 6 сентября", True)]:
+            with self.subTest(text=text):
+                d = value(extract(message(text)), "dates")
+                self.assertIsNone(d["start_day"])
+                self.assertEqual((d["end_day"], d["end_month"], d["end_inclusive"]), (6, 9, inclusive))
+
+    def test_lower_date_bound_keeps_inclusive_from_and_not_earlier(self):
+        for text in ["С 6 сентября", "Не ранее 06.09"]:
+            with self.subTest(text=text):
+                d = value(extract(message(text)), "dates")
+                self.assertEqual((d["start_day"], d["start_inclusive"]), (6, True))
+                self.assertIsNone(d["end_day"])
+
+    def test_ordinal_invalid_date_does_not_drop_first_digit_or_first_bound(self):
+        for text in ["Вылет с 36-го по 9 сентября", "Вылет с 6-го по 39 сентября", "Вылет 39 сентября"]:
+            with self.subTest(text=text):
+                self.assertIsNone(value(extract(message(text)), "dates"))
+        self.assertIsNone(value(extract(message("После 6 сентября", "manager")), "dates"))
+
     def test_lagged_prefix_admits_known_facts_without_admitting_target(self):
         c = case(message("Бюджет до 200 тыс на всех, 2 взрослых"))
         c.update(prefix_complete=False, source_complete_through="2026-10-01T11:00:00Z",
