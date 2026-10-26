@@ -39,6 +39,62 @@ def value(profile, field):
 
 
 class ProfileTests(unittest.TestCase):
+    def test_month_only_preserves_unspecified_day_year_and_evidence(self):
+        for text, month, year in [("Июль, хотим отдых на море", 7, None),
+                                  ("Планируем на февраль 2028 года", 2, 2028),
+                                  ("В мае хотим в отпуск", 5, None)]:
+            with self.subTest(text=text):
+                p = extract(message(text)); row = p["fields"]["dates"]; d = row["value"]
+                self.assertIsNotNone(d)
+                self.assertEqual((d["start_month"], d["end_month"], d["year"]), (month, month, year))
+                self.assertIsNone(d["start_day"]); self.assertIsNone(d["end_day"])
+                self.assertEqual(d["precision"], "month")
+                span = row["references"][0]["span"]
+                self.assertTrue(text[slice(*span)])
+
+    def test_month_only_does_not_hide_invalid_day_or_make_alternative_exact(self):
+        for text in ["31 февраля", "45 марта", "Февраль или март", "После августа", "До октября", "С октября",
+                     "Не в июле", "В июле не поедем",
+                     "В прошлом году отдыхали в июле", "Менеджер предложил август", "Майя хочет тур"]:
+            with self.subTest(text=text):
+                self.assertIsNone(value(extract(message(text)), "dates"))
+
+    def test_hotel_star_range_and_discrete_alternatives_keep_their_meaning(self):
+        for text, expected in [("Отель 3-5*", {"minimum":3,"maximum":5}),
+                               ("Рассматриваем отели 3 или 5 звезд", {"minimum":3,"maximum":5,"options":[3,5]}),
+                               ("Нужен отель 4* или 5*", {"minimum":4,"maximum":5,"options":[4,5]}),
+                               ("Отели 4/5*", {"minimum":4,"maximum":5,"options":[4,5]}),
+                               ("Хотим отель 4*", {"minimum":4,"maximum":4}),
+                               ("Отель не ниже 4 звезд", {"minimum":4,"maximum":None})]:
+            with self.subTest(text=text):
+                p = extract(message(text)); row=p["fields"]["hotel_stars"]
+                self.assertEqual(row["value"],expected)
+                self.assertEqual(row["references"][0]["speaker"],"customer")
+                self.assertTrue(text[slice(*row["references"][0]["span"])])
+
+    def test_invalid_or_reported_stars_do_not_become_customer_requirement(self):
+        for text in ["Отель 6-4*", "Отель 10*", "Отель 4,5*", "Отель 5-3*", "Отель 0-4*",
+                     "Менеджер предложил отель 5*", "Есть отель 4*?", "В прошлом году жили в отеле 4*",
+                     "Не хотим отель 5*", "Отель 5* не подходит", "Рейтинг отеля 4,5", "Бюджет до 400 тыс.", "4*2"]:
+            with self.subTest(text=text):
+                self.assertIsNone(value(extract(message(text)),"hotel_stars"))
+
+    def test_month_and_hotel_class_updates_keep_roles_cutoff_and_null_export(self):
+        p=extract(message("Июль, отель 4*"),message("Август, отель 5*",speaker="manager",i=2))
+        self.assertEqual(value(p,"dates")["start_month"],7)
+        self.assertEqual(value(p,"hotel_stars")["minimum"],4)
+        p=extract(message("Июль, отель 4*"),message("На август, отель 5*",i=2))
+        self.assertEqual(value(p,"dates")["start_month"],8)
+        self.assertEqual(value(p,"hotel_stars")["minimum"],5)
+        for options in [{"speaker":"manager"},{"speaker":"other"},{"kind":"action"},{"at":LATER}]:
+            with self.subTest(options=options):
+                p=extract(message("Август, отель 5*",**options))
+                self.assertIsNone(value(p,"dates"));self.assertIsNone(value(p,"hotel_stars"))
+        p=tool.extract_case(case(message("Август, отель 5*")),LATER)
+        self.assertNotIn("fields.hotel_stars",p["prediction_features"]["facts"])
+        self.assertNotIn("fields.dates",p["prediction_features"]["facts"])
+        self.assertIsNone(p["expected_value_rub"]);self.assertFalse(p["export_allowed"])
+
     def test_direct_flight_requirement_is_source_bound_customer_fact(self):
         for text in ["Вылет из Казани, прямой рейс", "Нужны прямые рейсы", "Хотим лететь прямым рейсом", "Только без пересадок"]:
             with self.subTest(text=text):
