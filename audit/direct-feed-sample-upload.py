@@ -447,13 +447,18 @@ def verify_catalog(body, sample):
         if not isinstance(feed, dict) or type(feed.get('Id')) is not int or feed['Id'] <= 0 or feed['Id'] in ids:
             fail('FEED_CATALOG_IDENTITY_INVALID')
         ids.add(feed['Id'])
-        if not isinstance(feed.get('Name'), str) or feed.get('SourceType') not in {'FILE', 'URL'}:
+        source_type = feed.get('SourceType')
+        observed_auto_site = (source_type is None
+                              and feed.get('BusinessType') == 'OTHER'
+                              and feed.get('FilterSchema') == 'SiteSchema')
+        if (not isinstance(feed.get('Name'), str)
+                or (source_type not in {'FILE', 'URL'} and not observed_auto_site)):
             fail('FEED_CATALOG_METADATA_INVALID')
         file_feed = feed.get('FileFeed')
         filename = file_feed.get('Filename') if isinstance(file_feed, dict) else None
         if feed['Name'] == sample['Name'] or filename == sample['FileFeed']['Filename']:
             fail('MATCHING_FEED_ALREADY_EXISTS_NO_ADD')
-        if feed['SourceType'] == 'FILE' and not isinstance(filename, str):
+        if feed.get('SourceType') == 'FILE' and not isinstance(filename, str):
             fail('EXISTING_FILE_FEED_FILENAME_UNKNOWN_NO_ADD')
     return len(feeds)
 
