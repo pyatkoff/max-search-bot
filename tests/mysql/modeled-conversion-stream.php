@@ -16,13 +16,17 @@ try{
     if($p->query('SELECT DATABASE()')->fetchColumn()!=='maxbot_modeled_stream_test'||$other->query('SELECT DATABASE()')->fetchColumn()!=='maxbot_modeled_stream_test')throw new RuntimeException('unsafe_fixture_database');
     $passed=0;$check=static function(string $name,bool $ok)use(&$passed){if(!$ok)throw new RuntimeException('assertion_failed');$passed++;echo 'PASS native MySQL '.$name.PHP_EOL;};
     modeledStreamSchema($p);modeledStreamAssertions($p,$check);
-    $s=new ModeledConversionStream($p);$now=1793002200;
+    // Isolate the two-transaction race from the earlier 700-row throughput case.
+    // A complete bounded sweep here takes one page, so recovery has a fixed bound.
+    modeledStreamSchema($p);
+    $s=new ModeledConversionStream($p);$now=1793002200;modeledStreamMessage($p,10,11);$s->start($now);
     $other->beginTransaction();modeledStreamMessage($other,800,11,'late committed fixture');
     modeledStreamMessage($p,801,11,'later ID committed first');$s->tick($now);
     $check('uncommitted source is not copied',(int)$p->query("SELECT COUNT(*) FROM modeled_conversion_stream_sources WHERE source_kind='message' AND source_id=800")->fetchColumn()===0);
     $other->commit();
-    for($i=1;$i<40;$i++)$s->tick($now+$i);
+    $s->tick($now+1);
     $check('actual out of order transaction commit is eventually recovered',(int)$p->query("SELECT COUNT(*) FROM modeled_conversion_stream_sources WHERE source_kind='message' AND source_id=800")->fetchColumn()===1);
+    $check('retry after actual late commit adds no duplicate revision',$s->tick($now+2)['new_revisions']===0);
     $competing=new ModeledConversionStream($other);$blocked=false;
     $before=(int)$p->query('SELECT COUNT(*) FROM modeled_conversion_stream_versions')->fetchColumn();
     $s->tick($now+41,static function()use($competing,$now,&$blocked){$blocked=($competing->tick($now+41)['status']??'')==='busy';});

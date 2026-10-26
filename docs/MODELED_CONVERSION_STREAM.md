@@ -31,7 +31,8 @@ A database-scoped advisory lock returns busy immediately for another observer;
 a five-second soft deadline limits work between statements, not a running query.
 Forward pages
 and bounded cyclic sweeps recover source IDs committed behind an advanced
-forward cursor. Reconciliation cycles over already admitted IDs to detect
+forward cursor. Sweep and reconciliation delay grows with retained source count;
+there is no fixed all-history freshness SLA. Reconciliation cycles over already admitted IDs to detect
 edits and physical disappearance. Revoked scope is distinct from deletion.
 Only current source snapshots are observed: intermediate edits between two
 reads are not recovered or claimed complete. Source-ID floors intentionally
