@@ -107,7 +107,7 @@ function bind(){
   if(bound)return;bound=true;const box=$('messages');if(!box)return;
   box.style.overflowAnchor='none';rememberGeometry(box);followingLatest=distanceFromLatest()<=2;ensureButton();
   box.addEventListener('scroll',onScroll,{passive:true});
-  box.addEventListener('wheel',event=>{if(event.deltaY<0)readingIntent();},{passive:true});
+  // Capture native wheel intent before a nested message control can stop bubbling.\n  box.addEventListener('wheel',event=>{if(event.deltaY<0)readingIntent();},{passive:true,capture:true});
   let touchY=null;
   box.addEventListener('touchstart',event=>{touchY=event.touches[0]?.clientY??null;},{passive:true});
   box.addEventListener('touchmove',event=>{const y=event.touches[0]?.clientY;if(touchY!==null&&y>touchY)readingIntent();touchY=y??null;},{passive:true});
