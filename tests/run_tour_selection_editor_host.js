@@ -7,7 +7,7 @@ function fixture(hint='',entry=''){
   let host,open=5,mobile=false;const requests=[],navigations=[],listeners={},replacements=[],roots=[];
   const editor={sync:c=>roots.push(c)},window={WorkspaceV2:{S:state,request:(...args)=>{requests.push(args);return Promise.resolve({ok:true})}},WorkspaceV2Conversation:{getOpenGeneration:()=>open},AnyTourSelectionEditor:{mount:h=>{host=h;return editor}},ManagerTime:{format:(...args)=>args.join('|')},matchMedia:()=>({matches:mobile}),open:(...args)=>navigations.push(args),addEventListener:(name,fn)=>listeners[name]=fn};
   const location={href:'https://app.anytoour.ru/manager2/'+hint,origin:'https://app.anytoour.ru'};
-  const document={body:{dataset:{selectionEditorEntry:entry}},querySelector:selector=>{roots.push(selector);return {selector}}},history={state:null,replaceState:(...args)=>replacements.push(args)};
+  const document={querySelector:selector=>{roots.push(selector);return selector==='meta[name="selection-editor-entry"]'?{content:entry}:{selector}}},history={state:null,replaceState:(...args)=>replacements.push(args)};
   vm.runInNewContext(source,{window,document,location,history,URL});
   return {host,state,c,window,requests,navigations,listeners,replacements,roots,editor,setOpen:value=>open=value,setMobile:value=>mobile=value};
 }

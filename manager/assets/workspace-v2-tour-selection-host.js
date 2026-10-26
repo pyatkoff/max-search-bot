@@ -19,7 +19,7 @@ const host={
   takeCollectorIntent:target=>{if(!intent)return false;const previous=intent;clearIntent();return previous.manager===target.actor&&previous.conversation===target.conversation},
   activate:()=>{if(intent&&actor()&&intent.manager!==actor())clearIntent()}
 };
-const standalone=document.body.dataset.selectionEditorEntry;
+const standalone=document.querySelector('meta[name="selection-editor-entry"]')?.content;
 if(standalone==='https://tours.anytoour.ru/editor.php')host.openStandalone=conversation=>{
   const target=capture();if(isCurrent(target)&&target.conversation===conversation)window.open(standalone+'?conversation_id='+conversation+'&editor_actor='+target.actor,'_blank','noopener');
 };
