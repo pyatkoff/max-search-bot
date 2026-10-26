@@ -39,6 +39,126 @@ def value(profile, field):
 
 
 class ProfileTests(unittest.TestCase):
+    def test_nonprice_preferences_keep_distinct_customer_meanings_and_evidence(self):
+        text="Без муссонов. Купаться в море. Вечером погулять, чтобы было оживленно."
+        p=extract(message(text))
+        self.assertEqual(value(p,"weather_preference"),"avoid_monsoon")
+        self.assertEqual(value(p,"swimming_preference"),"desired")
+        self.assertEqual(value(p,"evening_walks_preference"),"desired")
+        self.assertEqual(value(p,"evening_environment_preference"),"lively")
+        for name in ["weather_preference","swimming_preference","evening_walks_preference","evening_environment_preference"]:
+            row=p["fields"][name]
+            self.assertEqual(row["references"][0]["speaker"],"customer")
+            self.assertTrue(text[slice(*row["references"][0]["span"])])
+            self.assertIn("fields."+name,p["prediction_features"]["facts"])
+        self.assertIsNone(p["expected_value_rub"]);self.assertFalse(p["export_allowed"])
+        self.assertEqual(value(extract(message("Направление, где нет муссонов")),"weather_preference"),"avoid_monsoon")
+        self.assertIsNone(value(extract(message("В этой стране нет муссонов")),"weather_preference"))
+
+    def test_preferences_do_not_invent_destination_weather_or_nightlife(self):
+        p=extract(message("Можно купаться, вечером гулять"))
+        self.assertEqual(value(p,"swimming_preference"),"desired")
+        self.assertEqual(value(p,"evening_walks_preference"),"desired")
+        self.assertIsNone(value(p,"evening_environment_preference"))
+        self.assertIsNone(value(p,"weather_preference"))
+        self.assertIsNone(value(p,"destination"))
+        self.assertNotIn("nightlife",json.dumps(value(p,"evening_walks_preference")))
+
+    def test_later_preference_removal_changes_only_its_own_field(self):
+        p=extract(message("Без муссонов. Купаться. Вечером погулять, чтобы было оживленно"),
+                  message("Купание не важно",i=2))
+        self.assertEqual(value(p,"swimming_preference"),"unrestricted")
+        span=p["fields"]["swimming_preference"]["references"][0]["span"]
+        self.assertIn("не важно","Купание не важно"[slice(*span)])
+        self.assertEqual(value(p,"weather_preference"),"avoid_monsoon")
+        self.assertEqual(value(p,"evening_walks_preference"),"desired")
+        p=extract(message("Хотим купаться"),message("Купаться больше не планируем",i=2))
+        self.assertEqual(value(p,"swimming_preference"),"not_desired")
+        p=extract(message("Без муссонов"),message("Муссоны не принципиальны",i=2))
+        self.assertEqual(value(p,"weather_preference"),"unrestricted")
+        p=extract(message("Вечером прогулки, чтобы было оживленно"),message("Вечерние прогулки не важны",i=2))
+        self.assertEqual(value(p,"evening_walks_preference"),"unrestricted")
+        self.assertEqual(value(p,"evening_environment_preference"),"lively")
+        self.assertEqual(p["fields"]["evening_environment_preference"]["references"][0]["id"],"message:1")
+
+    def test_manager_actions_past_reports_and_questions_are_not_preferences(self):
+        texts=["Без муссонов. Купаться в море. Вечером гулять",
+               "Менеджер предложил отдых без муссонов, можно купаться",
+               "В прошлом году купались и гуляли вечером", "Без муссонов можно купаться?",
+               "Если можно купаться, какая цена?"]
+        for text in texts:
+            options=[{}] if text!=texts[0] else [{"speaker":"manager"},{"speaker":"other"},{"kind":"action"}]
+            for option in options:
+                with self.subTest(text=text,option=option):
+                    p=extract(message(text,**option))
+                    for name in ["weather_preference","swimming_preference","evening_walks_preference","evening_environment_preference"]:
+                        self.assertIsNone(value(p,name))
+
+    def test_preferences_keep_actual_semantic_availability_and_trip_coverage(self):
+        p=tool.extract_case(case(message("Без муссонов. Купаться")),LATER)
+        self.assertEqual(value(p,"weather_preference"),"avoid_monsoon")
+        self.assertNotIn("fields.weather_preference",p["prediction_features"]["facts"])
+        p=extract(message("Купаться",at=LATER))
+        self.assertIsNone(value(p,"swimming_preference"))
+
+    def test_month_only_preserves_unspecified_day_year_and_evidence(self):
+        for text, month, year in [("Июль, хотим отдых на море", 7, None),
+                                  ("Планируем на февраль 2028 года", 2, 2028),
+                                  ("В мае хотим в отпуск", 5, None)]:
+            with self.subTest(text=text):
+                p = extract(message(text)); row = p["fields"]["dates"]; d = row["value"]
+                self.assertIsNotNone(d)
+                self.assertEqual((d["start_month"], d["end_month"], d["year"]), (month, month, year))
+                self.assertIsNone(d["start_day"]); self.assertIsNone(d["end_day"])
+                self.assertEqual(d["precision"], "month")
+                span = row["references"][0]["span"]
+                self.assertTrue(text[slice(*span)])
+
+    def test_month_only_does_not_hide_invalid_day_or_make_alternative_exact(self):
+        for text in ["31 февраля", "45 марта", "Февраль или март", "После августа", "До октября", "С октября",
+                     "Не в июле", "В июле не поедем",
+                     "В прошлом году отдыхали в июле", "Менеджер предложил август", "Майя хочет тур",
+                     "Июль не рассматриваем", "Раньше были в августе", "На январь 20288 года"]:
+            with self.subTest(text=text):
+                self.assertIsNone(value(extract(message(text)), "dates"))
+
+    def test_hotel_star_range_and_discrete_alternatives_keep_their_meaning(self):
+        for text, expected in [("Отель 3-5*", {"minimum":3,"maximum":5}),
+                               ("Рассматриваем отели 3 или 5 звезд", {"minimum":3,"maximum":5,"options":[3,5]}),
+                               ("Нужен отель 4* или 5*", {"minimum":4,"maximum":5,"options":[4,5]}),
+                               ("Отели 4/5*", {"minimum":4,"maximum":5,"options":[4,5]}),
+                               ("Хотим отель 4*", {"minimum":4,"maximum":4}),
+                               ("Отель не ниже 4 звезд", {"minimum":4,"maximum":None})]:
+            with self.subTest(text=text):
+                p = extract(message(text)); row=p["fields"]["hotel_stars"]
+                self.assertEqual(row["value"],expected)
+                self.assertEqual(row["references"][0]["speaker"],"customer")
+                self.assertTrue(text[slice(*row["references"][0]["span"])])
+
+    def test_invalid_or_reported_stars_do_not_become_customer_requirement(self):
+        for text in ["Отель 6-4*", "Отель 10*", "Отель 4,5*", "Отель 5-3*", "Отель 0-4*",
+                     "Менеджер предложил отель 5*", "Есть отель 4*?", "В прошлом году жили в отеле 4*",
+                     "Не хотим отель 5*", "Отель 5* не подходит", "Рейтинг отеля 4,5", "Бюджет до 400 тыс.",
+                     "Отель 4* не рассматриваем", "4*2", "4 * 2"]:
+            with self.subTest(text=text):
+                self.assertIsNone(value(extract(message(text)),"hotel_stars"))
+
+    def test_month_and_hotel_class_updates_keep_roles_cutoff_and_null_export(self):
+        p=extract(message("Июль, отель 4*"),message("Август, отель 5*",speaker="manager",i=2))
+        self.assertEqual(value(p,"dates")["start_month"],7)
+        self.assertEqual(value(p,"hotel_stars")["minimum"],4)
+        p=extract(message("Июль, отель 4*"),message("На август, отель 5*",i=2))
+        self.assertEqual(value(p,"dates")["start_month"],8)
+        self.assertEqual(value(p,"hotel_stars")["minimum"],5)
+        for options in [{"speaker":"manager"},{"speaker":"other"},{"kind":"action"},{"at":LATER}]:
+            with self.subTest(options=options):
+                p=extract(message("Август, отель 5*",**options))
+                self.assertIsNone(value(p,"dates"));self.assertIsNone(value(p,"hotel_stars"))
+        p=tool.extract_case(case(message("Август, отель 5*")),LATER)
+        self.assertNotIn("fields.hotel_stars",p["prediction_features"]["facts"])
+        self.assertNotIn("fields.dates",p["prediction_features"]["facts"])
+        self.assertIsNone(p["expected_value_rub"]);self.assertFalse(p["export_allowed"])
+
     def test_direct_flight_requirement_is_source_bound_customer_fact(self):
         for text in ["Вылет из Казани, прямой рейс", "Нужны прямые рейсы", "Хотим лететь прямым рейсом", "Только без пересадок"]:
             with self.subTest(text=text):
