@@ -95,6 +95,16 @@ function clean(s){expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 
 for(const width of [390,430,768,1440])test.describe('Source publication at '+width,()=>{
  test.use({viewport:{width,height:900}});
+ test('published unpriced Rixos post keeps its original link and explicit source',async({page,browserName})=>{
+  const s=await setup(page),url='https://max.ru/channel_anytour/AaF5iOyMXHU';
+  s.contexts.set(11,{current:post(11,101,{publication_id:70,version_id:82,title:'Rixos Premium Magawish Suites & Villas',post_url:url,source_name:'AnyTour Москва',source_key:'max_anytour_msk1',text:'Rixos Premium Magawish Suites & Villas\nЕгипет · Хургада\n\nПросторные сьюты и виллы, песчаный пляж и «ультра всё включено» — для отдыха семьёй или вдвоём.\n\nОтель для семей и пар.'}),history:[]});
+  await openLead(page);await openPostOverlay(page);const host=page.locator('#conversationPostContext');
+  await expect(host.locator('.postContextOriginal')).toHaveAttribute('href',url);
+  await expect(host.locator('.postContextSource')).toHaveText('Источник: AnyTour Москва · Публикация №70');
+  await host.locator('.postContextCard summary').click();await expect(host.locator('.postContextText')).toContainText('Египет · Хургада');
+  await expect(host).not.toContainText(/YCLID|рекламный клик|150 000/);
+  await bounded(page);await capture(page,browserName,width,'public-rixos-source');clean(s);
+ });
  test('current publication, protected photo and history stay usable without displacing the reply',async({page,browserName})=>{
   const s=await setup(page);await openLead(page);const host=page.locator('#conversationPostContext');await expect(host).toHaveAttribute('data-state','ready');
   await expect(host.locator('.postContextToggle')).toHaveAttribute('aria-expanded','false');await expect(host.locator('.postContextOverlay')).not.toBeVisible();

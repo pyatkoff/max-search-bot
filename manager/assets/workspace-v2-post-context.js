@@ -11,7 +11,10 @@
     try{
       const url=new URL(value),hosts=platform==='max'?['max.ru']:platform==='telegram'?['t.me']:[];
       if(url.protocol!=='https:'||!hosts.includes(url.hostname.toLowerCase())||url.username||url.password||url.port||url.search||url.hash)return '';
-      const valid=platform==='max'?/^\/c\/-?[0-9]+\/[A-Za-z0-9_-]+\/?$/.test(url.pathname):/^\/(?:c\/[0-9]+|[A-Za-z][A-Za-z0-9_]{3,31})\/[0-9]+\/?$/.test(url.pathname);
+      const path=url.pathname.replace(/\/$/,'');
+      const alias=path.split('/')[1]||'';
+      const publicMax=/^\/[A-Za-z0-9_]{1,191}\/[A-Za-z0-9_-]{1,191}$/.test(path)&&!['c','join','u','share','app','bot','web'].includes(alias.toLowerCase())&&!/_bot$/i.test(alias);
+      const valid=platform==='max'?/^\/c\/-?[1-9][0-9]{0,19}\/[A-Za-z0-9_-]{1,191}$/.test(path)||publicMax:/^\/(?:c\/[0-9]+|[A-Za-z][A-Za-z0-9_]{3,31})\/[0-9]+\/?$/.test(url.pathname);
       return valid?url.href:'';
     }catch{return ''}
   }
@@ -139,6 +142,9 @@
     const channel=String(entry.channel_name||'').trim();
     const entered=moscowTime(entry.entered_at);
     identity.appendChild(node('div','postContextMeta',[channel,platform,entered?'Вход '+entered:''].filter(Boolean).join(' · ')));
+    const source=String(entry.source_name||entry.source_key||'').trim().slice(0,191),publication=Number(entry.publication_id);
+    const sourceParts=[source?'Источник: '+source:'',Number.isSafeInteger(publication)&&publication>0?'Публикация №'+publication:''].filter(Boolean);
+    if(sourceParts.length)identity.appendChild(node('div','postContextMeta postContextSource',sourceParts.join(' · ')));
     const media=safeMediaUrl(entry.media_url,context.id,Number(entry.entry_id));
     if(media){
       const preview=node('a','postContextThumbLink');preview.href=media;preview.target='_blank';preview.rel='noopener noreferrer';preview.setAttribute('aria-label','Открыть фото из публикации');

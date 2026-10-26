@@ -14,6 +14,13 @@ version current at entry; later edits do not rewrite earlier customer entries.
 Manager2 shows the original text, publication link when available, protected
 photograph and previous entries. Prices remain the prices in the publication.
 
+The card preserves both MAX permalink forms: `/c/<channel>/<message>` and
+`/<public-channel-name>/<message>`. It displays the stored source label/key and
+publication number from the same authorized entry. This identifies a publication
+entry, not a paid visit or purchase. A static `p_` link does not establish YCLID
+ownership or an offer; unknown offers remain unknown. Reserved MAX app/profile/
+invitation paths, other hosts, credentials and URL parameters stay unavailable.
+
 ## Runtime boundaries
 
 - Only explicitly enabled channels are processed. Migration 033 enables none.
