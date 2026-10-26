@@ -12,11 +12,13 @@ class ConversationRecorder
     // Request-local provenance, never recovered from the mutable last dialogue.
     private static ?array $wizardInput = null;
     private static array $wizardReceipts = [];
+    private static string $wizardReceiptReason = 'input_unavailable';
 
     public static function inbound(array $incoming): bool
     {
         self::$wizardInput = null;
         self::$wizardReceipts = [];
+        self::$wizardReceiptReason = 'input_unavailable';
         try {
             if (!ConversationDb::isConfigured()) return false;
             $user = (array)($incoming['user'] ?? []);
@@ -45,7 +47,10 @@ class ConversationRecorder
             if ($messageId !== '') {
                 $check = $pdo->prepare('SELECT id FROM messages WHERE conversation_id=? AND direction=? AND external_message_id=? LIMIT 1');
                 $check->execute([$conversationId, 'inbound', $messageId]);
-                if ($check->fetchColumn()) return true;
+                if ($check->fetchColumn()) {
+                    self::$wizardReceiptReason = 'duplicate_input';
+                    return true;
+                }
             }
 
             $metadata = ['type'=>$type, 'username'=>(string)($user['username'] ?? ''), 'source_key'=>$sourceKey];
@@ -62,6 +67,7 @@ class ConversationRecorder
                 && ($linked['type'] ?? '') !== 'forward' && ctype_digit($inputId) && (int)$inputId > 0) {
                 self::$wizardInput = ['conversation_id'=>$conversationId, 'chat_id'=>$chatId,
                     'input_message_id'=>$inputId, 'input_kind'=>$type, 'input_text_sha256'=>hash('sha256',$text)];
+                self::$wizardReceiptReason = 'ready';
             }
             return true;
         } catch (Throwable $e) {
@@ -75,22 +81,47 @@ class ConversationRecorder
     {
         try {
             $input = self::$wizardInput;
-            if (!$input || ProjectConfig::projectId() !== 'anytour' || $input['chat_id'] !== (string)$chatId
-                || !in_array($field, ['city','country','adults','children','child_ages','stars','meal','nights','date'], true)
-                || $value === '' || strlen($value) > 160) return false;
+            if (!$input) return false;
+            if (ProjectConfig::projectId() !== 'anytour') {
+                self::$wizardReceiptReason = 'project_mismatch';
+                return false;
+            }
+            if ($input['chat_id'] !== (string)$chatId) {
+                self::$wizardReceiptReason = 'chat_mismatch';
+                return false;
+            }
+            if (!in_array($field, ['city','country','adults','children','child_ages','stars','meal','nights','date'], true)) {
+                self::$wizardReceiptReason = 'unsupported_field';
+                return false;
+            }
+            if ($value === '' || strlen($value) > 160) {
+                self::$wizardReceiptReason = 'invalid_value';
+                return false;
+            }
             $key = $field . ':' . $value;
-            if (isset(self::$wizardReceipts[$key])) return true;
+            if (isset(self::$wizardReceipts[$key])) {
+                self::$wizardReceiptReason = 'already_recorded';
+                return true;
+            }
             $payload = ['version'=>1, 'origin'=>'existing_wizard_step_application',
                 'input_message_id'=>$input['input_message_id'], 'input_kind'=>$input['input_kind'],
                 'input_text_sha256'=>$input['input_text_sha256'], 'field'=>$field, 'storage_value'=>$value];
             $stmt = ConversationDb::connection()->prepare('INSERT INTO conversation_events (conversation_id,event_type,actor_type,payload_json) VALUES (?,?,?,?)');
             $stmt->execute([$input['conversation_id'],'wizard_value_applied','system',self::json($payload)]);
             self::$wizardReceipts[$key] = true;
+            self::$wizardReceiptReason = 'recorded';
             return true;
         } catch (Throwable $ignored) {
             // Provenance failure must not change the applied value or leak its content.
+            self::$wizardReceiptReason = 'write_failed';
             return false;
         }
+    }
+
+    /** Fixed non-sensitive reason for the last request-local receipt decision. */
+    public static function wizardReceiptReason(): string
+    {
+        return self::$wizardReceiptReason;
     }
 
     public static function outbound(string $platform, $chatId, string $text, string $senderType = 'ai', array $metadata = []): bool
