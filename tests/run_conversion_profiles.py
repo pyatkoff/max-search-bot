@@ -39,6 +39,68 @@ def value(profile, field):
 
 
 class ProfileTests(unittest.TestCase):
+    def test_nonprice_preferences_keep_distinct_customer_meanings_and_evidence(self):
+        text="Без муссонов. Купаться в море. Вечером погулять, чтобы было оживленно."
+        p=extract(message(text))
+        self.assertEqual(value(p,"weather_preference"),"avoid_monsoon")
+        self.assertEqual(value(p,"swimming_preference"),"desired")
+        self.assertEqual(value(p,"evening_walks_preference"),"desired")
+        self.assertEqual(value(p,"evening_environment_preference"),"lively")
+        for name in ["weather_preference","swimming_preference","evening_walks_preference","evening_environment_preference"]:
+            row=p["fields"][name]
+            self.assertEqual(row["references"][0]["speaker"],"customer")
+            self.assertTrue(text[slice(*row["references"][0]["span"])])
+            self.assertIn("fields."+name,p["prediction_features"]["facts"])
+        self.assertIsNone(p["expected_value_rub"]);self.assertFalse(p["export_allowed"])
+        self.assertEqual(value(extract(message("Направление, где нет муссонов")),"weather_preference"),"avoid_monsoon")
+        self.assertIsNone(value(extract(message("В этой стране нет муссонов")),"weather_preference"))
+
+    def test_preferences_do_not_invent_destination_weather_or_nightlife(self):
+        p=extract(message("Можно купаться, вечером гулять"))
+        self.assertEqual(value(p,"swimming_preference"),"desired")
+        self.assertEqual(value(p,"evening_walks_preference"),"desired")
+        self.assertIsNone(value(p,"evening_environment_preference"))
+        self.assertIsNone(value(p,"weather_preference"))
+        self.assertIsNone(value(p,"destination"))
+        self.assertNotIn("nightlife",json.dumps(value(p,"evening_walks_preference")))
+
+    def test_later_preference_removal_changes_only_its_own_field(self):
+        p=extract(message("Без муссонов. Купаться. Вечером погулять, чтобы было оживленно"),
+                  message("Купание не важно",i=2))
+        self.assertEqual(value(p,"swimming_preference"),"unrestricted")
+        span=p["fields"]["swimming_preference"]["references"][0]["span"]
+        self.assertIn("не важно","Купание не важно"[slice(*span)])
+        self.assertEqual(value(p,"weather_preference"),"avoid_monsoon")
+        self.assertEqual(value(p,"evening_walks_preference"),"desired")
+        p=extract(message("Хотим купаться"),message("Купаться больше не планируем",i=2))
+        self.assertEqual(value(p,"swimming_preference"),"not_desired")
+        p=extract(message("Без муссонов"),message("Муссоны не принципиальны",i=2))
+        self.assertEqual(value(p,"weather_preference"),"unrestricted")
+        p=extract(message("Вечером прогулки, чтобы было оживленно"),message("Вечерние прогулки не важны",i=2))
+        self.assertEqual(value(p,"evening_walks_preference"),"unrestricted")
+        self.assertEqual(value(p,"evening_environment_preference"),"lively")
+        self.assertEqual(p["fields"]["evening_environment_preference"]["references"][0]["id"],"message:1")
+
+    def test_manager_actions_past_reports_and_questions_are_not_preferences(self):
+        texts=["Без муссонов. Купаться в море. Вечером гулять",
+               "Менеджер предложил отдых без муссонов, можно купаться",
+               "В прошлом году купались и гуляли вечером", "Без муссонов можно купаться?",
+               "Если можно купаться, какая цена?"]
+        for text in texts:
+            options=[{}] if text!=texts[0] else [{"speaker":"manager"},{"speaker":"other"},{"kind":"action"}]
+            for option in options:
+                with self.subTest(text=text,option=option):
+                    p=extract(message(text,**option))
+                    for name in ["weather_preference","swimming_preference","evening_walks_preference","evening_environment_preference"]:
+                        self.assertIsNone(value(p,name))
+
+    def test_preferences_keep_actual_semantic_availability_and_trip_coverage(self):
+        p=tool.extract_case(case(message("Без муссонов. Купаться")),LATER)
+        self.assertEqual(value(p,"weather_preference"),"avoid_monsoon")
+        self.assertNotIn("fields.weather_preference",p["prediction_features"]["facts"])
+        p=extract(message("Купаться",at=LATER))
+        self.assertIsNone(value(p,"swimming_preference"))
+
     def test_month_only_preserves_unspecified_day_year_and_evidence(self):
         for text, month, year in [("Июль, хотим отдых на море", 7, None),
                                   ("Планируем на февраль 2028 года", 2, 2028),
