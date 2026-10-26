@@ -39,6 +39,44 @@ def value(profile, field):
 
 
 class ProfileTests(unittest.TestCase):
+    def test_decimal_thousands_keep_full_amount_and_source_span(self):
+        for text in ["Бюджет 150,5 тыс. ₽", "Бюджет 150.5 тыс. ₽"]:
+            with self.subTest(text=text):
+                p = extract(message(text))
+                self.assertEqual(value(p, "budget")["maximum"], 150500)
+                ref = p["fields"]["budget"]["references"][0]
+                self.assertIn("150", text[slice(*ref["span"])])
+
+    def test_decimal_range_preserves_per_person_basis(self):
+        b = value(extract(message("Бюджет 100,5–150,75 тыс. ₽ на человека")), "budget")
+        self.assertEqual((b["minimum"], b["maximum"], b["unit"]),
+                         (100500, 150750, "per_person"))
+
+    def test_narrow_no_break_group_separator_is_not_a_suffix_amount(self):
+        b = value(extract(message("Бюджет 150\u202f500 рублей")), "budget")
+        self.assertEqual(b["maximum"], 150500)
+
+    def test_unsupported_fraction_or_currency_cannot_create_false_ruble_budget(self):
+        for text in ["Бюджет 150,50 рублей", "Бюджет 150,5555 тыс. ₽",
+                     "Бюджет 100,5,3 тыс. ₽", "Бюджет 2500 GBP",
+                     "Бюджет 1,5 млн рублей", "Бюджет 150," + "0"*30 + "1 тыс. ₽"]:
+            with self.subTest(text=text):
+                self.assertIsNone(value(extract(message(text)), "budget"))
+
+    def test_decimal_manager_quote_keeps_role_and_explicit_currency(self):
+        p = extract(message("Цена 1,5 тыс. EUR", "manager"))
+        self.assertIsNone(value(p, "budget"))
+        self.assertEqual(p["manager_quotes"][0]["value"]["maximum"], 1500)
+        self.assertEqual(p["manager_quotes"][0]["value"]["currency"], "EUR")
+
+    def test_decimal_amount_respects_bounds_and_does_not_assume_scale(self):
+        for text, bounds in [("Бюджет до 150,5 тыс", (None, 150500)),
+                             ("Бюджет от 150,5 тыс", (150500, None)),
+                             ("Бюджет 150,0 рублей", (150, 150))]:
+            with self.subTest(text=text):
+                b = value(extract(message(text)), "budget")
+                self.assertEqual((b["minimum"], b["maximum"]), bounds)
+
     def test_negated_other_seller_purchase_is_not_a_terminal_outcome(self):
         p = extract(message("Мы не купили в другом агентстве"))
         self.assertNotIn(p["current_stage"]["value"], tool.base.NEGATIVE)

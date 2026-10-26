@@ -46,6 +46,13 @@ a new present-time prediction when their intervening history was not observed.
   missing basis uses the explicitly labelled agency whole-party default.
   Currency is not converted; per-person amounts are not multiplied by an
   assumed party. Qualitative economy preference is not a numeric low budget.
+  Decimal comma/point thousands retain the entire amount and source span
+  (`150,5 тыс. ₽` =150500); standard, no-break and narrow no-break grouping
+  spaces are accepted. Scaling is exact integer arithmetic. This integer-valued
+  schema leaves amounts with fractional currency units or unsupported scales
+  unresolved; it never clips their decimal suffix into another budget. An
+  unrecognized explicit three-letter Latin currency code cannot become a RUB
+  default. This does not add currency conversion or general currency parsing.
 - Manager quotes are separate. Price questions, repeated quoted prices and
   reported past payments are not customer budgets. Equal-time conflicting facts
   remain ambiguous. Later explicit statements may update the current profile.
