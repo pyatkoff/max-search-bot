@@ -1,0 +1,260 @@
+#!/usr/bin/env python3
+"""One fixed, read-only source receipt using the reviewed consumer in memory."""
+
+import base64
+import hashlib
+import json
+import os
+from pathlib import Path
+import re
+import selectors
+import socket
+import stat
+import subprocess
+import sys
+import time
+
+
+ROOT = Path(__file__).resolve().parents[1]
+RUNTIME_SHA = "2afe10218cc22d74a35479b00c16c961adbf94f2"
+READER_BLOB = "ce7cb461e03cedbb3b81a3548d7f2ccff9ccde48"
+REVIEWED_SOURCE_SHA = "e87bb5112a9c99539fe75716cdd36f443f72a6a0"
+OPERATION = "ai1150-source-receipt-20261026-v1"
+AUDIT_REF = "refs/heads/audit/ai1150-source-receipt-20261026"
+REMOTE_ROOT = "/var/www/anytoour/data/www/app.anytoour.ru"
+PINNED_IP = "5.45.122.54"
+HOST_FINGERPRINT = "SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0"
+MAX_BYTES = 131072
+PHASE = "validation"
+
+
+class ReceiptFailure(Exception):
+    """Failure text is deliberately never copied into runner output."""
+
+
+def require(condition):
+    if not condition:
+        raise ReceiptFailure()
+
+
+def bounded_process(argv, payload=b"", timeout=75, max_bytes=MAX_BYTES):
+    """Drain both pipes while enforcing a combined live output byte ceiling."""
+    process = subprocess.Popen(
+        argv, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    deadline = time.monotonic() + timeout
+    stdout = bytearray()
+    stderr = bytearray()
+    offset = 0
+    selector = selectors.DefaultSelector()
+    try:
+        for stream, label in ((process.stdout, "out"), (process.stderr, "err")):
+            os.set_blocking(stream.fileno(), False)
+            selector.register(stream, selectors.EVENT_READ, label)
+        if payload:
+            os.set_blocking(process.stdin.fileno(), False)
+            selector.register(process.stdin, selectors.EVENT_WRITE, "in")
+        else:
+            process.stdin.close()
+        while selector.get_map():
+            remaining = deadline - time.monotonic()
+            require(remaining > 0)
+            for key, _ in selector.select(min(remaining, 1)):
+                if key.data == "in":
+                    try:
+                        offset += os.write(key.fd, payload[offset:offset + 65536])
+                    except BrokenPipeError:
+                        offset = len(payload)
+                    except BlockingIOError:
+                        continue
+                    if offset == len(payload):
+                        selector.unregister(key.fileobj)
+                        key.fileobj.close()
+                    continue
+                try:
+                    chunk = os.read(key.fd, 65536)
+                except BlockingIOError:
+                    continue
+                if not chunk:
+                    selector.unregister(key.fileobj)
+                    key.fileobj.close()
+                    continue
+                require(len(stdout) + len(stderr) + len(chunk) <= max_bytes)
+                (stdout if key.data == "out" else stderr).extend(chunk)
+        remaining = deadline - time.monotonic()
+        require(remaining > 0)
+        code = process.wait(timeout=remaining)
+        return code, bytes(stdout), bytes(stderr)
+    finally:
+        selector.close()
+        if process.poll() is None:
+            process.kill()
+            process.wait()
+        for stream in (process.stdin, process.stdout, process.stderr):
+            if not stream.closed:
+                stream.close()
+
+
+def unique_object(pairs):
+    result = {}
+    for key, value in pairs:
+        require(key not in result)
+        result[key] = value
+    return result
+
+
+def reject_constant(_):
+    raise ReceiptFailure()
+
+
+def private_file(path, content):
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    with os.fdopen(fd, "wb") as target:
+        target.write(content)
+
+
+def validate_receipt(data):
+    require(type(data) is dict)
+    require(data.get("source") == "ai1150_actual_source_receipt")
+    require(type(data.get("schema_version")) is int and data["schema_version"] == 1)
+    require(data.get("operation") == OPERATION)
+    require(data.get("candidate_reader_blob") == READER_BLOB)
+    require(data.get("execution") == "reviewed_candidate_in_memory_not_installed")
+    for field in ("database_writes_requested", "customer_sends_requested"):
+        require(type(data.get(field)) is int and data[field] == 0)
+    for field in ("supplier_search_requested", "unfiltered_fallback", "prices_currently_verified"):
+        require(data.get(field) is False)
+    for field in ("read_only_directory_transaction", "directory_transaction_rolled_back"):
+        require(data.get(field) is True)
+    count = data.get("candidate_count")
+    requests = data.get("http_request_count")
+    require(type(count) is int and 0 <= count <= 3)
+    require(type(requests) is int and 1 <= requests <= 3)
+    require(type(data.get("http_requests")) is list and len(data["http_requests"]) == requests)
+    require(all(type(row) is dict and row.get("kind") in {"meal_catalogue", "listing"}
+                for row in data["http_requests"]))
+    status = data.get("status")
+    require(status in {"hold", "empty_retained_scope", "candidates_observed"})
+    require((status == "candidates_observed") == (count > 0))
+    require(data.get("requested_meal_code") == "AI")
+    require(type(data.get("requested_scope")) is dict)
+    require(type(data.get("catalogue")) is dict)
+    require(type(data.get("directory_bindings")) is list and len(data["directory_bindings"]) <= 2)
+    result = data.get("candidate_result")
+    if status != "hold":
+        require(type(result) is dict and result.get("ok") is True)
+        require(type(result.get("candidates")) is list and len(result["candidates"]) == count)
+        require(type(result.get("meal_filter")) is dict)
+        require(data["requested_scope"].get("meal_plan_id") == result["meal_filter"].get("plan_id"))
+        require(result.get("current_price_verified") is False and result.get("selection_authority") is False)
+    return status, count, requests
+
+
+def run():
+    global PHASE
+    expected = os.environ["EXPECTED_RUNTIME_SHA"]
+    require(re.fullmatch(r"[a-f0-9]{40}", expected) is not None and expected == RUNTIME_SHA)
+    require(os.environ.get("GITHUB_RUN_ATTEMPT") == "1")
+    require(os.environ.get("GITHUB_EVENT_NAME") == "push" and os.environ.get("GITHUB_REF") == AUDIT_REF)
+    run_id = os.environ["GITHUB_RUN_ID"]
+    require(re.fullmatch(r"[1-9][0-9]{0,24}", run_id) is not None)
+    host = os.environ["DEPLOY_HOST"]
+    user = os.environ["DEPLOY_USER"]
+    require(re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9.-]{0,252}", host) is not None)
+    require(re.fullmatch(r"[A-Za-z0-9_][A-Za-z0-9_.-]{0,63}", user) is not None)
+    temp = Path(os.environ["RUNNER_TEMP"])
+    require(temp.is_absolute())
+    ssh_dir = temp / "ai1150-ssh"
+    key = ssh_dir / "key"
+    require(stat.S_ISDIR(ssh_dir.lstat().st_mode) and stat.S_IMODE(ssh_dir.lstat().st_mode) == 0o700)
+    require(stat.S_ISREG(key.lstat().st_mode) and stat.S_IMODE(key.lstat().st_mode) == 0o600)
+
+    reader = (ROOT / "services/ManagerSearch3CandidateReader.php").read_bytes()
+    require(len(reader) <= MAX_BYTES)
+    blob = hashlib.sha1(b"blob " + str(len(reader)).encode("ascii") + b"\0" + reader).hexdigest()
+    require(blob == READER_BLOB)
+    driver = (ROOT / "tools/audit_ai1150_source_receipt.php").read_bytes()
+    require(len(driver) <= MAX_BYTES)
+    issued = int(time.time())
+    replacements = {
+        b"__READER_BASE64__": base64.b64encode(reader),
+        b"__ISSUED_EPOCH__": str(issued).encode("ascii"),
+        b"__EXPIRES_EPOCH__": str(issued + 900).encode("ascii"),
+    }
+    effective_driver = driver
+    for placeholder, value in replacements.items():
+        require(effective_driver.count(placeholder) == 1)
+        effective_driver = effective_driver.replace(placeholder, value)
+
+    PHASE = "host_pin"
+    addresses = {row[4][0] for row in socket.getaddrinfo(host, 22, type=socket.SOCK_STREAM)}
+    require(addresses == {PINNED_IP})
+    scan_code, scan_out, _ = bounded_process(["ssh-keyscan", "-T", "10", host], timeout=30, max_bytes=65536)
+    require(scan_code == 0)
+    pinned = []
+    for line in scan_out.decode("ascii", errors="strict").splitlines():
+        parts = line.split()
+        if len(parts) != 3 or parts[0] != host:
+            continue
+        try:
+            public_key = base64.b64decode(parts[2], validate=True)
+        except ValueError:
+            continue
+        fingerprint = "SHA256:" + base64.b64encode(hashlib.sha256(public_key).digest()).decode("ascii").rstrip("=")
+        if fingerprint == HOST_FINGERPRINT:
+            pinned.append(" ".join(parts))
+    require(bool(pinned))
+    known = ssh_dir / "known_hosts"
+    private_file(known, ("\n".join(sorted(set(pinned))) + "\n").encode("ascii"))
+
+    guard = 'test "$(git rev-parse HEAD)" = "' + expected + '" || exit 21'
+    clean = "git diff --quiet HEAD -- services project.php || exit 22"
+    encoded = base64.b64encode(effective_driver).decode("ascii")
+    commands = [
+        "set -euo pipefail", "export GIT_OPTIONAL_LOCKS=0", "cd " + REMOTE_ROOT,
+        guard, clean, "set +e", "(", "cd services",
+        "printf '%s' '" + encoded + "' | base64 --decode | php", ")",
+        "driver_status=$?", "set -e", guard, clean, 'exit "$driver_status"',
+    ]
+    # DNS is checked once; SSH then uses that exact approved address and host identity.
+    ssh = [
+        "ssh", "-F", "/dev/null", "-T", "-i", str(key),
+        "-o", "BatchMode=yes", "-o", "IdentitiesOnly=yes",
+        "-o", "StrictHostKeyChecking=yes", "-o", "UserKnownHostsFile=" + str(known),
+        "-o", "GlobalKnownHostsFile=/dev/null", "-o", "UpdateHostKeys=no",
+        "-o", "ConnectTimeout=10", "-o", "ConnectionAttempts=1", "-o", "LogLevel=ERROR",
+        "-o", "Hostname=" + PINNED_IP, "-o", "HostKeyAlias=" + host,
+        user + "@" + host, "bash -se",
+    ]
+    PHASE = "remote"
+    code, stdout, stderr = bounded_process(ssh, ("\n".join(commands) + "\n").encode("ascii"), timeout=75)
+    require(code == 0 and stderr == b"")
+    PHASE = "receipt"
+    data = json.loads(stdout.decode("utf-8"), object_pairs_hook=unique_object, parse_constant=reject_constant)
+    status, count, requests = validate_receipt(data)
+    record = {
+        "wrapper": {
+            "runtime_sha": expected, "candidate_reader_blob": blob, "reviewed_source_sha": REVIEWED_SOURCE_SHA,
+            "operation": OPERATION, "run_id": run_id, "run_attempt": 1,
+            "issued_epoch": issued, "expires_epoch": issued + 900,
+            "driver_sha256": hashlib.sha256(driver).hexdigest(),
+            "effective_driver_sha256": hashlib.sha256(effective_driver).hexdigest(),
+        },
+        "receipt": data,
+    }
+    wire = (json.dumps(record, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False) + "\n").encode("utf-8")
+    require(len(wire) <= MAX_BYTES)
+    out = temp / "ai1150-receipt"
+    out.mkdir(mode=0o700)
+    private_file(out / "receipt.json", wire)
+    print(json.dumps({"status": status, "candidate_count": count, "http_request_count": requests,
+                      "sha256": hashlib.sha256(wire).hexdigest()}, sort_keys=True))
+
+
+if __name__ == "__main__":
+    try:
+        run()
+    except Exception:
+        print(json.dumps({"status": "hold", "candidate_count": None, "http_request_count": None,
+                          "sha256": None, "phase": PHASE}, sort_keys=True))
+        sys.exit(1)

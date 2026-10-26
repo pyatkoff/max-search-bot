@@ -1,0 +1,73 @@
+name: AI1150 one-time source receipt
+
+on:
+  push:
+    branches:
+      - audit/ai1150-source-receipt-20261026
+
+permissions:
+  contents: read
+
+jobs:
+  source-receipt:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      EXPECTED_RUNTIME_SHA: 2afe10218cc22d74a35479b00c16c961adbf94f2
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare the runner-only SSH key
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          umask 077
+          python3 - <<'PY'
+          import base64
+          import os
+          from pathlib import Path
+          import sys
+
+          try:
+              raw = os.environ['DEPLOY_SSH_KEY'].encode('ascii').strip(b' \t\r\n\v\f')
+              if not raw.startswith(b'-----BEGIN '):
+                  raw = base64.b64decode(raw.translate(None, b' \t\r\n\v\f'), validate=True)
+              raw = raw.replace(b'\\n', b'\n').replace(b'\r\n', b'\n').strip(b' \t\r\n\v\f') + b'\n'
+              if not 1 <= len(raw) <= 32768 or b'\x00' in raw or not raw.startswith(b'-----BEGIN '):
+                  raise ValueError()
+              directory = Path(os.environ['RUNNER_TEMP']) / 'ai1150-ssh'
+              directory.mkdir(mode=0o700)
+              fd = os.open(directory / 'key', os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+              with os.fdopen(fd, 'wb') as target:
+                  target.write(raw)
+          except Exception:
+              sys.exit('fixed_runner_key_setup_failed')
+          PY
+          ssh-keygen -y -P '' -f "$RUNNER_TEMP/ai1150-ssh/key" > /dev/null 2>&1
+      - name: Read the single source receipt
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/audit_ai1150_source_receipt.py
+      - name: Upload the bounded private receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai1150-source-receipt-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/ai1150-receipt/receipt.json
+          if-no-files-found: error
+          retention-days: 1
+      - name: Remove runner key, known hosts and local receipt
+        if: always()
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          import shutil
+
+          temporary = Path(os.environ['RUNNER_TEMP'])
+          for name in ('ai1150-ssh', 'ai1150-receipt'):
+              shutil.rmtree(temporary / name, ignore_errors=True)
+          PY
