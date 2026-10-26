@@ -1,0 +1,38 @@
+name: Read existing Unified campaign context for MAX admission
+on:
+  push:
+    branches: [audit/direct-max-admission-context-20261026]
+    paths:
+      - .github/workflows/direct-max-admission-context-readonly.yml
+      - audit/direct-max-admission-context-readonly.py
+      - audit/direct-max-admission-context-runner.py
+permissions:
+  contents: read
+concurrency:
+  group: direct-max-admission-context-owner-20261026
+  cancel-in-progress: false
+jobs:
+  read:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Read client and existing campaign configuration only
+        env:
+          SSH_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          SSH_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          SSH_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          READER_SHA256: d64b6cd324a95328703082bfb6aee37f2663d86447206b9b510723307fca2259
+          REPORT_PUBLIC_KEY_B64: LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQm9qQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FZOEFNSUlCaWdLQ0FZRUF2ZjFNSFZ4WXRkZ3Y2bWQ1WEE4UgpCbFN0ZG9DMXplNHFyTlR1V1Evck9oVmdYY3AySDRrL3A3anVsQzlZUFVHT2dTc3lsUUkyQndoR3VlUE84VU1DCjFxWG8xM01EallITHhYZmhTRVY2NUdjbXRlcW4xSkhnZWc3bXFqTEpQV2ZFRWxMMFRhSkMrYW9PWGo1YjR2YzgKa1c4QXI2TGFYeWV0c3dQcE84VnhvS0FYcHdYb0hTK2luUEN5eGRxZnI4SXkwMWQyeWhSVTZ0bVNWL0pDbmdBVwphd25Wb3R3TEo2ZTVmMW5VbFV0N1dLekZWV3NpcTAvbXhmQitUZWIxNXFrNlNPV3pvTExRdmdlem1tYk02dS9PCmRCcXVlVEIzNGI2UVVFa0N4citsb3c2NHBIUE01MmNtYjFJQVZEb3czaXBMRXVnc0wvcDVTN0k4d0tsc3dLaTQKMHVUbUVXaVFOWHNWay9tYlRhRnN0V1hmQmhoMElmVzQ5bzFscUVvOXZ5NGNIRlpwN3JaYlV4b0paYnkrRXZQbQpzdGNNaDQxdEFHZjRZckFkYTAzYjB5MGdwSkowUFNMRDFrMDYvVzRDYXgvdEdEUStRQWN6Z212OVg0anVESXYrCmFHMGhRb1hlRzNCTGttVEd3NHN0bnU5c1ZvY1dxTzBsOVhqeHY4eHNJT0NCQWdNQkFBRT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg==
+        run: python3 audit/direct-max-admission-context-runner.py
+      - name: Retain ciphertext only
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: direct-max-admission-context-owner-20261026
+          path: encrypted-direct-max-context/*.enc.json
+          retention-days: 3
+          if-no-files-found: error
