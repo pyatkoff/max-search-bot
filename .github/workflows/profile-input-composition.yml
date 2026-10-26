@@ -1,0 +1,126 @@
+name: Verify admitted profile input composition
+on:
+  push:
+    branches: [audit/profile-input-composition-20261026]
+permissions:
+  contents: read
+concurrency:
+  group: anytour-profile-input-composition
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Pin authoritative installed release before credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin refs/heads/main
+          test "$(git rev-parse FETCH_HEAD)" = '3799c289cc2ce902eb50892446c1c86d608a085b'
+      - name: Prepare existing canonical SSH credential
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          key_file="$RUNNER_TEMP/deploy_key"
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          rm -f "$key_file"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key_file"; else printf '%s\n' "$raw" | tr -d '\r' > "$key_file"; fi
+          else
+            decoded="$(printf '%s' "$raw" | base64 --decode 2>/dev/null || true)"
+            [[ "$decoded" == *"PRIVATE KEY"* ]] || { echo "canonical deploy key is invalid"; exit 1; }
+            printf '%s\n' "$decoded" | tr -d '\r' > "$key_file"
+          fi
+          chmod 600 "$key_file"
+          ssh-keygen -y -f "$key_file" >/dev/null
+      - name: Read current aggregate profile state in a read-only DB transaction
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          cat > "$RUNNER_TEMP/check-fence.php" <<'PHP'
+          <?php
+          declare(strict_types=1);
+          try{
+           chdir('/var/www/anytoour/data/www/app.anytoour.ru');
+           if(hash_file('sha256','services/ModeledConversionProfiles.php')!=='c348196e6243500d7753c529e09985a281501cf4023118619b5b818cad0968ab'||hash_file('sha256','tools/profile_conversion_journal.py')!=='cc7c0cf95910c0d8fd6f2214194a9f3e69b62c7bd4b7711470c9130763230209')throw new RuntimeException('source');
+           require_once 'config.php';require_once 'services/ProjectAccessService.php';require_once 'services/ModeledConversionProfiles.php';
+           if(ProjectConfig::projectId()!=='anytour')throw new RuntimeException('project');
+           ProjectAccessService::initializeReadOnly();$p=ConversationDb::connection();
+           $p->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');$p->exec('SET TRANSACTION READ ONLY');$p->beginTransaction();
+           $status=(new ModeledConversionProfiles($p))->status();
+           $current=($status['last_receipt']['version']??'')==='admitted_journal_profiles_v1_1';
+           $aggregate=['profile_json_rows_read'=>0,'profile_json_bytes'=>0,'current_fence_profiles'=>0,'known_budget_profiles'=>0,'known_party_profiles'=>0,'known_stage_profiles'=>0,'clock_unresolved_rows'=>0,'budget_limited'=>false];
+          
+           $composition=['profile_customer_statement_refs'=>0,'journal_metadata_rows'=>0,'inbound_customer_text_rows'=>0,'inbound_customer_action_rows'=>0,'outbound_manager_rows'=>0,'other_speaker_rows'=>0,'events'=>0];$seen=[];
+           if($current){
+            $q=$p->query("SELECT id,OCTET_LENGTH(profile_json) AS bytes FROM modeled_conversion_profile_versions WHERE project_key='anytour' ORDER BY id DESC LIMIT 4");$metas=$q->fetchAll(PDO::FETCH_ASSOC);$copied=0;
+            foreach($metas as$m){
+             if($copied+(int)$m['bytes']>2097152)continue;
+             $q=$p->prepare("SELECT profile_json FROM modeled_conversion_profile_versions WHERE project_key='anytour' AND id=?");$q->execute([$m['id']]);$raw=$q->fetchColumn();$copied+=strlen($raw);$item=json_decode($raw,true,128,JSON_THROW_ON_ERROR);
+             $composition['profile_customer_statement_refs']+=count($item['profile']['customer_requirements']??[]);
+             foreach($item['source_references']??[] as$ref){
+              $id=(string)$ref['journal_id'];if(isset($seen[$id]))continue;$seen[$id]=true;
+              if(count($seen)>200)throw new RuntimeException('metadata_limit');
+              $sql="SELECT source_kind,JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.payload.direction')) AS direction,JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.payload.sender_type')) AS speaker,CASE WHEN JSON_VALID(JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.payload.metadata_json'))) THEN JSON_UNQUOTE(JSON_EXTRACT(JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.payload.metadata_json')),'$.type')) ELSE NULL END AS kind,CASE WHEN JSON_TYPE(JSON_EXTRACT(snapshot_json,'$.payload.text'))='STRING' THEN CHAR_LENGTH(TRIM(JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.payload.text')))) ELSE 0 END AS text_length FROM modeled_conversion_stream_versions WHERE project_key='anytour' AND id=?";
+              $q=$p->prepare($sql);$q->execute([$id]);$r=$q->fetch(PDO::FETCH_ASSOC);if(!$r)throw new RuntimeException('missing_metadata');$composition['journal_metadata_rows']++;
+              if($r['source_kind']==='event'){$composition['events']++;continue;}
+              if($r['direction']==='inbound'&&$r['speaker']==='customer'){
+               if($r['kind']==='message'&&(int)$r['text_length']>0)$composition['inbound_customer_text_rows']++;
+               else $composition['inbound_customer_action_rows']++;
+              }elseif($r['direction']==='outbound'&&$r['speaker']==='manager')$composition['outbound_manager_rows']++;
+              else$composition['other_speaker_rows']++;
+             }
+            }
+           }
+          
+           $p->rollBack();
+           echo json_encode(['ok'=>true,'at_unix'=>time(),'mode'=>'read_only','natural_fence_version'=>$current,'status'=>$status,'aggregate'=>$aggregate,'input_composition'=>$composition,'native_source_reads'=>0,'paid_calls'=>0,'customer_calls'=>0],JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR).PHP_EOL;
+          }catch(Throwable $e){
+           if(isset($p)&&$p->inTransaction())$p->rollBack();
+           echo json_encode(['ok'=>false,'error'=>'profile_fence_verification_failed','automatic_retry_allowed'=>false]).PHP_EOL;exit(1);
+          }
+          
+          PHP
+          opts=(-i "$RUNNER_TEMP/deploy_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=15)
+          dir="/tmp/anytour-profile-fence-code-${GITHUB_RUN_ID}"
+          ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; umask 077; mkdir '$dir'; chmod 700 '$dir'"
+          trap 'ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "rm -f \"$dir/check.php\"; rmdir \"$dir\"" >/dev/null 2>&1 || true' EXIT
+          scp "${opts[@]}" "$RUNNER_TEMP/check-fence.php" "$DEPLOY_USER@$DEPLOY_HOST:$dir/check.php"
+          check() { ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '3799c289cc2ce902eb50892446c1c86d608a085b'; php -d display_errors=0 '$dir/check.php'; test \"\$(git rev-parse HEAD)\" = '3799c289cc2ce902eb50892446c1c86d608a085b'"; }
+          check | tee "$RUNNER_TEMP/fence-first.json"
+          python3 - "$RUNNER_TEMP/fence-first.json" <<'PY'
+          import json,sys,time
+          v=json.load(open(sys.argv[1]));assert v.get('ok') is True
+          if not v['natural_fence_version']:
+              through=(int(time.time())//300+1)*300+45
+              while time.time()<through:
+                  time.sleep(min(30,through-time.time()))
+          PY
+          if python3 -c 'import json,sys;sys.exit(0 if json.load(open(sys.argv[1]))["natural_fence_version"] else 1)' "$RUNNER_TEMP/fence-first.json"; then
+            cp "$RUNNER_TEMP/fence-first.json" "$RUNNER_TEMP/fence-final.json"
+          else
+            check | tee "$RUNNER_TEMP/fence-final.json"
+          fi
+          python3 - "$RUNNER_TEMP/fence-final.json" <<'PY'
+          import json,sys
+          v=json.load(open(sys.argv[1]));assert v['ok'] and v['natural_fence_version']
+          assert v['status']['enabled'] and v['status']['last_error'] is None
+          assert v['input_composition']['journal_metadata_rows']<=200
+          r=v['status']['last_receipt'];assert r['journal_rows_read']<=500 and r['payload_bytes']<=2097152
+          assert r['model_calls']==0 and r['conversion_uploads']==0
+          print(json.dumps({'input_composition_verified':True,'input_composition':v['input_composition']}))
+          PY
+      - name: Remove runner credential and private code
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/deploy_key" "$RUNNER_TEMP/check-fence.php" "$RUNNER_TEMP/fence-first.json" "$RUNNER_TEMP/fence-final.json"
