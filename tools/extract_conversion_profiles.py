@@ -172,7 +172,9 @@ def direct_flight_requirement(text):
         match = affirmed(r"\bпрям(?:ой|ые|ым|ыми)\s+рейс\w*\b|\bбез\s+пересад(?:ок|ки)\b", clause)
         if match:
             start = text.index(clause)
-            optional = text_match(r"не\s+(?:обязател\w*|обязательно|нуж\w*|важ\w*|принципиальн\w*)", clause)
+            qualifier = r"не\s+(?:обязател\w*|обязательно|нуж\w*|важ\w*|принципиальн\w*)"
+            optional = (text_match(qualifier+r"[\s,:]*$", clause[:match.start()])
+                        or text_match(r"^\s*"+qualifier, clause[match.end():]))
             return ("direct_not_required" if optional else "direct_only"), (start, start+len(clause))
     return None
 

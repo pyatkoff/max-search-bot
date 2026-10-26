@@ -60,6 +60,8 @@ class ProfileTests(unittest.TestCase):
                 row=p["fields"]["flight_requirement"]
                 self.assertEqual(row["value"],"direct_not_required")
                 self.assertEqual(row["references"][0]["id"],"message:2")
+        p=extract(message("Нужен прямой рейс, питание не обязательно"))
+        self.assertEqual(value(p,"flight_requirement"),"direct_only")
 
     def test_manager_bot_and_action_cannot_supply_flight_requirement(self):
         for options in [{"speaker":"manager"}, {"speaker":"other"}, {"kind":"action"}]:
