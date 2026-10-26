@@ -11,7 +11,7 @@ import sys
 import build_conversion_observations as base
 import extract_conversion_profiles as extractor
 
-VERSION = "admitted_journal_profile_v1_1"
+VERSION = "admitted_journal_profile_v1_2"
 MAX_BYTES = 2 * 1024 * 1024
 ADAPTER_SHA = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
 
@@ -44,6 +44,7 @@ def profile(document, extracted_at):
         base.require(type(case["window_limited"]) is bool and type(case["access_denied"]) is bool, "explicit_coverage_required")
         base.require(isinstance(case["rows"], list) and len(case["rows"]) <= 50, "profile_window_limit")
         messages = []; refs = []; errors = {}; unique = set()
+        input_rows = {}; receipts = []
 
         def omitted(reason):
             errors[reason] = errors.get(reason, 0)+1
@@ -82,7 +83,9 @@ def profile(document, extracted_at):
                 omitted("source_scope_changed_at_information_fence"); continue
             if case["access_denied"]:
                 omitted("scope_denied"); continue
-            if row["source_kind"] != "message":
+            is_application = (row["source_kind"] == "event" and isinstance(snap.get("payload"), dict)
+                              and snap["payload"].get("event_type") == "wizard_value_applied")
+            if row["source_kind"] != "message" and not is_application:
                 omitted("uninterpreted_event"); continue
             if snap.get("payload_status") != "copied":
                 omitted("payload_unavailable"); continue
@@ -92,6 +95,29 @@ def profile(document, extracted_at):
                 omitted("source_clock_unresolved"); continue
             payload = snap.get("payload")
             base.require(isinstance(payload, dict), "invalid_message_payload")
+            if is_application:
+                try:
+                    applied = json.loads(payload.get("payload_json") or "{}", object_pairs_hook=base.unique_object)
+                    valid = (isinstance(applied, dict) and set(applied) == {
+                        "version", "origin", "input_message_id", "input_kind", "input_text_sha256", "field", "storage_value"}
+                        and type(applied["version"]) is int and applied["version"] == 1
+                        and applied["origin"] == "existing_wizard_step_application"
+                        and payload.get("actor_type") == "system" and row["source_version_no"] == 1
+                        and isinstance(applied["input_message_id"], str)
+                        and re.fullmatch(r"[1-9][0-9]{0,19}", applied["input_message_id"])
+                        and applied["input_kind"] in {"message", "callback"}
+                        and isinstance(applied["input_text_sha256"], str)
+                        and re.fullmatch(r"[a-f0-9]{64}", applied["input_text_sha256"])
+                        and isinstance(applied["field"], str)
+                        and extractor.wizard_value(applied["field"], applied["storage_value"]) is not None)
+                    if not valid:
+                        raise ValueError()
+                except (ValueError, TypeError, KeyError, base.InvalidObservation):
+                    omitted("invalid_wizard_application"); continue
+                receipts.append({"applied": applied, "receipt": {
+                    "id": "journal:"+row["journal_id"], "source": "event", "speaker": "other",
+                    "text": "", "at": epoch(recorded), "available_at": received}})
+                continue
             text = payload.get("text")
             if not isinstance(text, str) or len(text) > extractor.MAX_TEXT:
                 omitted("text_unavailable_or_oversize"); continue
@@ -120,12 +146,50 @@ def profile(document, extracted_at):
             messages.append({"id": "journal:"+str(row["journal_id"]), "speaker": speaker,
                              "kind": "text" if is_text else "action", "text": text,
                              "at": epoch(recorded), "available_at": received})
+            input_rows.setdefault(str(row["source_id"]), []).append({
+                "message": messages[-1], "kind": kind, "version": row["source_version_no"]})
+        applications = []; grouped = {}; claimed_values = {}
+        for item in receipts:
+            applied = item["applied"]; candidates = input_rows.get(applied["input_message_id"], [])
+            if len(candidates) != 1:
+                omitted("wizard_input_missing_or_ambiguous"); continue
+            candidate = candidates[0]; message = candidate["message"]
+            callback_prefixes = {"city": "pick_city_", "country": "pick_country_", "adults": "adults_",
+                                 "children": "child_", "stars": "star_", "meal": "meal_", "nights": "nights_", "date": "pick_date_"}
+            expected_callback = callback_prefixes.get(applied["field"], "invalid:") + (
+                applied["storage_value"].replace('-', '_') if applied["field"] == "nights" else applied["storage_value"])
+            input_valid = True
+            if applied["input_kind"] == "message" and applied["field"] == "child_ages":
+                # Legacy application can coerce empty separators to age zero.
+                # Keep the applied receipt, but do not call that a stated age.
+                parts = message["text"].split(',') if ',' in message["text"] else message["text"].split()
+                input_valid = (bool(parts) and all(re.fullmatch(r"[0-9]{1,2}", p.strip()) for p in parts)
+                               and [int(p.strip()) for p in parts] == [int(p) for p in applied["storage_value"].split(', ')])
+            if applied["input_kind"] == "message" and applied["field"] in {"adults", "children"} and message["text"].strip().isdigit():
+                input_valid = int(message["text"].strip()) == int(applied["storage_value"])
+            if (candidate["version"] != 1 or message["speaker"] != "customer"
+                    or candidate["kind"] != applied["input_kind"]
+                    or (applied["input_kind"] == "callback" and message["text"] != expected_callback)
+                    or hashlib.sha256(message["text"].encode()).hexdigest() != applied["input_text_sha256"]
+                    or message["at"] > item["receipt"]["at"]):
+                omitted("wizard_input_mismatch_or_unresolved"); continue
+            key = (message["id"], applied["field"])
+            claimed_values.setdefault(key, set()).add(applied["storage_value"])
+            if not input_valid:
+                omitted("wizard_input_mismatch_or_unresolved"); continue
+            grouped.setdefault(key, []).append({"message_id": message["id"], "field": applied["field"],
+                "storage_value": applied["storage_value"], "receipt": item["receipt"]})
+        for key, group in grouped.items():
+            if len(claimed_values[key]) != 1:
+                omitted("conflicting_wizard_application"); continue
+            # Earliest exact successful receipt; repeating it cannot add value or a stage.
+            applications.append(min(group, key=lambda a: (a["receipt"]["at"], a["receipt"]["available_at"], a["receipt"]["id"])))
         fence = max((r["observed_at"] for r in refs), default=document["requested_at"])
         start = min((m["at"] for m in messages), default=fence)
         profile_case = {"subject": scope, "brand_key": "anytour", "context_from": start,
                         "prediction_at": extracted_at, "source_complete_through": None,
                         "source_fence_at": fence, "prefix_complete": False, "trip_status": "unknown", "messages": messages}
-        result = extractor.extract_case(profile_case, extracted_at)
+        result = extractor.extract_case(profile_case, extracted_at, applications)
         # A denied current scope has no usable facts, even when older snapshots still exist.
         base.require(not case["access_denied"] or not result["prediction_features"]["facts"], "denied_scope_facts")
         output.append({"subject": case["subject"], "profile": result, "source_references": refs,
@@ -134,7 +198,8 @@ def profile(document, extracted_at):
                        "access_status": "denied" if case["access_denied"] else "allowed",
                        "coverage": {"source_history_complete": False, "trip_status": "unknown",
                                     "window_limited": case["window_limited"], "exposure": "unknown",
-                                    "identity_assurance": "canonical_source_assertion", "errors": errors}})
+                                    "identity_assurance": "canonical_source_assertion", "errors": errors,
+                                    "applied_wizard_fields": len(applications)}})
     return {"schema_version": 1, "adapter_version": VERSION, "adapter_sha256": ADAPTER_SHA,
             "extractor_sha256": extractor.RULE_SHA, "journal_cursor": document["journal_cursor"], "source_fence_journal_id": information_fence,
             "requested_at": document["requested_at"], "extracted_at": extracted_at,

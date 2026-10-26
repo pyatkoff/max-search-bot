@@ -12,16 +12,29 @@ require_once __DIR__ . '/ConversationStateRepository.php';
  */
 final class ExistingWizardStepApplicationService
 {
-    public static function apply($chatId, $statusId, $value): bool
+    public static function apply($chatId, $statusId, $value, bool $observeCustomerInput = false): bool
     {
         if (!class_exists('MaxSearchApi')) return false;
 
-        return (bool)ConversationStateRepository::saveLastValue(
+        $applied = (bool)ConversationStateRepository::saveLastValue(
             MaxSearchApi::$HL,
             $chatId,
             $statusId,
             $value,
             MaxSearchApi::$statusStart
         );
+        if ($applied && $observeCustomerInput && class_exists('ConversationRecorder', false)
+            && method_exists('ConversationRecorder', 'wizardValueApplied')) {
+            try {
+                $matches = [];
+                foreach (['statusCityChoose'=>'city','statusContryChoose'=>'country','statusAdults'=>'adults',
+                    'statusChild'=>'children','statusAge'=>'child_ages','statusStars'=>'stars',
+                    'statusMeal'=>'meal','statusNights'=>'nights','statusDate'=>'date'] as $property=>$field) {
+                    if (property_exists('MaxSearchApi', $property) && (int)MaxSearchApi::${$property} === (int)$statusId) $matches[] = $field;
+                }
+                if (count($matches) === 1) ConversationRecorder::wizardValueApplied($chatId, $matches[0], (string)$value);
+            } catch (Throwable $ignored) {}
+        }
+        return $applied;
     }
 }

@@ -5,7 +5,7 @@ declare(strict_types=1);
 $backend = (string)($argv[1] ?? '');
 if ($backend === '') {
     $failed = 0;
-    foreach (['legacy', 'mysql'] as $mode) {
+    foreach (['legacy', 'mysql', 'receipt'] as $mode) {
         $lines = [];
         $command = escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__FILE__) . ' ' . escapeshellarg($mode) . ' 2>&1';
         exec($command, $lines, $code);
@@ -43,6 +43,7 @@ class MaxSearchApi
 {
     public static $HL = 1;
     public static $statusStart = 64;
+    public static $statusChild = 68;
     public static int $statusTransitions = 0;
 
     public static function setStatus($chatId, $statusId): void
@@ -157,6 +158,69 @@ if ($backend === 'legacy') {
     $insert->execute(['wizard-step-test', '43', 64, '', '']);
     existingStepCheck('mysql pre-start step is rejected', ExistingWizardStepApplicationService::apply(43, 68, 0), false, $failed);
     existingStepCheck('mysql stale value remains unchanged', $pdo->query("SELECT value_text FROM runtime_dialogue_state WHERE chat_id = '43' AND status_id = 68")->fetchColumn(), '2', $failed);
+} elseif ($backend === 'receipt') {
+    define('MAX_SEARCH_RUNTIME_STORAGE', 'mysql');
+    foreach (['HOST','NAME','USER','PASS'] as $name) define('CONVERSATION_DB_'.$name, 'synthetic');
+    require_once __DIR__ . '/../services/ExistingWizardStepApplicationService.php';
+    require_once __DIR__ . '/../services/ConversationRecorder.php';
+    ProjectConfig::resetForTests(['id'=>'anytour']);
+    $pdo = new PDO('sqlite::memory:');
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    $pdo->sqliteCreateFunction('NOW', static fn():string=>'2026-10-26 09:00:00');
+    $pdo->exec("CREATE TABLE projects(id INTEGER PRIMARY KEY,project_key TEXT,is_active INTEGER);
+        INSERT INTO projects VALUES(1,'anytour',1);
+        CREATE TABLE conversation_sources(id INTEGER PRIMARY KEY,project_id INTEGER,source_key TEXT,is_active INTEGER);
+        INSERT INTO conversation_sources VALUES(1,1,'telegram:default',1);
+        CREATE TABLE customers(id INTEGER PRIMARY KEY,display_name TEXT);
+        INSERT INTO customers VALUES(1,'Synthetic');
+        CREATE TABLE customer_channels(id INTEGER PRIMARY KEY,customer_id INTEGER,project_key TEXT,channel TEXT,external_user_id TEXT,external_chat_id TEXT,username TEXT);
+        INSERT INTO customer_channels VALUES(2,1,'anytour','telegram','synthetic-user','42','');
+        CREATE TABLE conversations(id INTEGER PRIMARY KEY,customer_id INTEGER,customer_channel_id INTEGER,project_key TEXT,source_id INTEGER,channel TEXT,external_chat_id TEXT,status TEXT,last_message_at TEXT);
+        INSERT INTO conversations VALUES(10,1,2,'anytour',1,'telegram','42','ai',NULL);
+        CREATE TABLE messages(id INTEGER PRIMARY KEY AUTOINCREMENT,conversation_id INTEGER,direction TEXT,sender_type TEXT,sender_id TEXT,channel TEXT,external_message_id TEXT,text TEXT,metadata_json TEXT);
+        CREATE TABLE conversation_events(id INTEGER PRIMARY KEY AUTOINCREMENT,conversation_id INTEGER,event_type TEXT,actor_type TEXT,payload_json TEXT);
+        CREATE TABLE runtime_dialogue_state(id INTEGER PRIMARY KEY AUTOINCREMENT,project_key TEXT,chat_id TEXT,status_id INTEGER,value_text TEXT,message_id TEXT);
+        INSERT INTO runtime_dialogue_state(project_key,chat_id,status_id,value_text) VALUES('anytour','42',64,''),('anytour','42',68,'1'),('anytour','43',64,''),('anytour','43',68,'1');");
+    $property = new ReflectionProperty(ConversationDb::class, 'pdo');
+    $property->setAccessible(true); $property->setValue(null,$pdo);
+    foreach ([RoutingAccessService::class,ProjectAccessService::class] as $class) {
+        $ready = new ReflectionProperty($class,'schemaReady'); $ready->setAccessible(true); $ready->setValue(null,true);
+    }
+    $input = ['platform'=>'telegram','type'=>'callback','callback_data'=>'child_0','message_id'=>'synthetic-1',
+        'user'=>['external_user_id'=>'synthetic-user','chat_id'=>'42']];
+    existingStepCheck('new canonical input is mirrored',ConversationRecorder::inbound($input),true,$failed);
+    existingStepCheck('successful observed application preserves result',ExistingWizardStepApplicationService::apply(42,68,'0',true),true,$failed);
+    $event=$pdo->query('SELECT * FROM conversation_events')->fetch(); $payload=json_decode($event['payload_json'],true);
+    existingStepCheck('receipt uses exact original conversation',$event['conversation_id'],10,$failed);
+    existingStepCheck('receipt links persisted canonical input',$payload['input_message_id'],(string)$pdo->query('SELECT id FROM messages')->fetchColumn(),$failed);
+    existingStepCheck('receipt certifies exact applied storage',[$payload['field'],$payload['storage_value'],$payload['input_kind']],['children','0','callback'],$failed);
+    existingStepCheck('receipt binds exact observed input bytes',$payload['input_text_sha256'],hash('sha256','child_0'),$failed);
+    existingStepCheck('receipt never duplicates raw input',array_key_exists('text',$payload),false,$failed);
+    ExistingWizardStepApplicationService::apply(42,68,'0',true);
+    existingStepCheck('same request repeated application has one receipt',(int)$pdo->query('SELECT COUNT(*) FROM conversation_events')->fetchColumn(),1,$failed);
+    ConversationRecorder::inbound($input);
+    ExistingWizardStepApplicationService::apply(42,68,'0',true);
+    existingStepCheck('duplicate inbound cannot borrow prior request context',(int)$pdo->query('SELECT COUNT(*) FROM conversation_events')->fetchColumn(),1,$failed);
+    $input['message_id']='synthetic-2'; ConversationRecorder::inbound($input);
+    ExistingWizardStepApplicationService::apply(42,68,'1');
+    existingStepCheck('plain snapshot restoration produces no customer receipt',(int)$pdo->query('SELECT COUNT(*) FROM conversation_events')->fetchColumn(),1,$failed);
+    existingStepCheck('wrong chat successful application keeps its result',ExistingWizardStepApplicationService::apply(43,68,'0',true),true,$failed);
+    existingStepCheck('wrong chat cannot borrow exact input',(int)$pdo->query('SELECT COUNT(*) FROM conversation_events')->fetchColumn(),1,$failed);
+    existingStepCheck('missing step remains rejected',ExistingWizardStepApplicationService::apply(42,72,'7',true),false,$failed);
+    existingStepCheck('rejected application emits nothing',(int)$pdo->query('SELECT COUNT(*) FROM conversation_events')->fetchColumn(),1,$failed);
+    $input['message_id']='synthetic-3'; $input['linked_message']=['type'=>'forward']; ConversationRecorder::inbound($input);
+    ExistingWizardStepApplicationService::apply(42,68,'0',true);
+    existingStepCheck('forwarded source cannot be customer application evidence',(int)$pdo->query('SELECT COUNT(*) FROM conversation_events')->fetchColumn(),1,$failed);
+    unset($input['linked_message']); $input['message_id']='synthetic-4'; $input['type']='contact'; ConversationRecorder::inbound($input);
+    ExistingWizardStepApplicationService::apply(42,68,'0',true);
+    existingStepCheck('contact or unknown incoming kind has no wizard context',(int)$pdo->query('SELECT COUNT(*) FROM conversation_events')->fetchColumn(),1,$failed);
+    $input['message_id']='synthetic-5'; $input['type']='message'; $input['text']='0'; ConversationRecorder::inbound($input);
+    $pdo->exec('DROP TABLE conversation_events');
+    existingStepCheck('observer storage failure cannot reject successful application',ExistingWizardStepApplicationService::apply(42,68,'0',true),true,$failed);
+    existingStepCheck('observer failure keeps exact business state',$pdo->query("SELECT value_text FROM runtime_dialogue_state WHERE chat_id='42' AND status_id=68")->fetchColumn(),'0',$failed);
+    ConversationRecorder::inbound([]);
+    existingStepCheck('invalid inbound clears provenance context',ConversationRecorder::wizardValueApplied(42,'children','0'),false,$failed);
 } else {
     fwrite(STDERR, "Unknown backend: {$backend}\n");
     exit(2);

@@ -10,7 +10,7 @@ from datetime import date
 
 import build_conversion_observations as base
 
-VERSION = "ru_trip_prefix_rules_v1_8"
+VERSION = "ru_trip_prefix_rules_v1_9"
 MAX_BYTES = 2 * 1024 * 1024
 MAX_CASES = 100
 MAX_MESSAGES = 500
@@ -51,7 +51,7 @@ def affirmed(pattern, text):
 
 
 def reference(message, span=None):
-    return {"source": "message", "id": message["id"], "speaker": message["speaker"],
+    return {"source": message.get("source", "message"), "id": message["id"], "speaker": message["speaker"],
             "at": message["at"], "available_at": message["available_at"],
             "text_sha256": hashlib.sha256(message["text"].encode()).hexdigest(),
             "span": list(span or (0, len(message["text"])))}
@@ -368,7 +368,40 @@ def date_constraints(text):
     return results
 
 
-def validate_case(case):
+def wizard_value(field, raw):
+    """Project exact successful wizard storage; native IDs remain references, not guessed names."""
+    if not isinstance(raw, str) or len(raw) > 160:
+        return None
+    if field in {"adults", "children"} and re.fullmatch(r"(?:0|[1-9][0-9]?)", raw):
+        count = int(raw)
+        if (1 if field == "adults" else 0) <= count <= 30:
+            return field, count
+    if field == "child_ages" and re.fullmatch(r"(?:0|[1-9][0-9]?)(?:, (?:0|[1-9][0-9]?))*", raw):
+        ages = [int(v) for v in raw.split(', ')]
+        if len(ages) <= 30 and all(v <= 17 for v in ages):
+            return "child_ages", ages
+    if field == "nights" and re.fullmatch(r"[1-9][0-9]?(?:-[1-9][0-9]?)?", raw):
+        parts = [int(v) for v in raw.split('-')]
+        if 1 <= parts[0] <= parts[-1] <= 90:
+            return "duration", {"minimum": parts[0], "maximum": parts[-1], "unit": "nights"}
+    if field == "date" and re.fullmatch(r"[0-9]{2}\.[0-9]{2}\.[0-9]{4}", raw):
+        day, month, year = map(int, raw.split('.'))
+        try:
+            date(year, month, day)
+        except ValueError:
+            return None
+        return "dates", {"start_day": day, "start_month": month, "end_day": day,
+                         "end_month": month, "year": year, "window_kind": "departure"}
+    directories = {"city": "departure_reference", "country": "destination_reference",
+                   "meal": "meal_reference", "stars": "hotel_class_reference"}
+    if field in directories and re.fullmatch(r"[1-9][0-9]{0,9}", raw):
+        if field != "stars" or int(raw) <= 5:
+            return directories[field], {"directory": "canonical_wizard_"+field, "id": raw,
+                                       "label_status": "unresolved"}
+    return None
+
+
+def validate_case(case, applied_message_ids=()):
     base.fields(case, ("subject", "brand_key", "context_from", "prediction_at", "source_complete_through",
                        "prefix_complete", "messages"), ("source_fence_at", "trip_status"))
     base.require(isinstance(case.get("trip_status", "accepted"), str) and case.get("trip_status", "accepted") in {"accepted", "unknown"}, "invalid_trip_status")
@@ -396,7 +429,8 @@ def validate_case(case):
         unique[m["id"]] = m
     rows = sorted(unique.values(), key=lambda m: (m["at"], m["id"]))
     rows = [m for m in rows if case["context_from"] <= m["at"] <= case["prediction_at"]
-            and m["available_at"] <= case["prediction_at"] and m["kind"] == "text"]
+            and m["available_at"] <= case["prediction_at"]
+            and (m["kind"] == "text" or m["id"] in applied_message_ids)]
     return scope, rows
 
 
@@ -429,14 +463,15 @@ def prediction_features(case, extracted, fields, party, stage):
     return view
 
 
-def extract_case(case, extracted):
+def extract_case(case, extracted, wizard_applications=()):
     base.moment(extracted)
-    scope, messages = validate_case(case)
+    scope, messages = validate_case(case, {a["message_id"] for a in wizard_applications})
     cutoff = case["prediction_at"]
     fields = {name: [] for name in ["budget", "budget_preference", "duration", "dates", "departure",
               "destination", "meal", "date_flexibility_days", "room_arrangement", "family_group",
               "hotel_interest", "unresolved_city", "purchase_report", "flight_requirement", "hotel_stars",
-              "weather_preference", "swimming_preference", "evening_walks_preference", "evening_environment_preference"]}
+              "weather_preference", "swimming_preference", "evening_walks_preference", "evening_environment_preference",
+              "departure_reference", "destination_reference", "meal_reference", "hotel_class_reference"]}
     party = {k: [] for k in ("adults", "children", "total", "child_ages")}
     offered = []; stages = []; canonical = []; requirements = []; previous_manager = None
     assumption_refs = []
@@ -448,6 +483,16 @@ def extract_case(case, extracted):
     for m in messages:
         text = m["text"]; folded = text.lower().replace("ё", "е")
         if not text.strip() or m["speaker"] == "other":
+            continue
+        if m["speaker"] == "customer":
+            for application in wizard_applications:
+                if application["message_id"] == m["id"]:
+                    value = wizard_value(application["field"], application["storage_value"])
+                    if value:
+                        add(value[0], value[1], m, basis="canonical_wizard_application",
+                            extra=[application["receipt"]])
+        # A successfully applied button is still an action, not dialogue or booking intent.
+        if m["kind"] == "action":
             continue
         kind = "customer_message" if m["speaker"] == "customer" else "manager_message"
         raw_ref = {k: reference(m)[k] for k in ("source", "id", "at", "available_at")}
@@ -642,4 +687,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-
