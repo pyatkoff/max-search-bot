@@ -7,6 +7,12 @@ on:
       - 'modules/tour-selections/editor.json'
       - 'modules/tour-selections/build-editor.py'
       - 'modules/tour-selections/editor-preview/**'
+      - 'modules/tour-selections/editor-*.php'
+      - 'modules/tour-selections/deploy-editor.php'
+      - 'modules/tour-selections/tests/test_editor_deploy.php'
+      - 'manager/assets/tour-selection-editor-*'
+      - 'manager/assets/manager-http-client.js'
+      - 'manager/assets/manager-time.js'
       - 'manager/assets/workspace-v2-tour-selection*'
       - 'extensions/selection-collector/**'
       - 'manager/tour-selection*.php'
@@ -21,6 +27,12 @@ on:
       - 'modules/tour-selections/editor.json'
       - 'modules/tour-selections/build-editor.py'
       - 'modules/tour-selections/editor-preview/**'
+      - 'modules/tour-selections/editor-*.php'
+      - 'modules/tour-selections/deploy-editor.php'
+      - 'modules/tour-selections/tests/test_editor_deploy.php'
+      - 'manager/assets/tour-selection-editor-*'
+      - 'manager/assets/manager-http-client.js'
+      - 'manager/assets/manager-time.js'
       - 'manager/assets/workspace-v2-tour-selection*'
       - 'extensions/selection-collector/**'
       - 'manager/tour-selection*.php'
@@ -46,17 +58,25 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_sqlite
+          coverage: none
       - name: Verify package identity and Manager2 host fences
         run: |
           python3 tests/run_tour_selection_editor_module.py
           node tests/run_tour_selection_editor_host.js
           node --check manager/assets/workspace-v2-tour-selection.js
           node --check manager/assets/workspace-v2-tour-selection-host.js
+          node --check manager/assets/tour-selection-editor-host.js
           node --check modules/tour-selections/editor-preview/preview-host.js
       - name: Build and verify exact editor and synthetic preview
         run: |
           python3 modules/tour-selections/build-editor.py build --output "$RUNNER_TEMP/selection-editor"
           python3 modules/tour-selections/build-editor.py verify --output "$RUNNER_TEMP/selection-editor"
+          php modules/tour-selections/tests/test_editor_deploy.php "$RUNNER_TEMP/selection-editor"
+          php tests/run_tour_selection_editor_private.php
       - uses: actions/upload-artifact@v4
         with:
           name: selection-editor-${{ github.sha }}

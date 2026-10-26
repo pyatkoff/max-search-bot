@@ -2,6 +2,7 @@
 declare(strict_types=1);
 if (PHP_SAPI!=='cli') {http_response_code(404);exit;}
 require_once dirname(__DIR__,2).'/services/ManagerTourSelectionPublicHost.php';
+require_once dirname(__DIR__,2).'/services/ManagerTourSelectionEditorHost.php';
 
 /** Fixed public presentation installation; never copies a config, DB or manager app. */
 final class TourSelectionHostDeployment
@@ -50,12 +51,14 @@ final class TourSelectionHostDeployment
     {
         if (is_link($this->site) || realpath($this->site)!==$this->site || !is_writable($this->site)) throw new RuntimeException('unavailable_owned_host');
         if (function_exists('posix_geteuid') && fileowner($this->site)!==posix_geteuid()) throw new RuntimeException('foreign_host_owner');
-        $allowed=[...self::ROUTES,...self::ASSETS,'index.html','.well-known'];
+        $allowed=[...self::ROUTES,...self::ASSETS,'index.html','.well-known','editor.php'];
         foreach (array_diff(scandir($this->site),['.','..']) as $name) {
             if (!in_array($name,$allowed,true)) throw new RuntimeException('foreign_site_content');
             $path=$this->site.'/'.$name;
             if ($name==='.well-known') continue;
-            if ($name==='index.html') {
+            if ($name==='editor.php') {
+                if (is_link($path) || !is_file($path) || file_get_contents($path)!==ManagerTourSelectionEditorHost::front($this->backend)) throw new RuntimeException('foreign_editor_route');
+            } elseif ($name==='index.html') {
                 if (is_link($path) || hash_file('sha256',$path)!==$this->placeholderHash) throw new RuntimeException('foreign_site_placeholder');
             } elseif (in_array($name,self::ROUTES,true)) {
                 if (is_link($path) || file_get_contents($path)!==$this->front($name)) throw new RuntimeException('foreign_site_route');

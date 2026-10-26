@@ -1,15 +1,24 @@
 {
   "schema": 1,
   "name": "anytour-selection-editor",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "contract": "tour-selection-editor-host-v1",
   "files": {
     "editor.js": "manager/assets/workspace-v2-tour-selection.js",
     "editor.css": "manager/assets/workspace-v2-tour-selection.css",
     "manager2-host.js": "manager/assets/workspace-v2-tour-selection-host.js",
-    "collector.zip": "extensions/selection-collector/anytour-selection-collector.zip"
+    "collector.zip": "extensions/selection-collector/anytour-selection-collector.zip",
+    "private-host.js": "manager/assets/tour-selection-editor-host.js",
+    "private-host.css": "manager/assets/tour-selection-editor-host.css",
+    "http.js": "manager/assets/manager-http-client.js",
+    "time.js": "manager/assets/manager-time.js",
+    "app.php": "modules/tour-selections/editor-app.php",
+    "tours.php": "modules/tour-selections/editor-tours.php"
   },
   "backend_inputs": [
+    "manager/tour-selection-editor.php",
+    "manager/tour-selection-editor-api.php",
+    "services/ManagerTourSelectionEditorHost.php",
     "manager/tour-selections-api.php",
     "manager/tour-selection-photo.php",
     "manager/tour-selection-collector.php",
