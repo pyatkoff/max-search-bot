@@ -74,7 +74,8 @@ class NeedApplicationService
         $applied = ExistingWizardStepApplicationService::apply(
             $chatId,
             $statusId,
-            (string)$storageValue
+            (string)$storageValue,
+            true
         );
 
         return array_merge($resolved, [

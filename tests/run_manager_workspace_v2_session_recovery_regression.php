@@ -8,6 +8,11 @@ $notifications=(string)file_get_contents($root.'/manager/assets/workspace-v2-not
 $css=(string)file_get_contents($root.'/manager/assets/workspace-v2.css');
 $api=(string)file_get_contents($root.'/manager/api.php');
 $http=(string)file_get_contents($root.'/manager/lib/ManagerHttp.php');
+// Explicit sign-out reloads a clean shell. Expiry recovery, login and all
+// other core work must retain the original in-place/no-reload contract.
+$logoutStart=strpos($js,'function logout(){');
+$logoutEnd=$logoutStart===false?false:strpos($js,'function statusText(',$logoutStart);
+$inPlaceJs=$logoutStart!==false&&$logoutEnd!==false?substr($js,0,$logoutStart).substr($js,$logoutEnd):$js;
 $passed=0;$failed=0;
 function srCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
 
@@ -17,7 +22,7 @@ srCheck('expired auth blocks further protected requests until recovery',strpos($
 srCheck('recovery dialog asks for login and password accessibly',strpos($js,'id="managerAuthForm"')!==false&&strpos($js,'autocomplete="username"')!==false&&strpos($js,'autocomplete="current-password"')!==false&&strpos($js,'aria-modal="true"')!==false);
 srCheck('login recovery uses same-origin API directly',strpos($js,"fetch('api.php'")!==false&&strpos($js,"action:'login',login,password")!==false&&strpos($js,"credentials:'same-origin'")!==false);
 srCheck('invalid credentials stay inside recovery dialog',strpos($js,"r.status===401?'Неверный логин или пароль.'")!==false&&strpos($js,'managerAuthError')!==false);
-srCheck('successful login restores csrf identity and workspace without reload',strpos($js,'S.authExpired=false;hideAuthRecovery();applyIdentity(me)')!==false&&strpos($js,'S.csrf=me.csrf')!==false&&strpos($js,'bindWorkspaceOnce()')!==false&&strpos($js,'WorkspaceV2Inbox?.load({preserveScroll:true})')!==false&&strpos($js,'location.reload')===false);
+srCheck('successful login restores csrf identity and workspace without reload',strpos($inPlaceJs,'S.authExpired=false;hideAuthRecovery();applyIdentity(me)')!==false&&strpos($inPlaceJs,'S.csrf=me.csrf')!==false&&strpos($inPlaceJs,'bindWorkspaceOnce()')!==false&&strpos($inPlaceJs,'WorkspaceV2Inbox?.load({preserveScroll:true})')!==false&&strpos($inPlaceJs,'location.reload')===false);
 srCheck('successful login starts generation-guarded notification health outside the inbox wait',strpos($js,'void refreshNotificationHealth(generation,managerId)')!==false&&strpos($js,'if(stillAuthenticated())await window.WorkspaceV2Notifications?.refresh()')!==false);
 srCheck('notification 401 delegates to the canonical auth recovery owner',strpos($notifications,'window.WorkspaceV2?.showAuthRecovery?.()')!==false&&strpos($notifications,'workspace.S.authExpired=true')===false&&strpos($notifications,'showFatal')===false);
 srCheck('notification auth handling never navigates or reloads the workspace',strpos($notifications,'location.href')===false&&strpos($notifications,'location.replace')===false&&strpos($notifications,'location.assign')===false&&strpos($notifications,'location.reload')===false);
