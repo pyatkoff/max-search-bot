@@ -11,7 +11,9 @@ function mtcfCheck(string $name,bool $ok):void{global $passed,$failed;if($ok){ec
 
 mtcfCheck('test provenance schema defaults normal conversations to visible',strpos($migration,'ADD COLUMN is_test TINYINT(1) NOT NULL DEFAULT 0')!==false);
 mtcfCheck('manager inbox excludes explicit test conversations',strpos($service,"\$where=['c.is_test=0'];")!==false);
-mtcfCheck('queue counts reuse the filtered inbox list through the canonical projection owner',strpos($queues,"ManagerConversationService::list(\$managerId,'waiting',200,\$projectKey)")!==false && strpos($queues,"ManagerConversationService::list(\$managerId,'requested',200,\$projectKey)")!==false && strpos($queues,"ManagerConversationService::list(\$managerId,'mine',200,\$projectKey)")!==false);
+$sharedCounterRead=strpos($service,"return self::listRows(\$managerId,\$queue,200,\$projectKey,'','',0,[],\$pageMetadata,true);")!==false;
+foreach(['waiting','requested','mine'] as $queue)$sharedCounterRead=$sharedCounterRead&&strpos($queues,"ManagerConversationService::queueCountRows(\$managerId,'{$queue}',\$projectKey)")!==false;
+mtcfCheck('queue counts reuse the same non-test filtered read through the canonical projection owner',$sharedCounterRead);
 mtcfCheck('test rows are not deleted by manager filtering',strpos($service,'DELETE FROM conversations')===false);
 mtcfCheck('direct detail remains available for controlled audit and recovery',strpos($service,'WHERE c.id=? LIMIT 1')!==false);
 
