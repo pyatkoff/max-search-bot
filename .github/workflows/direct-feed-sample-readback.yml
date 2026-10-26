@@ -1,4 +1,4 @@
-name: Read processing result of one existing sample feed
+name: Read only the processing result of the accepted sample feed
 on:
   push:
     branches: [audit/direct-feed-sample-20261026]
