@@ -683,6 +683,28 @@ class JournalProfileTests(unittest.TestCase):
             with self.assertRaises(base.InvalidObservation):
                 tool.extract_case(c, CUTOFF)
 
+
+    def test_information_fence_is_separate_from_processing_position(self):
+        row = journal_row()
+        row["journal_id"] = "25"; row["progress_journal_id"] = "1"
+        doc = journal_document(row); doc["source_fence_journal_id"] = "30"
+        p = journal.profile(doc, J_EXTRACT)
+        self.assertEqual(p["journal_cursor"], "20")
+        self.assertEqual(p["source_fence_journal_id"], "30")
+        self.assertEqual(p["profiles"][0]["profile"]["fields"]["budget"]["value"]["maximum"], 200000)
+        self.assertEqual(p["profiles"][0]["source_references"][0]["progress_journal_id"], "1")
+        doc["source_fence_journal_id"] = "24"
+        with self.assertRaises(base.InvalidObservation):
+            journal.profile(doc, J_EXTRACT)
+
+    def test_reassigned_source_at_current_fence_never_becomes_old_person_fact(self):
+        row = journal_row(customer_key="8"); row["journal_id"] = "25"; row["progress_journal_id"] = "1"
+        doc = journal_document(row); doc["source_fence_journal_id"] = "30"
+        p = journal.profile(doc, J_EXTRACT)["profiles"][0]
+        self.assertEqual(p["coverage"]["errors"]["source_scope_changed_at_information_fence"], 1)
+        self.assertFalse(p["profile"]["prediction_features"]["facts"])
+
+
     def test_unresolved_trip_cannot_claim_complete_history(self):
         c = case(message("Давайте бронировать")); c["trip_status"] = "unknown"
         with self.assertRaises(base.InvalidObservation):

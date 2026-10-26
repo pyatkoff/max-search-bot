@@ -4,7 +4,7 @@ declare(strict_types=1);
 /** Derived private profiles from the admitted journal; never queries native sources. */
 final class ModeledConversionProfiles
 {
-    public const VERSION='admitted_journal_profiles_v1';
+    public const VERSION='admitted_journal_profiles_v1_1';
     private PDO $pdo;
     private bool $mysql;
     private array $cache=[];
@@ -39,8 +39,10 @@ final class ModeledConversionProfiles
             if(!$r||!(bool)$r['enabled'])return ['status'=>'off','model_calls'=>0,'conversion_uploads'=>0];
             $last=$r['last_receipt_json']!==null?json_decode($r['last_receipt_json'],true,32,JSON_THROW_ON_ERROR):null;
             if($last&&$now<(int)$last['observed_at_unix'])self::fail('clock_regressed');
-            $cursor=(string)$r['journal_cursor'];$affected=[];$processed=0;$unbound=0;$limited=false;
-            $page=$this->q('SELECT id,source_kind,source_id,version_no,observed_at_unix,'.$this->length().' AS bytes FROM modeled_conversion_stream_versions WHERE project_key=? AND id>? ORDER BY id LIMIT 40',['anytour',$cursor])->fetchAll(PDO::FETCH_ASSOC);
+            $cursor=(string)$r['journal_cursor'];
+            $fence=(string)$this->q('SELECT COALESCE(MAX(id),0) FROM modeled_conversion_stream_versions WHERE project_key=?',['anytour'])->fetchColumn();
+            $affected=[];$processed=0;$unbound=0;$limited=false;
+            $page=$this->q('SELECT id,source_kind,source_id,version_no,observed_at_unix,'.$this->length().' AS bytes FROM modeled_conversion_stream_versions WHERE project_key=? AND id>? AND id<=? ORDER BY id LIMIT 40',['anytour',$cursor,$fence])->fetchAll(PDO::FETCH_ASSOC);
             $this->rowsRead+=count($page);
             foreach($page as$meta){
                 if((int)$meta['observed_at_unix']>$now)self::fail('future_receipt');
@@ -68,32 +70,33 @@ final class ModeledConversionProfiles
             foreach($affected as$scope){
                 $bind=array_values($scope);
                 $stats=$this->q("SELECT COUNT(*) AS n,SUM(CASE WHEN source_status='scope_excluded' THEN 1 ELSE 0 END) AS denied FROM modeled_conversion_profile_sources WHERE project_key=? AND platform=? AND customer_key=? AND conversation_id=?",$bind)->fetch(PDO::FETCH_ASSOC);
-                $denied=(int)$stats['denied']>0;$rows=[];$window=(int)$stats['n']>50;
-                {
-                    $refs=$this->q('SELECT journal_id FROM modeled_conversion_profile_sources WHERE project_key=? AND platform=? AND customer_key=? AND conversation_id=?'.($denied?" AND source_status='scope_excluded'":'').' ORDER BY journal_id DESC LIMIT '.($denied?1:50),$bind)->fetchAll(PDO::FETCH_COLUMN);
-                    foreach($refs as$id){
-                        $key=(string)$id;
-                        if(isset($this->cache[$key]))$entry=$this->cache[$key];
-                        else{
-                            if($this->rowsRead>=498){$window=true;break;}
-                            $meta=$this->q('SELECT id,source_kind,source_id,version_no,observed_at_unix,'.$this->length().' AS bytes FROM modeled_conversion_stream_versions WHERE project_key=? AND id=?',['anytour',$key])->fetch(PDO::FETCH_ASSOC);$this->rowsRead++;
-                            if(!$meta)self::fail('missing_journal_revision');
-                            $entry=$this->read($meta);
-                        }
-                        if($entry===null){$window=true;continue;}
-                        $rows[]=$entry;
-                    }
+                $denied=false;$restored=0;$rows=[];$window=(int)$stats['n']>50;
+                $refs=$this->q("SELECT source_kind,source_id,journal_id,source_status FROM modeled_conversion_profile_sources WHERE project_key=? AND platform=? AND customer_key=? AND conversation_id=? ORDER BY (source_status='scope_excluded') DESC,journal_id DESC LIMIT 50",$bind)->fetchAll(PDO::FETCH_ASSOC);
+                foreach($refs as$ref){
+                    if($this->rowsRead>=498){$window=true;break;}
+                    // Progress enumerates dirty scopes; the information fence defines available revisions.
+                    $meta=$this->q('SELECT id,source_kind,source_id,version_no,observed_at_unix,'.$this->length().' AS bytes FROM modeled_conversion_stream_versions WHERE project_key=? AND source_kind=? AND source_id=? AND id<=? ORDER BY id DESC LIMIT 1',['anytour',$ref['source_kind'],$ref['source_id'],$fence])->fetch(PDO::FETCH_ASSOC);$this->rowsRead++;
+                    if(!$meta)self::fail('missing_journal_revision');
+                    $entry=$this->read($meta);
+                    if($entry===null){$window=true;continue;}
+                    $entry['progress_journal_id']=(string)$ref['journal_id'];
+                    $snap=$entry['snapshot'];$status=$snap['source_status']??'';
+                    if($status==='scope_excluded')$denied=true;
+                    if($ref['source_status']==='scope_excluded'&&$status==='present'&&$this->scope($snap)===$scope)$restored++;
+                    $rows[]=$entry;
                 }
+                // A bounded window cannot assume that an unchecked older exclusion was restored.
+                if((int)$stats['denied']>$restored)$denied=true;
                 $cases[]=['subject'=>$scope,'rows'=>$rows,'window_limited'=>$window,'access_denied'=>$denied];
             }
-            $document=['schema_version'=>1,'requested_at'=>gmdate('Y-m-d\TH:i:s\Z',$now),'journal_cursor'=>$cursor,'cases'=>$cases];
+            $document=['schema_version'=>1,'requested_at'=>gmdate('Y-m-d\TH:i:s\Z',$now),'journal_cursor'=>$cursor,'source_fence_journal_id'=>$fence,'cases'=>$cases];
             $errors=[];$written=0;
             if($cases){
                 $result=$this->execute($document);
                 $this->validate($result,$document);
                 foreach($result['profiles']as$profile){
                     $scope=$this->scope($profile['subject']);
-                    $profile['processing']=['version'=>self::VERSION,'source_sha256'=>hash_file('sha256',__FILE__),'journal_cursor'=>$cursor];
+                    $profile['processing']=['version'=>self::VERSION,'source_sha256'=>hash_file('sha256',__FILE__),'journal_cursor'=>$cursor,'source_fence_journal_id'=>$fence];
                     $json=self::json($profile);
                     $this->q('INSERT INTO modeled_conversion_profile_versions(project_key,platform,customer_key,conversation_id,journal_cursor,observed_at_unix,input_sha256,profile_json) VALUES (?,?,?,?,?,?,?,?)',
                         [...array_values($scope),$cursor,strtotime($result['extracted_at']),hash('sha256',self::json($document)),$json]);$written++;
@@ -135,7 +138,7 @@ final class ModeledConversionProfiles
     private function scopeKey(array $s): string{return hash('sha256',self::json($s));}
     private function validate(array $result,array $input): void
     {
-        if(($result['schema_version']??null)!==1||($result['export_allowed']??true)!==false||($result['model_calls']??-1)!==0||($result['conversion_uploads']??-1)!==0||($result['journal_cursor']??null)!==$input['journal_cursor'])self::fail('output_contract');
+        if(($result['schema_version']??null)!==1||($result['export_allowed']??true)!==false||($result['model_calls']??-1)!==0||($result['conversion_uploads']??-1)!==0||($result['journal_cursor']??null)!==$input['journal_cursor']||($result['source_fence_journal_id']??null)!==$input['source_fence_journal_id'])self::fail('output_contract');
         $at=strtotime($result['extracted_at']??'');if($at===false||$at<strtotime($input['requested_at'])||$at>time())self::fail('semantic_clock');
         $expected=[];foreach($input['cases']as$c)$expected[$this->scopeKey($c['subject'])]=true;
         if(!is_array($result['profiles']??null)||count($result['profiles'])!==count($expected))self::fail('output_scopes');
