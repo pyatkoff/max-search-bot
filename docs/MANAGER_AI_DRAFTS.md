@@ -111,8 +111,8 @@ This narrow first scope does not claim general hotel-name understanding.
 and its bounded, approved file. It accepts the explicitly evidenced source-country
 pairs `1` → Egypt and `4` → Turkey; neither a country name nor a hotel-name match
 creates a catalogue join. The original Tourvisor9374/country1 → anytour1554
-Family Suite approval remains unchanged, alongside six additional Egypt groups
-and eight Turkey groups. These fifteen bounded groups retain55 saved declarations
+identity and three Family Suite facts remain unchanged, alongside six additional Egypt groups
+and eight Turkey groups. These fifteen bounded groups retain58 saved declarations
 and43 source records, including source-only conflict context; they are not fifteen
 complete hotel passports or a count of distinct hotels in the research base.
 Each manifest approval names an actual saved approval artifact version and member:
@@ -128,6 +128,18 @@ estimates stays a labelled limitation, never an admitted research-interpretation
 fact or a measured route. The larger nine-fact proposal exceeded the existing
 budget; the other three accepted service statements remain outside this bounded
 access group. Original facts, source records and caveats are preserved in full.
+
+The Arabian1554 group adds three complete operator declarations about named
+pools and child services to its original three Family Suite facts. Winter-heating
+marks have no verified operating calendar or temperature; the two-slide pool has
+no heating mark. Relax16+ is a pool rule, and Royal Club access names specific
+Executive/Villa categories without granting Family Suite that access. Island3,
+the free on-request cot for under-two guests and paid nanny remain distinct from
+room eligibility or a child tariff. The original19/20October source records and
+Family Suite window/occupancy/product caveats remain exact. The25October r02
+section observation is carried separately, with explicit metadata-only
+declaration projections. All six facts, three sources and material limits must
+fit the existing whole-group and actual encoded-request budgets together.
 
 The server Tourvisor snapshot normalizer accepts those same two exact country
 codes paired with their corresponding destination text. The remaining bounded
