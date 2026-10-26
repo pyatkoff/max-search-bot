@@ -10,7 +10,7 @@ from datetime import date
 
 import build_conversion_observations as base
 
-VERSION = "ru_trip_prefix_rules_v1_1"
+VERSION = "ru_trip_prefix_rules_v1_2"
 MAX_BYTES = 2 * 1024 * 1024
 MAX_CASES = 100
 MAX_MESSAGES = 500
@@ -18,10 +18,10 @@ MAX_TEXT = 12000
 with open(__file__, "rb") as _source:
     RULE_SHA = hashlib.sha256(_source.read()).hexdigest()
 
-NUM = r"(?:\d{1,3}(?:[ \u00a0]\d{3})+|\d{1,7})"
-MONEY = re.compile(rf"(?<![\w.])(?P<lo>{NUM})(?:\s*[-–]\s*(?P<hi>{NUM}))?\s*"
+NUM = r"(?:\d{1,3}(?:[ \u00a0\u202f]\d{3})+|\d{1,10})(?:[.,]\d+)?"
+MONEY = re.compile(rf"(?<![\w.,])(?P<lo>{NUM})(?:\s*[-–]\s*(?P<hi>{NUM}))?\s*"
                    r"(?P<scale>тыс(?:яч\w*)?\.?|т\.\s*р\.|[кk])?\s*"
-                   r"(?P<currency>руб\w*|₽|rub|eur|евро|usd|доллар\w*|\$)?(?!\w)", re.I)
+                   r"(?P<currency>руб\w*|₽|rub|eur|евро|usd|доллар\w*|\$)?(?!\w|[.,]\d)", re.I)
 COUNTRIES = {
     "Турция": r"турци\w*", "Египет": r"егип\w*", "Таиланд": r"та[ий]ланд\w*",
     "Нячанг": r"нячанг\w*", "Дубай": r"дуба[йяе]\w*", "ОАЭ": r"оаэ",
@@ -83,22 +83,41 @@ def choose(candidates):
     return rows[-1]
 
 
+def whole_currency_units(raw, scale):
+    """Scale decimal text exactly, without floats or decimal-context rounding."""
+    whole, _, fraction = re.sub(r"\s", "", raw).replace(",", ".").partition(".")
+    whole = whole.lstrip("0") or "0"
+    fraction = fraction.rstrip("0")
+    places = 3 if scale == 1000 else 0
+    if len(whole) > 10 or len(fraction) > places:
+        return None
+    return int(whole) * scale + (int(fraction.ljust(places, "0")) if fraction else 0)
+
+
 def monetary(text, customer):
     """Only explicit amounts; no thousands inferred from a bare number or trip price."""
     results = []
     for match in MONEY.finditer(text):
+        # The integer-valued budget schema can retain fractional thousands only
+        # when scaling yields whole currency units. Never parse their suffix as
+        # a different amount, or silently label an explicit foreign code RUB.
+        if not match["currency"] and re.match(r"\s*[A-Za-z]{3}\b", text[match.end():]):
+            continue
+        scale = 1000 if match["scale"] else 1
+        amounts = [whole_currency_units(v, scale)
+                   for v in (match["lo"], match["hi"] or match["lo"])]
+        if not all(v is not None and 0 < v <= 1000000000 for v in amounts):
+            continue
+        low, high = amounts
+        if low > high:
+            continue
         nearby = text[max(0, match.start()-24):min(len(text), match.end()+65)]
         context = bool(text_match(r"бюджет|лимит|потрат|улож|рассчитываем|не более|\bдо\s*$", text[max(0, match.start()-30):match.start()]))
-        if not (match["currency"] or match["scale"] or customer and context and int(re.sub(r"\s", "", match["lo"])) >= 1000):
+        if not (match["currency"] or match["scale"] or customer and context and low >= 1000):
             continue
         if customer and not context and text_match(r"стоимост|цен[ауы]|стоит|предложили|прислали|купил|оплатил|забронировал", text):
             continue
         if negated(text, match.start()) or customer and "?" in text:
-            continue
-        scale = 1000 if match["scale"] else 1
-        low = int(re.sub(r"\s", "", match["lo"])) * scale
-        high = int(re.sub(r"\s", "", match["hi"])) * scale if match["hi"] else low
-        if not 0 < low <= high <= 1000000000:
             continue
         currency = (match["currency"] or "RUB").lower()
         currency = "EUR" if currency in {"eur", "евро"} else "USD" if currency in {"usd", "$"} or currency.startswith("доллар") else "RUB"
