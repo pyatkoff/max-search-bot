@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__.'/ManagerTourSelectionDeliveryService.php';
 require_once __DIR__.'/ChannelPostRuntime.php';
+require_once __DIR__.'/ManagerTourSelectionPublicHost.php';
 
 /** One explicit public link per conversation; private publications stay immutable. */
 final class ManagerTourSelectionShareService
@@ -194,6 +195,11 @@ final class ManagerTourSelectionShareService
         if ($out['active']) {
             require_once __DIR__.'/ManagerTourSelectionInterestService.php';
             $out['preview_path']=ManagerTourSelectionInterestService::previewPath($row['token'],(int)$row['version']);
+            $url=ManagerTourSelectionPublicHost::url($out['path']);
+            if ($url!==null) {
+                $out['public_url']=$url;
+                $out['preview_url']=ManagerTourSelectionPublicHost::url($out['preview_path']);
+            }
         }
         return $out;
     }

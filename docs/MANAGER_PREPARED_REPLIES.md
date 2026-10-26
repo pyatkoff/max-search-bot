@@ -265,7 +265,7 @@ forwarded to the preparation store. Tool argument allowlists, bounded limits and
 current administrator/project checks remain strict; non-object metadata is rejected.
 
 Ordinary preparation exposes the pending inventory, a fresh context for one job,
-saving a prepared result and the read-only retained-candidate tool below. Separate
+saving a prepared result and the read-only retained-candidate and meal-catalogue tools below. Separate
 virtual-review tools keep their existing scope. There is no send, reassignment,
 customer-edit or supplier-search tool.
 The worker is deliberately an administrator-scoped capability for assigned-manager
@@ -298,23 +298,56 @@ reader does not infer them from a post, click or an old wizard. Child-age sortin
 preserves duplicates. Date windows are at most21 days; night ranges are1..28 with
 width at most10, matching the existing reader's contract.
 
-Optional `meal_id` uses the existing catalogue's four documented choices
-(`7` all-inclusive, `3` breakfast, `4` half-board, `5` full-board); omission means
-no meal filter, not a tourist's consent to any meal. The existing Egypt/Turkish
-resort working-default policy belongs to the consultation instructions, not a
-country-wide inference in this reader. Optional `stars_min` is a minimum and
-`max_price` is an exact decimal RUB amount for the entire stated party. No budget
-expansion, per-person multiplication or fuel/fee arithmetic is performed.
+For explicit meal requirements, call `read_meal_catalog` with an empty object.
+It uses the same fixed endpoint and exactly
+`{"action":"meal_catalog","provider":"tourvisor","scopeKey":"global"}`.
+The bounded complete projection contains canonical `meal_plan_id`, `code`,
+`name_ru`, `native_count` and `filter_supported`, plus the exact catalogue revision.
+Labels are untrusted data. Select a supported plan from that actual catalogue;
+`read_tour_candidates` accepts its `meal_plan_id` as a JSON integer in
+1..9007199254740991. Numeric strings, floats, names and codes are not IDs.
+The catalogue's canonical plan ID, provider/scope native token and a hotel's meal
+concept remain different namespaces.
 
-One fixed-origin HTTPS POST has no cookies, credentials, proxy, redirects or
-automatic retries. Public IPv4 resolution is pinned to verified TLS; connect and
-total cURL bounds are1 and5 seconds. The body cap is4MiB, JSON depth48. The response
-must identify the existing schema/source and exactly echo the canonical request
-scope and its digest. Its generated timestamp must be current within the stated
-clock tolerance; this never renews an offer's observation time or listing TTL.
-Wrong envelopes, non-JSON, oversized or unavailable reads are unknown, not empty
-availability. Access denial has a separate fixed reason; raw error bodies are
-never returned.
+The candidate operation re-reads and validates the exact Tourvisor/global
+catalogue immediately before listing, including its revision, unique IDs and
+accepted native tokens. The selected plan must have exactly one supported native
+token; that string is preserved without numeric conversion. Missing, unavailable,
+ambiguous or whitespace-normalized mappings stop before listing with an explicit
+unavailable reason. No first-alias selection or fallback removes an explicit meal.
+`meal_filter` records the selected plan, exact native token and catalogue revision
+separately from the request scope/digest.
+
+Legacy `meal_id` retains its old namespace and now returns
+`legacy_meal_id_unsupported` before directory/HTTP reads. Supplying it together
+with `meal_plan_id` is invalid input. It is never silently reinterpreted. Omitting
+both means a genuinely unfiltered meal read and makes no catalogue request; it
+is not a tourist's consent to any meal. Existing Egypt/Turkish-resort working
+defaults remain consultation policy, not a country-wide inference in this reader.
+Optional `stars_min` is a minimum and `max_price` is an exact decimal RUB amount
+for the entire stated party. No budget expansion, per-person multiplication or
+fuel/fee arithmetic is performed.
+
+All calls keep the fixed HTTPS origin, no cookies, credentials, proxy, redirects
+or automatic retries, and the exact `X-Requested-With` envelope guard. That header
+is not authentication. Public IPv4 resolution remains pinned to verified TLS.
+An unfiltered operation has one listing POST. A filtered operation has catalogue
+then listing, sharing one 5-second transfer deadline and 4MiB body budget; each
+connect timeout is at most 1 second and the remaining budget. The cURL deadline
+is not restarted after synchronous DNS, whose own blocking duration is not given
+a stronger wall-clock guarantee. Standalone catalogue reads use the same limits.
+JSON depth remains48. Catalogue projection is at most32KiB and is never silently
+clipped: an oversized catalogue returns `meal_catalogue_output_too_large` with
+`complete=false` and no partial list. These are unsupported-source outcomes,
+not evidence that no meal plans or tours exist.
+
+The listing response must identify the existing schema/source and exactly echo
+the canonical request scope/digest with the resolved native meal token. Its
+generated timestamp must be current within the stated tolerance; reading never
+renews offer observation time or TTL. Wrong envelopes, non-JSON, oversized or
+unavailable reads remain unknown. Access denial has a separate fixed reason;
+raw error bodies are never returned. Both tools require the same active current
+project administrator and requesting OAuth connection before and after reads.
 
 The projection rechecks exact local hotel identity, dates/nights/party (including
 duplicate ages), source scope, literal listing price/currency, observation/expiry

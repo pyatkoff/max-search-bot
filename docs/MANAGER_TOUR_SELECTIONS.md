@@ -667,3 +667,27 @@ one/two-photo galleries, so unchanged CI selection requires FULL coverage. Focus
 source/worker, canonical import/enrichment, legacy receipt, renderer, native count,
 public cache/revoke and desktop/mobile editor/preview regressions are included.
 A source fixture is not physical Chrome/Yandex installed-extension acceptance.
+
+## Dedicated public host — owner provisioning 25 October
+
+The owner-created tours.anytoour.ru site uses the same canonical publications,
+versions, cached photographs, choices and bot continuation as /selection/.
+Only the packaged presentation and three fixed public adapters are installed
+there. No second database, sender, manager session or copied config is created.
+
+The dedicated host workflow runs after successful current-main application
+deployment. It refuses foreign files, preserves the original placeholder for
+rollback and activates a versioned presentation through one current symlink.
+Its strict HTTPS smoke checks routes/headers, exact CSS/JS, no manager session,
+closed private routes and the tours-only observation origin. Only after those
+checks does a private compatibility receipt enable optional public_url and
+preview_url in the existing share response. The editor accepts only the exact
+tours origin with the existing token. Existing path/preview_path values and
+previous app links retain the same token, versions and revoke behavior.
+
+Backend or presentation drift invalidates the receipt, so newly copied links
+fall back to the original app endpoint until a matching host release passes.
+An initial failed installation restores the original placeholder; a subsequent
+failure restores the previous presentation. Technical hosting acceptance does
+not close the remaining source-photo, physical mixed-import, forwarded-account
+or complete V1 acceptance.

@@ -23,4 +23,5 @@ if ($selection) {
 header('Content-Type: text/html; charset=utf-8');
 function selectionEscape(string $value): string {return htmlspecialchars($value,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');}
 $h='selectionEscape';
-require __DIR__.'/view.php';
+$view=defined('ANYTOUR_SELECTION_PUBLIC_VIEW')?constant('ANYTOUR_SELECTION_PUBLIC_VIEW'):__DIR__.'/view.php';
+require $view;

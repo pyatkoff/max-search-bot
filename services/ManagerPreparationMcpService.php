@@ -57,7 +57,7 @@ final class ManagerPreparationMcpService
             // A context read may wait for public selection pages. Recheck the
             // requesting administrator/connection before exposing its result.
             if ($rpc['method'] === 'tools/call' && (($params['name'] ?? null) === 'get_reply_context'
-                || ($params['name']??null) === ManagerSearch3CandidateReader::TOOL
+                || in_array($params['name']??null,[ManagerSearch3CandidateReader::TOOL,ManagerSearch3CandidateReader::MEAL_TOOL],true)
                 || in_array($params['name']??null,VirtualReplyMcpAdapter::NAMES,true))) {
                 $this->requireAdmin($authorizedAdminId);
                 if ($connectionId !== null && !$this->activeConnection($connectionId,$authorizedAdminId)) throw new DomainException();
@@ -108,7 +108,7 @@ final class ManagerPreparationMcpService
                     'required'=>['job_id','revision','proposal'],'additionalProperties'=>false],
                 'annotations'=>['readOnlyHint'=>false,'destructiveHint'=>false,'idempotentHint'=>true,'openWorldHint'=>false]],
         ];
-        $tools=array_merge($tools,[ManagerSearch3CandidateReader::tool()],VirtualReplyMcpAdapter::tools());
+        $tools=array_merge($tools,[ManagerSearch3CandidateReader::tool(),ManagerSearch3CandidateReader::mealTool()],VirtualReplyMcpAdapter::tools());
         foreach ($tools as &$tool) {
             $tool['securitySchemes']=[['type'=>'oauth2','scopes'=>['queue:read','prepared:write']]];
             $tool['_meta']=['securitySchemes'=>$tool['securitySchemes']];
@@ -122,9 +122,10 @@ final class ManagerPreparationMcpService
         self::keys($params,['name','arguments']);
         $name=$params['name']??null; $args=$params['arguments']??[];
         if (!is_string($name) || !is_array($args) || ($args !== [] && array_is_list($args))) throw new InvalidArgumentException();
-        if ($name === ManagerSearch3CandidateReader::TOOL) {
+        if (in_array($name,[ManagerSearch3CandidateReader::TOOL,ManagerSearch3CandidateReader::MEAL_TOOL],true)) {
             if ($connection===null||!$this->activeConnection($connection,$admin)) throw new DomainException();
-            $data=($this->searchCandidates??new ManagerSearch3CandidateReader())->read($args);
+            $reader=$this->searchCandidates??new ManagerSearch3CandidateReader();
+            $data=$name===ManagerSearch3CandidateReader::MEAL_TOOL?$reader->readMealCatalog($args):$reader->read($args);
         } elseif (in_array($name,VirtualReplyMcpAdapter::NAMES,true)) {
             if ($connection===null||!$this->activeConnection($connection,$admin)) throw new DomainException();
             $data=(new VirtualReplyMcpAdapter($this->pdo,$this->virtualStore,$this->clock))->call($name,$args,$admin);

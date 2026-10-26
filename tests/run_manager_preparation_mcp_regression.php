@@ -89,7 +89,7 @@ function preparationCandidateChecks(): void
 {
     $now=1792962000;$requests=[];$mode=null;
     $args=['departure'=>'Synthetic departure','country'=>'Synthetic country','date_from'=>'2027-06-03','date_to'=>'2027-06-05',
-        'nights_min'=>6,'nights_max'=>8,'adults'=>2,'child_ages'=>[9,4,4],'meal_id'=>'7','stars_min'=>4,'max_price'=>'200000.00'];
+        'nights_min'=>6,'nights_max'=>8,'adults'=>2,'child_ages'=>[9,4,4],'stars_min'=>4,'max_price'=>'200000.00'];
     $directory=static fn(string $kind,string $name): array=>['ID'=>$kind==='departure'?'101':'201','NAME'=>$name];
     $transport=static function(string $url,array $envelope) use (&$requests,&$mode,$now): array {
         $requests[]=[$url,$envelope];$source=preparationCandidateSource($envelope['params'],$now);
@@ -102,7 +102,8 @@ function preparationCandidateChecks(): void
         &&$requests[0][0]==='https://anytoour.ru/_preview/search3-local-candidate/data/search3-local-results-read-v1.php'
         &&array_keys($requests[0][1])===['params']&&$requests[0][1]['params']['departureId']==='101'
         &&$requests[0][1]['params']['countryId']==='201'&&$requests[0][1]['params']['childs']===[4,4,9]
-        &&$requests[0][1]['params']['priceTo']==='200000');
+        &&$requests[0][1]['params']['priceTo']==='200000'&&$requests[0][1]['params']['meal']===''
+        &&array_key_exists('meal_filter',$read)&&$read['meal_filter']===null);
     preparationMcpCheck('source exact stay, whole-party price and age duplicates survive without fuel arithmetic',($read['ok']??false)===true
         &&$c['checkin']==='2027-06-03'&&$c['nights']===6&&$c['party']===['adults'=>2,'children'=>3,'child_ages'=>[4,4,9]]
         &&$c['room_raw']==='Synthetic exact room 1'&&$c['meal_raw']==='Synthetic meal'
@@ -251,6 +252,249 @@ function preparationCandidateChecks(): void
     }
 }
 
+/** The canonical ID and native token intentionally use different namespaces. */
+function preparationMealCatalogue(): array
+{
+    return preparationMealRevision(['source'=>'anytour-search-meal-v1','provider'=>'tourvisor','scopeKey'=>'global',
+        'available'=>true,'plans'=>[
+            ['id'=>501,'code'=>'AI','nameRu'=>'Всё включено','nativeIds'=>['tv/AI-007']],
+            ['id'=>502,'code'=>'BB','nameRu'=>'Завтрак','nativeIds'=>['tv/BB-003']],
+            ['id'=>503,'code'=>'NONE','nameRu'=>'Без привязки','nativeIds'=>[]],
+            ['id'=>504,'code'=>'MULTI','nameRu'=>'Несколько привязок','nativeIds'=>['tv/AI','tv/UAI']],
+        ]]);
+}
+
+function preparationMealRevision(array $catalogue): array
+{
+    $snapshot=['source'=>$catalogue['source'],'provider'=>$catalogue['provider'],'scopeKey'=>$catalogue['scopeKey'],
+        'available'=>$catalogue['available'],'plans'=>$catalogue['plans']];
+    $catalogue['revision']=hash('sha256',json_encode($snapshot,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+    return $catalogue;
+}
+
+function preparationMealResponse(array $catalogue): array
+{
+    return ['status'=>200,'type'=>'application/json; charset=utf-8',
+        'body'=>json_encode(['ok'=>true,'data'=>$catalogue],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)];
+}
+
+function preparationMealChecks(): void
+{
+    $now=1792962000;$requests=[];$directoryCalls=0;$catalogue=preparationMealCatalogue();
+    $args=['departure'=>'Synthetic departure','country'=>'Synthetic country','date_from'=>'2027-06-03','date_to'=>'2027-06-05',
+        'nights_min'=>6,'nights_max'=>8,'adults'=>2,'child_ages'=>[9,4,4]];
+    $directory=static function(string $kind,string $name) use(&$directoryCalls): array {
+        ++$directoryCalls;return ['ID'=>$kind==='departure'?'101':'201','NAME'=>$name];
+    };
+    $transport=static function(string $url,array $envelope) use(&$requests,&$catalogue,$now): array {
+        $requests[]=[$url,$envelope];
+        return array_key_exists('action',$envelope)?preparationMealResponse($catalogue):
+            ['status'=>200,'type'=>'application/json','body'=>json_encode(preparationCandidateSource($envelope['params'],$now),JSON_THROW_ON_ERROR)];
+    };
+    $reader=new ManagerSearch3CandidateReader($transport,$directory,static fn(): int=>$now);
+    $public=$reader->readMealCatalog([]);
+    preparationMcpCheck('meal catalogue uses only the fixed producer action without directory lookup',count($requests)===1&&$directoryCalls===0
+        &&$requests[0]===['https://anytoour.ru/_preview/search3-local-candidate/data/search3-local-results-read-v1.php',
+            ['action'=>'meal_catalog','provider'=>'tourvisor','scopeKey'=>'global']]);
+    preparationMcpCheck('complete meal discovery projects canonical IDs and binding support without native aliases',
+        ($public['ok']??false)===true&&$public['available']===true&&$public['complete']===true&&$public['revision']===$catalogue['revision']
+        &&$public['plans']===[
+            ['meal_plan_id'=>501,'code'=>'AI','name_ru'=>'Всё включено','filter_supported'=>true,'native_count'=>1],
+            ['meal_plan_id'=>502,'code'=>'BB','name_ru'=>'Завтрак','filter_supported'=>true,'native_count'=>1],
+            ['meal_plan_id'=>503,'code'=>'NONE','name_ru'=>'Без привязки','filter_supported'=>false,'native_count'=>0],
+            ['meal_plan_id'=>504,'code'=>'MULTI','name_ru'=>'Несколько привязок','filter_supported'=>false,'native_count'=>2]]
+        &&!str_contains(json_encode($public,JSON_UNESCAPED_SLASHES),'tv/'));
+    $requests=[];$filtered=$reader->read($args+['meal_plan_id'=>501]);
+    preparationMcpCheck('canonical meal plan resolves before listing and preserves the exact native token',count($requests)===2
+        &&$requests[0][1]===['action'=>'meal_catalog','provider'=>'tourvisor','scopeKey'=>'global']
+        &&array_keys($requests[1][1])===['params']&&$requests[1][1]['params']['meal']==='tv/AI-007'
+        &&$requests[0][0]===$requests[1][0]&&($filtered['ok']??false)===true);
+    preparationMcpCheck('filtered result carries its exact catalogue receipt without granting current-price authority',
+        $filtered['meal_filter']===['plan_id'=>501,'code'=>'AI','name_ru'=>'Всё включено','native_id'=>'tv/AI-007',
+            'catalogue_revision'=>$catalogue['revision'],'provider'=>'tourvisor','scope_key'=>'global']
+        &&$filtered['request']['search3_scope']['meal']==='tv/AI-007'&&$filtered['current_price_verified']===false
+        &&$filtered['selection_authority']===false&&$filtered['candidates'][0]['price']['current_price_verified']===false
+        &&$filtered['candidates'][0]['price']['refresh_required']===true&&$filtered['candidates'][0]['meal_raw']==='Synthetic meal');
+    $wrongScope=new ManagerSearch3CandidateReader(static function($url,$envelope) use($catalogue,$now){
+        if (isset($envelope['action'])) return preparationMealResponse($catalogue);
+        $params=$envelope['params'];$params['meal']='different-native';
+        return ['status'=>200,'type'=>'application/json','body'=>json_encode(preparationCandidateSource($params,$now))];
+    },$directory,static fn()=>$now);
+    $result=$wrongScope->read($args+['meal_plan_id'=>501]);
+    preparationMcpCheck('a valid listing for a different native meal scope cannot satisfy the selected plan',
+        $result['ok']===false&&$result['candidates']===[]);
+    foreach (['3','4','5','7'] as $legacy) {
+        $requests=[];$before=$directoryCalls;$result=$reader->read($args+['meal_id'=>$legacy]);
+        preparationMcpCheck('legacy meal is explicitly unsupported before any directory or HTTP access '.$legacy,
+            $result['ok']===false&&$result['reason']==='legacy_meal_id_unsupported'&&$result['candidates']===[]
+            &&$requests===[]&&$directoryCalls===$before);
+    }
+    foreach ([0,-1,'501',501.5,true,null,[],9007199254740992] as $id) {
+        $requests=[];$before=$directoryCalls;$rejected=false;
+        try {$reader->read($args+['meal_plan_id'=>$id]);} catch (InvalidArgumentException $ignored) {$rejected=true;}
+        preparationMcpCheck('invalid canonical meal ID is rejected before lookup '.json_encode($id),$rejected&&$requests===[]&&$directoryCalls===$before);
+    }
+    $requests=[];$rejected=false;
+    try {$reader->read($args+['meal_id'=>'7','meal_plan_id'=>501]);} catch (InvalidArgumentException $ignored) {$rejected=true;}
+    preparationMcpCheck('legacy and canonical meal arguments cannot be combined',$rejected&&$requests===[]);
+    foreach ([['provider'=>'tourvisor'],['limit'=>1],['meal_plan_id'=>501]] as $bad) {
+        $requests=[];$rejected=false;try {$reader->readMealCatalog($bad);} catch (InvalidArgumentException $ignored) {$rejected=true;}
+        preparationMcpCheck('meal discovery rejects caller-controlled arguments '.json_encode(array_keys($bad)),$rejected&&$requests===[]);
+    }
+    foreach ([999=>'meal_plan_unmapped',503=>'meal_plan_unmapped',504=>'meal_plan_ambiguous'] as $id=>$reason) {
+        $requests=[];$result=$reader->read($args+['meal_plan_id'=>$id]);
+        preparationMcpCheck('missing or nonscalar meal binding never falls back to an unfiltered listing '.$id,
+            $result['ok']===false&&$result['reason']===$reason&&$result['candidates']===[]&&count($requests)===1);
+    }
+    $catalogue['plans'][0]['nativeIds']=[' tv/AI-007 '];$catalogue=preparationMealRevision($catalogue);
+    $requests=[];$result=$reader->read($args+['meal_plan_id'=>501]);
+    preparationMcpCheck('whitespace native alias is never trimmed into a different listing filter',
+        $result['ok']===false&&count($requests)===1&&$result['candidates']===[]&&$reader->readMealCatalog([])['plans'][0]['filter_supported']===false);
+    $catalogue=preparationMealCatalogue();$catalogue['plans'][0]['id']=9007199254740991;$catalogue=preparationMealRevision($catalogue);
+    preparationMcpCheck('maximum JSON-safe canonical ID remains an exact integer binding',
+        $reader->read($args+['meal_plan_id'=>9007199254740991])['meal_filter']['plan_id']===9007199254740991);
+
+    $changes=[
+        'source'=>static function(&$d){$d['source']='foreign';},'provider'=>static function(&$d){$d['provider']='anex';},
+        'scope'=>static function(&$d){$d['scopeKey']='local';},'available_type'=>static function(&$d){$d['available']='true';},
+        'extra_catalogue_field'=>static function(&$d){$d['extra']='PRIVATE';},
+        'nonlist_plans'=>static function(&$d){$d['plans']=[1=>$d['plans'][0]];},
+        'duplicate_plan'=>static function(&$d){$d['plans'][1]['id']=$d['plans'][0]['id'];},
+        'string_plan_id'=>static function(&$d){$d['plans'][0]['id']='501';},
+        'fractional_plan_id'=>static function(&$d){$d['plans'][0]['id']=501.5;},
+        'zero_plan_id'=>static function(&$d){$d['plans'][0]['id']=0;},
+        'unsafe_plan_id'=>static function(&$d){$d['plans'][0]['id']=9007199254740992;},
+        'extra_plan_field'=>static function(&$d){$d['plans'][0]['extra']='PRIVATE';},
+        'empty_code'=>static function(&$d){$d['plans'][0]['code']='';},
+        'long_code'=>static function(&$d){$d['plans'][0]['code']=str_repeat('c',129);},
+        'long_name'=>static function(&$d){$d['plans'][0]['nameRu']=str_repeat('n',513);},
+        'control_name'=>static function(&$d){$d['plans'][0]['nameRu']="bad\x00name";},
+        'duplicate_native_same_plan'=>static function(&$d){$d['plans'][0]['nativeIds']=['same','same'];},
+        'duplicate_native_cross_plan'=>static function(&$d){$d['plans'][1]['nativeIds']=$d['plans'][0]['nativeIds'];},
+        'native_integer'=>static function(&$d){$d['plans'][0]['nativeIds']=[7];},
+        'native_empty'=>static function(&$d){$d['plans'][0]['nativeIds']=[''];},
+        'native_control'=>static function(&$d){$d['plans'][0]['nativeIds']=["tv\nAI"];},
+        'native_long'=>static function(&$d){$d['plans'][0]['nativeIds']=[str_repeat('x',129)];},
+        'nonlist_aliases'=>static function(&$d){$d['plans'][0]['nativeIds']=['named'=>'tv/AI'];},
+        'too_many_aliases'=>static function(&$d){$d['plans'][0]['nativeIds']=array_map(static fn($i)=>'native-'.$i,range(1,10001));},
+        'too_many_plans'=>static function(&$d){$d['plans']=array_map(static fn($i)=>['id'=>$i,'code'=>'C'.$i,'nameRu'=>'N'.$i,'nativeIds'=>[]],range(1,1001));},
+    ];
+    foreach ($changes as $label=>$change) {
+        $catalogue=preparationMealCatalogue();$change($catalogue);$catalogue=preparationMealRevision($catalogue);
+        $requests=[];$public=$reader->readMealCatalog([]);$result=$reader->read($args+['meal_plan_id'=>501]);
+        preparationMcpCheck('invalid meal catalogue is withheld by discovery and binding '.$label,
+            $public['ok']===false&&$public['complete']===false&&$public['plans']===[]
+            &&$result['ok']===false&&$result['candidates']===[]&&count($requests)===2);
+    }
+    foreach (['missing','null','mismatch','uppercase'] as $revision) {
+        $catalogue=preparationMealCatalogue();
+        if ($revision==='missing') unset($catalogue['revision']);
+        elseif ($revision==='null') $catalogue['revision']=null;
+        elseif ($revision==='mismatch') $catalogue['plans'][0]['nameRu']='Changed after revision';
+        else $catalogue['revision']=strtoupper($catalogue['revision']);
+        $requests=[];$result=$reader->read($args+['meal_plan_id'=>501]);
+        preparationMcpCheck('unverified catalogue revision cannot authorize a meal listing '.$revision,
+            $result['ok']===false&&$result['candidates']===[]&&count($requests)===1);
+    }
+    $catalogue=['source'=>'anytour-search-meal-v1','provider'=>'tourvisor','scopeKey'=>'global','available'=>false,'plans'=>[],'revision'=>null];
+    $requests=[];$public=$reader->readMealCatalog([]);$result=$reader->read($args+['meal_plan_id'=>501]);
+    preparationMcpCheck('missing catalogue table is unavailable rather than an empty complete catalogue',
+        $public['ok']===false&&$public['available']===false&&$public['complete']===false&&$public['plans']===[]
+        &&$result['ok']===false&&$result['candidates']===[]&&count($requests)===2);
+    $catalogue=preparationMealCatalogue();$catalogue['plans']=array_map(static fn($i)=>
+        ['id'=>$i,'code'=>'C'.$i,'nameRu'=>str_repeat('n',512),'nativeIds'=>['native-'.$i]],range(1,100));
+    $catalogue=preparationMealRevision($catalogue);$public=$reader->readMealCatalog([]);
+    preparationMcpCheck('public meal catalogue overflow is unavailable without publishing a partial plan list',
+        $public['ok']===false&&$public['complete']===false&&$public['plans']===[]
+        &&strlen(json_encode($public,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR))<=32768);
+    foreach ([['status'=>403,'body'=>'PRIVATE ERROR'],['status'=>302,'body'=>'PRIVATE REDIRECT'],
+        ['status'=>200,'type'=>'text/html','body'=>'PRIVATE HTML'],['status'=>200,'type'=>'application/json','body'=>'{'],
+        ['status'=>200,'type'=>'application/json','body'=>"{\"ok\":true,\"data\":\"\xff\"}"]] as $badResponse) {
+        $attempts=0;$failed=new ManagerSearch3CandidateReader(static function() use(&$attempts,$badResponse){++$attempts;return $badResponse;},$directory,static fn()=>$now);
+        $public=$failed->readMealCatalog([]);$result=$failed->read($args+['meal_plan_id'=>501]);
+        preparationMcpCheck('catalogue HTTP or malformed body failure never proceeds to listing '.$badResponse['status'].'/'.$attempts,
+            $attempts===2&&$public['ok']===false&&$public['plans']===[]&&$result['ok']===false&&$result['candidates']===[]
+            &&!str_contains(json_encode([$public,$result]),'PRIVATE'));
+    }
+
+    $catalogue=preparationMealCatalogue();$catalogueResponse=preparationMealResponse($catalogue);
+    $ticks=1000000000;$limits=[];
+    $budgetReader=new ManagerSearch3CandidateReader(static function($url,$envelope,$budget) use(&$limits,&$ticks,$catalogueResponse,$now){
+        $limits[]=$budget;
+        if (isset($envelope['action'])) {$ticks+=1250000000;return $catalogueResponse;}
+        return ['status'=>200,'type'=>'application/json','body'=>json_encode(preparationCandidateSource($envelope['params'],$now))];
+    },$directory,static fn()=>$now,static function() use(&$ticks){return $ticks;});
+    $result=$budgetReader->read($args+['meal_plan_id'=>501]);
+    preparationMcpCheck('catalogue and listing share one five-second deadline and remaining response bytes',
+        $result['ok']===true&&count($limits)===2&&$limits[0]['timeout_ms']===5000&&$limits[1]['timeout_ms']===3750
+        &&$limits[0]['deadline_ns']===$limits[1]['deadline_ns']&&$limits[0]['max_bytes']===4194304
+        &&$limits[1]['max_bytes']===4194304-strlen($catalogueResponse['body']));
+    foreach (['catalogue','listing'] as $slowStage) {
+        $ticks=1000000000;$attempts=0;
+        $slow=new ManagerSearch3CandidateReader(static function($url,$envelope,$budget) use(&$ticks,&$attempts,$slowStage,$catalogueResponse,$now){
+            ++$attempts;$isCatalogue=isset($envelope['action']);
+            if (($slowStage==='catalogue')===$isCatalogue) $ticks=$budget['deadline_ns'];
+            return $isCatalogue?$catalogueResponse:['status'=>200,'type'=>'application/json','body'=>json_encode(preparationCandidateSource($envelope['params'],$now))];
+        },$directory,static fn()=>$now,static function() use(&$ticks){return $ticks;});
+        $result=$slow->read($args+['meal_plan_id'=>501]);
+        preparationMcpCheck('shared deadline exhaustion withholds late data without sleeping '.$slowStage,
+            $result['ok']===false&&$result['candidates']===[]&&$attempts===($slowStage==='catalogue'?1:2));
+    }
+    $limits=[];
+    $oversized=new ManagerSearch3CandidateReader(static function($url,$envelope,$budget) use(&$limits,$catalogueResponse,$now){
+        $limits[]=$budget;
+        if (isset($envelope['action'])) return $catalogueResponse;
+        $body=json_encode(preparationCandidateSource($envelope['params'],$now));
+        return ['status'=>200,'type'=>'application/json','body'=>$body.str_repeat(' ',$budget['max_bytes']-strlen($body)+1)];
+    },$directory,static fn()=>$now);
+    $result=$oversized->read($args+['meal_plan_id'=>501]);
+    preparationMcpCheck('listing body is bounded by bytes remaining after the catalogue transfer',
+        $result['ok']===false&&$result['candidates']===[]&&count($limits)===2&&$limits[1]['max_bytes']<4194304);
+
+    $pdo=preparationMcpFixture();$connected=true;$storeCalls=0;$requests=[];$connection=str_repeat('a',32);
+    $active=static function(string $family,int $actor) use(&$connected,$connection): bool {return $connected&&$family===$connection&&$actor===1;};
+    $service=new ManagerPreparationMcpService($pdo,static function() use(&$storeCalls){++$storeCalls;return [];},null,null,$active,null,$reader);
+    $rpc=preparationMcpRpc('tools/call',['name'=>ManagerSearch3CandidateReader::MEAL_TOOL,'arguments'=>[]]);
+    $tool=$service->handle(preparationMcpRpc('tools/list'),1)['result']['tools'][4];
+    preparationMcpCheck('meal discovery advertises read-only empty arguments and the existing OAuth scopes',
+        $tool['name']===ManagerSearch3CandidateReader::MEAL_TOOL&&$tool['annotations']['readOnlyHint']===true
+        &&$tool['inputSchema']['additionalProperties']===false&&(array)$tool['inputSchema']['properties']===[]
+        &&$tool['securitySchemes']===[['type'=>'oauth2','scopes'=>['queue:read','prepared:write']]]);
+    $result=$service->handle($rpc,1,$connection);
+    preparationMcpCheck('authenticated meal tool returns matching JSON representations without job or event writes',
+        ($result['result']['structuredContent']['ok']??false)===true
+        &&json_decode($result['result']['content'][0]['text'],true)===$result['result']['structuredContent']&&$storeCalls===0
+        &&(int)$pdo->query('SELECT COUNT(*) FROM manager_preparation_events')->fetchColumn()===0);
+    $before=count($requests);
+    $invalid=$service->handle(preparationMcpRpc('tools/call',[
+        'name'=>ManagerSearch3CandidateReader::MEAL_TOOL,'arguments'=>['provider'=>'tourvisor']]),1,$connection);
+    preparationMcpCheck('MCP rejects meal catalogue arguments before source access',
+        ($invalid['error']['code']??0)===-32602&&count($requests)===$before);
+    foreach ([[0,$connection],[2,$connection],[3,$connection],[4,$connection],[1,null],[1,str_repeat('b',32)]] as [$actor,$family]) {
+        $before=count($requests);$result=$service->handle($rpc,$actor,$family);
+        preparationMcpCheck('meal tool requires current admin and the requesting OAuth connection '.$actor.'/'.($family??'missing'),
+            ($result['error']['code']??0)===-32001&&count($requests)===$before);
+    }
+    $before=count($requests);$connected=false;$result=$service->handle($rpc,1,$connection);$connected=true;
+    preparationMcpCheck('revoked meal connection is checked before HTTP',($result['error']['code']??0)===-32001&&count($requests)===$before);
+    foreach (['admin','project','connection','current_project'] as $revoke) {
+        $race=preparationMcpFixture();$live=true;
+        $raceReader=new ManagerSearch3CandidateReader(static function() use($race,$revoke,&$live,$catalogueResponse){
+            if ($revoke==='admin') $race->exec('UPDATE managers SET is_active=0 WHERE id=1');
+            elseif ($revoke==='project') $race->exec('DELETE FROM manager_projects WHERE manager_id=1');
+            elseif ($revoke==='current_project') ProjectConfig::resetForTests(['id'=>'other']);
+            else $live=false;
+            return $catalogueResponse;
+        },$directory,static fn()=>$now);
+        $raceService=new ManagerPreparationMcpService($race,null,null,null,
+            static function($family,$actor) use(&$live,$connection){return $live&&$family===$connection&&$actor===1;},null,$raceReader);
+        $result=$raceService->handle($rpc,1,$connection);
+        preparationMcpCheck('meal result is withheld when authorization changes during source read '.$revoke,
+            ($result['error']['code']??0)===-32001&&!isset($result['result'])&&!str_contains(json_encode($result),'Всё включено'));
+        ProjectConfig::resetForTests(['id'=>'anytour']);
+    }
+}
+
 function preparationMcpDiagnosticChecks(): void
 {
     $dir=sys_get_temp_dir().'/mcp-diagnostics-'.bin2hex(random_bytes(6));mkdir($dir,0700);
@@ -299,6 +543,7 @@ function preparationMcpDiagnosticChecks(): void
 
 try {
     preparationCandidateChecks();
+    preparationMealChecks();
     preparationMcpDiagnosticChecks();
     foreach (['admin','project','connection'] as $revocation) {
         $racePdo=preparationMcpFixture();$stillConnected=true;
@@ -354,7 +599,7 @@ try {
             $wire->result->capabilities->tools instanceof stdClass && !isset($wire->result->capabilities->events));
         $available=$service->handle(preparationMcpRpc('tools/list'),1);
         preparationMcpCheck('handshake client can discover the preparation tools '.$version,
-            array_column($available['result']['tools']??[],'name')===array_merge(['list_pending_replies','get_reply_context','save_prepared_reply',ManagerSearch3CandidateReader::TOOL],VirtualReplyMcpAdapter::NAMES));
+            array_column($available['result']['tools']??[],'name')===array_merge(['list_pending_replies','get_reply_context','save_prepared_reply',ManagerSearch3CandidateReader::TOOL,ManagerSearch3CandidateReader::MEAL_TOOL],VirtualReplyMcpAdapter::NAMES));
     }
     foreach (['2099-01-01','2026-07-28'] as $version) {
         $initialized=$service->handle(preparationMcpRpc('initialize',['protocolVersion'=>$version]),1);
@@ -376,7 +621,7 @@ try {
     preparationMcpCheck('invalid JSON-RPC envelope is rejected',($service->handle(['method'=>'tools/list'],1)['error']['code']??0)===-32600);
     preparationMcpCheck('unknown method is rejected',($service->handle(preparationMcpRpc('customers/send'),1)['error']['code']??0)===-32601);
     $tools=$service->handle(preparationMcpRpc('tools/list'),1)['result']['tools'];
-    preparationMcpCheck('preparation, retained candidates and separate virtual learning tools are exposed',array_column($tools,'name')===array_merge(['list_pending_replies','get_reply_context','save_prepared_reply',ManagerSearch3CandidateReader::TOOL],VirtualReplyMcpAdapter::NAMES));
+    preparationMcpCheck('preparation, retained candidates and separate virtual learning tools are exposed',array_column($tools,'name')===array_merge(['list_pending_replies','get_reply_context','save_prepared_reply',ManagerSearch3CandidateReader::TOOL,ManagerSearch3CandidateReader::MEAL_TOOL],VirtualReplyMcpAdapter::NAMES));
     preparationMcpCheck('tools advertise matching OAuth scope metadata',$tools[0]['securitySchemes']===[['type'=>'oauth2','scopes'=>['queue:read','prepared:write']]] && $tools[0]['_meta']['securitySchemes']===$tools[0]['securitySchemes']);
     $protocolMeta=['io.modelcontextprotocol/protocolVersion'=>'2026-07-28',
         'io.modelcontextprotocol/clientInfo'=>['name'=>'Synthetic client','version'=>'1'],

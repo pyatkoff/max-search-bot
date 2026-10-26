@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__.'/support/manager-tour-selection.php';
 require_once dirname(__DIR__).'/services/ManagerTourSelectionShareService.php';
+require_once dirname(__DIR__).'/modules/tour-selections/deploy.php';
 $pdo=deliveryDb();
 $pdo->exec('CREATE TABLE manager_tour_selection_links(conversation_id INTEGER PRIMARY KEY,version INTEGER,token TEXT UNIQUE,publication_id TEXT,is_active INTEGER,updated_by_manager_id INTEGER,updated_at TEXT);
 CREATE TABLE manager_tour_selection_link_history(conversation_id INTEGER,version INTEGER,publication_id TEXT,is_active INTEGER,manager_id INTEGER,created_at TEXT,PRIMARY KEY(conversation_id,version));');
@@ -105,6 +106,13 @@ try {
     $pdo->exec("UPDATE conversations SET status='manager' WHERE id=1");
     $again=shareCommand(7,1,4,$id,true);$newToken=substr($again['share']['path'],strlen('/selection/?t='));
     deliveryCheck('reactivation never revives a revoked URL',$newToken!==$token&&ManagerTourSelectionShareService::read($token)===null&&ManagerTourSelectionShareService::read($newToken)!==null);
+    $marker=ManagerTourSelectionPublicHost::markerPath();$originalShare=ManagerTourSelectionShareService::get(7,1)['share'];
+    deliveryCheck('uncommissioned public host preserves the existing app URL',!isset($originalShare['public_url']));
+    file_put_contents($marker,json_encode(['contract'=>ManagerTourSelectionPublicHost::CONTRACT,'origin'=>ManagerTourSelectionPublicHost::ORIGIN,'fingerprint'=>ManagerTourSelectionPublicHost::fingerprint()],JSON_THROW_ON_ERROR));
+    $hostedShare=ManagerTourSelectionShareService::get(7,1)['share'];
+    deliveryCheck('accepted host adds exact public and signed preview URLs without changing link identity',$hostedShare['path']===$originalShare['path']&&$hostedShare['version']===$originalShare['version']&&$hostedShare['public_url']==='https://tours.anytoour.ru/?t='.$newToken&&$hostedShare['preview_url']==='https://tours.anytoour.ru/?'.substr($hostedShare['preview_path'],strlen('/selection/?')));
+    unlink($marker);
+    deliveryCheck('missing installation receipt falls back without revoking or republishing the selection',!isset(ManagerTourSelectionShareService::get(7,1)['share']['public_url'])&&(int)$pdo->query('SELECT COUNT(*) FROM manager_tour_selection_link_history')->fetchColumn()===5);
     $pdo->exec('UPDATE projects SET is_active=0');deliveryCheck('inactive project closes public reads',ManagerTourSelectionShareService::read($newToken)===null);$pdo->exec('UPDATE projects SET is_active=1');
     deliveryCheck('public sharing never sends or invents a tourist choice',(int)$pdo->query("SELECT COUNT(*) FROM messages WHERE direction='outbound'")->fetchColumn()===0&&(int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE event_type='tour_offer_liked'")->fetchColumn()===0);
     deliveryCheck('history preserves all five explicit revisions',(int)$pdo->query('SELECT COUNT(*) FROM manager_tour_selection_link_history')->fetchColumn()===5);
@@ -123,6 +131,10 @@ try {
         $root=dirname(__DIR__);
         symlink($root.'/services',$http.'/services');symlink($root.'/integrations',$http.'/integrations');symlink($root.'/manager/lib',$http.'/manager/lib');
         foreach (['index.php','photo.php','view.php','selection.css','activity.php','activity.js'] as $file) copy($root.'/selection/'.$file,$http.'/selection/'.$file);
+        mkdir($http.'/hosted',0755);mkdir($http.'/host-releases',0755);mkdir($http.'/host-releases/package',0755);
+        copy($root.'/selection/view.php',$http.'/host-releases/package/view.php');symlink($http.'/host-releases/package',$http.'/host-releases/current');
+        $hostAdapter=new TourSelectionHostDeployment($http,$http.'/hosted',$http.'/host-releases',$private.'/unused-host-marker.json');
+        foreach (['index.php','photo.php','activity.php'] as $route) file_put_contents($http.'/hosted/'.$route,$hostAdapter->front($route));
         copy($root.'/manager/tour-selections-api.php',$http.'/manager/tour-selections-api.php');
         $config="<?php\nrequire_once ".var_export($root.'/services/ManagerRequestContext.php',true).";\n".
             '$fixturePdo=new PDO('.var_export('sqlite:'.$http.'/fixture.sqlite',true).',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);' ."\n".
@@ -155,6 +167,14 @@ try {
         $origin=['Origin: https://app.anytoour.ru'];$saved=$request('/selection/activity.php','POST',$observe,'',$origin);$again=$request('/selection/activity.php','POST',$observe,'',$origin);
         deliveryCheck('actual anonymous HTTP records one signed observation and reconciles exact retry',$saved['status']===200&&$again['status']===200&&!empty(json_decode($again['body'],true)['duplicate'])&&!str_contains($saved['headers'],'Set-Cookie:'));
         deliveryCheck('actual public observation rejects forged signature without becoming native action',$request('/selection/activity.php','POST',array_replace($observe,['mac'=>str_repeat('0',64)]),'',$origin)['status']===410);
+        $hostHeaders=['Host: tours.anytoour.ru'];$hostPath='/hosted/?t='.$newToken;$hostPage=$request($hostPath,'GET',[],'',$hostHeaders);
+        deliveryCheck('dedicated-host adapter renders the packaged view with the same canonical exact offer',$hostPage['status']===200&&str_contains($hostPage['body'],'Семейный номер')&&str_contains($hostPage['body'],'240 000,00')&&!str_contains($hostPage['headers'],'Set-Cookie:'));
+        deliveryCheck('dedicated host retains signed cached photos and GET-only page',$request('/hosted/photo.php?t='.$newToken.'&v=5&card=0&photo=0','GET',[],'',$hostHeaders)['body']===$photo['body']&&$request($hostPath,'POST',[],'',$hostHeaders)['status']===405);
+        deliveryCheck('dedicated host rejects an unapproved Host header',$request($hostPath)['status']===404);
+        deliveryCheck('original app origin remains isolated from the new public origin',$request('/selection/activity.php','POST',$observe,'',['Origin: https://tours.anytoour.ru'])['status']===403&&$request('/hosted/activity.php','POST',$observe,'',[...$hostHeaders,'Origin: https://app.anytoour.ru'])['status']===403);
+        $hostObserve=array_replace($observe,['kind'=>'hotel_view','event_id'=>str_repeat('e',32),'card_index'=>0]);
+        $hostSaved=$request('/hosted/activity.php','POST',$hostObserve,'',[...$hostHeaders,'Origin: https://tours.anytoour.ru']);
+        deliveryCheck('actual tours-origin observation uses the existing signed canonical interest store',$hostSaved['status']===200&&!empty(json_decode($hostSaved['body'],true)['saved'])&&!str_contains($hostSaved['headers'],'Set-Cookie:'));
         deliveryCheck('manager sharing HTTP requires authentication',$request('/manager/tour-selections-api.php','POST',['action'=>'share','conversation_id'=>1])['status']===401);
         $session=$request('/manager/session.php');preg_match('/Set-Cookie:\s*([^;\n]+)/i',$session['headers'],$cookieMatch);$cookie=$cookieMatch[1]??'';
         $activity=['action'=>'interest','conversation_id'=>1,'publication_id'=>$id];
@@ -166,6 +186,7 @@ try {
         $command['csrf']='share-fixture-csrf';$rev=$request('/manager/tour-selections-api.php','POST',$command,$cookie);
         deliveryCheck('actual HTTP revoke immediately closes public page and images',$rev['status']===200&&$request($path)['status']===404&&$request('/selection/photo.php?t='.$newToken.'&v=5&card=0&photo=0')['status']===404);
         deliveryCheck('HTTP revoke also rejects the previous observation capability',$request('/selection/activity.php','POST',$observe,'',$origin)['status']===410);
+        deliveryCheck('canonical revoke also closes the new host page cached image and observation',$request($hostPath,'GET',[],'',$hostHeaders)['status']===404&&$request('/hosted/photo.php?t='.$newToken.'&v=5&card=0&photo=0','GET',[],'',$hostHeaders)['status']===404&&$request('/hosted/activity.php','POST',$hostObserve,'',[...$hostHeaders,'Origin: https://tours.anytoour.ru'])['status']===410);
         deliveryCheck('stale HTTP revoke returns conflict without repeated history',$request('/manager/tour-selections-api.php','POST',$command,$cookie)['status']===409);
     } finally {
         if(is_resource($process)){proc_terminate($process);proc_close($process);}
