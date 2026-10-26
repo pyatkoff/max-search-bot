@@ -170,12 +170,16 @@ function modeledProfileAssertions(PDO $p,callable $check): void
     $check('profile failure rolls back source references versions and checkpoint together',$ok&&$sourceCount===$p->query('SELECT COUNT(*) FROM modeled_conversion_stream_versions')->fetchColumn()&&$cursor===$p->query('SELECT journal_cursor FROM modeled_conversion_profiles_state')->fetchColumn()&&$count===$p->query('SELECT COUNT(*) FROM modeled_conversion_profile_versions')->fetchColumn()&&$index===$p->query("SELECT journal_id FROM modeled_conversion_profile_sources WHERE source_id=11 AND source_kind='message'")->fetchColumn());
     $check('retry after profile rollback extracts and commits exactly once',$profiles->tick($now+8)['profiles_written']===1&&modeledProfileLatest($p)['profile']['fields']['budget']['value']['maximum']===400000);
     $raw=$p->query("SELECT snapshot_json FROM modeled_conversion_stream_versions WHERE source_kind='message' AND source_id=11 ORDER BY id DESC LIMIT 1")->fetchColumn();$snap=json_decode($raw,true);
-    $snap['payload']['text']='Бюджет до 450 тыс на всех';modeledProfileAppend($p,$snap,$now+10);
+    $snap['payload']['text']='Бюджет до 450 тыс на всех';$legacy=$snap;unset($legacy['source_created_at_unix']);modeledProfileAppend($p,$legacy,$now+10);
     foreach([10,14,15,16]as$c){$other=$snap;$other['source_id']=(string)(100+$c);$other['conversation_id']=(string)$c;$other['customer_key']=(string)$c;modeledProfileAppend($p,$other,$now+10);}
     $snap['payload']['text']='Бюджет до 900 тыс на всех';modeledProfileAppend($p,$snap,$now+10);
-    $r=$profiles->tick($now+11);
-    $check('bounded as-of profile cannot see a later revision beyond its unprocessed journal cursor',$r['profiles_written']===4&&$r['pending_revisions']===2&&modeledProfileLatest($p)['profile']['fields']['budget']['value']['maximum']===450000);
-    $r=$profiles->tick($now+12);$check('continuation from the exact journal cursor admits the later changed facts once',$r['profiles_written']===2&&$r['pending_revisions']===0&&modeledProfileLatest($p)['profile']['fields']['budget']['value']['maximum']===900000);
+    $future=$snap;$future['payload']['text']='Бюджет до 1000 тыс на всех';
+    $r=$profiles->tick($now+11,static function()use($p,$future,$now){modeledProfileAppend($p,$future,$now+11);});
+    $first=modeledProfileLatest($p);$frozen=$p->query("SELECT profile_json FROM modeled_conversion_profile_versions WHERE conversation_id='11' ORDER BY id DESC LIMIT 1")->fetchColumn();
+    $frozenId=$p->query("SELECT id FROM modeled_conversion_profile_versions WHERE conversation_id='11' ORDER BY id DESC LIMIT 1")->fetchColumn();
+    $check('legacy clock is resolved by a revision already available within the information fence',$r['profiles_written']===4&&$r['pending_revisions']===2&&$first['profile']['fields']['budget']['value']['maximum']===900000&&(int)$first['processing']['source_fence_journal_id']>(int)$first['processing']['journal_cursor']);
+    $r=$profiles->tick($now+12);$check('a revision appended after the information fence enters only the next prediction',$r['profiles_written']===2&&$r['pending_revisions']===0&&modeledProfileLatest($p)['profile']['fields']['budget']['value']['maximum']===1000000);
+    $check('later source revisions cannot rewrite a previously frozen profile',$p->query('SELECT profile_json FROM modeled_conversion_profile_versions WHERE id='.(int)$frozenId)->fetchColumn()===$frozen);
     $p->exec('UPDATE conversations SET is_test=1 WHERE id=11');$s->tick($now+13);$profiles->tick($now+14);$v=modeledProfileLatest($p);
     $check('revoked source scope invalidates the current profile without copying older text',$v['access_status']==='denied'&&$v['profile']['prediction_features']['facts']===[]);
     $p->exec('UPDATE conversations SET is_test=0 WHERE id=11');$s->tick($now+15);$profiles->tick($now+16);

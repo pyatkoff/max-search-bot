@@ -11,7 +11,7 @@ import sys
 import build_conversion_observations as base
 import extract_conversion_profiles as extractor
 
-VERSION = "admitted_journal_profile_v1"
+VERSION = "admitted_journal_profile_v1_1"
 MAX_BYTES = 2 * 1024 * 1024
 ADAPTER_SHA = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
 
@@ -22,11 +22,15 @@ def epoch(value):
 
 
 def profile(document, extracted_at):
-    base.fields(document, ("schema_version", "requested_at", "journal_cursor", "cases"))
+    base.fields(document, ("schema_version", "requested_at", "journal_cursor", "cases"), ("source_fence_journal_id",))
     base.require(document["schema_version"] == 1 and type(document["schema_version"]) is int, "unsupported_schema")
     requested = base.moment(document["requested_at"])
     base.require(requested <= base.moment(extracted_at), "extraction_before_request")
     base.key(document["journal_cursor"])
+    information_fence = document.get("source_fence_journal_id", document["journal_cursor"])
+    base.require(isinstance(information_fence, str) and re.fullmatch(r"[0-9]{1,20}", information_fence)
+                 and re.fullmatch(r"[0-9]{1,20}", document["journal_cursor"])
+                 and int(information_fence) >= int(document["journal_cursor"]), "invalid_information_fence")
     base.require(isinstance(document["cases"], list) and len(document["cases"]) <= 4, "profile_case_limit")
     output = []; seen = set()
     for case in document["cases"]:
@@ -45,9 +49,13 @@ def profile(document, extracted_at):
             errors[reason] = errors.get(reason, 0)+1
 
         for row in case["rows"]:
-            base.fields(row, ("journal_id", "source_kind", "source_id", "source_version_no", "observed_at_unix", "snapshot"))
+            base.fields(row, ("journal_id", "source_kind", "source_id", "source_version_no", "observed_at_unix", "snapshot"), ("progress_journal_id",))
             for key in ("journal_id", "source_id"):
                 base.require(isinstance(row[key], str) and re.fullmatch(r"[1-9][0-9]{0,19}", row[key]), "invalid_journal_identity")
+            base.require(int(row["journal_id"]) <= int(information_fence), "revision_after_information_fence")
+            progress = row.get("progress_journal_id", row["journal_id"])
+            base.require(isinstance(progress, str) and re.fullmatch(r"[1-9][0-9]{0,19}", progress)
+                         and int(progress) <= int(row["journal_id"]), "invalid_progress_reference")
             base.require(row["source_kind"] in {"message", "event"}, "invalid_journal_kind")
             base.require(row["journal_id"] not in unique, "duplicate_journal_revision"); unique.add(row["journal_id"])
             base.require(type(row["source_version_no"]) is int and row["source_version_no"] >= 1, "invalid_source_revision")
@@ -62,12 +70,16 @@ def profile(document, extracted_at):
             base.require(status in {"present", "deleted", "scope_excluded"}, "invalid_source_status")
             refs.append({"journal_id": row["journal_id"], "source_kind": row["source_kind"],
                          "source_id": str(row["source_id"]), "source_version_no": row["source_version_no"], "observed_at": received,
-                         "snapshot_sha256": base.digest(snap), "source_status": status})
+                         "progress_journal_id": progress, "snapshot_sha256": base.digest(snap), "source_status": status})
             if status != "present":
                 omitted(status); continue
-            base.require(snap.get("project_key") == scope["project_key"] and snap.get("platform") == scope["platform"]
-                         and str(snap.get("conversation_id")) == scope["conversation_id"]
-                         and str(snap.get("customer_key")) == scope["customer_key"], "journal_scope_mismatch")
+            matches = (snap.get("project_key") == scope["project_key"] and snap.get("platform") == scope["platform"]
+                       and str(snap.get("conversation_id")) == scope["conversation_id"]
+                       and str(snap.get("customer_key")) == scope["customer_key"])
+            if not matches:
+                base.require("source_fence_journal_id" in document and "progress_journal_id" in row
+                             and int(row["journal_id"]) > int(progress), "journal_scope_mismatch")
+                omitted("source_scope_changed_at_information_fence"); continue
             if case["access_denied"]:
                 omitted("scope_denied"); continue
             if row["source_kind"] != "message":
@@ -118,13 +130,13 @@ def profile(document, extracted_at):
         base.require(not case["access_denied"] or not result["prediction_features"]["facts"], "denied_scope_facts")
         output.append({"subject": case["subject"], "profile": result, "source_references": refs,
                        "adapter": {"version": VERSION, "sha256": ADAPTER_SHA},
-                       "journal_cursor": document["journal_cursor"],
+                       "journal_cursor": document["journal_cursor"], "source_fence_journal_id": information_fence,
                        "access_status": "denied" if case["access_denied"] else "allowed",
                        "coverage": {"source_history_complete": False, "trip_status": "unknown",
                                     "window_limited": case["window_limited"], "exposure": "unknown",
                                     "identity_assurance": "canonical_source_assertion", "errors": errors}})
     return {"schema_version": 1, "adapter_version": VERSION, "adapter_sha256": ADAPTER_SHA,
-            "extractor_sha256": extractor.RULE_SHA, "journal_cursor": document["journal_cursor"],
+            "extractor_sha256": extractor.RULE_SHA, "journal_cursor": document["journal_cursor"], "source_fence_journal_id": information_fence,
             "requested_at": document["requested_at"], "extracted_at": extracted_at,
             "profiles": output, "export_allowed": False, "model_calls": 0, "conversion_uploads": 0}
 
