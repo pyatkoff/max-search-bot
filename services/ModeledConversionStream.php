@@ -5,7 +5,7 @@ require_once __DIR__.'/InternalOwnerDialogueScope.php';
 /** Prospective source journal only. No trip inference, model, provider or goal caller. */
 final class ModeledConversionStream
 {
-    public const VERSION='prospective_source_stream_v1';
+    public const VERSION='prospective_source_stream_v1_1';
     public const ROW_LIMIT=500;
     public const BYTE_LIMIT=2097152;
     public const DAILY_LIMIT=10000;
@@ -149,7 +149,12 @@ final class ModeledConversionStream
         if(ProjectConfig::projectId()!=='anytour'||!ConversationDb::isConfigured())return ['status'=>'off','model_calls'=>0,'conversion_uploads'=>0];
         require_once __DIR__.'/ProjectAccessService.php';
         ProjectAccessService::initializeReadOnly();
-        return (new self(ConversationDb::connection()))->tick(time());
+                $pdo=ConversationDb::connection();$result=(new self($pdo))->tick(time());
+        if(($result['status']??'off')!=='off'){
+            try {require_once __DIR__.'/ModeledConversionProfiles.php';$result['profiles']=(new ModeledConversionProfiles($pdo))->tick(time());}
+            catch(Throwable $ignored){$result['profiles']=['status'=>'failed','model_calls'=>0,'conversion_uploads'=>0];}
+        }
+        return $result;
     }
 
     private function observe(string $kind,array $meta,int $now,int &$used,array &$receipt): bool
@@ -160,7 +165,9 @@ final class ModeledConversionStream
         $base=['source_kind'=>$kind,'source_id'=>$id,'source_status'=>'present',
             'project_key'=>'anytour','platform'=>$meta['platform'],'conversation_id'=>$meta['conversation_id'],
             'customer_key'=>$meta['customer_key'],'source_created_at'=>$meta['created_at'],
-            'source_clock'=>'database_persistence_not_provider_occurrence','payload_sha256'=>$sourceHash,
+            'source_clock'=>'database_persistence_not_provider_occurrence',
+            'source_created_at_unix'=>isset($meta['created_at_unix'])?(int)$meta['created_at_unix']:null,
+            'source_timestamp_basis'=>'database_session_timezone_to_unix','payload_sha256'=>$sourceHash,
             'trip_status'=>'unknown','history_complete'=>false];
         $estimate=(int)$meta['payload_bytes']*6+4096;
         if ($estimate>65536) $snapshot=$base+['payload_status'=>'oversize_not_copied','payload'=>null];
@@ -208,14 +215,15 @@ final class ModeledConversionStream
         [$from,$where,$bind]=$this->scopeSql($kind);
         $clauses=$exact!==null?'s.id=?':'s.id>?';$bind[]=$exact??$after;
         if($ceiling!==null){$clauses.=' AND s.id<=?';$bind[]=$ceiling;}
-        if($kind==='visit')$select="s.id,s.platform,'' AS conversation_id,'' AS customer_key,s.received_at_unix AS created_at,2048 AS payload_bytes,s.payload_sha256 AS payload_hash";
+        if($kind==='visit')$select="s.id,s.platform,'' AS conversation_id,'' AS customer_key,s.received_at_unix AS created_at,s.received_at_unix AS created_at_unix,2048 AS payload_bytes,s.payload_sha256 AS payload_hash";
         else {
             $fields=$kind==='message'?'s.direction,s.sender_type,s.text,s.metadata_json':'s.event_type,s.actor_type,s.payload_json';
             $raw='JSON_ARRAY('.$fields.')';
             $hash=$this->mysql?'SHA2('.$raw.',256)':'modeled_hash(json_array('.$fields.'))';
             $length=$this->mysql?'OCTET_LENGTH':'LENGTH';
             $bytes=$kind==='message'?"COALESCE($length(s.text),0)+COALESCE($length(s.metadata_json),0)":"COALESCE($length(s.payload_json),0)";
-            $select="s.id,c.channel AS platform,c.id AS conversation_id,c.customer_id AS customer_key,s.created_at,($bytes) AS payload_bytes,$hash AS payload_hash";
+            $clock=$this->mysql?'UNIX_TIMESTAMP(s.created_at)':"CAST(strftime('%s',s.created_at) AS INTEGER)";
+            $select="s.id,c.channel AS platform,c.id AS conversation_id,c.customer_id AS customer_key,s.created_at,$clock AS created_at_unix,($bytes) AS payload_bytes,$hash AS payload_hash";
         }
         return $this->query('SELECT '.$select.' FROM '.$from.' WHERE '.$where.' AND '.$clauses.' ORDER BY s.id LIMIT '.$limit,$bind)->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -265,3 +273,4 @@ final class ModeledConversionStream
     private static function json(array $v): string{return json_encode($v,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);}
     private static function fail(string $reason): void {throw new RuntimeException('modeled_stream_'.$reason);}
 }
+

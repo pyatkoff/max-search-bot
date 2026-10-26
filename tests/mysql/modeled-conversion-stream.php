@@ -31,6 +31,10 @@ try{
     $before=(int)$p->query('SELECT COUNT(*) FROM modeled_conversion_stream_versions')->fetchColumn();
     $s->tick($now+41,static function()use($competing,$now,&$blocked){$blocked=($competing->tick($now+41)['status']??'')==='busy';});
     $check('concurrent observer cannot own the same project checkpoint',$blocked&&(int)$p->query('SELECT COUNT(*) FROM modeled_conversion_stream_versions')->fetchColumn()===$before);
+    modeledProfileAssertions($p,$check);
+    $profiles=new ModeledConversionProfiles($p);$competingProfiles=new ModeledConversionProfiles($other);$profileBlocked=false;
+    $profiles->tick(1793003000,static function()use($competingProfiles,&$profileBlocked){$profileBlocked=($competingProfiles->tick(1793003000)['status']??'')==='busy';});
+    $check('concurrent profile transformer cannot own the same derived checkpoint',$profileBlocked);
     echo 'MODELED CONVERSION STREAM NATIVE MYSQL PASSED '.$passed.PHP_EOL;
 }catch(Throwable $e){fwrite(STDERR,'FAIL modeled stream native MySQL '.get_class($e).PHP_EOL);$failed=true;}
 finally{
@@ -38,3 +42,4 @@ finally{
     if($admin&&$safe)$admin->exec('DROP DATABASE IF EXISTS maxbot_modeled_stream_test');
 }
 if($failed)exit(1);
+

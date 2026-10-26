@@ -1,10 +1,14 @@
-# Automatic current-trip profiles — offline v1
+# Automatic factual profiles — offline tools and admitted journal
+
+The admitted-journal runtime path is documented at the end of this file. The
+original file/stdin tools below still have no live source reader themselves.
 
 `tools/extract_conversion_profiles.py` automatically reads an already authorized
 Russian dialogue prefix and produces factual trip conditions, a conservative
 current stage and the existing1144 observation. It is a versioned deterministic
-extractor, **not a trained purchase model**. No model/provider, network, database,
-customer send, goal export or runtime bot integration occurs. No third-party
+extractor, **not a trained purchase model**. The CLI has no model/provider,
+network, database, customer-send or goal-export access. The admitted-journal
+runtime processor below reuses this same extractor. No third-party
 Python dependency is needed. It does not replace the dialogue's state owner.
 
 ## Input and provenance
@@ -273,3 +277,85 @@ activity, source fences, owner/test isolation and bounded metadata. Pure tests
 cover exact episode/person exclusions, unknown exposure, returning persons,
 grouping, conflicts and read budgets. This is code/synthetic acceptance only;
 the closed zero-case real audit and old five development cases are not rerun.
+
+## Automatic admitted-journal profiles
+
+The same installed scheduler can now transform already admitted immutable journal
+revisions using `tools/profile_conversion_journal.py` and
+`ModeledConversionProfiles`. No native source table is reread by this transformer,
+and no network/model/provider/customer/goal call occurs. Migration066 adds only
+private derived source-reference indexes, an atomic cursor and immutable profile
+versions in the existing common DB; raw transcript snapshots stay in the source
+journal. No second worker, work queue, schedule or business-state owner is added.
+
+This stage is **default OFF**. After reviewed installation, the existing CLI has
+profiles-start/profiles-stop/profiles-status/profiles-tick. Start requires the
+already enabled source stream. Its once-initialized journal cursor starts from
+the admitted journal and is preserved on stop/resume; source floors/start and
+either consumed historical capture are never replayed. The ordinary existing
+five-minute observer invokes the transformer after source intake. Transformer
+failure cannot roll back intake or change the uploader result. Failed processing
+keeps references/profiles/cursor unchanged and records only a fixed aggregate
+processing_failed category; no private exception or interpreter stderr is logged.
+
+The batch reads at most40new revisions and affects at most4conversation scopes.
+Each factual window contains at most50latest source references. It fetches at
+most500journal rows, copies at most1MiB raw snapshots (reserving protocol framing
+within2MiB), and bounds interpreter input/output to2MiB with a5second hard process
+limit. Native intake's separate500rows/2MiB/10000revisions/day envelope remains
+unchanged. Size/row limits preserve source history, flag partial windows and
+retain the exact unprocessed cursor. They do not certify complete trip history.
+A window may omit older source facts until a later profile update; it never turns
+missing information into zero or erases the underlying journal.
+
+Every profile binds the exact journal cursor, immutable source revision references,
+adapter/extractor/processor source hashes and actual semantic availability.
+Only the derived index advanced through that cursor selects inputs; later journal
+or native-latest changes cannot enrich an earlier profile. Snapshot versions,
+references and cursor commit together. Repeated empty/retried ticks do not create
+another profile version or monetary value. Source edits, reversion and removal
+recompute the affected scopes; scope revocation invalidates current usable facts,
+with the exclusion reference retained, and scope restoration needs a new receipt.
+
+Canonical source metadata now additionally records DB-session
+UNIX_TIMESTAMP(created_at) (SQLite fixture equivalent) and its explicit
+database_session_timezone_to_unix basis. This is DB persistence, never
+authenticated provider occurrence or the actual time of a later edit.
+Legacy missing normalization, invalid/future source clock, unknown metadata,
+oversize payloads and uninterpreted events have explicit coverage reasons.
+A first receipt or metadata refresh is not invented as a customer's action time.
+Repeated edits under one source ID can have unresolved semantic chronology;
+independent semantic/temporal validation remains necessary.
+
+The canonical extractor accepts optional trip_status accepted/unknown (legacy
+producer-supplied trip anchors keep accepted behavior). The automatic journal
+path always declares **unknown**, with a provisional unresolved-prefix identifier
+that is not an accepted trip ID. Known factual statements belong to that observed
+conversation prefix; they must not be advertised as confirmed conditions of one
+current trip. Features expose feature_scope=unresolved_conversation_prefix;
+Exposure stays explicitly unknown and identity assurance is a canonical-source
+assertion, not independently authenticated cross-channel identity. Semantic
+evidence has medium confidence, target admission is blocked with
+trip_boundary_unresolved, and no future label/value/export is created. A new
+message never silently creates a new trip. Resolving multiple trips/continuations
+and general Russian semantics is a later bounded, validated stage, not a field
+count or regex-coverage score.
+
+Inbound customer text requires canonical type=message; callback/start/contact,
+unknown types, contradictory direction/speaker and bot/system text cannot become
+customer conditions. Canonical outbound manager text may have no metadata type;
+it remains manager evidence/quotes. Event payloads and unbound advertising entries
+do not become customer intent or organic/negative outcomes. All remain in the
+admitted journal and denominator research. Existing owner/test/project/channel
+scope is inherited, with no manager/budget/positive-stage/new-person filter.
+
+Synthetic controls exercise actual PHP→Python→canonical extractor→private profile,
+native source tables unavailable, atomic rollback and retry, exact as-of cutoff,
+scope revocation/restoration, bounded100scope processing, and native concurrent
+transformer exclusion. They do not establish general semantic accuracy, trained
+purchase probabilities, baseline improvement or advertising export permission.
+Real installed activation/first derived profile/natural scheduler receipt must
+be recorded separately. Existing frozen development error counts remain unchanged
+until exact replay; no old source or paid model is invoked by these controls.
+
+
