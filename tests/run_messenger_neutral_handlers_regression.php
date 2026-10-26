@@ -43,6 +43,8 @@ mnhCheck('AiShortAnswerHandler routes deterministic meal/nights through NeedAppl
 mnhCheck('AiShortAnswerHandler has no direct NightsParser call', strpos($shortSource, 'NightsParser::parse(') === false, true);
 mnhCheck('AiShortAnswerHandler has no direct MealParser call', strpos($shortSource, 'MealParser::parse(') === false, true);
 mnhCheck('shared NightsParser still accepts week as nights', NightsParser::parse('неделя'), '7');
+mnhCheck('NightsParser explicit correction keeps positive replacement', NightsParser::parse('не 7 ночей, а 10 ночей'), '10');
+mnhCheck('NightsParser rejected-only count stays unresolved', NightsParser::parse('не 7 ночей'), '');
 mnhCheck('adult-only clarification means no children', AiShortAnswerHandler::partyClarificationWhileAskingChildren('1 взрослый'), ['adults'=>1,'children'=>0]);
 mnhCheck('plural adult-only clarification means no children', AiShortAnswerHandler::partyClarificationWhileAskingChildren('2 взрослых'), ['adults'=>2,'children'=>0]);
 mnhCheck('unrelated children answer is not adult clarification', AiShortAnswerHandler::partyClarificationWhileAskingChildren('1 ребенок'), null);
