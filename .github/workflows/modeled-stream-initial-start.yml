@@ -1,4 +1,4 @@
-name: AnyTour prospective stream initial start
+name: AnyTour prospective stream natural receipt
 on:
   push:
     branches: [audit/modeled-stream-start-v3-20261026]
@@ -8,7 +8,7 @@ concurrency:
   group: anytour-modeled-stream-initial-start
   cancel-in-progress: false
 jobs:
-  once:
+  receipt:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -39,65 +39,15 @@ jobs:
           fi
           chmod 600 "$key_file"
           ssh-keygen -y -f "$key_file" >/dev/null
-      - name: Issue exactly one prospective start and bounded tick
+      - name: Read only the existing private aggregate receipt
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
         shell: bash
         run: |
           set -euo pipefail
-          umask 077
-          cat > "$RUNNER_TEMP/modeled-stream-start.php" <<'PHP'
-          <?php
-          declare(strict_types=1);
-          $phase='preflight';
-          try {
-              chdir('/var/www/anytoour/data/www/app.anytoour.ru');
-              if(hash_file('sha256','services/ModeledConversionStream.php')!=='789f03004719396ce0fcdd833543212c432c52d1d944d584b2d649b2bdb765df')throw new RuntimeException('source');
-              require_once 'config.php';
-              require_once 'services/ProjectAccessService.php';
-              require_once 'services/ModeledConversionStream.php';
-              if(ProjectConfig::projectId()!=='anytour')throw new RuntimeException('project');
-              ProjectAccessService::initializeReadOnly();
-              $s=new ModeledConversionStream(ConversationDb::connection());
-              $before=$s->status();
-              if($before['enabled']!==false||$before['started_at_unix']!==null||$before['ticks']!==0)throw new RuntimeException('not_fresh');
-              $dir='/tmp/anytour-modeled-stream-v3-start-20261026';
-              if(is_link($dir)||(!is_dir($dir)&&!mkdir($dir,0700)))throw new RuntimeException('receipt_directory');
-              if((fileperms($dir)&0777)!==0700)throw new RuntimeException('receipt_mode');
-              $issued=fopen($dir.'/issued.json','x');
-              if(!$issued)throw new RuntimeException('issued');
-              chmod($dir.'/issued.json',0600);
-              $issue=['operation'=>'modeled_stream_v3_prospective_start','expected_main'=>'8bb686ce89ce3b047f71613656ef46bec3442b81','issued_at_unix'=>time(),'stage'=>'issued'];
-              if(fwrite($issued,json_encode($issue,JSON_THROW_ON_ERROR))===false||!fflush($issued))throw new RuntimeException('receipt_write');
-              if(function_exists('fsync')&&!fsync($issued))throw new RuntimeException('receipt_sync');
-              fclose($issued);
-              $phase='start';
-              $start=$s->start(time());
-              if(($start['enabled']??false)!==true||($start['ticks']??-1)!==0)throw new RuntimeException('start');
-              $phase='first_tick';
-              $tick=$s->tick(time());
-              if(($tick['status']??'')!=='observed')throw new RuntimeException('tick');
-              $phase='status';
-              $after=$s->status();
-              $result=['ok'=>true,'stage'=>'started','start'=>$start,'first_tick'=>$tick,'after'=>$after,'paid_calls'=>0,'customer_calls'=>0];
-              $json=json_encode($result,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
-              if(file_put_contents($dir.'/result.json',$json,LOCK_EX)===false)throw new RuntimeException('result_write');
-              chmod($dir.'/result.json',0600);
-              echo $json.PHP_EOL;
-          } catch(Throwable $e) {
-              echo json_encode(['ok'=>false,'stage'=>$phase,'error'=>'modeled_stream_start_failed','automatic_retry_allowed'=>false]).PHP_EOL;
-              exit(1);
-          }
-          
-          PHP
-          ssh_opts=(-i "$RUNNER_TEMP/deploy_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=15)
-          remote_dir="/tmp/anytour-modeled-stream-start-code-${GITHUB_RUN_ID}"
-          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; umask 077; mkdir '$remote_dir'; chmod 700 '$remote_dir'"
-          trap 'ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "rm -f \"$remote_dir/start.php\"; rmdir \"$remote_dir\"" >/dev/null 2>&1 || true' EXIT
-          scp "${ssh_opts[@]}" "$RUNNER_TEMP/modeled-stream-start.php" "$DEPLOY_USER@$DEPLOY_HOST:$remote_dir/start.php"
-          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '8bb686ce89ce3b047f71613656ef46bec3442b81'; php -d display_errors=0 '$remote_dir/start.php'; test \"\$(git rev-parse HEAD)\" = '8bb686ce89ce3b047f71613656ef46bec3442b81'"
-      - name: Remove runner credential and code
+          ssh -i "$RUNNER_TEMP/deploy_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=15 "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '8bb686ce89ce3b047f71613656ef46bec3442b81'; php -d display_errors=0 tools/modeled_conversion_stream.php status; test \"\$(git rev-parse HEAD)\" = '8bb686ce89ce3b047f71613656ef46bec3442b81'"
+      - name: Remove runner credential
         if: always()
         shell: bash
-        run: rm -f "$RUNNER_TEMP/deploy_key" "$RUNNER_TEMP/modeled-stream-start.php"
+        run: rm -f "$RUNNER_TEMP/deploy_key"
