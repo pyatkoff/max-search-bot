@@ -1,0 +1,79 @@
+name: Activate prospective ordinary Telegram dialogue delivery
+on:
+  push:
+    branches: [audit/telegram-dialogue-activation-20261026]
+permissions:
+  contents: read
+jobs:
+  accept:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      EXPECTED_RUNTIME_SHA: 90e29306298b6ad8ebccb0a1edfc37e5c9fa41da
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require exact current main before credentials
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin refs/heads/main
+          test "$(git rev-parse FETCH_HEAD)" = "$EXPECTED_RUNTIME_SHA"
+      - name: Prepare the existing canonical SSH identity
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          key_file="$RUNNER_TEMP/tg_activation_key"
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key_file"; else printf '%s\n' "$raw" | tr -d '\r' > "$key_file"; fi
+          else
+            decoded="$(printf '%s' "$raw" | base64 --decode 2>/dev/null || true)"
+            [[ "$decoded" == *"PRIVATE KEY"* ]] || { echo invalid_existing_identity; exit 1; }
+            printf '%s\n' "$decoded" | tr -d '\r' > "$key_file"
+          fi
+          chmod 600 "$key_file"
+          ssh-keygen -y -f "$key_file" >/dev/null
+      - name: Verify existing goals and activate this new Telegram scope once
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          python3 <<'PY'
+          import os,socket,subprocess,base64,hashlib,json,re
+          from pathlib import Path
+          host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER'];expected=os.environ['EXPECTED_RUNTIME_SHA']
+          if not re.fullmatch(r'[a-f0-9]{40}',expected):raise SystemExit('invalid_expected_sha')
+          if {v[4][0] for v in socket.getaddrinfo(host,22,type=socket.SOCK_STREAM)}!={'5.45.122.54'}:raise SystemExit('canonical_target_changed')
+          scan=subprocess.run(['ssh-keyscan','-T','10',host],capture_output=True,text=True,timeout=30)
+          pinned=[]
+          for line in scan.stdout.splitlines():
+              p=line.split()
+              if len(p)!=3 or p[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(p[2],validate=True)).digest()).decode().rstrip('=')
+              except ValueError:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':pinned.append(line)
+          if not pinned:raise SystemExit('canonical_host_pin_not_seen')
+          temp=Path(os.environ['RUNNER_TEMP']);known=temp/'tg_activation_hosts';known.write_text('\n'.join(pinned)+'\n');known.chmod(0o600)
+          pins={"services/TelegramDialogueConversions.php":"778936e8cdffcbb7c5dbeaff52d280ff00d0c9d4","services/MaxChannelConversionWorker.php":"54ed714d8a815917edd2ec84ec6e1648dcd6899f","services/MaxChannelConversionOutbox.php":"3e13c637938e7f57ffff78e3f9b3f830a5d6d834","services/MetrikaOfflineClient.php":"7b520aa67e64053ad65b7b447712ddd93fe6e335","tools/telegram_dialogue_conversions.php":"2e0595b063f7ff645524e9960c8014c448a67dae","migrations/067_telegram_dialogue_conversions.sql":"34f3ce9a0b1c6d308586dadbe38e90ac0908c92a","cron_metrika.php":"3d2b28a5fe059f859c2e639de9d3865123b1e9c9"}
+          php="<?php\ndeclare(strict_types=1);\nini_set('display_errors','0');ini_set('log_errors','0');error_reporting(0);\n$phase='preflight';\nfunction need(bool $ok):void{if(!$ok)throw new RuntimeException('activation_precondition');}\ntry{\n    require_once getcwd().'/config.php';\n    require_once getcwd().'/services/ProjectAccessService.php';\n    require_once getcwd().'/services/TelegramDialogueConversions.php';\n    require_once getcwd().'/services/MetrikaOfflineClient.php';\n    need(ProjectConfig::projectId()==='anytour');\n    ProjectAccessService::initializeReadOnly();$p=ConversationDb::connection();\n    need(defined('METRIKA_COUNTER_ID')&&(string)METRIKA_COUNTER_ID==='98615635'&&defined('METRIKA_OAUTH_TOKEN'));\n    $snapshot=static function()use($p):array{\n        $q=$p->query(\"SELECT mode,counter_id,activated_at_unix,message_cursor,goal_set,shared_goals_activated_at_unix,shared_goals_event_id,request_event_cursor FROM max_channel_attribution_settings WHERE project_key='anytour'\");\n        return $q->fetch(PDO::FETCH_ASSOC)?:[];\n    };\n    $maxBefore=$snapshot();$before=TelegramDialogueConversions::settings($p);\n    need($before!==null&&$before['telegram_mode']==='off'&&$before['telegram_activated_at_unix']===null);\n    $repo=new TelegramDialogueConversions($p);need($repo->counts()===[]);\n    $phase='verify_existing_goals';\n    $api=new MetrikaOfflineClient('98615635',(string)METRIKA_OAUTH_TOKEN);need($api->goalsReady());\n    $phase='activate_once';\n    $after=$repo->activate('send',time());\n    need($after['telegram_mode']==='send'&&(int)$after['telegram_activated_at_unix']>0);\n    need($after['telegram_signal_floor']===$after['telegram_signal_cursor']);\n    need($maxBefore===$snapshot());\n    echo json_encode(['ok'=>true,'operation'=>'telegram_send_activation','at'=>gmdate('c'),\n        'mode'=>$after['telegram_mode'],'activated_at_unix'=>(int)$after['telegram_activated_at_unix'],\n        'signal_floor'=>(string)$after['telegram_signal_floor'],'signal_cursor'=>(string)$after['telegram_signal_cursor'],\n        'max_settings_unchanged'=>true,'queue_counts'=>$repo->counts(),'goal_reads'=>1,'goal_writes'=>0,\n        'conversion_requests'=>0,'original_source_reads'=>0,'model_calls'=>0,'customer_sends'=>0],JSON_THROW_ON_ERROR).PHP_EOL;\n}catch(Throwable $e){\n    if(isset($p)&&$p->inTransaction())$p->rollBack();\n    echo json_encode(['ok'=>false,'phase'=>$phase,'reason'=>'telegram_activation_requires_readback']).PHP_EOL;exit(1);\n}\n"
+          commands=['set -euo pipefail','cd /var/www/anytoour/data/www/app.anytoour.ru',f'test "$(git rev-parse HEAD)" = "{expected}"','git diff --quiet','git diff --cached --quiet']
+          for path,sha in pins.items():commands.append(f'test "$(git hash-object {path})" = "{sha}"')
+          commands+=["php <<'TG_EXACT_ACTIVATION'",php.rstrip(),'TG_EXACT_ACTIVATION',f'test "$(git rev-parse HEAD)" = "{expected}"']
+          for path,sha in pins.items():commands.append(f'test "$(git hash-object {path})" = "{sha}"')
+          run=subprocess.run(['ssh','-i',str(temp/'tg_activation_key'),'-o','BatchMode=yes','-o','StrictHostKeyChecking=yes','-o','UserKnownHostsFile='+str(known),'-o','ConnectTimeout=10',user+'@'+host,'bash -se'],input='\n'.join(commands)+'\n',capture_output=True,text=True,timeout=85)
+          receipts=[]
+          for line in run.stdout.splitlines():
+              try:obj=json.loads(line)
+              except ValueError:continue
+              if isinstance(obj,dict) and isinstance(obj.get('ok'),bool):receipts.append(obj)
+          if len(receipts)!=1:raise SystemExit('activation_receipt_missing_readback_required')
+          print(json.dumps(receipts[0],separators=(',',':')))
+          if run.returncode!=0 or receipts[0].get('ok') is not True:raise SystemExit('activation_not_confirmed_no_retry')
+          
+          PY
+      - name: Remove temporary existing credential
+        if: always()
+        run: rm -f "$RUNNER_TEMP/tg_activation_key" "$RUNNER_TEMP/tg_activation_hosts"
