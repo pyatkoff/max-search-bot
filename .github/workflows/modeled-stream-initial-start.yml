@@ -1,4 +1,4 @@
-name: AnyTour prospective stream natural receipt
+name: AnyTour prospective stream natural scheduler verification
 on:
   push:
     branches: [audit/modeled-stream-start-v3-20261026]
@@ -46,7 +46,22 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ssh -i "$RUNNER_TEMP/deploy_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=15 "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '8bb686ce89ce3b047f71613656ef46bec3442b81'; php -d display_errors=0 tools/modeled_conversion_stream.php status; test \"\$(git rev-parse HEAD)\" = '8bb686ce89ce3b047f71613656ef46bec3442b81'"
+          ssh -i "$RUNNER_TEMP/deploy_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=15 "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '8bb686ce89ce3b047f71613656ef46bec3442b81'; php -d display_errors=0 tools/modeled_conversion_stream.php status; test \"\$(git rev-parse HEAD)\" = '8bb686ce89ce3b047f71613656ef46bec3442b81'" | tee "$RUNNER_TEMP/modeled-stream-receipt.json"
+      - name: Verify the ordinary scheduler advanced the existing receipt
+        shell: bash
+        run: |
+          python3 - "$RUNNER_TEMP/modeled-stream-receipt.json" <<'PY'
+          import json,sys
+          v=json.load(open(sys.argv[1]))
+          assert v.get('ok') is True and v.get('enabled') is True
+          assert v.get('ticks',0)>1
+          assert v['last_receipt']['observed_at_unix']>v['started_at_unix']
+          assert v['last_receipt']['native_rows_read']<=500
+          assert v['last_receipt']['payload_bytes']<=2097152
+          assert v['quota_used']<=10000
+          assert v['model_calls']==0 and v['conversion_uploads']==0
+          print(json.dumps({'natural_scheduler_advanced':True,'ticks':v['ticks'],'new_revisions_since_start':v['quota_used']}))
+          PY
       - name: Remove runner credential
         if: always()
         shell: bash
