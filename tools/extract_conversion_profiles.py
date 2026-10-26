@@ -10,7 +10,7 @@ from datetime import date
 
 import build_conversion_observations as base
 
-VERSION = "ru_trip_prefix_rules_v1_4"
+VERSION = "ru_trip_prefix_rules_v1_5"
 MAX_BYTES = 2 * 1024 * 1024
 MAX_CASES = 100
 MAX_MESSAGES = 500
@@ -162,6 +162,23 @@ def duration_constraint(text):
     return None
 
 
+def direct_flight_requirement(text):
+    """An explicit customer requirement, never a question or offered flight."""
+    for clause in re.split(r"[.;!\n]", text):
+        if text_match(r"\?|\bесли\b|"
+                      r"предложил\w*|предлага\w*|написал\w*|сообщил\w*|летали|прошл\w*\s+(?:год|месяц)|"
+                      r"не\s+(?:хочу|хотим|подход\w*|устраив\w*)", clause):
+            continue
+        match = affirmed(r"\bпрям(?:ой|ые|ым|ыми)\s+рейс\w*\b|\bбез\s+пересад(?:ок|ки)\b", clause)
+        if match:
+            start = text.index(clause)
+            qualifier = r"не\s+(?:обязател\w*|обязательно|нуж\w*|важ\w*|принципиальн\w*)"
+            optional = (text_match(qualifier+r"[\s,:]*$", clause[:match.start()])
+                        or text_match(r"^\s*"+qualifier, clause[match.end():]))
+            return ("direct_not_required" if optional else "direct_only"), (start, start+len(clause))
+    return None
+
+
 def date_constraints(text):
     """Keep window meaning/year unresolved unless explicitly supplied."""
     results = []
@@ -288,7 +305,7 @@ def extract_case(case, extracted):
     cutoff = case["prediction_at"]
     fields = {name: [] for name in ["budget", "budget_preference", "duration", "dates", "departure",
               "destination", "meal", "date_flexibility_days", "room_arrangement", "family_group",
-              "hotel_interest", "unresolved_city", "purchase_report"]}
+              "hotel_interest", "unresolved_city", "purchase_report", "flight_requirement"]}
     party = {k: [] for k in ("adults", "children", "total", "child_ages")}
     offered = []; stages = []; canonical = []; requirements = []; previous_manager = None
     assumption_refs = []
@@ -337,6 +354,9 @@ def extract_case(case, extracted):
         duration = duration_constraint(text)
         if duration:
             add("duration", duration[0], m, duration[1])
+        flight = direct_flight_requirement(text)
+        if flight:
+            add("flight_requirement", flight[0], m, flight[1])
         for value, span in date_constraints(text):
             add("dates", value, m, span)
         flex = text_match(r"(?:\+\s*[-–]|плюс[- ]минус)\s*(\d{1,2})\s*дн\w*", text)
