@@ -209,7 +209,7 @@ for(const width of [390,430,768,1440])test('standalone selection editor uses exa
   await expect(page.locator('#tsSaved')).toHaveText('Сохранено в этой вкладке');
   await expect(page.locator('#tsStatus')).toContainText('в этой вкладке');
   expect(await page.evaluate(()=>document.querySelector('#tourSelectionDialog').scrollWidth-document.querySelector('#tourSelectionDialog').clientWidth)).toBeLessThanOrEqual(1);
-  await page.setViewportSize({width,height:420});await expect(page.locator('#tsSave')).toBeInViewport();await expect(page.locator('#tsClose')).toBeInViewport();await page.setViewportSize({width,height:900});
+  await page.setViewportSize({width,height:420});await expect(page.locator('#tsSave')).toBeInViewport();await expect(page.locator('#tsClose')).toBeInViewport();await expect(page.locator('#tsCollector')).toBeInViewport();await page.setViewportSize({width,height:900});
   await page.locator('#tsClose').click();await page.reload();await page.locator('#tourSelectionOpen').click();
   await expect(page.locator('#ts-hotel')).toHaveValue('Мой демонстрационный вариант');await expect(page.locator('#ts-amount')).toHaveValue('210000');
   await page.locator('#tsCollector').click();await expect(page.locator('#demoNotice')).toContainText('только демонстрационный черновик');
@@ -223,7 +223,7 @@ for(const width of [390,430,768,1440])test('selection editor preserves order con
   await page.setViewportSize({width,height:900});const s=await fixture(page);expect(s.calls).toEqual([]);
   await expect(page.locator('#conversationTitle')).toBeVisible();
   await page.locator('#replyText').fill('Ответ клиенту остаётся в переписке');
-  await open(page);await page.locator('#tsEmptyAdd').click();await page.locator('#ts-hotel').fill('Тихий отель у моря');await page.locator('#ts-amount').fill('240000');await page.locator('#ts-adults').fill('2');await page.locator('#ts-child_ages').fill('0, 4, 4');await save(page);
+  await open(page);await expect(page.locator('#tsCollector')).toBeInViewport();await page.locator('#tsEmptyAdd').click();await page.locator('#ts-hotel').fill('Тихий отель у моря');await page.locator('#ts-amount').fill('240000');await page.locator('#ts-adults').fill('2');await page.locator('#ts-child_ages').fill('0, 4, 4');await save(page);
   await page.locator('#tsAdd').click();await page.locator('#ts-hotel').fill('Семейный вариант');await page.locator('[data-ts-action="up"]').click();await save(page);
   expect(s.drafts.get(11).draft.offers.map(x=>x.hotel)).toEqual(['Семейный вариант','Тихий отель у моря']);
   const groupTarget=s.drafts.get(11).draft.offers[1].id;
@@ -233,7 +233,7 @@ for(const width of [390,430,768,1440])test('selection editor preserves order con
   await page.locator('[data-ts-field="selected"]').uncheck();await save(page);expect(s.drafts.get(11).draft.offers[0].selected).toBe(false);
   await page.locator('[data-ts-select]').nth(1).click();await expect(page.locator('#ts-child_ages')).toHaveValue('0, 4, 4');
   expect(await page.evaluate(()=>document.querySelector('#tourSelectionDialog').scrollWidth-document.querySelector('#tourSelectionDialog').clientWidth)).toBeLessThanOrEqual(1);
-  await page.setViewportSize({width,height:420});await expect(page.locator('#tsSave')).toBeInViewport();await expect(page.locator('#tsClose')).toBeInViewport();await page.setViewportSize({width,height:900});
+  await page.setViewportSize({width,height:420});await expect(page.locator('#tsSave')).toBeInViewport();await expect(page.locator('#tsClose')).toBeInViewport();await expect(page.locator('#tsCollector')).toBeInViewport();await page.setViewportSize({width,height:900});
   await page.locator('#tsGrouping').scrollIntoViewIfNeeded();await expect(page.locator('#ts-hotel-group')).toBeInViewport();
   fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-selection-${browserName}-${width}.png`)});
   await page.locator('#tsClose').click();await expect(page.locator('#replyText')).toHaveValue('Ответ клиенту остаётся в переписке');
