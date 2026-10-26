@@ -182,9 +182,9 @@ def direct_flight_requirement(text):
 def requirement_clause(text):
     """A bounded explicit requirement, not a question, past trip or quoted offer."""
     return not text_match(r"\?|\bесли\b|\bне\s+(?:хочу|хотим|надо|поед\w*)|"
-                          r"не\s+(?:подход\w*|устраив\w*|обязател\w*)|"
+                          r"не\s+(?:подход\w*|устраив\w*|обязател\w*|рассматрива\w*)|"
                           r"предложил\w*|предлага\w*|написал\w*|сообщил\w*|"
-                          r"прошл\w*\s+(?:год|месяц)|отдыхали|ездили|летали|жили", text)
+                          r"прошл\w*\s+(?:год|месяц)|отдыхали|ездили|летали|жили|\bбыли\b", text)
 
 
 def month_only_constraint(text):
@@ -195,8 +195,10 @@ def month_only_constraint(text):
                    r"октябр[ьяею]": 10, r"ноябр[ьяею]": 11, r"декабр[ьяею]": 12}
     candidates = []
     for word, month in month_words.items():
-        for match in re.finditer(rf"\b{word}\b(?:\s+(20\d{{2}})(?:\s*года?)?)?", text, re.I):
+        for match in re.finditer(rf"\b{word}\b(?:\s+(20\d{{2}})(?!\d)(?:\s*года?)?)?", text, re.I):
             before = text[:match.start()]
+            if not match[1] and re.match(r"\s+\d{3,}", text[match.end():]):
+                continue
             # Invalid/unsupported day syntax must not silently degrade to a month.
             if re.search(r"\d\s*(?:-?(?:го|ого))?\s*$", before, re.I):
                 continue
@@ -228,7 +230,8 @@ def hotel_stars_constraint(text):
         if not requirement_clause(text[start:end]) or negated(text, match.start()):
             continue
         raw = match["values"]; values = [int(v) for v in re.findall(r"\d+", raw)]
-        if not all(1 <= v <= 5 for v in values) or re.search(r"\d,\d", raw):
+        if (not all(1 <= v <= 5 for v in values) or re.search(r"\d,\d", raw)
+                or re.match(r"\s*\d", text[match.end():])):
             continue
         is_range = bool(re.search(r"[-–]", raw))
         if is_range and (len(values) != 2 or values[0] > values[1] or re.search(r"[,/]|или", raw, re.I)):

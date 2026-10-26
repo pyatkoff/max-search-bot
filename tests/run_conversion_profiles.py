@@ -55,7 +55,8 @@ class ProfileTests(unittest.TestCase):
     def test_month_only_does_not_hide_invalid_day_or_make_alternative_exact(self):
         for text in ["31 февраля", "45 марта", "Февраль или март", "После августа", "До октября", "С октября",
                      "Не в июле", "В июле не поедем",
-                     "В прошлом году отдыхали в июле", "Менеджер предложил август", "Майя хочет тур"]:
+                     "В прошлом году отдыхали в июле", "Менеджер предложил август", "Майя хочет тур",
+                     "Июль не рассматриваем", "Раньше были в августе", "На январь 20288 года"]:
             with self.subTest(text=text):
                 self.assertIsNone(value(extract(message(text)), "dates"))
 
@@ -75,7 +76,8 @@ class ProfileTests(unittest.TestCase):
     def test_invalid_or_reported_stars_do_not_become_customer_requirement(self):
         for text in ["Отель 6-4*", "Отель 10*", "Отель 4,5*", "Отель 5-3*", "Отель 0-4*",
                      "Менеджер предложил отель 5*", "Есть отель 4*?", "В прошлом году жили в отеле 4*",
-                     "Не хотим отель 5*", "Отель 5* не подходит", "Рейтинг отеля 4,5", "Бюджет до 400 тыс.", "4*2"]:
+                     "Не хотим отель 5*", "Отель 5* не подходит", "Рейтинг отеля 4,5", "Бюджет до 400 тыс.",
+                     "Отель 4* не рассматриваем", "4*2", "4 * 2"]:
             with self.subTest(text=text):
                 self.assertIsNone(value(extract(message(text)),"hotel_stars"))
 

@@ -70,6 +70,14 @@ a new present-time prediction when their intervening history was not observed.
   date flexibility, unrestricted room arrangement and family context are kept.
   The bounded destination/city lexicon does not cover every location. An
   unqualified city mention is not automatically assigned a departure role.
+- Named month-only requests retain month precision with unknown days and an
+  unspecified year unless supplied. Invalid day/year syntax, multiple month
+  alternatives and open month bounds are left unresolved by this bounded rule.
+  Explicit hotel class retains numeric ranges versus discrete alternatives and
+  lower/upper limits. Questions, reported offers, past trips and refusals do not
+  create either new requirement. Source roles, spans and semantic availability
+  apply to these fields exactly as to other facts; class is not hotel quality or
+  a monetary/purchase score.
 - A bounded affirmative answer may confirm hotel interest in the preceding
   manager question. It never accepts a later alternative date or price and
   never means offer selection. Bare yes, a manager link/claim or an action
