@@ -1,0 +1,65 @@
+name: Tour selection editor module
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'modules/tour-selections/editor.json'
+      - 'modules/tour-selections/build-editor.py'
+      - 'modules/tour-selections/editor-preview/**'
+      - 'manager/assets/workspace-v2-tour-selection*'
+      - 'extensions/selection-collector/**'
+      - 'manager/tour-selection*.php'
+      - 'manager/lib/ManagerHttp.php'
+      - 'services/ManagerRequestContext.php'
+      - 'services/ManagerTourSelection*.php'
+      - 'tests/run_tour_selection_editor_*'
+      - '.github/workflows/tour-selection-editor-module.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'modules/tour-selections/editor.json'
+      - 'modules/tour-selections/build-editor.py'
+      - 'modules/tour-selections/editor-preview/**'
+      - 'manager/assets/workspace-v2-tour-selection*'
+      - 'extensions/selection-collector/**'
+      - 'manager/tour-selection*.php'
+      - 'manager/lib/ManagerHttp.php'
+      - 'services/ManagerRequestContext.php'
+      - 'services/ManagerTourSelection*.php'
+      - 'tests/run_tour_selection_editor_*'
+      - '.github/workflows/tour-selection-editor-module.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: selection-editor-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  editor-module:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify package identity and Manager2 host fences
+        run: |
+          python3 tests/run_tour_selection_editor_module.py
+          node tests/run_tour_selection_editor_host.js
+          node --check manager/assets/workspace-v2-tour-selection.js
+          node --check manager/assets/workspace-v2-tour-selection-host.js
+          node --check modules/tour-selections/editor-preview/preview-host.js
+      - name: Build and verify exact editor and synthetic preview
+        run: |
+          python3 modules/tour-selections/build-editor.py build --output "$RUNNER_TEMP/selection-editor"
+          python3 modules/tour-selections/build-editor.py verify --output "$RUNNER_TEMP/selection-editor"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: selection-editor-${{ github.sha }}
+          path: ${{ runner.temp }}/selection-editor
+          if-no-files-found: error
+          retention-days: 14
