@@ -10,7 +10,7 @@ from datetime import date
 
 import build_conversion_observations as base
 
-VERSION = "ru_trip_prefix_rules_v1_7"
+VERSION = "ru_trip_prefix_rules_v1_8"
 MAX_BYTES = 2 * 1024 * 1024
 MAX_CASES = 100
 MAX_MESSAGES = 500
@@ -251,6 +251,55 @@ def hotel_stars_constraint(text):
     return None
 
 
+def leisure_preferences(text):
+    """Explicit travel preferences, never local weather facts or implied nightlife."""
+    result = []
+    for clause in re.finditer(r"[^.;!\n]+", text):
+        part = clause[0]
+        if text_match(r"\?|\bесли\b|предлож\w*|написал\w*|рассказал\w*|сообщил\w*|"
+                      r"прошл\w*\s+(?:год|месяц)|купались|плавали|гуляли|отдыхали|ездили|\bбыли\b", part):
+            continue
+
+        def add(name, value, match):
+            # The qualifier is part of the evidence, not just the matched noun.
+            result.append((name, value, clause.span()))
+
+        def qualifier(match):
+            # A qualifier of another comma-separated preference cannot remove this one.
+            before = re.split(r"[,;]", part[:match.start()])[-1][-45:]
+            after = re.split(r"[,;]", part[match.end():])[0][:45]
+            optional = r"(?:не\s*(?:важ\w*|принципиальн\w*|обязател\w*)|без\s+разницы)"
+            if text_match(optional+r"\s*$", before) or text_match(r"^\s*"+optional, after):
+                return "unrestricted"
+            if text_match(r"не\s+(?:хоч\w*|планиру\w*|нуж\w*)[^,;]*$", before) or text_match(
+                    r"^\s*(?:больше\s+)?не\s+(?:хоч\w*|планиру\w*|нуж\w*)", after):
+                return "not_desired"
+            return None
+
+        monsoon = text_match(r"\bмуссон\w*", part)
+        if monsoon:
+            optional = qualifier(monsoon)
+            aversion = text_match(r"(?:без|избежать|избегать|вне\s+сезона|где\s+нет)\s+(?:сезона\s+)?$", part[:monsoon.start()])
+            if optional == "unrestricted":
+                add("weather_preference", "unrestricted", monsoon)
+            elif aversion or text_match(r"не\s+(?:хоч\w*|нуж\w*)[^,;]*$", part[:monsoon.start()]):
+                add("weather_preference", "avoid_monsoon", monsoon)
+        swimming = text_match(r"\b(?:купа(?:ться|ни\w*)|плава(?:ть|ни\w*))\b", part)
+        if swimming:
+            add("swimming_preference", qualifier(swimming) or "desired", swimming)
+        evening = text_match(r"\bвечер\w*", part)
+        if evening:
+            walking = text_match(r"\b(?:гулять|погулять|прогул\w*|пройтись)\b", part)
+            if walking:
+                add("evening_walks_preference", qualifier(walking) or "desired", walking)
+            environment = text_match(r"\b(?:оживлен\w*|оживлён\w*|нескуч\w*|не\s+скуч\w*|весел\w*|весёл\w*|тих\w*|спокойн\w*)", part)
+            if environment:
+                desired = "quiet" if text_match(r"тих|спокойн", environment[0]) else "lively"
+                restriction = qualifier(environment)
+                add("evening_environment_preference", restriction or desired, environment)
+    return result
+
+
 def date_constraints(text):
     """Keep window meaning/year unresolved unless explicitly supplied."""
     results = []
@@ -386,7 +435,8 @@ def extract_case(case, extracted):
     cutoff = case["prediction_at"]
     fields = {name: [] for name in ["budget", "budget_preference", "duration", "dates", "departure",
               "destination", "meal", "date_flexibility_days", "room_arrangement", "family_group",
-              "hotel_interest", "unresolved_city", "purchase_report", "flight_requirement", "hotel_stars"]}
+              "hotel_interest", "unresolved_city", "purchase_report", "flight_requirement", "hotel_stars",
+              "weather_preference", "swimming_preference", "evening_walks_preference", "evening_environment_preference"]}
     party = {k: [] for k in ("adults", "children", "total", "child_ages")}
     offered = []; stages = []; canonical = []; requirements = []; previous_manager = None
     assumption_refs = []
@@ -441,6 +491,8 @@ def extract_case(case, extracted):
         stars = hotel_stars_constraint(text)
         if stars:
             add("hotel_stars", stars[0], m, stars[1])
+        for name, preference, span in leisure_preferences(text):
+            add(name, preference, m, span, "explicit_customer_preference_not_destination_fact")
         for value, span in date_constraints(text):
             add("dates", value, m, span)
         flex = text_match(r"(?:\+\s*[-–]|плюс[- ]минус)\s*(\d{1,2})\s*дн\w*", text)

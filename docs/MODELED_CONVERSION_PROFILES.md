@@ -78,6 +78,14 @@ a new present-time prediction when their intervening history was not observed.
   create either new requirement. Source roles, spans and semantic availability
   apply to these fields exactly as to other facts; class is not hotel quality or
   a monetary/purchase score.
+- Explicit monsoon avoidance, swimming and evening-walk/environment preferences
+  have separate source-bound fields. They describe the customer's wishes, not
+  verified destination weather, a mandatory hard filter or inferred nightlife.
+  Later explicit removal updates only its own preference; separate evening
+  components keep independent source age. Reported offers, past trips, questions,
+  actions and other speakers cannot establish these preferences. Full clause
+  evidence retains qualifiers such as 'not important'. Unrecognized wishes stay
+  partial/unknown; this bounded rule set is not general dialogue understanding.
 - A bounded affirmative answer may confirm hotel interest in the preceding
   manager question. It never accepts a later alternative date or price and
   never means offer selection. Bare yes, a manager link/claim or an action
