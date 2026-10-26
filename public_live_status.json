@@ -1,47 +1,46 @@
 {
     "ok": true,
-    "generated_at": "2026-10-26T13:15:48+00:00",
+    "generated_at": "2026-10-26T13:40:43+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
     "channel": "max",
     "summary": {
-        "sessions": 28,
-        "raw_sessions": 28,
+        "sessions": 23,
+        "raw_sessions": 23,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 28,
+            "resolved": 23,
             "unresolved": 0
         },
-        "started": 24,
-        "needs_collected": 10,
-        "tours_opened": 8,
+        "started": 20,
+        "needs_collected": 8,
+        "tours_opened": 7,
         "site_opened": 0,
-        "post_tour_manager_cta_shown": 2,
-        "manager_requested": 24,
-        "manager_replied": 22,
-        "customer_replied_after_manager": 13,
+        "post_tour_manager_cta_shown": 1,
+        "manager_requested": 20,
+        "manager_replied": 19,
+        "customer_replied_after_manager": 11,
         "phone_received": 0,
         "manager_response": {
-            "answered_in_90s": 6,
-            "answered_after_90s": 16,
+            "answered_in_90s": 5,
+            "answered_after_90s": 14,
             "still_unanswered": 0,
-            "measured_responses": 22,
-            "avg_seconds": 4809,
+            "measured_responses": 19,
+            "avg_seconds": 5421,
             "max_seconds": 43810
         },
         "drop_points": {
-            "customer_replied_after_manager": 13,
-            "manager_replied": 9,
+            "customer_replied_after_manager": 11,
+            "manager_replied": 8,
             "tours_opened": 3,
-            "manager_requested": 2,
-            "collecting_needs": 1
+            "manager_requested": 1
         },
         "flags": {
             "repeated_callback_input": 2,
             "excessive_turns": 2
         }
     },
-    "since_utc": "2026-10-26 12:15:48",
+    "since_utc": "2026-10-26 12:40:43",
     "public_redacted": true
 }
