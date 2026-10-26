@@ -39,6 +39,42 @@ def value(profile, field):
 
 
 class ProfileTests(unittest.TestCase):
+    def test_direct_flight_requirement_is_source_bound_customer_fact(self):
+        for text in ["Вылет из Казани, прямой рейс", "Нужны прямые рейсы", "Хотим лететь прямым рейсом", "Только без пересадок"]:
+            with self.subTest(text=text):
+                p = extract(message(text)); row = p["fields"]["flight_requirement"]
+                self.assertEqual(row["value"], "direct_only")
+                self.assertEqual(row["references"][0]["speaker"], "customer")
+                self.assertTrue(row["references"][0]["span"][1] > row["references"][0]["span"][0])
+                self.assertEqual(p["prediction_features"]["facts"]["fields.flight_requirement"]["value"], "direct_only")
+
+    def test_flight_question_negation_and_report_do_not_create_requirement(self):
+        for text in ["Есть прямой рейс?", "Если прямой рейс, какая цена", "Нам предложили прямой рейс", "Менеджер написал: прямой рейс", "Не хочу прямой рейс", "Прямой рейс не подходит", "В прошлом году летали прямым рейсом"]:
+            with self.subTest(text=text):
+                self.assertIsNone(value(extract(message(text)), "flight_requirement"))
+
+    def test_customer_can_remove_earlier_direct_flight_requirement(self):
+        for text in ["Не нужен прямой рейс", "Прямой рейс не обязателен", "Не принципиально, прямой рейс или нет"]:
+            with self.subTest(text=text):
+                p=extract(message("Нужен прямой рейс"),message(text,i=2))
+                row=p["fields"]["flight_requirement"]
+                self.assertEqual(row["value"],"direct_not_required")
+                self.assertEqual(row["references"][0]["id"],"message:2")
+
+    def test_manager_bot_and_action_cannot_supply_flight_requirement(self):
+        for options in [{"speaker":"manager"}, {"speaker":"other"}, {"kind":"action"}]:
+            with self.subTest(options=options):
+                self.assertIsNone(value(extract(message("Прямой рейс", **options)), "flight_requirement"))
+        p=extract(message("Только без пересадок"),message("Рейс с пересадкой",speaker="manager",i=2))
+        self.assertEqual(value(p,"flight_requirement"),"direct_only")
+
+    def test_late_flight_requirement_is_not_a_historical_feature(self):
+        p=tool.extract_case(case(message("Нужен прямой рейс",at=LATER)),CUTOFF)
+        self.assertIsNone(value(p,"flight_requirement"))
+        p=tool.extract_case(case(message("Нужен прямой рейс")),LATER)
+        self.assertEqual(value(p,"flight_requirement"),"direct_only")
+        self.assertNotIn("fields.flight_requirement",p["prediction_features"]["facts"])
+
     def test_explicit_adult_count_with_people_word_keeps_composition(self):
         for text in ["4 человека взрослых", "4 человек взрослых", "4 чел. взрослых"]:
             with self.subTest(text=text):
