@@ -211,3 +211,6 @@ try{
     if($safe&&$pdo instanceof PDO)foreach($tables as $table)$pdo->exec('DROP TABLE IF EXISTS '.$table);
 }
 
+
+// Independent prospective-stream fixture runs after all existing cleanup.
+require __DIR__.'/modeled-conversion-stream.php';
