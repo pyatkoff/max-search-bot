@@ -20,6 +20,10 @@ RUNTIME_SHA = "19a839536e02b5fb9006d4cab64719b1fdf8769f"
 READER_BLOB = "ce7cb461e03cedbb3b81a3548d7f2ccff9ccde48"
 REVIEWED_SOURCE_SHA = "e87bb5112a9c99539fe75716cdd36f443f72a6a0"
 OPERATION = "ai1150-source-receipt-20261026-v1"
+READ_STAGE = "candidate_after_catalogue_discovery"
+DISCOVERY_RECEIPT_SHA256 = "49f4721de2d61e8ee27fe0ff18cf78c176062238eeb71c2961d960cfa91fd8d7"
+DISCOVERY_CATALOGUE_SHA256 = "6e8a03db0e3ea6d82e7cfcfe5d124d361a975637f3fcee7523878d852efeccfd"
+DISCOVERY_READ_AT = "2026-10-26T06:44:01Z"
 AUDIT_REF = "refs/heads/audit/ai1150-source-receipt-20261026"
 REMOTE_ROOT = "/var/www/anytoour/data/www/app.anytoour.ru"
 PINNED_IP = "5.45.122.54"
@@ -169,6 +173,12 @@ def validate_receipt(data):
     require(data.get("source") == "ai1150_actual_source_receipt")
     require(type(data.get("schema_version")) is int and data["schema_version"] == 1)
     require(data.get("operation") == OPERATION)
+    require(data.get("read_stage") == READ_STAGE)
+    require(data.get("discovery_receipt_sha256") == DISCOVERY_RECEIPT_SHA256)
+    require(type(data.get("previous_http_request_count")) is int and data["previous_http_request_count"] == 1)
+    require(data.get("catalogue_discovery_reused") is True)
+    require(data.get("selected_canonical_code") == "all-inclusive")
+    require(type(data.get("matching_plan_count")) is int and data["matching_plan_count"] == 1)
     require(data.get("candidate_reader_blob") == READER_BLOB)
     require(data.get("execution") == "reviewed_candidate_in_memory_not_installed")
     for field in ("database_writes_requested", "customer_sends_requested"):
@@ -180,23 +190,37 @@ def validate_receipt(data):
     count = data.get("candidate_count")
     requests = data.get("http_request_count")
     require(type(count) is int and 0 <= count <= 3)
-    require(type(requests) is int and 1 <= requests <= 3)
+    require(type(requests) is int and 0 <= requests <= 2)
+    require(type(data.get("total_http_request_count")) is int
+            and data["total_http_request_count"] == 1 + requests <= 3)
     require(type(data.get("http_requests")) is list and len(data["http_requests"]) == requests)
     require(all(type(row) is dict and row.get("kind") in {"meal_catalogue", "listing"}
                 for row in data["http_requests"]))
+    require([row["kind"] for row in data["http_requests"]] == ["meal_catalogue", "listing"][:requests])
     status = data.get("status")
     require(status in {"hold", "empty_retained_scope", "candidates_observed"})
     require((status == "candidates_observed") == (count > 0))
-    require(data.get("requested_meal_code") == "AI")
+    require(data.get("requested_meal_code") == "all-inclusive")
     require(type(data.get("requested_scope")) is dict)
+    require(type(data["requested_scope"].get("meal_plan_id")) is int and data["requested_scope"]["meal_plan_id"] == 7)
     require(type(data.get("catalogue")) is dict)
+    catalogue = data["catalogue"]
+    catalogue_wire = json.dumps(catalogue, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False).encode("utf-8")
+    require(hashlib.sha256(catalogue_wire).hexdigest() == DISCOVERY_CATALOGUE_SHA256)
+    selected = [plan for plan in catalogue["plans"] if plan.get("meal_plan_id") == 7]
+    require(len(selected) == 1 and selected[0]["code"] == "all-inclusive"
+            and selected[0]["filter_supported"] is True and type(selected[0]["native_count"]) is int
+            and selected[0]["native_count"] == 1)
     require(type(data.get("directory_bindings")) is list and len(data["directory_bindings"]) <= 2)
     result = data.get("candidate_result")
     if status != "hold":
+        require(requests == 2)
         require(type(result) is dict and result.get("ok") is True)
         require(type(result.get("candidates")) is list and len(result["candidates"]) == count)
         require(type(result.get("meal_filter")) is dict)
         require(data["requested_scope"].get("meal_plan_id") == result["meal_filter"].get("plan_id"))
+        require(result["meal_filter"].get("code") == "all-inclusive")
+        require(result["meal_filter"].get("catalogue_revision") == catalogue["revision"])
         require(result.get("current_price_verified") is False and result.get("selection_authority") is False)
     return status, count, requests
 
@@ -275,6 +299,10 @@ def run():
         "wrapper": {
             "runtime_sha": expected, "candidate_reader_blob": blob, "reviewed_source_sha": REVIEWED_SOURCE_SHA,
             "operation": OPERATION, "run_id": run_id, "run_attempt": 1,
+            "read_stage": READ_STAGE, "discovery_receipt_sha256": DISCOVERY_RECEIPT_SHA256,
+            "catalogue_discovery_read_at": DISCOVERY_READ_AT,
+            "previous_http_request_count": 1, "http_request_count": requests,
+            "total_http_request_count": data["total_http_request_count"], "catalogue_discovery_reused": True,
             "issued_epoch": issued, "expires_epoch": issued + 900,
             "driver_sha256": hashlib.sha256(driver).hexdigest(),
             "effective_driver_sha256": hashlib.sha256(effective_driver).hexdigest(),
@@ -296,6 +324,7 @@ if __name__ == "__main__":
     except Exception as error:
         failure_reason = error.reason if isinstance(error, ReceiptFailure) and error.reason else PHASE_FAILURES[PHASE]
         print(json.dumps({"status": "hold", "candidate_count": None, "http_request_count": None,
+                          "previous_http_request_count": 1, "total_http_request_count": None, "read_stage": READ_STAGE,
                           "sha256": None, "phase": PHASE, "failure_reason": failure_reason,
                           "remote_execution_attempted": REMOTE_EXECUTION_ATTEMPTED}, sort_keys=True))
         sys.exit(1)
