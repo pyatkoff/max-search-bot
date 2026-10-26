@@ -691,3 +691,67 @@ An initial failed installation restores the original placeholder; a subsequent
 failure restores the previous presentation. Technical hosting acceptance does
 not close the remaining source-photo, physical mixed-import, forwarded-account
 or complete V1 acceptance.
+
+## Editor host boundary and independent artifact
+
+The canonical editor remains `manager/assets/workspace-v2-tour-selection.js`.
+It exports `AnyTourSelectionEditor.mount(host)` and has no WorkspaceV2 state or
+shell-selector dependency. `workspace-v2-tour-selection-host.js` is the sole
+Manager2 adapter: it supplies the exact manager/conversation/auth/open-generation
+context, currentness checks, ownership view, canonical request transport, time
+formatting, responsive launcher and explicit collector opening. Its existing
+`WorkspaceV2TourSelection` lifecycle alias keeps all original callers intact.
+Collector URL hints remain navigation hints, consumed only after canonical
+conversation authorization; they are never a send or an authorization source.
+
+The host contract is `tour-selection-editor-host-v1`. Required functions are
+`capture`, `isCurrent`, `canOpen`, `canEdit`, `launcher`, `request`, `formatTime`,
+`openCollector`, `takeCollectorIntent` and `activate`, with an explicit `origin`.
+`request` retains the original AbortSignal and per-operation currentness closure.
+Optional `notice`, `savedLabel` and `savedMessage` describe the synthetic host's
+tab-only storage truthfully. They confer no capability. Core draft recovery keys,
+epochs, save receipts, photo-upload fences, preview and native delivery rules
+remain unchanged. Server auth/CSRF/project/source/assignment/recipient/version
+checks remain authoritative; this adapter is not a new access-control owner.
+
+`modules/tour-selections/editor.json` versions an independent exact-source
+artifact containing the same editor JS/CSS, Manager2 adapter and the existing
+collector ZIP. It does not reconstruct or introduce a second collector. The
+builder verifies the ZIP against that collector's own explicit source list.
+`release.json` identifies payload bytes; `compatibility.json` fingerprints the
+declared backend boundary; `receipt.json` separately identifies the actual source
+commit/tree, eligibility, archive and preview hashes. These are declared-boundary
+checks, not proof of every transitive dependency or permission to reuse CI.
+
+```sh
+python3 tests/run_tour_selection_editor_module.py
+node tests/run_tour_selection_editor_host.js
+python3 modules/tour-selections/build-editor.py build --output /tmp/selection-editor-build
+python3 modules/tour-selections/build-editor.py verify --output /tmp/selection-editor-build
+python3 -m http.server --directory /tmp/selection-editor-build 4174
+```
+
+Use a fresh output directory and open `/preview/index.html`. A release build
+refuses dirty module/collector/backend/preview inputs. `--working-tree` permits
+development output with truthful `release_eligible=false` for dirty inputs.
+Unrelated commits do not change package identity or ZIP bytes. The dedicated
+editor-module workflow builds/verifies and uploads this artifact without a
+production credential, deployment or live source call. It supplements existing
+mandatory current-head backend/MySQL/browser and installed gates.
+
+The standalone preview loads the **same packaged core and CSS**, without
+WorkspaceV2 or its adapter. It uses clearly labelled synthetic conditions and a
+bounded tab-local fixture; `connect-src 'none'` blocks network API access. Editing,
+save and reload exercise the real editor. Production card preparation, photos,
+collector connection, publication and sending deliberately remain unavailable:
+the demo does not duplicate tariff validation, card rendering or the server store.
+Browser acceptance checks 390/430/768/1440 and short-height controls in addition
+to the existing Manager2 editor/recovery/session tests. This is fixture evidence,
+not physical source import, a real client operation or full V1 acceptance.
+
+The first runtime still uses the existing app origin and canonical auth/CSRF/API,
+database, drafts, versions, receipts and sender. This package isolates code/build;
+it does not host a private editor on tours or create an independent production
+release pipeline. That next step requires its own verified protected-access
+contract and activation/rollback receipt. Do not copy sessions/config, broaden
+cookies or expose private manager routes like the anonymous public presentation.

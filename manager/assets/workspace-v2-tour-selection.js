@@ -1,17 +1,18 @@
 (function(){
 'use strict';
-const W=window.WorkspaceV2,{S,$,esc}=W,endpoint='tour-selections-api.php';
-// A navigation hint only: the canonical workspace opens/authorizes the exact
-// conversation first. No selection write or send is implied by this URL.
-let collectorIntent=(()=>{const u=new URL(location.href),value=u.searchParams.get('selection'),owner=u.searchParams.get('collector_actor');if(u.searchParams.getAll('selection').length!==1||u.searchParams.getAll('collector_actor').length!==1||!/^\d+$/.test(value||'')||!/^\d+$/.test(owner||''))return null;const conversation=Number(value),manager=Number(owner);return Number.isSafeInteger(conversation)&&conversation>0&&String(conversation)===value&&Number.isSafeInteger(manager)&&manager>0&&String(manager)===owner&&u.hash==='#conversation='+value?{conversation,manager}:null})();
-function clearCollectorIntent(){collectorIntent=null;const u=new URL(location.href);u.searchParams.delete('selection');u.searchParams.delete('collector_actor');history.replaceState(history.state,'',u.pathname+u.search+u.hash)}
+const contract='tour-selection-editor-host-v1';
+let mounted=null;
+function mount(host){
+if(!host||host.contract!==contract||!['capture','isCurrent','canOpen','canEdit','launcher','request','formatTime','openCollector','takeCollectorIntent','activate'].every(k=>typeof host[k]==='function')||typeof host.origin!=='string')throw new TypeError('Invalid selection editor host');
+if(mounted)throw new Error('Selection editor already mounted');
+const $=id=>document.getElementById(id),esc=value=>{const node=document.createElement('div');node.textContent=value??'';return node.innerHTML};
+const endpoint='tour-selections-api.php';
 let dialog=null,context=null,epoch=0,version=0,draft=null,selected='',canEdit=false,dirty=false,busy=false,loading=false,pending=null,conflict=null,timer=0,returnFocus=null,rawAges={};
 const sessions=new Map();
 let comparison=null,tripPanel=null,previewIssues=[],photoUpload=null;
 let publication=null,preview=false,sending=false,photoFailures=0,photoPending=0,photoEpoch=0,sharing=false,interestLoading=false;
-function actor(){return S.authExpired?0:Number(S.manager?.id||0)}
-function capture(c=S.detail?.conversation){return {actor:actor(),conversation:Number(c?.id||0),auth:Number(S.authGeneration||0),open:Number(window.WorkspaceV2Conversation?.getOpenGeneration?.()||0)}}
-function current(target=context){const now=capture();return !!target&&target.actor>0&&target.conversation>0&&target.actor===now.actor&&target.conversation===now.conversation&&target.conversation===Number(S.current)&&target.auth===now.auth&&target.open===now.open}
+function capture(c){return host.capture(c)}
+function current(target=context){return host.isCurrent(target)}
 function key(c=context){return c?.actor&&c?.conversation?'workspaceV2.tourSelection.'+c.actor+'.'+c.conversation:''}
 function clone(value){return JSON.parse(JSON.stringify(value))}
 function id(){const data=new Uint8Array(16);crypto.getRandomValues(data);return Array.from(data,n=>n.toString(16).padStart(2,'0')).join('')}
@@ -31,31 +32,28 @@ function restore(){
   draft=clone(data.draft);version=Number(data.version||0);selected=String(data.selected||'');dirty=!!data.dirty;rawAges=data.rawAges||{};pending=data.pending||null;conflict=data.conflict||null;comparison=data.comparison||null;return true;
 }
 function status(text,error=false){const el=$('tsStatus');if(el){el.textContent=text;el.classList.toggle('tsError',error)}}
-function error(result){return {forbidden:'Отправить подборку может менеджер, который ведёт диалог.',not_found:'Доступ к диалогу изменился.',invalid_draft:'Проверьте даты, сумму, возраст детей и ссылки.',conflict:'Подборку изменил другой сотрудник. Ваши правки сохранены отдельно.',storage_unavailable:'Сервер пока не подтвердил действие.',network_error:'Нет связи с сервером. Проверьте результат в истории отправки.',operation_mismatch:'Не удалось сопоставить сохранение. Требуется проверка.',draft_changed:'Подборка изменилась. Загрузите актуальный черновик.',empty_selection:'Включите хотя бы один вариант в подборку.',unsupported_channel:'Подборки доступны в личных Telegram и MAX диалогах этого проекта.',preparation_failed:'Не удалось подготовить фото или подтвердить получателя. Карточка не отправлена.',delivery_rejected:'Канал отклонил этот вариант. Можно повторить отправку; доставленные карточки не повторятся.',delivery_unknown:'Результат отправки неизвестен. Проверьте переписку; повторная отправка заблокирована.',delivery_unverified:'Карточка создана. Нажмите «Проверить доставку».',delivery_in_progress:'Отправка уже начата в другой вкладке.'}[result?.error]||'Не удалось подтвердить действие. Ваши правки сохранены.'}
+function error(result){return {demo_only:'Демонстрация: карточки проверяются сервером в рабочем редакторе. Здесь ничего не отправляется.',forbidden:'Отправить подборку может менеджер, который ведёт диалог.',not_found:'Доступ к диалогу изменился.',invalid_draft:'Проверьте даты, сумму, возраст детей и ссылки.',conflict:'Подборку изменил другой сотрудник. Ваши правки сохранены отдельно.',storage_unavailable:'Сервер пока не подтвердил действие.',network_error:'Нет связи с сервером. Проверьте результат в истории отправки.',operation_mismatch:'Не удалось сопоставить сохранение. Требуется проверка.',draft_changed:'Подборка изменилась. Загрузите актуальный черновик.',empty_selection:'Включите хотя бы один вариант в подборку.',unsupported_channel:'Подборки доступны в личных Telegram и MAX диалогах этого проекта.',preparation_failed:'Не удалось подготовить фото или подтвердить получателя. Карточка не отправлена.',delivery_rejected:'Канал отклонил этот вариант. Можно повторить отправку; доставленные карточки не повторятся.',delivery_unknown:'Результат отправки неизвестен. Проверьте переписку; повторная отправка заблокирована.',delivery_unverified:'Карточка создана. Нажмите «Проверить доставку».',delivery_in_progress:'Отправка уже начата в другой вкладке.'}[result?.error]||'Не удалось подтвердить действие. Ваши правки сохранены.'}
 async function request(action,data={}){
   const target=context,token=epoch;if(!current(target))return {ok:false,error:'stale_context'};
   const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),action==='send'?120000:20000);
   try{
-    const result=await W.request(endpoint,action,{conversation_id:target.conversation,...data},{signal:controller.signal,isCurrent:()=>token===epoch&&current(target)});
+    const result=await host.request(endpoint,action,{conversation_id:target.conversation,...data},{signal:controller.signal,isCurrent:()=>token===epoch&&current(target)});
     return token===epoch&&current(target)?result:{ok:false,error:'stale_context'};
   }catch(e){return {ok:false,error:current(target)?'network_error':'stale_context'}}finally{clearTimeout(timeout)}
 }
 function close(){cancelPhotoUpload(false);tripPanel=null;clearTimeout(timer);timer=0;stash();if(dialog?.open)dialog.close()}
 function suspend(){cancelPhotoUpload(false);tripPanel=null;previewIssues=[];stash();clearTimeout(timer);timer=0;epoch++;context=null;draft=null;pending=null;conflict=null;comparison=null;dirty=false;busy=false;loading=false;canEdit=false;publication=null;preview=false;sending=false;sharing=false;if(dialog?.open)dialog.close();$('tourSelectionOpen')?.remove()}
-function activate(){if(context&&!current())suspend();if(collectorIntent&&actor()&&collectorIntent.manager!==actor())clearCollectorIntent()}
+function activate(){if(context&&!current())suspend();host.activate()}
 function sync(c){
   if(context&&!current())suspend();
-  // Keep the narrow client-name row available to the existing client-card action.
-  // The stable conversation menu survives lifecycle action redraws.
-  const mobile=window.matchMedia('(max-width:740px)').matches;
-  const root=mobile?document.querySelector('.m2ConversationMenu>div'):document.querySelector('.conversationTitleRow');if(!root)return;
+  const root=host.launcher();if(!root)return;
   let button=$('tourSelectionOpen');
-  if(!actor()||Number(c?.id)!==Number(S.current)){button?.remove();return}
-  if(collectorIntent){const intent=collectorIntent,target=capture(c);clearCollectorIntent();if(intent.manager===target.actor&&intent.conversation===target.conversation)queueMicrotask(()=>{if(current(target))void open(c)})}
+  if(!host.canOpen(c)){button?.remove();return}
+  const target=capture(c);if(host.takeCollectorIntent(target))queueMicrotask(()=>{if(current(target))void open(c)});
   if(!button){button=document.createElement('button');button.id='tourSelectionOpen';button.type='button';button.className='tsOpen';button.textContent='Подборка';button.setAttribute('aria-haspopup','dialog');button.setAttribute('aria-controls','tourSelectionDialog');root.appendChild(button)}
   if(button.parentElement!==root)root.appendChild(button);
   button.onclick=()=>{const menu=button.closest('details');if(menu)menu.open=false;void open(c)};
-  if(context&&current()&&(c.status==='closed'||!(S.manager?.role==='admin'||Number(c.manager_id)===actor()))&&canEdit){canEdit=false;clearTimeout(timer);controls();status('Доступ к редактированию изменился. Ваши правки сохранены отдельно.',true)}
+  if(context&&current()&&!host.canEdit(c)&&canEdit){canEdit=false;clearTimeout(timer);controls();status('Доступ к редактированию изменился. Ваши правки сохранены отдельно.',true)}
 }
 function ensure(){
   if(dialog)return;
@@ -63,8 +61,8 @@ function ensure(){
   dialog.innerHTML=`<div class="tsShell"><header class="tsHead"><div><span class="tsKicker">Подборка туров</span><h2 id="tsTitle"></h2><p id="tsRecipient"></p></div><button id="tsClose" type="button" class="tsClose" aria-label="Закрыть подборку">×</button></header><div id="tsStatus" class="tsStatus" role="status" aria-live="polite"></div><div id="tsRecovery" class="tsRecovery" hidden></div><div class="tsLayout"><aside class="tsSidebar"><div class="tsListHead"><strong id="tsCount">Варианты</strong><button id="tsAdd" type="button">+ Добавить</button></div><div id="tsList" class="tsList"></div><div class="tsSidebarHint">Черновик сохраняется для этого клиента. Добавление варианта ничего не отправляет.</div></aside><main id="tsEditor" class="tsEditor"></main></div><footer class="tsFooter"><span id="tsSaved">Загружаем черновик…</span><button id="tsSave" type="button" class="tsPrimary">Сохранить</button><button id="tsDone" type="button">Готово</button></footer></div>`;
   document.body.appendChild(dialog);
   const footer=dialog.querySelector('.tsFooter');
-  const tripButton=document.createElement('button');tripButton.id='tsTripAdd';tripButton.type='button';tripButton.textContent='Добавить по условиям поездки';tripButton.onclick=showTrip;dialog.querySelector('.tsListHead').after(tripButton);
-  const collector=document.createElement('button');collector.id='tsCollector';collector.type='button';collector.textContent='Сборщик туров';collector.onclick=()=>{if(current()&&canEdit)window.open('tour-selection-collector.php?conversation_id='+context.conversation,'_blank','noopener')};dialog.querySelector('.tsSidebarHint').append(collector);
+  const tripButton=document.createElement('button');tripButton.id='tsTripAdd';tripButton.type='button';tripButton.textContent='Добавить по условиям поездки';tripButton.onclick=showTrip;const actions=document.createElement('div');actions.className='tsImportActions';actions.append(tripButton);dialog.querySelector('.tsListHead').after(actions);
+  const collector=document.createElement('button');collector.id='tsCollector';collector.type='button';collector.textContent='Сборщик туров';collector.onclick=()=>{if(current()&&canEdit)host.openCollector(context.conversation)};actions.append(collector);
   for(const [name,label,handler] of [['tsHistory','История отправки',showHistory],['tsPreview','Предпросмотр',showPreview],['tsEdit','К редактированию',()=>{preview=false;render()}],['tsShare','Общая ссылка',showShare],['tsSend','Отправить подборку',sendAll]]){const button=document.createElement('button');button.id=name;button.type='button';button.textContent=label;button.onclick=handler;footer.insertBefore(button,$('tsDone'))}
   $('tsClose').onclick=close;$('tsDone').onclick=()=>{if(preview)close();else if(dirty&&!busy&&!pending&&!conflict)void save();else close()};$('tsSave').onclick=()=>save();$('tsAdd').onclick=add;
   dialog.addEventListener('cancel',e=>{e.preventDefault();close()});dialog.addEventListener('keydown',e=>e.stopPropagation());
@@ -81,9 +79,9 @@ function ensure(){
   });
 }
 async function open(c){
-  if(!actor()||Number(c.id)!==Number(S.current))return;
+  if(!host.canOpen(c))return;
   close();tripPanel=null;previewIssues=[];epoch++;context=capture(c);version=0;draft=empty();selected='';dirty=false;busy=false;pending=null;conflict=null;comparison=null;rawAges={};canEdit=false;publication=null;preview=false;sending=false;sharing=false;interestLoading=false;restore();ensure();returnFocus=$('tourSelectionOpen')?.closest('details')?.querySelector('summary')||$('tourSelectionOpen');
-  $('tsTitle').textContent=c.display_name||'Турист';$('tsRecipient').textContent=(c.channel==='telegram'?'Telegram':c.channel==='max'?'MAX':String(c.channel||''))+' · Сначала предпросмотр, затем отправка';
+  $('tsTitle').textContent=c.display_name||'Турист';$('tsRecipient').textContent=(c.channel==='telegram'?'Telegram':c.channel==='max'?'MAX':String(c.channel||''))+' · '+(host.notice||'Сначала предпросмотр, затем отправка');
   render();if(!dialog.open)dialog.showModal();await load();
 }
 function validSnapshot(value){return value&&Number(value.conversation_id)===context?.conversation&&Number.isInteger(value.version)&&value.version>=0&&typeof value.can_edit==='boolean'&&value.draft&&Array.isArray(value.draft.offers)&&value.draft.offers.length<=20}
@@ -213,7 +211,7 @@ async function submitPhotoUpload(){
     for(let index=upload.nextPart;index<count;index++){
       if(!uploadCurrent(upload)){if(photoUpload===upload)cancelPhotoUpload(false);return;}
       upload.controller=new AbortController();const timeout=setTimeout(()=>upload.controller.abort(),30000);
-      try {result=await W.request('tour-selection-photo.php','upload',{conversation_id:upload.target.conversation,version:upload.version,offer_id:upload.offer,kind:upload.kind,operation_id:upload.operation,image_base64:upload.encoded.slice(index*96000,(index+1)*96000),part_index:index,part_count:count,image_bytes:upload.file.size,image_sha256:upload.hash},{signal:upload.controller.signal,isCurrent:()=>uploadCurrent(upload)});} finally {clearTimeout(timeout)}
+      try {result=await host.request('tour-selection-photo.php','upload',{conversation_id:upload.target.conversation,version:upload.version,offer_id:upload.offer,kind:upload.kind,operation_id:upload.operation,image_base64:upload.encoded.slice(index*96000,(index+1)*96000),part_index:index,part_count:count,image_bytes:upload.file.size,image_sha256:upload.hash},{signal:upload.controller.signal,isCurrent:()=>uploadCurrent(upload)});} finally {clearTimeout(timeout)}
       if(!uploadCurrent(upload)){if(photoUpload===upload)cancelPhotoUpload(false);return;}
       if(!result?.ok||result.operation_id!==upload.operation||result.photo)break;
       if(result.state!=='receiving'||result.part_index!==index||index===count-1){result={ok:false,error:'invalid_response'};break;}
@@ -305,7 +303,7 @@ function render(){
 function controls(){
   if(!dialog)return;const disabled=!editable();
   $('tsAdd').disabled=disabled||busy||(draft?.offers.length||0)>=20;$('tsSave').disabled=disabled||busy||!dirty||invalidAges();$('tsDone').disabled=busy||loading||(!preview&&invalidAges());
-  $('tsSaved').textContent=photoUpload?.loading?'Загружаем фото… '+photoUpload.progress+'%':photoUpload?'Загрузка фото не подтверждена':busy?(tripPanel?'Проверяем условия поездки…':'Сохраняем…'):pending?'Результат сохранения уточняется':conflict?'Есть конфликт правок':dirty?'Не все изменения сохранены':version?'Сохранено на сервере':'Новый черновик';
+  $('tsSaved').textContent=photoUpload?.loading?'Загружаем фото… '+photoUpload.progress+'%':photoUpload?'Загрузка фото не подтверждена':busy?(tripPanel?'Проверяем условия поездки…':'Сохраняем…'):pending?'Результат сохранения уточняется':conflict?'Есть конфликт правок':dirty?'Не все изменения сохранены':version?(host.savedLabel||'Сохранено на сервере'):'Новый черновик';
   $('tsEditor')?.querySelectorAll('input,textarea,select,[data-ts-action],[data-ts-copy-photos],[data-ts-fix-offer],[data-ts-remove-photo],#tsEmptyAdd').forEach(x=>{x.disabled=disabled||busy});
   $('tsSave').hidden=preview;$('tsPreview').hidden=preview;$('tsEdit').hidden=!preview;$('tsSend').hidden=!preview;$('tsHistory').hidden=preview;
   $('tsCollector').hidden=preview;$('tsCollector').disabled=!!photoUpload||!canEdit||busy||loading||sending||sharing;
@@ -344,7 +342,7 @@ async function submit(command){
     // An identical retry can find its old receipt after a colleague has saved
     // a newer draft. Confirming our command must not silently adopt their terms.
     if(result.saved_version!==result.selection.version){pending=null;canEdit=result.selection.can_edit;conflict=result.selection;dirty=true;stash();render();status('Сохранение подтверждено, но затем подборку изменили. Сравните версии.',true);return;}
-    version=result.selection.version;canEdit=result.selection.can_edit;draft=clone(result.selection.draft);rawAges={};dirty=false;pending=null;conflict=null;stash();render();status('Черновик сохранён.');return;
+    version=result.selection.version;canEdit=result.selection.can_edit;draft=clone(result.selection.draft);rawAges={};dirty=false;pending=null;conflict=null;stash();render();status(host.savedMessage||'Черновик сохранён.');return;
   }
   if(result?.error==='conflict'&&validSnapshot(result.selection)){pending=null;conflict=result.selection;canEdit=conflict.can_edit;stash();controls();recovery('conflict');status(error(result),true);return}
   if(result?.http_status&&result.http_status<500&&!['operation_mismatch','invalid_response'].includes(result.error)){pending=null;if([403,404].includes(result.http_status))canEdit=false;stash();controls();status(error(result),true);return}
@@ -453,7 +451,7 @@ async function showInterest(){
       };
     }
   }
-  if(data.last_browser_at)add('p','Последний сигнал браузера: '+window.ManagerTime.format(data.last_browser_at,{year:true})+' МСК.');
+  if(data.last_browser_at)add('p','Последний сигнал браузера: '+host.formatTime(data.last_browser_at,{year:true})+' МСК.');
   const automated=[];
   for(const [bucket,label] of [['preview','События предпросмотра'],['robot','События распознанной автоматизации']]){
     let count=0,repeats=0;for(const value of Object.values(data.totals?.[bucket]||{})){count+=number(value?.unique);repeats+=number(value?.repeat)}automated.push(label+': '+count+' · повторов '+repeats);
@@ -491,11 +489,11 @@ function renderShare(share){
   const hint=document.createElement('p');hint.textContent='Публикуются показанные туры, фото и публичный комментарий. Проверьте, что заголовок и комментарий не содержат личных данных. Ссылку можно пересылать; публикация ничего не отправляет в мессенджер.';root.appendChild(hint);
   if(share.active){
     const hosted='https://tours.anytoour.ru/?'+share.path.slice('/selection/?'.length);
-    const url=share.public_url===hosted?hosted:new URL(share.path,location.origin).href,input=document.createElement('input');input.readOnly=true;input.value=url;input.setAttribute('aria-label','Общая ссылка на подборку');root.appendChild(input);
+    const url=share.public_url===hosted?hosted:new URL(share.path,host.origin).href,input=document.createElement('input');input.readOnly=true;input.value=url;input.setAttribute('aria-label','Общая ссылка на подборку');root.appendChild(input);
     const copy=document.createElement('button');copy.type='button';copy.textContent='Скопировать ссылку';copy.onclick=async()=>{if(!current())return;const token=epoch;input.select();try{await navigator.clipboard.writeText(url);if(token===epoch&&current())status('Ссылка скопирована.')}catch(e){if(token===epoch&&current())status('Выделена ссылка — скопируйте её.')}};root.appendChild(copy);
     const open=document.createElement('a');const previewPath=typeof share.preview_path==='string'&&/^\/selection\/\?t=[a-f0-9]{64}&preview=[0-9]{10}\.[a-f0-9]{64}$/.test(share.preview_path)?share.preview_path:null;
     const hostedPreview=previewPath?'https://tours.anytoour.ru/?'+previewPath.slice('/selection/?'.length):null;
-    open.href=url===hosted&&hostedPreview&&share.preview_url===hostedPreview?hostedPreview:previewPath?new URL(previewPath,location.origin).href:url;open.target='_blank';open.rel='noopener noreferrer';open.textContent='Открыть страницу';root.appendChild(open);
+    open.href=url===hosted&&hostedPreview&&share.preview_url===hostedPreview?hostedPreview:previewPath?new URL(previewPath,host.origin).href:url;open.target='_blank';open.rel='noopener noreferrer';open.textContent='Открыть страницу';root.appendChild(open);
     const label=document.createElement('p');label.textContent=share.publication_id===publication.id?'По ссылке опубликована эта версия.':'По ссылке опубликована другая версия. Обновление заменит страницу, сохранив адрес.';root.appendChild(label);
   }else{const label=document.createElement('p');label.textContent=share.version?'Ссылка отозвана. Повторная публикация создаст новый адрес.':'Подборка ещё не опубликована.';root.appendChild(label)}
   const change=(label,action)=>{const b=document.createElement('button');b.id=action==='publish'?'tsPublish':'tsRevoke';b.type='button';b.textContent=label;b.disabled=(!canEdit&&!(action==='revoke'&&share.can_revoke))||sharing||(action==='publish'&&(dirty||!!pending||!!conflict||photoPending>0||photoFailures>0));b.onclick=()=>changeShare(action,share);root.appendChild(b)};
@@ -512,6 +510,8 @@ async function changeShare(action,share){
   await showShare();if(token!==epoch)return;
   status(result?.error==='draft_changed'?'Черновик изменился. Сначала подготовьте новый предпросмотр.':result?.error==='share_changed'?'Состояние ссылки изменилось в другой вкладке. Показано актуальное состояние.':'Ответ на действие не подтверждён. Проверьте состояние ссылки перед новым действием.',true);
 }
-window.addEventListener('resize',()=>{if(S.detail?.conversation)sync(S.detail.conversation)});
-window.WorkspaceV2TourSelection={sync,activate,suspend,open,close};
+mounted=Object.freeze({sync,activate,suspend,open,close});
+return mounted;
+}
+window.AnyTourSelectionEditor=Object.freeze({contract,mount});
 })();
