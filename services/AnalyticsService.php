@@ -22,7 +22,8 @@ class AnalyticsService
         $ok = false;
         if (@flock($fp, LOCK_EX)) {
             if ($new) fputcsv($fp, ['Yclid', 'Target', 'DateTime']);
-            $ok = fputcsv($fp, [$yclid, $target, date('Y-m-d H:i:s')]) !== false;
+            // Queue instants are timezone-independent; the uploader already accepts Unix seconds.
+            $ok = fputcsv($fp, [$yclid, $target, time()]) !== false;
             fflush($fp);
             flock($fp, LOCK_UN);
         }
