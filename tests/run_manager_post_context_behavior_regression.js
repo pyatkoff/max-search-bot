@@ -57,6 +57,22 @@ function result(conversationId=101,text='Турция, 7 ночей. Цена 15
   return {ok:true,conversation_id:conversationId,context:{current:{entry_id:1,title:'Турция — октябрь',channel_name:'AnyTour Москва',platform:'max',post_url:'https://max.ru/c/-80095447388179/AaE53iyDMmw',text,entered_at:'2026-10-14 09:20:00',version_number:2,media_count:1,...extra},history:[]}};
 }
 const cases=[];const test=(name,run)=>cases.push({name,run});
+test('all six published MAX public permalinks remain actionable with their publication source',async()=>{
+  const mids=['AaF5iNrwGdY','AaF5iOO-R8w','AaF5iOyMXHU','AaF5iPYSJTA','AaF5iP7mCB0','AaF5iQf-GJ4'];
+  for(let i=0;i<mids.length;i++){
+    const h=harness(),postUrl='https://max.ru/channel_anytour/'+mids[i];h.init();
+    h.resolve(0,result(101,'Сохранённый текст отеля',{publication_id:68+i,source_name:'AnyTour Москва',source_key:'max_anytour_msk1',post_url:postUrl}));await h.settle();
+    assert.equal(h.host.querySelector('.postContextOriginal')?.href,postUrl);
+    assert.match(h.host.querySelector('.postContextSource').textContent,/Источник: AnyTour Москва/);
+    assert.match(h.host.querySelector('.postContextSource').textContent,new RegExp('Публикация №'+(68+i)));
+    assert.doesNotMatch(h.host.textContent,/рекламный клик|YCLID|покупка подтверждена/i);
+  }
+});
+test('post source uses literal text and a missing publication identity is not invented',async()=>{
+  const h=harness();h.init();h.resolve(0,result(101,'Текст',{source_name:'<b>Источник</b>',source_key:'max_anytour_msk1',publication_id:null}));await h.settle();
+  assert.match(h.host.querySelector('.postContextSource').textContent,/<b>Источник<\/b>/);
+  assert.doesNotMatch(h.host.querySelector('.postContextSource').textContent,/Публикация №/);
+});
 test('module may load before canonical runtime and starts only after init',async()=>{const h=harness({lazy:true});assert.ok(h.module);assert.equal(h.module.init(),false);assert.equal(h.requests.length,0);h.init();assert.equal(h.requests.length,1);h.resolve(0,result());await h.settle();assert.match(h.host.querySelector('.postContextToggle').textContent,/Пост клиента/)});
 test('missing canonical transport reports unavailable without another HTTP owner',async()=>{const h=harness();delete h.W.request;h.init();await h.settle();assert.equal(h.requests.length,0);assert.equal(h.host.dataset.state,'error');assert.match(h.host.textContent,/Не удалось загрузить исходный пост/)});
 test('optional request is pinned to the authorized current client and carries canonical session CSRF',async()=>{const h=harness();h.init();const request=h.requests[0];assert.equal(request.options.credentials,'same-origin');assert.deepEqual(JSON.parse(request.options.body),{action:'detail',csrf:'synthetic-csrf-only',conversation_id:101});assert.equal(h.host.dataset.state,'loading');h.resolve(0,result());await h.settle();assert.equal(h.messages.scrollTop,240);assert.equal(h.draft.value,'Не потерять черновик');assert.match(h.host.textContent,/Условия и цены из публикации/);assert.match(h.host.textContent,/12:20 МСК/)});
