@@ -1,14 +1,26 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-10-26T07:40:37+00:00",
+    "generated_at": "2026-10-26T08:04:12+00:00",
     "production": {
-        "sha": "85314a69656d8119469835446a88686e95b906cc",
+        "sha": "ae18cba9f2158efd08968053de75ec92ad3c769c",
         "branch": "main"
     },
     "manager_mcp_discovery": {
         "sampled_count": 20,
         "recent_attempts": [
+            {
+                "at": "2026-10-26T11:02:48+03:00",
+                "http_method": "POST",
+                "credential_header": "bearer",
+                "client_kind": "header_probe",
+                "rpc_method": "absent",
+                "requested_version": "absent",
+                "header_version": "absent",
+                "http_status": 401,
+                "stage": "credentials",
+                "rpc_error": -32001
+            },
             {
                 "at": "2026-10-26T10:39:16+03:00",
                 "http_method": "POST",
@@ -236,18 +248,6 @@
                 "http_status": 401,
                 "stage": "credentials",
                 "rpc_error": -32001
-            },
-            {
-                "at": "2026-10-25T23:38:17+03:00",
-                "http_method": "POST",
-                "credential_header": "bearer",
-                "client_kind": "header_probe",
-                "rpc_method": "absent",
-                "requested_version": "absent",
-                "header_version": "absent",
-                "http_status": 401,
-                "stage": "credentials",
-                "rpc_error": -32001
             }
         ]
     },
@@ -255,16 +255,16 @@
         "tick": {
             "available": true,
             "stale": false,
-            "age_seconds": 12,
+            "age_seconds": 43,
             "state": "ok",
             "stage": "complete",
-            "last_started_at": "2026-10-26T07:40:01Z",
-            "last_finished_at": "2026-10-26T07:40:01Z",
-            "last_success_at": "2026-10-26T07:40:01Z",
+            "last_started_at": "2026-10-26T08:03:01Z",
+            "last_finished_at": "2026-10-26T08:03:02Z",
+            "last_success_at": "2026-10-26T08:03:02Z",
             "last_error_at": "2026-10-21T16:39:01Z",
             "last_error_stage": "bootstrap",
             "counts": {
-                "candidates": 7,
+                "candidates": 6,
                 "captured": 0,
                 "inserted": 0,
                 "existing": 0,
@@ -296,12 +296,12 @@
             "current_price_verified": false,
             "coverage_complete": false,
             "dates_available": false,
-            "catalog_synced_at": "2026-10-25T19:38:05Z",
+            "catalog_synced_at": "2026-10-26T04:53:39Z",
             "catalog_stale": false,
             "catalog_rows_truncated": false,
             "matrix_coverage_complete": true,
             "matrix_pair_counts": {
-                "all": 2083,
+                "all": 2082,
                 "direct": 285,
                 "charter": 190,
                 "direct_charter": 164
@@ -334,7 +334,7 @@
             "pending_count": 1,
             "overdue_count": 1,
             "stuck_count": 1,
-            "oldest_wait_seconds": 1142282,
+            "oldest_wait_seconds": 1143693,
             "routing_blocked_count": 0
         },
         "push": {
@@ -342,8 +342,8 @@
             "error": null,
             "subscription_table_exists": true,
             "working_manager_notification_path_ok": false,
-            "working_manager_count": 5,
-            "usable_notification_path_count": 3,
+            "working_manager_count": 6,
+            "usable_notification_path_count": 4,
             "no_subscription_count": 2,
             "unhealthy_subscription_count": 0,
             "other_unusable_count": 0
@@ -351,10 +351,47 @@
         "push_setup": {
             "source": "client_reported",
             "sample_limit": 50,
-            "failure_count": 0,
-            "by_code": [],
-            "by_call": [],
-            "latest": null,
+            "failure_count": 2,
+            "by_code": {
+                "AbortError": 2
+            },
+            "by_call": {
+                "retry_subscribe": 2
+            },
+            "latest": {
+                "schema": 1,
+                "browser_family": "Firefox",
+                "browser_major": 158,
+                "os_family": "macOS",
+                "stage": "subscription_create",
+                "code": "AbortError",
+                "elapsed_ms": 20388,
+                "permission": "granted",
+                "secure_context": true,
+                "worker_active": true,
+                "worker_scope_matches": true,
+                "web_locks": true,
+                "key_length": 65,
+                "key_uncompressed": true,
+                "trace": [
+                    {
+                        "call": "subscribe",
+                        "outcome": "AbortError",
+                        "duration_ms": 10006
+                    },
+                    {
+                        "call": "recovery_read",
+                        "outcome": "none",
+                        "duration_ms": 4
+                    },
+                    {
+                        "call": "retry_subscribe",
+                        "outcome": "AbortError",
+                        "duration_ms": 10027
+                    }
+                ],
+                "ts": "2026-10-26T07:54:36Z"
+            },
             "native_cause_available": false
         },
         "visibility": [
@@ -366,9 +403,9 @@
                 "waiting": 0,
                 "assigned_to_others": 113,
                 "load_ms": {
-                    "all": 52.9,
-                    "mine": 16.7,
-                    "waiting": 64.9
+                    "all": 54.6,
+                    "mine": 15.6,
+                    "waiting": 64.3
                 },
                 "sample_check": {
                     "ok": true,
@@ -382,15 +419,15 @@
             },
             {
                 "role": "admin",
-                "is_working": false,
+                "is_working": true,
                 "all": 200,
                 "mine": 1,
                 "waiting": 0,
                 "assigned_to_others": 114,
                 "load_ms": {
-                    "all": 53.4,
-                    "mine": 6.2,
-                    "waiting": 66.1
+                    "all": 50.9,
+                    "mine": 5,
+                    "waiting": 65.5
                 },
                 "sample_check": {
                     "ok": true,
@@ -410,9 +447,9 @@
                 "waiting": 1,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 51.4,
-                    "mine": 29.3,
-                    "waiting": 78.8
+                    "all": 60.4,
+                    "mine": 28.2,
+                    "waiting": 80.5
                 },
                 "sample_check": {
                     "ok": true,
@@ -432,9 +469,9 @@
                 "waiting": 0,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 58.4,
-                    "mine": 380.2,
-                    "waiting": 78.6
+                    "all": 56.3,
+                    "mine": 304.1,
+                    "waiting": 80.5
                 },
                 "sample_check": {
                     "ok": true,
@@ -454,9 +491,9 @@
                 "waiting": 0,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 61,
-                    "mine": 3.3,
-                    "waiting": 85
+                    "all": 53.5,
+                    "mine": 2.5,
+                    "waiting": 75.8
                 },
                 "sample_check": {
                     "ok": true,
@@ -476,9 +513,9 @@
                 "waiting": 0,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 61.1,
-                    "mine": 17.4,
-                    "waiting": 75.7
+                    "all": 52.6,
+                    "mine": 16.7,
+                    "waiting": 75.5
                 },
                 "sample_check": {
                     "ok": true,
@@ -498,9 +535,9 @@
                 "waiting": 1,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 72,
-                    "mine": 43,
-                    "waiting": 69.3
+                    "all": 50.1,
+                    "mine": 42.2,
+                    "waiting": 67.6
                 },
                 "sample_check": {
                     "ok": true,
@@ -525,7 +562,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-10-26 06:40:22",
+        "since_utc": "2026-10-26 07:03:54",
         "summary": {
             "sessions": 3,
             "raw_sessions": 3,
@@ -563,7 +600,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "85314a69656d8119469835446a88686e95b906cc",
+        "sha": "ae18cba9f2158efd08968053de75ec92ad3c769c",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -572,7 +609,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-10-26T07:40:37Z"
+        "reported_at": "2026-10-26T08:04:12Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -580,7 +617,7 @@
     },
     "paid_daily": {
         "ok": true,
-        "generated_at": "2026-10-26T07:40:13+00:00",
+        "generated_at": "2026-10-26T08:03:45+00:00",
         "timezone": "Europe/Kaliningrad",
         "channel": "max",
         "attribution_basis": "current_saved_traffic_yclid",
@@ -675,7 +712,7 @@
     },
     "channel_daily": {
         "ok": true,
-        "generated_at": "2026-10-26T07:40:13+00:00",
+        "generated_at": "2026-10-26T08:03:45+00:00",
         "timezone": "Europe/Kaliningrad",
         "basis": "recorded_conversation_activity",
         "reply_basis": "any_recorded_outbound_manager_message_in_day",
@@ -973,7 +1010,7 @@
                 "date": "2026-10-26",
                 "partial": true,
                 "since_utc": "2026-10-25 22:00:00",
-                "until_utc": "2026-10-26 07:40:13",
+                "until_utc": "2026-10-26 08:03:45",
                 "channels": [
                     {
                         "channel": "max",
@@ -1025,10 +1062,10 @@
         "draft_limit_reached": false,
         "message_limit_reached": false,
         "error": null,
-        "generated_at": "2026-10-26T07:40:13Z",
+        "generated_at": "2026-10-26T08:03:45Z",
         "window": {
-            "since": "2026-10-19 07:40:13",
-            "until": "2026-10-26 07:40:13",
+            "since": "2026-10-19 08:03:45",
+            "until": "2026-10-26 08:03:45",
             "timezone": "UTC",
             "days": 7,
             "basis": "persisted_generation_cohort"
@@ -1114,7 +1151,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-10-26T07:40:35+00:00",
+        "generated_at": "2026-10-26T08:04:09+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -1158,12 +1195,12 @@
             },
             "tests": {
                 "files": 457,
-                "bytes": 6005057,
+                "bytes": 6008188,
                 "code_lines": 57634
             },
             "tools": {
                 "files": 96,
-                "bytes": 580014,
+                "bytes": 581246,
                 "code_lines": 7718
             }
         },
