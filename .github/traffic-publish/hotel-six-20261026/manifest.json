@@ -1,0 +1,92 @@
+{
+  "operation": "channel-hotel-six-20261026-v1",
+  "channel_id": "-80492244209683",
+  "row_count": 6,
+  "owner_approval": "Ок after shown six Canva previews and corrected post copy",
+  "rows": [
+    {
+      "key": "golf",
+      "candidate_key": "pickalbatros_golf_beach",
+      "hotel_key": "top500_734b8b2bd29278a5",
+      "title": "Pickalbatros Golf Beach Resort",
+      "text": "Pickalbatros Golf Beach Resort\nЕгипет · Шарм-эль-Шейх\n\nМоре, пальмы и большая зелёная территория для прогулок.\n\n• Первая линия и многоуровневый пляж. Вход в море — с понтона.\n• Номера Superior — 40 м², Executive — 48 м².\n• Питание «всё включено», вечерние шоу и музыка.\n\nНажмите «Рассчитать на мои даты» — подберём тур с перелётом.",
+      "canva_design_id": "DAHZID4JHG8",
+      "canva_edit_url": "https://www.canva.com/d/ctddGDXsgLO6rzk",
+      "source_canva_committed": true,
+      "cover_file": "golf.png",
+      "cover_bytes": 897878,
+      "cover_sha256": "1050572524d0202c42397def755cee0f5dc24f97505527508b6f4868513577a4",
+      "text_sha256": "9d5d2249d559150c2b06c97e6c3458b457f33bfba4802ca238fd8b74d7c1b0d3"
+    },
+    {
+      "key": "sultan",
+      "candidate_key": "sultan_gardens",
+      "hotel_key": "top500_cd90701d88d1fb0f",
+      "title": "Sultan Gardens Resort",
+      "text": "Sultan Gardens Resort\nЕгипет · Шарм-эль-Шейх\n\nРиф у пляжа и семейные номера с двумя спальнями.\n\n• На пляже есть зоны с анимацией и для спокойного отдыха. К рифу ведут понтоны.\n• Family Suite — 69 м² с двумя спальнями.\n• Детский клуб — для гостей 4–12 лет.\n• У части бассейнов — зимний подогрев.\n\nНажмите «Рассчитать на мои даты» — подберём тур с перелётом.",
+      "canva_design_id": "DAHZIOKMOTI",
+      "canva_edit_url": "https://www.canva.com/d/iuJM6xA5OgmT7cg",
+      "source_canva_committed": true,
+      "cover_file": "sultan.png",
+      "cover_bytes": 662246,
+      "cover_sha256": "56141ff7784bc505e2af118e20a13a699933669fbd2357823e547c9703281568",
+      "text_sha256": "3adb8fd709fad0d2b7a3c2b8d78e20b95f7dc75eae26da32aeb1234bdca76617"
+    },
+    {
+      "key": "rixos",
+      "candidate_key": "rixos_premium_magawish",
+      "hotel_key": "top500_385ea621fc2ce59d",
+      "title": "Rixos Premium Magawish Suites & Villas",
+      "text": "Rixos Premium Magawish Suites & Villas\nЕгипет · Хургада\n\nПросторные сьюты и виллы, песчаный пляж и «ультра всё включено» — для отдыха семьёй или вдвоём.\n\n• Первая линия и собственный пляж протяжённостью около километра.\n• Выбор размещения: от сьютов до вилл.\n• Живая музыка и вечерние шоу.\n\nОтель для семей и пар.\n\nНажмите «Рассчитать на мои даты» — подберём тур с перелётом.",
+      "canva_design_id": "DAHZIISS2iY",
+      "canva_edit_url": "https://www.canva.com/d/U-bFuoL57Ry24rL",
+      "source_canva_committed": true,
+      "cover_file": "rixos.png",
+      "cover_bytes": 844014,
+      "cover_sha256": "0b192a9ba2b1df0e291b2c6ad3f612602aac1f3d28bd10587a00f81694980bb5",
+      "text_sha256": "7eeb8096f1abcc8e20f88f108f5485ebf2ea317e382663b1bd9e35a71c5739a1"
+    },
+    {
+      "key": "rehana",
+      "candidate_key": "rehana_royal_beach",
+      "hotel_key": "rehana_royal_beach_resort",
+      "title": "Rehana Royal Beach Resort Aqua Park & Spa",
+      "text": "Rehana Royal Beach Resort Aqua Park & Spa\nЕгипет · Шарм-эль-Шейх, Набк\n\nКрасное море, бассейны и водные горки для семейного отпуска.\n\n• Собственный песчаный пляж с коралловой зоной. Выход в море — с понтона.\n• Водные горки и бассейны на территории.\n• Стандартные номера с балконом или террасой.\n\nНажмите «Рассчитать на мои даты» — подберём тур с перелётом.",
+      "canva_design_id": "DAHZIBEttFY",
+      "canva_edit_url": "https://www.canva.com/d/emBUNP73kS1Edtm",
+      "source_canva_committed": true,
+      "cover_file": "rehana.png",
+      "cover_bytes": 850572,
+      "cover_sha256": "bd0aa82f1330253fdd14ef92cc30b9e0c553a425f6b004eef976b5fcfe61eb3b",
+      "text_sha256": "8bd421d9ffeacee25053242dd549976ad2b071b0bcd67e31e6f3d9b7d6b98313"
+    },
+    {
+      "key": "solara",
+      "candidate_key": "sunrise_solara",
+      "hotel_key": "top500_6095c777b0517af5",
+      "title": "SUNRISE Solara Aqua Park Resort",
+      "text": "SUNRISE Solara Aqua Park Resort\nЕгипет · Хургада\n\nГорки, бассейны и собственный пляж — для отпуска, в котором хочется больше развлечений.\n\n• Номера Standard — 32 м² с балконом.\n• Для семьи — Family Bunk Bed 32 м² с двухъярусной кроватью.\n• Детский клуб — для гостей 3–12 лет.\n• По вечерам — живая музыка, шоу и тематические вечеринки.\n\nНажмите «Рассчитать на мои даты» — подберём тур с перелётом.",
+      "canva_design_id": "DAHZIJgrzZI",
+      "canva_edit_url": "https://www.canva.com/d/IRWVDaFCaalcEZT",
+      "source_canva_committed": true,
+      "cover_file": "solara.png",
+      "cover_bytes": 845992,
+      "cover_sha256": "d7fab29af27aab8c59b2c7af42a7327926629b56dfae2a037066d80321269f12",
+      "text_sha256": "3b717301c133e01487e55eb249beb21a3b4c08a071c5a20985f39d0b12281200"
+    },
+    {
+      "key": "palace",
+      "candidate_key": "pickalbatros_palace_sharm",
+      "hotel_key": "top500_b9e2b76acc1b505d",
+      "title": "Pickalbatros Palace Resort Sharm El Sheikh",
+      "text": "Pickalbatros Palace Resort Sharm El Sheikh\nЕгипет · Шарм-эль-Шейх\n\nБелые корпуса у моря, бассейны и коралловый пляж.\n\n• Выход в море — с пирса; у берега есть небольшая песчаная лагуна.\n• Семейные номера Family — 56–75 м² с двумя спальнями.\n• Питание «всё включено», живая музыка и вечерние шоу.\n\nНажмите «Рассчитать на мои даты» — подберём тур с перелётом.",
+      "canva_design_id": "DAHZIE-zPQo",
+      "canva_edit_url": "https://www.canva.com/d/SE2lB8Kzslax3hl",
+      "source_canva_committed": true,
+      "cover_file": "palace.png",
+      "cover_bytes": 740506,
+      "cover_sha256": "680ae63c453c6c958451d6825624cb7919e4c998dd1e5c8f04a3ef20ed0e5a1a",
+      "text_sha256": "71a53557a5249adee3f34a450fab460bc789ed50bc8a731409018a9e82d582e0"
+    }
+  ]
+}
