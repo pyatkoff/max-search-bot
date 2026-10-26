@@ -10,7 +10,7 @@ from datetime import date
 
 import build_conversion_observations as base
 
-VERSION = "ru_trip_prefix_rules_v1_6"
+VERSION = "ru_trip_prefix_rules_v1_7"
 MAX_BYTES = 2 * 1024 * 1024
 MAX_CASES = 100
 MAX_MESSAGES = 500
@@ -179,6 +179,78 @@ def direct_flight_requirement(text):
     return None
 
 
+def requirement_clause(text):
+    """A bounded explicit requirement, not a question, past trip or quoted offer."""
+    return not text_match(r"\?|\bесли\b|\bне\s+(?:хочу|хотим|надо|поед\w*)|"
+                          r"не\s+(?:подход\w*|устраив\w*|обязател\w*|рассматрива\w*)|"
+                          r"предложил\w*|предлага\w*|написал\w*|сообщил\w*|"
+                          r"прошл\w*\s+(?:год|месяц)|отдыхали|ездили|летали|жили|\bбыли\b", text)
+
+
+def month_only_constraint(text):
+    """A named month never supplies a day, implicit year or exact alternative."""
+    month_words = {r"январ[ьяею]": 1, r"феврал[ьяею]": 2, r"март[аеу]?": 3,
+                   r"апрел[ьяею]": 4, r"ма[йяею]": 5, r"июн[ьяею]": 6,
+                   r"июл[ьяею]": 7, r"август[аеу]?": 8, r"сентябр[ьяею]": 9,
+                   r"октябр[ьяею]": 10, r"ноябр[ьяею]": 11, r"декабр[ьяею]": 12}
+    candidates = []
+    for word, month in month_words.items():
+        for match in re.finditer(rf"\b{word}\b(?:\s+(20\d{{2}})(?!\d)(?:\s*года?)?)?", text, re.I):
+            before = text[:match.start()]
+            if not match[1] and re.match(r"\s+\d{3,}", text[match.end():]):
+                continue
+            # Invalid/unsupported day syntax must not silently degrade to a month.
+            if re.search(r"\d\s*(?:-?(?:го|ого))?\s*$", before, re.I):
+                continue
+            start = max(before.rfind(sep) for sep in ".;!\n")+1
+            end = min((text.find(sep, match.end()) for sep in ".;!\n" if text.find(sep, match.end()) >= 0),
+                      default=len(text))
+            clause = text[start:end]
+            if (negated(text, match.start())
+                    or text_match(r"\b(?:не\s+(?:в|на)|с|от|до|после|раньше|позже|не ранее|не позднее)\s*$", before)
+                    or not requirement_clause(clause)):
+                continue
+            candidates.append(({"start_day": None, "start_month": month, "end_day": None,
+                                "end_month": month, "year": int(match[1]) if match[1] else None,
+                                "window_kind": "departure" if text_match(r"вылет", clause) else "unspecified",
+                                "precision": "month"}, match.span()))
+    return candidates[0] if len(candidates) == 1 else None
+
+
+def hotel_stars_constraint(text):
+    """Preserve class ranges versus explicit alternatives; never parse a suffix."""
+    pattern = (r"(?<![\w.,+*/–-])(?P<values>\d{1,2}\s*(?:\*\s*)?"
+               r"(?:\s*(?:[-–/,]|или)\s*\d{1,2}\s*(?:\*\s*)?)*)"
+               r"\s*(?P<unit>\*|зв[её]зд\w*)(?!\d|[.,]\d)")
+    for match in re.finditer(pattern, text, re.I):
+        before = text[:match.start()]
+        start = max(before.rfind(sep) for sep in ".;!\n")+1
+        end = min((text.find(sep, match.end()) for sep in ".;!\n" if text.find(sep, match.end()) >= 0),
+                  default=len(text))
+        if not requirement_clause(text[start:end]) or negated(text, match.start()):
+            continue
+        raw = match["values"]; values = [int(v) for v in re.findall(r"\d+", raw)]
+        if (not all(1 <= v <= 5 for v in values) or re.search(r"\d,\d", raw)
+                or re.match(r"\s*\d", text[match.end():])):
+            continue
+        is_range = bool(re.search(r"[-–]", raw))
+        if is_range and (len(values) != 2 or values[0] > values[1] or re.search(r"[,/]|или", raw, re.I)):
+            continue
+        value = {"minimum": min(values), "maximum": max(values)}
+        if len(values) > 1 and not is_range:
+            value["options"] = sorted(set(values))
+        if len(values) == 1:
+            lower = re.search(r"\b(?:не ниже|от)\s*$", before, re.I)
+            upper = re.search(r"\b(?:не выше|до)\s*$", before, re.I)
+            if lower:
+                value["maximum"] = None
+            if upper:
+                value["minimum"] = None
+            return value, (lower.start() if lower else upper.start() if upper else match.start(), match.end())
+        return value, match.span()
+    return None
+
+
 def date_constraints(text):
     """Keep window meaning/year unresolved unless explicitly supplied."""
     results = []
@@ -240,6 +312,10 @@ def date_constraints(text):
                         match.start(), match.end()+ (tail.end() if tail else 0),
                         bool(match["r"] or match["r2"] or tail)))
         break
+    if not results:
+        month = month_only_constraint(text)
+        if month:
+            results.append(month)
     return results
 
 
@@ -310,7 +386,7 @@ def extract_case(case, extracted):
     cutoff = case["prediction_at"]
     fields = {name: [] for name in ["budget", "budget_preference", "duration", "dates", "departure",
               "destination", "meal", "date_flexibility_days", "room_arrangement", "family_group",
-              "hotel_interest", "unresolved_city", "purchase_report", "flight_requirement"]}
+              "hotel_interest", "unresolved_city", "purchase_report", "flight_requirement", "hotel_stars"]}
     party = {k: [] for k in ("adults", "children", "total", "child_ages")}
     offered = []; stages = []; canonical = []; requirements = []; previous_manager = None
     assumption_refs = []
@@ -362,6 +438,9 @@ def extract_case(case, extracted):
         flight = direct_flight_requirement(text)
         if flight:
             add("flight_requirement", flight[0], m, flight[1])
+        stars = hotel_stars_constraint(text)
+        if stars:
+            add("hotel_stars", stars[0], m, stars[1])
         for value, span in date_constraints(text):
             add("dates", value, m, span)
         flex = text_match(r"(?:\+\s*[-–]|плюс[- ]минус)\s*(\d{1,2})\s*дн\w*", text)
