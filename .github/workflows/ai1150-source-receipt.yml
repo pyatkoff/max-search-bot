@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     env:
-      EXPECTED_RUNTIME_SHA: 2afe10218cc22d74a35479b00c16c961adbf94f2
+      EXPECTED_RUNTIME_SHA: 19a839536e02b5fb9006d4cab64719b1fdf8769f
     steps:
       - uses: actions/checkout@v4
       - name: Prepare the runner-only SSH key

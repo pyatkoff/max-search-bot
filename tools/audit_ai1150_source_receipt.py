@@ -16,7 +16,7 @@ import time
 
 
 ROOT = Path(__file__).resolve().parents[1]
-RUNTIME_SHA = "2afe10218cc22d74a35479b00c16c961adbf94f2"
+RUNTIME_SHA = "19a839536e02b5fb9006d4cab64719b1fdf8769f"
 READER_BLOB = "ce7cb461e03cedbb3b81a3548d7f2ccff9ccde48"
 REVIEWED_SOURCE_SHA = "e87bb5112a9c99539fe75716cdd36f443f72a6a0"
 OPERATION = "ai1150-source-receipt-20261026-v1"
@@ -26,15 +26,29 @@ PINNED_IP = "5.45.122.54"
 HOST_FINGERPRINT = "SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0"
 MAX_BYTES = 131072
 PHASE = "validation"
+REMOTE_EXECUTION_ATTEMPTED = False
+FAILURE_REASONS = {
+    "validation_failed", "dns_lookup_failed", "canonical_target_changed", "host_key_scan_failed",
+    "invalid_host_key_scan", "canonical_host_pin_not_seen", "known_hosts_write_failed",
+    "host_pin_failed", "remote_command_failed", "remote_execution_failed", "invalid_receipt",
+}
+PHASE_FAILURES = {
+    "validation": "validation_failed", "host_pin": "host_pin_failed",
+    "remote": "remote_execution_failed", "receipt": "invalid_receipt",
+}
 
 
 class ReceiptFailure(Exception):
     """Failure text is deliberately never copied into runner output."""
 
+    def __init__(self, reason=None):
+        self.reason = reason if reason in FAILURE_REASONS else None
+        super().__init__()
 
-def require(condition):
+
+def require(condition, reason=None):
     if not condition:
-        raise ReceiptFailure()
+        raise ReceiptFailure(reason)
 
 
 def bounded_process(argv, payload=b"", timeout=75, max_bytes=MAX_BYTES):
@@ -113,6 +127,43 @@ def private_file(path, content):
         target.write(content)
 
 
+def pinned_host_lines(scan_output, host):
+    """Normalize the host token only after the exact public-key pin is verified."""
+    try:
+        lines = scan_output.decode("ascii", errors="strict").splitlines()
+    except (AttributeError, UnicodeDecodeError):
+        raise ReceiptFailure("invalid_host_key_scan") from None
+    pinned = []
+    for line in lines:
+        parts = line.split()
+        if len(parts) != 3 or parts[0].startswith("#"):
+            continue
+        try:
+            public_key = base64.b64decode(parts[2], validate=True)
+        except ValueError:
+            continue
+        fingerprint = "SHA256:" + base64.b64encode(hashlib.sha256(public_key).digest()).decode("ascii").rstrip("=")
+        if fingerprint == HOST_FINGERPRINT:
+            pinned.append(host + " " + parts[1] + " " + parts[2])
+    return sorted(set(pinned))
+
+
+def canonical_host_pin(host):
+    try:
+        addresses = {row[4][0] for row in socket.getaddrinfo(host, 22, type=socket.SOCK_STREAM)}
+    except Exception:
+        raise ReceiptFailure("dns_lookup_failed") from None
+    require(addresses == {PINNED_IP}, "canonical_target_changed")
+    try:
+        # A partial keyscan may exit nonzero while still returning the exact pinned key.
+        _, scan_out, _ = bounded_process(["ssh-keyscan", "-T", "10", host], timeout=30, max_bytes=65536)
+    except Exception:
+        raise ReceiptFailure("host_key_scan_failed") from None
+    pinned = pinned_host_lines(scan_out, host)
+    require(bool(pinned), "canonical_host_pin_not_seen")
+    return pinned
+
+
 def validate_receipt(data):
     require(type(data) is dict)
     require(data.get("source") == "ai1150_actual_source_receipt")
@@ -151,7 +202,7 @@ def validate_receipt(data):
 
 
 def run():
-    global PHASE
+    global PHASE, REMOTE_EXECUTION_ATTEMPTED
     expected = os.environ["EXPECTED_RUNTIME_SHA"]
     require(re.fullmatch(r"[a-f0-9]{40}", expected) is not None and expected == RUNTIME_SHA)
     require(os.environ.get("GITHUB_RUN_ATTEMPT") == "1")
@@ -187,25 +238,12 @@ def run():
         effective_driver = effective_driver.replace(placeholder, value)
 
     PHASE = "host_pin"
-    addresses = {row[4][0] for row in socket.getaddrinfo(host, 22, type=socket.SOCK_STREAM)}
-    require(addresses == {PINNED_IP})
-    scan_code, scan_out, _ = bounded_process(["ssh-keyscan", "-T", "10", host], timeout=30, max_bytes=65536)
-    require(scan_code == 0)
-    pinned = []
-    for line in scan_out.decode("ascii", errors="strict").splitlines():
-        parts = line.split()
-        if len(parts) != 3 or parts[0] != host:
-            continue
-        try:
-            public_key = base64.b64decode(parts[2], validate=True)
-        except ValueError:
-            continue
-        fingerprint = "SHA256:" + base64.b64encode(hashlib.sha256(public_key).digest()).decode("ascii").rstrip("=")
-        if fingerprint == HOST_FINGERPRINT:
-            pinned.append(" ".join(parts))
-    require(bool(pinned))
+    pinned = canonical_host_pin(host)
     known = ssh_dir / "known_hosts"
-    private_file(known, ("\n".join(sorted(set(pinned))) + "\n").encode("ascii"))
+    try:
+        private_file(known, ("\n".join(pinned) + "\n").encode("ascii"))
+    except Exception:
+        raise ReceiptFailure("known_hosts_write_failed") from None
 
     guard = 'test "$(git rev-parse HEAD)" = "' + expected + '" || exit 21'
     clean = "git diff --quiet HEAD -- services project.php || exit 22"
@@ -227,8 +265,9 @@ def run():
         user + "@" + host, "bash -se",
     ]
     PHASE = "remote"
+    REMOTE_EXECUTION_ATTEMPTED = True
     code, stdout, stderr = bounded_process(ssh, ("\n".join(commands) + "\n").encode("ascii"), timeout=75)
-    require(code == 0 and stderr == b"")
+    require(code == 0 and stderr == b"", "remote_command_failed")
     PHASE = "receipt"
     data = json.loads(stdout.decode("utf-8"), object_pairs_hook=unique_object, parse_constant=reject_constant)
     status, count, requests = validate_receipt(data)
@@ -254,7 +293,9 @@ def run():
 if __name__ == "__main__":
     try:
         run()
-    except Exception:
+    except Exception as error:
+        failure_reason = error.reason if isinstance(error, ReceiptFailure) and error.reason else PHASE_FAILURES[PHASE]
         print(json.dumps({"status": "hold", "candidate_count": None, "http_request_count": None,
-                          "sha256": None, "phase": PHASE}, sort_keys=True))
+                          "sha256": None, "phase": PHASE, "failure_reason": failure_reason,
+                          "remote_execution_attempted": REMOTE_EXECUTION_ATTEMPTED}, sort_keys=True))
         sys.exit(1)
