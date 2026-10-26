@@ -116,5 +116,14 @@ class EditorPackageTest(unittest.TestCase):
             self.build()
 
 
+def load_tests(loader, tests, pattern):
+    module_path = REPO / "modules/tour-selections/tests/test_editor_admission.py"
+    spec = importlib.util.spec_from_file_location("editor_admission_controls", module_path)
+    controls = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(controls)
+    tests.addTests(loader.loadTestsFromModule(controls))
+    return tests
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
