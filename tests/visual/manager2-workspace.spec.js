@@ -11,7 +11,7 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
   const pushProtocol=lifecycle(7);
   const calls=[],unexpected=[],errors=[],sends=[],pendingCreates=[],pendingMetadata=[];
   let authenticated=!anonymous,subscribed=false,currentTourChoices=tourChoices;
-  let lifecycleHandler=null,stateHandler=null,readHandler=null;const conversationOverrides=new Map();
+  let lifecycleHandler=null,stateHandler=null,readHandler=null,logoutHandler=null;const conversationOverrides=new Map();
   const manager={id:7,role,display_name:'Мария',is_working:true};
   const tasks=[{id:21,title:'Проверить отели у моря в бюджете',status:'open',due_state:'today',due_at_utc:'2026-10-14 07:00:00',is_pinned:true,assigned_manager_name:'Мария'},{id:22,title:'Отправить подборку клиенту',status:'open',due_state:'overdue',due_at_utc:'2026-10-13 09:00:00',assigned_manager_name:'Мария'},{id:23,title:'Уточнить состав туристов',status:'done',due_state:'done',assigned_manager_name:'Мария'}];
   const conversation=id=>({id,manager_id:otherOwner?8:7,manager_name:otherOwner?'Людмила':'Мария',status:'manager',channel:'telegram',source_id:1,source_name:'AnyTour',display_name:id===11?'Анна Морозова':'Алексей Иванов',...conversationOverrides.get(id)});
@@ -60,6 +60,13 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
       if(data.action==='login'){authenticated=true;return reply({ok:true,manager,csrf:'synthetic-csrf',projects:[{project_key:'anytour',display_name:'AnyTour'}]})}
       if(!authenticated)return reply({ok:false,error:'unauthorized'},401);
       if(data.action==='me')return reply({ok:true,manager,csrf:'synthetic-csrf',projects:[{project_key:'anytour',display_name:'AnyTour'}]});
+      if(data.action==='logout'){
+        expect(data.csrf).toBe('synthetic-csrf');
+        const result=logoutHandler?await logoutHandler():null;
+        if(result?.endSession||!result)authenticated=false;
+        if(result?.abort)return route.abort('failed');
+        return reply(result?.body||{ok:true},result?.status||200);
+      }
       if(data.action==='edit_candidates')return reply({ok:true,messages:[],candidates:[]});
       if(data.action==='counts')return reply({ok:true,counts:{waiting:{count:2,unread:2},mine:{count:2}}});
       if(data.action==='detail')return reply({ok:true,conversation:conversation(data.conversation_id),messages:messages.map(m=>({...m})),delivery_failure:null,...(currentTourChoices&&Number(data.conversation_id)===11?{tour_choices:currentTourChoices}:{})});
@@ -108,7 +115,7 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
   });
   await page.goto(origin+'/manager2/index.php?qa=1');
   if(!anonymous&&waitForInbox)await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
-  return {calls,unexpected,errors,sends,tasks,manager,setTourChoices:value=>{currentTourChoices=value},setConversation:(id,patch)=>conversationOverrides.set(id,{...conversationOverrides.get(id),...patch}),setReadHandler:fn=>{readHandler=fn},setLifecycleHandler:fn=>{lifecycleHandler=fn},setStateHandler:fn=>{stateHandler=fn},releaseCreate:()=>pendingCreates.shift()?.(),metadataPending:()=>pendingMetadata.length,
+  return {calls,unexpected,errors,sends,tasks,manager,setLogoutHandler:fn=>{logoutHandler=fn},setTourChoices:value=>{currentTourChoices=value},setConversation:(id,patch)=>conversationOverrides.set(id,{...conversationOverrides.get(id),...patch}),setReadHandler:fn=>{readHandler=fn},setLifecycleHandler:fn=>{lifecycleHandler=fn},setStateHandler:fn=>{stateHandler=fn},releaseCreate:()=>pendingCreates.shift()?.(),metadataPending:()=>pendingMetadata.length,
     async releaseMetadata(status=200){const pending=pendingMetadata.splice(0);pending.forEach(item=>item.release(status));await Promise.all(pending.map(async item=>{const response=await item.request.response();if(response)await response.finished()}))}};
 }
 async function openLead(page,id=11){
@@ -130,6 +137,41 @@ async function readable(page,selector){
   if(/msgMeta|messageSender/.test(selector))expect(await page.locator(selector).first().evaluate(el=>Number(getComputedStyle(el).opacity))).toBe(1);
 }
 async function capture(page,browser,width,state){fs.mkdirSync('manager2-artifacts',{recursive:true});await page.screenshot({animations:'disabled',path:`manager2-artifacts/${browser}-${width}-${state}.png`})}
+
+for(const width of [390,430,768,1440])test('Manager2 account logout ends the session and clears the previous reply at '+width,async({page,browserName})=>{
+  await page.setViewportSize({width,height:900});const s=await setup(page);await openLead(page);
+  await page.locator('#replyText').fill('Личный неотправленный черновик');
+  if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()))await page.locator('#mobileBack').click();
+  await page.locator('#m2NotificationButton').click();
+  await expect(page.getByRole('button',{name:'Выйти',exact:true})).toBeVisible();
+  expect((await page.locator('#m2Logout').boundingBox()).height).toBeGreaterThanOrEqual(44);
+  await noOverflow(page);await capture(page,browserName,width,'account-logout');
+  await Promise.all([page.waitForEvent('domcontentloaded'),page.locator('#m2Logout').click()]);
+  await expect(page.locator('#managerAuthRecovery')).toBeVisible();
+  await expect(page.locator('#managerAuthMessage')).not.toContainText('истекла');
+  await expect(page.locator('#replyText')).toHaveValue('');
+  expect(await page.evaluate(()=>({manager:WorkspaceV2.S.manager,current:WorkspaceV2.S.current}))).toEqual({manager:null,current:0});
+  await capture(page,browserName,width,'logged-out');
+  await page.locator('#managerAuthLogin').fill('synthetic-login');await page.locator('#managerAuthPassword').fill('synthetic-password');await page.locator('#managerAuthSubmit').click();
+  await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
+  expect(await page.evaluate(()=>WorkspaceV2.S.current)).toBe(0);await expect(page.locator('#replyText')).toHaveValue('');
+  expect(s.calls.filter(c=>c.action==='logout')).toEqual([{path:'/manager/api.php',action:'logout',csrf:'synthetic-csrf'}]);
+  expect(s.calls.filter(c=>['send','set_working','take','release','close','reopen'].includes(c.action))).toEqual([]);
+  expect(s.manager.is_working).toBe(true);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
+
+test('Manager2 account logout keeps an unconfirmed result retryable without claiming success',async({page})=>{
+  await page.setViewportSize({width:390,height:900});const s=await setup(page);
+  let release;const pending=new Promise(resolve=>{release=resolve});s.setLogoutHandler(()=>pending);
+  await page.locator('#m2NotificationButton').click();await page.locator('#m2Logout').click();
+  await expect(page.locator('#m2Logout')).toBeDisabled();await expect(page.locator('#managerAuthSubmit')).toBeDisabled();
+  await page.locator('#m2Logout').evaluate(el=>el.click());expect(s.calls.filter(c=>c.action==='logout')).toHaveLength(1);
+  release({abort:true,endSession:true});
+  await expect(page.locator('#m2LogoutError')).toContainText('Не удалось подтвердить выход');await expect(page.locator('#m2Logout')).toBeEnabled();
+  await Promise.all([page.waitForEvent('domcontentloaded'),page.locator('#m2Logout').click()]);
+  await expect(page.locator('#managerAuthRecovery')).toBeVisible();expect(s.calls.filter(c=>c.action==='logout')).toHaveLength(2);
+  expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
 
 async function readyBeforeMetadata(page,state,action){
   await expect.poll(()=>state.metadataPending()).toBe(1);
