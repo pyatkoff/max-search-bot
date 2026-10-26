@@ -40,7 +40,8 @@ class WizardCallbackAction
                 if (!ExistingWizardStepApplicationService::apply(
                     $chatId,
                     MaxSearchApi::$statusDate,
-                    $date
+                    $date,
+                    true
                 )) return true;
                 if (EditFlowService::finishIfNeeded($chatId, 'date')) return true;
                 NeedProgressionService::advance($chatId);
@@ -148,7 +149,8 @@ class WizardCallbackAction
                 if (!ExistingWizardStepApplicationService::apply(
                     $chatId,
                     MaxSearchApi::$statusCityChoose,
-                    $city
+                    $city,
+                    true
                 )) return true;
                 if (EditFlowService::finishIfNeeded($chatId, 'city')) return true;
             }
@@ -166,7 +168,8 @@ class WizardCallbackAction
                 if (!ExistingWizardStepApplicationService::apply(
                     $chatId,
                     MaxSearchApi::$statusContryChoose,
-                    $country
+                    $country,
+                    true
                 )) return true;
                 MaxSearchApi::funnelLog($chatId, 'country_selected', ['payload'=>$q]);
                 if (EditFlowService::finishIfNeeded($chatId, 'country')) return true;
@@ -183,7 +186,8 @@ class WizardCallbackAction
                 if (!ExistingWizardStepApplicationService::apply(
                     $chatId,
                     MaxSearchApi::$statusAdults,
-                    $adults
+                    $adults,
+                    true
                 )) return true;
             }
             MaxSearchApi::showChildButtons($chatId);
@@ -201,7 +205,8 @@ class WizardCallbackAction
             if (!ExistingWizardStepApplicationService::apply(
                 $chatId,
                 MaxSearchApi::$statusChild,
-                $child
+                $child,
+                true
             )) return true;
             if ((int)$child === 0) {
                 if (!EditFlowService::finishIfNeeded($chatId, 'tourists')) MaxSearchApi::showStarsButtons($chatId);
@@ -216,7 +221,8 @@ class WizardCallbackAction
                 if (!ExistingWizardStepApplicationService::apply(
                     $chatId,
                     MaxSearchApi::$statusStars,
-                    $stars
+                    $stars,
+                    true
                 )) return true;
                 if (EditFlowService::finishIfNeeded($chatId, 'stars')) return true;
             }
@@ -231,7 +237,8 @@ class WizardCallbackAction
                 if (!ExistingWizardStepApplicationService::apply(
                     $chatId,
                     MaxSearchApi::$statusMeal,
-                    $meal
+                    $meal,
+                    true
                 )) return true;
                 if (EditFlowService::finishIfNeeded($chatId, 'meal')) return true;
             }
@@ -248,7 +255,8 @@ class WizardCallbackAction
                 if (!ExistingWizardStepApplicationService::apply(
                     $chatId,
                     MaxSearchApi::$statusNights,
-                    $nights
+                    $nights,
+                    true
                 )) return true;
                 if (EditFlowService::finishIfNeeded($chatId, 'nights')) return true;
                 DialogueTransitionObserver::observe(

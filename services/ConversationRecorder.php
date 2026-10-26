@@ -9,8 +9,14 @@ require_once __DIR__ . '/RoutingAccessService.php';
  */
 class ConversationRecorder
 {
+    // Request-local provenance, never recovered from the mutable last dialogue.
+    private static ?array $wizardInput = null;
+    private static array $wizardReceipts = [];
+
     public static function inbound(array $incoming): bool
     {
+        self::$wizardInput = null;
+        self::$wizardReceipts = [];
         try {
             if (!ConversationDb::isConfigured()) return false;
             $user = (array)($incoming['user'] ?? []);
@@ -49,10 +55,40 @@ class ConversationRecorder
             $meta = self::json($metadata);
             $stmt = $pdo->prepare('INSERT INTO messages (conversation_id,direction,sender_type,sender_id,channel,external_message_id,text,metadata_json) VALUES (?,?,?,?,?,?,?,?)');
             $stmt->execute([$conversationId,'inbound','customer',$externalUserId,$platform,$messageId !== '' ? $messageId : null,$text,$meta]);
+            $inputId = (string)$pdo->lastInsertId();
             self::touch($conversationId);
+            if (ProjectConfig::projectId() === 'anytour' && in_array($platform, ['max','telegram'], true)
+                && in_array($type, ['message','callback'], true) && $text !== ''
+                && ($linked['type'] ?? '') !== 'forward' && ctype_digit($inputId) && (int)$inputId > 0) {
+                self::$wizardInput = ['conversation_id'=>$conversationId, 'chat_id'=>$chatId,
+                    'input_message_id'=>$inputId, 'input_kind'=>$type, 'input_text_sha256'=>hash('sha256',$text)];
+            }
             return true;
         } catch (Throwable $e) {
             self::logFailure('inbound', $e);
+            return false;
+        }
+    }
+
+    /** Observe only a successful deterministic application of this request's input. */
+    public static function wizardValueApplied($chatId, string $field, string $value): bool
+    {
+        try {
+            $input = self::$wizardInput;
+            if (!$input || ProjectConfig::projectId() !== 'anytour' || $input['chat_id'] !== (string)$chatId
+                || !in_array($field, ['city','country','adults','children','child_ages','stars','meal','nights','date'], true)
+                || $value === '' || strlen($value) > 160) return false;
+            $key = $field . ':' . $value;
+            if (isset(self::$wizardReceipts[$key])) return true;
+            $payload = ['version'=>1, 'origin'=>'existing_wizard_step_application',
+                'input_message_id'=>$input['input_message_id'], 'input_kind'=>$input['input_kind'],
+                'input_text_sha256'=>$input['input_text_sha256'], 'field'=>$field, 'storage_value'=>$value];
+            $stmt = ConversationDb::connection()->prepare('INSERT INTO conversation_events (conversation_id,event_type,actor_type,payload_json) VALUES (?,?,?,?)');
+            $stmt->execute([$input['conversation_id'],'wizard_value_applied','system',self::json($payload)]);
+            self::$wizardReceipts[$key] = true;
+            return true;
+        } catch (Throwable $ignored) {
+            // Provenance failure must not change the applied value or leak its content.
             return false;
         }
     }
