@@ -1,4 +1,4 @@
--- Derived private analytical indexes/profiles; original source journal stays canonical.
+-- Derived private analytical indexes/profiles. Original source journal stays canonical.
 CREATE TABLE IF NOT EXISTS modeled_conversion_profiles_state (
  project_key VARCHAR(40) CHARACTER SET ascii COLLATE ascii_bin PRIMARY KEY,
  enabled TINYINT UNSIGNED NOT NULL DEFAULT 0,
