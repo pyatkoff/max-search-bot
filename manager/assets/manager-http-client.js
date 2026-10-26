@@ -1,11 +1,12 @@
 window.ManagerHttpClient={
-  async request(action,data={},csrf='',endpoint='api.php'){
+  async request(action,data={},csrf='',endpoint='api.php',options={}){
     try{
       const response=await fetch(endpoint,{
         method:'POST',
         credentials:'same-origin',
         headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({action,csrf,...data})
+        body:JSON.stringify({action,csrf,...data}),
+        ...(options.signal?{signal:options.signal}:{})
       });
       const payload=await response.json();
       return payload&&typeof payload==='object'?payload:{ok:false,error:'invalid_response'};
