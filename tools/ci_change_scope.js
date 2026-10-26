@@ -3,6 +3,7 @@
 
 const fs = require('node:fs');
 const { execFileSync } = require('node:child_process');
+const { isDeepStrictEqual } = require('node:util');
 
 const OAUTH_PATHS = new Set([
   'manager/ai-oauth.php',
@@ -14,6 +15,7 @@ const OAUTH_PATHS = new Set([
 ]);
 const FIXTURE = 'tests/visual/fixtures/oauth-consent.js';
 const DOCUMENT = 'docs/MANAGER_PREPARED_REPLIES.md';
+const EDITOR_MANIFEST = 'modules/tour-selections/editor.json';
 // Explicit collector owners. These files are consumed by the selection page,
 // its MV3 package and dedicated regressions, not by other workspace UI specs.
 // Unknown adapters/helpers still require review; this is never a prefix match.
@@ -52,6 +54,9 @@ const TOUR_COLLECTOR_PATHS = new Set([
 // select this scope. In particular the shared TourChoice draft stays excluded.
 const TOUR_SELECTION_PATHS = new Set([
   ...TOUR_COLLECTOR_PATHS,
+  // Content is checked against both Git revisions below. This is not an
+  // exemption for changes to the package/host/backend compatibility contract.
+  EDITOR_MANIFEST,
   'manager/assets/workspace-v2-tour-selection.js',
   'manager/assets/workspace-v2-tour-selection.css',
   'manager/tour-selections-api.php',
@@ -147,6 +152,29 @@ function oauthSpecOnlyChange(baseSource, headSource) {
   return !!(base && head && head.hasOAuth && base.prefix === head.prefix);
 }
 
+function editorManifestVersionOnlyChange(baseSource, headSource) {
+  try {
+    const base = JSON.parse(baseSource), head = JSON.parse(headSource);
+    const record = value => value !== null && typeof value === 'object' && !Array.isArray(value);
+    const keys = ['backend_inputs', 'contract', 'files', 'name', 'schema', 'version'];
+    const valid = value => record(value) && isDeepStrictEqual(Object.keys(value).sort(), keys) &&
+      value.schema === 1 && value.name === 'anytour-selection-editor' &&
+      value.contract === 'tour-selection-editor-host-v1' &&
+      typeof value.version === 'string' && value.version === value.version.trim() &&
+      /^[0-9]+\.[0-9]+\.[0-9]+$/.test(value.version) &&
+      record(value.files) && Object.keys(value.files).length > 0 &&
+      Object.values(value.files).every(path => typeof path === 'string' && path.length > 0) &&
+      Array.isArray(value.backend_inputs) && value.backend_inputs.length > 0 &&
+      value.backend_inputs.every(path => typeof path === 'string' && path.length > 0) &&
+      new Set(value.backend_inputs).size === value.backend_inputs.length;
+    // Compare parsed content so harmless key ordering is not a dependency.
+    // Every non-version field, including nested arrays and package paths,
+    // must remain identical. Malformed or future contracts fall back to full.
+    return valid(base) && valid(head) && base.version !== head.version &&
+      isDeepStrictEqual({ ...base, version: head.version }, head);
+  } catch (_) { return false; }
+}
+
 function selectScope(env = process.env) {
   if (env.GITHUB_EVENT_NAME !== 'pull_request') return full('not_pull_request');
   if (!env.GITHUB_EVENT_PATH) return full('missing_event_path');
@@ -171,6 +199,10 @@ function selectScope(env = process.env) {
         !oauthSpecOnlyChange(git(['show', `${base}:${browserSpec}`]), git(['show', `${head}:${browserSpec}`]))) {
       return full('shared_browser_spec_changed');
     }
+    if (result.mode === 'tour-selection' && changes.some(change => change.path === EDITOR_MANIFEST) &&
+        !editorManifestVersionOnlyChange(git(['show', `${base}:${EDITOR_MANIFEST}`]), git(['show', `${head}:${EDITOR_MANIFEST}`]))) {
+      return full('editor_manifest_contract_changed');
+    }
     // CI-rule edits retain full coverage AND exercise the new scoped runner.
     // Ordinary full changes do not pay for this additional commissioning proof.
     return { ...result, proveTourSelection: result.mode === 'full' && changes.some(change => TOUR_CI_PROOF_PATHS.has(change.path)) };
@@ -183,4 +215,4 @@ if (require.main === module) {
   process.stdout.write(`${JSON.stringify(result)}\n`);
 }
 
-module.exports = { TOUR_SELECTION_PATHS, classifyChanges, parseRawDiff, oauthSpecOnlyChange, selectScope };
+module.exports = { TOUR_SELECTION_PATHS, classifyChanges, parseRawDiff, oauthSpecOnlyChange, editorManifestVersionOnlyChange, selectScope };

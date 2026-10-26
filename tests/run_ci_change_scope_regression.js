@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
-const { classifyChanges, parseRawDiff, oauthSpecOnlyChange } = require('../tools/ci_change_scope');
+const { classifyChanges, parseRawDiff, oauthSpecOnlyChange, editorManifestVersionOnlyChange } = require('../tools/ci_change_scope');
 const selector = path.resolve(__dirname, '../tools/ci_change_scope.js');
 const oauth = 'manager/ai-oauth.php';
 const fixture = 'tests/visual/fixtures/oauth-consent.js';
@@ -14,6 +14,9 @@ const doc = 'docs/MANAGER_PREPARED_REPLIES.md';
 const tour = 'manager/assets/workspace-v2-tour-selection.js';
 const tourService = 'services/ManagerTourSelectionShareService.php';
 const tourDoc = 'docs/MANAGER_TOUR_SELECTIONS.md';
+const editorManifest = 'modules/tour-selections/editor.json';
+const editorBase = JSON.parse(fs.readFileSync(path.resolve(__dirname, '..', editorManifest), 'utf8'));
+const editorNext = { ...editorBase, version: editorBase.version.replace(/\d+$/, patch => String(Number(patch) + 1)) };
 const collectorPage = 'manager/tour-selection-collector.php';
 const collectorPrice = 'extensions/selection-collector/price-adjustment.js';
 // Actual PR1108 changed only this component, despite touching more than its
@@ -79,6 +82,10 @@ check(classify([{status:'A',path:'extensions/selection-collector/new-adapter.js'
 for(const file of ['manager/_bootstrap.php','manager/assets/workspace-v2.js','services/ManagerAuthService.php','services/TourOfferCallbackService.php','tests/visual/fixtures/internal-notes.js','tests/visual/manager-media-compose.spec.js','migrations/056_future.sql',oauth,'tools/ci_change_scope.js','.github/workflows/workspace-v2-visual-qa.yml'])check(classify([{status:'M',path:tour},{status:'M',path:file}]),'full','selection mixed/shared change: '+file);
 for(const status of ['A','D','R100','C100','T','U',undefined])check(classify([{status,path:tour}]),'full','selection requires existing regular modification: '+status);
 check(classify([{status:'M',path:tour,oldMode:'100644',newMode:'100755'}]),'full','selection mode changes stay full');
+for (const status of ['A','D','R100','C100','T','U']) {
+  check(classify([{status,path:editorManifest,oldMode:'100644',newMode:'100644'}]),'full','editor manifest requires an existing modification: '+status);
+}
+check(classify([{status:'M',path:editorManifest,oldMode:'100644',newMode:'100755'}]),'full','editor manifest mode change stays full');
 for (const changes of [[], null, [{}], [{ status: 'M', path: doc }], [{ status: 'M', path: oauth, previousPath: oauth }]]) {
   check(classify(changes), 'full', 'malformed, empty, documentation or rename');
 }
@@ -97,6 +104,25 @@ check(classify([{ status: 'A', path: fixture, oldMode: '100644', newMode: '10064
 assert.throws(() => parseRawDiff(':garbage\0file\0')); assertions++;
 assert.throws(() => parseRawDiff('unterminated')); assertions++;
 check(oauthSpecOnlyChange(sharedSpec, fixtureImport + sharedSpec + consentLoop), true, 'native consent append leaves shared AI source unchanged');
+const editorChange = head => editorManifestVersionOnlyChange(JSON.stringify(editorBase), JSON.stringify(head));
+check(editorChange(editorNext), true, 'an editor version bump does not change package or backend dependencies');
+check(editorChange(Object.fromEntries(Object.entries(editorNext).reverse())), true, 'manifest key order does not change its contract');
+check(editorChange(editorBase), false, 'formatting alone is not an editor release');
+for (const patch of [
+  { schema: 2 }, { name: 'other-module' }, { contract: 'tour-selection-editor-host-v2' },
+  { files: { ...editorBase.files, 'http.js': 'manager/assets/other-http-client.js' } },
+  { files: { ...editorBase.files, 'extra.js': 'manager/assets/workspace-v2.js' } },
+  { backend_inputs: [...editorBase.backend_inputs, 'services/ManagerAuthService.php'] },
+  { backend_inputs: [...editorBase.backend_inputs].reverse() },
+  { future_contract: true }, { files: null }, { files: [] }, { backend_inputs: [] },
+]) check(editorChange({ ...editorNext, ...patch }), false, 'version bump cannot hide a package/host/backend contract change');
+for (const version of [null, 2, '', '0.2', '0.2.2-dev', '0.2.2\n', '0.2.2\r\n', '../../0.2.2']) {
+  check(editorChange({ ...editorNext, version }), false, 'invalid editor version keeps full coverage');
+}
+for (const source of ['{broken', 'null', '[]', '"manifest"', '{}']) {
+  check(editorManifestVersionOnlyChange(source, JSON.stringify(editorNext)), false, 'invalid base manifest keeps full coverage');
+  check(editorManifestVersionOnlyChange(JSON.stringify(editorBase), source), false, 'invalid head manifest keeps full coverage');
+}
 check(oauthSpecOnlyChange(fixtureImport + sharedSpec + consentLoop, fixtureImport + sharedSpec + consentLoop.replace('await startOAuthFixture(choice);', 'await startOAuthFixture(choice, 1);')), true, 'future OAuth-only assertion edit');
 for (const changed of [
   fixtureImport + sharedSpec.replace('AI baseline', 'AI altered') + consentLoop,
@@ -117,6 +143,8 @@ try {
   git(['config', 'core.filemode', 'true']);
   put(oauth, 'base\n'); put(doc, 'docs\n'); put('manager/_bootstrap.php', 'shared\n');
   put(tour,'base selection\n');put(tourService,'<?php // base\n');put(tourDoc,'selection docs\n');
+  put(editorManifest, JSON.stringify(editorBase));
+  put('tests/visual/manager-tour-selection.spec.js', 'base selection cases\n');
   put(collectorPage,'collector page base\n');
   for(const file of collector1108)put(file,'collector dependency base\n');
   put(browserSpec, sharedSpec);
@@ -142,6 +170,27 @@ try {
     check(lastProof,proof,'additional component proof only for its CI-rule edits');
   }
   commitCase('selection UI change',()=>put(tour,'changed selection\n'),'tour-selection');
+  commitCase('PR1171 editor UI, complete component spec and version-only manifest',()=>{
+    put(tour,'changed editor history boundary\n');
+    put('tests/visual/manager-tour-selection.spec.js','changed complete selection cases\n');
+    put(editorManifest,JSON.stringify(editorNext));
+  },'tour-selection');
+  commitCase('editor manifest-only version bump retains complete component proof',()=>put(editorManifest,JSON.stringify(editorNext)),'tour-selection');
+  for (const patch of [
+    { files: { ...editorBase.files, 'http.js': 'manager/assets/other-http-client.js' } },
+    { backend_inputs: [...editorBase.backend_inputs, 'services/ManagerAuthService.php'] },
+    { contract: 'tour-selection-editor-host-v2' }, { schema: 2 },
+  ]) commitCase('editor version with changed contract '+Object.keys(patch)[0],()=>{
+    put(tour,'changed editor\n');put(editorManifest,JSON.stringify({ ...editorNext, ...patch }));
+  },'full');
+  commitCase('editor malformed manifest with UI change',()=>{put(tour,'changed editor\n');put(editorManifest,'{broken');},'full');
+  commitCase('editor version with shared auth change',()=>{
+    put(editorManifest,JSON.stringify(editorNext));put('manager/_bootstrap.php','changed shared\n');
+  },'full');
+  commitCase('editor manifest addition remains full',()=>put('modules/tour-selections/other.json',JSON.stringify(editorNext)),'full');
+  commitCase('editor manifest deletion remains full',()=>fs.unlinkSync(path.join(temp,editorManifest)),'full');
+  commitCase('editor manifest rename remains full',()=>fs.renameSync(path.join(temp,editorManifest),path.join(temp,'modules/tour-selections/renamed.json')),'full');
+  commitCase('editor manifest mode change remains full',()=>fs.chmodSync(path.join(temp,editorManifest),0o755),'full');
   commitCase('PR1104 isolated collector copy',()=>put(collectorPage,'collector title changed\n'),'tour-selection');
   commitCase('PR1108 complete collector diff',()=>{for(const file of collector1108)put(file,'changed collector dependency\n');},'tour-selection');
   commitCase('reviewed collector calculator addition',()=>put(collectorPrice,'module.exports = {};\n'),'tour-selection');
