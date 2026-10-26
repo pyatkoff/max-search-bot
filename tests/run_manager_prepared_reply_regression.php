@@ -835,7 +835,7 @@ function preparedReplyHotelRun(): void
     preparedReplyCheck('prepared worker receives the same exact hotel facts sources and revision as manual capture',
         ($worker['ok']??false)&&$worker['revision']===$snapshot['revision']&&$hotel===$manual
         &&($hotel['hotel_ref']??null)===['catalog'=>'anytour','id'=>1554]
-        &&count($hotel['facts']??[])===3&&count($hotel['sources']??[])===3);
+        &&count($hotel['facts']??[])===6&&count($hotel['sources']??[])===3);
     preparedReplyCheck('hotel worker input is private-minimized and reading does not persist evidence or mutate the source',
         !str_contains(json_encode($worker,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR),'PRIVATE')
         &&preparedReplySourceState($pdo)===$sourceBefore
