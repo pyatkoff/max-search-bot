@@ -10,7 +10,7 @@ from datetime import date
 
 import build_conversion_observations as base
 
-VERSION = "ru_trip_prefix_rules_v1_2"
+VERSION = "ru_trip_prefix_rules_v1_3"
 MAX_BYTES = 2 * 1024 * 1024
 MAX_CASES = 100
 MAX_MESSAGES = 500
@@ -175,10 +175,13 @@ def date_constraints(text):
 
 def validate_case(case):
     base.fields(case, ("subject", "brand_key", "context_from", "prediction_at", "source_complete_through",
-                       "prefix_complete", "messages"))
+                       "prefix_complete", "messages"), ("source_fence_at",))
     scope = base.subject(case["subject"]); base.key(case["brand_key"])
-    start, cutoff, complete = map(base.moment, [case["context_from"], case["prediction_at"], case["source_complete_through"]])
-    base.require(start <= complete <= cutoff, "invalid_prefix_interval")
+    start, cutoff = map(base.moment, [case["context_from"], case["prediction_at"]])
+    complete = base.moment(case["source_complete_through"]) if case["source_complete_through"] is not None else None
+    base.require(complete is not None or "source_fence_at" in case, "source_fence_required")
+    fence = base.moment(case.get("source_fence_at", case["prediction_at"]))
+    base.require(start <= fence <= cutoff and (complete is None or start <= complete <= fence), "invalid_prefix_interval")
     base.require(type(case["prefix_complete"]) is bool, "explicit_completeness_required")
     base.require(not case["prefix_complete"] or complete == cutoff, "incomplete_prediction_coverage")
     base.require(isinstance(case["messages"], list) and len(case["messages"]) <= MAX_MESSAGES, "message_limit")
@@ -189,6 +192,8 @@ def validate_case(case):
                      and m["speaker"] in {"customer", "manager", "other"} and m["kind"] in {"text", "action"}, "invalid_message_role")
         base.require(isinstance(m["text"], str) and len(m["text"]) <= MAX_TEXT, "text_limit")
         base.require(base.moment(m["available_at"]) >= base.moment(m["at"]), "source_available_before_occurrence")
+        if "source_fence_at" in case:
+            base.require(base.moment(m["at"]) <= fence, "source_row_after_fence")
         base.require(m["id"] not in unique or unique[m["id"]] == m, "conflicting_message_id")
         unique[m["id"]] = m
     rows = sorted(unique.values(), key=lambda m: (m["at"], m["id"]))
@@ -197,7 +202,35 @@ def validate_case(case):
     return scope, rows
 
 
+def prediction_features(case, extracted, fields, party, stage):
+    """Admit known available facts independently of target-risk-set eligibility."""
+    cutoff = base.moment(case["prediction_at"])
+    fence = case.get("source_fence_at")
+    candidates = {**{"fields."+k: v for k, v in fields.items()},
+                  **{"party."+k: v for k, v in party.items()}, "observed_stage": stage}
+    admitted = {}; unavailable = {}
+    for path, row in sorted(candidates.items()):
+        if row["status"] != "known":
+            unavailable[path] = row["status"]
+        elif not row["usable_at_prediction"]:
+            unavailable[path] = "not_available_at_prediction"
+        else:
+            latest = max(base.moment(r["at"]) for r in row["references"])
+            admitted[path] = {**row, "last_source_recorded_at": base.stamp(latest),
+                              "seconds_since_source_record": int((cutoff-latest).total_seconds())}
+    view = {"version": "available_trip_facts_v1", "prediction_at": case["prediction_at"],
+            "semantic_available_at": extracted, "source_fence_at": fence,
+            "source_complete_through": case["source_complete_through"],
+            "source_gap_seconds": int((cutoff-base.moment(fence)).total_seconds()) if fence else None,
+            "prefix_complete": case["prefix_complete"], "semantic_coverage": "partial_rules_only",
+            "facts": admitted, "unavailable_facts": unavailable}
+    view["feature_fingerprint"] = base.digest({"subject": case["subject"], "brand_key": case["brand_key"],
+                                             "context_from": case["context_from"], "extractor_sha256": RULE_SHA, "features": view})
+    return view
+
+
 def extract_case(case, extracted):
+    base.moment(extracted)
     scope, messages = validate_case(case)
     cutoff = case["prediction_at"]
     fields = {name: [] for name in ["budget", "budget_preference", "duration", "dates", "departure",
@@ -346,7 +379,8 @@ def extract_case(case, extracted):
                          "available_at": row["available_at"], "confidence": "high", "references": refs})
     observation = {"subject": scope, "context_from": case["context_from"], "prediction_at": cutoff,
                    "observed_through": max(cutoff, extracted), "prefix_complete": case["prefix_complete"],
-                   "followup_complete": False, "evidence": canonical+semantic, "advertising_entry": None}
+                   "followup_complete": False, "evidence": canonical+semantic, "advertising_entry": None,
+                   "target_history_available_at": extracted}
     built = base.build_observation(observation)
     assumptions = []
     if assumption_refs and adults is None and children is None and components["total"]["value"] == 2:
@@ -359,6 +393,9 @@ def extract_case(case, extracted):
             "fields": result_fields, "party": components, "working_assumptions": assumptions,
             "manager_quotes": offered, "current_stage": current,
             "customer_requirements": requirements, "observation": built,
+            "prediction_features": prediction_features(case, extracted, result_fields, components, current),
+            "target_admission": {"target_version": base.TARGET, "eligible": built["eligible"],
+                                 "reason": "complete_prefix_without_observed_target" if built["eligible"] else built["label"]["reason"]},
             "observation_input": observation, "purchase_anywhere_probability": None,
             "purchase_with_us_probability": None, "expected_commission_rub": None,
             "expected_value_rub": None, "export_allowed": False}
