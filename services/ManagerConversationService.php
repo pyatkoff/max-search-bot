@@ -87,6 +87,19 @@ class ManagerConversationService
 
     public static function list(int $managerId, string $queue='waiting', int $limit=100, string $projectKey='*', string $managerFilter='', string $leadStageKey='', int $leadTagId=0, array $personalFilters=[], ?array &$pageMetadata=null): array
     {
+        return self::listRows($managerId,$queue,$limit,$projectKey,$managerFilter,$leadStageKey,$leadTagId,$personalFilters,$pageMetadata,false);
+    }
+
+    /** Internal queue counters retain the list's candidate/routing rules, without display data. */
+    public static function queueCountRows(int $managerId,string $queue,string $projectKey='*'): array
+    {
+        if(!in_array($queue,['waiting','requested','mine'],true))throw new InvalidArgumentException('Invalid counter queue');
+        $pageMetadata=null;
+        return self::listRows($managerId,$queue,200,$projectKey,'','',0,[],$pageMetadata,true);
+    }
+
+    private static function listRows(int $managerId,string $queue,int $limit,string $projectKey,string $managerFilter,string $leadStageKey,int $leadTagId,array $personalFilters,?array &$pageMetadata,bool $countsOnly): array
+    {
         RoutingAccessService::ensureSchema();ManagerReadService::ensureSchema();
         $manager=ManagerAuthService::byId($managerId);if(!$manager)return[];$isAdmin=ManagerAuthService::isAdmin($manager);
         $limit=max(1,min(200,$limit));$where=['c.is_test=0'];$args=[];
@@ -166,6 +179,9 @@ class ManagerConversationService
         $replyProjection='CASE WHEN '.$replySql.' THEN 1 ELSE 0 END';
         $whereSql=implode(' AND ',$where);
         $orderSql=($queue==='attention'||$queue==='waiting')?'COALESCE(manager_request_at,c.last_message_at,c.started_at) ASC':($queue==='requested'?'manager_request_at DESC':($queue==='mine'?'awaiting_manager_reply DESC,COALESCE(c.last_message_at,c.started_at) DESC':'COALESCE(c.last_message_at,c.started_at) DESC'));
+        // A projection's row width may change a database sort plan. Resolve
+        // equal timestamps identically before the cap in list and counters.
+        if(in_array($queue,['waiting','requested','mine'],true))$orderSql.=',c.id '.($queue==='waiting'?'ASC':'DESC');
         $fromSql='FROM conversations c JOIN customers cu ON cu.id=c.customer_id';
         $predicateSql=' WHERE '.$whereSql;
         if($queue==='mine'){
@@ -181,18 +197,33 @@ class ManagerConversationService
             $fromSql='FROM (SELECT c.id FROM conversations c JOIN customers cu ON cu.id=c.customer_id WHERE '.$whereSql.' ORDER BY '.$orderSql.' LIMIT 200) inbox_page JOIN conversations c ON c.id=inbox_page.id JOIN customers cu ON cu.id=c.customer_id';
             $predicateSql='';
         }
-        $sql='SELECT c.id,c.project_key,c.source_id,c.channel,c.entry_channel,c.attribution_region,c.attribution_campaign,c.status,c.lead_stage_key,c.manager_id,c.started_at,c.last_message_at,c.closed_at,c.customer_id,'
+        $unreadProjection='(SELECT COUNT(*) FROM messages um WHERE um.conversation_id=c.id AND um.direction=\'inbound\' AND um.sender_type=\'customer\' AND um.id>COALESCE((SELECT rr.last_read_message_id FROM manager_conversation_reads rr WHERE rr.manager_id='.$mid.' AND rr.conversation_id=c.id LIMIT 1),0)) AS unread_count ';
+        if($countsOnly){
+            $rankProjection=$queue==='mine'?$replyProjection.' AS awaiting_manager_reply':$requestSql.' AS manager_request_at';
+            $sql='SELECT c.id,c.project_key,c.source_id,c.status,c.manager_id,c.started_at,c.last_message_at,'
+                .$rankProjection.','.$unreadProjection.$fromSql.$predicateSql.' ORDER BY '.$orderSql.' LIMIT 200';
+        }else $sql='SELECT c.id,c.project_key,c.source_id,c.channel,c.entry_channel,c.attribution_region,c.attribution_campaign,c.status,c.lead_stage_key,c.manager_id,c.started_at,c.last_message_at,c.closed_at,c.customer_id,'
             .'cu.display_name AS original_display_name,cn.working_name,COALESCE(cn.version,0) AS customer_name_version,COALESCE(cn.working_name,cu.display_name) AS display_name,m.display_name AS manager_name,p.display_name AS project_name,s.display_name AS source_name,'
             .$requestSql.' AS manager_request_at,CASE WHEN '.$awaitingSql.' THEN 1 ELSE 0 END AS awaiting_first_reply,'
             .$replyProjection.' AS awaiting_manager_reply,'
             .'GREATEST(TIMESTAMPDIFF(SECOND,'.$requestSql.',NOW()),0) AS wait_age_seconds,'
             .'last_message.text AS last_text,last_message.direction AS last_direction,last_message.sender_type AS last_sender_type,last_message.metadata_json AS last_metadata_json,'
-            .'(SELECT COUNT(*) FROM messages um WHERE um.conversation_id=c.id AND um.direction=\'inbound\' AND um.sender_type=\'customer\' AND um.id>COALESCE((SELECT rr.last_read_message_id FROM manager_conversation_reads rr WHERE rr.manager_id='.$mid.' AND rr.conversation_id=c.id LIMIT 1),0)) AS unread_count '
+            .$unreadProjection
             .$fromSql.' LEFT JOIN messages last_message ON last_message.id=(SELECT mm.id FROM messages mm WHERE mm.conversation_id=c.id ORDER BY mm.id DESC LIMIT 1) LEFT JOIN manager_customer_names cn ON cn.customer_id=c.customer_id LEFT JOIN managers m ON m.id=c.manager_id LEFT JOIN projects p ON p.project_key=c.project_key LEFT JOIN conversation_sources s ON s.id=c.source_id'.$predicateSql
             .' ORDER BY '.$orderSql.' LIMIT 200';
         $q=ConversationDb::connection()->prepare($sql);$q->execute($args);$rows=$q->fetchAll();
         $pageMetadata=['candidate_count'=>count($rows),'limit_reached'=>count($rows)===200];
         $rows=ManagerConversationAccessPolicy::visibleRows($managerId,$rows);
+        if($countsOnly){
+            // Only actionable Waiting uses delivery state. Other counters and
+            // the raw notification union need no presentation/failure lookup.
+            if($queue==='waiting'){
+                $failures=ManagerDeliveryStateService::activeFailures(array_column($rows,'id'));
+                foreach($rows as &$row)$row['delivery_failure_category']=$failures[(int)$row['id']]['category']??null;
+                unset($row);
+            }
+            return array_slice($rows,0,$limit);
+        }
         foreach($rows as &$row)$row['can_edit_customer_name']=ManagerConversationAccessPolicy::canEditVisibleConversation($row,$manager);
         unset($row);
         $rows=SalesPipelineService::decorateConversationRows($rows);

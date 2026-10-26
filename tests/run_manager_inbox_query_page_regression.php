@@ -11,6 +11,8 @@ final class InboxQueryPdo extends PDO
     public int $annotations=0;
     public string $lastListSql='';
     public array $lastListArgs=[];
+    public int $executions=0;
+    public array $listWork=[];
     public function __construct()
     {
         $this->database=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
@@ -33,11 +35,20 @@ final class InboxQueryStatement extends PDOStatement
     public function __construct(private PDOStatement $statement,private InboxQueryPdo $database,private ?string $listSql){}
     public function execute(?array $params=null):bool
     {
+        $this->database->executions++;
         if($this->listSql!==null){$this->database->lastListSql=$this->listSql;$this->database->lastListArgs=$params??[];}
         return$this->statement->execute($params);
     }
     public function fetch(int $mode=PDO::FETCH_DEFAULT,int $orientation=PDO::FETCH_ORI_NEXT,int $offset=0):mixed{return$this->statement->fetch($mode,$orientation,$offset);}
-    public function fetchAll(int $mode=PDO::FETCH_DEFAULT,mixed ...$args):array{return$this->statement->fetchAll($mode,...$args);}
+    public function fetchAll(int $mode=PDO::FETCH_DEFAULT,mixed ...$args):array
+    {
+        $rows=$this->statement->fetchAll($mode,...$args);
+        if($this->listSql!==null){
+            $bytes=0;foreach($rows as $row)foreach($row as $value)$bytes+=strlen((string)$value);
+            $this->database->listWork[]=['rows'=>count($rows),'columns'=>$rows?count($rows[0]):0,'value_bytes'=>$bytes];
+        }
+        return$rows;
+    }
     public function fetchColumn(int $column=0):mixed{return$this->statement->fetchColumn($column);}
 }
 
@@ -185,6 +196,46 @@ queryPageCheck('Mine keeps post-page routing visibility without backfill',count(
 queryPageCheck('Mine ranking and list reads never advance read markers',$db->query('SELECT * FROM manager_conversation_reads ORDER BY manager_id,conversation_id')->fetchAll()===$readsBeforeMine);
 $db->exec("UPDATE managers SET role='admin' WHERE id=7");
 
+// Compare both projections against the same real SQL, data and routing owner.
+// Full list is an unchanged reference; the smaller path must preserve its page.
+$countFields=['id','project_key','source_id','manager_id','status','started_at','last_message_at','unread_count'];
+$projectCountRows=static function(array $rows,string $queue)use($countFields):array{
+    $fields=[...$countFields,$queue==='mine'?'awaiting_manager_reply':'manager_request_at'];
+    if($queue==='waiting')$fields[]='delivery_failure_category';
+    return array_map(static fn(array $row):array=>array_intersect_key($row,array_flip($fields)),$rows);
+};
+$pdo->executions=0;$pdo->listWork=[];$pdo->annotations=0;$fullCountRows=[];
+foreach(['waiting','requested','mine'] as $queue)$fullCountRows[$queue]=ManagerConversationService::list(7,$queue,200,'anytour');
+$fullCountWork=['sql'=>$pdo->executions,'list'=>$pdo->listWork,'annotations'=>$pdo->annotations];
+echo 'COUNT_WORK before '.json_encode($fullCountWork,JSON_THROW_ON_ERROR)."\n";
+queryPageCheck('dedicated counter projection is available',is_callable([ManagerConversationService::class,'queueCountRows']));
+if(is_callable([ManagerConversationService::class,'queueCountRows'])){
+    $pdo->executions=0;$pdo->listWork=[];$pdo->annotations=0;
+    foreach(['waiting','requested','mine'] as $queue){
+        $actual=ManagerConversationService::queueCountRows(7,$queue,'anytour');
+        queryPageCheck("{$queue} counter fields equal the full bounded visible page",$actual===$projectCountRows($fullCountRows[$queue],$queue));
+    }
+    $countWork=['sql'=>$pdo->executions,'list'=>$pdo->listWork,'annotations'=>$pdo->annotations];
+    queryPageCheck('counter SQL omits display annotations and reduces executions and transferred values',$countWork['annotations']===0&&$countWork['sql']<$fullCountWork['sql']&&array_sum(array_column($countWork['list'],'value_bytes'))<array_sum(array_column($fullCountWork['list'],'value_bytes')));
+    echo 'COUNT_WORK after '.json_encode($countWork,JSON_THROW_ON_ERROR)."\n";
+    foreach([['manager',1,'*'],['manager',0,'anytour'],['admin',1,'anytour'],['manager',1,'other']] as [$role,$working,$project]){
+        $db->prepare('UPDATE managers SET role=?,is_working=? WHERE id=7')->execute([$role,$working]);
+        foreach(['waiting','requested','mine'] as $queue){
+            $full=ManagerConversationService::list(7,$queue,200,$project);
+            queryPageCheck("{$role}/{$working}/{$project}/{$queue} keeps capped source/project visibility",ManagerConversationService::queueCountRows(7,$queue,$project)===$projectCountRows($full,$queue));
+        }
+    }
+    queryPageCheck('counter projections preserve read cursors',$db->query('SELECT * FROM manager_conversation_reads ORDER BY manager_id,conversation_id')->fetchAll()===$readsBeforeMine);
+    $db->exec("UPDATE managers SET role='admin',is_working=1 WHERE id=7");
+    $db->beginTransaction();
+    $db->exec("UPDATE conversations SET last_message_at='2026-10-14 12:00:00',started_at='2026-10-14 12:00:00'");
+    $tied=array_values(array_filter($fixtures,static fn(array $r):bool=>$r['status']==='manager'&&$r['manager_id']===7&&!$r['is_test']&&$r['customer_id']===1&&$r['project_key']==='anytour'));
+    usort($tied,static fn(array $a,array $b):int=>((int)($b['reply_needed']??true)<=>(int)($a['reply_needed']??true))?:($b['id']<=>$a['id']));
+    $tiedIds=array_column(array_slice($tied,0,200),'id');
+    queryPageCheck('equal-time Mine candidates have the same deterministic 200-row boundary',array_column(ManagerConversationService::list(7,'mine',200,'anytour'),'id')===$tiedIds&&array_column(ManagerConversationService::queueCountRows(7,'mine','anytour'),'id')===$tiedIds);
+    $db->rollBack();
+}
+
 // The working New queue is personal even for an administrator. Administrative
 // All/attention views remain available; this selection must never reassign leads.
 require_once dirname(__DIR__).'/services/ManagerQueueProjectionService.php';
@@ -266,6 +317,23 @@ $lookups=count(array_filter($plan->fetchAll(),static fn(array $row):bool=>preg_m
 queryPageCheck('actual SQLite plan resolves the latest message only once',$lookups===1);
 queryPageCheck('preview projection changes no transcript ownership or read state',$queueSnapshot()===$previewBefore);
 echo 'PREVIEW_PLAN '.json_encode(['driver'=>'sqlite','candidate_rows'=>count($previewRows),'latest_message_lookups'=>$lookups],JSON_THROW_ON_ERROR)."\n";
+
+// Routing needs the same timestamps even when display columns are omitted.
+$db->exec("UPDATE managers SET role='manager',is_working=1 WHERE id=7;
+INSERT INTO manager_group_members VALUES(7,101);
+UPDATE conversation_sources SET primary_group_id=102,fallback_mode='delayed',fallback_group_id=101,fallback_after_minutes=30 WHERE id=2");
+foreach([[105,'2000-01-01 00:00:00'],[106,'2099-01-01 00:00:00']] as [$id,$at]){
+    $insert->execute([$id,1,'anytour',2,'max','waiting_manager','new',null,$at,$at,0]);
+    $event->execute([$id,$id,$at]);$message->execute([$id*10,$id,'inbound','customer','routing fixture','{}',$at]);
+}
+$db->exec("INSERT INTO conversation_events(id,conversation_id,event_type,created_at,payload_json) VALUES(900100,101,'manager_message_failed','2026-10-17 00:00:00','{\"category\":\"suspended\"}')");
+$countState=$queueSnapshot();$counts=ManagerQueueProjectionService::counts(7,'anytour');
+queryPageCheck('delayed fallback keeps eligible and future Waiting rows identical',ManagerConversationService::queueCountRows(7,'waiting','anytour')===$projectCountRows(ManagerConversationService::list(7,'waiting',200,'anytour'),'waiting')&&in_array(105,array_column(ManagerConversationService::queueCountRows(7,'waiting','anytour'),'id'),true)&&!in_array(106,array_column(ManagerConversationService::queueCountRows(7,'waiting','anytour'),'id'),true));
+queryPageCheck('suspended Waiting is excluded but its raw notification unread remains',$counts['waiting']===['count'=>2,'unread'=>1]&&$counts['notification_unread']===5);
+queryPageCheck('counter reads preserve all prepared business state',$queueSnapshot()===$countState);
+$db->exec("INSERT INTO conversation_events(id,conversation_id,event_type,created_at,actor_type) VALUES(900101,101,'bot_started','2026-10-17 00:00:00','system')");
+$restartCounts=ManagerQueueProjectionService::counts(7,'anytour');
+queryPageCheck('canonical same-second MAX restart restores actionable Waiting only',$restartCounts['waiting']===['count'=>3,'unread'=>2]&&$restartCounts['notification_unread']===5);
 
 echo 'TOTAL '.($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);
