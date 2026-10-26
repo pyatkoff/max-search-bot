@@ -51,7 +51,7 @@ try {
     for(const browser of ['chromium','webkit']){
       const events='tests/visual/manager-client-events.spec.js';
       assert(allSpecs(browser).includes(events));
-      assert.equal([0,1].flatMap(part=>partitionSpecs(browser,part)).filter(spec=>spec===events).length,1);
+      assert.equal(Array.from({length:PART_COUNT},(_,part)=>partitionSpecs(browser,part)).flat().filter(spec=>spec===events).length,1);
     }
     for(const browser of ['chromium','webkit'])assert(mainSpecs(browser).includes('tests/visual/manager-ai-draft.spec.js'));
     for(const browser of ['chromium','webkit'])assert(mainSpecs(browser).includes('tests/visual/manager-assistant.spec.js'));
@@ -65,7 +65,7 @@ try {
     assert.match(baseline.commonDigest,/^[a-f0-9]{64}$/);assert.equal(sourceManifest(root,original).commonDigest,baseline.commonDigest);
   });
   check('whole-spec partitions preserve every main spec exactly once with layout and history owned by zero',()=>{
-    assert.equal(PART_COUNT,2);
+    assert.equal(PART_COUNT,4);
     for(const browser of ['chromium','webkit']) {
       const parts=Array.from({length:PART_COUNT},(_,part)=>partitionSpecs(browser,part));
       const union=parts.flat();assert.equal(new Set(union).size,union.length);
@@ -74,11 +74,12 @@ try {
       assert(!union.includes('tests/visual/manager-avatar-cache.spec.js'));
       const history='tests/visual/manager-transcript-history.spec.js';
       assert(parts[0].includes(history));
-      assert(!parts[1].includes(history));
-      for(const invalid of [-1,2,'0',null,0.5])assert.throws(()=>partitionSpecs(browser,invalid),/Invalid browser partition/);
+      assert(parts.slice(1).every(part=>!part.includes(history)));
+      assert.deepEqual(parts[3],['tests/visual/manager-tour-selection.spec.js']);
+      for(const invalid of [-1,PART_COUNT,'0',null,0.5])assert.throws(()=>partitionSpecs(browser,invalid),/Invalid browser partition/);
     }
     assert(partitionSpecs('chromium',0).includes('tests/visual/workspace-v2-layout.spec.js'));
-    assert(!partitionSpecs('chromium',1).includes('tests/visual/workspace-v2-layout.spec.js'));
+    for(let part=1;part<PART_COUNT;part++)assert(!partitionSpecs('chromium',part).includes('tests/visual/workspace-v2-layout.spec.js'));
     assert.throws(()=>partitionSpecs('firefox',0));
   });
   check('production uses a fixed non-configurable reviewed harness pin',()=>{
