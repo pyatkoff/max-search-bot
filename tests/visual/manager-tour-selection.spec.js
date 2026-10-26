@@ -180,6 +180,45 @@ for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,
 async function save(page){await page.locator('#tsSave').click();await expect(page.locator('#tsSaved')).toHaveText('Сохранено на сервере')}
 function clean(s,extra=[]){expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);expect(s.calls.filter(x=>!['get','save','operation',...extra].includes(x.action))).toEqual([]);expect(s.pending.size).toBeLessThanOrEqual(2)}
 
+let editorPreviewBuild=null;
+function standaloneEditorPreview(){
+  if(!editorPreviewBuild){
+    editorPreviewBuild=fs.mkdtempSync(path.join(require('node:os').tmpdir(),'selection-editor-visual-'));
+    execFileSync('python3',['modules/tour-selections/build-editor.py','build','--working-tree','--output',editorPreviewBuild],{cwd:root});
+    execFileSync('python3',['modules/tour-selections/build-editor.py','verify','--output',editorPreviewBuild],{cwd:root});
+  }
+  return editorPreviewBuild;
+}
+test.afterAll(()=>{if(editorPreviewBuild)fs.rmSync(editorPreviewBuild,{recursive:true,force:true})});
+for(const width of [390,430,768,1440])test('standalone selection editor uses exact packaged core without WorkspaceV2 at '+width,async({page,browserName})=>{
+  const build=standaloneEditorPreview(),requests=[],errors=[],allowed=['preview/index.html','preview/preview.css','preview/preview-host.js','payload/editor.js','payload/editor.css'];
+  page.on('pageerror',e=>errors.push(e.message));
+  await page.route('**/*',async route=>{
+    const request=route.request(),url=new URL(request.url()),name=url.pathname.slice(1);requests.push({method:request.method(),origin:url.origin,name});
+    if(url.origin!=='https://editor-preview.fixture'||request.method()!=='GET'||!allowed.includes(name))return route.abort();
+    return route.fulfill({contentType:name.endsWith('.html')?'text/html':name.endsWith('.css')?'text/css':'application/javascript',body:fs.readFileSync(path.join(build,name))});
+  });
+  await page.setViewportSize({width,height:900});await page.goto('https://editor-preview.fixture/preview/index.html');
+  expect(await page.evaluate(()=>typeof window.WorkspaceV2)).toBe('undefined');
+  expect(await page.evaluate(()=>typeof window.WorkspaceV2TourSelection)).toBe('undefined');
+  expect(fs.readFileSync(path.join(build,'payload/editor.js'))).toEqual(fs.readFileSync(path.join(root,'manager/assets/workspace-v2-tour-selection.js')));
+  expect(fs.readFileSync(path.join(build,'payload/editor.css'))).toEqual(fs.readFileSync(path.join(root,'manager/assets/workspace-v2-tour-selection.css')));
+  await page.locator('#tourSelectionOpen').click();await expect(page.locator('#tsTitle')).toHaveText('Демонстрационный турист');
+  await expect(page.locator('#tsRecipient')).toContainText('без отправки');await expect(page.locator('#ts-hotel')).toHaveValue('Пример отеля у моря');
+  await page.locator('#ts-hotel').fill('Мой демонстрационный вариант');await page.locator('#ts-amount').fill('210000');await page.locator('#tsSave').click();
+  await expect(page.locator('#tsSaved')).toHaveText('Сохранено в этой вкладке');
+  await expect(page.locator('#tsStatus')).toContainText('в этой вкладке');
+  expect(await page.evaluate(()=>document.querySelector('#tourSelectionDialog').scrollWidth-document.querySelector('#tourSelectionDialog').clientWidth)).toBeLessThanOrEqual(1);
+  await page.setViewportSize({width,height:420});await expect(page.locator('#tsSave')).toBeInViewport();await expect(page.locator('#tsClose')).toBeInViewport();await page.setViewportSize({width,height:900});
+  await page.locator('#tsClose').click();await page.reload();await page.locator('#tourSelectionOpen').click();
+  await expect(page.locator('#ts-hotel')).toHaveValue('Мой демонстрационный вариант');await expect(page.locator('#ts-amount')).toHaveValue('210000');
+  await page.locator('#tsCollector').click();await expect(page.locator('#demoNotice')).toContainText('только демонстрационный черновик');
+  await page.locator('#tsPreview').click();await expect(page.locator('#tsStatus')).toContainText('Демонстрация');await expect(page.locator('#tsSend')).toBeHidden();
+  fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-selection-editor-standalone-${browserName}-${width}.png`)});
+  await page.locator('#tsClose').click();await page.locator('#demoReset').click();await page.locator('#tourSelectionOpen').click();await expect(page.locator('#ts-hotel')).toHaveValue('Пример отеля у моря');
+  expect(errors).toEqual([]);expect(requests.every(r=>r.method==='GET'&&r.origin==='https://editor-preview.fixture'&&allowed.includes(r.name))).toBe(true);
+});
+
 for(const width of [390,430,768,1440])test('selection editor preserves order conditions and reply at '+width,async({page,browserName})=>{
   await page.setViewportSize({width,height:900});const s=await fixture(page);expect(s.calls).toEqual([]);
   await expect(page.locator('#conversationTitle')).toBeVisible();
