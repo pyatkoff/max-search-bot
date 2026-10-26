@@ -16,7 +16,13 @@ PREVIEW = "modules/tour-selections/editor-preview"
 FILES = {"editor.js": "manager/assets/workspace-v2-tour-selection.js",
          "editor.css": "manager/assets/workspace-v2-tour-selection.css",
          "manager2-host.js": "manager/assets/workspace-v2-tour-selection-host.js",
-         "collector.zip": "extensions/selection-collector/anytour-selection-collector.zip"}
+         "collector.zip": "extensions/selection-collector/anytour-selection-collector.zip",
+         "private-host.js": "manager/assets/tour-selection-editor-host.js",
+         "private-host.css": "manager/assets/tour-selection-editor-host.css",
+         "http.js": "manager/assets/manager-http-client.js",
+         "time.js": "manager/assets/manager-time.js",
+         "app.php": "modules/tour-selections/editor-app.php",
+         "tours.php": "modules/tour-selections/editor-tours.php"}
 DEMO_FILES = ("index.html", "preview.css", "preview-host.js")
 
 

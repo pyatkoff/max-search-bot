@@ -708,6 +708,7 @@ The host contract is `tour-selection-editor-host-v1`. Required functions are
 `capture`, `isCurrent`, `canOpen`, `canEdit`, `launcher`, `request`, `formatTime`,
 `openCollector`, `takeCollectorIntent` and `activate`, with an explicit `origin`.
 `request` retains the original AbortSignal and per-operation currentness closure.
+Optional `openStandalone` is an explicit, current-actor navigation action only.
 Optional `notice`, `savedLabel` and `savedMessage` describe the synthetic host's
 tab-only storage truthfully. They confer no capability. Core draft recovery keys,
 epochs, save receipts, photo-upload fences, preview and native delivery rules
@@ -715,8 +716,8 @@ remain unchanged. Server auth/CSRF/project/source/assignment/recipient/version
 checks remain authoritative; this adapter is not a new access-control owner.
 
 `modules/tour-selections/editor.json` versions an independent exact-source
-artifact containing the same editor JS/CSS, Manager2 adapter and the existing
-collector ZIP. It does not reconstruct or introduce a second collector. The
+artifact containing the same editor JS/CSS, host adapters, private views,
+HTTP/time helpers and the existing collector ZIP. It does not reconstruct or introduce a second collector. The
 builder verifies the ZIP against that collector's own explicit source list.
 `release.json` identifies payload bytes; `compatibility.json` fingerprints the
 declared backend boundary; `receipt.json` separately identifies the actual source
@@ -749,9 +750,47 @@ Browser acceptance checks 390/430/768/1440 and short-height controls in addition
 to the existing Manager2 editor/recovery/session tests. This is fixture evidence,
 not physical source import, a real client operation or full V1 acceptance.
 
-The first runtime still uses the existing app origin and canonical auth/CSRF/API,
-database, drafts, versions, receipts and sender. This package isolates code/build;
-it does not host a private editor on tours or create an independent production
-release pipeline. That next step requires its own verified protected-access
-contract and activation/rollback receipt. Do not copy sessions/config, broaden
-cookies or expose private manager routes like the anonymous public presentation.
+## Protected standalone editor
+
+The tours `/editor.php` entry contains only a fixed-origin iframe of
+`https://app.anytoour.ru/manager/tour-selection-editor.php`. It serves no manager
+shell, credentials, CSRF, transcript or private data. Numeric client/actor hints
+are navigation only; ambiguous or malformed hints do not open an editor.
+The app document uses the same packaged core without WorkspaceV2. The existing
+host-only, Secure, HttpOnly, SameSite=Lax `/manager/` session cookie remains on
+app. No cookie expansion, session/config copy, parent data bridge, CORS grant,
+new login, server draft, receipt or sender owner is introduced.
+
+The private adapter first reads the existing `me` endpoint, checks the expected
+actor, then reads minimal canonical conversation visibility without transcript
+or read-marker mutation. Its POST adapter pins that actor and delegates the
+original JSON to the canonical selection/photo controllers; all original
+auth/CSRF/project/source/assignment/version/recipient fences remain authoritative.
+A missing, expired or changed account suspends the editor and links to existing
+Manager2 sign-in. A hidden/BFCache document discards usable context and requires
+explicit rechecking. Old responses cannot reopen it. Unsaved work and ambiguous
+saves remain under the original account/conversation recovery key; same-account
+recovery reconciles the original receipt before an explicit identical retry.
+
+`deploy-editor.php` installs a sealed private artifact through the existing
+dedicated host workflow. The receipt retains its exact package, source commit,
+tree, archive and payload hashes. Compatibility fingerprints only the declared
+backend contract; it does not compare installed frontend bytes with later main.
+Thus a frontend-only failed B activation restores working compatible A without
+editing main or rewriting A's provenance. Actual backend drift or tampered A
+still blocks access. Existing public selections are outside that rollback.
+The sole publisher remains held through host activation and installed gates.
+Only an activated exact receipt exposes **Открыть отдельно** in Manager2 and
+the collector return link; before readiness the canonical Manager2 path remains.
+
+The deployment regression installs/activates A, changes frontend-only B, fails
+B smoke, rolls back, then serves A's actual PHP shell and sealed assets and runs
+protected draft GET/save/retry/reload over loopback HTTP. It separately rejects
+backend drift and tampering. Browser fixtures exercise the real views/core in
+the tours→app iframe at 390/430/768/1440 and short height, denied/anonymous/changed
+accounts, read-only access, lost-save receipt recovery and stale responses.
+These are synthetic checks, not installed or natural acceptance by themselves.
+Installed activation additionally requires strict TLS, exact asset bytes,
+identity-free/no-cookie tours and app shells, CSP framing and anonymous API401.
+Physical Chrome/Yandex imports and mixed FUN&SUN/ANEX/Tourvisor A1–A8 remain
+separate open V1 acceptance; this hosting package does not complete them.

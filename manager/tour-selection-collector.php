@@ -2,11 +2,12 @@
 declare(strict_types=1);
 require_once dirname(__DIR__).'/config.php';
 require_once __DIR__.'/lib/ManagerHttp.php';
+require_once dirname(__DIR__).'/services/ManagerTourSelectionEditorHost.php';
 ManagerHttp::start();
 $manager=ManagerHttp::manager();
 if (!$manager || ManagerHttp::managerId()<=0) {header('Location: ./');exit;}
 header('Cache-Control: private, no-store');header('Referrer-Policy: no-referrer');header('X-Robots-Tag: noindex, nofollow');
-$config=['actor'=>(int)$manager['id'],'csrf'=>ManagerHttp::csrf(true),'conversation_id'=>(int)($_GET['conversation_id']??0)];
+$config=['actor'=>(int)$manager['id'],'csrf'=>ManagerHttp::csrf(true),'conversation_id'=>(int)($_GET['conversation_id']??0),'editor_entry'=>ManagerTourSelectionEditorHost::entry()];
 session_write_close();
 $assetVersion=static fn(string $file):string=>htmlspecialchars((string)filemtime(__DIR__.'/assets/'.$file),ENT_QUOTES,'UTF-8');
 ?><!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AnyTour — сборщик предложений</title><link rel="stylesheet" href="assets/tour-selection-collector.css?v=<?=$assetVersion('tour-selection-collector.css')?>"></head><body>

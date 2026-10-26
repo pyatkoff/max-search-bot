@@ -19,6 +19,10 @@ const host={
   takeCollectorIntent:target=>{if(!intent)return false;const previous=intent;clearIntent();return previous.manager===target.actor&&previous.conversation===target.conversation},
   activate:()=>{if(intent&&actor()&&intent.manager!==actor())clearIntent()}
 };
+const standalone=document.body.dataset.selectionEditorEntry;
+if(standalone==='https://tours.anytoour.ru/editor.php')host.openStandalone=conversation=>{
+  const target=capture();if(isCurrent(target)&&target.conversation===conversation)window.open(standalone+'?conversation_id='+conversation+'&editor_actor='+target.actor,'_blank','noopener');
+};
 const editor=window.AnyTourSelectionEditor.mount(Object.freeze(host));
 // Preserve the existing workspace lifecycle caller contract.
 window.WorkspaceV2TourSelection=editor;
