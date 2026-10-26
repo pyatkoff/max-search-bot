@@ -129,7 +129,8 @@ def advertising_link(value, scope, cutoff):
 
 def build_observation(value):
     fields(value, ("subject", "context_from", "prediction_at", "observed_through",
-                   "prefix_complete", "followup_complete", "evidence"), ("advertising_entry",))
+                   "prefix_complete", "followup_complete", "evidence"),
+           ("advertising_entry", "target_history_available_at"))
     scope = subject(value["subject"])
     start = moment(value["context_from"])
     cutoff = moment(value["prediction_at"])
@@ -137,6 +138,10 @@ def build_observation(value):
     require(start <= cutoff <= through, "invalid_observation_interval")
     require(type(value["prefix_complete"]) is bool and type(value["followup_complete"]) is bool,
             "explicit_completeness_required")
+    target_history_available = (moment(value["target_history_available_at"])
+                                if "target_history_available_at" in value else None)
+    if target_history_available is not None:
+        require(start <= target_history_available <= through, "invalid_target_history_availability")
     rows = value["evidence"]
     require(isinstance(rows, list) and len(rows) <= MAX_EVIDENCE, "evidence_limit")
     unique = {}
@@ -169,7 +174,8 @@ def build_observation(value):
         "advertising": advertising_link(value.get("advertising_entry"), scope, cutoff),
     }
     already_progressed = any(row[0]["kind"] in PROGRESS for row in known)
-    eligible = value["prefix_complete"] and not already_progressed
+    target_history_late = (target_history_available is not None and target_history_available > cutoff)
+    eligible = value["prefix_complete"] and not already_progressed and not target_history_late
     try:
         deadline = cutoff + WINDOW
     except OverflowError:
@@ -180,7 +186,9 @@ def build_observation(value):
     negatives = [row for row in future if row[0]["kind"] in NEGATIVE]
     label = {"value": None, "reason": "unknown", "evidence_ids": []}
     if not eligible:
-        label["reason"] = "incomplete_prefix" if not value["prefix_complete"] else "target_already_reached"
+        label["reason"] = ("incomplete_prefix" if not value["prefix_complete"] else
+                           "target_already_reached" if already_progressed else
+                           "target_history_unavailable_at_prediction")
     elif positives:
         label = {"value": 1, "reason": "observed_progress", "evidence_ids": [positives[0][0]["id"]]}
     elif through < deadline:

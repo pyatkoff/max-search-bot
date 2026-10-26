@@ -33,6 +33,62 @@ def document():
 
 
 class SnapshotTests(unittest.TestCase):
+    def test_actual_lag_keeps_features_and_explicit_unknown_target(self):
+        p = adapter.profile(document())["profiles"][0]
+        f = p["prediction_features"]
+        self.assertEqual(f["facts"]["fields.budget"]["value"]["maximum"], 200000)
+        self.assertEqual(f["facts"]["fields.budget"]["available_at"], PROCESSED)
+        self.assertEqual(f["source_fence_at"], CAPTURE)
+        self.assertEqual(f["source_complete_through"], CAPTURE)
+        self.assertEqual(f["source_gap_seconds"], 3)
+        self.assertFalse(p["target_admission"]["eligible"])
+        followup = copy.deepcopy(p["observation_input"])
+        followup.update(observed_through="2026-10-09T10:00:03Z", followup_complete=True)
+        scope = p["subject"]
+        followup["evidence"].append({"id":"later:intent", "subject":scope, "kind":"booking_intent",
+            "at":"2026-10-02T10:00:00Z", "available_at":"2026-10-02T10:00:00Z", "confidence":"high",
+            "references":[{"source":"message", "id":"later", "at":"2026-10-02T10:00:00Z", "available_at":"2026-10-02T10:00:00Z"}]})
+        label = adapter.base.build_observation(followup)["label"]
+        self.assertIsNone(label["value"])
+        self.assertEqual(label["reason"], "incomplete_prefix")
+
+    def test_truncated_or_uninterpreted_source_never_claims_complete_through(self):
+        for change in ["messages", "events", "choices", "native", "event_rows"]:
+            with self.subTest(change=change):
+                d = document(); d.update(received_at=CAPTURE, extracted_at=CAPTURE)
+                c = d["snapshot"]["cases"][0]
+                if change in {"messages", "events"}: c[change+"_complete"] = False
+                elif change == "choices": c["tour_choices"] = {"available": False}
+                elif change == "native": c["tour_choices"]["offers"] = [{"selected":True}]
+                else: c["events"] = [{"kind":"booking_intent", "stored_created_at":"unverified"}]
+                p = adapter.profile(d)["profiles"][0]
+                self.assertIsNone(p["source_complete_through"])
+                self.assertEqual(p["prediction_features"]["source_fence_at"], CAPTURE)
+                self.assertFalse(p["target_admission"]["eligible"])
+                self.assertIn("fields.budget", p["prediction_features"]["facts"])
+
+    def test_reprocessing_uses_actual_new_prediction_without_backdating(self):
+        d = document(); first = adapter.profile(d)["profiles"][0]
+        d["extracted_at"] = "2026-10-02T10:00:03Z"
+        second = adapter.profile(d)["profiles"][0]
+        a,b = [p["prediction_features"] for p in [first,second]]
+        self.assertEqual(a["facts"]["fields.budget"]["value"], b["facts"]["fields.budget"]["value"])
+        self.assertEqual(b["source_gap_seconds"]-a["source_gap_seconds"], 86400)
+        self.assertEqual(b["facts"]["fields.budget"]["available_at"], d["extracted_at"])
+        self.assertNotEqual(first["observation"]["observation_id"], second["observation"]["observation_id"])
+        self.assertFalse(second["export_allowed"])
+
+    def test_late_update_changes_only_later_fenced_profile(self):
+        d = document(); before = adapter.profile(d)["profiles"][0]
+        late = message("m:2", "Бюджет 300 тыс", recorded_at="2026-10-01T10:00:01Z")
+        d["snapshot"]["cases"][0]["messages"].append(late)
+        with self.assertRaisesRegex(adapter.base.InvalidObservation, "source_row_outside_capture"): adapter.profile(d)
+        d["snapshot"]["captured_at"] = RECEIVED
+        after = adapter.profile(d)["profiles"][0]
+        self.assertEqual(before["prediction_features"]["facts"]["fields.budget"]["value"]["maximum"], 200000)
+        self.assertEqual(after["prediction_features"]["facts"]["fields.budget"]["value"]["maximum"], 300000)
+        self.assertFalse(after["target_admission"]["eligible"])
+
     def test_source_to_typed_profile_and_canonical_observation(self):
         p = adapter.profile(document())["profiles"][0]
         self.assertEqual(p["fields"]["budget"]["value"]["maximum"], 200000)

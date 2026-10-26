@@ -10,7 +10,7 @@ Python dependency is needed. It does not replace the dialogue's state owner.
 ## Input and provenance
 
 The UTF-8 JSON document has exactly `schema_version:1`, `extracted_at` and `cases`.
-Each case has exactly:
+Each case has these required fields, with optional `source_fence_at`:
 
 | Field | Contract |
 | --- | --- |
@@ -18,7 +18,8 @@ Each case has exactly:
 | brand_key | Producer-supplied brand context; never guessed or merged across brands |
 | context_from | Accepted current-trip boundary, supplied by the authorized producer |
 | prediction_at | Information cutoff |
-| source_complete_through | Last time through which the source prefix was actually read completely |
+| source_complete_through | Last asserted complete-through time; null when coverage is not established (then explicit source_fence_at is required) |
+| source_fence_at | Optional explicit upper source-read fence, separately from completeness; rows beyond it are rejected |
 | prefix_complete | True only when coverage reaches prediction_at; otherwise false |
 | messages | At most500 source rows, each id/speaker/kind/at/available_at/text |
 
@@ -81,6 +82,50 @@ a new present-time prediction when their intervening history was not observed.
   free-text corrections, novel locations, ellipsis, complex alternatives and
   implicit agreements require further validation or a separately authorized
   semantic model. Do not use rule coverage or field count as a purchase score.
+
+### Available facts and target admission
+
+Version `ru_trip_prefix_rules_v1_3` emits `prediction_features` separately from
+`target_admission`. Existing typed facts were already retained for incomplete
+prefixes; this change makes their permitted use explicit instead of treating
+the observation's `eligible` flag as validity of the whole factual profile.
+
+`prediction_features.facts` includes only known facts actually available at the
+prediction: budget/basis, party components, conditions and `observed_stage`.
+Each retains its evidence, actual semantic availability, last source-recorded
+time and age in seconds. A later unrelated message does not refresh an older
+budget's age. Ages use the declared persistence clock, not the time an intention
+actually arose. An observed stage is not proof of the person's present state
+across an unobserved gap. Ambiguous, unknown and not-yet-available facts stay
+explicit in `unavailable_facts` and the original profile; no zero imputation.
+Manager quotes and working composition assumptions are not admitted customer
+facts. The projection retains `partial_rules_only` semantic coverage, the actual
+source fence/gap and asserted complete-through time; partial data can remain
+useful without becoming complete or independently validated features.
+
+The projection's own fingerprint binds its values/references/availability,
+brand, full subject/trip, context boundary and extractor source. It is distinct
+from the builder's event-feature fingerprint. A source fence omitted by a legacy
+input stays unknown (null fence/gap); the prediction bounds filtering but is not
+invented as an actual capture receipt. Legacy completeness remains an explicit
+producer assertion. No utility authenticates that assertion.
+
+`target_admission` explains eligibility for the existing7-day proxy only. The
+builder additionally accepts optional `target_history_available_at`, which the
+extractor always supplies as its actual extraction time. Interpretation built
+after a historical prediction cannot establish that the target had not already
+occurred at that prediction, even when source history was complete. It blocks
+target eligibility with `target_history_unavailable_at_prediction`, without
+rewriting source completeness or making a later positive an admissible label.
+Incomplete prefixes and targets already observed at prediction remain separate
+blocking reasons. Early target-history availability alone does not prove source
+or semantic completeness. Existing builder callers without this optional field
+retain their producer-owned completeness contract.
+
+These are offline data admission rules, not measured predictive improvement,
+a trained model or an advertising architecture. Retain all observations,
+including ones with no known facts or unknown labels. Compare existing and new
+features on the same people at one predetermined information cutoff.
 
 Output always keeps probabilities, commission and expected value null and
 `export_allowed:false`. The existing builder retains its7-day explicit
@@ -151,12 +196,16 @@ episode interpretation remain separate admission steps.
 
 Require capture <= actual central receipt <= extraction. Messages first become
 available at the supplied actual receipt; semantic facts at extraction. Receipt
-and source lag are reported separately. Completeness is true only if all history
-and native-choice flags are complete AND capture reaches the prediction second;
+and source lag are reported separately. The adapter `canonical_snapshot_profile_v1_1`
+always passes the actual capture as `source_fence_at`. Asserted complete-through
+is null for truncated/unavailable history or uninterpreted native choices/events,
+while known customer facts remain available in the projection. Completeness is
+true only if all history and native-choice flags are complete, there are no
+uninterpreted native offers/events AND capture reaches the prediction second;
 an older snapshot stays incomplete even if its original history was complete.
 This conservative adapter does not solve source-to-prediction lag by backdating
-features. Nonempty native offers also keep completeness false: this adapter does
-not interpret their selected/booking state, so their mere availability cannot
+features. Nonempty native offers and mixed-clock events keep completeness false:
+this adapter does not interpret their selected/booking state, so their availability cannot
 certify full progression coverage. Available choice projections require a bounded
 offers list. Output contains source/input receipt hashes and text-free profile
 references, not raw messages. It is private analytical data. No P, commission,
