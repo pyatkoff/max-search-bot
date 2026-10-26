@@ -126,6 +126,11 @@ function donorExecution(parts) {
   return parts[0].execution;
 }
 function assertPartsResult(result) {check(result==='success','Every partition job must succeed; missing/skipped/cancelled is not evidence');}
+function parsePart(value) {
+  check(typeof value==='string'&&/^(0|[1-9][0-9]*)$/.test(value)&&Number.isSafeInteger(Number(value))&&Number(value)<inventory.PART_COUNT,
+    'Explicit partition 0 through '+(inventory.PART_COUNT-1)+' required');
+  return Number(value);
+}
 function assemble({sourceRoot,partsRoot,destination,browser,p,partsResult}) {
   assertPartsResult(partsResult);
   inventory.assertCleanSource(sourceRoot,p.testedSha);
@@ -193,7 +198,7 @@ if(require.main===module) {
     const [command,browser,partOrRoot,destination]=process.argv.slice(2),root=process.cwd(),p=reuse.provenance(process.env);
     if(command==='assemble')assemble({sourceRoot:root,partsRoot:path.resolve(partOrRoot),destination:path.resolve(destination),browser,p,partsResult:process.env.QA_PARTS_RESULT});
     else {
-      check(/^[01]$/.test(partOrRoot||''),'Explicit partition 0 or 1 required');const part=Number(partOrRoot);
+      const part=parsePart(partOrRoot);
       const plan=reuse.validatePlan(read(path.join(root,'selection-plan.json')),p,root);
       if(command==='inventory')reuse.runPlaywright(root,browser,inventory.allSpecs(browser),{listing:true,report:'expected'});
       else if(command==='run-part') {
@@ -213,4 +218,4 @@ if(require.main===module) {
     }
   } catch(error){process.stderr.write(error.stack+'\n');process.exitCode=1;}
 }
-module.exports={PROTOCOL,partSpecs,recordPart,validatePart,validateParts,ownedFiles,mergedMain,assemble,verifyPartitionedEvidence,assertPartsResult};
+module.exports={PROTOCOL,parsePart,partSpecs,recordPart,validatePart,validateParts,ownedFiles,mergedMain,assemble,verifyPartitionedEvidence,assertPartsResult};

@@ -197,15 +197,19 @@ function modernProtocolChecks() {
       return shards.assemble({sourceRoot,partsRoot:planParts,destination:path.join(directory,browser),browser,p,partsResult});
     }
     for(const browser of ['chromium','webkit'])partitionEvidence(partRoot,browser,plan,{execution:'actual-browser-runner'});
-    protocolCheck('two independent browser partitions assemble complete fresh coverage and explicit execution roles',()=>{
+    protocolCheck('CLI accepts every registered part and rejects noncanonical or out-of-range indices',()=>{
+      for(let part=0;part<inventory.PART_COUNT;part++)assert.equal(shards.parsePart(String(part)),part);
+      for(const value of [undefined,null,0,'','01','-1','1.0',' 1','1 ',String(inventory.PART_COUNT),'9007199254740992'])assert.throws(()=>shards.parsePart(value),/Explicit partition/);
+    });
+    protocolCheck('four independent browser partitions assemble complete fresh coverage and explicit execution roles',()=>{
       for(const browser of ['chromium','webkit']) {
         const receipt=assemble(assembled,browser);
-        assert.equal(receipt.executionRole,'assembly');assert.equal(receipt.partitionCount,2);
+        assert.equal(receipt.executionRole,'assembly');assert.equal(receipt.partitionCount,4);
         assert.equal(receipt.cases.length,inventory.allSpecs(browser).length);
         assert(receipt.cases.every(row=>row.origin==='fresh'));
         const validated=shards.verifyPartitionedEvidence({root:path.join(assembled,browser),browser,p,sourceRoot});
-        assert.equal(validated.parts[0].execution.imageVersion,'actual-browser-runner-0');
-        assert.equal(validated.parts[1].execution.imageVersion,'actual-browser-runner-1');
+        assert.equal(validated.parts.length,inventory.PART_COUNT);
+        validated.parts.forEach((part,index)=>assert.equal(part.execution.imageVersion,'actual-browser-runner-'+index));
         verify(path.join(assembled,browser),browser,p);
       }
       assert.equal(verifyEvidence({...gateOptions,root:assembled}).receipts.length,2);
@@ -221,12 +225,12 @@ function modernProtocolChecks() {
       second.stats.duration=-1;assert.throws(()=>shards.mergedMain([first,second]),/timing/);
     });
     protocolCheck('successful earlier same-run parts retain their actual attempt during a failed-jobs-only rerun',()=>copiedEvidence(partRoot,directory=>{
-      const file=path.join(directory,'chromium','part-1','partition-receipt.json');
+      const last=inventory.PART_COUNT-1,file=path.join(directory,'chromium','part-'+last,'partition-receipt.json');
       mutate(file,r=>{r.runAttempt='2';});
       const output=path.join(temporary,'second-attempt'),nextP={...p,runAttempt:'2'};
       const receipt=shards.assemble({sourceRoot,partsRoot:directory,destination:output,browser:'chromium',p:nextP,partsResult:'success'});
       const validated=shards.verifyPartitionedEvidence({root:output,browser:'chromium',p:nextP,sourceRoot});
-      assert.equal(receipt.runAttempt,'2');assert.deepEqual(validated.parts.map(part=>part.runAttempt),['1','2']);
+      assert.equal(receipt.runAttempt,'2');assert.deepEqual(validated.parts.map(part=>part.runAttempt),Array.from({length:inventory.PART_COUNT},(_,part)=>part===last?'2':'1'));
       for(const invalid of ['0','3','bad']) {
         mutate(file,r=>{r.runAttempt=invalid;});assert.throws(()=>shards.assemble({sourceRoot,partsRoot:directory,destination:output+'-'+invalid,browser:'chromium',p:nextP,partsResult:'success'}),/run attempt/);
       }
@@ -237,9 +241,16 @@ function modernProtocolChecks() {
       fs.rmSync(path.join(directory,'chromium','part-1'),{recursive:true});assert.throws(()=>assemble(path.join(temporary,'missing-part'),'chromium',directory));
     }));
     protocolCheck('an additional original partition directory cannot be ignored',()=>copiedEvidence(partRoot,directory=>{
-      fs.mkdirSync(path.join(directory,'chromium','part-2'));assert.throws(()=>assemble(path.join(temporary,'extra-part'),'chromium',directory),/original partition directory/);
+      fs.mkdirSync(path.join(directory,'chromium','part-'+inventory.PART_COUNT));assert.throws(()=>assemble(path.join(temporary,'extra-part'),'chromium',directory),/original partition directory/);
     }));
-    for(const [field,value]of Object.entries({headSha:'c'.repeat(40),testedSha:'d'.repeat(40),runId:'201',runAttempt:'2',browser:'webkit',completed:false,partCount:3,executionRole:'assembly'}))
+    for(const part of [2,3])protocolCheck('missing original part '+part+' cannot become four-part evidence',()=>copiedEvidence(partRoot,directory=>{
+      fs.rmSync(path.join(directory,'chromium','part-'+part),{recursive:true});assert.throws(()=>assemble(path.join(temporary,'missing-part-'+part),'chromium',directory),/original partition directory/);
+    }));
+    protocolCheck('legacy two-part originals cannot become four-part evidence',()=>copiedEvidence(partRoot,directory=>{
+      for(const part of [2,3])fs.rmSync(path.join(directory,'chromium','part-'+part),{recursive:true});
+      assert.throws(()=>assemble(path.join(temporary,'legacy-two-part'),'chromium',directory),/original partition directory/);
+    }));
+    for(const [field,value]of Object.entries({headSha:'c'.repeat(40),testedSha:'d'.repeat(40),runId:'201',runAttempt:'2',browser:'webkit',completed:false,partCount:inventory.PART_COUNT+1,executionRole:'assembly'}))
       protocolCheck('partition '+field+' mismatch cannot assemble',()=>copiedEvidence(partRoot,directory=>{
         mutate(path.join(directory,'chromium','part-1','partition-receipt.json'),r=>{r[field]=value;});
         assert.throws(()=>assemble(path.join(temporary,'bad-'+field),'chromium',directory));
@@ -277,6 +288,9 @@ function modernProtocolChecks() {
     protocolCheck('missing part proof and forged canonical union cannot pass the release verifier',()=>copiedEvidence(path.join(assembled,'chromium'),directory=>{
       fs.rmSync(path.join(directory,'partition-proof','part-1'),{recursive:true});assert.throws(()=>verify(directory,'chromium',p),/partition proof/);
     }));
+    for(const part of [2,3])protocolCheck('missing proof for part '+part+' cannot pass the release verifier',()=>copiedEvidence(path.join(assembled,'chromium'),directory=>{
+      fs.rmSync(path.join(directory,'partition-proof','part-'+part),{recursive:true});assert.throws(()=>verify(directory,'chromium',p),/partition proof/);
+    }));
     protocolCheck('partition and assembled native counts cannot silently describe only the first shard',()=>{
       copiedEvidence(partRoot,directory=>{
         mutate(path.join(directory,'chromium','part-1','visual-reports','main.json'),r=>{r.stats.expected--;});
@@ -295,9 +309,13 @@ function modernProtocolChecks() {
     for(const browser of ['chromium','webkit'])partitionEvidence(affectedParts,browser,affected,{donorRoot:path.join(baseline,browser)});
     protocolCheck('partitioned affected union retains the original full donor and exact changed-title identities',()=>{
       for(const browser of ['chromium','webkit']) {
-        const empty=path.join(affectedParts,browser,'part-1');
-        assert.deepEqual(read(path.join(empty,'partition-receipt.json')).files,[]);
-        assert(!fs.existsSync(path.join(empty,'visual-reports','main.json')));
+        const emptyParts=Array.from({length:inventory.PART_COUNT},(_,part)=>part).filter(part=>part!==0&&shards.partSpecs(browser,part,affected).length===0);
+        assert(emptyParts.length>0);
+        for(const part of emptyParts){
+          const empty=path.join(affectedParts,browser,'part-'+part);
+          assert.deepEqual(read(path.join(empty,'partition-receipt.json')).files,[]);
+          assert(!fs.existsSync(path.join(empty,'visual-reports','main.json')));
+        }
         const receipt=assemble(affectedAssembly,browser,affectedParts);
         assert(receipt.cases.some(row=>row.origin==='donor'));assert(receipt.cases.some(row=>row.origin==='fresh'&&row.spec===leaf));
         verify(path.join(affectedAssembly,browser),browser,p);
