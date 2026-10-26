@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "version": "2026-10-25.4",
+  "version": "2026-10-26.1",
   "project_key": "anytour",
   "bindings": [
     {
@@ -225,13 +225,13 @@
       },
       "binding_revision": "b10039fd57248b8a3c9f728532dcce2cb8f4c9987da8b8f8abba497ab15e9c55",
       "bundle_file": "anytour-99-apartments.json",
-      "bundle_sha256": "42a64028c34517b805f157024e3fca77441ceb83f60db8590f78980526ea01ec",
+      "bundle_sha256": "934f2c3b98b2b509ab845feeb6bb0e9d50c570906ac29fb515da8a04f0ae8bdb",
       "status": "accepted",
       "approval": {
-        "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
-        "common_version": 104,
-        "member": "hotel-knowledge-eg-cohort-20261025/jaz_makadi_saraya/accepted-binding.json",
-        "scope": "Research join and sealed saved-evidence group only; no native MATCH mutation, new property research, current offer or natural/runtime acceptance credit."
+        "common_version": 3,
+        "library_file_id": "libfile_4627e981bd348191bd1342c226131e17",
+        "member": "consumer171/jaz_makadi_saraya/accepted-binding.json",
+        "scope": "Unchanged accepted research/native identity; exact6facts/3sources and whole source-scoped limitations/read-update approved for bounded existing consumer authoring. No new identity, price authority, installed/runtime/model/natural-use credit."
       }
     },
     {
