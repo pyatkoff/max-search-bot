@@ -13,6 +13,7 @@ $password = getenv('MANAGER_INBOX_QUERY_TEST_MYSQL_PASSWORD');
 if (!is_string($user) || $user === '' || !is_string($password)) { fwrite(STDERR, "Explicit native fixture credentials are required\n"); exit(1); }
 
 require_once dirname(__DIR__, 2) . '/services/ManagerConversationService.php';
+require_once dirname(__DIR__, 2) . '/services/ManagerQueueProjectionService.php';
 require_once dirname(__DIR__, 2) . '/services/MigrationRunner.php';
 
 final class InboxPageNativePdo extends PDO
@@ -22,11 +23,13 @@ final class InboxPageNativePdo extends PDO
     public ?string $listSql = null;
     public ?array $listArgs = null;
     public float $listExecuteMs = 0.0;
+    public array $listWork = [];
 
     public function resetEvidence(): void
     {
         $this->executeCount = $this->queryCount = 0;
         $this->listSql = null; $this->listArgs = null; $this->listExecuteMs = 0.0;
+        $this->listWork = [];
     }
 
     public function query(string $query, ?int $fetchMode = null, mixed ...$fetchModeArgs): PDOStatement|false
@@ -48,6 +51,16 @@ final class InboxPageNativeStatement extends PDOStatement
         $started = hrtime(true);
         try { return parent::execute($params); }
         finally { if ($isList) $this->database->listExecuteMs += (hrtime(true) - $started) / 1e6; }
+    }
+
+    public function fetchAll(int $mode = PDO::FETCH_DEFAULT, mixed ...$args): array
+    {
+        $rows=parent::fetchAll($mode,...$args);
+        if(str_starts_with($this->queryString,'SELECT c.id,c.project_key')){
+            $bytes=0;foreach($rows as $row)foreach($row as $value)$bytes+=strlen((string)$value);
+            $this->database->listWork[]=['rows'=>count($rows),'columns'=>$rows?count($rows[0]):0,'value_bytes'=>$bytes];
+        }
+        return$rows;
     }
 }
 
@@ -135,6 +148,26 @@ function inboxNativeMedian(array $values): float
 {
     sort($values, SORT_NUMERIC); $n = count($values);
     return $n % 2 ? $values[intdiv($n, 2)] : ($values[$n / 2 - 1] + $values[$n / 2]) / 2;
+}
+
+/** Unchanged full list is the independent data reference for counter reduction. */
+function inboxNativeReferenceCounts(int $manager,string $project): array
+{
+    $raw=ManagerConversationService::list($manager,'waiting',200,$project);
+    $requested=ManagerConversationService::list($manager,'requested',200,$project);
+    $mine=ManagerConversationService::list($manager,'mine',200,$project);
+    $waiting=ManagerDeliveryStateService::withoutSuspendedRecipients($raw);
+    $unread=static fn(array $rows):int=>array_sum(array_map(static fn(array $r):int=>(int)$r['unread_count'],$rows));
+    $unique=[];foreach([...$raw,...$mine] as $r)$unique[(int)$r['id']]=max($unique[(int)$r['id']]??0,(int)$r['unread_count']);
+    return ['waiting'=>['count'=>count($waiting),'unread'=>$unread(array_filter($waiting,static fn(array $r):bool=>empty($r['manager_id'])))],
+        'requested'=>['count'=>count($requested),'unread'=>$unread($requested)],'mine'=>['count'=>count($mine),'unread'=>$unread($mine)],'notification_unread'=>array_sum($unique)];
+}
+
+function inboxNativeCountRun(InboxPageNativePdo $pdo,bool $full): array
+{
+    $pdo->resetEvidence();
+    $counts=$full?inboxNativeReferenceCounts(7,'native-inbox'):ManagerQueueProjectionService::counts(7,'native-inbox');
+    return ['counts'=>$counts,'sql'=>$pdo->executeCount+$pdo->queryCount,'list'=>$pdo->listWork];
 }
 
 try {
@@ -312,6 +345,42 @@ try {
     inboxNativeCheck('native callback labels depend on the same row sender direction and metadata',$previewById[702]['last_preview_text']==='Нажата кнопка «Показать туры»'&&$previewById[703]['last_preview_text']==='Нажата кнопка «Нравится»'&&$previewById[704]['last_preview_text']==='show_tours');
     inboxNativeCheck('native higher IDs retain empty Unicode malformed null and equal-time values',$previewById[705]['last_text']==='Ответ &amp; привет 👋'&&$previewById[706]['last_text']===''&&$previewById[707]['last_preview_text']==='Malformed metadata'&&$previewById[708]['last_text']==='Higher ID with older time'&&$previewById[709]['last_text']==='Identical timestamps');
     inboxNativeCheck('native preview comparisons preserve complete fixture business and read state',$previewSnapshot()===$previewBusinessBefore);
+
+    // Compare one actual complete counter update against the same full lists.
+    inboxNativeCountRun($pdo,true);inboxNativeCountRun($pdo,false);
+    $fullCounts=inboxNativeCountRun($pdo,true);$slimCounts=inboxNativeCountRun($pdo,false);
+    inboxNativeCheck('native lightweight counters retain every full-list count and unread total',$slimCounts['counts']===$fullCounts['counts']);
+    inboxNativeCheck('native counter update executes fewer SQL statements',$slimCounts['sql']<$fullCounts['sql']);
+    inboxNativeCheck('native counter update transfers fewer SQL values for the same candidate rows',array_column($slimCounts['list'],'rows')===array_column($fullCounts['list'],'rows')&&array_sum(array_column($slimCounts['list'],'value_bytes'))<array_sum(array_column($fullCounts['list'],'value_bytes')));
+    echo 'COUNT_WORK '.json_encode(['driver'=>'mysql','before'=>$fullCounts,'after'=>$slimCounts,'production_latency'=>null],JSON_THROW_ON_ERROR)."\n";
+    foreach([['manager',1,'*'],['manager',0,'native-inbox'],['admin',1,'native-inbox'],['manager',1,'denied-project'],['manager',1,'inactive-project']] as [$role,$working,$project]){
+        $pdo->prepare('UPDATE managers SET role=?,is_working=? WHERE id=7')->execute([$role,$working]);
+        inboxNativeCheck("native counters retain {$role}/{$working}/{$project} visibility",ManagerQueueProjectionService::counts(7,$project)===inboxNativeReferenceCounts(7,$project));
+    }
+    $pdo->exec('DELETE FROM manager_group_members WHERE manager_id=7');
+    inboxNativeCheck('native counters retain revoked-source post-cap visibility',ManagerQueueProjectionService::counts(7,'native-inbox')===inboxNativeReferenceCounts(7,'native-inbox'));
+    $pdo->exec('INSERT INTO manager_group_members VALUES(7,101),(7,103)');
+    $pdo->exec("INSERT INTO conversation_sources VALUES(3,'Delayed',102,'delayed',103,30,1)");
+    foreach([[801,'2000-01-01 00:00:00'],[802,'2099-01-01 00:00:00']] as [$id,$at]){
+        $conversation->execute([$id,1,'native-inbox',3,'max','waiting_manager','new',null,$at,$at,0]);$event->execute([$id,$at]);
+        $message->execute([$id*100,$id,'inbound','customer','max','Delayed routing','{}',$at]);
+    }
+    $waitingIds=array_map('intval',array_column(ManagerConversationService::queueCountRows(7,'waiting','native-inbox'),'id'));
+    inboxNativeCheck('native counter routing retains elapsed and future fallback timestamps',in_array(801,$waitingIds,true)&&!in_array(802,$waitingIds,true));
+    $beforeFailure=ManagerQueueProjectionService::counts(7,'native-inbox');
+    $pdo->exec("INSERT INTO conversation_events(conversation_id,event_type,created_at,payload_json) VALUES(801,'manager_message_failed','2026-10-17 00:00:00','{\"category\":\"suspended\"}')");
+    $suspended=ManagerQueueProjectionService::counts(7,'native-inbox');
+    inboxNativeCheck('native suspended Waiting changes actionable totals but retains raw notification unread',$suspended===inboxNativeReferenceCounts(7,'native-inbox')&&$suspended['waiting']['count']===$beforeFailure['waiting']['count']-1&&$suspended['waiting']['unread']===$beforeFailure['waiting']['unread']-1&&$suspended['notification_unread']===$beforeFailure['notification_unread']);
+    $pdo->exec("INSERT INTO conversation_events(conversation_id,event_type,created_at,actor_type) VALUES(801,'bot_started','2026-10-17 00:00:00','system')");
+    inboxNativeCheck('native same-second canonical restart restores the counter',ManagerQueueProjectionService::counts(7,'native-inbox')===$beforeFailure);
+    $pdo->beginTransaction();
+    $pdo->exec("UPDATE conversations SET last_message_at='2026-10-15 12:00:00' WHERE status='manager'; UPDATE conversation_events SET created_at='2098-01-01 00:00:00' WHERE event_type='waiting_manager'");
+    foreach(['waiting','requested','mine'] as $queue){
+        $full=ManagerConversationService::list(7,$queue,200,'native-inbox');$slim=ManagerConversationService::queueCountRows(7,$queue,'native-inbox');
+        inboxNativeCheck("native {$queue} tie boundary is identical across narrow and full projections",array_column($full,'id')===array_column($slim,'id')&&array_column($full,'unread_count')===array_column($slim,'unread_count'));
+    }
+    $pdo->rollBack();
+    inboxNativeCheck('native counter reads leave read cursors unchanged',inboxNativeReadState($pdo)===$initialReads);
     echo 'EVIDENCE ' . json_encode(['scope'=>'synthetic_native_service_list','base_sha'=>'bc9d104b1f9619d5d6cbb0a7ee05dced06376abf',
         'owned_fixture_rows'=>count(array_filter($fixtures,static fn(array $f):bool=>$f['project']==='native-inbox'&&$f['owner']===7&&$f['status']==='manager'&&!$f['isTest'])),
         'sample_count_each'=>20,'order'=>'alternating','cache_state'=>'two_warmups_each_uncontrolled_server_cache','result_sha256'=>hash('sha256',json_encode([$before['rows'],$before['metadata']],JSON_THROW_ON_ERROR)),
