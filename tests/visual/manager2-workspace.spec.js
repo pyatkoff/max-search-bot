@@ -138,14 +138,25 @@ async function readable(page,selector){
 }
 async function capture(page,browser,width,state){fs.mkdirSync('manager2-artifacts',{recursive:true});await page.screenshot({animations:'disabled',path:`manager2-artifacts/${browser}-${width}-${state}.png`})}
 
-for(const width of [390,430,768,1440])test('Manager2 account logout ends the session and clears the previous reply at '+width,async({page,browserName})=>{
-  await page.setViewportSize({width,height:900});const s=await setup(page);await openLead(page);
+// Check the first rendered viewport before Playwright can scroll a button into view.
+async function exitInitiallyReachable(page){
+  const geometry=await page.locator('#m2Logout').evaluate(el=>{
+    const r=el.getBoundingClientRect(),dialog=el.closest('dialog');
+    return {top:r.top,bottom:r.bottom,viewport:innerHeight,scroll:dialog.scrollTop,hit:document.elementFromPoint(r.left+r.width/2,r.top+r.height/2)===el};
+  });
+  expect(geometry.top).toBeGreaterThanOrEqual(0);expect(geometry.bottom).toBeLessThanOrEqual(geometry.viewport);
+  expect(geometry.scroll).toBe(0);expect(geometry.hit).toBe(true);
+}
+
+for(const height of [900,420])for(const width of [390,430,768,1440])test('Manager2 account logout ends the session and clears the previous reply at '+width+(height===420?' short':''),async({page,browserName})=>{
+  await page.setViewportSize({width,height});const s=await setup(page);await openLead(page);
   await page.locator('#replyText').fill('Личный неотправленный черновик');
   if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()))await page.locator('#mobileBack').click();
   await page.locator('#m2NotificationButton').click();
   await expect(page.getByRole('button',{name:'Выйти',exact:true})).toBeVisible();
+  await exitInitiallyReachable(page);
   expect((await page.locator('#m2Logout').boundingBox()).height).toBeGreaterThanOrEqual(44);
-  await noOverflow(page);await capture(page,browserName,width,'account-logout');
+  await noOverflow(page);await capture(page,browserName,width,'account-logout'+(height===420?'-short':'' ));
   await page.evaluate(()=>history.replaceState(history.state,'',location.pathname+location.search+'#conversation=11'));
   await Promise.all([page.waitForEvent('domcontentloaded'),page.locator('#m2Logout').click()]);
   await expect(page.locator('#managerAuthRecovery')).toBeVisible();
@@ -153,7 +164,7 @@ for(const width of [390,430,768,1440])test('Manager2 account logout ends the ses
   await expect(page.locator('#managerAuthMessage')).not.toContainText('истекла');
   await expect(page.locator('#replyText')).toHaveValue('');
   expect(await page.evaluate(()=>({manager:WorkspaceV2.S.manager,current:WorkspaceV2.S.current}))).toEqual({manager:null,current:0});
-  await capture(page,browserName,width,'logged-out');
+  await capture(page,browserName,width,'logged-out'+(height===420?'-short':'' ));
   await page.locator('#managerAuthLogin').fill('synthetic-login');await page.locator('#managerAuthPassword').fill('synthetic-password');await page.locator('#managerAuthSubmit').click();
   await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
   expect(await page.evaluate(()=>WorkspaceV2.S.current)).toBe(0);await expect(page.locator('#replyText')).toHaveValue('');
@@ -162,14 +173,16 @@ for(const width of [390,430,768,1440])test('Manager2 account logout ends the ses
   expect(s.manager.is_working).toBe(true);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });
 
-test('Manager2 account logout keeps an unconfirmed result retryable without claiming success',async({page})=>{
-  await page.setViewportSize({width:390,height:900});const s=await setup(page);
+for(const height of [900,420])test('Manager2 account logout keeps an unconfirmed result retryable without claiming success'+(height===420?' short':''),async({page})=>{
+  await page.setViewportSize({width:390,height});const s=await setup(page);
   let release;const pending=new Promise(resolve=>{release=resolve});s.setLogoutHandler(()=>pending);
   await page.locator('#m2NotificationButton').click();await page.locator('#m2Logout').click();
   await expect(page.locator('#m2Logout')).toBeDisabled();await expect(page.locator('#managerAuthSubmit')).toBeDisabled();
   await page.locator('#m2Logout').evaluate(el=>el.click());expect(s.calls.filter(c=>c.action==='logout')).toHaveLength(1);
   release({abort:true,endSession:true});
   await expect(page.locator('#m2LogoutError')).toContainText('Не удалось подтвердить выход');await expect(page.locator('#m2Logout')).toBeEnabled();
+  await exitInitiallyReachable(page);
+  const error=await page.locator('#m2LogoutError').boundingBox();expect(error.y).toBeGreaterThanOrEqual(0);expect(error.y+error.height).toBeLessThanOrEqual(height);
   await Promise.all([page.waitForEvent('domcontentloaded'),page.locator('#m2Logout').click()]);
   await expect(page.locator('#managerAuthRecovery')).toBeVisible();expect(s.calls.filter(c=>c.action==='logout')).toHaveLength(2);
   expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);

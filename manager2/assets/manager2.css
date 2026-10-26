@@ -132,7 +132,7 @@ body.manager2{--ws-accent:#25624f;--ws-accent-soft:#e9f3ed;--ws-text:#233c34;--w
 .manager2 .m2Dialog #m2AdminSlot .actionBtn{font-size:13px;color:#48633c;background:#f1f5eb;min-height:44px;min-width:0;padding:8px 12px;text-decoration:none}
 .manager2 .m2Dialog #m2AdminSlot .actionBtn:after{content:none}
 .manager2 .m2Dialog .m2Legacy{display:inline-block;color:#48633c;margin-top:14px;min-height:36px;font-size:13px}
-.manager2 .m2LogoutSection{margin-top:12px;padding-top:16px;border-top:1px solid var(--m2-line)}
+.manager2 .m2LogoutSection{margin:0 0 16px;padding-bottom:16px;border-bottom:1px solid var(--m2-line)}
 .manager2 .m2Dialog .m2Logout{width:100%;min-height:44px;background:#fff1ef;color:#963b30;font:inherit;font-weight:650}
 .manager2 .m2Dialog .m2Logout:hover{background:#fce5e1}
 .manager2 .m2Dialog .m2Logout:disabled{opacity:.65;cursor:wait}
