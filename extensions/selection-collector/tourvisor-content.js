@@ -7,5 +7,7 @@ function scan(){scheduled=false;const menus=Array.from(document.querySelectorAll
  edit.onclick=async e=>{e.preventDefault();e.stopPropagation();if(edit.disabled)return;edit.disabled=true;try{const ticket=await AnyTourCollectorClient.begin(edit,true);if(!ticket)return;const before=AnyTourTourvisor.extract(document,location.href);await new Promise(r=>setTimeout(r,750));const after=AnyTourTourvisor.extract(document,location.href);before.observed_at=after.observed_at;if(JSON.stringify(before)!==JSON.stringify(after))throw new Error('Карточка ещё меняется. Дождитесь её загрузки.');await AnyTourCollectorClient.append(edit,ticket,after,true)}catch(error){AnyTourCollectorClient.label(edit,'Не добавлено');let note=menu.querySelector('[data-anytour-note]');if(!note){note=document.createElement('p');note.dataset.anytourNote='1';note.setAttribute('role','status');menu.append(note)}note.dataset.anytourTone='error';note.textContent=error.message}finally{edit.disabled=false}};
  }
 }
-new MutationObserver(()=>{if(!scheduled){scheduled=true;setTimeout(scan,150)}}).observe(document.body,{childList:true,subtree:true});scan();
+// Tourvisor may create a hidden menu once and only change its visibility when
+// the manager opens it. No child is added in that transition.
+new MutationObserver(()=>{if(!scheduled){scheduled=true;setTimeout(scan,150)}}).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style','hidden','aria-hidden']});scan();
 })();

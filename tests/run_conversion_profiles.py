@@ -39,6 +39,91 @@ def value(profile, field):
 
 
 class ProfileTests(unittest.TestCase):
+    def test_lagged_prefix_admits_known_facts_without_admitting_target(self):
+        c = case(message("Бюджет до 200 тыс на всех, 2 взрослых"))
+        c.update(prefix_complete=False, source_complete_through="2026-10-01T11:00:00Z",
+                 source_fence_at="2026-10-01T11:00:00Z")
+        p = tool.extract_case(c, CUTOFF)
+        view = p["prediction_features"]
+        self.assertEqual(view["facts"]["fields.budget"]["value"]["maximum"], 200000)
+        self.assertEqual(view["facts"]["party.adults"]["value"], 2)
+        self.assertEqual(view["source_gap_seconds"], 3600)
+        self.assertEqual(view["facts"]["fields.budget"]["seconds_since_source_record"], 7140)
+        self.assertFalse(p["target_admission"]["eligible"])
+        self.assertEqual(p["observation"]["label"]["reason"], "incomplete_prefix")
+
+    def test_partial_history_has_fence_without_fabricated_complete_through(self):
+        c = case(message("Тур в Египет"))
+        c.update(prefix_complete=False, source_complete_through=None, source_fence_at=CUTOFF)
+        p = tool.extract_case(c, CUTOFF)
+        self.assertIsNone(p["prediction_features"]["source_complete_through"])
+        self.assertFalse(p["prediction_features"]["prefix_complete"])
+        self.assertEqual(p["prediction_features"]["facts"]["fields.destination"]["value"]["values"], ["Египет"])
+        self.assertNotIn("fields.budget", p["prediction_features"]["facts"])
+        self.assertEqual(p["prediction_features"]["unavailable_facts"]["fields.budget"], "unknown")
+
+    def test_later_semantic_processing_cannot_enter_historical_features(self):
+        p = tool.extract_case(case(message("Бюджет 200 тыс")), LATER)
+        self.assertEqual(value(p, "budget")["maximum"], 200000)
+        self.assertNotIn("fields.budget", p["prediction_features"]["facts"])
+        self.assertEqual(p["prediction_features"]["unavailable_facts"]["fields.budget"], "not_available_at_prediction")
+        self.assertFalse(p["observation"]["eligible"])
+        self.assertTrue(p["prefix_complete"])
+        self.assertEqual(p["target_admission"]["reason"], "target_history_unavailable_at_prediction")
+
+    def test_target_already_reached_keeps_observed_stage_as_fact(self):
+        p = extract(message("Давайте бронировать"))
+        self.assertEqual(p["prediction_features"]["facts"]["observed_stage"]["value"], "booking_intent")
+        self.assertEqual(p["target_admission"], {"target_version": tool.base.TARGET,
+                         "eligible": False, "reason": "target_already_reached"})
+
+    def test_feature_projection_excludes_quotes_assumptions_and_conflicts(self):
+        p = extract(message("Цена 500 тыс", "manager", 1), message("На двоих", i=2),
+                    message("Бюджет 200 тыс", i=3), message("Бюджет 300 тыс", i=4, at="2026-10-01T10:03:00Z"))
+        view = p["prediction_features"]
+        self.assertNotIn("fields.budget", view["facts"])
+        self.assertEqual(view["unavailable_facts"]["fields.budget"], "ambiguous")
+        self.assertNotIn("party.adults", view["facts"])
+        self.assertEqual(view["facts"]["party.total"]["value"], 2)
+        self.assertNotIn("manager_quotes", view)
+        self.assertNotIn("working_assumptions", view)
+
+    def test_unknown_coverage_requires_explicit_valid_source_fence(self):
+        for update in [{"source_complete_through": None, "prefix_complete": False},
+                       {"source_complete_through": None, "source_fence_at": CUTOFF},
+                       {"source_fence_at": START}, {"source_fence_at": LATER}]:
+            with self.subTest(update=update):
+                c = case(message("Тур")); c.update(update)
+                with self.assertRaises(tool.base.InvalidObservation): tool.extract_case(c, CUTOFF)
+
+    def test_explicit_source_fence_rejects_later_rows_and_legacy_fence_stays_unknown(self):
+        c = case(message("Бюджет 200 тыс"))
+        c.update(prefix_complete=False, source_complete_through=START, source_fence_at=START)
+        with self.assertRaisesRegex(tool.base.InvalidObservation, "source_row_after_fence"): tool.extract_case(c, CUTOFF)
+        c.pop("source_fence_at")
+        p = tool.extract_case(c, CUTOFF)
+        self.assertIsNone(p["prediction_features"]["source_fence_at"])
+        self.assertIsNone(p["prediction_features"]["source_gap_seconds"])
+
+    def test_fact_projection_fingerprint_binds_value_scope_and_actual_availability(self):
+        c = case(message("Бюджет 200 тыс")); a = tool.extract_case(c, CUTOFF)["prediction_features"]
+        self.assertEqual(a, tool.extract_case(copy.deepcopy(c), CUTOFF)["prediction_features"])
+        for change in ["budget", "brand", "person", "availability"]:
+            d = copy.deepcopy(c)
+            if change == "budget": d["messages"][0]["text"] = "Бюджет 300 тыс"
+            elif change == "brand": d["brand_key"] = "pegas"
+            elif change == "person": d["subject"]["customer_key"] = "other"
+            b = tool.extract_case(d, LATER if change == "availability" else CUTOFF)["prediction_features"]
+            self.assertNotEqual(a["feature_fingerprint"], b["feature_fingerprint"])
+
+    def test_later_messages_do_not_refresh_old_facts_or_change_frozen_features(self):
+        c = case(message("Бюджет 200 тыс"), message("Спасибо", i=2, at="2026-10-01T11:59:00Z"))
+        before = tool.extract_case(c, CUTOFF)["prediction_features"]
+        self.assertEqual(before["facts"]["fields.budget"]["seconds_since_source_record"], 7140)
+        c["messages"].append(message("Бюджет 500 тыс, давайте бронировать", i=3, at=LATER))
+        after = tool.extract_case(c, CUTOFF)["prediction_features"]
+        self.assertEqual(before, after)
+
     def test_decimal_thousands_keep_full_amount_and_source_span(self):
         for text in ["Бюджет 150,5 тыс. ₽", "Бюджет 150.5 тыс. ₽"]:
             with self.subTest(text=text):
