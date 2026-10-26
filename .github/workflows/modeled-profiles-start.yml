@@ -1,0 +1,144 @@
+name: AnyTour admitted profile initial activation
+on:
+  push:
+    branches: [audit/modeled-profiles-start-v1-20261026]
+permissions:
+  contents: read
+concurrency:
+  group: anytour-modeled-profiles-initial-start
+  cancel-in-progress: false
+jobs:
+  once:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Require authoritative installed release before credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin refs/heads/main
+          test "$(git rev-parse FETCH_HEAD)" = '6bc130d9fb794c704b8a7a944159d56fe6dccf3c'
+      - name: Prepare existing canonical SSH credential
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          key_file="$RUNNER_TEMP/deploy_key"
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          rm -f "$key_file"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key_file"; else printf '%s\n' "$raw" | tr -d '\r' > "$key_file"; fi
+          else
+            decoded="$(printf '%s' "$raw" | base64 --decode 2>/dev/null || true)"
+            [[ "$decoded" == *"PRIVATE KEY"* ]] || { echo "canonical deploy key is invalid"; exit 1; }
+            printf '%s\n' "$decoded" | tr -d '\r' > "$key_file"
+          fi
+          chmod 600 "$key_file"
+          ssh-keygen -y -f "$key_file" >/dev/null
+      - name: Issue one derived profile start and at most one bounded journal tick
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          cat > "$RUNNER_TEMP/start-profiles.php" <<'PHP'
+          <?php
+          declare(strict_types=1);
+          $phase='preflight';
+          try {
+              chdir('/var/www/anytoour/data/www/app.anytoour.ru');
+              $expected=['services/ModeledConversionProfiles.php'=>'63af6c5b066663712608960ab5bf1d54c6e57edd0e6c747ed547fad2dda73b37',
+                  'services/ModeledConversionStream.php'=>'3e6c6c1ba071b3f02350f0d18516bb3a0833c99297650729f9858253676f9201',
+                  'tools/profile_conversion_journal.py'=>'4fc6bf6131296a51b36701d2ff22ab84801c24189c7d5869a6bd04fca3a53f07',
+                  'tools/extract_conversion_profiles.py'=>'3c71de8e20723fa127e9065669b979bf3a8b8692d1664a66bf5c47a67b004567'];
+              foreach($expected as$file=>$hash)if(hash_file('sha256',$file)!==$hash)throw new RuntimeException('source');
+              require_once 'config.php';require_once 'services/ProjectAccessService.php';
+              require_once 'services/ModeledConversionProfiles.php';require_once 'services/ModeledConversionStream.php';
+              if(ProjectConfig::projectId()!=='anytour')throw new RuntimeException('project');
+              ProjectAccessService::initializeReadOnly();$pdo=ConversationDb::connection();
+              $source=(new ModeledConversionStream($pdo))->status();
+              if(($source['enabled']??false)!==true)throw new RuntimeException('intake');
+              $profiles=new ModeledConversionProfiles($pdo);$before=$profiles->status();
+              if($before['enabled']!==false||$before['ticks']!==0||$before['last_receipt']!==null||$before['last_error']!==null)throw new RuntimeException('not_fresh');
+              if((int)$pdo->query("SELECT COUNT(*) FROM modeled_conversion_profile_versions WHERE project_key='anytour'")->fetchColumn()!==0)throw new RuntimeException('existing_profiles');
+              $dir='/tmp/anytour-modeled-profiles-start-v1-20261026';
+              if(is_link($dir)||(!is_dir($dir)&&!mkdir($dir,0700)))throw new RuntimeException('receipt_directory');
+              if((fileperms($dir)&0777)!==0700)throw new RuntimeException('receipt_mode');
+              $issued=@fopen($dir.'/issued.json','x');if(!$issued)throw new RuntimeException('issued');
+              chmod($dir.'/issued.json',0600);
+              $issue=['operation'=>'modeled_profiles_v1_start','expected_main'=>'6bc130d9fb794c704b8a7a944159d56fe6dccf3c','issued_at_unix'=>time(),'stage'=>'issued'];
+              if(fwrite($issued,json_encode($issue,JSON_THROW_ON_ERROR))===false||!fflush($issued))throw new RuntimeException('receipt_write');
+              if(function_exists('fsync')&&!fsync($issued))throw new RuntimeException('receipt_sync');fclose($issued);
+              $phase='profiles_start';$start=$profiles->start();
+              if(($start['enabled']??false)!==true)throw new RuntimeException('start');
+              $phase='bounded_profile_tick';$tick=$profiles->tick(time());
+              if(!in_array($tick['status']??'',['profiled','idle','busy'],true))throw new RuntimeException('tick');
+              $phase='aggregate_profile_verification';
+              $summary=['stored_profiles'=>0,'profiles_with_known_budget'=>0,'profiles_with_known_party'=>0,'profiles_with_known_stage'=>0,'unresolved_trip_profiles'=>0];
+              $q=$pdo->query("SELECT profile_json FROM modeled_conversion_profile_versions WHERE project_key='anytour' ORDER BY id LIMIT 4");
+              while($raw=$q->fetchColumn()){
+                  $item=json_decode($raw,true,128,JSON_THROW_ON_ERROR);$v=$item['profile'];$summary['stored_profiles']++;
+                  $summary['profiles_with_known_budget']+=(int)(($v['fields']['budget']['status']??'')==='known');
+                  $known=false;foreach(['adults','children','total','child_ages']as$key)$known=$known||($v['party'][$key]['status']??'')==='known';
+                  $summary['profiles_with_known_party']+=(int)$known;
+                  $summary['profiles_with_known_stage']+=(int)(($v['current_stage']['status']??'')==='known');
+                  $summary['unresolved_trip_profiles']+=(int)(($v['trip_status']??'')==='unknown');
+              }
+              $result=['ok'=>true,'stage'=>'profiles_enabled','start'=>$start,'first_derived_tick'=>$tick,
+                  'after'=>$profiles->status(),'aggregate'=>$summary,'native_source_reads_by_this_operation'=>0,'paid_calls'=>0,'customer_calls'=>0];
+              $json=json_encode($result,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+              if(file_put_contents($dir.'/result.json',$json,LOCK_EX)===false)throw new RuntimeException('result_write');chmod($dir.'/result.json',0600);
+              echo $json.PHP_EOL;
+          } catch(Throwable $e) {
+              echo json_encode(['ok'=>false,'stage'=>$phase,'error'=>'modeled_profiles_start_failed','automatic_retry_allowed'=>false]).PHP_EOL;
+              exit(1);
+          }
+          
+          PHP
+          ssh_opts=(-i "$RUNNER_TEMP/deploy_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=15)
+          remote_dir="/tmp/anytour-modeled-profiles-code-${GITHUB_RUN_ID}"
+          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; umask 077; mkdir '$remote_dir'; chmod 700 '$remote_dir'"
+          trap 'ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "rm -f \"$remote_dir/start.php\"; rmdir \"$remote_dir\"" >/dev/null 2>&1 || true' EXIT
+          scp "${ssh_opts[@]}" "$RUNNER_TEMP/start-profiles.php" "$DEPLOY_USER@$DEPLOY_HOST:$remote_dir/start.php"
+          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '6bc130d9fb794c704b8a7a944159d56fe6dccf3c'; command -v python3 >/dev/null; python3 -c 'import sys; assert sys.version_info >= (3, 10)'; php -d display_errors=0 '$remote_dir/start.php'; test \"\$(git rev-parse HEAD)\" = '6bc130d9fb794c704b8a7a944159d56fe6dccf3c'" | tee "$RUNNER_TEMP/profile-activation.json"
+      - name: Wait only for the next existing five-minute scheduler boundary
+        shell: bash
+        run: |
+          python3 - "$RUNNER_TEMP/profile-activation.json" <<'PY'
+          import json,sys,time
+          v=json.load(open(sys.argv[1]));assert v.get('ok') is True
+          t=v['after'].get('last_receipt',{}).get('observed_at_unix',int(time.time())) if v['after'].get('last_receipt') else int(time.time())
+          through=(t//300+1)*300+45
+          assert through-time.time()<=345
+          while time.time()<through:
+              time.sleep(min(30,through-time.time()))
+          PY
+      - name: Read only the naturally advanced private aggregate receipt
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -i "$RUNNER_TEMP/deploy_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=15 "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '6bc130d9fb794c704b8a7a944159d56fe6dccf3c'; php -d display_errors=0 tools/modeled_conversion_stream.php profiles-status; test \"\$(git rev-parse HEAD)\" = '6bc130d9fb794c704b8a7a944159d56fe6dccf3c'" | tee "$RUNNER_TEMP/profile-natural.json"
+          python3 - "$RUNNER_TEMP/profile-activation.json" "$RUNNER_TEMP/profile-natural.json" <<'PY'
+          import json,sys
+          initial=json.load(open(sys.argv[1]));v=json.load(open(sys.argv[2]))
+          assert v.get('ok') is True and v.get('enabled') is True
+          assert v['ticks']>initial['after']['ticks']
+          assert v['last_error'] is None
+          r=v['last_receipt']
+          assert r['journal_rows_read']<=500 and r['payload_bytes']<=2097152
+          assert r['model_calls']==0 and r['conversion_uploads']==0
+          print(json.dumps({'natural_profile_scheduler_advanced':True,'ticks':v['ticks'],'profiles_written_in_last_tick':r['profiles_written'],'pending_revisions':r['pending_revisions']}))
+          PY
+      - name: Remove runner credential and private code
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/deploy_key" "$RUNNER_TEMP/start-profiles.php" "$RUNNER_TEMP/profile-activation.json" "$RUNNER_TEMP/profile-natural.json"
