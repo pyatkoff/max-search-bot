@@ -10,7 +10,7 @@ from datetime import date
 
 import build_conversion_observations as base
 
-VERSION = "ru_trip_prefix_rules_v1_5"
+VERSION = "ru_trip_prefix_rules_v1_6"
 MAX_BYTES = 2 * 1024 * 1024
 MAX_CASES = 100
 MAX_MESSAGES = 500
@@ -245,7 +245,10 @@ def date_constraints(text):
 
 def validate_case(case):
     base.fields(case, ("subject", "brand_key", "context_from", "prediction_at", "source_complete_through",
-                       "prefix_complete", "messages"), ("source_fence_at",))
+                       "prefix_complete", "messages"), ("source_fence_at", "trip_status"))
+    base.require(isinstance(case.get("trip_status", "accepted"), str) and case.get("trip_status", "accepted") in {"accepted", "unknown"}, "invalid_trip_status")
+    base.require(case.get("trip_status", "accepted") != "unknown" or case["prefix_complete"] is False,
+                 "unresolved_trip_cannot_be_complete")
     scope = base.subject(case["subject"]); base.key(case["brand_key"])
     start, cutoff = map(base.moment, [case["context_from"], case["prediction_at"]])
     complete = base.moment(case["source_complete_through"]) if case["source_complete_through"] is not None else None
@@ -294,6 +297,8 @@ def prediction_features(case, extracted, fields, party, stage):
             "source_gap_seconds": int((cutoff-base.moment(fence)).total_seconds()) if fence else None,
             "prefix_complete": case["prefix_complete"], "semantic_coverage": "partial_rules_only",
             "facts": admitted, "unavailable_facts": unavailable}
+    view["trip_status"] = case.get("trip_status", "accepted")
+    view["feature_scope"] = "current_trip" if view["trip_status"] == "accepted" else "unresolved_conversation_prefix"
     view["feature_fingerprint"] = base.digest({"subject": case["subject"], "brand_key": case["brand_key"],
                                              "context_from": case["context_from"], "extractor_sha256": RULE_SHA, "features": view})
     return view
@@ -444,17 +449,21 @@ def extract_case(case, extracted):
         refs = [{k: r[k] for k in ("source", "id", "at", "available_at")} for r in row["references"]]
         semantic.append({"id": "rules:"+row["references"][-1]["id"]+":"+str(i), "subject": scope,
                          "kind": row["value"], "at": max(r["at"] for r in refs),
-                         "available_at": row["available_at"], "confidence": "high", "references": refs})
+                         "available_at": row["available_at"], "confidence": "high" if case.get("trip_status", "accepted") == "accepted" else "medium", "references": refs})
     observation = {"subject": scope, "context_from": case["context_from"], "prediction_at": cutoff,
                    "observed_through": max(cutoff, extracted), "prefix_complete": case["prefix_complete"],
                    "followup_complete": False, "evidence": canonical+semantic, "advertising_entry": None,
                    "target_history_available_at": extracted}
     built = base.build_observation(observation)
+    if case.get("trip_status", "accepted") == "unknown":
+        built["eligible"] = False
+        built["label"] = {**built["label"], "value": None, "reason": "trip_boundary_unresolved"}
     assumptions = []
     if assumption_refs and adults is None and children is None and components["total"]["value"] == 2:
         assumptions.append(fact({"adults": 2, "children": 0}, assumption_refs[-1], extracted, cutoff,
                                 basis="agency_working_assumption_not_customer_composition"))
     return {"subject": scope, "brand_key": case["brand_key"], "context_from": case["context_from"],
+            "trip_status": case.get("trip_status", "accepted"),
             "prediction_at": cutoff, "source_complete_through": case["source_complete_through"],
             "prefix_complete": case["prefix_complete"], "extraction_version": VERSION,
             "extracted_at": extracted, "extractor_sha256": RULE_SHA,
@@ -502,3 +511,4 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+

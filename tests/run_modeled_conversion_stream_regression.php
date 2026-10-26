@@ -117,10 +117,87 @@ function modeledStreamSchedulerAssertions(callable $check): void
     }
 }
 
+
+require_once dirname(__DIR__).'/services/ModeledConversionProfiles.php';
+
+function modeledProfileSchema(PDO $p): void
+{
+    foreach(['modeled_conversion_profile_versions','modeled_conversion_profile_sources','modeled_conversion_profiles_state']as$t)$p->exec('DROP TABLE IF EXISTS '.$t);
+    if($p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'){
+        $sql=file_get_contents(dirname(__DIR__).'/migrations/066_modeled_conversion_profiles.sql');
+        for($i=0;$i<2;$i++)foreach(explode(';',$sql)as$s)if(trim($s)!=='')$p->exec($s);
+    }else{
+        $p->exec('CREATE TABLE modeled_conversion_profiles_state(project_key TEXT PRIMARY KEY,enabled INT,journal_cursor BIGINT DEFAULT 0,ticks INT DEFAULT 0,last_receipt_json TEXT,last_error_at_unix BIGINT,last_error_category TEXT)');
+        $p->exec('CREATE TABLE modeled_conversion_profile_sources(project_key TEXT,source_kind TEXT,source_id BIGINT,platform TEXT,customer_key TEXT,conversation_id TEXT,journal_id BIGINT,source_status TEXT,PRIMARY KEY(project_key,source_kind,source_id))');
+        $p->exec('CREATE TABLE modeled_conversion_profile_versions(id INTEGER PRIMARY KEY AUTOINCREMENT,project_key TEXT,platform TEXT,customer_key TEXT,conversation_id TEXT,journal_cursor BIGINT,observed_at_unix BIGINT,input_sha256 TEXT,profile_json TEXT,UNIQUE(project_key,platform,customer_key,conversation_id,journal_cursor))');
+    }
+}
+function modeledProfileLatest(PDO $p,string $conversation='11'): array
+{
+    $s=$p->prepare('SELECT profile_json FROM modeled_conversion_profile_versions WHERE conversation_id=? ORDER BY id DESC LIMIT 1');$s->execute([$conversation]);return json_decode($s->fetchColumn(),true,128,JSON_THROW_ON_ERROR);
+}
+function modeledProfileAppend(PDO $p,array $snap,int $now): void
+{
+    $id=(string)$snap['source_id'];$kind=$snap['source_kind'];$json=json_encode($snap,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);$hash=hash('sha256',$json);
+    $q=$p->prepare('SELECT version_no FROM modeled_conversion_stream_sources WHERE project_key=? AND source_kind=? AND source_id=?');$q->execute(['anytour',$kind,$id]);$old=$q->fetchColumn();$v=$old===false?1:(int)$old+1;
+    $p->prepare('INSERT INTO modeled_conversion_stream_versions(project_key,source_kind,source_id,version_no,revision_hash,observed_at_unix,snapshot_json) VALUES (?,?,?,?,?,?,?)')->execute(['anytour',$kind,$id,$v,$hash,$now,$json]);
+    if($old===false)$p->prepare('INSERT INTO modeled_conversion_stream_sources VALUES (?,?,?,?,?,?)')->execute(['anytour',$kind,$id,$hash,$v,$now]);
+    else$p->prepare('UPDATE modeled_conversion_stream_sources SET latest_hash=?,version_no=?,observed_at_unix=? WHERE project_key=? AND source_kind=? AND source_id=?')->execute([$hash,$v,$now,'anytour',$kind,$id]);
+}
+function modeledProfileAssertions(PDO $p,callable $check): void
+{
+    modeledStreamSchema($p);modeledProfileSchema($p);$now=1793002000;
+    $s=new ModeledConversionStream($p);$profiles=new ModeledConversionProfiles($p);
+    $check('profile processing defaults off without creating state',$profiles->tick($now)['status']==='off');
+    try{$profiles->start();$ok=false;}catch(Throwable $e){$ok=$e->getMessage()==='modeled_profiles_intake_not_enabled';}
+    $check('profile activation cannot bypass the admitted intake scope',$ok);
+    modeledStreamMessage($p,10,11);$s->start($now);
+    modeledStreamMessage($p,11,11,'Бюджет до 200 тыс на всех, 2 взрослых');$s->tick($now+1);$profiles->start();
+    $tables=['messages','conversation_events','conversations','customer_channels','advertising_visit_observations'];
+    foreach($tables as$t)$p->exec('ALTER TABLE '.$t.' RENAME TO unavailable_'.$t);
+    try{$r=$profiles->tick($now+2);}finally{foreach(array_reverse($tables)as$t)$p->exec('ALTER TABLE unavailable_'.$t.' RENAME TO '.$t);}
+    $v=modeledProfileLatest($p);
+    $check('actual interpreter profiles the admitted journal with all native source tables unavailable',$r['profiles_written']===1&&$v['profile']['fields']['budget']['value']['maximum']===200000);
+    $check('runtime profile keeps unknown trip target and all monetary values null',$v['profile']['trip_status']==='unknown'&&!$v['profile']['target_admission']['eligible']&&$v['profile']['expected_value_rub']===null);
+    $check('profile status exposes aggregate receipt without private text or native identities',!str_contains(json_encode($profiles->status()),'Бюджет')&&!str_contains(json_encode($profiles->status()),'conversation_id'));
+    $check('profile retry and empty tick append no duplicate version',$profiles->tick($now+3)['profiles_written']===0&&(int)$p->query('SELECT COUNT(*) FROM modeled_conversion_profile_versions')->fetchColumn()===1);
+    $p->exec("UPDATE messages SET text='Бюджет до 300 тыс на всех' WHERE id=11");modeledStreamMessage($p,12,11,'Стоимость 700000 рублей','manager');modeledStreamMessage($p,13,11,'Давайте бронировать');
+    $p->exec("UPDATE messages SET metadata_json='{\"type\":\"callback\"}' WHERE id=13");$s->tick($now+4);$profiles->tick($now+5);$v=modeledProfileLatest($p);
+    $check('edited customer facts update while manager quote and callback do not raise purchase intent',$v['profile']['fields']['budget']['value']['maximum']===300000&&$v['profile']['current_stage']['value']!=='booking_intent'&&count($v['profile']['manager_quotes'])===1);
+    $p->exec("UPDATE messages SET text='Бюджет до 400 тыс на всех' WHERE id=11");$s->tick($now+6);
+    $sourceCount=$p->query('SELECT COUNT(*) FROM modeled_conversion_stream_versions')->fetchColumn();$cursor=$p->query('SELECT journal_cursor FROM modeled_conversion_profiles_state')->fetchColumn();$count=$p->query('SELECT COUNT(*) FROM modeled_conversion_profile_versions')->fetchColumn();$index=$p->query("SELECT journal_id FROM modeled_conversion_profile_sources WHERE source_id=11 AND source_kind='message'")->fetchColumn();
+    try{$profiles->tick($now+7,static function(){throw new RuntimeException('profile_rollback_fixture');});$ok=false;}catch(Throwable $e){$ok=$e->getMessage()==='profile_rollback_fixture';}
+    $check('profile failure rolls back source references versions and checkpoint together',$ok&&$sourceCount===$p->query('SELECT COUNT(*) FROM modeled_conversion_stream_versions')->fetchColumn()&&$cursor===$p->query('SELECT journal_cursor FROM modeled_conversion_profiles_state')->fetchColumn()&&$count===$p->query('SELECT COUNT(*) FROM modeled_conversion_profile_versions')->fetchColumn()&&$index===$p->query("SELECT journal_id FROM modeled_conversion_profile_sources WHERE source_id=11 AND source_kind='message'")->fetchColumn());
+    $check('retry after profile rollback extracts and commits exactly once',$profiles->tick($now+8)['profiles_written']===1&&modeledProfileLatest($p)['profile']['fields']['budget']['value']['maximum']===400000);
+    $raw=$p->query("SELECT snapshot_json FROM modeled_conversion_stream_versions WHERE source_kind='message' AND source_id=11 ORDER BY id DESC LIMIT 1")->fetchColumn();$snap=json_decode($raw,true);
+    $snap['payload']['text']='Бюджет до 450 тыс на всех';modeledProfileAppend($p,$snap,$now+10);
+    foreach([10,14,15,16]as$c){$other=$snap;$other['source_id']=(string)(100+$c);$other['conversation_id']=(string)$c;$other['customer_key']=(string)$c;modeledProfileAppend($p,$other,$now+10);}
+    $snap['payload']['text']='Бюджет до 900 тыс на всех';modeledProfileAppend($p,$snap,$now+10);
+    $r=$profiles->tick($now+11);
+    $check('bounded as-of profile cannot see a later revision beyond its unprocessed journal cursor',$r['profiles_written']===4&&$r['pending_revisions']===2&&modeledProfileLatest($p)['profile']['fields']['budget']['value']['maximum']===450000);
+    $r=$profiles->tick($now+12);$check('continuation from the exact journal cursor admits the later changed facts once',$r['profiles_written']===2&&$r['pending_revisions']===0&&modeledProfileLatest($p)['profile']['fields']['budget']['value']['maximum']===900000);
+    $p->exec('UPDATE conversations SET is_test=1 WHERE id=11');$s->tick($now+13);$profiles->tick($now+14);$v=modeledProfileLatest($p);
+    $check('revoked source scope invalidates the current profile without copying older text',$v['access_status']==='denied'&&$v['profile']['prediction_features']['facts']===[]);
+    $p->exec('UPDATE conversations SET is_test=0 WHERE id=11');$s->tick($now+15);$profiles->tick($now+16);
+    $check('scope restoration creates a new current profile with its actual new receipt',modeledProfileLatest($p)['access_status']==='allowed');
+    // Isolate throughput from source-reconciliation tests: all following rows are already admitted fixtures.
+    for($i=0;$i<100;$i++){$c=(string)(1000+$i);$x=$snap;$x['source_id']=(string)(2000+$i);$x['conversation_id']=$c;$x['customer_key']=$c;modeledProfileAppend($p,$x,$now+20);}
+    $bounded=true;$written=0;
+    for($i=0;$i<25;$i++){$r=$profiles->tick($now+21+$i);$written+=$r['profiles_written'];$bounded=$bounded&&$r['journal_rows_read']<=500&&$r['payload_bytes']<=2097152&&$r['profiles_written']<=4;}
+    $check('mass journal processing keeps row byte and affected-scope limits',$bounded);
+    $check('automatic bounded processing eventually profiles all100synthetic conversation scopes',$written===100&&$r['pending_revisions']===0);
+    $profiles->stop();$check('stopping profile processing preserves source intake and private history',$profiles->tick($now+50)['status']==='off'&&(int)$p->query('SELECT enabled FROM modeled_conversion_stream_state')->fetchColumn()===1);
+    $profiles->start();$check('resuming profiles preserves its cursor rather than replaying journal history',$profiles->tick($now+51)['profiles_written']===0);
+    $p->beginTransaction();try{$profiles->tick($now+52);$ok=false;}catch(Throwable $e){$ok=$e->getMessage()==='modeled_profiles_outer_transaction';}finally{$p->rollBack();}
+    $check('profile processor cannot commit a caller-owned transaction',$ok);
+}
+
+
 if(realpath($_SERVER['SCRIPT_FILENAME']??'')===__FILE__){
     $p=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
     modeledStreamSchema($p);$passed=0;
     $check=static function(string $name,bool $ok)use(&$passed){if(!$ok)throw new RuntimeException('FAIL '.$name);$passed++;echo 'PASS '.$name.PHP_EOL;};
-    modeledStreamAssertions($p,$check);modeledStreamSchedulerAssertions($check);
+    modeledStreamAssertions($p,$check);modeledStreamSchedulerAssertions($check);modeledProfileAssertions($p,$check);
     echo 'MODELED CONVERSION STREAM PASSED '.$passed.PHP_EOL;
 }
+
