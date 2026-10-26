@@ -10,7 +10,7 @@ from datetime import date
 
 import build_conversion_observations as base
 
-VERSION = "ru_trip_prefix_rules_v1_3"
+VERSION = "ru_trip_prefix_rules_v1_4"
 MAX_BYTES = 2 * 1024 * 1024
 MAX_CASES = 100
 MAX_MESSAGES = 500
@@ -134,10 +134,59 @@ def monetary(text, customer):
     return results
 
 
+def duration_constraint(text):
+    """Keep explicit alternatives discrete; never accept a numeric suffix."""
+    match = text_match(r"(?<![\w.,+–-])(\d{1,2}(?:\s*(?:,|или|[-–])\s*\d{1,2})*)\s*"
+                       r"(ноч\w*|дней|дня|день)\b", text)
+    if match:
+        raw = match[1]
+        values = [int(v) for v in re.findall(r"\d+", raw)]
+        if negated(text, match.start()) or not all(1 <= v <= 90 for v in values):
+            return None
+        unit = "nights" if match[2].lower().startswith("ноч") else "days"
+        if "-" in raw or "–" in raw:
+            if len(values) != 2 or "," in raw or "или" in raw.lower() or values[0] > values[1]:
+                return None
+            return {"minimum": values[0], "maximum": values[1], "unit": unit}, match.span()
+        # An unspaced decimal-looking comma cannot establish integer choices.
+        if re.search(r"\d,\d", raw):
+            return None
+        value = {"minimum": min(values), "maximum": max(values), "unit": unit}
+        if len(values) > 1:
+            value["options"] = sorted(set(values))
+        return value, match.span()
+    reverse = text_match(r"\b(дней|дня|ночей)\s+на\s+(\d{1,2})(?!\d)\b", text)
+    if reverse and not negated(text, reverse.start()) and 1 <= int(reverse[2]) <= 90:
+        return {"minimum": int(reverse[2]), "maximum": int(reverse[2]),
+                "unit": "nights" if reverse[1].lower().startswith("ноч") else "days"}, reverse.span()
+    return None
+
+
 def date_constraints(text):
     """Keep window meaning/year unresolved unless explicitly supplied."""
     results = []
-    numeric = r"(?<!\d)(?P<d>\d{1,2})\.(?P<m>\d{1,2})(?:\.(?P<y>20\d{2}))?\.?"
+    def qualified(value, start, end, is_range):
+        bound = re.search(r"(?<!\w)(не\s+ранее|не\s+позднее|после|раньше|до|от|с|по|на)\s*$",
+                          text[:start], re.I)
+        if not bound:
+            return value, (start, end)
+        qualifier = re.sub(r"\s+", " ", bound[1].lower())
+        if not is_range and qualifier != "на":
+            upper = qualifier in {"до", "по", "раньше", "не позднее"}
+            suffix = re.match(r"\s*включ(?:ительно|ено)\b", text[end:], re.I)
+            inclusive = False if qualifier in {"после", "раньше"} else None if qualifier == "до" else True
+            if suffix:
+                inclusive = True
+                end += suffix.end()
+            value.update(start_day=None if upper else value["start_day"],
+                         start_month=None if upper else value["start_month"],
+                         end_day=value["end_day"] if upper else None,
+                         end_month=value["end_month"] if upper else None,
+                         start_inclusive=None if upper else inclusive,
+                         end_inclusive=inclusive if upper else None)
+        return value, (bound.start(), end)
+
+    numeric = r"(?<![\w.])(?P<d>\d{1,2})\.(?P<m>\d{1,2})(?:\.(?P<y>20\d{2}))?\.?"
     matches = list(re.finditer(numeric, text))
     if matches:
         first, last = matches[0], matches[-1]
@@ -148,13 +197,16 @@ def date_constraints(text):
             date(year or 2000, month, start); date(int(last["y"] or year or 2000), end_month, end)
         except ValueError:
             return []
-        results.append(({"start_day": start, "start_month": month, "end_day": end,
+        results.append(qualified({"start_day": start, "start_month": month, "end_day": end,
                          "end_month": end_month, "year": year,
                          "window_kind": "departure" if text_match(r"дат\w* вылета|вылет", text) else "unspecified"},
-                        (first.start(), last.end())))
+                        first.start(), last.end(), len(matches) > 1))
         return results
     for word, month in MONTHS.items():
-        match = re.search(rf"(?:(?:с|на)\s*)?(?P<d>\d{{1,2}})(?:\s*[-–]\s*(?P<r>\d{{1,2}})|\s+по\s+(?P<r2>\d{{1,2}}))?\s*{word}\w*(?:\s*(?P<y>20\d{{2}}))?", text, re.I)
+        ordinal = r"(?:\s*-?\s*(?:го|ого))?"
+        match = re.search(rf"(?<![\w.-])(?P<d>\d{{1,2}}){ordinal}"
+                          rf"(?:\s*[-–]\s*(?P<r>\d{{1,2}}){ordinal}|\s+по\s+(?P<r2>\d{{1,2}}){ordinal})?"
+                          rf"\s*{word}\w*(?:\s*(?P<y>20\d{{2}}))?", text, re.I)
         if not match:
             continue
         start = int(match["d"]); end = int(match["r"] or match["r2"] or start)
@@ -166,9 +218,10 @@ def date_constraints(text):
             date(year or 2000, month, start); date(year or 2000, month, end)
         except ValueError:
             continue
-        results.append(({"start_day": start, "start_month": month, "end_day": end,
+        results.append(qualified({"start_day": start, "start_month": month, "end_day": end,
                          "end_month": month, "year": year, "window_kind": "departure" if text_match(r"вылет", text) else "unspecified"},
-                        (match.start(), match.end()+ (tail.end() if tail else 0))))
+                        match.start(), match.end()+ (tail.end() if tail else 0),
+                        bool(match["r"] or match["r2"] or tail)))
         break
     return results
 
@@ -262,7 +315,7 @@ def extract_case(case, extracted):
             add("budget", value, m, span)
         if text_match(r"бюджетн|недорого|не дорого|экономн|подешевле", text):
             add("budget_preference", "economy_preference", m)
-        for pattern, component in [(r"(?<![\d-])(\d{1,2})\s*взросл\w*", "adults"),
+        for pattern, component in [(r"(?<![\d-])(\d{1,2})\s*(?:(?:человека?|чел\.?)\s+)?взросл\w*", "adults"),
                                    (r"(?<![\d-])(\d{1,2})\s*(?:детей|ребен\w*|ребён\w*|дет\w*)", "children"),
                                    (r"(?<![\d-])(\d{1,2})\s*(?:чел\w*|человек)", "total")]:
             for match in re.finditer(pattern, text, re.I):
@@ -281,14 +334,9 @@ def extract_case(case, extracted):
         age = text_match(r"^\s*(\d{1,2})\s*(?:год|года|лет)\b", text)
         if age and int(age[1]) <= 17 and choose(party["children"])["value"] == 1:
             add("child_ages", [int(age[1])], m, age.span(), "single_child_context", [r for r in messages if r["id"] == choose(party["children"])["references"][-1]["id"]])
-        duration = text_match(r"(?<![\d+-])(\d{1,2})(?:\s*[-–]\s*(\d{1,2}))?\s*(ноч\w*|дней|дня|день)\b", text)
-        reverse = text_match(r"\b(дней|дня|ночей)\s+на\s+(\d{1,2})\b", text)
-        if duration and not negated(text, duration.start()):
-            lo, hi = int(duration[1]), int(duration[2] or duration[1])
-            if 1 <= lo <= hi <= 90:
-                add("duration", {"minimum": lo, "maximum": hi, "unit": "nights" if duration[3].lower().startswith("ноч") else "days"}, m, duration.span())
-        elif reverse:
-            add("duration", {"minimum": int(reverse[2]), "maximum": int(reverse[2]), "unit": "nights" if reverse[1].startswith("ноч") else "days"}, m, reverse.span())
+        duration = duration_constraint(text)
+        if duration:
+            add("duration", duration[0], m, duration[1])
         for value, span in date_constraints(text):
             add("dates", value, m, span)
         flex = text_match(r"(?:\+\s*[-–]|плюс[- ]минус)\s*(\d{1,2})\s*дн\w*", text)
