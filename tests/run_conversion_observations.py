@@ -44,6 +44,28 @@ def ad_entry(at=BEFORE, available=None):
 
 
 class ObservationTests(unittest.TestCase):
+    def test_late_target_history_blocks_future_positive_without_rewriting_source_coverage(self):
+        row = observation(item("question", "customer_message"), item("choose", "booking_intent", AFTER))
+        row["target_history_available_at"] = AFTER
+        result = builder.build_observation(row)
+        self.assertTrue(result["features"]["prefix_complete"])
+        self.assertFalse(result["eligible"])
+        self.assertIsNone(result["label"]["value"])
+        self.assertEqual(result["label"]["reason"], "target_history_unavailable_at_prediction")
+
+    def test_target_history_available_by_prediction_preserves_existing_risk_set(self):
+        row = observation(item("question", "customer_message"), item("choose", "booking_intent", AFTER))
+        before = builder.build_observation(row)
+        row["target_history_available_at"] = PREDICT
+        after = builder.build_observation(row)
+        self.assertEqual(before, after)
+
+    def test_target_history_availability_has_valid_actual_clock(self):
+        for at in ["2026-09-30T09:00:00Z", LATE, "2026-10-01 12:00:00", None]:
+            with self.subTest(at=at):
+                row = observation(); row["target_history_available_at"] = at
+                with self.assertRaises(builder.InvalidObservation): builder.build_observation(row)
+
     def test_future_progress_becomes_label_not_features(self):
         base = observation(item("question", "customer_message"), item("need", "clarifying"))
         before = builder.build_observation(base)

@@ -8,7 +8,7 @@ import sys
 import build_conversion_observations as base
 import extract_conversion_profiles as extractor
 
-VERSION = "canonical_snapshot_profile_v1"
+VERSION = "canonical_snapshot_profile_v1_1"
 CLOCK = "database_persistence_normalized_to_utc_not_provider_occurrence"
 SUBJECT = base.SCOPE_FIELDS[:-1]
 
@@ -86,12 +86,14 @@ def normalize(document):
         start = next((r for r in normalized if r["id"] == trip["trip_start_message_id"]), None)
         base.require(start is not None and start["speaker"] == "customer" and start["kind"] == "text"
                      and bool(start["text"].strip()), "current_trip_customer_anchor_required")
-        complete = (source["messages_complete"] and source["events_complete"]
+        source_complete = (source["messages_complete"] and source["events_complete"]
                     and choices["available"] and choices.get("limited") is False
-                    and choices.get("offers") == [] and captured == extracted)
+                    and choices.get("offers") == [] and not source.get("events"))
+        complete = source_complete and captured == extracted
         cases.append({"subject": {**subject, "episode_key": "trip-message:"+start["id"]},
                       "brand_key": trip["brand_key"], "context_from": start["at"],
-                      "prediction_at": document["extracted_at"], "source_complete_through": snapshot["captured_at"],
+                      "prediction_at": document["extracted_at"], "source_fence_at": snapshot["captured_at"],
+                      "source_complete_through": snapshot["captured_at"] if source_complete else None,
                       "prefix_complete": complete, "messages": normalized})
     base.require(seen == set(trips), "unused_trip_mapping")
     return {"schema_version": 1, "extracted_at": document["extracted_at"], "cases": cases}
