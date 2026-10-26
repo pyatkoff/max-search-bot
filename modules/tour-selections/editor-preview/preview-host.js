@@ -41,5 +41,5 @@ const host={
   }
 };
 const editor=window.AnyTourSelectionEditor.mount(Object.freeze(host));editor.sync(conversation);
-document.getElementById('demoReset').onclick=()=>{editor.suspend();state={version:1,draft:copy(initial),receipts:{}};try{sessionStorage.removeItem(storageKey);sessionStorage.removeItem('workspaceV2.tourSelection.1.1')}catch(e){};editor.sync(conversation)};
+document.getElementById('demoReset').onclick=()=>{editor.suspend();state={version:1,draft:copy(initial),receipts:{}};try{sessionStorage.removeItem(storageKey);sessionStorage.removeItem('workspaceV2.tourSelection.1.1')}catch(e){};location.reload()};
 })();

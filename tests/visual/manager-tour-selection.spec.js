@@ -215,7 +215,7 @@ for(const width of [390,430,768,1440])test('standalone selection editor uses exa
   await page.locator('#tsCollector').click();await expect(page.locator('#demoNotice')).toContainText('только демонстрационный черновик');
   await page.locator('#tsPreview').click();await expect(page.locator('#tsStatus')).toContainText('Демонстрация');await expect(page.locator('#tsSend')).toBeHidden();
   fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-selection-editor-standalone-${browserName}-${width}.png`)});
-  await page.locator('#tsClose').click();await page.locator('#demoReset').click();await page.locator('#tourSelectionOpen').click();await expect(page.locator('#ts-hotel')).toHaveValue('Пример отеля у моря');
+  await page.locator('#ts-hotel').fill('Несохранённый демонстрационный вариант');await page.locator('#tsClose').click();await page.locator('#demoReset').click();await page.locator('#tourSelectionOpen').click();await expect(page.locator('#ts-hotel')).toHaveValue('Пример отеля у моря');
   expect(errors).toEqual([]);expect(requests.every(r=>r.method==='GET'&&r.origin==='https://editor-preview.fixture'&&allowed.includes(r.name))).toBe(true);
 });
 
