@@ -79,7 +79,8 @@ function metrikaFail($message, $restoreProcessing = false)
 try {
     require_once __DIR__.'/services/MaxChannelConversionWorker.php';
     $channelSettings=MaxChannelConversionOutbox::settings();
-    if($channelSettings&&$channelSettings['mode']!=='off'){
+    $telegramSettings=TelegramDialogueConversions::settings();
+    if(($channelSettings&&$channelSettings['mode']!=='off')||($telegramSettings&&$telegramSettings['telegram_mode']!=='off')){
         require_once __DIR__.'/maxsearchclass.php';
         require_once __DIR__.'/services/MetrikaConversionGoalService.php';
         $channelResult=MaxChannelConversionWorker::tick(null,null,null,null,[MetrikaConversionGoalService::class,'reconcileChannelConversation']);

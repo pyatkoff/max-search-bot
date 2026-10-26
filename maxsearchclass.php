@@ -5,6 +5,7 @@ require_once(__DIR__ . '/services/ProjectConfig.php');
 require_once(__DIR__ . '/services/TrafficAttributionService.php');
 require_once(__DIR__ . '/services/AnalyticsService.php');
 require_once(__DIR__ . '/services/MaxChannelConversionOutbox.php');
+require_once(__DIR__ . '/services/TelegramDialogueConversions.php');
 require_once(__DIR__ . '/services/MaxTransport.php');
 require_once(__DIR__ . '/services/FollowupQueueService.php');
 require_once(__DIR__ . '/services/AiSearchContextService.php');
@@ -161,6 +162,8 @@ class MaxSearchApi extends MaxSearchBase
     public static function queueMetrikaGoal($chatID,$target,?array $eventContext=null){
         $target=trim((string)$target);if($target==='')return false;$excluded=static::metrikaExcludedDestination($chatID);
         if($excluded){static::funnelLog($chatID,'metrika_skipped_destination',['target'=>$target,'country_id'=>$excluded['country_id'],'country'=>$excluded['country']]);return false;}
+        $telegramQueued=TelegramDialogueConversions::queueIfEligible($chatID,$target,$eventContext);
+        if($telegramQueued!==null)return $telegramQueued;
         $channelQueued=MaxChannelConversionOutbox::queueIfEligible($chatID,$target,$eventContext);
         if($channelQueued!==null)return $channelQueued;
         $meta=static::getTrafficMeta($chatID);$yclid=static::getLatestYclid($chatID);if($yclid==='')$yclid=trim((string)($meta['yclid']??''));if($yclid==='')return false;

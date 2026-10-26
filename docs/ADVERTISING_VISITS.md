@@ -251,3 +251,56 @@ an export-ready match. Uncertainty is never represented as zero purchase chance.
    confidence and budget semantics. Decide export timing and deduplication before
    any monetary event is emitted. No top-percent cutoff is fixed by this storage
    slice; late purchases will calibrate the predictions as they arrive.
+# Telegram dialogue conversions through imported identities
+
+The owner's 26 October instruction to finish the Telegram dialogue→advertising
+entry→existing Metrika goal seam authorizes this ordinary delivery separately
+from modeled conversion values. `TelegramDialogueConversions` uses the existing
+`advertising_signals`, immutable `advertising_visit_observations`, conversion
+outbox and `MaxChannelConversionWorker`; no new worker, queue or schedule.
+The existing five-minute `cron_metrika` runs when either platform is opted in.
+MAX activation, cursors, latest-known-ClientID policy and lookup remain separate.
+
+Migration067 adds default-off Telegram settings and immutable per-row platform,
+signal and imported-identity provenance to the existing outbox. Existing rows
+retain `platform=max`. Pre067 source compatibility keeps MAX working; Telegram
+cannot activate without the forward migration. The original three goals/IDs and
+counter98615635 remain pinned; the bridge never configures goals or campaigns.
+
+CLI-only `php tools/telegram_dialogue_conversions.php collect|send|off|status`
+uses the existing config and read-only project initializer. `collect` and `send`
+verify the existing exact goals with GET before changing only Telegram mode.
+First activation freezes the current signal ID floor and actual activation
+instant; resume retains them. No old signal or historical source is backfilled.
+`collect` resolves identities but performs no conversion POST. `send` permits
+ordinary existing-goal POSTs in the existing worker; neither CLI command forces a
+tick. Off stops subsequent TG work, retains receipts and may leave in-flight work.
+
+The three retained signals map to `max_bot_activity_start`,
+`max_manager_request`, `max_customer_reply_after_manager`. Their actual recorded
+occurrence is preserved; a request is a durable handoff, and a callback alone is
+not a customer reply. Exact project/channel/customer/private-user linkage,
+owner/test exclusions and the original destination exclusion must hold.
+Imported entries must be verified AnyTour/tgmini/Telegram/counter98615635, with a
+visit no later than the event and actual observation/import available by lookup.
+One distinct eligible ClientID resolves the event; zero or multiple ClientIDs
+remain pending with an explicit reason. A later import may enrich an earlier
+retained event without changing its event time. The first successful ClientID and
+source observation are frozen. This conservative TG rule does not alter MAX's
+different owner-selected policy. Current scope is rechecked before upload.
+
+For managed TG goals, the live queue hook consumes the shared outbox path instead
+of creating a parallel legacy YCLID CSV event. A bounded signal cursor recovers
+durable captures, including a manager request created after the pre-handoff hook.
+Previous legacy markers and existing outbox rows prevent repeated stages. Existing
+atomic claims, accepted receipts and GET-only unknown reconciliation remain the
+delivery owner; uncertain POSTs are never blindly resent. MAX retains its existing
+five-upload/three-poll bounds; Telegram has the same separate per-tick bounds,
+so either platform's backlog cannot consume the other's delivery allowance.
+All outputs are aggregate; no native ID, text or key appears in public status.
+
+SQLite and native MySQL tests exercise the same path. Code, installed migration,
+explicit activation, natural event, upload acceptance, validated rows and Yandex
+visit linkage are separate evidence. This implementation does not establish any
+of those live outcomes by itself. No Price, probability, commission or modeled
+value is emitted; future modeled export remains disabled.

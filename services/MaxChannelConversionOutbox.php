@@ -11,7 +11,26 @@ final class MaxChannelConversionOutbox
     // Retain the original stage key for receipt/comment reconciliation only.
     public const HISTORICAL_TARGETS=['max_bot_activity_start','max_manager_reply','max_customer_reply_after_manager','max_manager_request'];
     private PDO $pdo;
+    private ?bool $platformReady=null;
     public function __construct(PDO $pdo){$this->pdo=$pdo;}
+
+    /** Compatibility while source is present before forward migration067. */
+    public function hasPlatform(): bool
+    {
+        if($this->platformReady===null){
+            try{$this->pdo->query('SELECT platform FROM max_channel_conversion_outbox WHERE 1=0');$this->platformReady=true;}
+            catch(PDOException $e){
+                if($e->getCode()!=='42S22'&&!($e->getCode()==='HY000'&&str_contains($e->getMessage(),'no such column: platform')))throw $e;
+                $this->platformReady=false;
+            }
+        }
+        return $this->platformReady;
+    }
+    private function platformWhere(string $platform): string
+    {
+        if(!in_array($platform,['max','telegram'],true))throw new InvalidArgumentException('invalid_conversion_platform');
+        return $this->hasPlatform()?" AND platform='".$platform."'":($platform==='max'?'':' AND 1=0');
+    }
 
     public static function settings(?PDO $pdo=null): ?array
     {
@@ -164,40 +183,40 @@ final class MaxChannelConversionOutbox
         return $q->execute([$settings['project_key'],$conversation['id'],(string)$conversation['external_user_id'],$settings['counter_id'],$target,$target,$unix]);
     }
 
-    public function pending(int $now,int $limit=25): array
+    public function pending(int $now,int $limit=25,string $platform='max'): array
     {
         $limit=max(1,min(25,$limit));
-        $q=$this->pdo->prepare("SELECT * FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635' AND state='pending' AND next_attempt_unix<=? ORDER BY id LIMIT ".$limit);
+        $q=$this->pdo->prepare("SELECT * FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635' AND state='pending' AND next_attempt_unix<=?".$this->platformWhere($platform)." ORDER BY id LIMIT ".$limit);
         $q->execute([$now]);return $q->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function resolve(string $id,?array $record,int $now): void
     {
-        if(!$record){$q=$this->pdo->prepare("UPDATE max_channel_conversion_outbox SET next_attempt_unix=?,last_error='identity_not_found' WHERE id=? AND state='pending'");$q->execute([$now+900,$id]);return;}
-        $q=$this->pdo->prepare("UPDATE max_channel_conversion_outbox SET client_id=?,tracker_record_id=?,tracker_observed_unix=?,state='ready',last_error='',next_attempt_unix=0 WHERE id=? AND state='pending' AND external_user_id=?");
+        if(!$record){$q=$this->pdo->prepare("UPDATE max_channel_conversion_outbox SET next_attempt_unix=?,last_error='identity_not_found' WHERE id=? AND state='pending'".$this->platformWhere('max'));$q->execute([$now+900,$id]);return;}
+        $q=$this->pdo->prepare("UPDATE max_channel_conversion_outbox SET client_id=?,tracker_record_id=?,tracker_observed_unix=?,state='ready',last_error='',next_attempt_unix=0 WHERE id=? AND state='pending' AND external_user_id=?".$this->platformWhere('max'));
         $q->execute([$record['client_id'],$record['record_id'],$record['observed_at_unix']??null,$id,$record['external_user_id']]);
     }
 
-    public function rows(string $state,int $now,int $limit): array
+    public function rows(string $state,int $now,int $limit,string $platform='max'): array
     {
         if(!in_array($state,['ready','accepted','unknown'],true))throw new InvalidArgumentException('invalid_state');
         $active=$state==='ready'?" AND target IN ('max_bot_activity_start','max_manager_request','max_customer_reply_after_manager') AND transport_target=target":'';
-        $q=$this->pdo->prepare("SELECT * FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635' AND state=? AND next_attempt_unix<=?".$active." ORDER BY id LIMIT ".max(1,min(10,$limit)));
+        $q=$this->pdo->prepare("SELECT * FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635' AND state=? AND next_attempt_unix<=?".$active.$this->platformWhere($platform)." ORDER BY id LIMIT ".max(1,min(10,$limit)));
         $q->execute([$state,$now]);return $q->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function claim(string $id,int $now): ?string
+    public function claim(string $id,int $now,string $platform='max'): ?string
     {
         $token=bin2hex(random_bytes(16));
-        $q=$this->pdo->prepare("UPDATE max_channel_conversion_outbox SET state='uploading',claim_token=?,claimed_at_unix=?,attempts=attempts+1 WHERE id=? AND state='ready' AND next_attempt_unix<=? AND project_key='anytour' AND counter_id='98615635' AND target IN ('max_bot_activity_start','max_manager_request','max_customer_reply_after_manager') AND transport_target=target");
+        $q=$this->pdo->prepare("UPDATE max_channel_conversion_outbox SET state='uploading',claim_token=?,claimed_at_unix=?,attempts=attempts+1 WHERE id=? AND state='ready' AND next_attempt_unix<=? AND project_key='anytour' AND counter_id='98615635' AND target IN ('max_bot_activity_start','max_manager_request','max_customer_reply_after_manager') AND transport_target=target".$this->platformWhere($platform));
         $q->execute([$token,$now,$id,$now]);return $q->rowCount()===1?$token:null;
     }
 
-    public function claimedEvent(string $id,string $token): ?array
+    public function claimedEvent(string $id,string $token,string $platform='max'): ?array
     {
         // Read after the atomic claim. A worker that selected this row before
         // cutover must use the persisted target selected by that transition.
-        $q=$this->pdo->prepare("SELECT * FROM max_channel_conversion_outbox WHERE id=? AND state='uploading' AND claim_token=? AND project_key='anytour' AND counter_id='98615635'");
+        $q=$this->pdo->prepare("SELECT * FROM max_channel_conversion_outbox WHERE id=? AND state='uploading' AND claim_token=? AND project_key='anytour' AND counter_id='98615635'".$this->platformWhere($platform));
         $q->execute([$id,$token]);$row=$q->fetch(PDO::FETCH_ASSOC);return $row?:null;
     }
 
@@ -209,7 +228,7 @@ final class MaxChannelConversionOutbox
             $q->execute([$result['upload_id'],$result['status']??'UPLOADED',$now+1800,$id,$token]);
         }else{
             $new=$state==='retry'?'ready':($state==='rejected'?'failed':'unknown');
-            $reason=in_array($result['reason']??'', ['transport_not_sent','rate_limited','api_rejected','upload_outcome_unknown'],true)?$result['reason']:'upload_outcome_unknown';
+            $reason=in_array($result['reason']??'', ['transport_not_sent','rate_limited','api_rejected','upload_outcome_unknown','identity_scope_unavailable'],true)?$result['reason']:'upload_outcome_unknown';
             $q=$this->pdo->prepare('UPDATE max_channel_conversion_outbox SET state=?,next_attempt_unix=?,last_error=?,claim_token=NULL WHERE id=? AND state=\'uploading\' AND claim_token=?');
             $q->execute([$new,$now+1800,$reason,$id,$token]);
         }
