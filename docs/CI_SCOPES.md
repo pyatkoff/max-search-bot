@@ -142,14 +142,17 @@ removing package installation does not establish an end-to-end latency SLA.
 
 ## Full browser workload allocation
 
-Full Chromium and WebKit coverage keeps two whole-spec parts. The transcript
-history spec belongs to part zero, alongside its existing layout/CLI and daily
-cache ownership. Accepted native reports showed substantially more case work in
-part one; moving the complete history spec balances both engines without
-splitting shared fixtures or changing the spec/case inventory. The source-bound
-registry identity changes with ownership, so the first run executes fresh full
-coverage. Exact union, report and screenshot gates remain mandatory; this is a
-workload allocation, not an end-to-end timing guarantee.
+Full Chromium and WebKit coverage uses four isolated whole-spec parts, each
+retaining workers=1. The allocation follows observed native per-spec execution
+time: selection owns part three; history remains in part zero, alongside its
+existing layout/CLI and daily-cache ownership. Part zero leaves room for those
+captures. No shared fixture is split and the complete spec/case inventory is
+unchanged. Every engine assembly downloads and validates all four original
+parts; missing or old two-part evidence cannot pass. The source-bound registry
+identity changes with allocation, so the first run executes fresh full coverage.
+Exact union, report, screenshot, source and retry gates remain mandatory. This
+allocation does not guarantee end-to-end latency: runner queueing, setup,
+individual failures and assembly still contribute to the actual result.
 
 ## Failed-job-only retries
 

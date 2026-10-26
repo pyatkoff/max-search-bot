@@ -30,16 +30,24 @@ function mainSpecs(browser) {
 function allSpecs(browser) { return [CACHE_SPEC, ...mainSpecs(browser)]; }
 // Whole-spec, reviewed output ownership: part zero also owns all layout/CLI
 // captures and the daily-cache spec. Never split a spec's shared fixtures.
-const PART_ZERO = Object.freeze([
-  'workspace-v2-layout','workspace-notification-diagnostics','manager-browser-push-state',
-  'workspace-timezone','workspace-conversation-scroll','manager2-workspace',
-  'manager2-inbox-compact','manager-admin-load','manager-personal-workspace',
-  'manager-customer-name','manager-media-compose','manager-transcript-history',
-].map(name=>'tests/visual/'+name+'.spec.js'));
-const PART_COUNT = 2;
+// Allocate whole specs by observed native execution time. Part zero leaves
+// room for its cache/CLI captures; selection is the largest indivisible spec.
+// Each part keeps workers=1 and its own runner, server and output namespace.
+const PART_SPECS = Object.freeze([
+  ['workspace-v2-layout','manager-transcript-history','manager-customer-name',
+    'manager2-messenger-layout','workspace-conversation-scroll','manager-admin-load'],
+  ['manager-quick-replies','manager-ai-draft','manager-assistant','manager-internal-notes',
+    'manager2-inbox-compact','manager-manual-groups','manager-admin-workspace',
+    'workspace-send-feedback','manager-handoff-cancellation-shell'],
+  ['manager2-workspace','manager2-customer-avatar','manager-personal-workspace',
+    'workspace-notification-diagnostics','manager-browser-push-state','manager-media-compose',
+    'workspace-timezone','workspace-emoji-picker','manager-client-events','manager-handoff-cancellation'],
+  ['manager-tour-selection'],
+].map(group=>Object.freeze(group.map(name=>'tests/visual/'+name+'.spec.js'))));
+const PART_COUNT = PART_SPECS.length;
 function partitionSpecs(browser, part) {
   if (!Number.isInteger(part)||part<0||part>=PART_COUNT) throw new Error('Invalid browser partition');
-  return mainSpecs(browser).filter(spec=>PART_ZERO.includes(spec)===(part===0));
+  return mainSpecs(browser).filter(spec=>PART_SPECS[part].includes(spec));
 }
 function alwaysSpecs(browser) {
   mainSpecs(browser);
@@ -70,7 +78,7 @@ const HARNESS_CI_EXEMPTIONS = Object.freeze([
 // Re-audited the CI-only workflow contract guard for prepared-image wiring.
 // Native specs/fixtures and leaf imports are unchanged; no new exemptions.
 const reviewedHarnessDigest = '6554d111cbb02fd735a608a144de23dc8ae5ebf5b5780ffc47436b3cdc6a6dca';
-const registryDigest = hash({SCHEMA,TOOLCHAIN,LEAF_SPECS,HARNESS_CI_EXEMPTIONS,reviewedHarnessDigest,PART_COUNT,PART_ZERO,chromium:allSpecs('chromium'),webkit:allSpecs('webkit'),
+const registryDigest = hash({SCHEMA,TOOLCHAIN,LEAF_SPECS,HARNESS_CI_EXEMPTIONS,reviewedHarnessDigest,PART_COUNT,PART_SPECS,chromium:allSpecs('chromium'),webkit:allSpecs('webkit'),
   firefoxHistory:{spec:'tests/visual/manager-transcript-history.spec.js',grep:'older transport'},
   firefoxNotifications:['tests/visual/workspace-notification-diagnostics.spec.js','tests/visual/manager-browser-push-state.spec.js']});
 const comparePaths = (a,b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0;

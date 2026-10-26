@@ -1070,3 +1070,38 @@ test('automatic gallery unavailable source never asks for three manual uploads',
  const draft=automaticPhotoDraft();draft.offers[0].photos=[];draft.offers[0].import_source.photos=[];const s=await fixture(page,{draft});await open(page);await expect(page.locator('.tsAutomaticPhotoStatus')).toContainText('повторно');expect(await page.locator('.tsPhotoFields input[type=file]').count()).toBe(0);
  await page.locator('#tsPreview').click();await expect(page.locator('#tsStatus')).toContainText('фото отеля');await expect(page.locator('#tsStatus')).not.toContainText('три фото');await expect(page.locator('#tsSend')).toBeHidden();expect(s.creations()).toBe(0);clean(s,deliveryActions);
 });
+
+const {privateEditor}=require('./fixtures/selection-private-editor');
+for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420}])test('private editor uses the same protected core in tours iframe '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
+ await page.setViewportSize(viewport);const s=await privateEditor(page,{draft:completeDraft()}),f=s.editor;
+ await expect(f.locator('#ts-hotel')).toHaveValue('Синтетический отель у моря');await expect(f.locator('#ts-amount')).toHaveValue('240000');
+ expect(await page.evaluate(()=>window.WorkspaceV2)).toBeUndefined();expect(await page.frames()[1].evaluate(()=>window.WorkspaceV2)).toBeUndefined();
+ await f.locator('#ts-hotel').fill('Сохранённый отдельный редактор');await f.locator('#tsSave').click();await expect(f.locator('#tsSaved')).toHaveText('Сохранено на сервере');
+ await expect(f.locator('#tsClose')).toBeInViewport();await expect(f.locator('#tsCollector')).toBeInViewport();await expect(f.locator('#tsSave')).toBeInViewport();
+ expect(await f.locator('#tourSelectionDialog').evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThanOrEqual(1);
+ fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`private-editor-${browserName}-${viewport.width}x${viewport.height}.png`)});
+ await page.reload();await expect(f.locator('#ts-hotel')).toHaveValue('Сохранённый отдельный редактор');expect(s.snapshot().draft.offers[0].amount).toBe('240000');expect(s.calls.filter(x=>x.action==='save')).toHaveLength(1);expect(s.calls.every(x=>['me','editor_context','get','save'].includes(x.action))).toBe(true);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+for(const [name,options,message] of [['anonymous',{actor:0},'войдите'],['different account',{actor:8},'другой аккаунт'],['denied conversation',{allowed:false},'недоступна'],['invalid CSRF',{fail:'csrf'},'подтвердить доступ']])test('private editor blocks '+name+' before loading a draft',async({page})=>{
+ const s=await privateEditor(page,options);await expect(s.editor.locator('#editorMessage')).toContainText(message);await expect(s.editor.locator('#tourSelectionDialog')).toHaveCount(0);expect(s.calls.filter(x=>x.action==='get'||x.action==='save')).toHaveLength(0);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+for(const query of ['?conversation_id=11&conversation_id=12&editor_actor=7','?conversation_id=11&editor_actor=7&editor_actor=8','?conversation_id=011&editor_actor=7'])test('private editor refuses ambiguous navigation '+query,async({page})=>{
+ const s=await privateEditor(page,{entry:query});await expect(page.locator('iframe')).toHaveCount(0);expect(s.calls).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+test('private editor read-only access cannot edit or send',async({page})=>{
+ const s=await privateEditor(page,{readOnly:true,draft:completeDraft()}),f=s.editor;await expect(f.locator('#tsStatus')).toContainText('Просмотр');await expect(f.locator('#ts-hotel')).toBeDisabled();await expect(f.locator('#tsSave')).toBeDisabled();await expect(f.locator('#tsAdd')).toBeDisabled();await expect(f.locator('#tsCollector')).toBeDisabled();expect(s.calls.filter(x=>x.action==='save'||x.action==='send')).toHaveLength(0);expect(s.errors).toEqual([]);
+});
+test('private editor lost save survives reload and resolves one canonical receipt',async({page})=>{
+ const s=await privateEditor(page,{draft:completeDraft(),fail:'after'}),f=s.editor;await expect(f.locator('#ts-hotel')).toBeVisible();await f.locator('#ts-hotel').fill('Принято сервером до обрыва');await f.locator('#tsSave').click();await expect(f.getByRole('button',{name:'Проверить сохранение'})).toBeVisible();await page.reload();await expect(f.getByRole('button',{name:'Проверить сохранение'})).toBeVisible();await f.getByRole('button',{name:'Проверить сохранение'}).click();await expect(f.locator('#tsSaved')).toHaveText('Сохранено на сервере');await expect(f.locator('#ts-hotel')).toHaveValue('Принято сервером до обрыва');expect(s.calls.filter(x=>x.action==='save')).toHaveLength(1);expect(s.receipts.size).toBe(1);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+test('private editor keeps old-account unsaved work isolated and recovers only same account',async({page})=>{
+ const s=await privateEditor(page,{draft:completeDraft()}),f=s.editor;await expect(f.locator('#ts-hotel')).toBeVisible();await f.locator('#ts-hotel').fill('Личные несохранённые условия');
+ s.setActor(8);await f.locator('#tsSave').click();await expect(f.locator('#editorMessage')).toContainText('Сессия изменилась');await expect(f.locator('#tourSelectionDialog')).not.toBeVisible();await expect(f.locator('#tsEditor')).toBeEmpty();
+ await f.locator('#editorRetry').click();await expect(f.locator('#editorMessage')).toContainText('другой аккаунт');expect(s.snapshot().draft.offers[0].hotel).toBe('Синтетический отель у моря');
+ s.setActor(7);await f.locator('#editorRetry').click();await expect(f.locator('#ts-hotel')).toHaveValue('Личные несохранённые условия');await f.getByRole('button',{name:'Проверить сохранение'}).click();await f.getByRole('button',{name:'Повторить это сохранение'}).click();await expect(f.locator('#tsSaved')).toHaveText('Сохранено на сервере');const writes=s.calls.filter(x=>x.action==='save');expect(writes).toHaveLength(2);expect(writes[1]).toEqual(writes[0]);expect(s.receipts.size).toBe(1);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+test('private editor discards a stale draft response after hiding the document',async({page})=>{
+ const s=await privateEditor(page,{draft:completeDraft(),fail:'hold_get'}),f=s.editor;await expect.poll(s.hasHeld).toBe(true);
+ await page.frames()[1].evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'))});s.release();await expect(f.locator('#tourSelectionDialog')).not.toBeVisible();await expect(f.locator('#tsEditor')).toBeEmpty();
+ await page.frames()[1].evaluate(()=>Object.defineProperty(document,'hidden',{configurable:true,value:false}));await f.locator('#editorRetry').click();await expect(f.locator('#ts-hotel')).toHaveValue('Синтетический отель у моря');expect(s.calls.filter(x=>x.action==='save')).toHaveLength(0);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});

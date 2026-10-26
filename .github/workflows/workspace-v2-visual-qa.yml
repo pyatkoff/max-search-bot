@@ -172,7 +172,7 @@ jobs:
       fail-fast: false
       matrix:
         browser: [chromium, webkit]
-        part: [0, 1]
+        part: [0, 1, 2, 3]
     env:
       QA_BROWSER_IMAGE: ghcr.io/pyatkoff/max-search-bot-browser-qa@sha256:7b95d1abd4105d9fa3d2af76a7e3c832e5bfe6afe43d091bbe8cdc18814a9c5a
       TZ: UTC
@@ -365,6 +365,18 @@ jobs:
         with:
           name: workspace-v2-part-${{ github.sha }}-${{ matrix.browser }}-1
           path: parts/${{ matrix.browser }}/part-1
+      - name: Download original part 2 evidence
+        if: always()
+        uses: actions/download-artifact@v4
+        with:
+          name: workspace-v2-part-${{ github.sha }}-${{ matrix.browser }}-2
+          path: parts/${{ matrix.browser }}/part-2
+      - name: Download original part 3 evidence
+        if: always()
+        uses: actions/download-artifact@v4
+        with:
+          name: workspace-v2-part-${{ github.sha }}-${{ matrix.browser }}-3
+          path: parts/${{ matrix.browser }}/part-3
       - name: Require every child and assemble exact full engine proof
         if: always()
         run: |

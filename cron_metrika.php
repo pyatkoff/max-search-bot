@@ -22,6 +22,23 @@ register_shutdown_function(static function (): void {
     }
 });
 
+// Independent prospective observations; cannot alter uploader result or enqueue a goal.
+register_shutdown_function(static function (): void {
+    try {
+        require_once __DIR__.'/services/ModeledConversionStream.php';
+        $streamResult=ModeledConversionStream::runtimeTick();
+        if(($streamResult['status']??'off')!=='off'){
+            require_once __DIR__.'/services/DiagnosticLogger.php';
+            DiagnosticLogger::log('modeled_conversion_stream','tick',$streamResult);
+        }
+    } catch(Throwable $ignored){
+        try {
+            require_once __DIR__.'/services/DiagnosticLogger.php';
+            DiagnosticLogger::warning('modeled_conversion_stream','tick_failed');
+        } catch(Throwable $ignoredLog) {}
+    }
+});
+
 header('Content-Type: text/plain; charset=utf-8');
 
 $queueFile = __DIR__ . '/metrika_offline_queue.csv';

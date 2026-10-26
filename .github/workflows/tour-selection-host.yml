@@ -31,6 +31,7 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
+          extensions: pdo_sqlite
           coverage: none
       - name: Verify the exact independent public package and safe installation
         run: |
@@ -38,6 +39,9 @@ jobs:
           python3 modules/tour-selections/build.py build --output "$RUNNER_TEMP/selection-public"
           python3 modules/tour-selections/build.py verify --output "$RUNNER_TEMP/selection-public"
           php modules/tour-selections/tests/test_deploy.php "$RUNNER_TEMP/selection-public/payload"
+          python3 modules/tour-selections/build-editor.py build --output "$RUNNER_TEMP/selection-editor"
+          python3 modules/tour-selections/build-editor.py verify --output "$RUNNER_TEMP/selection-editor"
+          php modules/tour-selections/tests/test_editor_deploy.php "$RUNNER_TEMP/selection-editor"
       - name: Install only the owned tours host and enable links after strict hosted smoke
         env:
           DEPLOY_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
@@ -48,6 +52,7 @@ jobs:
           set -euo pipefail
           key_file="$RUNNER_TEMP/selection-host-key"
           stage=''
+          editor_installed=''
           root='/var/www/anytoour/data/www/app.anytoour.ru'
           if [[ "$DEPLOY_KEY" == *"PRIVATE KEY"* ]]; then
             if [[ "$DEPLOY_KEY" == *'\n'* ]]; then printf '%b\n' "$DEPLOY_KEY" | tr -d '\r' > "$key_file"; else printf '%s\n' "$DEPLOY_KEY" | tr -d '\r' > "$key_file"; fi
@@ -59,6 +64,9 @@ jobs:
           opts=(-i "$key_file" -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$RUNNER_TEMP/selection-host-known-hosts" -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=2)
           finish() {
             result=$?
+            if [ "$result" -ne 0 ] && [ -n "$editor_installed" ]; then
+              ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA' && php modules/tour-selections/deploy-editor.php rollback" || true
+            fi
             if [ "$result" -ne 0 ] && [ -n "$stage" ]; then
               ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA' && php modules/tour-selections/deploy.php rollback" || true
             fi
@@ -73,6 +81,10 @@ jobs:
           scp "${opts[@]}" "$RUNNER_TEMP/selection-public/payload/"{view.php,selection.css,activity.js,release.json} "$DEPLOY_USER@$DEPLOY_HOST:$stage/"
           ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA' && php modules/tour-selections/deploy.php install '$stage' '$EXPECTED_SHA'"
           ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA' && php modules/tour-selections/deploy.php activate && test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA'" | tee "$RUNNER_TEMP/selection-host-receipt.json"
+          scp -r "${opts[@]}" "$RUNNER_TEMP/selection-editor" "$DEPLOY_USER@$DEPLOY_HOST:$stage/editor"
+          ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA' && python3 modules/tour-selections/build-editor.py verify --output '$stage/editor' && php modules/tour-selections/deploy-editor.php install '$stage/editor' '$EXPECTED_SHA'"
+          editor_installed=1
+          ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA' && php modules/tour-selections/deploy-editor.php activate && test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA'" | tee "$RUNNER_TEMP/selection-editor-host-receipt.json"
       - uses: actions/upload-artifact@v4
         with:
           name: selection-host-${{ env.EXPECTED_SHA }}
@@ -80,5 +92,8 @@ jobs:
             ${{ runner.temp }}/selection-host-receipt.json
             ${{ runner.temp }}/selection-public/receipt.json
             ${{ runner.temp }}/selection-public/compatibility.json
+            ${{ runner.temp }}/selection-editor-host-receipt.json
+            ${{ runner.temp }}/selection-editor/receipt.json
+            ${{ runner.temp }}/selection-editor/compatibility.json
           if-no-files-found: error
           retention-days: 14

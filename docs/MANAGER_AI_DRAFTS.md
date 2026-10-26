@@ -112,11 +112,22 @@ and its bounded, approved file. It accepts the explicitly evidenced source-count
 pairs `1` → Egypt and `4` → Turkey; neither a country name nor a hotel-name match
 creates a catalogue join. The original Tourvisor9374/country1 → anytour1554
 Family Suite approval remains unchanged, alongside six additional Egypt groups
-and eight Turkey groups. These fifteen bounded groups retain54 saved declarations
-and42 source records, including source-only conflict context; they are not fifteen
+and eight Turkey groups. These fifteen bounded groups retain55 saved declarations
+and43 source records, including source-only conflict context; they are not fifteen
 complete hotel passports or a count of distinct hotels in the research base.
-Each manifest approval names an actual saved common version and member. No native
-MATCH is changed.
+Each manifest approval names an actual saved approval artifact version and member:
+the common archive or a bounded consumer export. The compatibility field
+`common_version` carries that artifact’s actual saved version. No native MATCH is changed.
+
+The Jaz Makadi Saraya99 group adds one source-scoped buildings warning to the
+original five apartment facts: Corendon reports no lifts in its low-rise buildings.
+Exact floor and route remain checks for a concrete mobility need. The original
+20October source record is unchanged; its25October section-read update is carried
+separately inside material limits. Corendon500m versus the retained300m beach
+estimates stays a labelled limitation, never an admitted research-interpretation
+fact or a measured route. The larger nine-fact proposal exceeded the existing
+budget; the other three accepted service statements remain outside this bounded
+access group. Original facts, source records and caveats are preserved in full.
 
 The server Tourvisor snapshot normalizer accepts those same two exact country
 codes paired with their corresponding destination text. The remaining bounded
@@ -131,7 +142,15 @@ use. An explicitly empty source `limitations` string is preserved: no source-spe
 limitation was recorded. Missing, null, malformed, whitespace-only or overlong
 values remain invalid. Empty source text does not remove the sealed group's
 category, season and future-tariff caveats or establish unrestricted service.
-Source and claim records are not rewritten to satisfy the reader.
+Original research records remain unchanged. A separately approved consumer
+projection may add a missing technical `declared: true` marker only from an
+explicit `operator_declared` kind; it cannot replace false/null or reclassify an
+unknown type. Both original-record and projected canonical JSON hashes and the
+single metadata addition are sealed in `material_limits.consumer_projection`.
+The compatibility key `raw_record_sha256` there means the original record’s
+canonical JSON hash, not the enclosing archive member bytes. Text, scope, dates
+and source IDs remain exact; the marker does not establish independent or future
+service verification. The runtime loader and its strict gates are unchanged.
 
 The Turkey groups retain, among other limits, Avia's supplier/season-specific UAI,
 Club Aqua Plaza and Hane's distinct room categories, Dream Fun World's midnight

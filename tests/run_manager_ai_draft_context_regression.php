@@ -655,7 +655,7 @@ INSERT INTO catalog_countries VALUES(1,'Египет',1),(4,'Турция',1),(9
     $hotelCohort=[
         '241'=>[81,'albatros_makadi','ALBATROS MAKADI RESORT',4,'1'],
         '240'=>[80,'happy_life_village','HAPPY LIFE VILLAGE',3,'1'],
-        '268'=>[99,'jaz_makadi_saraya','JAZ MAKADI SARAYA RESORT (EX. IBEROTEL MAKADI SARAYA RESORT)',5,'1'],
+        '268'=>[99,'jaz_makadi_saraya','JAZ MAKADI SARAYA RESORT (EX. IBEROTEL MAKADI SARAYA RESORT)',6,'1'],
         '1981'=>[877,'jaz_neo_naama','JAZ NEO NAAMA BAY (EX. SOLYMAR NAAMA BAY)',4,'1'],
         '12111'=>[1654,'movenpick_sharm','MOVENPICK RESORT SHARM EL SHEIKH NAAMA BAY',3,'1'],
         '498'=>[228,'titanic_beach','TITANIC BEACH SPA & AQUA PARK',4,'1'],
@@ -685,6 +685,14 @@ INSERT INTO catalog_countries VALUES(1,'Египет',1),(4,'Турция',1),(9
             && !empty($cohortHotel['material_limits']['unknowns'])
             && ($cohortHotel['room_tariff_equivalence_verified']??null)===false
             && ($cohortHotel['future_operation_verified']??null)===false);
+        if ($anytourId===99) {
+            $jazNativeFacts=array_column($cohortHotel['facts'],null,'id');
+            draftContextCheck('native Jaz inquiry retains the building-access addition and its whole source conflict context',
+                isset($jazNativeFacts['HOTEL-EG-MANUAL-20261026-MAKADI-SOMA-07_c17'])
+                && !isset($jazNativeFacts['HOTEL-EG-MANUAL-20261026-MAKADI-SOMA-07_c21'])
+                && ($cohortHotel['material_limits']['source_read_updates'][0]['source_id']??'')==='jaz_makadi_saraya_mass39_s01'
+                && ($cohortHotel['material_limits']['source_conflicts'][0]['kind']??'')==='research_interpretation');
+        }
         $cohortAfter=[];
         foreach (array_keys($cohortBefore) as $table) $cohortAfter[$table]=$pdo->query('SELECT * FROM '.$table)->fetchAll();
         draftContextCheck($cohortLabel.' leaves every source row, event and read marker unchanged',
