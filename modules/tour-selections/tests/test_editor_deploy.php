@@ -43,7 +43,9 @@ try {
     $upgrade=$tmp.'/upgrade';mkdir($upgrade);mkdir($upgrade.'/payload');
     foreach(array_diff(scandir($input.'/payload'),['.','..'])as$name)copy($input.'/payload/'.$name,$upgrade.'/payload/'.$name);
     $newSource=str_repeat('b',40);$release=ManagerTourSelectionEditorHost::json($upgrade.'/payload/release.json');
-    $name='private-host.css';$bytes=file_get_contents($upgrade.'/payload/'.$name)."\n/* synthetic upgrade */\n";
+    // Only canonical editor JS/CSS are independent members. Private host CSS
+    // now belongs to the explicit shared-host compatibility fingerprint.
+    $name='editor.css';$bytes=file_get_contents($upgrade.'/payload/'.$name)."\n/* synthetic upgrade */\n";
     file_put_contents($upgrade.'/payload/'.$name,$bytes);file_put_contents($backend.'/'.$spec['files'][$name],$bytes);
     $release['files'][$name]=['sha256'=>hash('sha256',$bytes),'bytes'=>strlen($bytes)];unset($release['package_id']);$release['package_id']=hash('sha256',ManagerTourSelectionEditorHost::encoded($release));
     file_put_contents($upgrade.'/payload/release.json',ManagerTourSelectionEditorHost::encoded($release));

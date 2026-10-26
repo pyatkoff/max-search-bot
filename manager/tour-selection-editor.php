@@ -9,13 +9,14 @@ header('X-Robots-Tag: noindex, nofollow, noarchive');header('X-Content-Type-Opti
 header("Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: blob:; connect-src 'self'; frame-ancestors https://tours.anytoour.ru; base-uri 'none'; form-action 'none'");
 if (!in_array($_SERVER['REQUEST_METHOD']??'GET',['GET','HEAD'],true)) {http_response_code(405);exit;}
 $installed=ManagerTourSelectionEditorHost::installed();
-if (!$installed) {http_response_code(503);exit('Редактор временно недоступен. Откройте подборку в Manager2.');}
 if (isset($_GET['asset'])) {
     $asset=$_GET['asset'];$package=$_GET['package']??null;
-    if (!is_string($asset) || !isset(ManagerTourSelectionEditorHost::ASSETS[$asset]) || $package!==$installed['package_id']) {http_response_code(404);exit;}
+    $assetPackage=is_string($package)?ManagerTourSelectionEditorHost::assetPackage($package):null;
+    if (!is_string($asset) || !isset(ManagerTourSelectionEditorHost::ASSETS[$asset]) || !$assetPackage) {http_response_code(404);exit;}
     header('Content-Type: '.ManagerTourSelectionEditorHost::ASSETS[$asset].'; charset=utf-8');
-    if (($_SERVER['REQUEST_METHOD']??'GET')!=='HEAD') readfile($installed['directory'].'/'.$asset);
+    if (($_SERVER['REQUEST_METHOD']??'GET')!=='HEAD') readfile($assetPackage['directory'].'/'.$asset);
     exit;
 }
+if (!$installed) {http_response_code(503);exit('Редактор временно недоступен. Откройте подборку в Manager2.');}
 $editorAsset=static fn(string $name):string=>'tour-selection-editor.php?asset='.rawurlencode($name).'&amp;package='.$installed['package_id'];
 if (($_SERVER['REQUEST_METHOD']??'GET')!=='HEAD') require $installed['directory'].'/app.php';

@@ -6,6 +6,8 @@ on:
     paths:
       - 'modules/tour-selections/editor.json'
       - 'modules/tour-selections/build-editor.py'
+      - 'modules/tour-selections/admit-editor.py'
+      - 'modules/tour-selections/tests/test_editor_admission.py'
       - 'modules/tour-selections/editor-preview/**'
       - 'modules/tour-selections/editor-*.php'
       - 'modules/tour-selections/deploy-editor.php'
@@ -26,6 +28,8 @@ on:
     paths:
       - 'modules/tour-selections/editor.json'
       - 'modules/tour-selections/build-editor.py'
+      - 'modules/tour-selections/admit-editor.py'
+      - 'modules/tour-selections/tests/test_editor_admission.py'
       - 'modules/tour-selections/editor-preview/**'
       - 'modules/tour-selections/editor-*.php'
       - 'modules/tour-selections/deploy-editor.php'

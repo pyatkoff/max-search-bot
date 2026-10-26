@@ -8,7 +8,7 @@ final class ManagerTourSelectionEditorHost
     public const CONTRACT='selection-private-host-v1';
     public const ORIGIN='https://tours.anytoour.ru';
     public const APP='https://app.anytoour.ru';
-    public const ASSETS=['editor.js'=>'application/javascript','editor.css'=>'text/css','private-host.js'=>'application/javascript','private-host.css'=>'text/css','http.js'=>'application/javascript','time.js'=>'application/javascript'];
+    public const ASSETS=['editor.js'=>'application/javascript','editor.css'=>'text/css','manager2-host.js'=>'application/javascript','private-host.js'=>'application/javascript','private-host.css'=>'text/css','http.js'=>'application/javascript','time.js'=>'application/javascript'];
     public const FILES=['editor.js','editor.css','manager2-host.js','collector.zip','private-host.js','private-host.css','http.js','time.js','app.php','tours.php'];
 
     public static function encoded(array $value): string
@@ -85,6 +85,22 @@ final class ManagerTourSelectionEditorHost
         } catch (Throwable $ignored) {return null;}
     }
 
+    /** An already-rendered page may finish loading its accepted immutable bundle. */
+    public static function assetPackage(string $id,?string $root=null,?string $releases=null): ?array
+    {
+        try {
+            if (!preg_match('/\A[a-f0-9]{64}\z/D',$id)) return null;
+            $root??=dirname(__DIR__);$releases??=self::releaseRoot();
+            $current=self::installed($root,$releases);
+            // The staged CURRENT package remains reachable for strict activation smoke.
+            if (($current['package_id']??null)===$id) return $current;
+            $dir=$releases.'/'.$id.'-'.self::fingerprint($root);
+            $package=self::package($root,$releases,$dir);
+            if (!$package || self::json($dir.'/accepted.json')!==['schema'=>1,'package_id'=>$id,'seal_sha256'=>hash_file('sha256',$dir.'/deployment.json')]) return null;
+            return $package;
+        } catch (Throwable $ignored) {return null;}
+    }
+
     public static function entry(?string $root=null,?string $releases=null): ?string
     {
         try {
@@ -92,6 +108,14 @@ final class ManagerTourSelectionEditorHost
             if (!$installed || self::json($releases.'/active.json')!==array_diff_key($installed,['directory'=>true])) return null;
             return self::ORIGIN.'/editor.php';
         } catch (Throwable $ignored) {return null;}
+    }
+
+    /** Only the three selection callsites may use this sealed asset mapping. */
+    public static function workspaceAsset(string $name,array $installed): string
+    {
+        $map=['workspace-v2-tour-selection.js'=>'editor.js','workspace-v2-tour-selection.css'=>'editor.css','workspace-v2-tour-selection-host.js'=>'manager2-host.js'];
+        if (!isset($map[$name]) || !preg_match('/\A[a-f0-9]{64}\z/D',$installed['package_id']??'')) throw new RuntimeException('invalid_editor_workspace_asset');
+        return self::APP.'/manager/tour-selection-editor.php?asset='.$map[$name].'&package='.$installed['package_id'];
     }
 
     public static function front(string $backend): string

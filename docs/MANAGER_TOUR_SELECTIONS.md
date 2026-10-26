@@ -783,6 +783,30 @@ The sole publisher remains held through host activation and installed gates.
 Only an activated exact receipt exposes **Открыть отдельно** in Manager2 and
 the collector return link; before readiness the canonical Manager2 path remains.
 
+The same workflow has an explicit, main-only independent-editor dispatch. Its
+inputs are the reviewed open PR number, immutable candidate source SHA, exact
+current/installed backend SHA, expected active package ID and a unique publication
+operation. The installed backend's trusted builder and `admit-editor.py` verify
+candidate Git/tree/archive identity and unchanged shared inputs; candidate code
+is never used as a verifier. Only canonical editor JS/CSS, synthetic preview,
+the existing editor visual test and a newer version-only manifest may differ.
+Current successful required PR workflows must bind that exact head and backend
+before deployment credentials are loaded. Shared changes use the normal full
+release path. These foundation changes themselves require full commissioning.
+
+`install-independent` verifies compatibility again on the unchanged backend,
+checks current-package CAS and durably reserves the unique operation before
+writes. Activation and rollback require that same operation, under the private
+installation lock. A known active result is read back; a reserved/UNKNOWN or
+consumed operation is not blindly repeated. Manager2's three selection assets
+and the tours editor resolve the same sealed package. Already-rendered pages
+may finish loading their previously accepted immutable bundle; failed,
+unaccepted packages do not become an arbitrary public asset source. A normal
+backend reconciliation preserves a compatible independent package. Shared
+dependency drift refuses reconciliation instead of silently replacing it; a
+deliberate common release must resolve that incompatibility. No session, cookie,
+API, database, collector or sender owner changes in this release seam.
+
 The deployment regression installs/activates A, changes frontend-only B, fails
 B smoke, rolls back, then serves A's actual PHP shell and sealed assets and runs
 protected draft GET/save/retry/reload over loopback HTTP. It separately rejects
