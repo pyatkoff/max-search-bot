@@ -131,6 +131,34 @@ try {
     check('metrika queue write succeeds', $metricOk, true);
     check('metrika queue file created', is_file($tmp . '/metrika_offline_queue.csv'), true);
 
+    // The writer and CLI uploader may run with different PHP timezones.
+    // Exercise the actual CSV output, then the uploader's existing parser.
+    $originalTimezone = date_default_timezone_get();
+    try {
+        foreach (['UTC', 'Europe/Moscow', 'Europe/Kaliningrad', 'Asia/Tokyo'] as $writerTimezone) {
+            date_default_timezone_set($writerTimezone);
+            $beforeQueue = time();
+            $queued = AnalyticsService::queueMetrika($tmp, -123, '999888777', 'test_clock_goal', $meta);
+            $afterQueue = time();
+            check('clock queue succeeds ' . $writerTimezone, $queued, true);
+            $queueRows = array_map('str_getcsv', file($tmp . '/metrika_offline_queue.csv', FILE_IGNORE_NEW_LINES));
+            $queuedRow = end($queueRows);
+            check('clock attribution and target preserved ' . $writerTimezone, array_slice($queuedRow, 0, 2), ['999888777', 'test_clock_goal']);
+            $rawTimestamp = (string)($queuedRow[2] ?? '');
+            check('clock CSV contains absolute seconds ' . $writerTimezone, preg_match('/^\\d{9,12}$/', $rawTimestamp) === 1, true);
+            foreach (['UTC', 'Europe/Moscow', 'Europe/Kaliningrad', 'Asia/Tokyo'] as $readerTimezone) {
+                date_default_timezone_set($readerTimezone);
+                $parsedTimestamp = preg_match('/^\\d{9,12}$/', $rawTimestamp)
+                    ? (int)$rawTimestamp : strtotime($rawTimestamp);
+                check('clock instant preserved ' . $writerTimezone . ' -> ' . $readerTimezone,
+                    is_int($parsedTimestamp) && $parsedTimestamp >= $beforeQueue
+                        && $parsedTimestamp <= $afterQueue && $parsedTimestamp <= time(), true);
+            }
+        }
+    } finally {
+        date_default_timezone_set($originalTimezone);
+    }
+
     check('followup schedule succeeds', FollowupQueueService::schedule($tmp, -123, 180, 1000), true);
     $followupFile = FollowupQueueService::file($tmp, -123);
     check('followup file created', is_file($followupFile), true);
