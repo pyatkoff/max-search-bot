@@ -52,6 +52,13 @@ class MaxSearchApi
     }
 }
 
+class DiagnosticLogger
+{
+    public static array $events = [];
+    public static function log(...$args): void { self::$events[] = $args; }
+    public static function reset(): void { self::$events = []; }
+}
+
 if ($backend === 'legacy') {
     final class ExistingStepFakeResult
     {
@@ -191,6 +198,7 @@ if ($backend === 'legacy') {
         'user'=>['external_user_id'=>'synthetic-user','chat_id'=>'42']];
     existingStepCheck('new canonical input is mirrored',ConversationRecorder::inbound($input),true,$failed);
     existingStepCheck('successful observed application preserves result',ExistingWizardStepApplicationService::apply(42,68,'0',true),true,$failed);
+    existingStepCheck('successful receipt has no omission diagnostic',count(DiagnosticLogger::$events),0,$failed);
     $event=$pdo->query('SELECT * FROM conversation_events')->fetch(); $payload=json_decode($event['payload_json'],true);
     existingStepCheck('receipt uses exact original conversation',$event['conversation_id'],10,$failed);
     existingStepCheck('receipt links persisted canonical input',$payload['input_message_id'],(string)$pdo->query('SELECT id FROM messages')->fetchColumn(),$failed);
@@ -202,6 +210,10 @@ if ($backend === 'legacy') {
     ConversationRecorder::inbound($input);
     ExistingWizardStepApplicationService::apply(42,68,'0',true);
     existingStepCheck('duplicate inbound cannot borrow prior request context',(int)$pdo->query('SELECT COUNT(*) FROM conversation_events')->fetchColumn(),1,$failed);
+    $duplicateLog = DiagnosticLogger::$events[count(DiagnosticLogger::$events)-1] ?? [];
+    existingStepCheck('duplicate boundary has fixed omission reason',[$duplicateLog[0]??null,$duplicateLog[1]??null,$duplicateLog[2]??null],
+        ['conversation_mirror','wizard_receipt_omitted',['reason'=>'duplicate_input','field'=>'children']],$failed);
+    existingStepCheck('omission diagnostic carries no customer identifier',$duplicateLog[3]??null,null,$failed);
     $input['message_id']='synthetic-2'; ConversationRecorder::inbound($input);
     ExistingWizardStepApplicationService::apply(42,68,'1');
     existingStepCheck('plain snapshot restoration produces no customer receipt',(int)$pdo->query('SELECT COUNT(*) FROM conversation_events')->fetchColumn(),1,$failed);
@@ -219,6 +231,11 @@ if ($backend === 'legacy') {
     $pdo->exec('DROP TABLE conversation_events');
     existingStepCheck('observer storage failure cannot reject successful application',ExistingWizardStepApplicationService::apply(42,68,'0',true),true,$failed);
     existingStepCheck('observer failure keeps exact business state',$pdo->query("SELECT value_text FROM runtime_dialogue_state WHERE chat_id='42' AND status_id=68")->fetchColumn(),'0',$failed);
+    $failureLog = DiagnosticLogger::$events[count(DiagnosticLogger::$events)-1] ?? [];
+    existingStepCheck('observer storage failure has fixed omission reason',[$failureLog[0]??null,$failureLog[1]??null,$failureLog[2]??null],
+        ['conversation_mirror','wizard_receipt_omitted',['reason'=>'write_failed','field'=>'children']],$failed);
+    $serializedLog = json_encode($failureLog,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
+    existingStepCheck('omission diagnostic excludes applied value and input text',strpos((string)$serializedLog,'synthetic-5')===false && strpos((string)$serializedLog,'"0"')===false,true,$failed);
     ConversationRecorder::inbound([]);
     existingStepCheck('invalid inbound clears provenance context',ConversationRecorder::wizardValueApplied(42,'children','0'),false,$failed);
 } else {
