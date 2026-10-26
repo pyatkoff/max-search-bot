@@ -28,6 +28,14 @@
     "services/ManagerTourSelectionDeliveryService.php",
     "services/ManagerTourSelectionPublicationDraft.php",
     "services/ManagerTourSelectionShareService.php",
-    "services/ManagerTourSelectionCollectorSession.php"
+    "services/ManagerTourSelectionCollectorSession.php",
+    "manager/assets/workspace-v2-tour-selection-host.js",
+    "extensions/selection-collector/anytour-selection-collector.zip",
+    "manager/assets/tour-selection-editor-host.js",
+    "manager/assets/tour-selection-editor-host.css",
+    "manager/assets/manager-http-client.js",
+    "manager/assets/manager-time.js",
+    "modules/tour-selections/editor-app.php",
+    "modules/tour-selections/editor-tours.php"
   ]
 }
