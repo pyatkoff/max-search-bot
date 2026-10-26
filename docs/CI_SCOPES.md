@@ -80,6 +80,25 @@ setup, auth, shell, shared callbacks, another feature, migrations, an unaudited
 new file, mode or CI rules takes `full`. A combined OAuth/selection diff is also full.
 The selector does not infer dependencies from broad directory globs.
 
+The standalone editor release manifest `modules/tour-selections/editor.json`
+may accompany the component only when the selector reads both exact Git
+revisions and verifies a valid version change with every other parsed field
+unchanged. Package files, backend inputs, host contract, schema, name and unknown
+fields are not exempted. Malformed manifests, additions, removals, renames and
+mode changes retain full coverage. The visual workflow also triggers on the
+manifest alone, so both a version-only release and a contract change receive
+their selected native proof.
+
+Ordinary editor JS/CSS/spec plus that version change therefore runs the complete
+selection browser suite, including the protected standalone editor and iframe
+cases, without full Manager2 layout/history/notification tests. The existing
+editor-module workflow still builds and verifies the exact package, host fences,
+installation/rollback and private HTTP boundary. Sound and post-context heavy
+jobs remain gated by the canonical scope; their lightweight scope workflows
+may still start. No broad path exclusion hides a deleted or mixed shared input.
+The main production deployment retains its canonical full verification; this
+PR scope does not change that deployment contract.
+
 Selection keeps **all five required PHP groups, syntax, inventory and native
 prepared/delivery MySQL coverage**. Only browser scope narrows. Chromium and
 WebKit execute the whole selection spec, including editor, exact conditions,
