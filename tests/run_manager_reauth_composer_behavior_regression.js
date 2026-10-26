@@ -131,8 +131,8 @@ const window = {
 };
 const history=sessionHistory||{entries:[null],index:0,get state(){return this.entries[this.index]},replaceState(state){this.entries[this.index]=state},pushState(state){this.entries.splice(++this.index);this.entries.push(state)},async back(){if(this.index>0){this.index--;await this.listener(this.state)}},async forward(){if(this.index<this.entries.length-1){this.index++;await this.listener(this.state)}}};
 history.listener=async state=>{const handler=events.get('popstate');if(handler)await handler({state})};
-const replacements=[];
-const context = vm.createContext({window,document,fetch,location:{pathname:'/manager/',search:'',hash:'',href:'https://example.invalid/manager/',replace:url=>replacements.push(url)},history,setTimeout:()=>0,setInterval:(fn,ms)=>{timers.push({fn,ms});return timers.length},console,sessionStorage:storage});
+const reloads=[];
+const context = vm.createContext({window,document,fetch,location:{pathname:'/manager/',search:'',hash:'',href:'https://example.invalid/manager/',reload:()=>reloads.push(history.state)},history,setTimeout:()=>0,setInterval:(fn,ms)=>{timers.push({fn,ms});return timers.length},console,sessionStorage:storage});
 for (const file of ['manager-time.js','workspace-v2.js','workspace-v2-conversation.js',...(inbox?['workspace-v2-inbox.js']:[]),...(mobile?['workspace-v2-mobile.js']:[])]) vm.runInContext(fs.readFileSync(path.join(__dirname,'../manager/assets',file),'utf8'),context,{filename:file});
 
 const W=window.WorkspaceV2,C=window.WorkspaceV2Conversation;
@@ -140,7 +140,7 @@ async function start({open=true}={}){await W.boot();if(open)await C.open(101);}
 async function expire(){hook=(url,r)=>url==='api.php'&&r.action==='detail'?response({ok:false,error:'unauthorized'},401):null;await C.open(101);hook=null;assert.equal(W.S.authExpired,true);}
 async function login(){ids.get('managerAuthLogin').value='synthetic';ids.get('managerAuthPassword').value='synthetic-only';await ids.get('managerAuthForm').dispatch('submit');}
 async function draft(text='Unsent synthetic draft'){ids.get('replyText').value=text;await ids.get('replyText').dispatch('input');}
-return {W,C,ids,calls,start,expire,login,draft,window,history,location:context.location,replacements,document,documentEvents,events,timers,storage,setHook(fn){hook=fn},setIdentity(value){nextIdentity=value},identity,conversation,
+return {W,C,ids,calls,start,expire,login,draft,window,history,location:context.location,reloads,document,documentEvents,events,timers,storage,setHook(fn){hook=fn},setIdentity(value){nextIdentity=value},identity,conversation,
   setFile(file){selectedFile=file},getFile(){return selectedFile}};
 }
 function response(value,status=200){return{ok:status>=200&&status<300,status,json:async()=>value};}
@@ -164,7 +164,7 @@ test('explicit logout sends canonical CSRF once, revokes pending work and clears
   await assert.rejects(h.W.api('send',{conversation_id:101,text:'must not send'}),/logout_pending/);
   assert.equal(h.calls.filter(r=>r.action==='logout').length,1);assert.equal(h.calls.find(r=>r.action==='logout').csrf,'synthetic-csrf');
   exit.resolve(response({ok:true}));assert.equal((await first).ok,true);
-  assert.deepEqual(h.replacements,['/manager2/?qa=1']);assert.equal(h.W.S.manager,null);assert.equal(h.W.S.csrf,'');
+  assert.deepEqual(h.reloads,[null]);assert.equal(h.W.S.manager,null);assert.equal(h.W.S.csrf,'');
   assert.equal(h.W.S.current,0);assert.equal(h.W.S.detail,null);assert.equal(h.ids.get('replyText').value,'');assert.equal(h.getFile(),null);
   late.resolve(response({ok:true,conversation:{...h.conversation,id:102},messages:[]}));await reading;
   assert.equal(h.W.S.current,0);assert.equal(h.ids.get('replyText').value,'');assert.equal(hidden(h),true);
@@ -174,12 +174,12 @@ test('explicit logout sends canonical CSRF once, revokes pending work and clears
 for(const mode of ['network','server','invalid'])test('unconfirmed logout stays locked and an explicit retry accepts an already-ended session: '+mode,async()=>{
   const h=createHarness();await h.start();await h.draft('Keep until logout is confirmed');
   h.setHook((url,r)=>{if(r.action!=='logout')return null;if(mode==='network')throw new Error('offline');return mode==='server'?response({ok:true},500):response({ok:false,error:'invalid_response'});});
-  assert.equal((await h.W.logout()).ok,false);assert.deepEqual(h.replacements,[]);
+  assert.equal((await h.W.logout()).ok,false);assert.deepEqual(h.reloads,[]);
   assert.equal(h.W.S.authExpired,true);assert.equal(h.W.S.logoutPending,false);assert.equal(hidden(h),true);
   assert.match(h.ids.get('managerAuthMessage').textContent,/Не удалось подтвердить выход/);
   h.setHook((url,r)=>r.action==='logout'?response({ok:false,error:'unauthorized'},401):null);
   assert.equal((await h.W.logout()).ok,true);assert.equal(h.calls.filter(r=>r.action==='logout').length,2);
-  assert.deepEqual(h.replacements,['/manager/']);assert.equal(h.ids.get('replyText').value,'');assertNoMutations(h);
+  assert.deepEqual(h.reloads,[null]);assert.equal(h.ids.get('replyText').value,'');assertNoMutations(h);
 });
 
 test('first anonymous entry offers login without claiming an expired session',async()=>{

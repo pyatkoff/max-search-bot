@@ -146,8 +146,10 @@ for(const width of [390,430,768,1440])test('Manager2 account logout ends the ses
   await expect(page.getByRole('button',{name:'Выйти',exact:true})).toBeVisible();
   expect((await page.locator('#m2Logout').boundingBox()).height).toBeGreaterThanOrEqual(44);
   await noOverflow(page);await capture(page,browserName,width,'account-logout');
+  await page.evaluate(()=>history.replaceState(history.state,'',location.pathname+location.search+'#conversation=11'));
   await Promise.all([page.waitForEvent('domcontentloaded'),page.locator('#m2Logout').click()]);
   await expect(page.locator('#managerAuthRecovery')).toBeVisible();
+  expect(new URL(page.url()).hash).toBe('');
   await expect(page.locator('#managerAuthMessage')).not.toContainText('истекла');
   await expect(page.locator('#replyText')).toHaveValue('');
   expect(await page.evaluate(()=>({manager:WorkspaceV2.S.manager,current:WorkspaceV2.S.current}))).toEqual({manager:null,current:0});

@@ -91,7 +91,8 @@ function logout(){
       $('managerAuthLogin').value='';
       showAuthRecovery('Вы вышли из аккаунта.');
       // A fresh shell drops every in-memory module and any conversation URL.
-      location.replace(location.pathname+location.search);
+      history.replaceState(null,'',location.pathname+location.search);
+      location.reload();
       return{ok:true};
     }catch(e){
       showAuthRecovery('Не удалось подтвердить выход. Проверьте соединение и повторите попытку.');
