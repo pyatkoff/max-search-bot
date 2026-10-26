@@ -371,7 +371,7 @@ foreach (['missing','null','wrong-type','whitespace','control','oversize'] as $b
 $cohort=[
     '241'=>[81,'albatros_makadi','ALBATROS MAKADI RESORT',4,'1'],
     '240'=>[80,'happy_life_village','HAPPY LIFE VILLAGE',3,'1'],
-    '268'=>[99,'jaz_makadi_saraya','JAZ MAKADI SARAYA RESORT (EX. IBEROTEL MAKADI SARAYA RESORT)',5,'1'],
+    '268'=>[99,'jaz_makadi_saraya','JAZ MAKADI SARAYA RESORT (EX. IBEROTEL MAKADI SARAYA RESORT)',6,'1'],
     '1981'=>[877,'jaz_neo_naama','JAZ NEO NAAMA BAY (EX. SOLYMAR NAAMA BAY)',4,'1'],
     '12111'=>[1654,'movenpick_sharm','MOVENPICK RESORT SHARM EL SHEIKH NAAMA BAY',3,'1'],
     '498'=>[228,'titanic_beach','TITANIC BEACH SPA & AQUA PARK',4,'1'],
@@ -417,6 +417,33 @@ foreach ($cohort as $sourceId=>[$anytourId,$researchKey,$sourceName,$factCount,$
         && $cohortInput['context']['origin_posts']===$baselineRefs['origin_posts']
         && $cohortInput['context']['travel_reference']===$baselineRefs['travel_reference']
         && strlen(json_encode($cohortWire,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=ManagerDraftClient::MAX_REQUEST_BYTES);
+    if ($anytourId===99) {
+        $jazFacts=array_column($cohortInput['context']['hotel_reference']['facts'],null,'id');
+        $jazLimits=$cohortInput['context']['hotel_reference']['material_limits'];
+        $jazSources=array_column($cohortInput['context']['hotel_reference']['sources'],null,'id');
+        $jazAtom=$jazFacts['HOTEL-EG-MANUAL-20261026-MAKADI-SOMA-07_c17']??[];
+        $jazProjection=$jazLimits['consumer_projection'][$jazAtom['id']??'']??[];
+        $jazOriginal=$jazAtom;unset($jazOriginal['declared']);
+        draftCheck('Jaz authoring projection adds only the approved declaration marker to the original canonical atom',
+            ($jazAtom['kind']??'')==='operator_declared' && ($jazAtom['declared']??null)===true
+            && ($jazProjection['added_metadata']??null)===['declared'=>true]
+            && $knowledgeDigest($jazOriginal)===($jazProjection['raw_record_sha256']??'')
+            && $knowledgeDigest($jazAtom)===($jazProjection['projected_record_sha256']??''));
+        $jazPlain=$cohortInput['context'];unset($jazPlain['hotel_reference']);
+        $jazPlainWire=ManagerDraftClient::requestBody(ManagerAiDraftService::instructions($jazPlain),$jazPlain);
+        $jazWireBytes=strlen(json_encode($cohortWire,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+        $jazPlainBytes=strlen(json_encode($jazPlainWire,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+        draftCheck('Jaz building warning reaches the actual wire with separate reading evidence and unresolved beach estimates',
+            str_contains($jazFacts['HOTEL-EG-MANUAL-20261026-MAKADI-SOMA-07_c17']['text']??'','лифтов нет')
+            && ($jazSources['jaz_makadi_saraya_mass39_s01']['retrieved_on']??'')==='2026-10-20'
+            && ($jazLimits['source_read_updates'][0]['read_on']??'')==='2026-10-25'
+            && ($jazLimits['source_read_updates'][0]['old_source_record_unchanged']??false)===true
+            && ($jazLimits['source_conflicts'][0]['kind']??'')==='research_interpretation'
+            && str_contains($jazLimits['source_conflicts'][0]['text']??'','500м')
+            && str_contains($jazLimits['source_conflicts'][0]['text']??'','300м')
+            && !isset($jazFacts['HOTEL-EG-MANUAL-20261026-MAKADI-SOMA-07_c21'])
+            && count($jazFacts)===6 && $jazWireBytes-$jazPlainBytes<=ManagerHotelKnowledge::MAX_REFERENCE_BYTES);
+    }
     foreach (['country','catalogue-number','different-name'] as $cohortMismatch) {
         $cohortWrong=$cohortSelector;
         if ($cohortMismatch==='country') $cohortWrong['source_identity']['country']=$sourceCountry==='4'?'1':'4';
