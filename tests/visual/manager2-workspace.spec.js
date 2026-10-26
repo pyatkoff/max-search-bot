@@ -460,7 +460,14 @@ async function lifecycleDraft(page){
   await page.locator('#replyText').fill('Неотправленный ответ после отказа');
   await page.locator('#replyFile').setInputFiles({name:'lifecycle-draft.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic fixture, never uploaded')});
   await page.evaluate(()=>{window.lifecycleHeldFile=document.getElementById('replyFile').files[0];window.lifecycleHeldMessage=document.querySelector('#messages .msg');const reply=document.getElementById('replyText');reply.setSelectionRange(4,12)});
-  await page.locator('#messages').hover();await page.mouse.wheel(0,-1200);await expect.poll(()=>page.evaluate(()=>WorkspaceV2Jump.isFollowingLatest())).toBe(false);
+  await page.evaluate(()=>{window.lifecycleWheelEvidence=[];window.lifecycleWheelObserver=event=>{const box=document.getElementById('messages');window.lifecycleWheelEvidence.push({deltaY:event.deltaY,trusted:event.isTrusted,inMessages:box.contains(event.target),target:event.target.id||event.target.tagName,top:box.scrollTop,height:box.clientHeight,total:box.scrollHeight})};document.addEventListener('wheel',window.lifecycleWheelObserver,{passive:true,capture:true})});
+  try{
+    await page.locator('#messages').hover();await page.mouse.wheel(0,-1200);await expect.poll(()=>page.evaluate(()=>WorkspaceV2Jump.isFollowingLatest())).toBe(false);
+  }catch(error){
+    console.log('lifecycleNativeWheel',JSON.stringify(await page.evaluate(()=>{const box=document.getElementById('messages'),rect=box.getBoundingClientRect();return{events:window.lifecycleWheelEvidence,top:box.scrollTop,height:box.clientHeight,total:box.scrollHeight,rect:{x:rect.x,y:rect.y,width:rect.width,height:rect.height},viewport:{width:innerWidth,height:innerHeight},following:WorkspaceV2Jump.isFollowingLatest()}})));
+    throw error;
+  }finally{await page.evaluate(()=>{document.removeEventListener('wheel',window.lifecycleWheelObserver,true);delete window.lifecycleWheelObserver;delete window.lifecycleWheelEvidence})}
+
 }
 async function retainedLifecycleDraft(page){
   await expect(page.locator('#replyText')).toHaveValue('Неотправленный ответ после отказа');await expect(page.locator('#mediaSelection')).toContainText('lifecycle-draft.txt');
