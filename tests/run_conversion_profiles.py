@@ -579,6 +579,8 @@ class JournalProfileTests(unittest.TestCase):
         self.assertEqual(p["profile"]["fields"]["budget"]["value"]["maximum"], 200000)
         self.assertEqual(p["profile"]["party"]["adults"]["value"], 2)
         self.assertEqual(p["profile"]["trip_status"], "unknown")
+        self.assertEqual(p["coverage"]["exposure"], "unknown")
+        self.assertEqual(p["coverage"]["identity_assurance"], "canonical_source_assertion")
         self.assertEqual(p["profile"]["prediction_features"]["feature_scope"], "unresolved_conversation_prefix")
         self.assertFalse(p["profile"]["target_admission"]["eligible"])
         self.assertEqual(p["profile"]["target_admission"]["reason"], "trip_boundary_unresolved")

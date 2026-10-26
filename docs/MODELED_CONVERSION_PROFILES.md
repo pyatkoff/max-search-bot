@@ -333,7 +333,9 @@ path always declares **unknown**, with a provisional unresolved-prefix identifie
 that is not an accepted trip ID. Known factual statements belong to that observed
 conversation prefix; they must not be advertised as confirmed conditions of one
 current trip. Features expose feature_scope=unresolved_conversation_prefix;
-semantic evidence has medium confidence, target admission is blocked with
+Exposure stays explicitly unknown and identity assurance is a canonical-source
+assertion, not independently authenticated cross-channel identity. Semantic
+evidence has medium confidence, target admission is blocked with
 trip_boundary_unresolved, and no future label/value/export is created. A new
 message never silently creates a new trip. Resolving multiple trips/continuations
 and general Russian semantics is a later bounded, validated stage, not a field

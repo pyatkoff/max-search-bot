@@ -121,7 +121,8 @@ def profile(document, extracted_at):
                        "journal_cursor": document["journal_cursor"],
                        "access_status": "denied" if case["access_denied"] else "allowed",
                        "coverage": {"source_history_complete": False, "trip_status": "unknown",
-                                    "window_limited": case["window_limited"], "errors": errors}})
+                                    "window_limited": case["window_limited"], "exposure": "unknown",
+                                    "identity_assurance": "canonical_source_assertion", "errors": errors}})
     return {"schema_version": 1, "adapter_version": VERSION, "adapter_sha256": ADAPTER_SHA,
             "extractor_sha256": extractor.RULE_SHA, "journal_cursor": document["journal_cursor"],
             "requested_at": document["requested_at"], "extracted_at": extracted_at,
