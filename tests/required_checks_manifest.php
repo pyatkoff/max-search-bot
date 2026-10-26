@@ -175,6 +175,7 @@ return [
         'php tests/run_manager_client_event_regression.php',
         'node tests/run_manager_client_events_behavior_regression.js',
         'php tests/run_manager_tour_selection_regression.php',
+        'php tests/run_tour_selection_editor_private.php',
         'php tests/run_manager_tour_collector_regression.php',
         'node tests/run_manager_tour_collector_behavior_regression.js',
         'php tests/run_manager_tour_delivery_regression.php',

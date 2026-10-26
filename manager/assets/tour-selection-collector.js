@@ -13,6 +13,7 @@ function render(){
  const root=$('collectorTarget'),open=$('collectorOpenSelection');root.replaceChildren();open.href='/manager2/';open.textContent='← В Manager2';if(!target)return;
  const h=document.createElement('h2');h.textContent=target.client;root.append(h);
  open.href='/manager2/?selection='+target.conversation_id+'&collector_actor='+config.actor+'#conversation='+target.conversation_id;open.textContent='← Открыть эту подборку';
+ if(config.editor_entry==='https://tours.anytoour.ru/editor.php')open.href=config.editor_entry+'?conversation_id='+target.conversation_id+'&editor_actor='+config.actor;
  for(const text of [target.channel+' · '+target.trip,'Диалог с '+target.started_at,(target.dates.length?'Даты в подборке: '+target.dates.join(', '):'В подборке пока нет дат — проверьте текущую поездку.'),'На сервере: '+target.count+' предложений']){const p=document.createElement('p');p.textContent=text;root.append(p)}
  controls();
 }

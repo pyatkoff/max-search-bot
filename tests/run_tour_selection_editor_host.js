@@ -2,12 +2,12 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const root=path.resolve(__dirname,'..'),source=fs.readFileSync(path.join(root,'manager/assets/workspace-v2-tour-selection-host.js'),'utf8');
 let checks=0;function check(name,fn){fn();checks++;console.log('PASS '+name)}
-function fixture(hint=''){
+function fixture(hint='',entry=''){
   const c={id:11,manager_id:7,status:'manager'},state={authExpired:false,manager:{id:7,role:'manager'},detail:{conversation:c},current:11,authGeneration:3};
   let host,open=5,mobile=false;const requests=[],navigations=[],listeners={},replacements=[],roots=[];
   const editor={sync:c=>roots.push(c)},window={WorkspaceV2:{S:state,request:(...args)=>{requests.push(args);return Promise.resolve({ok:true})}},WorkspaceV2Conversation:{getOpenGeneration:()=>open},AnyTourSelectionEditor:{mount:h=>{host=h;return editor}},ManagerTime:{format:(...args)=>args.join('|')},matchMedia:()=>({matches:mobile}),open:(...args)=>navigations.push(args),addEventListener:(name,fn)=>listeners[name]=fn};
   const location={href:'https://app.anytoour.ru/manager2/'+hint,origin:'https://app.anytoour.ru'};
-  const document={querySelector:selector=>{roots.push(selector);return {selector}}},history={state:null,replaceState:(...args)=>replacements.push(args)};
+  const document={querySelector:selector=>{roots.push(selector);return selector==='meta[name="selection-editor-entry"]'?{content:entry}:{selector}}},history={state:null,replaceState:(...args)=>replacements.push(args)};
   vm.runInNewContext(source,{window,document,location,history,URL});
   return {host,state,c,window,requests,navigations,listeners,replacements,roots,editor,setOpen:value=>open=value,setMobile:value=>mobile=value};
 }
@@ -25,6 +25,7 @@ check('account recovery discards an old collector actor hint',()=>{const f=fixtu
 check('request passes the original signal and currentness fence to canonical transport',()=>{const f=fixture(),data={conversation_id:11},options={signal:{fixture:true},isCurrent:()=>false};f.host.request('tour-selections-api.php','get',data,options);assert.equal(f.requests[0][2],data);assert.equal(f.requests[0][3],options);assert.equal(f.requests[0][0],'tour-selections-api.php')});
 check('responsive launcher stays with its existing Manager2 owner',()=>{const f=fixture();assert.equal(f.host.launcher().selector,'.conversationTitleRow');f.setMobile(true);assert.equal(f.host.launcher().selector,'.m2ConversationMenu>div');f.listeners.resize();assert.equal(f.roots.at(-1),f.c);assert.equal(f.window.WorkspaceV2TourSelection,f.editor)});
 check('collector opens only the existing same-origin bridge as an explicit host action',()=>{const f=fixture();assert.equal(f.navigations.length,0);f.host.openCollector(11);assert.equal(f.navigations.length,1);assert.deepEqual(f.navigations[0],['tour-selection-collector.php?conversation_id=11','_blank','noopener'])});
+check('standalone entry needs installed exact origin and explicit current actor action',()=>{assert.equal(fixture().host.openStandalone,undefined);assert.equal(fixture('','https://foreign.invalid/editor.php').host.openStandalone,undefined);const f=fixture('','https://tours.anytoour.ru/editor.php');assert.equal(f.navigations.length,0);f.host.openStandalone(12);assert.equal(f.navigations.length,0);f.host.openStandalone(11);assert.deepEqual(f.navigations[0],['https://tours.anytoour.ru/editor.php?conversation_id=11&editor_actor=7','_blank','noopener']);f.state.authGeneration++;f.state.authExpired=true;f.host.openStandalone(11);assert.equal(f.navigations.length,1)});
 const core=fs.readFileSync(path.join(root,'manager/assets/workspace-v2-tour-selection.js'),'utf8');
 check('canonical core loads without WorkspaceV2 or a workspace DOM and rejects an invalid host',()=>{const window={};vm.runInNewContext(core,{window});assert.equal(window.AnyTourSelectionEditor.contract,'tour-selection-editor-host-v1');assert.throws(()=>window.AnyTourSelectionEditor.mount({}),/Invalid selection editor host/)});
 console.log('PASS '+checks+' editor host controls');
