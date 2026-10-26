@@ -1,16 +1,16 @@
 {
     "ok": true,
-    "generated_at": "2026-10-26T17:21:02+00:00",
+    "generated_at": "2026-10-26T17:56:53+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 44,
-        "raw_sessions": 44,
+        "sessions": 45,
+        "raw_sessions": 45,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 44,
+            "resolved": 45,
             "unresolved": 0
         },
         "started": 37,
@@ -18,14 +18,14 @@
         "tours_opened": 13,
         "site_opened": 0,
         "post_tour_manager_cta_shown": 2,
-        "manager_requested": 34,
+        "manager_requested": 35,
         "manager_replied": 29,
         "customer_replied_after_manager": 16,
         "phone_received": 0,
         "manager_response": {
             "answered_in_90s": 10,
             "answered_after_90s": 19,
-            "still_unanswered": 0,
+            "still_unanswered": 1,
             "measured_responses": 29,
             "avg_seconds": 5336,
             "max_seconds": 43815
@@ -34,20 +34,21 @@
             "customer_replied_after_manager": 16,
             "manager_replied": 13,
             "tours_opened": 7,
-            "manager_requested": 5,
+            "manager_requested": 6,
             "collecting_needs": 3
         },
         "flags": {
             "excessive_turns": 4,
-            "repeated_callback_input": 3
+            "repeated_callback_input": 3,
+            "manager_requested_no_reply": 1
         },
         "calendar_day": {
-            "conversations_started": 30,
+            "conversations_started": 31,
             "needs_collected_from_started": 14,
             "tours_opened_from_started": 9,
             "site_opened": 0,
             "post_tour_manager_cta_shown": 1,
-            "manager_requested": 24,
+            "manager_requested": 25,
             "manager_replied": 19,
             "customer_replied_after_manager": 9
         }
