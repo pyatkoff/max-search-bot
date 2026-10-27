@@ -80,6 +80,74 @@ try {
     $f->requests=[];$f->at+=3600;$f->events->deliverPending();
     hotelEventAssert($f->requests===[]&&$f->status()['delivery_state']==='attention_required','acknowledged_attention_stays_quiet_without_replaying_work');
 
+    // One explicit same-owner resume changes delivery identity, never the stage.
+    $oldPendingId=$payload['eventId'];
+    $oldAttentionId=$f->pdo->query("SELECT attention_ack FROM hotel_work_queues WHERE queue_id='PILOT'")->fetchColumn();
+    $beforeResume=$f->status();$resumeAt=++$f->at;
+    $resumeArgs=['queue_id'=>'PILOT','stage_id'=>$beforeResume['stage_id'],
+        'baseline_sha256'=>$beforeResume['baseline_sha256'],'old_connection_id'=>$f->connection];
+    $expectedConnection=$f->connection;
+    $resumeProof=static fn(string $old,int $admin,string $mode):bool=>$old===$expectedConnection&&$admin===1&&$mode==='ready';
+    $f->queue->handoff_connection(1,$f->connection,$resumeArgs,$resumeProof);$resumed=$f->status();
+    $newPendingId=$resumed['expected_pending_event_id'];
+    $businessKeys=array_flip(['stage_id','stage_index','stage_kind','country','state','oauth_connection_id',
+        'baseline_sha256','phase_counter','accepted_batches','receipt_count','current_run_id']);
+    hotelEventAssert(is_string($newPendingId)&&$newPendingId!==$oldPendingId
+        &&array_intersect_key($beforeResume,$businessKeys)===array_intersect_key($resumed,$businessKeys),
+        'same_owner_resume_changes_pending_identity_without_changing_work');
+    foreach ([$oldPendingId,$oldAttentionId] as $staleId) {
+        hotelEventReject(fn()=>$f->queue->markEventDelivered(1,$f->connection,'PILOT',$staleId),
+            HotelWorkQueueConflict::class,'old_delivery_ack_cannot_acknowledge_resumed_stage','stale_event');
+    }
+    hotelEventAssert($f->status()===$resumed,'stale_pending_and_attention_ack_preserve_resumed_state');
+    $f->requests=[];$delivered=$f->events->deliverPending();$fresh=$f->requests[0];
+    hotelEventAssert($delivered['accepted']===1&&count($f->requests)===1
+        &&$fresh['data']['eventId']===$newPendingId&&$fresh['data']['name']==='hotel_work.pending'
+        &&$fresh['data']['data']===$payload['data']&&$fresh['data']['timestamp']===gmdate('Y-m-d\TH:i:s\Z',$resumeAt)
+        &&hotelEventSignature($fresh,$f->secret),'same_stage_resume_delivers_one_fresh_signed_pending_envelope');
+    $acknowledged=$f->status();
+    $f->queue->handoff_connection(1,$f->connection,$resumeArgs,$resumeProof);
+    hotelEventAssert($f->status()===$acknowledged
+        &&(int)$f->pdo->query('SELECT COUNT(*) FROM hotel_work_connection_handoffs')->fetchColumn()===1,
+        'duplicate_resume_preserves_new_ack_and_one_audit');
+    $f->requests=[];++$f->at;$f->events->deliverPending();
+    hotelEventAssert($f->requests===[],'duplicate_ready_resume_never_replays_acknowledged_pending');
+    $f->at=$resumeAt+180;$f->events->deliverPending();
+    hotelEventAssert(count($f->requests)===1&&$f->requests[0]['data']['eventId']!==$oldAttentionId
+        &&$f->requests[0]['data']['name']==='hotel_work.attention'
+        &&$f->requests[0]['data']['data']['stage_id']===$beforeResume['stage_id']
+        &&$f->requests[0]['data']['data']['dispatch_allowed']===false,'resumed_unclaimed_stage_gets_new_attention_only');
+    $f->requests=[];$f->at+=3600;$f->events->deliverPending();
+    hotelEventAssert($f->requests===[],'acknowledged_resumed_attention_stays_quiet');
+
+    // A late success can acknowledge the queue while a sender retains its old
+    // frozen failed body. Use real queue ACK/readiness methods, not storage edits.
+    $f=new HotelEventsFixture();$f->subscribe(false);$f->statuses=array_fill(0,4,503);
+    for ($attempt=1;$attempt<=4;$attempt++) {
+        $f->events->deliverPending();$oldRow=$f->row();
+        if ($attempt<4) $f->at=strtotime($oldRow['next_attempt_at'].' UTC');
+    }
+    $oldRequest=$f->requests[0];$oldPendingId=$oldRequest['data']['eventId'];
+    $f->queue->markEventDelivered(1,$f->connection,'PILOT',$oldPendingId);
+    $f->at+=180;$oldAttention=$f->queue->pendingEvent(1,$f->connection,'PILOT');$beforeResume=$f->status();
+    hotelEventAssert($oldAttention['name']==='hotel_work.attention'&&$oldRow['next_attempt_at']>gmdate('Y-m-d H:i:s',$f->at),
+        'resume_fixture_has_real_old_ack_attention_and_future_frozen_retry');
+    $resumeArgs=['queue_id'=>'PILOT','stage_id'=>$beforeResume['stage_id'],
+        'baseline_sha256'=>$beforeResume['baseline_sha256'],'old_connection_id'=>$f->connection];
+    $f->queue->handoff_connection(1,$f->connection,$resumeArgs,$resumeProof);$newPendingId=$f->status()['expected_pending_event_id'];
+    $f->requests=[];$f->statuses=[503,204];$freshAttempt=$f->events->deliverPending();$fresh=$f->requests[0];$newRow=$f->row();
+    hotelEventAssert($freshAttempt['retried']===1&&count($f->requests)===1&&$fresh['data']['eventId']===$newPendingId
+        &&$newPendingId!==$oldPendingId&&$fresh['body']!==$oldRequest['body']
+        &&$fresh['data']['data']===$oldRequest['data']['data']
+        &&$fresh['data']['timestamp']===gmdate('Y-m-d\TH:i:s\Z',$f->at)&&hotelEventSignature($fresh,$f->secret)
+        &&(int)$newRow['attempts']===1&&$newRow['next_attempt_at']===gmdate('Y-m-d H:i:s',$f->at+60),
+        'same_stage_new_identity_discards_frozen_body_and_eight_minute_old_backoff');
+    $f->at+=60;$f->requests=[];$retried=$f->events->deliverPending();$retry=$f->requests[0];
+    hotelEventAssert($retried['accepted']===1&&count($f->requests)===1&&$retry['body']===$fresh['body']
+        &&$retry['data']['eventId']===$newPendingId&&$retry['headers']['webhook-timestamp']!==$fresh['headers']['webhook-timestamp']
+        &&hotelEventSignature($retry,$f->secret),'resumed_event_retries_same_new_body_with_fresh_signature');
+
+
     $f=new HotelEventsFixture();$f->subscribe(false);$f->statuses=[503,204];
     $retried=$f->events->deliverPending();$firstRequest=$f->requests[0];$row=$f->row();
     hotelEventAssert($retried['retried']===1&&(int)$row['attempts']===1&&$row['next_attempt_at']===gmdate('Y-m-d H:i:s',$f->at+60),'transient_failure_persists_bounded_retry_and_backoff');
