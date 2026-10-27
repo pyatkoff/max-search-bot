@@ -17,10 +17,18 @@ final class MaxChannelConversionWorker
         $result['telegram']=['mode'=>$tg['telegram_mode']??'off','collected'=>0,'resolved'=>0,'accepted'=>0,'processed'=>0,'unknown'=>0,'errors'=>0];
         $maxActive=$s&&$s['mode']!=='off';
         if(!$maxActive&&!$tgActive)return $result;
+        $injectedClock=$now!==null;
         $pdo=$pdo??ConversationDb::connection();$now=$now??time();$repo=new MaxChannelConversionOutbox($pdo);
         $repo->recover($now);
         $shared=$maxActive&&MaxChannelConversionOutbox::sharedGoalsActive($s);
-        if($collector&&$shared)$result['collected']=$repo->collect($s,$collector);
+        if($collector&&$shared){
+            try{$result['collected']=$repo->collect($s,$collector);}
+            catch(Throwable $ignored){
+                // Independent existing paths must continue once. Partial
+                // collection is unknown; never retry it inside this tick.
+                $result['collected']=null;$result['collection_error']='source_capture_failed';$result['errors']++;
+            }
+        }
         $lookup=$lookup??new MaxTrackerLookupClient();
         $pending=$shared?$repo->pending($now):[];
         $activation=(int)($s['membership_receipts_activated_at_unix']??0);
@@ -42,7 +50,7 @@ final class MaxChannelConversionWorker
         if($users&&method_exists($lookup,'lookupWithMembership')){
             try{
                 $response=$lookup->lookupWithMembership($s['counter_id'],$users,$activation,$now);
-                $result['membership']=(new MaxMembershipReceiptJournal($pdo))->record($bindings,$response['membership'],$now,$activation)+['errors'=>0];
+                $result['membership']=(new MaxMembershipReceiptJournal($pdo,$injectedClock?static fn():int=>$now:null))->record($bindings,$response['membership'],$now,$activation)+['errors'=>0];
                 $repo->advanceMembershipCursor((int)$sweep['cursor_before'],(int)$sweep['cursor_after']);
             }catch(Throwable $ignored){$result['membership']['errors']++;}
         }

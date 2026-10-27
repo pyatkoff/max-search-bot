@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__.'/InternalOwnerDialogueScope.php';
+require_once __DIR__.'/ConversationRecordClock.php';
 
 /** Prospective source journal only. No trip inference, model, provider or goal caller. */
 final class ModeledConversionStream
@@ -167,7 +168,7 @@ final class ModeledConversionStream
             'customer_key'=>$meta['customer_key'],'source_created_at'=>$meta['created_at'],
             'source_clock'=>'database_persistence_not_provider_occurrence',
             'source_created_at_unix'=>isset($meta['created_at_unix'])?(int)$meta['created_at_unix']:null,
-            'source_timestamp_basis'=>'database_session_timezone_to_unix','payload_sha256'=>$sourceHash,
+            'source_timestamp_basis'=>isset($meta['recording_clock_unix'])?'canonical_recording_unix_v1':'database_session_timezone_to_unix','payload_sha256'=>$sourceHash,
             'trip_status'=>'unknown','history_complete'=>false];
         $estimate=(int)$meta['payload_bytes']*6+4096;
         if ($estimate>65536) $snapshot=$base+['payload_status'=>'oversize_not_copied','payload'=>null];
@@ -222,8 +223,10 @@ final class ModeledConversionStream
             $hash=$this->mysql?'SHA2('.$raw.',256)':'modeled_hash(json_array('.$fields.'))';
             $length=$this->mysql?'OCTET_LENGTH':'LENGTH';
             $bytes=$kind==='message'?"COALESCE($length(s.text),0)+COALESCE($length(s.metadata_json),0)":"COALESCE($length(s.payload_json),0)";
-            $clock=$this->mysql?'UNIX_TIMESTAMP(s.created_at)':"CAST(strftime('%s',s.created_at) AS INTEGER)";
-            $select="s.id,c.channel AS platform,c.id AS conversation_id,c.customer_id AS customer_key,s.created_at,$clock AS created_at_unix,($bytes) AS payload_bytes,$hash AS payload_hash";
+            $legacyClock=$this->mysql?'UNIX_TIMESTAMP(s.created_at)':"CAST(strftime('%s',s.created_at) AS INTEGER)";
+            $recorded=ConversationRecordClock::sql($kind==='message'?'s.metadata_json':'s.payload_json',$this->mysql);
+            $clock="COALESCE(($recorded),$legacyClock)";
+            $select="s.id,c.channel AS platform,c.id AS conversation_id,c.customer_id AS customer_key,s.created_at,$clock AS created_at_unix,$recorded AS recording_clock_unix,($bytes) AS payload_bytes,$hash AS payload_hash";
         }
         return $this->query('SELECT '.$select.' FROM '.$from.' WHERE '.$where.' AND '.$clauses.' ORDER BY s.id LIMIT '.$limit,$bind)->fetchAll(PDO::FETCH_ASSOC);
     }
