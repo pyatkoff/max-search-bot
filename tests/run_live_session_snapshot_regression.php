@@ -69,7 +69,7 @@ lssCheck('bounded anomaly summary remains internally consistent',(int)($composed
 $tgRoot=sys_get_temp_dir().'/live-tg-status-'.bin2hex(random_bytes(6));
 mkdir($tgRoot.'/tools',0700,true);mkdir($tgRoot.'/services',0700,true);
 copy($base.'/tools/live_session_snapshot.php',$tgRoot.'/tools/live_session_snapshot.php');
-foreach(['TelegramDialogueConversions.php','MaxChannelConversionOutbox.php','MaxSubscriptionAttributionPolicy.php','InternalOwnerDialogueScope.php','LiveSessionAnalyzer.php','CallbackGeneration.php']as$file){
+foreach(['ConversationRecordClock.php','TelegramDialogueConversions.php','MaxChannelConversionOutbox.php','MaxSubscriptionAttributionPolicy.php','InternalOwnerDialogueScope.php','LiveSessionAnalyzer.php','CallbackGeneration.php']as$file){
     copy($base.'/services/'.$file,$tgRoot.'/services/'.$file);
 }
 // The production config bootstrap does not preload ProjectConfig. Keep its stub

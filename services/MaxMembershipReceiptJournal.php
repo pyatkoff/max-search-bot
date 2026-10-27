@@ -7,7 +7,8 @@ final class MaxMembershipReceiptJournal
 {
     private PDO $pdo;
     private bool $mysql;
-    public function __construct(PDO $pdo){$this->pdo=$pdo;$this->mysql=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';}
+    private $clock;
+    public function __construct(PDO $pdo,?callable $clock=null){$this->pdo=$pdo;$this->mysql=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';$this->clock=$clock??static fn():int=>time();}
 
     /** Bindings are exact external users and conversation ids selected by the existing worker. */
     public function record(array $bindings,array $receipts,int $now,int $notBefore): array
@@ -101,9 +102,11 @@ final class MaxMembershipReceiptJournal
             if($conflict)throw new RuntimeException('membership_conflict_key_collision');
             $stats['conflicts']++;
         }
+        $recordedAt=($this->clock)();
+        if(!is_int($recordedAt)||$recordedAt<$now||$recordedAt>4102444800)throw new RuntimeException('membership_recording_clock_invalid');
         $wall=$this->mysql?'FROM_UNIXTIME(?)':'?';
         $this->query('INSERT INTO conversation_events (conversation_id,event_type,actor_type,actor_id,payload_json,created_at) VALUES (?,?,?,?,?,'.$wall.')',
-            [$conversationId,$type,'system',$actor,json_encode(ConversationRecordClock::stamp($payload,$now),JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),$this->mysql?$now:gmdate('Y-m-d H:i:s',$now)]);
+            [$conversationId,$type,'system',$actor,json_encode(ConversationRecordClock::stamp($payload,$recordedAt),JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),$this->mysql?$recordedAt:gmdate('Y-m-d H:i:s',$recordedAt)]);
         $stats['inserted']++;return(string)$this->pdo->lastInsertId();
     }
 

@@ -17,6 +17,7 @@ final class MaxChannelConversionWorker
         $result['telegram']=['mode'=>$tg['telegram_mode']??'off','collected'=>0,'resolved'=>0,'accepted'=>0,'processed'=>0,'unknown'=>0,'errors'=>0];
         $maxActive=$s&&$s['mode']!=='off';
         if(!$maxActive&&!$tgActive)return $result;
+        $injectedClock=$now!==null;
         $pdo=$pdo??ConversationDb::connection();$now=$now??time();$repo=new MaxChannelConversionOutbox($pdo);
         $repo->recover($now);
         $shared=$maxActive&&MaxChannelConversionOutbox::sharedGoalsActive($s);
@@ -49,7 +50,7 @@ final class MaxChannelConversionWorker
         if($users&&method_exists($lookup,'lookupWithMembership')){
             try{
                 $response=$lookup->lookupWithMembership($s['counter_id'],$users,$activation,$now);
-                $result['membership']=(new MaxMembershipReceiptJournal($pdo))->record($bindings,$response['membership'],$now,$activation)+['errors'=>0];
+                $result['membership']=(new MaxMembershipReceiptJournal($pdo,$injectedClock?static fn():int=>$now:null))->record($bindings,$response['membership'],$now,$activation)+['errors'=>0];
                 $repo->advanceMembershipCursor((int)$sweep['cursor_before'],(int)$sweep['cursor_after']);
             }catch(Throwable $ignored){$result['membership']['errors']++;}
         }

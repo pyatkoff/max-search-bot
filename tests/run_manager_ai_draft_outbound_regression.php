@@ -167,6 +167,13 @@ function draftOutboundCheck(string $name, bool $ok): void
     echo 'PASS '.$name."\n";
 }
 
+function draftOutboundMetadata(string $json): array
+{
+    $clock=ConversationRecordClock::read($json);
+    draftOutboundCheck('canonical row carries a fresh server recording instant',is_int($clock)&&$clock>=time()-10&&$clock<=time());
+    $metadata=json_decode($json,true);unset($metadata['_recorded_clock']);return $metadata;
+}
+
 try {
     foreach ([$tmp,$tmp.'/services',$tmp.'/integrations'] as $directory) mkdir($directory,0700);
     foreach (['ManagerConversationService','ManagerPushService','ManagerSendGuardService',
@@ -178,7 +185,7 @@ try {
         file_put_contents($tmp.'/integrations/'.$adapter.'.php', "<?php\n// Synthetic adapter only.\n");
     }
     file_put_contents($tmp.'/config.php', "<?php\nthrow new LogicException('real_bootstrap_forbidden_in_outbound_fixture');\n");
-    foreach (['ManagerOutboundService','ConversationRecorder','ManagerSendAttemptService'] as $service) {
+    foreach (['ConversationRecordClock','ManagerOutboundService','ConversationRecorder','ManagerSendAttemptService'] as $service) {
         $source = $root.'/services/'.$service.'.php';
         $target = $tmp.'/services/'.$service.'.php';
         if (!copy($source,$target)) throw new RuntimeException('Cannot copy canonical service');
@@ -196,7 +203,7 @@ try {
         draftOutboundCheck($channel.' delivered AI-associated text succeeds',ManagerOutboundService::send(42,7,$raw,$draftId));
         $feedback = DraftOutboundFixture::events('feedback');
         $rows = DraftOutboundFixture::rows();
-        $meta = json_decode((string)($rows[0]['metadata_json'] ?? ''),true);
+        $meta = draftOutboundMetadata((string)($rows[0]['metadata_json'] ?? ''));
         $expectedFeedback = ['draft_id'=>$draftId,'text_matches_proposal'=>true,'sent_text_sha256'=>hash('sha256',$trimmed)];
         draftOutboundCheck($channel.' feedback gets authenticated scope and original trimmed text',
             count($feedback) === 1 && $feedback[0]['args'] === [42,7,'synthetic-project',$draftId,$trimmed]);
@@ -226,7 +233,7 @@ try {
     DraftOutboundFixture::reset();
     $edited = 'Другой текст <проверка> & дата';
     draftOutboundCheck('edited draft text still delivers',ManagerOutboundService::send(42,7,$edited,$draftId));
-    $meta = json_decode(DraftOutboundFixture::rows()[0]['metadata_json'],true);
+    $meta = draftOutboundMetadata(DraftOutboundFixture::rows()[0]['metadata_json']);
     draftOutboundCheck('edited text retains draft identity but hashes the sent original text',
         $meta['ai_draft'] === ['draft_id'=>$draftId,'text_matches_proposal'=>false,'sent_text_sha256'=>hash('sha256',$edited)]);
 
@@ -234,7 +241,7 @@ try {
     draftOutboundCheck('legacy three-argument text send still works',ManagerOutboundService::send(42,7,'Обычный ответ'));
     draftOutboundCheck('null draft ID performs no feedback lookup and stores no association',
         DraftOutboundFixture::events('feedback') === []
-        && json_decode(DraftOutboundFixture::rows()[0]['metadata_json'],true) === ['project_key'=>'synthetic-project']);
+        && draftOutboundMetadata(DraftOutboundFixture::rows()[0]['metadata_json']) === ['project_key'=>'synthetic-project']);
     foreach (['missing_draft','invalid_draft','foreign_scope','unavailable_store'] as $mode) {
         DraftOutboundFixture::reset();
         DraftOutboundFixture::$feedbackMode = $mode;
@@ -242,7 +249,7 @@ try {
         draftOutboundCheck($mode.' feedback cannot block delivered customer text',ManagerOutboundService::send(42,7,'Ответ без связи',$id));
         draftOutboundCheck($mode.' leaves the canonical row without AI metadata',
             count(DraftOutboundFixture::rows()) === 1
-            && json_decode(DraftOutboundFixture::rows()[0]['metadata_json'],true) === ['project_key'=>'synthetic-project']);
+            && draftOutboundMetadata(DraftOutboundFixture::rows()[0]['metadata_json']) === ['project_key'=>'synthetic-project']);
     }
 
     DraftOutboundFixture::reset();
@@ -284,7 +291,7 @@ try {
         draftOutboundCheck($channel.' media send keeps its existing behavior',
             ManagerOutboundService::sendMedia(42,7,$file,'synthetic.txt','text/plain',' <caption> '));
         $rows = DraftOutboundFixture::rows();
-        $meta = json_decode($rows[0]['metadata_json'],true);
+        $meta = draftOutboundMetadata($rows[0]['metadata_json']);
         draftOutboundCheck($channel.' media does not query or attach draft feedback',
             DraftOutboundFixture::events('feedback') === [] && count($rows) === 1
             && $meta === ['project_key'=>'synthetic-project','attachments'=>[['type'=>'file','name'=>'synthetic.txt','mime_type'=>'text/plain']]]
@@ -296,7 +303,7 @@ try {
     $sent=ManagerOutboundService::sendAttempt(42,7,$attemptId,$original,$draftId);
     $repeated=ManagerOutboundService::sendAttempt(42,7,$attemptId,$original,$draftId);
     $readback=ManagerSendAttemptService::receipt(7,42,$attemptId);
-    $rows=DraftOutboundFixture::rows();$meta=json_decode((string)($rows[0]['metadata_json']??''),true);
+    $rows=DraftOutboundFixture::rows();$meta=draftOutboundMetadata((string)($rows[0]['metadata_json']??''));
     draftOutboundCheck('receipt wrapper sends and records exactly once through canonical owners',($sent['attempt']['state']??'')==='confirmed'&&$repeated===$sent&&$readback===['ok'=>true,'attempt'=>['state'=>'confirmed']]&&count(DraftOutboundFixture::events('adapter_send'))===1&&count($rows)===1);
     draftOutboundCheck('receipt wrapper retains actual owner and canonical AI provenance',($rows[0]['sender_id']??'')==='7'&&($meta['ai_draft']['draft_id']??'')===$draftId&&($meta['ai_draft']['sent_text_sha256']??'')===hash('sha256',$original)&&count(DraftOutboundFixture::events('feedback'))===1);
     foreach(['recipient','project','source','channel','assignment','active','visibility'] as $change){

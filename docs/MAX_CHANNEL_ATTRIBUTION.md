@@ -63,7 +63,8 @@ historical replay. The original activation and work cursors are preserved.
 Membership still requires an exact eligible post-fence conversation and an
 already-admitted numeric outbox event. Both time bounds are numeric; a later goal
 from an earlier episode cannot shadow its successor. New journal receipts retain
-their first numeric recording instant across idempotent reads; their compatibility
+their first numeric recording instant taken immediately before insertion, after
+the lookup, across idempotent reads; their compatibility
 wall projection is FROM_UNIXTIME of that same instant in MySQL (UTC in SQLite).
 The source journal and actual CLI validate the clock header independently of the
 business receipt, while keeping occurrence, recording and first observation
@@ -106,8 +107,8 @@ The post-commit hook performs only a local capture. An independent, bounded
 `waiting_manager` event cursor recovers missed hooks and outer transactions.
 The customer-after-manager stage retains waiting-manager/manager-message guards.
 The existing destination exclusion also applies. Timestamp ordering uses
-`created_at,id`, so a later message in the same second is retained. UTC is
-verified before capture. The mirror's `messages.created_at` is the persisted
+`recorded_at_unix,id`, so a later message in the same second is retained. The versioned canonical Unix receipt is
+verified before capture. The mirror's versioned Unix recording receipt is the persisted
 accepted-event clock; a raw provider timestamp is not currently persisted by the
 recorder. No queue/enrichment timestamp is substituted for it.
 

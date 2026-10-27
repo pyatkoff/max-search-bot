@@ -417,7 +417,7 @@ foreach([0,10800]as$offset){
     same((int)row($p)['event_unix'],1792058401,'wall clock cannot shift original occurrence at offset '.$offset);
     $source='clock-contract-'.($offset?'local':'utc');
     $receipts=['1234567890123456789'=>[['kind'=>'subscription','source_record_id'=>'9601','state'=>'subscribed','occurred_at_unix'=>1792058401]]];
-    $journal=new MaxMembershipReceiptJournal($p);
+    $journal=new MaxMembershipReceiptJournal($p,static fn():int=>$clockNow);
     same($journal->record([['external_user_id'=>'1234567890123456789','conversation_ids'=>['1']]],$receipts,$clockNow,1792058400)['inserted'],1,'same prospective episode is admitted at offset '.$offset);
     $event=$p->query("SELECT created_at,payload_json FROM conversation_events WHERE event_type='channel_subscription_observed'")->fetch(PDO::FETCH_ASSOC);
     same(ConversationRecordClock::read($event['payload_json']),$clockNow,'first recording Unix is explicit at offset '.$offset);
@@ -431,6 +431,16 @@ foreach([0,10800]as$offset){
     same((int)$p->query('SELECT COUNT(*) FROM max_channel_conversion_outbox')->fetchColumn(),0,'unknown old row creates no conversion at offset '.$offset);
     if($mysql)$p->exec("SET time_zone='+00:00'");
 }
+// Source cutoff and the actual insertion instant are deliberately distinct.
+$p=maxAttributionFixture();$laterRecording=1792062010;
+$journal=new MaxMembershipReceiptJournal($p,static fn():int=>$laterRecording);
+$delayed=['1234567890123456789'=>[['kind'=>'subscription','source_record_id'=>'9701','state'=>'subscribed','occurred_at_unix'=>1792058401]]];
+$binding=[['external_user_id'=>'1234567890123456789','conversation_ids'=>['1']]];
+same($journal->record($binding,$delayed,1792062000,1792058400)['inserted'],1,'delayed source read is recorded after its cutoff');
+$firstRecording=$p->query("SELECT payload_json FROM conversation_events WHERE event_type='channel_subscription_observed'")->fetchColumn();
+same(ConversationRecordClock::read($firstRecording),$laterRecording,'recording time is not the earlier worker tick snapshot');
+same($journal->record($binding,$delayed,1792062001,1792058400)['unchanged'],1,'repeat delayed read preserves its first recording time');
+same($p->query("SELECT payload_json FROM conversation_events WHERE event_type='channel_subscription_observed'")->fetchColumn(),$firstRecording,'idempotency preserves the exact recorded bytes');
 // A capture exception must not retry the collector or stop independent admitted work.
 $p=maxAttributionFixture();(new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$p);
 $repo=new MaxChannelConversionOutbox($p);$repo->activateSharedGoals(1792058400);$settings=MaxChannelConversionOutbox::settings($p);
