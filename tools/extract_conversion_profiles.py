@@ -113,8 +113,12 @@ def current_trip_clauses(text):
     for start, end in zip(bounds, ends):
         part = text[start:end]
         cuts = [0]
-        for dash in re.finditer(r"\s+[—–-]\s+", part):
-            right = part[dash.end():]
+        dashes = list(re.finditer(r"\s+[—–-]\s+", part))
+        for index, dash in enumerate(dashes):
+            # A later independent clause cannot turn this explanatory dash
+            # into a boundary and orphan facts from their earlier predicate.
+            next_dash = dashes[index+1].start() if index+1 < len(dashes) else len(part)
+            right = part[dash.end():next_dash]
             if text_match(DESTINATION_CURRENT, right) or text_match(DESTINATION_HISTORY, right):
                 cuts.append(dash.end())
         cuts += [m.start() for m in re.finditer(
@@ -143,6 +147,15 @@ def current_trip_clauses(text):
 def amount_unit_context(text, start, end):
     """Unit qualifiers belong to the amount's assertion, not a later surcharge."""
     boundaries = list(CLAUSE_BOUNDARY.finditer(text))
+    # MONEY leaves the dot of the currency abbreviation outside its span.
+    # Keep an immediately attached unit, while preserving sentence boundaries
+    # before a separate surcharge assertion (including 'За человека доплата').
+    abbreviated_unit = (re.search(r"\bруб$", text[start:end], re.I)
+                        and re.match(r"\.\s*(?:не\s+)?(?:на\s+(?:человека|всех|двоих|троих|четверых)|"
+                                     r"за\s+(?:человека|всех|одного)|с\s+человека|всего)\b"
+                                     r"(?!\s+(?:доплат\w*|надбав\w*))", text[end:], re.I))
+    if abbreviated_unit:
+        boundaries = [m for m in boundaries if m.start() != end]
     left = max((m.end() for m in boundaries if m.end() <= start), default=0)
     right = min((m.start() for m in boundaries if m.start() >= end), default=len(text))
     return text[max(left, start-24):min(right, end+65)]

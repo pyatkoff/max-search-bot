@@ -53,6 +53,16 @@ def value(profile, field):
 
 # Synthetic controls for current-trip facts and amount-local budget units.
 SCOPED_FACT_CASES = [
+    ("В прошлом году ездили — на 10 ночей — сейчас хотим в Турцию.", {"duration": None}),
+    ("В прошлом году ездили — на 10 ночей — сейчас хотим в Турцию на 7 ночей.",
+     {"duration": {"minimum": 7, "maximum": 7, "unit": "nights"}}),
+    ("Сейчас хотим в Турцию — на 7 ночей — в прошлом году ездили на 10 ночей.",
+     {"duration": {"minimum": 7, "maximum": 7, "unit": "nights"}}),
+    ("В прошлом году отдыхали — с 01.07.2025 по 10.07.2025 — сейчас хотим в Турцию.",
+     {"dates": None}),
+    ("В прошлом году отдыхали — с 01.07.2025 по 10.07.2025 — сейчас хотим вылет 15.11.2026.",
+     {"dates": {"start_day": 15, "start_month": 11, "end_day": 15, "end_month": 11,
+                "year": 2026, "window_kind": "departure"}}),
     ("В прошлом году ездили в Египет на 10 ночей, а сейчас хотим в Турцию на 7 ночей.",
      {"duration": {"minimum": 7, "maximum": 7, "unit": "nights"}}),
     ("Сейчас хотим в Турцию на 7 ночей — в прошлом году ездили на 10 ночей.",
@@ -81,6 +91,18 @@ SCOPED_FACT_CASES = [
     ("В прошлом году ездили из Москвы.", {"departure": None}),
 ]
 BUDGET_UNIT_CASES = [
+    ("Бюджет 200000 руб. на человека.", "per_person", "explicit"),
+    ("Бюджет 200000 РУБ. за человека.", "per_person", "explicit"),
+    ("Бюджет 200 тыс. руб. на человека.", "per_person", "explicit"),
+    ("Бюджет 200 т. р. на человека.", "per_person", "explicit"),
+    ("Бюджет 200000 руб. на всех.", "party_total", "explicit"),
+    ("Бюджет 200000 руб. на двоих.", "party_total", "explicit"),
+    ("Бюджет 200000 руб. на всех. Доплата за человека не нужна.", "party_total", "explicit"),
+    ("Бюджет 200000 руб. на всех, доплата за человека не нужна.", "party_total", "explicit"),
+    ("Бюджет 200000 руб. на человека. Доплата на всех не нужна.", "per_person", "explicit"),
+    ("Бюджет 200000 руб. Доплата за человека не нужна.", "party_total", "agency_default_party_total"),
+    ("Бюджет 200000 руб. За человека доплата не нужна.", "party_total", "agency_default_party_total"),
+    ("Бюджет 200000 руб. Доплата за человека нужна.", "party_total", "agency_default_party_total"),
     ("Бюджет 200000 рублей на всех и за человека не требуется.", "party_total", "explicit"),
     ("Бюджет 200000 рублей на человека и доплата не нужна.", "per_person", "explicit"),
     ("Бюджет 200000 рублей на всех.", "party_total", "explicit"),
