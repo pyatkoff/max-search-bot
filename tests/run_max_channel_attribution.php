@@ -45,8 +45,47 @@ same(MaxChannelConversionWorker::tick($p,$noIO,$noIO,$now)['mode'],'off','off pe
 $p->exec("UPDATE max_channel_attribution_settings SET mode='collect'");
 $repo->resolve('1',null,$now);same(count($repo->pending($now)),2,'missing identity delayed');
 $identity=['external_user_id'=>'1234567890123456789','client_id'=>'1844674407370955161512345','record_id'=>'9007199254740993','observed_at_unix'=>$now+100];
-$lookup=new class($identity){public array $identity;public int $calls=0;function __construct($v){$this->identity=$v;}function lookup($counter,$users){$this->calls++;return ['1234567890123456789'=>$this->identity];}};
+$lookup=new class($identity){public array $identity;public array $users=[];public int $calls=0;function __construct($v){$this->identity=$v;}function lookup($counter,$users){$this->calls++;$this->users=$users;return ['1234567890123456789'=>$this->identity];}function lookupWithMembership($counter,$users,$notBefore,$cutoff){$this->calls++;$this->users=$users;return ['identities'=>['1234567890123456789'=>$this->identity],'membership'=>['1234567890123456789'=>[
+    ['kind'=>'subscription','source_record_id'=>'701','state'=>'subscribed','occurred_at_unix'=>$cutoff-1800],
+    ['kind'=>'retention_30m','source_record_id'=>'701','subscription_source_record_id'=>'701','state'=>'retained','occurred_at_unix'=>$cutoff,'minimum_age_seconds'=>1800]
+]]];}};
 $stats=MaxChannelConversionWorker::tick($p,$lookup,$noIO,$now+901);same($stats['resolved'],3,'later tracker identity enriches earlier events');
+same($lookup->users,['1234567890123456789'],'long MAX identifier remains an exact wire string');
+same($stats['membership']['inserted'],2,'same signed lookup mirrors subscription and mature retention');
+same((int)$p->query("SELECT COUNT(*) FROM conversation_events WHERE event_type IN ('channel_subscription_observed','channel_retention_30m_observed')")->fetchColumn(),2,'two versioned receipts use existing journal');
+$membershipPayloads=$p->query("SELECT event_type,payload_json FROM conversation_events WHERE event_type IN ('channel_subscription_observed','channel_retention_30m_observed') ORDER BY id")->fetchAll();
+same(json_decode($membershipPayloads[0]['payload_json'],true)['origin'],'existing_membership_producer','subscription provenance exact');
+same(json_decode($membershipPayloads[1]['payload_json'],true)['subscription_event_id'],(string)$p->query("SELECT id FROM conversation_events WHERE event_type='channel_subscription_observed'")->fetchColumn(),'retention binds local subscription period');
+$journal=new MaxMembershipReceiptJournal($p);$sameReceipts=['1234567890123456789'=>[
+    ['kind'=>'subscription','source_record_id'=>'701','state'=>'subscribed','occurred_at_unix'=>$now-899],
+    ['kind'=>'retention_30m','source_record_id'=>'701','subscription_source_record_id'=>'701','state'=>'retained','occurred_at_unix'=>$now+901,'minimum_age_seconds'=>1800]
+]];
+$binding=[['external_user_id'=>'1234567890123456789','conversation_ids'=>['1']]];
+$repeat=$journal->record($binding,$sameReceipts,$now+901);same($repeat['inserted'],0,'repeat tracker receipt is idempotent');same($repeat['unchanged'],2,'repeat preserves both exact events');
+$late=$sameReceipts;$late['1234567890123456789'][1]['state']='not_retained';$late['1234567890123456789'][1]['source_record_id']='702';
+same($journal->record($binding,$late,$now+901)['inserted'],1,'late conflicting evidence is preserved as a second receipt');
+same($journal->record($binding,$late,$now+901)['unchanged'],2,'repeated conflict is idempotent');
+$rejoin=['1234567890123456789'=>[
+    ['kind'=>'subscription','source_record_id'=>'703','state'=>'subscribed','occurred_at_unix'=>$now+1000],
+    ['kind'=>'retention_30m','source_record_id'=>'703','subscription_source_record_id'=>'703','state'=>'retained','occurred_at_unix'=>$now+2800,'minimum_age_seconds'=>1800]
+]];
+same($journal->record($binding,$rejoin,$now+2800)['inserted'],2,'rejoin creates a distinct subscription period and receipt');
+same($journal->record([['external_user_id'=>'1234567890123456789','conversation_ids'=>['2']]],$rejoin,$now+2800)['inserted'],0,'cross-platform conversation binding is rejected');
+$ambiguous=['1234567890123456789'=>[['kind'=>'subscription','source_record_id'=>'704','state'=>'subscribed','occurred_at_unix'=>$now+1100]]];
+same($journal->record([['external_user_id'=>'1234567890123456789','conversation_ids'=>['1','6']]],$ambiguous,$now+1100)['inserted'],0,'multiple dialogue episodes keep one person membership receipt unassigned');
+$p->exec("INSERT INTO customer_channels VALUES(4,'anytour','max','777777777777777777')");
+$p->exec("INSERT INTO conversations(id,customer_channel_id,project_key,channel,external_chat_id,is_test,status,source_id,started_at) VALUES(8,4,'anytour','max','-777777777777777777',0,'ai',2,'2026-10-15 11:00:00')");
+$followBinding=[['external_user_id'=>'777777777777777777','conversation_ids'=>['8']]];
+$followSubscription=['777777777777777777'=>[['kind'=>'subscription','source_record_id'=>'800','state'=>'subscribed','occurred_at_unix'=>$now+1000]]];
+same($journal->record($followBinding,$followSubscription,$now+1000)['inserted'],1,'prospective subscription is journaled once');
+same((new MaxChannelConversionOutbox($p))->membershipCandidates(MaxChannelConversionOutbox::settings($p),$now+2799),[],'1799 does not schedule retention lookup');
+$retentionLookup=new class{public array $users=[];function lookupWithMembership($counter,$users,$notBefore,$cutoff){$this->users=$users;return ['identities'=>['777777777777777777'=>null],'membership'=>['777777777777777777'=>[
+    ['kind'=>'retention_30m','source_record_id'=>'800','subscription_source_record_id'=>'800','state'=>'retained','occurred_at_unix'=>$cutoff,'minimum_age_seconds'=>1800]
+]]];}};
+$follow=MaxChannelConversionWorker::tick($p,$retentionLookup,$noIO,$now+2800);
+same($retentionLookup->users,['777777777777777777'],'1800 follow-up uses the exact admitted user without pending conversion');
+same($follow['membership']['inserted'],1,'1800 follow-up stores the period-bound retention receipt');
+same((new MaxChannelConversionOutbox($p))->membershipCandidates(MaxChannelConversionOutbox::settings($p),$now+2801),[],'stored retention closes the follow-up without polling');
 same(row($p)['client_id'],$identity['client_id'],'large ClientID exact decimal string');
 same((int)row($p)['event_unix'],strtotime('2026-10-15 10:00:01 UTC'),'enrichment preserves event time');
 $changed=$identity;$changed['client_id']='999';$repo->resolve('1',$changed,$now+1000);same(row($p)['client_id'],$identity['client_id'],'frozen after ready');
@@ -178,10 +217,13 @@ $client=new MetrikaOfflineClient('98615635','fake',function($method,$url,$body)u
 $key=openssl_pkey_new(['private_key_bits'=>2048,'private_key_type'=>OPENSSL_KEYTYPE_RSA]);openssl_pkey_export($key,$private);$public=openssl_pkey_get_details($key)['key'];
 $body=MaxTrackerLookupProtocol::body('98615635',['1234567890123456789'],$now);$signature=MaxTrackerLookupProtocol::signature($body,$private);
 same(MaxTrackerLookupProtocol::authenticate($body,$signature,$public,$now,'98615635')['user_ids'],['1234567890123456789'],'RSA signature exact identity');
+$membershipBody=MaxTrackerLookupProtocol::body('98615635',['1234567890123456789'],$now,'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',['not_before_unix'=>$now-60,'cutoff_unix'=>$now]);
+same(MaxTrackerLookupProtocol::authenticate($membershipBody,MaxTrackerLookupProtocol::signature($membershipBody,$private),$public,$now,'98615635')['membership']['not_before_unix'],$now-60,'signed prospective membership window exact');
 rejects(fn()=>MaxTrackerLookupProtocol::authenticate($body.' ',$signature,$public,$now,'98615635'),'body tampering');
 rejects(fn()=>MaxTrackerLookupProtocol::authenticate($body,$signature,$public,$now+91,'98615635'),'expired signature');
 rejects(fn()=>MaxTrackerLookupProtocol::authenticate($body,$signature,$public,$now,'2'),'wrong signed counter');
 foreach([[123],['01'],['-123'],['1','1'],array_map('strval',range(1,26))] as $ids)rejects(fn()=>MaxTrackerLookupProtocol::body('98615635',$ids,$now),'invalid user list');
+foreach([["not_before_unix"=>$now+1,"cutoff_unix"=>$now],["not_before_unix"=>$now-1,"cutoff_unix"=>$now-91],["not_before_unix"=>"$now","cutoff_unix"=>$now]]as$window)rejects(fn()=>MaxTrackerLookupProtocol::body('98615635',['1'],$now,null,$window),'invalid membership window');
 $response=['ok'=>true,'version'=>1,'counter_id'=>'98615635','tracker_timezone'=>'Europe/London','users'=>[['external_user_id'=>'123','found'=>false],['external_user_id'=>'456','found'=>false]]];
 same(MaxTrackerLookupClient::validateResponse($response,'98615635',['123','456']),[123=>null,456=>null],'explicit misses accepted');
 $response['users'][1]=$response['users'][0];rejects(fn()=>MaxTrackerLookupClient::validateResponse($response,'98615635',['123','456']),'duplicate miss cannot replace second user');

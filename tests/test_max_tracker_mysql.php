@@ -5,9 +5,13 @@ require_once dirname(__DIR__).'/services/MaxTrackerLookupRepository.php';
 if(!getenv('MAX_ATTRIBUTION_TEST_MYSQL_DSN'))throw new RuntimeException('native_mysql_fixture_required');
 $p=maxAttributionFixture();$checks=0;
 function same($a,$b,string $name):void{global $checks;$checks++;if($a!==$b)throw new RuntimeException('FAIL '.$name);}
+function rejects(callable $f,string $name):void{global $checks;try{$f();}catch(Throwable $e){$checks++;return;}throw new RuntimeException('FAIL '.$name);}
 $p->exec('CREATE TABLE max_sub_links (ID BIGINT PRIMARY KEY,UF_CHAT_ID VARCHAR(20),UF_CLIENT_ID VARCHAR(60),UF_DATE DATETIME NULL,UF_METRIC_SOURCE VARCHAR(20),UF_SOURCE VARCHAR(20),UF_PLATFORM VARCHAR(20))');
 $p->exec('CREATE TABLE b_iblock_property (ID BIGINT PRIMARY KEY,IBLOCK_ID BIGINT,CODE VARCHAR(64))');
 $p->exec('CREATE TABLE b_iblock_element_property (IBLOCK_PROPERTY_ID BIGINT,IBLOCK_ELEMENT_ID BIGINT,VALUE VARCHAR(64))');
+$p->exec('CREATE TABLE b_hlblock_entity (ID BIGINT PRIMARY KEY,TABLE_NAME VARCHAR(64))');
+$p->exec('CREATE TABLE max_membership_events (ID BIGINT PRIMARY KEY,UF_CHAT_ID VARCHAR(20),UF_SOURCE VARCHAR(20),UF_TYPE INTEGER,UF_DATE DATETIME)');
+$p->exec("INSERT INTO b_hlblock_entity VALUES(10,'max_membership_events')");
 $p->exec("INSERT INTO b_iblock_property VALUES(1,8,'YA_METRIK_ID'),(2,8,'CHANEL_ID'),(3,7,'YA_METRIK_ID')");
 $p->exec("INSERT INTO b_iblock_element_property VALUES(1,10,'98615635'),(1,11,'999'),(2,12,'98615635'),(3,13,'98615635')");
 $q=$p->prepare('INSERT INTO max_sub_links VALUES(?,?,?,?,?,?,?)');
@@ -33,6 +37,30 @@ same($rows[2]['observed_at_unix'],strtotime('2026-01-15 12:00:00 UTC'),'winter L
 same($rows[4],['external_user_id'=>'404','found'=>false],'exact unknown identity');same($p->inTransaction(),false,'readonly transaction rolled back');
 same((string)$p->query('SELECT COUNT(*) FROM max_sub_links')->fetchColumn(),$before,'tracker rows unchanged');
 $other=$repo->lookup('999',['123']);same($other[0]['record_id'],'9007199254740993','counter filtering precedes latest');
+$p->exec("INSERT INTO max_membership_events VALUES
+ (1001,'123','10',1,'2026-07-15 12:00:00'),
+ (1002,'123','10',2,'2026-07-15 12:20:00'),
+ (1003,'456','10',1,'2026-07-15 12:00:00'),
+ (1004,'123','11',1,'2026-07-15 12:01:00'),
+ (1005,'456','10',1,'2026-07-15 12:05:00'),
+ (1006,'789','10',1,'2026-07-15 12:00:00'),
+ (1007,'789','10',2,'2026-07-15 12:10:00'),
+ (1008,'789','10',1,'2026-07-15 12:20:00')");
+$notBefore=strtotime('2026-07-15 10:59:00 UTC');$at=strtotime('2026-07-15 11:00:00 UTC');
+$before=$repo->lookup('98615635',['123','456'],['not_before_unix'=>$notBefore,'cutoff_unix'=>$at+1799]);
+same($before[0]['membership_receipts'],[['kind'=>'subscription','source_record_id'=>'1001','state'=>'subscribed','occurred_at_unix'=>$at]],'1799 keeps exact subscription without retention');
+$mature=$repo->lookup('98615635',['123','456'],['not_before_unix'=>$notBefore,'cutoff_unix'=>$at+1800]);
+same($mature[0]['membership_receipts'][1],['kind'=>'retention_30m','source_record_id'=>'1002','subscription_source_record_id'=>'1001','state'=>'not_retained','occurred_at_unix'=>$at+1800,'minimum_age_seconds'=>1800],'leave before 1800 is exact not-retained receipt');
+same($mature[1]['membership_receipts'][1]['state'],'retained','absence in complete exact period at 1800 is retained');
+same(count($mature[1]['membership_receipts']),2,'duplicate join does not invent a rejoin period');
+same(count($mature[0]['membership_receipts']),2,'wrong-source membership row excluded');
+$rejoined=$repo->lookup('98615635',['789'],['not_before_unix'=>$notBefore,'cutoff_unix'=>$at+3000]);
+same(array_column($rejoined[0]['membership_receipts'],'state'),['subscribed','not_retained','subscribed','retained'],'leave then join creates a distinct second period');
+$q=$p->prepare('INSERT INTO max_membership_events VALUES(?,?,?,?,?)');
+for($id=1100;$id<1121;$id++)$q->execute([(string)$id,'404','10',1,'2026-07-15 12:10:00']);
+rejects(fn()=>$repo->lookup('98615635',['404'],['not_before_unix'=>$notBefore,'cutoff_unix'=>$at+1800]),'oversized exact history fails closed instead of looking empty');
+$dynamicNow=time();$dynamicAt=(new DateTimeImmutable('@'.($dynamicNow-1800)))->setTimezone(new DateTimeZone('Europe/London'))->format('Y-m-d H:i:s');
+$p->prepare('INSERT INTO max_membership_events VALUES(?,?,?,?,?)')->execute(['2001','123','10',1,$dynamicAt]);
 // Native MySQL JSON predicates must find a text/contact after arbitrary callback volume.
 $p->prepare('INSERT INTO messages VALUES(10,1,\'max\',\'inbound\',\'customer\',?,?)')->execute(['2026-10-15 10:00:04','{bad']);
 $p->exec('DELETE FROM messages WHERE id=7 OR id=9');$q=$p->prepare('INSERT INTO messages VALUES(?,1,\'max\',\'inbound\',\'customer\',?,?)');
@@ -83,5 +111,8 @@ same((int)$p->query("SELECT COUNT(*) FROM max_channel_conversion_outbox WHERE co
 same((int)$second->query('SELECT COUNT(*) FROM max_channel_conversion_outbox WHERE conversation_id=7')->fetchColumn(),0,'caller rollback removes conversion');same((int)$second->query('SELECT COUNT(*) FROM conversation_events WHERE conversation_id=7')->fetchColumn(),0,'caller rollback removes waiting event and marker');same($second->query('SELECT status FROM conversations WHERE id=7')->fetchColumn(),'ai','caller rollback restores conversation state');
 // Reapplying only this uninstalled test migration retains the operator's mode.
 $p->exec("UPDATE max_channel_attribution_settings SET mode='collect'");$p->exec(file_get_contents(dirname(__DIR__).'/migrations/037_max_channel_conversion_outbox.sql'));same($p->query('SELECT mode FROM max_channel_attribution_settings')->fetchColumn(),'collect','migration does not overwrite mode');
+$membershipActivation=(string)$p->query("SELECT membership_receipts_activated_at_unix FROM max_channel_attribution_settings WHERE project_key='anytour'")->fetchColumn();
+$p->exec(file_get_contents(dirname(__DIR__).'/migrations/068_max_membership_receipt_bridge.sql'));
+same((string)$p->query("SELECT membership_receipts_activated_at_unix FROM max_channel_attribution_settings WHERE project_key='anytour'")->fetchColumn(),$membershipActivation,'membership migration is idempotent and preserves prospective fence');
 echo 'PASS '.$checks." native MySQL tracker/queue checks\n";
 

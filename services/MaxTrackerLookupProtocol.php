@@ -18,10 +18,11 @@ final class MaxTrackerLookupProtocol
         return base64_encode($signature);
     }
 
-    public static function body(string $counterId, array $userIds, int $now, ?string $nonce = null): string
+    public static function body(string $counterId, array $userIds, int $now, ?string $nonce = null, ?array $membership = null): string
     {
         $data = ['version'=>1,'counter_id'=>$counterId,'user_ids'=>array_values($userIds),
             'issued_at'=>$now,'nonce'=>$nonce ?? bin2hex(random_bytes(16))];
+        if ($membership !== null) $data['membership']=$membership;
         self::validate($data, $now, $counterId);
         return json_encode($data, JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES);
     }
@@ -52,6 +53,16 @@ final class MaxTrackerLookupProtocol
         foreach ($data['user_ids'] as $id) {
             if (!self::id($id) || isset($seen[$id])) throw new InvalidArgumentException('lookup_invalid_users');
             $seen[$id]=true;
+        }
+        if (array_key_exists('membership',$data)) {
+            $membership=$data['membership'];
+            if (!is_array($membership) || array_keys($membership)!==['not_before_unix','cutoff_unix']
+                || !is_int($membership['not_before_unix']) || !is_int($membership['cutoff_unix'])
+                || $membership['not_before_unix']<946684800
+                || $membership['not_before_unix']>$membership['cutoff_unix']
+                || abs($now-$membership['cutoff_unix'])>90) {
+                throw new InvalidArgumentException('lookup_invalid_membership_window');
+            }
         }
     }
 

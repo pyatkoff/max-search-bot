@@ -23,9 +23,10 @@ final class MaxTrackerLookupRepository
         return new self($pdo);
     }
 
-    public function lookup(string $counterId, array $userIds): array
+    public function lookup(string $counterId, array $userIds, ?array $membership = null): array
     {
-        MaxTrackerLookupProtocol::body($counterId,$userIds,1,str_repeat('0',32));
+        $validationNow=$membership['cutoff_unix']??1;
+        MaxTrackerLookupProtocol::body($counterId,$userIds,$validationNow,str_repeat('0',32),$membership);
         if ($this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)!=='mysql' || $this->pdo->inTransaction()) throw new RuntimeException('tracker_readonly_required');
         $this->pdo->exec('SET TRANSACTION READ ONLY');
         $this->pdo->beginTransaction();
@@ -48,7 +49,65 @@ final class MaxTrackerLookupRepository
                 try { $observed=MaxSubscriptionAttributionPolicy::eventTimeUnix((string)$r['UF_DATE'],new DateTimeZone('Europe/London')); } catch (InvalidArgumentException $ignored) {}
                 $found[]=['external_user_id'=>$userId,'found'=>true,'client_id'=>$cid,'record_id'=>$record,'observed_at_unix'=>$observed];
             }
+            if ($membership !== null) {
+                $receipts=$this->membershipReceipts($counterId,$userIds,$membership);
+                foreach ($found as &$row) $row['membership_receipts']=$receipts[$row['external_user_id']]??[];
+                unset($row);
+            }
             return $found;
         } finally { if($this->pdo->inTransaction())$this->pdo->rollBack(); }
+    }
+
+    /** Exact per-chat history after the caller's prospective fence; current state is never backdated. */
+    private function membershipReceipts(string $counterId,array $userIds,array $window): array
+    {
+        $table=(string)$this->pdo->query('SELECT TABLE_NAME FROM b_hlblock_entity WHERE ID=10')->fetchColumn();
+        if(!preg_match('/\A[a-z0-9_]{1,64}\z/D',$table))throw new RuntimeException('tracker_membership_unavailable');
+        $sql='SELECT h.ID,h.UF_CHAT_ID,h.UF_SOURCE,h.UF_TYPE,h.UF_DATE FROM `'.$table.'` h'
+            .' WHERE h.UF_CHAT_ID=? AND h.UF_TYPE IN (1,2) AND h.UF_DATE>=? AND h.UF_DATE<=?'
+            .' AND EXISTS (SELECT 1 FROM b_iblock_element_property ep JOIN b_iblock_property p ON p.ID=ep.IBLOCK_PROPERTY_ID'
+            ." WHERE p.IBLOCK_ID=8 AND p.CODE='YA_METRIK_ID' AND ep.IBLOCK_ELEMENT_ID=h.UF_SOURCE AND ep.VALUE=?)"
+            .' ORDER BY h.UF_DATE,h.ID LIMIT 21';
+        $q=$this->pdo->prepare($sql);$out=[];
+        $zone=new DateTimeZone('Europe/London');
+        $from=(new DateTimeImmutable('@'.(int)$window['not_before_unix']))->setTimezone($zone)->format('Y-m-d H:i:s');
+        $to=(new DateTimeImmutable('@'.(int)$window['cutoff_unix']))->setTimezone($zone)->format('Y-m-d H:i:s');
+        $budget=100;
+        foreach($userIds as$userId){
+            $q->execute([$userId,$from,$to,$counterId]);$rows=$q->fetchAll(PDO::FETCH_ASSOC);
+            if(count($rows)>20)throw new RuntimeException('tracker_membership_window_too_large');
+            $periods=[];$open=null;
+            foreach($rows as$row){
+                $record=(string)$row['ID'];$type=(string)$row['UF_TYPE'];
+                if(!MaxTrackerLookupProtocol::id($record)||!MaxTrackerLookupProtocol::id((string)$row['UF_CHAT_ID'])
+                    ||!in_array($type,['1','2'],true))throw new RuntimeException('tracker_invalid_membership_record');
+                try{$at=MaxSubscriptionAttributionPolicy::eventTimeUnix((string)$row['UF_DATE'],$zone);}
+                catch(InvalidArgumentException $ignored){continue;}
+                if($at<(int)$window['not_before_unix']||$at>(int)$window['cutoff_unix'])continue;
+                if($type==='1'){
+                    // Repeated user_added while the same period is still open
+                    // is another observation of that state, not a rejoin.
+                    if($open!==null&&$periods[$open]['left']===null)continue;
+                    $periods[]=['record_id'=>$record,'at'=>$at,'left'=>null];$open=count($periods)-1;
+                }elseif($open!==null&&$periods[$open]['left']===null){
+                    $periods[$open]['left']=['record_id'=>$record,'at'=>$at];$open=null;
+                }
+            }
+            $receipts=[];
+            foreach($periods as$period){
+                $receipts[]=['kind'=>'subscription','source_record_id'=>$period['record_id'],
+                    'state'=>'subscribed','occurred_at_unix'=>$period['at']];
+                $check=$period['at']+1800;
+                if($check>(int)$window['cutoff_unix'])continue;
+                $left=$period['left'];$notRetained=$left!==null&&$left['at']<=$check;
+                $receipts[]=['kind'=>'retention_30m','source_record_id'=>$notRetained?$left['record_id']:$period['record_id'],
+                    'subscription_source_record_id'=>$period['record_id'],'state'=>$notRetained?'not_retained':'retained',
+                    'occurred_at_unix'=>$check,'minimum_age_seconds'=>1800];
+            }
+            if(count($receipts)>$budget)throw new RuntimeException('tracker_membership_response_too_large');
+            $budget-=count($receipts);
+            $out[$userId]=$receipts;
+        }
+        return $out;
     }
 }

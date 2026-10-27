@@ -97,6 +97,38 @@ newer IDs and wrong counters cannot replace it. A missing identity retries later
 The first successful resolution freezes ClientID and tracker record for the event.
 Tracker observation time is optional metadata and never replaces event time.
 
+### Prospective membership receipts
+
+Migration `068_max_membership_receipt_bridge.sql` freezes one installation-time
+boundary and performs no backfill.  After that boundary, the same signed lookup
+may request the exact MAX membership history for the already selected users and
+counter.  The tracker reads the existing HL10 history by exact chat and source;
+type1 opens a subscription period and type2 closes the currently open period.
+The source's timezone-free `UF_DATE` is interpreted with the established
+`Europe/London` DST contract.  Current membership state, the legacy export flag
+and the time a Yandex goal was exported are not substituted for history.
+
+The lookup returns at most20 receipts per user and100 per response.  At1799
+seconds it can return only the subscription.  At1800 seconds, a complete exact
+history window returns `retained` unless a matching leave was recorded by the
+check instant; an earlier leave returns `not_retained`.  Wrong-counter rows,
+oversized histories and ambiguous clocks fail closed.  Rejoins create distinct
+periods.  The query remains SELECT-only and rolls back its read-only transaction.
+
+`MaxMembershipReceiptJournal` binds those receipts to an existing non-test
+AnyTour MAX conversation only when external user and negative chat ID match.  It
+writes the two versioned event types `channel_subscription_observed` and
+`channel_retention_30m_observed` into the existing `conversation_events` journal.
+If the same lookup batch points one person at multiple dialogue episodes, no
+episode is guessed and the receipt remains unassigned.
+The journal persistence time is the receipt's recorded time; normal journal
+intake supplies its later first-observed availability.  Exact repeats are
+idempotent, while conflicting later evidence is preserved as another receipt and
+never overwrites the first.  The existing worker performs one bounded follow-up
+for a matured admitted period; there is no new queue, worker, cron, API endpoint
+or conversion goal.  Observer failure cannot manufacture a membership fact or
+cause a conversion POST replay.
+
 ## Tracker authentication and release
 
 The lookup is a separate endpoint at

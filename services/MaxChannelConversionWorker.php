@@ -4,13 +4,15 @@ require_once __DIR__.'/MaxChannelConversionOutbox.php';
 require_once __DIR__.'/MaxTrackerLookupClient.php';
 require_once __DIR__.'/MetrikaOfflineClient.php';
 require_once __DIR__.'/TelegramDialogueConversions.php';
+require_once __DIR__.'/MaxMembershipReceiptJournal.php';
 
 /** Bounded background work. All outputs are aggregate counts, never identities. */
 final class MaxChannelConversionWorker
 {
     public static function tick(?PDO $pdo=null,$lookup=null,$api=null,?int $now=null,?callable $collector=null): array
     {
-        $s=MaxChannelConversionOutbox::settings($pdo);$result=['mode'=>$s['mode']??'off','collected'=>0,'resolved'=>0,'accepted'=>0,'processed'=>0,'unknown'=>0,'errors'=>0];
+        $s=MaxChannelConversionOutbox::settings($pdo);$result=['mode'=>$s['mode']??'off','collected'=>0,'resolved'=>0,'accepted'=>0,'processed'=>0,'unknown'=>0,'errors'=>0,
+            'membership'=>['inserted'=>0,'unchanged'=>0,'conflicts'=>0,'errors'=>0]];
         $tg=TelegramDialogueConversions::settings($pdo);$tgActive=$tg&&$tg['telegram_mode']!=='off';
         $result['telegram']=['mode'=>$tg['telegram_mode']??'off','collected'=>0,'resolved'=>0,'accepted'=>0,'processed'=>0,'unknown'=>0,'errors'=>0];
         $maxActive=$s&&$s['mode']!=='off';
@@ -20,10 +22,23 @@ final class MaxChannelConversionWorker
         $shared=$maxActive&&MaxChannelConversionOutbox::sharedGoalsActive($s);
         if($collector&&$shared)$result['collected']=$repo->collect($s,$collector);
         $lookup=$lookup??new MaxTrackerLookupClient();
-        $pending=$shared?$repo->pending($now):[];$users=array_values(array_unique(array_column($pending,'external_user_id')));
+        $pending=$shared?$repo->pending($now):[];
+        $bindingMap=[];foreach($pending as$row){$user=(string)$row['external_user_id'];$bindingMap['u:'.$user]=['external_user_id'=>$user,'conversation_ids'=>array_merge($bindingMap['u:'.$user]['conversation_ids']??[],[(string)$row['conversation_id']])];}
+        $activation=(int)($s['membership_receipts_activated_at_unix']??0);
+        if($shared&&$activation>=946684800){
+            $remaining=max(0,25-count($bindingMap));
+            foreach($repo->membershipCandidates($s,$now,$remaining)as$row){$user=(string)$row['external_user_id'];$bindingMap['u:'.$user]=['external_user_id'=>$user,'conversation_ids'=>array_merge($bindingMap['u:'.$user]['conversation_ids']??[],[(string)$row['conversation_id']])];}
+        }
+        $bindings=array_values($bindingMap);$users=array_slice(array_column($bindings,'external_user_id'),0,25);
         if($users){
             try{
-                $identities=$lookup->lookup($s['counter_id'],$users);
+                $membership=[];
+                if($activation>=946684800&&method_exists($lookup,'lookupWithMembership')){
+                    $response=$lookup->lookupWithMembership($s['counter_id'],$users,$activation,$now);
+                    $identities=$response['identities'];$membership=$response['membership'];
+                    try{$result['membership']=(new MaxMembershipReceiptJournal($pdo))->record($bindings,$membership,$now)+['errors'=>0];}
+                    catch(Throwable $ignored){$result['membership']['errors']++;}
+                }else$identities=$lookup->lookup($s['counter_id'],$users);
                 foreach($pending as $row){$record=$identities[$row['external_user_id']]??null;$repo->resolve((string)$row['id'],$record,$now);if($record)$result['resolved']++;}
             }catch(Throwable $ignored){$result['errors']++;}
         }

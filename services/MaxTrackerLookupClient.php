@@ -7,7 +7,17 @@ final class MaxTrackerLookupClient
 {
     public function lookup(string $counterId,array $users): array
     {
-        $body=MaxTrackerLookupProtocol::body($counterId,$users,time());
+        return $this->request($counterId,$users,null)['identities'];
+    }
+
+    public function lookupWithMembership(string $counterId,array $users,int $notBefore,int $cutoff): array
+    {
+        return $this->request($counterId,$users,['not_before_unix'=>$notBefore,'cutoff_unix'=>$cutoff]);
+    }
+
+    private function request(string $counterId,array $users,?array $membership): array
+    {
+        $body=MaxTrackerLookupProtocol::body($counterId,$users,time(),null,$membership);
         $signature=MaxTrackerLookupProtocol::signature($body,MaxTrackerLookupConfig::privateKey());
         $response=''; $tooLarge=false;
         $ch=curl_init(MaxTrackerLookupConfig::endpoint());
@@ -23,7 +33,8 @@ final class MaxTrackerLookupClient
         $ok=curl_exec($ch);$errno=curl_errno($ch);$status=(int)curl_getinfo($ch,CURLINFO_HTTP_CODE);curl_close($ch);
         if($ok===false||$errno!==0||$status!==200||$tooLarge)throw new RuntimeException('tracker_transport_failed');
         $d=json_decode($response,true,16,JSON_THROW_ON_ERROR|JSON_BIGINT_AS_STRING);
-        return self::validateResponse($d,$counterId,$users);
+        return ['identities'=>self::validateResponse($d,$counterId,$users),
+            'membership'=>self::validateMembership($d,$users,$membership!==null)];
     }
 
     public static function validateResponse($d,string $counterId,array $users): array
@@ -39,6 +50,35 @@ final class MaxTrackerLookupClient
             if($row['found']===true&&($row['observed_at_unix']??null)!==null&&!is_int($row['observed_at_unix']))throw new RuntimeException('tracker_response_invalid');
             $out[$id]=$row['found']?['external_user_id'=>$id,'client_id'=>$row['client_id'],'record_id'=>$row['record_id'],'observed_at_unix'=>$row['observed_at_unix']??null]:null;
         }
+        return $out;
+    }
+
+    private static function validateMembership($d,array $users,bool $required): array
+    {
+        if(!$required)return [];
+        $wanted=array_fill_keys($users,true);$out=[];$total=0;
+        foreach($d['users']as$row){
+            $id=$row['external_user_id']??null;$receipts=$row['membership_receipts']??null;
+            if(!is_string($id)||!isset($wanted[$id])||!is_array($receipts)||!array_is_list($receipts)||count($receipts)>20)
+                throw new RuntimeException('tracker_response_invalid');
+            $clean=[];
+            foreach($receipts as$receipt){
+                if(!is_array($receipt))throw new RuntimeException('tracker_response_invalid');
+                $kind=$receipt['kind']??null;$state=$receipt['state']??null;$source=$receipt['source_record_id']??null;
+                $valid=MaxTrackerLookupProtocol::id($source)&&is_int($receipt['occurred_at_unix']??null)
+                    &&($receipt['occurred_at_unix']??0)>=946684800;
+                if($kind==='subscription')$valid=$valid&&$state==='subscribed'&&array_keys($receipt)===['kind','source_record_id','state','occurred_at_unix'];
+                elseif($kind==='retention_30m')$valid=$valid&&in_array($state,['retained','not_retained'],true)
+                    &&MaxTrackerLookupProtocol::id($receipt['subscription_source_record_id']??null)
+                    &&($receipt['minimum_age_seconds']??null)===1800
+                    &&array_keys($receipt)===['kind','source_record_id','subscription_source_record_id','state','occurred_at_unix','minimum_age_seconds'];
+                else$valid=false;
+                if(!$valid)throw new RuntimeException('tracker_response_invalid');
+                $clean[]=$receipt;$total++;
+            }
+            $out[$id]=$clean;
+        }
+        if($total>100)throw new RuntimeException('tracker_response_invalid');
         return $out;
     }
 }

@@ -38,13 +38,13 @@ final class MaxChannelConversionOutbox
         try{
             $connection=$pdo??ConversationDb::connection();
             try{
-                $q=$connection->prepare('SELECT project_key,mode,counter_id,activated_at_unix,message_cursor,goal_set,shared_goals_activated_at_unix,shared_goals_event_id,request_event_cursor FROM max_channel_attribution_settings WHERE project_key=?');
+                $q=$connection->prepare('SELECT project_key,mode,counter_id,activated_at_unix,message_cursor,goal_set,shared_goals_activated_at_unix,shared_goals_event_id,request_event_cursor,membership_receipts_activated_at_unix FROM max_channel_attribution_settings WHERE project_key=?');
                 $q->execute([ProjectConfig::projectId()]);
             }catch(Throwable $unmigrated){
                 // Source can arrive before migration 038. Preserve the managed
                 // scope with collection/POST held, rather than falling into the
                 // legacy YCLID queue for the same channel event. No DDL here.
-                $q=$connection->prepare("SELECT project_key,mode,counter_id,activated_at_unix,message_cursor,'channel' AS goal_set,NULL AS shared_goals_activated_at_unix,0 AS shared_goals_event_id,0 AS request_event_cursor FROM max_channel_attribution_settings WHERE project_key=?");
+                $q=$connection->prepare("SELECT project_key,mode,counter_id,activated_at_unix,message_cursor,'channel' AS goal_set,NULL AS shared_goals_activated_at_unix,0 AS shared_goals_event_id,0 AS request_event_cursor,NULL AS membership_receipts_activated_at_unix FROM max_channel_attribution_settings WHERE project_key=?");
                 $q->execute([ProjectConfig::projectId()]);
             }
             $s=$q->fetch(PDO::FETCH_ASSOC);
@@ -190,12 +190,39 @@ final class MaxChannelConversionOutbox
         $q->execute([$now]);return $q->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    /** One follow-up lookup when an exact prospective subscription reaches 30 minutes. */
+    public function membershipCandidates(array $settings,int $now,int $limit=25): array
+    {
+        $activated=(int)($settings['membership_receipts_activated_at_unix']??0);
+        if($activated<946684800||$limit<1)return[];
+        $mysql=$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
+        $chat=$mysql?"CONCAT('-',cc.external_user_id)":"'-'||cc.external_user_id";
+        $jsonId=$mysql?"JSON_UNQUOTE(JSON_EXTRACT(r.payload_json,'$.subscription_event_id'))=CAST(e.id AS CHAR)":"json_extract(r.payload_json,'$.subscription_event_id')=CAST(e.id AS TEXT)";
+        $q=$this->pdo->prepare("SELECT e.id,e.conversation_id,e.payload_json,cc.external_user_id FROM conversation_events e JOIN conversations c ON c.id=e.conversation_id JOIN customer_channels cc ON cc.id=c.customer_channel_id AND cc.project_key=c.project_key AND cc.channel=c.channel WHERE e.event_type='channel_subscription_observed' AND e.actor_type='system' AND e.actor_id LIKE 'max-membership:%' AND e.created_at>=? AND c.project_key='anytour' AND c.channel='max' AND c.is_test=0 AND c.external_chat_id=".$chat." AND NOT EXISTS (SELECT 1 FROM conversation_events r WHERE r.event_type='channel_retention_30m_observed' AND r.actor_type='system' AND ".$jsonId.") ORDER BY e.id LIMIT 100");
+        $q->execute([gmdate('Y-m-d H:i:s',$activated)]);$subscriptions=$q->fetchAll(PDO::FETCH_ASSOC);
+        if(!$subscriptions)return[];
+        $out=[];$users=[];
+        foreach($subscriptions as$row){
+            $payload=json_decode((string)$row['payload_json'],true);
+            if(!is_array($payload)||($payload['version']??null)!==1||($payload['origin']??null)!=='existing_membership_producer'
+                ||($payload['source']??null)!=='max_membership_history'||($payload['identity_scope']??null)!=='same_chat_and_source'
+                ||($payload['state']??null)!=='subscribed'||!is_int($payload['occurred_at_unix']??null)
+                ||$payload['occurred_at_unix']+1800>$now)continue;
+            $user=(string)$row['external_user_id'];if(!self::decimal($user)||isset($users[$user]))continue;
+            $users[$user]=true;$out[]=['conversation_id'=>(string)$row['conversation_id'],'external_user_id'=>$user];
+            if(count($out)>=min(25,$limit))break;
+        }
+        return$out;
+    }
+
     public function resolve(string $id,?array $record,int $now): void
     {
         if(!$record){$q=$this->pdo->prepare("UPDATE max_channel_conversion_outbox SET next_attempt_unix=?,last_error='identity_not_found' WHERE id=? AND state='pending'".$this->platformWhere('max'));$q->execute([$now+900,$id]);return;}
         $q=$this->pdo->prepare("UPDATE max_channel_conversion_outbox SET client_id=?,tracker_record_id=?,tracker_observed_unix=?,state='ready',last_error='',next_attempt_unix=0 WHERE id=? AND state='pending' AND external_user_id=?".$this->platformWhere('max'));
         $q->execute([$record['client_id'],$record['record_id'],$record['observed_at_unix']??null,$id,$record['external_user_id']]);
     }
+
+    private static function decimal($value): bool{return is_string($value)&&preg_match('/\A[1-9][0-9]{0,19}\z/D',$value)===1;}
 
     public function rows(string $state,int $now,int $limit,string $platform='max'): array
     {
