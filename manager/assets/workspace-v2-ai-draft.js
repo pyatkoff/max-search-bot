@@ -242,6 +242,8 @@
   function setBusy(value){
     panel.setAttribute('aria-busy',String(value));
     insert.disabled=value||!view?.result?.should_draft||!canCompose();retry.disabled=value;
+    retry.hidden=view?.retryAction==='validate';
+    insert.textContent=view?.retryAction==='validate'?'Повторить вставку':'Добавить в ответ';
     const disabled=!canAnalyze()||value;if(button.disabled!==disabled)button.disabled=disabled;
     renderButton();
   }
@@ -305,6 +307,7 @@
     if(['context_changed','context_stale','stale_context','stale_revision','revision_changed'].includes(result?.error)){stale();return}
     if(action==='prepared'){
       if(result?.http_status===403||result?.http_status===404){resetSession();return}
+      if(view.retryAction==='prepared'){status.textContent='Не удалось проверить AI-подсказку. Текст и файлы сохранены. Повторите проверку.';return}
       status.textContent='Не удалось проверить готовый ответ. Ваш текст и вложения сохранены. Можно сформировать ответ заново.';return;
     }
     if(result?.error==='provider_not_configured'){status.textContent='AI сейчас недоступен. Ваш текст и вложения сохранены.';return}
@@ -322,10 +325,11 @@
   }
   async function loadProposal(action,generateIfNeeded=false){
     if(!canAnalyze()||flight)return false;
+    const recovery=action==='prepared'&&view?.retryAction==='prepared';
     abortStatusRead();dismissNotice();
     const saved=snapshot(),savedSelection=selection();abortFlight();
-    view={snapshot:saved,selection:savedSelection,result:null,stale:false};
-    panel.hidden=false;button.setAttribute('aria-expanded','true');clearBody();retry.textContent='Повторить подготовку';status.textContent='Читаем переписку и фото, готовим ответ…';
+    view={snapshot:saved,selection:savedSelection,result:null,stale:false,...(recovery?{retryAction:'prepared'}:{})};
+    panel.hidden=false;button.setAttribute('aria-expanded','true');clearBody();retry.textContent=recovery?'Повторить проверку':'Повторить подготовку';status.textContent=recovery?'Проверяем AI-подсказку…':'Читаем переписку и фото, готовим ответ…';
     const current={ticket:sequence,action,controller:typeof AbortController==='function'?new AbortController():null};flight=current;setBusy(true);positionPanel();panel.focus({preventScroll:true});
     const isCurrent=()=>flight===current&&current.ticket===sequence&&!!view&&currentSnapshot(saved);
     try{
@@ -341,12 +345,24 @@
         result=await request(action);
         if(!isCurrent()){sync();return false}
       }
-      if(action==='prepared'&&result?.ok===true&&result.prepared===false){clearReady();status.textContent='Готового ответа пока нет. Можно сформировать ответ заново.';return false}
+      if(action==='prepared'&&result?.ok===true&&result.prepared===false){
+        clearReady();status.textContent=recovery?'Готовая подсказка больше недоступна. Можно подготовить новый ответ.':'Готового ответа пока нет. Можно сформировать ответ заново.';
+        if(recovery){view.retryAction='generate';retry.textContent='Подготовить новый ответ'}return false;
+      }
       if(!validResult(result,saved)||action==='prepared'&&result.prepared!==true){if(result?.ok&&result.latest_message_id!==saved.latest)stale();else failure(result,action);return false}
       // Both sources carry server-owned provenance through fresh validation.
-      view.result=result;renderResult(view.result);rememberReady(view.result,saved,action==='prepared'?'prepared':'generated');return true;
+      delete view.retryAction;view.result=result;renderResult(view.result);rememberReady(view.result,saved,action==='prepared'?'prepared':'generated');return true;
     }catch(error){if(isCurrent())failure(null,action);else sync();return false}
     finally{if(flight===current){flight=null;setBusy(false);if(watch)scheduleStatus(watch)}}
+  }
+  function showInsertionIssue(saved,message,result=null,changed=false){
+    if(!visible()||!canCompose()||!sameContext(saved.context)||result&&!currentSnapshot(saved))return false;
+    view={snapshot:saved,selection:selection(),result,stale:changed,retryAction:result?'validate':'prepared'};
+    if(result)renderResult(result);else clearBody();
+    status.textContent=message;retry.textContent='Повторить проверку';panel.hidden=false;button.setAttribute('aria-expanded','true');
+    // Explicit insertion errors must be visible; keep the editor's focus and
+    // selection intact, including the on-screen keyboard and any attached File.
+    setBusy(!!flight);positionPanel();return true;
   }
   async function insertDraft({emptyOnly=false}={}){
     sync();if(!canCompose()||!view?.result?.should_draft||flight||view.stale||!currentSnapshot(view.snapshot))return false;
@@ -360,7 +376,10 @@
       if(!isCurrent()){sync();return false}
       if(checked?.ok!==true||checked.revision!==result.revision||checked.latest_message_id!==saved.latest){
         if(checked?.http_status===403||checked?.http_status===404){resetSession();return false}
-        stale();return false;
+        view.insertionIssue=true;
+        if(checked?.ok===true||['context_changed','context_stale','stale_context','stale_revision','revision_changed'].includes(checked?.error))stale();
+        else status.textContent='Не удалось проверить контекст. Текст и файлы сохранены. Повторите вставку.';
+        return false;
       }
       if(result.prepared===true&&result.expires_at&&timeValue(result.expires_at)<=Date.now()){stale();return false}
       if(emptyOnly&&($('replyText').value!==''||!visible()||result.expires&&result.expires<=Date.now()))return false;
@@ -369,17 +388,20 @@
       const savedSelection=selection();
       const validatedId=draftId&&checked.draft_id===draftId?draftId:null;
       if(!conversation().insertAiDraft(result.draft,saved.context,validatedId)){
+        view.insertionIssue=true;
         status.textContent='Не удалось добавить черновик. Проверьте текст и доступность ответа.';return false;
       }
       close(false);restoreSelection(emptyOnly?{...savedSelection,start:result.draft.length,end:result.draft.length,direction:'none'}:savedSelection);return true;
-    }catch(error){if(isCurrent())status.textContent='Не удалось проверить контекст. Черновик не добавлен. Повторите проверку по кнопке.';else sync();return false}
+    }catch(error){if(isCurrent()){view.insertionIssue=true;status.textContent='Не удалось проверить контекст. Черновик не добавлен. Повторите вставку.'}else sync();return false}
     finally{if(flight===current){flight=null;setBusy(false)}}
   }
   async function insertSuggestion(){
     const sourceView=view;
     const added=await insertDraft({emptyOnly:true});
     if(added&&sameContext(sourceView?.snapshot.context))dismissNotice();
-    else if(panel.hidden&&view===sourceView)resetSession({keepReady:true});
+    else if(panel.hidden&&view===sourceView){
+      if(!sourceView.insertionIssue||!showInsertionIssue(sourceView.snapshot,status.textContent,sourceView.result,sourceView.stale))resetSession({keepReady:true});
+    }
     return added;
   }
   async function acceptSuggestion(){
@@ -397,10 +419,13 @@
       // fresh validation and composer insertion path as the full preview.
       const result=await W.request('ai-draft.php','prepared',{conversation_id:saved.context.conversationId,latest_message_id:saved.latest},{signal:current.controller?.signal,isCurrent});
       if(!isCurrent())return false;
-      if(!validResult(result,saved)||result.prepared!==true||result.revision!==candidate.revision||result.draft!==candidate.draft||result.prepared_at!==candidate.prepared_at){clearReady();return false}
+      if(result?.http_status===403||result?.http_status===404){resetSession();return false}
+      if(!validResult(result,saved)||result.prepared!==true||result.revision!==candidate.revision||result.draft!==candidate.draft||result.prepared_at!==candidate.prepared_at){
+        clearReady();showInsertionIssue(saved,result?.ok===true?'AI-подсказка изменилась. Проверьте актуальный вариант.':'Не удалось проверить AI-подсказку. Текст и файлы сохранены. Повторите проверку.');return false;
+      }
       if($('replyText').value!=='')return false;
       view={snapshot:saved,selection:selection(),result,stale:false};
-    }catch(error){if(isCurrent())clearReady();return false}
+    }catch(error){if(isCurrent()){clearReady();showInsertionIssue(saved,'Не удалось проверить AI-подсказку. Текст и файлы сохранены. Повторите проверку.')}return false}
     finally{if(flight===current){flight=null;setBusy(false);if(watch)scheduleStatus(watch)}}
     return insertSuggestion();
   }
@@ -433,7 +458,7 @@
       const suggestionHead=document.createElement('div');suggestionHead.className='aiSuggestionHead';suggestionLabel=document.createElement('strong');suggestionHead.appendChild(suggestionLabel);
       const hideSuggestion=document.createElement('button');hideSuggestion.type='button';hideSuggestion.className='aiSuggestionDismiss';hideSuggestion.textContent='×';hideSuggestion.setAttribute('aria-label','Скрыть AI-подсказку');hideSuggestion.addEventListener('click',dismissNotice);suggestionHead.appendChild(hideSuggestion);suggestion.appendChild(suggestionHead);
       suggestionText=document.createElement('p');suggestionText.className='aiSuggestionText';suggestion.appendChild(suggestionText);
-      const suggestionActions=document.createElement('div');suggestionActions.className='aiSuggestionActions';suggestionAccept=document.createElement('button');suggestionAccept.id='aiSuggestionAccept';suggestionAccept.type='button';suggestionAccept.textContent='Tab — вставить';suggestionAccept.addEventListener('click',()=>void acceptSuggestion());suggestionActions.appendChild(suggestionAccept);
+      const suggestionActions=document.createElement('div');suggestionActions.className='aiSuggestionActions';suggestionAccept=document.createElement('button');suggestionAccept.id='aiSuggestionAccept';suggestionAccept.type='button';suggestionAccept.textContent='Вставить в ответ';suggestionAccept.addEventListener('click',()=>void acceptSuggestion());suggestionActions.appendChild(suggestionAccept);
       const details=document.createElement('button');details.id='aiSuggestionDetails';details.type='button';details.textContent='Подробнее';details.addEventListener('click',openReady);suggestionActions.appendChild(details);suggestion.appendChild(suggestionActions);form.insertBefore(suggestion,form.querySelector('.composerSurface')||form.firstChild);
       reply.addEventListener('input',syncPreferences);
       reply.addEventListener('keydown',event=>{
@@ -448,7 +473,7 @@
       document.addEventListener('visibilitychange',()=>{if(!visible())stopWatching();else sync()});
     }
     bound=true;button.addEventListener('click',()=>{if(view&&!view.stale)close();else openReady()});dismiss.addEventListener('click',()=>close());
-    retry.addEventListener('click',()=>void loadProposal('generate'));insert.addEventListener('click',()=>void insertDraft());
+    retry.addEventListener('click',()=>void loadProposal(view?.retryAction==='prepared'?'prepared':'generate'));insert.addEventListener('click',()=>void insertDraft());
     panel.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();close()}});
     for(const event of ['input','select','keyup','pointerup'])reply.addEventListener(event,rememberSelection);
     window.addEventListener('pagehide',()=>{automaticAttempts.clear();resetSession()});

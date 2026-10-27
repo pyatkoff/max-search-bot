@@ -7,7 +7,7 @@ final class ManagerPushPresentation
 {
     public const PREVIEW_LENGTH = 180;
 
-    public static function conversation(array $conversation, string $notice, ?array $incoming = null): array
+    public static function conversation(array $conversation, string $notice, ?array $incoming = null, ?array $context = null): array
     {
         $name = self::line((string)($conversation['display_name'] ?? ''), 80);
         if ($name === '') $name = 'Новый диалог';
@@ -16,13 +16,35 @@ final class ManagerPushPresentation
         $project = self::line((string)($conversation['project_name'] ?? ''), 40);
         if ($project !== '' && strcasecmp($project, 'AnyTour') !== 0) $title .= ' · ' . $project;
 
-        $preview = $incoming === null ? '' : self::incomingPreview($incoming);
+        $preview = $incoming === null ? self::eventPreview($notice,$context) : self::incomingPreview($incoming);
         return [
             'title'=>$title,
             'body'=>$preview !== '' ? $preview : self::line($notice, 500),
             'conversationId'=>(int)($conversation['id'] ?? 0),
             'url'=>'./',
         ];
+    }
+
+    private static function eventPreview(string $notice, ?array $context): string
+    {
+        if (!in_array($notice,['Новая заявка ждёт менеджера','Обращение из поиска','Обращение по веб-подборке'],true)) return '';
+        $tour=$context['tour']??null;
+        if (is_array($tour)) {
+            $hotel=self::line((string)($tour['hotel']??''),80);
+            $date=(string)($tour['date']??'');
+            if ($hotel!==''&&preg_match('/\A(\d{4})-(\d{2})-(\d{2})\z/D',$date,$m)&&checkdate((int)$m[2],(int)$m[3],(int)$m[1])
+                &&($tour['nights']??0)>0&&($tour['adults']??0)>0&&($tour['children']??-1)>=0) {
+                $text=($tour['origin']==='search'?'Из поиска: ':'Из подборки: ').$hotel.' · '.$m[3].'.'.$m[2].'.'.$m[1]
+                    .' · '.$tour['nights'].' ноч. · '.$tour['adults'].' взр.'.($tour['children']>0?' + '.$tour['children'].' реб.':'');
+                return self::line($text,self::PREVIEW_LENGTH);
+            }
+        }
+        if ($notice==='Новая заявка ждёт менеджера') {
+            $message=$context['message']??null;
+            $preview=is_array($message)&&!preg_match('/\A\s*\//u',(string)($message['text']??''))?self::incomingPreview($message):'';
+            return $preview!==''?self::line('Просит менеджера · Последнее: '.$preview,self::PREVIEW_LENGTH):'Просит подключить менеджера';
+        }
+        return '';
     }
 
     private static function incomingPreview(array $incoming): string

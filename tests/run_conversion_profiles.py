@@ -138,7 +138,78 @@ BUDGET_UNIT_CASES = [
 ]
 
 
+# An action is an available context boundary, never customer dialogue evidence.
+CONFIRMATION_CONTEXT_CASES = [
+    ([('manager', 'text', 'Рассматриваете Rixos?'), ('customer', 'text', 'Да')], 'Rixos'),
+    ([('manager', 'text', 'Рассматриваете Rixos?'), ('customer', 'action', 'Нет'), ('customer', 'text', 'Да')], None),
+    ([('manager', 'text', 'Рассматриваете Rixos?'), ('customer', 'action', ''), ('customer', 'text', 'Да')], None),
+    ([('manager', 'text', 'Рассматриваете Rixos?'), ('customer', 'action', 'Да'), ('customer', 'text', 'Да')], None),
+    ([('manager', 'text', 'Рассматриваете Rixos?'), ('manager', 'action', 'Рассматриваете Mardan?'), ('customer', 'text', 'Да')], None),
+    ([('manager', 'text', 'Рассматриваете Rixos?'), ('other', 'action', 'event'), ('customer', 'text', 'Да')], None),
+    ([('manager', 'text', 'Рассматриваете Rixos?'), ('customer', 'action', 'Бюджет 200000 рублей. Оплатили тур у вас'), ('customer', 'text', 'Да')], None),
+    ([('manager', 'text', 'Рассматриваете Rixos?'), ('customer', 'action', 'Нет'), ('manager', 'text', 'Рассматриваете Mardan?'), ('customer', 'text', 'Да')], 'Mardan'),
+    ([('customer', 'action', 'Нет'), ('manager', 'text', 'Рассматриваете Rixos?'), ('customer', 'text', 'Да')], 'Rixos'),
+]
+
+
 class ProfileTests(unittest.TestCase):
+    def test_short_confirmation_preserves_nontext_context_barriers(self):
+        for turns, hotel in CONFIRMATION_CONTEXT_CASES:
+            with self.subTest(turns=turns):
+                messages = [message(text, speaker, i=i, kind=kind)
+                            for i, (speaker, kind, text) in enumerate(turns, 1)]
+                p = extract(*messages)
+                self.assertEqual(value(p, 'hotel_interest'), hotel)
+                self.assertIsNone(value(p, 'budget'))
+                self.assertFalse(p['export_allowed'])
+                action_ids = {m['id'] for m in messages if m['kind'] == 'action'}
+                self.assertFalse(action_ids.intersection(
+                    r['id'] for evidence in p['observation_input']['evidence'] for r in evidence['references']))
+                self.assertEqual(len(p['customer_requirements']),
+                                 sum(speaker == 'customer' and kind == 'text' for speaker, kind, _ in turns))
+                if hotel is None:
+                    self.assertNotIn('fields.hotel_interest', p['prediction_features']['facts'])
+                    self.assertFalse(p['fields']['hotel_interest']['usable_at_prediction'])
+                    self.assertEqual(p['fields']['hotel_interest']['references'], [])
+                    self.assertIsNone(p['current_stage']['value'])
+                else:
+                    question = [m['id'] for m in messages if m['speaker'] == 'manager' and m['kind'] == 'text'][-1]
+                    self.assertEqual([r['id'] for r in p['fields']['hotel_interest']['references']],
+                                     [question, messages[-1]['id']])
+                    self.assertTrue(p['fields']['hotel_interest']['usable_at_prediction'])
+
+    def test_confirmation_barrier_respects_availability_and_frozen_history(self):
+        question = message('Рассматриваете Rixos?', 'manager', i=1)
+        barrier = message('Нет', kind='action', i=2, available=LATER)
+        answer = message('Да', i=3)
+        document = case(question, barrier, answer)
+        early = tool.extract_case(document, CUTOFF)
+        frozen = json.dumps(early, sort_keys=True)
+        self.assertEqual(value(early, 'hotel_interest'), 'Rixos')
+        later_document = copy.deepcopy(document)
+        later_document['prediction_at'] = later_document['source_complete_through'] = LATER
+        later = tool.extract_case(later_document, LATER)
+        self.assertIsNone(value(later, 'hotel_interest'))
+        self.assertNotIn('fields.hotel_interest', later['prediction_features']['facts'])
+        self.assertEqual(json.dumps(early, sort_keys=True), frozen)
+        # An action occurring after an already-grounded answer cannot erase it.
+        future = message('Нет', kind='action', i=2, at=LATER)
+        self.assertEqual(value(extract(question, future, answer), 'hotel_interest'), 'Rixos')
+
+    def test_applied_wizard_fact_survives_action_confirmation_barrier(self):
+        question = message('Рассматриваете Rixos?', 'manager', i=1)
+        button = message('adults_2', kind='action', i=2)
+        answer = message('Да', i=3)
+        application = {'message_id': button['id'], 'field': 'adults', 'storage_value': '2',
+                       'receipt': message('', 'other', i=4)}
+        p = tool.extract_case(case(question, button, answer), CUTOFF, [application])
+        self.assertIsNone(value(p, 'hotel_interest'))
+        self.assertEqual(p['party']['adults']['value'], 2)
+        self.assertEqual(p['party']['adults']['basis'], 'canonical_wizard_application')
+        self.assertIn('party.adults', p['prediction_features']['facts'])
+        self.assertEqual(len(p['customer_requirements']), 1)
+        self.assertIsNone(p['current_stage']['value'])
+
     def test_current_clause_fact_scope(self):
         for text, expected in SCOPED_FACT_CASES:
             with self.subTest(text=text):
@@ -941,6 +1012,89 @@ def membership_journal_receipt(identifier, event_type, occurred, recorded, obser
 
 
 class JournalProfileTests(unittest.TestCase):
+    def context_cli(self, document):
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json') as handle:
+            json.dump(document, handle); handle.flush()
+            run = subprocess.run([sys.executable, str(ROOT/'tools/profile_conversion_journal.py'), handle.name],
+                                 text=True, capture_output=True)
+        self.assertEqual(run.returncode, 0, run.stderr)
+        cli = json.loads(run.stdout)
+        self.assertEqual(cli, journal.profile(document, cli['extracted_at']))
+        self.assertFalse(cli['export_allowed'])
+        self.assertEqual(cli['model_calls'], 0)
+        self.assertEqual(cli['extractor_sha256'], hashlib.sha256((ROOT/'tools/extract_conversion_profiles.py').read_bytes()).hexdigest())
+        return cli
+
+    def context_rows(self, turns):
+        rows = []
+        for i, (speaker, kind, text) in enumerate(turns, 1):
+            row = journal_row(str(i), text=text)
+            row['snapshot']['source_created_at_unix'] += i
+            row['snapshot']['payload'].update(sender_type=speaker,
+                direction='outbound' if speaker == 'manager' else 'inbound',
+                metadata_json=json.dumps({'type': 'message' if kind == 'text' else 'callback'}))
+            rows.append(row)
+        return rows
+
+    def test_nontext_confirmation_context_through_actual_journal_cli(self):
+        for turns, hotel in CONFIRMATION_CONTEXT_CASES:
+            with self.subTest(turns=turns):
+                rows = self.context_rows(turns)
+                result = self.context_cli(journal_document(*rows))['profiles'][0]
+                p = result['profile']
+                self.assertEqual(value(p, 'hotel_interest'), hotel)
+                actions = sum(kind == 'action' for _, kind, _ in turns)
+                self.assertEqual(result['coverage']['errors'], {'action_or_unknown_message_type': actions} if actions else {})
+                self.assertEqual(len(result['source_references']), len(rows))
+                self.assertEqual(len(p['customer_requirements']),
+                                 sum(s == 'customer' and k == 'text' for s, k, _ in turns))
+                self.assertIsNone(value(p, 'budget'))
+                if hotel is None:
+                    self.assertNotIn('fields.hotel_interest', p['prediction_features']['facts'])
+                    self.assertIsNone(p['current_stage']['value'])
+                else:
+                    question = [str(i) for i, (s, k, _) in enumerate(turns, 1) if s == 'manager' and k == 'text'][-1]
+                    self.assertEqual([r['id'] for r in p['fields']['hotel_interest']['references']],
+                                     ['journal:'+question, 'journal:'+str(len(turns))])
+
+    def test_wizard_application_keeps_own_fact_not_old_hotel_confirmation_cli(self):
+        turns = [('manager', 'text', 'Рассматриваете Rixos?'), ('customer', 'action', 'adults_2'), ('customer', 'text', 'Да')]
+        for storage, accepted in [('2', True), ('3', False)]:
+            with self.subTest(storage=storage):
+                rows = self.context_rows(turns)
+                receipt = wizard_receipt(rows[1], 'adults', storage)
+                receipt['snapshot']['source_created_at_unix'] = rows[1]['snapshot']['source_created_at_unix'] + 1
+                result = self.context_cli(journal_document(*rows, receipt))['profiles'][0]
+                p = result['profile']
+                self.assertIsNone(value(p, 'hotel_interest'))
+                self.assertEqual(result['coverage']['applied_wizard_fields'], int(accepted))
+                self.assertEqual(p['party']['adults']['value'], 2 if accepted else None)
+                self.assertEqual('party.adults' in p['prediction_features']['facts'], accepted)
+                self.assertEqual(len(p['customer_requirements']), 1)
+                self.assertIsNone(p['current_stage']['value'])
+
+    def test_later_available_barrier_creates_new_profile_without_mutating_frozen_cli(self):
+        rows = self.context_rows([('manager', 'text', 'Рассматриваете Rixos?'),
+                                  ('customer', 'action', 'Нет'), ('customer', 'text', 'Да')])
+        early_doc = journal_document(rows[0], rows[2])
+        early_doc['journal_cursor'] = early_doc['source_fence_journal_id'] = '3'
+        early = self.context_cli(early_doc)
+        frozen = json.dumps(early, sort_keys=True)
+        self.assertEqual(value(early['profiles'][0]['profile'], 'hotel_interest'), 'Rixos')
+        late_action = copy.deepcopy(rows[1])
+        late_action['journal_id'] = '4'
+        late_action['observed_at_unix'] += 60
+        late_doc = journal_document(rows[0], late_action, rows[2])
+        late_doc['requested_at'] = '2026-10-26T09:11:00Z'
+        late_doc['journal_cursor'] = late_doc['source_fence_journal_id'] = '4'
+        late = self.context_cli(late_doc)
+        self.assertIsNone(value(late['profiles'][0]['profile'], 'hotel_interest'))
+        self.assertEqual(json.dumps(early, sort_keys=True), frozen)
+        self.assertEqual(early['source_fence_journal_id'], '3')
+        self.assertEqual(late['source_fence_journal_id'], '4')
+        self.assertEqual([r['observed_at'] for r in late['profiles'][0]['source_references'] if r['journal_id'] == '4'],
+                         ['2026-10-26T09:11:00Z'])
+
     def test_current_fact_scopes_runtime_and_cli(self):
         scenarios = [(text, expected, None) for text, expected in SCOPED_FACT_CASES]
         scenarios += [(text, {}, (unit, basis)) for text, unit, basis in BUDGET_UNIT_CASES]
