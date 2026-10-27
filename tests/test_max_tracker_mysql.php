@@ -83,7 +83,7 @@ for($i=0;$i<20;$i++){
     $linkInsert->execute([$linkId,'606',(string)(6060000+$i),$joined,$source,$source,'ios',$joined,1]);
     $checkInsert->execute([$checkId,$linkId,$checked]);
 }
-$many=$repo->lookup('98615635',['606','456'],['not_before_unix'=>$manyBase->getTimestamp()-1,'cutoff_unix'=>$manyBase->getTimestamp()+1820]);
+$many=$repo->lookup('98615635',['606','456'],['not_before_unix'=>$manyBase->getTimestamp()-3601,'cutoff_unix'=>$manyBase->getTimestamp()+1820]);
 same($many[0]['membership_receipts'],[],'twenty periods projecting forty receipts fail closed at the per-user twenty-receipt boundary');
 same($many[1]['membership_receipts'][1]['source_record_id'],'3001','projected per-user overflow cannot poison the next exact user');
 $dynamicNow=time();$dynamicAt=(new DateTimeImmutable('@'.($dynamicNow-1800)))->setTimezone(new DateTimeZone('Europe/London'))->format('Y-m-d H:i:s');
