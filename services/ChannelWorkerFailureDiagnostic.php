@@ -6,10 +6,14 @@ final class ChannelWorkerFailureDiagnostic
 {
     public static function classify(Throwable $error): array
     {
+        $file=basename($error->getFile());
+        $publicFiles=['cron_metrika.php','MaxChannelConversionWorker.php','MaxChannelConversionOutbox.php',
+            'MetrikaConversionGoalService.php','MetrikaOfflineClient.php','MaxTrackerLookupClient.php'];
+        $location=in_array($file,$publicFiles,true)?$file.':'.$error->getLine():null;
         if ($error instanceof PDOException) {
             $code=(string)$error->getCode();
             $state=preg_match('/\A[A-Z0-9]{5}\z/D',$code)===1?$code:null;
-            return ['category'=>'database_exception','sqlstate'=>$state];
+            return ['category'=>'database_exception','sqlstate'=>$state,'location'=>$location];
         }
         $category=match($error->getMessage()) {
             'channel_stage_capture_failed'=>'stage_capture_failed',
@@ -18,6 +22,6 @@ final class ChannelWorkerFailureDiagnostic
             'tracker_response_invalid'=>'tracker_response_invalid',
             default=>$error instanceof Error?'php_error':'runtime_exception',
         };
-        return ['category'=>$category,'sqlstate'=>null];
+        return ['category'=>$category,'sqlstate'=>null,'location'=>$location];
     }
 }
