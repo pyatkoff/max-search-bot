@@ -10,7 +10,7 @@ from datetime import date
 
 import build_conversion_observations as base
 
-VERSION = "ru_trip_prefix_rules_v1_16"
+VERSION = "ru_trip_prefix_rules_v1_17"
 MAX_BYTES = 2 * 1024 * 1024
 MAX_CASES = 100
 MAX_MESSAGES = 500
@@ -536,7 +536,7 @@ def wizard_value(field, raw):
     return None
 
 
-def validate_case(case, applied_message_ids=()):
+def validate_case(case):
     base.fields(case, ("subject", "brand_key", "context_from", "prediction_at", "source_complete_through",
                        "prefix_complete", "messages"), ("source_fence_at", "trip_status", "membership_receipts"))
     base.require(isinstance(case.get("trip_status", "accepted"), str) and case.get("trip_status", "accepted") in {"accepted", "unknown"}, "invalid_trip_status")
@@ -563,9 +563,10 @@ def validate_case(case, applied_message_ids=()):
         base.require(m["id"] not in unique or unique[m["id"]] == m, "conflicting_message_id")
         unique[m["id"]] = m
     rows = sorted(unique.values(), key=lambda m: (m["at"], m["id"]))
+    # Available actions must reach the context barrier, even when they have no
+    # interpreted fact. Filtering them here would reconnect interrupted turns.
     rows = [m for m in rows if case["context_from"] <= m["at"] <= case["prediction_at"]
-            and m["available_at"] <= case["prediction_at"]
-            and (m["kind"] == "text" or m["id"] in applied_message_ids)]
+            and m["available_at"] <= case["prediction_at"]]
     return scope, rows
 
 
@@ -687,7 +688,7 @@ def prediction_features(case, extracted, fields, party, stage, early_signals):
 
 def extract_case(case, extracted, wizard_applications=()):
     base.moment(extracted)
-    scope, messages = validate_case(case, {a["message_id"] for a in wizard_applications})
+    scope, messages = validate_case(case)
     early_signals = membership_projection(case)
     cutoff = case["prediction_at"]
     fields = {name: [] for name in ["budget", "budget_preference", "duration", "dates", "departure",
@@ -705,6 +706,10 @@ def extract_case(case, extracted, wizard_applications=()):
 
     for m in messages:
         text = m["text"]; folded = text.lower().replace("ё", "е")
+        # Non-text turns interrupt short-answer context regardless of payload
+        # or speaker. They never become dialogue evidence or inferred intent.
+        if m["kind"] == "action":
+            previous_manager = None
         if not text.strip() or m["speaker"] == "other":
             continue
         if m["speaker"] == "customer":
@@ -716,8 +721,6 @@ def extract_case(case, extracted, wizard_applications=()):
                             extra=[application["receipt"]])
         # A successfully applied button is still an action, not dialogue or booking intent.
         if m["kind"] == "action":
-            if m["speaker"] == "customer":
-                previous_manager = None
             continue
         kind = "customer_message" if m["speaker"] == "customer" else "manager_message"
         raw_ref = {k: reference(m)[k] for k in ("source", "id", "at", "available_at")}
