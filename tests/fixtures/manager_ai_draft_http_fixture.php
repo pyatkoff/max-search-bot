@@ -64,7 +64,7 @@ final class ManagerAiDraftContextService
     {
         $s=self::snapshot($conversationId,$viewer);if(empty($s['ok']))return $s;
         $state=managerAiHttpFixtureState();
-        return $s+['owner_id'=>!empty($state['supervisor_read'])?8:$viewer,'supervisor_read'=>!empty($state['supervisor_read'])]+(!empty($state['supervisor_read'])?['viewer_access_revision'=>str_repeat('e',64)]:[]);
+        return $s+['owner_id'=>!empty($state['supervisor_read'])?8:$viewer,'supervisor_read'=>!empty($state['supervisor_read'])]+(!empty($state['supervisor_read'])?['owner_read'=>!empty($state['owner_read']),'viewer_access_revision'=>$state['viewer_access_revision']??str_repeat('e',64)]:[]);
     }
 
     public static function snapshot(int $conversationId, int $managerId): array
@@ -95,6 +95,21 @@ final class ManagerAiDraftContextService
 
 final class ManagerPreparedReplyService
 {
+    public static function requestOnOpen(int $cid,int $viewer,array $snapshot):array
+    {
+        managerAiHttpFixtureEvent('preparation_requested',['conversation_id'=>$cid,'viewer_id'=>$viewer,
+            'owner_id'=>$snapshot['owner_id'],'session_closed'=>session_status()!==PHP_SESSION_ACTIVE]);
+        if((managerAiHttpFixtureState()['ensure_mode']??'')==='wait'){
+            file_put_contents(managerAiHttpFixtureDirectory().'/ensure-ready','ready');
+            $deadline=microtime(true)+6;
+            while(!is_file(managerAiHttpFixtureDirectory().'/ensure-release')){
+                if(microtime(true)>$deadline)throw new RuntimeException('Synthetic preparation barrier timed out');
+                usleep(10000);
+            }
+        }
+        return managerAiHttpFixtureState()['ensure_result']??['ok'=>true,'requested'=>true,'preparation_state'=>'pending'];
+    }
+
     public static function prepared(int $cid,int $actor,array $snapshot):array
     {
         managerAiHttpFixtureEvent('prepared_read',['conversation_id'=>$cid,'manager_id'=>$actor,
@@ -108,6 +123,22 @@ final class ManagerPreparedReplyService
             }
         }
         return managerAiHttpFixtureState()['prepared_result']??['ok'=>true,'prepared'=>false];
+    }
+}
+
+final class ManagerPreparationMcpService
+{
+    public function hasActiveSubscriptions():bool
+    {
+        managerAiHttpFixtureEvent('preparation_connection',['session_closed'=>session_status()!==PHP_SESSION_ACTIVE]);
+        return managerAiHttpFixtureState()['preparation_connected']??true;
+    }
+
+    public function deliverPending():array
+    {
+        managerAiHttpFixtureEvent('preparation_event',['session_closed'=>session_status()!==PHP_SESSION_ACTIVE]);
+        if(!empty(managerAiHttpFixtureState()['delivery_throws']))throw new RuntimeException('Synthetic delivery failure');
+        return ['accepted'=>1];
     }
 }
 

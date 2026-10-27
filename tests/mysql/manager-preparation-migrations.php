@@ -29,6 +29,16 @@ try{
     if($pdo->query('SELECT * FROM manager_prepared_replies')->fetchAll()!==$preparedBefore||$preparedBefore[0]['customer_input_revision']!==null)throw new RuntimeException('prepared_input_migration_changed_old_provenance');
     if(!$pdo->query("SHOW INDEX FROM manager_prepared_replies WHERE Key_name='idx_prepared_customer_input'")->fetch())throw new RuntimeException('missing_prepared_input_index');
     echo "PASS native MySQL input dedup migration retry preserves old nullable provenance and index\n";
+    $pdo->exec(file_get_contents(dirname(__DIR__,2).'/migrations/069_prepared_reply_open_requests.sql'));
+    $preparedAfter=$pdo->query('SELECT * FROM manager_prepared_replies')->fetchAll();
+    if(array_intersect_key($preparedAfter[0],$preparedBefore[0])!==$preparedBefore[0])throw new RuntimeException('prepared_open_migration_changed_legacy_row');
+    $preparedBefore=$preparedAfter;
+    $pdo->exec(file_get_contents(dirname(__DIR__,2).'/migrations/069_prepared_reply_open_requests.sql'));
+    if($pdo->query('SELECT * FROM manager_prepared_replies')->fetchAll()!==$preparedBefore
+        ||$preparedBefore[0]['purpose']!=='background'||$preparedBefore[0]['requested_by_manager_id']!==null
+        ||$preparedBefore[0]['viewer_access_revision']!==null)throw new RuntimeException('prepared_open_migration_changed_old_provenance');
+    if(!$pdo->query("SHOW INDEX FROM manager_prepared_replies WHERE Key_name='idx_prepared_open_request'")->fetch())throw new RuntimeException('missing_prepared_open_index');
+    echo "PASS native MySQL opened-chat migration retry preserves background provenance and request index\n";
     $feedback=$pdo->prepare('INSERT INTO manager_ai_drafts (draft_id,conversation_id,manager_id,project_key,context_revision,instruction_revision,latest_message_id,proposal_json,created_at,preparation_job_id) VALUES(?,?,?,?,?,?,?,?,?,?)');
     $feedback->execute([str_repeat('a',32),1,1,'anytour',str_repeat('b',64),str_repeat('c',64),2,'synthetic immutable proposal',gmdate('Y-m-d H:i:s'),str_repeat('d',64)]);
     $feedbackBefore=$pdo->query('SELECT * FROM manager_ai_drafts')->fetchAll();

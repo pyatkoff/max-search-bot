@@ -1,11 +1,39 @@
 # Prepared replies through ChatGPT
 
-The owner's fixed bot demo dialogues are internal work. Automatic collection and
-prepared-reply enqueue/list/context/save/cache reads exclude the exact scoped
+The owner's fixed bot demo dialogues are internal work. Background collection and
+background-job enqueue/list/context/save/cache reads exclude the exact scoped
 identities owned by `InternalOwnerDialogueScope`, including already-issued jobs.
 The predicate runs before the candidate limit; it is not a name or message-text
 filter. Chats remain visible and their messages, status, ownership and `is_test`
 flag are untouched. Explicit manual AI/demo context remains usable.
+
+Opening a manager chat now has a separate `open_chat` demand scope. Migration069
+adds its purpose, requesting manager and viewer-access revision to the existing
+private preparation queue. The browser's `ensure_prepared` operation authenticates
+the current viewer, requires CSRF and exact current message/context, and checks an
+active existing ChatGPT subscription. Ordinary managers can request their own
+reply context; the workspace owner can request an accessible foreign context in
+read-only mode. Employee supervisor grants alone do not enable automatic work.
+
+This bounded selected-chat request can include an old, already answered, internal
+demo or owner-accessible archived chat; it does not widen the background collector.
+The worker still decides whether a customer reply is appropriate. A no-contact
+decision is a completed result, not a reason for a generation loop. Current ready
+results are reused. Concurrent requests from the same account/tabs reuse the same
+exact-context job; an expired demand may renew as a new immutable job. Requester
+bindings deliberately remain separate across accounts.
+
+Pending demand metadata, private context, completion and preview recheck the
+requester's account, project/source visibility, owner binding, viewer scope and
+canonical context/instruction revision. Loss of access or a changed conversation
+invalidates the work. Background deduplication excludes demand jobs. The existing
+bounded verification pass retires confirmed obsolete demand jobs through exact
+compare-and-set, without renewing them or creating work for an unopened chat.
+There is no new cron, model profile, paid model call or send path. The
+existing signed event notifies the connected ChatGPT worker immediately after
+queuing; the existing minute cron retains delivery retry ownership. Callback
+acceptance is not completion: the UI polls for the actual current saved result
+and displays preparation or unavailable/delayed status until then.
 
 The owner requested analysis and prepared replies in ChatGPT without separate
 model API calls. The first private read-only pilot reviewed seven real conversations:
@@ -18,7 +46,8 @@ to a bounded work queue and the existing manager reply preview.
 An explicit AI click reuses a useful current prepared reply. A cache miss, cache
 outage, or a recommendation requiring further work starts one manual generation
 within that same click. A no-contact decision stays explicit and does not trigger
-a model call. Passive readiness remains metadata-only and never generates.
+a model call. Passive readiness remains metadata-only and never generates;
+automatic selected-chat preparation uses the separate queue request above.
 “Другой вариант” / “Повторить подготовку” explicitly generate again.
 The preview keeps the customer text separate from internal reasons/checks.
 “Добавить в ответ” revalidates the context and appends through the existing composer;
@@ -61,8 +90,10 @@ history. Empty text does not exclude real voice, photos or other media.
 
 The cheap SQL source gate runs before the candidate limit/full context capture,
 and again in enqueue, pending inventory and context/save. Old already-issued jobs
-cannot bypass it. Pending reads now use one bounded metadata query; they neither
-hydrate histories/photos nor consume work. Canonical source/project/owner/delivery
+cannot bypass it. The background pending inventory uses one bounded metadata
+query. Opened-chat requests have a separate bounded lane and canonical viewer
+metadata checks; neither lane hydrates histories/photos or consumes work.
+Canonical source/project/owner/delivery
 authorization and exact context/instruction fences remain authoritative. Test,
 closed, self-service and scoped internal-owner conversations stay excluded;
 off-shift active owners and lawful unassigned waiting enquiries remain eligible.

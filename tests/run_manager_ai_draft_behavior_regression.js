@@ -71,6 +71,59 @@ test('binding is lazy and adds one stable button without another draft, file or 
   assertNoMutations(h);
 });
 const readiness=(changes={})=>({ok:true,prepared:true,should_draft:true,revision:'synthetic-revision-1',latest_message_id:8,prepared_at:preparedAt,expires_at:expiresAt,...changes});
+const automaticMiss={ok:true,prepared:false,automatic_preparation:true};
+async function pollAi(h){const timer=[...h.aiTimers.entries()].filter(([,value])=>value.ms===15000).at(-1);assert.ok(timer);h.aiTimers.delete(timer[0]);await timer[1].fn();await tick()}
+test('opening an empty own chat queues one automatic preparation and later shows a Tab-ready ghost without AI click',async()=>{
+  let completed=false;const queued=deferred(),h=await harness(data=>data.action==='prepared_status'?response(completed?readiness():automaticMiss):data.action==='ensure_prepared'?queued.promise:inlineHandler(data),{manager2:true});await tick();
+  const reply=h.ids.get('replyText'),file={name:'keep-auto.txt'};h.setFile(file);reply.focus();
+  assert.deepEqual(h.aiCalls().map(call=>call.action),['prepared_status','ensure_prepared']);assert.match(h.ids.get('aiPreparationNotice').children[0].textContent,/готовит подсказку автоматически/);assert.equal(h.ids.get('aiDraftPanel').hidden,true);assert.equal(reply.value,'');
+  queued.resolve(response({ok:true,requested:true,preparation_state:'pending',queued:true}));await tick();
+  await pollAi(h);h.ai.sync();await tick();assert.equal(h.aiCalls().filter(call=>call.action==='ensure_prepared').length,1);
+  completed=true;await pollAi(h);assert.equal(h.ids.get('aiDraftSuggestion').hidden,false);assert.equal(h.ids.get('aiPreparationNotice').hidden,true);assert.equal(h.document.activeElement,reply);assert.equal(reply.value,'');assert.equal(h.getFile(),file);
+  assert.equal(h.aiCalls().some(call=>call.action==='generate'),false);await pressInline(h);assert.equal(reply.value,generated().draft);assert.equal(h.getFile(),file);assertNoMutations(h);
+});
+test('opening a foreign chat queues automatic preparation only for the workspace owner and keeps the result readonly',async()=>{
+  let completed=false;const first=deferred(),h=await harness(data=>data.action==='prepared_status'?completed?response(readiness()):first.promise:data.action==='ensure_prepared'?response({ok:true,requested:true,preparation_state:'pending',queued:true}):response(prepared()),{manager2:true});
+  h.W.S.manager.role='admin';h.W.S.detail.owner_read=true;h.W.S.detail.supervisor_read=true;h.W.S.detail.conversation.manager_id=9;h.W.S.detail.conversation.manager_name='Другой менеджер';h.ids.get('composer').classList.add('hidden');h.ai.sync();first.resolve(response(automaticMiss));await tick();
+  assert.equal(h.aiCalls().filter(call=>call.action==='ensure_prepared').length,1);assert.equal(h.ids.get('aiPreparationNotice').parentElement,h.ids.get('conversationZone'));assert.equal(h.ids.get('aiPreparationNotice').hidden,false);
+  completed=true;await pollAi(h);assert.equal(h.ids.get('aiDraftSuggestion').hidden,false);assert.match(h.ids.get('aiDraftSuggestion').querySelector('strong').textContent,/Только просмотр.*Другой менеджер/);assert.equal(h.ids.get('aiSuggestionAccept').hidden,true);assert.equal(h.ids.get('aiDraftPanel').hidden,true);assert.equal(h.aiCalls().some(call=>['generate','prepared','validate'].includes(call.action)),false);assertNoMutations(h);
+});
+for(const state of ['typed draft','hidden preference','hidden tab','ordinary supervisor'])test('automatic preparation does not start for '+state,async()=>{
+  const first=deferred(),h=await harness(()=>first.promise,{manager2:true});
+  if(state==='typed draft')await h.draft('Свой незаконченный ответ');else if(state==='hidden preference')h.window.WorkspaceV2PersonalWorkspace={showAiReadyNotice:()=>false};else if(state==='hidden tab'){h.document.visibilityState='hidden';h.documentEvents.get('visibilitychange')()}else{h.W.S.detail.supervisor_read=true;h.W.S.detail.conversation.manager_id=9;h.ids.get('composer').classList.add('hidden');h.ai.sync()}
+  first.resolve(response(automaticMiss));await tick();assert.equal(h.aiCalls().some(call=>call.action==='ensure_prepared'||call.action==='generate'),false);assert.equal(h.ids.get('aiPreparationNotice').hidden,true);assertNoMutations(h);
+});
+test('automatic preparation is reused after hiding and returning, and no-contact results do not create a loop',async()=>{
+  let complete=false;const h=await harness(data=>response(data.action==='prepared_status'?complete?readiness({should_draft:false}):automaticMiss:{ok:true,requested:true,preparation_state:'pending',queued:true}),{manager2:true});await tick();
+  h.document.visibilityState='hidden';h.documentEvents.get('visibilitychange')();h.document.visibilityState='visible';h.documentEvents.get('visibilitychange')();await tick();await pollAi(h);
+  assert.equal(h.aiCalls().filter(call=>call.action==='ensure_prepared').length,1);complete=true;await pollAi(h);await pollAi(h);assert.equal(h.ids.get('aiPreparationNotice').hidden,true);assert.equal(h.ids.get('aiDraftOpen').textContent,'AI — Рекомендации');assert.equal(h.aiCalls().filter(call=>call.action==='ensure_prepared').length,1);assert.equal(h.aiCalls().some(call=>call.action==='generate'),false);assertNoMutations(h);
+});
+for(const error of ['preparation_unavailable','queue_unavailable','preparation_queue_full'])test('automatic '+error+' is visible and retries only after explicit retry',async()=>{
+  const h=await harness(data=>response(data.action==='prepared_status'?automaticMiss:{ok:false,error},data.action==='ensure_prepared'?503:200),{manager2:true});await tick();
+  assert.equal(h.ids.get('aiPreparationNotice').hidden,false);assert.match(h.ids.get('aiPreparationNotice').children[0].textContent,/временно недоступна|Очередь AI-подсказок занята/);assert.equal(h.ids.get('aiPreparationRetry').hidden,false);
+  await pollAi(h);assert.equal(h.aiCalls().filter(call=>call.action==='ensure_prepared').length,1);await h.click('aiPreparationRetry');assert.equal(h.aiCalls().filter(call=>call.action==='ensure_prepared').length,2);assert.equal(h.aiCalls().some(call=>call.action==='generate'),false);assertNoMutations(h);
+});
+test('pending automatic preparation becomes a truthful delay after the bounded observer and can be retried explicitly',async()=>{
+  const h=await harness(data=>response(data.action==='prepared_status'?automaticMiss:{ok:true,requested:true,preparation_state:'pending',queued:true}),{manager2:true});await tick();const calls=h.aiCalls().length;
+  h.advanceAiClock(600001);await pollAi(h);assert.equal(h.aiCalls().length,calls);assert.match(h.ids.get('aiPreparationNotice').children[0].textContent,/задерживается/);assert.equal(h.ids.get('aiPreparationRetry').hidden,false);
+  await h.click('aiPreparationRetry');assert.equal(h.aiCalls().filter(call=>call.action==='ensure_prepared').length,2);assert.match(h.ids.get('aiPreparationNotice').children[0].textContent,/готовит подсказку автоматически/);assert.equal(h.aiCalls().some(call=>call.action==='generate'),false);assertNoMutations(h);
+});
+test('a fresh visible opening after the pending attempt expires re-ensures once and keeps the current observer bounded',async()=>{
+  const h=await harness(data=>response(data.action==='prepared_status'?automaticMiss:{ok:true,requested:true,preparation_state:'pending',queued:true}),{manager2:true});await tick();h.advanceAiClock(600001);await pollAi(h);assert.equal(h.aiCalls().filter(call=>call.action==='ensure_prepared').length,1);
+  h.document.visibilityState='hidden';h.documentEvents.get('visibilitychange')();h.document.visibilityState='visible';h.documentEvents.get('visibilitychange')();await tick();assert.equal(h.aiCalls().filter(call=>call.action==='ensure_prepared').length,2);await pollAi(h);assert.equal(h.aiCalls().filter(call=>call.action==='ensure_prepared').length,2);assert.match(h.ids.get('aiPreparationNotice').children[0].textContent,/готовит подсказку автоматически/);assertNoMutations(h);
+});
+test('an already-ready ensure receipt refreshes status immediately without waiting for a poll',async()=>{
+  let complete=false;const h=await harness(data=>{if(data.action==='prepared_status')return response(complete?readiness():automaticMiss);if(data.action==='ensure_prepared'){complete=true;return response({ok:true,requested:true,preparation_state:'ready'})}return response(prepared())},{manager2:true});await tick();
+  assert.deepEqual(h.aiCalls().map(call=>call.action),['prepared_status','ensure_prepared','prepared_status','prepared_preview']);assert.equal(h.ids.get('aiDraftSuggestion').hidden,false);assert.equal(h.ids.get('aiPreparationNotice').hidden,true);assertNoMutations(h);
+});
+for(const change of ['navigation','message','edit','role','account'])test('a late automatic enqueue receipt cannot survive '+change,async()=>{
+  let statuses=0;const pending=deferred(),h=await harness(data=>data.action==='prepared_status'?response(++statuses===1?automaticMiss:{ok:true,prepared:false}):pending.promise,{manager2:true});await tick();
+  if(change==='navigation')await h.C.open(102);else if(change==='message')h.W.S.detail.messages.push({id:9,sender_type:'customer',text:'Новое'});else if(change==='edit')h.W.S.detail.messages[1].text='Исправлено';else if(change==='role'){h.W.S.detail.conversation.manager_id=9;h.ids.get('composer').classList.add('hidden')}else h.W.S.authGeneration++;
+  h.ai.sync();pending.resolve(response({ok:true,requested:true,preparation_state:'pending',queued:true}));await tick();assert.equal(h.ids.get('aiPreparationNotice').hidden,true);assert.equal(h.ids.get('aiDraftSuggestion').hidden,true);assert.equal(h.ids.get('aiDraftPanel').hidden,true);assert.equal(h.aiCalls().some(call=>call.action==='generate'),false);assertNoMutations(h);
+});
+test('an obsolete automatic401 cannot expire a new account session',async()=>{
+  let statuses=0;const pending=deferred(),h=await harness(data=>data.action==='prepared_status'?response(++statuses===1?automaticMiss:{ok:true,prepared:false}):pending.promise,{manager2:true});await tick();h.W.S.authGeneration++;h.W.S.manager={...h.W.S.manager,id:9};h.W.S.detail.conversation.manager_id=9;h.ai.sync();pending.resolve(response({ok:false,error:'unauthorized'},401));await tick();assert.equal(h.W.S.authExpired,false);assert.equal(h.ids.get('aiDraftSuggestion').hidden,true);assertNoMutations(h);
+});
 test('Manager2 reads passive text without modal, focus, generation or composer changes',async()=>{
   const pending=deferred(),h=await harness(data=>data.action==='prepared_status'?pending.promise:response(prepared()),{manager2:true});
   const file={name:'kept.txt'};await h.draft('Набранный текст');h.setFile(file);const reply=h.ids.get('replyText');reply.focus();reply.setSelectionRange(1,5,'backward');

@@ -17,6 +17,71 @@ final class ManagerPreparedReplyService
     public const MAX_PROPOSAL_BYTES = 32768;
     private const FIELDS = ['ok','should_draft','draft','next_action','reason','checks','evidence_message_ids','history_incomplete'];
 
+    /** Opening one authorized chat requests work; it never calls a model or sends. */
+    public static function requestOnOpen(int $cid, int $viewer, array $before): array
+    {
+        try {
+            $pdo=ConversationDb::connection();
+            if($pdo->inTransaction()||$cid<=0||$viewer<=0)return self::failure('queue_unavailable');
+            $fresh=ManagerAiDraftContextService::viewerSnapshot($cid,$viewer);
+            if(!self::openViewer($fresh,$viewer))return self::failure($fresh['error']??'reply_not_allowed');
+            if(!self::sameViewerSnapshot($fresh,$before))return self::failure('context_stale');
+            $owner=(int)$fresh['owner_id'];$project=$fresh['project_key']??null;
+            if(!self::project($project)||$project!==ProjectConfig::projectId())return self::failure('reply_not_allowed');
+            $available=self::prepared($cid,$owner,$fresh);
+            if(!empty($available['prepared']))return ['ok'=>true,'requested'=>true,'preparation_state'=>'ready'];
+            $instruction=self::instructionRevision();
+            $q=$pdo->prepare("SELECT * FROM manager_prepared_replies WHERE conversation_id=? AND requested_by_manager_id=? AND purpose='open_chat' AND project_key=? AND manager_id=? AND context_revision=? AND instruction_revision=? AND (viewer_access_revision=? OR (viewer_access_revision IS NULL AND ? IS NULL)) ORDER BY created_at DESC,job_id DESC LIMIT 8");
+            $access=$fresh['viewer_access_revision']??null;
+            $q->execute([$cid,$viewer,$project,$owner,$fresh['revision'],$instruction,$access,$access]);$previous=null;$pending=false;
+            foreach($q->fetchAll(PDO::FETCH_ASSOC) as $row){
+                if(!self::validRow($row)||!self::openBindingMatches($row,$fresh))continue;
+                if(self::currentRow($row)&&$row['status']==='pending')$pending=true;
+                if($previous===null)$previous=$row;
+            }
+            // Cleanup has its own bounded lane; unrelated recent contexts must
+            // never hide the current binding's deduplication/renewal identity.
+            $q=$pdo->prepare("SELECT * FROM manager_prepared_replies WHERE conversation_id=? AND requested_by_manager_id=? AND purpose='open_chat' AND project_key=? AND status='pending' AND expires_at>? ORDER BY created_at DESC,job_id DESC LIMIT 8");
+            $q->execute([$cid,$viewer,$project,self::utc(time())]);$obsolete=[];
+            foreach($q->fetchAll(PDO::FETCH_ASSOC) as $row)if(self::validRow($row)
+                &&(!self::openBindingMatches($row,$fresh)||!hash_equals($instruction,$row['instruction_revision'])))$obsolete[]=$row;
+            // Rows observed after the first capture may already belong to a
+            // newer context. Recheck before even retiring those exact identities.
+            $after=ManagerAiDraftContextService::viewerSnapshot($cid,$viewer);
+            if(!self::openViewer($after,$viewer)||!self::sameViewerSnapshot($fresh,$after))return self::failure('context_stale');
+            // A worker may have completed between the first cache miss and the
+            // metadata selection. Reuse that immutable result, including advice
+            // to send nothing, rather than renewing completed current work.
+            $available=self::prepared($cid,$owner,$after);
+            if(!empty($available['prepared']))return ['ok'=>true,'requested'=>true,'preparation_state'=>'ready'];
+            $background=self::latestBinding($pdo,$cid,$owner,$project,$fresh['revision'],$instruction);
+            if($background!==null&&$background['status']==='pending'&&self::currentRow($background)
+                &&self::snapshotFor($pdo,$background)!==null)return ['ok'=>true,'requested'=>true,'preparation_state'=>'pending'];
+            if($pending)return ['ok'=>true,'requested'=>true,'preparation_state'=>'pending'];
+            $binding=['manager_open_prepared_reply_v1',$cid,$owner,$viewer,$project,$fresh['revision'],$instruction,$fresh['viewer_access_revision']??null];
+            if($previous!==null)$binding[]=$previous['job_id'];
+            $job=hash('sha256',json_encode($binding,JSON_THROW_ON_ERROR));$now=time();
+            // Retire only observed obsolete identities with an exact CAS. A slow
+            // older opener must never cancel a newer request inserted meanwhile.
+            foreach($obsolete as $old){
+                $q=$pdo->prepare("UPDATE manager_prepared_replies SET expires_at=? WHERE job_id=? AND purpose='open_chat' AND requested_by_manager_id=? AND status='pending' AND context_revision=? AND instruction_revision=? AND expires_at=?");
+                $q->execute([self::utc($now),$old['job_id'],$viewer,$old['context_revision'],$old['instruction_revision'],$old['expires_at']]);
+            }
+            $q=$pdo->prepare("SELECT COUNT(*) FROM manager_prepared_replies WHERE project_key=? AND status='pending' AND expires_at>?");$q->execute([$project,self::utc($now)]);
+            if((int)$q->fetchColumn()>=self::MAX_PENDING)return self::failure('preparation_queue_full');
+            $after=ManagerAiDraftContextService::viewerSnapshot($cid,$viewer);
+            if(!self::openViewer($after,$viewer)||!self::sameViewerSnapshot($fresh,$after))return self::failure('context_stale');
+            try{
+                $q=$pdo->prepare("INSERT INTO manager_prepared_replies (job_id,conversation_id,manager_id,project_key,context_revision,instruction_revision,latest_message_id,status,created_at,expires_at,purpose,requested_by_manager_id,viewer_access_revision) VALUES (?,?,?,?,?,?,?,'pending',?,?,'open_chat',?,?)");
+                $q->execute([$job,$cid,$owner,$project,$fresh['revision'],$instruction,$fresh['latest_message_id'],self::utc($now),self::utc($now+self::TTL_SECONDS),$viewer,$fresh['viewer_access_revision']??null]);
+            }catch(Throwable $ignored){
+                $row=self::load($pdo,$job);
+                if($row===null||!self::currentRow($row)||!self::openBindingMatches($row,$after))return self::failure('queue_unavailable');
+            }
+            return ['ok'=>true,'requested'=>true,'preparation_state'=>'pending'];
+        }catch(Throwable $ignored){return self::failure('queue_unavailable');}
+    }
+
     /** Rows come from the canonical bounded collector, but all bindings are rechecked here. */
     public static function enqueue(array $candidateRows, bool $renewExpired = false): array
     {
@@ -60,7 +125,7 @@ final class ManagerPreparedReplyService
                 try {
                     if(ManagerPreparationEligibility::input($pdo,$cid)!==$input){++$out['skipped'];continue;}
                     // An edited/new message must not wait behind its obsolete pending revision.
-                    $q = $pdo->prepare("UPDATE manager_prepared_replies SET expires_at=? WHERE conversation_id=? AND project_key=? AND status='pending' AND job_id<>? AND expires_at>?");
+                    $q = $pdo->prepare("UPDATE manager_prepared_replies SET expires_at=? WHERE conversation_id=? AND project_key=? AND purpose='background' AND status='pending' AND job_id<>? AND expires_at>?");
                     $q->execute([self::utc($now),$cid,$project,$id,self::utc($now)]);
                     $q = $pdo->prepare("SELECT COUNT(*) FROM manager_prepared_replies WHERE project_key=? AND status='pending' AND expires_at>?");
                     $q->execute([$project,self::utc($now)]);
@@ -151,15 +216,22 @@ final class ManagerPreparedReplyService
         foreach($rows as $row){
             ++$stats['checked'];$next=(int)$row['conversation_id'];
             if (!self::validRow($row)){++$stats['deferred'];continue;}
-            try{$input=ManagerPreparationEligibility::input($pdo,(int)$row['conversation_id']);}
-            catch(Throwable $ignored){++$stats['deferred'];continue;}
-            $snapshot=$input===null?['ok'=>false,'error'=>'reply_not_allowed']:ManagerAiDraftContextService::preparationSnapshot((int)$row['conversation_id'],(int)$row['manager_id']);
+            $opened=self::openRequest($row);
+            if($opened){
+                $snapshot=ManagerAiDraftContextService::viewerSnapshot((int)$row['conversation_id'],(int)$row['requested_by_manager_id']);
+            }else{
+                try{$input=ManagerPreparationEligibility::input($pdo,(int)$row['conversation_id']);}
+                catch(Throwable $ignored){++$stats['deferred'];continue;}
+                $snapshot=$input===null?['ok'=>false,'error'=>'reply_not_allowed']:ManagerAiDraftContextService::preparationSnapshot((int)$row['conversation_id'],(int)$row['manager_id']);
+            }
             $available=($snapshot['ok']??false)===true;
             if (!$available && !in_array($snapshot['error']??'', ['unauthorized','not_found','reply_not_allowed','suspended','invalid_conversation_id'],true)){
                 // Storage/transport uncertainty is not proof of stale work.
                 ++$stats['deferred'];continue;
             }
-            $sameProject=$available && self::projectFor($pdo,(int)$row['conversation_id'],(int)$row['manager_id'])===$project;
+            $sameProject=$available && ($opened ? ($snapshot['project_key']??null)===$project
+                &&self::openViewer($snapshot,(int)$row['requested_by_manager_id'])&&self::openBindingMatches($row,$snapshot)
+                : self::projectFor($pdo,(int)$row['conversation_id'],(int)$row['manager_id'])===$project);
             if ($sameProject && self::matches($snapshot,$row['context_revision'],(int)$row['latest_message_id'])
                 && hash_equals(self::instructionRevision(),$row['instruction_revision'])) continue;
             // Never touch a ready result, newer binding or concurrent completion.
@@ -167,6 +239,9 @@ final class ManagerPreparedReplyService
             $q->execute([$now,$row['job_id'],$row['context_revision'],$row['instruction_revision'],$row['expires_at']]);
             if ($q->rowCount()!==1) continue;
             ++$stats['retired'];
+            // An opening request can be retired, never automatically recreated
+            // from the background collector's different eligibility policy.
+            if($opened)continue;
             if (!$sameProject) continue;
             $renewed=self::enqueue([['conversation_id'=>(int)$row['conversation_id'],'manager_id'=>(int)$row['manager_id'],
                 'project_key'=>$project,'context_revision'=>$snapshot['revision'],'latest_message_id'=>$snapshot['latest_message_id']]],true);
@@ -190,18 +265,36 @@ final class ManagerPreparedReplyService
         try {
             $pdo=ConversationDb::connection();
             if($pdo->inTransaction())return self::failure('queue_unavailable');
-            $sql = "SELECT j.job_id,j.conversation_id,j.manager_id,j.project_key,j.context_revision,j.instruction_revision,j.latest_message_id,j.created_at,j.expires_at FROM manager_prepared_replies j WHERE j.project_key=? AND j.status='pending' AND j.created_at<=? AND j.expires_at>? AND j.instruction_revision=?"
-                ." AND EXISTS (SELECT 1 FROM conversations c LEFT JOIN managers m ON m.id=c.manager_id WHERE c.id=j.conversation_id AND c.project_key=j.project_key AND c.is_test=0 AND NOT ".InternalOwnerDialogueScope::conversationSql('c')." AND ((c.manager_id=j.manager_id AND c.status='manager' AND m.is_active=1) OR (j.manager_id=0 AND c.manager_id IS NULL AND c.status='waiting_manager' AND EXISTS (SELECT 1 FROM managers a JOIN manager_projects ap ON ap.manager_id=a.id JOIN projects p ON p.id=ap.project_id WHERE a.is_active=1 AND a.role='admin' AND p.is_active=1 AND p.project_key=j.project_key))))"
-                .' AND j.latest_message_id=(SELECT MAX(pm.id) FROM messages pm WHERE pm.conversation_id=j.conversation_id)';
             $now=self::utc(time());
-            $sql.=' AND '.ManagerPreparationEligibility::sql('j.conversation_id',(string)$pdo->getAttribute(PDO::ATTR_DRIVER_NAME));
-            $q=$pdo->prepare($sql.' ORDER BY j.created_at,j.job_id LIMIT '.$limit);
-            $q->execute(array_merge([ProjectConfig::projectId(),$now,$now,self::instructionRevision()],ManagerPreparationEligibility::window($now)));
-            $jobs=[];
+            $base="SELECT j.job_id,j.conversation_id,j.manager_id,j.project_key,j.context_revision,j.instruction_revision,j.latest_message_id,j.created_at,j.expires_at,j.purpose,j.requested_by_manager_id,j.viewer_access_revision FROM manager_prepared_replies j WHERE j.project_key=? AND j.status='pending' AND j.created_at<=? AND j.expires_at>? AND j.instruction_revision=?"
+                .' AND j.latest_message_id=(SELECT MAX(pm.id) FROM messages pm WHERE pm.conversation_id=j.conversation_id)';
+            $background=$base." AND j.purpose='background' AND EXISTS (SELECT 1 FROM conversations c LEFT JOIN managers m ON m.id=c.manager_id WHERE c.id=j.conversation_id AND c.project_key=j.project_key AND c.is_test=0 AND NOT ".InternalOwnerDialogueScope::conversationSql('c')." AND ((c.manager_id=j.manager_id AND c.status='manager' AND m.is_active=1) OR (j.manager_id=0 AND c.manager_id IS NULL AND c.status='waiting_manager' AND EXISTS (SELECT 1 FROM managers a JOIN manager_projects ap ON ap.manager_id=a.id JOIN projects p ON p.id=ap.project_id WHERE a.is_active=1 AND a.role='admin' AND p.is_active=1 AND p.project_key=j.project_key))))"
+                .' AND '.ManagerPreparationEligibility::sql('j.conversation_id',(string)$pdo->getAttribute(PDO::ATTR_DRIVER_NAME));
+            // Metadata-only current requester/project/source scope. Histories,
+            // precise context and access revisions are rechecked in context/save.
+            $opened=$base." AND j.purpose='open_chat' AND EXISTS (SELECT 1 FROM conversations c JOIN managers r ON r.id=j.requested_by_manager_id JOIN manager_projects rp ON rp.manager_id=r.id JOIN projects p ON p.id=rp.project_id WHERE c.id=j.conversation_id AND c.project_key=j.project_key AND p.project_key=c.project_key AND p.is_active=1 AND r.is_active=1 AND COALESCE(c.manager_id,0)=j.manager_id AND ((c.status='manager' AND c.manager_id=r.id) OR r.role='admin'))";
+            $order=' ORDER BY j.created_at,j.job_id LIMIT '.$limit;
+            // Each lane is bounded before union. Interleaving prevents a full
+            // archive backlog hiding an opened chat, or opening chats starving
+            // ordinary preparation. One empty lane fills from the other.
+            // Access changes may invalidate the oldest coarse candidates. Read
+            // at most the global pending cap, then stop canonical metadata checks
+            // as soon as this lane has enough accepted current rows.
+            $openOrder=' ORDER BY j.created_at,j.job_id LIMIT '.self::MAX_PENDING;
+            $q=$pdo->prepare('SELECT * FROM ('.$opened.$openOrder.') AS opened_jobs UNION ALL SELECT * FROM ('.$background.$order.') AS background_jobs');
+            $args=[ProjectConfig::projectId(),$now,$now,self::instructionRevision()];
+            $q->execute(array_merge($args,$args,ManagerPreparationEligibility::window($now)));
+            $lanes=['open_chat'=>[],'background'=>[]];
             foreach($q->fetchAll(PDO::FETCH_ASSOC) as $row){
                 if(!self::validRow($row))continue;
+                if(self::openRequest($row)&&count($lanes['open_chat'])>=$limit)continue;
+                if(self::openRequest($row)&&!self::openMetadataAllowed($row))continue;
                 foreach(['conversation_id','manager_id','latest_message_id'] as $field)$row[$field]=(int)$row[$field];
-                $jobs[]=$row;
+                $lanes[$row['purpose']][]=$row;
+            }
+            $jobs=[];
+            for($i=0;$i<$limit&&count($jobs)<$limit;$i++)foreach(['open_chat','background'] as $lane){
+                if(isset($lanes[$lane][$i])&&count($jobs)<$limit)$jobs[]=$lanes[$lane][$i];
             }
             return ['ok'=>true,'jobs'=>$jobs];
         }catch(Throwable $ignored){return self::failure('queue_unavailable');}
@@ -230,7 +323,7 @@ final class ManagerPreparedReplyService
             if ($fresh === null || $fresh['status'] !== 'pending' || !self::currentRow($fresh)) return self::failure('job_unavailable');
             if (self::snapshotFor($pdo, $fresh) === null) return self::failure('stale_context');
             return ['ok'=>true,'job_id'=>$jobId,'revision'=>$row['context_revision'],
-                'preparation_scope'=>(int)$row['manager_id'] === 0 ? 'unassigned_waiting' : 'assigned_manager',
+                'preparation_scope'=>self::openRequest($row) ? 'opened_chat' : ((int)$row['manager_id'] === 0 ? 'unassigned_waiting' : 'assigned_manager'),
                 'latest_message_id'=>(int)$row['latest_message_id'],
                 'context'=>$input['context'],'image_inputs'=>$input['images']??[],
                 'company_knowledge'=>['facts'=>$knowledge->facts(),'revision'=>$knowledge->revision()],
@@ -273,6 +366,8 @@ final class ManagerPreparedReplyService
         try {
             $pdo = ConversationDb::connection();
             if ($pdo->inTransaction() || $cid <= 0 || $actor < 0) return $empty;
+            $requested=self::requestedPrepared($pdo,$cid,$actor,$snapshot);
+            if($requested!==null)return $requested;
             $fresh = $actor>0 ? ManagerAiDraftContextService::snapshot($cid, $actor)
                 : ManagerAiDraftContextService::viewerSnapshot($cid,(int)($snapshot['viewer_id']??0));
             if($actor===0&&((int)($fresh['owner_id']??-1)!==0||empty($fresh['owner_read'])))return $empty;
@@ -288,7 +383,7 @@ final class ManagerPreparedReplyService
             }
             $project = self::projectFor($pdo, $cid, $actor,$readProject);
             if ($project === null) return $empty;
-            $q = $pdo->prepare("SELECT * FROM manager_prepared_replies WHERE conversation_id=? AND project_key=? AND instruction_revision=? AND latest_message_id=? AND status='ready' AND ((manager_id=? AND context_revision=?) OR (manager_id=0 AND context_revision=?)) ORDER BY prepared_at DESC LIMIT 1");
+            $q = $pdo->prepare("SELECT * FROM manager_prepared_replies WHERE conversation_id=? AND project_key=? AND purpose='background' AND instruction_revision=? AND latest_message_id=? AND status='ready' AND ((manager_id=? AND context_revision=?) OR (manager_id=0 AND context_revision=?)) ORDER BY prepared_at DESC LIMIT 1");
             $q->execute([$cid,$project,self::instructionRevision(),$fresh['latest_message_id'],$actor,$fresh['revision'],$fresh['preparation_revision'] ?? '']);
             $row = $q->fetch(PDO::FETCH_ASSOC);
             if (!$row || !self::validRow($row) || !self::currentRow($row) || !self::readyTimes($row)) return $empty;
@@ -329,11 +424,84 @@ final class ManagerPreparedReplyService
 
     private static function snapshotFor(PDO $pdo, array $row): ?array
     {
+        if(self::openRequest($row)){
+            $viewer=(int)$row['requested_by_manager_id'];
+            $snapshot=ManagerAiDraftContextService::viewerSnapshot((int)$row['conversation_id'],$viewer);
+            return self::openViewer($snapshot,$viewer)&&self::openBindingMatches($row,$snapshot) ? $snapshot : null;
+        }
         $input=ManagerPreparationEligibility::input($pdo,(int)$row['conversation_id']);
         if($input===null||isset($row['customer_input_revision'])&&!hash_equals($row['customer_input_revision'],$input))return null;
         $snapshot = ManagerAiDraftContextService::preparationSnapshot((int)$row['conversation_id'], (int)$row['manager_id']);
         return self::matches($snapshot, $row['context_revision'], (int)$row['latest_message_id'])
             && self::projectFor($pdo, (int)$row['conversation_id'], (int)$row['manager_id']) === $row['project_key'] ? $snapshot : null;
+    }
+
+    /** Requested work is private to its current viewer, including internal demos. */
+    private static function requestedPrepared(PDO $pdo,int $cid,int $owner,array $before): ?array
+    {
+        $viewer=(int)($before['viewer_id']??$owner);
+        if($viewer<=0)return null;
+        if(!self::matches($before,$before['revision']??null,$before['latest_message_id']??null)
+            ||!self::project($before['project_key']??null))return null;
+        $q=$pdo->prepare("SELECT * FROM manager_prepared_replies WHERE conversation_id=? AND requested_by_manager_id=? AND purpose='open_chat' AND project_key=? AND context_revision=? AND instruction_revision=? AND latest_message_id=? AND status='ready' ORDER BY prepared_at DESC,job_id DESC LIMIT 8");
+        $q->execute([$cid,$viewer,$before['project_key'],$before['revision'],self::instructionRevision(),$before['latest_message_id']]);
+        $rows=$q->fetchAll(PDO::FETCH_ASSOC);if(!$rows)return null;
+        $fresh=ManagerAiDraftContextService::viewerSnapshot($cid,$viewer);
+        if(!self::openViewer($fresh,$viewer)||(int)$fresh['owner_id']!==$owner
+            ||!self::sameViewerSnapshot($fresh,$before+['owner_id'=>$owner]))return null;
+        foreach($rows as $row){
+            if(!self::validRow($row)||!self::currentRow($row)||!self::readyTimes($row)||!self::openBindingMatches($row,$fresh))continue;
+            $json=$row['proposal_json']??null;
+            if(!is_string($json)||strlen($json)>self::MAX_PROPOSAL_BYTES||!self::revision($row['proposal_sha256']??null)
+                ||!hash_equals($row['proposal_sha256'],hash('sha256',$json)))continue;
+            $proposal=json_decode($json,true,16);
+            if(!is_array($proposal)||self::validatedJson($proposal,$fresh)!==$json)continue;
+            return ['ok'=>true,'prepared'=>true,'proposal'=>$proposal,'job_id'=>$row['job_id'],
+                'revision'=>$fresh['revision'],'latest_message_id'=>(int)$row['latest_message_id'],
+                'prepared_at'=>$row['prepared_at'],'expires_at'=>$row['expires_at'],'preparation_source'=>'chatgpt_assistant'];
+        }
+        return null;
+    }
+
+    private static function openRequest(array $row): bool { return ($row['purpose']??'background')==='open_chat'; }
+
+    /** Reuse canonical source/fallback visibility without hydrating any history. */
+    private static function openMetadataAllowed(array $row): bool
+    {
+        $viewer=(int)$row['requested_by_manager_id'];
+        $ownerRead=($row['viewer_access_revision']??null)!==null;
+        $conversation=ManagerConversationService::visibleConversation((int)$row['conversation_id'],$viewer,$ownerRead);
+        if($conversation===null||$conversation['project_key']!==$row['project_key']
+            ||(int)($conversation['manager_id']??0)!==(int)$row['manager_id'])return false;
+        if(!$ownerRead)return (int)$row['manager_id']===$viewer&&$conversation['status']==='manager';
+        if(!ManagerAuthService::isAdmin(ManagerAuthService::byId($viewer)))return false;
+        $scopes=ManagerSupervisorAccessService::scopes($viewer);
+        return ManagerSupervisorAccessService::permits($scopes,$conversation)
+            &&hash_equals($row['viewer_access_revision'],hash('sha256',json_encode($scopes,JSON_THROW_ON_ERROR)));
+    }
+
+    private static function openViewer(array $snapshot,int $viewer): bool
+    {
+        return !empty($snapshot['ok'])&&isset($snapshot['owner_id'])
+            && ((empty($snapshot['supervisor_read'])&&(int)$snapshot['owner_id']===$viewer)
+                || !empty($snapshot['owner_read']))
+            && self::matches($snapshot,$snapshot['revision']??null,$snapshot['latest_message_id']??null);
+    }
+
+    private static function sameViewerSnapshot(array $first,array $second): bool
+    {
+        return self::matches($first,$second['revision']??null,$second['latest_message_id']??null)
+            && ($first['owner_id']??null)===($second['owner_id']??null)
+            && ($first['viewer_access_revision']??null)===($second['viewer_access_revision']??null);
+    }
+
+    private static function openBindingMatches(array $row,array $snapshot): bool
+    {
+        return self::openRequest($row)&&self::matches($snapshot,$row['context_revision'],(int)$row['latest_message_id'])
+            && (int)$row['manager_id']===(int)($snapshot['owner_id']??-1)
+            && (int)$row['requested_by_manager_id']===(int)($snapshot['viewer_id']??$snapshot['owner_id']??0)
+            && $row['project_key']===($snapshot['project_key']??null)
+            && ($row['viewer_access_revision']??null)===($snapshot['viewer_access_revision']??null);
     }
 
     private static function projectFor(PDO $pdo, int $cid, int $actor,?string $readProject=null): ?string
@@ -346,7 +514,7 @@ final class ManagerPreparedReplyService
 
     private static function latestBinding(PDO $pdo, int $cid, int $actor, string $project, string $revision, string $instruction): ?array
     {
-        $q = $pdo->prepare('SELECT * FROM manager_prepared_replies WHERE conversation_id=? AND manager_id=? AND project_key=? AND context_revision=? AND instruction_revision=? ORDER BY created_at DESC,job_id DESC LIMIT 1');
+        $q = $pdo->prepare("SELECT * FROM manager_prepared_replies WHERE conversation_id=? AND manager_id=? AND project_key=? AND context_revision=? AND instruction_revision=? AND purpose='background' ORDER BY created_at DESC,job_id DESC LIMIT 1");
         $q->execute([$cid,$actor,$project,$revision,$instruction]);
         $row = $q->fetch(PDO::FETCH_ASSOC);
         return $row && self::validRow($row) ? $row : null;
@@ -406,6 +574,12 @@ final class ManagerPreparedReplyService
         foreach (['conversation_id','latest_message_id'] as $key) {
             if (filter_var($row[$key] ?? null, FILTER_VALIDATE_INT, ['options'=>['min_range'=>1]]) === false) return false;
         }
+        $purpose=$row['purpose']??'background';
+        if(!in_array($purpose,['background','open_chat'],true))return false;
+        if($purpose==='open_chat'){
+            if(filter_var($row['requested_by_manager_id']??null,FILTER_VALIDATE_INT,['options'=>['min_range'=>1]])===false
+                ||($row['viewer_access_revision']??null)!==null&&!self::revision($row['viewer_access_revision']))return false;
+        }elseif(($row['requested_by_manager_id']??null)!==null||($row['viewer_access_revision']??null)!==null)return false;
         return self::timestamp($row['created_at'] ?? null) !== null && self::timestamp($row['expires_at'] ?? null) !== null;
     }
 

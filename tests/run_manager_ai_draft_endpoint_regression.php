@@ -26,7 +26,7 @@ try {
     foreach ([$tmp,$tmp.'/manager',$tmp.'/manager/lib',$tmp.'/services',$tmp.'/sessions'] as $directory) mkdir($directory,0700);
     $loader = "<?php\nrequire_once ".var_export($fixture,true).";\n";
     file_put_contents($tmp.'/config.php', $loader.'$GLOBALS["manager_ai_http_fixture_directory"] = '.var_export($tmp,true).";\n");
-    foreach (['ManagerAuthService','ManagerConversationAccessPolicy','ManagerAiDraftContextService','ManagerAiDraftService','ManagerAiDraftFeedbackService','ManagerPreparedReplyService'] as $service) file_put_contents($tmp.'/services/'.$service.'.php',$loader);
+    foreach (['ManagerAuthService','ManagerConversationAccessPolicy','ManagerAiDraftContextService','ManagerAiDraftService','ManagerAiDraftFeedbackService','ManagerPreparedReplyService','ManagerPreparationMcpService'] as $service) file_put_contents($tmp.'/services/'.$service.'.php',$loader);
     foreach (['manager/ai-draft.php','manager/lib/ManagerHttp.php','services/ManagerRequestContext.php'] as $source) copy($root.'/'.$source,$tmp.'/'.$source);
     managerAiEndpointCheck('isolated app executes exact current endpoint bytes',hash_file('sha256',$root.'/manager/ai-draft.php') === hash_file('sha256',$tmp.'/manager/ai-draft.php'));
     file_put_contents($tmp.'/manager/fixture-session.php', '<?php require dirname(__DIR__)."/config.php";require __DIR__."/lib/ManagerHttp.php";ManagerHttp::startJson();$_SESSION["manager_id"]=7;$_SESSION["csrf"]="synthetic-csrf";ManagerHttp::respond(["ok"=>true]);');
@@ -125,7 +125,7 @@ try {
     managerAiEndpointCheck('readiness returns current metadata without proposal, job ID or customer text',
         $readyStatus['status']===200&&$readyStatus['json']===['ok'=>true,'prepared'=>true,'should_draft'=>true,
             'revision'=>$baseState['revision'],'latest_message_id'=>10,'prepared_at'=>'2026-10-19 10:00:00',
-            'expires_at'=>'2026-10-19 11:00:00','preparation_source'=>'chatgpt_assistant']);
+            'expires_at'=>'2026-10-19 11:00:00','preparation_source'=>'chatgpt_assistant','automatic_preparation'=>true]);
     $assertNoProvider('automatic readiness never calls the provider');
     managerAiEndpointCheck('automatic readiness never records feedback',!in_array('feedback_record',array_column($events(),'event'),true));
     $previewRequest=array_replace($body,['action'=>'prepared_preview']);
@@ -163,6 +163,53 @@ try {
     $writeState();$clearEvents();
     $expectError('prepared request also checks latest message',$request(array_replace($prepared,['latest_message_id'=>9]),$cookie),409,'context_stale');
     managerAiEndpointCheck('stale prepared request does not reach cache',!in_array('prepared_read',array_column($events(),'event'),true));
+    $ensure=array_replace($body,['action'=>'ensure_prepared']);
+    $writeState();$clearEvents();
+    $expectError('automatic request requires current CSRF',$request(array_replace($ensure,['csrf'=>'wrong-csrf']),$cookie),403,'csrf');
+    managerAiEndpointCheck('rejected automatic request cannot reach connection or queue',
+        !array_intersect(['preparation_connection','preparation_requested','preparation_event'],array_column($events(),'event')));
+    $writeState();$clearEvents();
+    $missingStatus=$request($statusRequest,$cookie);
+    managerAiEndpointCheck('cache miss advertises automatic preparation without queuing on passive read',
+        $missingStatus['json']===['ok'=>true,'prepared'=>false,'automatic_preparation'=>true]
+        &&!array_intersect(['preparation_requested','preparation_event','provider'],array_column($events(),'event')));
+    $clearEvents();$automatic=$request($ensure+['viewer_id'=>999,'manager_id'=>888],$cookie);$automaticEvents=$events();
+    managerAiEndpointCheck('chat opening requests the authenticated viewer through the existing queue',
+        $automatic['status']===200&&$automatic['json']===['ok'=>true,'requested'=>true,'queued'=>true,'preparation_state'=>'pending']
+        &&array_column($automaticEvents,'event')===['initialize_read_only','auth','snapshot','preparation_connection','preparation_requested','preparation_event','snapshot']
+        &&$automaticEvents[4]['viewer_id']===7&&$automaticEvents[4]['owner_id']===7);
+    managerAiEndpointCheck('queue creation and callback release the session lock',
+        $automaticEvents[3]['session_closed']&&$automaticEvents[4]['session_closed']&&$automaticEvents[5]['session_closed']);
+    managerAiEndpointCheck('automatic preparation exposes no job, proposal or feedback identity',
+        !array_intersect(['job_id','draft_id','proposal'],array_keys($automatic['json'])));
+    managerAiEndpointCheck('automatic preparation never calls the manual API or records insertion/use',
+        !array_intersect(['provider','feedback_record','feedback_insert_request'],array_column($automaticEvents,'event')));
+    $writeState(['ensure_result'=>['ok'=>true,'requested'=>true,'preparation_state'=>'ready']]);$clearEvents();
+    managerAiEndpointCheck('already ready request avoids another worker event',
+        $request($ensure,$cookie)['json']===['ok'=>true,'requested'=>true,'queued'=>false,'preparation_state'=>'ready']
+        &&!in_array('preparation_event',array_column($events(),'event'),true));
+    $writeState(['preparation_connected'=>false]);$clearEvents();
+    $expectError('disconnected preparation fails truthfully',$request($ensure,$cookie),503,'preparation_unavailable');
+    managerAiEndpointCheck('disconnected preparation creates no work or provider call',
+        !array_intersect(['preparation_requested','preparation_event','provider'],array_column($events(),'event')));
+    $writeState(['ensure_result'=>['ok'=>false,'error'=>'queue_unavailable']]);$clearEvents();
+    $expectError('queue outage has no API fallback',$request($ensure,$cookie),503,'queue_unavailable');
+    managerAiEndpointCheck('queue outage sends no callback or manual model request',
+        !array_intersect(['preparation_event','provider'],array_column($events(),'event')));
+    $writeState(['delivery_throws'=>true]);$clearEvents();
+    managerAiEndpointCheck('callback outage retains queued work for the existing cron retry',
+        $request($ensure,$cookie)['json']===['ok'=>true,'requested'=>true,'queued'=>true,'preparation_state'=>'pending']
+        &&count(array_filter($events(),static fn($e)=>$e['event']==='preparation_requested'))===1);
+    $writeState(['supervisor_read'=>true]);$clearEvents();
+    $expectError('ordinary foreign supervisor cannot request automatic work',$request($ensure,$cookie),403,'forbidden');
+    managerAiEndpointCheck('ordinary foreign supervisor cannot reach connection or queue',
+        !array_intersect(['preparation_connection','preparation_requested','preparation_event'],array_column($events(),'event')));
+    $writeState(['supervisor_read'=>true,'owner_read'=>true]);$clearEvents();$ownerRequest=$request($ensure,$cookie);
+    managerAiEndpointCheck('workspace owner automatically requests a foreign chat without taking it',
+        $ownerRequest['status']===200&&$ownerRequest['json']['queued']===true&&$ownerRequest['json']['owner_id']===8
+        &&(array_values(array_filter($events(),static fn($e)=>$e['event']==='preparation_requested'))[0]??null)
+            ===['event'=>'preparation_requested','conversation_id'=>42,'viewer_id'=>7,'owner_id'=>8,'session_closed'=>true]
+        &&!array_intersect(['provider','feedback_record','feedback_insert_request'],array_column($events(),'event')));
     $writeState();
     $validate = array_replace($body,['action'=>'validate','revision'=>$baseState['revision']]);
     foreach ([null,'',str_repeat('g',64),str_repeat('a',63),17,[]] as $revision) {
@@ -221,7 +268,7 @@ try {
 
     $race = static function(string $name,array $change,?string $sessionMutation,int $status,string $error,int $snapshotCount,array $setup=[],string $action='generate') use ($tmp,$fixture,$address,$body,$writeState,$clearEvents,$events,$login,$expectError,&$children): void {
         $writeState($setup); $cookie = $login();
-        $barrier=$action==='prepared_preview'?'prepared':'provider';
+        $barrier=$action==='prepared_preview'?'prepared':($action==='ensure_prepared'?'ensure':'provider');
         $waiting=[$barrier.'_mode'=>'wait'];
         $writeState($waiting+$setup); $clearEvents();
         foreach ([$barrier.'-ready',$barrier.'-release','result.json'] as $file) if (is_file($tmp.'/'.$file)) unlink($tmp.'/'.$file);
@@ -252,7 +299,7 @@ try {
         $expectError($name.' rejects stale proposal',$response,$status,$error);
         managerAiEndpointCheck($name.' does not leak generated text',!str_contains($response['body'],'Какие даты вылета'));
         managerAiEndpointCheck($name.' uses expected fresh authorization boundary',count(array_filter($events(),static fn(array $event): bool=>$event['event'] === 'snapshot')) === $snapshotCount);
-        if($action==='prepared_preview')managerAiEndpointCheck($name.' has no provider or feedback side effects',!array_intersect(['provider','feedback_record','feedback_insert_request'],array_column($events(),'event')));
+        if(in_array($action,['prepared_preview','ensure_prepared'],true))managerAiEndpointCheck($name.' has no provider or feedback side effects',!array_intersect(['provider','feedback_record','feedback_insert_request'],array_column($events(),'event')));
     };
     $race('new customer message',['latest_message_id'=>11,'revision'=>hash('sha256','new-message')],null,409,'context_stale',2);
     $race('same-ID message edit',['revision'=>hash('sha256','edited-message')],null,409,'context_stale',2);
@@ -267,6 +314,12 @@ try {
     $race('logout during passive preview',[],'logout',401,'unauthorized',1,['prepared_result'=>$stored],'prepared_preview');
     $race('CSRF rotates during passive preview',[],'rotate_csrf',401,'unauthorized',1,['prepared_result'=>$stored],'prepared_preview');
     $race('account changes during passive preview',[],'change_account',401,'unauthorized',1,['prepared_result'=>$stored],'prepared_preview');
+    $race('new message during automatic request',['latest_message_id'=>11,'revision'=>hash('sha256','opening-new-message')],null,409,'context_stale',2,[],'ensure_prepared');
+    $race('access lost during automatic request',['access'=>false],null,403,'forbidden',2,[],'ensure_prepared');
+    $race('logout during automatic request',[],'logout',401,'unauthorized',1,[],'ensure_prepared');
+    $race('account changes during automatic request',[],'change_account',401,'unauthorized',1,[],'ensure_prepared');
+    $race('owner viewer scope changes during automatic request',['viewer_access_revision'=>str_repeat('f',64)],null,409,'context_stale',2,['supervisor_read'=>true,'owner_read'=>true],'ensure_prepared');
+    $race('owner role changes during automatic request',['owner_read'=>false],null,403,'forbidden',2,['supervisor_read'=>true,'owner_read'=>true],'ensure_prepared');
     $writeState(['supervisor_read'=>true,'prepared_result'=>$stored]);$cookie=$login();$clearEvents();
     $super=$request($prepared,$cookie);
     managerAiEndpointCheck('supervisor cache uses actual owner without feedback',$super['status']===200&&$super['json']['owner_id']===8&&$super['json']['supervisor_read']&&$super['json']['draft_id']===null&&!in_array('feedback_record',array_column($events(),'event'),true)&&(array_values(array_filter($events(),static fn($e)=>$e['event']==='prepared_read'))[0]['manager_id']??null)===8);
