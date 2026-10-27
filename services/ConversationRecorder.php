@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/ConversationDb.php';
+require_once __DIR__ . '/ConversationRecordClock.php';
 require_once __DIR__ . '/ProjectConfig.php';
 require_once __DIR__ . '/RoutingAccessService.php';
 
@@ -57,7 +58,7 @@ class ConversationRecorder
             if ($attachments) $metadata['attachments'] = $attachments;
             $linked=(array)($incoming['linked_message']??[]);
             if(in_array((string)($linked['type']??''),['reply','forward'],true)) $metadata['linked_message']=$linked;
-            $meta = self::json($metadata);
+            $meta = self::json(ConversationRecordClock::stamp($metadata));
             $stmt = $pdo->prepare('INSERT INTO messages (conversation_id,direction,sender_type,sender_id,channel,external_message_id,text,metadata_json) VALUES (?,?,?,?,?,?,?,?)');
             $stmt->execute([$conversationId,'inbound','customer',$externalUserId,$platform,$messageId !== '' ? $messageId : null,$text,$meta]);
             $inputId = (string)$pdo->lastInsertId();
@@ -107,7 +108,7 @@ class ConversationRecorder
                 'input_message_id'=>$input['input_message_id'], 'input_kind'=>$input['input_kind'],
                 'input_text_sha256'=>$input['input_text_sha256'], 'field'=>$field, 'storage_value'=>$value];
             $stmt = ConversationDb::connection()->prepare('INSERT INTO conversation_events (conversation_id,event_type,actor_type,payload_json) VALUES (?,?,?,?)');
-            $stmt->execute([$input['conversation_id'],'wizard_value_applied','system',self::json($payload)]);
+            $stmt->execute([$input['conversation_id'],'wizard_value_applied','system',self::json(ConversationRecordClock::stamp($payload))]);
             self::$wizardReceipts[$key] = true;
             self::$wizardReceiptReason = 'recorded';
             return true;
@@ -149,7 +150,7 @@ class ConversationRecorder
             if ($platform === '') return false;
             $pdo = ConversationDb::connection();
             $stmt = $pdo->prepare('INSERT INTO messages (conversation_id,direction,sender_type,sender_id,channel,external_message_id,text,metadata_json) VALUES (?,?,?,?,?,?,?,?)');
-            $stmt->execute([$conversationId,'outbound',$senderType,$senderId,$platform,$externalMessageId !== '' ? $externalMessageId : null,$text,self::json($metadata)]);
+            $stmt->execute([$conversationId,'outbound',$senderType,$senderId,$platform,$externalMessageId !== '' ? $externalMessageId : null,$text,self::json(ConversationRecordClock::stamp($metadata))]);
             self::touch($conversationId);
             return true;
         } catch (Throwable $e) {
@@ -166,7 +167,7 @@ class ConversationRecorder
             if (!$conversationId) return false;
             $pdo = ConversationDb::connection();
             $stmt = $pdo->prepare('INSERT INTO conversation_events (conversation_id,event_type,actor_type,payload_json) VALUES (?,?,?,?)');
-            $stmt->execute([$conversationId,$eventType,$actorType,self::json($payload)]);
+            $stmt->execute([$conversationId,$eventType,$actorType,self::json(ConversationRecordClock::stamp($payload))]);
             return true;
         } catch (Throwable $e) {
             self::logFailure('event', $e);
@@ -232,8 +233,8 @@ class ConversationRecorder
             return $id;
         }
 
-        $q = $pdo->prepare('INSERT INTO conversations (customer_id,customer_channel_id,project_key,source_id,channel,external_chat_id,status,last_message_at) VALUES (?,?,?,?,?,?,?,NOW())');
-        $q->execute([$customerId,$channelId,$project,$sourceId>0?$sourceId:null,$platform,$chatId,'ai']);
+        $q = $pdo->prepare('INSERT INTO conversations (customer_id,customer_channel_id,project_key,source_id,channel,external_chat_id,status,last_message_at,metadata_json) VALUES (?,?,?,?,?,?,?,NOW(),?)');
+        $q->execute([$customerId,$channelId,$project,$sourceId>0?$sourceId:null,$platform,$chatId,'ai',self::json(ConversationRecordClock::stamp([]))]);
         return (int)$pdo->lastInsertId();
     }
 

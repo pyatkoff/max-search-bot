@@ -40,7 +40,7 @@ function createChannelPostEntryFixture(): array
     ]);
     $pdo = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
     $pdo->sqliteCreateFunction('NOW', static fn() => gmdate('Y-m-d H:i:s'));
-    $pdo->exec("CREATE TABLE conversations(id INTEGER PRIMARY KEY AUTOINCREMENT,customer_id INTEGER,customer_channel_id INTEGER,project_key TEXT,source_id INTEGER,channel TEXT,external_chat_id TEXT,status TEXT DEFAULT 'ai',manager_id INTEGER,entry_channel TEXT,attribution_region TEXT,attribution_campaign TEXT,last_message_at TEXT,started_at TEXT DEFAULT CURRENT_TIMESTAMP);
+    $pdo->exec("CREATE TABLE conversations(id INTEGER PRIMARY KEY AUTOINCREMENT,customer_id INTEGER,customer_channel_id INTEGER,project_key TEXT,source_id INTEGER,channel TEXT,external_chat_id TEXT,status TEXT DEFAULT 'ai',manager_id INTEGER,entry_channel TEXT,attribution_region TEXT,attribution_campaign TEXT,last_message_at TEXT,started_at TEXT DEFAULT CURRENT_TIMESTAMP,metadata_json TEXT);
         CREATE TABLE conversation_events(id INTEGER PRIMARY KEY AUTOINCREMENT,conversation_id INTEGER,event_type TEXT,actor_type TEXT,actor_id TEXT,payload_json TEXT,created_at TEXT DEFAULT CURRENT_TIMESTAMP);
         CREATE TABLE customers(id INTEGER PRIMARY KEY AUTOINCREMENT,display_name TEXT);
         CREATE TABLE customer_channels(id INTEGER PRIMARY KEY AUTOINCREMENT,customer_id INTEGER,project_key TEXT,channel TEXT,external_user_id TEXT,external_chat_id TEXT,username TEXT,metadata_json TEXT);

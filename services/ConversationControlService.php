@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/ConversationDb.php';
+require_once __DIR__ . '/ConversationRecordClock.php';
 require_once __DIR__ . '/ProjectConfig.php';
 require_once __DIR__ . '/ManagerPushService.php';
 require_once __DIR__ . '/MetrikaConversionGoalService.php';
@@ -77,7 +78,7 @@ class ConversationControlService
 
     public static function event(int $conversationId, string $type, string $actorType, $actorId = null, array $payload = []): void
     {
-        $json = $payload ? json_encode($payload, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) : null;
+        $json = json_encode(ConversationRecordClock::stamp($payload), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
         ConversationDb::connection()->prepare('INSERT INTO conversation_events (conversation_id,event_type,actor_type,actor_id,payload_json) VALUES (?,?,?,?,?)')
             ->execute([$conversationId,$type,$actorType,$actorId !== null ? (string)$actorId : null,$json]);
     }

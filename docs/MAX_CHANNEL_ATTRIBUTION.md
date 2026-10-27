@@ -43,6 +43,39 @@ Reject nonexistent local times rather than silently normalizing them.
 Evidence: [tracker time inspection](https://github.com/pyatkoff/tour-max/actions/runs/38726287142),
 [conversation trial](https://github.com/pyatkoff/max-search-bot/actions/runs/38724100239).
 
+### Forward conversation clock contract — 27 Oct 2026
+
+The 15 Oct conversation UTC trial above is point-in-time evidence. A bounded
+metadata-only read on 27 Oct 10:35:22 UTC found session/global `SYSTEM`, system
+`MSK` and an offset of +10800 seconds. Core bare DATETIME values mix database
+CURRENT_TIMESTAMP writers with explicit UTC writers. Neither the current offset
+nor the old trial proves a historical row's basis. Do not shift or backfill them.
+
+Canonical Recorder/Control writes now carry a server-owned `_recorded_clock`
+(version 1, `server_recording_unix`, integer Unix instant) in their existing JSON.
+This is recording time, not an invented provider occurrence. New conversations
+carry their own start receipt; existing conversations are never retrospectively
+stamped. A canonical post entry retains its separately established explicit UTC
+writer. MAX stage selection, ordering and cutoffs require the forward numeric
+receipt; unmarked/malformed rows stay unknown, with no wall-clock fallback or
+historical replay. The original activation and work cursors are preserved.
+
+Membership still requires an exact eligible post-fence conversation and an
+already-admitted numeric outbox event. Both time bounds are numeric; a later goal
+from an earlier episode cannot shadow its successor. New journal receipts retain
+their first numeric recording instant taken immediately before insertion, after
+the lookup, across idempotent reads; their compatibility
+wall projection is FROM_UNIXTIME of that same instant in MySQL (UTC in SQLite).
+The source journal and actual CLI validate the clock header independently of the
+business receipt, while keeping occurrence, recording and first observation
+separate. Existing snapshots and frozen assessments are not rewritten.
+
+A collector exception is counted once and its partial collection total remains
+unknown. It does not retry the collector or prevent the independent existing
+identity/membership/TG/upload paths from proceeding once with their own guards.
+Tracker membership clock interpretation remains Europe/London/DST; this forward
+conversation provenance contract does not change it or any attribution policy.
+
 ## Runtime flow
 
 Migration `037_max_channel_conversion_outbox.sql` creates only feature settings
@@ -74,8 +107,8 @@ The post-commit hook performs only a local capture. An independent, bounded
 `waiting_manager` event cursor recovers missed hooks and outer transactions.
 The customer-after-manager stage retains waiting-manager/manager-message guards.
 The existing destination exclusion also applies. Timestamp ordering uses
-`created_at,id`, so a later message in the same second is retained. UTC is
-verified before capture. The mirror's `messages.created_at` is the persisted
+`recorded_at_unix,id`, so a later message in the same second is retained. The versioned canonical Unix receipt is
+verified before capture. The mirror's versioned Unix recording receipt is the persisted
 accepted-event clock; a raw provider timestamp is not currently persisted by the
 recorder. No queue/enrichment timestamp is substituted for it.
 
