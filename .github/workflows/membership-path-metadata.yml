@@ -1,0 +1,108 @@
+name: Read bounded membership path metadata
+on:
+  push:
+    branches: [audit/membership-path-metadata-20261027]
+    paths: [.github/workflows/membership-path-metadata.yml]
+permissions:
+  contents: read
+concurrency:
+  group: anytour-membership-path-metadata-20261027
+  cancel-in-progress: false
+jobs:
+  read:
+    if: github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Pin current main
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin refs/heads/main
+          test "$(git rev-parse FETCH_HEAD)" = d304689512e426fcde5f0a782396b72436be054b
+      - name: Prepare existing identity and strict canonical pin
+        env:
+          K: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          TARGET: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        run: |
+          set -euo pipefail
+          umask 077
+          if [[ "$K" == *"PRIVATE KEY"* ]]; then printf '%b\n' "$K" | tr -d '\r' > "$RUNNER_TEMP/membership-key"; else printf '%s' "$K" | base64 --decode > "$RUNNER_TEMP/membership-key"; fi
+          chmod 600 "$RUNNER_TEMP/membership-key"
+          ssh-keygen -y -f "$RUNNER_TEMP/membership-key" >/dev/null
+          python3 - "$TARGET" "$RUNNER_TEMP/membership-hosts" <<'PY'
+          import base64,hashlib,socket,subprocess,sys
+          host,dest=sys.argv[1:]
+          if {v[4][0] for v in socket.getaddrinfo(host,22,type=socket.SOCK_STREAM)}!={'5.45.122.54'}:raise SystemExit('canonical_target_changed')
+          pinned=[]
+          for _ in range(2):
+              scan=subprocess.run(['ssh-keyscan','-T','10',host],capture_output=True,text=True,timeout=30)
+              for line in scan.stdout.splitlines():
+                  parts=line.split()
+                  if len(parts)!=3 or parts[0].startswith('#'):continue
+                  try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(parts[2],validate=True)).digest()).decode().rstrip('=')
+                  except ValueError:continue
+                  if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0' and line not in pinned:pinned.append(line)
+              if pinned:break
+          if not pinned:raise SystemExit('canonical_host_pin_not_seen')
+          open(dest,'w').write('\n'.join(pinned)+'\n')
+          PY
+      - name: One read-only metadata snapshot
+        env:
+          TARGET: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          umask 077
+          cat > "$RUNNER_TEMP/membership-read.php" <<'PHP'
+          <?php
+          declare(strict_types=1);
+          try {
+           chdir('/var/www/anytoour/data/www/app.anytoour.ru');
+           require_once 'config.php';require_once 'services/ProjectAccessService.php';
+           require_once 'services/ModeledConversionStream.php';require_once 'services/ModeledConversionProfiles.php';
+           if(ProjectConfig::projectId()!=='anytour')throw new RuntimeException('project');
+           ProjectAccessService::initializeReadOnly();$p=ConversationDb::connection();
+           $p->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');$p->exec('SET TRANSACTION READ ONLY');$p->beginTransaction();
+           $s=$p->query("SELECT mode,goal_set,membership_receipts_activated_at_unix AS activation,(membership_receipts_outbox_cursor>0) AS cursor_present FROM max_channel_attribution_settings WHERE project_key='anytour' AND counter_id='98615635' LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+           if(!$s||!in_array($s['mode'],['off','collect','send'],true)||!in_array($s['goal_set'],['channel','shared'],true))throw new RuntimeException('settings');
+           $s['activation']=(int)$s['activation'];$s['cursor_present']=(bool)$s['cursor_present'];
+           $stream=(new ModeledConversionStream($p))->status();$profiles=(new ModeledConversionProfiles($p))->status();
+           $q=$p->prepare("SELECT JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.payload.event_type')) AS kind,observed_at_unix FROM modeled_conversion_stream_versions WHERE project_key='anytour' AND source_kind='event' AND observed_at_unix>=? ORDER BY id DESC LIMIT 501");$q->execute([$s['activation']]);$rows=$q->fetchAll(PDO::FETCH_ASSOC);
+           $window=['rows_considered'=>min(500,count($rows)),'limited'=>count($rows)>500,'subscription'=>0,'retention_30m'=>0,'latest_membership_observed_at_unix'=>null];
+           foreach(array_slice($rows,0,500)as$r){$key=match($r['kind']){'channel_subscription_observed'=>'subscription','channel_retention_30m_observed'=>'retention_30m',default=>null};if($key!==null){$window[$key]++;$window['latest_membership_observed_at_unix']=max($window['latest_membership_observed_at_unix']??0,(int)$r['observed_at_unix']);}}
+           $installed=1793094692;
+           $q=$p->prepare("SELECT observed_at_unix,JSON_UNQUOTE(JSON_EXTRACT(profile_json,'$.profile.early_signals.subscription.status')) AS subscription,JSON_UNQUOTE(JSON_EXTRACT(profile_json,'$.profile.early_signals.retention_30m.status')) AS retention FROM modeled_conversion_profile_versions WHERE project_key='anytour' AND observed_at_unix>=? ORDER BY id DESC LIMIT 4");$q->execute([$installed]);$projection=[];
+           foreach($q->fetchAll(PDO::FETCH_ASSOC)as$r){$projection[]=['observed_at_unix'=>(int)$r['observed_at_unix'],'subscription'=>in_array($r['subscription'],['known','unknown','pending'],true)?$r['subscription']:'unavailable','retention'=>in_array($r['retention'],['known','unknown','pending'],true)?$r['retention']:'unavailable'];}
+           $q=$p->prepare("SELECT COUNT(*) FROM max_channel_conversion_outbox WHERE project_key='anytour' AND platform='max' AND counter_id='98615635' AND created_at>=?");$q->execute([gmdate('Y-m-d H:i:s',$s['activation'])]);$outbox=(int)$q->fetchColumn();
+           $p->rollBack();
+           $scheduler=['available'=>false,'clock_basis'=>'naive_server_wallclock_not_proved_UTC'];
+           $f=@fopen('metrika_upload.log','rb');if($f){$size=fstat($f)['size'];$offset=max(0,$size-65536);fseek($f,$offset);$tail=stream_get_contents($f,65536);fclose($f);$lines=explode("\n",$tail);if($offset>0)array_shift($lines);array_pop($lines);$lines=array_slice($lines,-512);
+           foreach(array_reverse($lines)as$line){if(!preg_match('/^([0-9-]{10} [0-9:]{8}) MAX_CHANNEL (.+)$/D',$line,$m))continue;
+           if($m[2]==='background_failed'){$scheduler=['available'=>true,'wallclock'=>$m[1],'clock_basis'=>'naive_server_wallclock_not_proved_UTC','background_failed'=>true];break;}
+           $j=json_decode($m[2],true);if(!is_array($j)||!in_array($j['mode']??null,['off','collect','send'],true))continue;
+           $scheduler=['available'=>true,'wallclock'=>$m[1],'clock_basis'=>'naive_server_wallclock_not_proved_UTC','mode'=>$j['mode'],'membership'=>[]];foreach(['inserted','unchanged','conflicts','errors']as$k){$v=$j['membership'][$k]??null;$scheduler['membership'][$k]=is_int($v)&&$v>=0?$v:null;}break;
+           }}
+           $out=['purpose'=>'post_receiver_membership_path_metadata','sampled_at'=>gmdate('Y-m-d\TH:i:s\Z'),'settings'=>$s,'stream'=>$stream,'profiles'=>$profiles,'journal_event_window'=>$window,'latest_profile_rows'=>$projection,'post_activation_max_outbox_rows'=>$outbox,'ordinary_scheduler'=>$scheduler,'native_source_reads'=>0,'texts_values_ids_returned'=>0,'database_writes'=>0,'manual_ticks'=>0,'API_POST_model_provider_customer_calls'=>0];
+           $json=json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);if(strlen($json)>65536)throw new RuntimeException('output');echo $json,"\n";
+          }catch(Throwable $e){if(isset($p)&&$p->inTransaction())$p->rollBack();fwrite(STDERR,"membership_path_metadata_failed\n");exit(1);}
+          PHP
+          php -l "$RUNNER_TEMP/membership-read.php"
+          ssh -i "$RUNNER_TEMP/membership-key" -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$RUNNER_TEMP/membership-hosts" -o ConnectTimeout=10 "$USER@$TARGET" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(git rev-parse HEAD)" = d304689512e426fcde5f0a782396b72436be054b; php -d display_errors=0 -d log_errors=0; test "$(git rev-parse HEAD)" = d304689512e426fcde5f0a782396b72436be054b' < "$RUNNER_TEMP/membership-read.php" > "$RUNNER_TEMP/membership-metadata.json"
+          python3 - "$RUNNER_TEMP/membership-metadata.json" <<'PY'
+          import json,pathlib,sys
+          raw=pathlib.Path(sys.argv[1]).read_bytes()
+          assert len(raw)<=65536
+          obj=json.loads(raw)
+          assert obj['native_source_reads']==obj['texts_values_ids_returned']==obj['database_writes']==obj['manual_ticks']==obj['API_POST_model_provider_customer_calls']==0
+          print(json.dumps(obj,ensure_ascii=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: membership-path-metadata-${{ github.run_id }}
+          path: ${{ runner.temp }}/membership-metadata.json
+          retention-days: 1
+          if-no-files-found: error
+      - name: Cleanup
+        if: always()
+        run: rm -f "$RUNNER_TEMP/membership-key" "$RUNNER_TEMP/membership-hosts" "$RUNNER_TEMP/membership-read.php" "$RUNNER_TEMP/membership-metadata.json"
