@@ -9,6 +9,7 @@ function same(a,b){return a&&b&&a.actor===b.actor&&a.conversation_id===b.convers
 const sourceRoles=['funsun','anex','tourvisor'];
 function sourceOwner(role,sender){return Number.isInteger(sender.tab?.id)&&sender.tab.id>=0&&(!Number.isInteger(sender.frameId)||sender.frameId===0)?{role,tab:sender.tab.id,document:sender.documentId||''}:null}
 function ownsSource(owner,role,sender){const current=sourceOwner(role,sender);return !!owner&&!!current&&owner.role===current.role&&owner.tab===current.tab&&owner.document===current.document}
+function rotateOperation(item){if(item.source&&!item.source_operation_id)item.source_operation_id=item.operation_id;item.operation_id=id()}
 function pruneTickets(){for(const [key,ticket]of addTickets)if(Date.now()-ticket.at>60000)addTickets.delete(key);while(addTickets.size>=64)addTickets.delete(addTickets.keys().next().value)}
 async function announce(){for(const tab of await chrome.tabs.query({url:['https://b2b.fstravel.com/search_tour*','https://agent.anextour.ru/search/tour*','https://pro.tourvisor.ru/search*']}))void chrome.tabs.sendMessage(tab.id,{type:'target_changed'}).catch(()=>{});await chrome.action.setBadgeText({text:String((await state()).items.filter(x=>!['saved','cancelled'].includes(x.state)).length||'')})}
 async function openEditor(){try{if(typeof chrome.action.openPopup==='function')await chrome.action.openPopup()}catch{}}
@@ -58,13 +59,13 @@ async function handle(m,sender){
  pruneTickets();const ticket=id();addTickets.set(ticket,{owner,target:s.target,at:Date.now()});return{ok:true,ticket};
  });
  if(sourceRoles.includes(role)&&m.type==='add_status'){
- const s=await state(),item=s.items.find(x=>x.operation_id===m.operation_id);
+ const s=await state(),item=s.items.find(x=>x.operation_id===m.operation_id||(x.source_operation_id&&x.source_operation_id===m.operation_id));
  if(!item||!ownsSource(item.source,role,sender))return{ok:false};
  if(item.state==='cancelled')return{ok:true,state:'cancelled',error:null};
  return same(item.target,s.target)?{ok:true,state:item.state,error:item.error||null}:{ok:true,state:'blocked',error:'connection_changed'};
  }
  if(sourceRoles.includes(role)&&m.type==='show_edit'){
- const s=await state(),item=s.items.find(x=>x.operation_id===m.operation_id);if(!item||item.state==='cancelled'||!ownsSource(item.source,role,sender))return{ok:false};await openEditor();return{ok:true};
+ const s=await state(),item=s.items.find(x=>x.operation_id===m.operation_id||(x.source_operation_id&&x.source_operation_id===m.operation_id));if(!item||item.state==='cancelled'||!ownsSource(item.source,role,sender))return{ok:false};await openEditor();return{ok:true};
  }
  if(sourceRoles.includes(role)&&['enqueue','enqueue_edit'].includes(m.type)){
  const editing=m.type==='enqueue_edit';if(editing&&!Object.hasOwn(m,'ticket'))return{ok:false};
@@ -102,14 +103,14 @@ async function handle(m,sender){
  if(m.type==='remove'){if(item.state==='queued')return{ok:false};if(item.needs_edit_confirmation){item.state='cancelled';item.error=null;delete item.edit_draft}else s.items.splice(at,1)}
  else{if(item.state==='saved')return{ok:false};
  const expected={confirm:'destination',retry:'waiting',variant:'review',reconnect:'blocked',save_edit:'editing'};if(item.state!==expected[m.type])return{ok:false};
- if(m.type==='reconnect'){const t=s.target;if(!t||item.target.actor!==t.actor||item.target.conversation_id!==t.conversation_id||item.target.binding!==t.binding)return{ok:false};item.target=t;item.operation_id=id()}
+ if(m.type==='reconnect'){const t=s.target;if(!t||item.target.actor!==t.actor||item.target.conversation_id!==t.conversation_id||item.target.binding!==t.binding)return{ok:false};item.target=t;rotateOperation(item)}
  if(!same(item.target,s.target))return{ok:false};
  if(m.type==='save_edit'){
   if(typeof m.manager_amount!=='string'||!/^(?:0|[1-9][0-9]{0,8})(?:\.[0-9]{1,2})?$/.test(m.manager_amount)||!/[1-9]/.test(m.manager_amount))return{ok:false};
   item.manager_amount=m.manager_amount;item.needs_edit_confirmation=false;
  }
  if(item.observation.adapter==='tourvisor-snapshot-v1'&&item.observation.raw.party_price_confirmation!=='one_room_two_adults'&&m.type!=='reconnect'){if(!['confirm','save_edit'].includes(m.type)||m.confirm_price_basis!==true)return{ok:false};item.observation.raw.party_price_confirmation='one_room_two_adults'}
- if(m.type==='variant'){if(item.state!=='review'||item.error==='manual_price_conflict')return{ok:false};item.as_variant=true;item.operation_id=id()}
+ if(m.type==='variant'){if(item.state!=='review'||item.error==='manual_price_conflict')return{ok:false};item.as_variant=true;rotateOperation(item)}
  item.state=item.needs_edit_confirmation?'editing':item.observation.adapter==='tourvisor-snapshot-v1'&&item.observation.raw.party_price_confirmation!=='one_room_two_adults'?'destination':'queued';item.error=null}
  await chrome.storage.local.set({items:s.items});return{ok:true}});await announce();if(result.ok)void process();return result;
  }

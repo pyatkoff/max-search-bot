@@ -46,6 +46,18 @@ function provider(){return {receipts:new Map(),calls:[],creates:0,mode:'',async 
 async function stage(w,hotel){assert.equal((await w.enqueue(observation(hotel))).ok,true);const s=await w.status();return s.items.at(-1).operation_id}
 async function itemState(w,operation,state){await until(async()=>(await w.status()).items.find(x=>x.operation_id===operation)?.state===state)}
 
+// Keep the actual source page client alive while the MV3 worker restarts or a
+// popup action changes the server intent. The button must still follow its
+// original click without exposing target data or enqueuing a second import.
+function sourceClient(send){
+ const window={},messages=[],button={dataset:{},isConnected:true,parentElement:null,setAttribute(){}};
+ const chrome={runtime:{async sendMessage(message){messages.push(clone(message));return send(message)}}};
+ vm.runInNewContext(fs.readFileSync(__dirname+'/../extensions/selection-collector/collector-client.js','utf8'),
+  {window,document:{},chrome,URL,Map,WeakMap,Set,Promise,setTimeout,location:{href:'https://b2b.fstravel.com/search_tour',origin:'https://b2b.fstravel.com'}},
+  {filename:'collector-client.js'});
+ return {client:window.AnyTourCollectorClient,button,messages};
+}
+
 // Drive the shipped gallery reader through changing rendered documents. The
 // clock advances at its real poll boundary; no source request or photo is made.
 async function gallerySequence(sequence){
@@ -228,6 +240,55 @@ async function gallerySequence(sequence){
  check('ANEX direct add uses the same canonical queue',directServer.creates===4);
  const tvTicket=await direct.send({type:'begin_add'},tvSender),tvDirect=await direct.send({type:'enqueue',ticket:tvTicket.ticket,observation:tv},tvSender);
  check('click capture cannot bypass unresolved TV price basis',tvDirect.ok&&tvDirect.state==='destination'&&directDb.items.at(-1).observation.raw.party_price_confirmation==='pending'&&directServer.creates===4);
+ for(const operation of [undefined,null,'']){
+  const query=operation===undefined?{}:{operation_id:operation};
+  check('source status and editor require an explicit operation ID '+String(operation),
+   (await direct.send({type:'add_status',...query},funsunSender)).ok===false&&
+   (await direct.send({type:'show_edit',...query},funsunSender)).ok===false);
+ }
+
+ for(const recovery of ['reconnect','variant']){
+  const recoveryDb={},recoveryServer=provider();let recovering=worker(recoveryDb,recoveryServer);
+  await recovering.connect(makeTarget());
+  if(recovery==='reconnect'){
+   const receive=recoveryServer.receive.bind(recoveryServer);let invalid=true;
+   recoveryServer.receive=async c=>{if(c.action==='import'&&invalid){invalid=false;recoveryServer.calls.push(clone(c));return{ok:false,error:'invalid_import'}}return receive(c)};
+  }else recoveryServer.mode='price';
+  const page=sourceClient(message=>recovering.send(message,funsunSender)),click=await page.client.begin(page.button);
+  await page.client.append(page.button,click,observation('Source recovery '+recovery));
+  await itemState(recovering,click,recovery==='reconnect'?'blocked':'review');
+  check(recovery+' keeps the original source click before popup recovery',page.button.textContent==='Проверьте в AnyTour'&&recoveryServer.creates===0);
+  // Existing installed queues have no stable source alias yet. Upgrade/restart
+  // must recover those rows as well as newly captured clicks.
+  delete recoveryDb.items[0].source_operation_id;
+  recovering=worker(recoveryDb,recoveryServer);await recovering.connect(recoveryDb.target,false);
+  if(recovery==='reconnect'){await recovering.connect(makeTarget(11,'c'.repeat(32)));recoveryServer.mode='offline'}
+  check(recovery+' remains an explicit popup decision',(await recovering.send({type:recovery,operation_id:click})).ok===true);
+  if(recovery==='reconnect'){
+   await until(()=>recoveryDb.items[0].state==='waiting');const previous=recoveryDb.items[0].operation_id;
+   await recovering.connect(makeTarget(12,'d'.repeat(32)));
+   const stale=await recovering.send({type:'add_status',operation_id:click},funsunSender);
+   check('a recovered source click cannot report saved for a replacement client',stale.ok&&stale.state==='blocked'&&stale.error==='connection_changed'&&recoveryDb.items[0].target.conversation_id===11&&recoveryServer.creates===0);
+   await recovering.connect(makeTarget(11,'e'.repeat(32)));
+   check('a second reconnection stays an explicit popup decision',(await recovering.send({type:'reconnect',operation_id:previous})).ok===true);
+   await until(()=>recoveryDb.items[0].state==='saved');
+   check('repeated intent rotation keeps the first source click',recoveryDb.items[0].operation_id!==previous&&recoveryDb.items[0].source_operation_id===click&&recoveryServer.calls.every(c=>c.conversation_id===11));
+  }
+  await until(()=>recoveryDb.items[0].state==='saved');
+  const intent=recoveryDb.items[0].operation_id,imports=recoveryServer.calls.filter(c=>c.action==='import').length;
+  check(recovery+' creates a distinct server intent without changing source terms',intent!==click&&recoveryDb.items[0].observation.offer.hotel==='Source recovery '+recovery&&recoveryServer.creates===1);
+  recovering=worker(recoveryDb,recoveryServer);await recovering.connect(recoveryDb.target,false);
+  const status=await recovering.send({type:'add_status',operation_id:click},funsunSender);
+  check(recovery+' source click follows its saved result across worker restart',status.ok&&status.state==='saved'&&Object.keys(status).sort().join(',')==='error,ok,state');
+  check(recovery+' source click can reopen its own extension view',(await recovering.send({type:'show_edit',operation_id:click},funsunSender)).ok===true);
+  for(const sender of [{...funsunSender,tab:{id:99}},{...funsunSender,documentId:'other-document'},{...funsunSender,frameId:2},anexSender]){
+   check(recovery+' source alias remains private to its original document',
+    (await recovering.send({type:'add_status',operation_id:click},sender)).ok===false&&
+    (await recovering.send({type:'show_edit',operation_id:click},sender)).ok===false);
+  }
+  const starts=page.messages.filter(m=>m.type==='begin_add').length;
+  check(recovery+' actual source button confirms saved instead of another add',await page.client.begin(page.button)===null&&page.button.textContent==='✓ В подборке'&&page.messages.filter(m=>m.type==='begin_add').length===starts&&recoveryServer.creates===1&&recoveryServer.calls.filter(c=>c.action==='import').length===imports);
+ }
  const money=require('../extensions/selection-collector/price-adjustment.js');
  check('price calculator retains cents and locale input without float drift',money.total('195\u00a0432,10')==='195432.10'&&money.adjust('237017','discount','2','percent')==='232276.66'&&money.adjust('237017','markup','2','percent')==='241757.34');
  check('fixed amount half-cent rounding and rounding to thousands are explicit',money.adjust('237017','discount','12.50','amount')==='237004.50'&&money.adjust('1.25','discount','2','percent')==='1.22'&&money.adjust('200999.99','markup','0','amount','thousand')==='201000');
