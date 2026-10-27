@@ -165,6 +165,36 @@ try {
     foreach ($hotelTools as $tool) hotelOauthCheck('hotel tool advertises its exact additional OAuth scope',
         $tool['securitySchemes']===[['type'=>'oauth2','scopes'=>['hotel_work:write']]]
         && $tool['_meta']['securitySchemes']===$tool['securitySchemes'] && $tool['inputSchema']['additionalProperties']===false);
+    $deliveryTools=array_column($hotelTools,null,'name');
+    $deliverySchema=$deliveryTools['hotel_work_claim']['inputSchema'];
+    hotelOauthCheck('delivery event proof is declared optional only at the claim boundary',
+        ($deliverySchema['properties']['expected_pending_event_id']['pattern']??null)==='^hotel_evt_[a-f0-9]{64}$'
+        &&!in_array('expected_pending_event_id',$deliverySchema['required'],true)
+        &&!isset($deliveryTools['hotel_work_started']['inputSchema']['properties']['expected_pending_event_id'])
+        &&!isset($deliveryTools['hotel_work_complete']['inputSchema']['properties']['expected_pending_event_id']));
+    $receivedClaim=null;
+    $deliveryAdapter=new HotelWorkMcpAdapter($pdo,static function(string $operation,array $args) use (&$receivedClaim):array {
+        $receivedClaim=[$operation,$args];return ['ok'=>true];
+    },$clock);
+    $deliveryArgs=['queue_id'=>'SYNTHETIC_QUEUE','stage_id'=>str_repeat('5',64),'claim_key'=>str_repeat('6',64),
+        'expected_pending_event_id'=>'hotel_evt_'.str_repeat('7',64)];
+    $deliveryAdapter->call('hotel_work_claim',$deliveryArgs,1,$hotel);
+    hotelOauthCheck('claim adapter preserves the received delivery identity rather than manufacturing proof',
+        $receivedClaim===['claim',[1,$hotel,$deliveryArgs]]);
+    $selfProofAdapter=new HotelWorkMcpAdapter($pdo,static function(string $operation,array $args):array {
+        return ['current_live'=>$args[3]($args[2]['old_connection_id'],$args[0],'ready')];
+    },$clock);
+    $selfProofArgs=['queue_id'=>'SYNTHETIC_QUEUE','stage_id'=>str_repeat('5',64),
+        'baseline_sha256'=>str_repeat('0',64),'old_connection_id'=>$hotel];
+    hotelOauthCheck('same-binding ready recovery requires canonical current hotel authorization',
+        $selfProofAdapter->call('hotel_work_handoff_connection',$selfProofArgs,1,$hotel)['current_live']===true);
+    $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=?')->execute([$now,$hotel]);
+    hotelOauthCheck('known revoked grant is insufficient for same-binding delivery recovery',
+        $oauth->hotelConnectionKnown($hotel,1)
+        &&$selfProofAdapter->call('hotel_work_handoff_connection',$selfProofArgs,1,$hotel)['current_live']===false);
+    $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=NULL WHERE grant_id=?')->execute([$hotel]);
+    hotelOauthCheck('same-binding recovery proof returns only after current access is restored',
+        $selfProofAdapter->call('hotel_work_handoff_connection',$selfProofArgs,1,$hotel)['current_live']===true);
     $challengeExpected='Bearer resource_metadata="https://app.anytoour.ru/manager/ai-oauth.php?action=resource", '
         .'error="insufficient_scope", error_description="Explicit hotel queue consent is required", '
         .'scope="queue:read prepared:write hotel_work:write"';

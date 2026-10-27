@@ -137,6 +137,33 @@ keep the claim key in the owner's private checkpoint. The new connection still
 requires verified subscriptions; handoff does not create callbacks, expand an
 old grant, start a run, or release a held operation.
 
+For a queue already owned by the current connection, `handoff_mode=ready` with
+`old_connection_id` equal to that current binding is a one-time delivery resume.
+It requires the exact saved stage/baseline, a READY stage with no claim, bound
+run or receipt, and an acknowledged unattended delivery. The owner must also
+verify its private checkpoint has no unresolved claim/dispatch intent and that
+no hotel worker is actually active. An uncertain operation remains held.
+
+The existing lane/row transaction appends a same-binding audit record once per
+queue/stage; it does not change ownership, stage, claim keys or hotel data.
+That record gives both readiness and unclaimed-attention deliveries a new event
+identity. Untouched stages keep their previous event IDs. The ordinary server
+cron delivers the new pending event; the resume call never dispatches a worker.
+Repeated identical requests return the prior result without resetting a newer
+acknowledgement, deadline, claim or run. Real authority transfers still enforce
+the relinquished-binding fence; existing-run self-handoff remains forbidden.
+
+Before resuming delivery, confirm the existing handler supports the optional
+`hotel_work_claim.expected_pending_event_id` input. A pending event must carry a
+fresh trusted signed `eventId`, matching the status `expected_pending_event_id`
+and the saved task/queue/stage binding. Pass that received ID to the claim call;
+never manufacture it from status. For a resumed stage the server requires this
+input and compares it with the current delivery identity under the same lane/row
+lock as the claim, so a pre-resume handler cannot claim after the namespace
+changes. Historical unresumed claim inputs remain compatible. Apply event TTL
+and the existing once-only admission checks. Attention permits reconciliation
+only.
+
 Finite completion releases the metadata lane and creates no fourth batch.
 Continuous mode advances only after an accepted intake and its due criteria.
 Neither mode modifies the legacy protected reservations or owns the actual
