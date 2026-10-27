@@ -1,0 +1,112 @@
+name: Install exact MAX membership lookup bundle
+
+on:
+  push:
+    branches: [audit/max-attribution-membership-release-20261027-v1]
+    paths: [.github/workflows/max-attribution-membership-release.yml]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: max-attribution-membership-release-20261027-v1
+  cancel-in-progress: false
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout exact accepted main
+        uses: actions/checkout@v4
+        with:
+          ref: d304689512e426fcde5f0a782396b72436be054b
+
+      - name: Build and pin public-only release
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = d304689512e426fcde5f0a782396b72436be054b
+          python3 tools/build_max_attribution_lookup.py "$RUNNER_TEMP/lookup-release"
+          python3 - "$RUNNER_TEMP/lookup-release/release.json" <<'PY'
+          import json,sys
+          got=json.load(open(sys.argv[1]))
+          expected={
+            'lookup.php':'13f22bddafcf789ef9415c3a22e0b76f80d7a9aab67fc2be6def02901aa37d70',
+            'services/MaxTrackerLookupProtocol.php':'6bd10d2287c02bf3abe68147cbd45ebca8534686fd09d597d4d596f57b85d582',
+            'services/MaxTrackerLookupRepository.php':'0aff4027466da36b27f331d504a34b03a88ba630ea727d995ec156fa6cb2ef86',
+            'services/MaxSubscriptionAttributionPolicy.php':'2e5b35659b1aa7159b4b2b772ba0fafd1440c98bc63786ba48e3b4f9b34ef53b',
+          }
+          assert got=={'version':1,'files':expected}, got
+          print('BUNDLE_PIN=PASS public_files=4')
+          PY
+
+      - name: Fetch existing public verification key
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --proto '=https' --tlsv1.2 --connect-timeout 5 --max-time 15 --max-redirs 0 -fsS             -o "$RUNNER_TEMP/verification.pem"             https://tour-max.ru/new/max-attribution/verification.pem
+          openssl pkey -pubin -in "$RUNNER_TEMP/verification.pem" -noout
+          openssl pkey -pubin -in "$RUNNER_TEMP/verification.pem" -outform DER |
+            sha256sum | awk '{print "PUBLIC_KEY_SHA256=" $1}'
+
+      - name: Prepare canonical SSH identity and exact tracker pin
+        env:
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          raw="$KEY_VALUE"
+          key="$RUNNER_TEMP/tracker-key"
+          if [[ "$raw" == *'PRIVATE KEY'* ]]; then
+            printf '%b\n' "$raw" | tr -d '\r' > "$key"
+          else
+            printf '%s' "$raw" | base64 --decode > "$key"
+          fi
+          chmod 600 "$key"
+          ssh-keygen -y -f "$key" >/dev/null
+          raw_hosts="$RUNNER_TEMP/raw-known-hosts"
+          known_hosts="$RUNNER_TEMP/pinned-known-hosts"
+          : > "$raw_hosts"
+          for attempt in 1 2; do
+            if ssh-keyscan -T 10 -t rsa,ecdsa,ed25519 158.160.185.1 > "$raw_hosts" 2>/dev/null && [[ -s "$raw_hosts" ]]; then break; fi
+          done
+          : > "$known_hosts"
+          while IFS= read -r line; do
+            fp="$(printf '%s\n' "$line" | ssh-keygen -lf - -E sha256 2>/dev/null | awk '{print $2}')"
+            if [[ "$fp" == 'SHA256:WuqyxyQM6A4Sd0ZLddDBF1g/90VD2NFMdOmTjpSX2XQ' ]]; then
+              printf '%s\n' "$line" >> "$known_hosts"
+            fi
+          done < "$raw_hosts"
+          [[ -s "$known_hosts" ]]
+          ssh-keygen -lf "$known_hosts" -E sha256 |
+            awk '{print $2}' |
+            grep -Fvx 'SHA256:WuqyxyQM6A4Sd0ZLddDBF1g/90VD2NFMdOmTjpSX2XQ' &&
+            exit 1 || true
+          echo TRACKER_PIN=PASS
+
+      - name: Install exact bounded public bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/install_max_attribution_lookup.py             --bundle "$RUNNER_TEMP/lookup-release"             --public-key "$RUNNER_TEMP/verification.pem"             --ssh-key "$RUNNER_TEMP/tracker-key"             --known-hosts "$RUNNER_TEMP/pinned-known-hosts"
+
+      - name: Verify exact public manifest and key
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --proto '=https' --tlsv1.2 --connect-timeout 5 --max-time 15 --max-redirs 0 -fsS             -o "$RUNNER_TEMP/installed-release.json"             https://tour-max.ru/new/max-attribution/release.json
+          curl --proto '=https' --tlsv1.2 --connect-timeout 5 --max-time 15 --max-redirs 0 -fsS             -o "$RUNNER_TEMP/installed-verification.pem"             https://tour-max.ru/new/max-attribution/verification.pem
+          cmp "$RUNNER_TEMP/lookup-release/release.json" "$RUNNER_TEMP/installed-release.json"
+          cmp "$RUNNER_TEMP/verification.pem" "$RUNNER_TEMP/installed-verification.pem"
+          sha256sum "$RUNNER_TEMP/installed-release.json" |
+            awk '{print "INSTALLED_MANIFEST_SHA256=" $1}'
+          echo TRACKER_RELEASE=PASS source_reads=0 customer_reads=0 conversion_requests=0 tracker_business_writes=0
+
+      - name: Remove temporary credentials and public bundle
+        if: always()
+        shell: bash
+        run: |
+          find "$RUNNER_TEMP" -maxdepth 1 -type f \( -name 'tracker-key' -o -name '*known-hosts' -o -name 'verification.pem' -o -name 'installed-verification.pem' -o -name 'installed-release.json' \) -delete
+          rm -rf "$RUNNER_TEMP/lookup-release"
