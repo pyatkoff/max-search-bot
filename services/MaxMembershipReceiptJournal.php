@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__.'/ConversationRecordClock.php';
 
 /** Mirrors exact tracker receipts into the existing conversation event journal. */
 final class MaxMembershipReceiptJournal
@@ -64,8 +65,10 @@ final class MaxMembershipReceiptJournal
 
     private function ownedConversations(string $user,int $notBefore): array
     {
-        $q=$this->query("SELECT c.id FROM conversations c JOIN customer_channels cc ON cc.id=c.customer_channel_id AND cc.project_key=c.project_key AND cc.channel=c.channel WHERE c.project_key='anytour' AND c.channel='max' AND c.is_test=0 AND c.external_chat_id=? AND cc.external_user_id=? AND c.started_at>=? ORDER BY c.id LIMIT 2",
-            ['-'.$user,$user,gmdate('Y-m-d H:i:s',$notBefore)]);
+        $start=ConversationRecordClock::sql('c.metadata_json',$this->mysql);
+        $bound=$this->mysql?'CAST(? AS UNSIGNED)':'CAST(? AS INTEGER)';
+        $q=$this->query("SELECT c.id FROM conversations c JOIN customer_channels cc ON cc.id=c.customer_channel_id AND cc.project_key=c.project_key AND cc.channel=c.channel WHERE c.project_key='anytour' AND c.channel='max' AND c.is_test=0 AND c.external_chat_id=? AND cc.external_user_id=? AND ($start)>=$bound ORDER BY c.id LIMIT 2",
+            ['-'.$user,$user,$notBefore]);
         return array_map('strval',$q->fetchAll(PDO::FETCH_COLUMN));
     }
 
@@ -89,18 +92,26 @@ final class MaxMembershipReceiptJournal
         $json=json_encode($payload,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
         $q=$this->query('SELECT id,payload_json FROM conversation_events WHERE conversation_id=? AND event_type=? AND actor_type=? AND actor_id=? ORDER BY id LIMIT 1',
             [$conversationId,$type,'system',$actor]);$old=$q->fetch(PDO::FETCH_ASSOC);
-        if($old&&hash_equals((string)$old['payload_json'],$json)){$stats['unchanged']++;return(string)$old['id'];}
+        if($old&&hash_equals(self::logicalPayload((string)$old['payload_json']),$json)){$stats['unchanged']++;return(string)$old['id'];}
         if($old){
             $actor='max-membership-conflict:'.substr(hash('sha256',$type."\n".$json),0,24);
             $conflict=$this->query('SELECT id,payload_json FROM conversation_events WHERE conversation_id=? AND event_type=? AND actor_type=? AND actor_id=? ORDER BY id LIMIT 1',
                 [$conversationId,$type,'system',$actor])->fetch(PDO::FETCH_ASSOC);
-            if($conflict&&hash_equals((string)$conflict['payload_json'],$json)){$stats['unchanged']++;return(string)$conflict['id'];}
+            if($conflict&&hash_equals(self::logicalPayload((string)$conflict['payload_json']),$json)){$stats['unchanged']++;return(string)$conflict['id'];}
             if($conflict)throw new RuntimeException('membership_conflict_key_collision');
             $stats['conflicts']++;
         }
-        $this->query('INSERT INTO conversation_events (conversation_id,event_type,actor_type,actor_id,payload_json,created_at) VALUES (?,?,?,?,?,?)',
-            [$conversationId,$type,'system',$actor,$json,gmdate('Y-m-d H:i:s',$now)]);
+        $wall=$this->mysql?'FROM_UNIXTIME(?)':'?';
+        $this->query('INSERT INTO conversation_events (conversation_id,event_type,actor_type,actor_id,payload_json,created_at) VALUES (?,?,?,?,?,'.$wall.')',
+            [$conversationId,$type,'system',$actor,json_encode(ConversationRecordClock::stamp($payload,$now),JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),$this->mysql?$now:gmdate('Y-m-d H:i:s',$now)]);
         $stats['inserted']++;return(string)$this->pdo->lastInsertId();
+    }
+
+    private static function logicalPayload(string $json): string
+    {
+        if(ConversationRecordClock::read($json)===null)return $json;
+        $payload=json_decode($json,true,32,JSON_THROW_ON_ERROR);unset($payload['_recorded_clock']);
+        return json_encode($payload,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
     }
 
     private function query(string $sql,array $values): PDOStatement{$q=$this->pdo->prepare($sql);$q->execute($values);return$q;}

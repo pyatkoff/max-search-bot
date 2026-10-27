@@ -196,6 +196,7 @@ if ($backend === 'legacy') {
     }
     $input = ['platform'=>'telegram','type'=>'callback','callback_data'=>'child_0','message_id'=>'synthetic-1',
         'user'=>['external_user_id'=>'synthetic-user','chat_id'=>'42']];
+    $clockBefore=time();
     existingStepCheck('new canonical input is mirrored',ConversationRecorder::inbound($input),true,$failed);
     existingStepCheck('successful observed application preserves result',ExistingWizardStepApplicationService::apply(42,68,'0',true),true,$failed);
     existingStepCheck('successful receipt has no omission diagnostic',count(DiagnosticLogger::$events),0,$failed);
@@ -204,6 +205,10 @@ if ($backend === 'legacy') {
     existingStepCheck('receipt links persisted canonical input',$payload['input_message_id'],(string)$pdo->query('SELECT id FROM messages')->fetchColumn(),$failed);
     existingStepCheck('receipt certifies exact applied storage',[$payload['field'],$payload['storage_value'],$payload['input_kind']],['children','0','callback'],$failed);
     existingStepCheck('receipt binds exact observed input bytes',$payload['input_text_sha256'],hash('sha256','child_0'),$failed);
+    $inputClock=ConversationRecordClock::read($pdo->query('SELECT metadata_json FROM messages ORDER BY id LIMIT 1')->fetchColumn());
+    $receiptClock=ConversationRecordClock::read($event['payload_json']);
+    existingStepCheck('canonical input has explicit forward Unix provenance',is_int($inputClock)&&$inputClock>=$clockBefore&&$inputClock<=time(),true,$failed);
+    existingStepCheck('canonical apply receipt has its own recording instant',is_int($receiptClock)&&$receiptClock>=$inputClock&&$receiptClock<=time(),true,$failed);
     existingStepCheck('receipt never duplicates raw input',array_key_exists('text',$payload),false,$failed);
     ExistingWizardStepApplicationService::apply(42,68,'0',true);
     existingStepCheck('same request repeated application has one receipt',(int)$pdo->query('SELECT COUNT(*) FROM conversation_events')->fetchColumn(),1,$failed);

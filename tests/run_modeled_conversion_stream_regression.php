@@ -95,6 +95,23 @@ function modeledStreamAssertions(PDO $p,callable $check): void
     $check('source evidence never implies a trip model or export',$r['source_history_complete']===false&&$r['trip_status']==='unknown'&&$r['model_calls']===0&&$r['conversion_uploads']===0);
     $p->beginTransaction();try{$s->tick($now+52);$failed=false;}catch(Throwable $e){$failed=$e->getMessage()==='modeled_stream_outer_transaction';}finally{$p->rollBack();}
     $check('caller transaction cannot be committed by the observer',$failed);
+    foreach([0,10800]as$offset){
+        modeledStreamSchema($p);modeledProfileSchema($p);$s=new ModeledConversionStream($p);
+        $mysql=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
+        if($mysql)$p->exec("SET time_zone='".($offset?'+03:00':'+00:00')."'");
+        $s->start($now+100);
+        modeledStreamMessage($p,1,11,'Бюджет до 200 тыс на всех');
+        $p->prepare('UPDATE messages SET metadata_json=?,created_at=? WHERE id=1')->execute([
+            json_encode(ConversationRecordClock::stamp(['type'=>'message'],$now+101)),gmdate('Y-m-d H:i:s',$now+101+$offset)]);
+        $s->tick($now+102);
+        $snap=json_decode($p->query('SELECT snapshot_json FROM modeled_conversion_stream_versions ORDER BY id DESC LIMIT 1')->fetchColumn(),true);
+        $check('source journal uses explicit recording instant at session offset '.$offset,$snap['source_created_at_unix']===$now+101&&$snap['source_timestamp_basis']==='canonical_recording_unix_v1');
+        $check('actual observation remains distinct from recording time at session offset '.$offset,(int)$p->query('SELECT observed_at_unix FROM modeled_conversion_stream_versions ORDER BY id DESC LIMIT 1')->fetchColumn()===$now+102);
+        $profiles=new ModeledConversionProfiles($p);$profiles->start();$profiles->tick($now+103);$profile=modeledProfileLatest($p);
+        $check('actual profile consumes the stamped journal at session offset '.$offset,$profile['profile']['fields']['budget']['value']['maximum']===200000&&$profile['coverage']['errors']===[]);
+        if($mysql)$p->exec("SET time_zone='+00:00'");
+    }
+
 }
 
 function modeledStreamSchedulerAssertions(callable $check): void

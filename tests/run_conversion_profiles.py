@@ -850,6 +850,51 @@ class JournalProfileTests(unittest.TestCase):
         self.assertEqual(result["coverage"]["errors"], {})
         self.assertFalse(result["profile"]["export_allowed"])
 
+    def test_recording_clock_survives_actual_journal_cli_without_wall_inference(self):
+        message_row = journal_row("1", text="Бюджет до 200 тыс на всех")
+        answer = journal_row("2", text="2")
+        applied = wizard_receipt(answer, "adults", "2", "3")
+        subscription = membership_journal_receipt("5", "channel_subscription_observed", 1793005200, 1793005260, 1793005320)
+        retention = membership_journal_receipt("6", "channel_retention_30m_observed", 1793007000, 1793007060, 1793007120,
+                                               subscription_event_id="5", minimum_age_seconds=1800)
+        rows = [message_row, answer, applied, subscription, retention]
+        for row in rows:
+            snap = row["snapshot"]
+            snap["source_timestamp_basis"] = "canonical_recording_unix_v1"
+            # A bare wall value can differ by three hours; it is not a fallback clock.
+            snap["source_created_at"] = "2026-10-26 12:00:00"
+            key = "metadata_json" if row["source_kind"] == "message" else "payload_json"
+            meta = json.loads(snap["payload"][key])
+            meta["_recorded_clock"] = {"version": 1, "basis": "server_recording_unix", "unix": snap["source_created_at_unix"]}
+            snap["payload"][key] = json.dumps(meta)
+        document = journal_document(*rows); document["requested_at"] = "2026-10-26T10:00:00Z"
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json") as handle:
+            json.dump(document, handle); handle.flush()
+            run = subprocess.run([sys.executable, str(ROOT/"tools/profile_conversion_journal.py"), handle.name], text=True, capture_output=True)
+        self.assertEqual(run.returncode, 0, run.stderr)
+        cli = json.loads(run.stdout); self.assertEqual(cli, journal.profile(document, cli["extracted_at"]))
+        result = cli["profiles"][0]; p = result["profile"]
+        self.assertEqual(result["coverage"]["errors"], {})
+        self.assertEqual(p["fields"]["budget"]["value"]["maximum"], 200000)
+        self.assertEqual(p["party"]["adults"]["value"], 2)
+        self.assertEqual(p["early_signals"]["retention_30m"]["state"], "retained")
+        self.assertEqual(p["prediction_features"]["facts"]["fields.budget"]["last_source_recorded_at"], "2026-10-26T09:00:00Z")
+        self.assertFalse(p["export_allowed"]); self.assertIsNone(p["expected_value_rub"])
+
+    def test_recording_clock_header_must_agree_with_native_snapshot(self):
+        for clock in [None, {"version": 1, "basis": "server_recording_unix", "unix": 1793005201},
+                      {"version": True, "basis": "server_recording_unix", "unix": 1793005200},
+                      {"version": 1, "basis": "server_recording_unix", "unix": "1793005200"},
+                      {"version": 1, "basis": "server_recording_unix", "unix": 1793005200, "extra": True}]:
+            row = journal_row(source_timestamp_basis="canonical_recording_unix_v1")
+            meta = {"type": "message"}
+            if clock is not None: meta["_recorded_clock"] = clock
+            row["snapshot"]["payload"]["metadata_json"] = json.dumps(meta)
+            result = self.build(row)
+            self.assertEqual(result["coverage"]["errors"], {"invalid_message_metadata": 1})
+            self.assertEqual(result["profile"]["fields"]["budget"]["status"], "unknown")
+            self.assertNotIn("fields.budget", result["profile"]["prediction_features"]["facts"])
+
     def test_current_intent_runtime_and_cli(self):
         scenarios = [
             ([('manager', 'Рассматриваете Rixos?'), ('customer', 'Нет, этот отель не подходит. Хочу другой.'), ('customer', 'Да')], None, None),

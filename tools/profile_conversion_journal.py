@@ -11,7 +11,7 @@ import sys
 import build_conversion_observations as base
 import extract_conversion_profiles as extractor
 
-VERSION = "admitted_journal_profile_v1_3"
+VERSION = "admitted_journal_profile_v1_4"
 MAX_BYTES = 2 * 1024 * 1024
 ADAPTER_SHA = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
 
@@ -19,6 +19,27 @@ ADAPTER_SHA = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
 def epoch(value):
     base.require(type(value) is int and 946684800 <= value <= 4102444800, "invalid_journal_clock")
     return datetime.fromtimestamp(value, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def recorded_payload(raw, recorded, basis):
+    value = json.loads(raw or "{}", object_pairs_hook=base.unique_object)
+    if value == []:
+        value = {}
+    if not isinstance(value, dict):
+        raise ValueError()
+    if basis == "canonical_recording_unix_v1":
+        clock = value.get("_recorded_clock")
+        if (not isinstance(clock, dict) or set(clock) != {"version", "basis", "unix"}
+                or type(clock["version"]) is not int or clock["version"] != 1
+                or clock["basis"] != "server_recording_unix"
+                or type(clock["unix"]) is not int or clock["unix"] != recorded):
+            raise ValueError()
+        value = dict(value)
+        del value["_recorded_clock"]
+    elif "_recorded_clock" in value:
+        # A new header cannot be silently consumed through the old clock contract.
+        raise ValueError()
+    return value
 
 
 def profile(document, extracted_at):
@@ -93,14 +114,14 @@ def profile(document, extracted_at):
             if snap.get("payload_status") != "copied":
                 omitted("payload_unavailable"); continue
             recorded = snap.get("source_created_at_unix")
-            if (snap.get("source_timestamp_basis") != "database_session_timezone_to_unix"
+            if (snap.get("source_timestamp_basis") not in {"database_session_timezone_to_unix", "canonical_recording_unix_v1"}
                     or type(recorded) is not int or not 946684800 <= recorded <= row["observed_at_unix"]):
                 omitted("source_clock_unresolved"); continue
             payload = snap.get("payload")
             base.require(isinstance(payload, dict), "invalid_message_payload")
             if is_membership:
                 try:
-                    observed = json.loads(payload.get("payload_json") or "{}", object_pairs_hook=base.unique_object)
+                    observed = recorded_payload(payload.get("payload_json"), recorded, snap["source_timestamp_basis"])
                     event_type = payload.get("event_type")
                     common = {"version", "origin", "source", "identity_scope", "state", "occurred_at_unix"}
                     expected = common if event_type == "channel_subscription_observed" else common | {
@@ -135,7 +156,7 @@ def profile(document, extracted_at):
                 continue
             if is_application:
                 try:
-                    applied = json.loads(payload.get("payload_json") or "{}", object_pairs_hook=base.unique_object)
+                    applied = recorded_payload(payload.get("payload_json"), recorded, snap["source_timestamp_basis"])
                     valid = (isinstance(applied, dict) and set(applied) == {
                         "version", "origin", "input_message_id", "input_kind", "input_text_sha256", "field", "storage_value"}
                         and type(applied["version"]) is int and applied["version"] == 1
@@ -160,7 +181,7 @@ def profile(document, extracted_at):
             if not isinstance(text, str) or len(text) > extractor.MAX_TEXT:
                 omitted("text_unavailable_or_oversize"); continue
             try:
-                metadata = json.loads(payload.get("metadata_json") or "{}", object_pairs_hook=base.unique_object)
+                metadata = recorded_payload(payload.get("metadata_json"), recorded, snap["source_timestamp_basis"])
                 if metadata == []:
                     metadata = {}  # Canonical outbound PHP writer uses an empty array.
                 if not isinstance(metadata, dict):

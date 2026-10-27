@@ -20,7 +20,14 @@ final class MaxChannelConversionWorker
         $pdo=$pdo??ConversationDb::connection();$now=$now??time();$repo=new MaxChannelConversionOutbox($pdo);
         $repo->recover($now);
         $shared=$maxActive&&MaxChannelConversionOutbox::sharedGoalsActive($s);
-        if($collector&&$shared)$result['collected']=$repo->collect($s,$collector);
+        if($collector&&$shared){
+            try{$result['collected']=$repo->collect($s,$collector);}
+            catch(Throwable $ignored){
+                // Independent existing paths must continue once. Partial
+                // collection is unknown; never retry it inside this tick.
+                $result['collected']=null;$result['collection_error']='source_capture_failed';$result['errors']++;
+            }
+        }
         $lookup=$lookup??new MaxTrackerLookupClient();
         $pending=$shared?$repo->pending($now):[];
         $activation=(int)($s['membership_receipts_activated_at_unix']??0);

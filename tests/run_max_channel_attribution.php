@@ -27,6 +27,7 @@ same($repo->event($c,'max_bot_activity_start',$s)['id'],2,'first callback after 
 same($repo->event($c,'max_manager_request',$s),null,'manager answer does not synthesize a request');
 same($repo->event($c,'max_customer_reply_after_manager',$s)['id'],7,'same-second ordering and callback exclusion');
 $p->exec("INSERT INTO conversation_events(conversation_id,event_type,created_at) VALUES(1,'waiting_manager','2026-10-15 10:00:03'),(1,'manager_message','2026-10-15 10:00:04')");
+maxAttributionStampKnownFixtureClocks($p);
 same($repo->event($c,'max_manager_request',$s)['id'],1,'actual waiting-manager event owns request stage');
 MetrikaConversionGoalService::reconcileChannelConversation(1);
 same((int)$p->query('SELECT COUNT(*) FROM max_channel_conversion_outbox')->fetchColumn(),3,'canonical reconciler captures three stages');
@@ -79,12 +80,14 @@ $rejoin=['1234567890123456789'=>[
 same($journal->record($binding,$rejoin,$now+2800,$activation)['inserted'],2,'rejoin creates a distinct subscription period and receipt');
 same($journal->record([['external_user_id'=>'1234567890123456789','conversation_ids'=>['2']]],$rejoin,$now+2800,$activation)['inserted'],0,'cross-platform conversation binding is rejected');
 $p->exec("INSERT INTO conversations(id,customer_channel_id,project_key,channel,external_chat_id,is_test,status,source_id,started_at) VALUES(9,1,'anytour','max','-1234567890123456789',0,'ai',2,'2026-10-15 10:30:00')");
+maxAttributionStampKnownFixtureClocks($p);
 $ambiguous=['1234567890123456789'=>[['kind'=>'subscription','source_record_id'=>'704','state'=>'subscribed','occurred_at_unix'=>$now+1100]]];
 $lookup->membership=$ambiguous;$ambiguousStats=MaxChannelConversionWorker::tick($p,$lookup,$noIO,$now+1100);
 same($ambiguousStats['membership']['inserted'],0,'normal worker keeps person membership unassigned when a second eligible episode exists');
 same((int)$p->query("SELECT COUNT(*) FROM conversation_events WHERE actor_id='max-membership:704'")->fetchColumn(),0,'episode ambiguity cannot silently choose the transient outbox conversation');
 $p->exec("INSERT INTO customer_channels VALUES(4,'anytour','max','777777777777777777')");
 $p->exec("INSERT INTO conversations(id,customer_channel_id,project_key,channel,external_chat_id,is_test,status,source_id,started_at) VALUES(8,4,'anytour','max','-777777777777777777',0,'ai',2,'2026-10-15 11:00:00')");
+maxAttributionStampKnownFixtureClocks($p);
 $followBinding=[['external_user_id'=>'777777777777777777','conversation_ids'=>['8']]];
 $followSubscription=['777777777777777777'=>[['kind'=>'subscription','source_record_id'=>'800','state'=>'subscribed','occurred_at_unix'=>$now+1000]]];
 same($journal->record($followBinding,$followSubscription,$now+1000,$activation)['inserted'],1,'prospective subscription is journaled once');
@@ -261,7 +264,7 @@ same($repo->collect(MaxChannelConversionOutbox::settings($p),fn()=>null),10,'mes
 $p->exec('DELETE FROM max_channel_conversion_outbox');$p->exec('DELETE FROM messages');
 $p->exec("UPDATE max_channel_attribution_settings SET mode='send',message_cursor=0");
 $clockEvent=$now+1;
-$p->prepare("INSERT INTO messages VALUES(1,1,'max','inbound','customer',?,?)")->execute([gmdate('Y-m-d H:i:s',$clockEvent),json_encode(['type'=>'message'])]);
+$p->prepare("INSERT INTO messages VALUES(1,1,'max','inbound','customer',?,?)")->execute([gmdate('Y-m-d H:i:s',$clockEvent),json_encode(ConversationRecordClock::stamp(['type'=>'message'],$clockEvent))]);
 $clockRepo=new MaxChannelConversionOutbox($p);$clockSettings=MaxChannelConversionOutbox::settings($p);
 $clockCollector=function(int $id)use($clockRepo,$clockSettings,$clockEvent):void{
     $conversation=$clockRepo->conversation((string)$id,'-1234567890123456789',$clockSettings);
@@ -288,6 +291,7 @@ same($afterClockRow['client_id'],$clockRow['client_id'],'clock defer preserves f
 $p=maxAttributionFixture();(new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$p);$repo=new MaxChannelConversionOutbox($p);
 $p->exec("UPDATE max_channel_attribution_settings SET mode='send',message_cursor=9");
 $p->exec("INSERT INTO conversation_events(conversation_id,event_type,created_at) VALUES(1,'waiting_manager','2026-10-15 11:00:00'),(1,'manager_message','2026-10-15 10:00:04')");
+maxAttributionStampKnownFixtureClocks($p);
 $historicalRows=[
     [1,'max_bot_activity_start','max_channel_activity_start','pending',0,null,null,null],
     [2,'max_customer_reply_after_manager','max_channel_customer_reply_after_manager','ready',0,null,null,null],
@@ -330,9 +334,10 @@ $readyIds=array_map('intval',array_column($repo->rows('ready',$now,10),'id'));sa
 ok(!in_array(10,array_map('intval',array_column($repo->rows('ready',$now,10),'id')),true),'retired answer is absent from upload selection');
 $again=$repo->activateSharedGoals($now+3600);$sameSettings=MaxChannelConversionOutbox::settings($p);same($again['switched'],0,'repeat activation never retargets rows');same($again['retired'],0,'repeat activation never retires again');same($sameSettings['shared_goals_activated_at_unix'],$selected['shared_goals_activated_at_unix'],'repeat activation cannot widen history');same($sameSettings['shared_goals_event_id'],$selected['shared_goals_event_id'],'repeat activation retains event boundary');
 $c=$repo->conversation('1','-1234567890123456789',$selected);same($repo->event($c,'max_manager_request',$selected),null,'pre-cutover request in same second cannot be backfilled');
-$p->exec("INSERT INTO conversation_events(conversation_id,event_type,created_at) VALUES(1,'manager_message','2026-10-15 11:00:01')");same($repo->event($c,'max_manager_request',$selected),null,'new manager answer cannot masquerade as request');
-$p->exec("INSERT INTO conversation_events(conversation_id,event_type,created_at) VALUES(1,'waiting_manager','2026-10-15 10:59:59')");same($repo->event($c,'max_manager_request',$selected),null,'late inserted pre-cutoff handoff cannot backfill');
+$p->exec("INSERT INTO conversation_events(conversation_id,event_type,created_at) VALUES(1,'manager_message','2026-10-15 11:00:01')");maxAttributionStampKnownFixtureClocks($p);same($repo->event($c,'max_manager_request',$selected),null,'new manager answer cannot masquerade as request');
+$p->exec("INSERT INTO conversation_events(conversation_id,event_type,created_at) VALUES(1,'waiting_manager','2026-10-15 10:59:59')");maxAttributionStampKnownFixtureClocks($p);same($repo->event($c,'max_manager_request',$selected),null,'late inserted pre-cutoff handoff cannot backfill');
 $p->exec("INSERT INTO conversation_events(conversation_id,event_type,created_at) VALUES(1,'waiting_manager','2026-10-15 11:00:01')");
+maxAttributionStampKnownFixtureClocks($p);
 $request=$repo->event($c,'max_manager_request',$selected);same((int)$request['id'],5,'first actual new handoff selected');same($request['created_at'],'2026-10-15 11:00:01','real request occurrence preserved');
 $legacyRequest=MaxChannelConversionOutbox::queueIfEligible('-1234567890123456789','max_manager_request',['conversation_id'=>'1']);same($legacyRequest,true,'channel request intercepted before old YCLID fallback');
 $requestRow=$p->query("SELECT * FROM max_channel_conversion_outbox WHERE conversation_id=1 AND target='max_manager_request'")->fetch();ok(is_array($requestRow),'request captured durably');same($requestRow['transport_target'],'max_manager_request','request uses existing selected goal');same((int)$requestRow['event_unix'],$now+1,'request event time not queue time');
@@ -366,6 +371,7 @@ $episodeConversation->execute([10,'-'.$episodeUser,gmdate('Y-m-d H:i:s',$episode
 $episodeOutbox=$p->prepare("INSERT INTO max_channel_conversion_outbox(project_key,conversation_id,external_user_id,counter_id,target,transport_target,event_unix,state,created_at) VALUES('anytour',?,?,'98615635','max_bot_activity_start','max_bot_activity_start',?,'processed',?)");
 $episodeOutbox->execute([10,$episodeUser,$episodeFence+2,gmdate('Y-m-d H:i:s',$episodeFence+2)]);$episodeOutbox->execute([11,$episodeUser,$episodeFence+3,gmdate('Y-m-d H:i:s',$episodeFence+3)]);
 $episodeLookup=new class($episodeUser,$episodeFence){public string $user;public int $fence;function __construct($u,$f){$this->user=$u;$this->fence=$f;}function lookupWithMembership($counter,$users,$notBefore,$cutoff){return ['identities'=>array_fill_keys($users,null),'membership'=>[$this->user=>[['kind'=>'subscription','source_record_id'=>'9501','state'=>'subscribed','occurred_at_unix'=>$this->fence+4]]]+array_fill_keys($users,[])];}function lookup(){throw new RuntimeException('unexpected_identity_lookup');}};
+maxAttributionStampKnownFixtureClocks($p);
 $episodeResult=MaxChannelConversionWorker::tick($p,$episodeLookup,$noIO,$episodeNow);
 same($episodeResult['membership']['inserted'],1,'pre-fence episode cannot shadow the sole eligible post-fence dialogue');
 same((int)$p->query("SELECT COUNT(*) FROM conversation_events WHERE conversation_id=10 AND event_type='channel_subscription_observed'")->fetchColumn(),0,'pre-fence dialogue receives no membership receipt');
@@ -383,6 +389,7 @@ $cycleConversation=$p->prepare("INSERT INTO conversations(id,customer_channel_id
 $cycleUsers=[];for($i=1;$i<=6;$i++){$user='880000000000000000'.$i;$id=100+$i;$cycleUsers[]=$user;$cycleChannel->execute([$id,$user]);$cycleConversation->execute([$id,$id,'-'.$user,gmdate('Y-m-d H:i:s',$cycleNow-30)]);$insert->execute([$id,$user,$cycleNow-30,gmdate('Y-m-d H:i:s',$cycleNow-30),'max']);}
 $insert->execute([199,'9900000000000000001',$cycleNow-30,gmdate('Y-m-d H:i:s',$cycleNow-30),'telegram']);
 $cycleLookup=new class{public array $batches=[];function lookupWithMembership($counter,$users,$notBefore,$cutoff){$this->batches[]=$users;return ['identities'=>array_fill_keys($users,null),'membership'=>array_fill_keys($users,[])];}function lookup(){throw new RuntimeException('unexpected_identity_lookup');}};
+maxAttributionStampKnownFixtureClocks($p);
 MaxChannelConversionWorker::tick($p,$cycleLookup,$noIO,$cycleNow);
 $firstCursor=(int)MaxChannelConversionOutbox::settings($p)['membership_receipts_outbox_cursor'];
 MaxChannelConversionWorker::tick($p,$cycleLookup,$noIO,$cycleNow+1);
@@ -391,6 +398,55 @@ same($cycleLookup->batches[0],array_slice($cycleUsers,0,5),'bounded membership p
 same($cycleLookup->batches[1],[$cycleUsers[5]],'per-user unknown cannot starve the next admitted MAX user');
 ok($firstCursor>0&&$secondCursor>$firstCursor,'successful cyclic observations advance bounded work progress');
 ok(!in_array('9900000000000000001',array_merge(...$cycleLookup->batches),true),'Telegram outbox identity cannot leak into MAX membership lookup');
+// The inherited database session clock must not reinterpret canonical Unix receipts.
+foreach([0,10800]as$offset){
+    $p=maxAttributionFixture();(new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$p);
+    $mysql=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
+    if($mysql)$p->exec("SET time_zone='".($offset?'+03:00':'+00:00')."'");
+    if($offset){
+        // Default-generated message/conversation walls follow the DB session;
+        // the canonical post-entry writer deliberately remains explicit UTC.
+        $p->exec($mysql?"UPDATE messages SET created_at=DATE_ADD(created_at,INTERVAL 3 HOUR)":"UPDATE messages SET created_at=datetime(created_at,'+3 hours')");
+        $p->exec($mysql?"UPDATE conversations SET started_at=DATE_ADD(started_at,INTERVAL 3 HOUR)":"UPDATE conversations SET started_at=datetime(started_at,'+3 hours')");
+    }
+    $repo=new MaxChannelConversionOutbox($p);$clockNow=strtotime('2026-10-15 11:00:00 UTC');
+    $repo->activateSharedGoals(strtotime('2026-10-15 10:00:00 UTC'));$settings=MaxChannelConversionOutbox::settings($p);
+    $conv=$repo->conversation('1','-1234567890123456789',$settings);
+    same($repo->event($conv,'max_bot_activity_start',$settings)['id'],2,'recording Unix selects the same activity at offset '.$offset);
+    ok($repo->capture($conv,'max_bot_activity_start',$settings,$clockNow),'new source provenance captures at offset '.$offset);
+    same((int)row($p)['event_unix'],1792058401,'wall clock cannot shift original occurrence at offset '.$offset);
+    $source='clock-contract-'.($offset?'local':'utc');
+    $receipts=['1234567890123456789'=>[['kind'=>'subscription','source_record_id'=>'9601','state'=>'subscribed','occurred_at_unix'=>1792058401]]];
+    $journal=new MaxMembershipReceiptJournal($p);
+    same($journal->record([['external_user_id'=>'1234567890123456789','conversation_ids'=>['1']]],$receipts,$clockNow,1792058400)['inserted'],1,'same prospective episode is admitted at offset '.$offset);
+    $event=$p->query("SELECT created_at,payload_json FROM conversation_events WHERE event_type='channel_subscription_observed'")->fetch(PDO::FETCH_ASSOC);
+    same(ConversationRecordClock::read($event['payload_json']),$clockNow,'first recording Unix is explicit at offset '.$offset);
+    $unixSql=$mysql?'UNIX_TIMESTAMP(created_at)':"CAST(strftime('%s',created_at) AS INTEGER)";
+    same((int)$p->query("SELECT $unixSql FROM conversation_events WHERE event_type='channel_subscription_observed'")->fetchColumn(),$clockNow,'new receipt wall projection roundtrips through actual session at offset '.$offset);
+    same($journal->record([['external_user_id'=>'1234567890123456789','conversation_ids'=>['1']]],$receipts,$clockNow+10,1792058400)['unchanged'],1,'later read cannot rewrite first availability at offset '.$offset);
+    same(ConversationRecordClock::read($p->query("SELECT payload_json FROM conversation_events WHERE event_type='channel_subscription_observed'")->fetchColumn()),$clockNow,'first available timestamp remains frozen at offset '.$offset);
+    $p->exec("DELETE FROM max_channel_conversion_outbox; UPDATE messages SET metadata_json='{\"type\":\"message\"}'");
+    same($repo->event($conv,'max_bot_activity_start',$settings),null,'bare historic wall timestamp remains unknown at offset '.$offset);
+    same($repo->capture($conv,'max_bot_activity_start',$settings,$clockNow),false,'no old-row backfill at offset '.$offset);
+    same((int)$p->query('SELECT COUNT(*) FROM max_channel_conversion_outbox')->fetchColumn(),0,'unknown old row creates no conversion at offset '.$offset);
+    if($mysql)$p->exec("SET time_zone='+00:00'");
+}
+// A capture exception must not retry the collector or stop independent admitted work.
+$p=maxAttributionFixture();(new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$p);
+$repo=new MaxChannelConversionOutbox($p);$repo->activateSharedGoals(1792058400);$settings=MaxChannelConversionOutbox::settings($p);
+$repo->capture($repo->conversation('1','-1234567890123456789',$settings),'max_bot_activity_start',$settings,1792062000);
+$attempts=0;$beforeMessage=(int)$settings['message_cursor'];
+$observer=new class{public int $membershipCalls=0;function lookup($counter,$users){return array_fill_keys($users,null);}function lookupWithMembership($counter,$users,$notBefore,$cutoff){$this->membershipCalls++;return ['identities'=>array_fill_keys($users,null),'membership'=>array_fill_keys($users,[])];}};
+$isolated=MaxChannelConversionWorker::tick($p,$observer,$noIO,1792062000,function()use(&$attempts){$attempts++;throw new RuntimeException('conversation_clock_not_utc');});
+same($attempts,1,'collector failure is attempted once only');same($isolated['collected'],null,'partial collection count remains unknown');
+same($isolated['collection_error'],'source_capture_failed','failure is a fixed non-sensitive category');same($isolated['errors'],1,'capture failure remains visible');
+same($observer->membershipCalls,1,'existing admitted membership observer still runs once');
+same((int)MaxChannelConversionOutbox::settings($p)['message_cursor'],$beforeMessage,'collector failure cannot reset or advance its cursor');
+foreach(['{"_recorded_clock":{"version":1,"basis":"server_recording_unix","unix":"1792058401"}}','{"_recorded_clock":{"version":2,"basis":"server_recording_unix","unix":1792058401}}','{"_recorded_clock":{"version":1,"basis":"unknown","unix":1792058401}}','broken']as$invalid){
+    same(ConversationRecordClock::read($invalid),null,'invalid or unproved clock metadata is unknown');
+    $q=$p->prepare('SELECT '.ConversationRecordClock::sql('metadata_json',$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql').' FROM messages WHERE id=2');
+    $p->prepare('UPDATE messages SET metadata_json=? WHERE id=2')->execute([$invalid]);$q->execute();same($q->fetchColumn(),null,'native SQL clock guard agrees on invalid provenance');
+}
 require_once dirname(__DIR__).'/services/ChannelWorkerFailureDiagnostic.php';
 foreach([
  ['channel_stage_capture_failed','stage_capture_failed'],
