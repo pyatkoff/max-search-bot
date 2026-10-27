@@ -66,6 +66,26 @@ for($id=1100;$id<1121;$id++)$q->execute([(string)$id,'404','10',1,'2026-07-15 12
 $oversized=$repo->lookup('98615635',['404','456'],['not_before_unix'=>$notBefore,'cutoff_unix'=>$at+1800]);
 same($oversized[0]['membership_receipts'],[],'oversized exact user fails closed as unknown without poisoning the batch');
 same($oversized[1]['membership_receipts'][1]['source_record_id'],'3001','next exact user remains observable after one oversized history');
+$p->exec("UPDATE max_sub_links SET UF_SUB_DATE='2026-10-25 00:30:00',UF_TYPE=1 WHERE ID=9007199254741002");
+$p->exec("INSERT INTO max_membership_events VALUES(4001,'999','10',1,'2026-10-25 00:30:00'),(4002,'999','10',2,'2026-10-25 01:30:00')");
+$p->exec("INSERT INTO max_no_unsub_goals VALUES(4003,9007199254741002,'2026-10-25 02:30:00',0)");
+$ambiguous=$repo->lookup('98615635',['999'],['not_before_unix'=>strtotime('2026-10-24 00:00:00 UTC'),'cutoff_unix'=>strtotime('2026-10-25 03:00:00 UTC')]);
+same($ambiguous[0]['membership_receipts'],[],'ambiguous London leave clock keeps the whole user unknown instead of inventing retained');
+$historyInsert=$p->prepare('INSERT INTO max_membership_events VALUES(?,?,?,?,?)');
+$linkInsert=$p->prepare('INSERT INTO max_sub_links VALUES(?,?,?,?,?,?,?,?,?)');
+$checkInsert=$p->prepare('INSERT INTO max_no_unsub_goals VALUES(?,?,?,0)');
+$sourceInsert=$p->prepare("INSERT INTO b_iblock_element_property VALUES(1,?,'98615635')");
+$manyBase=new DateTimeImmutable('2026-07-15 13:00:00',new DateTimeZone('Europe/London'));
+for($i=0;$i<20;$i++){
+    $source=(string)(20+$i);$historyId=(string)(5000+$i);$linkId=(string)(7000+$i);$checkId=(string)(9000+$i);
+    $joined=$manyBase->modify('+'.$i.' seconds')->format('Y-m-d H:i:s');$checked=$manyBase->modify('+'.(1800+$i).' seconds')->format('Y-m-d H:i:s');
+    $sourceInsert->execute([$source]);$historyInsert->execute([$historyId,'606',$source,1,$joined]);
+    $linkInsert->execute([$linkId,'606',(string)(6060000+$i),$joined,$source,$source,'ios',$joined,1]);
+    $checkInsert->execute([$checkId,$linkId,$checked]);
+}
+$many=$repo->lookup('98615635',['606','456'],['not_before_unix'=>$manyBase->getTimestamp()-1,'cutoff_unix'=>$manyBase->getTimestamp()+1820]);
+same($many[0]['membership_receipts'],[],'twenty periods projecting forty receipts fail closed at the per-user twenty-receipt boundary');
+same($many[1]['membership_receipts'][1]['source_record_id'],'3001','projected per-user overflow cannot poison the next exact user');
 $dynamicNow=time();$dynamicAt=(new DateTimeImmutable('@'.($dynamicNow-1800)))->setTimezone(new DateTimeZone('Europe/London'))->format('Y-m-d H:i:s');
 $p->prepare('INSERT INTO max_membership_events VALUES(?,?,?,?,?)')->execute(['2001','123','10',1,$dynamicAt]);
 $p->prepare('UPDATE max_sub_links SET UF_SUB_DATE=?,UF_TYPE=1 WHERE ID=9007199254740991')->execute([$dynamicAt]);

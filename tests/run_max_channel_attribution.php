@@ -359,6 +359,9 @@ $p->exec('DROP TABLE max_channel_attribution_settings');$p->exec('ALTER TABLE ma
 // The cyclic observer is MAX-only and must eventually visit every admitted
 // MAX user even when one user's receipts remain unknown.
 $p=maxAttributionFixture();(new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$p);$cycleNow=time();
+$cycleMysql=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
+if($cycleMysql){$migration=file_get_contents(dirname(__DIR__).'/migrations/067_telegram_dialogue_conversions.sql');$p->exec($migration);}
+else foreach(["platform TEXT DEFAULT 'max'","identity_source_key TEXT DEFAULT ''",'source_signal_id INTEGER','identity_observation_id INTEGER']as$column)$p->exec('ALTER TABLE max_channel_conversion_outbox ADD COLUMN '.$column);
 $p->prepare("UPDATE max_channel_attribution_settings SET mode='collect',goal_set='shared',shared_goals_activated_at_unix=?,membership_receipts_activated_at_unix=?,membership_receipts_outbox_cursor=0 WHERE project_key='anytour'")->execute([$cycleNow-60,$cycleNow-60]);
 $insert=$p->prepare("INSERT INTO max_channel_conversion_outbox(project_key,conversation_id,external_user_id,counter_id,target,transport_target,event_unix,state,created_at,platform) VALUES('anytour',?,?,'98615635','max_bot_activity_start','max_bot_activity_start',?,'processed',?,?)");
 $cycleUsers=[];for($i=1;$i<=6;$i++){$user='880000000000000000'.$i;$cycleUsers[]=$user;$insert->execute([100+$i,$user,$cycleNow-30,gmdate('Y-m-d H:i:s',$cycleNow-30),'max']);}

@@ -90,7 +90,7 @@ final class MaxTrackerLookupRepository
                     ||!MaxTrackerLookupProtocol::id($sourceId)||$type!=='1'){$invalid=true;break;}
                 try{$at=MaxSubscriptionAttributionPolicy::eventTimeUnix((string)$row['UF_DATE'],$zone);
                     $subscriptionAt=MaxSubscriptionAttributionPolicy::eventTimeUnix((string)$row['UF_SUB_DATE'],$zone);}
-                catch(InvalidArgumentException $ignored){continue;}
+                catch(InvalidArgumentException $ignored){$invalid=true;break;}
                 if($at<(int)$window['not_before_unix']||$at>(int)$window['cutoff_unix'])continue;
                 $checks[]=['record_id'=>$record,'subscription_id'=>$subscription,'source'=>$sourceId,'at'=>$at,'subscription_at'=>$subscriptionAt];
             }
@@ -101,7 +101,7 @@ final class MaxTrackerLookupRepository
                 if(!MaxTrackerLookupProtocol::id($record)||!MaxTrackerLookupProtocol::id((string)$row['UF_CHAT_ID'])
                     ||!MaxTrackerLookupProtocol::id($sourceId)||!in_array($type,['1','2'],true)){$invalid=true;break;}
                 try{$at=MaxSubscriptionAttributionPolicy::eventTimeUnix((string)$row['UF_DATE'],$zone);}
-                catch(InvalidArgumentException $ignored){continue;}
+                catch(InvalidArgumentException $ignored){$invalid=true;break;}
                 if($at<(int)$window['not_before_unix']||$at>(int)$window['cutoff_unix'])continue;
                 if($type==='1'){
                     // Repeated user_added while the same period is still open
@@ -133,6 +133,7 @@ final class MaxTrackerLookupRepository
                         'occurred_at_unix'=>$actual['at'],'minimum_age_seconds'=>1800];break;
                 }
             }
+            if(count($receipts)>20){$out[$userId]=[];continue;}
             if(count($receipts)>$budget)throw new RuntimeException('tracker_membership_response_too_large');
             $budget-=count($receipts);
             $out[$userId]=$receipts;
