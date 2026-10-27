@@ -1,0 +1,113 @@
+name: Review one exact new admitted prefix
+on:
+  push:
+    branches: [audit/exact-prefix-review-20261027]
+    paths: [.github/workflows/exact-prefix-review.yml]
+permissions:
+  contents: read
+concurrency:
+  group: anytour-exact-prefix-review-20261027
+  cancel-in-progress: false
+jobs:
+  read:
+    if: github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Pin current main
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin refs/heads/main
+          test "$(git rev-parse FETCH_HEAD)" = f82fd39a2e54f3ff814ea7c3c9b59f00e64aeb4a
+      - name: Prepare existing identity and strict canonical pin
+        env:
+          K: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          TARGET: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        run: |
+          set -euo pipefail
+          umask 077
+          if [[ "$K" == *"PRIVATE KEY"* ]]; then printf '%b\n' "$K" | tr -d '\r' > "$RUNNER_TEMP/membership-key"; else printf '%s' "$K" | base64 --decode > "$RUNNER_TEMP/membership-key"; fi
+          chmod 600 "$RUNNER_TEMP/membership-key"
+          ssh-keygen -y -f "$RUNNER_TEMP/membership-key" >/dev/null
+          python3 - "$TARGET" "$RUNNER_TEMP/membership-hosts" <<'PY'
+          import base64,hashlib,socket,subprocess,sys
+          host,dest=sys.argv[1:]
+          if {v[4][0] for v in socket.getaddrinfo(host,22,type=socket.SOCK_STREAM)}!={'5.45.122.54'}:raise SystemExit('canonical_target_changed')
+          pinned=[]
+          for _ in range(2):
+              scan=subprocess.run(['ssh-keyscan','-t','ed25519','-T','10',host],capture_output=True,text=True,timeout=30)
+              for line in scan.stdout.splitlines():
+                  parts=line.split()
+                  if len(parts)!=3 or parts[0].startswith('#'):continue
+                  try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(parts[2],validate=True)).digest()).decode().rstrip('=')
+                  except ValueError:continue
+                  if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0' and line not in pinned:pinned.append(line)
+              if pinned:break
+          if not pinned:raise SystemExit('canonical_host_pin_not_seen')
+          open(dest,'w').write('\n'.join(pinned)+'\n')
+          PY
+      - name: Standard private evidence encryption
+        run: |
+          python3 -m venv "$RUNNER_TEMP/evidence-python"
+          "$RUNNER_TEMP/evidence-python/bin/pip" install --disable-pip-version-check --only-binary=:all: --require-hashes -q -r tools/requirements-encrypted-evidence.txt
+      - name: Read immutable metadata only and encrypt
+        env:
+          TARGET: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          umask 077
+          cat > "$RUNNER_TEMP/comparison-read.php" <<'PHP'
+          <?php
+          declare(strict_types=1);
+          try {
+           $began=microtime(true);chdir('/var/www/anytoour/data/www/app.anytoour.ru');require_once 'config.php';require_once 'services/ProjectAccessService.php';require_once 'services/ConversationDb.php';
+           if(ProjectConfig::projectId()!=='anytour')throw new RuntimeException('project');ProjectAccessService::initializeReadOnly();$p=ConversationDb::connection();
+           $p->exec('SET SESSION MAX_EXECUTION_TIME=4000');$p->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');$p->exec('SET TRANSACTION READ ONLY');$p->beginTransaction();
+           $after=1793099891;$through=1793111321;
+           $q=$p->prepare("SELECT id,observed_at_unix,OCTET_LENGTH(profile_json) AS bytes FROM modeled_conversion_profile_versions WHERE project_key='anytour' AND observed_at_unix>? AND observed_at_unix<=? ORDER BY observed_at_unix,id LIMIT 1");$q->execute([$after,$through]);$m=$q->fetch(PDO::FETCH_ASSOC);
+           if(!$m||(int)$m['observed_at_unix']!==1793100303||(int)$m['bytes']>524288)throw new RuntimeException('profile_fence');
+           $q=$p->prepare("SELECT profile_json FROM modeled_conversion_profile_versions WHERE project_key='anytour' AND id=?");$q->execute([$m['id']]);$raw=$q->fetchColumn();if(!is_string($raw)||strlen($raw)!==(int)$m['bytes'])throw new RuntimeException('profile_size');$profile=json_decode($raw,true,128,JSON_THROW_ON_ERROR);
+           if(($profile['access_status']??null)!=='allowed'||($profile['profile']['prediction_at']??null)!=='2026-10-27T11:25:03Z'||count($profile['source_references']??[])!==14)throw new RuntimeException('profile_contract');
+           $cutoff=1793100303;$rows=[];$bytes=0;$metas=[];
+           foreach($profile['source_references']as$ref){
+            if(strtotime($ref['observed_at'])<=$after||strtotime($ref['observed_at'])>$cutoff)throw new RuntimeException('old_or_future_ref');
+            $q=$p->prepare("SELECT id,source_kind,source_id,version_no,observed_at_unix,OCTET_LENGTH(snapshot_json) AS bytes FROM modeled_conversion_stream_versions WHERE project_key='anytour' AND id=? AND observed_at_unix>? AND observed_at_unix<=?");
+            $q->execute([$ref['journal_id'],$after,$cutoff]);$r=$q->fetch(PDO::FETCH_ASSOC);
+            if(!$r||(string)$r['source_id']!==(string)$ref['source_id']||$r['source_kind']!==$ref['source_kind']||(int)$r['version_no']!==(int)$ref['source_version_no'])throw new RuntimeException('exact_ref');
+            $bytes+=(int)$r['bytes'];if($bytes>1048576)throw new RuntimeException('raw_budget');$metas[]=$r;
+           }
+           foreach($metas as$r){
+            $q=$p->prepare("SELECT snapshot_json FROM modeled_conversion_stream_versions WHERE project_key='anytour' AND id=?");$q->execute([$r['id']]);$raw=$q->fetchColumn();if(!is_string($raw)||strlen($raw)!==(int)$r['bytes'])throw new RuntimeException('snapshot_size');
+            $s=json_decode($raw,true,64,JSON_THROW_ON_ERROR);foreach(['project_key','platform','customer_key','conversation_id']as$k)if((string)($s[$k]??'')!==(string)$profile['subject'][$k])throw new RuntimeException('scope');
+            if(($s['source_status']??'')!=='present')throw new RuntimeException('revocation');
+            $rows[]=['journal_id'=>(string)$r['id'],'source_kind'=>$r['source_kind'],'source_id'=>(string)$r['source_id'],'source_version_no'=>(int)$r['version_no'],'observed_at_unix'=>(int)$r['observed_at_unix'],'snapshot'=>$s];
+           }
+           $p->rollBack();if(microtime(true)-$began>5)throw new RuntimeException('duration');
+           $out=['schema_version'=>1,'purpose'=>'exact_new_admitted_prefix_review','sampled_at'=>gmdate('Y-m-d\\TH:i:s\\Z'),'production_sha'=>'f82fd39a2e54f3ff814ea7c3c9b59f00e64aeb4a','range'=>[$after,$through],'profile_version_id'=>(string)$m['id'],'profile'=>$profile,'rows'=>$rows,'journal_rows_read'=>count($rows),'raw_bytes'=>$bytes,'native_source_reads'=>0,'old_snapshot_rows'=>0,'database_writes'=>0,'model_provider_customer_calls'=>0];
+           $raw=json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);if(strlen($raw)>2097152)throw new RuntimeException('protocol');echo $raw;
+          }catch(Throwable $e){if(isset($p)&&$p->inTransaction())$p->rollBack();fwrite(STDERR,"exact_prefix_review_failed\n");exit(1);}
+          
+          PHP
+          php -l "$RUNNER_TEMP/comparison-read.php"
+          timeout 25 ssh -i "$RUNNER_TEMP/membership-key" -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$RUNNER_TEMP/membership-hosts" -o ConnectTimeout=10 "$USER@$TARGET" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(git rev-parse HEAD)" = f82fd39a2e54f3ff814ea7c3c9b59f00e64aeb4a; php -d display_errors=0 -d log_errors=0; test "$(git rev-parse HEAD)" = f82fd39a2e54f3ff814ea7c3c9b59f00e64aeb4a' < "$RUNNER_TEMP/comparison-read.php" > "$RUNNER_TEMP/comparison-metadata.json"
+          "$RUNNER_TEMP/evidence-python/bin/python" - "$RUNNER_TEMP/comparison-metadata.json" "$RUNNER_TEMP/comparison-metadata.age" <<'PY'
+          import hashlib,json,pathlib,sys,pyrage
+          source,dest=map(pathlib.Path,sys.argv[1:])
+          raw=source.read_bytes();assert len(raw)<=2097152
+          obj=json.loads(raw);assert obj['native_source_reads']==obj['old_snapshot_rows']==obj['database_writes']==0;assert obj['journal_rows_read']==14
+          recipient=pyrage.x25519.Recipient.from_str(pathlib.Path('docs/diagnostics-recipient.txt').read_text().strip())
+          dest.write_bytes(pyrage.encrypt(raw,[recipient]))
+          print(json.dumps({'private_exact_prefix':True,'journal_rows_read':obj['journal_rows_read'],'cipher_bytes':dest.stat().st_size,'cipher_sha256':hashlib.sha256(dest.read_bytes()).hexdigest(),'native_source_reads':0,'raw_bytes':obj['raw_bytes'],'database_writes':0}))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: comparison-admission-${{ github.run_id }}
+          path: ${{ runner.temp }}/comparison-metadata.age
+          retention-days: 1
+          if-no-files-found: error
+      - name: Cleanup
+        if: always()
+        run: rm -f "$RUNNER_TEMP/membership-key" "$RUNNER_TEMP/membership-hosts" "$RUNNER_TEMP/comparison-read.php" "$RUNNER_TEMP/comparison-metadata.json" "$RUNNER_TEMP/comparison-metadata.age"
+
