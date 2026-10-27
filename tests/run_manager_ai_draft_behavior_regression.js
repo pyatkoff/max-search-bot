@@ -7,7 +7,8 @@ const source=fs.readFileSync(path.join(__dirname,'../manager/assets/workspace-v2
 const tick=()=>new Promise(setImmediate);
 const cases=[];function test(name,run){cases.push({name,run})}
 const generated=(changes={})=>({ok:true,should_draft:true,draft:'Уточните удобные даты поездки.',next_action:'Уточнить даты',reason:'В запросе нет даты вылета.',checks:['Проверить состав туристов'],evidence_message_ids:[8],history_incomplete:false,revision:'synthetic-revision-1',latest_message_id:8,...changes});
-const prepared=(changes={})=>({...generated(),prepared:true,prepared_at:'2026-10-19T10:30:00Z',source:'chatgpt',...changes});
+const preparedAt=new Date().toISOString(),expiresAt=new Date(Date.now()+3600000).toISOString();
+const prepared=(changes={})=>({...generated(),prepared:true,prepared_at:preparedAt,expires_at:expiresAt,source:'chatgpt',...changes});
 async function harness(handler=()=>response(prepared()),{manager2=false}={}){
   const h=createHarness();await h.start();
   const form=h.ids.get('composer'),reply=h.ids.get('replyText'),prototype=Object.getPrototypeOf(reply);
@@ -16,6 +17,7 @@ async function harness(handler=()=>response(prepared()),{manager2=false}={}){
   const make=(id,tag='div')=>{const node=h.document.createElement(tag);node.id=id;return node};
   const row=make('quickReplies'),selected=make('quickRepliesSelected'),quick=make('quickRepliesOpen','button');
   row.className='quickReplies qrToolbar';row.appendChild(selected);row.appendChild(quick);form.appendChild(row);form.appendChild(reply);form.appendChild(h.ids.get('replyFile'));
+  h.ids.get('conversationZone').appendChild(h.ids.get('composerLocked'));h.ids.get('conversationZone').appendChild(form);
   reply.selectionStart=reply.selectionEnd=0;reply.selectionDirection='none';reply.scrollLeft=0;
   h.W.S.detail.messages=[{id:5,sender_type:'manager',text:'Synthetic previous reply'},{id:8,sender_type:'customer',text:'Synthetic request'}];
   const observers=[];
@@ -66,19 +68,19 @@ test('binding is lazy and adds one stable button without another draft, file or 
   assert.equal(h.ids.get('composer').querySelectorAll('textarea').length,1);assert.equal(h.ids.get('composer').querySelectorAll('input').length,1);
   assertNoMutations(h);
 });
-const readiness=(changes={})=>({ok:true,prepared:true,should_draft:true,revision:'synthetic-revision-1',latest_message_id:8,prepared_at:new Date().toISOString(),expires_at:new Date(Date.now()+3600000).toISOString(),...changes});
-test('Manager2 status observes metadata without preview, focus, generation or composer changes',async()=>{
-  const pending=deferred(),h=await harness(()=>pending.promise,{manager2:true});
+const readiness=(changes={})=>({ok:true,prepared:true,should_draft:true,revision:'synthetic-revision-1',latest_message_id:8,prepared_at:preparedAt,expires_at:expiresAt,...changes});
+test('Manager2 reads passive text without modal, focus, generation or composer changes',async()=>{
+  const pending=deferred(),h=await harness(data=>data.action==='prepared_status'?pending.promise:response(prepared()),{manager2:true});
   const file={name:'kept.txt'};await h.draft('Набранный текст');h.setFile(file);const reply=h.ids.get('replyText');reply.focus();reply.setSelectionRange(1,5,'backward');
   pending.resolve(response(readiness()));await tick();
-  assert.deepEqual(h.aiCalls().map(c=>c.action),['prepared_status']);assert.equal(h.ids.get('aiDraftOpen').textContent,'AI — Ответ готов');assert.equal(h.ids.get('aiDraftOpen').dataset.aiState,'prepared');
+  assert.deepEqual(h.aiCalls().map(c=>c.action),['prepared_status','prepared_preview']);assert.equal(h.ids.get('aiDraftOpen').textContent,'AI — Ответ готов');assert.equal(h.ids.get('aiDraftOpen').dataset.aiState,'prepared');
   assert.equal(h.ids.get('aiDraftPanel').hidden,true);assert.equal(h.ids.get('aiReadyNotice').hidden,false);assert.equal(h.document.activeElement,reply);assert.equal(reply.value,'Набранный текст');assert.equal(h.getFile(),file);assert.equal(reply.selectionStart,1);assertNoMutations(h);
 });
 test('personal hide setting changes only the readiness notice, not the ready button or preview',async()=>{
   let show=false;
   const h=await harness(data=>response(data.action==='prepared_status'?readiness():prepared()),{manager2:true});await tick();
   h.window.WorkspaceV2PersonalWorkspace={showAiReadyNotice:()=>show};h.ai.syncPreferences();assert.equal(h.ids.get('aiReadyNotice').hidden,true);assert.equal(h.ids.get('aiDraftOpen').textContent,'AI — Ответ готов');
-  show=true;h.ai.syncPreferences();assert.equal(h.ids.get('aiReadyNotice').hidden,false);
+  show=true;h.ai.syncPreferences();assert.equal(h.ids.get('aiDraftSuggestion').hidden,false);assert.equal(h.ids.get('aiReadyNotice').hidden,true);
   await h.click('aiDraftOpen');assert.equal(h.ids.get('aiDraftPanel').hidden,false);assert.equal(h.ids.get('aiReadyNotice').hidden,true);assertNoMutations(h);
 });
 test('readiness without a customer draft is described as recommendations and stays quiet',async()=>{
@@ -91,7 +93,7 @@ test('late status401 after account change cannot expire the next session or anno
   assert.equal(h.W.S.authExpired,false);assert.equal(h.ids.get('aiReadyNotice').hidden,true);assert.equal(h.ids.get('aiDraftOpen').textContent,'AI');assertNoMutations(h);
 });
 test('expiry sync hides the notice before a throttled timer without touching the composer',async()=>{
-  const h=await harness(()=>response(readiness()),{manager2:true});await tick();
+  const h=await harness(data=>response(data.action==='prepared_status'?readiness():prepared()),{manager2:true});await tick();
   const file={name:'keep.txt'};await h.draft('Мой ответ');h.setFile(file);
   const reply=h.ids.get('replyText');reply.focus();reply.setSelectionRange(1,5,'backward');reply.scrollTop=17;
   assert.equal(h.ids.get('aiReadyNotice').hidden,false);const requests=h.aiCalls().length;
@@ -102,9 +104,69 @@ test('expiry sync hides the notice before a throttled timer without touching the
   assert.equal(h.document.activeElement,reply);assert.deepEqual([reply.selectionStart,reply.selectionEnd,reply.selectionDirection,reply.scrollTop],[1,5,'backward',17]);assertNoMutations(h);
 });
 test('expiry clears a ready button even after the bounded observer has stopped',async()=>{
-  const h=await harness(()=>response(readiness()),{manager2:true});await tick();h.advanceAiClock(600001);
-  const poll=[...h.aiTimers.values()].find(t=>t.ms===15000);await poll.fn();await tick();assert.equal(h.aiCalls().length,1);
+  const h=await harness(data=>response(data.action==='prepared_status'?readiness():prepared()),{manager2:true});await tick();h.advanceAiClock(600001);
+  const poll=[...h.aiTimers.values()].find(t=>t.ms===15000);await poll.fn();await tick();assert.equal(h.aiCalls().length,2);
   const expiry=[...h.aiTimers.values()].find(t=>t.ms>600000);expiry.fn();assert.equal(h.ids.get('aiDraftOpen').textContent,'AI');assert.equal(h.ids.get('aiReadyNotice').hidden,true);assertNoMutations(h);
+});
+const inlineHandler=data=>response(data.action==='prepared_status'?readiness():data.action==='validate'?{ok:true,revision:'synthetic-revision-1',latest_message_id:8,draft_id:'a'.repeat(32)}:prepared({draft_id:data.action==='prepared'?'a'.repeat(32):null}));
+async function pressInline(h,changes={}){
+  const event={key:'Tab',prevented:false,preventDefault(){this.prevented=true},stopPropagation(){},...changes};
+  for(const fn of h.ids.get('replyText').handlers.keydown||[])fn(event);
+  await tick();return event;
+}
+test('inline answer is inert visible text; Tab validates and inserts once with provenance and retained File',async()=>{
+  const h=await harness(inlineHandler,{manager2:true});await tick();const reply=h.ids.get('replyText'),file={name:'keep.txt'};h.setFile(file);reply.focus();
+  assert.equal(h.ids.get('aiDraftSuggestion').hidden,false);assert.equal(h.ids.get('aiDraftSuggestion').querySelector('.aiSuggestionText').textContent,generated().draft);
+  assert.equal(h.ids.get('aiReadyNotice').hidden,true);assert.equal(h.ids.get('aiDraftPanel').hidden,true);
+  assert.deepEqual(h.aiCalls().map(c=>c.action),['prepared_status','prepared_preview']);
+  assert.equal((await pressInline(h)).prevented,true);assert.equal(reply.value,generated().draft);assert.equal(h.getFile(),file);assert.equal(h.document.activeElement,reply);
+  assert.deepEqual([reply.selectionStart,reply.selectionEnd],[reply.value.length,reply.value.length]);assert.deepEqual(h.aiCalls().slice(-2).map(c=>c.action),['prepared','validate']);assert.equal(h.aiCalls().at(-1).draft_id,'a'.repeat(32));
+  assert.equal(h.ids.get('aiDraftSuggestion').hidden,true);assert.equal((await pressInline(h)).prevented,false);assertNoMutations(h);
+});
+test('inline suggestion preserves standard modified Tab, IME, typing, focus and dismissal',async()=>{
+  const h=await harness(inlineHandler,{manager2:true});await tick();const reply=h.ids.get('replyText');reply.focus();
+  for(const changes of [{shiftKey:true},{ctrlKey:true},{altKey:true},{metaKey:true},{isComposing:true},{repeat:true}])assert.equal((await pressInline(h,changes)).prevented,false);
+  await h.draft('Свой текст');assert.equal(h.ids.get('aiDraftSuggestion').hidden,true);assert.equal((await pressInline(h)).prevented,false);assert.equal(reply.value,'Свой текст');
+  await h.draft('');assert.equal(h.ids.get('aiDraftSuggestion').hidden,false);assert.equal((await pressInline(h,{key:'Escape'})).prevented,true);h.ai.sync();assert.equal(h.ids.get('aiDraftSuggestion').hidden,true);assert.deepEqual(h.aiCalls().map(c=>c.action),['prepared_status','prepared_preview']);assertNoMutations(h);
+});
+test('metadata polling retains current inline text without rereading the full proposal',async()=>{
+  const h=await harness(inlineHandler,{manager2:true});await tick();const poll=[...h.aiTimers.values()].find(t=>t.ms===15000);await poll.fn();await tick();
+  assert.equal(h.aiCalls().filter(c=>c.action==='prepared_preview').length,1);assert.equal(h.ids.get('aiDraftSuggestion').hidden,false);assertNoMutations(h);
+});
+for(const state of ['manager','waiting_manager','ai','closed'])test('only workspace owner gets automatic foreign '+state+' inline preview',async()=>{
+  const h=await harness(inlineHandler,{manager2:true});await tick();h.W.S.manager.role='admin';h.W.S.detail.owner_read=true;h.W.S.detail.supervisor_read=true;Object.assign(h.W.S.detail.conversation,{status:state,manager_id:state==='manager'?9:null,manager_name:'Другой менеджер'});h.ids.get('composer').classList.add('hidden');h.ai.sync();await tick();
+  assert.equal(h.ids.get('aiDraftSuggestion').hidden,false);assert.match(h.ids.get('aiDraftSuggestion').querySelector('strong').textContent,/Только просмотр.*Другой менеджер/);assert.equal(h.ids.get('aiSuggestionAccept').hidden,true);assert.equal(h.ids.get('aiDraftSuggestion').parentElement,h.ids.get('conversationZone'));
+  h.ids.get('replyText').focus();assert.equal((await pressInline(h)).prevented,false);assert.equal(h.aiCalls().some(c=>['generate','prepared','validate'].includes(c.action)),false);assertNoMutations(h);
+});
+test('ordinary supervisor foreign access stops automatic reads and clears private inline text',async()=>{
+  const h=await harness(inlineHandler,{manager2:true});await tick();h.W.S.detail.supervisor_read=true;h.W.S.detail.conversation.manager_id=9;h.ids.get('composer').classList.add('hidden');const before=h.aiCalls().length;h.ai.sync();await tick();
+  assert.equal(h.aiCalls().length,before);assert.equal(h.ids.get('aiDraftSuggestion').hidden,true);assert.equal(h.ids.get('aiDraftSuggestion').querySelector('.aiSuggestionText').textContent,'');assertNoMutations(h);
+});
+for(const stage of ['prepared','validate'])for(const change of ['typing','expiry','hidden'])test('inline '+stage+' pending '+change+' cannot insert',async()=>{
+  const pending=deferred(),h=await harness(data=>data.action===stage?pending.promise:inlineHandler(data),{manager2:true});await tick();h.ids.get('replyText').focus();await pressInline(h);
+  if(change==='typing')await h.draft('Не заменять');else if(change==='expiry')h.advanceAiClock(3601000);else{h.document.visibilityState='hidden';h.documentEvents.get('visibilitychange')()}
+  pending.resolve(stage==='validate'?response({ok:true,revision:'synthetic-revision-1',latest_message_id:8,draft_id:'a'.repeat(32)}):inlineHandler({action:'prepared'}));await tick();
+  assert.equal(h.ids.get('replyText').value,change==='typing'?'Не заменять':'');assert.equal(h.ids.get('aiDraftPanel').hidden,true);assertNoMutations(h);
+});
+for(const change of ['navigation','message','edit','role','account'])test('late passive full text cannot survive '+change,async()=>{
+  let statuses=0;const pending=deferred(),h=await harness(data=>data.action==='prepared_preview'?pending.promise:data.action==='prepared_status'&&++statuses>1?response({ok:true,prepared:false}):inlineHandler(data),{manager2:true});await tick();
+  if(change==='navigation')await h.C.open(102);else if(change==='message')h.W.S.detail.messages.push({id:9,sender_type:'customer',text:'Новое'});else if(change==='edit')h.W.S.detail.messages[1].text='Исправлено';else if(change==='role'){h.W.S.detail.conversation.manager_id=9;h.W.S.detail.owner_read=true;h.ids.get('composer').classList.add('hidden')}else h.W.S.authGeneration++;
+  h.ai.sync();pending.resolve(response(prepared()));await tick();assert.equal(h.ids.get('aiDraftSuggestion').hidden,true);assert.equal(h.ids.get('aiDraftSuggestion').querySelector('.aiSuggestionText').textContent,'');assertNoMutations(h);
+});
+test('older history prepend preserves current inline text; cache replacement cannot silently change Tab text',async()=>{
+  let replace=false;const h=await harness(data=>data.action==='prepared'&&replace?response(prepared({draft:'Другой вариант'})):inlineHandler(data),{manager2:true});await tick();h.W.S.detail.messages.unshift({id:1,sender_type:'customer',text:'Ранее'});h.ai.sync();
+  assert.equal(h.ids.get('aiDraftSuggestion').hidden,false);replace=true;h.ids.get('replyText').focus();await pressInline(h);assert.equal(h.ids.get('replyText').value,'');assert.equal(h.aiCalls().some(c=>c.action==='validate'),false);assert.equal(h.ids.get('aiDraftSuggestion').hidden,true);assertNoMutations(h);
+});
+test('generated inline expiry during validation cannot insert after the UI lifetime',async()=>{
+  const pending=deferred(),h=await harness(data=>data.action==='prepared_status'||data.action==='prepared'?response({ok:true,prepared:false}):data.action==='generate'?response(generated()):pending.promise,{manager2:true});await tick();await h.click('aiDraftOpen');await h.close();h.ids.get('replyText').focus();await pressInline(h);h.advanceAiClock(600001);
+  pending.resolve(response({ok:true,revision:'synthetic-revision-1',latest_message_id:8}));await tick();assert.equal(h.ids.get('replyText').value,'');assertNoMutations(h);
+});
+test('old inline validation completion cannot cancel a newer hidden insertion',async()=>{
+  const first=deferred(),second=deferred();let validations=0;
+  const h=await harness(data=>data.action==='prepared_status'||data.action==='prepared'?response({ok:true,prepared:false}):data.action==='generate'?response(generated()):(++validations===1?first.promise:second.promise),{manager2:true});await tick();await h.click('aiDraftOpen');await h.close();h.ids.get('replyText').focus();await pressInline(h);
+  h.ai.resetSession();await h.click('aiDraftOpen');await h.close();h.ids.get('replyText').focus();await pressInline(h);
+  first.resolve(response({ok:true,revision:'synthetic-revision-1',latest_message_id:8}));await tick();assert.equal(h.ids.get('replyText').value,'');
+  second.resolve(response({ok:true,revision:'synthetic-revision-1',latest_message_id:8}));await tick();assert.equal(h.ids.get('replyText').value,generated().draft);assert.equal(validations,2);assertNoMutations(h);
 });
 test('prepared reply renders inert text and keeps exact draft, file, selection and scroll',async()=>{
   const literal='<img src=x onerror="throw 1"> & {unknown}';

@@ -99,6 +99,14 @@ final class ManagerPreparedReplyService
     {
         managerAiHttpFixtureEvent('prepared_read',['conversation_id'=>$cid,'manager_id'=>$actor,
             'session_closed'=>session_status()!==PHP_SESSION_ACTIVE]);
+        if((managerAiHttpFixtureState()['prepared_mode']??'')==='wait'){
+            file_put_contents(managerAiHttpFixtureDirectory().'/prepared-ready','ready');
+            $deadline=microtime(true)+6;
+            while(!is_file(managerAiHttpFixtureDirectory().'/prepared-release')){
+                if(microtime(true)>$deadline)throw new RuntimeException('Synthetic prepared barrier timed out');
+                usleep(10000);
+            }
+        }
         return managerAiHttpFixtureState()['prepared_result']??['ok'=>true,'prepared'=>false];
     }
 }

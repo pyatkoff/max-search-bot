@@ -51,6 +51,15 @@ read mark or customer send. Cross-project ready reads are restricted to freshly
 verified owner access; worker enqueue, completion and ordinary employee runtime
 project restrictions remain unchanged.
 
+Manager2 also reads available prepared text automatically for the selected visible
+owner conversation, including another manager's chat, through the canonical ready
+cache. This owner-only extension follows the same 15-second/ten-minute observer
+bounds as own-compose readiness. It never generates on a cache miss. The inline
+proposal names the responsible manager and says `Только просмотр`; it has no
+Tab/insertion action and records no foreign feedback, read mark or customer send.
+The existing personal `ai_ready_notice` hide preference also hides this suggestion.
+Normal employee supervisor grants do not enable automatic foreign-chat polling.
+
 ## Read owner versus viewer
 
 `ManagerConversationAccessPolicy::canView` remains the legacy mutation/queue
@@ -83,7 +92,11 @@ or generate on that explicit click; it does not mark an insertion, record anothe
 manager's feedback, mutate a ready proposal, validate insertion or send. The
 preview is labelled as supervision, and has no Add action. Late account,
 assignment, conditions, session or permission changes discard the result.
-Automatic readiness polling remains limited to the own-compose path.
+Automatic readiness polling covers own-compose and freshly authorized workspace
+owner reads only. The read-only `prepared_preview` action returns full cached
+text with `draft_id: null` and no job identity after fresh auth/CSRF/session/context
+checks. It creates no preview provenance; the separate `prepared` action retains
+explicit own-manager preview/acceptance recording before ordinary validation.
 
 ## Analytics definitions and coverage
 

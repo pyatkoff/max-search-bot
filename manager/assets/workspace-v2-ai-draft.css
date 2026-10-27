@@ -4,6 +4,21 @@
 .manager2 .composer .quickReplies #aiDraftOpen[data-ai-state=generated]{color:#275c98;background:#edf3fc;border-color:#ccdcf0}
 .manager2 .composer .quickReplies #aiDraftOpen[data-ai-state=loading]{color:#805b20;background:#fff4dc;border-color:#ebd9b2}
 .manager2 .composer .quickReplies #aiDraftOpen[data-ai-state=stale]{color:#617169;background:#f1f4f1;border-color:#dce3dd}
+.aiDraftSuggestion[hidden],.aiDraftSuggestion button[hidden]{display:none!important}
+.manager2 .aiDraftSuggestion{flex:none;min-width:0;margin:0 0 7px;padding:10px 12px;border:1px solid #dee6d8;border-radius:10px;background:#f8faf5;color:#52664b;font-size:13px;line-height:1.45;order:-1}
+.manager2 .aiSuggestionHead{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:11px;color:#64775b}
+.manager2 .aiSuggestionHead strong{font-weight:600;min-width:0;overflow-wrap:anywhere}
+.manager2 .aiSuggestionText{margin:3px 0 7px;max-height:min(108px,15dvh);overflow:auto;overscroll-behavior:contain;white-space:pre-wrap;overflow-wrap:anywhere;color:#67745f;user-select:text}
+.manager2 .aiSuggestionActions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.manager2 .aiDraftSuggestion button{min-height:30px;padding:4px 8px;border:1px solid #dbe4d3;border-radius:6px;background:#fff;color:#526a47;font:inherit;font-size:11px;cursor:pointer}
+.manager2 .aiDraftSuggestion button:hover{background:#edf3e7}
+.manager2 .aiDraftSuggestion button:focus-visible{outline:2px solid #477351;outline-offset:2px}
+.manager2 .aiDraftSuggestion .aiSuggestionDismiss{border:0;background:transparent;font-size:19px;line-height:1;padding:0 5px}
+.manager2 #aiSuggestionAccept{font-weight:600}
+.manager2 #aiSuggestionDetails{border-color:transparent;background:transparent}
+.manager2 .aiDraftSuggestion.aiSuggestionReadonly{order:0;margin:8px 21px 0;background:#fff}
+@media(max-width:740px){.manager2 .aiDraftSuggestion{padding:7px 9px;margin-bottom:4px}.manager2 .aiSuggestionText{max-height:min(96px,14dvh)}.manager2 .aiDraftSuggestion button{min-height:36px}.manager2 .aiDraftSuggestion.aiSuggestionReadonly{margin:6px 10px 0}}
+@media(max-height:540px){.manager2 .aiSuggestionText{max-height:48px}.manager2 .aiDraftSuggestion{padding:5px 8px}.manager2 .aiSuggestionHead{font-size:10px}}
 .aiReadyNotice[hidden]{display:none!important}
 .manager2 .aiReadyNotice{position:absolute;z-index:11;bottom:calc(100% + 8px);right:12px;display:flex;align-items:center;gap:12px;box-sizing:border-box;max-width:calc(100% - 24px);padding:10px 12px;border:1px solid #d4e4d8;border-radius:10px;background:#fff;color:#345543;box-shadow:0 4px 18px #203b3918;font-size:13px;line-height:1.4}
 .manager2 .aiReadyNotice>span{font-weight:600;min-width:0}
