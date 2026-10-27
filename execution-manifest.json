@@ -1,0 +1,37 @@
+{
+  "approved_projection_sha256": "95c7605ed79839aa1dc636d8351981d4bb9730d1b7fd0046e1161d3975489ac1",
+  "execution_enabled": true,
+  "operation_id": "F1142-OWNER2-READONLY-20261027-1",
+  "production_sha": "f82fd39a2e54f3ff814ea7c3c9b59f00e64aeb4a",
+  "repository": "pyatkoff/max-search-bot",
+  "runtime_files": {
+    ".github/workflows/f1142-readonly.yml": "79f36bb3b87f1fac8a58b4f67a8e6c283aa26e6e33449726918c19264d4c32b6",
+    "source/carrier.py": "390168c94408b91fd1a87f190bf66e28ea27deffd78df13a20217e73ca486cce",
+    "source/projection.php": "95c7605ed79839aa1dc636d8351981d4bb9730d1b7fd0046e1161d3975489ac1",
+    "source/remote.php": "7586376b0fecacdc503943657e76973a76b7e254c5a92961e80b134f03a73c35",
+    "tools/requirements-encrypted-evidence.txt": "e489bc3579a5570035c1f7b64fcc9e2eedce66263d7c6bcbc41fd635fb68c412"
+  },
+  "runtime_pins": {
+    "config.example.php": {
+      "git_blob": "bea901789de92e9f3eb19b0317228caf5ef97155",
+      "sha256": "7f7af9040ab0137465495b5dbc136b842b57680bab207bce57e784034b244fa4"
+    },
+    "services/ConversationDb.php": {
+      "git_blob": "bb6281faf55aca7beeae7f8a57389d19751936f7",
+      "sha256": "8a3c8ef5625aaa24294ba5b9799613920a51a0355c431d0d629662b887652fe1"
+    },
+    "services/ProjectAccessService.php": {
+      "git_blob": "fb29a199723e19daed48c57056f66060100fcdff",
+      "sha256": "f650a2e3dfaaa7f84d91879d6326dae73820834bc9d5f37a7e17834277a88ddb"
+    },
+    "services/ProjectConfig.php": {
+      "git_blob": "538b596981f2c61fbf524e18756bf672578948f6",
+      "sha256": "2ef2fa7334b37bee1e3da2a6516628bb7d81b23af2e988ebdffde07dec823b25"
+    },
+    "services/TourSearchHandoffService.php": {
+      "git_blob": "4db4da454a9a9403935e0139441650066c30627a",
+      "sha256": "3577818bc91f2127418e387f40b50bfc2f52f635a2b56052d8c3a518b60f2ba4"
+    }
+  },
+  "schema_version": 1
+}

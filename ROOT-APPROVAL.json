@@ -1,0 +1,8 @@
+{
+  "approved": true,
+  "bootstrap_definition_only_reviewed": true,
+  "independent_reviewer": "ROOT",
+  "manifest_sha256": "6cc3b18b1fad5d9fddbacdf2d4d8dc1f0a6450b107accb7bafe1a489cd67a5fd",
+  "recipient_roundtrip_verified": true,
+  "request_sha256": "5a222e4850a852fe829aab8ec05a57c4beb1f36229616bc6edc26cd6029b521a"
+}

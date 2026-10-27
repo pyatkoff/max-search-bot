@@ -1,0 +1,7 @@
+{
+  "operation_id": "F1142-OWNER2-READONLY-20261027-1",
+  "production_sha": "f82fd39a2e54f3ff814ea7c3c9b59f00e64aeb4a",
+  "purpose": "f1142_owner2_binding_readonly",
+  "recipient_age": "age1jljfrvsrrza08ldgkn7x50laha28zvmu5az74eg2738fkt92mdhqgsfla3",
+  "recipient_fingerprint_sha256": "1e3095c63598ca49e524f91f83ca276c3e8cb87dcf592292a5513161b7485faa"
+}
