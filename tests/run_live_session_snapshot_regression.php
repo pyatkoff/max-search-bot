@@ -64,6 +64,88 @@ $target=null;foreach($anomalies as $a)if((int)($a['conversation_id']??0)===999)$
 lssCheck('repeated bot question is context after independent signal',is_array($target)&&in_array('customer_repeated_answer',(array)($target['signals']??[]),true)&&in_array('bot_repeated_question_nights',(array)($target['signals']??[]),true));
 lssCheck('bounded anomaly summary remains internally consistent',(int)($composed['summary']['ranked']??-1)===count($anomalies)&&((int)($composed['summary']['high']??0)+(int)($composed['summary']['medium']??0))===count($anomalies));
 
+// Exercise the real CLI and canonical Telegram status readers against an isolated,
+// query-only SQLite store. No production config, worker, transport or HTTP is used.
+$tgRoot=sys_get_temp_dir().'/live-tg-status-'.bin2hex(random_bytes(6));
+mkdir($tgRoot.'/tools',0700,true);mkdir($tgRoot.'/services',0700,true);
+copy($base.'/tools/live_session_snapshot.php',$tgRoot.'/tools/live_session_snapshot.php');
+foreach(['TelegramDialogueConversions.php','MaxChannelConversionOutbox.php','MaxSubscriptionAttributionPolicy.php','InternalOwnerDialogueScope.php','LiveSessionAnalyzer.php','CallbackGeneration.php']as$file){
+    copy($base.'/services/'.$file,$tgRoot.'/services/'.$file);
+}
+file_put_contents($tgRoot.'/config.php',"<?php\nclass ProjectConfig { public static function projectId(): string { return getenv('TG_STATUS_TEST_PROJECT') ?: 'anytour'; } }\n");
+file_put_contents($tgRoot.'/services/ProjectConfig.php',"<?php\nrequire_once dirname(__DIR__).'/config.php';\n");
+$tgDatabase=$tgRoot.'/fixture.sqlite';
+file_put_contents($tgRoot.'/services/ConversationDb.php',"<?php\nclass ConversationDb { private static ?PDO \$connection=null; public static function isConfigured(): bool { return true; } public static function connection(): PDO { if(self::\$connection===null){ self::\$connection=new PDO(".var_export('sqlite:'.$tgDatabase,true)."); self::\$connection->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION); self::\$connection->exec('PRAGMA query_only=ON'); } return self::\$connection; } }\n");
+$tgDb=new PDO('sqlite:'.$tgDatabase);$tgDb->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
+$tgDb->exec('CREATE TABLE conversations (id INTEGER PRIMARY KEY,project_key TEXT,source_id INTEGER,channel TEXT,status TEXT,is_test INTEGER,test_source TEXT,test_reason TEXT,manager_id INTEGER,started_at TEXT,last_message_at TEXT)');
+$tgDb->exec('CREATE TABLE max_channel_attribution_settings (project_key TEXT,counter_id TEXT,goal_set TEXT,telegram_mode TEXT,telegram_activated_at_unix INTEGER,telegram_signal_floor INTEGER,telegram_signal_cursor INTEGER)');
+$tgDb->exec("INSERT INTO max_channel_attribution_settings VALUES ('anytour','98615635','shared','send',1793040080,765432109,987654321)");
+$tgDb->exec('CREATE TABLE max_channel_conversion_outbox (project_key TEXT,platform TEXT,state TEXT,external_user_id TEXT,client_id TEXT,upload_id TEXT)');
+$tgInsert=$tgDb->prepare('INSERT INTO max_channel_conversion_outbox VALUES (?,?,?,?,?,?)');
+foreach(['pending','ready','accepted','processed','unknown','unmatched','failed']as$state){$tgInsert->execute(['anytour','telegram',$state,'PRIVATE_TG_USER','PRIVATE_TG_CLIENT','PRIVATE_TG_UPLOAD']);}
+$tgInsert->execute(['anytour','max','processed','PRIVATE_MAX_USER','PRIVATE_MAX_CLIENT','PRIVATE_MAX_UPLOAD']);
+$tgInsert->execute(['foreign','telegram','processed','PRIVATE_FOREIGN_USER','PRIVATE_FOREIGN_CLIENT','PRIVATE_FOREIGN_UPLOAD']);
+function lssTelegramRun(string $directory,string $project='anytour'):array
+{
+    $output=[];$exit=0;
+    $command='TG_STATUS_TEST_PROJECT='.escapeshellarg($project).' '.escapeshellarg(PHP_BINARY)
+        .' -d disable_functions=curl_exec,curl_multi_exec,fsockopen,pfsockopen,stream_socket_client '
+        .escapeshellarg($directory.'/tools/live_session_snapshot.php').' 1';
+    exec($command,$output,$exit);$raw=implode("\n",$output);
+    return ['exit'=>$exit,'raw'=>$raw,'json'=>json_decode($raw,true)];
+}
+$tgBefore=hash_file('sha256',$tgDatabase);$tgStarted=time();$tgRun=lssTelegramRun($tgRoot);
+$tgProjection=$tgRun['json']['telegram_dialogue_delivery']??null;
+lssCheck('Telegram status is available through the real snapshot CLI without a worker or network',
+    $tgRun['exit']===0&&($tgRun['json']['ok']??false)===true&&($tgProjection['available']??false)===true
+    &&($tgProjection['mode']??null)==='send'&&($tgProjection['activated']??null)===true);
+$tgAt=is_array($tgProjection)?($tgProjection['sampled_at']??''):'';
+lssCheck('Telegram aggregate has a fresh explicit UTC sample time',
+    is_string($tgAt)&&preg_match('/\A[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z\z/D',$tgAt)===1
+    &&(int)strtotime($tgAt)>=$tgStarted&&(int)strtotime($tgAt)<=time());
+lssCheck('Telegram stored states distinguish accepted processed unknown and failures without MAX or foreign rows',
+    ($tgProjection['queue_total']??null)===7&&($tgProjection['queue_counts']??null)===['pending'=>1,'ready'=>1,'uploading'=>0,'accepted'=>1,'processed'=>1,'unknown'=>1,'unmatched'=>1,'failed'=>1,'expired'=>0,'retired'=>0]);
+lssCheck('Telegram observation is read only and publishes only the fixed public schema',
+    hash_file('sha256',$tgDatabase)===$tgBefore&&is_array($tgProjection)
+    &&array_keys($tgProjection)===['sampled_at','available','error','mode','activated','queue_counts','queue_total']
+    &&!str_contains($tgRun['raw'],'PRIVATE_')&&!str_contains($tgRun['raw'],'telegram_signal')
+    &&!str_contains($tgRun['raw'],'765432109')&&!str_contains($tgRun['raw'],'987654321'));
+$tgPublicInput=$tgRoot.'/public-input.json';file_put_contents($tgPublicInput,$tgRun['raw']);
+$tgPublicLines=[];$tgPublicExit=0;
+exec(escapeshellarg(PHP_BINARY).' '.escapeshellarg($base.'/tools/sanitize_public_diagnostics.php').' '.escapeshellarg($tgPublicInput),$tgPublicLines,$tgPublicExit);
+$tgPublic=json_decode(implode("\n",$tgPublicLines),true);
+lssCheck('the existing public sanitizer retains the safe Telegram projection',
+    $tgPublicExit===0&&($tgPublic['public_redacted']??false)===true&&($tgPublic['telegram_dialogue_delivery']??null)===$tgProjection);
+$tgForeign=lssTelegramRun($tgRoot,'foreign')['json']['telegram_dialogue_delivery']??[];
+lssCheck('a foreign project is unavailable rather than an invented empty Telegram queue',
+    ($tgForeign['available']??true)===false&&($tgForeign['error']??null)==='project_not_applicable'
+    &&array_key_exists('queue_total',$tgForeign)&&$tgForeign['queue_total']===null&&$tgForeign['mode']===null);
+$tgDb->exec("DELETE FROM max_channel_conversion_outbox; UPDATE max_channel_attribution_settings SET telegram_mode='off',telegram_activated_at_unix=NULL");
+$tgEmpty=lssTelegramRun($tgRoot)['json']['telegram_dialogue_delivery']??[];
+lssCheck('a successfully observed empty inactive transport remains a known empty status',
+    ($tgEmpty['available']??false)===true&&($tgEmpty['mode']??null)==='off'&&($tgEmpty['activated']??null)===false
+    &&($tgEmpty['queue_total']??null)===0&&array_sum($tgEmpty['queue_counts']??[-1])===0);
+$tgDb->exec('DELETE FROM max_channel_attribution_settings');
+$tgMissing=lssTelegramRun($tgRoot)['json']['telegram_dialogue_delivery']??[];
+lssCheck('missing activation settings do not become zero counts or off mode',
+    ($tgMissing['available']??true)===false&&($tgMissing['error']??null)==='status_unavailable'
+    &&array_key_exists('queue_counts',$tgMissing)&&$tgMissing['queue_counts']===null&&$tgMissing['mode']===null&&$tgMissing['activated']===null);
+$tgDb->exec("INSERT INTO max_channel_attribution_settings VALUES ('anytour','98615635','shared','send',1793040080,765432109,987654321)");
+$tgDb->exec('DROP TABLE max_channel_conversion_outbox');
+$tgBroken=lssTelegramRun($tgRoot)['json']['telegram_dialogue_delivery']??[];
+lssCheck('failed queue reads remain unavailable without exposing database errors',
+    ($tgBroken['available']??true)===false&&($tgBroken['error']??null)==='status_unavailable'
+    &&$tgBroken['queue_counts']===null&&$tgBroken['queue_total']===null&&$tgBroken['mode']===null);
+$tgDb->exec('CREATE TABLE max_channel_conversion_outbox (project_key TEXT,platform TEXT,state TEXT)');
+$tgDb->exec("INSERT INTO max_channel_conversion_outbox VALUES ('anytour','telegram','PRIVATE_TG_INVALID_STATE')");
+$tgInvalidRun=lssTelegramRun($tgRoot);$tgInvalid=$tgInvalidRun['json']['telegram_dialogue_delivery']??[];
+lssCheck('unknown queue states fail closed without leaking their value',
+    ($tgInvalid['available']??true)===false&&($tgInvalid['error']??null)==='status_invalid'
+    &&$tgInvalid['queue_counts']===null&&!str_contains($tgInvalidRun['raw'],'PRIVATE_TG_INVALID_STATE'));
+$tgDb=null;
+$tgFiles=new RecursiveIteratorIterator(new RecursiveDirectoryIterator($tgRoot,FilesystemIterator::SKIP_DOTS),RecursiveIteratorIterator::CHILD_FIRST);
+foreach($tgFiles as$file){if($file->isDir())rmdir($file->getPathname());else unlink($file->getPathname());}rmdir($tgRoot);
+
 $total=$passed+$failed;
 echo "\n--------------------------\nTOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);
