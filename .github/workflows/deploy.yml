@@ -192,6 +192,25 @@ jobs:
             trap - ERR
             rm -f "$before" "$after"
             echo "MANAGER_PREPARATION_CRON_COUNT=1"
+            before="$(mktemp)"
+            after="$(mktemp)"
+            crontab -l >"$before"
+            cp "$before" "$after"
+            sed -i "/^# max-search-bot hotel readiness$/d" "$after"
+            grep -F -v "$root/tools/hotel_work.php tick" "$after" >"$after.filtered" || [[ "$?" == "1" ]]
+            mv "$after.filtered" "$after"
+            {
+              echo "# max-search-bot hotel readiness"
+              echo "* * * * * HOTEL_WORK_TRIGGER=cron flock -n /tmp/max-search-hotel-work.lock /usr/bin/php $root/tools/hotel_work.php tick >/dev/null 2>&1"
+            } >>"$after"
+            trap rollback ERR
+            crontab "$after"
+            count="$(crontab -l | grep -F "$root/tools/hotel_work.php tick" | wc -l | tr -d " ")"
+            [[ "$count" == "1" ]]
+            trap - ERR
+            rm -f "$before" "$after"
+            echo "HOTEL_WORK_CRON_COUNT=1"
+            /usr/bin/php "$root/tools/hotel_work.php" verify-cron
           '
 
       - name: Production smoke checks
