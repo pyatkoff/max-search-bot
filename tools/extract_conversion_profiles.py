@@ -10,7 +10,7 @@ from datetime import date
 
 import build_conversion_observations as base
 
-VERSION = "ru_trip_prefix_rules_v1_15"
+VERSION = "ru_trip_prefix_rules_v1_16"
 MAX_BYTES = 2 * 1024 * 1024
 MAX_CASES = 100
 MAX_MESSAGES = 500
@@ -98,6 +98,62 @@ def current_destinations(text):
     return [name for name in COUNTRIES if name in accepted]
 
 
+# Preserve numeric dates/decimals and discrete numeric alternatives inside a clause.
+CLAUSE_BOUNDARY = re.compile(r"[!?;\n]+|(?<!\d)\.|\.(?!\d|\s*(?:по|до|или)\b)|,(?!\s*\d)", re.I)
+
+
+def current_trip_clauses(text):
+    """Yield current clauses and original offsets; history cannot donate facts.
+
+    Explanatory dashes retain their predicate. A dash with an independent
+    history/current predicate starts its own scope, in either temporal order.
+    """
+    bounds = [0] + [m.end() for m in CLAUSE_BOUNDARY.finditer(text)]
+    ends = [m.start() for m in CLAUSE_BOUNDARY.finditer(text)] + [len(text)]
+    for start, end in zip(bounds, ends):
+        part = text[start:end]
+        cuts = [0]
+        for dash in re.finditer(r"\s+[—–-]\s+", part):
+            right = part[dash.end():]
+            if text_match(DESTINATION_CURRENT, right) or text_match(DESTINATION_HISTORY, right):
+                cuts.append(dash.end())
+        cuts += [m.start() for m in re.finditer(
+            r"\b(?=сейчас\b|теперь\b|(?:а|и|но)\s+(?:(?:мы|я)\s+)?"
+            r"(?:хотим|хочу|рассматриваем|рассматриваю|выбираем|выбираю|планируем|планирую|интересует)\b)",
+            part, re.I)]
+        cuts = sorted(set(cuts + [len(part)]))
+        for left, right in zip(cuts, cuts[1:]):
+            clause = part[left:right]
+            historical = next((m for m in re.finditer(DESTINATION_HISTORY, clause, re.I)
+                               if not negated(clause, m.start())
+                               and not (m[0].lower() in {"раньше", "ранее"}
+                                        and re.match(r"\s+\d", clause[m.end():]))), None)
+            current = text_match(DESTINATION_CURRENT, clause)
+            past_time = text_match(r"\b(?:в прошлом году|прошл\w*\s+(?:летом|зимой|весной|осенью)|раньше|ранее)\b", clause)
+            if historical and (not current or current.start() > historical.start()
+                               or (past_time and past_time.start() < current.start())):
+                continue
+            yield clause, start+left
+
+
+def amount_unit_context(text, start, end):
+    """Unit qualifiers belong to the amount's assertion, not a later surcharge."""
+    boundaries = list(CLAUSE_BOUNDARY.finditer(text))
+    left = max((m.end() for m in boundaries if m.end() <= start), default=0)
+    right = min((m.start() for m in boundaries if m.start() >= end), default=len(text))
+    return text[max(left, start-24):min(right, end+65)]
+
+
+def affirmed_unit(pattern, text):
+    for match in re.finditer(pattern, text, re.I):
+        if negated(text, match.start()):
+            continue
+        if text_match(r"^\s+(?:доплат\w*\s+)?не\s+(?:нуж\w*|треб\w*|предусмотр\w*)", text[match.end():]):
+            continue
+        return True
+    return False
+
+
 def reference(message, span=None):
     return {"source": message.get("source", "message"), "id": message["id"], "speaker": message["speaker"],
             "at": message["at"], "available_at": message["available_at"],
@@ -159,7 +215,7 @@ def monetary(text, customer):
         low, high = amounts
         if low > high:
             continue
-        nearby = text[max(0, match.start()-24):min(len(text), match.end()+65)]
+        nearby = amount_unit_context(text, match.start(), match.end())
         context = bool(text_match(r"бюджет|лимит|потрат|улож|рассчитываем|не более|\bдо\s*$", text[max(0, match.start()-30):match.start()]))
         if not (match["currency"] or match["scale"] or customer and context and low >= 1000):
             continue
@@ -172,8 +228,10 @@ def monetary(text, customer):
         before = text[max(0, match.start()-20):match.start()]
         lower_only = bool(text_match(r"\bот\s*$", before))
         upper_only = bool(text_match(r"\b(?:до|максимум|не более)\s*$", before))
-        per_person = bool(text_match(r"на человека|за человека|с человека|за одного", nearby))
-        explicit_total = bool(text_match(r"на всех|за всех|всего|общий бюджет|на (?:двоих|троих|четверых)", nearby))
+        per_person = affirmed_unit(r"на человека|за человека|с человека|за одного", nearby)
+        explicit_total = affirmed_unit(r"на всех|за всех|всего|общий бюджет|на (?:двоих|троих|четверых)", nearby)
+        if per_person and explicit_total:
+            continue  # Contradictory local units cannot establish a known budget.
         results.append(({"minimum": low if not upper_only else None,
                          "maximum": high if not lower_only else None, "currency": currency,
                          "currency_basis": "explicit" if match["currency"] else "agency_default_rub",
@@ -665,9 +723,11 @@ def extract_case(case, extracted, wizard_applications=()):
         age = text_match(r"^\s*(\d{1,2})\s*(?:год|года|лет)\b", text)
         if age and int(age[1]) <= 17 and choose(party["children"])["value"] == 1:
             add("child_ages", [int(age[1])], m, age.span(), "single_child_context", [r for r in messages if r["id"] == choose(party["children"])["references"][-1]["id"]])
-        duration = duration_constraint(text)
-        if duration:
-            add("duration", duration[0], m, duration[1])
+        current_clauses = list(current_trip_clauses(text))
+        for clause, offset in current_clauses:
+            duration = duration_constraint(clause)
+            if duration:
+                add("duration", duration[0], m, tuple(v+offset for v in duration[1]))
         flight = direct_flight_requirement(text)
         if flight:
             add("flight_requirement", flight[0], m, flight[1])
@@ -676,17 +736,19 @@ def extract_case(case, extracted, wizard_applications=()):
             add("hotel_stars", stars[0], m, stars[1])
         for name, preference, span in leisure_preferences(text):
             add(name, preference, m, span, "explicit_customer_preference_not_destination_fact")
-        for value, span in date_constraints(text):
-            add("dates", value, m, span)
+        for clause, offset in current_clauses:
+            for value, span in date_constraints(clause):
+                add("dates", value, m, tuple(v+offset for v in span))
         flex = text_match(r"(?:\+\s*[-–]|плюс[- ]минус)\s*(\d{1,2})\s*дн\w*", text)
         if flex:
             add("date_flexibility_days", int(flex[1]), m, flex.span())
-        for city, pattern in CITIES.items():
-            departure = text_match(rf"(?:\bиз\s+|город\s+вылета\s+)({pattern})\b", text)
-            if departure:
-                add("departure", city, m, departure.span())
-            elif text_match(rf"\b(?:{pattern})\b", text):
-                add("unresolved_city", city, m, basis="place_role_not_established")
+        for clause, offset in current_clauses:
+            for city, pattern in CITIES.items():
+                departure = text_match(rf"(?:\bиз\s+|город\s+вылета\s+)({pattern})\b", clause)
+                if departure:
+                    add("departure", city, m, tuple(v+offset for v in departure.span()))
+                elif text_match(rf"\b(?:{pattern})\b", clause):
+                    add("unresolved_city", city, m, (offset, offset+len(clause)), basis="place_role_not_established")
         countries = current_destinations(text)
         if countries:
             add("destination", {"values": countries, "open_alternatives": bool(text_match(r"и т\.?\s*п\.?|другие направления", text))}, m)
