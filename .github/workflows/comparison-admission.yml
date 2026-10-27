@@ -1,0 +1,108 @@
+name: Read existing comparison admission metadata
+on:
+  push:
+    branches: [audit/comparison-admission-20261027]
+    paths: [.github/workflows/comparison-admission.yml]
+permissions:
+  contents: read
+concurrency:
+  group: anytour-comparison-admission-20261027
+  cancel-in-progress: false
+jobs:
+  read:
+    if: github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Pin current main
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin refs/heads/main
+          test "$(git rev-parse FETCH_HEAD)" = 5b85bf8c19f773a55e678e072af99d292ec25fb7
+      - name: Prepare existing identity and strict canonical pin
+        env:
+          K: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          TARGET: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        run: |
+          set -euo pipefail
+          umask 077
+          if [[ "$K" == *"PRIVATE KEY"* ]]; then printf '%b\n' "$K" | tr -d '\r' > "$RUNNER_TEMP/membership-key"; else printf '%s' "$K" | base64 --decode > "$RUNNER_TEMP/membership-key"; fi
+          chmod 600 "$RUNNER_TEMP/membership-key"
+          ssh-keygen -y -f "$RUNNER_TEMP/membership-key" >/dev/null
+          python3 - "$TARGET" "$RUNNER_TEMP/membership-hosts" <<'PY'
+          import base64,hashlib,socket,subprocess,sys
+          host,dest=sys.argv[1:]
+          if {v[4][0] for v in socket.getaddrinfo(host,22,type=socket.SOCK_STREAM)}!={'5.45.122.54'}:raise SystemExit('canonical_target_changed')
+          pinned=[]
+          for _ in range(2):
+              scan=subprocess.run(['ssh-keyscan','-t','ed25519','-T','10',host],capture_output=True,text=True,timeout=30)
+              for line in scan.stdout.splitlines():
+                  parts=line.split()
+                  if len(parts)!=3 or parts[0].startswith('#'):continue
+                  try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(parts[2],validate=True)).digest()).decode().rstrip('=')
+                  except ValueError:continue
+                  if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0' and line not in pinned:pinned.append(line)
+              if pinned:break
+          if not pinned:raise SystemExit('canonical_host_pin_not_seen')
+          open(dest,'w').write('\n'.join(pinned)+'\n')
+          PY
+      - name: Standard private evidence encryption
+        run: |
+          python3 -m venv "$RUNNER_TEMP/evidence-python"
+          "$RUNNER_TEMP/evidence-python/bin/pip" install --disable-pip-version-check --only-binary=:all: --require-hashes -q -r tools/requirements-encrypted-evidence.txt
+      - name: Read immutable metadata only and encrypt
+        env:
+          TARGET: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          umask 077
+          cat > "$RUNNER_TEMP/comparison-read.php" <<'PHP'
+          <?php
+          declare(strict_types=1);
+          try {
+           $began=microtime(true);chdir('/var/www/anytoour/data/www/app.anytoour.ru');
+           require_once 'config.php';require_once 'services/ProjectAccessService.php';require_once 'services/ConversationDb.php';
+           if(ProjectConfig::projectId()!=='anytour')throw new RuntimeException('project');
+           ProjectAccessService::initializeReadOnly();$p=ConversationDb::connection();
+           $p->exec('SET SESSION MAX_EXECUTION_TIME=4000');$p->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');$p->exec('SET TRANSACTION READ ONLY');$p->beginTransaction();
+           $sql="SELECT id,project_key,platform,customer_key,conversation_id,journal_cursor,observed_at_unix,input_sha256,JSON_LENGTH(JSON_EXTRACT(profile_json,'$.source_references')) AS ref_count,JSON_EXTRACT(profile_json,'$.access_status') AS access_status,JSON_EXTRACT(profile_json,'$.coverage') AS coverage,JSON_EXTRACT(profile_json,'$.profile.prediction_at') AS prediction_at,JSON_EXTRACT(profile_json,'$.profile.extracted_at') AS extracted_at,JSON_EXTRACT(profile_json,'$.profile.source_fence_at') AS source_fence_at,JSON_EXTRACT(profile_json,'$.source_fence_journal_id') AS source_fence_journal_id FROM modeled_conversion_profile_versions WHERE project_key='anytour' AND observed_at_unix>=? AND observed_at_unix<=? ORDER BY observed_at_unix,id LIMIT 1";
+           $q=$p->prepare($sql);$q->execute([1793099617,1793099891]);$r=$q->fetch(PDO::FETCH_ASSOC);
+           $out=['schema_version'=>1,'purpose'=>'existing_immutable_comparison_admission_metadata','production_sha'=>'5b85bf8c19f773a55e678e072af99d292ec25fb7','sampled_at'=>gmdate('Y-m-d\\TH:i:s\\Z'),'fixed_window'=>[1793099617,1793099891],'selection'=>'first_observed_then_id_no_refill','candidate'=>null,'native_source_reads'=>0,'old_transcript_rows_read'=>0,'typed_fact_values_read'=>0,'database_writes'=>0];
+           if($r){
+            $n=(int)$r['ref_count'];unset($r['ref_count']);$r['ref_count']=$n;
+            foreach(['access_status','coverage','prediction_at','extracted_at','source_fence_at','source_fence_journal_id']as$k)$r[$k]=json_decode($r[$k]??'null',true,32,JSON_THROW_ON_ERROR);
+            $r['reference_metadata']=null;$r['metadata_status']=$n>40?'reference_bound_exceeded':'bounded';
+            if($n<=40){
+             $q=$p->prepare("SELECT JSON_EXTRACT(profile_json,'$.source_references') FROM modeled_conversion_profile_versions WHERE project_key='anytour' AND id=?");$q->execute([$r['id']]);$s=$q->fetchColumn();
+             if(!is_string($s)||strlen($s)>49152)throw new RuntimeException('ref_budget');$r['reference_metadata']=json_decode($s,true,32,JSON_THROW_ON_ERROR);
+             if(count($r['reference_metadata'])!==$n)throw new RuntimeException('ref_count');
+            }
+            $out['candidate']=$r;
+           }
+           $p->rollBack();if(microtime(true)-$began>5)throw new RuntimeException('duration');
+           $raw=json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);if(strlen($raw)>65536)throw new RuntimeException('output');echo $raw;
+          }catch(Throwable $e){if(isset($p)&&$p->inTransaction())$p->rollBack();fwrite(STDERR,"comparison_metadata_failed\n");exit(1);}
+          
+          PHP
+          php -l "$RUNNER_TEMP/comparison-read.php"
+          timeout 25 ssh -i "$RUNNER_TEMP/membership-key" -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$RUNNER_TEMP/membership-hosts" -o ConnectTimeout=10 "$USER@$TARGET" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(git rev-parse HEAD)" = 5b85bf8c19f773a55e678e072af99d292ec25fb7; php -d display_errors=0 -d log_errors=0; test "$(git rev-parse HEAD)" = 5b85bf8c19f773a55e678e072af99d292ec25fb7' < "$RUNNER_TEMP/comparison-read.php" > "$RUNNER_TEMP/comparison-metadata.json"
+          "$RUNNER_TEMP/evidence-python/bin/python" - "$RUNNER_TEMP/comparison-metadata.json" "$RUNNER_TEMP/comparison-metadata.age" <<'PY'
+          import hashlib,json,pathlib,sys,pyrage
+          source,dest=map(pathlib.Path,sys.argv[1:])
+          raw=source.read_bytes();assert len(raw)<=65536
+          obj=json.loads(raw);assert obj['native_source_reads']==obj['old_transcript_rows_read']==obj['typed_fact_values_read']==obj['database_writes']==0
+          recipient=pyrage.x25519.Recipient.from_str(pathlib.Path('docs/diagnostics-recipient.txt').read_text().strip())
+          dest.write_bytes(pyrage.encrypt(raw,[recipient]))
+          print(json.dumps({'metadata_only':True,'candidate_present':obj['candidate'] is not None,'cipher_bytes':dest.stat().st_size,'cipher_sha256':hashlib.sha256(dest.read_bytes()).hexdigest(),'native_source_reads':0,'texts_returned':0,'database_writes':0}))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: comparison-admission-${{ github.run_id }}
+          path: ${{ runner.temp }}/comparison-metadata.age
+          retention-days: 1
+          if-no-files-found: error
+      - name: Cleanup
+        if: always()
+        run: rm -f "$RUNNER_TEMP/membership-key" "$RUNNER_TEMP/membership-hosts" "$RUNNER_TEMP/comparison-read.php" "$RUNNER_TEMP/comparison-metadata.json" "$RUNNER_TEMP/comparison-metadata.age"
