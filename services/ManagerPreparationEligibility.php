@@ -57,7 +57,7 @@ final class ManagerPreparationEligibility
     /** Completed input stays handled after TTL or reference/instruction changes. */
     public static function handled(PDO $pdo,int $cid,int $actor,string $project,string $input,bool $pending=false): ?string
     {
-        $q=$pdo->prepare("SELECT job_id,status,proposal_json,proposal_sha256 FROM manager_prepared_replies WHERE conversation_id=? AND manager_id=? AND project_key=? AND customer_input_revision=? AND (status='ready'"
+        $q=$pdo->prepare("SELECT job_id,status,proposal_json,proposal_sha256 FROM manager_prepared_replies WHERE conversation_id=? AND manager_id=? AND project_key=? AND purpose='background' AND customer_input_revision=? AND (status='ready'"
             .($pending?" OR (status='pending' AND expires_at>?)":'').') ORDER BY created_at DESC,job_id DESC LIMIT 1');
         $args=[$cid,$actor,$project,$input];if($pending)$args[]=gmdate('Y-m-d H:i:s');
         $q->execute($args);$row=$q->fetch(PDO::FETCH_ASSOC);if(!$row)return null;

@@ -31,6 +31,7 @@ final class PreparedReplyPdo extends PDO
     public ?Closure $beforeLegacyBindingRead = null;
     public ?Closure $beforeInputAnnotation = null;
     public bool $failSnapshotOnce = false;
+    public ?Closure $beforeOpenBindingRead = null;
 
     public function __construct()
     {
@@ -72,6 +73,7 @@ final class PreparedReplyPdo extends PDO
         if ($this->beforeRetire !== null && str_contains($sql,"WHERE job_id=? AND status='pending' AND context_revision=")){$callback=$this->beforeRetire;$this->beforeRetire=null;$callback($this);}
         if ($this->beforeLegacyBindingRead !== null && str_starts_with($sql,'SELECT * FROM manager_prepared_replies WHERE conversation_id=? AND manager_id=? AND project_key=? AND context_revision=?')){$callback=$this->beforeLegacyBindingRead;$this->beforeLegacyBindingRead=null;$callback($this);}
         if ($this->beforeInputAnnotation !== null && str_starts_with($sql,'UPDATE manager_prepared_replies SET customer_input_revision=')){$callback=$this->beforeInputAnnotation;$this->beforeInputAnnotation=null;$callback($this);}
+        if ($this->beforeOpenBindingRead !== null && str_starts_with($sql,"SELECT * FROM manager_prepared_replies WHERE conversation_id=? AND requested_by_manager_id=? AND purpose='open_chat' AND project_key=? AND manager_id=?")){$callback=$this->beforeOpenBindingRead;$this->beforeOpenBindingRead=null;$callback($this);}
         $this->executed[] = $sql;
         if (preg_match('/\A\s*SELECT\b/i', $sql)) return;
         if ($this->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql'
@@ -140,7 +142,7 @@ CREATE INDEX idx_messages_conversation ON messages(conversation_id,id);
 CREATE TABLE manager_conversation_reads(manager_id INTEGER,conversation_id INTEGER,last_read_message_id INTEGER,updated_at TEXT,PRIMARY KEY(manager_id,conversation_id));
 CREATE TABLE lead_tasks(id INTEGER PRIMARY KEY,conversation_id INTEGER,assigned_manager_id INTEGER,status TEXT,due_at_utc TEXT);
 CREATE TABLE manager_preparation_cursors(project_key VARCHAR(64),lane VARCHAR(10),after_id INTEGER NOT NULL,version INTEGER NOT NULL,PRIMARY KEY(project_key,lane));
-CREATE TABLE manager_prepared_replies(job_id CHAR(64) PRIMARY KEY,conversation_id INTEGER NOT NULL,manager_id INTEGER NOT NULL,project_key TEXT NOT NULL,context_revision CHAR(64) NOT NULL,instruction_revision CHAR(64) NOT NULL,latest_message_id INTEGER NOT NULL,status TEXT NOT NULL,proposal_json TEXT,proposal_sha256 CHAR(64),created_at TEXT NOT NULL,prepared_at TEXT,expires_at TEXT,customer_input_revision CHAR(64));
+CREATE TABLE manager_prepared_replies(job_id CHAR(64) PRIMARY KEY,conversation_id INTEGER NOT NULL,manager_id INTEGER NOT NULL,project_key TEXT NOT NULL,context_revision CHAR(64) NOT NULL,instruction_revision CHAR(64) NOT NULL,latest_message_id INTEGER NOT NULL,status TEXT NOT NULL,proposal_json TEXT,proposal_sha256 CHAR(64),created_at TEXT NOT NULL,prepared_at TEXT,expires_at TEXT,customer_input_revision CHAR(64),purpose TEXT NOT NULL DEFAULT 'background',requested_by_manager_id INTEGER,viewer_access_revision CHAR(64));
 INSERT INTO projects VALUES(1,'anytour','Synthetic project',1),(2,'other','Other project',1);
 INSERT INTO managers VALUES(1,'owner','PRIVATE manager','manager','PRIVATE@example.test',1,1),(2,'admin','PRIVATE admin','admin','',1,1),(3,'outside','Outside project','admin','',1,1);
 INSERT INTO manager_projects VALUES(1,1),(2,1),(3,2);
@@ -165,6 +167,7 @@ INSERT INTO messages VALUES(2,101,'inbound','customer','Подберите ту�
         $pdo->exec($migration);
         $pdo->exec(file_get_contents(dirname(__DIR__).'/migrations/050_manager_preparation_cursors.sql'));
         $pdo->exec(file_get_contents(dirname(__DIR__).'/migrations/062_prepared_reply_customer_input.sql'));
+        $pdo->exec(file_get_contents(dirname(__DIR__).'/migrations/069_prepared_reply_open_requests.sql'));
     } else {
         $pdo->exec($schema);
     }
@@ -442,6 +445,114 @@ function preparedReplyLegacyInputCoverage(): void
     preparedReplyCheck('late source edit never matches an obsolete annotation and still opens fresh work',($pass['ok']??false)&&$pass['queue']['inserted']===1&&count(ManagerPreparedReplyService::pending(20)['jobs']??[])===1);
 }
 
+/** Opened contexts keep their separate authorization/renewal and no model path. */
+function preparedReplyOpenRequests(): void
+{
+    $check=static fn(string $name,bool $ok)=>preparedReplyCheck('opened chat '.$name,$ok);
+    $latest=static function(PreparedReplyPdo $pdo,int $viewer=1):array {
+        $q=$pdo->prepare("SELECT * FROM manager_prepared_replies WHERE purpose='open_chat' AND requested_by_manager_id=? ORDER BY created_at DESC,job_id DESC LIMIT 1");$q->execute([$viewer]);$row=$q->fetch();if(!$row)throw new RuntimeException('FAIL opened chat missing queued job');return $row;
+    };
+    $pdo=preparedReplyFixture();$before=preparedReplySourceState($pdo);$snap=ManagerAiDraftContextService::viewerSnapshot(101,1);
+    $requested=ManagerPreparedReplyService::requestOnOpen(101,1,$snap);$row=$latest($pdo);$job=$row['job_id'];
+    $check('ordinary reply owner queues one private request without source writes',!empty($requested['ok'])&&$requested['preparation_state']==='pending'&&$row['purpose']==='open_chat'&&(int)$row['requested_by_manager_id']===1&&$row['viewer_access_revision']===null&&preparedReplySourceState($pdo)===$before&&$pdo->sourceWriteAttempts===0);
+    $writes=$pdo->cacheWrites;$again=ManagerPreparedReplyService::requestOnOpen(101,1,$snap);
+    $check('reopening an unchanged pending context does not duplicate or rewrite work',$again['preparation_state']==='pending'&&(int)$pdo->query('SELECT COUNT(*) FROM manager_prepared_replies')->fetchColumn()===1&&$pdo->cacheWrites===$writes);
+    $pdo->executed=[];$pending=ManagerPreparedReplyService::pending(20);
+    $history=array_filter($pdo->executed,static fn(string $sql):bool=>str_starts_with($sql,'SELECT id,direction,sender_type,text,created_at FROM messages')||str_starts_with($sql,'SELECT id,metadata_json FROM messages'));
+    $check('pending request inventory is bounded metadata with canonical source visibility',count($pending['jobs'])===1&&$pending['jobs'][0]['job_id']===$job&&$history===[]&&!str_contains(json_encode($pending,JSON_THROW_ON_ERROR),'PRIVATE'));
+    $context=ManagerPreparedReplyService::context($job);
+    $check('worker receives opened-chat scope and canonical instructions',!empty($context['ok'])&&$context['preparation_scope']==='opened_chat'&&$context['instructions']===ManagerAiDraftService::instructions($context['context'])&&$context['revision']===$snap['revision']);
+    $check('worker completion validates the exact source revision',!empty(ManagerPreparedReplyService::complete($job,$snap['revision'],preparedReplyProposal())['ok']));
+    $prepared=ManagerPreparedReplyService::prepared(101,1,$snap);$writes=$pdo->cacheWrites;
+    $check('fresh completed request is displayed and never automatically regenerated',!empty($prepared['prepared'])&&$prepared['job_id']===$job&&$prepared['proposal']===preparedReplyProposal()&&ManagerPreparedReplyService::requestOnOpen(101,1,$snap)['preparation_state']==='ready'&&$pdo->cacheWrites===$writes&&preparedReplySourceState($pdo)===$before);
+    // A malformed newer candidate may not conceal an older exact, useful result.
+    $columns='conversation_id,manager_id,project_key,context_revision,instruction_revision,latest_message_id,status,created_at,prepared_at,expires_at,customer_input_revision,purpose,requested_by_manager_id,viewer_access_revision';
+    $bad=str_repeat('f',64);$invalid='invalid JSON';$hash=hash('sha256',$invalid);
+    $pdo->mutate("INSERT INTO manager_prepared_replies (job_id,proposal_json,proposal_sha256,$columns) SELECT '$bad','$invalid','$hash',$columns FROM manager_prepared_replies WHERE job_id='$job'");
+    $check('malformed newer private cache cannot mask a valid current result',ManagerPreparedReplyService::prepared(101,1,$snap)['job_id']===$job);
+    $pdo->mutate("DELETE FROM manager_prepared_replies WHERE job_id='$bad'; UPDATE manager_prepared_replies SET created_at='2020-01-01 00:00:00',prepared_at='2020-01-01 00:00:01',expires_at='2020-01-01 01:00:01'");
+    $old=$pdo->query('SELECT * FROM manager_prepared_replies')->fetch();$renew=ManagerPreparedReplyService::requestOnOpen(101,1,$snap);$new=$latest($pdo);
+    $oldRead=$pdo->prepare('SELECT * FROM manager_prepared_replies WHERE job_id=?');$oldRead->execute([$job]);
+    $check('opening after expiry creates a new immutable request not an archive rewrite',$renew['preparation_state']==='pending'&&$new['job_id']!==$job&&$oldRead->fetch()===$old);
+
+    $pdo=preparedReplyFixture();$snap=ManagerAiDraftContextService::viewerSnapshot(101,1);$background=preparedReplyQueue($snap);
+    $result=ManagerPreparedReplyService::requestOnOpen(101,1,$snap);
+    $check('current automatic pending work is reused instead of duplicate analysis',$result['preparation_state']==='pending'&&(int)$pdo->query('SELECT COUNT(*) FROM manager_prepared_replies')->fetchColumn()===1&&$pdo->query('SELECT purpose FROM manager_prepared_replies')->fetchColumn()==='background');
+    $pdo=preparedReplyFixture();$snap=ManagerAiDraftContextService::viewerSnapshot(101,1);ManagerPreparedReplyService::requestOnOpen(101,1,$snap);$row=$latest($pdo);$job=$row['job_id'];
+    $pdo->beforeOpenBindingRead=static function()use($job,$snap):void {if(empty(ManagerPreparedReplyService::complete($job,$snap['revision'],preparedReplyProposal())['ok']))throw new RuntimeException('FAIL concurrent opened completion');};
+    $result=ManagerPreparedReplyService::requestOnOpen(101,1,$snap);
+    $check('worker completion during an opening reuses the result without renewal',$result['preparation_state']==='ready'&&(int)$pdo->query('SELECT COUNT(*) FROM manager_prepared_replies')->fetchColumn()===1);
+    $pdo=preparedReplyFixture();$snap=ManagerAiDraftContextService::viewerSnapshot(101,1);ManagerPreparedReplyService::requestOnOpen(101,1,$snap);$job=$latest($pdo)['job_id'];
+    $hold=preparedReplyProposal(['should_draft'=>false,'draft'=>null,'next_action'=>'no_contact','reason'=>'Ответ не требуется.']);ManagerPreparedReplyService::complete($job,$snap['revision'],$hold);$writes=$pdo->cacheWrites;
+    $check('a no-contact decision stays terminal for the current open context',ManagerPreparedReplyService::requestOnOpen(101,1,$snap)['preparation_state']==='ready'&&ManagerPreparedReplyService::prepared(101,1,$snap)['proposal']['should_draft']===false&&$pdo->cacheWrites===$writes);
+
+    // An old opener observes a newer request after its first source capture.
+    // It must fail fresh validation before cancelling that newer immutable ID.
+    $pdo=preparedReplyFixture();$snap=ManagerAiDraftContextService::viewerSnapshot(101,1);$newJob=null;
+    $pdo->beforeOpenBindingRead=static function(PreparedReplyPdo $pdo)use(&$newJob,$latest):void {
+        $pdo->mutate("UPDATE messages SET text='Теперь рассматриваем Египет' WHERE id=2");
+        $fresh=ManagerAiDraftContextService::viewerSnapshot(101,1);$result=ManagerPreparedReplyService::requestOnOpen(101,1,$fresh);
+        if(empty($result['ok']))throw new RuntimeException('FAIL newer opened request');$newJob=$latest($pdo)['job_id'];
+    };
+    $oldRequest=ManagerPreparedReplyService::requestOnOpen(101,1,$snap);$current=ManagerPreparedReplyService::pending(20);
+    $check('slow old opener cannot cancel a newly observed current request',($oldRequest['error']??null)==='context_stale'&&$newJob!==null&&array_column($current['jobs'],'job_id')===[$newJob]&&!empty(ManagerPreparedReplyService::context($newJob)['ok']));
+
+    $pdo=preparedReplyFixture();$snap=ManagerAiDraftContextService::viewerSnapshot(101,1);ManagerPreparedReplyService::requestOnOpen(101,1,$snap);$open=$latest($pdo);$source=preparedReplySourceState($pdo);
+    $batch=ManagerPreparedReplyService::collectAndEnqueue([1]);$read=$pdo->prepare('SELECT * FROM manager_prepared_replies WHERE job_id=?');$read->execute([$open['job_id']]);
+    $check('background collection neither handles nor cancels private opening work',$batch['queue']['inserted']===1&&$read->fetch()===$open&&preparedReplySourceState($pdo)===$source);
+    $pdo->mutate("UPDATE messages SET text='Изменён тот же исходный вопрос' WHERE id=2");$before=preparedReplySourceState($pdo);
+    $pass=ManagerPreparedReplyService::collectAndEnqueue([1]);$read->execute([$open['job_id']]);$expired=$read->fetch();
+    $check('bounded verification retires a same-ID edited opening without renewing it',($pass['reconciliation']['retired']??0)>=1&&$expired['status']==='pending'&&$expired['expires_at']<=gmdate('Y-m-d H:i:s')&&(int)$pdo->query("SELECT COUNT(*) FROM manager_prepared_replies WHERE purpose='open_chat'")->fetchColumn()===1&&preparedReplySourceState($pdo)===$before&&$pdo->sourceWriteAttempts===0);
+
+    // More than one worker page may become obsolete after an owner-access
+    // revision. A fresh later opening must not wait behind those rejected rows.
+    $pdo=managerSupervisorFixture();$pdo->guard=false;
+    for($i=0;$i<21;$i++){
+        $cid=1001+$i;$mid=10000+$i;
+        $pdo->prepare("INSERT INTO conversations (id,customer_id,project_key,source_id,channel,status,lead_stage_key,manager_id,started_at,is_test) VALUES (?,10,'anytour',11,'telegram','manager','new',1,'2020-01-01 00:00:00',0)")->execute([$cid]);
+        $pdo->prepare("INSERT INTO messages (id,conversation_id,direction,sender_type,text,created_at,channel) VALUES (?,?,'inbound','customer','Синтетический открытый вопрос',?,'telegram')")->execute([$mid,$cid,gmdate('Y-m-d H:i:s',time()-60)]);
+    }
+    $pdo->guard=true;
+    for($i=0;$i<20;$i++){ $cid=1001+$i;$snap=ManagerAiDraftContextService::viewerSnapshot($cid,2);if(empty(ManagerPreparedReplyService::requestOnOpen($cid,2,$snap)['ok']))throw new RuntimeException('FAIL opened stale metadata seed'); }
+    $older=gmdate('Y-m-d H:i:s',time()-10);$olderExpiry=gmdate('Y-m-d H:i:s',time()-10+ManagerPreparedReplyService::TTL_SECONDS);
+    $pdo->mutate("UPDATE manager_prepared_replies SET created_at='$older',expires_at='$olderExpiry'");
+    $pdo->mutate("INSERT INTO conversation_sources VALUES(31,'New owner-visible source',1,99,'none',NULL,0,1,'telegram')");
+    $fresh=ManagerAiDraftContextService::viewerSnapshot(1021,2);$result=ManagerPreparedReplyService::requestOnOpen(1021,2,$fresh);$pdo->executed=[];$inventory=ManagerPreparedReplyService::pending(20);
+    $histories=array_filter($pdo->executed,static fn(string $sql):bool=>str_starts_with($sql,'SELECT id,direction,sender_type,text,created_at FROM messages')||str_starts_with($sql,'SELECT id,metadata_json FROM messages'));
+    $check('stale access rows beyond one page cannot hide a fresh opening',!empty($result['ok'])&&array_column($inventory['jobs'],'conversation_id')===[1021]&&$histories===[]);
+
+    $pdo=preparedReplyFixture();$snap=ManagerAiDraftContextService::viewerSnapshot(101,1);ManagerPreparedReplyService::requestOnOpen(101,1,$snap);$job=$latest($pdo)['job_id'];$pdo->failSnapshotOnce=true;
+    $uncertain=ManagerPreparedReplyService::collectAndEnqueue([1]);$read=$pdo->prepare('SELECT expires_at FROM manager_prepared_replies WHERE job_id=?');$read->execute([$job]);
+    $check('uncertain verification defers an opening rather than cancelling it',($uncertain['reconciliation']['deferred']??0)>=1&&$read->fetchColumn()>gmdate('Y-m-d H:i:s'));
+
+    foreach(['telegram'=>1,'max'=>2] as $channel=>$cid){
+        $pdo=preparedReplyFixture($channel);$pdo->mutate("UPDATE conversations SET id=$cid WHERE id=101; UPDATE messages SET conversation_id=$cid WHERE conversation_id=101; UPDATE manager_conversation_reads SET conversation_id=$cid WHERE conversation_id=101; UPDATE messages SET created_at='2020-01-01 00:00:00'");
+        $before=preparedReplySourceState($pdo);$snap=ManagerAiDraftContextService::viewerSnapshot($cid,1);$result=ManagerPreparedReplyService::requestOnOpen($cid,1,$snap);$job=$latest($pdo)['job_id'];
+        $check($channel.' internal and old chat is eligible only after an authorized opening',!empty($result['ok'])&&ManagerPreparedReplyService::collectAndEnqueue([1])['queue']['inserted']===0&&count(ManagerPreparedReplyService::pending(20)['jobs'])===1&&!empty(ManagerPreparedReplyService::context($job)['ok'])&&!empty(ManagerPreparedReplyService::complete($job,$snap['revision'],preparedReplyProposal())['ok'])&&!empty(ManagerPreparedReplyService::prepared($cid,1,$snap)['prepared'])&&preparedReplySourceState($pdo)===$before&&$pdo->sourceWriteAttempts===0);
+    }
+
+    foreach(['active','closed','inactive_owner','unassigned'] as $case){
+        $pdo=managerSupervisorFixture();
+        if($case==='closed')$pdo->mutate("UPDATE conversations SET status='closed'");
+        if($case==='inactive_owner')$pdo->mutate('UPDATE managers SET is_active=0 WHERE id=1');
+        if($case==='unassigned')$pdo->mutate("UPDATE conversations SET status='waiting_manager',manager_id=NULL");
+        $before=preparedReplySourceState($pdo);$snap=ManagerAiDraftContextService::viewerSnapshot(101,2);$result=ManagerPreparedReplyService::requestOnOpen(101,2,$snap);$row=$latest($pdo,2);$job=$row['job_id'];
+        $check('workspace owner requests '.$case.' foreign chat with current read scope',!empty($snap['owner_read'])&&!empty($result['ok'])&&(int)$row['requested_by_manager_id']===2&&$row['viewer_access_revision']===$snap['viewer_access_revision']&&count(ManagerPreparedReplyService::pending(20)['jobs'])===1&&!empty(ManagerPreparedReplyService::context($job)['ok']));
+        $check('workspace owner reads '.$case.' foreign proposal without assignment or source writes',!empty(ManagerPreparedReplyService::complete($job,$snap['revision'],preparedReplyProposal())['ok'])&&!empty(ManagerPreparedReplyService::prepared(101,$snap['owner_id'],$snap)['prepared'])&&preparedReplySourceState($pdo)===$before&&$pdo->sourceWriteAttempts===0);
+        $pdo->mutate('DELETE FROM manager_projects WHERE manager_id=2');
+        $check('workspace owner project revocation hides '.$case.' private cache',empty(ManagerPreparedReplyService::prepared(101,$snap['owner_id'],$snap)['prepared'])&&!ManagerPreparedReplyService::requestOnOpen(101,2,$snap)['ok']);
+    }
+
+    $pdo=managerSupervisorFixture();ManagerSupervisorAccessService::set(2,4,1,[11],false,true,0);
+    $viewer=ManagerAiDraftContextService::viewerSnapshot(101,4);$check('employee supervisor cannot start foreign automatic work',!empty($viewer['supervisor_read'])&&empty(ManagerPreparedReplyService::requestOnOpen(101,4,$viewer)['ok'])&&(int)$pdo->query('SELECT COUNT(*) FROM manager_prepared_replies')->fetchColumn()===0);
+    $pdo=managerSupervisorFixture();$snap=ManagerAiDraftContextService::viewerSnapshot(101,1);ManagerPreparedReplyService::requestOnOpen(101,1,$snap);$job=$latest($pdo)['job_id'];$pdo->mutate('DELETE FROM manager_group_members WHERE manager_id=1');
+    $check('source routing permission loss removes pending metadata and rejects completion',ManagerPreparedReplyService::pending(20)['jobs']===[]&&empty(ManagerPreparedReplyService::context($job)['ok'])&&empty(ManagerPreparedReplyService::complete($job,$snap['revision'],preparedReplyProposal())['ok']));
+    $pdo=preparedReplyFixture();$snap=ManagerAiDraftContextService::viewerSnapshot(101,1);ManagerPreparedReplyService::requestOnOpen(101,1,$snap);$job=$latest($pdo)['job_id'];$pdo->mutate('UPDATE conversations SET manager_id=2');
+    $check('reassignment invalidates pending context and result',ManagerPreparedReplyService::pending(20)['jobs']===[]&&empty(ManagerPreparedReplyService::context($job)['ok'])&&empty(ManagerPreparedReplyService::complete($job,$snap['revision'],preparedReplyProposal())['ok']));
+    $pdo=preparedReplyFixture();$pdo->mutate('DELETE FROM messages');$snap=ManagerAiDraftContextService::viewerSnapshot(101,1);$writes=$pdo->cacheWrites;
+    $check('an empty transcript cannot create an unusable latest-zero job',empty(ManagerPreparedReplyService::requestOnOpen(101,1,$snap)['ok'])&&$pdo->cacheWrites===$writes);
+}
+
 function preparedReplyRun(): void
 {
     global $preparedReplyPassed;
@@ -449,6 +560,7 @@ function preparedReplyRun(): void
     preparedReplyAutomaticFreshness();
     require_once __DIR__.'/support/manager-supervision-regression.php';
     managerSupervisorRegression();
+    preparedReplyOpenRequests();
     preparedReplyReferenceRecovery();
     preparedReplyReconciliationBoundaries();
     preparedReplyLegacyInputCoverage();

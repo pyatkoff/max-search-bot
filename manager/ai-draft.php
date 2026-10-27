@@ -36,7 +36,7 @@ try {
     $data = ManagerHttp::body();
     ManagerHttp::requireCsrf($data);
     $action = $data['action'] ?? '';
-    if (!in_array($action,['generate','validate','prepared','prepared_status','prepared_preview'],true)) {
+    if (!in_array($action,['generate','validate','prepared','prepared_status','prepared_preview','ensure_prepared'],true)) {
         aiDraftRespond(['ok'=>false,'error'=>'unknown_action']);
     }
     $cid = $data['conversation_id'] ?? null;
@@ -54,6 +54,34 @@ try {
     if ($expectedLatest !== $before['latest_message_id']) {
         aiDraftRespond(['ok'=>false,'error'=>'context_stale']);
     }
+    $automaticPreparation = !$supervisor || !empty($before['owner_read']);
+    if ($action === 'ensure_prepared') {
+        if (!$automaticPreparation) aiDraftRespond(['ok'=>false,'error'=>'forbidden']);
+        // Opening an authorized chat requests work through the existing ChatGPT
+        // connection. This path never selects the manual model/API transport.
+        session_write_close();
+        require_once dirname(__DIR__).'/services/ManagerPreparationMcpService.php';
+        $events = new ManagerPreparationMcpService();
+        if (!$events->hasActiveSubscriptions()) aiDraftRespond(['ok'=>false,'error'=>'preparation_unavailable']);
+        $requested = ManagerPreparedReplyService::requestOnOpen($cid,$actor,$before);
+        if (!empty($requested['ok']) && ($requested['preparation_state'] ?? '') === 'pending') {
+            // Persisted work also remains available to the existing minute cron
+            // if immediate callback delivery is temporarily unavailable.
+            try { $events->deliverPending(); } catch (Throwable $ignored) {}
+        }
+        if (!session_start(['read_and_close'=>true]) || ManagerHttp::managerId() !== $actor
+            || !ManagerRequestContext::validCsrf((string)$data['csrf'])) aiDraftRespond(['ok'=>false,'error'=>'unauthorized']);
+        $after = ManagerAiDraftContextService::viewerSnapshot($cid,$actor);
+        if (empty($after['ok'])) aiDraftRespond($after);
+        if (!empty($after['supervisor_read']) && empty($after['owner_read'])) aiDraftRespond(['ok'=>false,'error'=>'forbidden']);
+        if (!hash_equals($before['revision'],$after['revision'])
+            || ($after['viewer_access_revision']??null)!==($before['viewer_access_revision']??null)
+            || (int)$after['owner_id']!==$owner) aiDraftRespond(['ok'=>false,'error'=>'context_stale']);
+        if (empty($requested['ok'])) aiDraftRespond($requested);
+        aiDraftRespond(['ok'=>true,'requested'=>true,
+            'queued'=>($requested['preparation_state']??'')==='pending',
+            'preparation_state'=>$requested['preparation_state']]+$projection);
+    }
     $passivePreview=$action==='prepared_preview';
     if ($action === 'prepared' || $action === 'prepared_status' || $passivePreview) {
         // This only retrieves a separately prepared, current-context proposal.
@@ -70,12 +98,12 @@ try {
         if ($action === 'prepared_status') {
             // Same canonical freshness/ownership/expiry checks, without returning
             // the private proposal or a job identity to the readiness observer.
-            if (empty($prepared['prepared'])) aiDraftRespond(['ok'=>true,'prepared'=>false]);
+            if (empty($prepared['prepared'])) aiDraftRespond(['ok'=>true,'prepared'=>false,'automatic_preparation'=>$automaticPreparation]);
             aiDraftRespond(['ok'=>true,'prepared'=>true,
                 'should_draft'=>$prepared['proposal']['should_draft'],
                 'revision'=>$prepared['revision'],'latest_message_id'=>$prepared['latest_message_id'],
                 'prepared_at'=>$prepared['prepared_at'],'expires_at'=>$prepared['expires_at'],
-                'preparation_source'=>$prepared['preparation_source']]+$projection);
+                'preparation_source'=>$prepared['preparation_source'],'automatic_preparation'=>$automaticPreparation]+$projection);
         }
         if (!empty($prepared['prepared'])&&is_array($prepared['proposal']??null)) {
             $proposal=$prepared['proposal'];unset($prepared['proposal']);
