@@ -4,6 +4,7 @@ require_once __DIR__ . '/RoutingAccessService.php';
 require_once __DIR__ . '/ManagerPriorityService.php';
 require_once __DIR__ . '/ManagerPushConnectionService.php';
 require_once __DIR__ . '/ManagerPushPresentation.php';
+require_once __DIR__ . '/ManagerPushContext.php';
 
 class ManagerPushService
 {
@@ -91,7 +92,9 @@ class ManagerPushService
                     $arrival->execute([$conversationId,$externalMessageId]);$incoming=$arrival->fetch(PDO::FETCH_ASSOC)?:null;$incomingId=(int)($incoming['id']??0);
                 }catch(Throwable $ignored){}
             }
-            $payload=json_encode(ManagerPushPresentation::conversation($c,$body,$incoming),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
+            $context=null;
+            if($externalMessageId==='')$context=ManagerPushContext::forNotice($pdo,$conversationId,$body);
+            $payload=json_encode(ManagerPushPresentation::conversation($c,$body,$incoming,$context),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
             $subs=ManagerPushConnectionService::activeSubscriptions($pdo,$managers);$subscribed=[];
             foreach($subs as $sub)$subscribed[(int)$sub['manager_id']]=true;
             if(class_exists('DiagnosticLogger')){
