@@ -34,6 +34,49 @@ foreach ([['wrong'=>$auto['photos'][0]],[$auto['photos'][0],$auto['photos'][0]],
 foreach (['?token=secret','?%74oken=secret','#fragment'] as $suffix){$bad=$auto;$bad['photos'][0].=$suffix;deliveryCheck('automatic gallery does not persist credentials query or fragment',ManagerTourSelectionImportDraft::normalize($bad)===null);}
 $bad=$auto;$bad['photos'][1]=str_replace('00180000','00280000',$bad['photos'][1]);deliveryCheck('mixed FUNSUN hotel UUID gallery is refused',ManagerTourSelectionImportDraft::normalize($bad)===null);
 $missingPhotos=$auto;$missingPhotos['photos']=[];$missingImport=ManagerTourSelectionImportDraft::normalize($missingPhotos);deliveryCheck('unavailable automatic gallery is explicit without fabricated photos',$missingImport!==null&&$missingImport['photos']===[]&&$missingImport['offer']['photos']===[]);
+// Same public synthetic FUNSUN observation, with a native English weekday label.
+// Source quote, keys, dates, party, price and gallery remain the existing fixture's.
+$englishDate=$auto;$englishDate['raw']['date']='05.06.2027, Sat';
+$englishNormalized=ManagerTourSelectionImportDraft::normalize($englishDate);
+deliveryCheck('FUNSUN English weekday normalizes without rewriting the captured date or terms',
+    $englishNormalized!==null&&$englishNormalized['raw']['date']===$englishDate['raw']['date']
+    &&$englishNormalized['offer']===$normalized['offer']&&$englishNormalized['keys']===$normalized['keys']
+    &&$englishNormalized['quote_id']===$normalized['quote_id']&&$englishNormalized['url']===$normalized['url']
+    &&$englishNormalized['photos']===$auto['photos']);
+foreach (['2027-06-07'=>'Mon','2027-06-08'=>'Tue','2027-06-09'=>'Wed','2027-06-10'=>'Thu','2027-06-11'=>'Fri','2027-06-12'=>'Sat','2027-06-13'=>'Sun'] as $iso=>$weekday) {
+    $withWeekday=$englishDate;$withWeekday['offer']['date_from']=$iso;
+    $withWeekday['url']=str_replace('20270605',str_replace('-','',$iso),$withWeekday['url']);
+    $withWeekday['raw']['date']=substr($iso,8,2).'.'.substr($iso,5,2).'.'.substr($iso,0,4).', '.$weekday;
+    $read=ManagerTourSelectionImportDraft::normalize($withWeekday);
+    deliveryCheck('FUNSUN exact English '.$weekday.' label retains its matching numeric date',
+        $read!==null&&$read['offer']['date_from']===$iso&&$read['raw']['date']===$withWeekday['raw']['date']);
+}
+foreach (['05.06.2027, сб','05.06.2027'] as $label) {
+    $legacyDate=$englishDate;$legacyDate['raw']['date']=$label;
+    $read=ManagerTourSelectionImportDraft::normalize($legacyDate);
+    deliveryCheck('FUNSUN existing Russian or absent weekday remains unchanged',
+        $read!==null&&$read['raw']['date']===$label&&$read['offer']['date_from']==='2027-06-05');
+}
+foreach (['05.06.2027, Foo','05.06.2027, Saturday','05.06.2027, SAT','05.06.2027, Sat extra','06.06.2027, Sat'] as $label) {
+    $bad=$englishDate;$bad['raw']['date']=$label;
+    deliveryCheck('FUNSUN weekday support refuses unknown suffix or a different numeric date',ManagerTourSelectionImportDraft::normalize($bad)===null);
+}
+$bad=$englishDate;$bad['url']=str_replace('20270605','20270606',$bad['url']);
+deliveryCheck('FUNSUN English weekday cannot bypass the source search date range',ManagerTourSelectionImportDraft::normalize($bad)===null);
+$bad=$englishDate;$bad['offer']['date_from']='2027-02-30';$bad['raw']['date']='30.02.2027, Tue';
+deliveryCheck('FUNSUN English weekday cannot validate an impossible calendar date',ManagerTourSelectionImportDraft::normalize($bad)===null);
+$bad=$englishDate;$bad['raw']['price']='200 001 RUB';
+deliveryCheck('FUNSUN English weekday preserves exact displayed-price validation',ManagerTourSelectionImportDraft::normalize($bad)===null);
+$bad=$englishDate;$bad['raw']['party']='3AD';
+deliveryCheck('FUNSUN English weekday preserves exact displayed-party validation',ManagerTourSelectionImportDraft::normalize($bad)===null);
+$bad=$englishDate;$bad['photos'][1]=str_replace('00180000','00280000',$bad['photos'][1]);
+deliveryCheck('FUNSUN English weekday cannot mix source hotel photo identities',ManagerTourSelectionImportDraft::normalize($bad)===null);
+$savedEnglishDate=null;
+if ($englishNormalized!==null) {$pdo=deliveryDb();$savedEnglishDate=collectorImportedDraft($pdo,$englishDate);}
+deliveryCheck('FUNSUN English weekday survives canonical import and exact private provenance readback',
+    $savedEnglishDate!==null&&$savedEnglishDate['version']===1&&count($savedEnglishDate['draft']['offers'])===1
+    &&$savedEnglishDate['draft']['offers'][0]['import_source']===ManagerTourSelectionImportDraft::source($englishNormalized));
+
 $anex=anexCollectorObservation();$anex['photos']=['https://files.anextour.ru/hotel/hotels/turkey/synthetic/o1?&hotelCode=100'];
 deliveryCheck('ANEX one-photo gallery normalizes with its exact hotel code',count(ManagerTourSelectionImportDraft::normalize($anex)['offer']['photos'])===1);
 $bad=$anex;$bad['photos'][0]=str_replace('hotelCode=100','hotelCode=101',$bad['photos'][0]);deliveryCheck('ANEX gallery cannot borrow another hotels image',ManagerTourSelectionImportDraft::normalize($bad)===null);
