@@ -7,6 +7,8 @@ require_once __DIR__.'/ManagerPreparationWebhook.php';
 require_once __DIR__.'/ManagerPreparationHealth.php';
 require_once __DIR__.'/VirtualReplyMcpAdapter.php';
 require_once __DIR__.'/ManagerSearch3CandidateReader.php';
+require_once __DIR__.'/ManagerPreparationOAuth.php';
+require_once __DIR__.'/HotelWorkMcpAdapter.php';
 
 /** Authenticated preparation tools and MCP Events; never sends customer messages. */
 final class ManagerPreparationMcpService
@@ -18,19 +20,23 @@ final class ManagerPreparationMcpService
     private ManagerPreparationWebhook $webhook;
 
     /** $store is an operation/arguments adapter for isolated tests. */
-    public function __construct(?PDO $pdo = null, private $store = null, ?ManagerPreparationWebhook $webhook = null, private $clock = null, private $connectionActive = null, private $virtualStore = null, private ?ManagerSearch3CandidateReader $searchCandidates = null)
+    public function __construct(?PDO $pdo = null, private $store = null, ?ManagerPreparationWebhook $webhook = null, private $clock = null, private $connectionActive = null, private $virtualStore = null, private ?ManagerSearch3CandidateReader $searchCandidates = null, private $hotelStore = null, private $hotelEvents = null)
     {
         $this->pdo = $pdo ?? ConversationDb::connection();
         $this->webhook = $webhook ?? new ManagerPreparationWebhook();
     }
 
-    public function handle(array $rpc, int $authorizedAdminId, ?string $connectionId = null): array
+    public function handle(array $rpc, int $authorizedAdminId, ?string $connectionId = null, ?array $grantedScopes = null): array
     {
         $id = $rpc['id'] ?? null;
         if (($rpc['jsonrpc'] ?? '') !== '2.0' || !is_string($rpc['method'] ?? null)
             || (!is_int($id) && !is_string($id) && $id !== null)) return self::error(null,-32600,'Invalid Request');
         try {
             $this->requireAdmin($authorizedAdminId);
+            // The HTTP owner supplies the exact fresh bearer grant. Existing
+            // direct callers default to the original reply capability only.
+            $scopes=$grantedScopes??ManagerPreparationOAuth::SCOPES;
+            if ($connectionId!==null && !$this->scopedConnectionActive($connectionId,$authorizedAdminId,$scopes)) throw new DomainException();
             $params = $rpc['params'] ?? [];
             if (!is_array($params) || array_is_list($params) && $params !== []) throw new InvalidArgumentException();
             // Protocol metadata is not a tool argument or an authorization source.
@@ -47,23 +53,24 @@ final class ManagerPreparationMcpService
                 'initialize'=>$this->initialize($params),
                 'ping'=>(object)[],
                 'notifications/initialized'=>null,
-                'tools/list'=>['tools'=>$this->tools()],
-                'tools/call'=>$this->callTool($params,$authorizedAdminId,$connectionId),
-                'events/list'=>['events'=>[$this->eventDefinition()]],
-                'events/subscribe'=>$this->subscribe($params,$authorizedAdminId,$connectionId),
-                'events/unsubscribe'=>$this->unsubscribe($params,$authorizedAdminId),
+                'tools/list'=>['tools'=>$this->tools($scopes)],
+                'tools/call'=>$this->callTool($params,$authorizedAdminId,$connectionId,$scopes),
+                'events/list'=>['events'=>$this->events($scopes)],
+                'events/subscribe'=>$this->eventSubscription($params,$authorizedAdminId,$connectionId,$scopes,false),
+                'events/unsubscribe'=>$this->eventSubscription($params,$authorizedAdminId,$connectionId,$scopes,true),
                 default=>throw new OutOfBoundsException(),
             };
             // A context read may wait for public selection pages. Recheck the
             // requesting administrator/connection before exposing its result.
             if ($rpc['method'] === 'tools/call' && (($params['name'] ?? null) === 'get_reply_context'
                 || in_array($params['name']??null,[ManagerSearch3CandidateReader::TOOL,ManagerSearch3CandidateReader::MEAL_TOOL],true)
-                || in_array($params['name']??null,VirtualReplyMcpAdapter::NAMES,true))) {
+                || in_array($params['name']??null,VirtualReplyMcpAdapter::NAMES,true)
+                || in_array($params['name']??null,HotelWorkMcpAdapter::NAMES,true))) {
                 $this->requireAdmin($authorizedAdminId);
-                if ($connectionId !== null && !$this->activeConnection($connectionId,$authorizedAdminId)) throw new DomainException();
+                if ($connectionId !== null && !$this->scopedConnectionActive($connectionId,$authorizedAdminId,$scopes)) throw new DomainException();
             }
             return !array_key_exists('id',$rpc) ? [] : ['jsonrpc'=>'2.0','id'=>$id,'result'=>$result];
-        } catch (ManagerPreparationCallbackError $error) {
+        } catch (ManagerPreparationCallbackError|HotelWorkCallbackError $error) {
             return self::error($id,-32015,'CallbackEndpointError',['reason'=>$error->reason]);
         } catch (DomainException $error) { return self::error($id,-32001,'Access denied');
         } catch (InvalidArgumentException $error) { return self::error($id,-32602,'Invalid params');
@@ -93,7 +100,7 @@ final class ManagerPreparationMcpService
         if (!$q->fetchColumn()) throw new DomainException();
     }
 
-    private function tools(): array
+    private function tools(array $scopes): array
     {
         $tools = [
             ['name'=>'list_pending_replies','description'=>'List up to 20 current AnyTour reply-preparation jobs. Metadata only; no customer sends.',
@@ -114,15 +121,30 @@ final class ManagerPreparationMcpService
             $tool['_meta']=['securitySchemes'=>$tool['securitySchemes']];
         }
         unset($tool);
-        return $tools;
+        $out=ManagerPreparationOAuth::hasScopes($scopes,ManagerPreparationOAuth::SCOPES)?$tools:[];
+        // Declaring an additional capability is not permission to execute it.
+        // Existing reply connections must discover the hotel's OAuth policy so
+        // the host can request explicit step-up consent on the first hotel call.
+        if (ManagerPreparationOAuth::hasScopes($scopes,ManagerPreparationOAuth::SCOPES)
+            ||in_array(ManagerPreparationOAuth::HOTEL_SCOPE,$scopes,true)) $out=array_merge($out,HotelWorkMcpAdapter::tools());
+        return $out;
     }
 
-    private function callTool(array $params,int $admin,?string $connection): array
+    private function callTool(array $params,int $admin,?string $connection,array $scopes): array
     {
         self::keys($params,['name','arguments']);
         $name=$params['name']??null; $args=$params['arguments']??[];
         if (!is_string($name) || !is_array($args) || ($args !== [] && array_is_list($args))) throw new InvalidArgumentException();
-        if (in_array($name,[ManagerSearch3CandidateReader::TOOL,ManagerSearch3CandidateReader::MEAL_TOOL],true)) {
+        $hotel=in_array($name,HotelWorkMcpAdapter::NAMES,true);
+        $required=$hotel?[ManagerPreparationOAuth::HOTEL_SCOPE]:ManagerPreparationOAuth::SCOPES;
+        if ($hotel&&!ManagerPreparationOAuth::hasScopes($scopes,$required)&&$connection!==null
+            &&ManagerPreparationOAuth::hasScopes($scopes,ManagerPreparationOAuth::SCOPES)
+            &&$this->activeConnection($connection,$admin)) return self::hotelScopeChallenge();
+        if (!ManagerPreparationOAuth::hasScopes($scopes,$required)
+            || ($hotel && ($connection===null||!$this->scopedConnectionActive($connection,$admin,$required)))) throw new DomainException();
+        if ($hotel) {
+            $data=(new HotelWorkMcpAdapter($this->pdo,$this->hotelStore,$this->clock))->call($name,$args,$admin,$connection);
+        } elseif (in_array($name,[ManagerSearch3CandidateReader::TOOL,ManagerSearch3CandidateReader::MEAL_TOOL],true)) {
             if ($connection===null||!$this->activeConnection($connection,$admin)) throw new DomainException();
             $reader=$this->searchCandidates??new ManagerSearch3CandidateReader();
             $data=$name===ManagerSearch3CandidateReader::MEAL_TOOL?$reader->readMealCatalog($args):$reader->read($args);
@@ -156,6 +178,44 @@ final class ManagerPreparationMcpService
         }
         return ['content'=>$content,
             'structuredContent'=>$data,'isError'=>isset($data['ok']) && $data['ok'] !== true];
+    }
+
+    private static function hotelScopeChallenge(): array
+    {
+        // Preserve the reply capability in the newly requested consent profile.
+        // This response cannot alter the old grant or its refresh-token family.
+        $challenge='Bearer resource_metadata="'.ManagerPreparationOAuth::ENDPOINT.'?action=resource", '
+            .'error="insufficient_scope", error_description="Explicit hotel queue consent is required", '
+            .'scope="'.implode(' ',ManagerPreparationOAuth::SUPPORTED_SCOPES).'"';
+        return ['content'=>[['type'=>'text','text'=>'Подтвердите дополнительный доступ ChatGPT к гостиничной очереди AnyTour.']],
+            '_meta'=>['mcp/www_authenticate'=>[$challenge]],'isError'=>true];
+    }
+
+    private function hotelEvents(): object
+    {
+        if ($this->hotelEvents===null) {
+            require_once __DIR__.'/HotelWorkEventService.php';
+            $this->hotelEvents=new HotelWorkEventService($this->pdo,null,$this->clock);
+        }
+        return $this->hotelEvents;
+    }
+
+    private function events(array $scopes): array
+    {
+        $events=ManagerPreparationOAuth::hasScopes($scopes,ManagerPreparationOAuth::SCOPES)?[$this->eventDefinition()]:[];
+        if (in_array(ManagerPreparationOAuth::HOTEL_SCOPE,$scopes,true)) $events=array_merge($events,$this->hotelEvents()->eventDefinitions());
+        return $events;
+    }
+
+    private function eventSubscription(array $params,int $admin,?string $connection,array $scopes,bool $remove): mixed
+    {
+        if (in_array($params['name']??null,['hotel_work.pending','hotel_work.attention'],true)) {
+            if (!in_array(ManagerPreparationOAuth::HOTEL_SCOPE,$scopes,true) || $connection===null
+                || !$this->scopedConnectionActive($connection,$admin,[ManagerPreparationOAuth::HOTEL_SCOPE])) throw new DomainException();
+            return $remove?$this->hotelEvents()->unsubscribe($params,$admin,$connection):$this->hotelEvents()->subscribe($params,$admin,$connection);
+        }
+        if (!ManagerPreparationOAuth::hasScopes($scopes,ManagerPreparationOAuth::SCOPES)) throw new DomainException();
+        return $remove?$this->unsubscribe($params,$admin):$this->subscribe($params,$admin,$connection);
     }
 
     private function pending(int $limit): array
@@ -375,7 +435,12 @@ final class ManagerPreparationMcpService
     {
         if ($this->connectionActive!==null) return ($this->connectionActive)($connection,$admin)===true;
         require_once __DIR__.'/ManagerPreparationOAuth.php';
-        return ManagerPreparationOAuth::isConnectionActive($connection,$admin);
+        return (new ManagerPreparationOAuth($this->pdo,$this->clock))->connectionAuthorized($connection,$admin,ManagerPreparationOAuth::SCOPES);
+    }
+    private function scopedConnectionActive(string $connection,int $admin,array $scopes): bool
+    {
+        if ($scopes===ManagerPreparationOAuth::SCOPES) return $this->activeConnection($connection,$admin);
+        return (new ManagerPreparationOAuth($this->pdo,$this->clock))->connectionAuthorized($connection,$admin,$scopes);
     }
     private static function job(array $args): string
     {

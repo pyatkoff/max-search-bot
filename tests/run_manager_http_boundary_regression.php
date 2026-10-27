@@ -29,11 +29,12 @@ foreach(glob($root.'/manager/*.php')?:[] as $managerEndpoint){
 mhCheck('all session Manager PHP interfaces enter through ManagerHttp',$unbounded===[]);
 $mcp=(string)file_get_contents($root.'/manager/ai-mcp.php');
 mhCheck('only the dedicated MCP interface uses mandatory OAuth bearer and connection binding',
-    strpos($mcp,'ManagerPreparationOAuth::authenticateBearer($header)')!==false
-    &&strpos($mcp,'ManagerPreparationOAuth::connectionIdForBearer($header)')!==false
+    strpos($mcp,'ManagerPreparationOAuth::bearerContext($header)')!==false
+    &&strpos($mcp,"\$authorization['connection_id']")!==false
+    &&strpos($mcp,"\$authorization['scopes']")!==false
     &&strpos($mcp,'if ($actor===null||$connection===null)')!==false
     &&strpos($mcp,'WWW-Authenticate: Bearer resource_metadata=')!==false
-    &&strpos($mcp,'authenticateBearer($header)')<strpos($mcp,'->handle($rpc,$actor,$connection)')
+    &&strpos($mcp,'bearerContext($header)')<strpos($mcp,"->handle(\$rpc,\$actor,\$connection,\$authorization['scopes'])")
     &&strpos($mcp,'ManagerRequestContext::')===false&&strpos($mcp,'ManagerHttp::start')===false);
 
 mhCheck('HTTP boundary owns session and JSON headers',strpos($http,'function start()')!==false&&strpos($http,'ManagerRequestContext::startSession()')!==false&&strpos($http,'self::start();')!==false&&strpos($http,"Content-Type: application/json")!==false&&strpos($http,"Cache-Control: no-store")!==false);

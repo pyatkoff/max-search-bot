@@ -24,6 +24,8 @@ final class ManagerPreparationOAuth
     public const RESOURCE = self::ORIGIN.'/manager/ai-mcp.php';
     public const ENDPOINT = self::ORIGIN.'/manager/ai-oauth.php';
     public const SCOPES = ['queue:read', 'prepared:write'];
+    public const HOTEL_SCOPE = 'hotel_work:write';
+    public const SUPPORTED_SCOPES = ['queue:read', 'prepared:write', self::HOTEL_SCOPE];
     // RFC 9207 issuer identification permits this documented stable callback.
     public const REDIRECT_URI = 'https://chatgpt.com/connector_platform_oauth_redirect';
     private PDO $pdo;
@@ -49,14 +51,65 @@ final class ManagerPreparationOAuth
             'response_types_supported'=>['code'],
             'grant_types_supported'=>['authorization_code', 'refresh_token'],
             'code_challenge_methods_supported'=>['S256'],
-            'scopes_supported'=>self::SCOPES,
+            'scopes_supported'=>self::SUPPORTED_SCOPES,
         ];
     }
 
     public static function resourceMetadata(): array
     {
         return ['resource'=>self::RESOURCE, 'authorization_servers'=>[self::ISSUER],
-            'scopes_supported'=>self::SCOPES, 'bearer_methods_supported'=>['header']];
+            'scopes_supported'=>self::SUPPORTED_SCOPES, 'bearer_methods_supported'=>['header']];
+    }
+
+    /** One fresh canonical grant lookup; caller never supplies its own scopes. */
+    public static function bearerContext(string $authorization): ?array
+    {
+        try { return (new self())->contextForBearer($authorization); }
+        catch (Throwable $error) { return null; }
+    }
+
+    public function contextForBearer(string $authorization): ?array
+    {
+        $grant=$this->grantForBearer($authorization);
+        return $grant ? ['admin_id'=>(int)$grant['admin_id'], 'connection_id'=>(string)$grant['grant_id'],
+            'scopes'=>explode(' ', $grant['scopes'])] : null;
+    }
+
+    public static function hasScopes(array $granted, array $required): bool
+    {
+        return !array_diff($required,$granted);
+    }
+
+    public static function isConnectionAuthorized(string $familyId, int $adminId, array $required): bool
+    {
+        try { return (new self())->connectionAuthorized($familyId,$adminId,$required); }
+        catch (Throwable $error) { return false; }
+    }
+
+    /** A failed active check is not proof of retirement: storage errors, absent
+     * grants and permission changes must never authorize queue takeover. */
+    public static function isConnectionRetired(string $familyId,int $adminId): bool
+    {
+        try { return (new self())->connectionRetired($familyId,$adminId); }
+        catch (Throwable $error) { return false; }
+    }
+
+    public function connectionRetired(string $familyId,int $adminId): bool
+    {
+        if (!preg_match('/\A[a-f0-9]{32}\z/D',$familyId)||$adminId<=0) return false;
+        $q=$this->pdo->prepare('SELECT g.scopes,g.expires_at,g.revoked_at FROM manager_preparation_oauth_grants g
+            JOIN manager_preparation_oauth_clients c ON c.client_id=g.client_id
+            WHERE g.grant_id=? AND g.admin_id=? AND g.project_key=? AND g.resource=? AND c.redirect_uri=? LIMIT 1');
+        $q->execute([$familyId,$adminId,ProjectConfig::projectId(),self::RESOURCE,self::REDIRECT_URI]);
+        $grant=$q->fetch(PDO::FETCH_ASSOC);
+        if (!$grant) return false;
+        try { $scope=$this->scope($grant['scopes']); }
+        catch (InvalidArgumentException $error) { return false; }
+        if ($scope!==$grant['scopes']||!in_array(self::HOTEL_SCOPE,explode(' ',$scope),true)) return false;
+        $knownTime=static fn($value):bool=>(is_int($value)||is_string($value))
+            &&preg_match('/\A[1-9][0-9]{0,18}\z/D',(string)$value)===1;
+        return ($knownTime($grant['expires_at'])&&(int)$grant['expires_at']<=$this->now())
+            ||($grant['revoked_at']!==null&&$knownTime($grant['revoked_at'])&&(int)$grant['revoked_at']<=$this->now());
     }
 
     public static function authenticateBearer(string $authorization): ?int
@@ -101,11 +154,22 @@ final class ManagerPreparationOAuth
 
     public function connectionActive(string $familyId, int $adminId): bool
     {
-        if (!preg_match('/\A[a-f0-9]{32}\z/D',$familyId) || $adminId<=0) return false;
+        return $this->connectionGrant($familyId,$adminId)!==null;
+    }
+
+    public function connectionAuthorized(string $familyId, int $adminId, array $required): bool
+    {
+        $grant=$this->connectionGrant($familyId,$adminId);
+        return $grant!==null && self::hasScopes(explode(' ',$grant['scopes']),$required);
+    }
+
+    private function connectionGrant(string $familyId, int $adminId): ?array
+    {
+        if (!preg_match('/\A[a-f0-9]{32}\z/D',$familyId) || $adminId<=0) return null;
         $q=$this->pdo->prepare('SELECT g.* FROM manager_preparation_oauth_grants g JOIN manager_preparation_oauth_clients c ON c.client_id=g.client_id WHERE g.grant_id=? AND g.admin_id=? LIMIT 1');
         $q->execute([$familyId,$adminId]);
         $grant=$q->fetch(PDO::FETCH_ASSOC);
-        return $grant && $this->validGrant($grant);
+        return $grant && $this->validGrant($grant) ? $grant : null;
     }
 
     private function grantForBearer(string $authorization): ?array
@@ -132,7 +196,7 @@ final class ManagerPreparationOAuth
         if (!is_array($grants) || array_filter($grants,static fn($value):bool=>!is_string($value)) || !in_array('authorization_code',$grants,true)
             || count($grants)!==count(array_unique($grants,SORT_REGULAR))
             || array_diff($grants,['authorization_code','refresh_token'])) $this->fail('invalid_client_metadata');
-        if (isset($input['scope'])) $this->scope($input['scope']);
+        $scopes=isset($input['scope']) ? $this->scope($input['scope']) : implode(' ',self::SCOPES);
         // No client-supplied URI, logo, JWKS or metadata is ever fetched.
         $bucket=hash('sha256', $registrationKey);
         $q=$this->pdo->prepare('SELECT COUNT(*) FROM manager_preparation_oauth_clients WHERE registration_bucket=? AND created_at>?');
@@ -144,7 +208,7 @@ final class ManagerPreparationOAuth
             ->execute([$id,self::REDIRECT_URI,$bucket,$this->now()]);
         return ['client_id'=>$id,'client_id_issued_at'=>$this->now(), 'redirect_uris'=>[self::REDIRECT_URI],
             'token_endpoint_auth_method'=>'none','grant_types'=>$grants,'response_types'=>['code'],
-            'scope'=>implode(' ',self::SCOPES)];
+            'scope'=>$scopes];
     }
 
     public function validateAuthorization(array $request): array
@@ -236,7 +300,8 @@ final class ManagerPreparationOAuth
             if ($this->text($input,'redirect_uri',255)!==self::REDIRECT_URI) $this->fail('invalid_grant');
             $verifier=$this->text($input,'code_verifier',128);
             if (!preg_match('/\A[A-Za-z0-9._~-]{43,128}\z/D',$verifier)) $this->fail('invalid_grant');
-        } elseif (isset($input['scope']) && $this->scope($input['scope'])!==implode(' ',self::SCOPES)) $this->fail('invalid_scope');
+        }
+        $requestedScope=isset($input['scope']) ? $this->scope($input['scope']) : null;
         $this->transactionStart();
         try {
             $table=$type==='authorization_code'?'manager_preparation_oauth_codes':'manager_preparation_oauth_tokens';
@@ -259,6 +324,10 @@ final class ManagerPreparationOAuth
                 $this->fail('invalid_grant');
             }
             if ((int)$credential['expires_at']<=$this->now() || !$this->validGrant($grant)) $this->fail('invalid_grant');
+            // Refresh/code exchange may not add capabilities absent at consent.
+            // Keep a grant's exact scope profile rather than silently narrowing
+            // the family while its existing access tokens retain older rights.
+            if ($requestedScope!==null && $requestedScope!==$grant['scopes']) $this->fail('invalid_scope');
             $q=$this->pdo->prepare('UPDATE '.$table.' SET consumed_at=? WHERE '.$column.'=? AND consumed_at IS NULL');
             $q->execute([$this->now(),hash('sha256',$secret)]);
             if ($q->rowCount()!==1) $this->fail('invalid_grant');
@@ -286,7 +355,7 @@ final class ManagerPreparationOAuth
     public function connections(int $adminId): array
     {
         if (!$this->activeAdmin($adminId)) $this->fail('access_denied');
-        $q=$this->pdo->prepare('SELECT grant_id,created_at,expires_at FROM manager_preparation_oauth_grants WHERE admin_id=? AND project_key=? AND revoked_at IS NULL AND expires_at>? ORDER BY created_at DESC LIMIT 50');
+        $q=$this->pdo->prepare('SELECT grant_id,created_at,expires_at,scopes FROM manager_preparation_oauth_grants WHERE admin_id=? AND project_key=? AND revoked_at IS NULL AND expires_at>? ORDER BY created_at DESC LIMIT 50');
         $q->execute([$adminId,ProjectConfig::projectId(),$this->now()]);
         return $q->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -315,9 +384,11 @@ final class ManagerPreparationOAuth
 
     private function validGrant(array $grant): bool
     {
+        try { $scopes=$this->scope($grant['scopes']); }
+        catch (InvalidArgumentException $error) { return false; }
         return $grant['revoked_at']===null && (int)$grant['expires_at']>$this->now()
             && $grant['resource']===self::RESOURCE && $grant['project_key']===ProjectConfig::projectId()
-            && $grant['scopes']===implode(' ',self::SCOPES) && $this->activeAdmin((int)$grant['admin_id']);
+            && $grant['scopes']===$scopes && $this->activeAdmin((int)$grant['admin_id']);
     }
 
     private function issueTokens(array $grant): array
@@ -347,8 +418,13 @@ final class ManagerPreparationOAuth
     {
         if (!is_string($value) || strlen($value)>100) $this->fail('invalid_scope');
         $scopes=explode(' ',$value);
-        if (count($scopes)!==2 || count(array_unique($scopes))!==2 || array_diff(self::SCOPES,$scopes) || array_diff($scopes,self::SCOPES)) $this->fail('invalid_scope');
-        return implode(' ',self::SCOPES);
+        if (count(array_unique($scopes))!==count($scopes) || array_diff($scopes,self::SUPPORTED_SCOPES)) $this->fail('invalid_scope');
+        $legacy=self::hasScopes($scopes,self::SCOPES);
+        $hotel=in_array(self::HOTEL_SCOPE,$scopes,true);
+        // Reply read/write remain one existing capability. Hotel metadata is a
+        // separate explicit consent and may also be granted without replies.
+        if ((!$legacy && array_intersect($scopes,self::SCOPES)) || (!$legacy && !$hotel)) $this->fail('invalid_scope');
+        return implode(' ',array_values(array_intersect(self::SUPPORTED_SCOPES,$scopes)));
     }
 
     private function text(array $input, string $key, int $limit): string

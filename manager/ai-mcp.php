@@ -39,8 +39,9 @@ try {
     // Never accept forwarded/custom headers or fall back from an invalid value.
     $_SERVER['HTTP_AUTHORIZATION']=$header;
     $bearer=preg_match('/\ABearer ([A-Za-z0-9_-]{32,512})\z/D',$header,$m)===1?$m[1]:'';
-    $actor=$bearer!==''?ManagerPreparationOAuth::authenticateBearer($header):null;
-    $connection=$actor!==null?ManagerPreparationOAuth::connectionIdForBearer($header):null;
+    $authorization=$bearer!==''?ManagerPreparationOAuth::bearerContext($header):null;
+    $actor=$authorization['admin_id']??null;
+    $connection=$authorization['connection_id']??null;
     if ($actor===null||$connection===null) {
         header('WWW-Authenticate: Bearer resource_metadata="https://app.anytoour.ru/manager/ai-oauth.php?action=resource", scope="queue:read prepared:write"');
         preparationMcpResponse(['jsonrpc'=>'2.0','id'=>null,'error'=>['code'=>-32001,'message'=>'OAuth connection required']],401);
@@ -76,7 +77,7 @@ try {
     if ((!is_int($rpc['id'])&&!is_string($rpc['id']))||(is_string($rpc['id'])&&strlen($rpc['id'])>128)) {
         preparationMcpResponse(['jsonrpc'=>'2.0','id'=>null,'error'=>['code'=>-32600,'message'=>'Invalid request ID']],400);
     }
-    $response=(new ManagerPreparationMcpService())->handle($rpc,$actor,$connection);
+    $response=(new ManagerPreparationMcpService())->handle($rpc,$actor,$connection,$authorization['scopes']);
     $preparationMcpStage='complete';
     preparationMcpResponse($response);
 } catch(Throwable $ignored) {

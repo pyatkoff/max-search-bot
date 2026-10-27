@@ -104,10 +104,14 @@ try {
             exit;
         }
         $connections=$oauth->connections($adminId);
-        $html='<p>Доступ ChatGPT к очереди диалогов и сохранению подготовленных ответов. Отправка клиентам не разрешена.</p>';
+        $html='<p>Разрешения каждого подключения показаны отдельно. Отправка сообщений клиентам не разрешена.</p>';
         if (!$connections) $html.='<p>Активных подключений нет.</p>';
         foreach ($connections as $connection) {
-            $html.='<form method="post" action="/manager/ai-oauth.php?action=connections"><p>Подключено '.gmdate('d.m.Y H:i',(int)$connection['created_at']).' UTC</p><input type="hidden" name="csrf" value="'.preparationOAuthEscape($csrf).'"><input type="hidden" name="grant_id" value="'.preparationOAuthEscape($connection['grant_id']).'"><button type="submit">Отключить</button></form>';
+            $scopes=explode(' ',$connection['scopes']);
+            $rights=[];
+            if (ManagerPreparationOAuth::hasScopes($scopes,ManagerPreparationOAuth::SCOPES)) $rights[]='очередь диалогов и подготовленные ответы';
+            if (in_array(ManagerPreparationOAuth::HOTEL_SCOPE,$scopes,true)) $rights[]='очередь гостиничных исследований';
+            $html.='<form method="post" action="/manager/ai-oauth.php?action=connections"><p>Подключено '.gmdate('d.m.Y H:i',(int)$connection['created_at']).' UTC: '.preparationOAuthEscape(implode('; ',$rights)).'</p><input type="hidden" name="csrf" value="'.preparationOAuthEscape($csrf).'"><input type="hidden" name="grant_id" value="'.preparationOAuthEscape($connection['grant_id']).'"><button type="submit">Отключить</button></form>';
         }
         preparationOAuthHtml('Подключения ChatGPT',$html);
     }
@@ -121,13 +125,18 @@ try {
         exit;
     }
     $pendingId=isset($query['resume']) ? $query['resume'] : $oauth->beginAuthorization($_SESSION,$query);
-    $oauth->pendingAuthorization($_SESSION,$pendingId,$adminId);
+    $authorization=$oauth->pendingAuthorization($_SESSION,$pendingId,$adminId);
     if ($adminId<=0) {
         $resume='/manager/ai-oauth.php?action=authorize&resume='.rawurlencode($pendingId);
         preparationOAuthHtml('Подключение AnyTour к ChatGPT','<p>Для подключения нужен действующий аккаунт администратора AnyTour.</p><ol><li><a href="/manager/" target="_blank" rel="noopener noreferrer">Войти в кабинет</a></li><li>После входа <a href="'.preparationOAuthEscape($resume).'">продолжить подключение</a>.</li></ol><p><small>Запрос действует 10 минут. Доступ появится после вашего подтверждения на следующем шаге.</small></p>');
     }
-    preparationOAuthHtml('Разрешить подготовку ответов в ChatGPT?',
-        '<p>Вы подключаете ChatGPT к текущему проекту AnyTour от своего аккаунта администратора.</p><ul><li>Чтение очереди и контекста диалогов, которым нужен ответ.</li><li>Сохранение подготовленных ответов для проверки менеджером.</li></ul><p>Сообщения клиентам отправляет менеджер. Это подключение не разрешает отправку, смену ответственного или изменение переписки.</p><p>Доступ можно отключить в <a href="/manager/ai-oauth.php?action=connections">подключениях ChatGPT</a>. Подключение действует до 30 дней, затем потребуется новое подтверждение.</p><form method="post" action="/manager/ai-oauth.php?action=authorize"><input type="hidden" name="pending_id" value="'.preparationOAuthEscape($pendingId).'"><input type="hidden" name="csrf" value="'.preparationOAuthEscape($csrf).'"><button type="submit" name="decision" value="allow">Разрешить</button><button type="submit" name="decision" value="deny">Отмена</button></form>');
+    $scopes=explode(' ',$authorization['scope']);
+    $hotel=in_array(ManagerPreparationOAuth::HOTEL_SCOPE,$scopes,true);
+    $permissions='';
+    if (ManagerPreparationOAuth::hasScopes($scopes,ManagerPreparationOAuth::SCOPES)) $permissions.='<li>Чтение очереди и контекста диалогов, которым нужен ответ.</li><li>Сохранение подготовленных ответов для проверки менеджером.</li>';
+    if ($hotel) $permissions.='<li>Управление очередью гостиничных исследований: создание плана, допуск этапов, сохранение состояния и подтверждений выполнения.</li><li>Получение событий готовности гостиничной очереди. Гостиничные факты и файлы общей базы это подключение не изменяет.</li>';
+    preparationOAuthHtml($hotel?'Разрешить работу с очередями AnyTour в ChatGPT?':'Разрешить подготовку ответов в ChatGPT?',
+        '<p>Вы подключаете ChatGPT к текущему проекту AnyTour от своего аккаунта администратора.</p><ul>'.$permissions.'</ul><p>Сообщения клиентам отправляет менеджер. Это подключение не разрешает отправку, смену ответственного или изменение переписки.</p><p>Доступ можно отключить в <a href="/manager/ai-oauth.php?action=connections">подключениях ChatGPT</a>. Подключение действует до 30 дней, затем потребуется новое подтверждение.</p><form method="post" action="/manager/ai-oauth.php?action=authorize"><input type="hidden" name="pending_id" value="'.preparationOAuthEscape($pendingId).'"><input type="hidden" name="csrf" value="'.preparationOAuthEscape($csrf).'"><button type="submit" name="decision" value="allow">Разрешить</button><button type="submit" name="decision" value="deny">Отмена</button></form>');
 } catch (JsonException $error) {
     preparationOAuthJson(['error'=>'invalid_request'],400);
 } catch (InvalidArgumentException $error) {
