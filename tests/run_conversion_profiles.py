@@ -50,7 +50,122 @@ def value(profile, field):
     return profile["fields"][field]["value"]
 
 
+
+# Synthetic controls for current-trip facts and amount-local budget units.
+SCOPED_FACT_CASES = [
+    ("Июль не рассматриваем.", {"dates": None}),
+    ("В прошлом году ездили — на 10 ночей а сейчас хотим в Турцию.", {"duration": None}),
+    ("В прошлом году ездили — на 10 ночей (сейчас хотим в Турцию).", {"duration": None}),
+    ("В прошлом году ездили — на 10 ночей а сейчас хотим в Турцию на 7 ночей.",
+     {"duration": {"minimum": 7, "maximum": 7, "unit": "nights"}}),
+    ("В прошлом году ездили — на 10 ночей (сейчас хотим в Турцию на 7 ночей).",
+     {"duration": {"minimum": 7, "maximum": 7, "unit": "nights"}}),
+    ("В прошлом году ездили — на 10 ночей (хотим в Турцию).", {"duration": None}),
+    ("В прошлом году отдыхали — с 01.07.2025 по 10.07.2025 а сейчас хотим в Турцию.",
+     {"dates": None}),
+    ("В прошлом году ездили — из Москвы (сейчас хотим в Турцию).", {"departure": None}),
+    ("В прошлом году ездили — из Москвы (сейчас хотим вылет из Самары).", {"departure": "Самара"}),
+    ("В прошлом году ездили — на 10 ночей — сейчас хотим в Турцию.", {"duration": None}),
+    ("В прошлом году ездили — на 10 ночей — сейчас хотим в Турцию на 7 ночей.",
+     {"duration": {"minimum": 7, "maximum": 7, "unit": "nights"}}),
+    ("Сейчас хотим в Турцию — на 7 ночей — в прошлом году ездили на 10 ночей.",
+     {"duration": {"minimum": 7, "maximum": 7, "unit": "nights"}}),
+    ("В прошлом году отдыхали — с 01.07.2025 по 10.07.2025 — сейчас хотим в Турцию.",
+     {"dates": None}),
+    ("В прошлом году отдыхали — с 01.07.2025 по 10.07.2025 — сейчас хотим вылет 15.11.2026.",
+     {"dates": {"start_day": 15, "start_month": 11, "end_day": 15, "end_month": 11,
+                "year": 2026, "window_kind": "departure"}}),
+    ("В прошлом году ездили в Египет на 10 ночей, а сейчас хотим в Турцию на 7 ночей.",
+     {"duration": {"minimum": 7, "maximum": 7, "unit": "nights"}}),
+    ("Сейчас хотим в Турцию на 7 ночей — в прошлом году ездили на 10 ночей.",
+     {"duration": {"minimum": 7, "maximum": 7, "unit": "nights"}}),
+    ("В прошлом году ездили — на 10 ночей, сейчас хотим на 7 ночей.",
+     {"duration": {"minimum": 7, "maximum": 7, "unit": "nights"}}),
+    ("В прошлом году ездили на 10 ночей.", {"duration": None}),
+    ("Мы были бы рады отдохнуть на 7 ночей.",
+     {"duration": {"minimum": 7, "maximum": 7, "unit": "nights"}}),
+    ("Хотим на 10, 11 ночей.",
+     {"duration": {"minimum": 10, "maximum": 11, "unit": "nights", "options": [10, 11]}}),
+    ("В прошлом году отдыхали с 01.07.2025 по 10.07.2025, сейчас хотим вылет 15.11.2026.",
+     {"dates": {"start_day": 15, "start_month": 11, "end_day": 15, "end_month": 11,
+                "year": 2026, "window_kind": "departure"}}),
+    ("Сейчас хотим вылет 15.11.2026 — в прошлом году отдыхали с 01.07.2025 по 10.07.2025.",
+     {"dates": {"start_day": 15, "start_month": 11, "end_day": 15, "end_month": 11,
+                "year": 2026, "window_kind": "departure"}}),
+    ("Сейчас хотим вылет 15.11.2026 а в прошлом году отдыхали с 01.07.2025 по 10.07.2025.",
+     {"dates": {"start_day": 15, "start_month": 11, "end_day": 15, "end_month": 11,
+                "year": 2026, "window_kind": "departure"}}),
+    ("В прошлом году отдыхали с 01.07.2025 по 10.07.2025.", {"dates": None}),
+    ("Хотим вылет с 15.11.2026 по 22.11.2026.",
+     {"dates": {"start_day": 15, "start_month": 11, "end_day": 22, "end_month": 11,
+                "year": 2026, "window_kind": "departure"}}),
+    ("В прошлом году ездили из Москвы, сейчас хотим вылет из Самары.", {"departure": "Самара"}),
+    ("В прошлом году ездили из Москвы.", {"departure": None}),
+]
+BUDGET_UNIT_CASES = [
+    ("Бюджет 200000 RUB. на человека.", "per_person", "explicit"),
+    ("Бюджет 200000 EUR. на человека.", "per_person", "explicit"),
+    ("Бюджет 200000 USD. за человека.", "per_person", "explicit"),
+    ("Бюджет 200000 евро. на человека.", "per_person", "explicit"),
+    ("Бюджет 200000 долларов. на человека.", "per_person", "explicit"),
+    ("Бюджет 200000 ₽. на человека.", "per_person", "explicit"),
+    ("Бюджет 200000 $. на человека.", "per_person", "explicit"),
+    ("Бюджет 200000 RUB. на всех. Доплата за человека не нужна.", "party_total", "explicit"),
+    ("Бюджет 200000 EUR. на всех, доплата за человека не нужна.", "party_total", "explicit"),
+    ("Бюджет 200000 USD. Доплата за человека нужна.", "party_total", "agency_default_party_total"),
+    ("Бюджет 200000 RUB. За человека доплата не нужна.", "party_total", "agency_default_party_total"),
+    ("Бюджет 200000 руб. на человека.", "per_person", "explicit"),
+    ("Бюджет 200000 РУБ. за человека.", "per_person", "explicit"),
+    ("Бюджет 200 тыс. руб. на человека.", "per_person", "explicit"),
+    ("Бюджет 200 т. р. на человека.", "per_person", "explicit"),
+    ("Бюджет 200000 руб. на всех.", "party_total", "explicit"),
+    ("Бюджет 200000 руб. на двоих.", "party_total", "explicit"),
+    ("Бюджет 200000 руб. на всех. Доплата за человека не нужна.", "party_total", "explicit"),
+    ("Бюджет 200000 руб. на всех, доплата за человека не нужна.", "party_total", "explicit"),
+    ("Бюджет 200000 руб. на человека. Доплата на всех не нужна.", "per_person", "explicit"),
+    ("Бюджет 200000 руб. Доплата за человека не нужна.", "party_total", "agency_default_party_total"),
+    ("Бюджет 200000 руб. За человека доплата не нужна.", "party_total", "agency_default_party_total"),
+    ("Бюджет 200000 руб. Доплата за человека нужна.", "party_total", "agency_default_party_total"),
+    ("Бюджет 200000 рублей на всех и за человека не требуется.", "party_total", "explicit"),
+    ("Бюджет 200000 рублей на человека и доплата не нужна.", "per_person", "explicit"),
+    ("Бюджет 200000 рублей на всех.", "party_total", "explicit"),
+    ("Бюджет 200000 рублей на всех. Доплата за человека не нужна.", "party_total", "explicit"),
+    ("Бюджет 200000 рублей на всех, доплата за человека не нужна.", "party_total", "explicit"),
+    ("Доплата за человека не нужна. Бюджет 200000 рублей на всех.", "party_total", "explicit"),
+    ("Бюджет 200000 рублей на человека.", "per_person", "explicit"),
+    ("Бюджет 200000 рублей за человека.", "per_person", "explicit"),
+    ("Бюджет 200000 рублей. За человека доплата не нужна.", "party_total", "agency_default_party_total"),
+]
+
+
 class ProfileTests(unittest.TestCase):
+    def test_current_clause_fact_scope(self):
+        for text, expected in SCOPED_FACT_CASES:
+            with self.subTest(text=text):
+                p = extract(message(text))
+                for field, wanted in expected.items():
+                    self.assertEqual(value(p, field), wanted)
+                    projection = p['prediction_features']['facts']
+                    if wanted is None:
+                        self.assertFalse(p['fields'][field]['usable_at_prediction'])
+                        self.assertNotIn('fields.'+field, projection)
+                    else:
+                        self.assertEqual(projection['fields.'+field]['value'], wanted)
+                        self.assertTrue(p['fields'][field]['usable_at_prediction'])
+                        ref = p['fields'][field]['references'][-1]
+                        start, end = ref['span']
+                        self.assertTrue(text[start:end].strip())
+                        if 'сейчас' in text and text.startswith('В прошлом'):
+                            self.assertGreaterEqual(start, text.index('сейчас'))
+
+    def test_budget_units_stay_with_the_amount_clause(self):
+        for text, unit, basis in BUDGET_UNIT_CASES:
+            with self.subTest(text=text):
+                p = extract(message(text)); budget = value(p, 'budget')
+                self.assertEqual((budget['minimum'], budget['maximum']), (200000, 200000))
+                self.assertEqual((budget['unit'], budget['unit_basis']), (unit, basis))
+                self.assertEqual(p['prediction_features']['facts']['fields.budget']['value'], budget)
+
     def test_membership_receipts_preserve_cutoff_and_do_not_invent_retention(self):
         subscribed = membership_receipt()
         c = case(message("Турция")); c["membership_receipts"] = [subscribed]
@@ -826,6 +941,36 @@ def membership_journal_receipt(identifier, event_type, occurred, recorded, obser
 
 
 class JournalProfileTests(unittest.TestCase):
+    def test_current_fact_scopes_runtime_and_cli(self):
+        scenarios = [(text, expected, None) for text, expected in SCOPED_FACT_CASES]
+        scenarios += [(text, {}, (unit, basis)) for text, unit, basis in BUDGET_UNIT_CASES]
+        for text, expected, budget_unit in scenarios:
+            with self.subTest(text=text):
+                document = journal_document(journal_row(text=text))
+                with tempfile.NamedTemporaryFile(mode='w', suffix='.json') as handle:
+                    json.dump(document, handle); handle.flush()
+                    run = subprocess.run([sys.executable, str(ROOT/'tools/profile_conversion_journal.py'), handle.name],
+                                         text=True, capture_output=True)
+                self.assertEqual(run.returncode, 0, run.stderr)
+                cli = json.loads(run.stdout)
+                self.assertEqual(cli, journal.profile(document, cli['extracted_at']))
+                result = cli['profiles'][0]; p = result['profile']
+                self.assertEqual(result['coverage']['errors'], {})
+                self.assertEqual(p['extractor_sha256'], hashlib.sha256((ROOT/'tools/extract_conversion_profiles.py').read_bytes()).hexdigest())
+                self.assertFalse(p['export_allowed'])
+                for field, wanted in expected.items():
+                    self.assertEqual(value(p, field), wanted)
+                    if wanted is None:
+                        self.assertNotIn('fields.'+field, p['prediction_features']['facts'])
+                    else:
+                        self.assertEqual(p['prediction_features']['facts']['fields.'+field]['value'], wanted)
+                if budget_unit:
+                    budget = value(p, 'budget')
+                    self.assertEqual((budget['minimum'], budget['maximum']), (200000, 200000))
+                    self.assertEqual((budget['unit'], budget['unit_basis']), budget_unit)
+                    self.assertEqual(p['prediction_features']['facts']['fields.budget']['value'], budget)
+
+
     def test_membership_receipts_flow_through_actual_journal_cli(self):
         subscription = membership_journal_receipt("5", "channel_subscription_observed",
                                                    1793005200, 1793005260, 1793005320)
