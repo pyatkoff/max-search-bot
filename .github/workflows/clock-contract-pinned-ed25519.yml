@@ -1,0 +1,91 @@
+name: Read bounded clock contract metadata
+on:
+  push:
+    branches: [audit/clock-contract-pinned-ed25519-20261027]
+    paths: [.github/workflows/clock-contract-pinned-ed25519.yml]
+permissions:
+  contents: read
+concurrency:
+  group: anytour-clock-contract-pinned-ed25519-20261027
+  cancel-in-progress: false
+jobs:
+  read:
+    if: github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Pin current main
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin refs/heads/main
+          test "$(git rev-parse FETCH_HEAD)" = fcdb858149f46f1d8633d3b0b682316592dfe8d5
+      - name: Prepare existing identity and strict canonical pin
+        env:
+          K: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          TARGET: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        run: |
+          set -euo pipefail
+          umask 077
+          if [[ "$K" == *"PRIVATE KEY"* ]]; then printf '%b\n' "$K" | tr -d '\r' > "$RUNNER_TEMP/membership-key"; else printf '%s' "$K" | base64 --decode > "$RUNNER_TEMP/membership-key"; fi
+          chmod 600 "$RUNNER_TEMP/membership-key"
+          ssh-keygen -y -f "$RUNNER_TEMP/membership-key" >/dev/null
+          python3 - "$TARGET" "$RUNNER_TEMP/membership-hosts" <<'PY'
+          import base64,hashlib,socket,subprocess,sys
+          host,dest=sys.argv[1:]
+          if {v[4][0] for v in socket.getaddrinfo(host,22,type=socket.SOCK_STREAM)}!={'5.45.122.54'}:raise SystemExit('canonical_target_changed')
+          pinned=[]
+          for _ in range(2):
+              scan=subprocess.run(['ssh-keyscan','-t','ed25519','-T','10',host],capture_output=True,text=True,timeout=30)
+              for line in scan.stdout.splitlines():
+                  parts=line.split()
+                  if len(parts)!=3 or parts[0].startswith('#'):continue
+                  try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(parts[2],validate=True)).digest()).decode().rstrip('=')
+                  except ValueError:continue
+                  if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0' and line not in pinned:pinned.append(line)
+              if pinned:break
+          if not pinned:raise SystemExit('canonical_host_pin_not_seen')
+          open(dest,'w').write('\n'.join(pinned)+'\n')
+          PY
+      - name: One read-only metadata snapshot
+        env:
+          TARGET: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          umask 077
+          cat > "$RUNNER_TEMP/membership-read.php" <<'PHP'
+          <?php
+          declare(strict_types=1);
+          try {
+           chdir('/var/www/anytoour/data/www/app.anytoour.ru');
+           require_once 'config.php';require_once 'services/ProjectAccessService.php';require_once 'services/ConversationDb.php';
+           if(ProjectConfig::projectId()!=='anytour')throw new RuntimeException('project');
+           ProjectAccessService::initializeReadOnly();$p=ConversationDb::connection();
+           $p->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');$p->exec('SET TRANSACTION READ ONLY');$p->beginTransaction();
+           $clock=$p->query("SELECT @@session.time_zone AS session_zone,@@global.time_zone AS global_zone,@@system_time_zone AS system_zone,TIMESTAMPDIFF(SECOND,UTC_TIMESTAMP(),NOW()) AS offset_seconds,UNIX_TIMESTAMP() AS unix_now")->fetch(PDO::FETCH_ASSOC);
+           $q=$p->query("SELECT TABLE_NAME AS table_name,COLUMN_NAME AS column_name,COLUMN_TYPE AS column_type,COLUMN_DEFAULT AS column_default,EXTRA AS extra FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND ((TABLE_NAME='conversations' AND COLUMN_NAME='started_at') OR (TABLE_NAME IN ('messages','conversation_events','post_entries','max_channel_conversion_outbox') AND COLUMN_NAME='created_at')) ORDER BY TABLE_NAME LIMIT 5");
+           $schema=$q->fetchAll(PDO::FETCH_ASSOC);$p->rollBack();
+           $out=['purpose'=>'clock_contract_metadata','sampled_at'=>gmdate('Y-m-d\TH:i:s\Z'),'clock'=>$clock,'schema'=>$schema,'business_native_source_user_rows'=>0,'database_writes'=>0,'API_POST_model_provider_customer_calls'=>0,'manual_ticks'=>0];
+           $json=json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);if(strlen($json)>16384)throw new RuntimeException('output');echo $json,"\n";
+          }catch(Throwable $e){if(isset($p)&&$p->inTransaction())$p->rollBack();fwrite(STDERR,"clock_metadata_failed\n");exit(1);}
+          PHP
+          php -l "$RUNNER_TEMP/membership-read.php"
+          ssh -i "$RUNNER_TEMP/membership-key" -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$RUNNER_TEMP/membership-hosts" -o ConnectTimeout=10 "$USER@$TARGET" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(git rev-parse HEAD)" = fcdb858149f46f1d8633d3b0b682316592dfe8d5; php -d display_errors=0 -d log_errors=0; test "$(git rev-parse HEAD)" = fcdb858149f46f1d8633d3b0b682316592dfe8d5' < "$RUNNER_TEMP/membership-read.php" > "$RUNNER_TEMP/membership-metadata.json"
+          python3 - "$RUNNER_TEMP/membership-metadata.json" <<'PY'
+          import json,pathlib,sys
+          raw=pathlib.Path(sys.argv[1]).read_bytes()
+          assert len(raw)<=16384
+          obj=json.loads(raw)
+          assert obj['business_native_source_user_rows']==obj['database_writes']==obj['manual_ticks']==obj['API_POST_model_provider_customer_calls']==0
+          print(json.dumps(obj,ensure_ascii=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: clock-contract-pinned-ed25519-${{ github.run_id }}
+          path: ${{ runner.temp }}/membership-metadata.json
+          retention-days: 1
+          if-no-files-found: error
+      - name: Cleanup
+        if: always()
+        run: rm -f "$RUNNER_TEMP/membership-key" "$RUNNER_TEMP/membership-hosts" "$RUNNER_TEMP/membership-read.php" "$RUNNER_TEMP/membership-metadata.json"
