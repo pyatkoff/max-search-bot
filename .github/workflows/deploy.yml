@@ -207,10 +207,10 @@ jobs:
             crontab "$after"
             count="$(crontab -l | grep -F "$root/tools/hotel_work.php tick" | wc -l | tr -d " ")"
             [[ "$count" == "1" ]]
+            /usr/bin/php "$root/tools/hotel_work.php" verify-cron
             trap - ERR
             rm -f "$before" "$after"
             echo "HOTEL_WORK_CRON_COUNT=1"
-            /usr/bin/php "$root/tools/hotel_work.php" verify-cron
           '
 
       - name: Production smoke checks

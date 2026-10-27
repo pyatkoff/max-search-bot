@@ -122,7 +122,11 @@ final class ManagerPreparationMcpService
         }
         unset($tool);
         $out=ManagerPreparationOAuth::hasScopes($scopes,ManagerPreparationOAuth::SCOPES)?$tools:[];
-        if (in_array(ManagerPreparationOAuth::HOTEL_SCOPE,$scopes,true)) $out=array_merge($out,HotelWorkMcpAdapter::tools());
+        // Declaring an additional capability is not permission to execute it.
+        // Existing reply connections must discover the hotel's OAuth policy so
+        // the host can request explicit step-up consent on the first hotel call.
+        if (ManagerPreparationOAuth::hasScopes($scopes,ManagerPreparationOAuth::SCOPES)
+            ||in_array(ManagerPreparationOAuth::HOTEL_SCOPE,$scopes,true)) $out=array_merge($out,HotelWorkMcpAdapter::tools());
         return $out;
     }
 
@@ -133,6 +137,9 @@ final class ManagerPreparationMcpService
         if (!is_string($name) || !is_array($args) || ($args !== [] && array_is_list($args))) throw new InvalidArgumentException();
         $hotel=in_array($name,HotelWorkMcpAdapter::NAMES,true);
         $required=$hotel?[ManagerPreparationOAuth::HOTEL_SCOPE]:ManagerPreparationOAuth::SCOPES;
+        if ($hotel&&!ManagerPreparationOAuth::hasScopes($scopes,$required)&&$connection!==null
+            &&ManagerPreparationOAuth::hasScopes($scopes,ManagerPreparationOAuth::SCOPES)
+            &&$this->activeConnection($connection,$admin)) return self::hotelScopeChallenge();
         if (!ManagerPreparationOAuth::hasScopes($scopes,$required)
             || ($hotel && ($connection===null||!$this->scopedConnectionActive($connection,$admin,$required)))) throw new DomainException();
         if ($hotel) {
@@ -171,6 +178,17 @@ final class ManagerPreparationMcpService
         }
         return ['content'=>$content,
             'structuredContent'=>$data,'isError'=>isset($data['ok']) && $data['ok'] !== true];
+    }
+
+    private static function hotelScopeChallenge(): array
+    {
+        // Preserve the reply capability in the newly requested consent profile.
+        // This response cannot alter the old grant or its refresh-token family.
+        $challenge='Bearer resource_metadata="'.ManagerPreparationOAuth::ENDPOINT.'?action=resource", '
+            .'error="insufficient_scope", error_description="Explicit hotel queue consent is required", '
+            .'scope="'.implode(' ',ManagerPreparationOAuth::SUPPORTED_SCOPES).'"';
+        return ['content'=>[['type'=>'text','text'=>'Подтвердите дополнительный доступ ChatGPT к гостиничной очереди AnyTour.']],
+            '_meta'=>['mcp/www_authenticate'=>[$challenge]],'isError'=>true];
     }
 
     private function hotelEvents(): object

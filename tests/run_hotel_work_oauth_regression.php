@@ -145,20 +145,48 @@ try {
     $legacyTools=$call('tools/list',[],$legacy,ManagerPreparationOAuth::SCOPES)['result']['tools'];
     $hotelTools=$call('tools/list',[],$hotel,[ManagerPreparationOAuth::HOTEL_SCOPE])['result']['tools'];
     $combinedTools=$call('tools/list',[],$combined,ManagerPreparationOAuth::SUPPORTED_SCOPES)['result']['tools'];
-    hotelOauthCheck('legacy discovery remains the complete existing tool list without hotels',
-        !array_intersect(array_column($legacyTools,'name'),HotelWorkMcpAdapter::NAMES)
-        && in_array('get_reply_context',array_column($legacyTools,'name'),true));
+    hotelOauthCheck('legacy discovery advertises hotel OAuth metadata without granting hotel access',
+        array_values(array_intersect(array_column($legacyTools,'name'),HotelWorkMcpAdapter::NAMES))===HotelWorkMcpAdapter::NAMES
+        && in_array('get_reply_context',array_column($legacyTools,'name'),true)
+        &&$hotelCalls===0&&$legacyCalls===0);
     hotelOauthCheck('hotel-only discovery contains exactly its metadata and recovery tools',array_column($hotelTools,'name')===HotelWorkMcpAdapter::NAMES);
-    hotelOauthCheck('explicit combined grant discovers both domains once',count($combinedTools)===count($legacyTools)+count(HotelWorkMcpAdapter::NAMES));
+    hotelOauthCheck('explicit combined grant discovers the same declared domains once',array_column($combinedTools,'name')===array_column($legacyTools,'name'));
     foreach ($hotelTools as $tool) hotelOauthCheck('hotel tool advertises its exact additional OAuth scope',
         $tool['securitySchemes']===[['type'=>'oauth2','scopes'=>['hotel_work:write']]]
         && $tool['_meta']['securitySchemes']===$tool['securitySchemes'] && $tool['inputSchema']['additionalProperties']===false);
-    $denied=$call('tools/call',['name'=>'hotel_work_create','arguments'=>['queue_id'=>'SYNTHETIC_QUEUE','baseline_sha256'=>str_repeat('1',64)]],$legacy,ManagerPreparationOAuth::SCOPES);
-    hotelOauthCheck('legacy grant cannot create hotel work before any queue call',($denied['error']['code']??null)===-32001 && $hotelCalls===0);
+    $challengeExpected='Bearer resource_metadata="https://app.anytoour.ru/manager/ai-oauth.php?action=resource", '
+        .'error="insufficient_scope", error_description="Explicit hotel queue consent is required", '
+        .'scope="queue:read prepared:write hotel_work:write"';
+    $grantCount=(int)$pdo->query('SELECT COUNT(*) FROM manager_preparation_oauth_grants')->fetchColumn();
+    $tokenState=$pdo->query('SELECT token_hash,grant_id,token_kind,expires_at,consumed_at FROM manager_preparation_oauth_tokens ORDER BY token_hash')->fetchAll(PDO::FETCH_ASSOC);
+    $challenged=$call('tools/call',['name'=>'hotel_work_create','arguments'=>['queue_id'=>'SYNTHETIC_QUEUE','baseline_sha256'=>str_repeat('1',64)]],$legacy,ManagerPreparationOAuth::SCOPES);
+    hotelOauthCheck('legacy hotel invocation returns the standard tool-level step-up challenge before queue access',
+        !isset($challenged['error'])&&($challenged['result']['isError']??null)===true
+        &&($challenged['result']['_meta']['mcp/www_authenticate']??null)===[$challengeExpected]&&$hotelCalls===0&&$legacyCalls===0);
+    hotelOauthCheck('step-up challenge contains no hotel status or supplied arguments',
+        !isset($challenged['result']['structuredContent'])&&!str_contains(json_encode($challenged,JSON_THROW_ON_ERROR),'SYNTHETIC_QUEUE'));
+    hotelOauthCheck('step-up advertises new consent while retaining the exact old legacy grant and token family',
+        $oauth->contextForBearer('Bearer '.$legacyRefreshed['access_token'])['scopes']===ManagerPreparationOAuth::SCOPES
+        &&!$oauth->connectionAuthorized($legacy,1,[ManagerPreparationOAuth::HOTEL_SCOPE])
+        &&(int)$pdo->query('SELECT COUNT(*) FROM manager_preparation_oauth_grants')->fetchColumn()===$grantCount
+        &&$pdo->query('SELECT token_hash,grant_id,token_kind,expires_at,consumed_at FROM manager_preparation_oauth_tokens ORDER BY token_hash')->fetchAll(PDO::FETCH_ASSOC)===$tokenState);
     foreach (['hotel_work_handoff_connection','hotel_work_resolve_existing_run'] as $recoveryTool) {
-        $denied=$call('tools/call',['name'=>$recoveryTool,'arguments'=>[]],$legacy,ManagerPreparationOAuth::SCOPES);
-        hotelOauthCheck('legacy grant cannot invoke recovery tool '.$recoveryTool,($denied['error']['code']??null)===-32001&&$hotelCalls===0);
+        $challenged=$call('tools/call',['name'=>$recoveryTool,'arguments'=>[]],$legacy,ManagerPreparationOAuth::SCOPES);
+        hotelOauthCheck('legacy recovery invocation requires explicit step-up before store '.$recoveryTool,
+            ($challenged['result']['isError']??null)===true&&($challenged['result']['_meta']['mcp/www_authenticate']??null)===[$challengeExpected]&&$hotelCalls===0);
     }
+    $unknownTool=$call('tools/call',['name'=>'hotel_work_send','arguments'=>[]],$legacy,ManagerPreparationOAuth::SCOPES);
+    hotelOauthCheck('unrecognized hotel names cannot fabricate a linking challenge',($unknownTool['error']['code']??null)===-32602&&!isset($unknownTool['result'])&&$hotelCalls===0);
+    foreach (['revoked_at','expires_at'] as $terminalField) {
+        $invalidTokens=$oauth->exchange(hotelOauthCode($oauth,$client,$legacyScope));
+        $invalidConnection=$oauth->connectionForBearer('Bearer '.$invalidTokens['access_token']);
+        $pdo->prepare('UPDATE manager_preparation_oauth_grants SET '.$terminalField.'=? WHERE grant_id=?')->execute([$now,$invalidConnection]);
+        $invalid=$call('tools/call',['name'=>'hotel_work_status','arguments'=>[]],$invalidConnection,ManagerPreparationOAuth::SCOPES);
+        hotelOauthCheck('terminal legacy grant gets access denied without step-up '.$terminalField,
+            ($invalid['error']['code']??null)===-32001&&!isset($invalid['result'])&&$hotelCalls===0);
+    }
+    $missing=$call('tools/call',['name'=>'hotel_work_status','arguments'=>[]],str_repeat('9',32),ManagerPreparationOAuth::SCOPES);
+    hotelOauthCheck('missing connection gets access denied without a linking challenge',($missing['error']['code']??null)===-32001&&!isset($missing['result'])&&$hotelCalls===0);
     foreach (['list_pending_replies','get_reply_context','save_prepared_reply','capture_virtual_replies'] as $name) {
         $denied=$call('tools/call',['name'=>$name,'arguments'=>[]],$hotel,[ManagerPreparationOAuth::HOTEL_SCOPE]);
         hotelOauthCheck('hotel-only grant cannot call reply or learning tool '.$name,($denied['error']['code']??null)===-32001 && $legacyCalls===0);
@@ -218,5 +246,8 @@ try {
     $pdo->exec("UPDATE managers SET role='manager' WHERE id=1");
     hotelOauthCheck('current admin demotion revokes both live capability domains',!$oauth->connectionActive($legacy,1) && !$oauth->connectionActive($combined,1));
     hotelOauthCheck('admin demotion alone is never a positive old-grant retirement proof',!$oauth->connectionActive($old,1)&&!$oauth->connectionRetired($old,1));
+    $demoted=$call('tools/call',['name'=>'hotel_work_status','arguments'=>[]],$legacy,ManagerPreparationOAuth::SCOPES);
+    hotelOauthCheck('missing administrator role cannot trigger step-up or reach hotel work',
+        ($demoted['error']['code']??null)===-32001&&!isset($demoted['result'])&&$hotelCalls===3);
     echo 'TOTAL '.$passed." hotel OAuth/MCP checks passed\n";
 } catch (Throwable $error) { fwrite(STDERR,$error->getMessage()."\n");exit(1); }

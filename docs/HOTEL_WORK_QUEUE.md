@@ -38,9 +38,17 @@ Health omits queue IDs, callbacks, secrets, hotel facts and customer data.
 
 ## Activate the existing owner
 
-1. Rescan the connected MCP server's tools and events after deployment. Obtain
-   an explicit hotel scope through the normal OAuth consent flow; deployment
-   does not create or enlarge a grant.
+1. Rescan the connected MCP server's tools and events after deployment. Hotel
+   tool metadata declares its separate hotel scope. With an existing reply
+   connection, the implementation returns a tool-level OAuth challenge before
+   storage access, requesting explicit consent for both reply and hotel scopes.
+   This is the server contract, not evidence that ChatGPT displayed or accepted
+   the linking UI. Verify the actual consent flow after deployment and keep the
+   queue inactive until it succeeds. Deployment and token refresh do not enlarge
+   an old grant. Invalid or revoked credentials still fail closed. After consent,
+   confirm that both hotel events are discovered under the actual new grant.
+   The challenge format follows the official authentication contract:
+   https://developers.openai.com/plugins/build/auth#triggering-authentication-ui
 2. Through the existing coordinator, call `hotel_work_create` with a unique
    queue ID and the independently checked current baseline SHA. Finite mode
    defaults to three batches. Continuous rotation requires `mode=continuous`
