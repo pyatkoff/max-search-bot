@@ -1,8 +1,13 @@
 # Manager AI reply drafts
 
-An assigned manager sees an available AI reply beside an empty composer, with
-`Tab — вставить` and an equivalent button. Tab applies only while that composer
-has focus, without modifiers or composition; an existing reply is never replaced.
+An assigned manager sees an available AI reply as muted ghost text inside the
+empty message field, with `Tab — вставить` at its bottom. It is a presentation
+overlay: the native textarea and saved draft stay empty until explicit acceptance.
+Typing or dismissing the suggestion restores the normal placeholder. Manager2's
+existing ReplyEditor measures the ghost text and hint within the same field and
+viewport budget; long suggestions retain the full preview through `Подробнее`.
+Tab applies only while that composer has focus, without modifiers or composition;
+an existing reply is never replaced.
 The full preview retains the reason and checks. Accepting a prepared suggestion
 explicitly loads `prepared` to record its provenance, then uses the existing fresh
 `validate` and canonical composer insertion. It never sends the reply.

@@ -14,9 +14,11 @@ async function harness(handler=()=>response(prepared()),{manager2=false}={}){
   const form=h.ids.get('composer'),reply=h.ids.get('replyText'),prototype=Object.getPrototypeOf(reply);
   prototype.setSelectionRange=function(start,end,direction='none'){this.selectionStart=Math.min(start,this.value.length);this.selectionEnd=Math.min(end,this.value.length);this.selectionDirection=direction};
   prototype.focus=function(){h.document.activeElement=this};
+  prototype.getAttribute=function(name){return this[name]??null};
   const make=(id,tag='div')=>{const node=h.document.createElement(tag);node.id=id;return node};
   const row=make('quickReplies'),selected=make('quickRepliesSelected'),quick=make('quickRepliesOpen','button');
-  row.className='quickReplies qrToolbar';row.appendChild(selected);row.appendChild(quick);form.appendChild(row);form.appendChild(reply);form.appendChild(h.ids.get('replyFile'));
+  const main=make('composerMain');main.className='composerMain';reply.placeholder='Напишите туристу…';main.appendChild(reply);
+  row.className='quickReplies qrToolbar';row.appendChild(selected);row.appendChild(quick);form.appendChild(row);form.appendChild(main);form.appendChild(h.ids.get('replyFile'));
   h.ids.get('conversationZone').appendChild(h.ids.get('composerLocked'));h.ids.get('conversationZone').appendChild(form);
   reply.selectionStart=reply.selectionEnd=0;reply.selectionDirection='none';reply.scrollLeft=0;
   h.W.S.detail.messages=[{id:5,sender_type:'manager',text:'Synthetic previous reply'},{id:8,sender_type:'customer',text:'Synthetic request'}];
@@ -118,15 +120,17 @@ test('inline answer is inert visible text; Tab validates and inserts once with p
   const h=await harness(inlineHandler,{manager2:true});await tick();const reply=h.ids.get('replyText'),file={name:'keep.txt'};h.setFile(file);reply.focus();
   assert.equal(h.ids.get('aiDraftSuggestion').hidden,false);assert.equal(h.ids.get('aiDraftSuggestion').querySelector('.aiSuggestionText').textContent,generated().draft);
   assert.equal(h.ids.get('aiReadyNotice').hidden,true);assert.equal(h.ids.get('aiDraftPanel').hidden,true);
+  assert.equal(h.ids.get('aiDraftSuggestion').parentElement,h.ids.get('composerMain'));assert.equal(h.ids.get('aiDraftSuggestion').classList.contains('aiSuggestionGhost'),true);assert.equal(reply.getAttribute('placeholder'),'');assert.equal(reply.value,'');
   assert.deepEqual(h.aiCalls().map(c=>c.action),['prepared_status','prepared_preview']);
   assert.equal((await pressInline(h)).prevented,true);assert.equal(reply.value,generated().draft);assert.equal(h.getFile(),file);assert.equal(h.document.activeElement,reply);
   assert.deepEqual([reply.selectionStart,reply.selectionEnd],[reply.value.length,reply.value.length]);assert.deepEqual(h.aiCalls().slice(-2).map(c=>c.action),['prepared','validate']);assert.equal(h.aiCalls().at(-1).draft_id,'a'.repeat(32));
   assert.equal(h.ids.get('aiDraftSuggestion').hidden,true);assert.equal((await pressInline(h)).prevented,false);assertNoMutations(h);
+  assert.equal(reply.getAttribute('placeholder'),'Напишите туристу…');assert.equal(h.ids.get('composer').classList.contains('aiGhostVisible'),false);
 });
 test('inline suggestion preserves standard modified Tab, IME, typing, focus and dismissal',async()=>{
   const h=await harness(inlineHandler,{manager2:true});await tick();const reply=h.ids.get('replyText');reply.focus();
   for(const changes of [{shiftKey:true},{ctrlKey:true},{altKey:true},{metaKey:true},{isComposing:true},{repeat:true}])assert.equal((await pressInline(h,changes)).prevented,false);
-  await h.draft('Свой текст');assert.equal(h.ids.get('aiDraftSuggestion').hidden,true);assert.equal((await pressInline(h)).prevented,false);assert.equal(reply.value,'Свой текст');
+  await h.draft('Свой текст');assert.equal(h.ids.get('aiDraftSuggestion').hidden,true);assert.equal(reply.getAttribute('placeholder'),'Напишите туристу…');assert.equal((await pressInline(h)).prevented,false);assert.equal(reply.value,'Свой текст');
   await h.draft('');assert.equal(h.ids.get('aiDraftSuggestion').hidden,false);assert.equal((await pressInline(h,{key:'Escape'})).prevented,true);h.ai.sync();assert.equal(h.ids.get('aiDraftSuggestion').hidden,true);assert.deepEqual(h.aiCalls().map(c=>c.action),['prepared_status','prepared_preview']);assertNoMutations(h);
 });
 test('metadata polling retains current inline text without rereading the full proposal',async()=>{

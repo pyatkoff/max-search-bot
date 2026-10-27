@@ -9,12 +9,14 @@ const proposal=(changes={})=>({ok:true,should_draft:true,draft:'Какие да�
 const prepared=(changes={})=>proposal({prepared:true,prepared_at:'2026-10-19T10:30:00Z',source:'chatgpt',draft_id:null,...changes});
 // Render the actual PHP shell and canonical assets. Every identity, message,
 // proposal and HTTP response in this fixture is synthetic and stays in loopback.
-async function setup(page,{readiness=false,hideNotice=false,supervisor=false,owner=false,ownerState='manager',previewHandler=null}={}){
+async function setup(page,{readiness=false,hideNotice=false,supervisor=false,owner=false,ownerState='manager',previewHandler=null,blocked=false,manualTask=false}={}){
   const calls=[],unexpected=[],errors=[],messages=new Map();
+  let deliveryBlocked=blocked;
   let ai=async data=>data.action==='prepared'?{body:prepared()}:data.action==='generate'?{body:proposal()}:{body:{ok:true,revision:'1'.repeat(64),latest_message_id:35,draft_id:data.draft_id||null}};
   let preview=previewHandler|| (async()=>({body:prepared({should_draft:readiness!=='recommendations',draft:readiness==='recommendations'?null:proposal().draft,next_action:readiness==='recommendations'?'no_contact':'clarify',expires_at:new Date(Date.now()+3600000).toISOString()})}));
   const manager={id:7,role:owner?'admin':'manager',display_name:'Мария',is_working:true,supervision_available:supervisor||owner};
-  const conversation=id=>({id,status:owner&&id===11?ownerState:'manager',manager_id:owner&&id===11&&ownerState!=='manager'?null:(supervisor||owner)&&id===11?9:7,manager_name:owner&&id===11&&ownerState!=='manager'?null:(supervisor||owner)&&id===11?'Другой менеджер':'Мария',channel:'telegram',display_name:id===11?'Анна Морозова':'Алексей Иванов'});
+  const conversation=id=>({id,status:owner&&id===11?ownerState:'manager',manager_id:owner&&id===11&&ownerState!=='manager'?null:(supervisor||owner)&&id===11?9:7,manager_name:owner&&id===11&&ownerState!=='manager'?null:(supervisor||owner)&&id===11?'Другой менеджер':'Мария',channel:blocked&&id===11?'max':'telegram',display_name:id===11?'Анна Морозова':'Алексей Иванов',...(blocked&&id===11?{delivery_failure_category:deliveryBlocked?'suspended':null}:{})});
+  const assistantItem=()=>({conversation_id:11,display_name:'Анна Морозова',channel:'max',project_key:'anytour',project_name:'AnyTour',manager_name:'Другой менеджер',last_message_at:'2026-10-17T12:00:00Z',delivery_suspended:deliveryBlocked,delivery_notice:deliveryBlocked?'Ответ станет доступен после новой активности клиента.':null,operational:{awaiting_manager_reply:true,due_task:manualTask},tasks:manualTask?[{id:901,title:'Проверить вручную сохранённый документ',status:'open',due_state:'overdue',overdue:true,due_at_utc:'2026-10-17 13:00:00',is_pinned:false}]:[],recommendation:deliveryBlocked?{revision:'1'.repeat(64),next_action:'answer_question',reason:'Противоречивая рекомендация из старого снимка',checks:[],prepared_at:prepared().prepared_at,expires_at:new Date(Date.now()+3600000).toISOString(),latest_message_id:35,evidence_message_ids:[35],history_incomplete:false,decision:null}:null});
   for(const id of [11,12])messages.set(id,Array.from({length:35},(_,i)=>({id:i+1,sender_type:i%3?'customer':'manager',manager_id:i%3?null:7,text:'Синтетическое сообщение '+(i+1)+'. Обсуждаем пожелания к поездке.',created_at:'2026-10-17 12:00:00'})));
   page.on('pageerror',error=>errors.push(error.message));
   await page.route('**/*',async route=>{
@@ -33,14 +35,14 @@ async function setup(page,{readiness=false,hideNotice=false,supervisor=false,own
     calls.push({path:url.pathname,...data});
     if(url.pathname==='/manager/api.php'){
       if(['me','login'].includes(data.action))return reply({ok:true,manager,csrf:'fixture-csrf',projects:[]});
-      if(data.action==='detail')return reply({ok:true,conversation:conversation(data.conversation_id),messages:messages.get(data.conversation_id),delivery_failure:null,supervisor_read:(supervisor||owner)&&data.conversation_id===11,owner_read:owner&&data.conversation_id===11});
+      if(data.action==='detail')return reply({ok:true,conversation:conversation(data.conversation_id),messages:messages.get(data.conversation_id),delivery_failure:deliveryBlocked&&data.conversation_id===11?{category:'suspended',message:'Клиент недоступен в MAX'}:null,supervisor_read:(supervisor||owner)&&data.conversation_id===11,owner_read:owner&&data.conversation_id===11});
       if(data.action==='counts')return reply({ok:true,counts:{waiting:{count:2,unread:0},mine:{count:2}}});
       if(data.action==='edit_candidates')return reply({ok:true,messages:[],candidates:[]});
     }
     if(url.pathname==='/manager/pipeline-api.php'){
       if(data.action==='catalog')return reply({ok:true,stages:[],tags:[],outcomes:{open:'В работе'},close_reasons:{}});
       if(data.action==='filter_options')return reply({ok:true,filters:{sources:[],managers:[manager]}});
-      if(data.action==='list')return reply({ok:true,conversations:[11,12].map(id=>({...conversation(id),last_text:'Пожелания к поездке',last_sender_type:'customer',awaiting_manager_reply:1,lead_outcome:'open'}))});
+      if(data.action==='list')return reply({ok:true,conversations:[11,12].map(id=>({...conversation(id),last_text:'Пожелания к поездке',last_sender_type:'customer',awaiting_manager_reply:1,lead_outcome:'open',...(blocked&&id===11?{awaiting_first_reply:1,wait_age_seconds:7200,last_preview_text:deliveryBlocked?'Клиент недоступен в MAX':null,...(manualTask?{next_task_title:'Проверить вручную сохранённый документ',next_task_due_state:'overdue',next_task_overdue:1,next_task_due_at_utc:'2026-10-17 13:00:00'}:{})}:{})}))});
       if(data.action==='detail')return reply({ok:true,can_edit_pipeline:true,pipeline:{stage:null,tags:[],stage_history:[],outcome:{outcome:'open'}},tasks:[],trip:{},contact:{},source:{},handoff:{}});
     }
     if(url.pathname==='/manager/quick-replies-api.php'&&data.action==='toolbar')return reply({ok:true,replies:[],version:'1'.repeat(64),max_replies:100});
@@ -48,6 +50,10 @@ async function setup(page,{readiness=false,hideNotice=false,supervisor=false,own
     if(url.pathname==='/manager/post-context-api.php'&&data.action==='detail')return reply({ok:true,conversation_id:data.conversation_id,context:{current:null,history:[]}});
     if(url.pathname==='/manager/push-status.php')return reply({ok:true,push_status:{is_working:true,notification_path_usable:false,healthy_subscription_count:0,notification_path_reason:'no_subscription'}});
     if(url.pathname==='/manager/notification-events.php')return reply({ok:true,cursor:0,events:[]});
+    if(blocked&&url.pathname==='/manager/assistant-api.php'){
+      if(data.action==='list')return reply({ok:true,items:[assistantItem()],has_more:false,next_cursor:null});
+      if(data.action==='detail'&&data.conversation_id===11)return reply({ok:true,item:assistantItem()});
+    }
     if(url.pathname==='/manager/ai-draft.php'){
       expect(data.csrf).toBe('fixture-csrf');expect([11,12]).toContain(data.conversation_id);
       expect(['prepared','prepared_preview','generate','validate','prepared_status']).toContain(data.action);if(data.action==='prepared_preview'){const result=await preview(data);return reply(result.body,result.status||200)}if(data.action==='prepared_status')return reply(readiness?{ok:true,prepared:true,should_draft:readiness!=='recommendations',revision:'1'.repeat(64),latest_message_id:data.latest_message_id,prepared_at:prepared().prepared_at,expires_at:new Date(Date.now()+3600000).toISOString(),preparation_source:'chatgpt_assistant'}:{ok:true,prepared:false});const result=await ai(data);return reply(result.body,result.status||200);
@@ -57,7 +63,7 @@ async function setup(page,{readiness=false,hideNotice=false,supervisor=false,own
   await page.goto(origin+'/manager2/index.php?qa=1');await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
   await expect.poll(()=>page.evaluate(()=>WorkspaceV2.S.workspaceBound&&!WorkspaceV2.S.booting)).toBe(true);
   await page.locator('#inboxList [data-conversation-id="11"]').click();if(supervisor||owner)await expect(page.getByRole('button',{name:'AI · Просмотр',exact:true})).toBeVisible();else{await expect(page.locator('#replyText')).toBeEnabled();await expect(page.locator('#aiDraftOpen')).toBeEnabled()}
-  return {calls,unexpected,errors,setAI:handler=>{ai=handler},setPreview:handler=>{preview=handler},messages,aiCalls:()=>calls.filter(call=>call.path==='/manager/ai-draft.php'&&!['prepared_status','prepared_preview'].includes(call.action)),previewCalls:()=>calls.filter(call=>call.action==='prepared_preview'),statusCalls:()=>calls.filter(call=>call.action==='prepared_status')};
+  return {calls,unexpected,errors,setAI:handler=>{ai=handler},setPreview:handler=>{preview=handler},setDeliveryBlocked:value=>{deliveryBlocked=value},messages,aiCalls:()=>calls.filter(call=>call.path==='/manager/ai-draft.php'&&!['prepared_status','prepared_preview'].includes(call.action)),previewCalls:()=>calls.filter(call=>call.action==='prepared_preview'),statusCalls:()=>calls.filter(call=>call.action==='prepared_status')};
 }
 function clean(state){expect(state.errors).toEqual([]);expect(state.unexpected).toEqual([]);expect(state.calls.filter(call=>['send','take','release','close','reopen'].includes(call.action))).toEqual([])}
 async function bounded(page){
@@ -67,6 +73,20 @@ async function bounded(page){
   await page.locator('#sendReply').scrollIntoViewIfNeeded();expect(await page.locator('#sendReply').evaluate(node=>node.getBoundingClientRect().bottom)).toBeLessThanOrEqual(viewport.height+1);
 }
 async function capture(page,browserName,viewport){const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});await page.screenshot({animations:'disabled',path:path.join(directory,`ai-draft-${browserName}-${viewport.width}-${viewport.height}-preview.png`)})}
+async function ghostFitsField(page,{allowClipping=false}={}){
+  await expect(page.locator('#aiDraftSuggestion')).toHaveClass(/aiSuggestionGhost/);
+  await expect(page.locator('#replyText')).toHaveValue('');
+  await expect(page.locator('#aiDraftSuggestion .aiSuggestionHead')).not.toBeVisible();
+  const geometry=await page.locator('#aiDraftSuggestion').evaluate(node=>{
+    const field=document.querySelector('#replyText'),text=node.querySelector('.aiSuggestionText'),rect=field.getBoundingClientRect(),hint=text.getBoundingClientRect(),footer=node.querySelector('.aiSuggestionActions').getBoundingClientRect(),fieldStyle=getComputedStyle(field),textStyle=getComputedStyle(text),placeholder=getComputedStyle(field,'::placeholder');
+    const brightness=color=>{const values=color.match(/[\d.]+/g)||[];return values.slice(0,3).reduce((sum,value)=>sum+Number(value),0)/3};
+    return {sameField:field.parentElement.contains(node),left:hint.left,top:hint.top,right:hint.right,bottom:hint.bottom,contentLeft:hint.left+parseFloat(textStyle.borderLeftWidth)+parseFloat(textStyle.paddingLeft),contentTop:hint.top+parseFloat(textStyle.borderTopWidth)+parseFloat(textStyle.paddingTop),footerLeft:footer.left,footerTop:footer.top,footerRight:footer.right,footerBottom:footer.bottom,fieldLeft:rect.left,fieldTop:rect.top,fieldRight:rect.right,fieldBottom:rect.bottom,textLeft:rect.left+parseFloat(fieldStyle.borderLeftWidth)+parseFloat(fieldStyle.paddingLeft),textTop:rect.top+parseFloat(fieldStyle.borderTopWidth)+parseFloat(fieldStyle.paddingTop),sameFont:textStyle.fontSize===fieldStyle.fontSize&&textStyle.fontFamily===fieldStyle.fontFamily&&textStyle.lineHeight===fieldStyle.lineHeight,muted:brightness(textStyle.color)>brightness(fieldStyle.color),placeholderHidden:!field.placeholder||placeholder.color==='rgba(0, 0, 0, 0)'||placeholder.opacity==='0',contentClipped:text.scrollHeight>text.clientHeight+1};
+  });
+  expect(geometry.sameField).toBe(true);expect(geometry.left).toBeGreaterThanOrEqual(geometry.fieldLeft-1);expect(geometry.right).toBeLessThanOrEqual(geometry.fieldRight+1);expect(geometry.top).toBeGreaterThanOrEqual(geometry.fieldTop-1);expect(geometry.bottom).toBeLessThanOrEqual(geometry.fieldBottom+1);
+  expect(Math.abs(geometry.contentLeft-geometry.textLeft)).toBeLessThanOrEqual(2);expect(Math.abs(geometry.contentTop-geometry.textTop)).toBeLessThanOrEqual(2);expect(geometry.sameFont).toBe(true);expect(geometry.muted).toBe(true);expect(geometry.placeholderHidden).toBe(true);
+  expect(geometry.footerLeft).toBeGreaterThanOrEqual(geometry.fieldLeft-1);expect(geometry.footerRight).toBeLessThanOrEqual(geometry.fieldRight+1);expect(geometry.footerTop).toBeGreaterThanOrEqual(geometry.bottom-1);expect(geometry.footerBottom).toBeLessThanOrEqual(geometry.fieldBottom+1);
+  if(!allowClipping)expect(geometry.contentClipped).toBe(false);
+}
 for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420}])test('AI expired readiness hides before a delayed timer and preserves input '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
   await page.setViewportSize(viewport);const state=await setup(page,{readiness:true});
   const reply=page.locator('#replyText'),notice=page.locator('.aiReadyNotice');
@@ -117,9 +137,10 @@ for(const width of [390,430,768,1440])test('AI inline suggestion is visible and 
   await expect(suggestion).toBeVisible();await expect(suggestion.locator('.aiSuggestionText')).toHaveText(proposal().draft);await expect(page.locator('#aiSuggestionAccept')).toContainText('Tab');
   await expect(page.locator('#aiDraftPanel')).not.toBeVisible();await expect(reply).toHaveValue('');expect(state.aiCalls()).toEqual([]);expect(state.previewCalls()).toHaveLength(1);
   await page.locator('#replyFile').setInputFiles({name:'inline-keep.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment')});
-  await reply.evaluate(node=>{node.focus();window.aiInlineFile=document.querySelector('#replyFile').files[0]});
+  await reply.click();await reply.evaluate(()=>{window.aiInlineFile=document.querySelector('#replyFile').files[0]});
   await expect(suggestion).toBeVisible();await expect(reply).toBeFocused();
   await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);
+  await ghostFitsField(page);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
   for(const locator of [suggestion,reply,page.locator('#sendReply')]){const box=await locator.boundingBox();expect(box.x).toBeGreaterThanOrEqual(-1);expect(box.x+box.width).toBeLessThanOrEqual(width+1);expect(box.y).toBeGreaterThanOrEqual(-1);expect(box.y+box.height).toBeLessThanOrEqual(901)}
   const image=testInfo.outputPath('ai-inline-'+browserName+'-'+width+'.png');await page.screenshot({animations:'disabled',path:image});await testInfo.attach('ai-inline-'+width,{body:fs.readFileSync(image),contentType:'image/png'});
@@ -129,6 +150,16 @@ for(const width of [390,430,768,1440])test('AI inline suggestion is visible and 
   expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('workspaceV2.replySession.v1')).drafts.find(row=>row.id===11).aiDraftId)).toBe('a'.repeat(32));
   expect(await page.locator('#replyFile').evaluate(node=>node.files[0]===window.aiInlineFile)).toBe(true);await expect(page.locator('#mediaSelection')).toContainText('inline-keep.txt');clean(state);
 });
+for(const viewport of [{width:390,height:420},{width:430,height:900},{width:768,height:900},{width:1440,height:900}])test('AI ghost text stays inside the empty native field and expanded editor '+viewport.width+'x'+viewport.height,async({page,browserName},testInfo)=>{
+  const draft='Предлагаю сравнить два варианта на ваши даты. Первый ближе к пляжу, второй просторнее.\nУточните, пожалуйста, возраст детей и город вылета — проверим полную стоимость для вашего состава.';
+  await page.setViewportSize(viewport);const state=await setup(page,{readiness:true,previewHandler:async()=>({body:prepared({draft,expires_at:new Date(Date.now()+3600000).toISOString()})})}),reply=page.locator('#replyText');
+  await expect(page.locator('.aiSuggestionText')).toHaveText(draft);await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);await ghostFitsField(page,{allowClipping:true});
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+  const compact=testInfo.outputPath('ai-ghost-compact-'+browserName+'-'+viewport.width+'-'+viewport.height+'.png');await page.screenshot({animations:'disabled',path:compact});await testInfo.attach('ai-ghost-compact',{body:fs.readFileSync(compact),contentType:'image/png'});
+  await page.locator('#m2ReplyExpand').click();await expect(page.locator('#m2ReplyEditor')).toBeVisible();await ghostFitsField(page,{allowClipping:true});await expect(reply).toHaveValue('');
+  const expanded=testInfo.outputPath('ai-ghost-expanded-'+browserName+'-'+viewport.width+'-'+viewport.height+'.png');await page.screenshot({animations:'disabled',path:expanded});await testInfo.attach('ai-ghost-expanded',{body:fs.readFileSync(expanded),contentType:'image/png'});
+  await reply.fill('Мой собственный ответ');await expect(page.locator('#aiDraftSuggestion')).not.toBeVisible();await expect(reply).toHaveValue('Мой собственный ответ');await page.locator('#m2ReplyCollapse').click();await expect(reply).toHaveValue('Мой собственный ответ');expect(state.aiCalls()).toEqual([]);clean(state);
+});
 test('AI inline suggestion leaves typed text and modified Tab navigation alone',async({page})=>{
   const state=await setup(page,{readiness:true}),reply=page.locator('#replyText'),suggestion=page.locator('#aiDraftSuggestion');await expect(suggestion).toBeVisible();
   await reply.focus();await reply.press('Shift+Tab');await expect(reply).not.toBeFocused();await expect(reply).toHaveValue('');expect(state.aiCalls()).toEqual([]);
@@ -136,6 +167,29 @@ test('AI inline suggestion leaves typed text and modified Tab navigation alone',
   await reply.fill('');await expect(suggestion).toBeVisible();
   await reply.evaluate(node=>node.dispatchEvent(new KeyboardEvent('keydown',{key:'Tab',code:'Tab',isComposing:true,bubbles:true,cancelable:true})));await expect(reply).toHaveValue('');expect(state.aiCalls()).toEqual([]);
   await page.locator('#aiSuggestionDetails').click();await expect(page.locator('#aiDraftPanel')).toBeVisible();await expect(suggestion).not.toBeVisible();clean(state);
+});
+test('AI ghost dismissal restores the native empty-field placeholder without taking focus',async({page})=>{
+  const state=await setup(page,{readiness:true}),reply=page.locator('#replyText');await expect(page.locator('#aiDraftSuggestion')).toBeVisible();await reply.click();await reply.press('Escape');
+  await expect(page.locator('#aiDraftSuggestion')).not.toBeVisible();await expect(reply).toBeFocused();await expect(reply).toHaveValue('');await expect(reply).toHaveAttribute('placeholder',/\S/);
+  expect(await reply.evaluate(node=>{const style=getComputedStyle(node,'::placeholder');return style.color!=='rgba(0, 0, 0, 0)'&&style.opacity!=='0'})).toBe(true);expect(state.aiCalls()).toEqual([]);clean(state);
+});
+test('AI ghost follows the desktop large-font preference while already visible',async({page},testInfo)=>{
+  await page.setViewportSize({width:1440,height:900});const state=await setup(page,{readiness:true});await expect(page.locator('#aiDraftSuggestion')).toBeVisible();
+  await page.evaluate(()=>{document.body.classList.add('pwLargeFont');WorkspaceV2AiDraft.sync()});await expect.poll(()=>page.locator('#replyText').evaluate(node=>getComputedStyle(node).fontSize)).toBe('16px');await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);await ghostFitsField(page);
+  const image=testInfo.outputPath('ai-ghost-large-font.png');await page.screenshot({animations:'disabled',path:image});await testInfo.attach('ai-ghost-large-font',{body:fs.readFileSync(image),contentType:'image/png'});
+  await page.evaluate(()=>{document.body.classList.remove('pwLargeFont');WorkspaceV2AiDraft.sync()});await expect.poll(()=>page.locator('#replyText').evaluate(node=>getComputedStyle(node).fontSize)).toBe('14px');await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);await ghostFitsField(page);expect(state.aiCalls()).toEqual([]);clean(state);
+});
+for(const width of [390,1440])test('Blocked customer has no automatic reply urgency and keeps explicit tasks '+width,async({page},testInfo)=>{
+  const manualTask=width===1440;await page.setViewportSize({width,height:900});const state=await setup(page,{owner:true,blocked:true,manualTask}),row=page.locator('#inboxList [data-conversation-id="11"]');
+  await expect(row).toContainText('Клиент недоступен в MAX');await expect(row).not.toHaveClass(/waitUrgent|waitWarn|needsReply/);await expect(row.locator('.leadWaitCompact,.leadReplyStatus')).toHaveCount(0);await expect(page.locator('#aiDraftSuggestion')).not.toBeVisible();expect(state.statusCalls()).toEqual([]);
+  if(await page.locator('#mobileBack').isVisible())await page.locator('#mobileBack').click();await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);
+  const inbox=testInfo.outputPath('blocked-inbox-'+width+'.png');await page.screenshot({animations:'disabled',path:inbox});await testInfo.attach('blocked-inbox',{body:fs.readFileSync(inbox),contentType:'image/png'});
+  if(await page.locator('#mobileBack').isVisible())await row.locator('.m2RowOpen').click();await page.locator('#m2ConversationMenuToggle').click();await page.locator('#assistantClientOpen').click();
+  await expect(page.locator('#assistantDetail .assistantUnavailable')).toBeVisible();await expect(page.locator('#assistantDetail .assistantUnavailable')).toContainText('Клиент недоступен в MAX');await expect(page.locator('#assistantDetail .assistantRecommendation')).toHaveCount(0);await expect(page.locator('#assistantDetail')).not.toContainText('Обращение без записанного ответа');await expect(page.locator('#assistantDetail')).not.toContainText('Противоречивая рекомендация из старого снимка');
+  if(manualTask){await expect(page.locator('#assistantDetail .assistantTask')).toContainText('Проверить вручную сохранённый документ');await expect(page.locator('#assistantDetail .assistantTask')).toContainText('Просрочено')}else{await expect(page.locator('#assistantDetail')).toContainText('Открытых задач нет');await expect(page.locator('#assistantDetail .assistantOperational')).toHaveCount(0)}
+  const assistant=testInfo.outputPath('blocked-assistant-'+width+'.png');await page.screenshot({animations:'disabled',path:assistant});await testInfo.attach('blocked-assistant',{body:fs.readFileSync(assistant),contentType:'image/png'});
+  await page.locator('#assistantClose').click();if(await page.locator('#mobileBack').isVisible())await page.locator('#mobileBack').click();state.setDeliveryBlocked(false);await page.evaluate(()=>WorkspaceV2Inbox.load({preserveScroll:true}));await expect(row).toHaveClass(/waitUrgent/);await expect(row.locator('.leadWaitCompact')).toContainText('Срочно');
+  expect(state.aiCalls()).toEqual([]);expect(state.calls.filter(call=>['decision','set_task_completed','task_snooze','create_task'].includes(call.action))).toEqual([]);clean(state);
 });
 test('AI inline acceptance rechecks the empty composer after asynchronous preparation',async({page})=>{
   const state=await setup(page,{readiness:true}),reply=page.locator('#replyText');await expect(page.locator('#aiDraftSuggestion')).toBeVisible();let release;

@@ -5,3 +5,5 @@
 @media(min-width:741px){.manager2 .m2Rail{min-height:0;overflow-y:auto;overscroll-behavior:contain}}
 
 .assistantOperational{padding:14px 16px;border:1px solid #d7e8e0;border-radius:12px;background:#edf5f0;margin:14px 0}.assistantOperational h4{margin:0 0 6px;font-size:15px}.assistantOperational p{margin:0;line-height:1.5;color:#39574c}
+
+.assistantUnavailable{padding:14px 16px;border:1px solid var(--as-line);border-radius:12px;background:var(--as-surface);color:var(--as-muted);margin:14px 0;font-size:13px;line-height:1.5}.assistantUnavailable strong{font-weight:600}.assistantUnavailable p{margin:6px 0 0}

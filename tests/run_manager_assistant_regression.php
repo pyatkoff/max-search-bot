@@ -262,6 +262,38 @@ try {
     $pdo=assistantFixture();$pdo->mutate('UPDATE lead_tasks SET assigned_manager_id=NULL');
     assistantCheck('existing unassigned arrived task remains actionable',ManagerAssistantService::detail(1,1)['item']['operational']['due_task']===true);
 
+    $suspendEventSql="INSERT INTO conversation_events(conversation_id,event_type,actor_type,payload_json,created_at) VALUES(1,'manager_message_failed','manager','{\"category\":\"suspended\",\"message\":\"PRIVATE PROVIDER DETAIL\"}',CURRENT_TIMESTAMP)";
+    $suspendSql="UPDATE conversations SET channel='max' WHERE id=1; ".$suspendEventSql;
+    $pdo=assistantFixture();assistantPrepare();$pdo->mutate($suspendSql);
+    $beforeBlocked=assistantBusinessState($pdo);
+    foreach([1,2] as $actor){
+        $item=ManagerAssistantService::detail($actor,1)['item']??[];
+        assistantCheck(($actor===1?'manager':'owner').' sees suspended client without automatic reply work',
+            ($item['delivery_suspended']??false)===true&&($item['operational']['awaiting_manager_reply']??true)===false&&$item['recommendation']===null&&$item['analysis_state']==='unavailable'
+            &&$item['delivery_notice']===ManagerDeliveryStateService::SUSPENDED_NOTICE&&!str_contains(json_encode($item),'PRIVATE'));
+        assistantCheck(($actor===1?'manager':'owner').' retains explicit human tasks for suspended client',
+            $item['operational']['due_task']===true&&array_column($item['tasks'],'id')===[2,1]&&$item['tasks'][1]['due_state']==='overdue');
+    }
+    assistantCheck('suspended reads do not close reassign mark read or mutate tasks',assistantBusinessState($pdo)===$beforeBlocked&&$pdo->businessWriteAttempts===0);
+    $pdo->mutate("INSERT INTO conversations SELECT 2,customer_id,project_key,source_id,channel,entry_channel,attribution_region,attribution_campaign,status,lead_stage_key,manager_id,started_at,last_message_at,closed_at,external_chat_id,is_test FROM conversations WHERE id=1; INSERT INTO messages VALUES(3,2,'inbound','customer','Question',CURRENT_TIMESTAMP,'max',NULL,'PRIVATE','PRIVATE')");
+    foreach([1,2]as$actor)assistantCheck(($actor===1?'manager':'owner').' prioritizes reachable unanswered client before suspended client task',array_column(ManagerAssistantService::listing($actor)['items'],'conversation_id')===[2,1]);
+    foreach([
+        'new inbound'=>"INSERT INTO messages VALUES(4,1,'inbound','customer','I am back','2999-01-01 00:00:00','max',NULL,'PRIVATE','PRIVATE')",
+        'same-second MAX restart'=>"INSERT INTO conversation_events(conversation_id,event_type,actor_type,created_at) SELECT 1,'bot_started','system',created_at FROM conversation_events WHERE event_type='manager_message_failed' LIMIT 1",
+        'later temporary failure'=>"INSERT INTO conversation_events(conversation_id,event_type,actor_type,payload_json,created_at) VALUES(1,'manager_message_failed','manager','{\"category\":\"retryable\"}',CURRENT_TIMESTAMP)",
+    ]as$name=>$sql){
+        $pdo=assistantFixture();$pdo->mutate($suspendSql);$pdo->mutate($sql);$state=assistantBusinessState($pdo);
+        $item=ManagerAssistantService::detail(1,1)['item']??[];
+        assistantCheck($name.' restores ordinary reply work without changing a task',($item['delivery_suspended']??true)===false&&$item['delivery_notice']===null&&$item['operational']['awaiting_manager_reply']===true&&$item['operational']['due_task']===true&&array_column($item['tasks'],'id')===[2,1]&&assistantBusinessState($pdo)===$state);
+    }
+    $pdo=assistantFixture();$pdo->afterTaskRead=static fn(AssistantFixturePdo $db)=>$db->mutate($suspendSql);
+    $blockedDuringRead=ManagerAssistantService::detail(1,1);
+    assistantCheck('new suspension during task hydration discards the old actionable detail',($blockedDuringRead['error']??'')==='not_found'&&!isset($blockedDuringRead['item'])&&$pdo->businessWriteAttempts===0);
+    $pdo=assistantFixture();$pdo->mutate("DELETE FROM messages WHERE id=2; UPDATE conversations SET channel='max' WHERE id=1");
+    for($id=2;$id<=25;++$id)$pdo->mutate("INSERT INTO conversations SELECT $id,customer_id,project_key,source_id,channel,entry_channel,attribution_region,attribution_campaign,status,lead_stage_key,manager_id,started_at,last_message_at,closed_at,external_chat_id,is_test FROM conversations WHERE id=1");
+    $unansweredFalse=ManagerAssistantService::listing(1);$pdo->mutate($suspendEventSql);
+    assistantCheck('suspension invalidates cursor even when pending reply and due-task bits do not change',(ManagerAssistantService::listing(1,$unansweredFalse['next_cursor'])['error']??'')==='list_changed');
+
     assistantCheck('invalid page parameters are rejected',(ManagerAssistantService::listing(1,null,21)['error']??'')==='invalid_request' && (ManagerAssistantService::listing(1,'bad')['error']??'')==='invalid_request');
 
     $endpoint=file_get_contents(dirname(__DIR__).'/manager/assistant-api.php');

@@ -51,8 +51,9 @@ class ManagerConversationService
     {
         $conversationAlias=preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/D',$conversationAlias)?$conversationAlias:'c';
         $first=self::awaitingFirstReplySql($conversationAlias);
+        $suspended=ManagerDeliveryStateService::activeSuspensionSql($conversationAlias);
         $type="COALESCE(JSON_UNQUOTE(JSON_EXTRACT(CASE WHEN JSON_VALID(mc.metadata_json) THEN mc.metadata_json ELSE '{}' END,'$.type')),'message')";
-        return "({$conversationAlias}.status='manager' AND ({$first} OR EXISTS (SELECT 1 FROM messages mc WHERE mc.conversation_id={$conversationAlias}.id AND mc.direction='inbound' AND mc.sender_type='customer' AND {$type} NOT IN ('callback','start','bot_started') AND mc.id>COALESCE((SELECT MAX(mo.id) FROM messages mo WHERE mo.conversation_id={$conversationAlias}.id AND mo.direction='outbound' AND mo.sender_type='manager'),0))))";
+        return "({$conversationAlias}.status='manager' AND NOT ({$suspended}) AND ({$first} OR EXISTS (SELECT 1 FROM messages mc WHERE mc.conversation_id={$conversationAlias}.id AND mc.direction='inbound' AND mc.sender_type='customer' AND {$type} NOT IN ('callback','start','bot_started') AND mc.id>COALESCE((SELECT MAX(mo.id) FROM messages mo WHERE mo.conversation_id={$conversationAlias}.id AND mo.direction='outbound' AND mo.sender_type='manager'),0))))";
     }
 
     private static function formatWaitAge(int $seconds): string
@@ -239,7 +240,11 @@ class ManagerConversationService
             $row['last_preview_text']=self::lastMessagePreview($row);
             unset($row['last_metadata_json']);
             $id=(int)($row['id']??0);$failure=$failures[$id]??null;$row['delivery_failure_category']=$failure['category']??null;
-            if($failure){foreach(['last_text','last_preview_text'] as $field){$preview=trim((string)($row[$field]??''));$row[$field]='🔴 Клиент недоступен в MAX'.($preview!==''?' · '.$preview:'');}continue;}
+            if(($failure['category']??null)==='suspended'){
+                $row=ManagerDeliveryStateService::suspendReplySignals($row,$failure);
+                foreach(['last_text','last_preview_text'] as $field){$preview=trim((string)($row[$field]??''));$row[$field]='Клиент недоступен в MAX'.($preview!==''?' · '.$preview:'');}
+                continue;
+            }
             if(!empty($row['awaiting_first_reply'])){foreach(['last_text','last_preview_text'] as $field){$preview=trim((string)($row[$field]??''));$marker=self::formatWaitAge((int)($row['wait_age_seconds']??0));$row[$field]=$marker.($preview!==''?' · '.$preview:'');}}
         }unset($row);
         return $rows;
