@@ -3,6 +3,8 @@ declare(strict_types=1);
 require_once __DIR__.'/ManagerTourSelectionShareService.php';
 require_once __DIR__.'/ConversationRecorder.php';
 require_once __DIR__.'/ManagerHandoffDispatchService.php';
+require_once __DIR__.'/Search3TourHandoffPreview.php';
+require_once __DIR__.'/Search3TourHandoffPhoto.php';
 
 /** A native sender, never the public URL holder, owns an explicit inquiry. */
 final class TourSelectionBotEntryService
@@ -123,7 +125,7 @@ final class TourSelectionBotEntryService
         try {if ($feedback) $feedback($in,$text);else IntegrationRegistry::messenger()->send($in['user']['chat_id'],$text);} catch (Throwable $ignored) {}
     }
 
-    public static function handle(array $in,?callable $handoff=null,?callable $feedback=null): bool
+    public static function handle(array $in,?callable $handoff=null,?callable $feedback=null,?callable $photo=null): bool
     {
         $payload=self::payload($in);if (!$payload) return false;
         // Consume this family even on failure: never reset the trip or source.
@@ -151,11 +153,30 @@ final class TourSelectionBotEntryService
             $handoffResult=ManagerHandoffDispatchService::dispatch($chat,$platform,'',false,null,true);
             if (empty($handoffResult['queue_applied'])) throw new RuntimeException('selection_entry_handoff_pending');
         }
+        $search=($entry['origin']??'')==='search3';
+        if ($search&&!empty($result['changed'])) {
+            // The committed inquiry is the once intent, including uncertain sends.
+            // Existing visitors and first-time starts get the same saved conditions.
+            try {
+                $text=Search3TourHandoffPreview::text($entry['snapshot']);
+                if($feedback) $feedback($in,$text);
+                else {
+                    $messenger=IntegrationRegistry::messenger();
+                    try {$image=($photo??[Search3TourHandoffPhoto::class,'image'])($entry['snapshot']);}catch(Throwable $ignored){$image=null;}
+                    $fileName=($image['mime']??'')==='image/png'?'hotel.png':'hotel.jpg';
+                    if($image!==null&&is_callable([$messenger,'sendMedia'])&&Search3TourHandoffPreview::fitsPhotoCaption($text)) {
+                        $messenger->sendMedia($chat,'image',$image['path'],$fileName,$image['mime'],$text);
+                    } elseif($messenger->send($chat,$text)&&$image!==null&&is_callable([$messenger,'sendMedia'])) {
+                        $messenger->sendMedia($chat,'image',$image['path'],$fileName,$image['mime'],Search3TourHandoffPreview::photoCaption($entry['snapshot']));
+                    }
+                }
+            } catch(Throwable $ignored) {}
+        }
         $assigned=!empty($result['selection_manager']['assigned']);
         if ((!empty($result['changed']) && in_array($result['previous_status'],['waiting_manager','manager'],true))||$assigned) {
             $text='Обращение по варианту «'.htmlspecialchars($result['public_offer']['hotel'],ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8').'» сохранено. Менеджер увидит показанные условия.';
             // Durable inquiry is the once intent; unknown feedback is not replayed.
-            if(!empty($result['changed']))try {if ($feedback) $feedback($in,$text);else IntegrationRegistry::messenger()->send($chat,$text);} catch (Throwable $ignored) {}
+            if(!$search&&!empty($result['changed']))try {if ($feedback) $feedback($in,$text);else IntegrationRegistry::messenger()->send($chat,$text);} catch (Throwable $ignored) {}
             try {ManagerPushService::notifyConversation((int)$result['conversation_id'],str_starts_with($payload,'s3_')?'Обращение из поиска':'Обращение по веб-подборке');} catch (Throwable $ignored) {}
         }
         return true;
