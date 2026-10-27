@@ -66,7 +66,7 @@ final class ManagerTourSelectionImportDraft
         $hotel=$offer['hotel'].($offer['stars']===null?'':' '.$offer['stars'].'*');
         if ($raw['hotel']!==$hotel || $raw['room']!==$offer['room'] || $raw['meal']!==$offer['meal'] || $raw['nights']!==(string)$offer['nights'] || $raw['party']!==$party) return null;
         $day=substr($offer['date_from'],8,2).'.'.substr($offer['date_from'],5,2).'.'.substr($offer['date_from'],0,4);
-        if (!preg_match('/\A'.preg_quote($day,'/').'(?:, (?:пн|вт|ср|чт|пт|сб|вс))?\z/uD',$raw['date'])) return null;
+        if (!preg_match('/\A'.preg_quote($day,'/').'(?:, (?:пн|вт|ср|чт|пт|сб|вс|Mon|Tue|Wed|Thu|Fri|Sat|Sun))?\z/uD',$raw['date'])) return null;
         foreach (['ADULT'=>(string)$offer['adults'],'CHILD'=>(string)count($ages),'STATEINC'=>$keys['country'],'TOWNFROMINC'=>$keys['departure']] as $key=>$value) if (($query[$key]??null)!==$value) return null;
         if (!preg_match('/\A[1-9][0-9]{0,11}\z/D',$query['CURRENCY']??'') || !preg_match('/\A(?:0|[1-9][0-9]{0,11})\z/D',$query['PROGRAMINC']??'')) return null;
         foreach (['CHECKIN_BEG','CHECKIN_END'] as $key) {
