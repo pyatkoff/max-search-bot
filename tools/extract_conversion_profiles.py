@@ -10,7 +10,7 @@ from datetime import date
 
 import build_conversion_observations as base
 
-VERSION = "ru_trip_prefix_rules_v1_9"
+VERSION = "ru_trip_prefix_rules_v1_10"
 MAX_BYTES = 2 * 1024 * 1024
 MAX_CASES = 100
 MAX_MESSAGES = 500
@@ -48,6 +48,29 @@ def affirmed(pattern, text):
     """A negated occurrence cannot establish a stage; another occurrence may."""
     return next((m for m in re.finditer(pattern, text, re.I)
                  if not negated(text, m.start())), None)
+
+
+def current_destinations(text):
+    """Keep country mentions in current clauses; preserve raw history in evidence.
+
+    A past-trip clause ends at punctuation or an explicit current-intent marker.
+    Inspect occurrences, not just the first match: the same country may be both
+    a past holiday and an explicitly requested current alternative.
+    """
+    clauses = re.split(r"[.!?;,\n]+|\b(?=сейчас\b|теперь\b|а\s+(?:хотим|хочу|рассматриваем)\b)", text, flags=re.I)
+    accepted = set()
+    for clause in clauses:
+        historical = text_match(r"\b(?:в прошлом году|прошл\w*\s+(?:летом|зимой|весной|осенью)|раньше|ранее|"
+                                r"отдыхал[аи]?|ездил[аи]?|были|побывали|посещали)\b", clause)
+        current = text_match(r"\b(?:хотим|хочу|рассматриваем|выбираем|планируем)\b", clause)
+        past_time = text_match(r"\b(?:в прошлом году|прошл\w*\s+(?:летом|зимой|весной|осенью)|раньше|ранее)\b", clause)
+        if historical and (not current or current.start() > historical.start()
+                           or (past_time and past_time.start() < current.start())):
+            continue
+        for name, pattern in COUNTRIES.items():
+            if any(not negated(clause, m.start()) for m in re.finditer(rf"\b(?:{pattern})\b", clause, re.I)):
+                accepted.add(name)
+    return [name for name in COUNTRIES if name in accepted]
 
 
 def reference(message, span=None):
@@ -493,6 +516,8 @@ def extract_case(case, extracted, wizard_applications=()):
                             extra=[application["receipt"]])
         # A successfully applied button is still an action, not dialogue or booking intent.
         if m["kind"] == "action":
+            if m["speaker"] == "customer":
+                previous_manager = None
             continue
         kind = "customer_message" if m["speaker"] == "customer" else "manager_message"
         raw_ref = {k: reference(m)[k] for k in ("source", "id", "at", "available_at")}
@@ -549,8 +574,7 @@ def extract_case(case, extracted, wizard_applications=()):
                 add("departure", city, m, departure.span())
             elif text_match(rf"\b(?:{pattern})\b", text):
                 add("unresolved_city", city, m, basis="place_role_not_established")
-        countries = [name for name, pattern in COUNTRIES.items() if text_match(rf"\b(?:{pattern})\b", text)
-                     and not negated(text, text_match(pattern, text).start())]
+        countries = current_destinations(text)
         if countries:
             add("destination", {"values": countries, "open_alternatives": bool(text_match(r"и т\.?\s*п\.?|другие направления", text))}, m)
         meals = [(r"ультра\s*(?:все включено|олл)|\buai\b", "ultra_all_inclusive"),
@@ -602,6 +626,9 @@ def extract_case(case, extracted, wizard_applications=()):
             stage = "clarifying"
         if stage:
             stages.append(fact(stage, m, extracted, cutoff, extra=[confirmation] if confirmation else []))
+        # The immediately preceding proposal can ground only its first answer.
+        # A refusal, unrelated answer or confirmation consumes that question.
+        previous_manager = None
 
     result_fields = {name: choose(values) for name, values in fields.items()}
     components = {name: choose(values) for name, values in party.items()}

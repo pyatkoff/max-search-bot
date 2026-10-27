@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import subprocess
 import sys
+import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -40,6 +41,38 @@ def value(profile, field):
 
 
 class ProfileTests(unittest.TestCase):
+    def test_hotel_question_is_consumed_by_first_customer_answer(self):
+        question = message("Рассматриваете Rixos?", "manager")
+        for answer in ["Нет, этот отель не подходит. Хочу другой.", "Подумаем", "Да"]:
+            with self.subTest(answer=answer):
+                p = extract(question, message(answer, i=2), message("Да", i=3))
+                if answer == "Да":
+                    self.assertEqual(value(p, "hotel_interest"), "Rixos")
+                    self.assertEqual(p["fields"]["hotel_interest"]["references"][-1]["id"], "message:2")
+                else:
+                    self.assertIsNone(value(p, "hotel_interest"))
+                    self.assertNotIn("fields.hotel_interest", p["prediction_features"]["facts"])
+        p = extract(question, message("Нет", i=2), message("Рассматриваете другой отель?", "manager", i=3), message("Да", i=4))
+        self.assertEqual(value(p, "hotel_interest"), "другой отель")
+
+    def test_historical_destination_is_not_current_intent(self):
+        for text, expected in [
+            ("В прошлом году отдыхали в Египте, сейчас хотим Турцию.", ["Турция"]),
+            ("Сейчас хотим Турцию, в прошлом году отдыхали в Египте.", ["Турция"]),
+            ("Раньше были в Египте. Теперь рассматриваем Турцию или Таиланд.", ["Турция", "Таиланд"]),
+            ("Отдыхали в Египте, а хотим Турцию.", ["Турция"]),
+            ("В прошлом году хотели Египет, сейчас рассматриваем Турцию и Египет.", ["Турция", "Египет"]),
+            ("Рассматриваем Турцию или Египет.", ["Турция", "Египет"]),
+            ("Хотим вернуться в Египет где были раньше.", ["Египет"]),
+        ]:
+            with self.subTest(text=text):
+                p = extract(message(text))
+                self.assertEqual(value(p, "destination")["values"], expected)
+                self.assertEqual(p["prediction_features"]["facts"]["fields.destination"]["value"]["values"], expected)
+        p = extract(message("В прошлом году отдыхали в Египте."))
+        self.assertIsNone(value(p, "destination"))
+        self.assertNotIn("fields.destination", p["prediction_features"]["facts"])
+
     def test_nonprice_preferences_keep_distinct_customer_meanings_and_evidence(self):
         text="Без муссонов. Купаться в море. Вечером погулять, чтобы было оживленно."
         p=extract(message(text))
@@ -705,6 +738,40 @@ def wizard_receipt(input_row, field, value, identifier="19"):
 
 
 class JournalProfileTests(unittest.TestCase):
+    def test_current_intent_runtime_and_cli(self):
+        scenarios = [
+            ([('manager', 'Рассматриваете Rixos?'), ('customer', 'Нет, этот отель не подходит. Хочу другой.'), ('customer', 'Да')], None, None),
+            ([('manager', 'Рассматриваете Rixos?'), ('customer', 'Да')], 'Rixos', None),
+            ([('customer', 'В прошлом году отдыхали в Египте, сейчас хотим Турцию.')], None, ['Турция']),
+            ([('customer', 'Рассматриваем Турцию или Египет.')], None, ['Турция', 'Египет']),
+        ]
+        for turns, hotel, countries in scenarios:
+            with self.subTest(turns=turns):
+                rows = []
+                for i, (speaker, text) in enumerate(turns, 1):
+                    row = journal_row(str(i), text=text)
+                    row['snapshot']['source_created_at_unix'] += i
+                    row['snapshot']['payload'].update(sender_type=speaker, direction='outbound' if speaker == 'manager' else 'inbound')
+                    rows.append(row)
+                document = journal_document(*rows)
+                with tempfile.NamedTemporaryFile(mode='w', suffix='.json') as handle:
+                    json.dump(document, handle); handle.flush()
+                    run = subprocess.run([sys.executable, str(ROOT/'tools/profile_conversion_journal.py'), handle.name], text=True, capture_output=True)
+                self.assertEqual(run.returncode, 0, run.stderr)
+                cli = json.loads(run.stdout)
+                direct = journal.profile(document, cli['extracted_at'])
+                self.assertEqual(cli, direct)
+                result = direct['profiles'][0]
+                self.assertEqual(result['coverage']['errors'], {})
+                p = result['profile']
+                self.assertEqual(value(p, 'hotel_interest'), hotel)
+                self.assertEqual(value(p, 'destination')['values'] if countries else value(p, 'destination'), countries)
+                self.assertEqual(p['extractor_sha256'], hashlib.sha256((ROOT/'tools/extract_conversion_profiles.py').read_bytes()).hexdigest())
+                if hotel is None:
+                    self.assertNotIn('fields.hotel_interest', p['prediction_features']['facts'])
+                if countries:
+                    self.assertEqual(p['prediction_features']['facts']['fields.destination']['value']['values'], countries)
+
     def build(self, *rows):
         return journal.profile(journal_document(*rows), J_EXTRACT)["profiles"][0]
 
