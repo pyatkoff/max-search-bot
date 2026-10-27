@@ -4,6 +4,16 @@ The Manager2 rail opens one assistant. Ordinary employees see their active assig
 
 The feed prioritizes the full freshly authorized own-active scope before paging (20 per page), independent of the Inbox's capped candidate set. Canonical unanswered-manager-response facts come first, then arrived existing open tasks assigned to the actual owner (or unassigned), then other clients; conversation ID is the stable tie-breaker. Callback/start-only entries are not new human questions. Future/completed/foreign tasks do not become arrived work. Sorting and filters describe the loaded part of the feed. An absent or expired proposal means **no fresh analysis**, not that all work is complete. The existing preparation collector is not an analysis of every client. A `no_contact` result is displayed as waiting, with no automatic due date or new reminder.
 
+An active MAX delivery suspension removes automatic reply/SLA urgency from the
+Inbox and Assistant. The client remains available to its authorized viewers with
+a neutral explanation that replying resumes after new customer activity. This
+does not close or reassign the conversation, mark messages read, or delete/change
+human-created tasks; an explicit task retains its own deadline and controls.
+The canonical delivery owner supplies the same latest-failure, later-inbound
+and MAX system-restart evidence to SQL ordering and the detail/send guard.
+Suspension participates in Assistant continuation and detail freshness checks,
+so an obsolete reply recommendation cannot survive a delivery-state change.
+
 Returning from the assistant to the already-open conversation retains explicitly
 loaded older history through the canonical History/Conversation option. Existing
 message/media nodes, reading position and reply/File remain under those owners;

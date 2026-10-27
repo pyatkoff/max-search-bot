@@ -113,7 +113,7 @@ class SalesPipelineService {
 }
 PHP);
     file_put_contents($tmp.'/services/LeadTaskService.php','<?php class LeadTaskService {static function listForConversation($id):array{if(($_SERVER["HTTP_X_FIXTURE_HOLD"]??"")==="degraded")throw new RuntimeException("Synthetic card failure");return [];} }');
-    file_put_contents($tmp.'/services/ManagerDeliveryStateService.php','<?php class ManagerDeliveryStateService {static function activeFailure($id){return null;} static function activeFailures($ids):array{return [];} static function withoutSuspendedRecipients(array $rows):array{return $rows;} }');
+    file_put_contents($tmp.'/services/ManagerDeliveryStateService.php','<?php class ManagerDeliveryStateService {static function activeSuspensionSql($alias="c"):string{return "0";} static function activeFailure($id){return null;} static function activeFailures($ids):array{return [];} static function withoutSuspendedRecipients(array $rows):array{return $rows;} }');
     file_put_contents($tmp.'/manager/fixture-session.php', <<<'PHP'
 <?php
 require_once __DIR__.'/lib/ManagerHttp.php';session_id((string)$_GET['session']);ManagerHttp::startJson();

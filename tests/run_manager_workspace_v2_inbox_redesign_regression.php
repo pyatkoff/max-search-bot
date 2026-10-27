@@ -86,9 +86,9 @@ foreach ([
 $waiting=$buttonRow+['awaiting_first_reply'=>1,'wait_age_seconds'=>600];
 $waiting=ManagerConversationService::decorateLastMessagePreviews([$waiting])[0];
 inboxCheck('waiting prefix is identical for raw and display text',str_replace($raw,'',$waiting['last_text'])===str_replace($label,'',$waiting['last_preview_text'])&&$waiting['last_preview_text']!==$label);
-$unavailable=ManagerConversationService::decorateLastMessagePreviews([$buttonRow],[1=>['category'=>'recipient_unavailable']])[0];
-inboxCheck('delivery failure remains visible with readable callback',$unavailable['last_preview_text']==='🔴 Клиент недоступен в MAX · '.$label);
-inboxCheck('delivery failure keeps existing raw preview',$unavailable['last_text']==='🔴 Клиент недоступен в MAX · '.$raw);
+$unavailable=ManagerConversationService::decorateLastMessagePreviews([$buttonRow],[1=>['category'=>'suspended']])[0];
+inboxCheck('delivery failure remains neutral and visible with readable callback',$unavailable['last_preview_text']==='Клиент недоступен в MAX · '.$label);
+inboxCheck('delivery failure keeps existing raw preview',$unavailable['last_text']==='Клиент недоступен в MAX · '.$raw);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);

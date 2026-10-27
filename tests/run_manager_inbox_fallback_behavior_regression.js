@@ -22,7 +22,7 @@ function harness(overrides = {}, result = {ok: false, http_status: 500}) {
 
 // Synthetic layout exposes actual scroll assignments separately from the final
 // position: assigning the same value can interrupt a native browser gesture.
-function renderHarness() {
+function renderHarness(overrides={}) {
   let top = 0;
   const scrollWrites = [];
   class Element {
@@ -43,14 +43,19 @@ function renderHarness() {
     insertBefore(node,before) { node.remove();const index=before?this.children.indexOf(before):this.children.length;this.children.splice(index,0,node);node.parentNode=this; }
     remove() { if(this.parentNode){const siblings=this.parentNode.children;siblings.splice(siblings.indexOf(this),1);this.parentNode=null;} }
   }
-  const list=new Element(),S={queue:'all',manager:{id:7,role:'manager'},authGeneration:1};
+  const list=new Element(),S={queue:'all',manager:{id:7,role:'manager'},authGeneration:1,...overrides};
   const document={activeElement:null,getElementById:id=>id==='inboxList'?list:null,querySelector:()=>null,createElement:()=>new Element()};
-  const window={ManagerTime:{format:()=>''},WorkspaceV2:{S,$:document.getElementById,esc:String,statusText:String}};
+  const window={ManagerTime:{format:()=>''},WorkspaceV2:{S,$:document.getElementById,esc:String,statusText:String,formatWait:seconds=>seconds+' seconds'}};
   vm.runInNewContext(source,{window,document,Intl,Number,Map,Set,JSON});
   return {list,scrollWrites,render:window.WorkspaceV2Inbox.renderList};
 }
 
 (async () => {
+  const blocked=renderHarness({queue:'mine'}),row={id:71,display_name:'Synthetic blocked client',status:'manager',awaiting_first_reply:1,awaiting_manager_reply:1,wait_age_seconds:7200,delivery_failure_category:'suspended',last_text:'Клиент недоступен в MAX',next_task_title:'Позвонить по договорённости',next_task_overdue:true};
+  blocked.render([row]);const card=blocked.list.children.find(node=>node.dataset.conversationId==='71');
+  assert.doesNotMatch(card.className,/waitUrgent|waitWarn|needsReply/,'suspended recipients have no automatic reply/SLA visual urgency even with old contradictory flags');
+  assert.doesNotMatch(card.innerHTML,/leadWaitCompact|Ждёт ответа|Срочно/);assert.match(card.innerHTML,/Клиент недоступен в MAX/);assert.match(card.innerHTML,/Позвонить по договорённости/);assert.match(card.innerHTML,/leadTaskCompact overdue/,'human task deadline stays visible');
+  blocked.render([{...row,delivery_failure_category:null}]);const recoveredCard=blocked.list.children.find(node=>node.dataset.conversationId==='71');assert.match(recoveredCard.className,/waitUrgent/);assert.match(recoveredCard.innerHTML,/Ждёт ответа|Срочно/,'recovered recipients regain normal automatic urgency');
   for (const filter of [
     {leadSearch: 'Анна'}, {leadTaskFilter: 'overdue'}, {leadOutcomeFilter: 'won'},
     {leadStageFilter: 'selection'}, {leadTagFilter: 7}, {leadSourceFilter: 5}, {leadSourceFilter: -1},

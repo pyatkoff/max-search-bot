@@ -139,7 +139,7 @@
         const manager=document.createElement('span');manager.className='m2ChatManager';manager.textContent=c.manager_name;manager.title='Ответственный менеджер';secondary.appendChild(manager);
       }
       const wait=el.querySelector('.leadWaitCompact');let reply=el.querySelector('.leadReplyStatus');
-      if(!reply&&Number(c.awaiting_manager_reply||0)===1){reply=document.createElement('span');reply.className='leadReplyStatus';reply.textContent='Ждёт ответа'}
+      if(!reply&&c.delivery_failure_category!=='suspended'&&Number(c.awaiting_manager_reply||0)===1){reply=document.createElement('span');reply.className='leadReplyStatus';reply.textContent='Ждёт ответа'}
       if(reply)secondary.appendChild(reply);if(wait)secondary.appendChild(wait);
       const unread=el.querySelector('.unreadBadge');if(unread){unread.setAttribute('aria-label','Непрочитанных сообщений: '+Math.max(0,Number(c.unread_count)||0));primary?.appendChild(unread)}
       if(secondary.childNodes.length)identity?.appendChild(secondary);

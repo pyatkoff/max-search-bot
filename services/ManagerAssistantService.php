@@ -46,25 +46,26 @@ final class ManagerAssistantService
         $rows=self::operationalRows($actor);
         $rows=ManagerConversationAccessPolicy::visibleRows($actor,$rows);
         foreach($rows as &$row){
-            $row['id']=(int)$row['id'];$row['awaiting_manager_reply']=(bool)$row['awaiting_manager_reply'];
+            $row['id']=(int)$row['id'];$row['awaiting_manager_reply']=(bool)$row['awaiting_manager_reply'];$row['delivery_suspended']=(bool)$row['delivery_suspended'];
             $row['due_task']=$row['due_at_utc']!==null;
             $row['priority']=$row['awaiting_manager_reply']?0:($row['due_task']?1:2);
         }unset($row);
         // Small fixed metadata for every eligible client is needed to bind mutable
         // ordering. Only the selected page hydrates names/tasks/optional saved AI.
-        $revision=hash('sha256',json_encode(['assistant_work_v2',$actor,$owner,$manager['projects'],ProjectConfig::projectId(),array_map(static fn(array $row):array=>[$row['id'],$row['project_key'],(int)$row['manager_id'],$row['status'],(int)$row['source_id'],$row['channel'],$row['awaiting_manager_reply'],$row['due_task']],$rows)],JSON_THROW_ON_ERROR));
+        $revision=hash('sha256',json_encode(['assistant_work_v2',$actor,$owner,$manager['projects'],ProjectConfig::projectId(),array_map(static fn(array $row):array=>[$row['id'],$row['project_key'],(int)$row['manager_id'],$row['status'],(int)$row['source_id'],$row['channel'],$row['awaiting_manager_reply'],$row['due_task'],$row['delivery_suspended']],$rows)],JSON_THROW_ON_ERROR));
         return ['rows'=>$rows,'revision'=>$revision,'owner'=>$owner];
     }
 
     private static function operationalRows(int $actor,?int $id=null): array
     {
         $reply=ManagerConversationService::awaitingManagerReplySql('c');
+        $suspended=ManagerDeliveryStateService::activeSuspensionSql('c');
         $manager=ManagerAuthService::byId($actor);
         if($manager===null)return [];
         $owner=ManagerAuthService::isAdmin($manager);
         $due="(SELECT MIN(t.due_at_utc) FROM lead_tasks t WHERE t.conversation_id=c.id AND t.status='open' AND t.due_at_utc<=UTC_TIMESTAMP()".($owner?'':" AND (t.assigned_manager_id IS NULL OR t.assigned_manager_id=c.manager_id)").')';
         $sql="SELECT c.id,c.project_key,c.source_id,c.channel,c.status,c.manager_id,"
-            .$reply.' AS awaiting_manager_reply,'.$due.' AS due_at_utc FROM conversations c WHERE ';
+            .$reply.' AS awaiting_manager_reply,CASE WHEN '.$suspended.' THEN 1 ELSE 0 END AS delivery_suspended,'.$due.' AS due_at_utc FROM conversations c WHERE ';
         if($owner){
             $keys=array_column($manager['projects'],'project_key');if(!$keys)return [];
             $sql.="c.status IN ('manager','waiting_manager') AND c.is_test=0 AND c.project_key IN (".implode(',',array_fill(0,count($keys),'?')).')';$args=$keys;
@@ -167,7 +168,8 @@ final class ManagerAssistantService
         $actualOwner=(int)($conversation['manager_id']??0);
         $canDecide=$actualOwner===$actor&&$conversation['status']==='manager'&&$conversation['project_key']===ProjectConfig::projectId();
         $team=ManagerAuthService::isAdmin(ManagerAuthService::byId($actor));
-        $recommendation = self::currentRecommendation($id, $actor,(string)$conversation['project_key']);
+        $suspended=!empty($facts['delivery_suspended']);
+        $recommendation = $suspended?null:self::currentRecommendation($id, $actor,(string)$conversation['project_key']);
         if ($recommendation !== null) {
             $q = ConversationDb::connection()->prepare('SELECT decision FROM manager_assistant_decisions WHERE manager_id=? AND conversation_id=? AND recommendation_revision=? AND project_key=?');
             $q->execute([$actualOwner,$id,$recommendation['revision'],$conversation['project_key']]);
@@ -186,7 +188,7 @@ final class ManagerAssistantService
         if (!$fromFeed){
             $fresh=self::operationalRows($actor,$id)[0]??null;
             if($fresh===null)return null;
-            foreach(['project_key','source_id','channel','status','manager_id'] as $key)if($fresh[$key]!=$facts[$key])return null;
+            foreach(['project_key','source_id','channel','status','manager_id','delivery_suspended','awaiting_manager_reply'] as $key)if($fresh[$key]!=$facts[$key])return null;
             if(ManagerConversationService::visibleConversation($id,$actor,true)===null)return null;
         }
         return ['conversation_id'=>$id, 'display_name'=>(string)($conversation['display_name'] ?? 'Турист'),
@@ -194,6 +196,7 @@ final class ManagerAssistantService
             'project_name'=>(string)($conversation['project_name']??$conversation['project_key']),
             'manager_id'=>$actualOwner,'manager_name'=>(string)($conversation['manager_name']?:($actualOwner>0?'Менеджер №'.$actualOwner:'Без назначения')),'can_decide'=>$canDecide,
             'last_message_at'=>$conversation['last_message_at'],
+            'delivery_suspended'=>$suspended,'delivery_notice'=>$suspended?ManagerDeliveryStateService::SUSPENDED_NOTICE:null,
             'operational'=>['awaiting_manager_reply'=>(bool)$facts['awaiting_manager_reply'],'due_task'=>$facts['due_at_utc']!==null], 'analysis_state'=>$recommendation === null ? 'unavailable' : 'current',
             'recommendation'=>$recommendation, 'tasks'=>array_slice($tasks,0,self::MAX_TASKS), 'tasks_truncated'=>count($tasks)>self::MAX_TASKS];
     }

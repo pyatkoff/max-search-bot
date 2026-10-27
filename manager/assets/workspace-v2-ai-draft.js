@@ -6,6 +6,7 @@
   let button,panel,status,body,insert,retry;
   let ready=null,watch=null,statusFlight=null,watchTimer=null,expiryTimer=null,notice,noticeLabel;
   let suggestion,suggestionText,suggestionLabel,suggestionAccept;
+  let placeholder='',suggestionLargeFont=null;
   const dismissedNotices=new Set(),manager2=()=>document.body.classList.contains('manager2');
   const visible=()=>document.visibilityState!=='hidden';
   const conversation=()=>window.WorkspaceV2Conversation;
@@ -30,23 +31,36 @@
   function timeValue(value){const parsed=window.ManagerTime?.parse?.(value)||new Date(String(value||'').replace(' ','T')+(/(?:Z|[+-]\d{2}:?\d{2})$/.test(String(value||''))?'':'Z'));return Number.isNaN(parsed.getTime())?0:parsed.getTime()}
   function timeLabel(value){return window.ManagerTime?.format?window.ManagerTime.format(value)+' '+window.ManagerTime.label:''}
   function hideNotice(hidden){if(notice&&notice.hidden!==hidden)notice.hidden=hidden}
-  function clearReady(){ready=null;window.clearTimeout?.(expiryTimer);expiryTimer=null;hideNotice(true);if(suggestion){if(!suggestion.hidden)suggestion.hidden=true;if(suggestionText.textContent)suggestionText.textContent=''}}
+  function clearReady(){ready=null;window.clearTimeout?.(expiryTimer);expiryTimer=null;hideNotice(true);syncSuggestion()}
   function noticeKey(){return ready?JSON.stringify([S.manager?.id,S.current,ready.revision,ready.prepared_at]):''}
-  function dismissNotice(){dismissedNotices.add(noticeKey());if(dismissedNotices.size>100)dismissedNotices.delete(dismissedNotices.values().next().value);hideNotice(true);if(suggestion)suggestion.hidden=true}
+  function dismissNotice(){dismissedNotices.add(noticeKey());if(dismissedNotices.size>100)dismissedNotices.delete(dismissedNotices.values().next().value);hideNotice(true);syncSuggestion()}
   function suggestionAvailable(){
     return !!suggestion&&manager2()&&visible()&&!!ready&&ready.expires>Date.now()&&currentSnapshot(ready.snapshot)&&validResult(ready,ready.snapshot)&&ready.should_draft&&panel.hidden&&!flight&&!dismissedNotices.has(noticeKey())&&window.WorkspaceV2PersonalWorkspace?.showAiReadyNotice?.()!==false&&(ownerRead()||canCompose()&&$('replyText').value==='');
   }
   function syncSuggestion(){
     if(!suggestion)return;
-    const shown=suggestionAvailable();if(suggestion.hidden===shown)suggestion.hidden=!shown;
-    if(!shown){if(suggestionText.textContent)suggestionText.textContent='';return}
-    const readonly=ownerRead(),host=readonly?$('conversationZone'):$('composer'),before=readonly?$('composerLocked'):host?.querySelector('.composerSurface');
-    if(host&&suggestion.parentElement!==host)host.insertBefore(suggestion,before||host.firstChild);
+    const shown=suggestionAvailable(),readonly=ownerRead(),reply=$('replyText'),form=$('composer'),ghost=shown&&!readonly;
+    let layoutChanged=suggestion.hidden===shown;
+    const largeFont=document.body.classList.contains('pwLargeFont');
+    if(suggestionLargeFont!==largeFont){suggestionLargeFont=largeFont;if(ghost)layoutChanged=true}
+    if(layoutChanged)suggestion.hidden=!shown;
+    if(form.classList.contains('aiGhostVisible')!==ghost){form.classList.toggle('aiGhostVisible',ghost);layoutChanged=true}
+    const hint=ghost?'':placeholder;
+    if(reply.getAttribute('placeholder')!==hint)reply.setAttribute('placeholder',hint);
+    if(!shown){
+      if(suggestionText.textContent){suggestionText.textContent='';layoutChanged=true}
+      if(layoutChanged)window.WorkspaceV2ReplyEditor?.resize?.();
+      return;
+    }
+    const host=readonly?$('conversationZone'):reply.parentElement,before=readonly?$('composerLocked'):reply;
+    if(host&&suggestion.parentElement!==host){host.insertBefore(suggestion,before);layoutChanged=true}
     suggestion.classList.toggle('aiSuggestionReadonly',readonly);
-    if(suggestionText.textContent!==ready.draft)suggestionText.textContent=ready.draft;
+    suggestion.classList.toggle('aiSuggestionGhost',!readonly);
+    if(suggestionText.textContent!==ready.draft){suggestionText.textContent=ready.draft;layoutChanged=true}
     const label=readonly?'AI-подсказка · Только просмотр · '+(S.detail?.conversation?.manager_name||'Без назначения'):'AI-подсказка';
     if(suggestionLabel.textContent!==label)suggestionLabel.textContent=label;
     suggestionAccept.hidden=readonly;suggestionAccept.disabled=readonly;
+    if(layoutChanged)window.WorkspaceV2ReplyEditor?.resize?.();
   }
   function syncPreferences(){
     syncSuggestion();
@@ -70,7 +84,8 @@
     if(!expires||expires<=Date.now())return;
     // A metadata poll must not erase the already read private text for this exact proposal.
     const previous=ready?.kind===kind&&ready.revision===result.revision&&ready.prepared_at===result.prepared_at?ready:null;
-    clearReady();ready={...previous,...result,snapshot:saved,kind,expires,prepared_at:result.prepared_at||new Date().toISOString()};
+    window.clearTimeout?.(expiryTimer);expiryTimer=null;
+    ready={...previous,...result,snapshot:saved,kind,expires,prepared_at:result.prepared_at||new Date().toISOString()};
     const captured=ready;
     expiryTimer=window.setTimeout?.(()=>{if(ready!==captured)return;clearReady();if(view?.result?.prepared===true){view.result=null;clearBody();status.textContent='Срок хранения готового ответа истёк. Проверьте наличие нового ответа.'}renderButton()},Math.min(expires-Date.now(),2147483647));
     renderButton();
@@ -295,6 +310,7 @@
     if(bound)return;
     const form=$('composer'),reply=$('replyText'),quick=$('quickRepliesOpen'),row=quick?.parentElement;
     if(!form||!reply||!row||!conversation())return;
+    placeholder=reply.getAttribute('placeholder')||'';
     button=document.createElement('button');button.id='aiDraftOpen';button.type='button';button.className='aiDraftOpen';button.textContent='AI';
     button.setAttribute('aria-label','Подготовить ответ с AI');button.setAttribute('aria-controls','aiDraftPanel');button.setAttribute('aria-expanded','false');
     row.insertBefore(button,row.firstChild);

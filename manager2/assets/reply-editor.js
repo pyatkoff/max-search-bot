@@ -51,10 +51,12 @@
   }
   // This presentation owns Manager2 sizing. The original cabinet retains its
   // canonical sizing path; there is no second draft, textarea or submit owner.
+  function ghostSuggestion(){return reply.value===''?main.querySelector('.aiSuggestionGhost:not([hidden])'):null}
+  function positionGhost(){const ghost=ghostSuggestion();if(ghost)ghost.style.height=reply.getBoundingClientRect().height+'px'}
   function resize(){
     const transcript=window.WorkspaceV2Jump,position=transcript?.capture();
     fitViewport();
-    if(view){sizeDialog();reply.style.height='';transcript?.restore(position,{preserveScroll:true});return true}
+    if(view){sizeDialog();reply.style.height='';positionGhost();transcript?.restore(position,{preserveScroll:true});return true}
     if(form.classList.contains('hidden')){form.classList.remove('m2ReplyAnimate');sizingContext=null;return true}
     const current=context(),same=sizingContext&&Object.keys(current).every(key=>current[key]===sizingContext[key]);
     if(!same)form.classList.remove('m2ReplyAnimate');
@@ -81,15 +83,19 @@
     // Measure plain text outside layout, never collapse the live textarea to
     // zero. This preserves native selection and avoids clamping the transcript.
     for(const key of ['fontFamily','fontSize','fontWeight','fontStyle','lineHeight','letterSpacing','wordBreak','overflowWrap','tabSize','paddingTop','paddingRight','paddingBottom','paddingLeft'])measure.style[key]=style[key];
-    const details=[...main.children].filter(el=>el!==reply);
+    const ghost=ghostSuggestion(),suggested=ghost?.querySelector('.aiSuggestionText')?.textContent||'';
+    const ghostFooter=suggested?(ghost.querySelector('.aiSuggestionActions')?.getBoundingClientRect().height||0)+10:0;
+    const details=[...main.children].filter(el=>el!==reply&&!el.classList.contains('aiSuggestionGhost'));
     let multiline,desired;
     try{
-      measure.textContent=reply.value+'\u200b';
+      // Suggested text is presentation only. The native draft remains empty
+      // until an explicit Tab/click passes the existing fresh-context checks.
+      measure.textContent=(suggested||reply.value)+'\u200b';
       measure.style.width=Math.max(40,width-actionWidth-gap)+'px';
-      multiline=measure.scrollHeight+border>minimum+line*.4||reply.value.includes('\n')||details.some(el=>el.getBoundingClientRect().height>0);
+      multiline=!!suggested||measure.scrollHeight+border>minimum+line*.4||reply.value.includes('\n')||details.some(el=>el.getBoundingClientRect().height>0);
       form.classList.toggle('m2ReplyMultiline',multiline);
       measure.style.width=Math.max(40,multiline?width:width-actionWidth-gap)+'px';
-      desired=measure.scrollHeight+border;
+      desired=measure.scrollHeight+border+ghostFooter;
     }finally{
       // Keep no reply text in presentation DOM between synchronous measurements,
       // including when account recovery hides the form before its next resize.
@@ -103,6 +109,7 @@
     const rows=Math.max(1,Math.min(12,Math.floor((Math.min(room,proportion)-padding-border)/line)));
     const maximum=rows*line+padding+border;
     reply.style.height=Math.ceil(Math.max(minimum,Math.min(desired,maximum)))+'px';
+    positionGhost();
     reply.scrollTop=saved.top;reply.scrollLeft=saved.left;
     transcript?.restore(position,{preserveScroll:true});
     if(!same){
@@ -137,6 +144,7 @@
     dialog.querySelector('.m2ReplyEditorBody').appendChild(form);
     sync();sizeDialog();reply.style.height='';
     dialog.showModal();expand.setAttribute('aria-expanded','true');restoreSelection(saved,true);
+    positionGhost();
   }
   expand.addEventListener('click',open);
   $('m2ReplyCollapse').addEventListener('click',()=>close());
