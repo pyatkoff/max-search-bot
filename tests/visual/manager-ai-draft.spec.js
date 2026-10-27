@@ -66,6 +66,10 @@ async function setup(page,{readiness=false,hideNotice=false,supervisor=false,own
   return {calls,unexpected,errors,setAI:handler=>{ai=handler},setPreview:handler=>{preview=handler},setDeliveryBlocked:value=>{deliveryBlocked=value},messages,aiCalls:()=>calls.filter(call=>call.path==='/manager/ai-draft.php'&&!['prepared_status','prepared_preview'].includes(call.action)),previewCalls:()=>calls.filter(call=>call.action==='prepared_preview'),statusCalls:()=>calls.filter(call=>call.action==='prepared_status')};
 }
 function clean(state){expect(state.errors).toEqual([]);expect(state.unexpected).toEqual([]);expect(state.calls.filter(call=>['send','take','release','close','reopen'].includes(call.action))).toEqual([])}
+async function openClient(page,id,name){
+  if(await page.locator('#mobileBack').isVisible()){await page.locator('#mobileBack').click();await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-mobile-screen','inbox')}
+  await page.locator(`#inboxList [data-conversation-id="${id}"] .m2RowOpen`).click();await expect(page.locator('#conversationTitle')).toHaveText(name);await expect(page.locator('#replyText')).toBeEnabled();
+}
 async function bounded(page){
   expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
   const bounds=await page.locator('#aiDraftPanel').evaluate(node=>{const rect=node.getBoundingClientRect();return {left:rect.left,right:rect.right,top:rect.top,bottom:rect.bottom}});
@@ -210,11 +214,18 @@ test('AI foreign supervisor does not gain automatic inline previews',async({page
   const state=await setup(page,{readiness:true,supervisor:true});await expect(page.locator('#aiDraftSuggestion')).not.toBeVisible();expect(state.statusCalls()).toEqual([]);expect(state.previewCalls()).toEqual([]);expect(state.aiCalls()).toEqual([]);clean(state);
 });
 for(const change of ['navigation','new message','role loss'])test('AI inline late preview cannot survive '+change,async({page})=>{
-  let release;const state=await setup(page,{readiness:true,owner:change==='role loss',previewHandler:async()=>{await new Promise(resolve=>{release=resolve});return {body:prepared({expires_at:new Date(Date.now()+3600000).toISOString()})}}});await expect.poll(()=>!!release).toBe(true);
-  if(change==='navigation'){await page.evaluate(()=>WorkspaceV2Conversation.open(12));await expect(page.locator('#replyText')).toBeEnabled();await page.locator('#replyText').fill('Ответ в другом чате')}
+  let release;const state=await setup(page,{readiness:true,owner:change==='role loss',previewHandler:async data=>{if(change==='navigation'&&data.conversation_id!==11)return {body:{ok:true,prepared:false}};await new Promise(resolve=>{release=resolve});return {body:prepared({expires_at:new Date(Date.now()+3600000).toISOString()})}}});await expect.poll(()=>!!release).toBe(true);
+  let lateResponse;
+  if(change==='navigation'){
+    // Use the real selection path and deliver the original response despite
+    // cancellation; the old conversation's response must fail its owner fence.
+    await page.evaluate(()=>{AbortController.prototype.abort=function(){}});
+    await openClient(page,12,'Алексей Иванов');await page.locator('#replyText').fill('Ответ в другом чате');
+    lateResponse=page.waitForResponse(response=>response.url().endsWith('/manager/ai-draft.php')&&response.request().postDataJSON()?.action==='prepared_preview'&&response.request().postDataJSON()?.conversation_id===11);
+  }
   else if(change==='new message'){state.messages.get(11).push({id:36,sender_type:'customer',text:'Новое требование',created_at:'2026-10-17 12:01:00'});await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible())}
   else await page.evaluate(()=>{WorkspaceV2.S.manager.role='manager';WorkspaceV2.S.detail.owner_read=false;WorkspaceV2AiDraft.sync()});
-  release();await expect(page.locator('#aiDraftSuggestion')).not.toBeVisible();expect(state.aiCalls()).toEqual([]);if(change==='navigation')await expect(page.locator('#replyText')).toHaveValue('Ответ в другом чате');clean(state);
+  release();if(lateResponse)expect(await (await lateResponse).finished()).toBeNull();await expect(page.locator('#aiDraftSuggestion')).not.toBeVisible();expect(state.aiCalls()).toEqual([]);if(change==='navigation'){await expect(page.locator('#replyText')).toHaveValue('Ответ в другом чате');await page.locator('#replyText').fill('');await expect(page.locator('#aiDraftSuggestion')).not.toBeVisible()}clean(state);
 });
 for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420}])test('AI preview and explicit insert retain the native draft, File and controls '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
   await page.setViewportSize(viewport);const state=await setup(page);expect(state.aiCalls()).toEqual([]);
@@ -303,8 +314,8 @@ test('AI obsolete401 cannot expire the newly selected conversation; current401 s
   // rather than a successful network abort must reject the late401.
   await page.evaluate(()=>{AbortController.prototype.abort=function(){}});
   state.setAI(async()=>{await new Promise(resolve=>{release=resolve});return {body:{ok:false,error:'unauthorized'},status:401}});
-  await page.locator('#aiDraftOpen').click();await expect.poll(()=>!!release).toBe(true);await page.evaluate(()=>WorkspaceV2Conversation.open(12));await expect(page.locator('#replyText')).toBeEnabled();
-  await page.locator('#replyText').fill('Новый диалог');release();await expect(page.locator('#aiDraftPanel')).not.toBeVisible();await expect(page.locator('#managerAuthRecovery')).not.toBeVisible();await expect(page.locator('#replyText')).toHaveValue('Новый диалог');
+  await page.locator('#aiDraftOpen').click();await expect.poll(()=>!!release).toBe(true);await openClient(page,12,'Алексей Иванов');
+  await page.locator('#replyText').fill('Новый диалог');const lateResponse=page.waitForResponse(response=>response.url().endsWith('/manager/ai-draft.php')&&response.status()===401&&response.request().postDataJSON()?.conversation_id===11);release();expect(await (await lateResponse).finished()).toBeNull();await expect(page.locator('#aiDraftPanel')).not.toBeVisible();await expect(page.locator('#managerAuthRecovery')).not.toBeVisible();await expect(page.locator('#replyText')).toHaveValue('Новый диалог');
   state.setAI(async()=>({body:{ok:false,error:'unauthorized'},status:401}));await page.locator('#aiDraftOpen').click();await expect(page.locator('#managerAuthRecovery')).toBeVisible();await expect(page.locator('#aiDraftPanel')).not.toBeVisible();await expect(page.locator('#replyText')).toHaveValue('Новый диалог');clean(state);
 });
 test('AI panel travels with the canonical expanded editor and Escape returns the existing selection',async({page})=>{
