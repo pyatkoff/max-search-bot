@@ -10,7 +10,7 @@ from datetime import date
 
 import build_conversion_observations as base
 
-VERSION = "ru_trip_prefix_rules_v1_13"
+VERSION = "ru_trip_prefix_rules_v1_14"
 MAX_BYTES = 2 * 1024 * 1024
 MAX_CASES = 100
 MAX_MESSAGES = 500
@@ -50,6 +50,33 @@ def affirmed(pattern, text):
                  if not negated(text, m.start())), None)
 
 
+DESTINATION_HISTORY = (r"\b(?:в прошлом году|прошл\w*\s+(?:летом|зимой|весной|осенью)|раньше|ранее|"
+                       r"отдыхал[аи]?|ездил[аи]?|были(?!\s+бы\b)|побывали|посещали)\b")
+DESTINATION_CURRENT = (r"\b(?:хотим|хочу|рассматриваем|рассматриваю|выбираем|выбираю|"
+                       r"планируем|планирую|интересует)\b")
+
+
+def destination_clauses(text):
+    """Split a dash only when its right side owns a temporal/intent predicate."""
+    dash_scopes = []
+    for sentence in re.split(r"[.!?;,\n]+", text):
+        parts = re.split(r"\s+[—–-]\s+", sentence)
+        scope = parts[0]
+        for part in parts[1:]:
+            if text_match(DESTINATION_CURRENT, part) or text_match(DESTINATION_HISTORY, part):
+                dash_scopes.append(scope)
+                scope = part
+            else:
+                scope += " — " + part
+        dash_scopes.append(scope)
+    clauses = []
+    for scope in dash_scopes:
+        clauses.extend(re.split(r"\b(?=сейчас\b|теперь\b|"
+                                r"(?:а|и)\s+(?:хотим|хочу|рассматриваем|выбираем|планируем)\b)",
+                                scope, flags=re.I))
+    return clauses
+
+
 def current_destinations(text):
     """Keep country mentions in current clauses; preserve raw history in evidence.
 
@@ -57,17 +84,9 @@ def current_destinations(text):
     Inspect occurrences, not just the first match: the same country may be both
     a past holiday and an explicitly requested current alternative.
     """
-    dash_boundary = (r"\s+[—–-]\s+(?="
-                     r"(?:(?:(?:а|но)\s+)?(?:(?:мы|я)\s+)?(?:(?:сейчас|теперь|в этом году)\s+)?"
-                     r"(?:хотим|хочу|рассматриваем|рассматриваю|выбираем|выбираю|планируем|планирую|интересует)\b|"
-                     r"(?:(?:мы|я)\s+)?(?:в прошлом году|прошл\w*\s+(?:летом|зимой|весной|осенью)|"
-                     r"раньше|ранее|отдыхал[аи]?|ездил[аи]?|были(?!\s+бы\b)|побывали|посещали)\b))")
-    clauses = re.split(r"[.!?;,\n]+|" + dash_boundary + r"|\b(?=сейчас\b|теперь\b|"
-                       r"(?:а|и)\s+(?:хотим|хочу|рассматриваем|выбираем|планируем)\b)", text, flags=re.I)
     accepted = set()
-    for clause in clauses:
-        historical = affirmed(r"\b(?:в прошлом году|прошл\w*\s+(?:летом|зимой|весной|осенью)|раньше|ранее|"
-                              r"отдыхал[аи]?|ездил[аи]?|были(?!\s+бы\b)|побывали|посещали)\b", clause)
+    for clause in destination_clauses(text):
+        historical = affirmed(DESTINATION_HISTORY, clause)
         current = text_match(r"\b(?:хотим|хочу|рассматриваем|выбираем|планируем)\b", clause)
         past_time = text_match(r"\b(?:в прошлом году|прошл\w*\s+(?:летом|зимой|весной|осенью)|раньше|ранее)\b", clause)
         if historical and (not current or current.start() > historical.start()
