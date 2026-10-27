@@ -1,0 +1,55 @@
+name: Diagnose canonical app keyscan without credentials
+on:
+  push:
+    branches: [audit/app-keyscan-reason-20261027]
+    paths: [.github/workflows/app-keyscan-reason.yml]
+permissions:
+  contents: read
+concurrency:
+  group: anytour-app-keyscan-reason-20261027
+  cancel-in-progress: false
+jobs:
+  network:
+    if: github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Two bounded credentialless scans
+        env:
+          TARGET: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        run: |
+          set -euo pipefail
+          python3 - "$TARGET" <<'PY'
+          import base64,hashlib,json,socket,subprocess,sys,time
+          host=sys.argv[1]
+          if {v[4][0] for v in socket.getaddrinfo(host,22,type=socket.SOCK_STREAM)}!={'5.45.122.54'}:raise SystemExit('canonical_target_changed')
+          results=[]
+          for _ in range(2):
+              start=time.monotonic()
+              scan=subprocess.run(['ssh-keyscan','-T','10',host],capture_output=True,text=True,timeout=30)
+              keys=[]
+              for line in scan.stdout.splitlines():
+                  parts=line.split()
+                  if len(parts)!=3 or parts[0].startswith('#'):continue
+                  try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(parts[2],validate=True)).digest()).decode().rstrip('=')
+                  except ValueError:continue
+                  keys.append({'type':parts[1] if parts[1] in ['ssh-rsa','ssh-ed25519','ecdsa-sha2-nistp256','ecdsa-sha2-nistp384','ecdsa-sha2-nistp521'] else 'other','fingerprint':fp,'expected':fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0'})
+              reasons=[]
+              for raw in scan.stderr.splitlines():
+                  s=raw.lower()
+                  if 'no matching' in s and ('key exchange' in s or 'kex' in s):r='key_exchange_negotiation'
+                  elif 'no matching' in s and 'host key' in s:r='host_key_algorithm'
+                  elif 'connection closed' in s or 'closed by remote host' in s:r='connection_closed'
+                  elif 'connection reset' in s:r='connection_reset'
+                  elif 'timed out' in s:r='timeout'
+                  elif 'connection refused' in s:r='connection_refused'
+                  elif 'invalid format' in s or 'banner' in s:r='banner_or_format'
+                  elif s.startswith('#') and 'ssh-' in s:r='ssh_banner_seen'
+                  elif 'error' in s:r='other_error'
+                  elif s:r='other_nonempty'
+                  else:continue
+                  reasons.append(r)
+              results.append({'rc':scan.returncode,'elapsed_ms':round((time.monotonic()-start)*1000),'key_count':len(keys),'keys':keys,'stderr_line_count':len(scan.stderr.splitlines()),'stderr_reasons':sorted(set(reasons))})
+          out={'dns_exact':True,'scans':results,'credential_or_login_operations':0,'DB_API_model_customer_POST_operations':0}
+          encoded=json.dumps(out,separators=(',',':'));assert len(encoded)<=16384;print(encoded)
+          PY
