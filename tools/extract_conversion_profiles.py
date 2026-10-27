@@ -10,7 +10,7 @@ from datetime import date
 
 import build_conversion_observations as base
 
-VERSION = "ru_trip_prefix_rules_v1_11"
+VERSION = "ru_trip_prefix_rules_v1_12"
 MAX_BYTES = 2 * 1024 * 1024
 MAX_CASES = 100
 MAX_MESSAGES = 500
@@ -57,7 +57,7 @@ def current_destinations(text):
     Inspect occurrences, not just the first match: the same country may be both
     a past holiday and an explicitly requested current alternative.
     """
-    clauses = re.split(r"[.!?;,\n]+|\s+[—–-]\s+|\b(?=сейчас\b|теперь\b|"
+    clauses = re.split(r"[.!?;,\n]+|\s+[—–-]\s+(?=(?:сейчас|теперь|хотим|хочу|рассматриваем|выбираем|планируем)\b)|\b(?=сейчас\b|теперь\b|"
                        r"(?:а|и)\s+(?:хотим|хочу|рассматриваем|выбираем|планируем)\b)", text, flags=re.I)
     accepted = set()
     for clause in clauses:
