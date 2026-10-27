@@ -72,8 +72,10 @@ copy($base.'/tools/live_session_snapshot.php',$tgRoot.'/tools/live_session_snaps
 foreach(['TelegramDialogueConversions.php','MaxChannelConversionOutbox.php','MaxSubscriptionAttributionPolicy.php','InternalOwnerDialogueScope.php','LiveSessionAnalyzer.php','CallbackGeneration.php']as$file){
     copy($base.'/services/'.$file,$tgRoot.'/services/'.$file);
 }
-file_put_contents($tgRoot.'/config.php',"<?php\nclass ProjectConfig { public static function projectId(): string { return getenv('TG_STATUS_TEST_PROJECT') ?: 'anytour'; } }\n");
-file_put_contents($tgRoot.'/services/ProjectConfig.php',"<?php\nrequire_once dirname(__DIR__).'/config.php';\n");
+// The production config bootstrap does not preload ProjectConfig. Keep its stub
+// on the canonical require path so the real CLI must load its own dependency.
+file_put_contents($tgRoot.'/config.php',"<?php\n");
+file_put_contents($tgRoot.'/services/ProjectConfig.php',"<?php\nclass ProjectConfig { public static function projectId(): string { return getenv('TG_STATUS_TEST_PROJECT') ?: 'anytour'; } }\n");
 $tgDatabase=$tgRoot.'/fixture.sqlite';
 file_put_contents($tgRoot.'/services/ConversationDb.php',"<?php\nclass ConversationDb { private static ?PDO \$connection=null; public static function isConfigured(): bool { return true; } public static function connection(): PDO { if(self::\$connection===null){ self::\$connection=new PDO(".var_export('sqlite:'.$tgDatabase,true)."); self::\$connection->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION); self::\$connection->exec('PRAGMA query_only=ON'); } return self::\$connection; } }\n");
 $tgDb=new PDO('sqlite:'.$tgDatabase);$tgDb->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
