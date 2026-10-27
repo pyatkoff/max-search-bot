@@ -10,7 +10,7 @@ from datetime import date
 
 import build_conversion_observations as base
 
-VERSION = "ru_trip_prefix_rules_v1_10"
+VERSION = "ru_trip_prefix_rules_v1_11"
 MAX_BYTES = 2 * 1024 * 1024
 MAX_CASES = 100
 MAX_MESSAGES = 500
@@ -57,11 +57,12 @@ def current_destinations(text):
     Inspect occurrences, not just the first match: the same country may be both
     a past holiday and an explicitly requested current alternative.
     """
-    clauses = re.split(r"[.!?;,\n]+|\b(?=сейчас\b|теперь\b|а\s+(?:хотим|хочу|рассматриваем)\b)", text, flags=re.I)
+    clauses = re.split(r"[.!?;,\n]+|\s+[—–-]\s+|\b(?=сейчас\b|теперь\b|"
+                       r"(?:а|и)\s+(?:хотим|хочу|рассматриваем|выбираем|планируем)\b)", text, flags=re.I)
     accepted = set()
     for clause in clauses:
-        historical = text_match(r"\b(?:в прошлом году|прошл\w*\s+(?:летом|зимой|весной|осенью)|раньше|ранее|"
-                                r"отдыхал[аи]?|ездил[аи]?|были|побывали|посещали)\b", clause)
+        historical = affirmed(r"\b(?:в прошлом году|прошл\w*\s+(?:летом|зимой|весной|осенью)|раньше|ранее|"
+                              r"отдыхал[аи]?|ездил[аи]?|были(?!\s+бы\b)|побывали|посещали)\b", clause)
         current = text_match(r"\b(?:хотим|хочу|рассматриваем|выбираем|планируем)\b", clause)
         past_time = text_match(r"\b(?:в прошлом году|прошл\w*\s+(?:летом|зимой|весной|осенью)|раньше|ранее)\b", clause)
         if historical and (not current or current.start() > historical.start()
