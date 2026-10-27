@@ -113,8 +113,8 @@ final class HotelWorkQueue
         });
     }
 
-    /** Explicit re-consent handoff. The proof callback is server-owned, never MCP input. */
-    public function handoff_connection(int $admin,string $newConnection,array $args,callable $oldConnectionRetired): array
+    /** Explicit authorization handoff. Proof is mode-aware and server-owned, never MCP input. */
+    public function handoff_connection(int $admin,string $newConnection,array $args,callable $oldConnectionProof): array
     {
         self::keys($args,['queue_id','stage_id','baseline_sha256','old_connection_id','handoff_mode','claim_key','expected_run_id']);
         $id=self::queueId($args['queue_id']??null);$stage=self::sha($args['stage_id']??null);$baseline=self::sha($args['baseline_sha256']??null);
@@ -126,13 +126,16 @@ final class HotelWorkQueue
         if ($mode==='existing_run') {$claim=hash('sha256',self::sha($args['claim_key']??null));$run=self::runId($args['expected_run_id']??null);}
         elseif (array_key_exists('claim_key',$args)||array_key_exists('expected_run_id',$args)) throw new InvalidArgumentException('unexpected_hotel_work_handoff_proof');
         $handoff=self::hash([$id,$admin,$old,$newConnection,$stage,$baseline,$mode,$claim,$run]);
-        return $this->transaction(function() use($id,$stage,$baseline,$old,$newConnection,$admin,$handoff,$oldConnectionRetired,$mode,$claim,$run): array {
+        return $this->transaction(function() use($id,$stage,$baseline,$old,$newConnection,$admin,$handoff,$oldConnectionProof,$mode,$claim,$run): array {
             $lane=$this->lane(true);$row=$this->one('SELECT * FROM hotel_work_queues WHERE queue_id=?'.$this->lock(),[$id]);
             if (!$row||$row['project_key']!==self::PROJECT||(int)$row['admin_id']!==$admin) throw new DomainException('hotel_work_access_denied');
             $prior=$this->one('SELECT handoff_sha256 FROM hotel_work_connection_handoffs WHERE handoff_sha256=?',[$handoff]);
             if ($prior) {
                 $this->authorize($row,$admin,$newConnection);
                 return $this->project($row)+['handoff_status'=>'already_recorded'];
+            }
+            if ($this->one('SELECT handoff_sha256 FROM hotel_work_connection_handoffs WHERE queue_id=? AND old_connection_id=? LIMIT 1',[$id,$newConnection])) {
+                throw new HotelWorkQueueConflict('binding_relinquished');
             }
             if (!hash_equals($row['oauth_connection_id'],$old)) throw new DomainException('hotel_work_access_denied');
             $this->sameStage($row,$stage);$this->ownsLane($row,$lane);
@@ -141,8 +144,10 @@ final class HotelWorkQueue
                 if ($row['state']!=='ready'||$row['claim_sha256']!==null||$row['current_run_id']!==null) throw new HotelWorkQueueConflict('not_known_idle');
             } elseif (!in_array($row['state'],['claimed','unknown'],true)||$row['current_run_id']===null
                 ||!hash_equals($row['current_run_id'],$run)||!hash_equals((string)$row['claim_sha256'],$claim)) throw new HotelWorkQueueConflict('existing_run_proof_mismatch');
-            try {$retired=$oldConnectionRetired($old,$admin)===true;} catch (Throwable $ignored) {$retired=false;}
-            if (!$retired) throw new HotelWorkQueueConflict('old_connection_not_definitively_retired');
+            // READY transfers control of unclaimed metadata under the lane lock.
+            // Existing-run adoption still requires definitive old-grant retirement.
+            try {$proven=$oldConnectionProof($old,$admin,$mode)===true;} catch (Throwable $ignored) {$proven=false;}
+            if (!$proven) throw new HotelWorkQueueConflict($mode==='ready'?'old_connection_not_known_hotel_owner':'old_connection_not_definitively_retired');
             $now=$this->now();
             $this->execute('INSERT INTO hotel_work_connection_handoffs (handoff_sha256,queue_id,admin_id,old_connection_id,new_connection_id,stage_id,baseline_sha256,handoff_mode,expected_run_id,claim_sha256,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)',[$handoff,$id,$admin,$old,$newConnection,$stage,$baseline,$mode,$run,$claim,$now]);
             $this->execute('UPDATE hotel_work_queues SET oauth_connection_id=?,event_ack=NULL,delivered_at=NULL,claim_deadline=NULL,attention_at=NULL,attention_ack=NULL,watchdog_due_at=?,watchdog_epoch=0,last_watch_ack=NULL,updated_at=? WHERE queue_id=?',[$newConnection,$mode==='existing_run'?$now:null,$now,$id]);

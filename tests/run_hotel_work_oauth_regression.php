@@ -112,6 +112,9 @@ try {
         $pdo->prepare('UPDATE manager_preparation_oauth_grants SET '.$field.'=? WHERE grant_id=?')->execute([$value,$old]);
     };
     hotelOauthCheck('active old hotel grant is not retired',!$oauth->connectionRetired($old,1));
+    hotelOauthCheck('active same-admin hotel grant has positive identity evidence for ready handoff',
+        $oauth->hotelConnectionKnown($old,1)&&!$oauth->hotelConnectionKnown($old,2)
+        &&!$oauth->hotelConnectionKnown(str_repeat('0',32),1));
     // Expiring an access token is not expiry of the separately renewable grant.
     $pdo->prepare('UPDATE manager_preparation_oauth_tokens SET expires_at=? WHERE token_hash=?')
         ->execute([$now-1,hash('sha256',$oldTokens['access_token'])]);
@@ -126,18 +129,26 @@ try {
     foreach (['scopes'=>$legacyScope,'resource'=>'https://other.invalid/mcp','project_key'=>'other'] as $field=>$value) {
         $oldUpdate($field,$value);
         hotelOauthCheck('wrong old grant binding cannot prove retirement '.$field,!$oauth->connectionRetired($old,1));
+        hotelOauthCheck('wrong old grant binding cannot prove ready-handoff identity '.$field,!$oauth->hotelConnectionKnown($old,1));
         $oldUpdate($field,match($field){'scopes'=>$hotelScope,'resource'=>ManagerPreparationOAuth::RESOURCE,'project_key'=>'anytour'});
     }
+    $oldUpdate('scopes','hotel_work:write queue:read prepared:write');
+    hotelOauthCheck('noncanonical stored scope profile is not old hotel identity evidence',!$oauth->hotelConnectionKnown($old,1));
+    $oldUpdate('scopes',$hotelScope);
+    $pdo->prepare('UPDATE manager_preparation_oauth_clients SET redirect_uri=? WHERE client_id=?')->execute(['https://other.invalid/callback',$client]);
+    hotelOauthCheck('old grant client must retain the pinned callback identity',!$oauth->hotelConnectionKnown($old,1));
+    $pdo->prepare('UPDATE manager_preparation_oauth_clients SET redirect_uri=? WHERE client_id=?')->execute([ManagerPreparationOAuth::REDIRECT_URI,$client]);
     $unavailable=new PDO('sqlite::memory:');
     (new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$unavailable);
     hotelOauthCheck('storage absence is never a positive old-grant retirement proof',!ManagerPreparationOAuth::isConnectionRetired($old,1));
+    hotelOauthCheck('storage absence is never positive ready-handoff ownership evidence',!(new ManagerPreparationOAuth($unavailable,$clock))->hotelConnectionKnown($old,1));
     (new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$pdo);
 
     $legacyCalls=0;$hotelCalls=0;$events=new HotelOauthEventsFixture();
     $legacyStore=static function(string $operation,array $args) use (&$legacyCalls):array { ++$legacyCalls;return ['jobs'=>[]]; };
     $hotelStore=static function(string $operation,array $args) use (&$hotelCalls):array {
         ++$hotelCalls;$result=['ok'=>true,'operation'=>$operation,'queue_id'=>'SYNTHETIC_QUEUE'];
-        if ($operation==='handoff_connection') $result['server_retirement_proof']=$args[3]($args[2]['old_connection_id'],$args[0]);
+        if ($operation==='handoff_connection') $result['server_connection_proof']=$args[3]($args[2]['old_connection_id'],$args[0],$args[2]['handoff_mode']??'ready');
         return $result;
     };
     $service=new ManagerPreparationMcpService($pdo,$legacyStore,null,$clock,null,null,null,$hotelStore,$events);
@@ -224,23 +235,32 @@ try {
     }
     $handed=$call('tools/call',['name'=>'hotel_work_handoff_connection','arguments'=>$handoff],$combined,ManagerPreparationOAuth::SUPPORTED_SCOPES);
     hotelOauthCheck('handoff adapter appends canonical proof capability rather than client flags',
-        ($handed['result']['structuredContent']['server_retirement_proof']??null)===true&&$hotelCalls===2);
+        ($handed['result']['structuredContent']['server_connection_proof']??null)===true&&$hotelCalls===2);
     $oldUpdate('revoked_at',null);
     $activeOld=$call('tools/call',['name'=>'hotel_work_handoff_connection','arguments'=>$handoff],$combined,ManagerPreparationOAuth::SUPPORTED_SCOPES);
-    hotelOauthCheck('the same server capability refuses a currently active old grant',
-        ($activeOld['result']['structuredContent']['server_retirement_proof']??null)===false&&$hotelCalls===3);
+    hotelOauthCheck('ready handoff accepts positive known old identity while its grant remains active',
+        ($activeOld['result']['structuredContent']['server_connection_proof']??null)===true&&$hotelCalls===3
+        &&$oauth->connectionAuthorized($old,1,[ManagerPreparationOAuth::HOTEL_SCOPE])&&!$oauth->connectionRetired($old,1));
+    $existing=$handoff+['handoff_mode'=>'existing_run','claim_key'=>str_repeat('6',64),'expected_run_id'=>'SYNTHETIC_EXISTING_RUN'];
+    $existingActive=$call('tools/call',['name'=>'hotel_work_handoff_connection','arguments'=>$existing],$combined,ManagerPreparationOAuth::SUPPORTED_SCOPES);
+    hotelOauthCheck('existing-run adoption still refuses an active old grant',
+        ($existingActive['result']['structuredContent']['server_connection_proof']??null)===false&&$hotelCalls===4);
     $oldUpdate('revoked_at',$now);
+    $existingRetired=$call('tools/call',['name'=>'hotel_work_handoff_connection','arguments'=>$existing],$combined,ManagerPreparationOAuth::SUPPORTED_SCOPES);
+    hotelOauthCheck('existing-run adoption still uses positive canonical retirement proof',
+        ($existingRetired['result']['structuredContent']['server_connection_proof']??null)===true&&$hotelCalls===5);
+    $recoveryCalls=$hotelCalls;
     foreach ([['handoff_mode'=>'existing_run'],['handoff_mode'=>'existing_run','claim_key'=>str_repeat('6',64)],
         ['handoff_mode'=>'ready','claim_key'=>str_repeat('6',64),'expected_run_id'=>'SYNTHETIC_EXISTING_RUN'],
         ['claim_key'=>str_repeat('6',64),'expected_run_id'=>'SYNTHETIC_EXISTING_RUN'],['handoff_mode'=>'force']] as $forgedMode) {
         $forged=$call('tools/call',['name'=>'hotel_work_handoff_connection','arguments'=>$handoff+$forgedMode],$combined,ManagerPreparationOAuth::SUPPORTED_SCOPES);
-        hotelOauthCheck('existing-run adoption requires exact explicit paired mode fields',($forged['error']['code']??null)===-32602&&$hotelCalls===3);
+        hotelOauthCheck('existing-run adoption requires exact explicit paired mode fields',($forged['error']['code']??null)===-32602&&$hotelCalls===$recoveryCalls);
     }
     $resolution=['queue_id'=>'SYNTHETIC_QUEUE','stage_id'=>str_repeat('5',64),'claim_key'=>str_repeat('6',64),
         'unknown_receipt_sha256'=>str_repeat('7',64),'expected_run_id'=>'SYNTHETIC_EXISTING_RUN','expected_packet_sha256'=>str_repeat('8',64),'receipt'=>[]];
     foreach (['dispatch_allowed'=>true,'old_connection_retired'=>true,'replacement_run_id'=>'SYNTHETIC_NEW_RUN'] as $field=>$value) {
         $forged=$call('tools/call',['name'=>'hotel_work_resolve_existing_run','arguments'=>$resolution+[$field=>$value]],$combined,ManagerPreparationOAuth::SUPPORTED_SCOPES);
-        hotelOauthCheck('client resolution cannot inject dispatch proof or alternate run '.$field,($forged['error']['code']??null)===-32602&&$hotelCalls===3);
+        hotelOauthCheck('client resolution cannot inject dispatch proof or alternate run '.$field,($forged['error']['code']??null)===-32602&&$hotelCalls===$recoveryCalls);
     }
     $oldUpdate('revoked_at',null);
     $pdo->exec("UPDATE managers SET role='manager' WHERE id=1");
@@ -248,6 +268,6 @@ try {
     hotelOauthCheck('admin demotion alone is never a positive old-grant retirement proof',!$oauth->connectionActive($old,1)&&!$oauth->connectionRetired($old,1));
     $demoted=$call('tools/call',['name'=>'hotel_work_status','arguments'=>[]],$legacy,ManagerPreparationOAuth::SCOPES);
     hotelOauthCheck('missing administrator role cannot trigger step-up or reach hotel work',
-        ($demoted['error']['code']??null)===-32001&&!isset($demoted['result'])&&$hotelCalls===3);
+        ($demoted['error']['code']??null)===-32001&&!isset($demoted['result'])&&$hotelCalls===$recoveryCalls);
     echo 'TOTAL '.$passed." hotel OAuth/MCP checks passed\n";
 } catch (Throwable $error) { fwrite(STDERR,$error->getMessage()."\n");exit(1); }
