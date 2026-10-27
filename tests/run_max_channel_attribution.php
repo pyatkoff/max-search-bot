@@ -356,6 +356,20 @@ same(MaxChannelConversionOutbox::queueIfEligible('-1234567890123456789','max_bot
 same(MaxChannelConversionOutbox::queueIfEligible('-1234567890123456789','max_manager_request',null),false,'migration gap blocks legacy request without YCLID fallback');
 $gapPosts=$readOnlyApi->posts;MaxChannelConversionWorker::tick($p,$noIO,$readOnlyApi,$now);same($readOnlyApi->posts,$gapPosts,'migration gap performs no conversion POST');
 $p->exec('DROP TABLE max_channel_attribution_settings');$p->exec('ALTER TABLE max_channel_attribution_settings_snapshot RENAME TO max_channel_attribution_settings');
+// A pre-fence dialogue may emit a later ordinary goal, but it cannot shadow
+// the same person's sole post-fence episode for membership ownership.
+$p=maxAttributionFixture();(new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$p);$episodeNow=time();$episodeFence=$episodeNow-60;
+$p->prepare("UPDATE max_channel_attribution_settings SET mode='collect',goal_set='shared',shared_goals_activated_at_unix=?,membership_receipts_activated_at_unix=?,membership_receipts_outbox_cursor=0 WHERE project_key='anytour'")->execute([$episodeFence,$episodeFence]);
+$episodeUser='8700000000000000001';$p->prepare("INSERT INTO customer_channels VALUES(10,'anytour','max',?)")->execute([$episodeUser]);
+$episodeConversation=$p->prepare("INSERT INTO conversations(id,customer_channel_id,project_key,channel,external_chat_id,is_test,status,source_id,started_at) VALUES(?,10,'anytour','max',?,0,'ai',2,?)");
+$episodeConversation->execute([10,'-'.$episodeUser,gmdate('Y-m-d H:i:s',$episodeFence-1)]);$episodeConversation->execute([11,'-'.$episodeUser,gmdate('Y-m-d H:i:s',$episodeFence+1)]);
+$episodeOutbox=$p->prepare("INSERT INTO max_channel_conversion_outbox(project_key,conversation_id,external_user_id,counter_id,target,transport_target,event_unix,state,created_at) VALUES('anytour',?,?,'98615635','max_bot_activity_start','max_bot_activity_start',?,'processed',?)");
+$episodeOutbox->execute([10,$episodeUser,$episodeFence+2,gmdate('Y-m-d H:i:s',$episodeFence+2)]);$episodeOutbox->execute([11,$episodeUser,$episodeFence+3,gmdate('Y-m-d H:i:s',$episodeFence+3)]);
+$episodeLookup=new class($episodeUser,$episodeFence){public string $user;public int $fence;function __construct($u,$f){$this->user=$u;$this->fence=$f;}function lookupWithMembership($counter,$users,$notBefore,$cutoff){return ['identities'=>array_fill_keys($users,null),'membership'=>[$this->user=>[['kind'=>'subscription','source_record_id'=>'9501','state'=>'subscribed','occurred_at_unix'=>$this->fence+4]]]+array_fill_keys($users,[])];}function lookup(){throw new RuntimeException('unexpected_identity_lookup');}};
+$episodeResult=MaxChannelConversionWorker::tick($p,$episodeLookup,$noIO,$episodeNow);
+same($episodeResult['membership']['inserted'],1,'pre-fence episode cannot shadow the sole eligible post-fence dialogue');
+same((int)$p->query("SELECT COUNT(*) FROM conversation_events WHERE conversation_id=10 AND event_type='channel_subscription_observed'")->fetchColumn(),0,'pre-fence dialogue receives no membership receipt');
+same((int)$p->query("SELECT COUNT(*) FROM conversation_events WHERE conversation_id=11 AND event_type='channel_subscription_observed'")->fetchColumn(),1,'sole post-fence dialogue receives the exact membership receipt');
 // The cyclic observer is MAX-only and must eventually visit every admitted
 // MAX user even when one user's receipts remain unknown.
 $p=maxAttributionFixture();(new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$p);$cycleNow=time();
@@ -364,7 +378,9 @@ if($cycleMysql){$migration=file_get_contents(dirname(__DIR__).'/migrations/067_t
 else foreach(["platform TEXT DEFAULT 'max'","identity_source_key TEXT DEFAULT ''",'source_signal_id INTEGER','identity_observation_id INTEGER']as$column)$p->exec('ALTER TABLE max_channel_conversion_outbox ADD COLUMN '.$column);
 $p->prepare("UPDATE max_channel_attribution_settings SET mode='collect',goal_set='shared',shared_goals_activated_at_unix=?,membership_receipts_activated_at_unix=?,membership_receipts_outbox_cursor=0 WHERE project_key='anytour'")->execute([$cycleNow-60,$cycleNow-60]);
 $insert=$p->prepare("INSERT INTO max_channel_conversion_outbox(project_key,conversation_id,external_user_id,counter_id,target,transport_target,event_unix,state,created_at,platform) VALUES('anytour',?,?,'98615635','max_bot_activity_start','max_bot_activity_start',?,'processed',?,?)");
-$cycleUsers=[];for($i=1;$i<=6;$i++){$user='880000000000000000'.$i;$cycleUsers[]=$user;$insert->execute([100+$i,$user,$cycleNow-30,gmdate('Y-m-d H:i:s',$cycleNow-30),'max']);}
+$cycleChannel=$p->prepare("INSERT INTO customer_channels VALUES(?,'anytour','max',?)");
+$cycleConversation=$p->prepare("INSERT INTO conversations(id,customer_channel_id,project_key,channel,external_chat_id,is_test,status,source_id,started_at) VALUES(?,?,'anytour','max',?,0,'ai',2,?)");
+$cycleUsers=[];for($i=1;$i<=6;$i++){$user='880000000000000000'.$i;$id=100+$i;$cycleUsers[]=$user;$cycleChannel->execute([$id,$user]);$cycleConversation->execute([$id,$id,'-'.$user,gmdate('Y-m-d H:i:s',$cycleNow-30)]);$insert->execute([$id,$user,$cycleNow-30,gmdate('Y-m-d H:i:s',$cycleNow-30),'max']);}
 $insert->execute([199,'9900000000000000001',$cycleNow-30,gmdate('Y-m-d H:i:s',$cycleNow-30),'telegram']);
 $cycleLookup=new class{public array $batches=[];function lookupWithMembership($counter,$users,$notBefore,$cutoff){$this->batches[]=$users;return ['identities'=>array_fill_keys($users,null),'membership'=>array_fill_keys($users,[])];}function lookup(){throw new RuntimeException('unexpected_identity_lookup');}};
 MaxChannelConversionWorker::tick($p,$cycleLookup,$noIO,$cycleNow);

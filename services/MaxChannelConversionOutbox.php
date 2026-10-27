@@ -196,9 +196,15 @@ final class MaxChannelConversionOutbox
         $activated=(int)($settings['membership_receipts_activated_at_unix']??0);
         if($activated<946684800||$limit<1)return ['cursor_before'=>0,'cursor_after'=>0,'bindings'=>[]];
         $cursor=(int)($settings['membership_receipts_outbox_cursor']??0);$storedCursor=$cursor;$limit=min(25,$limit);$since=gmdate('Y-m-d H:i:s',$activated);
-        $select=function(int $after)use($since):array{
-            $q=$this->pdo->prepare("SELECT id,conversation_id,external_user_id FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635' AND transport_target=target AND target IN ('max_bot_activity_start','max_manager_request','max_customer_reply_after_manager') AND created_at>=? AND id>?".$this->platformWhere('max')." ORDER BY id LIMIT 100");
-            $q->execute([$since,$after]);return$q->fetchAll(PDO::FETCH_ASSOC);
+        $mysql=$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';$chat=$mysql?"CONCAT('-',o.external_user_id)":"'-'||o.external_user_id";
+        $select=function(int $after)use($since,$chat):array{
+            $q=$this->pdo->prepare("SELECT o.id,o.conversation_id,o.external_user_id FROM max_channel_conversion_outbox o"
+                ." JOIN conversations c ON c.id=o.conversation_id AND c.project_key=o.project_key AND c.channel='max' AND c.is_test=0 AND c.started_at>=?"
+                ." JOIN customer_channels cc ON cc.id=c.customer_channel_id AND cc.project_key=c.project_key AND cc.channel=c.channel AND cc.external_user_id=o.external_user_id"
+                ." WHERE o.project_key='anytour' AND o.counter_id='98615635' AND c.external_chat_id=".$chat
+                ." AND o.transport_target=o.target AND o.target IN ('max_bot_activity_start','max_manager_request','max_customer_reply_after_manager') AND o.created_at>=? AND o.id>?"
+                .$this->platformWhere('max')." ORDER BY o.id LIMIT 100");
+            $q->execute([$since,$since,$after]);return$q->fetchAll(PDO::FETCH_ASSOC);
         };
         $rows=$select($cursor);if(!$rows&&$cursor>0){$cursor=0;$rows=$select(0);}
         $out=[];$seen=[];$after=$cursor;
