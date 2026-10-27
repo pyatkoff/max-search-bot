@@ -140,7 +140,7 @@ INSERT INTO conversations(id,customer_id,customer_channel_id,project_key,source_
         deliveryCheck('stale version rejection is durable once even when acknowledgement outcome is unknown',$staleFeedback===1&&$rejectHandoff===0&&$events(1)===$staleEvents&&$business()===$staleRows);
         // Extend only this fixture to exercise the canonical Recorder, not a stub.
         $pdo->exec('ALTER TABLE conversation_sources ADD COLUMN project_id INTEGER;ALTER TABLE conversation_sources ADD COLUMN source_key TEXT;ALTER TABLE conversation_sources ADD COLUMN channel TEXT;
-ALTER TABLE customer_channels ADD COLUMN username TEXT;ALTER TABLE customer_channels ADD COLUMN metadata_json TEXT;
+ALTER TABLE customer_channels ADD COLUMN username TEXT;ALTER TABLE customer_channels ADD COLUMN metadata_json TEXT;ALTER TABLE conversations ADD COLUMN metadata_json TEXT;
 UPDATE conversation_sources SET project_id=1,source_key="telegram:synthetic-main",channel="telegram" WHERE id=1;
 INSERT INTO conversation_sources(id,display_name,fallback_mode,is_active,project_id,source_key,channel) VALUES(2,"Synthetic MAX default","none",1,1,"max:synthetic-main","max");');
         $currentPage=ManagerTourSelectionShareService::read($newToken);$newTg=$payload($currentPage['offers'][0]['bot_links']['telegram']);$newMax=$payload($currentPage['offers'][0]['bot_links']['max']);
