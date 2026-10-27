@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__.'/ConversationDb.php';
+require_once __DIR__.'/ConversationRecordClock.php';
 require_once __DIR__.'/ProjectConfig.php';
 require_once __DIR__.'/MaxSubscriptionAttributionPolicy.php';
 
@@ -117,7 +118,7 @@ final class MaxChannelConversionOutbox
     public function conversation(string $id,string $chatId,array $settings): ?array
     {
         if(!preg_match('/\A[1-9][0-9]*\z/D',$id)||empty($settings['activated_at_unix']))return null;
-        $base="SELECT c.id,c.external_chat_id,cc.external_user_id,";
+        $base="SELECT c.id,c.external_chat_id,cc.external_user_id,c.metadata_json AS conversation_metadata_json,";
         $scope=" FROM conversations c JOIN customer_channels cc ON cc.id=c.customer_channel_id AND cc.project_key=c.project_key AND cc.channel=c.channel";
         $where=" WHERE c.id=? AND c.external_chat_id=? AND c.project_key=? AND c.channel='max' AND c.is_test=0";
         $args=[$id,$chatId,$settings['project_key']];
@@ -125,8 +126,9 @@ final class MaxChannelConversionOutbox
             ." JOIN post_entries e ON e.conversation_id=c.id JOIN post_publications pp ON pp.id=e.publication_id"
             ." JOIN post_channels pc ON pc.id=pp.post_channel_id JOIN projects p ON p.id=pc.project_id".$where
             ." AND p.project_key=c.project_key AND pc.platform='max' AND pc.bot_key='id9704048781_1_bot'"
-            ." GROUP BY c.id,c.external_chat_id,cc.external_user_id");
+            ." GROUP BY c.id,c.external_chat_id,cc.external_user_id,c.metadata_json");
         $q->execute($args);$r=$q->fetch(PDO::FETCH_ASSOC);
+        $postEntry=(bool)$r;
         if(!$r){
             // The channel can also use an existing unique manager-source link,
             // without a registered post publication. Its accepted conversation
@@ -137,6 +139,9 @@ final class MaxChannelConversionOutbox
             $q->execute($args);$r=$q->fetch(PDO::FETCH_ASSOC);
         }
         if(!$r||!preg_match('/\A[1-9][0-9]{0,19}\z/D',(string)$r['external_user_id'])||$r['external_chat_id']!=='-'.(string)$r['external_user_id'])return null;
+        $r['attribution_started_at_unix']=$postEntry
+            ?MaxSubscriptionAttributionPolicy::eventTimeUnix((string)$r['attribution_started_at'],new DateTimeZone('UTC'))
+            :ConversationRecordClock::read($r['conversation_metadata_json']??null);
         return $r;
     }
 
@@ -144,31 +149,36 @@ final class MaxChannelConversionOutbox
     public function event(array $c,string $target,array $settings): ?array
     {
         if(!in_array($target,self::HISTORICAL_TARGETS,true))return null;
-        $clock=(int)$this->pdo->query('SELECT '.($this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?'TIMESTAMPDIFF(SECOND,UTC_TIMESTAMP(),NOW())':'0'))->fetchColumn();
-        if($clock!==0)throw new RuntimeException('conversation_clock_not_utc');
-        $since=max((int)$settings['activated_at_unix'],MaxSubscriptionAttributionPolicy::eventTimeUnix((string)$c['attribution_started_at'],new DateTimeZone('UTC')));
+        // Bare DATETIME rows have mixed writer/session bases. Only the
+        // canonical forward Unix receipt proves their recording instant.
+        $anchor=$c['attribution_started_at_unix']??null;
+        if(!is_int($anchor))return null;
+        $since=max((int)$settings['activated_at_unix'],$anchor);
+        $mysql=$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
+        $bound=$mysql?'CAST(? AS UNSIGNED)':'CAST(? AS INTEGER)';
         if($target==='max_manager_request'){
             if(!self::sharedGoalsActive($settings))return null;
             $since=max($since,(int)$settings['shared_goals_activated_at_unix']);
-            $q=$this->pdo->prepare("SELECT id,created_at,payload_json AS metadata_json FROM conversation_events WHERE conversation_id=? AND event_type='waiting_manager' AND created_at>=? AND id>? ORDER BY created_at,id LIMIT 1");
-            $q->execute([$c['id'],gmdate('Y-m-d H:i:s',$since),$settings['shared_goals_event_id']??0]);
+            $unix=ConversationRecordClock::sql('payload_json',$mysql);
+            $q=$this->pdo->prepare("SELECT id,created_at,payload_json AS metadata_json,$unix AS recorded_at_unix FROM conversation_events WHERE conversation_id=? AND event_type='waiting_manager' AND ($unix)>=$bound AND id>? ORDER BY recorded_at_unix,id LIMIT 1");
+            $q->execute([$c['id'],$since,$settings['shared_goals_event_id']??0]);
             $request=$q->fetch(PDO::FETCH_ASSOC);return $request?:null;
         }
-        $sinceText=gmdate('Y-m-d H:i:s',$since);
-        $base='SELECT id,created_at,metadata_json FROM messages WHERE conversation_id=? AND channel=\'max\' AND created_at>=?';
-        $q=$this->pdo->prepare($base." AND direction='outbound' AND sender_type='manager' ORDER BY created_at,id LIMIT 1");
-        $q->execute([$c['id'],$sinceText]);$manager=$q->fetch(PDO::FETCH_ASSOC);
+        $unix=ConversationRecordClock::sql('metadata_json',$mysql);
+        $base="SELECT id,created_at,metadata_json,$unix AS recorded_at_unix FROM messages WHERE conversation_id=? AND channel='max' AND ($unix)>=$bound";
+        $q=$this->pdo->prepare($base." AND direction='outbound' AND sender_type='manager' ORDER BY recorded_at_unix,id LIMIT 1");
+        $q->execute([$c['id'],$since]);$manager=$q->fetch(PDO::FETCH_ASSOC);
         if($target==='max_manager_reply')return $manager?:null;
         if($target==='max_customer_reply_after_manager'&&!$manager)return null;
         $sql=$base." AND direction='inbound' AND sender_type='customer'";
-        $args=[$c['id'],$sinceText];
+        $args=[$c['id'],$since];
         if($target==='max_customer_reply_after_manager'){
-            $sql.=' AND (created_at>? OR (created_at=? AND id>?))';array_push($args,$manager['created_at'],$manager['created_at'],$manager['id']);
+            $sql.=" AND (($unix)>$bound OR (($unix)=$bound AND id>?))";array_push($args,$manager['recorded_at_unix'],$manager['recorded_at_unix'],$manager['id']);
         }
         $json="CASE WHEN JSON_VALID(metadata_json) THEN metadata_json ELSE '{}' END";
-        $type=$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?"JSON_UNQUOTE(JSON_EXTRACT($json,'$.type'))":"json_extract($json,'$.type')";
+        $type=$mysql?"JSON_UNQUOTE(JSON_EXTRACT($json,'$.type'))":"json_extract($json,'$.type')";
         $allowed=$target==='max_bot_activity_start'?"('message','callback','contact')":"('message','contact')";
-        $q=$this->pdo->prepare($sql.' AND '.$type.' IN '.$allowed.' ORDER BY created_at,id LIMIT 1');$q->execute($args);
+        $q=$this->pdo->prepare($sql.' AND '.$type.' IN '.$allowed.' ORDER BY recorded_at_unix,id LIMIT 1');$q->execute($args);
         $row=$q->fetch(PDO::FETCH_ASSOC);return $row?:null;
     }
 
@@ -176,7 +186,8 @@ final class MaxChannelConversionOutbox
     {
         if(!self::sharedGoalsActive($settings)||!in_array($target,self::TARGETS,true))return false;
         $event=$this->event($conversation,$target,$settings);if(!$event)return false;
-        $unix=MaxSubscriptionAttributionPolicy::eventTimeUnix((string)$event['created_at'],new DateTimeZone('UTC'));
+        $unix=ConversationRecordClock::read($event['metadata_json']??null);
+        if($unix===null)return false;
         if($unix>$now||$unix<(int)$settings['activated_at_unix'])return false;
         $insert=$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='sqlite'?'INSERT OR IGNORE':'INSERT IGNORE';
         $q=$this->pdo->prepare($insert.' INTO max_channel_conversion_outbox (project_key,conversation_id,external_user_id,counter_id,target,transport_target,event_unix) VALUES (?,?,?,?,?,?,?)');
@@ -195,18 +206,20 @@ final class MaxChannelConversionOutbox
     {
         $activated=(int)($settings['membership_receipts_activated_at_unix']??0);
         if($activated<946684800||$limit<1)return ['cursor_before'=>0,'cursor_after'=>0,'bindings'=>[]];
-        $cursor=(int)($settings['membership_receipts_outbox_cursor']??0);$storedCursor=$cursor;$limit=min(25,$limit);$since=gmdate('Y-m-d H:i:s',$activated);
+        $cursor=(int)($settings['membership_receipts_outbox_cursor']??0);$storedCursor=$cursor;$limit=min(25,$limit);
+        $start=ConversationRecordClock::sql('c.metadata_json',$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql');
         $mysql=$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
         $userMatch=$mysql?'BINARY cc.external_user_id=BINARY o.external_user_id':'cc.external_user_id=o.external_user_id';
         $chatMatch=$mysql?"BINARY c.external_chat_id=BINARY CONCAT('-',o.external_user_id)":"c.external_chat_id='-'||o.external_user_id";
-        $select=function(int $after)use($since,$userMatch,$chatMatch):array{
+        $bound=$mysql?'CAST(? AS UNSIGNED)':'CAST(? AS INTEGER)';
+        $select=function(int $after)use($activated,$start,$bound,$userMatch,$chatMatch):array{
             $q=$this->pdo->prepare("SELECT o.id,o.conversation_id,o.external_user_id FROM max_channel_conversion_outbox o"
-                ." JOIN conversations c ON c.id=o.conversation_id AND c.project_key='anytour' AND c.channel='max' AND c.is_test=0 AND c.started_at>=?"
+                ." JOIN conversations c ON c.id=o.conversation_id AND c.project_key='anytour' AND c.channel='max' AND c.is_test=0 AND ($start)>=$bound"
                 ." JOIN customer_channels cc ON cc.id=c.customer_channel_id AND cc.project_key='anytour' AND cc.channel='max' AND ".$userMatch
                 ." WHERE o.project_key='anytour' AND o.counter_id='98615635' AND ".$chatMatch
-                ." AND o.transport_target=o.target AND o.target IN ('max_bot_activity_start','max_manager_request','max_customer_reply_after_manager') AND o.created_at>=? AND o.id>?"
+                ." AND o.transport_target=o.target AND o.target IN ('max_bot_activity_start','max_manager_request','max_customer_reply_after_manager') AND o.event_unix>=? AND o.id>?"
                 .$this->platformWhere('max')." ORDER BY o.id LIMIT 100");
-            $q->execute([$since,$since,$after]);return$q->fetchAll(PDO::FETCH_ASSOC);
+            $q->execute([$activated,$activated,$after]);return$q->fetchAll(PDO::FETCH_ASSOC);
         };
         $rows=$select($cursor);if(!$rows&&$cursor>0){$cursor=0;$rows=$select(0);}
         $out=[];$seen=[];$after=$cursor;

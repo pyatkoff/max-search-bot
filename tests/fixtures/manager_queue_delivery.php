@@ -29,7 +29,7 @@ class FixtureMessenger {
 CODE;
 file_put_contents($tmp.'/bootstrap.php',$bootstrap);
 foreach(['ConversationDb','ProjectConfig','ManagerPushService','MetrikaConversionGoalService','ManagerAvailabilityService','ManagerRequestService','DialogueView','IntegrationRegistry'] as $name)file_put_contents($tmp.'/'.$name.'.php',"<?php require_once __DIR__.'/bootstrap.php';\n");
-foreach(['ConversationControlService','ManagerHandoffDispatchService'] as $name)copy($root.'/services/'.$name.'.php',$tmp.'/'.$name.'.php');
+foreach(['ConversationRecordClock','ConversationControlService','ManagerHandoffDispatchService'] as $name)copy($root.'/services/'.$name.'.php',$tmp.'/'.$name.'.php');
 function queueCheck($actual,$expected,string $name):void{if($actual!==$expected)throw new RuntimeException($name.' expected='.json_encode($expected).' actual='.json_encode($actual));echo 'PASS '.$name.PHP_EOL;}
 try {
  require $tmp.'/ManagerHandoffDispatchService.php';

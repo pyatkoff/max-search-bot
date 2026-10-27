@@ -94,8 +94,8 @@ $p->prepare('INSERT INTO max_no_unsub_goals VALUES(?,?,?,0)')->execute(['3002','
 // Native MySQL JSON predicates must find a text/contact after arbitrary callback volume.
 $p->prepare('INSERT INTO messages VALUES(10,1,\'max\',\'inbound\',\'customer\',?,?)')->execute(['2026-10-15 10:00:04','{bad']);
 $p->exec('DELETE FROM messages WHERE id=7 OR id=9');$q=$p->prepare('INSERT INTO messages VALUES(?,1,\'max\',\'inbound\',\'customer\',?,?)');
-for($id=11;$id<211;$id++)$q->execute([$id,'2026-10-15 10:00:04','{"type":"callback"}']);
-$q->execute([211,'2026-10-15 10:00:04','{"type":"contact"}']);
+for($id=11;$id<211;$id++)$q->execute([$id,'2026-10-15 10:00:04',json_encode(ConversationRecordClock::stamp(['type'=>'callback'],1792058404))]);
+$q->execute([211,'2026-10-15 10:00:04',json_encode(ConversationRecordClock::stamp(['type'=>'contact'],1792058404))]);
 require_once dirname(__DIR__).'/services/MaxChannelConversionOutbox.php';ProjectConfig::resetForTests(['id'=>'anytour']);$s=['project_key'=>'anytour','counter_id'=>'98615635','activated_at_unix'=>strtotime('2026-10-15 10:00:00 UTC')];
 $o=new MaxChannelConversionOutbox($p);$o->activateSharedGoals(strtotime('2026-10-15 10:00:00 UTC'));$s=MaxChannelConversionOutbox::settings($p);$c=$o->conversation('1','-1234567890123456789',$s);same((int)$o->event($c,'max_customer_reply_after_manager',$s)['id'],211,'native JSON before limit and same-second order');
 // InnoDB's conditional claim is shared between independent worker connections.
@@ -117,6 +117,7 @@ $p->exec("UPDATE max_channel_attribution_settings SET mode='collect',message_cur
 $p->exec("UPDATE conversations SET status='ai' WHERE id=7");
 $p->exec("INSERT INTO customer_channels VALUES(4,'anytour','max','456')");
 $p->exec("INSERT INTO conversations(id,customer_channel_id,project_key,channel,external_chat_id,is_test,status,source_id,started_at) VALUES(8,4,'anytour','max','-456',0,'waiting_manager',2,'2026-10-15 10:00:00')");
+maxAttributionStampKnownFixtureClocks($p);
 $second->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE,PDO::FETCH_ASSOC);$second->setAttribute(PDO::ATTR_EMULATE_PREPARES,false);$second->exec("SET time_zone='+00:00'");
 (new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$p);
 $p->beginTransaction();same(ConversationControlService::markWaitingByChat('max','-1234567890123456789'),true,'real handoff succeeds within caller transaction');
@@ -125,7 +126,7 @@ $waitingId=(int)$p->query("SELECT id FROM conversation_events WHERE conversation
 same((int)$p->query("SELECT COUNT(*) FROM max_channel_conversion_outbox WHERE conversation_id=7 AND target='max_manager_request'")->fetchColumn(),1,'actual hook captures outbox before outer commit');
 same((int)$p->query("SELECT COUNT(*) FROM conversation_events WHERE conversation_id=7 AND event_type='metrika_max_manager_request'")->fetchColumn(),1,'actual hook records marker within same transaction');
 same((int)$second->query("SELECT COUNT(*) FROM max_channel_conversion_outbox WHERE conversation_id=7 AND target='max_manager_request'")->fetchColumn(),0,'uncommitted capture remains invisible to worker');
-$second->exec("INSERT INTO conversation_events(conversation_id,event_type,created_at) VALUES(8,'waiting_manager',UTC_TIMESTAMP())");
+$second->prepare("INSERT INTO conversation_events(conversation_id,event_type,created_at,payload_json) VALUES(8,'waiting_manager',UTC_TIMESTAMP(),?)")->execute([json_encode(ConversationRecordClock::stamp([]))]);
 $laterId=(int)$second->lastInsertId();same($laterId>$waitingId,true,'independent handoff commits greater event ID first');
 (new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$second);
 $independent=new MaxChannelConversionOutbox($second);$seen=[];$independent->collect(MaxChannelConversionOutbox::settings($second),function(int $id)use(&$seen){$seen[]=$id;MetrikaConversionGoalService::reconcileChannelConversation($id);});

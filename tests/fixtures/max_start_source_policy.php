@@ -39,7 +39,7 @@ PHP;
 file_put_contents($tmp.'/bootstrap.php',$bootstrap);
 foreach(['ConversationDb','ProjectConfig','RoutingAccessService','DiagnosticLogger','IntegrationRegistry','ManagerHandoffDispatchService','IncomingUpdateDispatcher','IncomingUpdateDeduplicator','MaxInboundMediaArchiveService'] as $name)file_put_contents($tmp.'/services/'.$name.'.php',"<?php require_once dirname(__DIR__).'/bootstrap.php';\n");
 file_put_contents($tmp.'/integrations/MaxIncomingAdapter.php',"<?php require_once dirname(__DIR__).'/bootstrap.php';\n");
-foreach(['services/ManagerRequestService.php','services/TrafficAttributionService.php','services/ConversationRecorder.php','services/SourceHandlingService.php','services/MaxStartSourcePolicy.php','handlers/MaxUpdateHandler.php'] as $path)copy($root.'/'.$path,$tmp.'/'.$path);
+foreach(['services/ConversationRecordClock.php','services/ManagerRequestService.php','services/TrafficAttributionService.php','services/ConversationRecorder.php','services/SourceHandlingService.php','services/MaxStartSourcePolicy.php','handlers/MaxUpdateHandler.php'] as $path)copy($root.'/'.$path,$tmp.'/'.$path);
 $passed=0;$failed=0;
 function startCheck(string $name,$actual,$expected):void{global $passed,$failed;if($actual===$expected){echo 'PASS '.$name.PHP_EOL;$passed++;}else{echo 'FAIL '.$name.' expected='.json_encode($expected).' actual='.json_encode($actual).PHP_EOL;$failed++;}}
 function fixtureIncoming(int $user,string $source='max_anytour_msk1',string $type='bot_started'):array{return ['platform'=>'max','type'=>$type,'source_key'=>$source,'text'=>'fixture','user'=>['chat_id'=>-$user,'external_user_id'=>$user,'first_name'=>'Synthetic','last_name'=>'Tester','username'=>'fixture']];}
@@ -54,7 +54,7 @@ try{
     INSERT INTO conversation_sources VALUES(1,1,'max:anytour-main','max','ai',1),(2,1,'max_anytour_msk1','max','manager',1),(3,1,'max_fixture_ask','max','ask',1),(4,1,'max_fixture_inactive','max','manager',0),(5,1,'max_fixture_wrong_channel','telegram','manager',1),(6,2,'max_fixture_other_project','max','manager',1),(7,1,'max_fixture_ai','max','ai',1),(8,1,'max_anytour_msk','max','manager',1);
     CREATE TABLE customers(id INTEGER PRIMARY KEY AUTOINCREMENT,display_name TEXT);
     CREATE TABLE customer_channels(id INTEGER PRIMARY KEY AUTOINCREMENT,customer_id INTEGER,project_key TEXT,channel TEXT,external_user_id TEXT,external_chat_id TEXT,username TEXT,metadata_json TEXT);
-    CREATE TABLE conversations(id INTEGER PRIMARY KEY AUTOINCREMENT,customer_id INTEGER,customer_channel_id INTEGER,project_key TEXT,source_id INTEGER,channel TEXT,external_chat_id TEXT,status TEXT,manager_id INTEGER,entry_channel TEXT,last_message_at TEXT);
+    CREATE TABLE conversations(id INTEGER PRIMARY KEY AUTOINCREMENT,customer_id INTEGER,customer_channel_id INTEGER,project_key TEXT,source_id INTEGER,channel TEXT,external_chat_id TEXT,status TEXT,manager_id INTEGER,entry_channel TEXT,last_message_at TEXT,metadata_json TEXT);
     CREATE TABLE messages(id INTEGER PRIMARY KEY AUTOINCREMENT,conversation_id INTEGER,direction TEXT,sender_type TEXT,sender_id TEXT,channel TEXT,external_message_id TEXT,text TEXT,metadata_json TEXT);
     CREATE TABLE conversation_events(id INTEGER PRIMARY KEY AUTOINCREMENT,conversation_id INTEGER,event_type TEXT,actor_type TEXT,payload_json TEXT);");
 

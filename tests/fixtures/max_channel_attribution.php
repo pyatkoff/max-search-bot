@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+require_once dirname(__DIR__,2).'/services/ConversationRecordClock.php';
 function maxAttributionFixture(): PDO
 {
     $dsn=getenv('MAX_ATTRIBUTION_TEST_MYSQL_DSN');
@@ -13,7 +14,7 @@ function maxAttributionFixture(): PDO
     foreach([
         'projects (id INTEGER PRIMARY KEY,project_key VARCHAR(64))',
         'customer_channels (id INTEGER PRIMARY KEY,project_key VARCHAR(64),channel VARCHAR(16),external_user_id VARCHAR(20))',
-        'conversations (id INTEGER PRIMARY KEY,customer_channel_id INTEGER,project_key VARCHAR(64),channel VARCHAR(16),external_chat_id VARCHAR(20),is_test INTEGER,status VARCHAR(16),source_id INTEGER DEFAULT 1,started_at DATETIME DEFAULT NULL,manager_id INTEGER DEFAULT NULL)',
+        'conversations (id INTEGER PRIMARY KEY,customer_channel_id INTEGER,project_key VARCHAR(64),channel VARCHAR(16),external_chat_id VARCHAR(20),is_test INTEGER,status VARCHAR(16),source_id INTEGER DEFAULT 1,started_at DATETIME DEFAULT NULL,manager_id INTEGER DEFAULT NULL,metadata_json TEXT)',
         'conversation_sources (id INTEGER PRIMARY KEY,project_id INTEGER,channel VARCHAR(16),handling_mode VARCHAR(16))',
         'post_channels (id INTEGER PRIMARY KEY,project_id INTEGER,platform VARCHAR(16),bot_key VARCHAR(191))',
         'post_publications (id INTEGER PRIMARY KEY,post_channel_id INTEGER)',
@@ -51,7 +52,22 @@ function maxAttributionFixture(): PDO
         [8,'outbound','manager','10:00:05','message'],
         [9,'inbound','customer','10:00:06','message'],
     ];
-    foreach($messages as [$id,$direction,$sender,$time,$type])$p->prepare('INSERT INTO messages VALUES(?,1,\'max\',?,?,?,?)')->execute([$id,$direction,$sender,'2026-10-15 '.$time,json_encode(['type'=>$type])]);
+    foreach($messages as [$id,$direction,$sender,$time,$type])$p->prepare('INSERT INTO messages VALUES(?,1,\'max\',?,?,?,?)')->execute([$id,$direction,$sender,'2026-10-15 '.$time,json_encode(ConversationRecordClock::stamp(['type'=>$type],strtotime('2026-10-15 '.$time.' UTC')))]);
+    maxAttributionStampKnownFixtureClocks($p);
     return $p;
 }
 
+
+/** Synthetic fixture timestamps are explicitly UTC, unlike unknown production history. */
+function maxAttributionStampKnownFixtureClocks(PDO $p): void
+{
+    foreach($p->query('SELECT id,started_at,metadata_json FROM conversations')->fetchAll(PDO::FETCH_ASSOC)as$r){
+        if(ConversationRecordClock::read($r['metadata_json'])!==null)continue;
+        $p->prepare('UPDATE conversations SET metadata_json=? WHERE id=?')->execute([json_encode(ConversationRecordClock::stamp([],strtotime($r['started_at'].' UTC'))),$r['id']]);
+    }
+    foreach($p->query('SELECT id,created_at,payload_json FROM conversation_events')->fetchAll(PDO::FETCH_ASSOC)as$r){
+        if(ConversationRecordClock::read($r['payload_json'])!==null)continue;
+        $payload=json_decode($r['payload_json']??'{}',true)?:[];
+        $p->prepare('UPDATE conversation_events SET payload_json=? WHERE id=?')->execute([json_encode(ConversationRecordClock::stamp($payload,strtotime($r['created_at'].' UTC'))),$r['id']]);
+    }
+}
