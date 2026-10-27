@@ -212,6 +212,55 @@ test('inline answer is inert visible text; Tab validates and inserts once with p
   assert.equal(h.ids.get('aiDraftSuggestion').hidden,true);assert.equal((await pressInline(h)).prevented,false);assertNoMutations(h);
   assert.equal(reply.getAttribute('placeholder'),'Напишите туристу…');assert.equal(h.ids.get('composer').classList.contains('aiGhostVisible'),false);
 });
+for(const stage of ['prepared','validate'])test('inline '+stage+' failure is visible and explicitly retries the same guarded stage',async()=>{
+  let failed=true;
+  const h=await harness(data=>data.action===stage&&failed?response({ok:false,error:stage==='prepared'?'prepared_unavailable':'temporary_unavailable'},503):inlineHandler(data),{manager2:true});await tick();
+  const reply=h.ids.get('replyText'),file={name:'keep-after-insertion-error.txt'};h.setFile(file);reply.focus();
+  await h.click('aiSuggestionAccept');
+  assert.equal(h.ids.get('aiDraftPanel').hidden,false,'an explicit failed insertion must expose its explanation');
+  assert.match(h.ids.get('aiDraftStatus').textContent,/Не удалось проверить/);
+  assert.doesNotMatch(h.ids.get('aiDraftStatus').textContent,/Переписка изменилась/);
+  assert.equal(reply.value,'');assert.equal(h.getFile(),file);assert.equal(h.document.activeElement,reply);
+  assert.equal(h.aiCalls().filter(call=>call.action===stage).length,1);assert.equal(h.aiCalls().some(call=>call.action==='generate'),false);
+  failed=false;
+  if(stage==='prepared'){assert.equal(h.ids.get('aiDraftRetry').textContent,'Повторить проверку');await h.click('aiDraftRetry');}
+  assert.equal(h.ids.get('aiDraftInsert').hidden,false);await h.insert();
+  assert.equal(reply.value,generated().draft);assert.equal(h.getFile(),file);assert.equal(h.ids.get('aiDraftPanel').hidden,true);
+  assert.equal(h.aiCalls().filter(call=>call.action===stage).length,2);assert.equal(h.aiCalls().at(-1).draft_id,'a'.repeat(32));
+  assert.equal(h.aiCalls().some(call=>call.action==='generate'),false);assertNoMutations(h);
+});
+test('repeated prepared recovery failure stays a read retry until an explicit new-generation choice',async()=>{
+  let mode='failed';
+  const h=await harness(data=>data.action==='prepared'?(mode==='failed'?response({ok:false,error:'prepared_unavailable'},503):response({ok:true,prepared:false})):inlineHandler(data),{manager2:true});await tick();
+  await h.click('aiSuggestionAccept');await h.click('aiDraftRetry');
+  assert.equal(h.ids.get('aiDraftPanel').hidden,false);assert.equal(h.ids.get('aiDraftRetry').textContent,'Повторить проверку');
+  assert.equal(h.aiCalls().filter(call=>call.action==='prepared').length,2);assert.equal(h.aiCalls().some(call=>call.action==='generate'),false);
+  mode='missing';await h.click('aiDraftRetry');assert.match(h.ids.get('aiDraftStatus').textContent,/больше недоступна/);
+  assert.equal(h.ids.get('aiDraftRetry').textContent,'Подготовить новый ответ');assert.equal(h.aiCalls().some(call=>call.action==='generate'),false);assertNoMutations(h);
+});
+for(const stage of ['prepared','validate'])for(const status of [403,404])test('inline '+stage+' '+status+' clears private text without exposing a retry',async()=>{
+  const h=await harness(data=>data.action===stage?response({ok:false,error:'reply_not_allowed'},status):inlineHandler(data),{manager2:true});await tick();
+  const file={name:'keep-denied.txt'};h.setFile(file);await h.click('aiSuggestionAccept');
+  assert.equal(h.ids.get('aiDraftPanel').hidden,true);assert.equal(h.ids.get('aiDraftPanel').children[2].children.length,0);
+  assert.equal(h.ids.get('aiDraftSuggestion').hidden,true);assert.equal(h.ids.get('replyText').value,'');assert.equal(h.getFile(),file);assertNoMutations(h);
+});
+for(const change of ['navigation','account','message','typing'])test('prepared insertion recovery rejects a late result after '+change,async()=>{
+  let retrying=false;const pending=deferred();
+  const h=await harness(data=>data.action==='prepared'?(retrying?pending.promise:response({ok:false,error:'prepared_unavailable'},503)):inlineHandler(data),{manager2:true});await tick();
+  await h.click('aiSuggestionAccept');retrying=true;await h.click('aiDraftRetry');
+  if(change==='navigation')await h.C.open(102);else if(change==='account')h.W.S.authGeneration++;else if(change==='message')h.W.S.detail.messages.push({id:9,sender_type:'customer',text:'Новое сообщение'});else await h.draft('Сохранить мой текст');
+  h.ai.sync();pending.resolve(inlineHandler({action:'prepared'}));await tick();
+  assert.equal(h.ids.get('replyText').value,change==='typing'?'Сохранить мой текст':'');
+  if(change==='navigation'||change==='account')assert.equal(h.ids.get('aiDraftPanel').hidden,true);
+  if(change==='message')assert.equal(h.ids.get('aiDraftInsert').hidden,true);
+  assert.equal(h.aiCalls().some(call=>call.action==='generate'||call.action==='validate'),false);assertNoMutations(h);
+});
+test('a real revision conflict exposes an honest refresh instead of an insertion retry',async()=>{
+  const h=await harness(data=>data.action==='validate'?response({ok:false,error:'context_stale'},409):inlineHandler(data),{manager2:true});await tick();
+  await h.click('aiSuggestionAccept');assert.equal(h.ids.get('aiDraftPanel').hidden,false);assert.match(h.ids.get('aiDraftStatus').textContent,/Переписка изменилась/);
+  assert.equal(h.ids.get('aiDraftInsert').hidden,true);assert.equal(h.ids.get('aiDraftPanel').children[2].children.length,0);
+  assert.equal(h.ids.get('aiDraftRetry').textContent,'Повторить проверку');assert.equal(h.aiCalls().some(call=>call.action==='generate'),false);assertNoMutations(h);
+});
 test('inline suggestion preserves standard modified Tab, IME, typing, focus and dismissal',async()=>{
   const h=await harness(inlineHandler,{manager2:true});await tick();const reply=h.ids.get('replyText');reply.focus();
   for(const changes of [{shiftKey:true},{ctrlKey:true},{altKey:true},{metaKey:true},{isComposing:true},{repeat:true}])assert.equal((await pressInline(h,changes)).prevented,false);

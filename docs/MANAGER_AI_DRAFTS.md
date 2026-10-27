@@ -1,13 +1,22 @@
 # Manager AI reply drafts
 
 An assigned manager sees an available AI reply as muted ghost text inside the
-empty message field, with `Tab — вставить` at its bottom. It is a presentation
+empty message field, with `Вставить в ответ` at its bottom. It is a presentation
 overlay: the native textarea and saved draft stay empty until explicit acceptance.
 Typing or dismissing the suggestion restores the normal placeholder. Manager2's
 existing ReplyEditor measures the ghost text and hint within the same field and
 viewport budget; long suggestions retain the full preview through `Подробнее`.
 Tab applies only while that composer has focus, without modifiers or composition;
 an existing reply is never replaced.
+
+If an explicit insertion fails while reading provenance or validating the current
+context, the existing AI preview shows the error without moving editor focus.
+Its retry repeats only the failed read or validation; transient failures do not
+claim that the conversation changed. A real revision conflict clears the private
+draft and offers a fresh check. An unavailable saved reply requires an explicit
+new-generation choice. Navigation, access, account and expiry guards still cancel
+obsolete insertion; typed text and attached files remain with the composer.
+
 The full preview retains the reason and checks. Accepting a prepared suggestion
 explicitly loads `prepared` to record its provenance, then uses the existing fresh
 `validate` and canonical composer insertion. It never sends the reply.

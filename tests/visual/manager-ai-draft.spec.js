@@ -92,6 +92,37 @@ async function ghostFitsField(page,{allowClipping=false}={}){
   expect(geometry.footerLeft).toBeGreaterThanOrEqual(geometry.fieldLeft-1);expect(geometry.footerRight).toBeLessThanOrEqual(geometry.fieldRight+1);expect(geometry.footerTop).toBeGreaterThanOrEqual(geometry.bottom-1);expect(geometry.footerBottom).toBeLessThanOrEqual(geometry.fieldBottom+1);
   if(!allowClipping)expect(geometry.contentClipped).toBe(false);
 }
+for(const stage of ['prepared','validate'])for(const width of [430,1440])test('AI inline insertion recovery '+stage+' '+width,async({page,browserName})=>{
+  const viewport={width,height:width===430?420:900};await page.setViewportSize(viewport);
+  const state=await setup(page,{readiness:true});
+  await expect(page.locator('#aiDraftSuggestion')).toBeVisible();
+  await expect(page.locator('#aiSuggestionAccept')).toHaveText('Вставить в ответ');
+  await page.locator('#replyFile').setInputFiles({name:'insertion-recovery.txt',mimeType:'text/plain',buffer:Buffer.from('synthetic retained attachment')});
+  let failed=true;
+  state.setAI(async data=>{
+    if(data.action===stage&&failed)return {body:{ok:false,error:stage==='prepared'?'prepared_unavailable':'temporary_unavailable'},status:503};
+    return data.action==='prepared'?{body:prepared({draft_id:'d'.repeat(32),expires_at:new Date(Date.now()+3600000).toISOString()})}:{body:{ok:true,revision:'1'.repeat(64),latest_message_id:35,draft_id:data.draft_id||null}};
+  });
+  await page.locator('#replyText').focus();
+  if(width===1440)await page.locator('#replyText').press('Tab');else await page.locator('#aiSuggestionAccept').click();
+  await expect(page.locator('#aiDraftPanel')).toBeVisible();await expect(page.locator('#aiDraftStatus')).toContainText('Не удалось проверить');
+  await expect(page.locator('#aiDraftStatus')).not.toContainText('Переписка изменилась');await expect(page.locator('#replyText')).toHaveValue('');
+  if(width===1440)await expect(page.locator('#replyText')).toBeFocused();
+  await expect(page.locator('#mediaSelection')).toContainText('insertion-recovery.txt');expect(await page.evaluate(()=>WorkspaceV2Media.hasFile())).toBe(true);
+  expect(state.aiCalls().filter(call=>call.action===stage)).toHaveLength(1);expect(state.aiCalls().some(call=>call.action==='generate')).toBe(false);
+  await bounded(page);
+  const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});
+  await page.screenshot({animations:'disabled',path:path.join(directory,`ai-inline-recovery-${browserName}-${stage}-${width}-${viewport.height}.png`)});
+  failed=false;
+  if(stage==='prepared'){await expect(page.locator('#aiDraftRetry')).toHaveText('Повторить проверку');await page.locator('#aiDraftRetry').click();}
+  await expect(page.locator('#aiDraftInsert')).toBeEnabled();
+  await page.locator('#replyText').fill('Моя поправка');await page.locator('#aiDraftInsert').click();
+  await expect(page.locator('#aiDraftPanel')).toBeHidden();
+  await expect(page.locator('#replyText')).toHaveValue('Моя поправка\n'+proposal().draft);
+  await expect(page.locator('#mediaSelection')).toContainText('insertion-recovery.txt');expect(await page.evaluate(()=>WorkspaceV2Media.hasFile())).toBe(true);
+  expect(state.aiCalls().filter(call=>call.action===stage)).toHaveLength(2);expect(state.aiCalls().at(-1).draft_id).toBe('d'.repeat(32));
+  expect(state.aiCalls().some(call=>call.action==='generate')).toBe(false);clean(state);
+});
 for(const owner of [false,true])for(const width of [390,1440])test('AI opening queues and reveals '+(owner?'owner foreign':'own')+' automatic hint without an AI click '+width,async({page,browserName},testInfo)=>{
   await page.setViewportSize({width,height:900});await page.addInitScript(()=>{window.syntheticAiButtonClicks=0;document.addEventListener('click',event=>{const button=event.target.closest?.('button');if(button?.id==='aiDraftOpen'||button?.getAttribute('aria-label')==='AI · Просмотр')window.syntheticAiButtonClicks++},true)});
   const state=await setup(page,{automatic:true,owner}),notice=page.locator('#aiPreparationNotice'),reply=page.locator('#replyText');
