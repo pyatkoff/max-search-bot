@@ -32,6 +32,7 @@ final class PreparedReplyPdo extends PDO
     public ?Closure $beforeInputAnnotation = null;
     public bool $failSnapshotOnce = false;
     public ?Closure $beforeOpenBindingRead = null;
+    public ?Closure $beforeAiInboxConfirmation = null;
 
     public function __construct()
     {
@@ -74,6 +75,7 @@ final class PreparedReplyPdo extends PDO
         if ($this->beforeLegacyBindingRead !== null && str_starts_with($sql,'SELECT * FROM manager_prepared_replies WHERE conversation_id=? AND manager_id=? AND project_key=? AND context_revision=?')){$callback=$this->beforeLegacyBindingRead;$this->beforeLegacyBindingRead=null;$callback($this);}
         if ($this->beforeInputAnnotation !== null && str_starts_with($sql,'UPDATE manager_prepared_replies SET customer_input_revision=')){$callback=$this->beforeInputAnnotation;$this->beforeInputAnnotation=null;$callback($this);}
         if ($this->beforeOpenBindingRead !== null && str_starts_with($sql,"SELECT * FROM manager_prepared_replies WHERE conversation_id=? AND requested_by_manager_id=? AND purpose='open_chat' AND project_key=? AND manager_id=?")){$callback=$this->beforeOpenBindingRead;$this->beforeOpenBindingRead=null;$callback($this);}
+        if ($this->beforeAiInboxConfirmation !== null && str_starts_with($sql,'SELECT c.id,c.project_key,c.source_id,c.channel,c.status,c.manager_id,v.role,')){$callback=$this->beforeAiInboxConfirmation;$this->beforeAiInboxConfirmation=null;$callback($this);}
         $this->executed[] = $sql;
         if (preg_match('/\A\s*SELECT\b/i', $sql)) return;
         if ($this->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql'
@@ -561,6 +563,8 @@ function preparedReplyRun(): void
     require_once __DIR__.'/support/manager-supervision-regression.php';
     managerSupervisorRegression();
     preparedReplyOpenRequests();
+    require_once __DIR__.'/support/manager-ai-inbox-status-regression.php';
+    managerAiInboxStatusRegression();
     preparedReplyReferenceRecovery();
     preparedReplyReconciliationBoundaries();
     preparedReplyLegacyInputCoverage();

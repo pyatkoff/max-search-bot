@@ -7,6 +7,7 @@
   let ready=null,watch=null,statusFlight=null,watchTimer=null,expiryTimer=null,notice,noticeLabel;
   let suggestion,suggestionText,suggestionLabel,suggestionAccept;
   let preparationNotice,preparationLabel,preparationRetry;
+  let recommendationNotice,recommendationTitle,recommendationReason;
   const automaticAttempts=new Map();
   let automaticIdentity='';
   let placeholder='',suggestionLargeFont=null;
@@ -34,7 +35,7 @@
   function timeValue(value){const parsed=window.ManagerTime?.parse?.(value)||new Date(String(value||'').replace(' ','T')+(/(?:Z|[+-]\d{2}:?\d{2})$/.test(String(value||''))?'':'Z'));return Number.isNaN(parsed.getTime())?0:parsed.getTime()}
   function timeLabel(value){return window.ManagerTime?.format?window.ManagerTime.format(value)+' '+window.ManagerTime.label:''}
   function hideNotice(hidden){if(notice&&notice.hidden!==hidden)notice.hidden=hidden}
-  function clearReady(){ready=null;window.clearTimeout?.(expiryTimer);expiryTimer=null;hideNotice(true);syncSuggestion()}
+  function clearReady(){ready=null;window.clearTimeout?.(expiryTimer);expiryTimer=null;hideNotice(true);syncSuggestion();syncRecommendation()}
   function noticeKey(){return ready?JSON.stringify([S.manager?.id,S.current,ready.revision,ready.prepared_at]):''}
   function dismissNotice(){dismissedNotices.add(noticeKey());if(dismissedNotices.size>100)dismissedNotices.delete(dismissedNotices.values().next().value);hideNotice(true);syncSuggestion()}
   function suggestionAvailable(){
@@ -68,8 +69,31 @@
   function syncPreferences(){
     syncSuggestion();
     syncPreparation();
+    syncRecommendation();
     if(!notice)return;
     hideNotice(!canCompose()||!manager2()||!visible()||!ready||ready.kind!=='prepared'||ready.expires<=Date.now()||!ready.should_draft||!currentSnapshot(ready.snapshot)||!panel.hidden||suggestion&&!suggestion.hidden||dismissedNotices.has(noticeKey())||window.WorkspaceV2PersonalWorkspace?.showAiReadyNotice?.()===false);
+  }
+  function hasReadyProposal(result,saved){
+    return validResult(result,saved)&&typeof result.next_action==='string'&&typeof result.reason==='string'&&Array.isArray(result.checks);
+  }
+  function syncRecommendation(){
+    if(!recommendationNotice)return;
+    const shown=manager2()&&visible()&&!!ready&&ready.expires>Date.now()&&currentSnapshot(ready.snapshot)&&hasReadyProposal(ready,ready.snapshot)&&ready.should_draft===false&&panel.hidden&&!flight&&window.WorkspaceV2PersonalWorkspace?.showAiReadyNotice?.()!==false&&(ownerRead()||canCompose());
+    let changed=recommendationNotice.hidden===shown;
+    if(changed)recommendationNotice.hidden=!shown;
+    if(!shown){
+      if(recommendationTitle.textContent||recommendationReason.textContent){recommendationTitle.textContent='';recommendationReason.textContent='';changed=true}
+      if(changed)window.WorkspaceV2ReplyEditor?.resize?.();
+      return;
+    }
+    const readonly=ownerRead(),host=readonly?$('conversationZone'):$('composer');
+    const before=readonly?$('composerLocked'):[...host.children].find(node=>node.classList.contains('composerSurface')||node.classList.contains('composerMain'))||host.firstChild;
+    if(recommendationNotice.parentElement!==host){host.insertBefore(recommendationNotice,before);changed=true}
+    recommendationNotice.classList.toggle('aiRecommendationReadonly',readonly);
+    const title=ready.next_action==='no_contact'?'AI: сейчас отвечать не нужно':'AI: перед ответом нужна проверка';
+    if(recommendationTitle.textContent!==title){recommendationTitle.textContent=title;changed=true}
+    if(recommendationReason.textContent!==ready.reason){recommendationReason.textContent=ready.reason;changed=true}
+    if(changed)window.WorkspaceV2ReplyEditor?.resize?.();
   }
   function automaticEligible(saved){
     return !!saved&&watch===saved&&currentSnapshot(saved.snapshot)&&visible()&&window.WorkspaceV2PersonalWorkspace?.showAiReadyNotice?.()!==false&&(ownerRead()||canCompose()&&$('replyText').value==='');
@@ -178,12 +202,12 @@
         if(saved.automatic)saved.automatic.phase='complete';
         if(ready?.kind!=='generated'){
           rememberReady(result,saved.snapshot,'prepared');
-          if(result.should_draft&&!validResult(ready,saved.snapshot)){
+          if(!hasReadyProposal(ready,saved.snapshot)){
             // Passive full-text reads never generate, register use or move focus.
             const proposal=await W.request('ai-draft.php','prepared_preview',{conversation_id:saved.snapshot.context.conversationId,latest_message_id:saved.snapshot.latest},{signal:current.controller?.signal,isCurrent});
             if(!isCurrent())return;
             if(proposal?.http_status===403||proposal?.http_status===404){saved.blocked=true;clearReady();resetSession({keepReady:true});return}
-            if(validResult(proposal,saved.snapshot)&&proposal.prepared===true&&proposal.revision===result.revision&&proposal.prepared_at===result.prepared_at)rememberReady(proposal,saved.snapshot,'prepared');
+            if(hasReadyProposal(proposal,saved.snapshot)&&proposal.prepared===true&&proposal.should_draft===result.should_draft&&proposal.revision===result.revision&&proposal.prepared_at===result.prepared_at)rememberReady(proposal,saved.snapshot,'prepared');
             else clearReady();
           }
         }
@@ -291,7 +315,7 @@
     return result?.ok===true&&typeof result.revision==='string'&&!!result.revision&&Number.isSafeInteger(result.latest_message_id)&&result.latest_message_id===saved.latest&&typeof result.should_draft==='boolean'&&(!result.should_draft||typeof result.draft==='string'&&!!result.draft.trim());
   }
   function openReady(){
-    if(ready?.kind==='generated'&&ready.expires>Date.now()&&currentSnapshot(ready.snapshot)&&validResult(ready,ready.snapshot)){
+    if((ready?.kind==='generated'||ready?.should_draft===false)&&ready.expires>Date.now()&&currentSnapshot(ready.snapshot)&&hasReadyProposal(ready,ready.snapshot)){
       const result=ready;abortStatusRead();abortFlight();view={snapshot:result.snapshot,selection:selection(),result,stale:false};panel.hidden=false;button.setAttribute('aria-expanded','true');renderResult(result);setBusy(false);positionPanel();panel.focus({preventScroll:true});if(watch)scheduleStatus(watch);return;
     }
     void loadProposal('prepared',true);
@@ -402,6 +426,9 @@
       preparationNotice=document.createElement('div');preparationNotice.id='aiPreparationNotice';preparationNotice.className='aiPreparationNotice';preparationNotice.hidden=true;preparationNotice.setAttribute('role','status');preparationNotice.setAttribute('aria-live','polite');
       preparationLabel=document.createElement('span');preparationNotice.appendChild(preparationLabel);
       preparationRetry=document.createElement('button');preparationRetry.id='aiPreparationRetry';preparationRetry.type='button';preparationRetry.textContent='Повторить подготовку';preparationRetry.hidden=true;preparationRetry.addEventListener('click',retryAutomatic);preparationNotice.appendChild(preparationRetry);form.appendChild(preparationNotice);
+      recommendationNotice=document.createElement('section');recommendationNotice.id='aiRecommendationNotice';recommendationNotice.className='aiRecommendationNotice';recommendationNotice.hidden=true;recommendationNotice.setAttribute('role','status');recommendationNotice.setAttribute('aria-live','polite');recommendationNotice.setAttribute('aria-label','Почему нет AI-черновика');
+      const recommendationCopy=document.createElement('div');recommendationCopy.className='aiRecommendationCopy';recommendationTitle=document.createElement('strong');recommendationTitle.className='aiRecommendationTitle';recommendationCopy.appendChild(recommendationTitle);recommendationReason=document.createElement('p');recommendationReason.className='aiRecommendationReason';recommendationCopy.appendChild(recommendationReason);recommendationNotice.appendChild(recommendationCopy);
+      const recommendationDetails=document.createElement('button');recommendationDetails.id='aiRecommendationDetails';recommendationDetails.type='button';recommendationDetails.textContent='Подробнее';recommendationDetails.addEventListener('click',openReady);recommendationNotice.appendChild(recommendationDetails);form.appendChild(recommendationNotice);
       suggestion=document.createElement('section');suggestion.id='aiDraftSuggestion';suggestion.className='aiDraftSuggestion';suggestion.hidden=true;suggestion.setAttribute('aria-label','AI-подсказка');
       const suggestionHead=document.createElement('div');suggestionHead.className='aiSuggestionHead';suggestionLabel=document.createElement('strong');suggestionHead.appendChild(suggestionLabel);
       const hideSuggestion=document.createElement('button');hideSuggestion.type='button';hideSuggestion.className='aiSuggestionDismiss';hideSuggestion.textContent='×';hideSuggestion.setAttribute('aria-label','Скрыть AI-подсказку');hideSuggestion.addEventListener('click',dismissNotice);suggestionHead.appendChild(hideSuggestion);suggestion.appendChild(suggestionHead);

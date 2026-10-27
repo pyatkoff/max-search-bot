@@ -141,7 +141,7 @@ final class ManagerPersonalWorkspaceService
                 ||(in_array('mine',$queues,true)&&$row['status']==='manager'&&(int)$row['manager_id']===$actor)
                 ||(in_array('closed',$queues,true)&&$row['status']==='closed')));
         }
-        $rows=ManagerLeadInboxService::decorate($rows);
+        $rows=ManagerLeadInboxService::decorate($rows,$actor);
         $rows=ManagerLeadInboxService::filter($rows,'',$search,'');
         if ($queue==='mine') $rows=ManagerLeadInboxService::sortMine($rows);
         $manager=ManagerAuthService::byId($actor);

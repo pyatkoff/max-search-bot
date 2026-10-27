@@ -46,11 +46,26 @@ function renderHarness(overrides={}) {
   const list=new Element(),S={queue:'all',manager:{id:7,role:'manager'},authGeneration:1,...overrides};
   const document={activeElement:null,getElementById:id=>id==='inboxList'?list:null,querySelector:()=>null,createElement:()=>new Element()};
   const window={ManagerTime:{format:()=>''},WorkspaceV2:{S,$:document.getElementById,esc:String,statusText:String,formatWait:seconds=>seconds+' seconds'}};
-  vm.runInNewContext(source,{window,document,Intl,Number,Map,Set,JSON});
-  return {list,scrollWrites,render:window.WorkspaceV2Inbox.renderList};
+  const context={window,document,Intl,Number,Map,Set,JSON};
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../manager/assets/manager-time.js'),'utf8'),context);
+  vm.runInNewContext(source,context);
+  return {list,scrollWrites,S,inbox:window.WorkspaceV2Inbox,render:window.WorkspaceV2Inbox.renderList};
 }
 
 (async () => {
+  const ai=renderHarness(),future=new Date(Date.now()+60000).toISOString().replace('T',' ').slice(0,19),baseAi={id:91,status:'manager',manager_id:7,ai_preparation_expires_at:future};
+  for(const [state,label]of[['pending','AI готовится'],['ready','AI подготовлен'],['recommendation','AI: рекомендации']]){
+    const metadata=ai.inbox.aiStatusMeta({...baseAi,ai_preparation_status:state});assert.equal(metadata.label,label);assert.ok(metadata.expires>Date.now());
+    assert.match(ai.inbox.aiStatusChip({...baseAi,ai_preparation_status:state}),/актуальность проверим при открытии/);
+    assert.doesNotMatch(ai.inbox.aiStatusChip({...baseAi,ai_preparation_status:state}),/<button|onclick|proposal|job_id/,'a status is inert metadata without a preview or action');
+  }
+  for(const changes of [{ai_preparation_status:'unknown'},{ai_preparation_status:'__proto__'},{ai_preparation_status:'constructor'},{ai_preparation_status:'<img src=x onerror=1>'},{ai_preparation_expires_at:'invalid'},{ai_preparation_expires_at:'2000-01-01 00:00:00'},{id:0},{delivery_failure_category:'suspended'},{manager_id:8},{status:'closed'}])assert.equal(ai.inbox.aiStatusMeta({...baseAi,ai_preparation_status:'ready',...changes}),null);
+  ai.S.authExpired=true;assert.equal(ai.inbox.aiStatusMeta({...baseAi,ai_preparation_status:'ready'}),null);ai.S.authExpired=false;
+  ai.S.manager={id:7,role:'admin'};for(const status of ['manager','waiting_manager','closed'])assert.equal(ai.inbox.aiStatusMeta({...baseAi,status,manager_id:8,ai_preparation_status:'ready'}).state,'ready','the owner can display authorized foreign cache metadata');
+  ai.render([{...baseAi,ai_preparation_status:'pending'}]);const aiRow=ai.list.children[0];assert.match(aiRow.innerHTML,/AI готовится/);
+  ai.render([{...baseAi,ai_preparation_status:'pending'}]);assert.equal(ai.list.children[0],aiRow,'an unchanged badge keeps the row DOM');
+  ai.render([{...baseAi,ai_preparation_status:'ready'}]);assert.notEqual(ai.list.children[0],aiRow);assert.match(ai.list.children[0].innerHTML,/AI подготовлен/);
+  ai.render([{...baseAi,ai_preparation_status:'ready',ai_preparation_expires_at:'2000-01-01 00:00:00'}]);assert.doesNotMatch(ai.list.children[0].innerHTML,/leadAiStatus/);
   const blocked=renderHarness({queue:'mine'}),row={id:71,display_name:'Synthetic blocked client',status:'manager',awaiting_first_reply:1,awaiting_manager_reply:1,wait_age_seconds:7200,delivery_failure_category:'suspended',last_text:'Клиент недоступен в MAX',next_task_title:'Позвонить по договорённости',next_task_overdue:true};
   blocked.render([row]);const card=blocked.list.children.find(node=>node.dataset.conversationId==='71');
   assert.doesNotMatch(card.className,/waitUrgent|waitWarn|needsReply/,'suspended recipients have no automatic reply/SLA visual urgency even with old contradictory flags');
