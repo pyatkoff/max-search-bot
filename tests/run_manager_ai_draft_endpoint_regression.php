@@ -128,6 +128,25 @@ try {
             'expires_at'=>'2026-10-19 11:00:00','preparation_source'=>'chatgpt_assistant']);
     $assertNoProvider('automatic readiness never calls the provider');
     managerAiEndpointCheck('automatic readiness never records feedback',!in_array('feedback_record',array_column($events(),'event'),true));
+    $previewRequest=array_replace($body,['action'=>'prepared_preview']);
+    $writeState(['prepared_result'=>$statusStored]);$clearEvents();
+    $inlinePreview=$request($previewRequest,$cookie);
+    managerAiEndpointCheck('passive preview returns full current proposal without private job identity',
+        $inlinePreview['status']===200&&$inlinePreview['json']===array_replace(array_diff_key($cached,['job_id'=>true]),
+            ['draft_id'=>null,'expires_at'=>'2026-10-19 11:00:00','preparation_source'=>'chatgpt_assistant']));
+    $assertNoProvider('passive full-text preview never calls provider');
+    managerAiEndpointCheck('passive full-text preview never records use or insertion feedback',
+        !array_intersect(['feedback_record','feedback_insert_request'],array_column($events(),'event')));
+    managerAiEndpointCheck('passive preview rechecks current authorized context after releasing session',
+        count(array_filter($events(),static fn(array $event):bool=>$event['event']==='snapshot'))===2
+        &&(array_values(array_filter($events(),static fn(array $event):bool=>$event['event']==='prepared_read'))[0]['session_closed']??false));
+    $writeState();$clearEvents();
+    managerAiEndpointCheck('passive cache miss stays explicit with no feedback',
+        $request($previewRequest,$cookie)['json']===['ok'=>true,'prepared'=>false]
+        &&!array_intersect(['provider','feedback_record','feedback_insert_request'],array_column($events(),'event')));
+    $writeState(['context_error'=>'reply_not_allowed']);$clearEvents();
+    $expectError('passive preview refuses unauthorized foreign chat',$request($previewRequest,$cookie),403,'reply_not_allowed');
+    managerAiEndpointCheck('unauthorized passive preview never reads cache',!in_array('prepared_read',array_column($events(),'event'),true));
     $statusStored['proposal']['should_draft']=false;$statusStored['proposal']['draft']=null;
     $writeState(['prepared_result'=>$statusStored]);
     managerAiEndpointCheck('readiness distinguishes recommendations without a customer draft',$request($statusRequest,$cookie)['json']['should_draft']===false);
@@ -200,18 +219,20 @@ try {
         managerAiEndpointCheck('responses retain no-store JSON headers',count(array_filter($response['headers'],static fn(string $header): bool=>str_starts_with(strtolower($header),'cache-control:') && preg_match('/(?:^|[ ,:])no-store(?:[ ,]|$)/i',$header) === 1)) === 1 && count(array_filter($response['headers'],static fn(string $header): bool=>str_starts_with(strtolower($header),'content-type: application/json'))) === 1);
     }
 
-    $race = static function(string $name,array $change,?string $sessionMutation,int $status,string $error,int $snapshotCount,array $setup=[]) use ($tmp,$fixture,$address,$body,$writeState,$clearEvents,$events,$login,$expectError,&$children): void {
+    $race = static function(string $name,array $change,?string $sessionMutation,int $status,string $error,int $snapshotCount,array $setup=[],string $action='generate') use ($tmp,$fixture,$address,$body,$writeState,$clearEvents,$events,$login,$expectError,&$children): void {
         $writeState($setup); $cookie = $login();
-        $writeState(['provider_mode'=>'wait']+$setup); $clearEvents();
-        foreach (['provider-ready','provider-release','result.json'] as $file) if (is_file($tmp.'/'.$file)) unlink($tmp.'/'.$file);
+        $barrier=$action==='prepared_preview'?'prepared':'provider';
+        $waiting=[$barrier.'_mode'=>'wait'];
+        $writeState($waiting+$setup); $clearEvents();
+        foreach ([$barrier.'-ready',$barrier.'-release','result.json'] as $file) if (is_file($tmp.'/'.$file)) unlink($tmp.'/'.$file);
         $worker = proc_open([PHP_BINARY,$fixture,'http-request'],[0=>['pipe','r'],1=>['file',$tmp.'/client.log','a'],2=>['file',$tmp.'/client.log','a']],$pipes);
         if (!is_resource($worker)) throw new RuntimeException('Cannot start asynchronous HTTP client');
         $children[] = $worker;
-        fwrite($pipes[0],json_encode(['address'=>$address,'data'=>$body,'cookie'=>$cookie,'result_path'=>$tmp.'/result.json'])); fclose($pipes[0]);
+        fwrite($pipes[0],json_encode(['address'=>$address,'data'=>array_replace($body,['action'=>$action]),'cookie'=>$cookie,'result_path'=>$tmp.'/result.json'])); fclose($pipes[0]);
         try {
             $deadline = microtime(true)+3;
-            while (!is_file($tmp.'/provider-ready') && microtime(true) < $deadline) usleep(10000);
-            managerAiEndpointCheck($name.' reaches provider wait',is_file($tmp.'/provider-ready'));
+            while (!is_file($tmp.'/'.$barrier.'-ready') && microtime(true) < $deadline) usleep(10000);
+            managerAiEndpointCheck($name.' reaches '.$barrier.' wait',is_file($tmp.'/'.$barrier.'-ready'));
             if ($sessionMutation !== null) {
                 preg_match('/^anytour_manager_panel=(.+)$/',$cookie,$session);
                 $mutator = proc_open([PHP_BINARY,$fixture,'mutate-session',$tmp.'/sessions',$session[1],$sessionMutation],
@@ -223,14 +244,15 @@ try {
                 managerAiEndpointCheck($name.' can change real session while provider waits',!$processState['running'] && $processState['exitcode'] === 0);
                 proc_close($mutator); array_pop($children);
             }
-            if ($change) $writeState(['provider_mode'=>'wait']+$change+$setup);
-        } finally { file_put_contents($tmp.'/provider-release','release'); }
+            if ($change) $writeState($waiting+$change+$setup);
+        } finally { file_put_contents($tmp.'/'.$barrier.'-release','release'); }
         $exit = proc_close($worker); array_pop($children);
         managerAiEndpointCheck($name.' completes HTTP worker',$exit === 0 && is_file($tmp.'/result.json'));
         $response = json_decode((string) file_get_contents($tmp.'/result.json'),true);
         $expectError($name.' rejects stale proposal',$response,$status,$error);
         managerAiEndpointCheck($name.' does not leak generated text',!str_contains($response['body'],'Какие даты вылета'));
         managerAiEndpointCheck($name.' uses expected fresh authorization boundary',count(array_filter($events(),static fn(array $event): bool=>$event['event'] === 'snapshot')) === $snapshotCount);
+        if($action==='prepared_preview')managerAiEndpointCheck($name.' has no provider or feedback side effects',!array_intersect(['provider','feedback_record','feedback_insert_request'],array_column($events(),'event')));
     };
     $race('new customer message',['latest_message_id'=>11,'revision'=>hash('sha256','new-message')],null,409,'context_stale',2);
     $race('same-ID message edit',['revision'=>hash('sha256','edited-message')],null,409,'context_stale',2);
@@ -240,9 +262,20 @@ try {
     $race('logout during provider',[],'logout',401,'unauthorized',1);
     $race('CSRF rotates during provider',[],'rotate_csrf',401,'unauthorized',1);
     $race('account changes during provider',[],'change_account',401,'unauthorized',1);
+    $race('new message during passive preview',['latest_message_id'=>11,'revision'=>hash('sha256','preview-new-message')],null,409,'context_stale',2,['prepared_result'=>$stored],'prepared_preview');
+    $race('access lost during passive preview',['access'=>false],null,403,'forbidden',2,['prepared_result'=>$stored],'prepared_preview');
+    $race('logout during passive preview',[],'logout',401,'unauthorized',1,['prepared_result'=>$stored],'prepared_preview');
+    $race('CSRF rotates during passive preview',[],'rotate_csrf',401,'unauthorized',1,['prepared_result'=>$stored],'prepared_preview');
+    $race('account changes during passive preview',[],'change_account',401,'unauthorized',1,['prepared_result'=>$stored],'prepared_preview');
     $writeState(['supervisor_read'=>true,'prepared_result'=>$stored]);$cookie=$login();$clearEvents();
     $super=$request($prepared,$cookie);
     managerAiEndpointCheck('supervisor cache uses actual owner without feedback',$super['status']===200&&$super['json']['owner_id']===8&&$super['json']['supervisor_read']&&$super['json']['draft_id']===null&&!in_array('feedback_record',array_column($events(),'event'),true)&&(array_values(array_filter($events(),static fn($e)=>$e['event']==='prepared_read'))[0]['manager_id']??null)===8);
+    $clearEvents();$super=$request($previewRequest,$cookie);
+    managerAiEndpointCheck('foreign passive preview uses current owner cache without attribution',
+        $super['status']===200&&$super['json']['owner_id']===8&&$super['json']['supervisor_read']&&$super['json']['draft_id']===null&&!isset($super['json']['job_id'])
+        &&!array_intersect(['provider','feedback_record','feedback_insert_request'],array_column($events(),'event'))
+        &&(array_values(array_filter($events(),static fn($e)=>$e['event']==='prepared_read'))[0]['manager_id']??null)===8);
+    $race('foreign scope lost during passive preview',['access'=>false],null,403,'forbidden',2,['supervisor_read'=>true,'prepared_result'=>$stored],'prepared_preview');
     $writeState(['supervisor_read'=>true]);$clearEvents();$super=$request($body,$cookie);
     managerAiEndpointCheck('explicit supervisor generation uses existing provider without foreign feedback',$super['status']===200&&$super['json']['draft_id']===null&&$super['json']['owner_id']===8&&count(array_filter($events(),static fn($e)=>$e['event']==='provider'))===1&&!in_array('feedback_record',array_column($events(),'event'),true));
     $clearEvents();$expectError('supervisor cannot validate insertion',$request(array_replace($body,['action'=>'validate','revision'=>$baseState['revision']]),$cookie),403,'forbidden');$assertNoProvider('supervisor insertion refusal has no provider');

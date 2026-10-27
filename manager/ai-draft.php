@@ -36,7 +36,7 @@ try {
     $data = ManagerHttp::body();
     ManagerHttp::requireCsrf($data);
     $action = $data['action'] ?? '';
-    if (!in_array($action,['generate','validate','prepared','prepared_status'],true)) {
+    if (!in_array($action,['generate','validate','prepared','prepared_status','prepared_preview'],true)) {
         aiDraftRespond(['ok'=>false,'error'=>'unknown_action']);
     }
     $cid = $data['conversation_id'] ?? null;
@@ -54,12 +54,13 @@ try {
     if ($expectedLatest !== $before['latest_message_id']) {
         aiDraftRespond(['ok'=>false,'error'=>'context_stale']);
     }
-    if ($action === 'prepared' || $action === 'prepared_status') {
+    $passivePreview=$action==='prepared_preview';
+    if ($action === 'prepared' || $action === 'prepared_status' || $passivePreview) {
         // This only retrieves a separately prepared, current-context proposal.
         // It never invokes the model or changes the manager's composer/read state.
         session_write_close();
         $prepared=ManagerPreparedReplyService::prepared($cid,$owner,$before);
-        if($supervisor){
+        if($supervisor||$passivePreview){
             if (!session_start(['read_and_close'=>true]) || ManagerHttp::managerId() !== $actor
                 || !ManagerRequestContext::validCsrf((string)$data['csrf'])) aiDraftRespond(['ok'=>false,'error'=>'unauthorized']);
             $access=ManagerAiDraftContextService::viewerSnapshot($cid,$actor);
@@ -78,15 +79,17 @@ try {
         }
         if (!empty($prepared['prepared'])&&is_array($prepared['proposal']??null)) {
             $proposal=$prepared['proposal'];unset($prepared['proposal']);
-            // Explicit preview records provenance; automatic readiness stays read-only.
-            if(!$supervisor&&(!session_start(['read_and_close'=>true])||ManagerHttp::managerId()!==$actor
+            // Passive full-text reads stay read-only, including for the reply owner.
+            // Explicit acceptance loads `prepared` before its existing validation.
+            if(!$supervisor&&!$passivePreview&&(!session_start(['read_and_close'=>true])||ManagerHttp::managerId()!==$actor
                 ||!ManagerRequestContext::validCsrf((string)$data['csrf'])))aiDraftRespond(['ok'=>false,'error'=>'unauthorized']);
-            $after=ManagerAiDraftContextService::viewerSnapshot($cid,$actor);
+            $after=$passivePreview?$access:ManagerAiDraftContextService::viewerSnapshot($cid,$actor);
             if (empty($after['ok'])) aiDraftRespond($after);
             if (!hash_equals($before['revision'],$after['revision'])||($after['viewer_access_revision']??null)!==($before['viewer_access_revision']??null)) aiDraftRespond(['ok'=>false,'error'=>'context_stale']);
             $jobId=$prepared['job_id']??null;
-            $prepared['draft_id']=!$supervisor&&is_string($jobId)
+            $prepared['draft_id']=!$supervisor&&!$passivePreview&&is_string($jobId)
                 ? ManagerAiDraftFeedbackService::record($cid,$actor,$after,$proposal,$jobId) : null;
+            if($passivePreview)unset($prepared['job_id']);
             aiDraftRespond($proposal+$prepared+$projection);
         }
         aiDraftRespond($prepared+$projection);

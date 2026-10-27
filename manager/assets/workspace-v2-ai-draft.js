@@ -5,6 +5,7 @@
   let bound=false,view=null,flight=null,sequence=0;
   let button,panel,status,body,insert,retry;
   let ready=null,watch=null,statusFlight=null,watchTimer=null,expiryTimer=null,notice,noticeLabel;
+  let suggestion,suggestionText,suggestionLabel,suggestionAccept;
   const dismissedNotices=new Set(),manager2=()=>document.body.classList.contains('manager2');
   const visible=()=>document.visibilityState!=='hidden';
   const conversation=()=>window.WorkspaceV2Conversation;
@@ -18,6 +19,7 @@
   }
   function supervisorRead(){const c=S.detail?.conversation;return !S.authExpired&&!!S.manager?.id&&Number(c?.id)===Number(S.current)&&S.detail?.delivery_failure?.category!=='suspended'&&((S.detail?.owner_read===true&&S.manager.role==='admin')||(S.detail?.supervisor_read===true&&c?.status==='manager'&&Number(c.manager_id)>0&&Number(c.manager_id)!==Number(S.manager.id)))}
   const canAnalyze=()=>canCompose()||supervisorRead();
+  const ownerRead=()=>supervisorRead()&&S.detail?.owner_read===true&&S.manager?.role==='admin';
   function sameContext(saved){
     const current=context();
     return !!saved&&!!current&&Object.keys(current).every(key=>current[key]===saved[key]);
@@ -28,12 +30,28 @@
   function timeValue(value){const parsed=window.ManagerTime?.parse?.(value)||new Date(String(value||'').replace(' ','T')+(/(?:Z|[+-]\d{2}:?\d{2})$/.test(String(value||''))?'':'Z'));return Number.isNaN(parsed.getTime())?0:parsed.getTime()}
   function timeLabel(value){return window.ManagerTime?.format?window.ManagerTime.format(value)+' '+window.ManagerTime.label:''}
   function hideNotice(hidden){if(notice&&notice.hidden!==hidden)notice.hidden=hidden}
-  function clearReady(){ready=null;window.clearTimeout?.(expiryTimer);expiryTimer=null;hideNotice(true)}
+  function clearReady(){ready=null;window.clearTimeout?.(expiryTimer);expiryTimer=null;hideNotice(true);if(suggestion){if(!suggestion.hidden)suggestion.hidden=true;if(suggestionText.textContent)suggestionText.textContent=''}}
   function noticeKey(){return ready?JSON.stringify([S.manager?.id,S.current,ready.revision,ready.prepared_at]):''}
-  function dismissNotice(){dismissedNotices.add(noticeKey());if(dismissedNotices.size>100)dismissedNotices.delete(dismissedNotices.values().next().value);hideNotice(true)}
+  function dismissNotice(){dismissedNotices.add(noticeKey());if(dismissedNotices.size>100)dismissedNotices.delete(dismissedNotices.values().next().value);hideNotice(true);if(suggestion)suggestion.hidden=true}
+  function suggestionAvailable(){
+    return !!suggestion&&manager2()&&visible()&&!!ready&&ready.expires>Date.now()&&currentSnapshot(ready.snapshot)&&validResult(ready,ready.snapshot)&&ready.should_draft&&panel.hidden&&!flight&&!dismissedNotices.has(noticeKey())&&window.WorkspaceV2PersonalWorkspace?.showAiReadyNotice?.()!==false&&(ownerRead()||canCompose()&&$('replyText').value==='');
+  }
+  function syncSuggestion(){
+    if(!suggestion)return;
+    const shown=suggestionAvailable();if(suggestion.hidden===shown)suggestion.hidden=!shown;
+    if(!shown){if(suggestionText.textContent)suggestionText.textContent='';return}
+    const readonly=ownerRead(),host=readonly?$('conversationZone'):$('composer'),before=readonly?$('composerLocked'):host?.querySelector('.composerSurface');
+    if(host&&suggestion.parentElement!==host)host.insertBefore(suggestion,before||host.firstChild);
+    suggestion.classList.toggle('aiSuggestionReadonly',readonly);
+    if(suggestionText.textContent!==ready.draft)suggestionText.textContent=ready.draft;
+    const label=readonly?'AI-подсказка · Только просмотр · '+(S.detail?.conversation?.manager_name||'Без назначения'):'AI-подсказка';
+    if(suggestionLabel.textContent!==label)suggestionLabel.textContent=label;
+    suggestionAccept.hidden=readonly;suggestionAccept.disabled=readonly;
+  }
   function syncPreferences(){
+    syncSuggestion();
     if(!notice)return;
-    hideNotice(!manager2()||!visible()||!ready||ready.kind!=='prepared'||ready.expires<=Date.now()||!ready.should_draft||!currentSnapshot(ready.snapshot)||!panel.hidden||dismissedNotices.has(noticeKey())||window.WorkspaceV2PersonalWorkspace?.showAiReadyNotice?.()===false);
+    hideNotice(!canCompose()||!manager2()||!visible()||!ready||ready.kind!=='prepared'||ready.expires<=Date.now()||!ready.should_draft||!currentSnapshot(ready.snapshot)||!panel.hidden||suggestion&&!suggestion.hidden||dismissedNotices.has(noticeKey())||window.WorkspaceV2PersonalWorkspace?.showAiReadyNotice?.()===false);
   }
   function renderButton(){
     if(!bound||!manager2())return;
@@ -50,7 +68,9 @@
     if(!manager2()||!currentSnapshot(saved))return;
     const expires=kind==='prepared'?timeValue(result.expires_at):Date.now()+600000;
     if(!expires||expires<=Date.now())return;
-    clearReady();ready={...result,snapshot:saved,kind,expires,prepared_at:result.prepared_at||new Date().toISOString()};
+    // A metadata poll must not erase the already read private text for this exact proposal.
+    const previous=ready?.kind===kind&&ready.revision===result.revision&&ready.prepared_at===result.prepared_at?ready:null;
+    clearReady();ready={...previous,...result,snapshot:saved,kind,expires,prepared_at:result.prepared_at||new Date().toISOString()};
     const captured=ready;
     expiryTimer=window.setTimeout?.(()=>{if(ready!==captured)return;clearReady();if(view?.result?.prepared===true){view.result=null;clearBody();status.textContent='Срок хранения готового ответа истёк. Проверьте наличие нового ответа.'}renderButton()},Math.min(expires-Date.now(),2147483647));
     renderButton();
@@ -71,7 +91,17 @@
       if(!isCurrent())return;
       if(result?.http_status===403||result?.http_status===404){saved.blocked=true;clearReady();resetSession({keepReady:true});return}
       if(result?.ok===true&&result.prepared===true&&typeof result.should_draft==='boolean'&&typeof result.revision==='string'&&result.revision&&result.latest_message_id===saved.snapshot.latest){
-        if(ready?.kind!=='generated')rememberReady(result,saved.snapshot,'prepared');
+        if(ready?.kind!=='generated'){
+          rememberReady(result,saved.snapshot,'prepared');
+          if(result.should_draft&&!validResult(ready,saved.snapshot)){
+            // Passive full-text reads never generate, register use or move focus.
+            const proposal=await W.request('ai-draft.php','prepared_preview',{conversation_id:saved.snapshot.context.conversationId,latest_message_id:saved.snapshot.latest},{signal:current.controller?.signal,isCurrent});
+            if(!isCurrent())return;
+            if(proposal?.http_status===403||proposal?.http_status===404){saved.blocked=true;clearReady();resetSession({keepReady:true});return}
+            if(validResult(proposal,saved.snapshot)&&proposal.prepared===true&&proposal.revision===result.revision&&proposal.prepared_at===result.prepared_at)rememberReady(proposal,saved.snapshot,'prepared');
+            else clearReady();
+          }
+        }
       }else if(ready?.kind!=='generated')clearReady();
       renderButton();
     }catch(error){if(isCurrent()&&ready?.kind!=='generated'){clearReady();renderButton()}}
@@ -79,7 +109,7 @@
   }
   function syncWatch(){
     // A server predating the new preference does not advertise readiness support.
-    if(!manager2()||!canCompose()||!visible()||window.WorkspaceV2PersonalWorkspace?.supportsAiReadiness?.()===false){stopWatching();return}
+    if(!manager2()||!(canCompose()||ownerRead())||!visible()||window.WorkspaceV2PersonalWorkspace?.supportsAiReadiness?.()===false){stopWatching();return}
     if(watch&&currentSnapshot(watch.snapshot))return;
     stopWatching();watch={snapshot:snapshot(),until:Date.now()+600000};void readStatus(watch);
   }
@@ -205,8 +235,9 @@
     }catch(error){if(isCurrent())failure(null,action);else sync();return false}
     finally{if(flight===current){flight=null;setBusy(false);if(watch)scheduleStatus(watch)}}
   }
-  async function insertDraft(){
+  async function insertDraft({emptyOnly=false}={}){
     sync();if(!canCompose()||!view?.result?.should_draft||flight||view.stale||!currentSnapshot(view.snapshot))return false;
+    if(emptyOnly&&$('replyText').value!=='')return false;
     if(view.result.prepared===true&&view.result.expires_at&&timeValue(view.result.expires_at)<=Date.now()){stale();return false}
     const saved=view.snapshot,result=view.result,draftId=validDraftId(view.result.draft_id)?view.result.draft_id:null;
     const current={ticket:sequence,controller:typeof AbortController==='function'?new AbortController():null};flight=current;setBusy(true);status.textContent='Проверяем, что контекст не изменился…';
@@ -218,6 +249,8 @@
         if(checked?.http_status===403||checked?.http_status===404){resetSession();return false}
         stale();return false;
       }
+      if(result.prepared===true&&result.expires_at&&timeValue(result.expires_at)<=Date.now()){stale();return false}
+      if(emptyOnly&&($('replyText').value!==''||!visible()||result.expires&&result.expires<=Date.now()))return false;
       // Conversation remains the only draft/submit owner. Append to its current
       // text, including edits made while validation was pending; never touch File.
       const savedSelection=selection();
@@ -225,9 +258,38 @@
       if(!conversation().insertAiDraft(result.draft,saved.context,validatedId)){
         status.textContent='Не удалось добавить черновик. Проверьте текст и доступность ответа.';return false;
       }
-      close(false);restoreSelection(savedSelection);return true;
+      close(false);restoreSelection(emptyOnly?{...savedSelection,start:result.draft.length,end:result.draft.length,direction:'none'}:savedSelection);return true;
     }catch(error){if(isCurrent())status.textContent='Не удалось проверить контекст. Черновик не добавлен. Повторите проверку по кнопке.';else sync();return false}
     finally{if(flight===current){flight=null;setBusy(false)}}
+  }
+  async function insertSuggestion(){
+    const sourceView=view;
+    const added=await insertDraft({emptyOnly:true});
+    if(added&&sameContext(sourceView?.snapshot.context))dismissNotice();
+    else if(panel.hidden&&view===sourceView)resetSession({keepReady:true});
+    return added;
+  }
+  async function acceptSuggestion(){
+    syncPreferences();if(!suggestionAvailable()||!canCompose())return false;
+    if(ready.kind==='generated'){
+      view={snapshot:ready.snapshot,selection:selection(),result:ready,stale:false};
+      return insertSuggestion();
+    }
+    const candidate=ready,saved=candidate.snapshot;
+    abortStatusRead();abortFlight();
+    const current={ticket:sequence,action:'prepared',controller:typeof AbortController==='function'?new AbortController():null};flight=current;setBusy(true);
+    const isCurrent=()=>flight===current&&current.ticket===sequence&&visible()&&currentSnapshot(saved);
+    try{
+      // Register provenance only after the explicit Tab/click, then use the same
+      // fresh validation and composer insertion path as the full preview.
+      const result=await W.request('ai-draft.php','prepared',{conversation_id:saved.context.conversationId,latest_message_id:saved.latest},{signal:current.controller?.signal,isCurrent});
+      if(!isCurrent())return false;
+      if(!validResult(result,saved)||result.prepared!==true||result.revision!==candidate.revision||result.draft!==candidate.draft||result.prepared_at!==candidate.prepared_at){clearReady();return false}
+      if($('replyText').value!=='')return false;
+      view={snapshot:saved,selection:selection(),result,stale:false};
+    }catch(error){if(isCurrent())clearReady();return false}
+    finally{if(flight===current){flight=null;setBusy(false);if(watch)scheduleStatus(watch)}}
+    return insertSuggestion();
   }
   function bind(){
     if(bound)return;
@@ -247,6 +309,18 @@
     insert=document.createElement('button');insert.id='aiDraftInsert';insert.type='button';insert.textContent='Добавить в ответ';insert.hidden=true;actions.appendChild(insert);
     retry=document.createElement('button');retry.id='aiDraftRetry';retry.type='button';retry.textContent='Повторить подготовку';actions.appendChild(retry);panel.appendChild(actions);form.appendChild(panel);
     if(manager2()){
+      suggestion=document.createElement('section');suggestion.id='aiDraftSuggestion';suggestion.className='aiDraftSuggestion';suggestion.hidden=true;suggestion.setAttribute('aria-label','AI-подсказка');
+      const suggestionHead=document.createElement('div');suggestionHead.className='aiSuggestionHead';suggestionLabel=document.createElement('strong');suggestionHead.appendChild(suggestionLabel);
+      const hideSuggestion=document.createElement('button');hideSuggestion.type='button';hideSuggestion.className='aiSuggestionDismiss';hideSuggestion.textContent='×';hideSuggestion.setAttribute('aria-label','Скрыть AI-подсказку');hideSuggestion.addEventListener('click',dismissNotice);suggestionHead.appendChild(hideSuggestion);suggestion.appendChild(suggestionHead);
+      suggestionText=document.createElement('p');suggestionText.className='aiSuggestionText';suggestion.appendChild(suggestionText);
+      const suggestionActions=document.createElement('div');suggestionActions.className='aiSuggestionActions';suggestionAccept=document.createElement('button');suggestionAccept.id='aiSuggestionAccept';suggestionAccept.type='button';suggestionAccept.textContent='Tab — вставить';suggestionAccept.addEventListener('click',()=>void acceptSuggestion());suggestionActions.appendChild(suggestionAccept);
+      const details=document.createElement('button');details.id='aiSuggestionDetails';details.type='button';details.textContent='Подробнее';details.addEventListener('click',openReady);suggestionActions.appendChild(details);suggestion.appendChild(suggestionActions);form.insertBefore(suggestion,form.querySelector('.composerSurface')||form.firstChild);
+      reply.addEventListener('input',syncPreferences);
+      reply.addEventListener('keydown',event=>{
+        if(event.defaultPrevented||event.isComposing||event.repeat||event.shiftKey||event.altKey||event.ctrlKey||event.metaKey||document.activeElement!==reply)return;
+        if(event.key==='Escape'&&suggestionAvailable()){event.preventDefault();event.stopPropagation();dismissNotice()}
+        if(event.key==='Tab'&&suggestionAvailable()&&canCompose()){event.preventDefault();event.stopPropagation();void acceptSuggestion()}
+      });
       notice=document.createElement('div');notice.id='aiReadyNotice';notice.className='aiReadyNotice';notice.hidden=true;notice.setAttribute('role','status');notice.setAttribute('aria-live','polite');
       noticeLabel=document.createElement('span');noticeLabel.textContent='AI — Ответ готов';notice.appendChild(noticeLabel);
       const show=document.createElement('button');show.type='button';show.textContent='Посмотреть';show.addEventListener('click',()=>void loadProposal('prepared',true));notice.appendChild(show);

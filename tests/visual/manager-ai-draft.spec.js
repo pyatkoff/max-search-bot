@@ -9,11 +9,12 @@ const proposal=(changes={})=>({ok:true,should_draft:true,draft:'Какие да�
 const prepared=(changes={})=>proposal({prepared:true,prepared_at:'2026-10-19T10:30:00Z',source:'chatgpt',draft_id:null,...changes});
 // Render the actual PHP shell and canonical assets. Every identity, message,
 // proposal and HTTP response in this fixture is synthetic and stays in loopback.
-async function setup(page,{readiness=false,hideNotice=false,supervisor=false,owner=false,ownerState='manager'}={}){
+async function setup(page,{readiness=false,hideNotice=false,supervisor=false,owner=false,ownerState='manager',previewHandler=null}={}){
   const calls=[],unexpected=[],errors=[],messages=new Map();
   let ai=async data=>data.action==='prepared'?{body:prepared()}:data.action==='generate'?{body:proposal()}:{body:{ok:true,revision:'1'.repeat(64),latest_message_id:35,draft_id:data.draft_id||null}};
+  let preview=previewHandler|| (async()=>({body:prepared({should_draft:readiness!=='recommendations',draft:readiness==='recommendations'?null:proposal().draft,next_action:readiness==='recommendations'?'no_contact':'clarify',expires_at:new Date(Date.now()+3600000).toISOString()})}));
   const manager={id:7,role:owner?'admin':'manager',display_name:'Мария',is_working:true,supervision_available:supervisor||owner};
-  const conversation=id=>({id,status:owner&&id===11?ownerState:'manager',manager_id:owner&&id===11&&ownerState!=='manager'?null:(supervisor||owner)&&id===11?9:7,manager_name:(supervisor||owner)&&id===11?'Другой менеджер':'Мария',channel:'telegram',display_name:id===11?'Анна Морозова':'Алексей Иванов'});
+  const conversation=id=>({id,status:owner&&id===11?ownerState:'manager',manager_id:owner&&id===11&&ownerState!=='manager'?null:(supervisor||owner)&&id===11?9:7,manager_name:owner&&id===11&&ownerState!=='manager'?null:(supervisor||owner)&&id===11?'Другой менеджер':'Мария',channel:'telegram',display_name:id===11?'Анна Морозова':'Алексей Иванов'});
   for(const id of [11,12])messages.set(id,Array.from({length:35},(_,i)=>({id:i+1,sender_type:i%3?'customer':'manager',manager_id:i%3?null:7,text:'Синтетическое сообщение '+(i+1)+'. Обсуждаем пожелания к поездке.',created_at:'2026-10-17 12:00:00'})));
   page.on('pageerror',error=>errors.push(error.message));
   await page.route('**/*',async route=>{
@@ -49,14 +50,14 @@ async function setup(page,{readiness=false,hideNotice=false,supervisor=false,own
     if(url.pathname==='/manager/notification-events.php')return reply({ok:true,cursor:0,events:[]});
     if(url.pathname==='/manager/ai-draft.php'){
       expect(data.csrf).toBe('fixture-csrf');expect([11,12]).toContain(data.conversation_id);
-      expect(['prepared','generate','validate','prepared_status']).toContain(data.action);if(data.action==='prepared_status')return reply(readiness?{ok:true,prepared:true,should_draft:readiness!=='recommendations',revision:'1'.repeat(64),latest_message_id:data.latest_message_id,prepared_at:new Date().toISOString(),expires_at:new Date(Date.now()+3600000).toISOString(),preparation_source:'chatgpt_assistant'}:{ok:true,prepared:false});const result=await ai(data);return reply(result.body,result.status||200);
+      expect(['prepared','prepared_preview','generate','validate','prepared_status']).toContain(data.action);if(data.action==='prepared_preview'){const result=await preview(data);return reply(result.body,result.status||200)}if(data.action==='prepared_status')return reply(readiness?{ok:true,prepared:true,should_draft:readiness!=='recommendations',revision:'1'.repeat(64),latest_message_id:data.latest_message_id,prepared_at:prepared().prepared_at,expires_at:new Date(Date.now()+3600000).toISOString(),preparation_source:'chatgpt_assistant'}:{ok:true,prepared:false});const result=await ai(data);return reply(result.body,result.status||200);
     }
     unexpected.push(method+' '+url.pathname+' '+data.action);return reply({ok:false,error:'unexpected_fixture_action'},400);
   });
   await page.goto(origin+'/manager2/index.php?qa=1');await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
   await expect.poll(()=>page.evaluate(()=>WorkspaceV2.S.workspaceBound&&!WorkspaceV2.S.booting)).toBe(true);
   await page.locator('#inboxList [data-conversation-id="11"]').click();if(supervisor||owner)await expect(page.getByRole('button',{name:'AI · Просмотр',exact:true})).toBeVisible();else{await expect(page.locator('#replyText')).toBeEnabled();await expect(page.locator('#aiDraftOpen')).toBeEnabled()}
-  return {calls,unexpected,errors,setAI:handler=>{ai=handler},messages,aiCalls:()=>calls.filter(call=>call.path==='/manager/ai-draft.php'&&call.action!=='prepared_status'),statusCalls:()=>calls.filter(call=>call.action==='prepared_status')};
+  return {calls,unexpected,errors,setAI:handler=>{ai=handler},setPreview:handler=>{preview=handler},messages,aiCalls:()=>calls.filter(call=>call.path==='/manager/ai-draft.php'&&!['prepared_status','prepared_preview'].includes(call.action)),previewCalls:()=>calls.filter(call=>call.action==='prepared_preview'),statusCalls:()=>calls.filter(call=>call.action==='prepared_status')};
 }
 function clean(state){expect(state.errors).toEqual([]);expect(state.unexpected).toEqual([]);expect(state.calls.filter(call=>['send','take','release','close','reopen'].includes(call.action))).toEqual([])}
 async function bounded(page){
@@ -69,7 +70,7 @@ async function capture(page,browserName,viewport){const directory=path.join(root
 for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420}])test('AI expired readiness hides before a delayed timer and preserves input '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
   await page.setViewportSize(viewport);const state=await setup(page,{readiness:true});
   const reply=page.locator('#replyText'),notice=page.locator('.aiReadyNotice');
-  await expect(page.locator('#aiDraftOpen')).toHaveText('AI — Ответ готов');await expect(notice).toBeVisible();
+  await expect(page.locator('#aiDraftOpen')).toHaveText('AI — Ответ готов');await expect(page.locator('#aiDraftSuggestion')).toBeVisible();await expect(notice).not.toBeVisible();
   await reply.fill('Мой незаконченный ответ');await page.locator('#replyFile').setInputFiles({name:'keep.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment')});
   await reply.evaluate(node=>{node.focus();node.setSelectionRange(1,5,'backward');window.aiExpiryFile=document.querySelector('#replyFile').files[0]});
   const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});
@@ -88,10 +89,10 @@ for(const width of [390,430,768,1440])test('AI automatic readiness stays quiet a
   await page.setViewportSize({width,height:900});const state=await setup(page,{readiness:true});
   const button=page.locator('#aiDraftOpen'),notice=page.locator('.aiReadyNotice');
   await expect(button).toHaveText('AI — Ответ готов');await expect(button).toHaveAttribute('data-ai-state','prepared');await expect(button).toHaveAttribute('title',/Подготовлен автоматически.*МСК/);
-  await expect(notice).toBeVisible();await expect(notice).toContainText('AI — Ответ готов');await expect(page.locator('#aiDraftPanel')).not.toBeVisible();
+  await expect(page.locator('#aiDraftSuggestion')).toBeVisible();await expect(notice).not.toBeVisible();await expect(page.locator('#aiDraftPanel')).not.toBeVisible();
   await page.locator('#replyText').fill('Мой ответ');await page.locator('#replyFile').setInputFiles({name:'keep.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment')});
   await page.locator('#replyText').focus();await page.evaluate(()=>{for(let i=0;i<5;i++)WorkspaceV2AiDraft.sync()});
-  await expect(page.locator('#replyText')).toBeFocused();await expect(page.locator('#replyText')).toHaveValue('Мой ответ');await expect(page.locator('#mediaSelection')).toContainText('keep.txt');
+  await expect(page.locator('#aiDraftSuggestion')).not.toBeVisible();await expect(notice).toBeVisible();await expect(page.locator('#replyText')).toBeFocused();await expect(page.locator('#replyText')).toHaveValue('Мой ответ');await expect(page.locator('#mediaSelection')).toContainText('keep.txt');
   expect(state.aiCalls()).toEqual([]);expect(state.statusCalls().length).toBeGreaterThan(0);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
   // A readable title does not imply the native mobile slide has finished.
@@ -106,9 +107,60 @@ for(const width of [390,430,768,1440])test('AI automatic readiness stays quiet a
 });
 for(const mode of ['hidden','recommendations'])test('AI '+mode+' keeps the ready button without a conversation notice',async({page})=>{
   const state=await setup(page,{readiness:mode==='recommendations'?'recommendations':true,hideNotice:mode==='hidden'});
-  await expect(page.locator('#aiDraftOpen')).toHaveText(mode==='recommendations'?'AI — Рекомендации':'AI — Ответ готов');await expect(page.locator('.aiReadyNotice')).not.toBeVisible();expect(state.aiCalls()).toEqual([]);
+  await expect(page.locator('#aiDraftOpen')).toHaveText(mode==='recommendations'?'AI — Рекомендации':'AI — Ответ готов');await expect(page.locator('.aiReadyNotice')).not.toBeVisible();await expect(page.locator('#aiDraftSuggestion')).not.toBeVisible();expect(state.aiCalls()).toEqual([]);
   if(mode==='hidden'){await page.evaluate(()=>WorkspaceV2PersonalWorkspace.open());await expect(page.locator('#pwHideAiReadyNotice')).toBeChecked();await page.locator('#pwClose').click();await page.locator('#aiDraftOpen').click();await expect(page.locator('#aiDraftInsert')).toBeEnabled()}
   clean(state);
+});
+for(const width of [390,430,768,1440])test('AI inline suggestion is visible and Tab inserts with native provenance '+width,async({page,browserName},testInfo)=>{
+  await page.setViewportSize({width,height:900});const state=await setup(page,{readiness:true});
+  const suggestion=page.locator('#aiDraftSuggestion'),reply=page.locator('#replyText');
+  await expect(suggestion).toBeVisible();await expect(suggestion.locator('.aiSuggestionText')).toHaveText(proposal().draft);await expect(page.locator('#aiSuggestionAccept')).toContainText('Tab');
+  await expect(page.locator('#aiDraftPanel')).not.toBeVisible();await expect(reply).toHaveValue('');expect(state.aiCalls()).toEqual([]);expect(state.previewCalls()).toHaveLength(1);
+  await page.locator('#replyFile').setInputFiles({name:'inline-keep.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment')});
+  await reply.evaluate(node=>{node.focus();window.aiInlineFile=document.querySelector('#replyFile').files[0]});
+  await expect(suggestion).toBeVisible();await expect(reply).toBeFocused();
+  await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+  for(const locator of [suggestion,reply,page.locator('#sendReply')]){const box=await locator.boundingBox();expect(box.x).toBeGreaterThanOrEqual(-1);expect(box.x+box.width).toBeLessThanOrEqual(width+1);expect(box.y).toBeGreaterThanOrEqual(-1);expect(box.y+box.height).toBeLessThanOrEqual(901)}
+  const image=testInfo.outputPath('ai-inline-'+browserName+'-'+width+'.png');await page.screenshot({animations:'disabled',path:image});await testInfo.attach('ai-inline-'+width,{body:fs.readFileSync(image),contentType:'image/png'});
+  state.setAI(async data=>data.action==='prepared'?{body:prepared({draft_id:'a'.repeat(32),expires_at:new Date(Date.now()+3600000).toISOString()})}:{body:{ok:true,revision:'1'.repeat(64),latest_message_id:35,draft_id:data.draft_id}});
+  await reply.press('Tab');await expect(reply).toHaveValue(proposal().draft);await expect(reply).toBeFocused();await expect(suggestion).not.toBeVisible();
+  expect(state.aiCalls().map(call=>call.action)).toEqual(['prepared','validate']);expect(state.aiCalls().at(-1).draft_id).toBe('a'.repeat(32));
+  expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('workspaceV2.replySession.v1')).drafts.find(row=>row.id===11).aiDraftId)).toBe('a'.repeat(32));
+  expect(await page.locator('#replyFile').evaluate(node=>node.files[0]===window.aiInlineFile)).toBe(true);await expect(page.locator('#mediaSelection')).toContainText('inline-keep.txt');clean(state);
+});
+test('AI inline suggestion leaves typed text and modified Tab navigation alone',async({page})=>{
+  const state=await setup(page,{readiness:true}),reply=page.locator('#replyText'),suggestion=page.locator('#aiDraftSuggestion');await expect(suggestion).toBeVisible();
+  await reply.focus();await reply.press('Shift+Tab');await expect(reply).not.toBeFocused();await expect(reply).toHaveValue('');expect(state.aiCalls()).toEqual([]);
+  await reply.fill('Мой ответ');await expect(suggestion).not.toBeVisible();await reply.press('Tab');await expect(reply).not.toBeFocused();await expect(reply).toHaveValue('Мой ответ');expect(state.aiCalls()).toEqual([]);
+  await reply.fill('');await expect(suggestion).toBeVisible();
+  await reply.evaluate(node=>node.dispatchEvent(new KeyboardEvent('keydown',{key:'Tab',code:'Tab',isComposing:true,bubbles:true,cancelable:true})));await expect(reply).toHaveValue('');expect(state.aiCalls()).toEqual([]);
+  await page.locator('#aiSuggestionDetails').click();await expect(page.locator('#aiDraftPanel')).toBeVisible();await expect(suggestion).not.toBeVisible();clean(state);
+});
+test('AI inline acceptance rechecks the empty composer after asynchronous preparation',async({page})=>{
+  const state=await setup(page,{readiness:true}),reply=page.locator('#replyText');await expect(page.locator('#aiDraftSuggestion')).toBeVisible();let release;
+  state.setAI(async data=>{if(data.action==='prepared'){await new Promise(resolve=>{release=resolve});return {body:prepared({expires_at:new Date(Date.now()+3600000).toISOString()})}}return {body:{ok:true,revision:'1'.repeat(64),latest_message_id:35}}});
+  await reply.press('Tab');await expect.poll(()=>!!release).toBe(true);await reply.fill('Начал писать сам');release();await expect(reply).toHaveValue('Начал писать сам');
+  await expect(page.locator('#aiDraftSuggestion')).not.toBeVisible();await expect.poll(()=>state.aiCalls().map(call=>call.action)).toEqual(['prepared']);clean(state);
+});
+for(const ownerState of ['manager','waiting_manager','ai','closed'])test('AI owner inline preview covers foreign '+ownerState+' without insertion',async({page,browserName},testInfo)=>{
+  const width={manager:1440,waiting_manager:390,ai:768,closed:430}[ownerState];await page.setViewportSize({width,height:900});const state=await setup(page,{readiness:true,owner:true,ownerState}),suggestion=page.locator('#aiDraftSuggestion');
+  await expect(suggestion).toBeVisible();await expect(suggestion.locator('.aiSuggestionText')).toHaveText(proposal().draft);await expect(suggestion).toContainText(/Просмотр|просмотр/);
+  if(ownerState==='manager')await expect(suggestion).toContainText('Другой менеджер');await expect(page.locator('#aiSuggestionAccept')).not.toBeVisible();await expect(page.locator('#composer')).not.toBeVisible();expect(state.previewCalls()).toHaveLength(1);expect(state.aiCalls()).toEqual([]);
+  await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);const box=await suggestion.boundingBox();expect(box.x).toBeGreaterThanOrEqual(-1);expect(box.x+box.width).toBeLessThanOrEqual(width+1);expect(box.y+box.height).toBeLessThanOrEqual(901);
+  const image=testInfo.outputPath('ai-owner-inline-'+browserName+'-'+ownerState+'.png');await page.screenshot({animations:'disabled',path:image});await testInfo.attach('ai-owner-inline-'+ownerState,{body:fs.readFileSync(image),contentType:'image/png'});
+  await suggestion.locator('.aiSuggestionText').click();await page.keyboard.press('Tab');expect(state.aiCalls()).toEqual([]);clean(state);
+});
+test('AI foreign supervisor does not gain automatic inline previews',async({page})=>{
+  const state=await setup(page,{readiness:true,supervisor:true});await expect(page.locator('#aiDraftSuggestion')).not.toBeVisible();expect(state.statusCalls()).toEqual([]);expect(state.previewCalls()).toEqual([]);expect(state.aiCalls()).toEqual([]);clean(state);
+});
+for(const change of ['navigation','new message','role loss'])test('AI inline late preview cannot survive '+change,async({page})=>{
+  let release;const state=await setup(page,{readiness:true,owner:change==='role loss',previewHandler:async()=>{await new Promise(resolve=>{release=resolve});return {body:prepared({expires_at:new Date(Date.now()+3600000).toISOString()})}}});await expect.poll(()=>!!release).toBe(true);
+  if(change==='navigation'){await page.evaluate(()=>WorkspaceV2Conversation.open(12));await expect(page.locator('#replyText')).toBeEnabled();await page.locator('#replyText').fill('Ответ в другом чате')}
+  else if(change==='new message'){state.messages.get(11).push({id:36,sender_type:'customer',text:'Новое требование',created_at:'2026-10-17 12:01:00'});await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible())}
+  else await page.evaluate(()=>{WorkspaceV2.S.manager.role='manager';WorkspaceV2.S.detail.owner_read=false;WorkspaceV2AiDraft.sync()});
+  release();await expect(page.locator('#aiDraftSuggestion')).not.toBeVisible();expect(state.aiCalls()).toEqual([]);if(change==='navigation')await expect(page.locator('#replyText')).toHaveValue('Ответ в другом чате');clean(state);
 });
 for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420}])test('AI preview and explicit insert retain the native draft, File and controls '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
   await page.setViewportSize(viewport);const state=await setup(page);expect(state.aiCalls()).toEqual([]);
