@@ -138,6 +138,7 @@
       if(S.manager?.role==='admin'&&String(c.manager_name||'').trim()){
         const manager=document.createElement('span');manager.className='m2ChatManager';manager.textContent=c.manager_name;manager.title='Ответственный менеджер';secondary.appendChild(manager);
       }
+      const aiStatus=el.querySelector('.leadAiStatus');if(aiStatus)secondary.appendChild(aiStatus);
       const wait=el.querySelector('.leadWaitCompact');let reply=el.querySelector('.leadReplyStatus');
       if(!reply&&c.delivery_failure_category!=='suspended'&&Number(c.awaiting_manager_reply||0)===1){reply=document.createElement('span');reply.className='leadReplyStatus';reply.textContent='Ждёт ответа'}
       if(reply)secondary.appendChild(reply);if(wait)secondary.appendChild(wait);
@@ -149,9 +150,10 @@
       const openLead=el.onclick,avatar=el.querySelector('.leadAvatar'),open=document.createElement('button');open.type='button';open.className='m2RowOpen';
       avatar?.remove();
       open.setAttribute('aria-label','Открыть диалог '+(c.display_name||'Турист')+' · '+signal.label);
+      if(aiStatus)open.setAttribute('aria-describedby',aiStatus.id);
       if(Number(c.id)===Number(S.current))open.setAttribute('aria-current','true');
       while(el.firstChild)open.appendChild(el.firstChild);
-      el.onclick=null;el.onkeydown=null;el.removeAttribute('aria-label');el.setAttribute('role','listitem');el.removeAttribute('tabindex');
+      el.onclick=null;el.onkeydown=null;el.removeAttribute('aria-label');el.removeAttribute('aria-describedby');el.setAttribute('role','listitem');el.removeAttribute('tabindex');
       open.onclick=openLead;if(avatar)el.appendChild(avatar);el.appendChild(open);
     });
     syncPersonalChrome($('pwLane'));

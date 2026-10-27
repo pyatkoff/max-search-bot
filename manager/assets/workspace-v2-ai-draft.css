@@ -6,6 +6,16 @@
 .manager2 .composer .quickReplies #aiDraftOpen[data-ai-state=stale]{color:#617169;background:#f1f4f1;border-color:#dce3dd}
 .aiDraftSuggestion[hidden],.aiDraftSuggestion button[hidden]{display:none!important}
 .aiPreparationNotice[hidden],.aiPreparationNotice button[hidden]{display:none!important}
+.aiRecommendationNotice[hidden]{display:none!important}
+.manager2 .aiRecommendationNotice{display:flex;flex:none;align-items:flex-start;justify-content:space-between;gap:8px;min-width:0;margin:0 0 6px;padding:8px 10px;border:1px solid #e0e6db;border-radius:8px;background:#f7f9f4;color:#617158;font-size:12px;line-height:1.4;overflow-wrap:anywhere}
+.manager2 .aiRecommendationCopy{min-width:0}
+.manager2 .aiRecommendationTitle{display:block;font-weight:600}
+.manager2 .aiRecommendationReason{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;margin:3px 0 0;white-space:pre-wrap;color:#75806d}
+.manager2 .aiRecommendationNotice button{flex:none;min-height:28px;padding:3px 6px;border:0;border-radius:6px;background:transparent;color:#526c47;font:inherit;cursor:pointer}
+.manager2 .aiRecommendationNotice button:hover{background:#edf3e7}
+.manager2 .aiRecommendationNotice button:focus-visible{outline:2px solid #477351;outline-offset:2px}
+.manager2 .aiRecommendationNotice.aiRecommendationReadonly{margin:8px 21px 0}
+@media(max-width:740px){.manager2 .aiRecommendationNotice{padding:7px;font-size:12px}.manager2 .aiRecommendationNotice.aiRecommendationReadonly{margin:6px 10px 0}.manager2 .aiRecommendationNotice button{min-height:32px}}
 .manager2 .aiPreparationNotice{display:flex;flex:none;align-items:center;justify-content:space-between;gap:8px;min-width:0;margin:0 0 6px;padding:5px 9px;border-radius:7px;background:#f4f6f1;color:#75806d;font-size:12px;line-height:1.4;overflow-wrap:anywhere}
 .manager2 .aiPreparationNotice>span{min-width:0}
 .manager2 .aiPreparationNotice button{flex:none;max-width:45%;padding:3px 6px;min-height:28px;border:1px solid #dfe5d8;border-radius:6px;background:#fff;color:#62745a;font:inherit;font-size:11px;cursor:pointer}

@@ -214,6 +214,7 @@ body.manager2{--ws-accent:#25624f;--ws-accent-soft:#e9f3ed;--ws-text:#233c34;--w
 .manager2 .leadPrimary>.unreadBadge{position:absolute;right:0;top:24px;min-width:18px;box-sizing:border-box;margin:0;max-width:30px}
 .manager2 .m2ChatMeta{display:flex;flex-wrap:wrap;align-items:center;gap:2px 6px;min-width:0;margin-top:3px;line-height:1.4}
 .manager2 .m2ChatManager{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.manager2 .m2ChatMeta .leadAiStatus{font-size:10px;line-height:1.35;padding:1px 5px;margin:0;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .manager2 .m2ChatMeta .leadReplyStatus,.manager2 .m2ChatMeta .leadWaitCompact{margin:0;line-height:1.4;max-width:100%}
 .manager2 .pwRowMarkers{display:flex;flex-wrap:nowrap;gap:4px;min-width:0;margin:3px 0 0;padding:0;overflow:hidden;line-height:1.4}
 .manager2 .pwRowMarkers .pwMarkerPin{display:none}

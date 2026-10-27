@@ -61,7 +61,7 @@ if($action==='list'){
     if($sourceId===-1)$rows=array_values(array_filter($rows,static fn($r):bool=>(int)($r['source_id']??0)<=0));
     elseif($sourceId>0)$rows=array_values(array_filter($rows,static fn($r):bool=>(int)($r['source_id']??0)===$sourceId));
     $rows=ManagerQueueProjectionService::actionableRows($queue,$rows);
-    $rows=ManagerLeadInboxService::decorate($rows);
+    $rows=ManagerLeadInboxService::decorate($rows,(int)$m['id']);
     $taskFilter=(string)($data['lead_task_filter']??'');
     $rows=ManagerLeadInboxService::filter($rows,(string)($data['lead_outcome']??''),(string)($data['search']??''),$taskFilter);
     if($queue==='mine')$rows=ManagerLeadInboxService::sortMine($rows);

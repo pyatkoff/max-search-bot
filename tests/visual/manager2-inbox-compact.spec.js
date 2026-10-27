@@ -342,3 +342,39 @@ test('one favorite entry and the full horizontal strip retain scrolling and keyb
  }
  expect(writes(s)).toHaveLength(0);clean(s);
 });
+
+function inboxAiRows(){
+ const expires=new Date(Date.now()+3600000).toISOString();
+ return rows().map((item,index)=>({...item,...(index===0?{ai_preparation_status:'ready',ai_preparation_expires_at:expires}:index===1||index===3?{ai_preparation_status:'pending',ai_preparation_expires_at:expires}:index===2||index===4?{ai_preparation_status:'recommendation',ai_preparation_expires_at:expires}:index===5?{ai_preparation_status:'ready',ai_preparation_expires_at:'2000-01-01 00:00:00'}:{})}));
+}
+for(const width of [390,430,768,1440])for(const role of ['manager','admin'])test(`Inbox AI saved-state badges remain inert and contained ${role} ${width}`,async({page,browserName},testInfo)=>{
+ await page.setViewportSize({width,height:900});const data=inboxAiRows(),s=await setup(page,{manager:{role},rows:data});await settled(page,s);
+ await expect(row(page,11).locator('.leadAiStatus')).toHaveText('AI подготовлен');await expect(row(page,14).locator('.leadAiStatus')).toHaveText('AI готовится');await expect(row(page,15).locator('.leadAiStatus')).toHaveText('AI: рекомендации');
+ await expect(row(page,11).locator('.leadAiStatus')).toHaveAttribute('title','Есть сохранённый ответ; актуальность проверим при открытии');
+ await expect(row(page,11).locator('.m2RowOpen')).toHaveAccessibleDescription('AI подготовлен');
+ await expect(row(page,16).locator('.leadAiStatus')).toHaveCount(0);
+ for(const id of [12,13])await expect(row(page,id).locator('.leadAiStatus')).toHaveCount(role==='admin'?1:0);
+ for(const badge of await page.locator('#inboxList .leadAiStatus').all()){
+  expect(await badge.evaluate(el=>el.tagName)).toBe('SPAN');expect(await badge.evaluate(el=>el.parentElement.classList.contains('m2ChatMeta'))).toBe(true);
+  expect(await badge.evaluate(el=>{const b=el.getBoundingClientRect(),r=el.closest('.leadItem').getBoundingClientRect();return b.width>0&&b.height>0&&b.left>=r.left-1&&b.right<=r.right+1&&b.bottom<=r.bottom+1})).toBe(true);
+ }
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+ expect(s.calls.filter(c=>c.path==='/manager/ai-draft.php')).toEqual([]);
+ await capture(page,browserName,{width,font:'normal',density:'comfortable',groups:0,role,captureSuffix:'-ai-saved-status'},900,testInfo);clean(s);
+});
+for(const width of [390,1440])test(`Inbox AI badges expire, clear on failed refresh and recover without actions ${width}`,async({page})=>{
+ await page.setViewportSize({width,height:900});const data=inboxAiRows(),s=await setup(page,{manager:{role:'admin'},rows:data});await settled(page,s);
+ const target=row(page,11),other=row(page,14);await target.locator('.m2RowOpen').focus();await target.evaluate(el=>window.syntheticAiStatusRow=el);await other.evaluate(el=>window.syntheticAiStatusOther=el);
+ const before=s.calls.length;await page.evaluate(()=>WorkspaceV2Inbox.load());await settled(page,s);
+ expect(await target.evaluate(el=>el===window.syntheticAiStatusRow)).toBe(true);expect(await other.evaluate(el=>el===window.syntheticAiStatusOther)).toBe(true);await expect(target.locator('.m2RowOpen')).toBeFocused();
+ expect(s.calls.slice(before).filter(c=>c.action==='detail'||c.path==='/manager/ai-draft.php')).toEqual([]);
+ data[0].ai_preparation_status='pending';await page.evaluate(()=>WorkspaceV2Inbox.load());await settled(page,s);await expect(target.locator('.leadAiStatus')).toHaveText('AI готовится');expect(await other.evaluate(el=>el===window.syntheticAiStatusOther)).toBe(true);await expect(target.locator('.m2RowOpen')).toBeFocused();
+ data[0].ai_preparation_expires_at=new Date(Date.now()+2200).toISOString();await page.evaluate(()=>WorkspaceV2Inbox.load());await settled(page,s);await expect(target.locator('.leadAiStatus')).toBeVisible();const expiryCalls=s.calls.length;
+ await expect(target.locator('.leadAiStatus')).toHaveCount(0,{timeout:6000});expect(s.calls.length).toBe(expiryCalls);await expect(target.locator('.m2RowOpen')).toBeFocused();await expect(target.locator('.m2RowOpen')).not.toHaveAttribute('aria-describedby',/leadAiStatus/);
+ data[0].ai_preparation_expires_at=new Date(Date.now()+3600000).toISOString();await page.evaluate(()=>WorkspaceV2Inbox.load());await settled(page,s);await expect(target.locator('.leadAiStatus')).toHaveText('AI готовится');
+ let fail=true;await page.route('**/manager/pipeline-api.php',async route=>{if(fail&&route.request().postDataJSON()?.action==='list')return route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({ok:false,error:'synthetic_status_list_failure'})});return route.fallback()});
+ await page.evaluate(()=>WorkspaceV2Inbox.load());await expect(page.locator('#inboxList')).toHaveClass(/inboxDataStale/);await expect(page.locator('#inboxList .leadAiStatus')).toHaveCount(0);await expect(target.locator('.m2RowOpen')).toBeFocused();
+ fail=false;await page.evaluate(()=>WorkspaceV2Inbox.load());await settled(page,s);await expect(target.locator('.leadAiStatus')).toHaveText('AI готовится');await expect(target.locator('.m2RowOpen')).toBeFocused();
+ await page.evaluate(()=>WorkspaceV2.showAuthRecovery());await expect(page.locator('#managerAuthRecovery')).toBeVisible();await expect(page.locator('#inboxList .leadAiStatus')).toHaveCount(0);
+ expect(s.calls.filter(c=>c.path==='/manager/ai-draft.php')).toEqual([]);clean(s);
+});
