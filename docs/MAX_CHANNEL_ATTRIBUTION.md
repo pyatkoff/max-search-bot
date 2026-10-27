@@ -115,19 +115,28 @@ check instant; an earlier leave returns `not_retained`.  Wrong-counter rows,
 oversized histories and ambiguous clocks fail closed.  Rejoins create distinct
 periods.  The query remains SELECT-only and rolls back its read-only transaction.
 
+The existing worker cycles through at most25 already-admitted prospective MAX
+people from the existing conversion outbox.  Its cursor is bounded work progress,
+not an information fence, and wraps only after the current suffix is exhausted.
+This lets a join after ClientID resolution and a late producer correction become
+visible without inventing a new queue, worker or schedule.  A failed membership
+observation does not advance the cursor and falls back to the identity-only lookup
+for pending ordinary conversions, so the optional observer cannot stall delivery.
+
 `MaxMembershipReceiptJournal` binds those receipts to an existing non-test
 AnyTour MAX conversation only when external user and negative chat ID match.  It
 writes the two versioned event types `channel_subscription_observed` and
 `channel_retention_30m_observed` into the existing `conversation_events` journal.
-If the same lookup batch points one person at multiple dialogue episodes, no
-episode is guessed and the receipt remains unassigned.
+If stored eligible post-fence conversations contain multiple dialogue episodes
+for one person, no episode is guessed and the receipt remains unassigned; this
+check is not limited to the transient lookup batch.
 The journal persistence time is the receipt's recorded time; normal journal
 intake supplies its later first-observed availability.  Exact repeats are
 idempotent, while conflicting later evidence is preserved as another receipt and
-never overwrites the first.  The existing worker performs one bounded follow-up
-for a matured admitted period; there is no new queue, worker, cron, API endpoint
-or conversion goal.  Observer failure cannot manufacture a membership fact or
-cause a conversion POST replay.
+never overwrites the first.  The existing worker performs bounded cyclic
+observations of admitted people; there is no new queue, worker, cron, API endpoint
+or conversion goal.  Observer failure cannot manufacture a membership fact,
+block identity resolution or cause a conversion POST replay.
 
 ## Tracker authentication and release
 

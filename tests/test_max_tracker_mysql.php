@@ -111,8 +111,10 @@ same((int)$p->query("SELECT COUNT(*) FROM max_channel_conversion_outbox WHERE co
 same((int)$second->query('SELECT COUNT(*) FROM max_channel_conversion_outbox WHERE conversation_id=7')->fetchColumn(),0,'caller rollback removes conversion');same((int)$second->query('SELECT COUNT(*) FROM conversation_events WHERE conversation_id=7')->fetchColumn(),0,'caller rollback removes waiting event and marker');same($second->query('SELECT status FROM conversations WHERE id=7')->fetchColumn(),'ai','caller rollback restores conversation state');
 // Reapplying only this uninstalled test migration retains the operator's mode.
 $p->exec("UPDATE max_channel_attribution_settings SET mode='collect'");$p->exec(file_get_contents(dirname(__DIR__).'/migrations/037_max_channel_conversion_outbox.sql'));same($p->query('SELECT mode FROM max_channel_attribution_settings')->fetchColumn(),'collect','migration does not overwrite mode');
+$p->exec("UPDATE max_channel_attribution_settings SET membership_receipts_outbox_cursor=9 WHERE project_key='anytour'");
 $membershipActivation=(string)$p->query("SELECT membership_receipts_activated_at_unix FROM max_channel_attribution_settings WHERE project_key='anytour'")->fetchColumn();
 $p->exec(file_get_contents(dirname(__DIR__).'/migrations/068_max_membership_receipt_bridge.sql'));
 same((string)$p->query("SELECT membership_receipts_activated_at_unix FROM max_channel_attribution_settings WHERE project_key='anytour'")->fetchColumn(),$membershipActivation,'membership migration is idempotent and preserves prospective fence');
+same((string)$p->query("SELECT membership_receipts_outbox_cursor FROM max_channel_attribution_settings WHERE project_key='anytour'")->fetchColumn(),'9','membership migration is idempotent and preserves work cursor');
 echo 'PASS '.$checks." native MySQL tracker/queue checks\n";
 

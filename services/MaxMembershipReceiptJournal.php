@@ -9,9 +9,9 @@ final class MaxMembershipReceiptJournal
     public function __construct(PDO $pdo){$this->pdo=$pdo;$this->mysql=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';}
 
     /** Bindings are exact external users and conversation ids selected by the existing worker. */
-    public function record(array $bindings,array $receipts,int $now): array
+    public function record(array $bindings,array $receipts,int $now,int $notBefore): array
     {
-        if($now<946684800||count($bindings)>25)return ['inserted'=>0,'unchanged'=>0,'conflicts'=>0];
+        if($now<946684800||$notBefore<946684800||$notBefore>$now||count($bindings)>25)return ['inserted'=>0,'unchanged'=>0,'conflicts'=>0];
         $lock=null;
         if($this->mysql){
             $lock='max-membership-journal:anytour';
@@ -26,9 +26,10 @@ final class MaxMembershipReceiptJournal
                 $user=$binding['external_user_id']??null;$conversationIds=$binding['conversation_ids']??null;
                 if(!self::id($user)||!is_array($conversationIds)||count($conversationIds)>10)continue;
                 $conversationIds=array_values(array_unique(array_map('strval',$conversationIds)));
+                $owned=$this->ownedConversations($user,$notBefore);
                 // A person can have multiple dialogue/trip episodes.  Without
                 // an exact episode owner, keep the membership receipt unknown.
-                if(count($conversationIds)!==1)continue;
+                if(count($conversationIds)!==1||count($owned)!==1||$owned[0]!==$conversationIds[0])continue;
                 $rows=$receipts[$user]??[];
                 if(!is_array($rows)||count($rows)>20)continue;
                 foreach($conversationIds as$conversationId){
@@ -59,6 +60,13 @@ final class MaxMembershipReceiptJournal
             $this->pdo->commit();return $stats;
         }catch(Throwable $e){if($this->pdo->inTransaction())$this->pdo->rollBack();throw$e;}
         finally{if($lock!==null){try{$this->query('SELECT RELEASE_LOCK(?)',[$lock]);}catch(Throwable $ignored){}}}
+    }
+
+    private function ownedConversations(string $user,int $notBefore): array
+    {
+        $q=$this->query("SELECT c.id FROM conversations c JOIN customer_channels cc ON cc.id=c.customer_channel_id AND cc.project_key=c.project_key AND cc.channel=c.channel WHERE c.project_key='anytour' AND c.channel='max' AND c.is_test=0 AND c.external_chat_id=? AND cc.external_user_id=? AND c.started_at>=? ORDER BY c.id LIMIT 2",
+            ['-'.$user,$user,gmdate('Y-m-d H:i:s',$notBefore)]);
+        return array_map('strval',$q->fetchAll(PDO::FETCH_COLUMN));
     }
 
     /** Exact currently admitted AnyTour MAX subject; no identity inference. */
