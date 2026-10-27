@@ -66,6 +66,7 @@ function liveDiagnosticTelegramDelivery(?PDO $pdo):array
     ];
     if($pdo===null)return $result;
     try{
+        require_once dirname(__DIR__).'/services/ProjectConfig.php';
         if(ProjectConfig::projectId()!=='anytour'){
             $result['error']='project_not_applicable';
             return $result;
