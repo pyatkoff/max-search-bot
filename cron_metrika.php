@@ -86,8 +86,9 @@ try {
         $channelResult=MaxChannelConversionWorker::tick(null,null,null,null,[MetrikaConversionGoalService::class,'reconcileChannelConversation']);
         metrikaLog('MAX_CHANNEL '.json_encode($channelResult,JSON_UNESCAPED_SLASHES));
     }
-} catch (Throwable $ignored) {
-    metrikaLog('MAX_CHANNEL background_failed');
+} catch (Throwable $channelError) {
+    require_once __DIR__.'/services/ChannelWorkerFailureDiagnostic.php';
+    metrikaLog('MAX_CHANNEL background_failed '.json_encode(ChannelWorkerFailureDiagnostic::classify($channelError),JSON_UNESCAPED_SLASHES));
 }
 
 if (!defined('METRIKA_COUNTER_ID') || trim((string)METRIKA_COUNTER_ID) === '') {
