@@ -184,7 +184,7 @@ mpCheck('Telegram is a human channel label',$present($incoming('Текст'),'no
 mpCheck('website is a human channel label',$present($incoming('Текст'),'notice',['channel'=>'website'])['title']==='Тестовый клиент · Сайт');
 mpCheck('another project keeps its human brand for the same client',$present($incoming('Текст'),'notice',['project_name'=>'ANEX'])['title']==='Тестовый клиент · MAX · ANEX');
 mpCheck('unknown channel and project keys are never invented as display labels',$present(null,'notice',['channel'=>'internal_transport','project_name'=>''])['title']==='Тестовый клиент');
-foreach(['Новая заявка ждёт менеджера','Клиенту понравился тур','Не удалось доставить ответ']as$notice)mpCheck('non-message notice retains its meaning: '.$notice,$present(null,$notice)['body']===$notice);
+foreach(['Клиенту понравился тур','Не удалось доставить ответ']as$notice)mpCheck('non-message notice retains its meaning: '.$notice,$present(null,$notice)['body']===$notice);
 mpCheck('unmatched recorded message keeps an honest notice',$present()['body']==='Новое сообщение в заявке');
 mpCheck('empty message keeps an honest notice',$present($incoming("\n\t"))['body']==='Новое сообщение в заявке');
 mpCheck('callback metadata cannot expose internal action text',$present($incoming('PRIVATE_ACTION',['type'=>'callback']))['body']==='Новое сообщение в заявке');
@@ -198,6 +198,87 @@ mpCheck('quoted or linked metadata never replaces the current message',$present(
 $long=$present($incoming(str_repeat('🏖️Длинный текст ',80)));
 mpCheck('long Unicode message is bounded without broken encoding',mb_strlen($long['body'],'UTF-8')===ManagerPushPresentation::PREVIEW_LENGTH&&str_ends_with($long['body'],'…')&&json_encode($long,JSON_UNESCAPED_UNICODE)!==false);
 mpCheck('control characters collapse to a readable single line',$present($incoming("Один\0\t\r\nдва\u{00A0}три"))['body']==='Один два три');
+
+// Execute the event-context lookup on real isolated SQL. Never contact push.
+$contextFile=__DIR__.'/../services/ManagerPushContext.php';
+if(is_file($contextFile))require_once $contextFile;
+require_once __DIR__.'/../services/ConversationRecordClock.php';
+$contextDb=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+$contextDb->exec('CREATE TABLE messages(id INTEGER PRIMARY KEY,conversation_id INTEGER,direction TEXT,sender_type TEXT,text TEXT,metadata_json TEXT,created_at TEXT);CREATE TABLE conversation_events(id INTEGER PRIMARY KEY,conversation_id INTEGER,event_type TEXT,payload_json TEXT,created_at TEXT)');
+$record=static function(array $meta,string $text='Обращение из поиска: Synthetic selected hotel',int $conversation=42,string $at='2026-10-27 18:00:00')use($contextDb):void{
+    if(!in_array($meta['type']??'', ['tour_search_inquiry','tour_web_inquiry'],true))$meta=ConversationRecordClock::stamp($meta,strtotime($at.' UTC'));
+    $contextDb->prepare("INSERT INTO messages(conversation_id,direction,sender_type,text,metadata_json,created_at) VALUES(?,'inbound','customer',?,?,?)")->execute([$conversation,$text,json_encode($meta),$at]);
+};
+$event=static function(string $type,array $payload,int $conversation=42,string $at='2026-10-27 18:00:00')use($contextDb):void{
+    if($type==='waiting_manager')$payload=ConversationRecordClock::stamp($payload,strtotime($at.' UTC'));
+    $contextDb->prepare('INSERT INTO conversation_events(conversation_id,event_type,payload_json,created_at) VALUES(?,?,?,?)')->execute([$conversation,$type,json_encode($payload),$at]);
+};
+$eventBody=static function(string $notice)use($contextDb,$pushConversation):string{
+    $context=class_exists('ManagerPushContext')?ManagerPushContext::forNotice($contextDb,42,$notice):null;
+    return ManagerPushPresentation::conversation($pushConversation,$notice,null,$context)['body'];
+};
+$reset=static function()use($contextDb):void{$contextDb->exec('DELETE FROM messages;DELETE FROM conversation_events');};
+$handoff='Новая заявка ждёт менеджера';$searchNotice='Обращение из поиска';$webNotice='Обращение по веб-подборке';
+$record(['type'=>'message'],'Нужен отель с детским бассейном');$event('waiting_manager',[]);
+mpCheck('first handoff includes the latest actual customer text with honest context',$eventBody($handoff)==='Просит менеджера · Последнее: Нужен отель с детским бассейном');
+$contextDb->exec("UPDATE messages SET created_at='2026-10-27 21:00:00';UPDATE conversation_events SET created_at='2026-10-27 15:00:00'");
+mpCheck('recording clocks keep handoff context independent of bare DB timezone labels',$eventBody($handoff)==='Просит менеджера · Последнее: Нужен отель с детским бассейном');
+$contextDb->exec("UPDATE messages SET metadata_json='{}'");
+mpCheck('an unmarked legacy row cannot invent a current handoff instant',$eventBody($handoff)==='Просит подключить менеджера');
+mpCheck('a handoff without current usable context states the requested action',ManagerPushPresentation::conversation($pushConversation,$handoff)['body']==='Просит подключить менеджера');
+$reset();$record(['type'=>'message'],'PRIVATE_OLD_REQUEST',42,'2026-10-26 18:00:00');$event('waiting_manager',[]);
+mpCheck('an older trip message cannot become the new handoff preview',$eventBody($handoff)==='Просит подключить менеджера');
+$reset();$record(['type'=>'message'],'PRIVATE_LATER_REQUEST',42,'2026-10-27 18:00:01');$event('waiting_manager',[]);
+mpCheck('a concurrent later message cannot replace the handoff context',$eventBody($handoff)==='Просит подключить менеджера');
+foreach([['type'=>'callback'],['type'=>'start'],['type'=>'message']]as$meta){$reset();$record($meta,'/start s3_PRIVATE_CAPABILITY');$event('waiting_manager',[]);mpCheck('handoff does not publish commands or callback payloads: '.$meta['type'],$eventBody($handoff)==='Просит подключить менеджера');}
+$reset();$record(['type'=>'contact'],'+70000000000');$event('waiting_manager',[]);
+mpCheck('contact-driven handoff uses a contact label without raw phone',$eventBody($handoff)==='Просит менеджера · Последнее: Отправил контакт');
+
+require_once __DIR__.'/../services/Search3TourHandoffSnapshot.php';
+$snapshot=['binding'=>['record_id'=>'PRIVATE_RECORD','revision'=>3],'observation'=>['schema'=>1,'kind'=>'search3_browser_observation','capturedAt'=>1793124000000,'source'=>'anex',
+    'hotel'=>['uiId'=>123,'namespace'=>'search3-ui','name'=>'Synthetic selected hotel','resort'=>'Лара'],
+    'trip'=>['origin'=>'Москва','countryUiId'=>'4','departure'=>'2027-06-12','nights'=>7,'stayEnd'=>'2027-06-19','stayEndBasis'=>'shown-stay-end','adults'=>2,'childAges'=>[0,0,12]],
+    'stay'=>['room'=>'Family','meal'=>'Всё включено','placement'=>'2+3','operator'=>'ANEX'],
+    'flights'=>['state'=>'manager-deferred','outward'=>[],'inward'=>[]],
+    'price'=>['amount'=>'231456.50','currency'=>'RUB','state'=>'estimated','description'=>'PRIVATE_PRICE_DETAILS','expiresAt'=>1,'basis'=>'shown-offer','finalPriceVerified'=>false,'authority'=>'browser-observation-only']]];
+$searchPayload=['schema'=>1,'handoff_id'=>str_repeat('a',32),'entry_key'=>'PRIVATE_ENTRY_KEY','snapshot'=>$snapshot,'price_at_arrival'=>'expired'];
+$searchMeta=['type'=>'tour_search_inquiry','handoff_id'=>str_repeat('a',32)];
+$reset();$record($searchMeta);$event('tour_search_inquiry',$searchPayload);$event('waiting_manager',[]);
+$expected='Из поиска: Synthetic selected hotel · 12.06.2027 · 7 ноч. · 2 взр. + 3 реб.';
+mpCheck('search push shows exact chosen hotel date nights and whole party',$eventBody($searchNotice)===$expected);
+mpCheck('first handoff for the same inquiry also shows the chosen tour',$eventBody($handoff)===$expected);
+mpCheck('capabilities price provenance and expired amounts never leak into the short preview',!preg_match('/PRIVATE_|231456|handoff|record_id|entry_key/',$eventBody($searchNotice)));
+$foreign=$searchPayload;$foreign['snapshot']['observation']['hotel']['name']='PRIVATE_FOREIGN_HOTEL';$event('tour_search_inquiry',$foreign,43);
+mpCheck('another conversation cannot supply tour context',$eventBody($searchNotice)===$expected);
+$other=$searchPayload;$other['handoff_id']=str_repeat('b',32);$other['snapshot']['observation']['hotel']['name']='PRIVATE_UNRELATED_HOTEL';$event('tour_search_inquiry',$other);
+mpCheck('a newer unrelated inquiry cannot replace the exactly bound tour',$eventBody($searchNotice)===$expected);
+$contextDb->exec('PRAGMA query_only=ON');$readOnly=$eventBody($searchNotice);$contextDb->exec('PRAGMA query_only=OFF');
+mpCheck('event enrichment executes with database writes prohibited',$readOnly===$expected);
+$reset();$record($searchMeta);$event('tour_search_inquiry',$other);
+mpCheck('missing exact handoff keeps an honest generic notice',$eventBody($searchNotice)===$searchNotice);
+$reset();$record($searchMeta);$bad=$searchPayload;$bad['snapshot']['observation']['trip']['departure']='2027-02-30';$event('tour_search_inquiry',$bad);
+mpCheck('invalid immutable snapshot cannot invent tour conditions',$eventBody($searchNotice)===$searchNotice);
+$reset();$record($searchMeta);$event('tour_search_inquiry',$searchPayload,42,'2026-10-26 18:00:00');
+mpCheck('an old event cannot be joined to a new projection',$eventBody($searchNotice)===$searchNotice);
+$reset();$record(['type'=>'message'],'Мой новый вопрос');$event('tour_search_inquiry',$searchPayload);
+mpCheck('tour notices cannot borrow an ordinary message or historical tour',$eventBody($searchNotice)===$searchNotice);
+
+$webMeta=['type'=>'tour_web_inquiry','publication_id'=>'pub123','link_version'=>4,'variant'=>2];
+$webPayload=['schema'=>1,'publication_id'=>'pub123','link_version'=>4,'variant'=>2,'entry_key'=>'PRIVATE_ENTRY','public_offer'=>['hotel'=>'Другой отель','date_from'=>'2027-07-14','nights'=>9,'adults'=>1,'children'=>0,'amount'=>'PRIVATE_AMOUNT','currency'=>'RUB','rationale'=>'PRIVATE_RATIONALE']];
+$reset();$record($webMeta,'Обращение из веб-подборки · вариант 2: Другой отель');$event('tour_web_inquiry',$webPayload);
+mpCheck('web selection push uses its own selected variant',$eventBody($webNotice)==='Из подборки: Другой отель · 14.07.2027 · 9 ноч. · 1 взр.');
+$longWeb=$webPayload;$longWeb['public_offer']['hotel']=str_repeat('Очень длинное название отеля ',15);$reset();$record($webMeta);$event('tour_web_inquiry',$longWeb);
+mpCheck('long tour names remain bounded while retaining useful dates and party',mb_strlen($eventBody($webNotice),'UTF-8')<=180&&str_contains($eventBody($webNotice),'14.07.2027')&&str_contains($eventBody($webNotice),'1 взр.'));
+foreach(['publication_id'=>'other','link_version'=>5,'variant'=>3]as$key=>$value){$reset();$record($webMeta);$wrong=$webPayload;$wrong[$key]=$value;$event('tour_web_inquiry',$wrong);mpCheck('web inquiry requires exact '.$key,$eventBody($webNotice)===$webNotice);}
+$reset();$record($searchMeta);$event('tour_search_inquiry',$searchPayload);
+mpCheck('failed delivery and liked-tour notices retain their own semantics',$eventBody('Не удалось доставить ответ')==='Не удалось доставить ответ'&&$eventBody('Клиенту понравился тур')==='Клиенту понравился тур');
+$contextDb->exec("UPDATE messages SET metadata_json='{broken'");
+mpCheck('malformed recorded metadata preserves the original notice',$eventBody($searchNotice)===$searchNotice);
+$reset();$record($searchMeta);$event('tour_search_inquiry',$searchPayload);$contextDb->exec("UPDATE conversation_events SET payload_json='{broken'");
+mpCheck('malformed inquiry JSON preserves the original notice',$eventBody($searchNotice)===$searchNotice);
+$contextDb->exec('DROP TABLE messages');
+mpCheck('context storage failure cannot block the original notification',$eventBody($searchNotice)===$searchNotice);
+mpCheck('ordinary exact-message arrivals do not invoke latest-event enrichment',str_contains($pushSource,"if(\$externalMessageId==='')")&&str_contains($pushSource,'ManagerPushContext::forNotice('));
 $total = $passed + $failed;
 echo "\n--------------------------\n";
 echo "TOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";
