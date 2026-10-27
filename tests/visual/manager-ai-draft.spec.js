@@ -206,7 +206,7 @@ test('AI no-contact explanation keeps the short mobile editor reachable',async({
 for(const width of [390,430,768,1440])test('AI inline suggestion is visible and Tab inserts with native provenance '+width,async({page,browserName},testInfo)=>{
   await page.setViewportSize({width,height:900});const state=await setup(page,{readiness:true});
   const suggestion=page.locator('#aiDraftSuggestion'),reply=page.locator('#replyText');
-  await expect(suggestion).toBeVisible();await expect(suggestion.locator('.aiSuggestionText')).toHaveText(proposal().draft);await expect(page.locator('#aiSuggestionAccept')).toContainText('Tab');
+  await expect(suggestion).toBeVisible();await expect(suggestion.locator('.aiSuggestionText')).toHaveText(proposal().draft);await expect(page.locator('#aiSuggestionAccept')).toHaveText('Вставить в ответ');
   await expect(page.locator('#aiDraftPanel')).not.toBeVisible();await expect(reply).toHaveValue('');expect(state.aiCalls()).toEqual([]);expect(state.previewCalls()).toHaveLength(1);
   await page.locator('#replyFile').setInputFiles({name:'inline-keep.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment')});
   await reply.click();await reply.evaluate(()=>{window.aiInlineFile=document.querySelector('#replyFile').files[0]});
