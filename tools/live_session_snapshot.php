@@ -52,6 +52,54 @@ function liveDiagnosticTs($value):?int
     return $ts===false?null:$ts;
 }
 
+/** Public aggregate only; reading status never runs the worker or contacts Metrika. */
+function liveDiagnosticTelegramDelivery(?PDO $pdo):array
+{
+    $result=[
+        'sampled_at'=>gmdate('Y-m-d\TH:i:s\Z'),
+        'available'=>false,
+        'error'=>'status_unavailable',
+        'mode'=>null,
+        'activated'=>null,
+        'queue_counts'=>null,
+        'queue_total'=>null,
+    ];
+    if($pdo===null)return $result;
+    try{
+        if(ProjectConfig::projectId()!=='anytour'){
+            $result['error']='project_not_applicable';
+            return $result;
+        }
+        require_once dirname(__DIR__).'/services/TelegramDialogueConversions.php';
+        $settings=TelegramDialogueConversions::settings($pdo);
+        if($settings===null)return $result;
+        $mode=$settings['telegram_mode']??null;
+        $activation=$settings['telegram_activated_at_unix']??null;
+        if(!in_array($mode,['off','collect','send'],true)
+            ||($activation!==null&&(!is_int($activation)&&(!is_string($activation)||!preg_match('/\A(?:0|[1-9][0-9]*)\z/D',$activation))))
+            ||($activation!==null&&(int)$activation<0)){
+            $result['error']='status_invalid';
+            return $result;
+        }
+        $counts=array_fill_keys(['pending','ready','uploading','accepted','processed','unknown','unmatched','failed','expired','retired'],0);
+        $total=0;
+        foreach((new TelegramDialogueConversions($pdo))->counts()as$state=>$count){
+            if(!array_key_exists($state,$counts)||!is_int($count)||$count<0||$count>PHP_INT_MAX-$total){
+                $result['error']='status_invalid';
+                return $result;
+            }
+            $counts[$state]=$count;
+            $total+=$count;
+        }
+        return array_replace($result,[
+            'available'=>true,'error'=>null,'mode'=>$mode,'activated'=>$activation!==null&&(int)$activation>0,
+            'queue_counts'=>$counts,'queue_total'=>$total,
+        ]);
+    }catch(Throwable $ignored){
+        return $result;
+    }
+}
+
 $windowArg=(string)($argv[1]??'1');
 $calendarDay=in_array($windowArg,['today','yesterday'],true);
 $hours=$calendarDay?null:max(1,min(24,(int)$windowArg));
@@ -64,11 +112,13 @@ $result=[
     'channel'=>'max',
     'summary'=>[],
     'sessions'=>[],
+    'telegram_dialogue_delivery'=>liveDiagnosticTelegramDelivery(null),
 ];
 
 try{
     if(!ConversationDb::isConfigured()) throw new RuntimeException('conversation_db_not_configured');
     $pdo=ConversationDb::connection();
+    $result['telegram_dialogue_delivery']=liveDiagnosticTelegramDelivery($pdo);
     $until=null;
     if($calendarDay){
         $tz=new DateTimeZone('Europe/Kaliningrad');
