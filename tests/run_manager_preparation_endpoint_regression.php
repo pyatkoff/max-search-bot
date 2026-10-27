@@ -15,10 +15,13 @@ DiagnosticLogger::setFile(__DIR__.'-private/events.log');
 final class ManagerPreparationOAuth{
 public static function authenticateBearer(string $header):?int{return $header==='Bearer '.str_repeat('x',43)?7:null;}
 public static function connectionIdForBearer(string $header):?string{return self::authenticateBearer($header)===7?str_repeat('a',32):null;}
+public static function bearerContext(string $header):?array{
+if($header==='Bearer '.str_repeat('y',43))return ['admin_id'=>7,'connection_id'=>str_repeat('b',32),'scopes'=>['hotel_work:write']];
+return self::authenticateBearer($header)===7?['admin_id'=>7,'connection_id'=>str_repeat('a',32),'scopes'=>['queue:read','prepared:write']]:null;}
 }
 final class ManagerPreparationMcpService{
-public function handle(array $rpc,int $actor,?string $connection):array{
-file_put_contents(__DIR__.'/dispatch',json_encode(['actor'=>$actor,'connection'=>$connection]));
+public function handle(array $rpc,int $actor,?string $connection,array $scopes):array{
+file_put_contents(__DIR__.'/dispatch',json_encode(['actor'=>$actor,'connection'=>$connection,'scopes'=>$scopes]));
 return ['jsonrpc'=>'2.0','id'=>$rpc['id'],'result'=>['authenticated'=>true,'method'=>$rpc['method']??'']];
 }}
 PHP);
@@ -72,8 +75,11 @@ PHP);
     preparationHttpCheck('initialization notification acknowledges without tools',$r['status']===202&&$r['body']===''&&!file_exists($tmp.'/dispatch'));
     $r=$request($rpc,$token,'POST','https://chatgpt.com');
     preparationHttpCheck('OAuth bearer and stable connection reach exact service',$r['status']===200&&$r['json']===['jsonrpc'=>'2.0','id'=>1,'result'=>['authenticated'=>true,'method'=>'tools/list']]
-        &&json_decode(file_get_contents($tmp.'/dispatch'),true)===['actor'=>7,'connection'=>str_repeat('a',32)]);
+        &&json_decode(file_get_contents($tmp.'/dispatch'),true)===['actor'=>7,'connection'=>str_repeat('a',32),'scopes'=>['queue:read','prepared:write']]);
     preparationHttpCheck('transport remains private and is not cached',str_contains($r['headers'],'Cache-Control: no-store')&&!str_contains($r['headers'],'Set-Cookie'));
+    $hotel=$request($rpc,'Bearer '.str_repeat('y',43));
+    preparationHttpCheck('exact HTTP endpoint forwards hotel-only stored grant without adding reply scopes',
+        $hotel['status']===200&&json_decode(file_get_contents($tmp.'/dispatch'),true)===['actor'=>7,'connection'=>str_repeat('b',32),'scopes'=>['hotel_work:write']]);
     $observed=ManagerPreparationMcpDiagnostics::snapshot()['recent_attempts'];
     preparationHttpCheck('actual HTTP diagnostics distinguish successful discovery and missing credentials',
         ($observed[0]['rpc_method']??null)==='tools/list'&&$observed[0]['http_status']===200
