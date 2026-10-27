@@ -9,15 +9,18 @@ class ManagerDeliveryStateService
     public static function activeSuspensionSql(string $conversationAlias='c'): string
     {
         $c=preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/D',$conversationAlias)?$conversationAlias:'c';
-        $failure=$c.'_delivery_failure';$latest=$c.'_delivery_latest';$inbound=$c.'_delivery_inbound';$restart=$c.'_delivery_restart';
+        $failure=$c.'_delivery_failure';$latest=$c.'_delivery_latest';$recipient=$c.'_delivery_recipient';$inbound=$c.'_delivery_inbound';$restart=$c.'_delivery_restart';
         $category="COALESCE(JSON_UNQUOTE(JSON_EXTRACT(CASE WHEN JSON_VALID({$failure}.payload_json) THEN {$failure}.payload_json ELSE '{}' END,'$.category')),'')";
         // Match activeFailures: latest failure wins; inbound timestamps and MAX
         // system-start event IDs clear suspension, including same-second starts.
-        return "EXISTS (SELECT 1 FROM conversation_events {$failure} WHERE {$failure}.conversation_id={$c}.id AND {$failure}.event_type='manager_message_failed'"
-            ." AND {$failure}.id=(SELECT MAX({$latest}.id) FROM conversation_events {$latest} WHERE {$latest}.conversation_id={$c}.id AND {$latest}.event_type='manager_message_failed')"
-            ." AND {$category}='suspended'"
-            ." AND (COALESCE({$failure}.created_at,'')='' OR NOT EXISTS (SELECT 1 FROM messages {$inbound} WHERE {$inbound}.conversation_id={$c}.id AND {$inbound}.direction='inbound' AND {$inbound}.sender_type='customer' AND {$inbound}.created_at>{$failure}.created_at))"
-            ." AND NOT EXISTS (SELECT 1 FROM conversation_events {$restart} WHERE {$restart}.conversation_id={$c}.id AND {$c}.channel='max' AND {$restart}.event_type='bot_started' AND {$restart}.actor_type='system' AND {$restart}.id>{$failure}.id))";
+        // This failure-ID set has no outer-row references. The grouped latest
+        // failures can be materialized once, instead of probing the ledger for
+        // every candidate before the Mine/Assistant ordering and cap.
+        return "{$c}.id IN (SELECT {$failure}.conversation_id FROM (SELECT conversation_id,MAX(id) AS id FROM conversation_events WHERE event_type='manager_message_failed' GROUP BY conversation_id) {$latest}"
+            ." JOIN conversation_events {$failure} ON {$failure}.id={$latest}.id AND {$failure}.conversation_id={$latest}.conversation_id"
+            ." JOIN conversations {$recipient} ON {$recipient}.id={$failure}.conversation_id WHERE {$category}='suspended'"
+            ." AND (COALESCE({$failure}.created_at,'')='' OR NOT EXISTS (SELECT 1 FROM messages {$inbound} WHERE {$inbound}.conversation_id={$failure}.conversation_id AND {$inbound}.direction='inbound' AND {$inbound}.sender_type='customer' AND {$inbound}.created_at>{$failure}.created_at))"
+            ." AND NOT EXISTS (SELECT 1 FROM conversation_events {$restart} WHERE {$restart}.conversation_id={$failure}.conversation_id AND {$recipient}.channel='max' AND {$restart}.event_type='bot_started' AND {$restart}.actor_type='system' AND {$restart}.id>{$failure}.id))";
     }
 
     /** Remove only automatic reply/SLA urgency; retain human tasks and history. */
