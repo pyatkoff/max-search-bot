@@ -399,12 +399,12 @@ foreach([
  ['tracker_response_invalid','tracker_response_invalid'],
  ['secret=private customer phone and raw payload','runtime_exception'],
  ['channel_stage_capture_failed extra private value','runtime_exception'],
-]as[$message,$category])same(ChannelWorkerFailureDiagnostic::classify(new RuntimeException($message)),['category'=>$category,'sqlstate'=>null],'safe fixed failure projection');
-same(ChannelWorkerFailureDiagnostic::classify(new Error('Class "PrivateCustomerIdentifier" not found')),['category'=>'php_error','sqlstate'=>null],'bootstrap message is not exported');
-same(ChannelWorkerFailureDiagnostic::classify(new TypeError('private runtime value')),['category'=>'php_error','sqlstate'=>null],'type error detail is not exported');
+]as[$message,$category])same(ChannelWorkerFailureDiagnostic::classify(new RuntimeException($message)),['category'=>$category,'sqlstate'=>null,'location'=>null],'safe fixed failure projection');
+same(ChannelWorkerFailureDiagnostic::classify(new Error('Class "PrivateCustomerIdentifier" not found')),['category'=>'php_error','sqlstate'=>null,'location'=>null],'bootstrap message is not exported');
+same(ChannelWorkerFailureDiagnostic::classify(new TypeError('private runtime value')),['category'=>'php_error','sqlstate'=>null,'location'=>null],'type error detail is not exported');
 $diagnosticSql=new PDOException('SQLSTATE[42S22] private raw query');
 (new ReflectionProperty(Exception::class,'code'))->setValue($diagnosticSql,'42S22');
-same(ChannelWorkerFailureDiagnostic::classify($diagnosticSql),['category'=>'database_exception','sqlstate'=>'42S22'],'only validated SQLSTATE is exported');
-same(ChannelWorkerFailureDiagnostic::classify(new PDOException('private raw query',123)),['category'=>'database_exception','sqlstate'=>null],'non-SQLSTATE numeric code is omitted');
+same(ChannelWorkerFailureDiagnostic::classify($diagnosticSql),['category'=>'database_exception','sqlstate'=>'42S22','location'=>null],'only validated SQLSTATE is exported');
+same(ChannelWorkerFailureDiagnostic::classify(new PDOException('private raw query',123)),['category'=>'database_exception','sqlstate'=>null,'location'=>null],'non-SQLSTATE numeric code is omitted');
 echo 'PASS '.$checks.' MAX channel attribution checks ('.$p->getAttribute(PDO::ATTR_DRIVER_NAME).")\n";
 
