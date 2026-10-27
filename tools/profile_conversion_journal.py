@@ -11,7 +11,7 @@ import sys
 import build_conversion_observations as base
 import extract_conversion_profiles as extractor
 
-VERSION = "admitted_journal_profile_v1_2"
+VERSION = "admitted_journal_profile_v1_3"
 MAX_BYTES = 2 * 1024 * 1024
 ADAPTER_SHA = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
 
@@ -44,7 +44,7 @@ def profile(document, extracted_at):
         base.require(type(case["window_limited"]) is bool and type(case["access_denied"]) is bool, "explicit_coverage_required")
         base.require(isinstance(case["rows"], list) and len(case["rows"]) <= 50, "profile_window_limit")
         messages = []; refs = []; errors = {}; unique = set()
-        input_rows = {}; receipts = []
+        input_rows = {}; receipts = []; membership = []
 
         def omitted(reason):
             errors[reason] = errors.get(reason, 0)+1
@@ -85,7 +85,10 @@ def profile(document, extracted_at):
                 omitted("scope_denied"); continue
             is_application = (row["source_kind"] == "event" and isinstance(snap.get("payload"), dict)
                               and snap["payload"].get("event_type") == "wizard_value_applied")
-            if row["source_kind"] != "message" and not is_application:
+            is_membership = (row["source_kind"] == "event" and isinstance(snap.get("payload"), dict)
+                             and snap["payload"].get("event_type") in {
+                                 "channel_subscription_observed", "channel_retention_30m_observed"})
+            if row["source_kind"] != "message" and not is_application and not is_membership:
                 omitted("uninterpreted_event"); continue
             if snap.get("payload_status") != "copied":
                 omitted("payload_unavailable"); continue
@@ -95,6 +98,41 @@ def profile(document, extracted_at):
                 omitted("source_clock_unresolved"); continue
             payload = snap.get("payload")
             base.require(isinstance(payload, dict), "invalid_message_payload")
+            if is_membership:
+                try:
+                    observed = json.loads(payload.get("payload_json") or "{}", object_pairs_hook=base.unique_object)
+                    event_type = payload.get("event_type")
+                    common = {"version", "origin", "source", "identity_scope", "state", "occurred_at_unix"}
+                    expected = common if event_type == "channel_subscription_observed" else common | {
+                        "subscription_event_id", "minimum_age_seconds"}
+                    valid = (isinstance(observed, dict) and set(observed) == expected
+                             and observed.get("version") == 1
+                             and type(observed.get("version")) is int
+                             and observed.get("origin") == "existing_membership_producer"
+                             and payload.get("actor_type") == "system"
+                             and observed.get("source") in {"max_membership_history", "telegram_membership_history"}
+                             and observed.get("identity_scope") in {"same_chat_and_source", "source_only", "unknown"}
+                             and type(observed.get("occurred_at_unix")) is int
+                             and 946684800 <= observed["occurred_at_unix"] <= recorded)
+                    if event_type == "channel_subscription_observed":
+                        valid = valid and observed.get("state") == "subscribed"
+                    else:
+                        valid = (valid and observed.get("state") in {"retained", "not_retained"}
+                                 and observed.get("minimum_age_seconds") == 1800
+                                 and isinstance(observed.get("subscription_event_id"), str)
+                                 and re.fullmatch(r"[1-9][0-9]{0,19}", observed["subscription_event_id"]))
+                    if not valid:
+                        raise ValueError()
+                except (ValueError, TypeError, KeyError, base.InvalidObservation):
+                    omitted("invalid_membership_receipt"); continue
+                membership.append({"event_type": event_type, "source_id": str(row["source_id"]),
+                    "id": "journal:"+row["journal_id"], "source": observed["source"],
+                    "identity_scope": observed["identity_scope"], "state": observed["state"],
+                    "at": epoch(observed["occurred_at_unix"]), "recorded_at": epoch(recorded),
+                    "available_at": received,
+                    "subscription_event_id": observed.get("subscription_event_id"),
+                    "minimum_age_seconds": observed.get("minimum_age_seconds")})
+                continue
             if is_application:
                 try:
                     applied = json.loads(payload.get("payload_json") or "{}", object_pairs_hook=base.unique_object)
@@ -184,11 +222,29 @@ def profile(document, extracted_at):
                 omitted("conflicting_wizard_application"); continue
             # Earliest exact successful receipt; repeating it cannot add value or a stage.
             applications.append(min(group, key=lambda a: (a["receipt"]["at"], a["receipt"]["available_at"], a["receipt"]["id"])))
+        subscription_ids = {}
+        for item in membership:
+            if item["event_type"] == "channel_subscription_observed":
+                subscription_ids.setdefault(item["source_id"], []).append(item["id"])
+        membership_receipts = []
+        for item in membership:
+            if item["event_type"] == "channel_subscription_observed":
+                membership_receipts.append({k: item[k] for k in (
+                    "id", "source", "identity_scope", "state", "at", "recorded_at", "available_at")} | {
+                    "kind": "subscription"})
+                continue
+            matches = subscription_ids.get(item["subscription_event_id"], [])
+            if len(matches) != 1:
+                omitted("membership_period_missing_or_ambiguous"); continue
+            membership_receipts.append({k: item[k] for k in (
+                "id", "source", "identity_scope", "state", "at", "recorded_at", "available_at",
+                "minimum_age_seconds")} | {"kind": "retention_30m", "subscription_id": matches[0]})
         fence = max((r["observed_at"] for r in refs), default=document["requested_at"])
-        start = min((m["at"] for m in messages), default=fence)
+        start = min([m["at"] for m in messages]+[r["at"] for r in membership_receipts], default=fence)
         profile_case = {"subject": scope, "brand_key": "anytour", "context_from": start,
                         "prediction_at": extracted_at, "source_complete_through": None,
-                        "source_fence_at": fence, "prefix_complete": False, "trip_status": "unknown", "messages": messages}
+                        "source_fence_at": fence, "prefix_complete": False, "trip_status": "unknown",
+                        "messages": messages, "membership_receipts": membership_receipts}
         result = extractor.extract_case(profile_case, extracted_at, applications)
         # A denied current scope has no usable facts, even when older snapshots still exist.
         base.require(not case["access_denied"] or not result["prediction_features"]["facts"], "denied_scope_facts")
