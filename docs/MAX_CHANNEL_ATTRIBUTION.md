@@ -97,6 +97,55 @@ newer IDs and wrong counters cannot replace it. A missing identity retries later
 The first successful resolution freezes ClientID and tracker record for the event.
 Tracker observation time is optional metadata and never replaces event time.
 
+### Prospective membership receipts
+
+Migration `068_max_membership_receipt_bridge.sql` freezes one installation-time
+boundary and performs no backfill.  After that boundary, the same signed lookup
+may request the exact MAX membership history for the already selected users and
+counter.  The tracker reads the existing HL10 history by exact chat and source;
+type1 opens a subscription period and type2 closes the currently open period.
+The source's timezone-free `UF_DATE` is interpreted with the established
+`Europe/London` DST contract.  Current membership state, the legacy export flag
+and the time a Yandex goal was exported are not substituted for history.
+
+The lookup returns at most20 receipts per user and100 per response.  At1799
+seconds it can return only the subscription.  At1800 seconds, an exact leave in
+the same HL10 chat/source period returns `not_retained`.  `retained` requires an
+actual HL12 30-minute queue row joined through HL9 to the exact chat, effective
+source, subscription type and subscription timestamp, and that receipt must
+independently agree with the HL10 period.  Absence of a leave, current state or
+an old source-only no-unsubscribe decision remains `unknown`.  Wrong-counter
+rows, malformed clocks and oversized per-user histories fail closed; one bad
+user does not hide other users in the same bounded request.  Rejoins create
+distinct periods.  The query remains SELECT-only and rolls back its read-only
+transaction.
+
+The existing worker cycles through at most5 already-admitted prospective MAX
+people from the MAX-only slice of the existing conversion outbox.  Five users
+times the per-user20 cap preserves the100-receipt response bound.  Its cursor is bounded work progress,
+not an information fence, and wraps only after the current suffix is exhausted.
+This lets a join after ClientID resolution and a late producer correction become
+visible without inventing a new queue, worker or schedule.  A failed membership
+source observation does not advance the cursor; an individual malformed or
+oversized user stays unknown while the successful batch advances.  Pending
+ordinary identity lookup is independent, so the optional observer cannot stall
+delivery.
+
+`MaxMembershipReceiptJournal` binds those receipts to an existing non-test
+AnyTour MAX conversation only when external user and negative chat ID match.  It
+writes the two versioned event types `channel_subscription_observed` and
+`channel_retention_30m_observed` into the existing `conversation_events` journal.
+If stored eligible post-fence conversations contain multiple dialogue episodes
+for one person, no episode is guessed and the receipt remains unassigned; this
+check is not limited to the transient lookup batch.
+The journal persistence time is the receipt's recorded time; normal journal
+intake supplies its later first-observed availability.  Exact repeats are
+idempotent, while conflicting later evidence is preserved as another receipt and
+never overwrites the first.  The existing worker performs bounded cyclic
+observations of admitted people; there is no new queue, worker, cron, API endpoint
+or conversion goal.  Observer failure cannot manufacture a membership fact,
+block identity resolution or cause a conversion POST replay.
+
 ## Tracker authentication and release
 
 The lookup is a separate endpoint at

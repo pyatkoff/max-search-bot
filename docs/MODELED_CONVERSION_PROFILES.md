@@ -89,6 +89,22 @@ The journal adapter recognizes only the versioned existing-producer events
 `channel_subscription_observed` and `channel_retention_30m_observed`; it does not
 read tracker, HL, native source, model or provider APIs.
 
+For MAX, the existing signed identity lookup now carries a bounded optional
+prospective membership window from the established HL10 producer into these two
+event types.  Its migration-time fence prevents historical replay.  Exact chat,
+source and counter own the period; the source row ID owns idempotency.  A
+`retained` receipt additionally requires the actual HL12 30-minute row joined
+through the matching HL9 subscription and independently reconciled to that exact
+HL10 period; absence of a leave never creates it.  A bounded MAX-only cyclic pass
+over the existing prospective outbox can observe a join after identity resolution,
+the actual 1800-second result and a late source correction without a new worker or
+queue.  One per-user invalid/oversized history remains unknown without starving
+the rest of the batch.  Its progress cursor cannot widen the activation-time information
+fence.  This supplies future comparable
+early signals without changing dialogue goals or treating a missing receipt as
+retention.  Natural post-installation receipts and useful same-person comparisons
+remain separate acceptance evidence from code and synthetic controls.
+
 ## Behavior and limits
 
 - Numeric budget preserves lower/upper bound, currency and total/per-person
