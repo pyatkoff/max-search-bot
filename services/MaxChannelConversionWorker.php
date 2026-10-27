@@ -23,33 +23,28 @@ final class MaxChannelConversionWorker
         if($collector&&$shared)$result['collected']=$repo->collect($s,$collector);
         $lookup=$lookup??new MaxTrackerLookupClient();
         $pending=$shared?$repo->pending($now):[];
-        $bindingMap=[];foreach($pending as$row){$user=(string)$row['external_user_id'];$bindingMap['u:'.$user]=['external_user_id'=>$user,'conversation_ids'=>array_merge($bindingMap['u:'.$user]['conversation_ids']??[],[(string)$row['conversation_id']])];}
         $activation=(int)($s['membership_receipts_activated_at_unix']??0);
         $sweep=['cursor_before'=>0,'cursor_after'=>0,'bindings'=>[]];
         if($shared&&$activation>=946684800){
-            $remaining=max(0,25-count($bindingMap));
-            $sweep=$repo->membershipCandidates($s,$now,$remaining);
-            foreach($sweep['bindings']as$row){$user=(string)$row['external_user_id'];$bindingMap['u:'.$user]=['external_user_id'=>$user,'conversation_ids'=>array_merge($bindingMap['u:'.$user]['conversation_ids']??[],[(string)$row['conversation_id']])];}
+            // Five users × the per-user 20-receipt cap stays within the wire's
+            // 100-receipt response bound and gives every admitted user a fair
+            // cyclic turn without coupling the observer to identity delivery.
+            $sweep=$repo->membershipCandidates($s,$now,5);
         }
-        $bindings=array_values($bindingMap);$users=array_slice(array_column($bindings,'external_user_id'),0,25);
-        if($users){
-            $identities=[];$membershipObserved=false;
-            if($activation>=946684800&&method_exists($lookup,'lookupWithMembership')){
-                try{
-                    $response=$lookup->lookupWithMembership($s['counter_id'],$users,$activation,$now);
-                    $identities=$response['identities'];$membership=$response['membership'];
-                    $result['membership']=(new MaxMembershipReceiptJournal($pdo))->record($bindings,$membership,$now,$activation)+['errors'=>0];
-                    $repo->advanceMembershipCursor((int)$sweep['cursor_before'],(int)$sweep['cursor_after']);$membershipObserved=true;
-                }catch(Throwable $ignored){$result['membership']['errors']++;}
-            }
-            $pendingUsers=array_values(array_unique(array_column($pending,'external_user_id')));
-            if(!$membershipObserved&&$pendingUsers){
-                try{$identities=$lookup->lookup($s['counter_id'],$pendingUsers);}
-                catch(Throwable $ignored){$result['errors']++;}
-            }
+        $pendingUsers=array_values(array_unique(array_column($pending,'external_user_id')));
+        if($pendingUsers){
             try{
+                $identities=$lookup->lookup($s['counter_id'],$pendingUsers);
                 foreach($pending as $row){$record=$identities[$row['external_user_id']]??null;$repo->resolve((string)$row['id'],$record,$now);if($record)$result['resolved']++;}
             }catch(Throwable $ignored){$result['errors']++;}
+        }
+        $bindings=$sweep['bindings'];$users=array_column($bindings,'external_user_id');
+        if($users&&method_exists($lookup,'lookupWithMembership')){
+            try{
+                $response=$lookup->lookupWithMembership($s['counter_id'],$users,$activation,$now);
+                $result['membership']=(new MaxMembershipReceiptJournal($pdo))->record($bindings,$response['membership'],$now,$activation)+['errors'=>0];
+                $repo->advanceMembershipCursor((int)$sweep['cursor_before'],(int)$sweep['cursor_after']);
+            }catch(Throwable $ignored){$result['membership']['errors']++;}
         }
         if($tgActive){
             try{

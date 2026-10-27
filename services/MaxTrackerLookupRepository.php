@@ -61,38 +61,58 @@ final class MaxTrackerLookupRepository
     /** Exact per-chat history after the caller's prospective fence; current state is never backdated. */
     private function membershipReceipts(string $counterId,array $userIds,array $window): array
     {
-        $table=(string)$this->pdo->query('SELECT TABLE_NAME FROM b_hlblock_entity WHERE ID=10')->fetchColumn();
-        if(!preg_match('/\A[a-z0-9_]{1,64}\z/D',$table))throw new RuntimeException('tracker_membership_unavailable');
-        $sql='SELECT h.ID,h.UF_CHAT_ID,h.UF_SOURCE,h.UF_TYPE,h.UF_DATE FROM `'.$table.'` h'
+        $historyTable=$this->tableName(10);$mainTable=$this->tableName(9);$retentionTable=$this->tableName(12);
+        $sql='SELECT h.ID,h.UF_CHAT_ID,h.UF_SOURCE,h.UF_TYPE,h.UF_DATE FROM `'.$historyTable.'` h'
             .' WHERE h.UF_CHAT_ID=? AND h.UF_TYPE IN (1,2) AND h.UF_DATE>=? AND h.UF_DATE<=?'
             .' AND EXISTS (SELECT 1 FROM b_iblock_element_property ep JOIN b_iblock_property p ON p.ID=ep.IBLOCK_PROPERTY_ID'
             ." WHERE p.IBLOCK_ID=8 AND p.CODE='YA_METRIK_ID' AND ep.IBLOCK_ELEMENT_ID=h.UF_SOURCE AND ep.VALUE=?)"
             .' ORDER BY h.UF_DATE,h.ID LIMIT 21';
         $q=$this->pdo->prepare($sql);$out=[];
+        $source="CASE WHEN s.UF_METRIC_SOURCE IS NOT NULL AND s.UF_METRIC_SOURCE<>'' THEN s.UF_METRIC_SOURCE ELSE s.UF_SOURCE END";
+        $retentionSql='SELECT r.ID,r.UF_SUB_ID,r.UF_DATE,s.UF_SUB_DATE,s.UF_TYPE,'.$source.' AS LINK_SOURCE FROM `'.$retentionTable.'` r'
+            .' JOIN `'.$mainTable.'` s ON s.ID=r.UF_SUB_ID WHERE s.UF_CHAT_ID=? AND r.UF_DATE>=? AND r.UF_DATE<=?'
+            .' AND EXISTS (SELECT 1 FROM b_iblock_element_property ep JOIN b_iblock_property p ON p.ID=ep.IBLOCK_PROPERTY_ID'
+            ." WHERE p.IBLOCK_ID=8 AND p.CODE='YA_METRIK_ID' AND ep.IBLOCK_ELEMENT_ID=".$source.' AND ep.VALUE=?)'
+            .' ORDER BY r.UF_DATE,r.ID LIMIT 21';
+        $retentionQuery=$this->pdo->prepare($retentionSql);
         $zone=new DateTimeZone('Europe/London');
         $from=(new DateTimeImmutable('@'.(int)$window['not_before_unix']))->setTimezone($zone)->format('Y-m-d H:i:s');
         $to=(new DateTimeImmutable('@'.(int)$window['cutoff_unix']))->setTimezone($zone)->format('Y-m-d H:i:s');
         $budget=100;
         foreach($userIds as$userId){
             $q->execute([$userId,$from,$to,$counterId]);$rows=$q->fetchAll(PDO::FETCH_ASSOC);
-            if(count($rows)>20)throw new RuntimeException('tracker_membership_window_too_large');
-            $periods=[];$open=null;
+            $retentionQuery->execute([$userId,$from,$to,$counterId]);$checkRows=$retentionQuery->fetchAll(PDO::FETCH_ASSOC);
+            if(count($rows)>20||count($checkRows)>20){$out[$userId]=[];continue;}
+            $checks=[];$invalid=false;
+            foreach($checkRows as$row){
+                $record=(string)$row['ID'];$subscription=(string)$row['UF_SUB_ID'];$sourceId=(string)$row['LINK_SOURCE'];$type=(string)$row['UF_TYPE'];
+                if(!MaxTrackerLookupProtocol::id($record)||!MaxTrackerLookupProtocol::id($subscription)
+                    ||!MaxTrackerLookupProtocol::id($sourceId)||$type!=='1'){$invalid=true;break;}
+                try{$at=MaxSubscriptionAttributionPolicy::eventTimeUnix((string)$row['UF_DATE'],$zone);
+                    $subscriptionAt=MaxSubscriptionAttributionPolicy::eventTimeUnix((string)$row['UF_SUB_DATE'],$zone);}
+                catch(InvalidArgumentException $ignored){continue;}
+                if($at<(int)$window['not_before_unix']||$at>(int)$window['cutoff_unix'])continue;
+                $checks[]=['record_id'=>$record,'subscription_id'=>$subscription,'source'=>$sourceId,'at'=>$at,'subscription_at'=>$subscriptionAt];
+            }
+            if($invalid){$out[$userId]=[];continue;}
+            $periods=[];$open=[];
             foreach($rows as$row){
-                $record=(string)$row['ID'];$type=(string)$row['UF_TYPE'];
+                $record=(string)$row['ID'];$type=(string)$row['UF_TYPE'];$sourceId=(string)$row['UF_SOURCE'];
                 if(!MaxTrackerLookupProtocol::id($record)||!MaxTrackerLookupProtocol::id((string)$row['UF_CHAT_ID'])
-                    ||!in_array($type,['1','2'],true))throw new RuntimeException('tracker_invalid_membership_record');
+                    ||!MaxTrackerLookupProtocol::id($sourceId)||!in_array($type,['1','2'],true)){$invalid=true;break;}
                 try{$at=MaxSubscriptionAttributionPolicy::eventTimeUnix((string)$row['UF_DATE'],$zone);}
                 catch(InvalidArgumentException $ignored){continue;}
                 if($at<(int)$window['not_before_unix']||$at>(int)$window['cutoff_unix'])continue;
                 if($type==='1'){
                     // Repeated user_added while the same period is still open
                     // is another observation of that state, not a rejoin.
-                    if($open!==null&&$periods[$open]['left']===null)continue;
-                    $periods[]=['record_id'=>$record,'at'=>$at,'left'=>null];$open=count($periods)-1;
-                }elseif($open!==null&&$periods[$open]['left']===null){
-                    $periods[$open]['left']=['record_id'=>$record,'at'=>$at];$open=null;
+                    if(isset($open[$sourceId])&&$periods[$open[$sourceId]]['left']===null)continue;
+                    $periods[]=['record_id'=>$record,'source'=>$sourceId,'at'=>$at,'left'=>null];$open[$sourceId]=count($periods)-1;
+                }elseif(isset($open[$sourceId])&&$periods[$open[$sourceId]]['left']===null){
+                    $periods[$open[$sourceId]]['left']=['record_id'=>$record,'at'=>$at];unset($open[$sourceId]);
                 }
             }
+            if($invalid){$out[$userId]=[];continue;}
             $receipts=[];
             foreach($periods as$period){
                 $receipts[]=['kind'=>'subscription','source_record_id'=>$period['record_id'],
@@ -100,14 +120,30 @@ final class MaxTrackerLookupRepository
                 $check=$period['at']+1800;
                 if($check>(int)$window['cutoff_unix'])continue;
                 $left=$period['left'];$notRetained=$left!==null&&$left['at']<=$check;
-                $receipts[]=['kind'=>'retention_30m','source_record_id'=>$notRetained?$left['record_id']:$period['record_id'],
-                    'subscription_source_record_id'=>$period['record_id'],'state'=>$notRetained?'not_retained':'retained',
-                    'occurred_at_unix'=>$check,'minimum_age_seconds'=>1800];
+                if($notRetained){
+                    $receipts[]=['kind'=>'retention_30m','source_record_id'=>$left['record_id'],
+                        'subscription_source_record_id'=>$period['record_id'],'state'=>'not_retained',
+                        'occurred_at_unix'=>$check,'minimum_age_seconds'=>1800];
+                    continue;
+                }
+                foreach($checks as$actual)if($actual['source']===$period['source']&&$actual['subscription_at']===$period['at']
+                    &&$actual['at']>=$check&&($left===null||$left['at']>$actual['at'])){
+                    $receipts[]=['kind'=>'retention_30m','source_record_id'=>$actual['record_id'],
+                        'subscription_source_record_id'=>$period['record_id'],'state'=>'retained',
+                        'occurred_at_unix'=>$actual['at'],'minimum_age_seconds'=>1800];break;
+                }
             }
             if(count($receipts)>$budget)throw new RuntimeException('tracker_membership_response_too_large');
             $budget-=count($receipts);
             $out[$userId]=$receipts;
         }
         return $out;
+    }
+
+    private function tableName(int $id): string
+    {
+        $q=$this->pdo->prepare('SELECT TABLE_NAME FROM b_hlblock_entity WHERE ID=?');$q->execute([$id]);$table=(string)$q->fetchColumn();
+        if(!preg_match('/\A[a-z0-9_]{1,64}\z/D',$table))throw new RuntimeException('tracker_membership_unavailable');
+        return$table;
     }
 }

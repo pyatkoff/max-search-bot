@@ -356,5 +356,21 @@ same(MaxChannelConversionOutbox::queueIfEligible('-1234567890123456789','max_bot
 same(MaxChannelConversionOutbox::queueIfEligible('-1234567890123456789','max_manager_request',null),false,'migration gap blocks legacy request without YCLID fallback');
 $gapPosts=$readOnlyApi->posts;MaxChannelConversionWorker::tick($p,$noIO,$readOnlyApi,$now);same($readOnlyApi->posts,$gapPosts,'migration gap performs no conversion POST');
 $p->exec('DROP TABLE max_channel_attribution_settings');$p->exec('ALTER TABLE max_channel_attribution_settings_snapshot RENAME TO max_channel_attribution_settings');
+// The cyclic observer is MAX-only and must eventually visit every admitted
+// MAX user even when one user's receipts remain unknown.
+$p=maxAttributionFixture();(new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$p);$cycleNow=time();
+$p->prepare("UPDATE max_channel_attribution_settings SET mode='collect',goal_set='shared',shared_goals_activated_at_unix=?,membership_receipts_activated_at_unix=?,membership_receipts_outbox_cursor=0 WHERE project_key='anytour'")->execute([$cycleNow-60,$cycleNow-60]);
+$insert=$p->prepare("INSERT INTO max_channel_conversion_outbox(project_key,conversation_id,external_user_id,counter_id,target,transport_target,event_unix,state,created_at,platform) VALUES('anytour',?,?,'98615635','max_bot_activity_start','max_bot_activity_start',?,'processed',?,?)");
+$cycleUsers=[];for($i=1;$i<=6;$i++){$user='880000000000000000'.$i;$cycleUsers[]=$user;$insert->execute([100+$i,$user,$cycleNow-30,gmdate('Y-m-d H:i:s',$cycleNow-30),'max']);}
+$insert->execute([199,'9900000000000000001',$cycleNow-30,gmdate('Y-m-d H:i:s',$cycleNow-30),'telegram']);
+$cycleLookup=new class{public array $batches=[];function lookupWithMembership($counter,$users,$notBefore,$cutoff){$this->batches[]=$users;return ['identities'=>array_fill_keys($users,null),'membership'=>array_fill_keys($users,[])];}function lookup(){throw new RuntimeException('unexpected_identity_lookup');}};
+MaxChannelConversionWorker::tick($p,$cycleLookup,$noIO,$cycleNow);
+$firstCursor=(int)MaxChannelConversionOutbox::settings($p)['membership_receipts_outbox_cursor'];
+MaxChannelConversionWorker::tick($p,$cycleLookup,$noIO,$cycleNow+1);
+$secondCursor=(int)MaxChannelConversionOutbox::settings($p)['membership_receipts_outbox_cursor'];
+same($cycleLookup->batches[0],array_slice($cycleUsers,0,5),'bounded membership pass visits first five MAX users');
+same($cycleLookup->batches[1],[$cycleUsers[5]],'per-user unknown cannot starve the next admitted MAX user');
+ok($firstCursor>0&&$secondCursor>$firstCursor,'successful cyclic observations advance bounded work progress');
+ok(!in_array('9900000000000000001',array_merge(...$cycleLookup->batches),true),'Telegram outbox identity cannot leak into MAX membership lookup');
 echo 'PASS '.$checks.' MAX channel attribution checks ('.$p->getAttribute(PDO::ATTR_DRIVER_NAME).")\n";
 

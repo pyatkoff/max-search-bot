@@ -6,28 +6,29 @@ if(!getenv('MAX_ATTRIBUTION_TEST_MYSQL_DSN'))throw new RuntimeException('native_
 $p=maxAttributionFixture();$checks=0;
 function same($a,$b,string $name):void{global $checks;$checks++;if($a!==$b)throw new RuntimeException('FAIL '.$name);}
 function rejects(callable $f,string $name):void{global $checks;try{$f();}catch(Throwable $e){$checks++;return;}throw new RuntimeException('FAIL '.$name);}
-$p->exec('CREATE TABLE max_sub_links (ID BIGINT PRIMARY KEY,UF_CHAT_ID VARCHAR(20),UF_CLIENT_ID VARCHAR(60),UF_DATE DATETIME NULL,UF_METRIC_SOURCE VARCHAR(20),UF_SOURCE VARCHAR(20),UF_PLATFORM VARCHAR(20))');
+$p->exec('CREATE TABLE max_sub_links (ID BIGINT PRIMARY KEY,UF_CHAT_ID VARCHAR(20),UF_CLIENT_ID VARCHAR(60),UF_DATE DATETIME NULL,UF_METRIC_SOURCE VARCHAR(20),UF_SOURCE VARCHAR(20),UF_PLATFORM VARCHAR(20),UF_SUB_DATE DATETIME NULL,UF_TYPE INTEGER NULL)');
 $p->exec('CREATE TABLE b_iblock_property (ID BIGINT PRIMARY KEY,IBLOCK_ID BIGINT,CODE VARCHAR(64))');
 $p->exec('CREATE TABLE b_iblock_element_property (IBLOCK_PROPERTY_ID BIGINT,IBLOCK_ELEMENT_ID BIGINT,VALUE VARCHAR(64))');
 $p->exec('CREATE TABLE b_hlblock_entity (ID BIGINT PRIMARY KEY,TABLE_NAME VARCHAR(64))');
 $p->exec('CREATE TABLE max_membership_events (ID BIGINT PRIMARY KEY,UF_CHAT_ID VARCHAR(20),UF_SOURCE VARCHAR(20),UF_TYPE INTEGER,UF_DATE DATETIME)');
-$p->exec("INSERT INTO b_hlblock_entity VALUES(10,'max_membership_events')");
+$p->exec('CREATE TABLE max_no_unsub_goals (ID BIGINT PRIMARY KEY,UF_SUB_ID BIGINT,UF_DATE DATETIME,UF_EXPORTED INTEGER)');
+$p->exec("INSERT INTO b_hlblock_entity VALUES(9,'max_sub_links'),(10,'max_membership_events'),(12,'max_no_unsub_goals')");
 $p->exec("INSERT INTO b_iblock_property VALUES(1,8,'YA_METRIK_ID'),(2,8,'CHANEL_ID'),(3,7,'YA_METRIK_ID')");
 $p->exec("INSERT INTO b_iblock_element_property VALUES(1,10,'98615635'),(1,11,'999'),(2,12,'98615635'),(3,13,'98615635')");
-$q=$p->prepare('INSERT INTO max_sub_links VALUES(?,?,?,?,?,?,?)');
+$q=$p->prepare('INSERT INTO max_sub_links VALUES(?,?,?,?,?,?,?,?,?)');
 foreach([
-    ['9007199254740991','123','11111111111111111111','2026-10-15 11:00:00',null,'10','ios'],
-    ['9007199254740992','123','22222222222222222222','2026-10-14 11:00:00','10','11','android'],
-    ['9007199254740993','123','33333333333333333333','2026-10-15 13:00:00','11','10','desktop'],
-    ['9007199254740994','123','','2026-10-15 13:01:00','10','10','ios'],
-    ['9007199254740995','123','01','2026-10-15 13:02:00','10','10','ios'],
-    ['9007199254740996','123','999','2026-10-15 13:03:00','12','10','ios'],
-    ['9007199254740997','123','888','2026-10-15 13:04:00','13','10','ios'],
-    ['9007199254740998','123','777','2026-10-15 13:05:00','0','10','ios'],
-    ['9007199254740999','123',"666\n",'2026-10-15 13:06:00','10','10','ios'],
-    ['9007199254741000','456','1844674407370955161512345','2026-07-15 12:00:00','','10','ios'],
-    ['9007199254741001','789','55555555555555555555','2026-01-15 12:00:00','10','11','android'],
-    ['9007199254741002','999','99999999999999999999','2026-10-25 01:30:00','10','11','android'],
+    ['9007199254740991','123','11111111111111111111','2026-10-15 11:00:00',null,'10','ios',null,null],
+    ['9007199254740992','123','22222222222222222222','2026-10-14 11:00:00','10','11','android',null,null],
+    ['9007199254740993','123','33333333333333333333','2026-10-15 13:00:00','11','10','desktop',null,null],
+    ['9007199254740994','123','','2026-10-15 13:01:00','10','10','ios',null,null],
+    ['9007199254740995','123','01','2026-10-15 13:02:00','10','10','ios',null,null],
+    ['9007199254740996','123','999','2026-10-15 13:03:00','12','10','ios',null,null],
+    ['9007199254740997','123','888','2026-10-15 13:04:00','13','10','ios',null,null],
+    ['9007199254740998','123','777','2026-10-15 13:05:00','0','10','ios',null,null],
+    ['9007199254740999','123',"666\n",'2026-10-15 13:06:00','10','10','ios',null,null],
+    ['9007199254741000','456','1844674407370955161512345','2026-07-15 12:00:00','','10','ios','2026-07-15 12:00:00',1],
+    ['9007199254741001','789','55555555555555555555','2026-01-15 12:00:00','10','11','android',null,null],
+    ['9007199254741002','999','99999999999999999999','2026-10-25 01:30:00','10','11','android',null,null],
 ] as $r)$q->execute($r);
 $before=(string)$p->query('SELECT COUNT(*) FROM max_sub_links')->fetchColumn();
 $repo=new MaxTrackerLookupRepository($p);$rows=$repo->lookup('98615635',['123','456','789','999','404']);
@@ -46,21 +47,30 @@ $p->exec("INSERT INTO max_membership_events VALUES
  (1006,'789','10',1,'2026-07-15 12:00:00'),
  (1007,'789','10',2,'2026-07-15 12:10:00'),
  (1008,'789','10',1,'2026-07-15 12:20:00')");
+$p->exec("INSERT INTO max_no_unsub_goals VALUES(3001,9007199254741000,'2026-07-15 12:30:00',0)");
+$p->exec("UPDATE max_sub_links SET UF_SUB_DATE='2026-07-15 12:19:59',UF_TYPE=1 WHERE ID=9007199254741001");
+$p->exec("INSERT INTO max_no_unsub_goals VALUES(3003,9007199254741001,'2026-07-15 12:50:00',0)");
 $notBefore=strtotime('2026-07-15 10:59:00 UTC');$at=strtotime('2026-07-15 11:00:00 UTC');
 $before=$repo->lookup('98615635',['123','456'],['not_before_unix'=>$notBefore,'cutoff_unix'=>$at+1799]);
 same($before[0]['membership_receipts'],[['kind'=>'subscription','source_record_id'=>'1001','state'=>'subscribed','occurred_at_unix'=>$at]],'1799 keeps exact subscription without retention');
 $mature=$repo->lookup('98615635',['123','456'],['not_before_unix'=>$notBefore,'cutoff_unix'=>$at+1800]);
 same($mature[0]['membership_receipts'][1],['kind'=>'retention_30m','source_record_id'=>'1002','subscription_source_record_id'=>'1001','state'=>'not_retained','occurred_at_unix'=>$at+1800,'minimum_age_seconds'=>1800],'leave before 1800 is exact not-retained receipt');
-same($mature[1]['membership_receipts'][1]['state'],'retained','absence in complete exact period at 1800 is retained');
+same($mature[1]['membership_receipts'][1]['state'],'retained','exact per-user 30-minute queue receipt is retained');
+same($mature[1]['membership_receipts'][1]['source_record_id'],'3001','retained receipt is owned by actual queue row');
 same(count($mature[1]['membership_receipts']),2,'duplicate join does not invent a rejoin period');
 same(count($mature[0]['membership_receipts']),2,'wrong-source membership row excluded');
 $rejoined=$repo->lookup('98615635',['789'],['not_before_unix'=>$notBefore,'cutoff_unix'=>$at+3000]);
-same(array_column($rejoined[0]['membership_receipts'],'state'),['subscribed','not_retained','subscribed','retained'],'leave then join creates a distinct second period');
+same(array_column($rejoined[0]['membership_receipts'],'state'),['subscribed','not_retained','subscribed'],'rejoin with a timestamp-mismatched 30-minute queue receipt stays unknown');
 $q=$p->prepare('INSERT INTO max_membership_events VALUES(?,?,?,?,?)');
 for($id=1100;$id<1121;$id++)$q->execute([(string)$id,'404','10',1,'2026-07-15 12:10:00']);
-rejects(fn()=>$repo->lookup('98615635',['404'],['not_before_unix'=>$notBefore,'cutoff_unix'=>$at+1800]),'oversized exact history fails closed instead of looking empty');
+$oversized=$repo->lookup('98615635',['404','456'],['not_before_unix'=>$notBefore,'cutoff_unix'=>$at+1800]);
+same($oversized[0]['membership_receipts'],[],'oversized exact user fails closed as unknown without poisoning the batch');
+same($oversized[1]['membership_receipts'][1]['source_record_id'],'3001','next exact user remains observable after one oversized history');
 $dynamicNow=time();$dynamicAt=(new DateTimeImmutable('@'.($dynamicNow-1800)))->setTimezone(new DateTimeZone('Europe/London'))->format('Y-m-d H:i:s');
 $p->prepare('INSERT INTO max_membership_events VALUES(?,?,?,?,?)')->execute(['2001','123','10',1,$dynamicAt]);
+$p->prepare('UPDATE max_sub_links SET UF_SUB_DATE=?,UF_TYPE=1 WHERE ID=9007199254740991')->execute([$dynamicAt]);
+$dynamicCheck=(new DateTimeImmutable('@'.$dynamicNow))->setTimezone(new DateTimeZone('Europe/London'))->format('Y-m-d H:i:s');
+$p->prepare('INSERT INTO max_no_unsub_goals VALUES(?,?,?,0)')->execute(['3002','9007199254740991',$dynamicCheck]);
 // Native MySQL JSON predicates must find a text/contact after arbitrary callback volume.
 $p->prepare('INSERT INTO messages VALUES(10,1,\'max\',\'inbound\',\'customer\',?,?)')->execute(['2026-10-15 10:00:04','{bad']);
 $p->exec('DELETE FROM messages WHERE id=7 OR id=9');$q=$p->prepare('INSERT INTO messages VALUES(?,1,\'max\',\'inbound\',\'customer\',?,?)');

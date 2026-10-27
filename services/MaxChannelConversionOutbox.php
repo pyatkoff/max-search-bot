@@ -197,7 +197,7 @@ final class MaxChannelConversionOutbox
         if($activated<946684800||$limit<1)return ['cursor_before'=>0,'cursor_after'=>0,'bindings'=>[]];
         $cursor=(int)($settings['membership_receipts_outbox_cursor']??0);$storedCursor=$cursor;$limit=min(25,$limit);$since=gmdate('Y-m-d H:i:s',$activated);
         $select=function(int $after)use($since):array{
-            $q=$this->pdo->prepare("SELECT id,conversation_id,external_user_id FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635' AND transport_target=target AND target IN ('max_bot_activity_start','max_manager_request','max_customer_reply_after_manager') AND created_at>=? AND id>? ORDER BY id LIMIT 100");
+            $q=$this->pdo->prepare("SELECT id,conversation_id,external_user_id FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635' AND transport_target=target AND target IN ('max_bot_activity_start','max_manager_request','max_customer_reply_after_manager') AND created_at>=? AND id>?".$this->platformWhere('max')." ORDER BY id LIMIT 100");
             $q->execute([$since,$after]);return$q->fetchAll(PDO::FETCH_ASSOC);
         };
         $rows=$select($cursor);if(!$rows&&$cursor>0){$cursor=0;$rows=$select(0);}
@@ -205,7 +205,7 @@ final class MaxChannelConversionOutbox
         foreach($rows as$row){
             $after=max($after,(int)$row['id']);$user=(string)$row['external_user_id'];
             if(!self::decimal($user)||isset($seen[$user]))continue;
-            $seen[$user]=true;$out[]=['conversation_id'=>(string)$row['conversation_id'],'external_user_id'=>$user];
+            $seen[$user]=true;$out[]=['conversation_ids'=>[(string)$row['conversation_id']],'external_user_id'=>$user];
             if(count($out)>=$limit)break;
         }
         return ['cursor_before'=>$storedCursor,'cursor_after'=>$after,'bindings'=>$out];
