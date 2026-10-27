@@ -133,6 +133,10 @@ def current_trip_clauses(text):
             if historical and (not current or current.start() > historical.start()
                                or (past_time and past_time.start() < current.start())):
                 continue
+            if historical and current:
+                # A current request can mention where/when an earlier trip took place.
+                # Retain its current prefix, never its following historical dates.
+                clause = clause[:historical.start()]
             yield clause, start+left
 
 
