@@ -50,10 +50,13 @@ function cardObservedRequest(string $address,string $path,array $data,string $co
 try {
     mkdir($tmp,0700);mkdir($tmp.'/sessions',0700);mkdir($tmp.'/manager',0700);
     foreach(['manager/pipeline-api.php','manager/api.php','manager/lib/ManagerHttp.php','services/ManagerRequestContext.php','services/ManagerConversationService.php',
-        'services/ManagerLeadInboxService.php','services/ManagerQueueProjectionService.php','services/ManagerWorkspaceFilterService.php',
+        'services/ManagerLeadInboxService.php','services/ManagerAiInboxStatusService.php','services/ManagerQueueProjectionService.php','services/ManagerWorkspaceFilterService.php',
         'services/SalesPipelineCatalogAdminService.php','services/LeadTaskService.php']as$dependency)cardCopy($dependency);
     file_put_contents($tmp.'/config.php',"<?php require_once __DIR__.'/services/ProjectConfig.php';ProjectConfig::resetForTests(['id'=>'fixture','brand'=>['name'=>'Fixture']]);\n");
     file_put_contents($tmp.'/maxsearchclass.php','<?php class MaxSearchApi {static function getAiSearchContext($chat):array{return [];} }');
+    // This HTTP/session fixture has no cached AI jobs. The real metadata
+    // reader is exercised on SQLite/native MySQL in the prepared-reply suite.
+    file_put_contents($tmp.'/services/ManagerAiDraftService.php','<?php class ManagerAiDraftService {static function instructions($context=null):string{return "synthetic-inbox-instructions";} }');
     file_put_contents($tmp.'/services/ConversationDb.php', <<<'PHP'
 <?php
 class ConversationDb {static function connection(){return new CardSessionDb;}static function isConfigured():bool{return true;}}

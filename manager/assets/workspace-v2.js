@@ -39,6 +39,7 @@ window.WorkspaceV2InternalNotes?.suspend();
   window.WorkspaceV2Assistant?.suspend();
   window.WorkspaceV2TourSelection?.suspend();
   S.authExpired=true;
+  window.WorkspaceV2Inbox?.clearAiStatuses?.();
   const overlay=ensureAuthRecovery();
   const recovering=!!S.manager?.id;
   $('managerAuthMessage').textContent=message||(recovering?'Сессия менеджера истекла. Войдите снова, чтобы продолжить.':'Войдите в кабинет, чтобы открыть диалоги и задачи.');
