@@ -100,6 +100,8 @@ def current_destinations(text):
 
 # Preserve numeric dates/decimals and discrete numeric alternatives inside a clause.
 CLAUSE_BOUNDARY = re.compile(r"[!?;\n]+|(?<!\d)\.|\.(?!\d|\s*(?:по|до|или)\b)|,(?!\s*\d)", re.I)
+UNIT_PER_PERSON = r"на человека|за человека|с человека|за одного"
+UNIT_TOTAL = r"на всех|за всех|всего|общий бюджет|на (?:двоих|троих|четверых)"
 
 
 def current_trip_clauses(text):
@@ -112,19 +114,29 @@ def current_trip_clauses(text):
     ends = [m.start() for m in CLAUSE_BOUNDARY.finditer(text)] + [len(text)]
     for start, end in zip(bounds, ends):
         part = text[start:end]
-        cuts = [0]
-        dashes = list(re.finditer(r"\s+[—–-]\s+", part))
-        for index, dash in enumerate(dashes):
-            # A later independent clause cannot turn this explanatory dash
-            # into a boundary and orphan facts from their earlier predicate.
-            next_dash = dashes[index+1].start() if index+1 < len(dashes) else len(part)
-            right = part[dash.end():next_dash]
-            if text_match(DESTINATION_CURRENT, right) or text_match(DESTINATION_HISTORY, right):
-                cuts.append(dash.end())
-        cuts += [m.start() for m in re.finditer(
+        # Establish intent ownership before deciding whether a dash is an
+        # independent clause. An explanatory segment inherits its predicate
+        # until the actual current-intent boundary, even inside parentheses.
+        predicates = list(re.finditer(DESTINATION_CURRENT, part, re.I))
+        intent_cuts = {m.start() for m in re.finditer(
             r"\b(?=сейчас\b|теперь\b|(?:а|и|но)\s+(?:(?:мы|я)\s+)?"
             r"(?:хотим|хочу|рассматриваем|рассматриваю|выбираем|выбираю|планируем|планирую|интересует)\b)",
-            part, re.I)]
+            part, re.I)}
+        for predicate in predicates:
+            # Split an actual history→current ownership change, not a postfix
+            # predicate such as 'Июль не рассматриваем' off its date/negation.
+            history_before = affirmed(DESTINATION_HISTORY, part[:predicate.start()])
+            if history_before and not negated(part, predicate.start()):
+                intent_cuts.add(predicate.start())
+        ownership_limits = intent_cuts | {m.start() for m in predicates}
+        cuts = [0] + list(intent_cuts)
+        dashes = list(re.finditer(r"\s+[—–-]\s+", part))
+        for index, dash in enumerate(dashes):
+            next_dash = dashes[index+1].start() if index+1 < len(dashes) else len(part)
+            next_intent = min((cut for cut in ownership_limits if cut > dash.end()), default=len(part))
+            right = part[dash.end():min(next_dash, next_intent)]
+            if text_match(DESTINATION_CURRENT, right) or text_match(DESTINATION_HISTORY, right):
+                cuts.append(dash.end())
         cuts = sorted(set(cuts + [len(part)]))
         for left, right in zip(cuts, cuts[1:]):
             clause = part[left:right]
@@ -144,15 +156,14 @@ def current_trip_clauses(text):
             yield clause, start+left
 
 
-def amount_unit_context(text, start, end):
+def amount_unit_context(text, start, end, currency_span=None):
     """Unit qualifiers belong to the amount's assertion, not a later surcharge."""
     boundaries = list(CLAUSE_BOUNDARY.finditer(text))
     # MONEY leaves the dot of the currency abbreviation outside its span.
     # Keep an immediately attached unit, while preserving sentence boundaries
     # before a separate surcharge assertion (including 'За человека доплата').
-    abbreviated_unit = (re.search(r"\bруб$", text[start:end], re.I)
-                        and re.match(r"\.\s*(?:не\s+)?(?:на\s+(?:человека|всех|двоих|троих|четверых)|"
-                                     r"за\s+(?:человека|всех|одного)|с\s+человека|всего)\b"
+    abbreviated_unit = (currency_span is not None and currency_span[1] == end
+                        and re.match(r"\.\s*(?:не\s+)?(?:"+UNIT_PER_PERSON+"|"+UNIT_TOTAL+r")\b"
                                      r"(?!\s+(?:доплат\w*|надбав\w*))", text[end:], re.I))
     if abbreviated_unit:
         boundaries = [m for m in boundaries if m.start() != end]
@@ -232,7 +243,8 @@ def monetary(text, customer):
         low, high = amounts
         if low > high:
             continue
-        nearby = amount_unit_context(text, match.start(), match.end())
+        nearby = amount_unit_context(text, match.start(), match.end(),
+                                     match.span("currency") if match["currency"] else None)
         context = bool(text_match(r"бюджет|лимит|потрат|улож|рассчитываем|не более|\bдо\s*$", text[max(0, match.start()-30):match.start()]))
         if not (match["currency"] or match["scale"] or customer and context and low >= 1000):
             continue
@@ -245,8 +257,8 @@ def monetary(text, customer):
         before = text[max(0, match.start()-20):match.start()]
         lower_only = bool(text_match(r"\bот\s*$", before))
         upper_only = bool(text_match(r"\b(?:до|максимум|не более)\s*$", before))
-        per_person = affirmed_unit(r"на человека|за человека|с человека|за одного", nearby)
-        explicit_total = affirmed_unit(r"на всех|за всех|всего|общий бюджет|на (?:двоих|троих|четверых)", nearby)
+        per_person = affirmed_unit(UNIT_PER_PERSON, nearby)
+        explicit_total = affirmed_unit(UNIT_TOTAL, nearby)
         if per_person and explicit_total:
             continue  # Contradictory local units cannot establish a known budget.
         results.append(({"minimum": low if not upper_only else None,
