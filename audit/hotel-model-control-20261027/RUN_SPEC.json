@@ -1,0 +1,123 @@
+{
+  "schema": "hotel_model_two_case_run_spec_v1",
+  "status": "NEW_BOUNDED_OPERATION_AUTHORIZED_BY_CURRENT_DIRECT_USER",
+  "created_at_utc": "2026-10-27T05:32:39.290236+00:00",
+  "source_sha_at_preparation": "2893ad41d9956cfe9e7489285830f102e3e6fc44",
+  "source_file_pins": [
+    {
+      "path": "ai/ManagerDraftClient.php",
+      "git_blob": "b7839f60211098c46c370c04f610902d49fc95db",
+      "sha256": "4f74ca644605851a2be5dae18772f0b17dfb94ee4d2cc05ea2f0baf6bcf6c502"
+    },
+    {
+      "path": "services/ManagerAiDraftService.php",
+      "git_blob": "1bdba976546560d5de0627a5a192613852d6fbd4",
+      "sha256": "4b234f9ef77b6480f95b8d4807e7e2a5e615f9997f0543aca42ad238ddcb0ce3"
+    },
+    {
+      "path": "services/ManagerAiDraftContextService.php",
+      "git_blob": "1d958623e4148ab824f35c2a67b98835a1ff1943",
+      "sha256": "f27581aed6e92ec5cd31690203000bd2a29e874160da444ba1da18023e8e0329"
+    },
+    {
+      "path": "services/ManagerAiDraftReferenceContext.php",
+      "git_blob": "d90031d1fec777944c005d4b975be2db1105c3a5",
+      "sha256": "40a253dd17e25c904457c1d9c656d1231e7b71970f823385b01a8f87304132fc"
+    },
+    {
+      "path": "services/ManagerPreparedReplyService.php",
+      "git_blob": "a43fc0b39c467baf43f6ca2d6c81320703b58426",
+      "sha256": "c2450e44dcb4cdbb9e4758db226c6cdb74457430b76380084e03a25aa08627fa"
+    },
+    {
+      "path": "services/ManagerHotelKnowledge.php",
+      "git_blob": "11f5c87ecb5975e846480e83b8ea0c50ad8f3f88",
+      "sha256": "f2bafe92a56ac1262cd1aa3b68d29b7ce9aa95dd7291558984c750003346825b"
+    },
+    {
+      "path": "services/ManagerHotelReferenceContext.php",
+      "git_blob": "13091b65b34472ecbbe934dea499c4974ee81558",
+      "sha256": "510d93bd2f6fedec248041efe2d834ad133832a0d3677aa11de3d80b0228bb26"
+    },
+    {
+      "path": "tests/run_manager_prepared_reply_regression.php",
+      "git_blob": "de806a6a0c6c916ee28b7a71882364aec4160f3a",
+      "sha256": "921228eaee70c63b5129ac6faa8341fa45503cc38f0a00e7a105494e79611ff7"
+    },
+    {
+      "path": "knowledge/hotels/manifest.json",
+      "git_blob": "994fa06b2edb520aa941940b118f6e3dc76e793e",
+      "sha256": "498300429beaaed3d129cbf46a6c745f823498a13bd63e7c32b7a11f8a7257dc"
+    },
+    {
+      "path": "knowledge/hotels/anytour-1554-family-suite.json",
+      "git_blob": "8fd6f0fb565ab4e9698db1e7b619c6d9d92cc442",
+      "sha256": "eb954b291c1c97aad86ebc05283809dacc68a30a9b1a04030c37d373f84f8da4"
+    },
+    {
+      "path": "knowledge/hotels/anytour-99-apartments.json",
+      "git_blob": "ffb4532431f436d39e66f43d9aa8958ac7e58c8e",
+      "sha256": "934f2c3b98b2b509ab845feeb6bb0e9d50c570906ac29fb515da8a04f0ae8bdb"
+    }
+  ],
+  "canonical_path": "ManagerAiDraftContextService::snapshot → ManagerAiDraftService::generate(actual snapshot reference_context capability) → ManagerDraftClient::requestJson → ManagerPreparedReplyService::complete → prepared/readback",
+  "case_plan_sha256": "f44958fc675aefaeacc8c3f5c4eb801ca43884dec2d8ace655aa7739860d1062",
+  "limits": {
+    "max_api_starts_total": 2,
+    "max_api_starts_per_case": 1,
+    "max_output_tokens_per_call": 2200,
+    "max_request_bytes": 196608,
+    "max_hotel_encoded_increment_bytes": 16384,
+    "timeout_seconds": 20,
+    "connect_timeout_seconds": 3,
+    "automatic_retries": 0
+  },
+  "required_profile": {
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "low",
+    "service_tier": "default",
+    "store": false
+  },
+  "isolation": {
+    "existing_PDO_fixture": "sqlite::memory:",
+    "real_customer_context": false,
+    "production_cache_or_inquiry": false,
+    "customer_sends": 0,
+    "supplier_calls": 0,
+    "second_business_store": false,
+    "new_model_profile": false
+  },
+  "missing_admission": {
+    "none_for_current_scoped_two_case_task": true,
+    "executor": "Existing guarded audit route, existing protected runtime config/key used in place; strict current hostpin, no key export"
+  },
+  "historical_consumed_terminal_receipts": [
+    "https://github.com/pyatkoff/max-search-bot/issues/1122#issuecomment-6396126209",
+    "https://github.com/pyatkoff/max-search-bot/issues/1122#issuecomment-6399064271",
+    "https://github.com/pyatkoff/max-search-bot/issues/1122#issuecomment-6401676006"
+  ],
+  "before_execution": [
+    "Current foreign publisher terminal, exact main/installed/provenance and relevant file pins verified",
+    "Fresh explicit paid operation receipt and UTC deadline supplied",
+    "Current effective canonical runtime profile matches required profile; existing key remains in protected runtime",
+    "Private new audit output directory outside document root; write attempted marker before each call",
+    "No provider call during prepare; unknown or any provider/schema/cache error stops with no automatic retry"
+  ],
+  "after_execution": [
+    "Retain exact returned model text, response metadata and actual token counts privately",
+    "Run canonical schema/evidence validation and exact complete/prepared readback without rewriting",
+    "Independently evaluate source support and material unknowns; semantic accuracy remains separate from transport/cache success",
+    "Natural-case acceptance stays false without an actual customer case"
+  ],
+  "actual_model_calls": 0,
+  "actual_model_use_verified": false,
+  "semantic_accuracy_verified": false,
+  "natural_use_verified": false,
+  "authorization_correction": {
+    "global_explicit_prohibition_found": false,
+    "historical_consumed_operationIDs": "No replay, not a global prohibition on a new operation",
+    "profile_quote": "this decision does not start a paid evaluation or change a schedule",
+    "interpretation": "Profile decision alone is not a commission; current explicit user request supplies new bounded direction. Prior stop was overbroad.",
+    "current_scope": "NEW at most2 canonical model requests, no retry/customer sends, isolated existing cache path"
+  }
+}

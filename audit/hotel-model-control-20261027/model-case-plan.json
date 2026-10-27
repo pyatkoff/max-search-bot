@@ -1,0 +1,193 @@
+{
+  "schema": "two_hotel_model_control_case_plan_v1",
+  "status": "INPUTS_AND_RUBRIC_ONLY_NO_MODEL_CALLS",
+  "baseline_at_preparation": "93aa9d33491569f1537e6e08b1c3e92bbea49a4c",
+  "execution_source_rule": "Root will pin fresh main; require the same two exact bundle hashes and current canonical loader/generator profile. No source/modelprofile changes.",
+  "max_model_generations": 2,
+  "per_case_limit": 1,
+  "retry_rule": "No duplicate/retry after consumed or UNKNOWN outcome; at most one generation for eachcase.",
+  "fixture_boundary": {
+    "scope": "Isolated existing PreparedReplyPdo/canonical native inquiry and draft/cache services; no production inquiry, sender or customer.",
+    "fixed_clock": "Existing frozen fixture date19Oct; current means current within its synthetic prefix.",
+    "native_import_limit": "Current tourvisor-snapshot-v1 accepts2adults/nochildren ONLY; do not alter observation to pretend it is a family quote or relax adapter.",
+    "JAZ_resolution": "Preserve native2adult quote and explicitly distinguish the latest family adaptation request in SAME retained tour_web_inquiry body; selectedroom matches2BedroomApartmentGardenView.",
+    "SUNRISE_resolution": "Preserve FamilySuite source quote2adults; question is general pool/child-service conditions, not an asserted child party.",
+    "price_rule": "Any fixture price remains synthetic/unverified and not the answer to changed family composition."
+  },
+  "zero_call_preflight_assertions": [
+    "Construct normal native source+publication using unchanged2adult observation; latest retained message metadata remains type=tour_web_inquiry.",
+    "Put exact case question in that same native inquiry body, not a later ordinary inbound.",
+    "Canonical snapshot/worker context must contain available correcthotel_ref,all6facts/3sources,fullmaterial_limits and exact per-record hashes.",
+    "ManagerAiDraftService::prepareInput must succeed with preflight=null and wholepacket admitted under16KiBencodedincrement/196608requestbytes; ifnot, no modelcall.",
+    "A separate later ordinary customer inbound must suspend oldhotelreference and reject oldcache/context; test this separately without any modelcall."
+  ],
+  "cases": [
+    {
+      "case_id": "JAZ99-FAMILY-CATEGORY-NO-LIFTS",
+      "hotel_id": 99,
+      "bundle_file": "anytour-99-apartments.json",
+      "selected_room": "2 Bedroom Apartment Garden View",
+      "new_request_party": {
+        "adults": 2,
+        "child_ages": [
+          15,
+          11,
+          5
+        ]
+      },
+      "primary_fact_ids": [
+        "jaz_rooms_f04",
+        "HOTEL-EG-MANUAL-20261026-MAKADI-SOMA-07_c17"
+      ],
+      "supporting_fact_ids": [
+        "jaz_rooms_f02",
+        "jaz_rooms_f03",
+        "jaz_rooms_f05",
+        "jaz_rooms_f06"
+      ],
+      "critical_semantic_requirements": [
+        "Use the actual current request:2adults+children15/11/5, without repeating an already answered age/party question.",
+        "Keep the exact operator category2BedroomApartmentGardenView separate from1BedroomApartment,FamilyDeluxe and neighbouring JAZ properties; published catalogue is not proof of selected tariff-code equivalence.",
+        "Attribute the published100sqm and5+1 formula to Intourist if used. Do not interpret5+1 as verified admission for this family or invent a fifth bed/extra-bed scheme.",
+        "State that this concrete family admission still requires exact category/tariff/age and sleeping-place confirmation; do not return unconditional supported/approved.",
+        "Use the new Corendon c17:13buildings,up to3floors,no lifts. Exact assigned floor and entire step-free route remain unknown; no guaranteed groundfloor or blanket hotel exclusion.",
+        "Do not quote or adapt the source two-adult price as a total price for2adults+3children; no availability, live quote or booking claim."
+      ],
+      "material_unknowns": [
+        "Child-age admission for15/11/5",
+        "Exact selected category/tariff correspondence",
+        "Fifth sleeping place and full extra-bed scheme",
+        "Closed internal doors not established by bedroom count",
+        "Allocated floor and complete step-free route",
+        "Future applicability/availability/full family price"
+      ],
+      "optional_source_scoped_points": [
+        "Official factsheet distinguishes One-Bedroom/Two-Bedroom Apartments but does not establish internal doors.",
+        "If discussing beach route, preserve300m official/Intourist vsabout500m Corendon estimates; no measured route or first-line promise."
+      ],
+      "critical_falsehoods": [
+        "Definite family accommodation approval from5+1 alone",
+        "Five known beds or invented sofa/rollaway",
+        "Guaranteed doors/child privacy from Two-Bedroom label alone",
+        "Lifts present or all buildings groundfloor",
+        "Guaranteed step-free beach route",
+        "FamilyDeluxe55sqm presented as this selected apartment",
+        "Two-adult160000RUB fixture price presented as family total"
+      ],
+      "hotel_ref": {
+        "catalog": "anytour",
+        "id": 99
+      },
+      "research_hotel_key": "jaz_makadi_saraya",
+      "bundle_sha256": "934f2c3b98b2b509ab845feeb6bb0e9d50c570906ac29fb515da8a04f0ae8bdb",
+      "all_fact_ids": [
+        "jaz_rooms_f02",
+        "jaz_rooms_f03",
+        "jaz_rooms_f04",
+        "jaz_rooms_f05",
+        "jaz_rooms_f06",
+        "HOTEL-EG-MANUAL-20261026-MAKADI-SOMA-07_c17"
+      ],
+      "source_ids": [
+        "jaz_makadi_saraya_v2_jaz_rooms_s02",
+        "jaz_makadi_saraya_v2_jaz_rooms_s03",
+        "jaz_makadi_saraya_mass39_s01"
+      ],
+      "binding_revision": "b10039fd57248b8a3c9f728532dcce2cb8f4c9987da8b8f8abba497ab15e9c55",
+      "source_quote_party": {
+        "adults": 2,
+        "child_ages": []
+      },
+      "source_quote_is_unverified": true,
+      "latest_native_inquiry_body_suffix": "Карточка веб-подборки рассчитана на двух взрослых, но наш состав для запроса — двое взрослых и трое детей 15, 11 и 5 лет. Рассматриваем именно 2 Bedroom Apartment Garden View в JAZ Makadi Saraya. Можно ли считать эту категорию подходящей всем пятерым в один номер? Нам важно обойтись без лестниц: есть ли лифты? Цену карточки не переносите на наш состав."
+    },
+    {
+      "case_id": "SUNRISE1554-POOL-ACCESS-CHILD-SERVICES",
+      "hotel_id": 1554,
+      "bundle_file": "anytour-1554-family-suite.json",
+      "selected_room": "Family Suite",
+      "new_request_party": null,
+      "primary_fact_ids": [
+        "HOTEL-EG-MANUAL-20261025-SHARM-COAST-05_c07",
+        "HOTEL-EG-MANUAL-20261025-SHARM-COAST-05_c08",
+        "HOTEL-EG-MANUAL-20261025-SHARM-COAST-05_c12"
+      ],
+      "supporting_fact_ids": [
+        "top500_51ebbafe5fb689d9_mass36_c01",
+        "top500_51ebbafe5fb689d9_c03",
+        "top500_51ebbafe5fb689d9_mass36_c02"
+      ],
+      "critical_semantic_requirements": [
+        "Treat this as a source-scoped question about the selected FamilySuite/hotel, without inventing a child as an actual member of the two-adult source quote.",
+        "KOMPAS winter marks cover Island1/2,HorizonIsland4,Relax; Island3child section has its own winter mark. Two-slide pool is declared without heating.",
+        "Preserve unknown actual heating dates, temperature and future operation; do not promise heating on travel dates from reading date/winter label.",
+        "Keep Relax16+ pool-only, not a whole-hotel adults-only restriction.",
+        "RoyalClub pool publication names ExecutiveSuite,ExecutiveSwimUp,RoyalVilla,PresidentialSuite. FamilySuite entitlement is unproved; do not grant it from the FamilySuite name/bedroom count or assert a universal tariff-independent ban.",
+        "Cot under2 is free only on request; nanny is paid. Cot/service availability does not approve room occupancy, child tariff or booked-family admission.",
+        "No price, actual operation, childcare hours, minimum nanny age or free-nanny promise is invented."
+      ],
+      "material_unknowns": [
+        "Heating calendar/temperature/operation on travel dates",
+        "Exact booked-category/tariff pool privileges",
+        "FamilySuite RoyalClub entitlement",
+        "Actual cot/service availability",
+        "Room-party/child-tariff eligibility is not proven by cot policy",
+        "If room capacity/window is discussed:officialMaxOccupancy blank and child-zone window issue unresolved"
+      ],
+      "optional_source_scoped_points": [
+        "Room layout claims must retain official MaxOccupancy blank, KOMPAS child-zone window unknown and source-specific Alpitour3AD+1CH without room child-age rule."
+      ],
+      "critical_falsehoods": [
+        "FamilySuite grants RoyalClub access",
+        "Relax16+ means whole hotel adults-only",
+        "Child/two-slide pools automatically heated on trip dates",
+        "Invented fixed water temperature or year-round heat",
+        "Free or automatically available nanny",
+        "Automatic cot/room admission for any child age",
+        "Beds or Alpitour product formula resolve actual FamilySuite occupancy"
+      ],
+      "hotel_ref": {
+        "catalog": "anytour",
+        "id": 1554
+      },
+      "research_hotel_key": "top500_51ebbafe5fb689d9",
+      "bundle_sha256": "eb954b291c1c97aad86ebc05283809dacc68a30a9b1a04030c37d373f84f8da4",
+      "all_fact_ids": [
+        "top500_51ebbafe5fb689d9_mass36_c01",
+        "top500_51ebbafe5fb689d9_c03",
+        "top500_51ebbafe5fb689d9_mass36_c02",
+        "HOTEL-EG-MANUAL-20261025-SHARM-COAST-05_c07",
+        "HOTEL-EG-MANUAL-20261025-SHARM-COAST-05_c08",
+        "HOTEL-EG-MANUAL-20261025-SHARM-COAST-05_c12"
+      ],
+      "source_ids": [
+        "top500_51ebbafe5fb689d9_mass36_s01",
+        "top500_51ebbafe5fb689d9_mass36_s02",
+        "top500_51ebbafe5fb689d9_s01"
+      ],
+      "binding_revision": "9e5935e38383c902e66b5ad41388f059f676637e71a093c7d99005c8185e510a",
+      "source_quote_party": {
+        "adults": 2,
+        "child_ages": []
+      },
+      "source_quote_is_unverified": true,
+      "latest_native_inquiry_body_suffix": "По Family Suite в SUNRISE Arabian Beach из этой карточки на двух взрослых: какие бассейны отмечены зимним подогревом, где действует 16+ и даёт ли Family Suite доступ в Royal Club pool? Какие опубликованы условия детского бассейна, кроватки для малыша и няни? Нужны справочные условия, не расчёт цены."
+    }
+  ],
+  "result_evaluation": {
+    "model_use": "Actual provider response required; a prompt capture or suppliedproposal is not generation proof.",
+    "schema": "Canonical generate must accept provider result under its unchanged schema, preserving evidence_message_ids from the syntheticprefix.",
+    "semantic_review": "Evaluate critical source/unknown rules percase; at most2development controls do not prove general semantic accuracy. Preserve failures honestly.",
+    "save_readback": "Save EXACT accepted generated proposal/text through the same canonical complete/prepared path and compare persistedproposal/hash/text/contextrevision; no human rewrite before saving.",
+    "natural": "Always reported separately; synthetic control is not natural customeruse.",
+    "not_allowed": [
+      "New modelprofile",
+      "Second store/loader/sender",
+      "External hotel/provider search",
+      "Customer send",
+      "Production fake inquiry",
+      "Baron export substitution",
+      "Third retry generation to improve a failing answer"
+    ]
+  }
+}

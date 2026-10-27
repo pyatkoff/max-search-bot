@@ -1,0 +1,92 @@
+name: One bounded JAZ and SUNRISE model control
+
+on:
+  push:
+    branches: [audit/hotel-jaz-sunrise-model-control-20261027-v1]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hotel-jaz-sunrise-model-control-20261027-v1
+  cancel-in-progress: false
+
+jobs:
+  control:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      EXPECTED_RUNTIME_SHA: 2893ad41d9956cfe9e7489285830f102e3e6fc44
+      EXPECTED_PAYLOAD_MANIFEST_SHA256: 7423fab7fbb4161be30295eecf98c0782470eed45848ce5b4d95f65dfaeb731c
+      OWNER_ADMISSION_URL: https://github.com/pyatkoff/max-search-bot/issues/1122#issuecomment-6434872430
+      AGE_RECIPIENT: age1fxjkrrpe79g2rp5mcwxuf8xahqxlr8sd958lw6hkpg9fvd3lzc9qzuwkwm
+      OPERATION_ID: HOTEL-MODEL-JAZ99-SUNRISE1554-20261027-V1
+      CONTROL_PAYLOAD_PATH: audit/hotel-model-control-20261027
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - name: Require one original run and current accepted main before credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = 'pyatkoff/max-search-bot'
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git diff --quiet
+          git diff --cached --quiet
+          git fetch --no-tags origin refs/heads/main
+          test "$(git rev-parse FETCH_HEAD)" = "$EXPECTED_RUNTIME_SHA"
+      - name: Prepare isolated canonical PHP fixture runtime on runner
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_sqlite,curl,mbstring
+          coverage: none
+      - name: Prepare the existing canonical SSH identity
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          key_file="$RUNNER_TEMP/hotel_model_existing_key"
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key_file"; else printf '%s\n' "$raw" | tr -d '\r' > "$key_file"; fi
+          else
+            decoded="$(printf '%s' "$raw" | base64 --decode 2>/dev/null || true)"
+            [[ "$decoded" == *"PRIVATE KEY"* ]] || { echo invalid_existing_identity; exit 1; }
+            printf '%s\n' "$decoded" | tr -d '\r' > "$key_file"
+          fi
+          chmod 600 "$key_file"
+          ssh-keygen -y -f "$key_file" >/dev/null
+      - name: Prepare existing encrypted-evidence primitive
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 -m venv "$RUNNER_TEMP/evidence-python"
+          "$RUNNER_TEMP/evidence-python/bin/pip" install --disable-pip-version-check --only-binary=:all: --require-hashes -q -r tools/requirements-encrypted-evidence.txt
+      - name: Strict trusted preflight and at most two new unsent model attempts
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          "$RUNNER_TEMP/evidence-python/bin/python" audit/hotel-model-control-20261027/run_remote_control_rpc.py
+      - name: Retain encrypted private model receipt only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: encrypted-hotel-two-model-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/hotel-two-model-evidence.age
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Remove temporary existing credential and local plaintext
+        if: always()
+        shell: bash
+        run: |
+          rm -f "$RUNNER_TEMP/hotel_model_existing_key" "$RUNNER_TEMP/hotel_model_known_hosts" "$RUNNER_TEMP/hotel-two-model-plaintext.json"
