@@ -3,6 +3,7 @@ require_once __DIR__ . '/ConversationDb.php';
 require_once __DIR__ . '/RoutingAccessService.php';
 require_once __DIR__ . '/ManagerPriorityService.php';
 require_once __DIR__ . '/ManagerPushConnectionService.php';
+require_once __DIR__ . '/ManagerPushPresentation.php';
 
 class ManagerPushService
 {
@@ -82,17 +83,15 @@ class ManagerPushService
                 }
             } else return;
             if(!$managers)return;
-            $title=trim((string)($c['display_name']??'')); if($title==='')$title='Новый диалог AnyTour';
-            $ctx=array_values(array_filter([(string)($c['project_name']??$c['project_key']??''),(string)($c['source_name']??''),strtoupper((string)($c['channel']??''))]));
-            $payload=json_encode(['title'=>$title,'body'=>($ctx?implode(' · ',$ctx).' — ':'').$body,'conversationId'=>$conversationId,'url'=>'./'],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
             // Read-only correlation is best effort and cannot prevent an existing push.
-            $incomingId=0;
+            $incomingId=0;$incoming=null;
             if($externalMessageId!==''){
                 try{
-                    $arrival=$pdo->prepare("SELECT id FROM messages WHERE conversation_id=? AND direction='inbound' AND sender_type='customer' AND external_message_id=? ORDER BY id DESC LIMIT 1");
-                    $arrival->execute([$conversationId,$externalMessageId]);$incomingId=(int)$arrival->fetchColumn();
+                    $arrival=$pdo->prepare("SELECT id,text,metadata_json FROM messages WHERE conversation_id=? AND direction='inbound' AND sender_type='customer' AND external_message_id=? ORDER BY id DESC LIMIT 1");
+                    $arrival->execute([$conversationId,$externalMessageId]);$incoming=$arrival->fetch(PDO::FETCH_ASSOC)?:null;$incomingId=(int)($incoming['id']??0);
                 }catch(Throwable $ignored){}
             }
+            $payload=json_encode(ManagerPushPresentation::conversation($c,$body,$incoming),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
             $subs=ManagerPushConnectionService::activeSubscriptions($pdo,$managers);$subscribed=[];
             foreach($subs as $sub)$subscribed[(int)$sub['manager_id']]=true;
             if(class_exists('DiagnosticLogger')){
