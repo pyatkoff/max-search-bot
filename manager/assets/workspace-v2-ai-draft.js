@@ -6,6 +6,9 @@
   let button,panel,status,body,insert,retry;
   let ready=null,watch=null,statusFlight=null,watchTimer=null,expiryTimer=null,notice,noticeLabel;
   let suggestion,suggestionText,suggestionLabel,suggestionAccept;
+  let preparationNotice,preparationLabel,preparationRetry;
+  const automaticAttempts=new Map();
+  let automaticIdentity='';
   let placeholder='',suggestionLargeFont=null;
   const dismissedNotices=new Set(),manager2=()=>document.body.classList.contains('manager2');
   const visible=()=>document.visibilityState!=='hidden';
@@ -64,8 +67,73 @@
   }
   function syncPreferences(){
     syncSuggestion();
+    syncPreparation();
     if(!notice)return;
     hideNotice(!canCompose()||!manager2()||!visible()||!ready||ready.kind!=='prepared'||ready.expires<=Date.now()||!ready.should_draft||!currentSnapshot(ready.snapshot)||!panel.hidden||suggestion&&!suggestion.hidden||dismissedNotices.has(noticeKey())||window.WorkspaceV2PersonalWorkspace?.showAiReadyNotice?.()===false);
+  }
+  function automaticEligible(saved){
+    return !!saved&&watch===saved&&currentSnapshot(saved.snapshot)&&visible()&&window.WorkspaceV2PersonalWorkspace?.showAiReadyNotice?.()!==false&&(ownerRead()||canCompose()&&$('replyText').value==='');
+  }
+  function syncAutomaticIdentity(){
+    const identity=JSON.stringify([S.manager?.id,S.authGeneration,!!S.authExpired]);
+    if(identity!==automaticIdentity){automaticAttempts.clear();automaticIdentity=identity}
+  }
+  function automaticKey(saved){
+    const {conversationId,managerId,authGeneration}=saved.snapshot.context;
+    return JSON.stringify([conversationId,managerId,authGeneration,saved.snapshot.latest,saved.snapshot.owner,saved.snapshot.messages]);
+  }
+  function syncPreparation(){
+    if(!preparationNotice)return;
+    const saved=watch,attempt=saved?.automatic,late=!!saved&&Date.now()>=saved.until;
+    const shown=!!attempt&&attempt.phase!=='complete'&&automaticEligible(saved)&&panel.hidden&&!flight&&!(ready&&currentSnapshot(ready.snapshot));
+    let changed=preparationNotice.hidden===shown;
+    if(changed)preparationNotice.hidden=!shown;
+    if(!shown){if(changed)window.WorkspaceV2ReplyEditor?.resize?.();return}
+    const readonly=ownerRead(),host=readonly?$('conversationZone'):$('composer');
+    const before=readonly?$('composerLocked'):[...host.children].find(node=>node.classList.contains('composerSurface')||node.classList.contains('composerMain'))||host.firstChild;
+    if(preparationNotice.parentElement!==host){host.insertBefore(preparationNotice,before);changed=true}
+    preparationNotice.classList.toggle('aiPreparationReadonly',readonly);
+    const failed=attempt.phase==='failed',text=failed?(attempt.error==='preparation_queue_full'?'Очередь AI-подсказок занята. Попробуйте подготовить позже.':'Автоматическая подготовка AI-подсказки временно недоступна.'):late?'Подготовка AI-подсказки задерживается.':'AI готовит подсказку автоматически…';
+    if(preparationLabel.textContent!==text){preparationLabel.textContent=text;changed=true}
+    const retry=failed||late;
+    if(preparationRetry.hidden===retry){preparationRetry.hidden=!retry;changed=true}
+    if(preparationRetry.disabled!==!!statusFlight)preparationRetry.disabled=!!statusFlight;
+    if(changed)window.WorkspaceV2ReplyEditor?.resize?.();
+  }
+  function retryAutomatic(){
+    const saved=watch;
+    if(!automaticEligible(saved)||flight||statusFlight)return;
+    automaticAttempts.delete(automaticKey(saved));saved.automatic=null;saved.until=Date.now()+600000;
+    window.clearTimeout?.(saved.deadlineTimer);saved.deadlineTimer=null;
+    void readStatus(saved);
+  }
+  async function ensureAutomatic(saved,current,isCurrent){
+    if(!automaticEligible(saved))return;
+    const key=automaticKey(saved),previous=automaticAttempts.get(key);
+    if(previous&&Date.now()<previous.until){
+      saved.automatic=previous;saved.until=Math.min(saved.until,previous.until);
+      if(!saved.deadlineTimer)saved.deadlineTimer=window.setTimeout?.(()=>{if(watch===saved)syncPreparation()},Math.max(1,saved.until-Date.now()));
+      syncPreparation();return;
+    }
+    const attempt={phase:'ensuring',until:Date.now()+600000};
+    automaticAttempts.set(key,attempt);saved.automatic=attempt;
+    while(automaticAttempts.size>32)automaticAttempts.delete(automaticAttempts.keys().next().value);
+    if(!saved.deadlineTimer)saved.deadlineTimer=window.setTimeout?.(()=>{if(watch===saved)syncPreparation()},Math.max(1,saved.until-Date.now()));
+    syncPreparation();
+    try{
+      const result=await W.request('ai-draft.php','ensure_prepared',{conversation_id:saved.snapshot.context.conversationId,latest_message_id:saved.snapshot.latest},{signal:current.controller?.signal,isCurrent});
+      if(!isCurrent())return;
+      if(result?.http_status===403||result?.http_status===404){saved.blocked=true;clearReady();resetSession({keepReady:true});return}
+      if(result?.ok===true&&(result.requested===true||result.queued===true)){
+        attempt.phase='pending';saved.refreshStatus=result.preparation_state==='ready';
+      }else{attempt.phase='failed';attempt.error=result?.error||'preparation_unavailable'}
+    }catch(error){if(isCurrent()){attempt.phase='failed';attempt.error='preparation_unavailable'}}
+    finally{
+      // An aborted observer may have missed the enqueue receipt. A later visible
+      // read can repeat the idempotent ensure; it never invokes a model here.
+      if(attempt.phase==='ensuring'&&automaticAttempts.get(key)===attempt)automaticAttempts.delete(key);
+      if(isCurrent())syncPreparation();
+    }
   }
   function renderButton(){
     if(!bound||!manager2())return;
@@ -91,12 +159,13 @@
     renderButton();
   }
   function abortStatusRead(){const previous=statusFlight;statusFlight=null;previous?.controller?.abort();window.clearTimeout?.(watchTimer);watchTimer=null}
-  function stopWatching(){abortStatusRead();watch=null;clearReady()}
+  function stopWatching(){syncAutomaticIdentity();abortStatusRead();window.clearTimeout?.(watch?.deadlineTimer);watch=null;clearReady();syncPreparation()}
   function scheduleStatus(saved){
     if(watch!==saved||saved.blocked||!visible()||!currentSnapshot(saved.snapshot)||Date.now()>=saved.until)return;
     window.clearTimeout?.(watchTimer);watchTimer=window.setTimeout?.(()=>{watchTimer=null;void readStatus(saved)},15000);
   }
   async function readStatus(saved){
+    if(watch===saved&&Date.now()>=saved.until){syncPreparation();return}
     if(watch!==saved||saved.blocked||!visible()||!currentSnapshot(saved.snapshot)||Date.now()>=saved.until||statusFlight)return;
     if(flight){scheduleStatus(saved);return}
     const current={controller:typeof AbortController==='function'?new AbortController():null};statusFlight=current;
@@ -106,6 +175,7 @@
       if(!isCurrent())return;
       if(result?.http_status===403||result?.http_status===404){saved.blocked=true;clearReady();resetSession({keepReady:true});return}
       if(result?.ok===true&&result.prepared===true&&typeof result.should_draft==='boolean'&&typeof result.revision==='string'&&result.revision&&result.latest_message_id===saved.snapshot.latest){
+        if(saved.automatic)saved.automatic.phase='complete';
         if(ready?.kind!=='generated'){
           rememberReady(result,saved.snapshot,'prepared');
           if(result.should_draft&&!validResult(ready,saved.snapshot)){
@@ -117,12 +187,16 @@
             else clearReady();
           }
         }
-      }else if(ready?.kind!=='generated')clearReady();
+      }else if(ready?.kind!=='generated'){
+        clearReady();
+        if(result?.ok===true&&result.prepared===false&&result.automatic_preparation===true)await ensureAutomatic(saved,current,isCurrent);
+      }
       renderButton();
     }catch(error){if(isCurrent()&&ready?.kind!=='generated'){clearReady();renderButton()}}
-    finally{if(statusFlight===current){statusFlight=null;scheduleStatus(saved)}}
+    finally{if(statusFlight===current){statusFlight=null;syncPreparation();if(saved.refreshStatus){saved.refreshStatus=false;void readStatus(saved)}else scheduleStatus(saved)}}
   }
   function syncWatch(){
+    syncAutomaticIdentity();
     // A server predating the new preference does not advertise readiness support.
     if(!manager2()||!(canCompose()||ownerRead())||!visible()||window.WorkspaceV2PersonalWorkspace?.supportsAiReadiness?.()===false){stopWatching();return}
     if(watch&&currentSnapshot(watch.snapshot))return;
@@ -325,6 +399,9 @@
     insert=document.createElement('button');insert.id='aiDraftInsert';insert.type='button';insert.textContent='Добавить в ответ';insert.hidden=true;actions.appendChild(insert);
     retry=document.createElement('button');retry.id='aiDraftRetry';retry.type='button';retry.textContent='Повторить подготовку';actions.appendChild(retry);panel.appendChild(actions);form.appendChild(panel);
     if(manager2()){
+      preparationNotice=document.createElement('div');preparationNotice.id='aiPreparationNotice';preparationNotice.className='aiPreparationNotice';preparationNotice.hidden=true;preparationNotice.setAttribute('role','status');preparationNotice.setAttribute('aria-live','polite');
+      preparationLabel=document.createElement('span');preparationNotice.appendChild(preparationLabel);
+      preparationRetry=document.createElement('button');preparationRetry.id='aiPreparationRetry';preparationRetry.type='button';preparationRetry.textContent='Повторить подготовку';preparationRetry.hidden=true;preparationRetry.addEventListener('click',retryAutomatic);preparationNotice.appendChild(preparationRetry);form.appendChild(preparationNotice);
       suggestion=document.createElement('section');suggestion.id='aiDraftSuggestion';suggestion.className='aiDraftSuggestion';suggestion.hidden=true;suggestion.setAttribute('aria-label','AI-подсказка');
       const suggestionHead=document.createElement('div');suggestionHead.className='aiSuggestionHead';suggestionLabel=document.createElement('strong');suggestionHead.appendChild(suggestionLabel);
       const hideSuggestion=document.createElement('button');hideSuggestion.type='button';hideSuggestion.className='aiSuggestionDismiss';hideSuggestion.textContent='×';hideSuggestion.setAttribute('aria-label','Скрыть AI-подсказку');hideSuggestion.addEventListener('click',dismissNotice);suggestionHead.appendChild(hideSuggestion);suggestion.appendChild(suggestionHead);
@@ -347,7 +424,7 @@
     retry.addEventListener('click',()=>void loadProposal('generate'));insert.addEventListener('click',()=>void insertDraft());
     panel.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();close()}});
     for(const event of ['input','select','keyup','pointerup'])reply.addEventListener(event,rememberSelection);
-    window.addEventListener('pagehide',()=>resetSession());
+    window.addEventListener('pagehide',()=>{automaticAttempts.clear();resetSession()});
     window.addEventListener('resize',positionPanel);window.visualViewport?.addEventListener('resize',positionPanel);
     if(typeof ResizeObserver==='function'){const sizeObserver=new ResizeObserver(positionPanel);sizeObserver.observe(form)}
     if(typeof MutationObserver==='function'){

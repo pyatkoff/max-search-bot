@@ -9,9 +9,10 @@ const proposal=(changes={})=>({ok:true,should_draft:true,draft:'Какие да�
 const prepared=(changes={})=>proposal({prepared:true,prepared_at:'2026-10-19T10:30:00Z',source:'chatgpt',draft_id:null,...changes});
 // Render the actual PHP shell and canonical assets. Every identity, message,
 // proposal and HTTP response in this fixture is synthetic and stays in loopback.
-async function setup(page,{readiness=false,hideNotice=false,supervisor=false,owner=false,ownerState='manager',previewHandler=null,blocked=false,manualTask=false}={}){
+async function setup(page,{readiness=false,automatic=false,ensureHandler=null,hideNotice=false,supervisor=false,owner=false,ownerState='manager',previewHandler=null,blocked=false,manualTask=false}={}){
   const calls=[],unexpected=[],errors=[],messages=new Map();
   let deliveryBlocked=blocked;
+  let automaticComplete=false;
   let ai=async data=>data.action==='prepared'?{body:prepared()}:data.action==='generate'?{body:proposal()}:{body:{ok:true,revision:'1'.repeat(64),latest_message_id:35,draft_id:data.draft_id||null}};
   let preview=previewHandler|| (async()=>({body:prepared({should_draft:readiness!=='recommendations',draft:readiness==='recommendations'?null:proposal().draft,next_action:readiness==='recommendations'?'no_contact':'clarify',expires_at:new Date(Date.now()+3600000).toISOString()})}));
   const manager={id:7,role:owner?'admin':'manager',display_name:'Мария',is_working:true,supervision_available:supervisor||owner};
@@ -56,14 +57,14 @@ async function setup(page,{readiness=false,hideNotice=false,supervisor=false,own
     }
     if(url.pathname==='/manager/ai-draft.php'){
       expect(data.csrf).toBe('fixture-csrf');expect([11,12]).toContain(data.conversation_id);
-      expect(['prepared','prepared_preview','generate','validate','prepared_status']).toContain(data.action);if(data.action==='prepared_preview'){const result=await preview(data);return reply(result.body,result.status||200)}if(data.action==='prepared_status')return reply(readiness?{ok:true,prepared:true,should_draft:readiness!=='recommendations',revision:'1'.repeat(64),latest_message_id:data.latest_message_id,prepared_at:prepared().prepared_at,expires_at:new Date(Date.now()+3600000).toISOString(),preparation_source:'chatgpt_assistant'}:{ok:true,prepared:false});const result=await ai(data);return reply(result.body,result.status||200);
+      expect(['prepared','prepared_preview','generate','validate','prepared_status','ensure_prepared']).toContain(data.action);if(data.action==='prepared_preview'){const result=await preview(data);return reply(result.body,result.status||200)}if(data.action==='prepared_status')return reply(readiness||automaticComplete?{ok:true,prepared:true,should_draft:readiness!=='recommendations',revision:'1'.repeat(64),latest_message_id:data.latest_message_id,prepared_at:prepared().prepared_at,expires_at:new Date(Date.now()+3600000).toISOString(),preparation_source:'chatgpt_assistant',automatic_preparation:automatic}:{ok:true,prepared:false,automatic_preparation:automatic});if(data.action==='ensure_prepared'){const result=ensureHandler?await ensureHandler(data):{body:{ok:true,requested:true,queued:true,preparation_state:'pending'}};return reply(result.body,result.status||200)}const result=await ai(data);return reply(result.body,result.status||200);
     }
     unexpected.push(method+' '+url.pathname+' '+data.action);return reply({ok:false,error:'unexpected_fixture_action'},400);
   });
   await page.goto(origin+'/manager2/index.php?qa=1');await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
   await expect.poll(()=>page.evaluate(()=>WorkspaceV2.S.workspaceBound&&!WorkspaceV2.S.booting)).toBe(true);
   await page.locator('#inboxList [data-conversation-id="11"]').click();if(supervisor||owner)await expect(page.getByRole('button',{name:'AI · Просмотр',exact:true})).toBeVisible();else{await expect(page.locator('#replyText')).toBeEnabled();await expect(page.locator('#aiDraftOpen')).toBeEnabled()}
-  return {calls,unexpected,errors,setAI:handler=>{ai=handler},setPreview:handler=>{preview=handler},setDeliveryBlocked:value=>{deliveryBlocked=value},messages,aiCalls:()=>calls.filter(call=>call.path==='/manager/ai-draft.php'&&!['prepared_status','prepared_preview'].includes(call.action)),previewCalls:()=>calls.filter(call=>call.action==='prepared_preview'),statusCalls:()=>calls.filter(call=>call.action==='prepared_status')};
+  return {calls,unexpected,errors,setAI:handler=>{ai=handler},setPreview:handler=>{preview=handler},setDeliveryBlocked:value=>{deliveryBlocked=value},completePreparation:()=>{automaticComplete=true},messages,aiCalls:()=>calls.filter(call=>call.path==='/manager/ai-draft.php'&&!['prepared_status','prepared_preview'].includes(call.action)),ensureCalls:()=>calls.filter(call=>call.action==='ensure_prepared'),previewCalls:()=>calls.filter(call=>call.action==='prepared_preview'),statusCalls:()=>calls.filter(call=>call.action==='prepared_status')};
 }
 function clean(state){expect(state.errors).toEqual([]);expect(state.unexpected).toEqual([]);expect(state.calls.filter(call=>['send','take','release','close','reopen'].includes(call.action))).toEqual([])}
 async function openClient(page,id,name){
@@ -91,6 +92,24 @@ async function ghostFitsField(page,{allowClipping=false}={}){
   expect(geometry.footerLeft).toBeGreaterThanOrEqual(geometry.fieldLeft-1);expect(geometry.footerRight).toBeLessThanOrEqual(geometry.fieldRight+1);expect(geometry.footerTop).toBeGreaterThanOrEqual(geometry.bottom-1);expect(geometry.footerBottom).toBeLessThanOrEqual(geometry.fieldBottom+1);
   if(!allowClipping)expect(geometry.contentClipped).toBe(false);
 }
+for(const owner of [false,true])for(const width of [390,1440])test('AI opening queues and reveals '+(owner?'owner foreign':'own')+' automatic hint without an AI click '+width,async({page,browserName},testInfo)=>{
+  await page.setViewportSize({width,height:900});await page.addInitScript(()=>{window.syntheticAiButtonClicks=0;document.addEventListener('click',event=>{const button=event.target.closest?.('button');if(button?.id==='aiDraftOpen'||button?.getAttribute('aria-label')==='AI · Просмотр')window.syntheticAiButtonClicks++},true)});
+  const state=await setup(page,{automatic:true,owner}),notice=page.locator('#aiPreparationNotice'),reply=page.locator('#replyText');
+  await expect(notice).toBeVisible();await expect(notice).toContainText('AI готовит подсказку автоматически');await expect(page.locator('#aiDraftPanel')).not.toBeVisible();await expect(page.locator('#aiDraftSuggestion')).not.toBeVisible();await expect(reply).toHaveValue('');await expect.poll(()=>state.ensureCalls().length).toBe(1);
+  const managerRows=await page.locator('#messages .msg.manager').count();
+  if(!owner){await page.locator('#replyFile').setInputFiles({name:'automatic-retained.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic retained File')});await reply.focus();await reply.evaluate(()=>{window.syntheticAutomaticFile=document.querySelector('#replyFile').files[0]})}
+  else await expect(page.locator('#composer')).not.toBeVisible();
+  const pending=testInfo.outputPath('ai-auto-'+(owner?'foreign':'own')+'-'+width+'-pending.png');await page.screenshot({animations:'disabled',path:pending});await testInfo.attach('automatic-pending',{body:fs.readFileSync(pending),contentType:'image/png'});
+  state.completePreparation();await expect(page.locator('#aiDraftSuggestion')).toBeVisible({timeout:20000});await expect(notice).not.toBeVisible();await expect(page.locator('.aiSuggestionText')).toHaveText(proposal().draft);await expect(page.locator('#aiDraftPanel')).not.toBeVisible();await expect(reply).toHaveValue('');
+  if(owner){await expect(page.locator('#aiDraftSuggestion')).toHaveClass(/aiSuggestionReadonly/);await expect(page.locator('#aiDraftSuggestion')).toContainText('Только просмотр');await expect(page.locator('#aiSuggestionAccept')).not.toBeVisible();await expect(page.locator('#composer')).not.toBeVisible()}
+  else{await ghostFitsField(page);await expect(reply).toBeFocused();await expect(page.locator('#mediaSelection')).toContainText('automatic-retained.txt');expect(await reply.evaluate(()=>document.querySelector('#replyFile').files[0]===window.syntheticAutomaticFile)).toBe(true)}
+  expect(await page.evaluate(()=>window.syntheticAiButtonClicks)).toBe(0);expect(state.ensureCalls()).toHaveLength(1);expect(state.aiCalls().map(call=>call.action)).toEqual(['ensure_prepared']);expect(await page.locator('#messages .msg.manager').count()).toBe(managerRows);expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+  const ready=testInfo.outputPath('ai-auto-'+(owner?'foreign':'own')+'-'+width+'-ready.png');await page.screenshot({animations:'disabled',path:ready});await testInfo.attach('automatic-ready',{body:fs.readFileSync(ready),contentType:'image/png'});clean(state);
+});
+test('AI automatic queue outage is visible without invoking manual generation',async({page})=>{
+  await page.setViewportSize({width:390,height:900});const state=await setup(page,{automatic:true,ensureHandler:async()=>({body:{ok:false,error:'preparation_unavailable'},status:503})});
+  await expect(page.locator('#aiPreparationNotice')).toContainText('временно недоступна');await expect(page.locator('#aiPreparationRetry')).toBeVisible();await expect(page.locator('#aiDraftPanel')).not.toBeVisible();await expect(page.locator('#replyText')).toHaveValue('');expect(state.aiCalls().map(call=>call.action)).toEqual(['ensure_prepared']);clean(state);
+});
 for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420}])test('AI expired readiness hides before a delayed timer and preserves input '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
   await page.setViewportSize(viewport);const state=await setup(page,{readiness:true});
   const reply=page.locator('#replyText'),notice=page.locator('.aiReadyNotice');
