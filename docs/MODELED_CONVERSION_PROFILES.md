@@ -57,6 +57,7 @@ Each case has these required fields, with optional `source_fence_at`:
 | source_fence_at | Optional explicit upper source-read fence, separately from completeness; rows beyond it are rejected |
 | prefix_complete | True only when coverage reaches prediction_at; otherwise false |
 | messages | At most500 source rows, each id/speaker/kind/at/available_at/text |
+| membership_receipts | Optional, at most20 already-produced subject-bound subscription/30-minute receipts; no source query is performed |
 
 `speaker` is customer/manager/other; `kind` is text/action. The producer owns
 speaker authentication, canonical identity, episode boundaries and clock
@@ -74,6 +75,19 @@ available no earlier than actual extraction; an offline interpretation made
 later cannot enter historical features retroactively. `usable_at_prediction`
 makes that boundary explicit. Past development snapshots remain incomplete for
 a new present-time prediction when their intervening history was not observed.
+
+Membership receipts are a separate factual lane, not dialogue semantics. A
+subscription receipt carries provider occurrence, producer persistence and first
+admitted availability separately. A `retention_30m` receipt must reference that
+exact subscription period, use the same platform membership source, assert
+`same_chat_and_source`, and be checked at least1800 seconds after subscription.
+Before the window matures retention is `pending`; after maturity a missing receipt
+is `unknown`, never retained merely because no leave was supplied. A current/latest
+state row, late observation, source-only lookup, different platform or unmatched
+period cannot be backdated into an early cutoff. Rejoins are distinct periods.
+The journal adapter recognizes only the versioned existing-producer events
+`channel_subscription_observed` and `channel_retention_30m_observed`; it does not
+read tracker, HL, native source, model or provider APIs.
 
 ## Behavior and limits
 
@@ -153,6 +167,14 @@ Manager quotes and working composition assumptions are not admitted customer
 facts. The projection retains `partial_rules_only` semantic coverage, the actual
 source fence/gap and asserted complete-through time; partial data can remain
 useful without becoming complete or independently validated features.
+
+`prediction_features.early_signals` and the identical top-level `early_signals`
+projection expose subscription and retained/not-retained-at-30-minutes separately.
+They are included in the feature fingerprint, but never change stage, target,
+probability or value by themselves. This enables a same-person/same-cutoff study
+once the authorized existing producer has placed immutable receipts in the
+existing journal. It does not turn current state into history or certify a legacy
+source-only no-unsubscribe decision as a per-person fact.
 
 The projection's own fingerprint binds its values/references/availability,
 brand, full subject/trip, context boundary and extractor source. It is distinct

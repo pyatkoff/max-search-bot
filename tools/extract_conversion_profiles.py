@@ -10,7 +10,7 @@ from datetime import date
 
 import build_conversion_observations as base
 
-VERSION = "ru_trip_prefix_rules_v1_14"
+VERSION = "ru_trip_prefix_rules_v1_15"
 MAX_BYTES = 2 * 1024 * 1024
 MAX_CASES = 100
 MAX_MESSAGES = 500
@@ -451,7 +451,7 @@ def wizard_value(field, raw):
 
 def validate_case(case, applied_message_ids=()):
     base.fields(case, ("subject", "brand_key", "context_from", "prediction_at", "source_complete_through",
-                       "prefix_complete", "messages"), ("source_fence_at", "trip_status"))
+                       "prefix_complete", "messages"), ("source_fence_at", "trip_status", "membership_receipts"))
     base.require(isinstance(case.get("trip_status", "accepted"), str) and case.get("trip_status", "accepted") in {"accepted", "unknown"}, "invalid_trip_status")
     base.require(case.get("trip_status", "accepted") != "unknown" or case["prefix_complete"] is False,
                  "unresolved_trip_cannot_be_complete")
@@ -482,7 +482,94 @@ def validate_case(case, applied_message_ids=()):
     return scope, rows
 
 
-def prediction_features(case, extracted, fields, party, stage):
+def membership_projection(case):
+    """Project already-produced, subject-bound membership receipts at the cutoff."""
+    cutoff = base.moment(case["prediction_at"])
+    start = base.moment(case["context_from"])
+    platform_source = {"max": "max_membership_history", "telegram": "telegram_membership_history"}
+    expected_source = platform_source[case["subject"]["platform"]]
+    rows = case.get("membership_receipts", [])
+    base.require(isinstance(rows, list) and len(rows) <= 20, "membership_receipt_limit")
+    normalized = []; seen = {}
+    for row in rows:
+        base.fields(row, ("id", "kind", "source", "identity_scope", "state", "at", "recorded_at", "available_at"),
+                    ("subscription_id", "minimum_age_seconds"))
+        base.key(row["id"])
+        base.require(row["kind"] in {"subscription", "retention_30m"}, "invalid_membership_kind")
+        base.require(row["source"] in set(platform_source.values()), "invalid_membership_source")
+        base.require(row["identity_scope"] in {"same_chat_and_source", "source_only", "unknown"},
+                     "invalid_membership_identity_scope")
+        at, recorded, available = map(base.moment, (row["at"], row["recorded_at"], row["available_at"]))
+        base.require(start <= at <= recorded <= available, "invalid_membership_clock")
+        if row["kind"] == "subscription":
+            base.require(row["state"] == "subscribed" and "subscription_id" not in row
+                         and "minimum_age_seconds" not in row, "invalid_subscription_receipt")
+        else:
+            base.require(row["state"] in {"retained", "not_retained"}
+                         and isinstance(row.get("subscription_id"), str)
+                         and row.get("minimum_age_seconds") == 1800, "invalid_retention_receipt")
+            base.key(row["subscription_id"])
+        base.require(row["id"] not in seen or seen[row["id"]] == row, "conflicting_membership_receipt")
+        seen[row["id"]] = row
+        normalized.append({**row, "_at": at, "_recorded": recorded, "_available": available})
+
+    projection = {"version": "membership_early_signals_v1", "prediction_at": case["prediction_at"],
+                  "subscription": {"status": "unknown", "reason": "missing_subscription_receipt"},
+                  "retention_30m": {"status": "unknown", "reason": "missing_subscription_receipt"}}
+    subscriptions = [r for r in normalized if r["kind"] == "subscription" and r["_at"] <= cutoff]
+    exact = [r for r in subscriptions if r["source"] == expected_source
+             and r["identity_scope"] == "same_chat_and_source" and r["_available"] <= cutoff]
+    if not exact:
+        if any(r["source"] == expected_source and r["identity_scope"] == "same_chat_and_source"
+               for r in subscriptions):
+            projection["subscription"] = {"status": "unknown", "reason": "not_available_at_prediction"}
+        elif subscriptions:
+            projection["subscription"] = {"status": "unknown", "reason": "identity_scope_unverified"}
+        projection["retention_30m"] = {"status": "unknown", "reason": projection["subscription"]["reason"]}
+        return projection
+
+    latest_at = max(r["_at"] for r in exact)
+    latest = [r for r in exact if r["_at"] == latest_at]
+    if len({r["id"] for r in latest}) != 1:
+        projection["subscription"] = {"status": "unknown", "reason": "ambiguous_subscription_period"}
+        projection["retention_30m"] = {"status": "unknown", "reason": "ambiguous_subscription_period"}
+        return projection
+    subscription = latest[0]
+    projection["subscription"] = {"status": "known", "state": "subscribed", "source": subscription["source"],
+                                  "at": subscription["at"], "recorded_at": subscription["recorded_at"],
+                                  "available_at": subscription["available_at"],
+                                  "receipt_id": subscription["id"]}
+    retention = [r for r in normalized if r["kind"] == "retention_30m"
+                 and r.get("subscription_id") == subscription["id"]]
+    scoped = [r for r in retention if r["source"] == subscription["source"]
+              and r["identity_scope"] == "same_chat_and_source"
+              and int((r["_at"]-subscription["_at"]).total_seconds()) >= 1800]
+    available = [r for r in scoped if r["_at"] <= cutoff and r["_available"] <= cutoff]
+    if available:
+        latest_check = max(r["_at"] for r in available)
+        checks = [r for r in available if r["_at"] == latest_check]
+        states = {r["state"] for r in checks}
+        if len(states) != 1:
+            projection["retention_30m"] = {"status": "unknown", "reason": "conflicting_retention_receipts"}
+        else:
+            receipt = min(checks, key=lambda r: r["id"])
+            projection["retention_30m"] = {"status": "known", "state": receipt["state"],
+                "source": receipt["source"], "checked_at": receipt["at"], "recorded_at": receipt["recorded_at"],
+                "available_at": receipt["available_at"],
+                "seconds_after_subscription": int((receipt["_at"]-subscription["_at"]).total_seconds()),
+                "subscription_receipt_id": subscription["id"], "receipt_id": receipt["id"]}
+    elif any(r["_at"] <= cutoff and r["_available"] > cutoff for r in scoped):
+        projection["retention_30m"] = {"status": "unknown", "reason": "not_available_at_prediction"}
+    elif retention and not scoped:
+        projection["retention_30m"] = {"status": "unknown", "reason": "identity_or_period_unverified"}
+    elif int((cutoff-subscription["_at"]).total_seconds()) < 1800:
+        projection["retention_30m"] = {"status": "pending", "reason": "window_not_mature"}
+    else:
+        projection["retention_30m"] = {"status": "unknown", "reason": "retention_receipt_missing"}
+    return projection
+
+
+def prediction_features(case, extracted, fields, party, stage, early_signals):
     """Admit known available facts independently of target-risk-set eligibility."""
     cutoff = base.moment(case["prediction_at"])
     fence = case.get("source_fence_at")
@@ -503,7 +590,7 @@ def prediction_features(case, extracted, fields, party, stage):
             "source_complete_through": case["source_complete_through"],
             "source_gap_seconds": int((cutoff-base.moment(fence)).total_seconds()) if fence else None,
             "prefix_complete": case["prefix_complete"], "semantic_coverage": "partial_rules_only",
-            "facts": admitted, "unavailable_facts": unavailable}
+            "facts": admitted, "unavailable_facts": unavailable, "early_signals": early_signals}
     view["trip_status"] = case.get("trip_status", "accepted")
     view["feature_scope"] = "current_trip" if view["trip_status"] == "accepted" else "unresolved_conversation_prefix"
     view["feature_fingerprint"] = base.digest({"subject": case["subject"], "brand_key": case["brand_key"],
@@ -514,6 +601,7 @@ def prediction_features(case, extracted, fields, party, stage):
 def extract_case(case, extracted, wizard_applications=()):
     base.moment(extracted)
     scope, messages = validate_case(case, {a["message_id"] for a in wizard_applications})
+    early_signals = membership_projection(case)
     cutoff = case["prediction_at"]
     fields = {name: [] for name in ["budget", "budget_preference", "duration", "dates", "departure",
               "destination", "meal", "date_flexibility_days", "room_arrangement", "family_group",
@@ -698,7 +786,8 @@ def extract_case(case, extracted, wizard_applications=()):
             "fields": result_fields, "party": components, "working_assumptions": assumptions,
             "manager_quotes": offered, "current_stage": current,
             "customer_requirements": requirements, "observation": built,
-            "prediction_features": prediction_features(case, extracted, result_fields, components, current),
+            "early_signals": early_signals,
+            "prediction_features": prediction_features(case, extracted, result_fields, components, current, early_signals),
             "target_admission": {"target_version": base.TARGET, "eligible": built["eligible"],
                                  "reason": "complete_prefix_without_observed_target" if built["eligible"] else built["label"]["reason"]},
             "observation_input": observation, "purchase_anywhere_probability": None,

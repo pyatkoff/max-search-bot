@@ -32,6 +32,16 @@ def case(*messages):
             "prefix_complete": True, "messages": list(messages)}
 
 
+def membership_receipt(identifier="membership:1", kind="subscription", state="subscribed",
+                       at="2026-10-01T10:00:00Z", recorded="2026-10-01T10:01:00Z",
+                       available="2026-10-01T10:02:00Z", **extra):
+    row = {"id": identifier, "kind": kind, "source": "telegram_membership_history",
+           "identity_scope": "same_chat_and_source", "state": state, "at": at,
+           "recorded_at": recorded, "available_at": available}
+    row.update(extra)
+    return row
+
+
 def extract(*messages):
     return tool.extract_case(case(*messages), CUTOFF)
 
@@ -41,6 +51,57 @@ def value(profile, field):
 
 
 class ProfileTests(unittest.TestCase):
+    def test_membership_receipts_preserve_cutoff_and_do_not_invent_retention(self):
+        subscribed = membership_receipt()
+        c = case(message("Турция")); c["membership_receipts"] = [subscribed]
+        p = tool.extract_case(c, CUTOFF)
+        self.assertEqual(p["early_signals"]["subscription"]["state"], "subscribed")
+        self.assertEqual(p["early_signals"]["subscription"]["recorded_at"], "2026-10-01T10:01:00Z")
+        self.assertEqual(p["early_signals"]["retention_30m"],
+                         {"status": "unknown", "reason": "retention_receipt_missing"})
+        self.assertEqual(p["prediction_features"]["early_signals"], p["early_signals"])
+        self.assertIsNone(p["purchase_with_us_probability"])
+        self.assertIsNone(p["expected_value_rub"])
+
+        early = copy.deepcopy(c)
+        early["prediction_at"] = early["source_complete_through"] = "2026-10-01T10:20:00Z"
+        pending = tool.extract_case(early, "2026-10-01T10:20:00Z")["early_signals"]
+        self.assertEqual(pending["retention_30m"], {"status": "pending", "reason": "window_not_mature"})
+
+    def test_retention_requires_same_period_scope_and_actual_availability(self):
+        subscribed = membership_receipt()
+        retained = membership_receipt("retention:1", "retention_30m", "retained",
+            "2026-10-01T10:30:00Z", "2026-10-01T10:31:00Z", "2026-10-01T10:32:00Z",
+            subscription_id="membership:1", minimum_age_seconds=1800)
+        c = case(message("Турция")); c["membership_receipts"] = [subscribed, retained]
+        signal = tool.extract_case(c, CUTOFF)["early_signals"]["retention_30m"]
+        self.assertEqual((signal["status"], signal["state"], signal["seconds_after_subscription"]),
+                         ("known", "retained", 1800))
+
+        late = copy.deepcopy(c)
+        late["membership_receipts"][1]["available_at"] = "2026-10-01T12:30:00Z"
+        self.assertEqual(tool.extract_case(late, CUTOFF)["early_signals"]["retention_30m"],
+                         {"status": "unknown", "reason": "not_available_at_prediction"})
+
+        unscoped = copy.deepcopy(c)
+        unscoped["membership_receipts"][1]["identity_scope"] = "source_only"
+        self.assertEqual(tool.extract_case(unscoped, CUTOFF)["early_signals"]["retention_30m"],
+                         {"status": "unknown", "reason": "identity_or_period_unverified"})
+
+        wrong_period = copy.deepcopy(c)
+        wrong_period["membership_receipts"][1]["subscription_id"] = "membership:other"
+        self.assertEqual(tool.extract_case(wrong_period, CUTOFF)["early_signals"]["retention_30m"],
+                         {"status": "unknown", "reason": "retention_receipt_missing"})
+
+    def test_membership_current_state_cannot_be_backdated_or_cross_platform_joined(self):
+        late = membership_receipt(available="2026-10-01T12:30:00Z")
+        c = case(message("Турция")); c["membership_receipts"] = [late]
+        self.assertEqual(tool.extract_case(c, CUTOFF)["early_signals"]["subscription"],
+                         {"status": "unknown", "reason": "not_available_at_prediction"})
+        wrong = membership_receipt(); wrong["source"] = "max_membership_history"
+        c["membership_receipts"] = [wrong]
+        self.assertEqual(tool.extract_case(c, CUTOFF)["early_signals"]["subscription"],
+                         {"status": "unknown", "reason": "identity_scope_unverified"})
     def test_hotel_question_is_consumed_by_first_customer_answer(self):
         question = message("Рассматриваете Rixos?", "manager")
         for answer in ["Нет, этот отель не подходит. Хочу другой.", "Подумаем", "Да"]:
@@ -749,7 +810,46 @@ def wizard_receipt(input_row, field, value, identifier="19"):
     return row
 
 
+def membership_journal_receipt(identifier, event_type, occurred, recorded, observed, **extra):
+    row = journal_row(identifier)
+    row["source_kind"] = row["snapshot"]["source_kind"] = "event"
+    row["snapshot"]["source_created_at_unix"] = recorded
+    row["observed_at_unix"] = observed
+    payload = {"version": 1, "origin": "existing_membership_producer",
+               "source": "telegram_membership_history", "identity_scope": "same_chat_and_source",
+               "state": "subscribed" if event_type == "channel_subscription_observed" else "retained",
+               "occurred_at_unix": occurred}
+    payload.update(extra)
+    row["snapshot"]["payload"] = {"event_type": event_type, "actor_type": "system",
+                                      "payload_json": json.dumps(payload)}
+    return row
+
+
 class JournalProfileTests(unittest.TestCase):
+    def test_membership_receipts_flow_through_actual_journal_cli(self):
+        subscription = membership_journal_receipt("5", "channel_subscription_observed",
+                                                   1793005200, 1793005260, 1793005320)
+        retention = membership_journal_receipt("6", "channel_retention_30m_observed",
+                                                1793007000, 1793007060, 1793007120,
+                                                subscription_event_id="5", minimum_age_seconds=1800)
+        document = journal_document(subscription, retention)
+        document["requested_at"] = "2026-10-26T10:00:00Z"
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json") as handle:
+            json.dump(document, handle); handle.flush()
+            run = subprocess.run([sys.executable, str(ROOT/"tools/profile_conversion_journal.py"), handle.name],
+                                 text=True, capture_output=True)
+        self.assertEqual(run.returncode, 0, run.stderr)
+        cli = json.loads(run.stdout)
+        direct = journal.profile(document, cli["extracted_at"])
+        self.assertEqual(cli, direct)
+        result = direct["profiles"][0]
+        signal = result["profile"]["early_signals"]
+        self.assertEqual(signal["subscription"]["state"], "subscribed")
+        self.assertEqual(signal["retention_30m"]["state"], "retained")
+        self.assertEqual(signal["retention_30m"]["seconds_after_subscription"], 1800)
+        self.assertEqual(result["coverage"]["errors"], {})
+        self.assertFalse(result["profile"]["export_allowed"])
+
     def test_current_intent_runtime_and_cli(self):
         scenarios = [
             ([('manager', 'Рассматриваете Rixos?'), ('customer', 'Нет, этот отель не подходит. Хочу другой.'), ('customer', 'Да')], None, None),
