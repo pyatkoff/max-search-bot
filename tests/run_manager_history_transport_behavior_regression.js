@@ -7,6 +7,7 @@ const {createHarness, response, deferred, hidden} = require('./run_manager_reaut
 // Real core request(), Conversation and History; only fetch and DOM are synthetic.
 // In particular, a mock History.api would miss core's global HTTP 401 handling.
 const canonicalHistory = () => fs.readFileSync(path.join(__dirname, '../manager/assets/workspace-v2-history.js'), 'utf8');
+const canonicalJump = () => fs.readFileSync(path.join(__dirname, '../manager/assets/workspace-v2-jump.js'), 'utf8');
 const message = id => ({id, sender_type:'customer', text:'Synthetic history '+id});
 const olderCalls = h => h.calls.filter(r => r.action === 'detail' && r.before_id);
 const stableHistory = h => { const {paging, recovering, ...state} = h.H.getState(); return state; };
@@ -37,6 +38,42 @@ function createHistoryHarness({mobile=false, historySource=canonicalHistory()}={
   });
   h.installFetch(()=>{throw new Error('Unexpected older read');});
   return h;
+}
+
+// Real Jump callbacks with controlled native-scroll geometry. Browsers own the
+// animation timing; this fixture supplies its individual steps, not app state.
+function createJumpHarness(jumpSource) {
+  const h=createHarness(),box=h.ids.get('messages'),frames=[],resizes=[],writes=[];
+  h.document.activeElement=h.document.body;h.window.setTimeout=callback=>(callback(),0);
+  h.W.S.current=101;box.scrollHeight=600;box.clientHeight=100;box.clientWidth=300;
+  let top=500;
+  Object.defineProperty(box,'scrollTop',{get:()=>top,set:value=>{
+    top=Math.max(0,Math.min(value,box.scrollHeight-box.clientHeight));writes.push(top);
+  }});
+  box.getBoundingClientRect=()=>({top:0,bottom:box.clientHeight,left:0,right:300,width:300,height:box.clientHeight});
+  for(let i=0;i<20;i++){
+    const row=h.document.createElement('div');row.dataset.scrollMessageKey=String(i+1);
+    row.getBoundingClientRect=()=>({top:i*30-top,bottom:(i+1)*30-top});box.appendChild(row);
+  }
+  box.scrollTo=({top:target,behavior})=>{if(behavior!=='smooth')box.scrollTop=target;};
+  h.window.requestAnimationFrame=fn=>(frames.push(fn),frames.length);
+  class MutationObserver {observe(){}}
+  class ResizeObserver {constructor(fn){resizes.push(fn);}observe(){}unobserve(){}}
+  h.window.ResizeObserver=ResizeObserver;
+  vm.runInNewContext(jumpSource,{window:h.window,document:h.document,MutationObserver,ResizeObserver},{filename:'workspace-v2-jump.js'});
+  return {
+    box,J:h.window.WorkspaceV2Jump,writes,
+    wheel(deltaY){
+      const event={deltaY,target:box};
+      h.documentEvents.get('wheel')(event);
+      for(const callback of box.handlers.wheel)callback(event);
+    },
+    nativeScroll(value){top=value;for(const callback of box.handlers.scroll)callback({target:box});},
+    resize({height=box.clientHeight,total=box.scrollHeight}={}){
+      box.clientHeight=height;box.scrollHeight=total;for(const callback of resizes)callback();
+    },
+    flushFrames(){for(let count=0;frames.length;count++){assert.ok(count<10,'Jump frames settle');frames.shift()();}}
+  };
 }
 
 async function protectCurrent(h) {
@@ -79,7 +116,7 @@ function assertCurrentProtected(h, saved) {
   assert.equal(JSON.stringify(h.history.entries),saved.historyEntries); assert.equal(h.history.index,saved.historyIndex);
 }
 
-async function runSuite({historySource=canonicalHistory()}={}) {
+async function runSuite({historySource=canonicalHistory(),jumpSource=canonicalJump()}={}) {
   const cases=[];
   const test=(name,run)=>cases.push({name,run});
   const make=options=>createHistoryHarness({historySource,...options});
@@ -88,6 +125,39 @@ async function runSuite({historySource=canonicalHistory()}={}) {
 
   const rows=(first,last)=>Array.from({length:last-first+1},(_,i)=>message(first+i));
   const settleRecovery=()=>new Promise(resolve=>setImmediate(resolve));
+  test('upward wheel keeps reading intent through tiny native animation steps at the latest edge',()=>{
+    for(const firstStep of [.25,1,2]){
+      const h=createJumpHarness(jumpSource);assert.equal(h.J.isFollowingLatest(),true);
+      h.wheel(-250);assert.equal(h.J.isFollowingLatest(),false);
+      h.nativeScroll(500-firstStep);assert.equal(h.J.isFollowingLatest(),false,'upward first step '+firstStep);
+      h.nativeScroll(250);assert.equal(h.J.isFollowingLatest(),false);assert.equal(h.J.distanceFromLatest(),250);
+      assert.deepEqual(h.writes,[],'native history animation is not replaced by an app scroll');
+    }
+  });
+  test('downward return resumes following only upon reaching the latest edge',()=>{
+    const h=createJumpHarness(jumpSource);h.wheel(-250);h.nativeScroll(250);h.wheel(250);
+    h.nativeScroll(450);assert.equal(h.J.isFollowingLatest(),false);
+    h.nativeScroll(499);assert.equal(h.J.isFollowingLatest(),true);
+    h.nativeScroll(500);assert.equal(h.J.isFollowingLatest(),true);
+  });
+  test('composer reflow retains history intent and its visible row anchor after a tiny upward step',()=>{
+    const h=createJumpHarness(jumpSource);h.wheel(-250);h.nativeScroll(499);h.nativeScroll(250);
+    const before=h.J.capture();h.resize({height:80});h.flushFrames();const after=h.J.capture();
+    assert.equal(h.J.isFollowingLatest(),false);assert.equal(h.box.scrollTop,250);
+    assert.equal(after.anchor.row,before.anchor.row);assert.equal(after.anchor.offset,before.anchor.offset);
+    assert.deepEqual(h.writes,[]);
+  });
+  test('composer reflow while following realigns to the new latest edge',()=>{
+    const h=createJumpHarness(jumpSource);h.resize({height:80});h.flushFrames();
+    assert.equal(h.box.scrollTop,520);assert.equal(h.J.isFollowingLatest(),true);assert.equal(h.J.distanceFromLatest(),0);
+    assert.deepEqual(h.writes,[520]);
+  });
+  for(const smooth of [false,true])test('explicit '+(smooth?'smooth':'immediate')+' jump resumes following from history',()=>{
+    const h=createJumpHarness(jumpSource);h.wheel(-250);h.nativeScroll(499);h.nativeScroll(250);
+    h.J.scrollToLatest({smooth});assert.equal(h.J.isFollowingLatest(),true);
+    if(smooth){h.nativeScroll(400);assert.equal(h.J.isFollowingLatest(),true);h.nativeScroll(499);assert.equal(h.J.isFollowingLatest(),true);h.nativeScroll(500);}
+    assert.equal(h.box.scrollTop,500);assert.equal(h.J.isFollowingLatest(),true);assert.equal(h.J.distanceFromLatest(),0);
+  });
   function recoveryFixture(h,{tail=800,older}={}) {
     // Enable Conversation's real retained-row renderer in this DOM fixture.
     const box=h.ids.get('messages');box.removeChild=node=>{node.remove();return node};

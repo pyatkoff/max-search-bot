@@ -115,16 +115,27 @@ The original UNKNOWN receipt remains immutable; a separate append-only resolutio
 attests the later recovered result. An unknown dispatch with no established run
 identity stays held; neither age nor an invented ID makes it safe to repeat.
 
-After new explicit hotel consent, `hotel_work_handoff_connection` may transfer
-the same administrator's exact queue/stage/baseline from a canonically revoked
-or expired old grant. Ready mode requires no claim or run. Explicit existing-run
-mode additionally requires the retained claim and non-null exact run ID; it
-preserves the state, run, claim and UNKNOWN receipt and emits only attention.
-An active old grant, token expiry alone, missing grant, access error or client
-proof boolean is insufficient. Persist the nonsecret connection binding and
-stage metadata and keep the claim key in the owner's private checkpoint.
-The new grant still requires verified subscriptions; handoff does not create
-callbacks, expand an old grant, start a run, or release a held operation.
+After explicit hotel consent, `hotel_work_handoff_connection` may transfer the
+same administrator's exact queue/stage/baseline to the current hotel connection.
+Ready mode requires no claim or run and positive canonical proof that the old
+binding is a known hotel grant of that same administrator, project and resource.
+The old grant may still be active: moving this known idle queue does not revoke
+credentials or change reply permissions. The shared lane and queue locks make
+old-family claim and handoff mutually exclusive. A winning old claim blocks the
+transfer; a winning transfer makes old-family operations fail ownership checks.
+The stage ID stays unchanged, while delivery identity follows the new binding.
+A connection that already relinquished this queue cannot reclaim it through
+another handoff; fresh consent may use a new binding without revoking credentials.
+
+Explicit existing-run mode still requires a canonically revoked or expired old
+grant, the retained claim and non-null exact run ID. It preserves the state,
+run, claim and UNKNOWN receipt and emits only attention. Missing or foreign
+grants, noncanonical scope profiles, access/storage errors and client proof
+booleans never establish ownership or retirement. Token expiry alone does not
+retire a grant. Persist the nonsecret connection binding and stage metadata and
+keep the claim key in the owner's private checkpoint. The new connection still
+requires verified subscriptions; handoff does not create callbacks, expand an
+old grant, start a run, or release a held operation.
 
 Finite completion releases the metadata lane and creates no fourth batch.
 Continuous mode advances only after an accepted intake and its due criteria.

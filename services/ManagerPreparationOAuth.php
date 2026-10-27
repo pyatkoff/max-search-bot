@@ -96,20 +96,36 @@ final class ManagerPreparationOAuth
 
     public function connectionRetired(string $familyId,int $adminId): bool
     {
-        if (!preg_match('/\A[a-f0-9]{32}\z/D',$familyId)||$adminId<=0) return false;
+        $grant=$this->knownHotelConnectionGrant($familyId,$adminId);
+        if ($grant===null) return false;
+        $knownTime=static fn($value):bool=>(is_int($value)||is_string($value))
+            &&preg_match('/\A[1-9][0-9]{0,18}\z/D',(string)$value)===1;
+        return ($knownTime($grant['expires_at'])&&(int)$grant['expires_at']<=$this->now())
+            ||($grant['revoked_at']!==null&&$knownTime($grant['revoked_at'])&&(int)$grant['revoked_at']<=$this->now());
+    }
+
+    /** Positive evidence of the old grant's hotel identity, not current access
+     * authorization. Only the READY queue handoff may use this weaker predicate;
+     * current credentials still require connectionAuthorized before each call. */
+    public function hotelConnectionKnown(string $familyId,int $adminId): bool
+    {
+        try { return $this->knownHotelConnectionGrant($familyId,$adminId)!==null; }
+        catch (Throwable $error) { return false; }
+    }
+
+    private function knownHotelConnectionGrant(string $familyId,int $adminId): ?array
+    {
+        if (!preg_match('/\A[a-f0-9]{32}\z/D',$familyId)||$adminId<=0) return null;
         $q=$this->pdo->prepare('SELECT g.scopes,g.expires_at,g.revoked_at FROM manager_preparation_oauth_grants g
             JOIN manager_preparation_oauth_clients c ON c.client_id=g.client_id
             WHERE g.grant_id=? AND g.admin_id=? AND g.project_key=? AND g.resource=? AND c.redirect_uri=? LIMIT 1');
         $q->execute([$familyId,$adminId,ProjectConfig::projectId(),self::RESOURCE,self::REDIRECT_URI]);
         $grant=$q->fetch(PDO::FETCH_ASSOC);
-        if (!$grant) return false;
+        if (!$grant) return null;
         try { $scope=$this->scope($grant['scopes']); }
-        catch (InvalidArgumentException $error) { return false; }
-        if ($scope!==$grant['scopes']||!in_array(self::HOTEL_SCOPE,explode(' ',$scope),true)) return false;
-        $knownTime=static fn($value):bool=>(is_int($value)||is_string($value))
-            &&preg_match('/\A[1-9][0-9]{0,18}\z/D',(string)$value)===1;
-        return ($knownTime($grant['expires_at'])&&(int)$grant['expires_at']<=$this->now())
-            ||($grant['revoked_at']!==null&&$knownTime($grant['revoked_at'])&&(int)$grant['revoked_at']<=$this->now());
+        catch (InvalidArgumentException $error) { return null; }
+        if ($scope!==$grant['scopes']||!in_array(self::HOTEL_SCOPE,explode(' ',$scope),true)) return null;
+        return $grant;
     }
 
     public static function authenticateBearer(string $authorization): ?int

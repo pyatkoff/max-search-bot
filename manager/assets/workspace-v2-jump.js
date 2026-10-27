@@ -65,7 +65,9 @@ function syncScrollIntent(){
       if(smoothJump&&next.top>=lastGeometry.top){followingLatest=true;if(distanceFromLatest()<=2)smoothJump=false;}
       // Only a history gesture leaves following mode. Safari can emit scroll
       // events before/after its viewport resize even without user scrolling.
-      else if(!followingLatest){smoothJump=false;followingLatest=distanceFromLatest()<=2;}
+      // An upward wheel can start with a sub-pixel/native animation step still
+      // inside the bottom tolerance. Only a downward return resumes following.
+      else if(!followingLatest){smoothJump=false;followingLatest=next.top>lastGeometry.top&&distanceFromLatest()<=2;}
       readingAnchor=followingLatest?null:findAnchor(box);
     }
   }

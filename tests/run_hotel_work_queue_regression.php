@@ -3,6 +3,30 @@ declare(strict_types=1);
 require_once dirname(__DIR__).'/services/HotelWorkQueue.php';
 require_once __DIR__.'/fixtures/hotel_work_queue.php';
 
+if (($argv[1]??'')==='--claim-handoff-child') {
+    [$unused,$mode,$barrier,$out,$file,$action]=array_pad($argv,6,'');
+    $pdo=new HotelWorkTestPdo($file==='MYSQL'?null:$file,false);
+    $queue=new HotelWorkQueue($pdo,static fn(): int=>1793100000);
+    $status=$queue->status(1,str_repeat('a',32),'RACE');
+    file_put_contents($out.'.ready',$status['stage_id']);
+    $until=microtime(true)+10;
+    while (!is_file($barrier)&&microtime(true)<$until) usleep(1000);
+    if (!is_file($barrier)) exit(3);
+    try {
+        if ($action==='claim') {
+            $r=$queue->claim(1,str_repeat('a',32),['queue_id'=>'RACE','stage_id'=>$status['stage_id'],'claim_key'=>str_repeat('b',64)]);
+            $result=$r['claim_status'];
+        } elseif ($action==='handoff') {
+            $r=$queue->handoff_connection(1,str_repeat('f',32),['queue_id'=>'RACE','stage_id'=>$status['stage_id'],
+                'baseline_sha256'=>$status['baseline_sha256'],'old_connection_id'=>str_repeat('a',32)],
+                static fn(string $old,int $admin,string $proofMode): bool=>$old===str_repeat('a',32)&&$admin===1&&$proofMode==='ready');
+            $result=$r['handoff_status'];
+        } else exit(4);
+    } catch (HotelWorkQueueConflict $e) {$result='conflict:'.$e->reason;}
+    catch (DomainException $e) {$result='access_denied';}
+    file_put_contents($out,$result);exit(0);
+}
+
 // Two actual PHP processes contend on the same SQLite/MySQL admission row.
 if (($argv[1]??'')==='--claim-child') {
     [$unused,$mode,$barrier,$out,$file,$key]=array_pad($argv,6,'');
@@ -149,16 +173,32 @@ hotelAssert(hotelStatus($q)['accepted_batches']===5&&hotelStatus($q)['state']===
 $q->markEventDelivered(1,str_repeat('a',32),'PILOT',$oldEvent['event_id']);
 $handoff=['queue_id'=>'PILOT','stage_id'=>$s['stage_id'],'baseline_sha256'=>$s['baseline_sha256'],'old_connection_id'=>str_repeat('a',32)];
 foreach ([static fn(): bool=>false,static fn(): bool=>throw new RuntimeException('synthetic_proof_unavailable')] as $proof) {
-    hotelReject(fn()=>$q->handoff_connection(1,str_repeat('f',32),$handoff,$proof),HotelWorkQueueConflict::class,'handoff_requires_definitive_proof','old_connection_not_definitively_retired');
+    hotelReject(fn()=>$q->handoff_connection(1,str_repeat('f',32),$handoff,$proof),HotelWorkQueueConflict::class,'handoff_requires_known_hotel_owner_proof','old_connection_not_known_hotel_owner');
 }
 hotelReject(fn()=>$q->handoff_connection(2,str_repeat('f',32),$handoff,static fn(): bool=>true),DomainException::class,'handoff_same_admin_only');
 hotelReject(fn()=>$q->handoff_connection(1,str_repeat('f',32),array_replace($handoff,['baseline_sha256'=>str_repeat('9',64)]),static fn(): bool=>true),HotelWorkQueueConflict::class,'handoff_exact_baseline','baseline_mismatch');
 hotelReject(fn()=>$q->handoff_connection(1,str_repeat('f',32),array_replace($handoff,['stage_id'=>str_repeat('9',64)]),static fn(): bool=>true),HotelWorkQueueConflict::class,'handoff_exact_stage','stale_stage');
 hotelAssert((int)$pdo->query('SELECT COUNT(*) FROM hotel_work_connection_handoffs')->fetchColumn()===0,'denied_handoffs_write_no_audit');
-$after=$q->handoff_connection(1,str_repeat('f',32),$handoff,static fn(string $old,int $admin): bool=>$old===str_repeat('a',32)&&$admin===1);
+$proofModes=[];
+$after=$q->handoff_connection(1,str_repeat('f',32),$handoff,static function(string $old,int $admin,string $mode) use (&$proofModes): bool {
+    $proofModes[]=$mode;return $old===str_repeat('a',32)&&$admin===1&&$mode==='ready';
+});
+hotelAssert($proofModes===['ready'],'ready_handoff_selects_known_owner_policy_not_retirement');
 hotelAssert($after['handoff_status']==='connection_handed_off'&&$after['stage_id']===$s['stage_id']&&$after['state']==='ready','ready_handoff_preserves_stage');
 hotelAssert($after['oauth_connection_id']===str_repeat('f',32),'owned_projection_has_nonsecret_connection_binding');
+$reverse=array_replace($handoff,['old_connection_id'=>str_repeat('f',32)]);
+hotelReject(fn()=>$q->handoff_connection(1,str_repeat('a',32),$reverse,static fn(string $old,int $admin,string $mode): bool=>true),HotelWorkQueueConflict::class,'old_live_family_cannot_handoff_back_with_exact_pins','binding_relinquished');
+hotelAssert((int)$pdo->query('SELECT COUNT(*) FROM hotel_work_connection_handoffs')->fetchColumn()===1&&$q->status(1,str_repeat('f',32),'PILOT')['state']==='ready','denied_reactivation_changes_no_audit_or_state');
 hotelReject(fn()=>hotelStatus($q),DomainException::class,'retired_connection_cannot_read');
+$staleArgs=['queue_id'=>'PILOT','stage_id'=>$s['stage_id'],'claim_key'=>str_repeat('b',64)];
+hotelReject(fn()=>$q->create(1,str_repeat('a',32),['queue_id'=>'PILOT','baseline_sha256'=>$s['baseline_sha256']]),DomainException::class,'old_family_cannot_recreate_bound_queue');
+hotelReject(fn()=>$q->claim(1,str_repeat('a',32),$staleArgs),DomainException::class,'old_family_cannot_claim');
+hotelReject(fn()=>$q->started(1,str_repeat('a',32),$staleArgs+['run_id'=>'STALE']),DomainException::class,'old_family_cannot_bind_run');
+hotelReject(fn()=>$q->complete(1,str_repeat('a',32),$staleArgs+['receipt'=>hotelReceipt('STALE')]),DomainException::class,'old_family_cannot_complete');
+hotelReject(fn()=>$q->release(1,str_repeat('a',32),['queue_id'=>'PILOT','stage_id'=>$s['stage_id']]),DomainException::class,'old_family_cannot_release');
+hotelReject(fn()=>$q->resolve_existing_run(1,str_repeat('a',32),$staleArgs+['unknown_receipt_sha256'=>str_repeat('0',64),'expected_run_id'=>'STALE','expected_packet_sha256'=>str_repeat('1',64),'receipt'=>hotelReceipt('STALE')]),DomainException::class,'old_family_cannot_resolve');
+hotelReject(fn()=>$q->pendingEvent(1,str_repeat('a',32),'PILOT'),DomainException::class,'old_family_cannot_read_event');
+hotelReject(fn()=>$q->markEventDelivered(1,str_repeat('a',32),'PILOT',$oldEvent['event_id']),DomainException::class,'old_family_cannot_ack');
 $newEvent=$q->pendingEvent(1,str_repeat('f',32),'PILOT');
 hotelAssert($newEvent['event_id']!==$oldEvent['event_id']&&$newEvent['data']['stage_id']===$oldEvent['data']['stage_id'],'handoff_new_delivery_identity_same_work');
 hotelAssert($q->handoff_connection(1,str_repeat('f',32),$handoff,static fn(): bool=>false)['handoff_status']==='already_recorded','handoff_retry_idempotent');
@@ -173,6 +213,13 @@ foreach (['claimed','unknown'] as $adoptState) {
     $h=['queue_id'=>'PILOT','stage_id'=>$before['stage_id'],'baseline_sha256'=>$before['baseline_sha256'],'old_connection_id'=>str_repeat('a',32)];
     hotelReject(fn()=>$q->handoff_connection(1,str_repeat('f',32),$h,static fn(): bool=>true),HotelWorkQueueConflict::class,'claimed_not_ready_handoff','not_known_idle');
     $h+=['handoff_mode'=>'existing_run','claim_key'=>str_repeat('b',64),'expected_run_id'=>'BOUND_RUN'];
+    $modes=[];
+    hotelReject(static function() use ($q,$h,&$modes): void {
+        $q->handoff_connection(1,str_repeat('f',32),$h,static function(string $old,int $admin,string $mode) use (&$modes): bool {
+            $modes[]=$mode;return $mode==='ready';
+        });
+    },HotelWorkQueueConflict::class,'active_known_old_grant_cannot_adopt_existing_run','old_connection_not_definitively_retired');
+    hotelAssert($modes===['existing_run'],'existing_run_selects_retirement_proof_only');
     hotelReject(fn()=>$q->handoff_connection(1,str_repeat('f',32),array_replace($h,['claim_key'=>str_repeat('c',64)]),static fn(): bool=>true),HotelWorkQueueConflict::class,'adoption_requires_exact_claim','existing_run_proof_mismatch');
     hotelReject(fn()=>$q->handoff_connection(1,str_repeat('f',32),array_replace($h,['expected_run_id'=>'FOREIGN_RUN']),static fn(): bool=>true),HotelWorkQueueConflict::class,'adoption_requires_exact_run','existing_run_proof_mismatch');
     $adopted=$q->handoff_connection(1,str_repeat('f',32),$h,static fn(): bool=>true);
@@ -242,5 +289,32 @@ file_put_contents($dir.'/go','go');
 foreach ($processes as [$process,$pipes]) { $stdout=stream_get_contents($pipes[1]);$stderr=stream_get_contents($pipes[2]);fclose($pipes[1]);fclose($pipes[2]);hotelAssert(proc_close($process)===0&&$stdout===''&&$stderr==='','native_race_child_clean'); }
 $results=[file_get_contents($dir.'/out0'),file_get_contents($dir.'/out1')];sort($results);
 hotelAssert($results===['claimed','conflict'],'two_real_processes_one_claim_winner');
+$racePdo=null;$raceQ=null;foreach (glob($dir.'/*')?:[] as $path) unlink($path);rmdir($dir);
+
+// Both processes pin the same READY snapshot before contending for the real lane lock.
+$dir=sys_get_temp_dir().'/hotel-work-handoff-race-'.bin2hex(random_bytes(8));if (!mkdir($dir,0700)) throw new RuntimeException('race_directory_unavailable');
+$file=getenv('HOTEL_WORK_NATIVE_MYSQL')==='1'?'MYSQL':$dir.'/queue.sqlite';
+$racePdo=new HotelWorkTestPdo($file==='MYSQL'?null:$file);$raceQ=new HotelWorkQueue($racePdo,static fn(): int=>1793100000);
+$raceQ->create(1,str_repeat('a',32),['queue_id'=>'RACE','baseline_sha256'=>str_repeat('0',64)]);
+$processes=[];
+foreach (['claim','handoff'] as $i=>$action) {
+    $pipes=[];$process=proc_open([PHP_BINARY,__FILE__,'--claim-handoff-child',$dir.'/go',$dir.'/out'.$i,$file,$action],[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes);
+    if (!is_resource($process)) throw new RuntimeException('race_process_unavailable');fclose($pipes[0]);$processes[]=[$process,$pipes];
+}
+$until=microtime(true)+10;
+while ((!is_file($dir.'/out0.ready')||!is_file($dir.'/out1.ready'))&&microtime(true)<$until) usleep(1000);
+hotelAssert(is_file($dir.'/out0.ready')&&is_file($dir.'/out1.ready'),'claim_handoff_children_ready');
+hotelAssert(file_get_contents($dir.'/out0.ready')===file_get_contents($dir.'/out1.ready'),'claim_handoff_same_pinned_stage');
+file_put_contents($dir.'/go','go');
+foreach ($processes as [$process,$pipes]) {$stdout=stream_get_contents($pipes[1]);$stderr=stream_get_contents($pipes[2]);fclose($pipes[1]);fclose($pipes[2]);hotelAssert(proc_close($process)===0&&$stdout===''&&$stderr==='','claim_handoff_child_clean');}
+$claimResult=file_get_contents($dir.'/out0');$handoffResult=file_get_contents($dir.'/out1');
+$row=$racePdo->query("SELECT * FROM hotel_work_queues WHERE queue_id='RACE'")->fetch(PDO::FETCH_ASSOC);
+if ($row['oauth_connection_id']===str_repeat('f',32)) {
+    hotelAssert($handoffResult==='connection_handed_off'&&$claimResult==='access_denied'&&$row['state']==='ready'&&$row['claim_sha256']===null&&$row['current_run_id']===null,'handoff_wins_without_old_claim');
+    hotelReject(fn()=>$raceQ->claim(1,str_repeat('a',32),['queue_id'=>'RACE','stage_id'=>file_get_contents($dir.'/out0.ready'),'claim_key'=>str_repeat('b',64)]),DomainException::class,'race_old_family_stays_fenced');
+} else {
+    hotelAssert($row['oauth_connection_id']===str_repeat('a',32)&&$row['state']==='claimed'&&$claimResult==='claimed'&&$handoffResult==='conflict:not_known_idle','old_claim_wins_without_handoff');
+}
+hotelAssert((int)$row['stage_index']===0&&(int)$row['accepted_batches']===0,'claim_handoff_race_never_advances_or_dispatches_business');
 $racePdo=null;$raceQ=null;foreach (glob($dir.'/*')?:[] as $path) unlink($path);rmdir($dir);
 echo 'HOTEL WORK QUEUE: '.$checks." PASS\n";

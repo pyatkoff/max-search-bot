@@ -54,7 +54,7 @@ final class HotelWorkMcpAdapter
                 [...array_keys($claim),'receipt'],false],
             ['hotel_work_release','Explicitly withdraw the exact unclaimed hotel stage. Claimed and unknown work cannot be released by age. Does not cancel hosted work.',
                 ['queue_id'=>$id,'stage_id'=>$sha],['queue_id','stage_id'],false],
-            ['hotel_work_handoff_connection','Move authority for one same-admin hotel queue to this newly consented hotel connection only after the server proves its exact previous hotel grant revoked or expired. Default ready mode requires an unclaimed stage without a run. Explicit existing_run mode requires the retained claim key and exact already-known original run; it preserves claimed/UNKNOWN state and permits attention only, never dispatch, release, restart or replay. A missing original run stays held. Pin the stage, old binding and baseline saved in the existing checkpoint. Storage errors and age alone are not proof.',
+            ['hotel_work_handoff_connection','Move authority for one same-admin hotel queue to this newly consented hotel connection. Default ready mode requires an unclaimed stage without a run and positive server proof that the exact previous binding belongs to the same hotel-authorized admin; its old grant may remain active. Explicit existing_run mode still requires a revoked or expired old grant, the retained claim key and exact already-known original run; it preserves claimed/UNKNOWN state and permits attention only, never dispatch, release, restart or replay. A missing original run stays held. Pin the stage, old binding and baseline saved in the existing checkpoint. Storage errors and client flags are not proof. No credentials or scopes are changed.',
                 ['queue_id'=>$id,'stage_id'=>$sha,'baseline_sha256'=>$sha,
                     'old_connection_id'=>['type'=>'string','pattern'=>'^[a-f0-9]{32}$'],
                     'handoff_mode'=>['type'=>'string','enum'=>['ready','existing_run'],'default'=>'ready'],
@@ -98,7 +98,14 @@ final class HotelWorkMcpAdapter
         if ($operation==='handoff_connection') {
             // This capability is created only by the authenticated server owner.
             // No client-provided retired/expired/active flag reaches the queue.
-            $arguments[]=fn(string $old,int $sameAdmin):bool=>(new ManagerPreparationOAuth($this->pdo,$this->clock))->connectionRetired($old,$sameAdmin);
+            $arguments[]=function(string $old,int $sameAdmin,string $mode):bool {
+                $oauth=new ManagerPreparationOAuth($this->pdo,$this->clock);
+                return match ($mode) {
+                    'ready'=>$oauth->hotelConnectionKnown($old,$sameAdmin),
+                    'existing_run'=>$oauth->connectionRetired($old,$sameAdmin),
+                    default=>false,
+                };
+            };
         }
         try {
             if (is_callable($this->store)) $result=($this->store)($operation,$arguments);
