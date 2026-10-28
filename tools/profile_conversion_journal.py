@@ -10,6 +10,7 @@ import sys
 
 import build_conversion_observations as base
 import extract_conversion_profiles as extractor
+import purchase_conversion_study as purchase_study
 
 VERSION = "admitted_journal_profile_v1_4"
 MAX_BYTES = 2 * 1024 * 1024
@@ -269,14 +270,18 @@ def profile(document, extracted_at):
         result = extractor.extract_case(profile_case, extracted_at, applications)
         # A denied current scope has no usable facts, even when older snapshots still exist.
         base.require(not case["access_denied"] or not result["prediction_features"]["facts"], "denied_scope_facts")
-        output.append({"subject": case["subject"], "profile": result, "source_references": refs,
+        wrapper = {"subject": case["subject"], "profile": result, "source_references": refs,
                        "adapter": {"version": VERSION, "sha256": ADAPTER_SHA},
                        "journal_cursor": document["journal_cursor"], "source_fence_journal_id": information_fence,
                        "access_status": "denied" if case["access_denied"] else "allowed",
                        "coverage": {"source_history_complete": False, "trip_status": "unknown",
                                     "window_limited": case["window_limited"], "exposure": "unknown",
                                     "identity_assurance": "canonical_source_assertion", "errors": errors,
-                                    "applied_wizard_fields": len(applications)}})
+                                    "applied_wizard_fields": len(applications)}}
+        # Descriptive future packet only: no inquiry/episode admission, label,
+        # prediction or legacy eligibility is inferred by this wrapper.
+        wrapper['purchase_study'] = purchase_study.freeze_profile(wrapper, case['rows'])
+        output.append(wrapper)
     return {"schema_version": 1, "adapter_version": VERSION, "adapter_sha256": ADAPTER_SHA,
             "extractor_sha256": extractor.RULE_SHA, "journal_cursor": document["journal_cursor"], "source_fence_journal_id": information_fence,
             "requested_at": document["requested_at"], "extracted_at": extracted_at,

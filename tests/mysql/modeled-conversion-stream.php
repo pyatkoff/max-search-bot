@@ -42,4 +42,5 @@ finally{
     if($admin&&$safe)$admin->exec('DROP DATABASE IF EXISTS maxbot_modeled_stream_test');
 }
 if($failed)exit(1);
+require __DIR__.'/modeled-purchase-study.php';
 
