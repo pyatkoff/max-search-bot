@@ -67,7 +67,7 @@ try {
     hotelOauthCheck('registration without requested scopes retains original reply capability',$registration['scope']===$legacyScope);
     hotelOauthCheck('metadata advertises hotel capability on the same canonical resource',
         ManagerPreparationOAuth::resourceMetadata()['resource']==='https://app.anytoour.ru/manager/ai-mcp.php'
-        && ManagerPreparationOAuth::authorizationMetadata()['scopes_supported']===['queue:read','prepared:write','hotel_work:write','archive:read','development_work:write']);
+        && ManagerPreparationOAuth::authorizationMetadata()['scopes_supported']===['queue:read','prepared:write','hotel_work:write','archive:read','development_work:write','forecasts:read']);
     $hotelRegistration=$oauth->registerClient(['redirect_uris'=>[ManagerPreparationOAuth::REDIRECT_URI],'scope'=>$hotelScope],'synthetic-hotel');
     hotelOauthCheck('explicit hotel-only registration does not request reply rights',$hotelRegistration['scope']===$hotelScope);
     foreach ($allScopes as $scope) {
@@ -161,7 +161,7 @@ try {
         array_values(array_intersect(array_column($legacyTools,'name'),HotelWorkMcpAdapter::NAMES))===HotelWorkMcpAdapter::NAMES
         && in_array('get_reply_context',array_column($legacyTools,'name'),true)
         &&$hotelCalls===0&&$legacyCalls===0);
-    hotelOauthCheck('hotel-only discovery keeps hotel tools and advertises separate development consent',array_column($hotelTools,'name')===array_merge(HotelWorkMcpAdapter::NAMES,DevelopmentWorkMcpAdapter::NAMES));
+    hotelOauthCheck('hotel-only discovery keeps hotel tools and advertises separate development consent',array_column($hotelTools,'name')===array_merge(HotelWorkMcpAdapter::NAMES,DevelopmentWorkMcpAdapter::NAMES,[ModeledConversionStatusMcpAdapter::NAME]));
     hotelOauthCheck('explicit combined grant discovers the same declared domains once',array_column($combinedTools,'name')===array_column($legacyTools,'name'));
     foreach ($hotelTools as $tool) {
         if (!in_array($tool['name'],HotelWorkMcpAdapter::NAMES,true)) continue;

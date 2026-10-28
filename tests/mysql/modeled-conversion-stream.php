@@ -2,6 +2,7 @@
 declare(strict_types=1);
 if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
 require_once dirname(__DIR__).'/run_modeled_conversion_stream_regression.php';
+require_once dirname(__DIR__).'/run_modeled_conversion_status_regression.php';
 $admin=null;$p=null;$other=null;$safe=false;$failed=false;
 try{
     $dsn=(string)getenv('PREPARED_REPLY_MYSQL_DSN');
@@ -35,6 +36,7 @@ try{
     $profiles=new ModeledConversionProfiles($p);$competingProfiles=new ModeledConversionProfiles($other);$profileBlocked=false;
     $profiles->tick(1793003000,static function()use($competingProfiles,&$profileBlocked){$profileBlocked=($competingProfiles->tick(1793003000)['status']??'')==='busy';});
     $check('concurrent profile transformer cannot own the same derived checkpoint',$profileBlocked);
+    forecastStatusSchema($p);forecastStatusAssertions($p,$check);
     echo 'MODELED CONVERSION STREAM NATIVE MYSQL PASSED '.$passed.PHP_EOL;
 }catch(Throwable $e){fwrite(STDERR,'FAIL modeled stream native MySQL '.get_class($e).PHP_EOL);$failed=true;}
 finally{

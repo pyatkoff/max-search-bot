@@ -74,7 +74,7 @@ try {
     $hotel=$contexts[$hotelScope]['connection_id'];
     archiveMcpCheck('default registration retains only the legacy capability',$registration['scope']===$legacyScope);
     archiveMcpCheck('public metadata declares a separate archive capability',
-        ManagerPreparationOAuth::resourceMetadata()['scopes_supported']===['queue:read','prepared:write','hotel_work:write','archive:read','development_work:write']);
+        ManagerPreparationOAuth::resourceMetadata()['scopes_supported']===['queue:read','prepared:write','hotel_work:write','archive:read','development_work:write','forecasts:read']);
     try {
         $oauth->exchange(['grant_type'=>'refresh_token','client_id'=>$client,'resource'=>ManagerPreparationOAuth::RESOURCE,
             'refresh_token'=>$tokens[$legacyScope]['refresh_token'],'scope'=>$legacyScope.' '.$archiveScope]);
@@ -117,9 +117,10 @@ try {
     $list=static fn(string $family,array $scopes):array =>
         $service->handle(['jsonrpc'=>'2.0','id'=>1,'method'=>'tools/list'],1,$family,$scopes)['result']['tools'];
     $archiveTools=$list($connection,[$archiveScope]);
-    archiveMcpCheck('archive-only consent discovers exactly the two archive readers',
-        array_column($archiveTools,'name')===ArchiveResearchMcpAdapter::NAMES &&$calls===[]&&$ordinaryCalls===0);
+    archiveMcpCheck('archive-only connection discovers archive readers and separate forecast consent',
+        array_column($archiveTools,'name')===array_merge(ArchiveResearchMcpAdapter::NAMES,[ModeledConversionStatusMcpAdapter::NAME]) &&$calls===[]&&$ordinaryCalls===0);
     foreach ($archiveTools as $tool) {
+        if(!in_array($tool['name'],ArchiveResearchMcpAdapter::NAMES,true))continue;
         archiveMcpCheck('archive schema is bounded read-only with explicit OAuth metadata '.$tool['name'],
             $tool['inputSchema']['additionalProperties']===false&&$tool['annotations']['readOnlyHint']===true
             &&$tool['annotations']['destructiveHint']===false&&$tool['annotations']['openWorldHint']===false
@@ -136,7 +137,7 @@ try {
         &&!$oauth->connectionAuthorized($legacy,1,[$archiveScope])&&$calls===[]);
     $hotelTools=$list($hotel,[$hotelScope]);
     archiveMcpCheck('hotel-only discovery preserves hotel tools and advertises separate development consent',
-        array_column($hotelTools,'name')===array_merge(HotelWorkMcpAdapter::NAMES,DevelopmentWorkMcpAdapter::NAMES));
+        array_column($hotelTools,'name')===array_merge(HotelWorkMcpAdapter::NAMES,DevelopmentWorkMcpAdapter::NAMES,[ModeledConversionStatusMcpAdapter::NAME]));
 
     $legacyChallenge=$invoke('read_archive_history',['chat_ref'=>'synthetic.ref'],1,$legacy,ManagerPreparationOAuth::SCOPES);
     $challenge=archiveMcpScopeChallenge($legacyChallenge);
