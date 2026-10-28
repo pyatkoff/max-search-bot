@@ -64,6 +64,10 @@ def apply_updates(state_json, cases, now):
     return result
 
 
+def confirm_forecasts(state_json, now):
+    return call(request(now, state_json, cursor=json.loads(state_json)['profile_cursor']))
+
+
 def fitted_state():
     result = initialized()
     train = [case('runtime-train:'+str(i), TRAIN, i % 2, i % 2) for i in range(40)]
@@ -91,6 +95,8 @@ class RuntimeTests(unittest.TestCase):
             result = add_cases(result['state_json'], controls, PREDICT, 42)
             before = json.loads(result['state_json'])
             self.assertEqual(len(before['predictions']), 40)
+            pending_shas = {p['sha256'] for p in before['predictions']}-set(before['prediction_confirmations'])
+            self.assertTrue(pending_shas)
             program = prefix+'''
                 $input=json_decode(stream_get_contents(STDIN),true,16,JSON_THROW_ON_ERROR);
                 $owner=new ModeledConversionPurchaseStudy(new PDO('sqlite::memory:'),$argv[2]);
@@ -118,7 +124,15 @@ class RuntimeTests(unittest.TestCase):
             self.assertEqual(stored['model_sha256'], before['model']['sha256'])
             self.assertEqual(stored['predictions'], 40)
             self.assertEqual(stored['file_mode'], 0o600)
-            reloaded = call(request(PREDICT, stored['state_json'], cursor='81'))
+            fresh_read_at = later(PREDICT, seconds=1)
+            reloaded = confirm_forecasts(stored['state_json'], fresh_read_at)
+            confirmations = json.loads(reloaded['state_json'])['prediction_confirmations']
+            self.assertEqual(len(confirmations), 40)
+            for sha in pending_shas:
+                self.assertEqual(confirmations[sha]['loaded_state_sha256'], before['sha256'])
+                self.assertEqual(confirmations[sha]['confirmed_at'], fresh_read_at)
+            for sha, original in before['prediction_confirmations'].items():
+                self.assertEqual(confirmations[sha], original)
             evaluated = apply_updates(reloaded['state_json'], controls, EVALUATE)
             final = json.loads(evaluated['state_json'])
             self.assertEqual(final['model'], before['model'])
@@ -153,6 +167,7 @@ class RuntimeTests(unittest.TestCase):
         snapshot = json.loads(result['state_json'])
         frozen = snapshot['cases'][0]['packet']['sha256']
         forecast_hashes = [p['sha256'] for p in snapshot['predictions']]
+        result = confirm_forecasts(result['state_json'], later(PREDICT, seconds=1))
         result = apply_updates(result['state_json'], control, EVALUATE)
         final = json.loads(result['state_json'])
         self.assertEqual(final['model']['sha256'], model_hash)
@@ -237,6 +252,7 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(result['summary']['predictions'], 40)
         self.assertEqual(result['summary']['control_people'], 40)
         self.assertEqual(result['summary']['cases'], 168)
+        result = confirm_forecasts(result['state_json'], later(PREDICT, seconds=1))
         result = apply_updates(result['state_json'], controls, EVALUATE)
         self.assertEqual(result['summary']['paired_resolved_people'], 40)
         self.assertEqual(result['summary']['comparison_available'], 1)
@@ -330,6 +346,7 @@ class RuntimeTests(unittest.TestCase):
             result = add_cases(result['state_json'], controls, later(CONTROL, seconds=4), 92)
             self.assertEqual(result['summary']['control_people'], 40)
             self.assertEqual(result['summary']['predictions'], 41)
+            result = confirm_forecasts(result['state_json'], later(CONTROL, seconds=5))
             result = apply_updates(result['state_json'], controls, EVALUATE)
             final = json.loads(result['state_json'])
             self.assertEqual(result['summary']['comparison_available'], 1)
@@ -522,17 +539,18 @@ class RuntimeTests(unittest.TestCase):
         result, train, _ = fitted_state()
         controls = [case('runtime-late-control:'+str(i), CONTROL, i % 2, i % 2, 'control') for i in range(40)]
         result = add_cases(result['state_json'], controls, PREDICT, 42)
+        result = confirm_forecasts(result['state_json'], later(PREDICT, seconds=1))
         saved = json.loads(result['state_json'])
-        changed = copy.deepcopy(controls[0])
-        r = receipt(changed['packet'], 'lost', 2, later(CONTROL, seconds=1))
-        r['available_at'] = later(PREDICT, seconds=1)
+        changed = copy.deepcopy(controls[-1])
+        r = receipt(changed['packet'], 'lost', 2, later(PREDICT, seconds=1))
+        r['available_at'] = EVALUATE
         r = study.seal({k: v for k, v in r.items() if k != 'sha256'})
         changed['outcomes'].append(r)
         # First test the actual intake race, before mature comparison exists.
-        race = apply_updates(result['state_json'], [changed]+controls[1:], EVALUATE)
+        race = apply_updates(result['state_json'], controls[:-1]+[changed], EVALUATE)
         final = json.loads(race['state_json'])
         group = changed['packet']['person_group']
-        self.assertEqual(final['exclusions'][group]['reason'], 'outcome_recorded_before_saved_forecast')
+        self.assertEqual(final['exclusions'][group]['reason'], 'outcome_recorded_before_forecast_confirmation')
         self.assertEqual(race['summary']['control_resolved'], 39)
         self.assertEqual(race['summary']['comparison_available'], 0)
         self.assertEqual(final['predictions'], saved['predictions'])
@@ -547,6 +565,96 @@ class RuntimeTests(unittest.TestCase):
         retry = apply_updates(revised['state_json'], [changed], EVALUATE)
         self.assertEqual(retry['summary']['control_resolved'], 39)
         self.assertEqual(json.loads(retry['state_json'])['predictions'], saved['predictions'])
+
+    def test_cpu_forecast_then_outcome_before_delayed_persistence_is_excluded_on_next_read(self):
+        result, _, _ = fitted_state()
+        control = case('persistence-race', CONTROL, 1, 1, 'control')
+        result = add_cases(result['state_json'], [control], PREDICT, 42)
+        saved = json.loads(result['state_json'])
+        forecast = saved['predictions'][0]
+        self.assertFalse(saved['prediction_confirmations'])
+        self.assertEqual(result['summary']['control_people'], 1)
+        self.assertEqual(result['summary']['control_resolved'], 0)
+        self.assertEqual(result['summary']['comparison_available'], 0)
+        # Computed at t, won at t+1, file durable only at t+2, next read t+3.
+        # The input models the already-durable previous state, not a backdate.
+        won = receipt(control['packet'], 'won', at=later(PREDICT, seconds=1))
+        control['outcomes'] = [won]
+        next_read = later(PREDICT, seconds=3)
+        control['coverage'].update(through=next_read, available_at=next_read, status='partial')
+        result = apply_updates(result['state_json'], [control], next_read)
+        state = json.loads(result['state_json'])
+        confirmation = state['prediction_confirmations'][forecast['sha256']]
+        self.assertEqual(confirmation['confirmed_at'], next_read)
+        self.assertEqual(confirmation['loaded_state_sha256'], saved['sha256'])
+        self.assertEqual(state['predictions'][0], forecast)
+        self.assertEqual(state['model'], saved['model'])
+        self.assertEqual(state['exclusions'][control['packet']['person_group']]['reason'],
+                         'outcome_recorded_before_forecast_confirmation')
+        self.assertEqual(result['summary']['control_resolved'], 0)
+
+    def test_saved_forecast_confirmed_before_truly_later_outcome_remains_eligible(self):
+        result, _, _ = fitted_state()
+        control = case('persistence-later-outcome', CONTROL, 1, 1, 'control')
+        result = add_cases(result['state_json'], [control], PREDICT, 42)
+        saved = json.loads(result['state_json'])
+        confirmed_at = later(PREDICT, seconds=1)
+        result = confirm_forecasts(result['state_json'], confirmed_at)
+        confirmed = json.loads(result['state_json'])
+        self.assertEqual(len(confirmed['prediction_confirmations']), 1)
+        control['outcomes'] = [receipt(control['packet'], 'won', at=later(confirmed_at, seconds=1))]
+        result = apply_updates(result['state_json'], [control], EVALUATE)
+        state = json.loads(result['state_json'])
+        self.assertNotIn(control['packet']['person_group'], state['exclusions'])
+        self.assertEqual(result['summary']['control_people'], 1)
+        self.assertEqual(result['summary']['control_resolved'], 1)
+        self.assertEqual(state['predictions'], saved['predictions'])
+        self.assertEqual(state['model'], saved['model'])
+        self.assertEqual(state['prediction_confirmations'], confirmed['prediction_confirmations'])
+
+    def test_confirmation_artifact_binding_clocks_and_32_pending_byte_reserve(self):
+        result, _, _ = fitted_state()
+        controls = [case('pending-confirmation:'+str(i), CONTROL, i % 2, i % 2, 'control') for i in range(32)]
+        # One supported CLI batch: every prediction is computed in this pass.
+        result = call(request(PREDICT, result['state_json'], cursor='73',
+                              profiles=[entry(c, 42+i) for i, c in enumerate(controls)]))
+        saved = json.loads(result['state_json'])
+        self.assertEqual(len(saved['predictions']), 32)
+        self.assertFalse(saved['prediction_confirmations'])
+        # Even complete/mature future targets cannot be counted before the
+        # forecast's later-read evidence exists; only the projection changes.
+        view = copy.deepcopy(saved)
+        for c, original in zip(view['cases'][40:], controls):
+            c['outcomes'] = original['outcomes']; c['coverage'] = original['coverage']
+        with patch.object(study, 'utc_now', return_value=EVALUATE):
+            report = study.readiness(runtime.document(view))
+        self.assertEqual(report['counts']['control']['people'], 32)
+        self.assertEqual(report['counts']['control']['resolved'], 0)
+        self.assertFalse(report['comparison_support_ready'])
+        self.assertEqual(view['cases'][40]['coverage']['status'], 'complete')
+        reserved = 32*runtime.CONFIRMATION_RESERVE_BYTES
+        with patch.object(runtime, 'MAX_STATE_BYTES', len(result['state_json'].encode())+reserved+4096):
+            self.assertTrue(runtime.within_budget(saved, 4096))
+            confirmed = confirm_forecasts(result['state_json'], later(PREDICT, seconds=1))
+        state = json.loads(confirmed['state_json'])
+        self.assertEqual(len(state['prediction_confirmations']), 32)
+        self.assertEqual(state['predictions'], saved['predictions'])
+        for key, value in state['prediction_confirmations'].items():
+            self.assertLess(len(runtime.encoded({key: value}).encode()), runtime.CONFIRMATION_RESERVE_BYTES)
+        key = state['predictions'][0]['sha256']
+        for mutation in ('unknown_prediction', 'moved_clock', 'moved_state', 'early', 'future', 'missing_binding'):
+            with self.subTest(mutation=mutation):
+                bad = copy.deepcopy(state); c = bad['prediction_confirmations'][key]
+                if mutation == 'unknown_prediction': bad['prediction_confirmations']['0'*64] = bad['prediction_confirmations'].pop(key)
+                if mutation == 'moved_clock': c['confirmed_at'] = PREDICT
+                if mutation == 'moved_state': c['loaded_state_sha256'] = 'f'*64
+                if mutation == 'early': c['confirmed_at'] = CONTROL
+                if mutation == 'future': c['confirmed_at'] = EVALUATE
+                if mutation == 'missing_binding': del c['loaded_state_sha256']
+                if mutation in ('early', 'future'):
+                    bad['prediction_confirmations'][key] = study.seal({k: v for k, v in c.items() if k != 'sha256'})
+                with self.assertRaisesRegex(study.NotReady, 'runtime_confirmation'):
+                    call(request(later(PREDICT, seconds=1), runtime.encoded(runtime.seal(bad)), cursor='73'))
 
     def test_training_truth_missing_corrupt_or_material_access_unknown_fails_closed(self):
         result, train, _ = fitted_state()

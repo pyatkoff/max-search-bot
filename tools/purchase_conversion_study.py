@@ -544,7 +544,8 @@ def evaluate(model, document, predictions):
         require(p is not None, 'control_prediction_missing')
         require(p['person_group'] == r['person_group'] and p['prediction_cutoff'] == packet['frozen_at'], 'prediction_packet_binding')
         require(moment(model['fitted_at']) <= moment(packet['frozen_at']) <= moment(p['predicted_at']) <= moment(utc_now()), 'prediction_clock')
-        # No outcome may have occurred before the actual stored prediction.
+        # This pure contract checks the computed prediction clock. The runtime
+        # separately requires a later private-state read confirming persistence.
         source_case = next(c for c in document['cases'] if c['packet']['sha256'] == packet['sha256'])
         require(all(moment(p['predicted_at']) < moment(x['recorded_at'])
                     for x in receipts(source_case) if x['payload']['outcome'] in ('won', 'lost')), 'prediction_after_outcome')

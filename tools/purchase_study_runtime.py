@@ -13,6 +13,7 @@ RESERVE_BYTES = 16384
 ARM_CASE_LIMIT = 128
 TRAIN_CASE_BYTES_LIMIT = 524288
 EXCLUSION_LEDGER_BYTES_LIMIT = 131072
+CONFIRMATION_RESERVE_BYTES = 512
 CAPACITY_POLICY = 'first_seen_128_each_train_half_ledger_creation_floor_v1'
 REQUEST_KEYS = {'operation', 'state_json', 'now', 'reader_sha256', 'profile_fence',
                 'profile_cursor', 'profiles', 'updates'}
@@ -39,15 +40,23 @@ def protocol_info():
             'runtime_capacity_policy': CAPACITY_POLICY,
             'maximum_train_cases': ARM_CASE_LIMIT, 'maximum_control_cases': ARM_CASE_LIMIT,
             'maximum_training_case_bytes': TRAIN_CASE_BYTES_LIMIT,
-            'maximum_exclusion_ledger_bytes': EXCLUSION_LEDGER_BYTES_LIMIT}
+            'maximum_exclusion_ledger_bytes': EXCLUSION_LEDGER_BYTES_LIMIT,
+            'forecast_confirmation_policy': 'next_saved_state_read_request_clock_v1',
+            'pending_confirmation_reserve_bytes': CONFIRMATION_RESERVE_BYTES}
 
 
 def document(state):
     cases = []
+    confirmed_groups = {p['person_group'] for p in state['predictions']
+                        if p['sha256'] in state['prediction_confirmations']}
     for original in state['cases']:
         c = {k: v for k, v in original.items()}
         if c['packet']['person_group'] in state['exclusions']:
             c['assignment'] = 'excluded'
+        elif c['assignment'] == 'control' and c['packet']['person_group'] not in confirmed_groups and 'coverage' in c:
+            # Keep the cohort denominator, but a CPU-computed forecast without
+            # a later private-state read cannot contribute a resolved target.
+            c['coverage'] = {**c['coverage'], 'status': 'partial'}
         cases.append(c)
     return {'manifest': state['manifest'], 'cases': cases}
 
@@ -110,7 +119,8 @@ def load(raw, reader_sha256):
     state = json.loads(raw, object_pairs_hook=study.unique_object)
     study.require(isinstance(state, dict) and set(state) == {'kind', 'version', 'protocol_sha256', 'manifest',
                    'profile_cursor', 'profile_fence', 'last_now', 'monitor_cursor', 'cases', 'exclusions',
-                   'exclusion_compaction', 'model', 'model_invalidated', 'training_truth', 'predictions', 'evaluation', 'sha256'}, 'runtime_state_shape')
+                   'exclusion_compaction', 'model', 'model_invalidated', 'training_truth', 'predictions',
+                   'prediction_confirmations', 'evaluation', 'sha256'}, 'runtime_state_shape')
     study.require(state['kind'] == 'purchase_study_state' and state['version'] == VERSION
                   and state['protocol_sha256'] == study.PROTOCOL_SHA
                   and study.digest({k: v for k, v in state.items() if k != 'sha256'}) == state['sha256'], 'runtime_state_hash')
@@ -146,6 +156,24 @@ def load(raw, reader_sha256):
                   'runtime_exclusion_compaction')
     study.require(isinstance(state['cases'], list) and len(state['cases']) <= study.MAX_CASES
                   and isinstance(state['predictions'], list) and len(state['predictions']) <= study.MAX_CASES, 'runtime_state_limit')
+    study.require(isinstance(state['prediction_confirmations'], dict), 'runtime_confirmation_shape')
+    predictions = {}
+    for p in state['predictions']:
+        study.unseal(p, 'paired_prediction')
+        study.require(p['sha256'] not in predictions and isinstance(state['model'], dict)
+                      and p.get('model_sha256') == state['model'].get('sha256')
+                      and study.moment(p['predicted_at']) <= study.moment(state['last_now']), 'runtime_prediction_binding')
+        predictions[p['sha256']] = p
+    study.require(set(state['prediction_confirmations']) <= set(predictions), 'runtime_confirmation_prediction')
+    for sha, confirmation in state['prediction_confirmations'].items():
+        study.require(isinstance(confirmation, dict)
+                      and set(confirmation) == {'version', 'prediction_sha256', 'confirmed_at', 'loaded_state_sha256', 'sha256'}
+                      and type(confirmation['version']) is int and confirmation['version'] == 1
+                      and confirmation['prediction_sha256'] == sha
+                      and study.hash_value(confirmation['loaded_state_sha256'])
+                      and study.digest({k: v for k, v in confirmation.items() if k != 'sha256'}) == confirmation['sha256']
+                      and study.moment(predictions[sha]['predicted_at']) <= study.moment(confirmation['confirmed_at'])
+                      <= study.moment(state['last_now']), 'runtime_confirmation_binding')
     study.assemble(document(state))
     study.require(all(sum(c['packet']['assignment'] == arm for c in state['cases']) <= ARM_CASE_LIMIT
                       for arm in ('train', 'control')) and within_training_budget(state), 'runtime_arm_capacity')
@@ -214,7 +242,8 @@ def excluded(state, group, reason, packet=None, profile_id=None, case=None):
 
 
 def within_budget(state, reserve=RESERVE_BYTES):
-    return len(encoded(seal(state)).encode()) <= MAX_STATE_BYTES-reserve
+    pending = sum(p['sha256'] not in state['prediction_confirmations'] for p in state['predictions'])
+    return len(encoded(seal(state)).encode()) <= MAX_STATE_BYTES-reserve-pending*CONFIRMATION_RESERVE_BYTES
 
 
 def within_training_budget(state):
@@ -235,6 +264,16 @@ def capacity_exclusion(state, group, reason):
     return candidate
 
 
+def enforce_confirmation_chronology(state, case):
+    group = case['packet']['person_group']
+    forecast = next((p for p in state['predictions'] if p['person_group'] == group), None)
+    confirmation = state['prediction_confirmations'].get(forecast['sha256']) if forecast else None
+    if confirmation and any(r['payload']['outcome'] in ('won', 'lost')
+                            and study.moment(r['recorded_at']) <= study.moment(confirmation['confirmed_at'])
+                            for r in case['outcomes']):
+        excluded(state, group, 'outcome_recorded_before_forecast_confirmation')
+
+
 def initialize(request):
     now = request['now']
     manifest = {'study_id': study.digest([now, request['reader_sha256'], study.PROTOCOL_SHA]),
@@ -245,7 +284,8 @@ def initialize(request):
              'last_now': now, 'monitor_cursor': 0, 'cases': [], 'exclusions': {}, 'model': None,
              'exclusion_compaction': {'created_after': now, 'people': 0,
                                      'chain_sha256': study.digest([CAPACITY_POLICY, now])},
-             'model_invalidated': False, 'training_truth': {}, 'predictions': [], 'evaluation': None}
+             'model_invalidated': False, 'training_truth': {}, 'predictions': [],
+             'prediction_confirmations': {}, 'evaluation': None}
     return state
 
 
@@ -266,9 +306,23 @@ def advance(request):
     old = identifier(state['profile_cursor'])
     study.require(old <= cursor <= fence and identifier(state['profile_fence']) <= fence, 'runtime_cursor_regressed')
     state = copy.deepcopy(state)
+    loaded_state_sha = state['sha256']; capacity = False
+    # This incoming state was read by PHP before the current invocation. Only
+    # its already-saved forecasts can acquire a persistence confirmation here.
+    for forecast in list(state['predictions']):
+        sha = forecast['sha256']
+        if sha in state['prediction_confirmations']: continue
+        candidate = copy.deepcopy(state)
+        candidate['prediction_confirmations'][sha] = study.seal({'version': 1, 'prediction_sha256': sha,
+            'confirmed_at': request['now'], 'loaded_state_sha256': loaded_state_sha})
+        if within_budget(candidate, 0): state = candidate
+        else:
+            state = capacity_exclusion(state, forecast['person_group'], 'prediction_confirmation_capacity')
+            capacity = True
+    for c in state['cases']: enforce_confirmation_chronology(state, c)
     seen = {c['packet']['person_group']: c for c in state['cases']}
     old_groups = set(seen)
-    capacity = False; stopped_at = None; previous = old; fresh = []; validated_profiles = []; outside_floor = set(); dispositioned = set()
+    stopped_at = None; previous = old; fresh = []; validated_profiles = []; outside_floor = set(); dispositioned = set()
     for entry in request['profiles']:
         study.require(isinstance(entry, dict) and set(entry) == {'db_profile_id', 'observed_at', 'wrapper', 'admission'}, 'runtime_profile_shape')
         index = identifier(entry['db_profile_id'])
@@ -374,11 +428,7 @@ def advance(request):
                           and study.moment(cc['coverage']['available_at']) <= study.moment(coverage['available_at']), 'runtime_coverage_regressed')
         cc['coverage'] = coverage
         revalidate_training(candidate, cc)
-        forecast = next((p for p in candidate['predictions'] if p['person_group'] == group), None)
-        if forecast and any(r['payload']['outcome'] in ('won', 'lost')
-                            and study.moment(r['recorded_at']) <= study.moment(forecast['predicted_at'])
-                            for r in cc['outcomes']):
-            excluded(candidate, group, 'outcome_recorded_before_saved_forecast')
+        enforce_confirmation_chronology(candidate, cc)
         if not within_training_budget(candidate) or not within_budget(candidate):
             state = capacity_exclusion(state, group, 'outcome_update_byte_capacity')
             capacity = True; continue
