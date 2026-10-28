@@ -806,4 +806,122 @@ foreach (['claim_first','block_first','old_ack_after_block'] as $scenario) {
         $raceQ=null;$racePdo=null;foreach (glob($dir.'/*')?:[] as $path) unlink($path);rmdir($dir);
     }
 }
+
+// Connection recovery is metadata retirement, never a worker result.
+function devHandoffInput(DevelopmentWorkQueue $q): array
+{
+    $s=devStatus($q);
+    return ['queue_id'=>'DEV','task_id'=>$s['task_id'],'spec_sha256'=>$s['spec_sha256'],
+        'expected_plan_sha256'=>$s['plan_sha256'],'expected_pending_event_id'=>$s['expected_pending_event_id'],
+        'old_connection_id'=>str_repeat('a',32),'expected_caller_connection_id'=>str_repeat('c',32),
+        'decision'=>['decision_sha256'=>str_repeat('4',64),'readback_sha256'=>str_repeat('5',64),'reviewer_run_id'=>'INDEPENDENT-HANDOFF-REVIEW']];
+}
+$handoffProof=static fn(string $old,int $admin,bool $recorded):bool=>true;
+$handoffSnapshot=static function(PDO $db):array {
+    $out=[];foreach (DevelopmentWorkTestSchema::tables() as $table) {
+        $rows=$db->query('SELECT * FROM '.$table)->fetchAll(PDO::FETCH_ASSOC);
+        usort($rows,static fn(array $a,array $b):int=>strcmp(json_encode($a),json_encode($b)));
+        $out[$table]=$rows;
+    }return $out;
+};
+[$pdo,$q]=devFixture([devSpec('A')]);$handoff=devHandoffInput($q);
+$legacy=$handoff;unset($legacy['old_connection_id'],$legacy['expected_caller_connection_id']);
+$q->retire_unclaimed(1,str_repeat('a',32),$legacy);
+$legacyRetirement=$pdo->query('SELECT retirement_sha256,retirement_json FROM development_work_retirements')->fetch(PDO::FETCH_ASSOC);
+[$pdo,$q]=devFixture([devSpec('A')]);$handoff=devHandoffInput($q);$before=$handoffSnapshot($pdo);$writeCount=count($pdo->writes);
+$coordinates=array_intersect_key($handoff,array_flip(['queue_id','old_connection_id','expected_caller_connection_id']));
+$pre=$q->handoff_preflight(1,str_repeat('c',32),$coordinates,$handoffProof);
+devAssert($pre['eligible']===true&&$pre['expected_pending_event_id']===$handoff['expected_pending_event_id']
+    &&$pre['spec_sha256']===$handoff['spec_sha256']&&$pre['dispatch_allowed']===false
+    &&$pre['preflight_semantics']==='administrative_recovery_metadata_not_dispatch_evidence',
+    'recovery_preflight_returns_exact_administrative_cas_not_dispatch_authority');
+devAssert($before===$handoffSnapshot($pdo)&&$writeCount===count($pdo->writes),'recovery_preflight_preserves_all_rows_and_delivery_fields');
+$done=$q->handoff_connection(1,str_repeat('c',32),$handoff,$handoffProof);
+devAssert($done['state']==='blocked'&&$done['task_id']===null&&$done['accepted_count']===0&&$done['worker_receipt_count']===0
+    &&$done['retirement_count']===1&&$done['blocked_count']===1&&$done['dispatch_allowed']===false,
+    'handoff_retires_original_task_without_accepting_running_or_selecting_work');
+devAssert($pdo->query("SELECT queue_id FROM development_work_lane WHERE lane_key='DEVELOPMENT'")->fetchColumn()===null,
+    'handoff_releases_only_its_exact_terminal_lane');
+devAssert($legacyRetirement===$pdo->query('SELECT retirement_sha256,retirement_json FROM development_work_retirements')->fetch(PDO::FETCH_ASSOC),
+    'handoff_preserves_exact_legacy_retirement_json_and_digest');
+$current=$q->status(1,str_repeat('c',32),'DEV');
+devAssert($current['last_retirement']['expected_pending_event_id']===$handoff['expected_pending_event_id']
+    &&$current['last_connection_handoff']['retirement_sha256']===$current['last_retirement']['retirement_sha256'],
+    'current_owned_status_validates_retired_event_against_immutable_old_binding');
+$before=$handoffSnapshot($pdo);$writeCount=count($pdo->writes);
+$again=$q->handoff_connection(1,str_repeat('c',32),$handoff,$handoffProof);
+devAssert($again['handoff_status']==='already_recorded'&&$before===$handoffSnapshot($pdo)&&$writeCount===count($pdo->writes),
+    'exact_handoff_readback_is_idempotent_without_any_row_mutation');
+devReject(fn()=>$q->status(1,str_repeat('a',32),'DEV'),DomainException::class,'former_connection_never_gains_current_owned_status');
+devReject(fn()=>$q->claim(1,str_repeat('a',32),['queue_id'=>'DEV','task_id'=>'A','spec_sha256'=>$handoff['spec_sha256'],
+    'claim_key'=>str_repeat('b',64),'expected_pending_event_id'=>$handoff['expected_pending_event_id']]),DomainException::class,
+    'late_old_claim_cannot_cross_new_binding');
+devReject(fn()=>$q->markEventDelivered(1,str_repeat('a',32),'DEV',$handoff['expected_pending_event_id']),DomainException::class,
+    'late_old_ack_cannot_cross_new_binding');
+devReject(fn()=>$q->claim(1,str_repeat('c',32),['queue_id'=>'DEV','task_id'=>'A','spec_sha256'=>$handoff['spec_sha256'],
+    'claim_key'=>str_repeat('b',64),'expected_pending_event_id'=>$handoff['expected_pending_event_id']]),DevelopmentWorkQueueConflict::class,
+    'new_connection_cannot_reanimate_retired_old_task');
+devAssert($before===$handoffSnapshot($pdo),'late_claim_and_ack_failures_preserve_all_retirement_and_handoff_rows');
+$q->append(1,str_repeat('c',32),['queue_id'=>'DEV','expected_plan_sha256'=>str_repeat('0',64),
+    'plan_sha256'=>str_repeat('9',64),'tasks'=>[devSpec('B',['A'])]]);
+$current=$q->status(1,str_repeat('c',32),'DEV');
+devAssert($current['state']==='blocked'&&$current['task_id']===null&&$current['accepted_count']===0
+    &&$current['last_retirement']['expected_pending_event_id']===$handoff['expected_pending_event_id'],
+    'retired_A_never_satisfies_B_dependency_and_history_survives_new_plan_revision');
+$audit=$pdo->query('SELECT * FROM development_work_connection_handoffs')->fetch(PDO::FETCH_ASSOC);
+foreach (['old_connection_id'=>str_repeat('d',32),'retirement_sha256'=>str_repeat('f',64),'intent_json'=>'{}','created_at'=>'not-a-time'] as $column=>$bad) {
+    $pdo->prepare('UPDATE development_work_connection_handoffs SET '.$column.'=? WHERE queue_id=?')->execute([$bad,'DEV']);
+    $corrupt=$handoffSnapshot($pdo);
+    devReject(fn()=>$q->status(1,str_repeat('c',32),'DEV'),RuntimeException::class,'tampered_handoff_proof_never_certifies_retirement_history');
+    devAssert($corrupt===$handoffSnapshot($pdo),'invalid_history_read_performs_no_repair');
+    $pdo->prepare('UPDATE development_work_connection_handoffs SET '.$column.'=? WHERE queue_id=?')->execute([$audit[$column],'DEV']);
+}
+$pdo->exec("DELETE FROM development_work_connection_handoffs WHERE queue_id='DEV'");
+$missing=$handoffSnapshot($pdo);
+devReject(fn()=>$q->status(1,str_repeat('c',32),'DEV'),RuntimeException::class,'missing_historical_binding_fails_closed_without_rehashing_old_retirement');
+devAssert($missing===$handoffSnapshot($pdo),'missing_handoff_read_never_forges_an_audit');
+
+foreach (['caller','target_selector','wrong_old','wrong_plan','wrong_task','wrong_spec','wrong_event','foreign_admin','missing_queue','multiple_tasks','claim','run','unknown','append','foreign_lane'] as $case) {
+    [$pdo,$q]=devFixture($case==='multiple_tasks'?null:[devSpec('A')]);$input=devHandoffInput($q);$actor=1;
+    if ($case==='caller') $input['expected_caller_connection_id']=str_repeat('d',32);
+    if ($case==='target_selector') $input['new_connection_id']=str_repeat('d',32);
+    if ($case==='wrong_old') $input['old_connection_id']=str_repeat('d',32);
+    if ($case==='wrong_plan') $input['expected_plan_sha256']=str_repeat('f',64);
+    if ($case==='wrong_task') $input['task_id']='FOREIGN';
+    if ($case==='wrong_spec') $input['spec_sha256']=str_repeat('f',64);
+    if ($case==='wrong_event') $input['expected_pending_event_id']='dev_evt_'.str_repeat('f',64);
+    if ($case==='foreign_admin') $actor=2;
+    if ($case==='missing_queue') $input['queue_id']='MISSING';
+    if ($case==='claim') devClaim($q);
+    if ($case==='run'||$case==='unknown') {
+        $claim=devStart($q);
+        if ($case==='unknown') $q->complete(1,str_repeat('a',32),$claim+['receipt'=>devReceipt('RUN-A','unknown')]);
+    }
+    if ($case==='append') $q->append(1,str_repeat('a',32),['queue_id'=>'DEV','expected_plan_sha256'=>str_repeat('0',64),
+        'plan_sha256'=>str_repeat('9',64),'tasks'=>[devSpec('B',['A'])]]);
+    if ($case==='foreign_lane') $pdo->exec("UPDATE development_work_lane SET queue_id='OTHER' WHERE lane_key='DEVELOPMENT'");
+    $before=$handoffSnapshot($pdo);
+    devReject(fn()=>$q->handoff_connection($actor,str_repeat('c',32),$input,$handoffProof),
+        [DomainException::class,DevelopmentWorkQueueConflict::class,InvalidArgumentException::class],'recovery_rejects_'.$case);
+    devAssert($before===$handoffSnapshot($pdo),'recovery_rejection_preserves_all_rows_'.$case);
+}
+for ($fail=1;$fail<=7;++$fail) {
+    [$pdo,$q]=devFixture([devSpec('A')]);$input=devHandoffInput($q);$before=$handoffSnapshot($pdo);$seen=0;
+    $pdo->beforeExecute=static function(string $sql)use(&$seen,$fail):void {
+        if (preg_match('/\A\s*(?:INSERT\s+INTO|UPDATE|DELETE\s+FROM)\b/i',$sql)===1&&++$seen===$fail)
+            throw new PDOException('synthetic_handoff_write_failure');
+    };
+    devReject(fn()=>$q->handoff_connection(1,str_repeat('c',32),$input,$handoffProof),RuntimeException::class,'handoff_write_failure_rolls_back_'.$fail);
+    $pdo->beforeExecute=null;
+    devAssert($seen===$fail&&$before===$handoffSnapshot($pdo),'handoff_failure_restores_every_row_including_lane_and_history_'.$fail);
+}
+[$pdo,$q]=devFixture([devSpec('A')]);$input=devHandoffInput($q);$before=$handoffSnapshot($pdo);$authorityCalls=0;
+$revoked=static function(string $old,int $admin,bool $recorded)use(&$authorityCalls):bool {return ++$authorityCalls<2;};
+devReject(fn()=>$q->handoff_connection(1,str_repeat('c',32),$input,$revoked),DomainException::class,'postwrite_authority_loss_rolls_back_entire_recovery');
+devAssert($authorityCalls===2&&$before===$handoffSnapshot($pdo),'postwrite_revocation_preserves_original_binding_task_and_all_audits');
+[$pdo,$q]=devFixture([devSpec('A')]);$input=devHandoffInput($q);$before=$handoffSnapshot($pdo);$authorityCalls=0;
+devReject(fn()=>$q->handoff_preflight(1,str_repeat('c',32),array_intersect_key($input,array_flip(['queue_id','old_connection_id','expected_caller_connection_id'])),$revoked),
+    DomainException::class,'preflight_postread_authority_loss_suppresses_all_metadata');
+devAssert($before===$handoffSnapshot($pdo),'failed_preflight_does_not_change_any_row');
+
 echo 'DEVELOPMENT WORK QUEUE: '.$checks." PASS\n";

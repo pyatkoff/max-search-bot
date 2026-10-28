@@ -382,3 +382,62 @@ The normal deployment HTTP smoke also makes one fixed anonymous request to
 `purchase-study-api.php?view=operational` and requires HTTP 401 with the
 existing unauthorized marker. It sends no authentication, reads no protected
 snapshot and establishes neither ordinary cron provenance nor model quality.
+
+## Explicit recovery of an initial idle queue connection
+
+The ordinary status, claim and receipt paths continue to require the exact current
+connection. Recovery uses two explicit administrative tools under
+`development_work:write`: `development_work_handoff_preflight` and
+`development_work_handoff_connection`. Both require a fresh active project
+administrator and a canonical current DEV grant, plus positive historical proof
+that the exact old grant belongs to that same administrator/project and previously
+carried DEV scope. A missing or malformed grant is not a proof of retirement.
+Historical expiry or revocation alone does not prevent this strictly idle recovery.
+No grant, client, token, permission or credential is created, refreshed or revoked.
+
+The target is always the actual bearer-derived caller. The mandatory
+`expected_caller_connection_id` is only an equality CAS, never a selector.
+The read-only preflight returns bounded current eligibility and exact retirement
+CAS metadata after the additional administrative proof. It does not call the
+delivery path or change acknowledgements, deadlines, watchdogs or any row.
+Its event identity is not a signed pending delivery and never authorizes dispatch.
+Storage failure remains unknown; a post-read authorization failure suppresses
+the projection. Ordinary foreign status remains unavailable.
+
+The commit pins the queue, old connection, current caller, initial plan, exact
+task/specification, pending-generation CAS and a saved independent decision,
+readback and reviewer run. The operator must also verify private unresolved
+claim/dispatch intent rather than inferring its absence from status. Under one
+lane-to-queue transaction the server rechecks that this is exactly one original
+READY unclaimed task, with no accepted/blocked history, append, receipt,
+resolution, retirement, other item, claim, run or global work UNKNOWN.
+An acknowledged but unclaimed delivery alone is not a worker run.
+A changed or unsupported case is rejected; age never clears an UNKNOWN.
+
+The operation retires that task as blocked administrative metadata, clears its
+current-task pointer, releases only that exact terminal lane, records an immutable
+connection-handoff audit and changes queue authority to the actual caller.
+It never calls the ordinary retirement method recursively or selects another task.
+Accepted and worker-receipt counts remain zero. The original task never satisfies
+dependencies; any replacement control scenario requires separately frozen new
+task identities, inputs and admission through the ordinary plan protocol.
+
+Migration 075 adds the handoff audit without changing migration 074 or rewriting
+historical retirement JSON/digests. The linked audit binds the historical old
+connection used to validate the retired event identity. Current ownership always
+uses the new binding. Missing or altered history fails closed. An exact recorded
+intent read back by the fresh current owner is idempotent; a digest is not authority
+to rebind, reset or rearm a queue. Another handoff is rejected.
+
+Old queue-scoped hooks are deactivated and their lease/single-consumer keys released
+at that transaction's instant. This is not cancellation of queued callbacks.
+The existing subscription check-before-transaction race can leave a late old-binding
+orphan. Connection-specific consumer keys keep it separate from the target binding;
+fresh queue ownership in pending/claim/ack rejects its work, and ordinary delivery
+stops it before sending. No callback or secret is copied to a new connection.
+
+Code installation and metadata recovery are not native registration or A-to-B
+acceptance. A later factory may choose a different credential family; actual
+subscription and signed delivery evidence must establish the live binding.
+Never compensate by looping through principal choices or manufacturing pending
+evidence from a preflight result.
