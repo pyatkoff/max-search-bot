@@ -17,6 +17,7 @@ final class ArchiveResearchReadService
     private const MAX_BYTES=536870912;
     private const MAX_SECONDS=8.0;
     private float $deadline=0;
+    private string $stage='unknown';
     private bool $mysql;
     private array $permissionRows=[];
     private array $accountAliases=[];
@@ -42,8 +43,8 @@ final class ArchiveResearchReadService
             $where.=' AND (m.account_id>? OR (m.account_id=? AND m.chat_id>?))';
             array_push($values,$afterAccount,$afterAccount,$afterChat);
             $limit=$args['limit']??25;
+            $this->stage='inventory_page';
             $rows=$this->q('SELECT m.account_id,m.chat_id,COUNT(*) AS records,'
-                .'COALESCE(SUM('.$this->jsonBytes().'),0) AS json_bytes,'
                 .'COALESCE(SUM(m.is_deleted<>0),0) AS deleted_records '
                 .'FROM telegram_dialogue_messages m JOIN projects p ON p.project_key=m.project_key '
                 .'WHERE '.$where.' GROUP BY m.account_id,m.chat_id ORDER BY m.account_id,m.chat_id LIMIT '.($limit+1),$values)->fetchAll(PDO::FETCH_ASSOC);
@@ -52,7 +53,7 @@ final class ArchiveResearchReadService
                 $a=(string)$row['account_id'];$c=(string)$row['chat_id'];
                 $chats[]=['chat_ref'=>$this->encode(['v'=>1,'k'=>'chat','a'=>$a,'c'=>$c,'f'=>$fence,'e'=>$expiry],$key,$admin,$connection),
                     'account_alias'=>$this->accountAliases[$a],'message_records'=>(int)$row['records'],
-                    'source_json_bytes'=>(int)$row['json_bytes'],'deleted_records'=>(int)$row['deleted_records'],
+                    'source_json_bytes'=>null,'source_json_bytes_status'=>'not_scanned','deleted_records'=>(int)$row['deleted_records'],
                     'brand'=>'unknown','trip_count'=>null,'person_identity'=>'unverified'];
             }
             $next=null;
@@ -79,11 +80,13 @@ final class ArchiveResearchReadService
                 ||$cursor['r']!==$ref||$cursor['e']!==$chat['e']))self::fail('stale_cursor');
             [$where,$values]=$this->scope($chat['f'],false);
             $where.=' AND m.account_id=? AND m.chat_id=?';array_push($values,$chat['a'],$chat['c']);
+            $this->stage='history_stats';
             $stat=$this->q('SELECT COUNT(*) AS records,COALESCE(SUM('.$this->jsonBytes().'),0) AS bytes '
                 .'FROM telegram_dialogue_messages m JOIN projects p ON p.project_key=m.project_key WHERE '.$where,$values)->fetch(PDO::FETCH_ASSOC);
             if((int)$stat['records']===0)self::fail('chat_unavailable');
             if((int)$stat['records']>self::MAX_ROWS||(int)$stat['bytes']>self::MAX_BYTES)self::fail('source_limit');
             [$historicalWhere,$historicalValues]=$this->scope($chat['f'],true);
+            $this->stage='history_anchor';
             $historical=$this->q('SELECT 1 FROM telegram_dialogue_messages m JOIN projects p ON p.project_key=m.project_key WHERE '
                 .$historicalWhere.' AND m.account_id=? AND m.chat_id=? LIMIT 1',[...$historicalValues,$chat['a'],$chat['c']])->fetchColumn();
             if($historical===false)self::fail('chat_unavailable');
@@ -92,6 +95,7 @@ final class ArchiveResearchReadService
             $botType=$this->mysql?"JSON_TYPE(JSON_EXTRACT(m.record_json,'$.bot_key'))":"json_type(m.record_json,'$.bot_key')";
             $botValue=$this->mysql?"JSON_UNQUOTE(JSON_EXTRACT(m.record_json,'$.bot_key'))":"CAST(json_extract(m.record_json,'$.bot_key') AS TEXT)";
             $safe='CASE WHEN '.$this->jsonBytes().'<='.self::MAX_RECORD_BYTES.' THEN CASE WHEN '.$jsonValid.'=1 THEN ';
+            $this->stage='history_metadata';
             $metadata=$this->q('SELECT m.id,m.account_id,m.chat_id,m.message_id,m.source_kind,m.version_at,m.is_deleted,'
                 .$this->jsonBytes().' AS bytes,'.$safe.'1 ELSE 0 END ELSE 0 END AS valid_json,'
                 .$safe.$botType." ELSE NULL END ELSE NULL END AS bot_type,"
@@ -110,6 +114,7 @@ final class ArchiveResearchReadService
             }
             $raw=[];
             if($fetch){
+                $this->stage='history_payload';
                 $rows=$this->q('SELECT m.id,m.record_json FROM telegram_dialogue_messages m JOIN projects p ON p.project_key=m.project_key '
                     .'WHERE '.$where.' AND m.id IN ('.implode(',',array_fill(0,count($fetch),'?')).')',[...$values,...$fetch])->fetchAll(PDO::FETCH_ASSOC);
                 foreach($rows as$row)$raw[(string)$row['id']]=$row['record_json'];
@@ -156,7 +161,8 @@ final class ArchiveResearchReadService
         if($admin<1||$connection===''||strlen($connection)>128||!is_callable($this->keyProvider))self::fail('forbidden');
         $this->deadline=microtime(true)+self::MAX_SECONDS;$owned=false;$queryOnly=null;
         try{
-            $key=$this->key($admin,$connection);
+            $this->stage='key_before';$key=$this->key($admin,$connection);
+            $this->stage='transaction_begin';
             if($this->mysql){
                 $this->pdo->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');
                 $this->pdo->exec('START TRANSACTION WITH CONSISTENT SNAPSHOT, READ ONLY');
@@ -164,23 +170,30 @@ final class ArchiveResearchReadService
                 $queryOnly=(int)$this->pdo->query('PRAGMA query_only')->fetchColumn();
                 $this->pdo->exec('PRAGMA query_only=ON');$this->pdo->beginTransaction();
             }
-            $owned=true;$this->permissionRows=$this->permissions();$original=$this->permissionRows;
+            $owned=true;$this->stage='permissions_before';$this->permissionRows=$this->permissions();$original=$this->permissionRows;
             if(!$original)self::fail('forbidden');
             $this->accountAliases=[];foreach($original as$row){$id=(string)$row['account_id'];if(!isset($this->accountAliases[$id]))$this->accountAliases[$id]='A'.(count($this->accountAliases)+1);}
             $result=$operation($key);
-            $this->pdo->rollBack();$owned=false;
+            $this->stage='rollback';$this->pdo->rollBack();$owned=false;
             if($queryOnly!==null){$this->pdo->exec('PRAGMA query_only='.($queryOnly?'ON':'OFF'));$queryOnly=null;}
             // Outside the old consistent snapshot: revocations cannot use its old permission rows.
-            if(!hash_equals($key,$this->key($admin,$connection))||$original!==$this->permissions())self::fail('permission_changed');
-            $this->budget();
+            $this->stage='key_after';$freshKey=$this->key($admin,$connection);
+            if(!hash_equals($key,$freshKey))self::fail('stale_cursor');
+            $this->stage='permissions_after';if($original!==$this->permissions())self::fail('permission_changed');
+            $this->stage='response';$this->budget();
             if(strlen(self::json($result))>self::MAX_RESPONSE_BYTES)self::fail('response_limit');
             return$result;
-        }catch(ArchiveResearchReadException$e){throw$e;}
-        catch(Throwable$e){self::fail('unavailable');}
+        }catch(ArchiveResearchReadException$e){
+            throw $e->stage==='unknown'?new ArchiveResearchReadException($e->reason,$this->stage,$e->sqlstateClass,$e->driverCode):$e;
+        }catch(PDOException$e){throw self::databaseError($e,$this->stage);}
+        catch(DomainException$e){throw new ArchiveResearchReadException($this->stage==='key_before'?'forbidden':($this->stage==='key_after'?'permission_changed':'unavailable'),$this->stage);}
+        catch(Throwable$e){throw new ArchiveResearchReadException('unavailable',$this->stage);}
         finally{
-            if($owned&&$this->pdo->inTransaction())$this->pdo->rollBack();
-            if($queryOnly!==null)$this->pdo->exec('PRAGMA query_only='.($queryOnly?'ON':'OFF'));
-            $this->permissionRows=[];$this->accountAliases=[];
+            try{
+                if($owned&&$this->pdo->inTransaction())$this->pdo->rollBack();
+                if($queryOnly!==null)$this->pdo->exec('PRAGMA query_only='.($queryOnly?'ON':'OFF'));
+            }catch(PDOException$e){throw self::databaseError($e,'rollback');}
+            finally{$this->permissionRows=[];$this->accountAliases=[];}
         }
     }
 
@@ -208,25 +221,28 @@ final class ArchiveResearchReadService
 
     private function fence():string
     {
-        [$where,$values]=$this->scope('18446744073709551615',false);
-        // The archive's BIGINT fence is opaque private metadata, never a provider time.
+        $this->stage='fence';$ids=array_keys($this->accountAliases);
+        if(!$ids)self::fail('forbidden');
+        // A cheap row-ID upper bound is not admission. Every data query still uses scope().
         return(string)$this->q('SELECT COALESCE(MAX(m.id),0) FROM telegram_dialogue_messages m '
-            .'JOIN projects p ON p.project_key=m.project_key WHERE '.$where,$values)->fetchColumn();
+            .'WHERE m.project_key=? AND m.account_id IN ('.implode(',',array_fill(0,count($ids),'?')).')',
+            ['anytour',...$ids])->fetchColumn();
     }
 
     private function summary(string$fence):array
     {
-        [$where,$values]=$this->scope($fence,true);
-        $rows=$this->q('SELECT m.account_id,COUNT(*) AS records,COUNT(DISTINCT m.chat_id) AS chats,'
-            .'COALESCE(SUM('.$this->jsonBytes().'),0) AS bytes FROM telegram_dialogue_messages m '
-            .'JOIN projects p ON p.project_key=m.project_key WHERE '.$where.' GROUP BY m.account_id ORDER BY m.account_id',$values)->fetchAll(PDO::FETCH_ASSOC);
-        $totals=['message_records'=>0,'account_chat_pairs'=>0,'source_json_bytes'=>0];$accounts=[];
+        $this->stage='summary';[$where,$values]=$this->scope($fence,true);
+        // Inventory counts metadata only; no whole-archive LONGTEXT byte scan.
+        $rows=$this->q('SELECT m.account_id,COUNT(*) AS records,COUNT(DISTINCT m.chat_id) AS chats '
+            .'FROM telegram_dialogue_messages m JOIN projects p ON p.project_key=m.project_key WHERE '.$where
+            .' GROUP BY m.account_id ORDER BY m.account_id',$values)->fetchAll(PDO::FETCH_ASSOC);
+        $totals=['message_records'=>0,'account_chat_pairs'=>0,'source_json_bytes'=>null,'source_json_bytes_status'=>'not_scanned'];$accounts=[];
         foreach($rows as$row){
-            $totals['message_records']+=(int)$row['records'];$totals['account_chat_pairs']+=(int)$row['chats'];$totals['source_json_bytes']+=(int)$row['bytes'];
+            $totals['message_records']+=(int)$row['records'];$totals['account_chat_pairs']+=(int)$row['chats'];
             $accounts[]=['account_alias'=>$this->accountAliases[(string)$row['account_id']],'message_records'=>(int)$row['records'],
-                'account_chat_pairs'=>(int)$row['chats'],'source_json_bytes'=>(int)$row['bytes'],'brand'=>'unknown'];
+                'account_chat_pairs'=>(int)$row['chats'],'source_json_bytes'=>null,'source_json_bytes_status'=>'not_scanned','brand'=>'unknown'];
         }
-        if($totals['message_records']>self::MAX_ROWS||$totals['account_chat_pairs']>self::MAX_CHATS||$totals['source_json_bytes']>self::MAX_BYTES)self::fail('source_limit');
+        if($totals['message_records']>self::MAX_ROWS||$totals['account_chat_pairs']>self::MAX_CHATS)self::fail('source_limit');
         return['totals'=>$totals,'accounts'=>$accounts];
     }
 
@@ -333,8 +349,17 @@ final class ArchiveResearchReadService
         if($this->mysql)$sql='SELECT /*+ MAX_EXECUTION_TIME('.max(1,min(5000,(int)(($this->deadline-microtime(true))*1000))).') */ '.substr($sql,7);
         $q=$this->pdo->prepare($sql);$q->execute($args);$this->budget();return$q;
     }
+    private static function databaseError(PDOException$error,string$stage):ArchiveResearchReadException
+    {
+        $info=is_array($error->errorInfo)?$error->errorInfo:[];
+        $state=is_string($info[0]??null)&&preg_match('/\A[0-9A-Z]{5}\z/D',$info[0])?substr($info[0],0,2):null;
+        $code=$info[1]??null;
+        $code=(is_int($code)||(is_string($code)&&preg_match('/\A[0-9]{1,5}\z/D',$code)))?(int)$code:null;
+        if($code!==null&&($code<0||$code>65535))$code=null;
+        return new ArchiveResearchReadException(in_array($code,[3024,1969],true)?'time_limit':'unavailable',$stage,$state,$code);
+    }
     private function jsonBytes():string{return $this->mysql?'LENGTH(m.record_json)':'LENGTH(CAST(m.record_json AS BLOB))';}
-    private function budget():void{if(microtime(true)>$this->deadline)self::fail('time_limit');}
+    private function budget():void{if(microtime(true)>$this->deadline)throw new ArchiveResearchReadException('time_limit',$this->stage);}
     private function now():int{return$this->clock?(int)($this->clock)():time();}
     private static function decimal(string$v,bool$zero):bool{return preg_match($zero?'/\A(?:0|[1-9][0-9]{0,19})\z/D':'/\A[1-9][0-9]{0,19}\z/D',$v)===1;}
     private static function decimalGreater(string$a,string$b):bool{return strlen($a)!==strlen($b)?strlen($a)>strlen($b):strcmp($a,$b)>0;}
@@ -344,5 +369,17 @@ final class ArchiveResearchReadService
 }
 final class ArchiveResearchReadException extends RuntimeException
 {
-    public function __construct(public readonly string$reason){parent::__construct('archive_research_'.$reason);}
+    public const STAGES=['unknown','key_before','transaction_begin','permissions_before','fence','summary','inventory_page',
+        'history_stats','history_anchor','history_metadata','history_payload','rollback','key_after','permissions_after','response'];
+    public const SQLSTATE_CLASSES=['08','22','23','28','40','42','HY'];
+    public readonly string $stage;
+    public readonly ?string $sqlstateClass;
+    public readonly ?int $driverCode;
+    public function __construct(public readonly string$reason,string$stage='unknown',?string$sqlstateClass=null,?int$driverCode=null)
+    {
+        $this->stage=in_array($stage,self::STAGES,true)?$stage:'unknown';
+        $this->sqlstateClass=in_array($sqlstateClass,self::SQLSTATE_CLASSES,true)?$sqlstateClass:null;
+        $this->driverCode=$driverCode!==null&&$driverCode>=0&&$driverCode<=65535?$driverCode:null;
+        parent::__construct('archive_research_'.$reason);
+    }
 }

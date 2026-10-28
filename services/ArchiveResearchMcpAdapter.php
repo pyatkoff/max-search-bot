@@ -8,6 +8,9 @@ final class ArchiveResearchMcpAdapter
 {
     public const NAMES = ['archive_research_inventory','read_archive_history'];
     private const MAX_OUTPUT_BYTES = 65536;
+    private const DIAGNOSTIC_STAGES = ['unknown','key_before','transaction_begin','permissions_before','fence','summary','inventory_page',
+        'history_stats','history_anchor','history_metadata','history_payload','rollback','key_after','permissions_after','response'];
+    private const SQLSTATE_CLASSES = ['08','22','23','28','40','42','HY'];
 
     public function __construct(private PDO $pdo, private $store = null, private $clock = null) {}
 
@@ -61,13 +64,25 @@ final class ArchiveResearchMcpAdapter
             if ($error->reason==='invalid_arguments') throw new InvalidArgumentException();
             $restart=in_array($error->reason,['stale_cursor','chat_unavailable','source_changed'],true);
             if (!$restart && !in_array($error->reason,['time_limit','source_limit','response_limit','transaction_active','unavailable'],true)) throw new RuntimeException('archive_research_unavailable');
-            $failure=['ok'=>false,'project_key'=>'anytour','status'=>'unavailable','reason'=>$error->reason];
+            $failure=['ok'=>false,'project_key'=>'anytour','status'=>'unavailable','reason'=>$error->reason,
+                'diagnostic'=>self::diagnostic($error)];
             if ($restart) $failure['recovery']='restart_inventory';
             return $failure;
         }
         if (!is_array($result) || array_is_list($result)
             || strlen(json_encode($result,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR))>self::MAX_OUTPUT_BYTES) throw new RuntimeException('invalid_archive_research_result');
         return $result;
+    }
+
+    /** Fixed operational categories only; never exception text or SQL values. */
+    private static function diagnostic(ArchiveResearchReadException $error): array
+    {
+        $stage=$error->stage??'unknown';
+        $state=$error->sqlstateClass??null;
+        $driver=$error->driverCode??null;
+        return ['stage'=>in_array($stage,self::DIAGNOSTIC_STAGES,true)?$stage:'unknown',
+            'sqlstate_class'=>in_array($state,self::SQLSTATE_CLASSES,true)?$state:null,
+            'driver_code'=>is_int($driver)&&$driver>=0&&$driver<=65535?$driver:null];
     }
 
     private static function reference(array $args,string $name): void
