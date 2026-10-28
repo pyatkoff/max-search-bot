@@ -1,0 +1,191 @@
+# Development plan metadata queue
+
+The model-free production minute cron checks a bounded queue of explicitly
+authorized development tasks. A signed readiness event wakes the existing
+general coordinator; the cron does not call a model, dispatch a hosted worker,
+edit code, merge, deploy, read customer data, or change the hotel queue.
+Actual development still uses the existing owners and their original tools.
+
+## Authority and immutable tasks
+
+The canonical plan and each original workstream remain the source of task
+scope and acceptance criteria. This queue stores metadata, not another roadmap.
+A task contains its immutable ID, original owner task ID, distinct independent
+reviewer task ID, input SHA-256, acceptance-contract SHA-256, priority and prior
+dependency IDs. The coordinator must retain the actual approved input and
+contract privately and verify their bytes before admission. A digest alone is
+not permission, saved-file evidence, a source reservation or a publisher lease.
+Owner/reviewer IDs and distinct run strings are not actor authority. Before
+arming delivery, verify the actual already-authorized owner and independent
+reviewer routes and the host's declared execution/event capabilities. An
+unsupported route is a blocker; never infer a native pairing, wake a disabled
+owner, message a new recipient or clone an executor. Record a pre-dispatch
+capability blocker in the canonical plan without claiming or enqueueing it as
+ready. The terminal-blocked completion API is only for an already-bound run.
+
+Create one queue for the existing general coordinator after reconciling its
+actual current runs, delivery intents and existing plan. New tasks are appended
+against the exact current plan digest and a separately approved new revision;
+existing definitions and results cannot be changed. Dependencies must identify
+an earlier task in this queue (including earlier in the same append), preventing
+cycles and missing references. Only accepted dependencies satisfy readiness.
+Duplicate IDs, conflicting repetitions and stale plan compare-and-swap fail
+closed. An identical creation/append returns existing state without replay.
+
+Do not import already completed work as a new task, clone an occupied source,
+or dispatch a currently active owner again. Active existing runs remain with
+their current owner. The initial queue may observe an already active original run only when the
+explicit approved immutable input names that exact known run and the original
+owner permits this handover. This is reconciliation of the existing operation,
+not another dispatch. All other active or unknown overlapping work prevents
+admission. A product dependency that requires a session, a separately
+admitted private read or new user authority remains blocked until that precise
+input exists. Minute checks do not authorize browser access, new data capture,
+customer sends, spending, new workers, new credentials or a policy change.
+
+The initial rollout serializes two admitted coordination/control tasks at the
+existing general coordinator. It is not an exclusive scheduler for all five
+product directions. Independent original workstream owners and their already
+authorized work continue; do not pause them to obtain the development lane.
+The queue permits one admitted development WIP across its owned queues.
+Hotel research and its own shared HOTEL lane are unaffected. The existing
+external source registry and the sole ready publisher remain mandatory:
+acquire the publisher only when current-head review and required CI are ready,
+then hold it through normal installation and explicit terminal release.
+A metadata claim does not acquire or replace either external reservation.
+
+## Existing coordinator protocol
+
+1. Receive the actual trusted HOST-routed signed development pending event.
+   Match its received event ID, queue, task, spec digest and original owner
+   against fresh server status and the saved private checkpoint. Apply the
+   declared event freshness policy; server claim deadlines are not event TTL.
+   Never obtain a missing received ID from status or manufacture routing proof.
+2. For a new dispatch independently prove exact terminal/idle state. For an
+   explicitly admitted observation-only handover, match only its already-known
+   actual run without dispatch. Check actual original-owner binding,
+   unresolved private delivery/dispatch intents, relevant source/file/resource
+   claims and external publisher rules. A server READY row is not proof that a
+   hosted task is idle. Save and read back the exact once-only dispatch intent
+   using the existing private checkpoint's version guard before admission.
+3. Claim with the client-held random key, task/spec and the received
+   `expected_pending_event_id`. The required identity comparison happens
+   atomically under the shared development lane and queue locks, before the
+   idempotent branch. An `already_claimed_do_not_replay` response means inspect
+   the original operation, never dispatch again.
+4. Start the one admitted original owner with its already-authorized scope and
+   record the actual supported run ID with `development_work_started`.
+   If the task owner is the same coordinator consuming the event, perform the
+   admitted work in that current event turn and bind its actual supported HOST
+   run. Never invoke `run_now` on itself or create another worker for a demo.
+   A human/hourly observer turn cannot substitute for a fresh pending event;
+   missing actual event-run binding remains a precise capability blocker.
+   An uncertain delivery is not repeated. Do not infer terminal from age,
+   last-updated time, disabled future triggers or unavailable transport.
+5. Match that run's terminal result to the exact task/input/contract. Check the
+   actual saved immutable result and readback, the original independent review
+   and its distinct actual run, required code CI/install/release where the
+   contract calls for them, and release of the task's own claims. Retain the
+   exact source head/tree/current integration, dated review disposition and
+   original explicit RELEASE/lease readback when applicable; a boolean alone
+   is not independent proof. Only then
+   attest `accepted_readback` with result/readback/acceptance digests.
+6. After one accepted completion, an already-approved next task may be appended
+   as metadata only, using the real accepted receipt as its frozen input,
+   deterministic task ID and durable append intent with a fresh plan CAS. An
+   unknown append outcome is reconciled by exact identity/hash, never a new ID.
+   End that event pass; the next ordinary server tick produces a separate new
+   pending for the next task. Never tail-dispatch it from the old event.
+
+The server accepts authenticated attestations, not remote artifact truth.
+The coordinator's independent bytes and acceptance checks are indispensable.
+A valid hash, callback HTTP success, active task, source release or green CI
+alone never proves the requested product scenario was accepted.
+
+`terminal_blocked` requires the exact bound run's verified terminal result,
+saved result/readback and released own claims. It does not satisfy dependencies.
+Another independent ready task may then be selected. Unknown dispatch, run,
+save, external effect or release outcome must be `unknown`, which retains WIP
+without expiry or automatic replay. A later resolution uses only the retained
+claim, original UNKNOWN receipt digest and exact already-known run, preserving
+the original receipt and any non-null result anchor. Missing run identity stays
+held; never invent a replacement.
+
+Receipts and resolutions are append-only and duplicate completions cannot
+advance twice. Private claim keys, callback secrets, internal plan instructions,
+customer records and raw worker outputs stay outside public source/status.
+
+## Events and installation
+
+Use the existing authenticated `/manager/ai-mcp.php` endpoint and separately
+consented `development_work:write` capability. Reply and hotel grants keep their
+current meaning. Discovery can advertise the new capability but does not grant
+it; refresh tokens cannot enlarge a grant. Development step-up preserves only
+already-consented scopes and adds the explicit development capability. Hotel
+step-up retains the original reply+hotel profile for a reply grant and preserves
+already-consented development capability if present.
+
+Subscribe the same existing coordinator to both `development_work.pending`
+and `development_work.attention`, filtered by project `anytour` and the exact
+queue ID, through the host's supported native event configuration. The actual
+client supplies its verified HTTPS callback and signing secret. Do not invent
+callback URLs, hidden APIs, worker bindings or dispatch permissions. Keep reply
+and hotel subscriptions unchanged. Do not create a second controller to work
+around unsupported event attachment.
+
+The common webhook transport retains challenge/HMAC/HTTPS protections. Delivery
+leases exclude concurrent senders, retries retain the exact serialized event
+body and ID with a fresh transport signature timestamp, backoff belongs to that
+event and revocation/expiry/terminal callback failures stop delivery. A new task
+does not inherit an older task's delivery delay. Delivery acknowledgement is
+not a task receipt.
+
+Unclaimed acknowledged readiness produces attention after its claim deadline.
+Claimed and UNKNOWN work emits bounded reconciliation attention after the
+watchdog interval. Attention always has `dispatch_allowed=false`; it permits
+inspection of the existing exact operation, never a new run, retry or release.
+No metadata timeout proves an external operation failed.
+
+Normal PR/current-head independent review/required CI/sole publisher installation
+applies. Migration 074 stores metadata only and is forward-only. Deployment
+preserves all unrelated entries and installs exactly one development line:
+
+```text
+* * * * * DEVELOPMENT_WORK_TRIGGER=cron flock -n /tmp/max-search-development-work.lock /usr/bin/php <root>/tools/development_work.php tick >/dev/null 2>&1
+```
+
+`verify-cron` observes two different completed future ordinary cron ticks
+45–90 seconds apart; it never invokes a tick. Manual invocations, old records
+or repeated reads of one tick do not prove a working minute schedule. The
+marker is operational provenance controlled by the administrator, not an
+unforgeable clock or guaranteed exact execution time.
+
+Private bounded health omits queue/task IDs and payloads. The CLI `status`
+reads it without application configuration. `awaiting_connection` means
+the scheduled server pass has no usable development event subscription;
+it is not proof that the task queue ran or is empty.
+
+The existing hourly and ROOT supervision continue while runtime progression
+is unaccepted. If hourly supervision is retained to discover genuinely new
+ready inputs, it may only reconcile/read/append through the same private CAS
+and server WIP guard; worker dispatch still requires a fresh actual pending
+event. It is not a second controller. No task is requeued merely to demonstrate
+an automatic transition.
+
+Before replacing the old general coordinator's hourly trigger, verify the same
+owner's actual binding and event support, preserve its prompt/permissions/
+once-ledger and check exact current runs. Keep future duplicate dispatch off
+only after a supported single-owner event handover and readback. Installation
+or a nominal schedule alone is insufficient.
+
+Runtime acceptance requires an ordinary cron tick, accepted signed pending,
+one actual original-owner run, independently saved/read-back acceptance,
+one completion receipt and a separate ordinary pending for the next eligible
+task at the same owner. If no product task is currently ready, report that
+precise limitation and keep unattended monitoring; do not seed fake completed
+tasks or claim that synthetic tests prove a live product transition.
+
+A rollback must retain claims, UNKNOWN states, immutable task identities and
+receipt/resolution history. Never delete audit rows, migrate down, reset a
+held operation, replay work, remove the protected external-log boundary or
+weaken the existing source/review/install gates to make the queue advance.
