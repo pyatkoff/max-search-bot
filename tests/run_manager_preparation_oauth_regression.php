@@ -312,7 +312,7 @@ try {
         && $metadata['token_endpoint_auth_methods_supported']===['none'] && $metadata['code_challenge_methods_supported']===['S256']
         && !in_array('client_credentials',$metadata['grant_types_supported'],true)
         && ManagerPreparationOAuth::resourceMetadata()['resource']===ManagerPreparationOAuth::RESOURCE
-        && ManagerPreparationOAuth::resourceMetadata()['scopes_supported']===['queue:read','prepared:write','hotel_work:write','archive:read']);
+        && ManagerPreparationOAuth::resourceMetadata()['scopes_supported']===['queue:read','prepared:write','hotel_work:write','archive:read','development_work:write']);
     preparationOauthCheck('only current active admin with canonical project membership is eligible',
         $oauth->activeAdmin(1) && !$oauth->activeAdmin(0) && !$oauth->activeAdmin(2) && !$oauth->activeAdmin(3) && !$oauth->activeAdmin(4));
     preparationOauthCheck('authorization never changes the operator working state', (int)$pdo->query('SELECT is_working FROM managers WHERE id=1')->fetchColumn()===0);

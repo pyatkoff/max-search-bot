@@ -63,10 +63,11 @@ try {
     $registration=$oauth->registerClient(['redirect_uris'=>[ManagerPreparationOAuth::REDIRECT_URI]],'synthetic-hotel');
     $client=$registration['client_id'];$legacyScope='queue:read prepared:write';$hotelScope='hotel_work:write';
     $allScopes=[$legacyScope,$hotelScope,$legacyScope.' '.$hotelScope];$tokens=[];$contexts=[];
+    $hotelCombinedScopes=array_merge(ManagerPreparationOAuth::SCOPES,[ManagerPreparationOAuth::HOTEL_SCOPE]);
     hotelOauthCheck('registration without requested scopes retains original reply capability',$registration['scope']===$legacyScope);
     hotelOauthCheck('metadata advertises hotel capability on the same canonical resource',
         ManagerPreparationOAuth::resourceMetadata()['resource']==='https://app.anytoour.ru/manager/ai-mcp.php'
-        && ManagerPreparationOAuth::authorizationMetadata()['scopes_supported']===['queue:read','prepared:write','hotel_work:write','archive:read']);
+        && ManagerPreparationOAuth::authorizationMetadata()['scopes_supported']===['queue:read','prepared:write','hotel_work:write','archive:read','development_work:write']);
     $hotelRegistration=$oauth->registerClient(['redirect_uris'=>[ManagerPreparationOAuth::REDIRECT_URI],'scope'=>$hotelScope],'synthetic-hotel');
     hotelOauthCheck('explicit hotel-only registration does not request reply rights',$hotelRegistration['scope']===$hotelScope);
     foreach ($allScopes as $scope) {
@@ -84,7 +85,7 @@ try {
         && !$oauth->connectionAuthorized($legacy,1,[ManagerPreparationOAuth::HOTEL_SCOPE])
         && $oauth->connectionAuthorized($hotel,1,[ManagerPreparationOAuth::HOTEL_SCOPE])
         && !$oauth->connectionAuthorized($hotel,1,ManagerPreparationOAuth::SCOPES)
-        && $oauth->connectionAuthorized($combined,1,[...ManagerPreparationOAuth::SCOPES,ManagerPreparationOAuth::HOTEL_SCOPE]));
+        && $oauth->connectionAuthorized($combined,1,$hotelCombinedScopes));
     hotelOauthCheck('static canonical bearer boundary returns actual stored scopes',
         ManagerPreparationOAuth::bearerContext('Bearer '.$tokens[$hotelScope]['access_token'])===$contexts[$hotelScope]
         && ManagerPreparationOAuth::isConnectionAuthorized($hotel,1,[ManagerPreparationOAuth::HOTEL_SCOPE])
@@ -155,16 +156,19 @@ try {
     $call=static fn(string $method,array $params,string $connection,array $scopes):array=>$service->handle(hotelOauthRpc($method,$params),1,$connection,$scopes);
     $legacyTools=$call('tools/list',[],$legacy,ManagerPreparationOAuth::SCOPES)['result']['tools'];
     $hotelTools=$call('tools/list',[],$hotel,[ManagerPreparationOAuth::HOTEL_SCOPE])['result']['tools'];
-    $combinedTools=$call('tools/list',[],$combined,[...ManagerPreparationOAuth::SCOPES,ManagerPreparationOAuth::HOTEL_SCOPE])['result']['tools'];
+    $combinedTools=$call('tools/list',[],$combined,$hotelCombinedScopes)['result']['tools'];
     hotelOauthCheck('legacy discovery advertises hotel OAuth metadata without granting hotel access',
         array_values(array_intersect(array_column($legacyTools,'name'),HotelWorkMcpAdapter::NAMES))===HotelWorkMcpAdapter::NAMES
         && in_array('get_reply_context',array_column($legacyTools,'name'),true)
         &&$hotelCalls===0&&$legacyCalls===0);
-    hotelOauthCheck('hotel-only discovery contains exactly its metadata and recovery tools',array_column($hotelTools,'name')===HotelWorkMcpAdapter::NAMES);
+    hotelOauthCheck('hotel-only discovery keeps hotel tools and advertises separate development consent',array_column($hotelTools,'name')===array_merge(HotelWorkMcpAdapter::NAMES,DevelopmentWorkMcpAdapter::NAMES));
     hotelOauthCheck('explicit combined grant discovers the same declared domains once',array_column($combinedTools,'name')===array_column($legacyTools,'name'));
-    foreach ($hotelTools as $tool) hotelOauthCheck('hotel tool advertises its exact additional OAuth scope',
-        $tool['securitySchemes']===[['type'=>'oauth2','scopes'=>['hotel_work:write']]]
-        && $tool['_meta']['securitySchemes']===$tool['securitySchemes'] && $tool['inputSchema']['additionalProperties']===false);
+    foreach ($hotelTools as $tool) {
+        if (!in_array($tool['name'],HotelWorkMcpAdapter::NAMES,true)) continue;
+        hotelOauthCheck('hotel tool advertises its exact additional OAuth scope',
+            $tool['securitySchemes']===[['type'=>'oauth2','scopes'=>['hotel_work:write']]]
+            && $tool['_meta']['securitySchemes']===$tool['securitySchemes'] && $tool['inputSchema']['additionalProperties']===false);
+    }
     $deliveryTools=array_column($hotelTools,null,'name');
     $deliverySchema=$deliveryTools['hotel_work_claim']['inputSchema'];
     hotelOauthCheck('delivery event proof is declared optional only at the claim boundary',
@@ -232,7 +236,7 @@ try {
         $denied=$call('tools/call',['name'=>$name,'arguments'=>[]],$hotel,[ManagerPreparationOAuth::HOTEL_SCOPE]);
         hotelOauthCheck('hotel-only grant cannot call reply or learning tool '.$name,($denied['error']['code']??null)===-32001 && $legacyCalls===0);
     }
-    $forged=$call('tools/call',['name'=>'hotel_work_status','arguments'=>['queue_id'=>'SYNTHETIC_QUEUE']],$legacy,[...ManagerPreparationOAuth::SCOPES,ManagerPreparationOAuth::HOTEL_SCOPE]);
+    $forged=$call('tools/call',['name'=>'hotel_work_status','arguments'=>['queue_id'=>'SYNTHETIC_QUEUE']],$legacy,ManagerPreparationOAuth::SUPPORTED_SCOPES);
     hotelOauthCheck('caller-supplied widening cannot replace canonical live grant scopes',($forged['error']['code']??null)===-32001 && $hotelCalls===0);
     $ok=$call('tools/call',['name'=>'hotel_work_status','arguments'=>['queue_id'=>'SYNTHETIC_QUEUE']],$hotel,[ManagerPreparationOAuth::HOTEL_SCOPE]);
     hotelOauthCheck('authorized hotel metadata call reaches only hotel adapter',($ok['result']['structuredContent']['operation']??null)==='status' && $hotelCalls===1 && $legacyCalls===0);
@@ -260,36 +264,36 @@ try {
     hotelOauthCheck('revoked hotel connection cannot mutate subscription state',($denied['error']['code']??null)===-32001 && $events->subscriptions===1);
     $handoff=['queue_id'=>'SYNTHETIC_QUEUE','stage_id'=>str_repeat('5',64),'baseline_sha256'=>str_repeat('0',64),'old_connection_id'=>$old];
     foreach (['old_connection_retired'=>true,'old_expired'=>true,'retirement_proof'=>['revoked_at'=>$now],'new_connection_id'=>$combined] as $field=>$value) {
-        $forged=$call('tools/call',['name'=>'hotel_work_handoff_connection','arguments'=>$handoff+[$field=>$value]],$combined,[...ManagerPreparationOAuth::SCOPES,ManagerPreparationOAuth::HOTEL_SCOPE]);
+        $forged=$call('tools/call',['name'=>'hotel_work_handoff_connection','arguments'=>$handoff+[$field=>$value]],$combined,$hotelCombinedScopes);
         hotelOauthCheck('client handoff proof or identity override cannot reach queue '.$field,($forged['error']['code']??null)===-32602&&$hotelCalls===1);
     }
-    $handed=$call('tools/call',['name'=>'hotel_work_handoff_connection','arguments'=>$handoff],$combined,[...ManagerPreparationOAuth::SCOPES,ManagerPreparationOAuth::HOTEL_SCOPE]);
+    $handed=$call('tools/call',['name'=>'hotel_work_handoff_connection','arguments'=>$handoff],$combined,$hotelCombinedScopes);
     hotelOauthCheck('handoff adapter appends canonical proof capability rather than client flags',
         ($handed['result']['structuredContent']['server_connection_proof']??null)===true&&$hotelCalls===2);
     $oldUpdate('revoked_at',null);
-    $activeOld=$call('tools/call',['name'=>'hotel_work_handoff_connection','arguments'=>$handoff],$combined,[...ManagerPreparationOAuth::SCOPES,ManagerPreparationOAuth::HOTEL_SCOPE]);
+    $activeOld=$call('tools/call',['name'=>'hotel_work_handoff_connection','arguments'=>$handoff],$combined,$hotelCombinedScopes);
     hotelOauthCheck('ready handoff accepts positive known old identity while its grant remains active',
         ($activeOld['result']['structuredContent']['server_connection_proof']??null)===true&&$hotelCalls===3
         &&$oauth->connectionAuthorized($old,1,[ManagerPreparationOAuth::HOTEL_SCOPE])&&!$oauth->connectionRetired($old,1));
     $existing=$handoff+['handoff_mode'=>'existing_run','claim_key'=>str_repeat('6',64),'expected_run_id'=>'SYNTHETIC_EXISTING_RUN'];
-    $existingActive=$call('tools/call',['name'=>'hotel_work_handoff_connection','arguments'=>$existing],$combined,[...ManagerPreparationOAuth::SCOPES,ManagerPreparationOAuth::HOTEL_SCOPE]);
+    $existingActive=$call('tools/call',['name'=>'hotel_work_handoff_connection','arguments'=>$existing],$combined,$hotelCombinedScopes);
     hotelOauthCheck('existing-run adoption still refuses an active old grant',
         ($existingActive['result']['structuredContent']['server_connection_proof']??null)===false&&$hotelCalls===4);
     $oldUpdate('revoked_at',$now);
-    $existingRetired=$call('tools/call',['name'=>'hotel_work_handoff_connection','arguments'=>$existing],$combined,[...ManagerPreparationOAuth::SCOPES,ManagerPreparationOAuth::HOTEL_SCOPE]);
+    $existingRetired=$call('tools/call',['name'=>'hotel_work_handoff_connection','arguments'=>$existing],$combined,$hotelCombinedScopes);
     hotelOauthCheck('existing-run adoption still uses positive canonical retirement proof',
         ($existingRetired['result']['structuredContent']['server_connection_proof']??null)===true&&$hotelCalls===5);
     $recoveryCalls=$hotelCalls;
     foreach ([['handoff_mode'=>'existing_run'],['handoff_mode'=>'existing_run','claim_key'=>str_repeat('6',64)],
         ['handoff_mode'=>'ready','claim_key'=>str_repeat('6',64),'expected_run_id'=>'SYNTHETIC_EXISTING_RUN'],
         ['claim_key'=>str_repeat('6',64),'expected_run_id'=>'SYNTHETIC_EXISTING_RUN'],['handoff_mode'=>'force']] as $forgedMode) {
-        $forged=$call('tools/call',['name'=>'hotel_work_handoff_connection','arguments'=>$handoff+$forgedMode],$combined,[...ManagerPreparationOAuth::SCOPES,ManagerPreparationOAuth::HOTEL_SCOPE]);
+        $forged=$call('tools/call',['name'=>'hotel_work_handoff_connection','arguments'=>$handoff+$forgedMode],$combined,$hotelCombinedScopes);
         hotelOauthCheck('existing-run adoption requires exact explicit paired mode fields',($forged['error']['code']??null)===-32602&&$hotelCalls===$recoveryCalls);
     }
     $resolution=['queue_id'=>'SYNTHETIC_QUEUE','stage_id'=>str_repeat('5',64),'claim_key'=>str_repeat('6',64),
         'unknown_receipt_sha256'=>str_repeat('7',64),'expected_run_id'=>'SYNTHETIC_EXISTING_RUN','expected_packet_sha256'=>str_repeat('8',64),'receipt'=>[]];
     foreach (['dispatch_allowed'=>true,'old_connection_retired'=>true,'replacement_run_id'=>'SYNTHETIC_NEW_RUN'] as $field=>$value) {
-        $forged=$call('tools/call',['name'=>'hotel_work_resolve_existing_run','arguments'=>$resolution+[$field=>$value]],$combined,[...ManagerPreparationOAuth::SCOPES,ManagerPreparationOAuth::HOTEL_SCOPE]);
+        $forged=$call('tools/call',['name'=>'hotel_work_resolve_existing_run','arguments'=>$resolution+[$field=>$value]],$combined,$hotelCombinedScopes);
         hotelOauthCheck('client resolution cannot inject dispatch proof or alternate run '.$field,($forged['error']['code']??null)===-32602&&$hotelCalls===$recoveryCalls);
     }
     $oldUpdate('revoked_at',null);

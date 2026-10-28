@@ -25,8 +25,9 @@ final class ManagerPreparationOAuth
     public const ENDPOINT = self::ORIGIN.'/manager/ai-oauth.php';
     public const SCOPES = ['queue:read', 'prepared:write'];
     public const HOTEL_SCOPE = 'hotel_work:write';
+    public const DEVELOPMENT_SCOPE = 'development_work:write';
     public const ARCHIVE_SCOPE = 'archive:read';
-    public const SUPPORTED_SCOPES = ['queue:read', 'prepared:write', self::HOTEL_SCOPE, self::ARCHIVE_SCOPE];
+    public const SUPPORTED_SCOPES = ['queue:read', 'prepared:write', self::HOTEL_SCOPE, self::ARCHIVE_SCOPE, self::DEVELOPMENT_SCOPE];
     // RFC 9207 issuer identification permits this documented stable callback.
     public const REDIRECT_URI = 'https://chatgpt.com/connector_platform_oauth_redirect';
     private PDO $pdo;
@@ -462,10 +463,12 @@ final class ManagerPreparationOAuth
         if (count(array_unique($scopes))!==count($scopes) || array_diff($scopes,self::SUPPORTED_SCOPES)) $this->fail('invalid_scope');
         $legacy=self::hasScopes($scopes,self::SCOPES);
         $hotel=in_array(self::HOTEL_SCOPE,$scopes,true);
+        $development=in_array(self::DEVELOPMENT_SCOPE,$scopes,true);
         $archive=in_array(self::ARCHIVE_SCOPE,$scopes,true);
-        // Reply read/write remain one existing capability. Hotel and historical
-        // archive access each require their own explicit consent.
-        if ((!$legacy && array_intersect($scopes,self::SCOPES)) || (!$legacy && !$hotel && !$archive)) $this->fail('invalid_scope');
+        // Reply read/write remain one capability. Hotel and development metadata
+        // each require separate explicit consent; refresh never adds a scope.
+        // Archive reads are a separate explicit capability as well.
+        if ((!$legacy && array_intersect($scopes,self::SCOPES)) || (!$legacy && !$hotel && !$development && !$archive)) $this->fail('invalid_scope');
         return implode(' ',array_values(array_intersect(self::SUPPORTED_SCOPES,$scopes)));
     }
 

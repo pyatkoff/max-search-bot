@@ -106,6 +106,8 @@ jobs:
           php tests/mysql/manager-tour-delivery.php
           php tests/mysql/hotel-work-queue.php
           php tests/mysql/hotel-work-events.php
+          php tests/mysql/development-work-queue.php
+          php tests/mysql/development-work-events.php
 
   oauth:
     needs: change-scope
