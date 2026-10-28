@@ -65,34 +65,56 @@ jobs:
           <?php
           declare(strict_types=1);
           try {
-           $began=microtime(true);chdir('/var/www/anytoour/data/www/app.anytoour.ru');
+           $began=hrtime(true);$deadline=$began+5000000000;
+           $check=static function()use($deadline):int{$ms=(int)floor(($deadline-hrtime(true))/1000000);if($ms<50)throw new RuntimeException('deadline');return min(4000,$ms-25);};
+           chdir('/var/www/anytoour/data/www/app.anytoour.ru');
            require_once 'config.php';require_once 'services/ProjectAccessService.php';require_once 'services/ConversationDb.php';
            if(ProjectConfig::projectId()!=='anytour')throw new RuntimeException('project');
            ProjectAccessService::initializeReadOnly();$p=ConversationDb::connection();
-           $p->exec('SET SESSION MAX_EXECUTION_TIME=4000');$p->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');$p->exec('SET TRANSACTION READ ONLY');$p->beginTransaction();
+           $p->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');$p->exec('SET TRANSACTION READ ONLY');$p->beginTransaction();
+           $run=static function(string $sql,array $args)use($p,$check){$ms=$check();$p->exec('SET SESSION MAX_EXECUTION_TIME='.$ms);$check();$q=$p->prepare($sql);$q->execute($args);$check();return $q;};
            $after=strtotime('2026-10-27T14:28:41Z');$through=strtotime('2026-10-28T00:35:00Z');
-           $q=$p->prepare("SELECT id,project_key,platform,customer_key,conversation_id,observed_at_unix,JSON_EXTRACT(profile_json,'$.access_status') AS access_status,JSON_EXTRACT(profile_json,'$.profile.prediction_at') AS prediction_at,JSON_EXTRACT(profile_json,'$.coverage') AS coverage,JSON_LENGTH(JSON_EXTRACT(profile_json,'$.source_references')) AS ref_count FROM modeled_conversion_profile_versions WHERE project_key='anytour' AND observed_at_unix>? AND observed_at_unix<=? ORDER BY observed_at_unix,id LIMIT 1");
-           $q->execute([$after,$through]);$c=$q->fetch(PDO::FETCH_ASSOC);
-           $out=['schema_version'=>1,'purpose'=>'new_admitted_envelope_consumer_metadata','production_sha'=>'2f49a9284dbcce4c306571d60124f018aa7e0d39','sampled_at'=>gmdate('Y-m-d\\TH:i:s\\Z'),'range'=>['after_exclusive'=>$after,'through_inclusive'=>$through],'selection'=>'first_existing_profile_no_refill','candidate'=>null,'new_journal_metadata_rows'=>0,'old_snapshot_rows'=>0,'native_source_reads'=>0,'texts_values_returned'=>0,'database_writes'=>0];
-           if($c){
-            foreach(['access_status','prediction_at','coverage']as$k)$c[$k]=json_decode($c[$k]??'null',true,32,JSON_THROW_ON_ERROR);
-            $c['ref_count']=(int)$c['ref_count'];$c['new_references']=[];$c['metadata_status']=$c['ref_count']>40?'ref_limit':'bounded';
-            if($c['ref_count']<=40){
-             $q=$p->prepare("SELECT JSON_EXTRACT(profile_json,'$.source_references') FROM modeled_conversion_profile_versions WHERE project_key='anytour' AND id=?");$q->execute([$c['id']]);$raw=$q->fetchColumn();if(!is_string($raw)||strlen($raw)>49152)throw new RuntimeException('ref_budget');
-             $refs=json_decode($raw,true,32,JSON_THROW_ON_ERROR);if(count($refs)!==$c['ref_count'])throw new RuntimeException('ref_count');
-             foreach($refs as$ref){
-              $available=strtotime($ref['observed_at']??'');if($available===false)throw new RuntimeException('ref_clock');
-              if($available<=$after||$available>$through)continue;
-              $q=$p->prepare("SELECT id,source_kind,source_id,version_no,observed_at_unix,JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.project_key')) AS project_key,JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.platform')) AS platform,JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.customer_key')) AS customer_key,JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.conversation_id')) AS conversation_id,JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.source_status')) AS source_status,JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.source_timestamp_basis')) AS clock_basis,JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.source_created_at_unix')) AS recorded_unix,JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.payload.direction')) AS direction,JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.payload.sender_type')) AS sender_type,JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.payload.event_type')) AS event_type,JSON_UNQUOTE(JSON_EXTRACT(JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.payload.metadata_json')),'$.type')) AS message_type FROM modeled_conversion_stream_versions WHERE project_key='anytour' AND id=? AND observed_at_unix>? AND observed_at_unix<=?");
-              $q->execute([$ref['journal_id'],$after,$through]);$j=$q->fetch(PDO::FETCH_ASSOC);$out['new_journal_metadata_rows']++;
-              if(!$j)throw new RuntimeException('missing_ref');foreach(['project_key','platform','customer_key','conversation_id']as$k)if((string)$j[$k]!== (string)$c[$k])throw new RuntimeException('scope');
-              if((int)$j['observed_at_unix']>strtotime($c['prediction_at']))throw new RuntimeException('future');
-              $c['new_references'][]=$j;
-             }
+           $sql="SELECT id,project_key,platform,customer_key,conversation_id,observed_at_unix,JSON_UNQUOTE(JSON_EXTRACT(profile_json,'$.access_status')) AS access_status,JSON_UNQUOTE(JSON_EXTRACT(profile_json,'$.profile.prediction_at')) AS prediction_at,CASE WHEN OCTET_LENGTH(JSON_EXTRACT(profile_json,'$.source_references'))<=20000 THEN JSON_EXTRACT(profile_json,'$.source_references') ELSE NULL END AS refs FROM modeled_conversion_profile_versions WHERE project_key='anytour' AND observed_at_unix>? AND observed_at_unix<=? ORDER BY observed_at_unix,id LIMIT 50";
+           $q=$run($sql,[$after,$through]);$profiles=$q->fetchAll(PDO::FETCH_ASSOC);$check();
+           $out=['schema_version'=>2,'purpose'=>'new_admitted_envelope_consumer_metadata','production_sha'=>'2f49a9284dbcce4c306571d60124f018aa7e0d39','sampled_at'=>gmdate('Y-m-d\\TH:i:s\\Z'),'range'=>['after_exclusive'=>$after,'through_inclusive'=>$through],'selection'=>'first_eligible_message_among_first_50_profiles_max_500_refs_no_refill','candidate'=>null,'profiles_examined'=>0,'journal_rows_examined'=>0,'selection_incomplete'=>false,'native_source_reads'=>0,'old_snapshot_rows'=>0,'texts_values_returned'=>0,'database_writes'=>0];
+           $profileBytes=0;
+           foreach($profiles as $c){
+            $out['profiles_examined']++;
+            $profileBytes+=strlen($c['refs']??'');if($profileBytes>1048576){$out['selection_incomplete']=true;break;}
+            if(!in_array($c['platform'],['max','telegram'],true)||$c['access_status']!=='allowed')continue;
+            if($c['refs']===null){$out['selection_incomplete']=true;continue;}$refs=json_decode($c['refs'],true);if(!is_array($refs)||!array_is_list($refs)||count($refs)<1||count($refs)>40)continue;
+            $cutoff=strtotime($c['prediction_at']??'');if($cutoff===false)continue;
+            $new=[];$refmap=[];$bad=false;
+            foreach($refs as $ref){
+             if(!is_array($ref)||!isset($ref['journal_id'],$ref['source_kind'],$ref['source_id'],$ref['source_version_no'],$ref['observed_at'])){$bad=true;break;}
+             $id=(string)$ref['journal_id'];$at=strtotime($ref['observed_at']);
+             if(!preg_match('/^[1-9][0-9]{0,19}$/',$id)||isset($refmap[$id])||$at===false){$bad=true;break;}
+             $refmap[$id]=$ref;
+             if($at>$after&&$at<=$through&&$at<=$cutoff)$new[]=$id;
             }
-            $out['candidate']=$c;
+            if($bad||!$new)continue;
+            if($out['journal_rows_examined']+count($new)>500){$out['selection_incomplete']=true;break;}
+            $marks=implode(',',array_fill(0,count($new),'?'));
+            $meta="JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.payload.metadata_json'))";
+            $safe="CASE WHEN JSON_VALID($meta) THEN $meta ELSE '{}' END";
+            $jsql="SELECT id,source_kind,source_id,version_no,observed_at_unix,JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.source_status')) AS source_status,JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.source_kind')) AS snapshot_kind,JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.source_id')) AS snapshot_id,JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.project_key')) AS project_key,JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.platform')) AS platform,JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.customer_key')) AS customer_key,JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.conversation_id')) AS conversation_id,JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.payload_status')) AS payload_status,JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.source_timestamp_basis')) AS clock_basis,JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.source_created_at_unix')) AS recorded_unix,JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.payload.direction')) AS direction,JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.payload.sender_type')) AS sender_type,CASE WHEN $meta IS NULL OR JSON_VALID($meta) THEN 0 ELSE 1 END AS invalid_metadata,JSON_UNQUOTE(JSON_EXTRACT($safe,'$.type')) AS message_type FROM modeled_conversion_stream_versions WHERE project_key='anytour' AND id IN ($marks) AND observed_at_unix>? AND observed_at_unix<=?";
+            $j=$run($jsql,array_merge($new,[$after,$through]))->fetchAll(PDO::FETCH_ASSOC);$check();$out['journal_rows_examined']+=count($new);
+            if(count($j)!==count($new))continue;
+            $eligible=false;$valid=true;
+            foreach($j as &$row){
+             $ref=$refmap[(string)$row['id']]??null;
+             if(!$ref||(string)$row['source_kind']!==(string)$ref['source_kind']||(string)$row['source_id']!==(string)$ref['source_id']||(int)$row['version_no']!==(int)$ref['source_version_no']||(int)$row['observed_at_unix']!==strtotime($ref['observed_at'])||(int)$row['observed_at_unix']>$cutoff){$valid=false;break;}
+             if((string)$row['snapshot_kind']!==(string)$row['source_kind']||(string)$row['snapshot_id']!==(string)$row['source_id']){$valid=false;break;} if(in_array($row['source_status'],['deleted','scope_excluded'],true))continue;
+             if($row['source_status']!=='present'){$valid=false;break;}
+             foreach(['project_key','platform','customer_key','conversation_id']as$k)if((string)$row[$k]!== (string)$c[$k]){$valid=false;break;}
+             if(!$valid)break;
+             if($row['source_kind']==='message'&&$row['payload_status']==='copied'&&$row['direction']==='inbound'&&$row['sender_type']==='customer'&&(int)$row['invalid_metadata']===0&&$row['message_type']==='message'&&in_array($row['clock_basis'],['database_session_timezone_to_unix','canonical_recording_unix_v1'],true)&&(int)$row['recorded_unix']>=946684800&&(int)$row['recorded_unix']<=(int)$row['observed_at_unix'])$eligible=true;
+            }unset($row);
+            if(!$valid||!$eligible)continue;
+            $c['source_references']=$refs;unset($c['refs']);$c['new_references']=$j;$out['candidate']=$c;break;
            }
-           $p->rollBack();if(microtime(true)-$began>5)throw new RuntimeException('duration');$raw=json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);if(strlen($raw)>65536)throw new RuntimeException('output');echo $raw;
+           if(count($profiles)===50&&$out['candidate']===null)$out['selection_incomplete']=true;
+           $p->rollBack();$check();$raw=json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);if(strlen($raw)>65536)throw new RuntimeException('output');echo $raw;
           }catch(Throwable $e){if(isset($p)&&$p->inTransaction())$p->rollBack();fwrite(STDERR,"new_envelope_metadata_failed\n");exit(1);}
           PHP
           php -l "$RUNNER_TEMP/comparison-read.php"
