@@ -4,8 +4,8 @@ declare(strict_types=1);
 /** Only legacy/external side effects are captured; all entry/source/DB owners are real. */
 final class MaxSearchApi
 {
-    public static array $greetings = [], $resets = [], $cancelled = [], $editModes = [], $funnel = [], $goals = [], $deletedMessages = [];
-    public static int $statusPhone = 75, $statusCheck = 76, $statusAi = 79;
+    public static array $greetings = [], $resets = [], $cancelled = [], $editModes = [], $funnel = [], $goals = [], $deletedMessages = [], $statusWrites = [], $searchIntros = [];
+    public static int $statusStart = 64, $statusPhone = 75, $statusCheck = 76, $statusAi = 79;
     public static function getTrafficMeta($chat): array { return TrafficAttributionService::get(dirname(__DIR__, 2), $chat); }
     public static function getCurentStatus($chat): int { return 0; }
     public static function getLastClaimForChat($chat): array { return ['CODE' => 'fixture-existing-claim']; }
@@ -18,6 +18,8 @@ final class MaxSearchApi
     public static function cancelToursFollowup($chat): void { self::$cancelled[] = $chat; }
     public static function deleteAllStatus($chat): void { self::$resets[] = $chat; }
     public static function setEditMode($chat, $value): void { self::$editModes[] = [$chat, $value]; }
+    public static function setStatus($chat, $status, $message = false): void { self::$statusWrites[] = [$chat, $status]; }
+    public static function scheduleSearchIntroFollowup($chat, $delay = 60): bool { self::$searchIntros[] = [$chat, $delay]; return true; }
     public static function showStart($chat, $meta = []): bool { self::$greetings[] = compact('chat', 'meta'); return true; }
 }
 

@@ -62,7 +62,7 @@ mnhCheck('MealParser does not invent plan from quality preference', MealParser::
 mnhCheck('MealParser does not invent plan from delicacies preference', MealParser::parse('Деликатэсы'), null);
 
 $controllerSource = (string)file_get_contents(__DIR__ . '/../services/DialogueController.php');
-mnhCheck('DialogueController start uses DialogueView', strpos($controllerSource, 'DialogueView::start($chatId)') !== false, true);
+mnhCheck('DialogueController shared start passes entry metadata to DialogueView', strpos($controllerSource, 'DialogueView::start($chatId, $entryMeta)') !== false, true);
 mnhCheck('DialogueController start has no legacy Max showStart', strpos($controllerSource, 'MaxSearchApi::showStart(') === false, true);
 
 $wizardSource = (string)file_get_contents(__DIR__ . '/../actions/callbacks/WizardCallbackAction.php');

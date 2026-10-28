@@ -191,10 +191,23 @@ try {
         cpeCheck('explicit post does not dispatch AI application: ' . $platform, count($applicationMessages), $appsBefore);
     }
 
-    $before = count(MaxSearchApi::$greetings);
+    // The non-post fallback now executes the real shared controller/view. Keep
+    // attribution observable through the rendered Mini App URL and traffic store.
+    $paidConfig = $normalConfig;
+    $paidConfig['messenger']['miniapp_bot_url'] = 'https://max.ru/fixture_subscription_bot';
+    ProjectConfig::resetForTests($paidConfig);
+    $before = count($sent); $writesBefore = count(MaxSearchApi::$statusWrites); $resetsBefore = count(MaxSearchApi::$resets);
     cpeStartMax(98773901, '123456789_213_campaign_42', $event++);
-    cpeCheck('legacy paid MAX non-post start retains original renderer', count(MaxSearchApi::$greetings), $before + 1);
-    cpeCheck('legacy paid MAX payload unchanged', [MaxSearchApi::$greetings[$before]['meta']['yclid'], MaxSearchApi::$greetings[$before]['meta']['region_id'], MaxSearchApi::$greetings[$before]['meta']['campaign_id']], ['123456789', '213', '42']);
+    cpeCheck('legacy paid MAX non-post start reaches shared renderer once', count($sent), $before + 1);
+    cpeCheck('legacy paid MAX start preserves subscription screen', $sent[$before]['payload']['buttons'][0][0]['text'] ?? null, '🔥 Подписаться на канал');
+    cpeCheck('legacy paid MAX renderer receives exact payload', $sent[$before]['payload']['buttons'][0][0]['url'] ?? null,
+        'https://max.ru/fixture_subscription_bot?startapp=123456789_region_213_campaign_42');
+    cpeCheck('legacy paid MAX start writes only canonical start state', array_slice(MaxSearchApi::$statusWrites, $writesBefore), [[-98773901, MaxSearchApi::$statusStart]]);
+    cpeCheck('legacy paid MAX start resets questionnaire once', array_slice(MaxSearchApi::$resets, $resetsBefore), [-98773901]);
+    $paidMeta = MaxSearchApi::getTrafficMeta(-98773901);
+    cpeCheck('legacy paid MAX payload unchanged', [$paidMeta['yclid'], $paidMeta['region_id'], $paidMeta['campaign_id']], ['123456789', '213', '42']);
+    cpeCheck('legacy paid MAX search introduction retains existing schedule', end(MaxSearchApi::$searchIntros), [-98773901, 60]);
+    ProjectConfig::resetForTests($normalConfig);
     $before = count($applicationMessages); cpeStartTelegram(98773902, 'legacy_unknown', $dispatcher, $messenger, $event++);
     cpeCheck('legacy TG non-post start still reaches original application', count($applicationMessages), $before + 1);
     cpeCheck('legacy TG non-post source still default', $applicationMessages[$before]['source_key'], 'telegram:anytour-main');
