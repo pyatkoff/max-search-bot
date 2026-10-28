@@ -513,6 +513,101 @@ for(const choice of [{decision:'allow',label:'Разрешить',width:1440},{d
   }
 });
 
+
+for(const choice of [{decision:'allow',label:'Разрешить',width:1440},{decision:'deny',label:'Отмена',width:390}])test('OAuth native development '+choice.decision+' uses the separate secure consent and callback',async({browser,browserName},testInfo)=>{
+  const fixture=await startOAuthFixture(sourceRoot,{profile:'development'});
+  let context,page,failed=false,postStatus=null,phase='startup';
+  try{
+    context=await browser.newContext({ignoreHTTPSErrors:true,proxy:fixture.proxy,serviceWorkers:'block',viewport:{width:choice.width,height:900}});
+    page=await context.newPage();
+    await page.goto(fixture.origin+'/manager/fixture-session.php?actor=1');
+    expect((await context.cookies(fixture.origin+'/manager/')).some(cookie=>cookie.name==='anytour_manager_panel'&&cookie.secure&&cookie.httpOnly&&cookie.path==='/manager/')).toBe(true);
+    const response=await page.goto(fixture.origin+fixture.authorization_path);
+    expect((await response.allHeaders())['content-security-policy']).toContain("form-action 'self' "+fixture.redirect_uri+';');
+    await expect(page.getByRole('heading',{name:'Подключение очереди плана развития AnyTour',exact:true})).toBeVisible();
+    await expect(page.getByText('Отдельное подключение: только очередь плана развития AnyTour.',{exact:true})).toBeVisible();
+    await expect(page.locator('ul li')).toHaveText([
+      'Управление метаданными плана развития: очередь задач, привязка существующего исполнителя, состояние запусков и квитанции независимой приёмки.',
+      'Получение событий готовности следующей задачи. Это подключение само не меняет код, не выпускает сайт и не запускает внешние задания.'
+    ]);
+    const form=page.locator('form');
+    await expect(form).toHaveAttribute('method','post');await expect(form).toHaveAttribute('action',fixture.authorization_endpoint);
+    await expect(form.locator('[name="pending_id"]')).toHaveValue(/^[a-f0-9]{48}$/);await expect(form.locator('[name="csrf"]')).not.toHaveValue('');
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+    const image=testInfo.outputPath('oauth-development-consent-'+choice.width+'-'+browserName+'.png');
+    await page.screenshot({path:image,fullPage:true});await testInfo.attach('oauth-development-consent',{body:fs.readFileSync(image),contentType:'image/png'});
+    const endpoint=new URL(fixture.authorization_endpoint,fixture.origin).pathname;
+    const isPost=request=>request.method()==='POST'&&new URL(request.url()).origin===fixture.origin&&new URL(request.url()).pathname===endpoint;
+    phase='native_post';const sent=page.waitForRequest(isPost,{timeout:10000});
+    const posted=browserName==='chromium'?page.waitForResponse(response=>isPost(response.request()),{timeout:10000}):null;
+    await page.getByRole('button',{name:choice.label,exact:true}).click({noWaitAfter:true});
+    const body=new URLSearchParams((await sent).postData());expect([...body.keys()]).toEqual(['pending_id','csrf','decision']);expect(body.get('decision')).toBe(choice.decision);
+    phase='callback_navigation';
+    await expect.poll(()=>fixture.responses.filter(r=>r.method==='POST'&&r.path===endpoint).length).toBe(1);
+    postStatus=fixture.responses.find(r=>r.method==='POST'&&r.path===endpoint).status;expect(postStatus).toBe(303);
+    if(posted)expect((await posted).status()).toBe(303);
+    await expect.poll(()=>fixture.callbacks.length).toBe(1);
+    const callback=fixture.callbacks[0];expect(callback.searchParams.get('iss')).toBe(fixture.issuer);
+    expect(callback.searchParams.get('state')).toBe(new URL(fixture.authorization_path,fixture.origin).searchParams.get('state'));
+    if(choice.decision==='allow'){
+      const code=callback.searchParams.get('code');expect(code).toMatch(/^[A-Za-z0-9_-]{43}$/);
+      const token=await context.request.post(fixture.origin+endpoint+'?action=token',{maxRedirects:0,form:{grant_type:'authorization_code',
+        client_id:fixture.client_id,code,code_verifier:fixture.verifier,resource:fixture.resource,redirect_uri:fixture.redirect_uri}});
+      expect(token.status()).toBe(200);const grant=await token.json();
+      expect(grant.token_type).toBe('Bearer');expect(grant.expires_in).toBe(3600);expect(grant.scope).toBe('development_work:write');
+    }else{
+      expect(callback.searchParams.get('error')).toBe('access_denied');expect(callback.searchParams.has('code')).toBe(false);
+    }
+    expect(fixture.unexpected).toEqual([]);
+  }catch(error){failed=true;error.message+=' [DEV OAuth phase='+phase+' post_status='+postStatus+' callback_count='+fixture.callbacks.length+']';throw error;}
+  finally{try{if(context)await context.close();}catch(error){if(!failed)throw error;}finally{await fixture.close();}}
+});
+
+test('OAuth native development keeps pending sessions clients and resources isolated from legacy',async({browser})=>{
+  const fixture=await startOAuthFixture(sourceRoot,{profile:'development'});let context,failed=false;
+  try{
+    context=await browser.newContext({ignoreHTTPSErrors:true,proxy:fixture.proxy,serviceWorkers:'block',viewport:{width:430,height:900}});
+    const page=await context.newPage();await page.goto(fixture.origin+'/manager/fixture-session.php?actor=1');
+    const metadata=await context.request.get(fixture.origin+fixture.metadata_endpoint,{maxRedirects:0});
+    const discovery=await context.request.get(fixture.origin+fixture.discovery_path,{maxRedirects:0});
+    expect(metadata.status()).toBe(200);expect(discovery.status()).toBe(200);
+    const definition=await metadata.json();expect(await discovery.json()).toEqual(definition);
+    expect(definition.issuer).toBe(fixture.issuer);expect(definition.scopes_supported).toEqual(['development_work:write']);
+    expect(fixture.peer_client_id).not.toBe(fixture.client_id);expect(fixture.peer_resource).not.toBe(fixture.resource);
+    expect(new URL(fixture.peer_authorization_endpoint,fixture.origin).pathname).toBe('/manager/ai-oauth.php');
+    await page.goto(fixture.origin+fixture.authorization_path);
+    await expect(page.getByRole('heading',{name:'Подключение очереди плана развития AnyTour',exact:true})).toBeVisible();
+    const devPending=await page.locator('form [name="pending_id"]').inputValue();const csrf=await page.locator('form [name="csrf"]').inputValue();
+    await page.goto(fixture.origin+fixture.peer_authorization_path);
+    const peerPending=await page.locator('form [name="pending_id"]').inputValue();
+    expect(peerPending).toMatch(/^[a-f0-9]{48}$/);expect(peerPending).not.toBe(devPending);
+    for(const attempt of [{endpoint:fixture.peer_authorization_endpoint,pending:devPending},{endpoint:fixture.authorization_endpoint,pending:peerPending}]){
+      const rejected=await context.request.post(fixture.origin+attempt.endpoint,{maxRedirects:0,form:{pending_id:attempt.pending,csrf,decision:'allow'}});
+      expect(rejected.status()).toBe(400);expect(await rejected.json()).toEqual({error:'invalid_request',error_description:'consent_request_missing'});
+    }
+    const wrongClient=new URL(fixture.authorization_path,fixture.origin);wrongClient.searchParams.set('client_id',fixture.peer_client_id);
+    const badClient=await context.request.get(wrongClient.href,{maxRedirects:0});
+    expect(badClient.status()).toBe(400);expect((await badClient.json()).error).toBe('invalid_client');
+    const wrongResource=new URL(fixture.authorization_path,fixture.origin);wrongResource.searchParams.set('resource',fixture.peer_resource);
+    const badResource=await context.request.get(wrongResource.href,{maxRedirects:0});
+    expect(badResource.status()).toBe(400);expect((await badResource.json()).error).toBe('invalid_target');
+    // Failed cross-profile attempts must not consume either original pending form.
+    const accepted=await context.request.post(fixture.origin+fixture.authorization_endpoint,{maxRedirects:0,form:{pending_id:devPending,csrf,decision:'allow'}});
+    expect(accepted.status()).toBe(303);const callback=new URL(accepted.headers()['location']);
+    expect(callback.origin+callback.pathname).toBe(fixture.redirect_uri);expect(callback.searchParams.get('iss')).toBe(fixture.issuer);
+    const code=callback.searchParams.get('code');expect(code).toMatch(/^[A-Za-z0-9_-]{43}$/);
+    const devPath=new URL(fixture.authorization_endpoint,fixture.origin).pathname;
+    const token=await context.request.post(fixture.origin+devPath+'?action=token',{maxRedirects:0,form:{grant_type:'authorization_code',client_id:fixture.client_id,
+      code,code_verifier:fixture.verifier,resource:fixture.resource,redirect_uri:fixture.redirect_uri}});
+    expect(token.status()).toBe(200);expect((await token.json()).scope).toBe('development_work:write');
+    const peerDenied=await context.request.post(fixture.origin+fixture.peer_authorization_endpoint,{maxRedirects:0,form:{pending_id:peerPending,csrf,decision:'deny'}});
+    expect(peerDenied.status()).toBe(303);const peerCallback=new URL(peerDenied.headers()['location']);
+    expect(peerCallback.searchParams.get('iss')).toBe(fixture.peer_issuer);expect(peerCallback.searchParams.get('error')).toBe('access_denied');
+    expect(fixture.callbacks).toEqual([]);expect(fixture.unexpected).toEqual([]);
+  }catch(error){failed=true;throw error;}
+  finally{try{if(context)await context.close();}catch(error){if(!failed)throw error;}finally{await fixture.close();}}
+});
+
 for(const viewport of [{width:390,height:844},{width:430,height:844},{width:768,height:844},{width:1440,height:844},{width:390,height:420}])test('Supervisor foreign AI is readonly and preserves own draft/File '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
   await page.setViewportSize(viewport);const state=await setup(page,{supervisor:true});
   await openClient(page,12,'Алексей Иванов');await expect(page.locator('#replyText')).toBeVisible();await page.locator('#replyText').fill('Мой незаконченный ответ');await page.locator('#replyFile').setInputFiles({name:'keep.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic own attachment')});await page.evaluate(()=>window.supervisorOwnFile=document.querySelector('#replyFile').files[0]);
