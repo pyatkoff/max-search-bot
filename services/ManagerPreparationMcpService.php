@@ -82,10 +82,11 @@ final class ManagerPreparationMcpService
         } catch (ManagerPreparationCallbackError|HotelWorkCallbackError|DevelopmentWorkCallbackError $error) {
             return self::error($id,-32015,'CallbackEndpointError',['reason'=>$error->reason]);
         } catch (DomainException $error) {
-            if (!$workStatus || !($error instanceof ManagerPreparationAccessError)
-                || !in_array($error->reason,['AUTH_CONTEXT_UNAVAILABLE','AUTH_SCOPE_UNAVAILABLE'],true))
+            $reason=$error instanceof ManagerPreparationAccessError?$error->reason
+                :($workStatus&&($rpc['params']['name']??null)==='development_work_status'
+                    &&$error instanceof DevelopmentSubscriptionStatusAuthorizationError?'AUTH_CONTEXT_UNAVAILABLE':null);
+            if (!$workStatus || !in_array($reason,['AUTH_CONTEXT_UNAVAILABLE','AUTH_SCOPE_UNAVAILABLE'],true))
                 return self::error($id,-32001,'Access denied');
-            $reason=$error->reason;
             return self::error($id,-32001,'Access denied ['.$reason.']',['reason'=>$reason]);
         } catch (InvalidArgumentException $error) { return self::error($id,-32602,'Invalid params');
         } catch (OutOfBoundsException $error) { return self::error($id,-32601,'Method not found');

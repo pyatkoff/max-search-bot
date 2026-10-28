@@ -186,6 +186,7 @@ try {
     developmentEventAssert($r['accepted']===1&&count($f->requests)===1&&$f->row()['lease_token']===null&&$f->row()['lease_until']===null,
         'overlap_has_one_callback_and_releases_lease');
     developmentEventAssert(!array_diff(array_unique($f->pdo->writes),DevelopmentWorkTestSchema::tables()),'lifecycle_writes_only_development_metadata');
+    developmentSubscriptionSetupCases();
     echo 'DEVELOPMENT WORK EVENTS: '.$checks." PASS\n";
 } catch (Throwable $error) {
     $class=get_class($error);$file=basename($error->getFile());

@@ -50,6 +50,15 @@ final class DevelopmentOauthHotelEventsFixture
     public function unsubscribe(array $params,int $admin,?string $connection): object { ++$this->subscriptions;return (object)[]; }
 }
 
+final class DevelopmentOauthSubscriptionStatement extends PDOStatement
+{
+    protected function __construct(private Closure $afterExecute) {}
+    public function execute(?array $params=null): bool
+    {
+        $ok=parent::execute($params);($this->afterExecute)($this->queryString);return $ok;
+    }
+}
+
 try {
     $pdo=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
     $pdo->exec("CREATE TABLE managers(id INTEGER PRIMARY KEY,role TEXT,is_active INTEGER,is_working INTEGER);
@@ -365,6 +374,155 @@ try {
     $unrelated=$unrelatedService->handle($statusRpc('PRIVATE_FOREIGN_QUEUE'),1,$selfConnection,[$devScope]);
     devOauthCheck('unmatched domain stays a hard denial without self or exception text',$authDenied($unrelated,null)
         &&!str_contains(json_encode($unrelated,JSON_THROW_ON_ERROR),'PRIVATE_UNRELATED_DOMAIN'));
+
+    // Exercise subscription diagnostics through the actual MCP owner, queue and live OAuth grant.
+    DevelopmentWorkTestSchema::create($pdo);
+    $setupTokens=$oauth->exchange(devOauthCode($oauth,$client,$devScope));
+    $setupContext=$oauth->contextForBearer('Bearer '.$setupTokens['access_token']);$setupConnection=$setupContext['connection_id'];
+    $setupQueue=new DevelopmentWorkQueue($pdo,$clock);
+    $setupQueue->create(1,$setupConnection,['queue_id'=>'SETUP_OWNED_QUEUE','plan_sha256'=>str_repeat('d',64),'tasks'=>[
+        ['task_id'=>'SETUP_PRIVATE_TASK','owner_task_id'=>'SETUP_PRIVATE_OWNER','reviewer_task_id'=>'SETUP_PRIVATE_REVIEWER',
+            'input_sha256'=>str_repeat('e',64),'acceptance_contract_sha256'=>str_repeat('f',64),'deps'=>[],'priority'=>50]]]);
+    $setupService=new ManagerPreparationMcpService($pdo,null,null,$clock,null,null,null,null,null,null,$setupQueue);
+    $setupRpc=static fn(string $queue='SETUP_OWNED_QUEUE'):array=>devOauthRpc('tools/call',
+        ['name'=>'development_work_status','arguments'=>['queue_id'=>$queue]]);
+    $setupDate=gmdate('Y-m-d H:i:s',$now-10);$setupExpires=gmdate('Y-m-d H:i:s',$now+600);
+    $setupPrivate='SETUP_PRIVATE_CALLBACK_HMAC_AND_CONSUMER_MARKER';
+    $insertSetupRow=static function(int $admin,string $connection,string $queue,string $event,string $tag,string $project='anytour')
+        use($pdo,$setupDate,$setupExpires,$setupPrivate):void {
+        $url='https://private-subscription.invalid/'.$setupPrivate.'/'.$tag;
+        $arguments=json_encode(['project_key'=>$project,'queue_id'=>$queue],JSON_THROW_ON_ERROR);
+        $id='dev_sub_'.hash('sha256',json_encode([$admin,$connection,$event,$arguments,$url],JSON_THROW_ON_ERROR));
+        $consumer=hash('sha256',json_encode([$admin,$connection,$queue,$event],JSON_THROW_ON_ERROR));
+        $pdo->prepare('INSERT INTO development_work_events (subscription_id,single_consumer_key,admin_id,oauth_connection_id,project_key,queue_id,event_name,arguments_json,callback_url,signing_secret,previous_secret,previous_secret_until,verified_at,expires_at,is_active,attempts,last_status,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
+            ->execute([$id,$consumer,$admin,$connection,$project,$queue,$event,$arguments,$url,$setupPrivate,'OLD_'.$setupPrivate,
+                $setupExpires,$setupDate,$setupExpires,1,0,204,$setupDate,$setupDate]);
+    };
+    $insertSetupRow(1,$setupConnection,'SETUP_OWNED_QUEUE','development_work.pending','own-pending');
+    $setupHook=(object)['reads'=>0,'revoke'=>false,'revoked'=>false,'ownerFlip'=>false,'ownerFlipped'=>false,'failRead'=>false,'readFailed'=>false];
+    $priorStatementClass=$pdo->getAttribute(PDO::ATTR_STATEMENT_CLASS);
+    $afterSetupRead=static function(string $sql)use($pdo,$now,$setupConnection,$selfConnection,$setupHook):void {
+        if (preg_match('/\A\s*SELECT\b[\s\S]*\bFROM\s+[`"]?development_work_events\b/i',$sql)!==1) return;
+        ++$setupHook->reads;
+        if ($setupHook->revoke) {
+            $setupHook->revoke=false;$setupHook->revoked=true;
+            $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=?')->execute([$now,$setupConnection]);
+        } elseif ($setupHook->ownerFlip) {
+            $setupHook->ownerFlip=false;$setupHook->ownerFlipped=true;
+            $pdo->prepare('UPDATE development_work_queues SET oauth_connection_id=? WHERE queue_id=?')->execute([$selfConnection,'SETUP_OWNED_QUEUE']);
+        }
+        if ($setupHook->failRead) {
+            $setupHook->failRead=false;$setupHook->readFailed=true;
+            throw new PDOException('SETUP_PRIVATE_METADATA_READ_FAILURE');
+        }
+    };
+    $pdo->setAttribute(PDO::ATTR_STATEMENT_CLASS,[DevelopmentOauthSubscriptionStatement::class,[$afterSetupRead]]);
+    try {
+        $setupBefore=$queueSnapshot();$setupChanges=(int)$pdo->query('SELECT total_changes()')->fetchColumn();
+        $setupReply=$setupService->handle($setupRpc(),1,$setupConnection,[$devScope]);
+        $setupData=$setupReply['result']['structuredContent']??[];$setupDto=$setupData['subscription_setup']??[];
+        $setupRows=array_column($setupDto['events']??[],null,'event_name');
+        devOauthCheck('real owned status exposes bounded subscription metadata and its explicit proof limit',
+            ($setupDto['available']??null)===true&&is_string($setupDto['observed_at']??null)
+            &&($setupDto['semantics']??null)==='server_subscription_metadata_not_native_commit_proof'
+            &&array_keys($setupRows)===['development_work.pending','development_work.attention']&&$setupHook->reads>0);
+        $pending=$setupRows['development_work.pending']??[];$attention=$setupRows['development_work.attention']??[];
+        devOauthCheck('actual current owned verified pending row is eligible without pretending to prove native commit',
+            ($pending['state']??null)==='active_verified'&&($pending['matching_rows']??null)===1
+            &&($pending['eligible']??null)===true&&($pending['verified']??null)===true
+            &&($pending['retrying']??null)===false&&($pending['last_http_status']??null)===204&&is_string($pending['expires_at']??null));
+        devOauthCheck('actual absent attention is explicit and preserves nullable unknown technical fields',
+            ($attention['state']??null)==='absent'&&($attention['matching_rows']??null)===0&&($attention['eligible']??null)===false
+            &&array_key_exists('verified',$attention)&&$attention['verified']===null
+            &&array_key_exists('retrying',$attention)&&$attention['retrying']===null
+            &&array_key_exists('last_http_status',$attention)&&$attention['last_http_status']===null
+            &&array_key_exists('expires_at',$attention)&&$attention['expires_at']===null);
+        $setupBase=$setupData;unset($setupBase['subscription_setup'],$setupBase['cron_health']);
+        devOauthCheck('subscription diagnostics preserve every existing successful owned queue field',
+            $canonicalStatus($setupBase)===$canonicalStatus($setupQueue->status(1,$setupConnection,'SETUP_OWNED_QUEUE')));
+        $fields=['event_name','state','matching_rows','eligible','verified','retrying','last_http_status','expires_at'];sort($fields);
+        foreach ($setupRows as $row) {$keys=array_keys($row);sort($keys);devOauthCheck('subscription DTO uses only the technical event allowlist',$keys===$fields);}
+        devOauthCheck('successful subscription diagnostics perform no queue subscription grant or token writes',
+            $setupBefore===$queueSnapshot()&&$setupChanges===(int)$pdo->query('SELECT total_changes()')->fetchColumn());
+        $insertSetupRow(2,$setupConnection,'SETUP_OWNED_QUEUE','development_work.pending','foreign-admin');
+        $insertSetupRow(1,$selfConnection,'SETUP_OWNED_QUEUE','development_work.pending','foreign-connection');
+        $insertSetupRow(1,$setupConnection,'SETUP_OTHER_QUEUE','development_work.pending','foreign-queue');
+        $insertSetupRow(1,$setupConnection,'SETUP_OWNED_QUEUE','development_work.attention','foreign-project','foreign-project');
+        $insertSetupRow(1,$setupConnection,'SETUP_OWNED_QUEUE','hotel_work.pending','foreign-event');
+        $setupForeignBefore=$queueSnapshot();$setupForeignChanges=(int)$pdo->query('SELECT total_changes()')->fetchColumn();
+        $foreignRowsReply=$setupService->handle($setupRpc(),1,$setupConnection,[$devScope]);
+        devOauthCheck('foreign owner connection queue project and event rows do not affect owned subscription metadata',
+            ($foreignRowsReply['result']['structuredContent']['subscription_setup']??null)===$setupDto);
+        $setupWire=json_encode($foreignRowsReply,JSON_THROW_ON_ERROR);
+        foreach ([$setupPrivate,'private-subscription.invalid','dev_sub_','single_consumer_key','signing_secret','previous_secret',
+            $selfConnection,'SETUP_OTHER_QUEUE','foreign-project','foreign-admin','foreign-connection'] as $secret) {
+            devOauthCheck('subscription status wire excludes callback secret consumer and foreign metadata',!str_contains($setupWire,$secret));
+        }
+        devOauthCheck('foreign row filtering remains read only',
+            $setupForeignBefore===$queueSnapshot()&&$setupForeignChanges===(int)$pdo->query('SELECT total_changes()')->fetchColumn());
+        $setupReadCount=$setupHook->reads;
+        $sameWireMissing=$setupService->handle($setupRpc('SETUP_MISSING_QUEUE'),1,$selfConnection,[$devScope]);
+        $sameWireForeign=$setupService->handle($setupRpc(),1,$selfConnection,[$devScope]);
+        devOauthCheck('missing and foreign queues still have identical private unavailable wire without subscription DTO',
+            $sameWireMissing===$sameWireForeign&&!str_contains(json_encode($sameWireForeign,JSON_THROW_ON_ERROR),'subscription_setup')
+            &&$setupHook->reads===$setupReadCount);
+        foreach (['legacy','hotel','archive'] as $profile) {
+            $noSetup=$setupService->handle($setupRpc(),1,$connections[$profile],$profiles[$profile]);
+            devOauthCheck('unconsented profile cannot query or receive subscription diagnostics '.$profile,
+                !isset($noSetup['result']['structuredContent']['subscription_setup'])
+                &&!str_contains(json_encode($noSetup,JSON_THROW_ON_ERROR),$setupPrivate)&&$setupHook->reads===$setupReadCount);
+        }
+        foreach ([[2,$setupConnection],[1,null]] as [$admin,$connection]) {
+            $noSetup=$setupService->handle($setupRpc(),$admin,$connection,[$devScope]);
+            devOauthCheck('wrong admin or missing connection cannot read subscription diagnostics',
+                ($noSetup['error']['code']??null)===-32001&&!isset($noSetup['result'])&&$setupHook->reads===$setupReadCount);
+        }
+        $customSetupStore=static fn(string $operation,array $arguments):array=>['ok'=>true,'synthetic_custom_queue_field'=>'preserved'];
+        $customSetupService=new ManagerPreparationMcpService($pdo,null,null,$clock,null,null,null,null,null,null,$customSetupStore);
+        $customSetup=$customSetupService->handle($setupRpc(),1,$setupConnection,[$devScope])['result']['structuredContent']??[];
+        devOauthCheck('callable queue store cannot acquire authoritative subscription metadata implicitly',
+            ($customSetup['synthetic_custom_queue_field']??null)==='preserved'&&($customSetup['subscription_setup']['available']??null)===false
+            &&$setupHook->reads===$setupReadCount);
+        $customEvents=$customSetup['subscription_setup']['events']??[];
+        devOauthCheck('callable subscription availability is explicitly unknown',
+            count($customEvents)===2&&array_column($customEvents,'state')===['unknown','unknown']);
+        foreach ([['revoked',false],['owner_loss',false],['revoked',true],['owner_loss',true]] as [$setupChange,$setupReadFailure]) {
+            $setupRaceBefore=$queueSnapshot();$setupBeforeRaceReads=$setupHook->reads;
+            $setupGrantQuery=$pdo->prepare('SELECT revoked_at FROM manager_preparation_oauth_grants WHERE grant_id=?');
+            $setupGrantQuery->execute([$setupConnection]);$setupGrantBefore=$setupGrantQuery->fetch(PDO::FETCH_ASSOC);
+            $setupHook->revoked=false;$setupHook->ownerFlipped=false;$setupHook->readFailed=false;
+            $setupHook->revoke=$setupChange==='revoked';$setupHook->ownerFlip=$setupChange==='owner_loss';$setupHook->failRead=$setupReadFailure;
+            try {
+                $setupRaceReply=$setupService->handle($setupRpc(),1,$setupConnection,[$devScope]);
+                $setupRaceWire=json_encode($setupRaceReply,JSON_THROW_ON_ERROR);
+                devOauthCheck('actual diagnostic SELECT performs the requested one-shot authority change '.$setupChange.' '.(int)$setupReadFailure,
+                    $setupHook->reads>$setupBeforeRaceReads&&($setupChange==='revoked'?$setupHook->revoked:$setupHook->ownerFlipped)
+                    &&$setupHook->readFailed===$setupReadFailure);
+                if ($setupChange==='revoked') {
+                    devOauthCheck('post diagnostic revocation retains typed AUTH_CONTEXT even when metadata read fails '.(int)$setupReadFailure,
+                        $authDenied($setupRaceReply)&&$oauth->currentConnectionMetadata($setupConnection,1,[$devScope])===null);
+                } else {
+                    $setupStillAuthorized=$oauth->currentConnectionMetadata($setupConnection,1,[$devScope]);
+                    $setupUnavailable=['ok'=>false,'reason'=>'OWNED_QUEUE_UNAVAILABLE','queue_available'=>false,'caller_self'=>$setupStillAuthorized];
+                    devOauthCheck('post diagnostic owner loss uses the private owned boundary while grant stays active '.(int)$setupReadFailure,
+                        $setupStillAuthorized!==null&&($setupRaceReply['result']['isError']??null)===true
+                        &&$canonicalStatus($setupRaceReply['result']['structuredContent']??[])===$canonicalStatus($setupUnavailable));
+                }
+                devOauthCheck('post diagnostic authority loss exposes neither primary queue nor diagnostic fallback '.$setupChange.' '.(int)$setupReadFailure,
+                    !str_contains($setupRaceWire,'subscription_setup')&&!str_contains($setupRaceWire,'SETUP_PRIVATE_TASK')
+                    &&!str_contains($setupRaceWire,'SETUP_PRIVATE_OWNER')&&!str_contains($setupRaceWire,'SETUP_PRIVATE_REVIEWER')
+                    &&!str_contains($setupRaceWire,'SETUP_PRIVATE_METADATA_READ_FAILURE')&&!str_contains($setupRaceWire,$setupPrivate));
+            } finally {
+                $setupHook->revoke=false;$setupHook->ownerFlip=false;$setupHook->failRead=false;
+                $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=?')
+                    ->execute([$setupGrantBefore['revoked_at'],$setupConnection]);
+                $pdo->prepare('UPDATE development_work_queues SET oauth_connection_id=? WHERE queue_id=?')
+                    ->execute([$setupConnection,'SETUP_OWNED_QUEUE']);
+            }
+            devOauthCheck('diagnostic race restores exact queue subscriptions and canonical owner grant '.$setupChange.' '.(int)$setupReadFailure,
+                $setupRaceBefore===$queueSnapshot()&&$oauth->currentConnectionMetadata($setupConnection,1,[$devScope])!==null);
+        }
+    } finally {$pdo->setAttribute(PDO::ATTR_STATEMENT_CLASS,$priorStatementClass);}
 
     $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=?')->execute([$now,$connections['dev']]);
     $denied=$call('tools/call',['name'=>'development_work_status','arguments'=>['queue_id'=>'SYNTHETIC_DEV']],'dev');

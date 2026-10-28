@@ -250,3 +250,48 @@ Missing or invalid HTTP bearer credentials are rejected before the MCP service
 and retain the existing HTTP 401 OAuth challenge. A status diagnostic does not
 supply credentials or bypass that boundary. Authorization is checked again
 before any tool result leaves the service.
+
+## Private development subscription metadata
+
+The existing `development_work_status` result adds `subscription_setup`
+without changing its input or the existing queue fields. It reads only the
+two fixed development event names for the canonical current administrator,
+OAuth connection and owned queue, with fresh authorization and ownership
+checks before and after the read. The read requires autocommit and makes no
+callback request or changes to subscriptions, delivery acknowledgements,
+claims, tasks or receipts.
+
+`available=true` means the metadata read succeeded. Each event contains its
+name, state, matching-row count and nullable technical fields:
+
+| State | Meaning |
+| --- | --- |
+| `absent` | A successful scoped read found no matching row. Eligibility is false; verification, retry and HTTP details are unknown. |
+| `active_verified` | One active, unexpired row has a valid past callback-verification timestamp. |
+| `expired` / `inactive` | One well-formed row is expired or explicitly inactive. It is ineligible. |
+| `ambiguous` | More than one matching row exists. Eligibility, verification, retry, HTTP and expiry fields are all unknown. |
+| `unknown` | Metadata is malformed or unavailable. Nullable fields are never inferred as false. |
+
+For one well-formed row, `eligible` describes its current server-side active,
+expiry and recorded-verification state. `verified` describes that stored
+callback-verification timestamp. `retrying` describes a stored retry marker
+on an active row; it does not prove the current task was attempted.
+`last_http_status` contains only a recorded HTTP code from 100 through 599;
+a null value or transport status0 provides no HTTP result. Expiry and the
+observation time are UTC. These fields are metadata attestations, not a
+worker result or proof of current callback reachability.
+
+The projection filters project, administrator, connection, queue and both
+event names before its limit. It reads at most 21 matching metadata rows and
+fails closed with `available=false`, `reason=row_limit` and unknown event
+entries if more than 20 are returned. Storage failures or a custom store
+without this diagnostic produce `available=false`, `reason=unavailable`.
+A read never returns callback addresses, signing material, callback or
+consumer identifiers, event payloads, claim keys, raw errors or foreign rows.
+
+`subscription_setup` explicitly uses the semantics
+`server_subscription_metadata_not_native_commit_proof`. It can reveal
+partial server registration, but cannot establish whether an external
+task-service operation committed its full trigger configuration. It does
+not authorize retrying an unknown setup operation, dispatching from status,
+or bypassing the fresh signed-pending and independent acceptance protocol.
