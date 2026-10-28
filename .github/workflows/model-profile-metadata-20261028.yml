@@ -19,7 +19,7 @@ jobs:
         run: |
           set -euo pipefail
           git fetch --no-tags origin refs/heads/main
-          test "$(git rev-parse FETCH_HEAD)" = 2f49a9284dbcce4c306571d60124f018aa7e0d39
+          test "$(git rev-parse FETCH_HEAD)" = 271e68b5867b54cb28b462e939257a950fd8b1cc
       - name: Prepare existing identity and strict canonical pin
         env:
           K: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
@@ -76,7 +76,7 @@ jobs:
            $after=strtotime('2026-10-27T14:28:41Z');$through=strtotime('2026-10-28T00:35:00Z');
            $sql="SELECT id,project_key,platform,customer_key,conversation_id,observed_at_unix,JSON_UNQUOTE(JSON_EXTRACT(profile_json,'$.access_status')) AS access_status,JSON_UNQUOTE(JSON_EXTRACT(profile_json,'$.profile.prediction_at')) AS prediction_at,CASE WHEN OCTET_LENGTH(JSON_EXTRACT(profile_json,'$.source_references'))<=20000 THEN JSON_EXTRACT(profile_json,'$.source_references') ELSE NULL END AS refs FROM modeled_conversion_profile_versions WHERE project_key='anytour' AND observed_at_unix>? AND observed_at_unix<=? ORDER BY observed_at_unix,id LIMIT 50";
            $q=$run($sql,[$after,$through]);$profiles=$q->fetchAll(PDO::FETCH_ASSOC);$check();
-           $out=['schema_version'=>2,'purpose'=>'new_admitted_envelope_consumer_metadata','production_sha'=>'2f49a9284dbcce4c306571d60124f018aa7e0d39','sampled_at'=>gmdate('Y-m-d\\TH:i:s\\Z'),'range'=>['after_exclusive'=>$after,'through_inclusive'=>$through],'selection'=>'first_eligible_message_among_first_50_profiles_max_500_refs_no_refill','candidate'=>null,'profiles_examined'=>0,'journal_rows_examined'=>0,'selection_incomplete'=>false,'native_source_reads'=>0,'old_snapshot_rows'=>0,'texts_values_returned'=>0,'database_writes'=>0];
+           $out=['schema_version'=>2,'purpose'=>'new_admitted_envelope_consumer_metadata','production_sha'=>'271e68b5867b54cb28b462e939257a950fd8b1cc','sampled_at'=>gmdate('Y-m-d\\TH:i:s\\Z'),'range'=>['after_exclusive'=>$after,'through_inclusive'=>$through],'selection'=>'first_eligible_message_among_first_50_profiles_max_500_refs_no_refill','candidate'=>null,'profiles_examined'=>0,'journal_rows_examined'=>0,'selection_incomplete'=>false,'native_source_reads'=>0,'old_snapshot_rows'=>0,'texts_values_returned'=>0,'database_writes'=>0];
            $profileBytes=0;
            foreach($profiles as $c){
             $out['profiles_examined']++;
@@ -118,7 +118,7 @@ jobs:
           }catch(Throwable $e){if(isset($p)&&$p->inTransaction())$p->rollBack();fwrite(STDERR,"new_envelope_metadata_failed\n");exit(1);}
           PHP
           php -l "$RUNNER_TEMP/comparison-read.php"
-          timeout 25 ssh -i "$RUNNER_TEMP/membership-key" -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$RUNNER_TEMP/membership-hosts" -o ConnectTimeout=10 "$USER@$TARGET" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(git rev-parse HEAD)" = 2f49a9284dbcce4c306571d60124f018aa7e0d39; php -d display_errors=0 -d log_errors=0; test "$(git rev-parse HEAD)" = 2f49a9284dbcce4c306571d60124f018aa7e0d39' < "$RUNNER_TEMP/comparison-read.php" > "$RUNNER_TEMP/comparison-metadata.json"
+          timeout 25 ssh -i "$RUNNER_TEMP/membership-key" -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$RUNNER_TEMP/membership-hosts" -o ConnectTimeout=10 "$USER@$TARGET" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(git rev-parse HEAD)" = 271e68b5867b54cb28b462e939257a950fd8b1cc; php -d display_errors=0 -d log_errors=0; test "$(git rev-parse HEAD)" = 271e68b5867b54cb28b462e939257a950fd8b1cc' < "$RUNNER_TEMP/comparison-read.php" > "$RUNNER_TEMP/comparison-metadata.json"
           python3 - "$RUNNER_TEMP/comparison-metadata.json" <<'PY'
           import json,pathlib,sys
           raw=pathlib.Path(sys.argv[1]).read_bytes()
