@@ -50,6 +50,118 @@ final class HotelWorkEventService
         return $out;
     }
 
+    /** Bounded private metadata for one freshly owned queue, not HOST delivery proof. */
+    public function subscriptionSetup(int $admin,string $connection,string $queueId): array
+    {
+        $this->requireSetupAutocommit();
+        $this->authorizeSetup($admin,$connection);
+        $this->queue->status($admin,$connection,$queueId);
+        $this->requireSetupAutocommit();
+        $now=$this->now();
+        if ($now<1) throw new RuntimeException('hotel_subscription_status_unavailable');
+        $result=self::unavailableSubscriptionSetup();
+        try {
+            // Include only this administrator's history for the currently owned
+            // queue. Old binding identities are used locally and never returned.
+            $q=$this->pdo->prepare('SELECT event_name,oauth_connection_id,is_active,expires_at,verified_at,next_attempt_at,last_status,attempts,updated_at FROM hotel_work_events WHERE project_key=? AND admin_id=? AND queue_id=? AND event_name IN (?,?) LIMIT 21');
+            if (!$q||!$q->execute([self::PROJECT,$admin,$queueId,...self::EVENTS])) throw new RuntimeException('hotel_subscription_status_unavailable');
+            $rows=$q->fetchAll(PDO::FETCH_ASSOC);
+            if (!is_array($rows)||!array_is_list($rows)) throw new RuntimeException('hotel_subscription_status_unavailable');
+            if (count($rows)>20) $result=self::unavailableSubscriptionSetup('row_limit');
+            else {
+                $grouped=array_fill_keys(self::EVENTS,[]);$other=0;
+                foreach ($rows as $row) {
+                    $name=$row['event_name']??null;$binding=$row['oauth_connection_id']??null;
+                    if (!is_string($name)||!array_key_exists($name,$grouped)||!is_string($binding)
+                        ||preg_match('/\A[a-f0-9]{32}\z/D',$binding)!==1) throw new RuntimeException('hotel_subscription_status_unavailable');
+                    if (!hash_equals($connection,$binding)) {++$other;continue;}
+                    $grouped[$name][]=$row;
+                }
+                $events=[];
+                foreach ($grouped as $name=>$matches) {
+                    $count=count($matches);
+                    $events[]=$count===1?self::setupRow($name,$matches[0],$now)
+                        :self::setupEntry($name,$count===0?'absent':'ambiguous',$count);
+                }
+                $result=['available'=>true,'observed_at'=>null,
+                    'semantics'=>'owned_queue_subscription_metadata_not_host_delivery_proof',
+                    'coverage'=>'same_admin_owned_queue','events'=>$events,'other_binding_rows'=>$other];
+            }
+        } catch (RuntimeException $unavailable) {
+            $result=self::unavailableSubscriptionSetup();
+        }
+        // Technical failure must not skip fresh authority checks or expose stale
+        // owned metadata after a concurrent revocation/connection handoff.
+        $this->requireSetupAutocommit();
+        $this->authorizeSetup($admin,$connection);
+        $this->queue->status($admin,$connection,$queueId);
+        $this->requireSetupAutocommit();
+        $result['observed_at']=gmdate('Y-m-d\TH:i:s\Z',$now);
+        return $result;
+    }
+
+    public static function unavailableSubscriptionSetup(string $reason='unavailable'): array
+    {
+        return ['available'=>false,'observed_at'=>null,
+            'semantics'=>'owned_queue_subscription_metadata_not_host_delivery_proof',
+            'coverage'=>'same_admin_owned_queue','reason'=>$reason==='row_limit'?'row_limit':'unavailable',
+            'events'=>array_map(static fn(string $name):array=>self::setupEntry($name),self::EVENTS),
+            'other_binding_rows'=>null];
+    }
+
+    private static function setupEntry(string $name,string $state='unknown',?int $count=null): array
+    {
+        return ['event_name'=>$name,'state'=>$state,'matching_rows'=>$count,
+            'eligible'=>$state==='absent'?false:null,'verified'=>null,'retrying'=>null,
+            'last_http_status'=>null,'expires_at'=>null,'attempts'=>null,
+            'next_attempt_at'=>null,'verified_at'=>null,'updated_at'=>null];
+    }
+
+    private static function setupRow(string $name,array $row,int $now): array
+    {
+        $out=self::setupEntry($name,'unknown',1);
+        foreach (['is_active','expires_at','verified_at','next_attempt_at','last_status','attempts','updated_at'] as $field)
+            if (!array_key_exists($field,$row)) return $out;
+        if (!in_array($row['is_active'],[0,1,'0','1'],true)) return $out;
+        $expires=self::setupDate($row['expires_at']);$verified=self::setupDate($row['verified_at']);
+        $updated=self::setupDate($row['updated_at']);
+        $retry=$row['next_attempt_at']===null?null:self::setupDate($row['next_attempt_at']);
+        if ($expires===null||$verified===null||$updated===null||$verified>self::date($now)||$updated>self::date($now)
+            ||($row['next_attempt_at']!==null&&$retry===null)) return $out;
+        $status=$row['last_status'];$attempts=$row['attempts'];
+        if ($status!==null&&(!is_int($status)&&!is_string($status)
+            ||preg_match('/\A(?:0|[1-5][0-9]{2})\z/D',(string)$status)!==1)) return $out;
+        if ((!is_int($attempts)&&!is_string($attempts))
+            ||preg_match('/\A(?:0|[1-9][0-9]{0,9})\z/D',(string)$attempts)!==1
+            ||(int)$attempts>4294967295) return $out;
+        $active=(string)$row['is_active']==='1'&&$expires>self::date($now);
+        $out['state']=(string)$row['is_active']==='0'?'inactive':($active?'active_verified':'expired');
+        $out['eligible']=$active;$out['verified']=true;$out['retrying']=$active&&$retry!==null;
+        $out['last_http_status']=$status!==null&&(int)$status>=100?(int)$status:null;
+        $out['attempts']=(int)$attempts;
+        foreach (['expires_at'=>$expires,'verified_at'=>$verified,'updated_at'=>$updated,'next_attempt_at'=>$retry] as $key=>$date)
+            $out[$key]=$date===null?null:str_replace(' ','T',$date).'Z';
+        return $out;
+    }
+
+    private static function setupDate(mixed $value): ?string
+    {
+        if (!is_string($value)||preg_match('/\A[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\z/D',$value)!==1) return null;
+        $date=DateTimeImmutable::createFromFormat('!Y-m-d H:i:s',$value,new DateTimeZone('UTC'));
+        return $date!==false&&$date->getTimestamp()>0&&$date->format('Y-m-d H:i:s')===$value?$value:null;
+    }
+
+    private function authorizeSetup(int $admin,string $connection): void
+    {
+        try {$this->authorize($admin,$connection);}
+        catch (Throwable $denied) {throw new DomainException('hotel_subscription_authorization_unavailable');}
+    }
+
+    private function requireSetupAutocommit(): void
+    {
+        if ($this->pdo->inTransaction()) throw new LogicException('hotel_subscription_status_foreign_transaction');
+    }
+
     public function subscribe(array $params,int $admin,?string $connection): array
     {
         $this->authorize($admin,$connection);

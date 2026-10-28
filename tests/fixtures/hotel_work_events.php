@@ -15,12 +15,25 @@ final class HotelEventsTestStatement extends PDOStatement
         }
         return $ok;
     }
+    public function fetchAll(int $mode=PDO::FETCH_DEFAULT,mixed ...$args): array
+    {
+        $rows=parent::fetchAll($mode,...$args);
+        if (preg_match('/\A\s*SELECT\b.*\bFROM\s+hotel_work_events\b/is',$this->queryString)===1
+            &&$this->owner->afterEventRead!==null) {
+            $hook=$this->owner->afterEventRead;$this->owner->afterEventRead=null;$hook();
+        }
+        return $rows;
+    }
 }
 
 final class HotelEventsTestPdo extends PDO
 {
     public array $writes=[];
     public $afterLease=null;
+    public array $eventReads=[];
+    public $beforeEventRead=null;
+    public $afterEventRead=null;
+    public bool $failEventRead=false;
     public function __construct()
     {
         $options=[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC,PDO::ATTR_STRINGIFY_FETCHES=>false];
@@ -77,6 +90,13 @@ final class HotelEventsTestPdo extends PDO
     }
     public function observe(string $sql): void
     {
+        if (preg_match('/\A\s*SELECT\b.*\bFROM\s+hotel_work_events\b/is',$sql)===1) {
+            $this->eventReads[]=$sql;
+            if ($this->beforeEventRead!==null) {
+                $hook=$this->beforeEventRead;$this->beforeEventRead=null;$hook();
+            }
+            if ($this->failEventRead) throw new PDOException('PRIVATE_HOTEL_SETUP_SQL_FAILURE');
+        }
         if (preg_match('/\A\s*(?:INSERT\s+INTO|UPDATE|DELETE\s+FROM)\s+([a-z_]+)/i',$sql,$m)) {
             $table=strtolower($m[1]);
             if (!in_array($table,['hotel_work_queues','hotel_work_receipts','hotel_work_lane','hotel_work_events','hotel_work_connection_handoffs','hotel_work_resolutions','hotel_work_delivery_recoveries'],true)) throw new RuntimeException('hotel_event_fixture_rejected_business_write');
