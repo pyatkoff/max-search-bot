@@ -9,7 +9,8 @@ final class HotelWorkMcpAdapter
         'hotel_work_started','hotel_work_complete','hotel_work_release',
         'hotel_work_handoff_connection','hotel_work_resolve_existing_run'];
 
-    public function __construct(private PDO $pdo, private $store = null, private $clock = null) {}
+    public function __construct(private PDO $pdo, private $store = null, private $clock = null,
+        private ?HotelWorkEventService $events = null) {}
 
     public static function tools(): array
     {
@@ -43,7 +44,7 @@ final class HotelWorkMcpAdapter
                     'start_country'=>['type'=>'string','enum'=>['EG','TH','VN','TR'],'default'=>'EG'],
                     'phase_counter'=>['type'=>'integer','minimum'=>0,'maximum'=>1,'default'=>0], 'baseline_sha256'=>$sha],
                 ['queue_id','baseline_sha256'],false],
-            ['hotel_work_status','Read one owned hotel-work queue and its current stage, delivery state and accepted batch count. Metadata only; no hotel files, customer context or worker execution.',
+            ['hotel_work_status','Read one owned hotel-work queue, current stage, delivery state, accepted batch count and bounded private subscription metadata. Subscription state is not proof of host delivery or worker execution. Metadata only; no hotel files, callbacks, secrets or customer context.',
                 ['queue_id'=>$id],['queue_id'],true],
             ['hotel_work_claim','Claim the exact ready hotel stage before asking the existing worker to run. After a delivery resume, pass expected_pending_event_id from the actual trusted signed pending event; the server checks it atomically against the current delivery identity. Never manufacture this proof from status metadata. Repeated claims never authorize replay. Preserve the client-held claim key; unknown outcomes remain held.',
                 $claim+['expected_pending_event_id'=>['type'=>'string','pattern'=>'^hotel_evt_[a-f0-9]{64}$']],array_keys($claim),false],
@@ -127,6 +128,12 @@ final class HotelWorkMcpAdapter
         if ($operation==='status') {
             require_once __DIR__.'/HotelWorkHealth.php';
             $result['cron_health']=HotelWorkHealth::snapshot($this->clock!==null?(int)($this->clock)():null);
+            require_once __DIR__.'/HotelWorkEventService.php';
+            $result['subscription_setup']=HotelWorkEventService::unavailableSubscriptionSetup();
+            if ($this->store instanceof HotelWorkQueue) {
+                $reader=$this->events??new HotelWorkEventService($this->pdo,null,$this->clock,null,$this->store);
+                $result['subscription_setup']=$reader->subscriptionSetup($admin,$connection,$args['queue_id']);
+            }
         }
         return $result;
     }

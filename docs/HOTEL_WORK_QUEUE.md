@@ -36,6 +36,31 @@ application configuration. The same health appears in authorized
 usable hotel subscription, not that the research queue was processed and empty.
 Health omits queue IDs, callbacks, secrets, hotel facts and customer data.
 
+Authorized `hotel_work_status` also returns `subscription_setup`: bounded,
+read-only metadata for the same administrator's currently owned queue. Fresh
+hotel authorization and queue ownership are checked before and after the read,
+including when the subscription query fails. At most 20 matching stored rows
+are inspected (a 21st row makes the projection unavailable). Other projects,
+administrators, queues and event names are excluded before the limit.
+
+The two `events` describe only the current connection: absence, ambiguity,
+active verified registration, expiry, inactivity or unknown metadata, plus
+validated expiration/verification/update/retry times, attempts and the last
+HTTP status when known. `other_binding_rows` counts this same owner's retained
+rows on earlier connections without revealing their identities or declaring
+their grants valid. Those rows never make a current registration ambiguous or
+eligible. No callbacks, secrets, subscription/event IDs or event bodies leave
+the service. The projection performs no callback, renewal, dispatch or write.
+
+`available=false`, malformed metadata and row-limit results mean unknown,
+not absent. `coverage=same_admin_owned_queue` does not describe the global cron
+scan or prove a native task binding, successful delivery, or worker execution.
+Even `active_verified` only describes stored registration metadata. A repair
+must reconcile the original host registration and any prior renewal attempt,
+then use its supported callback/challenge flow and verify a natural signed
+delivery to the existing handler. Do not replay a claim or worker to repair a
+subscription.
+
 ## Activate the existing owner
 
 1. Rescan the connected MCP server's tools and events after deployment. Hotel
