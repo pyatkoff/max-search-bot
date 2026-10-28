@@ -38,17 +38,8 @@ final class ArchiveResearchReadService
             if(self::decimalGreater($fence,$currentFence))self::fail('stale_cursor');
             $expiry=$state['e']??($this->now()+self::CURSOR_TTL);
             $summary=$state===null?$this->summary($fence):null;
-            [$where,$values]=$this->scope($fence,true);
-            $afterAccount=$state['a']??'0';$afterChat=$state['c']??'0';
-            $where.=' AND (m.account_id>? OR (m.account_id=? AND m.chat_id>?))';
-            array_push($values,$afterAccount,$afterAccount,$afterChat);
             $limit=$args['limit']??25;
-            $this->stage='inventory_page';
-            $rows=$this->q('SELECT m.account_id,m.chat_id,COUNT(*) AS records,'
-                .'COALESCE(SUM(m.is_deleted<>0),0) AS deleted_records '
-                .'FROM telegram_dialogue_messages m JOIN projects p ON p.project_key=m.project_key '
-                .'WHERE '.$where.' GROUP BY m.account_id,m.chat_id ORDER BY m.account_id,m.chat_id LIMIT '.($limit+1),$values)->fetchAll(PDO::FETCH_ASSOC);
-            $more=count($rows)>$limit;$rows=array_slice($rows,0,$limit);$chats=[];
+            [$rows,$more]=$this->inventoryRows($fence,$state['a']??'0',$state['c']??'0',$limit);$chats=[];
             foreach($rows as$row){
                 $a=(string)$row['account_id'];$c=(string)$row['chat_id'];
                 $chats[]=['chat_ref'=>$this->encode(['v'=>1,'k'=>'chat','a'=>$a,'c'=>$c,'f'=>$fence,'e'=>$expiry],$key,$admin,$connection),
@@ -244,6 +235,45 @@ final class ArchiveResearchReadService
         }
         if($totals['message_records']>self::MAX_ROWS||$totals['account_chat_pairs']>self::MAX_CHATS)self::fail('source_limit');
         return['totals'=>$totals,'accounts'=>$accounts];
+    }
+
+    /** Seek distinct chat keys first; aggregate only the selected page, never the archive tail. */
+    private function inventoryRows(string$fence,string$afterAccount,string$afterChat,int$limit):array
+    {
+        $this->stage='inventory_page';[$where,$values]=$this->scope($fence,true);
+        $from='FROM telegram_dialogue_messages m'.($this->mysql?' FORCE INDEX (uq_telegram_dialogue_message)':'')
+            .' JOIN projects p ON p.project_key=m.project_key ';
+        $keys=[];
+        foreach(array_keys($this->accountAliases)as$account){
+            $account=(string)$account;
+            if(self::decimalGreater($afterAccount,$account))continue;
+            $after=$account===$afterAccount?$afterChat:'0';
+            while(count($keys)<=$limit){
+                // Admission, owner/service exclusion and the row fence are applied before LIMIT.
+                $row=$this->q('SELECT m.account_id,m.chat_id '.$from.'WHERE '.$where
+                    .' AND m.account_id=? AND m.chat_id>? ORDER BY m.chat_id,m.message_id LIMIT 1',
+                    [...$values,$account,$after])->fetch(PDO::FETCH_ASSOC);
+                if($row===false)break;
+                $after=(string)$row['chat_id'];$keys[]=$row;
+                if(count($keys)>$limit)break 2;
+            }
+        }
+        $more=count($keys)>$limit;$keys=array_slice($keys,0,$limit);$selected=[];$metadata=[];
+        foreach($keys as$row)$selected[(string)$row['account_id']][]=(string)$row['chat_id'];
+        foreach($selected as$account=>$chats){
+            $rows=$this->q('SELECT m.account_id,m.chat_id,COUNT(*) AS records,'
+                .'COALESCE(SUM(m.is_deleted<>0),0) AS deleted_records '.$from.'WHERE '.$where
+                .' AND m.account_id=? AND m.chat_id IN ('.implode(',',array_fill(0,count($chats),'?')).')'
+                .' GROUP BY m.account_id,m.chat_id ORDER BY m.chat_id',[...$values,(string)$account,...$chats])->fetchAll(PDO::FETCH_ASSOC);
+            foreach($rows as$row)$metadata[(string)$row['account_id'].':'.(string)$row['chat_id']]=$row;
+        }
+        $rows=[];
+        foreach($keys as$key){
+            $id=(string)$key['account_id'].':'.(string)$key['chat_id'];
+            if(!isset($metadata[$id]))self::fail('source_changed');
+            $rows[]=$metadata[$id];
+        }
+        return[$rows,$more];
     }
 
     private function metadataStatus(array$row):string
