@@ -12,24 +12,33 @@ function forget(button,captureKey){
 const galleries=new Map();
 // Render only the exact same-origin hotel/description page. The source site's
 // own UI loads its gallery; no cookies, page scripts or client data are copied.
-async function gallery(href,read,acceptCanonical=null){
+async function gallery(href,read,acceptCanonical=null,{retryEmpty=false}={}){
  const url=new URL(href,location.href);
  if(url.origin!==location.origin||url.username||url.password||url.port||url.hash)return [];
  if(galleries.has(url.href))return galleries.get(url.href);
- const task=(async()=>{
+ const expiresAt=Date.now()+(retryEmpty?32000:16000);
+ const capture=async()=>{
   const frame=document.createElement('iframe');frame.setAttribute('aria-hidden','true');frame.tabIndex=-1;frame.referrerPolicy='no-referrer';
   // Keep a real viewport for native lazy gallery images without covering the UI.
   frame.style.cssText='position:fixed;left:0;top:0;width:1024px;height:768px;opacity:0;pointer-events:none;z-index:-2147483647;border:0';
   frame.src=url.href;document.body.append(frame);
-  let best=[],stable=0;
-  try{for(let i=0;i<60&&frame.isConnected;i++){
+  let best=[],stable=0;const captureExpiresAt=Math.min(expiresAt,Date.now()+16000);
+  try{for(let i=0;i<63&&frame.isConnected&&Date.now()<captureExpiresAt;i++){
+   // A gallery that became ready near the load deadline still needs its
+   // original four matching reads. Never start a new series in this grace.
+   if(i>=60&&!best.length)break;
    let photos=[];
    try{const doc=frame.contentDocument;if(doc&&(doc.location.href===url.href||(doc.location.origin===url.origin&&acceptCanonical?.(doc))))photos=[...new Set(read(doc))].slice(0,3)}catch{}
-   if(photos.length){stable=JSON.stringify(photos)===JSON.stringify(best)?stable+1:0;best=photos;if(stable>=3)return best}
+   const same=JSON.stringify(photos)===JSON.stringify(best);
+   if(i>=60&&!same)return [];
+   if(photos.length){stable=same?stable+1:0;best=photos;if(stable>=3)return best}
    else{best=[];stable=0}
    await pause();
   }return []}finally{frame.remove()}
- })();
+ };
+ // Retry only the read-only source page, before enqueue. Each attempt gets a
+ // fresh frame and must pass the same identity and settling checks from zero.
+ const task=(async()=>{const photos=await capture();return photos.length||!retryEmpty||Date.now()>=expiresAt?photos:await capture()})();
  galleries.set(url.href,task);while(galleries.size>12)galleries.delete(galleries.keys().next().value);
  const photos=await task;if(!photos.length)galleries.delete(url.href);return photos;
 }
