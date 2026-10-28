@@ -123,6 +123,52 @@ for(const stage of ['prepared','validate'])for(const width of [430,1440])test('A
   expect(state.aiCalls().filter(call=>call.action===stage)).toHaveLength(2);expect(state.aiCalls().at(-1).draft_id).toBe('d'.repeat(32));
   expect(state.aiCalls().some(call=>call.action==='generate')).toBe(false);clean(state);
 });
+for(const change of ['stale409','new message'])for(const width of [430,1440])test('AI validation retry offers fresh recovery after '+change+' '+width,async({page,browserName},testInfo)=>{
+  const viewport={width,height:width===430?420:900};await page.setViewportSize(viewport);
+  const state=await setup(page,{readiness:true}),reply=page.locator('#replyText');
+  await expect(page.locator('#aiDraftSuggestion')).toBeVisible();
+  await page.locator('#replyFile').setInputFiles({name:'stale-recovery.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic retained File')});
+  const attachment=page.locator('#mediaSelection .mediaFileName'),attachmentSize=page.locator('#mediaSelection .mediaFileSize');
+  await expect(attachment).toHaveText('stale-recovery.txt');const originalSize=await attachmentSize.textContent();
+  expect(await page.evaluate(()=>WorkspaceV2Media.hasFile())).toBe(true);
+  let validations=0,release;
+  state.setAI(async data=>{
+    if(data.action==='prepared')return {body:prepared({draft_id:'d'.repeat(32),expires_at:new Date(Date.now()+3600000).toISOString()})};
+    if(data.action==='generate')return {body:proposal({latest_message_id:data.latest_message_id})};
+    if(++validations===1)return {body:{ok:false,error:'temporary_unavailable'},status:503};
+    if(change==='new message'){await new Promise(resolve=>{release=resolve});return {body:{ok:true,revision:'1'.repeat(64),latest_message_id:35,draft_id:data.draft_id}}}
+    return {body:{ok:false,error:'context_stale'},status:409};
+  });
+  await reply.focus();if(width===1440)await reply.press('Tab');else await page.locator('#aiSuggestionAccept').click();
+  await expect(page.locator('#aiDraftStatus')).toContainText('Не удалось проверить контекст');
+  await expect(page.locator('#aiDraftInsert')).toHaveText('Повторить вставку');
+  await expect(page.locator('#aiDraftRetry')).not.toBeVisible();
+  await reply.fill('Мой незаконченный ответ');
+  // Keep a late successful response alive so the source guards, rather than a
+  // successful network abort, must reject it after the real detail refresh.
+  if(change==='new message')await page.evaluate(()=>{AbortController.prototype.abort=function(){}});
+  await page.locator('#aiDraftInsert').click();
+  if(change==='new message'){
+    await expect.poll(()=>!!release).toBe(true);
+    state.messages.get(11).push({id:36,sender_type:'customer',text:'Синтетическое новое условие',created_at:'2026-10-17 12:01:00'});
+    await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible());
+    await expect(page.locator('#aiDraftStatus')).toContainText('Переписка изменилась');
+    const late=page.waitForResponse(response=>response.url().endsWith('/manager/ai-draft.php')&&response.request().postDataJSON()?.action==='validate'&&response.status()===200);
+    release();expect(await (await late).finished()).toBeNull();
+  }
+  await expect(page.locator('#aiDraftPanel')).toBeVisible();await expect(page.locator('#aiDraftStatus')).toContainText('Переписка изменилась');
+  await expect(page.locator('#aiDraftInsert')).not.toBeVisible();await expect(page.locator('.aiDraftText')).toHaveCount(0);
+  const recovery=page.locator('#aiDraftRetry');await expect(recovery).toBeVisible();await expect(recovery).toBeEnabled();await expect(recovery).toHaveText('Подготовить новый ответ');
+  await expect(reply).toHaveValue('Мой незаконченный ответ');await expect(page.locator('#mediaSelection')).toContainText('stale-recovery.txt');
+  await expect(attachment).toHaveText('stale-recovery.txt');await expect(attachmentSize).toHaveText(originalSize);expect(await page.evaluate(()=>WorkspaceV2Media.hasFile())).toBe(true);
+  expect(state.aiCalls().map(call=>call.action)).toEqual(['prepared','validate','validate']);
+  await bounded(page);
+  const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});
+  const image=path.join(directory,`ai-stale-recovery-${browserName}-${change.replace(' ','-')}-${width}-${viewport.height}.png`);await page.screenshot({animations:'disabled',path:image});await testInfo.attach('ai-stale-recovery',{body:fs.readFileSync(image),contentType:'image/png'});
+  await recovery.click();await expect(page.locator('.aiDraftText')).toHaveText(proposal().draft);await expect(page.locator('#aiDraftInsert')).toBeEnabled();
+  expect(state.aiCalls().map(call=>call.action)).toEqual(['prepared','validate','validate','generate']);expect(state.aiCalls().at(-1).latest_message_id).toBe(change==='new message'?36:35);
+  await expect(reply).toHaveValue('Мой незаконченный ответ');await expect(attachment).toHaveText('stale-recovery.txt');await expect(attachmentSize).toHaveText(originalSize);expect(await page.evaluate(()=>WorkspaceV2Media.hasFile())).toBe(true);clean(state);
+});
 for(const owner of [false,true])for(const width of [390,1440])test('AI opening queues and reveals '+(owner?'owner foreign':'own')+' automatic hint without an AI click '+width,async({page,browserName},testInfo)=>{
   await page.setViewportSize({width,height:900});await page.addInitScript(()=>{window.syntheticAiButtonClicks=0;document.addEventListener('click',event=>{const button=event.target.closest?.('button');if(button?.id==='aiDraftOpen'||button?.getAttribute('aria-label')==='AI · Просмотр')window.syntheticAiButtonClicks++},true)});
   const state=await setup(page,{automatic:true,owner}),notice=page.locator('#aiPreparationNotice'),reply=page.locator('#replyText');
