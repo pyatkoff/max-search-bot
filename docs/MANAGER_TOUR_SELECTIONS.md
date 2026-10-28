@@ -848,3 +848,19 @@ Installed activation additionally requires strict TLS, exact asset bytes,
 identity-free/no-cookie tours and app shells, CSP framing and anonymous API401.
 Physical Chrome/Yandex imports and mixed FUN&SUN/ANEX/Tourvisor A1–A8 remain
 separate open V1 acceptance; this hosting package does not complete them.
+
+## Serialized collector bridge handshake (0.6.10)
+
+The content bridge coalesces concurrent initial, page-ready and reconnect hello
+signals into one in-flight worker request. Otherwise responses can arrive out of
+order and leave the page/content bridge using a nonce that the worker has already
+replaced, even while the page says it is connected. The shared request is cleared
+after success or failure so a later worker reconnect can obtain a fresh nonce.
+Sender and nonce checks, destination binding, queue records and original import
+operation IDs remain unchanged. No import is retried by this handshake change.
+
+The actual bridge script is exercised by a source-only regression for concurrent
+signals, subsequent reconnects, failed hello recovery and sender/nonce fences.
+This reproduces a transport defect; it does not establish the historical cause
+of the first empty Mysea gallery. Windows acceptance remains with the Windows
+coordinator and must preserve the original unresolved photo-enrichment operation.
