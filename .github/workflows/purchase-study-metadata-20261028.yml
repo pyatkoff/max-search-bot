@@ -62,7 +62,7 @@ jobs:
           php -l tools/purchase_study_metadata.php
           php tests/run_purchase_study_metadata_regression.php
           git fetch --no-tags origin refs/heads/main
-          test "$(git rev-parse FETCH_HEAD)" = 638841a8efebca37216ba986c671fd55c36fd58a
+          test "$(git rev-parse FETCH_HEAD)" = c4d263c5df74d494751c2b86f3f25d04f476e543
       - name: Prepare existing identity and strict canonical host pin
         env:
           TASK_DEPLOY_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
@@ -96,9 +96,9 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          timeout 25 ssh -i "$RUNNER_TEMP/purchase-study-key" -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$RUNNER_TEMP/purchase-study-hosts" -o ConnectTimeout=10 "$TASK_SSH_USER@$TASK_SSH_HOST" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(git rev-parse HEAD)" = 638841a8efebca37216ba986c671fd55c36fd58a; php -d display_errors=0 -d log_errors=0; test "$(git rev-parse HEAD)" = 638841a8efebca37216ba986c671fd55c36fd58a' < tools/purchase_study_metadata.php > "$RUNNER_TEMP/purchase-study-aggregate.raw"
+          timeout 25 ssh -i "$RUNNER_TEMP/purchase-study-key" -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$RUNNER_TEMP/purchase-study-hosts" -o ConnectTimeout=10 "$TASK_SSH_USER@$TASK_SSH_HOST" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(git rev-parse HEAD)" = c4d263c5df74d494751c2b86f3f25d04f476e543; php -d display_errors=0 -d log_errors=0; test "$(git rev-parse HEAD)" = c4d263c5df74d494751c2b86f3f25d04f476e543' < tools/purchase_study_metadata.php > "$RUNNER_TEMP/purchase-study-aggregate.raw"
           git fetch --no-tags origin refs/heads/main
-          test "$(git rev-parse FETCH_HEAD)" = 638841a8efebca37216ba986c671fd55c36fd58a
+          test "$(git rev-parse FETCH_HEAD)" = c4d263c5df74d494751c2b86f3f25d04f476e543
       - name: Validate exact aggregate whitelist before publication
         run: |
           set -euo pipefail
