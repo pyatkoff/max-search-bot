@@ -33,6 +33,13 @@ def fit_evaluate(document, train_groups, holdout_groups, calculated_at=None):
         raise NotReady("unassigned_or_missing_group")
     if any(base.moment(r["observed_through"]) > clock for r in rows):
         raise NotReady("future_observation")
+    # Freeze one earliest observation per person before inspecting labels.
+    selected = {}
+    for row in rows:
+        group = row["group_key"]
+        if group not in selected or (row["prediction_at"], row["observation_id"]) < (selected[group]["prediction_at"], selected[group]["observation_id"]):
+            selected[group] = row
+    rows = list(selected.values())
     tr = [r for r in rows if r["group_key"] in train and r["eligible"] and r["label"]["value"] is not None]
     te = [r for r in rows if r["group_key"] in holdout and r["eligible"] and r["label"]["value"] is not None]
     if {r["label"]["value"] for r in tr} != {0, 1} or {r["label"]["value"] for r in te} != {0, 1}:
@@ -41,9 +48,13 @@ def fit_evaluate(document, train_groups, holdout_groups, calculated_at=None):
         raise NotReady("training_outcomes_after_holdout_prediction")
     baseline = (sum(r["label"]["value"] for r in tr) + 1) / (len(tr) + 2)
     probabilities = []
+    buckets = []
     for b in (0, 1):
         group = [r for r in tr if bucket(r) == b]
-        probabilities.append((sum(r["label"]["value"] for r in group) + 1) / (len(group) + 2))
+        p = (sum(r["label"]["value"] for r in group) + 1) / (len(group) + 2) if group else baseline
+        probabilities.append(p)
+        buckets.append({"n":len(group), "probability":p,
+                        "reason":"smoothed_training" if group else "no_training_support_baseline"})
     def metrics(predictions, calibration_probabilities):
         n = len(te)
         labels = [r["label"]["value"] for r in te]
@@ -58,5 +69,6 @@ def fit_evaluate(document, train_groups, holdout_groups, calculated_at=None):
             "feature_fingerprints": sorted(r["feature_fingerprint"] for r in rows),
             "unknown_count": sum(r["label"]["value"] is None for r in rows),
             "train_count": len(tr), "baseline_probability": baseline, "bucket_probabilities": probabilities,
+            "buckets": buckets, "unit":"person_earliest_observation",
             "baseline": metrics([baseline]*len(te), [baseline, baseline]),
             "candidate": metrics([probabilities[bucket(r)] for r in te], probabilities)}

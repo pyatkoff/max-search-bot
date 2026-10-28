@@ -66,5 +66,47 @@ class PredictorTests(unittest.TestCase):
         with self.assertRaisesRegex(predictor.NotReady,"training_outcomes_after_holdout_prediction"):
             predictor.fit_evaluate(leak,tr,te,"2026-10-17T00:00:00Z")
 
+    def test_earliest_per_person_prevents_repeated_episode_weighting(self):
+        doc,tr,te=self.dataset()
+        first=predictor.fit_evaluate(doc,tr,te,"2026-10-17T00:00:00Z")
+        duplicate=copy.deepcopy(doc["observations"][0])
+        duplicate["subject"]["episode_key"]="trip:later"
+        duplicate["subject"]["conversation_id"]="32"
+        for event in duplicate["evidence"]: event["subject"]=dict(duplicate["subject"])
+        duplicate["prediction_at"]="2026-10-01T13:00:00Z"
+        duplicate["observed_through"]="2026-10-08T13:00:00Z"
+        doc["observations"].append(duplicate)
+        again=predictor.fit_evaluate(doc,tr,te,"2026-10-17T00:00:00Z")
+        self.assertEqual(again["train_count"],first["train_count"])
+        self.assertEqual(again["baseline_probability"],first["baseline_probability"])
+
+    def test_unsupported_bucket_uses_explicit_baseline_fallback(self):
+        doc,tr,te=self.dataset()
+        got=predictor.fit_evaluate(doc,tr,te,"2026-10-17T00:00:00Z")
+        self.assertEqual(got["buckets"][1]["n"],0)
+        self.assertEqual(got["buckets"][1]["probability"],got["baseline_probability"])
+        self.assertEqual(got["buckets"][1]["reason"],"no_training_support_baseline")
+
+    def test_different_buckets_and_late_messages(self):
+        doc,tr,te=self.dataset()
+        for idx,row in enumerate(doc["observations"]):
+            count=2 if idx in (0,2) else 1
+            for n in range(count):
+                event=item("q:%s:%s"%(idx,n),"customer_message",row["context_from"])
+                event["subject"]=dict(row["subject"])
+                row["evidence"].append(event)
+        got=predictor.fit_evaluate(doc,tr,te,"2026-10-17T00:00:00Z")
+        self.assertAlmostEqual(got["buckets"][0]["probability"],1/3)
+        self.assertAlmostEqual(got["buckets"][1]["probability"],2/3)
+        self.assertLess(got["candidate"]["brier"],got["baseline"]["brier"])
+        before=copy.deepcopy(got)
+        for row in doc["observations"]:
+            late=item("late:"+row["subject"]["customer_key"],"customer_message",row["prediction_at"],row["observed_through"])
+            late["subject"]=dict(row["subject"])
+            row["evidence"].append(late)
+        after=predictor.fit_evaluate(doc,tr,te,"2026-10-17T00:00:00Z")
+        self.assertEqual(before["candidate"],after["candidate"])
+        self.assertEqual(before["feature_fingerprints"],after["feature_fingerprints"])
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
