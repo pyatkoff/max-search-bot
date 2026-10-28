@@ -215,6 +215,12 @@ function modeledProfileAssertions(PDO $p,callable $check): void
     $check('revoked source scope invalidates the current profile without copying older text',$v['access_status']==='denied'&&$v['profile']['prediction_features']['facts']===[]);
     $p->exec('UPDATE conversations SET is_test=0 WHERE id=11');$s->tick($now+15);$profiles->tick($now+16);
     $check('scope restoration creates a new current profile with its actual new receipt',modeledProfileLatest($p)['access_status']==='allowed');
+    $beforeLarge=(int)$p->query('SELECT journal_cursor FROM modeled_conversion_profiles_state')->fetchColumn();
+    modeledStreamMessage($p,99,11,str_repeat('😀',9000));$s->tick($now+17);$profiles->tick($now+18);$large=modeledProfileLatest($p);
+    $check('large admitted Unicode message does not poison factual profile persistence or progress',
+        (int)$p->query('SELECT journal_cursor FROM modeled_conversion_profiles_state')->fetchColumn()>$beforeLarge
+        &&($large['contextual_signals']['coverage']['semantic_omissions']['text_too_large']??0)===1
+        &&isset($large['profile']['fields']));
     // Isolate throughput from source-reconciliation tests: all following rows are already admitted fixtures.
     for($i=0;$i<100;$i++){$c=(string)(1000+$i);$x=$snap;$x['source_id']=(string)(2000+$i);$x['conversation_id']=$c;$x['customer_key']=$c;modeledProfileAppend($p,$x,$now+20);}
     $bounded=true;$written=0;

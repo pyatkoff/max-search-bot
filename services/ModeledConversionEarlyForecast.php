@@ -65,29 +65,36 @@ final class ModeledConversionEarlyForecast
         if($clockUnresolved)$flags['context_linking_disabled_unknown_clock']=true;
         if(($case['window_limited']??null)!==false)$flags['window_limited']=true;
         $counts=array_fill_keys(ArchiveResearchSemanticExtractor::goalIds(),0);
-        $turns=['customer'=>0,'manager'=>0];$replySeconds=[];$previous=null;$barriers=0;$matched=0;
+        $turns=['customer'=>0,'manager'=>0];$replySeconds=[];$previous=null;$barriers=0;$matched=0;$semanticOmissions=[];
         foreach($rows as$item){
             $row=$item['row'];$ref=$item['ref'];$snap=$row['snapshot']??[];$permit=$admitted[$ref]??null;
             if($denied)$permit=null;
+            $selection=false;$links=false;$text=null;
             if($permit!==null){
                 $payload=$snap['payload']??null;
                 if(($row['source_kind']??null)!=='message'||($snap['source_kind']??null)!=='message'
                     ||(string)($snap['source_id']??'')!==(string)($row['source_id']??'')
                     ||($snap['source_status']??null)!=='present'||($snap['payload_status']??null)!=='copied'
                     ||!self::sameSubject($snap,$subject)||!is_array($payload)||!is_string($payload['text']??null)
-                    ||strlen($payload['text'])>ArchiveResearchSemanticExtractor::MAX_TEXT_BYTES
                     ||preg_match('//u',$payload['text'])!==1||$item['at']!==$permit['at']
                     ||($row['observed_at_unix']??null)!==$permit['available_at'])self::fail('admitted_row');
                 $matched++;
+                // The canonical adapter bounds Unicode characters; semantic rules bound bytes.
+                // A valid large prefix must still commit its factual profile and progress cursor.
+                if(strlen($payload['text'])<=ArchiveResearchSemanticExtractor::MAX_TEXT_BYTES){
+                    $text=ManagerAiTextRedactor::redact($payload['text'],$selection,$links);
+                    $text=preg_replace('/(?<![\\pL\\pN_])@[A-Za-z][A-Za-z0-9_]{3,31}\\b/u','[контакт скрыт]',$text)??$text;
+                }
+                if($text===null||strlen($text)>ArchiveResearchSemanticExtractor::MAX_TEXT_BYTES){
+                    $semanticOmissions['text_too_large']=($semanticOmissions['text_too_large']??0)+1;
+                    $flags['semantic_text_too_large']=true;$permit=null;
+                }
             }
             if($permit===null||$clockUnresolved){
                 $barrier=ArchiveResearchSemanticExtractor::step(['read_status'=>'source_unavailable','source_ref'=>$ref,'created_at'=>$item['at']],$state);
                 $state=$barrier['state'];$previous=null;$barriers++;
             }
             if($permit===null)continue;
-            $selection=false;$links=false;
-            $text=ManagerAiTextRedactor::redact($snap['payload']['text'],$selection,$links);
-            $text=preg_replace('/(?<![\\pL\\pN_])@[A-Za-z][A-Za-z0-9_]{3,31}\\b/u','[контакт скрыт]',$text)??$text;
             $role=$permit['role'];$turns[$role]++;
             if($role==='customer'&&$previous!==null&&$previous['role']==='manager'&&$permit['at']>=$previous['at'])
                 $replySeconds[]=$permit['at']-$previous['at'];
@@ -129,7 +136,7 @@ final class ModeledConversionEarlyForecast
         $median=$n===0?null:($n%2?$replySeconds[intdiv($n,2)]:($replySeconds[intdiv($n,2)-1]+$replySeconds[intdiv($n,2)])/2);
         $coverage=['trip_status'=>'unknown','episode_identity'=>'unverified','source_history_complete'=>false,
             'window_limited'=>($case['window_limited']??null)!==false,'media_contents_read'=>false,
-            'context_barriers'=>$barriers,'context_linking_disabled'=>$clockUnresolved,
+            'context_barriers'=>$barriers,'context_linking_disabled'=>$clockUnresolved,'semantic_omissions'=>$semanticOmissions,
             'source_revision_chronology_unresolved'=>isset($wrapper['coverage']['errors']['source_revision_chronology_unresolved'])];
         return [
             'contextual_signals'=>['version'=>self::VERSION,'extractor_version'=>ArchiveResearchSemanticExtractor::VERSION,

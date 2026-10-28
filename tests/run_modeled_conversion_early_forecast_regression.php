@@ -61,6 +61,15 @@ function modeledEarlyAssertions(callable $check):void
     $check('an unplaceable source clock prevents all contextual linking but retains direct signals',
         $p['contextual_signals']['coverage']['context_linking_disabled']
         &&$p['contextual_signals']['goal_counts']['agency_purchase_intent']===0);
+    $p=modeledEarlyRun([['role'=>'manager','text'=>'Бронируем тур?'],['text'=>str_repeat('😀',9000)],['text'=>'Да']]);
+    $check('valid canonical Unicode message above semantic byte limit becomes a barrier without aborting',
+        ($p['contextual_signals']['coverage']['semantic_omissions']['text_too_large']??0)===1
+        &&$p['contextual_signals']['goal_counts']['agency_purchase_intent']===0
+        &&$p['contextual_signals']['flags']['semantic_text_too_large']===true);
+    $p=modeledEarlyRun([['role'=>'manager','text'=>'Бронируем тур?'],['text'=>str_repeat('http://a.b ',1000)],['text'=>'Да']]);
+    $check('redaction growth above semantic byte limit also becomes an explicit barrier',
+        ($p['contextual_signals']['coverage']['semantic_omissions']['text_too_large']??0)===1
+        &&$p['contextual_signals']['goal_counts']['agency_purchase_intent']===0);
     $p=modeledEarlyRun([['text'=>'Подберите тур'],['role'=>'manager','text'=>'Ссылка на оплату https://example.test/pay']]);
     $check('a manager payment link alone is not a payment or observed purchase',
         $p['contextual_signals']['goal_counts']['payment_self_report']===0

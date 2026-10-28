@@ -246,4 +246,22 @@ for($split=0;$split<=count($segmented);$split++){
         'v2_episode_split_invariance_'.$split);
 }
 
+// The booking infinitive is common in a direct customer commitment.
+foreach(['Давайте бронировать этот тур','Давайте забронировать этот тур']as$statement){
+    $r=single('customer',$statement);
+    check(has($r,'general_purchase_intent')&&has($r,'agency_purchase_intent'),
+        'direct_booking_infinitive_'.$statement);
+}
+foreach(['Давайте бронировать этот тур?','Если решимся, давайте забронировать этот тур',
+    'Давайте пока не бронировать этот тур']as$statement){
+    $r=single('customer',$statement);
+    check(!has($r,'general_purchase_intent')&&!has($r,'agency_purchase_intent'),
+        'nonasserted_booking_infinitive_'.$statement);
+}
+$r=runMessages([message('customer','Давайте бронировать этот тур',1),
+    message('manager','Выбираем этот аэропорт?',2,1700000001),
+    message('customer','Давайте этот',3,1700000002)]);
+$lastGoals=array_column($r['outputs'][2]['events'],'goal');
+check(!in_array('agency_purchase_intent',$lastGoals,true),'earlier_booking_intent_not_airport_choice_seller');
+
 echo "Archive semantic extractor: ".$checks." checks passed\n";

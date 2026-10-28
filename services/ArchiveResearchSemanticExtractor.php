@@ -136,12 +136,12 @@ final class ArchiveResearchSemanticExtractor
                     $goals['substantive_interest']=true;$rules['substantive_interest']='answer_to_trip_criteria_question';
                     $relations['substantive_interest']=$s['qr']!==null?[$s['qr']]:[];
                 }
-                $intent=self::hit('готов\pL*\s+(?:за)?брониров\pL*|давайте\s+(?:за)?брониру\pL*|давайте\s+(?:нам\s+)?этот|(?<!\pL)(?:за)?бронируем(?!\pL)|хочу\s+(?:этот\s+)?купить|хотим\s+купить|(?:бер[её]м|беру)\s+(?:этот|этот\s+тур|тур|его|вариант)|(?<!\pL)покупаю(?!\pL)|готов\pL*\s+оплат|(?:сейчас|сегодня|завтра)\s+оплачу|(?<!\pL)оплачиваю(?!\pL)',$clause);
+                $intent=self::hit('готов\pL*\s+(?:за)?брониров\pL*|давайте\s+(?:за)?брони(?:ру\pL*|ровать)(?!\pL)|давайте\s+(?:нам\s+)?этот|(?<!\pL)(?:за)?бронируем(?!\pL)|хочу\s+(?:этот\s+)?купить|хотим\s+купить|(?:бер[её]м|беру)\s+(?:этот|этот\s+тур|тур|его|вариант)|(?<!\pL)покупаю(?!\pL)|готов\pL*\s+оплат|(?:сейчас|сегодня|завтра)\s+оплачу|(?<!\pL)оплачиваю(?!\pL)',$clause);
                 $affirmative=self::hit('\A\s*(?:да|да,\s*беру|давайте|бер[её]м|беру|соглас(?:ен|на|ны)|оформляем|дистанционн(?:о|ое)|удал[её]нно|онлайн|в\s+офисе)\s*[.!]?\s*\z',$clause);
                 if($direct&&($intent||($affirmative&&$s['q']==='booking'))){
                     $goals['general_purchase_intent']=true;$rules['general_purchase_intent']='direct_customer_booking_or_payment_intent';
                     if($s['q']==='booking'||(in_array($s['p'],['tour','hotel','flight'],true)&&$s['q']!=='criteria'
-                        &&self::hit('давайте\s+(?:нам\s+)?этот\s+(?:тур|отель)(?!\pL)',$clause))||self::hit('давайте\s+(?:за)?брониру|(?<!\pL)(?:за)?бронируем(?!\pL)|(?:бер[её]м|беру)\s+(?:этот|тур|его|вариант)',$clause)){
+                        &&self::hit('давайте\s+(?:нам\s+)?этот\s+(?:тур|отель)(?!\pL)',$clause))||self::hit('давайте\s+(?:за)?брони(?:ру\pL*|ровать)(?!\pL)|(?<!\pL)(?:за)?бронируем(?!\pL)|(?:бер[её]м|беру)\s+(?:этот|тур|его|вариант)',$clause)){
                         $goals['agency_purchase_intent']=true;$rules['agency_purchase_intent']='response_to_current_booking_context';
                         if($s['qr']!==null)$relations['agency_purchase_intent']=[$s['qr']];
                     }
