@@ -268,7 +268,7 @@ def advance(request):
     state = copy.deepcopy(state)
     seen = {c['packet']['person_group']: c for c in state['cases']}
     old_groups = set(seen)
-    capacity = False; stopped_at = None; previous = old; fresh = []; validated_profiles = []; outside_floor = set()
+    capacity = False; stopped_at = None; previous = old; fresh = []; validated_profiles = []; outside_floor = set(); dispositioned = set()
     for entry in request['profiles']:
         study.require(isinstance(entry, dict) and set(entry) == {'db_profile_id', 'observed_at', 'wrapper', 'admission'}, 'runtime_profile_shape')
         index = identifier(entry['db_profile_id'])
@@ -286,8 +286,10 @@ def advance(request):
                 and p['extractor_sha256'] == study.PROTOCOL['extractor_sha256']):
             continue
         group = p['person_group']
-        if group in seen or group in state['exclusions']:
+        if group in seen:
             continue
+        if group in state['exclusions']:
+            dispositioned.add(group); continue
         floor = study.moment(state['exclusion_compaction']['created_after'])
         proof = entry['admission']
         created = None
@@ -326,7 +328,8 @@ def advance(request):
         if not within_budget(candidate):
             capacity = True; stopped_at = index-1; break
         state = candidate
-        if not reason: seen[group] = c; fresh.append(group)
+        if reason: dispositioned.add(group)
+        else: seen[group] = c; fresh.append(group)
     state['profile_cursor'] = str(stopped_at) if stopped_at is not None else request['profile_cursor']
     state['profile_fence'] = request['profile_fence']
     # Cursor backpressure never deletes source observations: the caller retains
@@ -339,7 +342,10 @@ def advance(request):
         study.require(update['access_status'] in ('allowed', 'denied', 'unknown'), 'runtime_update_access')
         if group in old_groups: monitored_old += 1
         if group in state['exclusions']: continue
-        if group in outside_floor: continue
+        # A later profile in this same batch can compact a non-case ledger
+        # entry. Its supplied update remains non-enrolled for this pass even
+        # though the compacted per-person record is no longer in the state.
+        if group in outside_floor or group in dispositioned: continue
         if group not in seen and capacity and group in provided_groups:
             deferred_updates += 1; continue
         study.require(group in seen, 'runtime_unknown_person_update')

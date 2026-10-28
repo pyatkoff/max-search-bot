@@ -351,6 +351,57 @@ class RuntimeTests(unittest.TestCase):
                 with self.assertRaisesRegex(study.NotReady, 'runtime_state_shape|runtime_exclusion_compaction'):
                     call(request(TRAIN, runtime.encoded(runtime.seal(bad))))
 
+    def test_same_pass_compacted_rejections_skip_only_their_new_updates(self):
+        old = case('same-pass-existing-train', TRAIN, 1, 1)
+        old['outcomes'] = []
+        old['coverage'].update(through=later(TRAIN, seconds=2), available_at=later(TRAIN, seconds=2), status='partial')
+        base = add_cases(initialized()['state_json'], [old], later(TRAIN, seconds=2))
+        base = apply_updates(base['state_json'], [old], later(TRAIN, seconds=2))
+        now = later(TRAIN, seconds=4)
+        old['coverage'].update(through=now, available_at=now)
+        train_bytes = len(runtime.encoded(json.loads(base['state_json'])['cases']).encode())
+        for reason in ('prefit_control', 'arm_quota', 'training_byte_quota'):
+            with self.subTest(reason=reason):
+                new = case('same-pass-new:'+reason, later(TRAIN, seconds=3), 0, 0,
+                           'control' if reason == 'prefit_control' else 'train')
+                new['outcomes'] = []
+                new['coverage'].update(through=now, available_at=now, status='partial')
+                quota = (patch.object(runtime, 'ARM_CASE_LIMIT', 1) if reason == 'arm_quota'
+                         else patch.object(runtime, 'TRAIN_CASE_BYTES_LIMIT', train_bytes+500 if reason == 'training_byte_quota' else runtime.TRAIN_CASE_BYTES_LIMIT))
+                with patch.object(runtime, 'EXCLUSION_LEDGER_BYTES_LIMIT', 300), quota:
+                    r = request(now, base['state_json'], cursor='2', profiles=[entry(new, 2)],
+                                updates=[update(new), update(old)])
+                    result = call(r)
+                    state = json.loads(result['state_json'])
+                    self.assertEqual(state['exclusion_compaction']['people'], 1)
+                    self.assertNotIn(new['packet']['person_group'], state['exclusions'])
+                    self.assertEqual(state['profile_cursor'], '2')
+                    self.assertEqual(state['cases'][0]['coverage']['through'], now)
+                    self.assertEqual(result['summary']['train_people'], 1)
+                    self.assertEqual(result['summary']['excluded_people'], 1)
+                    unrelated = copy.deepcopy(r); unrelated['updates'][0]['person_group'] = '0'*64
+                    with self.assertRaisesRegex(study.NotReady, 'runtime_unknown_person_update'):
+                        call(unrelated)
+
+    def test_known_noncase_replay_update_stays_dispositioned_after_later_batch_compaction(self):
+        first = case('same-pass-previously-excluded', TRAIN, 0, 0, 'control')
+        first['outcomes'] = []
+        first['coverage'].update(through=later(TRAIN, seconds=2), available_at=later(TRAIN, seconds=2), status='partial')
+        initial = add_cases(initialized()['state_json'], [first], later(TRAIN, seconds=2))
+        old_ledger_bytes = len(runtime.encoded(json.loads(initial['state_json'])['exclusions']).encode())
+        now = later(TRAIN, seconds=4)
+        second = case('same-pass-compacting-new', later(TRAIN, seconds=3), 0, 0, 'control')
+        second['outcomes'] = []
+        second['coverage'].update(through=now, available_at=now, status='partial')
+        with patch.object(runtime, 'EXCLUSION_LEDGER_BYTES_LIMIT', old_ledger_bytes+100):
+            result = call(request(now, initial['state_json'], cursor='3', profiles=[entry(first, 2), entry(second, 3)],
+                                  updates=[update(first), update(second)]))
+        state = json.loads(result['state_json'])
+        self.assertFalse(state['exclusions'])
+        self.assertEqual(state['exclusion_compaction']['people'], 2)
+        self.assertEqual(state['profile_cursor'], '3')
+        self.assertEqual(result['summary']['cases'], 0)
+
     def test_unbound_creation_exclusion_stays_sticky_when_safe_ledger_entries_compact(self):
         unknown = case('ledger-unbound-creation', TRAIN, 1, 1)
         unknown['admission']['conversation_created_at'] = later(TRAIN, days=1)
