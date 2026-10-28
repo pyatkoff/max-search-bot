@@ -599,7 +599,7 @@ try {
             $wire->result->capabilities->tools instanceof stdClass && !isset($wire->result->capabilities->events));
         $available=$service->handle(preparationMcpRpc('tools/list'),1);
         preparationMcpCheck('handshake client can discover the preparation tools '.$version,
-            array_column($available['result']['tools']??[],'name')===array_merge(['list_pending_replies','get_reply_context','save_prepared_reply',ManagerSearch3CandidateReader::TOOL,ManagerSearch3CandidateReader::MEAL_TOOL],VirtualReplyMcpAdapter::NAMES,HotelWorkMcpAdapter::NAMES));
+            array_column($available['result']['tools']??[],'name')===array_merge(['list_pending_replies','get_reply_context','save_prepared_reply',ManagerSearch3CandidateReader::TOOL,ManagerSearch3CandidateReader::MEAL_TOOL],VirtualReplyMcpAdapter::NAMES,HotelWorkMcpAdapter::NAMES,ArchiveResearchMcpAdapter::NAMES));
     }
     foreach (['2099-01-01','2026-07-28'] as $version) {
         $initialized=$service->handle(preparationMcpRpc('initialize',['protocolVersion'=>$version]),1);
@@ -621,7 +621,7 @@ try {
     preparationMcpCheck('invalid JSON-RPC envelope is rejected',($service->handle(['method'=>'tools/list'],1)['error']['code']??0)===-32600);
     preparationMcpCheck('unknown method is rejected',($service->handle(preparationMcpRpc('customers/send'),1)['error']['code']??0)===-32601);
     $tools=$service->handle(preparationMcpRpc('tools/list'),1)['result']['tools'];
-    preparationMcpCheck('existing tools plus hotel step-up metadata are exposed',array_column($tools,'name')===array_merge(['list_pending_replies','get_reply_context','save_prepared_reply',ManagerSearch3CandidateReader::TOOL,ManagerSearch3CandidateReader::MEAL_TOOL],VirtualReplyMcpAdapter::NAMES,HotelWorkMcpAdapter::NAMES));
+    preparationMcpCheck('existing tools plus hotel step-up metadata are exposed',array_column($tools,'name')===array_merge(['list_pending_replies','get_reply_context','save_prepared_reply',ManagerSearch3CandidateReader::TOOL,ManagerSearch3CandidateReader::MEAL_TOOL],VirtualReplyMcpAdapter::NAMES,HotelWorkMcpAdapter::NAMES,ArchiveResearchMcpAdapter::NAMES));
     preparationMcpCheck('tools advertise matching OAuth scope metadata',$tools[0]['securitySchemes']===[['type'=>'oauth2','scopes'=>['queue:read','prepared:write']]] && $tools[0]['_meta']['securitySchemes']===$tools[0]['securitySchemes']);
     $protocolMeta=['io.modelcontextprotocol/protocolVersion'=>'2026-07-28',
         'io.modelcontextprotocol/clientInfo'=>['name'=>'Synthetic client','version'=>'1'],

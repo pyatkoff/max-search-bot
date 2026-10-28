@@ -504,3 +504,12 @@ Official references: [MCP Events](https://developers.openai.com/plugins/build/mc
 [custom MCP connection](https://developers.openai.com/plugins/quickstart).
 
 
+
+
+## Historical archive research
+
+Separate private archive research uses `archive_research_inventory` and
+`read_archive_history` at this same MCP endpoint with explicit `archive:read`
+consent. Existing reply/hotel grants are not expanded. These readers do not enter
+the reply or learning queues. See [archive research boundaries](ARCHIVE_RESEARCH_READ.md)
+for pagination, credential-bound references, source coverage and host discovery.
