@@ -181,6 +181,21 @@ final class ManagerPreparationOAuth
         return $grant!==null && self::hasScopes(explode(' ',$grant['scopes']),$required);
     }
 
+    /** Private self metadata for one current authenticated connection, never a queue owner lookup. */
+    public function currentConnectionMetadata(string $familyId,int $adminId,array $required): ?array
+    {
+        if ($this->pdo->inTransaction()) return null;
+        $grant=$this->connectionGrant($familyId,$adminId);
+        if ($grant===null) return null;
+        $scopes=explode(' ',$grant['scopes']);
+        if (!self::hasScopes($scopes,$required)) return null;
+        return ['connection_id'=>$grant['grant_id'],'client_id'=>$grant['client_id'],'active_project_admin'=>true,
+            'capabilities'=>['reply_preparation'=>self::hasScopes($scopes,self::SCOPES),
+                'hotel_work'=>in_array(self::HOTEL_SCOPE,$scopes,true),
+                'archive_research'=>in_array(self::ARCHIVE_SCOPE,$scopes,true),
+                'development_work'=>in_array(self::DEVELOPMENT_SCOPE,$scopes,true)]];
+    }
+
     /** Private domain-separated cursor key for one fresh archive consent.
      * This never returns a credential or its stored hash. A refreshed/expired
      * access-token selection may invalidate prior cursors; no secret is added. */

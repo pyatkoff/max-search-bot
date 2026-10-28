@@ -250,6 +250,122 @@ try {
     $events->failChallenge=true;$failed=$call('events/subscribe',$subscription,'dev');
     devOauthCheck('development callback failure uses the bounded canonical diagnostic',
         ($failed['error']['code']??null)===-32015&&($failed['error']['data']['reason']??null)==='challenge_failed'&&$events->subscriptions===1);
+    // Use real queue rows and fresh canonical OAuth grants at the owned-status boundary.
+    require_once __DIR__.'/fixtures/development_work_queue.php';
+    DevelopmentWorkTestSchema::create($pdo);$statusQueue=new DevelopmentWorkQueue($pdo,$clock);
+    $selfTokens=$oauth->exchange(devOauthCode($oauth,$client,$devScope));
+    $selfContext=$oauth->contextForBearer('Bearer '.$selfTokens['access_token']);$selfConnection=$selfContext['connection_id'];
+    $wideTokens=$oauth->exchange(devOauthCode($oauth,$client,implode(' ',ManagerPreparationOAuth::SUPPORTED_SCOPES)));
+    $wideContext=$oauth->contextForBearer('Bearer '.$wideTokens['access_token']);
+    $otherClient=$oauth->registerClient(['redirect_uris'=>[ManagerPreparationOAuth::REDIRECT_URI],'scope'=>$devScope],'synthetic-status-foreign')['client_id'];
+    $otherTokens=$oauth->exchange(devOauthCode($oauth,$otherClient,$devScope));
+    $otherContext=$oauth->contextForBearer('Bearer '.$otherTokens['access_token']);$otherConnection=$otherContext['connection_id'];
+    $statusQueue->create(1,$otherConnection,['queue_id'=>'PRIVATE_FOREIGN_QUEUE','plan_sha256'=>str_repeat('a',64),'tasks'=>[
+        ['task_id'=>'PRIVATE_FOREIGN_TASK','owner_task_id'=>'PRIVATE_FOREIGN_OWNER','reviewer_task_id'=>'PRIVATE_FOREIGN_REVIEWER',
+            'input_sha256'=>str_repeat('b',64),'acceptance_contract_sha256'=>str_repeat('c',64),'deps'=>[],'priority'=>50]]]);
+    $selfService=new ManagerPreparationMcpService($pdo,null,null,$clock);
+    $statusRpc=static fn(string $queue):array=>devOauthRpc('tools/call',['name'=>'development_work_status','arguments'=>['queue_id'=>$queue]]);
+    $canonicalStatus=static function(array $value):string {
+        $sort=static function(array $a)use(&$sort):array {if (!array_is_list($a)) ksort($a,SORT_STRING);foreach ($a as &$v) if (is_array($v)) $v=$sort($v);return $a;};
+        return json_encode($sort($value),JSON_THROW_ON_ERROR);
+    };
+    $queueSnapshot=static function()use($pdo):array {$out=[];foreach (DevelopmentWorkTestSchema::tables() as $table) $out[$table]=$pdo->query('SELECT * FROM '.$table)->fetchAll(PDO::FETCH_ASSOC);return $out;};
+    $authDenied=static function(array $reply,?string $phase='AUTH_CONTEXT_UNAVAILABLE'):bool {
+        $wire=json_encode($reply,JSON_THROW_ON_ERROR);
+        return ($reply['error']['code']??null)===-32001&&($phase===null||str_contains((string)($reply['error']['message']??''),$phase))
+            &&!isset($reply['result'])&&!str_contains($wire,'caller_self')&&!str_contains($wire,'OWNED_QUEUE_UNAVAILABLE');
+    };
+    $beforeQueues=$queueSnapshot();$beforeChanges=(int)$pdo->query('SELECT total_changes()')->fetchColumn();
+    $beforeScopes=$pdo->query('SELECT grant_id,scopes FROM manager_preparation_oauth_grants ORDER BY grant_id')->fetchAll(PDO::FETCH_ASSOC);
+    foreach (['dev'=>[$selfConnection,false],'all'=>[$wideContext['connection_id'],true]] as $label=>[$connection,$all]) {
+        // Pass only DEV to the HTTP-owner seam: caller_self must use the actual wider grant.
+        $missing=$selfService->handle($statusRpc('PRIVATE_MISSING_QUEUE'),1,$connection,[$devScope]);
+        $foreign=$selfService->handle($statusRpc('PRIVATE_FOREIGN_QUEUE'),1,$connection,[$devScope]);
+        $expectedSelf=['connection_id'=>$connection,'client_id'=>$client,'active_project_admin'=>true,'capabilities'=>[
+            'reply_preparation'=>$all,'hotel_work'=>$all,'archive_research'=>$all,'development_work'=>true]];
+        $expected=['ok'=>false,'reason'=>'OWNED_QUEUE_UNAVAILABLE','queue_available'=>false,'caller_self'=>$expectedSelf];
+        $result=$missing['result']??[];
+        devOauthCheck('missing and real foreign queue have identical canonical unavailable response '.$label,$missing===$foreign
+            &&($result['isError']??null)===true&&$canonicalStatus($result['structuredContent']??[])===$canonicalStatus($expected)
+            &&count($result['content']??[])===1&&($result['content'][0]['type']??null)==='text'
+            &&json_decode((string)($result['content'][0]['text']??''),true,16,JSON_THROW_ON_ERROR)===($result['structuredContent']??null));
+        $wire=json_encode($missing,JSON_THROW_ON_ERROR);
+        foreach (['PRIVATE_MISSING_QUEUE','PRIVATE_FOREIGN_QUEUE','PRIVATE_FOREIGN_TASK','PRIVATE_FOREIGN_OWNER','PRIVATE_FOREIGN_REVIEWER',$otherConnection,$otherClient] as $private) {
+            devOauthCheck('unavailable status exports no requested or foreign metadata '.$label,!str_contains($wire,$private));
+        }
+    }
+    $owned=$selfService->handle($statusRpc('PRIVATE_FOREIGN_QUEUE'),1,$otherConnection,[$devScope]);
+    devOauthCheck('actual owner still reads unchanged successful status without caller self',
+        ($owned['result']['structuredContent']['ok']??null)===true&&($owned['result']['structuredContent']['task_id']??null)==='PRIVATE_FOREIGN_TASK'
+        &&($owned['result']['isError']??null)===false&&!str_contains(json_encode($owned,JSON_THROW_ON_ERROR),'caller_self'));
+    devOauthCheck('owned boundary reads do not mutate queues grants or scope profiles',$beforeQueues===$queueSnapshot()
+        &&$beforeChanges===(int)$pdo->query('SELECT total_changes()')->fetchColumn()
+        &&$beforeScopes===$pdo->query('SELECT grant_id,scopes FROM manager_preparation_oauth_grants ORDER BY grant_id')->fetchAll(PDO::FETCH_ASSOC));
+    devOauthCheck('canonical metadata requires a fresh grant and its required scope',
+        $oauth->currentConnectionMetadata($selfConnection,1,[$devScope])!==null
+        &&$oauth->currentConnectionMetadata($selfConnection,1,[$hotelScope])===null);
+    foreach ([['queue_id'=>false],['queue_id'=>'PRIVATE_MISSING_QUEUE','caller_self'=>[]]] as $badStatusArgs) {
+        $badStatus=$selfService->handle(devOauthRpc('tools/call',['name'=>'development_work_status','arguments'=>$badStatusArgs]),1,$selfConnection,[$devScope]);
+        devOauthCheck('malformed status stays invalid params without self',($badStatus['error']['code']??null)===-32602
+            &&!str_contains(json_encode($badStatus,JSON_THROW_ON_ERROR),'caller_self'));
+    }
+    foreach ([[1,null],[1,str_repeat('f',32)],[2,$selfConnection]] as [$badAdmin,$badConnection]) {
+        devOauthCheck('invalid canonical grant admin or null connection has typed context error without self',
+            $authDenied($selfService->handle($statusRpc('PRIVATE_MISSING_QUEUE'),$badAdmin,$badConnection,[$devScope])));
+    }
+    $scopeDenied=$selfService->handle($statusRpc('PRIVATE_MISSING_QUEUE'),1,$connections['archive'],[$archiveScope]);
+    devOauthCheck('valid noneligible missing scope is typed without caller self',$authDenied($scopeDenied,'AUTH_SCOPE_UNAVAILABLE'));
+    $eligible=$selfService->handle($statusRpc('PRIVATE_MISSING_QUEUE'),1,$connections['legacy'],$legacyScopes);
+    devOauthCheck('eligible missing scope keeps the original step up challenge',
+        devOauthChallengeScopes($eligible)===array_merge($legacyScopes,[$devScope])&&!str_contains(json_encode($eligible,JSON_THROW_ON_ERROR),'caller_self'));
+
+    foreach (['revoked','expired'] as $invalidState) {
+        $invalidTokens=$oauth->exchange(devOauthCode($oauth,$client,$devScope));
+        $invalidContext=$oauth->contextForBearer('Bearer '.$invalidTokens['access_token']);$invalidConnection=$invalidContext['connection_id'];
+        $column=$invalidState==='revoked'?'revoked_at':'expires_at';
+        $pdo->prepare('UPDATE manager_preparation_oauth_grants SET '.$column.'=? WHERE grant_id=?')->execute([$now-1,$invalidConnection]);
+        devOauthCheck('invalid grant metadata and status are denied without self '.$invalidState,
+            $oauth->currentConnectionMetadata($invalidConnection,1,[$devScope])===null
+            &&$authDenied($selfService->handle($statusRpc('PRIVATE_FOREIGN_QUEUE'),1,$invalidConnection,[$devScope])));
+    }
+    foreach (['revoked','admin_inactive','project_inactive'] as $change) {
+        $raceTokens=$oauth->exchange(devOauthCode($oauth,$client,$devScope));
+        $raceContext=$oauth->contextForBearer('Bearer '.$raceTokens['access_token']);$raceConnection=$raceContext['connection_id'];$realDenied=false;
+        $raceStore=static function(string $operation,array $arguments)use($statusQueue,$pdo,$now,$raceConnection,$change,&$realDenied):array {
+            try {return $statusQueue->$operation(...$arguments);} catch (DomainException $original) {
+                $realDenied=$operation==='status'&&$original->getMessage()==='development_work_access_denied';
+                if ($change==='revoked') $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=?')->execute([$now,$raceConnection]);
+                elseif ($change==='admin_inactive') $pdo->exec('UPDATE managers SET is_active=0 WHERE id=1');
+                else $pdo->exec("UPDATE projects SET is_active=0 WHERE project_key='anytour'");
+                throw $original;
+            }
+        };
+        $raceService=new ManagerPreparationMcpService($pdo,null,null,$clock,null,null,null,null,null,null,$raceStore);
+        try {
+            $raceReply=$raceService->handle($statusRpc('PRIVATE_FOREIGN_QUEUE'),1,$raceConnection,[$devScope]);
+            devOauthCheck('fresh authority wins over real owned boundary exception '.$change,$realDenied&&$authDenied($raceReply)&&$beforeQueues===$queueSnapshot());
+        } finally {$pdo->exec('UPDATE managers SET is_active=1 WHERE id=1');$pdo->exec("UPDATE projects SET is_active=1 WHERE project_key='anytour'");}
+    }
+    $otherReadStore=static function(string $operation,array $arguments)use($statusQueue,$pdo,$now,$otherConnection):array {
+        $result=$statusQueue->$operation(...$arguments);
+        $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=?')->execute([$now,$otherConnection]);return $result;
+    };
+    $otherReadService=new ManagerPreparationMcpService($pdo,null,null,$clock,null,null,null,null,null,null,$otherReadStore);
+    devOauthCheck('successful real owned read is rechecked after revocation without leaking metadata',
+        $authDenied($otherReadService->handle($statusRpc('PRIVATE_FOREIGN_QUEUE'),1,$otherConnection,[$devScope])));
+    $busyStore=static function(string $operation,array $arguments)use($pdo):array {$pdo->beginTransaction();throw new DomainException('development_work_access_denied');};
+    $busyService=new ManagerPreparationMcpService($pdo,null,null,$clock,null,null,null,null,null,null,$busyStore);
+    try {
+        $busyReply=$busyService->handle($statusRpc('PRIVATE_FOREIGN_QUEUE'),1,$selfConnection,[$devScope]);
+        devOauthCheck('foreign active transaction cannot expose canonical self',$pdo->inTransaction()
+            &&$oauth->currentConnectionMetadata($selfConnection,1,[$devScope])===null&&$authDenied($busyReply));
+    } finally {if ($pdo->inTransaction()) $pdo->rollBack();}
+    $unrelatedStore=static function(string $operation,array $arguments):array {throw new DomainException('PRIVATE_UNRELATED_DOMAIN');};
+    $unrelatedService=new ManagerPreparationMcpService($pdo,null,null,$clock,null,null,null,null,null,null,$unrelatedStore);
+    $unrelated=$unrelatedService->handle($statusRpc('PRIVATE_FOREIGN_QUEUE'),1,$selfConnection,[$devScope]);
+    devOauthCheck('unmatched domain stays a hard denial without self or exception text',$authDenied($unrelated,null)
+        &&!str_contains(json_encode($unrelated,JSON_THROW_ON_ERROR),'PRIVATE_UNRELATED_DOMAIN'));
+
     $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=?')->execute([$now,$connections['dev']]);
     $denied=$call('tools/call',['name'=>'development_work_status','arguments'=>['queue_id'=>'SYNTHETIC_DEV']],'dev');
     $unsubscribed=$call('events/unsubscribe',$subscription,'dev');

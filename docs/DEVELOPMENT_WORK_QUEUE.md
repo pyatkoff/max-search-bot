@@ -218,3 +218,35 @@ A rollback must retain claims, UNKNOWN states, immutable task identities and
 receipt/resolution/append/retirement history. Never delete audit rows, migrate down, reset a
 held operation, replay work, remove the protected external-log boundary or
 weaken the existing source/review/install gates to make the queue advance.
+
+## Private status authorization diagnostics
+
+The existing `development_work_status` and `hotel_work_status` inputs and
+successful owned-queue responses are unchanged. After fresh canonical
+administrator, connection and required-capability authorization, an absent
+queue and a queue unavailable to that same caller return the identical tool
+result: `ok=false`, `reason=OWNED_QUEUE_UNAVAILABLE`,
+`queue_available=false`. This is an availability diagnostic, never a receipt
+or permission to create, claim, rebind or retry work.
+
+That private result includes only the current authenticated connection's
+`caller_self`: its opaque connection and client identifiers,
+`active_project_admin=true`, and boolean capabilities for reply preparation,
+hotel work, archive research and development work. Values come from the fresh
+canonical stored grant, not supplied arguments or the queried queue. No queue
+existence, identity, state, owner or foreign connection is disclosed. Do not
+copy this private self metadata into public diagnostics or release receipts.
+
+Invalid or stale caller context on those status tools retains RPC code
+`-32001` with the stable message code `AUTH_CONTEXT_UNAVAILABLE`; no self
+identity is returned. A valid context lacking a capability that is ineligible
+for the existing consent challenge uses `AUTH_SCOPE_UNAVAILABLE`. Eligible
+missing-capability calls keep their existing `mcp/www_authenticate` challenge
+and exact requested scope profile. Tool discovery, refresh and this diagnostic
+never grant a capability. No connection, queue, subscription or worker is
+created by a status read.
+
+Missing or invalid HTTP bearer credentials are rejected before the MCP service
+and retain the existing HTTP 401 OAuth challenge. A status diagnostic does not
+supply credentials or bypass that boundary. Authorization is checked again
+before any tool result leaves the service.
