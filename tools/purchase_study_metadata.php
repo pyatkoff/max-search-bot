@@ -45,6 +45,13 @@ final class PurchaseStudyMetadataAudit
         $v=$this->mysql?"JSON_UNQUOTE(JSON_EXTRACT($safe,'$path'))":"json_extract($safe,'$path')";
         return "CASE WHEN $t THEN $v ELSE NULL END";
     }
+    private function identity(string $safe,string $path): string
+    {
+        $t=$this->mysql?"JSON_TYPE(JSON_EXTRACT($safe,'$path')) IN ('STRING','INTEGER')":"json_type($safe,'$path') IN ('text','integer')";
+        $v=$this->mysql?"JSON_UNQUOTE(JSON_EXTRACT($safe,'$path'))":"json_extract($safe,'$path')";
+        $cast=$this->mysql?'CHAR':'TEXT';
+        return "CASE WHEN $t THEN CAST($v AS $cast) ELSE NULL END";
+    }
     public function collect(int $after,int $through): array
     {
         if($after<946684800||$through<$after||$through>time()||$this->pdo->inTransaction())throw new RuntimeException('audit_window');
@@ -102,7 +109,7 @@ final class PurchaseStudyMetadataAudit
             if($scopes){
                 $sj=$this->safe('v.snapshot_json');$raw=$this->get($sj,'$.payload.payload_json');$payload=$this->safe($raw);
                 $scope=[];$args=[$j,$after,$through];
-                foreach($scopes as$s){$scope[]='('.$this->get($sj,'$.project_key')."='anytour' AND ".$this->get($sj,'$.platform').'=? AND '.$this->get($sj,'$.customer_key').'=? AND '.$this->get($sj,'$.conversation_id').'=?)';array_push($args,$s['platform'],$s['customer_key'],$s['conversation_id']);}
+                foreach($scopes as$s){$scope[]='('.$this->get($sj,'$.project_key')."='anytour' AND ".$this->get($sj,'$.platform').'=? AND '.$this->identity($sj,'$.customer_key').'=? AND '.$this->identity($sj,'$.conversation_id').'=?)';array_push($args,$s['platform'],$s['customer_key'],$s['conversation_id']);}
                 $sql="SELECT v.id,v.observed_at_unix,".$this->get($sj,'$.source_status')." AS status,".$this->get($sj,'$.payload_status')." AS payload_status,".$this->get($sj,'$.source_timestamp_basis')." AS clock_basis,".$this->integer($sj,'$.source_created_at_unix')." AS recorded_unix,".$this->get($sj,'$.payload.event_type')." AS event_type,".$this->integer($payload,'$.version')." AS receipt_version,".$this->get($payload,'$.producer')." AS producer,".$this->get($payload,'$.actor_role')." AS actor_role,".$this->get($payload,'$.outcome')." AS outcome,".$this->integer($payload,'$._recorded_clock.unix')." AS clock_unix,".$this->get($payload,'$._recorded_clock.basis')." AS record_basis,".$this->integer($payload,'$._recorded_clock.version')." AS clock_version,".$this->get($payload,'$.profile_id')." AS bound_profile FROM modeled_conversion_stream_versions v WHERE v.project_key='anytour' AND v.source_kind='event' AND v.id<=? AND v.observed_at_unix>? AND v.observed_at_unix<=? AND (".implode(' OR ',$scope).") ORDER BY v.id DESC LIMIT 200";
                 $events=$this->rows($sql,$args);$out['event_metadata_revisions_examined']=count($events);$out['event_metadata_cap_reached']=count($events)===200;
                 foreach($events as$e){

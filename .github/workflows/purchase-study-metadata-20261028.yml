@@ -1,4 +1,5 @@
 name: Audit new purchase-study metadata once
+# Single execution authorization: claim6462241873; branch creation produced no run.
 on:
   push:
     branches: [wip/purchase-study-metadata-20261028, audit/purchase-study-metadata-exec-20261028]
@@ -61,7 +62,7 @@ jobs:
           php -l tools/purchase_study_metadata.php
           php tests/run_purchase_study_metadata_regression.php
           git fetch --no-tags origin refs/heads/main
-          test "$(git rev-parse FETCH_HEAD)" = 069da7f598e43a525eb9bca740ae67c61b7d83ce
+          test "$(git rev-parse FETCH_HEAD)" = 638841a8efebca37216ba986c671fd55c36fd58a
       - name: Prepare existing identity and strict canonical host pin
         env:
           TASK_DEPLOY_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
@@ -95,9 +96,9 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          timeout 25 ssh -i "$RUNNER_TEMP/purchase-study-key" -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$RUNNER_TEMP/purchase-study-hosts" -o ConnectTimeout=10 "$TASK_SSH_USER@$TASK_SSH_HOST" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(git rev-parse HEAD)" = 069da7f598e43a525eb9bca740ae67c61b7d83ce; php -d display_errors=0 -d log_errors=0; test "$(git rev-parse HEAD)" = 069da7f598e43a525eb9bca740ae67c61b7d83ce' < tools/purchase_study_metadata.php > "$RUNNER_TEMP/purchase-study-aggregate.raw"
+          timeout 25 ssh -i "$RUNNER_TEMP/purchase-study-key" -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$RUNNER_TEMP/purchase-study-hosts" -o ConnectTimeout=10 "$TASK_SSH_USER@$TASK_SSH_HOST" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(git rev-parse HEAD)" = 638841a8efebca37216ba986c671fd55c36fd58a; php -d display_errors=0 -d log_errors=0; test "$(git rev-parse HEAD)" = 638841a8efebca37216ba986c671fd55c36fd58a' < tools/purchase_study_metadata.php > "$RUNNER_TEMP/purchase-study-aggregate.raw"
           git fetch --no-tags origin refs/heads/main
-          test "$(git rev-parse FETCH_HEAD)" = 069da7f598e43a525eb9bca740ae67c61b7d83ce
+          test "$(git rev-parse FETCH_HEAD)" = 638841a8efebca37216ba986c671fd55c36fd58a
       - name: Validate exact aggregate whitelist before publication
         run: |
           set -euo pipefail

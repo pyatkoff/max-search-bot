@@ -176,6 +176,20 @@ try {
     studyMetadataCheck('malformed nested JSON and numeric-string versions remain uninterpreted safely',$out['event_metadata_revisions_examined']===5&&$out['uninterpreted_event_revisions']===2);
     studyMetadataCheck('non-integer or inconsistent clocks never become manager outcome evidence',$out['invalid_event_clock_revisions']===2&&$out['declared_manager_role_revisions']===0&&$out['declared_profile_reference_revisions']===0&&$out['purchase_label_readiness']===false);
 
+    // Native PDO BIGINT values are copied directly by the actual stream owner.
+    // Their JSON identity type is INTEGER on mysqlnd/SQLite, not always STRING.
+    $p=studyMetadataDb();studyMetadataScope($p,10,800001);
+    studyMetadataProfile($p,1,10,800001,$observed);
+    $native=$p->query('SELECT id AS conversation_id,customer_id AS customer_key FROM conversations WHERE id=10')->fetch();
+    studyMetadataEvent($p,1,10,800001,$at,$observed,'metrika_max_sale');
+    studyMetadataEvent($p,2,10,800001,$at,$observed,'sales_pipeline_outcome_observed',studyMetadataOutcome($at),
+        ['conversation_id'=>$native['conversation_id'],'customer_key'=>$native['customer_key']]);
+    studyMetadataEvent($p,3,10,800001,$at,$observed,'metrika_max_sale',[],['customer_key'=>true]);
+    studyMetadataEvent($p,4,10,800001,$at,$observed,'metrika_max_sale',[],['customer_key'=>'0800001']);
+    $out=(new PurchaseStudyMetadataAudit($p))->collect($after,$through);
+    studyMetadataCheck('native PDO identity values survive stream-shaped JSON beside canonical strings without false zero',
+        $out['event_metadata_revisions_examined']===2&&$out['declared_outcome_event_revisions']===1&&$out['ordinary_sale_marker_revisions']===1);
+
     // Saturated profile/event pages are explicitly partial, with four scopes only.
     $p=studyMetadataDb();
     for($i=1;$i<=70;$i++){
