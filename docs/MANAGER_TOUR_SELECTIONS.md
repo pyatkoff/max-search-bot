@@ -807,6 +807,31 @@ dependency drift refuses reconciliation instead of silently replacing it; a
 deliberate common release must resolve that incompatibility. No session, cookie,
 API, database, collector or sender owner changes in this release seam.
 
+The explicit common-release path resolves the accepted independent editor0.2.2
+versus collector0.6.6 shared-input drift with a new main editor0.2.3 artifact.
+It retains the accepted short-screen CSS and scenario from PR1178. Ordinary
+`install` still refuses incompatible independent code; runtime `installed`,
+`entry` and assets still require the current backend fingerprint.
+
+The normal host publisher first obtains `common-status` under the operation lock.
+Only an intrinsically intact prior independent package with matching immutable
+payload/seal, accepted receipt, active receipt and activated operation can return
+its expected-package CAS. A pending or reserved/UNKNOWN operation blocks the
+common path. The publisher then explicitly calls `install-common` with that CAS
+and a unique run/attempt operation. The installed backend's canonical admission
+helper verifies the clean exact main Git/tree, full artifact/archive/payload,
+collector ZIP and current fingerprint; the new version must exceed the prior
+version. This is a new immutable release, never an in-place repair of an old seal.
+
+`activate-common` and `rollback-common` require the same operation and release
+kind. A known active result can be read back; a consumed or different operation
+cannot relabel an existing immutable candidate. Lost/unconfirmed installation
+results are not retried or automatically rolled back. A confirmed staged install
+whose strict smoke fails restores the exact prior pointer/active/seal. If that
+prior package is incompatible with the new backend, it remains unavailable after
+rollback; the compatibility check is not weakened to manufacture a working old
+editor. Only successful strict activation exposes the restored standalone link.
+
 The deployment regression installs/activates A, changes frontend-only B, fails
 B smoke, rolls back, then serves A's actual PHP shell and sealed assets and runs
 protected draft GET/save/retry/reload over loopback HTTP. It separately rejects

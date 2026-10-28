@@ -1095,15 +1095,32 @@ test('automatic gallery unavailable source never asks for three manual uploads',
 });
 
 const {privateEditor}=require('./fixtures/selection-private-editor');
-for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420}])test('private editor uses the same protected core in tours iframe '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
+for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420},{width:430,height:420}])test('private editor uses the same protected core in tours iframe '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
  await page.setViewportSize(viewport);const s=await privateEditor(page,{draft:completeDraft()}),f=s.editor;
  await expect(f.locator('#ts-hotel')).toHaveValue('Синтетический отель у моря');await expect(f.locator('#ts-amount')).toHaveValue('240000');
  expect(await page.evaluate(()=>window.WorkspaceV2)).toBeUndefined();expect(await page.frames()[1].evaluate(()=>window.WorkspaceV2)).toBeUndefined();
+ if(viewport.height===420){
+  // A visible footer alone is insufficient: a manager must be able to see the
+  // entire focused field through every scroll/clip ancestor, including WebKit.
+  for(const selector of ['#ts-hotel','#ts-amount']){
+   const input=f.locator(selector);await input.scrollIntoViewIfNeeded();
+   await expect.poll(()=>input.evaluate(el=>{
+    const r=el.getBoundingClientRect();let top=Math.max(0,r.top),bottom=Math.min(innerHeight,r.bottom),left=Math.max(0,r.left),right=Math.min(innerWidth,r.right);
+    for(let p=el.parentElement;p;p=p.parentElement){
+     const s=getComputedStyle(p),b=p.getBoundingClientRect();
+     if(/auto|scroll|hidden|clip/.test(s.overflowY)){top=Math.max(top,b.top+p.clientTop);bottom=Math.min(bottom,b.top+p.clientTop+p.clientHeight);}
+     if(/auto|scroll|hidden|clip/.test(s.overflowX)){left=Math.max(left,b.left+p.clientLeft);right=Math.min(right,b.left+p.clientLeft+p.clientWidth);}
+    }
+    return bottom-top>=r.height-1&&right-left>=r.width-1;
+   })).toBe(true);
+  }
+  await f.locator('#ts-amount').fill('240001');
+ }
  await f.locator('#ts-hotel').fill('Сохранённый отдельный редактор');await f.locator('#tsSave').click();await expect(f.locator('#tsSaved')).toHaveText('Сохранено на сервере');
  await expect(f.locator('#tsClose')).toBeInViewport();await expect(f.locator('#tsCollector')).toBeInViewport();await expect(f.locator('#tsSave')).toBeInViewport();
  expect(await f.locator('#tourSelectionDialog').evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThanOrEqual(1);
  fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`private-editor-${browserName}-${viewport.width}x${viewport.height}.png`)});
- await page.reload();await expect(f.locator('#ts-hotel')).toHaveValue('Сохранённый отдельный редактор');expect(s.snapshot().draft.offers[0].amount).toBe('240000');expect(s.calls.filter(x=>x.action==='save')).toHaveLength(1);expect(s.calls.every(x=>['me','editor_context','get','save'].includes(x.action))).toBe(true);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+ await page.reload();await expect(f.locator('#ts-hotel')).toHaveValue('Сохранённый отдельный редактор');await expect(f.locator('#ts-amount')).toHaveValue(viewport.height===420?'240001':'240000');expect(s.snapshot().draft.offers[0].amount).toBe(viewport.height===420?'240001':'240000');expect(s.calls.filter(x=>x.action==='save')).toHaveLength(1);expect(s.calls.every(x=>['me','editor_context','get','save'].includes(x.action))).toBe(true);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
 });
 for(const [name,options,message] of [['anonymous',{actor:0},'войдите'],['different account',{actor:8},'другой аккаунт'],['denied conversation',{allowed:false},'недоступна'],['invalid CSRF',{fail:'csrf'},'подтвердить доступ']])test('private editor blocks '+name+' before loading a draft',async({page})=>{
  const s=await privateEditor(page,options);await expect(s.editor.locator('#editorMessage')).toContainText(message);await expect(s.editor.locator('#tourSelectionDialog')).toHaveCount(0);expect(s.calls.filter(x=>x.action==='get'||x.action==='save')).toHaveLength(0);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
