@@ -3,8 +3,10 @@
 import copy
 import json
 from pathlib import Path
+import shutil
 import subprocess
 import sys
+import tempfile
 import unittest
 from unittest.mock import patch
 
@@ -14,14 +16,17 @@ import purchase_conversion_study as study
 import purchase_study_runtime as runtime
 from run_purchase_conversion_study import case, receipt, later, REGISTERED, TRAIN, FIT, CONTROL, PREDICT, EVALUATE
 
+READER_SHA = 'a'*64
+
 
 def request(now, state_json=None, operation='advance', cursor='0', profiles=(), updates=()):
-    return {'operation': operation, 'state_json': state_json, 'now': now, 'reader_sha256': 'a'*64,
+    return {'operation': operation, 'state_json': state_json, 'now': now, 'reader_sha256': READER_SHA,
             'profile_fence': cursor, 'profile_cursor': cursor, 'profiles': list(profiles), 'updates': list(updates)}
 
 
 def entry(c, index):
     p = c['packet']; proof = copy.deepcopy(c['admission']); proof['profile_id'] = str(index)
+    proof['reader_sha256'] = READER_SHA
     return {'db_profile_id': str(index), 'observed_at': p['frozen_at'],
             'wrapper': {'subject': p['scope'], 'access_status': 'allowed', 'purchase_study': p}, 'admission': proof}
 
@@ -69,6 +74,58 @@ def fitted_state():
 
 
 class RuntimeTests(unittest.TestCase):
+    @unittest.skipUnless(shutil.which('php'), 'PHP available in required CI; local Python-only runtime')
+    def test_actual_php_private_store_preserves_fitted_model_and_forecasts_for_evaluation(self):
+        # Actual PHP owner methods, not a replacement JSON persistence algorithm.
+        # The cohort is synthetic; this verifies transport, never predictive gain.
+        prefix = 'require $argv[1]."/services/ModeledConversionPurchaseStudy.php";'
+        reader = subprocess.run(['php', '-r', prefix+
+            '$method=new ReflectionMethod(ModeledConversionPurchaseStudy::class,"readerSha");echo $method->invoke(null);', str(ROOT)],
+            capture_output=True)
+        self.assertEqual(reader.returncode, 0, reader.stderr)
+        reader_sha = reader.stdout.decode()
+        self.assertTrue(study.hash_value(reader_sha))
+        with patch(__name__+'.READER_SHA', reader_sha):
+            result, train, _ = fitted_state()
+            controls = [case('php-persist-control:'+str(i), CONTROL, i % 2, i % 2, 'control') for i in range(40)]
+            result = add_cases(result['state_json'], controls, PREDICT, 42)
+            before = json.loads(result['state_json'])
+            self.assertEqual(len(before['predictions']), 40)
+            program = prefix+'''
+                $input=json_decode(stream_get_contents(STDIN),true,16,JSON_THROW_ON_ERROR);
+                $owner=new ModeledConversionPurchaseStudy(new PDO('sqlite::memory:'),$argv[2]);
+                $type=new ReflectionClass($owner);
+                $type->getMethod('directory')->invoke($owner,true);
+                $lock=$type->getMethod('lock')->invoke($owner,LOCK_EX);
+                if(!is_resource($lock))throw new RuntimeException('fixture_lock');
+                try{
+                    $receipt=$input['summary']+array_fill_keys($type->getConstant('COUNTERS'),0)
+                        +['observed_at_utc'=>gmdate('Y-m-d\\TH:i:s\\Z')];
+                    $type->getMethod('write')->invoke($owner,$input['state_json'],$receipt);
+                    $saved=$type->getMethod('read')->invoke($owner);
+                    echo json_encode(['state_json'=>$saved['state_json'],
+                        'model_sha256'=>$saved['state']['model']['sha256'],
+                        'predictions'=>count($saved['state']['predictions']),
+                        'file_mode'=>fileperms($argv[2].'/state.json')&0777],JSON_THROW_ON_ERROR);
+                }finally{flock($lock,LOCK_UN);fclose($lock);}
+            '''
+            with tempfile.TemporaryDirectory(prefix='purchase-study-php-') as directory:
+                saved = subprocess.run(['php', '-r', program, str(ROOT), directory+'/private'],
+                    input=json.dumps(result).encode(), capture_output=True)
+                self.assertEqual(saved.returncode, 0, saved.stderr)
+                stored = json.loads(saved.stdout)
+            self.assertEqual(stored['state_json'], result['state_json'])
+            self.assertEqual(stored['model_sha256'], before['model']['sha256'])
+            self.assertEqual(stored['predictions'], 40)
+            self.assertEqual(stored['file_mode'], 0o600)
+            reloaded = call(request(PREDICT, stored['state_json'], cursor='81'))
+            evaluated = apply_updates(reloaded['state_json'], controls, EVALUATE)
+            final = json.loads(evaluated['state_json'])
+            self.assertEqual(final['model'], before['model'])
+            self.assertEqual(final['predictions'], before['predictions'])
+            self.assertEqual(evaluated['summary']['paired_resolved_people'], 40)
+            self.assertEqual(evaluated['summary']['comparison_available'], 1)
+
     def test_init_is_actual_and_excludes_prior_profile_fence(self):
         result = call(request(REGISTERED, operation='init', cursor='991'))
         state = json.loads(result['state_json'])

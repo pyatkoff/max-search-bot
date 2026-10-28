@@ -248,18 +248,21 @@ final class ModeledConversionPurchaseStudy
 
     private function packet(string $id):?array
     {
-        $safe=$this->safe('profile_json');$raw=$this->mysql?"JSON_EXTRACT($safe,'$.purchase_study')":"json_extract($safe,'$.purchase_study')";
-        $length=$this->mysql?'OCTET_LENGTH':'LENGTH';
-        $size=$this->query("SELECT $length($raw) AS bytes FROM modeled_conversion_profile_versions WHERE project_key='anytour' AND id=?",[$id]);
+        // JSON_EXTRACT serializes native MySQL doubles again, which can change a
+        // sealed artifact's numbers. Read only this admitted post-registration
+        // wrapper's original bytes, then project its packet locally. Budget the
+        // whole wrapper; neither source journal text nor old wrappers are read.
+        $sizeSql=$this->mysql?'OCTET_LENGTH(profile_json)':'LENGTH(CAST(profile_json AS BLOB))';
+        $size=$this->query("SELECT $sizeSql AS bytes FROM modeled_conversion_profile_versions WHERE project_key='anytour' AND id=?",[$id]);
         $n=(int)($size[0]['bytes']??0);
         if($n<1){$this->counts['missing_or_invalid_packets']++;return null;}
         if($n>self::RAW_BYTES){$this->counts['oversize_packets']++;return null;}
         if($this->bytes+$n>self::RAW_BYTES){$this->packetBudgetPaused=true;$this->counts['budget_paused']++;return null;}
-        $r=$this->query("SELECT $raw AS packet FROM modeled_conversion_profile_versions WHERE project_key='anytour' AND id=?",[$id]);
-        $json=$r[0]['packet']??null;
+        $r=$this->query("SELECT profile_json AS wrapper FROM modeled_conversion_profile_versions WHERE project_key='anytour' AND id=?",[$id]);
+        $json=$r[0]['wrapper']??null;
         if(!is_string($json)||strlen($json)!==$n)self::fail('packet_changed');
         $this->bytes+=$n;$this->counts['profile_packets_read']++;
-        try{$packet=json_decode($json,true,128,JSON_THROW_ON_ERROR);}catch(Throwable $ignored){$packet=null;}
+        try{$wrapper=json_decode($json,true,128,JSON_THROW_ON_ERROR);$packet=is_array($wrapper)?($wrapper['purchase_study']??null):null;}catch(Throwable $ignored){$packet=null;}
         if(!is_array($packet)){$this->counts['missing_or_invalid_packets']++;return null;}
         return$packet;
     }
