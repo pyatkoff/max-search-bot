@@ -279,6 +279,219 @@ function archiveResearchReadRegression(PDO $pdo): int
         $check(strlen(json_encode($final,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR))<=ArchiveResearchReadService::MAX_RESPONSE_BYTES,'full_envelope_byte_cap');
         $check(!$pdo->inTransaction(),'successful_read_rolls_back');
         if(!$mysql)$check((int)$pdo->query('PRAGMA query_only')->fetchColumn()===0,'sqlite_query_only_restored');
+        // Explicit feature mode is opt-in through a separate cursor; old inventory pages stay metadata-only.
+        $seed(2400,100,197,1,'Готовы бронировать, пришлите ссылку на оплату. https://example.test/private +7 999 123-45-67 @synthetic_handle');
+        $seed(2401,100,197,2,'Деньги поступили, оплату вижу.',['sender_id'=>'100','sender_type'=>'manager','direction'=>'outbound']);
+        $seed(2402,100,197,3,'Я оплатил.',['sender_id'=>'500']);
+        $seed(2403,100,197,4,'Я оплатил.',['is_forwarded'=>true]);
+        $seed(2404,100,197,5,'Завтра оплачу.');
+        $seed(2405,100,197,6,'Не готов бронировать, если отпуск подтвердят.');
+        $seed(2406,100,197,7,'Я оплатил.',['is_forwarded'=>null]);
+        for($n=1;$n<=1005;$n++)$seed(5000+$n,100,194,$n,'Synthetic metadata row budget.');
+        $seed(2500,100,195,1,str_repeat('z',ArchiveResearchReadService::MAX_RECORD_BYTES+100));
+        for($n=1;$n<=60;$n++)$seed(2600+$n,100,196,$n,str_repeat('b',20000));
+        ArchiveResearchTraceStatement::$queries=[];
+        $metadataOnly=$service->inventory(1,$connection,['limit'=>1]);
+        $featureStart=$metadataOnly['feature_scan']['start_cursor'];
+        $check($metadataOnly['feature_scan']['invoked']===false&&$metadataOnly['feature_scan']['explicit_stored_text_read']===true
+            &&$metadataOnly['feature_scan']['operation']==='lexical_feature_inventory'
+            &&$metadataOnly['feature_scan']['pattern_set_version']===ArchiveResearchFeatureExtractor::PATTERN_SET_VERSION
+            &&!array_filter(ArchiveResearchTraceStatement::$queries,static fn($sql)=>str_contains($sql,'record_json')),
+            'feature_descriptor_is_explicit_without_reading_stored_text');
+        ArchiveResearchTraceStatement::$queries=[];
+        $legacyPage=$service->inventory(1,$connection,['cursor'=>$metadataOnly['next_cursor'],'limit'=>1]);
+        $check(!isset($legacyPage['windows'])&&isset($legacyPage['chats'])
+            &&!array_filter(ArchiveResearchTraceStatement::$queries,static fn($sql)=>str_contains($sql,'record_json')),
+            'old_inventory_cursor_never_switches_to_text_mode');
+        $beforeFeatures=$fingerprint();$blockedWrite=false;
+        $featureFirst=$service->inventory(1,$connection,['cursor'=>$featureStart,'limit'=>50]);
+        $check($blockedWrite&&!$pdo->inTransaction()&&$beforeFeatures===$fingerprint(),'feature_read_is_readonly_and_rolls_back');
+        $context=$service->history(1,$connection,['chat_ref'=>$featureFirst['windows'][0]['chat_ref'],'limit'=>1]);
+        $check($context['messages'][0]['native_message_id']==='1'
+            &&$context['messages'][0]['text']==='Synthetic metadata row budget.','feature_window_chat_ref_opens_existing_full_context_reader');
+        $check($featureFirst['operation']==='lexical_feature_inventory'&&$featureFirst['stored_text_read']===true
+            &&$featureFirst['model_calls']===0&&$featureFirst['cumulative_counts']===null
+            &&$featureFirst['semantic_review_complete']===false,'feature_output_is_windowed_lexical_research_without_labels');
+        $check($featureFirst['page_metadata_rows']<=1000&&$featureFirst['page_source_json_bytes']<=1048576
+            &&$featureFirst['has_more']&&$featureFirst['page_returned_records']>0
+            &&strlen(json_encode($featureFirst,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR))<=65536,
+            'feature_metadata_source_and_response_budgets_preserve_progress');
+        $repeat=$service->inventory(1,$connection,['cursor'=>$featureStart,'limit'=>50]);
+        $check(json_encode($featureFirst,JSON_THROW_ON_ERROR)===json_encode($repeat,JSON_THROW_ON_ERROR),
+            'same_source_window_and_run_have_deterministic_counts_evidence_and_ids');
+        $oldVersion=$pdo->query('SELECT record_json FROM telegram_dialogue_messages WHERE id=5001')->fetchColumn();
+        $edited=json_decode($oldVersion,true,64,JSON_THROW_ON_ERROR);$edited['text']='Готовы бронировать.';
+        $pdo->prepare('UPDATE telegram_dialogue_messages SET record_json=? WHERE id=5001')->execute([json_encode($edited,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR)]);
+        $changedVersion=$service->inventory(1,$connection,['cursor'=>$featureStart,'limit'=>50]);
+        $check($changedVersion['windows'][0]['chat_key']===$featureFirst['windows'][0]['chat_key']
+            &&$changedVersion['windows'][0]['source_window_id']!==$featureFirst['windows'][0]['source_window_id'],
+            'feature_window_hash_tracks_current_body_changes_even_without_version_timestamp_change');
+        $pdo->prepare('UPDATE telegram_dialogue_messages SET record_json=? WHERE id=5001')->execute([$oldVersion]);
+        $featureWindows=[];$featureCursor=$featureStart;$featurePages=0;$sawRowBoundary=false;$sawByteBoundary=false;
+        do{
+            $page=$service->inventory(1,$connection,['cursor'=>$featureCursor,'limit'=>50]);
+            $sawRowBoundary=$sawRowBoundary||$page['page_metadata_rows']===1000;
+            $sawByteBoundary=$sawByteBoundary||($page['page_source_json_bytes']>900000&&$page['has_more']);
+            $check($page['page_metadata_rows']<=1000&&$page['page_source_json_bytes']<=1048576
+                &&count($page['windows'])<=50&&strlen(json_encode($page,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR))<=65536,
+                'feature_each_page_stays_within_hard_budgets');
+            $check(array_sum(array_map(static fn($w)=>count($w['evidence']),$page['windows']))<=8
+                &&array_sum(array_map(static fn($w)=>count($w['control_samples']),$page['windows']))<=4,
+                'feature_evidence_and_control_samples_are_bounded_per_response');
+            array_push($featureWindows,...$page['windows']);$featureCursor=$page['next_cursor'];
+            if(++$featurePages>12)throw new RuntimeException('feature_paging_did_not_advance');
+        }while($featureCursor!==null);
+        $check($sawRowBoundary&&$sawByteBoundary,'feature_row_and_raw_byte_boundaries_are_both_exercised');
+        $featureRecords=0;$sourceKinds=['desktop_import'=>0,'business_message'=>0];$counts=[];$patternFlags=[];$plainCounts=[];$readCoverage=[];$extractCoverage=[];$flagCoverage=[];$chatWindows=[];
+        $evidenceJson='';
+        foreach($featureWindows as$window){
+            $check(array_sum($window['source_kind_counts'])===$window['source_records'],'feature_window_source_kinds_cover_all_returned_records');
+            foreach($window['source_kind_counts']as$kind=>$n)$sourceKinds[$kind]+=$n;
+            $check(array_sum($window['timing_window']['verified_role_message_counts'])===$window['source_records']
+                &&$window['timing_window']['version']==='observed_role_switch_v1','feature_window_includes_observed_role_and_timing_coverage');
+            $featureRecords+=$window['source_records'];$chatWindows[$window['chat_key']]=($chatWindows[$window['chat_key']]??0)+1;
+            foreach($window['pattern_message_counts']as$id=>$n)$counts[$id]=($counts[$id]??0)+$n;
+            foreach($window['candidate_flag_counts']as$id=>$values)foreach($values as$flag=>$n)$patternFlags[$id][$flag]=($patternFlags[$id][$flag]??0)+$n;
+            foreach($window['unforwarded_verified_role_counts']as$id=>$n)$plainCounts[$id]=($plainCounts[$id]??0)+$n;
+            foreach($window['read_status_counts']as$id=>$n)$readCoverage[$id]=($readCoverage[$id]??0)+$n;
+            foreach($window['extractor_status_counts']as$id=>$n)$extractCoverage[$id]=($extractCoverage[$id]??0)+$n;
+            foreach($window['flag_counts']as$id=>$n)$flagCoverage[$id]=($flagCoverage[$id]??0)+$n;
+            foreach([...$window['evidence'],...$window['control_samples']]as$proof){
+                $check(strlen($proof['fragment'])<=384&&preg_match('//u',$proof['fragment'])===1
+                    &&str_starts_with($proof['source_ref'],'archive_message:'),'feature_evidence_is_bounded_utf8_with_source_reference');
+                $evidenceJson.=json_encode($proof,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);
+            }
+        }
+        $check($sourceKinds===['desktop_import'=>1305,'business_message'=>2],'feature_denominator_separates_historical_import_and_linked_business_records');
+        $check($featureRecords===1307&&count($chatWindows)===12
+            &&count(array_unique(array_column($featureWindows,'source_window_id')))===count($featureWindows)
+            &&max($chatWindows)>1,'feature_keyset_covers_each_source_prefix_and_preserves_chat_keys_across_windows');
+        $check(($readCoverage['oversized_record']??0)===1&&($readCoverage['malformed_record']??0)===1
+            &&($readCoverage['deleted']??0)===1&&($readCoverage['permission_unverified']??0)===1
+            &&($extractCoverage['unknown_role']??0)===2&&($extractCoverage['text_too_large']??0)===1,
+            'feature_skipped_record_and_role_coverage_are_explicit');
+        $check(($counts['payment_self_report']??0)===2&&($plainCounts['payment_self_report']??0)===0
+            &&($counts['manager_payment_ack']??0)===1&&($flagCoverage['unknown_forwarded']??0)>=1
+            &&($flagCoverage['forwarded']??0)>=2&&($patternFlags['ready_to_book']['negation']??0)===1
+            &&($patternFlags['ready_to_book']['conditional']??0)===1,
+            'feature_money_role_forwarding_and_qualifier_counts_do_not_become_events');
+        $check(!str_contains($evidenceJson,'example.test')&&!str_contains($evidenceJson,'999 123-45-67')
+            &&!str_contains($evidenceJson,'@synthetic_handle')&&!str_contains($evidenceJson,'WRONG BOT')
+            &&!str_contains($evidenceJson,'BUSINESS ONLY'),'feature_evidence_uses_minimized_admitted_text_only');
+        $decodeToken=static fn(string$token)=>json_decode(base64_decode(strtr(explode('.',$token)[0],'-_','+/')),true);
+        $featureState=$decodeToken($featureFirst['next_cursor']);
+        $check($featureState['k']==='feature_inventory'&&$featureState['n']!=='0'
+            &&!isset($featureState['counts'])&&!isset($featureState['permissions']),'feature_cursor_contains_position_not_cumulative_authority');
+        $now+=ArchiveResearchReadService::CURSOR_TTL-1;
+        $renewed=$service->inventory(1,$connection,['cursor'=>$featureFirst['next_cursor'],'limit'=>1]);
+        $check($decodeToken($renewed['next_cursor'])['e']>$featureState['e'],'feature_cursor_renews_expiry_only_after_fresh_authorized_read');
+        $now=1700000100;
+        $badFeature=$decodeToken($featureStart);$badFeature['k']='unknown_feature_mode';
+        $reject(fn()=>$service->inventory(1,$connection,['cursor'=>$sign($badFeature)]),'stale_cursor');
+        $badFeature=$decodeToken($featureStart);$badFeature['counts']=999;
+        $reject(fn()=>$service->inventory(1,$connection,['cursor'=>$sign($badFeature)]),'stale_cursor');
+        $reject(fn()=>$service->history(1,$connection,['chat_ref'=>$featureStart]),'stale_cursor');
+        $reject(fn()=>$service->inventory(1,$connection,['cursor'=>$first['next_cursor']]),'stale_cursor');
+        $badFeature=$decodeToken($featureStart);$badFeature['a']='102';$badFeature['c']='300';
+        $reject(fn()=>$service->inventory(1,$connection,['cursor'=>$sign($badFeature)]),'forbidden');
+        $badFeature=$decodeToken($featureStart);$badFeature['a']='100';$badFeature['c']='198';
+        $businessOnly=$service->inventory(1,$connection,['cursor'=>$sign($badFeature),'limit'=>1]);
+        $check(!str_contains(json_encode($businessOnly),'BUSINESS ONLY'),'forged_feature_position_cannot_create_historical_chat_admission');
+        $featureRevocations=0;
+        $featureRevoker=static function(int$a,string$c)use($pdo,&$featureRevocations,&$key):string{
+            if(++$featureRevocations===2)$pdo->exec("UPDATE telegram_archive_accounts SET approved=0 WHERE account_id=100");
+            return$key;
+        };
+        $featureRace=new ArchiveResearchReadService($pdo,static fn()=>1700000100,$featureRevoker);
+        $reject(fn()=>$featureRace->inventory(1,$connection,['cursor'=>$featureStart]),'permission_changed');
+        $check(!$pdo->inTransaction(),'feature_post_read_revocation_withholds_all_windows');
+        $pdo->exec("UPDATE telegram_archive_accounts SET approved=1 WHERE account_id=100");
+        $pdo->exec("UPDATE telegram_archive_accounts SET approved=0 WHERE account_id=100");
+        $remainingFence=(int)$pdo->query("SELECT MAX(id) FROM telegram_dialogue_messages WHERE project_key='anytour' AND account_id IN (101,105,107)")->fetchColumn();
+        $check($remainingFence<(int)$featureState['f'],'feature_revocation_fixture_shrinks_current_fence');
+        $reject(fn()=>$service->inventory(1,$connection,['cursor'=>$featureFirst['next_cursor']]),'forbidden');
+        $check(!$pdo->inTransaction(),'feature_current_account_denial_precedes_smaller_fence_recovery');
+        $pdo->exec("UPDATE telegram_archive_accounts SET approved=1 WHERE account_id=100");
+        // Numeric timing is tested on synthetic projected edges, independent of lexical cues.
+        $timingMethod=new ReflectionMethod(ArchiveResearchReadService::class,'timingWindow');$timingMethod->setAccessible(true);
+        $timed=static fn(string$role,?int$time,int$id,array$extra=[]):array=>array_replace(
+            ['read_status'=>'available','role'=>$role,'role_verified'=>$role!=='unknown','created_at'=>$time,'source_ref'=>'archive_message:'.$id],$extra);
+        $sequence=[$timed('customer',100,1),$timed('customer',130,2),$timed('manager',180,3),
+            $timed('manager',200,4),$timed('customer',500,5),$timed('manager',2400,6)];
+        $whole=$timingMethod->invoke(null,$sequence);
+        $check($whole['response_delta_histograms_seconds']['manager_response']===['le_60'=>1,'le_7200'=>1]
+            &&$whole['response_delta_histograms_seconds']['customer_response']===['le_300'=>1]
+            &&$whole['verified_role_message_counts']===['customer'=>3,'manager'=>3,'unknown'=>0],
+            'timing_coalesces_same_role_runs_using_last_observed_timestamp');
+        $joinHist=static function(array$left,array$right):array{
+            $hist=['customer_response'=>[],'manager_response'=>[]];
+            foreach([$left,$right]as$window)foreach($window['response_delta_histograms_seconds']as$name=>$bins)
+                foreach($bins as$bin=>$n)$hist[$name][$bin]=($hist[$name][$bin]??0)+$n;
+            $before=$left['last_edge'];$after=$right['first_edge'];
+            if($before!==null&&$after!==null&&$after['time']>=$before['time']&&$after['role']!==$before['role']){
+                $delta=$after['time']-$before['time'];$bin='gt_604800';
+                foreach([60,300,1800,7200,86400,604800]as$ceiling)if($delta<=$ceiling){$bin='le_'.$ceiling;break;}
+                $name=$after['role'].'_response';$hist[$name][$bin]=($hist[$name][$bin]??0)+1;
+            }
+            return$hist;
+        };
+        foreach([2,3]as$split){
+            $left=$timingMethod->invoke(null,array_slice($sequence,0,$split));$right=$timingMethod->invoke(null,array_slice($sequence,$split));
+            $check($joinHist($left,$right)==$whole['response_delta_histograms_seconds'],
+                'timing_adjacent_window_edges_reconstruct_whole_observed_sequence_'.$split);
+        }
+        $barriers=$timingMethod->invoke(null,[$timed('customer',100,1),$timed('unknown',110,2),$timed('manager',150,3),
+            $timed('customer',null,4),$timed('manager',160,5),$timed('unknown',170,6,['read_status'=>'deleted']),
+            $timed('customer',180,7),$timed('customer',170,8),$timed('manager',200,9)]);
+        $check($barriers['barriers']===['source_unavailable'=>1,'unknown_role'=>1,'unknown_time'=>1,'nonmonotonic_time'=>1]
+            &&$barriers['response_delta_histograms_seconds']===['customer_response'=>[],'manager_response'=>['le_60'=>1]],
+            'timing_unknown_missing_deleted_and_reversed_clock_break_previous_continuity');
+        $edgeLeft=$timingMethod->invoke(null,[$timed('customer',100,1),$timed('unknown',110,2,['read_status'=>'deleted'])]);
+        $edgeRight=$timingMethod->invoke(null,[$timed('unknown',120,3),$timed('manager',130,4)]);
+        $check($edgeLeft['last_edge']===null&&$edgeRight['first_edge']===null
+            &&$joinHist($edgeLeft,$edgeRight)===['customer_response'=>[],'manager_response'=>[]],
+            'timing_window_boundaries_do_not_bridge_through_unknown_or_unavailable_records');
+        $clockSequence=[$timed('customer',100,1),$timed('manager',90,2),$timed('customer',120,3)];
+        $clockWhole=$timingMethod->invoke(null,$clockSequence);$clockLeft=$timingMethod->invoke(null,array_slice($clockSequence,0,1));
+        $clockRight=$timingMethod->invoke(null,array_slice($clockSequence,1));
+        $check($clockWhole['barriers']['nonmonotonic_time']===1
+            &&$joinHist($clockLeft,$clockRight)==$clockWhole['response_delta_histograms_seconds'],
+            'timing_cross_window_negative_clock_delta_is_withheld_without_changing_next_baseline');
+        // Rich small chats exercise whole-output prefix trimming independently of source/metadata limits.
+        $pdo->exec("INSERT INTO telegram_archive_accounts VALUES('anytour','Wire',109,'wire',1,1,NULL)");
+        $pdo->exec("INSERT INTO telegram_dialogue_connections VALUES('anytour','Wire','wire',109,1)");
+        $rich='В прошлом году не готовы бронировать, если возможно завтра готовы оплатить. Только у вас, где офис? '
+            .'Пришлите договор, форму оплаты картой и ссылку на оплату. Я оплатил остаток и доплату за бизнес-класс. '
+            .'Возврат? Бронь подтверждена, получил документы. Подберите другие варианты, купил в другом агентстве, позже. '
+            .'https://qui-quo.ru/private';
+        for($n=0;$n<50;$n++)$seed(7000+$n,109,10000+$n,1,$rich,['created_at'=>null,'is_forwarded'=>true,
+            'attachments'=>[['type'=>'image','reference'=>'private.jpg','availability'=>'not_exported']]]);
+        $wireMetadata=$service->inventory(1,$connection,['limit'=>50]);$wireStart=$wireMetadata['feature_scan']['start_cursor'];
+        $wireAlias=null;
+        foreach($wireMetadata['chats']as$chat)if($decodeToken($chat['chat_ref'])['a']==='109'){$wireAlias=$chat['account_alias'];break;}
+        $check($wireAlias!==null,'wire_fixture_account_is_currently_admitted');
+        $wireCursor=$wireStart;$wirePages=0;$trimmed=false;$wireKeys=[];$wireCount=0;
+        do{
+            $page=$service->inventory(1,$connection,['cursor'=>$wireCursor,'limit'=>50]);
+            $trimmed=$trimmed||$page['read_but_not_returned_records']>0;
+            $check(strlen(json_encode($page,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR))<=65536,
+                'rich_feature_output_is_trimmed_to_whole_response_budget');
+            foreach($page['windows']as$window)if($window['account_alias']===$wireAlias){
+                $wireKeys[]=$window['chat_key'];$wireCount+=$window['source_records'];
+                $check($window['source_records']===1&&count($window['pattern_message_counts'])>=12,
+                    'wire_trim_fixture_contains_rich_single_record_windows');
+            }
+            $wireCursor=$page['next_cursor'];if(++$wirePages>20)throw new RuntimeException('feature_wire_paging_did_not_advance');
+        }while($wireCursor!==null);
+        $check($trimmed&&$wireCount===50&&count($wireKeys)===50&&count(array_unique($wireKeys))===50,
+            'wire_prefix_trim_advances_only_returned_windows_without_gaps_or_duplicates');
+        $endState=$decodeToken($wireStart);$endState['a']='109';$endState['c']='10048';$endState['n']='1';
+        $lastWindow=$service->inventory(1,$connection,['cursor'=>$sign($endState),'limit'=>1]);
+        $check(count($lastWindow['windows'])===1&&$lastWindow['has_more']&&$lastWindow['next_cursor']!==null,
+            'limit_one_last_chat_returns_progress_cursor_without_unbounded_lookahead');
+        $terminal=$service->inventory(1,$connection,['cursor'=>$lastWindow['next_cursor'],'limit'=>1]);
+        $check($terminal['windows']===[]&&!$terminal['has_more']&&$terminal['next_cursor']===null
+            &&$terminal['scan_traversal_exhausted_within_fence'],'conservative_feature_cursor_reaches_empty_terminal_page');
         echo 'Archive research read checks: '.$checks." passed.\n";
         return$checks;
     }finally{
