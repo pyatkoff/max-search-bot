@@ -63,7 +63,7 @@ function preparationOauthGrant(ManagerPreparationOAuth $oauth, string $client, i
 }
 
 /** Read the actual rendered successful controls, not a hand-invented POST body. */
-function preparationOauthConsentForm(string $html, string $decision): array
+function preparationOauthConsentForm(string $html, string $decision, string $action='/manager/ai-oauth.php?action=authorize'): array
 {
     $dom=new DOMDocument();
     $previous=libxml_use_internal_errors(true);
@@ -74,7 +74,8 @@ function preparationOauthConsentForm(string $html, string $decision): array
         libxml_use_internal_errors($previous);
     }
     $xpath=new DOMXPath($dom);
-    $forms=$xpath->query('//form[@action="/manager/ai-oauth.php?action=authorize"]');
+    if (!in_array($action,['/manager/ai-oauth.php?action=authorize','/manager/development-oauth.php?action=authorize'],true)) throw new RuntimeException('Invalid consent action');
+    $forms=$xpath->query('//form[@action="'.$action.'"]');
     if ($forms->length!==1) throw new RuntimeException('Expected one canonical consent form');
     $form=$forms->item(0);
     $fields=[];
@@ -92,27 +93,31 @@ function preparationOauthConsentForm(string $html, string $decision): array
 }
 
 /** Exact endpoint, real session and real SQLite service; no production bootstrap. */
-function preparationOauthHttpChecks(bool $browserFixture = false): void
+function preparationOauthHttpChecks(bool $browserFixture = false, bool $developmentFixture = false): void
 {
     $tmp=sys_get_temp_dir().'/manager-preparation-oauth-'.bin2hex(random_bytes(6));
     $server=null;
     try {
         foreach ([$tmp,$tmp.'/manager',$tmp.'/manager/lib',$tmp.'/services',$tmp.'/sessions',$tmp.'/.well-known',$tmp.'/.well-known/oauth-authorization-server',$tmp.'/.well-known/oauth-authorization-server/manager'] as $directory) mkdir($directory,0700);
         $database=$tmp.'/fixture.sqlite';
-        [$pdo,,,$fixtureClient]=preparationOauthFixture($database);
+        [$pdo,$fixtureClock,,$fixtureClient]=preparationOauthFixture($database);
+        $fixtureDevelopment=new ManagerPreparationOAuth($pdo,static fn():int=>$fixtureClock->now,ManagerPreparationOAuth::PROFILE_DEVELOPMENT);
+        $fixtureDevelopmentClient=$fixtureDevelopment->registerClient(['redirect_uris'=>[ManagerPreparationOAuth::REDIRECT_URI]],'synthetic-development-browser')['client_id'];
         chmod($database,0600);
         $root=dirname(__DIR__);
-        foreach (['manager/ai-oauth.php','manager/lib/ManagerHttp.php','services/ManagerPreparationOAuth.php','services/ManagerRequestContext.php','.well-known/oauth-authorization-server/index.php','.well-known/oauth-authorization-server/manager/ai-oauth.php'] as $file) copy($root.'/'.$file,$tmp.'/'.$file);
+        foreach (['manager/ai-oauth.php','manager/development-oauth.php','manager/lib/ManagerHttp.php','services/ManagerPreparationOAuth.php','services/ManagerRequestContext.php','.well-known/oauth-authorization-server/index.php','.well-known/oauth-authorization-server/manager/ai-oauth.php','.well-known/oauth-authorization-server/manager/development-oauth.php'] as $file) copy($root.'/'.$file,$tmp.'/'.$file);
         preparationOauthCheck('HTTP fixture executes exact OAuth endpoint and service bytes',hash_file('sha256',$root.'/manager/ai-oauth.php')===hash_file('sha256',$tmp.'/manager/ai-oauth.php') && hash_file('sha256',$root.'/services/ManagerPreparationOAuth.php')===hash_file('sha256',$tmp.'/services/ManagerPreparationOAuth.php'));
+        foreach (['manager/development-oauth.php','.well-known/oauth-authorization-server/manager/development-oauth.php'] as $file)
+            preparationOauthCheck('HTTP fixture executes exact dedicated DEV source '.$file,hash_file('sha256',$root.'/'.$file)===hash_file('sha256',$tmp.'/'.$file));
         file_put_contents($tmp.'/services/ConversationDb.php','<?php class ConversationDb { public static function connection():PDO { return new PDO('.var_export('sqlite:'.$database,true).',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]); } }');
         file_put_contents($tmp.'/services/ProjectConfig.php',"<?php class ProjectConfig { public static function projectId():string{return 'anytour';} public static function get(string \$key,\$default=null){return \$key==='brand.name'?'Synthetic project':\$default;} }");
         foreach (['ManagerAuthService','ManagerConversationAccessPolicy'] as $class) file_put_contents($tmp.'/services/'.$class.'.php','<?php class '.$class.' {}');
         file_put_contents($tmp.'/config.php','<?php // isolated fixture bootstrap');
         // PHP's development server rejects hidden directory segments. Map the
         // exact RFC 8414 PHP path; never simulate a working directory index.
-        file_put_contents($tmp.'/router.php','<?php $path=parse_url($_SERVER["REQUEST_URI"],PHP_URL_PATH);if($path==="/.well-known/oauth-authorization-server/manager/ai-oauth.php"){require __DIR__.$path;return true;}return false;');
+        file_put_contents($tmp.'/router.php','<?php $path=parse_url($_SERVER["REQUEST_URI"],PHP_URL_PATH);if(in_array($path,["/.well-known/oauth-authorization-server/manager/ai-oauth.php","/.well-known/oauth-authorization-server/manager/development-oauth.php"],true)){require __DIR__.$path;return true;}return false;');
         file_put_contents($tmp.'/manager/fixture-session.php','<?php require dirname(__DIR__)."/services/ManagerRequestContext.php";ManagerRequestContext::startSession();session_regenerate_id(true);$_SESSION["manager_id"]=(int)($_GET["actor"]??1);$_SESSION["csrf"]="synthetic-http-csrf";header("Content-Type:application/json");echo "{}";');
-        file_put_contents($tmp.'/manager/fixture-expire.php','<?php require dirname(__DIR__)."/services/ManagerRequestContext.php";ManagerRequestContext::startSession();foreach($_SESSION["manager_preparation_oauth_pending"]??[]as$id=>$pending)$_SESSION["manager_preparation_oauth_pending"][$id]["expires_at"]=1;header("Content-Type:application/json");echo "{}";');
+        file_put_contents($tmp.'/manager/fixture-expire.php','<?php require dirname(__DIR__)."/services/ManagerRequestContext.php";ManagerRequestContext::startSession();foreach(["manager_preparation_oauth_pending","manager_development_oauth_pending"]as$key)foreach($_SESSION[$key]??[]as$id=>$pending)$_SESSION[$key][$id]["expires_at"]=1;header("Content-Type:application/json");echo "{}";');
         $socket=stream_socket_server('tcp://127.0.0.1:0',$errno,$error);
         if (!$socket) throw new RuntimeException('OAuth HTTP fixture socket unavailable');
         $address=(string)stream_socket_get_name($socket,false);fclose($socket);
@@ -129,12 +134,31 @@ function preparationOauthHttpChecks(bool $browserFixture = false): void
         if ($browserFixture) {
             // CLI-only, synthetic SQLite/cookies. The browser harness supplies
             // loopback TLS and intercepts the fixed external callback locally.
+            $profile=$developmentFixture?ManagerPreparationOAuth::PROFILE_DEVELOPMENT:ManagerPreparationOAuth::PROFILE_LEGACY;
+            $endpoint=$developmentFixture?'/manager/development-oauth.php':'/manager/ai-oauth.php';
+            $peerEndpoint=$developmentFixture?'/manager/ai-oauth.php':'/manager/development-oauth.php';
+            $resource=$developmentFixture?ManagerPreparationOAuth::DEVELOPMENT_RESOURCE:ManagerPreparationOAuth::RESOURCE;
+            $peerResource=$developmentFixture?ManagerPreparationOAuth::RESOURCE:ManagerPreparationOAuth::DEVELOPMENT_RESOURCE;
+            $issuer=$developmentFixture?ManagerPreparationOAuth::DEVELOPMENT_ISSUER:ManagerPreparationOAuth::ISSUER;
+            $peerIssuer=$developmentFixture?ManagerPreparationOAuth::ISSUER:ManagerPreparationOAuth::DEVELOPMENT_ISSUER;
+            $primaryClient=$developmentFixture?$fixtureDevelopmentClient:$fixtureClient;
+            $peerClient=$developmentFixture?$fixtureClient:$fixtureDevelopmentClient;
+            $expectedScope=$developmentFixture?ManagerPreparationOAuth::DEVELOPMENT_SCOPE:implode(' ',ManagerPreparationOAuth::SCOPES);
+            $peerScope=$developmentFixture?implode(' ',ManagerPreparationOAuth::SCOPES):ManagerPreparationOAuth::DEVELOPMENT_SCOPE;
+            $primaryRequest=array_replace(preparationOauthRequest($primaryClient,str_repeat('q',43)),['resource'=>$resource,'scope'=>$expectedScope]);
+            $peerRequest=array_replace(preparationOauthRequest($peerClient,str_repeat('q',43)),['resource'=>$peerResource,'scope'=>$peerScope]);
             echo 'OAUTH_BROWSER_FIXTURE '.json_encode(['origin'=>'http://'.$address,
-                'authorization_path'=>'/manager/ai-oauth.php?'.http_build_query(
-                    preparationOauthRequest($fixtureClient,str_repeat('q',43))+['ui_locales'=>'ru-RU','action'=>'authorize'],'','&',PHP_QUERY_RFC3986),
-                'client_id'=>$fixtureClient,'verifier'=>str_repeat('q',43),
-                'resource'=>ManagerPreparationOAuth::RESOURCE,'redirect_uri'=>ManagerPreparationOAuth::REDIRECT_URI,
-                'issuer'=>ManagerPreparationOAuth::ISSUER],JSON_THROW_ON_ERROR)."\n";
+                'authorization_path'=>$endpoint.'?'.http_build_query($primaryRequest+['ui_locales'=>'ru-RU','action'=>'authorize'],'','&',PHP_QUERY_RFC3986),
+                'client_id'=>$primaryClient,'verifier'=>str_repeat('q',43),'resource'=>$resource,
+                'redirect_uri'=>ManagerPreparationOAuth::REDIRECT_URI,'issuer'=>$issuer,'profile'=>$profile,
+                'authorization_endpoint'=>$endpoint.'?action=authorize','metadata_endpoint'=>$endpoint.'?action=metadata',
+                'discovery_path'=>'/.well-known/oauth-authorization-server'.parse_url($issuer,PHP_URL_PATH),'expected_scope'=>$expectedScope,
+                'peer_client_id'=>$peerClient,'peer_resource'=>$peerResource,'peer_issuer'=>$peerIssuer,
+                'peer_authorization_endpoint'=>$peerEndpoint.'?action=authorize',
+                'peer_authorization_path'=>$peerEndpoint.'?'.http_build_query($peerRequest+['ui_locales'=>'ru-RU','action'=>'authorize'],'','&',PHP_QUERY_RFC3986),
+                'endpoint_source_sha256'=>hash_file('sha256',$root.$endpoint),
+                'oauth_source_sha256'=>hash_file('sha256',$root.'/services/ManagerPreparationOAuth.php'),
+                'discovery_source_sha256'=>hash_file('sha256',$root.'/.well-known/oauth-authorization-server'.parse_url($issuer,PHP_URL_PATH))],JSON_THROW_ON_ERROR)."\n";
             flush();
             fgets(STDIN);
             return;
@@ -281,6 +305,81 @@ function preparationOauthHttpChecks(bool $browserFixture = false): void
         preparationOauthCheck('HTTP diagnostic output contains no raw access or refresh tokens',
             !str_contains((string)file_get_contents($tmp.'/server.log'),$tokens['json']['access_token'])
             && !str_contains((string)file_get_contents($tmp.'/server.log'),$tokens['json']['refresh_token']));
+        $devDiscovery=$request('/.well-known/oauth-authorization-server/manager/development-oauth.php');
+        $devMetadata=ManagerPreparationOAuth::authorizationMetadata(ManagerPreparationOAuth::PROFILE_DEVELOPMENT);
+        preparationOauthCheck('HTTP dedicated DEV issuer discovery executes the new PHP route without legacy metadata',
+            $devDiscovery['status']===200&&$devDiscovery['location']===''&&$devDiscovery['cookie']===''&&$devDiscovery['json']===$devMetadata);
+        $devResource=$request('/manager/development-oauth.php?action=resource');
+        preparationOauthCheck('HTTP dedicated resource advertises only its DEV audience and scope',
+            $devResource['status']===200&&$devResource['json']===ManagerPreparationOAuth::resourceMetadata(ManagerPreparationOAuth::PROFILE_DEVELOPMENT)
+            &&$devResource['json']['resource']!==$resource['json']['resource']);
+        preparationOauthCheck('HTTP dedicated token endpoint retains POST only',
+            $request('/manager/development-oauth.php?action=token')['status']===405);
+        $devRegistration=$request('/manager/development-oauth.php?action=register','POST',
+            json_encode(['redirect_uris'=>[ManagerPreparationOAuth::REDIRECT_URI]]),'','application/json');
+        $devClient=$devRegistration['json']['client_id']??'';
+        preparationOauthCheck('HTTP dedicated registration issues only a namespaced DEV public client',
+            $devRegistration['status']===201&&preg_match('/\Adev_[a-f0-9]{44}\z/D',$devClient)===1
+            &&($devRegistration['json']['scope']??null)===ManagerPreparationOAuth::DEVELOPMENT_SCOPE&&!isset($devRegistration['json']['client_secret']));
+        $badDevRegistration=$request('/manager/development-oauth.php?action=register','POST',
+            json_encode(['redirect_uris'=>[ManagerPreparationOAuth::REDIRECT_URI],'scope'=>ManagerPreparationOAuth::HOTEL_SCOPE]),'','application/json');
+        preparationOauthCheck('HTTP dedicated registration refuses foreign scopes rather than narrowing silently',
+            $badDevRegistration['status']===400&&($badDevRegistration['json']['error']??null)==='invalid_scope');
+        $devAuthorization=array_replace(preparationOauthRequest($devClient,$verifier),[
+            'resource'=>ManagerPreparationOAuth::DEVELOPMENT_RESOURCE,'scope'=>ManagerPreparationOAuth::DEVELOPMENT_SCOPE]);
+        $devUrl='/manager/development-oauth.php?'.http_build_query(['action'=>'authorize']+$devAuthorization,'','&',PHP_QUERY_RFC3986);
+        $badDevClient=$request('/manager/development-oauth.php?'.http_build_query(['action'=>'authorize']+array_replace($devAuthorization,['client_id'=>$client])));
+        $badLegacyClient=$request('/manager/ai-oauth.php?'.http_build_query(['action'=>'authorize']+array_replace($authorization,['client_id'=>$devClient])));
+        preparationOauthCheck('HTTP public client namespaces cannot cross either issuer',
+            $badDevClient['status']===400&&($badDevClient['json']['error']??null)==='invalid_client'
+            &&$badLegacyClient['status']===400&&($badLegacyClient['json']['error']??null)==='invalid_client');
+        $devLogin=$request('/manager/fixture-session.php?actor=1','GET','',$cookie);$devCookie=$devLogin['cookie'];
+        $devConsent=$request($devUrl,'GET','',$devCookie);
+        $devForm=preparationOauthConsentForm($devConsent['body'],'deny','/manager/development-oauth.php?action=authorize');
+        preparationOauthCheck('HTTP dedicated consent renders only the declared development permission',
+            $devConsent['status']===200&&str_contains($devConsent['body'],'Подключение очереди плана развития AnyTour')
+            &&str_contains($devConsent['body'],'Управление метаданными плана развития')
+            &&!str_contains($devConsent['body'],'<li>Чтение очереди и контекста диалогов')
+            &&!str_contains($devConsent['body'],'<li>Управление очередью гостиничных исследований')
+            &&!str_contains($devConsent['body'],'<li>Чтение сохранённых исторических Telegram-диалогов'));
+        $devGrantCount=(int)$pdo->query('SELECT COUNT(*) FROM manager_preparation_oauth_grants')->fetchColumn();
+        $crossPending=$request('/manager/ai-oauth.php?action=authorize','POST',http_build_query($devForm['post']),$devCookie);
+        preparationOauthCheck('HTTP cross profile pending lookup cannot consume the active DEV consent',
+            $crossPending['status']===400&&$crossPending['json']===['error'=>'invalid_request','error_description'=>'consent_request_missing']
+            &&(int)$pdo->query('SELECT COUNT(*) FROM manager_preparation_oauth_grants')->fetchColumn()===$devGrantCount);
+        $devRefused=$request($devForm['action'],$devForm['method'],http_build_query($devForm['post']),$devCookie);
+        parse_str((string)parse_url($devRefused['location'],PHP_URL_QUERY),$devRefusal);
+        preparationOauthCheck('HTTP DEV refusal still works after cross profile pending attempt and creates no grant',
+            $devRefused['status']===303&&($devRefusal['iss']??null)===ManagerPreparationOAuth::DEVELOPMENT_ISSUER
+            &&($devRefusal['error']??null)==='access_denied'
+            &&(int)$pdo->query('SELECT COUNT(*) FROM manager_preparation_oauth_grants')->fetchColumn()===$devGrantCount);
+        $devConsent=$request($devUrl,'GET','',$devCookie);
+        $devForm=preparationOauthConsentForm($devConsent['body'],'allow','/manager/development-oauth.php?action=authorize');
+        $devAllowed=$request($devForm['action'],$devForm['method'],http_build_query($devForm['post']),$devCookie);
+        parse_str((string)parse_url($devAllowed['location'],PHP_URL_QUERY),$devCallback);
+        preparationOauthCheck('HTTP DEV allow returns only the pinned callback with the new issuer',
+            $devAllowed['status']===303&&str_starts_with($devAllowed['location'],ManagerPreparationOAuth::REDIRECT_URI.'?')
+            &&($devCallback['iss']??null)===ManagerPreparationOAuth::DEVELOPMENT_ISSUER&&isset($devCallback['code']));
+        $devExchange=['grant_type'=>'authorization_code','client_id'=>$devClient,'resource'=>ManagerPreparationOAuth::DEVELOPMENT_RESOURCE,
+            'redirect_uri'=>ManagerPreparationOAuth::REDIRECT_URI,'code'=>$devCallback['code'],'code_verifier'=>$verifier];
+        $crossToken=$request('/manager/ai-oauth.php?action=token','POST',http_build_query(array_replace($devExchange,['resource'=>ManagerPreparationOAuth::RESOURCE])));
+        preparationOauthCheck('HTTP legacy token route rejects a DEV code without consuming it',
+            $crossToken['status']===400&&($crossToken['json']['error']??null)==='invalid_client');
+        $devTokens=$request('/manager/development-oauth.php?action=token','POST',http_build_query($devExchange));
+        $devActive=new ManagerPreparationOAuth($pdo,null,ManagerPreparationOAuth::PROFILE_DEVELOPMENT);
+        preparationOauthCheck('HTTP DEV code remains exchangeable only at the dedicated audience after rejection',
+            $devTokens['status']===200&&($devTokens['json']['scope']??null)===ManagerPreparationOAuth::DEVELOPMENT_SCOPE
+            &&$devActive->verifyBearer('Bearer '.$devTokens['json']['access_token'])===1
+            &&(new ManagerPreparationOAuth($pdo))->verifyBearer('Bearer '.$devTokens['json']['access_token'])===null);
+        $devFamily=$devActive->connectionForBearer('Bearer '.$devTokens['json']['access_token']);
+        $oldConnections=$request('/manager/ai-oauth.php?action=connections','GET','',$devCookie);
+        $devConnections=$request('/manager/development-oauth.php?action=connections','GET','',$devCookie);
+        preparationOauthCheck('HTTP connections pages never inherit another resource family',
+            $oldConnections['status']===200&&$devConnections['status']===200&&!str_contains($oldConnections['body'],$devFamily)
+            &&str_contains($devConnections['body'],$devFamily));
+        preparationOauthCheck('HTTP DEV diagnostic log contains no raw access or refresh credential',
+            !str_contains((string)file_get_contents($tmp.'/server.log'),$devTokens['json']['access_token'])
+            &&!str_contains((string)file_get_contents($tmp.'/server.log'),$devTokens['json']['refresh_token']));
     } finally {
         if (is_resource($server)) {proc_terminate($server);proc_close($server);}
         $remove=static function(string $path)use(&$remove):void {
@@ -291,9 +390,173 @@ function preparationOauthHttpChecks(bool $browserFixture = false): void
     }
 }
 
+/** Real canonical OAuth families in both fixed resource profiles; no provider or model. */
+function preparationDevelopmentProfileChecks(): void
+{
+    [$pdo,$clock,$legacy,$legacyClient]=preparationOauthFixture();
+    $development=new ManagerPreparationOAuth($pdo,static fn():int=>$clock->now,ManagerPreparationOAuth::PROFILE_DEVELOPMENT);
+    $devMeta=ManagerPreparationOAuth::authorizationMetadata(ManagerPreparationOAuth::PROFILE_DEVELOPMENT);
+    $devResource=ManagerPreparationOAuth::resourceMetadata(ManagerPreparationOAuth::PROFILE_DEVELOPMENT);
+    preparationOauthCheck('dedicated DEV discovery pins its separate issuer audience and only DEV scope',
+        $devMeta['issuer']===ManagerPreparationOAuth::DEVELOPMENT_ISSUER
+        &&$devMeta['authorization_endpoint']===ManagerPreparationOAuth::DEVELOPMENT_ENDPOINT.'?action=authorize'
+        &&$devMeta['token_endpoint']===ManagerPreparationOAuth::DEVELOPMENT_ENDPOINT.'?action=token'
+        &&$devMeta['scopes_supported']===[ManagerPreparationOAuth::DEVELOPMENT_SCOPE]
+        &&$devResource['resource']===ManagerPreparationOAuth::DEVELOPMENT_RESOURCE
+        &&$devResource['authorization_servers']===[ManagerPreparationOAuth::DEVELOPMENT_ISSUER]
+        &&$devResource['scopes_supported']===[ManagerPreparationOAuth::DEVELOPMENT_SCOPE]);
+    preparationOauthReject('unknown server OAuth profile cannot select an audience',fn()=>new ManagerPreparationOAuth($pdo,null,'request-profile'),'invalid_oauth_profile');
+    $devRegistration=$development->registerClient(['redirect_uris'=>[ManagerPreparationOAuth::REDIRECT_URI]],'synthetic-dev-profile');
+    $devClient=$devRegistration['client_id'];
+    preparationOauthCheck('DEV public client namespace is disjoint and fits existing storage',
+        preg_match('/\Adev_[a-f0-9]{44}\z/D',$devClient)===1&&strlen($devClient)===48
+        &&preg_match('/\A[a-f0-9]{48}\z/D',$legacyClient)===1&&$devRegistration['scope']===ManagerPreparationOAuth::DEVELOPMENT_SCOPE);
+    $verifier=str_repeat('p',43);
+    $devRequest=array_replace(preparationOauthRequest($devClient,$verifier),[
+        'resource'=>ManagerPreparationOAuth::DEVELOPMENT_RESOURCE,'scope'=>ManagerPreparationOAuth::DEVELOPMENT_SCOPE]);
+    preparationOauthReject('new issuer refuses a legacy public client before grant creation',
+        fn()=>$development->validateAuthorization(array_replace($devRequest,['client_id'=>$legacyClient])),'invalid_client');
+    preparationOauthReject('legacy issuer refuses a DEV public client before grant creation',
+        fn()=>$legacy->validateAuthorization(array_replace(preparationOauthRequest($legacyClient,$verifier),['client_id'=>$devClient])),'invalid_client');
+    preparationOauthReject('DEV client cannot request the legacy audience',fn()=>$development->validateAuthorization(array_replace($devRequest,['resource'=>ManagerPreparationOAuth::RESOURCE])),'invalid_target');
+    foreach (['queue:read prepared:write',ManagerPreparationOAuth::HOTEL_SCOPE,ManagerPreparationOAuth::ARCHIVE_SCOPE,
+        ManagerPreparationOAuth::DEVELOPMENT_SCOPE.' '.ManagerPreparationOAuth::HOTEL_SCOPE] as $scope) {
+        preparationOauthReject('DEV consent rejects every foreign capability '.$scope,
+            fn()=>$development->validateAuthorization(array_replace($devRequest,['scope'=>$scope])),'invalid_scope');
+    }
+    $session=['csrf'=>'synthetic-both-profile-csrf'];
+    $oldPending=$legacy->beginAuthorization($session,preparationOauthRequest($legacyClient,$verifier));
+    $devPending=$development->beginAuthorization($session,$devRequest);
+    $beforeSession=$session;
+    preparationOauthReject('legacy consent cannot consume the DEV pending map',
+        function()use($legacy,&$session,$devPending){$legacy->completeAuthorization($session,$devPending,1,$session['csrf'],true);},'invalid_request');
+    preparationOauthReject('DEV consent cannot consume the legacy pending map',
+        function()use($development,&$session,$oldPending){$development->completeAuthorization($session,$oldPending,1,$session['csrf'],true);},'invalid_request');
+    preparationOauthCheck('cross profile pending failures preserve both real session requests',$beforeSession===$session
+        &&isset($session['manager_preparation_oauth_pending'][$oldPending],$session['manager_development_oauth_pending'][$devPending]));
+    $devDenied=$development->completeAuthorization($session,$devPending,1,$session['csrf'],false);
+    parse_str((string)parse_url($devDenied,PHP_URL_QUERY),$devDeniedQuery);
+    preparationOauthCheck('DEV refusal identifies only its issuer without touching legacy pending',
+        ($devDeniedQuery['iss']??null)===ManagerPreparationOAuth::DEVELOPMENT_ISSUER
+        &&($devDeniedQuery['error']??null)==='access_denied'&&isset($session['manager_preparation_oauth_pending'][$oldPending]));
+    $issue=static function(ManagerPreparationOAuth $owner,string $client,string $resource)use($verifier):array {
+        $request=array_replace(preparationOauthRequest($client,$verifier),['resource'=>$resource,'scope'=>ManagerPreparationOAuth::DEVELOPMENT_SCOPE]);
+        $session=['csrf'=>'synthetic-profile-grant-csrf'];$pending=$owner->beginAuthorization($session,$request);
+        $target=$owner->completeAuthorization($session,$pending,1,$session['csrf'],true);
+        parse_str((string)parse_url($target,PHP_URL_QUERY),$callback);
+        $exchange=['grant_type'=>'authorization_code','client_id'=>$client,'redirect_uri'=>ManagerPreparationOAuth::REDIRECT_URI,
+            'resource'=>$resource,'code'=>$callback['code'],'code_verifier'=>$verifier];
+        $tokens=$owner->exchange($exchange);
+        return ['tokens'=>$tokens,'exchange'=>$exchange,'family'=>$owner->connectionForBearer('Bearer '.$tokens['access_token']),'callback'=>$callback];
+    };
+    $old=$issue($legacy,$legacyClient,ManagerPreparationOAuth::RESOURCE);
+    $new=$issue($development,$devClient,ManagerPreparationOAuth::DEVELOPMENT_RESOURCE);
+    preparationOauthCheck('fresh DEV consent creates a different family with exact DEV audience and callback issuer',
+        $new['family']!==$old['family']&&$new['callback']['iss']===ManagerPreparationOAuth::DEVELOPMENT_ISSUER
+        &&$new['tokens']['scope']===ManagerPreparationOAuth::DEVELOPMENT_SCOPE);
+    preparationOauthCheck('access tokens authenticate only at their issuing resource',
+        $legacy->verifyBearer('Bearer '.$old['tokens']['access_token'])===1&&$development->verifyBearer('Bearer '.$new['tokens']['access_token'])===1
+        &&$legacy->verifyBearer('Bearer '.$new['tokens']['access_token'])===null&&$development->verifyBearer('Bearer '.$old['tokens']['access_token'])===null);
+    preparationOauthCheck('connection metadata never resolves an old owner through the new resource',
+        $development->currentConnectionMetadata($old['family'],1,[ManagerPreparationOAuth::DEVELOPMENT_SCOPE])===null
+        &&$legacy->currentConnectionMetadata($new['family'],1,[ManagerPreparationOAuth::DEVELOPMENT_SCOPE])===null
+        &&($development->currentConnectionMetadata($new['family'],1,[ManagerPreparationOAuth::DEVELOPMENT_SCOPE])['capabilities']??null)
+            ===['reply_preparation'=>false,'hotel_work'=>false,'archive_research'=>false,'development_work'=>true]);
+    preparationOauthCheck('background resolver explicitly authorizes both canonical DEV grant audiences',
+        $legacy->developmentConnectionAuthorizedAcrossProfiles($old['family'],1)
+        &&$legacy->developmentConnectionAuthorizedAcrossProfiles($new['family'],1));
+    [$replyCode,$replyExchange]=preparationOauthGrant($legacy,$legacyClient);$replyTokens=$legacy->exchange($replyExchange);
+    preparationOauthCheck('known legacy reply consent does not acquire DEV through the background resolver',
+        $legacy->developmentConnectionAuthorizedAcrossProfiles($legacy->connectionForBearer('Bearer '.$replyTokens['access_token']),1)===false);
+    $snapshot=static function()use($pdo):array {
+        return [$pdo->query('SELECT * FROM manager_preparation_oauth_grants ORDER BY grant_id')->fetchAll(PDO::FETCH_ASSOC),
+            $pdo->query('SELECT * FROM manager_preparation_oauth_codes ORDER BY code_hash')->fetchAll(PDO::FETCH_ASSOC),
+            $pdo->query('SELECT * FROM manager_preparation_oauth_tokens ORDER BY token_hash')->fetchAll(PDO::FETCH_ASSOC)];
+    };
+    foreach ([[$legacy,$development,$legacyClient,$devClient,ManagerPreparationOAuth::RESOURCE,ManagerPreparationOAuth::DEVELOPMENT_RESOURCE],
+        [$development,$legacy,$devClient,$legacyClient,ManagerPreparationOAuth::DEVELOPMENT_RESOURCE,ManagerPreparationOAuth::RESOURCE]] as [$owner,$foreign,$client,$foreignClient,$resource,$foreignResource]) {
+        foreach (['authorization_code','refresh_token'] as $kind) {
+            $family=$issue($owner,$client,$resource);
+            $credential=$kind==='authorization_code'?$family['exchange']:
+                ['grant_type'=>'refresh_token','client_id'=>$client,'resource'=>$resource,'refresh_token'=>$family['tokens']['refresh_token']];
+            if ($kind==='refresh_token') $owner->exchange($credential);
+            $credentialTable=$kind==='authorization_code'?'manager_preparation_oauth_codes':'manager_preparation_oauth_tokens';
+            $credentialColumn=$kind==='authorization_code'?'code_hash':'token_hash';
+            $credentialSecret=$kind==='authorization_code'?$credential['code']:$credential['refresh_token'];
+            $pdo->prepare('UPDATE '.$credentialTable.' SET expires_at=? WHERE '.$credentialColumn.'=?')->execute([$clock->now-1,hash('sha256',$credentialSecret)]);
+            $before=$snapshot();
+            preparationOauthReject('foreign profile client cannot consume or revoke a consumed '.$kind,
+                fn()=>$foreign->exchange(array_replace($credential,['resource'=>$foreignResource])),'invalid_client');
+            preparationOauthReject('foreign audience cannot retarget a consumed '.$kind,
+                fn()=>$owner->exchange(array_replace($credential,['resource'=>$foreignResource])),'invalid_target');
+            preparationOauthCheck('cross resource consumed credential rejection leaves every family byte unchanged '.$kind,$before===$snapshot());
+            $pdo->prepare('UPDATE manager_preparation_oauth_grants SET project_key=? WHERE grant_id=?')->execute(['other',$family['family']]);
+            try {
+                $before=$snapshot();
+                preparationOauthReject('foreign project consumed '.$kind.' is rejected before replay revocation',fn()=>$owner->exchange($credential),'invalid_grant');
+                preparationOauthCheck('foreign project consumed '.$kind.' preserves all grant code and token rows',$before===$snapshot());
+            } finally {$pdo->prepare('UPDATE manager_preparation_oauth_grants SET project_key=? WHERE grant_id=?')->execute(['anytour',$family['family']]);}
+        }
+    }
+    $before=$snapshot();
+    $development->revoke(['client_id'=>$legacyClient,'token'=>$old['tokens']['refresh_token']]);
+    $legacy->revoke(['client_id'=>$devClient,'token'=>$new['tokens']['refresh_token']]);
+    $development->disconnect(['csrf'=>'profile-csrf'],1,$old['family'],'profile-csrf');
+    $legacy->disconnect(['csrf'=>'profile-csrf'],1,$new['family'],'profile-csrf');
+    preparationOauthCheck('cross profile revocation and disconnect never mutate another resource family',$before===$snapshot());
+    $rotation=$issue($development,$devClient,ManagerPreparationOAuth::DEVELOPMENT_RESOURCE);
+    $devRefresh=['grant_type'=>'refresh_token','client_id'=>$devClient,'resource'=>ManagerPreparationOAuth::DEVELOPMENT_RESOURCE,
+        'refresh_token'=>$rotation['tokens']['refresh_token']];
+    $rotated=$development->exchange($devRefresh);
+    preparationOauthCheck('DEV refresh rotates credentials inside the same audience scope and family',
+        $rotated['refresh_token']!==$rotation['tokens']['refresh_token']&&$rotated['scope']===ManagerPreparationOAuth::DEVELOPMENT_SCOPE
+        &&$development->connectionForBearer('Bearer '.$rotated['access_token'])===$rotation['family']);
+    preparationOauthReject('DEV refresh replay keeps the existing family revocation protection',fn()=>$development->exchange($devRefresh),'invalid_grant');
+    preparationOauthCheck('DEV replay revokes only its own family while the old resource stays authorized',
+        !$development->connectionActive($rotation['family'],1)&&$legacy->connectionActive($old['family'],1));
+    $uppercase='DEV_'.str_repeat('0',44);
+    $pdo->prepare('INSERT INTO manager_preparation_oauth_clients VALUES(?,?,?,?)')
+        ->execute([$uppercase,ManagerPreparationOAuth::REDIRECT_URI,hash('sha256','synthetic-uppercase-profile'),$clock->now]);
+    $insert=$pdo->prepare('INSERT INTO manager_preparation_oauth_grants (grant_id,client_id,admin_id,project_key,resource,scopes,created_at,expires_at,revoked_at) VALUES (?,?,?,?,?,?,?,?,?)');
+    $excluded=[];
+    for ($i=0;$i<55;$i++) {
+        $id=hash('md5','synthetic-wrong-client-profile-'.$i);$excluded[]=$id;
+        $insert->execute([$id,$i===0?$uppercase:$legacyClient,1,'anytour',ManagerPreparationOAuth::DEVELOPMENT_RESOURCE,
+            ManagerPreparationOAuth::DEVELOPMENT_SCOPE,$clock->now+100+$i,$clock->now+3600,null]);
+    }
+    $listed=$development->connections(1);$ids=array_column($listed,'grant_id');
+    preparationOauthCheck('DEV connections filter resource and exact client namespace before their fifty row limit',
+        in_array($new['family'],$ids,true)&&!array_intersect($ids,$excluded)&&!in_array($old['family'],$ids,true));
+    $before=$snapshot();$development->disconnect(['csrf'=>'profile-csrf'],1,$excluded[0],'profile-csrf');
+    preparationOauthCheck('uppercase DEV client prefix is not a canonical DEV family for disconnect',$before===$snapshot());
+    $requiredUnavailable=static function(string $name,callable $read):void {
+        try {$read();} catch (RuntimeException $error) {
+            preparationOauthCheck($name,$error->getMessage()==='development_oauth_authority_unavailable');return;
+        }
+        throw new RuntimeException('FAIL '.$name.' returned instead of deferring');
+    };
+    $requiredUnavailable('missing canonical grant defers instead of deactivating subscriptions',
+        fn()=>$legacy->developmentConnectionAuthorizedAcrossProfiles(str_repeat('f',32),1));
+    $pdo->prepare('UPDATE manager_preparation_oauth_grants SET resource=? WHERE grant_id=?')->execute(['https://synthetic.invalid/unknown',$new['family']]);
+    try {$requiredUnavailable('unknown canonical audience never falls back to the old resource',
+        fn()=>$legacy->developmentConnectionAuthorizedAcrossProfiles($new['family'],1));}
+    finally {$pdo->prepare('UPDATE manager_preparation_oauth_grants SET resource=? WHERE grant_id=?')->execute([ManagerPreparationOAuth::DEVELOPMENT_RESOURCE,$new['family']]);}
+    $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=?')->execute([$clock->now,$new['family']]);
+    preparationOauthCheck('known canonical DEV revocation returns false after profile resolution',
+        $legacy->developmentConnectionAuthorizedAcrossProfiles($new['family'],1)===false);
+    $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=NULL WHERE grant_id=?')->execute([$new['family']]);
+    $pdo->beginTransaction();
+    try {$requiredUnavailable('background authority refuses a foreign transaction snapshot',
+        fn()=>$legacy->developmentConnectionAuthorizedAcrossProfiles($new['family'],1));} finally {$pdo->rollBack();}
+    $pdo->exec('DROP TABLE manager_preparation_oauth_grants');
+    $requiredUnavailable('unavailable authority storage defers without converting failure to revocation',
+        fn()=>$legacy->developmentConnectionAuthorizedAcrossProfiles($new['family'],1));
+}
+
+
 try {
     if (PHP_SAPI==='cli' && in_array('--browser-fixture',$argv??[],true)) {
-        preparationOauthHttpChecks(true);
+        preparationOauthHttpChecks(true,in_array('--development-profile',$argv??[],true));
         exit;
     }
     [$pdo,$clock,$oauth,$client]=preparationOauthFixture();
@@ -312,7 +575,7 @@ try {
         && $metadata['token_endpoint_auth_methods_supported']===['none'] && $metadata['code_challenge_methods_supported']===['S256']
         && !in_array('client_credentials',$metadata['grant_types_supported'],true)
         && ManagerPreparationOAuth::resourceMetadata()['resource']===ManagerPreparationOAuth::RESOURCE
-        && ManagerPreparationOAuth::resourceMetadata()['scopes_supported']===['queue:read','prepared:write','hotel_work:write','archive:read','development_work:write']);
+        && ManagerPreparationOAuth::resourceMetadata()['scopes_supported']===['queue:read','prepared:write','hotel_work:write','archive:read','development_work:write','forecasts:read']);
     preparationOauthCheck('only current active admin with canonical project membership is eligible',
         $oauth->activeAdmin(1) && !$oauth->activeAdmin(0) && !$oauth->activeAdmin(2) && !$oauth->activeAdmin(3) && !$oauth->activeAdmin(4));
     preparationOauthCheck('authorization never changes the operator working state', (int)$pdo->query('SELECT is_working FROM managers WHERE id=1')->fetchColumn()===0);
@@ -482,6 +745,7 @@ try {
     preparationOauthReject('public DCR applies bounded per-source hourly registration budget',fn()=>$oauth->registerClient(['redirect_uris'=>[ManagerPreparationOAuth::REDIRECT_URI]],'abuse-source'),'temporarily_unavailable');
     $clock->now+=3601;
     preparationOauthCheck('registration budget renews without deleting stable client identities',is_string($oauth->registerClient(['redirect_uris'=>[ManagerPreparationOAuth::REDIRECT_URI]],'abuse-source')['client_id']) && (int)$pdo->query('SELECT COUNT(*) FROM manager_preparation_oauth_clients')->fetchColumn()===32);
+    preparationDevelopmentProfileChecks();
     preparationOauthHttpChecks();
     echo 'OK '.$passed." manager preparation OAuth checks\n";
 } catch (Throwable $error) {

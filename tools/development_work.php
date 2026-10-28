@@ -37,7 +37,9 @@ try {
     require_once dirname(__DIR__).'/services/ProjectAccessService.php';
     require_once dirname(__DIR__).'/services/DevelopmentWorkEventService.php';
     ProjectAccessService::initializeReadOnly();
-    $events=new DevelopmentWorkEventService();$stage='subscription';
+    $authorize=static fn(string $connection,int $admin,array $required):bool=>
+        (new ManagerPreparationOAuth())->developmentConnectionAuthorizedAcrossProfiles($connection,$admin);
+    $events=new DevelopmentWorkEventService(null,null,null,$authorize);$stage='subscription';
     // A real current development OAuth grant and verified subscription are prerequisites.
     // The CLI never starts a hosted worker or invokes any model/provider itself.
     if (!$events->hasActiveSubscriptions()) {

@@ -23,50 +23,72 @@ final class ManagerPreparationOAuth
     public const ISSUER = self::ORIGIN.'/manager/ai-oauth.php';
     public const RESOURCE = self::ORIGIN.'/manager/ai-mcp.php';
     public const ENDPOINT = self::ORIGIN.'/manager/ai-oauth.php';
+    public const PROFILE_LEGACY = 'legacy';
+    public const PROFILE_DEVELOPMENT = 'development';
+    public const DEVELOPMENT_ISSUER = self::ORIGIN.'/manager/development-oauth.php';
+    public const DEVELOPMENT_RESOURCE = self::ORIGIN.'/manager/development-mcp.php';
+    public const DEVELOPMENT_ENDPOINT = self::ORIGIN.'/manager/development-oauth.php';
     public const SCOPES = ['queue:read', 'prepared:write'];
     public const HOTEL_SCOPE = 'hotel_work:write';
     public const DEVELOPMENT_SCOPE = 'development_work:write';
     public const ARCHIVE_SCOPE = 'archive:read';
-    public const SUPPORTED_SCOPES = ['queue:read', 'prepared:write', self::HOTEL_SCOPE, self::ARCHIVE_SCOPE, self::DEVELOPMENT_SCOPE];
+    public const FORECAST_SCOPE = 'forecasts:read';
+    public const SUPPORTED_SCOPES = ['queue:read', 'prepared:write', self::HOTEL_SCOPE, self::ARCHIVE_SCOPE, self::DEVELOPMENT_SCOPE, self::FORECAST_SCOPE];
     // RFC 9207 issuer identification permits this documented stable callback.
     public const REDIRECT_URI = 'https://chatgpt.com/connector_platform_oauth_redirect';
     private PDO $pdo;
     private $clock;
+    private ?ModeledConversionStatusBudget $statusReadBudget = null;
 
-    public function __construct(?PDO $pdo = null, ?callable $clock = null)
+    public function __construct(?PDO $pdo = null, ?callable $clock = null, private string $profile = self::PROFILE_LEGACY)
     {
+        self::requireProfile($profile);
         $this->pdo = $pdo ?? ConversationDb::connection();
         $this->clock = $clock ?? static fn(): int => time();
     }
 
-    public static function authorizationMetadata(): array
+    /** The private status path shares its execution/read budget with authorization. */
+    public function withStatusReadBudget(?ModeledConversionStatusBudget $budget): self
     {
+        $this->statusReadBudget=$budget;
+        $budget?->check();
+        return $this;
+    }
+
+    public static function authorizationMetadata(string $profile = self::PROFILE_LEGACY): array
+    {
+        self::requireProfile($profile);$development=$profile===self::PROFILE_DEVELOPMENT;
+        $issuer=$development?self::DEVELOPMENT_ISSUER:self::ISSUER;
+        $endpoint=$development?self::DEVELOPMENT_ENDPOINT:self::ENDPOINT;
         return [
-            'issuer'=>self::ISSUER,
+            'issuer'=>$issuer,
             'authorization_response_iss_parameter_supported'=>true,
-            'authorization_endpoint'=>self::ENDPOINT.'?action=authorize',
-            'token_endpoint'=>self::ENDPOINT.'?action=token',
-            'registration_endpoint'=>self::ENDPOINT.'?action=register',
-            'revocation_endpoint'=>self::ENDPOINT.'?action=revoke',
+            'authorization_endpoint'=>$endpoint.'?action=authorize',
+            'token_endpoint'=>$endpoint.'?action=token',
+            'registration_endpoint'=>$endpoint.'?action=register',
+            'revocation_endpoint'=>$endpoint.'?action=revoke',
             'token_endpoint_auth_methods_supported'=>['none'],
             'revocation_endpoint_auth_methods_supported'=>['none'],
             'response_types_supported'=>['code'],
             'grant_types_supported'=>['authorization_code', 'refresh_token'],
             'code_challenge_methods_supported'=>['S256'],
-            'scopes_supported'=>self::SUPPORTED_SCOPES,
+            'scopes_supported'=>$development?[self::DEVELOPMENT_SCOPE]:self::SUPPORTED_SCOPES,
         ];
     }
 
-    public static function resourceMetadata(): array
+    public static function resourceMetadata(string $profile = self::PROFILE_LEGACY): array
     {
-        return ['resource'=>self::RESOURCE, 'authorization_servers'=>[self::ISSUER],
-            'scopes_supported'=>self::SUPPORTED_SCOPES, 'bearer_methods_supported'=>['header']];
+        self::requireProfile($profile);$development=$profile===self::PROFILE_DEVELOPMENT;
+        return ['resource'=>$development?self::DEVELOPMENT_RESOURCE:self::RESOURCE,
+            'authorization_servers'=>[$development?self::DEVELOPMENT_ISSUER:self::ISSUER],
+            'scopes_supported'=>$development?[self::DEVELOPMENT_SCOPE]:self::SUPPORTED_SCOPES, 'bearer_methods_supported'=>['header']];
     }
 
     /** One fresh canonical grant lookup; caller never supplies its own scopes. */
-    public static function bearerContext(string $authorization): ?array
+    public static function bearerContext(string $authorization,?ModeledConversionStatusBudget $budget=null): ?array
     {
-        try { return (new self())->contextForBearer($authorization); }
+        try { return (new self())->withStatusReadBudget($budget)->contextForBearer($authorization); }
+        catch (ModeledConversionStatusLimit $error) { throw $error; }
         catch (Throwable $error) { return null; }
     }
 
@@ -118,6 +140,7 @@ final class ManagerPreparationOAuth
 
     private function knownHotelConnectionGrant(string $familyId,int $adminId): ?array
     {
+        if ($this->profile!==self::PROFILE_LEGACY) return null;
         if (!preg_match('/\A[a-f0-9]{32}\z/D',$familyId)||$adminId<=0) return null;
         $q=$this->pdo->prepare('SELECT g.scopes,g.expires_at,g.revoked_at FROM manager_preparation_oauth_grants g
             JOIN manager_preparation_oauth_clients c ON c.client_id=g.client_id
@@ -224,22 +247,18 @@ final class ManagerPreparationOAuth
     private function connectionGrant(string $familyId, int $adminId): ?array
     {
         if (!preg_match('/\A[a-f0-9]{32}\z/D',$familyId) || $adminId<=0) return null;
-        $q=$this->pdo->prepare('SELECT g.* FROM manager_preparation_oauth_grants g JOIN manager_preparation_oauth_clients c ON c.client_id=g.client_id WHERE g.grant_id=? AND g.admin_id=? LIMIT 1');
-        $q->execute([$familyId,$adminId]);
-        $grant=$q->fetch(PDO::FETCH_ASSOC);
+        $grant=$this->authorizationRow('SELECT g.* FROM manager_preparation_oauth_grants g JOIN manager_preparation_oauth_clients c ON c.client_id=g.client_id WHERE g.grant_id=? AND g.admin_id=? LIMIT 1',[$familyId,$adminId]);
         return $grant && $this->validGrant($grant) ? $grant : null;
     }
 
     private function grantForBearer(string $authorization): ?array
     {
         if (!preg_match('/\ABearer ([A-Za-z0-9_-]{43})\z/Di', $authorization, $match)) return null;
-        $q=$this->pdo->prepare("SELECT g.* FROM manager_preparation_oauth_tokens t
+        $grant=$this->authorizationRow("SELECT g.* FROM manager_preparation_oauth_tokens t
             JOIN manager_preparation_oauth_grants g ON g.grant_id=t.grant_id
             JOIN manager_preparation_oauth_clients c ON c.client_id=g.client_id
             WHERE t.token_hash=? AND t.token_kind='access' AND t.expires_at>?
-            AND t.consumed_at IS NULL AND g.revoked_at IS NULL AND g.expires_at>? LIMIT 1");
-        $q->execute([hash('sha256',$match[1]),$this->now(),$this->now()]);
-        $grant=$q->fetch(PDO::FETCH_ASSOC);
+            AND t.consumed_at IS NULL AND g.revoked_at IS NULL AND g.expires_at>? LIMIT 1",[hash('sha256',$match[1]),$this->now(),$this->now()]);
         if (!$grant || !$this->validGrant($grant)) return null;
         return $grant;
     }
@@ -254,14 +273,14 @@ final class ManagerPreparationOAuth
         if (!is_array($grants) || array_filter($grants,static fn($value):bool=>!is_string($value)) || !in_array('authorization_code',$grants,true)
             || count($grants)!==count(array_unique($grants,SORT_REGULAR))
             || array_diff($grants,['authorization_code','refresh_token'])) $this->fail('invalid_client_metadata');
-        $scopes=isset($input['scope']) ? $this->scope($input['scope']) : implode(' ',self::SCOPES);
+        $scopes=isset($input['scope']) ? $this->scope($input['scope']) : ($this->profile===self::PROFILE_DEVELOPMENT?self::DEVELOPMENT_SCOPE:implode(' ',self::SCOPES));
         // No client-supplied URI, logo, JWKS or metadata is ever fetched.
         $bucket=hash('sha256', $registrationKey);
         $q=$this->pdo->prepare('SELECT COUNT(*) FROM manager_preparation_oauth_clients WHERE registration_bucket=? AND created_at>?');
         $q->execute([$bucket,$this->now()-3600]);
         if ((int)$q->fetchColumn()>=30
             || (int)$this->pdo->query('SELECT COUNT(*) FROM manager_preparation_oauth_clients')->fetchColumn()>=5000) $this->fail('temporarily_unavailable');
-        $id=bin2hex(random_bytes(24));
+        $id=$this->profile===self::PROFILE_DEVELOPMENT?'dev_'.bin2hex(random_bytes(22)):bin2hex(random_bytes(24));
         $this->pdo->prepare('INSERT INTO manager_preparation_oauth_clients(client_id,redirect_uri,registration_bucket,created_at) VALUES(?,?,?,?)')
             ->execute([$id,self::REDIRECT_URI,$bucket,$this->now()]);
         return ['client_id'=>$id,'client_id_issued_at'=>$this->now(), 'redirect_uris'=>[self::REDIRECT_URI],
@@ -272,7 +291,7 @@ final class ManagerPreparationOAuth
     public function validateAuthorization(array $request): array
     {
         $client=$this->text($request,'client_id',48);
-        if (!preg_match('/\A[a-f0-9]{48}\z/D',$client) || !$this->client($client)) $this->fail('invalid_client');
+        if (!$this->clientNamespace($client) || !$this->client($client)) $this->fail('invalid_client');
         $redirect=$this->text($request,'redirect_uri',255);
         if ($redirect!==self::REDIRECT_URI) $this->fail('invalid_request');
         if ($this->text($request,'response_type',20)!=='code'
@@ -280,7 +299,7 @@ final class ManagerPreparationOAuth
         $challenge=$this->text($request,'code_challenge',43);
         if (!preg_match('/\A[A-Za-z0-9_-]{43}\z/D',$challenge)) $this->fail('invalid_request');
         $resource=$this->text($request,'resource',255);
-        if ($resource!==self::RESOURCE) $this->fail('invalid_target');
+        if ($resource!==$this->resource()) $this->fail('invalid_target');
         $state=$this->text($request,'state',1024);
         if ($state==='' || preg_match('/[\x00-\x1f\x7f]/',$state)) $this->fail('invalid_request');
         return ['client_id'=>$client,'redirect_uri'=>$redirect,'response_type'=>'code','code_challenge'=>$challenge,
@@ -290,13 +309,13 @@ final class ManagerPreparationOAuth
     public function beginAuthorization(array &$session, array $request): string
     {
         $request=$this->validateAuthorization($request);
-        $pending=$session['manager_preparation_oauth_pending']??[];
+        $pending=$session[$this->pendingSessionKey()]??[];
         if (!is_array($pending)) $pending=[];
         foreach ($pending as $id=>$value) if (!is_array($value) || (int)($value['expires_at']??0)<=$this->now()) unset($pending[$id]);
         if (count($pending)>=5) array_shift($pending);
         $id=bin2hex(random_bytes(24));
         $pending[$id]=['request'=>$request,'expires_at'=>$this->now()+600,'admin_id'=>0];
-        $session['manager_preparation_oauth_pending']=$pending;
+        $session[$this->pendingSessionKey()]=$pending;
         return $id;
     }
 
@@ -304,13 +323,13 @@ final class ManagerPreparationOAuth
     public function pendingAuthorization(array &$session, string $id, int $adminId = 0): array
     {
         if (!preg_match('/\A[a-f0-9]{48}\z/D',$id)) throw new ManagerPreparationOAuthRequestException('consent_request_invalid');
-        $pending=$session['manager_preparation_oauth_pending'][$id]??null;
+        $pending=$session[$this->pendingSessionKey()][$id]??null;
         if (!is_array($pending)) throw new ManagerPreparationOAuthRequestException('consent_request_missing');
         if ((int)($pending['expires_at']??0)<=$this->now()) throw new ManagerPreparationOAuthRequestException('consent_request_expired');
         if ($adminId>0) {
             if (!$this->activeAdmin($adminId)) $this->fail('access_denied');
             if ((int)$pending['admin_id']!==0 && (int)$pending['admin_id']!==$adminId) $this->fail('access_denied');
-            $session['manager_preparation_oauth_pending'][$id]['admin_id']=$adminId;
+            $session[$this->pendingSessionKey()][$id]['admin_id']=$adminId;
         }
         return $this->validateAuthorization($pending['request']);
     }
@@ -322,7 +341,7 @@ final class ManagerPreparationOAuth
         if ($adminId<=0 || !$this->activeAdmin($adminId)) $this->fail('access_denied');
         // Issuing a code always follows an explicit POST consent; no remembered auto-consent.
         if (!$allow) {
-            unset($session['manager_preparation_oauth_pending'][$pendingId]);
+            unset($session[$this->pendingSessionKey()][$pendingId]);
             return $this->redirect($request,['error'=>'access_denied']);
         }
         $this->transactionStart();
@@ -331,11 +350,11 @@ final class ManagerPreparationOAuth
             $grant=bin2hex(random_bytes(16));
             $code=$this->opaque();
             $this->pdo->prepare('INSERT INTO manager_preparation_oauth_grants(grant_id,client_id,admin_id,project_key,resource,scopes,created_at,expires_at,revoked_at) VALUES(?,?,?,?,?,?,?,?,NULL)')
-                ->execute([$grant,$request['client_id'],$adminId,ProjectConfig::projectId(),self::RESOURCE,$request['scope'],$this->now(),$this->now()+30*86400]);
+                ->execute([$grant,$request['client_id'],$adminId,ProjectConfig::projectId(),$this->resource(),$request['scope'],$this->now(),$this->now()+30*86400]);
             $this->pdo->prepare('INSERT INTO manager_preparation_oauth_codes(code_hash,grant_id,redirect_uri,code_challenge,expires_at,consumed_at) VALUES(?,?,?,?,?,NULL)')
                 ->execute([hash('sha256',$code),$grant,$request['redirect_uri'],$request['code_challenge'],$this->now()+300]);
             $this->pdo->commit();
-            unset($session['manager_preparation_oauth_pending'][$pendingId]);
+            unset($session[$this->pendingSessionKey()][$pendingId]);
             return $this->redirect($request,['code'=>$code]);
         } catch (Throwable $error) {
             if ($this->pdo->inTransaction()) $this->pdo->rollBack();
@@ -346,9 +365,9 @@ final class ManagerPreparationOAuth
     public function exchange(array $input): array
     {
         $client=$this->text($input,'client_id',48);
-        if (!preg_match('/\A[a-f0-9]{48}\z/D',$client) || !$this->client($client)) $this->fail('invalid_client');
+        if (!$this->clientNamespace($client) || !$this->client($client)) $this->fail('invalid_client');
         if (isset($input['client_secret']) || isset($input['client_assertion'])) $this->fail('invalid_client');
-        if ($this->text($input,'resource',255)!==self::RESOURCE) $this->fail('invalid_target');
+        if ($this->text($input,'resource',255)!==$this->resource()) $this->fail('invalid_target');
         $type=$this->text($input,'grant_type',40);
         if (!in_array($type,['authorization_code','refresh_token'],true)) $this->fail('unsupported_grant_type');
         $secret=$this->text($input,$type==='authorization_code'?'code':'refresh_token',43);
@@ -371,7 +390,7 @@ final class ManagerPreparationOAuth
             $q=$this->pdo->prepare('SELECT * FROM manager_preparation_oauth_grants WHERE grant_id=?'.$this->lockSuffix());
             $q->execute([$credential['grant_id']]);
             $grant=$q->fetch(PDO::FETCH_ASSOC);
-            if (!$grant || $grant['client_id']!==$client) $this->fail('invalid_grant');
+            if (!$grant || $grant['client_id']!==$client || !$this->grantMatchesProfile($grant)) $this->fail('invalid_grant');
             if ($type==='authorization_code' && $credential['redirect_uri']!==self::REDIRECT_URI) $this->fail('invalid_grant');
             if ($type==='authorization_code' && !hash_equals($credential['code_challenge'],$this->base64url(hash('sha256',$verifier,true)))) $this->fail('invalid_grant');
             // A replayed refresh or code revokes this consent's complete token family.
@@ -403,18 +422,19 @@ final class ManagerPreparationOAuth
     {
         $token=$this->text($input,'token',43);
         $client=$this->text($input,'client_id',48);
-        if (!preg_match('/\A[A-Za-z0-9_-]{43}\z/D',$token) || !preg_match('/\A[a-f0-9]{48}\z/D',$client)) return;
-        $q=$this->pdo->prepare('SELECT g.grant_id FROM manager_preparation_oauth_tokens t JOIN manager_preparation_oauth_grants g ON g.grant_id=t.grant_id WHERE t.token_hash=? AND g.client_id=? LIMIT 1');
-        $q->execute([hash('sha256',$token),$client]);
+        if (!preg_match('/\A[A-Za-z0-9_-]{43}\z/D',$token) || !$this->clientNamespace($client)) return;
+        $q=$this->pdo->prepare('SELECT g.grant_id FROM manager_preparation_oauth_tokens t JOIN manager_preparation_oauth_grants g ON g.grant_id=t.grant_id WHERE t.token_hash=? AND g.client_id=? AND g.resource=? AND g.project_key=? AND '.$this->clientProfileSql('g.client_id').' LIMIT 1');
+        $q->execute([hash('sha256',$token),$client,$this->resource(),ProjectConfig::projectId()]);
         $grant=$q->fetchColumn();
-        if ($grant) $this->pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=? AND revoked_at IS NULL')->execute([$this->now(),$grant]);
+        if ($grant) $this->pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=? AND client_id=? AND project_key=? AND resource=? AND '.$this->clientProfileSql('client_id').' AND revoked_at IS NULL')
+            ->execute([$this->now(),$grant,$client,ProjectConfig::projectId(),$this->resource()]);
     }
 
     public function connections(int $adminId): array
     {
         if (!$this->activeAdmin($adminId)) $this->fail('access_denied');
-        $q=$this->pdo->prepare('SELECT grant_id,created_at,expires_at,scopes FROM manager_preparation_oauth_grants WHERE admin_id=? AND project_key=? AND revoked_at IS NULL AND expires_at>? ORDER BY created_at DESC LIMIT 50');
-        $q->execute([$adminId,ProjectConfig::projectId(),$this->now()]);
+        $q=$this->pdo->prepare('SELECT grant_id,created_at,expires_at,scopes FROM manager_preparation_oauth_grants WHERE admin_id=? AND project_key=? AND resource=? AND '.$this->clientProfileSql('client_id').' AND revoked_at IS NULL AND expires_at>? ORDER BY created_at DESC LIMIT 50');
+        $q->execute([$adminId,ProjectConfig::projectId(),$this->resource(),$this->now()]);
         return $q->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -423,8 +443,8 @@ final class ManagerPreparationOAuth
         $this->checkCsrf($session,$csrf);
         if (!$this->activeAdmin($adminId)) $this->fail('access_denied');
         if (!preg_match('/\A[a-f0-9]{32}\z/D',$grant)) $this->fail('invalid_request');
-        $this->pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=? AND admin_id=? AND project_key=? AND revoked_at IS NULL')
-            ->execute([$this->now(),$grant,$adminId,ProjectConfig::projectId()]);
+        $this->pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=? AND admin_id=? AND project_key=? AND resource=? AND '.$this->clientProfileSql('client_id').' AND revoked_at IS NULL')
+            ->execute([$this->now(),$grant,$adminId,ProjectConfig::projectId(),$this->resource()]);
     }
 
     public function activeAdmin(int $id): bool
@@ -433,20 +453,33 @@ final class ManagerPreparationOAuth
         // The ordinary login remains the identity owner. Never bootstrap roles or access here.
         $project=ProjectConfig::projectId();
         $name=(string)ProjectConfig::get('brand.name',$project);
-        $q=$this->pdo->prepare("SELECT 1 FROM managers m JOIN manager_projects mp ON mp.manager_id=m.id
+        return $this->authorizationRow("SELECT 1 FROM managers m JOIN manager_projects mp ON mp.manager_id=m.id
             JOIN projects p ON p.id=mp.project_id WHERE m.id=? AND m.is_active=1 AND m.role='admin'
-            AND p.project_key=? AND p.is_active=1 AND p.display_name=? LIMIT 1");
-        $q->execute([$id,$project,$name!==''?$name:$project]);
-        return (bool)$q->fetchColumn();
+            AND p.project_key=? AND p.is_active=1 AND p.display_name=? LIMIT 1",[$id,$project,$name!==''?$name:$project])!==false;
+    }
+
+    /** Selected grant/client columns are schema-bounded: one encoded row fits 4 KiB.
+     * This path never copies token hashes or client registration metadata. */
+    private function authorizationRow(string $sql,array $bindings):array|false
+    {
+        if($this->statusReadBudget!==null){
+            if($this->statusReadBudget->remainingBytes()<4096)throw new ModeledConversionStatusLimit('byte_limit');
+            $sql=str_replace('SELECT g.*','SELECT g.grant_id,g.admin_id,g.client_id,g.project_key,g.resource,g.scopes,g.created_at,g.expires_at,g.revoked_at',$sql);
+            $query=$this->statusReadBudget->prepare($this->pdo,$sql);
+        }else $query=$this->pdo->prepare($sql);
+        $query->execute($bindings);$row=$query->fetch(PDO::FETCH_ASSOC);
+        if($this->statusReadBudget!==null){
+            $this->statusReadBudget->check();
+            $this->statusReadBudget->consumeBytes(strlen(json_encode($row,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)));
+        }
+        return $row;
     }
 
     private function validGrant(array $grant): bool
     {
-        try { $scopes=$this->scope($grant['scopes']); }
-        catch (InvalidArgumentException $error) { return false; }
-        return $grant['revoked_at']===null && (int)$grant['expires_at']>$this->now()
-            && $grant['resource']===self::RESOURCE && $grant['project_key']===ProjectConfig::projectId()
-            && $grant['scopes']===$scopes && $this->activeAdmin((int)$grant['admin_id']);
+        return $this->grantMatchesProfile($grant) && $this->client($grant['client_id'])
+            && $grant['revoked_at']===null && (int)$grant['expires_at']>$this->now()
+            && $grant['project_key']===ProjectConfig::projectId() && $this->activeAdmin((int)$grant['admin_id']);
     }
 
     private function issueTokens(array $grant): array
@@ -461,9 +494,75 @@ final class ManagerPreparationOAuth
 
     private function client(string $id): bool
     {
-        $q=$this->pdo->prepare('SELECT redirect_uri FROM manager_preparation_oauth_clients WHERE client_id=? LIMIT 1');
-        $q->execute([$id]);
-        return $q->fetchColumn()===self::REDIRECT_URI;
+        if (!$this->clientNamespace($id)) return false;
+        $row=$this->authorizationRow('SELECT redirect_uri FROM manager_preparation_oauth_clients WHERE client_id=? LIMIT 1',[$id]);
+        return $row!==false&&$row['redirect_uri']===self::REDIRECT_URI;
+    }
+
+    private static function requireProfile(string $profile): void
+    {
+        if (!in_array($profile,[self::PROFILE_LEGACY,self::PROFILE_DEVELOPMENT],true)) throw new InvalidArgumentException('invalid_oauth_profile');
+    }
+    private function resource(): string { return $this->profile===self::PROFILE_DEVELOPMENT?self::DEVELOPMENT_RESOURCE:self::RESOURCE; }
+    private function issuer(): string { return $this->profile===self::PROFILE_DEVELOPMENT?self::DEVELOPMENT_ISSUER:self::ISSUER; }
+    private function pendingSessionKey(): string { return $this->profile===self::PROFILE_DEVELOPMENT?'manager_development_oauth_pending':'manager_preparation_oauth_pending'; }
+    private function clientNamespace(string $client): bool
+    {
+        return preg_match($this->profile===self::PROFILE_DEVELOPMENT?'/\Adev_[a-f0-9]{44}\z/D':'/\A[a-f0-9]{48}\z/D',$client)===1;
+    }
+    /** Closed identifiers and literal prefix matching; underscore is never a LIKE wildcard. */
+    private function clientProfileSql(string $column): string
+    {
+        if (!in_array($column,['client_id','g.client_id'],true)) throw new LogicException('invalid_oauth_client_column');
+        $development=$this->profile===self::PROFILE_DEVELOPMENT;
+        $remaining=$development?'SUBSTR('.$column.',5)':$column;
+        foreach (str_split('0123456789abcdef') as $hex) $remaining="REPLACE(".$remaining.",'".$hex."','')";
+        return 'LENGTH('.$column.')=48 AND '.($development?"HEX(SUBSTR(".$column.",1,4))='6465765F' AND ":'').$remaining."=''";
+    }
+    private function grantMatchesProfile(array $grant): bool
+    {
+        if (($grant['resource']??null)!==$this->resource()||($grant['project_key']??null)!==ProjectConfig::projectId()
+            ||!is_string($grant['client_id']??null)||!$this->clientNamespace($grant['client_id'])) return false;
+        try { $scope=$this->scope($grant['scopes']??null); }
+        catch (InvalidArgumentException $invalid) { return false; }
+        return $scope===($grant['scopes']??null);
+    }
+
+    /** Background-only canonical audience selection. HTTP callers choose one fixed profile. */
+    public function developmentConnectionAuthorizedAcrossProfiles(string $familyId,int $adminId): bool
+    {
+        try {
+            if ($this->pdo->inTransaction()||$adminId<1||preg_match('/\A[a-f0-9]{32}\z/D',$familyId)!==1) throw new RuntimeException();
+            $read=function()use($familyId,$adminId):array {
+                $q=$this->pdo->prepare('SELECT g.*,c.redirect_uri AS profile_redirect_uri FROM manager_preparation_oauth_grants g LEFT JOIN manager_preparation_oauth_clients c ON c.client_id=g.client_id WHERE g.grant_id=? AND g.admin_id=? LIMIT 1');
+                if (!$q||!$q->execute([$familyId,$adminId])) throw new RuntimeException();
+                $grant=$q->fetch(PDO::FETCH_ASSOC);
+                if (!is_array($grant)||($grant['grant_id']??null)!==$familyId||($grant['profile_redirect_uri']??null)!==self::REDIRECT_URI
+                    ||($grant['project_key']??null)!==ProjectConfig::projectId()) throw new RuntimeException();
+                $profile=match ($grant['resource']??null) {
+                    self::RESOURCE=>self::PROFILE_LEGACY,
+                    self::DEVELOPMENT_RESOURCE=>self::PROFILE_DEVELOPMENT,
+                    default=>throw new RuntimeException(),
+                };
+                $canonical=new self($this->pdo,$this->clock,$profile);
+                if (!$canonical->grantMatchesProfile($grant)) throw new RuntimeException();
+                $knownTime=static fn($value):bool=>(is_int($value)&&$value>=0)||(is_string($value)&&preg_match('/\A(?:0|[1-9][0-9]{0,17})\z/D',$value)===1);
+                if (!$knownTime($grant['expires_at']??null)||!array_key_exists('revoked_at',$grant)
+                    ||($grant['revoked_at']!==null&&!$knownTime($grant['revoked_at']))) throw new RuntimeException();
+                return [$grant,$profile];
+            };
+            [$grant,$profile]=$read();
+            $canonical=new self($this->pdo,$this->clock,$profile);
+            $authorized=$canonical->connectionAuthorized($familyId,$adminId,[self::DEVELOPMENT_SCOPE]);
+            if (!$authorized) {
+                // A failed fresh authorization must not disguise missing storage or a changed audience.
+                [$current,$currentProfile]=$read();
+                if ($currentProfile!==$profile||$current['client_id']!==$grant['client_id']||$current['project_key']!==$grant['project_key']) throw new RuntimeException();
+            }
+            return $authorized;
+        } catch (Throwable $unavailable) {
+            throw new RuntimeException('development_oauth_authority_unavailable',0,$unavailable);
+        }
     }
 
     private function checkCsrf(array $session, string $provided): void
@@ -475,16 +574,21 @@ final class ManagerPreparationOAuth
     private function scope($value): string
     {
         if (!is_string($value) || strlen($value)>100) $this->fail('invalid_scope');
+        if ($this->profile===self::PROFILE_DEVELOPMENT) {
+            if ($value!==self::DEVELOPMENT_SCOPE) $this->fail('invalid_scope');
+            return self::DEVELOPMENT_SCOPE;
+        }
         $scopes=explode(' ',$value);
         if (count(array_unique($scopes))!==count($scopes) || array_diff($scopes,self::SUPPORTED_SCOPES)) $this->fail('invalid_scope');
         $legacy=self::hasScopes($scopes,self::SCOPES);
         $hotel=in_array(self::HOTEL_SCOPE,$scopes,true);
         $development=in_array(self::DEVELOPMENT_SCOPE,$scopes,true);
         $archive=in_array(self::ARCHIVE_SCOPE,$scopes,true);
+        $forecast=in_array(self::FORECAST_SCOPE,$scopes,true);
         // Reply read/write remain one capability. Hotel and development metadata
         // each require separate explicit consent; refresh never adds a scope.
-        // Archive reads are a separate explicit capability as well.
-        if ((!$legacy && array_intersect($scopes,self::SCOPES)) || (!$legacy && !$hotel && !$development && !$archive)) $this->fail('invalid_scope');
+        // Archive reads and aggregate forecast status each require fresh consent.
+        if ((!$legacy && array_intersect($scopes,self::SCOPES)) || (!$legacy && !$hotel && !$development && !$archive && !$forecast)) $this->fail('invalid_scope');
         return implode(' ',array_values(array_intersect(self::SUPPORTED_SCOPES,$scopes)));
     }
 
@@ -496,7 +600,7 @@ final class ManagerPreparationOAuth
 
     private function redirect(array $request, array $result): string
     {
-        return self::REDIRECT_URI.'?'.http_build_query($result+['state'=>$request['state'],'iss'=>self::ISSUER],'','&',PHP_QUERY_RFC3986);
+        return self::REDIRECT_URI.'?'.http_build_query($result+['state'=>$request['state'],'iss'=>$this->issuer()],'','&',PHP_QUERY_RFC3986);
     }
 
     private function transactionStart(): void

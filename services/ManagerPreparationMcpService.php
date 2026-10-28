@@ -11,6 +11,7 @@ require_once __DIR__.'/ManagerPreparationOAuth.php';
 require_once __DIR__.'/HotelWorkMcpAdapter.php';
 require_once __DIR__.'/ArchiveResearchMcpAdapter.php';
 require_once __DIR__.'/DevelopmentWorkMcpAdapter.php';
+require_once __DIR__.'/ModeledConversionStatusMcpAdapter.php';
 
 /** Authenticated preparation tools and MCP Events; never sends customer messages. */
 final class ManagerPreparationMcpService
@@ -20,17 +21,21 @@ final class ManagerPreparationMcpService
     private const INITIALIZE_VERSIONS = ['2025-11-25','2025-06-18','2025-03-26','2024-11-05'];
     private PDO $pdo;
     private ManagerPreparationWebhook $webhook;
+    private ?ModeledConversionStatusBudget $forecastBudget=null;
 
     /** $store is an operation/arguments adapter for isolated tests. */
-    public function __construct(?PDO $pdo = null, private $store = null, ?ManagerPreparationWebhook $webhook = null, private $clock = null, private $connectionActive = null, private $virtualStore = null, private ?ManagerSearch3CandidateReader $searchCandidates = null, private $hotelStore = null, private $hotelEvents = null, private $archiveStore = null, private $developmentStore = null, private $developmentEvents = null)
+    public function __construct(?PDO $pdo = null, private $store = null, ?ManagerPreparationWebhook $webhook = null, private $clock = null, private $connectionActive = null, private $virtualStore = null, private ?ManagerSearch3CandidateReader $searchCandidates = null, private $hotelStore = null, private $hotelEvents = null, private $archiveStore = null, private $developmentStore = null, private $developmentEvents = null, private $forecastStore = null)
     {
         $this->pdo = $pdo ?? ConversationDb::connection();
         $this->webhook = $webhook ?? new ManagerPreparationWebhook();
     }
 
-    public function handle(array $rpc, int $authorizedAdminId, ?string $connectionId = null, ?array $grantedScopes = null): array
+    public function handle(array $rpc, int $authorizedAdminId, ?string $connectionId = null, ?array $grantedScopes = null, ?ModeledConversionStatusBudget $forecastBudget=null): array
     {
         $id = $rpc['id'] ?? null;
+        $forecastStatus=($rpc['method']??null)==='tools/call'&&is_array($rpc['params']??null)
+            &&($rpc['params']['name']??null)===ModeledConversionStatusMcpAdapter::NAME;
+        $this->forecastBudget=$forecastStatus?($forecastBudget??new ModeledConversionStatusBudget()):null;
         $workStatus=($rpc['method']??null)==='tools/call' && is_array($rpc['params']??null)
             && in_array($rpc['params']['name']??null,['hotel_work_status','development_work_status'],true);
         if (($rpc['jsonrpc'] ?? '') !== '2.0' || !is_string($rpc['method'] ?? null)
@@ -38,6 +43,7 @@ final class ManagerPreparationMcpService
         try {
             // The HTTP owner supplies the exact fresh bearer grant. Existing
             // direct callers default to the original reply capability only.
+            $this->forecastBudget?->check();
             $scopes=$grantedScopes??ManagerPreparationOAuth::SCOPES;
             $this->requireCurrentContext($authorizedAdminId,$connectionId,$scopes);
             $params = $rpc['params'] ?? [];
@@ -70,7 +76,8 @@ final class ManagerPreparationMcpService
                 || in_array($params['name']??null,VirtualReplyMcpAdapter::NAMES,true)
                 || in_array($params['name']??null,HotelWorkMcpAdapter::NAMES,true)
                 || in_array($params['name']??null,ArchiveResearchMcpAdapter::NAMES,true)
-                || in_array($params['name']??null,DevelopmentWorkMcpAdapter::NAMES,true))) {
+                || in_array($params['name']??null,DevelopmentWorkMcpAdapter::NAMES,true)
+                || ($params['name']??null)===ModeledConversionStatusMcpAdapter::NAME)) {
                 $this->requireCurrentContext($authorizedAdminId,$connectionId,$scopes);
             }
             $response=!array_key_exists('id',$rpc) ? [] : ['jsonrpc'=>'2.0','id'=>$id,'result'=>$result];
@@ -78,7 +85,11 @@ final class ManagerPreparationMcpService
             // Bound the complete wire response, including escaping and RPC ID.
             if ($rpc['method']==='tools/call' && in_array($params['name']??null,ArchiveResearchMcpAdapter::NAMES,true)
                 && strlen(json_encode($response,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))>262144) throw new RuntimeException();
+            if($forecastStatus&&strlen(json_encode($response,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))>65536)throw new ModeledConversionStatusLimit('byte_limit');
+            $this->forecastBudget?->check();
             return $response;
+        } catch (ModeledConversionStatusLimit $error) {
+            return self::error($id,-32016,'Private status budget exceeded',['reason'=>$error->reason]);
         } catch (ManagerPreparationCallbackError|HotelWorkCallbackError|DevelopmentWorkCallbackError $error) {
             return self::error($id,-32015,'CallbackEndpointError',['reason'=>$error->reason]);
         } catch (DomainException $error) {
@@ -91,6 +102,7 @@ final class ManagerPreparationMcpService
         } catch (InvalidArgumentException $error) { return self::error($id,-32602,'Invalid params');
         } catch (OutOfBoundsException $error) { return self::error($id,-32601,'Method not found');
         } catch (Throwable $error) { return self::error($id,-32603,'Internal error'); }
+        finally {$this->forecastBudget=null;}
     }
 
     private function initialize(array $params): array
@@ -114,6 +126,18 @@ final class ManagerPreparationMcpService
 
     private function requireAdmin(int $admin): void
     {
+        if($this->forecastBudget!==null){
+            $this->forecastBudget->check();
+            if(ProjectConfig::projectId()!==self::PROJECT||$admin<=0)throw new DomainException();
+            if($this->forecastBudget->remainingBytes()<4096)throw new ModeledConversionStatusLimit('byte_limit');
+            $name=(string)ProjectConfig::get('brand.name',self::PROJECT);
+            $q=$this->forecastBudget->prepare($this->pdo,"SELECT 1 FROM managers m JOIN manager_projects mp ON mp.manager_id=m.id
+                JOIN projects p ON p.id=mp.project_id WHERE m.id=? AND m.is_active=1 AND m.role='admin'
+                AND p.project_key=? AND p.is_active=1 AND p.display_name=? LIMIT 1");
+            $q->execute([$admin,self::PROJECT,$name!==''?$name:self::PROJECT]);$allowed=$q->fetchColumn();
+            $this->forecastBudget->consumeBytes(strlen(json_encode($allowed,JSON_THROW_ON_ERROR)));
+            if(!$allowed)throw new DomainException();return;
+        }
         ProjectAccessService::initializeReadOnly();
         if (ProjectConfig::projectId() !== self::PROJECT || $admin <= 0) throw new DomainException();
         $q=$this->pdo->prepare("SELECT 1 FROM managers m JOIN manager_projects mp ON mp.manager_id=m.id
@@ -155,6 +179,8 @@ final class ManagerPreparationMcpService
         if (ManagerPreparationOAuth::hasScopes($scopes,ManagerPreparationOAuth::SCOPES)
             ||in_array(ManagerPreparationOAuth::HOTEL_SCOPE,$scopes,true)
             ||in_array(ManagerPreparationOAuth::DEVELOPMENT_SCOPE,$scopes,true)) $out=array_merge($out,DevelopmentWorkMcpAdapter::tools());
+        if(array_intersect($scopes,ManagerPreparationOAuth::SUPPORTED_SCOPES)!==[])
+            $out=array_merge($out,ModeledConversionStatusMcpAdapter::tools());
         return $out;
     }
 
@@ -163,17 +189,18 @@ final class ManagerPreparationMcpService
         self::keys($params,['name','arguments']);
         $name=$params['name']??null; $args=$params['arguments']??[];
         if (!is_string($name) || !is_array($args) || ($args !== [] && array_is_list($args))) throw new InvalidArgumentException();
+        $forecast=$name===ModeledConversionStatusMcpAdapter::NAME;
         $hotel=in_array($name,HotelWorkMcpAdapter::NAMES,true);
         $archive=in_array($name,ArchiveResearchMcpAdapter::NAMES,true);
         $development=in_array($name,DevelopmentWorkMcpAdapter::NAMES,true);
         $legacy=ManagerPreparationOAuth::hasScopes($scopes,ManagerPreparationOAuth::SCOPES);
-        $required=$development?[ManagerPreparationOAuth::DEVELOPMENT_SCOPE]:($hotel?[ManagerPreparationOAuth::HOTEL_SCOPE]:($archive?[ManagerPreparationOAuth::ARCHIVE_SCOPE]:ManagerPreparationOAuth::SCOPES));
-        $stepUp=$archive||($hotel&&($legacy||in_array(ManagerPreparationOAuth::ARCHIVE_SCOPE,$scopes,true)))
+        $required=$forecast?[ManagerPreparationOAuth::FORECAST_SCOPE]:($development?[ManagerPreparationOAuth::DEVELOPMENT_SCOPE]:($hotel?[ManagerPreparationOAuth::HOTEL_SCOPE]:($archive?[ManagerPreparationOAuth::ARCHIVE_SCOPE]:ManagerPreparationOAuth::SCOPES)));
+        $stepUp=$forecast||$archive||($hotel&&($legacy||in_array(ManagerPreparationOAuth::ARCHIVE_SCOPE,$scopes,true)))
             ||($development&&($legacy||in_array(ManagerPreparationOAuth::HOTEL_SCOPE,$scopes,true)||in_array(ManagerPreparationOAuth::DEVELOPMENT_SCOPE,$scopes,true)));
         if ($stepUp&&!ManagerPreparationOAuth::hasScopes($scopes,$required)&&$connection!==null
             &&$this->scopedConnectionActive($connection,$admin,$scopes)) return self::capabilityScopeChallenge($scopes,$required[0]);
         if (!ManagerPreparationOAuth::hasScopes($scopes,$required)
-            || (($hotel||$archive||$development) && ($connection===null||!$this->scopedConnectionActive($connection,$admin,$required)))) {
+            || (($forecast||$hotel||$archive||$development) && ($connection===null||!$this->scopedConnectionActive($connection,$admin,$required)))) {
             if (in_array($name,['hotel_work_status','development_work_status'],true)) {
                 $reason=$connection===null||!$this->scopedConnectionActive($connection,$admin,$scopes)
                     ?'AUTH_CONTEXT_UNAVAILABLE':'AUTH_SCOPE_UNAVAILABLE';
@@ -181,7 +208,12 @@ final class ManagerPreparationMcpService
             }
             throw new DomainException();
         }
-        if ($hotel) {
+        if($forecast){
+            if($this->forecastBudget===null)throw new RuntimeException();
+            $authorize=function()use($admin,$connection,$required):void{$this->requireCurrentContext($admin,$connection,$required);};
+            $data=(new ModeledConversionStatusMcpAdapter($this->pdo,$this->forecastStore))
+                ->call($name,$args,$admin,$connection,$authorize,$this->forecastBudget);
+        } elseif ($hotel) {
             try { $data=(new HotelWorkMcpAdapter($this->pdo,$this->hotelStore,$this->clock))->call($name,$args,$admin,$connection); }
             catch (DomainException $error) { $data=$this->unavailableWorkQueue($name,$error,$admin,$connection,$required); }
         } elseif ($archive) {
@@ -250,6 +282,7 @@ final class ManagerPreparationMcpService
             ManagerPreparationOAuth::HOTEL_SCOPE=>['Explicit hotel queue consent is required','Подтвердите дополнительный доступ ChatGPT к гостиничной очереди AnyTour.'],
             ManagerPreparationOAuth::ARCHIVE_SCOPE=>['Explicit archive research consent is required','Подтвердите дополнительный доступ ChatGPT к сохранённым историческим диалогам AnyTour.'],
             ManagerPreparationOAuth::DEVELOPMENT_SCOPE=>['Explicit development queue consent is required','Подтвердите дополнительный доступ ChatGPT к очереди плана развития AnyTour.'],
+            ManagerPreparationOAuth::FORECAST_SCOPE=>['Explicit private forecast status consent is required','Подтвердите чтение закрытого агрегированного статуса сигналов и ранних оценок AnyTour. Тексты и данные отдельных клиентов не возвращаются.'],
             default=>throw new InvalidArgumentException(),
         };
         $challenge='Bearer resource_metadata="'.ManagerPreparationOAuth::ENDPOINT.'?action=resource", '
@@ -522,6 +555,8 @@ final class ManagerPreparationMcpService
     }
     private function scopedConnectionActive(string $connection,int $admin,array $scopes): bool
     {
+        if($this->forecastBudget!==null)return (new ManagerPreparationOAuth($this->pdo,$this->clock))
+            ->withStatusReadBudget($this->forecastBudget)->connectionAuthorized($connection,$admin,$scopes);
         if ($scopes===ManagerPreparationOAuth::SCOPES) return $this->activeConnection($connection,$admin);
         return (new ManagerPreparationOAuth($this->pdo,$this->clock))->connectionAuthorized($connection,$admin,$scopes);
     }

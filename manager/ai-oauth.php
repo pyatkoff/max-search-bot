@@ -113,6 +113,7 @@ try {
             if (in_array(ManagerPreparationOAuth::HOTEL_SCOPE,$scopes,true)) $rights[]='очередь гостиничных исследований';
             if (in_array(ManagerPreparationOAuth::DEVELOPMENT_SCOPE,$scopes,true)) $rights[]='очередь плана развития';
             if (in_array(ManagerPreparationOAuth::ARCHIVE_SCOPE,$scopes,true)) $rights[]='чтение сохранённых исторических Telegram-диалогов для исследования';
+            if (in_array(ManagerPreparationOAuth::FORECAST_SCOPE,$scopes,true)) $rights[]='закрытый агрегированный статус сигналов и ранних оценок';
             $html.='<form method="post" action="/manager/ai-oauth.php?action=connections"><p>Подключено '.gmdate('d.m.Y H:i',(int)$connection['created_at']).' UTC: '.preparationOAuthEscape(implode('; ',$rights)).'</p><input type="hidden" name="csrf" value="'.preparationOAuthEscape($csrf).'"><input type="hidden" name="grant_id" value="'.preparationOAuthEscape($connection['grant_id']).'"><button type="submit">Отключить</button></form>';
         }
         preparationOAuthHtml('Подключения ChatGPT',$html);
@@ -136,12 +137,14 @@ try {
     $hotel=in_array(ManagerPreparationOAuth::HOTEL_SCOPE,$scopes,true);
     $development=in_array(ManagerPreparationOAuth::DEVELOPMENT_SCOPE,$scopes,true);
     $archive=in_array(ManagerPreparationOAuth::ARCHIVE_SCOPE,$scopes,true);
+    $forecast=in_array(ManagerPreparationOAuth::FORECAST_SCOPE,$scopes,true);
     $permissions='';
     if (ManagerPreparationOAuth::hasScopes($scopes,ManagerPreparationOAuth::SCOPES)) $permissions.='<li>Чтение очереди и контекста диалогов, которым нужен ответ.</li><li>Сохранение подготовленных ответов для проверки менеджером.</li>';
     if ($hotel) $permissions.='<li>Управление очередью гостиничных исследований: создание плана, допуск этапов, сохранение состояния и подтверждений выполнения.</li><li>Получение событий готовности гостиничной очереди. Гостиничные факты и файлы общей базы это подключение не изменяет.</li>';
     if ($development) $permissions.='<li>Управление метаданными плана развития: очередь задач, привязка существующего исполнителя, состояние запусков и квитанции независимой приёмки.</li><li>Получение событий готовности следующей задачи. Это подключение само не меняет код, не выпускает сайт и не запускает внешние задания.</li>';
     if ($archive) $permissions.='<li>Чтение сохранённых исторических Telegram-диалогов, включая сообщения туристов и менеджеров, для исследования интереса, оформления и оплаты.</li><li>Архив читается ограниченными страницами. Это разрешение не отправляет сообщения, не отмечает их прочитанными, не запускает обучение и не меняет архив.</li>';
-    preparationOAuthHtml($archive?'Разрешить исследование архива AnyTour в ChatGPT?':(($hotel||$development)?'Разрешить работу с очередями AnyTour в ChatGPT?':'Разрешить подготовку ответов в ChatGPT?'),
+    if ($forecast) $permissions.='<li>Чтение закрытого агрегированного статуса сохранённых сигналов и ранних оценок AnyTour.</li><li>Просмотр ограничен сохранёнными аналитическими данными. Тексты, контакты и данные отдельных клиентов не возвращаются; переписки, прочитанность и сообщения клиентам не изменяются.</li>';
+    preparationOAuthHtml($forecast?'Разрешить закрытый просмотр ранних оценок AnyTour в ChatGPT?':($archive?'Разрешить исследование архива AnyTour в ChatGPT?':(($hotel||$development)?'Разрешить работу с очередями AnyTour в ChatGPT?':'Разрешить подготовку ответов в ChatGPT?')),
         '<p>Вы подключаете ChatGPT к текущему проекту AnyTour от своего аккаунта администратора.</p><ul>'.$permissions.'</ul><p>Сообщения клиентам отправляет менеджер. Это подключение не разрешает отправку, смену ответственного или изменение переписки.</p><p>Доступ можно отключить в <a href="/manager/ai-oauth.php?action=connections">подключениях ChatGPT</a>. Подключение действует до 30 дней, затем потребуется новое подтверждение.</p><form method="post" action="/manager/ai-oauth.php?action=authorize"><input type="hidden" name="pending_id" value="'.preparationOAuthEscape($pendingId).'"><input type="hidden" name="csrf" value="'.preparationOAuthEscape($csrf).'"><button type="submit" name="decision" value="allow">Разрешить</button><button type="submit" name="decision" value="deny">Отмена</button></form>');
 } catch (JsonException $error) {
     preparationOAuthJson(['error'=>'invalid_request'],400);

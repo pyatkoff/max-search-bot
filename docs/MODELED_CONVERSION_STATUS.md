@@ -11,9 +11,11 @@ authorize this operation. Refresh never adds this scope.
 
 A valid packet in `modeled_conversion_profile_versions` proves that a version
 of the contextual signals and early assessment was persisted. The result
-summarizes saved packets, their versions and actual freeze times, nonzero
-signals, early versus already-observed outcomes, and initial versus updated
-observations. Counts describe inspected saved versions, not unique customers,
+summarizes saved packets, their versions and actual freeze times, observed
+goal events, early versus already-observed outcomes, and initial versus updated
+observations. The joint confirmation requires a valid early assessment and
+goal events in the same saved version. Engagement-only observations are not
+counted as goal-bearing packets. Counts describe inspected saved versions, not unique customers,
 trips, purchases or calibrated probabilities. A first assessment of a
 conversation does not prove that the person or inquiry is new.
 
@@ -22,6 +24,9 @@ saves: an idle tick overwrites that receipt with a zero batch. It reads immutabl
 derived versions at a fixed fence and reports the inspected window and omissions.
 An empty, oversized, stale, malformed or version-mismatched window cannot prove
 that no assessments exist elsewhere. The full corpus is not scanned.
+
+The last recorded processing error includes its historical timestamp; it is not
+reported as the health of a later successful tick.
 
 The tool neither interprets customer text nor measures predictive quality.
 Current readiness remains uncalibrated and provisional. Probability and value
