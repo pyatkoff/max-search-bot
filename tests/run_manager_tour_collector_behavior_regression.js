@@ -49,11 +49,11 @@ async function itemState(w,operation,state){await until(async()=>(await w.status
 // Keep the actual source page client alive while the MV3 worker restarts or a
 // popup action changes the server intent. The button must still follow its
 // original click without exposing target data or enqueuing a second import.
-function sourceClient(send){
+function sourceClient(send,href='https://b2b.fstravel.com/search_tour'){
  const window={},messages=[],button={dataset:{},isConnected:true,parentElement:null,setAttribute(){}};
  const chrome={runtime:{async sendMessage(message){messages.push(clone(message));return send(message)}}};
  vm.runInNewContext(fs.readFileSync(__dirname+'/../extensions/selection-collector/collector-client.js','utf8'),
-  {window,document:{},chrome,URL,Map,WeakMap,Set,Promise,setTimeout,location:{href:'https://b2b.fstravel.com/search_tour',origin:'https://b2b.fstravel.com'}},
+  {window,document:{},chrome,URL,Map,WeakMap,Set,Promise,setTimeout,location:{href,origin:new URL(href).origin}},
   {filename:'collector-client.js'});
  return {client:window.AnyTourCollectorClient,button,messages};
 }
@@ -76,7 +76,35 @@ async function gallerySequence(sequence){
  return {photos:Array.from(photos),tick,removed};
 }
 
-(async()=>{
+async function tourvisorBlockedCancellationRegression(){
+ const sender={url:'https://pro.tourvisor.ru/search#tvtourid=1234567890',tab:{id:22},documentId:'blocked-cancel-tv-document',frameId:0};
+ const tv={adapter:'tourvisor-snapshot-v1',offer:{hotel:'Synthetic TV cancellation',amount:'160000',currency:'RUB'},raw:{price:'160000 RUB'}};
+ for(const interruption of ['target','disconnect']){
+  const db={},server=provider();let w=worker(db,server);await w.connect(makeTarget());
+  const page=sourceClient(message=>w.send(message,sender),sender.url),click=await page.client.begin(page.button);await page.client.append(page.button,click,tv);
+  if(interruption==='target')await w.connect(makeTarget(12,'b'.repeat(32)));else await w.disconnect();
+  check('unconfirmed TV '+interruption+' interruption blocks without importing',db.items[0].state==='blocked'&&db.items[0].observation.raw.party_price_confirmation==='pending'&&server.calls.length===0);
+  check('popup removes blocked unconfirmed TV '+interruption+' attempt',(await w.send({type:'remove',operation_id:click})).ok===true);
+  w=worker(db,server);await w.connect(makeTarget());
+  const status=await w.send({type:'add_status',operation_id:click},sender);
+  check('blocked unconfirmed TV '+interruption+' removal retains cancellation after restart',status.ok&&status.state==='cancelled'&&Object.keys(status).sort().join(',')==='error,ok,state');
+  const renewed=await page.client.begin(page.button);await page.client.append(page.button,renewed,tv);
+  check('same TV button starts fresh after blocked '+interruption+' cancellation',typeof renewed==='string'&&renewed!==click&&page.messages.filter(m=>m.type==='begin_add').length===2&&db.items.find(x=>x.operation_id===renewed)?.state==='destination'&&db.items.find(x=>x.operation_id===renewed)?.observation.raw.party_price_confirmation==='pending'&&server.calls.length===0);
+ }
+ for(const failure of ['offline','lost'])for(const finalState of ['waiting','blocked']){
+  const db={},server=provider();let w=worker(db,server);await w.connect(makeTarget());
+  const page=sourceClient(message=>w.send(message,sender),sender.url),click=await page.client.begin(page.button);await page.client.append(page.button,click,tv);
+  server.mode=failure;await w.send({type:'confirm',operation_id:click,confirm_price_basis:true});await itemState(w,click,'waiting');
+  if(finalState==='blocked')await w.connect(makeTarget(12,'b'.repeat(32)));
+  check('confirmed TV '+failure+' remains uncertain in '+finalState,db.items[0].state===finalState&&db.items[0].observation.raw.party_price_confirmation==='one_room_two_adults'&&server.creates===(failure==='lost'?1:0));
+  await w.send({type:'remove',operation_id:click});w=worker(db,server);await w.connect(makeTarget());
+  const status=await w.send({type:'add_status',operation_id:click},sender),starts=page.messages.filter(m=>m.type==='begin_add').length;
+  check('removing uncertain TV '+failure+' '+finalState+' cannot claim cancellation or start another import',status.ok===false&&!db.items.some(x=>x.state==='cancelled')&&await page.client.begin(page.button)===null&&page.messages.filter(m=>m.type==='begin_add').length===starts&&server.creates===(failure==='lost'?1:0));
+ }
+}
+
+module.exports={worker,provider,makeTarget,tourvisorBlockedCancellationRegression};
+if(require.main===module)(async()=>{
  require('node:child_process').execFileSync('python3',[__dirname+'/../extensions/selection-collector/build_package.py','--check'],{stdio:'pipe'});
  check('installable package matches actual extension sources',true);
  const manifest=JSON.parse(fs.readFileSync(__dirname+'/../extensions/selection-collector/manifest.json','utf8'));
@@ -240,6 +268,31 @@ async function gallerySequence(sequence){
  check('ANEX direct add uses the same canonical queue',directServer.creates===4);
  const tvTicket=await direct.send({type:'begin_add'},tvSender),tvDirect=await direct.send({type:'enqueue',ticket:tvTicket.ticket,observation:tv},tvSender);
  check('click capture cannot bypass unresolved TV price basis',tvDirect.ok&&tvDirect.state==='destination'&&directDb.items.at(-1).observation.raw.party_price_confirmation==='pending'&&directServer.creates===4);
+
+ {
+  const cancelDb={},cancelServer=provider(),cancelSender={...tvSender,documentId:'cancel-tv-document',frameId:0};let cancelling=worker(cancelDb,cancelServer);
+  await cancelling.connect(makeTarget());
+  const page=sourceClient(message=>cancelling.send(message,cancelSender),cancelSender.url),click=await page.client.begin(page.button);
+  await page.client.append(page.button,click,tv);
+  check('Tourvisor source click remains unconfirmed before cancellation',cancelDb.items[0].state==='destination'&&cancelDb.items[0].observation.raw.party_price_confirmation==='pending'&&cancelServer.calls.length===0);
+  check('popup can cancel the unconfirmed Tourvisor destination',(await cancelling.send({type:'remove',operation_id:click})).ok===true);
+  cancelling=worker(cancelDb,cancelServer);await cancelling.connect(makeTarget());
+  const status=await cancelling.send({type:'add_status',operation_id:click},cancelSender);
+  check('cancelled Tourvisor click survives restart as a private cancellation receipt',status.ok&&status.state==='cancelled'&&Object.keys(status).sort().join(',')==='error,ok,state');
+  for(const sender of [{...cancelSender,tab:{id:99}},{...cancelSender,documentId:'other-document'},{...cancelSender,frameId:2},funsunSender,anexSender]){
+   check('Tourvisor cancellation remains private to its original source document',(await cancelling.send({type:'add_status',operation_id:click},sender)).ok===false);
+  }
+  check('cancelled Tourvisor intent cannot reopen a price editor',(await cancelling.send({type:'show_edit',operation_id:click},cancelSender)).ok===false);
+  for(const type of ['confirm','save_edit','retry','variant','reconnect']){
+   check('cancelled Tourvisor intent cannot '+type,(await cancelling.send({type,operation_id:click,confirm_price_basis:true,manager_amount:'190000'})).ok===false);
+  }
+  cancelling.alarm();await sleep(20);
+  const starts=page.messages.filter(m=>m.type==='begin_add').length,renewed=await page.client.begin(page.button);
+  check('same Tourvisor button can capture a fresh click after explicit cancellation',typeof renewed==='string'&&/^[a-f0-9]{32}$/.test(renewed)&&renewed!==click&&page.button.textContent==='В подборку AnyTour'&&page.messages.filter(m=>m.type==='begin_add').length===starts+1&&cancelServer.calls.length===0);
+  await page.client.append(page.button,renewed,tv);
+  check('fresh Tourvisor click still requires explicit price confirmation',cancelDb.items.find(x=>x.operation_id===renewed)?.state==='destination'&&cancelDb.items.find(x=>x.operation_id===renewed)?.observation.raw.party_price_confirmation==='pending'&&cancelDb.items.find(x=>x.operation_id===click)?.state==='cancelled'&&cancelServer.creates===0&&cancelServer.calls.length===0);
+ }
+ await tourvisorBlockedCancellationRegression();
  for(const operation of [undefined,null,'']){
   const query=operation===undefined?{}:{operation_id:operation};
   check('source status and editor require an explicit operation ID '+String(operation),

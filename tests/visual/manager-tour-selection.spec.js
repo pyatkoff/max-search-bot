@@ -4,6 +4,7 @@ const {execFileSync}=require('node:child_process');
 const {setup,root}=require('./fixtures/internal-notes');
 const copy=x=>JSON.parse(JSON.stringify(x));
 const {sourceFixture,bridgeFixture,anexSourceFixture,tourvisorSourceFixture}=require('./fixtures/selection-collector');
+const {worker:collectorWorker,provider:collectorProvider,makeTarget:collectorTarget}=require('../run_manager_tour_collector_behavior_regression');
 async function collectorSourceRuntime(page,mode='saved'){
  await page.evaluate(mode=>{
   window.collectorStaged=[];window.collectorRequests=[];window.collectorResult=mode==='lost_response'?'saved':mode;
@@ -17,6 +18,18 @@ async function collectorSourceRuntime(page,mode='saved'){
   },onMessage:{addListener(){}}}};
  },mode);
  await page.addScriptTag({path:path.join(root,'extensions/selection-collector/collector-client.js')});
+}
+async function canonicalCollectorSourceRuntime(page){
+ // Reuse the actual worker harness with its persistent storage and synthetic
+ // receipt bridge; the browser still runs the shipped source caller/extractor.
+ const db={},server=collectorProvider(),requests=[],sender={url:page.url(),tab:{id:22},documentId:'tourvisor-browser-document',frameId:0};
+ let worker=collectorWorker(db,server,{popupSupported:false}),captured=0;await worker.connect(collectorTarget());
+ await page.exposeFunction('collectorSourceCommand',async message=>{requests.push(copy(message));const result=await worker.send(message,sender);if(message.type==='begin_add'&&result.ok)captured++;return result});
+ await page.evaluate(()=>{window.chrome={runtime:{sendMessage:message=>window.collectorSourceCommand(message),onMessage:{addListener(){}}}}});
+ await page.addScriptTag({path:path.join(root,'extensions/selection-collector/collector-client.js')});
+ return {db,server,requests,captureCount:()=>captured,command:message=>worker.send(message),
+  restart:async()=>{worker=collectorWorker(db,server,{popupSupported:false});await worker.connect(db.target,false)},
+  changeTarget:()=>worker.connect(collectorTarget(12,'b'.repeat(32)))};
 }
 async function pricePopupFixture(page,options={}){
  const target={actor:7,conversation_id:11,binding:'b'.repeat(64),connection:{id:'c'.repeat(32)},client:'Синтетическая Анна',trip:'Лето у моря',channel:'telegram',count:0},operation='e'.repeat(32),tv=options.tv===true;
@@ -851,16 +864,94 @@ test('Tourvisor refuses stale menu mismatched handle and changing price basis',a
 });
 
 for(const width of [390,430,768,1440])test(`Tourvisor settled snapshot stages without native action at ${width}`,async({page,browserName})=>{
- await page.setViewportSize({width,height:900});await tourvisorSourceFixture(page);await page.evaluate(()=>{window.collectorStaged=[];window.nativeCreates=0;document.querySelector('#nativeContinue').onclick=()=>nativeCreates++;window.chrome={runtime:{sendMessage:async m=>{collectorStaged.push(m);return{ok:true}}}}});
+ await page.setViewportSize({width,height:900});await tourvisorSourceFixture(page);await collectorSourceRuntime(page,'destination');await page.evaluate(()=>{window.nativeCreates=0;document.querySelector('#nativeContinue').onclick=()=>nativeCreates++});
  const visibility=width===390||width===768?'class':'style',setMenuVisibility=(el,{kind,open})=>{if(kind==='class')el.classList.toggle('TVHide',!open);else el.style.display=open?'':'none'};
  const menu=page.locator('.TVMenuControl');await menu.evaluate(setMenuVisibility,{kind:visibility,open:false});
- await page.addScriptTag({path:path.join(root,'extensions/selection-collector/collector-client.js')});await page.addScriptTag({path:path.join(root,'extensions/selection-collector/tourvisor-content.js')});
+ await page.addScriptTag({path:path.join(root,'extensions/selection-collector/tourvisor-content.js')});
  await expect(menu.locator('[data-anytour-add]')).toHaveCount(0);
  await menu.evaluate(setMenuVisibility,{kind:visibility,open:true});await expect(menu.getByRole('button',{name:'В подборку AnyTour',exact:true})).toBeVisible();
  await menu.evaluate(setMenuVisibility,{kind:visibility,open:false});await menu.evaluate(setMenuVisibility,{kind:visibility,open:true});await expect(menu.locator('[data-anytour-add]')).toHaveCount(2);
- await page.getByRole('button',{name:'В подборку AnyTour',exact:true}).click();await expect(page.getByRole('button',{name:'Проверьте цену и клиента в AnyTour'})).toBeVisible();expect(await page.evaluate(()=>collectorStaged.length)).toBe(1);expect(await page.evaluate(()=>nativeCreates)).toBe(0);expect(await page.locator('body').innerText()).not.toContain('Синтетическая Анна');
+ await page.getByRole('button',{name:'В подборку AnyTour',exact:true}).click();await expect(page.getByRole('button',{name:'Проверьте в AnyTour',exact:true})).toBeVisible();expect(await page.evaluate(()=>collectorStaged.length)).toBe(1);expect(await page.evaluate(()=>collectorStaged[0].ticket)).toBe('a'.repeat(32));expect(await page.evaluate(()=>nativeCreates)).toBe(0);expect(await page.locator('body').innerText()).not.toContain('Синтетическая Анна');
  fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-tv-${browserName}-${width}.png`)});
- await page.getByRole('button',{name:'Проверьте цену и клиента в AnyTour'}).click({noWaitAfter:true});await page.locator('.TVTourCardPriceValue').evaluate(e=>e.textContent='161 000');await expect(page.getByRole('button',{name:'Не добавлено'})).toBeVisible();expect(await page.evaluate(()=>collectorStaged.length)).toBe(1);expect(await page.evaluate(()=>nativeCreates)).toBe(0);await page.setViewportSize({width,height:420});await page.getByRole('button',{name:'Не добавлено'}).scrollIntoViewIfNeeded();await expect(page.getByRole('button',{name:'Не добавлено'})).toBeInViewport();
+ await page.getByRole('button',{name:'Проверьте в AnyTour',exact:true}).click();expect(await page.evaluate(()=>collectorStaged.length)).toBe(1);
+ await page.evaluate(()=>{window.collectorResult='cancelled';window.collectorExtracts=0;const extract=AnyTourTourvisor.extract;AnyTourTourvisor.extract=(...args)=>{collectorExtracts++;return extract(...args)}});
+ await page.getByRole('button',{name:'Проверьте в AnyTour',exact:true}).click({noWaitAfter:true});await expect.poll(()=>page.evaluate(()=>collectorExtracts)).toBe(1);await page.locator('.TVTourCardPriceValue').evaluate(e=>e.textContent='161 000');await expect(page.getByRole('button',{name:'Не добавлено'})).toBeVisible();expect(await page.evaluate(()=>collectorStaged.length)).toBe(1);expect(await page.evaluate(()=>nativeCreates)).toBe(0);await page.setViewportSize({width,height:420});await page.getByRole('button',{name:'Не добавлено'}).scrollIntoViewIfNeeded();await expect(page.getByRole('button',{name:'Не добавлено'})).toBeInViewport();
+});
+
+for(const width of [390,1440])for(const outcome of ['saved','cancelled'])test(`Tourvisor ordinary source tracks one destination through ${outcome} at ${width}`,async({page})=>{
+ await page.setViewportSize({width,height:900});await tourvisorSourceFixture(page);const runtime=await canonicalCollectorSourceRuntime(page);
+ await page.evaluate(()=>{window.nativeCreates=0;document.querySelector('#nativeContinue').onclick=()=>nativeCreates++});
+ await page.addScriptTag({path:path.join(root,'extensions/selection-collector/tourvisor-content.js')});
+ const button=page.locator('[data-anytour-add]:not([data-anytour-edit])');
+ await button.click();await expect.poll(()=>runtime.db.items?.length).toBe(1);await expect(button).toBeEnabled();
+ const operation=runtime.db.items[0].operation_id;
+ expect(runtime.db.items[0].state).toBe('destination');expect(runtime.db.items[0].observation.raw.party_price_confirmation).toBe('pending');expect(runtime.server.calls).toHaveLength(0);
+ await button.click();await expect(button).toBeEnabled();expect(runtime.db.items).toHaveLength(1);expect(runtime.requests.filter(m=>m.type==='enqueue')).toHaveLength(1);expect(runtime.requests.filter(m=>m.type==='begin_add')).toHaveLength(1);
+ expect(await runtime.command({type:'confirm',operation_id:operation})).toEqual({ok:false});expect(runtime.server.calls).toHaveLength(0);
+ if(outcome==='saved'){
+  expect((await runtime.command({type:'confirm',operation_id:operation,confirm_price_basis:true})).ok).toBe(true);await expect.poll(()=>runtime.db.items[0].state).toBe('saved');
+  await runtime.restart();await button.click();await expect(button).toHaveText('✓ В подборке');
+  expect(runtime.server.creates).toBe(1);expect(runtime.server.calls.map(c=>c.action)).toEqual(['operation','import']);expect(runtime.requests.filter(m=>m.type==='enqueue')).toHaveLength(1);expect(runtime.requests.filter(m=>m.type==='begin_add')).toHaveLength(1);
+ }else{
+  expect((await runtime.command({type:'remove',operation_id:operation})).ok).toBe(true);await runtime.restart();
+  expect(runtime.db.items[0].state).toBe('cancelled');await button.click();await expect.poll(()=>runtime.db.items.length).toBe(2);await expect(button).toBeEnabled();
+  const fresh=runtime.db.items[1];expect(fresh.operation_id).not.toBe(operation);expect(fresh.state).toBe('destination');expect(fresh.observation.raw.party_price_confirmation).toBe('pending');expect(runtime.server.calls).toHaveLength(0);expect(runtime.requests.filter(m=>m.type==='enqueue')).toHaveLength(2);expect(runtime.requests.filter(m=>m.type==='begin_add')).toHaveLength(2);
+ }
+ expect(await page.evaluate(()=>nativeCreates)).toBe(0);expect(await page.locator('body').innerText()).not.toContain(runtime.db.target.client);expect(await page.locator('body').innerText()).not.toContain(runtime.db.target.trip);
+});
+
+for(const width of [390,1440])for(const editing of [false,true])test(`Tourvisor reused menu keeps separate pending ${editing?'edited':'ordinary'} cards at ${width}`,async({page})=>{
+ await page.setViewportSize({width,height:900});await tourvisorSourceFixture(page);const runtime=await canonicalCollectorSourceRuntime(page);
+ await page.addScriptTag({path:path.join(root,'extensions/selection-collector/tourvisor-content.js')});
+ const button=page.locator(editing?'[data-anytour-edit]':'[data-anytour-add]:not([data-anytour-edit])');
+ await button.click();await expect.poll(()=>runtime.db.items?.length).toBe(1);await expect(button).toBeEnabled();const original=runtime.db.items[0].operation_id;
+ await page.evaluate(()=>{window.fixtureTourvisorButton=document.querySelector('[data-anytour-add]:not([data-anytour-edit])');location.hash='tvtourid=1234567891';document.querySelector('.TVTourCardWindow').setAttribute('data-tvtourlink','https://selection.example/#tvtourid=1234567891');document.querySelector('.TVBedIcon .TVTourCardOptionHeader').textContent='Deluxe room'});
+ await button.click();await expect.poll(()=>runtime.db.items.length).toBe(2);await expect(button).toBeEnabled();
+ expect(runtime.db.items[1].observation.quote_id).toBe('tv-snapshot-1234567891');expect(runtime.db.items[1].observation.offer.room).toBe('Deluxe room');expect(runtime.db.items[1].state).toBe(editing?'editing':'destination');
+ await page.evaluate(()=>{location.hash='tvtourid=1234567890';document.querySelector('.TVTourCardWindow').setAttribute('data-tvtourlink','https://selection.example/#tvtourid=1234567890');document.querySelector('.TVBedIcon .TVTourCardOptionHeader').textContent='standard room'});
+ await button.click();await expect(button).toBeEnabled();expect(runtime.db.items).toHaveLength(2);expect(runtime.db.items[0].operation_id).toBe(original);expect(runtime.db.items[0].observation.quote_id).toBe('tv-snapshot-1234567890');
+ expect(await page.evaluate(()=>fixtureTourvisorButton===document.querySelector('[data-anytour-add]:not([data-anytour-edit])'))).toBe(true);
+ expect(runtime.requests.filter(m=>m.type==='begin_add')).toHaveLength(2);expect(runtime.requests.filter(m=>m.type===(editing?'enqueue_edit':'enqueue'))).toHaveLength(2);expect(runtime.server.calls).toHaveLength(0);
+ expect(await page.locator('body').innerText()).not.toContain(runtime.db.target.client);expect(await page.locator('body').innerText()).not.toContain(runtime.db.target.trip);
+});
+
+for(const width of [390,1440])test(`Tourvisor late saved result cannot mark a different reused card at ${width}`,async({page})=>{
+ await page.setViewportSize({width,height:900});await tourvisorSourceFixture(page);const runtime=await canonicalCollectorSourceRuntime(page);
+ await page.addScriptTag({path:path.join(root,'extensions/selection-collector/tourvisor-content.js')});
+ const button=page.locator('[data-anytour-add]:not([data-anytour-edit])');await button.click();await expect.poll(()=>runtime.db.items?.length).toBe(1);await expect(button).toBeEnabled();
+ let release,held=false;const gate=new Promise(resolve=>{release=resolve}),receive=runtime.server.receive.bind(runtime.server);
+ runtime.server.receive=async command=>{if(command.action==='operation'){held=true;await gate}return receive(command)};
+ expect((await runtime.command({type:'confirm',operation_id:runtime.db.items[0].operation_id,confirm_price_basis:true})).ok).toBe(true);await expect.poll(()=>held).toBe(true);
+ const checks=runtime.requests.filter(m=>m.type==='add_status').length;await button.click();await expect.poll(()=>runtime.requests.filter(m=>m.type==='add_status').length).toBeGreaterThan(checks);await expect(button).toBeDisabled();
+ await page.evaluate(()=>{location.hash='tvtourid=1234567891';document.querySelector('.TVTourCardWindow').setAttribute('data-tvtourlink','https://selection.example/#tvtourid=1234567891');document.querySelector('.TVBedIcon .TVTourCardOptionHeader').textContent='Deluxe room'});release();
+ await expect.poll(()=>runtime.db.items[0].state).toBe('saved');await expect(button).toBeEnabled();await expect(button).not.toHaveText('✓ В подборке');await expect(page.locator('[data-anytour-note]')).toContainText('Карточка изменилась');
+ expect(runtime.db.items).toHaveLength(1);expect(runtime.server.creates).toBe(1);expect(runtime.db.items[0].observation.quote_id).toBe('tv-snapshot-1234567890');
+ await button.click();await expect.poll(()=>runtime.db.items.length).toBe(2);await expect(button).toBeEnabled();expect(runtime.db.items[1].observation.quote_id).toBe('tv-snapshot-1234567891');expect(runtime.db.items[1].state).toBe('destination');expect(runtime.server.creates).toBe(1);
+});
+
+for(const width of [390,1440])test(`Tourvisor ordinary source can restart after removing a blocked unconfirmed destination at ${width}`,async({page})=>{
+ await page.setViewportSize({width,height:900});await tourvisorSourceFixture(page);const runtime=await canonicalCollectorSourceRuntime(page);
+ await page.addScriptTag({path:path.join(root,'extensions/selection-collector/tourvisor-content.js')});
+ const button=page.locator('[data-anytour-add]:not([data-anytour-edit])');await button.click();await expect.poll(()=>runtime.db.items?.length).toBe(1);await expect(button).toBeEnabled();
+ const original=runtime.db.items[0].operation_id;expect(runtime.db.items[0].state).toBe('destination');
+ await runtime.changeTarget();expect(runtime.db.items[0].state).toBe('blocked');expect(runtime.db.items[0].observation.raw.party_price_confirmation).toBe('pending');
+ expect((await runtime.command({type:'remove',operation_id:original})).ok).toBe(true);await runtime.restart();expect(runtime.db.items[0].state).toBe('cancelled');
+ await button.click();await expect.poll(()=>runtime.db.items.length).toBe(2);await expect(button).toBeEnabled();
+ const fresh=runtime.db.items[1];expect(fresh.operation_id).not.toBe(original);expect(fresh.target.conversation_id).toBe(12);expect(fresh.state).toBe('destination');expect(fresh.observation.raw.party_price_confirmation).toBe('pending');
+ expect(runtime.requests.filter(m=>m.type==='begin_add')).toHaveLength(2);expect(runtime.requests.filter(m=>m.type==='enqueue')).toHaveLength(2);expect(runtime.server.calls).toHaveLength(0);
+ expect(await runtime.command({type:'confirm',operation_id:fresh.operation_id})).toEqual({ok:false});expect(runtime.server.calls).toHaveLength(0);
+ expect(await page.locator('body').innerText()).not.toContain(runtime.db.target.client);expect(await page.locator('body').innerText()).not.toContain(runtime.db.target.trip);
+});
+
+for(const change of ['price','target'])test(`Tourvisor ordinary source refuses ${change} changes during capture`,async({page})=>{
+ await tourvisorSourceFixture(page);const runtime=await canonicalCollectorSourceRuntime(page);
+ await page.evaluate(()=>{window.collectorExtracts=0;const extract=AnyTourTourvisor.extract;AnyTourTourvisor.extract=(...args)=>{collectorExtracts++;return extract(...args)}});
+ await page.addScriptTag({path:path.join(root,'extensions/selection-collector/tourvisor-content.js')});
+ const button=page.locator('[data-anytour-add]:not([data-anytour-edit])');await button.click();await expect.poll(()=>page.evaluate(()=>collectorExtracts)).toBe(1);await expect.poll(()=>runtime.captureCount()).toBe(1);
+ if(change==='price')await page.evaluate(()=>{document.querySelector('.TVTourCardPriceValue').textContent='161 000';document.querySelector('.TVTourCardIncludePrices').textContent='Стоимость тура 145 000 РУБ Топливный сбор 16 000 РУБ'});else await runtime.changeTarget();
+ await expect(button).toHaveText('Не добавлено');expect(runtime.db.items||[]).toHaveLength(0);expect(runtime.server.calls).toHaveLength(0);
+ expect(runtime.requests.filter(m=>m.type==='begin_add')).toHaveLength(1);expect(runtime.requests.filter(m=>m.type==='enqueue')).toHaveLength(change==='price'?0:1);
+ await expect(page.locator('[data-anytour-note]')).toContainText(change==='price'?'Карточка ещё меняется':'Клиент или подключение изменились');
 });
 
 test('Tourvisor popup requires explicit room price basis and keeps destination visible',async({page,browserName})=>{
