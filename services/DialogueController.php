@@ -26,6 +26,14 @@ require_once __DIR__ . '/../handlers/StateMessageHandler.php';
  */
 class DialogueController
 {
+    /** Start the shared funnel after the transport has resolved its entry/source policy. */
+    public static function start($chatId, array $entryMeta = [], string $platform = ''): bool
+    {
+        if (!$chatId) return false;
+        self::resetDialogueSafe($chatId, $platform);
+        return DialogueView::start($chatId, $entryMeta);
+    }
+
     public function handleIncomingMessage(array $incoming): bool
     {
         $message = self::messageEnvelope($incoming);
@@ -41,14 +49,12 @@ class DialogueController
             if (strpos($payload, 'ya') === 0) {
                 MaxSearchApi::addYclid($chatId, trim(str_replace('ya', '', $payload)));
             }
-            $this->resetDialogueSafe($chatId, false, $platform);
-            DialogueView::start($chatId);
+            self::start($chatId, [], $platform);
             return true;
         }
 
         if ($text === '/start' || $text === 'МЕНЮ') {
-            $this->resetDialogueSafe($chatId, true, $platform);
-            DialogueView::start($chatId);
+            self::start($chatId, [], $platform);
             return true;
         }
 
@@ -177,10 +183,10 @@ class DialogueController
         return preg_match('/^(?:цена|какая\s+цена)[.!?… ]*$/ui', trim($text)) === 1;
     }
 
-    private function resetDialogueSafe($chatId, bool $clearDate, string $platform): void
+    private static function resetDialogueSafe($chatId, string $platform): void
     {
         try {
-            $this->resetDialogue($chatId, $clearDate);
+            self::resetDialogue($chatId);
         } catch (\Throwable $e) {
             DiagnosticLogger::error('dialogue', 'reset_failed', [
                 'platform'=>$platform,
@@ -190,13 +196,13 @@ class DialogueController
         }
     }
 
-    private function resetDialogue($chatId, bool $clearDate): void
+    private static function resetDialogue($chatId): void
     {
         MaxSearchApi::cancelToursFollowup($chatId);
         MaxSearchApi::deleteAllStatus($chatId);
         MaxSearchApi::setEditMode($chatId, '');
         EditFlowService::clearSnapshot($chatId);
-        if ($clearDate) AiDateHandler::clear($chatId);
+        AiDateHandler::clear($chatId);
         AiShadowObserver::clear($chatId);
         DestinationResolver::clear($chatId);
     }

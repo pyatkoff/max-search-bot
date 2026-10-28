@@ -1,5 +1,45 @@
 # Automatic factual profiles — offline tools and admitted journal
 
+## Requested conditions and alternatives (v1_18)
+
+The canonical extractor now preserves bounded compact adult/child counts, slash
+duration choices, qualitative month parts, explicit hotel options and service
+inquiries. A compact child count is not an age. Slash durations retain discrete
+`options`; invalid or mixed ranges cannot become a valid numeric suffix. A
+request from a month part retains an open end and unknown day/year; an exact
+supported date refinement takes precedence. Unsupported mixed month alternatives
+stay unresolved instead of being narrowed to one month.
+
+`departure_day_preferences` retains explicit day numbers with a departure unit
+without inventing their month/year. The same values inside a hotel option remain
+local to that option. A later qualitative date window does not silently supply a
+month to those earlier day-only preferences.
+
+`hotel_candidates` describes an explicit numbered list in an affirmative hotel
+request. This bounded parser recognizes Latin labels and quoted labels; it does
+not resolve catalogue identities, availability, a chosen hotel or a booking. Each
+option retains its own name and condition spans in the original parent message,
+room preferences and departure-day alternatives. Remaining option text is retained
+by `constraint_span` with `partial_rules_only` coverage, not guessed as normalized
+conditions. Unlabelled places are not resolved from a case-specific location
+dictionary. Generic numbered tasks, reported offers and historical/negated lists
+cannot establish requested hotel candidates. Existing `hotel_interest` keeps its
+separate confirmation meaning.
+
+`service_alternatives` accumulates source-bound price/availability questions and
+flight-date searches across the observed prefix. Requested package and hotel-only
+options remain visible when a later turn asks about flights. Its selected service
+is unknown: an inquiry is not an agreed service, a flight refusal or booking
+intent. This inquiry history does not claim that an earlier option remains the
+final present choice. `flight_requirement` retains its existing direct-flight
+semantics.
+
+The new fields use the existing fact availability, evidence and feature-fingerprint
+contracts. Unknown trip/prefix, target restrictions, null purchase probabilities,
+null commission/value and disabled export remain unchanged. Frozen old profiles
+are not rewritten. A private replay is a new interpretation at its actual current
+extraction time, and development controls are not predictive-quality evidence.
+
 ## Grounded deterministic wizard inputs (v1_9)
 
 New explicit wizard applications can emit `wizard_value_applied` into the existing

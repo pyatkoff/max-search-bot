@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../integrations/MaxIncomingAdapter.php';
 require_once __DIR__ . '/../services/IncomingUpdateDispatcher.php';
+require_once __DIR__ . '/../services/DialogueController.php';
 require_once __DIR__ . '/../services/IncomingUpdateDeduplicator.php';
 require_once __DIR__ . '/../services/TrafficAttributionService.php';
 require_once __DIR__ . '/../services/MaxInboundMediaArchiveService.php';
@@ -156,11 +157,6 @@ class MaxUpdateHandler
             return;
         }
 
-        MaxSearchApi::cancelToursFollowup($internalId);
-        MaxSearchApi::deleteAllStatus($internalId);
-        MaxSearchApi::setEditMode($internalId, '');
-        if (class_exists('AiShadowObserver')) AiShadowObserver::clear($internalId);
-        if (class_exists('DestinationResolver')) DestinationResolver::clear($internalId);
-        MaxSearchApi::showStart($internalId, $meta);
+        DialogueController::start($internalId, $meta, 'max');
     }
 }
