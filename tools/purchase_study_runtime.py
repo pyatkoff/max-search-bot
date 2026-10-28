@@ -10,6 +10,10 @@ import purchase_conversion_study as study
 VERSION = 'purchase_study_runtime_v1'
 MAX_STATE_BYTES = 1048576
 RESERVE_BYTES = 16384
+ARM_CASE_LIMIT = 128
+TRAIN_CASE_BYTES_LIMIT = 524288
+EXCLUSION_LEDGER_BYTES_LIMIT = 131072
+CAPACITY_POLICY = 'first_seen_128_each_train_half_ledger_creation_floor_v1'
 REQUEST_KEYS = {'operation', 'state_json', 'now', 'reader_sha256', 'profile_fence',
                 'profile_cursor', 'profiles', 'updates'}
 
@@ -31,7 +35,11 @@ def identifier(value):
 def protocol_info():
     return {'version': VERSION, 'protocol_sha256': study.PROTOCOL_SHA, 'target': study.TARGET,
             'horizon_days': 30, 'extractor_sha256': study.PROTOCOL['extractor_sha256'],
-            'maximum_state_bytes': MAX_STATE_BYTES, 'maximum_cases': study.MAX_CASES}
+            'maximum_state_bytes': MAX_STATE_BYTES, 'maximum_cases': study.MAX_CASES,
+            'runtime_capacity_policy': CAPACITY_POLICY,
+            'maximum_train_cases': ARM_CASE_LIMIT, 'maximum_control_cases': ARM_CASE_LIMIT,
+            'maximum_training_case_bytes': TRAIN_CASE_BYTES_LIMIT,
+            'maximum_exclusion_ledger_bytes': EXCLUSION_LEDGER_BYTES_LIMIT}
 
 
 def document(state):
@@ -82,10 +90,11 @@ def summary(state, capacity=0, deferred_updates=0):
     comparison = (evaluation is not None and not state['model_invalidated'] and not pending
                   and report['comparison_support_ready'])
     return {'version': VERSION, 'target': study.TARGET, 'protocol_sha256': study.PROTOCOL_SHA,
-            'cases': len(state['cases']), 'excluded_people': len(state['exclusions']),
+            'cases': len(state['cases']), 'excluded_people': len(state['exclusions'])+state['exclusion_compaction']['people'],
             'train_people': report['counts']['train']['people'], 'train_resolved': report['counts']['train']['resolved'],
             'control_people': report['counts']['control']['people'], 'control_resolved': report['counts']['control']['resolved'],
-            'unknown_people': sum(c['people']-c['resolved'] for c in report['counts'].values())+len(set(state['exclusions'])-case_groups),
+            'unknown_people': (sum(c['people']-c['resolved'] for c in report['counts'].values())
+                              +len(set(state['exclusions'])-case_groups)+state['exclusion_compaction']['people']),
             'model_fitted': int(state['model'] is not None), 'model_invalidated': int(state['model_invalidated']),
             'predictions': len(state['predictions']), 'comparison_available': int(comparison),
             'paired_resolved_people': evaluation['paired_resolved_people'] if evaluation else 0,
@@ -101,7 +110,7 @@ def load(raw, reader_sha256):
     state = json.loads(raw, object_pairs_hook=study.unique_object)
     study.require(isinstance(state, dict) and set(state) == {'kind', 'version', 'protocol_sha256', 'manifest',
                    'profile_cursor', 'profile_fence', 'last_now', 'monitor_cursor', 'cases', 'exclusions',
-                   'model', 'model_invalidated', 'training_truth', 'predictions', 'evaluation', 'sha256'}, 'runtime_state_shape')
+                   'exclusion_compaction', 'model', 'model_invalidated', 'training_truth', 'predictions', 'evaluation', 'sha256'}, 'runtime_state_shape')
     study.require(state['kind'] == 'purchase_study_state' and state['version'] == VERSION
                   and state['protocol_sha256'] == study.PROTOCOL_SHA
                   and study.digest({k: v for k, v in state.items() if k != 'sha256'}) == state['sha256'], 'runtime_state_hash')
@@ -111,13 +120,35 @@ def load(raw, reader_sha256):
     study.require(type(state['monitor_cursor']) is int and state['monitor_cursor'] >= 0
                   and type(state['model_invalidated']) is bool and isinstance(state['exclusions'], dict)
                   and all(study.hash_value(g) and isinstance(v, dict)
-                          and set(v) == {'reason', 'packet_sha256', 'profile_id', 'first_frozen_at'}
+                          and set(v) == {'reason', 'packet_sha256', 'profile_id', 'first_frozen_at', 'creation_bound'}
                           and isinstance(v['reason'], str) and study.hash_value(v['packet_sha256'])
                           and isinstance(v['profile_id'], str)
                           for g, v in state['exclusions'].items()), 'runtime_state_metadata')
+    study.require(all(study.moment(state['manifest']['registered_at']) <= study.moment(r['first_frozen_at'])
+                      <= study.moment(state['last_now']) for r in state['exclusions'].values()), 'runtime_exclusion_clock')
+    for r in state['exclusions'].values():
+        bound = r['creation_bound']
+        study.require(bound is None or (isinstance(bound, dict) and set(bound) == {'created_at', 'source_sha256'}
+                      and study.hash_value(bound['source_sha256'])
+                      and study.moment(bound['created_at']) <= study.moment(r['first_frozen_at'])), 'runtime_exclusion_bound')
+    compaction = state['exclusion_compaction']
+    study.require(isinstance(compaction, dict) and set(compaction) == {'created_after', 'people', 'chain_sha256'}
+                  and type(compaction['people']) is int and compaction['people'] >= 0
+                  and study.hash_value(compaction['chain_sha256'])
+                  and study.moment(state['manifest']['registered_at']) <= study.moment(compaction['created_after'])
+                  <= study.moment(state['last_now'])
+                  and len(encoded(state['exclusions']).encode()) <= EXCLUSION_LEDGER_BYTES_LIMIT,
+                  'runtime_exclusion_compaction')
+    initial_chain = study.digest([CAPACITY_POLICY, state['manifest']['registered_at']])
+    study.require((compaction['people'] == 0 and compaction['created_after'] == state['manifest']['registered_at']
+                   and compaction['chain_sha256'] == initial_chain)
+                  or (compaction['people'] > 0 and compaction['chain_sha256'] != initial_chain),
+                  'runtime_exclusion_compaction')
     study.require(isinstance(state['cases'], list) and len(state['cases']) <= study.MAX_CASES
                   and isinstance(state['predictions'], list) and len(state['predictions']) <= study.MAX_CASES, 'runtime_state_limit')
     study.assemble(document(state))
+    study.require(all(sum(c['packet']['assignment'] == arm for c in state['cases']) <= ARM_CASE_LIMIT
+                      for arm in ('train', 'control')) and within_training_budget(state), 'runtime_arm_capacity')
     study.require(isinstance(state['training_truth'], dict), 'runtime_training_truth_shape')
     expected = set()
     if state['model'] is not None:
@@ -142,22 +173,66 @@ def load(raw, reader_sha256):
     return state
 
 
-def excluded(state, group, reason, packet=None, profile_id=None):
+def creation_bound(case, manifest, profile_id):
+    proof = case.get('admission')
+    if not isinstance(proof, dict) or proof.get('profile_id') != profile_id: return None
+    # Exposure can prohibit enrollment without invalidating otherwise bound
+    # native creation evidence. Never invent a bound for an unknown/bad clock.
+    probe = {**case, 'admission': {**proof, 'prior_conversations': 0, 'earlier_profiles': 0, 'exposure': 'unseen'}}
+    try:
+        if study.admission(probe, manifest): return None
+    except study.NotReady:
+        return None
+    return {'created_at': proof['conversation_created_at'], 'source_sha256': proof['source_reference']['sha256']}
+
+
+def excluded(state, group, reason, packet=None, profile_id=None, case=None):
     if group not in state['exclusions']:
         if packet is None:
             case = next(c for c in state['cases'] if c['packet']['person_group'] == group)
             packet = case['packet']; profile_id = case['admission']['profile_id']
         state['exclusions'][group] = {'reason': reason, 'packet_sha256': packet['sha256'],
-                                      'profile_id': profile_id, 'first_frozen_at': packet['frozen_at']}
+                                      'profile_id': profile_id, 'first_frozen_at': packet['frozen_at'],
+                                      'creation_bound': creation_bound(case or {}, state['manifest'], profile_id)}
     if state['model'] is not None and group in state['model']['training_groups']:
         state['model_invalidated'] = True
         state['evaluation'] = None
     if any(p['person_group'] == group for p in state['predictions']):
         state['evaluation'] = None
+    if len(encoded(state['exclusions']).encode()) > EXCLUSION_LEDGER_BYTES_LIMIT:
+        case_groups = {c['packet']['person_group'] for c in state['cases']}
+        compacted = {g: r for g, r in state['exclusions'].items() if g not in case_groups and r['creation_bound'] is not None}
+        study.require(bool(compacted), 'runtime_unbound_exclusion_capacity')
+        old = state['exclusion_compaction']
+        floor = max([old['created_after']]+[r['first_frozen_at'] for r in compacted.values()])
+        state['exclusion_compaction'] = {'created_after': floor, 'people': old['people']+len(compacted),
+            'chain_sha256': study.digest({'previous': old['chain_sha256'], 'created_after': floor,
+                                         'exclusions': compacted})}
+        state['exclusions'] = {g: r for g, r in state['exclusions'].items() if g not in compacted}
+        study.require(len(encoded(state['exclusions']).encode()) <= EXCLUSION_LEDGER_BYTES_LIMIT,
+                      'runtime_case_exclusion_capacity')
 
 
 def within_budget(state, reserve=RESERVE_BYTES):
     return len(encoded(seal(state)).encode()) <= MAX_STATE_BYTES-reserve
+
+
+def within_training_budget(state):
+    # Includes outcome envelopes, not just the small initial feature packet.
+    # The other half remains available for model, future controls and metadata.
+    cases = [c for c in state['cases'] if c['packet']['assignment'] == 'train']
+    return len(encoded(cases).encode()) <= TRAIN_CASE_BYTES_LIMIT
+
+
+def capacity_exclusion(state, group, reason):
+    # Known contrary evidence cannot be discarded while retaining a valid model
+    # or an old complete comparison. Keep its source in the canonical journal;
+    # persist the small disposition even when the full new receipt cannot fit.
+    candidate = copy.deepcopy(state)
+    excluded(candidate, group, reason)
+    candidate['evaluation'] = None
+    study.require(within_budget(candidate, 0), 'runtime_capacity_disposition')
+    return candidate
 
 
 def initialize(request):
@@ -168,6 +243,8 @@ def initialize(request):
     state = {'kind': 'purchase_study_state', 'version': VERSION, 'protocol_sha256': study.PROTOCOL_SHA,
              'manifest': manifest, 'profile_cursor': request['profile_fence'], 'profile_fence': request['profile_fence'],
              'last_now': now, 'monitor_cursor': 0, 'cases': [], 'exclusions': {}, 'model': None,
+             'exclusion_compaction': {'created_after': now, 'people': 0,
+                                     'chain_sha256': study.digest([CAPACITY_POLICY, now])},
              'model_invalidated': False, 'training_truth': {}, 'predictions': [], 'evaluation': None}
     return state
 
@@ -191,7 +268,7 @@ def advance(request):
     state = copy.deepcopy(state)
     seen = {c['packet']['person_group']: c for c in state['cases']}
     old_groups = set(seen)
-    capacity = False; stopped_at = None; previous = old; fresh = []; validated_profiles = []
+    capacity = False; stopped_at = None; previous = old; fresh = []; validated_profiles = []; outside_floor = set()
     for entry in request['profiles']:
         study.require(isinstance(entry, dict) and set(entry) == {'db_profile_id', 'observed_at', 'wrapper', 'admission'}, 'runtime_profile_shape')
         index = identifier(entry['db_profile_id'])
@@ -211,6 +288,16 @@ def advance(request):
         group = p['person_group']
         if group in seen or group in state['exclusions']:
             continue
+        floor = study.moment(state['exclusion_compaction']['created_after'])
+        proof = entry['admission']
+        created = None
+        if isinstance(proof, dict):
+            try: created = study.moment(proof.get('conversation_created_at'))
+            except study.NotReady: pass
+        if study.moment(p['frozen_at']) <= floor or (created is not None and created <= floor):
+            # The registered creation-time fence, not a forgotten person's label
+            # or richer later packet, determines capacity-cohort eligibility.
+            outside_floor.add(group); continue
         c = {'packet': p, 'assignment': p['assignment'], 'assigned_at': p['assigned_at'],
              'admission': entry['admission'], 'outcomes': []}
         issues = study.admission(c, state['manifest'])
@@ -221,15 +308,21 @@ def advance(request):
             reason = 'control_person_seen_before_fit'
         elif not reason and state['model'] is not None and study.moment(p['frozen_at']) < study.moment(state['model']['fitted_at']):
             reason = 'profile_precedes_fitted_model'
+        if not reason and sum(c['packet']['assignment'] == p['assignment'] for c in state['cases']) >= ARM_CASE_LIMIT:
+            reason = p['assignment']+'_person_quota'
         candidate = copy.deepcopy(state)
         if reason:
             # Permanent negative admission decisions need only a compact hash
             # receipt, not a full frozen vector occupying the research case cap.
-            excluded(candidate, group, reason, p, entry['db_profile_id'])
+            excluded(candidate, group, reason, p, entry['db_profile_id'], c)
         else:
             if len(state['cases']) >= study.MAX_CASES:
                 capacity = True; stopped_at = index-1; break
             candidate['cases'].append(c)
+            if not within_training_budget(candidate):
+                candidate = copy.deepcopy(state)
+                reason = 'train_case_byte_quota'
+                excluded(candidate, group, reason, p, entry['db_profile_id'], c)
         if not within_budget(candidate):
             capacity = True; stopped_at = index-1; break
         state = candidate
@@ -246,6 +339,7 @@ def advance(request):
         study.require(update['access_status'] in ('allowed', 'denied', 'unknown'), 'runtime_update_access')
         if group in old_groups: monitored_old += 1
         if group in state['exclusions']: continue
+        if group in outside_floor: continue
         if group not in seen and capacity and group in provided_groups:
             deferred_updates += 1; continue
         study.require(group in seen, 'runtime_unknown_person_update')
@@ -279,7 +373,9 @@ def advance(request):
                             and study.moment(r['recorded_at']) <= study.moment(forecast['predicted_at'])
                             for r in cc['outcomes']):
             excluded(candidate, group, 'outcome_recorded_before_saved_forecast')
-        if not within_budget(candidate): capacity = True; continue
+        if not within_training_budget(candidate) or not within_budget(candidate):
+            state = capacity_exclusion(state, group, 'outcome_update_byte_capacity')
+            capacity = True; continue
         state = candidate
     state['monitor_cursor'] = (state['monitor_cursor']+monitored_old) % max(1, len(state['cases']))
     data = document(state); ready = study.readiness(data)

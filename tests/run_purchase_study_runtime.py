@@ -135,6 +135,10 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(result['summary']['verified_payment_probability'], 0)
         self.assertEqual(set(result), {'state_json', 'summary'})
         self.assertEqual(runtime.protocol_info()['extractor_sha256'], study.PROTOCOL['extractor_sha256'])
+        self.assertEqual(runtime.protocol_info()['maximum_train_cases'], 128)
+        self.assertEqual(runtime.protocol_info()['maximum_control_cases'], 128)
+        self.assertEqual(runtime.protocol_info()['maximum_training_case_bytes'], 524288)
+        self.assertEqual(runtime.protocol_info()['maximum_exclusion_ledger_bytes'], 131072)
 
     def test_fit_once_future_forecast_and_paired_mature_comparison(self):
         result, train, before_fit = fitted_state()
@@ -211,6 +215,164 @@ class RuntimeTests(unittest.TestCase):
         retried = add_cases(result['state_json'], [c], later(TRAIN, seconds=3))
         self.assertEqual(retried['summary']['cases'], 1)
         self.assertEqual(json.loads(retried['state_json'])['profile_cursor'], '1')
+
+    def test_first_128_training_people_cannot_starve_future_control_cohort(self):
+        train = [case('quota-train:'+str(i), TRAIN, i % 2, i % 2) for i in range(129)]
+        result = add_cases(initialized()['state_json'], train, later(TRAIN, seconds=2))
+        enrolled = json.loads(result['state_json'])
+        overflow = train[-1]['packet']['person_group']
+        self.assertEqual(result['summary']['cases'], 128)
+        self.assertEqual(enrolled['profile_cursor'], '129')
+        self.assertEqual(enrolled['exclusions'][overflow]['reason'], 'train_person_quota')
+        self.assertEqual(enrolled['exclusions'][overflow]['packet_sha256'], train[-1]['packet']['sha256'])
+        # A richer, later packet cannot replace the first excluded opportunity.
+        replay = case('quota-train:128', later(TRAIN, seconds=10), 1, 0)
+        result = add_cases(result['state_json'], [replay], later(TRAIN, seconds=12), 130)
+        self.assertEqual(json.loads(result['state_json'])['exclusions'][overflow], enrolled['exclusions'][overflow])
+        self.assertEqual(result['summary']['cases'], 128)
+        result = apply_updates(result['state_json'], train[:40], FIT)
+        self.assertEqual(result['summary']['model_fitted'], 1)
+        controls = [case('quota-control:'+str(i), CONTROL, i % 2, i % 2, 'control') for i in range(40)]
+        result = add_cases(result['state_json'], controls, PREDICT, 131)
+        self.assertEqual(result['summary']['predictions'], 40)
+        self.assertEqual(result['summary']['control_people'], 40)
+        self.assertEqual(result['summary']['cases'], 168)
+        result = apply_updates(result['state_json'], controls, EVALUATE)
+        self.assertEqual(result['summary']['paired_resolved_people'], 40)
+        self.assertEqual(result['summary']['comparison_available'], 1)
+        self.assertLessEqual(len(result['state_json'].encode()), runtime.MAX_STATE_BYTES)
+
+    def test_control_arm_has_its_own_first_seen_quota(self):
+        result, _, _ = fitted_state()
+        controls = [case('quota-control-limit:'+str(i), CONTROL, i % 2, i % 2, 'control') for i in range(129)]
+        result = add_cases(result['state_json'], controls, PREDICT, 42)
+        state = json.loads(result['state_json'])
+        self.assertEqual(result['summary']['control_people'], 128)
+        self.assertEqual(result['summary']['predictions'], 128)
+        self.assertEqual(state['profile_cursor'], '170')
+        self.assertEqual(state['exclusions'][controls[-1]['packet']['person_group']]['reason'], 'control_person_quota')
+
+    def test_training_byte_quota_is_sticky_and_does_not_block_future_control(self):
+        result, _, _ = fitted_state()
+        state = json.loads(result['state_json'])
+        training_bytes = len(runtime.encoded(state['cases']).encode())
+        new_train = case('quota-training-bytes', CONTROL, 1, 1)
+        with patch.object(runtime, 'TRAIN_CASE_BYTES_LIMIT', training_bytes+100):
+            result = add_cases(result['state_json'], [new_train], PREDICT, 42)
+            self.assertEqual(result['summary']['cases'], 40)
+            group = new_train['packet']['person_group']
+            self.assertEqual(json.loads(result['state_json'])['exclusions'][group]['reason'], 'train_case_byte_quota')
+            new_control = case('quota-control-byte-headroom', CONTROL, 1, 1, 'control')
+            result = add_cases(result['state_json'], [new_control], PREDICT, 43)
+        self.assertEqual(result['summary']['predictions'], 1)
+        self.assertEqual(json.loads(result['state_json'])['profile_cursor'], '43')
+
+    def test_unstorable_training_correction_persists_small_fail_closed_disposition(self):
+        initial, train, _ = fitted_state()
+        before = json.loads(initial['state_json'])
+        revised = copy.deepcopy(train[0])
+        r = receipt(revised['packet'], 'won', 2, later(TRAIN, days=2))
+        r['available_at'] = later(FIT, seconds=1)
+        revised['outcomes'].append(study.seal({k: v for k, v in r.items() if k != 'sha256'}))
+        revised['coverage'].update(through=EVALUATE, available_at=EVALUATE)
+        train_bytes = len(runtime.encoded(before['cases']).encode())
+        for budget in ('training', 'whole_state'):
+            with self.subTest(budget=budget):
+                limit = (patch.object(runtime, 'TRAIN_CASE_BYTES_LIMIT', train_bytes+100) if budget == 'training'
+                         else patch.object(runtime, 'MAX_STATE_BYTES', len(initial['state_json'].encode())+runtime.RESERVE_BYTES+100))
+                with limit:
+                    result = apply_updates(initial['state_json'], [revised], EVALUATE)
+                state = json.loads(result['state_json'])
+                group = revised['packet']['person_group']
+                self.assertEqual(result['summary']['model_invalidated'], 1)
+                self.assertEqual(result['summary']['capacity_paused'], 1)
+                self.assertEqual(result['summary']['comparison_available'], 0)
+                self.assertEqual(state['exclusions'][group]['reason'], 'outcome_update_byte_capacity')
+                self.assertEqual(state['model'], before['model'])
+                self.assertEqual(state['cases'][0]['outcomes'], before['cases'][0]['outcomes'])
+                self.assertIsNone(state['evaluation'])
+
+    def test_bounded_exclusion_compaction_keeps_cases_and_allows_new_future_controls(self):
+        result, _, _ = fitted_state()
+        kept = case('ledger-retained-control', CONTROL, 1, 1, 'control')
+        result = add_cases(result['state_json'], [kept], PREDICT, 42)
+        denied = update(kept, 'denied')
+        result = call(request(PREDICT, result['state_json'], cursor='42', updates=[denied]))
+        retained_group = kept['packet']['person_group']
+        model = json.loads(result['state_json'])['model']
+        original_forecast = json.loads(result['state_json'])['predictions'][0]
+        excluded = [case('ledger-old:'+str(i), CONTROL, i % 2, i % 2) for i in range(24)]
+        for c in excluded: c['admission']['prior_conversations'] = 1
+        with patch.object(runtime, 'EXCLUSION_LEDGER_BYTES_LIMIT', 4000):
+            result = add_cases(result['state_json'], excluded, PREDICT, 43)
+            first = json.loads(result['state_json'])
+            self.assertEqual(first['exclusion_compaction']['created_after'], CONTROL)
+            self.assertGreater(first['exclusion_compaction']['people'], 0)
+            self.assertLessEqual(len(runtime.encoded(first['exclusions']).encode()), 4000)
+            self.assertEqual(first['exclusions'][retained_group]['reason'], 'current_access_denied')
+            later_excluded = [case('ledger-later:'+str(i), later(CONTROL, seconds=1), i % 2, i % 2) for i in range(24)]
+            for c in later_excluded: c['admission']['prior_conversations'] = 1
+            result = add_cases(result['state_json'], later_excluded, PREDICT, 67)
+            second = json.loads(result['state_json'])
+            self.assertEqual(second['exclusion_compaction']['created_after'], later(CONTROL, seconds=1))
+            self.assertGreater(second['exclusion_compaction']['people'], first['exclusion_compaction']['people'])
+            self.assertNotEqual(second['exclusion_compaction']['chain_sha256'], first['exclusion_compaction']['chain_sha256'])
+            self.assertEqual(second['exclusions'][retained_group], first['exclusions'][retained_group])
+            # Even if scope is later restored and an input asserts no earlier
+            # packet, the original conversation clock cannot pass the floor.
+            replay = case('ledger-old:0', later(CONTROL, seconds=2), 1, 0)
+            replay['admission'].update(conversation_created_at=CONTROL, person_first_seen_at=CONTROL)
+            result = add_cases(result['state_json'], [replay], later(CONTROL, seconds=3), 91)
+            replayed = json.loads(result['state_json'])
+            self.assertEqual(replayed['exclusion_compaction'], second['exclusion_compaction'])
+            self.assertFalse(any(c['packet']['person_group'] == replay['packet']['person_group'] for c in replayed['cases']))
+            controls = [case('ledger-genuinely-new:'+str(i), later(CONTROL, seconds=3), i % 2, i % 2, 'control') for i in range(40)]
+            result = add_cases(result['state_json'], controls, later(CONTROL, seconds=4), 92)
+            self.assertEqual(result['summary']['control_people'], 40)
+            self.assertEqual(result['summary']['predictions'], 41)
+            result = apply_updates(result['state_json'], controls, EVALUATE)
+            final = json.loads(result['state_json'])
+            self.assertEqual(result['summary']['comparison_available'], 1)
+            self.assertEqual(result['summary']['paired_resolved_people'], 40)
+            self.assertEqual(final['model'], model)
+            self.assertEqual(final['predictions'][0], original_forecast)
+            self.assertEqual(final['exclusions'][retained_group]['reason'], 'current_access_denied')
+
+    def test_malformed_capacity_compaction_state_is_rejected(self):
+        original = json.loads(initialized()['state_json'])
+        for mutation in ('missing', 'hash', 'future', 'negative', 'unproved_floor'):
+            with self.subTest(mutation=mutation):
+                bad = copy.deepcopy(original)
+                if mutation == 'missing': del bad['exclusion_compaction']
+                if mutation == 'hash': bad['exclusion_compaction']['chain_sha256'] = 'invalid'
+                if mutation == 'future': bad['exclusion_compaction']['created_after'] = TRAIN
+                if mutation == 'negative': bad['exclusion_compaction']['people'] = -1
+                if mutation == 'unproved_floor': bad['exclusion_compaction']['created_after'] = '2026-09-01T00:00:00Z'
+                with self.assertRaisesRegex(study.NotReady, 'runtime_state_shape|runtime_exclusion_compaction'):
+                    call(request(TRAIN, runtime.encoded(runtime.seal(bad))))
+
+    def test_unbound_creation_exclusion_stays_sticky_when_safe_ledger_entries_compact(self):
+        unknown = case('ledger-unbound-creation', TRAIN, 1, 1)
+        unknown['admission']['conversation_created_at'] = later(TRAIN, days=1)
+        result = add_cases(initialized()['state_json'], [unknown], later(TRAIN, seconds=2))
+        group = unknown['packet']['person_group']
+        self.assertIsNone(json.loads(result['state_json'])['exclusions'][group]['creation_bound'])
+        safe = [case('ledger-safe-old:'+str(i), TRAIN, i % 2, i % 2) for i in range(12)]
+        for c in safe: c['admission']['prior_conversations'] = 1
+        with patch.object(runtime, 'EXCLUSION_LEDGER_BYTES_LIMIT', 2000):
+            result = add_cases(result['state_json'], safe, later(TRAIN, seconds=2), 2)
+            state = json.loads(result['state_json'])
+            self.assertGreater(state['exclusion_compaction']['people'], 0)
+            self.assertIn(group, state['exclusions'])
+            self.assertIsNone(state['exclusions'][group]['creation_bound'])
+            replay = case('ledger-unbound-creation', FIT, 1, 0)
+            result = add_cases(result['state_json'], [replay], FIT, 14)
+            self.assertEqual(result['summary']['cases'], 0)
+            self.assertEqual(json.loads(result['state_json'])['exclusions'][group], state['exclusions'][group])
+        bad = json.loads(result['state_json'])
+        bad['exclusions'][group]['creation_bound'] = {'created_at': FIT, 'source_sha256': 'f'*64}
+        with self.assertRaisesRegex(study.NotReady, 'runtime_exclusion_bound'):
+            call(request(FIT, runtime.encoded(runtime.seal(bad)), cursor='14'))
 
     def test_mixed_new_and_old_updates_only_advance_old_monitor_rotation(self):
         old = [case('runtime-monitor-old:'+str(i), TRAIN, i % 2, i % 2) for i in range(3)]

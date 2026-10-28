@@ -203,6 +203,42 @@ therefore do not consume the 256 admitted-case slots. At fitting, these excluded
 people are also bound into the model exclusion set. Entry-only descriptors are not
 an enrollment opportunity.
 
+The source-bound runtime capacity policy is fixed before installation: at most
+128 first-seen training people and 128 first-seen control people, within the same
+256-case limit. Arm overflow creates a compact permanent exclusion and advances
+the metadata cursor; labels and condition richness do not choose a replacement.
+Training cases, including their appended outcome envelopes, have a separate
+524,288-byte ceiling. The other half of the one-MiB state remains available for
+the fitted model, future controls/forecasts and shared metadata. This is resource
+headroom, not a promise that every maximum-sized packet or receipt set will fit.
+`protocol` exposes both quotas, the training-byte ceiling and its policy name;
+the registered native-reader hash binds the exact policy implementation while
+the inquiry target and feature/assignment protocol remain unchanged.
+
+The exclusion ledger has a separate 131,072-byte ceiling. Before persisting an
+overflowing ledger, only exclusions without an admitted case are compacted into
+a chained digest and an accumulated distinct-person count. Every case exclusion,
+including training invalidation and saved control-forecast disposition, remains
+explicit. Compaction also requires a bound native creation clock/source reference
+with creation no later than the original packet freeze. Missing or inconsistent
+creation proofs remain sticky and fail closed if their bounded ledger fills;
+they are never forgotten as if proven old. A monotonic creation-time admission floor moves to at least the latest
+first-packet freeze among the compacted entries. Any future enrollment must prove
+that its canonical conversation was created strictly after that floor. Thus a
+forgotten exclusion cannot return with a richer packet or restored scope, and
+new people created after the floor can still enter the other arm. Existing
+cases/models/forecasts are never rewritten by compaction.
+
+This capacity policy conservatively excludes old-created conversations whose
+first customer text had not yet appeared when the floor advanced. It is fixed
+before installation, uses neither labels nor condition richness, and is not a
+claim about their conversion behavior. `excluded_people`/`unknown_people` include
+retained and compacted accounted exclusions once. Profiles filtered by the floor
+do not increment those distinct-person totals or grow the ledger: their unique
+people cannot be reconstructed from a time fence. Those totals therefore do not
+count every distinct person among floor-filtered observations. Train/control and
+resolved-cohort denominators continue to describe the actual admitted cases.
+
 Updates are `{person_group,outcomes,coverage,access_status}`. Existing receipt IDs
 must match their original immutable payloads; exact duplicates are free and source
 aliases/mutations fail closed. Coverage advances monotonically and means only the
@@ -234,6 +270,11 @@ The monitor cursor advances only for updates to groups present before this pass;
 new-person outcome checks do not skip older monitors. A fresh update whose profile
 could not enroll due to capacity is explicitly deferred without losing existing
 case updates; unrelated unknown update groups remain invalid.
+If a known outcome update cannot fit the training or overall byte budget, a small
+sticky capacity exclusion is persisted instead of retaining old complete coverage
+as current truth. A used training person invalidates the model; a stale comparison
+is cleared. The original source stays in the canonical journal, and saved packets,
+models and forecasts are not rewritten to manufacture readiness.
 
 Mature supported training data fits one paired model. All control people seen
 before fitting stay excluded. Only future unseen control packets can get actual
