@@ -2,7 +2,7 @@
 
 The existing authenticated AnyTour MCP endpoint declares two read-only tools:
 
-- `archive_research_inventory`: metadata-first pages of at most 50 stored chat records.
+- `archive_research_inventory`: default metadata-first pages of at most 50 stored chat records, with a separate explicit lexical-feature continuation.
 - `read_archive_history`: at most 100 stored messages for a returned `chat_ref`, with bounded continuation.
 
 Both require the separate OAuth capability `archive:read`, a current active
@@ -51,6 +51,57 @@ A stored chat is not necessarily one unique tourist or one trip. The accepted
 membership of the historically discussed 16000 records and any old held-out
 membership remain unverified unless independently supplied by their canonical
 register. Reading historical text does not establish prospective model accuracy.
+
+## Explicit lexical-feature inventory
+
+Ordinary inventory calls and their `next_cursor` remain metadata-only. Their
+separate `feature_scan` descriptor states that selecting `start_cursor` reads
+stored text. Pass that exact cursor to the same inventory tool to select
+`operation: lexical_feature_inventory`; continue only its own `next_cursor`.
+History cursors and unknown modes are rejected. Existing input schemas, tool
+names and the already-consented `archive:read` capability are unchanged.
+
+This stateless mode screens fixed lexical candidates. It does not call a model,
+write a study, train, send, mark messages read or produce outcome labels. It
+rechecks current permissions around the read-only snapshot, uses the same
+historical-chat admission and per-record bot guard before materializing payload,
+and provides fresh window `chat_ref` values for full-context reading.
+
+Each request allows at most 50 chat windows, 1000 metadata rows and 1 MiB
+cumulative source JSON, with the existing 8-second total/5-second statement
+bounds and 64 KiB data/256 KiB full RPC limits. A single record stays limited to
+1 MiB; lexical text is limited to 32 KiB. Up to eight matched fragments and four
+unmatched controls are returned, at most 384 bytes each, after the existing
+best-effort minimization. Samples are ordered examples, not representative
+accuracy estimates. Media contents remain unread.
+
+Window contributions include fixed-pattern message counts, qualifiers attached
+to the matching messages, unavailable/unknown coverage, stable run-scoped chat
+keys and source-window IDs. Observed role-message counts and role-switch timing
+histograms use only stored verified-role messages with usable source timestamps.
+They coalesce consecutive same-role messages and reset at gaps or unknown clocks;
+first/last valid edges support explicit cross-window accounting. These are observed
+message transitions, not proof that a question was answered or that a tourist is
+interested. No business-hours or historical-availability correction is inferred.
+Qualifiers apply to the whole message, not every
+matched clause. Negative, conditional, past, forwarded or ambiguous wording is
+never a confirmed payment or purchase. Counts do not establish unique people,
+trips, accepted corpus membership, causal effects or prospective accuracy.
+
+The cursor contains only position, fence, run nonce and a sliding 20-minute
+expiry. It carries no trusted cumulative counters and cannot authorize a read.
+Credential rotation can still require a restart. Consumers must account for
+returned contributions and deduplicate actual source windows; current versions
+may change between requests. A window ID is a state hint, not an attestation.
+Reading a historical holdout exposes it to research.
+
+When output trimming drops a suffix, only the returned prefix contributes to
+returned counts and continuation. `read_but_not_returned_records` makes the
+discarded processing explicit; those records are revisited. Empty terminal
+pages can confirm exhaustion. Missing, deleted, oversized or unscanned records
+remain coverage gaps; absence of a lexical match does not establish a negative
+business outcome. A complete scan is lexical screening, with semantic review
+reported separately.
 
 ## Evidence and limits
 

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__.'/InternalOwnerDialogueScope.php';
 require_once __DIR__.'/ManagerAiTextRedactor.php';
+require_once __DIR__.'/ArchiveResearchFeatureExtractor.php';
 
 /** Private historical research reader. No intake, model, send or read-marker owner. */
 final class ArchiveResearchReadService
@@ -12,6 +13,9 @@ final class ArchiveResearchReadService
     public const MAX_PAGE_SOURCE_BYTES=32768;
     public const MAX_RECORD_BYTES=1048576;
     public const CURSOR_TTL=1200;
+    private const FEATURE_METADATA_ROWS=1000;
+    private const FEATURE_SOURCE_BYTES=1048576;
+    private const TIMING_SET_VERSION='observed_role_switch_v1';
     private const MAX_ROWS=500000;
     private const MAX_CHATS=30000;
     private const MAX_BYTES=536870912;
@@ -33,9 +37,11 @@ final class ArchiveResearchReadService
     {
         self::arguments($args,['cursor','limit'],50);
         return $this->read($admin,$connection,function(string $key) use($admin,$connection,$args):array {
-            $state=isset($args['cursor'])?$this->decode($args['cursor'],'inventory',$key,$admin,$connection):null;
+            $state=isset($args['cursor'])?$this->decode($args['cursor'],'inventory_or_features',$key,$admin,$connection):null;
+            if(($state['k']??null)==='feature_inventory'&&$state['a']!=='0'&&!isset($this->accountAliases[$state['a']]))self::fail('forbidden');
             $currentFence=$this->fence();$fence=$state['f']??$currentFence;
             if(self::decimalGreater($fence,$currentFence))self::fail('stale_cursor');
+            if(($state['k']??null)==='feature_inventory')return$this->featureInventory($state,$args['limit']??25,$key,$admin,$connection);
             $expiry=$state['e']??($this->now()+self::CURSOR_TTL);
             $summary=$state===null?$this->summary($fence):null;
             $limit=$args['limit']??25;
@@ -51,7 +57,7 @@ final class ArchiveResearchReadService
             if($more&&$rows){$last=$rows[count($rows)-1];$next=$this->encode(['v'=>1,'k'=>'inventory','a'=>(string)$last['account_id'],
                 'c'=>(string)$last['chat_id'],'f'=>$fence,'e'=>$expiry],$key,$admin,$connection);}
             return $this->base($fence)+['totals'=>$summary['totals']??null,'accounts'=>$summary['accounts']??null,
-                'summary_not_recomputed'=>$state!==null,
+                'summary_not_recomputed'=>$state!==null,'feature_scan'=>$this->featureDescriptor($fence,$key,$admin,$connection),
                 'chats'=>$chats,'has_more'=>$more,'next_cursor'=>$next];
         });
     }
@@ -276,6 +282,211 @@ final class ArchiveResearchReadService
         return[$rows,$more];
     }
 
+    private function featureDescriptor(string$fence,string$key,int$admin,string$connection):array
+    {
+        return['operation'=>'lexical_feature_inventory','invoked'=>false,'explicit_stored_text_read'=>true,
+            'pattern_set_version'=>ArchiveResearchFeatureExtractor::PATTERN_SET_VERSION,'timing_set_version'=>self::TIMING_SET_VERSION,
+            'semantics'=>'lexical_candidates_not_events_or_probabilities','media_contents_read'=>false,'model_calls'=>0,
+            'budgets'=>['max_chat_windows'=>50,'max_metadata_rows'=>self::FEATURE_METADATA_ROWS,
+                'max_source_json_bytes'=>self::FEATURE_SOURCE_BYTES,'max_record_bytes'=>self::MAX_RECORD_BYTES,
+                'max_output_bytes'=>self::MAX_RESPONSE_BYTES,'max_read_seconds'=>self::MAX_SECONDS,'max_statement_ms'=>5000,
+                'max_pattern_text_bytes'=>ArchiveResearchFeatureExtractor::MAX_TEXT_BYTES,'max_matched_evidence'=>8,'max_control_samples'=>4,'max_fragment_bytes'=>384],
+            'start_cursor'=>$this->encode(['v'=>1,'k'=>'feature_inventory','a'=>'0','c'=>'0','n'=>'0','f'=>$fence,
+                'x'=>bin2hex(random_bytes(16)),'e'=>$this->now()+self::CURSOR_TTL],$key,$admin,$connection)];
+    }
+
+    /** Explicit stored-text mode only. Cursor fields are positions, never authorization or cumulative counts. */
+    private function featureInventory(array$state,int$limit,string$key,int$admin,string$connection):array
+    {
+        if($state['a']!=='0'&&!isset($this->accountAliases[$state['a']]))self::fail('forbidden');
+        $position=['a'=>$state['a'],'c'=>$state['c'],'n'=>$state['n']];$current=$state['a']!=='0';
+        $windows=[];$metadataRows=0;$sourceBytes=0;$processed=0;$evidenceLeft=8;$controlsLeft=4;$exhausted=false;
+        $anchor=$current;$expiry=$this->now()+self::CURSOR_TTL;
+        while(count($windows)<$limit&&$metadataRows<self::FEATURE_METADATA_ROWS){
+            if(!$current){
+                $chat=$this->featureNextChat($state['f'],$position['a'],$position['c']);
+                if($chat===null){$exhausted=true;break;}
+                $metadataRows++;$position=['a'=>$chat['a'],'c'=>$chat['c'],'n'=>'0'];$current=true;$anchor=false;
+            }
+            if($anchor){
+                $this->stage='history_anchor';[$where,$values]=$this->scope($state['f'],true);
+                $found=$this->q('SELECT 1 FROM telegram_dialogue_messages m JOIN projects p ON p.project_key=m.project_key WHERE '
+                    .$where.' AND m.account_id=? AND m.chat_id=? LIMIT 1',[...$values,$position['a'],$position['c']])->fetchColumn();
+                if($found===false){$current=false;$anchor=false;continue;}
+                $metadataRows++;$anchor=false;
+            }
+            $remaining=self::FEATURE_METADATA_ROWS-$metadataRows;if($remaining<1)break;
+            $metadata=$this->featureMetadata($state['f'],$position,$remaining);$metadataRows+=count($metadata);
+            if(!$metadata){$current=false;continue;}
+            $selected=[];$fetch=[];$pageBytes=0;
+            foreach($metadata as$row){
+                $status=$this->metadataStatus($row);$size=(int)$row['bytes'];
+                if($status==='available'&&$sourceBytes+$pageBytes+$size>self::FEATURE_SOURCE_BYTES)break;
+                $row['read_status']=$status;$selected[]=$row;
+                if($status==='available'){$fetch[]=(string)$row['id'];$pageBytes+=$size;}
+            }
+            if(!$selected)break;
+            $raw=[];
+            if($fetch){
+                $this->stage='history_payload';[$where,$values]=$this->scope($state['f'],false);
+                $rows=$this->q('SELECT m.id,m.record_json FROM telegram_dialogue_messages m JOIN projects p ON p.project_key=m.project_key WHERE '
+                    .$where.' AND m.account_id=? AND m.chat_id=? AND m.id IN ('.implode(',',array_fill(0,count($fetch),'?')).')',
+                    [...$values,$position['a'],$position['c'],...$fetch])->fetchAll(PDO::FETCH_ASSOC);
+                foreach($rows as$row)$raw[(string)$row['id']]=$row['record_json'];
+                if(count($raw)!==count($fetch))self::fail('source_changed');
+                foreach($selected as$row)if($row['read_status']==='available'
+                    &&(!isset($raw[(string)$row['id']])||strlen($raw[(string)$row['id']])!==(int)$row['bytes']))self::fail('source_changed');
+            }
+            $complete=count($selected)===count($metadata)&&count($metadata)<$remaining;
+            $window=$this->featureWindow($selected,$raw,$position,$state['x'],$key,$complete,$evidenceLeft,$controlsLeft);
+            $window['chat_ref']=$this->encode(['v'=>1,'k'=>'chat','a'=>$position['a'],'c'=>$position['c'],
+                'f'=>$state['f'],'e'=>$expiry],$key,$admin,$connection);
+            $sourceBytes+=$pageBytes;$processed+=count($selected);$last=$selected[count($selected)-1];
+            $position=['a'=>(string)$last['account_id'],'c'=>(string)$last['chat_id'],'n'=>(string)$last['message_id']];
+            $windows[]=['result'=>$window,'position'=>$position];$current=!$complete;
+            if(count($selected)<count($metadata)||$sourceBytes>=self::FEATURE_SOURCE_BYTES)break;
+        }
+        $make=function(array$items,bool$more)use($state,$key,$admin,$connection,$metadataRows,$sourceBytes,$processed,$expiry):array{
+            $last=$items?$items[count($items)-1]['position']:['a'=>$state['a'],'c'=>$state['c'],'n'=>$state['n']];
+            $next=$more?$this->encode(['v'=>1,'k'=>'feature_inventory',...$last,'f'=>$state['f'],'x'=>$state['x'],
+                'e'=>$expiry],$key,$admin,$connection):null;
+            $returned=array_sum(array_map(static fn($w)=>$w['result']['source_records'],$items));
+            return$this->base($state['f'])+['operation'=>'lexical_feature_inventory',
+                'pattern_set_version'=>ArchiveResearchFeatureExtractor::PATTERN_SET_VERSION,'timing_set_version'=>self::TIMING_SET_VERSION,
+                'semantics'=>'lexical_candidates_not_events_or_probabilities','stored_text_read'=>true,'model_calls'=>0,
+                'media_contents_read'=>false,'media_observation'=>'stored_references_only; omitted_record_media_unknown',
+                'candidate_flag_scope'=>'whole_message_qualifiers_not_semantic_polarity_or_match_clause',
+                'full_context_lookup'=>'read_archive_history_with_window_chat_ref',
+                'scan_run_ref'=>hash_hmac('sha256',"archive-feature-run-v1\0".$state['x'],$key),
+                'windows'=>array_column($items,'result'),'page_metadata_rows'=>$metadataRows,'page_source_json_bytes'=>$sourceBytes,
+                'page_processed_records'=>$processed,'page_returned_records'=>$returned,'read_but_not_returned_records'=>$processed-$returned,
+                'has_more'=>$more,'next_cursor'=>$next,'coverage_is_per_window'=>true,'cumulative_counts'=>null,
+                'deduplication'=>'source_window_id_and_source_ref_with_record_version; tokens_are_not_attestations',
+                'scan_traversal_exhausted_within_fence'=>!$more,'current_versions_may_change_between_pages'=>true,'semantic_review_complete'=>false];
+        };
+        $result=$make($windows,!$exhausted);
+        // Preserve a returned prefix and its cursor when fixed per-window coverage reaches the wire cap.
+        while(strlen(self::json($result))>self::MAX_RESPONSE_BYTES&&count($windows)>1){
+            array_pop($windows);$result=$make($windows,true);
+        }
+        if(!$windows&&!$exhausted)self::fail('source_limit');
+        return$result;
+    }
+
+    private function featureNextChat(string$fence,string$afterAccount,string$afterChat):?array
+    {
+        $this->stage='inventory_page';[$where,$values]=$this->scope($fence,true);
+        $from='FROM telegram_dialogue_messages m'.($this->mysql?' FORCE INDEX (uq_telegram_dialogue_message)':'')
+            .' JOIN projects p ON p.project_key=m.project_key ';
+        foreach(array_keys($this->accountAliases)as$account){
+            $account=(string)$account;if(self::decimalGreater($afterAccount,$account))continue;
+            $after=$account===$afterAccount?$afterChat:'0';
+            $row=$this->q('SELECT m.account_id,m.chat_id '.$from.'WHERE '.$where
+                .' AND m.account_id=? AND m.chat_id>? ORDER BY m.chat_id,m.message_id LIMIT 1',
+                [...$values,$account,$after])->fetch(PDO::FETCH_ASSOC);
+            if($row!==false)return['a'=>(string)$row['account_id'],'c'=>(string)$row['chat_id']];
+        }
+        return null;
+    }
+
+    private function featureMetadata(string$fence,array$position,int$limit):array
+    {
+        $this->stage='history_metadata';[$where,$values]=$this->scope($fence,false);
+        $jsonValid=$this->mysql?'JSON_VALID(m.record_json)':'json_valid(m.record_json)';
+        $botType=$this->mysql?"JSON_TYPE(JSON_EXTRACT(m.record_json,'$.bot_key'))":"json_type(m.record_json,'$.bot_key')";
+        $botValue=$this->mysql?"JSON_UNQUOTE(JSON_EXTRACT(m.record_json,'$.bot_key'))":"CAST(json_extract(m.record_json,'$.bot_key') AS TEXT)";
+        $safe='CASE WHEN '.$this->jsonBytes().'<='.self::MAX_RECORD_BYTES.' THEN CASE WHEN '.$jsonValid.'=1 THEN ';
+        return$this->q('SELECT m.id,m.account_id,m.chat_id,m.message_id,m.source_kind,m.version_at,m.is_deleted,'
+            .$this->jsonBytes().' AS bytes,'.$safe.'1 ELSE 0 END ELSE 0 END AS valid_json,'
+            .$safe.$botType." ELSE NULL END ELSE NULL END AS bot_type,"
+            .$safe.'SUBSTR('.$botValue.',1,97) ELSE NULL END ELSE NULL END AS bot_value '
+            .'FROM telegram_dialogue_messages m'.($this->mysql?' FORCE INDEX (uq_telegram_dialogue_message)':'')
+            .' JOIN projects p ON p.project_key=m.project_key WHERE '.$where
+            .' AND m.account_id=? AND m.chat_id=? AND m.message_id>? ORDER BY m.message_id LIMIT '.$limit,
+            [...$values,$position['a'],$position['c'],$position['n']])->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    private function featureWindow(array$selected,array$raw,array$position,string$run,string$key,bool$complete,int&$evidenceLeft,int&$controlsLeft):array
+    {
+        $counts=[];$candidateFlags=[];$unforwarded=[];$sourceKinds=['desktop_import'=>0,'business_message'=>0];$statuses=[];$extractorStatuses=[];$flags=[];$evidence=[];$controls=[];$versions=[];$timing=[];
+        $ids=ArchiveResearchFeatureExtractor::patternIds();
+        foreach($selected as$row){
+            $this->budget();if(!array_key_exists($row['source_kind'],$sourceKinds))self::fail('unavailable');$sourceKinds[$row['source_kind']]++;
+            $item=$this->project($row,$raw[(string)$row['id']]??null);$status=$item['read_status'];
+            $timing[]=['read_status'=>$status,'role'=>$item['role'],'role_verified'=>$item['role_verified'],
+                'created_at'=>$item['created_at'],'source_ref'=>$item['source_ref']];
+            $statuses[$status]=($statuses[$status]??0)+1;
+            $versions[]=[$item['source_ref'],$item['native_message_id'],$item['version_at'],$status,(int)$row['bytes'],$item['record_sha256']??null];
+            if($status!=='available'){$extractorStatuses['not_attempted_unavailable_record']=($extractorStatuses['not_attempted_unavailable_record']??0)+1;$this->budget();continue;}
+            $features=ArchiveResearchFeatureExtractor::extract($item);
+            $extractStatus=$features['status'];$extractorStatuses[$extractStatus]=($extractorStatuses[$extractStatus]??0)+1;
+            foreach($features['flags']as$name=>$value)if($value===true)$flags[$name]=($flags[$name]??0)+1;
+            $candidates=array_values(array_intersect($ids,$features['candidate_ids']));
+            foreach($candidates as$id){$counts[$id]=($counts[$id]??0)+1;
+                foreach($features['flags']as$name=>$value)if($value===true)$candidateFlags[$id][$name]=($candidateFlags[$id][$name]??0)+1;
+                if($item['role_verified']===true&&$item['forwarded']===false)$unforwarded[$id]=($unforwarded[$id]??0)+1;}
+            $match=$candidates!==[];$control=!$match&&$extractStatus==='scanned';
+            if(($match&&$evidenceLeft>0)||($control&&$controlsLeft>0)){
+                $span=$features['evidence'][0]??['offset_bytes'=>0];
+                $proof=['source_ref'=>$item['source_ref'],'record_sha256'=>$item['record_sha256']??null,
+                    'native_message_id'=>$item['native_message_id'],'version_at'=>$item['version_at'],'created_at'=>$item['created_at'],
+                    'role'=>$features['actor_role'],'candidate_ids'=>$candidates,'flags'=>$features['flags'],
+                    'fragment'=>$this->featureFragment($item['text'],(int)$span['offset_bytes']),
+                    'fragment_basis'=>'projected_minimized_text','media_contents_read'=>false];
+                if($match){$evidence[]=$proof;$evidenceLeft--;}else{$controls[]=$proof;$controlsLeft--;}
+            }
+            $this->budget();
+        }
+        $observed=self::timingWindow($timing);$this->budget();
+        $chat=hash_hmac('sha256',"archive-feature-chat-v1\0".$run."\0".$position['a']."\0".$position['c'],$key);
+        return['chat_key'=>$chat,'account_alias'=>$this->accountAliases[$position['a']],
+            'source_window_id'=>hash_hmac('sha256',"archive-feature-window-v1\0".ArchiveResearchFeatureExtractor::PATTERN_SET_VERSION."\0".self::TIMING_SET_VERSION."\0".$run."\0".$chat."\0".self::json($versions),$key),
+            'source_records'=>count($selected),'source_kind_counts'=>$sourceKinds,'pattern_message_counts'=>$counts,'candidate_flag_counts'=>$candidateFlags,
+            'unforwarded_verified_role_counts'=>$unforwarded,
+            'read_status_counts'=>$statuses,'extractor_status_counts'=>$extractorStatuses,'flag_counts'=>$flags,
+            'chat_window_complete'=>$complete,'timing_window'=>$observed,'evidence'=>$evidence,'control_samples'=>$controls,
+            'control_selection'=>'first_lexically_unmatched_scanned_records_in_returned_prefix',
+            'zero_counts_mean'=>'no_match_in_this_returned_window; missing_or_skipped_text_remains_unknown'];
+    }
+
+    /** Observed role changes only. Reversed clocks start a new baseline; missing records break continuity. */
+    private static function timingWindow(array$records):array
+    {
+        $roles=['customer'=>0,'manager'=>0,'unknown'=>0];$hist=['customer_response'=>[],'manager_response'=>[]];
+        $gaps=['source_unavailable'=>0,'unknown_role'=>0,'unknown_time'=>0,'nonmonotonic_time'=>0];$first=null;$previous=null;
+        foreach($records as$i=>$item){
+            $role=($item['role_verified']??null)===true&&in_array($item['role']??null,['customer','manager'],true)?$item['role']:'unknown';
+            $roles[$role]++;$time=$item['created_at']??null;
+            if(($item['read_status']??null)!=='available'){$gaps['source_unavailable']++;$previous=null;continue;}
+            if($role==='unknown'){$gaps['unknown_role']++;$previous=null;continue;}
+            if(!is_int($time)||$time<=0||$time>253402300799){$gaps['unknown_time']++;$previous=null;continue;}
+            $edge=['role'=>$role,'time'=>$time,'source_ref'=>$item['source_ref']];
+            if($i===0)$first=$edge;
+            if($previous!==null&&$time<$previous['time']){$gaps['nonmonotonic_time']++;$previous=null;}
+            if($previous!==null&&$role!==$previous['role']){
+                $delta=$time-$previous['time'];$bin='gt_604800';
+                foreach([60,300,1800,7200,86400,604800]as$ceiling)if($delta<=$ceiling){$bin='le_'.$ceiling;break;}
+                $name=$role.'_response';$hist[$name][$bin]=($hist[$name][$bin]??0)+1;
+            }
+            // Replacing same-role edges coalesces their run using its last observed timestamp.
+            $previous=$edge;
+        }
+        return['version'=>self::TIMING_SET_VERSION,'verified_role_message_counts'=>$roles,
+            'response_delta_histograms_seconds'=>$hist,'barriers'=>$gaps,'first_edge'=>$first,'last_edge'=>$previous,
+            'basis'=>'native_message_order; observed_created_at_seconds; same_role_runs_use_last_time',
+            'edge_scope'=>'first_and_last_source_records_only; bridge_adjacent_same_chat_windows',
+            'interpretation'=>'observed_role_switches_only; no_question_interest_initiative_or_business_hours_inference'];
+    }
+
+    private function featureFragment(string$text,int$offset):string
+    {
+        $start=max(0,min(strlen($text),$offset)-96);
+        while($start>0&&(ord($text[$start])&0xc0)===0x80)$start--;
+        $fragment=substr($text,$start,384);
+        while($fragment!==''&&preg_match('//u',$fragment)!==1)$fragment=substr($fragment,0,-1);
+        return$fragment;
+    }
+
     private function metadataStatus(array$row):string
     {
         if((int)$row['is_deleted']!==0)return'deleted';
@@ -357,11 +568,15 @@ final class ArchiveResearchReadService
         if(!hash_equals($expected,$m[2]))self::fail('stale_cursor');
         $body=base64_decode(strtr($m[1],'-_','+/').str_repeat('=',(4-strlen($m[1])%4)%4),true);
         try{$v=json_decode((string)$body,true,16,JSON_THROW_ON_ERROR);}catch(Throwable$e){self::fail('stale_cursor');}
-        $keys=$kind==='history'?['v','k','a','c','f','n','r','e']:['v','k','a','c','f','e'];
+        if($kind==='inventory_or_features')$kind=is_array($v)&&($v['k']??null)==='feature_inventory'?'feature_inventory':'inventory';
+        $keys=$kind==='history'?['v','k','a','c','f','n','r','e']:($kind==='feature_inventory'?['v','k','a','c','f','n','x','e']:['v','k','a','c','f','e']);
         if(!is_array($v)||count($v)!==count($keys)||array_diff(array_keys($v),$keys)||($v['v']??null)!==1
             ||($v['k']??null)!==$kind||!is_int($v['e'])||$v['e']<$this->now()||$v['e']>$this->now()+self::CURSOR_TTL)self::fail('stale_cursor');
-        foreach(['a','c','f']as$field)if(!is_string($v[$field])||!self::decimal($v[$field],$kind==='inventory'||$field==='f'))self::fail('stale_cursor');
+        foreach(['a','c','f']as$field)if(!is_string($v[$field])||!self::decimal($v[$field],in_array($kind,['inventory','feature_inventory'],true)||$field==='f'))self::fail('stale_cursor');
         if($kind==='history'&&(!is_string($v['n'])||!self::decimal($v['n'],true)||!is_string($v['r'])||!preg_match('/\A[a-f0-9]{64}\z/D',$v['r'])))self::fail('stale_cursor');
+        if($kind==='feature_inventory'&&(!is_string($v['n'])||!self::decimal($v['n'],true)
+            ||!is_string($v['x'])||!preg_match('/\A[a-f0-9]{32}\z/D',$v['x'])
+            ||(($v['a']==='0'||$v['c']==='0')&&($v['a']!=='0'||$v['c']!=='0'||$v['n']!=='0'))))self::fail('stale_cursor');
         return$v;
     }
     private static function arguments(array$args,array$allowed,int$max):void
