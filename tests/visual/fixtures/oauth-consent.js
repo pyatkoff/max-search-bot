@@ -11,7 +11,8 @@ const net = require('node:net');
 const readline = require('node:readline');
 const {spawn, execFileSync} = require('node:child_process');
 
-async function startOAuthFixture(sourceRoot, {legacyFormPolicy=false} = {}) {
+async function startOAuthFixture(sourceRoot, {legacyFormPolicy=false,profile='legacy'} = {}) {
+  if(!['legacy','development'].includes(profile)||profile==='development'&&legacyFormPolicy)throw new Error('Unsupported OAuth fixture profile/control');
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'oauth-consent-browser-'));
   let child, proxy, callbackServer, networkProxy, lines;
   const callbacks=[], unexpected=[], responses=[], sockets=new Set();
@@ -34,7 +35,7 @@ async function startOAuthFixture(sourceRoot, {legacyFormPolicy=false} = {}) {
     // A disposable test certificate only. No system trust/configuration changes.
     execFileSync('openssl', ['req','-x509','-newkey','rsa:2048','-nodes','-days','1',
       '-subj','/CN=127.0.0.1','-keyout',path.join(temp,'key.pem'),'-out',path.join(temp,'cert.pem')], {stdio:'ignore'});
-    child = spawn('php', ['tests/run_manager_preparation_oauth_regression.php','--browser-fixture'],
+    child = spawn('php', ['tests/run_manager_preparation_oauth_regression.php','--browser-fixture',...(profile==='development'?['--development-profile']:[])],
       {cwd:sourceRoot, stdio:['pipe','pipe','pipe']});
     lines = readline.createInterface({input:child.stdout});
     const metadata = await new Promise((resolve, reject) => {
@@ -48,6 +49,14 @@ async function startOAuthFixture(sourceRoot, {legacyFormPolicy=false} = {}) {
       });
     });
     if (!/^http:\/\/127\.0\.0\.1:\d+$/.test(metadata.origin)) throw new Error('Non-loopback OAuth fixture');
+    const endpoint=profile==='development'?'/manager/development-oauth.php':'/manager/ai-oauth.php';
+    const resource=profile==='development'?'https://app.anytoour.ru/manager/development-mcp.php':'https://app.anytoour.ru/manager/ai-mcp.php';
+    if(metadata.profile!==profile||metadata.resource!==resource||metadata.authorization_endpoint!==endpoint+'?action=authorize'
+      ||metadata.metadata_endpoint!==endpoint+'?action=metadata'||new URL(metadata.authorization_path,metadata.origin).pathname!==endpoint
+      ||new URL(metadata.authorization_path,metadata.origin).origin!==metadata.origin)throw new Error('OAuth fixture profile/source binding mismatch');
+    if(profile==='development'&&(metadata.expected_scope!=='development_work:write'||!/^dev_[a-f0-9]{44}$/.test(metadata.client_id)
+      ||metadata.issuer!=='https://app.anytoour.ru/manager/development-oauth.php'
+      ||metadata.discovery_path!=='/.well-known/oauth-authorization-server/manager/development-oauth.php'))throw new Error('Noncanonical development OAuth fixture');
     const tls={key:fs.readFileSync(path.join(temp,'key.pem')),cert:fs.readFileSync(path.join(temp,'cert.pem'))};
     proxy = track(https.createServer(tls, (request, response) => {
       const target = new URL(request.url, metadata.origin);

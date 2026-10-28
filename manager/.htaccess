@@ -4,4 +4,7 @@
     <Files "ai-mcp.php">
         SetEnvIfNoCase Authorization "^(.+)$" HTTP_AUTHORIZATION=$1
     </Files>
+    <Files "development-mcp.php">
+        SetEnvIfNoCase Authorization "^(.+)$" HTTP_AUTHORIZATION=$1
+    </Files>
 </IfModule>

@@ -4,6 +4,7 @@ require_once dirname(__DIR__).'/services/ManagerPreparationOAuth.php';
 require_once dirname(__DIR__).'/services/ManagerPreparationMcpService.php';
 require_once dirname(__DIR__).'/services/DevelopmentWorkMcpAdapter.php';
 require_once dirname(__DIR__).'/services/DevelopmentWorkEventService.php';
+require_once dirname(__DIR__).'/services/DevelopmentWorkMcpService.php';
 
 $passed=0;
 function devOauthCheck(string $name,bool $ok): void
@@ -11,17 +12,17 @@ function devOauthCheck(string $name,bool $ok): void
     global $passed;if (!$ok) throw new RuntimeException('FAIL '.$name);++$passed;
 }
 function devOauthRpc(string $method,array $params=[]): array { return ['jsonrpc'=>'2.0','id'=>1,'method'=>$method,'params'=>$params]; }
-function devOauthCode(ManagerPreparationOAuth $oauth,string $client,string $scope): array
+function devOauthCode(ManagerPreparationOAuth $oauth,string $client,string $scope,string $resource=ManagerPreparationOAuth::RESOURCE): array
 {
     $verifier=str_repeat('v',43);$session=['csrf'=>'synthetic-development-csrf'];
     $request=['client_id'=>$client,'redirect_uri'=>ManagerPreparationOAuth::REDIRECT_URI,'response_type'=>'code',
-        'resource'=>ManagerPreparationOAuth::RESOURCE,'scope'=>$scope,'state'=>'synthetic-development-state',
+        'resource'=>$resource,'scope'=>$scope,'state'=>'synthetic-development-state',
         'code_challenge_method'=>'S256','code_challenge'=>rtrim(strtr(base64_encode(hash('sha256',$verifier,true)),'+/','-_'),'=')];
     $pending=$oauth->beginAuthorization($session,$request);
     $redirect=$oauth->completeAuthorization($session,$pending,1,$session['csrf'],true);
     parse_str((string)parse_url($redirect,PHP_URL_QUERY),$callback);
     return ['grant_type'=>'authorization_code','client_id'=>$client,'redirect_uri'=>ManagerPreparationOAuth::REDIRECT_URI,
-        'resource'=>ManagerPreparationOAuth::RESOURCE,'code'=>$callback['code'],'code_verifier'=>$verifier];
+        'resource'=>$resource,'code'=>$callback['code'],'code_verifier'=>$verifier];
 }
 function devOauthChallengeScopes(array $reply): ?array
 {
@@ -490,6 +491,7 @@ try {
             $setupRaceBefore=$queueSnapshot();$setupBeforeRaceReads=$setupHook->reads;
             $setupGrantQuery=$pdo->prepare('SELECT revoked_at FROM manager_preparation_oauth_grants WHERE grant_id=?');
             $setupGrantQuery->execute([$setupConnection]);$setupGrantBefore=$setupGrantQuery->fetch(PDO::FETCH_ASSOC);
+            $setupGrantQuery->closeCursor();
             $setupHook->revoked=false;$setupHook->ownerFlipped=false;$setupHook->readFailed=false;
             $setupHook->revoke=$setupChange==='revoked';$setupHook->ownerFlip=$setupChange==='owner_loss';$setupHook->failRead=$setupReadFailure;
             try {
@@ -541,6 +543,249 @@ try {
     devOauthCheck('canonical authority is rechecked after development result is read',
         ($revokedDuringRead['error']['code']??null)===-32001
         &&!str_contains(json_encode($revokedDuringRead,JSON_THROW_ON_ERROR),'must-not-escape-after-revocation'));
+
+    // The separate resource exposes only DEV and reuses the canonical queue and transport.
+    DevelopmentWorkTestSchema::create($pdo);
+    $isolatedOauth=new ManagerPreparationOAuth($pdo,$clock,ManagerPreparationOAuth::PROFILE_DEVELOPMENT);
+    $isolatedClient=$isolatedOauth->registerClient(['redirect_uris'=>[ManagerPreparationOAuth::REDIRECT_URI],'scope'=>$devScope],'synthetic-isolated-dev')['client_id'];
+    $isolatedToken=$isolatedOauth->exchange(devOauthCode($isolatedOauth,$isolatedClient,$devScope,ManagerPreparationOAuth::DEVELOPMENT_RESOURCE));
+    $isolatedContext=$isolatedOauth->contextForBearer('Bearer '.$isolatedToken['access_token']);
+    $isolatedConnection=$isolatedContext['connection_id'];
+    devOauthCheck('new resource bearer is accepted only by its fixed OAuth profile',
+        $isolatedContext['scopes']===[$devScope]&&$oauth->contextForBearer('Bearer '.$isolatedToken['access_token'])===null
+        &&$isolatedOauth->contextForBearer('Bearer '.$selfTokens['access_token'])===null);
+    $isolatedQueue=new DevelopmentWorkQueue($pdo,$clock);$isolatedRequests=[];$isolatedVerifyHook=null;
+    $isolatedTransport=static function(string $url,array $headers,string $body,array $destination)use(&$isolatedRequests,&$isolatedVerifyHook):array {
+        $decoded=json_decode($body,true,16,JSON_THROW_ON_ERROR);$isolatedRequests[]=$decoded;
+        if (($decoded['type']??null)==='verification') {
+            if ($isolatedVerifyHook!==null) {$hook=$isolatedVerifyHook;$isolatedVerifyHook=null;$hook();}
+            return ['status'=>200,'body'=>json_encode(['challenge'=>$decoded['challenge']],JSON_THROW_ON_ERROR)];
+        }
+        return ['status'=>204,'body'=>''];
+    };
+    $isolatedWebhook=new ManagerPreparationWebhook($isolatedTransport,static fn(string $host):array=>['8.8.8.8'],$clock);
+    $isolatedAuthorize=static fn(string $family,int $admin,array $required):bool=>$isolatedOauth->connectionAuthorized($family,$admin,$required);
+    $isolatedEvents=new DevelopmentWorkEventService($pdo,$isolatedWebhook,$clock,$isolatedAuthorize,$isolatedQueue);
+    $isolatedService=new DevelopmentWorkMcpService($pdo,$isolatedQueue,$clock,$isolatedEvents);
+    $isolatedCall=static fn(string $method,array $params=[]):array=>$isolatedService->handle(devOauthRpc($method,$params),1,$isolatedConnection,[$devScope]);
+    $isolatedTools=['development_work_create','development_work_append','development_work_status','development_work_claim',
+        'development_work_started','development_work_complete','development_work_resolve_existing_run','development_work_retire_unclaimed'];
+    $isolatedChanges=(int)$pdo->query('SELECT total_changes()')->fetchColumn();
+    devOauthCheck('isolated discovery exports exactly frozen eight tools and two development events',
+        array_column($isolatedCall('tools/list')['result']['tools'],'name')===$isolatedTools
+        &&array_column($isolatedCall('events/list')['result']['events'],'name')===['development_work.pending','development_work.attention']
+        &&($isolatedCall('server/discover')['result']['serverInfo']['name']??null)==='anytour-development-work'
+        &&$isolatedChanges===(int)$pdo->query('SELECT total_changes()')->fetchColumn()&&$isolatedRequests===[]);
+    foreach (['list_pending_replies','hotel_work_status','archive_research_inventory','future_development_tool'] as $foreignTool) {
+        $denied=$isolatedCall('tools/call',['name'=>$foreignTool,'arguments'=>[]]);
+        devOauthCheck('isolated surface rejects foreign tool before dispatch '.$foreignTool,($denied['error']['code']??null)===-32601);
+    }
+    foreach (['manager_replies.pending','hotel_work.pending','future.event'] as $foreignEvent) {
+        $denied=$isolatedCall('events/subscribe',['name'=>$foreignEvent]);
+        devOauthCheck('isolated surface rejects foreign event before transport '.$foreignEvent,($denied['error']['code']??null)===-32601);
+    }
+    devOauthCheck('foreign names create no queue callback or subscription writes',
+        $isolatedChanges===(int)$pdo->query('SELECT total_changes()')->fetchColumn()&&$isolatedRequests===[]);
+    $legacyIsolated=(new ManagerPreparationMcpService($pdo,null,null,$clock))->handle(devOauthRpc('tools/list'),1,$isolatedConnection,[$devScope]);
+    $newLegacy=$isolatedService->handle(devOauthRpc('tools/list'),1,$selfConnection,[$devScope]);
+    devOauthCheck('services enforce resource identity even with forged granted scope arguments',
+        ($legacyIsolated['error']['code']??null)===-32001&&($newLegacy['error']['code']??null)===-32001);
+    $isolatedTask=['task_id'=>'ISOLATED_A','owner_task_id'=>'ISOLATED_OWNER','reviewer_task_id'=>'ISOLATED_REVIEWER',
+        'input_sha256'=>str_repeat('1',64),'acceptance_contract_sha256'=>str_repeat('2',64),'deps'=>[],'priority'=>50];
+    $isolatedCreated=$isolatedCall('tools/call',['name'=>'development_work_create','arguments'=>[
+        'queue_id'=>'ISOLATED_QUEUE','plan_sha256'=>str_repeat('3',64),'tasks'=>[$isolatedTask]]]);
+    devOauthCheck('new resource creates only its canonical metadata queue',
+        ($isolatedCreated['result']['structuredContent']['ok']??null)===true&&$isolatedRequests===[]);
+    $isolatedStatusArgs=['name'=>'development_work_status','arguments'=>['queue_id'=>'ISOLATED_QUEUE']];
+    $isolatedStatus=$isolatedCall('tools/call',$isolatedStatusArgs)['result']['structuredContent']??[];
+    devOauthCheck('new resource real adapter propagates authority into nested subscription setup',
+        ($isolatedStatus['ok']??null)===true&&($isolatedStatus['task_id']??null)==='ISOLATED_A'
+        &&($isolatedStatus['subscription_setup']['available']??null)===true
+        &&array_column($isolatedStatus['subscription_setup']['events'],'state')===['absent','absent']);
+    $isolatedBefore=$queueSnapshot();
+    $isolatedForeign=(new ManagerPreparationMcpService($pdo,null,null,$clock))->handle(devOauthRpc('tools/call',$isolatedStatusArgs),1,$selfConnection,[$devScope]);
+    devOauthCheck('old resource cannot read or adopt new queue despite same current administrator',
+        ($isolatedForeign['result']['structuredContent']['reason']??null)==='OWNED_QUEUE_UNAVAILABLE'&&$isolatedBefore===$queueSnapshot());
+    $pdo->prepare('UPDATE development_work_queues SET oauth_connection_id=? WHERE queue_id=?')->execute([$selfConnection,'ISOLATED_QUEUE']);
+    try {
+        $denied=$isolatedCall('tools/call',$isolatedStatusArgs);
+        $missing=$isolatedCall('tools/call',['name'=>'development_work_status','arguments'=>['queue_id'=>'MISSING_ISOLATED']]);
+        devOauthCheck('new resource cannot read or adopt old-owned metadata and missing has identical private wire',$denied===$missing
+            &&($denied['result']['structuredContent']['reason']??null)==='OWNED_QUEUE_UNAVAILABLE'
+            &&($denied['result']['structuredContent']['caller_self']['capabilities']??null)===[
+                'reply_preparation'=>false,'hotel_work'=>false,'archive_research'=>false,'development_work'=>true]);
+    } finally {$pdo->prepare('UPDATE development_work_queues SET oauth_connection_id=? WHERE queue_id=?')->execute([$isolatedConnection,'ISOLATED_QUEUE']);}
+    $isolatedSubscription=['name'=>'development_work.pending','arguments'=>['project_key'=>'anytour','queue_id'=>'ISOLATED_QUEUE'],
+        'delivery'=>['mode'=>'webhook','url'=>'https://callbacks.example/isolated-development','secret'=>'whsec_'.base64_encode(str_repeat('s',32))],'ttlMs'=>600000];
+    $isolatedSubscribed=$isolatedCall('events/subscribe',$isolatedSubscription);
+    devOauthCheck('new resource real event subscription verifies callback and persists canonical ownership',
+        str_starts_with($isolatedSubscribed['result']['id']??'','dev_sub_')&&count($isolatedRequests)===1);
+    $isolatedSetup=$isolatedCall('tools/call',$isolatedStatusArgs)['result']['structuredContent']['subscription_setup']??[];
+    devOauthCheck('injected nested reader sees new resource verified subscription without another callback',
+        ($isolatedSetup['events'][0]['state']??null)==='active_verified'&&($isolatedSetup['events'][0]['eligible']??null)===true
+        &&count($isolatedRequests)===1);
+    $scheduledAuthorize=static fn(string $family,int $admin,array $required):bool=>$oauth->developmentConnectionAuthorizedAcrossProfiles($family,$admin);
+    $scheduledEvents=new DevelopmentWorkEventService($pdo,$isolatedWebhook,$clock,$scheduledAuthorize,$isolatedQueue);
+    devOauthCheck('scheduled authorization accepts both exact existing resource families',
+        $oauth->developmentConnectionAuthorizedAcrossProfiles($isolatedConnection,1)
+        &&$oauth->developmentConnectionAuthorizedAcrossProfiles($selfConnection,1));
+    $isolatedRequests=[];$delivered=$scheduledEvents->deliverPending();
+    devOauthCheck('ordinary shared delivery uses new resource grant without new worker or schema',
+        $delivered['accepted']===1&&$delivered['stopped']===0&&count($isolatedRequests)===1
+        &&($isolatedRequests[0]['name']??null)==='development_work.pending'
+        &&($isolatedRequests[0]['data']['task_id']??null)==='ISOLATED_A');
+    $isolatedGrantQuery=$pdo->prepare('SELECT * FROM manager_preparation_oauth_grants WHERE grant_id=?');$isolatedGrantQuery->execute([$isolatedConnection]);$isolatedGrant=$isolatedGrantQuery->fetch(PDO::FETCH_ASSOC);
+    $isolatedGrantQuery->closeCursor();
+    foreach (['unknown_resource','missing_grant','sql_failure'] as $technical) {
+        $isolatedRequests=[];$oldStatementClass=$pdo->getAttribute(PDO::ATTR_STATEMENT_CLASS);
+        if ($technical==='unknown_resource') $pdo->prepare('UPDATE manager_preparation_oauth_grants SET resource=? WHERE grant_id=?')->execute(['https://unknown.invalid/resource',$isolatedConnection]);
+        elseif ($technical==='missing_grant') $pdo->prepare('DELETE FROM manager_preparation_oauth_grants WHERE grant_id=?')->execute([$isolatedConnection]);
+        else $pdo->setAttribute(PDO::ATTR_STATEMENT_CLASS,[DevelopmentOauthSubscriptionStatement::class,[static function(string $sql):void {
+            if (preg_match('/\\A\\s*SELECT\\b[\\s\\S]*\\bFROM\\s+manager_preparation_oauth_grants\\b/i',$sql)===1) throw new PDOException('PRIVATE_ISOLATED_OAUTH_LOOKUP_FAILURE');
+        }]]);
+        try {
+            $deferred=false;try {$oauth->developmentConnectionAuthorizedAcrossProfiles($isolatedConnection,1);} catch (RuntimeException $expected) {$deferred=true;}
+            $delivery=$scheduledEvents->deliverPending();
+            $active=(int)$pdo->query('SELECT is_active FROM development_work_events')->fetchColumn();
+            devOauthCheck('uncertain grant storage defers without false revocation or callback '.$technical,
+                $deferred&&$delivery['stopped']===0&&$delivery['retried']===1&&$active===1&&$isolatedRequests===[]);
+        } finally {
+            $pdo->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldStatementClass);
+            if ($technical==='missing_grant') $pdo->prepare('INSERT INTO manager_preparation_oauth_grants ('.implode(',',array_keys($isolatedGrant)).') VALUES ('.implode(',',array_fill(0,count($isolatedGrant),'?')).')')->execute(array_values($isolatedGrant));
+            else $pdo->prepare('UPDATE manager_preparation_oauth_grants SET resource=? WHERE grant_id=?')->execute([$isolatedGrant['resource'],$isolatedConnection]);
+        }
+    }
+    $isolatedVerifyHook=static function()use($pdo,$now,$isolatedConnection):void {$pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=?')->execute([$now,$isolatedConnection]);};
+    $attentionSubscription=array_replace($isolatedSubscription,['name'=>'development_work.attention']);
+    try {
+        $raced=$isolatedCall('events/subscribe',$attentionSubscription);
+        devOauthCheck('new resource rechecks canonical authority after actual callback verification',
+            ($raced['error']['code']??null)===-32001
+            &&(int)$pdo->query("SELECT COUNT(*) FROM development_work_events WHERE event_name='development_work.attention'")->fetchColumn()===0);
+    } finally {$pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=NULL WHERE grant_id=?')->execute([$isolatedConnection]);}
+    $afterIsolatedRead=static function(string $sql)use($pdo,$now,$isolatedConnection):void {
+        if (preg_match('/\\A\\s*SELECT\\b[\\s\\S]*\\bFROM\\s+development_work_events\\b/i',$sql)===1)
+            $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=?')->execute([$now,$isolatedConnection]);
+    };
+    $oldStatementClass=$pdo->getAttribute(PDO::ATTR_STATEMENT_CLASS);
+    $pdo->setAttribute(PDO::ATTR_STATEMENT_CLASS,[DevelopmentOauthSubscriptionStatement::class,[$afterIsolatedRead]]);
+    try {
+        $raced=$isolatedCall('tools/call',$isolatedStatusArgs);
+        devOauthCheck('new resource nested read withholds complete queue and DTO after live revocation',
+            $authDenied($raced)&&!str_contains(json_encode($raced,JSON_THROW_ON_ERROR),'ISOLATED_OWNER'));
+    } finally {
+        $pdo->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldStatementClass);
+        $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=NULL WHERE grant_id=?')->execute([$isolatedConnection]);
+    }
+
+
+    // Registration traces are bounded global observations, never queue/native binding evidence.
+    $traceTablesSnapshot=static function()use($pdo,$queueSnapshot):array {
+        $rows=['development'=>$queueSnapshot()];
+        foreach (['managers'=>'id','projects'=>'id','manager_projects'=>'manager_id,project_id',
+            'manager_preparation_oauth_clients'=>'client_id','manager_preparation_oauth_grants'=>'grant_id',
+            'manager_preparation_oauth_codes'=>'code_hash','manager_preparation_oauth_tokens'=>'token_hash'] as $table=>$order)
+            $rows[$table]=$pdo->query('SELECT * FROM '.$table.' ORDER BY '.$order)->fetchAll(PDO::FETCH_ASSOC);
+        return $rows;
+    };
+    $traceInitialRows=$traceTablesSnapshot();
+
+    require_once dirname(__DIR__).'/services/ManagerPreparationMcpDiagnostics.php';
+    $traceRow=['at'=>gmdate('Y-m-d\\TH:i:s\\Z',$now)]+ManagerPreparationMcpDiagnostics::metadata(
+        ['REQUEST_METHOD'=>'POST','HTTP_AUTHORIZATION'=>'Bearer '.str_repeat('T',43)],
+        devOauthRpc('events/subscribe',['name'=>'development_work.pending']),200,'complete',null,'development');
+    $traceFixture=['sampled_count'=>1,'recent_attempts'=>[$traceRow],'available'=>true,'coverage'=>'bounded_log_tail',
+        'tail_truncated'=>false,'sample_truncated'=>false,'reason'=>null];
+    $traceReads=0;$traceReader=static function()use(&$traceReads,$traceFixture):array {++$traceReads;return $traceFixture;};
+    $traceAdapter=new DevelopmentWorkMcpAdapter($pdo,$isolatedQueue,$clock,$isolatedEvents,$traceReader);
+    $traceStatus=$traceAdapter->call('development_work_status',['queue_id'=>'ISOLATED_QUEUE'],1,$isolatedConnection);
+    $traceResult=$traceStatus['subscription_setup']['registration_trace']??[];
+    devOauthCheck('real queue status attaches only bounded registration observations after canonical authority',
+        $traceReads===1&&($traceStatus['subscription_setup']['available']??null)===true
+        &&($traceResult['semantics']??null)==='observations_only_not_queue_binding_or_native_commit_proof'
+        &&($traceResult['coverage']??null)==='bounded_log_tail'&&($traceResult['available']??null)===true
+        &&($traceResult['recent_attempts']??null)===[$traceRow]&&!isset($traceStatus['registration_trace']));
+    foreach ([
+        static function():array {throw new RuntimeException('PRIVATE_TRACE_READER_ERROR');},
+        static fn():array=>$traceFixture+['PRIVATE_TRACE_SECRET'=>str_repeat('private',1000)],
+        static fn():array=>array_replace($traceFixture,['sampled_count'=>21,'recent_attempts'=>array_fill(0,21,$traceRow)]),
+        static fn():array=>array_replace($traceFixture,['recent_attempts'=>[$traceRow+['queue_id'=>'PRIVATE_TRACE_QUEUE']]])
+    ] as $badTraceReader) {
+        $traceAdapter=new DevelopmentWorkMcpAdapter($pdo,$isolatedQueue,$clock,$isolatedEvents,$badTraceReader);
+        $traceStatus=$traceAdapter->call('development_work_status',['queue_id'=>'ISOLATED_QUEUE'],1,$isolatedConnection);
+        $traceResult=$traceStatus['subscription_setup']['registration_trace']??[];
+        devOauthCheck('failed malformed private or oversized trace still runs canonical getter and exposes only fixed fallback',
+            ($traceStatus['subscription_setup']['available']??null)===true&&($traceResult['available']??null)===false
+            &&($traceResult['coverage']??null)==='unavailable'&&($traceResult['reason']??null)==='read_error'
+            &&($traceResult['recent_attempts']??null)===[]&&!str_contains(json_encode($traceStatus,JSON_THROW_ON_ERROR),'PRIVATE_TRACE'));
+    }
+    $traceNeverCalled=0;$traceCallable=new DevelopmentWorkMcpAdapter($pdo,static fn(string $operation,array $arguments):array=>['ok'=>true],
+        $clock,$isolatedEvents,static function()use(&$traceNeverCalled):array {++$traceNeverCalled;throw new RuntimeException();});
+    $callableTrace=$traceCallable->call('development_work_status',['queue_id'=>'ISOLATED_QUEUE'],1,$isolatedConnection);
+    devOauthCheck('callable stores gain no implicit global trace read',
+        $traceNeverCalled===0&&($callableTrace['subscription_setup']['registration_trace']['available']??null)===false);
+    devOauthCheck('trace and status reads preserve every development OAuth identity and permission row',
+        $traceInitialRows===$traceTablesSnapshot());
+    foreach (['grant','owner'] as $traceChange) foreach ([false,true] as $traceFailure) {
+        $traceRaceRows=$traceTablesSnapshot();
+        $traceReturned=null;$traceDenied=false;$raceTraceReads=0;
+        $raceTrace=static function()use($pdo,$now,$isolatedConnection,$selfConnection,$traceChange,$traceFailure,$traceFixture,&$raceTraceReads):array {
+            ++$raceTraceReads;
+            if ($traceChange==='grant') $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=?')->execute([$now,$isolatedConnection]);
+            else $pdo->prepare('UPDATE development_work_queues SET oauth_connection_id=? WHERE queue_id=?')->execute([$selfConnection,'ISOLATED_QUEUE']);
+            if ($traceFailure) throw new RuntimeException('PRIVATE_TRACE_RACE_FAILURE');
+            return $traceFixture;
+        };
+        try {
+            $traceAdapter=new DevelopmentWorkMcpAdapter($pdo,$isolatedQueue,$clock,$isolatedEvents,$raceTrace);
+            try {$traceReturned=$traceAdapter->call('development_work_status',['queue_id'=>'ISOLATED_QUEUE'],1,$isolatedConnection);}
+            catch (DomainException $expected) {$traceDenied=true;}
+            devOauthCheck('trace observation or read failure never bypasses fresh grant and queue authority '.$traceChange.' '.(int)$traceFailure,
+                $raceTraceReads===1&&$traceDenied&&$traceReturned===null);
+        } finally {
+            $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=NULL WHERE grant_id=?')->execute([$isolatedConnection]);
+            $pdo->prepare('UPDATE development_work_queues SET oauth_connection_id=? WHERE queue_id=?')->execute([$isolatedConnection,'ISOLATED_QUEUE']);
+        }
+        devOauthCheck('trace authority race restores exact rows and preserves every unrelated row '.$traceChange.' '.(int)$traceFailure,
+            $traceRaceRows===$traceTablesSnapshot());
+    }
+    $traceMetadataFailed=false;$traceStatementClass=$pdo->getAttribute(PDO::ATTR_STATEMENT_CLASS);
+    $failMetadataAfterTrace=static function()use($pdo,$traceFixture,&$traceMetadataFailed):array {
+        $pdo->setAttribute(PDO::ATTR_STATEMENT_CLASS,[DevelopmentOauthSubscriptionStatement::class,[static function(string $sql)use(&$traceMetadataFailed):void {
+            if (preg_match('/\\A\\s*SELECT\\b[\\s\\S]*\\bFROM\\s+development_work_events\\b/i',$sql)===1) {
+                $traceMetadataFailed=true;throw new PDOException('PRIVATE_TRACE_METADATA_UNAVAILABLE');
+            }
+        }]]);
+        return $traceFixture;
+    };
+    try {
+        $traceAdapter=new DevelopmentWorkMcpAdapter($pdo,$isolatedQueue,$clock,$isolatedEvents,$failMetadataAfterTrace);
+        $traceStatus=$traceAdapter->call('development_work_status',['queue_id'=>'ISOLATED_QUEUE'],1,$isolatedConnection);
+        devOauthCheck('normal getter return after technical metadata failure still completed authority checks for bounded trace',
+            $traceMetadataFailed&&($traceStatus['subscription_setup']['available']??null)===false
+            &&($traceStatus['subscription_setup']['registration_trace']['recent_attempts']??null)===[$traceRow]);
+    } finally {$pdo->setAttribute(PDO::ATTR_STATEMENT_CLASS,$traceStatementClass);}
+    $traceGetterFailed=false;$traceStatementClass=$pdo->getAttribute(PDO::ATTR_STATEMENT_CLASS);
+    $failGetterAfterTrace=static function()use($pdo,$traceFixture,&$traceGetterFailed):array {
+        $pdo->setAttribute(PDO::ATTR_STATEMENT_CLASS,[DevelopmentOauthSubscriptionStatement::class,[static function(string $sql)use(&$traceGetterFailed):void {
+            if (preg_match('/\\A\\s*SELECT\\b[\\s\\S]*\\bFROM\\s+manager_preparation_oauth_grants\\b/i',$sql)===1) {
+                $traceGetterFailed=true;throw new PDOException('PRIVATE_TRACE_GETTER_AUTHORITY_UNAVAILABLE');
+            }
+        }]]);
+        return $traceFixture;
+    };
+    try {
+        $traceAdapter=new DevelopmentWorkMcpAdapter($pdo,$isolatedQueue,$clock,$isolatedEvents,$failGetterAfterTrace);
+        $traceStatus=$traceAdapter->call('development_work_status',['queue_id'=>'ISOLATED_QUEUE'],1,$isolatedConnection);
+        $traceResult=$traceStatus['subscription_setup']['registration_trace']??[];
+        devOauthCheck('technical canonical getter failure cannot attach previously observed registration rows',
+            $traceGetterFailed&&($traceStatus['subscription_setup']['available']??null)===false
+            &&($traceResult['available']??null)===false&&($traceResult['reason']??null)==='unavailable'
+            &&($traceResult['recent_attempts']??null)===[]);
+    } finally {$pdo->setAttribute(PDO::ATTR_STATEMENT_CLASS,$traceStatementClass);}
+
+    devOauthCheck('all trace cases including technical getter failures preserve exact canonical table rows',
+        $traceInitialRows===$traceTablesSnapshot());
     echo 'DEVELOPMENT WORK OAUTH: '.$passed." PASS\n";
 } finally {
     (new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,null);
