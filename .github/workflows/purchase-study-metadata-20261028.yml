@@ -1,0 +1,148 @@
+name: Audit new purchase-study metadata once
+on:
+  push:
+    branches: [wip/purchase-study-metadata-20261028, audit/purchase-study-metadata-exec-20261028]
+    paths: [.github/workflows/purchase-study-metadata-20261028.yml, tools/purchase_study_metadata.php, tests/run_purchase_study_metadata_regression.php]
+permissions:
+  contents: read
+concurrency:
+  group: anytour-purchase-study-metadata-20261028
+  cancel-in-progress: false
+jobs:
+  preflight:
+    if: github.ref == 'refs/heads/wip/purchase-study-metadata-20261028'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: purchase-study-fixture-only
+          MYSQL_DATABASE: purchase_audit_fixture
+          MYSQL_ROOT_HOST: '%'
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -ppurchase-study-fixture-only"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_sqlite, pdo_mysql
+          coverage: none
+      - name: Test exact reader with SQLite
+        run: |
+          set -euo pipefail
+          php -l tools/purchase_study_metadata.php
+          php tests/run_purchase_study_metadata_regression.php
+      - name: Test exact reader with native MySQL
+        env:
+          PURCHASE_AUDIT_TEST_DSN: mysql:host=127.0.0.1;port=3306;dbname=purchase_audit_fixture;charset=utf8mb4
+          PURCHASE_AUDIT_TEST_USER: root
+          PURCHASE_AUDIT_TEST_PASSWORD: purchase-study-fixture-only
+        run: php tests/run_purchase_study_metadata_regression.php
+      - name: Bind tested source
+        run: sha256sum tools/purchase_study_metadata.php tests/run_purchase_study_metadata_regression.php .github/workflows/purchase-study-metadata-20261028.yml
+  read:
+    if: github.ref == 'refs/heads/audit/purchase-study-metadata-exec-20261028' && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_sqlite
+          coverage: none
+      - name: Verify source and aggregate contracts before private operation
+        run: |
+          set -euo pipefail
+          php -l tools/purchase_study_metadata.php
+          php tests/run_purchase_study_metadata_regression.php
+          git fetch --no-tags origin refs/heads/main
+          test "$(git rev-parse FETCH_HEAD)" = 97837e85481bd054957c7ad2937dec805070cbbd
+      - name: Prepare existing identity and strict canonical host pin
+        env:
+          TASK_DEPLOY_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          TASK_SSH_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        run: |
+          set -euo pipefail
+          umask 077
+          if [[ "$TASK_DEPLOY_KEY" == *"PRIVATE KEY"* ]]; then printf '%b\n' "$TASK_DEPLOY_KEY" | tr -d '\r' > "$RUNNER_TEMP/purchase-study-key"; else printf '%s' "$TASK_DEPLOY_KEY" | base64 --decode > "$RUNNER_TEMP/purchase-study-key"; fi
+          chmod 600 "$RUNNER_TEMP/purchase-study-key"
+          ssh-keygen -y -f "$RUNNER_TEMP/purchase-study-key" >/dev/null
+          python3 - "$TASK_SSH_HOST" "$RUNNER_TEMP/purchase-study-hosts" <<'PY'
+          import base64,hashlib,socket,subprocess,sys
+          try:
+              host,dest=sys.argv[1:]
+              if {v[4][0] for v in socket.getaddrinfo(host,22,type=socket.SOCK_STREAM)}!={'5.45.122.54'}:raise ValueError()
+              scan=subprocess.run(['ssh-keyscan','-t','ed25519','-T','10',host],capture_output=True,text=True,timeout=30)
+              pinned=[]
+              for line in scan.stdout.splitlines():
+                  parts=line.split()
+                  if len(parts)!=3 or parts[0].startswith('#'):continue
+                  fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(parts[2],validate=True)).digest()).decode().rstrip('=')
+                  if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':pinned.append(line)
+              if not pinned:raise ValueError()
+              open(dest,'w').write('\n'.join(pinned)+'\n')
+          except Exception:raise SystemExit('canonical_host_pin_failed')
+          PY
+      - name: Read aggregate metadata once
+        env:
+          TASK_SSH_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          TASK_SSH_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          umask 077
+          timeout 25 ssh -i "$RUNNER_TEMP/purchase-study-key" -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$RUNNER_TEMP/purchase-study-hosts" -o ConnectTimeout=10 "$TASK_SSH_USER@$TASK_SSH_HOST" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(git rev-parse HEAD)" = 97837e85481bd054957c7ad2937dec805070cbbd; php -d display_errors=0 -d log_errors=0; test "$(git rev-parse HEAD)" = 97837e85481bd054957c7ad2937dec805070cbbd' < tools/purchase_study_metadata.php > "$RUNNER_TEMP/purchase-study-aggregate.raw"
+          git fetch --no-tags origin refs/heads/main
+          test "$(git rev-parse FETCH_HEAD)" = 97837e85481bd054957c7ad2937dec805070cbbd
+      - name: Validate exact aggregate whitelist before publication
+        run: |
+          set -euo pipefail
+          python3 - "$RUNNER_TEMP/purchase-study-aggregate.raw" "$RUNNER_TEMP/purchase-study-aggregate.json" <<'PY'
+          import datetime,hashlib,json,pathlib,re,sys
+          def unique(pairs):
+              out={}
+              for k,v in pairs:
+                  if k in out:raise ValueError('duplicate')
+                  out[k]=v
+              return out
+          raw=pathlib.Path(sys.argv[1]).read_bytes()
+          if len(raw)>65536:raise SystemExit('aggregate_contract_failed')
+          try:
+              obj=json.loads(raw,object_pairs_hook=unique)
+              counters=set('schema_version profile_page_limit profile_versions_examined allowed_profile_versions denied_or_unchecked_profile_versions invalid_profile_json v1_18_profile_versions unknown_trip_profile_versions incomplete_prefix_versions distinct_allowed_people_in_page selected_people_limit selected_scopes current_operational_terminal_scopes event_metadata_limit event_metadata_revisions_examined present_event_revisions declared_outcome_event_revisions declared_manager_role_revisions declared_profile_reference_revisions ordinary_sale_marker_revisions subscription_receipt_revisions retention_receipt_revisions uninterpreted_event_revisions invalid_event_clock_revisions independent_control_people historical_labels_reconstructed individual_values_returned native_message_or_event_rows_read database_writes metadata_rows_returned elapsed_ms'.split())
+              booleans=set('profile_page_cap_reached intake_enabled profiles_enabled event_metadata_cap_reached purchase_label_readiness event_contracts_independently_verified'.split())
+              fixed={'version':'purchase_study_metadata_v1','purpose':'bounded_new_profile_operational_metadata_not_labels','checked_earliest_scope':'earliest_in_checked_page_only','exposure_and_inquiry_binding':'not_established_by_this_audit','population_coverage':'bounded_recent_page_not_global_population'}
+              windows={'window_after_exclusive_utc','window_through_inclusive_utc'}
+              if set(obj)!=counters|booleans|set(fixed)|windows:raise ValueError()
+              if any(type(obj[k]) is not int or not 0<=obj[k]<=5000 for k in counters):raise ValueError()
+              if any(type(obj[k]) is not bool for k in booleans):raise ValueError()
+              if any(obj[k]!=v for k,v in fixed.items()):raise ValueError()
+              if obj['window_after_exclusive_utc']!='2026-10-28T05:27:26Z':raise ValueError()
+              for k in windows:
+                  if not re.fullmatch(r'20[0-9]{2}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z',obj[k]):raise ValueError()
+              start=datetime.datetime.fromisoformat(obj['window_after_exclusive_utc'].replace('Z','+00:00'))
+              end=datetime.datetime.fromisoformat(obj['window_through_inclusive_utc'].replace('Z','+00:00'))
+              if not start<=end<=datetime.datetime.now(datetime.timezone.utc):raise ValueError()
+              if obj['schema_version']!=1 or obj['profile_page_limit']!=64 or obj['selected_people_limit']!=4 or obj['event_metadata_limit']!=200:raise ValueError()
+              if obj['profile_versions_examined']>64 or obj['selected_scopes']>4 or obj['event_metadata_revisions_examined']>200 or obj['metadata_rows_returned']>500:raise ValueError()
+              if any(obj[k]!=0 for k in ['independent_control_people','historical_labels_reconstructed','individual_values_returned','native_message_or_event_rows_read','database_writes']):raise ValueError()
+              if obj['purchase_label_readiness'] or obj['event_contracts_independently_verified']:raise ValueError()
+          except Exception:raise SystemExit('aggregate_contract_failed')
+          safe=json.dumps(obj,sort_keys=True,separators=(',',':'))
+          pathlib.Path(sys.argv[2]).write_text(safe+'\n')
+          print('PURCHASE_STUDY_AGGREGATE:'+safe)
+          print('AGGREGATE_SOURCE_SHA256:'+hashlib.sha256(pathlib.Path('tools/purchase_study_metadata.php').read_bytes()).hexdigest())
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: purchase-study-safe-aggregate-${{ github.run_id }}
+          path: ${{ runner.temp }}/purchase-study-aggregate.json
+          retention-days: 1
+          if-no-files-found: error
+      - name: Cleanup
+        if: always()
+        run: rm -f "$RUNNER_TEMP/purchase-study-key" "$RUNNER_TEMP/purchase-study-hosts" "$RUNNER_TEMP/purchase-study-aggregate.raw" "$RUNNER_TEMP/purchase-study-aggregate.json"
