@@ -19,7 +19,7 @@ jobs:
         run: |
           set -euo pipefail
           git fetch --no-tags origin refs/heads/main
-          test "$(git rev-parse FETCH_HEAD)" = 271e68b5867b54cb28b462e939257a950fd8b1cc
+          test "$(git rev-parse FETCH_HEAD)" = 98180b2ed341c13f39dad7eec0e5598e13f90f13
       - name: Prepare existing identity and strict canonical pin
         env:
           K: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
@@ -106,12 +106,12 @@ jobs:
             if(!$ref||$row['source_kind']!==$ref['source_kind']||(string)$row['source_id']!==(string)$ref['source_id']||(int)$row['version_no']!==(int)$ref['source_version_no']||(int)$row['observed_at_unix']!==strtotime($ref['observed_at'])||(int)$row['observed_at_unix']>$cutoff||($snap['source_status']??null)!=='present'||($snap['project_key']??null)!=='anytour'||($snap['platform']??null)!==$c['platform']||(string)($snap['customer_key']??'')!==(string)$c['customer_key']||(string)($snap['conversation_id']??'')!==(string)$c['conversation_id'])throw new RuntimeException('journal_binding');$row['snapshot']=$snap;
            }unset($row);
            $profile=$run("SELECT profile_json FROM modeled_conversion_profile_versions WHERE project_key='anytour' AND id=?",[$c['id']])->fetchColumn();$profile=json_decode((string)$profile,true,64,JSON_THROW_ON_ERROR);
-           $out=['schema_version'=>1,'purpose'=>'exact_profile_and_new_journal_semantic','production_sha'=>'271e68b5867b54cb28b462e939257a950fd8b1cc','frozen_cutoff'=>$cutoff,'profile_id'=>$c['id'],'scope'=>['project_key'=>$c['project_key'],'platform'=>$c['platform'],'customer_key'=>$c['customer_key'],'conversation_id'=>$c['conversation_id']],'profile'=>$profile,'rows'=>$rows,'prior_refs_not_read'=>13,'new_refs_read'=>3,'current_access'=>'allowed','exposure'=>'unknown','database_writes'=>0,'native_source_reads'=>0];
+           $out=['schema_version'=>1,'purpose'=>'exact_profile_and_new_journal_semantic','production_sha'=>'98180b2ed341c13f39dad7eec0e5598e13f90f13','frozen_cutoff'=>$cutoff,'profile_id'=>$c['id'],'scope'=>['project_key'=>$c['project_key'],'platform'=>$c['platform'],'customer_key'=>$c['customer_key'],'conversation_id'=>$c['conversation_id']],'profile'=>$profile,'rows'=>$rows,'prior_refs_not_read'=>13,'new_refs_read'=>3,'current_access'=>'allowed','exposure'=>'unknown','database_writes'=>0,'native_source_reads'=>0];
            $p->rollBack();$check();$raw=json_encode($out,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);if(strlen($raw)>2097152)throw new RuntimeException('protocol');echo $raw;
           }catch(Throwable $e){if(isset($p)&&$p->inTransaction())$p->rollBack();fwrite(STDERR,"semantic_read_failed\n");exit(1);}
           PHP
           php -l "$RUNNER_TEMP/comparison-read.php"
-          timeout 25 ssh -i "$RUNNER_TEMP/membership-key" -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$RUNNER_TEMP/membership-hosts" -o ConnectTimeout=10 "$USER@$TARGET" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(git rev-parse HEAD)" = 271e68b5867b54cb28b462e939257a950fd8b1cc; php -d display_errors=0 -d log_errors=0; test "$(git rev-parse HEAD)" = 271e68b5867b54cb28b462e939257a950fd8b1cc' < "$RUNNER_TEMP/comparison-read.php" > "$RUNNER_TEMP/comparison-semantic.json"
+          timeout 25 ssh -i "$RUNNER_TEMP/membership-key" -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$RUNNER_TEMP/membership-hosts" -o ConnectTimeout=10 "$USER@$TARGET" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(git rev-parse HEAD)" = 98180b2ed341c13f39dad7eec0e5598e13f90f13; php -d display_errors=0 -d log_errors=0; test "$(git rev-parse HEAD)" = 98180b2ed341c13f39dad7eec0e5598e13f90f13' < "$RUNNER_TEMP/comparison-read.php" > "$RUNNER_TEMP/comparison-semantic.json"
           python3 - "$RUNNER_TEMP/comparison-semantic.json" <<'PY'
           import json,pathlib,sys
           raw=pathlib.Path(sys.argv[1]).read_bytes()
