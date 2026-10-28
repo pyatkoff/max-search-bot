@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "AnyTour — в подборку",
-  "version": "0.6.5",
+  "version": "0.6.6",
   "description": "Импорт отображённых предложений FUN&SUN, ограниченного ANEX и снимков Tourvisor в одну подборку Manager2.",
   "permissions": [
     "storage",
