@@ -100,7 +100,7 @@ async function handle(m,sender){
  });
  if(['confirm','retry','variant','remove','reconnect','save_edit'].includes(m.type)){
  const result=await exclusive(async()=>{const s=await state(),at=s.items.findIndex(x=>x.operation_id===m.operation_id);if(at<0)return{ok:false};const item=s.items[at];
- if(m.type==='remove'){if(item.state==='queued')return{ok:false};if(item.needs_edit_confirmation){item.state='cancelled';item.error=null;delete item.edit_draft}else s.items.splice(at,1)}
+ if(m.type==='remove'){if(item.state==='queued')return{ok:false};if(item.needs_edit_confirmation||item.state==='destination'){item.state='cancelled';item.error=null;delete item.edit_draft}else s.items.splice(at,1)}
  else{if(item.state==='saved')return{ok:false};
  const expected={confirm:'destination',retry:'waiting',variant:'review',reconnect:'blocked',save_edit:'editing'};if(item.state!==expected[m.type])return{ok:false};
  if(m.type==='reconnect'){const t=s.target;if(!t||item.target.actor!==t.actor||item.target.conversation_id!==t.conversation_id||item.target.binding!==t.binding)return{ok:false};item.target=t;rotateOperation(item)}

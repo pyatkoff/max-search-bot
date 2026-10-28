@@ -49,11 +49,11 @@ async function itemState(w,operation,state){await until(async()=>(await w.status
 // Keep the actual source page client alive while the MV3 worker restarts or a
 // popup action changes the server intent. The button must still follow its
 // original click without exposing target data or enqueuing a second import.
-function sourceClient(send){
+function sourceClient(send,href='https://b2b.fstravel.com/search_tour'){
  const window={},messages=[],button={dataset:{},isConnected:true,parentElement:null,setAttribute(){}};
  const chrome={runtime:{async sendMessage(message){messages.push(clone(message));return send(message)}}};
  vm.runInNewContext(fs.readFileSync(__dirname+'/../extensions/selection-collector/collector-client.js','utf8'),
-  {window,document:{},chrome,URL,Map,WeakMap,Set,Promise,setTimeout,location:{href:'https://b2b.fstravel.com/search_tour',origin:'https://b2b.fstravel.com'}},
+  {window,document:{},chrome,URL,Map,WeakMap,Set,Promise,setTimeout,location:{href,origin:new URL(href).origin}},
   {filename:'collector-client.js'});
  return {client:window.AnyTourCollectorClient,button,messages};
 }
@@ -240,6 +240,30 @@ async function gallerySequence(sequence){
  check('ANEX direct add uses the same canonical queue',directServer.creates===4);
  const tvTicket=await direct.send({type:'begin_add'},tvSender),tvDirect=await direct.send({type:'enqueue',ticket:tvTicket.ticket,observation:tv},tvSender);
  check('click capture cannot bypass unresolved TV price basis',tvDirect.ok&&tvDirect.state==='destination'&&directDb.items.at(-1).observation.raw.party_price_confirmation==='pending'&&directServer.creates===4);
+
+ {
+  const cancelDb={},cancelServer=provider(),cancelSender={...tvSender,documentId:'cancel-tv-document',frameId:0};let cancelling=worker(cancelDb,cancelServer);
+  await cancelling.connect(makeTarget());
+  const page=sourceClient(message=>cancelling.send(message,cancelSender),cancelSender.url),click=await page.client.begin(page.button);
+  await page.client.append(page.button,click,tv);
+  check('Tourvisor source click remains unconfirmed before cancellation',cancelDb.items[0].state==='destination'&&cancelDb.items[0].observation.raw.party_price_confirmation==='pending'&&cancelServer.calls.length===0);
+  check('popup can cancel the unconfirmed Tourvisor destination',(await cancelling.send({type:'remove',operation_id:click})).ok===true);
+  cancelling=worker(cancelDb,cancelServer);await cancelling.connect(makeTarget());
+  const status=await cancelling.send({type:'add_status',operation_id:click},cancelSender);
+  check('cancelled Tourvisor click survives restart as a private cancellation receipt',status.ok&&status.state==='cancelled'&&Object.keys(status).sort().join(',')==='error,ok,state');
+  for(const sender of [{...cancelSender,tab:{id:99}},{...cancelSender,documentId:'other-document'},{...cancelSender,frameId:2},funsunSender,anexSender]){
+   check('Tourvisor cancellation remains private to its original source document',(await cancelling.send({type:'add_status',operation_id:click},sender)).ok===false);
+  }
+  check('cancelled Tourvisor intent cannot reopen a price editor',(await cancelling.send({type:'show_edit',operation_id:click},cancelSender)).ok===false);
+  for(const type of ['confirm','save_edit','retry','variant','reconnect']){
+   check('cancelled Tourvisor intent cannot '+type,(await cancelling.send({type,operation_id:click,confirm_price_basis:true,manager_amount:'190000'})).ok===false);
+  }
+  cancelling.alarm();await sleep(20);
+  const starts=page.messages.filter(m=>m.type==='begin_add').length,renewed=await page.client.begin(page.button);
+  check('same Tourvisor button can capture a fresh click after explicit cancellation',typeof renewed==='string'&&/^[a-f0-9]{32}$/.test(renewed)&&renewed!==click&&page.button.textContent==='В подборку AnyTour'&&page.messages.filter(m=>m.type==='begin_add').length===starts+1&&cancelServer.calls.length===0);
+  await page.client.append(page.button,renewed,tv);
+  check('fresh Tourvisor click still requires explicit price confirmation',cancelDb.items.find(x=>x.operation_id===renewed)?.state==='destination'&&cancelDb.items.find(x=>x.operation_id===renewed)?.observation.raw.party_price_confirmation==='pending'&&cancelDb.items.find(x=>x.operation_id===click)?.state==='cancelled'&&cancelServer.creates===0&&cancelServer.calls.length===0);
+ }
  for(const operation of [undefined,null,'']){
   const query=operation===undefined?{}:{operation_id:operation};
   check('source status and editor require an explicit operation ID '+String(operation),

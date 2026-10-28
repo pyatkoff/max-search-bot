@@ -44,7 +44,7 @@ async function follow(button,operation){
  for(let attempt=0;attempt<40&&button.isConnected;attempt++){
   let result;try{result=await chrome.runtime.sendMessage({type:'add_status',operation_id:operation})}catch{}
   if(!result?.ok){label(button,'Проверьте в AnyTour');note(button,'Результат пока не подтверждён. Проверьте очередь в расширении AnyTour. Повторного добавления нет.');return}
-  if(result.state==='cancelled'){pending.delete(button);label(button,button.dataset.anytourEdit?'✎ Изменить цену':'В подборку AnyTour');note(button,'Правка отменена. Тур не добавлен.','info');return 'cancelled'}
+  if(result.state==='cancelled'){pending.delete(button);label(button,button.dataset.anytourEdit?'✎ Изменить цену':'В подборку AnyTour');note(button,'Добавление отменено. Ранее сохранённые туры не изменены.','info');return 'cancelled'}
   if(result.state==='editing'){label(button,'Правка в AnyTour');note(button,'Откройте значок расширения AnyTour: там можно изменить цену и явно добавить тур. Пока он не добавлен.','info');return}
   if(result.state==='saved'){pending.delete(button);label(button,'✓ В подборке');note(button,'');button.title='Предложение сохранено в выбранной подборке. Туристу ничего не отправлено.';return}
   if(result.state!=='queued'){
