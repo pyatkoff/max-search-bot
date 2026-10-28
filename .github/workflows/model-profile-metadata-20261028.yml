@@ -1,0 +1,123 @@
+name: Consume one new admitted envelope metadata
+on:
+  push:
+    branches: [audit/model-profile-metadata-exec-20261028]
+    paths: [.github/workflows/model-profile-metadata-20261028.yml]
+permissions:
+  contents: read
+concurrency:
+  group: anytour-model-profile-metadata-20261028
+  cancel-in-progress: false
+jobs:
+  read:
+    if: github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Pin current main
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin refs/heads/main
+          test "$(git rev-parse FETCH_HEAD)" = 2f49a9284dbcce4c306571d60124f018aa7e0d39
+      - name: Prepare existing identity and strict canonical pin
+        env:
+          K: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          TARGET: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        run: |
+          set -euo pipefail
+          umask 077
+          if [[ "$K" == *"PRIVATE KEY"* ]]; then printf '%b\n' "$K" | tr -d '\r' > "$RUNNER_TEMP/membership-key"; else printf '%s' "$K" | base64 --decode > "$RUNNER_TEMP/membership-key"; fi
+          chmod 600 "$RUNNER_TEMP/membership-key"
+          ssh-keygen -y -f "$RUNNER_TEMP/membership-key" >/dev/null
+          python3 - "$TARGET" "$RUNNER_TEMP/membership-hosts" <<'PY'
+          import base64,hashlib,socket,subprocess,sys
+          host,dest=sys.argv[1:]
+          if {v[4][0] for v in socket.getaddrinfo(host,22,type=socket.SOCK_STREAM)}!={'5.45.122.54'}:raise SystemExit('canonical_target_changed')
+          pinned=[]
+          for _ in range(2):
+              scan=subprocess.run(['ssh-keyscan','-t','ed25519','-T','10',host],capture_output=True,text=True,timeout=30)
+              for line in scan.stdout.splitlines():
+                  parts=line.split()
+                  if len(parts)!=3 or parts[0].startswith('#'):continue
+                  try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(parts[2],validate=True)).digest()).decode().rstrip('=')
+                  except ValueError:continue
+                  if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0' and line not in pinned:pinned.append(line)
+              if pinned:break
+          if not pinned:raise SystemExit('canonical_host_pin_not_seen')
+          open(dest,'w').write('\n'.join(pinned)+'\n')
+          PY
+      - name: Prepare pinned official age binary
+        run: |
+          set -euo pipefail
+          curl -fsSL --retry 0 --connect-timeout 10 --max-time 40 -o "$RUNNER_TEMP/age.tar.gz" https://github.com/FiloSottile/age/releases/download/v1.3.2/age-v1.3.2-linux-amd64.tar.gz
+          echo "cbe24006683f8eb669266162894b9a522a1af52f2665fbc63a4bb032ed26ac10  $RUNNER_TEMP/age.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/age.tar.gz" -C "$RUNNER_TEMP" age/age
+          test "$("$RUNNER_TEMP/age/age" --version)" = "v1.3.2"
+      - name: Read immutable metadata only and encrypt
+        env:
+          TARGET: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          umask 077
+          cat > "$RUNNER_TEMP/comparison-read.php" <<'PHP'
+          <?php
+          declare(strict_types=1);
+          try {
+           $began=microtime(true);chdir('/var/www/anytoour/data/www/app.anytoour.ru');
+           require_once 'config.php';require_once 'services/ProjectAccessService.php';require_once 'services/ConversationDb.php';
+           if(ProjectConfig::projectId()!=='anytour')throw new RuntimeException('project');
+           ProjectAccessService::initializeReadOnly();$p=ConversationDb::connection();
+           $p->exec('SET SESSION MAX_EXECUTION_TIME=4000');$p->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');$p->exec('SET TRANSACTION READ ONLY');$p->beginTransaction();
+           $after=strtotime('2026-10-27T14:28:41Z');$through=strtotime('2026-10-28T00:35:00Z');
+           $q=$p->prepare("SELECT id,project_key,platform,customer_key,conversation_id,observed_at_unix,JSON_EXTRACT(profile_json,'$.access_status') AS access_status,JSON_EXTRACT(profile_json,'$.profile.prediction_at') AS prediction_at,JSON_EXTRACT(profile_json,'$.coverage') AS coverage,JSON_LENGTH(JSON_EXTRACT(profile_json,'$.source_references')) AS ref_count FROM modeled_conversion_profile_versions WHERE project_key='anytour' AND observed_at_unix>? AND observed_at_unix<=? ORDER BY observed_at_unix,id LIMIT 1");
+           $q->execute([$after,$through]);$c=$q->fetch(PDO::FETCH_ASSOC);
+           $out=['schema_version'=>1,'purpose'=>'new_admitted_envelope_consumer_metadata','production_sha'=>'2f49a9284dbcce4c306571d60124f018aa7e0d39','sampled_at'=>gmdate('Y-m-d\\TH:i:s\\Z'),'range'=>['after_exclusive'=>$after,'through_inclusive'=>$through],'selection'=>'first_existing_profile_no_refill','candidate'=>null,'new_journal_metadata_rows'=>0,'old_snapshot_rows'=>0,'native_source_reads'=>0,'texts_values_returned'=>0,'database_writes'=>0];
+           if($c){
+            foreach(['access_status','prediction_at','coverage']as$k)$c[$k]=json_decode($c[$k]??'null',true,32,JSON_THROW_ON_ERROR);
+            $c['ref_count']=(int)$c['ref_count'];$c['new_references']=[];$c['metadata_status']=$c['ref_count']>40?'ref_limit':'bounded';
+            if($c['ref_count']<=40){
+             $q=$p->prepare("SELECT JSON_EXTRACT(profile_json,'$.source_references') FROM modeled_conversion_profile_versions WHERE project_key='anytour' AND id=?");$q->execute([$c['id']]);$raw=$q->fetchColumn();if(!is_string($raw)||strlen($raw)>49152)throw new RuntimeException('ref_budget');
+             $refs=json_decode($raw,true,32,JSON_THROW_ON_ERROR);if(count($refs)!==$c['ref_count'])throw new RuntimeException('ref_count');
+             foreach($refs as$ref){
+              $available=strtotime($ref['observed_at']??'');if($available===false)throw new RuntimeException('ref_clock');
+              if($available<=$after||$available>$through)continue;
+              $q=$p->prepare("SELECT id,source_kind,source_id,version_no,observed_at_unix,JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.project_key')) AS project_key,JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.platform')) AS platform,JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.customer_key')) AS customer_key,JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.conversation_id')) AS conversation_id,JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.source_status')) AS source_status,JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.source_timestamp_basis')) AS clock_basis,JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.source_created_at_unix')) AS recorded_unix,JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.payload.direction')) AS direction,JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.payload.sender_type')) AS sender_type,JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.payload.event_type')) AS event_type,JSON_UNQUOTE(JSON_EXTRACT(JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.payload.metadata_json')),'$.type')) AS message_type FROM modeled_conversion_stream_versions WHERE project_key='anytour' AND id=? AND observed_at_unix>? AND observed_at_unix<=?");
+              $q->execute([$ref['journal_id'],$after,$through]);$j=$q->fetch(PDO::FETCH_ASSOC);$out['new_journal_metadata_rows']++;
+              if(!$j)throw new RuntimeException('missing_ref');foreach(['project_key','platform','customer_key','conversation_id']as$k)if((string)$j[$k]!== (string)$c[$k])throw new RuntimeException('scope');
+              if((int)$j['observed_at_unix']>strtotime($c['prediction_at']))throw new RuntimeException('future');
+              $c['new_references'][]=$j;
+             }
+            }
+            $out['candidate']=$c;
+           }
+           $p->rollBack();if(microtime(true)-$began>5)throw new RuntimeException('duration');$raw=json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);if(strlen($raw)>65536)throw new RuntimeException('output');echo $raw;
+          }catch(Throwable $e){if(isset($p)&&$p->inTransaction())$p->rollBack();fwrite(STDERR,"new_envelope_metadata_failed\n");exit(1);}
+          PHP
+          php -l "$RUNNER_TEMP/comparison-read.php"
+          timeout 25 ssh -i "$RUNNER_TEMP/membership-key" -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$RUNNER_TEMP/membership-hosts" -o ConnectTimeout=10 "$USER@$TARGET" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(git rev-parse HEAD)" = 2f49a9284dbcce4c306571d60124f018aa7e0d39; php -d display_errors=0 -d log_errors=0; test "$(git rev-parse HEAD)" = 2f49a9284dbcce4c306571d60124f018aa7e0d39' < "$RUNNER_TEMP/comparison-read.php" > "$RUNNER_TEMP/comparison-metadata.json"
+          python3 - "$RUNNER_TEMP/comparison-metadata.json" <<'PY'
+          import json,pathlib,sys
+          raw=pathlib.Path(sys.argv[1]).read_bytes()
+          assert len(raw)<=65536
+          obj=json.loads(raw)
+          assert obj['native_source_reads']==obj['old_snapshot_rows']==obj['texts_values_returned']==obj['database_writes']==0
+          PY
+          "$RUNNER_TEMP/age/age" -R docs/diagnostics-recipient.txt -o "$RUNNER_TEMP/comparison-metadata.age" "$RUNNER_TEMP/comparison-metadata.json"
+          python3 - "$RUNNER_TEMP/comparison-metadata.json" "$RUNNER_TEMP/comparison-metadata.age" <<'PY'
+          import hashlib,json,pathlib,sys
+          obj=json.loads(pathlib.Path(sys.argv[1]).read_bytes())
+          cipher=pathlib.Path(sys.argv[2]).read_bytes()
+          print(json.dumps({'metadata_only':True,'candidate_present':obj['candidate'] is not None,'cipher_bytes':len(cipher),'cipher_sha256':hashlib.sha256(cipher).hexdigest(),'native_source_reads':0,'texts_returned':0,'database_writes':0}))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: modeled-profile-metadata-${{ github.run_id }}
+          path: ${{ runner.temp }}/comparison-metadata.age
+          retention-days: 1
+          if-no-files-found: error
+      - name: Cleanup
+        if: always()
+        run: rm -f "$RUNNER_TEMP/membership-key" "$RUNNER_TEMP/membership-hosts" "$RUNNER_TEMP/comparison-read.php" "$RUNNER_TEMP/comparison-metadata.json" "$RUNNER_TEMP/comparison-metadata.age"
+
