@@ -399,14 +399,21 @@ try {
                 $setupExpires,$setupDate,$setupExpires,1,0,204,$setupDate,$setupDate]);
     };
     $insertSetupRow(1,$setupConnection,'SETUP_OWNED_QUEUE','development_work.pending','own-pending');
-    $setupHook=(object)['reads'=>0,'revoke'=>false,'revoked'=>false];
+    $setupHook=(object)['reads'=>0,'revoke'=>false,'revoked'=>false,'ownerFlip'=>false,'ownerFlipped'=>false,'failRead'=>false,'readFailed'=>false];
     $priorStatementClass=$pdo->getAttribute(PDO::ATTR_STATEMENT_CLASS);
-    $afterSetupRead=static function(string $sql)use($pdo,$now,$setupConnection,$setupHook):void {
+    $afterSetupRead=static function(string $sql)use($pdo,$now,$setupConnection,$selfConnection,$setupHook):void {
         if (preg_match('/\A\s*SELECT\b[\s\S]*\bFROM\s+[`"]?development_work_events\b/i',$sql)!==1) return;
         ++$setupHook->reads;
         if ($setupHook->revoke) {
             $setupHook->revoke=false;$setupHook->revoked=true;
             $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=?')->execute([$now,$setupConnection]);
+        } elseif ($setupHook->ownerFlip) {
+            $setupHook->ownerFlip=false;$setupHook->ownerFlipped=true;
+            $pdo->prepare('UPDATE development_work_queues SET oauth_connection_id=? WHERE queue_id=?')->execute([$selfConnection,'SETUP_OWNED_QUEUE']);
+        }
+        if ($setupHook->failRead) {
+            $setupHook->failRead=false;$setupHook->readFailed=true;
+            throw new PDOException('SETUP_PRIVATE_METADATA_READ_FAILURE');
         }
     };
     $pdo->setAttribute(PDO::ATTR_STATEMENT_CLASS,[DevelopmentOauthSubscriptionStatement::class,[$afterSetupRead]]);
@@ -479,15 +486,42 @@ try {
         $customEvents=$customSetup['subscription_setup']['events']??[];
         devOauthCheck('callable subscription availability is explicitly unknown',
             count($customEvents)===2&&array_column($customEvents,'state')===['unknown','unknown']);
-        $setupRaceBefore=$queueSnapshot();$setupHook->revoke=true;$setupBeforeRaceReads=$setupHook->reads;
-        $revokedSetup=$setupService->handle($setupRpc(),1,$setupConnection,[$devScope]);
-        $revokedSetupWire=json_encode($revokedSetup,JSON_THROW_ON_ERROR);
-        devOauthCheck('actual grant revoked immediately after diagnostic SELECT suppresses the whole MCP result',
-            $setupHook->revoked&&$setupHook->reads>$setupBeforeRaceReads&&($revokedSetup['error']['code']??null)===-32001
-            &&!isset($revokedSetup['result'])&&!str_contains($revokedSetupWire,'subscription_setup')
-            &&!str_contains($revokedSetupWire,'SETUP_PRIVATE_TASK')&&!str_contains($revokedSetupWire,$setupPrivate));
-        devOauthCheck('diagnostic race preserves owned queue and subscription rows and confirms canonical grant loss',
-            $setupRaceBefore===$queueSnapshot()&&$oauth->currentConnectionMetadata($setupConnection,1,[$devScope])===null);
+        foreach ([['revoked',false],['owner_loss',false],['revoked',true],['owner_loss',true]] as [$setupChange,$setupReadFailure]) {
+            $setupRaceBefore=$queueSnapshot();$setupBeforeRaceReads=$setupHook->reads;
+            $setupGrantQuery=$pdo->prepare('SELECT revoked_at FROM manager_preparation_oauth_grants WHERE grant_id=?');
+            $setupGrantQuery->execute([$setupConnection]);$setupGrantBefore=$setupGrantQuery->fetch(PDO::FETCH_ASSOC);
+            $setupHook->revoked=false;$setupHook->ownerFlipped=false;$setupHook->readFailed=false;
+            $setupHook->revoke=$setupChange==='revoked';$setupHook->ownerFlip=$setupChange==='owner_loss';$setupHook->failRead=$setupReadFailure;
+            try {
+                $setupRaceReply=$setupService->handle($setupRpc(),1,$setupConnection,[$devScope]);
+                $setupRaceWire=json_encode($setupRaceReply,JSON_THROW_ON_ERROR);
+                devOauthCheck('actual diagnostic SELECT performs the requested one-shot authority change '.$setupChange.' '.(int)$setupReadFailure,
+                    $setupHook->reads>$setupBeforeRaceReads&&($setupChange==='revoked'?$setupHook->revoked:$setupHook->ownerFlipped)
+                    &&$setupHook->readFailed===$setupReadFailure);
+                if ($setupChange==='revoked') {
+                    devOauthCheck('post diagnostic revocation retains typed AUTH_CONTEXT even when metadata read fails '.(int)$setupReadFailure,
+                        $authDenied($setupRaceReply)&&$oauth->currentConnectionMetadata($setupConnection,1,[$devScope])===null);
+                } else {
+                    $setupStillAuthorized=$oauth->currentConnectionMetadata($setupConnection,1,[$devScope]);
+                    $setupUnavailable=['ok'=>false,'reason'=>'OWNED_QUEUE_UNAVAILABLE','queue_available'=>false,'caller_self'=>$setupStillAuthorized];
+                    devOauthCheck('post diagnostic owner loss uses the private owned boundary while grant stays active '.(int)$setupReadFailure,
+                        $setupStillAuthorized!==null&&($setupRaceReply['result']['isError']??null)===true
+                        &&$canonicalStatus($setupRaceReply['result']['structuredContent']??[])===$canonicalStatus($setupUnavailable));
+                }
+                devOauthCheck('post diagnostic authority loss exposes neither primary queue nor diagnostic fallback '.$setupChange.' '.(int)$setupReadFailure,
+                    !str_contains($setupRaceWire,'subscription_setup')&&!str_contains($setupRaceWire,'SETUP_PRIVATE_TASK')
+                    &&!str_contains($setupRaceWire,'SETUP_PRIVATE_OWNER')&&!str_contains($setupRaceWire,'SETUP_PRIVATE_REVIEWER')
+                    &&!str_contains($setupRaceWire,'SETUP_PRIVATE_METADATA_READ_FAILURE')&&!str_contains($setupRaceWire,$setupPrivate));
+            } finally {
+                $setupHook->revoke=false;$setupHook->ownerFlip=false;$setupHook->failRead=false;
+                $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=?')
+                    ->execute([$setupGrantBefore['revoked_at'],$setupConnection]);
+                $pdo->prepare('UPDATE development_work_queues SET oauth_connection_id=? WHERE queue_id=?')
+                    ->execute([$setupConnection,'SETUP_OWNED_QUEUE']);
+            }
+            devOauthCheck('diagnostic race restores exact queue subscriptions and canonical owner grant '.$setupChange.' '.(int)$setupReadFailure,
+                $setupRaceBefore===$queueSnapshot()&&$oauth->currentConnectionMetadata($setupConnection,1,[$devScope])!==null);
+        }
     } finally {$pdo->setAttribute(PDO::ATTR_STATEMENT_CLASS,$priorStatementClass);}
 
     $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=?')->execute([$now,$connections['dev']]);
