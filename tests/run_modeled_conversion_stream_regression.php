@@ -175,11 +175,23 @@ function modeledProfileAssertions(PDO $p,callable $check): void
     try{$r=$profiles->tick($now+2);}finally{foreach(array_reverse($tables)as$t)$p->exec('ALTER TABLE unavailable_'.$t.' RENAME TO '.$t);}
     $v=modeledProfileLatest($p);
     $check('actual interpreter profiles the admitted journal with all native source tables unavailable',$r['profiles_written']===1&&$v['profile']['fields']['budget']['value']['maximum']===200000);
+    $check('same immutable profile stores early signals and an initial ordinal forecast',
+        $v['early_forecast']['snapshot_kind']==='initial_observation'&&$v['early_forecast']['status']==='early_assessment'
+        &&$v['early_forecast']['purchase_anywhere']['probability']===null&&$v['contextual_signals']['goal_counts']['substantive_interest']>0);
+    $privateReceipt=$profiles->status()['last_receipt']['early_forecast']??[];
+    $check('private state retains bounded forecast counters without exposing them to cron telemetry',
+        ($privateReceipt['snapshots']??null)===1&&($privateReceipt['initial_observations']??null)===1
+        &&!isset($r['early_forecast'])&&($r['early_forecast_version']??null)===ModeledConversionEarlyForecast::VERSION);
+    $firstForecastCursor=$v['early_forecast']['first_snapshot_journal_cursor'];
     $check('runtime profile keeps unknown trip target and all monetary values null',$v['profile']['trip_status']==='unknown'&&!$v['profile']['target_admission']['eligible']&&$v['profile']['expected_value_rub']===null);
     $check('profile status exposes aggregate receipt without private text or native identities',!str_contains(json_encode($profiles->status()),'Бюджет')&&!str_contains(json_encode($profiles->status()),'conversation_id'));
     $check('profile retry and empty tick append no duplicate version',$profiles->tick($now+3)['profiles_written']===0&&(int)$p->query('SELECT COUNT(*) FROM modeled_conversion_profile_versions')->fetchColumn()===1);
     $p->exec("UPDATE messages SET text='Бюджет до 300 тыс на всех' WHERE id=11");modeledStreamMessage($p,12,11,'Стоимость 700000 рублей','manager');modeledStreamMessage($p,13,11,'Давайте бронировать');
     $p->exec("UPDATE messages SET metadata_json='{\"type\":\"callback\"}' WHERE id=13");$s->tick($now+4);$profiles->tick($now+5);$v=modeledProfileLatest($p);
+    $check('later profiles preserve first forecast identity and exclude callback raw intent',
+        $v['early_forecast']['snapshot_kind']==='updated_observation'
+        &&$v['early_forecast']['first_snapshot_journal_cursor']===$firstForecastCursor
+        &&$v['contextual_signals']['goal_counts']['agency_purchase_intent']===0);
     $check('edited customer facts update while manager quote and callback do not raise purchase intent',$v['profile']['fields']['budget']['value']['maximum']===300000&&$v['profile']['current_stage']['value']!=='booking_intent'&&count($v['profile']['manager_quotes'])===1);
     $p->exec("UPDATE messages SET text='Бюджет до 400 тыс на всех' WHERE id=11");$s->tick($now+6);
     $sourceCount=$p->query('SELECT COUNT(*) FROM modeled_conversion_stream_versions')->fetchColumn();$cursor=$p->query('SELECT journal_cursor FROM modeled_conversion_profiles_state')->fetchColumn();$count=$p->query('SELECT COUNT(*) FROM modeled_conversion_profile_versions')->fetchColumn();$index=$p->query("SELECT journal_id FROM modeled_conversion_profile_sources WHERE source_id=11 AND source_kind='message'")->fetchColumn();
@@ -198,9 +210,19 @@ function modeledProfileAssertions(PDO $p,callable $check): void
     $r=$profiles->tick($now+12);$check('a revision appended after the information fence enters only the next prediction',$r['profiles_written']===2&&$r['pending_revisions']===0&&modeledProfileLatest($p)['profile']['fields']['budget']['value']['maximum']===1000000);
     $check('later source revisions cannot rewrite a previously frozen profile',$p->query('SELECT profile_json FROM modeled_conversion_profile_versions WHERE id='.(int)$frozenId)->fetchColumn()===$frozen);
     $p->exec('UPDATE conversations SET is_test=1 WHERE id=11');$s->tick($now+13);$profiles->tick($now+14);$v=modeledProfileLatest($p);
+    $check('revoked scope also removes live contextual candidates',
+        $v['early_forecast']['status']==='access_denied'&&$v['contextual_signals']['events']===[]);
     $check('revoked source scope invalidates the current profile without copying older text',$v['access_status']==='denied'&&$v['profile']['prediction_features']['facts']===[]);
     $p->exec('UPDATE conversations SET is_test=0 WHERE id=11');$s->tick($now+15);$profiles->tick($now+16);
     $check('scope restoration creates a new current profile with its actual new receipt',modeledProfileLatest($p)['access_status']==='allowed');
+    $beforeLarge=(int)$p->query('SELECT journal_cursor FROM modeled_conversion_profiles_state')->fetchColumn();
+    // Exercise the admitted-journal bridge independently of native intake's stricter byte estimate.
+    $largeSnapshot=$snap;$largeSnapshot['source_id']='99';$largeSnapshot['payload']['text']=str_repeat('😀',9000);
+    modeledProfileAppend($p,$largeSnapshot,$now+17);$profiles->tick($now+18);$large=modeledProfileLatest($p);
+    $check('large admitted Unicode message does not poison factual profile persistence or progress',
+        (int)$p->query('SELECT journal_cursor FROM modeled_conversion_profiles_state')->fetchColumn()>$beforeLarge
+        &&($large['contextual_signals']['coverage']['semantic_omissions']['text_too_large']??0)===1
+        &&isset($large['profile']['fields']));
     // Isolate throughput from source-reconciliation tests: all following rows are already admitted fixtures.
     for($i=0;$i<100;$i++){$c=(string)(1000+$i);$x=$snap;$x['source_id']=(string)(2000+$i);$x['conversation_id']=$c;$x['customer_key']=$c;modeledProfileAppend($p,$x,$now+20);}
     $bounded=true;$written=0;
