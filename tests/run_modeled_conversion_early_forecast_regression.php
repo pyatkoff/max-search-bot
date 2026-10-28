@@ -83,6 +83,7 @@ function modeledEarlyAssertions(callable $check):void
         &&$p['contextual_signals']['goal_counts']['purchased_elsewhere']===1);
     $parts=modeledEarlyFixture([['text'=>'Подберите тур'],['text'=>'Давайте бронировать этот тур']]);
     $forward=ModeledConversionEarlyForecast::freeze(...[...$parts,null,1793004000]);$parts[0]['rows']=array_reverse($parts[0]['rows']);
+    $parts[0]['subject']=array_reverse($parts[0]['subject'],true);
     $check('input collection order cannot change the deterministic chronological packet',
         $forward===ModeledConversionEarlyForecast::freeze(...[...$parts,null,1793004000]));
     $parts=modeledEarlyFixture([['text'=>'Оплатил тур']]);$parts[0]['access_denied']=true;$parts[1]['access_status']='denied';

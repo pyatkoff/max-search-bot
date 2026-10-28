@@ -17,7 +17,7 @@ final class ModeledConversionEarlyForecast
     public static function freeze(array $case,array $wrapper,array $document,?string $firstCursor=null,?int $frozenAt=null):array
     {
         $subject=$wrapper['subject']??null;
-        if(!is_array($subject)||($case['subject']??null)!==$subject||!is_array($case['rows']??null)||count($case['rows'])>50)self::fail('case');
+        if(!is_array($subject)||!self::sameSubject($case['subject']??null,$subject)||!is_array($case['rows']??null)||count($case['rows'])>50)self::fail('case');
         $profile=$wrapper['profile']??[];
         $at=$profile['prediction_at']??null;$cutoff=self::moment($at);
         $requested=self::moment($document['requested_at']??null);

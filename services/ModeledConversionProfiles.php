@@ -98,7 +98,7 @@ final class ModeledConversionProfiles
                 $this->validate($result,$document);
                 foreach($result['profiles']as$profile){
                     $scope=$this->scope($profile['subject']);
-                    $case=null;foreach($cases as$inputCase)if($inputCase['subject']===$profile['subject']){$case=$inputCase;break;}
+                    $case=null;foreach($cases as$inputCase)if($this->scopeKey($inputCase['subject'])===$this->scopeKey($scope)){$case=$inputCase;break;}
                     if($case===null)self::fail('forecast_case');
                     // Read only the prior scalar marker; private profile text is not loaded again.
                     $firstExpression=$this->mysql?"JSON_UNQUOTE(JSON_EXTRACT(profile_json,'$.early_forecast.first_snapshot_journal_cursor'))":"json_extract(profile_json,'$.early_forecast.first_snapshot_journal_cursor')";
