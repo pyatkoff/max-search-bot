@@ -229,8 +229,8 @@ function forecastStatusAssertions(PDO $p,callable $check):void
         $r['saved']['paired_snapshots']===1&&(int)$p->query('SELECT COUNT(*) FROM modeled_conversion_profile_versions')->fetchColumn()===2);
     $calls=0;try{forecastStatusRead($p,static function()use(&$calls):void{if(++$calls===3)throw new DomainException('revoked');});$denied=false;}catch(DomainException $e){$denied=$e->getMessage()==='revoked';}
     $check('revocation before payload read returns no private result',$denied);
-    $calls=0;try{forecastStatusRead($p,static function()use(&$calls):void{if(++$calls===5)throw new DomainException('revoked-final');});$denied=false;}catch(DomainException $e){$denied=$e->getMessage()==='revoked-final';}
-    $check('authorization is checked again before returning aggregates',$denied);
+    $calls=0;try{forecastStatusRead($p,static function()use(&$calls):void{if(++$calls===4)throw new DomainException('revoked-final');});$denied=false;}catch(DomainException $e){$denied=$e->getMessage()==='revoked-final';}
+    $check('authorization is checked again after the single chosen payload before returning aggregates',$denied&&$calls===4);
     $p->beginTransaction();$r=forecastStatusRead($p);$check('caller transaction is refused without commit or rollback',$r['reason']==='outer_transaction'&&$p->inTransaction());$p->rollBack();
 
     $clock=100.0;$budget=new ModeledConversionStatusBudget(100.0,static function()use(&$clock):float{return $clock;});
