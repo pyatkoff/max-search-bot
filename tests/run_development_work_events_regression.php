@@ -24,26 +24,6 @@ function developmentEventSignature(array $request,string $secret): bool
 }
 
 
-final class DevelopmentHandoffRaceStatement extends PDOStatement
-{
-    private ?array $buffer=null;
-    protected function __construct(private DevelopmentEventsTestPdo $owner,private Closure $hook) {}
-    public function execute(?array $params=null): bool
-    {
-        $this->buffer=null;$this->owner->observe($this->queryString);
-        $ok=parent::execute($params);
-        if ($ok&&preg_match('/\ASELECT \* FROM development_work_connection_handoffs WHERE queue_id=/D',$this->queryString)===1) {
-            $this->buffer=parent::fetchAll(PDO::FETCH_ASSOC);$this->closeCursor();($this->hook)();
-        }
-        return $ok;
-    }
-    public function fetchAll(int $mode=PDO::FETCH_DEFAULT,mixed ...$args): array
-    {
-        if ($this->buffer!==null) {$rows=$this->buffer;$this->buffer=null;return $rows;}
-        return parent::fetchAll($mode,...$args);
-    }
-}
-
 try {
     $f=new DevelopmentEventsFixture(false);
     developmentEventAssert(!$f->events->hasActiveSubscriptions(),'empty_has_no_subscription');
@@ -228,24 +208,17 @@ try {
     developmentEventAssert((int)$f->pdo->query('SELECT COUNT(*) FROM development_work_events')->fetchColumn()===0
         &&$f->queue->status(1,$target,'PILOT')['state']==='blocked','verification_race_has_no_orphan_and_no_worker_receipt');
 
-    // Explicitly model a handoff AFTER the last owner read but BEFORE subscribe's
-    // separate transaction. Buffer only that selected rowset, then release its
-    // cursor before the competing operation, as a completed independent read.
+    // Model the persisted result of an old subscription transaction committing
+    // after cleanup. The canonical producer supplies its actual key/identity;
+    // this assertion concerns the stale row's authority, not cancellation.
     $f=new DevelopmentEventsFixture();$target=str_repeat('d',32);
     $f->grants[$target]=['admin'=>1,'active'=>true,'scopes'=>['development_work:write']];
-    $recovery=$makeRecovery($f,$target);$auditReads=0;$armed=true;
-    $oldStatement=$f->pdo->getAttribute(PDO::ATTR_STATEMENT_CLASS);
-    $hook=static function()use($f,$target,$recovery,&$auditReads,&$armed):void {
-        if (++$auditReads===2&&$armed) {
-            $armed=false;$f->queue->handoff_connection(1,$target,$recovery,static fn():bool=>true);
-        }
-    };
-    try {
-        $f->pdo->setAttribute(PDO::ATTR_STATEMENT_CLASS,[DevelopmentHandoffRaceStatement::class,[$f->pdo,$hook]]);
-        $f->events->subscribe($f->params(),1,$f->connection);
-    } finally {$f->pdo->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldStatement);}
+    $f->subscribe(false);$oldBinding=$f->row();$recovery=$makeRecovery($f,$target);
+    $f->queue->handoff_connection(1,$target,$recovery,static fn():bool=>true);
+    $f->pdo->prepare('UPDATE development_work_events SET is_active=1,single_consumer_key=? WHERE subscription_id=?')
+        ->execute([$oldBinding['single_consumer_key'],$oldBinding['subscription_id']]);
     $old=$f->row();
-    developmentEventAssert($armed===false&&(int)$old['is_active']===1,
+    developmentEventAssert((int)$old['is_active']===1,
         'postcheck_race_can_leave_a_late_orphan_not_a_cancellation_guarantee');
     $setup=$f->events->subscriptionSetup(1,$target,'PILOT');
     developmentEventAssert(array_column($setup['events'],'state')===['absent','absent'],

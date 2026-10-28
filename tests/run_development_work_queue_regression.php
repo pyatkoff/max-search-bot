@@ -51,6 +51,13 @@ if (($argv[1]??'')==='--development-retire-race-child') {
                 'decision'=>['decision_sha256'=>str_repeat('4',64),'readback_sha256'=>str_repeat('5',64),
                     'reviewer_run_id'=>'REVIEW-RETIRE-'.$s['task_id']]]);
             $result='blocked';
+        } elseif ($action==='handoff') {
+            $q->handoff_connection(1,str_repeat('c',32),['queue_id'=>'DEV','task_id'=>$s['task_id'],'spec_sha256'=>$s['spec_sha256'],
+                'expected_plan_sha256'=>$s['plan_sha256'],'expected_pending_event_id'=>$s['expected_pending_event_id'],
+                'old_connection_id'=>str_repeat('a',32),'expected_caller_connection_id'=>str_repeat('c',32),
+                'decision'=>['decision_sha256'=>str_repeat('4',64),'readback_sha256'=>str_repeat('5',64),'reviewer_run_id'=>'INDEPENDENT-HANDOFF-REVIEW']],
+                static fn():bool=>true);
+            $result='handed_off';
         } elseif ($action==='claim') {
             $result=$q->claim(1,str_repeat('a',32),['queue_id'=>'DEV','task_id'=>$s['task_id'],'spec_sha256'=>$s['spec_sha256'],
                 'claim_key'=>str_repeat('b',64),'expected_pending_event_id'=>$s['expected_pending_event_id']])['claim_status'];
@@ -869,7 +876,7 @@ devAssert($current['state']==='blocked'&&$current['task_id']===null&&$current['a
     &&$current['last_retirement']['expected_pending_event_id']===$handoff['expected_pending_event_id'],
     'retired_A_never_satisfies_B_dependency_and_history_survives_new_plan_revision');
 $audit=$pdo->query('SELECT * FROM development_work_connection_handoffs')->fetch(PDO::FETCH_ASSOC);
-foreach (['old_connection_id'=>str_repeat('d',32),'retirement_sha256'=>str_repeat('f',64),'intent_json'=>'{}','created_at'=>'not-a-time'] as $column=>$bad) {
+foreach (['old_connection_id'=>str_repeat('d',32),'retirement_sha256'=>str_repeat('f',64),'intent_json'=>'{}','created_at'=>'2001-01-01 00:00:00'] as $column=>$bad) {
     $pdo->prepare('UPDATE development_work_connection_handoffs SET '.$column.'=? WHERE queue_id=?')->execute([$bad,'DEV']);
     $corrupt=$handoffSnapshot($pdo);
     devReject(fn()=>$q->status(1,str_repeat('c',32),'DEV'),RuntimeException::class,'tampered_handoff_proof_never_certifies_retirement_history');
@@ -923,5 +930,75 @@ devAssert($authorityCalls===2&&$before===$handoffSnapshot($pdo),'postwrite_revoc
 devReject(fn()=>$q->handoff_preflight(1,str_repeat('c',32),array_intersect_key($input,array_flip(['queue_id','old_connection_id','expected_caller_connection_id'])),$revoked),
     DomainException::class,'preflight_postread_authority_loss_suppresses_all_metadata');
 devAssert($before===$handoffSnapshot($pdo),'failed_preflight_does_not_change_any_row');
+
+foreach (['claim_first','block_first','old_ack_after_block'] as $scenario) {
+    $dir=sys_get_temp_dir().'/development-handoff-race-'.bin2hex(random_bytes(8));
+    if (!mkdir($dir,0700)) throw new RuntimeException('handoff_race_directory_unavailable');
+    $processes=[];$racePdo=null;$raceQ=null;
+    try {
+        $file=getenv('DEVELOPMENT_WORK_NATIVE_MYSQL')==='1'?'MYSQL':$dir.'/queue.sqlite';
+        $racePdo=new DevelopmentWorkTestPdo($file==='MYSQL'?null:$file);$raceQ=new DevelopmentWorkQueue($racePdo,static fn():int=>1793100000);
+        $raceQ->create(1,str_repeat('a',32),['queue_id'=>'DEV','plan_sha256'=>str_repeat('0',64),
+            'tasks'=>[devSpec('A')]]);
+        $original=$raceQ->pendingEvent(1,str_repeat('a',32),'DEV');
+        $actions=$scenario==='claim_first'?['claim-winner','handoff']:
+            ($scenario==='block_first'?['claim','handoff-winner']:['ack','handoff-winner']);
+        foreach ($actions as $i=>$action) {
+            $pipes=[];$process=proc_open([PHP_BINARY,__FILE__,'--development-retire-race-child',$dir.'/go'.$i,$dir.'/out'.$i,$file,$action],
+                [0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes);
+            if (!is_resource($process)) throw new RuntimeException('handoff_race_process_unavailable');
+            fclose($pipes[0]);$processes[]=[$process,$pipes];
+        }
+        $until=microtime(true)+10;
+        while ((!is_file($dir.'/out0.ready')||!is_file($dir.'/out1.ready'))&&microtime(true)<$until) usleep(1000);
+        devAssert(is_file($dir.'/out0.ready')&&is_file($dir.'/out1.ready'),'handoff_race_children_ready');
+        devAssert(file_get_contents($dir.'/out0.ready')==='A'&&file_get_contents($dir.'/out1.ready')==='A'
+            &&file_get_contents($dir.'/out0.event')===$original['event_id']&&file_get_contents($dir.'/out1.event')===$original['event_id'],
+            'handoff_and_claim_pin_same_original_task_generation');
+        $winner=$scenario==='claim_first'?0:1;$contender=1-$winner;
+        file_put_contents($dir.'/go'.$winner,'go');$until=microtime(true)+10;
+        while (!is_file($dir.'/out'.$winner.'.locked')&&microtime(true)<$until) usleep(1000);
+        devAssert(is_file($dir.'/out'.$winner.'.locked'),'handoff_winner_holds_real_lane_queue_item_locks');
+        file_put_contents($dir.'/go'.$contender,'go');$until=microtime(true)+5;
+        while (!is_file($dir.'/out'.$contender.'.attempting')&&microtime(true)<$until) usleep(1000);
+        devAssert(is_file($dir.'/out'.$contender.'.attempting'),'handoff_contender_attempts_during_lock');
+        usleep(100000);
+        devAssert(!is_file($dir.'/out'.$winner)&&!is_file($dir.'/out'.$contender)
+            &&proc_get_status($processes[$contender][0])['running'],'handoff_contender_waits_for_actual_winner_commit');
+        file_put_contents($dir.'/out'.$winner.'.release','release');$until=microtime(true)+10;
+        while ((!is_file($dir.'/out0')||!is_file($dir.'/out1'))&&microtime(true)<$until) usleep(1000);
+        devAssert(is_file($dir.'/out0')&&is_file($dir.'/out1'),'handoff_race_finishes_before_deadline');
+        foreach ($processes as [$process,$pipes]) {
+            $stdout=stream_get_contents($pipes[1]);$stderr=stream_get_contents($pipes[2]);fclose($pipes[1]);fclose($pipes[2]);
+            devAssert(proc_close($process)===0&&$stdout===''&&$stderr==='','handoff_race_child_clean');
+        }
+        $results=[file_get_contents($dir.'/out0'),file_get_contents($dir.'/out1')];$s=$raceQ->status(1,str_repeat($scenario==='claim_first'?'a':'c',32),'DEV');
+        if ($scenario==='claim_first') {
+            devAssert($results===['claimed','conflict']&&$s['state']==='claimed'&&$s['task_id']==='A'
+                &&$s['current_run_id']===null&&$s['handoff_count']===0&&$s['blocked_count']===0,
+                'claim_first_blocks_retirement_without_clearing_admission_or_creating_decision');
+        } else {
+            $next=$raceQ->pendingEvent(1,str_repeat('c',32),'DEV');
+            devAssert($results===['access_denied','handed_off']&&$s['state']==='blocked'&&$s['task_id']===null
+                &&$s['current_run_id']===null&&$s['handoff_count']===1&&$s['blocked_count']===1&&$s['accepted_count']===0
+                &&$next===null&&$s['delivery_state']==='blocked'&&$s['last_connection_handoff']!==null,
+                'handoff_first_fences_late_old_claim_ack_without_admitting_any_task');
+            $audit=$racePdo->query('SELECT * FROM development_work_retirements')->fetch(PDO::FETCH_ASSOC);
+            devAssert($audit['expected_pending_event_id']===$original['event_id']&&$audit['task_id']==='A',
+                'handoff_race_keeps_original_generation_and_decision_audit');
+        }
+        devAssert($s['receipt_count']===0&&$s['worker_receipt_count']===0
+            &&(int)$racePdo->query('SELECT COUNT(*) FROM development_work_receipts')->fetchColumn()===0
+            &&(int)$racePdo->query('SELECT COUNT(*) FROM development_work_items')->fetchColumn()===1,
+            'handoff_race_invents_no_worker_run_receipt_or_plan_task');
+    } finally {
+        foreach ($processes as [$process,$pipes]) {
+            foreach ($pipes as $pipe) if (is_resource($pipe)) fclose($pipe);
+            if (is_resource($process)) {proc_terminate($process,9);proc_close($process);}
+        }
+        $raceQ=null;$racePdo=null;foreach (glob($dir.'/*')?:[] as $path) unlink($path);rmdir($dir);
+    }
+}
+
 
 echo 'DEVELOPMENT WORK QUEUE: '.$checks." PASS\n";

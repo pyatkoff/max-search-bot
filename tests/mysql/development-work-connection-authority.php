@@ -4,6 +4,17 @@ require_once dirname(__DIR__,2).'/services/DevelopmentWorkMcpService.php';
 require_once dirname(__DIR__,2).'/services/ManagerPreparationMcpService.php';
 require_once dirname(__DIR__).'/fixtures/development_work_queue.php';
 
+
+final class DevelopmentHandoffAuthorityFailureStatement extends PDOStatement
+{
+    public function execute(?array $params=null): bool
+    {
+        if (str_starts_with($this->queryString,'SELECT g.grant_id,g.client_id,g.admin_id'))
+            throw new PDOException('SYNTHETIC_HANDOFF_AUTHORITY_STORAGE');
+        return parent::execute($params);
+    }
+}
+
 function developmentHandoffTestTokens(ManagerPreparationOAuth $oauth,string $scope,string $resource,string $bucket): array
 {
     $client=$oauth->registerClient(['redirect_uris'=>[ManagerPreparationOAuth::REDIRECT_URI],'scope'=>$scope],$bucket)['client_id'];
@@ -93,6 +104,61 @@ function developmentHandoffAuthorityChecks(PDO $pdo,int $now,callable $check): v
                 'actual_mcp_handoff_idempotent_readback_all_rows_unchanged_'.$profile.'_'.$case);
         }
     }
+    foreach (['preflight_revoked','preflight_project','commit_revoked','storage_error','post_context_revoked'] as $race) {
+        DevelopmentWorkTestSchema::create($pdo);
+        $legacy=new ManagerPreparationOAuth($pdo,$clock);
+        $oldTokens=developmentHandoffTestTokens($legacy,$scope,ManagerPreparationOAuth::RESOURCE,'handoff-race-old-'.$race);
+        $old=$legacy->connectionForBearer('Bearer '.$oldTokens['access_token']);
+        $newOAuth=new ManagerPreparationOAuth($pdo,$clock,ManagerPreparationOAuth::PROFILE_DEVELOPMENT);
+        $newTokens=developmentHandoffTestTokens($newOAuth,$scope,ManagerPreparationOAuth::DEVELOPMENT_RESOURCE,'handoff-race-new-'.$race);
+        $target=$newOAuth->connectionForBearer('Bearer '.$newTokens['access_token']);
+        $armed=false;$clockCalls=0;
+        $raceClock=static function()use($pdo,$now,$target,$race,&$armed,&$clockCalls):int {
+            if ($armed) {
+                ++$clockCalls;$fire=$race==='commit_revoked'?3:2;
+                if ($clockCalls===$fire&&$race!=='storage_error'&&$race!=='post_context_revoked') {
+                    if ($race==='preflight_project') $pdo->exec('DELETE FROM manager_projects WHERE manager_id=1');
+                    else $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=?')->execute([$now,$target]);
+                }
+            }return $now;
+        };
+        $queue=new DevelopmentWorkQueue($pdo,$raceClock);
+        $initial=$queue->create(1,$old,['queue_id'=>'HANDOFF_RACE','plan_sha256'=>str_repeat('0',64),'tasks'=>[
+            ['task_id'=>'A','owner_task_id'=>'SYNTHETIC-OWNER','reviewer_task_id'=>'SYNTHETIC-REVIEWER',
+             'input_sha256'=>str_repeat('1',64),'acceptance_contract_sha256'=>str_repeat('2',64),'deps'=>[],'priority'=>10]]]);
+        $coordinates=['queue_id'=>'HANDOFF_RACE','old_connection_id'=>$old,'expected_caller_connection_id'=>$target];
+        $before=$snapshot();$armed=true;$returned=null;$denied=false;
+        $statementClass=$pdo->getAttribute(PDO::ATTR_STATEMENT_CLASS);
+        try {
+            if ($race==='post_context_revoked') {
+                $armed=false;
+                $store=static function(string $operation,array $arguments)use($pdo,$queue,$clock,$now,$target):array {
+                    $data=(new DevelopmentWorkMcpAdapter($pdo,$queue,$clock))->call('development_work_'.$operation,$arguments[2],$arguments[0],$arguments[1]);
+                    $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=?')->execute([$now,$target]);
+                    return $data;
+                };
+                $service=new DevelopmentWorkMcpService($pdo,$store,$clock);
+                $reply=$service->handle(['jsonrpc'=>'2.0','id'=>1,'method'=>'tools/call','params'=>[
+                    'name'=>'development_work_handoff_preflight','arguments'=>$coordinates]],1,$target,[$scope]);
+                $check(isset($reply['error'])&&!str_contains(json_encode($reply),'expected_pending_event_id'),
+                    'canonical_post_context_revocation_suppresses_preflight_metadata');
+                $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=NULL WHERE grant_id=?')->execute([$target]);
+            } else {
+                if ($race==='storage_error') $pdo->setAttribute(PDO::ATTR_STATEMENT_CLASS,[DevelopmentHandoffAuthorityFailureStatement::class,[]]);
+                $adapter=new DevelopmentWorkMcpAdapter($pdo,$queue,$raceClock);
+                try {
+                    if ($race==='commit_revoked') $returned=$adapter->call('development_work_handoff_connection',$coordinates+[
+                        'task_id'=>'A','spec_sha256'=>$initial['spec_sha256'],'expected_plan_sha256'=>str_repeat('0',64),
+                        'expected_pending_event_id'=>$initial['expected_pending_event_id'],
+                        'decision'=>['decision_sha256'=>str_repeat('4',64),'readback_sha256'=>str_repeat('5',64),'reviewer_run_id'=>'INDEPENDENT-RACE-REVIEW']],1,$target);
+                    else $returned=$adapter->call('development_work_handoff_preflight',$coordinates,1,$target);
+                } catch (DomainException|RuntimeException $expected) {$denied=true;}
+                $check($denied&&$returned===null,'fresh_authority_failure_suppresses_result_'.$race);
+            }
+        } finally {$armed=false;$pdo->setAttribute(PDO::ATTR_STATEMENT_CLASS,$statementClass);}
+        $check($before===$snapshot(),'authority_race_or_read_failure_preserves_every_table_'.$race);
+    }
+
 }
 
 function developmentHandoffNativeAuthority(): void

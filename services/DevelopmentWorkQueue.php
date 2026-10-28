@@ -360,8 +360,8 @@ final class DevelopmentWorkQueue
                 ||$r['expected_plan_sha256']!==$retirement['expected_plan_sha256']
                 ||$r['expected_pending_event_id']!==$retirement['expected_pending_event_id'])
                 throw new RuntimeException();
-            $stored=$this->one('SELECT retirement_sha256,retirement_json FROM development_work_retirements WHERE queue_id=? AND task_id=?',[$q['queue_id'],$r['task_id']]);
-            if (!$stored||$stored['retirement_sha256']!==$retirementHash||$stored['retirement_json']!==self::canonical($retirement))
+            $stored=$this->one('SELECT retirement_sha256,retirement_json,created_at FROM development_work_retirements WHERE queue_id=? AND task_id=?',[$q['queue_id'],$r['task_id']]);
+            if (!$stored||$stored['retirement_sha256']!==$retirementHash||$stored['retirement_json']!==self::canonical($retirement)||$stored['created_at']!==$r['created_at'])
                 throw new RuntimeException();
         } catch (Throwable $invalid) {throw new RuntimeException('development_work_stored_handoff_invalid');}
         return $r;
