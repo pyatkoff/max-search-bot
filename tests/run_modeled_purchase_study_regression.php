@@ -51,6 +51,27 @@ function purchaseRuntimeReportFixture(string $directory,array $state,array $rece
     file_put_contents($directory.'/state.json',json_encode(['schema_version'=>1,'state_json'=>$stateJson,'state_sha256'=>hash('sha256',$stateJson),'receipt_json'=>$receiptJson,'receipt_sha256'=>hash('sha256',$receiptJson)],JSON_THROW_ON_ERROR));chmod($directory.'/state.json',0600);
     file_put_contents($directory.'/lock','');chmod($directory.'/lock',0600);
 }
+/** Reproduce only a synthetic fixture failure; never broaden production logging. */
+function purchaseRuntimeRequireAdvance(ModeledConversionPurchaseStudy $supplier,string $directory,string $root):array
+{
+    $envelope=json_decode((string)file_get_contents($directory.'/state.json'),true,8,JSON_THROW_ON_ERROR);
+    $previous=json_decode($envelope['state_json'],true,256,JSON_THROW_ON_ERROR);$result=$supplier->tick(time());
+    if(($result['status']??null)!=='failed')return$result;
+    try{
+        $collect=new ReflectionMethod(ModeledConversionPurchaseStudy::class,'collect');
+        $request=$collect->invoke($supplier,$previous,$envelope['state_json']);
+    }catch(PDOException $error){
+        $state=preg_match('/\A[A-Z0-9]{5}\z/D',(string)$error->getCode())?(string)$error->getCode():'unknown';
+        $number=(int)($error->errorInfo[1]??0);throw new RuntimeException('fixture_collect_sqlstate_'.$state.'_driver_'.$number);
+    }catch(Throwable $error){
+        $category=preg_match('/\Apurchase_study_[a-z_]{1,100}\z/D',$error->getMessage())?$error->getMessage():'unknown';
+        throw new RuntimeException('fixture_collect_'.$category);
+    }
+    $code="import sys,json,re;sys.path.insert(0,sys.argv[1]);import purchase_study_runtime as r;import purchase_conversion_study as s\ntry:\n r.advance(json.loads(sys.stdin.read()));print('ok')\nexcept s.NotReady as e:\n print(str(e) if re.fullmatch('[a-z_]{1,100}',str(e)) else 'unknown');sys.exit(2)";
+    [$exit,$category,$error]=purchaseRuntimeProcess(['python3','-c',$code,$root.'/tools'],json_encode($request,JSON_THROW_ON_ERROR|JSON_PRESERVE_ZERO_FRACTION));
+    $category=trim($category);if(preg_match('/\A[a-z_]{1,100}\z/D',$category)!==1)$category='unknown';
+    throw new RuntimeException('fixture_advance_bridge_'.$category.'_exit_'.$exit);
+}
 
 $root=dirname(__DIR__);$temp=realpath(sys_get_temp_dir()).'/purchase-runtime-fixture-'.bin2hex(random_bytes(10));mkdir($temp,0700);
 try {
@@ -83,7 +104,7 @@ try {
     while(time()<=$registeredAt)usleep(10000);
     purchaseRuntimePerson($p,$person,time());purchaseRuntimeMessage($p,1,$person);$stream->tick(time());$profiles->tick(time());
     $nativeProfile=json_decode($p->query("SELECT profile_json FROM modeled_conversion_profile_versions WHERE customer_key='".$person."' ORDER BY id LIMIT 1")->fetchColumn(),true,128,JSON_THROW_ON_ERROR);
-    $r=$supplier->tick(time());$state=purchaseRuntimeState($directory);$packet=$nativeProfile['purchase_study'];
+    $r=purchaseRuntimeRequireAdvance($supplier,$directory,$root);$state=purchaseRuntimeState($directory);$packet=$nativeProfile['purchase_study'];
     purchaseRuntimeCheck('actual stream and profile producer feeds its first frozen customer packet to the runtime',$r['status']==='advanced'&&$r['cases']===1&&count($state['cases'])===1&&$state['cases'][0]['packet']['sha256']===$packet['sha256']);
     purchaseRuntimeCheck('new-lead admission preserves canonical UTC and source references',$state['cases'][0]['admission']['scope']==$packet['scope']&&$state['cases'][0]['admission']['prior_conversations']===0&&$state['cases'][0]['admission']['earlier_profiles']===0&&strtotime($state['cases'][0]['admission']['conversation_created_at'])>$registeredAt);
     purchaseRuntimeCheck('descriptive unresolved trips do not activate probabilities or export',$packet['legacy_trip_status']==='unknown'&&$packet['purchase_probability']===null&&$packet['export_allowed']===false&&$r['model_fitted']===0&&$r['verified_payment_probability']===0&&$r['all_lead_calibration_ready']===0&&$r['conversion_uploads']===0);
