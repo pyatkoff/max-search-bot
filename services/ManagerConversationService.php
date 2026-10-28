@@ -395,8 +395,8 @@ class ManagerConversationService
         if(!$target||!$origin||$target['project_key']!==$origin['project_key']
             ||!in_array($target['status'],['ai','waiting_manager','manager'],true))return ['state'=>'unavailable','assigned'=>false];
         if(!empty($origin['manager_id'])&&(int)$origin['manager_id']!==$managerId)return ['state'=>'state_changed','assigned'=>false];
-        if(!empty($target['manager_id']))return ['state'=>(int)$target['manager_id']===$managerId&&$target['status']==='manager'?'same_manager':'existing_owner','assigned'=>false];
-        if($conversationId===$originId)return ['state'=>'unavailable','assigned'=>false];
+        if(!empty($target['manager_id'])&&((int)$target['manager_id']!==$managerId||$target['status']!=='manager'))return ['state'=>'existing_owner','assigned'=>false];
+        if($conversationId===$originId&&empty($target['manager_id']))return ['state'=>'unavailable','assigned'=>false];
         $manager=ManagerAuthService::byId($managerId);
         // A dedicated referral is independent of a shift. Evaluate the normal
         // source/project visibility of the resulting assigned conversation;
@@ -404,6 +404,8 @@ class ManagerConversationService
         $assigned=$target;$assigned['status']='manager';$assigned['manager_id']=$managerId;
         if(!$manager||!ManagerConversationAccessPolicy::canView($managerId,$origin)
             ||!ManagerConversationAccessPolicy::canView($managerId,$assigned))return ['state'=>'unavailable','assigned'=>false];
+        // An existing assignment does not prove that its manager can still read it.
+        if(!empty($target['manager_id']))return ['state'=>'same_manager','assigned'=>false];
         $q=$pdo->prepare("UPDATE conversations SET status='manager',manager_id=? WHERE id=? AND manager_id IS NULL AND status IN ('ai','waiting_manager')");
         $q->execute([$managerId,$conversationId]);
         if($q->rowCount()!==1)return ['state'=>'state_changed','assigned'=>false];

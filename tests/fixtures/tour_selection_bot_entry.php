@@ -194,8 +194,61 @@ INSERT INTO conversation_sources(id,display_name,fallback_mode,is_active,project
         deliveryCheck('a known failed transactional assignment retries into one complete same-manager inquiry',$events($failedId)===1&&(int)$pdo->query('SELECT manager_id FROM conversations WHERE id='.$failedId)->fetchColumn()===7&&(int)$pdo->query('SELECT COUNT(*) FROM manager_assignments WHERE conversation_id='.$failedId)->fetchColumn()===1);
         $transactionGuard=false;try {ManagerConversationService::assignSelectionReferralInTransaction(1,2,7);}catch(LogicException $error){$transactionGuard=true;}
         deliveryCheck('referral assignment cannot escape the owning inquiry transaction',$transactionGuard);
+        tourSelectionUnavailableOwnerChecks($botConfig,$telegram,$max,$payload,$events,$messages);
         deliveryCheck('bot entry fixture uses injected handoff and feedback without real messenger provider calls',$transportGuard->calls===0);
     } finally {
         $pdo=$original;(new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$pdo);ProjectConfig::resetForTests($config);$messengerProperty->setValue(null,$originalMessenger);
     }
+}
+
+/** A saved owner is retained, but revoked access must not look like a usable referral. */
+function tourSelectionUnavailableOwnerChecks(array $config,callable $telegram,callable $max,callable $payload,callable $events,callable $messages): void
+{
+    global $pdo;
+    $original=$pdo;
+    try {
+        foreach (['telegram','max'] as $platform) foreach (['inactive','project_revoked','source_group_revoked'] as $case) {
+            $pdo=deliveryDb();ProjectConfig::resetForTests($config);
+            $pdo->exec('CREATE TABLE manager_assignments(id INTEGER PRIMARY KEY AUTOINCREMENT,conversation_id INTEGER,manager_id INTEGER,assignment_type TEXT);
+CREATE TABLE manager_tour_selection_links(conversation_id INTEGER PRIMARY KEY,version INTEGER,token TEXT UNIQUE,publication_id TEXT,is_active INTEGER,updated_by_manager_id INTEGER,updated_at TEXT);
+INSERT INTO customers VALUES(3,"Synthetic same-manager visitor","","");
+INSERT INTO customer_channels VALUES(3,3,"anytour","telegram","303","303");
+INSERT INTO conversations(id,customer_id,customer_channel_id,project_key,source_id,channel,status,manager_id,started_at,external_chat_id) VALUES(3,3,3,"anytour",1,"telegram","manager",7,"2026-10-21 00:00:00","303");');
+            $draft=deliveryDraft();$other=$draft['offers'][0];$other['id']=str_repeat('b',32);$other['room']='Другой номер';$other['amount']='260000';$draft['offers'][]=$other;
+            deliverySave($draft);$publication=ManagerTourSelectionDeliveryService::prepare(7,1,1)['publication'];
+            // The inquiry fixture uses an existing publication, without photo/provider I/O.
+            $token=str_repeat('c',64);
+            $pdo->prepare('INSERT INTO manager_tour_selection_links VALUES(?,?,?,?,?,?,?)')->execute([1,1,$token,$publication['id'],1,7,'2026-10-21 00:00:00']);
+            $page=ManagerTourSelectionShareService::read($token);
+            $incoming=static function(int $card)use($platform,$page,$payload,$telegram,$max):array {
+                $value=$payload($page['offers'][$card]['bot_links'][$platform]);
+                return $platform==='telegram'?$telegram($value,303,600+$card):$max($value);
+            };
+            $conversation=$platform==='telegram'?3:2;$results=[];$feedback=[];
+            $handoff=static function(array $in,array $result)use(&$results):void {$results[]=$result;};
+            $ack=static function(array $in,string $text)use(&$feedback):void {$feedback[]=$text;};
+            $label=$platform.' '.$case.' same-owner referral';
+            TourSelectionBotEntryService::handle($incoming(0),$handoff,$ack);
+            deliveryCheck($label.' starts with an eligible owner',($results[0]['selection_manager']['state']??'')==='same_manager'&&$events($conversation)===1);
+            $beforeQuote=TourChoiceService::forConversation($pdo,$conversation)['web_inquiries'][0];
+            $beforeOrigin=$messages(1);$beforeShift=(int)$pdo->query('SELECT is_working FROM managers WHERE id=7')->fetchColumn();
+            if($case==='inactive')$pdo->exec('UPDATE managers SET is_active=0 WHERE id=7');
+            if($case==='project_revoked')$pdo->exec('DELETE FROM manager_projects WHERE manager_id=7');
+            if($case==='source_group_revoked')$pdo->exec('UPDATE conversation_sources SET primary_group_id=91 WHERE id=1');
+            TourSelectionBotEntryService::handle($incoming(1),$handoff,$ack);
+            $result=$results[1];$rows=$messages($conversation);$message=$rows[count($rows)-1];
+            $metadata=json_decode($message['metadata_json'],true,512,JSON_THROW_ON_ERROR);
+            $quotes=TourChoiceService::forConversation($pdo,$conversation)['web_inquiries'];
+            $newQuote=array_values(array_filter($quotes,static fn(array $quote):bool=>($quote['public_offer']['amount']??null)==='260000'));
+            deliveryCheck($label.' saves the new inquiry with a truthful staff warning',!empty($result['ok'])&&!empty($result['changed'])&&($result['selection_manager']['state']??'')==='unavailable'
+                &&($metadata['selection_manager_assignment']??'')==='unavailable'&&str_contains($message['text'],'Назначение менеджеру подборки требует проверки'));
+            deliveryCheck($label.' retains the exact new quote and immutable previous conditions',count($newQuote)===1&&$newQuote[0]['public_offer']['room']==='Другой номер'&&$newQuote[0]['public_offer']['price_verified']===false&&in_array($beforeQuote,$quotes,true)&&$events($conversation)===2);
+            deliveryCheck($label.' preserves ownership source privacy shifts and assignment history',(int)$pdo->query('SELECT manager_id FROM conversations WHERE id='.$conversation)->fetchColumn()===7
+                &&$pdo->query('SELECT status FROM conversations WHERE id='.$conversation)->fetchColumn()==='manager'&&$messages(1)===$beforeOrigin
+                &&(int)$pdo->query('SELECT is_working FROM managers WHERE id=7')->fetchColumn()===$beforeShift&&(int)$pdo->query('SELECT COUNT(*) FROM manager_assignments')->fetchColumn()===0);
+            $beforeRows=shareRows();$beforeFeedback=$feedback;
+            TourSelectionBotEntryService::handle($incoming(1),$handoff,$ack);
+            deliveryCheck($label.' repeats without another inquiry warning or feedback',empty($results[2]['changed'])&&shareRows()===$beforeRows&&$feedback===$beforeFeedback);
+        }
+    } finally {$pdo=$original;(new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$pdo);ProjectConfig::resetForTests($config);}
 }
