@@ -22,10 +22,11 @@ async function sourceFixture(page,options={}){
   html=html.replace('<style>',`<style>button{width:100%;height:55px;padding:18px;font:24px serif;border-radius:20px}[data-anytour-add]::after{content:'HOST'}.td_price{min-width:100px;width:118px}.td_price .price{font-weight:bold;white-space:nowrap}`);
  }
  const calls=[],galleryRequests=[],partnerPhotos=[101,102,103].map(i=>'https://hbpro.expert/resource/hotel/photo_1200/11/22/'+i+'.jpg'),nativePhotos=['MainPhoto','Gallery','InsideOfTheRoom'].map((kind,i)=>'https://apigate-tui.fstravel.com/api/geocontent/static/Hotel/00180000-ac11-0242-6c05-08d9934f9e4b/'+kind+'-Source-test'+i+'.jpg'),canonical='/hotel/europe/turkey/synthetic-hotel';
- const gallery=photos=>'<meta charset="utf-8"><h2>Синтетический отель</h2>'+photos.map(src=>'<img class="slider-img" src="'+src+'">').join('');
+ let nativeGalleryLoads=0;
+ const gallery=photos=>'<meta charset="utf-8"><h2 class="hotel_name"><div style="display:flex;align-items:center">Синтетический отель</div></h2>'+photos.map(src=>'<img class="slider-img" src="'+src+'">').join('');
  await page.route('**/*',route=>{
   const target=new URL(route.request().url());
-  if(target.origin==='https://b2b.fstravel.com'&&target.pathname==='/hotel/10'){galleryRequests.push(target.href);return route.fulfill({contentType:'text/html',body:options.canonical?'<script>location.replace('+JSON.stringify(canonical)+')</script>':gallery(nativePhotos)})}
+  if(target.origin==='https://b2b.fstravel.com'&&target.pathname==='/hotel/10'){galleryRequests.push(target.href);nativeGalleryLoads++;return route.fulfill({contentType:'text/html',body:options.incompleteGalleryOnce&&nativeGalleryLoads===1?gallery([]):options.canonical?'<script>location.replace('+JSON.stringify(canonical)+')</script>':gallery(nativePhotos)})}
   if(target.origin==='https://b2b.fstravel.com'&&target.pathname===canonical&&options.canonical){galleryRequests.push(target.href);return route.fulfill({contentType:'text/html',body:gallery(nativePhotos)})}
   if(target.href==='https://b2b.fstravel.com/hotel/-10?partner=HBK'&&options.partner){galleryRequests.push(target.href);return route.fulfill({contentType:'text/html',body:gallery(partnerPhotos)})}
   if([...nativePhotos,...partnerPhotos].includes(target.href)){galleryRequests.push(target.href);return route.fulfill({contentType:'image/jpeg',body:fs.readFileSync(path.join(root,'assets/owner-tour-cards/compact-v1/cover.jpg'))})}

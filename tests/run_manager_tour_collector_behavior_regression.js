@@ -60,20 +60,61 @@ function sourceClient(send,href='https://b2b.fstravel.com/search_tour'){
 
 // Drive the shipped gallery reader through changing rendered documents. The
 // clock advances at its real poll boundary; no source request or photo is made.
-async function gallerySequence(sequence){
- let tick=0,removed=false;
+async function gallerySequence(sequence,options={}){
+ let tick=0,active=null;const frames=[],messages=[];
  const href='https://b2b.fstravel.com/hotel/10',window={};
- const frame={style:{},isConnected:false,setAttribute(){},remove(){removed=true;this.isConnected=false},
-  get contentDocument(){return {location:new URL(sequence(tick).url||href),tick}}};
- const document={createElement:()=>frame,body:{append(){frame.isConnected=true}}};
+ const document={createElement(){
+  const frame={attempt:frames.length,tick:0,style:{},isConnected:false,removed:false,setAttribute(){},remove(){this.removed=true;this.isConnected=false},
+   get contentDocument(){return {location:new URL(sequence(this.tick,this.attempt).url||href),tick:this.tick,attempt:this.attempt}}};
+  frames.push(frame);return frame;
+ },body:{append(frame){active=frame;frame.isConnected=true}}};
+ const chrome={runtime:{async sendMessage(message){
+  messages.push(clone(message));
+  if(message.type==='begin_add')return{ok:true,ticket:'a'.repeat(32)};
+  if(message.type==='enqueue')return{ok:true,operation_id:message.ticket,state:'queued'};
+  if(message.type==='add_status')return{ok:true,state:'saved'};
+  throw new Error('unexpected gallery command');
+ }}};
+ const clockDate=class extends Date{static now(){return tick*(options.tickMs||250)}};
  vm.runInNewContext(fs.readFileSync(__dirname+'/../extensions/selection-collector/collector-client.js','utf8'),
-  {window,document,location:{href:'https://b2b.fstravel.com/search_tour',origin:'https://b2b.fstravel.com'},URL,Map,WeakMap,Set,Promise,
-   setTimeout(fn){tick++;if(sequence(tick).detached)frame.isConnected=false;Promise.resolve().then(fn)}},
+  {window,document,chrome,location:{href:'https://b2b.fstravel.com/search_tour',origin:'https://b2b.fstravel.com'},URL,Map,WeakMap,Set,Promise,Date:clockDate,
+   setTimeout(fn){tick++;if(active?.isConnected){active.tick++;if(sequence(active.tick,active.attempt).detached)active.isConnected=false}Promise.resolve().then(fn)}},
   {filename:'collector-client.js'});
+ const button={dataset:{},isConnected:true,parentElement:null,setAttribute(){}},client=window.AnyTourCollectorClient;
+ const ticket=options.capture?await client.begin(button):null;
  const photos=await window.AnyTourCollectorClient.gallery(href,doc=>{
-  const state=sequence(doc.tick);if(state.error)throw new Error('changing source');return state.photos;
- },doc=>sequence(doc.tick).accepted===true);
- return {photos:Array.from(photos),tick,removed};
+  const state=sequence(doc.tick,doc.attempt);if(state.error)throw new Error('changing source');return state.photos;
+ },doc=>sequence(doc.tick,doc.attempt).accepted===true,{retryEmpty:options.retryEmpty===true});
+ if(options.capture)await client.append(button,ticket,{...observation('Synthetic gallery retry'),photos});
+ return {photos:Array.from(photos),tick,elapsedMs:clockDate.now(),removed:frames.every(frame=>frame.removed),frames:frames.map(frame=>({attempt:frame.attempt,tick:frame.tick,removed:frame.removed,href:frame.src})),messages};
+}
+
+async function galleryRecoveryRegression(){
+ const early=['early-1','early-2','early-3'],settled=['hotel-1','hotel-2','hotel-3'];let r;
+ for(const firstTick of [57,59]){
+  r=await gallerySequence(t=>({photos:t>=firstTick?settled:[]}));
+  check('gallery first ready at poll '+firstTick+' finishes the same settling series',JSON.stringify(r.photos)===JSON.stringify(settled)&&r.tick===firstTick+3&&r.tick<=62&&r.frames.length===1&&r.removed);
+ }
+ for(const change of ['replace','disappear','unreadable','navigate']){
+  r=await gallerySequence(t=>t<59?{photos:[]}:t===59?{photos:settled}:change==='replace'?{photos:early}:change==='disappear'?{photos:[]}:change==='unreadable'?{photos:settled,error:true}:{photos:settled,url:'https://b2b.fstravel.com/unrelated',accepted:false});
+  check('gallery '+change+' after the deadline cannot start another settling series',r.photos.length===0&&r.tick<=62&&r.frames.length===1&&r.removed);
+ }
+ r=await gallerySequence(t=>({photos:t>=60?settled:[]}));
+ check('a gallery first appearing after the load deadline is not accepted',r.photos.length===0&&r.tick<=62&&r.frames.length===1&&r.removed);
+ r=await gallerySequence((t,attempt)=>({photos:attempt?settled:[]}));
+ check('ordinary gallery callers do not retry an empty frame',r.photos.length===0&&r.frames.length===1&&r.tick<=63&&r.removed&&r.messages.length===0);
+ r=await gallerySequence((t,attempt)=>({photos:attempt?settled:[]}),{retryEmpty:true,capture:true});
+ check('FUNSUN empty gallery retries the exact URL in one fresh removed frame',JSON.stringify(r.photos)===JSON.stringify(settled)&&r.frames.length===2&&r.frames.every(frame=>frame.href==='https://b2b.fstravel.com/hotel/10')&&r.tick<=126&&r.removed);
+ check('gallery retry retains one source intent and enqueues only once after both captures',r.messages.filter(message=>message.type==='begin_add').length===1&&r.messages.filter(message=>message.type==='enqueue').length===1&&r.messages.filter(message=>message.type==='add_status').length===1&&JSON.stringify(r.messages.find(message=>message.type==='enqueue')?.observation.photos)===JSON.stringify(settled));
+ r=await gallerySequence(()=>({photos:[]}),{retryEmpty:true,capture:true});
+ check('two unavailable FUNSUN captures stay bounded and remove every frame',r.photos.length===0&&r.frames.length===2&&r.tick<=126&&r.removed);
+ check('unavailable photos never replay the source intent or enqueue',r.messages.filter(message=>message.type==='begin_add').length===1&&r.messages.filter(message=>message.type==='enqueue').length===1&&r.messages.find(message=>message.type==='enqueue')?.observation.photos.length===0);
+ r=await gallerySequence(()=>({photos:settled}),{retryEmpty:true});
+ check('a successful first gallery capture never creates a retry frame',JSON.stringify(r.photos)===JSON.stringify(settled)&&r.frames.length===1&&r.removed&&r.messages.length===0);
+ r=await gallerySequence((t,attempt)=>({photos:attempt?settled:[]}),{retryEmpty:true,tickMs:1000});
+ check('background timer throttling still leaves time for the original destination ticket',JSON.stringify(r.photos)===JSON.stringify(settled)&&r.frames.length===2&&r.elapsedMs<=32000&&r.removed);
+ r=await gallerySequence(()=>({photos:[]}),{retryEmpty:true,tickMs:60000});
+ check('a suspended source does not start another gallery after its total deadline',r.photos.length===0&&r.frames.length===1&&r.removed);
 }
 
 async function tourvisorBlockedCancellationRegression(){
@@ -103,7 +144,7 @@ async function tourvisorBlockedCancellationRegression(){
  }
 }
 
-module.exports={worker,provider,makeTarget,tourvisorBlockedCancellationRegression};
+module.exports={worker,provider,makeTarget,tourvisorBlockedCancellationRegression,galleryRecoveryRegression};
 if(require.main===module)(async()=>{
  require('node:child_process').execFileSync('python3',[__dirname+'/../extensions/selection-collector/build_package.py','--check'],{stdio:'pipe'});
  check('installable package matches actual extension sources',true);
@@ -126,6 +167,7 @@ if(require.main===module)(async()=>{
  r=await gallerySequence(()=>({photos:['only-photo']}));
  check('one stable actual image remains one image',r.photos.join(',')==='only-photo'&&r.tick>=3&&r.removed);
  }
+ await galleryRecoveryRegression();
 
  {
  const photoFixture=(file)=>{const context={window:{},URL,Set};vm.runInNewContext(fs.readFileSync(__dirname+'/../extensions/selection-collector/'+file,'utf8'),context);return context.window};

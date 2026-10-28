@@ -635,8 +635,13 @@ The ordinary supported import now captures the source hotel's photographs:
 
 FUN&SUN/ANEX use the source site's own rendered gallery, with no API credential,
 request interception, booking click or new extension origin permission. A bounded
-15-second temporary frame is removed on completion. A small in-memory gallery
-cache is hotel/URL scoped. Exact source terms and the click's destination ticket
+temporary frame is removed on completion. Each attempt allows 60 loading polls
+and up to three final polls only to finish the same stable photo set; a changed
+or disappearing set cannot start a new series after the loading boundary.
+An attempt is capped at16 seconds in real time. FUN&SUN retries one empty lookup
+in a fresh frame before enqueue, with32 seconds total even when background timers
+are throttled; other adapters retain one attempt. This never retries an import
+operation. A small in-memory gallery cache is hotel/URL scoped. Exact source terms and the click's destination ticket
 are checked again after loading; changed terms never enqueue the earlier offer.
 The existing queue, source limitations, price adjustment and UNKNOWN receipts stay
 in charge. A gallery lookup does not broaden accepted quote identities.
