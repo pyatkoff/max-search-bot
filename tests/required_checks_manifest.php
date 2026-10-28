@@ -311,6 +311,7 @@ return [
         'php tests/run_modeled_conversion_stream_regression.php',
         'python3 tests/run_max_attribution_key.py',
         'python3 tests/run_conversion_observations.py',
+        'python3 tests/run_conversion_predictor.py',
         'python3 tests/run_conversion_profiles.py',
         'python3 tests/run_conversion_snapshot.py',
         'php tests/run_conversion_candidate_selection.php',
