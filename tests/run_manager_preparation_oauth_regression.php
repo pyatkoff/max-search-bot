@@ -258,6 +258,16 @@ function preparationOauthHttpChecks(bool $browserFixture = false): void
         $hotelDenied=$request($hotelForm['action'],$hotelForm['method'],http_build_query($hotelForm['post']),$cookie);
         preparationOauthCheck('HTTP explicit hotel refusal creates no new grant',
             $hotelDenied['status']===303 && (int)$pdo->query('SELECT COUNT(*) FROM manager_preparation_oauth_grants')->fetchColumn()===1);
+        $archiveUrl='/manager/ai-oauth.php?'.http_build_query(array_replace($authorization,['scope'=>ManagerPreparationOAuth::ARCHIVE_SCOPE,'action'=>'authorize']));
+        $archiveConsent=$request($archiveUrl,'GET','',$cookie);
+        $archiveForm=preparationOauthConsentForm($archiveConsent['body'],'deny');
+        preparationOauthCheck('HTTP archive-only consent explicitly describes historical message access',
+            $archiveConsent['status']===200&&str_contains($archiveConsent['body'],'Чтение сохранённых исторических Telegram-диалогов')
+            &&!str_contains($archiveConsent['body'],'Чтение очереди и контекста диалогов')
+            &&!str_contains($archiveConsent['body'],'Управление очередью гостиничных исследований'));
+        $archiveDenied=$request($archiveForm['action'],$archiveForm['method'],http_build_query($archiveForm['post']),$cookie);
+        preparationOauthCheck('HTTP explicit archive refusal creates no new grant',
+            $archiveDenied['status']===303&&(int)$pdo->query('SELECT COUNT(*) FROM manager_preparation_oauth_grants')->fetchColumn()===1);
         $expiring=$request($url,'GET','',$cookie);
         $expiredForm=preparationOauthConsentForm($expiring['body'],'allow');
         $request('/manager/fixture-expire.php','GET','',$cookie);
@@ -302,7 +312,7 @@ try {
         && $metadata['token_endpoint_auth_methods_supported']===['none'] && $metadata['code_challenge_methods_supported']===['S256']
         && !in_array('client_credentials',$metadata['grant_types_supported'],true)
         && ManagerPreparationOAuth::resourceMetadata()['resource']===ManagerPreparationOAuth::RESOURCE
-        && ManagerPreparationOAuth::resourceMetadata()['scopes_supported']===['queue:read','prepared:write','hotel_work:write']);
+        && ManagerPreparationOAuth::resourceMetadata()['scopes_supported']===['queue:read','prepared:write','hotel_work:write','archive:read']);
     preparationOauthCheck('only current active admin with canonical project membership is eligible',
         $oauth->activeAdmin(1) && !$oauth->activeAdmin(0) && !$oauth->activeAdmin(2) && !$oauth->activeAdmin(3) && !$oauth->activeAdmin(4));
     preparationOauthCheck('authorization never changes the operator working state', (int)$pdo->query('SELECT is_working FROM managers WHERE id=1')->fetchColumn()===0);

@@ -17,6 +17,7 @@ public static function authenticateBearer(string $header):?int{return $header===
 public static function connectionIdForBearer(string $header):?string{return self::authenticateBearer($header)===7?str_repeat('a',32):null;}
 public static function bearerContext(string $header):?array{
 if($header==='Bearer '.str_repeat('y',43))return ['admin_id'=>7,'connection_id'=>str_repeat('b',32),'scopes'=>['hotel_work:write']];
+if($header==='Bearer '.str_repeat('z',43))return ['admin_id'=>7,'connection_id'=>str_repeat('c',32),'scopes'=>['archive:read']];
 return self::authenticateBearer($header)===7?['admin_id'=>7,'connection_id'=>str_repeat('a',32),'scopes'=>['queue:read','prepared:write']]:null;}
 }
 final class ManagerPreparationMcpService{
@@ -80,6 +81,9 @@ PHP);
     $hotel=$request($rpc,'Bearer '.str_repeat('y',43));
     preparationHttpCheck('exact HTTP endpoint forwards hotel-only stored grant without adding reply scopes',
         $hotel['status']===200&&json_decode(file_get_contents($tmp.'/dispatch'),true)===['actor'=>7,'connection'=>str_repeat('b',32),'scopes'=>['hotel_work:write']]);
+    $archive=$request($rpc,'Bearer '.str_repeat('z',43));
+    preparationHttpCheck('exact HTTP endpoint forwards archive-only stored grant without adding other capabilities',
+        $archive['status']===200&&json_decode(file_get_contents($tmp.'/dispatch'),true)===['actor'=>7,'connection'=>str_repeat('c',32),'scopes'=>['archive:read']]);
     $observed=ManagerPreparationMcpDiagnostics::snapshot()['recent_attempts'];
     preparationHttpCheck('actual HTTP diagnostics distinguish successful discovery and missing credentials',
         ($observed[0]['rpc_method']??null)==='tools/list'&&$observed[0]['http_status']===200
