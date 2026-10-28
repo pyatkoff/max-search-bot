@@ -66,7 +66,7 @@ final class PurchaseStudyMetadataAudit
             $boolValue=$this->mysql?"JSON_UNQUOTE(JSON_EXTRACT($pj,'$.profile.prefix_complete'))":"json_extract($pj,'$.profile.prefix_complete')";
             $select.=$this->get($pj,'$.profile.extraction_version')." AS extractor,".$this->get($pj,'$.profile.trip_status')." AS trip_status,";
             $select.="CASE WHEN $boolType THEN $boolValue ELSE NULL END AS prefix_complete ";
-            $from="FROM modeled_conversion_profile_versions p LEFT JOIN conversations c ON CAST(c.id AS $cast)=p.conversation_id AND c.project_key=p.project_key AND c.channel=p.platform AND CAST(c.customer_id AS $cast)=p.customer_key LEFT JOIN customer_channels cc ON cc.id=c.customer_channel_id AND cc.customer_id=c.customer_id AND cc.project_key=c.project_key AND cc.channel=c.channel ";
+            $from="FROM modeled_conversion_profile_versions p LEFT JOIN conversations c ON HEX(CAST(c.id AS $cast))=HEX(p.conversation_id) AND HEX(c.project_key)=HEX(p.project_key) AND HEX(c.channel)=HEX(p.platform) AND HEX(CAST(c.customer_id AS $cast))=HEX(p.customer_key) LEFT JOIN customer_channels cc ON cc.id=c.customer_channel_id AND cc.customer_id=c.customer_id AND HEX(cc.project_key)=HEX(c.project_key) AND HEX(cc.channel)=HEX(c.channel) ";
             $profiles=$this->rows($select.$from."WHERE p.project_key='anytour' AND p.platform IN ('max','telegram') AND p.id<=? AND p.observed_at_unix>? AND p.observed_at_unix<=? ORDER BY p.id DESC LIMIT 64",[$f,$after,$through]);
             $out=['schema_version'=>1,'version'=>self::VERSION,'purpose'=>'bounded_new_profile_operational_metadata_not_labels',
                 'window_after_exclusive_utc'=>gmdate('Y-m-d\TH:i:s\Z',$after),'window_through_inclusive_utc'=>gmdate('Y-m-d\TH:i:s\Z',$through),
