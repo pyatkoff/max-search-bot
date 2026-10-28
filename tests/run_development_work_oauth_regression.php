@@ -67,12 +67,14 @@ try {
     ProjectConfig::resetForTests(['id'=>'anytour','brand'=>['name'=>'Synthetic project']]);
     $now=time();$clock=static fn():int=>$now;$oauth=new ManagerPreparationOAuth($pdo,$clock);
     $legacyScopes=ManagerPreparationOAuth::SCOPES;$hotelScope=ManagerPreparationOAuth::HOTEL_SCOPE;$devScope=ManagerPreparationOAuth::DEVELOPMENT_SCOPE;
+    $archiveScope=ManagerPreparationOAuth::ARCHIVE_SCOPE;
     devOauthCheck('development scope is separate from hotel and reply scopes',$devScope==='development_work:write'
         &&!in_array($devScope,$legacyScopes,true)&&$devScope!==$hotelScope);
     $registration=$oauth->registerClient(['redirect_uris'=>[ManagerPreparationOAuth::REDIRECT_URI]],'synthetic-development');
     devOauthCheck('default registration retains only original reply rights',$registration['scope']===implode(' ',$legacyScopes));
     $client=$registration['client_id'];$profiles=['legacy'=>$legacyScopes,'hotel'=>[$hotelScope],'dev'=>[$devScope],
-        'reply_dev'=>array_merge($legacyScopes,[$devScope]),'hotel_dev'=>[$hotelScope,$devScope]];
+        'reply_dev'=>array_merge($legacyScopes,[$devScope]),'hotel_dev'=>[$hotelScope,$devScope],
+        'archive'=>[$archiveScope],'archive_dev'=>[$archiveScope,$devScope]];
     $tokens=[];$connections=[];
     foreach ($profiles as $name=>$scopes) {
         $tokens[$name]=$oauth->exchange(devOauthCode($oauth,$client,implode(' ',$scopes)));
@@ -94,7 +96,7 @@ try {
         ++$developmentCalls;$developmentArguments=[$operation,$args];return ['ok'=>true,'operation'=>$operation];
     };
     $hotelEvents=new DevelopmentOauthHotelEventsFixture();$events=new DevelopmentOauthEventsFixture();
-    $service=new ManagerPreparationMcpService($pdo,$legacyStore,null,$clock,null,null,null,$hotelStore,$hotelEvents,$developmentStore,$events);
+    $service=new ManagerPreparationMcpService($pdo,$legacyStore,null,$clock,null,null,null,$hotelStore,$hotelEvents,null,$developmentStore,$events);
     $call=static fn(string $method,array $params,string $profile):array=>$service->handle(devOauthRpc($method,$params),1,$connections[$profile],$profiles[$profile]);
     foreach (['legacy','hotel','dev'] as $profile) {
         $tools=$call('tools/list',[],$profile)['result']['tools'];$byName=array_column($tools,null,'name');
@@ -140,7 +142,7 @@ try {
     $retirementStore=static function(string $operation,array $args) use (&$retirementCalls,&$seenRetirement):array {
         ++$retirementCalls;$seenRetirement=[$operation,$args];return ['ok'=>true,'operation'=>$operation];
     };
-    $retirementService=new ManagerPreparationMcpService($pdo,$legacyStore,null,$clock,null,null,null,$hotelStore,$hotelEvents,$retirementStore,$events);
+    $retirementService=new ManagerPreparationMcpService($pdo,$legacyStore,null,$clock,null,null,null,$hotelStore,$hotelEvents,null,$retirementStore,$events);
     $retirementArgs=['queue_id'=>'SYNTHETIC_DEV','task_id'=>'A','spec_sha256'=>str_repeat('5',64),
         'expected_plan_sha256'=>str_repeat('6',64),'expected_pending_event_id'=>'dev_evt_'.str_repeat('7',64),
         'decision'=>['decision_sha256'=>str_repeat('8',64),'readback_sha256'=>str_repeat('9',64),'reviewer_run_id'=>'SYNTHETIC-REVIEW']];
@@ -168,6 +170,15 @@ try {
         &&$retirementCalls===1&&$hotelCalls===0&&$legacyCalls===0&&$developmentCalls===0);
     $grantBefore=$pdo->query('SELECT * FROM manager_preparation_oauth_grants ORDER BY grant_id')->fetchAll(PDO::FETCH_ASSOC);
     $tokenBefore=$pdo->query('SELECT * FROM manager_preparation_oauth_tokens ORDER BY token_hash')->fetchAll(PDO::FETCH_ASSOC);
+    $archiveStep=$call('tools/call',['name'=>'archive_research_inventory','arguments'=>[]],'dev');
+    devOauthCheck('development-only archive step-up requests exactly explicit archive addition without reading data',
+        devOauthChallengeScopes($archiveStep)===[$archiveScope,$devScope]&&$legacyCalls===0&&$hotelCalls===0&&$developmentCalls===0);
+    $archiveDevDenied=$call('tools/call',['name'=>'development_work_status','arguments'=>['queue_id'=>'SYNTHETIC_DEV']],'archive');
+    devOauthCheck('archive-only consent cannot call or implicitly acquire development work',
+        ($archiveDevDenied['error']['code']??null)===-32001&&$developmentCalls===0);
+    $archiveHotelStep=$call('tools/call',['name'=>'hotel_work_status','arguments'=>['queue_id'=>'SYNTHETIC_HOTEL']],'archive_dev');
+    devOauthCheck('hotel step-up preserves both already-consented archive and development rights',
+        devOauthChallengeScopes($archiveHotelStep)===[$hotelScope,$archiveScope,$devScope]&&$hotelCalls===0&&$developmentCalls===0);
     foreach (['legacy','hotel'] as $profile) {
         $challenge=$call('tools/call',['name'=>'development_work_status','arguments'=>['queue_id'=>'SYNTHETIC_DEV']],$profile);
         $wanted=array_values(array_intersect(ManagerPreparationOAuth::SUPPORTED_SCOPES,array_merge($profiles[$profile],[$devScope])));
@@ -177,7 +188,7 @@ try {
     }
     $hotelChallenge=$call('tools/call',['name'=>'hotel_work_status','arguments'=>['queue_id'=>'SYNTHETIC_HOTEL']],'reply_dev');
     devOauthCheck('adding hotel consent preserves already consented development without changing existing grant',
-        devOauthChallengeScopes($hotelChallenge)===ManagerPreparationOAuth::SUPPORTED_SCOPES&&$hotelCalls===0);
+        devOauthChallengeScopes($hotelChallenge)===array_merge($legacyScopes,[$hotelScope,$devScope])&&$hotelCalls===0);
     devOauthCheck('scope challenges never mint or widen grants or tokens',
         $grantBefore===$pdo->query('SELECT * FROM manager_preparation_oauth_grants ORDER BY grant_id')->fetchAll(PDO::FETCH_ASSOC)
         &&$tokenBefore===$pdo->query('SELECT * FROM manager_preparation_oauth_tokens ORDER BY token_hash')->fetchAll(PDO::FETCH_ASSOC));
@@ -223,7 +234,7 @@ try {
     devOauthCheck('development event discovery is isolated',array_column($call('events/list',[],'dev')['result']['events'],'name')
         ===['development_work.pending','development_work.attention']);
     $subscription=['name'=>'development_work.pending','arguments'=>['project_key'=>'anytour','queue_id'=>'SYNTHETIC_DEV']];
-    foreach (['legacy','hotel'] as $profile) {
+    foreach (['legacy','hotel','archive'] as $profile) {
         $denied=$call('events/subscribe',$subscription,$profile);
         devOauthCheck('nondevelopment grant cannot subscribe to development delivery '.$profile,
             ($denied['error']['code']??null)===-32001&&$events->subscriptions===0&&$hotelEvents->subscriptions===0);
@@ -250,7 +261,7 @@ try {
         $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=?')->execute([$now,$guardConnection]);
         return ['ok'=>true,'private_result_marker'=>'must-not-escape-after-revocation'];
     };
-    $guardService=new ManagerPreparationMcpService($pdo,$legacyStore,null,$clock,null,null,null,$hotelStore,$hotelEvents,$guardStore,$events);
+    $guardService=new ManagerPreparationMcpService($pdo,$legacyStore,null,$clock,null,null,null,$hotelStore,$hotelEvents,null,$guardStore,$events);
     $revokedDuringRead=$guardService->handle(devOauthRpc('tools/call',['name'=>'development_work_status','arguments'=>['queue_id'=>'SYNTHETIC_DEV']]),
         1,$guardConnection,[$devScope]);
     devOauthCheck('canonical authority is rechecked after development result is read',

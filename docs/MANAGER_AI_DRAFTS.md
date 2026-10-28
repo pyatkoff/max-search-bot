@@ -13,7 +13,11 @@ If an explicit insertion fails while reading provenance or validating the curren
 context, the existing AI preview shows the error without moving editor focus.
 Its retry repeats only the failed read or validation; transient failures do not
 claim that the conversation changed. A real revision conflict clears the private
-draft and offers a fresh check. An unavailable saved reply requires an explicit
+draft and offers a fresh check. If a validation retry becomes stale through a
+server conflict or a new message, the panel clears its insertion-retry mode and
+shows the enabled `Подготовить новый ответ` action. It generates only after that
+explicit click; the current reply text and attached File stay untouched.
+An unavailable saved reply requires an explicit
 new-generation choice. Navigation, access, account and expiry guards still cancel
 obsolete insertion; typed text and attached files remain with the composer.
 

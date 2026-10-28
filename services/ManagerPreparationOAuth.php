@@ -26,7 +26,8 @@ final class ManagerPreparationOAuth
     public const SCOPES = ['queue:read', 'prepared:write'];
     public const HOTEL_SCOPE = 'hotel_work:write';
     public const DEVELOPMENT_SCOPE = 'development_work:write';
-    public const SUPPORTED_SCOPES = ['queue:read', 'prepared:write', self::HOTEL_SCOPE, self::DEVELOPMENT_SCOPE];
+    public const ARCHIVE_SCOPE = 'archive:read';
+    public const SUPPORTED_SCOPES = ['queue:read', 'prepared:write', self::HOTEL_SCOPE, self::ARCHIVE_SCOPE, self::DEVELOPMENT_SCOPE];
     // RFC 9207 issuer identification permits this documented stable callback.
     public const REDIRECT_URI = 'https://chatgpt.com/connector_platform_oauth_redirect';
     private PDO $pdo;
@@ -178,6 +179,30 @@ final class ManagerPreparationOAuth
     {
         $grant=$this->connectionGrant($familyId,$adminId);
         return $grant!==null && self::hasScopes(explode(' ',$grant['scopes']),$required);
+    }
+
+    /** Private domain-separated cursor key for one fresh archive consent.
+     * This never returns a credential or its stored hash. A refreshed/expired
+     * access-token selection may invalidate prior cursors; no secret is added. */
+    public function archiveCursorKey(string $familyId,int $adminId): string
+    {
+        if (ProjectConfig::projectId()!=='anytour' || $this->pdo->inTransaction()) throw new DomainException();
+        $grant=$this->connectionGrant($familyId,$adminId);
+        if ($grant===null || !in_array(self::ARCHIVE_SCOPE,explode(' ',$grant['scopes']),true)) throw new DomainException();
+        $now=$this->now();
+        $q=$this->pdo->prepare("SELECT t.token_hash FROM manager_preparation_oauth_tokens t
+            JOIN manager_preparation_oauth_grants g ON g.grant_id=t.grant_id
+            JOIN manager_preparation_oauth_clients c ON c.client_id=g.client_id
+            WHERE t.grant_id=? AND g.admin_id=? AND g.project_key=? AND g.resource=? AND g.scopes=?
+            AND g.revoked_at IS NULL AND g.expires_at>? AND c.redirect_uri=?
+            AND t.token_kind='access' AND t.consumed_at IS NULL AND t.expires_at>?
+            ORDER BY t.expires_at DESC,t.token_hash DESC LIMIT 1");
+        $q->execute([$familyId,$adminId,'anytour',self::RESOURCE,$grant['scopes'],$now,self::REDIRECT_URI,$now]);
+        $hash=$q->fetchColumn();
+        if (!is_string($hash) || preg_match('/\A[a-f0-9]{64}\z/D',$hash)!==1) throw new DomainException();
+        $key=hex2bin($hash);
+        if ($key===false) throw new DomainException();
+        return hash_hmac('sha256',"anytour.archive-research.cursor.v1\0".$adminId."\0".$familyId,$key,true);
     }
 
     private function connectionGrant(string $familyId, int $adminId): ?array
@@ -439,9 +464,11 @@ final class ManagerPreparationOAuth
         $legacy=self::hasScopes($scopes,self::SCOPES);
         $hotel=in_array(self::HOTEL_SCOPE,$scopes,true);
         $development=in_array(self::DEVELOPMENT_SCOPE,$scopes,true);
+        $archive=in_array(self::ARCHIVE_SCOPE,$scopes,true);
         // Reply read/write remain one capability. Hotel and development metadata
         // each require separate explicit consent; refresh never adds a scope.
-        if ((!$legacy && array_intersect($scopes,self::SCOPES)) || (!$legacy && !$hotel && !$development)) $this->fail('invalid_scope');
+        // Archive reads are a separate explicit capability as well.
+        if ((!$legacy && array_intersect($scopes,self::SCOPES)) || (!$legacy && !$hotel && !$development && !$archive)) $this->fail('invalid_scope');
         return implode(' ',array_values(array_intersect(self::SUPPORTED_SCOPES,$scopes)));
     }
 

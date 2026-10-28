@@ -189,12 +189,17 @@ reads it without application configuration. `awaiting_connection` means
 the scheduled server pass has no usable development event subscription;
 it is not proof that the task queue ran or is empty.
 
-The existing hourly and ROOT supervision continue while runtime progression
-is unaccepted. If hourly supervision is retained to discover genuinely new
-ready inputs, it may only reconcile/read/append through the same private CAS
-and server WIP guard; worker dispatch still requires a fresh actual pending
-event. It is not a second controller. No task is requeued merely to demonstrate
-an automatic transition.
+Existing supervision continues while runtime progression is unaccepted.
+A hosted task cannot combine event triggers with a time schedule; use a
+supported handover of the same coordinator to event-only operation. Do not
+assume that nullable native fields document schedule clearing, invent sentinel
+strings or create a second controller. Preserve the already-existing separate
+oversight while proving the new route. See the official
+[scheduled-task contract](https://learn.chatgpt.com/docs/automations?surface=app).
+Any retained separate discovery may only reconcile/read or ask the existing
+operator to admit a genuinely new task through its private CAS/server guards;
+worker dispatch still requires a fresh actual pending. No task is requeued
+merely to demonstrate an automatic transition.
 
 Before replacing the old general coordinator's hourly trigger, verify the same
 owner's actual binding and event support, preserve its prompt/permissions/

@@ -554,7 +554,7 @@ $retired=$q->retire_unclaimed(1,str_repeat('a',32),$retire);$afterRetire=devStat
 $audit=$pdo->query('SELECT * FROM development_work_retirements')->fetch(PDO::FETCH_ASSOC);
 $readback=json_decode($audit['retirement_json'],true,16,JSON_THROW_ON_ERROR);$expected=$retire;ksort($readback);ksort($expected);
 $retirementHash=hash('sha256',json_encode(['intent'=>$readback,'namespace'=>'development_work_retirement_v1'],JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR));
-devAssert($retired['retire_status']==='retired_unclaimed_not_worker_receipt'
+devAssert($retired['retirement_status']==='retired_unclaimed_not_worker_receipt'
     &&$afterRetire['task_id']==='C'&&$afterRetire['state']==='ready'&&$afterRetire['current_run_id']===null
     &&$afterRetire['accepted_count']===0&&$afterRetire['blocked_count']===1&&$afterRetire['retirement_count']===1
     &&$afterRetire['worker_receipt_count']===0&&$afterRetire['receipt_count']===0
@@ -565,7 +565,7 @@ devAssert($retired['retire_status']==='retired_unclaimed_not_worker_receipt'
 $nextPending=$q->pendingEvent(1,str_repeat('a',32),'DEV');
 devAssert($nextPending['name']==='development_work.pending'&&$nextPending['data']['task_id']==='C'
     &&$nextPending['event_id']!==$originalPending['event_id'],'retirement_next_task_requires_distinct_normal_pending_event');
-devAssert($q->retire_unclaimed(1,str_repeat('a',32),$retire)['retire_status']==='already_recorded'
+devAssert($q->retire_unclaimed(1,str_repeat('a',32),$retire)['retirement_status']==='already_recorded'
     &&devStatus($q)===$afterRetire&&$audit===$pdo->query('SELECT * FROM development_work_retirements')->fetch(PDO::FETCH_ASSOC),
     'byte_identical_retirement_repeat_never_advances_or_rewrites_audit');
 foreach ([
@@ -592,7 +592,7 @@ devAssert($s['state']==='blocked'&&$s['task_id']===null&&$s['accepted_count']===
     &&($s['last_receipt']['task_id']??null)==='C'
     &&(int)$pdo->query("SELECT COUNT(*) FROM development_work_receipts WHERE task_id='A'")->fetchColumn()===0,
     'metadata_retirement_is_not_counted_as_worker_acceptance_or_worker_receipt');
-devAssert($q->retire_unclaimed(1,str_repeat('a',32),$retire)['retire_status']==='already_recorded'&&devStatus($q)===$s,
+devAssert($q->retire_unclaimed(1,str_repeat('a',32),$retire)['retirement_status']==='already_recorded'&&devStatus($q)===$s,
     'retirement_unknown_response_reconciles_after_later_work_without_replay');
 $pdo->exec("UPDATE development_work_items SET state='accepted' WHERE task_id='A'");
 devReject(fn()=>$q->append(1,str_repeat('a',32),['queue_id'=>'DEV','expected_plan_sha256'=>str_repeat('0',64),

@@ -67,7 +67,7 @@ try {
     hotelOauthCheck('registration without requested scopes retains original reply capability',$registration['scope']===$legacyScope);
     hotelOauthCheck('metadata advertises hotel capability on the same canonical resource',
         ManagerPreparationOAuth::resourceMetadata()['resource']==='https://app.anytoour.ru/manager/ai-mcp.php'
-        && ManagerPreparationOAuth::authorizationMetadata()['scopes_supported']===['queue:read','prepared:write','hotel_work:write','development_work:write']);
+        && ManagerPreparationOAuth::authorizationMetadata()['scopes_supported']===['queue:read','prepared:write','hotel_work:write','archive:read','development_work:write']);
     $hotelRegistration=$oauth->registerClient(['redirect_uris'=>[ManagerPreparationOAuth::REDIRECT_URI],'scope'=>$hotelScope],'synthetic-hotel');
     hotelOauthCheck('explicit hotel-only registration does not request reply rights',$hotelRegistration['scope']===$hotelScope);
     foreach ($allScopes as $scope) {

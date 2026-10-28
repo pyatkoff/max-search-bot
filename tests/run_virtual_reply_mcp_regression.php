@@ -70,7 +70,7 @@ try {
     $virtual=array_values(array_filter($listed,static fn(array $tool): bool=>in_array($tool['name'],VirtualReplyMcpAdapter::NAMES,true)));
     virtualMcpCheck('seven learning tools and explicit control registration remain in the exact discovery inventory',
         array_column($virtual,'name')===VirtualReplyMcpAdapter::NAMES
-        &&array_column($listed,'name')===array_merge(['list_pending_replies','get_reply_context','save_prepared_reply',ManagerSearch3CandidateReader::TOOL,ManagerSearch3CandidateReader::MEAL_TOOL],VirtualReplyMcpAdapter::NAMES,HotelWorkMcpAdapter::NAMES,DevelopmentWorkMcpAdapter::NAMES));
+        &&array_column($listed,'name')===array_merge(['list_pending_replies','get_reply_context','save_prepared_reply',ManagerSearch3CandidateReader::TOOL,ManagerSearch3CandidateReader::MEAL_TOOL],VirtualReplyMcpAdapter::NAMES,HotelWorkMcpAdapter::NAMES,ArchiveResearchMcpAdapter::NAMES,DevelopmentWorkMcpAdapter::NAMES));
     foreach ($virtual as $tool) {
         virtualMcpCheck('strict scoped schema '.$tool['name'],$tool['inputSchema']['additionalProperties']===false
             && $tool['securitySchemes']===[['type'=>'oauth2','scopes'=>['queue:read','prepared:write']]]

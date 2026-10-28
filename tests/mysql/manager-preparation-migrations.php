@@ -224,3 +224,6 @@ try{
 
 // Independent prospective-stream fixture runs after all existing cleanup.
 require __DIR__.'/modeled-conversion-stream.php';
+
+// Independent archive fixture follows the existing disposable-suite cleanup.
+require __DIR__.'/archive-research-read.php';
