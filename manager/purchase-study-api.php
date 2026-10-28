@@ -12,10 +12,29 @@ try{
     $manager=ManagerHttp::requireManager();
     ManagerHttp::requireAdmin($manager);
     if(($_SERVER['REQUEST_METHOD']??'')!=='GET')ManagerHttp::respond(['ok'=>false,'error'=>'method_not_allowed'],405);
-    if($_GET||$_POST)ManagerHttp::respond(['ok'=>false,'error'=>'unexpected_parameters'],422);
+    $operational=$_GET===['view'=>'operational'];
+    if(($_GET&&!$operational)||$_POST)ManagerHttp::respond(['ok'=>false,'error'=>'unexpected_parameters'],422);
     if(ProjectConfig::projectId()!=='anytour')ManagerHttp::respond(['ok'=>false,'error'=>'project_unavailable'],404);
     if(!ProjectAccessService::canAccess((int)$manager['id'],'anytour'))ManagerHttp::respond(['ok'=>false,'error'=>'forbidden'],403);
     session_write_close();
+    if($operational){
+        $pdo=ConversationDb::connection();
+        if($pdo->inTransaction())throw new RuntimeException('auth_snapshot');
+        require_once dirname(__DIR__).'/services/PurchaseStudyOperationalSnapshot.php';
+        $snapshot=PurchaseStudyOperationalSnapshot::read();
+        // Recheck access even when the private read failed. No transaction snapshot.
+        if($pdo->inTransaction())throw new RuntimeException('auth_snapshot');
+        $fresh=ManagerHttp::requireManager();
+        ManagerHttp::requireAdmin($fresh);
+        if((int)$fresh['id']!==(int)$manager['id']||ProjectConfig::projectId()!=='anytour'
+            ||!ProjectAccessService::canAccess((int)$fresh['id'],'anytour'))
+            ManagerHttp::respond(['ok'=>false,'error'=>'forbidden'],403);
+        $ok=$snapshot['status']==='saved_metadata_valid';
+        $reply=['ok'=>$ok,'operational'=>$snapshot];
+        if(strlen(json_encode($reply,JSON_THROW_ON_ERROR))>2048)
+            ManagerHttp::respond(['ok'=>false,'error'=>'study_unavailable'],503);
+        ManagerHttp::respond($reply,$ok?200:503);
+    }
     require_once dirname(__DIR__).'/services/ModeledConversionPurchaseStudy.php';
     $status=(new ModeledConversionPurchaseStudy(ConversationDb::connection()))->report();
     $ok=($status['status']??'failed')!=='failed';
