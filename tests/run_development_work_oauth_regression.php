@@ -616,7 +616,7 @@ try {
                 'reply_preparation'=>false,'hotel_work'=>false,'archive_research'=>false,'development_work'=>true]);
     } finally {$pdo->prepare('UPDATE development_work_queues SET oauth_connection_id=? WHERE queue_id=?')->execute([$isolatedConnection,'ISOLATED_QUEUE']);}
     $isolatedSubscription=['name'=>'development_work.pending','arguments'=>['project_key'=>'anytour','queue_id'=>'ISOLATED_QUEUE'],
-        'delivery'=>['mode'=>'webhook','url'=>'https://callbacks.example/isolated-development','secret'=>str_repeat('ab',32)],'ttlMs'=>600000];
+        'delivery'=>['mode'=>'webhook','url'=>'https://callbacks.example/isolated-development','secret'=>'whsec_'.base64_encode(str_repeat('s',32))],'ttlMs'=>600000];
     $isolatedSubscribed=$isolatedCall('events/subscribe',$isolatedSubscription);
     devOauthCheck('new resource real event subscription verifies callback and persists canonical ownership',
         str_starts_with($isolatedSubscribed['result']['id']??'','dev_sub_')&&count($isolatedRequests)===1);
