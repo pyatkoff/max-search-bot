@@ -156,7 +156,8 @@ try {
     studyMetadataCheck('state and row limits are reported with a bounded-page denominator',$out['intake_enabled']===true&&$out['profiles_enabled']===true&&$out['metadata_rows_returned']===27&&$out['profile_page_cap_reached']===false&&$out['event_metadata_cap_reached']===false&&$out['population_coverage']==='bounded_recent_page_not_global_population');
     studyMetadataCheck('successful reader is read-only and closes its own transaction',!$p->inTransaction()&&studyMetadataContents($p)===$before&&studyMetadataMutationCounters($p)===$changes&&$out['database_writes']===0&&$out['native_message_or_event_rows_read']===0);
     $json=json_encode($out,JSON_THROW_ON_ERROR);$flat=count(array_filter($out,'is_array'))===0;
-    studyMetadataCheck('protocol is flat bounded aggregate output with no individual identifiers or source strings',$flat&&strlen($json)<65536&&$out['individual_values_returned']===0&&!preg_match('/fixture-|700001|700002|customer_key|conversation_id|payload_json|profile_json/',$json));
+    $forbiddenKeys=['customer_key','customer_id','conversation_id','source_id','external_user_id','external_chat_id','payload_json','profile_json','text','note'];
+    studyMetadataCheck('protocol is flat bounded aggregate output with no individual identifiers or source strings',$flat&&strlen($json)<65536&&$out['individual_values_returned']===0&&array_intersect(array_keys($out),$forbiddenKeys)===[]&&!preg_match('/fixture-|700001|700002/',$json));
 
     // JSON validity is separate from strict scalar typing and label validity.
     $p=studyMetadataDb();studyMetadataScope($p,10,800001);
