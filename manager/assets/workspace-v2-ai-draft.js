@@ -261,8 +261,9 @@
   }
   function stale(){
     if(!view||view.stale)return;
-    abortFlight();view.stale=true;view.result=null;clearBody();
+    abortFlight();view.stale=true;view.result=null;delete view.retryAction;clearBody();
     clearReady();
+    retry.textContent='Подготовить новый ответ';
     status.textContent='Переписка изменилась. Сформируйте ответ заново.';setBusy(false);
   }
   function sync(){

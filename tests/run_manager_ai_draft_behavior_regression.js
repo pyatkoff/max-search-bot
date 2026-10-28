@@ -229,6 +229,26 @@ for(const stage of ['prepared','validate'])test('inline '+stage+' failure is vis
   assert.equal(h.aiCalls().filter(call=>call.action===stage).length,2);assert.equal(h.aiCalls().at(-1).draft_id,'a'.repeat(32));
   assert.equal(h.aiCalls().some(call=>call.action==='generate'),false);assertNoMutations(h);
 });
+for(const change of ['server conflict','new message'])test('validation retry becomes stale with a usable explicit fresh-answer action: '+change,async()=>{
+  let validations=0;const pending=deferred();
+  const h=await harness(data=>data.action==='validate'?(++validations===1?response({ok:false,error:'temporary_unavailable'},503):change==='server conflict'?response({ok:false,error:'context_stale'},409):pending.promise):data.action==='generate'?response(generated({latest_message_id:data.latest_message_id,revision:'fresh-revision'})):inlineHandler(data),{manager2:true});await tick();
+  const reply=h.ids.get('replyText'),file={name:'keep-through-stale-retry.txt'};h.setFile(file);reply.focus();await h.click('aiSuggestionAccept');
+  assert.equal(h.ids.get('aiDraftInsert').hidden,false);assert.equal(h.ids.get('aiDraftRetry').hidden,true);
+  await h.draft('Мой ответ');reply.setSelectionRange(1,5,'backward');await h.insert();
+  if(change==='new message'){
+    h.W.S.detail.messages.push({id:9,sender_type:'customer',text:'Новые даты поездки'});h.ai.sync();
+    pending.resolve(response({ok:true,revision:'synthetic-revision-1',latest_message_id:8,draft_id:'a'.repeat(32)}));await tick();
+  }
+  assert.equal(h.ids.get('aiDraftPanel').hidden,false);assert.match(h.ids.get('aiDraftStatus').textContent,/Переписка изменилась/);
+  assert.equal(h.ids.get('aiDraftInsert').hidden,true);assert.equal(h.ids.get('aiDraftPanel').children[2].children.length,0);
+  const retry=h.ids.get('aiDraftRetry');assert.equal(retry.hidden,false,'stale validation recovery must offer a fresh-answer action');assert.equal(retry.disabled,false);assert.equal(retry.textContent,'Подготовить новый ответ');
+  assert.equal(reply.value,'Мой ответ');assert.equal(h.getFile(),file);assert.equal(h.document.activeElement,reply);assert.deepEqual([reply.selectionStart,reply.selectionEnd,reply.selectionDirection],[1,5,'backward']);
+  assert.equal(validations,2);assert.equal(h.aiCalls().some(call=>call.action==='generate'),false);assertNoMutations(h);
+  await h.click('aiDraftRetry');
+  assert.equal(h.aiCalls().filter(call=>call.action==='generate').length,1);assert.equal(h.aiCalls().at(-1).latest_message_id,change==='new message'?9:8);
+  assert.equal(h.ids.get('aiDraftInsert').hidden,false);assert.equal(h.ids.get('aiDraftInsert').disabled,false);assert.equal(reply.value,'Мой ответ');assert.equal(h.getFile(),file);assertNoMutations(h);
+});
+
 test('repeated prepared recovery failure stays a read retry until an explicit new-generation choice',async()=>{
   let mode='failed';
   const h=await harness(data=>data.action==='prepared'?(mode==='failed'?response({ok:false,error:'prepared_unavailable'},503):response({ok:true,prepared:false})):inlineHandler(data),{manager2:true});await tick();
