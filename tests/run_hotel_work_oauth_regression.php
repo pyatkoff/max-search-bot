@@ -253,6 +253,81 @@ try {
     hotelOauthCheck('hotel-only grant cannot subscribe to reply delivery',($denied['error']['code']??null)===-32001 && $events->subscriptions===0);
     $subscribed=$call('events/subscribe',$subscription,$hotel,[ManagerPreparationOAuth::HOTEL_SCOPE]);
     hotelOauthCheck('hotel subscription is routed to its separate event owner',($subscribed['result']['id']??null)==='synthetic_hotel_subscription' && $events->subscriptions===1);
+
+    // Exercise the real owned-row boundary without creating or dispatching a queue.
+    require_once dirname(__DIR__).'/services/HotelWorkQueue.php';
+    $pdo->exec("CREATE TABLE hotel_work_lane(lane_key TEXT PRIMARY KEY,queue_id TEXT);
+        CREATE TABLE hotel_work_queues(queue_id TEXT PRIMARY KEY,project_key TEXT,admin_id INTEGER,oauth_connection_id TEXT);
+        INSERT INTO hotel_work_lane VALUES('HOTEL',NULL);");
+    $pdo->prepare('INSERT INTO hotel_work_queues VALUES(?,?,?,?)')
+        ->execute(['SYNTHETIC_FOREIGN_HOTEL','anytour',1,$combined]);
+    $diagnosticBefore=$pdo->query('SELECT * FROM hotel_work_queues ORDER BY queue_id')->fetchAll();
+    $diagnosticLaneBefore=$pdo->query('SELECT * FROM hotel_work_lane')->fetchAll();
+    $diagnosticStore=static function(string $operation,array $args) use($pdo,$clock):array {
+        if ($operation!=='status') throw new LogicException('unexpected synthetic mutation');
+        return (new HotelWorkQueue($pdo,$clock))->status(...$args);
+    };
+    $diagnosticService=new ManagerPreparationMcpService($pdo,null,null,$clock,null,null,null,$diagnosticStore);
+    $diagnosticStatus=static fn(string $id,?string $connection,array $scopes,int $admin=1):array=>$diagnosticService->handle(
+        hotelOauthRpc('tools/call',['name'=>'hotel_work_status','arguments'=>['queue_id'=>$id]]),$admin,$connection,$scopes);
+    $missingQueue=$diagnosticStatus('SYNTHETIC_ABSENT_HOTEL',$hotel,[$hotelScope]);
+    $foreignQueue=$diagnosticStatus('SYNTHETIC_FOREIGN_HOTEL',$hotel,[$hotelScope]);
+    $selfExpected=['connection_id'=>$hotel,'client_id'=>$client,'active_project_admin'=>true,
+        'capabilities'=>['reply_preparation'=>false,'hotel_work'=>true,'archive_research'=>false,'development_work'=>false]];
+    $unavailableExpected=['ok'=>false,'reason'=>'OWNED_QUEUE_UNAVAILABLE','queue_available'=>false,'caller_self'=>$selfExpected];
+    hotelOauthCheck('valid hotel grant distinguishes unavailable owned queue from caller authorization',
+        ($missingQueue['result']['structuredContent']??null)===$unavailableExpected
+        &&($missingQueue['result']['isError']??null)===true
+        &&json_decode($missingQueue['result']['content'][0]['text']??'',true)===$unavailableExpected);
+    hotelOauthCheck('missing and foreign hotel queues are indistinguishable and expose current caller only',
+        $missingQueue===$foreignQueue
+        &&!str_contains(json_encode($foreignQueue,JSON_THROW_ON_ERROR),'SYNTHETIC_FOREIGN_HOTEL')
+        &&!str_contains(json_encode($foreignQueue,JSON_THROW_ON_ERROR),$combined));
+    hotelOauthCheck('hotel availability read changes no queue lane or capability grant',
+        $pdo->query('SELECT * FROM hotel_work_queues ORDER BY queue_id')->fetchAll()===$diagnosticBefore
+        &&$pdo->query('SELECT * FROM hotel_work_lane')->fetchAll()===$diagnosticLaneBefore
+        &&!$oauth->connectionAuthorized($hotel,1,[ManagerPreparationOAuth::DEVELOPMENT_SCOPE])
+        &&!$oauth->connectionAuthorized($hotel,1,ManagerPreparationOAuth::SCOPES));
+    $noDiagnosticConnection=$diagnosticStatus('SYNTHETIC_ABSENT_HOTEL',null,[$hotelScope]);
+    $wrongDiagnosticActor=$diagnosticStatus('SYNTHETIC_ABSENT_HOTEL',$hotel,[$hotelScope],2);
+    foreach ([$noDiagnosticConnection,$wrongDiagnosticActor] as $authDenied) {
+        hotelOauthCheck('invalid hotel caller context has a stable transport message without self identity',
+            ($authDenied['error']['code']??null)===-32001
+            &&str_contains($authDenied['error']['message']??'','AUTH_CONTEXT_UNAVAILABLE')
+            &&!isset($authDenied['result'])&&!str_contains(json_encode($authDenied,JSON_THROW_ON_ERROR),$hotel)
+            &&!str_contains(json_encode($authDenied,JSON_THROW_ON_ERROR),'caller_self'));
+    }
+    $diagnosticChallenge=$diagnosticStatus('SYNTHETIC_ABSENT_HOTEL',$legacy,ManagerPreparationOAuth::SCOPES);
+    $diagnosticHeader=$diagnosticChallenge['result']['_meta']['mcp/www_authenticate'][0]??'';
+    hotelOauthCheck('legacy hotel step-up still carries only original reply rights plus requested hotel capability',
+        ($diagnosticChallenge['result']['isError']??null)===true
+        &&str_contains($diagnosticHeader,'scope="queue:read prepared:write hotel_work:write"')
+        &&!str_contains($diagnosticHeader,'development_work:write')&&!str_contains($diagnosticHeader,'archive:read')
+        &&!isset($diagnosticChallenge['result']['structuredContent']['caller_self']));
+    hotelOauthCheck('canonical self lookup refuses wrong required capability and inactive identity',
+        $oauth->currentConnectionMetadata($hotel,1,[ManagerPreparationOAuth::DEVELOPMENT_SCOPE])===null
+        &&$oauth->currentConnectionMetadata($hotel,2,[$hotelScope])===null
+        &&$oauth->currentConnectionMetadata(str_repeat('f',32),1,[$hotelScope])===null);
+
+
+    $pdo->beginTransaction();
+    try { $transactionSelf=$oauth->currentConnectionMetadata($hotel,1,[$hotelScope]); }
+    finally { $pdo->rollBack(); }
+    hotelOauthCheck('caller self metadata never certifies an active foreign transaction snapshot',$transactionSelf===null);
+    $raceHotelStore=static function(string $operation,array $args) use($pdo,$now,$combined):array {
+        $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=?')->execute([$now,$combined]);
+        throw new DomainException('hotel_work_access_denied');
+    };
+    $raceHotelService=new ManagerPreparationMcpService($pdo,null,null,$clock,null,null,null,$raceHotelStore);
+    $raceHotelReply=$raceHotelService->handle(hotelOauthRpc('tools/call',
+        ['name'=>'hotel_work_status','arguments'=>['queue_id'=>'SYNTHETIC_ABSENT_HOTEL']]),1,$combined,$hotelCombinedScopes);
+    hotelOauthCheck('revocation after hotel ownership lookup withholds the complete self diagnostic',
+        ($raceHotelReply['error']['code']??null)===-32001
+        &&str_contains($raceHotelReply['error']['message']??'','AUTH_CONTEXT_UNAVAILABLE')
+        &&!isset($raceHotelReply['result'])&&!str_contains(json_encode($raceHotelReply,JSON_THROW_ON_ERROR),'caller_self')
+        &&!str_contains(json_encode($raceHotelReply,JSON_THROW_ON_ERROR),$combined));
+    $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=NULL WHERE grant_id=?')->execute([$combined]);
+
     $events->failChallenge=true;
     $challenge=$call('events/subscribe',$subscription,$hotel,[ManagerPreparationOAuth::HOTEL_SCOPE]);
     hotelOauthCheck('hotel callback failure retains the fixed canonical RPC diagnostic',

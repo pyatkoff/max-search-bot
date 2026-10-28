@@ -31,14 +31,15 @@ final class ManagerPreparationMcpService
     public function handle(array $rpc, int $authorizedAdminId, ?string $connectionId = null, ?array $grantedScopes = null): array
     {
         $id = $rpc['id'] ?? null;
+        $workStatus=($rpc['method']??null)==='tools/call' && is_array($rpc['params']??null)
+            && in_array($rpc['params']['name']??null,['hotel_work_status','development_work_status'],true);
         if (($rpc['jsonrpc'] ?? '') !== '2.0' || !is_string($rpc['method'] ?? null)
             || (!is_int($id) && !is_string($id) && $id !== null)) return self::error(null,-32600,'Invalid Request');
         try {
-            $this->requireAdmin($authorizedAdminId);
             // The HTTP owner supplies the exact fresh bearer grant. Existing
             // direct callers default to the original reply capability only.
             $scopes=$grantedScopes??ManagerPreparationOAuth::SCOPES;
-            if ($connectionId!==null && !$this->scopedConnectionActive($connectionId,$authorizedAdminId,$scopes)) throw new DomainException();
+            $this->requireCurrentContext($authorizedAdminId,$connectionId,$scopes);
             $params = $rpc['params'] ?? [];
             if (!is_array($params) || array_is_list($params) && $params !== []) throw new InvalidArgumentException();
             // Protocol metadata is not a tool argument or an authorization source.
@@ -70,8 +71,7 @@ final class ManagerPreparationMcpService
                 || in_array($params['name']??null,HotelWorkMcpAdapter::NAMES,true)
                 || in_array($params['name']??null,ArchiveResearchMcpAdapter::NAMES,true)
                 || in_array($params['name']??null,DevelopmentWorkMcpAdapter::NAMES,true))) {
-                $this->requireAdmin($authorizedAdminId);
-                if ($connectionId !== null && !$this->scopedConnectionActive($connectionId,$authorizedAdminId,$scopes)) throw new DomainException();
+                $this->requireCurrentContext($authorizedAdminId,$connectionId,$scopes);
             }
             $response=!array_key_exists('id',$rpc) ? [] : ['jsonrpc'=>'2.0','id'=>$id,'result'=>$result];
             // Archive data appears in both text content and structuredContent.
@@ -81,7 +81,12 @@ final class ManagerPreparationMcpService
             return $response;
         } catch (ManagerPreparationCallbackError|HotelWorkCallbackError|DevelopmentWorkCallbackError $error) {
             return self::error($id,-32015,'CallbackEndpointError',['reason'=>$error->reason]);
-        } catch (DomainException $error) { return self::error($id,-32001,'Access denied');
+        } catch (DomainException $error) {
+            if (!$workStatus || !($error instanceof ManagerPreparationAccessError)
+                || !in_array($error->reason,['AUTH_CONTEXT_UNAVAILABLE','AUTH_SCOPE_UNAVAILABLE'],true))
+                return self::error($id,-32001,'Access denied');
+            $reason=$error->reason;
+            return self::error($id,-32001,'Access denied ['.$reason.']',['reason'=>$reason]);
         } catch (InvalidArgumentException $error) { return self::error($id,-32602,'Invalid params');
         } catch (OutOfBoundsException $error) { return self::error($id,-32601,'Method not found');
         } catch (Throwable $error) { return self::error($id,-32603,'Internal error'); }
@@ -96,6 +101,14 @@ final class ManagerPreparationMcpService
         $version=in_array($requested,self::INITIALIZE_VERSIONS,true)?$requested:self::INITIALIZE_VERSIONS[0];
         return ['protocolVersion'=>$version,'capabilities'=>['tools'=>(object)[]],
             'serverInfo'=>['name'=>'anytour-prepared-replies','version'=>'1.0.0']];
+    }
+
+    private function requireCurrentContext(int $admin,?string $connection,array $scopes): void
+    {
+        try {
+            $this->requireAdmin($admin);
+            if ($connection!==null && !$this->scopedConnectionActive($connection,$admin,$scopes)) throw new DomainException();
+        } catch (DomainException $error) { throw new ManagerPreparationAccessError('AUTH_CONTEXT_UNAVAILABLE'); }
     }
 
     private function requireAdmin(int $admin): void
@@ -159,13 +172,22 @@ final class ManagerPreparationMcpService
         if ($stepUp&&!ManagerPreparationOAuth::hasScopes($scopes,$required)&&$connection!==null
             &&$this->scopedConnectionActive($connection,$admin,$scopes)) return self::capabilityScopeChallenge($scopes,$required[0]);
         if (!ManagerPreparationOAuth::hasScopes($scopes,$required)
-            || (($hotel||$archive||$development) && ($connection===null||!$this->scopedConnectionActive($connection,$admin,$required)))) throw new DomainException();
+            || (($hotel||$archive||$development) && ($connection===null||!$this->scopedConnectionActive($connection,$admin,$required)))) {
+            if (in_array($name,['hotel_work_status','development_work_status'],true)) {
+                $reason=$connection===null||!$this->scopedConnectionActive($connection,$admin,$scopes)
+                    ?'AUTH_CONTEXT_UNAVAILABLE':'AUTH_SCOPE_UNAVAILABLE';
+                throw new ManagerPreparationAccessError($reason);
+            }
+            throw new DomainException();
+        }
         if ($hotel) {
-            $data=(new HotelWorkMcpAdapter($this->pdo,$this->hotelStore,$this->clock))->call($name,$args,$admin,$connection);
+            try { $data=(new HotelWorkMcpAdapter($this->pdo,$this->hotelStore,$this->clock))->call($name,$args,$admin,$connection); }
+            catch (DomainException $error) { $data=$this->unavailableWorkQueue($name,$error,$admin,$connection,$required); }
         } elseif ($archive) {
             $data=(new ArchiveResearchMcpAdapter($this->pdo,$this->archiveStore,$this->clock))->call($name,$args,$admin,$connection);
         } elseif ($development) {
-            $data=(new DevelopmentWorkMcpAdapter($this->pdo,$this->developmentStore,$this->clock))->call($name,$args,$admin,$connection);
+            try { $data=(new DevelopmentWorkMcpAdapter($this->pdo,$this->developmentStore,$this->clock))->call($name,$args,$admin,$connection); }
+            catch (DomainException $error) { $data=$this->unavailableWorkQueue($name,$error,$admin,$connection,$required); }
         } elseif (in_array($name,[ManagerSearch3CandidateReader::TOOL,ManagerSearch3CandidateReader::MEAL_TOOL],true)) {
             if ($connection===null||!$this->activeConnection($connection,$admin)) throw new DomainException();
             $reader=$this->searchCandidates??new ManagerSearch3CandidateReader();
@@ -200,6 +222,22 @@ final class ManagerPreparationMcpService
         }
         return ['content'=>$content,
             'structuredContent'=>$data,'isError'=>isset($data['ok']) && $data['ok'] !== true];
+    }
+
+    private function unavailableWorkQueue(string $name,DomainException $error,int $admin,string $connection,array $required): array
+    {
+        $ownedDenial=match ($name) {
+            'hotel_work_status'=>'hotel_work_access_denied',
+            'development_work_status'=>'development_work_access_denied',
+            default=>null,
+        };
+        if ($ownedDenial===null||$error->getMessage()!==$ownedDenial) throw $error;
+        $this->requireCurrentContext($admin,$connection,$required);
+        $self=(new ManagerPreparationOAuth($this->pdo,$this->clock))->currentConnectionMetadata($connection,$admin,$required);
+        if ($self===null) throw new ManagerPreparationAccessError('AUTH_CONTEXT_UNAVAILABLE');
+        // Missing and foreign queues have exactly the same private availability result.
+        // No queried queue identity, state, owner or connection is exposed.
+        return ['ok'=>false,'reason'=>'OWNED_QUEUE_UNAVAILABLE','queue_available'=>false,'caller_self'=>$self];
     }
 
     private static function capabilityScopeChallenge(array $granted,string $requested): array
@@ -497,6 +535,11 @@ final class ManagerPreparationMcpService
         $error=['code'=>$code,'message'=>$message];if ($data!==null) $error['data']=$data;
         return ['jsonrpc'=>'2.0','id'=>$id,'error'=>$error];
     }
+}
+
+final class ManagerPreparationAccessError extends DomainException
+{
+    public function __construct(public readonly string $reason) { parent::__construct('Access denied'); }
 }
 
 final class ManagerPreparationCallbackError extends RuntimeException
