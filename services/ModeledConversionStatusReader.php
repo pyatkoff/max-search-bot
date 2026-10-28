@@ -214,7 +214,9 @@ final class ModeledConversionStatusReader
     }
     private function query(string $sql,array $args):array
     {
-        $this->authorize();$this->budget->check();$q=$this->budget->prepare($this->pdo,$sql);$q->execute($args);
+        $this->authorize();$this->budget->check();$q=$this->budget->prepare($this->pdo,$sql);
+        foreach($args as$i=>$value)$q->bindValue($i+1,$value,is_int($value)?PDO::PARAM_INT:PDO::PARAM_STR);
+        $q->execute();
         $rows=$q->fetchAll(PDO::FETCH_ASSOC);$q->closeCursor();$this->budget->check();
         $this->budget->consumeBytes(strlen(self::json($rows)));return $rows;
     }

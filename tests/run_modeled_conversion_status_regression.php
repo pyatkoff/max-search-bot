@@ -61,6 +61,15 @@ function forecastStatusAssertions(PDO $p,callable $check):void
         $r['state']['last_tick_status']==='idle'&&$r['state']['last_recorded_error']['at']===gmdate('Y-m-d\TH:i:s\Z',1792990000)
         &&$r['state']['last_recorded_error']['category']==='processing_failed'
         &&$r['interpretation']['last_recorded_error_is_historical_not_current_health']);
+    $receiptBefore=$p->query("SELECT last_receipt_json FROM modeled_conversion_profiles_state WHERE project_key='anytour'")->fetchColumn();
+    $ordinaryBudget=new ModeledConversionStatusBudget();forecastStatusRead($p,null,$ordinaryBudget);
+    $p->prepare("UPDATE modeled_conversion_profiles_state SET last_receipt_json=? WHERE project_key='anytour'")->execute([str_repeat('x',50000)]);
+    $oversizeBudget=new ModeledConversionStatusBudget();$r=forecastStatusRead($p,null,$oversizeBudget);
+    $check('oversized state receipt is omitted in SQL before copying while saved forecasts remain readable',
+        $r['available']&&$r['saved']['paired_snapshots']===2&&$r['state']['last_tick_status']==='unknown'
+        &&$r['state']['last_batch_forecast_snapshots']===null
+        &&$oversizeBudget->remainingBytes()>=$ordinaryBudget->remainingBytes()-1024);
+    $p->prepare("UPDATE modeled_conversion_profiles_state SET last_receipt_json=? WHERE project_key='anytour'")->execute([$receiptBefore]);
     $before=(int)$p->query('SELECT COUNT(*) FROM modeled_conversion_profile_versions')->fetchColumn();
     if($p->getAttribute(PDO::ATTR_DRIVER_NAME)==='sqlite')$p->exec('PRAGMA query_only=ON');
     $readOnly=forecastStatusRead($p);
