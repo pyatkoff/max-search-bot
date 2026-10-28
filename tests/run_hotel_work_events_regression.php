@@ -22,6 +22,20 @@ function hotelEventSignature(array $request,string $secret): bool
     return in_array($expected,explode(' ',$h['webhook-signature']),true);
 }
 
+// Stop immediately before the one bounded automatic recovery becomes eligible.
+function hotelEventRecoveryFixture(): array
+{
+    $f=new HotelEventsFixture();$f->subscribe();
+    $f->events->deliverPending();$f->at+=180;$f->events->deliverPending();
+    $s=$f->status();$connection=$f->connection;
+    $args=['queue_id'=>'PILOT','stage_id'=>$s['stage_id'],'baseline_sha256'=>$s['baseline_sha256'],'old_connection_id'=>$connection];
+    $proof=static fn(string $old,int $admin,string $mode):bool=>$old===$connection&&$admin===1&&$mode==='ready';
+    $f->queue->handoff_connection(1,$connection,$args,$proof);
+    $f->requests=[];++$f->at;$f->events->deliverPending();$pending=$f->requests[0];
+    $f->requests=[];$f->at+=180;$f->events->deliverPending();$attention=$f->requests[0];
+    return [$f,$args,$proof,$pending,$attention];
+}
+
 try {
     $f=new HotelEventsFixture(false);
     hotelEventAssert(!$f->events->hasActiveSubscriptions(),'empty_has_no_subscription');
@@ -117,8 +131,169 @@ try {
         &&$f->requests[0]['data']['name']==='hotel_work.attention'
         &&$f->requests[0]['data']['data']['stage_id']===$beforeResume['stage_id']
         &&$f->requests[0]['data']['data']['dispatch_allowed']===false,'resumed_unclaimed_stage_gets_new_attention_only');
+    $beforeRecoveryRow=$f->pdo->query("SELECT * FROM hotel_work_queues WHERE queue_id='PILOT'")->fetch(PDO::FETCH_ASSOC);
+    $originalResumeAudit=$f->pdo->query('SELECT * FROM hotel_work_connection_handoffs ORDER BY handoff_sha256')->fetchAll(PDO::FETCH_ASSOC);
+    hotelEventAssert((int)$f->pdo->query('SELECT COUNT(*) FROM hotel_work_delivery_recoveries')->fetchColumn()===0,
+        'resume_attention_ack_does_not_recover_inside_the_same_tick');
+    $f->requests=[];$f->at+=HotelWorkQueue::DELIVERY_RECOVERY_BACKOFF_SECONDS-1;$f->events->deliverPending();
+    hotelEventAssert($f->requests===[]&&(int)$f->pdo->query('SELECT COUNT(*) FROM hotel_work_delivery_recoveries')->fetchColumn()===0,
+        'automatic_recovery_waits_for_its_bounded_future_tick');
+    ++$f->at;$recoveryAt=$f->at;$recoveryDelivery=$f->events->deliverPending();$recovered=$f->requests[0];
+    hotelEventAssert($recoveryDelivery['accepted']===1&&count($f->requests)===1
+        &&$recovered['data']['name']==='hotel_work.pending'&&$recovered['data']['eventId']!==$newPendingId
+        &&$recovered['data']['eventId']!==$oldPendingId
+        &&$recovered['data']['eventId']===$f->status()['expected_pending_event_id']
+        &&$recovered['data']['data']===$payload['data']&&$recovered['data']['timestamp']===gmdate('Y-m-d\TH:i:s\Z',$recoveryAt)
+        &&hotelEventSignature($recovered,$f->secret),'automatic_recovery_has_one_new_signed_pending_identity_and_fresh_body_time');
+    hotelEventAssert(array_keys($recovered['data'])===['eventId','name','timestamp','data','cursor']
+        &&$recovered['data']['cursor']===null&&strlen($recovered['body'])<=2048
+        &&!str_contains($recovered['body'],$f->connection)&&!str_contains($recovered['body'],$f->secret)
+        &&!str_contains($recovered['body'],'packet_sha256'),'recovery_keeps_existing_bounded_event_contract_without_private_fields');
+    $recoveryAudit=$f->pdo->query('SELECT * FROM hotel_work_delivery_recoveries')->fetch(PDO::FETCH_ASSOC);
+    if ($f->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql') {
+        $migrationStatus=$f->status();$f->pdo->reapplyDeliveryRecoveryMigration();
+        hotelEventAssert($recoveryAudit===$f->pdo->query('SELECT * FROM hotel_work_delivery_recoveries')->fetch(PDO::FETCH_ASSOC)
+            &&$migrationStatus===$f->status(),'native_073_reapply_preserves_saved_recovery_and_queue_state');
+        $duplicate=$recoveryAudit;$duplicate['recovery_sha256']=str_repeat('f',64);$columns=array_keys($duplicate);
+        hotelEventReject(fn()=>$f->pdo->prepare('INSERT INTO hotel_work_delivery_recoveries ('.implode(',',$columns).') VALUES ('.implode(',',array_fill(0,count($columns),'?')).')')->execute(array_values($duplicate)),
+            PDOException::class,'native_073_reapplied_unique_budget_still_rejects_second_generation');
+        echo "HOTEL EVENTS MIGRATION073 APPLY/REAPPLY: PASS\n";
+    }
+    $savedAckFields=['pending_event_id'=>'event_ack','attention_event_id'=>'attention_ack',
+        'delivered_at'=>'delivered_at','claim_deadline'=>'claim_deadline','attention_at'=>'attention_at','previous_updated_at'=>'updated_at'];
+    foreach ($savedAckFields as $auditField=>$queueField) {
+        hotelEventAssert($recoveryAudit[$auditField]===$beforeRecoveryRow[$queueField],'recovery_preserves_previous_ack_evidence_'.$auditField);
+    }
+    hotelEventAssert($recoveryAudit['stage_id']===$beforeResume['stage_id']
+        &&$recoveryAudit['oauth_connection_id']===$f->connection
+        &&$recoveryAudit['baseline_sha256']===$beforeResume['baseline_sha256']
+        &&$recoveryAudit['resume_sha256']===$originalResumeAudit[0]['handoff_sha256']
+        &&$recoveryAudit['created_at']===gmdate('Y-m-d H:i:s',$recoveryAt)
+        &&$originalResumeAudit===$f->pdo->query('SELECT * FROM hotel_work_connection_handoffs ORDER BY handoff_sha256')->fetchAll(PDO::FETCH_ASSOC),
+        'recovery_pins_original_stage_owner_resume_and_keeps_resume_audit_immutable');
+    hotelEventAssert(array_intersect_key($beforeResume,$businessKeys)===array_intersect_key($f->status(),$businessKeys)
+        &&$f->pdo->query("SELECT claim_sha256 FROM hotel_work_queues WHERE queue_id='PILOT'")->fetchColumn()===null
+        &&(int)$f->pdo->query('SELECT COUNT(*) FROM hotel_work_receipts')->fetchColumn()===0,
+        'automatic_recovery_delivers_metadata_without_claim_run_receipt_or_business_progress');
+    $recoveredAck=$f->status();
+    foreach ([$oldPendingId,$oldAttentionId,$newPendingId,$beforeRecoveryRow['attention_ack']] as $staleId) {
+        hotelEventReject(fn()=>$f->queue->markEventDelivered(1,$f->connection,'PILOT',$staleId),
+            HotelWorkQueueConflict::class,'pre_recovery_ack_cannot_acknowledge_new_delivery','stale_event');
+    }
+    $f->queue->handoff_connection(1,$f->connection,$resumeArgs,$resumeProof);
+    hotelEventAssert($f->status()===$recoveredAck
+        &&$recoveryAudit===$f->pdo->query('SELECT * FROM hotel_work_delivery_recoveries')->fetch(PDO::FETCH_ASSOC),
+        'stale_acks_and_original_resume_repeat_cannot_reset_recovered_ack_or_audit');
+    $f->requests=[];$f->at+=179;$f->events->deliverPending();
+    hotelEventAssert($f->requests===[],'recovered_ack_is_quiet_before_its_claim_deadline');
+    ++$f->at;$f->events->deliverPending();
+    hotelEventAssert(count($f->requests)===1&&$f->requests[0]['data']['name']==='hotel_work.attention'
+        &&$f->requests[0]['data']['data']['dispatch_allowed']===false
+        &&$f->requests[0]['data']['eventId']!==$beforeRecoveryRow['attention_ack'],
+        'unclaimed_recovery_gets_only_one_new_generation_attention');
     $f->requests=[];$f->at+=3600;$f->events->deliverPending();
-    hotelEventAssert($f->requests===[],'acknowledged_resumed_attention_stays_quiet');
+    hotelEventAssert($f->requests===[]&&$f->status()['delivery_state']==='attention_required'
+        &&(int)$f->pdo->query('SELECT COUNT(*) FROM hotel_work_delivery_recoveries')->fetchColumn()===1
+        &&$recoveryAudit===$f->pdo->query('SELECT * FROM hotel_work_delivery_recoveries')->fetch(PDO::FETCH_ASSOC),
+        'spent_recovery_budget_stays_quiet_without_infinite_pending_or_audit_rewrites');
+
+    // The automatic namespace must discard an older frozen transport body and
+    // backoff, while retries of the new identity keep their exact signed body.
+    $f=new HotelEventsFixture();$f->subscribe(false);$f->events->deliverPending();
+    $f->at+=180;$f->queue->pendingEvent(1,$f->connection,'PILOT');$s=$f->status();$connection=$f->connection;
+    $resumeArgs=['queue_id'=>'PILOT','stage_id'=>$s['stage_id'],'baseline_sha256'=>$s['baseline_sha256'],'old_connection_id'=>$connection];
+    $resumeProof=static fn(string $old,int $admin,string $mode):bool=>$old===$connection&&$admin===1&&$mode==='ready';
+    $f->queue->handoff_connection(1,$connection,$resumeArgs,$resumeProof);
+    $f->requests=[];++$f->at;$f->statuses=array_fill(0,4,503);
+    for ($attempt=1;$attempt<=4;$attempt++) {
+        $f->events->deliverPending();$frozen=$f->row();
+        if ($attempt<4) $f->at=strtotime($frozen['next_attempt_at'].' UTC');
+    }
+    $frozenRequest=$f->requests[0];$frozenPendingId=$frozenRequest['data']['eventId'];
+    $f->queue->markEventDelivered(1,$f->connection,'PILOT',$frozenPendingId);
+    $f->at+=180;$unclaimed=$f->queue->pendingEvent(1,$f->connection,'PILOT');
+    $f->queue->markEventDelivered(1,$f->connection,'PILOT',$unclaimed['event_id']);
+    $f->at+=HotelWorkQueue::DELIVERY_RECOVERY_BACKOFF_SECONDS;
+    hotelEventAssert($frozen['next_attempt_at']>gmdate('Y-m-d H:i:s',$f->at)
+        &&$f->row()['pending_body']===$frozenRequest['body'],'automatic_recovery_fixture_retains_late_acked_frozen_body_and_backoff');
+    $f->requests=[];$f->statuses=[503,204];$newAttempt=$f->events->deliverPending();$recovered=$f->requests[0];$newTransport=$f->row();
+    hotelEventAssert($newAttempt['retried']===1&&count($f->requests)===1
+        &&$recovered['data']['eventId']!==$frozenPendingId&&$recovered['body']!==$frozenRequest['body']
+        &&$recovered['data']['data']===$frozenRequest['data']['data']
+        &&$recovered['data']['timestamp']===gmdate('Y-m-d\TH:i:s\Z',$f->at)
+        &&hotelEventSignature($recovered,$f->secret)
+        &&(int)$newTransport['attempts']===1&&$newTransport['next_attempt_at']===gmdate('Y-m-d H:i:s',$f->at+60)
+        &&(int)$f->pdo->query('SELECT COUNT(*) FROM hotel_work_delivery_recoveries')->fetchColumn()===1,
+        'automatic_generation_replaces_old_body_and_backoff_without_new_subscription_or_stage');
+    hotelEventReject(fn()=>$f->queue->markEventDelivered(1,$f->connection,'PILOT',$frozenPendingId),
+        HotelWorkQueueConflict::class,'late_old_transport_success_cannot_acknowledge_recovery','stale_event');
+    $f->requests=[];$f->at+=59;$f->events->deliverPending();
+    hotelEventAssert($f->requests===[]&&$f->row()['pending_body']===$recovered['body'],'new_recovery_retry_respects_its_own_backoff');
+    ++$f->at;$success=$f->events->deliverPending();$retry=$f->requests[0];
+    hotelEventAssert($success['accepted']===1&&count($f->requests)===1&&$retry['body']===$recovered['body']
+        &&$retry['data']['eventId']===$recovered['data']['eventId']
+        &&$retry['headers']['webhook-timestamp']!==$recovered['headers']['webhook-timestamp']
+        &&$retry['headers']['webhook-signature']!==$recovered['headers']['webhook-signature']
+        &&hotelEventSignature($retry,$f->secret)
+        &&$f->row()['pending_body']===null&&$f->row()['next_attempt_at']===null
+        &&(int)$f->pdo->query('SELECT COUNT(*) FROM hotel_work_delivery_recoveries')->fetchColumn()===1,
+        'automatic_generation_retry_keeps_body_identity_and_budget_with_fresh_transport_signature');
+
+    // Canonical authorization is checked before a recovery can be persisted.
+    [$f,$resumeArgs,$resumeProof]=hotelEventRecoveryFixture();
+    $beforeDenied=$f->pdo->query("SELECT * FROM hotel_work_queues WHERE queue_id='PILOT'")->fetch(PDO::FETCH_ASSOC);
+    $f->grants[$f->connection]['active']=false;$f->at+=HotelWorkQueue::DELIVERY_RECOVERY_BACKOFF_SECONDS;$f->requests=[];
+    $denied=$f->events->deliverPending();
+    hotelEventAssert($denied['stopped']===2&&$f->requests===[]
+        &&(int)$f->pdo->query('SELECT COUNT(*) FROM hotel_work_delivery_recoveries')->fetchColumn()===0
+        &&$beforeDenied===$f->pdo->query("SELECT * FROM hotel_work_queues WHERE queue_id='PILOT'")->fetch(PDO::FETCH_ASSOC),
+        'revoked_current_grant_cannot_create_recovery_or_callback');
+    [$f,$resumeArgs,$resumeProof]=hotelEventRecoveryFixture();$beforeExpired=$f->status();
+    $f->at+=86400;$f->requests=[];$expired=$f->events->deliverPending();
+    hotelEventAssert($expired['subscriptions']===0&&$f->requests===[]&&$f->status()===$beforeExpired
+        &&(int)$f->pdo->query('SELECT COUNT(*) FROM hotel_work_delivery_recoveries')->fetchColumn()===0,
+        'expired_subscriptions_do_not_create_automatic_generation');
+
+    // A genuine binding transfer is not another same-binding recovery budget.
+    [$f,$resumeArgs,$resumeProof]=hotelEventRecoveryFixture();$originalBinding=$f->connection;
+    $originalAudit=$f->pdo->query('SELECT * FROM hotel_work_connection_handoffs')->fetch(PDO::FETCH_ASSOC);
+    $newBinding=str_repeat('c',32);$f->queue->handoff_connection(1,$newBinding,$resumeArgs,static fn():bool=>true);
+    $f->connection=$newBinding;$f->subscribe();++$f->at;$f->events->deliverPending();
+    hotelEventAssert(count($f->requests)===1&&$f->requests[0]['data']['name']==='hotel_work.pending'
+        &&$f->status()['oauth_connection_id']===$newBinding
+        &&(int)$f->pdo->query('SELECT COUNT(*) FROM hotel_work_delivery_recoveries')->fetchColumn()===0,
+        'genuine_authority_handoff_delivers_its_normal_pending_without_recovery_audit');
+    $f->requests=[];$f->at+=180;$f->events->deliverPending();
+    hotelEventAssert(count($f->requests)===1&&$f->requests[0]['data']['name']==='hotel_work.attention'
+        &&$f->requests[0]['data']['data']['dispatch_allowed']===false,'new_authority_attention_still_forbids_dispatch');
+    $f->requests=[];$f->at+=HotelWorkQueue::DELIVERY_RECOVERY_BACKOFF_SECONDS;$f->events->deliverPending();
+    $q=$f->pdo->prepare('SELECT * FROM hotel_work_connection_handoffs WHERE handoff_sha256=?');$q->execute([$originalAudit['handoff_sha256']]);
+    hotelEventAssert($f->requests===[]&&$f->status()['delivery_state']==='attention_required'
+        &&$q->fetch(PDO::FETCH_ASSOC)===$originalAudit
+        &&(int)$f->pdo->query('SELECT COUNT(*) FROM hotel_work_delivery_recoveries')->fetchColumn()===0,
+        'foreign_binding_cannot_spend_original_self_resume_recovery_budget');
+
+    // Only an actual new pending envelope admits one claim; completion keeps the
+    // ordinary research-to-intake progression and does not replay the producer.
+    [$f,$resumeArgs,$resumeProof]=hotelEventRecoveryFixture();
+    $f->at+=HotelWorkQueue::DELIVERY_RECOVERY_BACKOFF_SECONDS;$f->requests=[];$f->events->deliverPending();$actual=$f->requests[0];
+    $admission=['queue_id'=>'PILOT','stage_id'=>$actual['data']['data']['stage_id'],'claim_key'=>str_repeat('d',64),
+        'expected_pending_event_id'=>$actual['data']['eventId']];
+    $claimed=$f->queue->claim(1,$f->connection,$admission);$again=$f->queue->claim(1,$f->connection,$admission);
+    hotelEventAssert($claimed['claim_status']==='claimed'&&$again['claim_status']==='already_claimed_do_not_replay'
+        &&$f->status()['state']==='claimed'&&$f->status()['current_run_id']===null,
+        'received_recovery_pending_admits_one_claim_without_starting_a_worker');
+    $f->requests=[];++$f->at;$f->events->deliverPending();
+    hotelEventAssert($f->requests===[],'claimed_recovery_stops_pending_redelivery');
+    $completionArgs=$admission;unset($completionArgs['expected_pending_event_id']);
+    $f->completeResearch($completionArgs);$next=$f->status();$f->requests=[];++$f->at;$f->events->deliverPending();
+    hotelEventAssert(count($f->requests)===1&&$f->requests[0]['data']['name']==='hotel_work.pending'
+        &&$f->requests[0]['data']['data']['stage_kind']==='intake'
+        &&$f->requests[0]['data']['data']['stage_id']===$next['stage_id']
+        &&$next['stage_id']!==$admission['stage_id']&&$next['stage_index']===1
+        &&$next['accepted_batches']===0&&(int)$f->pdo->query('SELECT COUNT(*) FROM hotel_work_receipts')->fetchColumn()===1
+        &&(int)$f->pdo->query('SELECT COUNT(*) FROM hotel_work_delivery_recoveries')->fetchColumn()===1,
+        'accepted_recovered_research_announces_only_its_ordinary_new_intake_stage');
 
     // A late success can acknowledge the queue while a sender retains its old
     // frozen failed body. Use real queue ACK/readiness methods, not storage edits.
@@ -256,7 +431,7 @@ try {
     $first=$f->events->deliverPending();
     hotelEventAssert($nested!==null&&$nested['subscriptions']===1&&$nested['accepted']===0&&$nested['retried']===0,'active_sql_lease_excludes_overlapping_sender');
     hotelEventAssert($first['accepted']===1&&count($f->requests)===1&&$f->row()['lease_token']===null&&$f->row()['lease_until']===null,'overlap_has_one_callback_and_explicit_lease_release');
-    hotelEventAssert(!array_diff(array_unique($f->pdo->writes),['hotel_work_events','hotel_work_queues','hotel_work_receipts','hotel_work_lane','hotel_work_connection_handoffs','hotel_work_resolutions']),'event_lifecycle_never_writes_business_tables');
+    hotelEventAssert(!array_diff(array_unique($f->pdo->writes),['hotel_work_events','hotel_work_queues','hotel_work_receipts','hotel_work_lane','hotel_work_connection_handoffs','hotel_work_resolutions','hotel_work_delivery_recoveries']),'event_lifecycle_never_writes_business_tables');
     echo 'HOTEL WORK EVENTS: '.$checks." PASS\n";
 } catch (Throwable $error) {
     $message=$error instanceof RuntimeException&&str_starts_with($error->getMessage(),'hotel_event_assertion_failed:')?$error->getMessage():get_class($error);
