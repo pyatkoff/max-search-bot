@@ -3,10 +3,11 @@ declare(strict_types=1);
 require_once dirname(__DIR__).'/services/DevelopmentWorkEventService.php';
 require_once __DIR__.'/fixtures/development_work_events.php';
 
-$checks=0;
+$checks=0;$lastCheck='bootstrap';
 function developmentEventAssert(bool $ok,string $name): void
 {
-    global $checks;++$checks;if (!$ok) throw new RuntimeException('development_event_assertion_failed:'.$name);
+    global $checks,$lastCheck;++$checks;$lastCheck=$name;
+    if (!$ok) throw new RuntimeException('development_event_assertion_failed:'.$name);
 }
 function developmentEventReject(callable $work,string $class,string $name,?string $reason=null): void
 {
@@ -171,7 +172,10 @@ try {
     developmentEventAssert($r['accepted']===0&&$f->requests===[]&&$f->row()['pending_body']===null,'subscription_expiry_is_rechecked_immediately_before_send');
     $f=new DevelopmentEventsFixture();$f->events->subscribe(array_replace($f->params(),['ttlMs'=>1000]),1,$f->connection);$f->requests=[];++$f->at;
     developmentEventAssert(!$f->events->hasActiveSubscriptions()&&$f->events->deliverPending()['subscriptions']===0&&$f->requests===[],'expired_subscription_is_not_an_active_route');
-    $f=new DevelopmentEventsFixture();$f->subscribe(false);$f->events->unsubscribe($f->params(),1,$f->connection);$f->requests=[];$f->events->deliverPending();
+    $f=new DevelopmentEventsFixture();$f->subscribe(false);
+    developmentEventReject(fn()=>$f->events->unsubscribe($f->params(),1,$f->connection),InvalidArgumentException::class,'unsubscribe_rejects_signing_secret');
+    $remove=$f->params();unset($remove['delivery']['secret']);$f->events->unsubscribe($remove,1,$f->connection);
+    $f->requests=[];$f->events->deliverPending();
     developmentEventAssert($f->requests===[]&&(int)$f->row()['is_active']===0,'unsubscribe_stops_only_delivery');
 
     $f=new DevelopmentEventsFixture();$f->subscribe(false);$nested=null;
@@ -184,6 +188,10 @@ try {
     developmentEventAssert(!array_diff(array_unique($f->pdo->writes),DevelopmentWorkTestSchema::tables()),'lifecycle_writes_only_development_metadata');
     echo 'DEVELOPMENT WORK EVENTS: '.$checks." PASS\n";
 } catch (Throwable $error) {
-    $message=$error instanceof RuntimeException&&str_starts_with($error->getMessage(),'development_event_assertion_failed:')?$error->getMessage():get_class($error);
-    fwrite(STDERR,$message."\n");exit(1);
+    $class=get_class($error);$file=basename($error->getFile());
+    if (preg_match('/\A[A-Za-z_\\\\][A-Za-z0-9_\\\\]{0,120}\z/D',$class)!==1) $class='Throwable';
+    if (preg_match('/\A[A-Za-z0-9_.-]{1,120}\z/D',$file)!==1) $file='unknown';
+    $label=is_string($lastCheck)&&preg_match('/\A[a-z0-9_]{1,160}\z/D',$lastCheck)===1?$lastCheck:'unknown_assertion';
+    fwrite(STDERR,json_encode(['error'=>'development_event_regression_failed','class'=>$class,'file'=>$file,
+        'line'=>$error->getLine(),'checks'=>$checks,'last_assertion'=>$label],JSON_THROW_ON_ERROR)."\n");exit(1);
 }
