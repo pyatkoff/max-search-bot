@@ -50,6 +50,104 @@ final class DevelopmentWorkEventService
         return $out;
     }
 
+    /** Private current-owned subscription metadata; never a HOST commit or dispatch proof. */
+    public function subscriptionSetup(int $admin,string $connection,string $queueId): array
+    {
+        $this->requireSetupAutocommit();
+        $this->authorizeSetup($admin,$connection);
+        $this->queue->status($admin,$connection,$queueId);
+        $this->requireSetupAutocommit();
+        $now=$this->now();
+        if ($now<1) throw new RuntimeException('development_subscription_status_unavailable');
+        $result=self::unavailableSubscriptionSetup();
+        try {
+            $q=$this->pdo->prepare('SELECT event_name,is_active,expires_at,verified_at,next_attempt_at,last_status FROM development_work_events WHERE project_key=? AND admin_id=? AND oauth_connection_id=? AND queue_id=? AND event_name IN (?,?) LIMIT 21');
+            if (!$q||!$q->execute([self::PROJECT,$admin,$connection,$queueId,...self::EVENTS])) throw new RuntimeException('development_subscription_status_unavailable');
+            $rows=$q->fetchAll(PDO::FETCH_ASSOC);
+            if (!is_array($rows)||!array_is_list($rows)) throw new RuntimeException('development_subscription_status_unavailable');
+            if (count($rows)>20) $result=self::unavailableSubscriptionSetup('row_limit');
+            else {
+                $grouped=array_fill_keys(self::EVENTS,[]);
+                foreach ($rows as $row) {
+                    $name=$row['event_name']??null;
+                    if (!is_string($name)||!array_key_exists($name,$grouped)) throw new RuntimeException('development_subscription_status_unavailable');
+                    $grouped[$name][]=$row;
+                }
+                $events=[];
+                foreach ($grouped as $name=>$matches) {
+                    $count=count($matches);
+                    $events[]=$count===1?self::setupRow($name,$matches[0],$now)
+                        :self::setupEntry($name,$count===0?'absent':'ambiguous',$count);
+                }
+                $result=['available'=>true,'observed_at'=>null,
+                    'semantics'=>'server_subscription_metadata_not_native_commit_proof','events'=>$events];
+            }
+        } catch (RuntimeException $unavailable) {
+            $result=self::unavailableSubscriptionSetup();
+        }
+        $this->requireSetupAutocommit();
+        $this->authorizeSetup($admin,$connection);
+        $this->queue->status($admin,$connection,$queueId);
+        $this->requireSetupAutocommit();
+        $result['observed_at']=gmdate('Y-m-d\TH:i:s\Z',$now);
+        return $result;
+    }
+
+    public static function unavailableSubscriptionSetup(string $reason='unavailable'): array
+    {
+        $reason=$reason==='row_limit'?'row_limit':'unavailable';
+        return ['available'=>false,'observed_at'=>null,
+            'semantics'=>'server_subscription_metadata_not_native_commit_proof','reason'=>$reason,
+            'events'=>array_map(static fn(string $name):array=>self::setupEntry($name),self::EVENTS)];
+    }
+
+    private static function setupEntry(string $name,string $state='unknown',?int $count=null): array
+    {
+        return ['event_name'=>$name,'state'=>$state,'matching_rows'=>$count,
+            'eligible'=>$state==='absent'?false:null,'verified'=>null,'retrying'=>null,
+            'last_http_status'=>null,'expires_at'=>null];
+    }
+
+    private static function setupRow(string $name,array $row,int $now): array
+    {
+        $out=self::setupEntry($name,'unknown',1);
+        foreach (['is_active','expires_at','verified_at','next_attempt_at','last_status'] as $field)
+            if (!array_key_exists($field,$row)) return $out;
+        if (!in_array($row['is_active'],[0,1,'0','1'],true)) return $out;
+        $expires=self::setupDate($row['expires_at']);$verified=self::setupDate($row['verified_at']);
+        $retry=$row['next_attempt_at']===null?null:self::setupDate($row['next_attempt_at']);
+        if ($expires===null||$verified===null||$verified>self::date($now)
+            ||($row['next_attempt_at']!==null&&$retry===null)) return $out;
+        $status=$row['last_status'];
+        if ($status!==null&&(!is_int($status)&&!is_string($status)
+            ||preg_match('/\A(?:0|[1-5][0-9]{2})\z/D',(string)$status)!==1)) return $out;
+        $active=(string)$row['is_active']==='1'&&$expires>self::date($now);
+        $out['state']=(string)$row['is_active']==='0'?'inactive':($active?'active_verified':'expired');
+        $out['eligible']=$active;$out['verified']=true;
+        $out['retrying']=$active&&$retry!==null;
+        $out['last_http_status']=$status!==null&&(int)$status>=100?(int)$status:null;
+        $out['expires_at']=str_replace(' ','T',$expires).'Z';
+        return $out;
+    }
+
+    private static function setupDate(mixed $value): ?string
+    {
+        if (!is_string($value)||preg_match('/\A[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\z/D',$value)!==1) return null;
+        $date=DateTimeImmutable::createFromFormat('!Y-m-d H:i:s',$value,new DateTimeZone('UTC'));
+        return $date!==false&&$date->getTimestamp()>0&&$date->format('Y-m-d H:i:s')===$value?$value:null;
+    }
+
+    private function authorizeSetup(int $admin,string $connection): void
+    {
+        try { $this->authorize($admin,$connection); }
+        catch (DomainException $denied) { throw new DevelopmentSubscriptionStatusAuthorizationError(); }
+    }
+
+    private function requireSetupAutocommit(): void
+    {
+        if ($this->pdo->inTransaction()) throw new LogicException('development_subscription_status_foreign_transaction');
+    }
+
     public function subscribe(array $params,int $admin,?string $connection): array
     {
         $this->authorize($admin,$connection);
@@ -225,6 +323,9 @@ final class DevelopmentWorkEventService
     private static function date(int $at): string {return gmdate('Y-m-d H:i:s',$at);}
     private function now(): int {return $this->clock!==null?(int)($this->clock)():time();}
 }
+
+/** Internal status-only authority failure; carries no caller or storage data. */
+final class DevelopmentSubscriptionStatusAuthorizationError extends DomainException {}
 
 final class DevelopmentWorkCallbackError extends RuntimeException
 {

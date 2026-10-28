@@ -77,6 +77,16 @@ final class DevelopmentWorkMcpAdapter
         if ($operation==='status') {
             require_once __DIR__.'/DevelopmentWorkHealth.php';
             $result['cron_health']=DevelopmentWorkHealth::snapshot($this->clock!==null?(int)($this->clock)():null);
+            require_once __DIR__.'/DevelopmentWorkEventService.php';
+            $result['subscription_setup']=DevelopmentWorkEventService::unavailableSubscriptionSetup();
+            if ($this->store instanceof DevelopmentWorkQueue) {
+                try {
+                    $reader=new DevelopmentWorkEventService($this->pdo,null,$this->clock,null,$this->store);
+                    $result['subscription_setup']=$reader->subscriptionSetup($admin,$connection,$args['queue_id']);
+                } catch (RuntimeException $unavailable) {
+                    $result['subscription_setup']=DevelopmentWorkEventService::unavailableSubscriptionSetup();
+                }
+            }
         }
         return $result;
     }
