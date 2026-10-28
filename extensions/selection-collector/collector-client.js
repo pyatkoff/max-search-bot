@@ -3,6 +3,12 @@
 // Only local operation state crosses back to a TO content script. No client,
 // trip, connection capability or server response body enters the source DOM.
 const pending=new WeakMap(),pause=()=>new Promise(r=>setTimeout(r,250));
+function checkCaptureLimit(button,captureKey){
+ const captures=pending.get(button);if(!captures?.has(captureKey)&&captures?.size>=64)throw new Error('В этом меню уже 64 попытки добавления. Проверьте результаты прежних попыток на соответствующих карточках.');
+}
+function forget(button,captureKey){
+ const captures=pending.get(button);if(!captures)return;captures.delete(captureKey);if(!captures.size)pending.delete(button);
+}
 const galleries=new Map();
 // Render only the exact same-origin hotel/description page. The source site's
 // own UI loads its gallery; no cookies, page scripts or client data are copied.
@@ -40,13 +46,13 @@ function note(button,message,tone='error'){
  if(!el){el=document.createElement('div');el.dataset.anytourNote='1';el.setAttribute('role','status');button.parentElement.append(el)}
  el.dataset.anytourTone=tone;el.textContent=message;button.title=message;
 }
-async function follow(button,operation){
+async function follow(button,operation,captureKey=''){
  for(let attempt=0;attempt<40&&button.isConnected;attempt++){
   let result;try{result=await chrome.runtime.sendMessage({type:'add_status',operation_id:operation})}catch{}
   if(!result?.ok){label(button,'Проверьте в AnyTour');note(button,'Результат пока не подтверждён. Проверьте очередь в расширении AnyTour. Повторного добавления нет.');return}
-  if(result.state==='cancelled'){pending.delete(button);label(button,button.dataset.anytourEdit?'✎ Изменить цену':'В подборку AnyTour');note(button,'Правка отменена. Тур не добавлен.','info');return 'cancelled'}
+  if(result.state==='cancelled'){forget(button,captureKey);label(button,button.dataset.anytourEdit?'✎ Изменить цену':'В подборку AnyTour');note(button,'Добавление отменено. Ранее сохранённые туры не изменены.','info');return 'cancelled'}
   if(result.state==='editing'){label(button,'Правка в AnyTour');note(button,'Откройте значок расширения AnyTour: там можно изменить цену и явно добавить тур. Пока он не добавлен.','info');return}
-  if(result.state==='saved'){pending.delete(button);label(button,'✓ В подборке');note(button,'');button.title='Предложение сохранено в выбранной подборке. Туристу ничего не отправлено.';return}
+  if(result.state==='saved'){forget(button,captureKey);label(button,'✓ В подборке');note(button,'');button.title='Предложение сохранено в выбранной подборке. Туристу ничего не отправлено.';return}
   if(result.state!=='queued'){
    const message=result.state==='waiting'?'Очередь сохранена, но сервер ещё не подтвердил добавление. Откройте расширение AnyTour.':result.error==='connection_changed'?'Клиент или поездка изменились. Проверьте исходную операцию в расширении AnyTour.':'Нужна проверка цены, похожего варианта или подключения. Откройте расширение AnyTour.';
    label(button,result.state==='waiting'?'В очереди AnyTour':'Проверьте в AnyTour');note(button,message);return;
@@ -56,20 +62,21 @@ async function follow(button,operation){
  if(button.isConnected){label(button,'В очереди AnyTour');note(button,'Предложение в очереди. Откройте расширение AnyTour или нажмите здесь, чтобы проверить результат без нового добавления.')}
 }
 window.AnyTourCollectorClient=Object.freeze({label,actions,gallery,
- async begin(button,editing=false){
-  const operation=pending.get(button);if(operation){if(editing)try{await chrome.runtime.sendMessage({type:'show_edit',operation_id:operation})}catch{}if(await follow(button,operation)!=='cancelled')return null}
+ async begin(button,editing=false,captureKey=''){
+  const operation=pending.get(button)?.get(captureKey);if(operation){if(editing)try{await chrome.runtime.sendMessage({type:'show_edit',operation_id:operation})}catch{}if(await follow(button,operation,captureKey)!=='cancelled')return null}
+  checkCaptureLimit(button,captureKey);
   const result=await chrome.runtime.sendMessage({type:'begin_add'});
   if(!result?.ok||!/^[a-f0-9]{32}$/.test(result.ticket||''))throw new Error(result?.error||'Не удалось подтвердить выбранную подборку. Откройте расширение AnyTour.');
   note(button,'');
   return result.ticket;
  },
- async append(button,ticket,observation,editing=false){
+ async append(button,ticket,observation,editing=false,captureKey=''){
   // The click's random ID is known before the durable enqueue. A lost reply
   // therefore checks that exact intent instead of claiming failure or replaying.
-  pending.set(button,ticket);let result;
+  checkCaptureLimit(button,captureKey);let captures=pending.get(button);if(!captures){captures=new Map();pending.set(button,captures)}captures.set(captureKey,ticket);let result;
   try{result=await chrome.runtime.sendMessage({type:editing?'enqueue_edit':'enqueue',ticket,observation})}catch{}
-  if(result?.ok===false&&result.error&&result.error!=='storage_unavailable'){pending.delete(button);throw new Error(result.error)}
-  await follow(button,ticket);
+  if(result?.ok===false&&result.error&&result.error!=='storage_unavailable'){forget(button,captureKey);throw new Error(result.error)}
+  await follow(button,ticket,captureKey);
  }
 });
 })();
