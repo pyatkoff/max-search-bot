@@ -35,7 +35,10 @@ if (($argv[1]??'')==='--development-retire-race-child') {
         return 1793100000;
     });
     $s=$q->status(1,str_repeat('a',32),'DEV');
-    file_put_contents($out.'.ready',$s['task_id']);file_put_contents($out.'.event',$s['expected_pending_event_id']);
+    if (file_put_contents($out.'.event',$s['expected_pending_event_id'])!==strlen($s['expected_pending_event_id']))
+        throw new RuntimeException('retirement_race_metadata_write_failed');
+    if (file_put_contents($out.'.ready.tmp',$s['task_id'])!==strlen($s['task_id'])
+        ||!rename($out.'.ready.tmp',$out.'.ready')) throw new RuntimeException('retirement_race_ready_publish_failed');
     $until=microtime(true)+10;
     while (!is_file($barrier)&&microtime(true)<$until) usleep(1000);
     if (!is_file($barrier)) exit(3);
@@ -71,9 +74,14 @@ if (($argv[1]??'')==='--development-race-child') {
         return 1793100000;
     });
     $s=$q->status(1,str_repeat('a',32),'DEV');
-    file_put_contents($out.'.ready',$s['task_id']);file_put_contents($out.'.spec',$s['spec_sha256']);
+    if (file_put_contents($out.'.spec',$s['spec_sha256'])!==strlen($s['spec_sha256']))
+        throw new RuntimeException('development_race_metadata_write_failed');
     $event=$s['expected_pending_event_id']??file_get_contents($barrier.'.event');
-    file_put_contents($out.'.event',$event);$until=microtime(true)+10;
+    if (!is_string($event)||file_put_contents($out.'.event',$event)!==strlen($event))
+        throw new RuntimeException('development_race_metadata_write_failed');
+    if (file_put_contents($out.'.ready.tmp',$s['task_id'])!==strlen($s['task_id'])
+        ||!rename($out.'.ready.tmp',$out.'.ready')) throw new RuntimeException('development_race_ready_publish_failed');
+    $until=microtime(true)+10;
     while (!is_file($barrier)&&microtime(true)<$until) usleep(1000);
     if (!is_file($barrier)) exit(3);
     file_put_contents($out.'.attempting','attempting');$hold->armed=str_ends_with($action,'-winner');

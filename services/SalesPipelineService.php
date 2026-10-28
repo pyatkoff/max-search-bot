@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/ConversationDb.php';
 require_once __DIR__ . '/MetrikaConversionGoalService.php';
+require_once __DIR__ . '/ModeledConversionOutcomeReceipt.php';
 class SalesPipelineService
 {
     public static function stages(bool $activeOnly=true): array{$sql='SELECT stage_key,display_name,color,sort_order,is_active,is_terminal,is_won FROM lead_stages'.($activeOnly?' WHERE is_active=1':'').' ORDER BY sort_order,display_name,stage_key';return ConversationDb::connection()->query($sql)->fetchAll();}
@@ -23,7 +24,7 @@ class SalesPipelineService
             $rawAmount=trim((string)$saleAmount);if($rawAmount!==''){$rawAmount=str_replace(',','.',$rawAmount);if(!is_numeric($rawAmount))return false;$numeric=(float)$rawAmount;if($numeric<0||$numeric>9999999999.99)return false;$amount=number_format($numeric,2,'.','');}
             $rawDate=trim((string)$saleDate);if($rawDate!==''){if(!preg_match('/^\d{4}-\d{2}-\d{2}$/',$rawDate))return false;$dt=DateTimeImmutable::createFromFormat('!Y-m-d',$rawDate);if(!$dt||$dt->format('Y-m-d')!==$rawDate)return false;$date=$rawDate;}
         }
-        $q=ConversationDb::connection()->prepare('UPDATE conversations SET lead_outcome=?,lead_close_reason=?,lead_outcome_note=?,lead_sale_amount=?,lead_sale_date=?,lead_outcome_updated_at=NOW(),lead_outcome_manager_id=? WHERE id=?');$q->execute([$outcome,$reason!==''?$reason:null,$note!==''?$note:null,$amount,$date,$actor>0?$actor:null,$id]);$ok=$q->rowCount()>0;if($ok&&$outcome==='won')MetrikaConversionGoalService::saleOutcome($id,$outcome);return$ok;
+        $pdo=ConversationDb::connection();$q=$pdo->prepare('UPDATE conversations SET lead_outcome=?,lead_close_reason=?,lead_outcome_note=?,lead_sale_amount=?,lead_sale_date=?,lead_outcome_updated_at=NOW(),lead_outcome_manager_id=? WHERE id=?');$q->execute([$outcome,$reason!==''?$reason:null,$note!==''?$note:null,$amount,$date,$actor>0?$actor:null,$id]);$ok=$q->rowCount()>0;if($ok&&$outcome==='won')MetrikaConversionGoalService::saleOutcome($id,$outcome);if($ok)ModeledConversionOutcomeReceipt::observe($pdo,$id,$outcome,$reason!==''?$reason:null,$actor,$amount,$date);return$ok;
     }
     public static function conversationSnapshot(int $id): array{return ['stage'=>self::stageForConversation($id),'stage_history'=>self::stageHistoryForConversation($id),'tags'=>self::tagsForConversation($id),'outcome'=>self::outcomeForConversation($id)];}
     private static function closeReasonAllowedForConversation(int $id,string $reason): bool{if($id<=0||$reason==='')return false;$q=ConversationDb::connection()->prepare('SELECT c.lead_close_reason AS current_reason,r.is_active AS requested_active FROM conversations c LEFT JOIN lead_close_reasons r ON r.reason_key=? WHERE c.id=? LIMIT 1');$q->execute([$reason,$id]);$row=$q->fetch();if(!$row)return false;return(int)($row['requested_active']??0)===1||(string)($row['current_reason']??'')===$reason;}

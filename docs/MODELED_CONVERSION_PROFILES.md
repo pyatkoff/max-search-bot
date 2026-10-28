@@ -1,5 +1,22 @@
 # Automatic factual profiles — offline tools and admitted journal
 
+## Prospective purchase-outcome research
+
+New immutable journal profiles also contain a versioned `purchase_study` packet.
+It freezes current-signal and condition vectors, actual availability, source
+fingerprints and a person-level deterministic train/control assignment before
+later outcomes. Existing profile/intent eligibility, unknown-trip and monetary
+export guards remain unchanged. Earlier profiles are never rewritten.
+
+The existing cron can advance the private study supplier after a successful
+profile tick. Its actual activation clock excludes earlier leads; operational
+CRM assertions remain separate from payment proof and trip identity. Research
+state, fitted models and future paired predictions stay outside the webroot.
+Only fixed program health is added to ordinary stream telemetry, without cohort
+counts or metrics. `study-status` is a read-only CLI operation. See
+`MODELED_CONVERSION_PURCHASE_STUDY.md` for the fixed horizon, source/binding,
+coverage, uncertainty and acceptance contracts.
+
 ## Requested conditions and alternatives (v1_18)
 
 The canonical extractor now preserves bounded compact adult/child counts, slash
