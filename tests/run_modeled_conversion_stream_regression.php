@@ -216,7 +216,9 @@ function modeledProfileAssertions(PDO $p,callable $check): void
     $p->exec('UPDATE conversations SET is_test=0 WHERE id=11');$s->tick($now+15);$profiles->tick($now+16);
     $check('scope restoration creates a new current profile with its actual new receipt',modeledProfileLatest($p)['access_status']==='allowed');
     $beforeLarge=(int)$p->query('SELECT journal_cursor FROM modeled_conversion_profiles_state')->fetchColumn();
-    modeledStreamMessage($p,99,11,str_repeat('😀',9000));$s->tick($now+17);$profiles->tick($now+18);$large=modeledProfileLatest($p);
+    // Exercise the admitted-journal bridge independently of native intake's stricter byte estimate.
+    $largeSnapshot=$snap;$largeSnapshot['source_id']='99';$largeSnapshot['payload']['text']=str_repeat('😀',9000);
+    modeledProfileAppend($p,$largeSnapshot,$now+17);$profiles->tick($now+18);$large=modeledProfileLatest($p);
     $check('large admitted Unicode message does not poison factual profile persistence or progress',
         (int)$p->query('SELECT journal_cursor FROM modeled_conversion_profiles_state')->fetchColumn()>$beforeLarge
         &&($large['contextual_signals']['coverage']['semantic_omissions']['text_too_large']??0)===1
