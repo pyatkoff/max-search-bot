@@ -57,14 +57,6 @@
       "rationale": "Return route-advice dialogue to AI state."
     },
     {
-      "path": "handlers/MaxUpdateHandler.php",
-      "receiver": "MaxSearchApi",
-      "method": "deleteAllStatus",
-      "occurrences": 1,
-      "classification": "reset",
-      "rationale": "Reset state for an explicit start command."
-    },
-    {
       "path": "handlers/StateMessageHandler.php",
       "receiver": "MaxSearchApi",
       "method": "deleteAllStatus",
@@ -150,7 +142,7 @@
       "method": "deleteAllStatus",
       "occurrences": 2,
       "classification": "reset",
-      "rationale": "Explicit restart paths clear dialogue state."
+      "rationale": "Shared MAX/Telegram start and successful contact capture clear dialogue state."
     },
     {
       "path": "services/DialogueView.php",

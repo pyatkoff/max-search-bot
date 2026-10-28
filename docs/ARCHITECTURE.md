@@ -85,6 +85,13 @@ The target flow remains:
 
 `Transport adapter → normalized incoming event → InteractionGuard → DialogueStateMachine → NeedValueResolver → NeedApplicationService → DialogueView → Search/Handoff`
 
+Ordinary MAX `bot_started` and Telegram `/start` converge on
+`DialogueController::start()` after their existing entry/source-policy checks.
+That operation owns the shared fresh-session reset, including transient date and
+edit snapshots, before rendering `DialogueView::start()`. Specialized selection,
+post and manager-source entries retain their existing owners. The product path
+is described in `docs/UNIVERSAL_MESSENGER_FUNNEL.md`.
+
 Rules:
 - `DialogueStateMachine` is the canonical owner of state-transition validity.
 - deterministic parsers/`NeedValueResolver` understand known fields first;
