@@ -37,6 +37,8 @@ try {
     checkEditor('failed activation cannot enable links',ManagerTourSelectionEditorHost::entry($backend,$releases)===null);
     checkEditor('initial rollback removes only owned editor route',$deploy->rollback()['rolled_back']===true&&!file_exists($site.'/editor.php')&&file_get_contents($site.'/index.php')==='synthetic existing public page');
     $fail=false;$deploy->install($input,$source);checkEditor('accepted smoke enables exact tours entry',$deploy->activate($request)['active']===true&&ManagerTourSelectionEditorHost::entry($backend,$releases)==='https://tours.anytoour.ru/editor.php');
+    checkEditor('ordinary accepted release uses normal reconciliation',$deploy->commonStatus()===['ok'=>true,'mode'=>'normal']);
+    checkEditor('ordinary release is not independent common-release authority',ManagerTourSelectionEditorHost::acceptedPrior($releases)===null);
     $before=$calls;checkEditor('unchanged package reuses installed receipt without another activation',$deploy->install($input,$source)['changed']===false&&$deploy->activate($request)['reused']===true&&$calls===$before);
     $active=file_get_contents($releases.'/active.json');$current=readlink($releases.'/current');$originalSeal=file_get_contents($current.'/deployment.json');
     // A complete synthetic second package exercises upgrade/rollback, never edits repository bytes.
@@ -63,6 +65,7 @@ try {
     checkEditor('working rollback A shell/assets plus protected draft save/reload over actual HTTP',$httpStatus===0);
     $inputPath=$spec['backend_inputs'][0];$oldBackend=file_get_contents($backend.'/'.$inputPath);file_put_contents($backend.'/'.$inputPath,$oldBackend."\n// synthetic incompatible backend\n");
     checkEditor('actual backend-contract drift still blocks old artifact',ManagerTourSelectionEditorHost::entry($backend,$releases)===null);
+    checkEditor('backend drift cannot expose accepted old assets through intrinsic seal validation',ManagerTourSelectionEditorHost::assetPackage($receipt['package_id'],$backend,$releases)===null);
     file_put_contents($backend.'/'.$inputPath,$oldBackend);
     checkEditor('restored backend contract accepts sealed A despite frontend B in source',ManagerTourSelectionEditorHost::entry($backend,$releases)!==null);
     $asset=$current.'/editor.js';$bytes=file_get_contents($asset);file_put_contents($asset,$bytes."\nforeign");

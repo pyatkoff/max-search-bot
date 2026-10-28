@@ -51,10 +51,19 @@ final class ManagerTourSelectionEditorHost
     public static function package(string $root,string $releases,string $dir): ?array
     {
         try {
+            $package=self::sealedPackage($releases,$dir);
+            return $package && $package['fingerprint']===self::fingerprint($root) ? $package : null;
+        } catch (Throwable $ignored) {return null;}
+    }
+
+    /** Intrinsic identity only. Never used to serve code without package() compatibility. */
+    private static function sealedPackage(string $releases,string $dir): ?array
+    {
+        try {
             if (!preg_match('~\A'.preg_quote($releases,'~').'/[a-f0-9]{64}-[a-f0-9]{64}\z~D',$dir) || realpath($dir)!==$dir) return null;
             $receipt=self::json($dir.'/deployment.json');$release=self::json($dir.'/release.json');
             if (($receipt['contract']??null)!==self::CONTRACT || ($receipt['origin']??null)!==self::ORIGIN
-                || ($receipt['fingerprint']??null)!==self::fingerprint($root) || ($receipt['package_id']??null)!==($release['package_id']??null)
+                || !preg_match('/\A[a-f0-9]{64}\z/D',$receipt['fingerprint']??'') || ($receipt['package_id']??null)!==($release['package_id']??null)
                 || ($release['contract']??null)!=='tour-selection-editor-host-v1'
                 || $dir!==$releases.'/'.$release['package_id'].'-'.$receipt['fingerprint']
                 || !preg_match('/\A[a-f0-9]{40}\z/D',$receipt['source']??'') || !preg_match('/\A[a-f0-9]{40}\z/D',$receipt['source_tree']??'')
@@ -71,6 +80,24 @@ final class ManagerTourSelectionEditorHost
                 if ($name!=='release.json' && (($release['files'][$name]['sha256']??null)!==hash_file('sha256',$file) || ($release['files'][$name]['bytes']??null)!==filesize($file))) return null;
             }
             return $receipt+['directory'=>$dir];
+        } catch (Throwable $ignored) {return null;}
+    }
+
+    /** CLI common-release admission may inspect an accepted prior seal after backend drift. */
+    public static function acceptedPrior(string $releases): ?array
+    {
+        try {
+            if (is_link($releases) || !is_link($releases.'/current') || is_link($releases.'/operations')) return null;
+            $dir=readlink($releases.'/current');
+            $prior=is_string($dir)?self::sealedPackage($releases,$dir):null;
+            if (!$prior || ($prior['release_kind']??null)!=='independent'
+                || !preg_match('/\A[a-f0-9]{40}\z/D',$prior['backend_source']??'')
+                || !preg_match('/\A[A-Za-z0-9][A-Za-z0-9_-]{7,95}\z/D',$prior['operation']??'')) return null;
+            if (self::json($dir.'/accepted.json')!==['schema'=>1,'package_id'=>$prior['package_id'],'seal_sha256'=>hash_file('sha256',$dir.'/deployment.json')]
+                || self::json($releases.'/active.json')!==array_diff_key($prior,['directory'=>true])) return null;
+            $operation=self::json($releases.'/operations/'.$prior['operation'].'.json');
+            if ($operation!==['state'=>'activated','package_id'=>$prior['package_id'],'source'=>$prior['source']]) return null;
+            return $prior;
         } catch (Throwable $ignored) {return null;}
     }
 
