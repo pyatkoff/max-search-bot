@@ -7,7 +7,7 @@ require_once __DIR__.'/DevelopmentWorkQueue.php';
 final class DevelopmentWorkMcpAdapter
 {
     public const NAMES=['development_work_create','development_work_append','development_work_status','development_work_claim','development_work_started','development_work_complete','development_work_resolve_existing_run','development_work_retire_unclaimed'];
-    public function __construct(private PDO $pdo,private $store=null,private $clock=null) {}
+    public function __construct(private PDO $pdo,private $store=null,private $clock=null,private ?DevelopmentWorkEventService $events=null) {}
     public static function tools(): array
     {
         $id=['type'=>'string','pattern'=>'^[A-Za-z0-9_-]{1,80}$'];
@@ -81,7 +81,7 @@ final class DevelopmentWorkMcpAdapter
             $result['subscription_setup']=DevelopmentWorkEventService::unavailableSubscriptionSetup();
             if ($this->store instanceof DevelopmentWorkQueue) {
                 try {
-                    $reader=new DevelopmentWorkEventService($this->pdo,null,$this->clock,null,$this->store);
+                    $reader=$this->events??new DevelopmentWorkEventService($this->pdo,null,$this->clock,null,$this->store);
                     $result['subscription_setup']=$reader->subscriptionSetup($admin,$connection,$args['queue_id']);
                 } catch (RuntimeException $unavailable) {
                     $result['subscription_setup']=DevelopmentWorkEventService::unavailableSubscriptionSetup();

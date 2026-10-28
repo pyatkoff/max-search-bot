@@ -23,12 +23,12 @@ foreach(glob($root.'/manager/*.php')?:[] as $managerEndpoint){
     $source=(string)file_get_contents($managerEndpoint);
     // Machine-to-machine MCP has its own OAuth bearer boundary, not a manager
     // browser session. Every other manager interface retains ManagerHttp.
-    if(basename($managerEndpoint)==='ai-mcp.php')continue;
+    if(in_array(basename($managerEndpoint),['ai-mcp.php','development-mcp.php'],true))continue;
     if(strpos($source,"lib/ManagerHttp.php")===false||strpos($source,'ManagerHttp::start')===false)$unbounded[]=basename($managerEndpoint);
 }
 mhCheck('all session Manager PHP interfaces enter through ManagerHttp',$unbounded===[]);
 $mcp=(string)file_get_contents($root.'/manager/ai-mcp.php');
-mhCheck('only the dedicated MCP interface uses mandatory OAuth bearer and connection binding',
+mhCheck('legacy MCP interface retains mandatory OAuth bearer and connection binding',
     strpos($mcp,'ManagerPreparationOAuth::bearerContext($header)')!==false
     &&strpos($mcp,"\$authorization['connection_id']")!==false
     &&strpos($mcp,"\$authorization['scopes']")!==false
@@ -36,6 +36,24 @@ mhCheck('only the dedicated MCP interface uses mandatory OAuth bearer and connec
     &&strpos($mcp,'WWW-Authenticate: Bearer resource_metadata=')!==false
     &&strpos($mcp,'bearerContext($header)')<strpos($mcp,"->handle(\$rpc,\$actor,\$connection,\$authorization['scopes'])")
     &&strpos($mcp,'ManagerRequestContext::')===false&&strpos($mcp,'ManagerHttp::start')===false);
+
+$developmentMcp=(string)file_get_contents($root.'/manager/development-mcp.php');
+mhCheck('separate development MCP binds the exact audience before service dispatch',
+    strpos($developmentMcp,'new ManagerPreparationOAuth(null,null,ManagerPreparationOAuth::PROFILE_DEVELOPMENT)')!==false
+    &&strpos($developmentMcp,'->contextForBearer($header)')!==false
+    &&strpos($developmentMcp,"\$authorization['connection_id']")!==false
+    &&strpos($developmentMcp,"\$authorization['scopes']")!==false
+    &&strpos($developmentMcp,'if ($actor===null||$connection===null)')!==false
+    &&strpos($developmentMcp,'ManagerPreparationOAuth::DEVELOPMENT_ENDPOINT')!==false
+    &&strpos($developmentMcp,'scope="development_work:write"')!==false
+    &&strpos($developmentMcp,'->contextForBearer($header)')<strpos($developmentMcp,"->handle(\$rpc,\$actor,\$connection,\$authorization['scopes'])")
+    &&strpos($developmentMcp,'new DevelopmentWorkMcpService()')!==false
+    &&strpos($developmentMcp,'ManagerPreparationOAuth::bearerContext($header)')===false
+    &&strpos($developmentMcp,'ManagerRequestContext::')===false&&strpos($developmentMcp,'ManagerHttp::start')===false);
+mhCheck('development ingress diagnostic surface is server-selected for responses and notifications',
+    strpos($developmentMcp,"\$body['error']['code']??null,'development'")!==false
+    &&strpos($developmentMcp,"202,'complete',null,'development'")!==false
+    &&strpos($mcp,"\$body['error']['code']??null,'development'")===false);
 
 mhCheck('HTTP boundary owns session and JSON headers',strpos($http,'function start()')!==false&&strpos($http,'ManagerRequestContext::startSession()')!==false&&strpos($http,'self::start();')!==false&&strpos($http,"Content-Type: application/json")!==false&&strpos($http,"Cache-Control: no-store")!==false);
 mhCheck('legacy manager path redirects to canonical app origin before session bootstrap',strpos($http,"legacyPrefix='/max-search/manager'")!==false&&strpos($http,"target='https://app.anytoour.ru'")!==false&&strpos($http,"header('Location: '.\$target,true,308)")!==false&&strpos($http,'self::redirectLegacyPath();')<strpos($http,'ManagerRequestContext::startSession();'));

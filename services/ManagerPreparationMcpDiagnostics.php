@@ -8,9 +8,10 @@ final class ManagerPreparationMcpDiagnostics
 {
     private const METHODS = ['initialize','notifications/initialized','server/discover','tools/list','events/list','ping'];
     private const VERSIONS = ['2026-07-28','2025-11-25','2025-06-18','2025-03-26','2024-11-05'];
+    private const SURFACES = ['legacy','development'];
     private const STAGES = ['origin','credentials','http_method','body','rpc','complete','unavailable'];
 
-    public static function metadata(array $server, ?array $rpc, int $status, string $stage, ?int $error): array
+    public static function metadata(array $server, ?array $rpc, int $status, string $stage, ?int $error, string $surface = 'legacy'): array
     {
         $header=(string)($server['HTTP_AUTHORIZATION']??'');
         $credential=$header==='' ? (empty($server['REDIRECT_HTTP_AUTHORIZATION'])?'missing':'redirect_only')
@@ -18,6 +19,8 @@ final class ManagerPreparationMcpDiagnostics
                 : (preg_match('/\Abearer /i',$header)?'noncanonical_bearer':'other'));
         $params=is_array($rpc['params']??null)?$rpc['params']:[];
         return self::sanitize([
+            // Fixed by the PHP endpoint, never derived from request metadata.
+            'surface'=>$surface,
             'http_method'=>$server['REQUEST_METHOD']??null,
             'credential_header'=>$credential,
             'client_kind'=>($server['HTTP_USER_AGENT']??'')==='AnyTour-MCP-Header-Probe/1.0'?'header_probe':'other',
@@ -28,10 +31,10 @@ final class ManagerPreparationMcpDiagnostics
         ]);
     }
 
-    public static function record(array $server, ?array $rpc, int $status, string $stage, ?int $error): void
+    public static function record(array $server, ?array $rpc, int $status, string $stage, ?int $error, string $surface = 'legacy'): void
     {
         try {
-            DiagnosticLogger::log('manager_preparation_mcp','http_result',self::metadata($server,$rpc,$status,$stage,$error));
+            DiagnosticLogger::log('manager_preparation_mcp','http_result',self::metadata($server,$rpc,$status,$stage,$error,$surface));
         } catch (Throwable $ignored) { /* Diagnostics must not affect authentication or responses. */ }
     }
 
@@ -59,10 +62,28 @@ final class ManagerPreparationMcpDiagnostics
         return ['sampled_count'=>count($attempts),'recent_attempts'=>$attempts];
     }
 
+    /** Pure matcher shared by installed ingress smoke and negative regressions. */
+    public static function headerProbeDelivered(array $snapshot, int $started, string $surface): bool
+    {
+        if (!in_array($surface,self::SURFACES,true)) throw new InvalidArgumentException('invalid_mcp_surface');
+        foreach (($snapshot['recent_attempts']??[]) as $attempt) {
+            if (!is_array($attempt)||($attempt['surface']??null)!==$surface
+                ||($attempt['client_kind']??null)!=='header_probe'
+                ||($attempt['credential_header']??null)!=='bearer'
+                ||($attempt['http_status']??null)!==401||($attempt['stage']??null)!=='credentials'
+                ||($attempt['rpc_error']??null)!==-32001||!is_string($attempt['at']??null)) continue;
+            $at=strtotime($attempt['at']);
+            if ($at!==false&&$at>=$started) return true;
+        }
+        return false;
+    }
+
     private static function sanitize(array $data): array
     {
         $category=static fn($value,array $allowed):string=>$value===null?'absent':(in_array($value,$allowed,true)?$value:'other');
         return [
+            // Historical rows without the field are not evidence for either new request.
+            'surface'=>$category($data['surface']??null,self::SURFACES),
             'http_method'=>$category($data['http_method']??null,['POST','GET','HEAD','OPTIONS','DELETE']),
             'credential_header'=>$category($data['credential_header']??null,['missing','redirect_only','bearer','noncanonical_bearer','other']),
             'client_kind'=>$category($data['client_kind']??null,['header_probe','other','absent']),

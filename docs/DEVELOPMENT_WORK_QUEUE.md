@@ -139,13 +139,55 @@ Status reports worker receipts and unclaimed retirements separately.
 
 ## Events and installation
 
-Use the existing authenticated `/manager/ai-mcp.php` endpoint and separately
+Existing connections use the authenticated `/manager/ai-mcp.php` endpoint and separately
 consented `development_work:write` capability. Reply and hotel grants keep their
 current meaning. Discovery can advertise the new capability but does not grant
 it; refresh tokens cannot enlarge a grant. Development step-up preserves only
 already-consented scopes and adds the explicit development capability. Hotel
 step-up retains the original reply+hotel profile for a reply grant and preserves
 already-consented development capability if present.
+
+### Isolated development connection
+
+A new connection may use `/manager/development-mcp.php` with the fixed issuer
+`/manager/development-oauth.php`. Its resource and consent allow only
+`development_work:write`. The issuer's discovery document is served at
+`/.well-known/oauth-authorization-server/manager/development-oauth.php`.
+This endpoint exposes exactly the eight existing development queue tools and
+the two development events. It rejects hotel, reply and archive operations
+before dispatch. It reuses the canonical queue, ledger and signed event
+transport; it does not create a parallel scheduler.
+
+The original endpoint, issuer and five supported capabilities remain available
+to existing connections. Development clients are registered in a separate
+fixed client namespace. Authorization codes, refresh tokens, consent sessions,
+connection lists and revocations are bound to the selected resource and client
+profile. A request to the wrong issuer cannot consume a code or refresh token,
+or revoke the other profile's grant. Refresh never transfers a connection,
+changes its resource or expands its scopes.
+
+The ordinary development event sender resolves only a stored grant's canonical
+resource into one of these two fixed profiles and freshly validates the grant
+before delivery. A storage failure, unreadable resource or unknown profile
+defers delivery; it is not treated as proof of revocation. HTTP callers cannot
+select this background authorization mode.
+
+A newly consented development connection has its own identity. It cannot see,
+claim or adopt a queue belonging to an older connection, even for the same
+administrator. Installing this endpoint does not register a new app, transfer
+credentials, revoke an old grant, rebind a queue, change frozen task inputs or
+clear any pending operation with an unknown outcome. Keep an existing queue
+and its current connection in place until its actual acceptance or a separately
+reviewed migration. Native event-configuration failures need authoritative
+reconciliation independently of this source change.
+
+Normal installation smoke verifies both fixed resource metadata URLs and both
+exact issuer discovery routes over HTTPS, without redirects. It sends only a
+known-invalid bearer, requires the matching resource challenge, and checks a
+trusted endpoint-specific diagnostic category for header delivery. A legacy
+probe cannot stand in for a development probe. This proves installed HTTP
+routing and rejection, not production consent, native event registration or
+automatic task acceptance. Those require the separate runtime evidence below.
 
 Subscribe the same existing coordinator to both `development_work.pending`
 and `development_work.attention`, filtered by project `anytour` and the exact
@@ -295,3 +337,9 @@ partial server registration, but cannot establish whether an external
 task-service operation committed its full trigger configuration. It does
 not authorize retrying an unknown setup operation, dispatching from status,
 or bypassing the fresh signed-pending and independent acceptance protocol.
+
+A rollback of the isolated development surface must preserve the original
+endpoint and all grant, subscription, claim and audit histories. Contain new
+admission through a reviewed forward change; do not remove authorization or
+reconciliation needed by existing new-profile connections, silently transfer
+their ownership, or restore an older version that weakens protected boundaries.
