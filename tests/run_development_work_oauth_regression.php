@@ -491,6 +491,7 @@ try {
             $setupRaceBefore=$queueSnapshot();$setupBeforeRaceReads=$setupHook->reads;
             $setupGrantQuery=$pdo->prepare('SELECT revoked_at FROM manager_preparation_oauth_grants WHERE grant_id=?');
             $setupGrantQuery->execute([$setupConnection]);$setupGrantBefore=$setupGrantQuery->fetch(PDO::FETCH_ASSOC);
+            $setupGrantQuery->closeCursor();
             $setupHook->revoked=false;$setupHook->ownerFlipped=false;$setupHook->readFailed=false;
             $setupHook->revoke=$setupChange==='revoked';$setupHook->ownerFlip=$setupChange==='owner_loss';$setupHook->failRead=$setupReadFailure;
             try {
@@ -634,6 +635,7 @@ try {
         &&($isolatedRequests[0]['name']??null)==='development_work.pending'
         &&($isolatedRequests[0]['data']['task_id']??null)==='ISOLATED_A');
     $isolatedGrantQuery=$pdo->prepare('SELECT * FROM manager_preparation_oauth_grants WHERE grant_id=?');$isolatedGrantQuery->execute([$isolatedConnection]);$isolatedGrant=$isolatedGrantQuery->fetch(PDO::FETCH_ASSOC);
+    $isolatedGrantQuery->closeCursor();
     foreach (['unknown_resource','missing_grant','sql_failure'] as $technical) {
         $isolatedRequests=[];$oldStatementClass=$pdo->getAttribute(PDO::ATTR_STATEMENT_CLASS);
         if ($technical==='unknown_resource') $pdo->prepare('UPDATE manager_preparation_oauth_grants SET resource=? WHERE grant_id=?')->execute(['https://unknown.invalid/resource',$isolatedConnection]);
