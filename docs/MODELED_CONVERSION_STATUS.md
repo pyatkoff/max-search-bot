@@ -81,10 +81,12 @@ A valid connection missing the forecast capability receives the existing exact
 scope-upgrade challenge through both HTTP 403/WWW-Authenticate and the MCP error
 metadata. The response does not add permissions to any saved grant.
 
-Authorization-storage failures and execution/byte-budget failures are service
-unavailability, not invalid credentials. They return HTTP 503 without an OAuth
-challenge, including when a deadline expires while a response is being prepared.
-This avoids requesting repeated consent for a technical failure. Diagnostics use
+A storage failure during the initial forecast bearer lookup returns HTTP 503
+without an OAuth challenge. Response-level deadline or serialized-size failures
+also return 503 and remove any already prepared challenge, including when a
+deadline expires during diagnostic logging. Later dispatcher or reader failures
+retain their explicit existing error contracts; they do not imply invalid credentials.
+This avoids requesting repeated consent for these technical failures. Diagnostics use
 existing fixed status/stage/error fields and never include credentials, grant
 identities, requested scope strings or private forecast aggregates.
 
