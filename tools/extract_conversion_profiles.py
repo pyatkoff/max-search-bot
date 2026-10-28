@@ -10,7 +10,7 @@ from datetime import date
 
 import build_conversion_observations as base
 
-VERSION = "ru_trip_prefix_rules_v1_17"
+VERSION = "ru_trip_prefix_rules_v1_18"
 MAX_BYTES = 2 * 1024 * 1024
 MAX_CASES = 100
 MAX_MESSAGES = 500
@@ -271,16 +271,18 @@ def monetary(text, customer):
 
 def duration_constraint(text):
     """Keep explicit alternatives discrete; never accept a numeric suffix."""
-    match = text_match(r"(?<![\w.,+–-])(\d{1,2}(?:\s*(?:,|или|[-–])\s*\d{1,2})*)\s*"
+    match = text_match(r"(?<![\w.,+*/–-])(\d{1,2}(?:\s*(?:,|/|или|[-–])\s*\d{1,2})*)\s*"
                        r"(ноч\w*|дней|дня|день)\b", text)
     if match:
+        if re.search(r'/\s*$|\d\s*(?:,|[-–]|или)\s*$', text[:match.start()], re.I):
+            return None
         raw = match[1]
         values = [int(v) for v in re.findall(r"\d+", raw)]
         if negated(text, match.start()) or not all(1 <= v <= 90 for v in values):
             return None
         unit = "nights" if match[2].lower().startswith("ноч") else "days"
         if "-" in raw or "–" in raw:
-            if len(values) != 2 or "," in raw or "или" in raw.lower() or values[0] > values[1]:
+            if len(values) != 2 or "," in raw or "/" in raw or "или" in raw.lower() or values[0] > values[1]:
                 return None
             return {"minimum": values[0], "maximum": values[1], "unit": unit}, match.span()
         # An unspaced decimal-looking comma cannot establish integer choices.
@@ -342,6 +344,7 @@ def month_only_constraint(text):
                       default=len(text))
             clause = text[start:end]
             if (negated(text, match.start())
+                    or re.search(r"\b(?:начал\w*|середин\w*|конц\w*)\s*$", before, re.I)
                     or text_match(r"\b(?:не\s+(?:в|на)|с|от|до|после|раньше|позже|не ранее|не позднее)\s*$", before)
                     or not requirement_clause(clause)):
                 continue
@@ -350,6 +353,155 @@ def month_only_constraint(text):
                                 "window_kind": "departure" if text_match(r"вылет", clause) else "unspecified",
                                 "precision": "month"}, match.span()))
     return candidates[0] if len(candidates) == 1 else None
+
+
+MONTH_WORDS = {r"январ[ьяею]": 1, r"феврал[ьяею]": 2, r"март[аеу]?": 3,
+               r"апрел[ьяею]": 4, r"ма[йяею]": 5, r"июн[ьяею]": 6,
+               r"июл[ьяею]": 7, r"август[аеу]?": 8, r"сентябр[ьяею]": 9,
+               r"октябр[ьяею]": 10, r"ноябр[ьяею]": 11, r"декабр[ьяею]": 12}
+
+
+def month_part_constraint(text):
+    """Keep a qualitative month part; 'from late' never invents a day or end."""
+    found = []
+    for word, month in MONTH_WORDS.items():
+        for match in re.finditer(rf"(?<!\w)(?P<bound>с|от|в|на)\s+"
+                                 rf"(?P<part>начала|начале|начало|середины|середине|середину|конца|конце|конец)\s+"
+                                 rf"{word}\b(?:\s+(?P<year>20\d{{2}})(?!\d))?", text, re.I):
+            if negated(text, match.start()) or not requirement_clause(text):
+                continue
+            if not match['year'] and re.match(r"\s+\d{3,}", text[match.end():]):
+                continue
+            part = ('early' if match['part'].lower().startswith('нач') else
+                    'middle' if match['part'].lower().startswith('серед') else 'late')
+            lower = match['bound'].lower() in {'с', 'от'}
+            found.append(({'start_day': None, 'start_month': month, 'start_month_part': part,
+                           'end_day': None, 'end_month': None if lower else month,
+                           'end_month_part': None if lower else part,
+                           'year': int(match['year']) if match['year'] else None,
+                           'window_kind': 'departure' if text_match(r'вылет', text) else 'unspecified',
+                           'precision': 'month_part', 'open_end': lower}, match.span()))
+    # Several parts/months require their own unresolved alternative semantics.
+    month_mentions = list(re.finditer(r'\b(?:'+ '|'.join(MONTH_WORDS) +r')\b', text, re.I))
+    return found[0] if len(found) == 1 and len(month_mentions) == 1 else None
+
+
+def bare_departure_days(text):
+    """Explicit day numbers with a departure unit, without an inferred month."""
+    pattern = (r'(?<![\w./,+–-])(?P<days>\d{1,2}(?:\s*(?:/|[-–]|или)\s*\d{1,2})*)'
+               r'\s*вылет\w*\b')
+    results = []
+    for match in re.finditer(pattern, text, re.I):
+        before = text[:match.start()]; after = text[match.end():]
+        refusal = r'не\s+(?:подход\w*|устраив\w*|рассматрива\w*|хочу|хотим|нуж\w*)'
+        if (negated(text, match.start()) or text_match(r'\bесли\b|предложил\w*|написал\w*|сообщил\w*', text)
+                or text_match(refusal+r'[^.;!?\n]*$', before)
+                or text_match(r'^\s*(?:нам\s+)?'+refusal, after)
+                or re.search(r'/\s*$|\d\s*(?:,|[-–]|или)\s*$', before, re.I)):
+            continue
+        raw = match['days']; days = [int(v) for v in re.findall(r'\d+', raw)]
+        if not all(1 <= v <= 31 for v in days):
+            continue
+        is_range = bool(re.search(r'[-–]', raw))
+        if is_range and (len(days) != 2 or '/' in raw or 'или' in raw.lower() or days[0] > days[1]):
+            continue
+        value = {'minimum_day': min(days), 'maximum_day': max(days), 'month': None,
+                 'year': None, 'window_kind': 'departure', 'precision': 'day_of_unspecified_month'}
+        if not is_range and len(days) > 1:
+            value['options'] = sorted(set(days))
+        results.append((value, match.span()))
+    return results
+
+
+def hotel_candidate_requests(text):
+    """Bounded explicit hotel lists; names and requests are not verified inventory."""
+    items = list(re.finditer(r'(?m)^[ \t]*(?P<n>[1-9][0-9]?)\.[ \t]+(?P<body>[^\n]+)', text))
+    if not items or len(items) > 20:
+        return None
+    header = text[:items[0].start()]
+    if not text_match(r'\b(?:отел\w*|гостиниц\w*)\b', header):
+        return None
+    requests = list(re.finditer(DESTINATION_CURRENT+r'|\b(?:подскажите|подберите|посмотрите|покажите|'
+                               r'сравнить|сравните|какая\s+цена|сколько\s+стоит|нужны|нужен|нужно)\b', header, re.I))
+    requests = [r for r in requests if not negated(header, r.start())]
+    if not requests:
+        return None
+    reported = list(re.finditer(r'предложил\w*|предложили|посоветовал\w*|написал\w*|сообщил\w*', header, re.I))
+    if reported and reported[-1].start() > requests[-1].start():
+        return None
+    historical = list(re.finditer(DESTINATION_HISTORY, header, re.I))
+    current = list(re.finditer(DESTINATION_CURRENT, header, re.I))
+    if historical and (not current or historical[-1].start() > current[-1].start()):
+        return None
+    if text_match(r'\bне\s+(?:рассматрива\w*|хочу|хотим|нуж\w*|интересу\w*|выбира\w*)\b', header):
+        return None
+    candidates = []; seen = set()
+    for item in items:
+        position = int(item['n'])
+        if position in seen:
+            return None
+        seen.add(position)
+        body = item['body']; start = item.start('body')
+        if text_match(r'^\s*(?:не\b|если\b|уточните|проверьте|сравните|подберите|посмотрите|'
+                      r'покажите|скажите|check\b|compare\b|please\b)', body) or affirmed(DESTINATION_HISTORY, body):
+            continue
+        # A Latin name or an explicitly quoted name is an observed label only.
+        # Unlabelled places and all remaining option text stay in constraint_span.
+        named = re.match(r'''(?:отель\s+)?[«"](?P<quoted>[^»"\n]{3,160})[»"]|'''
+                         r'''(?P<latin>[A-Za-z][A-Za-z0-9'’&+*.-]*(?:[ \t]+(?:[A-Za-z][A-Za-z0-9'’&+*.-]*|[1-5]\*)){0,11})''', body, re.I)
+        if not named:
+            continue
+        group = 'quoted' if named['quoted'] is not None else 'latin'
+        name = named[group].strip(' ,;:–-')
+        if not 3 <= len(name) <= 160 or len(name.split()) > 12 or not name[0].isalpha():
+            continue
+        name_start = start+named.start(group)+named[group].index(name)
+        tail_start = name_start+len(name)
+        constraints = []
+        rules = [
+            (r'\bне\s+стар\w*\s+номер\w*\b|\bномер\w*\s+не\s+стар\w*\b', 'room_condition', 'not_old'),
+            (r'\bне\s+(?:на|с\s+видом\s+на)\s+бассейн\w*\s+с\s+анимац\w*\b', 'orientation', 'avoid_animation_pool'),
+            (r'\bне\s+в\s+(?:осн\.?|основном|главном)\s+(?:здании|корпусе)\b', 'building', 'main_building_excluded'),
+            (r'\bв\s+(?:осн\.?|основном|главном)\s+(?:здании|корпусе)\b', 'building', 'main_building_requested'),
+            (r'\bне\s+бунгало\b', 'accommodation', 'bungalow_excluded'),
+        ]
+        for pattern, field, value in rules:
+            for match in re.finditer(pattern, body, re.I):
+                if text_match(r'не\s+обязательно\s*$', body[:match.start()]):
+                    continue
+                if value == 'main_building_requested' and negated(body, match.start()):
+                    continue
+                constraints.append({'field': field, 'value': value,
+                                    'span': [start+match.start(), start+match.end()]})
+        days = [{'value': v, 'span': [start+s[0], start+s[1]]} for v, s in bare_departure_days(body)]
+        candidates.append({'position': position, 'observed_name': name, 'canonical_hotel_id': None,
+                           'name_status': 'unresolved_catalogue_identity',
+                           'name_span': [name_start, name_start+len(name)],
+                           'room_constraints': constraints, 'departure_days': days,
+                           'constraint_span': [tail_start, item.end('body')] if tail_start < item.end('body') else None,
+                           'constraint_coverage': 'partial_rules_only'})
+    return ({'options': candidates, 'selection': None}, (items[0].start(), items[-1].end())) if candidates else None
+
+
+def service_inquiries(text):
+    """Retain requested alternatives/questions without asserting a service choice."""
+    results = []
+    for clause, offset in current_trip_clauses(text):
+        if text_match(r'предложил\w*|написал\w*|сообщил\w*|\bне\s+(?:интересует|нужен|нужны|рассматриваем)\b', clause):
+            continue
+        price = text_match(r'цен\w*|стоимост\w*|сколько\s+стоит|сравн\w*', clause)
+        tour = text_match(r'\bтур\w*\b', clause)
+        hotel = text_match(r'\bотел\w*\s+отдельно\b|\bотдельно\s+отел\w*\b', clause)
+        if price and tour and hotel:
+            results.extend([('package_price_inquiry', 'package_tour', (offset, offset+len(clause))),
+                            ('hotel_only_price_inquiry', 'hotel_only', (offset, offset+len(clause)))])
+        without = text_match(r'\bбез\s+(?:вылет\w*|перел[её]т\w*)\b', clause)
+        if without and text_match(r'прода[её]те|можно|можете|подобрать|посмотреть|интересует|хотим', clause):
+            results.append(('hotel_only_availability_inquiry', 'hotel_only', (offset, offset+len(clause))))
+        if (text_match(r'посмотр\w*|подобра\w*|найти', clause)
+                and text_match(r'\b(?:вылет\w*|перел[её]т\w*)\s+(?:есть|доступн\w*)\b', clause)):
+            results.append(('flight_date_search_inquiry', None, (offset, offset+len(clause))))
+    return results
 
 
 def hotel_stars_constraint(text):
@@ -438,6 +590,10 @@ def leisure_preferences(text):
 def date_constraints(text):
     """Keep window meaning/year unresolved unless explicitly supplied."""
     results = []
+    has_part = text_match(r'\b(?:начал\w*|середин\w*|конц\w*)\s+(?:'+ '|'.join(MONTH_WORDS) +r')\b', text)
+    named_months = {m[0].lower() for m in re.finditer(r'\b(?:'+ '|'.join(MONTH_WORDS) +r')\b', text, re.I)}
+    if has_part and (text_match(r'\bили\b|\bлибо\b', text) or len(named_months) > 1):
+        return []
     def qualified(value, start, end, is_range):
         bound = re.search(r"(?<!\w)(не\s+ранее|не\s+позднее|после|раньше|до|от|с|по|на)\s*$",
                           text[:start], re.I)
@@ -462,6 +618,12 @@ def date_constraints(text):
     numeric = r"(?<![\w.])(?P<d>\d{1,2})\.(?P<m>\d{1,2})(?:\.(?P<y>20\d{2}))?\.?"
     matches = list(re.finditer(numeric, text))
     if matches:
+        if has_part:
+            part_months = {month for word, month in MONTH_WORDS.items()
+                           if text_match(r'\b(?:начал\w*|середин\w*|конц\w*)\s+'+word+r'\b', text)}
+            if (any(int(m['m']) not in part_months for m in matches)
+                    or text_match(r'\b(?:с|от)\s+(?:начал\w*|середин\w*|конц\w*)\b', text)):
+                return []
         first, last = matches[0], matches[-1]
         year = int(first["y"]) if first["y"] else None
         start, end = int(first["d"]), int(last["d"])
@@ -497,9 +659,15 @@ def date_constraints(text):
                         bool(match["r"] or match["r2"] or tail)))
         break
     if not results:
-        month = month_only_constraint(text)
-        if month:
-            results.append(month)
+        if has_part and re.search(r'\d\s*(?:-?(?:го|ого))?\s+(?:'+ '|'.join(MONTH_WORDS) +r')\b', text, re.I):
+            return []
+        part = month_part_constraint(text)
+        if part:
+            results.append(part)
+        elif not has_part:
+            month = month_only_constraint(text)
+            if month:
+                results.append(month)
     return results
 
 
@@ -695,10 +863,12 @@ def extract_case(case, extracted, wizard_applications=()):
               "destination", "meal", "date_flexibility_days", "room_arrangement", "family_group",
               "hotel_interest", "unresolved_city", "purchase_report", "flight_requirement", "hotel_stars",
               "weather_preference", "swimming_preference", "evening_walks_preference", "evening_environment_preference",
-              "departure_reference", "destination_reference", "meal_reference", "hotel_class_reference"]}
+              "departure_reference", "destination_reference", "meal_reference", "hotel_class_reference",
+              "hotel_candidates", "service_alternatives", "departure_day_preferences"]}
     party = {k: [] for k in ("adults", "children", "total", "child_ages")}
     offered = []; stages = []; canonical = []; requirements = []; previous_manager = None
     assumption_refs = []
+    inquiries = []
 
     def add(name, value, m, span=None, basis="explicit_customer", extra=()):
         target = party[name] if name in party else fields[name]
@@ -732,6 +902,7 @@ def extract_case(case, extracted, wizard_applications=()):
             previous_manager = m
             continue
         initial_count = sum(len(v) for v in fields.values()) + sum(len(v) for v in party.values())
+        current_clauses = list(current_trip_clauses(text))
         for value, span in monetary(text, True):
             add("budget", value, m, span)
         if text_match(r"бюджетн|недорого|не дорого|экономн|подешевле", text):
@@ -742,6 +913,17 @@ def extract_case(case, extracted, wizard_applications=()):
             for match in re.finditer(pattern, text, re.I):
                 if not negated(text, match.start()) and 0 <= int(match[1]) <= 30:
                     add(component, int(match[1]), m, match.span())
+        for clause, offset in current_clauses:
+            if text_match(r'\bесли\b|предложил\w*|написал\w*|сообщил\w*', clause):
+                continue
+            # The shared clause reader keeps 'earlier <number>' for date bounds.
+            # With explicitly labelled people it denotes an older composition.
+            if text_match(r'\b(?:раньше|ранее)\s*\d{1,2}\s*(?:взр|реб)\b', clause):
+                continue
+            for token, component in [('взр', 'adults'), ('реб', 'children')]:
+                for match in re.finditer(rf'(?<![\w.\d-])(\d{{1,2}})\s*{token}\.?(?!\w)', clause, re.I):
+                    if not negated(clause, match.start()) and 0 <= int(match[1]) <= 30:
+                        add(component, int(match[1]), m, tuple(v+offset for v in match.span()))
         pair = text_match(r"\bна двоих\b|\bнас двое\b", text)
         if pair:
             add("total", 2, m, pair.span()); assumption_refs.append(m)
@@ -755,7 +937,6 @@ def extract_case(case, extracted, wizard_applications=()):
         age = text_match(r"^\s*(\d{1,2})\s*(?:год|года|лет)\b", text)
         if age and int(age[1]) <= 17 and choose(party["children"])["value"] == 1:
             add("child_ages", [int(age[1])], m, age.span(), "single_child_context", [r for r in messages if r["id"] == choose(party["children"])["references"][-1]["id"]])
-        current_clauses = list(current_trip_clauses(text))
         for clause, offset in current_clauses:
             duration = duration_constraint(clause)
             if duration:
@@ -771,6 +952,17 @@ def extract_case(case, extracted, wizard_applications=()):
         for clause, offset in current_clauses:
             for value, span in date_constraints(clause):
                 add("dates", value, m, tuple(v+offset for v in span))
+        hotels = hotel_candidate_requests(text)
+        if hotels:
+            add('hotel_candidates', hotels[0], m, hotels[1], 'explicit_customer_hotel_options_not_selection')
+        # A hotel's own date alternatives never become a requirement for every hotel.
+        prefix_end = hotels[1][0] if hotels else len(text)
+        for clause, offset in current_trip_clauses(text[:prefix_end]):
+            for value, span in bare_departure_days(clause):
+                add('departure_day_preferences', value, m, tuple(v+offset for v in span))
+        for category, service, span in service_inquiries(text):
+            inquiries.append(fact({'category': category, 'service': service}, m, extracted, cutoff, span,
+                                  'customer_inquiry_not_selected_service'))
         flex = text_match(r"(?:\+\s*[-–]|плюс[- ]минус)\s*(\d{1,2})\s*дн\w*", text)
         if flex:
             add("date_flexibility_days", int(flex[1]), m, flex.span())
@@ -837,6 +1029,20 @@ def extract_case(case, extracted, wizard_applications=()):
         # A refusal, unrelated answer or confirmation consumes that question.
         previous_manager = None
 
+    if inquiries:
+        # Keep the questions across turns: asking about flights does not withdraw
+        # an earlier hotel-only inquiry. This is an inquiry history, not agreement.
+        fields['service_alternatives'] = [{
+            'status': 'known',
+            'value': {'requested_services': sorted({r['value']['service'] for r in inquiries if r['value']['service']}),
+                      'selected_service': None,
+                      'requests': [{'category': r['value']['category'], 'service': r['value']['service'],
+                                    'references': r['references']} for r in inquiries],
+                      'scope': 'observed_inquiries_not_final_service_choice'},
+            'basis': 'explicit_customer_inquiries_not_selection',
+            'references': [ref for r in inquiries for ref in r['references']],
+            'available_at': max(r['available_at'] for r in inquiries),
+            'usable_at_prediction': all(r['usable_at_prediction'] for r in inquiries)}]
     result_fields = {name: choose(values) for name, values in fields.items()}
     components = {name: choose(values) for name, values in party.items()}
     adults, children, total = [components[k]["value"] for k in ("adults", "children", "total")]

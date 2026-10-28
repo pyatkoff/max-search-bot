@@ -1477,5 +1477,181 @@ class JournalProfileTests(unittest.TestCase):
             tool.extract_case(c, CUTOFF)
 
 
+class RequestedConditionsTests(unittest.TestCase):
+    """Invented hotel labels and general controls, never copied customer fixtures."""
+
+    def test_compact_party_and_age_remain_separate(self):
+        p = extract(message('Нужна цена на 2взр+1реб'))
+        self.assertEqual([p['party'][k]['value'] for k in ('adults', 'children', 'total')], [2, 1, 3])
+        self.assertIsNone(p['party']['child_ages']['value'])
+        for text in ['2+1', '12взрывов и 1ребро', 'Не 2взр и не 1реб',
+                     'В прошлом году ездили 2взр+1реб', 'Если поедем 2взр+1реб']:
+            with self.subTest(text=text):
+                q = extract(message(text))
+                self.assertIsNone(q['party']['adults']['value'])
+                self.assertIsNone(q['party']['children']['value'])
+        conflict = extract(message('2взр+1реб, всего 4 человека'))
+        self.assertEqual(conflict['party']['total']['status'], 'ambiguous')
+        revised = extract(message('2взр+1реб', i=1), message('Теперь 3взр+1реб', i=2))
+        self.assertEqual(revised['party']['total']['value'], 4)
+        history = extract(message('Раньше 2взр+1реб, теперь хотим 3взр+1реб'))
+        self.assertEqual([history['party'][k]['value'] for k in ('adults', 'children', 'total')], [3, 1, 4])
+
+    def test_slash_nights_are_discrete_without_suffix_recovery(self):
+        self.assertEqual(value(extract(message('Хотим 6/8/11 ночей')), 'duration'),
+                         {'minimum': 6, 'maximum': 11, 'unit': 'nights', 'options': [6, 8, 11]})
+        self.assertEqual(value(extract(message('Хотим 6–11 ночей')), 'duration'),
+                         {'minimum': 6, 'maximum': 11, 'unit': 'nights'})
+        for text in ['8/99/10 ночей', '8/999/ 10 ночей', '8 / 999 / 10 ночей',
+                     '8-10/12 ночей', '8,5 ночей', '7/8/2026 ночей',
+                     'Не 8/9/10 ночей', 'В прошлом году ездили на 8/9/10 ночей']:
+            with self.subTest(text=text):
+                self.assertIsNone(value(extract(message(text)), 'duration'))
+
+    def test_qualitative_month_part_and_open_end_without_invented_days(self):
+        lower = value(extract(message('Посмотрите вылет с конца ноября любую дату')), 'dates')
+        self.assertEqual((lower['start_month'], lower['start_month_part'], lower['end_month'], lower['open_end']),
+                         (11, 'late', None, True))
+        self.assertIsNone(lower['start_day']); self.assertIsNone(lower['year'])
+        within = value(extract(message('Хотим вылет в середине июня 2027')), 'dates')
+        self.assertEqual((within['start_month_part'], within['end_month_part'], within['year'], within['open_end']),
+                         ('middle', 'middle', 2027, False))
+        precise = value(extract(message('В конце августа вылет 24–26 августа')), 'dates')
+        self.assertEqual((precise['start_day'], precise['end_day']), (24, 26))
+        numeric = value(extract(message('В середине июня вылет 12.06–18.06')), 'dates')
+        self.assertEqual((numeric['start_day'], numeric['end_day']), (12, 18))
+        for text in ['Не с конца ноября', 'В прошлом году ездили в конце августа',
+                     'Вылет в конце августа или в сентябре', 'С конца августа до 5 сентября',
+                     'В конце августа вылет 32 августа', 'В конце августа вылет 123 августа',
+                     'С конца августа до 05.09', 'С конца августа до 30.08']:
+            with self.subTest(text=text):
+                self.assertIsNone(value(extract(message(text)), 'dates'))
+
+    def hotel_request(self):
+        return ('Сравните стоимость тура и отеля отдельно 3взр+2реб\n'
+                '12–14 вылет 6/8/11 ночей\n'
+                '1. Harbor Cedar не старый номер и не на бассейн с анимацией\n'
+                '2. River Lantern\n'
+                '3. Mountain Grove номер в осн. здании не бунгало можно 15/17/19 вылет')
+
+    def test_options_room_constraints_and_day_preferences_keep_their_owners(self):
+        source = message(self.hotel_request())
+        p = extract(source)
+        hotels = value(p, 'hotel_candidates')
+        self.assertEqual([h['observed_name'] for h in hotels['options']],
+                         ['Harbor Cedar', 'River Lantern', 'Mountain Grove'])
+        self.assertIsNone(hotels['selection'])
+        self.assertTrue(all(h['canonical_hotel_id'] is None for h in hotels['options']))
+        self.assertEqual([r['value'] for r in hotels['options'][0]['room_constraints']],
+                         ['not_old', 'avoid_animation_pool'])
+        self.assertEqual(hotels['options'][1]['room_constraints'], [])
+        self.assertEqual([r['value'] for r in hotels['options'][2]['room_constraints']],
+                         ['main_building_requested', 'bungalow_excluded'])
+        specific = hotels['options'][2]['departure_days'][0]['value']
+        self.assertEqual(specific['options'], [15, 17, 19]); self.assertIsNone(specific['month'])
+        general = value(p, 'departure_day_preferences')
+        self.assertEqual((general['minimum_day'], general['maximum_day'], general['month']), (12, 14, None))
+        for hotel in hotels['options']:
+            lo, hi = hotel['name_span']
+            self.assertEqual(source['text'][lo:hi], hotel['observed_name'])
+            for constraint in hotel['room_constraints']:
+                lo, hi = constraint['span']
+                self.assertIn('не' if constraint['value'] != 'main_building_requested' else 'в',
+                              source['text'][lo:hi])
+
+    def test_hotel_headers_names_and_negative_room_requests_are_not_flattened(self):
+        for prefix in ['Мне предложили отели:', 'Не рассматриваю отели:', 'В прошлом году выбирали отели:',
+                       'Хотим отели, но менеджер предложил:']:
+            with self.subTest(prefix=prefix):
+                self.assertIsNone(value(extract(message(prefix+'\n1. Harbor Cedar\n2. River Lantern')), 'hotel_candidates'))
+        tasks = extract(message('Рассматриваем отели:\n1. Уточните цену\n2. Проверьте даты'))
+        self.assertIsNone(value(tasks, 'hotel_candidates'))
+        p = extract(message('Рассматриваем отели:\n1. Harbor Cedar, не бунгало\n'
+                            '2. River Lantern, не в основном здании\n'
+                            '3. "Лесной причал" номер не обязательно в основном здании'))
+        hotels = value(p, 'hotel_candidates')['options']
+        self.assertEqual([h['observed_name'] for h in hotels], ['Harbor Cedar', 'River Lantern', 'Лесной причал'])
+        self.assertEqual(hotels[1]['room_constraints'][0]['value'], 'main_building_excluded')
+        self.assertFalse(any(c['value'] == 'main_building_requested' for h in hotels[1:] for c in h['room_constraints']))
+
+    def test_unaccepted_day_alternatives_do_not_become_preferences(self):
+        for text in ['Не подходят 6/9 вылеты', 'Предложили 6/9 вылеты',
+                     'Если будут 6/9 вылеты, посмотрим', '6/9 вылеты нам не подходят',
+                     '6/999/ 9 вылеты', '6/9 заезд']:
+            with self.subTest(text=text):
+                self.assertIsNone(value(extract(message(text)), 'departure_day_preferences'))
+        p = extract(message('Рассматриваем отели:\n1. Harbor Cedar 6/9 вылеты не подходят'))
+        self.assertEqual(value(p, 'hotel_candidates')['options'][0]['departure_days'], [])
+
+    def test_service_questions_accumulate_without_becoming_chosen_flight_or_booking(self):
+        p = extract(message(self.hotel_request(), i=1),
+                    message('На выбранные дни рейсов нет', speaker='manager', i=2),
+                    message('Можно запросить размещение без перелетов?', i=3),
+                    message('Просим посмотреть даты с конца ноября когда вылеты доступны', i=4))
+        services = value(p, 'service_alternatives')
+        self.assertEqual(services['requested_services'], ['hotel_only', 'package_tour'])
+        self.assertIsNone(services['selected_service'])
+        self.assertEqual([r['category'] for r in services['requests']],
+                         ['package_price_inquiry', 'hotel_only_price_inquiry',
+                          'hotel_only_availability_inquiry', 'flight_date_search_inquiry'])
+        self.assertIsNone(value(p, 'flight_requirement'))
+        self.assertNotIn(p['current_stage']['value'], {'offer_selected', 'booking_intent', 'paid'})
+        self.assertIsNone(value(extract(message('Не интересует отель отдельно без перелетов')), 'service_alternatives'))
+        self.assertIsNone(value(extract(message('Мне предложили тур и отель отдельно по одной цене')), 'service_alternatives'))
+
+    def test_new_facts_keep_roles_actions_cutoffs_and_unknown_trip_guards(self):
+        text = self.hotel_request()
+        for speaker, kind in [('manager', 'text'), ('other', 'text'), ('customer', 'action')]:
+            with self.subTest(speaker=speaker, kind=kind):
+                p = extract(message(text, speaker=speaker, kind=kind))
+                self.assertIsNone(value(p, 'hotel_candidates'))
+                self.assertIsNone(value(p, 'service_alternatives'))
+                self.assertIsNone(p['party']['adults']['value'])
+        c = case(message(text)); c.update(trip_status='unknown', prefix_complete=False,
+                                         source_complete_through=None, source_fence_at=CUTOFF)
+        p = tool.extract_case(c, LATER)
+        self.assertEqual(p['fields']['hotel_candidates']['available_at'], LATER)
+        self.assertFalse(p['fields']['hotel_candidates']['usable_at_prediction'])
+        self.assertEqual(p['trip_status'], 'unknown'); self.assertFalse(p['target_admission']['eligible'])
+        self.assertIsNone(p['purchase_with_us_probability']); self.assertFalse(p['export_allowed'])
+        self.assertIn('fields.hotel_candidates', p['prediction_features']['unavailable_facts'])
+        early = tool.extract_case(c, CUTOFF)
+        self.assertIn('fields.hotel_candidates', early['prediction_features']['facts'])
+        changed = copy.deepcopy(c); changed['messages'][0]['text'] = text.replace('не бунгало', 'в основном здании')
+        self.assertNotEqual(early['prediction_features']['feature_fingerprint'],
+                            tool.extract_case(changed, CUTOFF)['prediction_features']['feature_fingerprint'])
+
+    def test_new_conditions_survive_snapshot_and_journal_adapters(self):
+        import profile_conversion_snapshot as snapshot
+        subject = {k: v for k, v in SCOPE.items() if k != 'episode_key'}
+        d = {'schema_version': 1, 'received_at': CUTOFF, 'extracted_at': CUTOFF,
+             'snapshot': {'schema_version': 1, 'captured_at': CUTOFF, 'database_writes': False,
+                          'conversion_uploads': 0, 'cases': [
+                              {'subject': subject, 'started_at': START, 'messages_complete': True,
+                               'events_complete': True, 'source_clock': snapshot.CLOCK,
+                               'tour_choices': {'available': True, 'limited': False, 'offers': []},
+                               'messages': [{'id': 'synthetic:conditions', 'direction': 'inbound',
+                                             'sender_type': 'customer', 'text': self.hotel_request(),
+                                             'recorded_at': START, 'type': 'message', 'metadata_revision': 'a'*64}]}]},
+             'trips': [{'subject': subject, 'brand_key': 'anytour', 'trip_start_message_id': 'synthetic:conditions'}]}
+        p = snapshot.profile(d)['profiles'][0]
+        self.assertEqual(len(value(p, 'hotel_candidates')['options']), 3)
+        self.assertEqual(value(p, 'duration')['options'], [6, 8, 11])
+        doc = journal_document(journal_row(text=self.hotel_request()))
+        p = journal.profile(doc, J_EXTRACT)['profiles'][0]['profile']
+        self.assertEqual(len(value(p, 'hotel_candidates')['options']), 3)
+        self.assertEqual(p['party']['total']['value'], 5)
+        self.assertIn('fields.service_alternatives', p['prediction_features']['facts'])
+        self.assertEqual(p['trip_status'], 'unknown'); self.assertFalse(p['export_allowed'])
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json') as handle:
+            json.dump(doc, handle); handle.flush()
+            run = subprocess.run([sys.executable, str(ROOT/'tools/profile_conversion_journal.py'), handle.name],
+                                 text=True, capture_output=True)
+        self.assertEqual(run.returncode, 0, run.stderr)
+        out = json.loads(run.stdout)
+        self.assertEqual(len(out['profiles'][0]['profile']['fields']['hotel_candidates']['value']['options']), 3)
+        self.assertEqual(out['model_calls'], 0); self.assertEqual(out['conversion_uploads'], 0)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
