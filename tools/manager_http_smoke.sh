@@ -53,16 +53,19 @@ request manager_root "$BASE_URL/"
 request manager_index "$BASE_URL/index.php"
 request manager_api_me "$BASE_URL/api.php" POST
 request manager_pipeline_api "$BASE_URL/pipeline-api.php" POST
+request manager_operational_snapshot "$BASE_URL/purchase-study-api.php?view=operational"
 
 assert_status manager_root 200
 assert_status manager_index 200
 assert_status manager_api_me 401
 assert_status manager_pipeline_api 401
+assert_status manager_operational_snapshot 401
 
 assert_body_contains manager_root 'id="workspaceRoot"'
 assert_body_contains manager_index 'id="workspaceRoot"'
 assert_body_contains manager_api_me '"error":"unauthorized"'
 assert_body_contains manager_pipeline_api '"error":"unauthorized"'
+assert_body_contains manager_operational_snapshot '"error":"unauthorized"'
 
 request manager2_root "$MANAGER2_BASE_URL/"
 request manager2_index "$MANAGER2_BASE_URL/index.php"

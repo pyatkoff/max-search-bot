@@ -74,7 +74,7 @@ try {
     $hotel=$contexts[$hotelScope]['connection_id'];
     archiveMcpCheck('default registration retains only the legacy capability',$registration['scope']===$legacyScope);
     archiveMcpCheck('public metadata declares a separate archive capability',
-        ManagerPreparationOAuth::resourceMetadata()['scopes_supported']===['queue:read','prepared:write','hotel_work:write','archive:read','development_work:write']);
+        ManagerPreparationOAuth::resourceMetadata()['scopes_supported']===['queue:read','prepared:write','hotel_work:write','archive:read','development_work:write','forecasts:read']);
     try {
         $oauth->exchange(['grant_type'=>'refresh_token','client_id'=>$client,'resource'=>ManagerPreparationOAuth::RESOURCE,
             'refresh_token'=>$tokens[$legacyScope]['refresh_token'],'scope'=>$legacyScope.' '.$archiveScope]);
