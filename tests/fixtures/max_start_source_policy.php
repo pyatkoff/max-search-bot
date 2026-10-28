@@ -14,6 +14,14 @@ class MaxIncomingAdapter { public static function user($update){return $update['
 class IncomingUpdateDispatcher {}
 class IncomingUpdateDeduplicator {}
 class MaxInboundMediaArchiveService {}
+class DialogueController {
+    public static function start($chat, array $meta=[], string $platform=''): bool {
+        MaxSearchApi::cancelToursFollowup($chat);
+        MaxSearchApi::deleteAllStatus($chat);
+        MaxSearchApi::setEditMode($chat, '');
+        return MaxSearchApi::showStart($chat, $meta);
+    }
+}
 class FixtureMessenger { public $sent=[]; public $ok=true; public function sendWithButtons($chat,$text,$buttons){$this->sent[]=compact('chat','text','buttons');return $this->ok;} }
 class IntegrationRegistry { public static $m; public static function messenger(){return self::$m;} }
 class MaxSearchApi {
@@ -37,7 +45,7 @@ class ManagerHandoffDispatchService {
 }
 PHP;
 file_put_contents($tmp.'/bootstrap.php',$bootstrap);
-foreach(['ConversationDb','ProjectConfig','RoutingAccessService','DiagnosticLogger','IntegrationRegistry','ManagerHandoffDispatchService','IncomingUpdateDispatcher','IncomingUpdateDeduplicator','MaxInboundMediaArchiveService'] as $name)file_put_contents($tmp.'/services/'.$name.'.php',"<?php require_once dirname(__DIR__).'/bootstrap.php';\n");
+foreach(['ConversationDb','ProjectConfig','RoutingAccessService','DiagnosticLogger','IntegrationRegistry','ManagerHandoffDispatchService','IncomingUpdateDispatcher','IncomingUpdateDeduplicator','MaxInboundMediaArchiveService','DialogueController'] as $name)file_put_contents($tmp.'/services/'.$name.'.php',"<?php require_once dirname(__DIR__).'/bootstrap.php';\n");
 file_put_contents($tmp.'/integrations/MaxIncomingAdapter.php',"<?php require_once dirname(__DIR__).'/bootstrap.php';\n");
 foreach(['services/ConversationRecordClock.php','services/ManagerRequestService.php','services/TrafficAttributionService.php','services/ConversationRecorder.php','services/SourceHandlingService.php','services/MaxStartSourcePolicy.php','handlers/MaxUpdateHandler.php'] as $path)copy($root.'/'.$path,$tmp.'/'.$path);
 $passed=0;$failed=0;

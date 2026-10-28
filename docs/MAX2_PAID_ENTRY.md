@@ -7,7 +7,8 @@ The owner explicitly selected `/new/max2/`.
 ## Integration
 
 - MAX Search remains `id9704048781_1_bot`. Only `bot_started` passes its freshly
-  parsed metadata through `MaxSearchApi::showStart` to `DialogueView::start`.
+  parsed metadata through the shared `DialogueController::start` to
+  `DialogueView::start`.
 - The owner selected the two-action advertising screen on 2026-09-08: the exact
   MAX2 invitation, then `🔥 Подписаться на канал` and `🔎 Подобрать тур`. The
   channel button opens the configured `id9704048781_2_bot` Mini App via `startapp`.

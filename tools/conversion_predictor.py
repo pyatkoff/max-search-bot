@@ -22,11 +22,23 @@ def bucket(row):
 def utc_now():
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
+def reject_message_aliases(document):
+    for observation in document["observations"]:
+        seen = set()
+        for event in observation["evidence"]:
+            if event["kind"] != "customer_message":
+                continue
+            refs = {(ref["source"], ref["id"]) for ref in event["references"] if ref["source"] == "message"}
+            if seen & refs:
+                raise NotReady("duplicate_customer_message_source")
+            seen.update(refs)
+
 def fit_evaluate(document, train_groups, holdout_groups):
     # Raw input is revalidated by the canonical builder, not accepted as asserted features.
     now = utc_now()
     clock = base.moment(now)
     result = base.build_document(document)
+    reject_message_aliases(document)
     rows = result["observations"]
     train, holdout = set(train_groups), set(holdout_groups)
     if not train or not holdout or train & holdout:
@@ -57,7 +69,7 @@ def fit_evaluate(document, train_groups, holdout_groups):
         group = [r for r in tr if bucket(r) == b]
         p = (sum(r["label"]["value"] for r in group) + 1) / (len(group) + 2) if group else baseline
         probabilities.append(p)
-        buckets.append({"n":len(group), "probability":p,
+        buckets.append({"n":len(group), "positives":sum(r["label"]["value"] for r in group), "probability":p,
                         "reason":"smoothed_training" if group else "no_training_support_baseline"})
     def metrics(predictions, calibration_probabilities):
         n = len(te)
@@ -99,12 +111,19 @@ def predict(model, document):
         or not isinstance(model["buckets"],list) or len(model["buckets"])!=2):
         raise NotReady("invalid_model_fields")
     for entry in model["buckets"]:
-        if (not isinstance(entry,dict) or set(entry)!={"n","probability","reason"}
-            or type(entry["n"]) is not int or entry["n"]<0 or not valid_probability(entry["probability"])
+        if (not isinstance(entry,dict) or set(entry)!={"n","positives","probability","reason"}
+            or type(entry["n"]) is not int or entry["n"]<0 or type(entry["positives"]) is not int or not 0 <= entry["positives"] <= entry["n"] or not valid_probability(entry["probability"])
             or entry["reason"] != ("smoothed_training" if entry["n"] else "no_training_support_baseline")
-            or (entry["n"]==0 and entry["probability"]!=model["baseline"])):
+            or (entry["n"]==0 and entry["probability"]!=model["baseline"])
+            or (entry["n"]>0 and not math.isclose(entry["probability"],(entry["positives"]+1)/(entry["n"]+2),rel_tol=0,abs_tol=1e-12))):
             raise NotReady("invalid_model_bucket")
+    n=sum(e["n"] for e in model["buckets"])
+    positives=sum(e["positives"] for e in model["buckets"])
+    if (n < 2 or n > len(model["training_groups"]) or not 0 < positives < n
+        or not math.isclose(model["baseline"],(positives+1)/(n+2),rel_tol=0,abs_tol=1e-12)):
+        raise NotReady("invalid_model_support")
     rows=base.build_document(document)["observations"]
+    reject_message_aliases(document)
     if len(rows)!=1:
         raise NotReady("one_observation_required")
     row=rows[0]

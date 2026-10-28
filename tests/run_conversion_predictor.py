@@ -168,5 +168,35 @@ class PredictorTests(unittest.TestCase):
         self.assertEqual(run.returncode,0,run.stderr)
         self.assertFalse(json.loads(run.stdout)["ready"])
 
+    def test_duplicate_raw_message_alias_rejected_for_fit_and_predict(self):
+        doc,tr,te=self.dataset()
+        event=item("message:first","customer_message",doc["observations"][0]["context_from"])
+        event["subject"]=dict(doc["observations"][0]["subject"])
+        duplicate=copy.deepcopy(event); duplicate["id"]="message:alias"
+        doc["observations"][0]["evidence"] += [event, duplicate]
+        with self.assertRaisesRegex(predictor.NotReady,"duplicate_customer_message_source"):
+            predictor.fit_evaluate(doc,tr,te)
+        clean,tr,te=self.dataset(); model=predictor.fit_evaluate(clean,tr,te)["model"]
+        prospect=example("new",True,"2026-10-17T00:00:00Z","2026-10-17T12:00:00Z","2026-10-17T12:00:00Z")
+        event=item("message:first","customer_message",prospect["context_from"])
+        event["subject"]=dict(prospect["subject"])
+        duplicate=copy.deepcopy(event); duplicate["id"]="message:alias"
+        prospect["evidence"]=[event,duplicate]
+        with self.assertRaisesRegex(predictor.NotReady,"duplicate_customer_message_source"):
+            predictor.predict(model,{"schema_version":1,"observations":[prospect]})
+
+    def test_rehashed_incoherent_support_rejected(self):
+        doc,tr,te=self.dataset(); model=predictor.fit_evaluate(doc,tr,te)["model"]
+        model["baseline"]=.9
+        model["buckets"]=[{"n":0,"positives":0,"probability":.9,"reason":"no_training_support_baseline"} for _ in range(2)]
+        model["model_sha256"]=predictor.fingerprint({k:v for k,v in model.items() if k!="model_sha256"})
+        with self.assertRaisesRegex(predictor.NotReady,"invalid_model_support"):
+            predictor.predict(model,doc)
+        model=predictor.fit_evaluate(doc,tr,te)["model"]
+        model["buckets"][0]["positives"]=0
+        model["model_sha256"]=predictor.fingerprint({k:v for k,v in model.items() if k!="model_sha256"})
+        with self.assertRaises(predictor.NotReady):
+            predictor.predict(model,doc)
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
