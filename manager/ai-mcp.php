@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+$preparationMcpStartedAt=microtime(true);
 
 require_once dirname(__DIR__).'/config.php';
 require_once dirname(__DIR__).'/services/ManagerPreparationOAuth.php';
@@ -12,11 +13,28 @@ header('X-Content-Type-Options: nosniff');
 
 $preparationMcpRpc=null;
 $preparationMcpStage='origin';
+$preparationMcpForecastBudget=null;
+$preparationMcpRaw=null;
 
 function preparationMcpResponse(array $body, int $status=200): never
 {
-    global $preparationMcpRpc,$preparationMcpStage;
+    global $preparationMcpRpc,$preparationMcpStage,$preparationMcpForecastBudget;
+    if($preparationMcpForecastBudget!==null){
+        try{
+            $preparationMcpForecastBudget->check();
+            if(strlen(json_encode($body,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))>65536)throw new ModeledConversionStatusLimit('byte_limit');
+        }catch(ModeledConversionStatusLimit $error){
+            $body=['jsonrpc'=>'2.0','id'=>null,'error'=>['code'=>-32016,'message'=>'Private status budget exceeded','data'=>['reason'=>$error->reason]]];$status=503;
+        }
+    }
     ManagerPreparationMcpDiagnostics::record($_SERVER,$preparationMcpRpc,$status,$preparationMcpStage,$body['error']['code']??null);
+    // Diagnostic I/O is not permission to expose a result after its budget expired.
+    if($preparationMcpForecastBudget!==null){
+        try{$preparationMcpForecastBudget->check();}
+        catch(ModeledConversionStatusLimit $error){
+            $body=['jsonrpc'=>'2.0','id'=>null,'error'=>['code'=>-32016,'message'=>'Private status budget exceeded','data'=>['reason'=>$error->reason]]];$status=503;
+        }
+    }
     http_response_code($status);
     echo json_encode($body,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
     exit;
@@ -39,7 +57,20 @@ try {
     // Never accept forwarded/custom headers or fall back from an invalid value.
     $_SERVER['HTTP_AUTHORIZATION']=$header;
     $bearer=preg_match('/\ABearer ([A-Za-z0-9_-]{32,512})\z/D',$header,$m)===1?$m[1]:'';
-    $authorization=$bearer!==''?ManagerPreparationOAuth::bearerContext($header):null;
+    // Recognize only this read-only operation to share its budget with the initial
+    // bearer lookup. Authentication still owns the response/error ordering.
+    if($bearer!==''&&($_SERVER['REQUEST_METHOD']??'')==='POST'
+        &&(!isset($_SERVER['CONTENT_LENGTH'])||(int)$_SERVER['CONTENT_LENGTH']<=196608)){
+        $preparationMcpRaw=file_get_contents('php://input',false,null,0,196609);
+        if(is_string($preparationMcpRaw)&&strlen($preparationMcpRaw)<=196608){
+            try{$probe=json_decode($preparationMcpRaw,true,32,JSON_THROW_ON_ERROR);}catch(Throwable $ignored){$probe=null;}
+            if(is_array($probe)&&($probe['method']??null)==='tools/call'&&is_array($probe['params']??null)
+                &&($probe['params']['name']??null)==='get_modeled_conversion_status')
+                $preparationMcpForecastBudget=new ModeledConversionStatusBudget($preparationMcpStartedAt);
+            unset($probe);
+        }
+    }
+    $authorization=$bearer!==''?ManagerPreparationOAuth::bearerContext($header,$preparationMcpForecastBudget):null;
     $actor=$authorization['admin_id']??null;
     $connection=$authorization['connection_id']??null;
     if ($actor===null||$connection===null) {
@@ -55,8 +86,11 @@ try {
     if (isset($_SERVER['CONTENT_LENGTH'])&&(int)$_SERVER['CONTENT_LENGTH']>196608) {
         preparationMcpResponse(['jsonrpc'=>'2.0','id'=>null,'error'=>['code'=>-32600,'message'=>'Request too large']],413);
     }
-    $raw=file_get_contents('php://input',false,null,0,196609);
+    $raw=$preparationMcpRaw??file_get_contents('php://input',false,null,0,196609);
     if (!is_string($raw)||strlen($raw)>196608) {
+        preparationMcpResponse(['jsonrpc'=>'2.0','id'=>null,'error'=>['code'=>-32600,'message'=>'Request too large']],413);
+    }
+    if($preparationMcpForecastBudget!==null&&strlen($raw)>65536){
         preparationMcpResponse(['jsonrpc'=>'2.0','id'=>null,'error'=>['code'=>-32600,'message'=>'Request too large']],413);
     }
     try {$rpc=json_decode($raw,true,32,JSON_THROW_ON_ERROR);} catch(Throwable $ignored) {
@@ -77,9 +111,12 @@ try {
     if ((!is_int($rpc['id'])&&!is_string($rpc['id']))||(is_string($rpc['id'])&&strlen($rpc['id'])>128)) {
         preparationMcpResponse(['jsonrpc'=>'2.0','id'=>null,'error'=>['code'=>-32600,'message'=>'Invalid request ID']],400);
     }
-    $response=(new ManagerPreparationMcpService())->handle($rpc,$actor,$connection,$authorization['scopes']);
+    $response=(new ManagerPreparationMcpService())->handle($rpc,$actor,$connection,$authorization['scopes'],$preparationMcpForecastBudget);
     $preparationMcpStage='complete';
     preparationMcpResponse($response);
+} catch(ModeledConversionStatusLimit $error) {
+    $preparationMcpStage='unavailable';
+    preparationMcpResponse(['jsonrpc'=>'2.0','id'=>null,'error'=>['code'=>-32016,'message'=>'Private status budget exceeded','data'=>['reason'=>$error->reason]]],503);
 } catch(Throwable $ignored) {
     $preparationMcpStage='unavailable';
     // No OAuth material, transcript, model text, SQL or callback is logged.

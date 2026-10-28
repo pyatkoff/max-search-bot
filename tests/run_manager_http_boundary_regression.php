@@ -29,12 +29,12 @@ foreach(glob($root.'/manager/*.php')?:[] as $managerEndpoint){
 mhCheck('all session Manager PHP interfaces enter through ManagerHttp',$unbounded===[]);
 $mcp=(string)file_get_contents($root.'/manager/ai-mcp.php');
 mhCheck('legacy MCP interface retains mandatory OAuth bearer and connection binding',
-    strpos($mcp,'ManagerPreparationOAuth::bearerContext($header)')!==false
+    strpos($mcp,'ManagerPreparationOAuth::bearerContext($header,$preparationMcpForecastBudget)')!==false
     &&strpos($mcp,"\$authorization['connection_id']")!==false
     &&strpos($mcp,"\$authorization['scopes']")!==false
     &&strpos($mcp,'if ($actor===null||$connection===null)')!==false
     &&strpos($mcp,'WWW-Authenticate: Bearer resource_metadata=')!==false
-    &&strpos($mcp,'bearerContext($header)')<strpos($mcp,"->handle(\$rpc,\$actor,\$connection,\$authorization['scopes'])")
+    &&strpos($mcp,'bearerContext($header,$preparationMcpForecastBudget)')<strpos($mcp,"->handle(\$rpc,\$actor,\$connection,\$authorization['scopes'],\$preparationMcpForecastBudget)")
     &&strpos($mcp,'ManagerRequestContext::')===false&&strpos($mcp,'ManagerHttp::start')===false);
 
 $developmentMcp=(string)file_get_contents($root.'/manager/development-mcp.php');

@@ -32,17 +32,27 @@ final class ManagerPreparationOAuth
     public const HOTEL_SCOPE = 'hotel_work:write';
     public const DEVELOPMENT_SCOPE = 'development_work:write';
     public const ARCHIVE_SCOPE = 'archive:read';
-    public const SUPPORTED_SCOPES = ['queue:read', 'prepared:write', self::HOTEL_SCOPE, self::ARCHIVE_SCOPE, self::DEVELOPMENT_SCOPE];
+    public const FORECAST_SCOPE = 'forecasts:read';
+    public const SUPPORTED_SCOPES = ['queue:read', 'prepared:write', self::HOTEL_SCOPE, self::ARCHIVE_SCOPE, self::DEVELOPMENT_SCOPE, self::FORECAST_SCOPE];
     // RFC 9207 issuer identification permits this documented stable callback.
     public const REDIRECT_URI = 'https://chatgpt.com/connector_platform_oauth_redirect';
     private PDO $pdo;
     private $clock;
+    private ?ModeledConversionStatusBudget $statusReadBudget = null;
 
     public function __construct(?PDO $pdo = null, ?callable $clock = null, private string $profile = self::PROFILE_LEGACY)
     {
         self::requireProfile($profile);
         $this->pdo = $pdo ?? ConversationDb::connection();
         $this->clock = $clock ?? static fn(): int => time();
+    }
+
+    /** The private status path shares its execution/read budget with authorization. */
+    public function withStatusReadBudget(?ModeledConversionStatusBudget $budget): self
+    {
+        $this->statusReadBudget=$budget;
+        $budget?->check();
+        return $this;
     }
 
     public static function authorizationMetadata(string $profile = self::PROFILE_LEGACY): array
@@ -75,9 +85,10 @@ final class ManagerPreparationOAuth
     }
 
     /** One fresh canonical grant lookup; caller never supplies its own scopes. */
-    public static function bearerContext(string $authorization): ?array
+    public static function bearerContext(string $authorization,?ModeledConversionStatusBudget $budget=null): ?array
     {
-        try { return (new self())->contextForBearer($authorization); }
+        try { return (new self())->withStatusReadBudget($budget)->contextForBearer($authorization); }
+        catch (ModeledConversionStatusLimit $error) { throw $error; }
         catch (Throwable $error) { return null; }
     }
 
@@ -236,22 +247,18 @@ final class ManagerPreparationOAuth
     private function connectionGrant(string $familyId, int $adminId): ?array
     {
         if (!preg_match('/\A[a-f0-9]{32}\z/D',$familyId) || $adminId<=0) return null;
-        $q=$this->pdo->prepare('SELECT g.* FROM manager_preparation_oauth_grants g JOIN manager_preparation_oauth_clients c ON c.client_id=g.client_id WHERE g.grant_id=? AND g.admin_id=? LIMIT 1');
-        $q->execute([$familyId,$adminId]);
-        $grant=$q->fetch(PDO::FETCH_ASSOC);
+        $grant=$this->authorizationRow('SELECT g.* FROM manager_preparation_oauth_grants g JOIN manager_preparation_oauth_clients c ON c.client_id=g.client_id WHERE g.grant_id=? AND g.admin_id=? LIMIT 1',[$familyId,$adminId]);
         return $grant && $this->validGrant($grant) ? $grant : null;
     }
 
     private function grantForBearer(string $authorization): ?array
     {
         if (!preg_match('/\ABearer ([A-Za-z0-9_-]{43})\z/Di', $authorization, $match)) return null;
-        $q=$this->pdo->prepare("SELECT g.* FROM manager_preparation_oauth_tokens t
+        $grant=$this->authorizationRow("SELECT g.* FROM manager_preparation_oauth_tokens t
             JOIN manager_preparation_oauth_grants g ON g.grant_id=t.grant_id
             JOIN manager_preparation_oauth_clients c ON c.client_id=g.client_id
             WHERE t.token_hash=? AND t.token_kind='access' AND t.expires_at>?
-            AND t.consumed_at IS NULL AND g.revoked_at IS NULL AND g.expires_at>? LIMIT 1");
-        $q->execute([hash('sha256',$match[1]),$this->now(),$this->now()]);
-        $grant=$q->fetch(PDO::FETCH_ASSOC);
+            AND t.consumed_at IS NULL AND g.revoked_at IS NULL AND g.expires_at>? LIMIT 1",[hash('sha256',$match[1]),$this->now(),$this->now()]);
         if (!$grant || !$this->validGrant($grant)) return null;
         return $grant;
     }
@@ -446,11 +453,26 @@ final class ManagerPreparationOAuth
         // The ordinary login remains the identity owner. Never bootstrap roles or access here.
         $project=ProjectConfig::projectId();
         $name=(string)ProjectConfig::get('brand.name',$project);
-        $q=$this->pdo->prepare("SELECT 1 FROM managers m JOIN manager_projects mp ON mp.manager_id=m.id
+        return $this->authorizationRow("SELECT 1 FROM managers m JOIN manager_projects mp ON mp.manager_id=m.id
             JOIN projects p ON p.id=mp.project_id WHERE m.id=? AND m.is_active=1 AND m.role='admin'
-            AND p.project_key=? AND p.is_active=1 AND p.display_name=? LIMIT 1");
-        $q->execute([$id,$project,$name!==''?$name:$project]);
-        return (bool)$q->fetchColumn();
+            AND p.project_key=? AND p.is_active=1 AND p.display_name=? LIMIT 1",[$id,$project,$name!==''?$name:$project])!==false;
+    }
+
+    /** Selected grant/client columns are schema-bounded: one encoded row fits 4 KiB.
+     * This path never copies token hashes or client registration metadata. */
+    private function authorizationRow(string $sql,array $bindings):array|false
+    {
+        if($this->statusReadBudget!==null){
+            if($this->statusReadBudget->remainingBytes()<4096)throw new ModeledConversionStatusLimit('byte_limit');
+            $sql=str_replace('SELECT g.*','SELECT g.grant_id,g.admin_id,g.client_id,g.project_key,g.resource,g.scopes,g.created_at,g.expires_at,g.revoked_at',$sql);
+            $query=$this->statusReadBudget->prepare($this->pdo,$sql);
+        }else $query=$this->pdo->prepare($sql);
+        $query->execute($bindings);$row=$query->fetch(PDO::FETCH_ASSOC);
+        if($this->statusReadBudget!==null){
+            $this->statusReadBudget->check();
+            $this->statusReadBudget->consumeBytes(strlen(json_encode($row,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)));
+        }
+        return $row;
     }
 
     private function validGrant(array $grant): bool
@@ -473,9 +495,8 @@ final class ManagerPreparationOAuth
     private function client(string $id): bool
     {
         if (!$this->clientNamespace($id)) return false;
-        $q=$this->pdo->prepare('SELECT redirect_uri FROM manager_preparation_oauth_clients WHERE client_id=? LIMIT 1');
-        $q->execute([$id]);
-        return $q->fetchColumn()===self::REDIRECT_URI;
+        $row=$this->authorizationRow('SELECT redirect_uri FROM manager_preparation_oauth_clients WHERE client_id=? LIMIT 1',[$id]);
+        return $row!==false&&$row['redirect_uri']===self::REDIRECT_URI;
     }
 
     private static function requireProfile(string $profile): void
@@ -563,10 +584,11 @@ final class ManagerPreparationOAuth
         $hotel=in_array(self::HOTEL_SCOPE,$scopes,true);
         $development=in_array(self::DEVELOPMENT_SCOPE,$scopes,true);
         $archive=in_array(self::ARCHIVE_SCOPE,$scopes,true);
+        $forecast=in_array(self::FORECAST_SCOPE,$scopes,true);
         // Reply read/write remain one capability. Hotel and development metadata
         // each require separate explicit consent; refresh never adds a scope.
-        // Archive reads are a separate explicit capability as well.
-        if ((!$legacy && array_intersect($scopes,self::SCOPES)) || (!$legacy && !$hotel && !$development && !$archive)) $this->fail('invalid_scope');
+        // Archive reads and aggregate forecast status each require fresh consent.
+        if ((!$legacy && array_intersect($scopes,self::SCOPES)) || (!$legacy && !$hotel && !$development && !$archive && !$forecast)) $this->fail('invalid_scope');
         return implode(' ',array_values(array_intersect(self::SUPPORTED_SCOPES,$scopes)));
     }
 
