@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-10-27T22:53:51+00:00",
+    "generated_at": "2026-10-28T00:26:28+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
@@ -48,7 +48,7 @@
         }
     },
     "telegram_dialogue_delivery": {
-        "sampled_at": "2026-10-27T22:53:51Z",
+        "sampled_at": "2026-10-28T00:26:28Z",
         "available": true,
         "error": null,
         "mode": "send",
