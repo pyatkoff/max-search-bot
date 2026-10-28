@@ -2,6 +2,24 @@
 declare(strict_types=1);
 require_once dirname(__DIR__).'/services/ArchiveResearchReadService.php';
 
+/** Fixture-only PDO instrumentation; records SQL structure, never bound source values. */
+final class ArchiveResearchTraceStatement extends PDOStatement
+{
+    public static array $queries=[];
+    public static ?string $failureNeedle=null;
+    public static ?PDOException $failure=null;
+    protected function __construct() {}
+    public function execute(?array$params=null):bool
+    {
+        self::$queries[]=$this->queryString;
+        if(self::$failureNeedle!==null&&str_contains($this->queryString,self::$failureNeedle)){
+            self::$failureNeedle=null;
+            throw self::$failure??new PDOException('synthetic fixture failure');
+        }
+        return parent::execute($params);
+    }
+}
+
 /** Synthetic fixture only. Caller owns an isolated disposable native test database. */
 function archiveResearchReadRegression(PDO $pdo): int
 {
@@ -9,6 +27,8 @@ function archiveResearchReadRegression(PDO $pdo): int
     if($mysql&&!preg_match('/\Amaxbot_prepared_test(?:_[A-Za-z0-9_]+)?\z/D',(string)$pdo->query('SELECT DATABASE()')->fetchColumn()))
         throw new RuntimeException('archive_fixture_database_rejected');
     $pdo->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
+    $statementClass=$pdo->getAttribute(PDO::ATTR_STATEMENT_CLASS);
+    $pdo->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ArchiveResearchTraceStatement::class]);
     $tables=['telegram_dialogue_messages','telegram_archive_accounts','telegram_dialogue_connections','customer_channels','conversations','projects'];
     $drop=static function()use($pdo,$tables):void{foreach($tables as$t)$pdo->exec('DROP TABLE IF EXISTS '.$t);};
     $drop();$checks=0;
@@ -61,6 +81,8 @@ function archiveResearchReadRegression(PDO $pdo): int
         $seed(150,100,203,1,'WRONG BOT PRIVATE BODY',['bot_key'=>'NotApproved']);
         $seed(160,100,204,1,str_repeat('x',140000));
         $seed(170,100,204,2,'Доступный хвост.');
+        $seed(180,100,999,2,'OWNER UPPER BOUND');
+        $seed(190,100,777000,2,'SERVICE UPPER BOUND');
         $now=1700000100;$key=str_repeat('k',32);$blockedWrite=false;$keyCalls=0;
         $clock=static function()use(&$now,$pdo,&$blockedWrite):int{
             if($pdo->inTransaction()){
@@ -79,9 +101,14 @@ function archiveResearchReadRegression(PDO $pdo): int
             $rows=$pdo->query('SELECT * FROM telegram_dialogue_messages ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
             return hash('sha256',json_encode($rows,JSON_THROW_ON_ERROR));
         };
-        $before=$fingerprint();$inventory=$service->inventory(1,$connection,['limit'=>1]);
+        $before=$fingerprint();ArchiveResearchTraceStatement::$queries=[];
+        $inventory=$service->inventory(1,$connection,['limit'=>1]);$inventorySql=ArchiveResearchTraceStatement::$queries;
         $check($inventory['database_writes']===0&&$blockedWrite,'actual_readonly_transaction_rejects_write');
         $check(!$pdo->inTransaction()&&$keyCalls===2,'fresh_key_checks_outside_transaction');
+        $check(count($inventorySql)>0&&!array_filter($inventorySql,static fn($sql)=>preg_match('/record_json|JSON_EXTRACT|JSON_VALID|\bLENGTH\s*\(/i',$sql)),'inventory_executes_metadata_sql_without_json_or_lengths');
+        $check($inventory['snapshot']['row_fence']==='190'&&$inventory['totals']['account_chat_pairs']===6,'owner_and_service_may_set_cutoff_but_are_not_returned');
+        $check($inventory['totals']['source_json_bytes']===null&&$inventory['totals']['source_json_bytes_status']==='not_scanned'
+            &&$inventory['chats'][0]['source_json_bytes']===null,'unscanned_archive_byte_volume_is_unknown');
         $check($before===$fingerprint()&&(int)$pdo->query('SELECT COUNT(*) FROM projects')->fetchColumn()===2,'data_unchanged');
         $all=$inventory['chats'];$cursor=$inventory['next_cursor'];$pages=1;
         while($cursor!==null){$v=$service->inventory(1,$connection,['limit'=>1,'cursor'=>$cursor]);array_push($all,...$v['chats']);$cursor=$v['next_cursor'];if(++$pages>15)throw new RuntimeException('paging_did_not_advance');}
@@ -160,6 +187,45 @@ function archiveResearchReadRegression(PDO $pdo): int
         $pdo->exec("UPDATE projects SET is_active=0 WHERE project_key='anytour'");
         $reject(fn()=>$service->inventory(1,$connection),'forbidden');
         $pdo->exec("UPDATE projects SET is_active=1 WHERE project_key='anytour'");
+        $rotationCalls=0;
+        $rotating=static function(int$a,string$c)use(&$rotationCalls):string{return ++$rotationCalls===1?str_repeat('k',32):str_repeat('z',32);};
+        $rotated=new ArchiveResearchReadService($pdo,static fn()=>1700000100,$rotating);
+        $reject(fn()=>$rotated->inventory(1,$connection),'stale_cursor');
+        $check(!$pdo->inTransaction(),'mid_read_key_rotation_withholds_payload_and_rolls_back');
+        $preDenied=new ArchiveResearchReadService($pdo,null,static function():string{throw new DomainException('PRIVATE PRE AUTH');});
+        $reject(fn()=>$preDenied->inventory(1,$connection),'forbidden');
+        $postCalls=0;
+        $postProvider=static function()use(&$postCalls):string{if(++$postCalls===2)throw new DomainException('PRIVATE POST AUTH');return str_repeat('k',32);};
+        $postDenied=new ArchiveResearchReadService($pdo,null,$postProvider);
+        $reject(fn()=>$postDenied->inventory(1,$connection),'permission_changed');
+        $check(!$pdo->inTransaction(),'post_auth_denial_withholds_payload_and_rolls_back');
+
+        // The real MySQL hint is exercised on a synthetic SELECT, not production data.
+        $nativeError=null;
+        if($mysql){
+            $pdo->exec('START TRANSACTION READ ONLY');
+            try{$pdo->query('SELECT /*+ MAX_EXECUTION_TIME(1) */ SLEEP(0.03), 1 AS synthetic_marker')->fetchAll();}
+            catch(PDOException$e){$nativeError=$e;}
+            finally{if($pdo->inTransaction())$pdo->rollBack();}
+            $check($nativeError instanceof PDOException&&in_array((int)($nativeError->errorInfo[1]??0),[3024,1969],true),'native_mysql_execution_timeout_is_observed');
+        }
+        foreach([['HY000',3024,'time_limit','HY'],['HY000',1969,'time_limit','HY'],['42S22',1054,'unavailable','42'],['PRIVATE BAD STATE',999999,'unavailable',null]]as[$state,$code,$reason,$class]){
+            $error=$nativeError&&$code===3024?$nativeError:new PDOException('PRIVATE SQL TEXT AND BINDINGS');
+            if(!($nativeError&&$code===3024))$error->errorInfo=[$state,$code,'PRIVATE DRIVER MESSAGE'];
+            ArchiveResearchTraceStatement::$failure=$error;
+            ArchiveResearchTraceStatement::$failureNeedle='COALESCE(MAX(m.id),0)';
+            $beforeFailure=$fingerprint();
+            try{$service->inventory(1,$connection);$check(false,'expected_database_failure');}
+            catch(ArchiveResearchReadException$e){
+                $check($e->reason===$reason&&$e->stage==='fence'&&$e->sqlstateClass===$class
+                    &&$e->driverCode===($code<=65535?$code:null),'database_failure_maps_fixed_stage_class_and_code_'.$code);
+                $check(!str_contains($e->getMessage(),'PRIVATE')&&!$pdo->inTransaction()
+                    &&$beforeFailure===$fingerprint(),'database_failure_hides_sql_and_rolls_back_'.$code);
+            }
+        }
+        ArchiveResearchTraceStatement::$failure=null;ArchiveResearchTraceStatement::$failureNeedle=null;
+        $sanitized=new ArchiveResearchReadException('unavailable','PRIVATE STAGE','PRIVATE CLASS',999999);
+        $check($sanitized->stage==='unknown'&&$sanitized->sqlstateClass===null&&$sanitized->driverCode===null,'diagnostic_fields_reject_arbitrary_strings_and_codes');
         $final=$service->inventory(1,$connection,['limit'=>50]);
         $check(strlen(json_encode($final,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR))<=ArchiveResearchReadService::MAX_RESPONSE_BYTES,'full_envelope_byte_cap');
         $check(!$pdo->inTransaction(),'successful_read_rolls_back');
@@ -169,6 +235,8 @@ function archiveResearchReadRegression(PDO $pdo): int
     }finally{
         if($pdo->inTransaction())$pdo->rollBack();
         if(!$mysql)$pdo->exec('PRAGMA query_only=OFF');
+        ArchiveResearchTraceStatement::$failure=null;ArchiveResearchTraceStatement::$failureNeedle=null;
+        $pdo->setAttribute(PDO::ATTR_STATEMENT_CLASS,$statementClass);
         $drop();
     }
 }

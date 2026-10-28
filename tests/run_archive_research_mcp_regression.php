@@ -243,6 +243,38 @@ try {
                 ($data['recovery']??null)==='restart_inventory');
         }
     }
+    foreach ([['unavailable','summary','42',1146],['time_limit','inventory_page','HY',3024],
+        ['time_limit','history_metadata','HY',1969],['unavailable','key_before','08',65535]] as [$reason,$stage,$state,$driver]) {
+        $exception=new ArchiveResearchReadException($reason,$stage,$state,$driver);
+        (new ReflectionProperty(Exception::class,'message'))->setValue($exception,'PRIVATE SQL SELECT customer_text WHERE token=secret');
+        $hook=static function() use($exception):void {throw $exception;};
+        $response=$invoke('archive_research_inventory');
+        $data=$response['result']['structuredContent']??[];
+        archiveMcpCheck('bounded failure exposes exact fixed stage and numeric driver categories',
+            ($response['result']['isError']??null)===true&&($data['reason']??null)===$reason
+            &&($data['diagnostic']??null)===['stage'=>$stage,'sqlstate_class'=>$state,'driver_code'=>$driver]
+            &&json_decode($response['result']['content'][0]['text'],true)===$data
+            &&!str_contains(json_encode($response),'PRIVATE')&&!str_contains(json_encode($response),'customer_text')
+            &&!str_contains(json_encode($response),'secret')&&!isset($data['messages']));
+    }
+    foreach ([['PRIVATE SELECT source','42000',-1],['summary','XX',65536]] as [$stage,$state,$driver]) {
+        $exception=new ArchiveResearchReadException('unavailable',$stage,$state,$driver);
+        (new ReflectionProperty(Exception::class,'message'))->setValue($exception,'PRIVATE password binding SQLSTATE[42000]');
+        $hook=static function() use($exception):void {throw $exception;};
+        $response=$invoke('archive_research_inventory');
+        $diagnostic=$response['result']['structuredContent']['diagnostic']??[];
+        archiveMcpCheck('unknown diagnostic values and exception text are not reflected',
+            $diagnostic===['stage'=>($stage==='summary'?'summary':'unknown'),'sqlstate_class'=>null,'driver_code'=>null]
+            &&!str_contains(json_encode($response),'PRIVATE')&&!str_contains(json_encode($response),'42000')
+            &&!str_contains(json_encode($response),'password')&&!str_contains(json_encode($response),'65536'));
+    }
+    foreach (['forbidden','permission_changed'] as $reason) {
+        $hook=static function() use($reason):void {throw new ArchiveResearchReadException($reason,'key_after','28',1045);};
+        $denied=$invoke('archive_research_inventory');
+        archiveMcpCheck('source authorization denial withholds all source diagnostic metadata',
+            ($denied['error']['code']??null)===-32001&&!isset($denied['result'])
+            &&!str_contains(json_encode($denied),'key_after')&&!str_contains(json_encode($denied),'1045'));
+    }
     foreach (['forbidden','permission_changed','invalid_arguments','PRIVATE unexpected reason'] as $reason) {
         $hook=static function() use($reason):void {throw new ArchiveResearchReadException($reason);};
         $failed=$invoke('archive_research_inventory');

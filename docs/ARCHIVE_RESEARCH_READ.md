@@ -80,3 +80,22 @@ strict arguments, independent scope consent, family-bound references,
 authorization withdrawal during reads, unavailable sources and unchanged
 ordinary data. Synthetic checks establish these boundaries, not the quality of
 a trained purchase model or a completed analysis of the full corpus.
+
+
+## Bounded failure diagnostics
+
+An unavailable read may include `diagnostic` with only `stage`,
+`sqlstate_class` and `driver_code`. Stages are fixed operational names for
+key checks, snapshot setup/rollback, permissions, fence, summary, inventory page,
+history reads and response validation. Unknown stages become `unknown`.
+SQLSTATE is reduced to an allowlisted two-character class; driver codes are
+integers from 0 through 65535 or null. No full SQLSTATE, exception message,
+SQL statement, bindings, credentials or source values are returned.
+The adapter independently allowlists these fields rather than forwarding
+exception objects. Authorization denial exposes no source diagnostics.
+
+A source SQL timeout is reported as `time_limit`; the stage identifies the
+interrupted operation. These categories diagnose a failed bounded read. They do
+not establish archive coverage, an empty result, a completed analysis or grounds
+to widen the read limits. Unexpected errors retain the fixed unavailable/error
+contract. Existing consent, tool schemas and all read limits are unchanged.
