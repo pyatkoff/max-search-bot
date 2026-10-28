@@ -23,6 +23,7 @@ function developmentEventSignature(array $request,string $secret): bool
     return in_array($expected,explode(' ',$h['webhook-signature']),true);
 }
 
+
 try {
     $f=new DevelopmentEventsFixture(false);
     developmentEventAssert(!$f->events->hasActiveSubscriptions(),'empty_has_no_subscription');
@@ -187,6 +188,49 @@ try {
         'overlap_has_one_callback_and_releases_lease');
     developmentEventAssert(!array_diff(array_unique($f->pdo->writes),DevelopmentWorkTestSchema::tables()),'lifecycle_writes_only_development_metadata');
     developmentSubscriptionSetupCases();
+
+    // Recovery during verification is rejected by the existing fresh owner read.
+    $f=new DevelopmentEventsFixture();$target=str_repeat('d',32);
+    $f->grants[$target]=['admin'=>1,'active'=>true,'scopes'=>['development_work:write']];
+    $makeRecovery=static function(DevelopmentEventsFixture $f,string $target):array {
+        $s=$f->queue->status(1,$f->connection,'PILOT');
+        return ['queue_id'=>'PILOT','task_id'=>$s['task_id'],'spec_sha256'=>$s['spec_sha256'],
+            'expected_plan_sha256'=>$s['plan_sha256'],'expected_pending_event_id'=>$s['expected_pending_event_id'],
+            'old_connection_id'=>$f->connection,'expected_caller_connection_id'=>$target,
+            'decision'=>['decision_sha256'=>str_repeat('4',64),'readback_sha256'=>str_repeat('5',64),'reviewer_run_id'=>'SYNTHETIC-RECOVERY-REVIEW']];
+    };
+    $recovery=$makeRecovery($f,$target);
+    $f->verifyHook=static function()use($f,$target,$recovery):void {
+        $f->queue->handoff_connection(1,$target,$recovery,static fn():bool=>true);
+    };
+    developmentEventReject(fn()=>$f->events->subscribe($f->params(),1,$f->connection),DomainException::class,
+        'recovery_during_callback_verification_prevents_old_subscription_commit');
+    developmentEventAssert((int)$f->pdo->query('SELECT COUNT(*) FROM development_work_events')->fetchColumn()===0
+        &&$f->queue->status(1,$target,'PILOT')['state']==='blocked','verification_race_has_no_orphan_and_no_worker_receipt');
+
+    // Model the persisted result of an old subscription transaction committing
+    // after cleanup. The canonical producer supplies its actual key/identity;
+    // this assertion concerns the stale row's authority, not cancellation.
+    $f=new DevelopmentEventsFixture();$target=str_repeat('d',32);
+    $f->grants[$target]=['admin'=>1,'active'=>true,'scopes'=>['development_work:write']];
+    $f->subscribe(false);$oldBinding=$f->row();$recovery=$makeRecovery($f,$target);
+    $f->queue->handoff_connection(1,$target,$recovery,static fn():bool=>true);
+    $f->pdo->prepare('UPDATE development_work_events SET is_active=1,single_consumer_key=? WHERE subscription_id=?')
+        ->execute([$oldBinding['single_consumer_key'],$oldBinding['subscription_id']]);
+    $old=$f->row();
+    developmentEventAssert((int)$old['is_active']===1,
+        'postcheck_race_can_leave_a_late_orphan_not_a_cancellation_guarantee');
+    $setup=$f->events->subscriptionSetup(1,$target,'PILOT');
+    developmentEventAssert(array_column($setup['events'],'state')===['absent','absent'],
+        'old_binding_orphan_is_never_current_target_subscription_metadata');
+    $f->events->subscribe($f->params(),1,$target);
+    $f->requests=[];$tick=$f->events->deliverPending();
+    developmentEventAssert($tick['stopped']===1&&$tick['accepted']===0&&$f->requests===[]
+        &&(int)$f->row()['is_active']===0,'ordinary_delivery_stops_old_orphan_before_any_callback_or_ack');
+    $state=$f->queue->status(1,$target,'PILOT');
+    developmentEventAssert($state['state']==='blocked'&&$state['accepted_count']===0&&$state['worker_receipt_count']===0
+        &&$state['retirement_count']===1,'late_orphan_never_acquires_work_or_acceptance_authority');
+
     echo 'DEVELOPMENT WORK EVENTS: '.$checks." PASS\n";
 } catch (Throwable $error) {
     $class=get_class($error);$file=basename($error->getFile());

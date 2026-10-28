@@ -569,7 +569,7 @@ try {
     $isolatedService=new DevelopmentWorkMcpService($pdo,$isolatedQueue,$clock,$isolatedEvents);
     $isolatedCall=static fn(string $method,array $params=[]):array=>$isolatedService->handle(devOauthRpc($method,$params),1,$isolatedConnection,[$devScope]);
     $isolatedTools=['development_work_create','development_work_append','development_work_status','development_work_claim',
-        'development_work_started','development_work_complete','development_work_resolve_existing_run','development_work_retire_unclaimed'];
+        'development_work_started','development_work_complete','development_work_resolve_existing_run','development_work_retire_unclaimed','development_work_handoff_preflight','development_work_handoff_connection'];
     $isolatedChanges=(int)$pdo->query('SELECT total_changes()')->fetchColumn();
     devOauthCheck('isolated discovery exports exactly frozen eight tools and two development events',
         array_column($isolatedCall('tools/list')['result']['tools'],'name')===$isolatedTools
@@ -786,6 +786,8 @@ try {
 
     devOauthCheck('all trace cases including technical getter failures preserve exact canonical table rows',
         $traceInitialRows===$traceTablesSnapshot());
+    require_once __DIR__.'/mysql/development-work-connection-authority.php';
+    developmentHandoffAuthorityChecks($pdo,$now,static fn(bool $ok,string $label)=>devOauthCheck($label,$ok));
     echo 'DEVELOPMENT WORK OAUTH: '.$passed." PASS\n";
 } finally {
     (new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,null);
