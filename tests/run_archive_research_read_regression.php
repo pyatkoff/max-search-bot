@@ -44,7 +44,7 @@ function archiveResearchReadRegression(PDO $pdo): int
         $pdo->exec("CREATE TABLE telegram_archive_accounts(project_key VARCHAR(64),bot_key VARCHAR(96),account_id $integer,connection_id VARCHAR(64),approved INTEGER,provider_enabled INTEGER,manager_id $integer)");
         $pdo->exec("CREATE TABLE telegram_dialogue_connections(project_key VARCHAR(64),bot_key VARCHAR(96),connection_id VARCHAR(64),account_id $integer,is_enabled INTEGER)");
         $pdo->exec("CREATE TABLE telegram_dialogue_messages(id $integer PRIMARY KEY,project_key VARCHAR(64),account_id $integer,chat_id $integer,message_id $integer,version_at $integer,source_kind VARCHAR(32),is_deleted INTEGER,record_json $text)");
-        $pdo->exec("CREATE UNIQUE INDEX archive_fixture_native ON telegram_dialogue_messages(project_key,account_id,chat_id,message_id)");
+        $pdo->exec("CREATE UNIQUE INDEX uq_telegram_dialogue_message ON telegram_dialogue_messages(project_key,account_id,chat_id,message_id)");
         $pdo->exec("INSERT INTO projects VALUES(1,'anytour',1),(2,'foreign',1)");
         $pdo->exec("INSERT INTO conversations VALUES(1,'anytour','telegram',1,10)");
         $pdo->exec("INSERT INTO customer_channels VALUES(1,10,'anytour','telegram','999','999')");
@@ -106,6 +106,16 @@ function archiveResearchReadRegression(PDO $pdo): int
         $check($inventory['database_writes']===0&&$blockedWrite,'actual_readonly_transaction_rejects_write');
         $check(!$pdo->inTransaction()&&$keyCalls===2,'fresh_key_checks_outside_transaction');
         $check(count($inventorySql)>0&&!array_filter($inventorySql,static fn($sql)=>preg_match('/record_json|JSON_EXTRACT|JSON_VALID|\bLENGTH\s*\(/i',$sql)),'inventory_executes_metadata_sql_without_json_or_lengths');
+        $seekSql=array_values(array_filter($inventorySql,static fn($sql)=>str_contains($sql,'ORDER BY m.chat_id,m.message_id LIMIT 1')));
+        $check(count($seekSql)===2&&!array_filter($seekSql,static fn($sql)=>
+            !str_contains($sql,'AND m.account_id=? AND m.chat_id>?')
+            ||!str_contains($sql,'m.chat_id<>777000 AND NOT EXISTS')
+            ||!str_contains($sql,"m.source_kind='desktop_import'")
+            ||str_contains($sql,'GROUP BY')||str_contains($sql,'m.account_id>? OR')),'inventory_seeks_scoped_keys_before_limit');
+        $metadataSql=array_values(array_filter($inventorySql,static fn($sql)=>str_contains($sql,'AS deleted_records')));
+        $check(count($metadataSql)===1&&str_contains($metadataSql[0],'AND m.account_id=? AND m.chat_id IN (?)')
+            &&!str_contains($metadataSql[0],' LIMIT '),'inventory_aggregates_only_selected_keys_not_sentinel');
+        $check(!$mysql||!array_filter($seekSql,static fn($sql)=>!str_contains($sql,'FORCE INDEX (uq_telegram_dialogue_message)')),'native_seek_uses_existing_ordered_chat_index');
         $check($inventory['snapshot']['row_fence']==='190'&&$inventory['totals']['account_chat_pairs']===6,'owner_and_service_may_set_cutoff_but_are_not_returned');
         $check($inventory['totals']['source_json_bytes']===null&&$inventory['totals']['source_json_bytes_status']==='not_scanned'
             &&$inventory['chats'][0]['source_json_bytes']===null,'unscanned_archive_byte_volume_is_unknown');
@@ -227,7 +237,45 @@ function archiveResearchReadRegression(PDO $pdo): int
         ArchiveResearchTraceStatement::$failure=null;ArchiveResearchTraceStatement::$failureNeedle=null;
         $sanitized=new ArchiveResearchReadException('unavailable','PRIVATE STAGE','PRIVATE CLASS',999999);
         $check($sanitized->stage==='unknown'&&$sanitized->sqlstateClass===null&&$sanitized->driverCode===null,'diagnostic_fields_reject_arbitrary_strings_and_codes');
+        // Dense chats, an empty account before the cursor and restricted-only/trailing-empty accounts.
+        foreach([[99,'EmptyBefore','empty-before'],[105,'OwnerOnly','owner-only'],[107,'After','after'],[108,'EmptyAfter','empty-after']]as[$a,$b,$c]){
+            $pdo->prepare('INSERT INTO telegram_archive_accounts VALUES(?,?,?,?,1,1,NULL)')->execute(['anytour',$b,$a,$c]);
+            $pdo->prepare('INSERT INTO telegram_dialogue_connections VALUES(?,?,?,?,1)')->execute(['anytour',$b,$c,$a]);
+        }
+        for($n=1;$n<=220;$n++)$seed(2000+$n,100,199,$n,'Synthetic dense chat.');
+        $seed(2300,105,999,1,'OWNER ONLY');$seed(2301,105,777000,1,'SERVICE ONLY');
+        $seed(2302,107,1,1,'Synthetic next account.');
+        $seed(2303,100,198,1,'BUSINESS ONLY',['source_kind'=>'business_message','bot_key'=>'ArchiveA']);
+        ArchiveResearchTraceStatement::$queries=[];
+        $dense=$service->inventory(1,$connection,['limit'=>1]);
+        $check($dense['chats'][0]['message_records']===220&&$dense['has_more'],'dense_chat_is_one_key_with_exact_selected_metadata');
+        $pageKeys=[];$pageCounts=[];$cursor=null;$pages=0;
+        do{
+            $args=['limit'=>2];if($cursor!==null)$args['cursor']=$cursor;
+            $page=$service->inventory(1,$connection,$args);
+            foreach($page['chats']as$chat){
+                $body=explode('.',$chat['chat_ref'])[0];
+                $v=json_decode(base64_decode(strtr($body,'-_','+/')),true);
+                $id=$v['a'].':'.$v['c'];$pageKeys[]=$id;$pageCounts[$id]=$chat;
+            }
+            $cursor=$page['next_cursor'];if(++$pages>10)throw new RuntimeException('paging_did_not_advance');
+        }while($cursor!==null);
+        $check($pageKeys===['100:199','100:200','100:201','100:202','100:203','100:204','101:200','107:1'],
+            'bounded_seek_pages_cross_accounts_skip_empty_owner_service_and_business_only_chats');
+        $check($pageCounts['100:200']['message_records']===3&&$pageCounts['100:201']['deleted_records']===1,
+            'selected_chat_counts_keep_historical_and_deleted_semantics');
+        $error=new PDOException('PRIVATE SEEK SQL');$error->errorInfo=['HY000',3024,'PRIVATE'];
+        ArchiveResearchTraceStatement::$failure=$error;
+        ArchiveResearchTraceStatement::$failureNeedle='ORDER BY m.chat_id,m.message_id LIMIT 1';
+        try{$service->inventory(1,$connection);$check(false,'expected_inventory_seek_timeout');}
+        catch(ArchiveResearchReadException$e){$check($e->reason==='time_limit'&&$e->stage==='inventory_page'
+            &&$e->sqlstateClass==='HY'&&$e->driverCode===3024&&!$pdo->inTransaction(),'inventory_seek_timeout_maps_and_rolls_back');}
+        ArchiveResearchTraceStatement::$failure=null;ArchiveResearchTraceStatement::$failureNeedle=null;
+        ArchiveResearchTraceStatement::$queries=[];
         $final=$service->inventory(1,$connection,['limit'=>50]);
+        $finalSeeks=array_filter(ArchiveResearchTraceStatement::$queries,static fn($sql)=>str_contains($sql,'ORDER BY m.chat_id,m.message_id LIMIT 1'));
+        $check(count($finalSeeks)<=count($final['chats'])+6&&!$final['has_more']&&$final['next_cursor']===null,
+            'seek_probes_bounded_by_page_keys_plus_current_accounts');
         $check(strlen(json_encode($final,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR))<=ArchiveResearchReadService::MAX_RESPONSE_BYTES,'full_envelope_byte_cap');
         $check(!$pdo->inTransaction(),'successful_read_rolls_back');
         if(!$mysql)$check((int)$pdo->query('PRAGMA query_only')->fetchColumn()===0,'sqlite_query_only_restored');
