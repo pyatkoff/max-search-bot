@@ -28,7 +28,7 @@ def reject_message_aliases(document):
         for event in observation["evidence"]:
             if event["kind"] != "customer_message":
                 continue
-            refs = {(ref["source"], ref["id"]) for ref in event["references"] if ref["source"] == "message"}
+            refs = {(ref["source"], ref["id"]) for ref in event["references"]}
             if seen & refs:
                 raise NotReady("duplicate_customer_message_source")
             seen.update(refs)

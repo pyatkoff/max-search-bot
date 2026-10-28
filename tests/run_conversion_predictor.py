@@ -185,6 +185,30 @@ class PredictorTests(unittest.TestCase):
         with self.assertRaisesRegex(predictor.NotReady,"duplicate_customer_message_source"):
             predictor.predict(model,{"schema_version":1,"observations":[prospect]})
 
+    def test_non_message_reference_aliases_rejected_in_fit_and_predict(self):
+        for source in ("conversation_event", "selection_action"):
+            with self.subTest(source=source):
+                doc,tr,te=self.dataset()
+                event=item("q1","customer_message",doc["observations"][0]["context_from"])
+                event["subject"]=dict(doc["observations"][0]["subject"])
+                event["references"][0].update(source=source,id="canonical:one")
+                duplicate=copy.deepcopy(event); duplicate["id"]="q2"
+                doc["observations"][0]["evidence"] += [event,duplicate]
+                with self.assertRaisesRegex(predictor.NotReady,"duplicate_customer_message_source"):
+                    predictor.fit_evaluate(doc,tr,te)
+                clean,tr,te=self.dataset(); model=predictor.fit_evaluate(clean,tr,te)["model"]
+                prospect=example("new",True,"2026-10-17T00:00:00Z","2026-10-17T12:00:00Z","2026-10-17T12:00:00Z")
+                event["subject"]=dict(prospect["subject"])
+                event["at"]=event["available_at"]=prospect["context_from"]
+                event["references"][0]["at"]=event["references"][0]["available_at"]=prospect["context_from"]
+                duplicate=copy.deepcopy(event); duplicate["id"]="q2"
+                prospect["evidence"]=[event,duplicate]
+                with self.assertRaisesRegex(predictor.NotReady,"duplicate_customer_message_source"):
+                    predictor.predict(model,{"schema_version":1,"observations":[prospect]})
+                duplicate["references"][0]["id"]="canonical:two"
+                with patch("conversion_predictor.utc_now",return_value="2026-10-17T12:00:01Z"):
+                    self.assertEqual(predictor.predict(model,{"schema_version":1,"observations":[prospect]})["support_n"],0)
+
     def test_rehashed_incoherent_support_rejected(self):
         doc,tr,te=self.dataset(); model=predictor.fit_evaluate(doc,tr,te)["model"]
         model["baseline"]=.9
