@@ -548,8 +548,8 @@ foreach (['claim','run','receipt','foreign_lane'] as $guard) {
 }
 foreach (['claimed','unknown'] as $held) {
     [$pdo,$q,$clock,$self,$e0]=hotelRecoveryFixture();
-    $claim=['queue_id'=>'PILOT','stage_id'=>$self['stage_id'],'claim_key'=>str_repeat('b',64),'expected_pending_event_id'=>$e0['event_id']];
-    $q->claim(1,str_repeat('a',32),$claim);
+    $claim=['queue_id'=>'PILOT','stage_id'=>$self['stage_id'],'claim_key'=>str_repeat('b',64)];
+    $q->claim(1,str_repeat('a',32),$claim+['expected_pending_event_id'=>$e0['event_id']]);
     if ($held==='unknown') {$unknown=array_fill_keys(array_keys(hotelReceipt()),null);$unknown['outcome']='unknown';$q->complete(1,str_repeat('a',32),$claim+['receipt'=>$unknown]);}
     $beforeHeld=$pdo->query("SELECT * FROM hotel_work_queues WHERE queue_id='PILOT'")->fetch(PDO::FETCH_ASSOC);
     hotelAssert($q->pendingEvent(1,str_repeat('a',32),'PILOT')===null
