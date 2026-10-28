@@ -6,7 +6,7 @@ require_once __DIR__.'/DevelopmentWorkQueue.php';
 /** Separate development metadata capability; never a source/publisher lease. */
 final class DevelopmentWorkMcpAdapter
 {
-    public const NAMES=['development_work_create','development_work_append','development_work_status','development_work_claim','development_work_started','development_work_complete','development_work_resolve_existing_run'];
+    public const NAMES=['development_work_create','development_work_append','development_work_status','development_work_claim','development_work_started','development_work_complete','development_work_resolve_existing_run','development_work_retire_unclaimed'];
     public function __construct(private PDO $pdo,private $store=null,private $clock=null) {}
     public static function tools(): array
     {
@@ -21,10 +21,10 @@ final class DevelopmentWorkMcpAdapter
         $receipt=['type'=>'object','properties'=>['run_id'=>$nullableRun,'outcome'=>['type'=>'string','enum'=>['accepted_readback','terminal_blocked','unknown']],
             'result_sha256'=>$nullableSha,'readback_sha256'=>$nullableSha,'acceptance_sha256'=>$nullableSha,'reviewer_run_id'=>$nullableRun,'owned_claims_released'=>['type'=>'boolean']],
             'required'=>['run_id','outcome','result_sha256','readback_sha256','acceptance_sha256','reviewer_run_id','owned_claims_released'],'additionalProperties'=>false];
-        $accepted=$receipt;
-        $accepted['properties']['outcome']=['type'=>'string','const'=>'accepted_readback'];$accepted['properties']['run_id']=$run;$accepted['properties']['reviewer_run_id']=$run;
-        foreach (['result_sha256','readback_sha256','acceptance_sha256'] as $field) $accepted['properties'][$field]=$sha;
-        $accepted['properties']['owned_claims_released']=['type'=>'boolean','const'=>true];
+        $resolved=$receipt;
+        $resolved['properties']['outcome']=['type'=>'string','enum'=>['accepted_readback','terminal_blocked']];$resolved['properties']['run_id']=$run;
+        foreach (['result_sha256','readback_sha256'] as $field) $resolved['properties'][$field]=$sha;
+        $resolved['properties']['owned_claims_released']=['type'=>'boolean','const'=>true];
         $definitions=[
             ['development_work_create','Register one explicitly authorized immutable development plan on the shared DEVELOPMENT lane. Tasks name existing distinct owners/reviewers and immutable input/acceptance hashes; dependencies must already exist or occur earlier in this batch. Metadata only: no source edits, worker dispatch, merge or deploy.',
                 ['queue_id'=>$id,'plan_sha256'=>$sha,'tasks'=>$tasks],['queue_id','plan_sha256','tasks'],false],
@@ -38,8 +38,13 @@ final class DevelopmentWorkMcpAdapter
                 $claim+['run_id'=>$run],[...array_keys($claim),'run_id'],false],
             ['development_work_complete','Record one exact independently verified terminal result. Accepted results require the original run, result/readback/acceptance hashes, a distinct reviewer run and released owned claims. Terminal blocked does not satisfy dependencies. UNKNOWN holds WIP indefinitely; hashes alone never prove acceptance, CI or installation.',
                 $claim+['receipt'=>$receipt],[...array_keys($claim),'receipt'],false],
-            ['development_work_resolve_existing_run','Resolve a held UNKNOWN only against its immutable original receipt hash, retained claim and already-known original run. Preserve any previously known result hash. Independently verify the accepted result/reviewer and released claims; never use resolution to dispatch, retry or invent a run.',
-                $claim+['unknown_receipt_sha256'=>$sha,'expected_run_id'=>$run,'receipt'=>$accepted],[...array_keys($claim),'unknown_receipt_sha256','expected_run_id','receipt'],false],
+            ['development_work_resolve_existing_run','Resolve a held UNKNOWN only against its immutable original receipt hash, retained claim and already-known original run. Preserve any previously known result hash. Independently verify either accepted_readback with a distinct reviewer or terminal_blocked with null acceptance/reviewer fields, and released owned claims. Blocked never satisfies dependencies. Never dispatch, retry or invent a run.',
+                $claim+['unknown_receipt_sha256'=>$sha,'expected_run_id'=>$run,'receipt'=>$resolved],[...array_keys($claim),'unknown_receipt_sha256','expected_run_id','receipt'],false],
+            ['development_work_retire_unclaimed','Retire only exact unclaimed READY metadata after an independent saved decision/readback. Pin the current plan and pending delivery identity as CAS values, not dispatch evidence. Verify the existing owner/route and no private UNKNOWN or unresolved claim/dispatch intent first. No age, worker run, retry or publication is authorized. The task becomes blocked and never satisfies dependencies; only a later ordinary pending may admit another independent task.',
+                ['queue_id'=>$id,'task_id'=>$id,'spec_sha256'=>$sha,'expected_plan_sha256'=>$sha,'expected_pending_event_id'=>['type'=>'string','pattern'=>'^dev_evt_[a-f0-9]{64}$'],
+                    'decision'=>['type'=>'object','properties'=>['decision_sha256'=>$sha,'readback_sha256'=>$sha,'reviewer_run_id'=>$run],
+                        'required'=>['decision_sha256','readback_sha256','reviewer_run_id'],'additionalProperties'=>false]],
+                ['queue_id','task_id','spec_sha256','expected_plan_sha256','expected_pending_event_id','decision'],false],
         ];
         $out=[];$security=[['type'=>'oauth2','scopes'=>[ManagerPreparationOAuth::DEVELOPMENT_SCOPE]]];
         foreach ($definitions as [$name,$description,$properties,$required,$readOnly]) $out[]=['name'=>$name,'description'=>$description,
@@ -52,6 +57,10 @@ final class DevelopmentWorkMcpAdapter
     {
         if (!in_array($name,self::NAMES,true)||$admin<1||preg_match('/\A[a-f0-9]{32}\z/D',$connection)!==1) throw new InvalidArgumentException('invalid_development_work_call');
         if (strlen(json_encode($args,JSON_THROW_ON_ERROR))>32768) throw new InvalidArgumentException('development_work_arguments_too_large');
+        $definition=null;
+        foreach (self::tools() as $tool) if ($tool['name']===$name) {$definition=$tool;break;}
+        if ($definition===null) throw new InvalidArgumentException('invalid_development_work_call');
+        $remaining=2048;self::validateInput($args,$definition['inputSchema'],0,$remaining);
         $operation=substr($name,strlen('development_work_'));
         if ($operation==='status') {
             if (count($args)!==1||!is_string($args['queue_id']??null)) throw new InvalidArgumentException('invalid_development_work_fields');
@@ -70,5 +79,40 @@ final class DevelopmentWorkMcpAdapter
             $result['cron_health']=DevelopmentWorkHealth::snapshot($this->clock!==null?(int)($this->clock)():null);
         }
         return $result;
+    }
+    private static function validateInput(mixed $value,array $schema,int $depth,int &$remaining): void
+    {
+        if ($depth>8||--$remaining<0) throw new InvalidArgumentException('invalid_development_work_fields');
+        $types=is_array($schema['type']??null)?$schema['type']:[$schema['type']??null];$matched=false;
+        foreach ($types as $type) {
+            $matched=$matched||match ($type) {
+                'object'=>is_array($value)&&($value===[]||!array_is_list($value)),
+                'array'=>is_array($value)&&array_is_list($value),'string'=>is_string($value),'integer'=>is_int($value),
+                'boolean'=>is_bool($value),'null'=>$value===null,default=>false,
+            };
+        }
+        if (!$matched||(isset($schema['enum'])&&!in_array($value,$schema['enum'],true))
+            ||(array_key_exists('const',$schema)&&$value!==$schema['const'])) throw new InvalidArgumentException('invalid_development_work_fields');
+        if (is_string($value)) {
+            if ((isset($schema['minLength'])&&strlen($value)<$schema['minLength'])||(isset($schema['maxLength'])&&strlen($value)>$schema['maxLength'])
+                ||(isset($schema['pattern'])&&preg_match('~'.str_replace('~','\~',$schema['pattern']).'~D',$value)!==1)) throw new InvalidArgumentException('invalid_development_work_fields');
+        }
+        if (is_int($value)&&((isset($schema['minimum'])&&$value<$schema['minimum'])||(isset($schema['maximum'])&&$value>$schema['maximum']))) throw new InvalidArgumentException('invalid_development_work_fields');
+        if (in_array('object',$types,true)&&is_array($value)&&($value===[]||!array_is_list($value))) {
+            $properties=$schema['properties']??[];
+            if (($schema['additionalProperties']??true)===false&&array_diff(array_keys($value),array_keys($properties))) throw new InvalidArgumentException('invalid_development_work_fields');
+            foreach ($schema['required']??[] as $field) if (!array_key_exists($field,$value)) throw new InvalidArgumentException('invalid_development_work_fields');
+            foreach ($value as $field=>$child) if (isset($properties[$field])) self::validateInput($child,$properties[$field],$depth+1,$remaining);
+        } elseif (in_array('array',$types,true)&&is_array($value)&&array_is_list($value)) {
+            if ((isset($schema['minItems'])&&count($value)<$schema['minItems'])||(isset($schema['maxItems'])&&count($value)>$schema['maxItems'])) throw new InvalidArgumentException('invalid_development_work_fields');
+            $seen=[];
+            foreach ($value as $child) {
+                if (($schema['uniqueItems']??false)===true) {
+                    $key=json_encode($child,JSON_THROW_ON_ERROR);
+                    if (isset($seen[$key])) throw new InvalidArgumentException('invalid_development_work_fields');$seen[$key]=true;
+                }
+                if (isset($schema['items'])) self::validateInput($child,$schema['items'],$depth+1,$remaining);
+            }
+        }
     }
 }

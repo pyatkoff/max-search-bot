@@ -127,7 +127,7 @@ final class DevelopmentWorkQueue
         self::keys($args,['queue_id','task_id','spec_sha256','claim_key','unknown_receipt_sha256','expected_run_id','receipt']);
         [$id,$task,$spec,$claim]=$this->claimArgs($args);$unknown=self::sha($args['unknown_receipt_sha256']??null);$run=self::run($args['expected_run_id']??null);
         $receipt=self::receipt($args['receipt']??null);
-        if ($receipt['outcome']!=='accepted_readback'||$receipt['run_id']!==$run) throw new InvalidArgumentException('invalid_development_work_resolution');
+        if (!in_array($receipt['outcome'],['accepted_readback','terminal_blocked'],true)||$receipt['run_id']!==$run) throw new InvalidArgumentException('invalid_development_work_resolution');
         $json=self::canonical($receipt);$hash=hash('sha256',$json);$resolution=self::hash([$id,$task,$spec,$unknown,$run,$hash]);
         return $this->transaction(function() use($id,$task,$spec,$claim,$unknown,$run,$receipt,$json,$hash,$resolution,$admin,$connection): array {
             $lane=$this->lane();$q=$this->owned($id,$admin,$connection,true);$item=$this->exactItem($id,$task,$spec);
@@ -147,6 +147,35 @@ final class DevelopmentWorkQueue
             $this->execute('INSERT INTO development_work_resolutions (queue_id,task_id,unknown_receipt_sha256,resolution_sha256,receipt_sha256,receipt_json,created_at) VALUES (?,?,?,?,?,?,?)',[$id,$task,$unknown,$resolution,$hash,$json,$now]);
             $this->execute('UPDATE development_work_queues SET last_resolution_task_id=? WHERE queue_id=?',[$task,$id]);
             return $this->project($this->finish($q,$item,$receipt,$lane,$now))+['resolution_status'=>'existing_run_receipt_attested','receipt_sha256'=>$hash];
+        });
+    }
+    public function retire_unclaimed(int $admin,string $connection,array $args): array
+    {
+        $intent=self::retirementIntent($args);$id=$intent['queue_id'];$task=$intent['task_id'];$spec=$intent['spec_sha256'];
+        $json=self::canonical($intent);$hash=self::hash(['namespace'=>'development_work_retirement_v1','intent'=>$intent]);
+        return $this->transaction(function() use($id,$task,$spec,$intent,$json,$hash,$admin,$connection): array {
+            $lane=$this->lane();$q=$this->owned($id,$admin,$connection,true);
+            $prior=$this->one('SELECT retirement_sha256 FROM development_work_retirements WHERE queue_id=? AND task_id=?',[$id,$task]);
+            if ($prior) {
+                $record=$this->retirementMetadata($q,$task);
+                if (!hash_equals($record['retirement_sha256'],$hash)) throw new DevelopmentWorkQueueConflict('retirement_conflict');
+                return $this->project($q)+['retirement_status'=>'already_recorded','retirement_sha256'=>$hash,'recorded_retirement'=>$record];
+            }
+            $this->ownsLane($q,$lane);$item=$this->current($q,$task,$spec);
+            if ($q['plan_sha256']!==$intent['expected_plan_sha256']) throw new DevelopmentWorkQueueConflict('plan_conflict');
+            if (!hash_equals($this->eventId($q,$item,false),$intent['expected_pending_event_id'])) throw new DevelopmentWorkQueueConflict('stale_pending_event');
+            if ($q['state']!=='ready'||$item['state']!=='ready'||$item['claim_sha256']!==null||$item['current_run_id']!==null) throw new DevelopmentWorkQueueConflict('not_known_idle');
+            if ($this->one('SELECT task_id FROM development_work_receipts WHERE queue_id=? AND task_id=?',[$id,$task])
+                ||$this->one('SELECT task_id FROM development_work_resolutions WHERE queue_id=? AND task_id=?',[$id,$task])) throw new DevelopmentWorkQueueConflict('current_receipt_exists');
+            if ($this->one('SELECT queue_id FROM development_work_items WHERE state IN (?,?) OR claim_sha256 IS NOT NULL OR current_run_id IS NOT NULL LIMIT 1',['claimed','unknown'])
+                ||$this->one('SELECT queue_id FROM development_work_queues WHERE state IN (?,?) LIMIT 1',['claimed','unknown'])) throw new DevelopmentWorkQueueConflict('development_work_unresolved');
+            $now=$this->now();$decision=$intent['decision'];
+            $this->execute('INSERT INTO development_work_retirements (queue_id,task_id,spec_sha256,expected_plan_sha256,expected_pending_event_id,decision_sha256,readback_sha256,reviewer_run_id,retirement_sha256,retirement_json,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+                [$id,$task,$spec,$intent['expected_plan_sha256'],$intent['expected_pending_event_id'],$decision['decision_sha256'],$decision['readback_sha256'],$decision['reviewer_run_id'],$hash,$json,$now]);
+            $this->execute('UPDATE development_work_items SET state=?,event_ack=NULL,delivered_at=NULL,claim_deadline=NULL,attention_at=NULL,attention_ack=NULL,watchdog_due_at=NULL,watchdog_epoch=0,last_watch_ack=NULL,updated_at=? WHERE queue_id=? AND task_id=?',['blocked',$now,$id,$task]);
+            $this->execute('UPDATE development_work_queues SET current_task_id=NULL,state=?,blocked_count=blocked_count+1,retirement_count=retirement_count+1,last_retirement_task_id=?,updated_at=? WHERE queue_id=?',['ready',$task,$now,$id]);
+            $next=$this->selectNext($this->owned($id,$admin,$connection),$lane,$now);
+            return $this->project($next)+['retirement_status'=>'retired_unclaimed_not_worker_receipt','retirement_sha256'=>$hash,'recorded_retirement'=>$this->retirementMetadata($next,$task)];
         });
     }
     public function eventCandidates(int $limit=20): array
@@ -187,7 +216,9 @@ final class DevelopmentWorkQueue
     {
         $id=self::id($queueId);
         return $this->transaction(function() use($id,$eventId,$admin,$connection): array {
-            $lane=$this->lane();$q=$this->owned($id,$admin,$connection,true);$this->ownsLane($q,$lane);$item=$this->current($q);$now=$this->now();
+            $lane=$this->lane();$q=$this->owned($id,$admin,$connection,true);
+            if ($q['current_task_id']===null||!in_array($q['state'],['ready','claimed','unknown'],true)) throw new DevelopmentWorkQueueConflict('stale_event');
+            $this->ownsLane($q,$lane);$item=$this->current($q);$now=$this->now();
             if (in_array($item['state'],['claimed','unknown'],true)) {
                 if ($item['last_watch_ack']===$eventId) return $this->project($q);
                 if ($eventId!==$this->watchEventId($q,$item)||$item['watchdog_due_at']===null||$item['watchdog_due_at']>$now) throw new DevelopmentWorkQueueConflict('stale_event');
@@ -265,9 +296,13 @@ final class DevelopmentWorkQueue
             $r=$this->one('SELECT receipt_sha256 FROM development_work_receipts WHERE queue_id=? AND task_id=?',[$q['queue_id'],$q['current_task_id']]);
             if (!$r) throw new RuntimeException('development_work_unknown_receipt_unavailable');$unknown=$r['receipt_sha256'];
         }
+        $workerReceipts=(int)$this->one('SELECT COUNT(*) AS n FROM development_work_receipts WHERE queue_id=?',[$q['queue_id']])['n'];
+        $retirements=(int)$this->one('SELECT COUNT(*) AS n FROM development_work_retirements WHERE queue_id=?',[$q['queue_id']])['n'];
+        if ($retirements!==(int)$q['retirement_count']||$retirements>(int)$q['blocked_count']
+            ||$workerReceipts!==(int)$q['accepted_count']+(int)$q['blocked_count']-$retirements+($state==='unknown'?1:0)) throw new RuntimeException('development_work_stored_state_invalid');
         $out=['ok'=>true,'project_key'=>self::PROJECT,'queue_id'=>$q['queue_id'],'oauth_connection_id'=>$q['oauth_connection_id'],
             'plan_sha256'=>$q['plan_sha256'],'state'=>$state,'task_count'=>(int)$q['task_count'],'accepted_count'=>(int)$q['accepted_count'],'blocked_count'=>(int)$q['blocked_count'],
-            'receipt_count'=>(int)$q['accepted_count']+(int)$q['blocked_count']+($state==='unknown'?1:0),
+            'receipt_count'=>$workerReceipts,'worker_receipt_count'=>$workerReceipts,'retirement_count'=>$retirements,
             'unknown_receipt_sha256'=>$unknown,'receipt_semantics'=>'authenticated_attestation_not_independent_result_proof',
             'created_at'=>$q['created_at'],'updated_at'=>$q['updated_at']];
         foreach (['task_id','spec_sha256','owner_task_id','reviewer_task_id','input_sha256','acceptance_contract_sha256','current_run_id','claim_deadline','watchdog_due_at'] as $field) $out[$field]=$item[$field]??null;
@@ -275,10 +310,37 @@ final class DevelopmentWorkQueue
         $out['watchdog_epoch']=$item===null?0:(int)$item['watchdog_epoch'];
         $out['expected_pending_event_id']=$item!==null&&$state==='ready'&&$item['claim_sha256']===null&&$item['current_run_id']===null?$this->eventId($q,$item,false):null;
         $out['delivery_state']=$item===null?$state:($state!=='ready'?$state:($item['attention_at']!==null?'attention_required':($item['event_ack']!==null?'awaiting_claim':'ready')));
+        $out['last_retirement']=$q['last_retirement_task_id']===null?null:$this->retirementMetadata($q,$q['last_retirement_task_id']);
         $out['last_append']=$this->appendMetadata($q);
         $out['last_receipt']=$q['last_receipt_task_id']===null?null:$this->receiptMetadata($q,$q['last_receipt_task_id'],false);
         $out['last_resolution']=$q['last_resolution_task_id']===null?null:$this->receiptMetadata($q,$q['last_resolution_task_id'],true);
         return $out;
+    }
+    private function retirementMetadata(array $q,string $task): array
+    {
+        $record=$this->one('SELECT * FROM development_work_retirements WHERE queue_id=? AND task_id=?',[$q['queue_id'],$task]);
+        if (!$record||!is_string($record['retirement_json'])||!is_string($record['retirement_sha256'])) throw new RuntimeException('development_work_stored_retirement_invalid');
+        $intent=self::retirementIntent(json_decode($record['retirement_json'],true,16,JSON_THROW_ON_ERROR));
+        $hash=self::hash(['namespace'=>'development_work_retirement_v1','intent'=>$intent]);$item=$this->exactItem($q['queue_id'],$task,$intent['spec_sha256']);
+        if ($intent['queue_id']!==$q['queue_id']||$intent['task_id']!==$task||self::canonical($intent)!==$record['retirement_json']
+            ||!hash_equals($hash,$record['retirement_sha256'])||$item['state']!=='blocked'||$item['claim_sha256']!==null||$item['current_run_id']!==null
+            ||$record['spec_sha256']!==$intent['spec_sha256']||$record['expected_plan_sha256']!==$intent['expected_plan_sha256']
+            ||$record['expected_pending_event_id']!==$intent['expected_pending_event_id']||$intent['expected_pending_event_id']!==$this->eventId($q,$item,false)
+            ||$record['decision_sha256']!==$intent['decision']['decision_sha256']||$record['readback_sha256']!==$intent['decision']['readback_sha256']
+            ||$record['reviewer_run_id']!==$intent['decision']['reviewer_run_id']
+            ||$this->one('SELECT task_id FROM development_work_receipts WHERE queue_id=? AND task_id=?',[$q['queue_id'],$task])
+            ||$this->one('SELECT task_id FROM development_work_resolutions WHERE queue_id=? AND task_id=?',[$q['queue_id'],$task])) throw new RuntimeException('development_work_stored_retirement_invalid');
+        return $intent+['retirement_sha256'=>$hash,'created_at'=>$record['created_at'],'record_type'=>'metadata_retirement_not_worker_receipt'];
+    }
+    private static function retirementIntent(array $args): array
+    {
+        self::keys($args,['queue_id','task_id','spec_sha256','expected_plan_sha256','expected_pending_event_id','decision']);
+        $event=$args['expected_pending_event_id']??null;$decision=$args['decision']??null;
+        if (!is_string($event)||preg_match('/\Adev_evt_[a-f0-9]{64}\z/D',$event)!==1||!is_array($decision)||array_is_list($decision)
+            ||count($decision)!==3||array_diff(['decision_sha256','readback_sha256','reviewer_run_id'],array_keys($decision))) throw new InvalidArgumentException('invalid_development_work_retirement');
+        return ['queue_id'=>self::id($args['queue_id']??null),'task_id'=>self::id($args['task_id']??null),'spec_sha256'=>self::sha($args['spec_sha256']??null),
+            'expected_plan_sha256'=>self::sha($args['expected_plan_sha256']??null),'expected_pending_event_id'=>$event,
+            'decision'=>['decision_sha256'=>self::sha($decision['decision_sha256']),'readback_sha256'=>self::sha($decision['readback_sha256']),'reviewer_run_id'=>self::run($decision['reviewer_run_id'])]];
     }
     private function appendMetadata(array $q): ?array
     {
@@ -321,7 +383,8 @@ final class DevelopmentWorkQueue
             return;
         }
         if ($original['receipt']['outcome']!=='unknown') throw new RuntimeException('development_work_stored_receipt_invalid');
-        $this->verifiedReceipt($q,$item,true);
+        $resolved=$this->verifiedReceipt($q,$item,true);
+        if ($resolved['receipt']['outcome']!=='accepted_readback') throw new RuntimeException('development_work_stored_receipt_invalid');
     }
     private function verifiedReceipt(array $q,array $item,bool $resolution): array
     {
@@ -334,7 +397,7 @@ final class DevelopmentWorkQueue
         if ($json!==$record['receipt_json']||!hash_equals($record['receipt_sha256'],hash('sha256',$json))) throw new RuntimeException('development_work_stored_receipt_invalid');
         if ($resolution) {
             $original=$this->verifiedReceipt($q,$item,false);$before=$original['receipt'];
-            if ($before['outcome']!=='unknown'||$before['run_id']===null||$receipt['outcome']!=='accepted_readback'
+            if ($before['outcome']!=='unknown'||$before['run_id']===null||!in_array($receipt['outcome'],['accepted_readback','terminal_blocked'],true)
                 ||$receipt['run_id']!==$before['run_id']||$record['unknown_receipt_sha256']!==$original['record']['receipt_sha256']
                 ||($before['result_sha256']!==null&&$before['result_sha256']!==$receipt['result_sha256'])) throw new RuntimeException('development_work_stored_receipt_invalid');
             $expected=self::hash([$q['queue_id'],$item['task_id'],$item['spec_sha256'],$original['record']['receipt_sha256'],$before['run_id'],$record['receipt_sha256']]);

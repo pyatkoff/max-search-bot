@@ -10,6 +10,8 @@ CREATE TABLE IF NOT EXISTS development_work_queues (
     current_task_id VARBINARY(80) NULL,
     last_receipt_task_id VARBINARY(80) NULL,
     last_resolution_task_id VARBINARY(80) NULL,
+    last_retirement_task_id VARBINARY(80) NULL,
+    retirement_count INT UNSIGNED NOT NULL DEFAULT 0,
     state VARCHAR(16) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
     task_count INT UNSIGNED NOT NULL,
     accepted_count INT UNSIGNED NOT NULL DEFAULT 0,
@@ -19,6 +21,23 @@ CREATE TABLE IF NOT EXISTS development_work_queues (
     PRIMARY KEY (queue_id),
     KEY idx_development_work_owner (project_key,admin_id,oauth_connection_id,state)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- Independent decisions retire metadata only, never worker results.
+CREATE TABLE IF NOT EXISTS development_work_retirements (
+    queue_id VARBINARY(80) NOT NULL,
+    task_id VARBINARY(80) NOT NULL,
+    spec_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    expected_plan_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    expected_pending_event_id VARCHAR(96) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    decision_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    readback_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    reviewer_run_id VARCHAR(128) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    retirement_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    retirement_json VARBINARY(2048) NOT NULL,
+    created_at DATETIME NOT NULL,
+    PRIMARY KEY (queue_id,task_id),
+    UNIQUE KEY uq_development_work_retirement (retirement_sha256)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Append-only immutable plan revision intents.
 CREATE TABLE IF NOT EXISTS development_work_appends (
     queue_id VARBINARY(80) NOT NULL,

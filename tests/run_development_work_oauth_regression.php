@@ -113,6 +113,59 @@ try {
         &&($claimSchema['properties']['expected_pending_event_id']['pattern']??null)==='^dev_evt_[a-f0-9]{64}$'
         &&!isset($tools['development_work_started']['inputSchema']['properties']['expected_pending_event_id'])
         &&!isset($tools['development_work_complete']['inputSchema']['properties']['expected_pending_event_id']));
+    $resolutionSchema=$tools['development_work_resolve_existing_run']['inputSchema']['properties']['receipt'];
+    $resolutionProperties=$resolutionSchema['properties'];
+    devOauthCheck('resolution advertises accepted or terminal blocked evidence while unknown remains held',
+        ($resolutionProperties['outcome']['enum']??[])===['accepted_readback','terminal_blocked']
+        &&($resolutionProperties['run_id']['type']??null)==='string'
+        &&($resolutionProperties['result_sha256']['type']??null)==='string'
+        &&($resolutionProperties['readback_sha256']['type']??null)==='string'
+        &&($resolutionProperties['owned_claims_released']['const']??null)===true);
+    devOauthCheck('resolution keeps conditional acceptance fields nullable with all evidence fields explicit',
+        in_array('null',(array)($resolutionProperties['acceptance_sha256']['type']??[]),true)
+        &&in_array('null',(array)($resolutionProperties['reviewer_run_id']['type']??[]),true)
+        &&$resolutionSchema['required']===['run_id','outcome','result_sha256','readback_sha256','acceptance_sha256','reviewer_run_id','owned_claims_released']
+        &&$resolutionSchema['additionalProperties']===false);
+    $retirementSchema=$tools['development_work_retire_unclaimed']['inputSchema'];
+    $retirementRequired=$retirementSchema['required'];sort($retirementRequired);
+    $retirementFields=['queue_id','task_id','spec_sha256','expected_plan_sha256','expected_pending_event_id','decision'];sort($retirementFields);
+    $decisionSchema=$retirementSchema['properties']['decision'];$decisionRequired=$decisionSchema['required'];sort($decisionRequired);
+    devOauthCheck('unclaimed retirement declares a separate strict metadata decision without worker run or claim input',
+        $retirementRequired===$retirementFields&&$retirementSchema['additionalProperties']===false
+        &&!isset($retirementSchema['properties']['claim_key'])&&!isset($retirementSchema['properties']['run_id'])
+        &&!isset($retirementSchema['properties']['receipt'])
+        &&($retirementSchema['properties']['expected_pending_event_id']['pattern']??null)==='^dev_evt_[a-f0-9]{64}$'
+        &&$decisionRequired===['decision_sha256','readback_sha256','reviewer_run_id']&&$decisionSchema['additionalProperties']===false);
+    $retirementCalls=0;$seenRetirement=null;
+    $retirementStore=static function(string $operation,array $args) use (&$retirementCalls,&$seenRetirement):array {
+        ++$retirementCalls;$seenRetirement=[$operation,$args];return ['ok'=>true,'operation'=>$operation];
+    };
+    $retirementService=new ManagerPreparationMcpService($pdo,$legacyStore,null,$clock,null,null,null,$hotelStore,$hotelEvents,$retirementStore,$events);
+    $retirementArgs=['queue_id'=>'SYNTHETIC_DEV','task_id'=>'A','spec_sha256'=>str_repeat('5',64),
+        'expected_plan_sha256'=>str_repeat('6',64),'expected_pending_event_id'=>'dev_evt_'.str_repeat('7',64),
+        'decision'=>['decision_sha256'=>str_repeat('8',64),'readback_sha256'=>str_repeat('9',64),'reviewer_run_id'=>'SYNTHETIC-REVIEW']];
+    $retirementRpc=static fn(array $args,string $profile):array=>$retirementService->handle(devOauthRpc('tools/call',
+        ['name'=>'development_work_retire_unclaimed','arguments'=>$args]),1,$connections[$profile],$profiles[$profile]);
+    $retirementReply=$retirementRpc($retirementArgs,'dev');
+    devOauthCheck('authorized retirement forwards only the exact metadata intent and canonical owner',
+        ($retirementReply['result']['structuredContent']['operation']??null)==='retire_unclaimed'
+        &&$seenRetirement===['retire_unclaimed',[1,$connections['dev'],$retirementArgs]]&&$retirementCalls===1);
+    foreach ([
+        $retirementArgs+['claim_key'=>str_repeat('b',64)],$retirementArgs+['run_id'=>'INVENTED'],
+        $retirementArgs+['owned_claims_released'=>true],
+        array_replace($retirementArgs,['expected_pending_event_id'=>'hotel_evt_'.str_repeat('7',64)]),
+        array_replace($retirementArgs,['expected_plan_sha256'=>'not-a-sha']),
+        array_replace($retirementArgs,['decision'=>array_replace($retirementArgs['decision'],['reviewer_run_id'=>null])]),
+        array_replace($retirementArgs,['decision'=>$retirementArgs['decision']+['dispatch_allowed'=>true]])
+    ] as $badRetirement) {
+        $denied=$retirementRpc($badRetirement,'dev');
+        devOauthCheck('retirement rejects forged worker proof foreign event or malformed decision before queue callback',
+            ($denied['error']['code']??null)===-32602&&$retirementCalls===1);
+    }
+    $legacyRetirement=$retirementRpc($retirementArgs,'legacy');
+    devOauthCheck('retirement never upgrades a legacy grant or routes to hotel or reply stores',
+        devOauthChallengeScopes($legacyRetirement)===array_merge($legacyScopes,[$devScope])
+        &&$retirementCalls===1&&$hotelCalls===0&&$legacyCalls===0&&$developmentCalls===0);
     $grantBefore=$pdo->query('SELECT * FROM manager_preparation_oauth_grants ORDER BY grant_id')->fetchAll(PDO::FETCH_ASSOC);
     $tokenBefore=$pdo->query('SELECT * FROM manager_preparation_oauth_tokens ORDER BY token_hash')->fetchAll(PDO::FETCH_ASSOC);
     foreach (['legacy','hotel'] as $profile) {
@@ -135,7 +188,7 @@ try {
     }
     $hotelChallenge=$call('tools/call',['name'=>'hotel_work_status','arguments'=>['queue_id'=>'SYNTHETIC_HOTEL']],'dev');
     devOauthCheck('development consent does not grant hotel access or reply rights',
-        devOauthChallengeScopes($hotelChallenge)===[$hotelScope,$devScope]&&$hotelCalls===0);
+        ($hotelChallenge['error']['code']??null)===-32001&&$hotelCalls===0);
     $ok=$call('tools/call',['name'=>'development_work_status','arguments'=>['queue_id'=>'SYNTHETIC_DEV']],'dev');
     devOauthCheck('development call reaches only its own adapter',($ok['result']['structuredContent']['operation']??null)==='status'
         &&$developmentCalls===1&&$hotelCalls===0&&$legacyCalls===0);

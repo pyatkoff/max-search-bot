@@ -15,6 +15,50 @@ function devReceipt(string $run='RUN-A',string $outcome='accepted_readback'): ar
         'readback_sha256'=>str_repeat('2',64),'acceptance_sha256'=>$outcome==='terminal_blocked'?null:str_repeat('3',64),
         'reviewer_run_id'=>$outcome==='terminal_blocked'?null:'REVIEW-'.$run,'owned_claims_released'=>true];
 }
+function devRetireArgs(DevelopmentWorkQueue $q): array
+{
+    $s=devStatus($q);$event=$q->pendingEvent(1,str_repeat('a',32),'DEV');
+    return ['queue_id'=>'DEV','task_id'=>$s['task_id'],'spec_sha256'=>$s['spec_sha256'],
+        'expected_plan_sha256'=>$s['plan_sha256'],'expected_pending_event_id'=>$event['event_id'],
+        'decision'=>['decision_sha256'=>str_repeat('4',64),'readback_sha256'=>str_repeat('5',64),
+            'reviewer_run_id'=>'REVIEW-RETIRE-'.$s['task_id']]];
+}
+if (($argv[1]??'')==='--development-retire-race-child') {
+    [$unused,$mode,$barrier,$out,$file,$action]=array_pad($argv,6,'');
+    $pdo=new DevelopmentWorkTestPdo($file==='MYSQL'?null:$file,false);$hold=(object)['armed'=>false];
+    $q=new DevelopmentWorkQueue($pdo,static function() use($out,$hold): int {
+        if ($hold->armed) {
+            $hold->armed=false;file_put_contents($out.'.locked','locked');$until=microtime(true)+10;
+            while (!is_file($out.'.release')&&microtime(true)<$until) usleep(1000);
+            if (!is_file($out.'.release')) throw new RuntimeException('retirement_race_release_timeout');
+        }
+        return 1793100000;
+    });
+    $s=$q->status(1,str_repeat('a',32),'DEV');
+    file_put_contents($out.'.ready',$s['task_id']);file_put_contents($out.'.event',$s['expected_pending_event_id']);
+    $until=microtime(true)+10;
+    while (!is_file($barrier)&&microtime(true)<$until) usleep(1000);
+    if (!is_file($barrier)) exit(3);
+    file_put_contents($out.'.attempting','attempting');$hold->armed=str_ends_with($action,'-winner');
+    $action=str_replace('-winner','',$action);
+    try {
+        if ($action==='block') {
+            $q->retire_unclaimed(1,str_repeat('a',32),['queue_id'=>'DEV','task_id'=>$s['task_id'],'spec_sha256'=>$s['spec_sha256'],
+                'expected_plan_sha256'=>$s['plan_sha256'],'expected_pending_event_id'=>$s['expected_pending_event_id'],
+                'decision'=>['decision_sha256'=>str_repeat('4',64),'readback_sha256'=>str_repeat('5',64),
+                    'reviewer_run_id'=>'REVIEW-RETIRE-'.$s['task_id']]]);
+            $result='blocked';
+        } elseif ($action==='claim') {
+            $result=$q->claim(1,str_repeat('a',32),['queue_id'=>'DEV','task_id'=>$s['task_id'],'spec_sha256'=>$s['spec_sha256'],
+                'claim_key'=>str_repeat('b',64),'expected_pending_event_id'=>$s['expected_pending_event_id']])['claim_status'];
+        } elseif ($action==='ack') {
+            $q->markEventDelivered(1,str_repeat('a',32),'DEV',$s['expected_pending_event_id']);$result='acknowledged';
+        } else exit(4);
+    } catch (DevelopmentWorkQueueConflict $error) {$result='conflict';}
+    catch (DomainException $error) {$result='access_denied';}
+    file_put_contents($out,$result);exit(0);
+}
+
 if (($argv[1]??'')==='--development-race-child') {
     [$unused,$mode,$barrier,$out,$file,$action]=array_pad($argv,6,'');
     $pdo=new DevelopmentWorkTestPdo($file==='MYSQL'?null:$file,false);$hold=(object)['armed'=>false];
@@ -324,6 +368,67 @@ devReject(fn()=>$q->resolve_existing_run(1,str_repeat('a',32),$a+['unknown_recei
     'expected_run_id'=>'GUESSED','receipt'=>devReceipt('GUESSED')]),DevelopmentWorkQueueConflict::class,
     'unknown_without_a_bound_run_cannot_adopt_an_invented_run');
 
+// An exact original UNKNOWN run may prove a terminal block without accepting its dependencies.
+[$pdo,$q,$clock]=devFixture();$args=devStart($q,'ORIGINAL-BLOCKED');
+$unknown=['run_id'=>'ORIGINAL-BLOCKED','outcome'=>'unknown','result_sha256'=>str_repeat('1',64),
+    'readback_sha256'=>null,'acceptance_sha256'=>null,'reviewer_run_id'=>null,'owned_claims_released'=>false];
+$q->complete(1,str_repeat('a',32),$args+['receipt'=>$unknown]);$held=devStatus($q);
+$originalUnknown=$pdo->query("SELECT * FROM development_work_receipts WHERE task_id='A'")->fetch(PDO::FETCH_ASSOC);
+$blockedReceipt=devReceipt('ORIGINAL-BLOCKED','terminal_blocked');
+$resolve=$args+['unknown_receipt_sha256'=>$held['unknown_receipt_sha256'],'expected_run_id'=>'ORIGINAL-BLOCKED','receipt'=>$blockedReceipt];
+foreach ([
+    ['unknown_receipt_sha256'=>str_repeat('f',64)],['expected_run_id'=>'REPLACEMENT'],['claim_key'=>str_repeat('c',64)],
+    ['spec_sha256'=>str_repeat('f',64)],['receipt'=>array_replace($blockedReceipt,['run_id'=>'DIFFERENT-RUN'])],
+    ['receipt'=>array_replace($blockedReceipt,['result_sha256'=>str_repeat('f',64)])],
+    ['receipt'=>array_replace($blockedReceipt,['readback_sha256'=>null])],
+    ['receipt'=>array_replace($blockedReceipt,['reviewer_run_id'=>'UNUSED-REVIEW'])],
+    ['receipt'=>array_replace($blockedReceipt,['acceptance_sha256'=>str_repeat('3',64)])],
+    ['receipt'=>array_replace($blockedReceipt,['owned_claims_released'=>false])],
+    ['receipt'=>array_replace($blockedReceipt,['outcome'=>'unknown'])]
+] as $bad) {
+    devReject(fn()=>$q->resolve_existing_run(1,str_repeat('a',32),array_replace($resolve,$bad)),
+        [InvalidArgumentException::class,DevelopmentWorkQueueConflict::class],
+        'blocked_resolution_requires_exact_retained_run_spec_hash_key_result_and_released_claims');
+    devAssert(devStatus($q)['state']==='unknown'&&devStatus($q)['task_id']==='A'
+        &&devStatus($q)['accepted_count']===0&&devStatus($q)['blocked_count']===0
+        &&$originalUnknown===$pdo->query("SELECT * FROM development_work_receipts WHERE task_id='A'")->fetch(PDO::FETCH_ASSOC)
+        &&(int)$pdo->query('SELECT COUNT(*) FROM development_work_resolutions')->fetchColumn()===0,
+        'invalid_blocked_resolution_never_rewrites_unknown_or_satisfies_a_dependency');
+}
+$q->resolve_existing_run(1,str_repeat('a',32),$resolve);$afterBlocked=devStatus($q);
+$storedBlocked=$pdo->query("SELECT * FROM development_work_resolutions WHERE task_id='A'")->fetch(PDO::FETCH_ASSOC);
+$readback=json_decode($storedBlocked['receipt_json'],true,16,JSON_THROW_ON_ERROR);$expected=$blockedReceipt;ksort($readback);ksort($expected);
+devAssert($afterBlocked['state']==='ready'&&$afterBlocked['task_id']==='C'
+    &&$afterBlocked['accepted_count']===0&&$afterBlocked['blocked_count']===1
+    &&($afterBlocked['last_resolution']['task_id']??null)==='A'
+    &&$originalUnknown===$pdo->query("SELECT * FROM development_work_receipts WHERE task_id='A'")->fetch(PDO::FETCH_ASSOC)
+    &&$readback===$expected&&hash('sha256',$storedBlocked['receipt_json'])===$storedBlocked['receipt_sha256'],
+    'verified_blocked_original_run_preserves_unknown_and_selects_only_independent_work');
+$q->resolve_existing_run(1,str_repeat('a',32),$resolve);
+devAssert(devStatus($q)===$afterBlocked
+    &&(int)$pdo->query('SELECT COUNT(*) FROM development_work_resolutions')->fetchColumn()===1,
+    'identical_blocked_resolution_never_double_advances_or_counts_as_acceptance');
+$independent=devStart($q,'INDEPENDENT-C');$q->complete(1,str_repeat('a',32),$independent+['receipt'=>devReceipt('INDEPENDENT-C')]);
+$dependentAfterBlocked=$pdo->query("SELECT state,claim_sha256,current_run_id FROM development_work_items WHERE task_id='B'")->fetch(PDO::FETCH_ASSOC);
+devAssert(devStatus($q)['state']==='blocked'&&devStatus($q)['task_id']===null
+    &&devStatus($q)['accepted_count']===1&&devStatus($q)['blocked_count']===1
+    &&$q->pendingEvent(1,str_repeat('a',32),'DEV')===null
+    &&in_array($dependentAfterBlocked['state'],['pending','blocked'],true)&&$dependentAfterBlocked['claim_sha256']===null
+    &&$dependentAfterBlocked['current_run_id']===null
+    &&(int)$pdo->query("SELECT COUNT(*) FROM development_work_receipts WHERE task_id='B'")->fetchColumn()===0,
+    'terminal_blocked_resolution_does_not_unblock_its_dependent_after_other_work_is_accepted');
+// Even a forged accepted item label cannot turn a stored blocked resolution into acceptance.
+$pdo->exec("UPDATE development_work_items SET state='accepted' WHERE task_id='A'");
+$beforeBlockedPlan=$pdo->query("SELECT * FROM development_work_queues WHERE queue_id='DEV'")->fetch(PDO::FETCH_ASSOC);
+devReject(fn()=>$q->append(1,str_repeat('a',32),['queue_id'=>'DEV','expected_plan_sha256'=>str_repeat('0',64),
+    'plan_sha256'=>str_repeat('9',64),'tasks'=>[devSpec('D',['A'])]]),RuntimeException::class,
+    'blocked_resolution_cannot_satisfy_accepted_dependency_despite_forged_item_label');
+devAssert($beforeBlockedPlan===$pdo->query("SELECT * FROM development_work_queues WHERE queue_id='DEV'")->fetch(PDO::FETCH_ASSOC)
+    &&(int)$pdo->query("SELECT COUNT(*) FROM development_work_items WHERE task_id='D'")->fetchColumn()===0
+    &&$storedBlocked===$pdo->query("SELECT * FROM development_work_resolutions WHERE task_id='A'")->fetch(PDO::FETCH_ASSOC)
+    &&$originalUnknown===$pdo->query("SELECT * FROM development_work_receipts WHERE task_id='A'")->fetch(PDO::FETCH_ASSOC),
+    'forged_acceptance_does_not_change_blocked_evidence_plan_or_dependency_admission');
+
 // Receipt readback must follow insertion order, not task ordinal or equal wall clocks.
 [$pdo,$q,$clock]=devFixture([devSpec('A',[],1),devSpec('B',[],90)]);$b=devStart($q,'RUN-B');
 $q->complete(1,str_repeat('a',32),$b+['receipt'=>devReceipt('RUN-B')]);$a=devStart($q,'RUN-A');
@@ -428,6 +533,130 @@ foreach (['missing_resolution','wrong_unknown_link'] as $corrupt) {
         'broken_resolution_after_ready_does_not_commit_claim_or_replacement_run');
 }
 
+// A proven pre-dispatch block retires metadata, never fabricates a worker run or receipt.
+[$pdo,$q,$clock]=devFixture();$retire=devRetireArgs($q);$originalPending=$q->pendingEvent(1,str_repeat('a',32),'DEV');
+$beforeRetire=devStatus($q);
+foreach ([
+    ['task_id'=>'B'],['spec_sha256'=>str_repeat('f',64)],['expected_plan_sha256'=>str_repeat('f',64)],
+    ['expected_pending_event_id'=>'dev_evt_'.str_repeat('f',64)],
+    ['decision'=>array_replace($retire['decision'],['decision_sha256'=>null])],
+    ['decision'=>array_replace($retire['decision'],['readback_sha256'=>null])],
+    ['decision'=>array_replace($retire['decision'],['reviewer_run_id'=>''])],
+    ['claim_key'=>str_repeat('b',64)],['run_id'=>'INVENTED']
+] as $bad) {
+    devReject(fn()=>$q->retire_unclaimed(1,str_repeat('a',32),array_replace($retire,$bad)),
+        [InvalidArgumentException::class,DevelopmentWorkQueueConflict::class],
+        'unclaimed_retirement_requires_exact_task_spec_plan_generation_and_independent_decision');
+    devAssert(devStatus($q)===$beforeRetire&&(int)$pdo->query('SELECT COUNT(*) FROM development_work_retirements')->fetchColumn()===0,
+        'invalid_retirement_intent_changes_no_task_claim_run_or_audit');
+}
+$retired=$q->retire_unclaimed(1,str_repeat('a',32),$retire);$afterRetire=devStatus($q);
+$audit=$pdo->query('SELECT * FROM development_work_retirements')->fetch(PDO::FETCH_ASSOC);
+$readback=json_decode($audit['retirement_json'],true,16,JSON_THROW_ON_ERROR);$expected=$retire;ksort($readback);ksort($expected);
+$retirementHash=hash('sha256',json_encode(['intent'=>$readback,'namespace'=>'development_work_retirement_v1'],JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR));
+devAssert($retired['retire_status']==='retired_unclaimed_not_worker_receipt'
+    &&$afterRetire['task_id']==='C'&&$afterRetire['state']==='ready'&&$afterRetire['current_run_id']===null
+    &&$afterRetire['accepted_count']===0&&$afterRetire['blocked_count']===1&&$afterRetire['retirement_count']===1
+    &&$afterRetire['worker_receipt_count']===0&&$afterRetire['receipt_count']===0
+    &&($afterRetire['last_retirement']['record_type']??null)==='metadata_retirement_not_worker_receipt'
+    &&$readback===$expected&&$retirementHash===$audit['retirement_sha256']
+    &&(int)$pdo->query('SELECT COUNT(*) FROM development_work_receipts')->fetchColumn()===0,
+    'retirement_records_one_metadata_decision_and_selects_only_independent_unclaimed_work');
+$nextPending=$q->pendingEvent(1,str_repeat('a',32),'DEV');
+devAssert($nextPending['name']==='development_work.pending'&&$nextPending['data']['task_id']==='C'
+    &&$nextPending['event_id']!==$originalPending['event_id'],'retirement_next_task_requires_distinct_normal_pending_event');
+devAssert($q->retire_unclaimed(1,str_repeat('a',32),$retire)['retire_status']==='already_recorded'
+    &&devStatus($q)===$afterRetire&&$audit===$pdo->query('SELECT * FROM development_work_retirements')->fetch(PDO::FETCH_ASSOC),
+    'byte_identical_retirement_repeat_never_advances_or_rewrites_audit');
+foreach ([
+    ['decision'=>array_replace($retire['decision'],['decision_sha256'=>str_repeat('f',64)])],
+    ['decision'=>array_replace($retire['decision'],['readback_sha256'=>str_repeat('f',64)])],
+    ['decision'=>array_replace($retire['decision'],['reviewer_run_id'=>'OTHER-REVIEW'])],
+    ['expected_plan_sha256'=>str_repeat('f',64)]
+] as $changedDecision) {
+    devReject(fn()=>$q->retire_unclaimed(1,str_repeat('a',32),array_replace($retire,$changedDecision)),DevelopmentWorkQueueConflict::class,
+        'changed_retirement_intent_cannot_replace_recorded_decision');
+}
+$oldClaim=['queue_id'=>'DEV','task_id'=>$retire['task_id'],'spec_sha256'=>$retire['spec_sha256'],
+    'claim_key'=>str_repeat('b',64),'expected_pending_event_id'=>$retire['expected_pending_event_id']];
+devReject(fn()=>$q->claim(1,str_repeat('a',32),$oldClaim),DevelopmentWorkQueueConflict::class,
+    'late_original_claim_after_retirement_cannot_dispatch_retired_or_next_task');
+devReject(fn()=>$q->markEventDelivered(1,str_repeat('a',32),'DEV',$originalPending['event_id']),DevelopmentWorkQueueConflict::class,
+    'late_retired_task_ack_cannot_acknowledge_new_current_pending');
+devAssert(devStatus($q)===$afterRetire&&$audit===$pdo->query('SELECT * FROM development_work_retirements')->fetch(PDO::FETCH_ASSOC),
+    'changed_decision_old_claim_and_old_ack_preserve_new_task_and_original_audit');
+$c=devStart($q,'AFTER-RETIRE-C');$q->complete(1,str_repeat('a',32),$c+['receipt'=>devReceipt('AFTER-RETIRE-C')]);
+$s=devStatus($q);
+devAssert($s['state']==='blocked'&&$s['task_id']===null&&$s['accepted_count']===1&&$s['blocked_count']===1
+    &&$s['retirement_count']===1&&$s['worker_receipt_count']===1&&$s['receipt_count']===1
+    &&($s['last_receipt']['task_id']??null)==='C'
+    &&(int)$pdo->query("SELECT COUNT(*) FROM development_work_receipts WHERE task_id='A'")->fetchColumn()===0,
+    'metadata_retirement_is_not_counted_as_worker_acceptance_or_worker_receipt');
+devAssert($q->retire_unclaimed(1,str_repeat('a',32),$retire)['retire_status']==='already_recorded'&&devStatus($q)===$s,
+    'retirement_unknown_response_reconciles_after_later_work_without_replay');
+$pdo->exec("UPDATE development_work_items SET state='accepted' WHERE task_id='A'");
+devReject(fn()=>$q->append(1,str_repeat('a',32),['queue_id'=>'DEV','expected_plan_sha256'=>str_repeat('0',64),
+    'plan_sha256'=>str_repeat('9',64),'tasks'=>[devSpec('D',['A'])]]),RuntimeException::class,
+    'retirement_cannot_satisfy_dependency_even_with_forged_accepted_label');
+devAssert((int)$pdo->query("SELECT COUNT(*) FROM development_work_items WHERE task_id='D'")->fetchColumn()===0
+    &&$audit===$pdo->query('SELECT * FROM development_work_retirements')->fetch(PDO::FETCH_ASSOC),
+    'forged_retirement_acceptance_inserts_no_dependent_and_preserves_decision');
+
+// Accepted history is preserved and does not count as a currently unresolved worker.
+[$pdo,$q,$clock]=devFixture([devSpec('H',[],100),devSpec('A',[],90),devSpec('B',['A'],1),devSpec('C',[],0)]);
+$h=devStart($q,'HISTORY-H');$q->complete(1,str_repeat('a',32),$h+['receipt'=>devReceipt('HISTORY-H')]);
+$history=$pdo->query("SELECT * FROM development_work_receipts WHERE task_id='H'")->fetch(PDO::FETCH_ASSOC);
+$q->retire_unclaimed(1,str_repeat('a',32),devRetireArgs($q));$s=devStatus($q);
+devAssert($s['task_id']==='C'&&$s['accepted_count']===1&&$s['retirement_count']===1
+    &&$s['worker_receipt_count']===1&&$history===$pdo->query("SELECT * FROM development_work_receipts WHERE task_id='H'")->fetch(PDO::FETCH_ASSOC),
+    'unrelated_accepted_history_neither_blocks_retirement_nor_gets_erased');
+
+foreach (['claimed','started','unknown_without_run','unknown_with_run'] as $heldState) {
+    [$pdo,$q,$clock]=devFixture();$retire=devRetireArgs($q);
+    $run=in_array($heldState,['started','unknown_with_run'],true)?'HELD-RUN':null;
+    $args=$run===null?devClaim($q):devStart($q,$run);
+    if (str_starts_with($heldState,'unknown')) {
+        $unknown=['run_id'=>$run,'outcome'=>'unknown','result_sha256'=>null,'readback_sha256'=>null,
+            'acceptance_sha256'=>null,'reviewer_run_id'=>null,'owned_claims_released'=>false];
+        $q->complete(1,str_repeat('a',32),$args+['receipt'=>$unknown]);
+    }
+    $beforeItems=$pdo->query('SELECT * FROM development_work_items ORDER BY ordinal')->fetchAll(PDO::FETCH_ASSOC);
+    $beforeReceipts=$pdo->query('SELECT * FROM development_work_receipts ORDER BY task_id')->fetchAll(PDO::FETCH_ASSOC);
+    $clock->at+=3600;
+    devReject(fn()=>$q->retire_unclaimed(1,str_repeat('a',32),$retire),DevelopmentWorkQueueConflict::class,
+        'claimed_started_or_unknown_work_cannot_be_retired_by_age_or_a_new_decision');
+    devAssert($beforeItems===$pdo->query('SELECT * FROM development_work_items ORDER BY ordinal')->fetchAll(PDO::FETCH_ASSOC)
+        &&$beforeReceipts===$pdo->query('SELECT * FROM development_work_receipts ORDER BY task_id')->fetchAll(PDO::FETCH_ASSOC)
+        &&(int)$pdo->query('SELECT COUNT(*) FROM development_work_retirements')->fetchColumn()===0,
+        'retirement_refusal_retains_original_claim_run_and_unknown_evidence');
+}
+foreach (['receipt','resolution','claim_field','run_field','other_item_claim','other_item_run','orphan_claimed','orphan_unknown'] as $guard) {
+    [$pdo,$q,$clock]=devFixture();$retire=devRetireArgs($q);
+    if ($guard==='receipt') $pdo->prepare('INSERT INTO development_work_receipts (queue_id,task_id,spec_sha256,receipt_sha256,receipt_json,created_at) VALUES (?,?,?,?,?,?)')
+        ->execute(['DEV','A',$retire['spec_sha256'],str_repeat('f',64),'{}',gmdate('Y-m-d H:i:s',$clock->at)]);
+    elseif ($guard==='resolution') $pdo->prepare('INSERT INTO development_work_resolutions (queue_id,task_id,unknown_receipt_sha256,resolution_sha256,receipt_sha256,receipt_json,created_at) VALUES (?,?,?,?,?,?,?)')
+        ->execute(['DEV','A',str_repeat('1',64),str_repeat('2',64),str_repeat('3',64),'{}',gmdate('Y-m-d H:i:s',$clock->at)]);
+    elseif ($guard==='claim_field') $pdo->prepare("UPDATE development_work_items SET claim_sha256=? WHERE task_id='A'")->execute([str_repeat('b',64)]);
+    elseif ($guard==='run_field') $pdo->exec("UPDATE development_work_items SET current_run_id='UNRESOLVED' WHERE task_id='A'");
+    else {
+        $orphan=$pdo->query("SELECT * FROM development_work_queues WHERE queue_id='DEV'")->fetch(PDO::FETCH_ASSOC);
+        $orphan['queue_id']='ORPHAN';$orphan['state']=$guard==='orphan_claimed'?'claimed':($guard==='orphan_unknown'?'unknown':'ready');
+        $cols=array_keys($orphan);$pdo->prepare('INSERT INTO development_work_queues ('.implode(',',$cols).') VALUES ('.implode(',',array_fill(0,count($cols),'?')).')')->execute(array_values($orphan));
+        if (str_starts_with($guard,'other_item')) {
+            $item=$pdo->query("SELECT * FROM development_work_items WHERE task_id='A'")->fetch(PDO::FETCH_ASSOC);
+            $item['queue_id']='ORPHAN';$item['claim_sha256']=$guard==='other_item_claim'?str_repeat('c',64):null;
+            $item['current_run_id']=$guard==='other_item_run'?'UNRESOLVED-OTHER':null;
+            $cols=array_keys($item);$pdo->prepare('INSERT INTO development_work_items ('.implode(',',$cols).') VALUES ('.implode(',',array_fill(0,count($cols),'?')).')')->execute(array_values($item));
+        }
+    }
+    $beforeItems=$pdo->query("SELECT * FROM development_work_items WHERE queue_id='DEV' ORDER BY ordinal")->fetchAll(PDO::FETCH_ASSOC);
+    devReject(fn()=>$q->retire_unclaimed(1,str_repeat('a',32),$retire),DevelopmentWorkQueueConflict::class,
+        'current_evidence_and_any_persisted_unresolved_development_scope_block_retirement');
+    devAssert($beforeItems===$pdo->query("SELECT * FROM development_work_items WHERE queue_id='DEV' ORDER BY ordinal")->fetchAll(PDO::FETCH_ASSOC)
+        &&(int)$pdo->query('SELECT COUNT(*) FROM development_work_retirements')->fetchColumn()===0,
+        'blocked_retirement_writes_no_decision_and_clears_no_uncertain_scope');
+}
+
 // Real processes pin one event before competing on SQLite/MySQL lane and item locks.
 foreach (['first_b','first_c','complete_before_old_ack'] as $scenario) {
     $dir=sys_get_temp_dir().'/development-work-race-'.bin2hex(random_bytes(8));
@@ -492,6 +721,75 @@ foreach (['first_b','first_c','complete_before_old_ack'] as $scenario) {
         }
         devAssert((int)$racePdo->query('SELECT COUNT(*) FROM development_work_items')->fetchColumn()===2
             &&$s['plan_sha256']===str_repeat('0',64),'native_race_never_invents_tasks_or_rewrites_plan');
+    } finally {
+        foreach ($processes as [$process,$pipes]) {
+            foreach ($pipes as $pipe) if (is_resource($pipe)) fclose($pipe);
+            if (is_resource($process)) {proc_terminate($process,9);proc_close($process);}
+        }
+        $raceQ=null;$racePdo=null;foreach (glob($dir.'/*')?:[] as $path) unlink($path);rmdir($dir);
+    }
+}
+// Retirement and admission contend on the same real SQL lane; the loser never restarts work.
+foreach (['claim_first','block_first','old_ack_after_block'] as $scenario) {
+    $dir=sys_get_temp_dir().'/development-retirement-race-'.bin2hex(random_bytes(8));
+    if (!mkdir($dir,0700)) throw new RuntimeException('retirement_race_directory_unavailable');
+    $processes=[];$racePdo=null;$raceQ=null;
+    try {
+        $file=getenv('DEVELOPMENT_WORK_NATIVE_MYSQL')==='1'?'MYSQL':$dir.'/queue.sqlite';
+        $racePdo=new DevelopmentWorkTestPdo($file==='MYSQL'?null:$file);$raceQ=new DevelopmentWorkQueue($racePdo,static fn():int=>1793100000);
+        $raceQ->create(1,str_repeat('a',32),['queue_id'=>'DEV','plan_sha256'=>str_repeat('0',64),
+            'tasks'=>[devSpec('A'),devSpec('B',['A'],90),devSpec('C',[],5)]]);
+        $original=$raceQ->pendingEvent(1,str_repeat('a',32),'DEV');
+        $actions=$scenario==='claim_first'?['claim-winner','block']:
+            ($scenario==='block_first'?['claim','block-winner']:['ack','block-winner']);
+        foreach ($actions as $i=>$action) {
+            $pipes=[];$process=proc_open([PHP_BINARY,__FILE__,'--development-retire-race-child',$dir.'/go'.$i,$dir.'/out'.$i,$file,$action],
+                [0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes);
+            if (!is_resource($process)) throw new RuntimeException('retirement_race_process_unavailable');
+            fclose($pipes[0]);$processes[]=[$process,$pipes];
+        }
+        $until=microtime(true)+10;
+        while ((!is_file($dir.'/out0.ready')||!is_file($dir.'/out1.ready'))&&microtime(true)<$until) usleep(1000);
+        devAssert(is_file($dir.'/out0.ready')&&is_file($dir.'/out1.ready'),'retirement_race_children_ready');
+        devAssert(file_get_contents($dir.'/out0.ready')==='A'&&file_get_contents($dir.'/out1.ready')==='A'
+            &&file_get_contents($dir.'/out0.event')===$original['event_id']&&file_get_contents($dir.'/out1.event')===$original['event_id'],
+            'retirement_and_claim_pin_same_original_task_generation');
+        $winner=$scenario==='claim_first'?0:1;$contender=1-$winner;
+        file_put_contents($dir.'/go'.$winner,'go');$until=microtime(true)+10;
+        while (!is_file($dir.'/out'.$winner.'.locked')&&microtime(true)<$until) usleep(1000);
+        devAssert(is_file($dir.'/out'.$winner.'.locked'),'retirement_winner_holds_real_lane_queue_item_locks');
+        file_put_contents($dir.'/go'.$contender,'go');$until=microtime(true)+5;
+        while (!is_file($dir.'/out'.$contender.'.attempting')&&microtime(true)<$until) usleep(1000);
+        devAssert(is_file($dir.'/out'.$contender.'.attempting'),'retirement_contender_attempts_during_lock');
+        usleep(100000);
+        devAssert(!is_file($dir.'/out'.$winner)&&!is_file($dir.'/out'.$contender)
+            &&proc_get_status($processes[$contender][0])['running'],'retirement_contender_waits_for_actual_winner_commit');
+        file_put_contents($dir.'/out'.$winner.'.release','release');$until=microtime(true)+10;
+        while ((!is_file($dir.'/out0')||!is_file($dir.'/out1'))&&microtime(true)<$until) usleep(1000);
+        devAssert(is_file($dir.'/out0')&&is_file($dir.'/out1'),'retirement_race_finishes_before_deadline');
+        foreach ($processes as [$process,$pipes]) {
+            $stdout=stream_get_contents($pipes[1]);$stderr=stream_get_contents($pipes[2]);fclose($pipes[1]);fclose($pipes[2]);
+            devAssert(proc_close($process)===0&&$stdout===''&&$stderr==='','retirement_race_child_clean');
+        }
+        $results=[file_get_contents($dir.'/out0'),file_get_contents($dir.'/out1')];$s=$raceQ->status(1,str_repeat('a',32),'DEV');
+        if ($scenario==='claim_first') {
+            devAssert($results===['claimed','conflict']&&$s['state']==='claimed'&&$s['task_id']==='A'
+                &&$s['current_run_id']===null&&$s['retirement_count']===0&&$s['blocked_count']===0,
+                'claim_first_blocks_retirement_without_clearing_admission_or_creating_decision');
+        } else {
+            $next=$raceQ->pendingEvent(1,str_repeat('a',32),'DEV');
+            devAssert($results===['conflict','blocked']&&$s['state']==='ready'&&$s['task_id']==='C'
+                &&$s['current_run_id']===null&&$s['retirement_count']===1&&$s['blocked_count']===1&&$s['accepted_count']===0
+                &&$next['event_id']!==$original['event_id']&&$next['data']['task_id']==='C'&&$s['delivery_state']==='ready',
+                'retirement_first_fences_late_claim_or_old_ack_and_preserves_new_independent_pending');
+            $audit=$racePdo->query('SELECT * FROM development_work_retirements')->fetch(PDO::FETCH_ASSOC);
+            devAssert($audit['expected_pending_event_id']===$original['event_id']&&$audit['task_id']==='A',
+                'retirement_race_keeps_original_generation_and_decision_audit');
+        }
+        devAssert($s['receipt_count']===0&&$s['worker_receipt_count']===0
+            &&(int)$racePdo->query('SELECT COUNT(*) FROM development_work_receipts')->fetchColumn()===0
+            &&(int)$racePdo->query('SELECT COUNT(*) FROM development_work_items')->fetchColumn()===3,
+            'retirement_race_invents_no_worker_run_receipt_or_plan_task');
     } finally {
         foreach ($processes as [$process,$pipes]) {
             foreach ($pipes as $pipe) if (is_resource($pipe)) fclose($pipe);

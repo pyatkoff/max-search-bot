@@ -188,6 +188,37 @@ def admit(backend, candidate, output, backend_sha, source_sha, current_package, 
             "version": new_version, "changed_paths": sorted(row.split("\t", 1)[1] for row in changes)}
 
 
+def admit_common(backend, output, backend_sha, current_package, operation):
+    """Admit only the exact, clean installed main artifact for an explicit common release.
+
+    Prior-package integrity, activation and CAS are checked under the deployment
+    lock in PHP. This helper owns source provenance, never a compatibility waiver.
+    """
+    if not re.fullmatch(r"[a-f0-9]{64}", current_package):
+        raise ValueError("invalid_editor_current_package")
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]{7,95}", operation):
+        raise ValueError("invalid_editor_operation")
+    backend = repository(backend, backend_sha, runtime=True)
+    pack = package_module(backend)
+    pack.verify(backend, output)
+    receipt = strict_json((output / "receipt.json").read_bytes())
+    spec = strict_json((backend / "modules/tour-selections/editor.json").read_bytes())
+    version = spec["version"]
+    if not isinstance(version, str) or not re.fullmatch(r"(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)", version):
+        raise ValueError("invalid_editor_version")
+    if (receipt.get("release_eligible") is not True or receipt.get("source_commit") != backend_sha
+            or receipt.get("source_tree") != git(backend, "rev-parse", "HEAD^{tree}")):
+        raise ValueError("editor_artifact_provenance_mismatch")
+    _, _, _, inputs, _ = pack.inputs(backend)
+    fingerprint = pack.digest(pack.encoded({"schema": 1, "contract": spec["contract"], "backend_inputs": inputs}))
+    if receipt.get("backend_fingerprint") != fingerprint:
+        raise ValueError("editor_installed_backend_changed")
+    return {"schema": 1, "kind": "selection-editor-common-release-v1", "backend_sha": backend_sha,
+            "backend_fingerprint": fingerprint, "source_sha": backend_sha, "source_tree": receipt["source_tree"],
+            "package_id": receipt["package_id"], "archive_sha256": receipt["archive_sha256"],
+            "expected_current_package": current_package, "operation": operation, "version": version}
+
+
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--backend", type=Path, required=True)
@@ -196,9 +227,15 @@ if __name__ == "__main__":
     for name in ("backend-sha", "source-sha", "current-package", "operation"):
         p.add_argument("--" + name, required=True)
     p.add_argument("--pull-request", type=int)
+    p.add_argument("--common-release", action="store_true")
     a = p.parse_args()
     try:
-        result = admit(a.backend, a.candidate, a.output, a.backend_sha, a.source_sha, a.current_package, a.operation)
+        if a.common_release:
+            if a.candidate.resolve() != a.backend.resolve() or a.source_sha != a.backend_sha or a.pull_request is not None:
+                raise ValueError("invalid_editor_common_source")
+            result = admit_common(a.backend, a.output, a.backend_sha, a.current_package, a.operation)
+        else:
+            result = admit(a.backend, a.candidate, a.output, a.backend_sha, a.source_sha, a.current_package, a.operation)
         if a.pull_request is not None:
             result['required_ci'] = verify_ci(a.pull_request, a.source_sha, a.backend_sha, result['changed_paths'], github_read)
         print(json.dumps(result, sort_keys=True))

@@ -80,6 +80,10 @@ A metadata claim does not acquire or replace either external reservation.
    run. Never invoke `run_now` on itself or create another worker for a demo.
    A human/hourly observer turn cannot substitute for a fresh pending event;
    missing actual event-run binding remains a precise capability blocker.
+   A self-owned worker turn saves its result/checkpoint and ends without
+   attesting that its own HOST run is terminal. A later reconciliation attention
+   turn verifies that original run's terminal result and independent review,
+   then completes it once. It never substitutes the observer's current run.
    An uncertain delivery is not repeated. Do not infer terminal from age,
    last-updated time, disabled future triggers or unavailable transport.
 5. Match that run's terminal result to the exact task/input/contract. Check the
@@ -106,14 +110,32 @@ alone never proves the requested product scenario was accepted.
 saved result/readback and released own claims. It does not satisfy dependencies.
 Another independent ready task may then be selected. Unknown dispatch, run,
 save, external effect or release outcome must be `unknown`, which retains WIP
-without expiry or automatic replay. A later resolution uses only the retained
-claim, original UNKNOWN receipt digest and exact already-known run, preserving
-the original receipt and any non-null result anchor. Missing run identity stays
+without expiry or automatic replay. A later resolution can attest either accepted completion or verified terminal
+blocked, using only the retained claim, original UNKNOWN receipt digest and
+exact already-known run. The original receipt and any non-null result anchor
+remain immutable. A blocked resolution releases WIP for an independent task
+and never satisfies the blocked task's dependencies. Missing run identity stays
 held; never invent a replacement.
 
 Receipts and resolutions are append-only and duplicate completions cannot
 advance twice. Private claim keys, callback secrets, internal plan instructions,
 customer records and raw worker outputs stay outside public source/status.
+
+A proven capability refusal before dispatch uses `development_work_retire_unclaimed`,
+not a fabricated worker run or completion. The controller and independent
+reviewer must first check the private once-ledger, unresolved delivery/dispatch
+intents, actual original-owner runs and external leases. Any uncertainty holds.
+Save/read back the exact retirement intent and decision evidence before calling.
+The server locks lane then queue and requires the exact task/spec, current plan
+CAS and delivery identity with no persisted claim, run, receipt, resolution or
+UNKNOWN. This delivery ID is a generation compare-and-swap guard, not signed
+received evidence and never permission to dispatch. The decision digest,
+readback and actual independent reviewer run are attestations, not boolean proof
+of private state. One append-only retirement audit records the blocked task;
+identical retries reconcile without a second transition. The next independent
+task receives its own fresh ordinary event. A claim that wins the lock first
+prevents retirement; a retirement that wins prevents old claims/acknowledgements.
+Status reports worker receipts and unclaimed retirements separately.
 
 ## Events and installation
 
@@ -143,7 +165,9 @@ not a task receipt.
 Unclaimed acknowledged readiness produces attention after its claim deadline.
 Claimed and UNKNOWN work emits bounded reconciliation attention after the
 watchdog interval. Attention always has `dispatch_allowed=false`; it permits
-inspection of the existing exact operation, never a new run, retry or release.
+inspection of the existing exact operation, never a new run, retry or release
+of claimed/UNKNOWN work. An independently verified pre-dispatch refusal may use
+only the bounded audited unclaimed-retirement operation described above.
 No metadata timeout proves an external operation failed.
 
 Normal PR/current-head independent review/required CI/sole publisher installation
@@ -186,6 +210,6 @@ precise limitation and keep unattended monitoring; do not seed fake completed
 tasks or claim that synthetic tests prove a live product transition.
 
 A rollback must retain claims, UNKNOWN states, immutable task identities and
-receipt/resolution history. Never delete audit rows, migrate down, reset a
+receipt/resolution/append/retirement history. Never delete audit rows, migrate down, reset a
 held operation, replay work, remove the protected external-log boundary or
 weaken the existing source/review/install gates to make the queue advance.
