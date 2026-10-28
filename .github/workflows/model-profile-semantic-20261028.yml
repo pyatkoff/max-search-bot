@@ -1,0 +1,138 @@
+name: Read one admitted profile and new journal entries
+on:
+  push:
+    branches: [audit/model-profile-semantic-exec-20261028]
+    paths: [.github/workflows/model-profile-semantic-20261028.yml]
+permissions:
+  contents: read
+concurrency:
+  group: anytour-model-profile-semantic-20261028
+  cancel-in-progress: false
+jobs:
+  read:
+    if: github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Pin current main
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin refs/heads/main
+          test "$(git rev-parse FETCH_HEAD)" = 271e68b5867b54cb28b462e939257a950fd8b1cc
+      - name: Prepare existing identity and strict canonical pin
+        env:
+          K: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          TARGET: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        run: |
+          set -euo pipefail
+          umask 077
+          if [[ "$K" == *"PRIVATE KEY"* ]]; then printf '%b\n' "$K" | tr -d '\r' > "$RUNNER_TEMP/membership-key"; else printf '%s' "$K" | base64 --decode > "$RUNNER_TEMP/membership-key"; fi
+          chmod 600 "$RUNNER_TEMP/membership-key"
+          ssh-keygen -y -f "$RUNNER_TEMP/membership-key" >/dev/null
+          python3 - "$TARGET" "$RUNNER_TEMP/membership-hosts" <<'PY'
+          import base64,hashlib,socket,subprocess,sys
+          host,dest=sys.argv[1:]
+          if {v[4][0] for v in socket.getaddrinfo(host,22,type=socket.SOCK_STREAM)}!={'5.45.122.54'}:raise SystemExit('canonical_target_changed')
+          pinned=[]
+          for _ in range(2):
+              scan=subprocess.run(['ssh-keyscan','-t','ed25519','-T','10',host],capture_output=True,text=True,timeout=30)
+              for line in scan.stdout.splitlines():
+                  parts=line.split()
+                  if len(parts)!=3 or parts[0].startswith('#'):continue
+                  try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(parts[2],validate=True)).digest()).decode().rstrip('=')
+                  except ValueError:continue
+                  if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0' and line not in pinned:pinned.append(line)
+              if pinned:break
+          if not pinned:raise SystemExit('canonical_host_pin_not_seen')
+          open(dest,'w').write('\n'.join(pinned)+'\n')
+          PY
+      - name: Prepare pinned official age binary
+        run: |
+          set -euo pipefail
+          curl -fsSL --retry 0 --connect-timeout 10 --max-time 40 -o "$RUNNER_TEMP/age.tar.gz" https://github.com/FiloSottile/age/releases/download/v1.3.2/age-v1.3.2-linux-amd64.tar.gz
+          echo "cbe24006683f8eb669266162894b9a522a1af52f2665fbc63a4bb032ed26ac10  $RUNNER_TEMP/age.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/age.tar.gz" -C "$RUNNER_TEMP" age/age
+          test "$("$RUNNER_TEMP/age/age" --version)" = "v1.3.2"
+      - name: Read same admitted profile and new journal entries
+        env:
+          TARGET: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          umask 077
+          cat > "$RUNNER_TEMP/comparison-read.php" <<'PHP'
+          <?php
+          declare(strict_types=1);
+          try {
+           $deadline=hrtime(true)+5000000000;
+           $check=static function()use($deadline):int{$ms=(int)floor(($deadline-hrtime(true))/1000000);if($ms<50)throw new RuntimeException('deadline');return min(4000,$ms-25);};
+           $gt=static function($a,$b):bool{$a=ltrim((string)$a,'0');$b=ltrim((string)$b,'0');if($a==='')$a='0';if($b==='')$b='0';return strlen($a)>strlen($b)||(strlen($a)===strlen($b)&&strcmp($a,$b)>0);};
+           chdir('/var/www/anytoour/data/www/app.anytoour.ru');
+           require_once 'config.php';require_once 'services/ProjectAccessService.php';require_once 'services/ConversationDb.php';
+           if(ProjectConfig::projectId()!=='anytour')throw new RuntimeException('project');ProjectAccessService::initializeReadOnly();$p=ConversationDb::connection();
+           $p->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');$p->exec('SET TRANSACTION READ ONLY');$p->beginTransaction();
+           $run=static function(string $sql,array $args)use($p,$check){$ms=$check();$p->exec('SET SESSION MAX_EXECUTION_TIME='.$ms);$check();$q=$p->prepare($sql);$q->execute($args);$check();return $q;};
+           $after=strtotime('2026-10-27T14:28:41Z');$cutoff=strtotime('2026-10-27T14:35:02Z');
+           // The receipt selected the first profile examined in this ordering; no replacement selection.
+           $sql="SELECT id,project_key,platform,customer_key,conversation_id,observed_at_unix,journal_cursor,JSON_UNQUOTE(JSON_EXTRACT(profile_json,'$.access_status')) AS access_status,JSON_UNQUOTE(JSON_EXTRACT(profile_json,'$.profile.prediction_at')) AS prediction_at,JSON_EXTRACT(profile_json,'$.source_references') AS refs,OCTET_LENGTH(profile_json) AS profile_bytes FROM modeled_conversion_profile_versions WHERE project_key='anytour' AND observed_at_unix>? AND observed_at_unix<=? ORDER BY observed_at_unix,id LIMIT 1";
+           $c=$run($sql,[$after,$cutoff])->fetch(PDO::FETCH_ASSOC);$check();
+           if(!$c||$c['platform']!=='max'||$c['access_status']!=='allowed'||(int)$c['observed_at_unix']!==$cutoff||strtotime($c['prediction_at']??'')!==$cutoff||(int)$c['profile_bytes']>1048576)throw new RuntimeException('profile_binding');
+           $refs=json_decode($c['refs']??'',true,32,JSON_THROW_ON_ERROR);if(!is_array($refs)||!array_is_list($refs)||count($refs)!==16)throw new RuntimeException('refs');
+           $state=$run("SELECT state_json FROM modeled_conversion_stream_state WHERE project_key='anytour'",[])->fetchColumn();$state=json_decode((string)$state,true,32,JSON_THROW_ON_ERROR);
+           $latest=$run("SELECT JSON_UNQUOTE(JSON_EXTRACT(profile_json,'$.access_status')) FROM modeled_conversion_profile_versions WHERE project_key=? AND platform=? AND customer_key=? AND conversation_id=? ORDER BY id DESC LIMIT 1",[$c['project_key'],$c['platform'],$c['customer_key'],$c['conversation_id']])->fetchColumn();
+           if($latest!=='allowed')throw new RuntimeException('current_access');
+           $denied=$run("SELECT COUNT(*) FROM modeled_conversion_profile_sources WHERE project_key=? AND platform=? AND customer_key=? AND conversation_id=? AND source_status='scope_excluded'",[$c['project_key'],$c['platform'],$c['customer_key'],$c['conversation_id']])->fetchColumn();
+           if((int)$denied!==0)throw new RuntimeException('current_exclusion');
+           $new=[];$ids=[];$parts=[];$bind=[];
+           foreach($refs as $r){
+            if(!is_array($r)||!isset($r['journal_id'],$r['source_kind'],$r['source_id'],$r['source_version_no'],$r['observed_at']))throw new RuntimeException('ref');
+            $kind=$r['source_kind'];$id=(string)$r['source_id'];$jid=(string)$r['journal_id'];$at=strtotime($r['observed_at']);
+            if(!in_array($kind,['message','event'],true)||!preg_match('/^[1-9][0-9]{0,19}$/',$id)||!preg_match('/^[1-9][0-9]{0,19}$/',$jid)||!isset($state[$kind]['floor'])||!$gt($id,$state[$kind]['floor'])||$at===false||$at>$cutoff||isset($ids[$jid]))throw new RuntimeException('ref_floor');
+            $ids[$jid]=$r;$parts[]='(s.source_kind=? AND s.source_id=?)';$bind[]=$kind;$bind[]=$id;
+            if($at>$after)$new[]=$jid;
+           }
+           if(count($new)!==3)throw new RuntimeException('new_ref_count');
+           $sql="SELECT s.source_kind,s.source_id,s.version_no,p.platform,p.customer_key,p.conversation_id,p.source_status FROM modeled_conversion_stream_sources s LEFT JOIN modeled_conversion_profile_sources p ON p.project_key=s.project_key AND p.source_kind=s.source_kind AND p.source_id=s.source_id WHERE s.project_key='anytour' AND (".implode(' OR ',$parts).")";
+           $cur=$run($sql,$bind)->fetchAll(PDO::FETCH_ASSOC);$check();if(count($cur)!==16)throw new RuntimeException('current_sources');
+           $expected=[];foreach($refs as $r)$expected[$r['source_kind'].':'.$r['source_id']]=$r;
+           foreach($cur as $row){$k=$row['source_kind'].':'.$row['source_id'];$r=$expected[$k]??null;if(!$r||(int)$row['version_no']!==(int)$r['source_version_no']||$row['source_status']!=='present'||$row['platform']!==$c['platform']||(string)$row['customer_key']!==(string)$c['customer_key']||(string)$row['conversation_id']!==(string)$c['conversation_id'])throw new RuntimeException('current_source_changed');unset($expected[$k]);}
+           if($expected)throw new RuntimeException('current_source_missing');
+           $marks=implode(',',array_fill(0,count($new),'?'));
+           $sizes=$run("SELECT id,OCTET_LENGTH(snapshot_json) AS n FROM modeled_conversion_stream_versions WHERE project_key='anytour' AND id IN ($marks)",$new)->fetchAll(PDO::FETCH_ASSOC);
+           if(count($sizes)!==3||array_sum(array_map(static fn($v)=>(int)$v['n'],$sizes))>1048576)throw new RuntimeException('raw_budget');
+           $rows=$run("SELECT id,source_kind,source_id,version_no,observed_at_unix,snapshot_json FROM modeled_conversion_stream_versions WHERE project_key='anytour' AND id IN ($marks) ORDER BY id",$new)->fetchAll(PDO::FETCH_ASSOC);$check();if(count($rows)!==3)throw new RuntimeException('journal');
+           foreach($rows as &$row){$ref=$ids[(string)$row['id']]??null;$snap=json_decode($row['snapshot_json'],true,64,JSON_THROW_ON_ERROR);unset($row['snapshot_json']);
+            if(!$ref||$row['source_kind']!==$ref['source_kind']||(string)$row['source_id']!==(string)$ref['source_id']||(int)$row['version_no']!==(int)$ref['source_version_no']||(int)$row['observed_at_unix']!==strtotime($ref['observed_at'])||(int)$row['observed_at_unix']>$cutoff||($snap['source_status']??null)!=='present'||($snap['project_key']??null)!=='anytour'||($snap['platform']??null)!==$c['platform']||(string)($snap['customer_key']??'')!==(string)$c['customer_key']||(string)($snap['conversation_id']??'')!==(string)$c['conversation_id'])throw new RuntimeException('journal_binding');$row['snapshot']=$snap;
+           }unset($row);
+           $profile=$run("SELECT profile_json FROM modeled_conversion_profile_versions WHERE project_key='anytour' AND id=?",[$c['id']])->fetchColumn();$profile=json_decode((string)$profile,true,64,JSON_THROW_ON_ERROR);
+           $out=['schema_version'=>1,'purpose'=>'exact_profile_and_new_journal_semantic','production_sha'=>'271e68b5867b54cb28b462e939257a950fd8b1cc','frozen_cutoff'=>$cutoff,'profile_id'=>$c['id'],'scope'=>['project_key'=>$c['project_key'],'platform'=>$c['platform'],'customer_key'=>$c['customer_key'],'conversation_id'=>$c['conversation_id']],'profile'=>$profile,'rows'=>$rows,'prior_refs_not_read'=>13,'new_refs_read'=>3,'current_access'=>'allowed','exposure'=>'unknown','database_writes'=>0,'native_source_reads'=>0];
+           $p->rollBack();$check();$raw=json_encode($out,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);if(strlen($raw)>2097152)throw new RuntimeException('protocol');echo $raw;
+          }catch(Throwable $e){if(isset($p)&&$p->inTransaction())$p->rollBack();fwrite(STDERR,"semantic_read_failed\n");exit(1);}
+          PHP
+          php -l "$RUNNER_TEMP/comparison-read.php"
+          timeout 25 ssh -i "$RUNNER_TEMP/membership-key" -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$RUNNER_TEMP/membership-hosts" -o ConnectTimeout=10 "$USER@$TARGET" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(git rev-parse HEAD)" = 271e68b5867b54cb28b462e939257a950fd8b1cc; php -d display_errors=0 -d log_errors=0; test "$(git rev-parse HEAD)" = 271e68b5867b54cb28b462e939257a950fd8b1cc' < "$RUNNER_TEMP/comparison-read.php" > "$RUNNER_TEMP/comparison-semantic.json"
+          python3 - "$RUNNER_TEMP/comparison-semantic.json" <<'PY'
+          import json,pathlib,sys
+          raw=pathlib.Path(sys.argv[1]).read_bytes()
+          assert len(raw)<=2097152
+          obj=json.loads(raw)
+          assert obj['native_source_reads']==obj['database_writes']==0
+          assert obj['new_refs_read']==3 and obj['prior_refs_not_read']==13 and len(obj['rows'])==3
+          PY
+          "$RUNNER_TEMP/age/age" -R docs/diagnostics-recipient.txt -o "$RUNNER_TEMP/comparison-semantic.age" "$RUNNER_TEMP/comparison-semantic.json"
+          python3 - "$RUNNER_TEMP/comparison-semantic.age" <<'PY'
+          import hashlib,json,pathlib,sys
+          cipher=pathlib.Path(sys.argv[1]).read_bytes()
+          print(json.dumps({'encrypted':True,'cipher_bytes':len(cipher),'cipher_sha256':hashlib.sha256(cipher).hexdigest(),'native_source_reads':0,'database_writes':0}))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: modeled-profile-metadata-${{ github.run_id }}
+          path: ${{ runner.temp }}/comparison-semantic.age
+          retention-days: 1
+          if-no-files-found: error
+      - name: Cleanup
+        if: always()
+        run: rm -f "$RUNNER_TEMP/membership-key" "$RUNNER_TEMP/membership-hosts" "$RUNNER_TEMP/comparison-read.php" "$RUNNER_TEMP/comparison-semantic.json" "$RUNNER_TEMP/comparison-semantic.age"
+
