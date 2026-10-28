@@ -178,6 +178,204 @@ final class DevelopmentWorkQueue
             return $this->project($next)+['retirement_status'=>'retired_unclaimed_not_worker_receipt','retirement_sha256'=>$hash,'recorded_retirement'=>$this->retirementMetadata($next,$task)];
         });
     }
+
+    /** Bounded administrative recovery metadata, never a signed pending event. */
+    public function handoff_preflight(int $admin,string $connection,array $args,callable $authority): array
+    {
+        self::keys($args,['queue_id','old_connection_id','expected_caller_connection_id']);
+        [$id,$old]=$this->handoffCoordinates($admin,$connection,$args);
+        return $this->transaction(function() use($id,$old,$admin,$connection,$authority): array {
+            $lane=$this->lane();$q=$this->handoffQueue($id,$admin);
+            $record=$this->handoffRecord($q);
+            if ($record!==null) {
+                $this->authorize($q,$admin,$connection);
+                if ($record['old_connection_id']!==$old) throw new DevelopmentWorkQueueConflict('handoff_conflict');
+                $this->handoffAuthority($authority,$old,$admin,true);
+                $result=$this->project($q)+['handoff_status'=>'already_recorded','eligible'=>false,
+                    'dispatch_allowed'=>false,'preflight_semantics'=>'administrative_recovery_metadata_not_dispatch_evidence'];
+                $this->handoffAuthority($authority,$old,$admin,true);
+                return $result;
+            }
+            if (!hash_equals($q['oauth_connection_id'],$old)) throw new DomainException('development_work_access_denied');
+            $this->handoffAuthority($authority,$old,$admin,false);
+            try {
+                $item=$this->initialHandoffItem($q,$lane);
+                $result=['ok'=>true,'eligible'=>true,'queue_id'=>$id,'task_id'=>$item['task_id'],
+                    'spec_sha256'=>$item['spec_sha256'],'expected_plan_sha256'=>$q['plan_sha256'],
+                    'expected_pending_event_id'=>$this->eventId($q,$item,false),
+                    'old_connection_id'=>$old,'expected_caller_connection_id'=>$connection,
+                    'initial_plan_sha256'=>$q['initial_plan_sha256'],'task_count'=>1,'accepted_count'=>0,
+                    'blocked_count'=>0,'worker_receipt_count'=>0,'retirement_count'=>0,
+                    'owner_task_id'=>$item['owner_task_id'],'reviewer_task_id'=>$item['reviewer_task_id'],
+                    'input_sha256'=>$item['input_sha256'],'acceptance_contract_sha256'=>$item['acceptance_contract_sha256'],
+                    'dispatch_allowed'=>false,'preflight_semantics'=>'administrative_recovery_metadata_not_dispatch_evidence'];
+            } catch (DevelopmentWorkQueueConflict $ineligible) {
+                $result=['ok'=>true,'eligible'=>false,'reason'=>$ineligible->reason,'queue_id'=>$id,
+                    'dispatch_allowed'=>false,'preflight_semantics'=>'administrative_recovery_metadata_not_dispatch_evidence'];
+            }
+            $this->handoffAuthority($authority,$old,$admin,false);
+            return $result;
+        });
+    }
+
+    /** Retire one untouched initial task and change only its metadata authority. */
+    public function handoff_connection(int $admin,string $connection,array $args,callable $authority): array
+    {
+        self::keys($args,['queue_id','task_id','spec_sha256','expected_plan_sha256','expected_pending_event_id',
+            'old_connection_id','expected_caller_connection_id','decision']);
+        [$id,$old]=$this->handoffCoordinates($admin,$connection,$args);
+        $retirementArgs=$args;unset($retirementArgs['old_connection_id'],$retirementArgs['expected_caller_connection_id']);
+        $retirement=self::retirementIntent($retirementArgs);
+        $intent=['project_key'=>self::PROJECT,'admin_id'=>$admin,'old_connection_id'=>$old,
+            'new_connection_id'=>$connection,'retirement'=>$retirement];
+        $json=self::canonical($intent);
+        if (strlen($json)>4096) throw new InvalidArgumentException('invalid_development_work_handoff');
+        $hash=self::hash(['namespace'=>'development_work_idle_connection_handoff_v1','intent'=>$intent]);
+        $retirementHash=self::hash(['namespace'=>'development_work_retirement_v1','intent'=>$retirement]);
+        return $this->transaction(function() use($id,$old,$admin,$connection,$authority,$retirement,$retirementHash,$intent,$json,$hash): array {
+            $lane=$this->lane();$q=$this->handoffQueue($id,$admin);
+            // The digest is not authority: fresh current ownership comes first.
+            $record=$this->handoffRecord($q);
+            if ($record!==null) {
+                $this->authorize($q,$admin,$connection);$this->handoffAuthority($authority,$old,$admin,true);
+                if (!hash_equals($record['handoff_sha256'],$hash)) throw new DevelopmentWorkQueueConflict('handoff_conflict');
+                $result=$this->project($q)+['handoff_status'=>'already_recorded','dispatch_allowed'=>false];
+                $this->handoffAuthority($authority,$old,$admin,true);return $result;
+            }
+            if (!hash_equals($q['oauth_connection_id'],$old)) throw new DomainException('development_work_access_denied');
+            $this->handoffAuthority($authority,$old,$admin,false);
+            $item=$this->initialHandoffItem($q,$lane);
+            if ($q['plan_sha256']!==$retirement['expected_plan_sha256']) throw new DevelopmentWorkQueueConflict('plan_conflict');
+            if ($item['task_id']!==$retirement['task_id']||$item['spec_sha256']!==$retirement['spec_sha256'])
+                throw new DevelopmentWorkQueueConflict('stale_task');
+            if (!hash_equals($this->eventId($q,$item,false),$retirement['expected_pending_event_id']))
+                throw new DevelopmentWorkQueueConflict('stale_pending_event');
+            $now=$this->now();$decision=$retirement['decision'];
+            $this->execute('INSERT INTO development_work_retirements (queue_id,task_id,spec_sha256,expected_plan_sha256,expected_pending_event_id,decision_sha256,readback_sha256,reviewer_run_id,retirement_sha256,retirement_json,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+                [$id,$item['task_id'],$item['spec_sha256'],$retirement['expected_plan_sha256'],$retirement['expected_pending_event_id'],
+                    $decision['decision_sha256'],$decision['readback_sha256'],$decision['reviewer_run_id'],$retirementHash,self::canonical($retirement),$now]);
+            $this->execute('UPDATE development_work_items SET state=?,event_ack=NULL,delivered_at=NULL,claim_deadline=NULL,attention_at=NULL,attention_ack=NULL,watchdog_due_at=NULL,watchdog_epoch=0,last_watch_ack=NULL,updated_at=? WHERE queue_id=? AND task_id=?',
+                ['blocked',$now,$id,$item['task_id']]);
+            $this->execute('UPDATE development_work_queues SET current_task_id=NULL,state=?,blocked_count=blocked_count+1,retirement_count=retirement_count+1,last_retirement_task_id=?,updated_at=? WHERE queue_id=?',
+                ['blocked',$item['task_id'],$now,$id]);
+            // Terminal release only. Never select or clear another queue's lane.
+            $this->execute('UPDATE development_work_lane SET queue_id=NULL WHERE lane_key=? AND queue_id=?',['DEVELOPMENT',$id]);
+            $this->execute('INSERT INTO development_work_connection_handoffs (queue_id,handoff_sha256,admin_id,old_connection_id,new_connection_id,task_id,spec_sha256,expected_plan_sha256,expected_pending_event_id,retirement_sha256,intent_json,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
+                [$id,$hash,$admin,$old,$connection,$item['task_id'],$item['spec_sha256'],$retirement['expected_plan_sha256'],
+                    $retirement['expected_pending_event_id'],$retirementHash,$json,$now]);
+            // A point-in-time cleanup, not proof that a queued callback vanished.
+            $this->execute('UPDATE development_work_events SET is_active=0,single_consumer_key=NULL,lease_token=NULL,lease_until=NULL,updated_at=? WHERE project_key=? AND admin_id=? AND oauth_connection_id=? AND queue_id=?',
+                [$now,self::PROJECT,$admin,$old,$id]);
+            $this->execute('UPDATE development_work_queues SET oauth_connection_id=?,updated_at=? WHERE queue_id=?',[$connection,$now,$id]);
+            $this->handoffAuthority($authority,$old,$admin,false);
+            $next=$this->owned($id,$admin,$connection);
+            return $this->project($next)+['handoff_status'=>'retired_unclaimed_connection_handed_off','handoff_sha256'=>$hash,
+                'retirement_sha256'=>$retirementHash,'retired_task_id'=>$item['task_id'],'dispatch_allowed'=>false,
+                'handoff_semantics'=>'administrative_retirement_not_worker_acceptance'];
+        });
+    }
+
+    private function handoffCoordinates(int $admin,string $connection,array $args): array
+    {
+        self::actor($admin,$connection);$id=self::id($args['queue_id']??null);
+        foreach (['old_connection_id','expected_caller_connection_id'] as $key)
+            if (!is_string($args[$key]??null)||preg_match('/\A[a-f0-9]{32}\z/D',$args[$key])!==1)
+                throw new InvalidArgumentException('invalid_development_work_connection');
+        if (!hash_equals($connection,$args['expected_caller_connection_id']))
+            throw new DevelopmentWorkQueueConflict('caller_connection_changed');
+        if (hash_equals($connection,$args['old_connection_id'])) throw new InvalidArgumentException('same_development_work_connection');
+        return [$id,$args['old_connection_id']];
+    }
+
+    private function handoffQueue(string $id,int $admin): array
+    {
+        $q=$this->one('SELECT * FROM development_work_queues WHERE queue_id=? AND project_key=? AND admin_id=?'.$this->lock(),[$id,self::PROJECT,$admin]);
+        if ($q===null) throw new DomainException('development_work_access_denied');
+        return $q;
+    }
+
+    private function handoffAuthority(callable $authority,string $old,int $admin,bool $recorded): void
+    {
+        if ($authority($old,$admin,$recorded)!==true) throw new DomainException('development_work_access_denied');
+    }
+
+    private function initialHandoffItem(array $q,array $lane): array
+    {
+        $this->ownsLane($q,$lane);
+        if ($q['state']!=='ready'||$q['current_task_id']===null||(int)$q['task_count']!==1
+            ||(int)$q['accepted_count']!==0||(int)$q['blocked_count']!==0||(int)$q['retirement_count']!==0
+            ||$q['plan_sha256']!==$q['initial_plan_sha256']||$q['last_receipt_task_id']!==null
+            ||$q['last_resolution_task_id']!==null||$q['last_retirement_task_id']!==null)
+            throw new DevelopmentWorkQueueConflict('unsupported_initial_queue');
+        $qItems=$this->pdo->prepare('SELECT * FROM development_work_items WHERE queue_id=? ORDER BY ordinal LIMIT 2');
+        if (!$qItems||!$qItems->execute([$q['queue_id']])) throw new RuntimeException('development_work_storage_unavailable');
+        $items=$qItems->fetchAll(PDO::FETCH_ASSOC);
+        if (!is_array($items)) throw new RuntimeException('development_work_storage_unavailable');
+        if (count($items)!==1) throw new DevelopmentWorkQueueConflict('unsupported_initial_queue');
+        $item=$this->current($q);
+        if ($item['state']!=='ready'||$item['claim_sha256']!==null||$item['current_run_id']!==null)
+            throw new DevelopmentWorkQueueConflict('not_known_idle');
+        $spec=$this->storedSpec($item);
+        if ((int)$item['ordinal']!==0||$item['plan_sha256']!==$q['initial_plan_sha256']
+            ||!hash_equals(self::hash([$spec]),$q['initial_tasks_sha256']))
+            throw new DevelopmentWorkQueueConflict('unsupported_initial_queue');
+        foreach (['development_work_appends','development_work_retirements','development_work_receipts','development_work_resolutions'] as $table)
+            if ($this->one('SELECT queue_id FROM '.$table.' WHERE queue_id=? LIMIT 1',[$q['queue_id']]))
+                throw new DevelopmentWorkQueueConflict('initial_queue_history_exists');
+        if ($this->one('SELECT queue_id FROM development_work_items WHERE state IN (?,?) OR claim_sha256 IS NOT NULL OR current_run_id IS NOT NULL LIMIT 1',['claimed','unknown'])
+            ||$this->one('SELECT queue_id FROM development_work_queues WHERE state IN (?,?) LIMIT 1',['claimed','unknown']))
+            throw new DevelopmentWorkQueueConflict('development_work_unresolved');
+        return $item;
+    }
+
+    /** Validated immutable proof for only this queue's one permitted handoff. */
+    private function handoffRecord(array $q): ?array
+    {
+        $query=$this->pdo->prepare('SELECT * FROM development_work_connection_handoffs WHERE queue_id=? LIMIT 2');
+        if (!$query||!$query->execute([$q['queue_id']])) throw new RuntimeException('development_work_storage_unavailable');
+        $records=$query->fetchAll(PDO::FETCH_ASSOC);
+        if (!is_array($records)) throw new RuntimeException('development_work_storage_unavailable');
+        if ($records===[]) return null;
+        if (count($records)!==1) throw new RuntimeException('development_work_stored_handoff_invalid');
+        $r=$records[0];
+        try {
+            if (!is_string($r['intent_json']??null)||strlen($r['intent_json'])>4096
+                ||!is_string($r['created_at']??null)||preg_match('/\A[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\z/D',$r['created_at'])!==1)
+                throw new RuntimeException();
+            $intent=json_decode($r['intent_json'],true,16,JSON_THROW_ON_ERROR);
+            if (!is_array($intent)||count($intent)!==5||array_diff(['project_key','admin_id','old_connection_id','new_connection_id','retirement'],array_keys($intent))
+                ||$intent['project_key']!==self::PROJECT||!is_int($intent['admin_id'])||$intent['admin_id']!==(int)$q['admin_id'])
+                throw new RuntimeException();
+            foreach (['old_connection_id','new_connection_id'] as $field)
+                if (!is_string($intent[$field])||preg_match('/\A[a-f0-9]{32}\z/D',$intent[$field])!==1) throw new RuntimeException();
+            if ($intent['old_connection_id']===$intent['new_connection_id']||$q['oauth_connection_id']!==$intent['new_connection_id'])
+                throw new RuntimeException();
+            $retirement=self::retirementIntent($intent['retirement']);
+            $hash=self::hash(['namespace'=>'development_work_idle_connection_handoff_v1','intent'=>$intent]);
+            $retirementHash=self::hash(['namespace'=>'development_work_retirement_v1','intent'=>$retirement]);
+            if (self::canonical($intent)!==$r['intent_json']||$retirement['queue_id']!==$q['queue_id']
+                ||$r['handoff_sha256']!==$hash||$r['retirement_sha256']!==$retirementHash||(string)$r['admin_id']!==(string)$intent['admin_id']
+                ||$r['old_connection_id']!==$intent['old_connection_id']||$r['new_connection_id']!==$intent['new_connection_id']
+                ||$r['task_id']!==$retirement['task_id']||$r['spec_sha256']!==$retirement['spec_sha256']
+                ||$r['expected_plan_sha256']!==$retirement['expected_plan_sha256']
+                ||$r['expected_pending_event_id']!==$retirement['expected_pending_event_id'])
+                throw new RuntimeException();
+            $stored=$this->one('SELECT retirement_sha256,retirement_json,created_at FROM development_work_retirements WHERE queue_id=? AND task_id=?',[$q['queue_id'],$r['task_id']]);
+            if (!$stored||$stored['retirement_sha256']!==$retirementHash||$stored['retirement_json']!==self::canonical($retirement)||$stored['created_at']!==$r['created_at'])
+                throw new RuntimeException();
+        } catch (Throwable $invalid) {throw new RuntimeException('development_work_stored_handoff_invalid');}
+        return $r;
+    }
+
+    private function handoffMetadata(array $q): ?array
+    {
+        $r=$this->handoffRecord($q);
+        if ($r===null) return null;
+        return ['handoff_sha256'=>$r['handoff_sha256'],'task_id'=>$r['task_id'],'spec_sha256'=>$r['spec_sha256'],
+            'expected_plan_sha256'=>$r['expected_plan_sha256'],'retirement_sha256'=>$r['retirement_sha256'],
+            'created_at'=>$r['created_at'],'record_type'=>'administrative_retirement_not_worker_acceptance','dispatch_allowed'=>false];
+    }
+
     public function eventCandidates(int $limit=20): array
     {
         $this->outsideTransaction();if ($limit<1||$limit>20) throw new InvalidArgumentException('invalid_development_work_limit');
@@ -311,6 +509,7 @@ final class DevelopmentWorkQueue
         $out['expected_pending_event_id']=$item!==null&&$state==='ready'&&$item['claim_sha256']===null&&$item['current_run_id']===null?$this->eventId($q,$item,false):null;
         $out['delivery_state']=$item===null?$state:($state!=='ready'?$state:($item['attention_at']!==null?'attention_required':($item['event_ack']!==null?'awaiting_claim':'ready')));
         $out['last_retirement']=$q['last_retirement_task_id']===null?null:$this->retirementMetadata($q,$q['last_retirement_task_id']);
+        $out['last_connection_handoff']=$this->handoffMetadata($q);
         $out['last_append']=$this->appendMetadata($q);
         $out['last_receipt']=$q['last_receipt_task_id']===null?null:$this->receiptMetadata($q,$q['last_receipt_task_id'],false);
         $out['last_resolution']=$q['last_resolution_task_id']===null?null:$this->receiptMetadata($q,$q['last_resolution_task_id'],true);
@@ -322,10 +521,15 @@ final class DevelopmentWorkQueue
         if (!$record||!is_string($record['retirement_json'])||!is_string($record['retirement_sha256'])) throw new RuntimeException('development_work_stored_retirement_invalid');
         $intent=self::retirementIntent(json_decode($record['retirement_json'],true,16,JSON_THROW_ON_ERROR));
         $hash=self::hash(['namespace'=>'development_work_retirement_v1','intent'=>$intent]);$item=$this->exactItem($q['queue_id'],$task,$intent['spec_sha256']);
+        $eventQueue=$q;$handoff=$this->handoffRecord($q);
+        if ($handoff!==null&&$handoff['task_id']===$task) {
+            if ($handoff['retirement_sha256']!==$hash) throw new RuntimeException('development_work_stored_retirement_invalid');
+            $eventQueue['oauth_connection_id']=$handoff['old_connection_id'];
+        }
         if ($intent['queue_id']!==$q['queue_id']||$intent['task_id']!==$task||self::canonical($intent)!==$record['retirement_json']
             ||!hash_equals($hash,$record['retirement_sha256'])||$item['state']!=='blocked'||$item['claim_sha256']!==null||$item['current_run_id']!==null
             ||$record['spec_sha256']!==$intent['spec_sha256']||$record['expected_plan_sha256']!==$intent['expected_plan_sha256']
-            ||$record['expected_pending_event_id']!==$intent['expected_pending_event_id']||$intent['expected_pending_event_id']!==$this->eventId($q,$item,false)
+            ||$record['expected_pending_event_id']!==$intent['expected_pending_event_id']||$intent['expected_pending_event_id']!==$this->eventId($eventQueue,$item,false)
             ||$record['decision_sha256']!==$intent['decision']['decision_sha256']||$record['readback_sha256']!==$intent['decision']['readback_sha256']
             ||$record['reviewer_run_id']!==$intent['decision']['reviewer_run_id']
             ||$this->one('SELECT task_id FROM development_work_receipts WHERE queue_id=? AND task_id=?',[$q['queue_id'],$task])

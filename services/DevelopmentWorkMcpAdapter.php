@@ -6,7 +6,7 @@ require_once __DIR__.'/DevelopmentWorkQueue.php';
 /** Separate development metadata capability; never a source/publisher lease. */
 final class DevelopmentWorkMcpAdapter
 {
-    public const NAMES=['development_work_create','development_work_append','development_work_status','development_work_claim','development_work_started','development_work_complete','development_work_resolve_existing_run','development_work_retire_unclaimed'];
+    public const NAMES=['development_work_create','development_work_append','development_work_status','development_work_claim','development_work_started','development_work_complete','development_work_resolve_existing_run','development_work_retire_unclaimed','development_work_handoff_preflight','development_work_handoff_connection'];
     public function __construct(private PDO $pdo,private $store=null,private $clock=null,private ?DevelopmentWorkEventService $events=null,private $registrationTraceReader=null) {}
     public static function tools(): array
     {
@@ -45,11 +45,24 @@ final class DevelopmentWorkMcpAdapter
                     'decision'=>['type'=>'object','properties'=>['decision_sha256'=>$sha,'readback_sha256'=>$sha,'reviewer_run_id'=>$run],
                         'required'=>['decision_sha256','readback_sha256','reviewer_run_id'],'additionalProperties'=>false]],
                 ['queue_id','task_id','spec_sha256','expected_plan_sha256','expected_pending_event_id','decision'],false],
+
+            ['development_work_handoff_preflight','Read bounded administrative recovery metadata for an exact historical DEV connection and the current authenticated caller, both proven to belong to the same active project administrator. Expected caller is an equality CAS, never a credential selector. Returned event identity is a retirement CAS, never signed pending evidence or dispatch permission. No row, acknowledgement, deadline, grant or worker changes.',
+                ['queue_id'=>$id,'old_connection_id'=>['type'=>'string','pattern'=>'^[a-f0-9]{32}$'],
+                    'expected_caller_connection_id'=>['type'=>'string','pattern'=>'^[a-f0-9]{32}$']],
+                ['queue_id','old_connection_id','expected_caller_connection_id'],true],
+            ['development_work_handoff_connection','Atomically retire exactly one original READY unclaimed task as blocked administrative metadata and hand queue authority to the actual authenticated same-admin DEV caller. Require exact saved preflight CAS, a completed independent retirement decision/readback and a private check of unresolved work or dispatch intent. The target cannot be selected. Reject claims, runs, work UNKNOWN, receipts, plan appends, prior retirement, other items or caller drift. Preserve history and configuration UNKNOWN. Retirement is never worker acceptance and never satisfies dependencies. No callback, worker, native configuration or replacement plan is created. A matching recorded intent reads back without another mutation.',
+                ['queue_id'=>$id,'task_id'=>$id,'spec_sha256'=>$sha,'expected_plan_sha256'=>$sha,
+                    'expected_pending_event_id'=>['type'=>'string','pattern'=>'^dev_evt_[a-f0-9]{64}$'],
+                    'old_connection_id'=>['type'=>'string','pattern'=>'^[a-f0-9]{32}$'],
+                    'expected_caller_connection_id'=>['type'=>'string','pattern'=>'^[a-f0-9]{32}$'],
+                    'decision'=>['type'=>'object','properties'=>['decision_sha256'=>$sha,'readback_sha256'=>$sha,'reviewer_run_id'=>$run],
+                        'required'=>['decision_sha256','readback_sha256','reviewer_run_id'],'additionalProperties'=>false]],
+                ['queue_id','task_id','spec_sha256','expected_plan_sha256','expected_pending_event_id','old_connection_id','expected_caller_connection_id','decision'],false],
         ];
         $out=[];$security=[['type'=>'oauth2','scopes'=>[ManagerPreparationOAuth::DEVELOPMENT_SCOPE]]];
         foreach ($definitions as [$name,$description,$properties,$required,$readOnly]) $out[]=['name'=>$name,'description'=>$description,
             'inputSchema'=>['type'=>'object','properties'=>$properties,'required'=>$required,'additionalProperties'=>false],
-            'annotations'=>['readOnlyHint'=>$readOnly,'destructiveHint'=>false,'idempotentHint'=>true,'openWorldHint'=>false],
+            'annotations'=>['readOnlyHint'=>$readOnly,'destructiveHint'=>$name==='development_work_handoff_connection','idempotentHint'=>true,'openWorldHint'=>false],
             'securitySchemes'=>$security,'_meta'=>['securitySchemes'=>$security]];
         return $out;
     }
@@ -70,7 +83,13 @@ final class DevelopmentWorkMcpAdapter
             if (is_callable($this->store)) $result=($this->store)($operation,$arguments);
             else {
                 if ($this->store===null) $this->store=new DevelopmentWorkQueue($this->pdo,$this->clock);
-                $result=$this->store->$operation(...$arguments);
+                if (in_array($operation,['handoff_preflight','handoff_connection'],true)) {
+                    require_once __DIR__.'/DevelopmentWorkConnectionAuthority.php';
+                    $authority=new DevelopmentWorkConnectionAuthority($this->pdo,$this->clock);
+                    $proof=static fn(string $old,int $actor,bool $recorded):bool=>$recorded
+                        ?$authority->assertCurrent($actor,$connection):$authority->assertPair($actor,$old,$connection);
+                    $result=$this->store->$operation(...[...$arguments,$proof]);
+                } else $result=$this->store->$operation(...$arguments);
             }
         } catch (DevelopmentWorkQueueConflict $error) {return ['ok'=>false,'reason'=>$error->reason];}
         if (!is_array($result)) throw new RuntimeException('invalid_development_work_result');
