@@ -94,7 +94,7 @@ final class ArchiveResearchSemanticExtractor
                 $s['p']=$product==='addon'?'addon':'mixed';
             }else$s['p']=$product;
         }
-        $clauses=preg_split('/(?<=[.!?;])\s+|[\r\n]+|,\s*(?=теперь\b)/u',$text,-1,PREG_SPLIT_NO_EMPTY)?:[];
+        $clauses=preg_split('/(?<=[.!?;])\s+|[\r\n]+|,\s*(?=теперь(?!\pL))/u',$text,-1,PREG_SPLIT_NO_EMPTY)?:[];
         if(count($clauses)>128){$clauses=array_slice($clauses,0,128);$flags['clause_limit']=true;}
         $goals=[];$relations=[];$rules=[];$newPrompt=null;$managerQuestion=false;
         foreach($clauses as$clause){
