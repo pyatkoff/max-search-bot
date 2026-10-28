@@ -58,6 +58,19 @@ try{
                 &&$span['offset_bytes']+$span['length_bytes']<=strlen($text)&&count($span)===3);
         }
     }
+    foreach(['[ссылка не прочитана]','[ссылка на подборку не прочитана]']as$i=>$marker){
+        $maskedText=$marker.' Готовы бронировать.';
+        $masked=ArchiveResearchFeatureExtractor::extract(archiveFeatureMessage($maskedText,'customer',['links_redacted'=>true]));
+        $span=array_values(array_filter($masked['evidence'],static fn($s)=>$s['pattern_id']==='ready_to_book'))[0]??null;
+        archiveFeatureCheck('privacy marker does not create tourist negation '.$i,
+            archiveFeatureHas($masked,'ready_to_book')&&!$masked['flags']['negation']&&$masked['flags']['unread_links']);
+        archiveFeatureCheck('qualifier copy preserves original evidence byte offsets '.$i,
+            $span!==null&&$span['offset_bytes']===strlen($marker.' ')
+            &&substr($maskedText,$span['offset_bytes'],$span['length_bytes'])==='Готовы бронировать');
+        $genuine=ArchiveResearchFeatureExtractor::extract(archiveFeatureMessage('Не готовы бронировать. '.$marker,'customer',['links_redacted'=>true]));
+        archiveFeatureCheck('genuine negation is retained beside a privacy marker '.$i,
+            archiveFeatureHas($genuine,'ready_to_book')&&$genuine['flags']['negation']&&$genuine['flags']['unread_links']);
+    }
     $negative=ArchiveResearchFeatureExtractor::extract(archiveFeatureMessage('Я не оплатила.'));
     archiveFeatureCheck('negative payment wording remains a qualified candidate rather than a positive event',
         archiveFeatureHas($negative,'payment_self_report')&&$negative['flags']['negation']

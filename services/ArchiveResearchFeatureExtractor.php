@@ -60,7 +60,10 @@ final class ArchiveResearchFeatureExtractor
             'conditional'=>'(?<!\\pL)(?:если|возможно|пока)(?!\\pL)|при\\s+услов|соглас\\pL{0,10}|зависит',
             'past'=>'в\\s+прошл|прошл\\pL{0,6}\\s+(?:год|раз|поездк)|раньше|предыдущ\\pL{0,8}\\s+тур|уже\\s+отдыхал',
         ];
-        foreach($qualifiers as$name=>$pattern)$out['flags'][$name]=preg_match('~'.$pattern.'~iu',$text)===1;
+        // Fixed privacy markers describe unread data; their wording is not a tourist qualifier.
+        $qualifierText=str_replace(['[ссылка на подборку не прочитана]','[ссылка не прочитана]',
+            '[email скрыт]','[телефон скрыт]','[контакт скрыт]'],'',$text);
+        foreach($qualifiers as$name=>$pattern)$out['flags'][$name]=preg_match('~'.$pattern.'~iu',$qualifierText)===1;
         if(!$verified){$out['status']='unknown_role';return$out;}
         foreach(self::SPECS as$id=>[$expected,$pattern]){
             if($expected!=='*'&&$expected!==$role)continue;
