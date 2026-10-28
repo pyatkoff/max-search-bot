@@ -58,6 +58,64 @@ function sourceClient(send,href='https://b2b.fstravel.com/search_tour'){
  return {client:window.AnyTourCollectorClient,button,messages};
 }
 
+// Execute the shipped content bridge with held runtime replies. No queue or
+// browser is involved: overlapping page-ready/reconnect events must share the
+// same handshake so a late reply cannot restore an obsolete worker nonce.
+function contentBridge(){
+ const listeners=new Map(),events=[],requests=[],hellos=[];let receive;
+ const document={addEventListener(type,listener){const list=listeners.get(type)||[];list.push(listener);listeners.set(type,list)},
+  dispatchEvent(event){if(event.type==='anytour-collector-extension')events.push(clone(event.detail));for(const listener of listeners.get(event.type)||[])listener(event)}};
+ const chrome={runtime:{id:'fixture-extension',onMessage:{addListener(listener){receive=listener}},sendMessage(message){
+  requests.push(clone(message));
+  if(message.type==='bridge_hello')return new Promise((resolve,reject)=>hellos.push({resolve,reject}));
+  if(message.type==='bridge_event')return Promise.resolve({ok:true});
+  throw new Error('unexpected content bridge command');
+ }}};
+ vm.runInNewContext(fs.readFileSync(__dirname+'/../extensions/selection-collector/bridge.js','utf8'),
+  {document,chrome,Promise,CustomEvent:class{constructor(type,{detail}={}){this.type=type;this.detail=detail}}},{filename:'collector-bridge.js'});
+ return {events,requests,hellos,flush:()=>new Promise(resolve=>setImmediate(resolve)),
+  page(type,detail){document.dispatchEvent({type,detail})},
+  runtime(message,sender='fixture-extension'){const replies=[];const held=receive(message,{id:sender},reply=>replies.push(clone(reply)));return{held,replies}}};
+}
+
+async function bridgeReconnectRegression(){
+ const bridge=contentBridge(),device='d'.repeat(32),first='a'.repeat(32),second='b'.repeat(32),last='c'.repeat(32);
+ await bridge.flush();
+ check('the actual content bridge starts one initial handshake',bridge.hellos.length===1&&bridge.events.length===0);
+ bridge.page('anytour-collector-page-ready');
+ const initial=bridge.runtime({type:'bridge_reconnect'}),overlap=bridge.runtime({type:'bridge_reconnect'});
+ await bridge.flush();
+ check('initial page-ready and reconnect overlap cannot rotate competing worker nonces',bridge.hellos.length===1&&initial.held===true&&overlap.held===true&&initial.replies.length===0&&overlap.replies.length===0);
+ bridge.hellos[0].resolve({ok:true,device,nonce:first});await bridge.flush();
+ check('the shared handshake announces its nonce once and acknowledges every reconnect',bridge.events.length===1&&bridge.events[0].type==='hello'&&bridge.events[0].device===device&&bridge.events[0].nonce===first&&initial.replies.length===1&&overlap.replies.length===1);
+
+ const command={type:'bridge_command',nonce:first,command:{action:'operation',request_id:'e'.repeat(32),actor:7,conversation_id:11}};
+ const foreign=bridge.runtime(command,'other-extension'),wrong=bridge.runtime({...command,nonce:second}),valid=bridge.runtime(command);
+ check('bridge commands still require the exact own sender and active nonce',foreign.replies.length===0&&wrong.replies.length===0&&valid.replies.length===1&&bridge.events.filter(event=>event.type==='command').length===1&&bridge.events.at(-1).nonce===first&&bridge.events.at(-1).request_id===command.command.request_id);
+ bridge.page('anytour-collector-page',{type:'connected',nonce:second});
+ bridge.page('anytour-collector-page',{type:'connected',nonce:first});
+ const forwarded=bridge.requests.filter(request=>request.type==='bridge_event');
+ check('page bridge events still forward only the active nonce',forwarded.length===1&&forwarded[0].event.type==='connected'&&forwarded[0].event.nonce===first);
+
+ const foreignReconnect=bridge.runtime({type:'bridge_reconnect'},'other-extension');await bridge.flush();
+ check('a foreign reconnect cannot start another handshake',foreignReconnect.held!==true&&foreignReconnect.replies.length===0&&bridge.hellos.length===1);
+ const next=bridge.runtime({type:'bridge_reconnect'});bridge.page('anytour-collector-page-ready');await bridge.flush();
+ check('a completed handshake allows one fresh coalesced reconnect',bridge.hellos.length===2&&next.held===true&&next.replies.length===0);
+ bridge.hellos[1].resolve({ok:true,device,nonce:second});await bridge.flush();
+ check('a later successful handshake announces the fresh worker nonce',bridge.events.filter(event=>event.type==='hello').length===2&&bridge.events.at(-1).nonce===second&&next.replies.length===1);
+ const obsolete=bridge.runtime(command),current=bridge.runtime({...command,nonce:second});
+ check('the old nonce cannot relay commands after reconnection',obsolete.replies.length===0&&current.replies.length===1&&bridge.events.filter(event=>event.type==='command').length===2&&bridge.events.at(-1).nonce===second);
+
+ bridge.runtime({type:'bridge_reconnect'});bridge.page('anytour-collector-page-ready');await bridge.flush();
+ check('a pending reconnect remains a single handshake before failure',bridge.hellos.length===3);
+ bridge.hellos[2].reject(new Error('synthetic disconnected worker'));await bridge.flush();
+ check('a failed handshake does not announce a replacement nonce',bridge.events.filter(event=>event.type==='hello').length===2);
+ const recovered=bridge.runtime({type:'bridge_reconnect'});bridge.page('anytour-collector-page-ready');await bridge.flush();
+ check('failure releases the handshake so a later reconnect can recover',bridge.hellos.length===4&&recovered.held===true&&recovered.replies.length===0);
+ bridge.hellos[3].resolve({ok:true,device,nonce:last});await bridge.flush();
+ check('the recovered handshake announces one nonce without any import command',bridge.events.filter(event=>event.type==='hello').length===3&&bridge.events.at(-1).nonce===last&&recovered.replies.length===1&&bridge.requests.every(request=>['bridge_hello','bridge_event'].includes(request.type)));
+}
+
 // Drive the shipped gallery reader through changing rendered documents. The
 // clock advances at its real poll boundary; no source request or photo is made.
 async function gallerySequence(sequence,options={}){
@@ -144,11 +202,12 @@ async function tourvisorBlockedCancellationRegression(){
  }
 }
 
-module.exports={worker,provider,makeTarget,tourvisorBlockedCancellationRegression,galleryRecoveryRegression};
+module.exports={worker,provider,makeTarget,tourvisorBlockedCancellationRegression,galleryRecoveryRegression,bridgeReconnectRegression};
 if(require.main===module)(async()=>{
  require('node:child_process').execFileSync('python3',[__dirname+'/../extensions/selection-collector/build_package.py','--check'],{stdio:'pipe'});
  check('installable package matches actual extension sources',true);
  const manifest=JSON.parse(fs.readFileSync(__dirname+'/../extensions/selection-collector/manifest.json','utf8'));
+ await bridgeReconnectRegression();
 
  {
  const early=['early-1','early-2','early-3'],settled=['hotel-1','hotel-2','hotel-3'];
