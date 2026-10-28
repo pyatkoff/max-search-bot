@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__.'/InternalOwnerDialogueScope.php';
 require_once __DIR__.'/ManagerAiTextRedactor.php';
 require_once __DIR__.'/ArchiveResearchFeatureExtractor.php';
+require_once __DIR__.'/ArchiveResearchSemanticExtractor.php';
 
 /** Private historical research reader. No intake, model, send or read-marker owner. */
 final class ArchiveResearchReadService
@@ -38,10 +39,10 @@ final class ArchiveResearchReadService
         self::arguments($args,['cursor','limit'],50);
         return $this->read($admin,$connection,function(string $key) use($admin,$connection,$args):array {
             $state=isset($args['cursor'])?$this->decode($args['cursor'],'inventory_or_features',$key,$admin,$connection):null;
-            if(($state['k']??null)==='feature_inventory'&&$state['a']!=='0'&&!isset($this->accountAliases[$state['a']]))self::fail('forbidden');
+            if(in_array($state['k']??null,['feature_inventory','semantic_inventory'],true)&&$state['a']!=='0'&&!isset($this->accountAliases[$state['a']]))self::fail('forbidden');
             $currentFence=$this->fence();$fence=$state['f']??$currentFence;
             if(self::decimalGreater($fence,$currentFence))self::fail('stale_cursor');
-            if(($state['k']??null)==='feature_inventory')return$this->featureInventory($state,$args['limit']??25,$key,$admin,$connection);
+            if(in_array($state['k']??null,['feature_inventory','semantic_inventory'],true))return$this->featureInventory($state,$args['limit']??25,$key,$admin,$connection);
             $expiry=$state['e']??($this->now()+self::CURSOR_TTL);
             $summary=$state===null?$this->summary($fence):null;
             $limit=$args['limit']??25;
@@ -58,6 +59,7 @@ final class ArchiveResearchReadService
                 'c'=>(string)$last['chat_id'],'f'=>$fence,'e'=>$expiry],$key,$admin,$connection);}
             return $this->base($fence)+['totals'=>$summary['totals']??null,'accounts'=>$summary['accounts']??null,
                 'summary_not_recomputed'=>$state!==null,'feature_scan'=>$this->featureDescriptor($fence,$key,$admin,$connection),
+                'semantic_scan'=>$this->semanticDescriptor($fence,$key,$admin,$connection),
                 'chats'=>$chats,'has_more'=>$more,'next_cursor'=>$next];
         });
     }
@@ -295,18 +297,34 @@ final class ArchiveResearchReadService
                 'x'=>bin2hex(random_bytes(16)),'e'=>$this->now()+self::CURSOR_TTL],$key,$admin,$connection)];
     }
 
+    /** Explicit opt-in: contextual rules, not model predictions or authoritative business state. */
+    private function semanticDescriptor(string$fence,string$key,int$admin,string$connection):array
+    {
+        return['operation'=>'contextual_semantic_inventory','invoked'=>false,'explicit_stored_text_read'=>true,
+            'label_set_version'=>ArchiveResearchSemanticExtractor::VERSION,'semantics'=>'contextual_rule_candidates_not_verified_outcomes',
+            'model_calls'=>0,'database_writes'=>0,'media_contents_read'=>false,
+            'budgets'=>['max_chat_windows'=>50,'max_metadata_rows'=>self::FEATURE_METADATA_ROWS,'max_window_records'=>100,
+                'max_source_json_bytes'=>self::FEATURE_SOURCE_BYTES,'max_output_bytes'=>self::MAX_RESPONSE_BYTES,
+                'max_read_seconds'=>self::MAX_SECONDS,'max_statement_ms'=>5000,'max_state_bytes'=>1024,'max_evidence'=>12],
+            'start_cursor'=>$this->encode(['v'=>1,'k'=>'semantic_inventory','a'=>'0','c'=>'0','n'=>'0','f'=>$fence,
+                'x'=>bin2hex(random_bytes(16)),'s'=>ArchiveResearchSemanticExtractor::initialState(),
+                'e'=>$this->now()+self::CURSOR_TTL],$key,$admin,$connection)];
+    }
+
     /** Explicit stored-text mode only. Cursor fields are positions, never authorization or cumulative counts. */
     private function featureInventory(array$state,int$limit,string$key,int$admin,string$connection):array
     {
         if($state['a']!=='0'&&!isset($this->accountAliases[$state['a']]))self::fail('forbidden');
+        $semantic=$state['k']==='semantic_inventory';$semanticState=$semantic?$state['s']:null;
         $position=['a'=>$state['a'],'c'=>$state['c'],'n'=>$state['n']];$current=$state['a']!=='0';
         $windows=[];$metadataRows=0;$sourceBytes=0;$processed=0;$evidenceLeft=8;$controlsLeft=4;$exhausted=false;
-        $anchor=$current;$expiry=$this->now()+self::CURSOR_TTL;
+        $anchor=$current;$expiry=$this->now()+self::CURSOR_TTL;$semanticEvidenceLeft=12;
         while(count($windows)<$limit&&$metadataRows<self::FEATURE_METADATA_ROWS){
             if(!$current){
                 $chat=$this->featureNextChat($state['f'],$position['a'],$position['c']);
                 if($chat===null){$exhausted=true;break;}
                 $metadataRows++;$position=['a'=>$chat['a'],'c'=>$chat['c'],'n'=>'0'];$current=true;$anchor=false;
+                if($semantic)$semanticState=ArchiveResearchSemanticExtractor::initialState();
             }
             if($anchor){
                 $this->stage='history_anchor';[$where,$values]=$this->scope($state['f'],true);
@@ -316,7 +334,8 @@ final class ArchiveResearchReadService
                 $metadataRows++;$anchor=false;
             }
             $remaining=self::FEATURE_METADATA_ROWS-$metadataRows;if($remaining<1)break;
-            $metadata=$this->featureMetadata($state['f'],$position,$remaining);$metadataRows+=count($metadata);
+            $windowLimit=$semantic?min(100,$remaining):$remaining;
+            $metadata=$this->featureMetadata($state['f'],$position,$windowLimit);$metadataRows+=count($metadata);
             if(!$metadata){$current=false;continue;}
             $selected=[];$fetch=[];$pageBytes=0;
             foreach($metadata as$row){
@@ -337,32 +356,36 @@ final class ArchiveResearchReadService
                 foreach($selected as$row)if($row['read_status']==='available'
                     &&(!isset($raw[(string)$row['id']])||strlen($raw[(string)$row['id']])!==(int)$row['bytes']))self::fail('source_changed');
             }
-            $complete=count($selected)===count($metadata)&&count($metadata)<$remaining;
-            $window=$this->featureWindow($selected,$raw,$position,$state['x'],$key,$complete,$evidenceLeft,$controlsLeft);
+            $complete=count($selected)===count($metadata)&&count($metadata)<$windowLimit;
+            if($semantic){$window=$this->semanticWindow($selected,$raw,$position,$state['x'],$key,$complete,$semanticState,$semanticEvidenceLeft);}
+            else{$window=$this->featureWindow($selected,$raw,$position,$state['x'],$key,$complete,$evidenceLeft,$controlsLeft);}
             $window['chat_ref']=$this->encode(['v'=>1,'k'=>'chat','a'=>$position['a'],'c'=>$position['c'],
                 'f'=>$state['f'],'e'=>$expiry],$key,$admin,$connection);
             $sourceBytes+=$pageBytes;$processed+=count($selected);$last=$selected[count($selected)-1];
             $position=['a'=>(string)$last['account_id'],'c'=>(string)$last['chat_id'],'n'=>(string)$last['message_id']];
-            $windows[]=['result'=>$window,'position'=>$position];$current=!$complete;
+            $windows[]=['result'=>$window,'position'=>$position,'semantic_state'=>$semanticState];$current=!$complete;
             if(count($selected)<count($metadata)||$sourceBytes>=self::FEATURE_SOURCE_BYTES)break;
         }
-        $make=function(array$items,bool$more)use($state,$key,$admin,$connection,$metadataRows,$sourceBytes,$processed,$expiry):array{
+        $make=function(array$items,bool$more)use($state,$key,$admin,$connection,$metadataRows,$sourceBytes,$processed,$expiry,$semantic):array{
             $last=$items?$items[count($items)-1]['position']:['a'=>$state['a'],'c'=>$state['c'],'n'=>$state['n']];
-            $next=$more?$this->encode(['v'=>1,'k'=>'feature_inventory',...$last,'f'=>$state['f'],'x'=>$state['x'],
-                'e'=>$expiry],$key,$admin,$connection):null;
+            $cursorState=$semantic?['s'=>$items?$items[count($items)-1]['semantic_state']:$state['s']]:[];
+            $next=$more?$this->encode(['v'=>1,'k'=>$state['k'],...$last,'f'=>$state['f'],'x'=>$state['x'],
+                ...$cursorState,'e'=>$expiry],$key,$admin,$connection):null;
             $returned=array_sum(array_map(static fn($w)=>$w['result']['source_records'],$items));
-            return$this->base($state['f'])+['operation'=>'lexical_feature_inventory',
+            return$this->base($state['f'])+['operation'=>$semantic?'contextual_semantic_inventory':'lexical_feature_inventory',
+                'label_set_version'=>$semantic?ArchiveResearchSemanticExtractor::VERSION:null,
                 'pattern_set_version'=>ArchiveResearchFeatureExtractor::PATTERN_SET_VERSION,'timing_set_version'=>self::TIMING_SET_VERSION,
-                'semantics'=>'lexical_candidates_not_events_or_probabilities','stored_text_read'=>true,'model_calls'=>0,
+                'semantics'=>$semantic?'contextual_rule_candidates_not_verified_outcomes':'lexical_candidates_not_events_or_probabilities','stored_text_read'=>true,'model_calls'=>0,
                 'media_contents_read'=>false,'media_observation'=>'stored_references_only; omitted_record_media_unknown',
-                'candidate_flag_scope'=>'whole_message_qualifiers_not_semantic_polarity_or_match_clause',
+                'candidate_flag_scope'=>$semantic?'versioned_contextual_rules; interpretation_not_probability':'whole_message_qualifiers_not_semantic_polarity_or_match_clause',
                 'full_context_lookup'=>'read_archive_history_with_window_chat_ref',
                 'scan_run_ref'=>hash_hmac('sha256',"archive-feature-run-v1\0".$state['x'],$key),
                 'windows'=>array_column($items,'result'),'page_metadata_rows'=>$metadataRows,'page_source_json_bytes'=>$sourceBytes,
                 'page_processed_records'=>$processed,'page_returned_records'=>$returned,'read_but_not_returned_records'=>$processed-$returned,
                 'has_more'=>$more,'next_cursor'=>$next,'coverage_is_per_window'=>true,'cumulative_counts'=>null,
                 'deduplication'=>'source_window_id_and_source_ref_with_record_version; tokens_are_not_attestations',
-                'scan_traversal_exhausted_within_fence'=>!$more,'current_versions_may_change_between_pages'=>true,'semantic_review_complete'=>false];
+                'scan_traversal_exhausted_within_fence'=>!$more,'current_versions_may_change_between_pages'=>true,'semantic_review_complete'=>false,'contextual_rule_pass'=>$semantic,
+                'persistent_annotations_written'=>false,'historical_prediction_availability'=>'unknown'];
         };
         $result=$make($windows,!$exhausted);
         // Preserve a returned prefix and its cursor when fixed per-window coverage reaches the wire cap.
@@ -371,6 +394,57 @@ final class ArchiveResearchReadService
         }
         if(!$windows&&!$exhausted)self::fail('source_limit');
         return$result;
+    }
+
+    /** Bounded per-window projection; no text or aggregate counters are carried as trusted cursor state. */
+    private function semanticWindow(array$selected,array$raw,array$position,string$run,string$key,bool$complete,array&$state,int&$evidenceLeft):array
+    {
+        $inputState=$state;$goals=ArchiveResearchSemanticExtractor::goalIds();$goalBits=array_flip($goals);
+        $counts=[];$statuses=[];$labels=[];$flags=[];$boundaries=[];$episodes=[];$evidence=[];$versions=[];
+        $sourceKinds=['desktop_import'=>0,'business_message'=>0];
+        foreach($selected as$row){
+            $this->budget();
+            if(!array_key_exists($row['source_kind'],$sourceKinds))self::fail('unavailable');
+            $sourceKinds[$row['source_kind']]++;
+            $item=$this->project($row,$raw[(string)$row['id']]??null);
+            $statuses[$item['read_status']]=($statuses[$item['read_status']]??0)+1;
+            $versions[]=[$item['source_ref'],$item['native_message_id'],$item['version_at'],$item['read_status'],$item['record_sha256']??null];
+            $result=ArchiveResearchSemanticExtractor::step($item,$state);$state=$result['state'];
+            $labels[$result['status']]=($labels[$result['status']]??0)+1;
+            foreach($result['flags']as$name=>$value)if($value===true)$flags[$name]=($flags[$name]??0)+1;
+            $boundary=$result['episode_boundary'];
+            if($boundary!==null)$boundaries[$boundary]=($boundaries[$boundary]??0)+1;
+            $ordinal=$state['e'];
+            if(!isset($episodes[$ordinal]))$episodes[$ordinal]=['ordinal'=>$ordinal,'goal_mask'=>0,
+                'first_source_ref'=>$item['source_ref'],'last_source_ref'=>$item['source_ref'],
+                'boundary'=>$boundary,'product'=>$state['p']];
+            $episodes[$ordinal]['last_source_ref']=$item['source_ref'];$episodes[$ordinal]['product']=$state['p'];
+            foreach($result['events']as$event){
+                $goal=$event['goal'];if(!isset($goalBits[$goal]))self::fail('unavailable');
+                $counts[$goal]=($counts[$goal]??0)+1;
+                $episodes[$ordinal]['goal_mask']|=1<<$goalBits[$goal];
+                if($evidenceLeft>0){
+                    $evidence[]=$event+['created_at'=>$item['created_at'],'version_at'=>$item['version_at'],
+                        'record_sha256'=>$item['record_sha256']??null,'role'=>$item['role'],
+                        'fragment'=>$this->featureFragment($item['text']??'',0),'fragment_basis'=>'message_prefix_may_omit_matched_clause',
+                        'media_contents_read'=>false];
+                    $evidenceLeft--;
+                }
+            }
+            $this->budget();
+        }
+        $chat=hash_hmac('sha256',"archive-semantic-chat-v1\0".$run."\0".$position['a']."\0".$position['c'],$key);
+        return['chat_key'=>$chat,'account_alias'=>$this->accountAliases[$position['a']],
+            'source_window_id'=>hash_hmac('sha256',"archive-semantic-window-v1\0".ArchiveResearchSemanticExtractor::VERSION."\0".$run."\0".$chat."\0".self::json([$versions,$inputState,$state]),$key),
+            'source_records'=>count($selected),'source_kind_counts'=>$sourceKinds,
+            'read_status_counts'=>$statuses,'label_status_counts'=>$labels,'flag_counts'=>$flags,
+            'goal_event_counts'=>$counts,'episode_boundary_counts'=>$boundaries,'episode_candidates_started'=>array_sum($boundaries),
+            'goal_mask_order'=>$goals,'episode_windows'=>array_values($episodes),'chat_window_complete'=>$complete,
+            'context_after'=>['episode_ordinal'=>$state['e'],'product'=>$state['p'],
+                'linked_purchase_candidate'=>$state['linked'],'cancellation_observed'=>$state['cancelled']],
+            'evidence'=>$evidence,'evidence_selection'=>'first_rule_events_in_returned_prefix_not_representative',
+            'episode_identity'=>'candidate_within_chat_only; zero_means_unresolved',
+            'zero_counts_mean'=>'no_rule_label_in_returned_window_not_negative_outcome'];
     }
 
     private function featureNextChat(string$fence,string$afterAccount,string$afterChat):?array
@@ -568,15 +642,18 @@ final class ArchiveResearchReadService
         if(!hash_equals($expected,$m[2]))self::fail('stale_cursor');
         $body=base64_decode(strtr($m[1],'-_','+/').str_repeat('=',(4-strlen($m[1])%4)%4),true);
         try{$v=json_decode((string)$body,true,16,JSON_THROW_ON_ERROR);}catch(Throwable$e){self::fail('stale_cursor');}
-        if($kind==='inventory_or_features')$kind=is_array($v)&&($v['k']??null)==='feature_inventory'?'feature_inventory':'inventory';
-        $keys=$kind==='history'?['v','k','a','c','f','n','r','e']:($kind==='feature_inventory'?['v','k','a','c','f','n','x','e']:['v','k','a','c','f','e']);
+        if($kind==='inventory_or_features')$kind=is_array($v)&&in_array($v['k']??null,['feature_inventory','semantic_inventory'],true)?$v['k']:'inventory';
+        $keys=$kind==='history'?['v','k','a','c','f','n','r','e']:(in_array($kind,['feature_inventory','semantic_inventory'],true)?['v','k','a','c','f','n','x','e']:['v','k','a','c','f','e']);
+        if($kind==='semantic_inventory')$keys[]='s';
         if(!is_array($v)||count($v)!==count($keys)||array_diff(array_keys($v),$keys)||($v['v']??null)!==1
             ||($v['k']??null)!==$kind||!is_int($v['e'])||$v['e']<$this->now()||$v['e']>$this->now()+self::CURSOR_TTL)self::fail('stale_cursor');
-        foreach(['a','c','f']as$field)if(!is_string($v[$field])||!self::decimal($v[$field],in_array($kind,['inventory','feature_inventory'],true)||$field==='f'))self::fail('stale_cursor');
+        foreach(['a','c','f']as$field)if(!is_string($v[$field])||!self::decimal($v[$field],in_array($kind,['inventory','feature_inventory','semantic_inventory'],true)||$field==='f'))self::fail('stale_cursor');
         if($kind==='history'&&(!is_string($v['n'])||!self::decimal($v['n'],true)||!is_string($v['r'])||!preg_match('/\A[a-f0-9]{64}\z/D',$v['r'])))self::fail('stale_cursor');
-        if($kind==='feature_inventory'&&(!is_string($v['n'])||!self::decimal($v['n'],true)
+        if(in_array($kind,['feature_inventory','semantic_inventory'],true)&&(!is_string($v['n'])||!self::decimal($v['n'],true)
             ||!is_string($v['x'])||!preg_match('/\A[a-f0-9]{32}\z/D',$v['x'])
             ||(($v['a']==='0'||$v['c']==='0')&&($v['a']!=='0'||$v['c']!=='0'||$v['n']!=='0'))))self::fail('stale_cursor');
+        if($kind==='semantic_inventory'&&(!is_array($v['s'])||strlen(self::json($v['s']))>1024
+            ||!ArchiveResearchSemanticExtractor::validState($v['s'])))self::fail('stale_cursor');
         return$v;
     }
     private static function arguments(array$args,array$allowed,int$max):void

@@ -492,6 +492,81 @@ function archiveResearchReadRegression(PDO $pdo): int
         $terminal=$service->inventory(1,$connection,['cursor'=>$lastWindow['next_cursor'],'limit'=>1]);
         $check($terminal['windows']===[]&&!$terminal['has_more']&&$terminal['next_cursor']===null
             &&$terminal['scan_traversal_exhausted_within_fence'],'conservative_feature_cursor_reaches_empty_terminal_page');
+        // Contextual V1 uses the same private read owner, with explicit opt-in and bounded state.
+        ArchiveResearchTraceStatement::$queries=[];
+        $semMeta=$service->inventory(1,$connection,['limit'=>1]);
+        $check(isset($semMeta['semantic_scan']['start_cursor'])&&!$semMeta['semantic_scan']['invoked'],
+            'semantic_descriptor_does_not_invoke_contextual_pass');
+        $payloadQueries=array_filter(ArchiveResearchTraceStatement::$queries,static fn($sql)=>str_contains($sql,'SELECT m.id,m.record_json'));
+        $check(!$payloadQueries,'ordinary_inventory_does_not_select_message_payload');
+        $semStart=$semMeta['semantic_scan']['start_cursor'];$semToken=$decodeToken($semStart);
+        $check($semToken['k']==='semantic_inventory'&&ArchiveResearchSemanticExtractor::validState($semToken['s'])
+            &&strlen($semStart)<=2048,'semantic_start_has_valid_bounded_initial_state');
+        foreach([['unexpected'=>1],['e'=>-1],['money'=>'foreign:path'],['q'=>'unrecognized']]as$alter){
+            $bad=$semToken;$bad['s']=array_replace($bad['s'],$alter);
+            $reject(fn()=>$service->inventory(1,$connection,['cursor'=>$sign($bad)]),'stale_cursor');
+        }
+        $reject(fn()=>$service->history(1,$connection,['chat_ref'=>$semStart]),'stale_cursor');
+        $bad=$semToken;$bad['a']='102';$bad['c']='300';
+        $reject(fn()=>$service->inventory(1,$connection,['cursor'=>$sign($bad)]),'forbidden');
+        $pdo->exec("INSERT INTO telegram_archive_accounts VALUES('anytour','Semantic',110,'sem',1,1,NULL)");
+        $pdo->exec("INSERT INTO telegram_dialogue_connections VALUES('anytour','Semantic','sem',110,1)");
+        for($n=1;$n<=130;$n++){
+            $text=$n===1?'Нужен тур.':($n===99?'Оплату получила.':($n===101?'Тур подтверждён.':'Спасибо.'));
+            $extra=['created_at'=>1700000000+$n];
+            if(in_array($n,[99,101],true))$extra+=['sender_id'=>'110','sender_type'=>'manager','direction'=>'outbound'];
+            $seed(10000+$n,110,20000,$n,$text,$extra);
+        }
+        $seed(10200,110,20001,1,'Тур подтверждён.',['sender_id'=>'110','sender_type'=>'manager','direction'=>'outbound']);
+        $semFresh=$service->inventory(1,$connection,['limit'=>1]);$semState=$decodeToken($semFresh['semantic_scan']['start_cursor']);
+        $semState['a']='110';$semState['c']='20000';
+        $semFirst=$service->inventory(1,$connection,['cursor'=>$sign($semState),'limit'=>1]);
+        $check($semFirst['operation']==='contextual_semantic_inventory'&&$semFirst['model_calls']===0
+            &&$semFirst['database_writes']===0&&!$semFirst['persistent_annotations_written'],'semantic_pass_is_read_only_and_explicit');
+        $w=$semFirst['windows'][0];
+        $check($w['source_records']===100&&($w['goal_event_counts']['manager_payment_ack']??0)===1
+            &&!isset($w['goal_event_counts']['purchase_supported_candidate']),'semantic_first_window_stops_before_later_booking');
+        $nextState=$decodeToken($semFirst['next_cursor']);
+        $check($nextState['n']==='100'&&$nextState['s']['money']!==null
+            &&strlen(json_encode($nextState['s']))<=1024&&strlen($semFirst['next_cursor'])<=2048,'semantic_cursor_carries_only_bounded_prefix_context');
+        $semSecond=$service->inventory(1,$connection,['cursor'=>$semFirst['next_cursor'],'limit'=>1]);
+        $w2=$semSecond['windows'][0];
+        $check($w2['source_records']===30&&($w2['goal_event_counts']['booking_confirmation']??0)===1
+            &&($w2['goal_event_counts']['purchase_supported_candidate']??0)===1,'semantic_continuation_links_only_same_chat_candidate_episode');
+        $semThird=$service->inventory(1,$connection,['cursor'=>$semSecond['next_cursor'],'limit'=>1]);
+        $check(($semThird['windows'][0]['goal_event_counts']['booking_confirmation']??0)===1
+            &&!isset($semThird['windows'][0]['goal_event_counts']['purchase_supported_candidate']),'semantic_new_chat_cannot_inherit_receipt');
+        $semEnd=$service->inventory(1,$connection,['cursor'=>$semThird['next_cursor'],'limit'=>1]);
+        $check(!$semEnd['has_more']&&$semEnd['windows']===[]&&$semEnd['scan_traversal_exhausted_within_fence'],
+            'semantic_scan_reaches_explicit_empty_terminal');
+        $renewed=new ArchiveResearchReadService($pdo,static fn()=>1700000200,static fn(int$a,string$c):string=>$key);
+        $renewPage=$renewed->inventory(1,$connection,['cursor'=>$semFirst['next_cursor'],'limit'=>1]);
+        $check($decodeToken($renewPage['next_cursor'])['e']===1700001400,'semantic_authorized_continuation_renews_expiry');
+        $semRevokeCount=0;
+        $semRevoker=static function(int$a,string$c)use($pdo,&$semRevokeCount,&$key):string{
+            if(++$semRevokeCount===2)$pdo->exec("UPDATE telegram_archive_accounts SET approved=0 WHERE account_id=110");
+            return$key;
+        };
+        $semRace=new ArchiveResearchReadService($pdo,static fn()=>1700000100,$semRevoker);
+        $reject(fn()=>$semRace->inventory(1,$connection,['cursor'=>$semFirst['next_cursor']]),'permission_changed');
+        $reject(fn()=>$service->inventory(1,$connection,['cursor'=>$semFirst['next_cursor']]),'forbidden');
+        $pdo->exec("UPDATE telegram_archive_accounts SET approved=1 WHERE account_id=110");
+        // Dense synthetic windows exercise contextual output trimming, including single-window bounds.
+        $dense='Ищу тур, бюджет 100000. Давайте бронируем. Оплатил. Где офис? Оплата картой? Подумаем.';
+        for($c=21000;$c<21050;$c++)for($n=1;$n<=2;$n++)$seed(20000+($c-21000)*2+$n,110,$c,$n,$dense);
+        $denseMeta=$service->inventory(1,$connection,['limit'=>1]);$denseState=$decodeToken($denseMeta['semantic_scan']['start_cursor']);
+        $denseState['a']='110';$denseState['c']='21000';$denseCursor=$sign($denseState);
+        $denseRows=0;$denseSeen=[];$densePages=0;
+        do{
+            $page=$service->inventory(1,$connection,['cursor'=>$denseCursor,'limit'=>50]);
+            $check(strlen(json_encode($page,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR))<=65536,'semantic_entire_output_is_bounded');
+            foreach($page['windows']as$window){$denseRows+=$window['source_records'];$denseSeen[]=$window['source_window_id'];
+                $check($window['episode_windows'][0]['ordinal']===1,'semantic_context_resets_for_each_dense_chat');}
+            $denseCursor=$page['next_cursor'];
+            if(++$densePages>20)throw new RuntimeException('semantic_wire_paging_did_not_advance');
+        }while($denseCursor!==null);
+        $check($denseRows===100&&count($denseSeen)===50&&count(array_unique($denseSeen))===50,
+            'semantic_returned_prefix_has_no_skips_or_duplicates');
         echo 'Archive research read checks: '.$checks." passed.\n";
         return$checks;
     }finally{
