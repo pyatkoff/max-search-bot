@@ -170,6 +170,9 @@ try {
             && $tool['_meta']['securitySchemes']===$tool['securitySchemes'] && $tool['inputSchema']['additionalProperties']===false);
     }
     $deliveryTools=array_column($hotelTools,null,'name');
+    hotelOauthCheck('authority-only recovery is discoverable in the existing hotel tool without a new scope',
+        $deliveryTools['hotel_work_handoff_connection']['inputSchema']['properties']['handoff_mode']['enum']===['ready','existing_run','claim_authority']
+        &&str_contains($deliveryTools['hotel_work_handoff_connection']['description'],'never authorizes dispatch'));
     $deliverySchema=$deliveryTools['hotel_work_claim']['inputSchema'];
     hotelOauthCheck('delivery event proof is declared optional only at the claim boundary',
         ($deliverySchema['properties']['expected_pending_event_id']['pattern']??null)==='^hotel_evt_[a-f0-9]{64}$'
@@ -358,10 +361,32 @@ try {
     $existingRetired=$call('tools/call',['name'=>'hotel_work_handoff_connection','arguments'=>$existing],$combined,$hotelCombinedScopes);
     hotelOauthCheck('existing-run adoption still uses positive canonical retirement proof',
         ($existingRetired['result']['structuredContent']['server_connection_proof']??null)===true&&$hotelCalls===5);
+    $authority=$handoff+['handoff_mode'=>'claim_authority','claim_key'=>str_repeat('6',64)];
+    $oldUpdate('revoked_at',null);
+    $authorityCalls=$hotelCalls;
+    $authorityActive=$call('tools/call',['name'=>'hotel_work_handoff_connection','arguments'=>$authority],$combined,$hotelCombinedScopes);
+    hotelOauthCheck('retained-claim authority recovery uses known old hotel identity without retiring credentials',
+        ($authorityActive['result']['structuredContent']['server_connection_proof']??null)===true&&$hotelCalls===$authorityCalls+1
+        &&$oauth->connectionAuthorized($old,1,[ManagerPreparationOAuth::HOTEL_SCOPE])&&!$oauth->connectionRetired($old,1));
+    foreach (['scopes'=>$legacyScope,'resource'=>'https://other.invalid/mcp','project_key'=>'other'] as $field=>$value) {
+        $oldUpdate($field,$value);
+        $authorityDenied=$call('tools/call',['name'=>'hotel_work_handoff_connection','arguments'=>$authority],$combined,$hotelCombinedScopes);
+        hotelOauthCheck('authority recovery rejects non-hotel or foreign old grant '.$field,
+            ($authorityDenied['result']['structuredContent']['server_connection_proof']??null)===false);
+        $oldUpdate($field,match($field){'scopes'=>$hotelScope,'resource'=>ManagerPreparationOAuth::RESOURCE,'project_key'=>'anytour'});
+    }
+    $authorityMissing=$call('tools/call',['name'=>'hotel_work_handoff_connection','arguments'=>array_replace($authority,['old_connection_id'=>str_repeat('0',32)])],$combined,$hotelCombinedScopes);
+    hotelOauthCheck('authority recovery cannot invent an absent old grant',
+        ($authorityMissing['result']['structuredContent']['server_connection_proof']??null)===false);
     $recoveryCalls=$hotelCalls;
     foreach ([['handoff_mode'=>'existing_run'],['handoff_mode'=>'existing_run','claim_key'=>str_repeat('6',64)],
         ['handoff_mode'=>'ready','claim_key'=>str_repeat('6',64),'expected_run_id'=>'SYNTHETIC_EXISTING_RUN'],
-        ['claim_key'=>str_repeat('6',64),'expected_run_id'=>'SYNTHETIC_EXISTING_RUN'],['handoff_mode'=>'force']] as $forgedMode) {
+        ['claim_key'=>str_repeat('6',64),'expected_run_id'=>'SYNTHETIC_EXISTING_RUN'],['handoff_mode'=>'force'],
+        ['handoff_mode'=>'claim_authority'],
+        ['handoff_mode'=>'claim_authority','claim_key'=>str_repeat('6',64),'expected_run_id'=>null],
+        ['handoff_mode'=>'claim_authority','claim_key'=>str_repeat('6',64),'expected_run_id'=>'GUESSED'],
+        ['handoff_mode'=>'claim_authority','claim_key'=>str_repeat('6',64),'dispatch_attempted'=>false],
+        ['handoff_mode'=>'claim_authority','claim_key'=>str_repeat('6',64),'dispatch_allowed'=>true]] as $forgedMode) {
         $forged=$call('tools/call',['name'=>'hotel_work_handoff_connection','arguments'=>$handoff+$forgedMode],$combined,$hotelCombinedScopes);
         hotelOauthCheck('existing-run adoption requires exact explicit paired mode fields',($forged['error']['code']??null)===-32602&&$hotelCalls===$recoveryCalls);
     }

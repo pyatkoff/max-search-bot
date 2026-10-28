@@ -54,10 +54,10 @@ final class HotelWorkMcpAdapter
                 [...array_keys($claim),'receipt'],false],
             ['hotel_work_release','Explicitly withdraw the exact unclaimed hotel stage. Claimed and unknown work cannot be released by age. Does not cancel hosted work.',
                 ['queue_id'=>$id,'stage_id'=>$sha],['queue_id','stage_id'],false],
-            ['hotel_work_handoff_connection','Move authority for one same-admin hotel queue to this newly consented hotel connection. Default ready mode requires an unclaimed stage without a run and positive server proof that the exact previous binding belongs to the same hotel-authorized admin; its old grant may remain active. When the exact current binding already owns an acknowledged, unattended READY stage, the same-binding ready request may resume delivery once for that queue/stage without changing authority or starting work. A recorded repeat never clears a newer acknowledgement, claim, run or receipt. The consumer must match the newly signed event ID against current expected_pending_event_id and enforce event freshness before claiming. Explicit existing_run mode still requires a revoked or expired old grant, the retained claim key and exact already-known original run; it preserves claimed/UNKNOWN state and permits attention only, never dispatch, release, restart or replay. A missing original run stays held. Pin the stage, old binding and baseline saved in the existing checkpoint. Storage errors and client flags are not proof. No credentials or scopes are changed.',
+            ['hotel_work_handoff_connection','Move authority for one same-admin hotel queue to this newly consented hotel connection. Default ready mode requires an unclaimed stage without a run and positive server proof that the exact previous binding belongs to the same hotel-authorized admin; its old grant may remain active. When the exact current binding already owns an acknowledged, unattended READY stage, the same-binding ready request may resume delivery once for that queue/stage without changing authority or starting work. A recorded repeat never clears a newer acknowledgement, claim, run or receipt. The consumer must match the newly signed event ID against current expected_pending_event_id and enforce event freshness before claiming. Explicit existing_run mode still requires a revoked or expired old grant, the retained claim key and exact already-known original run; it preserves claimed/UNKNOWN state and permits attention only, never dispatch, release, restart or replay. Explicit claim_authority mode restores access to a CLAIMED stage with no bound run and no current-stage receipt using the retained claim key and positive same-admin old hotel-grant proof. It preserves all claim, execution, acknowledgement and watchdog state; it never authorizes dispatch or proves that no external dispatch occurred. expected_run_id is forbidden in this mode. The original owner must independently reconcile its durable intent and any original run before continuing; an uncertain outcome remains held without replay. Pin the stage, old binding and baseline saved in the existing checkpoint. Storage errors and client flags are not proof. No credentials, scopes or subscriptions are changed.',
                 ['queue_id'=>$id,'stage_id'=>$sha,'baseline_sha256'=>$sha,
                     'old_connection_id'=>['type'=>'string','pattern'=>'^[a-f0-9]{32}$'],
-                    'handoff_mode'=>['type'=>'string','enum'=>['ready','existing_run'],'default'=>'ready'],
+                    'handoff_mode'=>['type'=>'string','enum'=>['ready','existing_run','claim_authority'],'default'=>'ready'],
                     'claim_key'=>$sha,'expected_run_id'=>$run],
                 ['queue_id','stage_id','baseline_sha256','old_connection_id'],false],
             ['hotel_work_resolve_existing_run','Reconcile an UNKNOWN stage only against independently checked saved evidence for its exact already-known original run. Pin the stored unknown receipt hash, expected run and packet. The original unknown receipt remains retained. A missing original run cannot be guessed; never use this operation to dispatch, restart or replay work.',
@@ -85,8 +85,9 @@ final class HotelWorkMcpAdapter
             if ($operation==='handoff_connection') {
                 $allowed=['queue_id','stage_id','baseline_sha256','old_connection_id'];
                 $mode=array_key_exists('handoff_mode',$args)?$args['handoff_mode']:'ready';
-                if (!in_array($mode,['ready','existing_run'],true)) throw new InvalidArgumentException();
+                if (!in_array($mode,['ready','existing_run','claim_authority'],true)) throw new InvalidArgumentException();
                 if ($mode==='existing_run') $allowed=[...$allowed,'handoff_mode','claim_key','expected_run_id'];
+                elseif ($mode==='claim_authority') $allowed=[...$allowed,'handoff_mode','claim_key'];
                 elseif (array_key_exists('handoff_mode',$args)) $allowed[]='handoff_mode';
             } else $allowed=['queue_id','stage_id','claim_key','unknown_receipt_sha256','expected_run_id','expected_packet_sha256','receipt'];
             if (count($args)!==count($allowed)||array_diff(array_keys($args),$allowed)) throw new InvalidArgumentException();
@@ -104,7 +105,7 @@ final class HotelWorkMcpAdapter
                     return $mode==='ready'&&$oauth->connectionAuthorized($connection,$sameAdmin,[ManagerPreparationOAuth::HOTEL_SCOPE]);
                 }
                 return match ($mode) {
-                    'ready'=>$oauth->hotelConnectionKnown($old,$sameAdmin),
+                    'ready','claim_authority'=>$oauth->hotelConnectionKnown($old,$sameAdmin),
                     'existing_run'=>$oauth->connectionRetired($old,$sameAdmin),
                     default=>false,
                 };

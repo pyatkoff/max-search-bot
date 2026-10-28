@@ -36,7 +36,67 @@ function hotelEventRecoveryFixture(): array
     return [$f,$args,$proof,$pending,$attention];
 }
 
+function hotelClaimAuthorityEventChecks(): void
+{
+    $f=new HotelEventsFixture();$f->subscribe();$f->events->deliverPending();$claim=$f->claim();$f->requests=[];
+    $f->at+=HotelWorkQueue::WATCHDOG_SECONDS;$f->events->deliverPending();
+    hotelEventAssert(count($f->requests)===1&&$f->requests[0]['data']['name']==='hotel_work.attention','claim_authority_fixture_has_existing_watch_ack');
+    $old=$f->connection;$new=str_repeat('c',32);$before=$f->pdo->query("SELECT * FROM hotel_work_queues WHERE queue_id='PILOT'")->fetch(PDO::FETCH_ASSOC);
+    $subscriptions=$f->pdo->query('SELECT * FROM hotel_work_events ORDER BY subscription_id')->fetchAll(PDO::FETCH_ASSOC);
+    $h=['queue_id'=>'PILOT','stage_id'=>$claim['stage_id'],'baseline_sha256'=>str_repeat('0',64),
+        'old_connection_id'=>$old,'handoff_mode'=>'claim_authority','claim_key'=>$claim['claim_key']];++$f->at;$f->requests=[];
+    $proof=static fn(string $connection,int $admin,string $mode):bool=>$connection===$old&&$admin===1&&$mode==='claim_authority'
+        &&$f->grants[$old]['active']&&$f->grants[$old]['admin']===$admin&&in_array('hotel_work:write',$f->grants[$old]['scopes'],true);
+    $accepted=$f->queue->handoff_connection(1,$new,$h,$proof);
+    $after=$f->pdo->query("SELECT * FROM hotel_work_queues WHERE queue_id='PILOT'")->fetch(PDO::FETCH_ASSOC);
+    hotelEventAssert($accepted['handoff_status']==='claim_authority_handed_off'&&$accepted['authority_only']===true&&$accepted['dispatch_allowed']===false
+        &&$after['oauth_connection_id']===$new&&array_diff_key($after,array_flip(['oauth_connection_id','updated_at']))===array_diff_key($before,array_flip(['oauth_connection_id','updated_at']))
+        &&$f->requests===[]&&$subscriptions===$f->pdo->query('SELECT * FROM hotel_work_events ORDER BY subscription_id')->fetchAll(PDO::FETCH_ASSOC),
+        'claim_authority_transfer_preserves_original_watch_and_delivery_without_touching_subscriptions_or_sending');
+    $f->connection=$new;$f->subscribe();$f->events->deliverPending();
+    hotelEventAssert($f->requests===[]&&$f->grants[$old]['active']&&$f->status()['state']==='claimed'
+        &&$f->status()['current_run_id']===null&&$f->status()['watchdog_due_at']===$before['watchdog_due_at'],
+        'active_old_grant_does_not_authorize_old_binding_and_new_binding_has_no_immediate_dispatch');
+    $q=$f->pdo->prepare('SELECT COUNT(*) FROM hotel_work_events WHERE oauth_connection_id=? AND is_active=1');$q->execute([$old]);
+    hotelEventAssert((int)$q->fetchColumn()===0,'claim_authority_old_family_subscriptions_are_fenced_before_transport');
+    $f->at=strtotime($before['watchdog_due_at'].' UTC')-1;$f->events->deliverPending();
+    hotelEventAssert($f->requests===[],'claim_authority_waits_for_original_watchdog_deadline');
+    ++$f->at;$f->events->deliverPending();$request=$f->requests[0]??null;
+    hotelEventAssert(count($f->requests)===1&&$request['data']['name']==='hotel_work.attention'
+        &&$request['data']['data']['dispatch_allowed']===false&&$request['data']['data']['stage_id']===$claim['stage_id']
+        &&hotelEventSignature($request,$f->secret)&&$f->status()['state']==='claimed'&&$f->status()['current_run_id']===null
+        &&(int)$f->pdo->query('SELECT COUNT(*) FROM hotel_work_receipts')->fetchColumn()===0,
+        'claim_authority_original_watchdog_emits_only_signed_attention_for_same_unbound_claim');
+    $afterWatch=$f->pdo->query("SELECT * FROM hotel_work_queues WHERE queue_id='PILOT'")->fetch(PDO::FETCH_ASSOC);
+    $eventRows=$f->pdo->query('SELECT * FROM hotel_work_events ORDER BY subscription_id')->fetchAll(PDO::FETCH_ASSOC);++$f->at;
+    $repeat=$f->queue->handoff_connection(1,$new,$h,static fn():bool=>false);
+    hotelEventAssert($repeat['handoff_status']==='already_recorded'&&$repeat['authority_only']===true&&$repeat['dispatch_allowed']===false
+        &&$afterWatch===$f->pdo->query("SELECT * FROM hotel_work_queues WHERE queue_id='PILOT'")->fetch(PDO::FETCH_ASSOC)
+        &&$eventRows===$f->pdo->query('SELECT * FROM hotel_work_events ORDER BY subscription_id')->fetchAll(PDO::FETCH_ASSOC)
+        &&(int)$f->pdo->query('SELECT COUNT(*) FROM hotel_work_connection_handoffs')->fetchColumn()===1,
+        'claim_authority_repeat_never_resets_new_attention_ack_or_delivery');
+    $f->requests=[];$f->events->deliverPending();hotelEventAssert($f->requests===[],'claim_authority_repeat_does_not_replay_attention_or_pending');
+
+    // A frozen pending callback from the former active grant is not a dispatch
+    // opportunity after authority changes, even before its retry backoff expires.
+    $f=new HotelEventsFixture();$f->subscribe(false);$f->statuses=[503];$f->events->deliverPending();
+    $old=$f->connection;$oldBody=$f->row()['pending_body'];$claim=$f->claim();$due=$f->status()['watchdog_due_at'];$f->requests=[];
+    $h=['queue_id'=>'PILOT','stage_id'=>$claim['stage_id'],'baseline_sha256'=>str_repeat('0',64),
+        'old_connection_id'=>$old,'handoff_mode'=>'claim_authority','claim_key'=>$claim['claim_key']];
+    $f->queue->handoff_connection(1,$new,$h,static fn(string $connection,int $admin,string $mode):bool=>$connection===$old&&$admin===1&&$mode==='claim_authority');
+    $f->connection=$new;$f->subscribe();$f->events->deliverPending();
+    $q=$f->pdo->prepare('SELECT * FROM hotel_work_events WHERE oauth_connection_id=?');$q->execute([$old]);$oldRow=$q->fetch(PDO::FETCH_ASSOC);
+    $f->at+=61;$f->events->deliverPending();
+    hotelEventAssert(is_string($oldBody)&&$oldBody!==''&&$f->requests===[]&&(int)$oldRow['is_active']===0
+        &&$oldRow['single_consumer_key']===null&&$oldRow['pending_body']===$oldBody
+        &&$f->grants[$old]['active']&&$f->status()['watchdog_due_at']===$due
+        &&$f->status()['state']==='claimed'&&$f->status()['current_run_id']===null,
+        'claim_authority_fences_frozen_old_pending_past_backoff_without_erasing_evidence_or_resetting_watchdog');
+}
+
 try {
+    hotelClaimAuthorityEventChecks();
+    if (($argv[1]??'')==='--claim-authority-only') {echo 'HOTEL WORK CLAIM AUTHORITY EVENTS: '.$checks." PASS\n";exit(0);}
     $f=new HotelEventsFixture(false);
     hotelEventAssert(!$f->events->hasActiveSubscriptions(),'empty_has_no_subscription');
     $empty=$f->events->deliverPending();

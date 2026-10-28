@@ -137,6 +137,37 @@ keep the claim key in the owner's private checkpoint. The new connection still
 requires verified subscriptions; handoff does not create callbacks, expand an
 old grant, start a run, or release a held operation.
 
+If a connection changes after a claim but before a run is recorded, explicit
+`handoff_mode=claim_authority` restores only access to that retained claim.
+It requires a current same-admin hotel grant, positive canonical evidence of
+the exact old hotel grant, the saved queue/stage/baseline and retained claim key.
+The old grant may still be active. Under the existing lane/queue locks the
+stage must be `claimed`, have the matching non-null claim, no bound run and
+no current-stage receipt. UNKNOWN, READY, already-bound runs and same-binding
+requests are rejected; `expected_run_id` and client dispatch-proof flags are
+forbidden. Existing-run recovery retains its stricter retirement/run checks.
+
+This mode appends the existing handoff audit and changes only the connection
+binding and technical update time. It preserves execution state, claim, stage,
+baseline, counters, receipts, delivery acknowledgements and watchdog fields.
+The response states `authority_only=true` and `dispatch_allowed=false`;
+repeating the exact recorded request is idempotent, including after later
+progress, and cannot reset that progress. Old-family queue operations fail
+after the transfer; the existing anti-reacquisition fence remains in force.
+The retained claimed stage can emit only its ordinary attention event, never
+a new pending/reclaim opportunity. Subscriptions and credentials are unchanged.
+
+A missing server run ID does not prove that no external dispatch occurred.
+Before any continuation, the SAME original owner must reconcile its existing
+private durable intent and original worker evidence. An uncertain or already
+attempted dispatch must not be repeated. Continuing the original authorized
+first dispatch requires a verified not-yet-attempted intent, a durable once-only transition
+before the external call, and the actual returned run bound with the retained
+claim. An attention event or this authority-only response is never permission
+to launch work. Keep the original claim key private; never publish it or replace
+it to recover access. Reconnect the existing owner's event route only through
+supported host operations and verify its saved subscriptions independently.
+
 For a queue already owned by the current connection, `handoff_mode=ready` with
 `old_connection_id` equal to that current binding is a one-time delivery resume.
 It requires the exact saved stage/baseline, a READY stage with no claim, bound
