@@ -200,11 +200,12 @@ function archiveResearchReadRegression(PDO $pdo): int
         $reject(fn()=>$postDenied->inventory(1,$connection),'permission_changed');
         $check(!$pdo->inTransaction(),'post_auth_denial_withholds_payload_and_rolls_back');
 
-        // The real MySQL hint is exercised on a synthetic SELECT, not production data.
+        // The real MySQL hint is exercised on synthetic rows, not production data.
+        // A table predicate avoids the scalar SLEEP return-1 shortcut; without the hint this is bounded by two 0.2s waits.
         $nativeError=null;
         if($mysql){
             $pdo->exec('START TRANSACTION READ ONLY');
-            try{$pdo->query('SELECT /*+ MAX_EXECUTION_TIME(1) */ SLEEP(0.03), 1 AS synthetic_marker')->fetchAll();}
+            try{$pdo->query('SELECT /*+ MAX_EXECUTION_TIME(1) */ 1 AS synthetic_marker FROM projects WHERE SLEEP(0.2)')->fetchAll();}
             catch(PDOException$e){$nativeError=$e;}
             finally{if($pdo->inTransaction())$pdo->rollBack();}
             $check($nativeError instanceof PDOException&&in_array((int)($nativeError->errorInfo[1]??0),[3024,1969],true),'native_mysql_execution_timeout_is_observed');

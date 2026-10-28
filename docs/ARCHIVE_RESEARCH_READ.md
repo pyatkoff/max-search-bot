@@ -98,4 +98,8 @@ A source SQL timeout is reported as `time_limit`; the stage identifies the
 interrupted operation. These categories diagnose a failed bounded read. They do
 not establish archive coverage, an empty result, a completed analysis or grounds
 to widen the read limits. Unexpected errors retain the fixed unavailable/error
-contract. Existing consent, tool schemas and all read limits are unchanged.
+contract. Existing consent and tool schemas are unchanged. History source-byte,
+output and time limits remain unchanged. Inventory no longer scans payload bytes:
+its chat, account and total `source_json_bytes` fields are null with
+`source_json_bytes_status: not_scanned`, so they cannot establish a global
+archive byte total or enforce the former inventory-wide byte limit.
