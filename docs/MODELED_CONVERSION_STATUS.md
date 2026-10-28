@@ -71,3 +71,34 @@ returned timestamps and counts only in the authorized private conversation.
 Do not publish private runtime research results in GitHub issues, Actions logs
 or public diagnostic artifacts. Do not generate customer messages, run a
 manual tick, reset collection or replay archives to manufacture proof.
+
+## Authorization failures and working connections
+
+The bounded forecast request is recognized before credential validation even when
+its bearer is missing or malformed. Its initial unauthorized response asks only
+for `forecasts:read`; unrelated legacy requests retain their established challenge.
+A valid connection missing the forecast capability receives the existing exact
+scope-upgrade challenge through both HTTP 403/WWW-Authenticate and the MCP error
+metadata. The response does not add permissions to any saved grant.
+
+Authorization-storage failures and execution/byte-budget failures are service
+unavailability, not invalid credentials. They return HTTP 503 without an OAuth
+challenge, including when a deadline expires while a response is being prepared.
+This avoids requesting repeated consent for a technical failure. Diagnostics use
+existing fixed status/stage/error fields and never include credentials, grant
+identities, requested scope strings or private forecast aggregates.
+
+These changes do not modify client registration, consent issuance, token refresh
+or revocation, existing connections, queue ownership or subscriptions. Do not
+reconnect an operational plugin as a diagnostic retry: a new consent can create a
+new grant and does not transfer an existing queue. Preserve the separated DEV
+resource and its connection. Use the already authorized read and distinguish
+its actual returned result from a connector message saying authentication was
+accepted.
+
+An isolated native MySQL regression joins the real migrated OAuth tables,
+budgeted bearer validation, default MCP dispatcher and saved-version reader.
+Its read phase uses a read-only MySQL session and compares persisted fixture
+rows before and after; unavailable-storage cases are confined to its disposable
+database. Successful synthetic execution does not replace private natural-data
+acceptance after installation.

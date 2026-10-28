@@ -14,6 +14,12 @@ final class ManagerPreparationOAuthRequestException extends InvalidArgumentExcep
     }
 }
 
+/** A technical forecast authorization failure is not a request for new consent. */
+final class ManagerPreparationOAuthLookupUnavailable extends RuntimeException
+{
+    public function __construct() { parent::__construct('forecast_authorization_unavailable'); }
+}
+
 /** Narrow public-client OAuth boundary. This service never reads a transcript. */
 final class ManagerPreparationOAuth
 {
@@ -89,7 +95,10 @@ final class ManagerPreparationOAuth
     {
         try { return (new self())->withStatusReadBudget($budget)->contextForBearer($authorization); }
         catch (ModeledConversionStatusLimit $error) { throw $error; }
-        catch (Throwable $error) { return null; }
+        catch (Throwable $error) {
+            if ($budget!==null) throw new ManagerPreparationOAuthLookupUnavailable();
+            return null;
+        }
     }
 
     public function contextForBearer(string $authorization): ?array
