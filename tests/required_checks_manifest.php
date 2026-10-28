@@ -149,6 +149,7 @@ return [
         'php tests/run_manager_preparation_health_regression.php',
         'php tests/run_archive_research_read_regression.php',
         'php tests/run_archive_research_features_regression.php',
+        'php tests/run_archive_research_semantic_regression.php',
         'php tests/run_archive_research_mcp_regression.php',
         'php tests/run_hotel_work_queue_regression.php',
         'php tests/run_hotel_work_oauth_regression.php',

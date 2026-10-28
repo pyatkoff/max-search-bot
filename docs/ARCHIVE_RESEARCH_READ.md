@@ -154,3 +154,33 @@ output and time limits remain unchanged. Inventory no longer scans payload bytes
 its chat, account and total `source_json_bytes` fields are null with
 `source_json_bytes_status: not_scanned`, so they cannot establish a global
 archive byte total or enforce the former inventory-wide byte limit.
+
+
+## Explicit contextual-rule labels V1
+
+The ordinary metadata response also offers a separate `semantic_scan`
+descriptor. Selecting its returned cursor invokes
+`operation: contextual_semantic_inventory` in the same authorized read-only
+owner. Ordinary and lexical cursors keep their existing behavior. It applies
+`ArchiveResearchSemanticExtractor` to projected messages in stored order,
+with a strictly validated context state of at most 1024 bytes and the unchanged
+2048-byte reference limit. The state is a client-carried hint, not an attestation,
+permission, identity proof or immutable historical snapshot.
+
+Each contextual window contains at most 100 source records, aggregate goal
+counts, compact episode masks and at most 12 short minimized evidence fragments.
+The existing request metadata/source/time/output limits remain. Cursor position
+and context both follow only the returned prefix after output trimming. A new
+chat resets context. Unavailable source and uncertain clocks/roles break
+cross-message inferences. Label coverage and source coverage are distinct.
+
+This is a pragmatic versioned rule interpretation, not LLM understanding, bank
+verification or a calibrated predictor. Weak interest, office and payment-method
+signals remain useful separately. Payment, booking and cancellation retain
+distinct evidence; a combined purchase candidate is not a verified sale.
+See [the V1 labelling contract](ARCHIVE_RESEARCH_LABELS_V1.md).
+
+No persistent annotations, source rows, queues, model calls, customer messages
+or ad conversions are written. Returned private contributions can be accumulated
+by the authorized research consumer. Do not expose them in public source,
+tests, CI logs or issue comments.
