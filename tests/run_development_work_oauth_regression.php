@@ -394,7 +394,7 @@ try {
         $arguments=json_encode(['project_key'=>$project,'queue_id'=>$queue],JSON_THROW_ON_ERROR);
         $id='dev_sub_'.hash('sha256',json_encode([$admin,$connection,$event,$arguments,$url],JSON_THROW_ON_ERROR));
         $consumer=hash('sha256',json_encode([$admin,$connection,$queue,$event],JSON_THROW_ON_ERROR));
-        $pdo->prepare('INSERT INTO development_work_events (subscription_id,single_consumer_key,admin_id,oauth_connection_id,project_key,queue_id,event_name,arguments_json,callback_url,signing_secret,previous_secret,previous_secret_until,verified_at,expires_at,is_active,attempts,last_http_status,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
+        $pdo->prepare('INSERT INTO development_work_events (subscription_id,single_consumer_key,admin_id,oauth_connection_id,project_key,queue_id,event_name,arguments_json,callback_url,signing_secret,previous_secret,previous_secret_until,verified_at,expires_at,is_active,attempts,last_status,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
             ->execute([$id,$consumer,$admin,$connection,$project,$queue,$event,$arguments,$url,$setupPrivate,'OLD_'.$setupPrivate,
                 $setupExpires,$setupDate,$setupExpires,1,0,204,$setupDate,$setupDate]);
     };
