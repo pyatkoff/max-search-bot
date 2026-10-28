@@ -133,9 +133,13 @@ final class HotelWorkQueue
         if (!is_string($old)) throw new InvalidArgumentException('invalid_hotel_work_connection');self::actor($admin,$old);
         $sameConnection=hash_equals($old,$newConnection);
         $mode=array_key_exists('handoff_mode',$args)?$args['handoff_mode']:'ready';$claim=null;$run=null;
-        if (!in_array($mode,['ready','existing_run'],true)) throw new InvalidArgumentException('invalid_hotel_work_handoff_mode');
+        if (!in_array($mode,['ready','existing_run','claim_authority'],true)) throw new InvalidArgumentException('invalid_hotel_work_handoff_mode');
         if ($sameConnection&&$mode!=='ready') throw new InvalidArgumentException('same_hotel_work_connection');
         if ($mode==='existing_run') {$claim=hash('sha256',self::sha($args['claim_key']??null));$run=self::runId($args['expected_run_id']??null);}
+        elseif ($mode==='claim_authority') {
+            $claim=hash('sha256',self::sha($args['claim_key']??null));
+            if (array_key_exists('expected_run_id',$args)) throw new InvalidArgumentException('unexpected_hotel_work_handoff_proof');
+        }
         elseif (array_key_exists('claim_key',$args)||array_key_exists('expected_run_id',$args)) throw new InvalidArgumentException('unexpected_hotel_work_handoff_proof');
         $handoff=self::hash([$id,$admin,$old,$newConnection,$stage,$baseline,$mode,$claim,$run]);
         return $this->transaction(function() use($id,$stage,$baseline,$old,$newConnection,$admin,$handoff,$oldConnectionProof,$mode,$claim,$run,$sameConnection): array {
@@ -144,7 +148,8 @@ final class HotelWorkQueue
             $prior=$this->one('SELECT handoff_sha256 FROM hotel_work_connection_handoffs WHERE handoff_sha256=?',[$handoff]);
             if ($prior) {
                 $this->authorize($row,$admin,$newConnection);
-                return $this->project($row)+['handoff_status'=>'already_recorded'];
+                return $this->project($row)+['handoff_status'=>'already_recorded']
+                    +($mode==='claim_authority'?['authority_only'=>true,'dispatch_allowed'=>false]:[]);
             }
             if ($this->one('SELECT handoff_sha256 FROM hotel_work_connection_handoffs WHERE queue_id=? AND old_connection_id=? AND old_connection_id<>new_connection_id LIMIT 1',[$id,$newConnection])) {
                 throw new HotelWorkQueueConflict('binding_relinquished');
@@ -154,12 +159,16 @@ final class HotelWorkQueue
             if (!hash_equals($row['baseline_sha256'],$baseline)) throw new HotelWorkQueueConflict('baseline_mismatch');
             if ($mode==='ready') {
                 if ($row['state']!=='ready'||$row['claim_sha256']!==null||$row['current_run_id']!==null) throw new HotelWorkQueueConflict('not_known_idle');
+            } elseif ($mode==='claim_authority') {
+                if ($row['state']!=='claimed'||$row['current_run_id']!==null||$row['claim_sha256']===null
+                    ||!hash_equals((string)$row['claim_sha256'],$claim)) throw new HotelWorkQueueConflict('claim_authority_proof_mismatch');
+                if ($this->one('SELECT stage_id FROM hotel_work_receipts WHERE queue_id=? AND stage_id=?',[$id,$stage])) throw new HotelWorkQueueConflict('stage_receipt_exists');
             } elseif (!in_array($row['state'],['claimed','unknown'],true)||$row['current_run_id']===null
                 ||!hash_equals($row['current_run_id'],$run)||!hash_equals((string)$row['claim_sha256'],$claim)) throw new HotelWorkQueueConflict('existing_run_proof_mismatch');
             // READY transfers control of unclaimed metadata under the lane lock.
             // Existing-run adoption still requires definitive old-grant retirement.
             try {$proven=$oldConnectionProof($old,$admin,$mode)===true;} catch (Throwable $ignored) {$proven=false;}
-            if (!$proven) throw new HotelWorkQueueConflict($mode==='ready'?'old_connection_not_known_hotel_owner':'old_connection_not_definitively_retired');
+            if (!$proven) throw new HotelWorkQueueConflict($mode==='existing_run'?'old_connection_not_definitively_retired':'old_connection_not_known_hotel_owner');
             if ($sameConnection) {
                 if ($this->deliveryResumeToken($row)!==null) throw new HotelWorkQueueConflict('delivery_resume_already_used');
                 if ($this->one('SELECT stage_id FROM hotel_work_receipts WHERE queue_id=? AND stage_id=?',[$id,$stage])) throw new HotelWorkQueueConflict('stage_receipt_exists');
@@ -167,6 +176,13 @@ final class HotelWorkQueue
             }
             $now=$this->now();
             $this->execute('INSERT INTO hotel_work_connection_handoffs (handoff_sha256,queue_id,admin_id,old_connection_id,new_connection_id,stage_id,baseline_sha256,handoff_mode,expected_run_id,claim_sha256,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)',[$handoff,$id,$admin,$old,$newConnection,$stage,$baseline,$mode,$run,$claim,$now]);
+            if ($mode==='claim_authority') {
+                // A retained claim is not proof that no external dispatch happened.
+                // Restore access only; keep all execution and delivery state held.
+                $this->execute('UPDATE hotel_work_queues SET oauth_connection_id=?,updated_at=? WHERE queue_id=?',[$newConnection,$now,$id]);
+                return $this->project($this->owned($id,$admin,$newConnection))
+                    +['handoff_status'=>'claim_authority_handed_off','authority_only'=>true,'dispatch_allowed'=>false];
+            }
             if ($sameConnection) {
                 // One delivery resume, not a new claim, run, credential or stage.
                 $this->execute('UPDATE hotel_work_queues SET event_ack=NULL,delivered_at=NULL,claim_deadline=NULL,attention_at=NULL,attention_ack=NULL,updated_at=? WHERE queue_id=?',[$now,$id]);

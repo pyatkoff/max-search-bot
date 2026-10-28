@@ -3,6 +3,42 @@ declare(strict_types=1);
 require_once dirname(__DIR__).'/services/HotelWorkQueue.php';
 require_once __DIR__.'/fixtures/hotel_work_queue.php';
 
+// Both contenders pin the same claimed stage before taking the actual SQL lock.
+if (($argv[1]??'')==='--claim-authority-child') {
+    [$unused,$mode,$barrier,$out,$file,$action]=array_pad($argv,6,'');
+    $pdo=new HotelWorkTestPdo($file==='MYSQL'?null:$file,false);
+    $hold=static function() use($out): void {
+        file_put_contents($out.'.locked','locked');$until=microtime(true)+10;
+        while (!is_file($out.'.release')&&microtime(true)<$until) usleep(1000);
+        if (!is_file($out.'.release')) throw new RuntimeException('authority_race_release_timeout');
+    };
+    $armed=(object)['value'=>false];
+    $queue=new HotelWorkQueue($pdo,static function() use($armed,$hold): int {
+        if ($armed->value) {$armed->value=false;$hold();}return 1793100000;
+    });
+    $status=$queue->status(1,str_repeat('a',32),'RACE');file_put_contents($out.'.ready',$status['stage_id']);
+    $until=microtime(true)+10;
+    while (!is_file($barrier)&&microtime(true)<$until) usleep(1000);
+    if (!is_file($barrier)) exit(3);
+    file_put_contents($out.'.attempting','attempting');$armed->value=$action==='started-winner';
+    try {
+        if (str_starts_with($action,'started')) {
+            $queue->started(1,str_repeat('a',32),['queue_id'=>'RACE','stage_id'=>$status['stage_id'],
+                'claim_key'=>str_repeat('b',64),'run_id'=>'RACE_BOUND_RUN']);$result='started';
+        } else {
+            $r=$queue->handoff_connection(1,str_repeat('f',32),['queue_id'=>'RACE','stage_id'=>$status['stage_id'],
+                'baseline_sha256'=>$status['baseline_sha256'],'old_connection_id'=>str_repeat('a',32),
+                'handoff_mode'=>'claim_authority','claim_key'=>str_repeat('b',64)],
+                static function(string $old,int $admin,string $proofMode) use($action,$hold): bool {
+                    if ($action==='handoff-winner') $hold();
+                    return $old===str_repeat('a',32)&&$admin===1&&$proofMode==='claim_authority';
+                });$result=$r['handoff_status'];
+        }
+    } catch (HotelWorkQueueConflict $error) {$result='conflict:'.$error->reason;}
+    catch (DomainException $error) {$result='access_denied';}
+    file_put_contents($out,$result);exit(0);
+}
+
 // Pin the old received ID before two processes contend on the actual SQL locks.
 if (($argv[1]??'')==='--claim-recovery-child') {
     [$unused,$mode,$barrier,$out,$file,$action]=array_pad($argv,6,'');
@@ -148,6 +184,165 @@ function hotelRecoveryFixture(bool $eligible=true): array
     if ($eligible) $clock->at+=60;
     return [$pdo,$q,$clock,$self,$pending,$attention];
 }
+
+function hotelClaimAuthorityFixture(): array
+{
+    [$pdo,$q,$clock]=hotelFixture();$previous=hotelStart($q,'PRIOR_RESEARCH');
+    $q->complete(1,str_repeat('a',32),$previous+['receipt'=>hotelReceipt('PRIOR_RESEARCH')]);
+    $s=hotelStatus($q);$pending=$q->pendingEvent(1,str_repeat('a',32),'PILOT');
+    $q->markEventDelivered(1,str_repeat('a',32),'PILOT',$pending['event_id']);
+    $claim=['queue_id'=>'PILOT','stage_id'=>$s['stage_id'],'claim_key'=>str_repeat('b',64)];
+    $q->claim(1,str_repeat('a',32),$claim);$clock->at+=HotelWorkQueue::WATCHDOG_SECONDS;
+    $watch=$q->pendingEvent(1,str_repeat('a',32),'PILOT');$q->markEventDelivered(1,str_repeat('a',32),'PILOT',$watch['event_id']);
+    ++$clock->at;
+    $handoff=['queue_id'=>'PILOT','stage_id'=>$s['stage_id'],'baseline_sha256'=>$s['baseline_sha256'],
+        'old_connection_id'=>str_repeat('a',32),'handoff_mode'=>'claim_authority','claim_key'=>$claim['claim_key']];
+    return [$pdo,$q,$clock,$claim,$handoff];
+}
+
+function hotelClaimAuthorityRaceChecks(): void
+{
+    foreach (['started_first','handoff_first'] as $scenario) {
+        $dir=sys_get_temp_dir().'/hotel-authority-race-'.bin2hex(random_bytes(8));
+        if (!mkdir($dir,0700)) throw new RuntimeException('authority_race_directory_unavailable');
+        $file=getenv('HOTEL_WORK_NATIVE_MYSQL')==='1'?'MYSQL':$dir.'/queue.sqlite';$processes=[];$racePdo=null;$raceQ=null;
+        try {
+            $racePdo=new HotelWorkTestPdo($file==='MYSQL'?null:$file);$raceQ=new HotelWorkQueue($racePdo,static fn():int=>1793100000);
+            $s=$raceQ->create(1,str_repeat('a',32),['queue_id'=>'RACE','baseline_sha256'=>str_repeat('0',64)]);
+            $claim=['queue_id'=>'RACE','stage_id'=>$s['stage_id'],'claim_key'=>str_repeat('b',64)];
+            $raceQ->claim(1,str_repeat('a',32),$claim);$before=$racePdo->query("SELECT * FROM hotel_work_queues WHERE queue_id='RACE'")->fetch(PDO::FETCH_ASSOC);
+            $actions=$scenario==='started_first'?['started-winner','handoff']:['started','handoff-winner'];
+            foreach ($actions as $i=>$action) {
+                $pipes=[];$process=proc_open([PHP_BINARY,__FILE__,'--claim-authority-child',$dir.'/go'.$i,$dir.'/out'.$i,$file,$action],
+                    [0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes);
+                if (!is_resource($process)) throw new RuntimeException('authority_race_process_unavailable');
+                fclose($pipes[0]);$processes[]=[$process,$pipes];
+            }
+            $until=microtime(true)+10;
+            while ((!is_file($dir.'/out0.ready')||!is_file($dir.'/out1.ready'))&&microtime(true)<$until) usleep(1000);
+            hotelAssert(is_file($dir.'/out0.ready')&&is_file($dir.'/out1.ready')
+                &&file_get_contents($dir.'/out0.ready')===file_get_contents($dir.'/out1.ready'),'authority_race_pins_one_claimed_stage');
+            $winner=$scenario==='started_first'?0:1;$contender=1-$winner;file_put_contents($dir.'/go'.$winner,'go');
+            $until=microtime(true)+10;while (!is_file($dir.'/out'.$winner.'.locked')&&microtime(true)<$until) usleep(1000);
+            hotelAssert(is_file($dir.'/out'.$winner.'.locked'),'authority_winner_holds_actual_lane_and_queue_lock');
+            file_put_contents($dir.'/go'.$contender,'go');$until=microtime(true)+5;
+            while (!is_file($dir.'/out'.$contender.'.attempting')&&microtime(true)<$until) usleep(1000);
+            usleep(100000);hotelAssert(is_file($dir.'/out'.$contender.'.attempting')&&!is_file($dir.'/out'.$contender)
+                &&proc_get_status($processes[$contender][0])['running'],'authority_contender_waits_for_actual_lock');
+            file_put_contents($dir.'/out'.$winner.'.release','release');$until=microtime(true)+10;
+            while ((!is_file($dir.'/out0')||!is_file($dir.'/out1'))&&microtime(true)<$until) usleep(1000);
+            hotelAssert(is_file($dir.'/out0')&&is_file($dir.'/out1'),'authority_race_children_finish_bounded');
+            foreach ($processes as [$process,$pipes]) {
+                $stdout=stream_get_contents($pipes[1]);$stderr=stream_get_contents($pipes[2]);fclose($pipes[1]);fclose($pipes[2]);
+                hotelAssert(proc_close($process)===0&&$stdout===''&&$stderr==='','authority_race_child_clean');
+            }
+            $started=file_get_contents($dir.'/out0');$handoff=file_get_contents($dir.'/out1');
+            $row=$racePdo->query("SELECT * FROM hotel_work_queues WHERE queue_id='RACE'")->fetch(PDO::FETCH_ASSOC);
+            if ($scenario==='started_first') {
+                hotelAssert($started==='started'&&str_starts_with($handoff,'conflict:')&&$row['oauth_connection_id']===str_repeat('a',32)
+                    &&$row['current_run_id']==='RACE_BOUND_RUN'&&(int)$racePdo->query('SELECT COUNT(*) FROM hotel_work_connection_handoffs')->fetchColumn()===0,
+                    'started_winner_prevents_claim_authority_adoption');
+            } else {
+                hotelAssert($handoff==='claim_authority_handed_off'&&$started==='access_denied'&&$row['oauth_connection_id']===str_repeat('f',32)
+                    &&$row['current_run_id']===null&&(int)$racePdo->query('SELECT COUNT(*) FROM hotel_work_connection_handoffs')->fetchColumn()===1,
+                    'authority_winner_fences_old_started_without_losing_claim');
+                $raceQ->started(1,str_repeat('f',32),$claim+['run_id'=>'CONTINUED_RACE_RUN']);
+                hotelAssert($raceQ->status(1,str_repeat('f',32),'RACE')['current_run_id']==='CONTINUED_RACE_RUN','authority_race_new_binding_continues_original_claim');
+            }
+            hotelAssert($row['state']==='claimed'&&$row['claim_sha256']===$before['claim_sha256']
+                &&$row['stage_index']===$before['stage_index']&&$row['accepted_batches']===$before['accepted_batches']
+                &&(int)$racePdo->query('SELECT COUNT(*) FROM hotel_work_receipts')->fetchColumn()===0,'authority_race_never_reclaims_advances_or_fabricates_receipts');
+        } finally {
+            foreach ($processes as [$process,$pipes]) {
+                foreach ($pipes as $pipe) if (is_resource($pipe)) fclose($pipe);
+                if (is_resource($process)) {proc_terminate($process,9);proc_close($process);}
+            }
+            $racePdo=null;$raceQ=null;gc_collect_cycles();
+            foreach (glob($dir.'/*')?:[] as $path) unlink($path);rmdir($dir);
+        }
+    }
+}
+
+function hotelClaimAuthorityChecks(): void
+{
+    [$pdo,$q,$clock,$claim,$h]=hotelClaimAuthorityFixture();
+    $before=$pdo->query("SELECT * FROM hotel_work_queues WHERE queue_id='PILOT'")->fetch(PDO::FETCH_ASSOC);
+    $receipts=$pdo->query('SELECT * FROM hotel_work_receipts ORDER BY stage_index')->fetchAll(PDO::FETCH_ASSOC);$modes=[];
+    $after=$q->handoff_connection(1,str_repeat('f',32),$h,static function(string $old,int $admin,string $mode) use(&$modes):bool {
+        $modes[]=$mode;return $old===str_repeat('a',32)&&$admin===1&&$mode==='claim_authority';
+    });
+    $row=$pdo->query("SELECT * FROM hotel_work_queues WHERE queue_id='PILOT'")->fetch(PDO::FETCH_ASSOC);
+    hotelAssert($modes===['claim_authority']&&$after['handoff_status']==='claim_authority_handed_off'
+        &&$after['authority_only']===true&&$after['dispatch_allowed']===false,'claim_authority_requires_positive_mode_aware_owner_proof_not_retirement');
+    hotelAssert($row['oauth_connection_id']===str_repeat('f',32)&&$row['updated_at']!==$before['updated_at']
+        &&array_diff_key($row,array_flip(['oauth_connection_id','updated_at']))===array_diff_key($before,array_flip(['oauth_connection_id','updated_at'])),
+        'claim_authority_changes_only_binding_and_update_clock_preserving_all_claim_delivery_and_watchdog_fields');
+    hotelAssert($receipts===$pdo->query('SELECT * FROM hotel_work_receipts ORDER BY stage_index')->fetchAll(PDO::FETCH_ASSOC),'claim_authority_preserves_prior_receipt_bytes');
+    $audits=$pdo->query('SELECT * FROM hotel_work_connection_handoffs')->fetchAll(PDO::FETCH_ASSOC);
+    hotelAssert(count($audits)===1&&$audits[0]['handoff_mode']==='claim_authority'&&$audits[0]['expected_run_id']===null
+        &&$audits[0]['claim_sha256']===$before['claim_sha256']&&$audits[0]['old_connection_id']===str_repeat('a',32)
+        &&$audits[0]['new_connection_id']===str_repeat('f',32),'claim_authority_appends_one_exact_no_run_audit');
+    foreach ([fn()=>hotelStatus($q),fn()=>$q->create(1,str_repeat('a',32),['queue_id'=>'PILOT','baseline_sha256'=>$h['baseline_sha256']]),
+        fn()=>$q->claim(1,str_repeat('a',32),$claim),fn()=>$q->started(1,str_repeat('a',32),$claim+['run_id'=>'STALE']),
+        fn()=>$q->complete(1,str_repeat('a',32),$claim+['receipt'=>hotelReceipt('STALE')]),
+        fn()=>$q->release(1,str_repeat('a',32),['queue_id'=>'PILOT','stage_id'=>$h['stage_id']]),
+        fn()=>$q->pendingEvent(1,str_repeat('a',32),'PILOT'),fn()=>$q->markEventDelivered(1,str_repeat('a',32),'PILOT','STALE'),
+        fn()=>$q->resolve_existing_run(1,str_repeat('a',32),$claim+['unknown_receipt_sha256'=>str_repeat('0',64),
+            'expected_run_id'=>'STALE','expected_packet_sha256'=>str_repeat('1',64),'receipt'=>hotelReceipt('STALE')])] as $oldOperation) {
+        hotelReject($oldOperation,DomainException::class,'claim_authority_old_family_operations_stay_denied');
+    }
+    hotelReject(fn()=>$q->handoff_connection(1,str_repeat('a',32),array_replace($h,['old_connection_id'=>str_repeat('f',32)]),static fn():bool=>true),
+        HotelWorkQueueConflict::class,'claim_authority_relinquished_family_cannot_handoff_back','binding_relinquished');
+    $clock->at+=10;$repeat=$q->handoff_connection(1,str_repeat('f',32),$h,static fn():bool=>false);
+    hotelAssert($repeat['handoff_status']==='already_recorded'&&$repeat['authority_only']===true&&$repeat['dispatch_allowed']===false
+        &&$row===$pdo->query("SELECT * FROM hotel_work_queues WHERE queue_id='PILOT'")->fetch(PDO::FETCH_ASSOC)
+        &&$audits===$pdo->query('SELECT * FROM hotel_work_connection_handoffs')->fetchAll(PDO::FETCH_ASSOC),'claim_authority_exact_repeat_preserves_all_state_and_audit');
+    hotelAssert($q->pendingEvent(1,str_repeat('f',32),'PILOT')===null,'claim_authority_neither_resets_watchdog_nor_announces_pending');
+    hotelReject(fn()=>$q->claim(1,str_repeat('f',32),array_replace($claim,['claim_key'=>str_repeat('c',64)])),HotelWorkQueueConflict::class,'claim_authority_cannot_admit_second_claim');
+    $started=$q->started(1,str_repeat('f',32),$claim+['run_id'=>'CONTINUED_ORIGINAL_CLAIM']);
+    hotelAssert($started['state']==='claimed'&&$started['current_run_id']==='CONTINUED_ORIGINAL_CLAIM','claim_authority_retained_key_continues_claim_without_reclaim');
+    $startedRow=$pdo->query("SELECT * FROM hotel_work_queues WHERE queue_id='PILOT'")->fetch(PDO::FETCH_ASSOC);++$clock->at;
+    $q->started(1,str_repeat('f',32),$claim+['run_id'=>'CONTINUED_ORIGINAL_CLAIM']);
+    hotelAssert($startedRow===$pdo->query("SELECT * FROM hotel_work_queues WHERE queue_id='PILOT'")->fetch(PDO::FETCH_ASSOC),'claim_authority_duplicate_actual_run_binding_is_idempotent');
+    hotelReject(fn()=>$q->started(1,str_repeat('f',32),$claim+['run_id'=>'WRONG_RUN']),HotelWorkQueueConflict::class,'claim_authority_cannot_replace_actual_run','run_conflict');
+    $q->complete(1,str_repeat('f',32),$claim+['receipt'=>hotelReceipt('CONTINUED_ORIGINAL_CLAIM')]);
+    $progressed=$pdo->query("SELECT * FROM hotel_work_queues WHERE queue_id='PILOT'")->fetch(PDO::FETCH_ASSOC);++$clock->at;
+    $repeat=$q->handoff_connection(1,str_repeat('f',32),$h,static fn():bool=>false);
+    hotelAssert($repeat['handoff_status']==='already_recorded'&&$repeat['authority_only']===true&&$repeat['dispatch_allowed']===false
+        &&$progressed===$pdo->query("SELECT * FROM hotel_work_queues WHERE queue_id='PILOT'")->fetch(PDO::FETCH_ASSOC)
+        &&$audits===$pdo->query('SELECT * FROM hotel_work_connection_handoffs')->fetchAll(PDO::FETCH_ASSOC),'claim_authority_late_exact_repeat_never_resets_later_progress');
+
+    foreach (['missing_claim','wrong_claim','null_run','supplied_run','same_connection','foreign_admin','wrong_old','baseline','stage','false_proof','unknown_proof','ready','run_present','unknown','receipt','foreign_lane'] as $guard) {
+        [$pdo,$q,$clock,$claim,$args]=hotelClaimAuthorityFixture();$admin=1;$connection=str_repeat('f',32);$proof=static fn():bool=>true;
+        $class=HotelWorkQueueConflict::class;
+        if ($guard==='missing_claim') {unset($args['claim_key']);$class=InvalidArgumentException::class;}
+        elseif ($guard==='wrong_claim') $args['claim_key']=str_repeat('c',64);
+        elseif ($guard==='null_run'||$guard==='supplied_run') {$args['expected_run_id']=$guard==='null_run'?null:'GUESSED_RUN';$class=InvalidArgumentException::class;}
+        elseif ($guard==='same_connection') {$connection=str_repeat('a',32);$class=InvalidArgumentException::class;}
+        elseif ($guard==='foreign_admin') {$admin=2;$class=DomainException::class;}
+        elseif ($guard==='wrong_old') {$args['old_connection_id']=str_repeat('e',32);$class=DomainException::class;}
+        elseif ($guard==='baseline') $args['baseline_sha256']=str_repeat('9',64);
+        elseif ($guard==='stage') $args['stage_id']=str_repeat('9',64);
+        elseif ($guard==='false_proof') $proof=static fn():bool=>false;
+        elseif ($guard==='unknown_proof') $proof=static fn():bool=>throw new RuntimeException('synthetic_owner_proof_unavailable');
+        elseif ($guard==='ready') {[$pdo,$q,$clock]=hotelFixture();$s=hotelStatus($q);$args['stage_id']=$s['stage_id'];}
+        elseif ($guard==='run_present') $q->started(1,str_repeat('a',32),$claim+['run_id'=>'ALREADY_BOUND']);
+        elseif ($guard==='unknown') {$unknown=array_fill_keys(array_keys(hotelReceipt()),null);$unknown['outcome']='unknown';$q->complete(1,str_repeat('a',32),$claim+['receipt'=>$unknown]);}
+        elseif ($guard==='receipt') $pdo->prepare('INSERT INTO hotel_work_receipts (queue_id,stage_index,stage_id,receipt_sha256,receipt_json,created_at) VALUES (?,?,?,?,?,?)')
+            ->execute(['PILOT',1,$args['stage_id'],str_repeat('8',64),'{}',gmdate('Y-m-d H:i:s',$clock->at)]);
+        else $pdo->exec("UPDATE hotel_work_lane SET queue_id='OTHER' WHERE lane_key='HOTEL'");
+        $before=$pdo->query("SELECT * FROM hotel_work_queues WHERE queue_id='PILOT'")->fetch(PDO::FETCH_ASSOC);
+        $receipts=$pdo->query('SELECT * FROM hotel_work_receipts ORDER BY stage_index')->fetchAll(PDO::FETCH_ASSOC);
+        hotelReject(fn()=>$q->handoff_connection($admin,$connection,$args,$proof),$class,'claim_authority_rejects_'.$guard);
+        hotelAssert($before===$pdo->query("SELECT * FROM hotel_work_queues WHERE queue_id='PILOT'")->fetch(PDO::FETCH_ASSOC)
+            &&$receipts===$pdo->query('SELECT * FROM hotel_work_receipts ORDER BY stage_index')->fetchAll(PDO::FETCH_ASSOC)
+            &&(int)$pdo->query('SELECT COUNT(*) FROM hotel_work_connection_handoffs')->fetchColumn()===0,'claim_authority_denied_'.$guard.'_does_not_mutate_or_audit');
+    }
+    hotelClaimAuthorityRaceChecks();
+}
+
+hotelClaimAuthorityChecks();
+if (($argv[1]??'')==='--claim-authority-only') {echo 'HOTEL WORK CLAIM AUTHORITY: '.$checks." PASS\n";exit(0);}
 
 [$pdo,$q,$clock]=hotelFixture();
 $s=hotelStatus($q);

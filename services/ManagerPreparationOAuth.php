@@ -107,7 +107,8 @@ final class ManagerPreparationOAuth
     }
 
     /** Positive evidence of the old grant's hotel identity, not current access
-     * authorization. Only the READY queue handoff may use this weaker predicate;
+     * authorization. READY transfer and retained-claim authority-only recovery
+     * may use this predicate; neither authorizes an external worker dispatch.
      * current credentials still require connectionAuthorized before each call. */
     public function hotelConnectionKnown(string $familyId,int $adminId): bool
     {
