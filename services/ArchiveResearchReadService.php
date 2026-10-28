@@ -70,8 +70,9 @@ final class ArchiveResearchReadService
         if(!isset($args['chat_ref'])||!is_string($args['chat_ref'])||$args['chat_ref']==='')self::fail('invalid_arguments');
         return $this->read($admin,$connection,function(string$key)use($admin,$connection,$args):array {
             $chat=$this->decode($args['chat_ref'],'chat',$key,$admin,$connection);
-            if(self::decimalGreater($chat['f'],$this->fence()))self::fail('stale_cursor');
+            // Current account denial takes precedence over an older cursor's now-smaller fence.
             if(!isset($this->accountAliases[$chat['a']]))self::fail('forbidden');
+            if(self::decimalGreater($chat['f'],$this->fence()))self::fail('stale_cursor');
             $cursor=isset($args['cursor'])?$this->decode($args['cursor'],'history',$key,$admin,$connection):null;
             $ref=hash('sha256',$args['chat_ref']);
             if($cursor&&($cursor['a']!==$chat['a']||$cursor['c']!==$chat['c']||$cursor['f']!==$chat['f']
