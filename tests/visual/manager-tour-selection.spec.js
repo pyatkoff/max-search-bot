@@ -33,18 +33,23 @@ async function canonicalCollectorSourceRuntime(page){
 }
 async function pricePopupFixture(page,options={}){
  const target={actor:7,conversation_id:11,binding:'b'.repeat(64),connection:{id:'c'.repeat(32)},client:'Синтетическая Анна',trip:'Лето у моря',channel:'telegram',count:0},operation='e'.repeat(32),tv=options.tv===true;
- const item={operation_id:operation,state:options.state||'editing',needs_edit_confirmation:true,target:copy(target),observation:{adapter:tv?'tourvisor-snapshot-v1':'funsun-b2b-v1',offer:{hotel:'Синтетический отель',date_from:'2027-06-05',nights:7,room:'Standard / 2AD',amount:'237017',currency:'RUB'},raw:tv?{party_price_confirmation:'pending'}:{price:'237017 RUB'}},...(options.error?{error:options.error}:{})};
- const state={ok:true,target,items:[item]},commands=[];let lost=options.lost===true;
+ const item={operation_id:operation,state:options.state||'editing',needs_edit_confirmation:options.state!=='destination',target:copy(target),observation:{adapter:tv?'tourvisor-snapshot-v1':'funsun-b2b-v1',offer:{hotel:'Синтетический отель',date_from:'2027-06-05',nights:7,room:'Standard / 2AD',amount:'237017',currency:'RUB'},raw:tv?{party_price_confirmation:'pending'}:{price:'237017 RUB'}},...(options.error?{error:options.error}:{})};
+ const state={ok:true,target,items:[item]},commands=[];let lost=options.lost===true,holdStatus=false,releaseStatus=null,statusFailure='';
  await page.route('https://collector.fixture/**',async route=>{
   const file=new URL(route.request().url()).pathname.slice(1);
   if(file==='fixture-command'){
    const m=route.request().postDataJSON();commands.push(copy(m));let reply={ok:true};
-   if(m.type==='status')reply=copy(state);
+   if(m.type==='status'){reply=copy(state);if(statusFailure){const failure=statusFailure;statusFailure='';if(failure==='lost')return route.abort('failed');reply.ok=false}if(holdStatus){holdStatus=false;await new Promise(resolve=>{releaseStatus=resolve})}}
    else if(m.type==='edit_draft'&&item.state==='editing')item.edit_draft=copy(m.draft);
    else if(m.type==='remove'){item.state='cancelled';delete item.edit_draft;}
    else if(m.type==='save_edit'&&item.state==='editing'){
     item.manager_amount=m.manager_amount;item.needs_edit_confirmation=false;item.state=options.result||'saved';if(item.state==='saved')target.count=1;
     if(lost){lost=false;return route.abort('failed')}
+   }else if(m.type==='confirm'&&item.state==='destination'){
+    if(tv&&m.confirm_price_basis!==true)reply={ok:false};
+    else if(options.confirmFailure==='reject')reply={ok:false};
+    else if(options.confirmFailure==='lost')return route.abort('failed');
+    else{item.state='saved';target.count++;}
    }else if(m.type==='open_manager')reply={ok:options.openFailure!==true};
    else reply={ok:false};
    return route.fulfill({contentType:'application/json',body:JSON.stringify(reply)});
@@ -53,9 +58,9 @@ async function pricePopupFixture(page,options={}){
   return route.fulfill({contentType:file.endsWith('.html')?'text/html':file.endsWith('.css')?'text/css':'application/javascript',body:fs.readFileSync(path.join(root,'extensions/selection-collector',file))});
  });
  await page.addInitScript(()=>{
-  const listeners=[];window.chrome={runtime:{sendMessage:async m=>{const response=await fetch('/fixture-command',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(m)});const r=await response.json();if(['edit_draft','save_edit','remove'].includes(m.type)&&r.ok)for(const fn of listeners)queueMicrotask(()=>fn());return r}},storage:{onChanged:{addListener(fn){listeners.push(fn)}}}};
+  const listeners=[];window.pricePopupRefresh=()=>{for(const fn of listeners)fn()};window.chrome={runtime:{sendMessage:async m=>{const response=await fetch('/fixture-command',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(m)});const r=await response.json();if(['edit_draft','save_edit','remove','confirm'].includes(m.type)&&r.ok)for(const fn of listeners)queueMicrotask(()=>fn());return r}},storage:{onChanged:{addListener(fn){listeners.push(fn)}}}};
  });
- await page.goto('https://collector.fixture/popup.html');return{state,commands,operation};
+ await page.goto('https://collector.fixture/popup.html');return{state,commands,operation,item,failNextStatus:mode=>{statusFailure=mode},holdNextStatus:()=>{holdStatus=true},statusHeld:()=>releaseStatus!==null,releaseStatus:()=>{releaseStatus();releaseStatus=null},refresh:async()=>{const prior=await page.locator('.item').first().elementHandle();await page.evaluate(()=>pricePopupRefresh());await expect.poll(()=>prior.evaluate(node=>node.isConnected)).toBe(false)}};
 }
 function searchInquiryProjection(mode){
   return JSON.parse(execFileSync('php',['-r',`
@@ -954,8 +959,57 @@ for(const change of ['price','target'])test(`Tourvisor ordinary source refuses $
  await expect(page.locator('[data-anytour-note]')).toContainText(change==='price'?'Карточка ещё меняется':'Клиент или подключение изменились');
 });
 
+for(const width of [390,1440])test(`Tourvisor popup retains current price confirmation when another queued offer saves at ${width}`,async({page,browserName})=>{
+ await page.setViewportSize({width,height:900});const s=await pricePopupFixture(page,{tv:true,state:'destination'});s.item.needs_edit_confirmation=false;
+ const checkbox=page.getByRole('checkbox'),confirm=page.getByRole('button',{name:'Подтвердить цену и добавить для этого клиента'});
+ await expect(confirm).toBeDisabled();await checkbox.check();await expect(confirm).toBeEnabled();
+ s.state.items.push({...copy(s.item),operation_id:'f'.repeat(32),state:'queued'});await s.refresh();await expect(checkbox).toBeChecked();
+ s.state.items[1].state='saved';s.state.target.count++;await s.refresh();await expect(checkbox).toBeChecked();await expect(confirm).toBeEnabled();
+ fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',fullPage:true,path:path.join(root,'manager2-artifacts',`tour-selection-consent-${browserName}-${width}.png`)});
+ expect(s.commands.filter(m=>m.type==='confirm')).toHaveLength(0);
+ await checkbox.uncheck();await s.refresh();await expect(checkbox).not.toBeChecked();await expect(confirm).toBeDisabled();
+ await checkbox.check();await confirm.click();await expect(page.locator('[data-operation="'+s.operation+'"]')).toContainText('Сохранено в подборке');
+ expect(s.commands.filter(m=>m.type==='confirm')).toEqual([{type:'confirm',operation_id:s.operation,confirm_price_basis:true}]);
+});
+
+for(const change of ['selected-target','connection','price','operation','blocked','reopen'])test(`Tourvisor popup forgets price confirmation after ${change}`,async({page})=>{
+ const s=await pricePopupFixture(page,{tv:true,state:'destination'}),checkbox=page.getByRole('checkbox'),confirm=page.getByRole('button',{name:'Подтвердить цену и добавить для этого клиента'});
+ await checkbox.check();await expect(confirm).toBeEnabled();
+ if(change==='reopen')await page.reload();
+ else{
+  const target=copy(s.state.target),item=copy(s.item);
+  if(change==='selected-target')s.state.target.conversation_id=12;
+  if(change==='connection'){s.item.target.connection.id='d'.repeat(32);s.state.target.connection.id='d'.repeat(32)}
+  if(change==='price')s.item.observation.offer.amount='240000';
+  if(change==='operation')s.item.operation_id='f'.repeat(32);
+  if(change==='blocked')s.item.state='blocked';
+  await s.refresh();
+  s.state.target=target;Object.assign(s.item,item);await s.refresh();
+ }
+ await expect(checkbox).not.toBeChecked();await expect(confirm).toBeDisabled();expect(s.commands.filter(m=>m.type==='confirm')).toHaveLength(0);
+});
+
+for(const failure of ['reject','lost'])test(`Tourvisor popup consumes price confirmation when confirm response is ${failure}`,async({page})=>{
+ const s=await pricePopupFixture(page,{tv:true,state:'destination',confirmFailure:failure}),checkbox=page.getByRole('checkbox'),confirm=page.getByRole('button',{name:'Подтвердить цену и добавить для этого клиента'});
+ await checkbox.check();await confirm.click();await expect(checkbox).not.toBeChecked();await expect(confirm).toBeDisabled();
+ await expect(page.locator('#notice')).toContainText(failure==='lost'?'Ответ о действии потерялся':'Не удалось подтвердить действие');await s.refresh();await expect(checkbox).not.toBeChecked();
+ expect(s.commands.filter(m=>m.type==='confirm')).toEqual([{type:'confirm',operation_id:s.operation,confirm_price_basis:true}]);
+});
+
+for(const failure of ['lost','invalid'])test(`Tourvisor popup forgets price confirmation when status is ${failure}`,async({page})=>{
+ const s=await pricePopupFixture(page,{tv:true,state:'destination'}),checkbox=page.getByRole('checkbox'),confirm=page.getByRole('button',{name:'Подтвердить цену и добавить для этого клиента'});
+ await checkbox.check();s.failNextStatus(failure);await page.evaluate(()=>pricePopupRefresh());await expect(checkbox).not.toBeChecked();await expect(confirm).toBeDisabled();await expect(page.locator('#notice')).toContainText('Расширение временно недоступно');
+ await s.refresh();await expect(checkbox).not.toBeChecked();await expect(confirm).toBeDisabled();expect(s.commands.filter(m=>m.type==='confirm')).toHaveLength(0);
+});
+
+test('Tourvisor popup retains a price check made during a pending status refresh',async({page})=>{
+ const s=await pricePopupFixture(page,{tv:true,state:'destination'}),checkbox=page.getByRole('checkbox'),confirm=page.getByRole('button',{name:'Подтвердить цену и добавить для этого клиента'});
+ await expect(confirm).toBeDisabled();const prior=await checkbox.elementHandle();s.holdNextStatus();await page.evaluate(()=>pricePopupRefresh());await expect.poll(()=>s.statusHeld()).toBe(true);
+ await checkbox.check();s.releaseStatus();await expect.poll(()=>prior.evaluate(node=>node.isConnected)).toBe(false);await expect(checkbox).toBeChecked();await expect(confirm).toBeEnabled();expect(s.commands.filter(m=>m.type==='confirm')).toHaveLength(0);
+});
+
 test('Tourvisor popup requires explicit room price basis and keeps destination visible',async({page,browserName})=>{
- const ext=path.join(root,'extensions/selection-collector'),data={ok:true,target:{client:'Синтетическая Анна',channel:'telegram',trip:'Синтетическая поездка',count:0},items:[{operation_id:'tv1',state:'destination',target:{client:'Синтетическая Анна',trip:'Синтетическая поездка'},observation:{adapter:'tourvisor-snapshot-v1',offer:{hotel:'Синтетический Tourvisor',date_from:'2026-10-29',nights:11,room:'standard room',amount:'160000',currency:'RUB'},raw:{party_price_confirmation:'pending'}}}]};
+ const ext=path.join(root,'extensions/selection-collector'),target={actor:7,conversation_id:11,binding:'b'.repeat(64),connection:{id:'c'.repeat(32)},client:'Синтетическая Анна',channel:'telegram',trip:'Синтетическая поездка',count:0},data={ok:true,target,items:[{operation_id:'tv1',state:'destination',target:copy(target),observation:{adapter:'tourvisor-snapshot-v1',offer:{hotel:'Синтетический Tourvisor',date_from:'2026-10-29',nights:11,room:'standard room',amount:'160000',currency:'RUB'},raw:{party_price_confirmation:'pending'}}}]};
  await page.setViewportSize({width:390,height:800});await page.route('https://collector.fixture/**',route=>{const file=new URL(route.request().url()).pathname.slice(1);if(!['popup.html','popup.css','popup.js','price-adjustment.js'].includes(file))return route.abort();return route.fulfill({contentType:file.endsWith('.html')?'text/html':file.endsWith('.css')?'text/css':'application/javascript',body:fs.readFileSync(path.join(ext,file))})});await page.addInitScript(data=>{window.popupCommands=[];window.chrome={runtime:{sendMessage:async m=>{popupCommands.push(m);return m.type==='status'?data:{ok:true}}},storage:{onChanged:{addListener(){}}}}},data);await page.goto('https://collector.fixture/popup.html');
  const confirm=page.getByRole('button',{name:'Подтвердить цену и добавить для этого клиента'});await expect(confirm).toBeDisabled();await expect(page.locator('#items')).toContainText('Цена ТО: 160000 RUB · за номер');await expect(page.locator('#items')).toContainText('Синтетическая Анна');await page.getByRole('checkbox').check();await expect(confirm).toBeEnabled();fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',fullPage:true,path:path.join(root,'manager2-artifacts',`tour-tv-popup-${browserName}.png`)});await confirm.click();expect(await page.evaluate(()=>popupCommands.filter(m=>m.type==='confirm'))).toEqual([{type:'confirm',operation_id:'tv1',confirm_price_basis:true}]);
 });
