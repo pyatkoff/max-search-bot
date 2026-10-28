@@ -59,6 +59,17 @@ try{
         }
     }
     foreach(['[ссылка не прочитана]','[ссылка на подборку не прочитана]']as$i=>$marker){
+        $markerOnly=ArchiveResearchFeatureExtractor::extract(archiveFeatureMessage($marker,'customer',['links_redacted'=>true]));
+        archiveFeatureCheck('privacy link marker alone creates no tourist screening cues '.$i,
+            $markerOnly['candidate_ids']===[]&&!archiveFeatureHas($markerOnly,'substantive_request')
+            &&!archiveFeatureHas($markerOnly,'payment_link')&&!$markerOnly['flags']['negation']&&$markerOnly['flags']['unread_links']);
+        $interestText=$marker.' Подберите тур.';
+        $interest=ArchiveResearchFeatureExtractor::extract(archiveFeatureMessage($interestText,'customer',['links_redacted'=>true]));
+        $interestSpan=array_values(array_filter($interest['evidence'],static fn($s)=>$s['pattern_id']==='substantive_request'))[0]??null;
+        archiveFeatureCheck('real interest after marker retains its original evidence offset '.$i,
+            archiveFeatureHas($interest,'substantive_request')&&$interestSpan!==null
+            &&$interestSpan['offset_bytes']===strlen($marker.' ')
+            &&substr($interestText,$interestSpan['offset_bytes'],$interestSpan['length_bytes'])==='Подберите');
         $maskedText=$marker.' Готовы бронировать.';
         $masked=ArchiveResearchFeatureExtractor::extract(archiveFeatureMessage($maskedText,'customer',['links_redacted'=>true]));
         $span=array_values(array_filter($masked['evidence'],static fn($s)=>$s['pattern_id']==='ready_to_book'))[0]??null;
