@@ -79,6 +79,18 @@ function forecastMcpAssertions():void
     forecastMcpCheck('fresh forecast-only grant reaches the private reader with shared authorization byte accounting',
         ($result['result']['structuredContent']['saved_rows_checked']??null)===1&&$calls===1
         &&$beforeRead<65536&&$budget->remainingBytes()<$beforeRead);
+    $credentialRows=static fn():array=>[
+        $pdo->query('SELECT * FROM manager_preparation_oauth_grants ORDER BY grant_id')->fetchAll(),
+        $pdo->query('SELECT * FROM manager_preparation_oauth_tokens ORDER BY token_hash')->fetchAll()];
+    $credentialsBefore=$credentialRows();
+    for($repeat=0;$repeat<2;$repeat++){
+        $repeatBudget=new ModeledConversionStatusBudget();
+        $repeatContext=ManagerPreparationOAuth::bearerContext('Bearer '.$tokens['access_token'],$repeatBudget);
+        $repeatResult=$service->handle(forecastMcpRpc(),$repeatContext['admin_id'],$repeatContext['connection_id'],$repeatContext['scopes'],$repeatBudget);
+        forecastMcpCheck('repeated read uses the same unchanged authorized grant '.$repeat,
+            $repeatContext['connection_id']===$family&&($repeatResult['result']['structuredContent']['saved_rows_checked']??null)===1
+            &&$credentialRows()===$credentialsBefore);
+    }
     foreach([['query'=>'private'],['limit'=>100],['path'=>'/etc/passwd']]as$args){
         $count=$calls;$r=$service->handle(forecastMcpRpc('tools/call',['name'=>ModeledConversionStatusMcpAdapter::NAME,'arguments'=>$args]),1,$family,['forecasts:read']);
         forecastMcpCheck('status has no arbitrary query path or scope argument '.array_key_first($args),($r['error']['code']??null)===-32602&&$calls===$count);
@@ -140,6 +152,17 @@ function forecastMcpAssertions():void
         catch(InvalidArgumentException $e){$rejected=true;}
         forecastMcpCheck('development issuer cannot issue forecast permission',$rejected);
     }
+    [$faultPdo,$faultOauth,$faultClient]=forecastMcpFixture();
+    [$faultTokens]=forecastMcpGrant($faultOauth,$faultClient,'forecasts:read');
+    $faultPdo->exec('ALTER TABLE manager_preparation_oauth_tokens RENAME TO unavailable_tokens');
+    try{
+        try{ManagerPreparationOAuth::bearerContext('Bearer '.$faultTokens['access_token'],new ModeledConversionStatusBudget());$technical=false;}
+        catch(ManagerPreparationOAuthLookupUnavailable $e){$technical=$e->getMessage()==='forecast_authorization_unavailable'&&$e->getPrevious()===null;}
+        forecastMcpCheck('technical forecast lookup failure has a fixed noncredential error',$technical);
+        forecastMcpCheck('legacy lookup failure compatibility is retained',ManagerPreparationOAuth::bearerContext('Bearer '.$faultTokens['access_token'])===null);
+    }finally{$faultPdo->exec('ALTER TABLE unavailable_tokens RENAME TO manager_preparation_oauth_tokens');}
+    forecastMcpCheck('invalid forecast credential remains ordinary authentication denial',
+        ManagerPreparationOAuth::bearerContext('Bearer '.str_repeat('v',43),new ModeledConversionStatusBudget())===null);
     $endpoint=file_get_contents(dirname(__DIR__).'/manager/ai-mcp.php');
     forecastMcpCheck('endpoint passes one entry-time budget into bearer and dispatch',
         str_contains($endpoint,'new ModeledConversionStatusBudget($preparationMcpStartedAt)')
@@ -151,25 +174,44 @@ function forecastMcpAssertions():void
 function forecastMcpHttpAssertions():void
 {
     $tmp=sys_get_temp_dir().'/forecast-status-http-'.bin2hex(random_bytes(6));$server=null;
+    $canonicalChallenge=(new ReflectionMethod(ManagerPreparationMcpService::class,'capabilityScopeChallenge'))
+        ->invoke(null,['queue:read','prepared:write','archive:read'],'forecasts:read');
     try{
         mkdir($tmp,0700);mkdir($tmp.'/manager',0700);mkdir($tmp.'/services',0700);mkdir($tmp.'-private',0700);
-        foreach(['ModeledConversionStatusBudget','ManagerPreparationMcpDiagnostics','DiagnosticLogger']as$name)
+        foreach(['ModeledConversionStatusBudget','DiagnosticLogger']as$name)
             copy(dirname(__DIR__).'/services/'.$name.'.php',$tmp.'/services/'.$name.'.php');
+        $diagnostics=(string)file_get_contents(dirname(__DIR__).'/services/ManagerPreparationMcpDiagnostics.php');
+        file_put_contents($tmp.'/services/ActualMcpDiagnostics.php',str_replace('final class ManagerPreparationMcpDiagnostics','final class ForecastFixtureDiagnostics',$diagnostics));
+        file_put_contents($tmp.'/services/ManagerPreparationMcpDiagnostics.php',<<<'PHP'
+<?php
+require_once __DIR__.'/ActualMcpDiagnostics.php';
+final class ManagerPreparationMcpDiagnostics{
+public static function record(array $server,?array $rpc,int $status,string $stage,?int $error,string $surface='legacy'):void{
+ForecastFixtureDiagnostics::record($server,$rpc,$status,$stage,$error,$surface);
+if(($server['HTTP_X_FIXTURE_EXPIRE_AFTER_RECORD']??'')==='yes'&&$GLOBALS['preparationMcpForecastBudget']!==null)
+    (new ReflectionProperty(ModeledConversionStatusBudget::class,'startedAt'))->setValue($GLOBALS['preparationMcpForecastBudget'],microtime(true)-6.0);
+}}
+PHP);
         copy(dirname(__DIR__).'/manager/ai-mcp.php',$tmp.'/manager/ai-mcp.php');
+        file_put_contents($tmp.'/challenge.php',"<?php return ".var_export($canonicalChallenge,true).";");
         file_put_contents($tmp.'/config.php',<<<'PHP'
 <?php
 require_once __DIR__.'/services/ModeledConversionStatusBudget.php';
 require_once __DIR__.'/services/DiagnosticLogger.php';
 DiagnosticLogger::setFile(__DIR__.'-private/events.log');
 if(($_SERVER['HTTP_X_FIXTURE_EXPIRED']??'')==='yes')$preparationMcpStartedAt-=6.0;
+final class ManagerPreparationOAuthLookupUnavailable extends RuntimeException{}
 final class ManagerPreparationOAuth{
 public static function bearerContext(string $header,?ModeledConversionStatusBudget $budget=null):?array{
+if(($_SERVER['HTTP_X_FIXTURE_STORAGE_ERROR']??'')==='yes')throw new ManagerPreparationOAuthLookupUnavailable('PRIVATE_SQL_MUST_NOT_ESCAPE');
+if($header==='Bearer '.str_repeat('l',43))return ['admin_id'=>7,'connection_id'=>str_repeat('b',32),'scopes'=>['queue:read','prepared:write','archive:read']];
 if($header!=='Bearer '.str_repeat('x',43))return null;
 $budget?->consumeBytes(32);
 return ['admin_id'=>7,'connection_id'=>str_repeat('a',32),'scopes'=>['forecasts:read']];}
 }
 final class ManagerPreparationMcpService{
 public function handle(array $rpc,int $actor,?string $connection,array $scopes,?ModeledConversionStatusBudget $budget=null):array{
+if(!in_array('forecasts:read',$scopes,true))return ['jsonrpc'=>'2.0','id'=>$rpc['id'],'result'=>require __DIR__.'/challenge.php'];
 return ['jsonrpc'=>'2.0','id'=>$rpc['id'],'result'=>['ok'=>true,'budget_received'=>$budget!==null,'remaining_bytes'=>$budget?->remainingBytes()]];}}
 PHP);
         foreach(['ManagerPreparationOAuth','ManagerPreparationMcpService']as$name)
@@ -179,22 +221,52 @@ PHP);
         $server=proc_open([PHP_BINARY,'-d','display_errors=0','-S',$address,'-t',$tmp],[0=>['pipe','r'],1=>['file',$tmp.'/server.log','a'],2=>['file',$tmp.'/server.log','a']],$pipes);
         if(!is_resource($server))throw new RuntimeException('fixture_server');fclose($pipes[0]);
         for($i=0;$i<100;$i++){if($socket=@stream_socket_client('tcp://'.$address,$errno,$error,.03)){fclose($socket);break;}usleep(10000);}
-        $request=static function(array $rpc,array $extra=[])use($address):array{
-            $headers=['Content-Type: application/json','Authorization: Bearer '.str_repeat('x',43),...$extra];
+        $request=static function(array $rpc,array $extra=[],?string $authorization=null)use($address):array{
+            $authorization??='Bearer '.str_repeat('x',43);
+            $headers=['Content-Type: application/json',...($authorization!==''?['Authorization: '.$authorization]:[]),...$extra];
             $ctx=stream_context_create(['http'=>['method'=>'POST','header'=>implode("\r\n",$headers),'content'=>json_encode($rpc,JSON_THROW_ON_ERROR),'ignore_errors'=>true,'timeout'=>10]]);
             $body=@file_get_contents('http://'.$address.'/manager/ai-mcp.php',false,$ctx);
-            preg_match('/\\s([0-9]{3})\\s/',$http_response_header[0]??'',$match);
-            return ['status'=>(int)($match[1]??0),'body'=>is_string($body)?json_decode($body,true):null];
+            preg_match('/\s([0-9]{3})\s/',$http_response_header[0]??'',$match);
+            $challenge=null;foreach($http_response_header??[]as$header)if(stripos($header,'WWW-Authenticate:')===0)$challenge=trim(substr($header,17));
+            return ['status'=>(int)($match[1]??0),'body'=>is_string($body)?json_decode($body,true):null,'challenge'=>$challenge];
         };
         $r=$request(forecastMcpRpc());
         forecastMcpCheck('HTTP recognizer shares initial auth accounting with tool dispatch',
             $r['status']===200&&($r['body']['result']['budget_received']??false)
-            &&($r['body']['result']['remaining_bytes']??0)===65504);
+            &&($r['body']['result']['remaining_bytes']??0)===65504&&$r['challenge']===null);
+        foreach(['','malformed','Bearer '.str_repeat('y',43)]as$i=>$credential){
+            $r=$request(forecastMcpRpc(),[],$credential);
+            forecastMcpCheck('absent malformed and invalid forecast credentials request only forecast consent '.$i,
+                $r['status']===401&&$r['challenge']==='Bearer resource_metadata="https://app.anytoour.ru/manager/ai-oauth.php?action=resource", scope="forecasts:read"'
+                &&($r['body']['error']['code']??null)===-32001&&!isset($r['body']['result']));
+        }
+        $r=$request(['jsonrpc'=>'2.0','id'=>1,'method'=>'tools/list'],[],'');
+        forecastMcpCheck('ordinary legacy bootstrap challenge is unchanged',$r['status']===401
+            &&$r['challenge']==='Bearer resource_metadata="https://app.anytoour.ru/manager/ai-oauth.php?action=resource", scope="queue:read prepared:write"');
+        $r=$request(forecastMcpRpc(),[],'Bearer '.str_repeat('l',43));
+        forecastMcpCheck('forecast scope challenge mirrors canonical union in HTTP and preserves MCP body',
+            $r['status']===403&&$r['challenge']===$canonicalChallenge['_meta']['mcp/www_authenticate'][0]
+            &&($r['body']['result']??null)===$canonicalChallenge);
+        $records=array_filter(array_map(static fn(string $line):mixed=>json_decode($line,true),file($tmp.'-private/events.log',FILE_IGNORE_NEW_LINES)?:[]));
+        $last=end($records);
+        forecastMcpCheck('scope challenge uses existing bounded diagnostic categories',
+            ($last['data']['rpc_method']??null)==='tools/call'&&($last['data']['http_status']??null)===403
+            &&($last['data']['stage']??null)==='credentials'&&($last['data']['rpc_error']??null)===-32001);
+        $r=$request(forecastMcpRpc(),['X-Fixture-Storage-Error: yes']);
+        forecastMcpCheck('technical forecast lookup failure returns 503 without an auth challenge',
+            $r['status']===503&&$r['challenge']===null&&($r['body']['error']['code']??null)===-32603
+            &&!str_contains(json_encode($r),'PRIVATE_SQL_MUST_NOT_ESCAPE'));
+        $r=$request(forecastMcpRpc(),['X-Fixture-Expire-After-Record: yes'],'');
+        forecastMcpCheck('late deadline after a 401 removes the previously prepared OAuth header',
+            $r['status']===503&&$r['challenge']===null&&($r['body']['error']['data']['reason']??null)==='time_limit');
+        $r=$request(forecastMcpRpc(),['X-Fixture-Expire-After-Record: yes'],'Bearer '.str_repeat('l',43));
+        forecastMcpCheck('late deadline after scope denial removes the mirrored OAuth header',
+            $r['status']===503&&$r['challenge']===null&&($r['body']['error']['data']['reason']??null)==='time_limit');
         $rpc=forecastMcpRpc();$rpc['params']['_meta']=['padding'=>str_repeat('x',66000)];$r=$request($rpc);
         forecastMcpCheck('forecast HTTP request has its own 64 KiB bound',$r['status']===413);
         $r=$request(forecastMcpRpc(),['X-Fixture-Expired: yes']);
         forecastMcpCheck('HTTP entry deadline includes time before bearer lookup',
-            $r['status']===503&&($r['body']['error']['data']['reason']??null)==='time_limit'&&!isset($r['body']['result']));
+            $r['status']===503&&$r['challenge']===null&&($r['body']['error']['data']['reason']??null)==='time_limit'&&!isset($r['body']['result']));
     }finally{
         if(is_resource($server)){proc_terminate($server);proc_close($server);}
         if(is_dir($tmp)){

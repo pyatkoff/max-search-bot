@@ -227,3 +227,6 @@ require __DIR__.'/modeled-conversion-stream.php';
 
 // Independent archive fixture follows the existing disposable-suite cleanup.
 require __DIR__.'/archive-research-read.php';
+
+// Real budgeted bearer, dispatcher and saved-reader path in a separate disposable database.
+require __DIR__.'/modeled-conversion-status-auth.php';
