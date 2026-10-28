@@ -975,12 +975,12 @@ foreach (['claim_first','block_first','old_ack_after_block'] as $scenario) {
         $results=[file_get_contents($dir.'/out0'),file_get_contents($dir.'/out1')];$s=$raceQ->status(1,str_repeat($scenario==='claim_first'?'a':'c',32),'DEV');
         if ($scenario==='claim_first') {
             devAssert($results===['claimed','conflict']&&$s['state']==='claimed'&&$s['task_id']==='A'
-                &&$s['current_run_id']===null&&$s['handoff_count']===0&&$s['blocked_count']===0,
+                &&$s['current_run_id']===null&&$s['retirement_count']===0&&$s['blocked_count']===0,
                 'claim_first_blocks_retirement_without_clearing_admission_or_creating_decision');
         } else {
             $next=$raceQ->pendingEvent(1,str_repeat('c',32),'DEV');
             devAssert($results===['access_denied','handed_off']&&$s['state']==='blocked'&&$s['task_id']===null
-                &&$s['current_run_id']===null&&$s['handoff_count']===1&&$s['blocked_count']===1&&$s['accepted_count']===0
+                &&$s['current_run_id']===null&&$s['retirement_count']===1&&$s['blocked_count']===1&&$s['accepted_count']===0
                 &&$next===null&&$s['delivery_state']==='blocked'&&$s['last_connection_handoff']!==null,
                 'handoff_first_fences_late_old_claim_ack_without_admitting_any_task');
             $audit=$racePdo->query('SELECT * FROM development_work_retirements')->fetch(PDO::FETCH_ASSOC);
