@@ -164,6 +164,48 @@ changes. Historical unresumed claim inputs remain compatible. Apply event TTL
 and the existing once-only admission checks. Attention permits reconciliation
 only.
 
+A resumed READY stage can receive one bounded automatic metadata redelivery if
+its pending and unclaimed-attention deliveries were both acknowledged without a
+claim, run or current-stage receipt. The existing server tick waits at least
+60 seconds after the attention acknowledgement. This is delivery backoff, not
+proof that a hosted run or private operation is safe. Only a valid original
+same-binding resume belonging to the current owner is eligible; ordinary legacy
+deliveries and a real connection transfer do not acquire this retry.
+
+The lane/queue transaction records a separate append-only delivery-recovery
+audit, unique for that queue/stage. It retains the original resume digest,
+previous pending and attention IDs, and the stored delivery/deadline/attention/
+update times before clearing only the current delivery pointers. The original
+handoff record is unchanged. A fresh generation has new pending and attention
+IDs; the ordinary event service builds a new signed body with a fresh timestamp.
+Retries of that same new delivery retain its exact body. An old event or late
+acknowledgement cannot claim or acknowledge the new generation. The existing
+claim input and its atomic event fence are unchanged; no tool refresh is needed.
+
+The server refuses this recovery while any relevant persisted hotel claim, run,
+UNKNOWN or current-stage receipt exists. It does not read the owner's private
+checkpoint or hosted worker state. Before claiming, the same handler must still
+check private unresolved intents, all existing hotel jobs and file reservations.
+On every pending invocation, save and read back a sanitized admission decision in
+the same private checkpoint: actual received field presence and source event ID
+when available, supported route/schema evidence, exact failed guard or successful
+admission, and the observed current stage. Do not persist secrets or claim keys
+in that diagnostic. An uncertain checkpoint write or missing trusted event ID
+permits no claim; status must never supply a missing received ID.
+
+After this one recovery, another unclaimed acknowledgement may produce its one
+normal attention event, then remains quiet. It cannot replenish its budget,
+rearm the old resume, admit attention, relax event TTL or restart a worker.
+A second safe HOLD exhausts recovery without proving the original failed guard
+has been fixed. Runtime acceptance still requires the fresh signed pending,
+one actual research run, the matching CENTRAL intake and independently verified
+saved evidence for the same packet.
+
+Once a recovery audit exists, a rollback must retain its namespace, budget and
+atomic claim fence. Do not deploy an older implementation that ignores this
+audit: it could recreate a previously acknowledged identity. Use a forward fix
+that preserves the audit; never delete its rows, reset the queue or migrate down.
+
 Finite completion releases the metadata lane and creates no fourth batch.
 Continuous mode advances only after an accepted intake and its due criteria.
 Neither mode modifies the legacy protected reservations or owns the actual
