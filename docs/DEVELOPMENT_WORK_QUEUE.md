@@ -343,3 +343,42 @@ endpoint and all grant, subscription, claim and audit histories. Contain new
 admission through a reviewed forward change; do not remove authorization or
 reconciliation needed by existing new-profile connections, silently transfer
 their ownership, or restore an older version that weakens protected boundaries.
+
+## Bounded subscription registration observations
+
+For an authenticated real development queue, the existing status projection
+adds `subscription_setup.registration_trace`. This is a bounded observation
+of the existing shared MCP diagnostic log, not a queue-correlated audit or a
+native task-service transaction receipt. Its fixed semantics are
+`observations_only_not_queue_binding_or_native_commit_proof`.
+
+Only the fixed protocol categories `tools/call` and `events/subscribe` are
+added to the existing diagnostic method allowlist. For subscription calls,
+`event_name` is restricted to `development_work.pending` and
+`development_work.attention`; a missing or null name is `absent`, and every
+other name is `other`. A non-subscription row cannot carry an event name,
+including when a persisted row is sanitized again. No arguments, identity,
+queue ID, callback URL, credential, nonce, exception text or stack is exposed.
+The existing time, numeric result and other fixed categories remain bounded.
+
+An opt-in coverage projection reads at most 512 KiB and returns at most 20
+sanitized records. `available` reports successful access to that bounded
+log window; `coverage` is `bounded_log_tail` or `unavailable`.
+`tail_truncated` reports whether the initial file size exceeded the byte
+window, while `sample_truncated` reports more than 20 valid observations
+inside that window. Both are unknown on failed access. The fixed `reason`
+is null, `unavailable` or `read_error`. A readable empty window remains
+available; neither it nor an unreadable window proves that no RPC occurred.
+The historical no-argument snapshot retains its top-level two-field contract.
+
+The trace is read before the canonical subscription metadata getter. That
+getter must still perform its fresh administrator, grant and queue ownership
+checks even if the technical log read fails. An authorization failure
+suppresses the entire status result and trace. Callable test stores do not
+implicitly acquire access to the shared log. The trace does not authorize
+repeating an unknown configuration operation or dispatching from status.
+
+The normal deployment HTTP smoke also makes one fixed anonymous request to
+`purchase-study-api.php?view=operational` and requires HTTP 401 with the
+existing unauthorized marker. It sends no authentication, reads no protected
+snapshot and establishes neither ordinary cron provenance nor model quality.

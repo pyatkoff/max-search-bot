@@ -678,6 +678,114 @@ try {
         $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=NULL WHERE grant_id=?')->execute([$isolatedConnection]);
     }
 
+
+    // Registration traces are bounded global observations, never queue/native binding evidence.
+    $traceTablesSnapshot=static function()use($pdo,$queueSnapshot):array {
+        $rows=['development'=>$queueSnapshot()];
+        foreach (['managers'=>'id','projects'=>'id','manager_projects'=>'manager_id,project_id',
+            'manager_preparation_oauth_clients'=>'client_id','manager_preparation_oauth_grants'=>'grant_id',
+            'manager_preparation_oauth_codes'=>'code_hash','manager_preparation_oauth_tokens'=>'token_hash'] as $table=>$order)
+            $rows[$table]=$pdo->query('SELECT * FROM '.$table.' ORDER BY '.$order)->fetchAll(PDO::FETCH_ASSOC);
+        return $rows;
+    };
+    $traceInitialRows=$traceTablesSnapshot();
+
+    require_once dirname(__DIR__).'/services/ManagerPreparationMcpDiagnostics.php';
+    $traceRow=['at'=>gmdate('Y-m-d\\TH:i:s\\Z',$now)]+ManagerPreparationMcpDiagnostics::metadata(
+        ['REQUEST_METHOD'=>'POST','HTTP_AUTHORIZATION'=>'Bearer '.str_repeat('T',43)],
+        devOauthRpc('events/subscribe',['name'=>'development_work.pending']),200,'complete',null,'development');
+    $traceFixture=['sampled_count'=>1,'recent_attempts'=>[$traceRow],'available'=>true,'coverage'=>'bounded_log_tail',
+        'tail_truncated'=>false,'sample_truncated'=>false,'reason'=>null];
+    $traceReads=0;$traceReader=static function()use(&$traceReads,$traceFixture):array {++$traceReads;return $traceFixture;};
+    $traceAdapter=new DevelopmentWorkMcpAdapter($pdo,$isolatedQueue,$clock,$isolatedEvents,$traceReader);
+    $traceStatus=$traceAdapter->call('development_work_status',['queue_id'=>'ISOLATED_QUEUE'],1,$isolatedConnection);
+    $traceResult=$traceStatus['subscription_setup']['registration_trace']??[];
+    devOauthCheck('real queue status attaches only bounded registration observations after canonical authority',
+        $traceReads===1&&($traceStatus['subscription_setup']['available']??null)===true
+        &&($traceResult['semantics']??null)==='observations_only_not_queue_binding_or_native_commit_proof'
+        &&($traceResult['coverage']??null)==='bounded_log_tail'&&($traceResult['available']??null)===true
+        &&($traceResult['recent_attempts']??null)===[$traceRow]&&!isset($traceStatus['registration_trace']));
+    foreach ([
+        static function():array {throw new RuntimeException('PRIVATE_TRACE_READER_ERROR');},
+        static fn():array=>$traceFixture+['PRIVATE_TRACE_SECRET'=>str_repeat('private',1000)],
+        static fn():array=>array_replace($traceFixture,['sampled_count'=>21,'recent_attempts'=>array_fill(0,21,$traceRow)]),
+        static fn():array=>array_replace($traceFixture,['recent_attempts'=>[$traceRow+['queue_id'=>'PRIVATE_TRACE_QUEUE']]])
+    ] as $badTraceReader) {
+        $traceAdapter=new DevelopmentWorkMcpAdapter($pdo,$isolatedQueue,$clock,$isolatedEvents,$badTraceReader);
+        $traceStatus=$traceAdapter->call('development_work_status',['queue_id'=>'ISOLATED_QUEUE'],1,$isolatedConnection);
+        $traceResult=$traceStatus['subscription_setup']['registration_trace']??[];
+        devOauthCheck('failed malformed private or oversized trace still runs canonical getter and exposes only fixed fallback',
+            ($traceStatus['subscription_setup']['available']??null)===true&&($traceResult['available']??null)===false
+            &&($traceResult['coverage']??null)==='unavailable'&&($traceResult['reason']??null)==='read_error'
+            &&($traceResult['recent_attempts']??null)===[]&&!str_contains(json_encode($traceStatus,JSON_THROW_ON_ERROR),'PRIVATE_TRACE'));
+    }
+    $traceNeverCalled=0;$traceCallable=new DevelopmentWorkMcpAdapter($pdo,static fn(string $operation,array $arguments):array=>['ok'=>true],
+        $clock,$isolatedEvents,static function()use(&$traceNeverCalled):array {++$traceNeverCalled;throw new RuntimeException();});
+    $callableTrace=$traceCallable->call('development_work_status',['queue_id'=>'ISOLATED_QUEUE'],1,$isolatedConnection);
+    devOauthCheck('callable stores gain no implicit global trace read',
+        $traceNeverCalled===0&&($callableTrace['subscription_setup']['registration_trace']['available']??null)===false);
+    devOauthCheck('trace and status reads preserve every development OAuth identity and permission row',
+        $traceInitialRows===$traceTablesSnapshot());
+    foreach (['grant','owner'] as $traceChange) foreach ([false,true] as $traceFailure) {
+        $traceRaceRows=$traceTablesSnapshot();
+        $traceReturned=null;$traceDenied=false;$raceTraceReads=0;
+        $raceTrace=static function()use($pdo,$now,$isolatedConnection,$selfConnection,$traceChange,$traceFailure,$traceFixture,&$raceTraceReads):array {
+            ++$raceTraceReads;
+            if ($traceChange==='grant') $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=?')->execute([$now,$isolatedConnection]);
+            else $pdo->prepare('UPDATE development_work_queues SET oauth_connection_id=? WHERE queue_id=?')->execute([$selfConnection,'ISOLATED_QUEUE']);
+            if ($traceFailure) throw new RuntimeException('PRIVATE_TRACE_RACE_FAILURE');
+            return $traceFixture;
+        };
+        try {
+            $traceAdapter=new DevelopmentWorkMcpAdapter($pdo,$isolatedQueue,$clock,$isolatedEvents,$raceTrace);
+            try {$traceReturned=$traceAdapter->call('development_work_status',['queue_id'=>'ISOLATED_QUEUE'],1,$isolatedConnection);}
+            catch (DomainException $expected) {$traceDenied=true;}
+            devOauthCheck('trace observation or read failure never bypasses fresh grant and queue authority '.$traceChange.' '.(int)$traceFailure,
+                $raceTraceReads===1&&$traceDenied&&$traceReturned===null);
+        } finally {
+            $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=NULL WHERE grant_id=?')->execute([$isolatedConnection]);
+            $pdo->prepare('UPDATE development_work_queues SET oauth_connection_id=? WHERE queue_id=?')->execute([$isolatedConnection,'ISOLATED_QUEUE']);
+        }
+        devOauthCheck('trace authority race restores exact rows and preserves every unrelated row '.$traceChange.' '.(int)$traceFailure,
+            $traceRaceRows===$traceTablesSnapshot());
+    }
+    $traceMetadataFailed=false;$traceStatementClass=$pdo->getAttribute(PDO::ATTR_STATEMENT_CLASS);
+    $failMetadataAfterTrace=static function()use($pdo,$traceFixture,&$traceMetadataFailed):array {
+        $pdo->setAttribute(PDO::ATTR_STATEMENT_CLASS,[DevelopmentOauthSubscriptionStatement::class,[static function(string $sql)use(&$traceMetadataFailed):void {
+            if (preg_match('/\\A\\s*SELECT\\b[\\s\\S]*\\bFROM\\s+development_work_events\\b/i',$sql)===1) {
+                $traceMetadataFailed=true;throw new PDOException('PRIVATE_TRACE_METADATA_UNAVAILABLE');
+            }
+        }]]);
+        return $traceFixture;
+    };
+    try {
+        $traceAdapter=new DevelopmentWorkMcpAdapter($pdo,$isolatedQueue,$clock,$isolatedEvents,$failMetadataAfterTrace);
+        $traceStatus=$traceAdapter->call('development_work_status',['queue_id'=>'ISOLATED_QUEUE'],1,$isolatedConnection);
+        devOauthCheck('normal getter return after technical metadata failure still completed authority checks for bounded trace',
+            $traceMetadataFailed&&($traceStatus['subscription_setup']['available']??null)===false
+            &&($traceStatus['subscription_setup']['registration_trace']['recent_attempts']??null)===[$traceRow]);
+    } finally {$pdo->setAttribute(PDO::ATTR_STATEMENT_CLASS,$traceStatementClass);}
+    $traceGetterFailed=false;$traceStatementClass=$pdo->getAttribute(PDO::ATTR_STATEMENT_CLASS);
+    $failGetterAfterTrace=static function()use($pdo,$traceFixture,&$traceGetterFailed):array {
+        $pdo->setAttribute(PDO::ATTR_STATEMENT_CLASS,[DevelopmentOauthSubscriptionStatement::class,[static function(string $sql)use(&$traceGetterFailed):void {
+            if (preg_match('/\\A\\s*SELECT\\b[\\s\\S]*\\bFROM\\s+manager_preparation_oauth_grants\\b/i',$sql)===1) {
+                $traceGetterFailed=true;throw new PDOException('PRIVATE_TRACE_GETTER_AUTHORITY_UNAVAILABLE');
+            }
+        }]]);
+        return $traceFixture;
+    };
+    try {
+        $traceAdapter=new DevelopmentWorkMcpAdapter($pdo,$isolatedQueue,$clock,$isolatedEvents,$failGetterAfterTrace);
+        $traceStatus=$traceAdapter->call('development_work_status',['queue_id'=>'ISOLATED_QUEUE'],1,$isolatedConnection);
+        $traceResult=$traceStatus['subscription_setup']['registration_trace']??[];
+        devOauthCheck('technical canonical getter failure cannot attach previously observed registration rows',
+            $traceGetterFailed&&($traceStatus['subscription_setup']['available']??null)===false
+            &&($traceResult['available']??null)===false&&($traceResult['reason']??null)==='unavailable'
+            &&($traceResult['recent_attempts']??null)===[]);
+    } finally {$pdo->setAttribute(PDO::ATTR_STATEMENT_CLASS,$traceStatementClass);}
+
+    devOauthCheck('all trace cases including technical getter failures preserve exact canonical table rows',
+        $traceInitialRows===$traceTablesSnapshot());
     echo 'DEVELOPMENT WORK OAUTH: '.$passed." PASS\n";
 } finally {
     (new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,null);
