@@ -1,5 +1,45 @@
 # Automatic factual profiles — offline tools and admitted journal
 
+## Early readiness snapshots from admitted conversations
+
+New profile versions additionally freeze `contextual_signals` and
+`early_forecast` in the same existing append-only profile transaction. The
+ordinary five-minute processor remains the only execution path; there is no
+new capture, queue, scheduler, source reset or customer action. Previously
+saved profiles and the independent purchase-study registry are not rewritten.
+
+The shared contextual extractor runs only on messages admitted by the canonical
+Python profile adapter. Its evidence references are an allowlist, not permission
+to interpret every raw journal row. Omitted, forwarded, action, inaccessible or
+uninterpretable rows interrupt short-answer context. Actual journal references
+remain `journal:<id>`; they are never presented as archive message identities.
+The bridge minimizes text in memory and persists bounded rule events and
+references, not another copy of message text.
+
+The early estimate is an explicitly **uncalibrated ordinal readiness signal**.
+Substantive interest, intent to buy in general, seller-specific intent and weak
+office/payment logistics are distinct. An absent rule match means unknown,
+not a negative outcome. Purchase probability, commission and expected value
+remain null; advertising export stays disabled. Already visible payment or
+booking evidence cannot count as an early prediction of that same outcome.
+These are signals for subsequent evaluation, not a measured 30-day purchase
+probability or a new conversion counter.
+
+Each snapshot retains its actual prediction time, immutable information fence,
+rule provenance and coverage. The first estimate for an unresolved conversation
+prefix and subsequent revisions are distinguishable. Repeated snapshots are
+not independent leads, trips or sales. Trip boundaries remain provisional;
+current-trip target admission is still blocked when identity or boundary is
+unresolved. Useful direct signals may nevertheless be retained. Later source
+edits and outcomes yield later versions rather than changing an earlier forecast.
+
+Synthetic tests establish admission, contextual barriers, cutoff preservation,
+immutable storage and retry behavior. Installation and a naturally recurring
+saved forecast require separate evidence. Aggregate private processing receipts
+are not published as customer-level evidence; there is no new public report or
+implicit expansion of archive OAuth access. The existing study's trained
+probabilities and 30-day outcome evaluation remain a separate contract.
+
 ## Prospective purchase-outcome research
 
 New immutable journal profiles also contain a versioned `purchase_study` packet.

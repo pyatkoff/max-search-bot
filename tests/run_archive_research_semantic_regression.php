@@ -25,7 +25,7 @@ function has(array$r,string$goal):bool{return in_array($goal,goals($r),true);}
 function single(string$role,string$text,array$override=[]):array{return runMessages([message($role,$text,1,1700000000,$override)]);}
 
 check(ArchiveResearchSemanticExtractor::validState(ArchiveResearchSemanticExtractor::initialState()),'initial_state_valid');
-foreach(['v'=>2,'e'=>-1,'last'=>-1,'p'=>'fake','q'=>'fake','qt'=>'1700000000','qr'=>'secret','qi'=>9,'money'=>[],'mt'=>1.5,'booking'=>'native:1','bt'=>-1,'cancelled'=>1,'linked'=>null]as$k=>$v){
+foreach(['v'=>1,'e'=>-1,'last'=>-1,'p'=>'fake','q'=>'fake','qt'=>'1700000000','qr'=>'secret','qi'=>9,'money'=>[],'mt'=>1.5,'booking'=>'native:1','bt'=>-1,'cancelled'=>1,'linked'=>null]as$k=>$v){
     $s=ArchiveResearchSemanticExtractor::initialState();$s[$k]=$v;check(!ArchiveResearchSemanticExtractor::validState($s),'reject_state_'.$k);
 }
 $s=ArchiveResearchSemanticExtractor::initialState();$s['extra']=1;check(!ArchiveResearchSemanticExtractor::validState($s),'reject_extra_key');
@@ -162,4 +162,88 @@ foreach($whole['outputs']as$o){
 $bad=single('customer',str_repeat('x',32769));check($bad['outputs'][0]['status']==='text_too_large','text_cap');
 $bad=single('customer',"\xff");check($bad['outputs'][0]['status']==='invalid_utf8','utf8_guard');
 $bad=single('customer','Оплатил',['source_ref'=>'secret']);check($bad['outputs'][0]['status']==='invalid_source_ref','ref_guard');
+
+// V2 expands provisional coverage while keeping evidence from earlier/other trips isolated.
+check(ArchiveResearchSemanticExtractor::VERSION==='ru_archive_contextual_v2','contextual_version_v2');
+$legacyState=ArchiveResearchSemanticExtractor::initialState();$legacyState['v']=1;
+check(!ArchiveResearchSemanticExtractor::validState($legacyState),'v1_continuation_state_rejected');
+try{ArchiveResearchSemanticExtractor::step(message('customer','Подберите тур'),$legacyState);check(false,'v1_step_must_throw');}
+catch(InvalidArgumentException$e){check($e->getMessage()==='archive_semantic_invalid_state','v1_step_rejected_before_new_rules');}
+$r=single('customer','2 взрослых и ребенок 8 лет, вылет в июне');
+check(has($r,'substantive_interest')&&$r['state']['e']===1
+    &&$r['outputs'][0]['episode_boundary']==='first_trip_conditions_candidate','conditions_establish_provisional_episode');
+$r=single('customer','Хотела бы тур на июнь');
+check($r['state']['e']===1&&has($r,'substantive_interest'),'polite_trip_request_covered');
+foreach(['Подберите тур','2 взрослых, вылет в июле','Хочу этот купить']as$statement){
+    $r=runMessages([message('manager','Оплату увидела',1),message('customer',$statement,2,1700000001),
+        message('manager','Тур подтвержден',3,1700000002)]);
+    check($r['state']['e']===1&&!has($r,'purchase_supported_candidate')
+        &&$r['outputs'][1]['state']['money']===null,'first_episode_drops_preexisting_money_'.$statement);
+}
+$r=runMessages([message('manager','Сколько взрослых?',1),message('customer','2',2,1700000001)]);
+check($r['state']['e']===1&&has($r,'substantive_interest'),'criteria_answer_can_start_episode');
+$r=runMessages([message('customer','Подберите тур',1),message('manager','Оформляем в офисе или удаленно?',2,1700000001),
+    message('customer','Онлайн',3,1700000002)]);
+check(has($r,'agency_purchase_intent'),'online_booking_choice');
+$r=runMessages([message('customer','Подберите тур',1),message('manager','В офисе или дистанционно?',2,1700000001),
+    message('customer','Дистанционное',3,1700000002)]);
+check(has($r,'agency_purchase_intent'),'remote_adjectival_choice');
+$r=runMessages([message('customer','Интересует тур на июль',1),message('customer','Давайте этот тур',2,1700000001)]);
+check(has($r,'agency_purchase_intent'),'explicit_product_choice_in_known_trip_context');
+$r=runMessages([message('customer','Интересует тур на июль',1),message('customer','Давайте этот',2,1700000001)]);
+check(!has($r,'agency_purchase_intent')&&has($r,'general_purchase_intent'),'old_product_context_not_seller_referent');
+foreach(['Выбираем этот аэропорт?','Выбираем этот месяц?','Выбираем этот рейс?']as$question){
+    $r=runMessages([message('customer','Интересует тур',1),message('manager',$question,2,1700000001),
+        message('customer','Давайте этот',3,1700000002)]);
+    check(!has($r,'agency_purchase_intent'),'unknown_demonstrative_referent_not_seller_'.$question);
+}
+$r=runMessages([message('customer','Интересует тур',1),message('manager','Бронируем?',2,1700000001),
+    message('customer','Давайте этот',3,1700000002)]);
+check(has($r,'agency_purchase_intent'),'demonstrative_with_current_booking_prompt');
+check(!has(single('customer','Давайте этот'),'agency_purchase_intent'),'bare_demonstrative_not_seller');
+$r=runMessages([message('customer','Интересует тур',1),message('manager','Откуда вылет?',2,1700000001),
+    message('customer','Давайте этот',3,1700000002)]);
+check(!has($r,'agency_purchase_intent'),'criteria_prompt_not_seller_choice');
+foreach(['Ваш тур уже подтвердили','Бронирование успешно подтверждено','Заявка подтвердилась']as$statement){
+    check(has(single('manager',$statement),'booking_confirmation'),'direct_confirmation_form_'.$statement);
+}
+foreach(['Ваш тур еще должны подтвердить','Когда бронирование будет подтверждено?','Если заявка подтвердилась, оплатите']as$statement){
+    check(!has(single('manager',$statement),'booking_confirmation'),'nonasserted_confirmation_'.$statement);
+}
+$r=runMessages([...$purchase,message('customer','Ещё одна пара хочет тур на эти же даты',5,1700000070)]);
+check($r['state']['e']===2&&!$r['state']['linked']&&$r['state']['money']===null,
+    'new_party_same_dates_does_not_inherit_money');
+$r=runMessages([...$purchase,message('customer','С нами поедут еще двое взрослых',5,1700000070)]);
+check($r['state']['e']===1&&!$r['state']['linked']&&($r['outputs'][4]['flags']['party_change_unresolved']??false),
+    'party_expansion_is_uncertain_without_inheriting_paid_status');
+$r=runMessages([...$purchase,message('customer','Интересует другой отель',5,1700000070)]);
+check(($r['outputs'][4]['flags']['unresolved_trip_boundary']??false)&&$r['state']['money']===null
+    &&!$r['state']['linked'],'new_request_after_booking_breaks_link_even_short_gap');
+foreach(['Клиент написал «Нужна новая поездка»','Если понадобится новая поездка, напишу',
+    'В прошлом году была другая поездка']as$statement){
+    $r=runMessages([...$purchase,message('customer',$statement,5,1700000070)]);
+    check($r['state']['e']===1&&$r['outputs'][4]['episode_boundary']===null,'quoted_conditional_past_not_new_boundary_'.$statement);
+}
+$journal=array_map(static function(array$m):array{$m['source_ref']=str_replace('archive_message:','journal:',$m['source_ref']);return$m;},$purchase);
+$r=runMessages($journal);
+check(has($r,'purchase_supported_candidate')&&$r['state']['money']==='journal:2','journal_evidence_namespace_preserved');
+$r=runMessages([message('manager','Бронируем?',1),message('customer','Да',2,1700000001,['source_ref'=>'journal:2'])]);
+check(!has($r,'agency_purchase_intent')&&($r['outputs'][1]['flags']['source_namespace_barrier']??false),
+    'cross_namespace_prompt_not_linked');
+$r=runMessages([...$purchase,message('manager','Тур подтвержден',5,1700000070,['source_ref'=>'journal:5'])]);
+check(!$r['state']['linked']&&($r['outputs'][4]['flags']['source_namespace_barrier']??false),
+    'cross_namespace_money_not_linked');
+check(single('customer','Подберите тур',['source_ref'=>'journal:0'])['outputs'][0]['status']==='invalid_source_ref',
+    'zero_journal_ref_rejected');
+$segmented=[message('manager','Оплату увидела',1),message('customer','2 взрослых, нужен отель',2,1700000001),
+    message('manager','Бронирование подтверждено',3,1700000002),message('customer','Еще одна пара хочет тур',4,1700000010),
+    message('manager','Оплату получила',5,1700000020),message('manager','Тур подтвержден',6,1700000030),
+    message('manager','Документы готовы',7,1700000000+54*86400)];
+$wholeV2=runMessages($segmented);
+for($split=0;$split<=count($segmented);$split++){
+    $a=runMessages(array_slice($segmented,0,$split));$b=runMessages(array_slice($segmented,$split),$a['state']);
+    check($wholeV2['state']===$b['state']&&$wholeV2['outputs']===[...$a['outputs'],...$b['outputs']],
+        'v2_episode_split_invariance_'.$split);
+}
+
 echo "Archive semantic extractor: ".$checks." checks passed\n";

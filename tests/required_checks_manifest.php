@@ -317,6 +317,7 @@ return [
         'php tests/run_advertising_visit_transport_regression.php',
         'php tests/run_advertising_signals_regression.php',
         'php tests/run_modeled_conversion_stream_regression.php',
+        'php tests/run_modeled_conversion_early_forecast_regression.php',
         'php tests/run_modeled_conversion_outcome_regression.php',
         'php tests/run_modeled_purchase_study_regression.php',
         'php tests/run_purchase_study_metadata_regression.php',

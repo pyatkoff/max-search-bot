@@ -2,13 +2,13 @@
 declare(strict_types=1);
 
 /**
- * Pure V1 contextual rules over minimized archive messages.
+ * Pure V2 contextual rules over minimized archive messages.
  * Labels are evidence-backed candidates, never calibrated probabilities or bank truth.
  * Caller owns authorization, source ordering, chat reset and signed continuation.
  */
 final class ArchiveResearchSemanticExtractor
 {
-    public const VERSION='ru_archive_contextual_v1';
+    public const VERSION='ru_archive_contextual_v2';
     public const MAX_TEXT_BYTES=32768;
     public const MAX_STATE_BYTES=1024;
     private const GOALS=[
@@ -22,13 +22,13 @@ final class ArchiveResearchSemanticExtractor
     public static function goalIds():array{return self::GOALS;}
     public static function initialState():array
     {
-        return ['v'=>1,'e'=>0,'last'=>null,'p'=>'unknown','q'=>'none','qt'=>null,'qr'=>null,'qi'=>0,
+        return ['v'=>2,'e'=>0,'last'=>null,'p'=>'unknown','q'=>'none','qt'=>null,'qr'=>null,'qi'=>0,
             'money'=>null,'mt'=>null,'booking'=>null,'bt'=>null,'cancelled'=>false,'linked'=>false];
     }
     public static function validState(array$s):bool
     {
         $zero=self::initialState();
-        if(count($s)!==count($zero)||array_diff(array_keys($s),array_keys($zero))||$s['v']!==1)return false;
+        if(count($s)!==count($zero)||array_diff(array_keys($s),array_keys($zero))||$s['v']!==2)return false;
         if(!is_int($s['e'])||$s['e']<0||$s['e']>500000||!is_int($s['qi'])||$s['qi']<0||$s['qi']>8)return false;
         if(!in_array($s['p'],['unknown','tour','hotel','flight','addon','mixed'],true)
             ||!in_array($s['q'],['none','booking','data','payment','criteria'],true))return false;
@@ -59,6 +59,11 @@ final class ArchiveResearchSemanticExtractor
             $s=self::barrier($s);$s['last']=self::validTime($time)?$time:null;
             return self::result($s,$status,[],['context_barrier'=>true],null);
         }
+        foreach(['qr','money','booking']as$key){
+            if($s[$key]!==null&&strtok($s[$key],':')!==strtok($ref,':')){
+                $s=self::barrier($s);$flags['source_namespace_barrier']=true;break;
+            }
+        }
         $clock=self::validTime($time);
         $gap=$clock&&$s['last']!==null?$time-$s['last']:null;
         if(!$clock||($gap!==null&&$gap<0)){
@@ -74,15 +79,21 @@ final class ArchiveResearchSemanticExtractor
         $flags['unread_links']=($m['links_redacted']??null)===true||($m['selection_links_unread']??null)===true;
         $flags['episode_identity_unverified']=true;
         $flags['initial_context_unresolved']=$s['e']===0;
-        $request=$role==='customer'&&!self::deniedInterest($text)&&self::hit('подбер\pL*|подбор\pL*|ищ(?:у|ем)\s+(?:тур|отель)|интересу\pL*|рассматрива\pL*|хотим\s+(?:поехать|отдохнуть)|планиру\pL*\s+(?:поездк|отпуск)|нужен\s+(?:тур|отель)', $text);
-        if($s['e']===0&&$request){$s['e']=1;$boundary='first_trip_request_candidate';}
-        $newTrip=$role==='customer'&&self::hit('нов(?:ая|ую|ой)\s+поездк|друг(?:ая|ую)\s+поездк|следующ(?:ая|ую)\s+поездк|ещ[её]\s+од(?:ин|ну)\s+тур|для\s+(?:друзей|родителей|другой\s+пары|другой\s+семьи)|теперь\s+(?:хочу|хотим|планиру\pL*)\s+(?:поехать|отдохнуть)', $text);
+        $requestText=self::requestText($text);
+        $request=$role==='customer'&&!self::deniedInterest($requestText)&&self::hit('подбер\pL*|подбор\pL*|ищ(?:у|ем)\s+(?:тур|отель)|интересу\pL*|рассматрива\pL*|(?:хочу|хотим|хотел(?:а|и)?)(?:\s+бы)?\s+(?:поехать|отдохнуть|тур)|планиру\pL*\s+(?:поездк|отпуск)|нужен\s+(?:тур|отель)', $requestText);
+        if($s['e']===0&&$request){$s=self::initialState();$s['e']=1;$boundary='first_trip_request_candidate';}
+        $newTrip=$role==='customer'&&!self::deniedInterest($requestText)&&self::hit('нов(?:ая|ую|ой)\s+поездк|друг(?:ая|ую)\s+поездк|следующ(?:ая|ую)\s+поездк|ещ[её]\s+од(?:ин|ну)\s+тур|для\s+(?:друзей|родителей|другой\s+пары|другой\s+семьи)|(?:ещ[её]\s+одна|другая)\s+(?:пара|семья)\s+(?:хочет|просит|планирует)|теперь\s+(?:хочу|хотим|планиру\pL*)\s+(?:поехать|отдохнуть)', $requestText);
         $afterGap=$request&&$gap!==null&&($gap>2592000||($s['linked']&&$gap>604800));
         if($s['last']!==null&&($newTrip||$afterGap)&&$boundary===null){
             $episode=$s['e']+1;$s=self::initialState();$s['e']=$episode;
             $boundary=$newTrip?'explicit_new_trip_candidate':'new_request_after_gap_candidate';
         }
         if($request&&$boundary===null&&$gap!==null&&$gap>1209600){
+            $s=self::barrier($s);$flags['unresolved_trip_boundary']=true;
+        }
+        $partyChange=$role==='customer'&&self::hit('с\s+нами\s+(?:поедут|едут|будут)\s+ещ[её]|(?:ещ[её]\s+одна|другая)\s+(?:пара|семья)|для\s+(?:друзей|родителей|другой\s+пары|другой\s+семьи)', $requestText);
+        if($partyChange&&$boundary===null){$s=self::barrier($s);$flags['party_change_unresolved']=true;}
+        if($request&&$boundary===null&&($s['money']!==null||$s['booking']!==null)){
             $s=self::barrier($s);$flags['unresolved_trip_boundary']=true;
         }
         // A gap alone never establishes a second trip.
@@ -109,7 +120,7 @@ final class ArchiveResearchSemanticExtractor
             $future=self::hit('(?<!\pL)(?:будет|будут|должен|должна|должны|должно|может|могут|ожидаем)(?!\pL)|ожида\pL*\s+подтвержд',$clause);
             foreach(['question'=>$question,'conditional'=>$conditional,'negation'=>$negated,'past_trip'=>$old,'quoted_or_relayed'=>$relay,'other_payment_product'=>$excludedProduct]as$k=>$v)if($v)$flags[$k]=true;
             if($role==='customer'){
-                if(!$relay&&!$old&&!self::deniedInterest($clause)&&self::hit('подбер\pL*|подбор\pL*|ищ(?:у|ем)\s+(?:тур|отель)|интересу\pL*|рассматрива\pL*|сравн\pL*|чем\s+отлича\pL*|какой\s+лучше|другие\s+вариант\pL*|ещ[её]\s+(?:вариант|отел)|хотим\s+(?:поехать|отдохнуть)|нужен\s+(?:тур|отель)',$clause)){
+                if(!$relay&&!$old&&!self::deniedInterest($clause)&&self::hit('подбер\pL*|подбор\pL*|ищ(?:у|ем)\s+(?:тур|отель)|интересу\pL*|рассматрива\pL*|сравн\pL*|чем\s+отлича\pL*|какой\s+лучше|другие\s+вариант\pL*|ещ[её]\s+(?:вариант|отел)|(?:хочу|хотим|хотел(?:а|и)?)(?:\s+бы)?\s+(?:поехать|отдохнуть|тур)|нужен\s+(?:тур|отель)',$clause)){
                     $goals['substantive_interest']=true;$rules['substantive_interest']='customer_trip_request_or_comparison';
                 }
                 if(!$relay&&!$old&&self::hit('офис|приеха\pL*\s+к\s+вам|прийти\s+к\s+вам|адрес\s+агентств',$clause)){
@@ -126,10 +137,11 @@ final class ArchiveResearchSemanticExtractor
                     $relations['substantive_interest']=$s['qr']!==null?[$s['qr']]:[];
                 }
                 $intent=self::hit('готов\pL*\s+(?:за)?брониров\pL*|давайте\s+(?:за)?брониру\pL*|давайте\s+(?:нам\s+)?этот|(?<!\pL)(?:за)?бронируем(?!\pL)|хочу\s+(?:этот\s+)?купить|хотим\s+купить|(?:бер[её]м|беру)\s+(?:этот|этот\s+тур|тур|его|вариант)|(?<!\pL)покупаю(?!\pL)|готов\pL*\s+оплат|(?:сейчас|сегодня|завтра)\s+оплачу|(?<!\pL)оплачиваю(?!\pL)',$clause);
-                $affirmative=self::hit('\A\s*(?:да|да,\s*беру|давайте|бер[её]м|беру|соглас(?:ен|на|ны)|оформляем|дистанционно|в\s+офисе)\s*[.!]?\s*\z',$clause);
+                $affirmative=self::hit('\A\s*(?:да|да,\s*беру|давайте|бер[её]м|беру|соглас(?:ен|на|ны)|оформляем|дистанционн(?:о|ое)|удал[её]нно|онлайн|в\s+офисе)\s*[.!]?\s*\z',$clause);
                 if($direct&&($intent||($affirmative&&$s['q']==='booking'))){
                     $goals['general_purchase_intent']=true;$rules['general_purchase_intent']='direct_customer_booking_or_payment_intent';
-                    if($s['q']==='booking'||self::hit('давайте\s+(?:за)?брониру|(?<!\pL)(?:за)?бронируем(?!\pL)|(?:бер[её]м|беру)\s+(?:этот|тур|его|вариант)',$clause)){
+                    if($s['q']==='booking'||(in_array($s['p'],['tour','hotel','flight'],true)&&$s['q']!=='criteria'
+                        &&self::hit('давайте\s+(?:нам\s+)?этот\s+(?:тур|отель)(?!\pL)',$clause))||self::hit('давайте\s+(?:за)?брониру|(?<!\pL)(?:за)?бронируем(?!\pL)|(?:бер[её]м|беру)\s+(?:этот|тур|его|вариант)',$clause)){
                         $goals['agency_purchase_intent']=true;$rules['agency_purchase_intent']='response_to_current_booking_context';
                         if($s['qr']!==null)$relations['agency_purchase_intent']=[$s['qr']];
                     }
@@ -153,14 +165,14 @@ final class ArchiveResearchSemanticExtractor
                     $goals['deferral']=true;$rules['deferral']='expressed_delay_or_dependency';
                 }
             }else{
-                if($question&&!$relay&&!$old&&!$conditional&&!$negated&&self::hit('(?:за)?брониру\pL*|оформля\pL*\s+тур|выбрали\s+(?:тур|вариант)|офис(?s:.{0,60})дистанцион|дистанцион(?s:.{0,60})офис',$clause))$newPrompt='booking';
+                if($question&&!$relay&&!$old&&!$conditional&&!$negated&&self::hit('(?:за)?брониру\pL*|оформля\pL*\s+тур|выбрали\s+(?:тур|вариант)|офис(?s:.{0,60})(?:дистанцион|удал[её]н|онлайн)|(?:дистанцион|удал[её]н|онлайн)(?s:.{0,60})офис',$clause))$newPrompt='booking';
                 elseif(!$relay&&!$old&&self::hit('(?:пришлите|отправьте|нужны|жду)\s+(?:ваши\s+)?(?:паспорт|данные)(?s:.{0,60})(?:брон|оформ)|для\s+(?:бронирован|оформлен)\pL*(?s:.{0,60})(?:паспорт|данные)',$clause))$newPrompt='data';
                 elseif(!$relay&&!$old&&self::hit('ссылк\pL*(?s:.{0,60})оплат|оплат\pL*(?s:.{0,60})ссылк',$clause))$newPrompt='payment';
                 elseif($question&&!$relay&&!$old&&self::hit('сколько\s+(?:взросл|дет|ноч)|(?:какие|на\s+какие)\s+дат|какой\s+бюджет|откуда\s+вылет',$clause))$newPrompt='criteria';
                 if($direct&&!$future&&!$excludedProduct&&self::hit('(?:оплат|плат[её]ж|деньг)\pL*(?s:.{0,30})(?:вижу|увидел(?:а|и)?|поступил(?:а|и|о)?|получил(?:а|и)?|получен(?:а|о|ы)?)(?!\pL)|(?:вижу|увидел(?:а|и)?|получил(?:а|и)?)(?!\pL)(?s:.{0,30})(?:оплат|плат[её]ж|деньг)\pL*',$clause)){
                     $goals['manager_payment_ack']=true;$rules['manager_payment_ack']='manager_explicit_money_receipt';
                 }
-                if($direct&&!$future&&!$excludedProduct&&self::hit('(?:тур|брон\pL*|заявк\pL*)\s+(?:для\s+вас\s+)?(?:забронирован\pL*\s+и\s+)?подтвержд[её]н(?:а|о|ы)?(?!\pL)|подтвержд[её]н(?:а|о|ы)?\s+(?:брон|тур)',$clause)){
+                if($direct&&!$future&&!$excludedProduct&&self::hit('(?:тур|брон\pL*|заявк\pL*)\s+(?:для\s+вас\s+)?(?:забронирован\pL*\s+и\s+)?(?:уже\s+|успешно\s+)?подтвержд[её]н(?:а|о|ы)?(?!\pL)|подтвержд[её]н(?:а|о|ы)?\s+(?:брон|тур)|(?:наш|ваш)\s+тур\s+(?:уже\s+)?подтвердил\pL*|(?:бронирование|бронирования)\s+(?:уже\s+|успешно\s+)?подтвержден(?:о|ы)(?!\pL)|(?:тур|бронь|заявка|бронирование)\s+подтвердил(?:ся|ась|ось|ись)(?!\pL)',$clause)){
                     $goals['booking_confirmation']=true;$rules['booking_confirmation']='manager_direct_booking_confirmation';
                 }
                 if($direct&&!$future&&self::hit('(?:документ|ваучер)\pL*(?s:.{0,40})(?:отправлен|выдан|готов|на\s+почте)|(?:направляю|отправил\pL*)(?s:.{0,40})(?:документ|ваучер)',$clause)){
@@ -181,6 +193,14 @@ final class ArchiveResearchSemanticExtractor
             foreach(['payment_self_report','manager_payment_ack','booking_confirmation']as$g)if(isset($goals[$g])){
                 unset($goals[$g]);$flags['addon_context_not_main_purchase']=true;
             }
+        }
+        // A first useful customer statement establishes a provisional episode, not proven trip identity.
+        // Receipt/booking seen before that start must never become the new episode's evidence.
+        if($s['e']===0&&$role==='customer'&&(isset($goals['substantive_interest'])
+            ||isset($goals['general_purchase_intent'])||isset($goals['agency_purchase_intent']))){
+            $s=self::barrier($s);$s['e']=1;$s['cancelled']=false;$s['p']=$product??'unknown';
+            $boundary=isset($goals['substantive_interest'])?'first_trip_conditions_candidate':'first_booking_context_candidate';
+            $flags['initial_context_unresolved']=true;
         }
         // Emit observed events, retaining history even when a cancellation is in the same message.
         foreach(self::GOALS as$g)if(isset($goals[$g]))$events[]=self::event($g,$s,$ref,$rules[$g]??'context_rule',$relations[$g]??[]);
@@ -227,11 +247,24 @@ final class ArchiveResearchSemanticExtractor
         if(self::hit('(?<!\pL)тур(?:ы|а|ом|у|ов)?(?!\pL)|пакетный\s+тур',$t))return'tour';
         return null;
     }
+    /** Ignore quoted, hypothetical and historical clauses when deciding provisional boundaries. */
+    private static function requestText(string$text):string
+    {
+        $clauses=preg_split('/(?<=[.!?;])\s+|[\r\n]+|,\s*(?=теперь(?!\pL))/u',$text,-1,PREG_SPLIT_NO_EMPTY)?:[];
+        $out=[];
+        foreach(array_slice($clauses,0,128)as$clause){
+            if(self::hit('[«»“"]|\A\s*>|мне\s+(?:написали|сказали)|нам\s+(?:написали|сказали)|цитир|пересылаю',$clause)
+                ||self::hit('(?<!\pL)(?:если)(?!\pL)|при\s+услов|в\s+прошл|прошл\pL*\s+(?:год|раз|поездк)|предыдущ\pL*\s+тур|уже\s+(?:отдыхал|были)', $clause)
+                ||self::deniedInterest($clause))continue;
+            $out[]=$clause;
+        }
+        return implode(' ',$out);
+    }
     private static function deniedInterest(string$t):bool
     {
         return self::hit('(?<!\pL)не\s+(?:интересу|рассматрива|ищ(?:у|ем)|(?:хот(?:им|ел|ят)|хоч(?:у|ет))|планиру|нуж|подб)', $t);
     }
     private static function hit(string$p,string$t):bool{return preg_match('~'.$p.'~iu',$t)===1;}
     private static function validTime(mixed$v):bool{return is_int($v)&&$v>0&&$v<=253402300799;}
-    private static function validRef(mixed$v):bool{return is_string($v)&&preg_match('/\Aarchive_message:[1-9][0-9]{0,19}\z/D',$v)===1;}
+    private static function validRef(mixed$v):bool{return is_string($v)&&preg_match('/\A(?:archive_message|journal):[1-9][0-9]{0,19}\z/D',$v)===1;}
 }

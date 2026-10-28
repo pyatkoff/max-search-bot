@@ -1,10 +1,12 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__.'/ModeledConversionEarlyForecast.php';
+
 /** Derived private profiles from the admitted journal; never queries native sources. */
 final class ModeledConversionProfiles
 {
-    public const VERSION='admitted_journal_profiles_v1_1';
+    public const VERSION='admitted_journal_profiles_v1_2';
     private PDO $pdo;
     private bool $mysql;
     private array $cache=[];
@@ -90,12 +92,20 @@ final class ModeledConversionProfiles
                 $cases[]=['subject'=>$scope,'rows'=>$rows,'window_limited'=>$window,'access_denied'=>$denied];
             }
             $document=['schema_version'=>1,'requested_at'=>gmdate('Y-m-d\TH:i:s\Z',$now),'journal_cursor'=>$cursor,'source_fence_journal_id'=>$fence,'cases'=>$cases];
-            $errors=[];$written=0;
+            $errors=[];$written=0;$forecastReceipt=ModeledConversionEarlyForecast::emptyReceipt();
             if($cases){
                 $result=$this->execute($document);
                 $this->validate($result,$document);
                 foreach($result['profiles']as$profile){
                     $scope=$this->scope($profile['subject']);
+                    $case=null;foreach($cases as$inputCase)if($inputCase['subject']===$profile['subject']){$case=$inputCase;break;}
+                    if($case===null)self::fail('forecast_case');
+                    // Read only the prior scalar marker; private profile text is not loaded again.
+                    $firstExpression=$this->mysql?"JSON_UNQUOTE(JSON_EXTRACT(profile_json,'$.early_forecast.first_snapshot_journal_cursor'))":"json_extract(profile_json,'$.early_forecast.first_snapshot_journal_cursor')";
+                    $first=$this->q('SELECT '.$firstExpression.' AS first_cursor FROM modeled_conversion_profile_versions WHERE project_key=? AND platform=? AND customer_key=? AND conversation_id=? ORDER BY id DESC LIMIT 1',array_values($scope))->fetchColumn();
+                    $packet=ModeledConversionEarlyForecast::freeze($case,$profile,$document,$first===false||$first===null?null:(string)$first);
+                    $profile['contextual_signals']=$packet['contextual_signals'];$profile['early_forecast']=$packet['early_forecast'];
+                    $forecastReceipt=ModeledConversionEarlyForecast::accumulate($forecastReceipt,$packet);
                     $profile['processing']=['version'=>self::VERSION,'source_sha256'=>hash_file('sha256',__FILE__),'journal_cursor'=>$cursor,'source_fence_journal_id'=>$fence];
                     $json=self::json($profile);
                     $this->q('INSERT INTO modeled_conversion_profile_versions(project_key,platform,customer_key,conversation_id,journal_cursor,observed_at_unix,input_sha256,profile_json) VALUES (?,?,?,?,?,?,?,?)',
@@ -108,11 +118,14 @@ final class ModeledConversionProfiles
                 'processed_revisions'=>$processed,'profiles_written'=>$written,'unbound_entry_revisions'=>$unbound,
                 'journal_rows_read'=>$this->rowsRead,'payload_bytes'=>$this->bytesRead,'pending_revisions'=>$pending,
                 'limit_reached'=>$limited||$pending>0,'coverage_errors'=>$errors,'trip_status'=>'unknown','model_calls'=>0,'conversion_uploads'=>0,
+                'early_forecast'=>$forecastReceipt,
                 'duration_ms'=>(int)round((microtime(true)-$began)*1000)];
             if($this->rowsRead>500||$this->bytesRead>2097152)self::fail('budget');
             if($beforeCommit)$beforeCommit($receipt);
             $this->q('UPDATE modeled_conversion_profiles_state SET journal_cursor=?,ticks=ticks+1,last_receipt_json=? WHERE project_key=?',[$cursor,self::json($receipt),'anytour']);
-            return $receipt;
+            // Goal and readiness counts stay in the private state receipt, outside runtime telemetry.
+            $telemetry=$receipt;unset($telemetry['early_forecast']);$telemetry['early_forecast_version']=ModeledConversionEarlyForecast::VERSION;
+            return $telemetry;
         });}catch(Throwable $e){
             if(!$this->pdo->inTransaction()){try{$this->q('UPDATE modeled_conversion_profiles_state SET last_error_at_unix=?,last_error_category=? WHERE project_key=?',[$now,'processing_failed','anytour']);}catch(Throwable $ignored){}}
             throw $e;
