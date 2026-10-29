@@ -173,6 +173,11 @@ try {
     hotelOauthCheck('authority-only recovery is discoverable in the existing hotel tool without a new scope',
         $deliveryTools['hotel_work_handoff_connection']['inputSchema']['properties']['handoff_mode']['enum']===['ready','existing_run','claim_authority']
         &&str_contains($deliveryTools['hotel_work_handoff_connection']['description'],'never authorizes dispatch'));
+    hotelOauthCheck('read-only recovery preflight has exact six pins without private claim key or new OAuth scope',
+        $deliveryTools['hotel_work_handoff_preflight']['annotations']['readOnlyHint']===true
+        &&$deliveryTools['hotel_work_handoff_preflight']['inputSchema']['required']===
+            ['queue_id','stage_id','baseline_sha256','old_connection_id','expected_run_id','expected_caller_connection_id']
+        &&!isset($deliveryTools['hotel_work_handoff_preflight']['inputSchema']['properties']['claim_key']));
     $deliverySchema=$deliveryTools['hotel_work_claim']['inputSchema'];
     hotelOauthCheck('delivery event proof is declared optional only at the claim boundary',
         ($deliverySchema['properties']['expected_pending_event_id']['pattern']??null)==='^hotel_evt_[a-f0-9]{64}$'
@@ -202,6 +207,24 @@ try {
     $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=NULL WHERE grant_id=?')->execute([$hotel]);
     hotelOauthCheck('same-binding recovery proof returns only after current access is restored',
         $selfProofAdapter->call('hotel_work_handoff_connection',$selfProofArgs,1,$hotel)['current_live']===true);
+    $preflightAdapter=new HotelWorkMcpAdapter($pdo,static function(string $operation,array $args):array {
+        if ($operation!=='handoff_preflight') throw new LogicException('unexpected_operation');
+        $proof=$args[3];$oldId=$args[2]['old_connection_id'];$actor=$args[0];
+        return ['current_authorized'=>$proof($args[1],$actor,'current'),
+            'old_known'=>$proof($oldId,$actor,'ready'),
+            'old_retired'=>$proof($oldId,$actor,'existing_run')];
+    },$clock);
+    $preflightArgs=['queue_id'=>'SYNTHETIC_QUEUE','stage_id'=>str_repeat('5',64),
+        'baseline_sha256'=>str_repeat('0',64),'old_connection_id'=>$old,
+        'expected_run_id'=>'ORIGINAL_RUN','expected_caller_connection_id'=>$hotel];
+    $preflight=$preflightAdapter->call('hotel_work_handoff_preflight',$preflightArgs,1,$hotel);
+    hotelOauthCheck('preflight checks canonical live caller, old known hotel grant and definitive retirement',
+        $preflight===['current_authorized'=>true,'old_known'=>true,'old_retired'=>true]);
+    $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=?')->execute([$now,$hotel]);
+    $denied=$preflightAdapter->call('hotel_work_handoff_preflight',$preflightArgs,1,$hotel);
+    hotelOauthCheck('preflight never treats a revoked current caller as eligible',
+        $denied['current_authorized']===false&&$denied['old_known']===true&&$denied['old_retired']===true);
+    $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=NULL WHERE grant_id=?')->execute([$hotel]);
     $challengeExpected='Bearer resource_metadata="https://app.anytoour.ru/manager/ai-oauth.php?action=resource", '
         .'error="insufficient_scope", error_description="Explicit hotel queue consent is required", '
         .'scope="queue:read prepared:write hotel_work:write"';
@@ -218,7 +241,7 @@ try {
         &&!$oauth->connectionAuthorized($legacy,1,[ManagerPreparationOAuth::HOTEL_SCOPE])
         &&(int)$pdo->query('SELECT COUNT(*) FROM manager_preparation_oauth_grants')->fetchColumn()===$grantCount
         &&$pdo->query('SELECT token_hash,grant_id,token_kind,expires_at,consumed_at FROM manager_preparation_oauth_tokens ORDER BY token_hash')->fetchAll(PDO::FETCH_ASSOC)===$tokenState);
-    foreach (['hotel_work_handoff_connection','hotel_work_resolve_existing_run'] as $recoveryTool) {
+    foreach (['hotel_work_handoff_preflight','hotel_work_handoff_connection','hotel_work_resolve_existing_run'] as $recoveryTool) {
         $challenged=$call('tools/call',['name'=>$recoveryTool,'arguments'=>[]],$legacy,ManagerPreparationOAuth::SCOPES);
         hotelOauthCheck('legacy recovery invocation requires explicit step-up before store '.$recoveryTool,
             ($challenged['result']['isError']??null)===true&&($challenged['result']['_meta']['mcp/www_authenticate']??null)===[$challengeExpected]&&$hotelCalls===0);
