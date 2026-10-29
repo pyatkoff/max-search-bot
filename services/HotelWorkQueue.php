@@ -152,7 +152,10 @@ final class HotelWorkQueue
             };
             $verify();
             $reason=null;
-            if (!hash_equals($row['baseline_sha256'],$baseline)) $reason='baseline_mismatch';
+            // Match the authoritative handoff anti-reacquisition fence before reporting eligibility.
+            if ($this->one('SELECT handoff_sha256 FROM hotel_work_connection_handoffs WHERE queue_id=? AND old_connection_id=? AND old_connection_id<>new_connection_id LIMIT 1',[$id,$newConnection]))
+                $reason='binding_relinquished';
+            elseif (!hash_equals($row['baseline_sha256'],$baseline)) $reason='baseline_mismatch';
             elseif (!hash_equals($this->stageId($row),$stage)) $reason='stale_stage';
             elseif ($lane['queue_id']!==$id) $reason='hotel_lane_not_owned';
             elseif (!in_array($row['state'],['claimed','unknown'],true)||$row['claim_sha256']===null
