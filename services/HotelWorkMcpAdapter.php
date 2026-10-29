@@ -7,7 +7,7 @@ final class HotelWorkMcpAdapter
 {
     public const NAMES = ['hotel_work_create','hotel_work_status','hotel_work_claim',
         'hotel_work_started','hotel_work_complete','hotel_work_release',
-        'hotel_work_handoff_connection','hotel_work_resolve_existing_run'];
+        'hotel_work_handoff_preflight','hotel_work_handoff_connection','hotel_work_resolve_existing_run'];
 
     public function __construct(private PDO $pdo, private $store = null, private $clock = null,
         private ?HotelWorkEventService $events = null) {}
@@ -55,6 +55,12 @@ final class HotelWorkMcpAdapter
                 [...array_keys($claim),'receipt'],false],
             ['hotel_work_release','Explicitly withdraw the exact unclaimed hotel stage. Claimed and unknown work cannot be released by age. Does not cancel hosted work.',
                 ['queue_id'=>$id,'stage_id'=>$sha],['queue_id','stage_id'],false],
+            ['hotel_work_handoff_preflight','Read-only diagnostics for an exact same-admin hotel queue after a connection change with an already-bound worker run. Checks both canonical grant identities and pinned queue/stage/baseline/run. A positive result is not claim-key proof, access transfer, subscription, signed event or dispatch authorization.',
+                ['queue_id'=>$id,'stage_id'=>$sha,'baseline_sha256'=>$sha,
+                    'old_connection_id'=>['type'=>'string','pattern'=>'^[a-f0-9]{32}$'],
+                    'expected_run_id'=>$run,
+                    'expected_caller_connection_id'=>['type'=>'string','pattern'=>'^[a-f0-9]{32}$']],
+                ['queue_id','stage_id','baseline_sha256','old_connection_id','expected_run_id','expected_caller_connection_id'],true],
             ['hotel_work_handoff_connection','Move authority for one same-admin hotel queue to this newly consented hotel connection. Default ready mode requires an unclaimed stage without a run and positive server proof that the exact previous binding belongs to the same hotel-authorized admin; its old grant may remain active. When the exact current binding already owns an acknowledged, unattended READY stage, the same-binding ready request may resume delivery once for that queue/stage without changing authority or starting work. A recorded repeat never clears a newer acknowledgement, claim, run or receipt. The consumer must match the newly signed event ID against current expected_pending_event_id and enforce event freshness before claiming. Explicit existing_run mode still requires a revoked or expired old grant, the retained claim key and exact already-known original run; it preserves claimed/UNKNOWN state and permits attention only, never dispatch, release, restart or replay. Explicit claim_authority mode restores access to a CLAIMED stage with no bound run and no current-stage receipt using the retained claim key and positive same-admin old hotel-grant proof. It preserves all claim, execution, acknowledgement and watchdog state; it never authorizes dispatch or proves that no external dispatch occurred. expected_run_id is forbidden in this mode. The original owner must independently reconcile its durable intent and any original run before continuing; an uncertain outcome remains held without replay. Pin the stage, old binding and baseline saved in the existing checkpoint. Storage errors and client flags are not proof. No credentials, scopes or subscriptions are changed.',
                 ['queue_id'=>$id,'stage_id'=>$sha,'baseline_sha256'=>$sha,
                     'old_connection_id'=>['type'=>'string','pattern'=>'^[a-f0-9]{32}$'],
@@ -82,8 +88,10 @@ final class HotelWorkMcpAdapter
         if (!in_array($name,self::NAMES,true)||$admin<=0||!preg_match('/\A[a-f0-9]{32}\z/D',$connection)) throw new InvalidArgumentException();
         if (strlen(json_encode($args,JSON_THROW_ON_ERROR))>16384) throw new InvalidArgumentException();
         $operation=substr($name,strlen('hotel_work_'));
-        if (in_array($operation,['handoff_connection','resolve_existing_run'],true)) {
-            if ($operation==='handoff_connection') {
+        if (in_array($operation,['handoff_preflight','handoff_connection','resolve_existing_run'],true)) {
+            if ($operation==='handoff_preflight') {
+                $allowed=['queue_id','stage_id','baseline_sha256','old_connection_id','expected_run_id','expected_caller_connection_id'];
+            } elseif ($operation==='handoff_connection') {
                 $allowed=['queue_id','stage_id','baseline_sha256','old_connection_id'];
                 $mode=array_key_exists('handoff_mode',$args)?$args['handoff_mode']:'ready';
                 if (!in_array($mode,['ready','existing_run','claim_authority'],true)) throw new InvalidArgumentException();
@@ -97,13 +105,13 @@ final class HotelWorkMcpAdapter
             if (array_diff(array_keys($args),['queue_id'])||!is_string($args['queue_id']??null)) throw new InvalidArgumentException();
             $arguments=[$admin,$connection,$args['queue_id']];
         } else $arguments=[$admin,$connection,$args];
-        if ($operation==='handoff_connection') {
+        if (in_array($operation,['handoff_preflight','handoff_connection'],true)) {
             // This capability is created only by the authenticated server owner.
             // No client-provided retired/expired/active flag reaches the queue.
             $arguments[]=function(string $old,int $sameAdmin,string $mode) use($connection):bool {
                 $oauth=new ManagerPreparationOAuth($this->pdo,$this->clock);
                 if (hash_equals($old,$connection)) {
-                    return $mode==='ready'&&$oauth->connectionAuthorized($connection,$sameAdmin,[ManagerPreparationOAuth::HOTEL_SCOPE]);
+                    return in_array($mode,['ready','current'],true)&&$oauth->connectionAuthorized($connection,$sameAdmin,[ManagerPreparationOAuth::HOTEL_SCOPE]);
                 }
                 return match ($mode) {
                     'ready','claim_authority'=>$oauth->hotelConnectionKnown($old,$sameAdmin),

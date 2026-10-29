@@ -162,6 +162,36 @@ keep the claim key in the owner's private checkpoint. The new connection still
 requires verified subscriptions; handoff does not create callbacks, expand an
 old grant, start a run, or release a held operation.
 
+### Read-only existing-run handoff diagnosis
+
+For an already-bound original run, the existing hotel's
+`hotel_work_handoff_preflight` takes the exact `queue_id`, `stage_id`,
+`baseline_sha256`, `old_connection_id`, `expected_run_id`, and
+`expected_caller_connection_id`. It never takes the private claim key.
+The server checks the actual current OAuth hotel grant, the old canonical
+same-admin hotel grant, and the single lane/queue row before examining the
+provided stage, baseline and run. It repeats both grant checks after the
+read. The existing append-only binding-relinquishment fence is checked
+before eligibility: a former owner cannot reacquire the same queue even if
+its credentials are again valid. A stale stage, baseline or run reports
+bounded ineligibility; unknown or foreign ownership fails closed without
+revealing another queue.
+
+`eligible=true` means only that the old grant is *canonically retired*
+and the pinned run metadata currently matches. It does not prove the
+original worker's terminal result, independent file acceptance, the
+private claim key, a native HOST subscription or the validity of future
+events. It never transfers ownership, retires credentials, changes
+subscribers, claims a stage, writes a receipt, or dispatches a worker.
+`eligible=false` with `old_connection_not_definitively_retired`
+specifically prevents an existing-run handoff while the old grant is
+still usable. This diagnostic is not a repair for a disabled ChatGPT
+Automations task or an unavailable original HOST action. An operator
+must still resolve the original run and use the unchanged
+`hotel_work_handoff_connection` authorization contract when eligible.
+No second HOTEL lane or fresh country research may replace an original
+claimed/UNKNOWN operation.
+
 If a connection changes after a claim but before a run is recorded, explicit
 `handoff_mode=claim_authority` restores only access to that retained claim.
 It requires a current same-admin hotel grant, positive canonical evidence of
