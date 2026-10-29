@@ -57,6 +57,21 @@ function forecastNativeAuthDispatch(PDO $pdo,array $grant):array
         $context['admin_id'],$context['connection_id'],$context['scopes'],$budget);
     return [$response,$afterBearer,$budget->remainingBytes()];
 }
+function forecastNativeEmptyUpdate(string $cursor):array
+{
+    [$case,$wrapper,$document]=modeledEarlyFixture([['role'=>'manager','text'=>'Служебное обновление']]);
+    $case['rows'][0]['journal_id']=$cursor;
+    $wrapper['journal_cursor']=$document['journal_cursor']=$cursor;
+    $wrapper['source_fence_journal_id']=$document['source_fence_journal_id']=$cursor;
+    foreach($wrapper['profile']['observation_input']['evidence']as&$e){
+        $e['id']='message:journal:'.$cursor;
+        $e['references'][0]['id']='journal:'.$cursor;
+    }
+    unset($e);
+    $packet=ModeledConversionEarlyForecast::freeze($case,$wrapper,$document,'1',1793004000);
+    return $wrapper+$packet+['processing'=>['version'=>'admitted_journal_profiles_v1_2',
+        'journal_cursor'=>$cursor,'source_fence_journal_id'=>$cursor]];
+}
 function forecastNativeAuthRegression():void
 {
     $admin=null;$pdo=null;$created=false;$database='';$previousConnection=null;$connectionProperty=null;
@@ -123,6 +138,9 @@ function forecastNativeAuthRegression():void
             ->execute([json_encode($receipt,JSON_THROW_ON_ERROR)]);
         forecastStatusAppend($pdo,forecastStatusPacket([['text'=>'Подберите тур. Бюджет до 200 тысяч.']]));
         forecastStatusAppend($pdo,forecastStatusPacket([['text'=>'Подберите тур. Бюджет до 200 тысяч.'],['text'=>'Давайте бронировать этот тур']],'1'));
+        $context=forecastStatusPacket([['text'=>'Спасибо']]);
+        forecastStatusAppend($pdo,forecastStatusScope($context,'8','10'),'anytour','8','10');
+        for($i=0;$i<25;$i++)forecastStatusAppend($pdo,forecastNativeEmptyUpdate((string)(100+$i)));
         $before=forecastNativeAuthSnapshot($pdo);
         $phase='real_bearer_dispatch_reader';
         forecastNativeReadOnly($pdo,static function()use($pdo,$oauth,$forecast,$combined,$legacy,$denied,$check):void{
@@ -135,7 +153,9 @@ function forecastNativeAuthRegression():void
                 $check('real dispatcher reads persisted early signals with grant variant '.$i,
                     ($saved['available']??false)&&($saved['confirmation']??null)==='saved_early_assessment_with_signals'
                     &&($saved['saved']['paired_snapshots']??null)===2
-                    &&($saved['saved']['early_assessments_with_signals']??null)===2
+                    &&($saved['saved']['early_assessments_with_signals']??null)===1
+                    &&($saved['saved']['distinct_conversation_scopes']??null)===2
+                    &&($saved['saved']['customer_context_snapshots']??null)===2
                     &&($saved['saved']['goal_counts']['substantive_interest']??0)>0
                     &&($saved['saved']['goal_counts']['agency_purchase_intent']??0)>0
                     &&($saved['state']['last_tick_status']??null)==='idle');

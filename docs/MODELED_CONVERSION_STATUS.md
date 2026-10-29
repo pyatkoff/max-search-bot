@@ -23,7 +23,7 @@ The reader does not rely on the latest processing receipt as proof of historical
 saves: an idle tick overwrites that receipt with a zero batch. It reads immutable
 derived versions at a fixed fence and reports the inspected window and omissions.
 An empty, oversized, stale, malformed or version-mismatched window cannot prove
-that no assessments exist elsewhere. The full corpus is not scanned.
+that no assessments exist elsewhere. The full source corpus is not read.
 
 The last recorded processing error includes its historical timestamp; it is not
 reported as the health of a later successful tick.
@@ -37,8 +37,8 @@ separate outcome contract are not read or changed.
 
 Metadata is inspected before copying the complete saved forecast and signals
 subdocuments, with the fixed parent bindings needed to validate their origin.
-Unrelated factual profile fields are not copied. At most 20 recent metadata rows
-are selected and at most four fitting saved packets are inspected. Packet copies
+Unrelated factual profile fields are not copied. At most 20 distinct conversation
+candidates are selected and at most four fitting saved packets are inspected. Packet copies
 have a 48 KiB budget within the shared 64 KiB selected/copied-data budget,
 including authorization metadata. An oversized packet is explicitly omitted rather than
 truncated or interpreted. These are data-transfer bounds, not a claim about
@@ -104,3 +104,33 @@ Its read phase uses a read-only MySQL session and compares persisted fixture
 rows before and after; unavailable-storage cases are confined to its disposable
 database. Successful synthetic execution does not replace private natural-data
 acceptance after installation.
+
+## Diverse saved-prefix sampling
+
+Reader version `saved_forecast_status_v2` selects one version per conversation
+scope (platform, customer key and conversation), within the AnyTour project.
+For each scope it chooses the latest saved version whose metadata reports a
+strict integer customer-turn count from 1 through 50. If no such version exists,
+it chooses that scope's latest saved version as an explicit fallback.
+Context-bearing candidates are ordered first, then by the chosen version ID;
+the maximum ID across all selected candidates fences subsequent copies.
+
+This is eligibility by observed customer context, without filtering for interest,
+readiness, payment or any other goal or outcome. Zero-goal, deferred and
+already-observed cases remain eligible. A chosen contextual prefix can be older
+than that conversation's latest processing update. It proves only what was
+saved in that prefix, not the person's current willingness or current source
+permission. Metadata candidate counts are separate from fully validated
+`saved.customer_context_snapshots`.
+
+Grouping happens before the 20-candidate limit, so repeated updates cannot
+consume separate conversation slots. The grouped scan is subject to the same
+SQL deadline and transfer budgets; no bound on physical rows/pages examined is
+claimed. Malformed, unsupported, oversized or changed chosen versions retain
+their existing explicit omission/error contracts. Selection does not fall back
+to an older fitting version just to obtain a successful result.
+
+An older initial version is not also copied for a chosen updated scope, so its
+first-marker link normally remains outside the inspected window. Distinct
+conversation scopes are not unique tourists or trips. Goal counts summarize
+only the inspected saved prefixes and are not full-corpus prevalence estimates.

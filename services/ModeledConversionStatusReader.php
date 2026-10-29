@@ -7,7 +7,7 @@ require_once __DIR__.'/ModeledConversionEarlyForecast.php';
 /** Private, fixed-window aggregate readback of immutable derived profiles. Never reads source messages. */
 final class ModeledConversionStatusReader
 {
-    public const VERSION='saved_forecast_status_v1';
+    public const VERSION='saved_forecast_status_v2';
     public const METADATA_LIMIT=20;
     public const PROFILE_LIMIT=4;
     public const PROFILE_BYTES=49152;
@@ -34,9 +34,19 @@ final class ModeledConversionStatusReader
             $projectedLength=implode('+',array_map(fn(string $sql):string=>'COALESCE('.$this->length($sql).',0)',array_values($parts)));
             $length='CASE WHEN JSON_VALID(profile_json) THEN '.$projectedLength.' ELSE 0 END';
             $this->reserve(16384);
-            $rows=$this->query('SELECT id,platform,customer_key,conversation_id,journal_cursor,observed_at_unix,'.$length.' AS profile_bytes,JSON_VALID(profile_json) AS json_valid FROM modeled_conversion_profile_versions WHERE project_key=? AND platform IN (?,?) ORDER BY id DESC LIMIT '.self::METADATA_LIMIT,['anytour','max','telegram']);
+            $context=$this->customerContextSql();
+            // Select one immutable version per conversation before applying the metadata limit.
+            // Eligibility uses observed customer context, never goals or the observed outcome.
+            $candidates='SELECT COALESCE(MAX(CASE WHEN '.$context.'=1 THEN id END),MAX(id)) AS selected_id,MAX('.$context.') AS has_customer_context FROM modeled_conversion_profile_versions WHERE project_key=? AND platform IN (?,?) GROUP BY platform,customer_key,conversation_id ORDER BY has_customer_context DESC,selected_id DESC LIMIT '.self::METADATA_LIMIT;
+            $rows=$this->query('SELECT v.id,v.platform,v.customer_key,v.conversation_id,v.journal_cursor,v.observed_at_unix,'.$length.' AS profile_bytes,JSON_VALID(profile_json) AS json_valid,c.has_customer_context FROM ('.$candidates.') c JOIN modeled_conversion_profile_versions v ON v.id=c.selected_id ORDER BY c.has_customer_context DESC,v.id DESC',['anytour','max','telegram']);
             $out=$this->emptyResult($state,count($rows));
-            $fence=$rows?(string)$rows[0]['id']:'0';$loaded=[];$scopes=[];
+            $fence='0';$loaded=[];$scopes=[];
+            foreach($rows as$row){
+                $id=(string)($row['id']??'');
+                if(self::decimal($id)&&self::greater($id,$fence))$fence=$id;
+                $key=(string)($row['has_customer_context']??'')==='1'?'customer_context_candidates':'fallback_candidates';
+                $out['window'][$key]++;
+            }
             foreach($rows as$row){
                 $this->budget->check();
                 if(!$this->validMeta($row)){$out['window']['invalid_rows']++;continue;}
@@ -71,6 +81,7 @@ final class ModeledConversionStatusReader
                 if($valid===null){$out['window']['invalid_rows']++;continue;}
                 $f=$packet['early_forecast'];$s=$packet['contextual_signals'];
                 $out['saved']['paired_snapshots']++;
+                if($valid['has_customer_context'])$out['saved']['customer_context_snapshots']++;
                 $out['saved']['status_counts'][$f['status']]++;
                 $out['saved']['snapshot_kind_counts'][$f['snapshot_kind']]++;
                 if($valid['has_signals'])$out['saved']['signal_bearing_snapshots']++;
@@ -102,6 +113,15 @@ final class ModeledConversionStatusReader
         }catch(JsonException $e){
             return $this->unavailable('invalid_storage');
         }
+    }
+    private function customerContextSql():string
+    {
+        $path="'$.contextual_signals.engagement.customer_turns'";
+        $value='JSON_EXTRACT(profile_json,'.$path.')';
+        $type=$this->mysql?'JSON_TYPE('.$value.')':"JSON_TYPE(profile_json,".$path.")";
+        $integer=$this->mysql?"'INTEGER'":"'integer'";
+        $cast=$this->mysql?'SIGNED':'INTEGER';
+        return 'CASE WHEN JSON_VALID(profile_json) THEN CASE WHEN '.$type.'='.$integer.' AND CAST('.$value.' AS '.$cast.') BETWEEN 1 AND 50 THEN 1 ELSE 0 END ELSE 0 END';
     }
     private function projection():array
     {
@@ -170,6 +190,10 @@ final class ModeledConversionStatusReader
             ||($s['extractor_version']??null)!==ArchiveResearchSemanticExtractor::VERSION)return null;
         if(($f['horizon_seconds']??null)!==ModeledConversionEarlyForecast::HORIZON_SECONDS
             ||self::moment($f['horizon_end_at']??null)!==$prediction+ModeledConversionEarlyForecast::HORIZON_SECONDS)return null;
+        $turns=$s['engagement']['customer_turns']??null;$managerTurns=$s['engagement']['manager_turns']??null;
+        if(!is_int($turns)||!is_int($managerTurns)||$turns<0||$managerTurns<0||$turns+$managerTurns>50)return null;
+        if(($f['status']==='early_assessment'&&$turns===0)
+            ||(in_array($f['status'],['no_usable_customer_context','access_denied'],true)&&$turns!==0))return null;
         $goals=ArchiveResearchSemanticExtractor::goalIds();$counts=$s['goal_counts']??null;$events=$s['events']??null;
         if(!is_array($counts)||count($counts)!==count($goals)||!is_array($events)||count($events)>800)return null;
         $fromEvents=array_fill_keys($goals,0);
@@ -189,16 +213,17 @@ final class ModeledConversionStatusReader
             if($counts[$goal]>0)$observedOutcome=true;
         if($f['status']==='early_assessment'&&$observedOutcome)return null;
         if($f['status']==='target_already_observed'&&!$observedOutcome)return null;
+        if($f['status']==='no_usable_customer_context'&&$observedOutcome)return null;
         if($f['status']==='access_denied'&&count($events)!==0)return null;
-        return ['has_signals'=>count($events)>0];
+        return ['has_signals'=>count($events)>0,'has_customer_context'=>$turns>0];
     }
     private function emptyResult(array $state,int $metadataRows):array
     {
         return ['available'=>true,'reader_version'=>self::VERSION,'checked_at'=>gmdate('Y-m-d\TH:i:s\Z'),
             'forecast_version'=>ModeledConversionEarlyForecast::VERSION,'rule_version'=>ArchiveResearchSemanticExtractor::VERSION,
             'state'=>$state,'confirmation'=>'no_confirmation_in_checked_window',
-            'window'=>['basis'=>'latest_saved_anytour_profile_versions','metadata_limit'=>self::METADATA_LIMIT,'metadata_rows'=>$metadataRows,'metadata_limit_reached'=>$metadataRows===self::METADATA_LIMIT,'profile_rows_read'=>0,'selected_document_bytes'=>0,'oversize_rows'=>0,'byte_limit_omissions'=>0,'row_limit_omissions'=>0,'changed_or_missing_rows'=>0,'without_forecast_rows'=>0,'unsupported_version_rows'=>0,'invalid_rows'=>0],
-            'saved'=>['basis'=>'inspected_saved_versions_not_unique_people_or_trips','signal_basis'=>'contextual_goal_events_not_engagement_intervals','paired_snapshots'=>0,'distinct_conversation_scopes'=>0,'signal_bearing_snapshots'=>0,'early_assessments_with_signals'=>0,
+            'window'=>['basis'=>'one_saved_version_per_conversation_customer_context_first','selection'=>'latest_customer_context_version_else_latest_fallback_without_goal_filter','customer_context_candidates'=>0,'fallback_candidates'=>0,'metadata_limit'=>self::METADATA_LIMIT,'metadata_rows'=>$metadataRows,'metadata_limit_reached'=>$metadataRows===self::METADATA_LIMIT,'profile_rows_read'=>0,'selected_document_bytes'=>0,'oversize_rows'=>0,'byte_limit_omissions'=>0,'row_limit_omissions'=>0,'changed_or_missing_rows'=>0,'without_forecast_rows'=>0,'unsupported_version_rows'=>0,'invalid_rows'=>0],
+            'saved'=>['basis'=>'inspected_saved_versions_not_unique_people_or_trips','signal_basis'=>'contextual_goal_events_not_engagement_intervals','paired_snapshots'=>0,'customer_context_snapshots'=>0,'distinct_conversation_scopes'=>0,'signal_bearing_snapshots'=>0,'early_assessments_with_signals'=>0,
                 'status_counts'=>array_fill_keys(['early_assessment','target_already_observed','no_usable_customer_context','access_denied'],0),
                 'snapshot_kind_counts'=>array_fill_keys(['initial_observation','updated_observation'],0),
                 'goal_counts'=>array_fill_keys(ArchiveResearchSemanticExtractor::goalIds(),0),
