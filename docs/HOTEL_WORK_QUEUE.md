@@ -171,8 +171,11 @@ For an already-bound original run, the existing hotel's
 The server checks the actual current OAuth hotel grant, the old canonical
 same-admin hotel grant, and the single lane/queue row before examining the
 provided stage, baseline and run. It repeats both grant checks after the
-read. A stale stage, baseline or run reports bounded ineligibility;
-unknown or foreign ownership fails closed without revealing another queue.
+read. The existing append-only binding-relinquishment fence is checked
+before eligibility: a former owner cannot reacquire the same queue even if
+its credentials are again valid. A stale stage, baseline or run reports
+bounded ineligibility; unknown or foreign ownership fails closed without
+revealing another queue.
 
 `eligible=true` means only that the old grant is *canonically retired*
 and the pinned run metadata currently matches. It does not prove the
