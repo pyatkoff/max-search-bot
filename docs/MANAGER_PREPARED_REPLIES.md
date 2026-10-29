@@ -438,6 +438,19 @@ unknown; a checkpoint older than three minutes is stale. A fresh
 not that the queue was scanned and empty. Successful tick completion is not proof
 that ChatGPT generated or a manager sent a reply.
 
+`list_pending_replies` also returns `oauth_connection_id`: the exact internal grant
+ID supplied by the HTTP owner's authenticated bearer context, including when the
+queue is empty. An internal service call without that OAuth context returns null.
+The value is not an app connection, task or subscription ID; request metadata and
+tool arguments cannot choose it. Current admin/project/grant access is rechecked
+after the inventory read. No other connection identities or credentials are
+returned, and the public health projection remains unchanged. To identify an
+existing hosted task's grant, read this field from that task's own actual call;
+a different chat's read or a single active-subscription count is not task-binding
+proof. This identifies the requesting grant only, not other consumers or permission
+to revoke any grant. Tool names, arguments, scopes and event subscriptions are
+unchanged.
+
 `list_pending_replies` includes `preparation_health` under its existing active
 project-admin authorization. It contains the checkpoint plus bounded read-only
 subscription aggregates (active, inactive, expired, unauthorized and retrying).
