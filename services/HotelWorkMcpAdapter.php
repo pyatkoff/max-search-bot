@@ -7,7 +7,7 @@ final class HotelWorkMcpAdapter
 {
     public const NAMES = ['hotel_work_create','hotel_work_status','hotel_work_claim',
         'hotel_work_started','hotel_work_complete','hotel_work_release',
-        'hotel_work_handoff_connection','hotel_work_handoff_preflight','hotel_work_resolve_existing_run'];
+        'hotel_work_handoff_preflight','hotel_work_handoff_connection','hotel_work_resolve_existing_run'];
 
     public function __construct(private PDO $pdo, private $store = null, private $clock = null,
         private ?HotelWorkEventService $events = null) {}
