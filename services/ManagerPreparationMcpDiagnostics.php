@@ -9,7 +9,7 @@ final class ManagerPreparationMcpDiagnostics
     private const METHODS = ['initialize','notifications/initialized','server/discover','tools/list','events/list','tools/call','events/subscribe','ping'];
     private const EVENTS = ['development_work.pending','development_work.attention'];
     private const VERSIONS = ['2026-07-28','2025-11-25','2025-06-18','2025-03-26','2024-11-05'];
-    private const SURFACES = ['legacy','development'];
+    private const SURFACES = ['legacy','development','replies','hotels'];
     private const STAGES = ['origin','credentials','http_method','body','rpc','complete','unavailable'];
 
     public static function metadata(array $server, ?array $rpc, int $status, string $stage, ?int $error, string $surface = 'legacy'): array

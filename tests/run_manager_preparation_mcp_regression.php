@@ -518,6 +518,37 @@ function preparationMcpDiagnosticChecks(): void
             preparationMcpCheck('credential delivery category '.$expected,$meta['credential_header']===$expected
                 &&$meta['stage']==='credentials'&&$meta['rpc_method']==='absent'&&$meta['rpc_error']===-32001);
         }
+        $probeStarted=time();
+        $probeServer=['REQUEST_METHOD'=>'POST','HTTP_AUTHORIZATION'=>'Bearer '.str_repeat('P',43),
+            'HTTP_USER_AGENT'=>'AnyTour-MCP-Header-Probe/1.0','HTTP_COOKIE'=>'PRIVATE COOKIE'];
+        foreach (['legacy','development','replies','hotels'] as $surface) {
+            ManagerPreparationMcpDiagnostics::record($probeServer,null,401,'credentials',-32001,$surface);
+            $probe=ManagerPreparationMcpDiagnostics::snapshot()['recent_attempts'][0]??[];
+            $oneProbe=['recent_attempts'=>[$probe]];
+            preparationMcpCheck('installed ingress evidence retains its exact fixed surface '.$surface,
+                ($probe['surface']??null)===$surface&&ManagerPreparationMcpDiagnostics::headerProbeDelivered($oneProbe,$probeStarted,$surface));
+            $foreign=$surface==='legacy'?'replies':'legacy';
+            preparationMcpCheck('another endpoint cannot satisfy ingress evidence '.$surface,
+                !ManagerPreparationMcpDiagnostics::headerProbeDelivered($oneProbe,$probeStarted,$foreign));
+            $allRejected=true;
+            foreach ([['credential_header'=>'missing'],['client_kind'=>'other'],['http_status'=>200],
+                ['stage'=>'complete'],['rpc_error'=>null],['at'=>gmdate('c',$probeStarted-1)]] as $change) {
+                $allRejected=$allRejected&&!ManagerPreparationMcpDiagnostics::headerProbeDelivered(
+                    ['recent_attempts'=>[array_replace($probe,$change)]],$probeStarted,$surface);
+            }
+            preparationMcpCheck('ingress success requires fresh rejected bearer observation '.$surface,$allRejected);
+        }
+        $spoofed=ManagerPreparationMcpDiagnostics::metadata($probeServer,
+            preparationMcpRpc('initialize',['protocolVersion'=>'2025-11-25','surface'=>'PRIVATE SURFACE',
+                '_meta'=>['surface'=>'development'],'arguments'=>['token'=>'PRIVATE TOKEN']]),200,'complete',null,'replies');
+        preparationMcpCheck('request metadata cannot replace fixed profile or disclose credentials',
+            $spoofed['surface']==='replies'&&!str_contains(json_encode($spoofed),'PRIVATE')
+            &&!str_contains(json_encode($spoofed),str_repeat('P',43)));
+        $unknownSurface=ManagerPreparationMcpDiagnostics::metadata($probeServer,null,401,'credentials',-32001,'PRIVATE SURFACE');
+        preparationMcpCheck('unknown endpoint identity is sanitized and cannot satisfy known ingress',
+            $unknownSurface['surface']==='other'&&!str_contains(json_encode($unknownSurface),'PRIVATE')
+            &&!ManagerPreparationMcpDiagnostics::headerProbeDelivered(['recent_attempts'=>[
+                ['at'=>gmdate('c',$probeStarted)]+$unknownSurface]],$probeStarted,'replies'));
         $hostile=ManagerPreparationMcpDiagnostics::metadata(['REQUEST_METHOD'=>'PRIVATE METHOD'],
             ['method'=>['PRIVATE METHOD'],'params'=>['protocolVersion'=>'PRIVATE VERSION']],999,'PRIVATE STAGE',999);
         preparationMcpCheck('unknown and malformed diagnostic values cannot become published text',
