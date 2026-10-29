@@ -52,3 +52,26 @@ revoked/expired grant still denies access. Neither behavior permits replay.
 Synthetic regression coverage includes actual new OAuth/discovery/consent/token
 HTTP routes in a temporary test database. Production consent, HOST bindings and
 actual client delivery remain separate deployment/migration acceptance.
+
+## Source verification checkpoint — 2026-10-29
+
+Repair commit `18bc00c52edd8616d5bb2f2db7fb6604e23e68f1` integrates the
+accepted PR1238 commit `8e913ab3fa9f72a5159197946e96620c4afa2ce5`, preserving
+its requesting-connection metadata. Source-only Actions run `40931284019`,
+job `123650069051`, completed successfully without production credentials.
+
+The complete `manager` required group passed all 177 test commands (45.540 s).
+Included suites reported 101 separated-MCP assertions, 199 manager OAuth
+assertions, 307 manager MCP assertions, 370 hotel queue assertions and 121 hotel
+OAuth/MCP assertions. New HTTP routes were exercised with real synthetic
+consent/PKCE/token/revocation flows; discovery rejects non-GET requests.
+CLI health fixtures exercise the new authorization callbacks, including unknown
+authority failures, and the HTTP boundary inventory checks the fixed wrappers
+and their actual shared bearer/session boundaries rather than exempting them.
+
+This checkpoint is author-side test evidence, not independent approval. The
+previous independent review findings require reassessment on the repaired head;
+ordinary exact-head CI and deployment/readback remain separate release gates.
+No production grant, subscription, task, queue, receipt or hotel record was
+changed by this source verification. Earlier failed fixture runs are superseded
+only for the repaired source, not relabelled as successful executions.
