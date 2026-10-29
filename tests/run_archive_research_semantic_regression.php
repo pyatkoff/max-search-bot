@@ -264,4 +264,30 @@ $r=runMessages([message('customer','Давайте бронировать это
 $lastGoals=array_column($r['outputs'][2]['events'],'goal');
 check(!in_array('agency_purchase_intent',$lastGoals,true),'earlier_booking_intent_not_airport_choice_seller');
 
+
+foreach([
+    'Бронируем в офисе и онлайн, подскажите, тур нужен с вылетом из Казани?',
+    'Бронируем в офисе и онлайн. Подскажите, тур нужен с вылетом из Казани?',
+    'Туры оформляем онлайн — уточните, из какого города вылет?'
+]as$prompt){
+    $r=runMessages([message('manager',$prompt,1),message('customer','Да',2,1700000001)]);
+    check(!has($r,'general_purchase_intent')&&!has($r,'agency_purchase_intent'),'criteria_yes_not_booking_after_intro_'.$prompt);
+}
+$r=runMessages([message('manager','Бронируем выбранный тур с вылетом из Казани?',1),message('customer','Да',2,1700000001)]);
+check(has($r,'general_purchase_intent')&&has($r,'agency_purchase_intent'),'booking_question_with_trip_detail_still_booking');
+foreach(['Давайте дистанционно, документы отправлю','ДИСТАНЦИОННО отправлю вам документы!']as$answer){
+    $r=runMessages([message('customer','Подберите тур в Турцию',1),
+        message('manager','Для договора по туру мне потребуется паспорт заказчика тура',2,1700000001),
+        message('customer',$answer,3,1700000002)]);
+    check(has($r,'general_purchase_intent')&&has($r,'agency_purchase_intent'),'accepted_current_tour_contract_mode_'.$answer);
+    $last=$r['outputs'][2]['events'];
+    check(count(array_filter($last,static fn(array$e):bool=>$e['goal']==='agency_purchase_intent'
+        &&$e['related_source_refs']===['archive_message:2']))===1,'contract_mode_retains_actual_premise_'.$answer);
+}
+foreach(['Я работаю дистанционно','Дистанционно отправлю вам документы!']as$answer){
+    check(!has(single('customer',$answer),'agency_purchase_intent'),'remote_without_current_booking_context_not_seller_'.$answer);
+}
+$r=single('customer','Хочу купить тур оператора Anex');
+check(has($r,'general_purchase_intent')&&!has($r,'agency_purchase_intent'),'operator_preference_is_not_current_agency_choice');
+
 echo "Archive semantic extractor: ".$checks." checks passed\n";
