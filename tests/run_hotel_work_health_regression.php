@@ -60,8 +60,19 @@ try {
 <?php
 if (is_file(__DIR__.'/fail')) throw new RuntimeException('PRIVATE BOOTSTRAP ERROR');
 class ProjectAccessService {public static function initializeReadOnly(){}}
+class ConversationDb {public static function connection(){return null;}}
+class ManagerPreparationOAuth {
+    public const HOTEL_SCOPE='hotel_work:write';
+    public function __construct($pdo=null){}
+    public function eventConnectionAuthorizedAcrossProfiles(string $domain,string $connection,int $admin):bool {
+        if($domain!=='hotels'||$connection!==str_repeat('a',32)||$admin!==1)throw new RuntimeException('PRIVATE WRONG AUTHORITY');
+        if(is_file(__DIR__.'/authfail'))throw new RuntimeException('PRIVATE AUTHORITY UNAVAILABLE');
+        return true;
+    }
+}
 class HotelWorkEventService {
-    public function hasActiveSubscriptions(){return !is_file(__DIR__.'/waiting');}
+    public function __construct($pdo=null,private $connectionAuthorized=null){if(!is_callable($connectionAuthorized))throw new RuntimeException('PRIVATE MISSING AUTHORITY');}
+    public function hasActiveSubscriptions(){return ($this->connectionAuthorized)(str_repeat('a',32),1,['hotel_work:write'])&&!is_file(__DIR__.'/waiting');}
     public function deliverPending(){
         if(is_file(__DIR__.'/deliveryfail'))throw new RuntimeException('PRIVATE DELIVERY ERROR');
         return ['subscriptions'=>1,'accepted'=>0,'retried'=>0,'stopped'=>is_file(__DIR__.'/stopped')?1:0,'unchanged'=>1];
@@ -69,12 +80,13 @@ class HotelWorkEventService {
 }
 PHP);
     $checkpoint=$tmp.'/max-search-bot-private-logs/hotel_work_health.json';
-    foreach (['ok'=>0,'waiting'=>0,'deliveryfail'=>1,'stopped'=>1,'fail'=>1] as $mode=>$expected) {
+    foreach (['ok'=>0,'waiting'=>0,'authfail'=>1,'deliveryfail'=>1,'stopped'=>1,'fail'=>1] as $mode=>$expected) {
         if ($mode!=='ok') file_put_contents($app.'/'.$mode,'1');
         $out=[];$code=-1;exec(escapeshellarg(PHP_BINARY).' '.escapeshellarg($app.'/tools/hotel_work.php').' tick 2>&1',$out,$code);
         $row=json_decode((string)file_get_contents($checkpoint),true);
-        $state=['ok'=>'ok','waiting'=>'awaiting_connection','deliveryfail'=>'failed','stopped'=>'failed','fail'=>'failed'][$mode];
+        $state=['ok'=>'ok','waiting'=>'awaiting_connection','authfail'=>'failed','deliveryfail'=>'failed','stopped'=>'failed','fail'=>'failed'][$mode];
         hotelHealthCheck('actual CLI '.$mode.' records bounded outcome',$code===$expected&&($row['state']??null)===$state&&($row['trigger']??null)==='manual'&&!str_contains(implode("\n",$out),'PRIVATE')&&str_contains(implode("\n",$out),'"provider_calls":0'));
+        if ($mode==='authfail') hotelHealthCheck('unknown authority is not a healthy disconnected hotel worker',($row['stage']??null)==='subscription');
         if ($mode==='fail') hotelHealthCheck('bootstrap failure distinguished',($row['stage']??null)==='bootstrap');
         if ($mode!=='ok') unlink($app.'/'.$mode);
     }

@@ -71,7 +71,7 @@ final class ManagerPreparationMcpService
             };
             // A context read may wait for public selection pages. Recheck the
             // requesting administrator/connection before exposing its result.
-            if ($rpc['method'] === 'tools/call' && (($params['name'] ?? null) === 'get_reply_context'
+            if ($rpc['method'] === 'tools/call' && (in_array($params['name']??null,['list_pending_replies','get_reply_context'],true)
                 || in_array($params['name']??null,[ManagerSearch3CandidateReader::TOOL,ManagerSearch3CandidateReader::MEAL_TOOL],true)
                 || in_array($params['name']??null,VirtualReplyMcpAdapter::NAMES,true)
                 || in_array($params['name']??null,HotelWorkMcpAdapter::NAMES,true)
@@ -232,7 +232,8 @@ final class ManagerPreparationMcpService
             self::keys($args,['limit']); $limit=$args['limit']??20;
             if (!is_int($limit) || $limit<1 || $limit>20) throw new InvalidArgumentException();
             $jobs=$this->pending($limit);
-            $data=['ok'=>true,'project_key'=>self::PROJECT,'jobs'=>$jobs,'preparation_health'=>$this->preparationHealth()];
+            $data=['ok'=>true,'project_key'=>self::PROJECT,'jobs'=>$jobs,'oauth_connection_id'=>$connection,
+                'preparation_health'=>$this->preparationHealth()];
         } elseif ($name === 'get_reply_context') {
             self::keys($args,['job_id']); $data=$this->storeCall('context',[self::job($args)]);
         } elseif ($name === 'save_prepared_reply') {
@@ -331,7 +332,7 @@ final class ManagerPreparationMcpService
             return $remove?$this->hotelEvents()->unsubscribe($params,$admin,$connection):$this->hotelEvents()->subscribe($params,$admin,$connection);
         }
         if (!ManagerPreparationOAuth::hasScopes($scopes,ManagerPreparationOAuth::SCOPES)) throw new DomainException();
-        return $remove?$this->unsubscribe($params,$admin):$this->subscribe($params,$admin,$connection);
+        return $remove?$this->unsubscribe($params,$admin,$connection):$this->subscribe($params,$admin,$connection);
     }
 
     private function pending(int $limit): array
@@ -414,11 +415,15 @@ final class ManagerPreparationMcpService
         return ['id'=>$id,'refreshBefore'=>str_replace(' ','T',$expires).'Z','cursor'=>null,'truncated'=>false];
     }
 
-    private function unsubscribe(array $params,int $admin): object
+    private function unsubscribe(array $params,int $admin,?string $connection): object
     {
+        if (!is_string($connection)||!preg_match('/\A[a-f0-9]{32}\z/D',$connection)
+            ||!$this->activeConnection($connection,$admin)) throw new DomainException();
         [$id]=$this->subscriptionIdentity($params,$admin,false);
-        $this->pdo->prepare('UPDATE manager_preparation_events SET is_active=0,pending_event_id=NULL,pending_body=NULL,pending_jobs_json=NULL,updated_at=? WHERE subscription_id=? AND admin_id=?')
-            ->execute([gmdate('Y-m-d H:i:s',$this->now()),$id,$admin]);
+        // Same administrator/callback is not authority over another OAuth binding.
+        // In particular, cleanup from an old connection must not stop its replacement.
+        $this->pdo->prepare('UPDATE manager_preparation_events SET is_active=0,pending_event_id=NULL,pending_body=NULL,pending_jobs_json=NULL,updated_at=? WHERE subscription_id=? AND admin_id=? AND project_key=? AND oauth_connection_id=?')
+            ->execute([gmdate('Y-m-d H:i:s',$this->now()),$id,$admin,self::PROJECT,$connection]);
         return (object)[];
     }
 

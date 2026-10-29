@@ -36,3 +36,19 @@ create another queue nor change the old claim/run. No study or import is replaye
 
 Local tests use synthetic SQLite grants only. A green test or installed endpoint
 is not evidence of user consent, HOST event delivery or HOTEL data acceptance.
+
+## Review repairs
+
+Reply unsubscription is bound to the current authenticated OAuth connection as
+well as administrator, project and subscription identity. Old connection cleanup
+cannot stop a subscription currently owned by its replacement, even if both use
+the same callback URL. This does not add an automatic transfer or migration.
+
+Background event authorization resolves a known canonical grant/client/resource
+before returning a denial. Missing or inconsistent authority defers delivery and
+preserves the subscription, pending evidence and original hotel work. A known
+revoked/expired grant still denies access. Neither behavior permits replay.
+
+Synthetic regression coverage includes actual new OAuth/discovery/consent/token
+HTTP routes in a temporary test database. Production consent, HOST bindings and
+actual client delivery remain separate deployment/migration acceptance.

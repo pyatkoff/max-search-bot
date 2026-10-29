@@ -83,6 +83,96 @@ checkSplit('reply cron accepts separate resource',$background->eventConnectionAu
 checkSplit('hotel cron accepts separate resource',$background->eventConnectionAuthorizedAcrossProfiles('hotels',$h['connection_id'],1));
 checkSplit('cron denies crossed domain',!$background->eventConnectionAuthorizedAcrossProfiles('replies',$h['connection_id'],1)&&!$background->eventConnectionAuthorizedAcrossProfiles('hotels',$r['connection_id'],1));
 checkSplit('active hotel grant not retired',!$oauth['hotels']->connectionRetired($h['connection_id'],1));
+
+// Reproduce the two independent review findings using real canonical grants.
+function unavailableSplit(string $name,callable $call): void
+{
+    try {$call();} catch (RuntimeException $e) {
+        checkSplit($name,$e->getMessage()==='event_oauth_authority_unavailable');return;
+    }
+    throw new RuntimeException('FAIL '.$name.' converted unknown authority to a boolean');
+}
+$pdo->exec("CREATE TABLE manager_preparation_events (
+ subscription_id TEXT PRIMARY KEY,admin_id INTEGER,oauth_connection_id TEXT,project_key TEXT,event_name TEXT,
+ arguments_json TEXT,callback_url TEXT,signing_secret TEXT,previous_secret TEXT,previous_secret_until TEXT,
+ verified_at TEXT,expires_at TEXT,is_active INTEGER,observed_jobs_json TEXT,pending_event_id TEXT,pending_body TEXT,
+ pending_jobs_json TEXT,attempts INTEGER DEFAULT 0,next_attempt_at TEXT,lease_token TEXT,lease_until TEXT,
+ last_batch_hash TEXT,last_status INTEGER,created_at TEXT,updated_at TEXT)");
+$callback='https://callbacks.example/reply-shared';$arguments=json_encode(['project_key'=>'anytour'],JSON_THROW_ON_ERROR);
+$subscription='sub_'.hash('sha256',json_encode([1,$callback,ManagerPreparationMcpService::EVENT,$arguments],JSON_THROW_ON_ERROR));
+$seedReply=function(string $connection)use($pdo,$now,$subscription,$arguments,$callback):void {
+    $pdo->exec('DELETE FROM manager_preparation_events');
+    $date=gmdate('Y-m-d H:i:s',$now);
+    $row=['subscription_id'=>$subscription,'admin_id'=>1,'oauth_connection_id'=>$connection,'project_key'=>'anytour',
+        'event_name'=>ManagerPreparationMcpService::EVENT,'arguments_json'=>$arguments,'callback_url'=>$callback,
+        'signing_secret'=>'whsec_'.base64_encode(str_repeat('k',32)),'verified_at'=>$date,
+        'expires_at'=>gmdate('Y-m-d H:i:s',$now+3600),'is_active'=>1,'observed_jobs_json'=>'[]',
+        'pending_event_id'=>'synthetic-pending','pending_body'=>'synthetic-body','pending_jobs_json'=>'["synthetic"]',
+        'attempts'=>0,'created_at'=>$date,'updated_at'=>$date];
+    $pdo->prepare('INSERT INTO manager_preparation_events ('.implode(',',array_keys($row)).') VALUES ('.implode(',',array_fill(0,count($row),'?')).')')->execute(array_values($row));
+};
+$replyRow=fn():array=>$pdo->query('SELECT * FROM manager_preparation_events')->fetch(PDO::FETCH_ASSOC);
+$unsubscribe=rpcSplit('events/unsubscribe',['name'=>ManagerPreparationMcpService::EVENT,
+    'arguments'=>['project_key'=>'anytour'],'delivery'=>['mode'=>'webhook','url'=>$callback]]);
+$legacyService=new ManagerPreparationMcpService($pdo,$store,clock:$clock);
+foreach (['legacy','replies'] as $owner) {
+    $seedReply($ctx[$owner]['connection_id']);$before=$replyRow();
+    $other=$owner==='legacy'?'replies':'legacy';
+    $service=$other==='legacy'?$legacyService:$services['replies'];
+    $response=$service->handle($unsubscribe,1,$ctx[$other]['connection_id'],$ctx[$other]['scopes']);
+    checkSplit('foreign unsubscribe preserves full row '.$owner,!isset($response['error'])&&$replyRow()===$before);
+    $service=$owner==='legacy'?$legacyService:$services['replies'];
+    $response=$service->handle($unsubscribe,1,$ctx[$owner]['connection_id'],$ctx[$owner]['scopes']);
+    $after=$replyRow();
+    checkSplit('owner unsubscribe succeeds '.$owner,!isset($response['error'])&&(int)$after['is_active']===0&&$after['pending_event_id']===null);
+    $service->handle($unsubscribe,1,$ctx[$owner]['connection_id'],$ctx[$owner]['scopes']);
+    checkSplit('owner unsubscribe remains idempotent '.$owner,$replyRow()===$after);
+}
+$pdo->exec('DELETE FROM manager_preparation_events');
+foreach (['replies','hotels'] as $domain) {
+    $grantId=$ctx[$domain]['connection_id'];
+    $original=$pdo->query("SELECT * FROM manager_preparation_oauth_grants WHERE grant_id='$grantId'")->fetch(PDO::FETCH_ASSOC);
+    foreach (['missing_grant','missing_client','unknown_audience','invalid_scope'] as $failure) {
+        $field=match($failure){'missing_grant'=>'grant_id','missing_client'=>'client_id','unknown_audience'=>'resource','invalid_scope'=>'scopes'};
+        $bad=$failure==='missing_grant'?str_repeat('e',32):'synthetic-unavailable';
+        $pdo->prepare('UPDATE manager_preparation_oauth_grants SET '.$field.'=? WHERE grant_id=?')->execute([$bad,$grantId]);
+        unavailableSplit('cron unavailable '.$domain.'/'.$failure,fn()=>$background->eventConnectionAuthorizedAcrossProfiles($domain,$grantId,1));
+        if ($domain==='replies') {
+            $seedReply($grantId);$before=$replyRow();$beforeCalls=count($calls);
+            $delivery=new ManagerPreparationMcpService($pdo,$store,clock:$clock,
+                connectionActive:fn(string $connection,int $admin):bool=>$background->eventConnectionAuthorizedAcrossProfiles('replies',$connection,$admin));
+            $counts=$delivery->deliverPending();$after=$replyRow();
+            $mutable=array_flip(['next_attempt_at','lease_token','lease_until','updated_at']);
+            checkSplit('reply delivery defers without stopping '.$failure,$counts['stopped']===0&&$counts['retried']===1
+                &&array_diff_key($before,$mutable)===array_diff_key($after,$mutable)&&count($calls)===$beforeCalls);
+        }
+        $where=$field==='grant_id'?$bad:$grantId;
+        $pdo->prepare('UPDATE manager_preparation_oauth_grants SET '.$field.'=? WHERE grant_id=?')->execute([$original[$field],$where]);
+        checkSplit('authority resumes after repair '.$domain.'/'.$failure,$background->eventConnectionAuthorizedAcrossProfiles($domain,$grantId,1));
+    }
+    $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=?')->execute([$now,$grantId]);
+    checkSplit('known revocation remains denial '.$domain,!$background->eventConnectionAuthorizedAcrossProfiles($domain,$grantId,1));
+    $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=NULL WHERE grant_id=?')->execute([$grantId]);
+}
+$pdo->exec('DELETE FROM manager_preparation_events');
+$pdo->beginTransaction();
+unavailableSplit('cron refuses transaction snapshot',fn()=>$background->eventConnectionAuthorizedAcrossProfiles('replies',$r['connection_id'],1));
+$pdo->rollBack();
+// A missing canonical row must not permanently stop a hotel delivery either.
+require_once __DIR__.'/fixtures/hotel_work_events.php';
+$f=new HotelEventsFixture();$f->subscribe(false);
+$f->pdo->exec('CREATE TABLE manager_preparation_oauth_grants(grant_id TEXT,admin_id INTEGER,client_id TEXT);
+ CREATE TABLE manager_preparation_oauth_clients(client_id TEXT,redirect_uri TEXT)');
+$hotelBackground=new ManagerPreparationOAuth($f->pdo,fn():int=>$f->at);
+$hotelDelivery=new HotelWorkEventService($f->pdo,$f->webhook,fn():int=>$f->at,
+    fn(string $connection,int $admin,array $required):bool=>$hotelBackground->eventConnectionAuthorizedAcrossProfiles('hotels',$connection,$admin),$f->queue);
+$before=$f->row();$queueBefore=$f->status();$result=$hotelDelivery->deliverPending();$after=$f->row();
+$mutable=array_flip(['next_attempt_at','lease_token','lease_until','updated_at']);
+checkSplit('hotel delivery defers unknown grant preserving work',$result['stopped']===0
+    &&array_diff_key($before,$mutable)===array_diff_key($after,$mutable)&&$f->requests===[]&&$f->status()===$queueBefore);
+// Restore the original synthetic service context for the remaining revocation tests.
+(new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$pdo);
+
 $oauth['replies']->disconnect(['csrf'=>'csrf'],1,$r['connection_id'],'csrf');
 checkSplit('reply revoke does not revoke hotels',$oauth['hotels']->contextForBearer('Bearer '.$tokens['hotels']['access_token'])!==null&&$oauth['legacy']->contextForBearer('Bearer '.$tokens['legacy']['access_token'])!==null);
 checkSplit('revoked reply cannot call service',($services['replies']->handle(rpcSplit('tools/list'),1,$r['connection_id'],$r['scopes'])['error']['code']??0)===-32001);

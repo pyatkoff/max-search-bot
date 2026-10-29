@@ -179,19 +179,53 @@ final class ManagerPreparationOAuth
         return $grant;
     }
 
-    /** Cron only: accept old or isolated resource for ONE domain, never for HTTP token authentication. */
+    /** Cron only: resolve a known canonical audience before deciding authorization.
+     * Missing/inconsistent authority is unavailable, never a durable revocation. */
     public function eventConnectionAuthorizedAcrossProfiles(string $domain,string $familyId,int $adminId): bool
     {
-        if ($this->pdo->inTransaction()) throw new RuntimeException('event_authorization_transaction');
         [$profiles,$required]=match ($domain) {
             'replies'=>[[self::PROFILE_LEGACY,self::PROFILE_REPLIES],self::SCOPES],
             'hotels'=>[[self::PROFILE_LEGACY,self::PROFILE_HOTELS],[self::HOTEL_SCOPE]],
             default=>throw new InvalidArgumentException('invalid_event_domain'),
         };
-        foreach ($profiles as $profile) {
-            if ((new self($this->pdo,$this->clock,$profile))->connectionAuthorized($familyId,$adminId,$required)) return true;
+        try {
+            if ($this->pdo->inTransaction()||$adminId<1||preg_match('/\A[a-f0-9]{32}\z/D',$familyId)!==1) throw new RuntimeException();
+            $read=function()use($familyId,$adminId):array {
+                $q=$this->pdo->prepare('SELECT g.*,c.redirect_uri AS profile_redirect_uri FROM manager_preparation_oauth_grants g LEFT JOIN manager_preparation_oauth_clients c ON c.client_id=g.client_id WHERE g.grant_id=? AND g.admin_id=? LIMIT 1');
+                if (!$q||!$q->execute([$familyId,$adminId])) throw new RuntimeException();
+                $grant=$q->fetch(PDO::FETCH_ASSOC);
+                if (!is_array($grant)||($grant['grant_id']??null)!==$familyId
+                    ||($grant['profile_redirect_uri']??null)!==self::REDIRECT_URI
+                    ||($grant['project_key']??null)!==ProjectConfig::projectId()) throw new RuntimeException();
+                $profile=match ($grant['resource']??null) {
+                    self::RESOURCE=>self::PROFILE_LEGACY,
+                    self::DEVELOPMENT_RESOURCE=>self::PROFILE_DEVELOPMENT,
+                    self::ORIGIN.'/manager/replies-mcp.php'=>self::PROFILE_REPLIES,
+                    self::ORIGIN.'/manager/hotels-mcp.php'=>self::PROFILE_HOTELS,
+                    default=>throw new RuntimeException(),
+                };
+                $canonical=new self($this->pdo,$this->clock,$profile);
+                if (!$canonical->grantMatchesProfile($grant)) throw new RuntimeException();
+                $knownTime=static fn($v):bool=>(is_int($v)&&$v>=0)
+                    ||(is_string($v)&&preg_match('/\A(?:0|[1-9][0-9]{0,17})\z/D',$v)===1);
+                if (!$knownTime($grant['expires_at']??null)||!array_key_exists('revoked_at',$grant)
+                    ||($grant['revoked_at']!==null&&!$knownTime($grant['revoked_at']))) throw new RuntimeException();
+                return [$grant,$profile];
+            };
+            [$grant,$profile]=$read();
+            if (!in_array($profile,$profiles,true)) return false;
+            $canonical=new self($this->pdo,$this->clock,$profile);
+            $authorized=$canonical->connectionAuthorized($familyId,$adminId,$required);
+            if (!$authorized) {
+                // A failed lookup cannot hide a missing grant/client or changed audience.
+                [$current,$currentProfile]=$read();
+                if ($currentProfile!==$profile||$current['client_id']!==$grant['client_id']
+                    ||$current['project_key']!==$grant['project_key']) throw new RuntimeException();
+            }
+            return $authorized;
+        } catch (Throwable $unavailable) {
+            throw new RuntimeException('event_oauth_authority_unavailable',0,$unavailable);
         }
-        return false;
     }
 
     public static function authenticateBearer(string $authorization): ?int
