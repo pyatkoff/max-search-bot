@@ -21,7 +21,8 @@ try {
     ProjectAccessService::initializeReadOnly();
     // Avoid scanning conversations until a real authorized event subscription
     // exists. A deployed cron by itself is not a connected ChatGPT worker.
-    $service=new ManagerPreparationMcpService();
+    $service=new ManagerPreparationMcpService($pdo,connectionActive:
+        static fn(string $connection,int $admin):bool=>(new ManagerPreparationOAuth($pdo))->eventConnectionAuthorizedAcrossProfiles('replies',$connection,$admin));
     $stage='subscription';
     if (!$service->hasActiveSubscriptions()) {
         ManagerPreparationHealth::record('awaiting_connection',$stage);$finished=true;

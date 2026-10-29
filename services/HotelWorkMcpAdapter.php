@@ -10,7 +10,10 @@ final class HotelWorkMcpAdapter
         'hotel_work_handoff_preflight','hotel_work_handoff_connection','hotel_work_resolve_existing_run'];
 
     public function __construct(private PDO $pdo, private $store = null, private $clock = null,
-        private ?HotelWorkEventService $events = null) {}
+        private ?HotelWorkEventService $events = null, private string $oauthProfile = ManagerPreparationOAuth::PROFILE_LEGACY)
+    {
+        if (!in_array($oauthProfile,[ManagerPreparationOAuth::PROFILE_LEGACY,ManagerPreparationOAuth::PROFILE_HOTELS],true)) throw new InvalidArgumentException('invalid_hotel_oauth_profile');
+    }
 
     public static function tools(): array
     {
@@ -109,7 +112,7 @@ final class HotelWorkMcpAdapter
             // This capability is created only by the authenticated server owner.
             // No client-provided retired/expired/active flag reaches the queue.
             $arguments[]=function(string $old,int $sameAdmin,string $mode) use($connection):bool {
-                $oauth=new ManagerPreparationOAuth($this->pdo,$this->clock);
+                $oauth=new ManagerPreparationOAuth($this->pdo,$this->clock,$this->oauthProfile);
                 if (hash_equals($old,$connection)) {
                     return in_array($mode,['ready','current'],true)&&$oauth->connectionAuthorized($connection,$sameAdmin,[ManagerPreparationOAuth::HOTEL_SCOPE]);
                 }

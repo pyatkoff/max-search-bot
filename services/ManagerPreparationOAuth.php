@@ -31,6 +31,8 @@ final class ManagerPreparationOAuth
     public const ENDPOINT = self::ORIGIN.'/manager/ai-oauth.php';
     public const PROFILE_LEGACY = 'legacy';
     public const PROFILE_DEVELOPMENT = 'development';
+    public const PROFILE_REPLIES = 'replies';
+    public const PROFILE_HOTELS = 'hotels';
     public const DEVELOPMENT_ISSUER = self::ORIGIN.'/manager/development-oauth.php';
     public const DEVELOPMENT_RESOURCE = self::ORIGIN.'/manager/development-mcp.php';
     public const DEVELOPMENT_ENDPOINT = self::ORIGIN.'/manager/development-oauth.php';
@@ -61,33 +63,42 @@ final class ManagerPreparationOAuth
         return $this;
     }
 
+    /** Fixed server-owned resource profiles; never selected from OAuth request data. */
+    public static function profileDefinition(string $profile): array
+    {
+        $definitions = [
+            self::PROFILE_LEGACY => ['path'=>'ai', 'prefix'=>'', 'scopes'=>self::SUPPORTED_SCOPES,
+                'defaults'=>self::SCOPES, 'session'=>'manager_preparation_oauth_pending', 'label'=>'AnyTour'],
+            self::PROFILE_DEVELOPMENT => ['path'=>'development', 'prefix'=>'dev_', 'scopes'=>[self::DEVELOPMENT_SCOPE],
+                'defaults'=>[self::DEVELOPMENT_SCOPE], 'session'=>'manager_development_oauth_pending', 'label'=>'Разработка AnyTour'],
+            self::PROFILE_REPLIES => ['path'=>'replies', 'prefix'=>'rep_', 'scopes'=>self::SCOPES,
+                'defaults'=>self::SCOPES, 'session'=>'manager_replies_oauth_pending', 'label'=>'Ответы AnyTour'],
+            self::PROFILE_HOTELS => ['path'=>'hotels', 'prefix'=>'hot_', 'scopes'=>[self::HOTEL_SCOPE],
+                'defaults'=>[self::HOTEL_SCOPE], 'session'=>'manager_hotels_oauth_pending', 'label'=>'Отели AnyTour'],
+        ];
+        if (!isset($definitions[$profile])) throw new InvalidArgumentException('invalid_oauth_profile');
+        $out=$definitions[$profile];
+        $out['resource']=self::ORIGIN.'/manager/'.$out['path'].'-mcp.php';
+        $out['issuer']=$out['endpoint']=self::ORIGIN.'/manager/'.$out['path'].'-oauth.php';
+        return $out;
+    }
+
     public static function authorizationMetadata(string $profile = self::PROFILE_LEGACY): array
     {
-        self::requireProfile($profile);$development=$profile===self::PROFILE_DEVELOPMENT;
-        $issuer=$development?self::DEVELOPMENT_ISSUER:self::ISSUER;
-        $endpoint=$development?self::DEVELOPMENT_ENDPOINT:self::ENDPOINT;
-        return [
-            'issuer'=>$issuer,
-            'authorization_response_iss_parameter_supported'=>true,
-            'authorization_endpoint'=>$endpoint.'?action=authorize',
-            'token_endpoint'=>$endpoint.'?action=token',
-            'registration_endpoint'=>$endpoint.'?action=register',
-            'revocation_endpoint'=>$endpoint.'?action=revoke',
-            'token_endpoint_auth_methods_supported'=>['none'],
-            'revocation_endpoint_auth_methods_supported'=>['none'],
-            'response_types_supported'=>['code'],
-            'grant_types_supported'=>['authorization_code', 'refresh_token'],
-            'code_challenge_methods_supported'=>['S256'],
-            'scopes_supported'=>$development?[self::DEVELOPMENT_SCOPE]:self::SUPPORTED_SCOPES,
-        ];
+        $p=self::profileDefinition($profile);
+        return ['issuer'=>$p['issuer'],'authorization_response_iss_parameter_supported'=>true,
+            'authorization_endpoint'=>$p['endpoint'].'?action=authorize','token_endpoint'=>$p['endpoint'].'?action=token',
+            'registration_endpoint'=>$p['endpoint'].'?action=register','revocation_endpoint'=>$p['endpoint'].'?action=revoke',
+            'token_endpoint_auth_methods_supported'=>['none'],'revocation_endpoint_auth_methods_supported'=>['none'],
+            'response_types_supported'=>['code'],'grant_types_supported'=>['authorization_code','refresh_token'],
+            'code_challenge_methods_supported'=>['S256'],'scopes_supported'=>$p['scopes']];
     }
 
     public static function resourceMetadata(string $profile = self::PROFILE_LEGACY): array
     {
-        self::requireProfile($profile);$development=$profile===self::PROFILE_DEVELOPMENT;
-        return ['resource'=>$development?self::DEVELOPMENT_RESOURCE:self::RESOURCE,
-            'authorization_servers'=>[$development?self::DEVELOPMENT_ISSUER:self::ISSUER],
-            'scopes_supported'=>$development?[self::DEVELOPMENT_SCOPE]:self::SUPPORTED_SCOPES, 'bearer_methods_supported'=>['header']];
+        $p=self::profileDefinition($profile);
+        return ['resource'=>$p['resource'],'authorization_servers'=>[$p['issuer']],
+            'scopes_supported'=>$p['scopes'],'bearer_methods_supported'=>['header']];
     }
 
     /** One fresh canonical grant lookup; caller never supplies its own scopes. */
@@ -149,18 +160,38 @@ final class ManagerPreparationOAuth
 
     private function knownHotelConnectionGrant(string $familyId,int $adminId): ?array
     {
-        if ($this->profile!==self::PROFILE_LEGACY) return null;
+        if (!in_array($this->profile,[self::PROFILE_LEGACY,self::PROFILE_HOTELS],true)) return null;
         if (!preg_match('/\A[a-f0-9]{32}\z/D',$familyId)||$adminId<=0) return null;
-        $q=$this->pdo->prepare('SELECT g.scopes,g.expires_at,g.revoked_at FROM manager_preparation_oauth_grants g
+        $q=$this->pdo->prepare('SELECT g.scopes,g.expires_at,g.revoked_at,g.resource,g.client_id,g.project_key FROM manager_preparation_oauth_grants g
             JOIN manager_preparation_oauth_clients c ON c.client_id=g.client_id
-            WHERE g.grant_id=? AND g.admin_id=? AND g.project_key=? AND g.resource=? AND c.redirect_uri=? LIMIT 1');
-        $q->execute([$familyId,$adminId,ProjectConfig::projectId(),self::RESOURCE,self::REDIRECT_URI]);
+            WHERE g.grant_id=? AND g.admin_id=? AND g.project_key=? AND c.redirect_uri=? LIMIT 1');
+        $q->execute([$familyId,$adminId,ProjectConfig::projectId(),self::REDIRECT_URI]);
         $grant=$q->fetch(PDO::FETCH_ASSOC);
         if (!$grant) return null;
-        try { $scope=$this->scope($grant['scopes']); }
-        catch (InvalidArgumentException $error) { return null; }
-        if ($scope!==$grant['scopes']||!in_array(self::HOTEL_SCOPE,explode(' ',$scope),true)) return null;
+        $profile=match ($grant['resource']) {
+            self::RESOURCE=>self::PROFILE_LEGACY,
+            self::ORIGIN.'/manager/hotels-mcp.php'=>self::PROFILE_HOTELS,
+            default=>null,
+        };
+        if ($profile===null) return null;
+        $canonical=new self($this->pdo,$this->clock,$profile);
+        if (!$canonical->grantMatchesProfile($grant)||!in_array(self::HOTEL_SCOPE,explode(' ',$grant['scopes']),true)) return null;
         return $grant;
+    }
+
+    /** Cron only: accept old or isolated resource for ONE domain, never for HTTP token authentication. */
+    public function eventConnectionAuthorizedAcrossProfiles(string $domain,string $familyId,int $adminId): bool
+    {
+        if ($this->pdo->inTransaction()) throw new RuntimeException('event_authorization_transaction');
+        [$profiles,$required]=match ($domain) {
+            'replies'=>[[self::PROFILE_LEGACY,self::PROFILE_REPLIES],self::SCOPES],
+            'hotels'=>[[self::PROFILE_LEGACY,self::PROFILE_HOTELS],[self::HOTEL_SCOPE]],
+            default=>throw new InvalidArgumentException('invalid_event_domain'),
+        };
+        foreach ($profiles as $profile) {
+            if ((new self($this->pdo,$this->clock,$profile))->connectionAuthorized($familyId,$adminId,$required)) return true;
+        }
+        return false;
     }
 
     public static function authenticateBearer(string $authorization): ?int
@@ -282,14 +313,15 @@ final class ManagerPreparationOAuth
         if (!is_array($grants) || array_filter($grants,static fn($value):bool=>!is_string($value)) || !in_array('authorization_code',$grants,true)
             || count($grants)!==count(array_unique($grants,SORT_REGULAR))
             || array_diff($grants,['authorization_code','refresh_token'])) $this->fail('invalid_client_metadata');
-        $scopes=isset($input['scope']) ? $this->scope($input['scope']) : ($this->profile===self::PROFILE_DEVELOPMENT?self::DEVELOPMENT_SCOPE:implode(' ',self::SCOPES));
+        $scopes=isset($input['scope']) ? $this->scope($input['scope']) : implode(' ',self::profileDefinition($this->profile)['defaults']);
         // No client-supplied URI, logo, JWKS or metadata is ever fetched.
         $bucket=hash('sha256', $registrationKey);
         $q=$this->pdo->prepare('SELECT COUNT(*) FROM manager_preparation_oauth_clients WHERE registration_bucket=? AND created_at>?');
         $q->execute([$bucket,$this->now()-3600]);
         if ((int)$q->fetchColumn()>=30
             || (int)$this->pdo->query('SELECT COUNT(*) FROM manager_preparation_oauth_clients')->fetchColumn()>=5000) $this->fail('temporarily_unavailable');
-        $id=$this->profile===self::PROFILE_DEVELOPMENT?'dev_'.bin2hex(random_bytes(22)):bin2hex(random_bytes(24));
+        $prefix=self::profileDefinition($this->profile)['prefix'];
+        $id=$prefix.bin2hex(random_bytes(intdiv(48-strlen($prefix),2)));
         $this->pdo->prepare('INSERT INTO manager_preparation_oauth_clients(client_id,redirect_uri,registration_bucket,created_at) VALUES(?,?,?,?)')
             ->execute([$id,self::REDIRECT_URI,$bucket,$this->now()]);
         return ['client_id'=>$id,'client_id_issued_at'=>$this->now(), 'redirect_uris'=>[self::REDIRECT_URI],
@@ -510,23 +542,24 @@ final class ManagerPreparationOAuth
 
     private static function requireProfile(string $profile): void
     {
-        if (!in_array($profile,[self::PROFILE_LEGACY,self::PROFILE_DEVELOPMENT],true)) throw new InvalidArgumentException('invalid_oauth_profile');
+        self::profileDefinition($profile);
     }
-    private function resource(): string { return $this->profile===self::PROFILE_DEVELOPMENT?self::DEVELOPMENT_RESOURCE:self::RESOURCE; }
-    private function issuer(): string { return $this->profile===self::PROFILE_DEVELOPMENT?self::DEVELOPMENT_ISSUER:self::ISSUER; }
-    private function pendingSessionKey(): string { return $this->profile===self::PROFILE_DEVELOPMENT?'manager_development_oauth_pending':'manager_preparation_oauth_pending'; }
+    private function resource(): string { return self::profileDefinition($this->profile)['resource']; }
+    private function issuer(): string { return self::profileDefinition($this->profile)['issuer']; }
+    private function pendingSessionKey(): string { return self::profileDefinition($this->profile)['session']; }
     private function clientNamespace(string $client): bool
     {
-        return preg_match($this->profile===self::PROFILE_DEVELOPMENT?'/\Adev_[a-f0-9]{44}\z/D':'/\A[a-f0-9]{48}\z/D',$client)===1;
+        $prefix=self::profileDefinition($this->profile)['prefix'];
+        return preg_match('/\A'.preg_quote($prefix,'/').'[a-f0-9]{'.(48-strlen($prefix)).'}\z/D',$client)===1;
     }
-    /** Closed identifiers and literal prefix matching; underscore is never a LIKE wildcard. */
+    /** Fixed column allowlist and hex prefix comparison: no wildcard client matching. */
     private function clientProfileSql(string $column): string
     {
         if (!in_array($column,['client_id','g.client_id'],true)) throw new LogicException('invalid_oauth_client_column');
-        $development=$this->profile===self::PROFILE_DEVELOPMENT;
-        $remaining=$development?'SUBSTR('.$column.',5)':$column;
+        $prefix=self::profileDefinition($this->profile)['prefix'];
+        $remaining=$prefix!==''?'SUBSTR('.$column.','.(strlen($prefix)+1).')':$column;
         foreach (str_split('0123456789abcdef') as $hex) $remaining="REPLACE(".$remaining.",'".$hex."','')";
-        return 'LENGTH('.$column.')=48 AND '.($development?"HEX(SUBSTR(".$column.",1,4))='6465765F' AND ":'').$remaining."=''";
+        return 'LENGTH('.$column.')=48 AND '.($prefix!==''?"HEX(SUBSTR(".$column.",1,".strlen($prefix)."))='".strtoupper(bin2hex($prefix))."' AND ":'').$remaining."=''";
     }
     private function grantMatchesProfile(array $grant): bool
     {
@@ -583,9 +616,11 @@ final class ManagerPreparationOAuth
     private function scope($value): string
     {
         if (!is_string($value) || strlen($value)>100) $this->fail('invalid_scope');
-        if ($this->profile===self::PROFILE_DEVELOPMENT) {
-            if ($value!==self::DEVELOPMENT_SCOPE) $this->fail('invalid_scope');
-            return self::DEVELOPMENT_SCOPE;
+        if ($this->profile!==self::PROFILE_LEGACY) {
+            $required=self::profileDefinition($this->profile)['scopes'];
+            $given=explode(' ',$value);
+            if (count($given)!==count($required)||array_diff($given,$required)||array_diff($required,$given)) $this->fail('invalid_scope');
+            return implode(' ',$required);
         }
         $scopes=explode(' ',$value);
         if (count(array_unique($scopes))!==count($scopes) || array_diff($scopes,self::SUPPORTED_SCOPES)) $this->fail('invalid_scope');
