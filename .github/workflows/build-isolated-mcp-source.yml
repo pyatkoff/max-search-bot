@@ -1,0 +1,68 @@
+name: Assemble isolated MCP source once
+on:
+  push:
+    branches: [ops/build-isolated-mcp-20261029]
+    paths: [.github/workflows/build-isolated-mcp-source.yml]
+permissions:
+  contents: write
+concurrency:
+  group: isolated-mcp-source-20261029
+  cancel-in-progress: false
+jobs:
+  source:
+    if: >-
+      github.run_attempt == 1 && github.event.before == '44ba4cd28b01f6dcc0e118502e99ffbe5e767fd2' && github.event.head_commit.message == 'build: assemble isolated MCP candidate once with synthetic tests'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_sqlite, mbstring
+          coverage: none
+      - name: Build source without production access
+        run: |
+          set -euo pipefail
+          python3 -m py_compile tools/build_isolated_mcp_source.py
+          python3 tools/build_isolated_mcp_source.py
+          python3 - <<'PY'
+          import json, subprocess
+          for path in json.load(open('split_changed_paths.json')):
+              if path.endswith('.php'):
+                  subprocess.run(['php','-l',path],check=True)
+          PY
+      - name: Targeted synthetic regressions
+        run: |
+          set -euo pipefail
+          php tests/run_separated_mcp_regression.php
+          php tests/run_hotel_work_oauth_regression.php
+          php tests/run_hotel_work_queue_regression.php
+          php tests/run_manager_preparation_oauth_regression.php
+          php tests/run_manager_preparation_mcp_regression.php
+      - name: Publish source to candidate branch only
+        env:
+          BASE: 09a0633ad7a3378ff0d2cdf2b09a7381750ada47
+          TARGET: feature/isolated-replies-hotels-mcp
+        run: |
+          set -euo pipefail
+          current="$(git ls-remote origin "refs/heads/$TARGET" | cut -f1)"
+          test "$current" = "$BASE"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git read-tree "$BASE"
+          python3 - <<'PY'
+          import json, subprocess
+          paths=json.load(open('split_changed_paths.json'))
+          if not paths or any(p.startswith('.github/') for p in paths):
+              raise SystemExit('Invalid candidate scope')
+          subprocess.run(['git','add','--',*paths],check=True)
+          PY
+          git diff --cached --check
+          tree="$(git write-tree)"
+          candidate="$(printf '%s\n' 'feat: isolate reply and hotel MCP resource profiles' | git commit-tree "$tree" -p "$BASE")"
+          git push origin "$candidate:refs/heads/$TARGET"
+          echo "CANDIDATE_SHA=$candidate"
+          git diff --stat "$BASE" "$candidate"
