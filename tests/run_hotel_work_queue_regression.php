@@ -542,6 +542,31 @@ foreach (['claimed','unknown'] as $adoptState) {
     }
 }
 
+// Preflight must honor the same irreversible binding fence as actual handoff.
+[$pdo,$q,$clock]=hotelFixture();$origin=hotelStatus($q);
+$first=['queue_id'=>'PILOT','stage_id'=>$origin['stage_id'],'baseline_sha256'=>$origin['baseline_sha256'],
+    'old_connection_id'=>str_repeat('a',32)];
+$q->handoff_connection(1,str_repeat('f',32),$first,static fn():bool=>true);
+$moved=$q->status(1,str_repeat('f',32),'PILOT');
+$claim=['queue_id'=>'PILOT','stage_id'=>$moved['stage_id'],'claim_key'=>str_repeat('b',64)];
+$q->claim(1,str_repeat('f',32),$claim);
+$q->started(1,str_repeat('f',32),$claim+['run_id'=>'MOVED_RUN']);
+$bound=$q->status(1,str_repeat('f',32),'PILOT');
+$reversePreflight=['queue_id'=>'PILOT','stage_id'=>$bound['stage_id'],'baseline_sha256'=>$bound['baseline_sha256'],
+    'old_connection_id'=>str_repeat('f',32),'expected_run_id'=>'MOVED_RUN',
+    'expected_caller_connection_id'=>str_repeat('a',32)];
+$pre=$q->handoff_preflight(1,str_repeat('a',32),$reversePreflight,static fn():bool=>true);
+hotelAssert($pre['eligible']===false&&$pre['reason']==='binding_relinquished'&&$pre['dispatch_allowed']===false,
+    'preflight_disallows_reacquisition_of_relinquished_connection');
+$reverse=$first;$reverse['old_connection_id']=str_repeat('f',32);
+$reverse['handoff_mode']='existing_run';$reverse['claim_key']=str_repeat('b',64);
+$reverse['expected_run_id']='MOVED_RUN';
+hotelReject(fn()=>$q->handoff_connection(1,str_repeat('a',32),$reverse,static fn():bool=>true),
+    HotelWorkQueueConflict::class,'real_handoff_matches_preflight_relinquished_denial','binding_relinquished');
+hotelAssert($q->status(1,str_repeat('f',32),'PILOT')===$bound
+    &&(int)$pdo->query('SELECT COUNT(*) FROM hotel_work_connection_handoffs')->fetchColumn()===1,
+    'read_only_relinquished_preflight_preserves_existing_run_and_audit');
+
 // UNKNOWN without a bound run cannot be adopted or assigned a guessed run.
 [$pdo,$q,$clock]=hotelFixture();$a=['queue_id'=>'PILOT','stage_id'=>hotelStatus($q)['stage_id'],'claim_key'=>str_repeat('b',64)];$q->claim(1,str_repeat('a',32),$a);
 $u=array_fill_keys(array_keys(hotelReceipt()),null);$u['outcome']='unknown';$q->complete(1,str_repeat('a',32),$a+['receipt'=>$u]);$s=hotelStatus($q);
