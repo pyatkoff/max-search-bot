@@ -491,6 +491,36 @@ foreach (['claimed','unknown'] as $adoptState) {
     $h=['queue_id'=>'PILOT','stage_id'=>$before['stage_id'],'baseline_sha256'=>$before['baseline_sha256'],'old_connection_id'=>str_repeat('a',32)];
     hotelReject(fn()=>$q->handoff_connection(1,str_repeat('f',32),$h,static fn(): bool=>true),HotelWorkQueueConflict::class,'claimed_not_ready_handoff','not_known_idle');
     $h+=['handoff_mode'=>'existing_run','claim_key'=>str_repeat('b',64),'expected_run_id'=>'BOUND_RUN'];
+    $pref=['queue_id'=>'PILOT','stage_id'=>$before['stage_id'],'baseline_sha256'=>$before['baseline_sha256'],
+        'old_connection_id'=>str_repeat('a',32),'expected_run_id'=>'BOUND_RUN',
+        'expected_caller_connection_id'=>str_repeat('f',32)];
+    $calls=[];$pre=$q->handoff_preflight(1,str_repeat('f',32),$pref,
+        static function(string $old,int $admin,string $mode) use (&$calls):bool {
+            $calls[]=$mode;return $admin===1&&$mode!=='existing_run';
+        });
+    hotelAssert($pre['ok']===true&&$pre['eligible']===false&&$pre['reason']==='old_connection_not_definitively_retired'
+        &&$pre['dispatch_allowed']===false,'read_only_existing_run_preflight_holds_live_old_grant');
+    hotelAssert($calls===['current','ready','existing_run','current','ready'],
+        'preflight_uses_fresh_current_known_and_retirement_checks');
+    $eligible=$q->handoff_preflight(1,str_repeat('f',32),$pref,static fn():bool=>true);
+    hotelAssert($eligible['eligible']===true&&$eligible['reason']===null
+        &&$eligible['preflight_semantics']==='administrative_known_run_diagnostics_not_handoff_or_execution_proof',
+        'positive_retirement_preflight_is_not_dispatch_or_transfer');
+    $foreign=$q->handoff_preflight(1,str_repeat('f',32),array_replace($pref,['expected_run_id'=>'FOREIGN']),static fn():bool=>true);
+    hotelAssert($foreign['eligible']===false&&$foreign['reason']==='existing_run_proof_mismatch',
+        'preflight_never_approves_a_guessed_original_run');
+    $stale=$q->handoff_preflight(1,str_repeat('f',32),array_replace($pref,['stage_id'=>str_repeat('9',64)]),static fn():bool=>true);
+    hotelAssert($stale['eligible']===false&&$stale['reason']==='stale_stage',
+        'preflight_does_not_approve_a_stale_stage');
+    hotelReject(fn()=>$q->handoff_preflight(1,str_repeat('f',32),$pref,static fn():bool=>false),
+        DomainException::class,'preflight_requires_positive_pair_authentication','hotel_work_access_denied');
+    hotelReject(fn()=>$q->handoff_preflight(2,str_repeat('f',32),$pref,static fn():bool=>true),
+        DomainException::class,'preflight_hides_other_admin_queue','hotel_work_access_denied');
+    hotelReject(fn()=>$q->handoff_preflight(1,str_repeat('f',32),array_replace($pref,['expected_caller_connection_id'=>str_repeat('c',32)]),static fn():bool=>true),
+        HotelWorkQueueConflict::class,'preflight_rejects_changed_caller','caller_connection_changed');
+    hotelAssert(hotelStatus($q)===$before
+        &&(int)$pdo->query('SELECT COUNT(*) FROM hotel_work_connection_handoffs')->fetchColumn()===0,
+        'preflight_keeps_original_claim_run_receipts_and_handoff_audit_untouched');
     $modes=[];
     hotelReject(static function() use ($q,$h,&$modes): void {
         $q->handoff_connection(1,str_repeat('f',32),$h,static function(string $old,int $admin,string $mode) use (&$modes): bool {
