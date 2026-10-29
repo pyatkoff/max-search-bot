@@ -124,6 +124,51 @@ final class HotelWorkQueue
         });
     }
 
+    /** Read-only same-admin recovery gate. No claim secret, event or execution authority. */
+    public function handoff_preflight(int $admin,string $newConnection,array $args,callable $oldConnectionProof): array
+    {
+        self::keys($args,['queue_id','stage_id','baseline_sha256','old_connection_id','expected_run_id','expected_caller_connection_id']);
+        $id=self::queueId($args['queue_id']??null);
+        $stage=self::sha($args['stage_id']??null);
+        $baseline=self::sha($args['baseline_sha256']??null);
+        $run=self::runId($args['expected_run_id']??null);
+        $old=$args['old_connection_id']??null;
+        $expected=$args['expected_caller_connection_id']??null;
+        self::actor($admin,$newConnection);
+        if (!is_string($old)||!is_string($expected)) throw new InvalidArgumentException('invalid_hotel_work_connection');
+        self::actor($admin,$old);self::actor($admin,$expected);
+        if (!hash_equals($newConnection,$expected)) throw new HotelWorkQueueConflict('caller_connection_changed');
+        if (hash_equals($old,$newConnection)) throw new InvalidArgumentException('same_hotel_work_connection');
+        return $this->transaction(function() use($id,$stage,$baseline,$run,$old,$admin,$newConnection,$oldConnectionProof): array {
+            $lane=$this->lane(true);
+            $row=$this->one('SELECT * FROM hotel_work_queues WHERE queue_id=?'.$this->lock(),[$id]);
+            if (!$row||$row['project_key']!==self::PROJECT||(int)$row['admin_id']!==$admin
+                ||!hash_equals($row['oauth_connection_id'],$old)) throw new DomainException('hotel_work_access_denied');
+            // Both connections are server-proven. A caller's proposed old ID is never authority.
+            $verify=function() use($newConnection,$old,$admin,$oldConnectionProof): void {
+                if ($oldConnectionProof($newConnection,$admin,'current')!==true
+                    ||$oldConnectionProof($old,$admin,'ready')!==true)
+                    throw new DomainException('hotel_work_access_denied');
+            };
+            $verify();
+            $reason=null;
+            if (!hash_equals($row['baseline_sha256'],$baseline)) $reason='baseline_mismatch';
+            elseif (!hash_equals($this->stageId($row),$stage)) $reason='stale_stage';
+            elseif ($lane['queue_id']!==$id) $reason='hotel_lane_not_owned';
+            elseif (!in_array($row['state'],['claimed','unknown'],true)||$row['claim_sha256']===null
+                ||$row['current_run_id']===null||!hash_equals($row['current_run_id'],$run))
+                $reason='existing_run_proof_mismatch';
+            elseif ($oldConnectionProof($old,$admin,'existing_run')!==true)
+                $reason='old_connection_not_definitively_retired';
+            // Recheck canonical grants after every read, including negative findings.
+            $verify();
+            return ['ok'=>true,'eligible'=>$reason===null,'reason'=>$reason,
+                'queue_id'=>$id,'stage_id'=>$stage,'expected_run_id'=>$run,
+                'dispatch_allowed'=>false,
+                'preflight_semantics'=>'administrative_known_run_diagnostics_not_handoff_or_execution_proof'];
+        });
+    }
+
     /** Explicit authorization handoff. Proof is mode-aware and server-owned, never MCP input. */
     public function handoff_connection(int $admin,string $newConnection,array $args,callable $oldConnectionProof): array
     {
