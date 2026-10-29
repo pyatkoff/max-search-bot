@@ -1,4 +1,4 @@
-name: Assemble isolated MCP source once
+name: Verify isolated MCP review repairs once
 on:
   push:
     branches: [ops/build-isolated-mcp-20261029]
@@ -11,58 +11,64 @@ concurrency:
 jobs:
   source:
     if: >-
-      github.run_attempt == 1 && github.event.before == '44ba4cd28b01f6dcc0e118502e99ffbe5e767fd2' && github.event.head_commit.message == 'build: assemble isolated MCP candidate once with synthetic tests'
+      github.run_attempt == 1 && github.event.before == 'b51cd7cd08d1449295c35842a9bebea0e8cbb48a' && github.event.head_commit.message == 'build: verify PR1240 review repairs against accepted PR1238 once'
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    env:
+      BASE: e4cf7473103aa3a748e697dd7aa8ef73b3491d38
+      INTEGRATION: 8e913ab3fa9f72a5159197946e96620c4afa2ce5
+      TARGET: feature/isolated-replies-hotels-mcp
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          ref: e4cf7473103aa3a748e697dd7aa8ef73b3491d38
+          fetch-depth: 2
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
           extensions: pdo_sqlite, mbstring
           coverage: none
-      - name: Build source without production access
+      - name: Apply exact source repairs without production access
         run: |
           set -euo pipefail
-          python3 -m py_compile tools/build_isolated_mcp_source.py
-          python3 tools/build_isolated_mcp_source.py
+          test "$(git rev-parse HEAD)" = "$BASE"
+          git fetch --no-tags --depth=2 origin "$GITHUB_SHA" "$INTEGRATION"
+          git show "$GITHUB_SHA:tools/fix_isolated_mcp_review.py" > "$RUNNER_TEMP/fix_isolated_mcp_review.py"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git merge --no-ff --no-commit "$INTEGRATION"
+          python3 "$RUNNER_TEMP/fix_isolated_mcp_review.py"
           python3 - <<'PY'
           import json, subprocess
-          for path in json.load(open('split_changed_paths.json')):
+          for path in json.load(open('split_review_paths.json')):
               if path.endswith('.php'):
                   subprocess.run(['php','-l',path],check=True)
           PY
-      - name: Targeted synthetic regressions
+      - name: Targeted synthetic review and HTTP regressions
         run: |
           set -euo pipefail
           php tests/run_separated_mcp_regression.php
-          php tests/run_hotel_work_oauth_regression.php
-          php tests/run_hotel_work_queue_regression.php
           php tests/run_manager_preparation_oauth_regression.php
           php tests/run_manager_preparation_mcp_regression.php
-      - name: Publish source to candidate branch only
-        env:
-          BASE: 09a0633ad7a3378ff0d2cdf2b09a7381750ada47
-          TARGET: feature/isolated-replies-hotels-mcp
+          php tests/run_manager_preparation_endpoint_regression.php
+          php tests/run_hotel_work_oauth_regression.php
+          php tests/run_hotel_work_events_regression.php
+          php tests/run_hotel_work_queue_regression.php
+      - name: Publish tested repair to the existing candidate only
         run: |
           set -euo pipefail
           current="$(git ls-remote origin "refs/heads/$TARGET" | cut -f1)"
           test "$current" = "$BASE"
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git read-tree "$BASE"
           python3 - <<'PY'
           import json, subprocess
-          paths=json.load(open('split_changed_paths.json'))
-          if not paths or any(p.startswith('.github/') for p in paths):
-              raise SystemExit('Invalid candidate scope')
+          paths=json.load(open('split_review_paths.json'))
+          allowed={'services/ManagerPreparationOAuth.php','services/ManagerPreparationMcpService.php','tests/run_separated_mcp_regression.php','tests/run_manager_preparation_oauth_regression.php','docs/SEPARATED_REPLIES_HOTELS_MCP.md'}
+          if set(paths)!=allowed: raise SystemExit('Repair scope mismatch')
           subprocess.run(['git','add','--',*paths],check=True)
           PY
           git diff --cached --check
-          tree="$(git write-tree)"
-          candidate="$(printf '%s\n' 'feat: isolate reply and hotel MCP resource profiles' | git commit-tree "$tree" -p "$BASE")"
+          git commit -m 'fix: isolate reply unsubscribe and preserve unresolved event authority'
+          candidate="$(git rev-parse HEAD)"
           git push origin "$candidate:refs/heads/$TARGET"
           echo "CANDIDATE_SHA=$candidate"
-          git diff --stat "$BASE" "$candidate"
+          git diff --stat "$INTEGRATION" "$candidate"
