@@ -72,7 +72,8 @@ final class HotelWorkQueue
         return $this->transaction(function() use($id,$stage,$claim,$admin,$connection,$expected): array {
             $lane=$this->lane(true);$row=$this->owned($id,$admin,$connection,true);$this->ownsLane($row,$lane);
             $this->sameStage($row,$stage);
-            if ($this->deliveryResumeToken($row)!==null||$this->deliveryRecoveryToken($row)!==null) {
+            if ($this->deliveryResumeToken($row)!==null||$this->deliveryRecoveryToken($row)!==null
+                ||$this->one('SELECT skip_sha256 FROM hotel_work_research_skips WHERE queue_id=? AND next_stage_index=?',[$id,(int)$row['stage_index']])) {
                 if ($expected===null) throw new HotelWorkQueueConflict('pending_event_required');
                 if (!hash_equals($this->eventId($row,false),$expected)) throw new HotelWorkQueueConflict('stale_pending_event');
             }
@@ -104,6 +105,7 @@ final class HotelWorkQueue
         $receipt=self::receipt($args['receipt']??null);$json=self::canonical($receipt);$hash=hash('sha256',$json);
         return $this->transaction(function() use($id,$stage,$claim,$receipt,$json,$hash,$admin,$connection): array {
             $lane=$this->lane(true);$row=$this->owned($id,$admin,$connection,true);
+            if ($this->one('SELECT skip_sha256 FROM hotel_work_research_skips WHERE queue_id=? AND stage_id=?',[$id,$stage])) throw new HotelWorkQueueConflict('research_batch_skipped');
             $old=$this->one('SELECT receipt_sha256 FROM hotel_work_receipts WHERE queue_id=? AND stage_id=?',[$id,$stage]);
             if ($old) {
                 if (!hash_equals($old['receipt_sha256'],$hash)) throw new HotelWorkQueueConflict('completion_conflict');
@@ -252,6 +254,7 @@ final class HotelWorkQueue
         $json=self::canonical($receipt);$receiptHash=hash('sha256',$json);$resolution=self::hash([$unknown,$run,$packet,$receiptHash,$claim]);
         return $this->transaction(function() use($id,$stage,$claim,$unknown,$run,$packet,$receipt,$json,$receiptHash,$resolution,$admin,$connection): array {
             $lane=$this->lane(true);$row=$this->owned($id,$admin,$connection,true);
+            if ($this->one('SELECT skip_sha256 FROM hotel_work_research_skips WHERE queue_id=? AND stage_id=?',[$id,$stage])) throw new HotelWorkQueueConflict('research_batch_skipped');
             $prior=$this->one('SELECT resolution_sha256 FROM hotel_work_resolutions WHERE queue_id=? AND stage_id=?',[$id,$stage]);
             if ($prior) {
                 if (!hash_equals($prior['resolution_sha256'],$resolution)) throw new HotelWorkQueueConflict('resolution_conflict');
@@ -268,6 +271,77 @@ final class HotelWorkQueue
             $this->validateAccepted($row,$receipt);$now=$this->now();
             $this->execute('INSERT INTO hotel_work_resolutions (queue_id,stage_index,stage_id,unknown_receipt_sha256,resolution_sha256,receipt_sha256,receipt_json,created_at) VALUES (?,?,?,?,?,?,?,?)',[$id,(int)$row['stage_index'],$stage,$unknown,$resolution,$receiptHash,$json,$now]);
             return $this->project($this->advance($row,$now))+['resolution_status'=>'existing_run_receipt_attested','receipt_sha256'=>$receiptHash];
+        });
+    }
+
+    /** Explicit owner abandonment, after independently verifying that external writes stopped or are isolated.
+     * The evidence hashes attest that check; this metadata operation cannot cancel a hosted run or fence files.
+     * Skip research AND its intake, preserve UNKNOWN/claims in the audit, and keep accepted counters unchanged.
+     */
+    public function skip_research(int $admin,string $connection,array $args,callable $connectionProof): array
+    {
+        $fields=['queue_id','stage_id','baseline_sha256','old_connection_id','expected_caller_connection_id',
+            'expected_run_id','expected_unknown_receipt_sha256','decision_sha256','external_effects'];
+        self::keys($args,$fields);
+        if (count($args)!==count($fields)) throw new InvalidArgumentException('invalid_hotel_work_fields');
+        $id=self::queueId($args['queue_id']);$stage=self::sha($args['stage_id']);$baseline=self::sha($args['baseline_sha256']);
+        $run=self::runId($args['expected_run_id']);$decision=self::sha($args['decision_sha256']);
+        $old=$args['old_connection_id'];$expected=$args['expected_caller_connection_id'];
+        if (!is_string($old)||!is_string($expected)) throw new InvalidArgumentException('invalid_hotel_work_connection');
+        self::actor($admin,$connection);self::actor($admin,$old);self::actor($admin,$expected);
+        if (!hash_equals($connection,$expected)) throw new HotelWorkQueueConflict('caller_connection_changed');
+        $unknown=$args['expected_unknown_receipt_sha256'];if ($unknown!==null) self::sha($unknown);
+        $effects=$args['external_effects'];
+        if (!is_array($effects)||count($effects)!==2||array_diff(array_keys($effects),['status','readback_sha256'])
+            ||!in_array($effects['status']??null,['stopped','isolated'],true)) throw new InvalidArgumentException('invalid_external_effects_evidence');
+        self::sha($effects['readback_sha256']);
+        $skip=self::hash(['operation'=>'skip_research_v1','admin_id'=>$admin,'caller_connection_id'=>$connection,'arguments'=>$args]);
+        return $this->transaction(function() use($id,$stage,$baseline,$run,$decision,$old,$unknown,$effects,$skip,$admin,$connection,$connectionProof): array {
+            $lane=$this->lane(true);$row=$this->one('SELECT * FROM hotel_work_queues WHERE queue_id=?'.$this->lock(),[$id]);
+            if (!$row||$row['project_key']!==self::PROJECT||(int)$row['admin_id']!==$admin) throw new DomainException('hotel_work_access_denied');
+            $verify=static function() use($connectionProof,$connection,$old,$admin): void {
+                if ($connectionProof($connection,$admin,'current')!==true||$connectionProof($old,$admin,'ready')!==true)
+                    throw new DomainException('hotel_work_access_denied');
+            };
+            $verify();
+            $prior=$this->one('SELECT skip_sha256 FROM hotel_work_research_skips WHERE queue_id=? AND stage_id=?',[$id,$stage]);
+            if ($prior) {
+                $this->authorize($row,$admin,$connection);
+                if (!hash_equals($prior['skip_sha256'],$skip)) throw new HotelWorkQueueConflict('skip_conflict');
+                $verify();
+                return $this->project($row)+['skip_status'=>'already_recorded','skip_sha256'=>$skip,'dispatch_allowed'=>false,'external_run_cancelled'=>false];
+            }
+            if (!hash_equals($row['oauth_connection_id'],$old)) throw new DomainException('hotel_work_access_denied');
+            if ($this->one('SELECT handoff_sha256 FROM hotel_work_connection_handoffs WHERE queue_id=? AND old_connection_id=? AND old_connection_id<>new_connection_id LIMIT 1',[$id,$connection]))
+                throw new HotelWorkQueueConflict('binding_relinquished');
+            $this->sameStage($row,$stage);$this->ownsLane($row,$lane);
+            if (!hash_equals($row['baseline_sha256'],$baseline)) throw new HotelWorkQueueConflict('baseline_mismatch');
+            $index=(int)$row['stage_index'];$next=$index+2;
+            if ($index%2!==0) throw new HotelWorkQueueConflict('research_stage_required');
+            if ($next>self::MAX_STAGE_INDEX) throw new HotelWorkQueueConflict('stage_limit_reached');
+            if (!in_array($row['state'],['claimed','unknown'],true)||$row['claim_sha256']===null
+                ||$row['current_run_id']===null||!hash_equals($row['current_run_id'],$run)) throw new HotelWorkQueueConflict('existing_run_proof_mismatch');
+            $receipt=$this->one('SELECT receipt_sha256,receipt_json FROM hotel_work_receipts WHERE queue_id=? AND stage_id=?',[$id,$stage]);
+            if ($row['state']==='unknown') {
+                if (!$receipt||$unknown===null||!hash_equals($receipt['receipt_sha256'],$unknown)) throw new HotelWorkQueueConflict('unknown_receipt_mismatch');
+                $saved=json_decode($receipt['receipt_json'],true,16,JSON_THROW_ON_ERROR);
+                if (($saved['outcome']??null)!=='unknown'||($saved['run_id']??null)!==$run) throw new HotelWorkQueueConflict('unknown_run_not_bound');
+            } elseif ($receipt!==null||$unknown!==null) throw new HotelWorkQueueConflict('stage_receipt_mismatch');
+            if ($this->one('SELECT stage_id FROM hotel_work_resolutions WHERE queue_id=? AND stage_id=?',[$id,$stage])) throw new HotelWorkQueueConflict('stage_resolution_exists');
+            // Recheck live grants under the same lane/queue transaction; OAuth itself is never changed.
+            $verify();$now=$this->now();
+            $this->execute('INSERT INTO hotel_work_research_skips (skip_sha256,queue_id,stage_index,stage_id,admin_id,old_connection_id,new_connection_id,baseline_sha256,run_id,claim_sha256,previous_state,unknown_receipt_sha256,decision_sha256,external_effects_status,external_effects_readback_sha256,next_stage_index,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+                [$skip,$id,$index,$stage,$admin,$old,$connection,$baseline,$run,$row['claim_sha256'],$row['state'],$unknown,$decision,$effects['status'],$effects['readback_sha256'],$next,$now]);
+            if (!hash_equals($old,$connection)) {
+                // Retire this queue binding only. The old reply grant and its subscriptions remain usable.
+                $this->execute('INSERT INTO hotel_work_connection_handoffs (handoff_sha256,queue_id,admin_id,old_connection_id,new_connection_id,stage_id,baseline_sha256,handoff_mode,expected_run_id,claim_sha256,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+                    [$skip,$id,$admin,$old,$connection,$stage,$baseline,'skipped_research',$run,$row['claim_sha256'],$now]);
+            }
+            $this->execute('UPDATE hotel_work_queues SET stage_index=?,state=?,oauth_connection_id=?,claim_sha256=NULL,current_run_id=NULL,event_ack=NULL,delivered_at=NULL,claim_deadline=NULL,attention_at=NULL,attention_ack=NULL,watchdog_due_at=NULL,watchdog_epoch=0,last_watch_ack=NULL,updated_at=? WHERE queue_id=?',
+                [$next,'ready',$connection,$now,$id]);
+            $verify();
+            return $this->project($this->owned($id,$admin,$connection))
+                +['skip_status'=>'research_batch_skipped','skip_sha256'=>$skip,'dispatch_allowed'=>false,'external_run_cancelled'=>false];
         });
     }
 
@@ -367,7 +441,8 @@ final class HotelWorkQueue
             'stage_id'=>$this->stageId($row),'stage_index'=>$index,'stage_kind'=>$active?$kind:null,'country'=>$active?$country:null,
             'criteria_due'=>$active&&$kind==='intake'&&(int)$row['phase_counter']===1,'phase_counter'=>(int)$row['phase_counter'],
             'accepted_batches'=>(int)$row['accepted_batches'],'baseline_sha256'=>$row['baseline_sha256'],
-            'receipt_count'=>$index+($row['state']==='unknown'?1:0),
+            'receipt_count'=>(int)$this->one('SELECT COUNT(*) AS n FROM hotel_work_receipts WHERE queue_id=?',[$row['queue_id']])['n'],
+            'skipped_batches'=>(int)$this->one('SELECT COUNT(*) AS n FROM hotel_work_research_skips WHERE queue_id=?',[$row['queue_id']])['n'],
             'current_run_id'=>$row['current_run_id'],'receipt_semantics'=>'authenticated_attestation_not_independent_file_proof',
             'delivery_state'=>$row['state']!=='ready'?$row['state']:($row['attention_at']!==null?'attention_required':($row['event_ack']!==null?'awaiting_claim':'ready')),
             'claim_deadline'=>$row['claim_deadline'],'watchdog_due_at'=>$row['watchdog_due_at'],'watchdog_epoch'=>(int)$row['watchdog_epoch'],
@@ -590,3 +665,4 @@ final class HotelWorkQueueConflict extends RuntimeException
 {
     public function __construct(public readonly string $reason) { parent::__construct($reason); }
 }
+
