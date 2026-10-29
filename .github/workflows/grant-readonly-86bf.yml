@@ -1,0 +1,187 @@
+name: One-shot read-only OAuth dependency check
+
+on:
+  push:
+    branches: [ops/grant-readonly-86bf-20261029]
+    paths: [.github/workflows/grant-readonly-86bf.yml]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: grant-readonly-86bf-20261029
+  cancel-in-progress: false
+
+jobs:
+  read-only:
+    if: github.run_attempt == 1 && github.event.before == '09a0633ad7a3378ff0d2cdf2b09a7381750ada47' && github.event.head_commit.message == 'ops: run approved one-shot read-only grant dependency check'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Execute the four approved SELECTs once, with rollback
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          key_file="$RUNNER_TEMP/grant_check_key"
+          check_file="$RUNNER_TEMP/grant_check.php"
+          known_hosts="$RUNNER_TEMP/grant_check_known_hosts"
+          trap 'rm -f "$key_file" "$check_file" "$known_hosts"' EXIT
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key_file"; else printf '%s\n' "$raw" | tr -d '\r' > "$key_file"; fi
+          else
+            printf '%s' "$raw" | base64 --decode > "$key_file"
+          fi
+          unset raw DEPLOY_SSH_KEY_VALUE
+          chmod 600 "$key_file"
+          ssh-keygen -y -f "$key_file" >/dev/null
+          cat > "$check_file" <<'PHP'
+          <?php
+          declare(strict_types=1);
+          ini_set('display_errors','0');
+          ini_set('log_errors','0');
+          $pdo=null;$phase='initialize';
+          $sql= <<<'APPROVED_SQL'
+          -- AnyTour: bounded READ-ONLY check before revoking ONE old OAuth grant.
+          -- Target: 86bf117c1e46778c525fd144b4248e02
+          -- Run in the existing AnyTour MySQL database using an authorized operator.
+          -- Do not use --force: any error means the check is incomplete.
+          -- No customer content, tokens, callback URLs or signing secrets are selected.
+          -- This checks saved reply subscriptions only. It does NOT prove that every
+          -- hosted task or direct API caller has stopped using this grant.
+          -- Source schema verified against migrations/046_manager_preparation_events.sql
+          -- and services/ManagerPreparationOAuth.php, repository pyatkoff/max-search-bot.
+
+          START TRANSACTION READ ONLY;
+
+          -- 1. Exactly one target grant must be present. Missing is NOT safe to revoke.
+          SELECT
+              UTC_TIMESTAMP() AS observed_at_utc,
+              COUNT(*) AS matching_grant_rows
+          FROM manager_preparation_oauth_grants
+          WHERE grant_id = '86bf117c1e46778c525fd144b4248e02'
+            AND project_key = 'anytour'
+            AND resource = 'https://app.anytoour.ru/manager/ai-mcp.php';
+
+          -- 2. Non-secret identity/capabilities of this exact grant only.
+          -- The state below describes stored lifecycle fields, not a full OAuth check.
+          SELECT
+              grant_id,
+              scopes,
+              created_at AS created_at_unix,
+              expires_at AS expires_at_unix,
+              revoked_at AS revoked_at_unix,
+              CASE
+                  WHEN revoked_at IS NOT NULL AND revoked_at <= UNIX_TIMESTAMP()
+                      THEN 'recorded_revoked'
+                  WHEN expires_at <= UNIX_TIMESTAMP()
+                      THEN 'recorded_expired'
+                  WHEN revoked_at IS NULL AND expires_at > UNIX_TIMESTAMP()
+                      THEN 'not_retired_by_stored_fields'
+                  ELSE 'inconsistent_state_do_not_act'
+              END AS stored_lifecycle_state
+          FROM manager_preparation_oauth_grants
+          WHERE grant_id = '86bf117c1e46778c525fd144b4248e02'
+            AND project_key = 'anytour'
+            AND resource = 'https://app.anytoour.ru/manager/ai-mcp.php';
+
+          -- 3. Reply-subscription references bound to the exact grant and its admin.
+          -- A positive active/pending/lease count is a reason to STOP the revocation.
+          SELECT
+              COUNT(e.subscription_id) AS saved_reply_subscriptions,
+              COALESCE(SUM(CASE WHEN e.is_active = 1 THEN 1 ELSE 0 END), 0)
+                  AS enabled_reply_subscriptions,
+              COALESCE(SUM(CASE
+                  WHEN e.is_active = 1 AND e.expires_at > UTC_TIMESTAMP()
+                  THEN 1 ELSE 0 END), 0) AS unexpired_enabled_reply_subscriptions,
+              COALESCE(SUM(CASE WHEN e.pending_event_id IS NOT NULL
+                  THEN 1 ELSE 0 END), 0) AS subscriptions_with_saved_pending_event,
+              COALESCE(SUM(CASE WHEN e.lease_until > UTC_TIMESTAMP()
+                  THEN 1 ELSE 0 END), 0) AS subscriptions_with_current_lease,
+              MAX(e.updated_at) AS last_subscription_update_utc,
+              'COUNTS_ARE_NOT_HOST_TASK_OR_DIRECT_CALLER_PROOF' AS coverage_limit
+          FROM manager_preparation_oauth_grants AS g
+          LEFT JOIN manager_preparation_events AS e
+              ON e.oauth_connection_id = g.grant_id
+             AND e.admin_id = g.admin_id
+             AND e.project_key = g.project_key
+             AND e.event_name = 'manager_replies.pending'
+          WHERE g.grant_id = '86bf117c1e46778c525fd144b4248e02'
+            AND g.project_key = 'anytour'
+            AND g.resource = 'https://app.anytoour.ru/manager/ai-mcp.php';
+
+          -- 4. Bounded metadata of those same subscriptions; never event bodies/URLs.
+          SELECT
+              e.event_name,
+              e.is_active,
+              e.expires_at AS subscription_expires_at_utc,
+              e.verified_at AS subscription_verified_at_utc,
+              e.updated_at AS subscription_updated_at_utc,
+              CASE WHEN e.pending_event_id IS NOT NULL THEN 1 ELSE 0 END
+                  AS saved_pending_event_present,
+              CASE WHEN e.lease_until > UTC_TIMESTAMP() THEN 1 ELSE 0 END
+                  AS current_lease_present,
+              e.last_status AS last_delivery_http_status,
+              e.attempts AS delivery_attempts
+          FROM manager_preparation_events AS e
+          JOIN manager_preparation_oauth_grants AS g
+              ON g.grant_id = e.oauth_connection_id
+             AND g.admin_id = e.admin_id
+             AND g.project_key = e.project_key
+          WHERE g.grant_id = '86bf117c1e46778c525fd144b4248e02'
+            AND g.project_key = 'anytour'
+            AND g.resource = 'https://app.anytoour.ru/manager/ai-mcp.php'
+            AND e.event_name = 'manager_replies.pending'
+          ORDER BY e.updated_at DESC
+          LIMIT 21;
+
+          -- No permission to revoke is inferred from zero rows. Check the actual
+          -- hosted reply-task binding and any other consumers before a separate,
+          -- explicitly authorized revocation through the existing administration UI.
+          ROLLBACK;
+          APPROVED_SQL;
+          $sql.="\n";
+          try {
+              $phase='validate_fixed_request';
+              if (hash('sha256',$sql)!=='c41d9ee5943dd507e7bed698d4c94f2c3d15499b0eaa312d83e86ee4158471ae') throw new RuntimeException();
+              $statements=array_values(array_filter(array_map('trim',explode(';',preg_replace('/^\h*--[^\r\n]*$/m','',$sql)))));
+              if (count($statements)!==6 || $statements[0]!=='START TRANSACTION READ ONLY' || $statements[5]!=='ROLLBACK') throw new RuntimeException();
+              foreach (array_slice($statements,1,4) as $statement) if (!str_starts_with($statement,'SELECT')) throw new RuntimeException();
+              $phase='configuration';
+              ob_start();
+              require '/var/www/anytoour/data/www/app.anytoour.ru/config.php';
+              ob_end_clean();
+              require_once '/var/www/anytoour/data/www/app.anytoour.ru/services/ConversationDb.php';
+              $pdo=ConversationDb::connection();
+              $phase='read_only_transaction';
+              $pdo->exec($statements[0]);
+              $names=['identity_count','grant_metadata','reply_subscription_counts','reply_subscription_metadata'];
+              $tables=[];
+              foreach ($names as $i=>$name) {
+                  $phase=$name;
+                  $tables[$name]=$pdo->query($statements[$i+1])->fetchAll(PDO::FETCH_ASSOC);
+                  if ($i===0 && (int)($tables[$name][0]['matching_grant_rows']??0)!==1) {
+                      $pdo->exec('ROLLBACK');
+                      echo json_encode(['ok'=>false,'reason'=>'target_grant_not_unique','tables'=>$tables],JSON_THROW_ON_ERROR).PHP_EOL;
+                      exit(2);
+                  }
+              }
+              $phase='rollback';$pdo->exec($statements[5]);
+              echo json_encode(['ok'=>true,'mode'=>'READ_ONLY_ROLLED_BACK','sql_sha256'=>hash('sha256',$sql),
+                  'tables'=>$tables,'revocation_performed'=>false,
+                  'host_task_binding_proven'=>false,'other_consumers_checked'=>false],JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR).PHP_EOL;
+          } catch (Throwable $error) {
+              while (ob_get_level()>0) ob_end_clean();
+              if ($pdo instanceof PDO && $pdo->inTransaction()) {try {$pdo->rollBack();} catch(Throwable $ignored) {}}
+              echo json_encode(['ok'=>false,'reason'=>'READ_ONLY_CHECK_FAILED','phase'=>$phase,
+                  'error_class'=>get_class($error),'revocation_performed'=>false],JSON_THROW_ON_ERROR).PHP_EOL;
+              exit(1);
+          }
+          PHP
+          php -l "$check_file"
+          timeout 55 ssh -i "$key_file" -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$known_hosts" -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=2 "$DEPLOY_USER@$DEPLOY_HOST" 'cd /var/www/anytoour/data/www/app.anytoour.ru && timeout 40 php -d display_errors=0 -d log_errors=0' < "$check_file"
