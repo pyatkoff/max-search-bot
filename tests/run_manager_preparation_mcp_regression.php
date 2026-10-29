@@ -541,7 +541,79 @@ function preparationMcpDiagnosticChecks(): void
     } finally {DiagnosticLogger::setFile('');@unlink($file);@rmdir($dir);}
 }
 
+function preparationMcpConnectionChecks(): void
+{
+    $pdo=preparationMcpFixture();$calls=0;
+    $first=str_repeat('a',32);$second=str_repeat('b',32);
+    $job=['job_id'=>str_repeat('c',64),'project_key'=>'anytour','context_revision'=>str_repeat('d',64),
+        'oauth_connection_id'=>'PRIVATE JOB CONNECTION','private_text'=>'PRIVATE TRANSCRIPT'];
+    $store=static function(string $operation,array $args) use (&$calls,$job): array {
+        ++$calls;
+        if ($operation!=='pending') throw new RuntimeException('Unexpected identity-test store operation');
+        return ['ok'=>true,'jobs'=>[$job]];
+    };
+    $active=static function(string $family,int $actor) use ($first,$second): bool {
+        return $actor===1 && in_array($family,[$first,$second],true);
+    };
+    $service=new ManagerPreparationMcpService($pdo,$store,null,null,$active);
+    $rpc=preparationMcpRpc('tools/call',['name'=>'list_pending_replies','arguments'=>['limit'=>1]]);
+    $before=(int)$pdo->query('SELECT total_changes()')->fetchColumn();
+    foreach ([[$first,$second],[$second,$first]] as [$current,$other]) {
+        $response=$service->handle($rpc,1,$current);$result=$response['result']??[];
+        $data=$result['structuredContent']??[];
+        preparationMcpCheck('queue identifies only the exact requesting OAuth grant '.$current[0],
+            ($data['oauth_connection_id']??null)===$current
+            &&json_decode($result['content'][0]['text']??'',true)===$data
+            &&!str_contains(json_encode($response),$other)
+            &&!str_contains(json_encode($response),'PRIVATE'));
+    }
+    $spoofed=$rpc;$spoofed['params']['_meta']=['oauth_connection_id'=>$second,
+        'connection_id'=>$second,'grant_id'=>$second,'access_token'=>'PRIVATE TOKEN'];
+    $data=$service->handle($spoofed,1,$first)['result']['structuredContent']??[];
+    preparationMcpCheck('request metadata cannot replace authenticated reply grant identity',
+        ($data['oauth_connection_id']??null)===$first&&!str_contains(json_encode($data),$second));
+    $data=$service->handle($spoofed,1)['result']['structuredContent']??[];
+    preparationMcpCheck('unbound internal queue call reports unknown identity even with forged metadata',
+        array_key_exists('oauth_connection_id',$data)&&$data['oauth_connection_id']===null);
+    $emptyService=new ManagerPreparationMcpService($pdo,
+        static fn(string $operation,array $args): array=>['ok'=>true,'jobs'=>[]],null,null,$active);
+    $empty=$emptyService->handle($rpc,1,$first)['result']['structuredContent']??[];
+    preparationMcpCheck('an empty reply queue retains the exact requesting OAuth grant identity',
+        ($empty['jobs']??null)===[]&&($empty['oauth_connection_id']??null)===$first);
+    preparationMcpCheck('reply grant identity read changes no database rows or subscription state',
+        (int)$pdo->query('SELECT total_changes()')->fetchColumn()===$before);
+
+    $beforeCalls=$calls;$badArgs=$rpc;$badArgs['params']['arguments']['oauth_connection_id']=$second;
+    preparationMcpCheck('a reply caller cannot select a grant through tool arguments',
+        ($service->handle($badArgs,1,$first)['error']['code']??0)===-32602&&$calls===$beforeCalls);
+    foreach ([[0,$first],[2,$first],[3,$first],[4,$first],[1,str_repeat('e',32)]] as [$actor,$family]) {
+        $response=$service->handle($rpc,$actor,$family);
+        preparationMcpCheck('unauthorized caller cannot read reply grant identity '.$actor.'/'.$family[0],
+            ($response['error']['code']??0)===-32001&&!isset($response['result'])
+            &&!str_contains(json_encode($response),$family)&&$calls===$beforeCalls);
+    }
+
+    foreach (['admin','project','connection'] as $revocation) {
+        $racePdo=preparationMcpFixture();$connected=true;
+        $raceStore=static function() use ($racePdo,$revocation,&$connected): array {
+            if ($revocation==='admin') $racePdo->exec('UPDATE managers SET is_active=0 WHERE id=1');
+            elseif ($revocation==='project') $racePdo->exec('DELETE FROM manager_projects WHERE manager_id=1');
+            else $connected=false;
+            return ['ok'=>true,'jobs'=>[]];
+        };
+        $raceActive=static function(string $family,int $actor) use (&$connected,$first): bool {
+            return $connected&&$family===$first&&$actor===1;
+        };
+        $raceService=new ManagerPreparationMcpService($racePdo,$raceStore,null,null,$raceActive);
+        $response=$raceService->handle($rpc,1,$first);
+        preparationMcpCheck('reply grant identity withheld after revocation during inventory read '.$revocation,
+            ($response['error']['code']??0)===-32001&&!isset($response['result'])
+            &&!str_contains(json_encode($response),$first));
+    }
+}
+
 try {
+    preparationMcpConnectionChecks();
     preparationCandidateChecks();
     preparationMealChecks();
     preparationMcpDiagnosticChecks();
