@@ -4,6 +4,17 @@ if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
 require_once __DIR__.'/run_modeled_conversion_early_forecast_regression.php';
 require_once dirname(__DIR__).'/services/ModeledConversionStatusReader.php';
 
+final class ForecastStatusObservedStatement extends PDOStatement
+{
+    public static bool $payloadCopied=false;
+    protected function __construct(){}
+    public function fetchAll(int $mode=PDO::FETCH_DEFAULT,mixed ...$args):array
+    {
+        $rows=parent::fetchAll($mode,...$args);
+        if(str_contains($this->queryString,' AS early_json,'))self::$payloadCopied=true;
+        return $rows;
+    }
+}
 function forecastStatusSchema(PDO $p):void
 {
     foreach(['modeled_conversion_profile_versions','modeled_conversion_profiles_state']as$t)$p->exec('DROP TABLE IF EXISTS '.$t);
@@ -225,12 +236,23 @@ function forecastStatusAssertions(PDO $p,callable $check):void
         $r['window']['metadata_rows']===0&&$r['window']['profile_rows_read']===0);
     forecastStatusSchema($p);forecastStatusAppend($p,$initial);
     $calls=0;$r=forecastStatusRead($p,static function()use(&$calls,$p,$update):void{if(++$calls===3)forecastStatusAppend($p,$update);});
-    $check('a later append cannot enter the frozen metadata window',
-        $r['saved']['paired_snapshots']===1&&(int)$p->query('SELECT COUNT(*) FROM modeled_conversion_profile_versions')->fetchColumn()===2);
+    $check('a later append cannot enter either frozen goal selection or baseline window',
+        $r['saved']['paired_snapshots']===1&&$r['saved']['snapshot_kind_counts']['initial_observation']===1
+        &&!$r['stage_checks']['agency_purchase_intent']['candidate_found']
+        &&(int)$p->query('SELECT COUNT(*) FROM modeled_conversion_profile_versions')->fetchColumn()===2);
     $calls=0;try{forecastStatusRead($p,static function()use(&$calls):void{if(++$calls===3)throw new DomainException('revoked');});$denied=false;}catch(DomainException $e){$denied=$e->getMessage()==='revoked';}
     $check('revocation before payload read returns no private result',$denied);
-    $calls=0;try{forecastStatusRead($p,static function()use(&$calls):void{if(++$calls===4)throw new DomainException('revoked-final');});$denied=false;}catch(DomainException $e){$denied=$e->getMessage()==='revoked-final';}
-    $check('authorization is checked again after the single chosen payload before returning aggregates',$denied&&$calls===4);
+    $priorStatementClass=$p->getAttribute(PDO::ATTR_STATEMENT_CLASS);
+    $p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ForecastStatusObservedStatement::class]);
+    ForecastStatusObservedStatement::$payloadCopied=false;$denied=false;
+    try{
+        forecastStatusRead($p,static function():void{
+            if(ForecastStatusObservedStatement::$payloadCopied)throw new DomainException('revoked-final');
+        });
+    }catch(DomainException $e){$denied=$e->getMessage()==='revoked-final';}
+    finally{$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$priorStatementClass);}
+    $check('authorization is checked again after payload copying before returning aggregates',
+        $denied&&ForecastStatusObservedStatement::$payloadCopied);
     $p->beginTransaction();$r=forecastStatusRead($p);$check('caller transaction is refused without commit or rollback',$r['reason']==='outer_transaction'&&$p->inTransaction());$p->rollBack();
 
     $clock=100.0;$budget=new ModeledConversionStatusBudget(100.0,static function()use(&$clock):float{return $clock;});
@@ -241,6 +263,76 @@ function forecastStatusAssertions(PDO $p,callable $check):void
     try{forecastStatusRead($p,static function()use(&$calls):void{$calls++;},$budget);$limited=false;}
     catch(ModeledConversionStatusLimit $e){$limited=$e->reason==='byte_limit';}
     $check('insufficient remaining bytes fail before selecting a receipt or profile',$limited&&$calls===0);
+
+    forecastStatusSchema($p);
+    $agency=forecastStatusScope($update,'70','90');
+    $general=forecastStatusScope(forecastStatusPacket([['text'=>'Хочу купить тур оператора Anex']]),'71','91');
+    $paid=forecastStatusScope(forecastStatusPacket([['text'=>'Подберите тур'],['text'=>'Давайте бронировать этот тур'],['role'=>'manager','text'=>'Оплату вижу']]),'70','90');
+    $agency['contextual_signals']['extractor_sha256']=str_repeat('b',64);
+    unset($paid['contextual_signals']['extractor_sha256']);
+    forecastStatusAppend($p,$agency,'anytour','70','90');
+    forecastStatusAppend($p,$general,'anytour','71','91');
+    forecastStatusAppend($p,$paid,'anytour','70','90');
+    for($i=0;$i<30;$i++){
+        $customer=(string)(300+$i);$conversation=(string)(400+$i);
+        forecastStatusAppend($p,forecastStatusScope($zero,$customer,$conversation),'anytour',$customer,$conversation);
+    }
+    $beforeStageRows=$p->query('SELECT * FROM modeled_conversion_profile_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    $r=forecastStatusRead($p);$stages=$r['stage_checks'];
+    $check('older general agency and payment strata survive twenty newer context scopes',
+        $stages['general_purchase_intent']['validated_saved_evidence']
+        &&$stages['agency_purchase_intent']['validated_saved_evidence']
+        &&$stages['payment_evidence']['validated_saved_evidence']
+        &&$r['window']['metadata_rows']===20&&$r['window']['candidate_version_rows']===20
+        &&$r['saved']['paired_snapshots']===4&&$r['saved']['distinct_conversation_scopes']===3);
+    $check('readiness is verified at an early prefix separately from its later observed payment',
+        $stages['general_purchase_intent']['early_assessment']===true
+        &&$stages['agency_purchase_intent']['early_assessment']===true
+        &&$stages['payment_evidence']['early_assessment']===false
+        &&$stages['payment_evidence']['forecast_status']==='target_already_observed');
+    $check('saved rule fingerprints explicitly separate current old and missing code provenance',
+        $stages['general_purchase_intent']['rule_code_fingerprint']==='current'
+        &&$stages['agency_purchase_intent']['rule_code_fingerprint']==='other'
+        &&$stages['payment_evidence']['rule_code_fingerprint']==='unknown'
+        &&$r['saved']['rule_code_fingerprint_counts']===['current'=>2,'other'=>1,'unknown'=>1]);
+    $check('targeted diagnostics retain transfer limits privacy and read-only fixture invariance',
+        $r['window']['profile_rows_read']<=4&&$r['window']['selected_document_bytes']<=49152
+        &&$r['window']['selection']==='diagnostic_goal_strata_not_population_frequency'
+        &&!str_contains(json_encode($r),str_repeat('b',64))
+        &&!str_contains(json_encode($r),'Anex')
+        &&$beforeStageRows===$p->query('SELECT * FROM modeled_conversion_profile_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC));
+    forecastStatusSchema($p);forecastStatusAppend($p,$update);$r=forecastStatusRead($p);
+    $check('one stored packet proves both readiness strata without duplicate copying',
+        $r['stage_checks']['general_purchase_intent']['validated_saved_evidence']
+        &&$r['stage_checks']['agency_purchase_intent']['validated_saved_evidence']
+        &&$r['window']['metadata_rows']===2&&$r['window']['candidate_version_rows']===1
+        &&$r['window']['duplicate_candidate_rows']===1&&$r['window']['profile_rows_read']===1);
+    forecastStatusSchema($p);
+    foreach([
+        [['text'=>'Подберите тур'],['role'=>'manager','text'=>'Ссылка на оплату готова']],
+        [['text'=>'Подберите тур'],['text'=>'Как оплатить картой?']],
+        [['text'=>'Подберите тур'],['role'=>'manager','text'=>'Тур подтвержден']],
+        [['text'=>'Подберите тур'],['role'=>'manager','text'=>'Документы готовы']],
+        [['text'=>'Подберите тур'],['text'=>'Сегодня оплачу']]
+    ]as$i=>$messages){
+        $packet=forecastStatusScope(forecastStatusPacket($messages),(string)(700+$i),(string)(800+$i));
+        forecastStatusAppend($p,$packet,'anytour',(string)(700+$i),(string)(800+$i));
+    }
+    $r=forecastStatusRead($p);
+    $check('payment links terms documents booking and promises do not nominate a paid stage',
+        !$r['stage_checks']['payment_evidence']['candidate_found']);
+    foreach(['payment_self_report','manager_payment_ack','purchase_supported_candidate']as$goal){
+        forecastStatusSchema($p);$packet=$initial;$packet['contextual_signals']['goal_counts'][$goal]='1';
+        forecastStatusAppend($p,$packet);$r=forecastStatusRead($p);
+        $check('numeric string cannot nominate payment '.$goal,!$r['stage_checks']['payment_evidence']['candidate_found']
+            &&$r['saved']['paired_snapshots']===0);
+    }
+    forecastStatusSchema($p);$packet=$update;$packet['contextual_signals']['goal_counts']['agency_purchase_intent']++;
+    forecastStatusAppend($p,$packet);$r=forecastStatusRead($p);
+    $check('goal metadata candidate cannot substitute for validated matching event evidence',
+        $r['stage_checks']['agency_purchase_intent']['candidate_found']
+        &&!$r['stage_checks']['agency_purchase_intent']['validated_saved_evidence']
+        &&$r['stage_checks']['agency_purchase_intent']['verification']==='candidate_invalid_or_unsupported');
     $p->exec('DROP TABLE modeled_conversion_profile_versions');$r=forecastStatusRead($p);
     $check('missing derived storage is fixed unavailable rather than an invented zero',$r['available']===false&&$r['reason']==='storage_unavailable'&&$r['saved']===null);
 }

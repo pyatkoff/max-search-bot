@@ -7,7 +7,12 @@ require_once __DIR__.'/ModeledConversionEarlyForecast.php';
 /** Private, fixed-window aggregate readback of immutable derived profiles. Never reads source messages. */
 final class ModeledConversionStatusReader
 {
-    public const VERSION='saved_forecast_status_v2';
+    public const VERSION='saved_forecast_status_v3';
+    private const STAGES=[
+        'general_purchase_intent'=>['general_purchase_intent'],
+        'agency_purchase_intent'=>['agency_purchase_intent'],
+        'payment_evidence'=>['payment_self_report','manager_payment_ack','purchase_supported_candidate'],
+    ];
     public const METADATA_LIMIT=20;
     public const PROFILE_LIMIT=4;
     public const PROFILE_BYTES=49152;
@@ -34,16 +39,30 @@ final class ModeledConversionStatusReader
             $projectedLength=implode('+',array_map(fn(string $sql):string=>'COALESCE('.$this->length($sql).',0)',array_values($parts)));
             $length='CASE WHEN JSON_VALID(profile_json) THEN '.$projectedLength.' ELSE 0 END';
             $this->reserve(16384);
+            $selection=$this->stageSelection();
+            $fence=$selection['fence'];$stageIds=$selection['ids'];
+            $targetIds=array_values(array_unique(array_values(array_filter($stageIds,static fn($id):bool=>$id!==null))));
             $context=$this->customerContextSql();
-            // Select one immutable version per conversation before applying the metadata limit.
-            // Eligibility uses observed customer context, never goals or the observed outcome.
-            $candidates='SELECT COALESCE(MAX(CASE WHEN '.$context.'=1 THEN id END),MAX(id)) AS selected_id,MAX('.$context.') AS has_customer_context FROM modeled_conversion_profile_versions WHERE project_key=? AND platform IN (?,?) GROUP BY platform,customer_key,conversation_id ORDER BY has_customer_context DESC,selected_id DESC LIMIT '.self::METADATA_LIMIT;
-            $rows=$this->query('SELECT v.id,v.platform,v.customer_key,v.conversation_id,v.journal_cursor,v.observed_at_unix,'.$length.' AS profile_bytes,JSON_VALID(profile_json) AS json_valid,c.has_customer_context FROM ('.$candidates.') c JOIN modeled_conversion_profile_versions v ON v.id=c.selected_id ORDER BY c.has_customer_context DESC,v.id DESC',['anytour','max','telegram']);
-            $out=$this->emptyResult($state,count($rows));
-            $fence='0';$loaded=[];$scopes=[];
+            // Goal-targeted examples are diagnostic strata, not population sampling.
+            $baselineLimit=self::METADATA_LIMIT-count($targetIds);
+            $candidates='SELECT COALESCE(MAX(CASE WHEN '.$context.'=1 THEN id END),MAX(id)) AS selected_id,MAX('.$context.') AS has_customer_context FROM modeled_conversion_profile_versions WHERE project_key=? AND platform IN (?,?) AND id<=? GROUP BY platform,customer_key,conversation_id ORDER BY has_customer_context DESC,selected_id DESC LIMIT '.$baselineLimit;
+            $baseline=$this->query('SELECT v.id,v.platform,v.customer_key,v.conversation_id,v.journal_cursor,v.observed_at_unix,'.$length.' AS profile_bytes,JSON_VALID(profile_json) AS json_valid,c.has_customer_context FROM ('.$candidates.') c JOIN modeled_conversion_profile_versions v ON v.id=c.selected_id ORDER BY c.has_customer_context DESC,v.id DESC',['anytour','max','telegram',$fence]);
+            $targetRows=[];
+            if($targetIds){
+                $marks=implode(',',array_fill(0,count($targetIds),'?'));
+                $targetRows=$this->query('SELECT id,platform,customer_key,conversation_id,journal_cursor,observed_at_unix,'.$length.' AS profile_bytes,JSON_VALID(profile_json) AS json_valid,'.$context.' AS has_customer_context FROM modeled_conversion_profile_versions WHERE project_key=? AND id IN ('.$marks.') AND id<=? LIMIT '.count($targetIds),['anytour',...$targetIds,$fence]);
+                $order=array_flip($targetIds);
+                usort($targetRows,static fn(array$a,array$b):int=>$order[(string)$a['id']]<=>$order[(string)$b['id']]);
+            }
+            $rawMetadata=count($baseline)+count($targetRows);$unique=[];
+            foreach([...$targetRows,...$baseline]as$row)$unique[(string)$row['id']]??=$row;
+            $rows=array_values($unique);
+            $out=$this->emptyResult($state,$rawMetadata);
+            $out['window']['candidate_version_rows']=count($rows);
+            $out['window']['duplicate_candidate_rows']=$rawMetadata-count($rows);
+            $out['stage_checks']=$this->emptyStageChecks($stageIds);
+            $loaded=[];$scopes=[];$inspected=[];
             foreach($rows as$row){
-                $id=(string)($row['id']??'');
-                if(self::decimal($id)&&self::greater($id,$fence))$fence=$id;
                 $key=(string)($row['has_customer_context']??'')==='1'?'customer_context_candidates':'fallback_candidates';
                 $out['window'][$key]++;
             }
@@ -64,7 +83,7 @@ final class ModeledConversionStatusReader
                 $actual=0;
                 if(count($body)===1)foreach(array_keys($parts)as$name){$value=$body[0][$name]??null;if($value!==null&&!is_string($value)){$actual=-1;break;}$actual+=strlen($value??'');}
                 if(count($body)!==1||$actual!==$bytes){$out['window']['changed_or_missing_rows']++;continue;}
-                $this->profileBytes+=$bytes;$out['window']['profile_rows_read']++;
+                $this->profileBytes+=$bytes;$out['window']['profile_rows_read']++;$inspected[(string)$row['id']]=true;
                 try{
                     $packet=json_decode($body[0]['binding_json'],true,32,JSON_THROW_ON_ERROR);
                     $packet['early_forecast']=$body[0]['early_json']===null?null:json_decode($body[0]['early_json'],true,64,JSON_THROW_ON_ERROR);
@@ -80,6 +99,21 @@ final class ModeledConversionStatusReader
                 $valid=$this->paired($packet,$row);
                 if($valid===null){$out['window']['invalid_rows']++;continue;}
                 $f=$packet['early_forecast'];$s=$packet['contextual_signals'];
+                $fingerprint=$this->fingerprintClass($s);
+                $out['saved']['rule_code_fingerprint_counts'][$fingerprint]++;
+                foreach(self::STAGES as$name=>$goals){
+                    if($stageIds[$name]!==((string)$row['id']))continue;
+                    $counts=array_intersect_key($s['goal_counts'],array_fill_keys($goals,true));
+                    $confirmed=array_sum($counts)>0;
+                    $out['stage_checks'][$name]=[
+                        'candidate_found'=>true,'verification'=>$confirmed?'validated_saved_signal':'candidate_no_longer_matches',
+                        'validated_saved_evidence'=>$confirmed,'goal_event_counts'=>$counts,
+                        'forecast_status'=>$f['status'],'early_assessment'=>$f['status']==='early_assessment',
+                        'customer_context_present'=>$valid['has_customer_context'],'frozen_at'=>$f['frozen_at'],
+                        'rule_version'=>$s['extractor_version'],'rule_code_fingerprint'=>$fingerprint,
+                        'meaning'=>$name==='payment_evidence'?'conversation_payment_evidence_not_bank_settlement':'saved_rule_candidate_not_purchase_probability',
+                    ];
+                }
                 $out['saved']['paired_snapshots']++;
                 if($valid['has_customer_context'])$out['saved']['customer_context_snapshots']++;
                 $out['saved']['status_counts'][$f['status']]++;
@@ -93,6 +127,11 @@ final class ModeledConversionStatusReader
                     $out['saved'][$key.'_range']['earliest']=$out['saved'][$key.'_range']['earliest']===null?$f[$key]:min($out['saved'][$key.'_range']['earliest'],$f[$key]);
                     $out['saved'][$key.'_range']['latest']=$out['saved'][$key.'_range']['latest']===null?$f[$key]:max($out['saved'][$key.'_range']['latest'],$f[$key]);
                 }
+            }
+            foreach($stageIds as$name=>$id){
+                if($id!==null&&isset($inspected[$id])&&!$out['stage_checks'][$name]['validated_saved_evidence']
+                    &&$out['stage_checks'][$name]['verification']==='candidate_not_inspected')
+                    $out['stage_checks'][$name]['verification']='candidate_invalid_or_unsupported';
             }
             foreach($loaded as$item){
                 if($item['kind']==='initial_observation'){$out['saved']['first_marker']['initial_self_markers']++;continue;}
@@ -113,6 +152,55 @@ final class ModeledConversionStatusReader
         }catch(JsonException $e){
             return $this->unavailable('invalid_storage');
         }
+    }
+    private function goalSql(string $goal):string
+    {
+        $path="'$.contextual_signals.goal_counts.".$goal."'";
+        $value='JSON_EXTRACT(profile_json,'.$path.')';
+        $type=$this->mysql?'JSON_TYPE('.$value.')':"JSON_TYPE(profile_json,".$path.")";
+        $integer=$this->mysql?"'INTEGER'":"'integer'";$cast=$this->mysql?'SIGNED':'INTEGER';
+        return 'CASE WHEN JSON_VALID(profile_json) THEN CASE WHEN '.$type.'='.$integer.' AND CAST('.$value.' AS '.$cast.') BETWEEN 1 AND 800 THEN 1 ELSE 0 END ELSE 0 END';
+    }
+    private function stageSelection():array
+    {
+        $value="JSON_EXTRACT(profile_json,'$.early_forecast.status')";
+        if($this->mysql)$value='JSON_UNQUOTE('.$value.')';
+        $early="CASE WHEN JSON_VALID(profile_json) THEN CASE WHEN ".$value."='early_assessment' THEN 1 ELSE 0 END ELSE 0 END";
+        $columns=['MAX(id) AS fence'];
+        foreach(self::STAGES as$name=>$goals){
+            $match='('.implode(' OR ',array_map(fn(string$g):string=>$this->goalSql($g).'=1',$goals)).')';
+            $any='MAX(CASE WHEN '.$match.' THEN id END)';
+            $choice=$name==='payment_evidence'?$any:'COALESCE(MAX(CASE WHEN '.$match.' AND '.$early.'=1 THEN id END),'.$any.')';
+            $columns[]=$choice.' AS '.$name;
+        }
+        $rows=$this->query('SELECT '.implode(',',$columns).' FROM modeled_conversion_profile_versions WHERE project_key=? AND platform IN (?,?)',['anytour','max','telegram']);
+        $row=$rows[0]??[];$fence=(string)($row['fence']??'0');
+        if(!self::decimal($fence))throw new JsonException('invalid_stage_fence');
+        $ids=[];foreach(self::STAGES as$name=>$goals){
+            $id=$row[$name]??null;
+            if($id!==null&&(!self::decimal((string)$id)||(string)$id==='0'||self::greater((string)$id,$fence)))throw new JsonException('invalid_stage_id');
+            $ids[$name]=$id===null?null:(string)$id;
+        }
+        return ['fence'=>$fence,'ids'=>$ids];
+    }
+    private function emptyStageChecks(array $ids):array
+    {
+        $out=[];foreach(self::STAGES as$name=>$goals)$out[$name]=[
+            'candidate_found'=>$ids[$name]!==null,
+            'verification'=>$ids[$name]===null?'not_found_in_saved_versions':'candidate_not_inspected',
+            'validated_saved_evidence'=>false,'goal_event_counts'=>array_fill_keys($goals,0),
+            'forecast_status'=>null,'early_assessment'=>null,'customer_context_present'=>null,'frozen_at'=>null,
+            'rule_version'=>null,'rule_code_fingerprint'=>'unknown',
+            'meaning'=>$name==='payment_evidence'?'conversation_payment_evidence_not_bank_settlement':'saved_rule_candidate_not_purchase_probability',
+        ];
+        return $out;
+    }
+    private function fingerprintClass(array $signals):string
+    {
+        $saved=$signals['extractor_sha256']??null;
+        if(!is_string($saved)||preg_match('/\A[a-f0-9]{64}\z/D',$saved)!==1)return 'unknown';
+        $current=hash_file('sha256',__DIR__.'/ArchiveResearchSemanticExtractor.php');
+        return is_string($current)&&hash_equals($current,$saved)?'current':'other';
     }
     private function customerContextSql():string
     {
@@ -222,8 +310,8 @@ final class ModeledConversionStatusReader
         return ['available'=>true,'reader_version'=>self::VERSION,'checked_at'=>gmdate('Y-m-d\TH:i:s\Z'),
             'forecast_version'=>ModeledConversionEarlyForecast::VERSION,'rule_version'=>ArchiveResearchSemanticExtractor::VERSION,
             'state'=>$state,'confirmation'=>'no_confirmation_in_checked_window',
-            'window'=>['basis'=>'one_saved_version_per_conversation_customer_context_first','selection'=>'latest_customer_context_version_else_latest_fallback_without_goal_filter','customer_context_candidates'=>0,'fallback_candidates'=>0,'metadata_limit'=>self::METADATA_LIMIT,'metadata_rows'=>$metadataRows,'metadata_limit_reached'=>$metadataRows===self::METADATA_LIMIT,'profile_rows_read'=>0,'selected_document_bytes'=>0,'oversize_rows'=>0,'byte_limit_omissions'=>0,'row_limit_omissions'=>0,'changed_or_missing_rows'=>0,'without_forecast_rows'=>0,'unsupported_version_rows'=>0,'invalid_rows'=>0],
-            'saved'=>['basis'=>'inspected_saved_versions_not_unique_people_or_trips','signal_basis'=>'contextual_goal_events_not_engagement_intervals','paired_snapshots'=>0,'customer_context_snapshots'=>0,'distinct_conversation_scopes'=>0,'signal_bearing_snapshots'=>0,'early_assessments_with_signals'=>0,
+            'window'=>['basis'=>'targeted_saved_goals_then_diverse_customer_context','selection'=>'diagnostic_goal_strata_not_population_frequency','candidate_version_rows'=>0,'duplicate_candidate_rows'=>0,'customer_context_candidates'=>0,'fallback_candidates'=>0,'metadata_limit'=>self::METADATA_LIMIT,'metadata_rows'=>$metadataRows,'metadata_limit_reached'=>$metadataRows===self::METADATA_LIMIT,'profile_rows_read'=>0,'selected_document_bytes'=>0,'oversize_rows'=>0,'byte_limit_omissions'=>0,'row_limit_omissions'=>0,'changed_or_missing_rows'=>0,'without_forecast_rows'=>0,'unsupported_version_rows'=>0,'invalid_rows'=>0],
+            'saved'=>['basis'=>'inspected_saved_versions_not_unique_people_or_trips','signal_basis'=>'contextual_goal_events_not_engagement_intervals','rule_code_fingerprint_counts'=>['current'=>0,'other'=>0,'unknown'=>0],'paired_snapshots'=>0,'customer_context_snapshots'=>0,'distinct_conversation_scopes'=>0,'signal_bearing_snapshots'=>0,'early_assessments_with_signals'=>0,
                 'status_counts'=>array_fill_keys(['early_assessment','target_already_observed','no_usable_customer_context','access_denied'],0),
                 'snapshot_kind_counts'=>array_fill_keys(['initial_observation','updated_observation'],0),
                 'goal_counts'=>array_fill_keys(ArchiveResearchSemanticExtractor::goalIds(),0),

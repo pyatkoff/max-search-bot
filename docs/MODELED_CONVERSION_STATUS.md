@@ -37,8 +37,8 @@ separate outcome contract are not read or changed.
 
 Metadata is inspected before copying the complete saved forecast and signals
 subdocuments, with the fixed parent bindings needed to validate their origin.
-Unrelated factual profile fields are not copied. At most 20 distinct conversation
-candidates are selected and at most four fitting saved packets are inspected. Packet copies
+Unrelated factual profile fields are not copied. At most 20 metadata rows are
+selected and at most four fitting saved packets are inspected. Packet copies
 have a 48 KiB budget within the shared 64 KiB selected/copied-data budget,
 including authorization metadata. An oversized packet is explicitly omitted rather than
 truncated or interpreted. These are data-transfer bounds, not a claim about
@@ -105,32 +105,58 @@ rows before and after; unavailable-storage cases are confined to its disposable
 database. Successful synthetic execution does not replace private natural-data
 acceptance after installation.
 
-## Diverse saved-prefix sampling
+## Targeted saved-stage verification
 
-Reader version `saved_forecast_status_v2` selects one version per conversation
-scope (platform, customer key and conversation), within the AnyTour project.
-For each scope it chooses the latest saved version whose metadata reports a
-strict integer customer-turn count from 1 through 50. If no such version exists,
-it chooses that scope's latest saved version as an explicit fallback.
-Context-bearing candidates are ordered first, then by the chosen version ID;
-the maximum ID across all selected candidates fences subsequent copies.
+Reader version `saved_forecast_status_v3` first nominates at most one saved
+version for each fixed stage: general purchase intent, current-agency purchase
+intent, and conversation payment evidence. Readiness prefers the latest matching
+`early_assessment` prefix, falling back to the latest matching observed prefix.
+Payment matches only `payment_self_report`, `manager_payment_ack` or
+`purchase_supported_candidate`; payment links, terms, promises, documents and
+booking confirmation alone do not establish payment.
 
-This is eligibility by observed customer context, without filtering for interest,
-readiness, payment or any other goal or outcome. Zero-goal, deferred and
-already-observed cases remain eligible. A chosen contextual prefix can be older
-than that conversation's latest processing update. It proves only what was
-saved in that prefix, not the person's current willingness or current source
-permission. Metadata candidate counts are separate from fully validated
-`saved.customer_context_snapshots`.
+One bounded aggregate query captures a global version-ID fence and those three
+nominees. Strict integer goal counters from 1 through 800 are nomination metadata,
+not proof. All subsequent metadata and packet copies remain at that fence.
+At most three unique target IDs consume metadata slots first. Remaining slots,
+within 20 total selected metadata rows, use one latest customer-context version
+per conversation scope (platform, customer key and conversation). A scope without
+a strict integer customer-turn count from 1 through 50 uses its latest version
+as an explicit fallback. Context-bearing baseline candidates precede fallbacks.
+The baseline does not filter for any goal or outcome.
 
-Grouping happens before the 20-candidate limit, so repeated updates cannot
-consume separate conversation slots. The grouped scan is subject to the same
-SQL deadline and transfer budgets; no bound on physical rows/pages examined is
-claimed. Malformed, unsupported, oversized or changed chosen versions retain
-their existing explicit omission/error contracts. Selection does not fall back
-to an older fitting version just to obtain a successful result.
+Targets precede baseline candidates for copying, with version-ID deduplication
+before the four-packet allowance. Different historical prefixes of one
+conversation may prove different stages; `distinct_conversation_scopes`
+counts those scopes once. Raw metadata rows, unique candidate versions and
+duplicate candidate rows are reported separately. This is goal-targeted
+diagnostic selection, not population sampling or prevalence estimation.
 
-An older initial version is not also copied for a chosen updated scope, so its
-first-marker link normally remains outside the inspected window. Distinct
-conversation scopes are not unique tourists or trips. Goal counts summarize
-only the inspected saved prefixes and are not full-corpus prevalence estimates.
+Each stage reports candidate presence separately from fully validated saved
+evidence. A nominee omitted by byte/row limits remains uninspected; malformed,
+unsupported or event-inconsistent nominees do not become proof. Validation
+still reconciles source namespace, scope, parent bindings, freeze times, fence,
+event-derived goal counts and the uncalibrated forecast contract. It never
+recomputes labels from source messages and does not search older versions just
+to replace an invalid selected candidate.
+
+Validated stages expose the saved forecast status and whether it was an
+`early_assessment`. Readiness in an already-paid prefix is retrospective,
+not an early prediction. Conversation payment reports and manager acknowledgments
+are not independent bank settlement confirmation. Current agency means the
+agency addressed in that booking context; an operator name alone (for example,
+Anex) is not proof that the tourist selected this agency.
+
+Each inspected packet's saved extractor code fingerprint is classified
+`current`, `other` or `unknown`, without returning the hash. A stable
+rule/state version does not imply identical rules after a compatible patch.
+Older saved readiness is not silently revalidated by corrected short-answer
+rules. Newly observed natural prefixes use the deployed code through the
+existing collector; no manual tick or archive replay is part of this read.
+
+An older initial version may remain outside the selected window, so first-marker
+linkage can be explicitly unverified. Frozen prefixes do not prove current
+willingness or unique tourists/trips. An absent stage means no eligible saved
+nominee was found at the fence, not that no such real dialogue or purchase exists
+in the archive. Archive semantic research is a separate read-only interpretation;
+its ephemeral labels are not persisted live signals or early forecasts.

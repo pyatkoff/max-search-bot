@@ -146,6 +146,13 @@ final class ArchiveResearchSemanticExtractor
                         if($s['qr']!==null)$relations['agency_purchase_intent']=[$s['qr']];
                     }
                 }
+                if($direct&&in_array($s['q'],['booking','data'],true)
+                    &&in_array($s['p'],['tour','hotel','flight'],true)
+                    &&self::hit('давайте\s+(?:оформим\s+)?(?:дистанционно|удал[её]нно|онлайн|в\s+офисе)(?!\pL)|(?:дистанционно|удал[её]нно|онлайн)(?s:.{0,50})(?:отправлю|вышлю|пришлю|направлю)\s+вам(?s:.{0,40})(?:документ|паспорт|данные)',$clause)){
+                    $goals['general_purchase_intent']=true;$goals['agency_purchase_intent']=true;
+                    $rules['general_purchase_intent']=$rules['agency_purchase_intent']='customer_accepts_current_booking_mode';
+                    if($s['qr']!==null)$relations['general_purchase_intent']=$relations['agency_purchase_intent']=[$s['qr']];
+                }
                 if($direct&&self::hit('(?:куп|заброниру|брониру|бер[её]м)\pL*(?s:.{0,40})у\s+вас|(?:только|именно)\s+у\s+вас\s+(?:куп|заброниру|брониру)\pL*',$clause)){
                     $goals['agency_purchase_intent']=true;$goals['general_purchase_intent']=true;
                     $rules['agency_purchase_intent']='explicit_seller_choice';$rules['general_purchase_intent']='explicit_seller_choice';
@@ -165,8 +172,13 @@ final class ArchiveResearchSemanticExtractor
                     $goals['deferral']=true;$rules['deferral']='expressed_delay_or_dependency';
                 }
             }else{
-                if($question&&!$relay&&!$old&&!$conditional&&!$negated&&self::hit('(?:за)?брониру\pL*|оформля\pL*\s+тур|выбрали\s+(?:тур|вариант)|офис(?s:.{0,60})(?:дистанцион|удал[её]н|онлайн)|(?:дистанцион|удал[её]н|онлайн)(?s:.{0,60})офис',$clause))$newPrompt='booking';
-                elseif(!$relay&&!$old&&self::hit('(?:пришлите|отправьте|нужны|жду)\s+(?:ваши\s+)?(?:паспорт|данные)(?s:.{0,60})(?:брон|оформ)|для\s+(?:бронирован|оформлен)\pL*(?s:.{0,60})(?:паспорт|данные)',$clause))$newPrompt='data';
+                // A request cue starts the actual question after a generic agency introduction.
+                $promptClause=preg_replace('~\A(?s:.*)(?<!\pL)(?:подскажите|уточните|скажите)(?!\pL)[,\s:]*~iu','',$clause)??$clause;
+                $criteriaQuestion=$question&&!$relay&&!$old&&self::hit('сколько\s+(?:взросл|дет|ноч)|(?:какие|на\s+какие)\s+дат|какой\s+бюджет|откуда\s+вылет|из\s+какого\s+города|тур\s+нужен\s+с\s+вылетом|(?:вы\s+)?летите\s+из|(?:вы\s+)?вылетаете\s+из',$promptClause);
+                if($criteriaQuestion)$newPrompt='criteria';
+                elseif($question&&!$relay&&!$old&&!$conditional&&!$negated&&self::hit('(?:за)?брониру\pL*|оформля\pL*\s+тур|выбрали\s+(?:тур|вариант)|офис(?s:.{0,60})(?:дистанцион|удал[её]н|онлайн)|(?:дистанцион|удал[её]н|онлайн)(?s:.{0,60})офис',$promptClause))$newPrompt='booking';
+                elseif(!$relay&&!$old&&(self::hit('(?:пришлите|отправьте|нужны|жду)\s+(?:ваши\s+)?(?:паспорт|данные)(?s:.{0,60})(?:брон|оформ)|для\s+(?:бронирован|оформлен)\pL*(?s:.{0,60})(?:паспорт|данные)',$clause)
+                    ||(self::hit('тур|турист',$clause)&&self::hit('для\s+договора(?s:.{0,120})(?:паспорт|данные)',$clause))))$newPrompt='data';
                 elseif(!$relay&&!$old&&self::hit('ссылк\pL*(?s:.{0,60})оплат|оплат\pL*(?s:.{0,60})ссылк',$clause))$newPrompt='payment';
                 elseif($question&&!$relay&&!$old&&self::hit('сколько\s+(?:взросл|дет|ноч)|(?:какие|на\s+какие)\s+дат|какой\s+бюджет|откуда\s+вылет',$clause))$newPrompt='criteria';
                 if($direct&&!$future&&!$excludedProduct&&self::hit('(?:оплат|плат[её]ж|деньг)\pL*(?s:.{0,30})(?:вижу|увидел(?:а|и)?|поступил(?:а|и|о)?|получил(?:а|и)?|получен(?:а|о|ы)?)(?!\pL)|(?:вижу|увидел(?:а|и)?|получил(?:а|и)?)(?!\pL)(?s:.{0,30})(?:оплат|плат[её]ж|деньг)\pL*',$clause)){

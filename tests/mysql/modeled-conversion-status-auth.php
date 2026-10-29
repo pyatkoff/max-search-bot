@@ -140,6 +140,8 @@ function forecastNativeAuthRegression():void
         forecastStatusAppend($pdo,forecastStatusPacket([['text'=>'Подберите тур. Бюджет до 200 тысяч.'],['text'=>'Давайте бронировать этот тур']],'1'));
         $context=forecastStatusPacket([['text'=>'Спасибо']]);
         forecastStatusAppend($pdo,forecastStatusScope($context,'8','10'),'anytour','8','10');
+        $payment=forecastStatusPacket([['text'=>'Подберите тур'],['text'=>'Оплатила'],['role'=>'manager','text'=>'Оплату вижу']]);
+        forecastStatusAppend($pdo,forecastStatusScope($payment,'9','11'),'anytour','9','11');
         for($i=0;$i<25;$i++)forecastStatusAppend($pdo,forecastNativeEmptyUpdate((string)(100+$i)));
         $before=forecastNativeAuthSnapshot($pdo);
         $phase='real_bearer_dispatch_reader';
@@ -152,12 +154,17 @@ function forecastNativeAuthRegression():void
                 $saved=$response['result']['structuredContent']??[];
                 $check('real dispatcher reads persisted early signals with grant variant '.$i,
                     ($saved['available']??false)&&($saved['confirmation']??null)==='saved_early_assessment_with_signals'
-                    &&($saved['saved']['paired_snapshots']??null)===2
+                    &&($saved['saved']['paired_snapshots']??null)===3
                     &&($saved['saved']['early_assessments_with_signals']??null)===1
-                    &&($saved['saved']['distinct_conversation_scopes']??null)===2
-                    &&($saved['saved']['customer_context_snapshots']??null)===2
+                    &&($saved['saved']['distinct_conversation_scopes']??null)===3
+                    &&($saved['saved']['customer_context_snapshots']??null)===3
                     &&($saved['saved']['goal_counts']['substantive_interest']??0)>0
                     &&($saved['saved']['goal_counts']['agency_purchase_intent']??0)>0
+                    &&($saved['stage_checks']['general_purchase_intent']['validated_saved_evidence']??false)
+                    &&($saved['stage_checks']['agency_purchase_intent']['validated_saved_evidence']??false)
+                    &&($saved['stage_checks']['agency_purchase_intent']['early_assessment']??null)===true
+                    &&($saved['stage_checks']['payment_evidence']['validated_saved_evidence']??false)
+                    &&($saved['stage_checks']['payment_evidence']['early_assessment']??null)===false
                     &&($saved['state']['last_tick_status']??null)==='idle');
                 $check('one budget includes real bearer repeated authorization and reader variant '.$i,
                     $afterBearer<65536&&$afterRead<$afterBearer&&$afterRead>=4096
@@ -165,7 +172,7 @@ function forecastNativeAuthRegression():void
             }
             [$response]=forecastNativeAuthDispatch($pdo,$forecast);
             $check('same granted bearer reads again without renewed consent',
-                ($response['result']['structuredContent']['saved']['paired_snapshots']??null)===2);
+                ($response['result']['structuredContent']['saved']['paired_snapshots']??null)===3);
             [$response]=forecastNativeAuthDispatch($pdo,$legacy);
             $challenge=$response['result']['_meta']['mcp/www_authenticate'][0]??'';
             $check('old real grant receives explicit scope union without a private result',
