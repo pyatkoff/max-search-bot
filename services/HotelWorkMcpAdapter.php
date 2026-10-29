@@ -6,7 +6,7 @@ require_once __DIR__.'/ManagerPreparationOAuth.php';
 final class HotelWorkMcpAdapter
 {
     public const NAMES = ['hotel_work_create','hotel_work_status','hotel_work_claim',
-        'hotel_work_started','hotel_work_complete','hotel_work_release',
+        'hotel_work_started','hotel_work_complete','hotel_work_release','hotel_work_skip_research',
         'hotel_work_handoff_preflight','hotel_work_handoff_connection','hotel_work_resolve_existing_run'];
 
     public function __construct(private PDO $pdo, private $store = null, private $clock = null,
@@ -55,6 +55,15 @@ final class HotelWorkMcpAdapter
                 [...array_keys($claim),'receipt'],false],
             ['hotel_work_release','Explicitly withdraw the exact unclaimed hotel stage. Claimed and unknown work cannot be released by age. Does not cancel hosted work.',
                 ['queue_id'=>$id,'stage_id'=>$sha],['queue_id','stage_id'],false],
+            ['hotel_work_skip_research','Explicitly abandon one owner-approved research batch and its unperformed intake. First independently verify that the exact original run has stopped or all of its external writes are isolated; hashes only attest that check and this operation cannot stop a hosted run or fence hotel files. Pin the queue, stage, baseline, old binding, original run and any UNKNOWN receipt. Both grants must belong to the same active administrator. Preserve history and accepted counters, move only this queue to the actual caller, and leave OAuth/reply permissions intact. A recorded repeat never skips another batch. Continue only from a fresh signed next-stage event, never replay the abandoned run.',
+                ['queue_id'=>$id,'stage_id'=>$sha,'baseline_sha256'=>$sha,
+                    'old_connection_id'=>['type'=>'string','pattern'=>'^[a-f0-9]{32}$'],
+                    'expected_caller_connection_id'=>['type'=>'string','pattern'=>'^[a-f0-9]{32}$'],
+                    'expected_run_id'=>$run,'expected_unknown_receipt_sha256'=>$nullableSha,'decision_sha256'=>$sha,
+                    'external_effects'=>['type'=>'object','properties'=>['status'=>['type'=>'string','enum'=>['stopped','isolated']],
+                        'readback_sha256'=>$sha],'required'=>['status','readback_sha256'],'additionalProperties'=>false]],
+                ['queue_id','stage_id','baseline_sha256','old_connection_id','expected_caller_connection_id','expected_run_id',
+                    'expected_unknown_receipt_sha256','decision_sha256','external_effects'],false],
             ['hotel_work_handoff_preflight','Read-only diagnostics for an exact same-admin hotel queue after a connection change with an already-bound worker run. Checks both canonical grant identities and pinned queue/stage/baseline/run. A positive result is not claim-key proof, access transfer, subscription, signed event or dispatch authorization.',
                 ['queue_id'=>$id,'stage_id'=>$sha,'baseline_sha256'=>$sha,
                     'old_connection_id'=>['type'=>'string','pattern'=>'^[a-f0-9]{32}$'],
@@ -77,7 +86,7 @@ final class HotelWorkMcpAdapter
             $security=[['type'=>'oauth2','scopes'=>['hotel_work:write']]];
             $out[]=['name'=>$name,'description'=>$description,
                 'inputSchema'=>['type'=>'object','properties'=>$properties,'required'=>$required,'additionalProperties'=>false],
-                'annotations'=>['readOnlyHint'=>$readOnly,'destructiveHint'=>false,'idempotentHint'=>true,'openWorldHint'=>false],
+                'annotations'=>['readOnlyHint'=>$readOnly,'destructiveHint'=>$name==='hotel_work_skip_research','idempotentHint'=>true,'openWorldHint'=>false],
                 'securitySchemes'=>$security,'_meta'=>['securitySchemes'=>$security]];
         }
         return $out;
@@ -88,8 +97,11 @@ final class HotelWorkMcpAdapter
         if (!in_array($name,self::NAMES,true)||$admin<=0||!preg_match('/\A[a-f0-9]{32}\z/D',$connection)) throw new InvalidArgumentException();
         if (strlen(json_encode($args,JSON_THROW_ON_ERROR))>16384) throw new InvalidArgumentException();
         $operation=substr($name,strlen('hotel_work_'));
-        if (in_array($operation,['handoff_preflight','handoff_connection','resolve_existing_run'],true)) {
-            if ($operation==='handoff_preflight') {
+        if (in_array($operation,['handoff_preflight','handoff_connection','resolve_existing_run','skip_research'],true)) {
+            if ($operation==='skip_research') {
+                $allowed=['queue_id','stage_id','baseline_sha256','old_connection_id','expected_caller_connection_id',
+                    'expected_run_id','expected_unknown_receipt_sha256','decision_sha256','external_effects'];
+            } elseif ($operation==='handoff_preflight') {
                 $allowed=['queue_id','stage_id','baseline_sha256','old_connection_id','expected_run_id','expected_caller_connection_id'];
             } elseif ($operation==='handoff_connection') {
                 $allowed=['queue_id','stage_id','baseline_sha256','old_connection_id'];
@@ -105,7 +117,7 @@ final class HotelWorkMcpAdapter
             if (array_diff(array_keys($args),['queue_id'])||!is_string($args['queue_id']??null)) throw new InvalidArgumentException();
             $arguments=[$admin,$connection,$args['queue_id']];
         } else $arguments=[$admin,$connection,$args];
-        if (in_array($operation,['handoff_preflight','handoff_connection'],true)) {
+        if (in_array($operation,['handoff_preflight','handoff_connection','skip_research'],true)) {
             // This capability is created only by the authenticated server owner.
             // No client-provided retired/expired/active flag reaches the queue.
             $arguments[]=function(string $old,int $sameAdmin,string $mode) use($connection):bool {
@@ -146,3 +158,4 @@ final class HotelWorkMcpAdapter
         return $result;
     }
 }
+

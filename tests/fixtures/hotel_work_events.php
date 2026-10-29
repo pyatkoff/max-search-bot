@@ -43,8 +43,8 @@ final class HotelEventsTestPdo extends PDO
             $options[PDO::ATTR_EMULATE_PREPARES]=false;
             parent::__construct($dsn,getenv('PREPARED_REPLY_MYSQL_USER')?:null,getenv('PREPARED_REPLY_MYSQL_PASS')?:null,$options);
             if (parent::query('SELECT DATABASE()')->fetchColumn()!==$m[1]) throw new RuntimeException('unsafe_hotel_event_fixture_database');
-            foreach (['hotel_work_events','hotel_work_delivery_recoveries','hotel_work_resolutions','hotel_work_connection_handoffs','hotel_work_receipts','hotel_work_queues','hotel_work_lane'] as $table) parent::exec('DROP TABLE IF EXISTS '.$table);
-            foreach (['070_hotel_work_queue.sql','071_hotel_work_events.sql','072_hotel_work_recovery.sql','073_hotel_work_delivery_recoveries.sql'] as $migration) {
+            foreach (['hotel_work_research_skips','hotel_work_events','hotel_work_delivery_recoveries','hotel_work_resolutions','hotel_work_connection_handoffs','hotel_work_receipts','hotel_work_queues','hotel_work_lane'] as $table) parent::exec('DROP TABLE IF EXISTS '.$table);
+            foreach (['070_hotel_work_queue.sql','071_hotel_work_events.sql','072_hotel_work_recovery.sql','073_hotel_work_delivery_recoveries.sql','076_hotel_work_research_skips.sql'] as $migration) {
                 foreach (explode(';',(string)file_get_contents(dirname(__DIR__,2).'/migrations/'.$migration)) as $sql) if (trim($sql)!=='') parent::exec($sql);
             }
         } else {
@@ -74,6 +74,12 @@ final class HotelEventsTestPdo extends PDO
                 resume_sha256 TEXT NOT NULL,pending_event_id TEXT NOT NULL,attention_event_id TEXT NOT NULL,
                 delivered_at TEXT NOT NULL,claim_deadline TEXT NOT NULL,attention_at TEXT NOT NULL,previous_updated_at TEXT NOT NULL,
                 created_at TEXT NOT NULL,UNIQUE(queue_id,stage_id));
+                CREATE TABLE hotel_work_research_skips(skip_sha256 TEXT NOT NULL UNIQUE,queue_id TEXT NOT NULL,stage_index INTEGER NOT NULL,
+                stage_id TEXT NOT NULL,admin_id INTEGER NOT NULL,old_connection_id TEXT NOT NULL,new_connection_id TEXT NOT NULL,
+                baseline_sha256 TEXT NOT NULL,run_id TEXT NOT NULL,claim_sha256 TEXT NOT NULL,previous_state TEXT NOT NULL,
+                unknown_receipt_sha256 TEXT,decision_sha256 TEXT NOT NULL,external_effects_status TEXT NOT NULL,
+                external_effects_readback_sha256 TEXT NOT NULL,next_stage_index INTEGER NOT NULL,created_at TEXT NOT NULL,
+                PRIMARY KEY(queue_id,stage_index),UNIQUE(queue_id,stage_id));
                 CREATE TABLE hotel_work_resolutions(queue_id TEXT NOT NULL,stage_index INTEGER NOT NULL,stage_id TEXT NOT NULL UNIQUE,
                 unknown_receipt_sha256 TEXT NOT NULL,resolution_sha256 TEXT NOT NULL,receipt_sha256 TEXT NOT NULL,
                 receipt_json TEXT NOT NULL,created_at TEXT NOT NULL,PRIMARY KEY(queue_id,stage_index));');
@@ -99,7 +105,7 @@ final class HotelEventsTestPdo extends PDO
         }
         if (preg_match('/\A\s*(?:INSERT\s+INTO|UPDATE|DELETE\s+FROM)\s+([a-z_]+)/i',$sql,$m)) {
             $table=strtolower($m[1]);
-            if (!in_array($table,['hotel_work_queues','hotel_work_receipts','hotel_work_lane','hotel_work_events','hotel_work_connection_handoffs','hotel_work_resolutions','hotel_work_delivery_recoveries'],true)) throw new RuntimeException('hotel_event_fixture_rejected_business_write');
+            if (!in_array($table,['hotel_work_queues','hotel_work_receipts','hotel_work_lane','hotel_work_events','hotel_work_connection_handoffs','hotel_work_resolutions','hotel_work_delivery_recoveries','hotel_work_research_skips'],true)) throw new RuntimeException('hotel_event_fixture_rejected_business_write');
             $this->writes[]=$table;
         }
     }
@@ -182,3 +188,4 @@ final class HotelEventsFixture
         $this->queue->complete(1,$this->connection,$args+['receipt'=>$receipt]);
     }
 }
+
