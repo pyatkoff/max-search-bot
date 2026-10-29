@@ -14,7 +14,8 @@ concurrency:
 
 jobs:
   read-only:
-    if: github.run_attempt == 1 && github.event.before == '09a0633ad7a3378ff0d2cdf2b09a7381750ada47' && github.event.head_commit.message == 'ops: run approved one-shot read-only grant dependency check'
+    if: >-
+      github.run_attempt == 1 && github.event.before == '88c708575219041666089dde3d53ae7dfa5eae78' && github.event.head_commit.message == 'ops: run approved one-shot read-only grant dependency check'
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
