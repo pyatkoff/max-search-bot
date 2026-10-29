@@ -267,7 +267,7 @@ function forecastStatusAssertions(PDO $p,callable $check):void
     forecastStatusSchema($p);
     $agency=forecastStatusScope($update,'70','90');
     $general=forecastStatusScope(forecastStatusPacket([['text'=>'Хочу купить тур оператора Anex']]),'71','91');
-    $paid=forecastStatusScope(forecastStatusPacket([['text'=>'Подберите тур'],['role'=>'manager','text'=>'Оплату вижу']]),'70','90');
+    $paid=forecastStatusScope(forecastStatusPacket([['text'=>'Подберите тур'],['text'=>'Давайте бронировать этот тур'],['role'=>'manager','text'=>'Оплату вижу']]),'70','90');
     $agency['contextual_signals']['extractor_sha256']=str_repeat('b',64);
     unset($paid['contextual_signals']['extractor_sha256']);
     forecastStatusAppend($p,$agency,'anytour','70','90');
