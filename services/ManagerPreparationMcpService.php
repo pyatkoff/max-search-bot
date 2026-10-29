@@ -71,7 +71,7 @@ final class ManagerPreparationMcpService
             };
             // A context read may wait for public selection pages. Recheck the
             // requesting administrator/connection before exposing its result.
-            if ($rpc['method'] === 'tools/call' && (($params['name'] ?? null) === 'get_reply_context'
+            if ($rpc['method'] === 'tools/call' && (in_array($params['name']??null,['list_pending_replies','get_reply_context'],true)
                 || in_array($params['name']??null,[ManagerSearch3CandidateReader::TOOL,ManagerSearch3CandidateReader::MEAL_TOOL],true)
                 || in_array($params['name']??null,VirtualReplyMcpAdapter::NAMES,true)
                 || in_array($params['name']??null,HotelWorkMcpAdapter::NAMES,true)
@@ -232,7 +232,8 @@ final class ManagerPreparationMcpService
             self::keys($args,['limit']); $limit=$args['limit']??20;
             if (!is_int($limit) || $limit<1 || $limit>20) throw new InvalidArgumentException();
             $jobs=$this->pending($limit);
-            $data=['ok'=>true,'project_key'=>self::PROJECT,'jobs'=>$jobs,'preparation_health'=>$this->preparationHealth()];
+            $data=['ok'=>true,'project_key'=>self::PROJECT,'jobs'=>$jobs,'oauth_connection_id'=>$connection,
+                'preparation_health'=>$this->preparationHealth()];
         } elseif ($name === 'get_reply_context') {
             self::keys($args,['job_id']); $data=$this->storeCall('context',[self::job($args)]);
         } elseif ($name === 'save_prepared_reply') {
