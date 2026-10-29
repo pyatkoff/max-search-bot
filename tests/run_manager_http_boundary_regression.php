@@ -67,6 +67,27 @@ mhCheck('isolated command and event restrictions are checked before delegated ca
     &&str_contains($isolatedService,'connectionAuthorized(')
     &&str_contains($isolatedService,'throw new OutOfBoundsException()'));
 
+// Apache/CGI may discard Authorization before PHP sees the request. Check the
+// deployed file policy, not merely the PHP fallback that passed loopback tests.
+$apache=(string)file_get_contents($root.'/manager/.htaccess');
+preg_match_all('/<Files\s+"([^"]+)">([\s\S]*?)<\/Files>/i',$apache,$filePolicies,PREG_SET_ORDER);
+$bearerFiles=[];
+foreach($filePolicies as $policy) {
+    if(preg_match('/^\s*SetEnvIfNoCase\s+Authorization\s+"\^\(\.\+\)\$"\s+HTTP_AUTHORIZATION=\$1\s*$/mi',$policy[2])) $bearerFiles[]=$policy[1];
+}
+sort($bearerFiles,SORT_STRING);
+$expectedBearerFiles=['ai-mcp.php','development-mcp.php','hotels-mcp.php','replies-mcp.php'];
+mhCheck('Apache preserves the real Authorization header on every fixed MCP endpoint',$bearerFiles===$expectedBearerFiles);
+$outsideFilePolicies=preg_replace('/<Files\s+"[^"]+">[\s\S]*?<\/Files>/i','',$apache);
+mhCheck('Authorization forwarding stays file-scoped and never broadens manager browser or OAuth routes',
+    is_string($outsideFilePolicies)&&!preg_match('/^\s*(?:SetEnvIfNoCase\s+Authorization|CGIPassAuth\s+On)\b/mi',$outsideFilePolicies));
+mhCheck('isolated ingress records the effective header only under its fixed server profile',
+    str_contains($isolatedHttp,"\$_SERVER['HTTP_AUTHORIZATION']=\$header;")
+    &&strpos($isolatedHttp,"\$_SERVER['HTTP_AUTHORIZATION']=\$header;")<strpos($isolatedHttp,'->contextForBearer($header)')
+    &&str_contains($isolatedHttp,"\$body['error']['code']??null,\$surfaceProfile)")
+    &&str_contains($isolatedHttp,"202,'complete',null,\$surfaceProfile)")
+    &&!str_contains($isolatedHttp,'HTTP_X_FORWARDED_AUTHORIZATION'));
+
 $mcp=(string)file_get_contents($root.'/manager/ai-mcp.php');
 mhCheck('legacy MCP interface retains mandatory OAuth bearer and connection binding',
     strpos($mcp,'ManagerPreparationOAuth::bearerContext($header,$preparationMcpForecastBudget)')!==false

@@ -48,6 +48,11 @@ try{
         'development'=>['profile'=>ManagerPreparationOAuth::PROFILE_DEVELOPMENT,'scope'=>ManagerPreparationOAuth::DEVELOPMENT_SCOPE,
             'issuer'=>ManagerPreparationOAuth::DEVELOPMENT_ISSUER,'resource'=>ManagerPreparationOAuth::DEVELOPMENT_RESOURCE],
     ];
+    foreach ([ManagerPreparationOAuth::PROFILE_REPLIES,ManagerPreparationOAuth::PROFILE_HOTELS] as $surface) {
+        $definition=ManagerPreparationOAuth::profileDefinition($surface);
+        $surfaces[$surface]=['profile'=>$surface,'scope'=>implode(' ',$definition['scopes']),
+            'issuer'=>$definition['issuer'],'resource'=>$definition['resource']];
+    }
     $ingress=[];
     foreach ($surfaces as $surface=>$definition) {
         $resource=ManagerPreparationOAuth::resourceMetadata($definition['profile']);
