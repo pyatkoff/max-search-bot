@@ -116,6 +116,46 @@ retry. Release is permitted only for an explicitly withdrawn unclaimed stage;
 it does not cancel a hosted run. Reconcile uncertain external effects through
 the existing owner instead of inventing a new run or releasing a foreign claim.
 
+### Explicitly abandon an unwanted research batch
+
+An owner may decide that an unfinished research batch is no longer worth recovering.
+`hotel_work_skip_research` records that explicit decision without claiming that any
+hotels were processed or accepted. This is an administrative mutation, never a
+timeout, automatic retry policy, or alternative mode of `hotel_work_release`.
+
+Before calling it, independently verify that the exact original hosted run has
+stopped, or that **all** its external writes are isolated from subsequent work.
+Keep that private readback and the owner's decision; pass their SHA-256 values.
+The hashes are attestations, not server-verified proof. The tool does not cancel
+ChatGPT work, fence Library files, or prove that an old writer is harmless.
+Unknown external effects remain held. No synthetic stop/isolation evidence is
+allowed merely because the owner accepts losing the batch's results.
+
+Pin the queue, baseline, old binding, current authenticated caller, research
+stage, already-bound original run and exact UNKNOWN receipt hash (or `null` for
+a claimed stage with no receipt). Both canonical hotel grants must belong to the
+same active administrator. A foreign owner, previously relinquished binding,
+missing run, intake stage, changed pin, accepted receipt or resolution is rejected.
+The old grant may remain active; no OAuth permission, token or subscription changes.
+In particular, `queue:read` + `prepared:write`, the three reply-preparation commands
+and `manager_replies.pending` remain unchanged.
+
+Under the existing lane and queue locks, the operation appends the old run, claim
+hash, state, UNKNOWN hash and decision/effects attestations to migration076's
+audit. Original UNKNOWN receipts remain intact. It atomically skips the research
+and its unperformed intake, moves only this queue to the actual caller when
+necessary, and keeps `accepted_batches` and the criteria phase counter unchanged.
+The shared lane stays with the same queue. `receipt_count` counts actual receipts;
+`skipped_batches` reports skips separately. A repeated exact decision reads back
+without clearing a newer claim, acknowledgement or run; a changed repeat conflicts.
+
+The former stage cannot complete or resolve, and a relinquished connection cannot
+reacquire this queue. The next country research stage needs its own fresh signed
+pending event and exact `expected_pending_event_id`; the skip response is not a
+dispatch instruction. `external_run_cancelled=false` is returned deliberately.
+Finite queues still require their original number of accepted intakes. Rebuilding
+discarded hotels later is new separately admitted work, not replay of the old run.
+
 ## Delivery and recovery
 
 The server uses the canonical verified HTTPS webhook transport. Stable event
@@ -190,7 +230,8 @@ Automations task or an unavailable original HOST action. An operator
 must still resolve the original run and use the unchanged
 `hotel_work_handoff_connection` authorization contract when eligible.
 No second HOTEL lane or fresh country research may replace an original
-claimed/UNKNOWN operation.
+claimed/UNKNOWN operation without the explicit owner-abandonment path above
+and independently verified stop/isolation of its external effects.
 
 If a connection changes after a claim but before a run is recorded, explicit
 `handoff_mode=claim_authority` restores only access to that retained claim.
@@ -297,3 +338,4 @@ Continuous mode advances only after an accepted intake and its due criteria.
 Neither mode modifies the legacy protected reservations or owns the actual
 hotel business database. Stop future hosted triggers through the existing owner
 when retiring the old rotation, after checking its exact current runs.
+

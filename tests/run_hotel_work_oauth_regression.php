@@ -170,6 +170,11 @@ try {
             && $tool['_meta']['securitySchemes']===$tool['securitySchemes'] && $tool['inputSchema']['additionalProperties']===false);
     }
     $deliveryTools=array_column($hotelTools,null,'name');
+    hotelOauthCheck('research skip is an explicit hotel-only destructive administrative action',
+        $deliveryTools['hotel_work_skip_research']['annotations']['readOnlyHint']===false
+        &&$deliveryTools['hotel_work_skip_research']['annotations']['destructiveHint']===true
+        &&in_array('external_effects',$deliveryTools['hotel_work_skip_research']['inputSchema']['required'],true)
+        &&!isset($deliveryTools['hotel_work_skip_research']['inputSchema']['properties']['claim_key']));
     hotelOauthCheck('authority-only recovery is discoverable in the existing hotel tool without a new scope',
         $deliveryTools['hotel_work_handoff_connection']['inputSchema']['properties']['handoff_mode']['enum']===['ready','existing_run','claim_authority']
         &&str_contains($deliveryTools['hotel_work_handoff_connection']['description'],'never authorizes dispatch'));
@@ -241,12 +246,32 @@ try {
         &&!$oauth->connectionAuthorized($legacy,1,[ManagerPreparationOAuth::HOTEL_SCOPE])
         &&(int)$pdo->query('SELECT COUNT(*) FROM manager_preparation_oauth_grants')->fetchColumn()===$grantCount
         &&$pdo->query('SELECT token_hash,grant_id,token_kind,expires_at,consumed_at FROM manager_preparation_oauth_tokens ORDER BY token_hash')->fetchAll(PDO::FETCH_ASSOC)===$tokenState);
-    foreach (['hotel_work_handoff_preflight','hotel_work_handoff_connection','hotel_work_resolve_existing_run'] as $recoveryTool) {
+    foreach (['hotel_work_handoff_preflight','hotel_work_handoff_connection','hotel_work_resolve_existing_run','hotel_work_skip_research'] as $recoveryTool) {
         $challenged=$call('tools/call',['name'=>$recoveryTool,'arguments'=>[]],$legacy,ManagerPreparationOAuth::SCOPES);
         hotelOauthCheck('legacy recovery invocation requires explicit step-up before store '.$recoveryTool,
             ($challenged['result']['isError']??null)===true&&($challenged['result']['_meta']['mcp/www_authenticate']??null)===[$challengeExpected]&&$hotelCalls===0);
     }
     $unknownTool=$call('tools/call',['name'=>'hotel_work_send','arguments'=>[]],$legacy,ManagerPreparationOAuth::SCOPES);
+    $skipArgs=$preflightArgs;
+    $skipArgs['old_connection_id']=$combined;
+    $skipArgs+=['expected_unknown_receipt_sha256'=>null,'decision_sha256'=>str_repeat('d',64),
+        'external_effects'=>['status'=>'isolated','readback_sha256'=>str_repeat('e',64)]];
+    $grantsBeforeSkip=$pdo->query('SELECT * FROM manager_preparation_oauth_grants ORDER BY grant_id')->fetchAll(PDO::FETCH_ASSOC);
+    $tokensBeforeSkip=$pdo->query('SELECT * FROM manager_preparation_oauth_tokens ORDER BY token_hash')->fetchAll(PDO::FETCH_ASSOC);
+    $skipAdapter=new HotelWorkMcpAdapter($pdo,static function(string $operation,array $args):array {
+        if ($operation!=='skip_research') throw new LogicException('unexpected_skip_operation');
+        $proof=$args[3];
+        return ['current'=>$proof($args[1],$args[0],'current'),'old'=>$proof($args[2]['old_connection_id'],$args[0],'ready')];
+    },$clock);
+    hotelOauthCheck('skip proves current hotel caller and active same-admin old binding without retiring OAuth',
+        $skipAdapter->call('hotel_work_skip_research',$skipArgs,1,$hotel)===['current'=>true,'old'=>true]
+        &&!$oauth->connectionRetired($combined,1));
+    hotelOauthCheck('skip proof preserves original reply grant token family and three reply commands',
+        $pdo->query('SELECT * FROM manager_preparation_oauth_grants ORDER BY grant_id')->fetchAll(PDO::FETCH_ASSOC)===$grantsBeforeSkip
+        &&$pdo->query('SELECT * FROM manager_preparation_oauth_tokens ORDER BY token_hash')->fetchAll(PDO::FETCH_ASSOC)===$tokensBeforeSkip
+        &&$oauth->connectionAuthorized($legacy,1,ManagerPreparationOAuth::SCOPES)
+        &&$oauth->connectionAuthorized($combined,1,ManagerPreparationOAuth::SCOPES)
+        &&count(array_intersect(['list_pending_replies','get_reply_context','save_prepared_reply'],array_column($legacyTools,'name')))===3);
     hotelOauthCheck('unrecognized hotel names cannot fabricate a linking challenge',($unknownTool['error']['code']??null)===-32602&&!isset($unknownTool['result'])&&$hotelCalls===0);
     foreach (['revoked_at','expires_at'] as $terminalField) {
         $invalidTokens=$oauth->exchange(hotelOauthCode($oauth,$client,$legacyScope));
@@ -428,3 +453,4 @@ try {
         ($demoted['error']['code']??null)===-32001&&!isset($demoted['result'])&&$hotelCalls===$recoveryCalls);
     echo 'TOTAL '.$passed." hotel OAuth/MCP checks passed\n";
 } catch (Throwable $error) { fwrite(STDERR,$error->getMessage()."\n");exit(1); }
+

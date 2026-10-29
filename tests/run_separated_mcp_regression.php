@@ -84,6 +84,59 @@ checkSplit('hotel cron accepts separate resource',$background->eventConnectionAu
 checkSplit('cron denies crossed domain',!$background->eventConnectionAuthorizedAcrossProfiles('replies',$h['connection_id'],1)&&!$background->eventConnectionAuthorizedAcrossProfiles('hotels',$r['connection_id'],1));
 checkSplit('active hotel grant not retired',!$oauth['hotels']->connectionRetired($h['connection_id'],1));
 
+// Exercise the main skip operation through the isolated hotel adapter's canonical proof.
+$combinedScope=implode(' ',[...ManagerPreparationOAuth::SCOPES,ManagerPreparationOAuth::HOTEL_SCOPE]);
+$skipVerifier=str_repeat('s',43);$skipSession=['csrf'=>'synthetic-skip-csrf'];
+$skipRequest=['client_id'=>$clients['legacy'],'redirect_uri'=>ManagerPreparationOAuth::REDIRECT_URI,
+    'response_type'=>'code','resource'=>ManagerPreparationOAuth::RESOURCE,'scope'=>$combinedScope,
+    'state'=>'synthetic-skip-state','code_challenge_method'=>'S256',
+    'code_challenge'=>rtrim(strtr(base64_encode(hash('sha256',$skipVerifier,true)),'+/','-_'),'=')];
+$skipPending=$oauth['legacy']->beginAuthorization($skipSession,$skipRequest);
+$skipUrl=$oauth['legacy']->completeAuthorization($skipSession,$skipPending,1,$skipSession['csrf'],true);
+parse_str((string)parse_url($skipUrl,PHP_URL_QUERY),$skipCallback);
+$skipTokens=$oauth['legacy']->exchange(['grant_type'=>'authorization_code','client_id'=>$clients['legacy'],
+    'redirect_uri'=>ManagerPreparationOAuth::REDIRECT_URI,'resource'=>ManagerPreparationOAuth::RESOURCE,
+    'code'=>$skipCallback['code'],'code_verifier'=>$skipVerifier]);
+$combinedContext=$oauth['legacy']->contextForBearer('Bearer '.$skipTokens['access_token']);
+checkSplit('skip fixture explicitly consents a legacy combined hotel grant',is_array($combinedContext)
+    &&!array_diff([...ManagerPreparationOAuth::SCOPES,ManagerPreparationOAuth::HOTEL_SCOPE],$combinedContext['scopes']));
+$skipGrantsBefore=$pdo->query('SELECT * FROM manager_preparation_oauth_grants ORDER BY grant_id')->fetchAll(PDO::FETCH_ASSOC);
+$skipTokensBefore=$pdo->query('SELECT * FROM manager_preparation_oauth_tokens ORDER BY token_hash')->fetchAll(PDO::FETCH_ASSOC);
+$skipCalls=0;$skipProofs=[];
+$skipStore=static function(string $operation,array $arguments)use(&$skipCalls,&$skipProofs):array {
+    if ($operation!=='skip_research'||count($arguments)!==4||!is_callable($arguments[3])) throw new LogicException('invalid_skip_adapter_dispatch');
+    ++$skipCalls;[$admin,$connection,$args,$proof]=$arguments;
+    $current=$proof($connection,$admin,'current');$old=$proof($args['old_connection_id'],$admin,'ready');
+    $skipProofs[]=['current'=>$current,'old'=>$old];
+    // Match the queue's proof contract without claiming or changing any queue.
+    if ($current!==true||$old!==true) throw new DomainException('hotel_work_access_denied');
+    return ['ok'=>true,'current'=>$current,'old'=>$old];
+};
+$skipService=new SeparatedMcpService('hotels',$pdo,$skipStore,$clock);
+$skipArgs=['queue_id'=>'SYNTHETIC','stage_id'=>str_repeat('a',64),'baseline_sha256'=>str_repeat('b',64),
+    'old_connection_id'=>$combinedContext['connection_id'],'expected_caller_connection_id'=>$h['connection_id'],
+    'expected_run_id'=>'SYNTHETIC_SKIP_PROOF','expected_unknown_receipt_sha256'=>null,
+    'decision_sha256'=>str_repeat('c',64),'external_effects'=>['status'=>'isolated','readback_sha256'=>str_repeat('d',64)]];
+$skipRpc=fn(array $args):array=>rpcSplit('tools/call',['name'=>'hotel_work_skip_research','arguments'=>$args]);
+$skipResponse=$skipService->handle($skipRpc($skipArgs),1,$h['connection_id'],$h['scopes']);
+checkSplit('isolated hotel skip proves actual hot caller and canonical legacy hotel binding',
+    !isset($skipResponse['error'])&&($skipResponse['result']['structuredContent']??null)===['ok'=>true,'current'=>true,'old'=>true]
+    &&$skipCalls===1&&$skipProofs===[['current'=>true,'old'=>true]]);
+foreach (['replies','development','legacy'] as $invalidOld) {
+    $badSkip=$skipArgs;$badSkip['old_connection_id']=$ctx[$invalidOld]['connection_id'];$beforeSkip=$skipCalls;
+    $skipResponse=$skipService->handle($skipRpc($badSkip),1,$h['connection_id'],$h['scopes']);
+    checkSplit('isolated skip refuses non-hotel old binding '.$invalidOld,
+        ($skipResponse['error']['code']??0)===-32001&&$skipCalls===$beforeSkip+1
+        &&end($skipProofs)===['current'=>true,'old'=>false]);
+}
+$skipReplyService=new SeparatedMcpService('replies',$pdo,$skipStore,$clock);$beforeSkip=$skipCalls;
+$skipResponse=$skipReplyService->handle($skipRpc($skipArgs),1,$r['connection_id'],$r['scopes']);
+checkSplit('reply profile refuses research skip before store',
+    ($skipResponse['error']['code']??0)===-32601&&$skipCalls===$beforeSkip);
+checkSplit('isolated skip proofs preserve all canonical grants and token families',
+    $pdo->query('SELECT * FROM manager_preparation_oauth_grants ORDER BY grant_id')->fetchAll(PDO::FETCH_ASSOC)===$skipGrantsBefore
+    &&$pdo->query('SELECT * FROM manager_preparation_oauth_tokens ORDER BY token_hash')->fetchAll(PDO::FETCH_ASSOC)===$skipTokensBefore);
+
 // Reproduce the two independent review findings using real canonical grants.
 function unavailableSplit(string $name,callable $call): void
 {
@@ -178,3 +231,4 @@ checkSplit('reply revoke does not revoke hotels',$oauth['hotels']->contextForBea
 checkSplit('revoked reply cannot call service',($services['replies']->handle(rpcSplit('tools/list'),1,$r['connection_id'],$r['scopes'])['error']['code']??0)===-32001);
 checkSplit('reply issuer cannot revoke hotel grant',($oauth['replies']->revoke(['token'=>$tokens['hotels']['access_token'],'client_id'=>$clients['hotels']])===null)&&$oauth['hotels']->contextForBearer('Bearer '.$tokens['hotels']['access_token'])!==null);
 echo 'SEPARATED MCP: '.$checks.' PASS'.PHP_EOL;
+

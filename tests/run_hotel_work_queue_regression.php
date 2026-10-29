@@ -3,6 +3,37 @@ declare(strict_types=1);
 require_once dirname(__DIR__).'/services/HotelWorkQueue.php';
 require_once __DIR__.'/fixtures/hotel_work_queue.php';
 
+// Race cancellation against the original completion using the real SQL lane lock.
+if (($argv[1]??'')==='--skip-race-child') {
+    [$unused,$mode,$file,$input,$action,$winner,$out]=array_pad($argv,7,'');
+    $pdo=new HotelWorkTestPdo($file==='MYSQL'?null:$file,false);
+    $args=json_decode((string)file_get_contents($input),true,16,JSON_THROW_ON_ERROR);
+    $wait=static function(string $path):void {
+        $until=microtime(true)+10;while (!is_file($path)&&microtime(true)<$until) usleep(1000);
+        if (!is_file($path)) throw new RuntimeException('skip_race_timeout');
+    };
+    $held=false;
+    $hold=static function()use(&$held,$out,$wait):void {
+        if ($held) return;$held=true;file_put_contents($out.'.locked','locked');$wait($out.'.release');
+    };
+    $q=new HotelWorkQueue($pdo,static function()use($action,$winner,$hold):int {
+        if ($action==='complete'&&$winner==='1') $hold();return 1793100000;
+    });
+    $proof=static function()use($action,$winner,$hold):bool {if ($action==='skip'&&$winner==='1') $hold();return true;};
+    file_put_contents($out.'.ready','ready');$wait($out.'.go');file_put_contents($out.'.attempting','attempting');
+    try {
+        if ($action==='skip') $result=$q->skip_research(1,str_repeat('a',32),$args,$proof)['skip_status'];
+        else {
+            $receipt=['run_id'=>$args['expected_run_id'],'outcome'=>'accepted_readback','packet_sha256'=>str_repeat('1',64),
+                'readback_sha256'=>str_repeat('2',64),'ledger_sha256'=>str_repeat('3',64),'hotel_count'=>1,'record_count'=>1,
+                'source_count'=>0,'read_update_count'=>0,'criteria'=>null];
+            $q->complete(1,str_repeat('a',32),['queue_id'=>'RACE','stage_id'=>$args['stage_id'],'claim_key'=>str_repeat('b',64),'receipt'=>$receipt]);
+            $result='completed';
+        }
+    } catch (HotelWorkQueueConflict $e) {$result='conflict:'.$e->reason;}
+    file_put_contents($out,$result);exit(0);
+}
+
 // Both contenders pin the same claimed stage before taking the actual SQL lock.
 if (($argv[1]??'')==='--claim-authority-child') {
     [$unused,$mode,$barrier,$out,$file,$action]=array_pad($argv,6,'');
@@ -1046,4 +1077,6 @@ foreach (['claim_first','recovery_first','old_ack_race'] as $scenario) {
         $racePdo=null;$raceQ=null;foreach (glob($dir.'/*')?:[] as $path) unlink($path);rmdir($dir);
     }
 }
+require __DIR__.'/hotel_work_skip_checks.php';
 echo 'HOTEL WORK QUEUE: '.$checks." PASS\n";
+
