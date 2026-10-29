@@ -15,7 +15,7 @@ function hotelSkipFixture(bool $unknown=false,bool $sameConnection=false): array
     $args=['queue_id'=>'PILOT','stage_id'=>$before['stage_id'],'baseline_sha256'=>$before['baseline_sha256'],
         'old_connection_id'=>str_repeat('a',32),'expected_caller_connection_id'=>$caller,'expected_run_id'=>'ABANDONED_RESEARCH',
         'expected_unknown_receipt_sha256'=>$unknownHash,'decision_sha256'=>str_repeat('d',64),
-        'external_effects'=>['status'=>'stopped','readback_sha256'=>str_repeat('e',64)]];
+        'external_effects'=>['status'=>$unknown?'isolated':'stopped','readback_sha256'=>str_repeat('e',64)]];
     $proof=static fn(string $id,int $admin,string $mode):bool=>$admin===1
         &&(($id===$caller&&$mode==='current')||($id===str_repeat('a',32)&&$mode==='ready'));
     return [$pdo,$q,$caller,$args,$proof,$claim,$before];
@@ -148,4 +148,56 @@ $s=$queue->status(1,$caller,'PILOT');
 hotelAssert($s['state']==='complete'&&$s['accepted_batches']===3&&$s['receipt_count']===6&&$s['skipped_batches']===1
     &&$s['stage_index']===8&&$db->query('SELECT queue_id FROM hotel_work_lane')->fetchColumn()===null,
     'finite queue still needs three accepted intakes after one abandoned batch');
+
+foreach ([['skip','complete'],['complete','skip'],['skip','skip']] as [$first,$second]) {
+    $prefix=tempnam(sys_get_temp_dir(),'hotel-skip-');if ($prefix===false) throw new RuntimeException('skip_race_fixture');
+    unlink($prefix);$file=$prefix.'.sqlite';$input=$prefix.'.json';
+    $db=new HotelWorkTestPdo($file);$queue=new HotelWorkQueue($db,static fn():int=>1793100000);
+    $s=$queue->create(1,str_repeat('a',32),['queue_id'=>'RACE','baseline_sha256'=>str_repeat('0',64)]);
+    $claim=['queue_id'=>'RACE','stage_id'=>$s['stage_id'],'claim_key'=>str_repeat('b',64)];
+    $queue->claim(1,str_repeat('a',32),$claim);$queue->started(1,str_repeat('a',32),$claim+['run_id'=>'ORIGINAL_RACE']);
+    $args=['queue_id'=>'RACE','stage_id'=>$s['stage_id'],'baseline_sha256'=>$s['baseline_sha256'],
+        'old_connection_id'=>str_repeat('a',32),'expected_caller_connection_id'=>str_repeat('a',32),'expected_run_id'=>'ORIGINAL_RACE',
+        'expected_unknown_receipt_sha256'=>null,'decision_sha256'=>str_repeat('d',64),
+        'external_effects'=>['status'=>'stopped','readback_sha256'=>str_repeat('e',64)]];
+    file_put_contents($input,json_encode($args,JSON_THROW_ON_ERROR));$workers=[];
+    $wait=static function(string $path):void {
+        $until=microtime(true)+10;while (!is_file($path)&&microtime(true)<$until) usleep(1000);
+        if (!is_file($path)) throw new RuntimeException('skip_race_parent_timeout: '.basename($path));
+    };
+    try {
+        foreach ([$first,$second] as $i=>$action) {
+            $out=$prefix.'.'.$i;
+            $process=proc_open([PHP_BINARY,__DIR__.'/run_hotel_work_queue_regression.php','--skip-race-child',
+                $db->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?'MYSQL':$file,$input,$action,$i===0?'1':'0',$out],
+                [0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes);
+            if (!is_resource($process)) throw new RuntimeException('skip_race_process');
+            fclose($pipes[0]);$workers[]=[$process,$pipes,$out];
+        }
+        foreach ($workers as $worker) $wait($worker[2].'.ready');
+        touch($workers[0][2].'.go');$wait($workers[0][2].'.locked');
+        touch($workers[1][2].'.go');$wait($workers[1][2].'.attempting');
+        usleep(20000);hotelAssert(!is_file($workers[1][2]),'competing skip/completion waits for the held lane transaction');
+        touch($workers[0][2].'.release');
+        foreach ($workers as [$process,$pipes,$out]) {
+            $wait($out);$stdout=stream_get_contents($pipes[1]);$stderr=stream_get_contents($pipes[2]);
+            fclose($pipes[1]);fclose($pipes[2]);$exit=proc_close($process);
+            hotelAssert($exit===0&&$stdout===''&&$stderr==='','skip race child completes cleanly');
+        }
+        $results=[file_get_contents($prefix.'.0'),file_get_contents($prefix.'.1')];
+        $expected=$first==='complete'?['completed','conflict:stale_stage']:
+            ['research_batch_skipped',$second==='complete'?'conflict:research_batch_skipped':'already_recorded'];
+        $s=$queue->status(1,str_repeat('a',32),'RACE');
+        hotelAssert($results===$expected&&$s['stage_index']===($first==='complete'?1:2)
+            &&$s['receipt_count']===($first==='complete'?1:0)&&$s['skipped_batches']===($first==='complete'?0:1),
+            'real SQL race has one winning outcome: '.$first.' then '.$second);
+    } finally {
+        foreach ($workers as [$process,$pipes,$out]) {
+            if (is_resource($process)) {proc_terminate($process);proc_close($process);}
+            foreach ($pipes as $pipe) if (is_resource($pipe)) fclose($pipe);
+        }
+        unset($queue,$db);
+        foreach (glob($prefix.'*')?:[] as $path) if (is_file($path)) unlink($path);
+    }
+}
 
