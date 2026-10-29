@@ -11,7 +11,7 @@ concurrency:
 jobs:
   source:
     if: >-
-      github.run_attempt == 1 && github.event.before == 'b51cd7cd08d1449295c35842a9bebea0e8cbb48a' && github.event.head_commit.message == 'build: verify PR1240 review repairs against accepted PR1238 once'
+      github.run_attempt == 1 && github.event.before == '50655d5c9efa9b1a0bd9711bcf9311e51bd37104' && github.event.head_commit.message == 'build: verify isolated MCP HTTP and full manager regressions once'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
@@ -25,7 +25,7 @@ jobs:
           fetch-depth: 2
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
+          php-version: '8.2'
           extensions: pdo_sqlite, mbstring
           coverage: none
       - name: Apply exact source repairs without production access
@@ -33,27 +33,30 @@ jobs:
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$BASE"
           git fetch --no-tags --depth=2 origin "$GITHUB_SHA" "$INTEGRATION"
-          git show "$GITHUB_SHA:tools/fix_isolated_mcp_review.py" > "$RUNNER_TEMP/fix_isolated_mcp_review.py"
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git merge --no-ff --no-commit "$INTEGRATION"
-          python3 "$RUNNER_TEMP/fix_isolated_mcp_review.py"
+          for script in fix_isolated_mcp_review.py fix_isolated_mcp_fixture_compat.py; do
+            git show "$GITHUB_SHA:tools/$script" > "$RUNNER_TEMP/$script"
+            python3 "$RUNNER_TEMP/$script"
+          done
           python3 - <<'PY'
           import json, subprocess
           for path in json.load(open('split_review_paths.json')):
               if path.endswith('.php'):
                   subprocess.run(['php','-l',path],check=True)
           PY
-      - name: Targeted synthetic review and HTTP regressions
+      - name: Full manager regressions including isolated OAuth HTTP and cron health
         run: |
           set -euo pipefail
-          php tests/run_separated_mcp_regression.php
-          php tests/run_manager_preparation_oauth_regression.php
-          php tests/run_manager_preparation_mcp_regression.php
-          php tests/run_manager_preparation_endpoint_regression.php
-          php tests/run_hotel_work_oauth_regression.php
-          php tests/run_hotel_work_events_regression.php
-          php tests/run_hotel_work_queue_regression.php
+          log="$RUNNER_TEMP/manager-regressions.log"
+          if php tests/run_required_group.php manager > "$log" 2>&1; then
+            grep -E 'SEPARATED MCP:|manager preparation OAuth checks|preparation MCP regression|HOTEL WORK QUEUE:|TOTAL.*hotel|REQUIRED CHECK GROUPS PASSED' "$log" || true
+            tail -n 4 "$log"
+          else
+            tail -n 70 "$log"
+            exit 1
+          fi
       - name: Publish tested repair to the existing candidate only
         run: |
           set -euo pipefail
@@ -62,7 +65,10 @@ jobs:
           python3 - <<'PY'
           import json, subprocess
           paths=json.load(open('split_review_paths.json'))
-          allowed={'services/ManagerPreparationOAuth.php','services/ManagerPreparationMcpService.php','tests/run_separated_mcp_regression.php','tests/run_manager_preparation_oauth_regression.php','docs/SEPARATED_REPLIES_HOTELS_MCP.md'}
+          allowed={'services/ManagerPreparationOAuth.php','services/ManagerPreparationMcpService.php','tests/run_separated_mcp_regression.php','tests/run_manager_preparation_oauth_regression.php','docs/SEPARATED_REPLIES_HOTELS_MCP.md','tests/run_manager_preparation_health_regression.php','tests/run_hotel_work_health_regression.php'}
+          for profile in ('replies','hotels'):
+              allowed.add(f'.well-known/oauth-authorization-server/manager/{profile}-oauth.php')
+              allowed.add(f'.well-known/oauth-protected-resource/manager/{profile}-mcp.php')
           if set(paths)!=allowed: raise SystemExit('Repair scope mismatch')
           subprocess.run(['git','add','--',*paths],check=True)
           PY
