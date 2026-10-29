@@ -11,7 +11,7 @@ concurrency:
 jobs:
   source:
     if: >-
-      github.run_attempt == 1 && github.event.before == 'ec615197aa7d936c318aba0f80b2a5e27c92e91a' && github.event.head_commit.message == 'build: validate split consent actions with full manager checks'
+      github.run_attempt == 1 && github.event.before == 'bc368e71bd7a3dd49e34faadc0cf73c9d0289838' && github.event.head_commit.message == 'build: verify exact cron fixture constructor and split MCP repairs'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
@@ -48,6 +48,12 @@ jobs:
           old="if (!in_array($action,['/manager/ai-oauth.php?action=authorize','/manager/development-oauth.php?action=authorize'],true))"
           new="if (!in_array($action,['/manager/ai-oauth.php?action=authorize','/manager/development-oauth.php?action=authorize','/manager/replies-oauth.php?action=authorize','/manager/hotels-oauth.php?action=authorize'],true))"
           if text.count(old)!=1: raise SystemExit('Consent helper marker changed')
+          p.write_text(text.replace(old,new))
+          p=Path('tests/run_manager_preparation_health_regression.php')
+          text=p.read_text()
+          old='public function __construct(private $connectionActive=null)'
+          new='public function __construct($pdo=null,private $connectionActive=null)'
+          if text.count(old)!=1: raise SystemExit('Health fixture constructor marker changed')
           p.write_text(text.replace(old,new))
           for path in json.load(open('split_review_paths.json')):
               if path.endswith('.php'):
