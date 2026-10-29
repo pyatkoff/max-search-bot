@@ -332,7 +332,7 @@ final class ManagerPreparationMcpService
             return $remove?$this->hotelEvents()->unsubscribe($params,$admin,$connection):$this->hotelEvents()->subscribe($params,$admin,$connection);
         }
         if (!ManagerPreparationOAuth::hasScopes($scopes,ManagerPreparationOAuth::SCOPES)) throw new DomainException();
-        return $remove?$this->unsubscribe($params,$admin):$this->subscribe($params,$admin,$connection);
+        return $remove?$this->unsubscribe($params,$admin,$connection):$this->subscribe($params,$admin,$connection);
     }
 
     private function pending(int $limit): array
@@ -415,11 +415,15 @@ final class ManagerPreparationMcpService
         return ['id'=>$id,'refreshBefore'=>str_replace(' ','T',$expires).'Z','cursor'=>null,'truncated'=>false];
     }
 
-    private function unsubscribe(array $params,int $admin): object
+    private function unsubscribe(array $params,int $admin,?string $connection): object
     {
+        if (!is_string($connection)||!preg_match('/\A[a-f0-9]{32}\z/D',$connection)
+            ||!$this->activeConnection($connection,$admin)) throw new DomainException();
         [$id]=$this->subscriptionIdentity($params,$admin,false);
-        $this->pdo->prepare('UPDATE manager_preparation_events SET is_active=0,pending_event_id=NULL,pending_body=NULL,pending_jobs_json=NULL,updated_at=? WHERE subscription_id=? AND admin_id=?')
-            ->execute([gmdate('Y-m-d H:i:s',$this->now()),$id,$admin]);
+        // Same administrator/callback is not authority over another OAuth binding.
+        // In particular, cleanup from an old connection must not stop its replacement.
+        $this->pdo->prepare('UPDATE manager_preparation_events SET is_active=0,pending_event_id=NULL,pending_body=NULL,pending_jobs_json=NULL,updated_at=? WHERE subscription_id=? AND admin_id=? AND project_key=? AND oauth_connection_id=?')
+            ->execute([gmdate('Y-m-d H:i:s',$this->now()),$id,$admin,self::PROJECT,$connection]);
         return (object)[];
     }
 

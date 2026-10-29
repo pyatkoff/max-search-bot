@@ -74,7 +74,7 @@ function preparationOauthConsentForm(string $html, string $decision, string $act
         libxml_use_internal_errors($previous);
     }
     $xpath=new DOMXPath($dom);
-    if (!in_array($action,['/manager/ai-oauth.php?action=authorize','/manager/development-oauth.php?action=authorize'],true)) throw new RuntimeException('Invalid consent action');
+    if (!in_array($action,['/manager/ai-oauth.php?action=authorize','/manager/development-oauth.php?action=authorize','/manager/replies-oauth.php?action=authorize','/manager/hotels-oauth.php?action=authorize'],true)) throw new RuntimeException('Invalid consent action');
     $forms=$xpath->query('//form[@action="'.$action.'"]');
     if ($forms->length!==1) throw new RuntimeException('Expected one canonical consent form');
     $form=$forms->item(0);
@@ -106,6 +106,16 @@ function preparationOauthHttpChecks(bool $browserFixture = false, bool $developm
         chmod($database,0600);
         $root=dirname(__DIR__);
         foreach (['manager/ai-oauth.php','manager/development-oauth.php','manager/lib/ManagerHttp.php','services/ManagerPreparationOAuth.php','services/ManagerRequestContext.php','.well-known/oauth-authorization-server/index.php','.well-known/oauth-authorization-server/manager/ai-oauth.php','.well-known/oauth-authorization-server/manager/development-oauth.php'] as $file) copy($root.'/'.$file,$tmp.'/'.$file);
+        // Use exact production route/helper bytes, but only the existing temporary test DB.
+        foreach (['replies','hotels'] as $splitProfile) {
+            foreach (['manager/'.$splitProfile.'-oauth.php',
+                '.well-known/oauth-authorization-server/manager/'.$splitProfile.'-oauth.php',
+                '.well-known/oauth-protected-resource/manager/'.$splitProfile.'-mcp.php'] as $splitFile) {
+                if (!is_dir(dirname($tmp.'/'.$splitFile))) mkdir(dirname($tmp.'/'.$splitFile),0700,true);
+                if (!copy($root.'/'.$splitFile,$tmp.'/'.$splitFile)) throw new RuntimeException('split_fixture_copy');
+            }
+        }
+        if (!copy($root.'/manager/lib/SeparatedMcpOAuthHttp.php',$tmp.'/manager/lib/SeparatedMcpOAuthHttp.php')) throw new RuntimeException('split_fixture_copy');
         preparationOauthCheck('HTTP fixture executes exact OAuth endpoint and service bytes',hash_file('sha256',$root.'/manager/ai-oauth.php')===hash_file('sha256',$tmp.'/manager/ai-oauth.php') && hash_file('sha256',$root.'/services/ManagerPreparationOAuth.php')===hash_file('sha256',$tmp.'/services/ManagerPreparationOAuth.php'));
         foreach (['manager/development-oauth.php','.well-known/oauth-authorization-server/manager/development-oauth.php'] as $file)
             preparationOauthCheck('HTTP fixture executes exact dedicated DEV source '.$file,hash_file('sha256',$root.'/'.$file)===hash_file('sha256',$tmp.'/'.$file));
@@ -380,6 +390,73 @@ function preparationOauthHttpChecks(bool $browserFixture = false, bool $developm
         preparationOauthCheck('HTTP DEV diagnostic log contains no raw access or refresh credential',
             !str_contains((string)file_get_contents($tmp.'/server.log'),$devTokens['json']['access_token'])
             &&!str_contains((string)file_get_contents($tmp.'/server.log'),$devTokens['json']['refresh_token']));
+
+        $splitIssued=[];
+        foreach (['replies','hotels'] as $splitProfile) {
+            $definition=ManagerPreparationOAuth::profileDefinition($splitProfile);
+            $route='/manager/'.$splitProfile.'-oauth.php';
+            $resourceRoute='/.well-known/oauth-protected-resource/manager/'.$splitProfile.'-mcp.php';
+            $metadataRoute='/.well-known/oauth-authorization-server/manager/'.$splitProfile.'-oauth.php';
+            $meta=$request($metadataRoute);$resource=$request($resourceRoute);
+            preparationOauthCheck('HTTP isolated issuer/resource '.$splitProfile,$meta['status']===200&&$resource['status']===200
+                &&$meta['json']===ManagerPreparationOAuth::authorizationMetadata($splitProfile)
+                &&$resource['json']===ManagerPreparationOAuth::resourceMetadata($splitProfile));
+            $wrongMethod=$request($metadataRoute,'POST');
+            preparationOauthCheck('HTTP isolated discovery GET only '.$splitProfile,$wrongMethod['status']===405);
+            $registration=$request($route.'?action=register','POST',json_encode(['redirect_uris'=>[ManagerPreparationOAuth::REDIRECT_URI]]),'','application/json');
+            $splitClient=$registration['json']['client_id']??'';
+            preparationOauthCheck('HTTP isolated registration '.$splitProfile,$registration['status']===201
+                &&str_starts_with($splitClient,$definition['prefix'])&&strlen($splitClient)===48
+                &&($registration['json']['scope']??null)===implode(' ',$definition['defaults']));
+            $badRegistration=$request($route.'?action=register','POST',json_encode(['redirect_uris'=>[ManagerPreparationOAuth::REDIRECT_URI],
+                'scope'=>'queue:read prepared:write hotel_work:write']),'','application/json');
+            preparationOauthCheck('HTTP isolated scope escalation blocked '.$splitProfile,$badRegistration['status']===400&&($badRegistration['json']['error']??null)==='invalid_scope');
+            $authorization=array_replace(preparationOauthRequest($splitClient,$verifier),['resource'=>$definition['resource'],'scope'=>implode(' ',$definition['scopes'])]);
+            $url=$route.'?'.http_build_query(['action'=>'authorize']+$authorization,'','&',PHP_QUERY_RFC3986);
+            $consent=$request($url,'GET','',$devCookie);
+            $form=preparationOauthConsentForm($consent['body'],'allow',$route.'?action=authorize');
+            preparationOauthCheck('HTTP isolated consent permissions '.$splitProfile,$consent['status']===200
+                &&str_contains($consent['body'],$splitProfile==='replies'?'Сохранение подготовленных ответов':'Управление очередью гостиничных исследований')
+                &&!str_contains($consent['body'],$splitProfile==='replies'?'<li>Управление очередью гостиничных исследований':'<li>Чтение очереди и контекста диалогов'));
+            $badCsrf=$request($form['action'],'POST',http_build_query(array_replace($form['post'],['csrf'=>'invalid-csrf'])),$devCookie);
+            preparationOauthCheck('HTTP isolated consent rejects CSRF '.$splitProfile,$badCsrf['status']===403&&($badCsrf['json']['error']??null)==='csrf');
+            $opposite=$splitProfile==='replies'?'hotels':'replies';
+            $crossPending=$request('/manager/'.$opposite.'-oauth.php?action=authorize','POST',http_build_query($form['post']),$devCookie);
+            preparationOauthCheck('HTTP isolated pending context fenced '.$splitProfile,$crossPending['status']===400&&($crossPending['json']['error_description']??null)==='consent_request_missing');
+            $allowed=$request($form['action'],$form['method'],http_build_query($form['post']),$devCookie);
+            parse_str((string)parse_url($allowed['location'],PHP_URL_QUERY),$callback);
+            preparationOauthCheck('HTTP isolated consent callback '.$splitProfile,$allowed['status']===303
+                &&str_starts_with($allowed['location'],ManagerPreparationOAuth::REDIRECT_URI.'?')
+                &&($callback['iss']??null)===$definition['issuer']&&isset($callback['code']));
+            $exchange=['grant_type'=>'authorization_code','client_id'=>$splitClient,'resource'=>$definition['resource'],
+                'redirect_uri'=>ManagerPreparationOAuth::REDIRECT_URI,'code'=>$callback['code'],'code_verifier'=>$verifier];
+            $crossToken=$request('/manager/'.$opposite.'-oauth.php?action=token','POST',http_build_query($exchange));
+            preparationOauthCheck('HTTP isolated foreign issuer rejects code '.$splitProfile,$crossToken['status']===400&&($crossToken['json']['error']??null)==='invalid_client');
+            $issued=$request($route.'?action=token','POST',http_build_query($exchange));
+            $owner=new ManagerPreparationOAuth($pdo,null,$splitProfile);
+            preparationOauthCheck('HTTP isolated code still exchangeable '.$splitProfile,$issued['status']===200
+                &&($issued['json']['scope']??null)===implode(' ',$definition['scopes'])
+                &&$owner->verifyBearer('Bearer '.$issued['json']['access_token'])===1);
+            $family=$owner->connectionForBearer('Bearer '.$issued['json']['access_token']);
+            $ownPage=$request($route.'?action=connections','GET','',$devCookie);
+            $foreignPage=$request('/manager/'.$opposite.'-oauth.php?action=connections','GET','',$devCookie);
+            preparationOauthCheck('HTTP isolated connection administration '.$splitProfile,$ownPage['status']===200&&$foreignPage['status']===200
+                &&str_contains($ownPage['body'],$family)&&!str_contains($foreignPage['body'],$family));
+            $splitIssued[$splitProfile]=['owner'=>$owner,'client'=>$splitClient,'tokens'=>$issued['json']];
+        }
+        $replyIssued=$splitIssued['replies'];$hotelIssued=$splitIssued['hotels'];
+        $crossRevoke=$request('/manager/replies-oauth.php?action=revoke','POST',http_build_query([
+            'token'=>$hotelIssued['tokens']['access_token'],'client_id'=>$hotelIssued['client']]));
+        preparationOauthCheck('HTTP replies cannot revoke hotel consent',$crossRevoke['status']===200
+            &&$hotelIssued['owner']->verifyBearer('Bearer '.$hotelIssued['tokens']['access_token'])===1);
+        $revoke=$request('/manager/replies-oauth.php?action=revoke','POST',http_build_query([
+            'token'=>$replyIssued['tokens']['access_token'],'client_id'=>$replyIssued['client']]));
+        preparationOauthCheck('HTTP reply revoke is isolated',$revoke['status']===200
+            &&$replyIssued['owner']->verifyBearer('Bearer '.$replyIssued['tokens']['access_token'])===null
+            &&$hotelIssued['owner']->verifyBearer('Bearer '.$hotelIssued['tokens']['access_token'])===1);
+        foreach ($splitIssued as $profile=>$issued) preparationOauthCheck('HTTP split credentials absent from logs '.$profile,
+            !str_contains((string)file_get_contents($tmp.'/server.log'),$issued['tokens']['access_token'])
+            &&!str_contains((string)file_get_contents($tmp.'/server.log'),$issued['tokens']['refresh_token']));
     } finally {
         if (is_resource($server)) {proc_terminate($server);proc_close($server);}
         $remove=static function(string $path)use(&$remove):void {

@@ -37,7 +37,11 @@ try {
     require_once dirname(__DIR__).'/services/ProjectAccessService.php';
     require_once dirname(__DIR__).'/services/HotelWorkEventService.php';
     ProjectAccessService::initializeReadOnly();
-    $events=new HotelWorkEventService();$stage='subscription';
+    $pdo=ConversationDb::connection();
+    $events=new HotelWorkEventService($pdo,connectionAuthorized:
+        static fn(string $connection,int $admin,array $required):bool=>$required===[ManagerPreparationOAuth::HOTEL_SCOPE]
+            &&(new ManagerPreparationOAuth($pdo))->eventConnectionAuthorizedAcrossProfiles('hotels',$connection,$admin));
+    $stage='subscription';
     // A real current hotel OAuth grant and verified subscription are prerequisites.
     // The CLI never starts a hosted worker or invokes any model/provider itself.
     if (!$events->hasActiveSubscriptions()) {
