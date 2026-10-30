@@ -61,7 +61,12 @@ try {
         // connection. This path never selects the manual model/API transport.
         session_write_close();
         require_once dirname(__DIR__).'/services/ManagerPreparationMcpService.php';
-        $events = new ManagerPreparationMcpService();
+        // This background event owner accepts the canonical legacy or isolated
+        // Replies grant, exactly like the existing minute cron. HTTP MCP callers
+        // retain their endpoint-specific authorization.
+        $events = new ManagerPreparationMcpService(connectionActive:
+            static fn(string $connection,int $admin):bool=>(new ManagerPreparationOAuth())
+                ->eventConnectionAuthorizedAcrossProfiles('replies',$connection,$admin));
         if (!$events->hasActiveSubscriptions()) aiDraftRespond(['ok'=>false,'error'=>'preparation_unavailable']);
         $requested = ManagerPreparedReplyService::requestOnOpen($cid,$actor,$before);
         if (!empty($requested['ok']) && ($requested['preparation_state'] ?? '') === 'pending') {
