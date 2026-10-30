@@ -1,5 +1,5 @@
 -- A single explicitly admitted consumer-delivery generation. Original queue
--- pointers and resume/recovery evidence remain immutable; only this cursor moves.
+-- pointers and resume/recovery evidence remain immutable. Only this cursor moves.
 CREATE TABLE IF NOT EXISTS hotel_work_consumer_delivery_repairs (
     repair_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
     queue_id VARBINARY(80) NOT NULL,
