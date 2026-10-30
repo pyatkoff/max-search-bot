@@ -5,6 +5,7 @@ declare(strict_types=1);
 require_once __DIR__.'/ConversationDb.php';
 require_once __DIR__.'/ManagerConversationService.php';
 require_once __DIR__.'/ManagerAiDraftService.php';
+require_once __DIR__.'/ManagerAiDraftInputEvidence.php';
 
 /** Private provenance only. A request to insert is neither insertion nor acceptance. */
 final class ManagerAiDraftFeedbackService
@@ -14,7 +15,7 @@ final class ManagerAiDraftFeedbackService
     private const FIELDS = ['ok','should_draft','draft','next_action','reason','checks','evidence_message_ids','history_incomplete'];
     private const ACTIONS = ['clarify','answer_question','check_offer','prepare_selection','no_contact'];
 
-    public static function record(int $cid, int $actor, array $snapshot, array $proposal, ?string $preparedJobId = null): ?string
+    public static function record(int $cid, int $actor, array $snapshot, array $proposal, ?string $preparedJobId = null, ?ManagerAiDraftInputEvidence $inputEvidence = null): ?string
     {
         if ($preparedJobId !== null && !self::revision($preparedJobId)) return null;
         try {
@@ -60,6 +61,17 @@ final class ManagerAiDraftFeedbackService
             } else {
                 $q = $pdo->prepare('INSERT INTO manager_ai_drafts (draft_id,conversation_id,manager_id,project_key,context_revision,instruction_revision,latest_message_id,proposal_json,created_at) VALUES (?,?,?,?,?,?,?,?,?)');
                 if (!$q->execute($values)) return null;
+                // Evidence is captured at the actual provider boundary, never
+                // reconstructed from this later authorization snapshot. Missing
+                // storage must not lose the draft or its original provenance.
+                if ($inputEvidence !== null && $inputEvidence->matches($cid, $latest, array_keys($ids))) {
+                    try {
+                        $q = $pdo->prepare('INSERT INTO manager_ai_draft_inputs (draft_id,input_json,input_sha256) VALUES (?,?,?)');
+                        $q->execute([$id, $inputEvidence->json(), $inputEvidence->hash()]);
+                    } catch (Throwable $ignored) {
+                        // Explicitly unavailable to review, never a live rebuild.
+                    }
+                }
             }
             return $id;
         } catch (Throwable $ignored) {
