@@ -3,6 +3,32 @@ declare(strict_types=1);
 require_once dirname(__DIR__).'/services/HotelWorkQueue.php';
 require_once __DIR__.'/fixtures/hotel_work_queue.php';
 
+// Both children retain the original received pending ID and the same preflight pins.
+if (($argv[1]??'')==='--delivery-repair-child') {
+    [$unused,$mode,$file,$input,$action,$out]=array_pad($argv,6,'');
+    $args=json_decode((string)file_get_contents($input),true,16,JSON_THROW_ON_ERROR);
+    $pdo=new HotelWorkTestPdo($file==='MYSQL'?null:$file,false);$hold=(object)['armed'=>false];
+    $wait=static function(string $path):void {
+        $until=microtime(true)+10;while (!is_file($path)&&microtime(true)<$until) usleep(1000);
+        if (!is_file($path)) throw new RuntimeException('delivery_repair_race_timeout');
+    };
+    $q=new HotelWorkQueue($pdo,static function()use($hold,$out,$wait):int {
+        if ($hold->armed) {$hold->armed=false;file_put_contents($out.'.locked','locked');$wait($out.'.release');}
+        return 1793100660;
+    });
+    file_put_contents($out.'.ready','ready');$wait($out.'.go');file_put_contents($out.'.attempting','attempting');
+    $hold->armed=str_ends_with($action,'-winner');$action=str_replace('-winner','',$action);
+    try {
+        if ($action==='repair') $result=$q->repair_delivery(1,str_repeat('a',32),$args)['repair_status'];
+        elseif ($action==='claim') $result=$q->claim(1,str_repeat('a',32),['queue_id'=>$args['queue_id'],'stage_id'=>$args['stage_id'],
+            'claim_key'=>str_repeat('b',64),'expected_pending_event_id'=>$args['expected_pending_event_id']])['claim_status'];
+        elseif ($action==='ack') {$q->markEventDelivered(1,str_repeat('a',32),$args['queue_id'],$args['expected_pending_event_id']);$result='acknowledged';}
+        else exit(4);
+    } catch (HotelWorkQueueConflict $error) {$result='conflict:'.$error->reason;}
+    catch (DomainException $error) {$result='access_denied';}
+    file_put_contents($out,$result);exit(0);
+}
+
 // Race cancellation against the original completion using the real SQL lane lock.
 if (($argv[1]??'')==='--skip-race-child') {
     [$unused,$mode,$file,$input,$action,$winner,$out]=array_pad($argv,7,'');
@@ -372,8 +398,257 @@ function hotelClaimAuthorityChecks(): void
     hotelClaimAuthorityRaceChecks();
 }
 
+function hotelDeliveryRepairFixture(?string $file=null,string $id='PILOT'): array
+{
+    $pdo=new HotelWorkTestPdo($file);$clock=(object)['at'=>1793100000];$q=new HotelWorkQueue($pdo,static fn():int=>$clock->at);
+    $s=$q->create(1,str_repeat('a',32),['queue_id'=>$id,'baseline_sha256'=>str_repeat('0',64)]);
+    $pending=$q->pendingEvent(1,str_repeat('a',32),$id);$q->markEventDelivered(1,str_repeat('a',32),$id,$pending['event_id']);
+    $clock->at+=180;$q->pendingEvent(1,str_repeat('a',32),$id);
+    $resume=['queue_id'=>$id,'stage_id'=>$s['stage_id'],'baseline_sha256'=>$s['baseline_sha256'],'old_connection_id'=>str_repeat('a',32)];
+    $q->handoff_connection(1,str_repeat('a',32),$resume,static fn():bool=>true);
+    $pending=$q->pendingEvent(1,str_repeat('a',32),$id);$q->markEventDelivered(1,str_repeat('a',32),$id,$pending['event_id']);
+    $clock->at+=180;$attention=$q->pendingEvent(1,str_repeat('a',32),$id);$q->markEventDelivered(1,str_repeat('a',32),$id,$attention['event_id']);
+    $clock->at+=60;$pending=$q->pendingEvent(1,str_repeat('a',32),$id);$q->markEventDelivered(1,str_repeat('a',32),$id,$pending['event_id']);
+    $clock->at+=180;$attention=$q->pendingEvent(1,str_repeat('a',32),$id);$q->markEventDelivered(1,str_repeat('a',32),$id,$attention['event_id']);
+    $clock->at+=60;
+    $identity=['queue_id'=>$id,'stage_id'=>$s['stage_id'],'baseline_sha256'=>$s['baseline_sha256'],'expected_caller_connection_id'=>str_repeat('a',32)];
+    return [$pdo,$q,$clock,$identity,$resume,$pending,$attention];
+}
+function hotelDeliveryRepairSnapshot(PDO $pdo): array
+{
+    $out=[];foreach (['hotel_work_queues','hotel_work_lane','hotel_work_receipts','hotel_work_resolutions',
+        'hotel_work_connection_handoffs','hotel_work_delivery_recoveries','hotel_work_research_skips','hotel_work_consumer_delivery_repairs'] as $table)
+        $out[$table]=$pdo->query('SELECT * FROM '.$table.' ORDER BY 1')->fetchAll(PDO::FETCH_ASSOC);
+    return $out;
+}
+function hotelDeliveryRepairArgs(HotelWorkQueue $q,array $identity): array
+{
+    $pre=$q->delivery_repair_preflight(1,str_repeat('a',32),$identity);
+    hotelAssert($pre['eligible']===true&&is_array($pre['pins'])&&count($pre['pins'])===5,'repair_fixture_has_exact_eligible_five_pins');
+    return $identity+$pre['pins']+['owner_request_sha256'=>str_repeat('5',64),'consumer_prompt_sha256'=>str_repeat('6',64)];
+}
+function hotelDeliveryRepairChecks(): void
+{
+    [$pdo,$q,$clock,$identity,$resume,$oldPending,$oldAttention]=hotelDeliveryRepairFixture();
+    $before=hotelDeliveryRepairSnapshot($pdo);$writes=$pdo->writes;
+    $pre=$q->delivery_repair_preflight(1,str_repeat('a',32),$identity);
+    hotelAssert($pre['eligible']===true&&$pre['operation_dispatches_work']===false&&$before===hotelDeliveryRepairSnapshot($pdo)
+        &&$writes===$pdo->writes,'repair_preflight_is_read_only_and_never_dispatches');
+    hotelAssert($pre['original_delivery']['event_ack']===$oldPending['event_id']&&$pre['original_delivery']['attention_ack']===$oldAttention['event_id']
+        &&$pre['resume_audit']['valid']===true&&$pre['recovery_audit']['valid']===true,'repair_preflight_pins_actual_spent_ack_and_valid_immutable_audits');
+    $args=hotelDeliveryRepairArgs($q,$identity);$recorded=$q->repair_delivery(1,str_repeat('a',32),$args);$after=hotelDeliveryRepairSnapshot($pdo);
+    hotelAssert($recorded['repair_status']==='delivery_repair_recorded_once'&&$recorded['operation_dispatches_work']===false
+        &&count($after['hotel_work_consumer_delivery_repairs'])===1,'repair_appends_exactly_one_receipt_without_dispatch');
+    hotelAssert(array_diff_key($before,['hotel_work_consumer_delivery_repairs'=>true])===array_diff_key($after,['hotel_work_consumer_delivery_repairs'=>true]),
+        'repair_preserves_original_queue_ack_bytes_v1_audit_resume_receipts_and_work_state');
+    $audit=$after['hotel_work_consumer_delivery_repairs'][0];$fresh=$q->pendingEvent(1,str_repeat('a',32),'PILOT');
+    hotelAssert($fresh['event_id']!==$oldPending['event_id']&&$fresh['name']==='hotel_work.pending'&&$fresh['data']===$oldPending['data']
+        &&$q->status(1,str_repeat('a',32),'PILOT')['expected_pending_event_id']===$fresh['event_id'],'repair_has_new_fenced_identity_for_same_original_work');
+    foreach ([$oldPending['event_id'],$oldAttention['event_id']] as $stale)
+        hotelReject(fn()=>$q->markEventDelivered(1,str_repeat('a',32),'PILOT',$stale),HotelWorkQueueConflict::class,'repair_rejects_late_previous_generation_ack','stale_event');
+    $claim=['queue_id'=>'PILOT','stage_id'=>$identity['stage_id'],'claim_key'=>str_repeat('b',64)];
+    hotelReject(fn()=>$q->claim(1,str_repeat('a',32),$claim+['expected_pending_event_id'=>$oldPending['event_id']]),HotelWorkQueueConflict::class,'repair_rejects_old_pending_claim','stale_pending_event');
+    hotelReject(fn()=>$q->claim(1,str_repeat('a',32),$claim),HotelWorkQueueConflict::class,'repair_requires_received_event_claim_fence','pending_event_required');
+    $q->markEventDelivered(1,str_repeat('a',32),'PILOT',$fresh['event_id']);$acked=hotelDeliveryRepairSnapshot($pdo);
+    $clock->at+=60;$q->markEventDelivered(1,str_repeat('a',32),'PILOT',$fresh['event_id']);
+    hotelAssert($acked===hotelDeliveryRepairSnapshot($pdo),'repair_duplicate_pending_ack_does_not_extend_deadline');
+    $repeat=$q->repair_delivery(1,str_repeat('a',32),$args);
+    hotelAssert($repeat['repair_status']==='already_recorded'&&$repeat['receipt']===$recorded['receipt']&&$acked===hotelDeliveryRepairSnapshot($pdo),
+        'repair_repeat_after_ack_returns_same_receipt_without_touching_new_cursor');
+    $q->handoff_connection(1,str_repeat('a',32),$resume,static fn():bool=>false);
+    hotelAssert($acked===hotelDeliveryRepairSnapshot($pdo),'repeat_original_resume_does_not_reset_repair_ack');
+    $clock->at+=119;hotelAssert($q->pendingEvent(1,str_repeat('a',32),'PILOT')===null,'repair_waits_full_claim_deadline');
+    ++$clock->at;$attention=$q->pendingEvent(1,str_repeat('a',32),'PILOT');
+    hotelAssert($attention['name']==='hotel_work.attention'&&$attention['event_id']!==$oldAttention['event_id']
+        &&$attention['data']['dispatch_allowed']===false,'repair_emits_one_distinct_attention_after_deadline');
+    $q->markEventDelivered(1,str_repeat('a',32),'PILOT',$attention['event_id']);$settled=hotelDeliveryRepairSnapshot($pdo);$clock->at+=86400;
+    hotelAssert($q->pendingEvent(1,str_repeat('a',32),'PILOT')===null&&$settled===hotelDeliveryRepairSnapshot($pdo),
+        'repair_budget_is_hard_once_after_pending_and_attention_ack');
+    hotelReject(fn()=>$q->repair_delivery(1,str_repeat('a',32),array_replace($args,['consumer_prompt_sha256'=>str_repeat('7',64)])),
+        HotelWorkQueueConflict::class,'changed_repair_request_cannot_spend_another_generation','delivery_repair_conflict');
+    hotelAssert($settled===hotelDeliveryRepairSnapshot($pdo),'conflicting_repair_preserves_all_audit_cursor_bytes');
+    $admitted=$claim+['expected_pending_event_id'=>$fresh['event_id']];
+    hotelAssert($q->claim(1,str_repeat('a',32),$admitted)['claim_status']==='claimed'
+        &&$q->claim(1,str_repeat('a',32),$admitted)['claim_status']==='already_claimed_do_not_replay','repair_received_event_can_admit_exactly_once');
+    $claimed=hotelDeliveryRepairSnapshot($pdo);$repeat=$q->repair_delivery(1,str_repeat('a',32),$args);
+    hotelAssert($repeat['receipt']===$recorded['receipt']&&$claimed===hotelDeliveryRepairSnapshot($pdo),'repair_repeat_after_claim_is_receipt_readback_not_new_dispatch');
+    $q->started(1,str_repeat('a',32),$claim+['run_id'=>'REPAIR_RESEARCH']);$q->complete(1,str_repeat('a',32),$claim+['receipt'=>hotelReceipt('REPAIR_RESEARCH')]);
+    $advanced=hotelDeliveryRepairSnapshot($pdo);$repeat=$q->repair_delivery(1,str_repeat('a',32),$args);$next=$q->pendingEvent(1,str_repeat('a',32),'PILOT');
+    hotelAssert($repeat['receipt']===$recorded['receipt']&&$advanced===hotelDeliveryRepairSnapshot($pdo)
+        &&$next['data']['stage_kind']==='intake'&&$next['data']['stage_id']!==$identity['stage_id'],'repair_repeat_after_advance_preserves_new_intake_and_does_not_inherit_budget');
+    hotelAssert($before['hotel_work_delivery_recoveries']===$advanced['hotel_work_delivery_recoveries']
+        &&$before['hotel_work_connection_handoffs']===$advanced['hotel_work_connection_handoffs'],'repair_full_lifecycle_keeps_v1_and_resume_audits_immutable');
+    if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql') {
+        $pdo->reapplyConsumerDeliveryRepairMigration();hotelAssert($advanced===hotelDeliveryRepairSnapshot($pdo),'repair_forward_migration_reapply_preserves_records_and_old_audits');
+    }
+    $duplicate=$audit;$duplicate['repair_sha256']=str_repeat('9',64);$duplicate['request_sha256']=str_repeat('8',64);
+    hotelReject(fn()=>$pdo->prepare('INSERT INTO hotel_work_consumer_delivery_repairs ('.implode(',',array_keys($duplicate)).') VALUES ('.implode(',',array_fill(0,count($duplicate),'?')).')')->execute(array_values($duplicate)),
+        PDOException::class,'repair_schema_rejects_second_request_for_same_queue_stage');
+
+    foreach (['expected_pending_event_id','expected_resume_sha256','expected_recovery_sha256','expected_ack_sha256','expected_state_sha256'] as $pin) {
+        [$pdo,$q,$clock,$identity]=hotelDeliveryRepairFixture();$args=hotelDeliveryRepairArgs($q,$identity);$before=hotelDeliveryRepairSnapshot($pdo);
+        $bad=$pin==='expected_pending_event_id'?'hotel_evt_'.str_repeat('9',64):str_repeat('9',64);
+        hotelReject(fn()=>$q->repair_delivery(1,str_repeat('a',32),array_replace($args,[$pin=>$bad])),HotelWorkQueueConflict::class,'repair_cas_rejects_changed_'.$pin,'delivery_repair_pin_mismatch');
+        hotelAssert($before===hotelDeliveryRepairSnapshot($pdo),'repair_stale_pin_has_no_partial_audit_or_cursor');
+    }
+    [$pdo,$q,$clock,$identity,$resume,$oldPending,$oldAttention]=hotelDeliveryRepairFixture();$args=hotelDeliveryRepairArgs($q,$identity);
+    ++$clock->at;$q->markEventDelivered(1,str_repeat('a',32),'PILOT',$oldAttention['event_id']);$clock->at+=60;
+    $before=hotelDeliveryRepairSnapshot($pdo);$newPre=$q->delivery_repair_preflight(1,str_repeat('a',32),$identity);
+    hotelAssert($newPre['eligible']===true&&$newPre['pins']['expected_ack_sha256']!==$args['expected_ack_sha256'],
+        'real_late_attention_ack_changes_preflight_cas_snapshot');
+    hotelReject(fn()=>$q->repair_delivery(1,str_repeat('a',32),$args),HotelWorkQueueConflict::class,'old_preflight_cannot_overwrite_later_ack','delivery_repair_pin_mismatch');
+    hotelAssert($before===hotelDeliveryRepairSnapshot($pdo),'cas_conflict_preserves_newer_real_ack_bytes');
+    foreach (['no_resume','no_recovery','backoff','claim','run','receipt','foreign_lane','other_unknown','invalid_timing','invalid_recovery'] as $guard) {
+        [$pdo,$q,$clock,$identity,$resume,$oldPending,$oldAttention]=hotelDeliveryRepairFixture();$args=hotelDeliveryRepairArgs($q,$identity);
+        if ($guard==='no_resume') $pdo->exec('DELETE FROM hotel_work_delivery_recoveries; DELETE FROM hotel_work_connection_handoffs');
+        elseif ($guard==='no_recovery') $pdo->exec('DELETE FROM hotel_work_delivery_recoveries');
+        elseif ($guard==='backoff') --$clock->at;
+        elseif ($guard==='claim') $q->claim(1,str_repeat('a',32),['queue_id'=>'PILOT','stage_id'=>$identity['stage_id'],'claim_key'=>str_repeat('b',64),'expected_pending_event_id'=>$oldPending['event_id']]);
+        elseif ($guard==='run') $pdo->exec("UPDATE hotel_work_queues SET current_run_id='UNKNOWN_ORIGINAL_ATTEMPT' WHERE queue_id='PILOT'");
+        elseif ($guard==='receipt') $pdo->prepare('INSERT INTO hotel_work_receipts VALUES (?,?,?,?,?,?)')->execute(['PILOT',0,$identity['stage_id'],str_repeat('8',64),'{}',gmdate('Y-m-d H:i:s',$clock->at)]);
+        elseif ($guard==='foreign_lane') $pdo->exec("UPDATE hotel_work_lane SET queue_id='OTHER'");
+        elseif ($guard==='invalid_timing') $pdo->exec("UPDATE hotel_work_queues SET claim_deadline='2026-01-01 00:00:00'");
+        elseif ($guard==='invalid_recovery') $pdo->exec("UPDATE hotel_work_delivery_recoveries SET recovery_sha256='".str_repeat('9',64)."'");
+        else {
+            $other=$pdo->query('SELECT * FROM hotel_work_queues')->fetch(PDO::FETCH_ASSOC);$other['queue_id']='OTHER';$other['state']='unknown';$other['admin_id']=2;
+            $other['current_run_id']='HELD_OTHER_RUN';$other['claim_sha256']=str_repeat('9',64);
+            $pdo->prepare('INSERT INTO hotel_work_queues ('.implode(',',array_keys($other)).') VALUES ('.implode(',',array_fill(0,count($other),'?')).')')->execute(array_values($other));
+        }
+        $before=hotelDeliveryRepairSnapshot($pdo);$writes=$pdo->writes;$pre=$q->delivery_repair_preflight(1,str_repeat('a',32),$identity);
+        hotelAssert($pre['eligible']===false&&$pre['pins']===null&&$before===hotelDeliveryRepairSnapshot($pdo)&&$writes===$pdo->writes,'repair_preflight_holds_'.$guard.'_without_writes');
+        hotelReject(fn()=>$q->repair_delivery(1,str_repeat('a',32),$args),HotelWorkQueueConflict::class,'repair_writer_fails_closed_on_'.$guard);
+        hotelAssert($before===hotelDeliveryRepairSnapshot($pdo),'repair_denied_'.$guard.'_preserves_old_evidence');
+    }
+    [$pdo,$q,$clock,$identity]=hotelDeliveryRepairFixture();$args=hotelDeliveryRepairArgs($q,$identity);$before=hotelDeliveryRepairSnapshot($pdo);
+    foreach ([[2,str_repeat('a',32)],[1,str_repeat('c',32)]] as [$admin,$connection]) {
+        hotelReject(fn()=>$q->delivery_repair_preflight($admin,$connection,array_replace($identity,['expected_caller_connection_id'=>$connection])),DomainException::class,'repair_preflight_same_admin_current_binding_only');
+        hotelReject(fn()=>$q->repair_delivery($admin,$connection,array_replace($args,['expected_caller_connection_id'=>$connection])),DomainException::class,'repair_writer_same_admin_current_binding_only');
+    }
+    hotelReject(fn()=>$q->repair_delivery(1,str_repeat('a',32),array_replace($args,['expected_caller_connection_id'=>str_repeat('c',32)])),
+        HotelWorkQueueConflict::class,'repair_rejects_caller_connection_pin_change','caller_connection_changed');
+    $pdo->beginTransaction();try {hotelReject(fn()=>$q->repair_delivery(1,str_repeat('a',32),$args),LogicException::class,'repair_rejects_foreign_transaction','hotel_work_foreign_transaction');
+        hotelAssert($pdo->inTransaction(),'repair_preserves_callers_foreign_transaction');}
+    finally {$pdo->rollBack();}
+    hotelAssert($before===hotelDeliveryRepairSnapshot($pdo),'repair_auth_and_foreign_transaction_failures_do_not_mutate');
+    $q->repair_delivery(1,str_repeat('a',32),$args);$fresh=$q->pendingEvent(1,str_repeat('a',32),'PILOT');$q->markEventDelivered(1,str_repeat('a',32),'PILOT',$fresh['event_id']);
+    $repairBefore=$pdo->query('SELECT * FROM hotel_work_consumer_delivery_repairs')->fetchAll(PDO::FETCH_ASSOC);
+    $handoff=['queue_id'=>'PILOT','stage_id'=>$identity['stage_id'],'baseline_sha256'=>$identity['baseline_sha256'],'old_connection_id'=>str_repeat('a',32)];
+    $q->handoff_connection(1,str_repeat('c',32),$handoff,static fn():bool=>true);$next=$q->pendingEvent(1,str_repeat('c',32),'PILOT');
+    hotelAssert($next['name']==='hotel_work.pending'&&$next['event_id']!==$fresh['event_id'],'later_authority_handoff_uses_normal_new_binding_delivery_cursor');
+    $q->markEventDelivered(1,str_repeat('c',32),'PILOT',$next['event_id']);
+    hotelAssert($repairBefore===$pdo->query('SELECT * FROM hotel_work_consumer_delivery_repairs')->fetchAll(PDO::FETCH_ASSOC)
+        &&$pdo->query("SELECT event_ack FROM hotel_work_queues WHERE queue_id='PILOT'")->fetchColumn()===$next['event_id'],'later_binding_ack_never_rewrites_original_repair_cursor_or_budget');
+    hotelReject(fn()=>$q->handoff_connection(1,str_repeat('a',32),array_replace($handoff,['old_connection_id'=>str_repeat('c',32)]),static fn():bool=>true),
+        HotelWorkQueueConflict::class,'relinquished_binding_cannot_resurrect_old_repair_identity','binding_relinquished');
+    foreach (['audit_json','request_sha256','event_ack','claim_deadline'] as $corrupt) {
+        [$pdo,$q,$clock,$identity]=hotelDeliveryRepairFixture();$args=hotelDeliveryRepairArgs($q,$identity);
+        $q->repair_delivery(1,str_repeat('a',32),$args);$pending=$q->pendingEvent(1,str_repeat('a',32),'PILOT');
+        $q->markEventDelivered(1,str_repeat('a',32),'PILOT',$pending['event_id']);
+        $value=match($corrupt) {'audit_json'=>'{"namespace":"tampered"}','request_sha256'=>str_repeat('9',64),
+            'event_ack'=>'hotel_evt_'.str_repeat('9',64),default=>'2026-01-01 00:00:00'};
+        $pdo->prepare('UPDATE hotel_work_consumer_delivery_repairs SET '.$corrupt.'=?')->execute([$value]);
+        $before=hotelDeliveryRepairSnapshot($pdo);$pre=$q->delivery_repair_preflight(1,str_repeat('a',32),$identity);
+        hotelAssert($pre['eligible']===false&&$pre['pins']===null&&$pre['reason']==='delivery_repair_audit_invalid',
+            'invalid_repair_'.$corrupt.'_holds_preflight_without_new_pins');
+        hotelReject(fn()=>$q->repair_delivery(1,str_repeat('a',32),$args),HotelWorkQueueConflict::class,'invalid_repair_does_not_return_trusted_repeat_receipt','delivery_repair_audit_invalid');
+        hotelReject(fn()=>$q->pendingEvent(1,str_repeat('a',32),'PILOT'),HotelWorkQueueConflict::class,'invalid_repair_does_not_emit_new_pending','delivery_repair_audit_invalid');
+        hotelAssert($before===hotelDeliveryRepairSnapshot($pdo),'invalid_repair_is_preserved_for_reconciliation_without_auto_heal');
+    }
+    [$pdo,$q,$clock,$identity]=hotelDeliveryRepairFixture();$args=hotelDeliveryRepairArgs($q,$identity);
+    $q->repair_delivery(1,str_repeat('a',32),$args);$pending=$q->pendingEvent(1,str_repeat('a',32),'PILOT');
+    $q->markEventDelivered(1,str_repeat('a',32),'PILOT',$pending['event_id']);
+    $repairCursor=$pdo->query('SELECT * FROM hotel_work_consumer_delivery_repairs')->fetchAll(PDO::FETCH_ASSOC);
+    $claim=['queue_id'=>'PILOT','stage_id'=>$identity['stage_id'],'claim_key'=>str_repeat('b',64)];
+    ++$clock->at;$claimed=$q->claim(1,str_repeat('a',32),$claim+['expected_pending_event_id'=>$pending['event_id']]);
+    hotelAssert($claimed['updated_at']===gmdate('Y-m-d H:i:s',$clock->at),'repair_projection_reports_newer_claim_time');
+    $clock->at+=2;$started=$q->started(1,str_repeat('a',32),$claim+['run_id'=>'REPAIR_UNKNOWN']);
+    hotelAssert($started['updated_at']===gmdate('Y-m-d H:i:s',$clock->at),'repair_projection_reports_newer_started_time');
+    $clock->at+=2;$receipt=hotelReceipt('REPAIR_UNKNOWN');$receipt['outcome']='unknown';
+    $q->complete(1,str_repeat('a',32),$claim+['receipt'=>$receipt]);$unknown=$q->status(1,str_repeat('a',32),'PILOT');
+    hotelAssert($unknown['state']==='unknown'&&$unknown['updated_at']===gmdate('Y-m-d H:i:s',$clock->at),
+        'repair_projection_reports_unknown_transition_time_without_cursor_reset');
+    $clock->at=strtotime($unknown['watchdog_due_at'].' UTC');$watch=$q->pendingEvent(1,str_repeat('a',32),'PILOT');
+    $watched=$q->markEventDelivered(1,str_repeat('a',32),'PILOT',$watch['event_id']);
+    hotelAssert($watched['updated_at']===gmdate('Y-m-d H:i:s',$clock->at)&&$watched['watchdog_epoch']===1
+        &&$watch['data']['dispatch_allowed']===false,'repair_projection_reports_fresh_unknown_watchdog_ack_without_dispatch');
+    hotelAssert($repairCursor===$pdo->query('SELECT * FROM hotel_work_consumer_delivery_repairs')->fetchAll(PDO::FETCH_ASSOC),
+        'claim_started_unknown_watchdog_preserve_repair_delivery_cursor_bytes');
+    foreach (['country'=>"start_country='TH'",'counter'=>'initial_phase_counter=1,phase_counter=1',
+        'mode'=>"mode='continuous',batch_limit=NULL",'batch'=>'batch_limit=4'] as $case=>$mutation) {
+        [$pdo,$q,$clock,$identity]=hotelDeliveryRepairFixture();$args=hotelDeliveryRepairArgs($q,$identity);
+        $pdo->exec('UPDATE hotel_work_queues SET '.$mutation." WHERE queue_id='PILOT'");$before=hotelDeliveryRepairSnapshot($pdo);
+        $pre=$q->delivery_repair_preflight(1,str_repeat('a',32),$identity);
+        hotelAssert($pre['eligible']===false&&$pre['pins']===null&&$pre['reason']==='delivery_plan_invalid',
+            'valid_'.$case.'_plan_tamper_with_unchanged_hash_cannot_obtain_repair_pins');
+        hotelReject(fn()=>$q->repair_delivery(1,str_repeat('a',32),$args),HotelWorkQueueConflict::class,
+            'valid_'.$case.'_plan_tamper_fences_repair_writer','delivery_plan_invalid');
+        hotelAssert($before===hotelDeliveryRepairSnapshot($pdo),'plan_hash_mismatch_repair_failure_preserves_evidence');
+    }
+    [$pdo,$q,$clock,$identity]=hotelDeliveryRepairFixture();$args=hotelDeliveryRepairArgs($q,$identity);
+    $q->repair_delivery(1,str_repeat('a',32),$args);$pending=$q->pendingEvent(1,str_repeat('a',32),'PILOT');
+    $claim=['queue_id'=>'PILOT','stage_id'=>$identity['stage_id'],'claim_key'=>str_repeat('b',64)];
+    $q->claim(1,str_repeat('a',32),$claim+['expected_pending_event_id'=>$pending['event_id']]);
+    $q->started(1,str_repeat('a',32),$claim+['run_id'=>'REPAIR_BEFORE_PLAN_TAMPER']);
+    $q->complete(1,str_repeat('a',32),$claim+['receipt'=>hotelReceipt('REPAIR_BEFORE_PLAN_TAMPER')]);
+    $pdo->exec("UPDATE hotel_work_queues SET start_country='TH' WHERE queue_id='PILOT'");$before=hotelDeliveryRepairSnapshot($pdo);
+    hotelReject(fn()=>$q->repair_delivery(1,str_repeat('a',32),$args),HotelWorkQueueConflict::class,
+        'historical_repair_receipt_cannot_validate_under_tampered_plan','delivery_repair_audit_invalid');
+    hotelAssert($before===hotelDeliveryRepairSnapshot($pdo),'invalid_historical_repair_keeps_original_receipts_and_audit');
+}
+
+function hotelDeliveryRepairRaceChecks(): void
+{
+    foreach (['claim_first','repair_first','two_repairs','late_ack','ack_first'] as $scenario) {
+        $dir=sys_get_temp_dir().'/hotel-delivery-repair-race-'.bin2hex(random_bytes(8));if (!mkdir($dir,0700)) throw new RuntimeException('repair_race_directory_unavailable');
+        $file=getenv('HOTEL_WORK_NATIVE_MYSQL')==='1'?'MYSQL':$dir.'/queue.sqlite';$processes=[];$pdo=null;$q=null;
+        try {
+            [$pdo,$q,$clock,$identity]=hotelDeliveryRepairFixture($file==='MYSQL'?null:$file,'RACE');$args=hotelDeliveryRepairArgs($q,$identity);
+            $before=hotelDeliveryRepairSnapshot($pdo);file_put_contents($dir.'/args.json',json_encode($args,JSON_THROW_ON_ERROR));
+            $actions=match($scenario) {'claim_first'=>['claim-winner','repair'],'repair_first'=>['repair-winner','claim'],'two_repairs'=>['repair-winner','repair'],
+                'ack_first'=>['ack-winner','repair'],default=>['repair-winner','ack']};
+            foreach ($actions as $i=>$action) {
+                $pipes=[];$process=proc_open([PHP_BINARY,__FILE__,'--delivery-repair-child',$file,$dir.'/args.json',$action,$dir.'/out'.$i],
+                    [0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes);
+                if (!is_resource($process)) throw new RuntimeException('repair_race_process_unavailable');fclose($pipes[0]);$processes[]=[$process,$pipes];
+            }
+            $wait=static function(string $path):void {$until=microtime(true)+10;while (!is_file($path)&&microtime(true)<$until) usleep(1000);hotelAssert(is_file($path),'repair_race_barrier_observed');};
+            $wait($dir.'/out0.ready');$wait($dir.'/out1.ready');file_put_contents($dir.'/out0.go','go');$wait($dir.'/out0.locked');
+            file_put_contents($dir.'/out1.go','go');$wait($dir.'/out1.attempting');usleep(100000);
+            hotelAssert(!is_file($dir.'/out1')&&proc_get_status($processes[1][0])['running'],'repair_contender_waits_on_actual_lane_queue_sql_lock');
+            file_put_contents($dir.'/out0.release','release');$wait($dir.'/out0');$wait($dir.'/out1');
+            foreach ($processes as [$process,$pipes]) {
+                $stdout=stream_get_contents($pipes[1]);$stderr=stream_get_contents($pipes[2]);fclose($pipes[1]);fclose($pipes[2]);
+                hotelAssert(proc_close($process)===0&&$stdout===''&&$stderr==='','repair_race_children_exit_cleanly');
+            }
+            $first=file_get_contents($dir.'/out0');$second=file_get_contents($dir.'/out1');$after=hotelDeliveryRepairSnapshot($pdo);
+            if ($scenario==='claim_first') hotelAssert($first==='claimed'&&str_starts_with($second,'conflict:')
+                &&$after['hotel_work_consumer_delivery_repairs']===[]&&$after['hotel_work_queues'][0]['state']==='claimed','claim_winner_prevents_repair_without_audit_reset');
+            elseif ($scenario==='ack_first') hotelAssert($first==='acknowledged'&&$second==='delivery_repair_recorded_once'
+                &&count($after['hotel_work_consumer_delivery_repairs'])===1&&$before['hotel_work_queues']===$after['hotel_work_queues'],
+                'duplicate_old_ack_winner_does_not_ack_new_generation_or_reset_original_deadline');
+            else {
+                hotelAssert($first==='delivery_repair_recorded_once'&&count($after['hotel_work_consumer_delivery_repairs'])===1
+                    &&$before['hotel_work_queues']===$after['hotel_work_queues'],'repair_winner_changes_no_original_ack_or_work_state');
+                hotelAssert($second===match($scenario) {'repair_first'=>'conflict:stale_pending_event','two_repairs'=>'already_recorded',default=>'conflict:stale_event'},
+                    'repair_winner_fences_old_claim_ack_or_duplicate_request');
+            }
+            hotelAssert($before['hotel_work_delivery_recoveries']===$after['hotel_work_delivery_recoveries']
+                &&$before['hotel_work_connection_handoffs']===$after['hotel_work_connection_handoffs'],'repair_race_preserves_prior_once_audits');
+        } finally {
+            foreach ($processes as [$process,$pipes]) {foreach ($pipes as $pipe) if (is_resource($pipe)) fclose($pipe);if (is_resource($process)) {proc_terminate($process,9);proc_close($process);}}
+            // PDO's statement-class owner points back to PDO; release that cycle
+            // before removing the database on Windows, where open files stay locked.
+            $q=null;$pdo=null;gc_collect_cycles();foreach (glob($dir.'/*')?:[] as $path) unlink($path);rmdir($dir);
+        }
+    }
+}
+
+if (($argv[1]??'')==='--delivery-repair-only') {
+    hotelDeliveryRepairChecks();hotelDeliveryRepairRaceChecks();echo 'HOTEL WORK DELIVERY REPAIR: '.$checks." PASS\n";exit(0);
+}
 hotelClaimAuthorityChecks();
 if (($argv[1]??'')==='--claim-authority-only') {echo 'HOTEL WORK CLAIM AUTHORITY: '.$checks." PASS\n";exit(0);}
+hotelDeliveryRepairChecks();hotelDeliveryRepairRaceChecks();
 
 [$pdo,$q,$clock]=hotelFixture();
 $s=hotelStatus($q);
