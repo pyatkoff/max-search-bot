@@ -310,7 +310,16 @@ if(is_string($baselineFile)&&$baselineFile!==''){
     if($replacements!==1)throw new RuntimeException('preview_baseline_class_mismatch');
     $code='';foreach(token_get_all($source) as $token){if(!is_array($token)){$code.=$token;continue;}if($token[0]===T_OPEN_TAG)continue;$code.=$token[0]===T_DIR?var_export(dirname(__DIR__).'/services',true):$token[1];}eval($code);
     $baselinePage=null;$baselineRows=PreviewBaselineManagerConversationService::list(...[...$previewArgs,&$baselinePage]);
-    queryPageCheck('every preview field and candidate metadata equal exact installed source',$baselineRows===$previewRows&&$baselinePage===$previewPage);
+    $expectedRows=$baselineRows;$redactedLikeRows=0;
+    foreach($expectedRows as &$expectedRow){
+        if((int)$expectedRow['id']!==203)continue;
+        queryPageCheck('installed baseline has the exact recorded like fixture before public token redaction',
+            $expectedRow['last_direction']==='inbound'&&$expectedRow['last_sender_type']==='customer'
+            &&$expectedRow['last_text']==='tour_like_synthetic'&&$expectedRow['last_preview_text']==='Нажата кнопка «Нравится»');
+        $expectedRow['last_text']='Нажата кнопка «Нравится»';$redactedLikeRows++;
+    }unset($expectedRow);
+    queryPageCheck('every preview field and candidate metadata match installed source except the explicit like token redaction',
+        $redactedLikeRows===1&&$expectedRows===$previewRows&&$baselinePage===$previewPage);
 }
 $plan=$pdo->prepare('EXPLAIN QUERY PLAN '.$previewSql);$plan->execute($previewSqlArgs);
 $lookups=count(array_filter($plan->fetchAll(),static fn(array $row):bool=>preg_match('/\b(?:SEARCH|SCAN) mm\b/',$row['detail'])===1));
