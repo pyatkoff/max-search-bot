@@ -99,7 +99,7 @@ function hotelSubscriptionSetupChecks(): void
     $pending='hotel_work.pending';$attention='hotel_work.attention';$sequence=0;
     $epoch=static fn(mixed $value):int|false=>is_string($value)?strtotime($value):false;
     $insert=static function(HotelEventsFixture $f,string $event,array $changes=[])use(&$sequence):string {
-        $id='hotel_setup_'.hash('sha256',(string)++$sequence);$now=gmdate('Y-m-d H:i:s',$f->at);
+        $id='hotel_sub_'.hash('sha256',(string)++$sequence);$now=gmdate('Y-m-d H:i:s',$f->at);
         $row=['subscription_id'=>$id,'single_consumer_key'=>null,'admin_id'=>1,'oauth_connection_id'=>$f->connection,
             'project_key'=>'anytour','queue_id'=>'PILOT','event_name'=>$event,
             'arguments_json'=>'{"project_key":"anytour","queue_id":"PILOT"}',
@@ -132,16 +132,17 @@ function hotelSubscriptionSetupChecks(): void
         hotelEventAssert(count($f->pdo->eventReads)===1,'setup_uses_one_scoped_subscription_read');
         $sql=$f->pdo->eventReads[0];$projection=[];preg_match('/\ASELECT\s+(.+?)\s+FROM\s+hotel_work_events\b/is',trim($sql),$projection);
         hotelEventAssert(isset($projection[1])&&!str_contains($projection[1],'*')
-            &&preg_match('/\b(callback_url|signing_secret|previous_secret|subscription_id|arguments_json|pending_body|pending_event_id|lease_token)\b/i',$projection[1])===0
+            &&preg_match('/\b(callback_url|signing_secret|previous_secret|pending_body|pending_event_id|lease_token)\b/i',$projection[1])===0
             &&preg_match('/\bLIMIT\s+21\s*;?\s*\z/i',trim($sql))===1,'setup_does_not_read_callback_credentials_payload_or_unbounded_rows');
         $wire=json_encode($dto,JSON_THROW_ON_ERROR);
-        foreach (['PRIVATE_HOTEL_SETUP','hotel_setup_','private.example',$f->connection,str_repeat('c',32),'PILOT'] as $private)
-            hotelEventAssert(!str_contains($wire,$private),'setup_exports_no_callback_credential_connection_or_event_identity');
+        foreach (['PRIVATE_HOTEL_SETUP','private.example'] as $private)
+            hotelEventAssert(!str_contains($wire,$private),'setup_exports_no_callback_credential_or_event_payload');
         return $dto;
     };
     $unknown=static function(array $dto,string $reason):void {
         hotelEventAssert(($dto['available']??null)===false&&($dto['reason']??null)===$reason
-            &&($dto['other_binding_rows']??null)===null,'setup_unavailable_does_not_invent_binding_inventory');
+            &&($dto['other_binding_rows']??null)===null&&array_key_exists('candidates',$dto)&&$dto['candidates']===null,
+            'setup_unavailable_does_not_invent_binding_inventory');
         foreach ($dto['events'] as $event) hotelEventAssert($event['state']==='unknown'&&$event['matching_rows']===null
             &&$event['eligible']===null&&$event['verified']===null&&$event['retrying']===null&&$event['last_http_status']===null
             &&$event['expires_at']===null&&$event['attempts']===null&&$event['next_attempt_at']===null
@@ -149,7 +150,8 @@ function hotelSubscriptionSetupChecks(): void
     };
 
     $f=new HotelEventsFixture();$dto=$read($f);
-    hotelEventAssert($dto['available']===true&&$dto['other_binding_rows']===0,'setup_empty_owned_inventory_is_known');
+    hotelEventAssert($dto['available']===true&&$dto['other_binding_rows']===0&&$dto['candidates']===[],
+        'setup_empty_owned_inventory_is_known');
     foreach ($dto['events'] as $event) hotelEventAssert($event['state']==='absent'&&$event['matching_rows']===0
         &&$event['eligible']===false&&$event['verified']===null&&$event['expires_at']===null,
         'setup_current_absence_does_not_claim_verification');
@@ -161,6 +163,14 @@ function hotelSubscriptionSetupChecks(): void
     $insert($f,$attention,['oauth_connection_id'=>str_repeat('c',32),'is_active'=>0]);
     $insert($f,$pending);$insert($f,$attention);$dto=$read($f);
     hotelEventAssert($dto['available']===true&&$dto['other_binding_rows']===2,'setup_filters_foreign_scope_and_separates_old_bindings_before_limit');
+    hotelEventAssert(count($dto['candidates'])===4,'setup_candidate_inventory_excludes_foreign_scope');
+    foreach ($dto['candidates'] as $candidate) {
+        hotelEventAssert($candidate['owner_admin_id']===1&&$candidate['project_key']==='anytour'&&$candidate['queue_id']==='PILOT'
+            &&$candidate['filters']===['project_key'=>'anytour','queue_id'=>'PILOT']&&$candidate['filters_match']===true
+            &&$candidate['current_owner_connection']===($candidate['connection_id']===$f->connection)
+            &&$candidate['handler_task_id']===null&&$candidate['handler_binding_state']==='unknown_host_readback_required',
+            'setup_candidates_identify_scoped_rows_without_inventing_native_handler_binding');
+    }
     foreach ($dto['events'] as $event) hotelEventAssert($event['state']==='active_verified'&&$event['matching_rows']===1
         &&$event['eligible']===true&&$event['verified']===true&&$event['retrying']===false&&$event['last_http_status']===204
         &&$event['attempts']===0&&$event['next_attempt_at']===null&&$epoch($event['expires_at'])===$f->at+3600
@@ -206,10 +216,23 @@ function hotelSubscriptionSetupChecks(): void
         &&$event['state']==='inactive'&&$event['attempts']===6&&$event['last_http_status']===503
         &&$event['eligible']===false&&$event['verified']===true&&$event['retrying']===false,
         'setup_reports_preserved_attempts_above_stop_threshold_after_real_renewal_failure');
-    $f=new HotelEventsFixture();$insert($f,$pending);$insert($f,$pending,['is_active'=>0]);$insert($f,$attention);$dto=$read($f);
+    $f=new HotelEventsFixture();$activeId=$insert($f,$pending);$inactiveId=$insert($f,$pending,['is_active'=>0]);$insert($f,$attention);$dto=$read($f);
     hotelEventAssert($dto['events'][0]['state']==='ambiguous'&&$dto['events'][0]['matching_rows']===2
         &&$dto['events'][0]['eligible']===null&&$dto['events'][0]['expires_at']===null
         &&$dto['events'][1]['state']==='active_verified','setup_duplicate_current_rows_remain_ambiguous_per_event');
+    $byId=array_column($dto['candidates'],null,'subscription_id');
+    hotelEventAssert(count($byId)===3&&$byId[$activeId]['state']==='active_verified'&&$byId[$activeId]['is_active']===true
+        &&$byId[$inactiveId]['state']==='inactive'&&$byId[$inactiveId]['is_active']===false,
+        'setup_ambiguous_history_exposes_both_exact_candidates_without_selecting_one');
+    foreach (['{"project_key":"anytour","queue_id":"PRIVATE_HOTEL_SETUP_OTHER"}',
+        '{"project_key":"anytour","queue_id":"PILOT","secret":"PRIVATE_HOTEL_SETUP_SECRET"}',
+        'PRIVATE_HOTEL_SETUP_MALFORMED'] as $arguments) {
+        $f=new HotelEventsFixture();$insert($f,$pending,['arguments_json'=>$arguments]);$dto=$read($f);
+        hotelEventAssert($dto['candidates'][0]['filters']===null&&$dto['candidates'][0]['filters_match']===false,
+            'setup_invalid_stored_filters_are_unknown_without_exporting_arbitrary_json');
+    }
+    $f=new HotelEventsFixture();$insert($f,$pending,['subscription_id'=>'PRIVATE_HOTEL_SETUP_INVALID_ID']);$dto=$read($f);
+    hotelEventAssert($dto['candidates'][0]['subscription_id']===null,'setup_invalid_subscription_identity_is_not_exported');
     $f=new HotelEventsFixture();$insert($f,$pending);$insert($f,$attention);
     for ($i=0;$i<18;$i++) $insert($f,$pending,['oauth_connection_id'=>str_repeat('c',32)]);
     $dto=$read($f);hotelEventAssert($dto['available']===true&&$dto['other_binding_rows']===18,'setup_exact_twenty_scoped_rows_are_complete');
