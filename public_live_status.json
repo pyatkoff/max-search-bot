@@ -1,49 +1,48 @@
 {
     "ok": true,
-    "generated_at": "2026-10-30T11:50:57+00:00",
+    "generated_at": "2026-10-30T16:13:24+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
     "channel": "max",
     "summary": {
-        "sessions": 63,
-        "raw_sessions": 63,
+        "sessions": 26,
+        "raw_sessions": 26,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 63,
+            "resolved": 26,
             "unresolved": 0
         },
-        "started": 44,
-        "needs_collected": 14,
-        "tours_opened": 10,
+        "started": 19,
+        "needs_collected": 9,
+        "tours_opened": 5,
         "site_opened": 0,
         "post_tour_manager_cta_shown": 0,
-        "manager_requested": 63,
-        "manager_replied": 53,
-        "customer_replied_after_manager": 26,
+        "manager_requested": 25,
+        "manager_replied": 18,
+        "customer_replied_after_manager": 12,
         "phone_received": 1,
         "manager_response": {
             "answered_in_90s": 3,
-            "answered_after_90s": 50,
-            "still_unanswered": 1,
-            "measured_responses": 53,
-            "avg_seconds": 11445,
-            "max_seconds": 71155
+            "answered_after_90s": 15,
+            "still_unanswered": 3,
+            "measured_responses": 18,
+            "avg_seconds": 8526,
+            "max_seconds": 67360
         },
         "drop_points": {
-            "manager_replied": 27,
-            "customer_replied_after_manager": 26,
-            "manager_requested": 10
+            "customer_replied_after_manager": 12,
+            "manager_requested": 7,
+            "manager_replied": 6,
+            "tours_opened": 1
         },
         "flags": {
-            "manager_requested_no_reply": 1,
-            "left_waiting_queue_without_manager_reply": 1,
-            "manager_taken_no_reply": 1,
-            "repeated_callback_input": 1
+            "manager_requested_no_reply": 3,
+            "repeated_callback_input": 2
         }
     },
     "telegram_dialogue_delivery": {
-        "sampled_at": "2026-10-30T11:50:57Z",
+        "sampled_at": "2026-10-30T16:13:24Z",
         "available": true,
         "error": null,
         "mode": "send",
@@ -62,6 +61,6 @@
         },
         "queue_total": 0
     },
-    "since_utc": "2026-10-30 10:50:57",
+    "since_utc": "2026-10-30 15:13:24",
     "public_redacted": true
 }
