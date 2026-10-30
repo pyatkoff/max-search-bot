@@ -401,7 +401,7 @@
     if(manager)new MutationObserver(syncPublications).observe(manager,{childList:true,subtree:true});
     new MutationObserver(syncPublications).observe(document.body,{attributes:true,attributeFilter:['class']});
     if(health)$('m2NotificationSlot').appendChild(health);placeAdmin();
-    const shortcuts=document.querySelector('.taskShortcuts');if(shortcuts){const details=document.createElement('details');details.className='m2TaskFilters';details.innerHTML='<summary>Быстрые фильтры</summary>';$('filtersPanel').prepend(details);details.appendChild(shortcuts)}
+    const shortcuts=document.querySelector('.taskShortcuts');if(shortcuts){const details=document.createElement('details');details.className='m2TaskFilters';details.innerHTML='<summary>Быстрые фильтры</summary>';$('filtersPanel').prepend(details);details.appendChild(shortcuts);const source=shortcuts.querySelector('.sourceShortcut');if(source)shortcuts.appendChild(source)}
     const hint=document.createElement('p');hint.id='m2SectionHint';hint.className='m2SectionHint';hint.hidden=true;document.querySelector('.inboxHead .brandRow').after(hint);
     const quick=document.createElement('div');quick.className='m2TaskQuickFilters';quick.hidden=true;hint.after(quick);
     const attach=document.querySelector('.attachBtn');

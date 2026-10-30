@@ -77,7 +77,8 @@ async function setup(page,options={}){
  }});
  return {...state,reads,proofs,saves,connectionCalls,connectionRows,setConnectionMode:mode=>connectionMode=mode,releaseConnectionReads:()=>heldConnectionReads.splice(0).forEach(resolve=>resolve()),remoteRevokeCurrent(){const row=connectionRows[0];row.enabled=false;row.status='revoked';row.revision++;proofReason='subscription_revoked';protocol.reply({action:'revoke',operation_id:'e'.repeat(64)});},pushUnexpected:unexpected,native:()=>page.evaluate(()=>({...pushBrowserFixture.calls})),releaseNative:()=>page.evaluate(()=>pushBrowserFixture.releaseNative()),releaseProof:()=>pendingProofs.splice(0).forEach(resolve=>resolve())};
 }
-async function openStatus(page){await page.locator('#m2NotificationButton').click();await expect(page.locator('#m2Notifications')).toBeVisible();return page.locator('#notificationStatus')}
+async function openStatus(page){if(!await page.locator('#m2NotificationButton').isVisible())await page.locator('#m2MoreToggle').click();await page.locator('#m2NotificationButton').click();await expect(page.locator('#m2Notifications')).toBeVisible();return page.locator('#notificationStatus')}
+async function accountFocusReturned(page){await expect(page.locator(page.viewportSize().width<=740?'#m2MoreToggle':'#m2NotificationButton')).toBeFocused()}
 async function unchangedNative(page,state){const calls=await state.native();expect(calls.permission).toBe(0);expect(calls.subscribe).toBe(0);expect(calls.unsubscribe).toBe(0);expect(calls.confirmation).toBe(0);expect(state.saves).toEqual([]);expect(state.unexpected).toEqual([]);expect(state.pushUnexpected).toEqual([]);expect(state.errors).toEqual([])}
 async function fits(page){const box=await page.locator('#m2Notifications').boundingBox(),size=page.viewportSize();expect(box.x).toBeGreaterThanOrEqual(0);expect(box.x+box.width).toBeLessThanOrEqual(size.width+1);expect(box.y).toBeGreaterThanOrEqual(0);expect(box.y+box.height).toBeLessThanOrEqual(size.height+1);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true)}
 async function notGreen(root){await expect(root).not.toHaveClass(/\bok\b/);await expect(root.locator('.notificationText strong')).not.toContainText(/Уведомления включены/i)}
@@ -93,7 +94,7 @@ for(const viewport of viewports)for(const permission of ['default','denied','gra
  expect(state.proofs).toEqual([]);await unchangedNative(page,state);await fits(page);
  if(permission==='default'&&viewport.width===390&&viewport.height===900)await capture(page,browserName,'default-390');
  if(permission==='denied'&&viewport.width===390&&viewport.height===420)await capture(page,browserName,'denied-390x420');
- await page.locator('#m2NotificationsClose').click();await expect(page.locator('#m2NotificationButton')).toBeFocused();
+ await page.locator('#m2NotificationsClose').click();await accountFocusReturned(page);
 });
 
 test('Browser push requires native presence and exact server proof for a green current browser',async({page,browserName})=>{
@@ -170,7 +171,7 @@ for(const viewport of viewports)test(`Browser connections lazy list and remote r
  await expect(connectionRow(page,1).getByRole('button',{name:'Отключить уведомления'})).toBeEnabled();await expect(connectionRow(page,3).getByRole('button',{name:'Отключить уведомления'})).toBeEnabled();
  expect(connectionWrites(state)).toHaveLength(1);expect(await page.locator('#managerShiftBtn').getAttribute('aria-pressed')).toBe(shift);expect(state.calls.filter(call=>['list','detail'].includes(call.action))).toHaveLength(reads);
  const native=await state.native();expect([native.permission,native.subscribe,native.unsubscribe,native.confirmation]).toEqual([0,0,0,0]);
- await capture(page,browserName,`connections-${viewport.width}x${viewport.height}-revoked`);await page.keyboard.press('Escape');await expect(page.locator('#m2NotificationButton')).toBeFocused();
+ await capture(page,browserName,`connections-${viewport.width}x${viewport.height}-revoked`);await page.keyboard.press('Escape');await accountFocusReturned(page);
  await expect(page.locator('#replyText')).toHaveValue('Черновик при отключении старого браузера');await expect(page.locator('#mediaSelection')).toContainText('unsent-browser.txt');expect(await page.locator('#replyText').evaluate(el=>[el.selectionStart,el.selectionEnd])).toEqual([2,8]);
  if(mobileBack){await page.locator('#inboxList [data-conversation-id="11"]').click();await expect(page.locator('#replyText')).toHaveValue('Черновик при отключении старого браузера');await expect(page.locator('#mediaSelection')).toContainText('unsent-browser.txt');}
  expect(await audio.evaluate(el=>el===window.connectionAudio&&!el.paused&&el.currentTime>.1)).toBe(true);await audio.evaluate(el=>el.pause());cleanConnections(state);

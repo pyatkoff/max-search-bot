@@ -713,7 +713,7 @@ for(const width of [390,430])test('Manager2 six-line native caret survives reduc
   await reply.fill(text);await editorGeometry(page);await reply.press('Control+End');await editorGeometry(page);
   const initial=await reply.evaluate(el=>{
     window.reducedViewportNativeProof={form:document.getElementById('composer'),reply:el,file:document.getElementById('replyFile'),selection:[el.selectionStart,el.selectionEnd,el.selectionDirection]};
-    return {overflow:el.scrollHeight-el.clientHeight,scrollTop:el.scrollTop,selection:[el.selectionStart,el.selectionEnd],length:el.value.length};
+    return {height:el.clientHeight,overflow:el.scrollHeight-el.clientHeight,scrollTop:el.scrollTop,selection:[el.selectionStart,el.selectionEnd],length:el.value.length};
   });
   // Start with the entire short, unwrapped draft visible. A previously scrolled
   // long draft would miss a resize that restores the old zero scroll position.
@@ -723,7 +723,7 @@ for(const width of [390,430])test('Manager2 six-line native caret survives reduc
     return {same:reply===proof.reply&&document.getElementById('composer')===proof.form&&document.getElementById('replyFile')===proof.file,selection:[reply.selectionStart,reply.selectionEnd,reply.selectionDirection],expected:proof.selection,text:reply.value,tailGap:reply.scrollHeight-reply.scrollTop-reply.clientHeight};
   });
   async function retainedVisibleTail(ids){
-    await editorGeometry(page);await controlsInsideVisualViewport(page,ids);
+    await editorGeometry(page);await expect(reply).toBeFocused();await controlsInsideVisualViewport(page,ids);
     const state=await nativeState();expect(state.same).toBe(true);expect(state.selection).toEqual(state.expected);expect(state.text).toBe(text);
     // With a collapsed selection at value.length, the last native text row must
     // be within the textarea's own scrollport. No mirror or scrolling repairs it.
@@ -733,6 +733,8 @@ for(const width of [390,430])test('Manager2 six-line native caret survives reduc
     // Synthetic visual-viewport geometry only; no physical keyboard claim.
     await page.evaluate(()=>{Object.defineProperty(visualViewport,'height',{configurable:true,value:360});Object.defineProperty(visualViewport,'offsetTop',{configurable:true,value:48});visualViewport.dispatchEvent(new Event('resize'));visualViewport.dispatchEvent(new Event('scroll'))});
     await expect.poll(()=>page.locator('#conversationZone').evaluate(el=>el.getBoundingClientRect().bottom)).toBeLessThanOrEqual(408);
+    const reduced=await reply.evaluate(el=>({height:el.clientHeight,overflow:el.scrollHeight-el.clientHeight}));
+    expect(reduced.height).toBeLessThan(initial.height);expect(reduced.overflow).toBeGreaterThan(2);
     await retainedVisibleTail(['replyText','m2ReplyExpand','sendReply']);await capture(page,browserName,width,'six-lines-reduced-inline');
     await page.locator('#m2ReplyExpand').click();await expect(dialog).toBeVisible();await retainedVisibleTail(['replyText','sendReply','m2ReplyCollapse']);
     // Keep the reduced viewport active during collapse; closing the editor must

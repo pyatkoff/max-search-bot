@@ -226,8 +226,9 @@ body.manager2{--ws-accent:#25624f;--ws-accent-soft:#e9f3ed;--ws-text:#233c34;--w
 .manager2 .m2PlanAction .leadTaskCompact{align-self:flex-start;max-width:100%;box-sizing:border-box;white-space:normal;overflow-wrap:anywhere;font-size:13px;line-height:1.4}
 .manager2 .m2TaskDeadline{font-size:12px;color:#55675f;font-variant-numeric:tabular-nums}
 .manager2 .m2PlanAction:has(.overdue) .m2TaskDeadline{color:#a64c3c;font-weight:650}
-.manager2 .m2TaskQuickFilters{width:100%;min-width:0;flex-shrink:0}
-.manager2 .m2TaskQuickFilters .taskShortcuts{flex-wrap:nowrap;overflow-x:auto;max-width:100%;margin:4px 0 7px;padding:0 0 4px;overscroll-behavior-x:contain}
+.manager2 .m2TaskQuickFilters{width:100%;min-width:0;flex-shrink:0;padding:3px 0 5px}
+.manager2 .m2TaskQuickFilters .taskShortcuts{flex-wrap:nowrap;overflow-x:auto;max-width:100%;margin:0;padding:0;overscroll-behavior-x:contain;scrollbar-width:none}
+.manager2 .m2TaskQuickFilters .taskShortcuts::-webkit-scrollbar{display:none}
 .manager2 .m2TaskQuickFilters .taskShortcut{flex:0 0 auto;white-space:nowrap;min-height:44px}
 .manager2 .pwRowMarkers{display:flex;flex-wrap:nowrap;gap:4px;min-width:0;margin:3px 0 0;padding:0;overflow:hidden;line-height:1.4}
 .manager2 .pwRowMarkers .pwMarkerPin{display:none}
