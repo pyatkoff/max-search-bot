@@ -30,12 +30,15 @@ document.addEventListener('anytour-collector-extension',async event=>{
  const m=event.detail;if(!m||typeof m!=='object')return;
  if(m.type==='hello'&&/^[a-f0-9]{32}$/.test(m.device||'')&&/^[a-f0-9]{32}$/.test(m.nonce||'')){device=m.device;nonce=m.nonce;await refresh();return}
  if(m.type!=='command'||m.nonce!==nonce||busy||!connection||!target||m.actor!==config.actor||m.conversation_id!==config.conversation_id||m.connection_id!==connection.id||!['import','operation'].includes(m.action)||!/^[a-f0-9]{32}$/.test(m.request_id||''))return;
- const token=epoch;let r=await request(m.action==='import'?'collector_import':'collector_operation',{operation_id:m.operation_id,connection_id:connection.id,observation:m.observation,as_variant:m.as_variant===true,...(Object.hasOwn(m,'manager_amount')?{manager_amount:m.manager_amount}:{})});
- if(token!==epoch)return;
+ const token=epoch,commandNonce=nonce;const r=await request(m.action==='import'?'collector_import':'collector_operation',{operation_id:m.operation_id,connection_id:connection.id,observation:m.observation,as_variant:m.as_variant===true,...(Object.hasOwn(m,'manager_amount')?{manager_amount:m.manager_amount}:{})});
  const result={ok:r.ok===true,error:r.error,found:r.found,state:r.state,saved_version:r.saved_version,count:r.count??r.selection?.draft?.offers?.length,existing_offer_id:r.existing_offer_id,...(Object.hasOwn(r,'manager_amount')?{manager_amount:r.manager_amount}:{})};
+ // Refresh may replace the view while the exact command still awaits its receipt.
+ if(token===epoch){
  if(r.ok){if(Number.isInteger(result.count)){target.count=result.count;render();emit('connected',{target,connection,selected:false})}status(m.action==='operation'?'Результат операции проверен.':r.state==='already_added'?'Это предложение уже добавлено.':'Предложение сохранено в черновике. Отправки туристу не было.')}
  else{status(errors[r.error]||'Не удалось подтвердить добавление.',true);if(['unauthorized','csrf','forbidden','not_found','connection_changed'].includes(r.error)){connection=null;controls();emit('disconnected')}}
- emit('result',{request_id:m.request_id,result});
+ }
+ // Never relabel an old receipt with a newer handshake's nonce.
+ emit('result',{nonce:commandNonce,request_id:m.request_id,result});
 });
 void refresh();document.dispatchEvent(new CustomEvent('anytour-collector-page-ready'));
 })();
