@@ -10,18 +10,19 @@ function harness(){
   const S={manager:{id:7},authExpired:false,authGeneration:1,queue:'mine',viewMode:'kanban',leadTaskFilter:'today',current:11};
   let classWrites=0;const classes=new Set(),classList={contains:key=>classes.has(key),add:key=>{classWrites++;classes.add(key)},remove:key=>{classWrites++;classes.delete(key)}};
   const control=()=>({disabled:false,attrs:{},setAttribute(key,value){this.attrs[key]=value},focus(){this.focused=true},isConnected:true});
-  const elements={workspaceRoot:{dataset:{},classList},leadTaskFilter:{value:'today'},m2SectionHint:{textContent:'',hidden:true},conversationTitle:control(),mobileLeadBtn:control(),mobileLeadClose:control()};
-  const title={textContent:''},taskFilters={open:false},requests=[],mobile=[],saved=new Map(),pending=[];
+  const filterClasses=new Set(),filterPanel={classList:{contains:key=>filterClasses.has(key),add:key=>filterClasses.add(key),remove:key=>filterClasses.delete(key),toggle(key,force){const on=force===undefined?!filterClasses.has(key):force;if(on)filterClasses.add(key);else filterClasses.delete(key);return on}}};
+  const elements={workspaceRoot:{dataset:{},classList},filtersPanel:filterPanel,filtersToggle:control(),leadTaskFilter:{value:'today'},m2SectionHint:{textContent:'',hidden:true},conversationTitle:control(),mobileLeadBtn:control(),mobileLeadClose:control()};
+  const title={textContent:''},taskFilters={open:true},taskQuickFilters={hidden:true},requests=[],mobile=[],saved=new Map(),pending=[];
   const nav=['dialogues','tasks','sales','archive'].map(name=>({dataset:{m2Nav:name},classList:{toggle(){}},setAttribute(){},removeAttribute(){}}));
   const W={S,$:id=>elements[id],esc:String};
   const window={WorkspaceV2:W,WorkspaceV2Kanban:{setMode:mode=>S.viewMode=mode},WorkspaceV2Inbox:{setQueue:(queue,{reload})=>{assert.equal(reload,false);S.queue=queue;return true},load:()=>{requests.push({queue:S.queue,view:S.viewMode,task:S.leadTaskFilter});return new Promise(resolve=>pending.push(resolve))}},WorkspaceV2Mobile:{showInbox:o=>mobile.push(o),isMobile:()=>false,getScreen:()=> 'conversation',showLead:()=>mobile.push('lead')}};
-  const document={body:{classList:{contains:()=>true}},addEventListener(){},querySelector:s=>s==='.inboxHead .brand'?title:s==='.m2TaskFilters'?taskFilters:null,querySelectorAll:s=>s==='[data-m2-nav]'?nav:[]};
+  const document={body:{classList:{contains:()=>true}},addEventListener(){},querySelector:s=>s==='.inboxHead .brand'?title:s==='.m2TaskFilters'?taskFilters:s==='.m2TaskQuickFilters'?taskQuickFilters:null,querySelectorAll:s=>s==='[data-m2-nav]'?nav:[]};
   const context=vm.createContext({window,document,sessionStorage:{setItem:(k,v)=>saved.set(k,v)},Map,Number,String,Intl,console});
   vm.runInContext(filters,context);
   vm.runInContext(managerTime,context);
   // Exercise the actual exported navigation and filter owners without shell boot.
   vm.runInContext(presentation.replace('  init();',''),context);
-  return {S,elements,title,taskFilters,requests,mobile,saved,pending,navigate:window.Manager2Presentation.navigate,presentation:window.Manager2Presentation,window,classWrites:()=>classWrites};
+  return {S,elements,title,taskFilters,taskQuickFilters,requests,mobile,saved,pending,navigate:window.Manager2Presentation.navigate,presentation:window.Manager2Presentation,window,classWrites:()=>classWrites};
 }
 (async()=>{
   {
@@ -61,6 +62,7 @@ function harness(){
     check(target+' uses the final queue/mode/filter in that request',()=>assert.deepEqual(h.requests[0],{queue:target==='archive'?'closed':'mine',view:target==='sales'?'kanban':'list',task:target==='sales'?'today':''}));
     if(target!=='sales')check(target+' persists the cleared task filter',()=>assert.equal(JSON.parse([...h.saved.values()][0]).task,''));
     check(target+' shows the destination immediately',()=>assert.equal(h.elements.workspaceRoot.dataset.m2Section,target));
+    if(target==='tasks')check('entering My Plan closes advanced filters without another request',()=>{assert.equal(h.taskFilters.open,false);assert.equal(h.elements.filtersPanel.classList.contains('hidden'),true);assert.equal(h.elements.filtersToggle.attrs['aria-expanded'],'false');assert.equal(h.requests.length,1)});
     h.pending[0](true);assert.equal(await p,true);
   }
   {
