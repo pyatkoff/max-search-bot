@@ -8,6 +8,8 @@
   let conversationMenu=null,conversationMenuActions=null,conversationMenuHistory=null;
   const conversationToolButtons=[];
   let initialInboxSearchSynced=false;
+  let moreNavigationReady=false;
+  const moreHomes=new Map();
   let lastTabSelection='',headerPinContext='';
   function disclosure(key,label,conversationId=Number(S.current||0)){
     const el=document.createElement('details');
@@ -126,7 +128,9 @@
     });
     document.querySelectorAll('#inboxList .leadItem').forEach(el=>{
       const c=byId.get(Number(el.dataset.conversationId));if(!c)return;
+      const plan=el.querySelector('.m2PlanAction');if(plan)plan.hidden=section!=='tasks';
       if(changedNodes&&!changedNodes.has(el)){if(activityChanged)refreshInboxActivity(el,c,now);return;}
+      if(el.querySelector('.m2RowOpen'))return;
       const signal=ownershipSignal(c),line=el.querySelector('.leadTitleLine'),identity=el.querySelector('.leadIdentity'),primary=el.querySelector('.leadPrimary');
       const name=el.querySelector('.leadTitle');if(name){name.textContent=c.display_name||'Турист';name.id='m2LeadTitle-'+Number(c.id)}
       const channelKey=String(c.channel||''),channel={max:'MAX',telegram:'TG',website:'Сайт'}[channelKey]||'Другой';
@@ -144,6 +148,16 @@
       if(reply)secondary.appendChild(reply);if(wait)secondary.appendChild(wait);
       const unread=el.querySelector('.unreadBadge');if(unread){unread.setAttribute('aria-label','Непрочитанных сообщений: '+Math.max(0,Number(c.unread_count)||0));primary?.appendChild(unread)}
       if(secondary.childNodes.length)identity?.appendChild(secondary);
+      // Retain canonical task projections; the plan reveals their existing title,
+      // urgency and deadline without ranking clients or changing task ownership.
+      const taskNodes=[...el.querySelectorAll('.leadTaskCompact')];
+      if(taskNodes.length&&identity){
+        const action=document.createElement('div');action.className='m2PlanAction';action.hidden=section!=='tasks';
+        taskNodes.forEach(node=>action.appendChild(node));
+        const due=window.WorkspaceV2Inbox?.formatTaskDue?.(c.next_task_due_at_utc);
+        if(c.next_task_title&&due){const deadline=document.createElement('span');deadline.className='m2TaskDeadline';deadline.textContent='Срок: '+due;action.appendChild(deadline)}
+        identity.appendChild(action);
+      }
       if(!el.querySelector('.leadSignals')?.childNodes.length)el.querySelector('.leadSignals')?.remove();
       el.querySelectorAll('.leadSource:not(.leadActivityTime),.leadTrip,.leadContextRow,.leadActionRow').forEach(node=>node.remove());
       // A native open button keeps avatar viewing separate from opening/read policy.
@@ -296,6 +310,49 @@
       const d=document.createElement('details');d.className='m2BoardActions';d.innerHTML='<summary>Действия с клиентом</summary>';controls.forEach(n=>d.appendChild(n));card.appendChild(d);
     });
   }
+  function narrowNavigation(){return !!window.matchMedia?.('(max-width:740px)').matches}
+  function closeMore({focus=true}={}){
+    const dialog=$('m2MoreMenu');if(!dialog?.open)return;
+    dialog.close();$('m2MoreToggle').setAttribute('aria-expanded','false');
+    window.WorkspaceV2Mobile?.closeOverlay?.('manager2-more');
+    if(focus&&narrowNavigation()&&S.manager&&!S.authExpired)$('m2MoreToggle').focus({preventScroll:true});
+  }
+  function syncMoreNavigation(){
+    if(!moreNavigationReady)return;
+    const narrow=narrowNavigation(),valid=!!S.manager&&!S.authExpired,dialog=$('m2MoreMenu'),items=dialog.querySelector('.m2MoreItems'),toggle=$('m2MoreToggle');
+    toggle.disabled=!valid;
+    if(!narrow||!valid)closeMore({focus:false});
+    ['m2Analytics','assistantOpen','m2NotificationButton'].forEach(id=>{
+      const node=$(id);if(!node)return;
+      if(!moreHomes.has(node)){const anchor=document.createComment(id+' original navigation position');node.before(anchor);moreHomes.set(node,anchor)}
+      if(narrow){if(node.parentElement!==items)items.appendChild(node)}else{const anchor=moreHomes.get(node);if(node.previousSibling!==anchor)anchor.after(node)}
+    });
+    const dot=document.querySelector('.m2NotificationDot'),copy=document.querySelector('.m2MoreDot');
+    if(copy&&dot){const kind=['healthy','warn','error'].find(name=>dot.classList.contains(name));copy.className='m2MoreDot'+(kind?' '+kind:'')}
+  }
+  function initMoreNavigation(){
+    const dialog=$('m2MoreMenu'),toggle=$('m2MoreToggle');moreNavigationReady=true;
+    toggle.onclick=()=>{
+      if(!narrowNavigation()||!S.manager||S.authExpired)return;
+      if(window.WorkspaceV2Mobile?.openOverlay?.('manager2-more',()=>closeMore())===false)return;
+      dialog.showModal();toggle.setAttribute('aria-expanded','true');
+      [...dialog.querySelectorAll('button,a')].find(node=>node.id!=='m2MoreClose'&&!node.hidden&&!node.disabled)?.focus({preventScroll:true});
+    };
+    $('m2MoreClose').onclick=()=>closeMore();
+    dialog.addEventListener('cancel',event=>{event.preventDefault();closeMore()});
+    dialog.addEventListener('click',event=>{
+      if(event.target!==dialog)return;const rect=dialog.getBoundingClientRect();
+      if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)closeMore();
+    });
+    dialog.querySelector('.m2MoreItems').addEventListener('click',event=>{
+      if(!event.target.closest('button,a'))return;
+      // Close before the existing bound handler runs. Its return-focus target
+      // is the visible More button, rather than a control in a closed dialog.
+      closeMore();
+    },true);
+    new MutationObserver(syncMoreNavigation).observe(document.querySelector('.m2Rail'),{childList:true,subtree:true});
+    window.addEventListener('resize',syncMoreNavigation);syncMoreNavigation();
+  }
   function syncNavigation(){
     const analytics=$('m2Analytics');if(analytics){analytics.hidden=!S.manager||S.authExpired||!(S.manager.supervision_available||S.manager.role==='admin');document.body.classList.toggle('m2HasAnalytics',!analytics.hidden)}
     const personal=window.WorkspaceV2PersonalWorkspace?.selectionScope?.();
@@ -304,6 +361,10 @@
     const title=document.querySelector('.inboxHead .brand');if(title)title.textContent={dialogues:'Диалоги',tasks:'Мой план работы',sales:'Продажи',archive:'Архив'}[section];
     const hint=$('m2SectionHint');if(hint){hint.textContent={tasks:'Мои диалоги с задачами и без них. Выберите срок или приоритет.',archive:'Закрытые диалоги. Результат продажи указан в карточке.'}[section]||'';hint.hidden=!hint.textContent}
     $('workspaceRoot').dataset.m2Section=section;
+    const quick=document.querySelector('.m2TaskQuickFilters'),shortcuts=document.querySelector('.taskShortcuts'),advanced=document.querySelector('.m2TaskFilters');
+    if(quick){quick.hidden=section!=='tasks';const host=section==='tasks'?quick:advanced;if(shortcuts&&host&&shortcuts.parentElement!==host)host.appendChild(shortcuts)}
+    if(advanced)advanced.hidden=section==='tasks';
+    syncMoreNavigation();
     syncPersonalChrome();
   }
   async function navigate(next){
@@ -317,8 +378,8 @@
       window.WorkspaceV2Inbox.setQueue(next==='archive'?'closed':'mine',{reload:false});
     }
     window.WorkspaceV2Mobile?.showInbox({historyMode:'replace'});
-    const taskFilters=document.querySelector('.m2TaskFilters');if(taskFilters)taskFilters.open=next==='tasks';
-    if(next==='tasks'&&$('filtersPanel')?.classList.contains('hidden'))$('filtersToggle')?.click();
+    const taskFilters=document.querySelector('.m2TaskFilters');if(taskFilters)taskFilters.open=false;
+    if(next==='tasks'){$('filtersPanel')?.classList.add('hidden');$('filtersToggle')?.setAttribute('aria-expanded','false')}
     syncNavigation();
     const loaded=await window.WorkspaceV2Inbox.load({preserveScroll:false});
     if(generation===navigationGeneration&&!S.authExpired&&authGeneration===S.authGeneration&&managerId===Number(S.manager?.id||0))syncNavigation();
@@ -326,7 +387,7 @@
   }
   function updateClock(){const clock=$('m2Clock');if(clock){const now=new Date();clock.dateTime=now.toISOString();clock.textContent=new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(now)+' МСК'}}
   function init(){
-    initConversationMenu();initInboxTools();
+    initConversationMenu();initInboxTools();initMoreNavigation();
     $('inboxList')?.setAttribute('role','list');
     window.WorkspaceV2PostContext?.init({endpoint:'/manager/post-context-api.php'});
     const manager=$('managerName'),shift=$('managerShiftBtn'),admin=$('adminLink'),health=$('notificationStatus');
@@ -342,6 +403,7 @@
     if(health)$('m2NotificationSlot').appendChild(health);placeAdmin();
     const shortcuts=document.querySelector('.taskShortcuts');if(shortcuts){const details=document.createElement('details');details.className='m2TaskFilters';details.innerHTML='<summary>Быстрые фильтры</summary>';$('filtersPanel').prepend(details);details.appendChild(shortcuts)}
     const hint=document.createElement('p');hint.id='m2SectionHint';hint.className='m2SectionHint';hint.hidden=true;document.querySelector('.inboxHead .brandRow').after(hint);
+    const quick=document.createElement('div');quick.className='m2TaskQuickFilters';quick.hidden=true;hint.after(quick);
     const attach=document.querySelector('.attachBtn');
     if(attach){attach.tabIndex=0;attach.setAttribute('role','button');attach.setAttribute('aria-label','Прикрепить файл');attach.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();const input=$('replyFile');if(input&&!input.disabled)input.click()}})}
     $('mobileLeadBtn').textContent='Клиент';$('mobileLeadBtn').setAttribute('aria-label','Карточка клиента');

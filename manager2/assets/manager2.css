@@ -1,4 +1,5 @@
 /* Agreed AnyTour manager design. Scoped to the opt-in /manager2/ shell. */
+.manager2 .m2Rail>.m2MoreToggle{display:none}
 body.manager2{--ws-accent:#25624f;--ws-accent-soft:#e9f3ed;--ws-text:#233c34;--ws-text-secondary:#55675f;--ws-muted:#718078;--ws-border:#e4e9e4;--ws-surface-subtle:#f5f7f3;--ws-surface-hover:#edf4ee;--m2-forest:#17483d;--m2-line:#e4e9e4;--m2-bg:#f6f7f3;--m2-header:0px;margin:0;background:var(--m2-bg);color:#283b33;font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;height:100vh;height:100dvh;overflow:hidden}
 .manager2 button,.manager2 input,.manager2 select,.manager2 textarea{font-family:inherit}
 .manager2 button,.manager2 summary,.manager2 a{-webkit-tap-highlight-color:transparent}
@@ -216,6 +217,18 @@ body.manager2{--ws-accent:#25624f;--ws-accent-soft:#e9f3ed;--ws-text:#233c34;--w
 .manager2 .m2ChatManager{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .manager2 .m2ChatMeta .leadAiStatus{font-size:10px;line-height:1.35;padding:1px 5px;margin:0;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .manager2 .m2ChatMeta .leadReplyStatus,.manager2 .m2ChatMeta .leadWaitCompact{margin:0;line-height:1.4;max-width:100%}
+.manager2 .m2ChatMeta .leadReplyStatus{font-weight:700;color:#8a421c;background:#fff0dc;padding:2px 6px;border-radius:5px}
+.manager2 .m2ChatMeta .leadWaitCompact.warn{background:#fff0cf;color:#865000;font-weight:650}
+.manager2 .m2ChatMeta .leadWaitCompact.urgent{background:#fbe0d9;color:#913c2c;font-weight:750}
+.manager2 .leadItem.waitUrgent{background:#fff7f3;box-shadow:inset 3px 0 0 #b95c43}
+.manager2 .m2PlanAction{display:flex;flex-direction:column;gap:4px;margin-top:7px;min-width:0}
+.manager2 .m2PlanAction[hidden],.manager2 .m2TaskQuickFilters[hidden],.manager2 .m2TaskFilters[hidden]{display:none}
+.manager2 .m2PlanAction .leadTaskCompact{align-self:flex-start;max-width:100%;box-sizing:border-box;white-space:normal;overflow-wrap:anywhere;font-size:13px;line-height:1.4}
+.manager2 .m2TaskDeadline{font-size:12px;color:#55675f;font-variant-numeric:tabular-nums}
+.manager2 .m2PlanAction:has(.overdue) .m2TaskDeadline{color:#a64c3c;font-weight:650}
+.manager2 .m2TaskQuickFilters{width:100%;min-width:0;flex-shrink:0}
+.manager2 .m2TaskQuickFilters .taskShortcuts{flex-wrap:nowrap;overflow-x:auto;max-width:100%;margin:4px 0 7px;padding:0 0 4px;overscroll-behavior-x:contain}
+.manager2 .m2TaskQuickFilters .taskShortcut{flex:0 0 auto;white-space:nowrap;min-height:44px}
 .manager2 .pwRowMarkers{display:flex;flex-wrap:nowrap;gap:4px;min-width:0;margin:3px 0 0;padding:0;overflow:hidden;line-height:1.4}
 .manager2 .pwRowMarkers .pwMarkerPin{display:none}
 .manager2 .pwRowMarkers .pwMarkerLabel{flex:0 1 auto;min-width:0;max-width:44%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -282,3 +295,24 @@ body.manager2{--ws-accent:#25624f;--ws-accent-soft:#e9f3ed;--ws-text:#233c34;--w
 
 /* Receipt lookup must remain visibly distinct from a new mobile send. */
 @media(max-width:740px){.manager2 .composer .sendBtn[data-send-pending="true"]{width:84px;min-width:84px;padding:0 8px;font-size:11px;line-height:1.15;white-space:normal}.manager2 .composer .sendBtn[data-send-pending="true"]:after{content:none}}
+
+/* Five visible destinations share one bottom row; the existing secondary
+   controls move into this dialog, retaining their canonical listeners. */
+.manager2 .m2MoreMenu{width:min(340px,calc(100vw - 24px));box-sizing:border-box}
+.manager2 .m2MoreItems{display:grid;gap:5px}
+.manager2 .m2MoreItems .m2Nav,.manager2 .m2MoreItems .m2IconButton{position:relative;display:flex;flex-direction:row;justify-content:flex-start;gap:12px;width:100%;min-height:48px;padding:9px 12px;box-sizing:border-box;border:0;border-radius:8px;background:#f4f7f1;color:#334f40;text-align:left;text-decoration:none;font-size:15px}
+.manager2 .m2MoreItems [hidden]{display:none!important}
+.manager2 .m2MoreItems .m2AccountLabel{display:block}
+.manager2 .m2MoreItems .m2NotificationDot{top:12px;right:12px}
+.manager2 .m2MoreDot{display:none;position:absolute;top:5px;right:calc(50% - 15px);width:7px;height:7px;border-radius:50%}
+.manager2 .m2MoreDot.warn{display:block;background:#c68a27}
+.manager2 .m2MoreDot.error{display:block;background:#c85849}
+@media(max-width:740px){
+.manager2 .m2App{grid-template-rows:minmax(0,1fr) calc(62px + env(safe-area-inset-bottom))}
+.manager2 .m2Rail{grid-template-rows:48px;align-content:center;padding-top:5px;padding-bottom:calc(9px + env(safe-area-inset-bottom));box-sizing:border-box}
+.manager2 .m2Rail>.m2MoreToggle{position:relative;display:flex}
+.manager2 .m2Rail>.m2RailEnd{display:none}
+.manager2 .m2Rail>.m2Nav{height:48px;min-height:48px;margin:0}
+.manager2 .m2MoreMenu{margin:auto auto calc(72px + env(safe-area-inset-bottom));max-height:calc(100dvh - 96px - env(safe-area-inset-bottom));overflow:auto}
+.manager2 .m2SectionHint{font-size:11px;margin:0 0 3px}
+}

@@ -152,13 +152,14 @@ for(const width of [390,430,768,1440])test.describe('Messenger layout '+width,()
     await expect(page.locator('#pwTabs')).toBeVisible();
     await page.locator('#pwClose').click();
     await expect(page.locator('#m2WorkspaceSettings')).toBeFocused();
+    if(width<=740)await page.getByRole('button',{name:'Ещё',exact:true}).press('Enter');
     await page.locator('#m2NotificationButton').press('Enter');
     await expect(page.locator('#m2Notifications')).toBeVisible();
     await expect(page.locator('#m2Notifications #managerName')).toHaveText('Мария');
     await expect(page.locator('#m2Notifications #managerShiftBtn')).toBeVisible();
     await expect(page.locator('#notificationStatus')).toBeVisible();
     await page.locator('#m2NotificationsClose').click();
-    await expect(page.locator('#m2NotificationButton')).toBeFocused();
+    await expect(width<=740?page.getByRole('button',{name:'Ещё',exact:true}):page.locator('#m2NotificationButton')).toBeFocused();
     await settle(fixture);
     expect(fixture.calls.slice(initial)).toHaveLength(1);
     expect(fixture.calls[initial]).toMatchObject({path:'/manager/push.php',action:'connections',expected_manager_id:7});
