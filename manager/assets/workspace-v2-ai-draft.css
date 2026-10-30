@@ -37,7 +37,7 @@
 .manager2 #composer .composerMain{position:relative}
 .manager2 #composer .aiSuggestionGhost{position:absolute;top:0;left:0;right:0;z-index:1;box-sizing:border-box;margin:0;padding:0;border:0;border-radius:0;background:transparent;pointer-events:none;overflow:hidden}
 .manager2 #composer .aiSuggestionGhost .aiSuggestionHead{display:none}
-.manager2 #composer .aiSuggestionGhost .aiSuggestionText{position:absolute;inset:0 0 34px;box-sizing:border-box;margin:0;max-height:none;padding:8px 10px;overflow:hidden;white-space:pre-wrap;overflow-wrap:break-word;font-size:14px;line-height:1.45;user-select:none}
+.manager2 #composer .aiSuggestionGhost .aiSuggestionText{position:absolute;inset:0 0 34px;box-sizing:border-box;margin:0;max-height:none;padding:8px 10px;overflow:hidden;white-space:pre-wrap;overflow-wrap:break-word;font-size:14px;line-height:1.45;color:#b8bdb5;user-select:none}
 .manager2.pwLargeFont #composer .aiSuggestionGhost .aiSuggestionText{font-size:16px}
 .manager2 #composer .aiSuggestionGhost .aiSuggestionActions{position:absolute;left:10px;right:10px;bottom:4px;gap:5px;pointer-events:auto}
 .manager2 #composer .aiSuggestionGhost button{min-height:24px;padding:2px 6px;font-size:11px;color:#6e7868;border-color:#e6eae1;background:#fff}
