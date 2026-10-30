@@ -47,10 +47,28 @@ The two `events` describe only the current connection: absence, ambiguity,
 active verified registration, expiry, inactivity or unknown metadata, plus
 validated expiration/verification/update/retry times, attempts and the last
 HTTP status when known. `other_binding_rows` counts this same owner's retained
-rows on earlier connections without revealing their identities or declaring
-their grants valid. Those rows never make a current registration ambiguous or
-eligible. No callbacks, secrets, subscription/event IDs or event bodies leave
-the service. The projection performs no callback, renewal, dispatch or write.
+rows on earlier connections without declaring their grants valid. Those rows
+never make a current registration ambiguous or eligible. Multiple current
+rows remain `ambiguous`, including one active and one inactive historical row;
+this is not proof of multiple active consumers.
+
+The private `candidates` list exposes every scoped stored row's validated
+subscription ID, administrator/connection identity, current-owner comparison,
+state, active flag and validated metadata. Stored arguments are returned only
+as the exact two expected filters when they match the scoped project/queue;
+otherwise `filters=null` and `filters_match=false`. Arbitrary stored JSON is
+never exported. `candidates=null` means unavailable, while `[]` means a known
+empty inventory. No candidate is selected by order, age or filter match.
+These identities are private owner diagnostics, not public health output.
+
+The table does not store native task identity: `handler_task_id=null` and
+`handler_binding_state=unknown_host_readback_required` are explicit. The host
+must provide the subscription ID to task ID association, connector/connection,
+event, filters, enabled state and observation time before a targeted repair can
+be chosen. Do not derive that association from callback URLs or matching filters.
+No callback URLs, secrets, event IDs or event bodies leave the service. The
+projection performs no callback, renewal, dispatch or write, and does not enable
+workers, authorize claims or override a private `dispatch_allowed=false` gate.
 
 `available=false`, malformed metadata and row-limit results mean unknown,
 not absent. `coverage=same_admin_owned_queue` does not describe the global cron

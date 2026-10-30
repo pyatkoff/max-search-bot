@@ -62,18 +62,19 @@ final class HotelWorkEventService
         $result=self::unavailableSubscriptionSetup();
         try {
             // Include only this administrator's history for the currently owned
-            // queue. Old binding identities are used locally and never returned.
-            $q=$this->pdo->prepare('SELECT event_name,oauth_connection_id,is_active,expires_at,verified_at,next_attempt_at,last_status,attempts,updated_at FROM hotel_work_events WHERE project_key=? AND admin_id=? AND queue_id=? AND event_name IN (?,?) LIMIT 21');
+            // queue. Never read callback URLs, credentials or frozen payloads.
+            $q=$this->pdo->prepare('SELECT subscription_id,arguments_json,event_name,oauth_connection_id,is_active,expires_at,verified_at,next_attempt_at,last_status,attempts,updated_at FROM hotel_work_events WHERE project_key=? AND admin_id=? AND queue_id=? AND event_name IN (?,?) LIMIT 21');
             if (!$q||!$q->execute([self::PROJECT,$admin,$queueId,...self::EVENTS])) throw new RuntimeException('hotel_subscription_status_unavailable');
             $rows=$q->fetchAll(PDO::FETCH_ASSOC);
             if (!is_array($rows)||!array_is_list($rows)) throw new RuntimeException('hotel_subscription_status_unavailable');
             if (count($rows)>20) $result=self::unavailableSubscriptionSetup('row_limit');
             else {
-                $grouped=array_fill_keys(self::EVENTS,[]);$other=0;
+                $grouped=array_fill_keys(self::EVENTS,[]);$other=0;$candidates=[];
                 foreach ($rows as $row) {
                     $name=$row['event_name']??null;$binding=$row['oauth_connection_id']??null;
                     if (!is_string($name)||!array_key_exists($name,$grouped)||!is_string($binding)
                         ||preg_match('/\A[a-f0-9]{32}\z/D',$binding)!==1) throw new RuntimeException('hotel_subscription_status_unavailable');
+                    $candidates[]=self::setupCandidate($name,$row,$now,$admin,$connection,$queueId);
                     if (!hash_equals($connection,$binding)) {++$other;continue;}
                     $grouped[$name][]=$row;
                 }
@@ -85,7 +86,8 @@ final class HotelWorkEventService
                 }
                 $result=['available'=>true,'observed_at'=>null,
                     'semantics'=>'owned_queue_subscription_metadata_not_host_delivery_proof',
-                    'coverage'=>'same_admin_owned_queue','events'=>$events,'other_binding_rows'=>$other];
+                    'coverage'=>'same_admin_owned_queue','events'=>$events,'other_binding_rows'=>$other,
+                    'candidates'=>$candidates];
             }
         } catch (RuntimeException $unavailable) {
             $result=self::unavailableSubscriptionSetup();
@@ -106,7 +108,28 @@ final class HotelWorkEventService
             'semantics'=>'owned_queue_subscription_metadata_not_host_delivery_proof',
             'coverage'=>'same_admin_owned_queue','reason'=>$reason==='row_limit'?'row_limit':'unavailable',
             'events'=>array_map(static fn(string $name):array=>self::setupEntry($name),self::EVENTS),
-            'other_binding_rows'=>null];
+            'other_binding_rows'=>null,'candidates'=>null];
+    }
+
+    /** Private owner inventory; no candidate is selected and host identity is unknown. */
+    private static function setupCandidate(string $name,array $row,int $now,int $admin,string $connection,string $queueId): array
+    {
+        $id=$row['subscription_id']??null;
+        $args=is_string($row['arguments_json']??null)?json_decode($row['arguments_json'],true,8):null;
+        $filtersMatch=is_array($args)&&count($args)===2
+            &&($args['project_key']??null)===self::PROJECT&&($args['queue_id']??null)===$queueId;
+        $out=self::setupRow($name,$row,$now);
+        unset($out['matching_rows']);
+        return $out+[
+            'subscription_id'=>is_string($id)&&preg_match('/\Ahotel_sub_[a-f0-9]{64}\z/D',$id)===1?$id:null,
+            'owner_admin_id'=>$admin,'connection_id'=>$row['oauth_connection_id'],
+            'current_owner_connection'=>hash_equals($connection,$row['oauth_connection_id']),
+            'project_key'=>self::PROJECT,'queue_id'=>$queueId,
+            'filters'=>$filtersMatch?['project_key'=>self::PROJECT,'queue_id'=>$queueId]:null,
+            'filters_match'=>$filtersMatch,
+            'is_active'=>in_array($row['is_active']??null,[0,1,'0','1'],true)?(string)$row['is_active']==='1':null,
+            'handler_task_id'=>null,'handler_binding_state'=>'unknown_host_readback_required',
+        ];
     }
 
     private static function setupEntry(string $name,string $state='unknown',?int $count=null): array
