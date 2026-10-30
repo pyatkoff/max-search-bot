@@ -449,6 +449,11 @@ for(const width of [390,430])for(const role of ['manager','admin'])test('Manager
   await page.setViewportSize({width,height:900});const s=await setup(page,{role});
   const initialPages=page.context().pages().length,popups=[];page.on('popup',popup=>popups.push(popup.url()));
   const more=page.getByRole('button',{name:'Ещё',exact:true});await expect(more).toBeVisible();
+  // The shared .error banner style must not turn the status dot into a badge
+  // that covers the More glyph. Wait for the fixture's canonical health state.
+  await expect(page.locator('#notificationStatus')).toHaveClass(/\bcritical\b/);
+  const dot=page.locator('.m2MoreDot');await expect(dot).toHaveClass(/\berror\b/);
+  const dotBounds=await dot.boundingBox();expect(dotBounds.width).toBeLessThanOrEqual(8);expect(dotBounds.height).toBeLessThanOrEqual(8);
   const panel=page.locator('#'+await more.getAttribute('aria-controls'));
   const geometry=await page.locator('.m2Rail').evaluate(rail=>{
     const visible=[...rail.querySelectorAll('[data-m2-nav],button[aria-controls]')].filter(el=>el.getClientRects().length),rect=rail.getBoundingClientRect();
