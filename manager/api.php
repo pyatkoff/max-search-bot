@@ -123,6 +123,9 @@ if($action==='detail'){
     }catch(Throwable $e){out(['ok'=>false,'error'=>'conversation_load_failed'],500);}
     if(!$d) out(['ok'=>false,'error'=>'not_found'],404);
 
+    // This is panel context, not a stored or delivered bot message. Older
+    // history pages must not replace the context from the latest detail.
+    if ($beforeId===0) $d['handoff_context']=null;
     if ($beforeId===0 && !$d['has_manager_reply']) {
         $chatId=$d['conversation']['external_chat_id']??null;
         if($chatId!==null&&$chatId!==''&&class_exists('MaxSearchApi')){
@@ -130,7 +133,7 @@ if($action==='detail'){
                 $handoffContext=ManagerHandoffEventContextService::latestManagerRequest($conversationId);
                 $summary=ManagerHandoffContextService::build((array)MaxSearchApi::getAiSearchContext($chatId),$d['messages'],$handoffContext);
                 if($summary!==''){
-                    $d['messages'][]=['id'=>0,'direction'=>'outbound','sender_type'=>'ai','text'=>"📋 Запрос туриста для менеджера\n".$summary."\n\n".ManagerHandoffContextService::firstReplyGuidance(),'created_at'=>(string)($d['conversation']['last_message_at']??''),'attachments'=>ManagerHandoffContextService::customerAttachments($d['messages'])];
+                    $d['handoff_context']=['summary'=>$summary,'guidance'=>ManagerHandoffContextService::firstReplyGuidance(),'attachments'=>ManagerHandoffContextService::customerAttachments($d['messages'])];
                 }
             }catch(Throwable $ignored){}
         }

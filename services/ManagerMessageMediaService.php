@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/ConversationDb.php';
 require_once __DIR__ . '/ConversationRecorder.php';
-require_once __DIR__ . '/CallbackGeneration.php';
+require_once __DIR__ . '/ManagerCallbackPresentationService.php';
 
 class ManagerMessageMediaService
 {
@@ -38,18 +38,14 @@ class ManagerMessageMediaService
             $media = $mediaById[(int)($message['id'] ?? 0)] ?? ['channel'=>'','direction'=>'','attachments'=>[],'linked_message'=>[]];
             // Recorded type is authoritative. A tourist typing a callback code
             // remains an ordinary message; raw metadata is never exposed.
-            if(!empty($media['callback']) && $media['direction']==='inbound' && ($message['sender_type']??'')==='customer') {
-                $raw=(string)($message['text']??'');
-                $labels=[
-                    'manager_after_tours'=>'Клиент запросил менеджера после подбора туров',
-                    'manager_request'=>'Клиент запросил менеджера',
-                    'phone_manual'=>'Клиент выбрал ручной ввод телефона',
-                ];
-                $message['service_action']=['type'=>'callback','label'=>$labels[CallbackGeneration::base($raw)]??'Клиент нажал кнопку','raw_payload'=>$raw];
-                if (str_starts_with($raw, 'tour_like_')) {
-                    $message['text'] = 'Нажата кнопка «Нравится»';
-                    $message['service_action'] = ['type'=>'callback','label'=>'Нажата кнопка «Нравится»'];
-                }
+            $action=ManagerCallbackPresentationService::fromMessage(
+                ['direction'=>$media['direction'],'sender_type'=>$message['sender_type']??null,'text'=>$message['text']??''],
+                ['type'=>!empty($media['callback'])?'callback':null]
+            );
+            if ($action !== null) {
+                $message['service_action']=$action;
+                // An intentionally empty public payload also redacts the duplicate token in text.
+                if ($action['raw_payload']==='' && (string)($message['text']??'')!=='') $message['text']=$action['label'];
             }
             if(!empty($media['linked_message'])) $message['linked_message']=$media['linked_message'];
             $attachments = $media['attachments'];

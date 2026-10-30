@@ -7,15 +7,16 @@ const next={id:2,sender_type:'customer',text:'Synthetic arriving message',create
 const flush=async()=>{for(let i=0;i<40;i++)await Promise.resolve()};
 function storage(){const values=new Map();return{getItem:key=>values.get(key)||null,setItem:(key,value)=>values.set(key,value),removeItem:key=>values.delete(key)}}
 async function setup(options={}){
- const h=createHarness({inbox:true,storage:storage(),...options});let messages=[first],conversation=h.conversation,failure=null,hook=null;
+ const h=createHarness({inbox:true,storage:storage(),...options});let messages=[first],conversation=h.conversation,failure=null,hook=null,handoff=null;
+ const contextRoot=h.document.createElement('div');contextRoot.id='handoffContext';contextRoot.hidden=true;h.ids.get('conversationZone').appendChild(contextRoot);
  if(options.reconcileMessages){const box=h.ids.get('messages');box.removeChild=node=>{assert.equal(node.parentNode,box);node.remove();return node};}
  h.setHook((url,r)=>{
    const intercepted=hook?.(url,r);if(intercepted)return intercepted;
-   if(url==='api.php'&&r.action==='detail')return response({ok:true,conversation:{...conversation,id:r.conversation_id},messages,delivery_failure:failure});
+   if(url==='api.php'&&r.action==='detail')return response({ok:true,conversation:{...conversation,id:r.conversation_id},messages,delivery_failure:failure,handoff_context:handoff});
    if(url==='pipeline-api.php'&&r.action==='list')return response({ok:true,conversations:[{...conversation,last_text:messages.at(-1)?.text}]});
  });
  await h.start();
- return Object.assign(h,{arrive(value=[first,next]){messages=value},ownership(value){conversation={...conversation,...value}},failure(value){failure=value},intercept(value){hook=value}});
+ return Object.assign(h,{arrive(value=[first,next]){messages=value},handoff(value){handoff=value},ownership(value){conversation={...conversation,...value}},failure(value){failure=value},intercept(value){hook=value}});
 }
 const detailCount=h=>h.calls.filter(r=>r.url==='api.php'&&r.action==='detail').length;
 
@@ -61,6 +62,38 @@ test('unchanged history retains its DOM and media nodes; same-id synthetic summa
  h.arrive([{id:0,sender_type:'ai',text:'Synthetic summary A'}]);await h.C.refreshVisible();const summary=box.children[0];h.arrive([{id:0,sender_type:'ai',text:'Synthetic summary B'}]);await h.C.refreshVisible();assert.notEqual(box.children[0],summary);assert.equal(h.W.S.detail.messages[0].text,'Synthetic summary B');
 });
 
+test('handoff changes without message changes preserve transcript, draft, disclosure and focusable DOM',async()=>{
+ const h=await setup(),root=h.ids.get('handoffContext'),row=h.ids.get('messages').firstChild;
+ await h.draft('Unsent reply');h.handoff({summary:'Customer request A',guidance:'Internal guidance',attachments:[]});
+ assert.equal(await h.C.refreshVisible(),true);assert.equal(root.hidden,false);assert.equal(h.ids.get('messages').firstChild,row);
+ const details=root.firstChild,title=details.firstChild;details.open=true;
+ h.handoff({summary:'Customer request B <script>literal</script>',guidance:'Updated guidance',attachments:[]});
+ await h.C.refreshVisible();assert.equal(root.firstChild,details);assert.equal(details.firstChild,title);assert.equal(details.open,true);
+ assert.equal(root.querySelector('.handoffContextSummary').textContent,'Customer request B <script>literal</script>');
+ assert.equal(root.querySelector('.handoffContextGuidance').textContent,'Updated guidance');assert.equal(root.querySelector('script'),null);
+ assert.equal(h.ids.get('messages').firstChild,row);assert.equal(h.W.S.detail.messages.length,1);assert.equal(h.ids.get('replyText').value,'Unsent reply');
+ h.C.renderMessages(h.W.S.detail.messages,{preserveScroll:true,prepend:true});assert.equal(root.firstChild,details,'Rendering older history must not replace the latest context');
+ h.handoff(null);await h.C.refreshVisible();assert.equal(root.hidden,true);assert.equal(root.children.length,0);assertNoMutations(h);
+});
+
+test('pending navigation hides old handoff and late refresh cannot restore it in a new conversation',async()=>{
+ const h=await setup(),root=h.ids.get('handoffContext');h.handoff({summary:'Old private request',attachments:[]});await h.C.refreshVisible();
+ const old=deferred(),navigation=deferred();h.intercept((url,r)=>url==='api.php'&&r.action==='detail'?(r.conversation_id===101?old.promise:navigation.promise):null);
+ const refreshing=h.C.refreshVisible();await flush();const opening=h.C.open(102);assert.equal(root.hidden,true);assert.equal(root.children.length,0);
+ navigation.resolve(response({ok:true,conversation:{...h.conversation,id:102},messages:[next],handoff_context:{summary:'New request',attachments:[]}}));await opening;
+ const details=root.firstChild;old.resolve(response({ok:true,conversation:h.conversation,messages:[first],handoff_context:{summary:'Stale private request',attachments:[]}}));await refreshing;
+ assert.equal(root.firstChild,details);assert.equal(root.querySelector('.handoffContextSummary').textContent,'New request');assertNoMutations(h);
+});
+
+for(const boundary of ['auth','identity','access','denied-refresh'])test('handoff is removed at '+boundary+' boundary',async()=>{
+ const h=await setup(),root=h.ids.get('handoffContext');h.handoff({summary:'Private request',attachments:[]});await h.C.refreshVisible();assert.equal(root.hidden,false);
+ if(boundary==='auth')h.W.showAuthRecovery();
+ else if(boundary==='identity')h.C.resetForIdentityChange();
+ else if(boundary==='access')h.C.invalidateMessageAccess();
+ else{h.intercept((url,r)=>url==='api.php'&&r.action==='detail'?response({ok:false},403):null);await h.C.refreshVisible();}
+ assert.equal(root.hidden,true);assert.equal(root.children.length,0);assertNoMutations(h);
+});
+
 test('new media controls initialize against the complete reconciled transcript',async()=>{
  const h=await setup({reconcileMessages:true}),box=h.ids.get('messages'),create=h.document.createElement.bind(h.document),activated=[];
  h.document.createElement=tag=>{
@@ -76,6 +109,13 @@ function trackedMedia(h,row,tag){
  media.pauses=0;media.loads=0;media.pause=()=>{assert.equal(media.isConnected,true);media.pauses++;media.playing=false};media.load=()=>{assert.equal(media.src,undefined);media.loads++};row.appendChild(media);return media;
 }
 function assertRetired(media){assert.equal(media.pauses,1);assert.equal(media.loads,1);assert.equal(media.playing,false);assert.equal(media.src,undefined);assert.equal(media.onerror,null);assert.equal(media.isConnected,false)}
+test('unchanged handoff media survives summary refresh and is retired when context disappears',async()=>{
+ const h=await setup(),root=h.ids.get('handoffContext');h.handoff({summary:'First request',attachments:[]});await h.C.refreshVisible();
+ const mediaRoot=root.querySelector('.handoffContextContent').children[2],audio=trackedMedia(h,mediaRoot,'audio');
+ h.handoff({summary:'Updated request',attachments:[]});await h.C.refreshVisible();
+ assert.equal(audio.isConnected,true);assert.equal(audio.playing,true);assert.equal(audio.pauses,0);
+ h.handoff(null);await h.C.refreshVisible();assertRetired(audio);assertNoMutations(h);
+});
 test('switching conversations retires detached audio and video without touching retained players',async()=>{
  const h=await setup({reconcileMessages:true}),row=h.ids.get('messages').firstChild,audio=trackedMedia(h,row,'audio'),video=trackedMedia(h,row,'video');
  await h.C.open(102);assertRetired(audio);assertRetired(video);assert.equal(h.W.S.current,102);assertNoMutations(h);

@@ -318,6 +318,23 @@ queryPageCheck('actual SQLite plan resolves the latest message only once',$looku
 queryPageCheck('preview projection changes no transcript ownership or read state',$queueSnapshot()===$previewBefore);
 echo 'PREVIEW_PLAN '.json_encode(['driver'=>'sqlite','candidate_rows'=>count($previewRows),'latest_message_lookups'=>$lookups],JSON_THROW_ON_ERROR)."\n";
 
+// The same raw value is a service action only on its own recorded callback row.
+foreach ([210=>'callback',211=>'message'] as $id=>$type) {
+    $insert->execute([$id,1,'anytour',1,'max','ai','new',null,'2026-10-15 10:00:00','2026-10-15 10:00:00',0]);
+    $message->execute([$id*10,$id,'inbound','customer','manager_after_tours',json_encode(['type'=>$type]),'2026-10-15 10:00:00']);
+}
+$callbackPreviewBefore=$queueSnapshot();$callbackPreviewPage=null;
+$callbackPreviewArgs=[7,'all',200,'anytour','','',0,['ids'=>[210,211]]];
+$callbackPreviewRows=ManagerConversationService::list(...[...$callbackPreviewArgs,&$callbackPreviewPage]);
+$callbackPreviewById=array_column($callbackPreviewRows,null,'id');
+queryPageCheck('SQL callback preview explains manager help while identical customer text stays literal',
+    count($callbackPreviewRows)===2
+    && $callbackPreviewById[210]['last_preview_text']==='Нажата кнопка «Нужна помощь с подбором»'
+    && $callbackPreviewById[211]['last_preview_text']==='manager_after_tours'
+    && $callbackPreviewById[210]['last_text']==='manager_after_tours'
+    && $callbackPreviewById[211]['last_text']==='manager_after_tours'
+    && $queueSnapshot()===$callbackPreviewBefore);
+
 // Routing needs the same timestamps even when display columns are omitted.
 $db->exec("UPDATE managers SET role='manager',is_working=1 WHERE id=7;
 INSERT INTO manager_group_members VALUES(7,101);

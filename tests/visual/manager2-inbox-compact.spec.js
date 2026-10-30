@@ -1,4 +1,5 @@
 const {test,expect}=require('@playwright/test');
+const {execFileSync}=require('node:child_process');
 const fs=require('node:fs'),path=require('node:path');
 const {setup,root,emptyState}=require('./fixtures/personal-workspace');
 
@@ -68,6 +69,24 @@ async function headerGeometry(page){return pin(page).evaluate(el=>{
  const size=value=>Math.round(value*1024)/1024;
  return {width:size(box.width),height:size(box.height),fontSize:parseFloat(style.fontSize),hit:hit===el||el.contains(hit),sameLine:Math.abs((box.top+box.height/2)-(name.top+name.height/2))<=6,nearName:box.left>=name.right-1&&box.left-name.right<=16};
 })}
+for(const width of [390,1440])test(`Inbox callback previews explain clicks and preserve literal customer text ${width}`,async({page,browserName},testInfo)=>{
+ const raw='manager_after_tours';
+ const previews=JSON.parse(execFileSync('php',['-r',`
+  require 'services/ManagerCallbackPresentationService.php';
+  $message=['direction'=>'inbound','sender_type'=>'customer','text'=>'manager_after_tours'];
+  $callback=ManagerCallbackPresentationService::fromMessage($message,['type'=>'callback']);
+  $literal=ManagerCallbackPresentationService::fromMessage($message,['type'=>'message']);
+  echo json_encode([$callback['label'],$literal['label']??$message['text']],JSON_THROW_ON_ERROR);
+ `],{cwd:root,encoding:'utf8'}));
+ const data=rows().slice(0,2).map((item,index)=>({...item,status:'waiting_manager',manager_id:null,manager_name:null,awaiting_first_reply:1,last_text:raw,last_preview_text:previews[index]}));
+ await page.setViewportSize({width,height:900});const s=await setup(page,{rows:data});await settled(page,s);
+ await expect(row(page,11).locator('.leadPreview')).toHaveText('Нажата кнопка «Нужна помощь с подбором»');
+ await expect(row(page,11).locator('.leadPreview')).not.toContainText(raw);
+ await expect(row(page,12).locator('.leadPreview')).toHaveText(raw);
+ const g=await geometry(page);expect(g.overflow).toBeLessThanOrEqual(1);expect(g.contained).toBe(true);
+ await capture(page,browserName,{width,font:'normal',density:'comfortable',groups:0,captureSuffix:'-callback-preview'},900,testInfo);
+ clean(s);
+});
 const profiles=[
  {width:390,font:'normal',density:'comfortable',groups:0},{width:390,font:'normal',density:'compact',groups:1},
  {width:390,font:'large',density:'comfortable',groups:6},{width:390,font:'large',density:'compact',groups:6},

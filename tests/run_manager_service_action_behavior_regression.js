@@ -25,7 +25,7 @@ const message=(id,text,extra={})=>({id,direction:'inbound',sender_type:'customer
 function render(rows){const before=JSON.stringify(rows);context.window.WorkspaceV2Conversation.renderMessages(rows);assert.equal(JSON.stringify(rows),before,'Rendering preserves exact source messages');return box.children;}
 const find=(node,name)=>node.children.find(c=>c.className===name);
 
-const raw='manager_after_tours',label='Клиент запросил менеджера после подбора туров';
+const raw='manager_after_tours',label='Нажата кнопка «Нужна помощь с подбором»';
 const projected=message(1,raw,{service_action:action(raw,label)});
 const event=render([projected])[0];
 assert.equal(event.className,'msg serviceAction','Callback is not rendered as a tourist utterance');
@@ -49,12 +49,20 @@ for(const extra of [{sender_type:'manager'},{direction:'outbound'},{sender_type:
 const unknownRaw='unknown_<svg onload=alert(1)>',unknown=render([message(4,unknownRaw,{service_action:action(unknownRaw)})])[0];
 assert.equal(find(unknown,'msgBody').textContent,'Клиент нажал кнопку');
 assert.equal(find(unknown,'serviceActionDetails').children[1].textContent,unknownRaw,'Unknown raw code remains literal text');
-const linked=message(5,'phone_manual',{service_action:action('phone_manual','Клиент выбрал ручной ввод телефона'),linked_message:{type:'reply',mid:'99',sender_name:'Турист',text:'Цитата <b>без HTML</b>'},attachments:[{type:'file',url:'media-file.php?id=fixture',name:'offer.pdf'}]});
+const linked=message(5,'phone_manual',{service_action:action('phone_manual','Нажата кнопка ручного ввода телефона'),linked_message:{type:'reply',mid:'99',sender_name:'Турист',text:'Цитата <b>без HTML</b>'},attachments:[{type:'file',url:'media-file.php?id=fixture',name:'offer.pdf'}]});
 const rows=render([projected,linked,message(6,'Обычная реплика'),message(7,'<b>Здравствуйте</b>',{sender_type:'ai',direction:'outbound'})]);
 assert.deepEqual(rows.map(r=>r.dataset.scrollMessageKey),['1','5','6','7']);
 assert.ok(find(rows[1],'linkedMessage').textContent.includes('Цитата <b>без HTML</b>'));
 assert.equal(find(rows[1],'attachments').children[0].href,'media-file.php?id=fixture');
-assert.equal(find(rows[1],'msgBody').textContent,'Клиент выбрал ручной ввод телефона');
+assert.equal(find(rows[1],'msgBody').textContent,'Нажата кнопка ручного ввода телефона');
 assert.equal(find(rows[3],'messageSender').textContent,'Бот');
 assert.equal(find(rows[3],'msgBody').textContent,'Здравствуйте','Existing safe bot bold presentation is preserved');
+const likeRaw='tour_like_123_0123456789abcdef01234567',likeLabel='Нажата кнопка «Нравится»';
+const like=render([message(8,likeLabel,{service_action:action('',likeLabel)})])[0];
+assert.equal(like.className,'msg serviceAction','A recorded like remains a service action rather than an invented tourist utterance');
+assert.equal(find(like,'msgBody').textContent,likeLabel);
+assert.equal(find(like,'serviceActionDetails'),undefined,'Private like callback tokens have no public technical disclosure');
+assert.ok(!like.textContent.includes('0123456789abcdef01234567'));
+const literalLike=render([message(9,likeRaw)])[0];
+assert.equal(literalLike.className,'msg customer');assert.equal(find(literalLike,'msgBody').textContent,likeRaw);
 console.log('PASS typed callback events, literal tourist text, raw details, unknown actions, immutable order/IDs, quotes/media and bot vocabulary');
