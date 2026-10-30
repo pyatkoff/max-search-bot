@@ -71,7 +71,11 @@ foreach (['claimed','unknown','receipt','other_claim','unacknowledged'] as $guar
     } elseif ($guard==='receipt') {
         $pdo->prepare('INSERT INTO hotel_work_receipts(queue_id,stage_index,stage_id,receipt_sha256,receipt_json,created_at) VALUES (?,?,?,?,?,?)')->execute(['PILOT',0,$args['stage_id'],str_repeat('a',64),'{}',gmdate('Y-m-d H:i:s',$clock->at)]);
     } elseif ($guard==='unacknowledged') $pdo->exec("UPDATE hotel_work_queues SET attention_ack=NULL WHERE queue_id='PILOT'");
-    else $pdo->exec("INSERT INTO hotel_work_queues SELECT 'OTHER',project_key,admin_id,oauth_connection_id,mode,batch_limit,start_country,initial_phase_counter,phase_counter,baseline_sha256,plan_sha256,stage_index,'claimed','held',current_run_id,accepted_batches,event_ack,delivered_at,claim_deadline,attention_at,attention_ack,watchdog_due_at,watchdog_epoch,last_watch_ack,created_at,updated_at FROM hotel_work_queues WHERE queue_id='PILOT'");
+    else {
+        $other=$pdo->query("SELECT * FROM hotel_work_queues WHERE queue_id='PILOT'")->fetch(PDO::FETCH_ASSOC);
+        $other['queue_id']='OTHER';$other['state']='claimed';$other['claim_sha256']=str_repeat('c',64);
+        $pdo->prepare('INSERT INTO hotel_work_queues ('.implode(',',array_keys($other)).') VALUES ('.implode(',',array_fill(0,count($other),'?')).')')->execute(array_values($other));
+    }
     hotelReject(fn()=>$q->recover_delivery(1,str_repeat('a',32),$args),HotelWorkQueueConflict::class,'owner_recovery_blocks_'.$guard);
     hotelAssert((int)$pdo->query('SELECT COUNT(*) FROM hotel_work_owner_delivery_recoveries')->fetchColumn()===0,'rejected_owner_recovery_creates_no_audit');
 }
