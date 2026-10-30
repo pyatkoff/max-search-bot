@@ -73,9 +73,16 @@ foreach ([
     ['outbound text',['last_direction'=>'outbound'], $raw],
     ['manager text',['last_sender_type'=>'manager'], $raw],
     ['AI text',['last_sender_type'=>'ai'], $raw],
-    ['unknown action',['last_text'=>'g1_1234abcd_future_action'], 'g1_1234abcd_future_action'],
-    ['invalid generation',['last_text'=>'g1_invalid_show_tours'], 'g1_invalid_show_tours'],
-    ['unsafe text',['last_text'=>'<img src=x onerror=alert(1)>'], '<img src=x onerror=alert(1)>'],
+    ['manager help',['last_text'=>'manager_after_tours'], 'Нажата кнопка «Нужна помощь с подбором»'],
+    ['generated manager help',['last_text'=>'g1_1234abcd_manager_after_tours'], 'Нажата кнопка «Нужна помощь с подбором»'],
+    ['party selection',['last_text'=>'adults_2'], 'Нажата кнопка «2 взрослых»'],
+    ['date selection',['last_text'=>'pick_date_04.11.2026'], 'Нажата кнопка выбора даты: 04.11.2026'],
+    ['back navigation',['last_text'=>'back_check'], 'Нажата кнопка возврата к параметрам поездки'],
+    ['unknown action',['last_text'=>'g1_1234abcd_future_action'], 'Клиент нажал кнопку'],
+    ['invalid generation',['last_text'=>'g1_invalid_show_tours'], 'Клиент нажал кнопку'],
+    ['unsafe callback',['last_text'=>'<img src=x onerror=alert(1)>'], 'Клиент нажал кнопку'],
+    ['literal manager code',['last_text'=>'manager_after_tours','last_metadata_json'=>'{"type":"message"}'], 'manager_after_tours'],
+    ['literal unsafe text',['last_text'=>'<img src=x onerror=alert(1)>','last_metadata_json'=>'{"type":"message"}'], '<img src=x onerror=alert(1)>'],
 ] as [$name,$override,$expected]) {
     $input=array_replace($buttonRow,$override);
     $output=ManagerConversationService::decorateLastMessagePreviews([$input])[0];
@@ -89,6 +96,17 @@ inboxCheck('waiting prefix is identical for raw and display text',str_replace($r
 $unavailable=ManagerConversationService::decorateLastMessagePreviews([$buttonRow],[1=>['category'=>'suspended']])[0];
 inboxCheck('delivery failure remains neutral and visible with readable callback',$unavailable['last_preview_text']==='Клиент недоступен в MAX · '.$label);
 inboxCheck('delivery failure keeps existing raw preview',$unavailable['last_text']==='Клиент недоступен в MAX · '.$raw);
+
+$like='tour_like_123_0123456789abcdef01234567';
+foreach([$like,'g1_1234abcd_'.$like] as $payload){
+    $input=array_replace($buttonRow,['last_text'=>$payload]);
+    $output=ManagerConversationService::decorateLastMessagePreviews([$input])[0];
+    inboxCheck('like callback has readable legacy and current previews',$output['last_text']==='Нажата кнопка «Нравится»'&&$output['last_preview_text']===$output['last_text']);
+    inboxCheck('like callback token is absent from browser projection',!str_contains(json_encode($output),'0123456789abcdef01234567'));
+    $input['last_metadata_json']='{"type":"message"}';
+    $output=ManagerConversationService::decorateLastMessagePreviews([$input])[0];
+    inboxCheck('typed like payload stays literal',$output['last_text']===$payload&&$output['last_preview_text']===$payload);
+}
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);

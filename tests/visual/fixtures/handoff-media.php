@@ -20,18 +20,17 @@ $context = ['city'=>'Москва','country'=>'Египет','adults'=>2,'childr
 function fixtureDetail(array $context, array $rows): array
 {
     $original = $rows;
+    $handoff = null;
     // Production API integration is guarded by run_manager_request_regression.php.
     // Here the real summary builder and attachment projection feed the real browser renderer.
     if (!ManagerHandoffContextService::hasManagerReply($rows)) {
         $summary = ManagerHandoffContextService::build($context, $rows);
         if ($summary !== '') {
-            $rows[] = ['id'=>0,'direction'=>'outbound','sender_type'=>'ai',
-                'text'=>"📋 Запрос туриста для менеджера\n".$summary."\n\n".ManagerHandoffContextService::firstReplyGuidance(),
-                'created_at'=>'2026-09-21 10:00:10',
+            $handoff = ['summary'=>$summary,'guidance'=>ManagerHandoffContextService::firstReplyGuidance(),
                 'attachments'=>ManagerHandoffContextService::customerAttachments($rows)];
         }
     }
-    return ['messages'=>$rows,'original'=>$original];
+    return ['messages'=>$rows,'original'=>$original,'handoff_context'=>$handoff];
 }
 $afterReply = $rows;
 $afterReply[] = ['id'=>43,'direction'=>'outbound','sender_type'=>'manager','text'=>'Вижу фотографии, спасибо.','attachments'=>[]];

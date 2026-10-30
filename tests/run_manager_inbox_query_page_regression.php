@@ -310,13 +310,39 @@ if(is_string($baselineFile)&&$baselineFile!==''){
     if($replacements!==1)throw new RuntimeException('preview_baseline_class_mismatch');
     $code='';foreach(token_get_all($source) as $token){if(!is_array($token)){$code.=$token;continue;}if($token[0]===T_OPEN_TAG)continue;$code.=$token[0]===T_DIR?var_export(dirname(__DIR__).'/services',true):$token[1];}eval($code);
     $baselinePage=null;$baselineRows=PreviewBaselineManagerConversationService::list(...[...$previewArgs,&$baselinePage]);
-    queryPageCheck('every preview field and candidate metadata equal exact installed source',$baselineRows===$previewRows&&$baselinePage===$previewPage);
+    $expectedRows=$baselineRows;$redactedLikeRows=0;
+    foreach($expectedRows as &$expectedRow){
+        if((int)$expectedRow['id']!==203)continue;
+        queryPageCheck('installed baseline has the exact recorded like fixture before public token redaction',
+            $expectedRow['last_direction']==='inbound'&&$expectedRow['last_sender_type']==='customer'
+            &&$expectedRow['last_text']==='tour_like_synthetic'&&$expectedRow['last_preview_text']==='Нажата кнопка «Нравится»');
+        $expectedRow['last_text']='Нажата кнопка «Нравится»';$redactedLikeRows++;
+    }unset($expectedRow);
+    queryPageCheck('every preview field and candidate metadata match installed source except the explicit like token redaction',
+        $redactedLikeRows===1&&$expectedRows===$previewRows&&$baselinePage===$previewPage);
 }
 $plan=$pdo->prepare('EXPLAIN QUERY PLAN '.$previewSql);$plan->execute($previewSqlArgs);
 $lookups=count(array_filter($plan->fetchAll(),static fn(array $row):bool=>preg_match('/\b(?:SEARCH|SCAN) mm\b/',$row['detail'])===1));
 queryPageCheck('actual SQLite plan resolves the latest message only once',$lookups===1);
 queryPageCheck('preview projection changes no transcript ownership or read state',$queueSnapshot()===$previewBefore);
 echo 'PREVIEW_PLAN '.json_encode(['driver'=>'sqlite','candidate_rows'=>count($previewRows),'latest_message_lookups'=>$lookups],JSON_THROW_ON_ERROR)."\n";
+
+// The same raw value is a service action only on its own recorded callback row.
+foreach ([210=>'callback',211=>'message'] as $id=>$type) {
+    $insert->execute([$id,1,'anytour',1,'max','ai','new',null,'2026-10-15 10:00:00','2026-10-15 10:00:00',0]);
+    $message->execute([$id*10,$id,'inbound','customer','manager_after_tours',json_encode(['type'=>$type]),'2026-10-15 10:00:00']);
+}
+$callbackPreviewBefore=$queueSnapshot();$callbackPreviewPage=null;
+$callbackPreviewArgs=[7,'all',200,'anytour','','',0,['ids'=>[210,211]]];
+$callbackPreviewRows=ManagerConversationService::list(...[...$callbackPreviewArgs,&$callbackPreviewPage]);
+$callbackPreviewById=array_column($callbackPreviewRows,null,'id');
+queryPageCheck('SQL callback preview explains manager help while identical customer text stays literal',
+    count($callbackPreviewRows)===2
+    && $callbackPreviewById[210]['last_preview_text']==='Нажата кнопка «Нужна помощь с подбором»'
+    && $callbackPreviewById[211]['last_preview_text']==='manager_after_tours'
+    && $callbackPreviewById[210]['last_text']==='manager_after_tours'
+    && $callbackPreviewById[211]['last_text']==='manager_after_tours'
+    && $queueSnapshot()===$callbackPreviewBefore);
 
 // Routing needs the same timestamps even when display columns are omitted.
 $db->exec("UPDATE managers SET role='manager',is_working=1 WHERE id=7;

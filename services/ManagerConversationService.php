@@ -8,24 +8,22 @@ require_once __DIR__ . '/ManagerReadService.php';
 require_once __DIR__ . '/ManagerAuthService.php';
 require_once __DIR__ . '/ManagerDeliveryStateService.php';
 require_once __DIR__ . '/SalesPipelineService.php';
-require_once __DIR__ . '/CallbackGeneration.php';
+require_once __DIR__ . '/ManagerCallbackPresentationService.php';
 require_once __DIR__ . '/ManagerHandoffCancellationViewService.php';
 require_once __DIR__ . '/TourChoiceService.php';
 
 class ManagerConversationService
 {
-    /** Display only; stored text and the Inbox search input remain unchanged. */
-    private static function lastMessagePreview(array $row): string
+    /** Display only; stored text and server-side search remain unchanged. */
+    private static function lastMessageAction(array $row): ?array
     {
         $text = (string)($row['last_text'] ?? '');
-        if (($row['last_direction'] ?? '') !== 'inbound'
-            || ($row['last_sender_type'] ?? '') !== 'customer') return $text;
-        $metadata = json_decode((string)($row['last_metadata_json'] ?? ''), true);
-        if (!is_array($metadata) || ($metadata['type'] ?? '') !== 'callback') return $text;
-        if (str_starts_with($text, 'tour_like_')) return 'Нажата кнопка «Нравится»';
-        return CallbackGeneration::base($text) === 'show_tours'
-            ? 'Нажата кнопка «Показать туры»'
-            : $text;
+        return ManagerCallbackPresentationService::fromMessage([
+            'text' => $text,
+            'direction' => $row['last_direction'] ?? '',
+            'sender_type' => $row['last_sender_type'] ?? '',
+            'metadata_json' => $row['last_metadata_json'] ?? null,
+        ]);
     }
 
     private static function resolveProject(int $managerId, string $projectKey=''): string
@@ -237,7 +235,11 @@ class ManagerConversationService
     public static function decorateLastMessagePreviews(array $rows, array $failures = []): array
     {
         foreach($rows as &$row){
-            $row['last_preview_text']=self::lastMessagePreview($row);
+            $action=self::lastMessageAction($row);
+            $row['last_preview_text']=$action['label']??(string)($row['last_text']??'');
+            // The shared projection redacts private like-button tokens from
+            // every browser-visible field, including the legacy preview.
+            if($action!==null&&$action['raw_payload']!==(string)($row['last_text']??''))$row['last_text']=$action['label'];
             unset($row['last_metadata_json']);
             $id=(int)($row['id']??0);$failure=$failures[$id]??null;$row['delivery_failure_category']=$failure['category']??null;
             if(($failure['category']??null)==='suspended'){

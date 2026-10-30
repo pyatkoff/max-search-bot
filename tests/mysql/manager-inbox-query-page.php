@@ -101,11 +101,23 @@ function inboxNativeRun(InboxPageNativePdo $pdo, string $class, array $arguments
         'list_execute_ms'=>$pdo->listExecuteMs,'sql'=>$pdo->listSql,'args'=>$pdo->listArgs];
 }
 
-function inboxNativePair(InboxPageNativePdo $pdo, string $label, array $arguments): array
+function inboxNativePair(InboxPageNativePdo $pdo, string $label, array $arguments, ?int $redactedLikeFixtureId = null): array
 {
     $before = inboxNativeRun($pdo, BaselineManagerConversationService::class, $arguments);
     $after = inboxNativeRun($pdo, ManagerConversationService::class, $arguments);
-    inboxNativeCheck($label . ' preserves every returned field and candidate metadata', $before['rows'] === $after['rows'] && $before['metadata'] === $after['metadata']);
+    $expectedRows=$before['rows'];
+    if ($redactedLikeFixtureId !== null) {
+        $redactedLikeRows=0;
+        foreach ($expectedRows as &$expectedRow) {
+            if ((int)$expectedRow['id']!==$redactedLikeFixtureId) continue;
+            inboxNativeCheck($label . ' baseline has the exact recorded like fixture before public token redaction',
+                $expectedRow['last_direction']==='inbound'&&$expectedRow['last_sender_type']==='customer'
+                &&$expectedRow['last_text']==='tour_like_synthetic'&&$expectedRow['last_preview_text']==='Нажата кнопка «Нравится»');
+            $expectedRow['last_text']='Нажата кнопка «Нравится»';$redactedLikeRows++;
+        } unset($expectedRow);
+        inboxNativeCheck($label . ' permits redaction of exactly the designated like fixture', $redactedLikeRows===1);
+    }
+    inboxNativeCheck($label . ' preserves every returned field and candidate metadata except an explicitly designated like token', $expectedRows === $after['rows'] && $before['metadata'] === $after['metadata']);
     inboxNativeCheck($label . ' preserves the bounded number of SQL executions', $before['sql_count'] === $after['sql_count']);
     return [$before, $after];
 }
@@ -339,7 +351,7 @@ try {
     }
     $previewSnapshot=static fn():array=>[inboxNativeReadState($pdo),$pdo->query('SELECT * FROM conversations WHERE id BETWEEN 701 AND 709 ORDER BY id')->fetchAll(),$pdo->query('SELECT * FROM messages WHERE conversation_id BETWEEN 701 AND 709 ORDER BY id')->fetchAll()];
     $previewBusinessBefore=$previewSnapshot();
-    [, $preview]=inboxNativePair($pdo,'empty callback attachment Unicode malformed and reversed-time previews',[7,'all',200,'native-inbox','','',0,['ids'=>$previewIds]]);
+    [, $preview]=inboxNativePair($pdo,'empty callback attachment Unicode malformed and reversed-time previews',[7,'all',200,'native-inbox','','',0,['ids'=>$previewIds]],703);
     $previewById=array_column($preview['rows'],null,'id');
     inboxNativeCheck('native latest-row join retains empty conversations and nullable fields',count($previewById)===9&&$previewById[701]['last_text']===null&&$previewById[701]['last_direction']===null&&$previewById[701]['last_sender_type']===null&&$previewById[701]['last_preview_text']==='');
     inboxNativeCheck('native callback labels depend on the same row sender direction and metadata',$previewById[702]['last_preview_text']==='Нажата кнопка «Показать туры»'&&$previewById[703]['last_preview_text']==='Нажата кнопка «Нравится»'&&$previewById[704]['last_preview_text']==='show_tours');

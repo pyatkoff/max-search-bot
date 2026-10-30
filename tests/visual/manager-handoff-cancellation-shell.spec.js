@@ -6,14 +6,14 @@ const root=path.resolve(__dirname,'../..'),origin='http://127.0.0.1:4173';
 // Render the actual PHP shell; no copied HTML or production traffic.
 const shell=execFileSync('php',['manager2/index.php'],{cwd:root,encoding:'utf8'});
 const stages=[['new','Новый лид'],['working','В работе'],['selection','Подбираем'],['proposal','Предложение отправлено'],['sold','Продано']].map(([stage_key,display_name],i)=>({id:i+1,stage_key,display_name,sort_order:i}));
-async function setup(page,{anonymous=false,otherOwner=false,role='manager',serviceEvents=false,taskResult='success',holdCreate=false}={}){
+async function setup(page,{anonymous=false,otherOwner=false,role='manager',serviceEvents=false,taskResult='success',holdCreate=false,handoffContext=false}={}){
   const calls=[],unexpected=[],errors=[],sends=[],pendingCreates=[];
   let authenticated=!anonymous,subscribed=false;
-  const cancellationState={status:'manager',event:null,deny:false};
+  const cancellationState={status:'manager',event:null,deny:false,handoff:null};
   const manager={id:7,role,display_name:'Мария',is_working:true};
   const tasks=[{id:21,title:'Проверить отели у моря в бюджете',status:'open',due_state:'today',due_at_utc:'2026-10-14 07:00:00',is_pinned:true,assigned_manager_name:'Мария'},{id:22,title:'Отправить подборку клиенту',status:'open',due_state:'overdue',due_at_utc:'2026-10-13 09:00:00',assigned_manager_name:'Мария'},{id:23,title:'Уточнить состав туристов',status:'done',due_state:'done',assigned_manager_name:'Мария'}];
   const conversation=id=>({id,manager_id:id===12&&cancellationState.status==='ai'?null:otherOwner?8:7,manager_name:otherOwner?'Людмила':'Мария',status:id===12?cancellationState.status:'manager',channel:'telegram',source_id:1,source_name:'AnyTour',display_name:id===11?'Анна Морозова':'Алексей Иванов'});
-  const messages=Array.from({length:35},(_,i)=>({id:i+1,sender_type:i%3===0?'manager':'customer',manager_id:i%3===0?7:null,text:i===34?'Посмотрите, пожалуйста, варианты у моря. Бюджет до 250 тысяч за всех.':'Сообщение '+(i+1)+'. Подбираем семейный отдых в Турции, обсуждаем отели и даты.',created_at:'2026-10-13 12:00:00'}));
+  const messages=Array.from({length:35},(_,i)=>({id:i+1,sender_type:!handoffContext&&i%3===0?'manager':'customer',manager_id:!handoffContext&&i%3===0?7:null,text:i===34?'Посмотрите, пожалуйста, варианты у моря. Бюджет до 250 тысяч за всех.':'Сообщение '+(i+1)+'. Подбираем семейный отдых в Турции, обсуждаем отели и даты.',created_at:'2026-10-13 12:00:00'}));
   if(serviceEvents)messages.push({id:36,direction:'inbound',sender_type:'customer',text:'manager_after_tours',service_action:{type:'callback',label:'Клиент запросил менеджера после подбора туров',raw_payload:'manager_after_tours'},created_at:'2026-10-13 12:01:00'},{id:37,direction:'inbound',sender_type:'customer',text:'manager_after_tours',created_at:'2026-10-13 12:02:00'});
   const lead=id=>({ok:true,can_edit_pipeline:!otherOwner,pipeline:{stage:stages[1],stage_history:[],tags:[],outcome:{outcome:'open'}},tasks:tasks.map(t=>({...t})),trip:{city:'Москва',country:'Турция',date:'24 октября',nights:'7–9',adults:2,children:1,child_ages:'8',meal:'all_inclusive',stars:'4,5',budget:{max:250000,currency:'RUB',basis:'total'}},contact:{phone:'+7 999 123-45-67'},source:{project_label:'AnyTour',origin_label:'TG · реклама',channel:'telegram'},handoff:{technical_status:'manager',manager_name:conversation(id).manager_name}});
   const rows=()=>[11,12].map((id,i)=>({...conversation(id),can_edit_pipeline:!otherOwner,project_label:'AnyTour',origin_label:'TG · реклама',trip_summary:'Москва → Турция · 2 взрослых и ребёнок · 7–9 ночей',lead_stage:stages[1],lead_outcome:'open',unread_count:i?0:2,last_text:'Ждём варианты у моря',last_sender_type:'customer',last_message_at:'2026-10-13 12:00:00',next_task_id:21,next_task_title:tasks.find(t=>t.status==='open')?.title||'',next_task_due_state:'today',operational_task_due_state:'overdue',next_task_due_at_utc:'2026-10-14 07:00:00',next_task_pinned:1,contact_phone:'+7 999 123-45-67'}));
@@ -48,7 +48,7 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
       if(data.action==='me')return reply({ok:true,manager,csrf:'synthetic-csrf',projects:[{project_key:'anytour',display_name:'AnyTour'}]});
       if(data.action==='edit_candidates')return reply({ok:true,messages:[],candidates:[]});
       if(data.action==='counts')return reply({ok:true,counts:{waiting:{count:2,unread:2},mine:{count:2}}});
-      if(data.action==='detail'){if(cancellationState.deny)return reply({ok:false,error:'forbidden'},403);return reply({ok:true,conversation:conversation(data.conversation_id),messages:messages.map(m=>({...m})),delivery_failure:null,handoff_cancellation:cancellationState.event});}
+      if(data.action==='detail'){if(cancellationState.deny)return reply({ok:false,error:'forbidden'},403);return reply({ok:true,conversation:conversation(data.conversation_id),messages:messages.map(m=>({...m})),delivery_failure:null,handoff_cancellation:cancellationState.event,has_manager_reply:!handoffContext,handoff_context:data.conversation_id===11?cancellationState.handoff:null});}
       if(data.action==='send'){sends.push(data);messages.push({id:100+sends.length,sender_type:'manager',manager_id:7,text:data.text,created_at:'2026-10-13 12:01:00'});return reply({ok:true})}
       if(data.action==='set_working'){manager.is_working=data.working;return reply({ok:true,manager})}
     }
@@ -113,5 +113,46 @@ for(const width of [390,430,768,1440])test('actual shell confirmed handoff cause
   await page.evaluate(()=>WorkspaceV2Conversation.open(12));await expect(page.locator('#handoffCancellation')).toBeVisible();
   fixture.cancellationState.deny=true;await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible());await expect(page.locator('#handoffCancellation')).toBeHidden();
   await page.evaluate(()=>WorkspaceV2Conversation.resetForIdentityChange());await expect(page.locator('#handoffCancellation')).toBeHidden();
+  expect(fixture.sends).toHaveLength(0);expect(fixture.errors).toEqual([]);expect(fixture.unexpected).toEqual([]);
+});
+
+for(const width of [390,430,768,1440])test('actual shell compact request context '+width,async({page,browserName},testInfo)=>{
+  await page.setViewportSize({width,height:560});
+  const fixture=await setup(page,{handoffContext:true});
+  fixture.cancellationState.handoff={summary:'Семейный отдых: Москва → Турция, 2 взрослых и ребёнок, 7–9 ночей.\n'+Array.from({length:24},(_,i)=>'Пожелание '+(i+1)+': спокойный отдых у моря.').join('\n'),guidance:'Первый ответ менеджера: учесть уже известные пожелания.',attachments:[]};
+  await openLead(page,11);await page.locator('#replyText').fill('Неотправленный черновик');
+  const context=page.locator('#handoffContext'),disclosure=context.locator('details');
+  await expect(context).toBeVisible();await expect(disclosure).not.toHaveAttribute('open','');
+  await expect(page.locator('#messages .msg')).toHaveCount(35);
+  await expect(page.locator('#messages')).not.toContainText('Первый ответ менеджера');
+  expect(await context.evaluate(el=>el.parentElement.id==='conversationZone'&&!document.getElementById('messages').contains(el))).toBeTruthy();
+  await context.locator('summary').click();await expect(disclosure).toHaveAttribute('open','');
+  await expect(context.locator('.handoffContextSummary')).toContainText('Пожелание 24');
+  const bounds=await page.evaluate(()=>{const box=id=>document.getElementById(id).getBoundingClientRect().toJSON();return{composer:box('composer'),messages:box('messages'),context:box('handoffContext'),width:document.documentElement.scrollWidth}});
+  expect(bounds.composer.bottom).toBeLessThanOrEqual(561);expect(bounds.messages.height).toBeGreaterThan(40);expect(bounds.context.height).toBeLessThan(250);expect(bounds.width).toBeLessThanOrEqual(width);
+  if(width<=768){
+    // Reuse the existing Manager2 keyboard-geometry technique: layout/dvh stay
+    // tall while only visualViewport shrinks. This is not physical-device QA.
+    await page.setViewportSize({width,height:844});await page.locator('#replyText').focus();
+    await page.evaluate(()=>{Object.defineProperty(visualViewport,'height',{configurable:true,value:360});Object.defineProperty(visualViewport,'offsetTop',{configurable:true,value:48});visualViewport.dispatchEvent(new Event('resize'));visualViewport.dispatchEvent(new Event('scroll'))});
+    await expect(page.locator('#conversationZone')).toHaveClass(/m2ReplyViewport/);
+    await expect.poll(()=>page.locator('#sendReply').evaluate(el=>el.getBoundingClientRect().bottom)).toBeLessThanOrEqual(409);
+    const keyboardLayout=await page.evaluate(()=>{const rect=id=>document.getElementById(id).getBoundingClientRect(),messages=rect('messages'),composer=rect('composer'),zone=rect('conversationZone'),context=rect('handoffContext');return{visibleMessages:Math.min(messages.bottom,composer.top,zone.bottom)-Math.max(messages.top,context.bottom,zone.top),contextBottom:context.bottom,composerTop:composer.top}});
+    expect(keyboardLayout.visibleMessages).toBeGreaterThanOrEqual(40);expect(keyboardLayout.contextBottom).toBeLessThanOrEqual(keyboardLayout.composerTop);
+    await expect(page.locator('#replyText')).toBeFocused();await expect(disclosure).toHaveAttribute('open','');
+    await page.evaluate(()=>{delete visualViewport.height;delete visualViewport.offsetTop;visualViewport.dispatchEvent(new Event('resize'));visualViewport.dispatchEvent(new Event('scroll'))});
+    await page.setViewportSize({width,height:560});
+  }
+  await context.locator('summary').focus();
+  await page.evaluate(()=>{window.handoffBefore={disclosure:document.querySelector('#handoffContext details'),message:document.querySelector('#messages .msg')}});
+  fixture.cancellationState.handoff.summary='Обновлённые пожелания туриста';
+  await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible());
+  await expect(context.locator('.handoffContextSummary')).toHaveText('Обновлённые пожелания туриста');
+  expect(await page.evaluate(()=>handoffBefore.disclosure===document.querySelector('#handoffContext details')&&handoffBefore.message===document.querySelector('#messages .msg'))).toBeTruthy();
+  await expect(disclosure).toHaveAttribute('open','');await expect(context.locator('summary')).toBeFocused();await expect(page.locator('#replyText')).toHaveValue('Неотправленный черновик');
+  fs.mkdirSync('manager2-artifacts',{recursive:true});await page.screenshot({animations:'disabled',path:`manager2-artifacts/${browserName}-${width}-request-context.png`});
+  await openLead(page,12);await expect(context).toBeHidden();await expect(context.locator('details')).toHaveCount(0);
+  await openLead(page,11);await expect(context).toBeVisible();await expect(disclosure).not.toHaveAttribute('open','');
+  fixture.cancellationState.deny=true;await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible());await expect(context).toBeHidden();await expect(context.locator('details')).toHaveCount(0);
   expect(fixture.sends).toHaveLength(0);expect(fixture.errors).toEqual([]);expect(fixture.unexpected).toEqual([]);
 });
