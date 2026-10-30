@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
-$pdo=null;$safe=false;$tables=['manager_preparation_cursors','virtual_reply_jobs','virtual_reply_cases','virtual_reply_cursors','virtual_reply_quotas','manager_assistant_decisions','manager_preparation_oauth_tokens','manager_preparation_oauth_codes','manager_preparation_oauth_grants','manager_preparation_oauth_clients','manager_preparation_events','manager_prepared_replies','manager_ai_drafts','telegram_dialogue_messages','customer_channels','conversations','managers'];
+$pdo=null;$safe=false;$tables=['manager_preparation_cursors','virtual_reply_jobs','virtual_reply_cases','virtual_reply_cursors','virtual_reply_quotas','manager_assistant_decisions','manager_preparation_oauth_tokens','manager_preparation_oauth_codes','manager_preparation_oauth_grants','manager_preparation_oauth_clients','manager_preparation_events','manager_prepared_replies','manager_ai_draft_inputs','manager_ai_drafts','telegram_dialogue_messages','customer_channels','conversations','managers'];
 try{
     $dsn=(string)getenv('PREPARED_REPLY_MYSQL_DSN');
     if(preg_match('/\Amysql:.*(?:\Amysql:|;)dbname=(maxbot_prepared_test(?:_[a-zA-Z0-9_]+)?)(?:;|\z)/D',$dsn,$m)!==1)throw new RuntimeException('unsafe_fixture_database');
@@ -45,6 +45,57 @@ try{
     $pdo->exec(file_get_contents(dirname(__DIR__,2).'/migrations/047_prepared_reply_feedback.sql'));
     if($pdo->query('SELECT * FROM manager_ai_drafts')->fetchAll()!==$feedbackBefore)throw new RuntimeException('feedback_migration_retry_changed_data');
     echo "PASS native MySQL prepared feedback column and migration retry preserve provenance\n";
+    $pdo->exec(file_get_contents(dirname(__DIR__,2).'/migrations/078_manager_ai_draft_inputs.sql'));
+    if($pdo->query('SELECT * FROM manager_ai_drafts')->fetchAll()!==$feedbackBefore
+        ||(int)$pdo->query('SELECT COUNT(*) FROM manager_ai_draft_inputs')->fetchColumn()!==0)throw new RuntimeException('draft_input_migration_changed_existing_provenance');
+    echo "PASS native MySQL forward input migration preserves existing drafts without backfill\n";
+    require_once dirname(__DIR__,2).'/services/ManagerAiDraftInputEvidence.php';
+    $inputContext=['conversation_id'=>1,'as_of_message_id'=>2,'history_incomplete'=>false,'media_unread'=>false,
+        'selections_link_unread'=>false,'verified_company_facts'=>[],
+        'messages'=>[['id'=>1,'sender_type'=>'customer','text'=>"Синтетический запрос: «даты те же» 🧳\nДвое взрослых."],
+            ['id'=>2,'sender_type'=>'customer','text'=>"Добавьте ребёнка 12 лет; бюджет 250\u{00A0}000 ₽. e\u{0301}"]]];
+    // Exercise MEDIUMTEXT beyond the ordinary TEXT boundary, including actual
+    // four-byte Unicode, combining characters and JSON-escaped line breaks.
+    $inputInstructions="Синтетическая инструкция:\n".str_repeat("Сохрани «условия» 🧳; e\u{0301}.\n",1600);
+    $inputEvidence=ManagerAiDraftInputEvidence::capture($inputContext,$inputInstructions);
+    if($inputEvidence===null||strlen($inputEvidence->json())<=65535)throw new RuntimeException('draft_input_unicode_fixture_invalid');
+    $inputInsert=$pdo->prepare('INSERT INTO manager_ai_draft_inputs (draft_id,input_json,input_sha256) VALUES(?,?,?)');
+    $inputInsert->execute([str_repeat('a',32),$inputEvidence->json(),$inputEvidence->hash()]);
+    $inputRead=$pdo->query('SELECT input_json,input_sha256,HEX(input_json) AS input_hex,SHA2(input_json,256) AS mysql_sha256,OCTET_LENGTH(input_json) AS input_bytes FROM manager_ai_draft_inputs')->fetch();
+    $inputRestored=ManagerAiDraftInputEvidence::fromJson($inputRead['input_json']??'');
+    if($inputRead['input_json']!==$inputEvidence->json()||$inputRead['input_sha256']!==$inputEvidence->hash()
+        ||strtolower($inputRead['input_hex'])!==bin2hex($inputEvidence->json())||$inputRead['mysql_sha256']!==$inputEvidence->hash()
+        ||(int)$inputRead['input_bytes']!==strlen($inputEvidence->json())||$inputRestored?->context()!==$inputContext
+        ||$inputRestored?->instructionHash()!==hash('sha256',$inputInstructions))throw new RuntimeException('draft_input_native_exact_roundtrip_failed');
+    echo "PASS native MySQL input Unicode bytes and PHP/MySQL digests round-trip exactly beyond 64 KiB\n";
+    $inputsBefore=$pdo->query('SELECT * FROM manager_ai_draft_inputs ORDER BY draft_id')->fetchAll();
+    $pdo->exec(file_get_contents(dirname(__DIR__,2).'/migrations/078_manager_ai_draft_inputs.sql'));
+    if($pdo->query('SELECT * FROM manager_ai_draft_inputs ORDER BY draft_id')->fetchAll()!==$inputsBefore
+        ||$pdo->query('SELECT * FROM manager_ai_drafts')->fetchAll()!==$feedbackBefore)throw new RuntimeException('draft_input_migration_retry_changed_data');
+    $inputDuplicateRejected=false;
+    try{$inputInsert->execute([str_repeat('a',32),$inputEvidence->json(),$inputEvidence->hash()]);}
+    catch(PDOException $error){$inputDuplicateRejected=$error->getCode()==='23000';}
+    $inputOrphanRejected=false;
+    try{$inputInsert->execute([str_repeat('f',32),$inputEvidence->json(),$inputEvidence->hash()]);}
+    catch(PDOException $error){$inputOrphanRejected=$error->getCode()==='23000';}
+    if(!$inputDuplicateRejected||!$inputOrphanRejected
+        ||$pdo->query('SELECT * FROM manager_ai_draft_inputs ORDER BY draft_id')->fetchAll()!==$inputsBefore)throw new RuntimeException('draft_input_native_identity_boundary_failed');
+    echo "PASS native MySQL input migration retry, unique draft binding and foreign key preserve saved evidence\n";
+    $feedback->execute([str_repeat('b',32),1,1,'anytour',str_repeat('b',64),str_repeat('c',64),2,'synthetic deletion fixture',gmdate('Y-m-d H:i:s'),null]);
+    $inputInsert->execute([str_repeat('b',32),$inputEvidence->json(),$inputEvidence->hash()]);
+    $pdo->prepare('DELETE FROM manager_ai_drafts WHERE draft_id=?')->execute([str_repeat('b',32)]);
+    if($pdo->query('SELECT * FROM manager_ai_draft_inputs ORDER BY draft_id')->fetchAll()!==$inputsBefore
+        ||$pdo->query('SELECT * FROM manager_ai_drafts')->fetchAll()!==$feedbackBefore)throw new RuntimeException('draft_input_direct_cascade_failed');
+    $pdo->exec('INSERT INTO conversations VALUES(999)');
+    $cascadeContext=$inputContext;$cascadeContext['conversation_id']=999;
+    $cascadeEvidence=ManagerAiDraftInputEvidence::capture($cascadeContext,$inputInstructions);
+    if($cascadeEvidence===null)throw new RuntimeException('draft_input_cascade_fixture_invalid');
+    $feedback->execute([str_repeat('c',32),999,1,'anytour',str_repeat('b',64),str_repeat('c',64),2,'synthetic conversation deletion fixture',gmdate('Y-m-d H:i:s'),null]);
+    $inputInsert->execute([str_repeat('c',32),$cascadeEvidence->json(),$cascadeEvidence->hash()]);
+    $pdo->exec('DELETE FROM conversations WHERE id=999');
+    if($pdo->query('SELECT * FROM manager_ai_draft_inputs ORDER BY draft_id')->fetchAll()!==$inputsBefore
+        ||$pdo->query('SELECT * FROM manager_ai_drafts')->fetchAll()!==$feedbackBefore)throw new RuntimeException('draft_input_conversation_cascade_failed');
+    echo "PASS native MySQL draft and conversation deletion cascade only to their bound input evidence\n";
     $decision=$pdo->prepare('INSERT INTO manager_assistant_decisions (manager_id,conversation_id,project_key,recommendation_revision,context_revision,instruction_revision,decision,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?)');
     $decision->execute([1,1,'anytour',str_repeat('1',64),str_repeat('2',64),str_repeat('3',64),'done',gmdate('Y-m-d H:i:s'),gmdate('Y-m-d H:i:s')]);
     $decisionsBefore=$pdo->query('SELECT * FROM manager_assistant_decisions')->fetchAll();

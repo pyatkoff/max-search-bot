@@ -324,6 +324,14 @@ try {
         managerAiEndpointCheck($name.' uses expected fresh authorization boundary',count(array_filter($events(),static fn(array $event): bool=>$event['event'] === 'snapshot')) === $snapshotCount);
         if(in_array($action,['prepared_preview','ensure_prepared'],true))managerAiEndpointCheck($name.' has no provider or feedback side effects',!array_intersect(['provider','feedback_record','feedback_insert_request'],array_column($events(),'event')));
     };
+    $writeState(['capture_input'=>true]);$clearEvents();
+    $captured=$request($body,$cookie);
+    $captures=array_values(array_filter($events(),static fn(array $e):bool=>$e['event']==='input_evidence_record'));
+    managerAiEndpointCheck('successful manual endpoint persists the exact observed source input only after fresh snapshot',
+        $captured['status']===200&&count($captures)===1&&$captures[0]['context']['messages'][0]['text']==='Нужен отдых на море.'
+        &&array_column($events(),'event')===['initialize_read_only','auth','snapshot','provider','snapshot','input_evidence_record','feedback_record']);
+    $race('captured input with a new customer message',['latest_message_id'=>11,'revision'=>hash('sha256','new-message')],null,409,'context_stale',2,['capture_input'=>true]);
+    managerAiEndpointCheck('stale source discards captured input before private persistence',!in_array('input_evidence_record',array_column($events(),'event'),true)&&!in_array('feedback_record',array_column($events(),'event'),true));
     $race('new customer message',['latest_message_id'=>11,'revision'=>hash('sha256','new-message')],null,409,'context_stale',2);
     $race('same-ID message edit',['revision'=>hash('sha256','edited-message')],null,409,'context_stale',2);
     $race('company knowledge changes during generation',['revision'=>hash('sha256','changed-knowledge')],null,409,'context_stale',2);

@@ -50,6 +50,53 @@ usageCheck('source question proposed text reason and real sent text are availabl
 usageCheck('prepared and generated sources are distinguished',count(array_filter($first['items'],static fn($x)=>$x['source']==='prepared'))>0&&count(array_filter($first['items'],static fn($x)=>$x['source']==='generated'))>0);
 usageCheck('stored draft time remains distinct from the later send time',$case['generated_at']==='2026-10-25 10:00:00'&&$case['sent_at']==='2026-10-25 10:02:00');
 usageCheck('a request cannot relabel old common rules as current',array_column($read(['base_instruction_current'=>true])['items'],'base_instruction_current','message_id')[10046]===false);
+$input=static fn(int $message,string $revision,int $actor=1)=>ManagerAiUsageService::input($actor,$message,$revision,$now);
+$originalInput=$input($case['message_id'],$case['case_revision']);
+usageCheck('current project owner reads exact manual input despite changed conversation assignee',
+    $originalInput['ok']&&$originalInput['available']&&$originalInput['message_id']===10047
+    &&$originalInput['case_revision']===$case['case_revision']
+    &&$originalInput['input_evidence']['context']['messages'][0]['text']==='Question 47'
+    &&$originalInput['input_evidence']['instructions']==='Synthetic context-specific instructions'
+    &&$originalInput['input_evidence']['coverage']==='text_only');
+usageCheck('input read cannot expand owner scope or bypass historical send validation',
+    $input(10047,$case['case_revision'],2)['error']==='forbidden'
+    &&$input(10047,$case['case_revision'],3)['error']==='forbidden'
+    &&$input(10047,$case['case_revision'],4)['error']==='forbidden'
+    &&$input(10055,$case['case_revision'])['error']==='not_found'
+    &&$input(10052,$case['case_revision'])['error']==='forbidden');
+usageCheck('input requires the exact compared send version',
+    $input(10047,str_repeat('0',64))['error']==='case_changed'
+    &&$input(0,$case['case_revision'])['error']==='invalid_request'
+    &&$input(10047,'bad')['error']==='invalid_request');
+$allCases=array_column($first['items'],null,'message_id');
+usageCheck('old manual rows report missing input rather than reconstructing it',
+    $input(10046,$allCases[10046]['case_revision'])===['ok'=>true,'viewer_id'=>1,'message_id'=>10046,
+        'case_revision'=>$allCases[10046]['case_revision'],'available'=>false,'reason'=>'not_recorded']);
+ManagerAiUsageFixture::captureInput($pdo,45);
+usageCheck('a prepared preview never relabels a stored envelope as original worker input',
+    $input(10045,$allCases[10045]['case_revision'])['reason']==='prepared_input_not_captured');
+$pdo->exec("UPDATE messages SET text='Changed question and replacement offer',metadata_json='{\"edited_at\":\"2026-10-25 10:06:00\"}' WHERE id=1047");
+usageCheck('later source edits leave the exact original generation evidence unchanged',
+    $input(10047,$case['case_revision'])===$originalInput);
+$pdo->exec("UPDATE messages SET text='Question 47',metadata_json=NULL WHERE id=1047");
+$inputId=str_pad(dechex(47),32,'0',STR_PAD_LEFT);
+$inputRow=$pdo->query("SELECT input_json,input_sha256 FROM manager_ai_draft_inputs WHERE draft_id='".$inputId."'")->fetch();
+$changeInput=$pdo->prepare('UPDATE manager_ai_draft_inputs SET input_json=?,input_sha256=? WHERE draft_id=?');
+$changeInput->execute([$inputRow['input_json'],str_repeat('0',64),$inputId]);
+usageCheck('a mismatched digest cannot expose evidence',$input(10047,$case['case_revision'])['reason']==='invalid_evidence');
+$changeInput->execute(['{}',hash('sha256','{}'),$inputId]);
+usageCheck('a matching digest cannot authorize a malformed envelope',$input(10047,$case['case_revision'])['reason']==='invalid_evidence');
+$wrongContext=$originalInput['input_evidence']['context'];$wrongContext['conversation_id']=146;
+$wrongEvidence=ManagerAiDraftInputEvidence::capture($wrongContext,'Synthetic instructions');
+$changeInput->execute([$wrongEvidence->json(),$wrongEvidence->hash(),$inputId]);
+usageCheck('valid input for another conversation cannot attach to the send',$input(10047,$case['case_revision'])['reason']==='invalid_evidence');
+$oversized=str_repeat('Ж',ManagerAiDraftInputEvidence::MAX_BYTES);
+$changeInput->execute([$oversized,hash('sha256',$oversized),$inputId]);
+usageCheck('oversized Unicode evidence is refused without returning a clipped context',
+    $input(10047,$case['case_revision'])['reason']==='invalid_evidence'
+    &&!isset($input(10047,$case['case_revision'])['input_evidence']));
+$changeInput->execute([$inputRow['input_json'],$inputRow['input_sha256'],$inputId]);
+$pdo->beginTransaction();usageCheck('input read does not consume a caller transaction',$input(10047,$case['case_revision'])['error']==='unavailable'&&$pdo->inTransaction());$pdo->rollBack();
 usageCheck('read does not create review marks or change business records',(int)$pdo->query('SELECT COUNT(*) FROM manager_ai_usage_reviews')->fetchColumn()===0&&$beforeBusiness===$business());
 usageCheck('ordinary inactive and unknown accounts cannot read owner report',$read([],3)['error']==='forbidden'&&$read([],4)['error']==='forbidden'&&$read([],999)['error']==='forbidden');
 $other=$read([],2);usageCheck('another owner receives only their current project',$other['ok']&&array_column($other['items'],'message_id')===[10051]);
@@ -71,9 +118,12 @@ $q=$pdo->prepare('UPDATE messages SET text=?,metadata_json=? WHERE id=?');$meta=
 $updated=$read()['items'][0];usageCheck('later message edit reappears as an updated comparison without inventing initial sent text',$updated['message_id']===10047&&$updated['updated_since_review']&&!$updated['reviewed']&&!$updated['initial_text_available']&&$updated['edited']&&$updated['current_sent_text']==='Later manager edit');
 usageCheck('changed filter also retains later edits without rewriting original-send equality',$read(['changed_only'=>true])['items'][0]['message_id']===10047&&$updated['recorded_text_matches_proposal']);
 usageCheck('late old-tab review cannot mark a newer comparison viewed',ManagerAiUsageService::review(1,10047,$case['case_revision'],$now)['error']==='case_changed'&&!$read()['items'][0]['reviewed']);
+usageCheck('a later sent-message edit requires a fresh comparison before input is exposed',
+    $input(10047,$case['case_revision'])['error']==='case_changed'
+    &&$input(10047,$updated['case_revision'])['input_evidence']===$originalInput['input_evidence']);
 usageCheck('new current revision can be explicitly reviewed',ManagerAiUsageService::review(1,10047,$updated['case_revision'],$now)['ok']);
 usageCheck('invalid references and inaccessible messages cannot be reviewed',ManagerAiUsageService::review(1,10055,str_repeat('a',64),$now)['error']==='not_found'&&ManagerAiUsageService::review(1,10051,str_repeat('a',64),$now)['error']==='forbidden'&&ManagerAiUsageService::review(3,10046,str_repeat('a',64),$now)['error']==='forbidden');
-$pdo->exec('DELETE FROM manager_projects WHERE manager_id=1');usageCheck('fresh project revoke blocks reads review and saved cursor',$read()['error']==='forbidden'&&ManagerAiUsageService::review(1,10046,str_repeat('a',64),$now)['error']==='forbidden'&&$read(['cursor'=>$first['next_cursor']])['error']==='forbidden');$pdo->exec('INSERT INTO manager_projects VALUES(1,1)');
+$pdo->exec('DELETE FROM manager_projects WHERE manager_id=1');usageCheck('fresh project revoke blocks reads review input and saved cursor',$read()['error']==='forbidden'&&ManagerAiUsageService::review(1,10046,str_repeat('a',64),$now)['error']==='forbidden'&&$input(10047,$updated['case_revision'])['error']==='forbidden'&&$read(['cursor'=>$first['next_cursor']])['error']==='forbidden');$pdo->exec('INSERT INTO manager_projects VALUES(1,1)');
 $pdo->beginTransaction();usageCheck('borrowed transaction is not consumed',$read()['error']==='unavailable'&&$pdo->inTransaction());$pdo->rollBack();
 // Edited source text is labelled as current, never as a frozen original question.
 $pdo->exec("UPDATE messages SET text='Later question',metadata_json='{".'"edited_at":"2026-10-25 10:06:00"'."}' WHERE id=1046");
@@ -110,6 +160,9 @@ if($baselineClass!==null)usageCheck('large integer cutoffs equal exact installed
 $pdo->beginTransaction();$insert=$pdo->prepare('INSERT INTO messages VALUES(?,?,?,?,?,?,?,?,?)');for($i=0;$i<1005;$i++)$insert->execute([20000+$i,101,'outbound','manager','7','telegram','Synthetic','{"ai_draft":{"draft_id":"bad"}}','2026-10-25 11:00:00']);$pdo->commit();
 $limited=$read();usageCheck('scan limit is explicit and keyset cursor advances over unusable records',$limited['ok']&&$limited['items']===[]&&$limited['scan_limited']&&$limited['has_more']&&is_string($limited['next_cursor']));
 $afterLimit=$read(['cursor'=>$limited['next_cursor']]);usageCheck('continuation reaches lower valid applications after unusable page',$afterLimit['ok']&&count($afterLimit['items'])===20&&$afterLimit['items'][0]['message_id']===10046);
+$pdo->exec('DROP TABLE manager_ai_draft_inputs');
+usageCheck('missing input storage is explicit and never reconstructed or created at runtime',
+    $input(10047,$updated['case_revision'])['reason']==='storage_unavailable'&&$read()['ok']);
 $pdo->exec('DROP TABLE manager_ai_usage_reviews');usageCheck('missing migration stays unavailable and is never repaired at runtime',$read()['error']==='unavailable');
 echo 'READ_FIXTURE '.json_encode(['driver'=>$pdo->getAttribute(PDO::ATTR_DRIVER_NAME),'page_cases'=>count($first['items']),'one_case_selects'=>$singleReads,'page_selects'=>$pageReads,'installed_page_selects'=>$baselineReads,'production_latency'=>null])."\n";
 usageCheck('twenty cases need no per-case SELECT growth over one case',$single['ok']&&count($single['items'])===1&&$pageReads<=$singleReads+1);
