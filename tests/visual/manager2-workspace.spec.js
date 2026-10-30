@@ -445,7 +445,7 @@ for(const width of [390,430,768,1440])test.describe('Manager2 '+width,()=>{
     await page.locator('#m2NotificationsClose').click();await accountFocusReturned(page);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
   });
 });
-for(const width of [390,430])for(const role of ['manager','admin'])test('Manager2 mobile primary navigation and More retain working role controls '+role+' '+width,async({page})=>{
+for(const width of [390,430])for(const role of ['manager','admin'])test('Manager2 mobile primary navigation and More retain working role controls '+role+' '+width,async({page,browserName})=>{
   await page.setViewportSize({width,height:900});const s=await setup(page,{role});
   const initialPages=page.context().pages().length,popups=[];page.on('popup',popup=>popups.push(popup.url()));
   const more=page.getByRole('button',{name:'Ещё',exact:true});await expect(more).toBeVisible();
@@ -462,6 +462,7 @@ for(const width of [390,430])for(const role of ['manager','admin'])test('Manager
   await more.click();await expect(panel).toBeVisible();await expect(more).toHaveAttribute('aria-expanded','true');
   await expect(panel.locator('#assistantOpen')).toBeVisible();await expect(panel.locator('#m2NotificationButton')).toBeVisible();
   if(role==='admin')await expect(panel.locator('#m2Analytics')).toBeVisible();else await expect(page.locator('#m2Analytics')).not.toBeVisible();
+  await capture(page,browserName,width,'mobile-more-'+role);
   expect(await page.evaluate(()=>mobileCanonicalNav.every(el=>el===document.getElementById(el.id)&&el.isConnected))).toBe(true);
   await page.keyboard.press('Escape');await expect(panel).not.toBeVisible();await expect(more).toBeFocused();await expect.poll(()=>page.evaluate(()=>!!history.state?.workspaceV2Overlay)).toBe(false);
   await more.click();await expect(panel).toBeVisible();await expect.poll(()=>page.evaluate(()=>history.state?.workspaceV2Overlay?.id)).toBe('manager2-more');await page.goBack();await expect(panel).not.toBeVisible();await expect(more).toBeFocused();
@@ -475,7 +476,7 @@ for(const width of [390,430])for(const role of ['manager','admin'])test('Manager
   await page.setViewportSize({width,height:900});await more.click();await expect(panel).toBeVisible();await page.evaluate(()=>WorkspaceV2.showAuthRecovery());await expect(panel).not.toBeVisible();await expect(more).toBeDisabled();
   expect(page.context().pages()).toHaveLength(initialPages);expect(popups).toEqual([]);expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });
-for(const width of [390,430])test('Manager2 My Plan exposes task deadlines and reply urgency without opening advanced filters '+width,async({page})=>{
+for(const width of [390,430])test('Manager2 My Plan exposes task deadlines and reply urgency without opening advanced filters '+width,async({page,browserName})=>{
   await page.setViewportSize({width,height:900});const s=await setup(page);
   s.setInboxRow(11,{awaiting_manager_reply:1,awaiting_first_reply:1,wait_age_seconds:360});
   s.setInboxRow(12,{next_task_title:'Позвонить клиенту',next_task_due_state:'overdue',next_task_due_at_utc:'2026-10-13 09:00:00',next_task_pinned:0,next_task_overdue:1});
@@ -489,6 +490,7 @@ for(const width of [390,430])test('Manager2 My Plan exposes task deadlines and r
   await expect(first).toContainText('Проверить отели у моря в бюджете');await expect(first).toContainText('10:00');await expect(second).toContainText('Позвонить клиенту');await expect(second).toContainText('12:00');
   await expect(first.locator('.leadReplyStatus')).toContainText('Ждёт ответа');await expect(first.locator('.leadWaitCompact')).toContainText('Срочно');await expect(first).toHaveClass(/waitUrgent/);
   await expect(second.locator('.leadTaskCompact')).toHaveClass(/overdue/);
+  await capture(page,browserName,width,'my-plan-next-actions');
   const order=await page.locator('#inboxList .leadItem').evaluateAll(items=>items.map(item=>item.dataset.conversationId));expect(order).toEqual(['11','12']);
   for(const seconds of [179,180,299,300]){
     s.setInboxRow(11,{wait_age_seconds:seconds});await page.evaluate(()=>WorkspaceV2Inbox.load({preserveScroll:true}));
@@ -769,12 +771,13 @@ test('Manager2 eight-line native caret stays visible through expanded viewport s
     // Reproduce the observed layout transition in the synthetic fixture. A
     // resized viewport is not evidence of a physical device keyboard.
     await page.setViewportSize({width:430,height:450});await editorGeometry(page);
-    const reduced=await reply.evaluate(el=>({height:el.clientHeight,overflow:el.scrollHeight-el.clientHeight}));
-    expect(reduced.height).toBeLessThan(before.height);expect(reduced.overflow).toBeGreaterThan(2);
+    const reducedHeight=await reply.evaluate(el=>el.clientHeight);
+    expect(reducedHeight).toBeLessThan(before.height);
     await retainedEnd(['replyText','sendReply','m2ReplyCollapse']);await capture(page,browserName,430,'eight-lines-expanded-450');
     // Keep the short viewport while collapsing; no Arrow keys, scroll writes or
     // scrollIntoView may rescue a hidden native caret after either resize.
     await page.locator('#m2ReplyCollapse').click();await expect(dialog).not.toBeVisible();
+    await editorGeometry(page);expect(await reply.evaluate(el=>el.scrollHeight-el.clientHeight)).toBeGreaterThan(2);
     await retainedEnd(['replyText','m2ReplyExpand','sendReply']);await capture(page,browserName,430,'eight-lines-collapsed-450');
   }finally{await page.setViewportSize({width:430,height:844})}
   await retainedEnd(['replyText','m2ReplyExpand','sendReply']);
