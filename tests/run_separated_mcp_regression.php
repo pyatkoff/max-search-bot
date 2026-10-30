@@ -168,6 +168,51 @@ $replyRow=fn():array=>$pdo->query('SELECT * FROM manager_preparation_events')->f
 $unsubscribe=rpcSplit('events/unsubscribe',['name'=>ManagerPreparationMcpService::EVENT,
     'arguments'=>['project_key'=>'anytour'],'delivery'=>['mode'=>'webhook','url'=>$callback]]);
 $legacyService=new ManagerPreparationMcpService($pdo,$store,clock:$clock);
+// The UI event owner uses the cron's canonical replies-domain authorization.
+// Exercise real grants and delivery, while leaving ordinary MCP owners strict.
+$eventRequests=[];
+$eventWebhook=new ManagerPreparationWebhook(
+    static function(string $url,array $headers,string $body,array $destination)use(&$eventRequests):array {
+        $eventRequests[]=['url'=>$url,'body'=>json_decode($body,true,16,JSON_THROW_ON_ERROR)];
+        return ['status'=>200,'body'=>'{}'];
+    },static fn(string $host):array=>['8.8.8.8'],$clock);
+$eventStore=static fn(string $operation,array $args):array=>$operation==='pending'
+    ?['jobs'=>[['job_id'=>str_repeat('d',64),'project_key'=>'anytour','revision'=>str_repeat('f',64)]]]
+    :throw new LogicException('unexpected_reply_event_store_operation');
+$replyEventOwner=new ManagerPreparationMcpService($pdo,$eventStore,$eventWebhook,$clock,
+    connectionActive:fn(string $connection,int $admin):bool=>$background->eventConnectionAuthorizedAcrossProfiles('replies',$connection,$admin));
+foreach(['legacy','replies'] as $eventProfile){
+    $seedReply($ctx[$eventProfile]['connection_id']);
+    $pdo->exec('UPDATE manager_preparation_events SET pending_event_id=NULL,pending_body=NULL,pending_jobs_json=NULL');
+    $before=$replyRow();$grantsBefore=$pdo->query('SELECT * FROM manager_preparation_oauth_grants ORDER BY grant_id')->fetchAll(PDO::FETCH_ASSOC);
+    $tokensBefore=$pdo->query('SELECT * FROM manager_preparation_oauth_tokens ORDER BY token_hash')->fetchAll(PDO::FETCH_ASSOC);
+    checkSplit('reply event admission accepts canonical '.$eventProfile.' without changing subscription',
+        $replyEventOwner->hasActiveSubscriptions()&&$replyRow()===$before);
+    checkSplit('ordinary MCP authorization retains exact legacy audience '.$eventProfile,
+        $legacyService->hasActiveSubscriptions()===($eventProfile==='legacy'));
+    $beforeRequests=count($eventRequests);$delivered=$replyEventOwner->deliverPending();
+    checkSplit('reply event owner delivers the existing subscription once '.$eventProfile,
+        $delivered['accepted']===1&&$delivered['stopped']===0&&count($eventRequests)===$beforeRequests+1
+        &&end($eventRequests)['body']['name']===ManagerPreparationMcpService::EVENT
+        &&$replyRow()['oauth_connection_id']===$ctx[$eventProfile]['connection_id']);
+    checkSplit('reply event admission and delivery preserve grants and tokens '.$eventProfile,
+        $pdo->query('SELECT * FROM manager_preparation_oauth_grants ORDER BY grant_id')->fetchAll(PDO::FETCH_ASSOC)===$grantsBefore
+        &&$pdo->query('SELECT * FROM manager_preparation_oauth_tokens ORDER BY token_hash')->fetchAll(PDO::FETCH_ASSOC)===$tokensBefore);
+}
+foreach(['hotels','development'] as $foreignEventProfile){
+    $seedReply($ctx[$foreignEventProfile]['connection_id']);$before=$replyRow();
+    checkSplit('reply event admission rejects canonical foreign domain '.$foreignEventProfile,
+        !$replyEventOwner->hasActiveSubscriptions()&&$replyRow()===$before&&count($eventRequests)===2);
+}
+$seedReply($r['connection_id']);$before=$replyRow();
+$pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=?')->execute([$now,$r['connection_id']]);
+checkSplit('reply event admission rejects confirmed revoked grant without subscription mutation',
+    !$replyEventOwner->hasActiveSubscriptions()&&$replyRow()===$before);
+$pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=NULL,client_id=? WHERE grant_id=?')->execute(['synthetic-missing-client',$r['connection_id']]);
+unavailableSplit('reply event admission preserves unknown canonical authority',fn()=>$replyEventOwner->hasActiveSubscriptions());
+checkSplit('unknown reply event authority preserves subscription and causes no dispatch',
+    $replyRow()===$before&&count($eventRequests)===2);
+$pdo->prepare('UPDATE manager_preparation_oauth_grants SET client_id=? WHERE grant_id=?')->execute([$clients['replies'],$r['connection_id']]);
 foreach (['legacy','replies'] as $owner) {
     $seedReply($ctx[$owner]['connection_id']);$before=$replyRow();
     $other=$owner==='legacy'?'replies':'legacy';

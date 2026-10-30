@@ -128,17 +128,42 @@ final class ManagerPreparedReplyService
 
 final class ManagerPreparationMcpService
 {
+    public function __construct(private $connectionActive=null) {}
+
     public function hasActiveSubscriptions():bool
     {
         managerAiHttpFixtureEvent('preparation_connection',['session_closed'=>session_status()!==PHP_SESSION_ACTIVE]);
-        return managerAiHttpFixtureState()['preparation_connected']??true;
+        $state=managerAiHttpFixtureState();
+        if(array_key_exists('preparation_profile',$state)) {
+            if($this->connectionActive===null)return $state['preparation_profile']==='legacy'&&($state['preparation_connected']??true);
+            return ($this->connectionActive)(str_repeat('a',32),7)===true;
+        }
+        return $state['preparation_connected']??true;
     }
 
     public function deliverPending():array
     {
         managerAiHttpFixtureEvent('preparation_event',['session_closed'=>session_status()!==PHP_SESSION_ACTIVE]);
+        if(array_key_exists('preparation_profile',managerAiHttpFixtureState())
+            &&($this->connectionActive===null||($this->connectionActive)(str_repeat('a',32),7)!==true)) {
+            throw new RuntimeException('Synthetic delivery authority denied');
+        }
         if(!empty(managerAiHttpFixtureState()['delivery_throws']))throw new RuntimeException('Synthetic delivery failure');
         return ['accepted'=>1];
+    }
+}
+
+/** Isolate the endpoint's event-authority choice; real grants are covered by split MCP tests. */
+final class ManagerPreparationOAuth
+{
+    public function eventConnectionAuthorizedAcrossProfiles(string $domain,string $connection,int $admin):bool
+    {
+        $state=managerAiHttpFixtureState();$profile=$state['preparation_profile']??'legacy';
+        managerAiHttpFixtureEvent('preparation_authority',['domain'=>$domain,'profile'=>$profile]);
+        if(!in_array($profile,['legacy','replies','hotels','development'],true)||!empty($state['preparation_authority_unknown']))
+            throw new RuntimeException('event_oauth_authority_unavailable');
+        return $domain==='replies'&&in_array($profile,['legacy','replies'],true)
+            &&$connection===str_repeat('a',32)&&$admin===7&&($state['preparation_connected']??true);
     }
 }
 
