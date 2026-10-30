@@ -78,6 +78,41 @@ $result=$services['replies']->handle(rpcSplit('tools/call',['name'=>'get_reply_c
 checkSplit('allowed reply command reaches existing store',!isset($result['error'])&&end($calls)==='context');
 $result=$services['hotels']->handle(rpcSplit('tools/call',['name'=>'hotel_work_create','arguments'=>['queue_id'=>'SYNTHETIC','baseline_sha256'=>str_repeat('a',64)]]),1,$h['connection_id'],$h['scopes']);
 checkSplit('allowed hotel command reaches existing store',!isset($result['error'])&&end($calls)==='create');
+// Delivery repair stays on the same hotel OAuth owner and never gains a host capability.
+$repairCalls=[];
+$repairStore=static function(string $operation,array $arguments)use(&$repairCalls):array {
+    $repairCalls[]=[$operation,$arguments];return ['ok'=>true,'operation_dispatches_work'=>false];
+};
+$repairService=new SeparatedMcpService('hotels',$pdo,$repairStore,$clock);
+$repairIdentity=['queue_id'=>'SYNTHETIC','stage_id'=>str_repeat('a',64),'baseline_sha256'=>str_repeat('b',64),
+    'expected_caller_connection_id'=>$h['connection_id']];
+$repairArgs=$repairIdentity+['expected_pending_event_id'=>'hotel_evt_'.str_repeat('c',64),
+    'expected_resume_sha256'=>str_repeat('d',64),'expected_recovery_sha256'=>str_repeat('e',64),
+    'expected_ack_sha256'=>str_repeat('f',64),'expected_state_sha256'=>str_repeat('1',64),
+    'owner_request_sha256'=>str_repeat('2',64),'consumer_prompt_sha256'=>str_repeat('3',64)];
+$repairTools=array_column(HotelWorkMcpAdapter::tools(),null,'name');
+foreach (['delivery_repair_preflight'=>$repairIdentity,'repair_delivery'=>$repairArgs] as $operation=>$arguments) {
+    $name='hotel_work_'.$operation;
+    $result=$repairService->handle(rpcSplit('tools/call',['name'=>$name,'arguments'=>$arguments]),1,$h['connection_id'],$h['scopes']);
+    $last=end($repairCalls);
+    checkSplit('hotel repair dispatch preserves exact authenticated owner '.$operation,!isset($result['error'])
+        &&$last===[$operation,[1,$h['connection_id'],$arguments]]);
+    checkSplit('hotel repair existing scope and truthful read hint '.$operation,
+        $repairTools[$name]['securitySchemes']===[['type'=>'oauth2','scopes'=>['hotel_work:write']]]
+        &&$repairTools[$name]['annotations']['readOnlyHint']===($operation==='delivery_repair_preflight')
+        &&$repairTools[$name]['inputSchema']['additionalProperties']===false);
+    foreach (['missing'=>array_diff_key($arguments,['stage_id'=>true]),
+        'client_host_proof'=>$arguments+['host_verified'=>true],'claim_key'=>$arguments+['claim_key'=>str_repeat('4',64)]] as $case=>$invalid) {
+        $before=count($repairCalls);
+        $denied=$repairService->handle(rpcSplit('tools/call',['name'=>$name,'arguments'=>$invalid]),1,$h['connection_id'],$h['scopes']);
+        checkSplit('hotel repair strict fields '.$operation.'/'.$case,isset($denied['error'])&&count($repairCalls)===$before);
+    }
+    $before=count($repairCalls);
+    $denied=$repairService->handle(rpcSplit('tools/call',['name'=>$name,'arguments'=>$arguments]),1,$r['connection_id'],$r['scopes']);
+    checkSplit('hotel repair denies reply grant '.$operation,isset($denied['error'])&&count($repairCalls)===$before);
+    $denied=$services['replies']->handle(rpcSplit('tools/call',['name'=>$name,'arguments'=>$arguments]),1,$r['connection_id'],$r['scopes']);
+    checkSplit('reply surface exposes no hotel repair '.$operation,($denied['error']['code']??0)===-32601);
+}
 $background=new ManagerPreparationOAuth($pdo,$clock);
 checkSplit('reply cron accepts separate resource',$background->eventConnectionAuthorizedAcrossProfiles('replies',$r['connection_id'],1));
 checkSplit('hotel cron accepts separate resource',$background->eventConnectionAuthorizedAcrossProfiles('hotels',$h['connection_id'],1));
