@@ -748,6 +748,38 @@ for(const width of [390,430])test('Manager2 six-line native caret survives reduc
   expect(await reply.evaluate(el=>el.scrollHeight-el.clientHeight)).toBeLessThanOrEqual(1);
   expect(s.sends).toEqual([]);expect(s.calls.filter(call=>['send','send_media','set_working','take','release','close','reopen'].includes(call.action))).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });
+test('Manager2 eight-line native caret stays visible through expanded viewport shrink and collapse 430x450',async({page,browserName})=>{
+  await page.setViewportSize({width:430,height:844});const s=await setup(page);await openLead(page);await editorReady(page);
+  const reply=page.locator('#replyText'),dialog=page.locator('#m2ReplyEditor'),text=Array.from({length:8},(_,i)=>'Строка '+(i+1)+': уточняем отдых у моря.').join('\n')+'!';
+  expect(text.length).toBe(264);await reply.fill(text);await reply.press('Control+End');await editorGeometry(page);
+  await reply.evaluate(el=>{window.expandedShrinkNativeProof={form:document.getElementById('composer'),reply:el,file:document.getElementById('replyFile'),selection:[el.selectionStart,el.selectionEnd,el.selectionDirection]}});
+  async function retainedEnd(ids){
+    await editorGeometry(page);await expect(reply).toBeFocused();await controlsInsideVisualViewport(page,ids);
+    const state=await reply.evaluate(el=>{
+      const proof=expandedShrinkNativeProof;
+      return {same:el===proof.reply&&document.getElementById('composer')===proof.form&&document.getElementById('replyFile')===proof.file,text:el.value,selection:[el.selectionStart,el.selectionEnd,el.selectionDirection],expected:proof.selection,length:el.value.length,tailGap:el.scrollHeight-el.scrollTop-el.clientHeight};
+    });
+    expect(state.same).toBe(true);expect(state.text).toBe(text);expect(state.selection).toEqual(state.expected);expect(state.selection.slice(0,2)).toEqual([state.length,state.length]);
+    expect(state.tailGap,'native end caret stays inside the textarea without correcting scroll').toBeLessThanOrEqual(2);
+  }
+  await page.locator('#m2ReplyExpand').click();await expect(dialog).toBeVisible();await retainedEnd(['replyText','sendReply','m2ReplyCollapse']);
+  const before=await reply.evaluate(el=>({height:el.clientHeight,overflow:el.scrollHeight-el.clientHeight,top:el.scrollTop}));
+  expect(before.overflow).toBeLessThanOrEqual(1);expect(before.top).toBeLessThanOrEqual(1);
+  try{
+    // Reproduce the observed layout transition in the synthetic fixture. A
+    // resized viewport is not evidence of a physical device keyboard.
+    await page.setViewportSize({width:430,height:450});await editorGeometry(page);
+    const reduced=await reply.evaluate(el=>({height:el.clientHeight,overflow:el.scrollHeight-el.clientHeight}));
+    expect(reduced.height).toBeLessThan(before.height);expect(reduced.overflow).toBeGreaterThan(2);
+    await retainedEnd(['replyText','sendReply','m2ReplyCollapse']);await capture(page,browserName,430,'eight-lines-expanded-450');
+    // Keep the short viewport while collapsing; no Arrow keys, scroll writes or
+    // scrollIntoView may rescue a hidden native caret after either resize.
+    await page.locator('#m2ReplyCollapse').click();await expect(dialog).not.toBeVisible();
+    await retainedEnd(['replyText','m2ReplyExpand','sendReply']);await capture(page,browserName,430,'eight-lines-collapsed-450');
+  }finally{await page.setViewportSize({width:430,height:844})}
+  await retainedEnd(['replyText','m2ReplyExpand','sendReply']);
+  expect(s.sends).toEqual([]);expect(s.calls.filter(call=>['send','send_media','set_working','take','release','close','reopen'].includes(call.action))).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
 for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420}]){
 test('Manager2 reply editor grows and preserves its native draft '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
   await page.setViewportSize(viewport);const s=await setup(page,{replyAudio:viewport.width===1440});await openLead(page);await editorReady(page);

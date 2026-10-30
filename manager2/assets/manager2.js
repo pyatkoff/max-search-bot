@@ -351,6 +351,7 @@
       closeMore();
     },true);
     new MutationObserver(syncMoreNavigation).observe(document.querySelector('.m2Rail'),{childList:true,subtree:true});
+    new MutationObserver(syncMoreNavigation).observe(document.body,{attributes:true,attributeFilter:['class']});
     window.addEventListener('resize',syncMoreNavigation);syncMoreNavigation();
   }
   function syncNavigation(){

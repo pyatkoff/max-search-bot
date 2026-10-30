@@ -100,7 +100,11 @@ async function bounded(page){
   const box=await page.locator('#assistantDialog').boundingBox(),v=page.viewportSize();expect(box.x).toBeGreaterThanOrEqual(-1);expect(box.x+box.width).toBeLessThanOrEqual(v.width+1);expect(box.y).toBeGreaterThanOrEqual(-1);expect(box.y+box.height).toBeLessThanOrEqual(v.height+1);await expect(page.locator('#assistantClose')).toBeInViewport();
 }
 async function capture(page,browser,width,label){const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});await page.screenshot({animations:'disabled',path:path.join(directory,`assistant-${browser}-${width}-${label}.png`)})}
-async function openGlobalAssistant(page){if(!await page.locator('#assistantOpen').isVisible())await page.locator('#m2MoreToggle').click();await page.locator('#assistantOpen').click()}
+async function openGlobalAssistant(page){
+  const entry=page.locator('#assistantOpen');
+  if(page.viewportSize().width<=740&&!await page.locator('#m2MoreMenu').isVisible())await page.locator('#m2MoreToggle').click();
+  await expect(entry).toBeVisible();await entry.click();
+}
 
 for(const width of [390,430,768,1440])test('Manager assistant unifies list and current-client advice without touching reply '+width,async({page,browserName})=>{
   await page.setViewportSize({width,height:900});const s=await setupAssistant(page);expect(s.calls).toEqual([]);
