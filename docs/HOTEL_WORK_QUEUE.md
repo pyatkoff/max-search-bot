@@ -351,6 +351,77 @@ atomic claim fence. Do not deploy an older implementation that ignores this
 audit: it could recreate a previously acknowledged identity. Use a forward fix
 that preserves the audit; never delete its rows, reset the queue or migrate down.
 
+### Explicit delivery for a corrected consumer after the recovery budget is spent
+
+An owner can correct a consumer guard after the v1 recovery's pending and
+attention have both been acknowledged without a claim. A healthy cron then
+correctly remains quiet. Repeating the old resume, clearing an ACK or increasing
+the v1 budget is forbidden. The separate `hotel_work_repair_delivery` operation
+admits at most one explicitly authorized new delivery generation for that exact
+queue/stage. It does not repair the host, launch a worker or prove that the
+consumer is safe.
+
+First call the read-only `hotel_work_delivery_repair_preflight` through the
+existing hotel MCP resource with the current owner's `hotel_work:write` grant.
+Supply `queue_id`, `stage_id`, `baseline_sha256` and
+`expected_caller_connection_id` from the retained checkpoint. No new consent,
+OAuth scope, subscription or credential copy is needed. The response exposes
+bounded private server audit/ACK metadata, fixed guard reasons and, only when
+eligible, these CAS pins:
+
+- `expected_pending_event_id`;
+- `expected_resume_sha256` and `expected_recovery_sha256`;
+- `expected_ack_sha256` and `expected_state_sha256`.
+
+This is the dry-run: it emits no event and changes no row. Keep the original
+preflight response privately. A valid spent resume/recovery chain, exact current
+pending and attention acknowledgements, settled deadline/backoff, matching
+owner/connection/baseline/stage and HOTEL lane, READY/no claim/no run/no current
+receipt, and absence of persisted active/UNKNOWN work are mandatory. Malformed,
+orphaned or hash-mismatched audit data fails closed; status cannot replace an
+unavailable audit. The response has no claim key/hash, callback, secret, hotel
+fact or customer content.
+
+Before any live repair, the current owner must separately save and read back
+its fresh checkpoint, unresolved intent reconciliation, native job state and
+file-reservation guards. Assign one executor; do not create a parallel live
+writer. A corrected prompt digest and owner-request digest attest that decision
+and text only, not host truth or absence of an external run. An uncertain
+original dispatch remains held.
+
+The designated executor calls `hotel_work_repair_delivery` with the same four
+identity fields, all five exact preflight pins, `owner_request_sha256` and
+`consumer_prompt_sha256`. The existing lane/queue transaction checks the pins
+and admission guards again before appending the repair audit. Its unique
+queue/stage constraint is the hard once-only limit, independent of a client
+nonce. The immutable audit and request digest retain the original state and
+predecessor resume/recovery evidence. A separate cursor on that record belongs
+only to the new generation: the original queue ACKs and their delivery times,
+resume and v1 recovery audits stay unchanged. Stage, counters, claims, receipts,
+research skips and hotel data also stay unchanged.
+
+Keep the exact request and returned immutable receipt. An exact repeat returns
+that receipt even after a later ACK, claim or stage advance, without resetting
+later state. A changed repeat conflicts and remains held. If the commit outcome
+is UNKNOWN, reconcile with that same request; do not generate another identity
+or use another resume. Storage or audit validation failure gives no admission.
+
+Only ordinary cron constructs and signs the new pending body and timestamp.
+The repair call never invokes delivery. Event ID calculation, claim admission
+and delivery ACK use the same new namespace; a stale pending/attention or late
+HTTP acknowledgement cannot affect it. A changed event ID discards the previous
+frozen body and backoff; retries of the same new event retain identical bytes
+and existing lease-token fencing. The handler still requires the genuinely
+received signed event, freshness and all original once-only admission checks.
+
+The new generation allows one pending and its normal unclaimed attention,
+then remains quiet. It cannot automatically recover again or grant a budget to
+the next intake stage. A real later authority handoff preserves the historical
+namespace/budget and uses its own normal delivery cursor; the existing
+relinquished-binding fence still forbids returning to the previous binding.
+Rollback must retain this namespace and audit as well as the original v1 audit.
+Do not deploy an implementation that ignores any recorded generation.
+
 Finite completion releases the metadata lane and creates no fourth batch.
 Continuous mode advances only after an accepted intake and its due criteria.
 Neither mode modifies the legacy protected reservations or owns the actual

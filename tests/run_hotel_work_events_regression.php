@@ -286,9 +286,87 @@ function hotelSubscriptionSetupChecks(): void
         'callable_store_does_not_authorize_a_hidden_subscription_read');
 }
 
+function hotelEventDeliveryRepairArgs(HotelEventsFixture $f): array
+{
+    $s=$f->status();$identity=['queue_id'=>'PILOT','stage_id'=>$s['stage_id'],'baseline_sha256'=>$s['baseline_sha256'],
+        'expected_caller_connection_id'=>$f->connection];
+    $pre=$f->queue->delivery_repair_preflight(1,$f->connection,$identity);
+    hotelEventAssert($pre['eligible']===true&&is_array($pre['pins']),'event_repair_fixture_has_fresh_pinned_preflight');
+    return $identity+$pre['pins']+['owner_request_sha256'=>str_repeat('5',64),'consumer_prompt_sha256'=>str_repeat('6',64)];
+}
+function hotelEventDeliveryRepairChecks(): void
+{
+    [$f,$resume,$proof]=hotelEventRecoveryFixture();$f->at+=60;$f->requests=[];$f->events->deliverPending();$oldPending=$f->requests[0];
+    $f->at+=180;$f->requests=[];$f->events->deliverPending();$oldAttention=$f->requests[0];$f->at+=60;
+    $oldQueue=$f->pdo->query('SELECT * FROM hotel_work_queues')->fetchAll(PDO::FETCH_ASSOC);
+    $oldRecovery=$f->pdo->query('SELECT * FROM hotel_work_delivery_recoveries')->fetchAll(PDO::FETCH_ASSOC);
+    $oldResume=$f->pdo->query('SELECT * FROM hotel_work_connection_handoffs')->fetchAll(PDO::FETCH_ASSOC);
+    $args=hotelEventDeliveryRepairArgs($f);$f->requests=[];
+    // A failed former sender can leave a frozen retry body despite another sender's ACK.
+    $f->pdo->prepare('UPDATE hotel_work_events SET pending_event_id=?,pending_body=?,attempts=4,next_attempt_at=? WHERE subscription_id=?')
+        ->execute([$oldPending['data']['eventId'],$oldPending['body'],gmdate('Y-m-d H:i:s',$f->at+480),$f->row()['subscription_id']]);
+    $subscriptions=$f->pdo->query('SELECT * FROM hotel_work_events ORDER BY subscription_id')->fetchAll(PDO::FETCH_ASSOC);
+    $receipt=$f->queue->repair_delivery(1,$f->connection,$args);
+    hotelEventAssert($receipt['repair_status']==='delivery_repair_recorded_once'&&$f->requests===[]
+        &&$subscriptions===$f->pdo->query('SELECT * FROM hotel_work_events ORDER BY subscription_id')->fetchAll(PDO::FETCH_ASSOC),
+        'repair_records_metadata_without_callback_subscription_secret_or_lease_mutation');
+    $f->statuses=[503,204];$first=$f->events->deliverPending();$fresh=$f->requests[0];$retryRow=$f->row();
+    hotelEventAssert($first['retried']===1&&count($f->requests)===1&&$fresh['data']['name']==='hotel_work.pending'
+        &&$fresh['data']['eventId']!==$oldPending['data']['eventId']&&$fresh['body']!==$oldPending['body']
+        &&$fresh['data']['data']===$oldPending['data']['data']&&$fresh['data']['timestamp']===gmdate('Y-m-d\TH:i:s\Z',$f->at)
+        &&hotelEventSignature($fresh,$f->secret)&&(int)$retryRow['attempts']===1
+        &&$retryRow['next_attempt_at']===gmdate('Y-m-d H:i:s',$f->at+60),
+        'ordinary_tick_sends_new_signed_repair_identity_discarding_previous_frozen_body_and_backoff');
+    $f->requests=[];$f->at+=59;$f->events->deliverPending();hotelEventAssert($f->requests===[],'repair_transport_retry_respects_new_generation_backoff');
+    ++$f->at;$second=$f->events->deliverPending();$retry=$f->requests[0];
+    hotelEventAssert($second['accepted']===1&&$retry['body']===$fresh['body']&&$retry['data']['eventId']===$fresh['data']['eventId']
+        &&$retry['headers']['webhook-timestamp']!==$fresh['headers']['webhook-timestamp']&&hotelEventSignature($retry,$f->secret),
+        'same_repair_generation_retries_exact_body_with_fresh_signature');
+    hotelEventAssert($oldQueue===$f->pdo->query('SELECT * FROM hotel_work_queues')->fetchAll(PDO::FETCH_ASSOC)
+        &&$oldRecovery===$f->pdo->query('SELECT * FROM hotel_work_delivery_recoveries')->fetchAll(PDO::FETCH_ASSOC)
+        &&$oldResume===$f->pdo->query('SELECT * FROM hotel_work_connection_handoffs')->fetchAll(PDO::FETCH_ASSOC),
+        'repair_transport_ack_keeps_old_queue_ack_and_v1_resume_audits_byte_identical');
+    $f->requests=[];$f->at+=180;$f->events->deliverPending();$attention=$f->requests[0];
+    hotelEventAssert(count($f->requests)===1&&$attention['data']['name']==='hotel_work.attention'
+        &&$attention['data']['eventId']!==$oldAttention['data']['eventId']&&$attention['data']['data']['dispatch_allowed']===false
+        &&hotelEventSignature($attention,$f->secret),'repair_transport_has_one_new_attention_without_work_dispatch');
+    $repairRows=$f->pdo->query('SELECT * FROM hotel_work_consumer_delivery_repairs')->fetchAll(PDO::FETCH_ASSOC);
+    $f->requests=[];$f->at+=3600;$f->events->deliverPending();$f->queue->repair_delivery(1,$f->connection,$args);$f->events->deliverPending();
+    hotelEventAssert($f->requests===[]&&$repairRows===$f->pdo->query('SELECT * FROM hotel_work_consumer_delivery_repairs')->fetchAll(PDO::FETCH_ASSOC),
+        'repair_repeated_request_and_future_ticks_cannot_restart_spent_generation');
+
+    // The former pending HTTP response returns after repair and after its lease expires.
+    // A new sender persists a failed fresh-generation attempt while the old sender is still in flight.
+    [$f]=hotelEventRecoveryFixture();$f->at+=60;$f->requests=[];$freshRowBeforeLateResponse=null;$freshRequest=null;
+    $f->deliveryHook=function()use($f,&$freshRowBeforeLateResponse,&$freshRequest):void {
+        $old=$f->requests[0];$f->queue->markEventDelivered(1,$f->connection,'PILOT',$old['data']['eventId']);
+        $f->at+=180;$attention=$f->queue->pendingEvent(1,$f->connection,'PILOT');
+        $f->queue->markEventDelivered(1,$f->connection,'PILOT',$attention['event_id']);$f->at+=60;
+        $f->queue->repair_delivery(1,$f->connection,hotelEventDeliveryRepairArgs($f));
+        $f->statuses=[503,204];$newSender=$f->events->deliverPending();$freshRequest=$f->requests[1];$freshRowBeforeLateResponse=$f->row();
+        hotelEventAssert($newSender['retried']===1&&(int)$freshRowBeforeLateResponse['attempts']===1,'new_sender_acquires_expired_lease_for_fresh_generation');
+    };
+    $late=$f->events->deliverPending();$newCursor=$f->pdo->query('SELECT * FROM hotel_work_consumer_delivery_repairs')->fetch(PDO::FETCH_ASSOC);
+    hotelEventAssert($late['accepted']===1&&count($f->requests)===2&&$newCursor['event_ack']===null
+        &&$freshRowBeforeLateResponse===$f->row()&&$freshRequest['data']['eventId']!==$f->requests[0]['data']['eventId'],
+        'late_old_http_success_neither_acks_repair_nor_clobbers_new_lease_retry_state');
+    $f->at+=60;$f->requests=[];$f->events->deliverPending();
+    hotelEventAssert(count($f->requests)===1&&$f->requests[0]['body']===$freshRequest['body']
+        &&$f->pdo->query('SELECT event_ack FROM hotel_work_consumer_delivery_repairs')->fetchColumn()===$freshRequest['data']['eventId'],
+        'only_actual_fresh_generation_success_records_its_ack');
+
+    [$f]=hotelEventRecoveryFixture();$f->at+=60;$f->events->deliverPending();$f->at+=180;$f->events->deliverPending();$f->at+=60;
+    $f->queue->repair_delivery(1,$f->connection,hotelEventDeliveryRepairArgs($f));$before=$f->pdo->query('SELECT * FROM hotel_work_consumer_delivery_repairs')->fetchAll(PDO::FETCH_ASSOC);
+    $f->grants[$f->connection]['active']=false;$f->requests=[];$f->events->deliverPending();
+    hotelEventAssert($f->requests===[]&&$before===$f->pdo->query('SELECT * FROM hotel_work_consumer_delivery_repairs')->fetchAll(PDO::FETCH_ASSOC),
+        'revoked_grant_cannot_send_or_ack_armed_repair');
+}
+
 try {
+    if (($argv[1]??'')==='--delivery-repair-only') {hotelEventDeliveryRepairChecks();echo 'HOTEL WORK DELIVERY REPAIR EVENTS: '.$checks." PASS\n";exit(0);}
     hotelClaimAuthorityEventChecks();
     if (($argv[1]??'')==='--claim-authority-only') {echo 'HOTEL WORK CLAIM AUTHORITY EVENTS: '.$checks." PASS\n";exit(0);}
+    hotelEventDeliveryRepairChecks();
     hotelSubscriptionSetupChecks();
     $f=new HotelEventsFixture(false);
     hotelEventAssert(!$f->events->hasActiveSubscriptions(),'empty_has_no_subscription');
@@ -684,7 +762,7 @@ try {
     $first=$f->events->deliverPending();
     hotelEventAssert($nested!==null&&$nested['subscriptions']===1&&$nested['accepted']===0&&$nested['retried']===0,'active_sql_lease_excludes_overlapping_sender');
     hotelEventAssert($first['accepted']===1&&count($f->requests)===1&&$f->row()['lease_token']===null&&$f->row()['lease_until']===null,'overlap_has_one_callback_and_explicit_lease_release');
-    hotelEventAssert(!array_diff(array_unique($f->pdo->writes),['hotel_work_events','hotel_work_queues','hotel_work_receipts','hotel_work_lane','hotel_work_connection_handoffs','hotel_work_resolutions','hotel_work_delivery_recoveries']),'event_lifecycle_never_writes_business_tables');
+    hotelEventAssert(!array_diff(array_unique($f->pdo->writes),['hotel_work_events','hotel_work_queues','hotel_work_receipts','hotel_work_lane','hotel_work_connection_handoffs','hotel_work_resolutions','hotel_work_delivery_recoveries','hotel_work_consumer_delivery_repairs']),'event_lifecycle_never_writes_business_tables');
     echo 'HOTEL WORK EVENTS: '.$checks." PASS\n";
 } catch (Throwable $error) {
     $message=$error instanceof RuntimeException&&str_starts_with($error->getMessage(),'hotel_event_assertion_failed:')?$error->getMessage():get_class($error);
