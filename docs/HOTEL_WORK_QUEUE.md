@@ -351,6 +351,42 @@ atomic claim fence. Do not deploy an older implementation that ignores this
 audit: it could recreate a previously acknowledged identity. Use a forward fix
 that preserves the audit; never delete its rows, reset the queue or migrate down.
 
+### Explicit owner recovery after a repaired handler
+
+An exhausted delivery is not a failed hotel investigation: no worker may have
+started. After repairing the actual handler defect, a new explicit owner decision
+may authorize `hotel_work_recover_delivery` once for that exact queue/stage. This
+is separate from the original same-binding resume and its automatic retry; neither
+old audit nor budget is reset. Repeating the original handoff is not this operation.
+
+The authenticated current hotel owner pins queue, stage, baseline and the current
+exhausted pending ID, plus SHA-256 attestations of the saved owner decision and a
+fresh private host/checkpoint readback. The latter must establish no unresolved
+intent, unknown dispatch, active hotel worker or conflicting writer, and confirm
+that the repaired handler retains its signed-event and once-only guards. Hashes
+are authenticated attestations, not independent server proof of private files.
+The administrative pin may come from status; it is never a received pending event
+and never authorizes claim or dispatch.
+
+Under the existing HOTEL lane/queue lock, the server requires READY, no claim/run,
+no current-stage receipt, both exhausted generation ACKs, the original same-binding
+resume and automatic recovery audit, and no persisted conflicting hotel claim/run
+or UNKNOWN. Migration077 appends one immutable decision/readback/previous-delivery
+audit with a unique queue/stage constraint. Only delivery pointers are cleared;
+authority, stage, counters, hotel facts, reservations and all earlier audits remain.
+The new namespace fences old claims and ACKs. The normal cron delivers one new
+signed pending; the response explicitly grants no dispatch. One later attention
+may follow, but neither automatic nor owner recovery budgets replenish.
+
+Before the administrative call, persist its exact once-only intent privately and
+read it back. An identical recorded call returns the earlier result without
+resetting any newer ACK, claim or run; changed inputs conflict. UNKNOWN permits
+only reconciliation, not another call. Status exposes `delivery_recovery` booleans
+for the current stage's validated automatic/owner audits, not host delivery proof.
+The handler still needs its own fresh trusted pending and every ordinary guard;
+it must not invoke this owner recovery itself. No new queue, OAuth change, skip,
+worker activation or manual tick is part of recovery.
+
 Finite completion releases the metadata lane and creates no fourth batch.
 Continuous mode advances only after an accepted intake and its due criteria.
 Neither mode modifies the legacy protected reservations or owns the actual

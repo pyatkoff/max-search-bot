@@ -7,7 +7,7 @@ final class HotelWorkMcpAdapter
 {
     public const NAMES = ['hotel_work_create','hotel_work_status','hotel_work_claim',
         'hotel_work_started','hotel_work_complete','hotel_work_release','hotel_work_skip_research',
-        'hotel_work_handoff_preflight','hotel_work_handoff_connection','hotel_work_resolve_existing_run'];
+        'hotel_work_handoff_preflight','hotel_work_handoff_connection','hotel_work_resolve_existing_run','hotel_work_recover_delivery'];
 
     public function __construct(private PDO $pdo, private $store = null, private $clock = null,
         private ?HotelWorkEventService $events = null, private string $oauthProfile = ManagerPreparationOAuth::PROFILE_LEGACY)
@@ -83,6 +83,11 @@ final class HotelWorkMcpAdapter
                 $claim+['unknown_receipt_sha256'=>$sha,'expected_run_id'=>$run,'expected_packet_sha256'=>$sha,
                     'receipt'=>['type'=>'object','properties'=>$acceptedReceipt,'required'=>array_keys($acceptedReceipt),'additionalProperties'=>false]],
                 [...array_keys($claim),'unknown_receipt_sha256','expected_run_id','expected_packet_sha256','receipt'],false],
+            ['hotel_work_recover_delivery','Explicit owner-authorized recovery of one exhausted READY hotel delivery after the handler defect is repaired. Requires a separately saved owner decision and fresh private host/checkpoint readback proving no unresolved intent or worker. Digests are attestations, not server-verified host proof. Pin current queue/stage/baseline and exhausted pending ID from status. Creates one separate immutable audit and one new delivery identity; preserves prior resume/recovery history and never claims or starts work. Repeat or UNKNOWN must not be replayed. Only a new trusted signed pending delivered by cron may admit a worker.',
+                ['queue_id'=>$id,'stage_id'=>$sha,'baseline_sha256'=>$sha,
+                    'expected_pending_event_id'=>['type'=>'string','pattern'=>'^hotel_evt_[a-f0-9]{64}$'],
+                    'decision_sha256'=>$sha,'host_readback_sha256'=>$sha],
+                ['queue_id','stage_id','baseline_sha256','expected_pending_event_id','decision_sha256','host_readback_sha256'],false],
         ];
         $out=[];
         foreach ($definitions as [$name,$description,$properties,$required,$readOnly]) {

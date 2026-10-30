@@ -64,6 +64,44 @@ final class HotelWorkQueue
         });
     }
 
+    /** Explicit owner decision, never a cron retry or permission to dispatch. */
+    public function recover_delivery(int $admin,string $connection,array $args): array
+    {
+        self::keys($args,['queue_id','stage_id','baseline_sha256','expected_pending_event_id','decision_sha256','host_readback_sha256']);
+        $id=self::queueId($args['queue_id']??null);$stage=self::sha($args['stage_id']??null);
+        $baseline=self::sha($args['baseline_sha256']??null);$decision=self::sha($args['decision_sha256']??null);
+        $readback=self::sha($args['host_readback_sha256']??null);$expected=$args['expected_pending_event_id']??null;
+        if (!is_string($expected)||preg_match('/\Ahotel_evt_[a-f0-9]{64}\z/D',$expected)!==1) throw new InvalidArgumentException('invalid_hotel_work_pending_event');
+        return $this->transaction(function() use($id,$stage,$baseline,$decision,$readback,$expected,$admin,$connection): array {
+            $lane=$this->lane(true);$row=$this->owned($id,$admin,$connection,true);$this->ownsLane($row,$lane);
+            $this->sameStage($row,$stage);
+            if (!hash_equals($row['baseline_sha256'],$baseline)) throw new HotelWorkQueueConflict('baseline_mismatch');
+            $old=$this->ownerDeliveryRecoveryRecord($row);
+            if ($old!==null) {
+                if ($old['oauth_connection_id']!==$connection||$old['decision_sha256']!==$decision
+                    ||$old['host_readback_sha256']!==$readback||$old['pending_event_id']!==$expected) throw new HotelWorkQueueConflict('owner_delivery_recovery_already_used');
+                return $this->project($row)+['recovery_status'=>'already_recorded_do_not_replay','recovery_sha256'=>$old['recovery_sha256'],'dispatch_allowed'=>false];
+            }
+            if ($row['state']!=='ready'||$row['claim_sha256']!==null||$row['current_run_id']!==null) throw new HotelWorkQueueConflict('not_known_idle');
+            $automatic=$this->deliveryRecoveryToken($row);$resume=$this->deliveryResumeRecord($row);
+            if ($automatic===null||$resume===null||$resume['old_connection_id']!==$connection) throw new HotelWorkQueueConflict('automatic_recovery_not_used');
+            if (!hash_equals($this->eventId($row,false),$expected)) throw new HotelWorkQueueConflict('stale_pending_event');
+            if ($row['event_ack']!==$expected||$row['attention_ack']!==$this->eventId($row,true)
+                ||$row['attention_at']===null||$row['claim_deadline']===null||$row['claim_deadline']>$this->now()) throw new HotelWorkQueueConflict('delivery_not_exhausted');
+            if ($this->one('SELECT stage_id FROM hotel_work_receipts WHERE queue_id=? AND stage_id=?',[$id,$stage])
+                ||$this->one('SELECT queue_id FROM hotel_work_queues WHERE project_key=? AND (state IN (?,?) OR claim_sha256 IS NOT NULL OR current_run_id IS NOT NULL) LIMIT 1',[self::PROJECT,'claimed','unknown'])) throw new HotelWorkQueueConflict('hotel_work_not_known_idle');
+            $now=$this->now();
+            $audit=['queue_id'=>$id,'stage_id'=>$stage,'admin_id'=>$admin,'oauth_connection_id'=>$connection,'baseline_sha256'=>$baseline,
+                'automatic_recovery_sha256'=>$automatic,'decision_sha256'=>$decision,'host_readback_sha256'=>$readback,
+                'pending_event_id'=>$expected,'attention_event_id'=>$row['attention_ack'],'delivered_at'=>$row['delivered_at'],
+                'claim_deadline'=>$row['claim_deadline'],'attention_at'=>$row['attention_at'],'previous_updated_at'=>$row['updated_at'],'created_at'=>$now];
+            $hash=self::hash(['namespace'=>'hotel_work_owner_delivery_recovery_v1','audit'=>$audit]);
+            $this->execute('INSERT INTO hotel_work_owner_delivery_recoveries (recovery_sha256,queue_id,stage_id,admin_id,oauth_connection_id,baseline_sha256,automatic_recovery_sha256,decision_sha256,host_readback_sha256,pending_event_id,attention_event_id,delivered_at,claim_deadline,attention_at,previous_updated_at,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',[$hash,...array_values($audit)]);
+            $this->execute('UPDATE hotel_work_queues SET event_ack=NULL,delivered_at=NULL,claim_deadline=NULL,attention_at=NULL,attention_ack=NULL,updated_at=? WHERE queue_id=?',[$now,$id]);
+            return $this->project($this->owned($id,$admin,$connection))+['recovery_status'=>'owner_delivery_recovered_once','recovery_sha256'=>$hash,'dispatch_allowed'=>false];
+        });
+    }
+
     public function claim(int $admin,string $connection,array $args): array
     {
         self::keys($args,['queue_id','stage_id','claim_key','expected_pending_event_id']);[$id,$stage,$claim]=$this->claimArgs($args);
@@ -446,6 +484,8 @@ final class HotelWorkQueue
             'current_run_id'=>$row['current_run_id'],'receipt_semantics'=>'authenticated_attestation_not_independent_file_proof',
             'delivery_state'=>$row['state']!=='ready'?$row['state']:($row['attention_at']!==null?'attention_required':($row['event_ack']!==null?'awaiting_claim':'ready')),
             'claim_deadline'=>$row['claim_deadline'],'watchdog_due_at'=>$row['watchdog_due_at'],'watchdog_epoch'=>(int)$row['watchdog_epoch'],
+            'delivery_recovery'=>['automatic_recorded'=>$this->deliveryRecoveryToken($row)!==null,
+                'owner_recorded'=>$this->ownerDeliveryRecoveryRecord($row)!==null],
             'created_at'=>$row['created_at'],'updated_at'=>$row['updated_at']];
     }
 
@@ -458,7 +498,34 @@ final class HotelWorkQueue
         if ($resume!==null) $parts[]=$resume;
         $recovery=$this->deliveryRecoveryToken($row);
         if ($recovery!==null) {$parts[]='delivery_recovery_v1';$parts[]=$recovery;}
+        $owner=$this->ownerDeliveryRecoveryRecord($row);
+        if ($owner!==null) {$parts[]='owner_delivery_recovery_v1';$parts[]=$owner['recovery_sha256'];}
         return ($attention?'hotel_attention_':'hotel_evt_').self::hash($parts);
+    }
+    private function ownerDeliveryRecoveryRecord(array $row): ?array
+    {
+        $q=$this->pdo->prepare('SELECT * FROM hotel_work_owner_delivery_recoveries WHERE queue_id=? AND stage_id=? LIMIT 2');
+        $q->execute([$row['queue_id'],$this->stageId($row)]);$records=$q->fetchAll(PDO::FETCH_ASSOC);
+        if (!$records) return null;
+        if (count($records)!==1) throw new RuntimeException('hotel_work_owner_recovery_invalid');
+        $record=$records[0];$audit=$record;unset($audit['recovery_sha256']);
+        if ((string)(int)$audit['admin_id']!==(string)$audit['admin_id']) throw new RuntimeException('hotel_work_owner_recovery_invalid');
+        $audit['admin_id']=(int)$audit['admin_id'];$resume=$this->deliveryResumeRecord($row);
+        $automatic=$this->deliveryRecoveryToken($row);
+        if ($resume===null||$automatic===null||$audit['queue_id']!==$row['queue_id']||$audit['stage_id']!==$this->stageId($row)
+            ||$audit['admin_id']!==(int)$row['admin_id']||$audit['baseline_sha256']!==$row['baseline_sha256']
+            ||$audit['oauth_connection_id']!==$resume['old_connection_id']||$audit['automatic_recovery_sha256']!==$automatic) throw new RuntimeException('hotel_work_owner_recovery_invalid');
+        foreach (['decision_sha256','host_readback_sha256','recovery_sha256'] as $key) self::sha($record[$key]);
+        $parts=[$audit['stage_id'],$audit['oauth_connection_id'],'ready',$resume['handoff_sha256'],'delivery_recovery_v1',$automatic];
+        if ($audit['pending_event_id']!=='hotel_evt_'.self::hash($parts)) throw new RuntimeException('hotel_work_owner_recovery_invalid');
+        $parts[2]='unclaimed';
+        if ($audit['attention_event_id']!=='hotel_attention_'.self::hash($parts)) throw new RuntimeException('hotel_work_owner_recovery_invalid');
+        $delivered=self::deliveryAuditTime($audit['delivered_at']);$deadline=self::deliveryAuditTime($audit['claim_deadline']);
+        $attention=self::deliveryAuditTime($audit['attention_at']);$updated=self::deliveryAuditTime($audit['previous_updated_at']);
+        if ($deadline!==$delivered+self::CLAIM_DEADLINE_SECONDS||$attention<$deadline||$updated<$attention
+            ||self::deliveryAuditTime($audit['created_at'])<$updated
+            ||!hash_equals(self::hash(['namespace'=>'hotel_work_owner_delivery_recovery_v1','audit'=>$audit]),$record['recovery_sha256'])) throw new RuntimeException('hotel_work_owner_recovery_invalid');
+        return $record;
     }
     private function deliveryResumeToken(array $row): ?string
     {
