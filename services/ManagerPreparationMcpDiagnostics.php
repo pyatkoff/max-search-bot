@@ -118,7 +118,7 @@ final class ManagerPreparationMcpDiagnostics
             'header_version'=>$category($data['header_version']??null,[...self::VERSIONS,'absent']),
             'http_status'=>in_array($data['http_status']??null,[200,202,400,401,403,405,413,503],true)?$data['http_status']:0,
             'stage'=>$category($data['stage']??null,self::STAGES),
-            'rpc_error'=>in_array($data['rpc_error']??null,[-32700,-32600,-32601,-32602,-32603,-32001,-32015],true)?$data['rpc_error']:null,
+            'rpc_error'=>in_array($data['rpc_error']??null,[-32700,-32600,-32601,-32602,-32603,-32001,-32015,-32016],true)?$data['rpc_error']:null,
         ];
     }
 }

@@ -546,3 +546,78 @@ purchase probabilities, baseline improvement or advertising export permission.
 Real installed activation/first derived profile/natural scheduler receipt must
 be recorded separately. Existing frozen development error counts remain unchanged
 until exact replay; no old source or paid model is invoked by these controls.
+
+# Request, delivered offer and reaction — prospective first slice (31 October)
+
+The journal adapter now retains `tour_offer_prepared`, `tour_offer_delivered`
+and `tour_offer_liked` from the existing TourChoiceService producer, only for
+the admitted canonical subject and immutable event revision 1. It requires
+matching producer roles, an exact prepared snapshot, a unique later delivery
+receipt for that offer/chat, and a later customer preference receipt. A demo,
+edited event, missing snapshot/delivery, duplicate receipt or mismatched chat
+cannot confirm a preference. All dependencies must already be available at the
+frozen input cutoff. Derived availability is the latest availability of the
+participating receipts, independently of producer recording times.
+
+Private `offer_journey` preserves the exact supplied offer snapshot and source
+revisions. Callback token hashes and native message/chat/user IDs are omitted
+from this derived projection. Prepared and delivered remain distinct. No reaction
+means unknown, not rejection. A like is an explicit preference for one offer,
+not booking, payment, willingness to accept its price or abandonment of other offers.
+Offer price and party never overwrite the customer's stated conditions.
+
+The saved ordinal assessment adds `early_quality` independently of its purchase
+hypothesis: a substantive request and explicit agency intent remain rule
+candidates; verified offer preferences are retained separately. A contrary
+signal such as explicit deferral suppresses a positive quality state even when
+earlier intent remains in the evidence history. While the current
+trip boundary is unresolved, a preference is not promoted into the current-trip
+discussion target. Verifying actual trip identity and interpreting unanchored
+free-text reactions remain open. There is no new advertising goal
+or export, no change to ordinary goals, no historical rewrite or new producer.
+The existing profile writer saves the added projection on subsequent ordinary
+processing only; this does not prove new natural saves or independent accuracy.
+
+## Provisional request / exact offer / named price reaction
+
+`early_quality` version `request_offer_reaction_v2` additionally projects
+`request_offer_links` and `specific_option_discussions` through the existing
+freeze. It reuses the canonical semantic extractor's request evidence and
+boundary/party/product/gap flags; it does not create another trip parser or
+persistent state owner. Omitted content and edited messages break linkage.
+Only the exact, already-admitted prepared/delivered receipts may bridge those
+context barriers. Their roles, subject, revision, recording clock, actual
+availability, private-chat binding and exact saved snapshot are rechecked in
+memory. Native identifiers and tokens are never included in the projection.
+Before any receipt advances the semantic clock, the canonical long-gap
+predicate is checked. A gap over 30 days breaks the request link even when it
+ends at preparation or delivery; a fresh substantive request may anchor a new
+candidate segment. A gap alone still does not establish another trip.
+
+A request must precede preparation in the checked segment. A textual reaction
+must strictly follow delivery; a same-second order is left unresolved. The
+initial narrow rule requires the exact saved hotel name followed by a direct
+price objection and an explicit request for cheaper alternatives, for example
+`Fixture Beach A дорого, найдите дешевле с таким же пляжем`. This preserves an
+observed continuing search, not a rejection of all searching. A name alone,
+plain yes, like, manager send, unnamed objection, quotation, hypothetical or
+past-trip statement cannot establish this discussion. Multiple delivered offers
+with the same matching name remain ambiguous, with an explicit omission count.
+Unmatched wording remains unknown; this is not a general language classifier.
+
+Grounds are journal references to request, preparation, delivery and customer
+reaction, not copied message text. Dependency availability is their actual
+maximum, never the nominal delivery or reply time. Later candidate boundaries
+retain earlier discussion as history but prevent it from promoting the new
+request. A matched current segment may yield the ordinal state
+`specific_options_discussion`, between substantive request and explicit agency
+booking intent; explicit deferral still suppresses a positive state. A like
+alone remains separate preference evidence.
+
+All linkage is explicitly `same_observed_candidate_segment_not_verified_trip`.
+Trip identity, independent quality, natural post-install saves, outcome and
+advertising eligibility are not established. Existing false export/evaluation
+guards, null probabilities/value, immutable old versions, fixed input limits
+and ordinary processor remain unchanged. Real independently admitted people
+and separately checked early-goal delivery are still required.
+

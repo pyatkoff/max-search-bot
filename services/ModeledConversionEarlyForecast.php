@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__.'/ArchiveResearchSemanticExtractor.php';
 require_once __DIR__.'/ManagerAiTextRedactor.php';
+require_once __DIR__.'/ModeledConversionOfferReaction.php';
 
 /**
  * Pure projection of the already admitted profile prefix.
@@ -62,6 +63,7 @@ final class ModeledConversionEarlyForecast
         usort($rows,static fn(array $a,array $b):int=>($a['at']??0)<=>($b['at']??0)?:strcmp($a['ref'],$b['ref']));
         $state=ArchiveResearchSemanticExtractor::initialState();$events=[];$current=[];$boundaries=[];
         $flags=['episode_identity_unverified'=>true,'source_history_incomplete'=>true];
+        $offerReaction=new ModeledConversionOfferReaction($case,$wrapper,$requested,$denied||$clockUnresolved);
         if($clockUnresolved)$flags['context_linking_disabled_unknown_clock']=true;
         if(($case['window_limited']??null)!==false)$flags['window_limited']=true;
         $counts=array_fill_keys(ArchiveResearchSemanticExtractor::goalIds(),0);
@@ -91,10 +93,12 @@ final class ModeledConversionEarlyForecast
                 }
             }
             if($permit===null||$clockUnresolved){
+                $longGap=ArchiveResearchSemanticExtractor::hasLongObservationGap($state['last'],$item['at']);
                 $barrier=ArchiveResearchSemanticExtractor::step(['read_status'=>'source_unavailable','source_ref'=>$ref,'created_at'=>$item['at']],$state);
                 $state=$barrier['state'];$previous=null;$barriers++;
+                if($longGap)$flags['long_observation_gap']=true;
             }
-            if($permit===null)continue;
+            if($permit===null){$offerReaction->unavailable($ref,$longGap);continue;}
             $role=$permit['role'];$turns[$role]++;
             if($role==='customer'&&$previous!==null&&$previous['role']==='manager'&&$permit['at']>=$previous['at'])
                 $replySeconds[]=$permit['at']-$previous['at'];
@@ -106,6 +110,7 @@ final class ModeledConversionEarlyForecast
                 'selection_links_unread'=>$selection,'links_redacted'=>$links,
             ],$state);
             $state=$result['state'];
+            $offerReaction->message($ref,$role,$permit['at'],$permit['available_at'],$text,$result);
             foreach($result['flags']as$key=>$value)if($value===true)$flags[$key]=true;
             if($result['episode_boundary']!==null){
                 $boundaries[]=['source_ref'=>$ref,'kind'=>$result['episode_boundary'],'episode'=>$state['e'],'identity'=>'unverified'];
@@ -138,6 +143,49 @@ final class ModeledConversionEarlyForecast
             'window_limited'=>($case['window_limited']??null)!==false,'media_contents_read'=>false,
             'context_barriers'=>$barriers,'context_linking_disabled'=>$clockUnresolved,'semantic_omissions'=>$semanticOmissions,
             'source_revision_chronology_unresolved'=>isset($wrapper['coverage']['errors']['source_revision_chronology_unresolved'])];
+        // This early semantic target is independent of the 30-day purchase hypothesis.
+        // Only the canonical adapter's joined, already available immutable offer
+        // receipts can establish a preference; sending alone never upgrades it.
+        $journey=$wrapper['offer_journey']??null;$preferences=[];
+        if(!$denied&&is_array($journey)&&($journey['version']??null)==='admitted_offer_journey_v1'
+            &&is_array($journey['offers']??null)&&count($journey['offers'])<=50){
+            foreach($journey['offers']as$offer){
+                if(!is_array($offer)||($offer['state']??null)!=='liked'
+                    ||($offer['customer_response']??null)!=='explicit_offer_preference'
+                    ||($offer['snapshot']['is_demo']??null)!==false
+                    ||!is_array($offer['delivery']??null)||!is_array($offer['reaction']??null))continue;
+                $available=self::moment($offer['available_at']??null);
+                if($available===null||$available>$requested)continue;
+                $refs=[];
+                foreach(['prepared','delivery','reaction']as$key){
+                    $r=$offer[$key]??null;
+                    if(!is_array($r)||!self::decimal($r['journal_id']??null)||!isset($seen[$r['journal_id']])){ $refs=[];break; }
+                    $refs[]='journal:'.$r['journal_id'];
+                }
+                if(count($refs)===3)$preferences[]=['source_refs'=>$refs,'available_at'=>$offer['available_at']];
+            }
+        }
+        $level='unknown';
+        $offerEvidence=$offerReaction->project();
+        $currentDiscussion=false;
+        foreach($offerEvidence['specific_option_discussions']as$discussion)
+            if($discussion['current_candidate'])$currentDiscussion=true;
+        if(!$denied&&$status==='early_assessment'&&$contrary===[]){
+            if($currentCounts['substantive_interest']>0)$level='substantive_request';
+            if($currentDiscussion)$level='specific_options_discussion';
+            // Exact text discussion remains a provisional segment candidate, not
+            // verified trip identity. A preference alone never upgrades the state.
+            if($currentCounts['agency_purchase_intent']>0)$level='agency_booking_intent';
+        }
+        $quality=['version'=>'request_offer_reaction_v2','state'=>$level,
+            'request_offer_links'=>$offerEvidence['request_offer_links'],
+            'specific_option_discussions'=>$offerEvidence['specific_option_discussions'],
+            'linking_omissions'=>$offerEvidence['linking_omissions'],
+            'specific_offer_preferences'=>$preferences,
+            'discussion_status'=>$currentDiscussion?'named_offer_price_discussion_candidate_episode_unverified':
+                ($preferences?'offer_preference_observed_episode_unverified':'unknown'),
+            'trip_status'=>'unknown','evaluation_eligible'=>false,'export_allowed'=>false,
+            'meaning'=>'early_rule_candidate_not_purchase_or_payment'];
         return [
             'contextual_signals'=>['version'=>self::VERSION,'extractor_version'=>ArchiveResearchSemanticExtractor::VERSION,
                 'extractor_sha256'=>hash_file('sha256',__DIR__.'/ArchiveResearchSemanticExtractor.php'),
@@ -157,6 +205,7 @@ final class ModeledConversionEarlyForecast
                 'horizon_semantics'=>'prospective_30d_purchase_intention_hypothesis_not_validated_purchase_probability',
                 'readiness_basis'=>'observed_signals_in_current_candidate_prefix_not_current_willingness',
                 'current_readiness_status'=>$contrary?'unknown_after_contrary_signal':'unverified',
+                'early_quality'=>$quality,
                 'contrary_goal_ids'=>$contrary,'known_outcome_exclusion_scope'=>'any_available_prefix_episode_conservative',
                 'purchase_anywhere'=>['readiness_band'=>$any,'probability'=>null],
                 'purchase_with_us'=>['readiness_band'=>$agency,'probability'=>null],
@@ -197,3 +246,4 @@ final class ModeledConversionEarlyForecast
     }
     private static function fail(string $reason):never{throw new RuntimeException('modeled_early_forecast_'.$reason);}
 }
+

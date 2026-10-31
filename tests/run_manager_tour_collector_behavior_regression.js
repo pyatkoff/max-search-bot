@@ -116,6 +116,57 @@ async function bridgeReconnectRegression(){
  check('the recovered handshake announces one nonce without any import command',bridge.events.filter(event=>event.type==='hello').length===3&&bridge.events.at(-1).nonce===last&&recovered.replies.length===1&&bridge.requests.every(request=>['bridge_hello','bridge_event'].includes(request.type)));
 }
 
+// Hold real page HTTP replies while Refresh or a new hello replaces its view.
+// This exercises the shipped page client without a browser or a live import.
+function collectorPage(){
+ const calls=[],events=[],elements=new Map(),listeners=new Map();
+ const config={actor:7,conversation_id:11,csrf:'fixture-csrf'};
+ const element=()=>({textContent:'',checked:false,disabled:false,children:[],classes:new Set(),
+  classList:{toggle(name,on){if(on)this.owner.classes.add(name);else this.owner.classes.delete(name)}},
+  replaceChildren(){this.children=[]},append(child){this.children.push(child)},addEventListener(){}});
+ const document={getElementById(id){if(!elements.has(id)){const el=element();el.classList.owner=el;elements.set(id,el)}const el=elements.get(id);if(id==='collectorConfig')el.textContent=JSON.stringify(config);return el},
+  createElement(){const el=element();el.classList.owner=el;return el},
+  addEventListener(type,listener){const list=listeners.get(type)||[];list.push(listener);listeners.set(type,list)},
+  dispatchEvent(event){if(event.type==='anytour-collector-page')events.push(clone(event.detail));for(const listener of listeners.get(event.type)||[])void listener(event)}};
+ const ManagerHttpClient={request(action,data,csrf,endpoint){return new Promise(resolve=>calls.push({action,data:clone(data),csrf,endpoint,resolve}))}};
+ vm.runInNewContext(fs.readFileSync(__dirname+'/../manager/assets/tour-selection-collector.js','utf8'),
+  {document,ManagerHttpClient,crypto:webcrypto,Uint8Array,CustomEvent:class{constructor(type,{detail}={}){this.type=type;this.detail=detail}}},
+  {filename:'tour-selection-collector.js'});
+ return {calls,events,elements,flush:()=>new Promise(resolve=>setImmediate(resolve)),
+  extension(detail){document.dispatchEvent({type:'anytour-collector-extension',detail})},
+  view(){return{target:elements.get('collectorTarget').children.map(el=>el.textContent),status:elements.get('collectorStatus').textContent,error:elements.get('collectorStatus').classes.has('error'),open:elements.get('collectorOpenSelection').href}}};
+}
+
+async function collectorPageReceiptRegression(){
+ const device='d'.repeat(32),nonce='e'.repeat(32),nextNonce='9'.repeat(32),connection={id:'c'.repeat(32)};
+ const target={...makeTarget(),client:'Synthetic page client',channel:'test',trip:'Synthetic trip',started_at:'2026-10-23 10:00:00',dates:[],count:3};
+ const view=count=>({ok:true,target:{...target,count},connection});
+ for(const action of ['operation','import'])for(const change of ['none','refresh','denied','replacement','hello']){
+  const page=collectorPage();page.calls[0].resolve(view(3));await page.flush();
+  page.extension({type:'hello',device,nonce});page.calls[1].resolve(view(3));await page.flush();
+  const command={type:'command',nonce,actor:7,conversation_id:11,connection_id:connection.id,request_id:'f'.repeat(32),operation_id:'a'.repeat(32),action,observation:observation('Synthetic receipt'),as_variant:false,manager_amount:'190000'};
+  page.extension(command);
+  check(action+' '+change+' sends the original authenticated intent once',page.calls.length===3&&page.calls[2].action==='collector_'+action&&page.calls[2].csrf==='fixture-csrf'&&page.calls[2].endpoint==='tour-selections-api.php'&&JSON.stringify(page.calls[2].data)===JSON.stringify({conversation_id:11,operation_id:command.operation_id,connection_id:connection.id,observation:command.observation,as_variant:false,manager_amount:'190000'}));
+  if(change!=='none'){
+   if(change==='hello')page.extension({type:'hello',device,nonce:nextNonce});else void page.elements.get('collectorRefresh').onclick();
+   const fresh=change==='denied'?{ok:false,error:'forbidden'}:change==='replacement'?{...view(5),target:{...target,binding:'6'.repeat(64),count:5},connection:{id:'8'.repeat(32)}}:view(5);
+   page.calls[3].resolve(fresh);await page.flush();
+  }
+  const freshView=page.view(),connectedBefore=page.events.filter(e=>e.type==='connected').length,disconnectedBefore=page.events.filter(e=>e.type==='disconnected').length;
+  // A connection error from the old request must not revoke a replacement view.
+  const reply=change==='replacement'?{ok:false,error:'connection_changed'}:{ok:true,...(action==='operation'?{found:true}:{state:'added'}),saved_version:9,count:4,manager_amount:'190000'};
+  page.calls[2].resolve(reply);await page.flush();
+  const results=page.events.filter(e=>e.type==='result');
+  check(action+' '+change+' acknowledges the original request and nonce exactly once',results.length===1&&results[0].request_id===command.request_id&&results[0].nonce===nonce&&JSON.stringify(results[0].result)===JSON.stringify(reply));
+  if(change==='none')check(action+' current receipt updates the current view',page.view().target.includes('На сервере: 4 предложений')&&page.events.filter(e=>e.type==='connected').length===connectedBefore+1);
+  else check(action+' '+change+' receipt cannot overwrite or revoke the fresh view',JSON.stringify(page.view())===JSON.stringify(freshView)&&page.events.filter(e=>e.type==='connected').length===connectedBefore&&page.events.filter(e=>e.type==='disconnected').length===disconnectedBefore);
+  if(change==='denied')check(action+' denied refresh stays empty and forbidden',page.view().target.length===0&&page.view().error&&page.view().status.includes('нет права'));
+  if(change==='hello')check(action+' rotated hello cannot acquire the old receipt nonce',page.events.filter(e=>e.type==='connected').at(-1).nonce===nextNonce&&results[0].nonce!==nextNonce);
+  await page.flush();
+  check(action+' '+change+' never replays the HTTP command or starts another import',page.calls.length===(change==='none'?3:4)&&page.calls.filter(call=>call.action==='collector_'+action).length===1&&page.calls.filter(call=>call.action==='collector_import').length===(action==='import'?1:0));
+ }
+}
+
 // Drive the shipped gallery reader through changing rendered documents. The
 // clock advances at its real poll boundary; no source request or photo is made.
 async function gallerySequence(sequence,options={}){
@@ -202,12 +253,13 @@ async function tourvisorBlockedCancellationRegression(){
  }
 }
 
-module.exports={worker,provider,makeTarget,tourvisorBlockedCancellationRegression,galleryRecoveryRegression,bridgeReconnectRegression};
+module.exports={worker,provider,makeTarget,tourvisorBlockedCancellationRegression,galleryRecoveryRegression,bridgeReconnectRegression,collectorPageReceiptRegression};
 if(require.main===module)(async()=>{
  require('node:child_process').execFileSync('python3',[__dirname+'/../extensions/selection-collector/build_package.py','--check'],{stdio:'pipe'});
  check('installable package matches actual extension sources',true);
  const manifest=JSON.parse(fs.readFileSync(__dirname+'/../extensions/selection-collector/manifest.json','utf8'));
  await bridgeReconnectRegression();
+ await collectorPageReceiptRegression();
 
  {
  const early=['early-1','early-2','early-3'],settled=['hotel-1','hotel-2','hotel-3'];
