@@ -113,6 +113,49 @@ foreach (['delivery_repair_preflight'=>$repairIdentity,'repair_delivery'=>$repai
     $denied=$services['replies']->handle(rpcSplit('tools/call',['name'=>$name,'arguments'=>$arguments]),1,$r['connection_id'],$r['scopes']);
     checkSplit('reply surface exposes no hotel repair '.$operation,($denied['error']['code']??0)===-32601);
 }
+// The new producer ledger uses the existing exact hotel owner and never a new OAuth scope.
+$attemptIdentity=$repairIdentity+['expected_current_run_id'=>'CANONICAL_HOLD'];
+$attemptPreparation=$attemptIdentity+['claim_key'=>str_repeat('3',64),'expected_state_sha256'=>str_repeat('4',64),
+    'operation_id'=>'SYNTHETIC_EXISTING_OPERATION','attempt_token'=>str_repeat('5',64),'scope_sha256'=>str_repeat('6',64),
+    'owner_decision_sha256'=>str_repeat('7',64),'prompt_readback_sha256'=>str_repeat('8',64),
+    'assignment_readback_sha256'=>str_repeat('9',64),'fencing_readback_sha256'=>str_repeat('a',64),
+    'fencing_status'=>'old_guards_fail_closed','prior_attempts'=>[
+        ['ordinal'=>1,'status'=>'unknown','run_id'=>null,'receipt_sha256'=>str_repeat('b',64)],
+        ['ordinal'=>2,'status'=>'terminal_hold_no_work','run_id'=>'CANONICAL_HOLD','receipt_sha256'=>str_repeat('c',64)]],
+    'dispatch_ceiling'=>3];
+$attemptEntry=['queue_id'=>'SYNTHETIC','stage_id'=>str_repeat('a',64),'attempt_token'=>str_repeat('5',64),
+    'instance_id'=>str_repeat('d',64),'operation_id'=>'SYNTHETIC_EXISTING_OPERATION','scope_sha256'=>str_repeat('6',64),
+    'prompt_readback_sha256'=>str_repeat('8',64),'assignment_readback_sha256'=>str_repeat('9',64)];
+$attemptBinding=$attemptIdentity+['claim_key'=>str_repeat('3',64),'expected_state_sha256'=>str_repeat('4',64),
+    'attempt_token'=>str_repeat('5',64),'instance_id'=>str_repeat('d',64),'entry_sha256'=>str_repeat('e',64),
+    'producer_run_id'=>'ACTUAL_PRODUCER','packet_sha256'=>str_repeat('f',64),'native_result_readback_sha256'=>str_repeat('1',64)];
+foreach (['execution_attempt_preflight'=>$attemptIdentity,'prepare_execution_attempt'=>$attemptPreparation,
+    'enter_execution_attempt'=>$attemptEntry,'bind_execution_attempt'=>$attemptBinding] as $operation=>$arguments) {
+    $name='hotel_work_'.$operation;
+    $result=$repairService->handle(rpcSplit('tools/call',['name'=>$name,'arguments'=>$arguments]),1,$h['connection_id'],$h['scopes']);
+    checkSplit('execution attempt dispatch retains authenticated owner '.$operation,!isset($result['error'])
+        &&end($repairCalls)===[$operation,[1,$h['connection_id'],$arguments]]);
+    checkSplit('execution attempt metadata retains hotel scope '.$operation,
+        $repairTools[$name]['securitySchemes']===[['type'=>'oauth2','scopes'=>['hotel_work:write']]]
+        &&$repairTools[$name]['annotations']['readOnlyHint']===($operation==='execution_attempt_preflight')
+        &&$repairTools[$name]['inputSchema']['additionalProperties']===false);
+    foreach (['missing'=>array_diff_key($arguments,['stage_id'=>true]),
+        'forged_host_authority'=>$arguments+['host_verified'=>true],
+        'forged_dispatch'=>$arguments+['dispatch_allowed'=>true]] as $case=>$invalid) {
+        $before=count($repairCalls);
+        $denied=$repairService->handle(rpcSplit('tools/call',['name'=>$name,'arguments'=>$invalid]),1,$h['connection_id'],$h['scopes']);
+        checkSplit('execution attempt strict fields '.$operation.'/'.$case,isset($denied['error'])&&count($repairCalls)===$before);
+    }
+    $before=count($repairCalls);
+    $denied=$repairService->handle(rpcSplit('tools/call',['name'=>$name,'arguments'=>$arguments]),1,$r['connection_id'],$r['scopes']);
+    checkSplit('execution attempt denies reply grant '.$operation,isset($denied['error'])&&count($repairCalls)===$before);
+    $denied=$services['replies']->handle(rpcSplit('tools/call',['name'=>$name,'arguments'=>$arguments]),1,$r['connection_id'],$r['scopes']);
+    checkSplit('reply surface does not expose execution attempts '.$operation,($denied['error']['code']??0)===-32601);
+}
+checkSplit('entry never asks a worker for the private claim key',!isset($repairTools['hotel_work_enter_execution_attempt']['inputSchema']['properties']['claim_key']));
+checkSplit('producer association is optional only on completion',
+    isset($repairTools['hotel_work_complete']['inputSchema']['properties']['producer_association_sha256'])
+    &&!in_array('producer_association_sha256',$repairTools['hotel_work_complete']['inputSchema']['required'],true));
 $background=new ManagerPreparationOAuth($pdo,$clock);
 checkSplit('reply cron accepts separate resource',$background->eventConnectionAuthorizedAcrossProfiles('replies',$r['connection_id'],1));
 checkSplit('hotel cron accepts separate resource',$background->eventConnectionAuthorizedAcrossProfiles('hotels',$h['connection_id'],1));
