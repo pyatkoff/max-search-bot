@@ -620,6 +620,25 @@ test('collector return link clears stale identity after access is lost',async({p
  await page.route('**/manager/tour-selections-api.php',route=>route.fulfill({status:403,contentType:'application/json',body:'{"ok":false,"error":"forbidden"}'}));await page.locator('#collectorRefresh').click();await expect(page.locator('#collectorStatus')).toContainText('нет права');await expect(page.locator('#collectorOpenSelection')).toHaveAttribute('href','/manager2/');await expect(page.locator('#collectorTarget')).toBeEmpty();expect(s.errors).toEqual([]);
 });
 
+test('collector acknowledges a held operation after Refresh without restoring its older view',async({page})=>{
+ const s=await bridgeFixture(page);await s.hello();await expect(page.locator('#collectorStatus')).toContainText('Проверьте клиента');
+ await page.locator('#collectorConfirm').check();await page.locator('#collectorConnect').click();await expect(page.locator('#collectorStatus')).toContainText('Подключено');
+ const calls=[],requestId='1'.repeat(32),operationId='2'.repeat(32);let release;
+ const held=new Promise(resolve=>{release=resolve});
+ await page.route('**/manager/tour-selections-api.php',async route=>{
+  const d=route.request().postDataJSON();calls.push(copy(d));
+  if(d.action==='collector_operation'){await held;return route.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,found:true,saved_version:9,count:3})})}
+  if(d.action==='collector_get')return route.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,target:{actor:7,conversation_id:11,client:'Синтетическая Анна',channel:'telegram',trip:'Свежие условия',started_at:'2026-10-23 10:00:00',dates:['2027-06-05'],count:4,version:10,binding:'b'.repeat(64)},connection:{id:'c'.repeat(32),expires_at:'2099-01-01 00:00:00'}})});
+  return route.fallback();
+ });
+ await s.command({action:'operation',request_id:requestId,operation_id:operationId});await expect.poll(()=>calls.filter(c=>c.action==='collector_operation').length).toBe(1);
+ await page.locator('#collectorRefresh').click();await expect(page.locator('#collectorTarget')).toContainText('На сервере: 4');await expect(page.locator('#collectorTarget')).toContainText('Свежие условия');const freshStatus=await page.locator('#collectorStatus').textContent();
+ release();await expect.poll(()=>s.events.filter(e=>e.type==='result'&&e.request_id===requestId).length).toBe(1);
+ expect(s.events.find(e=>e.type==='result'&&e.request_id===requestId)).toMatchObject({nonce:'e'.repeat(32),request_id:requestId,result:{ok:true,found:true,saved_version:9,count:3}});
+ await expect(page.locator('#collectorTarget')).toContainText('На сервере: 4');await expect(page.locator('#collectorTarget')).toContainText('Свежие условия');await expect(page.locator('#collectorStatus')).toHaveText(freshStatus);
+ expect(calls.map(c=>c.action)).toEqual(['collector_operation','collector_get']);expect(calls[0].operation_id).toBe(operationId);expect(s.errors).toEqual([]);
+});
+
 for(const width of [390,430,768,1440])test('collector imported source survives manual edits in responsive editor at '+width,async({page,browserName})=>{
  await page.setViewportSize({width,height:900});const imported=JSON.parse(execFileSync('php',['-r',`require 'tests/support/manager-tour-collector.php';$i=ManagerTourSelectionImportDraft::normalize(collectorObservation());$o=$i['offer'];$o['id']=str_repeat('a',32);$o['import_source']=ManagerTourSelectionImportDraft::source($i);echo json_encode(['title'=>'Лето у моря','intro'=>'','offers'=>[$o]],JSON_THROW_ON_ERROR);`],{cwd:root,encoding:'utf8'}));
  const s=await fixture(page,{draft:imported});await page.locator('#replyText').fill('Сохранённый ответ');await page.locator('#replyFile').setInputFiles({name:'collector.txt',mimeType:'text/plain',buffer:Buffer.from('synthetic')});await open(page);
