@@ -8,6 +8,7 @@ require_once __DIR__.'/ManagerSelectionSnapshot.php';
 require_once __DIR__.'/ManagerAiDraftReferenceContext.php';
 require_once __DIR__.'/TourConsultationPolicy.php';
 require_once __DIR__.'/ManagerAiDraftInputEvidence.php';
+require_once __DIR__.'/ManagerRequestProfile.php';
 
 /** A pure draft use-case: no bootstrap, database, bot state, logs or delivery. */
 final class ManagerAiDraftService
@@ -66,11 +67,11 @@ final class ManagerAiDraftService
             $plain = $normalized;
             $normalized += $extra;
             try {
-                $encoded = json_encode(ManagerDraftClient::requestBody(self::instructions(),$normalized),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+                $encoded = json_encode(ManagerDraftClient::requestBody(self::instructions($normalized),$normalized),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
                 if (strlen($encoded)>ManagerDraftClient::MAX_REQUEST_BYTES) {
                     $normalized = $plain;
                     $normalized['reference_coverage'] = ['payload_omitted'=>true];
-                    $encoded = json_encode(ManagerDraftClient::requestBody(self::instructions(),$normalized),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+                    $encoded = json_encode(ManagerDraftClient::requestBody(self::instructions($normalized),$normalized),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
                     if (strlen($encoded)>ManagerDraftClient::MAX_REQUEST_BYTES) $normalized = $plain;
                 }
             } catch (Throwable $ignored) { $normalized = $plain; }
@@ -105,11 +106,11 @@ final class ManagerAiDraftService
                 // Keep the existing transport envelope cap. A large original
                 // transcript must not start failing merely because a page read fit.
                 try {
-                    $bytes = json_encode(ManagerDraftClient::requestBody(self::instructions(),$normalized),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+                    $bytes = json_encode(ManagerDraftClient::requestBody(self::instructions($normalized),$normalized),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
                     if (strlen($bytes)>ManagerDraftClient::MAX_REQUEST_BYTES) {
                         $normalized = $withoutSelections;
                         $normalized['selection_coverage'] = ['payload_omitted'=>true];
-                        $bytes = json_encode(ManagerDraftClient::requestBody(self::instructions(),$normalized),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+                        $bytes = json_encode(ManagerDraftClient::requestBody(self::instructions($normalized),$normalized),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
                         if (strlen($bytes)>ManagerDraftClient::MAX_REQUEST_BYTES) $normalized = $withoutSelections;
                     }
                 } catch (Throwable $ignored) { $normalized = $withoutSelections; }
@@ -210,7 +211,8 @@ next_action: clarify — существенное уточнение; answer_que
 4. Прочитай приложенные фото и сопоставь их с текущим постом и поправками туриста. При status=attached не поручай менеджеру прочитать то же фото. Неразборчивые детали не угадывай. При unavailable/omitted, непрочитанном документе, цитате или подборке укажи конкретный источник для проверки менеджером. До просмотра не утверждай даже в reason, что внутри есть отель, паспорт или чек. Не проси туриста повторить сведения из непроверенного вложения. Старое непрочитанное вложение не блокирует независимый ответ; возможный ответ внутри не доказывает закрытие вопроса.
 5. Слова об оплате, файл, договор, заявка и подтверждение оператора различай; это не выполненные тобой действия. При жалобе признай неудобство без выдуманной причины, гарантий, возврата или контакта с поставщиком.
 PROMPT;
-        return $instructions . (($context['hotel_reference']['status'] ?? null) === 'available'
+        return $instructions . (isset($context['request_profile']) ? ManagerRequestProfile::instructions() : '')
+            . (($context['hotel_reference']['status'] ?? null) === 'available'
             ? "\n\n".ManagerHotelKnowledge::instructions() : '')
             . (($context['working_selection']['status'] ?? null) === 'available'
             ? "\n\n".ManagerTourSelectionReferenceContext::instructions() : '');
