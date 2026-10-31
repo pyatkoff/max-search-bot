@@ -8,7 +8,9 @@ final class HotelWorkMcpAdapter
     public const NAMES = ['hotel_work_create','hotel_work_status','hotel_work_claim',
         'hotel_work_started','hotel_work_complete','hotel_work_release','hotel_work_skip_research',
         'hotel_work_handoff_preflight','hotel_work_handoff_connection','hotel_work_resolve_existing_run',
-        'hotel_work_delivery_repair_preflight','hotel_work_repair_delivery'];
+        'hotel_work_delivery_repair_preflight','hotel_work_repair_delivery',
+        'hotel_work_execution_attempt_preflight','hotel_work_prepare_execution_attempt',
+        'hotel_work_enter_execution_attempt','hotel_work_bind_execution_attempt'];
 
     public function __construct(private PDO $pdo, private $store = null, private $clock = null,
         private ?HotelWorkEventService $events = null, private string $oauthProfile = ManagerPreparationOAuth::PROFILE_LEGACY)
@@ -29,6 +31,22 @@ final class HotelWorkMcpAdapter
             'expected_resume_sha256'=>$sha,'expected_recovery_sha256'=>$sha,
             'expected_ack_sha256'=>$sha,'expected_state_sha256'=>$sha];
         $repair=$repairIdentity+$repairPins+['owner_request_sha256'=>$sha,'consumer_prompt_sha256'=>$sha];
+        $attemptIdentity=$repairIdentity+['expected_current_run_id'=>$run];
+        $attemptPreparation=$attemptIdentity+['claim_key'=>$sha,'expected_state_sha256'=>$sha,
+            'operation_id'=>$run,'attempt_token'=>$sha,'scope_sha256'=>$sha,'owner_decision_sha256'=>$sha,
+            'prompt_readback_sha256'=>$sha,'assignment_readback_sha256'=>$sha,'fencing_readback_sha256'=>$sha,
+            'fencing_status'=>['type'=>'string','enum'=>['old_guards_fail_closed','writes_isolated']],
+            'prior_attempts'=>['type'=>'array','minItems'=>2,'maxItems'=>2,'items'=>['type'=>'object',
+                'properties'=>['ordinal'=>['type'=>'integer','enum'=>[1,2]],
+                    'status'=>['type'=>'string','enum'=>['unknown','terminal_hold_no_work']],
+                    'run_id'=>['type'=>['string','null'],'pattern'=>$run['pattern']], 'receipt_sha256'=>$sha],
+                'required'=>['ordinal','status','run_id','receipt_sha256'],'additionalProperties'=>false]],
+            'dispatch_ceiling'=>['type'=>'integer','const'=>3]];
+        $attemptEntry=['queue_id'=>$id,'stage_id'=>$sha,'attempt_token'=>$sha,'instance_id'=>$sha,
+            'operation_id'=>$run,'scope_sha256'=>$sha,'prompt_readback_sha256'=>$sha,'assignment_readback_sha256'=>$sha];
+        $attemptBinding=$attemptIdentity+['claim_key'=>$sha,'expected_state_sha256'=>$sha,
+            'attempt_token'=>$sha,'instance_id'=>$sha,'entry_sha256'=>$sha,'producer_run_id'=>$run,
+            'packet_sha256'=>$sha,'native_result_readback_sha256'=>$sha];
         $criteria=['type'=>['object','null'],'properties'=>['readback_sha256'=>$sha,
             'case_count'=>['type'=>'integer','minimum'=>1,'maximum'=>20],
             'done_count'=>['type'=>'integer','minimum'=>0,'maximum'=>20],
@@ -60,8 +78,9 @@ final class HotelWorkMcpAdapter
                 $claim+['expected_pending_event_id'=>['type'=>'string','pattern'=>'^hotel_evt_[a-f0-9]{64}$']],array_keys($claim),false],
             ['hotel_work_started','Attest the actual existing worker run bound to your hotel-stage claim. This does not launch a worker; do not invent a run identifier.',
                 $claim+['run_id'=>$run],[...array_keys($claim),'run_id'],false],
-            ['hotel_work_complete','Attest one exact worker receipt after independently checking its saved packet and readback. Intake must consume the same research packet. Include due criteria after every second intake. A hash is not independent file proof; use unknown with null evidence for uncertain outcomes, never retry them.',
-                $claim+['receipt'=>['type'=>'object','properties'=>$receipt,'required'=>array_keys($receipt),'additionalProperties'=>false]],
+            ['hotel_work_complete','Attest one exact worker receipt after independently checking its saved packet and readback. Intake must consume the same research packet. Include due criteria after every second intake. A hash is not independent file proof; use unknown with null evidence for uncertain outcomes, never retry them. When an execution permit exists, accepted output requires producer_association_sha256 and the actual associated producer run ID and packet; the earlier canonical HOLD run cannot complete through the legacy branch.',
+                $claim+['receipt'=>['type'=>'object','properties'=>$receipt,'required'=>array_keys($receipt),'additionalProperties'=>false],
+                    'producer_association_sha256'=>$sha],
                 [...array_keys($claim),'receipt'],false],
             ['hotel_work_release','Explicitly withdraw the exact unclaimed hotel stage. Claimed and unknown work cannot be released by age. Does not cancel hosted work.',
                 ['queue_id'=>$id,'stage_id'=>$sha],['queue_id','stage_id'],false],
@@ -94,6 +113,14 @@ final class HotelWorkMcpAdapter
                 $repairIdentity,array_keys($repairIdentity),true],
             ['hotel_work_repair_delivery','Record one explicitly authorized fresh delivery generation for a corrected consumer on this exact queue/stage after a successful current read-only preflight. Pin the returned event, original resume/recovery, ACK and state digests. Owner-request and corrected-prompt digests are attestations, not host proof; reconcile the original private intents, worker and reservation guards before applying. Preserves original ACKs and audits, stage, counters, claims, receipts and hotel data. Hard-once per queue/stage: an exact repeat returns its stored receipt even after later work; changed repeats are held. Ordinary cron alone signs and delivers the new event. This operation never claims, dispatches, replays a run, resumes the old budget or creates a subscription. An uncertain commit must be reconciled using the same exact request.',
                 $repair,array_keys($repair),false],
+            ['hotel_work_execution_attempt_preflight','Read-only current owner, stage, claim and canonical-run metadata for one explicitly authorized execution attempt. Returns exact state pins and bounded permit/entry/producer metadata. This does not prove native termination, authorize a HOST dispatch or inspect hotel data.',
+                $attemptIdentity,array_keys($attemptIdentity),true],
+            ['hotel_work_prepare_execution_attempt','Append the sole additional execution permit for ordinal 3 with a total ceiling of 3, preserving the current claim, canonical terminal-HOLD run and earlier UNKNOWN history. The literal token must already be frozen in the saved worker instructions and assignment. External fencing and owner-decision digests are attestations, not independent HOST proof. A repeated receipt never authorizes another dispatch; UNKNOWN never refunds the permit. Does not launch, rearm or replay a worker.',
+                $attemptPreparation,array_keys($attemptPreparation),false],
+            ['hotel_work_enter_execution_attempt','Atomically consume the precommitted literal token with one fresh per-invocation instance before any web, hotel fact or file write. The first entry admits one cooperating producer; another instance is held. An exact repeat is receipt reconciliation and must not start work again. Never adopt a token or another instance from the current checkpoint. Native run ID is associated later from the actual result.',
+                $attemptEntry,array_keys($attemptEntry),false],
+            ['hotel_work_bind_execution_attempt','Append one authenticated-owner association between the winning token/instance, its actual native producer run and exact saved packet after independently checking the native result. Preserve canonical current_run_id and UNKNOWN request origin. This association is not HOST authentication or a dispatch. Complete must use the actual producer ID, exact packet and returned association digest; never label new output as the earlier HOLD run.',
+                $attemptBinding,array_keys($attemptBinding),false],
         ];
         $out=[];
         foreach ($definitions as [$name,$description,$properties,$required,$readOnly]) {
@@ -111,6 +138,19 @@ final class HotelWorkMcpAdapter
         if (!in_array($name,self::NAMES,true)||$admin<=0||!preg_match('/\A[a-f0-9]{32}\z/D',$connection)) throw new InvalidArgumentException();
         if (strlen(json_encode($args,JSON_THROW_ON_ERROR))>16384) throw new InvalidArgumentException();
         $operation=substr($name,strlen('hotel_work_'));
+        $attemptFields=['queue_id','stage_id','baseline_sha256','expected_caller_connection_id','expected_current_run_id'];
+        $attemptAllowed=match ($operation) {
+            'execution_attempt_preflight'=>$attemptFields,
+            'prepare_execution_attempt'=>[...$attemptFields,'claim_key','expected_state_sha256','operation_id',
+                'attempt_token','scope_sha256','owner_decision_sha256','prompt_readback_sha256',
+                'assignment_readback_sha256','fencing_readback_sha256','fencing_status','prior_attempts','dispatch_ceiling'],
+            'enter_execution_attempt'=>['queue_id','stage_id','attempt_token','instance_id','operation_id',
+                'scope_sha256','prompt_readback_sha256','assignment_readback_sha256'],
+            'bind_execution_attempt'=>[...$attemptFields,'claim_key','expected_state_sha256','attempt_token',
+                'instance_id','entry_sha256','producer_run_id','packet_sha256','native_result_readback_sha256'],
+            default=>null,
+        };
+        if ($attemptAllowed!==null&&(count($args)!==count($attemptAllowed)||array_diff(array_keys($args),$attemptAllowed))) throw new InvalidArgumentException();
         if (in_array($operation,['delivery_repair_preflight','repair_delivery'],true)) {
             $allowed=['queue_id','stage_id','baseline_sha256','expected_caller_connection_id'];
             if ($operation==='repair_delivery') $allowed=[...$allowed,'expected_pending_event_id','expected_resume_sha256',
