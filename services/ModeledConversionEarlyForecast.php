@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__.'/ArchiveResearchSemanticExtractor.php';
 require_once __DIR__.'/ManagerAiTextRedactor.php';
+require_once __DIR__.'/ModeledConversionOfferReaction.php';
 
 /**
  * Pure projection of the already admitted profile prefix.
@@ -62,6 +63,7 @@ final class ModeledConversionEarlyForecast
         usort($rows,static fn(array $a,array $b):int=>($a['at']??0)<=>($b['at']??0)?:strcmp($a['ref'],$b['ref']));
         $state=ArchiveResearchSemanticExtractor::initialState();$events=[];$current=[];$boundaries=[];
         $flags=['episode_identity_unverified'=>true,'source_history_incomplete'=>true];
+        $offerReaction=new ModeledConversionOfferReaction($case,$wrapper,$requested,$denied||$clockUnresolved);
         if($clockUnresolved)$flags['context_linking_disabled_unknown_clock']=true;
         if(($case['window_limited']??null)!==false)$flags['window_limited']=true;
         $counts=array_fill_keys(ArchiveResearchSemanticExtractor::goalIds(),0);
@@ -94,7 +96,7 @@ final class ModeledConversionEarlyForecast
                 $barrier=ArchiveResearchSemanticExtractor::step(['read_status'=>'source_unavailable','source_ref'=>$ref,'created_at'=>$item['at']],$state);
                 $state=$barrier['state'];$previous=null;$barriers++;
             }
-            if($permit===null)continue;
+            if($permit===null){$offerReaction->unavailable($ref);continue;}
             $role=$permit['role'];$turns[$role]++;
             if($role==='customer'&&$previous!==null&&$previous['role']==='manager'&&$permit['at']>=$previous['at'])
                 $replySeconds[]=$permit['at']-$previous['at'];
@@ -106,6 +108,7 @@ final class ModeledConversionEarlyForecast
                 'selection_links_unread'=>$selection,'links_redacted'=>$links,
             ],$state);
             $state=$result['state'];
+            $offerReaction->message($ref,$role,$permit['at'],$permit['available_at'],$text,$result);
             foreach($result['flags']as$key=>$value)if($value===true)$flags[$key]=true;
             if($result['episode_boundary']!==null){
                 $boundaries[]=['source_ref'=>$ref,'kind'=>$result['episode_boundary'],'episode'=>$state['e'],'identity'=>'unverified'];
@@ -161,15 +164,24 @@ final class ModeledConversionEarlyForecast
             }
         }
         $level='unknown';
+        $offerEvidence=$offerReaction->project();
+        $currentDiscussion=false;
+        foreach($offerEvidence['specific_option_discussions']as$discussion)
+            if($discussion['current_candidate'])$currentDiscussion=true;
         if(!$denied&&$status==='early_assessment'&&$contrary===[]){
             if($currentCounts['substantive_interest']>0)$level='substantive_request';
-            // Cross-episode joins are deliberately not inferred while trip is unknown.
-            // A preference is retained as evidence, not promoted to a current-trip target.
+            if($currentDiscussion)$level='specific_options_discussion';
+            // Exact text discussion remains a provisional segment candidate, not
+            // verified trip identity. A preference alone never upgrades the state.
             if($currentCounts['agency_purchase_intent']>0)$level='agency_booking_intent';
         }
-        $quality=['version'=>'request_offer_reaction_v1','state'=>$level,
+        $quality=['version'=>'request_offer_reaction_v2','state'=>$level,
+            'request_offer_links'=>$offerEvidence['request_offer_links'],
+            'specific_option_discussions'=>$offerEvidence['specific_option_discussions'],
+            'linking_omissions'=>$offerEvidence['linking_omissions'],
             'specific_offer_preferences'=>$preferences,
-            'discussion_status'=>$preferences?'offer_preference_observed_episode_unverified':'unknown',
+            'discussion_status'=>$currentDiscussion?'named_offer_price_discussion_candidate_episode_unverified':
+                ($preferences?'offer_preference_observed_episode_unverified':'unknown'),
             'trip_status'=>'unknown','evaluation_eligible'=>false,'export_allowed'=>false,
             'meaning'=>'early_rule_candidate_not_purchase_or_payment'];
         return [
