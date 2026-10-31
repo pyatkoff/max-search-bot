@@ -1,5 +1,6 @@
 const {test,expect}=require('@playwright/test');
-const {setupRequestProfile}=require('./fixtures/manager-request-profile');
+const {setupRequestProfile,root}=require('./fixtures/manager-request-profile');
+const fs=require('node:fs'),path=require('node:path');
 let app;
 const field=(page,k)=>page.locator(`[data-field="${k}"]`);
 async function editField(page,k){const f=field(page,k);if(!await f.evaluate(e=>e.open))await f.locator('summary').click();return f}
@@ -7,7 +8,7 @@ async function ready(page){await expect(page.locator('#profileApp')).toBeVisible
 async function correction(page){await page.getByRole('button',{name:'Применить состав к черновику'}).click();await expect(field(page,'party').locator('[data-value=ages]')).toHaveValue('12')}
 async function save(page){await page.locator('#profileSave').click();await expect(page.locator('#profileStatus')).toContainText('Профиль сохранён.');await expect(page.locator('#profileSave')).toBeEnabled()}
 test.afterEach(async()=>{if(app){expect(app.errors).toEqual([]);expect(app.unexpected).toEqual([]);await app.cleanup();app=null}});
-for(const width of [390,430,768,1440])test(`profile party correction and evidence at ${width}px`,async({page},testInfo)=>{
+for(const width of [390,430,768,1440])test(`profile party correction and evidence at ${width}px`,async({page,browserName})=>{
   await page.setViewportSize({width,height:900});app=await setupRequestProfile(page);await ready(page);
   await expect(page.locator('#profileState')).toContainText('новые сообщения');
   await expect(field(page,'dates').locator('[data-value=text]')).toHaveValue('19 декабря');
@@ -20,7 +21,8 @@ for(const width of [390,430,768,1440])test(`profile party correction and evidenc
   await expect(page.locator('#profileState')).toContainText('Цена, наличие и полнота условий этим не подтверждены');
   await page.locator('[data-field=party]').scrollIntoViewIfNeeded();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
-  await page.screenshot({path:testInfo.outputPath(`request-profile-${width}.png`),fullPage:true});
+  const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});
+  await page.screenshot({path:path.join(directory,`request-profile-${browserName}-${width}.png`),animations:'disabled',fullPage:true});
 });
 test('stale context preserves local criteria and requires explicit sync',async({page})=>{
   app=await setupRequestProfile(page);await ready(page);await (await editField(page,'tradeoffs')).locator('[data-value=text]').fill('Можно сдвинуть вылет на день');
