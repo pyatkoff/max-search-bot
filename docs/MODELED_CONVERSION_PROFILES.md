@@ -589,6 +589,10 @@ Only the exact, already-admitted prepared/delivered receipts may bridge those
 context barriers. Their roles, subject, revision, recording clock, actual
 availability, private-chat binding and exact saved snapshot are rechecked in
 memory. Native identifiers and tokens are never included in the projection.
+Before any receipt advances the semantic clock, the canonical long-gap
+predicate is checked. A gap over 30 days breaks the request link even when it
+ends at preparation or delivery; a fresh substantive request may anchor a new
+candidate segment. A gap alone still does not establish another trip.
 
 A request must precede preparation in the checked segment. A textual reaction
 must strictly follow delivery; a same-second order is left unresolved. The

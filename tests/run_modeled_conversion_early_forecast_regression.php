@@ -63,6 +63,40 @@ function modeledOfferFixture(string $reaction,array $between=[],string $query='�
             'state'=>'delivered','customer_response'=>'unknown','available_at'=>$refs[3]['available_at']]]];
     return $parts;
 }
+/** Move synthetic dependencies together; recording, availability and cutoff stay coherent. */
+function modeledOfferMoveTimes(array $parts,array $deltas):array
+{
+    $clocks=[];
+    foreach($parts[0]['rows']as&$row){
+        $id=$row['journal_id'];$delta=$deltas[$id]??0;
+        $row['snapshot']['source_created_at_unix']+=$delta;$row['observed_at_unix']+=$delta;
+        if($row['source_kind']==='event'){
+            $data=json_decode($row['snapshot']['payload']['payload_json'],true,512,JSON_THROW_ON_ERROR);
+            $data['_recorded_clock']['unix']+=$delta;
+            $row['snapshot']['payload']['payload_json']=json_encode($data,JSON_THROW_ON_ERROR);
+        }
+        $clocks['journal:'.$id]=['at'=>gmdate('Y-m-d\\TH:i:s\\Z',$row['snapshot']['source_created_at_unix']),
+            'available_at'=>gmdate('Y-m-d\\TH:i:s\\Z',$row['observed_at_unix'])];
+    }
+    unset($row);
+    foreach($parts[1]['profile']['observation_input']['evidence']as&$e){
+        $clock=$clocks[$e['references'][0]['id']];
+        foreach($clock as$key=>$value)$e[$key]=$e['references'][0][$key]=$value;
+    }
+    unset($e);
+    foreach($parts[1]['offer_journey']['offers']as&$offer){
+        foreach(['prepared','delivery']as$key){
+            $clock=$clocks['journal:'.$offer[$key]['journal_id']];
+            $offer[$key]['recorded_at']=$clock['at'];$offer[$key]['available_at']=$clock['available_at'];
+        }
+        $offer['available_at']=$offer['delivery']['available_at'];
+    }
+    unset($offer);
+    $cutoff=gmdate('Y-m-d\\TH:i:s\\Z',1793003000+max($deltas));
+    $parts[1]['profile']['prediction_at']=$parts[1]['profile']['observation_input']['prediction_at']=$cutoff;
+    $parts[2]['requested_at']=$cutoff;
+    return $parts;
+}
 function modeledEarlyAssertions(callable $check):void
 {
     $p=modeledEarlyRun([['text'=>'Подберите тур в Турцию. Бюджет до 200 тысяч.']]);
@@ -89,6 +123,34 @@ function modeledEarlyAssertions(callable $check):void
         !str_contains(json_encode($quality),'Fixture Beach A')
         &&!str_contains(json_encode($quality),'synthetic-native-mid')
         &&!str_contains(json_encode($quality),str_repeat('a',64)));
+    foreach(['preparation'=>[2=>2678400,3=>2678400,4=>2678400],
+        'delivery'=>[3=>2678400,4=>2678400],'reaction'=>[4=>2678400]]as$where=>$deltas){
+        $changed=modeledOfferMoveTimes($parts,$deltas);
+        $p=ModeledConversionEarlyForecast::freeze(...[...$changed,null,strtotime($changed[2]['requested_at'])]);
+        $q=$p['early_forecast']['early_quality'];
+        $check('canonical long gap ending at '.$where.' cannot promote the old request',
+            $q['specific_option_discussions']===[]&&$q['state']!=='specific_options_discussion'
+            &&($where==='reaction'||$q['request_offer_links']===[])
+            &&$p['contextual_signals']['flags']['long_observation_gap']===true);
+    }
+    $changed=modeledOfferMoveTimes($parts,[1=>2678400,2=>2678400,3=>2678400,4=>2678400]);
+    $old=modeledEarlyFixture([['text'=>'Подберите тур в Турцию']]);
+    $oldRow=$old[0]['rows'][0];$oldRow['journal_id']=$oldRow['source_id']=$oldRow['snapshot']['source_id']='5';
+    $changed[0]['rows'][]=$oldRow;$oldEvidence=$old[1]['profile']['observation_input']['evidence'][0];
+    $oldEvidence['id']='message:journal:5';$oldEvidence['references'][0]['id']='journal:5';
+    $changed[1]['profile']['observation_input']['evidence'][]=$oldEvidence;
+    foreach([1,2]as$i)$changed[$i]['journal_cursor']=$changed[$i]['source_fence_journal_id']='5';
+    $p=ModeledConversionEarlyForecast::freeze(...[...$changed,null,strtotime($changed[2]['requested_at'])]);
+    $q=$p['early_forecast']['early_quality'];
+    $check('fresh substantive request after a canonical gap anchors a later delivered offer',
+        $q['state']==='specific_options_discussion'
+        &&$q['request_offer_links'][0]['source_refs']===['journal:1','journal:2','journal:3']
+        &&$q['specific_option_discussions'][0]['source_refs']===['journal:1','journal:2','journal:3','journal:4']
+        &&$q['specific_option_discussions'][0]['current_candidate']);
+    $changed=modeledOfferMoveTimes($parts,[2=>2591990,3=>2591990,4=>2591990]);
+    $p=ModeledConversionEarlyForecast::freeze(...[...$changed,null,strtotime($changed[2]['requested_at'])]);
+    $check('exact thirty-day receipt gap preserves the existing strict canonical threshold',
+        $p['early_forecast']['early_quality']['state']==='specific_options_discussion');
     foreach(['Да','Fixture Beach A','Fixture Beach A дорого','Дорого, найдите дешевле с таким же пляжем',
         'Fixture Other дорого, найдите дешевле','Fixture Beach A дорога, найдите дешевле',
         'Fixture Beach A дорого, Fixture Other хороший; найдите дешевле',

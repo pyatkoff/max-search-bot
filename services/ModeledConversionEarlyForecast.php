@@ -93,10 +93,12 @@ final class ModeledConversionEarlyForecast
                 }
             }
             if($permit===null||$clockUnresolved){
+                $longGap=ArchiveResearchSemanticExtractor::hasLongObservationGap($state['last'],$item['at']);
                 $barrier=ArchiveResearchSemanticExtractor::step(['read_status'=>'source_unavailable','source_ref'=>$ref,'created_at'=>$item['at']],$state);
                 $state=$barrier['state'];$previous=null;$barriers++;
+                if($longGap)$flags['long_observation_gap']=true;
             }
-            if($permit===null){$offerReaction->unavailable($ref);continue;}
+            if($permit===null){$offerReaction->unavailable($ref,$longGap);continue;}
             $role=$permit['role'];$turns[$role]++;
             if($role==='customer'&&$previous!==null&&$previous['role']==='manager'&&$permit['at']>=$previous['at'])
                 $replySeconds[]=$permit['at']-$previous['at'];

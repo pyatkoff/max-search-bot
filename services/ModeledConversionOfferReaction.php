@@ -48,10 +48,10 @@ final class ModeledConversionOfferReaction
         }
     }
 
-    public function unavailable(string $ref):void
+    public function unavailable(string $ref,bool $longGap):void
     {
         if($this->disabled)return;
-        if(!isset($this->known[$ref])){$this->segment++;$this->request=null;}
+        if($longGap||!isset($this->known[$ref])){$this->segment++;$this->request=null;}
         $this->context[$ref]=['segment'=>$this->segment,'request'=>$this->request];
     }
 
