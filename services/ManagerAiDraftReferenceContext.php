@@ -7,6 +7,7 @@ require_once __DIR__.'/TravelDirectoryRepository.php';
 require_once __DIR__.'/ManagerAiTextRedactor.php';
 require_once __DIR__.'/ManagerHotelReferenceContext.php';
 require_once __DIR__.'/ManagerTourSelectionReferenceContext.php';
+require_once __DIR__.'/ManagerRequestProfileService.php';
 
 /** Server-owned, bounded source evidence. No HTTP, provider calls or writes. */
 final class ManagerAiDraftReferenceContext
@@ -47,6 +48,8 @@ final class ManagerAiDraftReferenceContext
         $data=['origin_posts'=>$posts,'travel_reference'=>$travel,'hotel_reference'=>$hotel];
         $working=ManagerTourSelectionReferenceContext::capture($pdo,$conversation,$context);
         if($working!==null)$data['working_selection']=$working;
+        $profile=ManagerRequestProfileService::forContext($pdo,$conversation,$context);
+        if($profile!==null)$data['request_profile']=$profile;
         return new self(self::binding($context), $data);
     }
 

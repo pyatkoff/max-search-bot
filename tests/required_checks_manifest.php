@@ -308,6 +308,8 @@ return [
     ],
     'diagnostics' => [
         'php tests/run_manager_ai_draft_feedback_report_regression.php',
+        'php tests/run_manager_request_profile_regression.php',
+        'php tests/run_manager_request_profile_http_regression.php',
         'php tests/run_manager_ai_usage_regression.php',
         'php tests/run_manager_ai_usage_http_regression.php',
         'php tests/run_manager_read_profile_regression.php',

@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
-$pdo=null;$safe=false;$tables=['manager_ai_sent_texts','messages','manager_preparation_cursors','virtual_reply_jobs','virtual_reply_cases','virtual_reply_cursors','virtual_reply_quotas','manager_assistant_decisions','manager_preparation_oauth_tokens','manager_preparation_oauth_codes','manager_preparation_oauth_grants','manager_preparation_oauth_clients','manager_preparation_events','manager_prepared_replies','manager_ai_draft_inputs','manager_ai_drafts','telegram_dialogue_messages','customer_channels','conversations','managers'];
+$pdo=null;$safe=false;$tables=['manager_request_profiles','manager_ai_sent_texts','messages','manager_preparation_cursors','virtual_reply_jobs','virtual_reply_cases','virtual_reply_cursors','virtual_reply_quotas','manager_assistant_decisions','manager_preparation_oauth_tokens','manager_preparation_oauth_codes','manager_preparation_oauth_grants','manager_preparation_oauth_clients','manager_preparation_events','manager_prepared_replies','manager_ai_draft_inputs','manager_ai_drafts','telegram_dialogue_messages','customer_channels','conversations','managers'];
 try{
     $dsn=(string)getenv('PREPARED_REPLY_MYSQL_DSN');
     if(preg_match('/\Amysql:.*(?:\Amysql:|;)dbname=(maxbot_prepared_test(?:_[a-zA-Z0-9_]+)?)(?:;|\z)/D',$dsn,$m)!==1)throw new RuntimeException('unsafe_fixture_database');
@@ -96,6 +96,23 @@ try{
     $pdo->prepare('DELETE FROM manager_ai_drafts WHERE draft_id=?')->execute([str_repeat('d',32)]);
     if((int)$pdo->query('SELECT COUNT(*) FROM manager_ai_sent_texts')->fetchColumn()!==0)throw new RuntimeException('native_initial_text_draft_cascade_failed');
     echo "PASS native MySQL079 exact Unicode/digest capture, immutable retry, later edit and message/draft retention cascades\n";
+    $pdo->exec(file_get_contents(dirname(__DIR__,2).'/migrations/080_manager_request_profiles.sql'));
+    $profileJson=json_encode(['schema_version'=>1,'label'=>'Поездка 🧳','fields'=>['dates'=>['value'=>"19 декабря\ne\u{0301}"]]],JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);
+    $profileInsert=$pdo->prepare('INSERT INTO manager_request_profiles (conversation_id,version,trip_id,boundary_message_id,manager_id,operation_id,request_sha256,context_sha256,profile_json,profile_sha256,changed_fields_json,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)');
+    $profileValues=[1,1,str_repeat('a',32),2,1,str_repeat('b',32),str_repeat('c',64),str_repeat('d',64),$profileJson,hash('sha256',$profileJson),'["dates"]',gmdate('Y-m-d H:i:s')];
+    $profileInsert->execute($profileValues);$profileValues[1]=2;$profileValues[5]=str_repeat('e',32);$profileInsert->execute($profileValues);
+    $profilesBefore=$pdo->query('SELECT * FROM manager_request_profiles ORDER BY version')->fetchAll();
+    $nativeProfile=$pdo->query('SELECT profile_json,SHA2(profile_json,256) AS native_hash FROM manager_request_profiles LIMIT 1')->fetch();
+    if($nativeProfile['profile_json']!==$profileJson||$nativeProfile['native_hash']!==hash('sha256',$profileJson))throw new RuntimeException('native_profile_unicode_digest_failed');
+    $pdo->exec(file_get_contents(dirname(__DIR__,2).'/migrations/080_manager_request_profiles.sql'));
+    if($pdo->query('SELECT * FROM manager_request_profiles ORDER BY version')->fetchAll()!==$profilesBefore)throw new RuntimeException('native_profile_migration_retry_changed_history');
+    $duplicateOperation=false;$profileValues[1]=3;
+    try{$profileInsert->execute($profileValues);}catch(PDOException $e){$duplicateOperation=$e->getCode()==='23000';}
+    if(!$duplicateOperation)throw new RuntimeException('native_profile_duplicate_operation_allowed');
+    $pdo->exec('INSERT INTO conversations VALUES(99)');$profileValues[0]=99;$profileValues[1]=1;$profileValues[5]=str_repeat('f',32);$profileInsert->execute($profileValues);
+    $pdo->exec('DELETE FROM conversations WHERE id=99');
+    if((int)$pdo->query('SELECT COUNT(*) FROM manager_request_profiles WHERE conversation_id=99')->fetchColumn()!==0)throw new RuntimeException('native_profile_conversation_retention_failed');
+    echo "PASS native MySQL080 append-only versions, exact Unicode digest, operation uniqueness, migration retry and conversation retention\n";
     $inputDuplicateRejected=false;
     try{$inputInsert->execute([str_repeat('a',32),$inputEvidence->json(),$inputEvidence->hash()]);}
     catch(PDOException $error){$inputDuplicateRejected=$error->getCode()==='23000';}
