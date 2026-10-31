@@ -200,6 +200,24 @@
       renderInput(panel,r.input_evidence);
     };return area;
   }
+  function sentTextViewer(c,article){
+    const area=node('div');area.className='usageSentTextArea';const button=node('button','Текст при отправке');button.type='button';button.className='usageInputToggle';button.setAttribute('aria-expanded','false');
+    const panel=node('section');panel.className='usageSentText';panel.id='usage-sent-'+c.message_id;panel.hidden=true;panel.setAttribute('aria-label','Первоначальный ответ менеджера');button.setAttribute('aria-controls',panel.id);area.append(button,panel);let serial=0;
+    button.onclick=async()=>{
+      const ticket=++serial;panel.hidden=!panel.hidden;button.setAttribute('aria-expanded',String(!panel.hidden));button.textContent=panel.hidden?'Текст при отправке':'Скрыть первоначальный текст';panel.replaceChildren();if(panel.hidden)return;
+      const viewer=actor,note=node('p','Загружаем первоначальный текст…');note.className='usageInputStatus';note.setAttribute('role','status');panel.appendChild(note);
+      const r=await request('sent_text',{message_id:c.message_id,case_revision:c.case_revision});
+      if(ticket!==serial||viewer!==actor||!article.isConnected||panel.hidden)return;
+      if(!r.ok||r.message_id!==c.message_id||r.case_revision!==c.case_revision||typeof r.available!=='boolean'){
+        note.classList.add('error');note.textContent=r.error==='case_changed'?'Сравнение изменилось. Обновите отчёт перед просмотром первоначального текста.':'Не удалось проверить первоначальный текст. Закройте и откройте его снова или обновите отчёт.';return;
+      }
+      if(!r.available){const reasons={not_recorded:'Первоначальный текст отдельно не сохранён. Текущая версия сообщения не заменяет его.',invalid_evidence:'Сохранённый первоначальный текст не прошёл проверку целостности и не показан.',storage_unavailable:'Хранилище первоначального текста сейчас недоступно. Попробуйте открыть его позже.'};note.textContent=reasons[r.reason]||'Первоначальный текст недоступен.';return;}
+      if(typeof r.text!=='string'||!r.text||Array.from(r.text).length>20000||new TextEncoder().encode(r.text).length>80000||!digest(r.text_sha256)){
+        note.classList.add('error');note.textContent='Не удалось проверить данные первоначального текста. Обновите отчёт.';return;
+      }
+      panel.replaceChildren(node('h4','Первоначальный ответ менеджера'));const text=node('p',r.text);text.className='usageText usageOriginalText';panel.appendChild(text);inputNote(panel,'Это текст до последующих изменений сообщения. Различие с предложением AI само по себе не означает исправление ошибки.');
+    };return area;
+  }
   function renderCase(c){
     const article=node('article');article.className='usageCase';article.dataset.usageCase=String(c.message_id);
     const header=node('div');header.className='usageCaseHeader';const person=node('div'),name=node('strong',c.display_name||'Турист');name.className='usagePerson';person.appendChild(name);
@@ -211,7 +229,8 @@
     const question=node('div');question.className='usageQuestion';const label=node('span',c.question_edited?'Сообщение туриста · позднее изменено':'Сообщение туриста перед подготовкой');label.className='usageLabel';question.append(label,node('p',c.question_text??'Исходное сообщение недоступно. Доступный контекст можно посмотреть в переписке.'));if(c.question_truncated){const p=node('p','Показана часть сообщения.');p.className='usageCaveat';question.appendChild(p)}article.appendChild(question);
     const comparison=node('div');comparison.className='usageComparison';comparison.appendChild(version('AI предложил',c.proposed_text,c.source==='prepared'?'заранее':'по кнопке AI'));
     const sent=version(c.initial_text_available?'Менеджер отправил':'Текст сообщения сейчас',c.current_sent_text);
-    if(!c.initial_text_available){const p=node('p',c.edited?'Сообщение редактировали после отправки. Первоначальный текст для сравнения недоступен.':'Первоначальная отправленная версия не подтверждена; показан текущий текст.');p.className='usageCaveat';sent.appendChild(p)}
+    if(!c.initial_text_available){const p=node('p',c.edited?'Сообщение редактировали после отправки. Здесь показана его текущая версия.':'Первоначальная отправленная версия не подтверждена текущим текстом.');p.className='usageCaveat';sent.appendChild(p)}
+    if(c.edited||!c.initial_text_available)sent.appendChild(sentTextViewer(c,article));
     if(c.current_sent_text_truncated){const p=node('p','Показана часть ответа. Полный текст — в переписке.');p.className='usageCaveat';sent.appendChild(p)}comparison.appendChild(sent);article.appendChild(comparison);
     if(c.reason){const reason=node('p','Почему AI предложил этот ответ: '+c.reason);reason.className='usageReason';article.appendChild(reason)}
     article.appendChild(inputViewer(c,article));

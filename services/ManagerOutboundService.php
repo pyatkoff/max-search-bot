@@ -89,7 +89,7 @@ class ManagerOutboundService
                 }
                 // Provenance is atomic with the canonical message INSERT.
                 // Suppressed duplicates and failed deliveries never reach it.
-                ConversationRecorder::outboundForConversation($conversationId,$channel,$storedText,'manager',(string)$managerId,$metadata,in_array($channel,['max','telegram'],true)?$adapter->lastExternalMessageId():'');
+                ConversationRecorder::outboundForConversation($conversationId,$channel,$storedText,'manager',(string)$managerId,$metadata,in_array($channel,['max','telegram'],true)?$adapter->lastExternalMessageId():'',isset($metadata['ai_draft'])?$text:null);
                 ConversationControlService::event($conversationId,'manager_message','manager',$managerId,['channel'=>$channel,'project_key'=>(string)$c['project_key']]);
                 MetrikaConversionGoalService::managerReply($conversationId);
                 return true;

@@ -4,7 +4,7 @@ const {setup,root}=require('./fixtures/internal-notes');
 const {setupAiUsage}=require('./fixtures/manager-ai-usage');
 
 // AI_USAGE_CASES_BEGIN — same production page/API on an isolated local database.
-function usageClean(s){expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.calls.every(c=>['identity','list','review','input'].includes(c.action))).toBe(true)}
+function usageClean(s){expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.calls.every(c=>['identity','list','review','input','sent_text'].includes(c.action))).toBe(true)}
 function usageInputResponse(page){return page.waitForResponse(r=>r.url().endsWith('/manager/ai-usage-api.php')&&r.request().postDataJSON().action==='input')}
 async function usageOpenInput(page,id=10047){const response=usageInputResponse(page);await page.locator('[data-usage-case="'+id+'"]').getByRole('button',{name:'Что видел AI',exact:true}).click();return(await response).json()}
 function usageReadOnly(s){expect(s.calls.filter(c=>c.action==='review')).toHaveLength(0);usageClean(s)}
@@ -96,11 +96,54 @@ for(const outcome of ['account','forbidden','csrf'])test('AI usage clears saved 
     const delayed=usageInputResponse(page);s.releaseInput();await(await delayed).finished();await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));await expect(page.locator('#usageApp')).toBeHidden();await expect(page.locator('.usageInput')).toHaveCount(0);usageReadOnly(s);
   }finally{await s.cleanup()}
 });
+function sentResponse(page){return page.waitForResponse(r=>r.url().endsWith('/manager/ai-usage-api.php')&&r.request().postDataJSON().action==='sent_text')}
+async function openSent(page,id=10044){const response=sentResponse(page);await page.locator('[data-usage-case="'+id+'"]').getByRole('button',{name:'Текст при отправке',exact:true}).click();return(await response).json()}
+for(const width of [390,430,768,1440])test('AI usage keeps the initial manager answer after a later edit '+width,async({page,browserName})=>{
+  await page.setViewportSize({width,height:900});const s=await setupAiUsage(page);try{
+    await expect(page.locator('[data-usage-case]')).toHaveCount(20);const card=page.locator('[data-usage-case="10044"]');await expect(card).toContainText('Позднее изменение ответа менеджера.');expect(s.calls.filter(c=>c.action==='sent_text')).toHaveLength(0);
+    const result=await openSent(page),panel=card.locator('.usageSentText');expect(result).toMatchObject({ok:true,viewer_id:1,message_id:10044,available:true});expect(s.calls.filter(c=>c.action==='sent_text')[0].case_revision).toBe(result.case_revision);
+    await expect(panel.locator('.usageOriginalText')).toHaveText(result.text);await expect(panel).toContainText('Здравствуйте, Мария! Для отдыха на двоих');await expect(panel).not.toContainText('Позднее изменение');await expect(panel).toContainText('Различие с предложением AI само по себе не означает исправление ошибки');
+    await panel.scrollIntoViewIfNeeded();expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);await usageCapture(page,browserName,width,'initial-text');
+    await card.getByRole('button',{name:'Скрыть первоначальный текст',exact:true}).click();await expect(panel).toBeHidden();await expect(panel).toBeEmpty();await openSent(page);expect(s.calls.filter(c=>c.action==='sent_text')).toHaveLength(2);await page.setViewportSize({width,height:420});expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);usageReadOnly(s);
+  }finally{await s.cleanup()}
+});
+test('AI usage original text has honest missing invalid and failed-storage states',async({page})=>{
+  const s=await setupAiUsage(page);try{
+    await expect(page.locator('[data-usage-case]')).toHaveCount(20);expect(await openSent(page,10046)).toMatchObject({available:false,reason:'not_recorded'});await expect(page.locator('[data-usage-case="10046"] .usageSentText')).toContainText('Текущая версия сообщения не заменяет его');
+    const card=page.locator('[data-usage-case="10044"]'),panel=card.locator('.usageSentText');
+    for(const [reason,label] of [['invalid_evidence','не прошёл проверку целостности'],['storage_unavailable','Хранилище первоначального текста сейчас недоступно']]){
+      s.queueSentText({body:d=>({ok:true,viewer_id:1,message_id:d.message_id,case_revision:d.case_revision,available:false,reason})});await openSent(page);await expect(panel).toContainText(label);await expect(panel.locator('.usageOriginalText')).toHaveCount(0);await card.getByRole('button',{name:'Скрыть первоначальный текст',exact:true}).click();
+    }usageReadOnly(s);
+  }finally{await s.cleanup()}
+});
+test('AI usage original text rejects stale mismatched data and renders source markup inertly',async({page})=>{
+  const s=await setupAiUsage(page);try{
+    await expect(page.locator('[data-usage-case]')).toHaveCount(20);const original=await openSent(page),card=page.locator('[data-usage-case="10044"]'),panel=card.locator('.usageSentText');
+    for(const [body,label] of [[{ok:false,error:'case_changed'},'Сравнение изменилось'],[{...original,message_id:10046},'Не удалось проверить первоначальный текст'],[{...original,case_revision:'f'.repeat(64)},'Не удалось проверить первоначальный текст'],[{...original,text:[]},'Не удалось проверить данные']]){
+      await card.getByRole('button',{name:'Скрыть первоначальный текст',exact:true}).click();s.queueSentText({body});await openSent(page);await expect(panel).toContainText(label);await expect(panel.locator('.usageOriginalText')).toHaveCount(0);
+    }
+    await card.getByRole('button',{name:'Скрыть первоначальный текст',exact:true}).click();s.queueSentText({body:{...original,text:'<img src=x onerror="window.usageInjected=1"> &amp; literal'}});await openSent(page);await expect(panel.locator('.usageOriginalText')).toHaveText('<img src=x onerror="window.usageInjected=1"> &amp; literal');await expect(panel.locator('img,script,a')).toHaveCount(0);expect(await page.evaluate(()=>window.usageInjected)).toBeUndefined();usageReadOnly(s);
+  }finally{await s.cleanup()}
+});
+test('AI usage original text discards closed reads and survives appending a page',async({page})=>{
+  const s=await setupAiUsage(page);try{
+    await expect(page.locator('[data-usage-case]')).toHaveCount(20);const original=await openSent(page),card=page.locator('[data-usage-case="10044"]'),panel=card.locator('.usageSentText');await card.getByRole('button',{name:'Скрыть первоначальный текст',exact:true}).click();
+    s.queueSentText({hold:true,body:{...original,text:'OBSOLETE ORIGINAL'}});await card.getByRole('button',{name:'Текст при отправке',exact:true}).click();await expect.poll(()=>s.heldInputCount()).toBe(1);await card.getByRole('button',{name:'Скрыть первоначальный текст',exact:true}).click();await openSent(page);const delayed=sentResponse(page);s.releaseInput();await(await delayed).finished();await expect(panel).not.toContainText('OBSOLETE ORIGINAL');
+    await card.getByRole('button',{name:'Скрыть первоначальный текст',exact:true}).click();s.queueSentText({hold:true,body:original});await card.getByRole('button',{name:'Текст при отправке',exact:true}).click();await expect.poll(()=>s.heldInputCount()).toBe(1);await page.getByRole('button',{name:'Показать ещё',exact:true}).click();await expect(page.locator('[data-usage-case]')).toHaveCount(40);const appended=sentResponse(page);s.releaseInput();await(await appended).finished();await expect(panel.locator('.usageOriginalText')).toHaveText(original.text);usageReadOnly(s);
+  }finally{await s.cleanup()}
+});
+for(const action of ['refresh','filter','account'])test('AI usage does not restore an old original text after '+action,async({page})=>{
+  const s=await setupAiUsage(page);try{
+    await expect(page.locator('[data-usage-case]')).toHaveCount(20);const original=await openSent(page),card=page.locator('[data-usage-case="10044"]');await card.getByRole('button',{name:'Скрыть первоначальный текст',exact:true}).click();s.queueSentText({hold:true,body:{...original,text:'OBSOLETE ORIGINAL'}});await card.getByRole('button',{name:'Текст при отправке',exact:true}).click();await expect.poll(()=>s.heldInputCount()).toBe(1);
+    if(action==='account'){s.queueSentText({body:{...original,viewer_id:999}});await openSent(page,10046);await expect(page.locator('#usageApp')).toBeHidden();}else{if(action==='filter')await page.getByLabel('Только с правками').check();else await page.getByRole('button',{name:'Обновить',exact:true}).click();await expect(page.locator('[data-usage-case]')).toHaveCount(20);}
+    const delayed=sentResponse(page);s.releaseInput();await(await delayed).finished();await expect(page.locator('#usageCases')).not.toContainText('OBSOLETE ORIGINAL');await expect(page.locator('.usageSentText:not([hidden])')).toHaveCount(0);usageReadOnly(s);
+  }finally{await s.cleanup()}
+});
 test('AI usage renders hostile text inertly and labels a later message edit',async({page})=>{
   const s=await setupAiUsage(page);try{
     await expect(page.locator('[data-usage-case]')).toHaveCount(20);
     await page.route('**/manager/ai-usage-api.php',async route=>{if(route.request().postDataJSON().action!=='list')return route.fallback();const response=await route.fetch(),body=await response.json();Object.assign(body.items[0],{question_text:'<img src=x onerror="window.usageInjected=1">',proposed_text:'<script>window.usageInjected=1</script>',current_sent_text:'Later edited reply',initial_text_available:false,edited:true});return route.fulfill({response,json:body})});
-    await page.getByRole('button',{name:'Обновить',exact:true}).click();const card=page.locator('[data-usage-case]').first();await expect(card).toContainText('Текст сообщения сейчас');await expect(card).toContainText('Первоначальный текст для сравнения недоступен');await expect(card.locator('img,script')).toHaveCount(0);expect(await page.evaluate(()=>window.usageInjected)).toBeUndefined();usageClean(s);
+    await page.getByRole('button',{name:'Обновить',exact:true}).click();const card=page.locator('[data-usage-case]').first();await expect(card).toContainText('Текст сообщения сейчас');await expect(card).toContainText('Здесь показана его текущая версия');await expect(card.locator('img,script')).toHaveCount(0);expect(await page.evaluate(()=>window.usageInjected)).toBeUndefined();usageClean(s);
   }finally{await s.cleanup()}
 });
 test('AI usage clears private comparisons after an account or permission change',async({page})=>{

@@ -142,7 +142,7 @@ class ConversationRecorder
     }
 
     /** Mirror an outbound message when the owning conversation is already known. */
-    public static function outboundForConversation(int $conversationId, string $platform, string $text, string $senderType = 'ai', $senderId = null, array $metadata = [], string $externalMessageId = ''): bool
+    public static function outboundForConversation(int $conversationId, string $platform, string $text, string $senderType = 'ai', $senderId = null, array $metadata = [], string $externalMessageId = '', ?string $initialAiText = null): bool
     {
         try {
             if (!ConversationDb::isConfigured() || $conversationId <= 0) return false;
@@ -151,6 +151,15 @@ class ConversationRecorder
             $pdo = ConversationDb::connection();
             $stmt = $pdo->prepare('INSERT INTO messages (conversation_id,direction,sender_type,sender_id,channel,external_message_id,text,metadata_json) VALUES (?,?,?,?,?,?,?,?)');
             $stmt->execute([$conversationId,'outbound',$senderType,$senderId,$platform,$externalMessageId !== '' ? $externalMessageId : null,$text,self::json(ConversationRecordClock::stamp($metadata))]);
+            if($initialAiText!==null){
+                // Capture this INSERT's ID before optional storage or touch can
+                // change lastInsertId or fail. Never retry successful transport.
+                $messageId=(int)$pdo->lastInsertId();
+                try{
+                    require_once __DIR__.'/ManagerAiSentTextService.php';
+                    ManagerAiSentTextService::record($pdo,$messageId,$conversationId,$senderType,$senderId,$text,$metadata,$initialAiText);
+                }catch(Throwable $ignored){/* Optional provenance only. */}
+            }
             self::touch($conversationId);
             return true;
         } catch (Throwable $e) {

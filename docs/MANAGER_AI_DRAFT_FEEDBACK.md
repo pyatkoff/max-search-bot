@@ -101,7 +101,41 @@ SHA-256 before HTML escaping. The canonical row's own ID is the message link.
 Suppressed duplicates and delivery failures produce no new linked message.
 Feedback failure does not change normal delivery; a recorder failure does not
 establish a persisted-message receipt. Later message edits are distinct from the
-initial text hash. The first slice leaves media and captions unlinked.
+initial text hash. Media and captions remain unlinked.
+
+## Initial manager text after later edits
+
+Forward migration 079 adds private `manager_ai_sent_texts`, keyed by the actual
+canonical message ID, with draft/conversation/manager/project binding and exact
+trimmed plaintext plus SHA-256. After adapter success, the owning send path passes
+the already validated text to the canonical recorder. Only after its message
+INSERT succeeds does the recorder obtain that exact ID and attempt an insert-only
+receipt, before the separate conversation touch. The receipt validates original
+escaping, metadata hash and the persisted message/draft scope. One draft may have
+several different message receipts. Later edits and duplicate attempts cannot
+overwrite an initial receipt. Message and draft deletion cascade to the receipt.
+
+This optional sidecar is best effort, not atomic completeness: missing migration,
+write failure or rejected provenance preserves normal delivery and the original
+message/metadata. A later touch failure does not erase an already saved receipt.
+There is no additional transport, send retry, browser-authoritative evidence or
+historical backfill. Adapter success is not proof of customer receipt or reading.
+
+The owner journal can explicitly request `sent_text` for an exact linked message
+and comparison revision. It shares the input reader's current owner/project/source
+authorization, historical send validation, read transaction, session and CSRF
+rechecks. Ordinary lists keep their existing fields, pagination and query count.
+The existing `initial_text_available` field still means the current message matches
+the original send hash; the separate action reads the immutable stored receipt.
+Missing, corrupted, wrongly bound or oversized text is never reconstructed from
+the proposal or current message. Full text is capped at 20,000 characters/80,000
+UTF-8 bytes and remains private; public reports and diagnostics are unchanged.
+
+For edited messages, «Текст при отправке» shows this initial version separately
+from the current message and AI proposal. Every opening is freshly authorized;
+closing clears displayed data and late responses cannot restore closed or replaced
+cards. Rendering is plain text. Opening makes no review/read mark and does not
+grade a textual difference as a substantive correction or quality improvement.
 
 Matching text describes equality only. A difference can include an existing
 manual prefix, added details or complete replacement; it is not an approval,
