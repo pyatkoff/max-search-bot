@@ -546,3 +546,33 @@ purchase probabilities, baseline improvement or advertising export permission.
 Real installed activation/first derived profile/natural scheduler receipt must
 be recorded separately. Existing frozen development error counts remain unchanged
 until exact replay; no old source or paid model is invoked by these controls.
+
+# Request, delivered offer and reaction — prospective first slice (31 October)
+
+The journal adapter now retains `tour_offer_prepared`, `tour_offer_delivered`
+and `tour_offer_liked` from the existing TourChoiceService producer, only for
+the admitted canonical subject and immutable event revision 1. It requires
+matching producer roles, an exact prepared snapshot, a unique later delivery
+receipt for that offer/chat, and a later customer preference receipt. A demo,
+edited event, missing snapshot/delivery, duplicate receipt or mismatched chat
+cannot confirm a preference. All dependencies must already be available at the
+frozen input cutoff. Derived availability is the latest availability of the
+participating receipts, independently of producer recording times.
+
+Private `offer_journey` preserves the exact supplied offer snapshot and source
+revisions. Callback token hashes and native message/chat/user IDs are omitted
+from this derived projection. Prepared and delivered remain distinct. No reaction
+means unknown, not rejection. A like is an explicit preference for one offer,
+not booking, payment, willingness to accept its price or abandonment of other offers.
+Offer price and party never overwrite the customer's stated conditions.
+
+The saved ordinal assessment adds `early_quality` independently of its purchase
+hypothesis: a substantive request and explicit agency intent remain rule
+candidates; verified offer preferences are retained separately. While the current
+trip boundary is unresolved, a preference is not promoted into the current-trip
+discussion target. Resolving that boundary and free-text reactions such as a
+request for cheaper alternatives remain open. There is no new advertising goal
+or export, no change to ordinary goals, no historical rewrite or new producer.
+The existing profile writer saves the added projection on subsequent ordinary
+processing only; this does not prove new natural saves or independent accuracy.
+

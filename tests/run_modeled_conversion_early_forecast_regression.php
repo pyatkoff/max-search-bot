@@ -34,6 +34,11 @@ function modeledEarlyAssertions(callable $check):void
 {
     $p=modeledEarlyRun([['text'=>'Подберите тур в Турцию. Бюджет до 200 тысяч.']]);
     $f=$p['early_forecast'];
+    $check('early quality is a distinct non-monetary candidate with unresolved trip',
+        $f['early_quality']['state']==='substantive_request'
+        &&$f['early_quality']['trip_status']==='unknown'
+        &&!$f['early_quality']['evaluation_eligible']&&!$f['early_quality']['export_allowed']
+        &&$f['early_quality']['specific_offer_preferences']===[]);
     $check('new prefix freezes an initial ordinal assessment with no invented probability or money',
         $f['snapshot_kind']==='initial_observation'&&$f['status']==='early_assessment'
         &&$f['purchase_anywhere']['readiness_band']==='interest'&&$f['purchase_anywhere']['probability']===null
@@ -121,3 +126,4 @@ if(realpath($_SERVER['SCRIPT_FILENAME']??'')===__FILE__){
     $passed=0;$check=static function(string $name,bool $ok)use(&$passed){if(!$ok)throw new RuntimeException('FAIL '.$name);$passed++;echo 'PASS '.$name.PHP_EOL;};
     modeledEarlyAssertions($check);echo 'MODELED EARLY FORECAST PASSED '.$passed.PHP_EOL;
 }
+
