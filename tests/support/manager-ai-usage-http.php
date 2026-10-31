@@ -26,6 +26,39 @@ function managerAiUsageHttpFixture(string $directory,bool $visual=false): array
             $pdo->prepare('UPDATE messages SET text=?,metadata_json=? WHERE id=?')->execute([htmlspecialchars($text,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8'),json_encode($meta),10000+$n]);
             $pdo->prepare('UPDATE messages SET text=? WHERE id=?')->execute(['Здравствуйте! Хотим в Турцию в начале июня: двое взрослых, 7 ночей, до 220 тысяч за двоих. Нужен хороший пляж.',1000+$n]);
         }
+        // The frozen provider window intentionally differs from the current
+        // message above. The viewer must never rebuild it from today's dialogue.
+        $context=['conversation_id'=>147,'as_of_message_id'=>1047,'history_incomplete'=>true,
+            'media_unread'=>true,'selections_link_unread'=>true,
+            'verified_company_facts'=>[['id'=>'office-hours','text'=>'Консультация по подборке доступна с 10:00 до 20:00.','source'=>'Утверждённая справка проекта']],
+            'messages'=>[
+                ['id'=>941,'sender_type'=>'system','text'=>'Начало доступного окна.','text_truncated'=>true],
+                ['id'=>942,'sender_type'=>'manager','text'=>'В подборке два отеля: «Лазурный берег» и «Тихая бухта».'],
+                ['id'=>943,'sender_type'=>'ai','text'=>'Нужно сравнить питание и расстояние до пляжа.'],
+                ['id'=>1047,'sender_type'=>'customer','text'=>"Сравните именно эти два отеля из подборки.\n<img src=x onerror=\"window.usageInjected=1\">",'media_unread'=>true,'selections_link_unread'=>true]
+            ],
+            'selection_snapshots'=>[['state'=>'observed','observed_at'=>'2026-10-25T09:59:00Z','historical_send_snapshot'=>false,
+                'source_messages'=>[['message_id'=>942,'sender_type'=>'manager','sent_at'=>'2026-10-25T09:58:00Z']],
+                'offers_truncated'=>false,'offers'=>[
+                    ['hotel'=>'Лазурный берег','meal'=>'Завтрак','price_text'=>'198 000 ₽','price_basis'=>null,'current_price_verified'=>false],
+                    ['hotel'=>'Тихая бухта','meal'=>'Всё включено','price_text'=>'219 000 ₽','price_basis'=>null,'current_price_verified'=>false]
+                ]]],
+            'working_selection'=>['status'=>'available','version'=>3,'saved_at'=>'2026-10-25T09:59:30Z','price_basis'=>'whole_party',
+                'offers'=>[['variant'=>1,'hotel'=>'Тихая бухта — рабочий вариант','destination'=>'Турция','departure'=>'Москва',
+                    'date_from'=>'2027-06-05','nights'=>7,'adults'=>3,'child_ages'=>[],'room'=>'Стандарт','meal'=>'Всё включено',
+                    'amount'=>'229000','currency'=>'RUB','photos_unread'=>true,
+                    'rationale'=>'Заметка менеджера: проверить размещение троих взрослых.','constraints'=>'Условия требуют проверки до отправки.',
+                    'source_condition_edits'=>['adults','amount'],'source_observation'=>['adults'=>2,'amount'=>'219000',
+                        'reference'=>'https://example.invalid/'.str_repeat('original-source-',15)]]]],
+            'hotel_reference'=>['status'=>'available','name'=>'Тихая бухта','facts'=>[['id'=>'beach','text'=>'Песчаный пляж в 300 метрах.','source'=>'Сохранённая справка отеля']]]];
+        $evidence=ManagerAiDraftInputEvidence::capture($context,"Сравнивай только сохранённые варианты.\nНе обещай цену без проверки.\n<script>window.usageInjected=1</script>",
+            [['type'=>'input_image','image_url'=>'data:image/png;base64,YWJj','detail'=>'high']]);
+        if($evidence===null)throw new RuntimeException('visual_input_invalid');
+        $pdo->prepare('UPDATE manager_ai_draft_inputs SET input_json=?,input_sha256=? WHERE draft_id=?')
+            ->execute([$evidence->json(),$evidence->hash(),str_pad(dechex(47),32,'0',STR_PAD_LEFT)]);
+        ManagerAiUsageFixture::captureInput($pdo,44);
+        $pdo->prepare('UPDATE manager_ai_draft_inputs SET input_sha256=? WHERE draft_id=?')
+            ->execute([str_repeat('0',64),str_pad(dechex(44),32,'0',STR_PAD_LEFT)]);
     }
     $web=$directory.'/web';mkdir($web.'/manager/lib',0700,true);mkdir($web.'/manager/assets',0700,true);mkdir($web.'/manager2',0700,true);mkdir($directory.'/sessions',0700);
     foreach(['manager/ai-usage-api.php','manager/ai-usage.php','manager2/ai-usage.php','manager/analytics.php','manager2/analytics.php','manager/lib/ManagerHttp.php','manager/assets/manager-http-client.js','manager/assets/manager-time.js','manager/assets/manager-ai-usage.css','manager/assets/manager-ai-usage.js','manager/assets/manager-analytics.css','manager/assets/manager-analytics.js'] as $file){if(!copy($root.'/'.$file,$web.'/'.$file))throw new RuntimeException('fixture_copy_failed');}

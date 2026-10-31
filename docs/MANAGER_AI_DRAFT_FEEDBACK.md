@@ -54,8 +54,22 @@ then returns either the validated envelope or explicit unavailability. Source
 edits cannot replace the captured text; a changed comparison requires a fresh case
 revision. This read creates no review mark, message read acknowledgement, model
 call or customer send. Ordinary journal lists and public diagnostics never include
-the envelope. A journal UI control remains a follow-up; this slice exposes the
-authorized review API and tested storage only.
+the envelope. The owner journal's explicit «Что видел AI» control reads one
+comparison on demand. It shows the normalized messages with original source IDs
+and roles, history/truncation/unread-media limits, omitted-image coverage, readable
+observed offers and a separate working selection, company facts and other saved
+reference groups. Expandable fields and instructions preserve the saved values;
+the formatted JSON is not claimed to reproduce the original hashed serialization.
+Observed pages and manager notes are not presented as verified current conditions
+or tourist agreement. All source text is inert: no links or images are fetched.
+
+Opening does not mark a comparison reviewed. Closing clears its displayed input;
+reopening makes a freshly authorized read. Per-open tokens, actor checks and the
+live article identity discard late responses after closing, filtering or refresh,
+while ordinary pagination can finish an in-flight read for a retained article.
+Session/access failures clear the private journal. Missing historical/prepared
+input, storage failures, failed integrity and changed comparisons have distinct
+messages; none falls back to reconstructing the input from today's conversation.
 
 Historical generations, deterministic preflight replies and prepared external
 worker replies have no captured input in this slice. In particular, opening a

@@ -4,7 +4,10 @@ const {setup,root}=require('./fixtures/internal-notes');
 const {setupAiUsage}=require('./fixtures/manager-ai-usage');
 
 // AI_USAGE_CASES_BEGIN — same production page/API on an isolated local database.
-function usageClean(s){expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.calls.every(c=>['identity','list','review'].includes(c.action))).toBe(true)}
+function usageClean(s){expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.calls.every(c=>['identity','list','review','input'].includes(c.action))).toBe(true)}
+function usageInputResponse(page){return page.waitForResponse(r=>r.url().endsWith('/manager/ai-usage-api.php')&&r.request().postDataJSON().action==='input')}
+async function usageOpenInput(page,id=10047){const response=usageInputResponse(page);await page.locator('[data-usage-case="'+id+'"]').getByRole('button',{name:'Что видел AI',exact:true}).click();return(await response).json()}
+function usageReadOnly(s){expect(s.calls.filter(c=>c.action==='review')).toHaveLength(0);usageClean(s)}
 async function usageCapture(page,browser,width,label){const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});await page.screenshot({animations:'disabled',path:path.join(directory,`assistant-usage-${browser}-${width}-${label}.png`)})}
 for(const width of [390,430,768,1440])test('AI usage real owner comparison and explicit review '+width,async({page,browserName})=>{
   await page.setViewportSize({width,height:900});const s=await setupAiUsage(page);
@@ -22,6 +25,76 @@ for(const width of [390,430,768,1440])test('AI usage real owner comparison and e
 });
 test('AI usage keyset paging visits all real cases without repeating a page',async({page})=>{
   const s=await setupAiUsage(page);try{await expect(page.locator('[data-usage-case]')).toHaveCount(20);await page.getByRole('button',{name:'Показать ещё',exact:true}).click();await expect(page.locator('[data-usage-case]')).toHaveCount(40);await page.getByRole('button',{name:'Показать ещё',exact:true}).click();await expect(page.locator('[data-usage-case]')).toHaveCount(47);await expect(page.locator('#usageMore')).toBeHidden();const ids=await page.locator('[data-usage-case]').evaluateAll(nodes=>nodes.map(n=>n.dataset.usageCase));expect(new Set(ids).size).toBe(47);expect(s.calls.filter(c=>c.action==='review')).toHaveLength(0);usageClean(s)}finally{await s.cleanup()}
+});
+for(const width of [390,430,768,1440])test('AI usage opens the exact saved input and original selection only on demand '+width,async({page,browserName})=>{
+  await page.setViewportSize({width,height:900});const firstPage=page.waitForResponse(r=>r.url().endsWith('/manager/ai-usage-api.php')&&r.request().postDataJSON().action==='list');const s=await setupAiUsage(page);
+  try{
+    await expect(page.locator('[data-usage-case]')).toHaveCount(20);const original=(await(await firstPage).json()).items[0];expect(original.message_id).toBe(10047);expect(s.calls.filter(c=>c.action==='input')).toHaveLength(0);
+    const card=page.locator('[data-usage-case="10047"]'),panel=card.locator('.usageInput');await expect(card.locator('.usageQuestion')).toContainText('Хотим в Турцию в начале июня');await expect(panel).toBeHidden();
+    const reply=await usageOpenInput(page);expect(reply.available).toBe(true);expect(s.calls.filter(c=>c.action==='input')).toEqual([{action:'input',message_id:10047,case_revision:original.case_revision,csrf:'fixture-usage-csrf'}]);
+    await expect(card.getByRole('button',{name:'Скрыть контекст',exact:true})).toHaveAttribute('aria-expanded','true');await expect(panel).toBeVisible();
+    await expect(panel.locator('.usageInputMessages h4')).toHaveText(['Система · сообщение №941','Менеджер · сообщение №942','AI · сообщение №943','Турист · сообщение №1047']);
+    await expect(panel.locator('.usageInputMessages .usageText').last()).toHaveText('Сравните именно эти два отеля из подборки.\n<img src=x onerror="window.usageInjected=1">');await expect(panel).not.toContainText('Хотим в Турцию в начале июня');
+    for(const caveat of ['История передана не полностью','Часть вложений не прочитана','Есть непрочитанные ссылки на подборки','сами изображения в этой записи не сохранены','Текст был сокращён до передачи AI'])await expect(panel).toContainText(caveat);
+    expect(reply.input_evidence.coverage).toBe('images_omitted');expect(reply.input_evidence.images).toHaveLength(1);expect(JSON.stringify(reply)).not.toContain('data:image');await expect(panel.locator('img,script,iframe')).toHaveCount(0);
+    const refs=panel.locator('.usageInputReferences');await expect(refs.locator('dd').filter({hasText:'Лазурный берег'})).toHaveText('Лазурный берег');await expect(refs.locator('dd').filter({hasText:/^Тихая бухта$/})).toHaveText('Тихая бухта');await expect(refs.locator('dd').filter({hasText:'198 000 ₽'})).toHaveText('198 000 ₽');await expect(refs.locator('dd').filter({hasText:'219 000 ₽'})).toHaveText('219 000 ₽');await expect(refs).toContainText('#942 · менеджер');await expect(refs).toContainText('актуальные цена и наличие ими не подтверждены');
+    const working=refs.getByRole('heading',{name:'Рабочий черновик подборки',exact:true}).locator('..');await expect(working).toContainText('Эта запись не подтверждает отправку туристу');await expect(working).toContainText('Цена относится к составу, записанному в каждом варианте');await expect(working).toContainText('Заметка менеджера: проверить размещение троих взрослых.');await expect(working.locator('dt').filter({hasText:'Взрослых в варианте'}).locator('+ dd')).toHaveText('3');await expect(working.locator('dt').filter({hasText:'Возраста детей в варианте'}).locator('+ dd')).toHaveText('Детей нет');await expect(working).toContainText('Менеджер изменил относительно источника: Взрослых в варианте, Сумма в черновике');await expect(working).toContainText('Фотографии этого варианта не были прочитаны');
+    await panel.evaluate(el=>el.scrollIntoView({block:'start'}));expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);await usageCapture(page,browserName,width,'input');
+    await refs.evaluate(el=>el.scrollIntoView({block:'start'}));await usageCapture(page,browserName,width,'input-selection');
+    await working.evaluate(el=>el.scrollIntoView({block:'start'}));await usageCapture(page,browserName,width,'input-working');
+    await panel.getByText('Инструкции, действовавшие для этого ответа',{exact:true}).click();await expect(panel.locator('details[open] pre')).toHaveText('Сравнивай только сохранённые варианты.\nНе обещай цену без проверки.\n<script>window.usageInjected=1</script>');
+    await panel.getByText('Все сохранённые данные подборки',{exact:true}).click();const exact=await panel.locator('details[open] pre').allTextContents();expect(exact.some(text=>JSON.parse(text.startsWith('{')?text:'{}').offers?.[1]?.hotel==='Тихая бухта')).toBe(true);
+    await working.getByText('Исходное наблюдение до правок менеджера',{exact:true}).click();expect(JSON.parse(await working.locator('details[open] pre').textContent())).toMatchObject({adults:2,amount:'219000'});
+    expect(await page.evaluate(()=>window.usageInjected)).toBeUndefined();await expect(panel.locator('img,script,iframe,a[href]')).toHaveCount(0);await page.setViewportSize({width,height:420});expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+    await card.getByRole('button',{name:'Скрыть контекст',exact:true}).click();await expect(panel).toBeHidden();await expect(panel).toBeEmpty();await expect(card.getByRole('button',{name:'Что видел AI',exact:true})).toHaveAttribute('aria-expanded','false');expect(s.calls.filter(c=>c.action==='input')).toHaveLength(1);usageReadOnly(s);
+  }finally{await s.cleanup()}
+});
+test('AI usage distinguishes absent prepared corrupt and unavailable saved input without reconstruction',async({page})=>{
+  const s=await setupAiUsage(page);try{
+    await expect(page.locator('[data-usage-case]')).toHaveCount(20);
+    for(const [id,reason,text] of [[10046,'not_recorded','Вход для этого черновика не сохранён'],[10045,'prepared_input_not_captured','Вход внешнего помощника'],[10044,'invalid_evidence','не прошёл проверку целостности']]){
+      const result=await usageOpenInput(page,id);expect(result).toMatchObject({available:false,reason});const panel=page.locator('[data-usage-case="'+id+'"] .usageInput');await expect(panel).toContainText(text);await expect(panel.locator('.usageInputMessages')).toHaveCount(0);await expect(panel).not.toContainText('Хотим в Турцию');
+    }
+    s.queueInput({body:d=>({ok:true,viewer_id:1,message_id:d.message_id,case_revision:d.case_revision,available:false,reason:'storage_unavailable'})});await usageOpenInput(page);await expect(page.locator('[data-usage-case="10047"] .usageInput')).toContainText('Хранилище контекста сейчас недоступно');expect(s.calls.filter(c=>c.action==='input')).toHaveLength(4);usageReadOnly(s);
+  }finally{await s.cleanup()}
+});
+test('AI usage refuses stale cases and responses belonging to another message revision or context',async({page})=>{
+  const s=await setupAiUsage(page);try{
+    await expect(page.locator('[data-usage-case]')).toHaveCount(20);const original=await usageOpenInput(page),card=page.locator('[data-usage-case="10047"]'),panel=card.locator('.usageInput');await expect(panel.locator('.usageInputMessages')).toBeVisible();
+    const wrongMessage={...original,message_id:10046},wrongRevision={...original,case_revision:'f'.repeat(64)},wrongContext=JSON.parse(JSON.stringify(original));wrongContext.input_evidence.context.conversation_id=146;
+    const wrongTail=JSON.parse(JSON.stringify(original));wrongTail.input_evidence.context.as_of_message_id=1048;
+    for(const [body,text] of [[{ok:false,error:'case_changed'},'Сравнение изменилось'],[wrongMessage,'Не удалось проверить контекст'],[wrongRevision,'Не удалось проверить контекст'],[{...original,available:'true'},'Не удалось проверить контекст'],[wrongContext,'Не удалось проверить данные'],[wrongTail,'Не удалось проверить данные']]){
+      await card.getByRole('button',{name:'Скрыть контекст',exact:true}).click();s.queueInput({body});await usageOpenInput(page);await expect(panel).toContainText(text);await expect(panel.locator('.usageInputMessages')).toHaveCount(0);await expect(panel).not.toContainText('Сравните именно эти два отеля');
+    }
+    expect(s.calls.filter(c=>c.action==='input')).toHaveLength(7);usageReadOnly(s);
+  }finally{await s.cleanup()}
+});
+test('AI usage collapse and reopen require a fresh read and discard the older in-flight input',async({page})=>{
+  const s=await setupAiUsage(page);try{
+    await expect(page.locator('[data-usage-case]')).toHaveCount(20);const old=await usageOpenInput(page),card=page.locator('[data-usage-case="10047"]'),panel=card.locator('.usageInput');await expect(panel.locator('.usageInputMessages')).toBeVisible();await card.getByRole('button',{name:'Скрыть контекст',exact:true}).click();
+    old.input_evidence.context.messages[3].text='OBSOLETE CLOSED INPUT';s.queueInput({hold:true,body:old});await card.getByRole('button',{name:'Что видел AI',exact:true}).click();await expect.poll(()=>s.heldInputCount()).toBe(1);await card.getByRole('button',{name:'Скрыть контекст',exact:true}).click();await expect(panel).toBeHidden();await expect(panel).toBeEmpty();
+    await usageOpenInput(page);await expect(panel).toContainText('Сравните именно эти два отеля');const delayed=usageInputResponse(page);s.releaseInput();await(await delayed).finished();await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));await expect(panel).not.toContainText('OBSOLETE CLOSED INPUT');expect(s.calls.filter(c=>c.action==='input')).toHaveLength(3);usageReadOnly(s);
+  }finally{await s.cleanup()}
+});
+test('AI usage pending input still completes when another results page is appended',async({page})=>{
+  const s=await setupAiUsage(page);try{
+    await expect(page.locator('[data-usage-case]')).toHaveCount(20);const original=await usageOpenInput(page),card=page.locator('[data-usage-case="10047"]');await expect(card.locator('.usageInputMessages')).toBeVisible();await card.getByRole('button',{name:'Скрыть контекст',exact:true}).click();s.queueInput({hold:true,body:original});await card.getByRole('button',{name:'Что видел AI',exact:true}).click();await expect.poll(()=>s.heldInputCount()).toBe(1);
+    await page.getByRole('button',{name:'Показать ещё',exact:true}).click();await expect(page.locator('[data-usage-case]')).toHaveCount(40);const delayed=usageInputResponse(page);s.releaseInput();await(await delayed).finished();await expect(card.locator('.usageInputMessages')).toBeVisible();await expect(card.locator('.usageInputStatus')).toHaveCount(0);expect(s.calls.filter(c=>c.action==='input')).toHaveLength(2);usageReadOnly(s);
+  }finally{await s.cleanup()}
+});
+for(const action of ['filter','refresh'])test('AI usage drops a late input after '+action,async({page})=>{
+  const s=await setupAiUsage(page);try{
+    await expect(page.locator('[data-usage-case]')).toHaveCount(20);const old=await usageOpenInput(page),card=page.locator('[data-usage-case="10047"]');await expect(card.locator('.usageInputMessages')).toBeVisible();await card.getByRole('button',{name:'Скрыть контекст',exact:true}).click();s.queueInput({hold:true,body:old});await card.getByRole('button',{name:'Что видел AI',exact:true}).click();await expect.poll(()=>s.heldInputCount()).toBe(1);
+    const list=page.waitForResponse(r=>r.url().endsWith('/manager/ai-usage-api.php')&&r.request().postDataJSON().action==='list');if(action==='filter')await page.getByLabel('Только с правками').check();else await page.getByRole('button',{name:'Обновить',exact:true}).click();await(await list).finished();await expect(page.locator('[data-usage-case]')).toHaveCount(20);
+    const delayed=usageInputResponse(page);s.releaseInput();await(await delayed).finished();await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));await expect(page.locator('.usageInputMessages')).toHaveCount(0);await expect(page.locator('.usageInput:not([hidden])')).toHaveCount(0);expect(s.calls.filter(c=>c.action==='input')).toHaveLength(2);usageReadOnly(s);
+  }finally{await s.cleanup()}
+});
+for(const outcome of ['account','forbidden','csrf'])test('AI usage clears saved input after '+outcome+' change and ignores an older reply',async({page})=>{
+  const s=await setupAiUsage(page);try{
+    await expect(page.locator('[data-usage-case]')).toHaveCount(20);const old=await usageOpenInput(page),card=page.locator('[data-usage-case="10047"]');await expect(card.locator('.usageInputMessages')).toBeVisible();await card.getByRole('button',{name:'Скрыть контекст',exact:true}).click();s.queueInput({hold:true,body:old});await card.getByRole('button',{name:'Что видел AI',exact:true}).click();await expect.poll(()=>s.heldInputCount()).toBe(1);
+    s.queueInput({status:outcome==='account'?200:403,body:outcome==='account'?{...old,viewer_id:999}:{ok:false,error:outcome}});await usageOpenInput(page,10046);await expect(page.locator('#usageApp')).toBeHidden();await expect(page.locator('[data-usage-case]')).toHaveCount(0);
+    const delayed=usageInputResponse(page);s.releaseInput();await(await delayed).finished();await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));await expect(page.locator('#usageApp')).toBeHidden();await expect(page.locator('.usageInput')).toHaveCount(0);usageReadOnly(s);
+  }finally{await s.cleanup()}
 });
 test('AI usage renders hostile text inertly and labels a later message edit',async({page})=>{
   const s=await setupAiUsage(page);try{
