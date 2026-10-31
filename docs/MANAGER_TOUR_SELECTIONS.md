@@ -864,3 +864,11 @@ signals, subsequent reconnects, failed hello recovery and sender/nonce fences.
 This reproduces a transport defect; it does not establish the historical cause
 of the first empty Mysea gallery. Windows acceptance remains with the Windows
 coordinator and must preserve the original unresolved photo-enrichment operation.
+
+The collector page also separates command acknowledgements from its current view.
+Refreshing the destination while an import or operation lookup awaits the server
+must not discard that command's receipt. The response keeps its original request
+ID and handshake nonce; only the still-current view epoch may update the displayed
+count, status or connection. A replacement handshake cannot adopt an older reply,
+and an older failure cannot revoke a freshly loaded connection. This does not
+retry an import, change its operation ID or establish live photo acceptance.
