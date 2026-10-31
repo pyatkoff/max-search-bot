@@ -1,16 +1,16 @@
 {
     "ok": true,
-    "generated_at": "2026-10-31T18:35:15+00:00",
+    "generated_at": "2026-10-31T19:24:16+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 80,
-        "raw_sessions": 80,
+        "sessions": 81,
+        "raw_sessions": 81,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 80,
+            "resolved": 81,
             "unresolved": 0
         },
         "started": 53,
@@ -18,43 +18,44 @@
         "tours_opened": 24,
         "site_opened": 0,
         "post_tour_manager_cta_shown": 1,
-        "manager_requested": 75,
+        "manager_requested": 76,
         "manager_replied": 33,
         "customer_replied_after_manager": 9,
         "phone_received": 0,
         "manager_response": {
             "answered_in_90s": 0,
             "answered_after_90s": 33,
-            "still_unanswered": 15,
+            "still_unanswered": 16,
             "measured_responses": 33,
             "avg_seconds": 9883,
             "max_seconds": 48232
         },
         "drop_points": {
-            "manager_requested": 42,
+            "manager_requested": 43,
             "manager_replied": 24,
             "customer_replied_after_manager": 9,
             "collecting_needs": 3,
             "tours_opened": 2
         },
         "flags": {
-            "manager_requested_no_reply": 15,
+            "manager_requested_no_reply": 16,
             "repeated_callback_input": 2,
-            "repeated_same_input": 1
+            "repeated_same_input": 1,
+            "left_waiting_queue_without_manager_reply": 1
         },
         "calendar_day": {
-            "conversations_started": 64,
+            "conversations_started": 65,
             "needs_collected_from_started": 25,
             "tours_opened_from_started": 16,
             "site_opened": 0,
             "post_tour_manager_cta_shown": 0,
-            "manager_requested": 68,
+            "manager_requested": 69,
             "manager_replied": 27,
             "customer_replied_after_manager": 5
         }
     },
     "telegram_dialogue_delivery": {
-        "sampled_at": "2026-10-31T18:35:15Z",
+        "sampled_at": "2026-10-31T19:24:16Z",
         "available": true,
         "error": null,
         "mode": "send",
