@@ -5,10 +5,12 @@ on:
     branches: [main]
     paths:
       - 'services/ManagerAiUsageService.php'
+      - 'services/ManagerAiUsageAssessmentService.php'
       - 'services/ManagerAiDraftFeedbackReport.php'
       - 'services/ManagerSupervisorAccessService.php'
       - 'manager/ai-usage-api.php'
       - 'migrations/061_manager_ai_usage_reviews.sql'
+      - 'migrations/081_manager_ai_usage_assessments.sql'
       - 'tests/run_manager_ai_usage_regression.php'
       - 'tests/support/manager-ai-usage-fixture.php'
       - '.github/workflows/manager-ai-usage.yml'

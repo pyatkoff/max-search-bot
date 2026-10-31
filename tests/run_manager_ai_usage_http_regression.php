@@ -54,6 +54,25 @@ try{
     [$status,$r]=usageHttpRequest($address,$fixture,1,array_replace($sentRequest,['csrf'=>'wrong']));usageHttpCheck('initial text requires CSRF',$status===403);
     [$status,$r]=usageHttpRequest($address,$fixture,1,array_replace($sentRequest,['case_revision'=>$case['case_revision']]));usageHttpCheck('initial text requires refreshed comparison after edit',$status===409&&$r['error']==='case_changed');
     [$status,$r]=usageHttpRequest($address,$fixture,1,array_replace($sentRequest,['message_id'=>'10047']));usageHttpCheck('initial text requires strict numeric identity',$status===422);
+    [$status,$page]=usageHttpRequest($address,$fixture,1,['action'=>'list','mode'=>'all','csrf'=>$identity['csrf']]);$ac=array_column($page['items'],null,'message_id')[10040];
+    $ar=['action'=>'assessment_read','csrf'=>$identity['csrf'],'message_id'=>10040,'case_revision'=>$ac['case_revision']];
+    foreach([null,2,3,4] as $actor){[$status,$r,$body]=usageHttpRequest($address,$fixture,$actor,$ar);usageHttpCheck('private assessment scope excludes actor '.(string)$actor,in_array($status,[401,403],true)&&!str_contains($body,'перелёта'));}
+    [$status,$r]=usageHttpRequest($address,$fixture,1,array_replace($ar,['csrf'=>'wrong']));usageHttpCheck('assessment read requires current CSRF',$status===403);
+    [$status,$r]=usageHttpRequest($address,$fixture,1,array_replace($ar,['message_id'=>'10040']));usageHttpCheck('assessment read requires strict numeric identity',$status===422);
+    [$status,$r]=usageHttpRequest($address,$fixture,1,array_replace($ar,['operation_id'=>25]));usageHttpCheck('assessment receipt identity is strictly typed',$status===422);
+    [$status,$a]=usageHttpRequest($address,$fixture,1,$ar);usageHttpCheck('actual endpoint returns frozen request and canonical initial pair',$status===200&&$a['snapshot']['can_judge_effect']&&$a['version']===0&&str_contains($a['snapshot']['initial_sent_text'],'проверить'));
+    $c=array_replace($ar,['action'=>'assessment_save','version'=>0,'operation_id'=>bin2hex(random_bytes(16)),'comparison_sha256'=>$a['snapshot']['comparison_sha256'],'phase'=>'proposal','target_version'=>0,
+        'data'=>['kind'=>'meaning','dimension'=>'last_question','effect'=>'better','reason'=>'Добавлен ответ на последний вопрос без утверждения непроверенных условий.','citation'=>['message_id'=>1040,'quote'=>'А без перелёта можно?']]]);
+    [$status,$r]=usageHttpRequest($address,$fixture,1,array_replace($c,['csrf'=>'wrong']));usageHttpCheck('assessment writes require CSRF',$status===403);
+    [$status,$r]=usageHttpRequest($address,$fixture,2,$c);usageHttpCheck('assessment writes cannot cross owner scope',$status===403);
+    [$status,$r]=usageHttpRequest($address,$fixture,1,$c);usageHttpCheck('actual endpoint stores append-only candidate',$status===200&&$r['saved_version']===1&&!$r['replayed']);
+    [$status,$r]=usageHttpRequest($address,$fixture,1,$c);usageHttpCheck('actual endpoint reconciles the same operation without duplicate write',$status===200&&$r['replayed']);
+    [$status,$r]=usageHttpRequest($address,$fixture,1,$ar+['operation_id'=>$c['operation_id']]);usageHttpCheck('fresh read recovers the operation receipt',$status===200&&$r['operation']['found']&&$r['operation']['saved_version']===1&&!$r['case_improvement_confirmed']);
+    $d=array_replace($c,['version'=>1,'operation_id'=>bin2hex(random_bytes(16)),'phase'=>'adjudication','target_version'=>1,'data'=>['verdict'=>'confirm','reason'=>'Сохранённый запрос содержит этот вопрос и альтернативные даты.','citation'=>['message_id'=>1040,'quote'=>'после 25 октября.']]]);
+    [$status,$r]=usageHttpRequest($address,$fixture,1,$d);usageHttpCheck('HTTP owner cannot independently approve own candidate',$status===403&&$r['error']==='independent_owner_required');
+    [$status,$r]=usageHttpRequest($address,$fixture,5,$d);usageHttpCheck('second authorized owner can adjudicate exact candidate',$status===200&&$r['saved_version']===2);
+    [$status,$r]=usageHttpRequest($address,$fixture,1,$ar);usageHttpCheck('confirmed case judgement stays separate from viewed marker',$status===200&&$r['case_improvement_confirmed']&&(int)$db->query('SELECT COUNT(*) FROM manager_ai_usage_reviews WHERE message_id=10040')->fetchColumn()===0);
+    $stale=$c;$stale['operation_id']=bin2hex(random_bytes(16));[$status,$r]=usageHttpRequest($address,$fixture,1,$stale);usageHttpCheck('stale owner form cannot overwrite a newer review',$status===409&&$r['error']==='conflict');
     echo 'TOTAL '.$passed.' | PASS '.$passed.' | FAIL 0'."\n";
 }catch(Throwable $error){fwrite(STDERR,substr((string)file_get_contents($directory.'/server.log'),-5000));throw$error;}finally{
     proc_terminate($process);proc_close($process);fclose($log);

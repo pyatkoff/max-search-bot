@@ -71,6 +71,7 @@ function managerAiUsageHttpFixture(string $directory,bool $visual=false): array
         $row=$pdo->query('SELECT * FROM messages WHERE id=10046')->fetch();$meta=json_decode($row['metadata_json'],true);$meta['edited_at']=gmdate('Y-m-d H:i:s',strtotime($row['created_at'].' UTC')+60);
         $pdo->prepare('UPDATE messages SET text=?,metadata_json=? WHERE id=10046')->execute([$row['text'].' Поздняя правка.',json_encode($meta)]);
     }
+    ManagerAiUsageFixture::correctionCase($pdo);
     $web=$directory.'/web';mkdir($web.'/manager/lib',0700,true);mkdir($web.'/manager/assets',0700,true);mkdir($web.'/manager2',0700,true);mkdir($directory.'/sessions',0700);
     foreach(['manager/ai-usage-api.php','manager/ai-usage.php','manager2/ai-usage.php','manager/analytics.php','manager2/analytics.php','manager/lib/ManagerHttp.php','manager/assets/manager-http-client.js','manager/assets/manager-time.js','manager/assets/manager-ai-usage.css','manager/assets/manager-ai-usage.js','manager/assets/manager-analytics.css','manager/assets/manager-analytics.js'] as $file){if(!copy($root.'/'.$file,$web.'/'.$file))throw new RuntimeException('fixture_copy_failed');}
     if(!symlink($root.'/services',$web.'/services'))throw new RuntimeException('fixture_service_link_failed');
@@ -78,7 +79,7 @@ function managerAiUsageHttpFixture(string $directory,bool $visual=false): array
     $config.='(new ReflectionProperty(ConversationDb::class,\'pdo\'))->setValue(null,new PDO('.var_export('sqlite:'.$db,true).",null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]));\n";
     $config.="ProjectConfig::resetForTests(['id'=>'anytour','brand'=>['name'=>'AnyTour']]);\n";file_put_contents($web.'/config.php',$config);
     session_save_path($directory.'/sessions');session_name('anytour_manager_panel');$sessions=[];
-    foreach([1,2,3,4] as $actor){$sid=bin2hex(random_bytes(16));session_id($sid);session_start();$_SESSION=['manager_id'=>$actor,'csrf'=>'fixture-usage-csrf'];session_write_close();$sessions[(string)$actor]=$sid;}
+    foreach([1,2,3,4,5] as $actor){$sid=bin2hex(random_bytes(16));session_id($sid);session_start();$_SESSION=['manager_id'=>$actor,'csrf'=>'fixture-usage-csrf'];session_write_close();$sessions[(string)$actor]=$sid;}
     return ['root'=>$root,'webroot'=>$web,'database'=>$db,'sessions'=>$directory.'/sessions','session_ids'=>$sessions];
 }
 if(realpath((string)($_SERVER['SCRIPT_FILENAME']??''))===__FILE__){echo json_encode(managerAiUsageHttpFixture($argv[1]??'',($argv[2]??'')==='visual'),JSON_THROW_ON_ERROR);}
