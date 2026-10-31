@@ -60,6 +60,17 @@ function managerAiUsageHttpFixture(string $directory,bool $visual=false): array
         $pdo->prepare('UPDATE manager_ai_draft_inputs SET input_sha256=? WHERE draft_id=?')
             ->execute([str_repeat('0',64),str_pad(dechex(44),32,'0',STR_PAD_LEFT)]);
     }
+    require_once $root.'/services/ManagerAiSentTextService.php';
+    $original=$pdo->query('SELECT * FROM messages WHERE id=10047')->fetch();$meta=json_decode($original['metadata_json'],true);
+    if(!ManagerAiSentTextService::record($pdo,10047,147,'manager','7',$original['text'],$meta,htmlspecialchars_decode($original['text'],ENT_QUOTES)))throw new RuntimeException('fixture_sent_text_invalid');
+    if($visual){
+        $original=$pdo->query('SELECT * FROM messages WHERE id=10044')->fetch();$meta=json_decode($original['metadata_json'],true);
+        if(!ManagerAiSentTextService::record($pdo,10044,144,'manager','7',$original['text'],$meta,htmlspecialchars_decode($original['text'],ENT_QUOTES)))throw new RuntimeException('visual_initial_text_invalid');
+        $meta['edited_at']=gmdate('Y-m-d H:i:s',strtotime($original['created_at'].' UTC')+60);
+        $pdo->prepare('UPDATE messages SET text=?,metadata_json=? WHERE id=10044')->execute(['Позднее изменение ответа менеджера.',json_encode($meta)]);
+        $row=$pdo->query('SELECT * FROM messages WHERE id=10046')->fetch();$meta=json_decode($row['metadata_json'],true);$meta['edited_at']=gmdate('Y-m-d H:i:s',strtotime($row['created_at'].' UTC')+60);
+        $pdo->prepare('UPDATE messages SET text=?,metadata_json=? WHERE id=10046')->execute([$row['text'].' Поздняя правка.',json_encode($meta)]);
+    }
     $web=$directory.'/web';mkdir($web.'/manager/lib',0700,true);mkdir($web.'/manager/assets',0700,true);mkdir($web.'/manager2',0700,true);mkdir($directory.'/sessions',0700);
     foreach(['manager/ai-usage-api.php','manager/ai-usage.php','manager2/ai-usage.php','manager/analytics.php','manager2/analytics.php','manager/lib/ManagerHttp.php','manager/assets/manager-http-client.js','manager/assets/manager-time.js','manager/assets/manager-ai-usage.css','manager/assets/manager-ai-usage.js','manager/assets/manager-analytics.css','manager/assets/manager-analytics.js'] as $file){if(!copy($root.'/'.$file,$web.'/'.$file))throw new RuntimeException('fixture_copy_failed');}
     if(!symlink($root.'/services',$web.'/services'))throw new RuntimeException('fixture_service_link_failed');

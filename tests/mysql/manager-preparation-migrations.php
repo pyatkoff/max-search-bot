@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
-$pdo=null;$safe=false;$tables=['manager_preparation_cursors','virtual_reply_jobs','virtual_reply_cases','virtual_reply_cursors','virtual_reply_quotas','manager_assistant_decisions','manager_preparation_oauth_tokens','manager_preparation_oauth_codes','manager_preparation_oauth_grants','manager_preparation_oauth_clients','manager_preparation_events','manager_prepared_replies','manager_ai_draft_inputs','manager_ai_drafts','telegram_dialogue_messages','customer_channels','conversations','managers'];
+$pdo=null;$safe=false;$tables=['manager_ai_sent_texts','messages','manager_preparation_cursors','virtual_reply_jobs','virtual_reply_cases','virtual_reply_cursors','virtual_reply_quotas','manager_assistant_decisions','manager_preparation_oauth_tokens','manager_preparation_oauth_codes','manager_preparation_oauth_grants','manager_preparation_oauth_clients','manager_preparation_events','manager_prepared_replies','manager_ai_draft_inputs','manager_ai_drafts','telegram_dialogue_messages','customer_channels','conversations','managers'];
 try{
     $dsn=(string)getenv('PREPARED_REPLY_MYSQL_DSN');
     if(preg_match('/\Amysql:.*(?:\Amysql:|;)dbname=(maxbot_prepared_test(?:_[a-zA-Z0-9_]+)?)(?:;|\z)/D',$dsn,$m)!==1)throw new RuntimeException('unsafe_fixture_database');
@@ -72,6 +72,30 @@ try{
     $pdo->exec(file_get_contents(dirname(__DIR__,2).'/migrations/078_manager_ai_draft_inputs.sql'));
     if($pdo->query('SELECT * FROM manager_ai_draft_inputs ORDER BY draft_id')->fetchAll()!==$inputsBefore
         ||$pdo->query('SELECT * FROM manager_ai_drafts')->fetchAll()!==$feedbackBefore)throw new RuntimeException('draft_input_migration_retry_changed_data');
+    $pdo->exec('CREATE TABLE messages(id BIGINT UNSIGNED PRIMARY KEY,conversation_id BIGINT UNSIGNED,direction VARCHAR(20),sender_type VARCHAR(20),sender_id VARCHAR(64),text MEDIUMTEXT) ENGINE=InnoDB');
+    $pdo->exec(file_get_contents(dirname(__DIR__,2).'/migrations/079_manager_ai_sent_texts.sql'));
+    require_once dirname(__DIR__,2).'/services/ManagerAiSentTextService.php';
+    $sentText=str_repeat('🧳',19980)."\nA &amp; <b> literal";$sentStored=htmlspecialchars($sentText,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');
+    $pdo->prepare("INSERT INTO messages VALUES(90,1,'outbound','manager','1',?)")->execute([$sentStored]);
+    $sentMetadata=['project_key'=>'anytour','ai_draft'=>['draft_id'=>str_repeat('a',32),'text_matches_proposal'=>false,'sent_text_sha256'=>hash('sha256',$sentText)]];
+    if(!ManagerAiSentTextService::record($pdo,90,1,'manager','1',$sentStored,$sentMetadata,$sentText))throw new RuntimeException('native_initial_text_not_captured');
+    $sentBefore=$pdo->query('SELECT * FROM manager_ai_sent_texts')->fetchAll();
+    $sentRow=$pdo->query('SELECT text_value,SHA2(text_value,256) AS native_hash FROM manager_ai_sent_texts')->fetch();
+    if($sentRow['text_value']!==$sentText||$sentRow['native_hash']!==hash('sha256',$sentText))throw new RuntimeException('native_initial_text_bytes_changed');
+    $pdo->exec(file_get_contents(dirname(__DIR__,2).'/migrations/079_manager_ai_sent_texts.sql'));
+    if($pdo->query('SELECT * FROM manager_ai_sent_texts')->fetchAll()!==$sentBefore
+        ||ManagerAiSentTextService::record($pdo,90,1,'manager','1',$sentStored,$sentMetadata,$sentText))throw new RuntimeException('native_initial_text_overwritten');
+    $pdo->exec("UPDATE messages SET text='Later edit' WHERE id=90");
+    if($pdo->query('SELECT * FROM manager_ai_sent_texts')->fetchAll()!==$sentBefore)throw new RuntimeException('native_initial_text_lost_after_edit');
+    $pdo->exec('DELETE FROM messages WHERE id=90');
+    if((int)$pdo->query('SELECT COUNT(*) FROM manager_ai_sent_texts')->fetchColumn()!==0)throw new RuntimeException('native_initial_text_message_cascade_failed');
+    $pdo->prepare("INSERT INTO messages VALUES(91,1,'outbound','manager','1',?)")->execute([$sentStored]);
+    $feedback->execute([str_repeat('d',32),1,1,'anytour',str_repeat('b',64),str_repeat('c',64),2,'sent-text deletion fixture',gmdate('Y-m-d H:i:s'),null]);
+    $sentMetadata['ai_draft']['draft_id']=str_repeat('d',32);
+    if(!ManagerAiSentTextService::record($pdo,91,1,'manager','1',$sentStored,$sentMetadata,$sentText))throw new RuntimeException('native_initial_text_second_capture_failed');
+    $pdo->prepare('DELETE FROM manager_ai_drafts WHERE draft_id=?')->execute([str_repeat('d',32)]);
+    if((int)$pdo->query('SELECT COUNT(*) FROM manager_ai_sent_texts')->fetchColumn()!==0)throw new RuntimeException('native_initial_text_draft_cascade_failed');
+    echo "PASS native MySQL079 exact Unicode/digest capture, immutable retry, later edit and message/draft retention cascades\n";
     $inputDuplicateRejected=false;
     try{$inputInsert->execute([str_repeat('a',32),$inputEvidence->json(),$inputEvidence->hash()]);}
     catch(PDOException $error){$inputDuplicateRejected=$error->getCode()==='23000';}

@@ -25,6 +25,7 @@ CREATE TABLE messages(id {$idType} PRIMARY KEY,conversation_id {$idType},directi
 CREATE INDEX usage_messages ON messages(conversation_id,id);
 CREATE TABLE manager_ai_drafts(draft_id CHAR(32) PRIMARY KEY,conversation_id {$idType},manager_id {$idType},project_key {$projectType},context_revision CHAR(64),instruction_revision CHAR(64),latest_message_id {$idType},proposal_json TEXT,created_at DATETIME,insert_requested_at DATETIME,preparation_job_id CHAR(64));
 CREATE TABLE manager_ai_draft_inputs(draft_id CHAR(32) PRIMARY KEY,input_json MEDIUMTEXT NOT NULL,input_sha256 CHAR(64) NOT NULL)");
+$pdo->exec("CREATE TABLE manager_ai_sent_texts(message_id {$idType} PRIMARY KEY,draft_id CHAR(32),conversation_id {$idType},manager_id {$idType},project_key VARCHAR(64),text_value MEDIUMTEXT,text_sha256 CHAR(64))");
 if($native)$pdo->exec(file_get_contents(dirname(__DIR__,2).'/migrations/061_manager_ai_usage_reviews.sql'));
 else$pdo->exec('CREATE TABLE manager_ai_usage_reviews(manager_id INTEGER,message_id INTEGER,case_revision TEXT,reviewed_at TEXT,PRIMARY KEY(manager_id,message_id))');
 $pdo->exec("INSERT INTO projects VALUES(1,'anytour','AnyTour',1),(2,'other','Other',1);

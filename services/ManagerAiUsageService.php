@@ -73,6 +73,16 @@ final class ManagerAiUsageService
     /** Explicit owner read of the original manual input, never reconstructed from current messages. */
     public static function input(int $actor,int $messageId,string $revision,?DateTimeImmutable $now=null): array
     {
+        return self::evidence($actor,$messageId,$revision,$now,'input');
+    }
+
+    public static function sentText(int $actor,int $messageId,string $revision,?DateTimeImmutable $now=null): array
+    {
+        return self::evidence($actor,$messageId,$revision,$now,'sent_text');
+    }
+
+    private static function evidence(int $actor,int $messageId,string $revision,?DateTimeImmutable $now,string $kind): array
+    {
         if($messageId<=0||preg_match('/\A[a-f0-9]{64}\z/D',$revision)!==1)return self::error('invalid_request');
         $pdo=null;$started=false;$now=$now??new DateTimeImmutable('now',new DateTimeZone('UTC'));
         try{
@@ -90,7 +100,10 @@ final class ManagerAiUsageService
             $case=$draft!==null?ManagerAiDraftFeedbackReport::inspectUsage($row,$draft,$row['project_key'],$now):null;
             if(!$case)return self::error('not_found');
             if(!hash_equals($case['case_revision'],$revision))return self::error('case_changed');
-            $input=($draft['preparation_job_id']??null)!==null
+            if($kind==='sent_text'){
+                require_once __DIR__.'/ManagerAiSentTextService.php';
+                $input=ManagerAiSentTextService::read($pdo,$row,$draft);
+            }else $input=($draft['preparation_job_id']??null)!==null
                 ? ['available'=>false,'reason'=>'prepared_input_not_captured']
                 : self::storedInput($pdo,$draft);
             $pdo->commit();$started=false;

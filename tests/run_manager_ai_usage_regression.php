@@ -114,6 +114,10 @@ $olderRules=$read(['mode'=>'all'])['items'][0];
 usageCheck('a different common-rule observation never resurrects an already reviewed comparison',!$olderRules['base_instruction_current']&&$olderRules['reviewed']&&$olderRules['case_revision']===$case['case_revision']&&!in_array($case['message_id'],array_column($read()['items'],'message_id'),true));
 $changeInstruction->execute([hash('sha256',ManagerAiDraftService::instructions()),$caseDraft]);
 $pdo->exec('INSERT INTO manager_projects VALUES(2,1)');usageCheck('review marker is personal to its owner',in_array($case['message_id'],array_column($read([],2)['items'],'message_id'),true));
+require_once dirname(__DIR__).'/services/ManagerAiSentTextService.php';
+$initialMessage=$pdo->query('SELECT * FROM messages WHERE id=10047')->fetch();
+$initialMetadata=json_decode($initialMessage['metadata_json'],true);
+usageCheck('synthetic initial text capture uses historical author rather than current assignee',ManagerAiSentTextService::record($pdo,10047,147,'manager','7',$initialMessage['text'],$initialMetadata,'AI proposal 47'));
 $q=$pdo->prepare('UPDATE messages SET text=?,metadata_json=? WHERE id=?');$meta=json_decode($pdo->query('SELECT metadata_json FROM messages WHERE id=10047')->fetchColumn(),true);$meta['edited_at']='2026-10-25 10:05:00';$q->execute(['Later manager edit',json_encode($meta),10047]);
 $updated=$read()['items'][0];usageCheck('later message edit reappears as an updated comparison without inventing initial sent text',$updated['message_id']===10047&&$updated['updated_since_review']&&!$updated['reviewed']&&!$updated['initial_text_available']&&$updated['edited']&&$updated['current_sent_text']==='Later manager edit');
 usageCheck('changed filter also retains later edits without rewriting original-send equality',$read(['changed_only'=>true])['items'][0]['message_id']===10047&&$updated['recorded_text_matches_proposal']);
@@ -121,6 +125,24 @@ usageCheck('late old-tab review cannot mark a newer comparison viewed',ManagerAi
 usageCheck('a later sent-message edit requires a fresh comparison before input is exposed',
     $input(10047,$case['case_revision'])['error']==='case_changed'
     &&$input(10047,$updated['case_revision'])['input_evidence']===$originalInput['input_evidence']);
+$originalSent=ManagerAiUsageService::sentText(1,10047,$updated['case_revision'],$now);
+usageCheck('owner reads immutable original after message edit despite current reassignment',
+    $originalSent['ok']&&$originalSent['available']&&$originalSent['text']==='AI proposal 47'&&$originalSent['text_sha256']===hash('sha256','AI proposal 47')
+    &&$originalSent['case_revision']===$updated['case_revision']&&$originalSent['message_id']===10047);
+usageCheck('original text shares exact case and current owner access gates',
+    ManagerAiUsageService::sentText(1,10047,$case['case_revision'],$now)['error']==='case_changed'
+    &&ManagerAiUsageService::sentText(2,10047,$updated['case_revision'],$now)['available']===true
+    &&ManagerAiUsageService::sentText(3,10047,$updated['case_revision'],$now)['error']==='forbidden');
+usageCheck('old text is not reconstructed from a proposal or current message',!ManagerAiUsageService::sentText(1,10046,$allCases[10046]['case_revision'],$now)['available']);
+$receipt=$pdo->query('SELECT * FROM manager_ai_sent_texts WHERE message_id=10047')->fetch();
+$pdo->exec("UPDATE manager_ai_sent_texts SET text_value='Wrong original' WHERE message_id=10047");
+usageCheck('tampered original text cannot become an authoritative correction target',ManagerAiUsageService::sentText(1,10047,$updated['case_revision'],$now)['reason']==='invalid_evidence');
+$pdo->prepare('UPDATE manager_ai_sent_texts SET text_value=?,conversation_id=146 WHERE message_id=10047')->execute([$receipt['text_value']]);
+usageCheck('same-digest receipt cannot cross a conversation binding',ManagerAiUsageService::sentText(1,10047,$updated['case_revision'],$now)['reason']==='invalid_evidence');
+$pdo->exec('UPDATE manager_ai_sent_texts SET conversation_id=147 WHERE message_id=10047');
+foreach(['manager_id'=>8,'project_key'=>'ANYTOUR','draft_id'=>str_repeat('f',32)] as $column=>$wrong){$pdo->prepare('UPDATE manager_ai_sent_texts SET '.$column.'=? WHERE message_id=10047')->execute([$wrong]);usageCheck('initial text verifies immutable '.$column.' binding',ManagerAiUsageService::sentText(1,10047,$updated['case_revision'],$now)['reason']==='invalid_evidence');$pdo->prepare('UPDATE manager_ai_sent_texts SET '.$column.'=? WHERE message_id=10047')->execute([$receipt[$column]]);}
+$pdo->beginTransaction();usageCheck('original text read cannot consume a caller transaction',ManagerAiUsageService::sentText(1,10047,$updated['case_revision'],$now)['error']==='unavailable'&&$pdo->inTransaction());$pdo->rollBack();
+usageCheck('original text reads preserve personal review state',!$read()['items'][0]['reviewed']);
 usageCheck('new current revision can be explicitly reviewed',ManagerAiUsageService::review(1,10047,$updated['case_revision'],$now)['ok']);
 usageCheck('invalid references and inaccessible messages cannot be reviewed',ManagerAiUsageService::review(1,10055,str_repeat('a',64),$now)['error']==='not_found'&&ManagerAiUsageService::review(1,10051,str_repeat('a',64),$now)['error']==='forbidden'&&ManagerAiUsageService::review(3,10046,str_repeat('a',64),$now)['error']==='forbidden');
 $pdo->exec('DELETE FROM manager_projects WHERE manager_id=1');usageCheck('fresh project revoke blocks reads review input and saved cursor',$read()['error']==='forbidden'&&ManagerAiUsageService::review(1,10046,str_repeat('a',64),$now)['error']==='forbidden'&&$input(10047,$updated['case_revision'])['error']==='forbidden'&&$read(['cursor'=>$first['next_cursor']])['error']==='forbidden');$pdo->exec('INSERT INTO manager_projects VALUES(1,1)');
@@ -160,6 +182,7 @@ if($baselineClass!==null)usageCheck('large integer cutoffs equal exact installed
 $pdo->beginTransaction();$insert=$pdo->prepare('INSERT INTO messages VALUES(?,?,?,?,?,?,?,?,?)');for($i=0;$i<1005;$i++)$insert->execute([20000+$i,101,'outbound','manager','7','telegram','Synthetic','{"ai_draft":{"draft_id":"bad"}}','2026-10-25 11:00:00']);$pdo->commit();
 $limited=$read();usageCheck('scan limit is explicit and keyset cursor advances over unusable records',$limited['ok']&&$limited['items']===[]&&$limited['scan_limited']&&$limited['has_more']&&is_string($limited['next_cursor']));
 $afterLimit=$read(['cursor'=>$limited['next_cursor']]);usageCheck('continuation reaches lower valid applications after unusable page',$afterLimit['ok']&&count($afterLimit['items'])===20&&$afterLimit['items'][0]['message_id']===10046);
+$pdo->exec('DROP TABLE manager_ai_sent_texts');usageCheck('missing original text storage is explicit without changing lists',ManagerAiUsageService::sentText(1,10047,$updated['case_revision'],$now)['reason']==='storage_unavailable'&&$read()['ok']);
 $pdo->exec('DROP TABLE manager_ai_draft_inputs');
 usageCheck('missing input storage is explicit and never reconstructed or created at runtime',
     $input(10047,$updated['case_revision'])['reason']==='storage_unavailable'&&$read()['ok']);

@@ -10,10 +10,11 @@ try{
     $actor=(int)$manager['id'];$input=ManagerHttp::body();$action=$input['action']??'';
     if($action==='identity')ManagerHttp::respond(['ok'=>true,'viewer_id'=>$actor,'csrf'=>ManagerHttp::csrf(true)]);
     ManagerHttp::requireCsrf($input);
-    if($action==='list'||$action==='input'){
-        if($action==='input'&&(!is_int($input['message_id']??null)||!is_string($input['case_revision']??null)))ManagerHttp::respond(['ok'=>false,'error'=>'invalid_request'],422);
+    if(in_array($action,['list','input','sent_text'],true)){
+        if($action!=='list'&&(!is_int($input['message_id']??null)||!is_string($input['case_revision']??null)))ManagerHttp::respond(['ok'=>false,'error'=>'invalid_request'],422);
         session_write_close();$result=$action==='list'?ManagerAiUsageService::read($actor,$input)
-            :ManagerAiUsageService::input($actor,$input['message_id'],$input['case_revision']);
+            :($action==='input'?ManagerAiUsageService::input($actor,$input['message_id'],$input['case_revision'])
+                :ManagerAiUsageService::sentText($actor,$input['message_id'],$input['case_revision']));
         if(!session_start(['read_and_close'=>true])||ManagerHttp::managerId()!==$actor||!ManagerRequestContext::validCsrf((string)$input['csrf']))ManagerHttp::respond(['ok'=>false,'error'=>'unauthorized'],401);
     }elseif($action==='review'){
         if(!is_int($input['message_id']??null)||!is_string($input['case_revision']??null))ManagerHttp::respond(['ok'=>false,'error'=>'invalid_request'],422);

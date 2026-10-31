@@ -45,6 +45,15 @@ try{
     [$status,$r]=usageHttpRequest($address,$fixture,1,['action'=>'review','csrf'=>$identity['csrf'],'message_id'=>(string)$case['message_id'],'case_revision'=>$case['case_revision']]);usageHttpCheck('review request has strict message identity',$status===422);
     [$status,$r]=usageHttpRequest($address,$fixture,1,['action'=>'review','csrf'=>$identity['csrf'],'message_id'=>$case['message_id'],'case_revision'=>$case['case_revision']]);usageHttpCheck('explicit review is confirmed by actual protected endpoint',$status===200&&$r['reviewed']===true&&$r['message_id']===$case['message_id']);
     [$status,$r]=usageHttpRequest($address,$fixture,1,['action'=>'list','csrf'=>$identity['csrf']]);usageHttpCheck('new report no longer returns the reviewed revision',$status===200&&!in_array($case['message_id'],array_column($r['items'],'message_id'),true));
+    $meta=json_decode($db->query('SELECT metadata_json FROM messages WHERE id=10047')->fetchColumn(),true);$meta['edited_at']=gmdate('Y-m-d H:i:s');
+    $db->prepare('UPDATE messages SET text=?,metadata_json=? WHERE id=10047')->execute(['Later edited text',json_encode($meta)]);
+    [$status,$page]=usageHttpRequest($address,$fixture,1,['action'=>'list','csrf'=>$identity['csrf']]);$edited=array_column($page['items'],null,'message_id')[10047];
+    $sentRequest=['action'=>'sent_text','csrf'=>$identity['csrf'],'message_id'=>10047,'case_revision'=>$edited['case_revision']];
+    [$status,$r]=usageHttpRequest($address,$fixture,1,$sentRequest);usageHttpCheck('protected endpoint preserves initial manager text after edit',$status===200&&$r['available']&&$r['text']==='AI proposal 47'&&$r['case_revision']===$edited['case_revision']&&$r['viewer_id']===1);
+    foreach([null,2,3,4] as $actor){[$status,$r,$body]=usageHttpRequest($address,$fixture,$actor,$sentRequest);usageHttpCheck('initial text is not exposed outside current owner authority '.(string)$actor,in_array($status,[401,403],true)&&!str_contains($body,'AI proposal 47'));}
+    [$status,$r]=usageHttpRequest($address,$fixture,1,array_replace($sentRequest,['csrf'=>'wrong']));usageHttpCheck('initial text requires CSRF',$status===403);
+    [$status,$r]=usageHttpRequest($address,$fixture,1,array_replace($sentRequest,['case_revision'=>$case['case_revision']]));usageHttpCheck('initial text requires refreshed comparison after edit',$status===409&&$r['error']==='case_changed');
+    [$status,$r]=usageHttpRequest($address,$fixture,1,array_replace($sentRequest,['message_id'=>'10047']));usageHttpCheck('initial text requires strict numeric identity',$status===422);
     echo 'TOTAL '.$passed.' | PASS '.$passed.' | FAIL 0'."\n";
 }catch(Throwable $error){fwrite(STDERR,substr((string)file_get_contents($directory.'/server.log'),-5000));throw$error;}finally{
     proc_terminate($process);proc_close($process);fclose($log);
