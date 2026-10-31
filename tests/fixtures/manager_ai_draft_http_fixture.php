@@ -169,7 +169,7 @@ final class ManagerPreparationOAuth
 
 final class ManagerAiDraftService
 {
-    public static function generate(array $context, ?callable $provider = null, ?ManagerCompanyKnowledge $knowledge = null, ?callable $selectionReader = null, ?object $references = null, ?callable $photoReader = null): array
+    public static function generate(array $context, ?callable $provider = null, ?ManagerCompanyKnowledge $knowledge = null, ?callable $selectionReader = null, ?object $references = null, ?callable $photoReader = null, ?callable $inputObserver = null): array
     {
         $state = managerAiHttpFixtureState();
         $selection = $selectionReader ? $selectionReader()->forContext($context) : null;
@@ -191,6 +191,11 @@ final class ManagerAiDraftService
                 usleep(10000);
             }
         }
+        if (!empty($state['capture_input']) && $inputObserver !== null) {
+            require_once dirname(__DIR__,2).'/services/ManagerAiDraftInputEvidence.php';
+            $evidence=ManagerAiDraftInputEvidence::capture($context+['selections_link_unread'=>false,'verified_company_facts'=>[]], 'Synthetic exact instructions');
+            if ($evidence !== null) $inputObserver($evidence);
+        }
         return $state['proposal'];
     }
 }
@@ -198,8 +203,9 @@ final class ManagerAiDraftService
 /** Isolated feedback dependency; the persistence service has its own SQL suite. */
 final class ManagerAiDraftFeedbackService
 {
-    public static function record(int $cid,int $actor,array $snapshot,array $proposal,?string $preparedJobId=null): ?string
+    public static function record(int $cid,int $actor,array $snapshot,array $proposal,?string $preparedJobId=null,?ManagerAiDraftInputEvidence $inputEvidence=null): ?string
     {
+        if ($inputEvidence !== null) managerAiHttpFixtureEvent('input_evidence_record', ['sha256'=>$inputEvidence->hash(),'context'=>$inputEvidence->context()]);
         managerAiHttpFixtureEvent('feedback_record',['conversation_id'=>$cid,'manager_id'=>$actor,
             'revision'=>$snapshot['revision'],'latest_message_id'=>$snapshot['latest_message_id']]
             +($preparedJobId===null?[]:['preparation_job_id'=>$preparedJobId]));

@@ -14,6 +14,7 @@ $pdo->exec("CREATE TABLE manager_ai_drafts (
  draft_id TEXT PRIMARY KEY,conversation_id INTEGER NOT NULL,manager_id INTEGER NOT NULL,project_key TEXT NOT NULL,
  context_revision TEXT NOT NULL,instruction_revision TEXT NOT NULL,latest_message_id INTEGER NOT NULL,
  proposal_json BLOB NOT NULL CHECK(length(CAST(proposal_json AS BLOB))<=32768),created_at TEXT NOT NULL,insert_requested_at TEXT,preparation_job_id TEXT);
+CREATE TABLE manager_ai_draft_inputs(draft_id TEXT PRIMARY KEY,input_json TEXT NOT NULL,input_sha256 TEXT NOT NULL);
 CREATE TABLE projects(id INTEGER PRIMARY KEY,project_key TEXT,display_name TEXT,is_active INTEGER);
 CREATE TABLE manager_projects(manager_id INTEGER,project_id INTEGER);
 CREATE TABLE managers(id INTEGER PRIMARY KEY,login TEXT,display_name TEXT,role TEXT,email TEXT,is_active INTEGER,is_working INTEGER);
@@ -126,6 +127,44 @@ feedbackCheck('encoded byte cap rejects otherwise individually bounded escaped U
 $spoofed=$snapshot;$spoofed['project_key']='other';
 $serverId=ManagerAiDraftFeedbackService::record(1,7,$spoofed,$proposal);
 feedbackCheck('snapshot cannot choose the stored project',is_string($serverId)&&feedbackRow($serverId)['project_key']==='feedback-fixture');
+
+// Preserve the exact normalized input consumed by a manual provider, even if
+// source messages or selections are edited later. The proposal stays separate.
+$inputContext = $snapshot['context'] + ['media_unread'=>false,'selections_link_unread'=>false,'verified_company_facts'=>[]];
+foreach ($inputContext['messages'] as &$message) $message['sender_type']='customer';
+unset($message);
+$inputContext['working_selection']=['variants'=>[['name'=>'Synthetic family option','adults'=>2,'children'=>[12]]]];
+$inputEvidence=ManagerAiDraftInputEvidence::capture($inputContext,ManagerAiDraftService::instructions($inputContext));
+feedbackCheck('normalized original input can be captured', $inputEvidence instanceof ManagerAiDraftInputEvidence);
+$evidenceId=ManagerAiDraftFeedbackService::record(1,7,$snapshot,$proposal,null,$inputEvidence);
+$readInput=static function(string $id) use ($pdo): ?array {$q=$pdo->prepare('SELECT * FROM manager_ai_draft_inputs WHERE draft_id=?');$q->execute([$id]);return $q->fetch()?:null;};
+$savedInput=$readInput($evidenceId);
+feedbackCheck('manual provenance links exact text input and complete conditional instructions',
+    $savedInput!==null&&$savedInput['input_json']===$inputEvidence->json()&&$savedInput['input_sha256']===$inputEvidence->hash());
+$pdo->exec("UPDATE messages SET text='Changed later source' WHERE id=12");
+$changedContext=$inputContext;$changedContext['messages'][1]['text']='A new requested composition';
+$changedContext['working_selection']['variants'][0]['adults']=3;
+$changedInput=ManagerAiDraftInputEvidence::capture($changedContext,ManagerAiDraftService::instructions($changedContext));
+$newEvidenceId=ManagerAiDraftFeedbackService::record(1,7,$snapshot,$proposal,null,$changedInput);
+feedbackCheck('later source and variant changes cannot overwrite an earlier generation',
+    $newEvidenceId!==$evidenceId&&$readInput($evidenceId)===$savedInput&&$readInput($newEvidenceId)['input_sha256']!==$savedInput['input_sha256']);
+$pdo->exec("UPDATE messages SET text='Synthetic latest message' WHERE id=12");
+$wrongContext=$inputContext;$wrongContext['conversation_id']=2;
+$wrongInput=ManagerAiDraftInputEvidence::capture($wrongContext,ManagerAiDraftService::instructions());
+$wrongId=ManagerAiDraftFeedbackService::record(1,7,$snapshot,$proposal,null,$wrongInput);
+feedbackCheck('mismatched input never binds to another conversation while draft stays usable',is_string($wrongId)&&$readInput($wrongId)===null);
+$wrongContext=$inputContext;$wrongContext['messages'][0]['id']=10;
+$wrongInput=ManagerAiDraftInputEvidence::capture($wrongContext,ManagerAiDraftService::instructions());
+$wrongId=ManagerAiDraftFeedbackService::record(1,7,$snapshot,$proposal,null,$wrongInput);
+feedbackCheck('matching latest ID alone cannot bind a different source history',is_string($wrongId)&&$readInput($wrongId)===null);
+$preparedEvidence=ManagerAiDraftFeedbackService::record(1,7,$snapshot,$proposal,str_repeat('d',64),$inputEvidence);
+feedbackCheck('prepared preview cannot claim later reconstructed input as worker input',is_string($preparedEvidence)&&$readInput($preparedEvidence)===null);
+feedbackCheck('denied actor cannot persist an input snapshot',ManagerAiDraftFeedbackService::record(1,8,$snapshot,$proposal,null,$inputEvidence)===null);
+$pdo->exec('ALTER TABLE manager_ai_draft_inputs RENAME TO unavailable_inputs');
+$missingInputId=ManagerAiDraftFeedbackService::record(1,7,$snapshot,$proposal,null,$inputEvidence);
+feedbackCheck('missing input store preserves normal draft provenance without runtime schema repair',is_string($missingInputId)&&feedbackRow($missingInputId)['proposal_json']===$row['proposal_json']
+    &&(int)$pdo->query("SELECT COUNT(*) FROM sqlite_master WHERE name='manager_ai_draft_inputs'")->fetchColumn()===0);
+$pdo->exec('ALTER TABLE unavailable_inputs RENAME TO manager_ai_draft_inputs');
 
 feedbackCheck('marker rejects wrong actor conversation revision latest and malformed ID',
     ManagerAiDraftFeedbackService::markInsertRequested(1,8,$id,$snapshot['revision'],12)===null
