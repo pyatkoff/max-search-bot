@@ -1,16 +1,16 @@
 {
     "ok": true,
-    "generated_at": "2026-10-31T01:05:23+00:00",
+    "generated_at": "2026-10-31T01:39:56+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 8,
-        "raw_sessions": 8,
+        "sessions": 9,
+        "raw_sessions": 9,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 8,
+            "resolved": 9,
             "unresolved": 0
         },
         "started": 4,
@@ -18,39 +18,39 @@
         "tours_opened": 2,
         "site_opened": 0,
         "post_tour_manager_cta_shown": 0,
-        "manager_requested": 7,
+        "manager_requested": 8,
         "manager_replied": 1,
         "customer_replied_after_manager": 0,
         "phone_received": 0,
         "manager_response": {
             "answered_in_90s": 0,
             "answered_after_90s": 1,
-            "still_unanswered": 6,
+            "still_unanswered": 7,
             "measured_responses": 1,
             "avg_seconds": 488,
             "max_seconds": 488
         },
         "drop_points": {
-            "manager_requested": 6,
+            "manager_requested": 7,
             "manager_replied": 1,
             "tours_opened": 1
         },
         "flags": {
-            "manager_requested_no_reply": 6
+            "manager_requested_no_reply": 7
         },
         "calendar_day": {
-            "conversations_started": 5,
+            "conversations_started": 6,
             "needs_collected_from_started": 0,
             "tours_opened_from_started": 0,
             "site_opened": 0,
             "post_tour_manager_cta_shown": 0,
-            "manager_requested": 6,
+            "manager_requested": 7,
             "manager_replied": 0,
             "customer_replied_after_manager": 0
         }
     },
     "telegram_dialogue_delivery": {
-        "sampled_at": "2026-10-31T01:05:23Z",
+        "sampled_at": "2026-10-31T01:39:56Z",
         "available": true,
         "error": null,
         "mode": "send",
