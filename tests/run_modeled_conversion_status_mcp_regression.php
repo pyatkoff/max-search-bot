@@ -267,6 +267,12 @@ PHP);
         $r=$request(forecastMcpRpc(),['X-Fixture-Expired: yes']);
         forecastMcpCheck('HTTP entry deadline includes time before bearer lookup',
             $r['status']===503&&$r['challenge']===null&&($r['body']['error']['data']['reason']??null)==='time_limit'&&!isset($r['body']['result']));
+        $records=array_filter(array_map(static fn(string $line):mixed=>json_decode($line,true),file($tmp.'-private/events.log',FILE_IGNORE_NEW_LINES)?:[]));
+        $last=end($records);
+        forecastMcpCheck('HTTP budget failure retains its actual fixed error code in saved diagnostics',
+            ($last['data']['http_status']??null)===$r['status']
+            &&($last['data']['rpc_error']??null)===-32016
+            &&$last['data']['rpc_error']===($r['body']['error']['code']??null));
     }finally{
         if(is_resource($server)){proc_terminate($server);proc_close($server);}
         if(is_dir($tmp)){
