@@ -4,7 +4,7 @@ const {setup,root}=require('./fixtures/internal-notes');
 const {setupAiUsage}=require('./fixtures/manager-ai-usage');
 
 // AI_USAGE_CASES_BEGIN — same production page/API on an isolated local database.
-function usageClean(s){expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.calls.every(c=>['identity','list','review','input','sent_text'].includes(c.action))).toBe(true)}
+function usageClean(s){expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.calls.every(c=>['identity','list','review','input','sent_text','assessment_read','assessment_save'].includes(c.action))).toBe(true)}
 function usageInputResponse(page){return page.waitForResponse(r=>r.url().endsWith('/manager/ai-usage-api.php')&&r.request().postDataJSON().action==='input')}
 async function usageOpenInput(page,id=10047){const response=usageInputResponse(page);await page.locator('[data-usage-case="'+id+'"]').getByRole('button',{name:'Что видел AI',exact:true}).click();return(await response).json()}
 function usageReadOnly(s){expect(s.calls.filter(c=>c.action==='review')).toHaveLength(0);usageClean(s)}
@@ -173,6 +173,84 @@ for(const width of [390,1440])test('AI usage owner entry follows the existing An
     await page.route('**/manager/supervision-api.php',route=>{const d=route.request().postDataJSON();return route.fulfill({contentType:'application/json',body:JSON.stringify(d.action==='identity'?{ok:true,manager:{id:1,role},csrf:'fixture-usage-csrf'}:d.action==='scope'?{ok:true,viewer_id:1,scopes:[{project_key:'anytour',display_name:'AnyTour',sources:[]}],managers:[]}:{ok:false,error:'analytics_unavailable',viewer_id:1})})});
     await page.goto(s.origin+'/manager2/analytics.php');await expect(page.locator('#analyticsAiUsage')).toBeVisible();await expect(page.locator('#analyticsAiUsage')).toHaveAttribute('href','/manager2/ai-usage.php');expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);await usageCapture(page,browserName,width,'entry');
     role='manager';await page.reload();await expect(page.locator('#analyticsAiUsage')).toBeHidden();usageClean(s);
+  }finally{await s.cleanup()}
+});
+function assessmentCard(page,id=10040){return page.locator('[data-usage-case="'+id+'"]')}
+async function openAssessment(page,id=10040){const response=page.waitForResponse(r=>r.url().endsWith('/manager/ai-usage-api.php')&&r.request().postDataJSON().action==='assessment_read');await assessmentCard(page,id).getByRole('button',{name:'Разобрать правку',exact:true}).click();return(await response).json()}
+async function fillAssessment(page){const form=assessmentCard(page).locator('.usageAssessmentForm');await form.getByLabel('Вид правки',{exact:true}).selectOption('meaning');await form.getByLabel('Что изменилось',{exact:true}).selectOption('last_question');await form.getByLabel('Польза правки',{exact:true}).selectOption('better');await form.getByLabel('Почему вы так считаете',{exact:true}).fill('Добавлена реакция на вопрос о варианте без перелёта, условия остались неподтверждёнными.');await form.getByLabel('Источник цитаты туриста',{exact:true}).selectOption('1040');await form.getByLabel('Точная цитата из сохранённой реплики',{exact:true}).fill('А без перелёта можно?');return form}
+for(const width of [390,430,768,1440])test('AI usage semantic correction and independent owner judgement '+width,async({page,browserName})=>{
+  await page.setViewportSize({width,height:1000});const s=await setupAiUsage(page);
+  try{
+    await expect(page.locator('[data-usage-case]')).toHaveCount(20);expect(s.calls.filter(c=>c.action.startsWith('assessment_'))).toEqual([]);
+    const initial=await openAssessment(page);expect(initial).toMatchObject({ok:true,version:0,case_improvement_confirmed:false,snapshot:{can_judge_effect:true,pair_changed:true}});
+    const card=assessmentCard(page);await expect(card.locator('.usageAssessment')).toContainText('Возможность оформить только отель ещё нужно проверить.');const form=await fillAssessment(page);await form.getByRole('button',{name:'Сохранить оценку',exact:true}).click();
+    await expect(card.locator('.usageAssessmentRecord')).toHaveCount(1);await expect(card.locator('.usageAssessmentRecord')).toContainText('Изменён смысл');await expect(card.locator('.usageAssessment')).not.toContainText('Другой владелец подтвердил');
+    await expect(card.locator('.usageAssessmentForm').getByLabel('Действие',{exact:true}).locator('option[value="adjudication"]')).toHaveCount(0);
+    expect(s.calls.filter(c=>c.action==='assessment_save')).toHaveLength(1);expect(s.calls.filter(c=>c.action==='review')).toHaveLength(0);
+    await s.switchActor(5);await expect(page.locator('[data-usage-case]')).toHaveCount(20);const peer=await openAssessment(page);expect(peer.can_adjudicate).toBe(true);
+    const peerForm=assessmentCard(page).locator('.usageAssessmentForm');await peerForm.getByLabel('Действие',{exact:true}).selectOption('adjudication');await peerForm.getByLabel('Результат независимой проверки',{exact:true}).selectOption('confirm');await peerForm.getByLabel('Почему вы так считаете',{exact:true}).fill('Оба последних вопроса видны в сохранённом запросе. Правка отвечает на них, не подтверждая условия продажи.');await peerForm.getByLabel('Источник цитаты туриста',{exact:true}).selectOption('1040');await peerForm.getByLabel('Точная цитата из сохранённой реплики',{exact:true}).fill('после 25 октября.');await peerForm.getByRole('button',{name:'Сохранить оценку',exact:true}).click();
+    await expect(assessmentCard(page).locator('.usageAssessmentRecord')).toHaveCount(2);await expect(assessmentCard(page).locator('.usageAssessment')).toContainText('Другой владелец подтвердил пользу этой правки в данном случае. Общий прирост качества ещё не измерен.');
+    const geometry=await page.evaluate(()=>({width:innerWidth,document:document.documentElement.scrollWidth}));console.log('ASSESSMENT_GEOMETRY '+JSON.stringify({browser:browserName,...geometry}));await assessmentCard(page).locator('.usageAssessment').scrollIntoViewIfNeeded();await usageCapture(page,browserName,width,'meaning');expect(geometry.document-geometry.width).toBeLessThanOrEqual(1);usageClean(s);
+  }finally{await s.cleanup()}
+});
+test('AI usage assessment preserves unavailable initial or prepared input as unknown',async({page})=>{
+  const s=await setupAiUsage(page);try{
+    await expect(page.locator('[data-usage-case]')).toHaveCount(20);
+    for(const id of [10044,10042,10046,10047]){const r=await openAssessment(page,id);expect(r.snapshot.can_judge_effect).toBe(false);const form=assessmentCard(page,id).locator('.usageAssessmentForm');await expect(form.getByLabel('Польза правки',{exact:true})).toBeDisabled();await expect(form.getByLabel('Польза правки',{exact:true})).toHaveValue('unknown');await expect(form.getByLabel('Польза правки',{exact:true}).locator('option[value="better"]')).toBeDisabled();if(id===10046){expect(r.snapshot.pair_available).toBe(false);await expect(form.getByLabel('Вид правки',{exact:true})).toHaveValue('unassessable')}await assessmentCard(page,id).getByRole('button',{name:'Закрыть разбор',exact:true}).click()}
+    expect(s.calls.filter(c=>c.action==='assessment_save')).toHaveLength(0);usageClean(s);
+  }finally{await s.cleanup()}
+});
+test('AI usage lost successful assessment reconciles actual receipt without resending',async({page})=>{
+  const s=await setupAiUsage(page);try{
+    await expect(page.locator('[data-usage-case]')).toHaveCount(20);await openAssessment(page);const form=await fillAssessment(page),cookies=await page.context().cookies();s.queueAssessment({action:'assessment_save',actual:true,abort:true});await form.getByRole('button',{name:'Сохранить оценку',exact:true}).click();
+    await expect(form).toContainText('Результат сохранения неизвестен');await expect(form.getByRole('button',{name:'Сохранить оценку',exact:true})).toBeDisabled();await expect(form.getByLabel('Почему вы так считаете',{exact:true})).toBeDisabled();expect(s.actualResponses).toHaveLength(1);expect(s.actualResponses[0]).toMatchObject({status:200,body:{ok:true,saved_version:1,replayed:false}});expect(await page.context().cookies()).toEqual(cookies);
+    await form.getByRole('button',{name:'Проверить сохранение',exact:true}).click();await expect(assessmentCard(page).locator('.usageAssessmentRecord')).toHaveCount(1);expect(s.calls.filter(c=>c.action==='assessment_save')).toHaveLength(1);usageClean(s);
+  }finally{await s.cleanup()}
+});
+test('AI usage unknown uncommitted assessment permits a checked retry only',async({page})=>{
+  const s=await setupAiUsage(page);try{
+    await expect(page.locator('[data-usage-case]')).toHaveCount(20);await openAssessment(page);const form=await fillAssessment(page);s.queueAssessment({action:'assessment_save',abort:true});await form.getByRole('button',{name:'Сохранить оценку',exact:true}).click();await expect(form).toContainText('Результат сохранения неизвестен');
+    await form.getByRole('button',{name:'Проверить сохранение',exact:true}).click();await expect(form).toContainText('Операция не найдена');await expect(form.getByRole('button',{name:'Сохранить оценку',exact:true})).toBeEnabled();await expect(form.getByLabel('Почему вы так считаете',{exact:true})).toHaveValue(/Добавлена реакция/);await form.getByRole('button',{name:'Сохранить оценку',exact:true}).click();await expect(assessmentCard(page).locator('.usageAssessmentRecord')).toHaveCount(1);expect(s.calls.filter(c=>c.action==='assessment_save')).toHaveLength(2);usageClean(s);
+  }finally{await s.cleanup()}
+});
+test('AI usage concurrent owner assessment rejects stale form and preserves its text',async({page})=>{
+  const s=await setupAiUsage(page);try{
+    await expect(page.locator('[data-usage-case]')).toHaveCount(20);const r=await openAssessment(page),form=await fillAssessment(page);
+    const result=await s.postAs(5,{action:'assessment_save',message_id:10040,case_revision:r.case_revision,version:0,comparison_sha256:r.snapshot.comparison_sha256,operation_id:'1234567890abcdef1234567890abcdef',phase:'proposal',target_version:0,data:{kind:'meaning',dimension:'last_question',effect:'unknown',reason:'Ещё не оценена польза',citation:null}});expect(result).toMatchObject({status:200,body:{ok:true,saved_version:1}});
+    await form.getByRole('button',{name:'Сохранить оценку',exact:true}).click();await expect(form).toContainText('Другой владелец уже сохранил оценку');await expect(form.getByLabel('Почему вы так считаете',{exact:true})).toHaveValue(/Добавлена реакция/);expect(s.calls.filter(c=>c.action==='assessment_save')).toHaveLength(1);usageClean(s);
+  }finally{await s.cleanup()}
+});
+for(const action of ['close','filter','account'])test('AI usage late assessment cannot restore private data after '+action,async({page})=>{
+  const s=await setupAiUsage(page);try{
+    await expect(page.locator('[data-usage-case]')).toHaveCount(20);s.queueAssessment({action:'assessment_read',actual:true,hold:true});const response=page.waitForResponse(r=>r.url().endsWith('/manager/ai-usage-api.php')&&r.request().postDataJSON().action==='assessment_read');await assessmentCard(page).getByRole('button',{name:'Разобрать правку',exact:true}).click();await expect.poll(()=>s.heldInputCount()).toBe(1);
+    if(action==='close')await assessmentCard(page).getByRole('button',{name:'Закрыть разбор',exact:true}).click();else if(action==='filter')await page.getByLabel('Только с правками').check();else{await s.switchActor(2,false);await page.getByRole('button',{name:'Обновить',exact:true}).click();await expect(page.locator('#usageApp')).toBeHidden()}
+    s.releaseInput();await(await response).finished();await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+    if(action==='account'){await expect(assessmentCard(page)).toHaveCount(0)}else{await expect(page.locator('.usageAssessmentForm')).toHaveCount(0);if(action==='close')await expect(assessmentCard(page).locator('.usageAssessment')).toBeEmpty()}usageClean(s);
+  }finally{await s.cleanup()}
+});
+test('AI usage assessment style judgement is inert text and never confirmed useful',async({page})=>{
+  const s=await setupAiUsage(page);try{
+    await expect(page.locator('[data-usage-case]')).toHaveCount(20);await openAssessment(page);const form=assessmentCard(page).locator('.usageAssessmentForm');await form.getByLabel('Вид правки',{exact:true}).selectOption('style');await expect(form.getByLabel('Польза правки',{exact:true})).toHaveValue('unknown');await expect(form.getByLabel('Польза правки',{exact:true})).toBeDisabled();await form.getByLabel('Почему вы так считаете',{exact:true}).fill('<img src=x onerror="window.assessmentInjected=1">');await form.getByRole('button',{name:'Сохранить оценку',exact:true}).click();await expect(assessmentCard(page).locator('.usageAssessmentRecord')).toContainText('<img src=x');expect(await page.evaluate(()=>window.assessmentInjected)).toBeUndefined();
+    await s.switchActor(5);await expect(page.locator('[data-usage-case]')).toHaveCount(20);await openAssessment(page);const peer=assessmentCard(page).locator('.usageAssessmentForm');await peer.getByLabel('Действие',{exact:true}).selectOption('adjudication');await expect(peer.getByLabel('Результат независимой проверки',{exact:true}).locator('option[value="confirm"]')).toBeDisabled();await expect(peer.getByLabel('Результат независимой проверки',{exact:true})).toHaveValue('insufficient_context');usageClean(s);
+  }finally{await s.cleanup()}
+});
+test('AI usage assessment stale message cannot be graded and missing migration keeps journal usable',async({page})=>{
+  const s=await setupAiUsage(page);try{
+    await expect(page.locator('[data-usage-case]')).toHaveCount(20);await openAssessment(page);const form=await fillAssessment(page);s.mutate("UPDATE messages SET text='A later changed message' WHERE id=10040");await form.getByRole('button',{name:'Сохранить оценку',exact:true}).click();await expect(form).toContainText('Ответ изменился. Обновите журнал');
+    await page.getByRole('button',{name:'Обновить',exact:true}).click();await expect(page.locator('[data-usage-case]')).toHaveCount(20);s.mutate('DROP TABLE manager_ai_usage_assessments');await openAssessment(page);await expect(assessmentCard(page).locator('.usageAssessment')).toContainText('Разбор недоступен');await expect(assessmentCard(page).locator('.usageAssessmentForm')).toHaveCount(0);await expect(assessmentCard(page).getByRole('button',{name:'Отметить просмотренным',exact:true})).toBeEnabled();usageClean(s);
+  }finally{await s.cleanup()}
+});
+
+
+for(const phase of ['read','save','receipt'])test('AI usage assessment survives pagination during '+phase,async({page})=>{
+  const s=await setupAiUsage(page);try{
+    await expect(page.locator('[data-usage-case]')).toHaveCount(20);
+    if(phase!=='read'){await openAssessment(page);const form=await fillAssessment(page);s.queueAssessment({action:'assessment_save',actual:true,...(phase==='save'?{hold:true}:{abort:true})});await form.getByRole('button',{name:'Сохранить оценку',exact:true}).click();
+      if(phase==='receipt'){await expect(form).toContainText('Результат сохранения неизвестен');s.queueAssessment({action:'assessment_read',actual:true,hold:true});await form.getByRole('button',{name:'Проверить сохранение',exact:true}).click()}
+    }else{s.queueAssessment({action:'assessment_read',actual:true,hold:true});await assessmentCard(page).getByRole('button',{name:'Разобрать правку',exact:true}).click()}
+    await expect.poll(()=>s.heldInputCount()).toBe(1);await page.getByRole('button',{name:'Показать ещё',exact:true}).click();await expect(page.locator('[data-usage-case]')).toHaveCount(40);s.releaseInput();
+    if(phase==='read')await expect(assessmentCard(page).locator('.usageAssessmentForm')).toBeVisible();else{await expect(assessmentCard(page).locator('.usageAssessmentRecord')).toHaveCount(1);expect(s.actualResponses.find(r=>r.action==='assessment_save')).toMatchObject({status:200,body:{ok:true,saved_version:1}});expect(s.calls.filter(c=>c.action==='assessment_save')).toHaveLength(1)}
+    await expect(assessmentCard(page).locator('.usageAssessmentForm').getByRole('button',{name:'Сохранить оценку',exact:true})).toBeEnabled();await assessmentCard(page).getByRole('button',{name:'Закрыть разбор',exact:true}).click();await expect(assessmentCard(page).locator('.usageAssessment')).toBeHidden();usageClean(s);
   }finally{await s.cleanup()}
 });
 // AI_USAGE_CASES_END

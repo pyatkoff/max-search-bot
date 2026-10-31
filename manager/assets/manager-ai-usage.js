@@ -218,6 +218,89 @@
       panel.replaceChildren(node('h4','Первоначальный ответ менеджера'));const text=node('p',r.text);text.className='usageText usageOriginalText';panel.appendChild(text);inputNote(panel,'Это текст до последующих изменений сообщения. Различие с предложением AI само по себе не означает исправление ошибки.');
     };return area;
   }
+  const assessmentKinds={unchanged:'Без правки',style:'Только стиль',meaning:'Изменён смысл',unassessable:'Нельзя оценить'};
+  const assessmentDimensions={none:'Не относится к смыслу',conditions:'Условия поездки',last_question:'Полнота ответа на последний вопрос',selection:'Точная подборка',unnecessary_question:'Лишний повторный вопрос',unsupported_claim:'Неподтверждённое утверждение',other:'Другое'};
+  const assessmentEffects={unknown:'Не установлена',better:'Стало полезнее',worse:'Стало хуже',mixed:'Есть польза и потери'};
+  const assessmentVerdicts={confirm:'Подтверждаю оценку',reject:'Не согласен с оценкой',insufficient_context:'Недостаточно контекста'};
+  function assessmentViewer(c,article){
+    const area=node('section');area.className='usageInputArea usageAssessmentArea';
+    const toggle=node('button','Разобрать правку');toggle.type='button';toggle.className='usageInputToggle';toggle.setAttribute('aria-expanded','false');
+    const panel=node('div');panel.className='usageAssessment';panel.hidden=true;area.append(toggle,panel);
+    let serial=0,open=false,pending=null,working=false,fieldCounter=0;
+    const alive=(viewer,turn)=>open&&serial===turn&&actor===viewer&&article.isConnected;
+    const bound=r=>r.ok&&r.message_id===c.message_id&&r.case_revision===c.case_revision&&r.viewer_id===actor;
+    const valid=r=>bound(r)&&Number.isSafeInteger(r.version)&&r.version>=0&&record(r.snapshot)&&digest(r.snapshot.comparison_sha256)
+      &&typeof r.snapshot.proposed_text==='string'&&typeof r.snapshot.pair_available==='boolean'&&typeof r.snapshot.pair_changed==='boolean'
+      &&typeof r.snapshot.can_judge_effect==='boolean'&&typeof r.snapshot.input_available==='boolean'&&Array.isArray(r.snapshot.request_messages)
+      &&(r.snapshot.initial_sent_text===null||typeof r.snapshot.initial_sent_text==='string')&&Array.isArray(r.history)&&typeof r.can_adjudicate==='boolean'&&typeof r.case_improvement_confirmed==='boolean'
+      &&[r.candidate,r.decision].every(x=>x===null||(record(x)&&Number.isSafeInteger(x.version)&&Number.isSafeInteger(x.manager_id)&&record(x.data)&&typeof x.data.reason==='string'));
+    function field(parent,label,element){const wrap=node('div'),l=node('label',label);wrap.className='usageAssessmentField';element.id='usage-assessment-'+c.message_id+'-'+(++fieldCounter);l.htmlFor=element.id;wrap.append(l,element);parent.appendChild(wrap);return element}
+    function select(options){const e=node('select');for(const [value,label] of Object.entries(options))e.appendChild(new Option(label,value));return e}
+    function summary(parent,title,row){if(!row)return;const box=node('div');box.className='usageAssessmentRecord';box.appendChild(node('h4',title+' · версия '+row.version+' · владелец '+row.manager_id));
+      const d=row.data;box.appendChild(node('p',row.phase==='proposal'?[assessmentKinds[d.kind],assessmentDimensions[d.dimension],assessmentEffects[d.effect]].join(' · '):assessmentVerdicts[d.verdict]));box.appendChild(node('p',d.reason));
+      if(d.citation)box.appendChild(node('blockquote','Источник #'+d.citation.message_id+': '+d.citation.quote));parent.appendChild(box)}
+    function render(r){
+      pending=null;working=false;panel.replaceChildren(node('h3','Разбор первоначальной правки'));
+      const x=r.snapshot,info=node('p',r.case_improvement_confirmed?'Другой владелец подтвердил пользу этой правки в данном случае. Общий прирост качества ещё не измерен.':'Разбор — оценка конкретной правки. Само изменение текста не доказывает пользу или ошибку AI.');info.className='usageInputIntro';panel.appendChild(info);
+      const pair=node('div');pair.className='usageComparison';pair.append(version('Исходное предложение AI',x.proposed_text),version('Первый отправленный текст',x.pair_available?x.initial_sent_text:'Первоначальный текст не подтверждён.'));panel.appendChild(pair);
+      const warning=node('p',x.can_judge_effect?'Доступен сохранённый текстовый ввод. Цены, условия продажи и выводы из старых реплик требуют собственных подтверждений.':'Пользу оценить нельзя: исходный ввод отсутствует или неполон либо нет первоначального текста. Можно описать правку, сохранив результат «Не установлена».');warning.className='usageCaveat';panel.appendChild(warning);
+      const context=node('details');context.className='usageInputDetails';context.appendChild(node('summary','Сохранённые реплики для проверки'));
+      if(!x.request_messages.length)context.appendChild(node('p','Сохранённые реплики недоступны. Текущая переписка не заменяет исходный ввод.'));
+      for(const m of x.request_messages){const item=node('div');item.className='usageAssessmentSource';item.append(node('h4','#'+m.id+' · '+(m.sender_type==='customer'?'Турист':m.sender_type)),node('p',m.text));context.appendChild(item)}panel.appendChild(context);
+      summary(panel,'Оценка правки',r.candidate);summary(panel,'Независимая проверка',r.decision);
+      if(r.history.some(h=>h.stale)){const p=node('p','Есть прежние оценки другого исходного сравнения. Они не подтверждают текущий случай.');p.className='usageCaveat';panel.appendChild(p)}
+      const history=node('details');history.className='usageInputDetails';history.appendChild(node('summary','Последние записи: '+r.history.length));for(const h of r.history)history.appendChild(node('p','Версия '+h.version+' · владелец '+h.manager_id+' · '+(h.phase==='proposal'?'оценка':'проверка')+(h.stale?' · прежнее сравнение':'')));panel.appendChild(history);
+      const form=node('form');form.className='usageAssessmentForm';const controls=node('fieldset');controls.className='usageAssessmentFields';controls.appendChild(node('legend','Сохранить оценку'));
+      const phase=field(controls,'Действие',select({proposal:'Новая оценка правки',...(r.can_adjudicate?{adjudication:'Независимая проверка оценки'}:{})}));
+      const classification=node('div');classification.className='usageAssessmentGrid';const kind=field(classification,'Вид правки',select(assessmentKinds)),dimension=field(classification,'Что изменилось',select(assessmentDimensions)),effect=field(classification,'Польза правки',select(assessmentEffects));controls.appendChild(classification);
+      kind.value=x.pair_available&&!x.pair_changed?'unchanged':'unassessable';dimension.value=kind.value==='meaning'?'last_question':'none';effect.value='unknown';
+      const verdict=field(controls,'Результат независимой проверки',select(assessmentVerdicts));verdict.value='insufficient_context';verdict.parentElement.hidden=true;
+      const reason=field(controls,'Почему вы так считаете',node('textarea'));reason.required=true;reason.maxLength=2000;reason.rows=3;
+      const citationSource=field(controls,'Источник цитаты туриста',select({'0':'Без цитаты',...Object.fromEntries(x.request_messages.filter(m=>m.sender_type==='customer'&&!m.text_truncated&&!m.media_unread&&!m.selections_link_unread).map(m=>[m.id,'Реплика #'+m.id]))}));
+      const sourceText=node('p');sourceText.className='usageText usageAssessmentSource';controls.appendChild(sourceText);
+      const quote=field(controls,'Точная цитата из сохранённой реплики',node('textarea'));quote.maxLength=1000;quote.rows=2;
+      const save=node('button','Сохранить оценку');save.type='submit';save.className='usageReview';controls.appendChild(save);form.appendChild(controls);
+      const note=node('p');note.className='usageCaseStatus';note.setAttribute('role','status');note.setAttribute('aria-live','polite');form.appendChild(note);
+      const reconcile=node('button','Проверить сохранение');reconcile.type='button';reconcile.className='usageReview';reconcile.hidden=true;form.appendChild(reconcile);panel.appendChild(form);
+      function sync(){const peer=phase.value==='adjudication';classification.hidden=peer;verdict.parentElement.hidden=!peer;
+        if(kind.value!=='meaning'){dimension.value='none';effect.value='unknown'}else if(dimension.value==='none')dimension.value='last_question';
+        dimension.disabled=kind.value!=='meaning';effect.disabled=kind.value!=='meaning'||!x.can_judge_effect;
+        for(const option of effect.options)option.disabled=option.value!=='unknown'&&!x.can_judge_effect;
+        for(const option of kind.options)option.disabled=option.value!=='unassessable'&&(!x.pair_available||((option.value==='unchanged')===x.pair_changed));
+        const confirm=verdict.querySelector('option[value="confirm"]');confirm.disabled=!x.can_judge_effect||r.candidate?.data.kind!=='meaning'||r.candidate?.data.effect==='unknown';if(confirm.disabled&&verdict.value==='confirm')verdict.value='insufficient_context';
+        const required=peer?verdict.value==='confirm':effect.value!=='unknown';quote.required=required;
+        sourceText.textContent=x.request_messages.find(m=>String(m.id)===citationSource.value)?.text||'';
+      }
+      for(const e of [phase,kind,dimension,effect,verdict,citationSource])e.onchange=sync;sync();
+      const errorText={conflict:'Другой владелец уже сохранил оценку. Закройте и снова откройте разбор.',case_changed:'Ответ изменился. Обновите журнал перед разбором.',comparison_changed:'Исходное сравнение изменилось. Обновите журнал.',candidate_changed:'Оценка для проверки изменилась. Откройте разбор заново.',independent_owner_required:'Нужен другой владелец, который не создавал оценку и не отправлял ответ.',invalid_citation:'Выберите сохранённую реплику туриста и вставьте точную цитату.',effect_unassessable:'Недостаточно исходных данных для оценки пользы.',invalid_assessment:'Проверьте вид правки, причину и оценку пользы.'};
+      async function refresh(receipt){const viewer=actor,turn=serial;const next=await request('assessment_read',{message_id:c.message_id,case_revision:c.case_revision,...(receipt?{operation_id:receipt}:{})});
+        if(!alive(viewer,turn))return null;if(!valid(next))return null;return next;}
+      reconcile.onclick=async()=>{if(!pending||working)return;working=true;note.textContent='Проверяем сохранение…';const next=await refresh(pending.operation_id);working=false;if(!open||!article.isConnected)return;
+        if(!next){note.textContent='Состояние не подтверждено. Повторите проверку сохранения.';return}
+        if(next.operation?.found){render(next);return}
+        if(next.version!==pending.version||next.snapshot.comparison_sha256!==pending.comparison_sha256){controls.disabled=true;reconcile.hidden=true;note.textContent='Сравнение или оценка изменились. Откройте разбор заново.';return}
+        controls.disabled=false;reconcile.hidden=true;pending=null;note.textContent='Операция не найдена. Можно проверить форму и сохранить снова.';
+      };
+      form.onsubmit=async e=>{e.preventDefault();if(working||pending)return;
+        const data={reason:reason.value,citation:citationSource.value==='0'&&!quote.value.trim()?null:{message_id:Number(citationSource.value),quote:quote.value}};
+        if(phase.value==='proposal')Object.assign(data,{kind:kind.value,dimension:dimension.value,effect:effect.value});else data.verdict=verdict.value;
+        pending={message_id:c.message_id,case_revision:c.case_revision,version:r.version,comparison_sha256:x.comparison_sha256,operation_id:crypto.randomUUID().replaceAll('-',''),phase:phase.value,target_version:phase.value==='adjudication'?r.candidate.version:0,data};
+        const viewer=actor,turn=serial;working=true;controls.disabled=true;note.textContent='Сохраняем оценку…';
+        const saved=await request('assessment_save',pending);if(!alive(viewer,turn))return;working=false;
+        if(bound(saved)&&Number.isSafeInteger(saved.saved_version)&&saved.saved_version===r.version+1){const next=await refresh(pending.operation_id);if(!next){reconcile.hidden=false;note.textContent='Сохранение принято. Проверьте итоговое состояние.';return}render(next);return}
+        if(errorText[saved.error]){pending=null;controls.disabled=false;note.textContent=errorText[saved.error];note.classList.add('error');return}
+        reconcile.hidden=false;note.textContent='Результат сохранения неизвестен. Проверьте его перед новой попыткой.';
+      };
+    }
+    toggle.onclick=async()=>{
+      if(open){if(pending||working)return;open=false;serial++;panel.hidden=true;panel.replaceChildren();toggle.textContent='Разобрать правку';toggle.setAttribute('aria-expanded','false');return}
+      open=true;const turn=++serial,viewer=actor;panel.hidden=false;panel.replaceChildren(node('p','Загружаем исходное сравнение…'));toggle.textContent='Закрыть разбор';toggle.setAttribute('aria-expanded','true');
+      const r=await request('assessment_read',{message_id:c.message_id,case_revision:c.case_revision});if(!alive(viewer,turn))return;
+      if(!valid(r)){panel.replaceChildren(node('p',r.error==='case_changed'?'Ответ изменился. Обновите журнал.':'Разбор недоступен. Закройте и откройте его заново.'));return}render(r);
+    };
+    return area;
+  }
+
   function renderCase(c){
     const article=node('article');article.className='usageCase';article.dataset.usageCase=String(c.message_id);
     const header=node('div');header.className='usageCaseHeader';const person=node('div'),name=node('strong',c.display_name||'Турист');name.className='usagePerson';person.appendChild(name);
@@ -234,6 +317,7 @@
     if(c.current_sent_text_truncated){const p=node('p','Показана часть ответа. Полный текст — в переписке.');p.className='usageCaveat';sent.appendChild(p)}comparison.appendChild(sent);article.appendChild(comparison);
     if(c.reason){const reason=node('p','Почему AI предложил этот ответ: '+c.reason);reason.className='usageReason';article.appendChild(reason)}
     article.appendChild(inputViewer(c,article));
+    article.appendChild(assessmentViewer(c,article));
     const footer=node('div');footer.className='usageCaseFooter';const link=node('a','Открыть переписку ↗');link.href='/manager2/#conversation='+c.conversation_id;link.target='_blank';link.rel='noopener';footer.appendChild(link);
     const review=node('button',c.reviewed?'Просмотрено':'Отметить просмотренным');review.type='button';review.className='usageReview'+(c.reviewed?' done':'');review.disabled=c.reviewed;footer.appendChild(review);
     const note=node('p',c.updated_since_review?'Сравнение изменилось после предыдущего просмотра.':'');note.className='usageCaseStatus';note.setAttribute('role','status');note.setAttribute('aria-live','polite');footer.appendChild(note);

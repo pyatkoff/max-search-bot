@@ -182,6 +182,115 @@ if($baselineClass!==null)usageCheck('large integer cutoffs equal exact installed
 $pdo->beginTransaction();$insert=$pdo->prepare('INSERT INTO messages VALUES(?,?,?,?,?,?,?,?,?)');for($i=0;$i<1005;$i++)$insert->execute([20000+$i,101,'outbound','manager','7','telegram','Synthetic','{"ai_draft":{"draft_id":"bad"}}','2026-10-25 11:00:00']);$pdo->commit();
 $limited=$read();usageCheck('scan limit is explicit and keyset cursor advances over unusable records',$limited['ok']&&$limited['items']===[]&&$limited['scan_limited']&&$limited['has_more']&&is_string($limited['next_cursor']));
 $afterLimit=$read(['cursor'=>$limited['next_cursor']]);usageCheck('continuation reaches lower valid applications after unusable page',$afterLimit['ok']&&count($afterLimit['items'])===20&&$afterLimit['items'][0]['message_id']===10046);
+// A bounded semantic review of the initial actual send, separate from viewed marks.
+$pdo->exec('DELETE FROM manager_projects WHERE manager_id=2 AND project_id=1');
+ManagerAiUsageFixture::correctionCase($pdo);
+function assessmentCase(PDO $pdo,DateTimeImmutable $now): array{
+    $m=$pdo->query("SELECT m.*,c.project_key,c.channel AS conversation_channel FROM messages m JOIN conversations c ON c.id=m.conversation_id WHERE m.id=10040")->fetch();
+    $d=$pdo->query("SELECT * FROM manager_ai_drafts WHERE conversation_id=140")->fetch();
+    return ManagerAiDraftFeedbackReport::inspectUsage($m,$d,'anytour',$now);
+}
+$ac=assessmentCase($pdo,$now);
+$assess=static fn(array $input=[],int $actor=1,bool $write=false)=>ManagerAiUsageService::assessment($actor,['message_id'=>10040,'case_revision'=>$ac['case_revision']]+$input,$write,$now);
+$a=$assess();$ab=$business();$reviewCount=(int)$pdo->query('SELECT COUNT(*) FROM manager_ai_usage_reviews')->fetchColumn();
+usageCheck('assessment reads frozen initial pair and full request without grading it',$a['ok']&&$a['version']===0&&$a['candidate']===null&&!$a['case_improvement_confirmed']&&$a['snapshot']['can_judge_effect']&&$a['snapshot']['pair_changed']&&str_contains($a['snapshot']['request_messages'][0]['text'],'без перелёта'));
+$command=static fn(array $state,array $changes=[])=>array_replace(['version'=>$state['version'],'comparison_sha256'=>$state['snapshot']['comparison_sha256'],'operation_id'=>bin2hex(random_bytes(16)),'phase'=>'proposal','target_version'=>0,
+    'data'=>['kind'=>'meaning','dimension'=>'last_question','effect'=>'better','reason'=>'Ответ добавляет реакцию на вопрос о варианте без перелёта, сохраняя неизвестные условия.','citation'=>['message_id'=>1040,'quote'=>'А без перелёта можно?']]],$changes);
+$c=$command($a);$saved=$assess($c,1,true);
+usageCheck('substantive correction is a candidate rather than a confirmed improvement',$saved['ok']&&$saved['saved_version']===1&&!$assess()['case_improvement_confirmed']);
+usageCheck('same immutable command is idempotent after a lost response',$assess($c,1,true)['replayed']&&(int)$pdo->query('SELECT COUNT(*) FROM manager_ai_usage_assessments')->fetchColumn()===1);
+$changed=$c;$changed['data']['reason']='Another judgement';usageCheck('operation identity cannot be reused for different content',$assess($changed,1,true)['error']==='operation_mismatch');
+usageCheck('operation receipt is readable only within fresh owner scope',$assess(['operation_id'=>$c['operation_id']])['operation']===['found'=>true,'saved_version'=>1]&&$assess(['operation_id'=>$c['operation_id']],5)['operation']['found']===false&&$assess([],2)['error']==='forbidden');
+$a=$assess();$decision=$command($a,['phase'=>'adjudication','target_version'=>1,'data'=>['verdict'=>'confirm','reason'=>'Оба вопроса видны в сохранённом вводе, ответ различает проверку условий и поиск дат.','citation'=>['message_id'=>1040,'quote'=>'после 25 октября.']]]);
+usageCheck('a classifier cannot independently confirm their own judgement',$assess($decision,1,true)['error']==='independent_owner_required');
+$pdo->exec("UPDATE managers SET role='admin' WHERE id=7;INSERT INTO manager_projects VALUES(7,1)");
+usageCheck('the original sending manager cannot independently confirm the correction',$assess($decision,7,true)['error']==='independent_owner_required');
+$pdo->exec("UPDATE managers SET role='manager' WHERE id=7;DELETE FROM manager_projects WHERE manager_id=7");
+$foreign=$decision;$foreign['data']['citation']['quote']='Цена уже подтверждена';
+usageCheck('independent judgement requires a literal frozen customer citation',$assess($foreign,5,true)['error']==='invalid_citation');
+$confirmed=$assess($decision,5,true);$a=$assess();
+usageCheck('different current owner confirms only the exact candidate and frozen case',$confirmed['ok']&&$a['decision']['manager_id']===5&&$a['candidate']['manager_id']===1&&$a['case_improvement_confirmed']&&$a['version']===2);
+$race=$decision;$race['operation_id']=bin2hex(random_bytes(16));$race['data']['verdict']='reject';
+usageCheck('a second stale writer cannot overwrite an intervening judgement',$assess($race,5,true)['error']==='conflict'&&(int)$pdo->query('SELECT COUNT(*) FROM manager_ai_usage_assessments')->fetchColumn()===2);
+$style=$command($a,['data'=>['kind'=>'style','dimension'=>'none','effect'=>'better','reason'=>'Стало вежливее','citation'=>null]]);
+usageCheck('style alone cannot be counted as an answer-quality improvement',$assess($style,1,true)['error']==='invalid_assessment');
+$style['data']['effect']='unknown';usageCheck('style judgement saves independently of substantive improvement',$assess($style,1,true)['ok']&&!$assess()['case_improvement_confirmed']);
+$a=$assess();$bad=$command($a);$bad['data']['citation']['message_id']=1041;
+usageCheck('a current or foreign source cannot replace the frozen request citation',$assess($bad,1,true)['error']==='invalid_citation');
+$c=$command($a);usageCheck('a fresh substantive candidate supersedes earlier judgements',$assess($c,1,true)['ok']&&$assess()['decision']===null);
+$a=$assess();$oldHash=$a['snapshot']['comparison_sha256'];$oldRev=$ac['case_revision'];
+$meta=json_decode($pdo->query('SELECT metadata_json FROM messages WHERE id=10040')->fetchColumn(),true);$meta['edited_at']='2026-10-25 11:00:00';
+$pdo->prepare('UPDATE messages SET text=?,metadata_json=? WHERE id=10040')->execute(['Later unrelated edit',json_encode($meta)]);$ac=assessmentCase($pdo,$now);
+usageCheck('stale visible case revision cannot assess a later displayed message',ManagerAiUsageService::assessment(1,['message_id'=>10040,'case_revision'=>$oldRev],false,$now)['error']==='case_changed');
+$assess=static fn(array $input=[],int $actor=1,bool $write=false)=>ManagerAiUsageService::assessment($actor,['message_id'=>10040,'case_revision'=>$ac['case_revision']]+$input,$write,$now);
+$a=$assess();usageCheck('later edits retain the independent immutable comparison and its candidate',$a['ok']&&$a['snapshot']['comparison_sha256']===$oldHash&&$a['candidate']['version']===4&&!str_contains($a['snapshot']['initial_sent_text'],'Later'));
+$pdo->prepare('UPDATE messages SET text=? WHERE id=1040')->execute(['A changed source question']);
+usageCheck('today source question cannot replace the original model input',$assess()['snapshot']['request_messages'][0]['text']==='А без перелёта можно? И ещё посмотрите даты после 25 октября.');
+usageCheck('assessment commands change neither business rows nor viewed markers',array_slice($ab,1)===array_slice($business(),1)&&(int)$pdo->query('SELECT COUNT(*) FROM manager_ai_usage_reviews')->fetchColumn()===$reviewCount);
+$draft40=str_pad(dechex(40),32,'0',STR_PAD_LEFT);$pdo->prepare('UPDATE manager_ai_drafts SET preparation_job_id=? WHERE draft_id=?')->execute([str_repeat('e',64),$draft40]);
+$a=$assess();usageCheck('prepared worker input remains unknown and invalidates the prior candidate',$a['ok']&&!$a['snapshot']['can_judge_effect']&&$a['snapshot']['input_reason']==='prepared_input_not_captured'&&$a['candidate']===null&&$a['history'][0]['stale']);
+$c=$command($a);usageCheck('unknown prepared input cannot support a positive or negative effect judgement',$assess($c,1,true)['error']==='effect_unassessable');
+$c['data']['effect']='unknown';$c['data']['citation']=null;usageCheck('textual meaning change can be described without claiming improvement',$assess($c,1,true)['ok']);
+$a=$assess();$c=$command($a,['phase'=>'adjudication','target_version'=>$a['candidate']['version'],'data'=>['verdict'=>'confirm','reason'=>'Второе мнение','citation'=>['message_id'=>1040,'quote'=>'А без перелёта можно?']]]);
+usageCheck('another owner cannot turn missing input into a confirmed improvement',$assess($c,5,true)['error']==='effect_unassessable');
+$c['data']['verdict']='insufficient_context';$c['data']['citation']=null;usageCheck('independent reviewer can explicitly retain insufficient context',$assess($c,5,true)['ok']&&!$assess()['case_improvement_confirmed']);
+$pdo->prepare('UPDATE manager_ai_drafts SET preparation_job_id=NULL WHERE draft_id=?')->execute([$draft40]);
+$iq=$pdo->prepare('SELECT input_json,input_sha256 FROM manager_ai_draft_inputs WHERE draft_id=?');$iq->execute([$draft40]);$full=$iq->fetch();$iq->closeCursor();$iv=json_decode($full['input_json'],true);
+foreach(['history_incomplete','media_unread','selections_link_unread','message_media','message_selection','images'] as $gap){
+    $ctx=$iv['context'];$images=[];if(str_starts_with($gap,'message_'))$ctx['messages'][0][$gap==='message_media'?'media_unread':'selections_link_unread']=true;
+    elseif($gap==='images')$images=[['type'=>'input_image','image_url'=>'data:image/png;base64,YWJj','detail'=>'high']];else$ctx[$gap]=true;
+    $partial=ManagerAiDraftInputEvidence::capture($ctx,$iv['instructions'],$images);if(!$partial)throw new RuntimeException('partial_fixture_invalid');
+    $pdo->prepare('UPDATE manager_ai_draft_inputs SET input_json=?,input_sha256=? WHERE draft_id=?')->execute([$partial->json(),$partial->hash(),$draft40]);
+    $pa=$assess();$pc=$command($pa);usageCheck('incomplete frozen coverage cannot support effect: '.$gap,$pa['ok']&&$pa['snapshot']['input_available']&&!$pa['snapshot']['can_judge_effect']&&$assess($pc,1,true)['error']==='effect_unassessable');
+}
+$pdo->prepare('UPDATE manager_ai_draft_inputs SET input_json=?,input_sha256=? WHERE draft_id=?')->execute([$full['input_json'],$full['input_sha256'],$draft40]);
+$pdo->prepare('UPDATE manager_ai_draft_inputs SET input_sha256=? WHERE draft_id=?')->execute([str_repeat('0',64),$draft40]);
+$a=$assess();usageCheck('corrupt input is unavailable rather than reconstructed',$a['ok']&&!$a['snapshot']['input_available']&&$a['snapshot']['input_reason']==='invalid_evidence');
+if($pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'){
+    // Two actual PHP processes contend on the same canonical message lock.
+    $state=$assess();$rc=$command($state);$rc['data']['effect']='unknown';$rc['data']['citation']=null;
+    $child= <<<'PHP'
+require $argv[1];
+$p=new PDO(getenv('MANAGER_AI_USAGE_MYSQL_DSN'),getenv('MANAGER_AI_USAGE_MYSQL_USER'),getenv('MANAGER_AI_USAGE_MYSQL_PASSWORD'),[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC,PDO::ATTR_EMULATE_PREPARES=>false]);
+(new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$p);ProjectConfig::resetForTests(['id'=>'anytour','brand'=>['name'=>'AnyTour']]);
+$in=json_decode(stream_get_contents(STDIN),true,64,JSON_THROW_ON_ERROR);echo "READY\n";flush();
+$r=ManagerAiUsageService::assessment($in['actor'],$in['command'],true,new DateTimeImmutable('2026-10-25 12:00:00',new DateTimeZone('UTC')));echo json_encode($r,JSON_THROW_ON_ERROR)."\n";
+PHP;
+    $pdo->beginTransaction();$pdo->query('SELECT id FROM messages WHERE id=10040 FOR UPDATE')->fetch();$children=[];
+    try{
+        foreach([1,5] as $raceActor){$cmd=$rc;$cmd['operation_id']=bin2hex(random_bytes(16));$cmd['message_id']=10040;$cmd['case_revision']=$ac['case_revision'];
+            $proc=proc_open([PHP_BINARY,'-r',$child,dirname(__DIR__).'/services/ManagerAiUsageService.php'],[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes);
+            if(!is_resource($proc))throw new RuntimeException('race_child_failed');stream_set_timeout($pipes[1],10);stream_set_timeout($pipes[2],10);
+            fwrite($pipes[0],json_encode(['actor'=>$raceActor,'command'=>$cmd],JSON_THROW_ON_ERROR));fclose($pipes[0]);$children[]=[$proc,$pipes];
+        }
+        foreach($children as [$proc,$pipes])if(trim((string)fgets($pipes[1]))!=='READY')throw new RuntimeException('race_child_not_ready');
+        $pdo->commit();$results=[];foreach($children as [$proc,$pipes]){$raw=stream_get_contents($pipes[1]);$err=stream_get_contents($pipes[2]);fclose($pipes[1]);fclose($pipes[2]);$exit=proc_close($proc);if($exit!==0||$err!=='')throw new RuntimeException('race_child_execution_failed');$results[]=json_decode($raw,true,64,JSON_THROW_ON_ERROR);}$children=[];
+        usageCheck('native concurrent owners produce one immutable winner and one CAS conflict',count(array_filter($results,static fn($r)=>!empty($r['ok'])))===1&&count(array_filter($results,static fn($r)=>($r['error']??null)==='conflict'))===1&&$assess()['version']===$state['version']+1);
+    }finally{if($pdo->inTransaction())$pdo->rollBack();foreach($children as [$proc,$pipes]){proc_terminate($proc);foreach($pipes as $pipe)if(is_resource($pipe))fclose($pipe);proc_close($proc);}}
+}
+$pdo->exec('DELETE FROM manager_projects WHERE manager_id=5');usageCheck('revoked current owner cannot read or adjudicate private assessments',$assess([],5)['error']==='forbidden'&&$assess($c,5,true)['error']==='forbidden');
+$corruptVersion=(int)$pdo->query('SELECT MAX(version) FROM manager_ai_usage_assessments WHERE message_id=10040')->fetchColumn();
+$pdo->prepare("UPDATE manager_ai_usage_assessments SET assessment_sha256='broken' WHERE message_id=10040 AND version=?")->execute([$corruptVersion]);
+usageCheck('corrupt immutable assessment fails closed',$assess()['error']==='unavailable');
+if($pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'){
+    $count=(int)$pdo->query('SELECT COUNT(*) FROM manager_ai_usage_assessments')->fetchColumn();
+    $pdo->exec(file_get_contents(dirname(__DIR__).'/migrations/081_manager_ai_usage_assessments.sql'));
+    usageCheck('native081 migration retry preserves existing private assessments',(int)$pdo->query('SELECT COUNT(*) FROM manager_ai_usage_assessments')->fetchColumn()===$count);
+    $duplicate=false;try{$pdo->exec('INSERT INTO manager_ai_usage_assessments SELECT message_id,version+100,draft_id,manager_id,operation_id,request_sha256,comparison_sha256,phase,target_version,assessment_json,assessment_sha256,created_at FROM manager_ai_usage_assessments WHERE message_id=10040 AND version=1');}catch(PDOException $e){$duplicate=($e->errorInfo[0]??null)==='23000'&&(int)($e->errorInfo[1]??0)===1062;}
+    usageCheck('native081 actor-operation uniqueness prevents a second immutable command',$duplicate&&(int)$pdo->query('SELECT COUNT(*) FROM manager_ai_usage_assessments')->fetchColumn()===$count);
+    $m38=$pdo->query('SELECT m.*,c.project_key,c.channel AS conversation_channel FROM messages m JOIN conversations c ON c.id=m.conversation_id WHERE m.id=10038')->fetch();
+    $d38=$pdo->query('SELECT * FROM manager_ai_drafts WHERE conversation_id=138')->fetch();$c38=ManagerAiDraftFeedbackReport::inspectUsage($m38,$d38,'anytour',$now);
+    $base38=['message_id'=>10038,'case_revision'=>$c38['case_revision']];$v38=ManagerAiUsageService::assessment(1,$base38,false,$now);
+    $s38=ManagerAiUsageService::assessment(1,$base38+['version'=>$v38['version'],'comparison_sha256'=>$v38['snapshot']['comparison_sha256'],'operation_id'=>bin2hex(random_bytes(16)),'phase'=>'proposal','target_version'=>0,
+        'data'=>['kind'=>'unassessable','dimension'=>'none','effect'=>'unknown','reason'=>'Исходный ввод недоступен; синтетическая проверка хранения.','citation'=>null]],true,$now);
+    usageCheck('native081 separate canonical fixture can retain unknown judgement',$s38['ok']&&$s38['saved_version']===1);
+    $pdo->exec('DELETE FROM messages WHERE id=10040');
+    usageCheck('native081 initial message retention cascades to all its assessment versions',(int)$pdo->query('SELECT COUNT(*) FROM manager_ai_usage_assessments WHERE message_id=10040')->fetchColumn()===0);
+    $pdo->prepare('DELETE FROM manager_ai_drafts WHERE draft_id=?')->execute([$d38['draft_id']]);
+    usageCheck('native081 draft retention cascades without deleting another message',(int)$pdo->query('SELECT COUNT(*) FROM manager_ai_usage_assessments WHERE message_id=10038')->fetchColumn()===0&&(int)$pdo->query('SELECT COUNT(*) FROM messages WHERE id=10038')->fetchColumn()===1);
+}
+$pdo->exec('DROP TABLE manager_ai_usage_assessments');usageCheck('missing assessment migration never creates tables or changes old lists',ManagerAiUsageService::assessment(1,['message_id'=>10047,'case_revision'=>$updated['case_revision']],false,$now)['error']==='unavailable'&&$read()['ok']);
+
 $pdo->exec('DROP TABLE manager_ai_sent_texts');usageCheck('missing original text storage is explicit without changing lists',ManagerAiUsageService::sentText(1,10047,$updated['case_revision'],$now)['reason']==='storage_unavailable'&&$read()['ok']);
 $pdo->exec('DROP TABLE manager_ai_draft_inputs');
 usageCheck('missing input storage is explicit and never reconstructed or created at runtime',

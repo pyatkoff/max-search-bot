@@ -81,6 +81,43 @@ final class ManagerAiUsageService
         return self::evidence($actor,$messageId,$revision,$now,'sent_text');
     }
 
+    /** The same canonical historical-send and current owner scope, with no chat writes. */
+    public static function assessment(int $actor,array $input,bool $write=false,?DateTimeImmutable $now=null): array
+    {
+        $messageId=$input['message_id']??null;$revision=$input['case_revision']??null;
+        if(!is_int($messageId)||$messageId<=0||!is_string($revision)||preg_match('/\A[a-f0-9]{64}\z/D',$revision)!==1
+            ||(isset($input['operation_id'])&&(!is_string($input['operation_id'])||preg_match('/\A[a-f0-9]{32}\z/D',$input['operation_id'])!==1)))return self::error('invalid_request');
+        $pdo=null;$started=false;$now=$now??new DateTimeImmutable('now',new DateTimeZone('UTC'));
+        try{
+            ProjectAccessService::initializeReadOnly();$pdo=ConversationDb::connection();
+            if($pdo->inTransaction())return self::error('unavailable');
+            $scopes=self::ownerScopes($actor);if(!$scopes)return self::error('forbidden');
+            if($pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'){
+                $pdo->exec('SET TRANSACTION ISOLATION LEVEL '.($write?'READ COMMITTED':'REPEATABLE READ'));
+                if(!$write)$pdo->exec('SET TRANSACTION READ ONLY');
+            }
+            $pdo->beginTransaction();$started=true;$lock=$write&&$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?' FOR UPDATE':'';
+            if($write){$q=$pdo->prepare('SELECT role,is_active FROM managers WHERE id=?'.$lock);$q->execute([$actor]);$m=$q->fetch(PDO::FETCH_ASSOC);$q->closeCursor();
+                if(!$m||$m['role']!=='admin'||(int)$m['is_active']!==1)return self::error('forbidden');}
+            $args=[$actor];$predicate=ManagerSupervisorAccessService::predicate($scopes,'c',$args);$args[]=$messageId;
+            $q=$pdo->prepare(self::messageSql()." WHERE c.is_test=0 AND NOT ".InternalOwnerDialogueScope::conversationSql('c')." AND {$predicate} AND m.id=? AND m.direction='outbound' AND m.sender_type='manager'".$lock);
+            $q->execute($args);$row=$q->fetch(PDO::FETCH_ASSOC);$q->closeCursor();
+            if(!$row||!ManagerSupervisorAccessService::permits($scopes,$row))return self::error('forbidden');
+            $id=self::draftId($row['metadata_json']);$drafts=self::drafts($pdo,[$row]);$draft=$id!==null?($drafts[$id]??null):null;
+            $case=$draft?ManagerAiDraftFeedbackReport::inspectUsage($row,$draft,$row['project_key'],$now):null;
+            if(!$case)return self::error('not_found');if(!hash_equals($case['case_revision'],$revision))return self::error('case_changed');
+            require_once __DIR__.'/ManagerAiSentTextService.php';require_once __DIR__.'/ManagerAiUsageAssessmentService.php';
+            $original=($draft['preparation_job_id']??null)!==null?['available'=>false,'reason'=>'prepared_input_not_captured']:self::storedInput($pdo,$draft);
+            $snapshot=ManagerAiUsageAssessmentService::snapshot($row,$draft,$case,ManagerAiSentTextService::read($pdo,$row,$draft),$original);
+            $result=$write?ManagerAiUsageAssessmentService::save($pdo,$actor,$messageId,$snapshot,$input,$now->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s'))
+                :ManagerAiUsageAssessmentService::read($pdo,$actor,$messageId,$snapshot,$input['operation_id']??null);
+            if($scopes!==self::ownerScopes($actor))return self::error('forbidden');
+            $pdo->commit();$started=false;if($scopes!==self::ownerScopes($actor))return self::error('forbidden');
+            return ['viewer_id'=>$actor,'message_id'=>$messageId,'case_revision'=>$revision]+$result;
+        }catch(Throwable $ignored){return self::error('unavailable');}
+        finally{if($started&&$pdo instanceof PDO&&$pdo->inTransaction())$pdo->rollBack();}
+    }
+
     private static function evidence(int $actor,int $messageId,string $revision,?DateTimeImmutable $now,string $kind): array
     {
         if($messageId<=0||preg_match('/\A[a-f0-9]{64}\z/D',$revision)!==1)return self::error('invalid_request');

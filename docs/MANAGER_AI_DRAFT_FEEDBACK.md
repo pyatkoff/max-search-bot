@@ -76,8 +76,8 @@ worker replies have no captured input in this slice. In particular, opening a
 prepared preview must never relabel its newly read context as the worker's earlier
 input. The existing preparation schedule and worker save contract are unchanged.
 No automatic corpus export, learning, correction grading or instruction promotion
-is added. Initial manager text after later edits, meaning-versus-style review and
-prepared-input capture remain separate acceptance work.
+is added. Initial manager text and manual meaning-versus-style review are described
+below; prepared-worker input capture remains separate acceptance work.
 
 The optional `draft_id` on `validate` records `insert_requested_at` only after
 the ordinary fresh-context checks. It observes the explicit request, not browser
@@ -251,3 +251,60 @@ generation it is the saved-draft time; for a prepared answer it is the first
 persisted preview/provenance time, **not** the worker's preparation time. Neither
 timestamp alone proves which complete model input was used. Reading the report
 does not create a new preview, draft, review mark or customer read acknowledgement.
+
+## Substantive correction and independent case judgement
+
+Forward migration081 adds a private append-only assessment history inside the
+existing owner journal. «Разобрать правку» loads only the explicitly opened case,
+using the journal's current owner/project/source, historical send, CSRF and fresh
+session fences. Reads do not mark chat or the comparison viewed. The existing
+«Просмотрено» mark remains an observation of viewing, never quality approval.
+
+A classification distinguishes unchanged text, style, meaning and unassessable.
+Meaning changes name a dimension: trip conditions, the last question, exact
+selection, unnecessary questions, unsupported assertions or other. Their effect
+can be unknown, better, worse or mixed. A reason is required. A non-unknown effect
+requires an exact literal citation from a retained customer message in the frozen
+manual input, an available initial pair and text-only input without recorded
+history/media/selection gaps. These checks establish available evidence, not
+supplier authenticity, current prices, booking conditions or answer completeness.
+The form defaults to unknown rather than suggesting a positive judgement.
+
+The compared target is the original validated AI proposal and initial canonical
+manager send. The immutable079 receipt is preferred; an unchanged current text
+can also prove that same initial plaintext through the original send hash. A
+later edited message without a receipt remains unavailable. Original input is
+never reconstructed from current conversation text. Prepared-worker input stays
+explicitly unknown even if a manual-input row is present. Missing, corrupt,
+truncated or omitted-image input cannot support an effect judgement; describing
+a visible meaning change with unknown effect remains possible.
+
+A separate, explicit adjudication refers to a particular classification version.
+Its account must be a different currently authorized owner from both classifier
+and original sender. Confirming an effect requires its own reason and literal
+frozen-request citation. Rejection and insufficient context remain explicit.
+Two distinct authorized accounts judging one case are not proof of different
+humans, a blinded held-out comparison, statistical improvement or a company/hotel
+fact. Only a meaningful **better** candidate with a confirming independent
+judgement is labelled useful in that case. Style-only changes cannot acquire
+that label. New classifications supersede prior decisions without deleting them.
+There is no automatic instruction, knowledge or training promotion.
+
+The sequence is serialized by the canonical message lock and expected-version
+CAS. Actor-bound operation IDs are insert-only and cannot be reused with another
+command. Unknown writes disable further saves until an authorized receipt read
+establishes whether the operation committed; no automatic mutation retry occurs.
+Owner scope and displayed case revision are freshly checked. A separate comparison
+hash binds draft/proposal/input/initial text and historical scope: later current
+message edits require a fresh journal case revision but do not invalidate an
+unchanged initial pair. A changed or unavailable underlying input invalidates
+older candidates. History remains private and is deleted with message or draft;
+no runtime DDL, public counters, exports, provider work or scheduled task is added.
+
+Synthetic fixtures exercise both latest tourist questions (hotel-only possibility
+and alternative departure dates), including unconfirmed sale conditions. They
+prove the review mechanics, not natural manager use or measured answer gains.
+Keep proposal, actual linked-send, assessable-pair and independent-group
+cohorts separate. Text changes are not substantive-error counts, and a prepared
+preview-to-send interval is not measured preparation time or time saved. Existing
+blinded-control group isolation and provider-test budget rules remain unchanged.
