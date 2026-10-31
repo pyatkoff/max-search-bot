@@ -161,7 +161,7 @@ final class ModeledConversionEarlyForecast
             }
         }
         $level='unknown';
-        if(!$denied&&$status==='early_assessment'){
+        if(!$denied&&$status==='early_assessment'&&$contrary===[]){
             if($currentCounts['substantive_interest']>0)$level='substantive_request';
             // Cross-episode joins are deliberately not inferred while trip is unknown.
             // A preference is retained as evidence, not promoted to a current-trip target.

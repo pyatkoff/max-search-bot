@@ -568,7 +568,9 @@ Offer price and party never overwrite the customer's stated conditions.
 
 The saved ordinal assessment adds `early_quality` independently of its purchase
 hypothesis: a substantive request and explicit agency intent remain rule
-candidates; verified offer preferences are retained separately. While the current
+candidates; verified offer preferences are retained separately. A contrary
+signal such as explicit deferral suppresses a positive quality state even when
+earlier intent remains in the evidence history. While the current
 trip boundary is unresolved, a preference is not promoted into the current-trip
 discussion target. Resolving that boundary and free-text reactions such as a
 request for cheaper alternatives remain open. There is no new advertising goal
