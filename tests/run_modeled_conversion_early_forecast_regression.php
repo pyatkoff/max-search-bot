@@ -34,6 +34,11 @@ function modeledEarlyAssertions(callable $check):void
 {
     $p=modeledEarlyRun([['text'=>'Подберите тур в Турцию. Бюджет до 200 тысяч.']]);
     $f=$p['early_forecast'];
+    $check('early quality is a distinct non-monetary candidate with unresolved trip',
+        $f['early_quality']['state']==='substantive_request'
+        &&$f['early_quality']['trip_status']==='unknown'
+        &&!$f['early_quality']['evaluation_eligible']&&!$f['early_quality']['export_allowed']
+        &&$f['early_quality']['specific_offer_preferences']===[]);
     $check('new prefix freezes an initial ordinal assessment with no invented probability or money',
         $f['snapshot_kind']==='initial_observation'&&$f['status']==='early_assessment'
         &&$f['purchase_anywhere']['readiness_band']==='interest'&&$f['purchase_anywhere']['probability']===null
@@ -85,7 +90,44 @@ function modeledEarlyAssertions(callable $check):void
     $check('explicit deferral prevents monotonic readiness despite earlier intent',
         $p['early_forecast']['purchase_with_us']['readiness_band']==='deferred'
         &&$p['early_forecast']['current_readiness_status']==='unknown_after_contrary_signal'
+        &&$p['early_forecast']['early_quality']['state']==='unknown'
         &&in_array('deferral',$p['early_forecast']['contrary_goal_ids'],true));
+    $parts=modeledEarlyFixture([['text'=>'Подберите тур в Турцию']]);
+    $subject=$parts[0]['subject'];$at=1793002010;
+    foreach(['tour_offer_prepared','tour_offer_delivered','tour_offer_liked']as$i=>$kind){
+        $id=(string)($i+2);
+        $parts[0]['rows'][]=['journal_id'=>$id,'source_kind'=>'event','source_id'=>$id,'source_version_no'=>1,
+            'observed_at_unix'=>$at+$i*10+1,'snapshot'=>$subject+['source_kind'=>'event','source_id'=>$id,
+                'source_status'=>'present','payload_status'=>'copied','source_created_at_unix'=>$at+$i*10,
+                'source_timestamp_basis'=>'database_session_timezone_to_unix','payload'=>['event_type'=>$kind]]];
+    }
+    $refs=[];
+    foreach(['prepared','delivery','reaction']as$i=>$kind)$refs[$kind]=['journal_id'=>(string)($i+2),
+        'available_at'=>gmdate('Y-m-d\\TH:i:s\\Z',$at+$i*10+1)];
+    $parts[1]['offer_journey']=['version'=>'admitted_offer_journey_v1','offers'=>[
+        $refs+['state'=>'liked','customer_response'=>'explicit_offer_preference','snapshot'=>['is_demo'=>false],
+            'available_at'=>$refs['reaction']['available_at']]]];
+    foreach([1,2]as$i){$parts[$i]['journal_cursor']='4';$parts[$i]['source_fence_journal_id']='4';}
+    $p=ModeledConversionEarlyForecast::freeze(...$parts);
+    $check('joined saved offer preference retains exact references without promoting an unresolved trip',
+        $p['early_forecast']['early_quality']['specific_offer_preferences']===[[
+            'source_refs'=>['journal:2','journal:3','journal:4'],'available_at'=>$refs['reaction']['available_at']]]
+        &&$p['early_forecast']['early_quality']['state']==='substantive_request'
+        &&$p['early_forecast']['early_quality']['discussion_status']==='offer_preference_observed_episode_unverified'
+        &&!$p['early_forecast']['early_quality']['export_allowed']);
+    $changed=$parts;$changed[1]['offer_journey']['offers'][0]['available_at']='2099-01-01T00:00:00Z';
+    $p=ModeledConversionEarlyForecast::freeze(...$changed);
+    $check('a future offer preference cannot leak into an earlier frozen quality candidate',
+        $p['early_forecast']['early_quality']['specific_offer_preferences']===[]);
+    $changed=$parts;$changed[1]['offer_journey']['offers'][0]['reaction']['journal_id']='5';
+    $p=ModeledConversionEarlyForecast::freeze(...$changed);
+    $check('a preference outside the admitted journal prefix cannot be projected',
+        $p['early_forecast']['early_quality']['specific_offer_preferences']===[]);
+    $changed=$parts;$changed[0]['access_denied']=true;$changed[1]['access_status']='denied';
+    $p=ModeledConversionEarlyForecast::freeze(...$changed);
+    $check('denied scope suppresses both the early quality and retained offer preference',
+        $p['early_forecast']['early_quality']['state']==='unknown'
+        &&$p['early_forecast']['early_quality']['specific_offer_preferences']===[]);
     $p=modeledEarlyRun([['text'=>'Давайте бронировать этот тур'],['text'=>'Купили в другом агентстве']]);
     $check('another seller purchase excludes an early assessment and remains separate evidence',
         $p['early_forecast']['status']==='target_already_observed'
@@ -121,3 +163,4 @@ if(realpath($_SERVER['SCRIPT_FILENAME']??'')===__FILE__){
     $passed=0;$check=static function(string $name,bool $ok)use(&$passed){if(!$ok)throw new RuntimeException('FAIL '.$name);$passed++;echo 'PASS '.$name.PHP_EOL;};
     modeledEarlyAssertions($check);echo 'MODELED EARLY FORECAST PASSED '.$passed.PHP_EOL;
 }
+

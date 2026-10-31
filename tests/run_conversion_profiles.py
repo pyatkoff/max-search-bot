@@ -1011,6 +1011,77 @@ def membership_journal_receipt(identifier, event_type, occurred, recorded, obser
     return row
 
 
+class JournalOfferJourneyTests(unittest.TestCase):
+    def events(self):
+        snapshot = {"hotel": "Example hotel", "departure": "Москва", "room": "Family", "meal": "AI",
+                    "date_from": "2027-01-10", "date_to": "2027-01-17", "nights": 7, "adults": 2,
+                    "child_ages": [], "amount": "200000", "currency": "RUB", "price_basis": "party",
+                    "price_verified": False, "is_demo": False, "flights": [], "rationale": "Пляж", "compromise": ""}
+        payloads = [
+            ("tour_offer_prepared", {"schema": 1, "binding": {"project_key": "anytour", "channel": "telegram",
+                "external_chat_id": "private-chat", "external_user_id": "private-chat"},
+                "snapshot": snapshot, "token_hash": "a"*64}),
+            ("tour_offer_delivered", {"offer_id": 2, "native_mid": "private-mid", "native_chat_id": "private-chat"}),
+            ("tour_offer_liked", {"offer_id": 2})]
+        rows = []
+        for i, (kind, payload) in enumerate(payloads, 2):
+            row = journal_row(str(i)); row["source_kind"] = row["snapshot"]["source_kind"] = "event"
+            row["snapshot"]["source_created_at_unix"] += i
+            row["snapshot"]["payload"] = {"event_type": kind,
+                "actor_type": "customer" if i == 4 else "system", "payload_json": json.dumps(payload)}
+            rows.append(row)
+        return rows
+
+    def project(self, rows, denied=False):
+        doc = journal_document(*rows); doc["cases"][0]["access_denied"] = denied
+        return journal.profile(doc, J_EXTRACT)["profiles"][0]
+
+    def test_exact_delivered_offer_and_later_preference_are_joined_without_customer_facts(self):
+        rows = self.events(); p = self.project(rows)
+        offer = p["offer_journey"]["offers"][0]
+        self.assertEqual(offer["snapshot"], json.loads(rows[0]["snapshot"]["payload"]["payload_json"])["snapshot"])
+        self.assertEqual(offer["state"], "liked")
+        self.assertEqual(offer["customer_response"], "explicit_offer_preference")
+        self.assertEqual(offer["reaction"]["source_id"], "4")
+        self.assertEqual(offer["available_at"], J_REQUEST)
+        self.assertEqual(p["profile"]["prediction_features"]["facts"], {})
+        self.assertEqual(p["offer_journey"]["trip_status"], "unknown")
+        self.assertFalse(p["offer_journey"]["ad_target_eligible"])
+        for private in ("private-mid", "private-chat", "a"*64):
+            self.assertNotIn(private, json.dumps(p["offer_journey"]))
+
+    def test_preparation_silence_and_missing_delivery_are_not_rejection_or_selection(self):
+        rows = self.events()
+        for selected, state in [(rows[:1], "prepared"), (rows[:2], "delivered"), ([rows[0], rows[2]], "prepared")]:
+            offer = self.project(selected)["offer_journey"]["offers"][0]
+            self.assertEqual(offer["state"], state)
+            self.assertEqual(offer["customer_response"], "unknown")
+
+    def test_changed_actor_demo_or_chat_cannot_confirm_a_customer_choice(self):
+        for mode in ("actor", "demo", "chat", "version", "order"):
+            rows = self.events()
+            if mode == "actor": rows[2]["snapshot"]["payload"]["actor_type"] = "manager"
+            if mode == "version": rows[0]["source_version_no"] = 2
+            if mode == "order": rows[2]["snapshot"]["source_created_at_unix"] -= 10
+            if mode in ("demo", "chat"):
+                index = 0 if mode == "demo" else 1
+                data = json.loads(rows[index]["snapshot"]["payload"]["payload_json"])
+                if mode == "demo": data["snapshot"]["is_demo"] = True
+                else: data["native_chat_id"] = "different-chat"
+                rows[index]["snapshot"]["payload"]["payload_json"] = json.dumps(data)
+            p = self.project(rows)
+            self.assertFalse(any(o["reaction"] for o in p["offer_journey"]["offers"]), mode)
+        self.assertEqual(self.project(self.events(), denied=True)["offer_journey"]["offers"], [])
+
+    def test_missing_snapshot_duplicate_receipts_and_late_availability_remain_unknown(self):
+        rows = self.events()
+        self.assertEqual(self.project(rows[1:])["offer_journey"]["offers"], [])
+        duplicate = copy.deepcopy(rows[1]); duplicate["journal_id"] = duplicate["source_id"] = duplicate["snapshot"]["source_id"] = "5"
+        self.assertIsNone(self.project(rows+[duplicate])["offer_journey"]["offers"][0]["delivery"])
+        rows[2]["observed_at_unix"] += 1
+        with self.assertRaises(base.InvalidObservation): self.project(rows)
+
+
 class JournalProfileTests(unittest.TestCase):
     def context_cli(self, document):
         with tempfile.NamedTemporaryFile(mode='w', suffix='.json') as handle:
@@ -1655,3 +1726,4 @@ class RequestedConditionsTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
