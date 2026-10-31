@@ -20,9 +20,18 @@ for(const width of [390,430,768,1440])test(`profile party correction and evidenc
   const command=app.calls.find(c=>c.action==='save');expect(command.fields.party.value).toEqual({adults:2,children:1,child_ages:[12]});expect(command.fields.dates.source_id).toBe(10);expect(command.fields.budget).toBeUndefined();
   await expect(page.locator('#profileState')).toContainText('Цена, наличие и полнота условий этим не подтверждены');
   await page.locator('[data-field=party]').scrollIntoViewIfNeeded();
-  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});
+  const geometry=await page.evaluate(()=>{
+    const viewport=innerWidth,records=[];
+    for(const e of document.querySelectorAll('main,#profileApp,.profileHeaderFields,.profileFieldGrid,.profileField,label,select')){
+      const r=e.getBoundingClientRect(),s=getComputedStyle(e),visible=r.height>0;
+      if((visible&&(e.tagName==='SELECT'||e.querySelector(':scope>select')))||e.scrollWidth>e.clientWidth+1||r.right>viewport+1)records.push({tag:e.tagName,id:e.id,field:e.closest('[data-field]')?.dataset.field||'',visible,left:r.left,right:r.right,width:r.width,client:e.clientWidth,scroll:e.scrollWidth,display:s.display,columns:s.gridTemplateColumns,minWidth:s.minWidth,overflow:s.overflow,whiteSpace:s.whiteSpace});
+    }
+    records.sort((a,b)=>Number(b.visible)-Number(a.visible));
+    return {innerWidth:viewport,clientWidth:document.documentElement.clientWidth,scrollWidth:document.documentElement.scrollWidth,records:records.slice(0,32)};
+  });
   await page.screenshot({path:path.join(directory,`request-profile-${browserName}-${width}.png`),animations:'disabled',fullPage:true});
+  expect(geometry.scrollWidth,JSON.stringify(geometry)).toBeLessThanOrEqual(geometry.innerWidth);
 });
 test('stale context preserves local criteria and requires explicit sync',async({page})=>{
   app=await setupRequestProfile(page);await ready(page);await (await editField(page,'tradeoffs')).locator('[data-value=text]').fill('Можно сдвинуть вылет на день');
