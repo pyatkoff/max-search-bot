@@ -20,6 +20,11 @@ final class ArchiveResearchSemanticExtractor
     ];
 
     public static function goalIds():array{return self::GOALS;}
+    /** The same temporal fence applies before an unavailable receipt advances last. */
+    public static function hasLongObservationGap(mixed $previous,mixed $current):bool
+    {
+        return self::validTime($previous)&&self::validTime($current)&&$current-$previous>2592000;
+    }
     public static function initialState():array
     {
         return ['v'=>2,'e'=>0,'last'=>null,'p'=>'unknown','q'=>'none','qt'=>null,'qr'=>null,'qi'=>0,
@@ -66,6 +71,7 @@ final class ArchiveResearchSemanticExtractor
         }
         $clock=self::validTime($time);
         $gap=$clock&&$s['last']!==null?$time-$s['last']:null;
+        $longGap=self::hasLongObservationGap($s['last'],$time);
         if(!$clock||($gap!==null&&$gap<0)){
             $s=self::barrier($s);$flags[$clock?'reversed_clock':'unknown_time']=true;
         }
@@ -83,7 +89,7 @@ final class ArchiveResearchSemanticExtractor
         $request=$role==='customer'&&!self::deniedInterest($requestText)&&self::hit('подбер\pL*|подбор\pL*|ищ(?:у|ем)\s+(?:тур|отель)|интересу\pL*|рассматрива\pL*|(?:хочу|хотим|хотел(?:а|и)?)(?:\s+бы)?\s+(?:поехать|отдохнуть|тур)|планиру\pL*\s+(?:поездк|отпуск)|нужен\s+(?:тур|отель)', $requestText);
         if($s['e']===0&&$request){$s=self::initialState();$s['e']=1;$boundary='first_trip_request_candidate';}
         $newTrip=$role==='customer'&&!self::deniedInterest($requestText)&&self::hit('нов(?:ая|ую|ой)\s+поездк|друг(?:ая|ую)\s+поездк|следующ(?:ая|ую)\s+поездк|ещ[её]\s+од(?:ин|ну)\s+тур|для\s+(?:друзей|родителей|другой\s+пары|другой\s+семьи)|(?:ещ[её]\s+одна|другая)\s+(?:пара|семья)\s+(?:хочет|просит|планирует)|теперь\s+(?:хочу|хотим|планиру\pL*)\s+(?:поехать|отдохнуть)', $requestText);
-        $afterGap=$request&&$gap!==null&&($gap>2592000||($s['linked']&&$gap>604800));
+        $afterGap=$request&&$gap!==null&&($longGap||($s['linked']&&$gap>604800));
         if($s['last']!==null&&($newTrip||$afterGap)&&$boundary===null){
             $episode=$s['e']+1;$s=self::initialState();$s['e']=$episode;
             $boundary=$newTrip?'explicit_new_trip_candidate':'new_request_after_gap_candidate';
@@ -97,7 +103,7 @@ final class ArchiveResearchSemanticExtractor
             $s=self::barrier($s);$flags['unresolved_trip_boundary']=true;
         }
         // A gap alone never establishes a second trip.
-        if($gap!==null&&$gap>2592000)$flags['long_observation_gap']=true;
+        if($longGap)$flags['long_observation_gap']=true;
         $product=self::product($text);
         if($product!==null&&$role==='customer'){
             if($s['p']!=='unknown'&&$s['p']!==$product){

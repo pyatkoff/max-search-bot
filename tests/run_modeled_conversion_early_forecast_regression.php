@@ -30,6 +30,73 @@ function modeledEarlyFixture(array $messages):array
     return [$case,$wrapper,$document];
 }
 function modeledEarlyRun(array $messages):array{return ModeledConversionEarlyForecast::freeze(...modeledEarlyFixture($messages));}
+/** Full synthetic admitted request + canonical producer receipts + later text. */
+function modeledOfferFixture(string $reaction,array $between=[],string $query='Подберите тур в Турцию',array $after=[]):array
+{
+    $parts=modeledEarlyFixture([['text'=>$query],['role'=>'manager','text'=>'prepared'],
+        ['role'=>'manager','text'=>'delivered'],...$between,['text'=>$reaction],...$after]);
+    $snapshot=['hotel'=>'Fixture Beach A','departure'=>'Fixture city','room'=>'Standard','meal'=>'AI',
+        'date_from'=>'2026-11-10','date_to'=>'2026-11-17','amount'=>'200000','currency'=>'RUB',
+        'price_basis'=>'party','is_demo'=>false,'price_verified'=>false];
+    $data=[2=>['schema'=>1,'binding'=>['project_key'=>'anytour','channel'=>'telegram',
+        'external_chat_id'=>'7','external_user_id'=>'7'],'snapshot'=>$snapshot,'token_hash'=>str_repeat('a',64)],
+        3=>['offer_id'=>2,'native_mid'=>'synthetic-native-mid','native_chat_id'=>'7']];
+    $refs=[];
+    foreach($parts[0]['rows']as&$row){
+        $id=(int)$row['journal_id'];if(!isset($data[$id]))continue;
+        $at=$row['snapshot']['source_created_at_unix'];
+        $clock=['version'=>1,'basis'=>'server_recording_unix','unix'=>$at];
+        $row['source_kind']='event';$row['snapshot']['source_kind']='event';
+        $row['snapshot']['source_timestamp_basis']='canonical_recording_unix_v1';
+        $row['snapshot']['payload']=['event_type'=>$id===2?'tour_offer_prepared':'tour_offer_delivered',
+            'actor_type'=>'system','payload_json'=>json_encode($data[$id]+['_recorded_clock'=>$clock],JSON_THROW_ON_ERROR)];
+        $refs[$id]=['journal_id'=>(string)$id,'source_id'=>(string)$id,'source_version_no'=>1,
+            'recorded_at'=>gmdate('Y-m-d\\TH:i:s\\Z',$at),
+            'available_at'=>gmdate('Y-m-d\\TH:i:s\\Z',$row['observed_at_unix'])];
+    }
+    unset($row);
+    $parts[1]['profile']['observation_input']['evidence']=array_values(array_filter(
+        $parts[1]['profile']['observation_input']['evidence'],
+        static fn(array $e):bool=>!in_array($e['references'][0]['id'],['journal:2','journal:3'],true)));
+    $parts[1]['offer_journey']=['version'=>'admitted_offer_journey_v1','offers'=>[
+        ['snapshot'=>$snapshot,'prepared'=>$refs[2],'delivery'=>$refs[3],'reaction'=>null,
+            'state'=>'delivered','customer_response'=>'unknown','available_at'=>$refs[3]['available_at']]]];
+    return $parts;
+}
+/** Move synthetic dependencies together; recording, availability and cutoff stay coherent. */
+function modeledOfferMoveTimes(array $parts,array $deltas):array
+{
+    $clocks=[];
+    foreach($parts[0]['rows']as&$row){
+        $id=$row['journal_id'];$delta=$deltas[$id]??0;
+        $row['snapshot']['source_created_at_unix']+=$delta;$row['observed_at_unix']+=$delta;
+        if($row['source_kind']==='event'){
+            $data=json_decode($row['snapshot']['payload']['payload_json'],true,512,JSON_THROW_ON_ERROR);
+            $data['_recorded_clock']['unix']+=$delta;
+            $row['snapshot']['payload']['payload_json']=json_encode($data,JSON_THROW_ON_ERROR);
+        }
+        $clocks['journal:'.$id]=['at'=>gmdate('Y-m-d\\TH:i:s\\Z',$row['snapshot']['source_created_at_unix']),
+            'available_at'=>gmdate('Y-m-d\\TH:i:s\\Z',$row['observed_at_unix'])];
+    }
+    unset($row);
+    foreach($parts[1]['profile']['observation_input']['evidence']as&$e){
+        $clock=$clocks[$e['references'][0]['id']];
+        foreach($clock as$key=>$value)$e[$key]=$e['references'][0][$key]=$value;
+    }
+    unset($e);
+    foreach($parts[1]['offer_journey']['offers']as&$offer){
+        foreach(['prepared','delivery']as$key){
+            $clock=$clocks['journal:'.$offer[$key]['journal_id']];
+            $offer[$key]['recorded_at']=$clock['at'];$offer[$key]['available_at']=$clock['available_at'];
+        }
+        $offer['available_at']=$offer['delivery']['available_at'];
+    }
+    unset($offer);
+    $cutoff=gmdate('Y-m-d\\TH:i:s\\Z',1793003000+max($deltas));
+    $parts[1]['profile']['prediction_at']=$parts[1]['profile']['observation_input']['prediction_at']=$cutoff;
+    $parts[2]['requested_at']=$cutoff;
+    return $parts;
+}
 function modeledEarlyAssertions(callable $check):void
 {
     $p=modeledEarlyRun([['text'=>'Подберите тур в Турцию. Бюджет до 200 тысяч.']]);
@@ -39,6 +106,149 @@ function modeledEarlyAssertions(callable $check):void
         &&$f['early_quality']['trip_status']==='unknown'
         &&!$f['early_quality']['evaluation_eligible']&&!$f['early_quality']['export_allowed']
         &&$f['early_quality']['specific_offer_preferences']===[]);
+    $priceReply='Fixture Beach A дорого, найдите дешевле с таким же пляжем';
+    $parts=modeledOfferFixture($priceReply);
+    $p=ModeledConversionEarlyForecast::freeze(...$parts);$quality=$p['early_forecast']['early_quality'];
+    $check('explicit named-offer price alternative binds request delivery and text without claiming purchase',
+        $quality['state']==='specific_options_discussion'
+        &&$quality['request_offer_links'][0]['source_refs']===['journal:1','journal:2','journal:3']
+        &&$quality['specific_option_discussions'][0]['source_refs']===['journal:1','journal:2','journal:3','journal:4']
+        &&$quality['specific_option_discussions'][0]['reaction']==='price_alternative_request'
+        &&$quality['specific_option_discussions'][0]['search_continuation']==='explicit_request'
+        &&$quality['specific_option_discussions'][0]['available_at']==='2026-10-26T08:07:11Z'
+        &&$quality['trip_status']==='unknown'&&!$quality['export_allowed']&&!$quality['evaluation_eligible']
+        &&$p['contextual_signals']['goal_counts']['deferral']===0
+        &&$p['contextual_signals']['goal_counts']['payment_self_report']===0);
+    $check('reaction projection stores grounds but no hotel text native message ID or token',
+        !str_contains(json_encode($quality),'Fixture Beach A')
+        &&!str_contains(json_encode($quality),'synthetic-native-mid')
+        &&!str_contains(json_encode($quality),str_repeat('a',64)));
+    foreach(['preparation'=>[2=>2678400,3=>2678400,4=>2678400],
+        'delivery'=>[3=>2678400,4=>2678400],'reaction'=>[4=>2678400]]as$where=>$deltas){
+        $changed=modeledOfferMoveTimes($parts,$deltas);
+        $p=ModeledConversionEarlyForecast::freeze(...[...$changed,null,strtotime($changed[2]['requested_at'])]);
+        $q=$p['early_forecast']['early_quality'];
+        $check('canonical long gap ending at '.$where.' cannot promote the old request',
+            $q['specific_option_discussions']===[]&&$q['state']!=='specific_options_discussion'
+            &&($where==='reaction'||$q['request_offer_links']===[])
+            &&$p['contextual_signals']['flags']['long_observation_gap']===true);
+    }
+    $changed=modeledOfferMoveTimes($parts,[1=>2678400,2=>2678400,3=>2678400,4=>2678400]);
+    $old=modeledEarlyFixture([['text'=>'Подберите тур в Турцию']]);
+    $oldRow=$old[0]['rows'][0];$oldRow['journal_id']=$oldRow['source_id']=$oldRow['snapshot']['source_id']='5';
+    $changed[0]['rows'][]=$oldRow;$oldEvidence=$old[1]['profile']['observation_input']['evidence'][0];
+    $oldEvidence['id']='message:journal:5';$oldEvidence['references'][0]['id']='journal:5';
+    $changed[1]['profile']['observation_input']['evidence'][]=$oldEvidence;
+    foreach([1,2]as$i)$changed[$i]['journal_cursor']=$changed[$i]['source_fence_journal_id']='5';
+    $p=ModeledConversionEarlyForecast::freeze(...[...$changed,null,strtotime($changed[2]['requested_at'])]);
+    $q=$p['early_forecast']['early_quality'];
+    $check('fresh substantive request after a canonical gap anchors a later delivered offer',
+        $q['state']==='specific_options_discussion'
+        &&$q['request_offer_links'][0]['source_refs']===['journal:1','journal:2','journal:3']
+        &&$q['specific_option_discussions'][0]['source_refs']===['journal:1','journal:2','journal:3','journal:4']
+        &&$q['specific_option_discussions'][0]['current_candidate']);
+    $changed=modeledOfferMoveTimes($parts,[2=>2591990,3=>2591990,4=>2591990]);
+    $p=ModeledConversionEarlyForecast::freeze(...[...$changed,null,strtotime($changed[2]['requested_at'])]);
+    $check('exact thirty-day receipt gap preserves the existing strict canonical threshold',
+        $p['early_forecast']['early_quality']['state']==='specific_options_discussion');
+    foreach(['Да','Fixture Beach A','Fixture Beach A дорого','Дорого, найдите дешевле с таким же пляжем',
+        'Fixture Other дорого, найдите дешевле','Fixture Beach A дорога, найдите дешевле',
+        'Fixture Beach A дорого, Fixture Other хороший; найдите дешевле',
+        'Если Fixture Beach A дорого, найдите дешевле','В прошлом году Fixture Beach A дорого, найдите дешевле',
+        'Мне сказали: Fixture Beach A дорого, найдите дешевле']as$text){
+        $p=ModeledConversionEarlyForecast::freeze(...modeledOfferFixture($text));
+        $check('unqualified or ungrounded reaction stays unlinked '.hash('sha256',$text),
+            $p['early_forecast']['early_quality']['specific_option_discussions']===[]
+            &&$p['early_forecast']['early_quality']['state']!=='specific_options_discussion');
+    }
+    foreach(['missing_delivery','wrong_chat','wrong_actor','edited','scope','snapshot','future_receipt','missing_request',
+        'invalid_token','wrong_receipt_clock']as$kind){
+        $changed=$parts;
+        if($kind==='missing_delivery')$changed[1]['offer_journey']['offers'][0]['delivery']=null;
+        elseif($kind==='snapshot')$changed[1]['offer_journey']['offers'][0]['snapshot']['amount']='1';
+        elseif($kind==='future_receipt')$changed[1]['offer_journey']['offers'][0]['delivery']['available_at']='2099-01-01T00:00:00Z';
+        elseif($kind==='missing_request')$changed=modeledOfferFixture($priceReply,[],'Здравствуйте');
+        else foreach($changed[0]['rows']as&$row)if($row['journal_id']===($kind==='invalid_token'?'2':'3')){
+            if($kind==='wrong_actor')$row['snapshot']['payload']['actor_type']='customer';
+            elseif($kind==='edited')$row['source_version_no']=2;
+            elseif($kind==='scope')$row['snapshot']['customer_key']='8';
+            else{$data=json_decode($row['snapshot']['payload']['payload_json'],true);
+                if($kind==='invalid_token')$data['token_hash']='invalid';
+                elseif($kind==='wrong_receipt_clock')$data['_recorded_clock']['unix']++;
+                else$data['native_chat_id']='8';
+                $row['snapshot']['payload']['payload_json']=json_encode($data);}
+        }
+        unset($row);
+        $p=ModeledConversionEarlyForecast::freeze(...$changed);
+        $check('incomplete or changed offer chain cannot establish discussion '.$kind,
+            $p['early_forecast']['early_quality']['specific_option_discussions']===[]);
+    }
+    foreach([['text'=>'Новая поездка, теперь хочу поехать в Египет'],
+        ['text'=>'unavailable','admitted'=>false],['text'=>'unknown clock','admitted'=>false,'clock'=>false]]as$i=>$middle){
+        $p=ModeledConversionEarlyForecast::freeze(...modeledOfferFixture($priceReply,[$middle]));
+        $check('new candidate or omitted content prevents crossing delivery reaction linkage '.$i,
+            $p['early_forecast']['early_quality']['specific_option_discussions']===[]);
+    }
+    $p=ModeledConversionEarlyForecast::freeze(...modeledOfferFixture($priceReply,[],
+        'Подберите тур в Турцию',[['text'=>'Новая поездка, теперь хочу поехать в Египет']]));
+    $check('earlier discussion is retained as history but cannot promote a later request',
+        count($p['early_forecast']['early_quality']['specific_option_discussions'])===1
+        &&!$p['early_forecast']['early_quality']['specific_option_discussions'][0]['current_candidate']
+        &&$p['early_forecast']['early_quality']['state']==='substantive_request');
+    $changed=$parts;$changed[0]['access_denied']=true;$changed[1]['access_status']='denied';
+    $p=ModeledConversionEarlyForecast::freeze(...$changed);
+    $check('denied scope suppresses both request offer links and textual discussion',
+        $p['early_forecast']['early_quality']['request_offer_links']===[]
+        &&$p['early_forecast']['early_quality']['specific_option_discussions']===[]);
+    $changed=$parts;
+    foreach($changed[1]['profile']['observation_input']['evidence']as&$e)
+        if($e['references'][0]['id']==='journal:4')$e['kind']='manager_message';
+    unset($e);$p=ModeledConversionEarlyForecast::freeze(...$changed);
+    $check('manager price-alternative statement is not a customer discussion',
+        $p['early_forecast']['early_quality']['specific_option_discussions']===[]);
+    foreach([15,20]as$offset){
+        $changed=$parts;$at=1793002000+$offset;
+        foreach($changed[0]['rows']as&$row)if($row['journal_id']==='4'){
+            $row['snapshot']['source_created_at_unix']=$at;$row['observed_at_unix']=$at+1;
+        }
+        unset($row);
+        foreach($changed[1]['profile']['observation_input']['evidence']as&$e)if($e['references'][0]['id']==='journal:4'){
+            $e['at']=$e['references'][0]['at']=gmdate('Y-m-d\\TH:i:s\\Z',$at);
+            $e['available_at']=$e['references'][0]['available_at']=gmdate('Y-m-d\\TH:i:s\\Z',$at+1);
+        }
+        unset($e);$p=ModeledConversionEarlyForecast::freeze(...$changed);
+        $check('reaction before delivery or at an ambiguous same-second order stays unlinked '.$offset,
+            $p['early_forecast']['early_quality']['specific_option_discussions']===[]);
+    }
+    $changed=$parts;
+    foreach($changed[0]['rows']as&$row)if($row['journal_id']==='3')$row['observed_at_unix']=1793002100;
+    unset($row);
+    $changed[1]['offer_journey']['offers'][0]['delivery']['available_at']='2026-10-26T08:08:20Z';
+    $p=ModeledConversionEarlyForecast::freeze(...$changed);
+    $check('late actual receipt availability is retained instead of backdating to the customer reply',
+        $p['early_forecast']['early_quality']['specific_option_discussions'][0]['available_at']==='2026-10-26T08:08:20Z');
+    $changed=$parts;$extra=$changed[1]['offer_journey']['offers'][0];
+    foreach([2=>6,3=>7]as$old=>$new){
+        foreach($parts[0]['rows']as$row)if($row['journal_id']===(string)$old){$copy=$row;break;}
+        $copy['journal_id']=$copy['source_id']=$copy['snapshot']['source_id']=(string)$new;
+        $copy['snapshot']['source_created_at_unix']++;$copy['observed_at_unix']++;
+        $data=json_decode($copy['snapshot']['payload']['payload_json'],true);
+        $data['_recorded_clock']['unix']++;
+        if($old===2)$data['snapshot']['amount']='180000';else$data['offer_id']=6;
+        $copy['snapshot']['payload']['payload_json']=json_encode($data);
+        $changed[0]['rows'][]=$copy;
+        $which=$old===2?'prepared':'delivery';
+        $extra[$which]=['journal_id'=>(string)$new,'source_id'=>(string)$new,'source_version_no'=>1,
+            'recorded_at'=>gmdate('Y-m-d\\TH:i:s\\Z',$copy['snapshot']['source_created_at_unix']),
+            'available_at'=>gmdate('Y-m-d\\TH:i:s\\Z',$copy['observed_at_unix'])];
+    }
+    $extra['snapshot']['amount']='180000';$changed[1]['offer_journey']['offers'][]=$extra;
+    foreach([1,2]as$i){$changed[$i]['journal_cursor']='7';$changed[$i]['source_fence_journal_id']='7';}
+    $p=ModeledConversionEarlyForecast::freeze(...$changed);
+    $check('same named hotel across two delivered offers is ambiguous rather than arbitrarily attributed',
+        count($p['early_forecast']['early_quality']['request_offer_links'])===2
+        &&$p['early_forecast']['early_quality']['specific_option_discussions']===[]
+        &&$p['early_forecast']['early_quality']['linking_omissions']['ambiguous_named_offer']===1);
     $check('new prefix freezes an initial ordinal assessment with no invented probability or money',
         $f['snapshot_kind']==='initial_observation'&&$f['status']==='early_assessment'
         &&$f['purchase_anywhere']['readiness_band']==='interest'&&$f['purchase_anywhere']['probability']===null
