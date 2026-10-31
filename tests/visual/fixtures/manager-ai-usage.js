@@ -12,12 +12,15 @@ async function setupAiUsage(page){
     server.stdout.on('data',b=>{log+=b});server.stderr.on('data',b=>{log+=b});
     await new Promise((resolve,reject)=>{let attempts=0;const probe=()=>{if(server.exitCode!==null)return reject(Error(log));const socket=net.connect(port,'127.0.0.1');socket.once('connect',()=>{socket.destroy();resolve()});socket.once('error',()=>{socket.destroy();if(++attempts>100)reject(Error(log||'local PHP did not start'));else setTimeout(probe,20)})};probe()});
     await page.context().addCookies([{name:'anytour_manager_panel',value:fixture.session_ids['1'],domain:'127.0.0.1',path:'/manager/',httpOnly:true,sameSite:'Lax',secure:false}]);
-    const errors=[],calls=[],unexpected=[];page.on('pageerror',e=>errors.push(e.message));
+    const errors=[],calls=[],unexpected=[],inputResponses=[],heldInputs=[];page.on('pageerror',e=>errors.push(e.message));
     await page.route('**/*',async route=>{const request=route.request(),url=new URL(request.url());if(url.origin!==origin){unexpected.push(request.url());return route.abort()}
-      if(url.pathname==='/manager/ai-usage-api.php'){const input=request.postDataJSON();calls.push(input);if(!['identity','list','review'].includes(input.action)){unexpected.push(input.action);return route.abort()}}
+      if(url.pathname==='/manager/ai-usage-api.php'){
+        const input=request.postDataJSON();calls.push(input);if(!['identity','list','review','input'].includes(input.action)){unexpected.push(input.action);return route.abort()}
+        if(input.action==='input'&&inputResponses.length){const next=inputResponses.shift();if(next.hold)await new Promise(resolve=>heldInputs.push(resolve));return route.fulfill({status:next.status||200,contentType:'application/json',json:typeof next.body==='function'?next.body(input):next.body})}
+      }
       return route.continue();});
     await page.goto(origin+'/manager2/ai-usage.php');
-    return{root,origin,calls,errors,unexpected,log:()=>log,cleanup:async()=>{server.kill('SIGTERM');await new Promise(resolve=>{if(server.exitCode!==null)return resolve();server.once('exit',resolve)});fs.rmSync(directory,{recursive:true,force:true})}};
+    return{root,origin,calls,errors,unexpected,queueInput:(...responses)=>inputResponses.push(...responses),heldInputCount:()=>heldInputs.length,releaseInput:()=>heldInputs.shift()?.(),log:()=>log,cleanup:async()=>{heldInputs.splice(0).forEach(resolve=>resolve());server.kill('SIGTERM');await new Promise(resolve=>{if(server.exitCode!==null)return resolve();server.once('exit',resolve)});fs.rmSync(directory,{recursive:true,force:true})}};
   }catch(error){server?.kill('SIGTERM');fs.rmSync(directory,{recursive:true,force:true});throw error}
 }
 module.exports={setupAiUsage,root};
