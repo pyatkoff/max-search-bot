@@ -2,4 +2,11 @@
 
 .profileField summary{cursor:pointer;font-size:15px;overflow-wrap:anywhere}.profileField summary strong{margin-right:12px}.profileField summary span{display:block;font-size:13px;color:var(--muted);margin:6px 0 0 16px;white-space:pre-wrap}.profileField[open] summary{margin-bottom:20px}.profileField summary:focus-visible{outline:2px solid var(--accent);outline-offset:6px}
 
-.profileHeaderFields select,.profileField select{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Native menu-list themes can force visible overflow despite author CSS. */
+.profileHeaderFields select,.profileField select{
+  -webkit-appearance:none;appearance:none;min-height:44px;padding-right:34px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  background-image:linear-gradient(45deg,transparent 50%,#20352c 50%),linear-gradient(135deg,#20352c 50%,transparent 50%);
+  background-position:calc(100% - 15px) 50%,calc(100% - 10px) 50%;
+  background-size:5px 5px;background-repeat:no-repeat;
+}

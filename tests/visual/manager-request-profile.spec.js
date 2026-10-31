@@ -25,13 +25,15 @@ for(const width of [390,430,768,1440])test(`profile party correction and evidenc
     const viewport=innerWidth,records=[];
     for(const e of document.querySelectorAll('main,#profileApp,.profileHeaderFields,.profileFieldGrid,.profileField,label,select')){
       const r=e.getBoundingClientRect(),s=getComputedStyle(e),visible=r.height>0;
-      if((visible&&(e.tagName==='SELECT'||e.querySelector(':scope>select')))||e.scrollWidth>e.clientWidth+1||r.right>viewport+1)records.push({tag:e.tagName,id:e.id,field:e.closest('[data-field]')?.dataset.field||'',visible,left:r.left,right:r.right,width:r.width,client:e.clientWidth,scroll:e.scrollWidth,display:s.display,columns:s.gridTemplateColumns,minWidth:s.minWidth,overflow:s.overflow,whiteSpace:s.whiteSpace});
+      if((visible&&(e.tagName==='SELECT'||e.querySelector(':scope>select')))||e.scrollWidth>e.clientWidth+1||r.right>viewport+1)records.push({tag:e.tagName,id:e.id,field:e.closest('[data-field]')?.dataset.field||'',visible,left:r.left,right:r.right,width:r.width,client:e.clientWidth,scroll:e.scrollWidth,display:s.display,columns:s.gridTemplateColumns,minWidth:s.minWidth,overflow:s.overflow,whiteSpace:s.whiteSpace,appearance:s.appearance,textOverflow:s.textOverflow});
     }
     records.sort((a,b)=>Number(b.visible)-Number(a.visible));
-    return {innerWidth:viewport,clientWidth:document.documentElement.clientWidth,scrollWidth:document.documentElement.scrollWidth,records:records.slice(0,32)};
+    const control=document.getElementById('profileBoundary'),controlStyle=getComputedStyle(control);
+    return {innerWidth:viewport,clientWidth:document.documentElement.clientWidth,scrollWidth:document.documentElement.scrollWidth,boundary:{appearance:controlStyle.appearance,overflow:controlStyle.overflow,height:control.getBoundingClientRect().height},records:records.slice(0,32)};
   });
   await page.screenshot({path:path.join(directory,`request-profile-${browserName}-${width}.png`),animations:'disabled',fullPage:true});
   expect(geometry.scrollWidth,JSON.stringify(geometry)).toBeLessThanOrEqual(geometry.innerWidth);
+  expect(geometry.boundary.appearance).toBe('none');expect(geometry.boundary.height).toBeGreaterThanOrEqual(44);
 });
 test('stale context preserves local criteria and requires explicit sync',async({page})=>{
   app=await setupRequestProfile(page);await ready(page);await (await editField(page,'tradeoffs')).locator('[data-value=text]').fill('Можно сдвинуть вылет на день');
