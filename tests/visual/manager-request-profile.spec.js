@@ -7,7 +7,7 @@ async function editField(page,k){const f=field(page,k);if(!await f.evaluate(e=>e
 async function ready(page){await expect(page.locator('#profileApp')).toBeVisible();await expect(page.locator('[data-field]')).toHaveCount(12)}
 async function correction(page){await page.getByRole('button',{name:'Применить состав к черновику'}).click();await expect(field(page,'party').locator('[data-value=ages]')).toHaveValue('12')}
 async function save(page){await page.locator('#profileSave').click();await expect(page.locator('#profileStatus')).toContainText('Профиль сохранён.');await expect(page.locator('#profileSave')).toBeEnabled()}
-test.afterEach(async()=>{if(app){expect(app.errors).toEqual([]);expect(app.unexpected).toEqual([]);await app.cleanup();app=null}});
+test.afterEach(async()=>{if(app){try{expect(app.errors).toEqual([]);expect(app.unexpected).toEqual([]);for(const response of app.actualResponses){expect(response.status).toBe(200);expect(response.body.ok).toBe(true)}}finally{await app.cleanup();app=null}}});
 for(const width of [390,430,768,1440])test(`profile party correction and evidence at ${width}px`,async({page,browserName})=>{
   await page.setViewportSize({width,height:900});app=await setupRequestProfile(page);await ready(page);
   await expect(page.locator('#profileState')).toContainText('новые сообщения');
@@ -59,9 +59,12 @@ test('initial transient read failure offers a visible retry without private form
 test('failed post-save readback leaves explicit recovery available',async({page})=>{
   app=await setupRequestProfile(page);await ready(page);await correction(page);app.queue({action:'get',abort:true});await page.locator('#profileSave').click();await expect(page.locator('#profileStatus')).toContainText('Профиль сохранён, но прочитать актуальную версию не удалось');await expect(page.locator('#profileRefresh')).toBeEnabled();expect(app.calls.filter(c=>c.action==='save')).toHaveLength(1);await page.locator('#profileRefresh').click();await expect(page.locator('#profileHistory')).toContainText('Версия 2');await expect(page.locator('#profileSave')).toBeEnabled();await expect(field(page,'party').locator('[data-value=ages]')).toHaveValue('12');
 });
+test('access lost during saved-profile readback keeps the private form cleared',async({page})=>{
+  app=await setupRequestProfile(page);await ready(page);await correction(page);app.queue({action:'get',status:403,body:{ok:false,error:'forbidden'}});await page.locator('#profileSave').click();await expect(page.locator('#profileApp')).toBeHidden();await expect(page.locator('[data-field]')).toHaveCount(0);await expect(page.locator('#profileStatus')).toContainText('Доступ или аккаунт изменился');
+});
 test('edits during a successful save remain a local unsaved revision',async({page})=>{
-  app=await setupRequestProfile(page);await ready(page);await correction(page);app.queue({action:'save',actual:true,hold:true});await page.locator('#profileSave').click();await expect.poll(()=>app.heldCount()).toBe(1);
-  await (await editField(page,'rejections')).locator('[data-value=text]').fill('Отказ от Египта из-за ветра');app.release();await expect(page.locator('#profileStatus')).toContainText('Новые правки');await expect(field(page,'rejections').locator('[data-value=text]')).toHaveValue('Отказ от Египта из-за ветра');await save(page);
+  app=await setupRequestProfile(page);await ready(page);await correction(page);const cookieIdentity=async()=>(await page.context().cookies()).map(({name,value,path,domain,secure})=>({name,value,path,domain,secure}));const beforeCookies=await cookieIdentity();app.queue({action:'save',actual:true,hold:true});await page.locator('#profileSave').click();await expect.poll(()=>app.heldCount()).toBe(1);
+  await (await editField(page,'rejections')).locator('[data-value=text]').fill('Отказ от Египта из-за ветра');app.release();await expect(page.locator('#profileStatus')).toContainText('Новые правки');await expect(field(page,'rejections').locator('[data-value=text]')).toHaveValue('Отказ от Египта из-за ветра');expect(await cookieIdentity()).toEqual(beforeCookies);await save(page);
 });
 test('late refresh preserves current input; changed actor clears private DOM',async({page})=>{
   app=await setupRequestProfile(page);await ready(page);app.queue({action:'get',actual:true,hold:true});await page.locator('#profileRefresh').click();await expect.poll(()=>app.heldCount()).toBe(1);await (await editField(page,'must_have')).locator('[data-value=text]').fill('Без ночного перелёта');app.release();await expect(page.locator('#profileStatus')).toContainText('Профиль загружен');await expect(field(page,'must_have').locator('[data-value=text]')).toHaveValue('Без ночного перелёта');
