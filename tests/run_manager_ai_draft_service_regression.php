@@ -310,6 +310,100 @@ draftCheck('manual request receives the hotel policy only with the admitted grou
     $hotelResult===draftResult()&&str_contains($hotelPrompt[0],ManagerHotelKnowledge::instructions())
     &&$hotelPrompt[0]===ManagerAiDraftService::instructions($ready['context'])
     &&!str_contains(ManagerAiDraftService::instructions(),'hotel_reference —'));
+
+// Private evidence observes the exact normalized input actually used by a valid
+// generation. It is not another source reader, approval or provider call.
+$inputEvidence = null; $observedWire = []; $observationCalls = 0;
+$observeInput = static function(ManagerAiDraftInputEvidence $value) use (&$inputEvidence,&$observationCalls): void {
+    $inputEvidence = $value; ++$observationCalls;
+};
+$observedResult = ManagerAiDraftService::generate($context,
+    static function(string $instructions,array $payload,array $images) use (&$observedWire): array {
+        $observedWire = [$instructions,$payload,$images]; return draftResult();
+    }, null, null, null, null, $observeInput);
+$observedEnvelope = $inputEvidence === null ? [] : json_decode($inputEvidence->json(),true,64,JSON_THROW_ON_ERROR);
+draftCheck('valid generation observes exact provider text once after successful validation',
+    $observedResult===draftResult() && $observationCalls===1 && $inputEvidence instanceof ManagerAiDraftInputEvidence
+    && $observedEnvelope['context']===$observedWire[1] && $observedEnvelope['instructions']===$observedWire[0]
+    && $observedEnvelope['instructions_sha256']===hash('sha256',$observedWire[0])
+    && $observedEnvelope['coverage']==='text_only' && $observedEnvelope['images']===[]);
+draftCheck('evidence excludes unprojected metadata and requires the exact source window',
+    !str_contains($inputEvidence->json(),'PRIVATE_METADATA_CANARY') && !str_contains($inputEvidence->json(),'EXTERNAL_CANARY')
+    && $inputEvidence->matches(17,103,[101,102,103]) && !$inputEvidence->matches(18,103,[101,102,103])
+    && !$inputEvidence->matches(17,104,[101,102,103]) && !$inputEvidence->matches(17,103,[103])
+    && !$inputEvidence->matches(17,103,[102,101,103]) && !$inputEvidence->matches(17,103,['101',102,103]));
+$firstEvidence = $inputEvidence; $firstEvidenceJson = $firstEvidence->json();
+$returnedContext = $firstEvidence->context(); $returnedContext['messages'][0]['text'] = 'MUTATED_RETURN_VALUE';
+draftCheck('readback and returned context cannot mutate the sealed source',
+    $firstEvidence->json()===$firstEvidenceJson && $firstEvidence->context()===$observedWire[1]
+    && ManagerAiDraftInputEvidence::fromJson($firstEvidenceJson)?->json()===$firstEvidenceJson
+    && $firstEvidence->hash()===hash('sha256',$firstEvidenceJson)
+    && $firstEvidence->instructionHash()===$observedEnvelope['instructions_sha256']);
+$changedContext = $context; $changedContext['messages'][2]['text'] = 'Те же даты, но теперь на троих.';
+ManagerAiDraftService::generate($changedContext,static fn():array=>draftResult(),null,null,null,null,$observeInput);
+draftCheck('a later generation keeps its changed input without replacing the earlier evidence',
+    $observationCalls===2 && $inputEvidence!==$firstEvidence && $inputEvidence->hash()!==$firstEvidence->hash()
+    && $inputEvidence->context()['messages'][2]['text']===$changedContext['messages'][2]['text']
+    && $firstEvidence->json()===$firstEvidenceJson);
+$contextSpecificWire = [];
+ManagerAiDraftService::generate(draftContext(),
+    static function(string $instructions,array $payload) use (&$contextSpecificWire):array {
+        $contextSpecificWire=[$instructions,$payload];return draftResult();
+    },null,null,$reference,null,$observeInput);
+draftCheck('evidence captures actual conditional hotel instructions rather than the base revision',
+    $inputEvidence->instructionHash()===hash('sha256',$contextSpecificWire[0])
+    && $inputEvidence->instructionHash()!==hash('sha256',ManagerAiDraftService::instructions())
+    && json_decode($inputEvidence->json(),true,64,JSON_THROW_ON_ERROR)['instructions']===$contextSpecificWire[0]
+    && $inputEvidence->context()===$contextSpecificWire[1]);
+$imagePayload = ['type'=>'input_image','image_url'=>'data:image/png;base64,'.base64_encode('SYNTHETIC_PRIVATE_IMAGE_BYTES'),'detail'=>'high'];
+$imageWire = [];
+$photoEvidenceReader = static function(array $normalized) use ($imagePayload):array {
+    $normalized['photo_evidence']=[['status'=>'attached','kind'=>'message','message_id'=>103,'attachment'=>0,'image_index'=>1]];
+    return ['context'=>$normalized,'images'=>[$imagePayload]];
+};
+ManagerAiDraftService::generate(draftContext(),
+    static function(string $instructions,array $payload,array $images) use (&$imageWire):array {
+        $imageWire=[$instructions,$payload,$images];return draftResult();
+    },null,null,null,$photoEvidenceReader,$observeInput);
+$imageEnvelope=json_decode($inputEvidence->json(),true,64,JSON_THROW_ON_ERROR);
+draftCheck('images leave only a source-bound hash manifest and explicit replay limitation',
+    $imageEnvelope['coverage']==='images_omitted' && $imageEnvelope['context']===$imageWire[1]
+    && $imageEnvelope['images']===[['image_index'=>1,'type'=>'input_image','mime_type'=>'image/png','detail'=>'high',
+        'payload_sha256'=>hash('sha256',$imagePayload['image_url']),'payload_bytes'=>strlen($imagePayload['image_url'])]]
+    && !str_contains($inputEvidence->json(),$imagePayload['image_url'])
+    && !str_contains($inputEvidence->json(),'SYNTHETIC_PRIVATE_IMAGE_BYTES')
+    && ManagerAiDraftInputEvidence::fromJson($inputEvidence->json())?->hash()===$inputEvidence->hash());
+draftCheck('observer exceptions do not discard a valid result',
+    ManagerAiDraftService::generate(draftContext(),static fn():array=>draftResult(),null,null,null,null,
+        static function(ManagerAiDraftInputEvidence $ignored):void {throw new RuntimeException('PRIVATE_OBSERVER_FAILURE');})===draftResult());
+$observationsBefore=$observationCalls;
+$invalidObserved=draftResult();$invalidObserved['evidence_message_ids']=[999];
+ManagerAiDraftService::generate(draftContext(),static fn():array=>$invalidObserved,null,null,null,null,$observeInput);
+ManagerAiDraftService::generate(draftContext(),static fn():array=>['_error'=>'provider_unavailable'],null,null,null,null,$observeInput);
+ManagerAiDraftService::generate(draftContext(),static function():array {throw new RuntimeException('PRIVATE_FAILURE');},null,null,null,null,$observeInput);
+ManagerAiDraftService::generate([],static fn():array=>draftResult(),null,null,null,null,$observeInput);
+$preflightContext=draftContext();$preflightContext['messages'][2]['text']='Где ваш офис?';
+ManagerAiDraftService::generate($preflightContext,static function():array {throw new LogicException('must not call');},null,null,null,null,$observeInput);
+draftCheck('invalid input result provider failure and preflight never claim a generated input observation',
+    $observationCalls===$observationsBefore);
+$oversizedInput=$observedWire[1];$oversizedInput['synthetic_extra']=str_repeat('X',ManagerAiDraftInputEvidence::MAX_BYTES);
+draftCheck('oversized or invalid text evidence is rejected whole without clipping',
+    ManagerAiDraftInputEvidence::capture($oversizedInput,$observedWire[0])===null
+    && ManagerAiDraftInputEvidence::capture($observedWire[1],"invalid\xFF")===null
+    && ManagerAiDraftInputEvidence::capture($observedWire[1],$observedWire[0],[array_replace($imagePayload,['image_url'=>'https://example.invalid/private.jpg'])])===null);
+$invalidEnvelopes=[];
+$changed=$observedEnvelope;$changed['schema_version']=2;$invalidEnvelopes['future schema']=$changed;
+$changed=$observedEnvelope;$changed['instructions'].=' changed';$invalidEnvelopes['instruction digest mismatch']=$changed;
+$changed=$observedEnvelope;$changed['context']['messages'][1]['id']=101;$invalidEnvelopes['duplicate source ID']=$changed;
+$changed=$observedEnvelope;$changed['context']['as_of_message_id']=104;$invalidEnvelopes['missing latest message']=$changed;
+$changed=$imageEnvelope;$changed['coverage']='text_only';$invalidEnvelopes['hidden image omission']=$changed;
+$changed=$imageEnvelope;$changed['images'][0]['image_index']=2;$invalidEnvelopes['image position mismatch']=$changed;
+$changed=$imageEnvelope;$changed['images'][0]['payload_sha256']='invalid';$invalidEnvelopes['invalid image digest']=$changed;
+$changed=$imageEnvelope;$changed['images'][0]['image_url']=$imagePayload['image_url'];$invalidEnvelopes['copied media payload']=$changed;
+foreach($invalidEnvelopes as $name=>$value)draftCheck('persisted evidence rejects '.$name,
+    ManagerAiDraftInputEvidence::fromJson(json_encode($value,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))===null);
+draftCheck('duplicate JSON keys are rejected rather than silently rewritten',
+    ManagerAiDraftInputEvidence::fromJson(str_replace('"schema_version":1','"schema_version":2,"schema_version":1',$firstEvidenceJson))===null);
 // Synthetic approved revisions stay in memory. Production authoring bytes and
 // manifest are not mutated by integrity/expiry tests.
 $manifest=json_decode(file_get_contents(dirname(__DIR__).'/knowledge/hotels/manifest.json'),true,32,JSON_THROW_ON_ERROR);

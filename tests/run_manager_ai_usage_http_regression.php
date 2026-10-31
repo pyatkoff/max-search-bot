@@ -24,6 +24,22 @@ try{
     [$status,$identity]=usageHttpRequest($address,$fixture,1,['action'=>'identity']);usageHttpCheck('identity reuses canonical session and CSRF',$status===200&&$identity['viewer_id']===1&&$identity['csrf']==='fixture-usage-csrf');
     [$status,$r]=usageHttpRequest($address,$fixture,1,['action'=>'list','csrf'=>'wrong']);usageHttpCheck('read requires existing CSRF',$status===403&&$r['error']==='csrf');
     [$status,$r]=usageHttpRequest($address,$fixture,1,['action'=>'list','csrf'=>$identity['csrf']]);usageHttpCheck('actual endpoint returns bounded owner cases',$status===200&&count($r['items'])===20&&$r['viewer_id']===1);$case=$r['items'][0];
+    $inputRequest=['action'=>'input','csrf'=>$identity['csrf'],'message_id'=>$case['message_id'],'case_revision'=>$case['case_revision']];
+    [$status,$r,$body]=usageHttpRequest($address,$fixture,null,$inputRequest);usageHttpCheck('anonymous input read contains no frozen text',$status===401&&!str_contains($body,'Question 47'));
+    [$status,$r]=usageHttpRequest($address,$fixture,1,array_replace($inputRequest,['csrf'=>'wrong']));usageHttpCheck('input read requires CSRF',$status===403&&$r['error']==='csrf');
+    [$status,$r]=usageHttpRequest($address,$fixture,2,$inputRequest);usageHttpCheck('input read cannot cross project ownership',$status===403);
+    [$status,$r]=usageHttpRequest($address,$fixture,3,$inputRequest);usageHttpCheck('ordinary managers cannot request private input evidence',$status===403);
+    [$status,$r]=usageHttpRequest($address,$fixture,1,array_replace($inputRequest,['message_id'=>(string)$case['message_id']]));usageHttpCheck('input read requires strict numeric message identity',$status===422);
+    [$status,$r]=usageHttpRequest($address,$fixture,1,array_replace($inputRequest,['case_revision'=>str_repeat('0',64)]));usageHttpCheck('input read rejects a stale comparison',$status===409&&$r['error']==='case_changed');
+    [$status,$originalInput]=usageHttpRequest($address,$fixture,1,$inputRequest);usageHttpCheck('protected endpoint returns complete frozen text with exact caller and comparison binding',
+        $status===200&&$originalInput['available']&&$originalInput['viewer_id']===1
+        &&$originalInput['case_revision']===$case['case_revision']&&$originalInput['message_id']===$case['message_id']
+        &&$originalInput['input_evidence']['context']['messages'][0]['text']==='Question 47'
+        &&$originalInput['input_evidence']['instructions']==='Synthetic context-specific instructions');
+    $db=new PDO('sqlite:'.$fixture['database'],null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
+    $db->exec("UPDATE messages SET text='Changed source after generation' WHERE id=1047");
+    [$status,$r]=usageHttpRequest($address,$fixture,1,$inputRequest);usageHttpCheck('HTTP read never reconstructs its input from the edited source',$status===200&&$r===$originalInput);
+    usageHttpCheck('input requests do not mark a comparison reviewed',(int)$db->query('SELECT COUNT(*) FROM manager_ai_usage_reviews')->fetchColumn()===0);
     [$status,$r]=usageHttpRequest($address,$fixture,2,['action'=>'review','csrf'=>'fixture-usage-csrf','message_id'=>$case['message_id'],'case_revision'=>$case['case_revision']]);usageHttpCheck('review cannot cross current project permissions',$status===403);
     [$status,$r]=usageHttpRequest($address,$fixture,1,['action'=>'review','csrf'=>'wrong','message_id'=>$case['message_id'],'case_revision'=>$case['case_revision']]);usageHttpCheck('review requires CSRF',$status===403);
     [$status,$r]=usageHttpRequest($address,$fixture,1,['action'=>'review','csrf'=>$identity['csrf'],'message_id'=>(string)$case['message_id'],'case_revision'=>$case['case_revision']]);usageHttpCheck('review request has strict message identity',$status===422);

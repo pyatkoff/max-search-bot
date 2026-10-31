@@ -23,7 +23,8 @@ CREATE TABLE manager_customer_names(customer_id {$idType} PRIMARY KEY,working_na
 CREATE TABLE conversations(id {$idType} PRIMARY KEY,customer_id {$idType},project_key {$projectType},source_id {$idType},channel VARCHAR(20),manager_id {$idType},is_test INTEGER);
 CREATE TABLE messages(id {$idType} PRIMARY KEY,conversation_id {$idType},direction VARCHAR(20),sender_type VARCHAR(20),sender_id VARCHAR(50),channel VARCHAR(20),text TEXT,metadata_json TEXT,created_at DATETIME);
 CREATE INDEX usage_messages ON messages(conversation_id,id);
-CREATE TABLE manager_ai_drafts(draft_id CHAR(32) PRIMARY KEY,conversation_id {$idType},manager_id {$idType},project_key {$projectType},context_revision CHAR(64),instruction_revision CHAR(64),latest_message_id {$idType},proposal_json TEXT,created_at DATETIME,insert_requested_at DATETIME,preparation_job_id CHAR(64))");
+CREATE TABLE manager_ai_drafts(draft_id CHAR(32) PRIMARY KEY,conversation_id {$idType},manager_id {$idType},project_key {$projectType},context_revision CHAR(64),instruction_revision CHAR(64),latest_message_id {$idType},proposal_json TEXT,created_at DATETIME,insert_requested_at DATETIME,preparation_job_id CHAR(64));
+CREATE TABLE manager_ai_draft_inputs(draft_id CHAR(32) PRIMARY KEY,input_json MEDIUMTEXT NOT NULL,input_sha256 CHAR(64) NOT NULL)");
 if($native)$pdo->exec(file_get_contents(dirname(__DIR__,2).'/migrations/061_manager_ai_usage_reviews.sql'));
 else$pdo->exec('CREATE TABLE manager_ai_usage_reviews(manager_id INTEGER,message_id INTEGER,case_revision TEXT,reviewed_at TEXT,PRIMARY KEY(manager_id,message_id))');
 $pdo->exec("INSERT INTO projects VALUES(1,'anytour','AnyTour',1),(2,'other','Other',1);
@@ -40,8 +41,20 @@ UPDATE manager_ai_drafts SET insert_requested_at=NULL WHERE conversation_id=157;
 UPDATE manager_ai_drafts SET proposal_json='{broken' WHERE conversation_id=158;
 UPDATE messages SET metadata_json='{}' WHERE id=10059;
 UPDATE messages SET metadata_json='{".'"project_key":"anytour","attachments":[{"type":"image"}],"ai_draft":{"draft_id":"'.str_pad(dechex(60),32,'0',STR_PAD_LEFT).'","text_matches_proposal":false,"sent_text_sha256":"'.hash('sha256','Manager detail 60').'"}}'."' WHERE id=10060");$pdo->commit();
+self::captureInput($pdo,47);
 return $pdo;
     }
+public static function captureInput(PDO $pdo,int $n): ManagerAiDraftInputEvidence
+{
+    $context=['conversation_id'=>100+$n,'as_of_message_id'=>1000+$n,'history_incomplete'=>false,
+        'media_unread'=>false,'selections_link_unread'=>false,'verified_company_facts'=>[],
+        'messages'=>[['id'=>1000+$n,'sender_type'=>'customer','text'=>'Question '.$n]]];
+    $evidence=ManagerAiDraftInputEvidence::capture($context,'Synthetic context-specific instructions');
+    if($evidence===null)throw new RuntimeException('fixture_input_invalid');
+    $pdo->prepare('INSERT INTO manager_ai_draft_inputs (draft_id,input_json,input_sha256) VALUES (?,?,?)')
+        ->execute([str_pad(dechex($n),32,'0',STR_PAD_LEFT),$evidence->json(),$evidence->hash()]);
+    return $evidence;
+}
 private static function seed(PDO $p,int $n,array $changes=[]): void
 {
     $cid=$changes['cid']??100+$n;$project=$changes['project']??'anytour';$message=10000+$n;$question=1000+$n;$draft=str_pad(dechex($n),32,'0',STR_PAD_LEFT);

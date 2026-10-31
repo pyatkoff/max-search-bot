@@ -428,3 +428,99 @@ Neither mode modifies the legacy protected reservations or owns the actual
 hotel business database. Stop future hosted triggers through the existing owner
 when retiring the old rotation, after checking its exact current runs.
 
+### One explicitly authorized producer after a terminal no-work run
+
+A native run can finish HOLD before its assignment is bound. The bound
+`current_run_id` remains that real canonical run. Never overwrite it, label a
+different worker's packet with that ID, clear the claim, or use delivery repair
+as an execution retry. `started` and ordinary completion retain their original
+same-run guards.
+
+The execution-attempt ledger supports one narrowly authorized additional
+producer for an already claimed research stage. It preserves the original
+claim, canonical terminal-HOLD run, earlier UNKNOWN request history and all
+receipts. The fixed prior history is attempt 1 UNKNOWN and attempt 2 terminal
+HOLD with no work; the new permit is ordinal 3 with a total ceiling of 3.
+There is no fourth permit, refund after UNKNOWN, or nonce-based reset.
+The ledger records authenticated owner attestations; it cannot inspect native
+run history, authenticate a HOST result, cancel an external run or isolate
+hotel files.
+
+Before preparation the current owner must verify its exact saved checkpoint,
+scope, native instructions and old assignments. A writer that has already
+passed an old guard and can still write without the new admission remains a
+HOLD unless its writes are actually isolated. The fencing readback digest is
+an attestation of that check, not server proof. Do not infer isolation from
+future OFF, a null `last_run`, elapsed time, or a successful ACK.
+
+Use this order through the same existing hotel grant:
+
+1. Precommit a literal token `T` in the exact saved worker prompt and assignment.
+   Record their complete readbacks, operation, scope and owner decision. A worker
+   must use the literal token in its own received instructions. It must not adopt
+   another token or instance from a checkpoint, reservation or newly read prompt.
+   `prompt_readback_sha256` hashes the complete materialized native prompt. That
+   prompt contains literal `T`, but never its own hash. The immutable assignment
+   payload contains `T`, scope/pins and that prompt hash; its saved bytes define
+   `assignment_readback_sha256` before preparation. Do not hash the mutable whole
+   checkpoint. Permit, entry and association receipts are appended separately
+   and never change either frozen payload or digest. Current guard checks remain
+   separate from this immutable assignment evidence.
+2. Call `hotel_work_execution_attempt_preflight` with the exact queue, stage,
+   baseline, caller connection and canonical `expected_current_run_id`. Keep its
+   current state pin. An eligible metadata result does not establish native safety.
+3. `hotel_work_prepare_execution_attempt` pins that state and the retained private
+   claim key, records the two prior attempts and external readback attestations,
+   and appends the sole permit. Preparation spends that extra unit before any
+   HOST handoff. The tool does not dispatch. An identical repeat reads the prior
+   receipt; it does not authorize another dispatch.
+4. Every native invocation creates a fresh local instance `I`. Before web access,
+   hotel facts or file writes, it calls `hotel_work_enter_execution_attempt` with
+   its literal `T`, its own `I` and the exact frozen operation/scope/readback
+   digests. The existing lane and queue transaction admits one instance only.
+   A losing invocation holds and must never borrow the winner's `I`. An exact
+   repeat returns `already_entered_do_not_replay`, not a new work authorization.
+   An unknown entry result is reconciled against that same invocation; it never
+   generates another instance or returns the spent permit.
+5. The producer saves its packet and result with the exact `T/I` correlation.
+   A native run ID is not required before this entry, avoiding a bind-after-run
+   race. Before stage completion, the owner must independently read the real
+   native result and saved packet, establish their exact token/instance/packet
+   association, and call `hotel_work_bind_execution_attempt` with a fresh state
+   pin and the actual `producer_run_id`. This appends a unique association and
+   does not change canonical `current_run_id`.
+6. Complete with the actual producer ID and packet in the ordinary receipt,
+   plus `producer_association_sha256`. The server validates the winning entry,
+   immutable association, retained claim and packet under the existing locks.
+   Once a permit exists, the canonical HOLD run cannot newly complete through
+   the old branch. Another producer ID or packet conflicts. Exact historical
+   receipt readback remains idempotent.
+
+The actual winning producer can have been created by a late old HOST command
+that genuinely received the new frozen instructions. This does not establish
+which HOST request created it. Request origin can remain UNKNOWN separately;
+the audit must never relabel or erase that history. Safety depends on one
+verified cooperating producer, not a guessed request-origin marker.
+
+Accepted producer output is stored in the normal immutable research receipt
+with its real producer ID. The earlier canonical run and all attempt evidence
+remain in the append-only ledger. CENTRAL continues to require that exact
+research packet and any due criteria; a permit, ACK, association or worker
+summary alone never substitutes for independent saved-byte readback. Claim,
+delivery generations, accepted counters and the next stage's budget are not
+reset. New legacy completion, resolution, skip and authority mutations cannot
+race through an active execution permit.
+
+CENTRAL29 remains its ordinary first intake: a genuinely received pending, its
+own first claim and pre-work writer admission for the same packet. A native
+CENTRAL correlation token and WORKING CAS do not create another research
+permit, TH claim or TH `started` call. The handler must retain these separate
+stage identities and independently verify the intake's actual result.
+
+All four new tools use the existing `hotel_work:write` scope. Entry does not
+ask a worker to receive the handler's private claim key. Status exposes bounded
+canonical/producer ledger metadata, without claim secrets, callback credentials
+or hotel content. Forward migration 078 creates the audit tables; runtime does
+not create schema. Rollback must preserve and honor any recorded permit,
+entry, association and accepted receipt.
+

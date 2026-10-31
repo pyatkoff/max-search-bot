@@ -7,6 +7,7 @@ require_once __DIR__.'/ManagerCompanyKnowledge.php';
 require_once __DIR__.'/ManagerSelectionSnapshot.php';
 require_once __DIR__.'/ManagerAiDraftReferenceContext.php';
 require_once __DIR__.'/TourConsultationPolicy.php';
+require_once __DIR__.'/ManagerAiDraftInputEvidence.php';
 
 /** A pure draft use-case: no bootstrap, database, bot state, logs or delivery. */
 final class ManagerAiDraftService
@@ -17,15 +18,20 @@ final class ManagerAiDraftService
     private const ACTIONS = ['clarify','answer_question','check_offer','prepare_selection','no_contact'];
     private const PROVIDER_ERRORS = ['provider_unavailable','provider_not_configured','provider_refused','provider_incomplete','provider_timeout','provider_response_too_large'];
 
-    public static function generate(array $context, ?callable $provider = null, ?ManagerCompanyKnowledge $knowledge = null, ?callable $selectionReader = null, ?ManagerAiDraftReferenceContext $references = null, ?callable $photoReader = null): array
+    public static function generate(array $context, ?callable $provider = null, ?ManagerCompanyKnowledge $knowledge = null, ?callable $selectionReader = null, ?ManagerAiDraftReferenceContext $references = null, ?callable $photoReader = null, ?callable $inputObserver = null): array
     {
         $input = self::prepareInput($context, $knowledge, $selectionReader, $references, $photoReader);
         if (isset($input['error'])) return ['ok'=>false,'error'=>$input['error']];
         if ($input['preflight'] !== null) return $input['preflight'];
         $normalized = $input['context'];
+        $instructions = self::instructions($normalized);
+        // Seal the actual provider arguments before the call. Observation is
+        // optional provenance, and never changes generation or its result.
+        $evidence = $inputObserver === null ? null
+            : ManagerAiDraftInputEvidence::capture($normalized, $instructions, $input['images']??[]);
         $provider = $provider ?? static fn(string $instructions,array $payload,array $images):array=>ManagerDraftClient::requestJson($instructions,$payload,null,$images);
         try {
-            $result = $provider(self::instructions($normalized), $normalized, $input['images']??[]);
+            $result = $provider($instructions, $normalized, $input['images']??[]);
         } catch (Throwable $ignored) {
             return ['ok'=>false,'error'=>'provider_unavailable'];
         }
@@ -35,6 +41,9 @@ final class ManagerAiDraftService
             return ['ok'=>false,'error'=>$error];
         }
         if (!self::validResult($result,$normalized)) return ['ok'=>false,'error'=>'invalid_ai_response'];
+        if ($evidence !== null) {
+            try { $inputObserver($evidence); } catch (Throwable $ignored) { /* Optional observation only. */ }
+        }
         return $result;
     }
 

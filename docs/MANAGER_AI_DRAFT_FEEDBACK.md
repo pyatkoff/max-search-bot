@@ -13,11 +13,57 @@ checks, a separate best-effort service stores the validated eight-field proposal
 in `manager_ai_drafts` and returns a random per-generation `draft_id`. The context
 revision alone is not a proposal identity. The private row contains the actual
 manager, conversation and project, context/instruction revisions, latest source
-message ID and timestamps. Proposal JSON is bounded to 32,768 bytes; raw context,
-prompt, page HTML, external identities and provider responses are not copied.
+message ID and timestamps. Proposal JSON is bounded to 32,768 bytes. Raw database
+context, page HTML, external identities and provider responses are not copied.
+New manual generations can separately retain their normalized text input as
+described below; this does not change the proposal shape or existing counters.
 Rows follow the existing private conversation-store retention; this feature adds
 no automatic deletion, public export, scheduled capture or model training.
-Schema creation belongs only to forward migration 043.
+The proposal table is created only by forward migration 043.
+
+## Immutable manual-generation input
+
+Forward migration 078 adds private `manager_ai_draft_inputs`, one optional row
+per manual draft, deleted with its canonical draft/conversation. At the provider
+boundary, `ManagerAiDraftService` captures the exact normalized context and exact
+context-specific instructions used for that call. This includes admitted company
+facts, observed selection data and their existing coverage/verification labels.
+It is not a copy of raw source pages, a claim that an observed price is current,
+or a model-quality/send approval. The existing base-instruction hash retains its
+old meaning; the envelope separately hashes the full instructions.
+
+The observer receives evidence only after a valid provider result. The HTTP owner
+persists it only after the existing fresh session, CSRF, access and conversation
+revision checks pass. The envelope is immutable, versioned, SHA-256 checked and
+bounded to 262,144 encoded bytes. Overflow or a storage failure leaves evidence
+unavailable while preserving the usable draft and original provenance. Reads
+never rebuild an absent envelope from today's transcript or selection.
+
+Image bytes and data URLs are excluded. An image manifest retains only position,
+MIME type, detail and payload hash/size. `coverage=images_omitted` explicitly means
+the full multimodal input cannot be replayed from this evidence. `text_only`
+means all normalized text is present, not that the upstream conversation/history
+was complete. Existing normalized coverage/truncation flags remain unchanged.
+Model/runtime configuration and provider response metadata are not captured by
+this text-input slice.
+
+The existing owner-only `ai-usage-api.php` accepts a CSRF-protected `input` read
+for one actual linked `message_id` and its exact `case_revision`. It rechecks the
+same current owner/project/source scope and historical send binding as the journal,
+then returns either the validated envelope or explicit unavailability. Source
+edits cannot replace the captured text; a changed comparison requires a fresh case
+revision. This read creates no review mark, message read acknowledgement, model
+call or customer send. Ordinary journal lists and public diagnostics never include
+the envelope. A journal UI control remains a follow-up; this slice exposes the
+authorized review API and tested storage only.
+
+Historical generations, deterministic preflight replies and prepared external
+worker replies have no captured input in this slice. In particular, opening a
+prepared preview must never relabel its newly read context as the worker's earlier
+input. The existing preparation schedule and worker save contract are unchanged.
+No automatic corpus export, learning, correction grading or instruction promotion
+is added. Initial manager text after later edits, meaning-versus-style review and
+prepared-input capture remain separate acceptance work.
 
 The optional `draft_id` on `validate` records `insert_requested_at` only after
 the ordinary fresh-context checks. It observes the explicit request, not browser
