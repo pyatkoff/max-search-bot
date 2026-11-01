@@ -1,6 +1,10 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/fixtures/channel_post_entry_fixture.php';
+require_once dirname(__DIR__) . '/services/DiagnosticLogger.php';
+$diagnosticFile = tempnam(sys_get_temp_dir(), 'channel-post-entry-');
+if ($diagnosticFile === false) throw new RuntimeException('fixture_diagnostic_file_unavailable');
+DiagnosticLogger::setFile($diagnosticFile);
 [$pdo, $registry, $publications] = createChannelPostEntryFixture();
 $passed = 0; $failed = 0; $trafficFiles = []; $sent = []; $applicationMessages = [];
 function cpeCheck(string $name, $actual, $expected = true): void {
@@ -156,6 +160,67 @@ try {
     cpeCheck('deferred MAX question still points to clicked source post', $registry->managerContext((int)$owned['id'], 'anytour')['current']['publication_id'], $publications['max']['publication_id']);
     cpeCheck('deferred MAX paid IDs preserved in canonical conversation', [$afterQuestion['attribution_region'], $afterQuestion['attribution_campaign']], ['213', '714260445']);
 
+    // Start at the real publication entry, then send a normal native question.
+    // The source policy must yield to the existing manager-owned dispatcher.
+    foreach (['max', 'telegram'] as $platform) foreach (['waiting_manager', 'manager'] as $status) {
+        $user = 98775000 + $event++;
+        if ($platform === 'max') cpeStartMax($user, $publications[$platform]['start_payload'], $event++);
+        else cpeStartTelegram($user, $publications[$platform]['start_payload'], $dispatcher, $messenger, $event++);
+        $before = cpeConversation($platform, $user); $id = (int)$before['id'];
+        cpeCheck('paired post entry enters canonical queue: ' . $platform . ' / ' . $status, $before['status'], 'waiting_manager');
+        if ($status === 'manager') $pdo->prepare("UPDATE conversations SET status='manager',manager_id=7 WHERE id=?")->execute([$id]);
+        $before = cpeConversation($platform, $user);
+        $postContext = $registry->managerContext($id, 'anytour');
+        $queueEvents = cpeEventCount($id, 'waiting_manager'); $requests = cpeEventCount($id, 'manager_request');
+        $sendCount = count($sent); $appsBefore = count($applicationMessages); $resetsBefore = count(MaxSearchApi::$resets);
+        clearstatcache(true, $diagnosticFile); $logOffset = (int)filesize($diagnosticFile);
+        $text = 'А на другие даты с ребёнком?'; $nativeId = $platform === 'max' ? 'mid.paired-question.' . $user : (string)(720000 + $event++);
+        if ($platform === 'max') {
+            $incoming = MaxIncomingAdapter::fromUpdate(['update_type' => 'message_created', 'message' => ['sender' => ['user_id' => $user, 'name' => 'Fixture Tourist'], 'recipient' => ['chat_type' => 'dialog'], 'body' => ['mid' => $nativeId, 'text' => $text]]]);
+            $dispatcher->dispatch($incoming);
+        } else {
+            TelegramWebhookHandler::dispatchUpdate(['update_id' => 720000 + $event++, 'message' => ['message_id' => (int)$nativeId, 'from' => ['id' => $user, 'first_name' => 'Fixture', 'last_name' => 'Tourist'], 'chat' => ['id' => $user, 'type' => 'private'], 'text' => $text]], $dispatcher, $messenger);
+        }
+        $events = [];
+        foreach (explode("\n", (string)file_get_contents($diagnosticFile, false, null, $logOffset)) as $line) {
+            $row = json_decode($line, true);
+            if (($row['component'] ?? '') === 'incoming_dispatch') $events[] = $row['event'];
+        }
+        $after = cpeConversation($platform, $user); $label = $platform . ' / ' . $status;
+        cpeCheck('post question reaches canonical manager notification path: ' . $label, $events, ['manager_owned']);
+        cpeCheck('post question stays quiet and outside AI: ' . $label, [count($sent), count($applicationMessages), count(MaxSearchApi::$resets)], [$sendCount, $appsBefore, $resetsBefore]);
+        cpeCheck('post question preserves manager status and routing: ' . $label, [$after['manager_id'], $after['status'], $after['source_id'], $after['entry_channel']], [$before['manager_id'], $before['status'], $before['source_id'], $before['entry_channel']]);
+        cpeCheck('post question preserves exact immutable context: ' . $label, $registry->managerContext($id, 'anytour'), $postContext);
+        cpeCheck('post question creates no repeated handoff: ' . $label, [cpeEventCount($id, 'waiting_manager'), cpeEventCount($id, 'manager_request')], [$queueEvents, $requests]);
+        $messages = array_values(array_filter(cpeMessages($id), static fn($m) => $m['external_message_id'] === $nativeId));
+        cpeCheck('post question records exact native text once: ' . $label, array_map(static fn($m) => [$m['channel'], $m['direction'], $m['sender_type'], $m['text']], $messages), [[$platform, 'inbound', 'customer', $text]]);
+    }
+
+    foreach (['max', 'telegram'] as $platform) foreach (['back_check', 'tours_checked'] as $payload) {
+        $user = 98776000 + $event++; $callbacks = []; $resumedMessages = [];
+        $resumeApplication = new DialogueApplication(
+            static function ($message, $incoming) use (&$resumedMessages): void { $resumedMessages[] = $incoming; },
+            static function ($query, $incoming) use (&$callbacks): void { $callbacks[] = $incoming; }
+        );
+        $resumeDispatcher = new CpeDispatcher($resumeApplication);
+        if ($platform === 'max') cpeStartMax($user, $publications[$platform]['start_payload'], $event++);
+        else cpeStartTelegram($user, $publications[$platform]['start_payload'], $resumeDispatcher, $messenger, $event++);
+        $before = cpeConversation($platform, $user); $id = (int)$before['id'];
+        $postContext = $registry->managerContext($id, 'anytour'); $sendCount = count($sent);
+        $incoming = ['platform' => $platform, 'type' => 'callback', 'callback_data' => $payload,
+            'user' => ['chat_id' => $platform === 'max' ? -$user : $user, 'external_user_id' => $user]];
+        $resumeDispatcher->dispatch($incoming);
+        $after = cpeConversation($platform, $user); $label = $platform . ' / ' . $payload;
+        cpeCheck('explicit return keeps canonical resume behavior: ' . $label, [$after['status'], $after['manager_id'], count($callbacks), cpeEventCount($id, 'ai_resumed')], ['ai', null, 1, 1]);
+        $q = $pdo->prepare("SELECT payload_json FROM conversation_events WHERE conversation_id=? AND event_type='source_handling_choice' ORDER BY id DESC LIMIT 1"); $q->execute([$id]);
+        $choice = json_decode((string)$q->fetchColumn(), true);
+        cpeCheck('explicit return saves self-service choice before routing: ' . $label, array_intersect_key($choice, array_flip(['choice', 'reason'])), ['choice' => 'ai', 'reason' => 'handoff_back']);
+        $incoming['type'] = 'message'; unset($incoming['callback_data']); $incoming['text'] = 'Уточню новые даты'; $incoming['message_id'] = 'fixture.resumed.' . $user;
+        $resumeDispatcher->dispatch($incoming);
+        cpeCheck('message after explicit return reaches self-service once: ' . $label, $resumedMessages, [$incoming]);
+        cpeCheck('explicit return preserves post and routing without another greeting: ' . $label, [$registry->managerContext($id, 'anytour'), $after['source_id'], count($sent)], [$postContext, $before['source_id'], $sendCount]);
+    }
+
     foreach (['max', 'telegram'] as $index => $platform) {
         $user = 98774100 + $index; $owned = cpeSeed($platform, $user, 'manager', 7);
         $id = (int)$owned['id']; $payload = $publications[$platform]['start_payload'];
@@ -244,6 +309,7 @@ try {
     $failed++; echo 'FAIL  entry integration exception: ' . $error->getMessage() . PHP_EOL;
 } finally {
     foreach (array_keys($trafficFiles) as $file) { @unlink($file); @unlink($file . '.tmp'); }
+    DiagnosticLogger::setFile(''); @unlink($diagnosticFile);
     ConversationDb::resetForTests(); IntegrationRegistry::resetForTests(); ProjectConfig::resetForTests(null);
 }
 

@@ -26,7 +26,7 @@ try {
     copy($root.'/services/SourceHandlingService.php',$tmp.'/SourceHandlingService.php');
     copy($root.'/services/IncomingUpdateDispatcher.php',$tmp.'/IncomingUpdateDispatcher.php');
     require $tmp.'/IncomingUpdateDispatcher.php';
-    $app=new DialogueApplication();$dispatcher=new IncomingUpdateDispatcher($app);$checks=0;$missing=[];
+    $app=new DialogueApplication();$dispatcher=new IncomingUpdateDispatcher($app);$checks=0;$missing=[];$ownershipFailures=[];
     foreach(['max','telegram'] as $channel)foreach(['manager','waiting_manager'] as $status)foreach([['ask',true],['manager',true],['ask',false]] as [$mode,$hasChoice]){
         $pdo=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
         $pdo->exec('CREATE TABLE conversations(id INTEGER PRIMARY KEY,project_key TEXT,channel TEXT,external_chat_id TEXT,status TEXT,source_id INTEGER)');
@@ -43,18 +43,56 @@ try {
         if(!$dispatcher->dispatch($incoming)||count($app->calls)!==$before+1||end($app->calls)!==$incoming)$missing[]=$channel.'/'.$status.'/'.$mode.'/'.($hasChoice?'manager-choice':'prompted');
         if(ConversationControlService::$status!==$status||count(ManagerPushService::$calls)!==$pushes)throw new RuntimeException('Choice changed ownership or emitted generic push');
         if($pdo->query('SELECT status FROM conversations')->fetchColumn()!==$status||(int)$pdo->query('SELECT COUNT(*) FROM conversation_events')->fetchColumn()!==1||IntegrationRegistry::$calls||ManagerHandoffDispatchService::$calls)throw new RuntimeException('Choice changed source/routing state or called a provider');
-        $incoming['callback_data']='owner_preview_like_20261021';$before=count($app->calls);
-        $events=count(DiagnosticLogger::$events);
-        $dispatcher->dispatch($incoming);
-        if(count($app->calls)!==$before||ConversationControlService::$status!==$status)throw new RuntimeException('Preview callback escaped manager ownership');
-        if($channel==='telegram'&&array_slice(DiagnosticLogger::$events,$events)!==['source_handling'])throw new RuntimeException('Ordinary callback bypassed the real source policy');
-        $incoming['type']='message';$incoming['text']='Нравится';$before=count($app->calls);
-        $dispatcher->dispatch($incoming);
-        if(count($app->calls)!==$before||ConversationControlService::$status!==$status)throw new RuntimeException('Ordinary text became a specific choice');
+        $cases=[
+            ['type'=>'callback','callback_data'=>'owner_preview_like_20261021'],
+            ['type'=>'message','text'=>'Нравится','message_id'=>'synthetic-like-text'],
+            ['type'=>'message','text'=>'А на другие даты с ребёнком?','message_id'=>'synthetic-question'],
+            ['type'=>'contact','contact_phone'=>'+70000000000','message_id'=>'synthetic-contact'],
+            ['type'=>'callback','callback_data'=>'phone_manual'],
+        ];
+        foreach($cases as $case){
+            $value=$case+['platform'=>$channel,'user'=>['chat_id'=>77]];
+            $before=count($app->calls);$pushes=count(ManagerPushService::$calls);$events=count(DiagnosticLogger::$events);
+            $allowed=$status==='waiting_manager'&&($case['type']==='contact'||($case['callback_data']??'')==='phone_manual');
+            $dispatcher->dispatch($value);
+            $expectedPush=$allowed?[]:[[17,$status==='manager'?'Клиент ответил в вашем диалоге':'Новое сообщение в заявке',in_array($case['type'],['message','contact'],true)?($case['message_id']??''):'']];
+            if(count($app->calls)!==$before+($allowed?1:0)
+                ||($allowed&&end($app->calls)!==$value)
+                ||array_slice(ManagerPushService::$calls,$pushes)!==$expectedPush
+                ||array_slice(DiagnosticLogger::$events,$events)!==[$allowed?'handled':'manager_owned']){
+                $ownershipFailures[]=$channel.'/'.$status.'/'.$mode.'/'.($hasChoice?'manager-choice':'prompted').'/'.($case['callback_data']??$case['type'].':'.$case['message_id']);
+            }
+            if(ConversationControlService::$status!==$status||$pdo->query('SELECT status FROM conversations')->fetchColumn()!==$status
+                ||(int)$pdo->query('SELECT source_id FROM conversations')->fetchColumn()!==1
+                ||(int)$pdo->query('SELECT COUNT(*) FROM conversation_events')->fetchColumn()!==1
+                ||IntegrationRegistry::$calls||ManagerHandoffDispatchService::$calls)throw new RuntimeException('Owned input changed source/routing or called a provider');
+        }
         ++$checks;
     }
+    // Website source handling is outside this native-messenger change. Its
+    // existing manager/ask policy must still consume an owned ordinary message.
+    $websiteChecks=0;
+    foreach(['manager','waiting_manager'] as $status)foreach([['ask',true],['manager',true],['ask',false]] as [$mode,$hasChoice]){
+        $q=$pdo->prepare('UPDATE conversations SET channel=?,status=? WHERE id=17');$q->execute(['website',$status]);
+        $q=$pdo->prepare('UPDATE conversation_sources SET handling_mode=? WHERE id=1');$q->execute([$mode]);
+        $pdo->exec('DELETE FROM conversation_events');
+        $q=$pdo->prepare('INSERT INTO conversation_events VALUES(1,17,?,?)');
+        $q->execute($hasChoice?['source_handling_choice','{"choice":"manager"}']:['source_handling_prompted','{"mode":"ask"}']);
+        ConversationControlService::$status=$status;
+        $incoming=['type'=>'message','platform'=>'website','text'=>'А на другие даты с ребёнком?','message_id'=>'synthetic-website-question','user'=>['chat_id'=>77]];
+        $before=count($app->calls);$pushes=count(ManagerPushService::$calls);$events=count(DiagnosticLogger::$events);
+        $dispatcher->dispatch($incoming);
+        if(count($app->calls)!==$before||count(ManagerPushService::$calls)!==$pushes
+            ||array_slice(DiagnosticLogger::$events,$events)!==['source_handling']
+            ||ConversationControlService::$status!==$status||$pdo->query('SELECT status FROM conversations')->fetchColumn()!==$status
+            ||(int)$pdo->query('SELECT source_id FROM conversations')->fetchColumn()!==1
+            ||(int)$pdo->query('SELECT COUNT(*) FROM conversation_events')->fetchColumn()!==1
+            ||IntegrationRegistry::$calls||ManagerHandoffDispatchService::$calls)throw new RuntimeException('Website source handling changed: '.$status.'/'.$mode.'/'.(int)$hasChoice);
+        ++$websiteChecks;
+    }
     if($missing)throw new RuntimeException('Choice did not reach application in '.count($missing).' real source scenarios: '.implode(', ',$missing));
-    echo 'PASS '.$checks." real source-policy dispatcher ownership scenarios\n";
+    if($ownershipFailures)throw new RuntimeException('Canonical owned-input routing failed in '.count($ownershipFailures).' cases: '.implode(', ',$ownershipFailures));
+    echo 'PASS '.$checks.' real source-policy dispatcher ownership scenarios and '.$websiteChecks." unchanged website controls\n";
 } finally {
     foreach(glob($tmp.'/*') as $file)unlink($file);
     rmdir($tmp);
