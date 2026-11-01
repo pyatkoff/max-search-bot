@@ -38,8 +38,8 @@ jobs:
           umask 077
           python3 - <<'PY'
           import pathlib,hashlib,os
-          script=pathlib.Path('tools/direct_demand/operations/content100-bot-preflight.php').read_text()
-          assert hashlib.sha256(script.encode()).hexdigest()=='14729fd877b7b1ed4449d3e47b0008591f4211fb12bcc62daeb7822b8d6676b7'
+          script=pathlib.Path('tools/direct_demand/operations/source-routing-inspection.php').read_text()
+          assert hashlib.sha256(script.encode()).hexdigest()=='bc1b3534f597fb5e102c8c7391e6847eac335cd8e42b4b5f704fd702d7107560'
           prefix="<?php\ndeclare(strict_types=1);\n"
           assert script.startswith(prefix)
           header=prefix+"const EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\n"
@@ -84,7 +84,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Read existing bot rights and registry bindings without publishing
+      - name: Read only existing Telegram source and owner test binding
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -105,7 +105,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: content100-bot-publication-preflight
+          name: content100-source-routing-metadata
           path: ${{ runner.temp }}/channel-preflight.json
           retention-days: 14
           if-no-files-found: warn
