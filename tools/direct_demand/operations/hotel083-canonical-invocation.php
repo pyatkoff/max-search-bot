@@ -65,7 +65,7 @@ try{
     $out['mysql_errno']=null;
     for($err=$e,$i=0;$err!==null&&$i<4;$err=$err->getPrevious(),++$i)
         if($err instanceof PDOException&&isset($err->errorInfo[1])
-            &&preg_match('/^[0-9]{1,5}$/D',5}\\z/D',(string)$err->errorInfo[1])){$out['mysql_errno']=(int)$err->errorInfo[1];break;}
+            &&preg_match('/^[0-9]{1,5}$/D',(string)$err->errorInfo[1])){$out['mysql_errno']=(int)$err->errorInfo[1];break;}
     $out['reconciliation_required']=$invoked;
 }finally{
     if($locked&&$p instanceof PDO){try{$p->query("SELECT RELEASE_LOCK('anytour.hotel-retirement-20261101')");}catch(Throwable $ignored){}}
