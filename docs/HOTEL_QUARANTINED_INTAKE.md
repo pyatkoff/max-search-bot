@@ -74,6 +74,10 @@ once. WORKING is a new immutable **server** snapshot, labelled
 server_snapshot_protocol=quarantined_intake_v1; Library is never overwritten.
 Original producer counts remain separately labelled and no hash self-cycle is
 created by embedding the resulting snapshot hash into its own bytes.
+Legacy aggregate/publication metadata remains inherited baseline history; the
+explicit new receipt and server stage/counter are authoritative for this intake.
+General onward readers/adoption remain held. Origin pointers address actual
+zero-based elements of the preserved packet arrays, without rewriting record IDs.
 
 Migration088 replaces two quarantine triggers without editing087. A private
 transaction-local certificate is keyed to the actual database session, original
@@ -95,7 +99,9 @@ For the retained CENTRAL41 snapshot the intended result is the same queue at the
 next stage, 19 -> 20 accepted batches, with the original claim hash retained in
 the quarantine record. The next event is **held**, the next stage remains under
 the quarantine marker and no next research starts. General onward adoption is
-separate work. The old handler remains UNKNOWN; native/Library privileges are
+separate work. Status reports delivery_state=quarantined, no legacy pending ID
+and no legacy claim/automatic-next-dispatch permission. The old handler remains
+UNKNOWN; native/Library privileges are
 outside this canonical-effects fence. A delayed old host call may still affect
 availability; this path does not claim host termination or native isolation.
 

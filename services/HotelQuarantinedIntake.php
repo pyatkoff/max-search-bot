@@ -116,7 +116,7 @@ final class HotelQuarantinedIntake
             $q=$this->c->owned($queue,true);$r=$this->required($queue,$stage);$this->control($r,$control);
             $input=hash('sha256',self::json([$request,$expectedWorking,$expectedPacket,$expectedVerdict]));
             if($r['acceptance_bytes']!==null){if($r['finalize_sha256']!==$input)self::deny('finalize_replay_conflict');return json_decode($r['acceptance_bytes'],true,32,JSON_THROW_ON_ERROR);}
-            $f=$this->frozen($q,$stage);if($expectedWorking!==$f['working_sha256']||$expectedPacket!==$r['packet_sha256']||$r['verdict_bytes']===null||hash('sha256',$r['verdict_bytes'])!==$expectedVerdict)self::deny('finalize_CAS');
+            $f=$this->frozen($q,$stage);if($expectedWorking!==$f['working_sha256']||$expectedPacket!==$f['packet_sha256']||$expectedPacket!==$r['packet_sha256']||$r['verdict_bytes']===null||hash('sha256',$r['verdict_bytes'])!==$expectedVerdict)self::deny('finalize_CAS');
             $v=json_decode($r['verdict_bytes'],true,32,JSON_THROW_ON_ERROR);if($v['decision']!=='accept'||$r['instance_id']===null)self::deny('independent_acceptance_required');
             $p=HotelQuarantinedPacket::inspect($f['working_bytes'],$r['packet_bytes'],json_decode($r['members_bytes'],true,128,JSON_THROW_ON_ERROR),$q,json_decode($r['protected_bytes'],true,32,JSON_THROW_ON_ERROR));
             $record=['protocol'=>'quarantined_intake_v1','intake_stage_id'=>$stage,'operation_id'=>'QUARANTINED-INTAKE-'.$stage,'source_packet_sha256'=>$r['packet_sha256'],

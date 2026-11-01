@@ -124,11 +124,13 @@ try{
 hccCheck($accepted['business_accepted']&&$accepted['accepted_batches']===20&&!$accepted['next_dispatch_allowed']&&!$accepted['native_run_verified'],'quarantined_original_intake_accepted_exactly_once');
 hccCheck($intake->finalize(...$fa)===$accepted,'quarantined_accept_lost_ACK_no_double_credit');
 $q=$p->query('SELECT * FROM hotel_work_queues')->fetch(PDO::FETCH_ASSOC);hccCheck((int)$q['stage_index']===42&&$q['write_protocol']==='quarantine_v1'&&(int)$q['accepted_batches']===20,'quarantined_same_queue_next_stage_stays_fenced');
+$status=$f['queue']->status(901001,$f['conn'],'COLLECTION-SERVICE');hccCheck($status['delivery_state']==='quarantined'&&$status['expected_pending_event_id']===null&&!$status['legacy_claim_allowed']&&!$status['automatic_next_dispatch'],'quarantined_status_does_not_advertise_legacy_dispatch');
 hccCheck((int)$p->query('SELECT COUNT(*) FROM hotel_quarantine_intake_permits')->fetchColumn()===0,'quarantined_no_committed_session_permit');
 $saved=$p->query('SELECT accepted_working_bytes FROM hotel_quarantined_intakes')->fetchColumn();$old=json_decode($f['working'],true);$new=json_decode($saved,true);
 hccCheck($new['knowledge']['claims']['old-fact']===$old['knowledge']['claims']['old-fact']&&$new['criteria_updates']===$old['criteria_updates']&&$new['coordination']===$old['coordination'],'quarantined_old_variants_criteria_reserves_unchanged');
 hccCheck(json_decode($saved)->unknown_history->empty instanceof stdClass,'quarantined_preserves_empty_objects_not_arrays');
 hccCheck($new['knowledge']['claims']['new-fact'][0]['record']===$f['packet']['raw_delta']['claims'][0]&&$new['knowledge']['sources_including_unclaimed']['new-source'][0]['record']===$f['packet']['raw_delta']['sources'][0],'quarantined_raw_new_records_lossless');
+hccCheck(str_ends_with($new['knowledge']['claims']['new-fact'][0]['origins'][0],'#/raw_delta/claims/0')&&str_ends_with($new['knowledge']['sources_including_unclaimed']['new-source'][0]['origins'][0],'#/raw_delta/sources/0'),'quarantined_origin_pointers_resolve_original_arrays');
 hccCheck(count($new['working_acceptances'])===2&&count($new['country_import_ledger']['imports'])===2&&count($new['scoped_question_results'])===2,'quarantined_one_import_receipt_and_original_HOLD_partial');
 $post=$p->query('SELECT * FROM hotel_work_queues')->fetchAll(PDO::FETCH_ASSOC);$api->call('hotel_work_review_submit',$ra+['verdict'=>$verdict],901001,$f['conn']);hccCheck($post===$p->query('SELECT * FROM hotel_work_queues')->fetchAll(PDO::FETCH_ASSOC),'quarantined_postaccept_verdict_reconciliation_read_only');
 hccReject(fn()=>$p->exec('UPDATE hotel_work_queues SET accepted_batches=accepted_batches+1'),'quarantined_old_raw_SQL_still_blocked');

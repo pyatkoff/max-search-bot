@@ -581,9 +581,10 @@ final class HotelWorkQueue
             $receipt=$this->one('SELECT receipt_sha256 FROM hotel_work_receipts WHERE queue_id=? AND stage_index=?',[$row['queue_id'],$index]);
             if (!$receipt) throw new RuntimeException('hotel_work_unknown_receipt_unavailable');$unknown=$receipt['receipt_sha256'];
         }
+        $quarantined=($row['write_protocol']??'legacy')==='quarantine_v1';
         return ['ok'=>true,'project_key'=>self::PROJECT,'queue_id'=>$row['queue_id'],'mode'=>$row['mode'],
             'oauth_connection_id'=>$row['oauth_connection_id'],'unknown_receipt_sha256'=>$unknown,
-            'expected_pending_event_id'=>$row['state']==='ready'&&$row['claim_sha256']===null&&$row['current_run_id']===null?$this->eventId($row,false):null,
+            'expected_pending_event_id'=>!$quarantined&&$row['state']==='ready'&&$row['claim_sha256']===null&&$row['current_run_id']===null?$this->eventId($row,false):null,
             'batch_limit'=>$row['batch_limit']===null?null:(int)$row['batch_limit'],'state'=>$row['state'],
             'stage_id'=>$this->stageId($row),'stage_index'=>$index,'stage_kind'=>$active?$kind:null,'country'=>$active?$country:null,
             'criteria_due'=>$active&&$kind==='intake'&&(int)$row['phase_counter']===1,'phase_counter'=>(int)$row['phase_counter'],
@@ -592,9 +593,9 @@ final class HotelWorkQueue
             'skipped_batches'=>(int)$this->one('SELECT COUNT(*) AS n FROM hotel_work_research_skips WHERE queue_id=?',[$row['queue_id']])['n'],
             'current_run_id'=>$row['current_run_id'],'execution_attempt'=>$execution===null?null:$this->executionMetadata($execution),
             'receipt_semantics'=>'authenticated_attestation_not_independent_file_proof',
-            'delivery_state'=>$row['state']!=='ready'?$row['state']:($row['attention_at']!==null?'attention_required':($row['event_ack']!==null?'awaiting_claim':'ready')),
+            'delivery_state'=>$quarantined?'quarantined':($row['state']!=='ready'?$row['state']:($row['attention_at']!==null?'attention_required':($row['event_ack']!==null?'awaiting_claim':'ready'))),
             'claim_deadline'=>$row['claim_deadline'],'watchdog_due_at'=>$row['watchdog_due_at'],'watchdog_epoch'=>(int)$row['watchdog_epoch'],
-            'created_at'=>$row['created_at'],'updated_at'=>$row['updated_at']];
+            'created_at'=>$row['created_at'],'updated_at'=>$row['updated_at']]+($quarantined?['write_protocol'=>'quarantine_v1','legacy_claim_allowed'=>false,'automatic_next_dispatch'=>false]:[]);
     }
 
     private function stageId(array $row): string { return self::hash([$row['queue_id'],$row['plan_sha256'],(int)$row['stage_index']]); }

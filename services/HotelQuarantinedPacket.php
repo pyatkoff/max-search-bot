@@ -9,6 +9,9 @@ final class HotelQuarantinedPacket
     {
         if(strlen($working)>67108864||strlen($packet)>2097152)self::deny('input_limit');
         $base=HotelCollectionCanonicalDocument::decodeObject($working);$p=HotelCollectionCanonicalDocument::decodeObject($packet);
+        foreach(['claims','sources_including_unclaimed']as$g)if(!is_array($base['knowledge'][$g]??null)||array_is_list($base['knowledge'][$g]))self::deny('legacy_knowledge_map_required');
+        foreach(['working_acceptances','scoped_question_results']as$g)if(!is_array($base[$g]??null)||!array_is_list($base[$g]))self::deny('legacy_append_shape');
+        if(!is_array($base['country_import_ledger']['imports']??null)||!array_is_list($base['country_import_ledger']['imports'])||!is_int($base['country_import_ledger']['revision']??null))self::deny('legacy_ledger_shape');
         $country=['EG','TH','VN','TR'][(array_search($queue['start_country'],['EG','TH','VN','TR'],true)+intdiv((int)$queue['stage_index'],2))%4];
         $previous=hash('sha256',self::json([$queue['queue_id'],$queue['plan_sha256'],(int)$queue['stage_index']-1]));
         if(($p['queue_id']??null)!==$queue['queue_id']||($p['country']??null)!==$country||($p['stage_id']??null)!==$previous||($p['state']??null)!=='COUNTRY_SAVED_CENTRAL_PENDING'
@@ -57,9 +60,9 @@ final class HotelQuarantinedPacket
     {
         // Preserve every original object/list, variant, origin and raw field.
         $w=json_decode($working,false,128,JSON_THROW_ON_ERROR);$p=json_decode($packet,false,128,JSON_THROW_ON_ERROR);$d=$p->raw_delta;
-        foreach(['claims'=>'claims','sources'=>'sources_including_unclaimed']as$g=>$target)foreach($d->$g as$r){
+        foreach(['claims'=>'claims','sources'=>'sources_including_unclaimed']as$g=>$target)foreach($d->$g as$position=>$r){
             $id=$r->id;if(property_exists($w->knowledge->$target,$id))self::deny('merge_id_conflict');
-            $w->knowledge->{$target}->{$id}=[(object)['record'=>$r,'origins'=>['server-quarantined-packet:'.hash('sha256',$packet).'#/raw_delta/'.$g.'/'.$id]]];
+            $w->knowledge->{$target}->{$id}=[(object)['record'=>$r,'origins'=>['server-quarantined-packet:'.hash('sha256',$packet).'#/raw_delta/'.$g.'/'.$position]]];
             $field=$g==='claims'?'claim_ids':'source_ids';$index=$w->hotel_index->{$r->hotel_key};
             if(!isset($index->$field))$index->$field=[];if(in_array($id,$index->$field,true))self::deny('merge_index_conflict');$index->{$field}[]=$id;
         }
