@@ -1,0 +1,197 @@
+name: Read existing application hotel083 effective privileges once
+on:
+  push:
+    branches: [audit/hotel083-effective-privilege-read-once]
+    paths: [.github/workflows/hotel083-effective-privileges-readonly.yml]
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+env:
+  EXPECTED_MAIN_SHA: a8b4c2d1126b0e38d831e0ace9d75554d6e4415b
+  READER_SHA: a5b0d0844021a6bc744b0e3037eeb5d103e6a5e6
+jobs:
+  inventory:
+    if: github.ref == 'refs/heads/audit/hotel083-effective-privilege-read-once' && github.event.created == true && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify reviewed source, CI and unchanged main before connection
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = "$EXPECTED_MAIN_SHA"
+          for run in 41347047098 41347047128; do
+            gh api "repos/pyatkoff/max-search-bot/actions/runs/$run" >"$RUNNER_TEMP/reader_ci_$run.json"
+          done
+          python3 - <<'PY'
+          import json,os,pathlib
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])
+          for run,path in [(41347047098,'.github/workflows/regression-tests.yml'),(41347047128,'.github/workflows/retired-domain-guard.yml')]:
+              d=json.loads((root/f'reader_ci_{run}.json').read_text())
+              assert d['head_sha']==os.environ['READER_SHA'] and d['path']==path
+              assert d['event']=='pull_request' and d['status']=='completed' and d['conclusion']=='success'
+          PY
+          gh api "repos/pyatkoff/max-search-bot/contents/services/HotelWorkPrivilegeInventory.php?ref=$READER_SHA" >"$RUNNER_TEMP/reader_source.json"
+          gh api "repos/pyatkoff/max-search-bot/contents/tools/direct_demand/operations/hotel083-effective-privileges-readonly.php?ref=$GITHUB_SHA" >"$RUNNER_TEMP/wrapper_source.json"
+          python3 - <<'PY'
+          import json,os,pathlib,base64,hashlib
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])
+          def source(name):
+              d=json.loads((root/name).read_text());assert d['encoding']=='base64'
+              b=base64.b64decode(d['content']);assert len(b)<65536
+              assert hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()==d['sha']
+              return d,b
+          d,reader=source('reader_source.json')
+          assert d['sha']=='1f943ab298628bd3da7cc50352f250f3ad8c6c1c'
+          _,wrapper=source('wrapper_source.json')
+          header=b'<?php\ndeclare(strict_types=1);\n'
+          assert reader.startswith(header) and wrapper.startswith(header)
+          (root/'hotel083_roles_stdin.php').write_bytes(reader+b'\n'+wrapper[len(header):])
+          PY
+      - name: Validate fixed PHP payload without running it
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: Check PHP syntax before production connection
+        shell: bash
+        run: php -l "$RUNNER_TEMP/hotel083_roles_stdin.php" >/dev/null
+      - name: Prepare existing connection and pinned host
+        env:
+          CONNECTION_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          CONNECTION_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          CONNECTION_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          raw="$CONNECTION_KEY"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' >"$RUNNER_TEMP/hotel083_key"; else printf '%s\n' "$raw" | tr -d '\r' >"$RUNNER_TEMP/hotel083_key"; fi
+          else
+            printf '%s' "$raw" | base64 --decode >"$RUNNER_TEMP/hotel083_key"
+          fi
+          ssh-keygen -y -f "$RUNNER_TEMP/hotel083_key" >/dev/null
+          python3 - <<'PY'
+          import os,re,subprocess,base64,hashlib,pathlib
+          host=os.environ['CONNECTION_HOST'];user=os.environ['CONNECTION_USER']
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',user)
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35)
+          approved=[]
+          for line in scan.stdout.splitlines():
+              fields=line.split()
+              if len(fields)<3 or fields[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':approved.append(line)
+          assert approved,'Existing host continuity mismatch; STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/hotel083_hosts').write_text('\n'.join(approved)+'\n')
+          PY
+      - name: Execute one fixed read-only application privilege inventory
+        env:
+          CONNECTION_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          CONNECTION_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          set +e
+          timeout 75 ssh -i "$RUNNER_TEMP/hotel083_key" -o BatchMode=yes -o ConnectTimeout=10 -o ConnectionAttempts=1 -o ServerAliveInterval=10 -o ServerAliveCountMax=2 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/hotel083_hosts" "$CONNECTION_USER@$CONNECTION_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_MAIN_SHA'; git diff --quiet; git diff --cached --quiet; /usr/bin/php" >"$RUNNER_TEMP/hotel083_roles_raw.json" 2>"$RUNNER_TEMP/hotel083_roles_transport.private" <"$RUNNER_TEMP/hotel083_roles_stdin.php"
+          transport_status=$?
+          set -e
+          if [ "$transport_status" -ne 0 ]; then
+            printf '%s\n' 'HOLD: fixed read-only transport did not complete. No retry.'
+            exit 1
+          fi
+          python3 - <<'PY'
+          import json,os,pathlib,re,sys
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])
+          try:
+              p=root/'hotel083_roles_raw.json'
+              assert p.stat().st_size<=32768
+              d=json.loads(p.read_text())
+              def keys(o,want):
+                  assert isinstance(o,dict) and set(o)==set(want.split())
+              def boolean(v,nullable=False):
+                  assert type(v) is bool or (nullable and v is None)
+                  return v
+              def count(v,upper,nullable=False):
+                  assert type(v) is int and 0<=v<=upper or nullable and v is None
+                  return v
+              base='operation read_only provided_pdo_only role_activation_attempts migration_apply_attempts retirement_attempts new_start_allowed ddl_admission'
+              assert d['operation']=='hotel083-effective-privileges-readonly-v1'
+              assert d['read_only'] is True and d['provided_pdo_only'] is True
+              for k in ['role_activation_attempts','migration_apply_attempts','retirement_attempts']:
+                  assert type(d[k]) is int and d[k]==0
+              assert d['new_start_allowed'] is False and d['ddl_admission'] is False
+              out={k:d[k] for k in base.split()}
+              if d['state']=='HOLD':
+                  allowed=['unsupported_inventory_context','foreign_transaction','exception_mode_required',
+                           'inventory_read_unavailable','target_database_not_bound','fixed_application_bootstrap_unavailable']
+                  assert d['reason'] in allowed
+                  keys(d,base+' state reason'+(' pdo_reuse_safe' if 'pdo_reuse_safe' in d else ''))
+                  out.update(state='HOLD',reason=d['reason'])
+                  if 'pdo_reuse_safe' in d:
+                      assert d['pdo_reuse_safe'] is False
+                      out['pdo_reuse_safe']=False
+              else:
+                  keys(d,base+' state flavor version target target_table_count direct_observed roles effective restriction_observed query_count unknown_read_count')
+                  assert d['state'] in ['complete','partial'] and d['flavor'] in ['mysql','mariadb','percona','unknown']
+                  assert d['version'] is None or re.fullmatch(r'[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}',d['version'])
+                  out.update(state=d['state'],flavor=d['flavor'],version=d['version'])
+                  t=d['target'];keys(t,'database_matches_expected same_session_after_read private_binding_sha256')
+                  assert t['database_matches_expected'] is True
+                  assert re.fullmatch(r'[0-9a-f]{64}',t['private_binding_sha256'])
+                  out['target']={'database_matches_expected':True,'same_session_after_read':boolean(t['same_session_after_read']),
+                                 'private_binding_sha256':t['private_binding_sha256']}
+                  assert type(d['target_table_count']) is int and d['target_table_count']==13
+                  out['target_table_count']=13
+                  direct=d['direct_observed'];keys(direct,'super global_trigger schema_trigger table_trigger_count')
+                  out['direct_observed']={k:boolean(direct[k],True) for k in ['super','global_trigger','schema_trigger']}
+                  out['direct_observed']['table_trigger_count']=count(direct['table_trigger_count'],13,True)
+                  roles=d['roles']
+                  boolnames='supported current_present mandatory_roles_applicable mandatory_configured activate_all_on_login active_inheritance_complete unchanged_after_read'.split()
+                  countnames='active_count applicable_count assigned_direct_count default_count mandatory_count'.split()
+                  keys(roles,' '.join(boolnames+countnames))
+                  out['roles']={k:boolean(roles[k],True) for k in boolnames}
+                  out['roles'].update({k:count(roles[k],16,True) for k in countnames})
+                  e=d['effective']
+                  boolnames='coverage_complete super trigger_all_targets binary_logging_enabled trust_function_creators_enabled binlog_creation_condition_satisfied'.split()
+                  keys(e,' '.join(boolnames+['trigger_by_target']))
+                  out['effective']={k:boolean(e[k],True) for k in boolnames}
+                  targets=['hotel_work_queues','hotel_work_receipts','hotel_work_events','hotel_work_connection_handoffs',
+                           'hotel_work_resolutions','hotel_work_delivery_recoveries','hotel_work_research_skips',
+                           'hotel_work_consumer_delivery_repairs','hotel_work_execution_attempts',
+                           'hotel_work_execution_attempt_entries','hotel_work_execution_attempt_associations',
+                           'hotel_work_lane','hotel_work_retirements']
+                  keys(e['trigger_by_target'],' '.join(targets))
+                  out['effective']['trigger_by_target']={k:boolean(e['trigger_by_target'][k],True) for k in targets}
+                  out['restriction_observed']=boolean(d['restriction_observed'])
+                  out['query_count']=count(d['query_count'],32)
+                  out['unknown_read_count']=count(d['unknown_read_count'],64)
+              safe=json.dumps(out,sort_keys=True)+'\n'
+              (root/'hotel083_roles_sanitized.json').write_text(safe)
+              print(safe,end='')
+          except Exception:
+              print('HOLD: fixed read-only result was not validated; raw output withheld.')
+              sys.exit(1)
+          PY
+      - name: Retain only reconstructed sanitized result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hotel083-effective-privileges-readonly-result
+          path: ${{ runner.temp }}/hotel083_roles_sanitized.json
+          retention-days: 14
+          if-no-files-found: ignore
+      - name: Remove ephemeral runner files
+        if: always()
+        shell: bash
+        run: |
+          rm -f "$RUNNER_TEMP/hotel083_key" "$RUNNER_TEMP/hotel083_hosts" "$RUNNER_TEMP/hotel083_roles_raw.json" "$RUNNER_TEMP/hotel083_roles_transport.private" "$RUNNER_TEMP/hotel083_roles_stdin.php" "$RUNNER_TEMP/hotel083_roles_sanitized.json" "$RUNNER_TEMP/reader_source.json" "$RUNNER_TEMP/wrapper_source.json" "$RUNNER_TEMP/reader_ci_41347047098.json" "$RUNNER_TEMP/reader_ci_41347047128.json"
