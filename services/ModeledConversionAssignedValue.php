@@ -16,7 +16,10 @@ final class ModeledConversionAssignedValue
         foreach(['subscription','retention_30m']as$key){
             $s=$signals[$key]??[];
             if(($s['status']??null)==='known'&&($s['state']??null)===($key==='subscription'?'subscribed':'retained'))
+                {
                 self::award($result,$key,[$s['receipt_id']??null],$s['available_at']??null,$s['at']??$s['checked_at']??null);
+                if($result['stages'][$key]['status']==='awarded')$result['stages'][$key]['recorded_at']=$s['recorded_at']??null;
+            }
         }
         $context=$wrapper['contextual_signals']??[];
         $dialogueRefs=[];
@@ -48,7 +51,10 @@ final class ModeledConversionAssignedValue
         // Reuse the installed exact request/preparation/delivery/text linkage. No new trip parser.
         foreach($wrapper['early_forecast']['early_quality']['specific_option_discussions']??[]as$reply){
             if(($reply['current_candidate']??null)!==true)continue;
-            self::award($result,'offer_reply',$reply['source_refs']??[],$reply['available_at']??null,null);
+            $reactionAt=null;$reactionRef=array_slice($reply['source_refs']??[],-1)[0]??null;
+            foreach($wrapper['profile']['observation_input']['evidence']??[]as$e)
+                if(($e['kind']??null)==='customer_message'&&in_array($reactionRef,array_column($e['references']??[],'id'),true))$reactionAt=$e['at']??null;
+            self::award($result,'offer_reply',$reply['source_refs']??[],$reply['available_at']??null,$reactionAt);
             $result['reaction_type']=$reply['reaction']??'unknown';
         }
         $result['coverage']['offer_reply']='exact_linked_text_discussions_only_other_replies_unknown';
@@ -84,7 +90,7 @@ final class ModeledConversionAssignedValue
 
     private static function empty(array $scope,mixed $cutoff):array
     {
-        $stages=[];foreach(self::WEIGHTS as$key=>$weight)$stages[$key]=['status'=>'unknown','weight_rub'=>$weight,'source_refs'=>[],'occurred_at'=>null,'available_at'=>null];
+        $stages=[];foreach(self::WEIGHTS as$key=>$weight)$stages[$key]=['status'=>'unknown','weight_rub'=>$weight,'source_refs'=>[],'occurred_at'=>null,'recorded_at'=>null,'available_at'=>null];
         return ['rules_version'=>self::VERSION,'value_scope'=>$scope,'evaluated_at'=>$cutoff,'currency'=>'RUB',
             'known_subtotal_rub'=>0,'completeness'=>'partial','stages'=>$stages,'reaction_type'=>'unknown',
             'coverage'=>[],'meaning'=>'assigned_business_weights_not_purchase_probability',
@@ -97,7 +103,7 @@ final class ModeledConversionAssignedValue
             ||$available>$r['evaluated_at']||!$refs)return;
         foreach($refs as$ref)if(!is_string($ref)||$ref==='')return;
         $r['stages'][$key]=['status'=>'awarded','weight_rub'=>self::WEIGHTS[$key],
-            'source_refs'=>array_values(array_unique($refs)),'occurred_at'=>$occurred,'available_at'=>$available];
+            'source_refs'=>array_values(array_unique($refs)),'occurred_at'=>$occurred,'recorded_at'=>null,'available_at'=>$available];
     }
     private static function finish(array $r):array
     {
