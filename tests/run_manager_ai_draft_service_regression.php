@@ -904,6 +904,18 @@ draftCheck('transport security and deadline are explicit',str_contains($client,"
     && str_contains($client,'CURLOPT_FOLLOWLOCATION=>false') && str_contains($client,'CURLOPT_SSL_VERIFYPEER=>true'));
 draftCheck('transport refuses incomplete cURL option configuration',str_contains($client,"if (!\$configured) return ['_error'=>'provider_unavailable'];"));
 
+// Synthetic contract replay, not a claim of live model quality on customer data.
+$missing=draftResult();$missing['draft']='Из какого города вылетаете и какой бюджет рассматриваете?';
+$missing['checks']=['Проверить пляж без сильного ветра и условия предложения.'];
+draftCheck('missing-information reply and manager checks keep independent destinations',draftGenerate($missing)===$missing);
+$price=draftResult();$price['should_draft']=false;$price['draft']=null;$price['next_action']='check_offer';
+$price['reason']='Нужен актуальный расчёт на изменённую длительность.';
+$price['checks']=['Рассчитать Example Bay Resort на 18 дней из Самары 5 июня; не подменять новым запросом старые 7 ночей и 154300 рублей.'];
+draftCheck('pending price-only work is accepted without customer text',draftGenerate($price)===$price);
+$partial=$price;$partial['should_draft']=true;$partial['draft']='В опубликованном описании этого номера две отдельные спальни.';
+draftCheck('useful partial reply and remaining price check are independent',draftGenerate($partial)===$partial);
+draftCheck('absent reply cannot carry an internal plan in draft',draftGenerate(array_replace($price,['draft'=>'Сначала пересчитать стоимость.']))===['ok'=>false,'error'=>'invalid_ai_response']);
+
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);
 

@@ -103,6 +103,12 @@ test('workspace owner sees team identity and cannot change another manager decis
   assert.match(h.$('assistantTitle').textContent,/владельца/);assert.match(h.$('assistantSubtitle').textContent,/всей команды/);assert.match(h.$('assistantDetail').textContent,/Другой менеджер/);assert.equal(h.$('assistantDetail').querySelector('[data-assistant-decision]'),null);h.onlyReads();
 });
 
+test('dialog menu opens the canonical reply helper while the rail retains the work overview',async()=>{
+  const h=harness();let opened=0;h.window.WorkspaceV2AiDraft={open:()=>{opened++}};
+  h.A.activate(7);h.A.bind();const button=h.$('assistantClientOpen'),menu={open:true};button.closest=()=>menu;
+  button.onclick();assert.equal(opened,1);assert.equal(menu.open,false);assert.equal(h.$('assistantDialog'),null);
+  assert.match(h.$('assistantOpen').textContent,/Обзор работы/);assert.equal(h.calls.length,0);
+});
 test('activation is lazy and exposes current-owner controls without transport',async()=>{
   const h=harness();h.A.activate(7);h.A.bind();assert.equal(h.calls.length,0);assert.equal(h.$('assistantOpen').disabled,false);assert.equal(h.$('assistantClientOpen').hidden,false);h.S.detail.conversation.manager_id=8;h.A.sync();assert.equal(h.$('assistantClientOpen').hidden,true);assert.equal(h.calls.length,0);
 });

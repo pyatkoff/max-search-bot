@@ -31,11 +31,13 @@
     const head=document.querySelector('#conversationZone .conversationHead');
     if(!head)return;
     row=document.createElement('section');row.id='m2CurrentTrip';row.className='m2CurrentTrip';row.hidden=true;
-    row.setAttribute('aria-label','Текущая поездка');
+    row.setAttribute('aria-label','Запрос туриста');
+    const title=document.createElement('h3');title.className='m2RequestTitle';title.textContent='Запрос туриста';row.appendChild(title);
     const copy=document.createElement('div');label=document.createElement('strong');criteria=document.createElement('small');state=document.createElement('span');
     state.setAttribute('role','status');state.setAttribute('aria-live','polite');copy.append(label,criteria,state);
     button=document.createElement('button');button.type='button';button.className='actionBtn';button.textContent='Условия поездки';
-    button.setAttribute('aria-haspopup','dialog');button.addEventListener('click',()=>open(button));row.append(copy,button);head.after(row);
+    button.setAttribute('aria-haspopup','dialog');button.addEventListener('click',()=>open(button));row.append(copy,button);
+    const host=window.WorkspaceV2AiDraft?.host?.();if(host)host.insertBefore(row,host.firstChild);else head.after(row);
   }
   function render(profile){
     if(!row)return;
@@ -53,6 +55,10 @@
       parts.push(text);
     }
     if(typeof budget==='string'&&budget.trim())parts.push(budget.trim());
+    for(const key of ['departure','destination','nights','hotel','room_meal','must_have']){
+      const field=profile?.fields?.[key];
+      if(typeof field?.value==='string'&&field.value.trim())parts.push(field.value.trim()+(field.kind==='manager_interpretation'?' (версия менеджера)':''));
+    }
     criteria.textContent=parts.join(' · ');criteria.hidden=!parts.length;
     state.textContent=states[profile?.status]||'Условия ещё нужно проверить';
     row.dataset.state=profile?.status==='fresh'?'fresh':'review';

@@ -711,6 +711,17 @@ function preparedReplyRun(): void
     $requeued = ManagerPreparedReplyService::enqueue([preparedReplyRow($snapshot)]);
     preparedReplyCheck('unchanged expired context does not silently schedule regeneration', ($requeued['ok'] ?? false) === true && ($requeued['inserted'] ?? -1) === 0 && (ManagerPreparedReplyService::pending(20)['jobs'] ?? null) === []);
 
+    // A structurally valid summary from the previous instruction contract must
+    // disappear without rewriting the stored proposal, TTL, source or job.
+    $pdo=preparedReplyFixture();$snapshot=preparedReplySnapshot();$job=preparedReplyQueue($snapshot);
+    $oldSummary=preparedReplyProposal(['draft'=>'Нужно пересчитать старую стоимость на новый срок.','next_action'=>'check_offer']);
+    ManagerPreparedReplyService::complete($job,$snapshot['revision'],$oldSummary);
+    $pdo->mutate("UPDATE manager_prepared_replies SET instruction_revision='dc204b4e9220171e873f702ac28541e10d18dc02c089ea17898ec386bc27a56d'");
+    $stored=$pdo->query('SELECT * FROM manager_prepared_replies')->fetchAll();$writes=$pdo->cacheWrites;
+    preparedReplyCheck('previous-contract summary is not ready under the new instructions',
+        empty(ManagerPreparedReplyService::prepared(101,1,$snapshot)['prepared'])
+        &&$stored===$pdo->query('SELECT * FROM manager_prepared_replies')->fetchAll()&&$writes===$pdo->cacheWrites);
+
     foreach (['hash_mismatch','broken_json','ungrounded_evidence','instruction_changed','future_prepared','invalid_ttl'] as $corruption) {
         $pdo = preparedReplyFixture();
         $snapshot = preparedReplySnapshot();

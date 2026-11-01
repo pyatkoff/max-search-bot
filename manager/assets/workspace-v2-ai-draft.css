@@ -56,6 +56,23 @@
 .manager2 .m2ReplyEditor .aiReadyNotice{bottom:64px}
 @media(max-width:740px){.manager2 .aiReadyNotice{right:8px;gap:7px;padding:8px;max-width:calc(100% - 16px);font-size:12px}.manager2 .aiReadyNotice button{min-height:40px}}
 .aiDraftPanel[hidden],.aiDraftPanel button[hidden]{display:none!important}
+.manager2 .m2Assistant{flex:0 1 auto;min-width:0;min-height:80px;max-height:38dvh;overflow:auto;overscroll-behavior:contain;border-bottom:1px solid #dfe6df;background:#f7f9f8}
+.manager2 .m2Assistant~#messages{min-height:64px}
+.manager2 .m2Assistant:has(>.aiDraftPanel:not([hidden])){flex:0 0 var(--m2-assistant-open-height,30dvh);height:var(--m2-assistant-open-height,30dvh);min-height:0;max-height:none}
+.manager2 .m2Assistant:has(>.aiDraftPanel:not([hidden]))>.aiDraftSuggestion,.manager2 .m2Assistant:has(>.aiDraftPanel:not([hidden]))>.aiRecommendationNotice{display:none!important}
+.manager2 .m2ReplyEditorBody:has(>.m2Assistant){flex-direction:column}
+.manager2 .m2Assistant:empty{display:none}
+.manager2 .m2Assistant .m2CurrentTrip{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px 12px;border:0;padding:10px 16px}
+.manager2 .m2Assistant .m2RequestTitle{grid-column:1/-1;margin:0;font-size:12px;color:#52644f}
+.manager2 .m2Assistant .aiDraftSuggestion,.manager2 .m2Assistant .aiRecommendationNotice{margin:0 12px 8px}
+.manager2 .m2Assistant .aiReadyNotice,.manager2 .m2Assistant .aiPreparationNotice{position:relative;inset:auto;max-width:none;margin:0 12px 8px;box-shadow:none}
+.manager2 .m2Assistant .aiSuggestionText{color:#273a30;max-height:120px}
+.manager2 #m2Assistant .aiDraftPanel{position:relative;inset:auto;display:block;height:auto;max-height:none;overflow:visible;margin:0 12px 8px;box-shadow:none}
+.manager2 #m2Assistant .aiDraftBody{overflow:visible;min-height:auto}
+.manager2 #m2Assistant .aiDraftHead{position:static}
+.aiDraftSectionTitle{margin:12px 0 6px;font-size:13px}
+.aiDraftEmpty{color:#657365;margin:6px 0}
+@media(max-width:740px){.manager2 .m2Assistant{max-height:36dvh}.manager2 .m2Assistant .m2CurrentTrip{padding:8px 10px}.manager2 .m2Assistant .aiDraftPanel,.manager2 .m2Assistant .aiDraftSuggestion,.manager2 .m2Assistant .aiRecommendationNotice{margin-left:8px;margin-right:8px}.manager2 .m2Assistant .aiDraftPanel{max-height:40dvh}}
 .aiDraftPanel{position:absolute;z-index:12;bottom:calc(100% + 6px);left:8px;right:8px;box-sizing:border-box;display:flex;flex-direction:column;max-height:min(46dvh,360px,var(--ai-draft-room,360px));overflow:hidden;border:1px solid #cbdac2;border-radius:12px;padding:12px;background:#fff;box-shadow:0 8px 30px #203b3926;color:#273a30;font-size:13px;line-height:1.4}
 .aiDraftPanel:focus{outline:2px solid #739663;outline-offset:2px}
 /* Keep a supervised preview inside its conversation; mobile keeps its fixed host. */

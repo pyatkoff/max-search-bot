@@ -91,20 +91,91 @@ async function bounded(page){
   await page.locator('#sendReply').scrollIntoViewIfNeeded();expect(await page.locator('#sendReply').evaluate(node=>node.getBoundingClientRect().bottom)).toBeLessThanOrEqual(viewport.height+1);
 }
 async function capture(page,browserName,viewport){const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});await page.screenshot({animations:'disabled',path:path.join(directory,`ai-draft-${browserName}-${viewport.width}-${viewport.height}-preview.png`)})}
-async function ghostFitsField(page,{allowClipping=false}={}){
-  await expect(page.locator('#aiDraftSuggestion')).toHaveClass(/aiSuggestionGhost/);
+async function replyFitsAssistant(page,{allowClipping=false}={}){
+  await expect(page.locator('#m2Assistant')).toHaveCount(1);
+  await expect(page.locator('#m2Assistant #aiDraftSuggestion')).toBeVisible();
+  await expect(page.locator('#aiDraftSuggestion')).not.toHaveClass(/aiSuggestionGhost/);
+  await expect(page.locator('#aiDraftSuggestion .aiSuggestionHead')).toBeVisible();
   await expect(page.locator('#replyText')).toHaveValue('');
-  await expect(page.locator('#aiDraftSuggestion .aiSuggestionHead')).not.toBeVisible();
   const geometry=await page.locator('#aiDraftSuggestion').evaluate(node=>{
-    const field=document.querySelector('#replyText'),text=node.querySelector('.aiSuggestionText'),rect=field.getBoundingClientRect(),hint=text.getBoundingClientRect(),footer=node.querySelector('.aiSuggestionActions').getBoundingClientRect(),fieldStyle=getComputedStyle(field),textStyle=getComputedStyle(text),placeholder=getComputedStyle(field,'::placeholder');
-    const brightness=color=>{const values=color.match(/[\d.]+/g)||[];return values.slice(0,3).reduce((sum,value)=>sum+Number(value),0)/3};
-    return {sameField:field.parentElement.contains(node),left:hint.left,top:hint.top,right:hint.right,bottom:hint.bottom,contentLeft:hint.left+parseFloat(textStyle.borderLeftWidth)+parseFloat(textStyle.paddingLeft),contentTop:hint.top+parseFloat(textStyle.borderTopWidth)+parseFloat(textStyle.paddingTop),footerLeft:footer.left,footerTop:footer.top,footerRight:footer.right,footerBottom:footer.bottom,fieldLeft:rect.left,fieldTop:rect.top,fieldRight:rect.right,fieldBottom:rect.bottom,textLeft:rect.left+parseFloat(fieldStyle.borderLeftWidth)+parseFloat(fieldStyle.paddingLeft),textTop:rect.top+parseFloat(fieldStyle.borderTopWidth)+parseFloat(fieldStyle.paddingTop),sameFont:textStyle.fontSize===fieldStyle.fontSize&&textStyle.fontFamily===fieldStyle.fontFamily&&textStyle.lineHeight===fieldStyle.lineHeight,muted:brightness(textStyle.color)>brightness(fieldStyle.color),placeholderHidden:!field.placeholder||placeholder.color==='rgba(0, 0, 0, 0)'||placeholder.opacity==='0',contentClipped:text.scrollHeight>text.clientHeight+1};
+    const host=node.closest('#m2Assistant').getBoundingClientRect(),rect=node.getBoundingClientRect(),field=document.querySelector('#replyText').getBoundingClientRect(),text=node.querySelector('.aiSuggestionText');
+    const top=Math.max(rect.top,host.top),bottom=Math.min(rect.bottom,host.bottom);
+    return {left:rect.left,right:rect.right,hostLeft:host.left,hostRight:host.right,overlap:bottom>top&&top<field.bottom&&bottom>field.top,clipped:text.scrollHeight>text.clientHeight+1};
   });
-  expect(geometry.sameField).toBe(true);expect(geometry.left).toBeGreaterThanOrEqual(geometry.fieldLeft-1);expect(geometry.right).toBeLessThanOrEqual(geometry.fieldRight+1);expect(geometry.top).toBeGreaterThanOrEqual(geometry.fieldTop-1);expect(geometry.bottom).toBeLessThanOrEqual(geometry.fieldBottom+1);
-  expect(Math.abs(geometry.contentLeft-geometry.textLeft)).toBeLessThanOrEqual(2);expect(Math.abs(geometry.contentTop-geometry.textTop)).toBeLessThanOrEqual(2);expect(geometry.sameFont).toBe(true);expect(geometry.muted).toBe(true);expect(geometry.placeholderHidden).toBe(true);
-  expect(geometry.footerLeft).toBeGreaterThanOrEqual(geometry.fieldLeft-1);expect(geometry.footerRight).toBeLessThanOrEqual(geometry.fieldRight+1);expect(geometry.footerTop).toBeGreaterThanOrEqual(geometry.bottom-1);expect(geometry.footerBottom).toBeLessThanOrEqual(geometry.fieldBottom+1);
-  if(!allowClipping)expect(geometry.contentClipped).toBe(false);
+  expect(geometry.left).toBeGreaterThanOrEqual(geometry.hostLeft-1);expect(geometry.right).toBeLessThanOrEqual(geometry.hostRight+1);expect(geometry.overlap).toBe(false);
+  if(!allowClipping)expect(geometry.clipped).toBe(false);
 }
+async function assistantPaint(page,selector){
+  return page.locator(selector).evaluate(node=>{
+    const rect=node.getBoundingClientRect(),host=node.closest('#m2Assistant').getBoundingClientRect();
+    const top=Math.max(rect.top,host.top,0),bottom=Math.min(rect.bottom,host.bottom,innerHeight),left=Math.max(rect.left,host.left),right=Math.min(rect.right,host.right);
+    const hit=bottom>top&&right>left?document.elementFromPoint((left+right)/2,(top+bottom)/2):null;
+    return {height:Math.max(0,bottom-top),targetHeight:rect.height,hostHeight:host.height,hit:!!hit&&(hit===node||node.contains(hit)),fontSize:parseFloat(getComputedStyle(node).fontSize)};
+  });
+}
+async function readAssistantSection(page,selector){
+  const host=await page.locator('#m2Assistant').boundingBox(),target=await page.locator(selector).boundingBox();
+  await page.locator('#m2Assistant').hover();await page.mouse.wheel(0,target.y+target.height/2-host.y-host.height/2);
+  await expect.poll(async()=>{const p=await assistantPaint(page,selector);return p.hit&&p.height>=Math.min(p.targetHeight,p.hostHeight-16)-1}).toBe(true);
+}
+// Synthetic UI replay only: no provider call, production context or customer send.
+for(const viewport of [{width:390,height:420},{width:430,height:900},{width:1440,height:900}])test('Unified assistant preserves reading and separates reply from checks '+viewport.width+'x'+viewport.height,async({page},testInfo)=>{
+  await page.setViewportSize(viewport);let release;
+  const response=prepared({draft:'Из какого города вылетаете и какой бюджет рассматриваете?',reason:'Уточнить город и бюджет, сохраняя известные условия.',checks:['Проверить пляж без сильного ветра.','Сверить реальные условия проживания.'],expires_at:new Date(Date.now()+3600000).toISOString()});
+  const state=await setup(page,{readiness:true,profilePanel:true,previewHandler:async()=>{await new Promise(resolve=>{release=resolve});return {body:response}}});
+  state.setAI(async data=>data.action==='prepared'?{body:response}:{body:{ok:true,revision:'1'.repeat(64),latest_message_id:35}});
+  await expect.poll(()=>!!release).toBe(true);await expect(page.locator('#m2Assistant #m2CurrentTrip')).toBeVisible();
+  await page.locator('#replyFile').setInputFiles({name:'assistant-retained.txt',mimeType:'text/plain',buffer:Buffer.from('synthetic attachment')});
+  await page.locator('#messages').hover();await page.mouse.wheel(0,-250);await page.waitForTimeout(150);
+  const anchor=()=>page.locator('#messages').evaluate(box=>{const edge=box.getBoundingClientRect().top,row=[...box.children].find(node=>node.getBoundingClientRect().bottom>edge+1);return {key:row?.dataset.scrollMessageKey,offset:row?.getBoundingClientRect().top-edge}});
+  const before=await anchor();release();await expect(page.locator('#aiDraftSuggestion')).toBeVisible();
+  // The bounded helper scrolls independently on a short screen. Reach its
+  // answer controls with a native wheel rather than measuring offscreen content.
+  const initialControl=await page.locator('#aiSuggestionDetails').boundingBox(),initialHelper=await page.locator('#m2Assistant').boundingBox();
+  const wheel=initialControl.y<initialHelper.y?initialControl.y-initialHelper.y-8:Math.max(0,initialControl.y+initialControl.height-initialHelper.y-initialHelper.height+8);
+  if(wheel){await page.locator('#m2Assistant').hover();await page.mouse.wheel(0,wheel);await page.waitForTimeout(150)}
+  const control=await page.locator('#aiSuggestionDetails').boundingBox(),helper=await page.locator('#m2Assistant').boundingBox();
+  expect(control.y).toBeGreaterThanOrEqual(helper.y);expect(control.y+control.height).toBeLessThanOrEqual(helper.y+helper.height);
+  await replyFitsAssistant(page);
+  await expect.poll(async()=>Math.abs((await anchor()).offset-before.offset)).toBeLessThanOrEqual(2);expect((await anchor()).key).toBe(before.key);
+  const geometry=await page.evaluate(()=>{const r=id=>{const x=document.getElementById(id).getBoundingClientRect();return {width:x.width,height:x.height,bottom:x.bottom}};return {title:r('conversationTitle'),messages:r('messages'),reply:r('replyText'),helper:r('m2Assistant'),overflow:document.documentElement.scrollWidth-innerWidth}});
+  expect(geometry.title.width).toBeGreaterThan(60);expect(geometry.messages.height).toBeGreaterThan(60);expect(geometry.reply.height).toBeGreaterThanOrEqual(32);expect(geometry.reply.bottom).toBeLessThanOrEqual(viewport.height+1);expect(geometry.helper.height).toBeLessThanOrEqual(viewport.height*.39+1);expect(geometry.overflow).toBeLessThanOrEqual(1);
+  await page.locator('#m2ConversationMenuToggle').click();await page.locator('#assistantClientOpen').click();
+  await expect(page.locator('#aiDraftPanel')).toBeVisible();await expect(page.locator('#assistantDialog')).toHaveCount(0);await expect(page.locator('.aiDraftSectionTitle')).toHaveText(['Готовый ответ туристу','Проверки менеджеру']);
+  await expect(page.locator('.aiDraftText')).toHaveText(response.draft);
+  await expect(page.locator('#aiDraftSuggestion')).toBeHidden();
+  await expect.poll(async()=>{const p=await assistantPaint(page,'.aiDraftText');return p.hit&&p.height>=Math.min(24,p.targetHeight)}).toBe(true);
+  await page.screenshot({animations:'disabled',path:testInfo.outputPath('unified-assistant-open-'+viewport.width+'-'+viewport.height+'.png')});
+  await readAssistantSection(page,'.aiDraftText');
+  expect((await assistantPaint(page,'.aiDraftText')).fontSize).toBeGreaterThanOrEqual(13);
+  await page.screenshot({animations:'disabled',path:testInfo.outputPath('unified-assistant-answer-'+viewport.width+'-'+viewport.height+'.png')});
+  await readAssistantSection(page,'.aiDraftChecks li:last-child');
+  await page.screenshot({animations:'disabled',path:testInfo.outputPath('unified-assistant-checks-'+viewport.width+'-'+viewport.height+'.png')});
+  await readAssistantSection(page,'#m2CurrentTrip strong');
+  await page.screenshot({animations:'disabled',path:testInfo.outputPath('unified-assistant-request-'+viewport.width+'-'+viewport.height+'.png')});
+  await page.locator('#aiDraftOpen').click();await expect(page.locator('#aiDraftPanel')).toBeHidden();
+  await page.locator('#aiDraftOpen').click();await expect(page.locator('.aiDraftText')).toHaveText(response.draft);
+  await expect.poll(async()=>{const p=await assistantPaint(page,'.aiDraftText');return p.hit&&p.height>=Math.min(24,p.targetHeight)}).toBe(true);
+  await expect(page.locator('#m2Assistant')).toHaveCount(1);
+  await page.locator('#replyText').click();await expect(page.locator('#replyText')).toBeFocused();
+  await page.locator('#replyText').fill('Мой неотправленный ответ');await expect(page.locator('#mediaSelection')).toContainText('assistant-retained.txt');
+  await page.locator('#m2ReplyExpand').click();await expect(page.locator('#m2ReplyEditor')).toBeVisible();
+  await page.locator('#m2ReplyCollapse').click();await expect(page.locator('#replyText')).toHaveValue('Мой неотправленный ответ');
+  await expect(page.locator('#mediaSelection')).toContainText('assistant-retained.txt');
+  await page.locator('#messages').hover();await page.mouse.wheel(0,-120);
+  const image=testInfo.outputPath('unified-assistant-'+viewport.width+'-'+viewport.height+'.png');await page.screenshot({animations:'disabled',path:image});await testInfo.attach('unified-assistant',{body:fs.readFileSync(image),contentType:'image/png'});clean(state);
+  const readonlyPage=await page.context().newPage();
+  await readonlyPage.setViewportSize(viewport);
+  const readonly=await setup(readonlyPage,{readiness:'recommendations',profilePanel:true,owner:true,previewHandler:async()=>({body:prepared({should_draft:false,draft:null,next_action:'check_offer',reason:'Нет актуального расчёта на новый срок.',checks:['Сверить состав и питание по словам туриста; рассчитать новый срок.'],expires_at:new Date(Date.now()+3600000).toISOString()})})});
+  await expect(readonlyPage.locator('#aiRecommendationNotice')).toBeVisible();await readonlyPage.locator('#aiRecommendationDetails').click();
+  await expect(readonlyPage.locator('#m2Assistant')).toHaveCount(1);await expect(readonlyPage.locator('.aiDraftText')).toHaveCount(0);await expect(readonlyPage.locator('#aiDraftInsert')).toBeHidden();await expect(readonlyPage.locator('#aiSuggestionAccept')).toBeHidden();
+  await expect.poll(async()=>{const p=await assistantPaint(readonlyPage,'.aiDraftEmpty');return p.hit&&p.height>=Math.min(24,p.targetHeight)}).toBe(true);
+  await readAssistantSection(readonlyPage,'.aiDraftChecks li:last-child');
+  await readonlyPage.screenshot({animations:'disabled',path:testInfo.outputPath('unified-assistant-readonly-'+viewport.width+'-'+viewport.height+'.png')});
+  await readAssistantSection(readonlyPage,'.aiDraftClose');await readonlyPage.locator('.aiDraftClose').click();
+  await expect(readonlyPage.locator('#aiDraftPanel')).toBeHidden();
+  clean(readonly);await readonlyPage.close();
+});
 for(const stage of ['prepared','validate'])for(const width of [430,1440])test('AI inline insertion recovery '+stage+' '+width,async({page,browserName})=>{
   const viewport={width,height:width===430?420:900};await page.setViewportSize(viewport);
   const state=await setup(page,{readiness:true});
@@ -193,7 +264,7 @@ for(const owner of [false,true])for(const width of [390,1440])test('AI opening q
   state.completePreparation();await expect(page.locator('#aiDraftSuggestion')).toBeVisible({timeout:20000});await expect(notice).not.toBeVisible();await expect(page.locator('.aiSuggestionText')).toHaveText(proposal().draft);await expect(page.locator('#aiDraftPanel')).not.toBeVisible();await expect(reply).toHaveValue('');
   await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);
   if(owner){await expect(page.locator('#aiDraftSuggestion')).toHaveClass(/aiSuggestionReadonly/);await expect(page.locator('#aiDraftSuggestion')).toContainText('Только просмотр');await expect(page.locator('#aiSuggestionAccept')).not.toBeVisible();await expect(page.locator('#composer')).not.toBeVisible()}
-  else{await ghostFitsField(page);await expect(reply).toBeFocused();await expect(page.locator('#mediaSelection')).toContainText('automatic-retained.txt');expect(await reply.evaluate(()=>document.querySelector('#replyFile').files[0]===window.syntheticAutomaticFile)).toBe(true)}
+  else{await replyFitsAssistant(page);await expect(reply).toBeFocused();await expect(page.locator('#mediaSelection')).toContainText('automatic-retained.txt');expect(await reply.evaluate(()=>document.querySelector('#replyFile').files[0]===window.syntheticAutomaticFile)).toBe(true)}
   expect(await page.evaluate(()=>window.syntheticAiButtonClicks)).toBe(0);expect(state.ensureCalls()).toHaveLength(1);expect(state.aiCalls().map(call=>call.action)).toEqual(['ensure_prepared']);expect(await page.locator('#messages .msg.manager').count()).toBe(managerRows);expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
   const ready=testInfo.outputPath('ai-auto-'+(owner?'foreign':'own')+'-'+width+'-ready.png');await page.screenshot({animations:'disabled',path:ready});await testInfo.attach('automatic-ready',{body:fs.readFileSync(ready),contentType:'image/png'});clean(state);
 });
@@ -204,7 +275,7 @@ test('AI automatic queue outage is visible without invoking manual generation',a
 for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420}])test('AI expired readiness hides before a delayed timer and preserves input '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
   await page.setViewportSize(viewport);const state=await setup(page,{readiness:true});
   const reply=page.locator('#replyText'),notice=page.locator('.aiReadyNotice');
-  await expect(page.locator('#aiDraftOpen')).toHaveText('AI — Ответ готов');await expect(page.locator('#aiDraftSuggestion')).toBeVisible();await expect(notice).not.toBeVisible();
+  await expect(page.locator('#aiDraftOpen')).toHaveText('Помощник — Ответ готов');await expect(page.locator('#aiDraftSuggestion')).toBeVisible();await expect(notice).not.toBeVisible();
   await reply.fill('Мой незаконченный ответ');await page.locator('#replyFile').setInputFiles({name:'keep.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment')});
   await reply.evaluate(node=>{node.focus();node.setSelectionRange(1,5,'backward');window.aiExpiryFile=document.querySelector('#replyFile').files[0]});
   const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});
@@ -222,7 +293,7 @@ for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,
 for(const width of [390,430,768,1440])test('AI automatic readiness stays quiet and fits the composer '+width,async({page,browserName})=>{
   await page.setViewportSize({width,height:900});const state=await setup(page,{readiness:true});
   const button=page.locator('#aiDraftOpen'),notice=page.locator('.aiReadyNotice');
-  await expect(button).toHaveText('AI — Ответ готов');await expect(button).toHaveAttribute('data-ai-state','prepared');await expect(button).toHaveAttribute('title',/Подготовлен автоматически.*МСК/);
+  await expect(button).toHaveText('Помощник — Ответ готов');await expect(button).toHaveAttribute('data-ai-state','prepared');await expect(button).toHaveAttribute('title',/Подготовлен автоматически.*МСК/);
   await expect(page.locator('#aiDraftSuggestion')).toBeVisible();await expect(notice).not.toBeVisible();await expect(page.locator('#aiDraftPanel')).not.toBeVisible();
   await page.locator('#replyText').fill('Мой ответ');await page.locator('#replyFile').setInputFiles({name:'keep.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment')});
   await page.locator('#replyText').focus();await page.evaluate(()=>{for(let i=0;i<5;i++)WorkspaceV2AiDraft.sync()});
@@ -241,8 +312,8 @@ for(const width of [390,430,768,1440])test('AI automatic readiness stays quiet a
 });
 for(const mode of ['hidden','recommendations'])test('AI '+mode+' keeps the ready button and explains only available recommendations',async({page})=>{
   const state=await setup(page,{readiness:mode==='recommendations'?'recommendations':true,hideNotice:mode==='hidden'});
-  await expect(page.locator('#aiDraftOpen')).toHaveText(mode==='recommendations'?'AI — Рекомендации':'AI — Ответ готов');await expect(page.locator('.aiReadyNotice')).not.toBeVisible();await expect(page.locator('#aiDraftSuggestion')).not.toBeVisible();expect(state.aiCalls()).toEqual([]);
-  if(mode==='recommendations'){await expect(page.locator('#aiRecommendationNotice')).toBeVisible();await expect(page.locator('#aiRecommendationNotice')).toContainText('AI: сейчас отвечать не нужно')}else await expect(page.locator('#aiRecommendationNotice')).not.toBeVisible();
+  await expect(page.locator('#aiDraftOpen')).toHaveText(mode==='recommendations'?'Помощник — Нужна проверка':'Помощник — Ответ готов');await expect(page.locator('.aiReadyNotice')).not.toBeVisible();await expect(page.locator('#aiDraftSuggestion')).not.toBeVisible();expect(state.aiCalls()).toEqual([]);
+  if(mode==='recommendations'){await expect(page.locator('#aiRecommendationNotice')).toBeVisible();await expect(page.locator('#aiRecommendationNotice')).toContainText('Сейчас отвечать не нужно')}else await expect(page.locator('#aiRecommendationNotice')).not.toBeVisible();
   if(mode==='hidden'){await page.evaluate(()=>WorkspaceV2PersonalWorkspace.open());await expect(page.locator('#pwHideAiReadyNotice')).toBeChecked();await page.locator('#pwClose').click();await page.locator('#aiDraftOpen').click();await expect(page.locator('#aiDraftInsert')).toBeEnabled()}
   clean(state);
 });
@@ -250,7 +321,7 @@ const explanationViewports=[{width:390,height:900},{width:430,height:900},{width
 for(const viewport of explanationViewports)for(const owner of [false,true])for(const action of ['no_contact','check_offer'])test('AI non-draft explanation '+action+' '+(owner?'owner foreign':'own')+' '+viewport.width,async({page,browserName})=>{
   await page.setViewportSize(viewport);await page.addInitScript(()=>{window.syntheticAiButtonClicks=0;document.addEventListener('click',event=>{const button=event.target.closest?.('button');if(button?.id==='aiDraftOpen'||button?.getAttribute('aria-label')==='AI · Просмотр')window.syntheticAiButtonClicks++},true)});
   const reason=action==='no_contact'?'Менеджер уже ответил. Нового вопроса нет, повторное сообщение сейчас не требуется.':'Цена и наличие ещё не подтверждены. Проверьте условия перед ответом. <img src=x onerror=alert(1)>',state=await setup(page,{readiness:'recommendations',owner,previewHandler:async()=>({body:prepared({should_draft:false,draft:null,next_action:action,reason,expires_at:new Date(Date.now()+3600000).toISOString()})})}),notice=page.locator('#aiRecommendationNotice'),reply=page.locator('#replyText');
-  await expect(notice).toBeVisible();await expect(notice.locator('strong')).toHaveText(action==='no_contact'?'AI: сейчас отвечать не нужно':'AI: перед ответом нужна проверка');await expect(notice.locator('.aiRecommendationReason')).toHaveText(reason);expect(await notice.locator('img').count()).toBe(0);await expect(page.locator('#aiDraftPanel')).not.toBeVisible();await expect(page.locator('#aiDraftSuggestion')).not.toBeVisible();await expect(reply).toHaveValue('');
+  await expect(notice).toBeVisible();await expect(notice.locator('strong')).toHaveText(action==='no_contact'?'Сейчас отвечать не нужно':'Готового ответа пока нет · Проверки менеджеру');await expect(notice.locator('.aiRecommendationReason')).toHaveText(reason);expect(await notice.locator('img').count()).toBe(0);await expect(page.locator('#aiDraftPanel')).not.toBeVisible();await expect(page.locator('#aiDraftSuggestion')).not.toBeVisible();await expect(reply).toHaveValue('');
   if(owner){await expect(notice).toHaveClass(/aiRecommendationReadonly/);await expect(page.locator('#composer')).not.toBeVisible()}else{await page.locator('#replyFile').setInputFiles({name:'recommendation-retained.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic retained File')});await reply.fill('Мой незаконченный ответ');await reply.focus();await reply.evaluate(()=>window.syntheticRecommendationFile=document.querySelector('#replyFile').files[0]);await expect(notice).toBeVisible();await expect(reply).toBeFocused()}
   await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);
   const geometry=await notice.evaluate(node=>{const r=node.getBoundingClientRect(),host=document.getElementById('conversationZone').getBoundingClientRect();return{left:r.left,right:r.right,top:r.top,bottom:r.bottom,hostLeft:host.left,hostRight:host.right}});expect(geometry.left).toBeGreaterThanOrEqual(geometry.hostLeft-1);expect(geometry.right).toBeLessThanOrEqual(geometry.hostRight+1);expect(geometry.bottom).toBeLessThanOrEqual(viewport.height+1);expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
@@ -271,7 +342,7 @@ for(const width of [390,430,768,1440])test('AI inline suggestion is visible and 
   await reply.click();await reply.evaluate(()=>{window.aiInlineFile=document.querySelector('#replyFile').files[0]});
   await expect(suggestion).toBeVisible();await expect(reply).toBeFocused();
   await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);
-  await ghostFitsField(page);
+  await replyFitsAssistant(page);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
   for(const locator of [suggestion,reply,page.locator('#sendReply')]){const box=await locator.boundingBox();expect(box.x).toBeGreaterThanOrEqual(-1);expect(box.x+box.width).toBeLessThanOrEqual(width+1);expect(box.y).toBeGreaterThanOrEqual(-1);expect(box.y+box.height).toBeLessThanOrEqual(901)}
   const image=testInfo.outputPath('ai-inline-'+browserName+'-'+width+'.png');await page.screenshot({animations:'disabled',path:image});await testInfo.attach('ai-inline-'+width,{body:fs.readFileSync(image),contentType:'image/png'});
@@ -281,13 +352,13 @@ for(const width of [390,430,768,1440])test('AI inline suggestion is visible and 
   expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('workspaceV2.replySession.v1')).drafts.find(row=>row.id===11).aiDraftId)).toBe('a'.repeat(32));
   expect(await page.locator('#replyFile').evaluate(node=>node.files[0]===window.aiInlineFile)).toBe(true);await expect(page.locator('#mediaSelection')).toContainText('inline-keep.txt');clean(state);
 });
-for(const viewport of [{width:390,height:420},{width:430,height:900},{width:768,height:900},{width:1440,height:900}])test('AI ghost text stays inside the empty native field and expanded editor '+viewport.width+'x'+viewport.height,async({page,browserName},testInfo)=>{
+for(const viewport of [{width:390,height:420},{width:430,height:900},{width:768,height:900},{width:1440,height:900}])test('AI reply stays in one assistant beside the native field and expanded editor '+viewport.width+'x'+viewport.height,async({page,browserName},testInfo)=>{
   const draft='Предлагаю сравнить два варианта на ваши даты. Первый ближе к пляжу, второй просторнее.\nУточните, пожалуйста, возраст детей и город вылета — проверим полную стоимость для вашего состава.';
   await page.setViewportSize(viewport);const state=await setup(page,{readiness:true,previewHandler:async()=>({body:prepared({draft,expires_at:new Date(Date.now()+3600000).toISOString()})})}),reply=page.locator('#replyText');
-  await expect(page.locator('.aiSuggestionText')).toHaveText(draft);await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);await ghostFitsField(page,{allowClipping:true});
+  await expect(page.locator('.aiSuggestionText')).toHaveText(draft);await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);await replyFitsAssistant(page,{allowClipping:true});
   expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
   const compact=testInfo.outputPath('ai-ghost-compact-'+browserName+'-'+viewport.width+'-'+viewport.height+'.png');await page.screenshot({animations:'disabled',path:compact});await testInfo.attach('ai-ghost-compact',{body:fs.readFileSync(compact),contentType:'image/png'});
-  await page.locator('#m2ReplyExpand').click();await expect(page.locator('#m2ReplyEditor')).toBeVisible();await ghostFitsField(page,{allowClipping:true});await expect(reply).toHaveValue('');
+  await page.locator('#m2ReplyExpand').click();await expect(page.locator('#m2ReplyEditor')).toBeVisible();await replyFitsAssistant(page,{allowClipping:true});await expect(reply).toHaveValue('');
   const expanded=testInfo.outputPath('ai-ghost-expanded-'+browserName+'-'+viewport.width+'-'+viewport.height+'.png');await page.screenshot({animations:'disabled',path:expanded});await testInfo.attach('ai-ghost-expanded',{body:fs.readFileSync(expanded),contentType:'image/png'});
   await reply.fill('Мой собственный ответ');await expect(page.locator('#aiDraftSuggestion')).not.toBeVisible();await expect(reply).toHaveValue('Мой собственный ответ');await page.locator('#m2ReplyCollapse').click();await expect(reply).toHaveValue('Мой собственный ответ');expect(state.aiCalls()).toEqual([]);clean(state);
 });
@@ -306,9 +377,9 @@ test('AI ghost dismissal restores the native empty-field placeholder without tak
 });
 test('AI ghost follows the desktop large-font preference while already visible',async({page},testInfo)=>{
   await page.setViewportSize({width:1440,height:900});const state=await setup(page,{readiness:true});await expect(page.locator('#aiDraftSuggestion')).toBeVisible();
-  await page.evaluate(()=>{document.body.classList.add('pwLargeFont');WorkspaceV2AiDraft.sync()});await expect.poll(()=>page.locator('#replyText').evaluate(node=>getComputedStyle(node).fontSize)).toBe('16px');await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);await ghostFitsField(page);
+  await page.evaluate(()=>{document.body.classList.add('pwLargeFont');WorkspaceV2AiDraft.sync()});await expect.poll(()=>page.locator('#replyText').evaluate(node=>getComputedStyle(node).fontSize)).toBe('16px');await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);await replyFitsAssistant(page);
   const image=testInfo.outputPath('ai-ghost-large-font.png');await page.screenshot({animations:'disabled',path:image});await testInfo.attach('ai-ghost-large-font',{body:fs.readFileSync(image),contentType:'image/png'});
-  await page.evaluate(()=>{document.body.classList.remove('pwLargeFont');WorkspaceV2AiDraft.sync()});await expect.poll(()=>page.locator('#replyText').evaluate(node=>getComputedStyle(node).fontSize)).toBe('14px');await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);await ghostFitsField(page);expect(state.aiCalls()).toEqual([]);clean(state);
+  await page.evaluate(()=>{document.body.classList.remove('pwLargeFont');WorkspaceV2AiDraft.sync()});await expect.poll(()=>page.locator('#replyText').evaluate(node=>getComputedStyle(node).fontSize)).toBe('14px');await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);await replyFitsAssistant(page);expect(state.aiCalls()).toEqual([]);clean(state);
 });
 for(const width of [390,1440])test('Blocked customer has no automatic reply urgency and keeps explicit tasks '+width,async({page},testInfo)=>{
   const manualTask=width===1440;await page.setViewportSize({width,height:900});const state=await setup(page,{owner:true,blocked:true,manualTask}),row=page.locator('#inboxList [data-conversation-id="11"]');
