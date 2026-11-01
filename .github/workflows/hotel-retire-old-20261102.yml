@@ -1,0 +1,179 @@
+name: Retire only HOTEL-CONTINUOUS-20261027 through installed service
+on:
+  push:
+    branches: [ops/hotel-retire-old-20261102]
+    paths: [.github/workflows/hotel-retire-old-20261102.yml]
+permissions:
+  contents: read
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+env:
+  EXPECTED_MAIN_SHA: a8b4c2d1126b0e38d831e0ace9d75554d6e4415b
+  INVOCATION_SOURCE_SHA: 6639242d7a03f3b7992320e1ccac152bd4a2338b
+jobs:
+  retire_old:
+    if: github.ref == 'refs/heads/ops/hotel-retire-old-20261102' && github.event.before == 'a8b4c2d1126b0e38d831e0ace9d75554d6e4415b' && github.event.created == false && github.event.deleted == false && github.event.forced == false && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Pin unchanged installed source and fixed invocation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = "$EXPECTED_MAIN_SHA"
+          gh api "repos/pyatkoff/max-search-bot/contents/tools/direct_demand/operations/hotel-retire-old-invocation.php?ref=$INVOCATION_SOURCE_SHA" >"$RUNNER_TEMP/hotel_retire_source.json"
+          python3 - <<'PY'
+          import os,json,pathlib,base64,hashlib
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])
+          d=json.loads((root/'hotel_retire_source.json').read_text());assert d['encoding']=='base64'
+          assert d['sha']=='1056e52702bf3bc0db43833ffbb4eb7037010936'
+          b=base64.b64decode(d['content']);assert len(b)<16384
+          assert hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()==d['sha']
+          (root/'hotel_retire_stdin.php').write_bytes(b)
+          PY
+      - name: Setup PHP only for invocation checks
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: Lint new invocation and prove foreign-target refusal before credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -l "$RUNNER_TEMP/hotel_retire_stdin.php" >/dev/null
+          set +e
+          php "$RUNNER_TEMP/hotel_retire_stdin.php" >"$RUNNER_TEMP/hotel_retire_refusal.json"
+          invocation_status=$?
+          set -e
+          test "$invocation_status" -eq 1
+          python3 - <<'PY'
+          import os,json,pathlib
+          d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP']+'/hotel_retire_refusal.json').read_text())
+          assert d['operation']=='hotel-retire-old-v1' and d['state']=='HOLD'
+          assert d['reason']=='retirement_target_unconfirmed' and d['phase']=='bind'
+          assert d['retirement_service_invoked'] is False and d['reconciliation_required'] is False
+          PY
+      - name: Prepare existing connection and pinned host
+        env:
+          CONNECTION_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          CONNECTION_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          CONNECTION_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          raw="$CONNECTION_KEY"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' >"$RUNNER_TEMP/hotel083_key"; else printf '%s\n' "$raw" | tr -d '\r' >"$RUNNER_TEMP/hotel083_key"; fi
+          else
+            printf '%s' "$raw" | base64 --decode >"$RUNNER_TEMP/hotel083_key"
+          fi
+          ssh-keygen -y -f "$RUNNER_TEMP/hotel083_key" >/dev/null
+          python3 - <<'PY'
+          import os,re,subprocess,base64,hashlib,pathlib
+          host=os.environ['CONNECTION_HOST'];user=os.environ['CONNECTION_USER']
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',user)
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35)
+          approved=[]
+          for line in scan.stdout.splitlines():
+              fields=line.split()
+              if len(fields)<3 or fields[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':approved.append(line)
+          assert approved,'Existing host continuity mismatch; STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/hotel083_hosts').write_text('\n'.join(approved)+'\n')
+          PY
+      - name: One exact application-PDO retirement invocation
+        env:
+          CONNECTION_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          CONNECTION_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          set +e
+          timeout 120 ssh -i "$RUNNER_TEMP/hotel083_key" -o BatchMode=yes -o ConnectTimeout=10 -o ConnectionAttempts=1 -o IdentitiesOnly=yes -o ServerAliveInterval=10 -o ServerAliveCountMax=2 -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/hotel083_hosts" "$CONNECTION_USER@$CONNECTION_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_MAIN_SHA'; git diff --quiet; git diff --cached --quiet; /usr/bin/php" <"$RUNNER_TEMP/hotel_retire_stdin.php" >"$RUNNER_TEMP/hotel_retire_raw.private" 2>"$RUNNER_TEMP/hotel_retire_stderr.private"
+          command_status=$?
+          set -e
+          export HOTEL_RETIRE_COMMAND_STATUS="$command_status"
+          python3 - <<'PY'
+          import os,json,pathlib,re,sys
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])
+          fixed={'operation':'hotel-retire-old-v1','full_deploy':False,'migration_invoked':False,
+                 'new_collection_invoked':False,'app_files_written':False,'settings_changed':False}
+          out=dict(fixed);ok=False
+          try:
+              p=root/'hotel_retire_raw.private';assert p.stat().st_size<=8192
+              d=json.loads(p.read_text());assert isinstance(d,dict)
+              allowed=set(fixed)|{'state','target_binding_confirmed','migration083_verified','admin_owner_pin_confirmed',
+                  'readback','migration083_checksum','phase','reason','mysql_errno',
+                  'reconciliation_required','retirement_service_invoked'}
+              assert set(d)<=allowed
+              for k,v in fixed.items():assert type(d[k]) is type(v) and d[k]==v
+              assert type(d['retirement_service_invoked']) is bool
+              out['retirement_service_invoked']=d['retirement_service_invoked']
+              for k in ['target_binding_confirmed','migration083_verified','admin_owner_pin_confirmed','reconciliation_required']:
+                  if k in d:
+                      assert type(d[k]) is bool;out[k]=d[k]
+              status=int(os.environ['HOTEL_RETIRE_COMMAND_STATUS']);out['server_command_exit_code']=status
+              assert d['state'] in ['retired','HOLD'];out['state']=d['state']
+              if d['state']=='retired':
+                  assert status==0 and d['retirement_service_invoked'] is True
+                  for k in ['target_binding_confirmed','migration083_verified','admin_owner_pin_confirmed']:assert d[k] is True
+                  assert d['migration083_checksum']=='1d39818eb8841aa80d8427dab7cb82562b02e2d6665529e7b8515044d18562ae'
+                  r=d['readback']
+                  exact={'queue_id','state','CENTRAL41','accepted_batches','acceptance_credit','receipt_sha256',
+                      'snapshot_sha256','backup_sha256','original_receipts_preserved','old_subscriptions_inactive',
+                      'lane_free','new_start_allowed','new_queue_created','native_terminal_verified','retirement_created_at'}
+                  assert isinstance(r,dict) and set(r) in [exact,exact|{'already_recorded'}]
+                  assert r['queue_id']=='HOTEL-CONTINUOUS-20261027' and r['state']=='retired' and r['CENTRAL41']=='UNKNOWN'
+                  assert type(r['accepted_batches']) is int and r['accepted_batches']==19
+                  assert type(r['acceptance_credit']) is int and r['acceptance_credit']==0
+                  for k in ['original_receipts_preserved','old_subscriptions_inactive','lane_free']:assert r[k] is True
+                  for k in ['new_start_allowed','new_queue_created','native_terminal_verified']:assert r[k] is False
+                  assert r['backup_sha256']=='61917edb636c752176a5d369d885e1aea249dae8be0d1764d46d7b744b5ca1f2'
+                  for k in ['receipt_sha256','snapshot_sha256']:assert re.fullmatch(r'[a-f0-9]{64}',r[k])
+                  assert re.fullmatch(r'[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}',r['retirement_created_at'])
+                  if 'already_recorded' in r:assert r['already_recorded'] is True
+                  assert not ({'phase','reason','mysql_errno','reconciliation_required'}&set(d))
+                  out.update(readback={k:r[k] for k in sorted(r)},migration083_checksum=d['migration083_checksum']);ok=True
+              else:
+                  assert status!=0 and d['phase'] in ['bind','preflight','retire_old','readback']
+                  reasons={'retirement_target_unconfirmed','retirement083_source_mismatch','retirement_connection_unconfirmed',
+                      'retirement083_journal_unconfirmed','retirement083_barrier_unconfirmed','retirement_operation_busy',
+                      'retirement_authorization_unconfirmed','retirement_admin_owner_pin_unconfirmed','retirement_original_receipt_hash_mismatch',
+                      'retirement_original_state_mismatch','retirement_private_intent_unavailable','retirement_preflight_mismatch',
+                      'retirement_intent_conflict','retirement_readback_unconfirmed','retirement_original_queue_changed',
+                      'retirement_original_receipts_changed','retirement_delivery_not_fenced','retirement_lane_not_released',
+                      'retirement_admin_required','retirement_owner_CAS','retirement_CAS_conflict','retirement_external_isolation_required',
+                      'retirement_database_barrier_required','retirement_current_lane_required','retirement_replay_conflict',
+                      'retirement_snapshot_limit','retirement_foreign_transaction','retirement_operation_unconfirmed'}
+                  assert d['reason'] in reasons
+                  assert d['mysql_errno'] is None or type(d['mysql_errno']) is int and 0<=d['mysql_errno']<=99999
+                  assert d['reconciliation_required'] is d['retirement_service_invoked']
+                  out.update(phase=d['phase'],reason=d['reason'],mysql_errno=d['mysql_errno'])
+          except Exception:
+              out.update(state='HOLD',reason='retirement_result_unconfirmed',reconciliation_required=True)
+          safe=json.dumps(out,sort_keys=True)+'\n'
+          (root/'hotel_retire_sanitized.json').write_text(safe);print(safe,end='')
+          sys.exit(0 if ok else 1)
+          PY
+      - name: Retain only reconstructed migration result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hotel-retire-old-result
+          path: ${{ runner.temp }}/hotel_retire_sanitized.json
+          retention-days: 14
+          if-no-files-found: ignore
+      - name: Remove ephemeral runner files
+        if: always()
+        shell: bash
+        run: |
+          rm -f "$RUNNER_TEMP/hotel083_key" "$RUNNER_TEMP/hotel083_hosts" "$RUNNER_TEMP/hotel_retire_source.json" "$RUNNER_TEMP/hotel_retire_stdin.php" "$RUNNER_TEMP/hotel_retire_refusal.json" "$RUNNER_TEMP/hotel_retire_raw.private" "$RUNNER_TEMP/hotel_retire_stderr.private" "$RUNNER_TEMP/hotel_retire_sanitized.json"
