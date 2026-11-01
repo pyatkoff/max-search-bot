@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__.'/HotelCollectionCanonicalStore.php';
 require_once __DIR__.'/ManagerPreparationOAuth.php';
 require_once __DIR__.'/HotelWorkingSnapshot.php';
+require_once __DIR__.'/HotelQuarantinedIntake.php';
 
 /** Internal control APIs + two capability-bound worker APIs; no native launch,
  * queue advancement, runtime migration or Library loader. Constructor identity
@@ -92,6 +93,7 @@ final class HotelCollectionCanonicalService
     /** Server adapter resolves task/capability from stored authority, not caller routing. */
     public function dispatchIdentity(string $queue,string $stage,int $generation,string $control,string $operation,string $capability,string $task):array
     {
+        if($this->quarantined($queue))return$this->quarantineService()->identity($queue,$stage,$generation,$control,$operation,$capability,$task);
         return $this->tx('dispatch_identity',function()use($queue,$stage,$generation,$control,$operation,$capability,$task):array{
             [$q,$h]=$this->locked($queue,$stage,true);$this->control($h,$control,$generation);
             if((int)$q['stage_index']%2===1){
@@ -108,6 +110,7 @@ final class HotelCollectionCanonicalService
     /** Private role-bound transport check, including first-send permit state. */
     public function transportIdentity(array $a,bool $sending=false):array
     {
+        if($this->quarantined($a['queue_id']??''))return$this->quarantineService()->transport($a,$sending);
         self::keys($a,['queue_id','stage_id','generation','operation_id','task_id','worker_capability','role']);
         foreach(['queue_id','stage_id','operation_id','task_id']as$key)self::id($a[$key]??null);
         self::sha($a['worker_capability']??null);
@@ -139,6 +142,7 @@ final class HotelCollectionCanonicalService
     /** CONTROL: once-only transport permit. Lost ACK remains UNKNOWN, never retry. */
     public function consumeDispatch(string $queue,string $stage,int $generation,string $control,string $eventId):array
     {
+        if($this->quarantined($queue))return$this->quarantineService()->consume($queue,$stage,$generation,$control,$eventId);
         return $this->tx('consume_dispatch',function()use($queue,$stage,$generation,$control,$eventId):array{
             [$q,$h]=$this->locked($queue,$stage,true);$this->control($h,$control,$generation);
             $id=substr($eventId,10);if($eventId!=='hotel_evt_'.$id||!preg_match('/\\A[a-f0-9]{64}\\z/D',$id))$this->deny('event_identity_invalid');
@@ -186,6 +190,7 @@ final class HotelCollectionCanonicalService
     /** Separate reviewer authority: never use the producer capability. */
     public function reviewContext(array $args):array
     {
+        if($this->quarantined($args['queue_id']??''))return$this->quarantineService()->context($args);
         return $this->tx('review_context',function()use($args):array{
             [$q,$h,$r]=$this->reviewAuthority($args);
             $candidate=$this->one('SELECT raw_bytes,raw_sha256 FROM hotel_collection_candidates WHERE queue_id=? AND operation_id=?',[$q['queue_id'],$r['producer_operation']]);
@@ -195,6 +200,7 @@ final class HotelCollectionCanonicalService
     }
     public function submitReview(array $args,array $verdict):array
     {
+        if($this->quarantined($args['queue_id']??''))return$this->quarantineService()->verdict($args,$verdict);
         self::keys($verdict,['candidate_sha256','decision','criteria','review_run']);self::sha($verdict['candidate_sha256']);self::id($verdict['review_run']);
         if(!in_array($verdict['decision'],['accept','hold','reject'],true))throw new InvalidArgumentException('review_decision');
         return $this->tx('submit_review',function()use($args,$verdict):array{
@@ -544,6 +550,8 @@ final class HotelCollectionCanonicalService
         if($this->fault!==null)($this->fault)('after_commit:'.$name);return $result;
     }
     private function lock(): string { return $this->driver==='mysql'?' FOR UPDATE':''; }
+    private function quarantined(string$q):bool{return HotelQuarantinedIntake::owns($this->pdo,$this->admin,$this->connection,$q);}
+    private function quarantineService():HotelQuarantinedIntake{return new HotelQuarantinedIntake(new HotelNativeRecoveryContext($this->pdo,$this->admin,$this->connection,$this->clock),$this->fault);}
     private function one(string $sql,array $args): ?array { $q=$this->pdo->prepare($sql);$q->execute($args);return $q->fetch(PDO::FETCH_ASSOC)?:null; }
     private function execute(string $sql,array $args): void { $q=$this->pdo->prepare($sql);$q->execute($args); }
     private function deny(string $reason): never { throw new DomainException('canonical_service_'.$reason); }

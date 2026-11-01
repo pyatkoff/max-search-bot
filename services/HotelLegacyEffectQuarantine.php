@@ -75,6 +75,8 @@ final class HotelLegacyEffectQuarantine
         return count($s->fetchAll(PDO::FETCH_COLUMN))===5
             &&(int)$this->c->one('SELECT COUNT(*) AS n FROM hotel_legacy_quarantine_gate WHERE guard_id IN (1,2)',[])['n']===2;
     }
+    public function assertDatabaseBarrier():void
+    {if(!$this->triggersReady())throw new DomainException('quarantine_database_barrier_required');}
     private function tx(callable$work):array
     {
         $this->c->autocommit();$p=$this->c->pdo;$p->beginTransaction();

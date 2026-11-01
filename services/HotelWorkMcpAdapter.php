@@ -13,7 +13,7 @@ final class HotelWorkMcpAdapter
         'hotel_work_delivery_repair_preflight','hotel_work_repair_delivery',
         'hotel_work_execution_attempt_preflight','hotel_work_prepare_execution_attempt',
         'hotel_work_enter_execution_attempt','hotel_work_bind_execution_attempt',
-        'hotel_work_collection_context','hotel_work_collection_candidate','hotel_work_producer_enter','hotel_work_working_read','hotel_work_review_context','hotel_work_review_submit'];
+        'hotel_work_collection_context','hotel_work_collection_candidate','hotel_work_producer_enter','hotel_work_working_read','hotel_work_review_context','hotel_work_review_submit','hotel_work_quarantine_read'];
 
     public function __construct(private PDO $pdo, private $store = null, private $clock = null,
         private ?HotelWorkEventService $events = null, private string $oauthProfile = ManagerPreparationOAuth::PROFILE_LEGACY,
@@ -142,6 +142,8 @@ final class HotelWorkMcpAdapter
         $definitions[]=['hotel_work_review_context','Read the exact producer candidate using a separate reviewer capability; first call binds one reviewer instance.', $review,array_keys($review),false];
         $definitions[]=['hotel_work_review_submit','Persist one immutable independent review verdict. Does not itself commit data or advance the queue.',
             $review+['verdict'=>['type'=>'object','properties'=>['candidate_sha256'=>$sha,'decision'=>['type'=>'string','enum'=>['accept','hold','reject']],'criteria'=>$criteria,'review_run'=>$run],'required'=>['candidate_sha256','decision','criteria','review_run'],'additionalProperties'=>false]], [...array_keys($review),'verdict'],false];
+        $read=$review+['kind'=>['type'=>'string','enum'=>['packet','working','member','accepted_working']],'member'=>['type'=>'string','maxLength'=>512],'pointer'=>['type'=>'string','maxLength'=>512],'offset'=>['type'=>'integer','minimum'=>0]];
+        $definitions[]=['hotel_work_quarantine_read','Read complete immutable packet, evidence members or frozen/accepted WORKING for the admitted quarantined reviewer. Tracks byte coverage; no web, Library writes, claim or acceptance.', $read,array_keys($read),false];
         $out=[];
         foreach ($definitions as [$name,$description,$properties,$required,$readOnly]) {
             $security=[['type'=>'oauth2','scopes'=>['hotel_work:write']]];
@@ -157,6 +159,12 @@ final class HotelWorkMcpAdapter
     {
         if (!in_array($name,self::NAMES,true)||$admin<=0||!preg_match('/\A[a-f0-9]{32}\z/D',$connection)) throw new InvalidArgumentException();
         $operation=substr($name,strlen('hotel_work_'));
+        if($operation==='quarantine_read'){
+            $fields=['queue_id','stage_id','generation','review_capability','instance_id','kind','member','pointer','offset'];
+            if(count($args)!==count($fields)||array_diff(array_keys($args),$fields)||strlen(json_encode($args,JSON_THROW_ON_ERROR))>16384)throw new InvalidArgumentException();
+            require_once __DIR__.'/HotelQuarantinedIntake.php';$identity=array_diff_key($args,array_flip(['kind','member','pointer','offset']));
+            return(new HotelQuarantinedIntake(new HotelNativeRecoveryContext($this->pdo,$admin,$connection,$this->clock)))->read($identity,$args['kind'],$args['member'],$args['pointer'],$args['offset']);
+        }
         if(in_array($operation,['working_read','review_context','review_submit','producer_enter'],true)) {
             $fields=$operation==='working_read'?['queue_id','stage_id','generation','operation_id','worker_capability','instance_id','data_sha256','pointer','offset']:
                 ['queue_id','stage_id','generation','review_capability','instance_id'];

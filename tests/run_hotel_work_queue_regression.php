@@ -1364,3 +1364,4 @@ echo 'HOTEL WORK QUEUE: '.$checks." PASS\n";
 require __DIR__.'/hotel_working_cycle_checks.php';
 require __DIR__.'/hotel_native_automation_checks.php';
 require __DIR__.'/hotel_native_recovery_checks.php';
+require __DIR__.'/hotel_quarantined_intake_checks.php';

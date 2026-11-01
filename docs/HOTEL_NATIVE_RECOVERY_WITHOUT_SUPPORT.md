@@ -129,11 +129,11 @@ transaction succeeded.
 4. Obtain actual native binding evidence through the supported export/receipt,
    validate it with the read-only join, and separately approve the binding. If
    native IDs remain hidden, retain HOLD. Never create a substitute queue/worker.
-5. A later reviewed adoption path must stage the already completed TR40 packet
+5. The separate dormant continuation in `HOTEL_QUARANTINED_INTAKE.md` stages the already completed TR40 packet
    with all evidence, preserve historical IDs/variants/reserves/criteria, and
    issue only a fresh independent CENTRAL review authority. It must atomically
-   connect the existing claim to canonical acceptance. This path is not supplied
-   by quarantine and no new TR research is permitted. Full native isolation
+   connect the existing claim to canonical acceptance. Quarantine alone grants no
+   continuation and no new TR research is permitted. Full native isolation
    would additionally require host-enforced per-run revocation/fencing, which
    the available tools do not provide.
 
