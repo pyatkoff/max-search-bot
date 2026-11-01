@@ -326,7 +326,7 @@ final class ManagerPreparationMcpService
                 || !$this->scopedConnectionActive($connection,$admin,[ManagerPreparationOAuth::DEVELOPMENT_SCOPE])) throw new DomainException();
             return $remove?$this->developmentEvents()->unsubscribe($params,$admin,$connection):$this->developmentEvents()->subscribe($params,$admin,$connection);
         }
-        if (in_array($params['name']??null,['hotel_work.pending','hotel_work.attention'],true)) {
+        if (in_array($params['name']??null,['hotel_work.pending','hotel_work.attention','hotel_work.research_ready','hotel_work.review_ready'],true)) {
             if (!in_array(ManagerPreparationOAuth::HOTEL_SCOPE,$scopes,true) || $connection===null
                 || !$this->scopedConnectionActive($connection,$admin,[ManagerPreparationOAuth::HOTEL_SCOPE])) throw new DomainException();
             return $remove?$this->hotelEvents()->unsubscribe($params,$admin,$connection):$this->hotelEvents()->subscribe($params,$admin,$connection);

@@ -12,6 +12,8 @@ require_once __DIR__.'/HotelWorkQueueFactory.php';
 final class HotelWorkEventService
 {
     public const EVENTS = ['hotel_work.pending','hotel_work.attention'];
+    // Separate role channels: never compete with the existing handler consumer.
+    public const WORKER_EVENTS = ['hotel_work.research_ready','hotel_work.review_ready'];
     private const PROJECT = 'anytour';
     private PDO $pdo;
     private ManagerPreparationWebhook $webhook;
@@ -46,6 +48,24 @@ final class HotelWorkEventService
                     'country'=>['type'=>'string','enum'=>['EG','TH','VN','TR']],
                     'dispatch_allowed'=>['type'=>'boolean','const'=>$dispatch]],
                     'required'=>['project_key','queue_id','stage_id','stage_kind','country','dispatch_allowed'],
+                    'additionalProperties'=>false]];
+        }
+        foreach (self::WORKER_EVENTS as $name) {
+            $out[]=['name'=>$name,'description'=>'Private server-authorized assignment for the existing Automation. Authenticate and acquire admission before work. A callback ACK is not a native run or acceptance.',
+                'delivery'=>['webhook'],
+                'inputSchema'=>['type'=>'object','properties'=>[
+                    'project_key'=>['type'=>'string','const'=>self::PROJECT],
+                    'queue_id'=>['type'=>'string','pattern'=>'^[A-Za-z0-9_-]{1,80}$'],
+                    'task_id'=>['type'=>'string','pattern'=>'^[a-f0-9]{32}$']],
+                    'required'=>['project_key','queue_id','task_id'],'additionalProperties'=>false],
+                'payloadSchema'=>['type'=>'object','properties'=>[
+                    'project_key'=>['type'=>'string','const'=>self::PROJECT],
+                    'queue_id'=>['type'=>'string'],'stage_id'=>['type'=>'string'],
+                    'generation'=>['type'=>'integer','minimum'=>1],
+                    'operation_id'=>['type'=>'string'],'task_id'=>['type'=>'string'],
+                    'role'=>['type'=>'string','const'=>$name===self::WORKER_EVENTS[0]?'producer':'reviewer'],
+                    'worker_capability'=>['type'=>'string','description'=>'Private role-scoped capability. Never echo or log.']],
+                    'required'=>['project_key','queue_id','stage_id','generation','operation_id','task_id','role','worker_capability'],
                     'additionalProperties'=>false]];
         }
         return $out;
@@ -261,8 +281,8 @@ final class HotelWorkEventService
         $date=self::date($this->now());
         // Backoff belongs to an event, not its subscription. Inspect readiness
         // every minute so a new stage never inherits an old event's delay.
-        $q=$this->pdo->prepare('SELECT subscription_id FROM hotel_work_events WHERE project_key=? AND is_active=1 AND expires_at>? ORDER BY updated_at,subscription_id LIMIT 20');
-        $q->execute([self::PROJECT,$date]);$rows=$q->fetchAll(PDO::FETCH_ASSOC);
+        $q=$this->pdo->prepare('SELECT subscription_id FROM hotel_work_events WHERE project_key=? AND is_active=1 AND expires_at>? AND event_name IN (?,?) ORDER BY updated_at,subscription_id LIMIT 20');
+        $q->execute([self::PROJECT,$date,...self::EVENTS]);$rows=$q->fetchAll(PDO::FETCH_ASSOC);
         $counts=['subscriptions'=>count($rows),'accepted'=>0,'retried'=>0,'stopped'=>0,'unchanged'=>0];
         foreach ($rows as $candidate) {
             $id=$candidate['subscription_id'];$token=bin2hex(random_bytes(16));$now=$this->now();$date=self::date($now);
@@ -332,8 +352,10 @@ final class HotelWorkEventService
     private function identity(array $params,int $admin,string $connection,bool $withSecret): array
     {
         self::keys($params,['name','arguments','delivery','cursor','ttlMs']);$name=$params['name']??null;$args=$params['arguments']??null;
-        if (!in_array($name,self::EVENTS,true)||!is_array($args)) throw new InvalidArgumentException();
-        self::keys($args,['project_key','queue_id']);$queueId=$args['queue_id']??null;
+        if (!in_array($name,[...self::EVENTS,...self::WORKER_EVENTS],true)||!is_array($args)) throw new InvalidArgumentException();
+        $worker=in_array($name,self::WORKER_EVENTS,true);
+        self::keys($args,$worker?['project_key','queue_id','task_id']:['project_key','queue_id']);$queueId=$args['queue_id']??null;
+        if ($worker&&(!is_string($args['task_id']??null)||preg_match('/\A[a-f0-9]{32}\z/D',$args['task_id'])!==1)) throw new InvalidArgumentException();
         if (($args['project_key']??null)!==self::PROJECT||!is_string($queueId)||!preg_match('/\A[A-Za-z0-9_-]{1,80}\z/D',$queueId)
             ||($params['cursor']??null)!==null) throw new InvalidArgumentException();
         $delivery=$params['delivery']??null;if (!is_array($delivery)) throw new InvalidArgumentException();
@@ -341,6 +363,7 @@ final class HotelWorkEventService
         if (($delivery['mode']??null)!=='webhook'||!is_string($url)||strlen($url)>2048||!str_starts_with($url,'https://')
             ||($withSecret&&($this->webhook->destination($url)===null||!is_string($secret)||ManagerPreparationWebhook::secretBytes($secret)===null))) throw new InvalidArgumentException();
         $arguments=json_encode(['project_key'=>self::PROJECT,'queue_id'=>$queueId],JSON_THROW_ON_ERROR);
+        if ($worker) $arguments=json_encode(['project_key'=>self::PROJECT,'queue_id'=>$queueId,'task_id'=>$args['task_id']],JSON_THROW_ON_ERROR);
         $id='hotel_sub_'.hash('sha256',json_encode([$admin,$connection,$name,$arguments,$url],JSON_THROW_ON_ERROR));
         $single=hash('sha256',json_encode([$admin,$connection,$queueId,$name],JSON_THROW_ON_ERROR));
         return [$id,$single,$queueId,$name,$url,$secret,$arguments];

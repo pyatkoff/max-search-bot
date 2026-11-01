@@ -105,6 +105,37 @@ final class HotelCollectionCanonicalService
             return ['task_id'=>$task,'role'=>'producer'];
         });
     }
+    /** Private role-bound transport check, including first-send permit state. */
+    public function transportIdentity(array $a,bool $sending=false):array
+    {
+        self::keys($a,['queue_id','stage_id','generation','operation_id','task_id','worker_capability','role']);
+        foreach(['queue_id','stage_id','operation_id','task_id']as$key)self::id($a[$key]??null);
+        self::sha($a['worker_capability']??null);
+        if(!is_int($a['generation']??null)||$a['generation']<1)$this->deny('stale_generation');
+        return $this->tx('transport_identity',function()use($a,$sending):array{
+            [$q,$h]=$this->locked($a['queue_id'],$a['stage_id'],true);
+            if((int)$h['generation']!==$a['generation'])$this->deny('stale_generation');
+            if((int)$q['stage_index']%2===1){
+                $r=$this->one('SELECT * FROM hotel_collection_reviews WHERE queue_id=? AND intake_stage=?'.$this->lock(),[$a['queue_id'],$a['stage_id']]);
+                if(!$r||$r['review_task']!==$a['task_id']||$r['producer_operation']!==$a['operation_id']||$r['instance_id']!==null||$r['verdict_bytes']!==null
+                    ||!hash_equals($r['capability_sha256'],hash('sha256',$a['worker_capability'])))$this->deny('review_dispatch_identity');
+                $role='reviewer';
+            }else{
+                $op=$this->operation($q,$h,$a['operation_id'],$sending?['native_unknown']:['prepared','native_unknown']);
+                if($op['task_id']!==$a['task_id']||$op['instance_id']!==null||!hash_equals($op['capability_sha256'],hash('sha256',$a['worker_capability'])))$this->deny('producer_dispatch_identity');
+                $this->store($q,$h,$op,'control')->readAssignment($a['queue_id'],$a['operation_id']);
+                $role='producer';
+            }
+            if(($a['role']??null)!==$role)$this->deny('transport_role_mismatch');
+            if(($q['data_snapshot_sha256']??null)===null)$this->deny('working_import_required');
+            if($sending){
+                $outbox=$this->one('SELECT event_id FROM hotel_collection_outbox WHERE queue_id=? AND stage_id=? AND state=?',[$a['queue_id'],$a['stage_id'],'dispatch_unknown']);
+                if(!$outbox)$this->deny('consumed_dispatch_permit_required');
+            }
+            return ['role'=>$role,'task_id'=>$a['task_id'],'generation'=>$a['generation']];
+        });
+    }
+
     /** CONTROL: once-only transport permit. Lost ACK remains UNKNOWN, never retry. */
     public function consumeDispatch(string $queue,string $stage,int $generation,string $control,string $eventId):array
     {

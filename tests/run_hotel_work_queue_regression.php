@@ -1362,3 +1362,4 @@ require __DIR__.'/hotel_collection_canonical_service_checks.php';
 echo 'HOTEL WORK QUEUE: '.$checks." PASS\n";
 
 require __DIR__.'/hotel_working_cycle_checks.php';
+require __DIR__.'/hotel_native_automation_checks.php';

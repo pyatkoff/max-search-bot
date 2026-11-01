@@ -41,7 +41,7 @@ final class SeparatedMcpService
             }
             $reply=$this->profile===ManagerPreparationOAuth::PROFILE_REPLIES;
             $tools=$reply?self::REPLY_TOOLS:HotelWorkMcpAdapter::NAMES;
-            $events=$reply?[ManagerPreparationMcpService::EVENT]:HotelWorkEventService::EVENTS;
+            $events=$reply?[ManagerPreparationMcpService::EVENT]:[...HotelWorkEventService::EVENTS,...HotelWorkEventService::WORKER_EVENTS];
             $method=$rpc['method'];$result=null;
             if ($method==='server/discover') {
                 $result=['resultType'=>'complete','supportedVersions'=>['2026-07-28'],

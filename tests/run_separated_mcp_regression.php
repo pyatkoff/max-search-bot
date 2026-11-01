@@ -60,7 +60,7 @@ foreach ($services as $profile=>$service) {
     $expected=$profile==='replies'?SeparatedMcpService::REPLY_TOOLS:HotelWorkMcpAdapter::NAMES;
     checkSplit('exact tools '.$profile,array_column($tools['result']['tools']??[],'name')===$expected);
     $events=$invoke(rpcSplit('events/list'));
-    checkSplit('exact events '.$profile,array_column($events['result']['events']??[],'name')===($profile==='replies'?['manager_replies.pending']:HotelWorkEventService::EVENTS));
+    checkSplit('exact events '.$profile,array_column($events['result']['events']??[],'name')===($profile==='replies'?['manager_replies.pending']:[...HotelWorkEventService::EVENTS,...HotelWorkEventService::WORKER_EVENTS]));
     foreach (['read_archive_history','read_tour_candidates','claim_virtual_replies','development_work_create',
         $profile==='replies'?'hotel_work_create':'get_reply_context'] as $forbidden) {
         $before=count($calls);$denied=$invoke(rpcSplit('tools/call',['name'=>$forbidden,'arguments'=>[]]));

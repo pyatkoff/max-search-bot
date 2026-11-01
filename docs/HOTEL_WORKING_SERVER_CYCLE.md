@@ -51,8 +51,9 @@ Protected reservations and typed canonical duplicate constraints continue to app
 This is code preparation only. Current WORKING17 bytes were not imported into
 production. Claimed/UNKNOWN CENTRAL41 cannot be adopted by the existing journal;
 it must be reconciled before a ready-stage cutover or a separate adoption path
-must be implemented and reviewed. An actual native adapter and complete approved
-legacy/dependency scope preparation remain required for deployment acceptance.
+must be implemented and reviewed. The dormant signed-event adapter is described
+in `HOTEL_NATIVE_AUTOMATION_ADAPTER.md`. Its actual host binding, complete approved
+legacy/dependency scope preparation and later activation remain deployment gates.
 No merge, deployment, live migration, task enablement or queue creation occurs.
 
 The existing tools/hotel_work.php tick invokes HotelCollectionCronRuntime after
