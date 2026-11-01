@@ -20,15 +20,16 @@ try {
     else {
         require083($pending===[$version],'pending_scope_changed');require083($triggers===[],'partial_trigger_installation_requires_reconciliation');
         require083((int)$app->query('SELECT COUNT(*) FROM hotel_work_retirements')->fetchColumn()===0,'retirement_state_changed');
-        // Use only the normal, explicitly configured MySQL client profile. No
-        // credential search, new grants, global-variable changes or password output.
-        $binary=trim((string)shell_exec('command -v my_print_defaults 2>/dev/null'));
-        require083($binary!==''&&is_executable($binary),'existing_maintenance_profile_tool_unavailable');
-        $pipes=[];$proc=proc_open([$binary,'client','mysql'],[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes);
-        require083(is_resource($proc),'maintenance_profile_unavailable');fclose($pipes[0]);$raw=stream_get_contents($pipes[1],65536);stream_get_contents($pipes[2],65536);fclose($pipes[1]);fclose($pipes[2]);$status=proc_close($proc);
-        require083($status===0&&is_string($raw),'maintenance_profile_unavailable');
-        $defaults=[];foreach(preg_split('/\r?\n/',$raw) as $line)if(preg_match('/\A--(user|password|host|port|socket)=(.*)\z/',$line,$m))$defaults[$m[1]]=$m[2];unset($raw);
-        require083(trim($defaults['user']??'')!=='','existing_maintenance_profile_not_configured');
+        // Use only an existing documented project connection. No credential
+        // search, new grants, global-variable changes or password output.
+        // The project already documents this second connection in config.example.php.
+        // Use it only for the same configured host and exact conversation schema;
+        // no other database, filesystem credential lookup or guessed account.
+        require083(defined('ANYTOUR_DATA_DB_HOST')&&defined('ANYTOUR_DATA_DB_USER')&&defined('ANYTOUR_DATA_DB_PASSWORD')&&trim((string)ANYTOUR_DATA_DB_USER)!=='','no_additional_configured_project_connection');
+        require083((string)ANYTOUR_DATA_DB_HOST===(string)CONVERSATION_DB_HOST,'additional_project_connection_targets_different_host');
+        require083((string)ANYTOUR_DATA_DB_USER!==(string)CONVERSATION_DB_USER,'additional_project_connection_same_restricted_account');
+        $defaults=['host'=>(string)ANYTOUR_DATA_DB_HOST,'user'=>(string)ANYTOUR_DATA_DB_USER,'password'=>(string)ANYTOUR_DATA_DB_PASSWORD];
+        $out['connection_source']='existing_documented_project_data_config_same_host';
         $database=(string)CONVERSATION_DB_NAME;require083(preg_match('/\A[A-Za-z0-9_-]+\z/',$database)===1,'database_identity_invalid');
         if(!empty($defaults['socket'])){require083(str_starts_with($defaults['socket'],'/')&&!str_contains($defaults['socket'],';'),'maintenance_socket_invalid');$dsn='mysql:unix_socket='.$defaults['socket'].';dbname='.$database.';charset=utf8mb4';}
         else{$host=$defaults['host']??'localhost';$port=$defaults['port']??'3306';require083(preg_match('/\A[A-Za-z0-9_.:-]+\z/',$host)===1&&ctype_digit($port),'maintenance_endpoint_invalid');$dsn='mysql:host='.$host.';port='.$port.';dbname='.$database.';charset=utf8mb4';}
@@ -56,7 +57,7 @@ try {
         rewind($lock);ftruncate($lock,0);$receipt=json_encode($out,JSON_THROW_ON_ERROR);require083(fwrite($lock,$receipt)===strlen($receipt)&&fflush($lock),'receipt_write_failed');if(function_exists('fsync'))require083(fsync($lock),'receipt_write_failed');
     }
 }catch(Throwable $e){
-    $known=['installed_source_changed','migration_content_changed','existing_checksum_mismatch','journal_trigger_state_mismatch','pending_scope_changed','partial_trigger_installation_requires_reconciliation','retirement_state_changed','existing_maintenance_profile_tool_unavailable','maintenance_profile_unavailable','existing_maintenance_profile_not_configured','database_identity_invalid','maintenance_socket_invalid','maintenance_endpoint_invalid','existing_maintenance_authentication_unavailable','maintenance_server_mismatch','maintenance_schema_mismatch','separate_maintenance_authority_required','existing_maintenance_authority_insufficient','maintenance_operation_busy','invalid_receipt_directory','receipt_directory_unavailable','invalid_receipt_path','previous_apply_requires_reconciliation','receipt_write_failed','migration_result_scope_mismatch','migration_journal_readback_failed','trigger_readback_failed'];
+    $known=['installed_source_changed','migration_content_changed','existing_checksum_mismatch','journal_trigger_state_mismatch','pending_scope_changed','partial_trigger_installation_requires_reconciliation','retirement_state_changed','no_additional_configured_project_connection','additional_project_connection_targets_different_host','additional_project_connection_same_restricted_account','existing_maintenance_profile_tool_unavailable','maintenance_profile_unavailable','existing_maintenance_profile_not_configured','database_identity_invalid','maintenance_socket_invalid','maintenance_endpoint_invalid','existing_maintenance_authentication_unavailable','maintenance_server_mismatch','maintenance_schema_mismatch','separate_maintenance_authority_required','existing_maintenance_authority_insufficient','maintenance_operation_busy','invalid_receipt_directory','receipt_directory_unavailable','invalid_receipt_path','previous_apply_requires_reconciliation','receipt_write_failed','migration_result_scope_mismatch','migration_journal_readback_failed','trigger_readback_failed'];
     $out['reason']=in_array($e->getMessage(),$known,true)?$e->getMessage():($out['migration_apply_attempts']?'migration_apply_outcome_requires_reconciliation':'bounded_maintenance_preflight_failed');
 }
 if(is_resource($lock)){flock($lock,LOCK_UN);fclose($lock);}

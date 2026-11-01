@@ -39,7 +39,7 @@ jobs:
           python3 - <<'PY'
           import pathlib,hashlib,os
           script=pathlib.Path('tools/direct_demand/operations/migration083-maintenance.php').read_text()
-          assert hashlib.sha256(script.encode()).hexdigest()=='82f2677a90ec6f0e3d6f69eb143703e5b6e3dc0f31817eb43acaf608d4630ec5'
+          assert hashlib.sha256(script.encode()).hexdigest()=='8be547e68f31ba3566ba992a2f2801a111c170573c00539405cdf4d7bd0c3256'
           prefix="<?php\ndeclare(strict_types=1);\n"
           assert script.startswith(prefix)
           header=prefix+"const EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst MIGRATION_SHA256='1d39818eb8841aa80d8427dab7cb82562b02e2d6665529e7b8515044d18562ae';\n"
