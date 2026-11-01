@@ -128,23 +128,48 @@ final class ManagerPreparedReplyService
 
 final class ManagerPreparationMcpService
 {
+    public function __construct(private $connectionActive=null) {}
+
     public function hasActiveSubscriptions():bool
     {
         managerAiHttpFixtureEvent('preparation_connection',['session_closed'=>session_status()!==PHP_SESSION_ACTIVE]);
-        return managerAiHttpFixtureState()['preparation_connected']??true;
+        $state=managerAiHttpFixtureState();
+        if(array_key_exists('preparation_profile',$state)) {
+            if($this->connectionActive===null)return $state['preparation_profile']==='legacy'&&($state['preparation_connected']??true);
+            return ($this->connectionActive)(str_repeat('a',32),7)===true;
+        }
+        return $state['preparation_connected']??true;
     }
 
     public function deliverPending():array
     {
         managerAiHttpFixtureEvent('preparation_event',['session_closed'=>session_status()!==PHP_SESSION_ACTIVE]);
+        if(array_key_exists('preparation_profile',managerAiHttpFixtureState())
+            &&($this->connectionActive===null||($this->connectionActive)(str_repeat('a',32),7)!==true)) {
+            throw new RuntimeException('Synthetic delivery authority denied');
+        }
         if(!empty(managerAiHttpFixtureState()['delivery_throws']))throw new RuntimeException('Synthetic delivery failure');
         return ['accepted'=>1];
     }
 }
 
+/** Isolate the endpoint's event-authority choice; real grants are covered by split MCP tests. */
+final class ManagerPreparationOAuth
+{
+    public function eventConnectionAuthorizedAcrossProfiles(string $domain,string $connection,int $admin):bool
+    {
+        $state=managerAiHttpFixtureState();$profile=$state['preparation_profile']??'legacy';
+        managerAiHttpFixtureEvent('preparation_authority',['domain'=>$domain,'profile'=>$profile]);
+        if(!in_array($profile,['legacy','replies','hotels','development'],true)||!empty($state['preparation_authority_unknown']))
+            throw new RuntimeException('event_oauth_authority_unavailable');
+        return $domain==='replies'&&in_array($profile,['legacy','replies'],true)
+            &&$connection===str_repeat('a',32)&&$admin===7&&($state['preparation_connected']??true);
+    }
+}
+
 final class ManagerAiDraftService
 {
-    public static function generate(array $context, ?callable $provider = null, ?ManagerCompanyKnowledge $knowledge = null, ?callable $selectionReader = null, ?object $references = null, ?callable $photoReader = null): array
+    public static function generate(array $context, ?callable $provider = null, ?ManagerCompanyKnowledge $knowledge = null, ?callable $selectionReader = null, ?object $references = null, ?callable $photoReader = null, ?callable $inputObserver = null): array
     {
         $state = managerAiHttpFixtureState();
         $selection = $selectionReader ? $selectionReader()->forContext($context) : null;
@@ -166,6 +191,11 @@ final class ManagerAiDraftService
                 usleep(10000);
             }
         }
+        if (!empty($state['capture_input']) && $inputObserver !== null) {
+            require_once dirname(__DIR__,2).'/services/ManagerAiDraftInputEvidence.php';
+            $evidence=ManagerAiDraftInputEvidence::capture($context+['selections_link_unread'=>false,'verified_company_facts'=>[]], 'Synthetic exact instructions');
+            if ($evidence !== null) $inputObserver($evidence);
+        }
         return $state['proposal'];
     }
 }
@@ -173,8 +203,9 @@ final class ManagerAiDraftService
 /** Isolated feedback dependency; the persistence service has its own SQL suite. */
 final class ManagerAiDraftFeedbackService
 {
-    public static function record(int $cid,int $actor,array $snapshot,array $proposal,?string $preparedJobId=null): ?string
+    public static function record(int $cid,int $actor,array $snapshot,array $proposal,?string $preparedJobId=null,?ManagerAiDraftInputEvidence $inputEvidence=null): ?string
     {
+        if ($inputEvidence !== null) managerAiHttpFixtureEvent('input_evidence_record', ['sha256'=>$inputEvidence->hash(),'context'=>$inputEvidence->context()]);
         managerAiHttpFixtureEvent('feedback_record',['conversation_id'=>$cid,'manager_id'=>$actor,
             'revision'=>$snapshot['revision'],'latest_message_id'=>$snapshot['latest_message_id']]
             +($preparedJobId===null?[]:['preparation_job_id'=>$preparedJobId]));

@@ -419,7 +419,8 @@ for(const [width,height] of [[390,844],[430,844],[768,844],[1440,844],[390,420]]
  await page.evaluate(()=>window.assistantRetainedFile=document.getElementById('replyFile').files[0]);
  const details=refreshDetails(state),older=olderDetails(state).length,historyLength=await page.evaluate(()=>history.length);
  await screenshot(page,browserName,width,'assistant-return-before-'+height);
- const globalEntry=await page.locator('#assistantOpen').isVisible();
+ let globalEntry=await page.locator('#assistantOpen').isVisible();
+ if(!globalEntry&&await page.locator('#m2MoreToggle').isVisible()){await page.locator('#m2MoreToggle').click();globalEntry=true;}
  if(globalEntry){await page.locator('#assistantOpen').click();await page.locator('[data-assistant-client="11"]').click()}
  else await useConversationTool(page,'assistantClientOpen');
  await expect(page.locator('#assistantDetail')).toContainText('Нет свежего разбора');

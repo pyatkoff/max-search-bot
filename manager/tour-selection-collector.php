@@ -5,8 +5,18 @@ require_once __DIR__.'/lib/ManagerHttp.php';
 require_once dirname(__DIR__).'/services/ManagerTourSelectionEditorHost.php';
 ManagerHttp::start();
 $manager=ManagerHttp::manager();
-if (!$manager || ManagerHttp::managerId()<=0) {header('Location: ./');exit;}
 header('Cache-Control: private, no-store');header('Referrer-Policy: no-referrer');header('X-Robots-Tag: noindex, nofollow');
+if (!$manager || ManagerHttp::managerId()<=0) {
+    session_write_close();
+    http_response_code(401);
+    header('Content-Type: text/html; charset=utf-8');
+    // Keep the collector URL reusable by installed workers after session expiry.
+    // An automatic redirect would hide this tab from their bridge lookup.
+    ?><!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Вход в сборщик AnyTour</title>
+    <main><h1>Войдите в Manager2</h1><p>Сессия менеджера истекла. Очередь предложений остаётся в расширении.</p>
+    <p><a href="/manager2/">Открыть Manager2</a></p><p>После входа вернитесь в сборщик нужной поездки и обновите его страницу. Повторно добавлять предложения не нужно.</p></main></html><?php
+    exit;
+}
 $config=['actor'=>(int)$manager['id'],'csrf'=>ManagerHttp::csrf(true),'conversation_id'=>(int)($_GET['conversation_id']??0),'editor_entry'=>ManagerTourSelectionEditorHost::entry()];
 session_write_close();
 $assetVersion=static fn(string $file):string=>htmlspecialchars((string)filemtime(__DIR__.'/assets/'.$file),ENT_QUOTES,'UTF-8');

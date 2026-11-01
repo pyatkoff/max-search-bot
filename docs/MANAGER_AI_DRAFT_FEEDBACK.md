@@ -13,11 +13,71 @@ checks, a separate best-effort service stores the validated eight-field proposal
 in `manager_ai_drafts` and returns a random per-generation `draft_id`. The context
 revision alone is not a proposal identity. The private row contains the actual
 manager, conversation and project, context/instruction revisions, latest source
-message ID and timestamps. Proposal JSON is bounded to 32,768 bytes; raw context,
-prompt, page HTML, external identities and provider responses are not copied.
+message ID and timestamps. Proposal JSON is bounded to 32,768 bytes. Raw database
+context, page HTML, external identities and provider responses are not copied.
+New manual generations can separately retain their normalized text input as
+described below; this does not change the proposal shape or existing counters.
 Rows follow the existing private conversation-store retention; this feature adds
 no automatic deletion, public export, scheduled capture or model training.
-Schema creation belongs only to forward migration 043.
+The proposal table is created only by forward migration 043.
+
+## Immutable manual-generation input
+
+Forward migration 078 adds private `manager_ai_draft_inputs`, one optional row
+per manual draft, deleted with its canonical draft/conversation. At the provider
+boundary, `ManagerAiDraftService` captures the exact normalized context and exact
+context-specific instructions used for that call. This includes admitted company
+facts, observed selection data and their existing coverage/verification labels.
+It is not a copy of raw source pages, a claim that an observed price is current,
+or a model-quality/send approval. The existing base-instruction hash retains its
+old meaning; the envelope separately hashes the full instructions.
+
+The observer receives evidence only after a valid provider result. The HTTP owner
+persists it only after the existing fresh session, CSRF, access and conversation
+revision checks pass. The envelope is immutable, versioned, SHA-256 checked and
+bounded to 262,144 encoded bytes. Overflow or a storage failure leaves evidence
+unavailable while preserving the usable draft and original provenance. Reads
+never rebuild an absent envelope from today's transcript or selection.
+
+Image bytes and data URLs are excluded. An image manifest retains only position,
+MIME type, detail and payload hash/size. `coverage=images_omitted` explicitly means
+the full multimodal input cannot be replayed from this evidence. `text_only`
+means all normalized text is present, not that the upstream conversation/history
+was complete. Existing normalized coverage/truncation flags remain unchanged.
+Model/runtime configuration and provider response metadata are not captured by
+this text-input slice.
+
+The existing owner-only `ai-usage-api.php` accepts a CSRF-protected `input` read
+for one actual linked `message_id` and its exact `case_revision`. It rechecks the
+same current owner/project/source scope and historical send binding as the journal,
+then returns either the validated envelope or explicit unavailability. Source
+edits cannot replace the captured text; a changed comparison requires a fresh case
+revision. This read creates no review mark, message read acknowledgement, model
+call or customer send. Ordinary journal lists and public diagnostics never include
+the envelope. The owner journal's explicit «Что видел AI» control reads one
+comparison on demand. It shows the normalized messages with original source IDs
+and roles, history/truncation/unread-media limits, omitted-image coverage, readable
+observed offers and a separate working selection, company facts and other saved
+reference groups. Expandable fields and instructions preserve the saved values;
+the formatted JSON is not claimed to reproduce the original hashed serialization.
+Observed pages and manager notes are not presented as verified current conditions
+or tourist agreement. All source text is inert: no links or images are fetched.
+
+Opening does not mark a comparison reviewed. Closing clears its displayed input;
+reopening makes a freshly authorized read. Per-open tokens, actor checks and the
+live article identity discard late responses after closing, filtering or refresh,
+while ordinary pagination can finish an in-flight read for a retained article.
+Session/access failures clear the private journal. Missing historical/prepared
+input, storage failures, failed integrity and changed comparisons have distinct
+messages; none falls back to reconstructing the input from today's conversation.
+
+Historical generations, deterministic preflight replies and prepared external
+worker replies have no captured input in this slice. In particular, opening a
+prepared preview must never relabel its newly read context as the worker's earlier
+input. The existing preparation schedule and worker save contract are unchanged.
+No automatic corpus export, learning, correction grading or instruction promotion
+is added. Initial manager text and manual meaning-versus-style review are described
+below; prepared-worker input capture remains separate acceptance work.
 
 The optional `draft_id` on `validate` records `insert_requested_at` only after
 the ordinary fresh-context checks. It observes the explicit request, not browser
@@ -41,7 +101,41 @@ SHA-256 before HTML escaping. The canonical row's own ID is the message link.
 Suppressed duplicates and delivery failures produce no new linked message.
 Feedback failure does not change normal delivery; a recorder failure does not
 establish a persisted-message receipt. Later message edits are distinct from the
-initial text hash. The first slice leaves media and captions unlinked.
+initial text hash. Media and captions remain unlinked.
+
+## Initial manager text after later edits
+
+Forward migration 079 adds private `manager_ai_sent_texts`, keyed by the actual
+canonical message ID, with draft/conversation/manager/project binding and exact
+trimmed plaintext plus SHA-256. After adapter success, the owning send path passes
+the already validated text to the canonical recorder. Only after its message
+INSERT succeeds does the recorder obtain that exact ID and attempt an insert-only
+receipt, before the separate conversation touch. The receipt validates original
+escaping, metadata hash and the persisted message/draft scope. One draft may have
+several different message receipts. Later edits and duplicate attempts cannot
+overwrite an initial receipt. Message and draft deletion cascade to the receipt.
+
+This optional sidecar is best effort, not atomic completeness: missing migration,
+write failure or rejected provenance preserves normal delivery and the original
+message/metadata. A later touch failure does not erase an already saved receipt.
+There is no additional transport, send retry, browser-authoritative evidence or
+historical backfill. Adapter success is not proof of customer receipt or reading.
+
+The owner journal can explicitly request `sent_text` for an exact linked message
+and comparison revision. It shares the input reader's current owner/project/source
+authorization, historical send validation, read transaction, session and CSRF
+rechecks. Ordinary lists keep their existing fields, pagination and query count.
+The existing `initial_text_available` field still means the current message matches
+the original send hash; the separate action reads the immutable stored receipt.
+Missing, corrupted, wrongly bound or oversized text is never reconstructed from
+the proposal or current message. Full text is capped at 20,000 characters/80,000
+UTF-8 bytes and remains private; public reports and diagnostics are unchanged.
+
+For edited messages, «Текст при отправке» shows this initial version separately
+from the current message and AI proposal. Every opening is freshly authorized;
+closing clears displayed data and late responses cannot restore closed or replaced
+cards. Rendering is plain text. Opening makes no review/read mark and does not
+grade a textual difference as a substantive correction or quality improvement.
 
 Matching text describes equality only. A difference can include an existing
 manual prefix, added details or complete replacement; it is not an approval,
@@ -157,3 +251,76 @@ generation it is the saved-draft time; for a prepared answer it is the first
 persisted preview/provenance time, **not** the worker's preparation time. Neither
 timestamp alone proves which complete model input was used. Reading the report
 does not create a new preview, draft, review mark or customer read acknowledgement.
+
+## Substantive correction and independent case judgement
+
+Forward migration081 adds a private append-only assessment history inside the
+existing owner journal. «Разобрать правку» loads only the explicitly opened case,
+using the journal's current owner/project/source, historical send, CSRF and fresh
+session fences. Reads do not mark chat or the comparison viewed. The existing
+«Просмотрено» mark remains an observation of viewing, never quality approval.
+
+A classification distinguishes unchanged text, style, meaning and unassessable.
+Meaning changes name a dimension: trip conditions, the last question, exact
+selection, unnecessary questions, unsupported assertions or other. Their effect
+can be unknown, better, worse or mixed. A reason is required. A non-unknown effect
+requires an exact literal citation from a retained customer message in the frozen
+manual input, an available initial pair and text-only input without recorded
+history/media/selection gaps. These checks establish available evidence, not
+supplier authenticity, current prices, booking conditions or answer completeness.
+The form defaults to unknown rather than suggesting a positive judgement.
+
+The compared target is the original validated AI proposal and initial canonical
+manager send. The immutable079 receipt is preferred; an unchanged current text
+can also prove that same initial plaintext through the original send hash. A
+later edited message without a receipt remains unavailable. Original input is
+never reconstructed from current conversation text. Prepared-worker input stays
+explicitly unknown even if a manual-input row is present. Missing, corrupt,
+truncated or omitted-image input cannot support an effect judgement; describing
+a visible meaning change with unknown effect remains possible.
+
+A separate, explicit adjudication refers to a particular classification version.
+Its account must be a different currently authorized owner from both classifier
+and original sender. Confirming an effect requires its own reason and literal
+frozen-request citation. Rejection and insufficient context remain explicit.
+Two distinct authorized accounts judging one case are not proof of different
+humans, a blinded held-out comparison, statistical improvement or a company/hotel
+fact. Only a meaningful **better** candidate with a confirming independent
+judgement is labelled useful in that case. Style-only changes cannot acquire
+that label. New classifications supersede prior decisions without deleting them.
+There is no automatic instruction, knowledge or training promotion.
+
+The sequence is serialized by the canonical message lock and expected-version
+CAS. Actor-bound operation IDs are insert-only and cannot be reused with another
+command. Unknown writes disable further saves until an authorized receipt read
+establishes whether the operation committed; no automatic mutation retry occurs.
+Owner scope and displayed case revision are freshly checked. A separate comparison
+hash binds draft/proposal/input/initial text and historical scope: later current
+message edits require a fresh journal case revision but do not invalidate an
+unchanged initial pair. A changed or unavailable underlying input invalidates
+older candidates. History remains private and is deleted with message or draft;
+no runtime DDL, public counters, exports, provider work or scheduled task is added.
+
+Synthetic fixtures exercise both latest tourist questions (hotel-only possibility
+and alternative departure dates), including unconfirmed sale conditions. They
+prove the review mechanics, not natural manager use or measured answer gains.
+Keep proposal, actual linked-send, assessable-pair and independent-group
+cohorts separate. Text changes are not substantive-error counts, and a prepared
+preview-to-send interval is not measured preparation time or time saved. Existing
+blinded-control group isolation and provider-test budget rules remain unchanged.
+
+
+Prepared replies with an explicitly linked forward receipt may show **Контекст,
+выданный внешнему помощнику** in the same lazy owner journal. This displays the
+immutable packet selected at the first successful save, not a later conversation
+or selection read. Proposal/job/project/latest-message and packet digests must
+match before disclosure. Historical prepared rows without a link remain
+`prepared_input_not_captured`, even if a later preview stored some other input.
+
+The journal distinguishes server-issued context from manual provider-bound input.
+A server packet alone does not attest to the full external model input, receipt
+or use; its UI states those unknowns and keeps effect confirmation disabled.
+It cannot count as an independently confirmed improvement or send admission.
+Existing manual-input comparison hashes and assessments retain their meaning.
+No natural manager adoption, quality gain or preparation-time saving is inferred
+from this capture or its synthetic tests.

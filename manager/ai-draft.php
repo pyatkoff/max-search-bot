@@ -61,7 +61,12 @@ try {
         // connection. This path never selects the manual model/API transport.
         session_write_close();
         require_once dirname(__DIR__).'/services/ManagerPreparationMcpService.php';
-        $events = new ManagerPreparationMcpService();
+        // This background event owner accepts the canonical legacy or isolated
+        // Replies grant, exactly like the existing minute cron. HTTP MCP callers
+        // retain their endpoint-specific authorization.
+        $events = new ManagerPreparationMcpService(connectionActive:
+            static fn(string $connection,int $admin):bool=>(new ManagerPreparationOAuth())
+                ->eventConnectionAuthorizedAcrossProfiles('replies',$connection,$admin));
         if (!$events->hasActiveSubscriptions()) aiDraftRespond(['ok'=>false,'error'=>'preparation_unavailable']);
         $requested = ManagerPreparedReplyService::requestOnOpen($cid,$actor,$before);
         if (!empty($requested['ok']) && ($requested['preparation_state'] ?? '') === 'pending') {
@@ -145,9 +150,11 @@ try {
     // Do not hold the manager's session or a database snapshot while waiting
     // for the model: Inbox, logout and reassignment must remain independent.
     session_write_close();
+    $inputEvidence = null;
     $proposal = ManagerAiDraftService::generate($before['context'], null, $before['company_knowledge'] ?? null,
         static fn(): ManagerSelectionSnapshot => ManagerSelectionSnapshot::read($before), $before['reference_context'] ?? null,
-        isset($before['photo_context'])?static fn(array $context):?array=>$before['photo_context']->read($context):null);
+        isset($before['photo_context'])?static fn(array $context):?array=>$before['photo_context']->read($context):null,
+        static function (ManagerAiDraftInputEvidence $evidence) use (&$inputEvidence): void { $inputEvidence = $evidence; });
 
     // Reload the same session without writing it. A logout/account/CSRF change
     // while the model was running invalidates the entire response.
@@ -163,9 +170,9 @@ try {
         aiDraftRespond(['ok'=>false,'error'=>'context_stale']);
     }
     if (empty($proposal['ok'])) aiDraftRespond($proposal);
-    // Persist only the bounded validated proposal after fresh authorization.
+    // Persist the bounded proposal and its captured input after fresh authorization.
     // A feedback outage must not discard an otherwise usable suggestion.
-    $draftId = $supervisor?null:ManagerAiDraftFeedbackService::record($cid,$actor,$after,$proposal);
+    $draftId = $supervisor?null:ManagerAiDraftFeedbackService::record($cid,$actor,$after,$proposal,null,$inputEvidence);
     aiDraftRespond($proposal + [
         'revision'=>$after['revision'],
         'latest_message_id'=>$after['latest_message_id'],

@@ -38,6 +38,7 @@ async function acknowledgeShown(){
 const replySessionKey='workspaceV2.replySession.v1',draftLifetime=24*60*60*1000,maxStoredDrafts=20,maxStoredDraftLength=20000;
 let replySessionOwner=0,savedSelection=0,draftSequence=0;
 let photoViewer=null;
+let handoffView=null;
 function validId(value){return Number.isSafeInteger(value)&&value>0}
 function validAiDraftId(value){return typeof value==='string'&&/^[a-f0-9]{32}$/.test(value)}
 function validAttempt(value){return value&&validAiDraftId(value.id)&&typeof value.text==='string'&&value.text.trim().length>0&&value.text.length<=maxStoredDraftLength&&Number.isSafeInteger(value.version)&&value.version>0}
@@ -165,7 +166,7 @@ function bindEmojiPicker(){
   window.addEventListener('popstate',()=>closeEmojiPicker());
   window.addEventListener('pagehide',()=>closeEmojiPicker());
 }
-function suspendForAuthRecovery(){readView=null;window.WorkspaceV2ReplyEditor?.close(false);window.WorkspaceV2History?.reset();window.WorkspaceV2MessageNavigation?.reset();window.WorkspaceV2ClientEvents?.enhanceCard(null);W.HandoffCancellation?.render($('handoffCancellation'),null);window.WorkspaceV2QuickReplies?.resetSession();window.WorkspaceV2ConversationSearch?.reset();closeEmojiPicker();closePhotoViewer(false);openSeq++;opening=0;refreshEpoch++;if(lifecycleFlight){lifecycleFlight=null;setBusy(false)}clearLifecycleIssue();setRefreshStatus();$('composer')?.classList.add('hidden')}
+function suspendForAuthRecovery(){readView=null;window.WorkspaceV2ReplyEditor?.close(false);window.WorkspaceV2History?.reset();window.WorkspaceV2MessageNavigation?.reset();window.WorkspaceV2ClientEvents?.enhanceCard(null);clearHandoffContext();W.HandoffCancellation?.render($('handoffCancellation'),null);window.WorkspaceV2QuickReplies?.resetSession();window.WorkspaceV2ConversationSearch?.reset();closeEmojiPicker();closePhotoViewer(false);openSeq++;opening=0;refreshEpoch++;if(lifecycleFlight){lifecycleFlight=null;setBusy(false)}clearLifecycleIssue();setRefreshStatus();$('composer')?.classList.add('hidden')}
 function resetForIdentityChange(){
   suspendForAuthRecovery();accessLost=false;drafts.clear();savedSelection=0;replySessionOwner=0;removeReplySession();S.current=0;S.detail=null;
   const reply=$('replyText');if(reply)reply.value='';autoGrow();setReplyStatus();setLoadStatus();
@@ -249,6 +250,41 @@ function renderAttachments(root,items,pendingControls){
     wrap.appendChild(n);
   });root.appendChild(wrap);
 }
+function clearHandoffContext(){
+  const root=$('handoffContext');
+  if(photoViewer&&root?.contains(photoViewer.opener))closePhotoViewer(false);
+  if(root){retireMessageMedia(root);root.replaceChildren();root.hidden=true}
+  handoffView=null;
+}
+function renderHandoffContext(){
+  const root=$('handoffContext'),detail=S.detail,context=detail?.handoff_context;
+  if(!root)return;
+  if(opening||accessLost||S.authExpired||!S.manager?.id||!S.current||Number(detail?.conversation?.id)!==Number(S.current)||detail.has_manager_reply||!context||typeof context.summary!=='string'||!context.summary.trim()){clearHandoffContext();return}
+  const key=JSON.stringify([Number(S.current),Number(S.manager.id),S.authGeneration]);
+  if(!handoffView||handoffView.key!==key){
+    clearHandoffContext();
+    const details=document.createElement('details'),title=document.createElement('summary');
+    title.textContent='Запрос туриста';details.appendChild(title);
+    const content=document.createElement('div');content.className='handoffContextContent';
+    const summary=document.createElement('div');summary.className='handoffContextSummary';content.appendChild(summary);
+    const guidance=document.createElement('div');guidance.className='handoffContextGuidance';content.appendChild(guidance);
+    const attachments=document.createElement('div');content.appendChild(attachments);
+    details.appendChild(content);root.appendChild(details);
+    handoffView={key,summary,guidance,attachments,media:null};
+  }
+  // Keep the disclosure, focus and unchanged media alive during normal polling.
+  const view=handoffView,guidance=typeof context.guidance==='string'?context.guidance:'';
+  if(view.summary.textContent!==context.summary)view.summary.textContent=context.summary;
+  if(view.guidance.textContent!==guidance)view.guidance.textContent=guidance;
+  view.guidance.hidden=!guidance;
+  const items=Array.isArray(context.attachments)?context.attachments:[],media=JSON.stringify(items);
+  if(view.media!==media){
+    if(photoViewer&&view.attachments.contains(photoViewer.opener))closePhotoViewer(false);
+    retireMessageMedia(view.attachments);view.attachments.replaceChildren();const pending=[];
+    renderAttachments(view.attachments,items,pending);for(const player of pending)player.controls=true;view.media=media;
+  }
+  root.hidden=false;
+}
 function renderLinkedMessage(root,m){
   const link=m?.linked_message;if(!link||!['reply','forward'].includes(link.type))return;
   const navigable=Number.isSafeInteger(Number(m.id))&&Number(m.id)>0&&!!link.mid;
@@ -280,6 +316,7 @@ function serviceAction(m){
   return m?.direction==='inbound'&&m?.sender_type==='customer'&&a?.type==='callback'&&typeof a.label==='string'&&typeof a.raw_payload==='string'?a:null;
 }
 function renderServiceActionDetails(root,action){
+  if(!action.raw_payload.trim())return;
   const details=document.createElement('details');details.className='serviceActionDetails';
   const summary=document.createElement('summary');summary.textContent='Служебные подробности';
   const payload=document.createElement('code');payload.textContent=action.raw_payload;
@@ -333,9 +370,9 @@ function renderMessageContext(container,messages){
 }
 function historyContext(){return {...captureReplyContext(),refreshEpoch}}
 function isCurrentHistory(context){const current=historyContext();return !busy&&!opening&&!accessLost&&!S.authExpired&&Object.keys(current).every(key=>current[key]===context?.[key])&&Number(S.detail?.conversation?.id)===Number(S.current)}
-function loseHistoryAccess(){W.HandoffCancellation?.render($('handoffCancellation'),null);closePhotoViewer(false);accessLost=true;window.WorkspaceV2History?.reset();window.WorkspaceV2MessageNavigation?.reset();window.WorkspaceV2ClientEvents?.enhanceCard(null);window.WorkspaceV2CustomerAvatar?.invalidateConversation(Number(S.current));forgetSavedConversation(Number(S.current));clearCurrentReply(Number(S.current));window.WorkspaceV2ConversationSearch?.reset();window.WorkspaceV2History?.reset();window.WorkspaceV2MessageNavigation?.reset();window.WorkspaceV2ClientEvents?.enhanceCard(null);if(S.detail?.conversation)renderActions(S.detail.conversation);setRefreshStatus('Доступ к диалогу изменился. Выберите доступный диалог в списке.')}
+function loseHistoryAccess(){clearHandoffContext();W.HandoffCancellation?.render($('handoffCancellation'),null);closePhotoViewer(false);accessLost=true;window.WorkspaceV2History?.reset();window.WorkspaceV2MessageNavigation?.reset();window.WorkspaceV2ClientEvents?.enhanceCard(null);window.WorkspaceV2CustomerAvatar?.invalidateConversation(Number(S.current));forgetSavedConversation(Number(S.current));clearCurrentReply(Number(S.current));window.WorkspaceV2ConversationSearch?.reset();window.WorkspaceV2History?.reset();window.WorkspaceV2MessageNavigation?.reset();window.WorkspaceV2ClientEvents?.enhanceCard(null);if(S.detail?.conversation)renderActions(S.detail.conversation);setRefreshStatus('Доступ к диалогу изменился. Выберите доступный диалог в списке.')}
 function loadOlder(){return window.WorkspaceV2History?.loadOlder()||Promise.resolve(false)}
-function renderHeader(c){const name=c.display_name||'Турист';$('conversationTitle').textContent=name;if(window.WorkspaceV2CustomerAvatar)window.WorkspaceV2CustomerAvatar.setInitials($('conversationAvatar'),initials(name));else $('conversationAvatar').textContent=initials(name);const state=$('conversationState');state.textContent=statusText(c.status);state.className='conversationState '+String(c.status||'');const origin=[c.source_name,(c.channel||'').toUpperCase()].filter(Boolean).join(' · ');$('conversationMeta').textContent=[origin,c.manager_name?`Менеджер: ${c.manager_name}`:''].filter(Boolean).join(' · ');window.WorkspaceV2CustomerName?.enhanceHeader(c);window.WorkspaceV2CustomerAvatar?.enhanceHeader(c);W.HandoffCancellation?.render($('handoffCancellation'),!accessLost&&!S.authExpired&&c.status==='ai'&&Number(c.id)===Number(S.detail?.conversation?.id)?S.detail?.handoff_cancellation:null);window.WorkspaceV2AiDraft?.sync();window.WorkspaceV2Assistant?.sync(c);window.WorkspaceV2TourSelection?.sync(c);window.WorkspaceV2MessageNavigation?.sync(c);window.WorkspaceV2ClientEvents?.enhanceCard(c)}
+function renderHeader(c){renderHandoffContext();const name=c.display_name||'Турист';$('conversationTitle').textContent=name;if(window.WorkspaceV2CustomerAvatar)window.WorkspaceV2CustomerAvatar.setInitials($('conversationAvatar'),initials(name));else $('conversationAvatar').textContent=initials(name);const state=$('conversationState');state.textContent=statusText(c.status);state.className='conversationState '+String(c.status||'');const origin=[c.source_name,(c.channel||'').toUpperCase()].filter(Boolean).join(' · ');$('conversationMeta').textContent=[origin,c.manager_name?`Менеджер: ${c.manager_name}`:''].filter(Boolean).join(' · ');window.WorkspaceV2CustomerName?.enhanceHeader(c);window.WorkspaceV2CustomerAvatar?.enhanceHeader(c);W.HandoffCancellation?.render($('handoffCancellation'),!accessLost&&!S.authExpired&&c.status==='ai'&&Number(c.id)===Number(S.detail?.conversation?.id)?S.detail?.handoff_cancellation:null);window.WorkspaceV2AiDraft?.sync();window.WorkspaceV2Assistant?.sync(c);window.WorkspaceV2TourSelection?.sync(c);window.WorkspaceV2MessageNavigation?.sync(c);window.WorkspaceV2ClientEvents?.enhanceCard(c)}
 function clearCurrentReply(target){drafts.delete(target);persistReplySession();$('replyText').value='';autoGrow();window.WorkspaceV2Media?.clear()}
 function canRefreshVisible(){const mobile=window.WorkspaceV2Mobile;return !!S.current&&Number(S.detail?.conversation?.id)===Number(S.current)&&!!S.manager?.id&&!S.authExpired&&!busy&&!opening&&!lifecycleBlocked()&&document.visibilityState!=='hidden'&&(!mobile?.isMobile()||mobile.getScreen?.()==='conversation')}
 async function refreshVisible(){
@@ -350,7 +387,7 @@ async function refreshVisible(){
     const d=await api('detail',{conversation_id:target},{isCurrent:stillCurrent});
     if(!stillCurrent())return false;
     if(!d?.ok){
-      if([403,404].includes(d?.http_status)){W.HandoffCancellation?.render($('handoffCancellation'),null);closePhotoViewer(false);accessLost=true;window.WorkspaceV2History?.reset();window.WorkspaceV2MessageNavigation?.reset();window.WorkspaceV2ClientEvents?.enhanceCard(null);window.WorkspaceV2CustomerAvatar?.invalidateConversation(target);forgetSavedConversation(target);clearCurrentReply(target);window.WorkspaceV2ConversationSearch?.reset();renderActions(S.detail.conversation);setRefreshStatus('Доступ к диалогу изменился. Выберите доступный диалог в списке.')}
+      if([403,404].includes(d?.http_status)){clearHandoffContext();W.HandoffCancellation?.render($('handoffCancellation'),null);closePhotoViewer(false);accessLost=true;window.WorkspaceV2History?.reset();window.WorkspaceV2MessageNavigation?.reset();window.WorkspaceV2ClientEvents?.enhanceCard(null);window.WorkspaceV2CustomerAvatar?.invalidateConversation(target);forgetSavedConversation(target);clearCurrentReply(target);window.WorkspaceV2ConversationSearch?.reset();renderActions(S.detail.conversation);setRefreshStatus('Доступ к диалогу изменился. Выберите доступный диалог в списке.')}
       else setRefreshStatus('Не удалось обновить переписку. Показаны последние загруженные сообщения.');
       return false;
     }
@@ -378,6 +415,7 @@ function renderLeadLoading(c){
 }
 function restoreRetainedOpen(previous){
   const retained=previous&&!accessLost&&Number(S.current)===previous&&Number(S.detail?.conversation?.id)===previous;
+  if(retained)renderHandoffContext();
   if(retained&&!S.detail.lead)window.WorkspaceV2LeadCard?.renderUnavailable(S.detail.conversation);
   applyInteractionState();window.WorkspaceV2History?.render();window.WorkspaceV2ConversationSearch?.setState(retained?'ready':'error');
 }
@@ -397,7 +435,7 @@ async function open(id,options={}){
   if(switching){closeEmojiPicker();closePhotoViewer(false);window.WorkspaceV2CustomerAvatar?.conversationChanging(target)}
   const seq=++openSeq,manager=Number(S.manager?.id||0),authGeneration=S.authGeneration;
   const validContext=()=>seq===openSeq&&!S.authExpired&&Number(S.manager?.id||0)===manager&&S.authGeneration===authGeneration;
-  opening=seq;refreshEpoch++;window.WorkspaceV2History?.invalidateReads();W.HandoffCancellation?.render($('handoffCancellation'),null);setRefreshStatus();applyInteractionState();
+  opening=seq;refreshEpoch++;window.WorkspaceV2History?.invalidateReads();clearHandoffContext();W.HandoffCancellation?.render($('handoffCancellation'),null);setRefreshStatus();applyInteractionState();
   if(switching&&previous)saveDraft(previous);
   setLoadStatus(switching?'Открываем диалог…':'Обновляем диалог…','loading');
   window.WorkspaceV2ConversationSearch?.setState('loading');
@@ -411,7 +449,7 @@ async function open(id,options={}){
   if(!validContext()||(options.restoreSession&&savedSelection!==target))return false;
   if(!d?.ok||Number(d.conversation?.id)!==target){
     if(options.restoreSession&&([403,404].includes(d?.http_status)||d?.ok))forgetSavedConversation(target);
-    if(!switching&&[403,404].includes(d?.http_status)&&S.detail?.conversation){W.HandoffCancellation?.render($('handoffCancellation'),null);accessLost=true;window.WorkspaceV2History?.reset();window.WorkspaceV2MessageNavigation?.reset();window.WorkspaceV2ClientEvents?.enhanceCard(null);window.WorkspaceV2CustomerAvatar?.invalidateConversation(target);forgetSavedConversation(target);clearCurrentReply(target);renderActions(S.detail.conversation);window.WorkspaceV2ConversationSearch?.reset()}
+    if(!switching&&[403,404].includes(d?.http_status)&&S.detail?.conversation){clearHandoffContext();W.HandoffCancellation?.render($('handoffCancellation'),null);accessLost=true;window.WorkspaceV2History?.reset();window.WorkspaceV2MessageNavigation?.reset();window.WorkspaceV2ClientEvents?.enhanceCard(null);window.WorkspaceV2CustomerAvatar?.invalidateConversation(target);forgetSavedConversation(target);clearCurrentReply(target);renderActions(S.detail.conversation);window.WorkspaceV2ConversationSearch?.reset()}
     restoreRetainedOpen(previous);
     setLoadStatus(switching?'Не удалось открыть диалог. Текущий диалог не изменён.':'Не удалось обновить диалог. На экране остаются предыдущие данные.','error');return false;
   }
@@ -663,5 +701,5 @@ function bind(){
   reply.addEventListener('keydown',e=>{if(!e.isComposing&&e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();form.requestSubmit()}});
   document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>b.onclick=()=>addQuickReply(b.dataset.reply))
 }
-window.WorkspaceV2Conversation={invalidateMessageAccess:loseHistoryAccess,renderMessageContext,canNavigateMessages:()=>isCurrentHistory(historyContext()),acceptReadPage,bind,open,cancelPendingOpen,refreshVisible,captureRefreshContext:historyContext,activateReplySession,rememberSelection,getSavedSelection:()=>savedSelection,getOpenGeneration:()=>openSeq,suspendForAuthRecovery,resetForIdentityChange,refreshLeadData,renderMessages,loadOlder,renderHeader,renderDeliveryFailure,messageTime,sendReply,saveDraft,restoreDraft,setLoadStatus,captureReplyContext,insertQuickReply,insertAiDraft,openSearch,nextWaiting};
+window.WorkspaceV2Conversation={renderHandoffContext,invalidateMessageAccess:loseHistoryAccess,renderMessageContext,canNavigateMessages:()=>isCurrentHistory(historyContext()),acceptReadPage,bind,open,cancelPendingOpen,refreshVisible,captureRefreshContext:historyContext,activateReplySession,rememberSelection,getSavedSelection:()=>savedSelection,getOpenGeneration:()=>openSeq,suspendForAuthRecovery,resetForIdentityChange,refreshLeadData,renderMessages,loadOlder,renderHeader,renderDeliveryFailure,messageTime,sendReply,saveDraft,restoreDraft,setLoadStatus,captureReplyContext,insertQuickReply,insertAiDraft,openSearch,nextWaiting};
 })();

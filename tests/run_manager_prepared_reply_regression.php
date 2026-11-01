@@ -18,7 +18,7 @@ final class PreparedReplyStatement extends PDOStatement
 
 final class PreparedReplyPdo extends PDO
 {
-    public const TABLES = ['manager_tour_selection_publications','manager_supervision_sources','manager_supervision','admin_audit_log','manager_assignments','lead_stage_history','manager_preparation_cursors','lead_tasks','manager_prepared_replies','manager_conversation_reads','messages','conversation_events','manager_group_members','conversation_sources','conversations','manager_customer_names','customers','manager_projects','managers','projects'];
+    public const TABLES = ['manager_prepared_reply_input_links','manager_prepared_reply_inputs','manager_tour_selection_publications','manager_supervision_sources','manager_supervision','admin_audit_log','manager_assignments','lead_stage_history','manager_preparation_cursors','lead_tasks','manager_prepared_replies','manager_conversation_reads','messages','conversation_events','manager_group_members','conversation_sources','conversations','manager_customer_names','customers','manager_projects','managers','projects'];
     public static bool $mysqlFixture = false;
     public bool $guard = false;
     public bool $supervisorWrites = false;
@@ -28,6 +28,7 @@ final class PreparedReplyPdo extends PDO
     public array $executed = [];
     public ?Closure $beforeCursorUpdate = null;
     public ?Closure $beforeRetire = null;
+    public ?Closure $beforeReceiptLink = null;
     public ?Closure $beforeLegacyBindingRead = null;
     public ?Closure $beforeInputAnnotation = null;
     public bool $failSnapshotOnce = false;
@@ -76,11 +77,12 @@ final class PreparedReplyPdo extends PDO
         if ($this->beforeInputAnnotation !== null && str_starts_with($sql,'UPDATE manager_prepared_replies SET customer_input_revision=')){$callback=$this->beforeInputAnnotation;$this->beforeInputAnnotation=null;$callback($this);}
         if ($this->beforeOpenBindingRead !== null && str_starts_with($sql,"SELECT * FROM manager_prepared_replies WHERE conversation_id=? AND requested_by_manager_id=? AND purpose='open_chat' AND project_key=? AND manager_id=?")){$callback=$this->beforeOpenBindingRead;$this->beforeOpenBindingRead=null;$callback($this);}
         if ($this->beforeAiInboxConfirmation !== null && str_starts_with($sql,'SELECT c.id,c.project_key,c.source_id,c.channel,c.status,c.manager_id,v.role,')){$callback=$this->beforeAiInboxConfirmation;$this->beforeAiInboxConfirmation=null;$callback($this);}
+        if($this->beforeReceiptLink!==null&&str_starts_with($sql,'INSERT INTO manager_prepared_reply_input_links')){$cb=$this->beforeReceiptLink;$this->beforeReceiptLink=null;$cb();}
         $this->executed[] = $sql;
         if (preg_match('/\A\s*SELECT\b/i', $sql)) return;
         if ($this->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql'
             && in_array($sql, ['SET TRANSACTION ISOLATION LEVEL REPEATABLE READ','SET TRANSACTION READ ONLY'], true)) return;
-        if (preg_match('/\A\s*(?:INSERT(?:\s+(?:OR\s+)?IGNORE)?\s+INTO|UPDATE|DELETE\s+FROM)\s+(?:manager_prepared_replies|manager_preparation_cursors)\b/i', $sql)) {
+        if (preg_match('/\A\s*(?:INSERT(?:\s+(?:OR\s+)?IGNORE)?\s+INTO|UPDATE|DELETE\s+FROM)\s+(?:manager_prepared_replies|manager_preparation_cursors|manager_prepared_reply_inputs|manager_prepared_reply_input_links)\b/i', $sql)) {
             ++$this->cacheWrites;
             return;
         }
@@ -173,6 +175,8 @@ INSERT INTO messages VALUES(2,101,'inbound','customer','Подберите ту�
     } else {
         $pdo->exec($schema);
     }
+    require_once __DIR__.'/support/prepared-input-fixture.php';
+    preparedInputFixtureSchema($pdo);
     // Automatic eligibility uses real source time; keep the generic input fresh.
     $pdo->prepare('UPDATE messages SET created_at=? WHERE id=2')->execute([gmdate('Y-m-d H:i:s',time()-60)]);
     if ($channel !== 'telegram') {
@@ -757,6 +761,7 @@ function preparedReplyRun(): void
     preparedReplySelectionRun();
     preparedReplyWaitingRun();
     preparedReplyCoverage();
+    require_once __DIR__.'/support/prepared-input-cases.php';preparedInputCases();preparedInputMcpCases();preparedInputNativeRace();
     echo 'Manager prepared replies'.(PreparedReplyPdo::$mysqlFixture ? ' (MySQL)' : '').': '.($preparedReplyPassed - $startedWith)." checks passed\n";
 }
 

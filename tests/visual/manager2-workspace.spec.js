@@ -11,7 +11,7 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
   const pushProtocol=lifecycle(7);
   const calls=[],unexpected=[],errors=[],sends=[],pendingCreates=[],pendingMetadata=[];
   let authenticated=!anonymous,subscribed=false,currentTourChoices=tourChoices;
-  let lifecycleHandler=null,stateHandler=null,readHandler=null,logoutHandler=null;const conversationOverrides=new Map();
+  let lifecycleHandler=null,stateHandler=null,readHandler=null,logoutHandler=null;const conversationOverrides=new Map(),inboxOverrides=new Map();
   const manager={id:7,role,display_name:'Мария',is_working:true};
   const tasks=[{id:21,title:'Проверить отели у моря в бюджете',status:'open',due_state:'today',due_at_utc:'2026-10-14 07:00:00',is_pinned:true,assigned_manager_name:'Мария'},{id:22,title:'Отправить подборку клиенту',status:'open',due_state:'overdue',due_at_utc:'2026-10-13 09:00:00',assigned_manager_name:'Мария'},{id:23,title:'Уточнить состав туристов',status:'done',due_state:'done',assigned_manager_name:'Мария'}];
   const conversation=id=>({id,manager_id:otherOwner?8:7,manager_name:otherOwner?'Людмила':'Мария',status:'manager',channel:'telegram',source_id:1,source_name:'AnyTour',display_name:id===11?'Анна Морозова':'Алексей Иванов',...conversationOverrides.get(id)});
@@ -19,7 +19,7 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
   if(replyAudio)messages[0].attachments=[{type:'audio',name:'Тестовое аудио',url:replyEditorAudio()}];
   if(serviceEvents)messages.push({id:36,direction:'inbound',sender_type:'customer',text:'manager_after_tours',service_action:{type:'callback',label:'Клиент запросил менеджера после подбора туров',raw_payload:'manager_after_tours'},created_at:'2026-10-13 12:01:00'},{id:37,direction:'inbound',sender_type:'customer',text:'manager_after_tours',created_at:'2026-10-13 12:02:00'});
   const lead=id=>({ok:true,can_edit_pipeline:!otherOwner,pipeline:{stage:stages[1],stage_history:[],tags:[],outcome:{outcome:'open'}},tasks:tasks.map(t=>({...t})),trip:{city:'Москва',country:'Турция',date:'24 октября',nights:'7–9',adults:2,children:1,child_ages:'8',meal:'all_inclusive',stars:'4,5',budget:{max:250000,currency:'RUB',basis:'total'}},contact:{phone:'+7 999 123-45-67'},source:{project_label:'AnyTour',origin_label:'TG · реклама',channel:'telegram'},handoff:{technical_status:'manager',manager_name:conversation(id).manager_name}});
-  const rows=()=>[11,12].map((id,i)=>({...conversation(id),can_edit_pipeline:!otherOwner,project_label:'AnyTour',origin_label:'TG · реклама',trip_summary:'Москва → Турция · 2 взрослых и ребёнок · 7–9 ночей',lead_stage:stages[1],lead_outcome:'open',unread_count:i?0:2,last_text:'Ждём варианты у моря',last_sender_type:'customer',last_message_at:'2026-10-13 12:00:00',next_task_id:21,next_task_title:tasks.find(t=>t.status==='open')?.title||'',next_task_due_state:'today',operational_task_due_state:'overdue',next_task_due_at_utc:'2026-10-14 07:00:00',next_task_pinned:1,contact_phone:'+7 999 123-45-67'}));
+  const rows=()=>[11,12].map((id,i)=>({...conversation(id),can_edit_pipeline:!otherOwner,project_label:'AnyTour',origin_label:'TG · реклама',trip_summary:'Москва → Турция · 2 взрослых и ребёнок · 7–9 ночей',lead_stage:stages[1],lead_outcome:'open',unread_count:i?0:2,last_text:'Ждём варианты у моря',last_sender_type:'customer',last_message_at:'2026-10-13 12:00:00',next_task_id:21,next_task_title:tasks.find(t=>t.status==='open')?.title||'',next_task_due_state:'today',operational_task_due_state:'overdue',next_task_due_at_utc:'2026-10-14 07:00:00',next_task_pinned:1,contact_phone:'+7 999 123-45-67',...inboxOverrides.get(id)}));
   await page.addInitScript(savedFilters=>{
     if(!sessionStorage.getItem('manager2-fixture-initialized')){sessionStorage.clear();sessionStorage.setItem('manager2-fixture-initialized','1')}
     if(savedFilters)sessionStorage.setItem('anytour.manager.workspace.filters.v1',JSON.stringify(savedFilters));
@@ -111,11 +111,15 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
       if(data.action==='subscribe'){expect(data.csrf).toBe('synthetic-csrf');expect(data.subscription.endpoint).toBe('https://example.invalid/synthetic-push');subscribed=true;return reply({...pushProtocol.reply(data),push_status:{is_working:manager.is_working,notification_path_usable:true,healthy_subscription_count:1,notification_path_reason:'healthy_subscription'},current_subscription:{notification_path_usable:true,notification_path_reason:'healthy_subscription'}})}
     }
     if(url.pathname==='/manager/notification-events.php')return reply({ok:true,cursor:0,events:[]});
+    if(url.pathname==='/manager/assistant-api.php'&&data.action==='list'){
+      if(!authenticated)return reply({ok:false,error:'unauthorized'},401);
+      expect(data.csrf).toBe('synthetic-csrf');return reply({ok:true,items:[],has_more:false,next_cursor:null});
+    }
     unexpected.push(req.method()+' '+url.pathname+' '+data.action);return reply({ok:false,error:'unexpected_fixture_action'},400);
   });
   await page.goto(origin+'/manager2/index.php?qa=1');
   if(!anonymous&&waitForInbox)await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
-  return {calls,unexpected,errors,sends,tasks,manager,setLogoutHandler:fn=>{logoutHandler=fn},setTourChoices:value=>{currentTourChoices=value},setConversation:(id,patch)=>conversationOverrides.set(id,{...conversationOverrides.get(id),...patch}),setReadHandler:fn=>{readHandler=fn},setLifecycleHandler:fn=>{lifecycleHandler=fn},setStateHandler:fn=>{stateHandler=fn},releaseCreate:()=>pendingCreates.shift()?.(),metadataPending:()=>pendingMetadata.length,
+  return {calls,unexpected,errors,sends,tasks,manager,setLogoutHandler:fn=>{logoutHandler=fn},setTourChoices:value=>{currentTourChoices=value},setConversation:(id,patch)=>conversationOverrides.set(id,{...conversationOverrides.get(id),...patch}),setInboxRow:(id,patch)=>inboxOverrides.set(id,{...inboxOverrides.get(id),...patch}),setReadHandler:fn=>{readHandler=fn},setLifecycleHandler:fn=>{lifecycleHandler=fn},setStateHandler:fn=>{stateHandler=fn},releaseCreate:()=>pendingCreates.shift()?.(),metadataPending:()=>pendingMetadata.length,
     async releaseMetadata(status=200){const pending=pendingMetadata.splice(0);pending.forEach(item=>item.release(status));await Promise.all(pending.map(async item=>{const response=await item.request.response();if(response)await response.finished()}))}};
 }
 async function openLead(page,id=11){
@@ -125,6 +129,12 @@ async function openLead(page,id=11){
 }
 async function showCard(page){if(!await page.locator('#leadZone').isVisible()||await page.evaluate(()=>WorkspaceV2Mobile.isMobile()&&WorkspaceV2Mobile.getScreen()!=='lead')){await page.locator('#mobileLeadBtn').click();if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()))await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-mobile-screen','lead');else await expect(page.locator('#workspaceRoot')).toHaveClass(/m2ClientCardOpen/)}}
 async function showChat(page){if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()&&WorkspaceV2Mobile.getScreen()==='lead')||await page.locator('#workspaceRoot').evaluate(el=>el.classList.contains('m2ClientCardOpen'))){await page.locator('#mobileLeadClose').click();if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()))await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-mobile-screen','conversation');else await expect(page.locator('#workspaceRoot')).not.toHaveClass(/m2ClientCardOpen/)}}
+async function openAccount(page){
+  const account=page.locator('#m2NotificationButton');
+  if(!await account.isVisible())await page.getByRole('button',{name:'Ещё',exact:true}).click();
+  await account.click();
+}
+async function accountFocusReturned(page){await expect(page.viewportSize().width<=740?page.getByRole('button',{name:'Ещё',exact:true}):page.locator('#m2NotificationButton')).toBeFocused()}
 async function noOverflow(page){const size=await page.evaluate(()=>({w:document.documentElement.scrollWidth,h:document.documentElement.scrollHeight,vw:innerWidth,vh:innerHeight}));expect(size.w).toBeLessThanOrEqual(size.vw+1);expect(size.h).toBeLessThanOrEqual(size.vh+1)}
 async function readable(page,selector){
   const ratio=await page.locator(selector).first().evaluate(el=>{
@@ -152,7 +162,7 @@ for(const height of [900,420])for(const width of [390,430,768,1440])test('Manage
   await page.setViewportSize({width,height});const s=await setup(page);await openLead(page);
   await page.locator('#replyText').fill('Личный неотправленный черновик');
   if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()))await page.locator('#mobileBack').click();
-  await page.locator('#m2NotificationButton').click();
+  await openAccount(page);
   await expect(page.getByRole('button',{name:'Выйти',exact:true})).toBeVisible();
   await exitInitiallyReachable(page);
   expect((await page.locator('#m2Logout').boundingBox()).height).toBeGreaterThanOrEqual(44);
@@ -176,7 +186,7 @@ for(const height of [900,420])for(const width of [390,430,768,1440])test('Manage
 for(const height of [900,420])test('Manager2 account logout keeps an unconfirmed result retryable without claiming success'+(height===420?' short':''),async({page})=>{
   await page.setViewportSize({width:390,height});const s=await setup(page);
   let release;const pending=new Promise(resolve=>{release=resolve});s.setLogoutHandler(()=>pending);
-  await page.locator('#m2NotificationButton').click();await page.locator('#m2Logout').click();
+  await openAccount(page);await page.locator('#m2Logout').click();
   await expect(page.locator('#m2Logout')).toBeDisabled();await expect(page.locator('#managerAuthSubmit')).toBeDisabled();
   await page.locator('#m2Logout').evaluate(el=>el.click());expect(s.calls.filter(c=>c.action==='logout')).toHaveLength(1);
   release({abort:true,endSession:true});
@@ -429,11 +439,73 @@ for(const width of [390,430,768,1440])test.describe('Manager2 '+width,()=>{
     if(width<=1100)await page.locator('#mobileBack').click();
     await page.locator('[data-m2-nav=sales]').click();await expect(page.locator('.kanbanCard')).toHaveCount(2);await expect(page.locator('.m2BoardActions')).toHaveCount(2);await noOverflow(page);await capture(page,browserName,width,'sales');
     await page.locator('.m2BoardActions>summary').first().click();await expect(page.locator('.kanbanStageSelect').first()).toBeVisible();
-    await page.locator('[data-m2-nav=tasks]').click();await expect(page.locator('.m2TaskFilters')).toHaveAttribute('open');await expect(page.locator('#leadTaskFilter')).toHaveValue('');
-    await page.locator('#m2NotificationButton').click();await expect(page.locator('#m2Notifications')).toBeVisible();await expect(page.locator('#notificationStatus')).toBeVisible();await page.locator('[data-enable-push]').click();
+    await page.locator('[data-m2-nav=tasks]').click();await expect(page.locator('#filtersPanel')).not.toBeVisible();await expect(page.locator('.taskShortcuts')).toBeVisible();await expect(page.locator('#leadTaskFilter')).toHaveValue('');
+    await openAccount(page);await expect(page.locator('#m2Notifications')).toBeVisible();await expect(page.locator('#notificationStatus')).toBeVisible();await page.locator('[data-enable-push]').click();
     await expect(page.locator('#notificationStatus')).toHaveClass(/\bok\b/);await expect(page.locator('#notificationStatus')).toContainText('Уведомления включены');expect(s.calls.filter(c=>c.action==='subscribe')).toHaveLength(1);await capture(page,browserName,width,'notifications');
-    await page.locator('#m2NotificationsClose').click();await expect(page.locator('#m2NotificationButton')).toBeFocused();expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+    await page.locator('#m2NotificationsClose').click();await accountFocusReturned(page);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
   });
+});
+for(const width of [390,430])for(const role of ['manager','admin'])test('Manager2 mobile primary navigation and More retain working role controls '+role+' '+width,async({page,browserName})=>{
+  await page.setViewportSize({width,height:900});const s=await setup(page,{role});
+  const initialPages=page.context().pages().length,popups=[];page.on('popup',popup=>popups.push(popup.url()));
+  const more=page.getByRole('button',{name:'Ещё',exact:true});await expect(more).toBeVisible();
+  // The shared .error banner style must not turn the status dot into a badge
+  // that covers the More glyph. Wait for the fixture's canonical health state.
+  await expect(page.locator('#notificationStatus')).toHaveClass(/\bcritical\b/);
+  const dot=page.locator('.m2MoreDot');await expect(dot).toHaveClass(/\berror\b/);
+  const dotBounds=await dot.boundingBox();expect(dotBounds.width).toBeLessThanOrEqual(8);expect(dotBounds.height).toBeLessThanOrEqual(8);
+  const panel=page.locator('#'+await more.getAttribute('aria-controls'));
+  const geometry=await page.locator('.m2Rail').evaluate(rail=>{
+    const visible=[...rail.querySelectorAll('[data-m2-nav],button[aria-controls]')].filter(el=>el.getClientRects().length),rect=rail.getBoundingClientRect();
+    return {height:rect.height,items:visible.map(el=>{const r=el.getBoundingClientRect();return {section:el.dataset.m2Nav||'more',top:r.top,bottom:r.bottom,left:r.left,right:r.right,height:r.height}}),width:innerWidth,heightLimit:innerHeight};
+  });
+  expect(geometry.items.map(item=>item.section)).toEqual(['dialogues','tasks','sales','archive','more']);
+  expect(geometry.height).toBeLessThanOrEqual(64);
+  for(const item of geometry.items){expect(item.top).toBeGreaterThanOrEqual(geometry.items[0].top-1);expect(item.bottom).toBeLessThanOrEqual(geometry.heightLimit+1);expect(item.left).toBeGreaterThanOrEqual(-1);expect(item.right).toBeLessThanOrEqual(width+1);expect(item.height).toBeGreaterThanOrEqual(44)}
+  expect(Math.max(...geometry.items.map(item=>item.top))-Math.min(...geometry.items.map(item=>item.top))).toBeLessThanOrEqual(1);
+  await page.evaluate(()=>{window.mobileCanonicalNav=['m2Analytics','assistantOpen','m2NotificationButton'].map(id=>document.getElementById(id))});
+  await more.click();await expect(panel).toBeVisible();await expect(more).toHaveAttribute('aria-expanded','true');
+  await expect(panel.locator('#assistantOpen')).toBeVisible();await expect(panel.locator('#m2NotificationButton')).toBeVisible();
+  if(role==='admin')await expect(panel.locator('#m2Analytics')).toBeVisible();else await expect(page.locator('#m2Analytics')).not.toBeVisible();
+  await capture(page,browserName,width,'mobile-more-'+role);
+  expect(await page.evaluate(()=>mobileCanonicalNav.every(el=>el===document.getElementById(el.id)&&el.isConnected))).toBe(true);
+  await page.keyboard.press('Escape');await expect(panel).not.toBeVisible();await expect(more).toBeFocused();await expect.poll(()=>page.evaluate(()=>!!history.state?.workspaceV2Overlay)).toBe(false);
+  await more.click();await expect(panel).toBeVisible();await expect.poll(()=>page.evaluate(()=>history.state?.workspaceV2Overlay?.id)).toBe('manager2-more');await page.goBack();await expect(panel).not.toBeVisible();await expect(more).toBeFocused();
+  await more.click();await page.locator('#assistantOpen').click();await expect(panel).not.toBeVisible();await expect(page.locator('#assistantDialog')).toBeVisible();
+  await page.locator('#assistantClose').click();await expect(page.locator('#assistantDialog')).not.toBeVisible();await expect(more).toBeFocused();
+  await openAccount(page);await expect(page.locator('#m2Notifications')).toBeVisible();await expect(panel).not.toBeVisible();await page.locator('#m2NotificationsClose').click();await accountFocusReturned(page);
+  await page.setViewportSize({width:1440,height:900});
+  for(const id of ['assistantOpen','m2NotificationButton'])await expect(page.locator('.m2Rail #'+id)).toBeVisible();
+  if(role==='admin')await expect(page.locator('.m2Rail #m2Analytics')).toBeVisible();
+  await expect(more).not.toBeVisible();expect(await page.evaluate(()=>mobileCanonicalNav.every(el=>el===document.getElementById(el.id)&&el.isConnected))).toBe(true);
+  await page.setViewportSize({width,height:900});await more.click();await expect(panel).toBeVisible();await page.evaluate(()=>WorkspaceV2.showAuthRecovery());await expect(panel).not.toBeVisible();await expect(more).toBeDisabled();
+  expect(page.context().pages()).toHaveLength(initialPages);expect(popups).toEqual([]);expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
+for(const width of [390,430])test('Manager2 My Plan exposes task deadlines and reply urgency without opening advanced filters '+width,async({page,browserName})=>{
+  await page.setViewportSize({width,height:900});const s=await setup(page);
+  s.setInboxRow(11,{awaiting_manager_reply:1,awaiting_first_reply:1,wait_age_seconds:360});
+  s.setInboxRow(12,{next_task_title:'Позвонить клиенту',next_task_due_state:'overdue',next_task_due_at_utc:'2026-10-13 09:00:00',next_task_pinned:0,next_task_overdue:1});
+  const before=s.calls.filter(call=>call.action==='list').length;
+  await page.locator('[data-m2-nav=tasks]').click();await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-m2-section','tasks');await expect(page.locator('#inboxList')).toHaveAttribute('aria-busy','false');
+  expect(s.calls.filter(call=>call.action==='list')).toHaveLength(before+1);
+  await expect(page.locator('#filtersPanel')).not.toBeVisible();await expect(page.locator('.taskShortcuts')).toBeVisible();
+  expect((await page.locator('.m2TaskQuickFilters').boundingBox()).height).toBeLessThanOrEqual(52);
+  for(const state of ['action','overdue','today','planned','none'])await expect(page.locator('.taskShortcuts [data-task-filter="'+state+'"]').first()).toBeVisible();
+  const first=page.locator('#inboxList [data-conversation-id="11"]'),second=page.locator('#inboxList [data-conversation-id="12"]');
+  await expect(first).toContainText('Проверить отели у моря в бюджете');await expect(first).toContainText('10:00');await expect(second).toContainText('Позвонить клиенту');await expect(second).toContainText('12:00');
+  await expect(first.locator('.leadReplyStatus')).toContainText('Ждёт ответа');await expect(first.locator('.leadWaitCompact')).toContainText('Срочно');await expect(first).toHaveClass(/waitUrgent/);
+  await expect(second.locator('.leadTaskCompact')).toHaveClass(/overdue/);
+  await capture(page,browserName,width,'my-plan-next-actions');
+  const order=await page.locator('#inboxList .leadItem').evaluateAll(items=>items.map(item=>item.dataset.conversationId));expect(order).toEqual(['11','12']);
+  for(const seconds of [179,180,299,300]){
+    s.setInboxRow(11,{wait_age_seconds:seconds});await page.evaluate(()=>WorkspaceV2Inbox.load({preserveScroll:true}));
+    const expected=seconds>=300?'urgent':seconds>=180?'warn':'normal';await expect(first.locator('.leadWaitCompact')).toHaveClass(new RegExp('\\b'+expected+'\\b'));
+    expect(await page.locator('#inboxList .leadItem').evaluateAll(items=>items.map(item=>item.dataset.conversationId))).toEqual(order);
+  }
+  s.setInboxRow(11,{delivery_failure_category:'suspended'});s.setInboxRow(12,{next_task_id:null,next_task_title:'',next_task_due_at_utc:null,next_task_due_state:'none',operational_task_due_state:'none',next_task_overdue:0});
+  await page.evaluate(()=>WorkspaceV2Inbox.load({preserveScroll:true}));await expect(first.locator('.leadReplyStatus,.leadWaitCompact')).toHaveCount(0);await expect(first).not.toHaveClass(/waitWarn|waitUrgent/);await expect(second).toContainText('Без задачи');
+  await page.locator('#filtersToggle').click();await expect(page.locator('#filtersPanel')).toBeVisible();await page.locator('[data-m2-nav=tasks]').click();await expect(page.locator('#filtersPanel')).not.toBeVisible();
+  await noOverflow(page);expect(s.calls.filter(call=>['send','set_working','take','release','close','reopen','create_task','set_task_completed','update_task','set_stage'].includes(call.action))).toEqual([]);expect(s.manager.is_working).toBe(true);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });
 test('Manager2 anonymous entry uses the canonical login and does not expose another manager composer',async({page})=>{
   const s=await setup(page,{anonymous:true,otherOwner:true});await expect(page.locator('#managerAuthRecovery')).toBeVisible();
@@ -460,7 +532,7 @@ for(const taskResult of ['success','rejected','unknown'])test('Manager2 task fee
 
 for(const width of [390,1440])test('Manager2 admin settings remain accessible at '+width,async({page})=>{
   await page.setViewportSize({width,height:900});const s=await setup(page,{role:'admin'});
-  await page.locator('#m2NotificationButton').click();
+  await openAccount(page);
   await expect(page.locator('#adminLink')).toBeVisible();
   expect(await page.locator('#adminLink').evaluate(el=>new URL(el.getAttribute('href'),document.baseURI).pathname)).toBe('/manager2/admin.php');
   expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
@@ -623,6 +695,99 @@ async function editorGeometry(page){
     return {height:rect.height,width:rect.width,lines:(rect.height-parseFloat(css.paddingTop)-parseFloat(css.paddingBottom)-parseFloat(css.borderTopWidth)-parseFloat(css.borderBottomWidth))/parseFloat(css.lineHeight)};
   });
 }
+async function controlsInsideVisualViewport(page,ids){
+  const geometry=await page.evaluate(ids=>{
+    const viewport=window.visualViewport,top=viewport?.offsetTop||0,left=viewport?.offsetLeft||0,bottom=top+(viewport?.height||innerHeight),right=left+(viewport?.width||innerWidth);
+    return ids.map(id=>{const el=document.getElementById(id),rect=el.getBoundingClientRect(),hit=document.elementFromPoint(rect.left+rect.width/2,rect.top+rect.height/2);return {id,top:rect.top,bottom:rect.bottom,left:rect.left,right:rect.right,viewportTop:top,viewportBottom:bottom,viewportLeft:left,viewportRight:right,hit:!!hit&&(hit===el||el.contains(hit))}});
+  },ids);
+  for(const item of geometry){expect(item.top,item.id+' top in visible viewport').toBeGreaterThanOrEqual(item.viewportTop-1);expect(item.bottom,item.id+' bottom in visible viewport').toBeLessThanOrEqual(item.viewportBottom+1);expect(item.left,item.id+' left in visible viewport').toBeGreaterThanOrEqual(item.viewportLeft-1);expect(item.right,item.id+' right in visible viewport').toBeLessThanOrEqual(item.viewportRight+1);expect(item.hit,item.id+' is directly reachable without corrective scrolling').toBe(true)}
+}
+async function replyCaretInsideVisualViewport(page){
+  const caret=await page.locator('#replyText').evaluate(el=>{
+    const css=getComputedStyle(el),mirror=document.createElement('div'),marker=document.createElement('span');
+    for(const key of ['fontFamily','fontSize','fontWeight','fontStyle','fontVariant','fontFeatureSettings','fontKerning','lineHeight','letterSpacing','wordSpacing','direction','textAlign','textTransform','textIndent','tabSize','paddingTop','paddingRight','paddingBottom','paddingLeft','borderTopWidth','borderRightWidth','borderBottomWidth','borderLeftWidth','borderStyle'])mirror.style[key]=css[key];
+    Object.assign(mirror.style,{position:'absolute',left:'-10000px',top:'0',boxSizing:'border-box',width:(el.clientWidth+parseFloat(css.borderLeftWidth)+parseFloat(css.borderRightWidth))+'px',height:'auto',minHeight:'0',maxHeight:'none',whiteSpace:'pre-wrap',overflowWrap:'break-word',visibility:'hidden'});
+    mirror.textContent=el.value.slice(0,el.selectionEnd);marker.textContent='\u200b';mirror.appendChild(marker);document.body.appendChild(mirror);
+    const field=el.getBoundingClientRect(),base=mirror.getBoundingClientRect(),point=marker.getBoundingClientRect(),line=parseFloat(css.lineHeight),top=field.top+point.top-base.top-el.scrollTop;
+    mirror.remove();const viewport=window.visualViewport,visibleTop=viewport?.offsetTop||0,visibleBottom=visibleTop+(viewport?.height||innerHeight);
+    return {selection:el.selectionEnd,length:el.value.length,top,bottom:top+(point.height||line),fieldTop:field.top+parseFloat(css.borderTopWidth),fieldBottom:field.bottom-parseFloat(css.borderBottomWidth),visibleTop,visibleBottom};
+  });
+  expect(caret.selection).toBe(caret.length);expect(caret.top).toBeGreaterThanOrEqual(Math.max(caret.visibleTop,caret.fieldTop)-2);expect(caret.bottom).toBeLessThanOrEqual(Math.min(caret.visibleBottom,caret.fieldBottom)+2);
+}
+for(const width of [390,430])test('Manager2 six-line native caret survives reduced offset viewport and collapse '+width,async({page,browserName})=>{
+  await page.setViewportSize({width,height:900});const s=await setup(page);await openLead(page);await editorReady(page);
+  const reply=page.locator('#replyText'),dialog=page.locator('#m2ReplyEditor'),text=Array.from({length:6},(_,i)=>'Строка '+(i+1)+'. Уточняем отдых.').join('\n');
+  await reply.fill(text);await editorGeometry(page);await reply.press('Control+End');await editorGeometry(page);
+  const initial=await reply.evaluate(el=>{
+    window.reducedViewportNativeProof={form:document.getElementById('composer'),reply:el,file:document.getElementById('replyFile'),selection:[el.selectionStart,el.selectionEnd,el.selectionDirection]};
+    return {height:el.clientHeight,overflow:el.scrollHeight-el.clientHeight,scrollTop:el.scrollTop,selection:[el.selectionStart,el.selectionEnd],length:el.value.length};
+  });
+  // Start with the entire short, unwrapped draft visible. A previously scrolled
+  // long draft would miss a resize that restores the old zero scroll position.
+  expect(initial.overflow).toBeLessThanOrEqual(1);expect(initial.scrollTop).toBeLessThanOrEqual(1);expect(initial.selection).toEqual([initial.length,initial.length]);
+  const nativeState=()=>page.evaluate(()=>{
+    const proof=reducedViewportNativeProof,reply=document.getElementById('replyText');
+    return {same:reply===proof.reply&&document.getElementById('composer')===proof.form&&document.getElementById('replyFile')===proof.file,selection:[reply.selectionStart,reply.selectionEnd,reply.selectionDirection],expected:proof.selection,text:reply.value,tailGap:reply.scrollHeight-reply.scrollTop-reply.clientHeight};
+  });
+  async function retainedVisibleTail(ids){
+    await editorGeometry(page);await expect(reply).toBeFocused();await controlsInsideVisualViewport(page,ids);
+    const state=await nativeState();expect(state.same).toBe(true);expect(state.selection).toEqual(state.expected);expect(state.text).toBe(text);
+    // With a collapsed selection at value.length, the last native text row must
+    // be within the textarea's own scrollport. No mirror or scrolling repairs it.
+    expect(state.tailGap,'native end caret remains visible after resizing').toBeLessThanOrEqual(2);
+  }
+  try{
+    // Synthetic visual-viewport geometry only; no physical keyboard claim.
+    await page.evaluate(()=>{Object.defineProperty(visualViewport,'height',{configurable:true,value:360});Object.defineProperty(visualViewport,'offsetTop',{configurable:true,value:48});visualViewport.dispatchEvent(new Event('resize'));visualViewport.dispatchEvent(new Event('scroll'))});
+    await expect.poll(()=>page.locator('#conversationZone').evaluate(el=>el.getBoundingClientRect().bottom)).toBeLessThanOrEqual(408);
+    const reduced=await reply.evaluate(el=>({height:el.clientHeight,overflow:el.scrollHeight-el.clientHeight}));
+    expect(reduced.height).toBeLessThan(initial.height);expect(reduced.overflow).toBeGreaterThan(2);
+    await retainedVisibleTail(['replyText','m2ReplyExpand','sendReply']);await capture(page,browserName,width,'six-lines-reduced-inline');
+    await page.locator('#m2ReplyExpand').click();await expect(dialog).toBeVisible();await retainedVisibleTail(['replyText','sendReply','m2ReplyCollapse']);
+    // Keep the reduced viewport active during collapse; closing the editor must
+    // not restore the former full-height scroll state over the end caret.
+    await page.locator('#m2ReplyCollapse').click();await expect(dialog).not.toBeVisible();await expect(reply).toBeFocused();
+    await retainedVisibleTail(['replyText','m2ReplyExpand','sendReply']);await capture(page,browserName,width,'six-lines-reduced-collapsed');
+  }finally{
+    await page.evaluate(()=>{delete visualViewport.height;delete visualViewport.offsetTop;visualViewport.dispatchEvent(new Event('resize'));visualViewport.dispatchEvent(new Event('scroll'))});
+  }
+  await retainedVisibleTail(['replyText','m2ReplyExpand','sendReply']);
+  expect(await reply.evaluate(el=>el.scrollHeight-el.clientHeight)).toBeLessThanOrEqual(1);
+  expect(s.sends).toEqual([]);expect(s.calls.filter(call=>['send','send_media','set_working','take','release','close','reopen'].includes(call.action))).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
+test('Manager2 eight-line native caret stays visible through expanded viewport shrink and collapse 430x450',async({page,browserName})=>{
+  await page.setViewportSize({width:430,height:844});const s=await setup(page);await openLead(page);await editorReady(page);
+  const reply=page.locator('#replyText'),dialog=page.locator('#m2ReplyEditor'),text=Array.from({length:8},(_,i)=>'Строка '+(i+1)+': уточняем отдых у моря.').join('\n')+'!';
+  expect(text.length).toBe(264);await reply.fill(text);await reply.press('Control+End');await editorGeometry(page);
+  await reply.evaluate(el=>{window.expandedShrinkNativeProof={form:document.getElementById('composer'),reply:el,file:document.getElementById('replyFile'),selection:[el.selectionStart,el.selectionEnd,el.selectionDirection]}});
+  async function retainedEnd(ids){
+    await editorGeometry(page);await expect(reply).toBeFocused();await controlsInsideVisualViewport(page,ids);
+    const state=await reply.evaluate(el=>{
+      const proof=expandedShrinkNativeProof;
+      return {same:el===proof.reply&&document.getElementById('composer')===proof.form&&document.getElementById('replyFile')===proof.file,text:el.value,selection:[el.selectionStart,el.selectionEnd,el.selectionDirection],expected:proof.selection,length:el.value.length,tailGap:el.scrollHeight-el.scrollTop-el.clientHeight};
+    });
+    expect(state.same).toBe(true);expect(state.text).toBe(text);expect(state.selection).toEqual(state.expected);expect(state.selection.slice(0,2)).toEqual([state.length,state.length]);
+    expect(state.tailGap,'native end caret stays inside the textarea without correcting scroll').toBeLessThanOrEqual(2);
+  }
+  await page.locator('#m2ReplyExpand').click();await expect(dialog).toBeVisible();await retainedEnd(['replyText','sendReply','m2ReplyCollapse']);
+  const before=await reply.evaluate(el=>({height:el.clientHeight,overflow:el.scrollHeight-el.clientHeight,top:el.scrollTop}));
+  expect(before.overflow).toBeLessThanOrEqual(1);expect(before.top).toBeLessThanOrEqual(1);
+  try{
+    // Reproduce the observed layout transition in the synthetic fixture. A
+    // resized viewport is not evidence of a physical device keyboard.
+    await page.setViewportSize({width:430,height:450});await editorGeometry(page);
+    const reducedHeight=await reply.evaluate(el=>el.clientHeight);
+    expect(reducedHeight).toBeLessThan(before.height);
+    await retainedEnd(['replyText','sendReply','m2ReplyCollapse']);await capture(page,browserName,430,'eight-lines-expanded-450');
+    // Keep the short viewport while collapsing; no Arrow keys, scroll writes or
+    // scrollIntoView may rescue a hidden native caret after either resize.
+    await page.locator('#m2ReplyCollapse').click();await expect(dialog).not.toBeVisible();
+    await editorGeometry(page);expect(await reply.evaluate(el=>el.scrollHeight-el.clientHeight)).toBeGreaterThan(2);
+    await retainedEnd(['replyText','m2ReplyExpand','sendReply']);await capture(page,browserName,430,'eight-lines-collapsed-450');
+  }finally{await page.setViewportSize({width:430,height:844})}
+  await retainedEnd(['replyText','m2ReplyExpand','sendReply']);
+  expect(s.sends).toEqual([]);expect(s.calls.filter(call=>['send','send_media','set_working','take','release','close','reopen'].includes(call.action))).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
 for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420}]){
 test('Manager2 reply editor grows and preserves its native draft '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
   await page.setViewportSize(viewport);const s=await setup(page,{replyAudio:viewport.width===1440});await openLead(page);await editorReady(page);
@@ -665,31 +830,29 @@ test('Manager2 reply editor grows and preserves its native draft '+viewport.widt
     await page.locator('#messages').evaluate(el=>{el.dispatchEvent(new WheelEvent('wheel',{deltaY:-300}));el.scrollTop=100;el.dispatchEvent(new Event('scroll'))});
     await expect(page.locator('#jumpToLatest')).toBeVisible();
   }
-  await reply.evaluate(el=>{
-    el.focus({preventScroll:true});el.setSelectionRange(14,58,'backward');
+  const viewportEmulation=[390,430].includes(viewport.width)&&viewport.height===900;
+  await reply.evaluate((el,atEnd)=>{
+    el.focus({preventScroll:true});if(atEnd){el.setSelectionRange(el.value.length,el.value.length);el.scrollTop=el.scrollHeight}else el.setSelectionRange(14,58,'backward');
     window.editorNativeProof={form:document.querySelector('#composer'),reply:el,file:document.querySelector('#replyFile'),preview:document.querySelector('#mediaSelection .mediaSelectedItem'),message:document.querySelector('#messages .msg'),start:el.selectionStart,end:el.selectionEnd,direction:el.selectionDirection};
     const proof=window.editorNativeProof,box=document.querySelector('#messages');
     proof.audio=box.querySelector('audio');proof.audioTime=proof.audio?.currentTime;
     proof.anchor=[...box.children].find(row=>row.getBoundingClientRect().bottom>box.getBoundingClientRect().top+1);
     proof.anchorOffset=proof.anchor.getBoundingClientRect().top-box.getBoundingClientRect().top;
-  });
+  },viewportEmulation);
   await capture(page,browserName,viewport.width,'reply-inline-'+viewport.height);
   const requests=s.calls.length,historySize=await page.evaluate(()=>history.length);
-  if(viewport.width===390&&viewport.height===900){
-    // Reduced visual area without resizing the layout viewport, as with a soft
-    // keyboard. This is geometry emulation, not physical iPhone evidence.
-    await page.evaluate(()=>{Object.defineProperty(visualViewport,'height',{configurable:true,value:360});visualViewport.dispatchEvent(new Event('resize'))});
-    await expect.poll(()=>page.locator('#conversationZone').evaluate(el=>el.getBoundingClientRect().bottom)).toBeLessThanOrEqual(360);
-    await page.locator('#m2ReplyExpand').scrollIntoViewIfNeeded();
-    expect(await page.locator('#m2ReplyExpand').evaluate(el=>el.getBoundingClientRect().bottom)).toBeLessThanOrEqual(360);
+  if(viewportEmulation){
+    // Emulate a reduced, offset visual area while the layout viewport stays
+    // unchanged. This is geometry evidence, not a real device keyboard check.
+    await page.evaluate(()=>{Object.defineProperty(visualViewport,'height',{configurable:true,value:360});Object.defineProperty(visualViewport,'offsetTop',{configurable:true,value:48});visualViewport.dispatchEvent(new Event('resize'));visualViewport.dispatchEvent(new Event('scroll'))});
+    await expect.poll(()=>page.locator('#conversationZone').evaluate(el=>el.getBoundingClientRect().bottom)).toBeLessThanOrEqual(408);
+    await editorGeometry(page);await controlsInsideVisualViewport(page,['replyText','m2ReplyExpand','sendReply']);await replyCaretInsideVisualViewport(page);
   }
   await page.locator('#m2ReplyExpand').click();await expect(dialog).toBeVisible();
   await expect(page.locator('#m2ReplyExpand')).toHaveAttribute('aria-expanded','true');
-  if(viewport.width===390&&viewport.height===900){
-    await page.locator('#sendReply').scrollIntoViewIfNeeded();
-    expect(await page.locator('#sendReply').evaluate(el=>el.getBoundingClientRect().bottom)).toBeLessThanOrEqual(360);
-    expect(await page.locator('#m2ReplyCollapse').evaluate(el=>el.getBoundingClientRect().bottom)).toBeLessThanOrEqual(360);
-    await page.evaluate(()=>{delete visualViewport.height;visualViewport.dispatchEvent(new Event('resize'))});
+  if(viewportEmulation){
+    await editorGeometry(page);await controlsInsideVisualViewport(page,['replyText','sendReply','m2ReplyCollapse']);await replyCaretInsideVisualViewport(page);
+    await page.evaluate(()=>{delete visualViewport.height;delete visualViewport.offsetTop;visualViewport.dispatchEvent(new Event('resize'));visualViewport.dispatchEvent(new Event('scroll'))});
     await expect.poll(()=>dialog.evaluate(el=>el.getBoundingClientRect().height)).toBeGreaterThan(700);
     await reply.focus();
   }

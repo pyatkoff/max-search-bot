@@ -10,13 +10,22 @@ try{
     $actor=(int)$manager['id'];$input=ManagerHttp::body();$action=$input['action']??'';
     if($action==='identity')ManagerHttp::respond(['ok'=>true,'viewer_id'=>$actor,'csrf'=>ManagerHttp::csrf(true)]);
     ManagerHttp::requireCsrf($input);
-    if($action==='list'){
-        session_write_close();$result=ManagerAiUsageService::read($actor,$input);
+    if(in_array($action,['list','input','sent_text','assessment_read'],true)){
+        if($action!=='list'&&(!is_int($input['message_id']??null)||!is_string($input['case_revision']??null)))ManagerHttp::respond(['ok'=>false,'error'=>'invalid_request'],422);
+        session_write_close();$result=$action==='list'?ManagerAiUsageService::read($actor,$input)
+            :($action==='assessment_read'?ManagerAiUsageService::assessment($actor,$input)
+                :($action==='input'?ManagerAiUsageService::input($actor,$input['message_id'],$input['case_revision'])
+                    :ManagerAiUsageService::sentText($actor,$input['message_id'],$input['case_revision'])));
         if(!session_start(['read_and_close'=>true])||ManagerHttp::managerId()!==$actor||!ManagerRequestContext::validCsrf((string)$input['csrf']))ManagerHttp::respond(['ok'=>false,'error'=>'unauthorized'],401);
+    }elseif($action==='assessment_save'){
+        $result=ManagerAiUsageService::assessment($actor,$input,true);
     }elseif($action==='review'){
         if(!is_int($input['message_id']??null)||!is_string($input['case_revision']??null))ManagerHttp::respond(['ok'=>false,'error'=>'invalid_request'],422);
         $result=ManagerAiUsageService::review($actor,$input['message_id'],$input['case_revision']);
     }else ManagerHttp::respond(['ok'=>false,'error'=>'unknown_action'],400);
-    $status=!empty($result['ok'])?200:match($result['error']??'unavailable'){'forbidden'=>403,'not_found'=>404,'case_changed','stale_cursor'=>409,'invalid_request'=>422,default=>503};
+    $status=!empty($result['ok'])?200:match($result['error']??'unavailable'){
+        'forbidden','independent_owner_required'=>403,'not_found'=>404,
+        'case_changed','stale_cursor','comparison_changed','candidate_changed','conflict','operation_mismatch'=>409,
+        'invalid_request','invalid_assessment','invalid_citation','pair_unavailable','effect_unassessable'=>422,default=>503};
     ManagerHttp::respond($result+['viewer_id'=>$actor],$status);
 }catch(Throwable $ignored){ManagerHttp::respond(['ok'=>false,'error'=>'unavailable'],503);}

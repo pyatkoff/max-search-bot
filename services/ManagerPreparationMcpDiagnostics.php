@@ -9,7 +9,7 @@ final class ManagerPreparationMcpDiagnostics
     private const METHODS = ['initialize','notifications/initialized','server/discover','tools/list','events/list','tools/call','events/subscribe','ping'];
     private const EVENTS = ['development_work.pending','development_work.attention'];
     private const VERSIONS = ['2026-07-28','2025-11-25','2025-06-18','2025-03-26','2024-11-05'];
-    private const SURFACES = ['legacy','development'];
+    private const SURFACES = ['legacy','development','replies','hotels'];
     private const STAGES = ['origin','credentials','http_method','body','rpc','complete','unavailable'];
 
     public static function metadata(array $server, ?array $rpc, int $status, string $stage, ?int $error, string $surface = 'legacy'): array
@@ -118,7 +118,7 @@ final class ManagerPreparationMcpDiagnostics
             'header_version'=>$category($data['header_version']??null,[...self::VERSIONS,'absent']),
             'http_status'=>in_array($data['http_status']??null,[200,202,400,401,403,405,413,503],true)?$data['http_status']:0,
             'stage'=>$category($data['stage']??null,self::STAGES),
-            'rpc_error'=>in_array($data['rpc_error']??null,[-32700,-32600,-32601,-32602,-32603,-32001,-32015],true)?$data['rpc_error']:null,
+            'rpc_error'=>in_array($data['rpc_error']??null,[-32700,-32600,-32601,-32602,-32603,-32001,-32015,-32016],true)?$data['rpc_error']:null,
         ];
     }
 }

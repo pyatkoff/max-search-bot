@@ -153,6 +153,7 @@ return [
         'php tests/run_archive_research_mcp_regression.php',
         'php tests/run_hotel_work_queue_regression.php',
         'php tests/run_hotel_work_oauth_regression.php',
+        'php tests/run_separated_mcp_regression.php',
         'php tests/run_hotel_work_events_regression.php',
         'php tests/run_hotel_work_health_regression.php',
         'php tests/run_development_work_queue_regression.php',
@@ -307,6 +308,8 @@ return [
     ],
     'diagnostics' => [
         'php tests/run_manager_ai_draft_feedback_report_regression.php',
+        'php tests/run_manager_request_profile_regression.php',
+        'php tests/run_manager_request_profile_http_regression.php',
         'php tests/run_manager_ai_usage_regression.php',
         'php tests/run_manager_ai_usage_http_regression.php',
         'php tests/run_manager_read_profile_regression.php',

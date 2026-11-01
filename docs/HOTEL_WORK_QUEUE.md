@@ -36,6 +36,49 @@ application configuration. The same health appears in authorized
 usable hotel subscription, not that the research queue was processed and empty.
 Health omits queue IDs, callbacks, secrets, hotel facts and customer data.
 
+Authorized `hotel_work_status` also returns `subscription_setup`: bounded,
+read-only metadata for the same administrator's currently owned queue. Fresh
+hotel authorization and queue ownership are checked before and after the read,
+including when the subscription query fails. At most 20 matching stored rows
+are inspected (a 21st row makes the projection unavailable). Other projects,
+administrators, queues and event names are excluded before the limit.
+
+The two `events` describe only the current connection: absence, ambiguity,
+active verified registration, expiry, inactivity or unknown metadata, plus
+validated expiration/verification/update/retry times, attempts and the last
+HTTP status when known. `other_binding_rows` counts this same owner's retained
+rows on earlier connections without declaring their grants valid. Those rows
+never make a current registration ambiguous or eligible. Multiple current
+rows remain `ambiguous`, including one active and one inactive historical row;
+this is not proof of multiple active consumers.
+
+The private `candidates` list exposes every scoped stored row's validated
+subscription ID, administrator/connection identity, current-owner comparison,
+state, active flag and validated metadata. Stored arguments are returned only
+as the exact two expected filters when they match the scoped project/queue;
+otherwise `filters=null` and `filters_match=false`. Arbitrary stored JSON is
+never exported. `candidates=null` means unavailable, while `[]` means a known
+empty inventory. No candidate is selected by order, age or filter match.
+These identities are private owner diagnostics, not public health output.
+
+The table does not store native task identity: `handler_task_id=null` and
+`handler_binding_state=unknown_host_readback_required` are explicit. The host
+must provide the subscription ID to task ID association, connector/connection,
+event, filters, enabled state and observation time before a targeted repair can
+be chosen. Do not derive that association from callback URLs or matching filters.
+No callback URLs, secrets, event IDs or event bodies leave the service. The
+projection performs no callback, renewal, dispatch or write, and does not enable
+workers, authorize claims or override a private `dispatch_allowed=false` gate.
+
+`available=false`, malformed metadata and row-limit results mean unknown,
+not absent. `coverage=same_admin_owned_queue` does not describe the global cron
+scan or prove a native task binding, successful delivery, or worker execution.
+Even `active_verified` only describes stored registration metadata. A repair
+must reconcile the original host registration and any prior renewal attempt,
+then use its supported callback/challenge flow and verify a natural signed
+delivery to the existing handler. Do not replay a claim or worker to repair a
+subscription.
+
 ## Activate the existing owner
 
 1. Rescan the connected MCP server's tools and events after deployment. Hotel
@@ -91,6 +134,46 @@ retry. Release is permitted only for an explicitly withdrawn unclaimed stage;
 it does not cancel a hosted run. Reconcile uncertain external effects through
 the existing owner instead of inventing a new run or releasing a foreign claim.
 
+### Explicitly abandon an unwanted research batch
+
+An owner may decide that an unfinished research batch is no longer worth recovering.
+`hotel_work_skip_research` records that explicit decision without claiming that any
+hotels were processed or accepted. This is an administrative mutation, never a
+timeout, automatic retry policy, or alternative mode of `hotel_work_release`.
+
+Before calling it, independently verify that the exact original hosted run has
+stopped, or that **all** its external writes are isolated from subsequent work.
+Keep that private readback and the owner's decision; pass their SHA-256 values.
+The hashes are attestations, not server-verified proof. The tool does not cancel
+ChatGPT work, fence Library files, or prove that an old writer is harmless.
+Unknown external effects remain held. No synthetic stop/isolation evidence is
+allowed merely because the owner accepts losing the batch's results.
+
+Pin the queue, baseline, old binding, current authenticated caller, research
+stage, already-bound original run and exact UNKNOWN receipt hash (or `null` for
+a claimed stage with no receipt). Both canonical hotel grants must belong to the
+same active administrator. A foreign owner, previously relinquished binding,
+missing run, intake stage, changed pin, accepted receipt or resolution is rejected.
+The old grant may remain active; no OAuth permission, token or subscription changes.
+In particular, `queue:read` + `prepared:write`, the three reply-preparation commands
+and `manager_replies.pending` remain unchanged.
+
+Under the existing lane and queue locks, the operation appends the old run, claim
+hash, state, UNKNOWN hash and decision/effects attestations to migration076's
+audit. Original UNKNOWN receipts remain intact. It atomically skips the research
+and its unperformed intake, moves only this queue to the actual caller when
+necessary, and keeps `accepted_batches` and the criteria phase counter unchanged.
+The shared lane stays with the same queue. `receipt_count` counts actual receipts;
+`skipped_batches` reports skips separately. A repeated exact decision reads back
+without clearing a newer claim, acknowledgement or run; a changed repeat conflicts.
+
+The former stage cannot complete or resolve, and a relinquished connection cannot
+reacquire this queue. The next country research stage needs its own fresh signed
+pending event and exact `expected_pending_event_id`; the skip response is not a
+dispatch instruction. `external_run_cancelled=false` is returned deliberately.
+Finite queues still require their original number of accepted intakes. Rebuilding
+discarded hotels later is new separately admitted work, not replay of the old run.
+
 ## Delivery and recovery
 
 The server uses the canonical verified HTTPS webhook transport. Stable event
@@ -136,6 +219,37 @@ retire a grant. Persist the nonsecret connection binding and stage metadata and
 keep the claim key in the owner's private checkpoint. The new connection still
 requires verified subscriptions; handoff does not create callbacks, expand an
 old grant, start a run, or release a held operation.
+
+### Read-only existing-run handoff diagnosis
+
+For an already-bound original run, the existing hotel's
+`hotel_work_handoff_preflight` takes the exact `queue_id`, `stage_id`,
+`baseline_sha256`, `old_connection_id`, `expected_run_id`, and
+`expected_caller_connection_id`. It never takes the private claim key.
+The server checks the actual current OAuth hotel grant, the old canonical
+same-admin hotel grant, and the single lane/queue row before examining the
+provided stage, baseline and run. It repeats both grant checks after the
+read. The existing append-only binding-relinquishment fence is checked
+before eligibility: a former owner cannot reacquire the same queue even if
+its credentials are again valid. A stale stage, baseline or run reports
+bounded ineligibility; unknown or foreign ownership fails closed without
+revealing another queue.
+
+`eligible=true` means only that the old grant is *canonically retired*
+and the pinned run metadata currently matches. It does not prove the
+original worker's terminal result, independent file acceptance, the
+private claim key, a native HOST subscription or the validity of future
+events. It never transfers ownership, retires credentials, changes
+subscribers, claims a stage, writes a receipt, or dispatches a worker.
+`eligible=false` with `old_connection_not_definitively_retired`
+specifically prevents an existing-run handoff while the old grant is
+still usable. This diagnostic is not a repair for a disabled ChatGPT
+Automations task or an unavailable original HOST action. An operator
+must still resolve the original run and use the unchanged
+`hotel_work_handoff_connection` authorization contract when eligible.
+No second HOTEL lane or fresh country research may replace an original
+claimed/UNKNOWN operation without the explicit owner-abandonment path above
+and independently verified stop/isolation of its external effects.
 
 If a connection changes after a claim but before a run is recorded, explicit
 `handoff_mode=claim_authority` restores only access to that retained claim.
@@ -237,8 +351,176 @@ atomic claim fence. Do not deploy an older implementation that ignores this
 audit: it could recreate a previously acknowledged identity. Use a forward fix
 that preserves the audit; never delete its rows, reset the queue or migrate down.
 
+### Explicit delivery for a corrected consumer after the recovery budget is spent
+
+An owner can correct a consumer guard after the v1 recovery's pending and
+attention have both been acknowledged without a claim. A healthy cron then
+correctly remains quiet. Repeating the old resume, clearing an ACK or increasing
+the v1 budget is forbidden. The separate `hotel_work_repair_delivery` operation
+admits at most one explicitly authorized new delivery generation for that exact
+queue/stage. It does not repair the host, launch a worker or prove that the
+consumer is safe.
+
+First call the read-only `hotel_work_delivery_repair_preflight` through the
+existing hotel MCP resource with the current owner's `hotel_work:write` grant.
+Supply `queue_id`, `stage_id`, `baseline_sha256` and
+`expected_caller_connection_id` from the retained checkpoint. No new consent,
+OAuth scope, subscription or credential copy is needed. The response exposes
+bounded private server audit/ACK metadata, fixed guard reasons and, only when
+eligible, these CAS pins:
+
+- `expected_pending_event_id`;
+- `expected_resume_sha256` and `expected_recovery_sha256`;
+- `expected_ack_sha256` and `expected_state_sha256`.
+
+This is the dry-run: it emits no event and changes no row. Keep the original
+preflight response privately. A valid spent resume/recovery chain, exact current
+pending and attention acknowledgements, settled deadline/backoff, matching
+owner/connection/baseline/stage and HOTEL lane, READY/no claim/no run/no current
+receipt, and absence of persisted active/UNKNOWN work are mandatory. Malformed,
+orphaned or hash-mismatched audit data fails closed; status cannot replace an
+unavailable audit. The response has no claim key/hash, callback, secret, hotel
+fact or customer content.
+
+Before any live repair, the current owner must separately save and read back
+its fresh checkpoint, unresolved intent reconciliation, native job state and
+file-reservation guards. Assign one executor; do not create a parallel live
+writer. A corrected prompt digest and owner-request digest attest that decision
+and text only, not host truth or absence of an external run. An uncertain
+original dispatch remains held.
+
+The designated executor calls `hotel_work_repair_delivery` with the same four
+identity fields, all five exact preflight pins, `owner_request_sha256` and
+`consumer_prompt_sha256`. The existing lane/queue transaction checks the pins
+and admission guards again before appending the repair audit. Its unique
+queue/stage constraint is the hard once-only limit, independent of a client
+nonce. The immutable audit and request digest retain the original state and
+predecessor resume/recovery evidence. A separate cursor on that record belongs
+only to the new generation: the original queue ACKs and their delivery times,
+resume and v1 recovery audits stay unchanged. Stage, counters, claims, receipts,
+research skips and hotel data also stay unchanged.
+
+Keep the exact request and returned immutable receipt. An exact repeat returns
+that receipt even after a later ACK, claim or stage advance, without resetting
+later state. A changed repeat conflicts and remains held. If the commit outcome
+is UNKNOWN, reconcile with that same request; do not generate another identity
+or use another resume. Storage or audit validation failure gives no admission.
+
+Only ordinary cron constructs and signs the new pending body and timestamp.
+The repair call never invokes delivery. Event ID calculation, claim admission
+and delivery ACK use the same new namespace; a stale pending/attention or late
+HTTP acknowledgement cannot affect it. A changed event ID discards the previous
+frozen body and backoff; retries of the same new event retain identical bytes
+and existing lease-token fencing. The handler still requires the genuinely
+received signed event, freshness and all original once-only admission checks.
+
+The new generation allows one pending and its normal unclaimed attention,
+then remains quiet. It cannot automatically recover again or grant a budget to
+the next intake stage. A real later authority handoff preserves the historical
+namespace/budget and uses its own normal delivery cursor; the existing
+relinquished-binding fence still forbids returning to the previous binding.
+Rollback must retain this namespace and audit as well as the original v1 audit.
+Do not deploy an implementation that ignores any recorded generation.
+
 Finite completion releases the metadata lane and creates no fourth batch.
 Continuous mode advances only after an accepted intake and its due criteria.
 Neither mode modifies the legacy protected reservations or owns the actual
 hotel business database. Stop future hosted triggers through the existing owner
 when retiring the old rotation, after checking its exact current runs.
+
+### One explicitly authorized producer after a terminal no-work run
+
+A native run can finish HOLD before its assignment is bound. The bound
+`current_run_id` remains that real canonical run. Never overwrite it, label a
+different worker's packet with that ID, clear the claim, or use delivery repair
+as an execution retry. `started` and ordinary completion retain their original
+same-run guards.
+
+The execution-attempt ledger supports one narrowly authorized additional
+producer for an already claimed research stage. It preserves the original
+claim, canonical terminal-HOLD run, earlier UNKNOWN request history and all
+receipts. The fixed prior history is attempt 1 UNKNOWN and attempt 2 terminal
+HOLD with no work; the new permit is ordinal 3 with a total ceiling of 3.
+There is no fourth permit, refund after UNKNOWN, or nonce-based reset.
+The ledger records authenticated owner attestations; it cannot inspect native
+run history, authenticate a HOST result, cancel an external run or isolate
+hotel files.
+
+Before preparation the current owner must verify its exact saved checkpoint,
+scope, native instructions and old assignments. A writer that has already
+passed an old guard and can still write without the new admission remains a
+HOLD unless its writes are actually isolated. The fencing readback digest is
+an attestation of that check, not server proof. Do not infer isolation from
+future OFF, a null `last_run`, elapsed time, or a successful ACK.
+
+Use this order through the same existing hotel grant:
+
+1. Precommit a literal token `T` in the exact saved worker prompt and assignment.
+   Record their complete readbacks, operation, scope and owner decision. A worker
+   must use the literal token in its own received instructions. It must not adopt
+   another token or instance from a checkpoint, reservation or newly read prompt.
+   `prompt_readback_sha256` hashes the complete materialized native prompt. That
+   prompt contains literal `T`, but never its own hash. The immutable assignment
+   payload contains `T`, scope/pins and that prompt hash; its saved bytes define
+   `assignment_readback_sha256` before preparation. Do not hash the mutable whole
+   checkpoint. Permit, entry and association receipts are appended separately
+   and never change either frozen payload or digest. Current guard checks remain
+   separate from this immutable assignment evidence.
+2. Call `hotel_work_execution_attempt_preflight` with the exact queue, stage,
+   baseline, caller connection and canonical `expected_current_run_id`. Keep its
+   current state pin. An eligible metadata result does not establish native safety.
+3. `hotel_work_prepare_execution_attempt` pins that state and the retained private
+   claim key, records the two prior attempts and external readback attestations,
+   and appends the sole permit. Preparation spends that extra unit before any
+   HOST handoff. The tool does not dispatch. An identical repeat reads the prior
+   receipt; it does not authorize another dispatch.
+4. Every native invocation creates a fresh local instance `I`. Before web access,
+   hotel facts or file writes, it calls `hotel_work_enter_execution_attempt` with
+   its literal `T`, its own `I` and the exact frozen operation/scope/readback
+   digests. The existing lane and queue transaction admits one instance only.
+   A losing invocation holds and must never borrow the winner's `I`. An exact
+   repeat returns `already_entered_do_not_replay`, not a new work authorization.
+   An unknown entry result is reconciled against that same invocation; it never
+   generates another instance or returns the spent permit.
+5. The producer saves its packet and result with the exact `T/I` correlation.
+   A native run ID is not required before this entry, avoiding a bind-after-run
+   race. Before stage completion, the owner must independently read the real
+   native result and saved packet, establish their exact token/instance/packet
+   association, and call `hotel_work_bind_execution_attempt` with a fresh state
+   pin and the actual `producer_run_id`. This appends a unique association and
+   does not change canonical `current_run_id`.
+6. Complete with the actual producer ID and packet in the ordinary receipt,
+   plus `producer_association_sha256`. The server validates the winning entry,
+   immutable association, retained claim and packet under the existing locks.
+   Once a permit exists, the canonical HOLD run cannot newly complete through
+   the old branch. Another producer ID or packet conflicts. Exact historical
+   receipt readback remains idempotent.
+
+The actual winning producer can have been created by a late old HOST command
+that genuinely received the new frozen instructions. This does not establish
+which HOST request created it. Request origin can remain UNKNOWN separately;
+the audit must never relabel or erase that history. Safety depends on one
+verified cooperating producer, not a guessed request-origin marker.
+
+Accepted producer output is stored in the normal immutable research receipt
+with its real producer ID. The earlier canonical run and all attempt evidence
+remain in the append-only ledger. CENTRAL continues to require that exact
+research packet and any due criteria; a permit, ACK, association or worker
+summary alone never substitutes for independent saved-byte readback. Claim,
+delivery generations, accepted counters and the next stage's budget are not
+reset. New legacy completion, resolution, skip and authority mutations cannot
+race through an active execution permit.
+
+CENTRAL29 remains its ordinary first intake: a genuinely received pending, its
+own first claim and pre-work writer admission for the same packet. A native
+CENTRAL correlation token and WORKING CAS do not create another research
+permit, TH claim or TH `started` call. The handler must retain these separate
+stage identities and independently verify the intake's actual result.
+
+All four new tools use the existing `hotel_work:write` scope. Entry does not
+ask a worker to receive the handler's private claim key. Status exposes bounded
+canonical/producer ledger metadata, without claim secrets, callback credentials
+or hotel content. Forward migration 078 creates the audit tables; runtime does
+not create schema. Rollback must preserve and honor any recorded permit,
+entry, association and accepted receipt.
+

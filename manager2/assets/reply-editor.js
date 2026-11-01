@@ -3,10 +3,33 @@
   const {S,$}=window.WorkspaceV2;
   const form=$('composer'),reply=$('replyText'),zone=$('conversationZone');
   if(!form||!reply||!zone)return;
-  let view=null,scheduled=0,sizingContext=null,motionFrame=0;
+  let view=null,scheduled=0,sizingContext=null,motionFrame=0,lastReplyHeight=0;
   const surface=form.querySelector('.composerSurface'),main=form.querySelector('.composerMain'),actions=form.querySelector('.composerActions');
   const measure=document.createElement('div');
   measure.className='m2ReplyMeasure';measure.setAttribute('aria-hidden','true');form.appendChild(measure);
+  const measureProperties=['fontFamily','fontSize','fontWeight','fontStyle','fontVariant','fontFeatureSettings','fontKerning','lineHeight','letterSpacing','wordSpacing','direction','textAlign','textTransform','textIndent','wordBreak','overflowWrap','tabSize','paddingTop','paddingRight','paddingBottom','paddingLeft'];
+  function styleMeasure(style){for(const key of measureProperties)measure.style[key]=style[key]}
+  function revealCaret(){
+    if(document.activeElement!==reply)return;
+    const style=getComputedStyle(reply),line=parseFloat(style.lineHeight)||22;
+    const caret=reply.selectionDirection==='backward'?reply.selectionStart:reply.selectionEnd;
+    styleMeasure(style);measure.style.width=reply.clientWidth+'px';
+    try{
+      measure.textContent=reply.value.slice(0,caret);
+      // Keep the suffix in the same inline flow: truncating a word at the
+      // caret would measure it on a different wrapped line than the textarea.
+      const marker=document.createElement('span');marker.textContent=reply.value.slice(caret)||'\u200b';measure.appendChild(marker);
+      const origin=measure.getBoundingClientRect(),point=marker.getClientRects()[0]||marker.getBoundingClientRect();
+      const top=point.top-origin.top,bottom=top+Math.max(point.height,line),paddingTop=parseFloat(style.paddingTop)||0,paddingBottom=parseFloat(style.paddingBottom)||0;
+      if(top<reply.scrollTop+paddingTop)reply.scrollTop=Math.max(0,top-paddingTop);
+      else if(bottom>reply.scrollTop+reply.clientHeight-paddingBottom)reply.scrollTop=bottom-reply.clientHeight+paddingBottom;
+    }finally{measure.textContent=''}
+  }
+  function preserveVisibleCaret(){
+    const height=reply.clientHeight;
+    if(lastReplyHeight&&height<lastReplyHeight-1)revealCaret();
+    lastReplyHeight=height;
+  }
   const home=document.createComment('Canonical reply form position');
   form.before(home);
   const expand=document.createElement('button');
@@ -32,6 +55,7 @@
     if(focus&&!reply.disabled)reply.focus({preventScroll:true});
     reply.setSelectionRange(saved.start,saved.end,saved.direction);
     reply.scrollTop=saved.top;reply.scrollLeft=saved.left;
+    if(focus)revealCaret();
   }
   function sizeDialog(){
     const viewport=window.visualViewport,height=viewport?.height||innerHeight,gap=height<=540?8:24;
@@ -56,7 +80,7 @@
   function resize(){
     const transcript=window.WorkspaceV2Jump,position=transcript?.capture();
     fitViewport();
-    if(view){sizeDialog();reply.style.height='';positionGhost();transcript?.restore(position,{preserveScroll:true});return true}
+    if(view){sizeDialog();reply.style.height='';positionGhost();preserveVisibleCaret();transcript?.restore(position,{preserveScroll:true});return true}
     if(form.classList.contains('hidden')){form.classList.remove('m2ReplyAnimate');sizingContext=null;return true}
     const current=context(),same=sizingContext&&Object.keys(current).every(key=>current[key]===sizingContext[key]);
     if(!same)form.classList.remove('m2ReplyAnimate');
@@ -82,7 +106,7 @@
     form.style.setProperty('--m2-reply-gap',gap+'px');
     // Measure plain text outside layout, never collapse the live textarea to
     // zero. This preserves native selection and avoids clamping the transcript.
-    for(const key of ['fontFamily','fontSize','fontWeight','fontStyle','lineHeight','letterSpacing','wordBreak','overflowWrap','tabSize','paddingTop','paddingRight','paddingBottom','paddingLeft'])measure.style[key]=style[key];
+    styleMeasure(style);
     const ghost=ghostSuggestion(),suggested=ghost?.querySelector('.aiSuggestionText')?.textContent||'';
     const ghostFooter=suggested?(ghost.querySelector('.aiSuggestionActions')?.getBoundingClientRect().height||0)+10:0;
     const details=[...main.children].filter(el=>el!==reply&&!el.classList.contains('aiSuggestionGhost'));
@@ -111,6 +135,7 @@
     reply.style.height=Math.ceil(Math.max(minimum,Math.min(desired,maximum)))+'px';
     positionGhost();
     reply.scrollTop=saved.top;reply.scrollLeft=saved.left;
+    preserveVisibleCaret();
     transcript?.restore(position,{preserveScroll:true});
     if(!same){
       cancelAnimationFrame(motionFrame);

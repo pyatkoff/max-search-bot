@@ -23,10 +23,71 @@ foreach(glob($root.'/manager/*.php')?:[] as $managerEndpoint){
     $source=(string)file_get_contents($managerEndpoint);
     // Machine-to-machine MCP has its own OAuth bearer boundary, not a manager
     // browser session. Every other manager interface retains ManagerHttp.
-    if(in_array(basename($managerEndpoint),['ai-mcp.php','development-mcp.php'],true))continue;
+    $name=basename($managerEndpoint);
+    // Exact fixed wrappers delegate to independently checked shared boundaries.
+    // Do not exempt arbitrary files or replace bearer auth with browser sessions.
+    $isolated=['replies-mcp.php'=>['replies','SeparatedMcpHttp.php'],
+        'hotels-mcp.php'=>['hotels','SeparatedMcpHttp.php'],
+        'replies-oauth.php'=>['replies','SeparatedMcpOAuthHttp.php'],
+        'hotels-oauth.php'=>['hotels','SeparatedMcpOAuthHttp.php']];
+    if(isset($isolated[$name])) {
+        [$profile,$helper]=$isolated[$name];
+        if(!str_contains($source,"\$surfaceProfile='".$profile."';")
+            ||!str_contains($source,"require __DIR__.'/lib/".$helper."';")
+            ||str_contains($source,'$_GET')||str_contains($source,'$_POST')||str_contains($source,'$_REQUEST')) $unbounded[]=$name;
+        continue;
+    }
+    if(in_array($name,['ai-mcp.php','development-mcp.php'],true))continue;
     if(strpos($source,"lib/ManagerHttp.php")===false||strpos($source,'ManagerHttp::start')===false)$unbounded[]=basename($managerEndpoint);
 }
 mhCheck('all session Manager PHP interfaces enter through ManagerHttp',$unbounded===[]);
+$isolatedHttp=(string)file_get_contents($root.'/manager/lib/SeparatedMcpHttp.php');
+$isolatedOauth=(string)file_get_contents($root.'/manager/lib/SeparatedMcpOAuthHttp.php');
+$isolatedService=(string)file_get_contents($root.'/services/SeparatedMcpService.php');
+mhCheck('isolated MCP wrappers keep a fixed OAuth audience before dispatch',
+    str_contains($isolatedHttp,"in_array(\$surfaceProfile,['replies','hotels'],true)")
+    &&str_contains($isolatedHttp,'new ManagerPreparationOAuth(null,null,$surfaceProfile)')
+    &&str_contains($isolatedHttp,'->contextForBearer($header)')
+    &&str_contains($isolatedHttp,'if ($context===null)')
+    &&str_contains($isolatedHttp,'WWW-Authenticate: Bearer resource_metadata=')
+    &&strpos($isolatedHttp,'->contextForBearer($header)')<strpos($isolatedHttp,'new SeparatedMcpService($surfaceProfile)')
+    &&str_contains($isolatedHttp,"\$context['admin_id'],\$context['connection_id'],\$context['scopes']")
+    &&!str_contains($isolatedHttp,'ManagerHttp::start'));
+mhCheck('isolated OAuth browser routes retain manager session and CSRF boundary',
+    str_contains($isolatedOauth,"in_array(\$surfaceProfile,['replies','hotels'],true)")
+    &&str_contains($isolatedOauth,"require_once __DIR__.'/ManagerHttp.php'")
+    &&str_contains($isolatedOauth,'ManagerHttp::start();')
+    &&str_contains($isolatedOauth,'ManagerHttp::managerId()')
+    &&str_contains($isolatedOauth,'ManagerHttp::csrf(true)')
+    &&str_contains($isolatedOauth,'$oauth->disconnect($_SESSION,$adminId,')
+    &&str_contains($isolatedOauth,'$oauth->completeAuthorization($_SESSION,'));
+mhCheck('isolated command and event restrictions are checked before delegated calls',
+    str_contains($isolatedService,'public const REPLY_TOOLS=')
+    &&str_contains($isolatedService,'private function authorize(')
+    &&str_contains($isolatedService,'connectionAuthorized(')
+    &&str_contains($isolatedService,'throw new OutOfBoundsException()'));
+
+// Apache/CGI may discard Authorization before PHP sees the request. Check the
+// deployed file policy, not merely the PHP fallback that passed loopback tests.
+$apache=(string)file_get_contents($root.'/manager/.htaccess');
+preg_match_all('/<Files\s+"([^"]+)">([\s\S]*?)<\/Files>/i',$apache,$filePolicies,PREG_SET_ORDER);
+$bearerFiles=[];
+foreach($filePolicies as $policy) {
+    if(preg_match('/^\s*SetEnvIfNoCase\s+Authorization\s+"\^\(\.\+\)\$"\s+HTTP_AUTHORIZATION=\$1\s*$/mi',$policy[2])) $bearerFiles[]=$policy[1];
+}
+sort($bearerFiles,SORT_STRING);
+$expectedBearerFiles=['ai-mcp.php','development-mcp.php','hotels-mcp.php','replies-mcp.php'];
+mhCheck('Apache preserves the real Authorization header on every fixed MCP endpoint',$bearerFiles===$expectedBearerFiles);
+$outsideFilePolicies=preg_replace('/<Files\s+"[^"]+">[\s\S]*?<\/Files>/i','',$apache);
+mhCheck('Authorization forwarding stays file-scoped and never broadens manager browser or OAuth routes',
+    is_string($outsideFilePolicies)&&!preg_match('/^\s*(?:SetEnvIfNoCase\s+Authorization|CGIPassAuth\s+On)\b/mi',$outsideFilePolicies));
+mhCheck('isolated ingress records the effective header only under its fixed server profile',
+    str_contains($isolatedHttp,"\$_SERVER['HTTP_AUTHORIZATION']=\$header;")
+    &&strpos($isolatedHttp,"\$_SERVER['HTTP_AUTHORIZATION']=\$header;")<strpos($isolatedHttp,'->contextForBearer($header)')
+    &&str_contains($isolatedHttp,"\$body['error']['code']??null,\$surfaceProfile)")
+    &&str_contains($isolatedHttp,"202,'complete',null,\$surfaceProfile)")
+    &&!str_contains($isolatedHttp,'HTTP_X_FORWARDED_AUTHORIZATION'));
+
 $mcp=(string)file_get_contents($root.'/manager/ai-mcp.php');
 mhCheck('legacy MCP interface retains mandatory OAuth bearer and connection binding',
     strpos($mcp,'ManagerPreparationOAuth::bearerContext($header,$preparationMcpForecastBudget)')!==false

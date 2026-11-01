@@ -171,7 +171,7 @@ mrCheck('callback waiting event carries actual availability decision',strpos($ca
 
 $managerApiSource=(string)file_get_contents(__DIR__ . '/../manager/api.php');
 mrCheck('manager detail builds panel-only handoff context',strpos($managerApiSource,'ManagerHandoffContextService::build')!==false,true);
-mrCheck('manager detail labels saved tourist request',strpos($managerApiSource,'📋 Запрос туриста для менеджера')!==false,true);
+mrCheck('manager detail returns request as separate panel context',strpos($managerApiSource,"\$d['handoff_context']=['summary'=>\$summary")!==false,true);
 mrCheck('manager detail appends explicit first reply guidance',strpos($managerApiSource,'ManagerHandoffContextService::firstReplyGuidance()')!==false,true);
 mrCheck('manager context is not injected after human reply',strpos($managerApiSource,'$beforeId===0 && !$d[\'has_manager_reply\']')!==false,true);
 mrCheck('manager summary delegates already-hydrated attachments to canonical context owner',strpos($managerApiSource,'ManagerHandoffContextService::customerAttachments')!==false,true);

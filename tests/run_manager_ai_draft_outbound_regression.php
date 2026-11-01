@@ -47,6 +47,9 @@ final class DraftOutboundFixture
         $pdo->exec("CREATE TABLE conversations (id INTEGER PRIMARY KEY,last_message_at TEXT);
 CREATE TABLE messages (id INTEGER PRIMARY KEY AUTOINCREMENT,conversation_id INTEGER,direction TEXT,sender_type TEXT,sender_id TEXT,channel TEXT,external_message_id TEXT,text TEXT,metadata_json TEXT);
 CREATE TABLE conversation_events (id INTEGER PRIMARY KEY,conversation_id INTEGER,event_type TEXT,created_at TEXT,payload_json TEXT);
+CREATE TABLE manager_ai_drafts(draft_id TEXT PRIMARY KEY,conversation_id INTEGER,manager_id INTEGER,project_key TEXT);
+CREATE TABLE manager_ai_sent_texts(message_id INTEGER PRIMARY KEY,draft_id TEXT,conversation_id INTEGER,manager_id INTEGER,project_key TEXT,text_value TEXT,text_sha256 TEXT);
+INSERT INTO manager_ai_drafts VALUES('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',42,7,'synthetic-project');
 INSERT INTO conversations VALUES (42,'2026-10-18 12:00:00');");
         self::$pdo = $pdo;
         return $pdo;
@@ -185,7 +188,7 @@ try {
         file_put_contents($tmp.'/integrations/'.$adapter.'.php', "<?php\n// Synthetic adapter only.\n");
     }
     file_put_contents($tmp.'/config.php', "<?php\nthrow new LogicException('real_bootstrap_forbidden_in_outbound_fixture');\n");
-    foreach (['ConversationRecordClock','ManagerOutboundService','ConversationRecorder','ManagerSendAttemptService'] as $service) {
+    foreach (['ConversationRecordClock','ManagerOutboundService','ConversationRecorder','ManagerSendAttemptService','ManagerAiSentTextService'] as $service) {
         $source = $root.'/services/'.$service.'.php';
         $target = $tmp.'/services/'.$service.'.php';
         if (!copy($source,$target)) throw new RuntimeException('Cannot copy canonical service');
@@ -218,6 +221,11 @@ try {
         draftOutboundCheck($channel.' keeps original text hash distinct from escaped transport hash',
             $meta['ai_draft']['sent_text_sha256'] !== hash('sha256',$escaped)
             && $rows[0]['external_message_id'] === ($channel === 'website' ? null : 'synthetic-delivery-id'));
+        $receipt=$pdo->query('SELECT * FROM manager_ai_sent_texts')->fetch();
+        draftOutboundCheck($channel.' initial plaintext is privately bound to the exact canonical message',
+            $receipt['message_id']===$rows[0]['id']&&$receipt['draft_id']===$draftId&&$receipt['conversation_id']===42
+            &&$receipt['manager_id']===7&&$receipt['project_key']==='synthetic-project'
+            &&$receipt['text_value']===$trimmed&&$receipt['text_sha256']===$expectedFeedback['sent_text_sha256']);
         $names = array_column(DraftOutboundFixture::$trace,'event');
         $constructed = DraftOutboundFixture::events('adapter_construct')[0]['args'];
         draftOutboundCheck($channel.' feedback follows successful adapter delivery and guard releases',
@@ -237,6 +245,36 @@ try {
     draftOutboundCheck('edited text retains draft identity but hashes the sent original text',
         $meta['ai_draft'] === ['draft_id'=>$draftId,'text_matches_proposal'=>false,'sent_text_sha256'=>hash('sha256',$edited)]);
 
+    $receipt=DraftOutboundFixture::$pdo->query('SELECT * FROM manager_ai_sent_texts')->fetch();
+    DraftOutboundFixture::$pdo->exec("UPDATE messages SET text='Later provider edit' WHERE id=1");
+    draftOutboundCheck('later message edits preserve the changed manager initial text',
+        DraftOutboundFixture::$pdo->query('SELECT * FROM manager_ai_sent_texts')->fetch()===$receipt&&$receipt['text_value']===$edited);
+    draftOutboundCheck('duplicate receipt cannot overwrite or relink initial text',
+        !ManagerAiSentTextService::record(DraftOutboundFixture::$pdo,1,42,'manager','7',htmlspecialchars($edited,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8'),$meta,$edited)
+        &&DraftOutboundFixture::$pdo->query('SELECT * FROM manager_ai_sent_texts')->fetch()===$receipt);
+    foreach(['missing_store','receipt_write_failure','touch_failure'] as $failure){
+        $pdo=DraftOutboundFixture::reset();
+        if($failure==='missing_store')$pdo->exec('DROP TABLE manager_ai_sent_texts');
+        elseif($failure==='receipt_write_failure')$pdo->exec("CREATE TRIGGER reject_receipt BEFORE INSERT ON manager_ai_sent_texts BEGIN SELECT RAISE(FAIL,'synthetic_capture_failure'); END");
+        else $pdo->exec("CREATE TRIGGER reject_touch BEFORE UPDATE ON conversations BEGIN SELECT RAISE(FAIL,'synthetic_touch_failure'); END");
+        draftOutboundCheck($failure.' cannot change successful transport or repeat message insertion',
+            ManagerOutboundService::send(42,7,$edited,$draftId)&&count(DraftOutboundFixture::rows())===1
+            &&count(DraftOutboundFixture::events('adapter_send'))===1);
+        if($failure==='touch_failure')draftOutboundCheck('initial receipt survives a later recorder touch failure',
+            $pdo->query('SELECT text_value FROM manager_ai_sent_texts')->fetchColumn()===$edited);
+    }
+    $pdo=DraftOutboundFixture::reset();$unicode=str_repeat('🧳',19980)."\nA &amp; <b> literal";
+    draftOutboundCheck('near-limit Unicode and literal entities retain exact original plaintext',ManagerOutboundService::send(42,7,$unicode,$draftId)
+        &&$pdo->query('SELECT text_value FROM manager_ai_sent_texts')->fetchColumn()===$unicode);
+    $originalRow=DraftOutboundFixture::rows()[0];$originalMeta=json_decode($originalRow['metadata_json'],true);$before=$pdo->query('SELECT * FROM manager_ai_sent_texts')->fetchAll();
+    foreach([[999,'manager','7'],[42,'ai','7'],[42,'manager','8']] as [$cid,$kind,$actor]){
+        draftOutboundCheck('wrong message scope cannot attach or replace initial text '.implode(':',[$cid,$kind,$actor]),
+            !ManagerAiSentTextService::record($pdo,1,$cid,$kind,$actor,$originalRow['text'],$originalMeta,$unicode)
+            &&$pdo->query('SELECT * FROM manager_ai_sent_texts')->fetchAll()===$before);
+    }
+    $pdo=DraftOutboundFixture::reset();$tooLong=str_repeat('🧳',20001);
+    draftOutboundCheck('oversized optional evidence does not clip text or change delivery',ManagerOutboundService::send(42,7,$tooLong,$draftId)
+        &&count(DraftOutboundFixture::rows())===1&&(int)$pdo->query('SELECT COUNT(*) FROM manager_ai_sent_texts')->fetchColumn()===0);
     DraftOutboundFixture::reset();
     draftOutboundCheck('legacy three-argument text send still works',ManagerOutboundService::send(42,7,'Обычный ответ'));
     draftOutboundCheck('null draft ID performs no feedback lookup and stores no association',
@@ -261,6 +299,7 @@ try {
     draftOutboundCheck('duplicate does not query feedback, redeliver, or call the real recorder',
         DraftOutboundFixture::events('feedback') === [] && DraftOutboundFixture::events('adapter_send') === []
         && DraftOutboundFixture::$connections === 0 && count(DraftOutboundFixture::rows()) === 1
+        && (int)DraftOutboundFixture::$pdo->query('SELECT COUNT(*) FROM manager_ai_sent_texts')->fetchColumn()===1
         && array_column(DraftOutboundFixture::events('control'),'type') === ['manager_message_suppressed_duplicate']);
 
     DraftOutboundFixture::reset();
@@ -268,6 +307,7 @@ try {
     draftOutboundCheck('failed delivery remains false',ManagerOutboundService::send(42,7,'Не доставлено',$draftId) === false);
     draftOutboundCheck('failed delivery cannot query feedback or create associated recorder row',
         DraftOutboundFixture::events('feedback') === [] && DraftOutboundFixture::rows() === []
+        && (int)DraftOutboundFixture::$pdo->query('SELECT COUNT(*) FROM manager_ai_sent_texts')->fetchColumn()===0
         && DraftOutboundFixture::$connections === 0 && count(DraftOutboundFixture::events('push')) === 1
         && count(DraftOutboundFixture::events('release')) === 1 && ManagerOutboundService::lastFailure() !== null);
 

@@ -7,7 +7,7 @@ final class DevelopmentWorkTestSchema
     public static array $lastProof=[];
     public static function tables(): array
     {
-        return ['development_work_events','development_work_appends','development_work_retirements','development_work_resolutions','development_work_receipts',
+        return ['development_work_connection_handoffs','development_work_events','development_work_appends','development_work_retirements','development_work_resolutions','development_work_receipts',
             'development_work_items','development_work_queues','development_work_lane'];
     }
     public static function create(PDO $pdo,bool $reset=true): void
@@ -21,7 +21,7 @@ final class DevelopmentWorkTestSchema
     {
         $driver=(string)$pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
         if (!in_array($driver,['sqlite','mysql'],true)) throw new RuntimeException('unsafe_development_fixture_driver');
-        $source=(string)file_get_contents(dirname(__DIR__,2).'/migrations/074_development_work_queue.sql');
+        $source=(string)file_get_contents(dirname(__DIR__,2).'/migrations/074_development_work_queue.sql')."\n".(string)file_get_contents(dirname(__DIR__,2).'/migrations/075_development_work_connection_handoffs.sql');
         if ($source==='') throw new RuntimeException('development_fixture_migration_missing');
         $count=0;
         foreach (explode(';',$source) as $statement) {

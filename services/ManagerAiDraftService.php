@@ -7,6 +7,8 @@ require_once __DIR__.'/ManagerCompanyKnowledge.php';
 require_once __DIR__.'/ManagerSelectionSnapshot.php';
 require_once __DIR__.'/ManagerAiDraftReferenceContext.php';
 require_once __DIR__.'/TourConsultationPolicy.php';
+require_once __DIR__.'/ManagerAiDraftInputEvidence.php';
+require_once __DIR__.'/ManagerRequestProfile.php';
 
 /** A pure draft use-case: no bootstrap, database, bot state, logs or delivery. */
 final class ManagerAiDraftService
@@ -17,15 +19,20 @@ final class ManagerAiDraftService
     private const ACTIONS = ['clarify','answer_question','check_offer','prepare_selection','no_contact'];
     private const PROVIDER_ERRORS = ['provider_unavailable','provider_not_configured','provider_refused','provider_incomplete','provider_timeout','provider_response_too_large'];
 
-    public static function generate(array $context, ?callable $provider = null, ?ManagerCompanyKnowledge $knowledge = null, ?callable $selectionReader = null, ?ManagerAiDraftReferenceContext $references = null, ?callable $photoReader = null): array
+    public static function generate(array $context, ?callable $provider = null, ?ManagerCompanyKnowledge $knowledge = null, ?callable $selectionReader = null, ?ManagerAiDraftReferenceContext $references = null, ?callable $photoReader = null, ?callable $inputObserver = null): array
     {
         $input = self::prepareInput($context, $knowledge, $selectionReader, $references, $photoReader);
         if (isset($input['error'])) return ['ok'=>false,'error'=>$input['error']];
         if ($input['preflight'] !== null) return $input['preflight'];
         $normalized = $input['context'];
+        $instructions = self::instructions($normalized);
+        // Seal the actual provider arguments before the call. Observation is
+        // optional provenance, and never changes generation or its result.
+        $evidence = $inputObserver === null ? null
+            : ManagerAiDraftInputEvidence::capture($normalized, $instructions, $input['images']??[]);
         $provider = $provider ?? static fn(string $instructions,array $payload,array $images):array=>ManagerDraftClient::requestJson($instructions,$payload,null,$images);
         try {
-            $result = $provider(self::instructions($normalized), $normalized, $input['images']??[]);
+            $result = $provider($instructions, $normalized, $input['images']??[]);
         } catch (Throwable $ignored) {
             return ['ok'=>false,'error'=>'provider_unavailable'];
         }
@@ -35,6 +42,9 @@ final class ManagerAiDraftService
             return ['ok'=>false,'error'=>$error];
         }
         if (!self::validResult($result,$normalized)) return ['ok'=>false,'error'=>'invalid_ai_response'];
+        if ($evidence !== null) {
+            try { $inputObserver($evidence); } catch (Throwable $ignored) { /* Optional observation only. */ }
+        }
         return $result;
     }
 
@@ -57,11 +67,11 @@ final class ManagerAiDraftService
             $plain = $normalized;
             $normalized += $extra;
             try {
-                $encoded = json_encode(ManagerDraftClient::requestBody(self::instructions(),$normalized),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+                $encoded = json_encode(ManagerDraftClient::requestBody(self::instructions($normalized),$normalized),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
                 if (strlen($encoded)>ManagerDraftClient::MAX_REQUEST_BYTES) {
                     $normalized = $plain;
                     $normalized['reference_coverage'] = ['payload_omitted'=>true];
-                    $encoded = json_encode(ManagerDraftClient::requestBody(self::instructions(),$normalized),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+                    $encoded = json_encode(ManagerDraftClient::requestBody(self::instructions($normalized),$normalized),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
                     if (strlen($encoded)>ManagerDraftClient::MAX_REQUEST_BYTES) $normalized = $plain;
                 }
             } catch (Throwable $ignored) { $normalized = $plain; }
@@ -96,11 +106,11 @@ final class ManagerAiDraftService
                 // Keep the existing transport envelope cap. A large original
                 // transcript must not start failing merely because a page read fit.
                 try {
-                    $bytes = json_encode(ManagerDraftClient::requestBody(self::instructions(),$normalized),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+                    $bytes = json_encode(ManagerDraftClient::requestBody(self::instructions($normalized),$normalized),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
                     if (strlen($bytes)>ManagerDraftClient::MAX_REQUEST_BYTES) {
                         $normalized = $withoutSelections;
                         $normalized['selection_coverage'] = ['payload_omitted'=>true];
-                        $bytes = json_encode(ManagerDraftClient::requestBody(self::instructions(),$normalized),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+                        $bytes = json_encode(ManagerDraftClient::requestBody(self::instructions($normalized),$normalized),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
                         if (strlen($bytes)>ManagerDraftClient::MAX_REQUEST_BYTES) $normalized = $withoutSelections;
                     }
                 } catch (Throwable $ignored) { $normalized = $withoutSelections; }
@@ -201,7 +211,8 @@ next_action: clarify — существенное уточнение; answer_que
 4. Прочитай приложенные фото и сопоставь их с текущим постом и поправками туриста. При status=attached не поручай менеджеру прочитать то же фото. Неразборчивые детали не угадывай. При unavailable/omitted, непрочитанном документе, цитате или подборке укажи конкретный источник для проверки менеджером. До просмотра не утверждай даже в reason, что внутри есть отель, паспорт или чек. Не проси туриста повторить сведения из непроверенного вложения. Старое непрочитанное вложение не блокирует независимый ответ; возможный ответ внутри не доказывает закрытие вопроса.
 5. Слова об оплате, файл, договор, заявка и подтверждение оператора различай; это не выполненные тобой действия. При жалобе признай неудобство без выдуманной причины, гарантий, возврата или контакта с поставщиком.
 PROMPT;
-        return $instructions . (($context['hotel_reference']['status'] ?? null) === 'available'
+        return $instructions . (isset($context['request_profile']) ? ManagerRequestProfile::instructions() : '')
+            . (($context['hotel_reference']['status'] ?? null) === 'available'
             ? "\n\n".ManagerHotelKnowledge::instructions() : '')
             . (($context['working_selection']['status'] ?? null) === 'available'
             ? "\n\n".ManagerTourSelectionReferenceContext::instructions() : '');

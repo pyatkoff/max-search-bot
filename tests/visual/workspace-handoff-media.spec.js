@@ -32,28 +32,32 @@ async function setup(page,scenario='photos',failed=false){
     // Match production relative media URL resolution without requesting a live endpoint.
     history.replaceState(null,'','/manager/');
     document.querySelector('.messages').id='messages';
+    const context=document.createElement('div');context.id='handoffContext';context.className='handoffContext';context.hidden=true;document.getElementById('messages').before(context);
     document.querySelector('.composer').id='composer';
     document.querySelector('.composer textarea').id='replyText';
     document.getElementById('replyText').value='Черновик менеджера — не отправлять';
     window.WorkspaceV2={S:{current:8,manager:{id:1},authGeneration:1,detail:{conversation:{id:8}}},$:id=>document.getElementById(id)};
   });
   await page.addScriptTag({url:origin+'/manager/assets/workspace-v2-conversation.js'});
-  await page.evaluate(rows=>WorkspaceV2Conversation.renderMessages(rows),fixtures[scenario].messages);
+  await page.evaluate(detail=>{WorkspaceV2.S.detail={...detail,conversation:{id:8}};WorkspaceV2Conversation.renderMessages(detail.messages);WorkspaceV2Conversation.renderHandoffContext();},fixtures[scenario]);
   return {unexpected,media};
 }
 
 for(const width of [390,430,768,1440])test.describe('handoff photo '+width,()=>{
   test.use({viewport:{width,height:844},hasTouch:true,isMobile:width<768});
   test('PHP summary exposes original photos and both touch controls open the same-page viewer',async({page,browserName})=>{
-    const observed=await setup(page),summary=page.locator('.msg.ai');
+    const observed=await setup(page),summary=page.locator('#handoffContext');
+    await expect(page.locator('.msg.ai')).toHaveCount(0);
+    await expect(summary.locator('details')).not.toHaveAttribute('open','');
+    await summary.locator('summary').click();
     await expect(summary).toHaveCount(1);
-    await expect(summary.locator('.msgBody')).toContainText('Запрос туриста для менеджера');
-    await expect(summary.locator('.msgBody')).toContainText('Посмотрите это фото, пожалуйста.');
+    await expect(summary.locator('summary')).toHaveText('Запрос туриста');
+    await expect(summary.locator('.handoffContextSummary')).toContainText('Посмотрите это фото, пожалуйста.');
     await expect(page.locator('.msg.customer').first().locator('.msgBody')).toHaveText(fixtures.photos.original[0].text);
     await expect(summary.locator('img')).toHaveCount(2);
-    expect(fixtures.photos.messages.at(-1).attachments.map(a=>Object.keys(a).sort())).toEqual([['name','type','url'],['name','type','url']]);
+    expect(fixtures.photos.handoff_context.attachments.map(a=>Object.keys(a).sort())).toEqual([['name','type','url'],['name','type','url']]);
     expect(JSON.stringify(fixtures.photos)).not.toContain('SYNTHETIC_SOURCE_REFERENCE');
-    const urls=fixtures.photos.messages.at(-1).attachments.map(a=>a.url);
+    const urls=fixtures.photos.handoff_context.attachments.map(a=>a.url);
     for(let i=0;i<urls.length;i++){
       const photo=summary.locator('img').nth(i);
       await photo.scrollIntoViewIfNeeded();
@@ -81,7 +85,8 @@ for(const width of [390,430,768,1440])test.describe('handoff photo '+width,()=>{
 
 test('unavailable original photo reports failure without navigation or sending',async({page})=>{
   const observed=await setup(page,'photos',true);
-  await page.locator('.msg.ai').getByRole('link',{name:'Открыть фото',exact:true}).first().click();
+  await page.locator('#handoffContext summary').click();
+  await page.locator('#handoffContext').getByRole('link',{name:'Открыть фото',exact:true}).first().click();
   const dialog=page.getByRole('dialog',{name:'Просмотр фото'});
   await expect(dialog.getByRole('status')).toContainText('Не удалось загрузить фото');
   await dialog.getByRole('button',{name:'Закрыть фото'}).click();
@@ -89,14 +94,25 @@ test('unavailable original photo reports failure without navigation or sending',
 });
 for(const scenario of ['text_only','missing_url'])test(scenario+' does not invent downloadable summary attachments',async({page})=>{
   const observed=await setup(page,scenario);
-  await expect(page.locator('.msg.ai')).toHaveCount(1);
-  await expect(page.locator('.msg.ai .attachments')).toHaveCount(0);
+  await expect(page.locator('.msg.ai')).toHaveCount(0);
+  await expect(page.locator('#handoffContext')).toBeVisible();
+  await expect(page.locator('#handoffContext .attachments')).toHaveCount(0);
   expect(observed.media).toHaveLength(0);expect(observed.unexpected).toEqual([]);
 });
-test('first human reply removes the synthetic handoff, not original customer photos',async({page})=>{
+test('first human reply removes panel context, not original customer photos',async({page})=>{
   const observed=await setup(page,'after_reply');
+  await expect(page.locator('#handoffContext')).toBeHidden();
+  await expect(page.locator('#handoffContext > *')).toHaveCount(0);
   await expect(page.locator('.msg.ai')).toHaveCount(0);
   await expect(page.locator('.msg.customer img')).toHaveCount(2);
   await expect(page.locator('.msg.manager .msgBody')).toHaveText('Вижу фотографии, спасибо.');
   expect(observed.unexpected).toEqual([]);
+});
+
+for(const width of [390,430,768,1440])test('expanded handoff keeps short-screen composer visible '+width,async({page})=>{
+  await page.setViewportSize({width,height:560});await setup(page);
+  await page.locator('#handoffContext summary').click();
+  const measurements=await page.evaluate(()=>{const body=document.querySelector('.handoffContextContent'),composer=document.getElementById('composer');return{body:body.getBoundingClientRect().height,composer:composer.getBoundingClientRect().toJSON(),width:document.documentElement.scrollWidth}});
+  expect(measurements.body).toBeLessThanOrEqual(190);expect(measurements.composer.bottom).toBeLessThanOrEqual(561);expect(measurements.width).toBeLessThanOrEqual(width);
+  await expect(page.locator('#replyText')).toBeVisible();
 });

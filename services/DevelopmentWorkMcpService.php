@@ -10,7 +10,7 @@ require_once __DIR__.'/DevelopmentWorkEventService.php';
 final class DevelopmentWorkMcpService
 {
     private const TOOLS=['development_work_create','development_work_append','development_work_status','development_work_claim',
-        'development_work_started','development_work_complete','development_work_resolve_existing_run','development_work_retire_unclaimed'];
+        'development_work_started','development_work_complete','development_work_resolve_existing_run','development_work_retire_unclaimed','development_work_handoff_preflight','development_work_handoff_connection'];
     private const EVENTS=['development_work.pending','development_work.attention'];
     private const VERSIONS=['2025-11-25','2025-06-18','2025-03-26','2024-11-05'];
     private PDO $pdo;

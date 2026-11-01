@@ -94,9 +94,280 @@ function hotelClaimAuthorityEventChecks(): void
         'claim_authority_fences_frozen_old_pending_past_backoff_without_erasing_evidence_or_resetting_watchdog');
 }
 
+function hotelSubscriptionSetupChecks(): void
+{
+    $pending='hotel_work.pending';$attention='hotel_work.attention';$sequence=0;
+    $epoch=static fn(mixed $value):int|false=>is_string($value)?strtotime($value):false;
+    $insert=static function(HotelEventsFixture $f,string $event,array $changes=[])use(&$sequence):string {
+        $id='hotel_sub_'.hash('sha256',(string)++$sequence);$now=gmdate('Y-m-d H:i:s',$f->at);
+        $row=['subscription_id'=>$id,'single_consumer_key'=>null,'admin_id'=>1,'oauth_connection_id'=>$f->connection,
+            'project_key'=>'anytour','queue_id'=>'PILOT','event_name'=>$event,
+            'arguments_json'=>'{"project_key":"anytour","queue_id":"PILOT"}',
+            'callback_url'=>'https://private.example/PRIVATE_HOTEL_SETUP_CALLBACK',
+            'signing_secret'=>'PRIVATE_HOTEL_SETUP_SECRET','previous_secret'=>'PRIVATE_HOTEL_SETUP_PREVIOUS',
+            'verified_at'=>gmdate('Y-m-d H:i:s',$f->at-60),'expires_at'=>gmdate('Y-m-d H:i:s',$f->at+3600),
+            'is_active'=>1,'pending_event_id'=>'PRIVATE_HOTEL_SETUP_EVENT','pending_body'=>'PRIVATE_HOTEL_SETUP_BODY',
+            'attempts'=>0,'last_status'=>204,'next_attempt_at'=>null,'created_at'=>$now,'updated_at'=>$now];
+        $row=array_replace($row,$changes);
+        $f->pdo->prepare('INSERT INTO hotel_work_events ('.implode(',',array_keys($row)).') VALUES ('.implode(',',array_fill(0,count($row),'?')).')')
+            ->execute(array_values($row));
+        return $id;
+    };
+    $snapshot=static function(HotelEventsFixture $f):array {
+        $out=['grants'=>$f->grants];
+        foreach (['hotel_work_queues','hotel_work_events','hotel_work_lane','hotel_work_receipts',
+            'hotel_work_connection_handoffs','hotel_work_resolutions','hotel_work_delivery_recoveries'] as $table)
+            $out[$table]=$f->pdo->query('SELECT * FROM '.$table.' ORDER BY 1')->fetchAll(PDO::FETCH_ASSOC);
+        return $out;
+    };
+    $read=static function(HotelEventsFixture $f)use($pending,$attention,$epoch,$snapshot):array {
+        $before=$snapshot($f);$writes=$f->pdo->writes;$f->pdo->eventReads=[];
+        $dto=$f->events->subscriptionSetup(1,$f->connection,'PILOT');
+        hotelEventAssert($before===$snapshot($f)&&$writes===$f->pdo->writes&&$f->requests===[],
+            'setup_preserves_all_queue_event_grant_audit_state_without_callback');
+        hotelEventAssert(($dto['semantics']??null)==='owned_queue_subscription_metadata_not_host_delivery_proof'
+            &&($dto['coverage']??null)==='same_admin_owned_queue'&&$epoch($dto['observed_at']??null)===$f->at
+            &&array_column($dto['events']??[],'event_name')===[$pending,$attention],
+            'setup_reports_exact_coverage_utc_observation_and_canonical_events');
+        hotelEventAssert(count($f->pdo->eventReads)===1,'setup_uses_one_scoped_subscription_read');
+        $sql=$f->pdo->eventReads[0];$projection=[];preg_match('/\ASELECT\s+(.+?)\s+FROM\s+hotel_work_events\b/is',trim($sql),$projection);
+        hotelEventAssert(isset($projection[1])&&!str_contains($projection[1],'*')
+            &&preg_match('/\b(callback_url|signing_secret|previous_secret|pending_body|pending_event_id|lease_token)\b/i',$projection[1])===0
+            &&preg_match('/\bLIMIT\s+21\s*;?\s*\z/i',trim($sql))===1,'setup_does_not_read_callback_credentials_payload_or_unbounded_rows');
+        $wire=json_encode($dto,JSON_THROW_ON_ERROR);
+        foreach (['PRIVATE_HOTEL_SETUP','private.example'] as $private)
+            hotelEventAssert(!str_contains($wire,$private),'setup_exports_no_callback_credential_or_event_payload');
+        return $dto;
+    };
+    $unknown=static function(array $dto,string $reason):void {
+        hotelEventAssert(($dto['available']??null)===false&&($dto['reason']??null)===$reason
+            &&($dto['other_binding_rows']??null)===null&&array_key_exists('candidates',$dto)&&$dto['candidates']===null,
+            'setup_unavailable_does_not_invent_binding_inventory');
+        foreach ($dto['events'] as $event) hotelEventAssert($event['state']==='unknown'&&$event['matching_rows']===null
+            &&$event['eligible']===null&&$event['verified']===null&&$event['retrying']===null&&$event['last_http_status']===null
+            &&$event['expires_at']===null&&$event['attempts']===null&&$event['next_attempt_at']===null
+            &&$event['verified_at']===null&&$event['updated_at']===null,'setup_unknown_has_no_fabricated_subscription_fields');
+    };
+
+    $f=new HotelEventsFixture();$dto=$read($f);
+    hotelEventAssert($dto['available']===true&&$dto['other_binding_rows']===0&&$dto['candidates']===[],
+        'setup_empty_owned_inventory_is_known');
+    foreach ($dto['events'] as $event) hotelEventAssert($event['state']==='absent'&&$event['matching_rows']===0
+        &&$event['eligible']===false&&$event['verified']===null&&$event['expires_at']===null,
+        'setup_current_absence_does_not_claim_verification');
+
+    $f=new HotelEventsFixture();
+    foreach ([['admin_id'=>2],['project_key'=>'foreign'],['queue_id'=>'OTHER'],['event_name'=>'other.event']] as $foreign)
+        for ($i=0;$i<21;$i++) $insert($f,$pending,$foreign);
+    $insert($f,$pending,['oauth_connection_id'=>str_repeat('c',32)]);
+    $insert($f,$attention,['oauth_connection_id'=>str_repeat('c',32),'is_active'=>0]);
+    $insert($f,$pending);$insert($f,$attention);$dto=$read($f);
+    hotelEventAssert($dto['available']===true&&$dto['other_binding_rows']===2,'setup_filters_foreign_scope_and_separates_old_bindings_before_limit');
+    hotelEventAssert(count($dto['candidates'])===4,'setup_candidate_inventory_excludes_foreign_scope');
+    foreach ($dto['candidates'] as $candidate) {
+        hotelEventAssert($candidate['owner_admin_id']===1&&$candidate['project_key']==='anytour'&&$candidate['queue_id']==='PILOT'
+            &&$candidate['filters']===['project_key'=>'anytour','queue_id'=>'PILOT']&&$candidate['filters_match']===true
+            &&$candidate['current_owner_connection']===($candidate['connection_id']===$f->connection)
+            &&$candidate['handler_task_id']===null&&$candidate['handler_binding_state']==='unknown_host_readback_required',
+            'setup_candidates_identify_scoped_rows_without_inventing_native_handler_binding');
+    }
+    foreach ($dto['events'] as $event) hotelEventAssert($event['state']==='active_verified'&&$event['matching_rows']===1
+        &&$event['eligible']===true&&$event['verified']===true&&$event['retrying']===false&&$event['last_http_status']===204
+        &&$event['attempts']===0&&$event['next_attempt_at']===null&&$epoch($event['expires_at'])===$f->at+3600
+        &&$epoch($event['verified_at'])===$f->at-60&&$epoch($event['updated_at'])===$f->at,
+        'setup_old_binding_does_not_make_one_current_subscription_ambiguous_or_eligible');
+    hotelEventAssert($f->authCalls===2,'setup_never_authorizes_or_inspects_old_connection_grants');
+
+    $f=new HotelEventsFixture();$insert($f,$pending,['oauth_connection_id'=>str_repeat('c',32)]);$dto=$read($f);
+    hotelEventAssert($dto['other_binding_rows']===1&&$dto['events'][0]['state']==='absent'
+        &&$dto['events'][0]['eligible']===false,'setup_old_binding_is_not_current_registration');
+    foreach ([
+        ['inactive',['is_active'=>0,'attempts'=>5,'next_attempt_at'=>gmdate('Y-m-d H:i:s',$f->at+60)],'inactive',false,true,false,204],
+        ['expired',['expires_at'=>gmdate('Y-m-d H:i:s',$f->at-1)],'expired',false,true,false,204],
+        ['expiry_boundary',['expires_at'=>gmdate('Y-m-d H:i:s',$f->at)],'expired',false,true,false,204],
+        ['retry_transport_zero',['last_status'=>0,'attempts'=>2,'next_attempt_at'=>gmdate('Y-m-d H:i:s',$f->at+60)],'active_verified',true,true,true,null],
+        ['future_verification',['verified_at'=>gmdate('Y-m-d H:i:s',$f->at+60)],'unknown',null,null,null,null],
+        ['invalid_http',['last_status'=>999],'unknown',null,null,null,null],
+        ['malformed_active',['is_active'=>2],'unknown',null,null,null,null]
+    ] as [$name,$changes,$state,$eligible,$verified,$retrying,$last]) {
+        $f=new HotelEventsFixture();$insert($f,$pending,$changes);$dto=$read($f);$event=$dto['events'][0];
+        hotelEventAssert($dto['available']===true&&$event['state']===$state&&$event['matching_rows']===1
+            &&$event['eligible']===$eligible&&$event['verified']===$verified&&$event['retrying']===$retrying
+            &&$event['last_http_status']===$last,'setup_classifies_current_row_'.$name);
+        if ($name==='retry_transport_zero') hotelEventAssert($event['attempts']===2&&$epoch($event['next_attempt_at'])===$f->at+60,
+            'setup_transport_failure_keeps_retry_count_and_time_without_inventing_http_status');
+        if ($state==='unknown') hotelEventAssert($event['expires_at']===null&&$event['attempts']===null
+            &&$event['next_attempt_at']===null&&$event['verified_at']===null&&$event['updated_at']===null,
+            'setup_malformed_row_does_not_export_partial_registration_proof');
+    }
+    // Renewal preserves the frozen event and its attempts. A further failure
+    // legitimately exceeds the per-subscription stop threshold; it is not corrupt metadata.
+    $f=new HotelEventsFixture();$f->subscribe(false);$f->statuses=array_fill(0,5,503);
+    for ($attempt=1;$attempt<=5;$attempt++) {
+        $f->events->deliverPending();$row=$f->row();
+        if ($attempt<5) $f->at=strtotime($row['next_attempt_at'].' UTC');
+    }
+    hotelEventAssert((int)$row['attempts']===5&&(int)$row['is_active']===0,'setup_renewal_fixture_reaches_real_delivery_stop');
+    $originalEvent=$row['pending_event_id'];$originalBody=$row['pending_body'];
+    $f->events->subscribe($f->params(),1,$f->connection);$f->statuses=[503];$f->events->deliverPending();
+    $row=$f->row();$f->requests=[];$dto=$read($f);$event=$dto['events'][0];
+    hotelEventAssert((int)$row['attempts']===6&&(int)$row['is_active']===0
+        &&$row['pending_event_id']===$originalEvent&&$row['pending_body']===$originalBody
+        &&$event['state']==='inactive'&&$event['attempts']===6&&$event['last_http_status']===503
+        &&$event['eligible']===false&&$event['verified']===true&&$event['retrying']===false,
+        'setup_reports_preserved_attempts_above_stop_threshold_after_real_renewal_failure');
+    $f=new HotelEventsFixture();$activeId=$insert($f,$pending);$inactiveId=$insert($f,$pending,['is_active'=>0]);$insert($f,$attention);$dto=$read($f);
+    hotelEventAssert($dto['events'][0]['state']==='ambiguous'&&$dto['events'][0]['matching_rows']===2
+        &&$dto['events'][0]['eligible']===null&&$dto['events'][0]['expires_at']===null
+        &&$dto['events'][1]['state']==='active_verified','setup_duplicate_current_rows_remain_ambiguous_per_event');
+    $byId=array_column($dto['candidates'],null,'subscription_id');
+    hotelEventAssert(count($byId)===3&&$byId[$activeId]['state']==='active_verified'&&$byId[$activeId]['is_active']===true
+        &&$byId[$inactiveId]['state']==='inactive'&&$byId[$inactiveId]['is_active']===false,
+        'setup_ambiguous_history_exposes_both_exact_candidates_without_selecting_one');
+    foreach (['{"project_key":"anytour","queue_id":"PRIVATE_HOTEL_SETUP_OTHER"}',
+        '{"project_key":"anytour","queue_id":"PILOT","secret":"PRIVATE_HOTEL_SETUP_SECRET"}',
+        'PRIVATE_HOTEL_SETUP_MALFORMED'] as $arguments) {
+        $f=new HotelEventsFixture();$insert($f,$pending,['arguments_json'=>$arguments]);$dto=$read($f);
+        hotelEventAssert($dto['candidates'][0]['filters']===null&&$dto['candidates'][0]['filters_match']===false,
+            'setup_invalid_stored_filters_are_unknown_without_exporting_arbitrary_json');
+    }
+    $f=new HotelEventsFixture();$insert($f,$pending,['subscription_id'=>'PRIVATE_HOTEL_SETUP_INVALID_ID']);$dto=$read($f);
+    hotelEventAssert($dto['candidates'][0]['subscription_id']===null,'setup_invalid_subscription_identity_is_not_exported');
+    $f=new HotelEventsFixture();$insert($f,$pending);$insert($f,$attention);
+    for ($i=0;$i<18;$i++) $insert($f,$pending,['oauth_connection_id'=>str_repeat('c',32)]);
+    $dto=$read($f);hotelEventAssert($dto['available']===true&&$dto['other_binding_rows']===18,'setup_exact_twenty_scoped_rows_are_complete');
+    $insert($f,$pending,['oauth_connection_id'=>str_repeat('c',32)]);$unknown($read($f),'row_limit');
+    $f=new HotelEventsFixture();$insert($f,$pending);$f->pdo->failEventRead=true;$unknown($read($f),'unavailable');
+    hotelEventAssert($f->authCalls===2,'setup_sql_failure_still_rechecks_current_grant');
+
+    $f=new HotelEventsFixture();$writes=$f->pdo->writes;
+    hotelEventReject(fn()=>$f->events->subscriptionSetup(1,str_repeat('c',32),'PILOT'),DomainException::class,'setup_foreign_current_binding_denied_before_read');
+    hotelEventAssert($f->pdo->eventReads===[]&&$writes===$f->pdo->writes&&$f->requests===[],'setup_queue_ownership_precedes_inventory');
+    $f=new HotelEventsFixture();$f->grants[$f->connection]['active']=false;
+    hotelEventReject(fn()=>$f->events->subscriptionSetup(1,$f->connection,'PILOT'),DomainException::class,'setup_revoked_current_grant_denied_before_read');
+    hotelEventAssert($f->pdo->eventReads===[]&&$f->requests===[],'setup_invalid_grant_never_reads_subscription_rows');
+
+    foreach ([false,true] as $sqlFailure) {
+        $f=new HotelEventsFixture();$insert($f,$pending);$writes=$f->pdo->writes;
+        $hook=function()use($f):void {$f->grants[$f->connection]['active']=false;};
+        if ($sqlFailure) {$f->pdo->beforeEventRead=$hook;$f->pdo->failEventRead=true;}else $f->pdo->afterEventRead=$hook;
+        try {$f->events->subscriptionSetup(1,$f->connection,'PILOT');hotelEventAssert(false,'setup_late_revocation_must_deny');}
+        catch (DomainException $error) {hotelEventAssert($error->getMessage()!=='hotel_work_access_denied','setup_late_grant_denial_is_not_owned_queue_absence');}
+        hotelEventAssert(count($f->pdo->eventReads)===1&&$f->authCalls===2&&$writes===$f->pdo->writes&&$f->requests===[],
+            'setup_rechecks_grant_after_success_or_failed_sql_without_callback');
+
+        $f=new HotelEventsFixture();$insert($f,$pending);
+        $hook=function()use($f):void {$f->pdo->prepare("UPDATE hotel_work_queues SET oauth_connection_id=? WHERE queue_id='PILOT'")->execute([str_repeat('c',32)]);};
+        if ($sqlFailure) {$f->pdo->beforeEventRead=$hook;$f->pdo->failEventRead=true;}else $f->pdo->afterEventRead=$hook;
+        hotelEventReject(fn()=>$f->events->subscriptionSetup(1,$f->connection,'PILOT'),DomainException::class,
+            'setup_rechecks_queue_owner_after_success_or_failed_sql','hotel_work_access_denied');
+        hotelEventAssert(count($f->pdo->eventReads)===1&&$f->authCalls===2&&$f->requests===[],
+            'setup_late_queue_move_returns_no_metadata_or_callback');
+    }
+    $f=new HotelEventsFixture();$writes=$f->pdo->writes;$f->pdo->beginTransaction();
+    try {
+        hotelEventReject(fn()=>$f->events->subscriptionSetup(1,$f->connection,'PILOT'),LogicException::class,'setup_foreign_transaction_rejected');
+        hotelEventAssert($f->pdo->eventReads===[]&&$writes===$f->pdo->writes&&$f->requests===[],
+            'setup_foreign_snapshot_has_no_inventory_read_or_side_effect');
+    } finally {if ($f->pdo->inTransaction()) $f->pdo->rollBack();}
+
+    require_once dirname(__DIR__).'/services/HotelWorkMcpAdapter.php';
+    $f=new HotelEventsFixture();$insert($f,$pending);$f->pdo->eventReads=[];
+    $adapter=new HotelWorkMcpAdapter($f->pdo,$f->queue,fn():int=>$f->at,$f->events);
+    $dto=$adapter->call('hotel_work_status',['queue_id'=>'PILOT'],1,$f->connection);
+    hotelEventAssert($dto['subscription_setup']['events'][0]['state']==='active_verified'
+        &&$dto['subscription_setup']['events'][1]['state']==='absent'&&count($f->pdo->eventReads)===1,
+        'status_adapter_returns_the_same_scoped_real_subscription_projection');
+    $f->pdo->eventReads=[];$calls=[];
+    $adapter=new HotelWorkMcpAdapter($f->pdo,function(string $operation,array $arguments)use(&$calls):array {$calls[]=[$operation,$arguments];return ['ok'=>true];},fn():int=>$f->at,$f->events);
+    $dto=$adapter->call('hotel_work_status',['queue_id'=>'PILOT'],1,$f->connection);
+    hotelEventAssert($calls===[['status',[1,$f->connection,'PILOT']]]&&$f->pdo->eventReads===[]
+        &&$dto['subscription_setup']['available']===false&&$dto['subscription_setup']['events'][0]['state']==='unknown',
+        'callable_store_does_not_authorize_a_hidden_subscription_read');
+}
+
+function hotelEventDeliveryRepairArgs(HotelEventsFixture $f): array
+{
+    $s=$f->status();$identity=['queue_id'=>'PILOT','stage_id'=>$s['stage_id'],'baseline_sha256'=>$s['baseline_sha256'],
+        'expected_caller_connection_id'=>$f->connection];
+    $pre=$f->queue->delivery_repair_preflight(1,$f->connection,$identity);
+    hotelEventAssert($pre['eligible']===true&&is_array($pre['pins']),'event_repair_fixture_has_fresh_pinned_preflight');
+    return $identity+$pre['pins']+['owner_request_sha256'=>str_repeat('5',64),'consumer_prompt_sha256'=>str_repeat('6',64)];
+}
+function hotelEventDeliveryRepairChecks(): void
+{
+    [$f,$resume,$proof]=hotelEventRecoveryFixture();$f->at+=60;$f->requests=[];$f->events->deliverPending();$oldPending=$f->requests[0];
+    $f->at+=180;$f->requests=[];$f->events->deliverPending();$oldAttention=$f->requests[0];$f->at+=60;
+    $oldQueue=$f->pdo->query('SELECT * FROM hotel_work_queues')->fetchAll(PDO::FETCH_ASSOC);
+    $oldRecovery=$f->pdo->query('SELECT * FROM hotel_work_delivery_recoveries')->fetchAll(PDO::FETCH_ASSOC);
+    $oldResume=$f->pdo->query('SELECT * FROM hotel_work_connection_handoffs')->fetchAll(PDO::FETCH_ASSOC);
+    $args=hotelEventDeliveryRepairArgs($f);$f->requests=[];
+    // A failed former sender can leave a frozen retry body despite another sender's ACK.
+    $f->pdo->prepare('UPDATE hotel_work_events SET pending_event_id=?,pending_body=?,attempts=4,next_attempt_at=? WHERE subscription_id=?')
+        ->execute([$oldPending['data']['eventId'],$oldPending['body'],gmdate('Y-m-d H:i:s',$f->at+480),$f->row()['subscription_id']]);
+    $subscriptions=$f->pdo->query('SELECT * FROM hotel_work_events ORDER BY subscription_id')->fetchAll(PDO::FETCH_ASSOC);
+    $receipt=$f->queue->repair_delivery(1,$f->connection,$args);
+    hotelEventAssert($receipt['repair_status']==='delivery_repair_recorded_once'&&$f->requests===[]
+        &&$subscriptions===$f->pdo->query('SELECT * FROM hotel_work_events ORDER BY subscription_id')->fetchAll(PDO::FETCH_ASSOC),
+        'repair_records_metadata_without_callback_subscription_secret_or_lease_mutation');
+    $f->statuses=[503,204];$first=$f->events->deliverPending();$fresh=$f->requests[0];$retryRow=$f->row();
+    hotelEventAssert($first['retried']===1&&count($f->requests)===1&&$fresh['data']['name']==='hotel_work.pending'
+        &&$fresh['data']['eventId']!==$oldPending['data']['eventId']&&$fresh['body']!==$oldPending['body']
+        &&$fresh['data']['data']===$oldPending['data']['data']&&$fresh['data']['timestamp']===gmdate('Y-m-d\TH:i:s\Z',$f->at)
+        &&hotelEventSignature($fresh,$f->secret)&&(int)$retryRow['attempts']===1
+        &&$retryRow['next_attempt_at']===gmdate('Y-m-d H:i:s',$f->at+60),
+        'ordinary_tick_sends_new_signed_repair_identity_discarding_previous_frozen_body_and_backoff');
+    $f->requests=[];$f->at+=59;$f->events->deliverPending();hotelEventAssert($f->requests===[],'repair_transport_retry_respects_new_generation_backoff');
+    ++$f->at;$second=$f->events->deliverPending();$retry=$f->requests[0];
+    hotelEventAssert($second['accepted']===1&&$retry['body']===$fresh['body']&&$retry['data']['eventId']===$fresh['data']['eventId']
+        &&$retry['headers']['webhook-timestamp']!==$fresh['headers']['webhook-timestamp']&&hotelEventSignature($retry,$f->secret),
+        'same_repair_generation_retries_exact_body_with_fresh_signature');
+    hotelEventAssert($oldQueue===$f->pdo->query('SELECT * FROM hotel_work_queues')->fetchAll(PDO::FETCH_ASSOC)
+        &&$oldRecovery===$f->pdo->query('SELECT * FROM hotel_work_delivery_recoveries')->fetchAll(PDO::FETCH_ASSOC)
+        &&$oldResume===$f->pdo->query('SELECT * FROM hotel_work_connection_handoffs')->fetchAll(PDO::FETCH_ASSOC),
+        'repair_transport_ack_keeps_old_queue_ack_and_v1_resume_audits_byte_identical');
+    $f->requests=[];$f->at+=180;$f->events->deliverPending();$attention=$f->requests[0];
+    hotelEventAssert(count($f->requests)===1&&$attention['data']['name']==='hotel_work.attention'
+        &&$attention['data']['eventId']!==$oldAttention['data']['eventId']&&$attention['data']['data']['dispatch_allowed']===false
+        &&hotelEventSignature($attention,$f->secret),'repair_transport_has_one_new_attention_without_work_dispatch');
+    $repairRows=$f->pdo->query('SELECT * FROM hotel_work_consumer_delivery_repairs')->fetchAll(PDO::FETCH_ASSOC);
+    $f->requests=[];$f->at+=3600;$f->events->deliverPending();$f->queue->repair_delivery(1,$f->connection,$args);$f->events->deliverPending();
+    hotelEventAssert($f->requests===[]&&$repairRows===$f->pdo->query('SELECT * FROM hotel_work_consumer_delivery_repairs')->fetchAll(PDO::FETCH_ASSOC),
+        'repair_repeated_request_and_future_ticks_cannot_restart_spent_generation');
+
+    // The former pending HTTP response returns after repair and after its lease expires.
+    // A new sender persists a failed fresh-generation attempt while the old sender is still in flight.
+    [$f]=hotelEventRecoveryFixture();$f->at+=60;$f->requests=[];$freshRowBeforeLateResponse=null;$freshRequest=null;
+    $f->deliveryHook=function()use($f,&$freshRowBeforeLateResponse,&$freshRequest):void {
+        $old=$f->requests[0];$f->queue->markEventDelivered(1,$f->connection,'PILOT',$old['data']['eventId']);
+        $f->at+=180;$attention=$f->queue->pendingEvent(1,$f->connection,'PILOT');
+        $f->queue->markEventDelivered(1,$f->connection,'PILOT',$attention['event_id']);$f->at+=60;
+        $f->queue->repair_delivery(1,$f->connection,hotelEventDeliveryRepairArgs($f));
+        $f->statuses=[503,204];$newSender=$f->events->deliverPending();$freshRequest=$f->requests[1];$freshRowBeforeLateResponse=$f->row();
+        hotelEventAssert($newSender['retried']===1&&(int)$freshRowBeforeLateResponse['attempts']===1,'new_sender_acquires_expired_lease_for_fresh_generation');
+    };
+    $late=$f->events->deliverPending();$newCursor=$f->pdo->query('SELECT * FROM hotel_work_consumer_delivery_repairs')->fetch(PDO::FETCH_ASSOC);
+    hotelEventAssert($late['accepted']===1&&count($f->requests)===2&&$newCursor['event_ack']===null
+        &&$freshRowBeforeLateResponse===$f->row()&&$freshRequest['data']['eventId']!==$f->requests[0]['data']['eventId'],
+        'late_old_http_success_neither_acks_repair_nor_clobbers_new_lease_retry_state');
+    $f->at+=60;$f->requests=[];$f->events->deliverPending();
+    hotelEventAssert(count($f->requests)===1&&$f->requests[0]['body']===$freshRequest['body']
+        &&$f->pdo->query('SELECT event_ack FROM hotel_work_consumer_delivery_repairs')->fetchColumn()===$freshRequest['data']['eventId'],
+        'only_actual_fresh_generation_success_records_its_ack');
+
+    [$f]=hotelEventRecoveryFixture();$f->at+=60;$f->events->deliverPending();$f->at+=180;$f->events->deliverPending();$f->at+=60;
+    $f->queue->repair_delivery(1,$f->connection,hotelEventDeliveryRepairArgs($f));$before=$f->pdo->query('SELECT * FROM hotel_work_consumer_delivery_repairs')->fetchAll(PDO::FETCH_ASSOC);
+    $f->grants[$f->connection]['active']=false;$f->requests=[];$f->events->deliverPending();
+    hotelEventAssert($f->requests===[]&&$before===$f->pdo->query('SELECT * FROM hotel_work_consumer_delivery_repairs')->fetchAll(PDO::FETCH_ASSOC),
+        'revoked_grant_cannot_send_or_ack_armed_repair');
+}
+
 try {
+    if (($argv[1]??'')==='--delivery-repair-only') {hotelEventDeliveryRepairChecks();echo 'HOTEL WORK DELIVERY REPAIR EVENTS: '.$checks." PASS\n";exit(0);}
     hotelClaimAuthorityEventChecks();
     if (($argv[1]??'')==='--claim-authority-only') {echo 'HOTEL WORK CLAIM AUTHORITY EVENTS: '.$checks." PASS\n";exit(0);}
+    hotelEventDeliveryRepairChecks();
+    hotelSubscriptionSetupChecks();
     $f=new HotelEventsFixture(false);
     hotelEventAssert(!$f->events->hasActiveSubscriptions(),'empty_has_no_subscription');
     $empty=$f->events->deliverPending();
@@ -491,7 +762,7 @@ try {
     $first=$f->events->deliverPending();
     hotelEventAssert($nested!==null&&$nested['subscriptions']===1&&$nested['accepted']===0&&$nested['retried']===0,'active_sql_lease_excludes_overlapping_sender');
     hotelEventAssert($first['accepted']===1&&count($f->requests)===1&&$f->row()['lease_token']===null&&$f->row()['lease_until']===null,'overlap_has_one_callback_and_explicit_lease_release');
-    hotelEventAssert(!array_diff(array_unique($f->pdo->writes),['hotel_work_events','hotel_work_queues','hotel_work_receipts','hotel_work_lane','hotel_work_connection_handoffs','hotel_work_resolutions','hotel_work_delivery_recoveries']),'event_lifecycle_never_writes_business_tables');
+    hotelEventAssert(!array_diff(array_unique($f->pdo->writes),['hotel_work_events','hotel_work_queues','hotel_work_receipts','hotel_work_lane','hotel_work_connection_handoffs','hotel_work_resolutions','hotel_work_delivery_recoveries','hotel_work_consumer_delivery_repairs']),'event_lifecycle_never_writes_business_tables');
     echo 'HOTEL WORK EVENTS: '.$checks." PASS\n";
 } catch (Throwable $error) {
     $message=$error instanceof RuntimeException&&str_starts_with($error->getMessage(),'hotel_event_assertion_failed:')?$error->getMessage():get_class($error);

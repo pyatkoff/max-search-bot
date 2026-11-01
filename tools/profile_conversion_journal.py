@@ -12,7 +12,7 @@ import build_conversion_observations as base
 import extract_conversion_profiles as extractor
 import purchase_conversion_study as purchase_study
 
-VERSION = "admitted_journal_profile_v1_4"
+VERSION = "admitted_journal_profile_v1_5"
 MAX_BYTES = 2 * 1024 * 1024
 ADAPTER_SHA = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
 
@@ -43,6 +43,92 @@ def recorded_payload(raw, recorded, basis):
     return value
 
 
+def offer_journey(events, scope, omitted):
+    """Join only immutable producer receipts already present in this admitted prefix.
+
+    Native IDs and callback credentials are used for validation, never projected.
+    Offer terms remain manager observations, never customer facts or accepted prices.
+    """
+    prepared = {}; deliveries = {}; likes = {}
+    for event in events:
+        kind, row, data, recorded = event
+        ref = {"journal_id": row["journal_id"], "source_id": row["source_id"],
+               "source_version_no": row["source_version_no"],
+               "recorded_at": epoch(recorded), "available_at": epoch(row["observed_at_unix"])}
+        if kind == "tour_offer_prepared":
+            binding = data.get("binding", {})
+            snapshot = data.get("snapshot")
+            if (data.get("schema") != 1 or type(data.get("schema")) is not int
+                    or set(data) != {"schema", "binding", "snapshot", "token_hash"}
+                    or not isinstance(binding, dict)
+                    or binding.get("project_key") != scope["project_key"]
+                    or binding.get("channel") != scope["platform"]
+                    or not all(isinstance(binding.get(k), str) and binding[k]
+                               for k in ("external_chat_id", "external_user_id"))
+                    or not isinstance(data.get("token_hash"), str)
+                    or re.fullmatch(r"[a-f0-9]{64}", data["token_hash"]) is None
+                    or not isinstance(snapshot, dict)
+                    or set(snapshot) - {"hotel", "departure", "room", "meal", "date_from", "date_to", "date_to_basis",
+                                        "nights", "adults", "child_ages", "amount", "currency", "price_basis", "is_demo",
+                                        "price_verified", "flights", "rationale", "compromise", "quoted_details"}
+                    or snapshot.get("is_demo") is not False
+                    or snapshot.get("price_basis") != "party"
+                    or snapshot.get("price_verified") is not False
+                    or not all(isinstance(snapshot.get(k), str) and snapshot[k]
+                               for k in ("hotel", "departure", "room", "meal", "date_from", "date_to", "amount", "currency"))):
+                omitted("invalid_offer_receipt"); continue
+            prepared.setdefault(row["source_id"], []).append((ref, data))
+        else:
+            identifier = data.get("offer_id")
+            if type(identifier) is not int or identifier <= 0:
+                omitted("invalid_offer_receipt"); continue
+            target = deliveries if kind == "tour_offer_delivered" else likes
+            target.setdefault(str(identifier), []).append((ref, data))
+    out = []
+    for identifier, candidates in prepared.items():
+        if len(candidates) != 1:
+            omitted("ambiguous_offer_receipt"); continue
+        ref, data = candidates[0]
+        item = {"snapshot": data["snapshot"], "snapshot_sha256": base.digest(data["snapshot"]),
+                "prepared": ref, "delivery": None, "reaction": None,
+                "state": "prepared", "customer_response": "unknown"}
+        sent = deliveries.get(identifier, [])
+        if len(sent) == 1:
+            delivery, receipt = sent[0]
+            native_chat = receipt.get("native_chat_id")
+            valid = (set(receipt) == {"offer_id", "native_mid", "native_chat_id"}
+                     and all(isinstance(receipt.get(k), str) and receipt[k]
+                             for k in ("native_mid", "native_chat_id"))
+                     and native_chat == data["binding"]["external_chat_id"]
+                     and (scope["platform"] != "telegram" or native_chat == data["binding"]["external_user_id"])
+                     and (delivery["recorded_at"], int(delivery["source_id"])) > (ref["recorded_at"], int(ref["source_id"])))
+            if valid:
+                item.update(delivery=delivery, state="delivered")
+            else:
+                omitted("invalid_offer_delivery")
+        elif len(sent) > 1:
+            omitted("ambiguous_offer_delivery")
+        choices = likes.get(identifier, [])
+        if len(choices) == 1 and item["delivery"] is not None:
+            choice, receipt = choices[0]
+            if (set(receipt) == {"offer_id"}
+                    and (choice["recorded_at"], int(choice["source_id"])) > (item["delivery"]["recorded_at"], int(item["delivery"]["source_id"]))):
+                item.update(reaction=choice, state="liked", customer_response="explicit_offer_preference")
+            else:
+                omitted("invalid_offer_reaction")
+        elif choices:
+            omitted("offer_reaction_without_unique_delivery")
+        item["available_at"] = max(r["available_at"] for r in (item["prepared"], item["delivery"], item["reaction"]) if r is not None)
+        out.append(item)
+    for identifier in (deliveries.keys() | likes.keys()) - prepared.keys():
+        omitted("offer_snapshot_not_in_prefix")
+    out.sort(key=lambda item: int(item["prepared"]["journal_id"]))
+    return {"version": "admitted_offer_journey_v1", "offers": out,
+            "trip_status": "unknown", "episode_identity": "unverified",
+            "complete": False, "ad_target_eligible": False,
+            "meaning": "saved_offer_receipts_not_customer_conditions_or_purchase"}
+
+
 def profile(document, extracted_at):
     base.fields(document, ("schema_version", "requested_at", "journal_cursor", "cases"), ("source_fence_journal_id",))
     base.require(document["schema_version"] == 1 and type(document["schema_version"]) is int, "unsupported_schema")
@@ -66,7 +152,7 @@ def profile(document, extracted_at):
         base.require(type(case["window_limited"]) is bool and type(case["access_denied"]) is bool, "explicit_coverage_required")
         base.require(isinstance(case["rows"], list) and len(case["rows"]) <= 50, "profile_window_limit")
         messages = []; refs = []; errors = {}; unique = set()
-        input_rows = {}; receipts = []; membership = []
+        input_rows = {}; receipts = []; membership = []; offer_events = []
 
         def omitted(reason):
             errors[reason] = errors.get(reason, 0)+1
@@ -110,7 +196,10 @@ def profile(document, extracted_at):
             is_membership = (row["source_kind"] == "event" and isinstance(snap.get("payload"), dict)
                              and snap["payload"].get("event_type") in {
                                  "channel_subscription_observed", "channel_retention_30m_observed"})
-            if row["source_kind"] != "message" and not is_application and not is_membership:
+            is_offer = (row["source_kind"] == "event" and isinstance(snap.get("payload"), dict)
+                        and snap["payload"].get("event_type") in {
+                            "tour_offer_prepared", "tour_offer_delivered", "tour_offer_liked"})
+            if row["source_kind"] != "message" and not is_application and not is_membership and not is_offer:
                 omitted("uninterpreted_event"); continue
             if snap.get("payload_status") != "copied":
                 omitted("payload_unavailable"); continue
@@ -120,6 +209,17 @@ def profile(document, extracted_at):
                 omitted("source_clock_unresolved"); continue
             payload = snap.get("payload")
             base.require(isinstance(payload, dict), "invalid_message_payload")
+            if is_offer:
+                try:
+                    data = recorded_payload(payload.get("payload_json"), recorded, snap["source_timestamp_basis"])
+                    kind = payload["event_type"]
+                    if (row["source_version_no"] != 1 or not isinstance(data, dict)
+                            or payload.get("actor_type") != ("customer" if kind == "tour_offer_liked" else "system")):
+                        raise ValueError()
+                    offer_events.append((kind, row, data, recorded))
+                except (ValueError, TypeError, KeyError, base.InvalidObservation):
+                    omitted("invalid_offer_receipt")
+                continue
             if is_membership:
                 try:
                     observed = recorded_payload(payload.get("payload_json"), recorded, snap["source_timestamp_basis"])
@@ -270,7 +370,8 @@ def profile(document, extracted_at):
         result = extractor.extract_case(profile_case, extracted_at, applications)
         # A denied current scope has no usable facts, even when older snapshots still exist.
         base.require(not case["access_denied"] or not result["prediction_features"]["facts"], "denied_scope_facts")
-        wrapper = {"subject": case["subject"], "profile": result, "source_references": refs,
+        journey = offer_journey(offer_events, scope, omitted)
+        wrapper = {"subject": case["subject"], "profile": result, "offer_journey": journey, "source_references": refs,
                        "adapter": {"version": VERSION, "sha256": ADAPTER_SHA},
                        "journal_cursor": document["journal_cursor"], "source_fence_journal_id": information_fence,
                        "access_status": "denied" if case["access_denied"] else "allowed",
@@ -314,3 +415,4 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+

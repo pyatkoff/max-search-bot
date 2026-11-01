@@ -11,26 +11,26 @@ const observation=hotel=>({adapter:'funsun-b2b-v1',offer:{hotel,amount:'200000',
 
 // Execute the actual MV3 worker against persistent storage and a synthetic
 // canonical bridge. This verifies queue protocol, not a physical browser install.
-function worker(db,server,{popupSupported=true,now=()=>Date.now(),priceEditorSupported=true,allowManagerOpen=false}={}){
- let listener,alarm,nonce='',current=db.target?clone(db.target):null;const opened=[];
+function worker(db,server,{popupSupported=true,now=()=>Date.now(),priceEditorSupported=true,allowManagerOpen=false,browserTabs=null,createdTabUrl=null,reconnectSupported=true,timers={setTimeout,clearTimeout}}={}){
+ let listener,alarm,startup,nonce='',current=db.target?clone(db.target):null;const opened=[];
  const sender=target=>({id:'fixture-extension',url:'https://app.anytoour.ru/manager/tour-selection-collector.php?conversation_id='+target.conversation_id,tab:{id:10,url:'https://app.anytoour.ru/manager/tour-selection-collector.php?conversation_id='+target.conversation_id}});
  const popup={url:'chrome-extension://fixture-extension/popup.html'},to={url:'https://b2b.fstravel.com/search_tour?FILTER=1',tab:{id:20}};
  const send=(message,from=popup)=>new Promise(resolve=>listener(message,from,resolve));
  async function connect(target,selected=true){current=clone(target);const hello=await send({type:'bridge_hello'},sender(target));nonce=hello.nonce;return send({type:'bridge_event',event:{nonce,type:'connected',target,connection:target.connection,selected,features:priceEditorSupported?{manager_price:1}:{} }},sender(target))}
- const chrome={runtime:{id:'fixture-extension',onMessage:{addListener(fn){listener=fn}},onStartup:{addListener(){}}},
+ const chrome={runtime:{id:'fixture-extension',onMessage:{addListener(fn){listener=fn}},onStartup:{addListener(fn){startup=fn}}},
   storage:{local:{async get(keys){return Object.fromEntries(keys.filter(k=>k in db).map(k=>[k,clone(db[k])]))},async set(value){Object.assign(db,clone(value))}}},
   action:{async setBadgeText(){},...(popupSupported?{async openPopup(){}}:{})},
   alarms:{create(){},onAlarm:{addListener(fn){alarm=fn}}},
-  tabs:{async query({url}){return (Array.isArray(url)?url.some(x=>x.includes('fstravel')):url.includes('fstravel'))?[{id:20,url:to.url}]:current?[sender(current).tab]:[]},async create(options){if(!allowManagerOpen)throw new Error('unexpected new tab');opened.push(clone(options));return{id:99,...options}},async sendMessage(tab,message){
+  tabs:{async query({url}){if(browserTabs)return browserTabs.filter(tab=>(Array.isArray(url)?url:[url]).some(pattern=>pattern.endsWith('*')?tab.url.startsWith(pattern.slice(0,-1)):tab.url===pattern));return (Array.isArray(url)?url.some(x=>x.includes('fstravel')):url.includes('fstravel'))?[{id:20,url:to.url}]:current?[sender(current).tab]:[]},async create(options){opened.push(clone(options));if(!allowManagerOpen)throw new Error('unexpected new tab');const tab={id:99+opened.length,...options,url:createdTabUrl||options.url};if(browserTabs)browserTabs.push(tab);return tab},async sendMessage(tab,message){
    if(tab===20)return;
-   if(message.type==='bridge_reconnect'){await connect(current,false);return}
+   if(message.type==='bridge_reconnect'){if(!reconnectSupported)throw new Error('fixture bridge is unavailable');await connect(current,false);return}
    if(message.type!=='bridge_command')throw new Error('unknown bridge message');
    const command=message.command,result=await server.receive(command);
    await send({type:'bridge_event',event:{type:'result',nonce:message.nonce,request_id:command.request_id,result}},sender(current));
   }}
  };
- vm.runInNewContext(source,{chrome,crypto:webcrypto,URL,Uint8Array,Map,Set,Promise,setTimeout,clearTimeout,Date:class extends Date{static now(){return now()}}},{filename:'collector-background.js'});
- return {send,connect,opened,enqueue:input=>send({type:'enqueue',observation:input},to),status:()=>send({type:'status'}),alarm:()=>alarm(),disconnect:()=>send({type:'bridge_event',event:{nonce,type:'disconnected'}},sender(current))};
+ vm.runInNewContext(source,{chrome,crypto:webcrypto,URL,Uint8Array,Map,Set,Promise,setTimeout:timers.setTimeout,clearTimeout:timers.clearTimeout,Date:class extends Date{static now(){return now()}}},{filename:'collector-background.js'});
+ return {send,connect,opened,enqueue:input=>send({type:'enqueue',observation:input},to),status:()=>send({type:'status'}),alarm:()=>alarm(),startup:()=>startup(),disconnect:()=>send({type:'bridge_event',event:{nonce,type:'disconnected'}},sender(current))};
 }
 function provider(){return {receipts:new Map(),calls:[],creates:0,mode:'',async receive(c){
  this.calls.push(clone(c));const hash=JSON.stringify([c.connection_id,c.observation,c.as_variant,c.manager_amount??null]),old=this.receipts.get(c.operation_id),ack=Object.hasOwn(c,'manager_amount')&&this.mode!=='legacy_amount'?{manager_amount:c.manager_amount}:{};
@@ -45,6 +45,35 @@ function provider(){return {receipts:new Map(),calls:[],creates:0,mode:'',async 
 }}}
 async function stage(w,hotel){assert.equal((await w.enqueue(observation(hotel))).ok,true);const s=await w.status();return s.items.at(-1).operation_id}
 async function itemState(w,operation,state){await until(async()=>(await w.status()).items.find(x=>x.operation_id===operation)?.state===state)}
+
+// A lost server reply leaves a durable, adjusted operation. Background alarms
+// and fresh MV3 instances may inspect it, but a missing bridge is not permission
+// to navigate. In the auth-expired case every newly opened collector would land
+// on the legacy login route instead of remaining a reusable collector tab.
+async function backgroundNavigationRegression(){
+ const navigation=[],timers={setTimeout:fn=>setTimeout(fn,0),clearTimeout};
+ for(const environment of ['missing bridge','auth-redirected collector','same-URL unauthorized collector']){
+  const db={},server=provider(),target=makeTarget(),sourceSender={url:'https://b2b.fstravel.com/search_tour',tab:{id:20},documentId:'navigation-regression',frameId:0};
+  let w=worker(db,server);await w.connect(target);
+  const ticket=await w.send({type:'begin_add'},sourceSender),staged=await w.send({type:'enqueue_edit',ticket:ticket.ticket,observation:observation('Durable '+environment)},sourceSender);
+  server.mode='lost';await w.send({type:'save_edit',operation_id:staged.operation_id,manager_amount:'195432.10'});await itemState(w,staged.operation_id,'waiting');
+  const original=clone(db.items[0]),originalTarget=clone(db.target),calls=server.calls.length;
+  const legacy='https://app.anytoour.ru/manager/',collector='https://app.anytoour.ru/manager/tour-selection-collector.php?conversation_id='+target.conversation_id;
+  const browserTabs=environment==='missing bridge'?[]:[{id:31,url:environment==='auth-redirected collector'?legacy:collector}];
+  const snapshots=[];
+  for(let restart=0;restart<3;restart++){
+   w=worker(db,server,{allowManagerOpen:true,browserTabs,createdTabUrl:environment==='auth-redirected collector'?legacy:null,reconnectSupported:false,timers});
+   w.startup();await sleep(10);
+   for(let attempt=0;attempt<3;attempt++){w.alarm();await sleep(15);snapshots.push(clone((await w.status()).items[0]))}
+   navigation.push(...w.opened);
+  }
+  check(environment+' repeated recovery preserves the original operation and every captured condition',snapshots.every(item=>item.operation_id===original.operation_id&&JSON.stringify(item.observation)===JSON.stringify(original.observation)&&JSON.stringify(item.target)===JSON.stringify(original.target)&&item.manager_amount===original.manager_amount&&item.as_variant===original.as_variant)&&JSON.stringify(db.target)===JSON.stringify(originalTarget));
+  check(environment+' cannot claim success or call the provider without a live bridge',snapshots.every(item=>item.state==='waiting'&&item.error==='bridge_unavailable')&&server.calls.length===calls&&server.creates===1);
+  w=worker(db,server);w.alarm();await itemState(w,original.operation_id,'saved');
+  check(environment+' an existing collector reconnects to the exact receipt without another import',server.creates===1&&server.calls.filter(call=>call.operation_id===original.operation_id&&call.action==='import').length===1&&server.calls.at(-1).action==='operation'&&server.calls.at(-1).operation_id===original.operation_id&&server.calls.at(-1).manager_amount===original.manager_amount&&JSON.stringify(server.calls.at(-1).observation)===JSON.stringify(original.observation)&&w.opened.length===0);
+ }
+ check('repeated alarms and worker restarts never create tabs for a missing, auth-redirected or unauthorized collector (observed '+navigation.length+')',navigation.length===0);
+}
 
 // Keep the actual source page client alive while the MV3 worker restarts or a
 // popup action changes the server intent. The button must still follow its
@@ -114,6 +143,57 @@ async function bridgeReconnectRegression(){
  check('failure releases the handshake so a later reconnect can recover',bridge.hellos.length===4&&recovered.held===true&&recovered.replies.length===0);
  bridge.hellos[3].resolve({ok:true,device,nonce:last});await bridge.flush();
  check('the recovered handshake announces one nonce without any import command',bridge.events.filter(event=>event.type==='hello').length===3&&bridge.events.at(-1).nonce===last&&recovered.replies.length===1&&bridge.requests.every(request=>['bridge_hello','bridge_event'].includes(request.type)));
+}
+
+// Hold real page HTTP replies while Refresh or a new hello replaces its view.
+// This exercises the shipped page client without a browser or a live import.
+function collectorPage(){
+ const calls=[],events=[],elements=new Map(),listeners=new Map();
+ const config={actor:7,conversation_id:11,csrf:'fixture-csrf'};
+ const element=()=>({textContent:'',checked:false,disabled:false,children:[],classes:new Set(),
+  classList:{toggle(name,on){if(on)this.owner.classes.add(name);else this.owner.classes.delete(name)}},
+  replaceChildren(){this.children=[]},append(child){this.children.push(child)},addEventListener(){}});
+ const document={getElementById(id){if(!elements.has(id)){const el=element();el.classList.owner=el;elements.set(id,el)}const el=elements.get(id);if(id==='collectorConfig')el.textContent=JSON.stringify(config);return el},
+  createElement(){const el=element();el.classList.owner=el;return el},
+  addEventListener(type,listener){const list=listeners.get(type)||[];list.push(listener);listeners.set(type,list)},
+  dispatchEvent(event){if(event.type==='anytour-collector-page')events.push(clone(event.detail));for(const listener of listeners.get(event.type)||[])void listener(event)}};
+ const ManagerHttpClient={request(action,data,csrf,endpoint){return new Promise(resolve=>calls.push({action,data:clone(data),csrf,endpoint,resolve}))}};
+ vm.runInNewContext(fs.readFileSync(__dirname+'/../manager/assets/tour-selection-collector.js','utf8'),
+  {document,ManagerHttpClient,crypto:webcrypto,Uint8Array,CustomEvent:class{constructor(type,{detail}={}){this.type=type;this.detail=detail}}},
+  {filename:'tour-selection-collector.js'});
+ return {calls,events,elements,flush:()=>new Promise(resolve=>setImmediate(resolve)),
+  extension(detail){document.dispatchEvent({type:'anytour-collector-extension',detail})},
+  view(){return{target:elements.get('collectorTarget').children.map(el=>el.textContent),status:elements.get('collectorStatus').textContent,error:elements.get('collectorStatus').classes.has('error'),open:elements.get('collectorOpenSelection').href}}};
+}
+
+async function collectorPageReceiptRegression(){
+ const device='d'.repeat(32),nonce='e'.repeat(32),nextNonce='9'.repeat(32),connection={id:'c'.repeat(32)};
+ const target={...makeTarget(),client:'Synthetic page client',channel:'test',trip:'Synthetic trip',started_at:'2026-10-23 10:00:00',dates:[],count:3};
+ const view=count=>({ok:true,target:{...target,count},connection});
+ for(const action of ['operation','import'])for(const change of ['none','refresh','denied','replacement','hello']){
+  const page=collectorPage();page.calls[0].resolve(view(3));await page.flush();
+  page.extension({type:'hello',device,nonce});page.calls[1].resolve(view(3));await page.flush();
+  const command={type:'command',nonce,actor:7,conversation_id:11,connection_id:connection.id,request_id:'f'.repeat(32),operation_id:'a'.repeat(32),action,observation:observation('Synthetic receipt'),as_variant:false,manager_amount:'190000'};
+  page.extension(command);
+  check(action+' '+change+' sends the original authenticated intent once',page.calls.length===3&&page.calls[2].action==='collector_'+action&&page.calls[2].csrf==='fixture-csrf'&&page.calls[2].endpoint==='tour-selections-api.php'&&JSON.stringify(page.calls[2].data)===JSON.stringify({conversation_id:11,operation_id:command.operation_id,connection_id:connection.id,observation:command.observation,as_variant:false,manager_amount:'190000'}));
+  if(change!=='none'){
+   if(change==='hello')page.extension({type:'hello',device,nonce:nextNonce});else void page.elements.get('collectorRefresh').onclick();
+   const fresh=change==='denied'?{ok:false,error:'forbidden'}:change==='replacement'?{...view(5),target:{...target,binding:'6'.repeat(64),count:5},connection:{id:'8'.repeat(32)}}:view(5);
+   page.calls[3].resolve(fresh);await page.flush();
+  }
+  const freshView=page.view(),connectedBefore=page.events.filter(e=>e.type==='connected').length,disconnectedBefore=page.events.filter(e=>e.type==='disconnected').length;
+  // A connection error from the old request must not revoke a replacement view.
+  const reply=change==='replacement'?{ok:false,error:'connection_changed'}:{ok:true,...(action==='operation'?{found:true}:{state:'added'}),saved_version:9,count:4,manager_amount:'190000'};
+  page.calls[2].resolve(reply);await page.flush();
+  const results=page.events.filter(e=>e.type==='result');
+  check(action+' '+change+' acknowledges the original request and nonce exactly once',results.length===1&&results[0].request_id===command.request_id&&results[0].nonce===nonce&&JSON.stringify(results[0].result)===JSON.stringify(reply));
+  if(change==='none')check(action+' current receipt updates the current view',page.view().target.includes('На сервере: 4 предложений')&&page.events.filter(e=>e.type==='connected').length===connectedBefore+1);
+  else check(action+' '+change+' receipt cannot overwrite or revoke the fresh view',JSON.stringify(page.view())===JSON.stringify(freshView)&&page.events.filter(e=>e.type==='connected').length===connectedBefore&&page.events.filter(e=>e.type==='disconnected').length===disconnectedBefore);
+  if(change==='denied')check(action+' denied refresh stays empty and forbidden',page.view().target.length===0&&page.view().error&&page.view().status.includes('нет права'));
+  if(change==='hello')check(action+' rotated hello cannot acquire the old receipt nonce',page.events.filter(e=>e.type==='connected').at(-1).nonce===nextNonce&&results[0].nonce!==nextNonce);
+  await page.flush();
+  check(action+' '+change+' never replays the HTTP command or starts another import',page.calls.length===(change==='none'?3:4)&&page.calls.filter(call=>call.action==='collector_'+action).length===1&&page.calls.filter(call=>call.action==='collector_import').length===(action==='import'?1:0));
+ }
 }
 
 // Drive the shipped gallery reader through changing rendered documents. The
@@ -202,12 +282,13 @@ async function tourvisorBlockedCancellationRegression(){
  }
 }
 
-module.exports={worker,provider,makeTarget,tourvisorBlockedCancellationRegression,galleryRecoveryRegression,bridgeReconnectRegression};
+module.exports={worker,provider,makeTarget,tourvisorBlockedCancellationRegression,galleryRecoveryRegression,bridgeReconnectRegression,collectorPageReceiptRegression};
 if(require.main===module)(async()=>{
- require('node:child_process').execFileSync('python3',[__dirname+'/../extensions/selection-collector/build_package.py','--check'],{stdio:'pipe'});
+ require('node:child_process').execFileSync(process.env.PYTHON||'python3',[__dirname+'/../extensions/selection-collector/build_package.py','--check'],{stdio:'pipe'});
  check('installable package matches actual extension sources',true);
  const manifest=JSON.parse(fs.readFileSync(__dirname+'/../extensions/selection-collector/manifest.json','utf8'));
  await bridgeReconnectRegression();
+ await collectorPageReceiptRegression();
 
  {
  const early=['early-1','early-2','early-3'],settled=['hotel-1','hotel-2','hotel-3'];
@@ -483,5 +564,6 @@ if(require.main===module)(async()=>{
  legacyServer.mode='legacy_amount';t=await legacy.send({type:'begin_add'},funsunSender);stagedEdit=await legacy.send({type:'enqueue_edit',ticket:t.ticket,observation:observation('Old backend')},funsunSender);await legacy.send({type:'save_edit',operation_id:stagedEdit.operation_id,manager_amount:'180000'});await itemState(legacy,stagedEdit.operation_id,'waiting');
  check('canonical lookup must acknowledge the final amount before any append',legacyServer.calls.filter(c=>c.operation_id===stagedEdit.operation_id).every(c=>c.action==='operation')&&legacyServer.creates===1);
  legacyServer.mode='';legacy.alarm();await itemState(legacy,stagedEdit.operation_id,'saved');check('canonical amount acknowledgement permits exact recovery once',legacyServer.creates===2&&legacyServer.calls.filter(c=>c.operation_id===stagedEdit.operation_id&&c.action==='import').length===1);
+ await backgroundNavigationRegression();
  console.log('COLLECTOR WORKER TOTAL '+checks+' PASS');
 })().catch(error=>{console.error(error);process.exitCode=1});

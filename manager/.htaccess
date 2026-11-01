@@ -1,10 +1,16 @@
-# Preserve the OAuth header for the dedicated MCP PHP/CGI endpoint only.
+# Preserve the OAuth header for the four dedicated MCP PHP/CGI endpoints only.
 # The application still validates the bearer, grant, administrator and project.
 <IfModule mod_setenvif.c>
     <Files "ai-mcp.php">
         SetEnvIfNoCase Authorization "^(.+)$" HTTP_AUTHORIZATION=$1
     </Files>
     <Files "development-mcp.php">
+        SetEnvIfNoCase Authorization "^(.+)$" HTTP_AUTHORIZATION=$1
+    </Files>
+    <Files "replies-mcp.php">
+        SetEnvIfNoCase Authorization "^(.+)$" HTTP_AUTHORIZATION=$1
+    </Files>
+    <Files "hotels-mcp.php">
         SetEnvIfNoCase Authorization "^(.+)$" HTTP_AUTHORIZATION=$1
     </Files>
 </IfModule>

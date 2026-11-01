@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
-$pdo=null;$safe=false;$tables=['manager_preparation_cursors','virtual_reply_jobs','virtual_reply_cases','virtual_reply_cursors','virtual_reply_quotas','manager_assistant_decisions','manager_preparation_oauth_tokens','manager_preparation_oauth_codes','manager_preparation_oauth_grants','manager_preparation_oauth_clients','manager_preparation_events','manager_prepared_replies','manager_ai_drafts','telegram_dialogue_messages','customer_channels','conversations','managers'];
+$pdo=null;$safe=false;$tables=['manager_prepared_reply_input_links','manager_prepared_reply_inputs','manager_request_profiles','manager_ai_sent_texts','messages','manager_preparation_cursors','virtual_reply_jobs','virtual_reply_cases','virtual_reply_cursors','virtual_reply_quotas','manager_assistant_decisions','manager_preparation_oauth_tokens','manager_preparation_oauth_codes','manager_preparation_oauth_grants','manager_preparation_oauth_clients','manager_preparation_events','manager_prepared_replies','manager_ai_draft_inputs','manager_ai_drafts','telegram_dialogue_messages','customer_channels','conversations','managers'];
 try{
     $dsn=(string)getenv('PREPARED_REPLY_MYSQL_DSN');
     if(preg_match('/\Amysql:.*(?:\Amysql:|;)dbname=(maxbot_prepared_test(?:_[a-zA-Z0-9_]+)?)(?:;|\z)/D',$dsn,$m)!==1)throw new RuntimeException('unsafe_fixture_database');
@@ -45,6 +45,98 @@ try{
     $pdo->exec(file_get_contents(dirname(__DIR__,2).'/migrations/047_prepared_reply_feedback.sql'));
     if($pdo->query('SELECT * FROM manager_ai_drafts')->fetchAll()!==$feedbackBefore)throw new RuntimeException('feedback_migration_retry_changed_data');
     echo "PASS native MySQL prepared feedback column and migration retry preserve provenance\n";
+    $pdo->exec(file_get_contents(dirname(__DIR__,2).'/migrations/078_manager_ai_draft_inputs.sql'));
+    if($pdo->query('SELECT * FROM manager_ai_drafts')->fetchAll()!==$feedbackBefore
+        ||(int)$pdo->query('SELECT COUNT(*) FROM manager_ai_draft_inputs')->fetchColumn()!==0)throw new RuntimeException('draft_input_migration_changed_existing_provenance');
+    echo "PASS native MySQL forward input migration preserves existing drafts without backfill\n";
+    require_once dirname(__DIR__,2).'/services/ManagerAiDraftInputEvidence.php';
+    $inputContext=['conversation_id'=>1,'as_of_message_id'=>2,'history_incomplete'=>false,'media_unread'=>false,
+        'selections_link_unread'=>false,'verified_company_facts'=>[],
+        'messages'=>[['id'=>1,'sender_type'=>'customer','text'=>"Синтетический запрос: «даты те же» 🧳\nДвое взрослых."],
+            ['id'=>2,'sender_type'=>'customer','text'=>"Добавьте ребёнка 12 лет; бюджет 250\u{00A0}000 ₽. e\u{0301}"]]];
+    // Exercise MEDIUMTEXT beyond the ordinary TEXT boundary, including actual
+    // four-byte Unicode, combining characters and JSON-escaped line breaks.
+    $inputInstructions="Синтетическая инструкция:\n".str_repeat("Сохрани «условия» 🧳; e\u{0301}.\n",1600);
+    $inputEvidence=ManagerAiDraftInputEvidence::capture($inputContext,$inputInstructions);
+    if($inputEvidence===null||strlen($inputEvidence->json())<=65535)throw new RuntimeException('draft_input_unicode_fixture_invalid');
+    $inputInsert=$pdo->prepare('INSERT INTO manager_ai_draft_inputs (draft_id,input_json,input_sha256) VALUES(?,?,?)');
+    $inputInsert->execute([str_repeat('a',32),$inputEvidence->json(),$inputEvidence->hash()]);
+    $inputRead=$pdo->query('SELECT input_json,input_sha256,HEX(input_json) AS input_hex,SHA2(input_json,256) AS mysql_sha256,OCTET_LENGTH(input_json) AS input_bytes FROM manager_ai_draft_inputs')->fetch();
+    $inputRestored=ManagerAiDraftInputEvidence::fromJson($inputRead['input_json']??'');
+    if($inputRead['input_json']!==$inputEvidence->json()||$inputRead['input_sha256']!==$inputEvidence->hash()
+        ||strtolower($inputRead['input_hex'])!==bin2hex($inputEvidence->json())||$inputRead['mysql_sha256']!==$inputEvidence->hash()
+        ||(int)$inputRead['input_bytes']!==strlen($inputEvidence->json())||$inputRestored?->context()!==$inputContext
+        ||$inputRestored?->instructionHash()!==hash('sha256',$inputInstructions))throw new RuntimeException('draft_input_native_exact_roundtrip_failed');
+    echo "PASS native MySQL input Unicode bytes and PHP/MySQL digests round-trip exactly beyond 64 KiB\n";
+    $inputsBefore=$pdo->query('SELECT * FROM manager_ai_draft_inputs ORDER BY draft_id')->fetchAll();
+    $pdo->exec(file_get_contents(dirname(__DIR__,2).'/migrations/078_manager_ai_draft_inputs.sql'));
+    if($pdo->query('SELECT * FROM manager_ai_draft_inputs ORDER BY draft_id')->fetchAll()!==$inputsBefore
+        ||$pdo->query('SELECT * FROM manager_ai_drafts')->fetchAll()!==$feedbackBefore)throw new RuntimeException('draft_input_migration_retry_changed_data');
+    $pdo->exec('CREATE TABLE messages(id BIGINT UNSIGNED PRIMARY KEY,conversation_id BIGINT UNSIGNED,direction VARCHAR(20),sender_type VARCHAR(20),sender_id VARCHAR(64),text MEDIUMTEXT) ENGINE=InnoDB');
+    $pdo->exec(file_get_contents(dirname(__DIR__,2).'/migrations/079_manager_ai_sent_texts.sql'));
+    require_once dirname(__DIR__,2).'/services/ManagerAiSentTextService.php';
+    $sentText=str_repeat('🧳',19980)."\nA &amp; <b> literal";$sentStored=htmlspecialchars($sentText,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');
+    $pdo->prepare("INSERT INTO messages VALUES(90,1,'outbound','manager','1',?)")->execute([$sentStored]);
+    $sentMetadata=['project_key'=>'anytour','ai_draft'=>['draft_id'=>str_repeat('a',32),'text_matches_proposal'=>false,'sent_text_sha256'=>hash('sha256',$sentText)]];
+    if(!ManagerAiSentTextService::record($pdo,90,1,'manager','1',$sentStored,$sentMetadata,$sentText))throw new RuntimeException('native_initial_text_not_captured');
+    $sentBefore=$pdo->query('SELECT * FROM manager_ai_sent_texts')->fetchAll();
+    $sentRow=$pdo->query('SELECT text_value,SHA2(text_value,256) AS native_hash FROM manager_ai_sent_texts')->fetch();
+    if($sentRow['text_value']!==$sentText||$sentRow['native_hash']!==hash('sha256',$sentText))throw new RuntimeException('native_initial_text_bytes_changed');
+    $pdo->exec(file_get_contents(dirname(__DIR__,2).'/migrations/079_manager_ai_sent_texts.sql'));
+    if($pdo->query('SELECT * FROM manager_ai_sent_texts')->fetchAll()!==$sentBefore
+        ||ManagerAiSentTextService::record($pdo,90,1,'manager','1',$sentStored,$sentMetadata,$sentText))throw new RuntimeException('native_initial_text_overwritten');
+    $pdo->exec("UPDATE messages SET text='Later edit' WHERE id=90");
+    if($pdo->query('SELECT * FROM manager_ai_sent_texts')->fetchAll()!==$sentBefore)throw new RuntimeException('native_initial_text_lost_after_edit');
+    $pdo->exec('DELETE FROM messages WHERE id=90');
+    if((int)$pdo->query('SELECT COUNT(*) FROM manager_ai_sent_texts')->fetchColumn()!==0)throw new RuntimeException('native_initial_text_message_cascade_failed');
+    $pdo->prepare("INSERT INTO messages VALUES(91,1,'outbound','manager','1',?)")->execute([$sentStored]);
+    $feedback->execute([str_repeat('d',32),1,1,'anytour',str_repeat('b',64),str_repeat('c',64),2,'sent-text deletion fixture',gmdate('Y-m-d H:i:s'),null]);
+    $sentMetadata['ai_draft']['draft_id']=str_repeat('d',32);
+    if(!ManagerAiSentTextService::record($pdo,91,1,'manager','1',$sentStored,$sentMetadata,$sentText))throw new RuntimeException('native_initial_text_second_capture_failed');
+    $pdo->prepare('DELETE FROM manager_ai_drafts WHERE draft_id=?')->execute([str_repeat('d',32)]);
+    if((int)$pdo->query('SELECT COUNT(*) FROM manager_ai_sent_texts')->fetchColumn()!==0)throw new RuntimeException('native_initial_text_draft_cascade_failed');
+    echo "PASS native MySQL079 exact Unicode/digest capture, immutable retry, later edit and message/draft retention cascades\n";
+    $pdo->exec(file_get_contents(dirname(__DIR__,2).'/migrations/080_manager_request_profiles.sql'));
+    $profileJson=json_encode(['schema_version'=>1,'label'=>'Поездка 🧳','fields'=>['dates'=>['value'=>"19 декабря\ne\u{0301}"]]],JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);
+    $profileInsert=$pdo->prepare('INSERT INTO manager_request_profiles (conversation_id,version,trip_id,boundary_message_id,manager_id,operation_id,request_sha256,context_sha256,profile_json,profile_sha256,changed_fields_json,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)');
+    $profileValues=[1,1,str_repeat('a',32),2,1,str_repeat('b',32),str_repeat('c',64),str_repeat('d',64),$profileJson,hash('sha256',$profileJson),'["dates"]',gmdate('Y-m-d H:i:s')];
+    $profileInsert->execute($profileValues);$profileValues[1]=2;$profileValues[5]=str_repeat('e',32);$profileInsert->execute($profileValues);
+    $profilesBefore=$pdo->query('SELECT * FROM manager_request_profiles ORDER BY version')->fetchAll();
+    $nativeProfile=$pdo->query('SELECT profile_json,SHA2(profile_json,256) AS native_hash FROM manager_request_profiles LIMIT 1')->fetch();
+    if($nativeProfile['profile_json']!==$profileJson||$nativeProfile['native_hash']!==hash('sha256',$profileJson))throw new RuntimeException('native_profile_unicode_digest_failed');
+    $pdo->exec(file_get_contents(dirname(__DIR__,2).'/migrations/080_manager_request_profiles.sql'));
+    if($pdo->query('SELECT * FROM manager_request_profiles ORDER BY version')->fetchAll()!==$profilesBefore)throw new RuntimeException('native_profile_migration_retry_changed_history');
+    $duplicateOperation=false;$profileValues[1]=3;
+    try{$profileInsert->execute($profileValues);}catch(PDOException $e){$duplicateOperation=$e->getCode()==='23000';}
+    if(!$duplicateOperation)throw new RuntimeException('native_profile_duplicate_operation_allowed');
+    $pdo->exec('INSERT INTO conversations VALUES(99)');$profileValues[0]=99;$profileValues[1]=1;$profileValues[5]=str_repeat('f',32);$profileInsert->execute($profileValues);
+    $pdo->exec('DELETE FROM conversations WHERE id=99');
+    if((int)$pdo->query('SELECT COUNT(*) FROM manager_request_profiles WHERE conversation_id=99')->fetchColumn()!==0)throw new RuntimeException('native_profile_conversation_retention_failed');
+    echo "PASS native MySQL080 append-only versions, exact Unicode digest, operation uniqueness, migration retry and conversation retention\n";
+    $inputDuplicateRejected=false;
+    try{$inputInsert->execute([str_repeat('a',32),$inputEvidence->json(),$inputEvidence->hash()]);}
+    catch(PDOException $error){$inputDuplicateRejected=$error->getCode()==='23000';}
+    $inputOrphanRejected=false;
+    try{$inputInsert->execute([str_repeat('f',32),$inputEvidence->json(),$inputEvidence->hash()]);}
+    catch(PDOException $error){$inputOrphanRejected=$error->getCode()==='23000';}
+    if(!$inputDuplicateRejected||!$inputOrphanRejected
+        ||$pdo->query('SELECT * FROM manager_ai_draft_inputs ORDER BY draft_id')->fetchAll()!==$inputsBefore)throw new RuntimeException('draft_input_native_identity_boundary_failed');
+    echo "PASS native MySQL input migration retry, unique draft binding and foreign key preserve saved evidence\n";
+    $feedback->execute([str_repeat('b',32),1,1,'anytour',str_repeat('b',64),str_repeat('c',64),2,'synthetic deletion fixture',gmdate('Y-m-d H:i:s'),null]);
+    $inputInsert->execute([str_repeat('b',32),$inputEvidence->json(),$inputEvidence->hash()]);
+    $pdo->prepare('DELETE FROM manager_ai_drafts WHERE draft_id=?')->execute([str_repeat('b',32)]);
+    if($pdo->query('SELECT * FROM manager_ai_draft_inputs ORDER BY draft_id')->fetchAll()!==$inputsBefore
+        ||$pdo->query('SELECT * FROM manager_ai_drafts')->fetchAll()!==$feedbackBefore)throw new RuntimeException('draft_input_direct_cascade_failed');
+    $pdo->exec('INSERT INTO conversations VALUES(999)');
+    $cascadeContext=$inputContext;$cascadeContext['conversation_id']=999;
+    $cascadeEvidence=ManagerAiDraftInputEvidence::capture($cascadeContext,$inputInstructions);
+    if($cascadeEvidence===null)throw new RuntimeException('draft_input_cascade_fixture_invalid');
+    $feedback->execute([str_repeat('c',32),999,1,'anytour',str_repeat('b',64),str_repeat('c',64),2,'synthetic conversation deletion fixture',gmdate('Y-m-d H:i:s'),null]);
+    $inputInsert->execute([str_repeat('c',32),$cascadeEvidence->json(),$cascadeEvidence->hash()]);
+    $pdo->exec('DELETE FROM conversations WHERE id=999');
+    if($pdo->query('SELECT * FROM manager_ai_draft_inputs ORDER BY draft_id')->fetchAll()!==$inputsBefore
+        ||$pdo->query('SELECT * FROM manager_ai_drafts')->fetchAll()!==$feedbackBefore)throw new RuntimeException('draft_input_conversation_cascade_failed');
+    echo "PASS native MySQL draft and conversation deletion cascade only to their bound input evidence\n";
     $decision=$pdo->prepare('INSERT INTO manager_assistant_decisions (manager_id,conversation_id,project_key,recommendation_revision,context_revision,instruction_revision,decision,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?)');
     $decision->execute([1,1,'anytour',str_repeat('1',64),str_repeat('2',64),str_repeat('3',64),'done',gmdate('Y-m-d H:i:s'),gmdate('Y-m-d H:i:s')]);
     $decisionsBefore=$pdo->query('SELECT * FROM manager_assistant_decisions')->fetchAll();
@@ -196,6 +288,28 @@ try{
         $pdo->exec("UPDATE customer_channels SET customer_id=11,channel='telegram',project_key='anytour',external_user_id='91001',external_chat_id='91011' WHERE id=71");
     }
     echo "PASS native MySQL correlated archive CAST scope excludes only bound owner peers before LIMIT\n";
+    $pdo->exec(file_get_contents(dirname(__DIR__,2).'/migrations/082_manager_prepared_reply_inputs.sql'));
+    require_once dirname(__DIR__,2).'/services/ManagerPreparedInputEvidence.php';
+    $issuedPacket=['ok'=>true,'job_id'=>str_repeat('e',64),'revision'=>str_repeat('f',64),'preparation_scope'=>'assigned_manager','latest_message_id'=>2,'context'=>$inputContext,
+        'company_knowledge'=>['facts'=>[],'revision'=>str_repeat('b',64)],'instructions'=>$inputInstructions,'instruction_revision'=>str_repeat('a',64)];
+    $issued=ManagerPreparedInputEvidence::capture($issuedPacket);
+    if(!$issued||strlen($issued->json())<=65535)throw new RuntimeException('prepared_input_large_fixture_failed');
+    $receiptId=str_repeat('1',64);
+    $receiptInsert=$pdo->prepare('INSERT INTO manager_prepared_reply_inputs(receipt_id,job_id,admin_id,connection_id,packet_json,packet_sha256,issued_at) VALUES(?,?,?,?,?,?,?)');
+    $receiptInsert->execute([$receiptId,str_repeat('e',64),1,str_repeat('a',32),$issued->json(),$issued->hash(),gmdate('Y-m-d H:i:s')]);
+    $pdo->prepare('INSERT INTO manager_prepared_reply_input_links(job_id,receipt_id) VALUES(?,?)')->execute([str_repeat('e',64),$receiptId]);
+    $issuedBefore=$pdo->query('SELECT * FROM manager_prepared_reply_inputs')->fetchAll();$linksBefore=$pdo->query('SELECT * FROM manager_prepared_reply_input_links')->fetchAll();
+    $nativeIssued=$pdo->query('SELECT packet_json,SHA2(packet_json,256) AS native_sha,OCTET_LENGTH(packet_json) AS bytes FROM manager_prepared_reply_inputs')->fetch();
+    if($nativeIssued['packet_json']!==$issued->json()||$nativeIssued['native_sha']!==$issued->hash()||(int)$nativeIssued['bytes']!==strlen($issued->json()))throw new RuntimeException('prepared_input_native_unicode_failed');
+    $pdo->exec(file_get_contents(dirname(__DIR__,2).'/migrations/082_manager_prepared_reply_inputs.sql'));
+    if($pdo->query('SELECT * FROM manager_prepared_reply_inputs')->fetchAll()!==$issuedBefore||$pdo->query('SELECT * FROM manager_prepared_reply_input_links')->fetchAll()!==$linksBefore)throw new RuntimeException('prepared_input_retry_changed_pair');
+    $duplicate=false;try{$receiptInsert->execute([$receiptId,str_repeat('e',64),1,str_repeat('a',32),$issued->json(),$issued->hash(),gmdate('Y-m-d H:i:s')]);}catch(PDOException $e){$duplicate=($e->errorInfo[1]??0)===1062;}
+    if(!$duplicate)throw new RuntimeException('prepared_receipt_duplicate_allowed');
+    $orphan=false;try{$receiptInsert->execute([str_repeat('2',64),str_repeat('9',64),1,str_repeat('a',32),$issued->json(),$issued->hash(),gmdate('Y-m-d H:i:s')]);}catch(PDOException $e){$orphan=($e->errorInfo[1]??0)===1452;}
+    if(!$orphan)throw new RuntimeException('prepared_receipt_orphan_allowed');
+    $pdo->prepare('DELETE FROM manager_prepared_replies WHERE job_id=?')->execute([str_repeat('e',64)]);
+    if((int)$pdo->query('SELECT COUNT(*) FROM manager_prepared_reply_inputs')->fetchColumn()!==0||(int)$pdo->query('SELECT COUNT(*) FROM manager_prepared_reply_input_links')->fetchColumn()!==0)throw new RuntimeException('prepared_receipt_retention_failed');
+    echo "PASS native MySQL082 exact Unicode/digests above64KiB, retry, receipt uniqueness, FK and job retention cascades\n";
     $client=str_repeat('a',48);$family=str_repeat('b',32);
     $pdo->prepare('INSERT INTO manager_preparation_oauth_clients VALUES(?,?,?,?)')->execute([$client,'https://chatgpt.com/connector_platform_oauth_redirect',str_repeat('c',64),time()]);
     $pdo->prepare('INSERT INTO manager_preparation_oauth_grants VALUES(?,?,?,?,?,?,?,?,NULL)')->execute([$family,$client,1,'anytour','https://app.anytoour.ru/manager/ai-mcp.php','queue:read prepared:write',time(),time()+3600]);
@@ -227,3 +341,6 @@ require __DIR__.'/modeled-conversion-stream.php';
 
 // Independent archive fixture follows the existing disposable-suite cleanup.
 require __DIR__.'/archive-research-read.php';
+
+// Real budgeted bearer, dispatcher and saved-reader path in a separate disposable database.
+require __DIR__.'/modeled-conversion-status-auth.php';

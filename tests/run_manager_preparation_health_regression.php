@@ -51,19 +51,30 @@ if (is_file(__DIR__.'/fail')) throw new RuntimeException('PRIVATE BOOTSTRAP ERRO
 class ConversationDb {public static function connection(){return new class {function prepare($sql){return new class {function execute($args){} function fetchAll($mode){return [1];}};}};}}
 class ProjectAccessService {public static function initializeReadOnly(){}}
 class ProjectConfig {public static function projectId(){return 'anytour';}}
-class ManagerPreparationMcpService {public function hasActiveSubscriptions(){return !is_file(__DIR__.'/waiting');}public function deliverPending(){return ['subscriptions'=>1,'accepted'=>0,'retried'=>0,'stopped'=>0,'unchanged'=>1];}}
+class ManagerPreparationOAuth {
+    public function __construct($pdo=null){}
+    public function eventConnectionAuthorizedAcrossProfiles(string $domain,string $connection,int $admin):bool {
+        if($domain!=='replies'||$connection!==str_repeat('a',32)||$admin!==1)throw new RuntimeException('PRIVATE WRONG AUTHORITY');
+        if(is_file(__DIR__.'/authfail'))throw new RuntimeException('PRIVATE AUTHORITY UNAVAILABLE');
+        return true;
+    }
+}
+class ManagerPreparationMcpService {
+    public function __construct($pdo=null,private $connectionActive=null){if(!is_callable($connectionActive))throw new RuntimeException('PRIVATE MISSING AUTHORITY');}
+    public function hasActiveSubscriptions(){return ($this->connectionActive)(str_repeat('a',32),1)&&!is_file(__DIR__.'/waiting');}public function deliverPending(){return ['subscriptions'=>1,'accepted'=>0,'retried'=>0,'stopped'=>0,'unchanged'=>1];}}
 class ManagerDraftPilotCollector {public static function collect($pdo,$cohort,$limit){return ['ok'=>true,'candidate_count'=>0,'exported_count'=>0,'conversations'=>[]];}}
 class ManagerPreparedReplyService {public static function collectAndEnqueue($cohort){if(is_file(__DIR__.'/enqueuefail'))return ['ok'=>false,'stage'=>'enqueue'];if(is_file(__DIR__.'/collectionfail'))return ['ok'=>false];return ['ok'=>true,'candidate_count'=>0,'exported_count'=>0,'queue'=>['ok'=>true,'inserted'=>0,'existing'=>0,'skipped'=>0]];}}
 PHP;
     file_put_contents($app.'/config.php',$fixture);
     $checkpoint=$tmp.'/max-search-bot-private-logs/manager_preparation_health.json';
-    foreach (['ok'=>0,'waiting'=>0,'collectionfail'=>1,'enqueuefail'=>1,'fail'=>1] as $mode=>$expected) {
+    foreach (['ok'=>0,'waiting'=>0,'authfail'=>1,'collectionfail'=>1,'enqueuefail'=>1,'fail'=>1] as $mode=>$expected) {
         if ($mode!=='ok') file_put_contents($app.'/'.$mode,'1');
         $out=[];$code=-1;exec(escapeshellarg(PHP_BINARY).' '.escapeshellarg($app.'/tools/manager_prepared_replies.php').' tick 2>&1',$out,$code);
         $row=json_decode((string)file_get_contents($checkpoint),true);
-        $state=['ok'=>'ok','waiting'=>'awaiting_connection','collectionfail'=>'failed','enqueuefail'=>'failed','fail'=>'failed'][$mode];
+        $state=['ok'=>'ok','waiting'=>'awaiting_connection','authfail'=>'failed','collectionfail'=>'failed','enqueuefail'=>'failed','fail'=>'failed'][$mode];
         healthCheck('real CLI records '.$mode.' without exposing private error',$code===$expected && ($row['state']??null)===$state && !str_contains(implode("\n",$out),'PRIVATE'));
         if (in_array($mode,['collectionfail','enqueuefail'],true)) healthCheck('real CLI distinguishes '.$mode,($row['stage']??null)===($mode==='enqueuefail'?'enqueue':'collection'));
+        if ($mode==='authfail') healthCheck('unknown authority is not a healthy disconnected reply worker',($row['stage']??null)==='subscription');
         if ($mode==='fail') healthCheck('real CLI catches configuration failure at bootstrap',($row['stage']??null)==='bootstrap');
         if ($mode!=='ok') unlink($app.'/'.$mode);
     }
