@@ -41,8 +41,11 @@ async function bridgeFixture(page){
  const calls=[],events=[],errors=[];let connected=false;
  const target={actor:7,conversation_id:11,client:'Синтетическая Анна',channel:'telegram',trip:'Лето у моря',started_at:'2026-10-23 10:00:00',dates:['2027-06-05'],count:0,version:0,binding:'b'.repeat(64)},connection={id:'c'.repeat(32),expires_at:'2099-01-01 00:00:00'};
  const config={actor:7,csrf:'fixture-csrf',conversation_id:11};
- let shell=fs.readFileSync(path.join(root,'manager/tour-selection-collector.php'),'utf8').split('?><!doctype')[1];
- shell='<!doctype'+shell.replace(/<\?=\$assetVersion\('[^']+'\)\?>/g,'fixture').replace(/<\?=json_encode\(\$config,[\s\S]*?\)\?>/,JSON.stringify(config));
+ const template=fs.readFileSync(path.join(root,'manager/tour-selection-collector.php'),'utf8'),shellStart=template.lastIndexOf('?><!doctype');
+ if(shellStart<0)throw new Error('authenticated collector shell missing');
+ let shell=template.slice(shellStart+2);
+ if(!shell.includes('id="collectorTarget"')||!shell.includes('id="collectorConfig"'))throw new Error('collector fixture must use the authenticated shell');
+ shell=shell.replace(/<\?=\$assetVersion\('[^']+'\)\?>/g,'fixture').replace(/<\?=json_encode\(\$config,[\s\S]*?\)\?>/,JSON.stringify(config));
  page.on('pageerror',error=>errors.push(error.message));
  await page.exposeFunction('collectorFixtureEvent',event=>events.push(event));
  await page.addInitScript(()=>document.addEventListener('anytour-collector-page',event=>window.collectorFixtureEvent(event.detail)));
