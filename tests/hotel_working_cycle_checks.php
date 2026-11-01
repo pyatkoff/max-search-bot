@@ -52,3 +52,4 @@ hccCheck($f['queue']->pendingEvent(901001,$f['conn'],'COLLECTION-SERVICE')['name
 echo "HOTEL WORKING/CYCLE CHECKS PASS\n";
 $p->exec('DROP TABLE hotel_working_imports');
 hccReject(fn()=>$f['service']->status('COLLECTION-SERVICE'),'missing_import_store_fail_closed');
+hccReject(fn()=>$f['queue']->pendingEvent(901001,$f['conn'],'COLLECTION-SERVICE'),'missing_import_never_emits_dispatch','journal_protection_unavailable');

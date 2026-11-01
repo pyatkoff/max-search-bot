@@ -448,6 +448,14 @@ final class HotelWorkQueue
         return $this->transaction(function() use($id,$admin,$connection): ?array {
             $lane=$this->lane(true);$row=$this->owned($id,$admin,$connection,true);
             if(($row['write_protocol']??'legacy')==='journal_v1'&&$row['state']==='ready'){
+                try{
+                    $head=$this->one('SELECT stage_id FROM hotel_journal_heads WHERE queue_id=? AND stage_id=?'.$this->lock(),[$id,$this->stageId($row)]);
+                    if(!$head)throw new HotelWorkQueueConflict('journal_protection_unavailable');
+                    if(($row['data_snapshot_sha256']??null)!==null){
+                        $import=$this->one('SELECT data_sha256 FROM hotel_working_imports WHERE queue_id=?',[$id]);
+                        if(!$import||$import['data_sha256']!==$row['data_snapshot_sha256'])throw new HotelWorkQueueConflict('journal_protection_unavailable');
+                    }
+                }catch(PDOException $unavailable){throw new HotelWorkQueueConflict('journal_protection_unavailable');}
                 $this->ownsLane($row,$lane);
                 try{$pending=$this->one('SELECT event_id FROM hotel_collection_outbox WHERE queue_id=? AND stage_id=? AND state=?'.$this->lock(),[$id,$this->stageId($row),'pending']);}catch(PDOException $missing){$pending=null;}
                 if($pending)return ['event_id'=>'hotel_evt_'.$pending['event_id'],'name'=>'hotel_work.pending','data'=>$this->eventData($row,true)];
@@ -486,6 +494,14 @@ final class HotelWorkQueue
         return $this->transaction(function() use($id,$eventId,$admin,$connection): array {
             $lane=$this->lane(true);$row=$this->owned($id,$admin,$connection,true);$this->ownsLane($row,$lane);
             if(($row['write_protocol']??'legacy')==='journal_v1'&&$row['state']==='ready'){
+                try{
+                    $head=$this->one('SELECT stage_id FROM hotel_journal_heads WHERE queue_id=? AND stage_id=?'.$this->lock(),[$id,$this->stageId($row)]);
+                    if(!$head)throw new HotelWorkQueueConflict('journal_protection_unavailable');
+                    if(($row['data_snapshot_sha256']??null)!==null){
+                        $import=$this->one('SELECT data_sha256 FROM hotel_working_imports WHERE queue_id=?',[$id]);
+                        if(!$import||$import['data_sha256']!==$row['data_snapshot_sha256'])throw new HotelWorkQueueConflict('journal_protection_unavailable');
+                    }
+                }catch(PDOException $unavailable){throw new HotelWorkQueueConflict('journal_protection_unavailable');}
                 try{$outbox=$this->one('SELECT event_id FROM hotel_collection_outbox WHERE queue_id=? AND stage_id=? AND state=?'.$this->lock(),[$id,$this->stageId($row),'pending']);}catch(PDOException $missing){$outbox=null;}
                 if($outbox&&$eventId==='hotel_evt_'.$outbox['event_id']){
                     $this->execute('UPDATE hotel_collection_outbox SET state=? WHERE event_id=?',['delivered',$outbox['event_id']]);return $this->project($row);
