@@ -10,6 +10,7 @@ concurrency:
   cancel-in-progress: false
 env:
   EXPECTED_MAIN_SHA: a8b4c2d1126b0e38d831e0ace9d75554d6e4415b
+  INVOCATION_SOURCE_SHA: e08a9ca70683421396bfcb0e42315b459a09ee91
 jobs:
   migrate083:
     if: github.ref == 'refs/heads/ops/hotel083-canonical-only-20261102' && github.event.before == 'a8b4c2d1126b0e38d831e0ace9d75554d6e4415b' && github.event.created == false && github.event.deleted == false && github.event.forced == false && github.run_attempt == 1
@@ -24,11 +25,12 @@ jobs:
           set -euo pipefail
           umask 077
           test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = "$EXPECTED_MAIN_SHA"
-          gh api "repos/pyatkoff/max-search-bot/contents/tools/direct_demand/operations/hotel083-canonical-invocation.php?ref=$GITHUB_SHA" >"$RUNNER_TEMP/hotel083_canonical_source.json"
+          gh api "repos/pyatkoff/max-search-bot/contents/tools/direct_demand/operations/hotel083-canonical-invocation.php?ref=$INVOCATION_SOURCE_SHA" >"$RUNNER_TEMP/hotel083_canonical_source.json"
           python3 - <<'PY'
           import os,json,pathlib,base64,hashlib
           root=pathlib.Path(os.environ['RUNNER_TEMP'])
           d=json.loads((root/'hotel083_canonical_source.json').read_text());assert d['encoding']=='base64'
+          assert d['sha']=='e27e9ad2fc684165fcc3bf30fb5fb8d5f16da657'
           b=base64.b64decode(d['content']);assert len(b)<16384
           assert hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()==d['sha']
           (root/'hotel083_canonical_stdin.php').write_bytes(b)
