@@ -61,7 +61,7 @@ foreach ($services as $profile=>$service) {
     checkSplit('exact tools '.$profile,array_column($tools['result']['tools']??[],'name')===$expected);
     $events=$invoke(rpcSplit('events/list'));
     checkSplit('exact events '.$profile,array_column($events['result']['events']??[],'name')===($profile==='replies'?['manager_replies.pending']:HotelWorkEventService::EVENTS));
-    foreach (['read_archive_history','read_tour_candidates','claim_virtual_replies','development_work_create',
+    foreach (['read_archive_history','read_tour_candidates','claim_virtual_replies','development_work_create','hotel_knowledge_demand_inventory',
         $profile==='replies'?'hotel_work_create':'get_reply_context'] as $forbidden) {
         $before=count($calls);$denied=$invoke(rpcSplit('tools/call',['name'=>$forbidden,'arguments'=>[]]));
         checkSplit('dispatch denied '.$profile.'/'.$forbidden,($denied['error']['code']??0)===-32601&&count($calls)===$before);
