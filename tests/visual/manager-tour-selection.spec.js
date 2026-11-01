@@ -1293,6 +1293,60 @@ test('automatic gallery unavailable source never asks for three manual uploads',
  await page.locator('[data-ts-fix-field="photos"]').click();await expect(page.locator('#tsOfferDetails')).toHaveAttribute('open','');await expect(page.locator('.tsAutomaticPhotoStatus')).toBeVisible();await expect(page.locator('.tsAutomaticPhotoStatus')).toContainText('Если результат неизвестен, не добавляйте тур повторно');expect(s.creations()).toBe(0);clean(s,deliveryActions);
 });
 
+for(const width of [390,1440])test('imported empty gallery can be corrected in the same saved offer at '+width,async({page,browserName})=>{
+ await page.setViewportSize({width,height:900});const draft=automaticPhotoDraft(0);
+ draft.offers[0].amount='250000';
+ for(const id of ['b','c']){const other=copy(completeDraft().offers[0]);other.id=id.repeat(32);draft.offers.push(other)}
+ const original=copy(draft),s=await fixture(page,{draft});await open(page);
+ await expect(page.locator('.tsPhotoFields input[type=file]')).toHaveCount(0);
+ expect((await page.locator('[data-ts-photo-mode="manual"]').boundingBox()).height).toBeGreaterThanOrEqual(44);
+ await page.locator('[data-ts-photo-mode="manual"]').click();await expect(page.locator('.tsPhotoFields input[type=file]')).toHaveCount(3);
+ expect((await page.locator('[data-ts-photo-mode="auto"]').boundingBox()).height).toBeGreaterThanOrEqual(44);
+ await expect(page.locator('.tsPhotoFields')).toContainText('достаточно одного фото');
+ expect(s.calls.map(x=>x.action)).toEqual(['get']);expect(s.photoUploads).toHaveLength(0);expect(s.drafts.get(11).draft).toEqual(original);
+ await page.locator('#ts-upload-cover').setInputFiles(path.join(root,'assets/owner-tour-cards/compact-v1/cover.jpg'));
+ await expect(page.locator('#tsStatus')).toContainText('Фото добавлено');await expect(page.locator('#tsSaved')).toHaveText('Сохранено на сервере');
+ const stored=copy(s.drafts.get(11).draft);expect(stored.offers[0].photos).toHaveLength(1);expect(stored.offers[0].photos[0].url).toContain('&draft_photo=');
+ stored.offers[0].photos=[];expect(stored).toEqual(original);expect(s.drafts.get(11).draft.offers.map(x=>x.id)).toEqual(original.offers.map(x=>x.id));
+ await page.locator('[data-ts-photo-mode="auto"]').click();await expect(page.locator('.tsAutomaticPhotoStatus')).toHaveText('Фото добавлены менеджером. Проверьте их в предпросмотре.');
+ await expect.poll(()=>page.locator('.tsAutomaticPhotos img').evaluateAll(xs=>xs.length===1&&xs.every(x=>x.complete&&x.naturalWidth>0))).toBe(true);
+ await page.locator('.tsAutomaticPhotos').scrollIntoViewIfNeeded();expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+ fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-selection-photo-correction-${browserName}-${width}.png`)});
+ await page.locator('#tsPreview').click();await expect(page.locator('.tsPreviewCard')).toHaveCount(3);await expect(page.locator('.tsPreviewCard').first().locator('.tsPhotos img')).toHaveCount(1);await expect(page.locator('#tsSend')).toBeEnabled();
+ expect(s.calls.filter(x=>x.action==='save')).toHaveLength(1);expect(s.creations()).toBe(0);clean(s,deliveryActions);
+});
+
+test('imported gallery correction preserves sibling photos and original quote',async({page})=>{
+ const draft=automaticPhotoDraft(3),original=copy(draft),s=await fixture(page,{draft});await open(page);
+ await page.locator('[data-ts-photo-mode="manual"]').click();await page.locator('#ts-upload-cover').setInputFiles(path.join(root,'assets/owner-tour-cards/compact-v1/cover.jpg'));
+ await expect(page.locator('#tsStatus')).toContainText('Фото добавлено');await expect(page.locator('#tsSaved')).toHaveText('Сохранено на сервере');
+ const stored=copy(s.drafts.get(11).draft);expect(stored.offers[0].photos.slice(1)).toEqual(original.offers[0].photos.slice(1));stored.offers[0].photos=original.offers[0].photos;expect(stored).toEqual(original);
+ await page.locator('[data-ts-photo-mode="auto"]').click();await expect(page.locator('.tsAutomaticPhotoStatus')).toContainText('дополнены или заменены менеджером');await expect(page.locator('.tsUploadedLabel').filter({hasText:'Из галереи источника'})).toHaveCount(2);
+ expect(s.creations()).toBe(0);clean(s);
+});
+
+test('imported empty gallery correction obeys readonly access',async({page})=>{
+ const draft=automaticPhotoDraft(0),s=await fixture(page,{draft,readOnly:true});await open(page);await expect(page.locator('[data-ts-photo-mode="manual"]')).toBeDisabled();
+ expect(s.photoUploads).toHaveLength(0);expect(s.calls.map(x=>x.action)).toEqual(['get']);expect(s.drafts.get(11).draft).toEqual(draft);clean(s);
+});
+
+test('older imported offer keeps its existing three-role preview requirement',async({page})=>{
+ const draft=automaticPhotoDraft(0);delete draft.offers[0].import_source.photos;const original=copy(draft),s=await fixture(page,{draft});await open(page);
+ await page.locator('[data-ts-photo-mode="manual"]').click();await expect(page.locator('.tsPhotoFields')).toContainText('нужны фото отеля, пляжа или бассейна и пример номера');
+ await page.locator('#ts-upload-cover').setInputFiles(path.join(root,'assets/owner-tour-cards/compact-v1/cover.jpg'));await expect(page.locator('#tsStatus')).toContainText('Фото добавлено');
+ const stored=copy(s.drafts.get(11).draft);expect(stored.offers[0].photos).toHaveLength(1);stored.offers[0].photos=[];expect(stored).toEqual(original);
+ const prepared=page.waitForResponse(r=>r.url().includes('/tour-selections-api.php')&&r.request().postDataJSON()?.action==='prepare');await page.locator('#tsPreview').click();
+ expect(await (await prepared).json()).toMatchObject({ok:false,error:'incomplete_offers',fields:[{offer_id:draft.offers[0].id,fields:['photos']}]});
+ await expect(page.locator('#tsStatus')).toContainText('фото отеля');await expect(page.locator('#tsSend')).toBeHidden();expect(s.creations()).toBe(0);clean(s,deliveryActions);
+});
+
+test('imported photo correction pending upload cannot write to the next client',async({page})=>{
+ const draft=automaticPhotoDraft(0),s=await fixture(page,{draft,uploadMode:'hold'});await open(page);await page.locator('[data-ts-photo-mode="manual"]').click();
+ await page.locator('#ts-upload-cover').setInputFiles(path.join(root,'assets/owner-tour-cards/compact-v1/cover.jpg'));await expect.poll(()=>s.photoUploads.length).toBe(1);await expect(page.locator('[data-ts-photo-mode="auto"]')).toBeDisabled();
+ await page.locator('#tsClose').click();await page.locator('#inboxList [data-conversation-id="12"]').click();await open(page);s.releaseUpload();
+ await expect(page.locator('#tsEmptyAdd')).toBeVisible();expect(s.drafts.has(12)).toBe(false);expect(s.calls.filter(x=>x.action==='save')).toHaveLength(0);expect(s.drafts.get(11).draft).toEqual(draft);clean(s);
+});
+
 const {privateEditor}=require('./fixtures/selection-private-editor');
 for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420},{width:430,height:420}])test('private editor uses the same protected core in tours iframe '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
  await page.setViewportSize(viewport);const s=await privateEditor(page,{draft:completeDraft()}),f=s.editor;await f.locator('#tsOfferDetails>summary').click();
