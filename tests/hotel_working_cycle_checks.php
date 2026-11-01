@@ -47,7 +47,7 @@ $accept=$f['service']->finalizeIntake('COLLECTION-SERVICE',$review['intake_stage
 hccCheck($accept['business_accepted']===true&&$accept['accepted_batches']===1,'atomic_cycle_accepted_once');
 hccCheck($f['service']->finalizeIntake('COLLECTION-SERVICE',$review['intake_stage_id'],1,$f['control'],'finalize-one',hash('sha256',$verdict),$a['base_revision'],$a['base_snapshot_sha256'])===$accept,'finalize_lost_ack_replay_no_second_batch');
 hccCheck((int)$p->query('SELECT stage_index FROM hotel_work_queues')->fetchColumn()===2,'same_queue_advances_research_and_intake');
-hccCheck((int)$p->query('SELECT COUNT(*) FROM hotel_collection_outbox')->fetchColumn()===2,'durable_next_stage_outbox');
+hccCheck((int)$p->query('SELECT COUNT(*) FROM hotel_collection_outbox')->fetchColumn()===3,'durable_initial_research_and_intake_outbox');
 hccCheck($f['queue']->pendingEvent(901001,$f['conn'],'COLLECTION-SERVICE')['name']==='hotel_work.pending','acceptance_next_event_uses_same_cron');
 echo "HOTEL WORKING/CYCLE CHECKS PASS\n";
 $p->exec('DROP TABLE hotel_working_imports');
