@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once dirname(__DIR__).'/config.php';
 require_once __DIR__.'/lib/ManagerHttp.php';
+ProjectAccessService::initializeReadOnly();
 ManagerHttp::startJson();$manager=ManagerHttp::requireManager();
 if (($_SERVER['REQUEST_METHOD']??'')!=='POST') ManagerHttp::respond(['ok'=>false,'error'=>'method_not_allowed'],405);
 $data=ManagerHttp::body();ManagerHttp::requireCsrf($data);
@@ -25,4 +26,5 @@ if (($data['action']??null)==='editor_context') {
 $resource=$data['editor_resource']??null;
 if ($resource==='tour-selections-api.php') require __DIR__.'/tour-selections-api.php';
 elseif ($resource==='tour-selection-photo.php') require __DIR__.'/tour-selection-photo.php';
+elseif ($resource==='hotel-knowledge-api.php') require __DIR__.'/hotel-knowledge-api.php';
 else ManagerHttp::respond(['ok'=>false,'error'=>'invalid_editor_resource'],422);

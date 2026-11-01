@@ -77,4 +77,6 @@ $conversation=$p->query('SELECT * FROM conversations WHERE id=1')->fetch();$refs
 $wire=json_encode(ManagerDraftClient::requestBody(ManagerAiDraftService::instructions($prepared['context']),$prepared['context']),ManagerRequestProfile::FLAGS);
 profileCheck('actual conditional instruction bytes cannot exceed provider cap',strlen($wire)<=ManagerDraftClient::MAX_REQUEST_BYTES);
 profileCheck('oversize optional profile is explicitly omitted without shortening transcript',!isset($prepared['context']['request_profile'])&&!empty($prepared['context']['reference_coverage']['payload_omitted'])&&$prepared['context']['messages']===ManagerAiDraftService::prepareInput($edge)['context']['messages']);
+require_once __DIR__.'/hotel_current_trip_focus_checks.php';
+hotelCurrentTripFocusChecks();
 echo 'TOTAL '.$passed.' | PASS '.$passed.' | FAIL 0'."\n";

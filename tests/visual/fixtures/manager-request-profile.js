@@ -6,7 +6,7 @@ async function setupRequestProfile(page,options={}){
   const directory=fs.mkdtempSync(path.join(os.tmpdir(),'manager-request-profile-'));
   let server,isolated;
   try{
-    const fixture=JSON.parse(execFileSync('php',[path.join(root,'tests/support/manager-request-profile-http.php'),directory,'visual'],{cwd:root,encoding:'utf8'}));
+    const fixture=JSON.parse(execFileSync('php',[path.join(root,'tests/support/manager-request-profile-http.php'),directory,'visual',options.mode||'default'],{cwd:root,encoding:'utf8'}));
     const port=await new Promise((resolve,reject)=>{const s=net.createServer();s.once('error',reject);s.listen(0,'127.0.0.1',()=>{const port=s.address().port;s.close(()=>resolve(port))})});
     const origin='http://127.0.0.1:'+port;
     let log='';server=spawn('php',['-d','session.save_path='+fixture.sessions,'-S','127.0.0.1:'+port,'-t',fixture.webroot],{cwd:root,stdio:['ignore','pipe','pipe']});
@@ -30,6 +30,7 @@ async function setupRequestProfile(page,options={}){
     await page.goto(origin+'/manager2/request-profile.php?conversation=1');
     return{root,origin,fixture,calls,actualResponses,errors,unexpected,queue:(...responses)=>queued.push(...responses),heldCount:()=>held.length,release:()=>held.shift()?.(),log:()=>log,
       mutate:sql=>execFileSync('php',['-r',"$p=new PDO('sqlite:'.$argv[1]);$p->exec($argv[2]);",fixture.database,sql],{encoding:'utf8'}),
+      secondHotelInquiry:(id=15)=>execFileSync('php',['-r',"require $argv[1];$p=new PDO('sqlite:'.$argv[2],null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);requestProfileSecondHotelInquiry($p,(int)$argv[3]);",path.join(root,'tests/support/manager-request-profile-fixture.php'),fixture.database,String(id)],{encoding:'utf8'}),
       cleanup:async()=>{await isolated.dispose();held.splice(0).forEach(resolve=>resolve());server.kill('SIGTERM');await new Promise(resolve=>{if(server.exitCode!==null)return resolve();server.once('exit',resolve)});fs.rmSync(directory,{recursive:true,force:true})}};
 
   }catch(error){await isolated?.dispose();server?.kill('SIGTERM');fs.rmSync(directory,{recursive:true,force:true});throw error}

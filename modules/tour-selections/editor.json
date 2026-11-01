@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "name": "anytour-selection-editor",
-  "version": "0.2.3",
+  "version": "0.2.5",
   "contract": "tour-selection-editor-host-v1",
   "files": {
     "editor.js": "manager/assets/workspace-v2-tour-selection.js",
@@ -36,6 +36,10 @@
     "manager/assets/manager-http-client.js",
     "manager/assets/manager-time.js",
     "modules/tour-selections/editor-app.php",
-    "modules/tour-selections/editor-tours.php"
+    "modules/tour-selections/editor-tours.php",
+    "manager/hotel-knowledge-api.php",
+    "services/ManagerHotelKnowledgeReadService.php",
+    "services/ManagerHotelOfferReference.php",
+    "services/ManagerHotelKnowledge.php"
   ]
 }

@@ -571,3 +571,78 @@ receipt/use nor the actual model, complete host/system/task/chat input or its
 transformations. External model input remains `unknown`. Preview, validation and
 journal reads never reconstruct that history. Automatic sending, operator modes,
 provider configuration and the existing worker schedule remain unchanged.
+
+### Hotel clarification in the current trip
+
+The request profile can explicitly confirm one exact accepted hotel offer after
+a customer's clarification. Its candidate is evidence from a retained native
+web-selection inquiry, validated by the existing hotel reference owner. Finding
+an earlier inquiry only offers a candidate to the manager; it never restores
+its facts automatically. Names, edited offer labels and client/manager opinions
+cannot establish hotel identity or become accepted research facts.
+
+In the existing request profile, the manager reviews the latest message and
+actual party/criteria, chooses the exact offer, checks the current-trip
+confirmation and saves the profile. The immutable profile version retains
+server-resolved offer and knowledge pins. A new message needs another review;
+a new trip, newer selected offer, changed source or changed knowledge cannot
+silently reuse the old confirmation. Native inquiry metadata remains separate
+from ordinary text citations and cannot become a text boundary by this feature.
+This finite scenario starts with an ordinary request before the selected-offer
+inquiry. A conversation beginning with the inquiry and having no earlier
+eligible request message still needs a separately designed boundary; it is not
+silently supported by treating inquiry metadata as customer text.
+
+Only the fresh confirmed binding can supply the hotel reference to the existing
+AI draft path after a plain clarification. The profile, exact offer, accepted
+facts, source dates, scopes and limitations then travel in the same normalized
+input captured by existing manual/prepared evidence receipts. This does not
+attest to unknown external host/model input or prove natural manager use.
+Answers must address the latest question: hard requirements are suitable,
+unsuitable or need clarification; preferences explain benefits and material
+tradeoffs. Unknown child capacity, beach conditions or meal coverage remain
+explicit checks. Hotel declarations do not verify current price, availability,
+operator room/meal equivalence or operation on future travel dates.
+
+The existing draft workflow and operator modes remain unchanged. First-cohort
+demand selection, constructor consumption and automatic sending are separate
+subsequent acceptance steps; none is activated by profile confirmation.
+
+### Shared exact-offer hotel knowledge in the selection editor
+
+The legacy administrator MCP capability `hotel_knowledge_demand_inventory`
+prepares a bounded cohort decision from existing immutable publications. It
+accepts only `limit` (1–20, default20); it does not research, import or change a
+queue. The caller must retain the returned window, omissions and unknowns.
+Prepared offers are not sent: verified deliveries require agreement between the
+canonical saved delivery, prepared snapshot, native event and transcript mirror.
+Native inquiries require the exact publication/card and their matching inbound
+mirror. These are evidence counts within the reported sample, never unique
+people/trips or a complete/current popularity ranking. Known test and internal
+owner sessions are excluded; remaining sessions are explicitly unclassified.
+
+Only the common accepted typed bridge supplies an identified hotel's facts.
+Available groups pin the binding, research hotel, fact/source IDs and accepted
+bundle revision independently of per-offer provenance. A name alone or a name
+conflict cannot inherit another property's accepted facts. Pick ready groups
+with observed evidence first, disclose how many of the target15–20 are actually
+covered, and route precise gaps to the existing research owner. Do not create
+another research stream or treat this technical capability as cohort acceptance.
+The read uses its own bounded read-only transaction and a fresh administrator /
+connection check after packaging. Restricted reply/hotel endpoints do not expose
+the capability. The full MCP response, including its duplicate text/structured
+content and RPC ID, is capped at256KiB. This tool's string RPC IDs are limited
+to4096bytes before any authorization/argument error can echo them. It returns no transcripts, customer or
+manager identifiers, private publication URLs, room/price terms or full fact text.
+
+Native AI selection and saved-offer reads use `ManagerHotelOfferReference` over the existing accepted hotel base. They preserve the same fact group, source records and binding revision. The internal reader accepts only a server-saved working draft version plus offer ID, or an immutable publication ID plus card index within an authorized conversation. A hotel display name or caller-supplied hotel ID is never a binding.
+
+The manager-only `POST /manager/hotel-knowledge-api.php` requires the current session and CSRF. Supply `conversation_id` and either `{kind: "working_draft", draft_version, offer_id}` or `{kind: "publication", publication_id, card_index}`. The normal manager client may add `action: "read"`; any other action is rejected. The reader rechecks conversation access, saved selection and the session after reading. It returns no-store JSON and never changes a draft, source message, read marker or research data.
+
+An available fact group is property evidence only. `current_trip_link`, `customer_choice_verified` and `offer_conditions_verified` remain false; price, availability, meal equivalence and future operation need their own checks. The AI current-trip confirmation keeps its separate profile/context pins. Unknown, conflicting or unavailable hotel evidence must be presented as such.
+
+In the selection editor, save the selected option and click «Сведения об отеле». The same component runs in Manager2 and the protected standalone editor. The editor gateway routes the read through its current actor/resource guard and the canonical manager endpoint; it does not create project records while authorizing the read. Validated editor transport fields are removed before the strict saved-offer lookup. The packaged editor includes these backend dependencies in its compatibility fingerprint.
+
+The panel displays the accepted fact group, category/facility scope, partial coverage, unknowns, source conflicts, source dates and binding revision. Reading never confirms a current trip or a supplier condition. It is disabled for unsaved/conflicting/pending changes. Changing an offer, editing, closing, suspending the account or receiving a stale version clears old facts; late replies cannot repopulate them. A visible read-only conversation may read facts without gaining editing or sending authority. Original source records remain in the response; internal research tool-citation tokens are omitted only from the presentation of source notes.
+
+Package code and controlled UI/HTTP checks are distinct from installation and natural manager use. Import/editor ownership and the existing research queue remain unchanged.

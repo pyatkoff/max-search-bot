@@ -13,17 +13,20 @@ final class ManagerRequestProfileService
             $scope=self::scope($pdo,$actor,$cid);if(!$scope)return self::error('forbidden');
             $pdo->beginTransaction();$row=self::latest($pdo,$cid);$context=self::context($pdo,$cid,self::ids($row));
             $view=self::view($row,$context);if($row&&!$view['changed_sources'])$view['status']=hash_equals($row['context_sha256'],self::basis($scope,$context))?'fresh':'needs_review';
+            $focus=self::focus($pdo,$scope['conversation'],$row,$context,$view);
+            $view['hotel_focus']=$focus['view'];
+            $candidates=ManagerRequestHotelFocus::candidates($pdo,$scope['conversation'],$context,(int)($row['boundary_message_id']??0));
             $history=self::history($pdo,$cid);$pdo->commit();
             $after=self::scope($pdo,$actor,$cid);
             if(!$after||self::scopeKey($scope)!==self::scopeKey($after))return self::error('forbidden');
-            $sources=[];foreach($context['sources'] as $s){$s['text_truncated']=mb_strlen($s['text'])>6000;$s['text']=mb_substr($s['text'],0,6000);$sources[]=$s;}
+            $sources=[];foreach($context['sources'] as $s){unset($s['hotel_inquiry'],$s['hotel_readable']);$s['text_truncated']=mb_strlen($s['text'])>6000;$s['text']=mb_substr($s['text'],0,6000);$sources[]=$s;}
             $party=null;$lastCustomer=null;foreach($context['sources'] as $s)if($s['sender_type']==='customer')$lastCustomer=$s;
             if($lastCustomer&&!empty($lastCustomer['customer_statement_eligible'])&&mb_strlen($lastCustomer['text'])<=600){$v=ManagerRequestProfile::explicitParty($lastCustomer['text']);$old=$view['fields']['party']['citation']['message_id']??0;
                 if($v!==null&&$lastCustomer['id']>$old)$party=['value'=>$v,'source_id'=>$lastCustomer['id'],'quote'=>$lastCustomer['text']];}
             return ['ok'=>true,'viewer_id'=>$actor,'conversation_id'=>$cid,'can_edit'=>$scope['can_edit'],
                 'context_sha256'=>self::basis($scope,$context),'latest_message_id'=>$context['latest'],
                 'sources'=>$sources,'coverage_incomplete'=>$context['incomplete'],'profile'=>$view,'history'=>$history,
-                'party_suggestion'=>$party,'field_labels'=>ManagerRequestProfile::FIELDS];
+                'party_suggestion'=>$party,'field_labels'=>ManagerRequestProfile::FIELDS,'hotel_focus_candidates'=>$candidates];
         }catch(Throwable $ignored){if($pdo->inTransaction())$pdo->rollBack();return self::error('profile_unavailable');}
     }
 
@@ -35,7 +38,7 @@ final class ManagerRequestProfileService
                 ||!self::hex($input['operation_id']??null,32)||!is_int($input['boundary_message_id']??null)
                 ||!is_bool($input['new_trip']??null)||!ManagerRequestProfile::text($input['label']??null,120,false)
                 ||!is_array($input['fields']??null))return self::error('invalid_profile');
-            $command=array_intersect_key($input,array_flip(['version','context_sha256','operation_id','boundary_message_id','new_trip','label','fields']));
+            $command=array_intersect_key($input,array_flip(['version','context_sha256','operation_id','boundary_message_id','new_trip','label','fields','hotel_focus']));
             $request=hash('sha256',json_encode($command,ManagerRequestProfile::FLAGS));
             if($pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql')$pdo->exec('SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
             $pdo->beginTransaction();$lock=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?' FOR UPDATE':'';
@@ -56,11 +59,22 @@ final class ManagerRequestProfileService
             // Validate against the editor's observed sources; persist only sources retained by the new version.
             $savedContext=$ctx;$keep=array_fill_keys([...$ctx['window_ids'],$boundary,...array_column(array_column($fields,'citation'),'message_id')],true);
             $savedContext['sources']=array_intersect_key($ctx['sources'],$keep);
-            $profile=['schema_version'=>1,'label'=>trim($input['label']),'fields'=>$fields];$json=json_encode($profile,ManagerRequestProfile::FLAGS);
+            $previous=$row?json_decode($row['profile_json'],true,64,JSON_THROW_ON_ERROR):[];
+            $trip=$row&&!$input['new_trip']?$row['trip_id']:bin2hex(random_bytes(16));$version=$input['version']+1;
+            $profile=['schema_version'=>1,'label'=>trim($input['label']),'fields'=>$fields];
+            if(array_key_exists('hotel_focus',$input)){
+                $profile['hotel_focus']=ManagerRequestHotelFocus::confirm($pdo,$scope['conversation'],$ctx,$boundary,$input['hotel_focus'],
+                    self::basis($scope,$savedContext),ManagerRequestHotelFocus::profileHash($trip,$boundary,$profile['label'],$fields));
+            }elseif(array_key_exists('hotel_focus',$previous)){
+                // Omission by an older client cannot reconfirm changed context
+                // or criteria. Keep the original confirmation pins unchanged.
+                $profile['hotel_focus']=$input['new_trip']?null:$previous['hotel_focus'];
+            }
+            $json=json_encode($profile,ManagerRequestProfile::FLAGS);
             if(strlen($json)>ManagerRequestProfile::MAX_BYTES)throw new InvalidArgumentException('profile_too_large');
             $before=$row?json_decode($row['profile_json'],true,64,JSON_THROW_ON_ERROR)['fields']:[];$changed=[];
             foreach(ManagerRequestProfile::FIELDS as $key=>$unused)if(($before[$key]??null)!==($fields[$key]??null))$changed[]=$key;
-            $trip=$row&&!$input['new_trip']?$row['trip_id']:bin2hex(random_bytes(16));$version=$input['version']+1;
+            if(($previous['hotel_focus']??null)!==($profile['hotel_focus']??null))$changed[]='hotel_focus';
             $q=$pdo->prepare('INSERT INTO manager_request_profiles (conversation_id,version,trip_id,boundary_message_id,manager_id,operation_id,request_sha256,context_sha256,profile_json,profile_sha256,changed_fields_json,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)');
             $q->execute([$cid,$version,$trip,$boundary,$actor,$input['operation_id'],$request,self::basis($scope,$savedContext),$json,hash('sha256',$json),json_encode($changed,ManagerRequestProfile::FLAGS),gmdate('Y-m-d H:i:s')]);
             $after=self::scope($pdo,$actor,$cid);if(!$after||!$after['can_edit']||self::scopeKey($scope)!==self::scopeKey($after)){$pdo->rollBack();return self::error('forbidden');}
@@ -81,14 +95,35 @@ final class ManagerRequestProfileService
     }
 
     /** Inside the already-authorized canonical AI read transaction. No writes/auth bootstrap. */
-    public static function forContext(PDO $pdo,array $conversation,array $context): ?array
+    public static function forContext(PDO $pdo,array $conversation,array $context,?array &$hotelReference=null): ?array
     {
+        $hotelReference=null;
         if(($conversation['project_key']??null)!=='anytour')return null;
         try{$r=self::latest($pdo,(int)$conversation['id']);if(!$r)return null;$ctx=self::context($pdo,(int)$conversation['id'],self::ids($r));
             $view=self::view($r,$ctx);$scope=['conversation'=>$conversation];
             $view['status']=$view['changed_sources']?'source_changed':($ctx['latest']===($context['as_of_message_id']??null)&&$r['context_sha256']===self::basis($scope,$ctx)&&!$view['changed_sources']?'fresh':'needs_review');
+            if(array_key_exists('hotel_focus',$view)){
+                $focus=self::focus($pdo,$conversation,$r,$ctx,$view);$view['hotel_focus']=$focus['view'];
+                $hotelReference=$focus['reference'];
+                if($hotelReference!==null)$hotelReference['request_profile_focus']=hash('sha256',json_encode([
+                    $view['trip_id'],$view['version'],$view['hotel_focus']['message_id'],$view['hotel_focus']['revision'],
+                ],ManagerRequestProfile::FLAGS));
+            }
             unset($view['saved_by']);
+            // Source text is private; typed identity and revision pins are not
+            // prose and must remain exact for the final provider admission gate.
+            $hasFocus=array_key_exists('hotel_focus',$view);$typedFocus=$view['hotel_focus']??null;$tripId=$view['trip_id'];unset($view['hotel_focus']);
             array_walk_recursive($view,static function(&$v){if(is_string($v)){$a=false;$b=false;$v=ManagerAiTextRedactor::redact($v,$a,$b);}});
+            $view['trip_id']=$tripId;
+            if($hasFocus){
+                if($typedFocus!==null){
+                    foreach(['selected_hotel','selected_room'] as $key){$a=false;$b=false;$typedFocus[$key]=ManagerAiTextRedactor::redact($typedFocus[$key],$a,$b);}
+                    foreach(['hotel','departure','room','meal','rationale','compromise','destination','flights','inclusions','constraints'] as $key){
+                        if(is_string($typedFocus['public_offer'][$key]??null)){$a=false;$b=false;$typedFocus['public_offer'][$key]=ManagerAiTextRedactor::redact($typedFocus['public_offer'][$key],$a,$b);}
+                    }
+                }
+                $view['hotel_focus']=$typedFocus;
+            }
             return $view;
         }catch(Throwable $ignored){try{$q=$pdo->prepare('SELECT version FROM manager_request_profiles WHERE conversation_id=? ORDER BY version DESC LIMIT 1');$q->execute([(int)$conversation['id']]);$v=$q->fetchColumn();return $v?['status'=>'unavailable','version'=>(int)$v,'fields'=>[]]:null;}catch(Throwable $missing){return null;}}
     }
@@ -128,10 +163,14 @@ final class ManagerRequestProfileService
     }
     private static function source(array $r): array
     {
-        $raw=(string)($r['text']??'');$meta=(string)($r['metadata']??'');$decoded=$meta===''?[]:json_decode($meta,true,32);$bad=!is_array($decoded)||($decoded['type']??'message')!=='message'||strlen($raw)>80000||strlen($meta)>8192||preg_match('//u',$raw)!==1;
+        $raw=(string)($r['text']??'');$meta=(string)($r['metadata']??'');$decoded=$meta===''?[]:json_decode($meta,true,32);
+        $readable=is_array($decoded)&&strlen($raw)<=80000&&strlen($meta)<=8192&&preg_match('//u',$raw)===1;
+        $bad=!$readable||($decoded['type']??'message')!=='message';
         $hash=hash('sha256',json_encode([(int)$r['id'],$r['direction'],$r['sender_type'],$r['created_at'],hash('sha256',$raw),hash('sha256',$meta)],ManagerRequestProfile::FLAGS));
         $a=false;$b=false;$text=$bad?'':ManagerAiTextRedactor::redact($r['direction']==='outbound'?htmlspecialchars_decode($raw,ENT_QUOTES):$raw,$a,$b);
-        return ['id'=>(int)$r['id'],'sender_type'=>$r['sender_type'],'text'=>$text,'sha256'=>$hash,'unavailable'=>$bad,'customer_statement_eligible'=>!$bad&&$r['direction']==='inbound'&&$r['sender_type']==='customer'&&empty($decoded['linked_message']),'media_unread'=>!empty($decoded['attachments'])||!empty($decoded['linked_message'])];
+        return ['id'=>(int)$r['id'],'sender_type'=>$r['sender_type'],'text'=>$text,'sha256'=>$hash,'unavailable'=>$bad,'customer_statement_eligible'=>!$bad&&$r['direction']==='inbound'&&$r['sender_type']==='customer'&&empty($decoded['linked_message']),'media_unread'=>!empty($decoded['attachments'])||!empty($decoded['linked_message']),
+            'hotel_inquiry'=>is_array($decoded)&&($decoded['type']??null)==='tour_web_inquiry'&&$r['direction']==='inbound'&&$r['sender_type']==='customer',
+            'hotel_readable'=>$readable];
     }
     private static function view(?array $row,array $ctx): array
     {
@@ -139,7 +178,14 @@ final class ManagerRequestProfileService
         $p=json_decode($row['profile_json'],true,64,JSON_THROW_ON_ERROR);$changed=[];
         foreach($p['fields'] as $key=>$f)if($f['citation']){$c=$f['citation'];$s=$ctx['sources'][$c['message_id']]??null;if(!$s||$s['unavailable']||!hash_equals($c['sha256'],$s['sha256']))$changed[]=$key;}
         return ['version'=>(int)$row['version'],'trip_id'=>$row['trip_id'],'boundary_message_id'=>(int)$row['boundary_message_id'],'label'=>$p['label'],'fields'=>$p['fields'],
-            'status'=>$changed?'source_changed':'needs_review','changed_sources'=>$changed,'saved_by'=>(int)$row['manager_id'],'saved_at'=>$row['created_at'],'confirmed_context_sha256'=>$row['context_sha256']];
+            'status'=>$changed?'source_changed':'needs_review','changed_sources'=>$changed,'saved_by'=>(int)$row['manager_id'],'saved_at'=>$row['created_at'],'confirmed_context_sha256'=>$row['context_sha256']]
+            +(array_key_exists('hotel_focus',$p)?['hotel_focus'=>$p['hotel_focus']]:[]);
+    }
+    private static function focus(PDO $pdo,array $conversation,?array $row,array $ctx,array $view): array
+    {
+        if(!$row||!isset($view['hotel_focus']))return ['view'=>null,'reference'=>null];
+        return ManagerRequestHotelFocus::inspect($pdo,$conversation,$ctx,(int)$row['boundary_message_id'],$view['hotel_focus'],
+            self::basis(['conversation'=>$conversation],$ctx),ManagerRequestHotelFocus::profileHash($row['trip_id'],(int)$row['boundary_message_id'],$view['label'],$view['fields']),$view['status']);
     }
     private static function history(PDO $pdo,int $cid): array{$q=$pdo->prepare('SELECT version,manager_id,trip_id,changed_fields_json,created_at FROM manager_request_profiles WHERE conversation_id=? ORDER BY version DESC LIMIT 5');$q->execute([$cid]);$out=[];foreach($q->fetchAll(PDO::FETCH_ASSOC) as $r){$r['changed_fields']=json_decode($r['changed_fields_json'],true,8,JSON_THROW_ON_ERROR);unset($r['changed_fields_json']);$out[]=$r;}return $out;}
     private static function hex($v,int $n): bool{return is_string($v)&&preg_match('/\A[a-f0-9]{'.$n.'}\z/D',$v)===1;}

@@ -48,7 +48,9 @@ final class ManagerAiDraftReferenceContext
         $data=['origin_posts'=>$posts,'travel_reference'=>$travel,'hotel_reference'=>$hotel];
         $working=ManagerTourSelectionReferenceContext::capture($pdo,$conversation,$context);
         if($working!==null)$data['working_selection']=$working;
-        $profile=ManagerRequestProfileService::forContext($pdo,$conversation,$context);
+        $focusReference=null;
+        $profile=ManagerRequestProfileService::forContext($pdo,$conversation,$context,$focusReference);
+        if($focusReference!==null&&($hotel['status']??null)!=='available')$data['hotel_reference']=$focusReference;
         if($profile!==null)$data['request_profile']=$profile;
         return new self(self::binding($context), $data);
     }
