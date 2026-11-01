@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once dirname(__DIR__).'/services/HotelQuarantinedIntake.php';
+require_once dirname(__DIR__).'/services/HotelQuarantinedIntakeRuntime.php';
 
 // A genuinely concurrent old client: it does not load the new PHP write guard.
 if(($argv[1]??'')==='--quarantine-old-writer-child'){
@@ -78,6 +79,12 @@ $args=['COLLECTION-SERVICE',$stage,$control,'stage-original',str_repeat('b',32),
 $badMembers=$f['members'];$name=array_key_first($badMembers);$badMembers[$name].='changed';
 hccReject(fn()=>HotelQuarantinedPacket::inspect($f['working'],$f['packetBytes'],$badMembers,$before[0],['protected-hotel']),'quarantined_modified_evidence_member');
 hccReject(fn()=>HotelQuarantinedPacket::inspect($f['working'],$f['packetBytes'],$f['members'],$before[0],['hotel-a']),'quarantined_protected_scope_denied');
+$plan=['admin_id'=>901001,'connection_id'=>$f['conn'],'queue_id'=>'COLLECTION-SERVICE','stage_id'=>$stage,'control_capability'=>$control,
+    'stage_request_id'=>'stage-original','finalize_request_id'=>'accept-original','review_task_id'=>str_repeat('b',32),'packet_sha256'=>$f['packetSha'],
+    'packet_bytes'=>$f['packetBytes'],'members'=>$f['members'],'protected_hotel_keys'=>['protected-hotel'],'setup'=>['dispatch_allowed'=>true],'replacement_worker_setup'=>['dispatch_allowed'=>true]];
+$preRuntime=new HotelQuarantinedIntakeRuntime($p,$f['clock']);$off=$plan;$off['replacement_worker_setup']['dispatch_allowed']=false;
+hccCheck($preRuntime->tick([$off])===0&&(int)$p->query('SELECT COUNT(*) FROM hotel_quarantined_intakes')->fetchColumn()===0,'quarantined_cron_false_mirror_cannot_stage');
+hccCheck($preRuntime->tick([$plan])===0,'quarantined_cron_stages_original_then_waits');
 $staged=$intake->stage(...$args);
 hccCheck($staged===$intake->stage(...$args),'quarantined_stage_exact_replay');
 hccCheck($before===$p->query('SELECT * FROM hotel_work_queues')->fetchAll(PDO::FETCH_ASSOC)&&$history===$p->query('SELECT * FROM hotel_work_receipts ORDER BY stage_index')->fetchAll(PDO::FETCH_ASSOC),'quarantined_stage_preserves_claim_and_research_receipts');
@@ -87,10 +94,13 @@ $api=new HotelWorkMcpAdapter($p,$f['queue'],$f['clock']);hccReject(fn()=>$api->c
 $events=[];$webhook=new ManagerPreparationWebhook(static function(string$u,array$h,string$b)use(&$events):array{$v=json_decode($b,true);if(($v['type']??null)==='verification')return['status'=>200,'body'=>json_encode(['challenge'=>$v['challenge']])];$events[]=$v;return['status'=>202,'body'=>''];},static fn(string$h):array=>['93.184.216.34'],$f['clock']);
 [$eventService,$sub,$proof]=hnaSubscribe($f,$webhook,'reviewer',str_repeat('b',32));
 $native=new HotelNativeAutomationAdapter($p,901001,$f['conn'],$webhook,$f['clock']);$native->bind('COLLECTION-SERVICE','reviewer',str_repeat('b',32),$sub['id'],$proof);
+$factory=static fn(array$plan)=>$native;$runtime=new HotelQuarantinedIntakeRuntime($p,$f['clock'],$factory);
+$off=$plan;$off['setup']['dispatch_allowed']=false;hccCheck($runtime->tick([$off])===0,'quarantined_cron_false_flag_inert');
+hccCheck($runtime->tick([$plan])===0&&count($events)===0,'quarantined_cron_waits_for_fresh_delivery');
 $pending=$f['queue']->pendingEvent(901001,$f['conn'],'COLLECTION-SERVICE');hccCheck($pending['event_id']===$staged['event_id'],'quarantined_same_claim_fresh_cron_outbox');
 $f['queue']->markEventDelivered(901001,$f['conn'],'COLLECTION-SERVICE',$pending['event_id']);
 $coordinator=new HotelCollectionCoordinator($p,901001,$f['conn'],$native,$f['clock']);$route=['operation_id'=>$staged['operation_id'],'task_id'=>str_repeat('b',32),'request_id'=>'original-review-dispatch','worker_capability'=>$staged['review_capability']];
-$coordinator->dispatch('COLLECTION-SERVICE',$stage,1,$control,$pending['event_id'],$route);
+hccCheck($runtime->tick([$plan])===1&&$runtime->tick([$plan])===0,'quarantined_cron_dispatch_once_then_waits_UNKNOWN');
 hccCheck(count($events)===1&&$events[0]['name']==='hotel_work.review_ready'&&$events[0]['data']['role']==='reviewer','quarantined_only_CENTRAL_event_no_producer');
 $view=$api->call('hotel_work_review_context',$ra,901001,$f['conn']);$duplicate=$ra;$duplicate['instance_id']='another-native-instance';hccReject(fn()=>$api->call('hotel_work_review_context',$duplicate,901001,$f['conn']),'quarantined_duplicate_instance_denied');
 $wrong=$ra;$wrong['review_capability']=$f['control'];hccReject(fn()=>$api->call('hotel_work_review_context',$wrong,901001,$f['conn']),'quarantined_control_not_review_capability');
@@ -111,18 +121,21 @@ hccReject(fn()=>$lateFault->finalize(...$fa),'quarantined_accept_late_rollback',
 hccCheck((int)$p->query('SELECT COUNT(*) FROM hotel_quarantine_intake_permits')->fetchColumn()===0&&$history===$p->query('SELECT * FROM hotel_work_receipts ORDER BY stage_index')->fetchAll(PDO::FETCH_ASSOC),'quarantined_permit_and_receipt_rollback_before_queue');
 
 $raceDir=sys_get_temp_dir().'/quarantined-old-writer-'.bin2hex(random_bytes(6));mkdir($raceDir,0700);$out=$raceDir.'/result';$process=null;
-$race=new HotelQuarantinedIntake($f['c'],static function(string$at)use($p,$out,&$process,$raceDir):void{
+$raceHook=static function(string$at)use($p,$out,&$process,$raceDir):void{
     if($at!=='quarantine_permit_before_queue')return;
     $db=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?'MYSQL':$p->query('PRAGMA database_list')->fetch(PDO::FETCH_ASSOC)['file'];
     $process=proc_open([PHP_BINARY,__FILE__,'--quarantine-old-writer-child',$db,$out],[0=>['pipe','r'],1=>['file',$raceDir.'/stdout','w'],2=>['file',$raceDir.'/stderr','w']],$pipes);if(!is_resource($process))throw new RuntimeException('race_spawn');fclose($pipes[0]);
     $until=microtime(true)+10;while(!is_file($out.'.started')&&microtime(true)<$until)usleep(1000);if(!is_file($out.'.started'))throw new RuntimeException('race_start');usleep(100000);hccCheck(!is_file($out.'.done'),'quarantined_old_writer_waits_for_same_queue_transaction');
-});
+};
 try{
-    $accepted=$race->finalize(...$fa);$until=microtime(true)+15;while(!is_file($out.'.done')&&microtime(true)<$until)usleep(1000);
+    $finishingRuntime=new HotelQuarantinedIntakeRuntime($p,$f['clock'],$factory,$raceHook);
+    hccCheck($finishingRuntime->tick([$plan])===1,'quarantined_cron_finalizes_original_intake');
+    $accepted=$intake->finalize(...$fa);$until=microtime(true)+15;while(!is_file($out.'.done')&&microtime(true)<$until)usleep(1000);
     hccCheck(is_file($out.'.done')&&json_decode(file_get_contents($out.'.done'),true)['denied']===true,'quarantined_concurrent_old_SQL_denied_after_commit');
 }finally{if(is_resource($process)){proc_terminate($process);proc_close($process);}foreach(glob($raceDir.'/*')?:[]as$file)unlink($file);rmdir($raceDir);}
 hccCheck($accepted['business_accepted']&&$accepted['accepted_batches']===20&&!$accepted['next_dispatch_allowed']&&!$accepted['native_run_verified'],'quarantined_original_intake_accepted_exactly_once');
 hccCheck($intake->finalize(...$fa)===$accepted,'quarantined_accept_lost_ACK_no_double_credit');
+hccCheck($runtime->tick([$plan])===0&&count($events)===1,'quarantined_cron_accepted_replay_inert');
 $q=$p->query('SELECT * FROM hotel_work_queues')->fetch(PDO::FETCH_ASSOC);hccCheck((int)$q['stage_index']===42&&$q['write_protocol']==='quarantine_v1'&&(int)$q['accepted_batches']===20,'quarantined_same_queue_next_stage_stays_fenced');
 $status=$f['queue']->status(901001,$f['conn'],'COLLECTION-SERVICE');hccCheck($status['delivery_state']==='quarantined'&&$status['expected_pending_event_id']===null&&!$status['legacy_claim_allowed']&&!$status['automatic_next_dispatch'],'quarantined_status_does_not_advertise_legacy_dispatch');
 hccCheck((int)$p->query('SELECT COUNT(*) FROM hotel_quarantine_intake_permits')->fetchColumn()===0,'quarantined_no_committed_session_permit');

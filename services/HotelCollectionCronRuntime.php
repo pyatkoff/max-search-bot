@@ -38,6 +38,16 @@ final class HotelCollectionCronRuntime
             return $processed;
         });
     }
+    /** Dormant same-claim recovery composition; no plan is installed by default. */
+    public static function configureQuarantinedIntakes(callable $plans):void
+    {
+        self::configure(static function(PDO $pdo)use($plans):int{
+            require_once __DIR__.'/HotelQuarantinedIntakeRuntime.php';
+            $batch=$plans($pdo);
+            if(!is_array($batch))throw new RuntimeException('quarantined_cron_plan_invalid');
+            return(new HotelQuarantinedIntakeRuntime($pdo))->tick($batch);
+        });
+    }
     public static function tick(PDO $pdo):array
     {
         if(self::$tick===null)return ['configured'=>false,'processed'=>0];

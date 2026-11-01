@@ -42,6 +42,15 @@ The coordinator/Automation adapter uses the existing review_ready route and
 existing CENTRAL ID, preserving both strict dispatch flags and the exact host
 binding gate. No producer event is sent. Missing native binding still means HOLD.
 
+`HotelCollectionCronRuntime::configureQuarantinedIntakes` is a dormant trusted
+bootstrap hook for this path. A private pinned plan stages once, waits for signed
+delivery, dispatches CENTRAL once, waits for the immutable verdict and finalizes
+once. Both strict dispatch flags govern every step. Hold/reject, waiting, UNKNOWN
+and already accepted rows do not resend. No plan is installed by this PR; there
+is no new timer. Waiting ticks use the sealed stored packet instead of repeatedly
+hashing unchanged source archives. Concurrent ticks still pass the transactional
+dispatch/finalization guards. The next stage is never adopted by this hook.
+
 Transport consumes one delivered permit before the socket. UNKNOWN does not
 refund it. `hotel_work_review_context` binds one fresh CENTRAL instance using its
 new review capability; old claim/literal tokens, producer/control capabilities,
