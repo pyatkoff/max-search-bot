@@ -195,7 +195,17 @@
     syncHeaderPin();
   }
   function clientCardIsOpen(){return window.WorkspaceV2Mobile?.isMobile()?window.WorkspaceV2Mobile.getScreen()==='lead':$('workspaceRoot')?.classList.contains('m2ClientCardOpen')}
+  function syncCompactHeader(){
+    const group=$('pwGroupOpen'),home=document.querySelector('.conversationHead>.actions');
+    if(!group||!home||!conversationMenuActions)return;
+    if(matchMedia('(max-width:740px)').matches){
+      // Move the canonical bound control; keep the menu open behind its dialog
+      // so the group editor can return focus to the same visible opener.
+      if(group.parentElement!==conversationMenuActions.parentElement)conversationMenuActions.before(group);
+    }else if(group.parentElement!==home)home.insertBefore(group,$('conversationActions'));
+  }
   function syncClientCard(){
+    window.WorkspaceV2RequestProfile?.sync();syncCompactHeader();
     syncHeaderPin();
     const valid=!!S.manager&&!S.authExpired&&Number(S.current)>0;
     if((!valid||clientCardConversation&&clientCardConversation!==Number(S.current))&&$('workspaceRoot')?.classList.contains('m2ClientCardOpen'))$('workspaceRoot').classList.remove('m2ClientCardOpen');
@@ -389,6 +399,7 @@
   function updateClock(){const clock=$('m2Clock');if(clock){const now=new Date();clock.dateTime=now.toISOString();clock.textContent=new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(now)+' МСК'}}
   function init(){
     initConversationMenu();initInboxTools();initMoreNavigation();
+    const headerActions=document.querySelector('.conversationHead>.actions');if(headerActions)new MutationObserver(syncCompactHeader).observe(headerActions,{childList:true,subtree:true});
     $('inboxList')?.setAttribute('role','list');
     window.WorkspaceV2PostContext?.init({endpoint:'/manager/post-context-api.php'});
     const manager=$('managerName'),shift=$('managerShiftBtn'),admin=$('adminLink'),health=$('notificationStatus');
@@ -439,7 +450,7 @@
     window.addEventListener('popstate',event=>{setTimeout(()=>{if(event.workspaceOverlayHandled)return;syncClientCard();if(window.WorkspaceV2Mobile?.getScreen()==='conversation'&&clientCardOpener?.isConnected)clientCardOpener.focus({preventScroll:true})},0)});
     window.addEventListener('resize',()=>{if(window.WorkspaceV2Mobile?.isMobile()&&$('workspaceRoot').classList.contains('m2ClientCardOpen'))$('workspaceRoot').classList.remove('m2ClientCardOpen');syncClientCard()});
     $('leadZone').addEventListener('keydown',e=>{if(e.key==='Escape'&&!window.WorkspaceV2Mobile?.isMobile()&&!e.target.closest('dialog')){e.preventDefault();closeClientCard()}});
-    document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.m2ConversationMenu[open]').forEach(d=>{d.open=false;d.querySelector('summary').focus()})});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!e.target.closest?.('dialog[open]'))document.querySelectorAll('.m2ConversationMenu[open]').forEach(d=>{d.open=false;d.querySelector('summary').focus()})});
     updateClock();setInterval(updateClock,60000);syncNavigation();
   }
   window.Manager2Presentation={enhanceLeadCard,enhanceTasks,enhanceConversationActions,focusConversationTool,registerConversationTool,conversationHistoryTarget,revealTaskDraft,budgetFact,navigate,syncNavigation,enhanceInbox,enhanceInboxMarkers,ownershipSignal,formatInboxActivity,openClientCard,closeClientCard,syncClientCard,revealInboxSearch,syncPersonalChrome};

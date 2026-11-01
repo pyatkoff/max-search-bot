@@ -646,3 +646,22 @@ In the selection editor, save the selected option and click «Сведения �
 The panel displays the accepted fact group, category/facility scope, partial coverage, unknowns, source conflicts, source dates and binding revision. Reading never confirms a current trip or a supplier condition. It is disabled for unsaved/conflicting/pending changes. Changing an offer, editing, closing, suspending the account or receiving a stale version clears old facts; late replies cannot repopulate them. A visible read-only conversation may read facts without gaining editing or sending authority. Original source records remain in the response; internal research tool-citation tokens are omitted only from the presentation of source notes.
 
 Package code and controlled UI/HTTP checks are distinct from installation and natural manager use. Import/editor ownership and the existing research queue remain unchanged.
+
+
+### Current trip, profile and ready reply in Manager2
+
+The dialogue shows the current profile label, recorded trip conditions and
+whether they need review. “Условия поездки” opens the existing protected profile
+form in the same dialogue. The lead-card profile entry uses this surface too.
+The conversation, typed reply and unsaved profile edits remain available when
+closing it. Browser Back closes the profile before leaving the conversation.
+A new conversation or account clears the profile surface; a cached form is
+shown again only after a fresh authorized read.
+
+Saving changed conditions clears the previous AI preview/readiness cache. The
+existing ready-reply preview and insertion still require their canonical fresh
+context checks; profile edits never replace or send the typed reply. Specific
+tour price, availability and meal/room conditions still need separate checks.
+On mobile the existing group action lives in the dialogue menu. The customer
+name and client-card button keep their original actions. Constructor overview,
+footer and editing stay with the constructor owner.

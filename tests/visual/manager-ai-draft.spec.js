@@ -3,29 +3,33 @@ const {execFileSync}=require('node:child_process');
 const fs=require('node:fs'),path=require('node:path');
 const root=path.resolve(__dirname,'../..'),sourceRoot=process.env.M2_QA_SOURCE_ROOT||root,origin='http://127.0.0.1:4173';
 const shell=execFileSync('php',['manager2/index.php'],{cwd:sourceRoot,encoding:'utf8'});
+const profileShell=execFileSync('php',['manager2/request-profile.php'],{cwd:sourceRoot,encoding:'utf8'});
 const {startOAuthFixture}=require('./fixtures/oauth-consent');
 const {setupAiUsage}=require('./fixtures/manager-ai-usage');
 const proposal=(changes={})=>({ok:true,should_draft:true,draft:'Какие даты поездки вам удобны?',next_action:'clarify',reason:'В запросе не указаны даты вылета.',checks:[],evidence_message_ids:[35],history_incomplete:false,revision:'1'.repeat(64),latest_message_id:35,draft_id:'d'.repeat(32),...changes});
 const prepared=(changes={})=>proposal({prepared:true,prepared_at:'2026-10-19T10:30:00Z',source:'chatgpt',draft_id:null,...changes});
 // Render the actual PHP shell and canonical assets. Every identity, message,
 // proposal and HTTP response in this fixture is synthetic and stays in loopback.
-async function setup(page,{readiness=false,automatic=false,ensureHandler=null,hideNotice=false,supervisor=false,owner=false,ownerState='manager',previewHandler=null,blocked=false,manualTask=false}={}){
+async function setup(page,{readiness=false,automatic=false,ensureHandler=null,hideNotice=false,supervisor=false,owner=false,ownerState='manager',previewHandler=null,blocked=false,manualTask=false,profilePanel=false}={}){
   const calls=[],unexpected=[],errors=[],messages=new Map();
+  let profileHandler=null,profileRevision='1'.repeat(64);const profiles=new Map();
+  const profileFor=id=>{if(!profiles.has(id))profiles.set(id,{version:1,status:'fresh',label:id===11?'Семейная поездка в Турцию':'Другая поездка',boundary_message_id:1,fields:{party:{value:{adults:2,children:1,child_ages:[7]},kind:'manager_interpretation',importance:'hard',note:''}}});return profiles.get(id);};
   let deliveryBlocked=blocked;
   let automaticComplete=false;
   let ai=async data=>data.action==='prepared'?{body:prepared()}:data.action==='generate'?{body:proposal()}:{body:{ok:true,revision:'1'.repeat(64),latest_message_id:35,draft_id:data.draft_id||null}};
   let preview=previewHandler|| (async()=>({body:prepared({should_draft:readiness!=='recommendations',draft:readiness==='recommendations'?null:proposal().draft,next_action:readiness==='recommendations'?'no_contact':'clarify',reason:readiness==='recommendations'?'Менеджер уже ответил, нового вопроса нет.':proposal().reason,expires_at:new Date(Date.now()+3600000).toISOString()})}));
   const manager={id:7,role:owner?'admin':'manager',display_name:'Мария',is_working:true,supervision_available:supervisor||owner};
-  const conversation=id=>({id,status:owner&&id===11?ownerState:'manager',manager_id:owner&&id===11&&ownerState!=='manager'?null:(supervisor||owner)&&id===11?9:7,manager_name:owner&&id===11&&ownerState!=='manager'?null:(supervisor||owner)&&id===11?'Другой менеджер':'Мария',channel:blocked&&id===11?'max':'telegram',display_name:id===11?'Анна Морозова':'Алексей Иванов',...(blocked&&id===11?{delivery_failure_category:deliveryBlocked?'suspended':null}:{})});
+  const conversation=id=>({id,...(profilePanel?{project_key:'anytour'}:{}),status:owner&&id===11?ownerState:'manager',manager_id:owner&&id===11&&ownerState!=='manager'?null:(supervisor||owner)&&id===11?9:7,manager_name:owner&&id===11&&ownerState!=='manager'?null:(supervisor||owner)&&id===11?'Другой менеджер':'Мария',channel:blocked&&id===11?'max':'telegram',display_name:id===11?'Анна Морозова':'Алексей Иванов',...(blocked&&id===11?{delivery_failure_category:deliveryBlocked?'suspended':null}:{})});
   const assistantItem=()=>({conversation_id:11,display_name:'Анна Морозова',channel:'max',project_key:'anytour',project_name:'AnyTour',manager_name:'Другой менеджер',last_message_at:'2026-10-17T12:00:00Z',delivery_suspended:deliveryBlocked,delivery_notice:deliveryBlocked?'Ответ станет доступен после новой активности клиента.':null,operational:{awaiting_manager_reply:true,due_task:manualTask},tasks:manualTask?[{id:901,title:'Проверить вручную сохранённый документ',status:'open',due_state:'overdue',overdue:true,due_at_utc:'2026-10-17 13:00:00',is_pinned:false}]:[],recommendation:deliveryBlocked?{revision:'1'.repeat(64),next_action:'answer_question',reason:'Противоречивая рекомендация из старого снимка',checks:[],prepared_at:prepared().prepared_at,expires_at:new Date(Date.now()+3600000).toISOString(),latest_message_id:35,evidence_message_ids:[35],history_incomplete:false,decision:null}:null});
   for(const id of [11,12])messages.set(id,Array.from({length:35},(_,i)=>({id:i+1,sender_type:i%3?'customer':'manager',manager_id:i%3?null:7,text:'Синтетическое сообщение '+(i+1)+'. Обсуждаем пожелания к поездке.',created_at:'2026-10-17 12:00:00'})));
   page.on('pageerror',error=>errors.push(error.message));
   await page.route('**/*',async route=>{
     const request=route.request(),url=new URL(request.url()),method=request.method();
-    const reply=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
+    const reply=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(profilePanel&&url.pathname==='/manager/ai-draft.php'&&body.revision?{...body,revision:profileRevision}:body)});
     const block=()=>{unexpected.push(method+' '+url.pathname);return route.abort()};
     if(url.origin!==origin)return block();
     if(method==='GET'&&['/manager2/','/manager2/index.php'].includes(url.pathname))return route.fulfill({contentType:'text/html',body:shell});
+    if(profilePanel&&method==='GET'&&url.pathname==='/manager2/request-profile.php')return route.fulfill({contentType:'text/html',body:profileShell});
     if(method==='GET'&&/^\/manager2?\/assets\/[\w.-]+$/.test(url.pathname))return route.fulfill({contentType:url.pathname.endsWith('.css')?'text/css':'application/javascript',body:fs.readFileSync(path.join(sourceRoot,url.pathname.slice(1)))});
     if(method==='GET'&&url.pathname==='/manager/customer-avatar.php')return route.fulfill({status:404,body:''});
     if(method==='GET'&&url.pathname==='/manager/sw.js')return route.fulfill({contentType:'application/javascript',body:''});
@@ -34,6 +38,15 @@ async function setup(page,{readiness=false,automatic=false,ensureHandler=null,hi
     if(method!=='POST'||!url.pathname.startsWith('/manager/'))return block();
     let data;try{data=request.postDataJSON()}catch{return block()}
     calls.push({path:url.pathname,...data});
+    if(profilePanel&&url.pathname==='/manager/request-profile-api.php'){
+      if(profileHandler){const held=await profileHandler(data);if(held)return reply(held.body,held.status||200);}
+      const id=Number(data.conversation_id),profile=profileFor(id);
+      if(data.action==='identity')return reply({ok:true,viewer_id:7,csrf:'fixture-csrf'});
+      expect(data.csrf).toBe('fixture-csrf');
+      if(data.action==='get')return reply({ok:true,viewer_id:7,conversation_id:id,can_edit:true,context_sha256:'a'.repeat(64),profile,sources:[{id:1,sender_type:'customer',text:'Два взрослых и ребёнок7лет, семейный отдых в Турции.'}],history:[],coverage_incomplete:false});
+      if(data.action==='save'){profile.label=data.label;profile.fields=data.fields;profile.version++;profileRevision='2'.repeat(64);return reply({ok:true,viewer_id:7,conversation_id:id,saved_version:profile.version});}
+      return reply({ok:false,error:'unexpected_profile_action'},400);
+    }
     if(url.pathname==='/manager/api.php'){
       if(['me','login'].includes(data.action))return reply({ok:true,manager,csrf:'fixture-csrf',projects:[]});
       if(data.action==='detail')return reply({ok:true,conversation:conversation(data.conversation_id),messages:messages.get(data.conversation_id),delivery_failure:deliveryBlocked&&data.conversation_id===11?{category:'suspended',message:'Клиент недоступен в MAX'}:null,supervisor_read:(supervisor||owner)&&data.conversation_id===11,owner_read:owner&&data.conversation_id===11});
@@ -64,7 +77,7 @@ async function setup(page,{readiness=false,automatic=false,ensureHandler=null,hi
   await page.goto(origin+'/manager2/index.php?qa=1');await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
   await expect.poll(()=>page.evaluate(()=>WorkspaceV2.S.workspaceBound&&!WorkspaceV2.S.booting)).toBe(true);
   await page.locator('#inboxList [data-conversation-id="11"]').click();if(supervisor||owner)await expect(page.getByRole('button',{name:'AI · Просмотр',exact:true})).toBeVisible();else{await expect(page.locator('#replyText')).toBeEnabled();await expect(page.locator('#aiDraftOpen')).toBeEnabled()}
-  return {calls,unexpected,errors,setAI:handler=>{ai=handler},setPreview:handler=>{preview=handler},setDeliveryBlocked:value=>{deliveryBlocked=value},completePreparation:()=>{automaticComplete=true},messages,aiCalls:()=>calls.filter(call=>call.path==='/manager/ai-draft.php'&&!['prepared_status','prepared_preview'].includes(call.action)),ensureCalls:()=>calls.filter(call=>call.action==='ensure_prepared'),previewCalls:()=>calls.filter(call=>call.action==='prepared_preview'),statusCalls:()=>calls.filter(call=>call.action==='prepared_status')};
+  return {calls,unexpected,errors,setProfileHandler:handler=>{profileHandler=handler},setAI:handler=>{ai=handler},setPreview:handler=>{preview=handler},setDeliveryBlocked:value=>{deliveryBlocked=value},completePreparation:()=>{automaticComplete=true},messages,aiCalls:()=>calls.filter(call=>call.path==='/manager/ai-draft.php'&&!['prepared_status','prepared_preview'].includes(call.action)),ensureCalls:()=>calls.filter(call=>call.action==='ensure_prepared'),previewCalls:()=>calls.filter(call=>call.action==='prepared_preview'),statusCalls:()=>calls.filter(call=>call.action==='prepared_status')};
 }
 function clean(state){expect(state.errors).toEqual([]);expect(state.unexpected).toEqual([]);expect(state.calls.filter(call=>['send','take','release','close','reopen'].includes(call.action))).toEqual([])}
 async function openClient(page,id,name){
@@ -699,3 +712,161 @@ for(const viewport of [{width:390,height:844},{width:1440,height:900}])test('AI 
     const s=await setup(page,{admin:true});await page.locator('#supervisorAdmin summary').click();await page.locator('#grantRead').click();await expect(page.locator('#grantIdentity')).toContainText('synthetic-manager · №4');await page.locator('#grantSources input').check();await page.locator('#grantEnabled').check();await page.locator('#grantSave').click();await expect(page.locator('#grantSave')).toBeDisabled();const sent=s.calls.filter(c=>c.action==='set');expect(sent).toHaveLength(1);expect(sent[0]).toMatchObject({manager_id:4,project_id:1,source_ids:[11],enabled:true,expected_version:0});await page.locator('#grantRead').click();await expect(page.locator('#grantIdentity')).toContainText('версия прав 1');await expect(page.locator('#grantSources input')).toBeChecked();await expect(page.locator('#grantEnabled')).toBeChecked();expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
   });
 })();
+
+// New current-dialogue surface only; existing profile/AI owners remain canonical.
+for(const width of [390,1440])test(`current-trip panel keeps profile and ready reply in one dialogue ${width}`,async({page,browserName})=>{
+  await page.setViewportSize({width,height:900});
+  const state=await setup(page,{readiness:true,profilePanel:true});
+  await expect(page.locator('#m2CurrentTrip strong')).toHaveText('Семейная поездка в Турцию');
+  await expect(page.locator('#aiDraftSuggestion')).toBeVisible();
+  await page.locator('#aiSuggestionDetails').click();await expect(page.locator('#aiDraftPanel')).toBeVisible();
+  await page.locator('#replyText').fill('Мой неотправленный ответ');
+  const tabs=page.context().pages().length;
+  await page.getByRole('button',{name:'Условия поездки',exact:true}).click();
+  const embedded=page.frameLocator('#m2RequestProfilePanel iframe');
+  await expect(embedded.locator('#profileLabel')).toHaveValue('Семейная поездка в Турцию');
+  await embedded.locator('#profileLabel').fill('Декабрь: семья с ребёнком7лет');
+  await embedded.locator('#profileSave').click();
+  await expect(page.locator('#m2CurrentTrip strong')).toHaveText('Декабрь: семья с ребёнком7лет');
+  await expect(page.locator('.m2RequestProfileState')).toContainText('Профиль сохранён');
+  await expect(page.locator('#aiDraftPanel')).not.toBeVisible();
+  await expect(page.locator('#m2CurrentTrip small')).toContainText('2 взр. + 1 дет. (7)');
+  fs.mkdirSync('manager2-artifacts',{recursive:true});await page.screenshot({path:`manager2-artifacts/${browserName}-${width}-trip-profile.png`,animations:'disabled'});
+  await page.getByRole('button',{name:'Готово',exact:true}).click();
+  await expect(page.locator('#m2RequestProfilePanel')).not.toBeVisible();
+  await expect(page.locator('#replyText')).toHaveValue('Мой неотправленный ответ');
+  expect(page.context().pages()).toHaveLength(tabs);
+  await page.locator('#replyText').fill('');
+  await expect(page.locator('#aiSuggestionAccept')).toBeVisible();
+  await page.locator('#aiSuggestionAccept').click();
+  await expect(page.locator('#replyText')).toHaveValue(prepared().draft);
+  expect(state.calls.some(c=>c.action==='generate')).toBe(false);
+  expect(state.calls.filter(c=>c.action==='save'&&c.path==='/manager/request-profile-api.php')).toHaveLength(1);
+  if(width<=740)await page.locator('#m2ConversationMenuToggle').click();
+  await expect(page.locator('#tourSelectionOpen')).toBeVisible();
+  expect(await page.evaluate(()=>WorkspaceV2.S.current)).toBe(11);
+  if(width<=740)await page.locator('#m2ConversationMenuToggle').click();
+  const name=page.locator('#conversationTitle');await expect(name).toHaveText('Анна Морозова');
+  expect(await name.evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
+  const size=await page.evaluate(()=>({doc:document.documentElement.scrollWidth,viewport:innerWidth}));expect(size.doc).toBeLessThanOrEqual(size.viewport+1);
+  fs.mkdirSync('manager2-artifacts',{recursive:true});await page.screenshot({path:`manager2-artifacts/${browserName}-${width}-trip-dialogue.png`,animations:'disabled'});
+  clean(state);
+});
+
+test('current-trip panel closes on conversation and account change, ignores late profile reads',async({page})=>{
+  await page.setViewportSize({width:390,height:900});const state=await setup(page,{profilePanel:true});
+  await expect(page.locator('#m2CurrentTrip strong')).toHaveText('Семейная поездка в Турцию');
+  await page.getByRole('button',{name:'Условия поездки',exact:true}).click();
+  await expect(page.frameLocator('#m2RequestProfilePanel iframe').locator('#profileLabel')).toHaveValue('Семейная поездка в Турцию');
+  await page.locator('#m2RequestProfilePanel').evaluate(el=>el.close());
+  let release,entered;const waiting=new Promise(resolve=>{entered=resolve});
+  state.setProfileHandler(async data=>{if(data.action!=='get'||data.conversation_id!==11)return;entered();await new Promise(resolve=>{release=resolve});return {body:{ok:true,viewer_id:7,conversation_id:11,profile:{label:'OLD PRIVATE TRIP',status:'fresh'}}};});
+  await page.evaluate(()=>{WorkspaceV2.S.detail.messages.push({id:999,text:'Уточнение'});WorkspaceV2RequestProfile.sync()});await waiting;
+  await page.evaluate(()=>WorkspaceV2Conversation.open(12));release();
+  await expect(page.locator('#conversationTitle')).toHaveText('Алексей Иванов');
+  await expect(page.locator('#m2CurrentTrip strong')).toHaveText('Другая поездка');
+  await expect(page.locator('#m2RequestProfilePanel iframe')).toHaveCount(0);
+  await expect(page.locator('body')).not.toContainText('OLD PRIVATE TRIP');
+  await page.getByRole('button',{name:'Условия поездки',exact:true}).click();
+  await expect(page.locator('#m2RequestProfilePanel')).toBeVisible();
+  await page.evaluate(()=>WorkspaceV2.showAuthRecovery('Сессия изменилась'));
+  await expect(page.locator('#m2RequestProfilePanel iframe')).toHaveCount(0);await expect(page.locator('#m2CurrentTrip')).not.toBeVisible();
+  clean(state);
+});
+
+test('current-trip panel retains unsaved profile and composer and consumes browser Back once',async({page})=>{
+  await page.setViewportSize({width:390,height:900});const state=await setup(page,{profilePanel:true});
+  await page.locator('#replyText').fill('Не потерять этот ответ');
+  await page.evaluate(()=>{WorkspaceV2.S.detail.conversation.display_name='Александра Константиновна Дмитриевская';WorkspaceV2Conversation.renderHeader(WorkspaceV2.S.detail.conversation)});
+  const name=page.locator('#conversationTitle');await expect(name).toContainText('Александра');
+  expect(await name.evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
+  expect(await name.evaluate(el=>el.scrollHeight<=el.clientHeight+1)).toBe(true);
+  fs.mkdirSync('manager2-artifacts',{recursive:true});await page.screenshot({path:'manager2-artifacts/long-client-name-mobile.png',animations:'disabled'});
+  const head=await page.locator('.conversationHead').boundingBox();expect(head.height).toBeLessThan(100);
+  await page.getByRole('button',{name:'Условия поездки',exact:true}).click();
+  const profile=page.frameLocator('#m2RequestProfilePanel iframe');await expect(profile.locator('#profileLabel')).toBeVisible();
+  await profile.locator('#profileLabel').fill('Ещё не сохранённая поездка');
+  await expect(page.locator('.m2RequestProfileState')).toContainText('Есть изменения');
+  await page.goBack();await expect(page.locator('#m2RequestProfilePanel')).not.toBeVisible();
+  expect(await page.evaluate(()=>WorkspaceV2.S.current)).toBe(11);
+  expect(await page.evaluate(()=>WorkspaceV2Mobile.getScreen())).toBe('conversation');
+  await expect(page.locator('#replyText')).toHaveValue('Не потерять этот ответ');
+  await page.getByRole('button',{name:'Условия поездки',exact:true}).click();
+  await expect(profile.locator('#profileLabel')).toHaveValue('Ещё не сохранённая поездка');
+  await page.getByRole('button',{name:'Готово',exact:true}).click();
+  expect(state.calls.filter(c=>c.action==='save'&&c.path==='/manager/request-profile-api.php')).toHaveLength(0);
+  await page.locator('#conversationTitle').click();
+  await expect(page.locator('[data-request-profile] a')).toBeVisible();await page.locator('[data-request-profile] a').click();
+  await expect(profile.locator('#profileLabel')).toHaveValue('Ещё не сохранённая поездка');expect(page.context().pages()).toHaveLength(1);
+  await page.getByRole('button',{name:'Готово',exact:true}).click();await page.locator('#mobileLeadClose').click();
+  await expect(page.locator('#replyText')).toHaveValue('Не потерять этот ответ');
+  await page.locator('#m2ConversationMenuToggle').click();await expect(page.locator('.m2ConversationMenu #pwGroupOpen')).toBeVisible();
+  await page.locator('#pwGroupOpen').click();await expect(page.locator('#pwDialog')).toBeVisible();
+  await page.keyboard.press('Escape');await expect(page.locator('#pwDialog')).not.toBeVisible();
+  await expect(page.locator('#pwGroupOpen')).toBeFocused();clean(state);
+});
+
+test('current-trip panel rejects forged child notifications and unexpected account identity',async({page})=>{
+  const state=await setup(page,{profilePanel:true,readiness:true});
+  await expect(page.locator('#m2CurrentTrip strong')).toHaveText('Семейная поездка в Турцию');
+  await page.getByRole('button',{name:'Условия поездки',exact:true}).click();
+  await expect(page.frameLocator('#m2RequestProfilePanel iframe').locator('#profileLabel')).toBeVisible();
+  await page.evaluate(()=>{const old=WorkspaceV2AiDraft.resetSession;window.profileResetCount=0;WorkspaceV2AiDraft.resetSession=(...args)=>{window.profileResetCount++;return old(...args)};const f=document.querySelector('#m2RequestProfilePanel iframe'),panel=new URL(f.src).searchParams.get('panel');window.postMessage({type:'anytour.request-profile',action:'saved',panel,conversation_id:11,viewer_id:7},location.origin)});
+  await page.frameLocator('#m2RequestProfilePanel iframe').locator('body').evaluate(()=>parent.postMessage({type:'anytour.request-profile',action:'saved',panel:'f'.repeat(32),conversation_id:11,viewer_id:7},location.origin));
+  await expect.poll(()=>page.evaluate(()=>window.profileResetCount)).toBe(0);
+  await page.getByRole('button',{name:'Готово',exact:true}).click();
+  state.setProfileHandler(async data=>data.action==='identity'?{body:{ok:true,viewer_id:8,csrf:'other-account'}}:{body:{ok:true,viewer_id:8,conversation_id:11,profile:{label:'PRIVATE OTHER ACCOUNT',status:'fresh'}}});
+  await page.getByRole('button',{name:'Условия поездки',exact:true}).click();
+  await expect.poll(()=>page.evaluate(()=>WorkspaceV2.S.authExpired)).toBe(true);
+  await expect(page.locator('#m2RequestProfilePanel iframe')).toHaveCount(0);await expect(page.locator('#m2CurrentTrip')).not.toBeVisible();
+  await expect(page.locator('body')).not.toContainText('PRIVATE OTHER ACCOUNT');clean(state);
+});
+
+test('current-trip panel reconciles one uncertain profile write and invalidates the previous AI preview',async({page})=>{
+  const state=await setup(page,{profilePanel:true,readiness:true});
+  await expect(page.locator('#aiSuggestionDetails')).toBeVisible();await page.locator('#aiSuggestionDetails').click();await expect(page.locator('#aiDraftPanel')).toBeVisible();
+  let committed=null;
+  state.setProfileHandler(async data=>{
+    if(data.action==='save'){committed=data;return {body:{ok:false,error:'network_error'}};}
+    if(data.action==='operation')return {body:{ok:true,viewer_id:7,found:true,saved_version:2}};
+    if(data.action==='get'&&committed)return {body:{ok:true,viewer_id:7,conversation_id:11,can_edit:true,context_sha256:'a'.repeat(64),profile:{version:2,status:'fresh',label:committed.label,boundary_message_id:1,fields:committed.fields},sources:[{id:1,sender_type:'customer',text:'Семейный отдых'}],history:[]}};
+  });
+  await page.getByRole('button',{name:'Условия поездки',exact:true}).click();const profile=page.frameLocator('#m2RequestProfilePanel iframe');
+  await profile.locator('#profileLabel').fill('Подтверждённая запись');await profile.locator('#profileSave').click();
+  await expect(profile.locator('#profileStatus')).toContainText('Сохранение не подтверждено');
+  await profile.locator('#profileReconcile').click();await expect(profile.locator('#profileStatus')).toContainText('Запись подтверждена');
+  await expect(page.locator('#aiDraftPanel')).not.toBeVisible();await expect(page.locator('#m2CurrentTrip strong')).toHaveText('Подтверждённая запись');
+  expect(state.calls.filter(c=>c.path==='/manager/request-profile-api.php'&&c.action==='save')).toHaveLength(1);
+  expect(state.calls.filter(c=>c.path==='/manager/request-profile-api.php'&&c.action==='operation')).toHaveLength(1);clean(state);
+});
+
+test('current-trip panel cannot open after a delayed permission read and mobile Back to inbox',async({page})=>{
+  await page.setViewportSize({width:390,height:900});const state=await setup(page,{profilePanel:true});
+  await expect(page.locator('#m2CurrentTrip strong')).toHaveText('Семейная поездка в Турцию');
+  let release,entered;const waiting=new Promise(resolve=>{entered=resolve});
+  state.setProfileHandler(async data=>{if(data.action!=='get')return;entered();await new Promise(resolve=>{release=resolve});return {body:{ok:true,viewer_id:7,conversation_id:11,profile:{status:'fresh',label:'Поздний разрешённый профиль'}}};});
+  await page.getByRole('button',{name:'Условия поездки',exact:true}).click();await waiting;
+  await page.goBack();await expect.poll(()=>page.evaluate(()=>WorkspaceV2Mobile.getScreen())).toBe('inbox');release();
+  await expect(page.locator('#m2CurrentTrip strong')).toHaveText('Поздний разрешённый профиль');
+  await expect(page.locator('#m2RequestProfilePanel')).not.toBeVisible();expect(await page.evaluate(()=>WorkspaceV2Mobile.getScreen())).toBe('inbox');clean(state);
+});
+
+test('current-trip panel clears private form on canonical conversation access denial',async({page})=>{
+  const state=await setup(page,{profilePanel:true});await page.getByRole('button',{name:'Условия поездки',exact:true}).click();
+  await expect(page.frameLocator('#m2RequestProfilePanel iframe').locator('#profileLabel')).toHaveValue('Семейная поездка в Турцию');
+  await page.route('**/manager/api.php',async route=>{const data=route.request().postDataJSON();if(data?.action==='detail'&&data.conversation_id===11)return route.fulfill({status:403,contentType:'application/json',body:JSON.stringify({ok:false,error:'forbidden'})});return route.fallback();});
+  expect(await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible())).toBe(false);
+  await expect(page.locator('#m2RequestProfilePanel iframe')).toHaveCount(0);await expect(page.locator('#m2RequestProfilePanel')).not.toBeVisible();await expect(page.locator('#m2CurrentTrip')).not.toBeVisible();
+  expect(await page.locator('#m2CurrentTrip').textContent()).not.toContain('Семейная поездка');
+  await page.evaluate(()=>WorkspaceV2RequestProfile.sync());await expect(page.locator('#m2CurrentTrip')).not.toBeVisible();clean(state);
+});
+
+test('current-trip panel rechecks profile freshness after editing an existing message ID',async({page})=>{
+  const state=await setup(page,{profilePanel:true});await expect(page.locator('#m2CurrentTrip span')).toHaveText('Профиль сверен с перепиской');
+  const before=state.calls.filter(c=>c.path==='/manager/request-profile-api.php'&&c.action==='get').length;
+  state.setProfileHandler(async data=>data.action==='get'?{body:{ok:true,viewer_id:7,conversation_id:11,profile:{version:1,label:'Уточнённые основания',status:'source_changed'}}}:undefined);
+  state.messages.get(11).at(-1).text='Тот же ID: питание изменилось, отель нужно пересмотреть';
+  expect(await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible())).toBe(true);
+  await expect(page.locator('#m2CurrentTrip span')).toHaveText('Основания изменились — условия нужно сверить');
+  expect(state.calls.filter(c=>c.path==='/manager/request-profile-api.php'&&c.action==='get').length).toBeGreaterThan(before);clean(state);
+});
