@@ -1,0 +1,161 @@
+name: Apply only 083 through installed canonical MigrationRunner
+on:
+  push:
+    branches: [ops/hotel083-canonical-only-20261102]
+    paths: [.github/workflows/hotel083-canonical-only-20261102.yml]
+permissions:
+  contents: read
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+env:
+  EXPECTED_MAIN_SHA: a8b4c2d1126b0e38d831e0ace9d75554d6e4415b
+jobs:
+  migrate083:
+    if: github.ref == 'refs/heads/ops/hotel083-canonical-only-20261102' && github.event.before == 'a8b4c2d1126b0e38d831e0ace9d75554d6e4415b' && github.event.created == false && github.event.deleted == false && github.event.forced == false && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Pin unchanged installed source and fixed invocation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = "$EXPECTED_MAIN_SHA"
+          gh api "repos/pyatkoff/max-search-bot/contents/tools/direct_demand/operations/hotel083-canonical-invocation.php?ref=$GITHUB_SHA" >"$RUNNER_TEMP/hotel083_canonical_source.json"
+          python3 - <<'PY'
+          import os,json,pathlib,base64,hashlib
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])
+          d=json.loads((root/'hotel083_canonical_source.json').read_text());assert d['encoding']=='base64'
+          b=base64.b64decode(d['content']);assert len(b)<16384
+          assert hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()==d['sha']
+          (root/'hotel083_canonical_stdin.php').write_bytes(b)
+          PY
+      - name: Setup PHP only for invocation checks
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: Lint new invocation and prove foreign-target refusal before credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -l "$RUNNER_TEMP/hotel083_canonical_stdin.php" >/dev/null
+          set +e
+          php "$RUNNER_TEMP/hotel083_canonical_stdin.php" >"$RUNNER_TEMP/hotel083_canonical_refusal.json"
+          invocation_status=$?
+          set -e
+          test "$invocation_status" -eq 1
+          python3 - <<'PY'
+          import os,json,pathlib
+          d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP']+'/hotel083_canonical_refusal.json').read_text())
+          assert d['operation']=='hotel083-canonical-runner-v1' and d['state']=='HOLD'
+          assert d['reason']=='migration083_target_unconfirmed' and d['phase']=='bind'
+          assert d['migration_runner_invoked'] is False and d['reconciliation_required'] is False
+          PY
+      - name: Prepare existing connection and pinned host
+        env:
+          CONNECTION_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          CONNECTION_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          CONNECTION_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          raw="$CONNECTION_KEY"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' >"$RUNNER_TEMP/hotel083_key"; else printf '%s\n' "$raw" | tr -d '\r' >"$RUNNER_TEMP/hotel083_key"; fi
+          else
+            printf '%s' "$raw" | base64 --decode >"$RUNNER_TEMP/hotel083_key"
+          fi
+          ssh-keygen -y -f "$RUNNER_TEMP/hotel083_key" >/dev/null
+          python3 - <<'PY'
+          import os,re,subprocess,base64,hashlib,pathlib
+          host=os.environ['CONNECTION_HOST'];user=os.environ['CONNECTION_USER']
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',user)
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35)
+          approved=[]
+          for line in scan.stdout.splitlines():
+              fields=line.split()
+              if len(fields)<3 or fields[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':approved.append(line)
+          assert approved,'Existing host continuity mismatch; STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/hotel083_hosts').write_text('\n'.join(approved)+'\n')
+          PY
+      - name: One exact application-PDO canonical 083 invocation
+        env:
+          CONNECTION_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          CONNECTION_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          set +e
+          timeout 120 ssh -i "$RUNNER_TEMP/hotel083_key" -o BatchMode=yes -o ConnectTimeout=10 -o ConnectionAttempts=1 -o IdentitiesOnly=yes -o ServerAliveInterval=10 -o ServerAliveCountMax=2 -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/hotel083_hosts" "$CONNECTION_USER@$CONNECTION_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_MAIN_SHA'; git diff --quiet; git diff --cached --quiet; /usr/bin/php" <"$RUNNER_TEMP/hotel083_canonical_stdin.php" >"$RUNNER_TEMP/hotel083_canonical_raw.private" 2>"$RUNNER_TEMP/hotel083_canonical_stderr.private"
+          command_status=$?
+          set -e
+          export HOTEL083_COMMAND_STATUS="$command_status"
+          python3 - <<'PY'
+          import os,json,pathlib,sys
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])
+          fixed={'operation':'hotel083-canonical-runner-v1','full_deploy':False,
+                 'retire_old_invoked':False,'new_collection_invoked':False,
+                 'app_files_written':False,'settings_changed':False}
+          out=dict(fixed);ok=False
+          try:
+              p=root/'hotel083_canonical_raw.private';assert p.stat().st_size<=8192
+              d=json.loads(p.read_text());assert isinstance(d,dict)
+              allowed=set(fixed)|{'state','target_binding_confirmed','trust_runtime_is_one',
+                  'checksum','trigger_count','journal_readback_verified','phase','reason',
+                  'mysql_errno','reconciliation_required','migration_runner_invoked'}
+              assert set(d)<=allowed
+              for k,v in fixed.items():assert type(d[k]) is type(v) and d[k]==v
+              assert type(d['migration_runner_invoked']) is bool
+              out['migration_runner_invoked']=d['migration_runner_invoked']
+              for k in ['target_binding_confirmed','trust_runtime_is_one','journal_readback_verified','reconciliation_required']:
+                  if k in d:
+                      assert type(d[k]) is bool;out[k]=d[k]
+              status=int(os.environ['HOTEL083_COMMAND_STATUS']);out['server_command_exit_code']=status
+              assert d['state'] in ['applied','already_applied','HOLD'];out['state']=d['state']
+              if d['state'] in ['applied','already_applied']:
+                  assert status==0 and d['target_binding_confirmed'] is True and d['trust_runtime_is_one'] is True
+                  assert d['journal_readback_verified'] is True
+                  assert d['checksum']=='1d39818eb8841aa80d8427dab7cb82562b02e2d6665529e7b8515044d18562ae'
+                  assert type(d['trigger_count']) is int and d['trigger_count']==37
+                  assert d['migration_runner_invoked'] is (d['state']=='applied')
+                  assert not ({'phase','reason','mysql_errno','reconciliation_required'}&set(d))
+                  out.update(checksum=d['checksum'],trigger_count=37);ok=True
+              else:
+                  assert status!=0 and d['phase'] in ['bind','preflight','apply083','readback']
+                  reasons={'migration083_target_unconfirmed','migration083_source_mismatch','migration083_runtime_setting_not_one',
+                      'migration083_operation_busy','migration083_connection_unconfirmed','migration083_journal_mismatch',
+                      'migration083_pending_set_mismatch','migration083_partial_barriers','migration083_execution_unconfirmed',
+                      'migration083_barrier_unconfirmed','migration083_operation_unconfirmed'}
+                  assert d['reason'] in reasons
+                  assert d['mysql_errno'] is None or type(d['mysql_errno']) is int and 0<=d['mysql_errno']<=99999
+                  assert d['reconciliation_required'] is d['migration_runner_invoked']
+                  out.update(phase=d['phase'],reason=d['reason'],mysql_errno=d['mysql_errno'])
+          except Exception:
+              out.update(state='HOLD',reason='migration083_result_unconfirmed',reconciliation_required=True)
+          safe=json.dumps(out,sort_keys=True)+'\n'
+          (root/'hotel083_canonical_sanitized.json').write_text(safe);print(safe,end='')
+          sys.exit(0 if ok else 1)
+          PY
+      - name: Retain only reconstructed migration result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hotel083-canonical-only-result
+          path: ${{ runner.temp }}/hotel083_canonical_sanitized.json
+          retention-days: 14
+          if-no-files-found: ignore
+      - name: Remove ephemeral runner files
+        if: always()
+        shell: bash
+        run: |
+          rm -f "$RUNNER_TEMP/hotel083_key" "$RUNNER_TEMP/hotel083_hosts" "$RUNNER_TEMP/hotel083_canonical_source.json" "$RUNNER_TEMP/hotel083_canonical_stdin.php" "$RUNNER_TEMP/hotel083_canonical_refusal.json" "$RUNNER_TEMP/hotel083_canonical_raw.private" "$RUNNER_TEMP/hotel083_canonical_stderr.private" "$RUNNER_TEMP/hotel083_canonical_sanitized.json"
