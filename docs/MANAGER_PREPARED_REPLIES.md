@@ -610,6 +610,31 @@ subsequent acceptance steps; none is activated by profile confirmation.
 
 ### Shared exact-offer hotel knowledge in the selection editor
 
+The legacy administrator MCP capability `hotel_knowledge_demand_inventory`
+prepares a bounded cohort decision from existing immutable publications. It
+accepts only `limit` (1–20, default20); it does not research, import or change a
+queue. The caller must retain the returned window, omissions and unknowns.
+Prepared offers are not sent: verified deliveries require agreement between the
+canonical saved delivery, prepared snapshot, native event and transcript mirror.
+Native inquiries require the exact publication/card and their matching inbound
+mirror. These are evidence counts within the reported sample, never unique
+people/trips or a complete/current popularity ranking. Known test and internal
+owner sessions are excluded; remaining sessions are explicitly unclassified.
+
+Only the common accepted typed bridge supplies an identified hotel's facts.
+Available groups pin the binding, research hotel, fact/source IDs and accepted
+bundle revision independently of per-offer provenance. A name alone or a name
+conflict cannot inherit another property's accepted facts. Pick ready groups
+with observed evidence first, disclose how many of the target15–20 are actually
+covered, and route precise gaps to the existing research owner. Do not create
+another research stream or treat this technical capability as cohort acceptance.
+The read uses its own bounded read-only transaction and a fresh administrator /
+connection check after packaging. Restricted reply/hotel endpoints do not expose
+the capability. The full MCP response, including its duplicate text/structured
+content and RPC ID, is capped at256KiB. This tool's string RPC IDs are limited
+to4096bytes before any authorization/argument error can echo them. It returns no transcripts, customer or
+manager identifiers, private publication URLs, room/price terms or full fact text.
+
 Native AI selection and saved-offer reads use `ManagerHotelOfferReference` over the existing accepted hotel base. They preserve the same fact group, source records and binding revision. The internal reader accepts only a server-saved working draft version plus offer ID, or an immutable publication ID plus card index within an authorized conversation. A hotel display name or caller-supplied hotel ID is never a binding.
 
 The manager-only `POST /manager/hotel-knowledge-api.php` requires the current session and CSRF. Supply `conversation_id` and either `{kind: "working_draft", draft_version, offer_id}` or `{kind: "publication", publication_id, card_index}`. The normal manager client may add `action: "read"`; any other action is rejected. The reader rechecks conversation access, saved selection and the session after reading. It returns no-store JSON and never changes a draft, source message, read marker or research data.
