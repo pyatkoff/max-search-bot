@@ -60,7 +60,10 @@ function syncScrollIntent(){
       // Anchoring is owned here, so a real scroll received after media reflow can
       // still be resolved against the rows as they were before that reflow.
       const clamped=Math.max(0,Math.min(lastGeometry.top,next.total-next.height));
-      if(!followingLatest&&Math.abs(next.top-clamped)>1)readingAnchor=previousAnchor(next.top)||readingAnchor;
+      // Reaching the top is an explicit reading boundary even if the composer
+      // is still resizing. An older row offset must not push it down again.
+      if(!followingLatest&&next.top===0)readingAnchor=findAnchor(box);
+      else if(!followingLatest&&Math.abs(next.top-clamped)>1)readingAnchor=previousAnchor(next.top)||readingAnchor;
     }else{
       if(smoothJump&&next.top>=lastGeometry.top){followingLatest=true;if(distanceFromLatest()<=2)smoothJump=false;}
       // Only a history gesture leaves following mode. Safari can emit scroll

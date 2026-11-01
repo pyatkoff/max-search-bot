@@ -46,7 +46,7 @@ final class HotelWorkQueue
             if ($row) {
                 $this->authorize($row,$admin,$connection);
                 if (!hash_equals($row['plan_sha256'],$plan)) throw new HotelWorkQueueConflict('plan_conflict');
-                if (!in_array($row['state'],['complete','released'],true)) $this->ownsLane($row,$lane);
+                if (!in_array($row['state'],['complete','released','retired'],true)) $this->ownsLane($row,$lane);
                 return $this->project($row)+['created'=>false];
             }
             if ($lane['queue_id']!==null) throw new HotelWorkQueueConflict('hotel_lane_busy');
@@ -491,9 +491,9 @@ final class HotelWorkQueue
     {
         $execution=$this->executionAttemptRecord($row,$this->stageId($row));
         $row=$this->effectiveDeliveryRow($row);
-        $active=!in_array($row['state'],['complete','released'],true);$index=(int)$row['stage_index'];
+        $active=!in_array($row['state'],['complete','released','retired'],true);$index=(int)$row['stage_index'];
         $start=array_search($row['start_country'],self::COUNTRIES,true);
-        if ($start===false||$index<0||$index>self::MAX_STAGE_INDEX||!in_array($row['state'],['ready','claimed','unknown','complete','released'],true)) throw new RuntimeException('hotel_work_stored_state_invalid');
+        if ($start===false||$index<0||$index>self::MAX_STAGE_INDEX||!in_array($row['state'],['ready','claimed','unknown','complete','released','retired'],true)) throw new RuntimeException('hotel_work_stored_state_invalid');
         $country=self::COUNTRIES[($start+intdiv($index,2))%4];
         $kind=$index%2===0?'research':'intake';
         $unknown=null;
