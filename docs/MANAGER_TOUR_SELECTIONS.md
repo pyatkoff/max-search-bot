@@ -24,6 +24,22 @@ editing. Source/CI/installation evidence does not establish independent manager
 readiness. A blocked original collector operation remains a separate defect and
 does not suspend unrelated constructor work.
 
+## Correcting imported photos
+
+Source galleries remain the default. An imported offer without photos has an
+optional «Добавить фото вручную» action; existing galleries also allow adding or
+replacing a photo. This opens the existing private JPEG/PNG upload and HTTPS URL
+controls for the same offer. Opening or closing these controls does not write or
+repeat an import. Only an explicit photo change saves the draft, using the same
+actor, conversation, offer, version and uncertain-upload recovery checks.
+
+Use real images of that exact hotel; a room image remains illustrative. Original
+source observations, quote fields, manual amount and other offers are retained.
+Current-photo labels distinguish original gallery images from manager changes.
+Imported gallery offers support one to three photos; older offers without the
+gallery marker retain the existing three-role preview requirement. This changes
+neither publication rules nor the outcome of any unknown collector operation.
+
 ## Independent public presentation package
 
 `modules/tour-selections/` defines the first separately identifiable public-page
