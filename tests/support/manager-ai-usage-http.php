@@ -71,6 +71,7 @@ function managerAiUsageHttpFixture(string $directory,bool $visual=false): array
         $row=$pdo->query('SELECT * FROM messages WHERE id=10046')->fetch();$meta=json_decode($row['metadata_json'],true);$meta['edited_at']=gmdate('Y-m-d H:i:s',strtotime($row['created_at'].' UTC')+60);
         $pdo->prepare('UPDATE messages SET text=?,metadata_json=? WHERE id=10046')->execute([$row['text'].' Поздняя правка.',json_encode($meta)]);
     }
+    ManagerAiUsageFixture::capturePreparedInput($pdo,42);
     ManagerAiUsageFixture::correctionCase($pdo);
     $web=$directory.'/web';mkdir($web.'/manager/lib',0700,true);mkdir($web.'/manager/assets',0700,true);mkdir($web.'/manager2',0700,true);mkdir($directory.'/sessions',0700);
     foreach(['manager/ai-usage-api.php','manager/ai-usage.php','manager2/ai-usage.php','manager/analytics.php','manager2/analytics.php','manager/lib/ManagerHttp.php','manager/assets/manager-http-client.js','manager/assets/manager-time.js','manager/assets/manager-ai-usage.css','manager/assets/manager-ai-usage.js','manager/assets/manager-analytics.css','manager/assets/manager-analytics.js'] as $file){if(!copy($root.'/'.$file,$web.'/'.$file))throw new RuntimeException('fixture_copy_failed');}

@@ -44,7 +44,7 @@
   }
   function inputNote(parent,text){const p=node('p',text);p.className='usageCaveat';parent.appendChild(p)}
   function inputDetails(title,value){const details=node('details');details.className='usageInputDetails';details.appendChild(node('summary',title));const pre=node('pre',typeof value==='string'?value:JSON.stringify(value,null,2));pre.className='usageInputRaw';details.appendChild(pre);return details}
-  function renderInputReferences(panel, context, doc = document) {
+  function renderInputReferences(panel, context, doc = document, issued = false) {
     const el = (tag, text = '') => {
       const element = doc.createElement(tag);
       element.textContent = text;
@@ -139,9 +139,9 @@
       group.append(exact('Все сохранённые данные рабочего черновика', working)); root.append(group);
     }
     if (Array.isArray(context.verified_company_facts)) {
-      const group = section('Сведения о компании, переданные AI',
+      const group = section(issued?'Сведения о компании в пакете сервера':'Сведения о компании, переданные AI',
         'Это сведения, допущенные при подготовке данного черновика; они не описывают пожелания туриста.');
-      if (!context.verified_company_facts.length) group.append(el('p', 'Сведения не передавались.'));
+      if (!context.verified_company_facts.length) group.append(el('p', issued?'Сведения в пакет не включены.':'Сведения не передавались.'));
       for (const fact of context.verified_company_facts) if (object(fact) && typeof fact.text === 'string') {
         group.append(el('p', fact.text), exact('Источник и ограничения сведения', fact));
       }
@@ -154,6 +154,7 @@
       photo_evidence: ['Какие изображения были доступны AI', 'attached означает, что изображение было передано при подготовке. Само изображение в этой записи не сохранено. unavailable или omitted означает, что оно не было передано.'],
       reference_coverage: ['Охват дополнительных сведений', '']
     };
+    if(issued){referenceLabels.origin_posts[0]='Публикации в пакете сервера';referenceLabels.hotel_reference[0]='Гостиничная справка в пакете сервера';referenceLabels.photo_evidence=['Изображения в пакете сервера','attached означает, что сервер включил изображение в ответ. Получение и использование внешней моделью неизвестны; сами изображения в этой записи не сохранены. unavailable или omitted означает отсутствие изображения в пакете.'];}
     for (const [key, [title, note]] of Object.entries(referenceLabels)) if (Object.hasOwn(context, key)) {
       const group = section(title, note); group.append(exact('Сохранённые данные', context[key])); root.append(group);
     }
@@ -161,25 +162,27 @@
     root.append(exact('Все сохранённые поля контекста', context));
     panel.appendChild(root);
   }
-  function renderInput(panel,e){
-    const x=e.context;panel.replaceChildren(node('h3','Что AI получил при подготовке'));
-    const intro=node('p','Сохранённый вход именно этого черновика. Сообщения показаны в том виде, в котором их получил AI; последующие изменения переписки сюда не попадают.');intro.className='usageInputIntro';panel.appendChild(intro);
-    if(x.history_incomplete)inputNote(panel,'История передана не полностью. Условия могли обсуждаться за пределами этого контекста.');
+  function renderInput(panel,e,receipt){
+    const issued=receipt?.provenance==='server_issued_context';
+    const x=e.context;panel.replaceChildren(node('h3',issued?'Контекст, выданный внешнему помощнику':'Что AI получил при подготовке'));
+    const intro=node('p',issued?'Сохранён точный пакет сервера, квитанцию которого помощник указал при сохранении ответа. Получение и использование пакета не подтверждены; полный вход внешней модели, её настройки и дополнительные инструкции неизвестны.':'Сохранённый вход именно этого черновика. Сообщения показаны в том виде, в котором их получил AI; последующие изменения переписки сюда не попадают.');intro.className='usageInputIntro';panel.appendChild(intro);
+    if(x.history_incomplete)inputNote(panel,issued?'В пакете сохранена неполная история. Другие условия могли остаться за его пределами.':'История передана не полностью. Условия могли обсуждаться за пределами этого контекста.');
     if(x.media_unread)inputNote(panel,'Часть вложений не прочитана. Их содержание не подтверждено этим контекстом.');
     if(x.selections_link_unread)inputNote(panel,'Есть непрочитанные ссылки на подборки. Их состав здесь не подтверждён.');
-    if(x.selection_coverage?.payload_omitted)inputNote(panel,'Данные прочитанных подборок не вошли во вход AI из-за ограничения объёма.');
+    if(x.selection_coverage?.payload_omitted)inputNote(panel,issued?'Данные прочитанных подборок не вошли в пакет из-за ограничения объёма.':'Данные прочитанных подборок не вошли во вход AI из-за ограничения объёма.');
     if(x.selection_coverage?.links_omitted>0||x.selection_coverage?.unsupported_links>0||x.selection_coverage?.source_limit_reached)inputNote(panel,'Прочитаны не все ссылки на подборки. Границы чтения сохранены в дополнительных данных.');
-    if(x.reference_coverage?.payload_omitted)inputNote(panel,'Дополнительные сведения не вошли во вход AI из-за ограничения объёма.');
-    if(e.coverage==='images_omitted')inputNote(panel,'AI получил изображения ('+e.images.length+'), но сами изображения в этой записи не сохранены. Полный вход по ней восстановить нельзя.');
+    if(x.reference_coverage?.payload_omitted)inputNote(panel,issued?'Дополнительные сведения не вошли в пакет из-за ограничения объёма.':'Дополнительные сведения не вошли во вход AI из-за ограничения объёма.');
+    if(e.coverage==='images_omitted')inputNote(panel,(issued?'В выданном пакете были изображения (':'AI получил изображения (')+e.images.length+'), но сами изображения в этой записи не сохранены. Полный вход по ней восстановить нельзя.');
     const messages=node('ol');messages.className='usageInputMessages';const roles={customer:'Турист',manager:'Менеджер',ai:'AI',system:'Система'};
     for(const m of x.messages){const item=node('li');item.appendChild(node('h4',roles[m.sender_type]+' · сообщение №'+m.id));const text=node('p',m.text);text.className='usageText';item.appendChild(text);
-      if(m.text_truncated)inputNote(item,'Текст был сокращён до передачи AI.');
+      if(m.text_truncated)inputNote(item,issued?'В пакете сохранён сокращённый текст.':'Текст был сокращён до передачи AI.');
       if(m.media_unread)inputNote(item,'Вложения не прочитаны.');
       if(m.selections_link_unread)inputNote(item,'Ссылка на подборку не прочитана.');
       messages.appendChild(item);
     }panel.appendChild(messages);
-    renderInputReferences(panel,x);
-    panel.appendChild(inputDetails('Инструкции, действовавшие для этого ответа',e.instructions));
+    if(issued){inputNote(panel,'Эта запись подтверждает только пакет сервера. По ней нельзя подтвердить пользу правки или допустить автоматическую отправку.');panel.appendChild(inputDetails('Сведения о выданном пакете',{job_id:receipt.prepared_packet.job_id,revision:receipt.prepared_packet.revision,preparation_scope:receipt.prepared_packet.preparation_scope,latest_message_id:receipt.prepared_packet.latest_message_id,company_knowledge:receipt.prepared_packet.company_knowledge,instruction_revision:receipt.prepared_packet.instruction_revision,packet_sha256:receipt.input_sha256,issued_at:receipt.issued_at}));}
+    renderInputReferences(panel,x,document,issued);
+    panel.appendChild(inputDetails(issued?'Инструкции выданного пакета':'Инструкции, действовавшие для этого ответа',e.instructions));
   }
   function inputViewer(c,article){
     const area=node('div');area.className='usageInputArea';const toggle=node('button','Что видел AI');toggle.type='button';toggle.className='usageInputToggle';toggle.setAttribute('aria-expanded','false');
@@ -196,8 +199,9 @@
         note.classList.add('error');note.textContent=r.error==='case_changed'?'Сравнение изменилось. Обновите отчёт перед просмотром контекста.':'Не удалось проверить контекст. Закройте и откройте его снова или обновите отчёт.';return;
       }
       if(!r.available){const reasons={not_recorded:'Вход для этого черновика не сохранён. Текущая переписка не заменяет исходный контекст.',prepared_input_not_captured:'Вход внешнего помощника при подготовке этого ответа не сохранялся. Контекст первого просмотра не заменяет его.',storage_unavailable:'Хранилище контекста сейчас недоступно. Закройте и откройте контекст позже.',invalid_evidence:'Сохранённый вход не прошёл проверку целостности и не показан.'};note.textContent=reasons[r.reason]||'Сохранённый вход недоступен. Исходный контекст не восстановлен.';return;}
-      if(!validInput(r,c)){note.classList.add('error');note.textContent='Не удалось проверить данные сохранённого входа. Обновите отчёт.';return;}
-      renderInput(panel,r.input_evidence);
+      if(!validInput(r,c)||(r.provenance!==undefined&&r.provenance!=='server_issued_context')){note.classList.add('error');note.textContent='Не удалось проверить данные сохранённого входа. Обновите отчёт.';return;}
+      if(r.provenance==='server_issued_context'&&(r.external_model_input!=='unknown'||!record(r.prepared_packet)||!digest(r.input_receipt)||!record(r.prepared_packet.context)||r.prepared_packet.context.conversation_id!==c.conversation_id||JSON.stringify(r.prepared_packet.context)!==JSON.stringify(r.input_evidence.context)||r.prepared_packet.instructions!==r.input_evidence.instructions)){note.classList.add('error');note.textContent='Не удалось проверить сведения о выданном пакете.';return;}
+      renderInput(panel,r.input_evidence,r);
     };return area;
   }
   function sentTextViewer(c,article){
@@ -243,7 +247,7 @@
       pending=null;working=false;panel.replaceChildren(node('h3','Разбор первоначальной правки'));
       const x=r.snapshot,info=node('p',r.case_improvement_confirmed?'Другой владелец подтвердил пользу этой правки в данном случае. Общий прирост качества ещё не измерен.':'Разбор — оценка конкретной правки. Само изменение текста не доказывает пользу или ошибку AI.');info.className='usageInputIntro';panel.appendChild(info);
       const pair=node('div');pair.className='usageComparison';pair.append(version('Исходное предложение AI',x.proposed_text),version('Первый отправленный текст',x.pair_available?x.initial_sent_text:'Первоначальный текст не подтверждён.'));panel.appendChild(pair);
-      const warning=node('p',x.can_judge_effect?'Доступен сохранённый текстовый ввод. Цены, условия продажи и выводы из старых реплик требуют собственных подтверждений.':'Пользу оценить нельзя: исходный ввод отсутствует или неполон либо нет первоначального текста. Можно описать правку, сохранив результат «Не установлена».');warning.className='usageCaveat';panel.appendChild(warning);
+      const warning=node('p',x.can_judge_effect?'Доступен сохранённый текстовый ввод. Цены, условия продажи и выводы из старых реплик требуют собственных подтверждений.':(x.input_reason==='external_model_input_unknown'?'Сохранён пакет сервера, но полный вход внешней модели неизвестен. Пользу правки подтвердить нельзя; результат остаётся «Не установлена».':'Пользу оценить нельзя: исходный ввод отсутствует или неполон либо нет первоначального текста. Можно описать правку, сохранив результат «Не установлена».'));warning.className='usageCaveat';panel.appendChild(warning);
       const context=node('details');context.className='usageInputDetails';context.appendChild(node('summary','Сохранённые реплики для проверки'));
       if(!x.request_messages.length)context.appendChild(node('p','Сохранённые реплики недоступны. Текущая переписка не заменяет исходный ввод.'));
       for(const m of x.request_messages){const item=node('div');item.className='usageAssessmentSource';item.append(node('h4','#'+m.id+' · '+(m.sender_type==='customer'?'Турист':m.sender_type)),node('p',m.text));context.appendChild(item)}panel.appendChild(context);

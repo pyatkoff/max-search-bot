@@ -175,6 +175,26 @@ for(const width of [390,1440])test('AI usage owner entry follows the existing An
     role='manager';await page.reload();await expect(page.locator('#analyticsAiUsage')).toBeHidden();usageClean(s);
   }finally{await s.cleanup()}
 });
+for(const width of [390,430,768,1440])test('AI usage issued prepared context stays distinct from full model input '+width,async({page,browserName})=>{
+  await page.setViewportSize({width,height:1000});const s=await setupAiUsage(page);try{
+    await expect(page.locator('[data-usage-case]')).toHaveCount(20);
+    const card=page.locator('[data-usage-case="10042"]'),panel=card.locator('.usageInput');
+    await card.getByRole('button',{name:'Что видел AI',exact:true}).click();
+    await expect(panel.getByRole('heading',{name:'Контекст, выданный внешнему помощнику',exact:true})).toBeVisible();
+    await expect(panel).toContainText('Получение и использование пакета не подтверждены');
+    await expect(panel).toContainText('полный вход внешней модели');await expect(panel).toContainText('Question 42');
+    await expect(panel).not.toContainText('Что AI получил при подготовке');
+    await panel.getByText('Сведения о выданном пакете',{exact:true}).click();await expect(panel).toContainText('packet_sha256');
+    const geometry=await page.evaluate(()=>({width:innerWidth,document:document.documentElement.scrollWidth}));
+    expect(geometry.document-geometry.width).toBeLessThanOrEqual(1);
+    await card.scrollIntoViewIfNeeded();await usageCapture(page,browserName,width,'issued-context');
+    await card.getByRole('button',{name:'Разобрать правку',exact:true}).click();
+    await expect(card.locator('.usageAssessment')).toContainText('полный вход внешней модели неизвестен');
+    const form=card.locator('.usageAssessmentForm');await form.getByLabel('Вид правки',{exact:true}).selectOption('meaning');
+    await expect(form.getByLabel('Польза правки',{exact:true})).toBeDisabled();
+    expect(s.calls.filter(c=>c.action==='input')).toHaveLength(1);usageReadOnly(s);
+  }finally{await s.cleanup()}
+});
 function assessmentCard(page,id=10040){return page.locator('[data-usage-case="'+id+'"]')}
 async function openAssessment(page,id=10040){const response=page.waitForResponse(r=>r.url().endsWith('/manager/ai-usage-api.php')&&r.request().postDataJSON().action==='assessment_read');await assessmentCard(page,id).getByRole('button',{name:'Разобрать правку',exact:true}).click();return(await response).json()}
 async function fillAssessment(page){const form=assessmentCard(page).locator('.usageAssessmentForm');await form.getByLabel('Вид правки',{exact:true}).selectOption('meaning');await form.getByLabel('Что изменилось',{exact:true}).selectOption('last_question');await form.getByLabel('Польза правки',{exact:true}).selectOption('better');await form.getByLabel('Почему вы так считаете',{exact:true}).fill('Добавлена реакция на вопрос о варианте без перелёта, условия остались неподтверждёнными.');await form.getByLabel('Источник цитаты туриста',{exact:true}).selectOption('1040');await form.getByLabel('Точная цитата из сохранённой реплики',{exact:true}).fill('А без перелёта можно?');return form}

@@ -526,3 +526,48 @@ Separate private archive research uses `archive_research_inventory` and
 consent. Existing reply/hotel grants are not expanded. These readers do not enter
 the reply or learning queues. See [archive research boundaries](ARCHIVE_RESEARCH_READ.md)
 for pagination, credential-bound references, source coverage and host discovery.
+
+
+## Forward server-context receipts
+
+`get_reply_context` freezes a bounded private receipt for each authorized response
+(maximum 16 per job). The tool now declares `readOnlyHint=false` and
+`idempotentHint=false`: conversation, task and read state stay unchanged, but a
+private audit row is written. Packaging, source freshness and the final endpoint
+administrator / OAuth audience checks precede issuance. A separated reply
+surface defers issuance until its outer authorization has passed. Invalid image
+packaging or failed authorization cannot expose a usable receipt. Authorization
+is rechecked after issuance/lock waits and completed response packaging. A refused
+response may leave an unlinked private audit row; it grants no completion access
+to a revoked connection and does not prove delivery. Database or
+capture unavailability leaves an explicit uncaptured result; stale jobs return
+an error without the old packet. No queue, worker or provider call is added.
+
+The immutable packet contains the exact returned normalized context, complete
+context-specific instructions, base instruction revision, job/context revision,
+preparation scope, latest message and returned company facts/revision. Its own
+SHA-256 covers the wrapper. The image manifest hashes each complete normalized
+`data:<mime>;base64,...` URL, including its byte length; MCP transports that same
+MIME and base64 as image blocks. Image bytes are not retained. `text_only` is a
+storage description, never a guarantee of complete source coverage. Existing
+history, media, selection and truncation gaps remain visible.
+
+Pass the exact returned `input_receipt` to `save_prepared_reply`. Do not replace
+it with a newer read of the same job revision. The first pending-to-ready save
+and receipt association commit in one transaction under the canonical job lock.
+The receipt must match project/job/revision, authorized administrator and OAuth
+connection. Identical retries preserve the original pair; a different supplied
+receipt conflicts even when the proposal is identical. A retry without a receipt
+preserves an already linked pair and does not replace or newly infer evidence.
+Legacy saves are compatible and explicitly `not_captured` on first completion;
+unavailable optional audit storage cannot lose such a save. An old identical retry
+keeps the original pair and reports unknown provenance if audit readback fails; no first/latest
+receipt is selected implicitly and no old row is backfilled. Job retention
+cascades remove its packets and links through forward migration 082.
+
+A receipt proves only which packet the server prepared for an authorized
+response and which receipt the saving worker declared. It proves neither client
+receipt/use nor the actual model, complete host/system/task/chat input or its
+transformations. External model input remains `unknown`. Preview, validation and
+journal reads never reconstruct that history. Automatic sending, operator modes,
+provider configuration and the existing worker schedule remain unchanged.

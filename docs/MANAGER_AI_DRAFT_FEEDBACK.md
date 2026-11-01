@@ -308,3 +308,19 @@ Keep proposal, actual linked-send, assessable-pair and independent-group
 cohorts separate. Text changes are not substantive-error counts, and a prepared
 preview-to-send interval is not measured preparation time or time saved. Existing
 blinded-control group isolation and provider-test budget rules remain unchanged.
+
+
+Prepared replies with an explicitly linked forward receipt may show **Контекст,
+выданный внешнему помощнику** in the same lazy owner journal. This displays the
+immutable packet selected at the first successful save, not a later conversation
+or selection read. Proposal/job/project/latest-message and packet digests must
+match before disclosure. Historical prepared rows without a link remain
+`prepared_input_not_captured`, even if a later preview stored some other input.
+
+The journal distinguishes server-issued context from manual provider-bound input.
+A server packet alone does not attest to the full external model input, receipt
+or use; its UI states those unknowns and keeps effect confirmation disabled.
+It cannot count as an independently confirmed improvement or send admission.
+Existing manual-input comparison hashes and assessments retain their meaning.
+No natural manager adoption, quality gain or preparation-time saving is inferred
+from this capture or its synthetic tests.
