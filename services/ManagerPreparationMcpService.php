@@ -13,6 +13,7 @@ require_once __DIR__.'/HotelWorkMcpAdapter.php';
 require_once __DIR__.'/ArchiveResearchMcpAdapter.php';
 require_once __DIR__.'/DevelopmentWorkMcpAdapter.php';
 require_once __DIR__.'/ModeledConversionStatusMcpAdapter.php';
+require_once __DIR__.'/ManagerHotelKnowledgeMcpAdapter.php';
 
 /** Authenticated preparation tools and MCP Events; never sends customer messages. */
 final class ManagerPreparationMcpService
@@ -41,6 +42,11 @@ final class ManagerPreparationMcpService
             && in_array($rpc['params']['name']??null,['hotel_work_status','development_work_status'],true);
         if (($rpc['jsonrpc'] ?? '') !== '2.0' || !is_string($rpc['method'] ?? null)
             || (!is_int($id) && !is_string($id) && $id !== null)) return self::error(null,-32600,'Invalid Request');
+        // Bound this new tool's ID before authorization/argument errors too.
+        // Its success response has an additional complete-wire budget below.
+        if(($rpc['method']??null)==='tools/call'&&is_array($rpc['params']??null)
+            &&($rpc['params']['name']??null)===ManagerHotelKnowledgeMcpAdapter::NAME
+            &&is_string($id)&&strlen($id)>4096)return self::error(null,-32600,'Invalid Request');
         try {
             // The HTTP owner supplies the exact fresh bearer grant. Existing
             // direct callers default to the original reply capability only.
@@ -78,7 +84,8 @@ final class ManagerPreparationMcpService
                 || in_array($params['name']??null,HotelWorkMcpAdapter::NAMES,true)
                 || in_array($params['name']??null,ArchiveResearchMcpAdapter::NAMES,true)
                 || in_array($params['name']??null,DevelopmentWorkMcpAdapter::NAMES,true)
-                || ($params['name']??null)===ModeledConversionStatusMcpAdapter::NAME)) {
+                || ($params['name']??null)===ModeledConversionStatusMcpAdapter::NAME
+                || ($params['name']??null)===ManagerHotelKnowledgeMcpAdapter::NAME)) {
                 $this->requireCurrentContext($authorizedAdminId,$connectionId,$scopes);
             }
             $response=!array_key_exists('id',$rpc) ? [] : ['jsonrpc'=>'2.0','id'=>$id,'result'=>$result];
@@ -87,6 +94,9 @@ final class ManagerPreparationMcpService
             if ($rpc['method']==='tools/call' && in_array($params['name']??null,ArchiveResearchMcpAdapter::NAMES,true)
                 && strlen(json_encode($response,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))>262144) throw new RuntimeException();
             if($forecastStatus&&strlen(json_encode($response,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))>65536)throw new ModeledConversionStatusLimit('byte_limit');
+            if($rpc['method']==='tools/call'&&($params['name']??null)===ManagerHotelKnowledgeMcpAdapter::NAME
+                &&strlen(json_encode($response,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))>ManagerHotelDemandInventory::OUTPUT_BYTES)
+                return self::error($id,-32603,'Hotel inventory response exceeds byte limit');
             $this->forecastBudget?->check();
             if(!$deferPreparedReceipt&&$rpc['method']==='tools/call'&&($params['name']??null)==='get_reply_context'&&array_key_exists('id',$rpc))
                 $response=$this->finalizePreparedContext($response,$authorizedAdminId,$connectionId,fn()=>$this->requireCurrentContext($authorizedAdminId,$connectionId,$scopes));
@@ -172,7 +182,7 @@ final class ManagerPreparationMcpService
             $tool['_meta']=['securitySchemes'=>$tool['securitySchemes']];
         }
         unset($tool);
-        $out=ManagerPreparationOAuth::hasScopes($scopes,ManagerPreparationOAuth::SCOPES)?$tools:[];
+        $out=ManagerPreparationOAuth::hasScopes($scopes,ManagerPreparationOAuth::SCOPES)?array_merge($tools,ManagerHotelKnowledgeMcpAdapter::tools()):[];
         // Declaring an additional capability is not permission to execute it.
         // Existing reply connections must discover the hotel's OAuth policy so
         // the host can request explicit step-up consent on the first hotel call.
@@ -225,6 +235,9 @@ final class ManagerPreparationMcpService
         } elseif ($development) {
             try { $data=(new DevelopmentWorkMcpAdapter($this->pdo,$this->developmentStore,$this->clock))->call($name,$args,$admin,$connection); }
             catch (DomainException $error) { $data=$this->unavailableWorkQueue($name,$error,$admin,$connection,$required); }
+        } elseif ($name===ManagerHotelKnowledgeMcpAdapter::NAME) {
+            if ($connection===null||!$this->activeConnection($connection,$admin)) throw new DomainException();
+            $data=(new ManagerHotelKnowledgeMcpAdapter($this->pdo,$this->clock))->call($name,$args);
         } elseif (in_array($name,[ManagerSearch3CandidateReader::TOOL,ManagerSearch3CandidateReader::MEAL_TOOL],true)) {
             if ($connection===null||!$this->activeConnection($connection,$admin)) throw new DomainException();
             $reader=$this->searchCandidates??new ManagerSearch3CandidateReader();
