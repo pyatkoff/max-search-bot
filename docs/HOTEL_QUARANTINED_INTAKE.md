@@ -24,6 +24,8 @@ only exact before/after business hashes or a new exact receipt bound to the
 current database session and caller-owned transaction. Permits are deleted
 before commit. Queue deletion, historical receipt rewriting, marker downgrade,
 fence removal and cached old SQL remain blocked after adoption and later cycles.
+Admission checks the actual trigger definitions for the persistent fence and
+session permits; the five old trigger names cannot pass a partial089 install.
 This database fence still does not cancel a native run or fence Library/host APIs.
 
 The existing dormant cron runtime accepts an optional private `continuation`

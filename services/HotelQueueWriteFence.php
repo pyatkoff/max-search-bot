@@ -20,13 +20,23 @@ final class HotelQueueWriteFence
         $v=[];foreach(self::FIELDS as$k)$v[]=array_key_exists($k,$q)&&$q[$k]!==null?(string)$q[$k]:'~';
         return hash('sha256',implode(chr(31),$v));
     }
+    public function assertInstalled():void
+    {
+        $names=['hotel_quarantine_queue_update','hotel_quarantine_queue_delete','hotel_quarantine_receipt_insert','hotel_quarantine_receipt_update','hotel_quarantine_receipt_delete'];
+        $mysql=$this->p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
+        $s=$this->p->prepare($mysql?'SELECT TRIGGER_NAME,ACTION_STATEMENT FROM information_schema.TRIGGERS WHERE TRIGGER_SCHEMA=DATABASE() AND TRIGGER_NAME IN (?,?,?,?,?)':"SELECT name,sql FROM sqlite_master WHERE type='trigger' AND name IN (?,?,?,?,?)");$s->execute($names);$definitions=$s->fetchAll(PDO::FETCH_KEY_PAIR);
+        foreach($names as$name){
+            $sql=strtolower($definitions[$name]??'');
+            if(!str_contains($sql,'persistent_fence')||(in_array($name,[$names[0],$names[2]],true)&&(!str_contains($sql,'hotel_queue_write_permits')||!str_contains($sql,'session_id'))))throw new DomainException('persistent_fence_database_barrier_required');
+        }
+    }
     public function update(array $old,array $changes):void
     {
         $this->transaction();
         foreach(array_keys($changes)as$k)if(!in_array($k,self::FIELDS,true))throw new LogicException('fence_update_field');
         $next=array_replace($old,$changes);
         $permit=(int)($old['persistent_fence']??0)===1||(int)($next['persistent_fence']??0)===1;
-        if($permit)$this->exec('INSERT INTO hotel_queue_write_permits(queue_id,session_id,old_sha256,new_sha256) VALUES(?,?,?,?)',[$old['queue_id'],$this->session,self::hash($old),self::hash($next)]);
+        if($permit){$this->assertInstalled();$this->exec('INSERT INTO hotel_queue_write_permits(queue_id,session_id,old_sha256,new_sha256) VALUES(?,?,?,?)',[$old['queue_id'],$this->session,self::hash($old),self::hash($next)]);}
         try{
             $set=implode(',',array_map(static fn(string$k):string=>$k.'=?',array_keys($changes)));
             $this->exec('UPDATE hotel_work_queues SET '.$set.' WHERE queue_id=?',[...array_values($changes),$old['queue_id']]);
@@ -35,7 +45,7 @@ final class HotelQueueWriteFence
     public function receipt(array $q,string $stage,string $bytes,string $at):void
     {
         $this->transaction();$sha=hash('sha256',$bytes);$permit=(int)($q['persistent_fence']??0)===1;
-        if($permit)$this->exec('INSERT INTO hotel_queue_write_permits(queue_id,session_id,receipt_stage,receipt_index,receipt_sha256) VALUES(?,?,?,?,?)',[$q['queue_id'],$this->session,$stage,(int)$q['stage_index'],$sha]);
+        if($permit){$this->assertInstalled();$this->exec('INSERT INTO hotel_queue_write_permits(queue_id,session_id,receipt_stage,receipt_index,receipt_sha256) VALUES(?,?,?,?,?)',[$q['queue_id'],$this->session,$stage,(int)$q['stage_index'],$sha]);}
         try{$this->exec('INSERT INTO hotel_work_receipts(queue_id,stage_index,stage_id,receipt_sha256,receipt_json,created_at) VALUES(?,?,?,?,?,?)',[$q['queue_id'],$q['stage_index'],$stage,$sha,$bytes,$at]);}
         finally{if($permit)$this->exec('DELETE FROM hotel_queue_write_permits WHERE queue_id=? AND session_id=?',[$q['queue_id'],$this->session]);}
     }

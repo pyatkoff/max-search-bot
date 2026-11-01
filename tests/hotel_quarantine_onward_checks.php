@@ -83,6 +83,16 @@ hccCheck($service->adoptQuarantined(...$aa)===$adoption&&$runtime->tick([$onward
 hccCheck($allReceipts===$p->query('SELECT * FROM hotel_work_receipts WHERE stage_index<=41 ORDER BY stage_index')->fetchAll(PDO::FETCH_ASSOC),'all_original_receipts_unchanged_through_next_cycle');
 hccReject(fn()=>$p->exec('UPDATE hotel_work_queues SET accepted_batches=accepted_batches+1'),'old_SQL_still_denied_after_next_acceptance');
 hccCheck((int)$p->query('SELECT COUNT(*) FROM hotel_queue_write_permits')->fetchColumn()===0,'no_SQL_permits_survive_next_cycle');
+// Five old trigger names alone do not prove a completed forward fence install.
+$p->exec('DROP TRIGGER hotel_quarantine_receipt_update');
+if($p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql')$p->exec('CREATE TRIGGER hotel_quarantine_receipt_update BEFORE UPDATE ON hotel_work_receipts FOR EACH ROW SET NEW.queue_id=NEW.queue_id');
+else$p->exec("CREATE TRIGGER hotel_quarantine_receipt_update BEFORE UPDATE ON hotel_work_receipts BEGIN SELECT 1; END");
+hccReject(fn()=>(new HotelQueueWriteFence($p))->assertInstalled(),'same_names_with_old_or_partial_fence_are_not_ready','persistent_fence_database_barrier_required');
+$p->exec('DROP TRIGGER hotel_quarantine_receipt_update');
+if($p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'){
+    foreach(explode(';',(string)file_get_contents(dirname(__DIR__).'/migrations/089_hotel_quarantine_onward.sql'))as$sql)if(str_contains($sql,'CREATE TRIGGER hotel_quarantine_receipt_update '))$p->exec($sql);
+}else$p->exec("CREATE TRIGGER hotel_quarantine_receipt_update BEFORE UPDATE ON hotel_work_receipts WHEN EXISTS(SELECT 1 FROM hotel_work_queues WHERE queue_id IN(OLD.queue_id,NEW.queue_id) AND (write_protocol='quarantine_v1' OR persistent_fence=1)) BEGIN SELECT RAISE(ABORT,'database_quarantine'); END");
+(new HotelQueueWriteFence($p))->assertInstalled();
 // The actual legacy WORKING has an object of question groups, not a list.
 $objectWorking=json_decode($f['working']);$objectWorking->scoped_question_results=(object)['historical-group'=>[(object)['unknown'=>'retained']]];
 $objectBytes=HotelQuarantinedPacket::json($objectWorking);$objectPacket=json_decode($f['packetBytes'],true);$objectPacket['file_pins']['WORKING']['sha256']=hash('sha256',$objectBytes);

@@ -60,6 +60,7 @@ final class HotelCollectionCanonicalService
         return $this->tx('adopt_quarantined',function()use($queue,$intake,$control,$request,$acceptanceSha,$workingSha,$inventory,$attestation,$input):array{
             $c=new HotelNativeRecoveryContext($this->pdo,$this->admin,$this->connection,$this->clock);$q=$c->owned($queue,true);
             (new HotelLegacyEffectQuarantine($c))->assertDatabaseBarrier();
+            (new HotelQueueWriteFence($this->pdo))->assertInstalled();
             $r=$this->one('SELECT control_sha256,acceptance_bytes,accepted_working_sha256,protected_bytes FROM hotel_quarantined_intakes WHERE queue_id=? AND stage_id=?',[$queue,$intake]);
             if(!$r||!hash_equals($r['control_sha256'],hash('sha256',$control)))$this->deny('control_capability_required');
             if($r['acceptance_bytes']===null||hash('sha256',$r['acceptance_bytes'])!==$acceptanceSha||$r['accepted_working_sha256']!==$workingSha)$this->deny('accepted_snapshot_required');
