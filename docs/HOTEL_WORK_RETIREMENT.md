@@ -7,7 +7,9 @@ branch and accepted source/history remain retained.
 
 ## Boundary and authority
 
-Only the server CLI `tools/hotel_retirement.php` exposes this internal service.
+The server CLI `tools/hotel_retirement.php` exposes this internal service. The
+fixed-scope deployment helper `tools/hotel_retirement_ops.php` reuses it for the
+explicitly authorized retirement of `HOTEL-CONTINUOUS-20261027`.
 It requires the current active AnyTour project administrator, checked in SQL
 after locking the existing HOTEL lane and queue. The expected original OAuth
 owner is an equality pin, not the executing connector. No MCP tool, cron hook,
@@ -85,3 +87,70 @@ A successful retirement receipt does not prove native/Library shutdown; retain
 the separate isolation evidence. Never take repeated MCP Access denied or an
 unsuccessful SSH login as an applied administrative action.
 
+
+## Recovery of the deployed migration083 privilege failure
+
+The ordinary application MySQL identity failed with error1419 while creating
+the first trigger with binary logging enabled. This does not establish whether
+the deployment OS account already has root/socket, a private maintenance client
+profile, or noninteractive sudo authority.
+
+The normal production deployment first runs the fixed `migrate083` helper.
+It verifies the unchanged migration SHA256, all applied checksums and the exact
+pending set. If083 is already applied, it does no privileged migration work.
+Otherwise only083 may be pending; an existing partial trigger installation is
+held for inspection. No trigger is dropped and no migration record is invented.
+The canonical `MigrationRunner` receives a verified maintenance PDO for this
+same database and server. The usual application migration command follows.
+
+Provider selection inspects privileges in read-only rolled-back transactions.
+It reuses the application identity when eligible, the existing local root/socket
+identity only when the OS process is already root, or an existing private client
+profile belonging to root/current OS user. Only `[client]` authentication fields
+are used; profiles cannot select another target. Credentials, filenames' contents
+and exception text never leave the server. The workflow may reuse already
+configured `sudo -n` authority only for the fixed helper after exit3 reports no
+eligible provider. No grant, password, account or global MySQL setting changes.
+An unavailable existing identity leaves deployment held.
+
+After the ordinary migration command, `retire-old` uses the existing active
+AnyTour administrator check and actual fresh preflight. It persists one private
+request outside the webroot, with mode0600 in an owner-only directory, and
+fsync/readback before the service transaction. Its request ID is stable:
+`retire-HOTEL-CONTINUOUS-20261027-owner-decision-20261101`.
+A stale CAS leaves that original intent held. A lost acknowledgement reads the
+immutable committed retirement record without applying a second retirement or
+clearing another queue's lane. A server advisory lock serializes helper actions.
+The source queue must still be stage41 with19 accepted batches and claimed or
+UNKNOWN work. Any mismatch holds instead of changing the requested operation.
+
+### Retained-input isolation scope
+
+The owner-approved retained base is the prior operator-verified private snapshot:
+246123355 bytes, SHA256
+`61917edb636c752176a5d369d885e1aea249dae8be0d1764d46d7b744b5ca1f2`,
+attested at2026-11-01T15:05:22.967454+00:00. This helper does not reopen or copy it
+and does not access Mac or Windows checking chats.
+
+The three operator isolation attestations have the explicit scope
+`retained-input-isolation-v1`: hosted Library/native writers cannot address that
+private retained copy; old mutable Library IDs are historical noninputs; late
+old-queue results cannot be admitted. The same atomic retirement installs the
+server-side queue/receipt/event/audit fence. This is not a claim that every hosted
+run terminated or that all Library write grants were revoked. Those outcomes
+remain unknown. The complete policy is saved with the private request and hashed
+into the retirement receipt. Its future queue allowlist is empty and
+`new_start_allowed=false`.
+
+The original CENTRAL41 remains historical UNKNOWN with zero acceptance credit.
+Readback checks all original queue fields other than state/update timestamp,
+exact original receipt bytes/hashes, all37 trigger names, inactive old
+subscriptions with pending/leases cleared, and conditional release of the old
+lane. A different lane owner is preserved. No research, resume, native task,
+replacement queue or OAuth revocation is invoked.
+
+The additional regression runs only in isolated SQLite/native MySQL fixture
+databases. It exercises provider target checks and secret redaction, the real
+canonical083 runner, durable intent and stale CAS, crash-before-apply and
+lost-ACK-after-commit, original receipt preservation and replay after another
+fixture queue owns the lane. It is not production execution evidence.
