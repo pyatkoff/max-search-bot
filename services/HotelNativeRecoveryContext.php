@@ -11,7 +11,16 @@ final class HotelNativeRecoveryContext
     public function now():int{return $this->clock===null?time():(int)($this->clock)();}
     public function authorize():void
     {
-        if(ProjectConfig::projectId()!=='anytour'||!(new ManagerPreparationOAuth($this->pdo,$this->clock))->eventConnectionAuthorizedAcrossProfiles('hotels',$this->connection,$this->admin))throw new DomainException('native_recovery_access_denied');
+        if(ProjectConfig::projectId()!=='anytour')throw new DomainException('native_recovery_access_denied');
+        if($this->pdo->inTransaction()){
+            // owned() has already locked lane -> queue -> grant. The cron-only
+            // cross-profile helper deliberately forbids caller transactions.
+            $g=$this->one('SELECT resource FROM manager_preparation_oauth_grants WHERE grant_id=? AND admin_id=?',[$this->connection,$this->admin]);
+            $profile=match($g['resource']??null){ManagerPreparationOAuth::RESOURCE=>ManagerPreparationOAuth::PROFILE_LEGACY,
+                ManagerPreparationOAuth::ORIGIN.'/manager/hotels-mcp.php'=>ManagerPreparationOAuth::PROFILE_HOTELS,default=>null};
+            $ok=$profile!==null&&(new ManagerPreparationOAuth($this->pdo,$this->clock,$profile))->connectionAuthorized($this->connection,$this->admin,[ManagerPreparationOAuth::HOTEL_SCOPE]);
+        }else$ok=(new ManagerPreparationOAuth($this->pdo,$this->clock))->eventConnectionAuthorizedAcrossProfiles('hotels',$this->connection,$this->admin);
+        if(!$ok)throw new DomainException('native_recovery_access_denied');
     }
     public function autocommit():void{if($this->pdo->inTransaction())throw new LogicException('native_recovery_foreign_transaction');}
     public function owned(string $queue,bool $lock=false):array
