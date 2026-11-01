@@ -54,13 +54,13 @@ try {
     // Execute the real CLI in a synthetic application; no production bootstrap.
     $app=$tmp.'/app';mkdir($app,0700);mkdir($app.'/tools',0700);mkdir($app.'/services',0700);
     copy(dirname(__DIR__).'/tools/hotel_work.php',$app.'/tools/hotel_work.php');
-    foreach (['HotelWorkHealth','DiagnosticLogger'] as $name) copy(dirname(__DIR__).'/services/'.$name.'.php',$app.'/services/'.$name.'.php');
+    foreach (['HotelWorkHealth','DiagnosticLogger','HotelCollectionCronRuntime'] as $name) copy(dirname(__DIR__).'/services/'.$name.'.php',$app.'/services/'.$name.'.php');
     foreach (['ProjectAccessService','HotelWorkEventService'] as $name) file_put_contents($app.'/services/'.$name.'.php','<?php');
     file_put_contents($app.'/config.php', <<<'PHP'
 <?php
 if (is_file(__DIR__.'/fail')) throw new RuntimeException('PRIVATE BOOTSTRAP ERROR');
 class ProjectAccessService {public static function initializeReadOnly(){}}
-class ConversationDb {public static function connection(){return null;}}
+class ConversationDb {public static function connection(){return new PDO('sqlite::memory:');}}
 class ManagerPreparationOAuth {
     public const HOTEL_SCOPE='hotel_work:write';
     public function __construct($pdo=null){}
