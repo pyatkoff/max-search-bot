@@ -246,19 +246,19 @@ for(const width of [390,430,768,1440])test('selection overview reveals editing a
   const overview=page.getByRole('region',{name:'Обзор выбранного варианта'});
   // The semantic section has an accessible name; reading it never prepares or sends a publication.
   await expect(overview).toContainText('Синтетический отель у моря');
-  for(const value of ['2027-06-05','7 ноч.','2 взр.','4, 4','Семейный номер','Всё включено','240000 RUB'])await expect(overview).toContainText(value);
+  for(const value of ['2027-06-05','7 ноч.','2 взр.','4, 4','Семейный номер','Всё включено','240 000 ₽'])await expect(overview).toContainText(value);
   expect(s.calls.map(x=>x.action)).toEqual(['get']);expect(s.creations()).toBe(0);
   await expect(page.locator('.tsHeadActions #tsHistory')).toBeVisible();await expect(page.locator('.tsFooter #tsHistory')).toHaveCount(0);
   await expect(page.locator('#tsPreview')).toHaveClass('tsPrimary');await expect(page.locator('#tsSave')).not.toHaveClass('tsPrimary');await expect(page.locator('#tsDone')).toBeHidden();
-  await page.locator('[data-ts-select]').nth(1).click();await expect(overview).toContainText('Второй синтетический вариант');await expect(overview).toContainText('215000 RUB');await expect(page.locator('#tsOfferDetails')).not.toHaveAttribute('open','');
+  await page.locator('[data-ts-select]').nth(1).click();await expect(overview).toContainText('Второй синтетический вариант');await expect(overview).toContainText('215 000 ₽');await expect(page.locator('#tsOfferDetails')).not.toHaveAttribute('open','');
   await page.locator('[data-ts-action="up"]').click();await save(page);expect(s.drafts.get(11).draft.offers.map(x=>x.id)).toEqual(['b'.repeat(32),'a'.repeat(32)]);
-  if(width<768){await page.setViewportSize({width,height:420});await expect(page.locator('#tsPreview')).toBeInViewport();await expect(page.locator('#tsSave')).toBeInViewport();await expect(page.locator('#tsClose')).toBeInViewport();expect(await page.locator('#tsEditor').evaluate(el=>el.clientHeight)).toBeGreaterThan(60);await page.setViewportSize({width,height:900})}
+  if(width<768){expect(await page.locator('#tsList').evaluate(list=>{const box=list.getBoundingClientRect(),active=list.querySelector('.isSelected').getBoundingClientRect();return active.left>=box.left-1&&active.right<=box.right+1})).toBe(true);await expect(page.locator('#tsOfferDetails>summary')).toBeInViewport();await page.setViewportSize({width,height:420});await expect(page.locator('#tsPreview')).toBeInViewport();await expect(page.locator('#tsSave')).toBeInViewport();await expect(page.locator('#tsClose')).toBeInViewport();expect(await page.locator('#tsEditor').evaluate(el=>el.clientHeight)).toBeGreaterThan(60);await page.setViewportSize({width,height:900})}
   expect(await page.locator('#tourSelectionDialog').evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThanOrEqual(1);
   fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-selection-overview-${browserName}-${width}.png`)});
-  await page.locator('#tsOfferDetails>summary').click();await expect(page.locator('#ts-amount')).toBeVisible();await page.locator('#ts-amount').fill('210000');await save(page);
-  await expect(overview).toContainText('210000 RUB');expect(s.drafts.get(11).draft.offers[0].room).toBe('Standard');expect(s.drafts.get(11).draft.offers[1]).toEqual(draft.offers[0]);
+  await page.locator('#tsOfferDetails>summary').click();await expect(page.locator('#ts-amount')).toBeVisible();await page.locator('#ts-amount').fill('');await expect(overview).toContainText('Цена не указана');await page.locator('#ts-amount').fill('210000');await save(page);
+  await expect(overview).toContainText('210 000 ₽');expect(s.drafts.get(11).draft.offers[0].room).toBe('Standard');expect(s.drafts.get(11).draft.offers[1]).toEqual(draft.offers[0]);
   await page.locator('#tsOfferDetails>summary').click();await page.locator('#tsPreview').click();await expect(page.locator('.tsPreviewCard')).toHaveCount(2);await expect(page.locator('#tsSend')).toHaveClass('tsPrimary');expect(s.creations()).toBe(0);
-  await page.locator('#tsEdit').click();await expect(overview).toContainText('210000 RUB');clean(s,['prepare']);
+  await page.locator('#tsEdit').click();await expect(overview).toContainText('210 000 ₽');clean(s,['prepare']);
 });
 
 for(const width of [390,430,768,1440])test('selection editor preserves order conditions and reply at '+width,async({page,browserName})=>{
