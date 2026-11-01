@@ -40,14 +40,24 @@ $foreign=new HotelNativeBindingInventory(new HotelNativeRecoveryContext($p,90100
 hccCheck($before===$p->query('SELECT * FROM hotel_work_queues')->fetchAll(PDO::FETCH_ASSOC)&&(int)$p->query('SELECT COUNT(*) FROM hotel_native_bindings')->fetchColumn()===0,'recovery_read_only_no_business_or_binding_changes');
 
 // Synthetic legacy claimed intake; never change live data or use real archives.
-$f=hccFixture();$p=$f['p'];hotelJournalFixtureSchema($p);hotelCollectionCanonicalFixtureSchema($p);
+$f=hccFixture();$p=$f['p'];hccNewSchema($p);hotelJournalFixtureSchema($p);hotelCollectionCanonicalFixtureSchema($p);
 $p->exec('DROP TABLE IF EXISTS hotel_legacy_effect_quarantine');
 if($p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'){
     foreach(explode(';',(string)file_get_contents(dirname(__DIR__).'/migrations/087_hotel_legacy_effect_quarantine.sql'))as$sql)if(trim($sql)!=='')$p->exec($sql);
-}else$p->exec('CREATE TABLE hotel_legacy_effect_quarantine(queue_id TEXT PRIMARY KEY,stage_id TEXT,request_id TEXT,request_sha256 TEXT,original_run_id TEXT,queue_bytes BLOB,working_sha256 TEXT,working_bytes BLOB,packet_sha256 TEXT,evidence_sha256 TEXT,receipt_bytes BLOB)');
+}else{
+    $p->exec('CREATE TABLE hotel_legacy_effect_quarantine(queue_id TEXT PRIMARY KEY,stage_id TEXT,request_id TEXT,request_sha256 TEXT,original_run_id TEXT,queue_bytes BLOB,working_sha256 TEXT,working_bytes BLOB,packet_sha256 TEXT,evidence_sha256 TEXT,receipt_bytes BLOB);
+    CREATE TABLE hotel_legacy_quarantine_gate(guard_id INTEGER PRIMARY KEY);INSERT INTO hotel_legacy_quarantine_gate VALUES(1),(2)');
+    $fields=['queue_id','project_key','admin_id','oauth_connection_id','mode','batch_limit','start_country','initial_phase_counter','phase_counter','baseline_sha256','plan_sha256','stage_index','state','claim_sha256','current_run_id','accepted_batches','write_protocol','data_snapshot_sha256'];
+    $equal=implode(' AND ',array_map(static fn(string$f):string=>'NEW.'.$f.' IS OLD.'.$f,$fields));
+    $p->exec("CREATE TRIGGER hotel_quarantine_queue_update BEFORE UPDATE ON hotel_work_queues WHEN OLD.write_protocol='quarantine_v1' AND NOT(".$equal.") BEGIN SELECT RAISE(ABORT,'database_quarantine'); END");
+    $p->exec("CREATE TRIGGER hotel_quarantine_queue_delete BEFORE DELETE ON hotel_work_queues WHEN OLD.write_protocol='quarantine_v1' BEGIN SELECT RAISE(ABORT,'database_quarantine'); END");
+    foreach(['insert'=>'NEW.queue_id','update'=>'OLD.queue_id,NEW.queue_id','delete'=>'OLD.queue_id']as$op=>$keys)
+        $p->exec("CREATE TRIGGER hotel_quarantine_receipt_".$op.' BEFORE '.strtoupper($op)." ON hotel_work_receipts WHEN EXISTS(SELECT 1 FROM hotel_work_queues WHERE queue_id IN (".$keys.") AND write_protocol='quarantine_v1') BEGIN SELECT RAISE(ABORT,'database_quarantine'); END");
+}
 $p->exec("UPDATE hotel_work_queues SET write_protocol='legacy',stage_index=41,state='ready',accepted_batches=19");
 $cached=new HotelWorkQueue($p,$f['clock']);$stage=$cached->status(901001,$f['conn'],'COLLECTION-SERVICE')['stage_id'];
 $key=str_repeat('d',64);$cached->claim(901001,$f['conn'],['queue_id'=>'COLLECTION-SERVICE','stage_id'=>$stage,'claim_key'=>$key]);
+$p->prepare('INSERT INTO hotel_work_receipts(queue_id,stage_index,stage_id,receipt_sha256,receipt_json,created_at) VALUES(?,?,?,?,?,?)')->execute(['COLLECTION-SERVICE',1,str_repeat('e',64),str_repeat('f',64),'{"accepted":true}','2026-11-01 00:00:00']);
 $context=new HotelNativeRecoveryContext($p,901001,$f['conn'],$f['clock']);$quarantine=new HotelLegacyEffectQuarantine($context);
 $pre=$quarantine->preflight('COLLECTION-SERVICE');hccCheck($pre['eligible']&&!$pre['dispatch_authority']&&!$pre['host_and_Library_fenced'],'quarantine_read_only_preflight_no_false_native_proof');
 $body=hccJson(['knowledge'=>[],'hotel_index'=>[],'working_acceptances'=>['old-accepted'],'country_import_ledger'=>['old-ledger'],'coordination'=>['protected'=>['Melissa','Ibis','legacy162']],'criteria_updates'=>[],'scoped_question_results'=>[]]);
@@ -63,6 +73,16 @@ hccCheck($after[0]['write_protocol']==='quarantine_v1','quarantine_sticky_protoc
 hccCheck(!$receipt['continuation_allowed']&&!$receipt['host_and_Library_fenced']&&$receipt['original_run_status']==='UNKNOWN'&&$receipt['accepted_batches']===19,'quarantine_never_claims_native_termination_acceptance_or_dispatch');
 hccCheck($quarantine->apply(...$args)===$receipt,'quarantine_lost_ack_exact_replay');
 hccCheck($p->query('SELECT working_bytes FROM hotel_legacy_effect_quarantine')->fetchColumn()===$body,'quarantine_exact_history_and_protected_snapshot');
+$receiptRows=$p->query('SELECT * FROM hotel_work_receipts')->fetchAll(PDO::FETCH_ASSOC);
+$sqlMode=null;if($p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'){$sqlMode=$p->query('SELECT @@SESSION.sql_mode')->fetchColumn();$p->exec("SET SESSION sql_mode=''");}
+foreach(["UPDATE hotel_work_queues SET accepted_batches=20","UPDATE hotel_work_queues SET write_protocol='legacy'","DELETE FROM hotel_work_queues",
+    "UPDATE hotel_work_receipts SET receipt_json='changed'","DELETE FROM hotel_work_receipts",
+    "INSERT INTO hotel_work_receipts(queue_id,stage_index,stage_id,receipt_sha256,receipt_json,created_at) VALUES('COLLECTION-SERVICE',41,'".$stage."','".str_repeat('a',64)."','{}','2026-11-01 00:00:00')"]as$i=>$sql)
+    hccReject(fn()=>$p->exec($sql),'quarantine_raw_old_code_SQL_rejected_'.$i);
+hccCheck($p->query('SELECT * FROM hotel_work_receipts')->fetchAll(PDO::FETCH_ASSOC)===$receiptRows,'quarantine_prior_acceptance_rows_immutable');
+if($sqlMode!==null)$p->exec('SET SESSION sql_mode='.$p->quote($sqlMode));
+$p->exec("UPDATE hotel_work_queues SET attention_ack='safe-metadata'");
+hccCheck((int)$p->query('SELECT accepted_batches FROM hotel_work_queues')->fetchColumn()===19,'quarantine_cron_metadata_not_business_mutation');
 $late=['queue_id'=>'COLLECTION-SERVICE','stage_id'=>$stage,'claim_key'=>$key];
 hccReject(fn()=>$cached->claim(901001,$f['conn'],$late),'quarantine_cached_claim_refused','legacy_run_quarantined');
 hccReject(fn()=>$cached->started(901001,$f['conn'],$late+['run_id'=>'old-delayed-run']),'quarantine_delayed_started_refused','legacy_run_quarantined');

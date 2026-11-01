@@ -85,6 +85,18 @@ refuses it. Deleting/unavailability of the snapshot table does not remove the
 sticky fence. There is no automatic downgrade, adoption, stage advance, packet
 import, acceptance, fresh worker capability or dispatch permit.
 
+Five database triggers additionally protect queue UPDATE/DELETE and receipt
+INSERT/UPDATE/DELETE even if a pre-deploy PHP request ignores the new protocol.
+The queue trigger checks the current OLD row; receipt checks take current locks,
+not a stale repeatable-read snapshot. Business values and the quarantine marker
+cannot change, while ordinary delivery metadata can still be updated. MySQL
+uses unconditional scalar-cardinality/unique-key errors on a prohibited branch,
+independent of strict SQL mode, rather than a possibly coerced NULL assignment.
+Apply requires all five triggers and their constraint gate to exist. Release
+must confirm trigger installation privileges/migration success before any apply.
+A future unquarantine/adoption would need a separately reviewed forward change;
+ordinary application code cannot undo this barrier.
+
 ### Scope that remains outside the server
 
 This does NOT terminate/cancel the old native run, revoke its OAuth, isolate its
@@ -129,6 +141,7 @@ transaction succeeded.
 New targeted SQLite/native MySQL regressions cover the read-only binding join,
 hidden/mismatched/expired data, wrong-owner access, atomic barrier rollback,
 business CAS changes, preservation of claim/counters/history, exact replay and
-cached/delayed legacy mutation rejection. They use synthetic data and actual
+cached/delayed legacy mutation rejection, plus raw SQL mutations with MySQL strict
+mode disabled. They use synthetic data and actual
 forward SQL migrations. Required CI is run for the changed code; previously
 accepted production archives and batches are not replayed or rehashed.

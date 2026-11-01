@@ -16,7 +16,7 @@ final class HotelLegacyEffectQuarantine
         return$this->tx(function()use($queue):array{
             $q=$this->c->owned($queue,true);$old=$this->c->one('SELECT stage_id,working_sha256,packet_sha256 FROM hotel_legacy_effect_quarantine WHERE queue_id=?',[$queue]);
             return ['queue_id'=>$queue,'stage_id'=>self::stage($q),'state'=>$q['state'],'accepted_batches'=>(int)$q['accepted_batches'],
-                'eligible'=>$old===null&&self::eligible($q),'expected_queue_sha256'=>self::businessHash($q),
+                'eligible'=>$old===null&&self::eligible($q)&&$this->triggersReady(),'expected_queue_sha256'=>self::businessHash($q),
                 'already_quarantined'=>$old!==null,'dispatch_authority'=>false,'native_terminal_verified'=>false,
                 'fence_scope'=>'server_queue_mutations_only','host_and_Library_fenced'=>false];
         });
@@ -38,6 +38,7 @@ final class HotelLegacyEffectQuarantine
                 if($q['write_protocol']!==self::PROTOCOL||!hash_equals($old['request_sha256'],$input)||hash('sha256',$old['working_bytes'])!==$old['working_sha256'])throw new DomainException('quarantine_replay_conflict');
                 return json_decode($old['receipt_bytes'],true,32,JSON_THROW_ON_ERROR);
             }
+            if(!$this->triggersReady())throw new DomainException('quarantine_database_barrier_required');
             if(!self::eligible($q)||!hash_equals(self::businessHash($q),$expected))throw new DomainException('quarantine_business_CAS_conflict');
             // Never coexist with an enrolled canonical writer or old receipt.
             if($this->c->one('SELECT stage_id FROM hotel_journal_heads WHERE queue_id=?',[$queue])
@@ -60,8 +61,18 @@ final class HotelLegacyEffectQuarantine
     private static function stage(array$q):string{return hash('sha256',HotelNativeRecoveryContext::json([$q['queue_id'],$q['plan_sha256'],(int)$q['stage_index']]));}
     private static function businessHash(array$q):string
     {
-        $v=[];foreach(['queue_id','project_key','admin_id','oauth_connection_id','plan_sha256','baseline_sha256','stage_index','state','claim_sha256','current_run_id','accepted_batches','phase_counter','write_protocol','data_snapshot_sha256']as$k)$v[$k]=$q[$k]??null;
+        $v=[];foreach(['queue_id','project_key','admin_id','oauth_connection_id','mode','batch_limit','start_country','initial_phase_counter','plan_sha256','baseline_sha256','stage_index','state','claim_sha256','current_run_id','accepted_batches','phase_counter','write_protocol','data_snapshot_sha256']as$k)$v[$k]=$q[$k]??null;
         foreach(['admin_id','stage_index','accepted_batches','phase_counter']as$k)$v[$k]=(int)$v[$k];return hash('sha256',HotelNativeRecoveryContext::json($v));
+    }
+    private function triggersReady():bool
+    {
+        $names=['hotel_quarantine_queue_update','hotel_quarantine_queue_delete','hotel_quarantine_receipt_insert','hotel_quarantine_receipt_update','hotel_quarantine_receipt_delete'];
+        $sql=$this->c->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'
+            ?'SELECT TRIGGER_NAME FROM information_schema.TRIGGERS WHERE TRIGGER_SCHEMA=DATABASE() AND TRIGGER_NAME IN (?,?,?,?,?)'
+            :"SELECT name FROM sqlite_master WHERE type='trigger' AND name IN (?,?,?,?,?)";
+        $s=$this->c->pdo->prepare($sql);$s->execute($names);
+        return count($s->fetchAll(PDO::FETCH_COLUMN))===5
+            &&(int)$this->c->one('SELECT COUNT(*) AS n FROM hotel_legacy_quarantine_gate WHERE guard_id IN (1,2)',[])['n']===2;
     }
     private function tx(callable$work):array
     {
