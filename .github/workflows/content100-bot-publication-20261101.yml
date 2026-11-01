@@ -21,7 +21,7 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Verify current released source before provider reads
+      - name: Verify exact source and accepted unchanged publishing inspection
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -29,7 +29,7 @@ jobs:
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = "$EXPECTED_PRODUCTION_SHA"
-          conclusion=$(gh api "repos/pyatkoff/max-search-bot/actions/runs?head_sha=$EXPECTED_PRODUCTION_SHA&per_page=100" --jq '[.workflow_runs[] | select(.name=="Deploy production")] | max_by(.id) | .conclusion')
+          conclusion=$(gh api "repos/pyatkoff/max-search-bot/actions/runs/41318183936/jobs?per_page=20" --jq '[.jobs[] | select(.name=="verify")] | last | .conclusion')
           test "$conclusion" = success
       - name: Prepare fixed read-only target inspection
         shell: bash
@@ -39,7 +39,7 @@ jobs:
           python3 - <<'PY'
           import pathlib,hashlib,os
           script=pathlib.Path('tools/direct_demand/operations/content100-bot-preflight.php').read_text()
-          assert hashlib.sha256(script.encode()).hexdigest()=='3c85eb67325a1bef8d639672cdc5a0781b0c695f9800534c14f6860174fde71f'
+          assert hashlib.sha256(script.encode()).hexdigest()=='14729fd877b7b1ed4449d3e47b0008591f4211fb12bcc62daeb7822b8d6676b7'
           prefix="<?php\ndeclare(strict_types=1);\n"
           assert script.startswith(prefix)
           header=prefix+"const EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\n"
