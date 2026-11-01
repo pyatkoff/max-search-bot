@@ -1,4 +1,4 @@
--- Immutable data import; original queue baseline and accepted history are unchanged.
+-- Immutable data import. Original queue baseline and accepted history are unchanged.
 CREATE TABLE IF NOT EXISTS hotel_working_imports (
  queue_id VARCHAR(128) CHARACTER SET ascii COLLATE ascii_bin PRIMARY KEY,
  request_id VARCHAR(128) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
