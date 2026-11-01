@@ -430,8 +430,24 @@ function modeledAssignedValueAssertions(callable $check):void
     $q=$pdo->prepare('INSERT INTO modeled_conversion_profile_versions VALUES(?,?,?,?,?,?,?)');
     $q->execute([1,'anytour','telegram','7','9',$now-1000,json_encode($parts[1]+ModeledConversionEarlyForecast::freeze(...$parts))]);
     $check('registry never merges a Telegram profile into a MAX member',$registry->members($page)['rows'][0]['known_subtotal_rub']===75);
+    $proof=modeledOfferFixture('Fixture Beach A дорого, найдите дешевле с таким же пляжем');
+    $proof=json_decode(str_replace(['"telegram"'],['"max"'],json_encode($proof)),true);
+    foreach($proof[0]['rows']as&$r)if($r['source_kind']==='event'){
+        $d=json_decode($r['snapshot']['payload']['payload_json'],true);
+        if(isset($d['binding']))$d['binding']=['project_key'=>'anytour','channel'=>'max','external_chat_id'=>'-700','external_user_id'=>'700'];
+        if(isset($d['native_chat_id']))$d['native_chat_id']='-700';
+        $r['snapshot']['payload']['payload_json']=json_encode($d);
+    }unset($r);
+    $proofWrapper=$proof[1]+ModeledConversionEarlyForecast::freeze(...$proof);
+    $pdo->prepare('INSERT INTO modeled_conversion_profile_versions VALUES(?,?,?,?,?,?,?)')->execute([2,'anytour','max','7','9',$now-500,json_encode($proofWrapper)]);
+    $check('one exact bound current MAX profile completes the same member at 275',$registry->members($page)['rows'][0]['known_subtotal_rub']===275);
+    $pdo->exec("UPDATE modeled_conversion_profile_versions SET customer_key='8' WHERE id=2");
+    $check('customer rebinding cannot reuse the old profile awards',$registry->members($page)['rows'][0]['known_subtotal_rub']===75);
+    $check('current registry does not reuse a profile after channel rebinding',count($registry->profiles('0',$now)['rows'])===0);
+    $pdo->exec("UPDATE conversations SET channel='telegram' WHERE id=9");
+    $pdo->exec("UPDATE customer_channels SET channel='telegram' WHERE id=7");
     $check('dialogue page is a usable current value projection',count($registry->profiles('0',$now)['rows'])===1);
-    $check('registry reads do not add award or profile rows',(int)$pdo->query('SELECT COUNT(*) FROM modeled_conversion_profile_versions')->fetchColumn()===1);
+    $check('registry reads do not add award or profile rows',(int)$pdo->query('SELECT COUNT(*) FROM modeled_conversion_profile_versions')->fetchColumn()===2);
 }
 
 if(realpath($_SERVER['SCRIPT_FILENAME']??'')===__FILE__){
