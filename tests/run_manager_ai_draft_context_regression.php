@@ -24,6 +24,7 @@ final class DraftContextPdo extends PDO
     public int $commits = 0;
     public bool $guard = false;
     public string $failQuery = '';
+    public ?Closure $observeRead = null;
 
     public function __construct()
     {
@@ -32,6 +33,7 @@ final class DraftContextPdo extends PDO
     }
     public function observe(string $sql): void
     {
+        if ($this->observeRead !== null && preg_match('/\ASELECT\b/i',$sql)) ($this->observeRead)($sql);
         if (!$this->guard) return;
         $this->executed[] = $sql;
         if (!preg_match('/\ASELECT\b/i', $sql)) {
@@ -227,6 +229,20 @@ function draftWorkingSave(DraftContextPdo $pdo,array $offers,int $version=1): ar
 function draftWorkingInput(array $snapshot): array
 {
     return ManagerAiDraftService::prepareInput($snapshot['context'],$snapshot['company_knowledge'],null,$snapshot['reference_context']);
+}
+
+if (($argv[1]??'')==='--hotel-knowledge-read') {
+    require_once __DIR__.'/hotel_knowledge_read_checks.php';
+    hotelKnowledgeReadChecks();
+    echo 'Hotel knowledge read: '.$passed." checks passed\n";
+    exit(0);
+}
+
+if (($argv[1]??'')==='--hotel-knowledge-http') {
+    require_once __DIR__.'/support/hotel-knowledge-http.php';
+    hotelKnowledgeHttpChecks();
+    echo 'Hotel knowledge HTTP: '.$passed." checks passed\n";
+    exit(0);
 }
 
 try {
@@ -885,6 +901,12 @@ INSERT INTO catalog_countries VALUES(1,'Египет',1),(4,'Турция',1),(9
         && strlen(json_encode(ManagerDraftClient::requestBody(ManagerAiDraftService::instructions($tightBase['context']),$tightBase['context']),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=ManagerDraftClient::MAX_REQUEST_BYTES
         && $tight['context']===$tightBase['context'] && ($tight['working_selection_admission']['reason']??'')==='request_budget');
 
+    require_once __DIR__.'/hotel_offer_reference_checks.php';
+    hotelOfferReferenceChecks();
+    require_once __DIR__.'/hotel_knowledge_read_checks.php';
+    hotelKnowledgeReadChecks();
+    require_once __DIR__.'/support/hotel-knowledge-http.php';
+    hotelKnowledgeHttpChecks();
     echo 'Manager AI draft context: '.$passed." checks passed\n";
 } catch (Throwable $error) {
     fwrite(STDERR, ($error instanceof RuntimeException && str_starts_with($error->getMessage(),'FAIL ') ? $error->getMessage() : 'FAIL synthetic context fixture')."\n");

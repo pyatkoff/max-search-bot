@@ -72,6 +72,13 @@ HOTEL;
                 'room_tariff_equivalence_verified'=>false,
                 'authoring_status'=>$bundle['status'], 'future_operation_verified'=>false,
             ];
+            if (isset($selector['provenance']['kind'])) {
+                // A constructor/source read identifies a property, not the
+                // tourist's current trip, agreement or supplier conditions.
+                $result += ['current_trip_binding'=>false, 'customer_agreement_verified'=>false,
+                    'current_price_verified'=>false, 'availability_verified'=>false,
+                    'meal_plan_equivalence_verified'=>false];
+            }
             // The group and its related source-specific limits are indivisible.
             if (strlen(self::canonical($result)) > self::MAX_REFERENCE_BYTES) return self::held('projection_too_large', $version);
             return $result;
@@ -214,10 +221,28 @@ HOTEL;
         if (!self::keys($selector, ['project_key','source_identity','provenance','selected_hotel','selected_room'])
             || ($selector['project_key'] ?? null) !== 'anytour' || !self::validSourceIdentity($selector['source_identity'] ?? null)
             || !self::text($selector['selected_hotel'] ?? null, 191)
-            || !self::text($selector['selected_room'] ?? null, 300) || !is_array($selector['provenance'] ?? null)
-            || !self::keys($selector['provenance'], ['message_id','event_id','publication_sha256','source_sha256'])) return false;
-        $p = $selector['provenance'];
-        return self::id($p['message_id'] ?? null) && self::id($p['event_id'] ?? null)
+            || !self::text($selector['selected_room'] ?? null, 300) || !is_array($selector['provenance'] ?? null)) return false;
+        return self::validProvenance($selector['provenance']);
+    }
+
+    /** Strict server-owned provenance variants; no synthetic inquiry ids. */
+    public static function validProvenance(array $p): bool
+    {
+        if (!array_key_exists('kind', $p)) {
+            return self::keys($p, ['message_id','event_id','publication_sha256','source_sha256'])
+                && self::id($p['message_id'] ?? null) && self::id($p['event_id'] ?? null)
+                && self::hex($p['publication_sha256'] ?? null) && self::hex($p['source_sha256'] ?? null);
+        }
+        $id32 = static fn(mixed $v): bool => is_string($v) && preg_match('/\A[a-f0-9]{32}\z/D', $v) === 1;
+        if ($p['kind'] === 'working_draft') {
+            return self::keys($p, ['kind','draft_version','offer_id','snapshot_sha256','source_sha256'])
+                && self::id($p['draft_version'] ?? null) && $id32($p['offer_id'] ?? null)
+                && self::hex($p['snapshot_sha256'] ?? null) && self::hex($p['source_sha256'] ?? null);
+        }
+        return ($p['kind'] ?? null) === 'publication'
+            && self::keys($p, ['kind','publication_id','card_index','draft_offer_id','publication_sha256','source_sha256'])
+            && $id32($p['publication_id'] ?? null) && is_int($p['card_index'] ?? null)
+            && $p['card_index'] >= 0 && $p['card_index'] < 20 && $id32($p['draft_offer_id'] ?? null)
             && self::hex($p['publication_sha256'] ?? null) && self::hex($p['source_sha256'] ?? null);
     }
 

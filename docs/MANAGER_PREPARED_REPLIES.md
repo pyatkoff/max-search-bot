@@ -607,3 +607,17 @@ operator room/meal equivalence or operation on future travel dates.
 The existing draft workflow and operator modes remain unchanged. First-cohort
 demand selection, constructor consumption and automatic sending are separate
 subsequent acceptance steps; none is activated by profile confirmation.
+
+### Shared exact-offer hotel knowledge in the selection editor
+
+Native AI selection and saved-offer reads use `ManagerHotelOfferReference` over the existing accepted hotel base. They preserve the same fact group, source records and binding revision. The internal reader accepts only a server-saved working draft version plus offer ID, or an immutable publication ID plus card index within an authorized conversation. A hotel display name or caller-supplied hotel ID is never a binding.
+
+The manager-only `POST /manager/hotel-knowledge-api.php` requires the current session and CSRF. Supply `conversation_id` and either `{kind: "working_draft", draft_version, offer_id}` or `{kind: "publication", publication_id, card_index}`. The normal manager client may add `action: "read"`; any other action is rejected. The reader rechecks conversation access, saved selection and the session after reading. It returns no-store JSON and never changes a draft, source message, read marker or research data.
+
+An available fact group is property evidence only. `current_trip_link`, `customer_choice_verified` and `offer_conditions_verified` remain false; price, availability, meal equivalence and future operation need their own checks. The AI current-trip confirmation keeps its separate profile/context pins. Unknown, conflicting or unavailable hotel evidence must be presented as such.
+
+In the selection editor, save the selected option and click «Сведения об отеле». The same component runs in Manager2 and the protected standalone editor. The editor gateway routes the read through its current actor/resource guard and the canonical manager endpoint; it does not create project records while authorizing the read. Validated editor transport fields are removed before the strict saved-offer lookup. The packaged editor includes these backend dependencies in its compatibility fingerprint.
+
+The panel displays the accepted fact group, category/facility scope, partial coverage, unknowns, source conflicts, source dates and binding revision. Reading never confirms a current trip or a supplier condition. It is disabled for unsaved/conflicting/pending changes. Changing an offer, editing, closing, suspending the account or receiving a stale version clears old facts; late replies cannot repopulate them. A visible read-only conversation may read facts without gaining editing or sending authority. Original source records remain in the response; internal research tool-citation tokens are omitted only from the presentation of source notes.
+
+Package code and controlled UI/HTTP checks are distinct from installation and natural manager use. Import/editor ownership and the existing research queue remain unchanged.
