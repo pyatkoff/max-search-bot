@@ -18,9 +18,13 @@ async function relay(item,action,reconnect=true){
  const entry=Array.from(bridges.entries()).find(([,b])=>same(b.target,item.target));
  if(!entry){
   if(!reconnect)return{ok:false,error:'bridge_unavailable'};
-  let notify;const ready=new Promise(resolve=>{const timer=setTimeout(()=>{bridgeReady.delete(notify);resolve(false)},8000);notify=target=>{if(!same(target,item.target))return;clearTimeout(timer);bridgeReady.delete(notify);resolve(true)};bridgeReady.add(notify)});
   const tabs=await chrome.tabs.query({url:bridgeOrigin+bridgePath+'*'}),u=bridgeOrigin+bridgePath+'?conversation_id='+item.target.conversation_id,tab=tabs.find(t=>t.url===u);
-  if(tab)void chrome.tabs.sendMessage(tab.id,{type:'bridge_reconnect'}).catch(()=>{});else await chrome.tabs.create({url:u,active:false});
+  if(Array.from(bridges.values()).some(b=>same(b.target,item.target)))return relay(item,action,false);
+  // Recovery is passive: a closed or redirected bridge is not permission to
+  // open another tab. Keep the original durable operation waiting instead.
+  if(!tab)return{ok:false,error:'bridge_unavailable'};
+  let notify;const ready=new Promise(resolve=>{const timer=setTimeout(()=>{bridgeReady.delete(notify);resolve(false)},8000);notify=target=>{if(!same(target,item.target))return;clearTimeout(timer);bridgeReady.delete(notify);resolve(true)};bridgeReady.add(notify)});
+  void chrome.tabs.sendMessage(tab.id,{type:'bridge_reconnect'}).catch(()=>{});
   return await ready?relay(item,action,false):{ok:false,error:'bridge_unavailable'};
  }
  if(Object.hasOwn(item,'manager_amount')&&entry[1].priceEdit!==true)return{ok:false,error:'bridge_update_required'};
