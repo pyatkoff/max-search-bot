@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__.'/ModeledConversionEarlyForecast.php';
+require_once __DIR__.'/ModeledConversionAssignedValue.php';
 
 /** Derived private profiles from the admitted journal; never queries native sources. */
 final class ModeledConversionProfiles
@@ -105,6 +106,7 @@ final class ModeledConversionProfiles
                     $first=$this->q('SELECT '.$firstExpression.' AS first_cursor FROM modeled_conversion_profile_versions WHERE project_key=? AND platform=? AND customer_key=? AND conversation_id=? ORDER BY id DESC LIMIT 1',array_values($scope))->fetchColumn();
                     $packet=ModeledConversionEarlyForecast::freeze($case,$profile,$document,$first===false||$first===null?null:(string)$first);
                     $profile['contextual_signals']=$packet['contextual_signals'];$profile['early_forecast']=$packet['early_forecast'];
+                    $profile['assigned_value']=ModeledConversionAssignedValue::profile($profile,$case);
                     $forecastReceipt=ModeledConversionEarlyForecast::accumulate($forecastReceipt,$packet);
                     $profile['processing']=['version'=>self::VERSION,'source_sha256'=>hash_file('sha256',__FILE__),'journal_cursor'=>$cursor,'source_fence_journal_id'=>$fence];
                     $json=self::json($profile);
@@ -200,3 +202,4 @@ final class ModeledConversionProfiles
     private static function json(array $v): string{return json_encode($v,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);}
     private static function fail(string $r): void{throw new RuntimeException('modeled_profiles_'.$r);}
 }
+
