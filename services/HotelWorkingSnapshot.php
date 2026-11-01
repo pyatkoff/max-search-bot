@@ -8,6 +8,26 @@ require_once __DIR__.'/HotelCollectionCanonicalDocument.php';
 final class HotelWorkingSnapshot
 {
     public function __construct(private PDO $pdo) {}
+    /** Lossless opaque baseline; legacy identities are excluded from new credit,
+     * never fabricated into typed evidence. The original bytes remain the reader.
+     */
+    public static function reservedIndex(string $bytes):array
+    {
+        $doc=HotelCollectionCanonicalDocument::decodeObject($bytes);
+        $reserved=['facts'=>[], 'sources'=>[], 'read_updates'=>[], 'questions'=>[]];
+        foreach(['facts'=>'claims','sources'=>'sources_including_unclaimed']as$group=>$field){
+            if(!is_array($doc['knowledge'][$field]??null))throw new DomainException('working_index_shape');
+            foreach(array_keys($doc['knowledge'][$field])as$id)if(is_string($id)&&preg_match('/\A[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}\z/D',$id))$reserved[$group][]=$id;
+        }
+        foreach(['read_updates'=>$doc['knowledge']['source_read_updates']??[],'questions'=>$doc['scoped_question_results']??[]]as$group=>$rows){
+            if(!is_array($rows))throw new DomainException('working_index_shape');
+            foreach($rows as$key=>$row){$id=is_array($row)?($row['id']??null):null;if($id===null&&!array_is_list($rows))$id=$key;
+                if(is_string($id)&&preg_match('/\A[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}\z/D',$id))$reserved[$group][]=$id;}
+        }
+        foreach($reserved as&$ids){$ids=array_values(array_unique($ids));sort($ids,SORT_STRING);}unset($ids);
+        $index=['baseline_sha256'=>hash('sha256',$bytes),'facts'=>[],'sources'=>[],'read_update_ids'=>[],'question_ids'=>[],'reserved_ids'=>$reserved];
+        HotelCollectionCanonicalDocument::validateBaselineIndex($index,$index['baseline_sha256']);return$index;
+    }
     public function import(array $queue,string $bytes,string $expectedSha,string $request): array
     {
         $this->transaction();

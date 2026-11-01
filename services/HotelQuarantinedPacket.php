@@ -10,7 +10,7 @@ final class HotelQuarantinedPacket
         if(strlen($working)>67108864||strlen($packet)>2097152)self::deny('input_limit');
         $base=HotelCollectionCanonicalDocument::decodeObject($working);$p=HotelCollectionCanonicalDocument::decodeObject($packet);
         foreach(['claims','sources_including_unclaimed']as$g)if(!is_array($base['knowledge'][$g]??null)||array_is_list($base['knowledge'][$g]))self::deny('legacy_knowledge_map_required');
-        foreach(['working_acceptances','scoped_question_results']as$g)if(!is_array($base[$g]??null)||!array_is_list($base[$g]))self::deny('legacy_append_shape');
+        if(!is_array($base['working_acceptances']??null)||!array_is_list($base['working_acceptances'])||!is_array($base['scoped_question_results']??null))self::deny('legacy_append_shape');
         if(!is_array($base['country_import_ledger']['imports']??null)||!array_is_list($base['country_import_ledger']['imports'])||!is_int($base['country_import_ledger']['revision']??null))self::deny('legacy_ledger_shape');
         $country=['EG','TH','VN','TR'][(array_search($queue['start_country'],['EG','TH','VN','TR'],true)+intdiv((int)$queue['stage_index'],2))%4];
         $previous=hash('sha256',self::json([$queue['queue_id'],$queue['plan_sha256'],(int)$queue['stage_index']-1]));
@@ -66,8 +66,9 @@ final class HotelQuarantinedPacket
             $field=$g==='claims'?'claim_ids':'source_ids';$index=$w->hotel_index->{$r->hotel_key};
             if(!isset($index->$field))$index->$field=[];if(in_array($id,$index->$field,true))self::deny('merge_index_conflict');$index->{$field}[]=$id;
         }
-        if(!is_array($w->scoped_question_results)||!is_array($w->working_acceptances)||!is_array($w->country_import_ledger->imports))self::deny('legacy_append_shape');
-        foreach($d->question_results as$r)$w->scoped_question_results[]=$r;
+        if((!is_array($w->scoped_question_results)&&!$w->scoped_question_results instanceof stdClass)||!is_array($w->working_acceptances)||!is_array($w->country_import_ledger->imports))self::deny('legacy_append_shape');
+        if(is_array($w->scoped_question_results))foreach($d->question_results as$r)$w->scoped_question_results[]=$r;
+        else{if(property_exists($w->scoped_question_results,$p->operation_id))self::deny('question_operation_replay');$w->scoped_question_results->{$p->operation_id}=$d->question_results;}
         $w->working_acceptances[]=(object)$acceptance;$w->country_import_ledger->imports[]=(object)$acceptance;
         if(!is_int($w->country_import_ledger->revision??null))self::deny('legacy_ledger_revision');$w->country_import_ledger->revision++;
         if(isset($w->server_snapshot_protocol)&&$w->server_snapshot_protocol!=='quarantined_intake_v1')self::deny('snapshot_protocol_conflict');$w->server_snapshot_protocol='quarantined_intake_v1';

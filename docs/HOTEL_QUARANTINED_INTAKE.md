@@ -1,5 +1,48 @@
 # Same-claim CENTRAL intake after quarantine
 
+## Prepared onward continuation
+
+Migration089 and the internal `HotelCollectionCanonicalService::adoptQuarantined`
+bridge the first independently accepted original intake into the existing journal.
+The exact domain receipt and accepted WORKING bytes must match, the original
+queue identity/counters must advance exactly once, and the next stage must have
+one existing held event and no receipt or execution attempt. Protected inventory
+cannot omit a key retained by the original intake. Adoption adds no acceptance
+credit, claim, native run, queue, delivery resume or OAuth change.
+
+One transaction imports the complete immutable accepted WORKING, creates the
+canonical baseline/index, reserve policy and next-stage journal head, switches
+to journal control and changes that same held event to pending. The queue's
+original baseline remains unchanged; the separate data baseline pins the exact
+accepted WORKING. Opaque legacy variants are retained byte-for-byte. Their IDs
+are reserved against new credit, without inventing country/hotel/source-evidence
+joins. Unmapped old sources cannot become typed foreign-key evidence. Full
+scoped WORKING reads remain available through the existing server reader.
+
+`persistent_fence=1` remains sticky after `journal_v1`. Forward triggers permit
+only exact before/after business hashes or a new exact receipt bound to the
+current database session and caller-owned transaction. Permits are deleted
+before commit. Queue deletion, historical receipt rewriting, marker downgrade,
+fence removal and cached old SQL remain blocked after adoption and later cycles.
+This database fence still does not cancel a native run or fence Library/host APIs.
+
+The existing dormant cron runtime accepts an optional private `continuation`
+plan: exact acceptance/WORKING pins, request ID, protected inventory/attestation,
+existing producer task and approved next scope/source-packet identity. Both
+strict dispatch flags govern adoption and all later sends. Missing continuation
+keeps the previous HOLD behavior. With a configured plan it prepares one durable
+next-stage intent, waits for fresh delivery of the existing pending event, then
+uses the existing native adapter once. UNKNOWN is never resent. A recovery plan
+becomes inert as soon as its next stage advances; it cannot repeat TR40/CENTRAL41.
+The normal server producer/reviewer path then retains its independent verdict,
+criteria cadence and atomic acceptance/queue/outbox transaction.
+
+Tests use synthetic data in SQLite and the allowlisted native MySQL database:
+two adoption rollback boundaries, lost ACK, exact receipt/snapshot/reserve pins,
+one next event and producer send, old SQL concurrent with protocol adoption,
+continued fencing through the following independent acceptance, and object-shaped
+legacy question history. No production plan or activation is installed.
+
 Dormant code in PR1261, no live application or native execution. This is a narrow
 continuation of the original claimed intake, using its already completed and
 server-receipted producer packet. It never creates a queue/claim, repeats research,

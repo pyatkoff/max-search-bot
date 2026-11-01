@@ -109,6 +109,8 @@ final class HotelCollectionCanonicalDocument
 
     private static function baselineIndex(array $value, string $baseline): array
     {
+        $reserved = $value['reserved_ids'] ?? ['facts'=>[], 'sources'=>[], 'read_updates'=>[], 'questions'=>[]];
+        unset($value['reserved_ids']);
         $value = self::object($value, ['baseline_sha256', 'facts', 'sources', 'read_update_ids', 'question_ids']);
         if ($value['baseline_sha256'] !== $baseline) self::conflict('baseline_index_mismatch');
         $out = ['facts' => [], 'sources' => [], 'read_updates' => [], 'questions' => []];
@@ -125,6 +127,13 @@ final class HotelCollectionCanonicalDocument
         }
         foreach (['read_updates' => 'read_update_ids', 'questions' => 'question_ids'] as $group => $key) {
             foreach (self::ids($value[$key], self::MAX_INDEX_ROWS) as $id) $out[$group][$id] = true;
+        }
+        // Opaque legacy variants remain readable in WORKING. Reserving an ID
+        // prevents duplicate credit without guessing its hotel/country/evidence.
+        $reserved = self::object($reserved, self::GROUPS);
+        foreach (self::GROUPS as $group) foreach (self::ids($reserved[$group], self::MAX_INDEX_ROWS) as $id) {
+            if (isset($out[$group][$id])) self::invalid('duplicate_baseline_id');
+            $out[$group][$id] = ['legacy_unmapped'=>true];
         }
         return $out;
     }
@@ -213,7 +222,7 @@ final class HotelCollectionCanonicalDocument
     private static function reference(array $rows, string $id, string $hotel, string $country): array
     {
         $row = $rows[$id] ?? null;
-        if (!is_array($row) || $row['hotel_key'] !== $hotel || $row['country'] !== $country) self::conflict('reference_scope_mismatch');
+        if (!is_array($row) || ($row['hotel_key'] ?? null) !== $hotel || ($row['country'] ?? null) !== $country) self::conflict('reference_scope_mismatch');
         return $row;
     }
 

@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once dirname(__DIR__).'/services/HotelQuarantinedIntake.php';
 require_once dirname(__DIR__).'/services/HotelQuarantinedIntakeRuntime.php';
+require_once __DIR__.'/fixtures/hotel_quarantine_onward.php';
 
 // A genuinely concurrent old client: it does not load the new PHP write guard.
 if(($argv[1]??'')==='--quarantine-old-writer-child'){
@@ -9,16 +10,17 @@ if(($argv[1]??'')==='--quarantine-old-writer-child'){
     $options=[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION];
     if($mysql){$dsn=(string)getenv('PREPARED_REPLY_MYSQL_DSN');if(preg_match('/(?:\Amysql:|;)dbname=maxbot_prepared_test(?:_[a-zA-Z0-9_]+)?(?:;|\z)/D',$dsn)!==1)throw new RuntimeException('unsafe_child_database');$pdo=new PDO($dsn,getenv('PREPARED_REPLY_MYSQL_USER')?:null,getenv('PREPARED_REPLY_MYSQL_PASS')?:null,$options);}
     else{if(!str_starts_with((string)realpath($argv[2]),realpath(sys_get_temp_dir()).'/hotel-collection-service-'))throw new RuntimeException('unsafe_child_file');$pdo=new PDO('sqlite:'.$argv[2],null,null,$options);$pdo->exec('PRAGMA busy_timeout=15000');$pdo->sqliteCreateFunction('hotel_intake_session',static fn():string=>'old-child-session',0);}
+    if(!$mysql){$pdo->sqliteCreateFunction('hotel_queue_session',static fn():string=>'old-child-session',0);$pdo->sqliteCreateFunction('sha2',static fn(string$s,int$b):string=>hash('sha256',$s),2);$pdo->sqliteCreateFunction('concat_ws',static fn(...$v):string=>implode(array_shift($v),$v),-1);}
     file_put_contents($out.'.started','started');
     try{$pdo->exec("UPDATE hotel_work_queues SET accepted_batches=accepted_batches+1 WHERE queue_id='COLLECTION-SERVICE'");$r=['denied'=>false];}catch(PDOException$e){$r=['denied'=>true];}
     file_put_contents($out.'.done',json_encode($r));exit;
 }
 function hqiSchema(PDO$p):void
 {
-    foreach(['hotel_work_events','hotel_native_bindings','hotel_native_deliveries','hotel_quarantined_intakes','hotel_quarantined_read_coverage','hotel_quarantine_intake_permits','hotel_legacy_effect_quarantine','hotel_legacy_quarantine_gate']as$t)$p->exec('DROP TABLE IF EXISTS '.$t);
+    foreach(['hotel_quarantine_adoptions','hotel_queue_write_permits','hotel_work_events','hotel_native_bindings','hotel_native_deliveries','hotel_quarantined_intakes','hotel_quarantined_read_coverage','hotel_quarantine_intake_permits','hotel_legacy_effect_quarantine','hotel_legacy_quarantine_gate']as$t)$p->exec('DROP TABLE IF EXISTS '.$t);
     if($p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'){
         foreach(['071_hotel_work_events.sql','086_hotel_native_automation_adapter.sql','087_hotel_legacy_effect_quarantine.sql','088_hotel_quarantined_intake.sql']as$f)foreach(explode(';',(string)file_get_contents(dirname(__DIR__).'/migrations/'.$f))as$s)if(trim($s)!=='')$p->exec($s);
-        return;
+        hqoSchema($p);return;
     }
     foreach(['071_hotel_work_events.sql','086_hotel_native_automation_adapter.sql','087_hotel_legacy_effect_quarantine.sql','088_hotel_quarantined_intake.sql']as$f){
         $s=(string)file_get_contents(dirname(__DIR__).'/migrations/'.$f);if(preg_match('/(?:CREATE|DROP) TRIGGER/',$s,$m,PREG_OFFSET_CAPTURE))$s=substr($s,0,$m[0][1]);
@@ -35,6 +37,7 @@ function hqiSchema(PDO$p):void
     $rp="EXISTS(SELECT 1 FROM hotel_quarantine_intake_permits p WHERE p.queue_id=NEW.queue_id AND p.session_id=hotel_intake_session() AND p.stage_id=NEW.stage_id AND p.stage_index=NEW.stage_index AND p.receipt_sha256=NEW.receipt_sha256 AND p.receipt_sha256=sha2(NEW.receipt_json,256))";
     $p->exec("CREATE TRIGGER hotel_quarantine_receipt_insert BEFORE INSERT ON hotel_work_receipts WHEN EXISTS(SELECT 1 FROM hotel_work_queues WHERE queue_id=NEW.queue_id AND write_protocol='quarantine_v1') AND NOT(".$rp.") BEGIN SELECT RAISE(ABORT,'database_quarantine'); END");
     foreach(['update'=>'OLD.queue_id,NEW.queue_id','delete'=>'OLD.queue_id']as$op=>$keys)$p->exec('CREATE TRIGGER hotel_quarantine_receipt_'.$op.' BEFORE '.strtoupper($op)." ON hotel_work_receipts WHEN EXISTS(SELECT 1 FROM hotel_work_queues WHERE queue_id IN(".$keys.") AND write_protocol='quarantine_v1') BEGIN SELECT RAISE(ABORT,'database_quarantine'); END");
+    hqoSchema($p);
 }
 function hqiFixture():array
 {
@@ -153,3 +156,4 @@ hccCheck($history===$p->query('SELECT * FROM hotel_work_receipts WHERE stage_ind
 hccReject(fn()=>$coordinator->dispatch('COLLECTION-SERVICE',$stage,1,$control,$pending['event_id'],$route),'quarantined_completed_intake_cannot_redispatch');
 hccCheck(count($events)===1&&$p->query('SELECT original_run_id FROM hotel_legacy_effect_quarantine')->fetchColumn()==='00000000-0000-0000-0000-000000000041','quarantined_original_handler_UNKNOWN_retained');
 echo "HOTEL QUARANTINED INTAKE CHECKS PASS\n";
+require __DIR__.'/hotel_quarantine_onward_checks.php';

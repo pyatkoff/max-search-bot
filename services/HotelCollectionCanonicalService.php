@@ -5,6 +5,7 @@ require_once __DIR__.'/HotelCollectionCanonicalStore.php';
 require_once __DIR__.'/ManagerPreparationOAuth.php';
 require_once __DIR__.'/HotelWorkingSnapshot.php';
 require_once __DIR__.'/HotelQuarantinedIntake.php';
+require_once __DIR__.'/HotelQueueWriteFence.php';
 
 /** Internal control APIs + two capability-bound worker APIs; no native launch,
  * queue advancement, runtime migration or Library loader. Constructor identity
@@ -44,7 +45,56 @@ final class HotelCollectionCanonicalService
         return $this->tx('import_working',function()use($queue,$stage,$generation,$control,$request,$bytes,$sha):array{
             [$q,$h]=$this->locked($queue,$stage,true);$this->control($h,$control,$generation);self::id($request);self::sha($sha);
             $result=(new HotelWorkingSnapshot($this->pdo))->import($q,$bytes,$sha,$request);
-            $this->execute('UPDATE hotel_work_queues SET data_snapshot_sha256=? WHERE queue_id=?',[$sha,$queue]);return $result;
+            (new HotelQueueWriteFence($this->pdo))->update($q,['data_snapshot_sha256'=>$sha]);return $result;
+        });
+    }
+
+    /** CONTROL ONLY. Adopt the accepted original intake into the same queue.
+     * No claim, acceptance credit, native send, resume or configuration change.
+     */
+    public function adoptQuarantined(string $queue,string $intake,string $control,string $request,string $acceptanceSha,string $workingSha,array $inventory,string $attestation):array
+    {
+        foreach([$intake,$control,$acceptanceSha,$workingSha]as$sha)self::sha($sha);self::id($request);
+        $inventory=self::inventory($inventory);self::attestation($attestation);
+        $input=hash('sha256',self::json([$request,$intake,$acceptanceSha,$workingSha,$inventory,$attestation]));
+        return $this->tx('adopt_quarantined',function()use($queue,$intake,$control,$request,$acceptanceSha,$workingSha,$inventory,$attestation,$input):array{
+            $c=new HotelNativeRecoveryContext($this->pdo,$this->admin,$this->connection,$this->clock);$q=$c->owned($queue,true);
+            (new HotelLegacyEffectQuarantine($c))->assertDatabaseBarrier();
+            $r=$this->one('SELECT * FROM hotel_quarantined_intakes WHERE queue_id=? AND stage_id=?',[$queue,$intake]);
+            if(!$r||!hash_equals($r['control_sha256'],hash('sha256',$control)))$this->deny('control_capability_required');
+            if($r['acceptance_bytes']===null||hash('sha256',$r['acceptance_bytes'])!==$acceptanceSha||$r['accepted_working_sha256']!==$workingSha||hash('sha256',$r['accepted_working_bytes']??'')!==$workingSha)$this->deny('accepted_snapshot_required');
+            $prior=$this->one('SELECT * FROM hotel_quarantine_adoptions WHERE queue_id=?',[$queue]);
+            if($prior){
+                if($prior['request_sha256']!==$input||$prior['control_sha256']!==hash('sha256',$control)||$prior['working_sha256']!==$workingSha||$prior['acceptance_sha256']!==$acceptanceSha||($q['persistent_fence']??0)!=1||$q['write_protocol']!=='journal_v1')$this->deny('adoption_replay_conflict');
+                return self::decode($prior['receipt_bytes']);
+            }
+            $f=$this->one('SELECT * FROM hotel_legacy_effect_quarantine WHERE queue_id=?',[$queue]);
+            $original=$f?self::decode($f['queue_bytes']):[];$accept=self::decode($r['acceptance_bytes']);
+            if(!$f||$f['stage_id']!==$intake||($q['persistent_fence']??null)===null||(int)$q['persistent_fence']!==0||$q['write_protocol']!=='quarantine_v1'||$q['state']!=='ready'||$q['claim_sha256']!==null||$q['current_run_id']!==null||$q['mode']!=='continuous'
+                ||(int)$q['stage_index']!==(int)($original['stage_index']??-2)+1||(int)$q['stage_index']%2!==0||(int)$q['accepted_batches']!==(int)($original['accepted_batches']??-2)+1||(int)$q['phase_counter']!==1-(int)($original['phase_counter']??-2))$this->deny('post_intake_CAS');
+            foreach(['queue_id','project_key','admin_id','oauth_connection_id','mode','batch_limit','start_country','initial_phase_counter','plan_sha256','baseline_sha256','data_snapshot_sha256']as$k)if(($q[$k]??null)!==($original[$k]??null))$this->deny('post_intake_identity_CAS');
+            $domain=$this->one('SELECT * FROM hotel_work_receipts WHERE queue_id=? AND stage_index=?',[$queue,(int)$q['stage_index']-1]);
+            if(!$domain||$domain['stage_id']!==$intake||$domain['receipt_sha256']!==$acceptanceSha||$domain['receipt_json']!==$r['acceptance_bytes']||($accept['business_accepted']??null)!==true||($accept['outcome']??null)!=='accepted_readback'||($accept['working_sha256']??null)!==$workingSha||($accept['accepted_batches']??null)!==(int)$q['accepted_batches']||($accept['next_stage_index']??null)!==(int)$q['stage_index'])$this->deny('exact_intake_receipt_required');
+            $next=$this->stage($q);$event=hash('sha256',self::json([$queue,$intake,'next_held']));
+            if($this->one('SELECT permit_sha256 FROM hotel_work_execution_attempts WHERE queue_id=? AND stage_id=?',[$queue,$next])||$this->one('SELECT stage_id FROM hotel_work_receipts WHERE queue_id=? AND stage_id=?',[$queue,$next]))$this->deny('next_stage_already_attempted');
+            $protected=[];foreach($inventory['entries']as$entry)$protected=array_merge($protected,$entry['hotel_keys']);
+            foreach(json_decode($r['protected_bytes'],true,32,JSON_THROW_ON_ERROR)as$key)if(!in_array($key,$protected,true))$this->deny('protected_reserve_removal_forbidden');
+            $events=$this->pdo->prepare('SELECT event_id,state FROM hotel_collection_outbox WHERE queue_id=? AND stage_id=?');$events->execute([$queue,$next]);$rows=$events->fetchAll(PDO::FETCH_ASSOC);
+            if(count($rows)!==1||$rows[0]['event_id']!==$event||$rows[0]['state']!=='held')$this->deny('exact_held_event_required');
+            foreach(['hotel_journal_heads','hotel_collection_heads','hotel_working_imports','hotel_collection_policy']as$table)if($this->one('SELECT queue_id FROM '.$table.' WHERE queue_id=?',[$queue]))$this->deny('existing_canonical_authority');
+            $receipt=['queue_id'=>$queue,'intake_stage_id'=>$intake,'next_stage_id'=>$next,'working_sha256'=>$workingSha,'acceptance_sha256'=>$acceptanceSha,'accepted_batches'=>(int)$q['accepted_batches'],'event_id'=>'hotel_evt_'.$event,'dispatch_authority'=>false,'original_handler_status'=>'UNKNOWN','native_run_verified'=>false];
+            $this->execute('INSERT INTO hotel_quarantine_adoptions(queue_id,intake_stage,next_stage,request_sha256,acceptance_sha256,working_sha256,control_sha256,receipt_bytes) VALUES(?,?,?,?,?,?,?,?)',[$queue,$intake,$next,$input,$acceptanceSha,$workingSha,hash('sha256',$control),self::json($receipt)]);
+            $this->execute('INSERT INTO hotel_journal_heads(queue_id,stage_id,baseline_sha256,generation,control_sha256,owner_label) VALUES(?,?,?,1,?,?)',[$queue,$next,$q['baseline_sha256'],hash('sha256',$control),'same-queue-continuation']);
+            $h=$this->one('SELECT * FROM hotel_journal_heads WHERE queue_id=? AND stage_id=?',[$queue,$next]);
+            $this->writePolicy($queue,0,$inventory,$attestation);
+            $index=HotelWorkingSnapshot::reservedIndex($r['accepted_working_bytes']);
+            $this->store($q,$h,null,'control',['baseline_sha256'=>$workingSha,'baseline_index'=>$index,'baseline_index_attestation'=>'Exact accepted WORKING; legacy identities reserved, not inferred'])->bootstrap($queue,$r['accepted_working_bytes']);
+            (new HotelWorkingSnapshot($this->pdo))->import($q,$r['accepted_working_bytes'],$workingSha,$request);
+            if($this->fault!==null)($this->fault)('adoption_data_before_queue');
+            (new HotelQueueWriteFence($this->pdo))->update($q,['write_protocol'=>'journal_v1','persistent_fence'=>1,'data_snapshot_sha256'=>$workingSha]);
+            if($this->fault!==null)($this->fault)('adoption_queue_before_event');
+            $this->execute('UPDATE hotel_collection_outbox SET state=? WHERE event_id=? AND state=?',['pending',$event,'held']);
+            return$receipt;
         });
     }
     /** Control-only full byte/pointer reader, including preserved variants/history. */
@@ -259,14 +309,15 @@ final class HotelCollectionCanonicalService
     private function cycleReceipt(array $q,string $stage,string $run,string $packet,mixed $criteria):void
     {
         $body=['run_id'=>$run,'outcome'=>'accepted_readback','packet_sha256'=>$packet,'criteria'=>$criteria,'provenance'=>'server_candidate_and_reviewer_attestation','native_run_verified'=>false];
-        $bytes=self::json($body);$this->execute('INSERT INTO hotel_work_receipts(queue_id,stage_index,stage_id,receipt_sha256,receipt_json,created_at) VALUES(?,?,?,?,?,?)',[$q['queue_id'],$q['stage_index'],$stage,hash('sha256',$bytes),$bytes,gmdate('Y-m-d H:i:s')]);
+        $bytes=self::json($body);(new HotelQueueWriteFence($this->pdo))->receipt($q,$stage,$bytes,gmdate('Y-m-d H:i:s'));
     }
     private function cycleAdvance(array $q,bool $intake):array
     {
         $index=(int)$q['stage_index'];if(($index%2===1)!==$intake||$index>=1000000)$this->deny('cycle_stage_invalid');
         $accepted=(int)$q['accepted_batches']+($intake?1:0);$counter=$intake?1-(int)$q['phase_counter']:(int)$q['phase_counter'];
         $state=$q['mode']==='finite'&&$accepted>=(int)$q['batch_limit']?'complete':'ready';
-        $this->execute('UPDATE hotel_work_queues SET stage_index=?,state=?,phase_counter=?,accepted_batches=?,claim_sha256=NULL,current_run_id=NULL,event_ack=NULL,delivered_at=NULL,claim_deadline=NULL,attention_at=NULL,attention_ack=NULL,watchdog_due_at=NULL,watchdog_epoch=0,last_watch_ack=NULL,updated_at=? WHERE queue_id=?',[$index+1,$state,$counter,$accepted,gmdate('Y-m-d H:i:s'),$q['queue_id']]);
+        (new HotelQueueWriteFence($this->pdo))->update($q,['stage_index'=>$index+1,'state'=>$state,'phase_counter'=>$counter,'accepted_batches'=>$accepted,'claim_sha256'=>null,'current_run_id'=>null]);
+        $this->execute('UPDATE hotel_work_queues SET event_ack=NULL,delivered_at=NULL,claim_deadline=NULL,attention_at=NULL,attention_ack=NULL,watchdog_due_at=NULL,watchdog_epoch=0,last_watch_ack=NULL,updated_at=? WHERE queue_id=?',[gmdate('Y-m-d H:i:s'),$q['queue_id']]);
         if($state==='complete')$this->execute('UPDATE hotel_work_lane SET queue_id=NULL WHERE lane_key=? AND queue_id=?',['HOTEL',$q['queue_id']]);
         $next=$this->one('SELECT * FROM hotel_work_queues WHERE queue_id=?',[$q['queue_id']]);
         $event=hash('sha256',self::json([$q['queue_id'],$this->stage($next),'protected_pending']));
@@ -303,7 +354,7 @@ final class HotelCollectionCanonicalService
             if ($policy['revision'] !== $reserveRevision) $this->deny('reserve_revision_conflict');
             $this->scopeFree($keys,$country,$policy['inventory']);$this->workingScopeFree($queue,$keys);
             $document = ['queue_id'=>$queue,'operation_id'=>$operation,'stage_id'=>$stage,'country'=>$country,'scope_id'=>$scope,
-                'source_packet_id'=>$sourcePacket,'hotel_keys'=>$keys,'base_revision'=>0,'baseline_sha256'=>$q['baseline_sha256']];
+                'source_packet_id'=>$sourcePacket,'hotel_keys'=>$keys,'base_revision'=>0,'baseline_sha256'=>$this->dataBaseline($q)];
             $bytes = self::json($document);
             $old = $this->one('SELECT * FROM hotel_collection_authorizations WHERE queue_id=? AND operation_id=?',[$queue,$operation]);
             if ($old === null) {
@@ -509,6 +560,13 @@ final class HotelCollectionCanonicalService
             if(is_array($v))foreach($v as$item)$visit($item);
         };
         foreach(['active_claims','legacy_reserved_scopes']as$group)$visit($doc['coordination'][$group]??[]);
+    }
+    private function dataBaseline(array $queue):string
+    {
+        if((int)($queue['persistent_fence']??0)!==1)return$queue['baseline_sha256'];
+        $a=$this->one('SELECT working_sha256 FROM hotel_quarantine_adoptions WHERE queue_id=?',[$queue['queue_id']]);
+        if(!$a||$a['working_sha256']!==$queue['data_snapshot_sha256'])$this->deny('adopted_baseline_unavailable');
+        return$a['working_sha256'];
     }
     private function scopeFree(array $keys,string $country,array $inventory): void
     {
