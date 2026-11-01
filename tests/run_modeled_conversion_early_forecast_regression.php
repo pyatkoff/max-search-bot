@@ -371,6 +371,9 @@ function modeledEarlyAssertions(callable $check):void
 
 if(realpath($_SERVER['SCRIPT_FILENAME']??'')===__FILE__){
     $passed=0;$check=static function(string $name,bool $ok)use(&$passed){if(!$ok)throw new RuntimeException('FAIL '.$name);$passed++;echo 'PASS '.$name.PHP_EOL;};
-    modeledEarlyAssertions($check);echo 'MODELED EARLY FORECAST PASSED '.$passed.PHP_EOL;
+    modeledEarlyAssertions($check);
+    require_once __DIR__.'/run_modeled_conversion_assigned_value_regression.php';
+    modeledAssignedValueAssertions($check);echo 'MODELED EARLY FORECAST PASSED '.$passed.PHP_EOL;
 }
+
 
