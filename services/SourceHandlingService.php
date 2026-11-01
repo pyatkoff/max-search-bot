@@ -44,7 +44,7 @@ class SourceHandlingService
 
             // Existing dispatcher ownership must still receive replies and contacts.
             // Keep Back above this check so its saved self-service choice is restored.
-            if($platform==='max'&&!$maxStart&&in_array((string)$row['status'],['manager','waiting_manager'],true))return false;
+            if(in_array($platform,['max','telegram'],true)&&!$explicitStart&&in_array((string)$row['status'],['manager','waiting_manager'],true))return false;
 
             $choice=self::latestChoice((int)$row['id']);
             // A new explicit MAX source entry must not inherit an obsolete AI choice.
