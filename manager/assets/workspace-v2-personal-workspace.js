@@ -10,7 +10,7 @@ let tabDraft=null,labelDraft=null,groupDraft=null,settingsDraft=null,draftRevisi
 let dialogMode='settings',groupReturnMode='settings',groupTarget=0,unavailableGroup=null;
 let listMeta=null,listTicket=0,pinIndex=new Set(),labelIndex=new Map(),pinFeedback=null;
 function focusTarget(node=document.activeElement){if(!node)return null;if(node.id)return {id:node.id};for(const name of ['pwPin','pwPinRecovery','pwSelection','pwMembership','pwEditTab','pwEditLabel','pwDeleteTab','pwDeleteLabel','pwMoveTab','pwGroupMembership','pwEditGroup','pwDeleteGroup','pwRemoveGroup']){const value=node.dataset?.[name];if(value!==undefined){const attribute=name.replace(/[A-Z]/g,c=>'-'+c.toLowerCase());return {selector:`[data-${attribute}="${String(value).replace(/[^A-Za-z0-9:_-]/g,'')}"]${name==='pwMoveTab'?`[data-pw-direction="${Number(node.dataset.pwDirection)}"]`:''}`}}}return null}
-function restoreFocus(target,fallback=null){const node=(target?.id?$(target.id):target?.selector?document.querySelector(target.selector):null)||fallback;if(node?.isConnected&&!node.disabled){node.focus({preventScroll:true});return node}return null}
+function restoreFocus(target,fallback=null){const node=(target?.id?$(target.id):target?.selector?document.querySelector(target.selector):null)||fallback;if(node?.isConnected&&!node.disabled){if(node.id&&node.closest('.m2ConversationMenu')&&window.Manager2Presentation?.focusConversationTool?.(node.id))return node;node.focus({preventScroll:true});return node}return null}
 function usefulFocus(){const node=document.activeElement;return !!node&&node!==document.body&&node.isConnected&&!node.disabled&&!node.hidden}
 function authenticated(){return owner>0&&!S.authExpired&&Number(S.manager?.id||0)===owner&&Number(S.authGeneration||0)===generation}
 function key(){return 'workspaceV2.personalWorkspaceDraft.'+owner}
@@ -76,7 +76,7 @@ function renderGroupTools(){
  chips.querySelectorAll('[data-pw-remove-group]').forEach(node=>node.onclick=async()=>{if(!validGroupTarget(captured))return;const id=Number(node.dataset.pwRemoveGroup);await openGroups();if(validGroupTarget(captured))void mutate('group_membership',{id,conversation_id:captured,enabled:false})});
  if(restoreChipFocus)restoreFocus(restoreChipFocus,$('pwGroupOpen'));
 }
-async function openGroups(){if(!validGroupTarget(Number(S.current||0)))return false;return open({mode:'group-picker'})}
+async function openGroups(){if(!validGroupTarget(Number(S.current||0)))return false;return open({mode:'group-picker',focusSource:$('pwGroupOpen')})}
 async function beginGroup(id=0){
  if(disabled())return false;
  const group=id?groups().find(tab=>Number(tab.id)===Number(id)):null;if(id&&!group)return false;
@@ -121,9 +121,11 @@ function ensureDialog(){if(dialog)return;dialog=document.createElement('dialog')
  // Native modal close may already have returned focus before this queued event.
  // Preserve a later user focus choice; restore only when focus still needs a home.
  const active=document.activeElement,closedDialog=event.currentTarget;
- if(!usefulFocus()||closedDialog.contains(active)||!active.getClientRects().length)restoreFocus(focusBack,$('pwGroupOpen')||$('pwOpen'));
+ if(closedDialog.open)return;
+ const returnedToMenu=focusBack?.id==='pwGroupOpen'&&active?.id==='m2ConversationMenuToggle';
+ if(returnedToMenu||!usefulFocus()||closedDialog.contains(active)||!active.getClientRects().length)restoreFocus(focusBack,$('pwGroupOpen')||$('pwOpen'));
 });$('pwRetrySnapshot').onclick=()=>snapshot();$('pwCheckOperation').onclick=()=>reconcile();$('pwRebaseConflict').onclick=async()=>{if(pending||busy)return;const ok=await snapshot();if(ok){conflict=false;persist();setStatus('Актуальные настройки загружены. Ваш черновик сохранён; проверьте его и сохраните явно.');renderDialog()}}}
-async function open({client=false,mode='settings'}={}){if(!authenticated())return false;ensureDialog();current=Number(S.current||0);dialogMode=mode;if(mode==='group-picker')groupTarget=current;if(!dialog.open){focusBack=focusTarget();dialog.showModal();window.WorkspaceV2Mobile?.openOverlay?.('personal-workspace',()=>close({fromHistory:true}))}renderDialog();if(!ready)await snapshot();if(client)$('pwClient')?.querySelector('button')?.focus();if(mode==='group-picker')$('pwGroups')?.querySelector('[data-pw-group-membership],#pwGroupPickerCreate')?.focus();return true}
+async function open({client=false,mode='settings',focusSource=null}={}){if(!authenticated())return false;ensureDialog();current=Number(S.current||0);dialogMode=mode;if(mode==='group-picker')groupTarget=current;if(!dialog.open){focusBack=focusTarget(focusSource||document.activeElement);dialog.showModal();window.WorkspaceV2Mobile?.openOverlay?.('personal-workspace',()=>close({fromHistory:true}))}renderDialog();if(!ready)await snapshot();if(client)$('pwClient')?.querySelector('button')?.focus();if(mode==='group-picker')$('pwGroups')?.querySelector('[data-pw-group-membership],#pwGroupPickerCreate')?.focus();return true}
 function close({fromHistory=false}={}){persist();dialog?.close();if(!fromHistory)window.WorkspaceV2Mobile?.closeOverlay?.('personal-workspace')}
 function hasOpenDialog(){return !!dialog?.open}
 function back(){if(!dialog?.open)return false;if(dialogMode==='group-editor'){if(groupReturnMode==='lane')close();else{dialogMode=groupReturnMode;renderDialog();($('pwGroupPickerCreate')||$('pwCreateGroup'))?.focus()}}else close();return true}
@@ -178,7 +180,7 @@ function createPinControl(conversationId,{id='',className='',currentOnly=false}=
  status.className='pwDirectPinStatus';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
  feedbackBox.className='pwPinFeedback';recovery.type='button';recovery.className='pwPinRecovery';recovery.dataset.pwPinRecovery=String(target);
  const stopKey=e=>{if(e.key==='Enter'||e.key===' ')e.stopPropagation()};button.onkeydown=stopKey;recovery.onkeydown=stopKey;
- button.onclick=e=>{e.stopPropagation();if(!control.isConnected||!validPinScope(control.pwPinScope)||disabled())return;void changeDirectPin(target,!pinIndex.has(target),control.pwPinScope)};
+ button.onclick=e=>{e.stopPropagation();if(!control.isConnected||!validPinScope(control.pwPinScope)||disabled())return;button.focus({preventScroll:true});void changeDirectPin(target,!pinIndex.has(target),control.pwPinScope)};
  recovery.onclick=e=>{e.stopPropagation();if(!control.isConnected)return;void recoverDirectPin(target,control.pwPinScope)};
  control.appendChild(button);feedbackBox.appendChild(status);feedbackBox.appendChild(recovery);control.appendChild(feedbackBox);renderPinControl(control);return control;
 }
