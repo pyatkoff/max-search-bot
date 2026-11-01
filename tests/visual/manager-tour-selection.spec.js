@@ -1299,7 +1299,9 @@ for(const width of [390,1440])test('imported empty gallery can be corrected in t
  for(const id of ['b','c']){const other=copy(completeDraft().offers[0]);other.id=id.repeat(32);draft.offers.push(other)}
  const original=copy(draft),s=await fixture(page,{draft});await open(page);
  await expect(page.locator('.tsPhotoFields input[type=file]')).toHaveCount(0);
+ expect((await page.locator('[data-ts-photo-mode="manual"]').boundingBox()).height).toBeGreaterThanOrEqual(44);
  await page.locator('[data-ts-photo-mode="manual"]').click();await expect(page.locator('.tsPhotoFields input[type=file]')).toHaveCount(3);
+ expect((await page.locator('[data-ts-photo-mode="auto"]').boundingBox()).height).toBeGreaterThanOrEqual(44);
  await expect(page.locator('.tsPhotoFields')).toContainText('достаточно одного фото');
  expect(s.calls.map(x=>x.action)).toEqual(['get']);expect(s.photoUploads).toHaveLength(0);expect(s.drafts.get(11).draft).toEqual(original);
  await page.locator('#ts-upload-cover').setInputFiles(path.join(root,'assets/owner-tour-cards/compact-v1/cover.jpg'));
