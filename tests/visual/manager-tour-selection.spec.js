@@ -150,7 +150,7 @@ async function fixture(page,options={}){
   if(!options.entry){await page.locator('#inboxList [data-conversation-id="11"]').click();await expect(page.locator('#tourSelectionOpen')).toBeAttached()}
   return {...base,calls,drafts,receipts,snapshot,photoUploads,uploadedFiles,releaseUpload:()=>heldUpload?.(),creations:()=>creations,publication:()=>publication,heldPhotos:()=>heldPhotos.length,holdPhotos:()=>{options.holdPhotos=true},releasePhotos:()=>{options.holdPhotos=false;heldPhotos.splice(0).forEach(resolve=>resolve())},release:()=>held?.(),setFail:x=>fail=x,setTripMode:x=>options.tripMode=x};
 }
-async function open(page){if(!await page.locator('#tourSelectionOpen').isVisible())await page.locator('#m2ConversationMenuToggle').click();await page.locator('#tourSelectionOpen').click();await expect(page.locator('#tourSelectionDialog')).toBeVisible();await expect(page.locator('#tsStatus')).toContainText(/загружен|Просмотр|Восстановлены/)}
+async function open(page,{edit=true}={}){if(!await page.locator('#tourSelectionOpen').isVisible())await page.locator('#m2ConversationMenuToggle').click();await page.locator('#tourSelectionOpen').click();await expect(page.locator('#tourSelectionDialog')).toBeVisible();await expect(page.locator('#tsStatus')).toContainText(/загружен|Просмотр|Восстановлены/);if(edit&&await page.locator('#tsOfferDetails').count()&&!await page.locator('#tsOfferDetails').evaluate(el=>el.open))await page.locator('#tsOfferDetails>summary').click()}
 
 for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420}])test('collector opens the exact selection after authorized conversation navigation '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
  await page.setViewportSize(viewport);const s=await fixture(page,{draft:completeDraft(),entry:'?selection=11&collector_actor=7#conversation=11'});
@@ -222,6 +222,7 @@ for(const width of [390,430,768,1440])test('standalone selection editor uses exa
   expect(fs.readFileSync(path.join(build,'payload/editor.js'))).toEqual(fs.readFileSync(path.join(root,'manager/assets/workspace-v2-tour-selection.js')));
   expect(fs.readFileSync(path.join(build,'payload/editor.css'))).toEqual(fs.readFileSync(path.join(root,'manager/assets/workspace-v2-tour-selection.css')));
   await page.locator('#tourSelectionOpen').click();await expect(page.locator('#tsTitle')).toHaveText('Демонстрационный турист');
+  await page.locator('#tsOfferDetails>summary').click();
   await expect(page.locator('#tsRecipient')).toContainText('без отправки');await expect(page.locator('#ts-hotel')).toHaveValue('Пример отеля у моря');
   await page.locator('#ts-hotel').fill('Мой демонстрационный вариант');await page.locator('#ts-amount').fill('210000');await page.locator('#tsSave').click();
   await expect(page.locator('#tsSaved')).toHaveText('Сохранено в этой вкладке');
@@ -233,8 +234,31 @@ for(const width of [390,430,768,1440])test('standalone selection editor uses exa
   await page.locator('#tsCollector').click();await expect(page.locator('#demoNotice')).toContainText('только демонстрационный черновик');
   await page.locator('#tsPreview').click();await expect(page.locator('#tsStatus')).toContainText('Демонстрация');await expect(page.locator('#tsSend')).toBeHidden();
   fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-selection-editor-standalone-${browserName}-${width}.png`)});
-  await page.locator('#ts-hotel').fill('Несохранённый демонстрационный вариант');await page.locator('#tsClose').click();await page.locator('#demoReset').click();await page.locator('#tourSelectionOpen').click();await expect(page.locator('#ts-hotel')).toHaveValue('Пример отеля у моря');
+  await page.locator('#tsOfferDetails>summary').click();await page.locator('#ts-hotel').fill('Несохранённый демонстрационный вариант');await page.locator('#tsClose').click();await page.locator('#demoReset').click();await page.locator('#tourSelectionOpen').click();await expect(page.locator('#ts-hotel')).toHaveValue('Пример отеля у моря');
   expect(errors).toEqual([]);expect(requests.every(r=>r.method==='GET'&&r.origin==='https://editor-preview.fixture'&&allowed.includes(r.name))).toBe(true);
+});
+
+for(const width of [390,430,768,1440])test('selection overview reveals editing and preserves exact variants at '+width,async({page,browserName})=>{
+  await page.setViewportSize({width,height:900});const draft=completeDraft();draft.offers.push({...copy(draft.offers[0]),id:'b'.repeat(32),hotel:'Второй синтетический вариант',room:'Standard',meal:'Завтрак',amount:'215000'});
+  const s=await fixture(page,{draft});await open(page,{edit:false});
+  await expect(page.locator('#tsOfferDetails')).not.toHaveAttribute('open','');
+  await expect(page.locator('#ts-hotel')).toBeHidden();
+  const overview=page.getByRole('region',{name:'Обзор выбранного варианта'});
+  // The semantic section has an accessible name; reading it never prepares or sends a publication.
+  await expect(overview).toContainText('Синтетический отель у моря');
+  for(const value of ['2027-06-05','7 ноч.','2 взр.','4, 4','Семейный номер','Всё включено','240 000 ₽'])await expect(overview).toContainText(value);
+  expect(s.calls.map(x=>x.action)).toEqual(['get']);expect(s.creations()).toBe(0);
+  await expect(page.locator('.tsHeadActions #tsHistory')).toBeVisible();await expect(page.locator('.tsFooter #tsHistory')).toHaveCount(0);
+  await expect(page.locator('#tsPreview')).toHaveClass('tsPrimary');await expect(page.locator('#tsSave')).not.toHaveClass('tsPrimary');await expect(page.locator('#tsDone')).toBeHidden();
+  await page.locator('[data-ts-select]').nth(1).click();await expect(overview).toContainText('Второй синтетический вариант');await expect(overview).toContainText('215 000 ₽');await expect(page.locator('#tsOfferDetails')).not.toHaveAttribute('open','');
+  await page.locator('[data-ts-action="up"]').click();await save(page);expect(s.drafts.get(11).draft.offers.map(x=>x.id)).toEqual(['b'.repeat(32),'a'.repeat(32)]);
+  if(width<768){expect(await page.locator('#tsList').evaluate(list=>{const box=list.getBoundingClientRect(),active=list.querySelector('.isSelected').getBoundingClientRect();return active.left>=box.left-1&&active.right<=box.right+1})).toBe(true);await expect(page.locator('#tsOfferDetails>summary')).toBeInViewport();await page.setViewportSize({width,height:420});await expect(page.locator('#tsPreview')).toBeInViewport();await expect(page.locator('#tsSave')).toBeInViewport();await expect(page.locator('#tsClose')).toBeInViewport();expect(await page.locator('#tsEditor').evaluate(el=>el.clientHeight)).toBeGreaterThan(60);await page.setViewportSize({width,height:900})}
+  expect(await page.locator('#tourSelectionDialog').evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThanOrEqual(1);
+  fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-selection-overview-${browserName}-${width}.png`)});
+  await page.locator('#tsOfferDetails>summary').click();await expect(page.locator('#ts-amount')).toBeVisible();await page.locator('#ts-amount').fill('');await expect(overview).toContainText('Цена не указана');await page.locator('#ts-amount').fill('210000');await save(page);
+  await expect(overview).toContainText('210 000 ₽');expect(s.drafts.get(11).draft.offers[0].room).toBe('Standard');expect(s.drafts.get(11).draft.offers[1]).toEqual(draft.offers[0]);
+  await page.locator('#tsOfferDetails>summary').click();await page.locator('#tsPreview').click();await expect(page.locator('.tsPreviewCard')).toHaveCount(2);await expect(page.locator('#tsSend')).toHaveClass('tsPrimary');expect(s.creations()).toBe(0);
+  await page.locator('#tsEdit').click();await expect(overview).toContainText('210 000 ₽');clean(s,['prepare']);
 });
 
 for(const width of [390,430,768,1440])test('selection editor preserves order conditions and reply at '+width,async({page,browserName})=>{
@@ -1264,13 +1288,14 @@ test('automatic gallery replacement is optional and keeps original source materi
 });
 
 test('automatic gallery unavailable source never asks for three manual uploads',async({page})=>{
- const draft=automaticPhotoDraft();draft.offers[0].photos=[];draft.offers[0].import_source.photos=[];const s=await fixture(page,{draft});await open(page);await expect(page.locator('.tsAutomaticPhotoStatus')).toContainText('повторно');expect(await page.locator('.tsPhotoFields input[type=file]').count()).toBe(0);
- await page.locator('#tsPreview').click();await expect(page.locator('#tsStatus')).toContainText('фото отеля');await expect(page.locator('#tsStatus')).not.toContainText('три фото');await expect(page.locator('#tsSend')).toBeHidden();expect(s.creations()).toBe(0);clean(s,deliveryActions);
+ const draft=automaticPhotoDraft();draft.offers[0].photos=[];draft.offers[0].import_source.photos=[];const s=await fixture(page,{draft});await open(page,{edit:false});await expect(page.locator('#tsOfferDetails')).not.toHaveAttribute('open','');expect(await page.locator('.tsPhotoFields input[type=file]').count()).toBe(0);
+ await page.locator('#tsPreview').click();await expect(page.locator('#tsStatus')).toContainText('фото отеля');await expect(page.locator('#tsStatus')).not.toContainText('три фото');await expect(page.locator('#tsSend')).toBeHidden();
+ await page.locator('[data-ts-fix-field="photos"]').click();await expect(page.locator('#tsOfferDetails')).toHaveAttribute('open','');await expect(page.locator('.tsAutomaticPhotoStatus')).toBeVisible();await expect(page.locator('.tsAutomaticPhotoStatus')).toContainText('Если результат неизвестен, не добавляйте тур повторно');expect(s.creations()).toBe(0);clean(s,deliveryActions);
 });
 
 const {privateEditor}=require('./fixtures/selection-private-editor');
 for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420},{width:430,height:420}])test('private editor uses the same protected core in tours iframe '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
- await page.setViewportSize(viewport);const s=await privateEditor(page,{draft:completeDraft()}),f=s.editor;
+ await page.setViewportSize(viewport);const s=await privateEditor(page,{draft:completeDraft()}),f=s.editor;await f.locator('#tsOfferDetails>summary').click();
  await expect(f.locator('#ts-hotel')).toHaveValue('Синтетический отель у моря');await expect(f.locator('#ts-amount')).toHaveValue('240000');
  expect(await page.evaluate(()=>window.WorkspaceV2)).toBeUndefined();expect(await page.frames()[1].evaluate(()=>window.WorkspaceV2)).toBeUndefined();
  if(viewport.height===420){
@@ -1306,10 +1331,10 @@ test('private editor read-only access cannot edit or send',async({page})=>{
  const s=await privateEditor(page,{readOnly:true,draft:completeDraft()}),f=s.editor;await expect(f.locator('#tsStatus')).toContainText('Просмотр');await expect(f.locator('#ts-hotel')).toBeDisabled();await expect(f.locator('#tsSave')).toBeDisabled();await expect(f.locator('#tsAdd')).toBeDisabled();await expect(f.locator('#tsCollector')).toBeDisabled();expect(s.calls.filter(x=>x.action==='save'||x.action==='send')).toHaveLength(0);expect(s.errors).toEqual([]);
 });
 test('private editor lost save survives reload and resolves one canonical receipt',async({page})=>{
- const s=await privateEditor(page,{draft:completeDraft(),fail:'after'}),f=s.editor;await expect(f.locator('#ts-hotel')).toBeVisible();await f.locator('#ts-hotel').fill('Принято сервером до обрыва');await f.locator('#tsSave').click();await expect(f.getByRole('button',{name:'Проверить сохранение'})).toBeVisible();await page.reload();await expect(f.getByRole('button',{name:'Проверить сохранение'})).toBeVisible();await f.getByRole('button',{name:'Проверить сохранение'}).click();await expect(f.locator('#tsSaved')).toHaveText('Сохранено на сервере');await expect(f.locator('#ts-hotel')).toHaveValue('Принято сервером до обрыва');expect(s.calls.filter(x=>x.action==='save')).toHaveLength(1);expect(s.receipts.size).toBe(1);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+ const s=await privateEditor(page,{draft:completeDraft(),fail:'after'}),f=s.editor;await f.locator('#tsOfferDetails>summary').click();await expect(f.locator('#ts-hotel')).toBeVisible();await f.locator('#ts-hotel').fill('Принято сервером до обрыва');await f.locator('#tsSave').click();await expect(f.getByRole('button',{name:'Проверить сохранение'})).toBeVisible();await page.reload();await expect(f.getByRole('button',{name:'Проверить сохранение'})).toBeVisible();await f.getByRole('button',{name:'Проверить сохранение'}).click();await expect(f.locator('#tsSaved')).toHaveText('Сохранено на сервере');await expect(f.locator('#ts-hotel')).toHaveValue('Принято сервером до обрыва');expect(s.calls.filter(x=>x.action==='save')).toHaveLength(1);expect(s.receipts.size).toBe(1);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
 });
 test('private editor keeps old-account unsaved work isolated and recovers only same account',async({page})=>{
- const s=await privateEditor(page,{draft:completeDraft()}),f=s.editor;await expect(f.locator('#ts-hotel')).toBeVisible();await f.locator('#ts-hotel').fill('Личные несохранённые условия');
+ const s=await privateEditor(page,{draft:completeDraft()}),f=s.editor;await f.locator('#tsOfferDetails>summary').click();await expect(f.locator('#ts-hotel')).toBeVisible();await f.locator('#ts-hotel').fill('Личные несохранённые условия');
  s.setActor(8);await f.locator('#tsSave').click();await expect(f.locator('#editorMessage')).toContainText('Сессия изменилась');await expect(f.locator('#tourSelectionDialog')).not.toBeVisible();await expect(f.locator('#tsEditor')).toBeEmpty();
  await f.locator('#editorRetry').click();await expect(f.locator('#editorMessage')).toContainText('другой аккаунт');expect(s.snapshot().draft.offers[0].hotel).toBe('Синтетический отель у моря');
  s.setActor(7);await f.locator('#editorRetry').click();await expect(f.locator('#ts-hotel')).toHaveValue('Личные несохранённые условия');await f.getByRole('button',{name:'Проверить сохранение'}).click();await f.getByRole('button',{name:'Повторить это сохранение'}).click();await expect(f.locator('#tsSaved')).toHaveText('Сохранено на сервере');const writes=s.calls.filter(x=>x.action==='save');expect(writes).toHaveLength(2);expect(writes[1]).toEqual(writes[0]);expect(s.receipts.size).toBe(1);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
@@ -1340,7 +1365,7 @@ for(const width of[390,430,768,1440])test('hotel knowledge editor selected saved
 test('hotel knowledge editor dirty save invalidates delayed facts',async({page})=>{
  const reference=hotelKnowledgeFixture(),s=await privateEditor(page,{draft:hotelKnowledgeDraft(),hotelReference:reference,fail:'hold_hotel'}),f=s.editor;
  await f.locator('#tsHotelKnowledgeRead').click();await expect.poll(()=>s.hasHeld()).toBe(true);
- await f.locator('#ts-hotel').fill('Изменённый отель');await expect(f.locator('#tsHotelKnowledge')).toBeEmpty();await expect(f.locator('#tsHotelKnowledgeRead')).toBeDisabled();
+ await f.locator('#tsOfferDetails>summary').click();await f.locator('#ts-hotel').fill('Изменённый отель');await expect(f.locator('#tsHotelKnowledge')).toBeEmpty();await expect(f.locator('#tsHotelKnowledgeRead')).toBeDisabled();
  s.release();await expect.poll(()=>s.snapshot().version).toBe(2);await expect(f.locator('#tsHotelKnowledge')).toBeEmpty();expect(s.calls.filter(x=>x.editor_resource==='hotel-knowledge-api.php')).toHaveLength(1);expect(s.errors).toEqual([]);
 });
 test('hotel knowledge editor account restart clears delayed private facts',async({page})=>{

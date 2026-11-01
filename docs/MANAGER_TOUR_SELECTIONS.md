@@ -1,5 +1,29 @@
 # Manager2 tour selection constructor
 
+## Manager overview and editing
+
+Opening a saved selection starts with the selected offer's hotel, date/nights,
+party, room, meal and editable whole-party amount. The retained source price and
+observation time stay separate; neither amount is described as a verified fare.
+The same offer list changes the active variant, while order and inclusion keep
+their existing draft behavior. «Изменить условия, цену и фото» reveals the existing
+editor on demand. A newly added manual offer starts with editing open. Expanding
+or collapsing the editor does not save, prepare, publish or send anything.
+
+Preview is the primary draft action; history is secondary in the header. In
+preview, sending remains an explicit manager action on the exact immutable
+publication. The existing shared-link confirmation, uncertain-operation recovery,
+rights and photo checks are unchanged. The accepted selected-offer hotel-knowledge
+reader is available from the overview and still clears facts when the offer,
+saved version, account or edited conditions change.
+
+This is a step toward the complete owner-authorized Qui-Quo-equivalent workflow:
+supported-source intake, exact conditions and prices, real photos, comparison,
+conversation-bound saving, mobile sharing, exact-variant response and return to
+editing. Source/CI/installation evidence does not establish independent manager
+readiness. A blocked original collector operation remains a separate defect and
+does not suspend unrelated constructor work.
+
 ## Independent public presentation package
 
 `modules/tour-selections/` defines the first separately identifiable public-page
