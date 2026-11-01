@@ -1,6 +1,72 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__.'/support/manager-tour-collector.php';
+
+/** Actual collector/session entry in an isolated app; never a real login or server. */
+function collectorAuthenticationHttpScenarios(): void
+{
+    $root=dirname(__DIR__);$tmp=sys_get_temp_dir().'/collector-auth-http-'.bin2hex(random_bytes(8));$server=null;
+    $sources=['manager/tour-selection-collector.php','manager/lib/ManagerHttp.php','services/ManagerRequestContext.php',
+        'manager/assets/tour-selection-collector.css','manager/assets/manager-http-client.js','manager/assets/tour-selection-collector.js'];
+    $stubs=['ManagerAuthService','ManagerConversationAccessPolicy','ManagerTourSelectionEditorHost'];
+    try {
+        foreach ([$tmp,$tmp.'/manager',$tmp.'/manager/lib',$tmp.'/manager/assets',$tmp.'/services',$tmp.'/sessions'] as $directory) mkdir($directory,0700);
+        foreach ($sources as $path) copy($root.'/'.$path,$tmp.'/'.$path);
+        deliveryCheck('collector HTTP exercises exact endpoint and canonical session source bytes',array_reduce($sources,static fn(bool $same,string $path):bool=>$same&&hash_file('sha256',$root.'/'.$path)===hash_file('sha256',$tmp.'/'.$path),true));
+        file_put_contents($tmp.'/config.php',<<<'PHP'
+<?php
+final class ManagerAuthService {
+    public static function byId(int $id): ?array {return $id===7?['id'=>7,'role'=>'manager']:null;}
+    public static function isAdmin(array $manager): bool {return false;}
+}
+final class ManagerConversationAccessPolicy {}
+final class ManagerTourSelectionEditorHost {
+    public static function entry(): ?string {file_put_contents(__DIR__.'/editor-entry-read','read',FILE_APPEND);return null;}
+}
+PHP);
+        foreach ($stubs as $name) file_put_contents($tmp.'/services/'.$name.'.php','<?php');
+        file_put_contents($tmp.'/manager/fixture-session.php',<<<'PHP'
+<?php
+require dirname(__DIR__).'/config.php';require __DIR__.'/lib/ManagerHttp.php';ManagerHttp::startJson();
+$_SESSION['manager_id']=(int)($_GET['id']??0);$_SESSION['csrf']='fixture-private-csrf';ManagerHttp::respond(['ok'=>true]);
+PHP);
+        $socket=stream_socket_server('tcp://127.0.0.1:0',$errno,$error);if(!$socket)throw new RuntimeException('Collector loopback port unavailable');
+        $address=(string)stream_socket_get_name($socket,false);fclose($socket);
+        $server=proc_open([PHP_BINARY,'-d','session.save_path='.$tmp.'/sessions','-d','display_errors=0','-S',$address,'-t',$tmp],
+            [0=>['pipe','r'],1=>['file',$tmp.'/server.log','a'],2=>['file',$tmp.'/server.log','a']],$pipes);
+        if(!is_resource($server))throw new RuntimeException('Cannot start collector HTTP fixture');fclose($pipes[0]);
+        $ready=false;for($i=0;$i<100;$i++){if($probe=@stream_socket_client('tcp://'.$address,$e,$s,.05)){fclose($probe);$ready=true;break;}usleep(10000);}
+        if(!$ready)throw new RuntimeException('Collector HTTP fixture did not start');
+        $request=static function(string $path,string $cookie='')use($address):array {
+            $context=stream_context_create(['http'=>['method'=>'GET','header'=>$cookie!==''?'Cookie: '.$cookie:'','ignore_errors'=>true,'follow_location'=>0,'timeout'=>3]]);
+            $body=(string)file_get_contents('http://'.$address.$path,false,$context);$headers=$http_response_header??[];
+            preg_match('/^HTTP\/\S+\s+([0-9]+)/',$headers[0]??'',$match);$nextCookie='';
+            foreach($headers as $header)if(preg_match('/^Set-Cookie:\s*(anytour_manager_panel=[^;]+)/i',$header,$cookieMatch))$nextCookie=$cookieMatch[1];
+            return ['status'=>(int)($match[1]??0),'headers'=>implode("\n",$headers),'body'=>$body,'cookie'=>$nextCookie];
+        };
+        $path='/manager/tour-selection-collector.php?conversation_id=11';
+        $expiredCookie=$request('/manager/fixture-session.php?id=99')['cookie'];
+        deliveryCheck('collector expired identity uses the canonical isolated session cookie',$expiredCookie!=='');
+        foreach (['anonymous'=>'','expired'=>$expiredCookie,'expired repeat'=>$expiredCookie] as $state=>$cookie) {
+            $response=$request($path,$cookie);
+            deliveryCheck('collector '.$state.' stays on the exact entry without an automatic redirect',$response['status']===401&&!preg_match('/^Location:/im',$response['headers']));
+            deliveryCheck('collector '.$state.' auth response cannot be cached or indexed',stripos($response['headers'],'Cache-Control:')!==false&&str_contains(strtolower($response['headers']),'no-store')&&stripos($response['headers'],'Referrer-Policy: no-referrer')!==false&&stripos($response['headers'],'X-Robots-Tag: noindex')!==false);
+            deliveryCheck('collector '.$state.' offers explicit same-tab Manager2 login',preg_match('~<a\b[^>]*href=["\']/manager2/["\'][^>]*>~i',$response['body'],$link)===1&&!preg_match('/\btarget\s*=\s*["\']_blank/i',$link[0])&&str_contains($response['body'],'Manager2')&&preg_match('/войти|войдите/ui',$response['body'])&&preg_match('/вернит|открой|обнов/ui',$response['body']));
+            deliveryCheck('collector '.$state.' cannot run scripts or expose authenticated state',!preg_match('/<script\b|\bon[a-z]+\s*=|javascript:|http-equiv\s*=\s*["\']?refresh/i',$response['body'])&&!str_contains($response['body'],'collectorConfig')&&!str_contains($response['body'],'fixture-private-csrf')&&!is_file($tmp.'/editor-entry-read'));
+        }
+        $activeCookie=$request('/manager/fixture-session.php?id=7')['cookie'];$response=$request($path,$activeCookie);
+        preg_match('~<script id="collectorConfig" type="application/json">(.*?)</script>~s',$response['body'],$configMatch);$config=json_decode($configMatch[1]??'',true);
+        deliveryCheck('collector authenticated control still renders the real protected shell',$response['status']===200&&!preg_match('/^Location:/im',$response['headers'])&&($config['actor']??null)===7&&($config['conversation_id']??null)===11&&($config['csrf']??null)==='fixture-private-csrf'&&str_contains($response['body'],'id="collectorConnect"')&&is_file($tmp.'/editor-entry-read'));
+    } finally {
+        if(is_resource($server)){proc_terminate($server);proc_close($server);}
+        foreach ([...$sources,...array_map(static fn(string $name):string=>'services/'.$name.'.php',$stubs),'config.php','manager/fixture-session.php','server.log','editor-entry-read'] as $path) if(is_file($tmp.'/'.$path)||is_link($tmp.'/'.$path))unlink($tmp.'/'.$path);
+        foreach (glob($tmp.'/sessions/*')?:[] as $file) if(is_file($file)||is_link($file))unlink($file);
+        foreach (['manager/lib','manager/assets','manager','services','sessions',''] as $directory) if(is_dir($tmp.($directory!==''?'/'.$directory:'')))rmdir($tmp.($directory!==''?'/'.$directory:''));
+    }
+}
+collectorAuthenticationHttpScenarios();
+if(PHP_SAPI==='cli'&&($argv[1]??'')==='--auth-http-only'){echo "COLLECTOR AUTH HTTP {$checks} PASS\n";return;}
+
 $pdo=deliveryDb();collectorSchema($pdo);collectorScenarios($pdo);
 require_once dirname(__DIR__).'/services/ManagerTourSelectionShareService.php';
 $pdo=deliveryDb();collectorSchema($pdo);
