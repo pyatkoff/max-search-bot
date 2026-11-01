@@ -75,6 +75,17 @@ usageCheck('old manual rows report missing input rather than reconstructing it',
 ManagerAiUsageFixture::captureInput($pdo,45);
 usageCheck('a prepared preview never relabels a stored envelope as original worker input',
     $input(10045,$allCases[10045]['case_revision'])['reason']==='prepared_input_not_captured');
+$issued=$input(10042,$allCases[10042]['case_revision']);
+usageCheck('prepared journal exposes only its explicitly linked server packet',$issued['ok']&&$issued['available']&&$issued['provenance']==='server_issued_context'&&$issued['external_model_input']==='unknown'&&$issued['prepared_packet']['instructions']==='Synthetic exact issued instructions 🧳'&&$issued['input_evidence']['context']['messages'][0]['text']==='Question 42');
+$issuedAssessment=ManagerAiUsageService::assessment(1,['message_id'=>10042,'case_revision'=>$allCases[10042]['case_revision']],false,$now);
+usageCheck('server-issued packet never grants full-input or improvement authority',$issuedAssessment['ok']&&$issuedAssessment['snapshot']['input_available']&&!$issuedAssessment['snapshot']['can_judge_effect']&&$issuedAssessment['snapshot']['input_reason']==='external_model_input_unknown'&&!$issuedAssessment['case_improvement_confirmed']);
+$pdo->exec("UPDATE messages SET text='Later source edit' WHERE id=1042");
+usageCheck('later source edits never reconstruct the issued packet',$input(10042,$allCases[10042]['case_revision'])===$issued);
+$pdo->exec("UPDATE messages SET text='Question 42' WHERE id=1042");
+$q=$pdo->query('SELECT receipt_id,packet_json,packet_sha256 FROM manager_prepared_reply_inputs');$originalIssued=$q->fetch();
+$pdo->exec("UPDATE manager_prepared_reply_inputs SET packet_sha256='".str_repeat('0',64)."'");
+usageCheck('invalid prepared packet digest cannot expose private context',$input(10042,$allCases[10042]['case_revision'])['reason']==='invalid_evidence');
+$pdo->prepare('UPDATE manager_prepared_reply_inputs SET packet_sha256=? WHERE receipt_id=?')->execute([$originalIssued['packet_sha256'],$originalIssued['receipt_id']]);
 $pdo->exec("UPDATE messages SET text='Changed question and replacement offer',metadata_json='{\"edited_at\":\"2026-10-25 10:06:00\"}' WHERE id=1047");
 usageCheck('later source edits leave the exact original generation evidence unchanged',
     $input(10047,$case['case_revision'])===$originalInput);

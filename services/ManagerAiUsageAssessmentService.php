@@ -13,16 +13,17 @@ final class ManagerAiUsageAssessmentService
     {
         $initial=!empty($sent['available'])?$sent['text']:($case['initial_text_available']?trim(htmlspecialchars_decode($message['text'],ENT_QUOTES)):null);
         $context=!empty($input['available'])?$input['input_evidence']['context']:null;
-        $canJudge=$initial!==null&&$context!==null&&!$context['history_incomplete']&&!$context['media_unread']
+        $canJudge=($input['provenance']??'manual_provider_input')!=='server_issued_context'&&$initial!==null&&$context!==null&&!$context['history_incomplete']&&!$context['media_unread']
             &&!$context['selections_link_unread']&&$input['input_evidence']['coverage']==='text_only'
             &&!array_filter($context['messages'],static fn($m)=>!empty($m['text_truncated'])||!empty($m['media_unread'])||!empty($m['selections_link_unread']));
         $basis=[$message['id'],$draft['draft_id'],$draft['conversation_id'],$draft['manager_id'],$draft['project_key'],
             $draft['context_revision'],$draft['instruction_revision'],$draft['latest_message_id'],$draft['preparation_job_id']??null,hash('sha256',$draft['proposal_json']),
             $initial===null?null:hash('sha256',$initial),$input['input_sha256']??null,$input['available']??false,$input['reason']??null];
+        if(($input['provenance']??null)==='server_issued_context')$basis[]='server_issued_context';
         return ['comparison_sha256'=>hash('sha256',json_encode($basis,self::FLAGS)),
             'proposed_text'=>$case['proposed_text'],'initial_sent_text'=>$initial,'pair_available'=>$initial!==null,
             'pair_changed'=>$initial!==null&&$initial!==$case['proposed_text'],'can_judge_effect'=>$canJudge,
-            'input_available'=>$context!==null,'input_reason'=>$context===null?($input['reason']??'not_recorded'):null,
+            'input_available'=>$context!==null,'input_reason'=>$context===null?($input['reason']??'not_recorded'):(($input['provenance']??null)==='server_issued_context'?'external_model_input_unknown':null),
             'input_sha256'=>$input['input_sha256']??null,'request_messages'=>$context['messages']??[],
             'input_partial'=>$context!==null&&!$canJudge,'sender_id'=>(int)$draft['manager_id'],'draft_id'=>$draft['draft_id']];
     }
