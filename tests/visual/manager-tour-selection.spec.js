@@ -1319,3 +1319,37 @@ test('private editor discards a stale draft response after hiding the document',
  await page.frames()[1].evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'))});s.release();await expect(f.locator('#tourSelectionDialog')).not.toBeVisible();await expect(f.locator('#tsEditor')).toBeEmpty();
  await page.frames()[1].evaluate(()=>Object.defineProperty(document,'hidden',{configurable:true,value:false}));await f.locator('#editorRetry').click();await expect(f.locator('#ts-hotel')).toHaveValue('Синтетический отель у моря');expect(s.calls.filter(x=>x.action==='save')).toHaveLength(0);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
 });
+
+
+function hotelKnowledgeFixture(){const r=JSON.parse(fs.readFileSync(path.join(root,'knowledge/hotels/anytour-99-apartments.json'),'utf8'));r.status='available';return r;}
+function hotelKnowledgeDraft(){const d=completeDraft();d.offers[0].hotel='JAZ Makadi Saraya Resort';d.offers.push({...copy(d.offers[0]),id:'9'.repeat(32),hotel:'Другой вариант без подтверждённой справки'});return d;}
+for(const width of[390,430,768,1440])test('hotel knowledge editor selected saved offer at '+width,async({page,browserName})=>{
+ await page.setViewportSize({width,height:1000});const reference=hotelKnowledgeFixture(),draft=hotelKnowledgeDraft(),s=await privateEditor(page,{draft,hotelReference:reference}),f=s.editor;
+ await f.locator('#tsHotelKnowledgeRead').click();await expect(f.locator('#tsHotelKnowledge')).toContainText(reference.facts[0].text);
+ await expect(f.locator('#tsHotelKnowledge')).toContainText(reference.material_limits.source_conflicts[0].text);
+ await expect(f.locator('#tsHotelKnowledge')).toContainText('Справка частичная');
+ await f.locator('#tsHotelKnowledge summary').click();await expect(f.locator('#tsHotelKnowledge')).toContainText(reference.binding_revision);
+ await expect(f.locator('#tsHotelKnowledge')).not.toContainText('turn100view1');
+ expect(s.calls.filter(x=>x.editor_resource==='hotel-knowledge-api.php')).toMatchObject([{action:'read',conversation_id:11,draft_version:1,offer_id:draft.offers[0].id}]);
+ expect(await f.locator('#tsHotelKnowledge').evaluate(el=>el.scrollWidth>el.clientWidth)).toBe(false);
+ await f.locator('#tsHotelKnowledge').scrollIntoViewIfNeeded();fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({path:path.join(root,'manager2-artifacts',`hotel-knowledge-editor-${browserName}-${width}.png`)});
+ await f.locator('[data-ts-select="'+draft.offers[1].id+'"]').click();await expect(f.locator('#tsHotelKnowledge')).toBeEmpty();
+ await f.locator('#tsHotelKnowledgeRead').click();await expect(f.locator('#tsHotelKnowledge')).toContainText('недоступна');await expect(f.locator('#tsHotelKnowledge')).not.toContainText(reference.facts[0].text);
+ expect(s.calls.some(x=>['send','publish'].includes(x.action))).toBe(false);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+test('hotel knowledge editor dirty save invalidates delayed facts',async({page})=>{
+ const reference=hotelKnowledgeFixture(),s=await privateEditor(page,{draft:hotelKnowledgeDraft(),hotelReference:reference,fail:'hold_hotel'}),f=s.editor;
+ await f.locator('#tsHotelKnowledgeRead').click();await expect.poll(()=>s.hasHeld()).toBe(true);
+ await f.locator('#ts-hotel').fill('Изменённый отель');await expect(f.locator('#tsHotelKnowledge')).toBeEmpty();await expect(f.locator('#tsHotelKnowledgeRead')).toBeDisabled();
+ s.release();await expect.poll(()=>s.snapshot().version).toBe(2);await expect(f.locator('#tsHotelKnowledge')).toBeEmpty();expect(s.calls.filter(x=>x.editor_resource==='hotel-knowledge-api.php')).toHaveLength(1);expect(s.errors).toEqual([]);
+});
+test('hotel knowledge editor account restart clears delayed private facts',async({page})=>{
+ const reference=hotelKnowledgeFixture(),s=await privateEditor(page,{draft:hotelKnowledgeDraft(),hotelReference:reference,fail:'hold_hotel'}),f=s.editor;
+ await f.locator('#tsHotelKnowledgeRead').click();await expect.poll(()=>s.hasHeld()).toBe(true);s.setActor(9);s.release();
+ await expect(f.locator('#editorSignIn')).toBeVisible();await expect(f.locator('#tsHotelKnowledge')).toHaveCount(0);expect(s.calls.filter(x=>x.action==='save')).toHaveLength(0);expect(s.errors).toEqual([]);
+});
+test('hotel knowledge editor read-only access and changed-version refusal',async({page})=>{
+ const reference=hotelKnowledgeFixture(),s=await privateEditor(page,{draft:hotelKnowledgeDraft(),hotelReference:reference,readOnly:true}),f=s.editor;
+ await expect(f.locator('#tsSave')).toBeDisabled();await f.locator('#tsHotelKnowledgeRead').click();await expect(f.locator('#tsHotelKnowledge')).toContainText(reference.facts[0].text);
+ s.setFail('hotel_version');await f.locator('#tsHotelKnowledgeRead').click();await expect(f.locator('#tsHotelKnowledge')).toContainText('не подтверждены');await expect(f.locator('#tsHotelKnowledge')).not.toContainText(reference.facts[0].text);expect(s.calls.some(x=>['save','send','publish'].includes(x.action))).toBe(false);expect(s.errors).toEqual([]);
+});

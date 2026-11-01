@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-require_once __DIR__.'/ManagerHotelKnowledge.php';
+require_once __DIR__.'/ManagerHotelOfferReference.php';
 require_once __DIR__.'/TourChoiceService.php';
 require_once __DIR__.'/ManagerTourSelectionImportDraft.php';
 
@@ -88,37 +88,13 @@ final class ManagerHotelReferenceContext
             if ($snapshot === null || !self::same(TourChoiceService::normalize($snapshot), $snapshot)
                 || !self::same(self::publicOffer($snapshot, $index), $matches[0]['payload']['public_offer'])) return self::held('selector_quote_mismatch');
 
-            $source = is_array($entry['import_source'] ?? null) ? $entry['import_source'] : null;
-            if ($source === null || ($source['adapter'] ?? null) !== 'tourvisor-snapshot-v1'
-                || array_diff(array_keys($source), ['adapter','url','observed_at','quote_id','keys','fields','raw','photos'])) return self::held('selector_source_unavailable');
-            $normalized = ManagerTourSelectionImportDraft::normalize([
-                'adapter'=>$source['adapter'], 'url'=>$source['url'] ?? null,
-                'observed_at'=>$source['observed_at'] ?? null, 'quote_id'=>$source['quote_id'] ?? null,
-                'keys'=>$source['keys'] ?? null, 'offer'=>$source['fields'] ?? null, 'raw'=>$source['raw'] ?? null,
-                ...(array_key_exists('photos', $source) ? ['photos'=>$source['photos']] : []),
-            ]);
-            if ($normalized === null || !self::same(ManagerTourSelectionImportDraft::source($normalized), $source)) return self::held('selector_source_unavailable');
-            $fields = $source['fields'];
-            $sourceHotel = $fields['hotel'].(!empty($fields['stars']) ? ' '.$fields['stars'].'★' : '');
-            $details = $snapshot['quoted_details'] ?? [];
-            // Import provenance survives manager edits. A renamed hotel must
-            // not inherit the original hotel's source ID or knowledge.
-            if ($snapshot['hotel'] !== $sourceHotel || ($details['source_url'] ?? null) !== $source['url']
-                || ($details['observed_at'] ?? null) !== $source['observed_at']
-                || ($details['destination'] ?? null) !== $fields['destination']) return self::held('selector_source_identity_changed');
-
-            $selector = [
-                'project_key'=>'anytour',
-                'source_identity'=>['adapter'=>$source['adapter'], 'hotel'=>$source['keys']['hotel'], 'country'=>$source['keys']['country']],
-                'selected_hotel'=>$fields['hotel'],
-                'provenance'=>[
-                    'message_id'=>$messageId, 'event_id'=>$matches[0]['id'],
-                    'publication_sha256'=>hash('sha256', $publication['binding_json']."\n".$publication['selection_json']),
-                    'source_sha256'=>hash('sha256', self::canonical($source)),
-                ],
-                'selected_room'=>$snapshot['room'],
-            ];
-            return ManagerHotelKnowledge::capture($selector, time());
+            $source = $entry['import_source'] ?? null;
+            if (!is_array($source)) return self::held('selector_source_unavailable');
+            return ManagerHotelOfferReference::capture($entry, [
+                'message_id'=>$messageId, 'event_id'=>$matches[0]['id'],
+                'publication_sha256'=>hash('sha256', $publication['binding_json']."\n".$publication['selection_json']),
+                'source_sha256'=>ManagerHotelOfferReference::hash($source),
+            ], time());
         } catch (Throwable $ignored) {
             // Optional evidence never repairs storage or blocks an ordinary draft.
             return self::held('selector_unavailable');

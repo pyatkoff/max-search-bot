@@ -31,6 +31,15 @@ async function privateEditor(page,options={}){
    expect(d.conversation_id).toBe(11);
    if(!allowed)return reply({ok:false,error:'not_found'},404);
    if(d.action==='editor_context')return reply({ok:true,context:{id:11,actor,display_name:'Синтетическая Анна',channel:'telegram',status:'manager',can_edit:!readOnly}});
+   if(d.editor_resource==='hotel-knowledge-api.php'){
+    expect(d.action).toBe('read');expect(d.kind).toBe('working_draft');
+    const viewer=actor,selection={kind:d.kind,draft_version:d.draft_version,offer_id:d.offer_id};
+    if(d.draft_version!==version||fail==='hotel_version'){fail='';return reply({ok:false,error:'selection_changed'},409)}
+    const reference=options.hotelReference&&d.offer_id===draft.offers[0]?.id?copy(options.hotelReference):{status:'held',facts:[],sources:[]};
+    if(fail==='hold_hotel'){fail='';await new Promise(resolve=>held=resolve)}
+    if(viewer!==actor)return reply({ok:false,error:'stale_actor'},409);
+    try{return await reply({ok:true,schema_version:'hotel_offer_knowledge_v1',viewer_id:viewer,selection,hotel_reference:reference})}catch(error){if(!req.failure())throw error;return;}
+   }
    expect(d.editor_resource).toBe('tour-selections-api.php');
    if(d.action==='get'){
     const response={ok:true,selection:snapshot()};

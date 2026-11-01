@@ -1,3 +1,92 @@
+(function(global){
+'use strict';
+const scopes={hotel:'Отель',room_category:'Категория номера',facility:'Объект или услуга'};
+const same=(a,b)=>a&&b&&Object.keys(a).length===Object.keys(b).length&&Object.keys(a).every(k=>Object.hasOwn(b,k)&&a[k]===b[k]);
+function selector(value){
+  if(!value||!Number.isSafeInteger(value.conversation_id)||value.conversation_id<=0)return null;
+  const hex=v=>typeof v==='string'&&/^[a-f0-9]{32}$/.test(v);
+  if(value.kind==='working_draft'&&Number.isSafeInteger(value.draft_version)&&value.draft_version>0&&hex(value.offer_id))
+    return {kind:value.kind,draft_version:value.draft_version,offer_id:value.offer_id};
+  if(value.kind==='publication'&&hex(value.publication_id)&&Number.isInteger(value.card_index)&&value.card_index>=0&&value.card_index<20)
+    return {kind:value.kind,publication_id:value.publication_id,card_index:value.card_index};
+  return null;
+}
+function validReference(r){
+  const object=v=>v&&typeof v==='object'&&!Array.isArray(v);
+  const strings=v=>Array.isArray(v)&&v.every(x=>typeof x==='string');
+  const fact=f=>object(f)&&typeof f.text==='string'&&(f.source_ids===undefined||strings(f.source_ids))
+    &&(f.scope===undefined||object(f.scope)&&typeof f.scope.key==='string');
+  if(!object(r)||typeof r.status!=='string'||!Array.isArray(r.facts)||!Array.isArray(r.sources)||JSON.stringify(r).length>65536)return false;
+  if(r.status!=='available')return true;
+  if(!r.facts.length||!r.sources.length||!/^[a-f0-9]{64}$/.test(r.binding_revision||'')||!r.facts.every(fact))return false;
+  if(!r.sources.every(x=>object(x)&&typeof x.id==='string'&&['title','url','publication_date','retrieved_on','document_season','limitations'].every(k=>x[k]==null||typeof x[k]==='string')))return false;
+  const l=r.material_limits||{};
+  return object(l)&&(l.temporal==null||typeof l.temporal==='string')&&(l.unknowns===undefined||strings(l.unknowns))
+    &&(l.source_conflicts===undefined||Array.isArray(l.source_conflicts)&&l.source_conflicts.every(fact))
+    &&(l.source_read_updates===undefined||Array.isArray(l.source_read_updates)&&l.source_read_updates.every(x=>object(x)&&(x.text===undefined||fact(x))));
+}
+function mount(root,host){
+  root.classList.add('hotelKnowledgeView');
+  let generation=0,controller=null,sourceNumbers=new Map();
+  const text=(tag,value,parent=root)=>{const node=document.createElement(tag);node.textContent=String(value??'');parent.append(node);return node;};
+  const clear=()=>{++generation;controller?.abort();controller=null;root.replaceChildren();};
+  const status=value=>{root.replaceChildren();const n=text('p',value);n.setAttribute('role','status');};
+  function fact(record,parent){
+    text('p',record.text,parent);
+    if(record.scope?.key)text('small',(scopes[record.scope.kind]||'Область применения')+': '+record.scope.key,parent);
+    if(record.valid_at_travel!=='verified')text('small','Условия на даты поездки требуют проверки.',parent);
+    if(record.source_ids?.length)text('small','Источники: '+record.source_ids.map(id=>sourceNumbers.get(id)||'требует проверки').join(', '),parent);
+  }
+  function render(reference){
+    root.replaceChildren();sourceNumbers=new Map(reference.sources.map((s,i)=>[s.id,i+1]));text('h3','Сведения об отеле');
+    text('p','Цена, наличие, выбранный номер, питание и условия на даты поездки проверяются отдельно. Чтение справки не подтверждает выбор туриста.');
+    if(reference.status!=='available'){
+      text('p','Подтверждённая справка для этого варианта недоступна. Требуется проверка точного отеля и источника.');return;
+    }
+    if(reference.coverage?.complete!==true)text('p','Справка частичная. Отсутствие сведений не означает отсутствие ограничений.');
+    for(const record of reference.facts){const section=text('section','');fact(record,section);}
+    const limits=reference.material_limits||{};
+    if(limits.temporal||limits.unknowns?.length||limits.source_conflicts?.length||limits.source_read_updates?.length){
+      const section=text('section','');text('h4','Ограничения и вопросы для проверки',section);
+      text('small','Ограничения приведены в формулировках исследовательской справки, включая текст на языке источника.',section);
+      if(limits.temporal)text('p',limits.temporal,section);
+      for(const item of limits.unknowns||[])text('p',item,section);
+      for(const record of limits.source_conflicts||[]){text('strong','Противоречие источников',section);fact(record,section);}
+      for(const record of limits.source_read_updates||[])if(record.text)fact(record,section);
+    }
+    const details=text('details','');text('summary','Источники и версия сведений',details);
+    for(const source of reference.sources){
+      const section=text('section','',details);text('p',sourceNumbers.get(source.id)+'. '+(source.title||'Источник'),section);
+      const dates=[source.publication_date&&'Опубликовано: '+source.publication_date,source.retrieved_on&&'Прочитано: '+source.retrieved_on,source.document_season&&'Сезон документа: '+source.document_season].filter(Boolean);
+      text('small',dates.join(' · ')||'Дата публикации не указана.',section);
+      if(source.limitations)text('p',source.limitations.replace(/\s*\(turn\d+(?:view|search)\d+\)/g,''),section);
+      try{const u=new URL(source.url);if(u.protocol==='https:'){const a=text('a','Открыть источник',section);a.href=u.href;a.target='_blank';a.rel='noopener noreferrer';}}catch(_error){}
+    }
+    text('small','Версия сведений: '+reference.binding_revision,details);
+  }
+  async function show(value){
+    clear();const pins=selector(value),target=host.capture();
+    if(!pins||!Number.isSafeInteger(target?.actor)||target.actor<=0||target.conversation!==value.conversation_id||!host.isCurrent(target)){status('Выберите сохранённый вариант и проверьте доступ.');return;}
+    const token=generation;controller=new AbortController();status('Читаем сведения для выбранного варианта…');
+    let result;
+    try{result=await host.read({conversation_id:value.conversation_id,...pins},{signal:controller.signal,target});}
+    catch(_error){result={ok:false,error:'network_error'};}
+    if(token!==generation)return;
+    if(!host.isCurrent(target)){clear();return;}
+    if(!result?.ok||result.schema_version!=='hotel_offer_knowledge_v1'||result.viewer_id!==target.actor||!same(result.selection,pins)){
+      status('Сведения не подтверждены для текущего аккаунта и варианта. Проверьте доступ и сохранённую версию.');return;
+    }
+    const r=result.hotel_reference;
+    if(!validReference(r)){
+      status('Не удалось проверить целостность справки. Требуется повторное чтение.');return;
+    }
+    render(r);
+  }
+  return Object.freeze({show,clear,destroy:clear});
+}
+global.AnyTourHotelKnowledgeView=Object.freeze({mount});
+})(window);
+
 (function(){
 'use strict';
 const contract='tour-selection-editor-host-v1';
@@ -9,7 +98,7 @@ const $=id=>document.getElementById(id),esc=value=>{const node=document.createEl
 const endpoint='tour-selections-api.php';
 let dialog=null,context=null,epoch=0,version=0,draft=null,selected='',canEdit=false,dirty=false,busy=false,loading=false,pending=null,conflict=null,timer=0,returnFocus=null,rawAges={};
 const sessions=new Map();
-let comparison=null,tripPanel=null,previewIssues=[],photoUpload=null;
+let comparison=null,tripPanel=null,previewIssues=[],photoUpload=null,hotelKnowledge=null;
 // View reads are cancellable independently of the durable send/save context.
 let publication=null,preview=false,sending=false,photoFailures=0,photoPending=0,photoEpoch=0,sharing=false,interestLoading=false,historyView=0;
 function capture(c){return host.capture(c)}
@@ -42,12 +131,12 @@ async function request(action,data={}){
     return token===epoch&&current(target)?result:{ok:false,error:'stale_context'};
   }catch(e){return {ok:false,error:current(target)?'network_error':'stale_context'}}finally{clearTimeout(timeout)}
 }
-function close(){historyView++;cancelPhotoUpload(false);tripPanel=null;clearTimeout(timer);timer=0;stash();if(dialog?.open)dialog.close()}
+function close(){clearHotelKnowledge();historyView++;cancelPhotoUpload(false);tripPanel=null;clearTimeout(timer);timer=0;stash();if(dialog?.open)dialog.close()}
 function editCurrent(){
   historyView++;preview=false;render();recovery(conflict?'conflict':pending?'pending':'');
   status(conflict?'Есть конфликт правок. Сравните версии перед сохранением.':pending?'Результат сохранения уточняется. Сначала проверьте его.':!canEdit?'Просмотр текущего черновика. Править может ответственный менеджер или администратор.':dirty?'Текущий черновик. Есть несохранённые изменения.':'Текущий черновик. Изменения не отправляют сообщения.',!!conflict||!!pending);
 }
-function suspend(){cancelPhotoUpload(false);tripPanel=null;previewIssues=[];stash();clearTimeout(timer);timer=0;epoch++;context=null;draft=null;pending=null;conflict=null;comparison=null;dirty=false;busy=false;loading=false;canEdit=false;publication=null;preview=false;sending=false;sharing=false;if(dialog?.open)dialog.close();$('tourSelectionOpen')?.remove()}
+function suspend(){clearHotelKnowledge();cancelPhotoUpload(false);tripPanel=null;previewIssues=[];stash();clearTimeout(timer);timer=0;epoch++;context=null;draft=null;pending=null;conflict=null;comparison=null;dirty=false;busy=false;loading=false;canEdit=false;publication=null;preview=false;sending=false;sharing=false;if(dialog?.open)dialog.close();$('tourSelectionOpen')?.remove()}
 function activate(){if(context&&!current())suspend();host.activate()}
 function sync(c){
   if(context&&!current())suspend();
@@ -133,7 +222,7 @@ function add(){if(!editable()||draft.offers.length>=20)return;const item=newOffe
 function editable(){return current()&&canEdit&&!loading&&!pending&&!conflict&&!preview&&!sending&&!photoUpload}
 function invalidAges(){return draft?.offers.some(x=>Object.hasOwn(rawAges,x.id)&&!validAges(rawAges[x.id]))}
 function validAges(value){const raw=String(value).trim();return raw===''||/^\d{1,2}(?:\s*,\s*\d{1,2})*$/.test(raw)&&raw.split(',').length<=12&&raw.split(',').every(x=>Number(x)>=0&&Number(x)<=17)}
-function changed(){previewIssues=[];$('tsPreviewIssues')?.remove();dirty=true;stash();status(invalidAges()?'Возраст детей укажите числами от 0 до 17 через запятую.':'Есть несохранённые изменения.',invalidAges());controls();clearTimeout(timer);timer=setTimeout(()=>{if(editable()&&!busy&&!invalidAges()&&dialog?.open)void save()},900)}
+function changed(){clearHotelKnowledge();previewIssues=[];$('tsPreviewIssues')?.remove();dirty=true;stash();status(invalidAges()?'Возраст детей укажите числами от 0 до 17 через запятую.':'Есть несохранённые изменения.',invalidAges());controls();clearTimeout(timer);timer=setTimeout(()=>{if(editable()&&!busy&&!invalidAges()&&dialog?.open)void save()},900)}
 function item(){return draft?.offers.find(x=>x.id===selected)}
 function edit(event){
   if(event.target.dataset.tsUpload){if(event.type==='change')void choosePhoto(event.target);return}
@@ -282,6 +371,7 @@ function renderList(){
     members.map(({offer:x,index:i})=>`<button type="button" data-ts-select="${esc(x.id)}" class="tsOption ${x.id===selected?'isSelected':''}" aria-pressed="${x.id===selected}"><span class="tsOptionNumber">${i+1}</span><span>${members.length>1&&i===members[0].index?`<span class="tsGroupLabel">Один отель · вариантов ${members.length}</span>`:''}<strong>${esc(x.hotel||'Новый вариант')}</strong><small>${esc([x.date_from,x.room].filter(Boolean).join(' · '))}</small><small>${esc(x.amount?x.amount+' '+x.currency+' за всех':'Цена не указана')}</small><small>${x.selected?'Включён в подборку':'Исключён из подборки'}</small></span></button>`).join('')).join(''):'<p class="tsEmptyList">Добавьте первое предложение. Можно сохранить незаполненный вариант и вернуться к нему позже.</p>';
 }
 function render(){
+  clearHotelKnowledge();
   if(!draft||!dialog)return;
   dialog.classList.toggle('tsTripMode',!!tripPanel);
   if(preview&&publication){renderPreview();controls();return}
@@ -301,13 +391,30 @@ function render(){
   }else{
   photoSection.innerHTML='<h3>Три фото для карточки</h3><p>Выберите реальные фото этого отеля с устройства: JPEG или PNG до 2 МБ. Фото номера будет отмечено как пример интерьера. Загруженные файлы доступны сотрудникам с доступом к этому клиенту.</p><div class="tsFields">'+[['cover','Отель'],['beach','Пляж или бассейн'],['room','Номер']].map(([kind,label])=>{const url=offer.photos.find(x=>x.kind===kind)?.url||'',uploaded=/^https:\/\/app\.anytoour\.ru\/manager\/tour-selection-photo\.php\?conversation_id=/.test(url);return `<div class="tsWide tsPhotoSlot"><h4>${label}</h4>${uploaded?`<img class="tsUploadedThumb" loading="lazy" decoding="async" src="${esc(url)}" alt="${label==='Номер'?'Пример интерьера номера':label}" referrerpolicy="no-referrer">`:''}<label class="tsFileLabel" for="ts-upload-${kind}">${uploaded?'Заменить фото':'Выбрать фото'}: ${label}<input id="ts-upload-${kind}" type="file" data-ts-upload="${kind}" accept="image/jpeg,image/png" ${!editable()||busy?'disabled':''}></label>${uploaded?'<p class="tsUploadedLabel">Фото добавлено в черновик</p><button type="button" data-ts-remove-photo="'+kind+'">Убрать фото</button><details class="tsPhotoUrl"><summary>Заменить по ссылке</summary>':''}<label for="ts-photo-${kind}">${uploaded?'Ссылка на новое фото':'Или HTTPS-ссылка'}<input id="ts-photo-${kind}" type="url" data-ts-photo="${kind}" maxlength="2048" placeholder="https://…/photo.jpg" value="${esc(uploaded?'':url)}" ${!editable()||busy?'disabled':''}></label>${uploaded?'</details>':''}</div>`}).join('')+'</div>';
   }
+  const knowledge=document.createElement('section');knowledge.className='tsKnowledge';
+  const readFacts=document.createElement('button');readFacts.type='button';readFacts.id='tsHotelKnowledgeRead';readFacts.textContent='Сведения об отеле';readFacts.onclick=()=>void readHotelKnowledge();
+  const facts=document.createElement('div');facts.id='tsHotelKnowledge';knowledge.append(readFacts,facts);editor.querySelector('.tsDetails').before(knowledge);
   editor.insertBefore(photoSection,editor.querySelector('.tsPriceHint'));
   photoSection.querySelectorAll('.tsUploadedThumb').forEach(img=>img.addEventListener('error',()=>{img.alt='Не удалось показать фото';const label=img.closest('.tsPhotoSlot').querySelector('.tsUploadedLabel');if(label)label.textContent='Фото не удалось показать. Замените его или проверьте предпросмотр.'}));
   photoSection.querySelectorAll('[data-ts-remove-photo]').forEach(x=>{x.disabled=!editable()||busy});
   const reuse=document.createElement('div');reuse.id='tsPhotoReuse';reuse.className='tsPhotoReuse';photoSection.querySelector('.tsFields').before(reuse);renderPhotoReuse();renderPreviewIssues();renderUploadNotice();
 }
+function clearHotelKnowledge(){hotelKnowledge?.clear();hotelKnowledge=null;}
+function canReadHotelKnowledge(){return current()&&dialog?.open&&item()&&version>0&&!dirty&&!pending&&!conflict&&!busy&&!loading&&!preview&&!photoUpload&&!sending;}
+async function readHotelKnowledge(){
+  if(!canReadHotelKnowledge())return;
+  clearHotelKnowledge();const target=context,token=epoch,offerId=selected,savedVersion=version;
+  const valid=()=>token===epoch&&current(target)&&canReadHotelKnowledge()&&selected===offerId&&version===savedVersion;
+  const root=$('tsHotelKnowledge');if(!root)return;
+  hotelKnowledge=AnyTourHotelKnowledgeView.mount(root,{
+    capture:()=>target,isCurrent:t=>t===target&&valid(),
+    read:(data,options)=>host.request('hotel-knowledge-api.php','read',data,{signal:options.signal,isCurrent:valid})
+  });
+  await hotelKnowledge.show({conversation_id:target.conversation,kind:'working_draft',draft_version:savedVersion,offer_id:offerId});
+}
 function controls(){
   if(!dialog)return;const disabled=!editable();
+  const factsButton=$('tsHotelKnowledgeRead');if(factsButton){factsButton.disabled=!canReadHotelKnowledge();factsButton.title=dirty?'Сначала сохраните изменения':'';}
   $('tsAdd').disabled=disabled||busy||(draft?.offers.length||0)>=20;$('tsSave').disabled=disabled||busy||!dirty||invalidAges();$('tsDone').disabled=busy||loading||(!preview&&invalidAges());
   $('tsSaved').textContent=photoUpload?.loading?'Загружаем фото… '+photoUpload.progress+'%':photoUpload?'Загрузка фото не подтверждена':busy?(tripPanel?'Проверяем условия поездки…':'Сохраняем…'):pending?'Результат сохранения уточняется':conflict?'Есть конфликт правок':dirty?'Не все изменения сохранены':version?(host.savedLabel||'Сохранено на сервере'):'Новый черновик';
   $('tsEditor')?.querySelectorAll('input,textarea,select,[data-ts-action],[data-ts-copy-photos],[data-ts-fix-offer],[data-ts-remove-photo],#tsEmptyAdd').forEach(x=>{x.disabled=disabled||busy});
