@@ -37,6 +37,10 @@ $check(strpos($widget, 'env(safe-area-inset-top)') !== false, 'mobile header res
 $check(strpos($widget, 'env(safe-area-inset-bottom)') !== false, 'mobile composer respects bottom safe area');
 $check(strpos($widget, "new URL('api.php'") !== false, 'widget still uses local canonical API endpoint');
 $check(strpos($widget, "action:'send'") !== false, 'existing send transport is preserved');
+$check(strpos($widget, "class=\"reply-preview\"") !== false, 'website chat renders reply composer context');
+$check(strpos($widget, "rb.textContent='Ответить'") !== false, 'website chat exposes reply action on received messages');
+$check(strpos($widget, "{reply_to_id:target}") !== false, 'website chat sends exact reply target id');
+$check(strpos($widget, "replyCancel.onclick=clearReply") !== false, 'website chat reply can be cancelled');
 $check(strpos($widget, "action:'poll'") !== false, 'existing polling transport is preserved');
 $check(strpos($widget, "action:'profile'") !== false, 'existing contact handoff transport is preserved');
 
