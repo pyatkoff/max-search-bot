@@ -116,7 +116,11 @@ function managerAiInboxStatusRegression(): void
     $check('known suspended client is skipped without a metadata query',$status($read($pdo,1,$row))===null&&$pdo->executed===[]);
     $stale=managerAiInboxRow($pdo)+['ai_preparation_status'=>'ready','ai_preparation_expires_at'=>'2099-01-01 00:00:00'];$pdo->executed=[];
     $check('missing actor strips stale fields without reading metadata',!isset(ManagerAiInboxStatusService::decorate([$stale],0)[0]['ai_preparation_status'])&&$pdo->executed===[]);
-    $pdo->guard=false;$pdo->exec('DROP TABLE manager_prepared_replies');$pdo->guard=true;
+    $pdo->guard=false;
+    // Simulate missing cache in the disposable fixture while respecting082 FK ownership.
+    $pdo->exec('DROP TABLE manager_prepared_reply_input_links');
+    $pdo->exec('DROP TABLE manager_prepared_reply_inputs');
+    $pdo->exec('DROP TABLE manager_prepared_replies');$pdo->guard=true;
     $check('missing cache table never breaks or retains an old badge',$status($read($pdo,1,$stale))===null);
 
     [$pdo]=$seed();$row=managerAiInboxRow($pdo);$rows=[];for($i=0;$i<250;$i++)$rows[]=array_replace($row,['id'=>101+$i]);$pdo->executed=[];$out=ManagerAiInboxStatusService::decorate($rows,1);
