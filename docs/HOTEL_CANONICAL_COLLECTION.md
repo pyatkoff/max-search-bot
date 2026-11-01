@@ -16,12 +16,16 @@ instance are required for worker access. An externally supplied context provider
 Library pointer, scope, reserve inventory or acceptance flag is never worker
 authority. The internal Store's provider is constructed privately by the Service.
 
-The same hotel OAuth scope exposes only two worker tools:
+The core producer path exposes two tools under the existing hotel OAuth scope:
 
 - `hotel_work_collection_context`: read a pinned assignment and typed overlay.
 - `hotel_work_collection_candidate`: save a bounded candidate for that assignment.
 
-Bootstrap, assignment preparation, reserve maintenance, review and commit remain
+The cycle extension additionally exposes producer entry, bounded WORKING reads,
+review context and review submission. See HOTEL_WORKING_SERVER_CYCLE.md for the
+protected cron, import and atomic domain acceptance extension.
+
+Bootstrap, assignment preparation, reserve maintenance, control review and commit remain
 internal control methods, requiring the separate journal control capability.
 There is no public control/commit tool, launcher or scheduler. Provisioning and
 custody of that control capability, live cutover and native dispatch integration
@@ -74,7 +78,9 @@ control/store validator has a separate 256 KiB cap. Baseline is capped at 64 MiB
 and stored overlay lists/ledger at 20,000 entries each and 16 MiB total. Limits are
 checked before a write can create an unreadable subsequent state.
 
-All receipts retain `business_accepted=false` and `native_run_verified=false`.
+Core derived receipts retain `business_accepted=false` and `native_run_verified=false`.
+The separate cycle finalizer issues a domain acceptance only after independent
+review and atomic queue advancement; it still does not attest native execution.
 The data commit is `derived_overlay_committed`; it does not advance the business
 queue, verify native identity or guarantee once-only provider compute/cost.
 
