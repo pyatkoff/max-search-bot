@@ -42,6 +42,8 @@ $q=$p->query('SELECT * FROM hotel_work_queues')->fetch(PDO::FETCH_ASSOC);
 hccCheck($q['queue_id']==='COLLECTION-SERVICE'&&(int)$q['stage_index']===42&&(int)$q['accepted_batches']===20&&$q['baseline_sha256']===$q42[0]['baseline_sha256']&&$q['write_protocol']==='journal_v1'&&(int)$q['persistent_fence']===1,'onward_preserves_queue_origin_count_and_sticky_fence');
 $import=$p->query('SELECT * FROM hotel_working_imports')->fetch(PDO::FETCH_ASSOC);
 hccCheck($import['body_bytes']===$acceptedRow['accepted_working_bytes']&&$import['data_sha256']===$onward['working_sha256'],'onward_exact_accepted_WORKING_import');
+$rootRead=$service->readWorking('COLLECTION-SERVICE',$adoption['next_stage_id'],1,$control,$onward['working_sha256'],'');
+hccCheck($rootRead['complete']&&base64_decode($rootRead['chunk_base64'],true)===$acceptedRow['accepted_working_bytes'],'onward_existing_server_reader_returns_exact_original_history');
 hccCheck($allReceipts===$p->query('SELECT * FROM hotel_work_receipts ORDER BY stage_index')->fetchAll(PDO::FETCH_ASSOC),'onward_never_replays_accepted_research_or_intake');
 hccCheck((int)$p->query('SELECT COUNT(*) FROM hotel_queue_write_permits')->fetchColumn()===0,'onward_no_persistent_SQL_permit');
 foreach(["UPDATE hotel_work_queues SET accepted_batches=accepted_batches+1","UPDATE hotel_work_queues SET persistent_fence=0","UPDATE hotel_work_queues SET write_protocol='legacy'","DELETE FROM hotel_work_queues","UPDATE hotel_work_receipts SET receipt_json='{}'","DELETE FROM hotel_work_receipts"]as$sql)hccReject(fn()=>$p->exec($sql),'onward_old_write_denied_'.$sql);
@@ -74,6 +76,7 @@ hccCheck((int)$p->query('SELECT COUNT(*) FROM hotel_queue_write_permits')->fetch
 // The actual legacy WORKING has an object of question groups, not a list.
 $objectWorking=json_decode($f['working']);$objectWorking->scoped_question_results=(object)['historical-group'=>[(object)['unknown'=>'retained']]];
 $objectBytes=HotelQuarantinedPacket::json($objectWorking);$objectPacket=json_decode($f['packetBytes'],true);$objectPacket['file_pins']['WORKING']['sha256']=hash('sha256',$objectBytes);
+HotelQuarantinedPacket::inspect($objectBytes,hccJson($objectPacket),$f['members'],$before[0],['protected-hotel']);
 $merged=json_decode(HotelQuarantinedPacket::merge($objectBytes,hccJson($objectPacket),['operation_id'=>'synthetic-acceptance']));
 hccCheck($merged->scoped_question_results instanceof stdClass&&$merged->scoped_question_results->{'historical-group'}[0]->unknown==='retained'&&count($merged->scoped_question_results->{$f['packet']['operation_id']})===2,'actual_WORKING_question_map_is_preserved');
 echo "HOTEL QUARANTINE ONWARD CHECKS PASS\n";

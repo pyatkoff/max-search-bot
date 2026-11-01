@@ -66,7 +66,7 @@ final class HotelQuarantinedPacket
             $field=$g==='claims'?'claim_ids':'source_ids';$index=$w->hotel_index->{$r->hotel_key};
             if(!isset($index->$field))$index->$field=[];if(in_array($id,$index->$field,true))self::deny('merge_index_conflict');$index->{$field}[]=$id;
         }
-        if((!is_array($w->scoped_question_results)&&!$w->scoped_question_results instanceof stdClass)||!is_array($w->working_acceptances)||!is_array($w->country_import_ledger->imports))self::deny('legacy_append_shape');
+        if((!is_array($w->scoped_question_results)&&!($w->scoped_question_results instanceof stdClass))||!is_array($w->working_acceptances)||!is_array($w->country_import_ledger->imports))self::deny('legacy_append_shape');
         if(is_array($w->scoped_question_results))foreach($d->question_results as$r)$w->scoped_question_results[]=$r;
         else{if(property_exists($w->scoped_question_results,$p->operation_id))self::deny('question_operation_replay');$w->scoped_question_results->{$p->operation_id}=$d->question_results;}
         $w->working_acceptances[]=(object)$acceptance;$w->country_import_ledger->imports[]=(object)$acceptance;

@@ -60,14 +60,17 @@ final class HotelCollectionCanonicalService
         return $this->tx('adopt_quarantined',function()use($queue,$intake,$control,$request,$acceptanceSha,$workingSha,$inventory,$attestation,$input):array{
             $c=new HotelNativeRecoveryContext($this->pdo,$this->admin,$this->connection,$this->clock);$q=$c->owned($queue,true);
             (new HotelLegacyEffectQuarantine($c))->assertDatabaseBarrier();
-            $r=$this->one('SELECT * FROM hotel_quarantined_intakes WHERE queue_id=? AND stage_id=?',[$queue,$intake]);
+            $r=$this->one('SELECT control_sha256,acceptance_bytes,accepted_working_sha256,protected_bytes FROM hotel_quarantined_intakes WHERE queue_id=? AND stage_id=?',[$queue,$intake]);
             if(!$r||!hash_equals($r['control_sha256'],hash('sha256',$control)))$this->deny('control_capability_required');
-            if($r['acceptance_bytes']===null||hash('sha256',$r['acceptance_bytes'])!==$acceptanceSha||$r['accepted_working_sha256']!==$workingSha||hash('sha256',$r['accepted_working_bytes']??'')!==$workingSha)$this->deny('accepted_snapshot_required');
+            if($r['acceptance_bytes']===null||hash('sha256',$r['acceptance_bytes'])!==$acceptanceSha||$r['accepted_working_sha256']!==$workingSha)$this->deny('accepted_snapshot_required');
             $prior=$this->one('SELECT * FROM hotel_quarantine_adoptions WHERE queue_id=?',[$queue]);
             if($prior){
                 if($prior['request_sha256']!==$input||$prior['control_sha256']!==hash('sha256',$control)||$prior['working_sha256']!==$workingSha||$prior['acceptance_sha256']!==$acceptanceSha||($q['persistent_fence']??0)!=1||$q['write_protocol']!=='journal_v1')$this->deny('adoption_replay_conflict');
                 return self::decode($prior['receipt_bytes']);
             }
+            $snapshot=$this->one('SELECT accepted_working_bytes FROM hotel_quarantined_intakes WHERE queue_id=? AND stage_id=?',[$queue,$intake]);
+            $r['accepted_working_bytes']=$snapshot['accepted_working_bytes']??null;
+            if(!is_string($r['accepted_working_bytes'])||hash('sha256',$r['accepted_working_bytes'])!==$workingSha)$this->deny('accepted_snapshot_required');
             $f=$this->one('SELECT * FROM hotel_legacy_effect_quarantine WHERE queue_id=?',[$queue]);
             $original=$f?self::decode($f['queue_bytes']):[];$accept=self::decode($r['acceptance_bytes']);
             if(!$f||$f['stage_id']!==$intake||($q['persistent_fence']??null)===null||(int)$q['persistent_fence']!==0||$q['write_protocol']!=='quarantine_v1'||$q['state']!=='ready'||$q['claim_sha256']!==null||$q['current_run_id']!==null||$q['mode']!=='continuous'

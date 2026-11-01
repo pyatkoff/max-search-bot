@@ -24,11 +24,12 @@ final class HotelQuarantinedIntakeRuntime
             if(!is_array($p['members'])||!is_array($p['protected_hotel_keys']))throw new InvalidArgumentException('quarantined_cron_plan_invalid');
             $c=new HotelNativeRecoveryContext($this->pdo,$p['admin_id'],$p['connection_id'],$this->clock);$c->autocommit();$c->owned($p['queue_id']);
             $service=new HotelQuarantinedIntake($c,$this->fault);
-            $r=$c->one('SELECT * FROM hotel_quarantined_intakes WHERE queue_id=? AND stage_id=?',[$p['queue_id'],$p['stage_id']]);
+            $columns='control_sha256,review_task,packet_sha256,working_sha256,acceptance_bytes,verdict_bytes,instance_id,private_receipt,producer_operation';
+            $r=$c->one('SELECT '.$columns.' FROM hotel_quarantined_intakes WHERE queue_id=? AND stage_id=?',[$p['queue_id'],$p['stage_id']]);
             if(!$r){
                 if(hash('sha256',$p['packet_bytes'])!==$p['packet_sha256'])throw new DomainException('quarantined_cron_packet_pin');
                 $service->stage($p['queue_id'],$p['stage_id'],$p['control_capability'],$p['stage_request_id'],$p['review_task_id'],$p['packet_bytes'],$p['members'],$p['protected_hotel_keys']);
-                $r=$c->one('SELECT * FROM hotel_quarantined_intakes WHERE queue_id=? AND stage_id=?',[$p['queue_id'],$p['stage_id']]);
+                $r=$c->one('SELECT '.$columns.' FROM hotel_quarantined_intakes WHERE queue_id=? AND stage_id=?',[$p['queue_id'],$p['stage_id']]);
             }
             // Persisted sealed input wins: waiting ticks do not rehash archives.
             if(!$r||!hash_equals($r['control_sha256'],hash('sha256',$p['control_capability']))||$r['review_task']!==$p['review_task_id']||$r['packet_sha256']!==$p['packet_sha256'])throw new DomainException('quarantined_cron_plan_conflict');
@@ -71,7 +72,7 @@ final class HotelQuarantinedIntakeRuntime
         if($event['state']!=='delivered')return $wasAdopted?0:1;
         $adapter=$this->adapterFactory===null?new HotelNativeAutomationAdapter($this->pdo,$p['admin_id'],$p['connection_id'],null,$this->clock):($this->adapterFactory)($p);
         (new HotelCollectionCoordinator($this->pdo,$p['admin_id'],$p['connection_id'],$adapter,$this->clock))->dispatch($p['queue_id'],$receipt['next_stage_id'],1,$p['control_capability'],'hotel_evt_'.$event['event_id'],[
-            'operation_id'=>$intent['operation_id'],'task_id'=>$n['producer_task_id'],'request_id'=>$id,'worker_capability'=>$intent['worker_capability']]);
+            'operation_id'=>$intent['operation_id'],'task_id'=>$n['producer_task_id'],'request_id'=>hash('sha256',HotelNativeRecoveryContext::json([$n['request_id'],'onward-dispatch'])),'worker_capability'=>$intent['worker_capability']]);
         return 1;
     }
 }
