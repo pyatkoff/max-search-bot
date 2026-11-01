@@ -14,15 +14,15 @@ if(($argv[1]??'')==='--quarantine-old-writer-child'){
 }
 function hqiSchema(PDO$p):void
 {
-    foreach(['hotel_quarantined_intakes','hotel_quarantined_read_coverage','hotel_quarantine_intake_permits','hotel_legacy_effect_quarantine','hotel_legacy_quarantine_gate']as$t)$p->exec('DROP TABLE IF EXISTS '.$t);
+    foreach(['hotel_work_events','hotel_native_bindings','hotel_native_deliveries','hotel_quarantined_intakes','hotel_quarantined_read_coverage','hotel_quarantine_intake_permits','hotel_legacy_effect_quarantine','hotel_legacy_quarantine_gate']as$t)$p->exec('DROP TABLE IF EXISTS '.$t);
     if($p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'){
-        foreach(['087_hotel_legacy_effect_quarantine.sql','088_hotel_quarantined_intake.sql']as$f)foreach(explode(';',(string)file_get_contents(dirname(__DIR__).'/migrations/'.$f))as$s)if(trim($s)!=='')$p->exec($s);
+        foreach(['071_hotel_work_events.sql','086_hotel_native_automation_adapter.sql','087_hotel_legacy_effect_quarantine.sql','088_hotel_quarantined_intake.sql']as$f)foreach(explode(';',(string)file_get_contents(dirname(__DIR__).'/migrations/'.$f))as$s)if(trim($s)!=='')$p->exec($s);
         return;
     }
-    foreach(['087_hotel_legacy_effect_quarantine.sql','088_hotel_quarantined_intake.sql']as$f){
-        $s=(string)file_get_contents(dirname(__DIR__).'/migrations/'.$f);$end=strpos($s,$f[2]==='7'?'CREATE TRIGGER':'DROP TRIGGER');$s=substr($s,0,$end);
+    foreach(['071_hotel_work_events.sql','086_hotel_native_automation_adapter.sql','087_hotel_legacy_effect_quarantine.sql','088_hotel_quarantined_intake.sql']as$f){
+        $s=(string)file_get_contents(dirname(__DIR__).'/migrations/'.$f);if(preg_match('/(?:CREATE|DROP) TRIGGER/',$s,$m,PREG_OFFSET_CAPTURE))$s=substr($s,0,$m[0][1]);
         $s=preg_replace('/ CHARACTER SET ascii COLLATE ascii_bin/','',$s);$s=str_replace([' ENGINE=InnoDB','INSERT IGNORE','LONGBLOB'],['','INSERT OR IGNORE','BLOB'],$s);
-        $s=preg_replace('/UNIQUE KEY [a-zA-Z0-9_]+\(/','UNIQUE(',$s);$p->exec($s);
+        $s=preg_replace('/UNIQUE KEY [a-zA-Z0-9_]+\s*\(/','UNIQUE(',$s);$s=preg_replace('/,\s*KEY [a-zA-Z0-9_]+\s*\([^)]*\)/','',$s);$s=preg_replace('/ DEFAULT CHARSET=[a-zA-Z0-9_]+/','',$s);$p->exec($s);
     }
     $p->sqliteCreateFunction('sha2',static fn(string$s,int$bits):string=>hash('sha256',$s),2);
     $fields=['queue_id','project_key','admin_id','oauth_connection_id','mode','batch_limit','start_country','initial_phase_counter','phase_counter','baseline_sha256','plan_sha256','stage_index','state','claim_sha256','current_run_id','accepted_batches','write_protocol','data_snapshot_sha256'];
