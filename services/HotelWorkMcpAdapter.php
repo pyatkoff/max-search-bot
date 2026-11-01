@@ -13,7 +13,7 @@ final class HotelWorkMcpAdapter
         'hotel_work_delivery_repair_preflight','hotel_work_repair_delivery',
         'hotel_work_execution_attempt_preflight','hotel_work_prepare_execution_attempt',
         'hotel_work_enter_execution_attempt','hotel_work_bind_execution_attempt',
-        'hotel_work_collection_context','hotel_work_collection_candidate','hotel_work_working_read','hotel_work_review_context','hotel_work_review_submit','hotel_work_producer_enter'];
+        'hotel_work_collection_context','hotel_work_collection_candidate','hotel_work_producer_enter','hotel_work_working_read','hotel_work_review_context','hotel_work_review_submit'];
 
     public function __construct(private PDO $pdo, private $store = null, private $clock = null,
         private ?HotelWorkEventService $events = null, private string $oauthProfile = ManagerPreparationOAuth::PROFILE_LEGACY,
@@ -141,7 +141,7 @@ final class HotelWorkMcpAdapter
             [...array_keys($collection),'data_sha256','pointer','offset'],true];
         $definitions[]=['hotel_work_review_context','Read the exact producer candidate using a separate reviewer capability; first call binds one reviewer instance.', $review,array_keys($review),false];
         $definitions[]=['hotel_work_review_submit','Persist one immutable independent review verdict. Does not itself commit data or advance the queue.',
-            $review+['verdict'=>['type'=>'object']], [...array_keys($review),'verdict'],false];
+            $review+['verdict'=>['type'=>'object','properties'=>['candidate_sha256'=>$sha,'decision'=>['type'=>'string','enum'=>['accept','hold','reject']],'criteria'=>$criteria,'review_run'=>$run],'required'=>['candidate_sha256','decision','criteria','review_run'],'additionalProperties'=>false]], [...array_keys($review),'verdict'],false];
         $out=[];
         foreach ($definitions as [$name,$description,$properties,$required,$readOnly]) {
             $security=[['type'=>'oauth2','scopes'=>['hotel_work:write']]];
