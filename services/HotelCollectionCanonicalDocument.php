@@ -12,6 +12,15 @@ final class HotelCollectionCanonicalDocument
     private const CONTEXT = ['queue_id', 'operation_id', 'stage_id', 'country', 'scope_id', 'source_packet_id', 'hotel_keys', 'base_revision', 'baseline_sha256'];
     private const ENVELOPE = ['schema_version', 'queue_id', 'operation_id', 'stage_id', 'country', 'scope_id', 'source_packet_id', 'base_revision', 'baseline_sha256', 'facts', 'sources', 'read_updates', 'questions'];
 
+    /** Strict import parser: reject duplicate decoded keys before decoding. */
+    public static function decodeObject(string $bytes): array
+    {
+        self::rejectDuplicateKeys($bytes);
+        $object=json_decode($bytes,false,128,JSON_THROW_ON_ERROR);
+        if(!$object instanceof stdClass)throw new InvalidArgumentException('working_object_required');
+        return json_decode($bytes,true,128,JSON_THROW_ON_ERROR);
+    }
+
     public static function emptyOverlay(string $baselineSha256): array
     {
         self::sha($baselineSha256);

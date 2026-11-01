@@ -447,6 +447,11 @@ final class HotelWorkQueue
         $id=self::queueId($queueId);
         return $this->transaction(function() use($id,$admin,$connection): ?array {
             $lane=$this->lane(true);$row=$this->owned($id,$admin,$connection,true);
+            if(($row['write_protocol']??'legacy')==='journal_v1'&&$row['state']==='ready'){
+                $this->ownsLane($row,$lane);
+                try{$pending=$this->one('SELECT event_id FROM hotel_collection_outbox WHERE queue_id=? AND stage_id=? AND state=?'.$this->lock(),[$id,$this->stageId($row),'pending']);}catch(PDOException $missing){$pending=null;}
+                if($pending)return ['event_id'=>'hotel_evt_'.$pending['event_id'],'name'=>'hotel_work.pending','data'=>$this->eventData($row,true)];
+            }
             // Also fence emission of actionable old events, even when no SQL write is due.
             $this->legacyWrite($row);
             if (in_array($row['state'],['claimed','unknown'],true)) {
@@ -480,6 +485,12 @@ final class HotelWorkQueue
         $id=self::queueId($queueId);
         return $this->transaction(function() use($id,$eventId,$admin,$connection): array {
             $lane=$this->lane(true);$row=$this->owned($id,$admin,$connection,true);$this->ownsLane($row,$lane);
+            if(($row['write_protocol']??'legacy')==='journal_v1'&&$row['state']==='ready'){
+                try{$outbox=$this->one('SELECT event_id FROM hotel_collection_outbox WHERE queue_id=? AND stage_id=? AND state=?'.$this->lock(),[$id,$this->stageId($row),'pending']);}catch(PDOException $missing){$outbox=null;}
+                if($outbox&&$eventId==='hotel_evt_'.$outbox['event_id']){
+                    $this->execute('UPDATE hotel_collection_outbox SET state=? WHERE event_id=?',['delivered',$outbox['event_id']]);return $this->project($row);
+                }
+            }
             $now=$this->now();
             if (in_array($row['state'],['claimed','unknown'],true)) {
                 if ($row['last_watch_ack']===$eventId) return $this->project($row);

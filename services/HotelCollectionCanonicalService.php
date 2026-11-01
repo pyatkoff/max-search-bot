@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__.'/HotelCollectionCanonicalStore.php';
 require_once __DIR__.'/ManagerPreparationOAuth.php';
+require_once __DIR__.'/HotelWorkingSnapshot.php';
 
 /** Internal control APIs + two capability-bound worker APIs; no native launch,
  * queue advancement, runtime migration or Library loader. Constructor identity
@@ -34,6 +35,150 @@ final class HotelCollectionCanonicalService
             $store = $this->store($q,$h,null,'control',['baseline_sha256'=>$approvedSha,'baseline_index'=>$index,'baseline_index_attestation'=>$indexAttestation]);
             return $store->bootstrap($queue,$bytes);
         });
+    }
+
+    /** Current WORKING has a separate data pin; never rewrite queue baseline. */
+    public function importWorking(string $queue,string $stage,int $generation,string $control,string $request,string $bytes,string $sha):array
+    {
+        return $this->tx('import_working',function()use($queue,$stage,$generation,$control,$request,$bytes,$sha):array{
+            [$q,$h]=$this->locked($queue,$stage,true);$this->control($h,$control,$generation);self::id($request);self::sha($sha);
+            return(new HotelWorkingSnapshot($this->pdo))->import($q,$bytes,$sha,$request);
+        });
+    }
+    /** Control-only full byte/pointer reader, including preserved variants/history. */
+    public function readWorking(string $queue,string $stage,int $generation,string $control,string $sha,string $pointer,int $offset=0):array
+    {
+        return $this->tx('read_working',function()use($queue,$stage,$generation,$control,$sha,$pointer,$offset):array{
+            [$q,$h]=$this->locked($queue,$stage,false);$this->control($h,$control,$generation);self::sha($sha);
+            return(new HotelWorkingSnapshot($this->pdo))->read($queue,$sha,$pointer,$offset);
+        });
+    }
+
+    /** Complete immutable source bytes for CONTROL-authorized scope projections.
+     * A worker may read only a hotel-index row or an exact assigned knowledge ID.
+     */
+    public function workerWorkingRead(array $args,string $sha,string $pointer,int $offset=0):array
+    {
+        self::sha($sha);
+        return $this->workerCall('worker_working_read',$args,function(HotelCollectionCanonicalStore $store,array $a)use($sha,$pointer,$offset):array{
+            $assignment=$store->readAssignment($a['queue_id'],$a['operation_id']);$keys=$assignment['context']['hotel_keys'];
+            $parts=explode('/',ltrim($pointer,'/'));
+            if(count($parts)===2&&$parts[0]==='hotel_index'&&in_array($parts[1],$keys,true)){}
+            elseif(count($parts)===3&&$parts[0]==='knowledge'&&in_array($parts[1],['claims','sources_including_unclaimed','source_read_updates'],true)){
+                $row=$this->one('SELECT body_bytes,data_sha256 FROM hotel_working_imports WHERE queue_id=?',[$a['queue_id']]);
+                if(!$row||$row['data_sha256']!==$sha||hash('sha256',$row['body_bytes'])!==$sha)$this->deny('working_snapshot_unavailable');
+                $doc=HotelCollectionCanonicalDocument::decodeObject($row['body_bytes']);$field=$parts[1]==='claims'?'claim_ids':($parts[1]==='sources_including_unclaimed'?'source_ids':'read_update_ids');
+                $allowed=[];foreach($keys as$key)$allowed=array_merge($allowed,$doc['hotel_index'][$key][$field]??[]);
+                if(!in_array($parts[2],$allowed,true))$this->deny('working_scope_required');
+            }else $this->deny('working_scope_required');
+            return(new HotelWorkingSnapshot($this->pdo))->read($a['queue_id'],$sha,$pointer,$offset);
+        });
+    }
+
+    /** CONTROL: seal producer bytes, advance only research, issue private reviewer key. */
+    public function sealResearch(string $queue,string $stage,int $generation,string $control,string $operation,string $run,string $reviewTask):array
+    {
+        return $this->tx('seal_research',function()use($queue,$stage,$generation,$control,$operation,$run,$reviewTask):array{
+            [$q,$h]=$this->locked($queue,$stage,false);$this->control($h,$control,$generation);self::id($run);self::id($reviewTask);
+            $prior=$this->one('SELECT * FROM hotel_collection_reviews WHERE queue_id=? AND producer_operation=?',[$queue,$operation]);
+            if($prior){if($prior['producer_run']!==$run||$prior['review_task']!==$reviewTask)$this->deny('review_request_conflict');return self::decode($prior['private_receipt']);}
+            $this->current($q,$stage);if((int)$q['stage_index']%2!==0)$this->deny('research_stage_required');
+            $op=$this->operation($q,$h,$operation,['admitted','candidate_recorded']);
+            if($reviewTask===$op['task_id'])$this->deny('independent_reviewer_required');
+            $candidate=$this->store($q,$h,$op,'control')->readCandidate($queue,$operation);
+            $raw=self::decode($candidate['raw_bytes']);
+            $import=$this->one('SELECT * FROM hotel_working_imports WHERE queue_id=?',[$queue]);
+            if(!$import||hash('sha256',$import['body_bytes'])!==$import['data_sha256'])$this->deny('working_import_required');
+            if(str_contains($import['body_bytes'],$candidate['raw_sha256'])||str_contains($import['body_bytes'],$raw['source_packet_id']))$this->deny('historical_packet_replay');
+            $this->cycleReceipt($q,$stage,$run,$candidate['raw_sha256'],null);
+            $next=$this->stage($this->cycleAdvance($q,false));$key=bin2hex(random_bytes(32));
+            $this->execute('INSERT INTO hotel_journal_heads(queue_id,stage_id,baseline_sha256,generation,control_sha256,owner_label) VALUES(?,?,?,?,?,?)',[$queue,$next,$h['baseline_sha256'],1,$h['control_sha256'],$h['owner_label']]);
+            $receipt=['intake_stage_id'=>$next,'review_capability'=>$key,'candidate_sha256'=>$candidate['raw_sha256'],'dispatch_authority'=>false];
+            $this->execute('INSERT INTO hotel_collection_reviews(queue_id,intake_stage,producer_stage,producer_operation,producer_run,review_task,capability_sha256,private_receipt) VALUES(?,?,?,?,?,?,?,?)',[$queue,$next,$stage,$operation,$run,$reviewTask,hash('sha256',$key),self::json($receipt)]);
+            return $receipt;
+        });
+    }
+    /** Separate reviewer authority: never use the producer capability. */
+    public function reviewContext(array $args):array
+    {
+        return $this->tx('review_context',function()use($args):array{
+            [$q,$h,$r]=$this->reviewAuthority($args);
+            $candidate=$this->one('SELECT raw_bytes,raw_sha256 FROM hotel_collection_candidates WHERE queue_id=? AND operation_id=?',[$q['queue_id'],$r['producer_operation']]);
+            if(!$candidate||hash('sha256',$candidate['raw_bytes'])!==$candidate['raw_sha256'])$this->deny('candidate_unavailable');
+            return ['producer_operation'=>$r['producer_operation'],'candidate'=>$candidate,'criteria_due'=>(int)$q['phase_counter']===1,'business_accepted'=>false];
+        });
+    }
+    public function submitReview(array $args,array $verdict):array
+    {
+        self::keys($verdict,['candidate_sha256','decision','criteria','review_run']);self::sha($verdict['candidate_sha256']);self::id($verdict['review_run']);
+        if(!in_array($verdict['decision'],['accept','hold','reject'],true))throw new InvalidArgumentException('review_decision');
+        return $this->tx('submit_review',function()use($args,$verdict):array{
+            [$q,$h,$r]=$this->reviewAuthority($args);if($verdict['review_run']===$r['producer_run'])$this->deny('independent_review_run_required');
+            $candidate=$this->one('SELECT raw_sha256 FROM hotel_collection_candidates WHERE queue_id=? AND operation_id=?',[$q['queue_id'],$r['producer_operation']]);
+            if(!$candidate||$candidate['raw_sha256']!==$verdict['candidate_sha256'])$this->deny('review_candidate_mismatch');
+            $this->cycleCriteria($q,$verdict['criteria']);$bytes=self::json($verdict);
+            if($r['verdict_bytes']!==null&&$r['verdict_bytes']!==$bytes)$this->deny('immutable_review_conflict');
+            $this->execute('UPDATE hotel_collection_reviews SET verdict_bytes=? WHERE queue_id=? AND intake_stage=?',[$bytes,$q['queue_id'],$r['intake_stage']]);
+            return ['status'=>'review_recorded','verdict_sha256'=>hash('sha256',$bytes),'business_accepted'=>false];
+        });
+    }
+    /** CONTROL: canonical data + domain receipt + queue advance + outbox atomically. */
+    public function finalizeIntake(string $queue,string $stage,int $generation,string $control,string $request,string $expectedVerdict,int $revision,string $headHash):array
+    {
+        return $this->tx('finalize_intake',function()use($queue,$stage,$generation,$control,$request,$expectedVerdict,$revision,$headHash):array{
+            [$q,$h]=$this->locked($queue,$stage,false);$this->control($h,$control,$generation);self::id($request);self::sha($expectedVerdict);
+            $r=$this->one('SELECT * FROM hotel_collection_reviews WHERE queue_id=? AND intake_stage=?',[$queue,$stage]);
+            if(!$r||$r['verdict_bytes']===null||hash('sha256',$r['verdict_bytes'])!==$expectedVerdict)$this->deny('review_required');
+            $input=hash('sha256',self::json([$request,$expectedVerdict,$revision,$headHash]));
+            if($r['acceptance_bytes']!==null){if($r['finalize_sha256']!==$input)$this->deny('finalize_conflict');return self::decode($r['acceptance_bytes']);}
+            $this->current($q,$stage);$v=self::decode($r['verdict_bytes']);if($v['decision']!=='accept')$this->deny('review_not_accepted');$this->cycleCriteria($q,$v['criteria']);
+            $producer=$this->one('SELECT * FROM hotel_journal_heads WHERE queue_id=? AND stage_id=?'.$this->lock(),[$queue,$r['producer_stage']]);
+            if(!$producer)$this->deny('producer_head_missing');
+            $op=$this->operation($q,$producer,$r['producer_operation'],['admitted','candidate_recorded']);
+            $commit=$this->store($q,$producer,$op,'control')->commit($queue,$op['operation_id'],$request,$v['candidate_sha256'],$revision,$headHash);
+            $this->cycleReceipt($q,$stage,$v['review_run'],$v['candidate_sha256'],$v['criteria']);
+            $next=$this->cycleAdvance($q,true);
+            $accept=$commit+['intake_stage_id'=>$stage,'next_stage_id'=>$this->stage($next),'accepted_batches'=>(int)$next['accepted_batches']];
+            $accept['business_accepted']=true;$bytes=self::json($accept);
+            $this->execute('UPDATE hotel_collection_reviews SET acceptance_bytes=?,finalize_sha256=? WHERE queue_id=? AND intake_stage=?',[$bytes,$input,$queue,$stage]);
+            $this->execute("UPDATE hotel_journal_operations SET state='snapshot_committed' WHERE operation_id=?",[$op['operation_id']]);
+            return $accept;
+        });
+    }
+    private function reviewAuthority(array $a):array
+    {
+        self::keys($a,['queue_id','stage_id','generation','review_capability','instance_id']);self::sha($a['review_capability']);self::id($a['instance_id']);
+        [$q,$h]=$this->locked($a['queue_id'],$a['stage_id'],true);
+        if(!is_int($a['generation'])||(int)$h['generation']!==$a['generation'])$this->deny('stale_generation');
+        $r=$this->one('SELECT * FROM hotel_collection_reviews WHERE queue_id=? AND intake_stage=?',[$a['queue_id'],$a['stage_id']]);
+        if(!$r||!hash_equals($r['capability_sha256'],hash('sha256',$a['review_capability'])))$this->deny('review_capability_required');
+        if($r['instance_id']!==null&&$r['instance_id']!==$a['instance_id'])$this->deny('review_instance_conflict');
+        if($r['instance_id']===null)$this->execute('UPDATE hotel_collection_reviews SET instance_id=? WHERE queue_id=? AND intake_stage=?',[$a['instance_id'],$a['queue_id'],$a['stage_id']]);
+        return[$q,$h,$r];
+    }
+    private function cycleCriteria(array $q,mixed $c):void
+    {
+        if((int)$q['phase_counter']===0){if($c!==null)$this->deny('criteria_not_due');return;}
+        if(!is_array($c))$this->deny('criteria_due');self::keys($c,['readback_sha256','case_count','done_count','partial_count']);self::sha($c['readback_sha256']);
+        foreach(['case_count','done_count','partial_count']as$k)if(!is_int($c[$k])||$c[$k]<0||$c[$k]>20)$this->deny('criteria_counts');
+        if($c['case_count']<1||$c['done_count']+$c['partial_count']!==$c['case_count'])$this->deny('criteria_counts');
+    }
+    private function cycleReceipt(array $q,string $stage,string $run,string $packet,mixed $criteria):void
+    {
+        $body=['run_id'=>$run,'outcome'=>'accepted_readback','packet_sha256'=>$packet,'criteria'=>$criteria,'provenance'=>'server_candidate_and_reviewer_attestation','native_run_verified'=>false];
+        $bytes=self::json($body);$this->execute('INSERT INTO hotel_work_receipts(queue_id,stage_index,stage_id,receipt_sha256,receipt_json,created_at) VALUES(?,?,?,?,?,?)',[$q['queue_id'],$q['stage_index'],$stage,hash('sha256',$bytes),$bytes,gmdate('Y-m-d H:i:s')]);
+    }
+    private function cycleAdvance(array $q,bool $intake):array
+    {
+        $index=(int)$q['stage_index'];if(($index%2===1)!==$intake||$index>=1000000)$this->deny('cycle_stage_invalid');
+        $accepted=(int)$q['accepted_batches']+($intake?1:0);$counter=$intake?1-(int)$q['phase_counter']:(int)$q['phase_counter'];
+        $state=$q['mode']==='finite'&&$accepted>=(int)$q['batch_limit']?'complete':'ready';
+        $this->execute('UPDATE hotel_work_queues SET stage_index=?,state=?,phase_counter=?,accepted_batches=?,claim_sha256=NULL,current_run_id=NULL,event_ack=NULL,delivered_at=NULL,claim_deadline=NULL,attention_at=NULL,attention_ack=NULL,watchdog_due_at=NULL,watchdog_epoch=0,last_watch_ack=NULL,updated_at=? WHERE queue_id=?',[$index+1,$state,$counter,$accepted,gmdate('Y-m-d H:i:s'),$q['queue_id']]);
+        if($state==='complete')$this->execute('UPDATE hotel_work_lane SET queue_id=NULL WHERE lane_key=? AND queue_id=?',['HOTEL',$q['queue_id']]);
+        $next=$this->one('SELECT * FROM hotel_work_queues WHERE queue_id=?',[$q['queue_id']]);
+        $event=hash('sha256',self::json([$q['queue_id'],$this->stage($next),'protected_pending']));
+        $this->execute('INSERT INTO hotel_collection_outbox(event_id,queue_id,stage_id,state) VALUES(?,?,?,?)',[$event,$q['queue_id'],$this->stage($next),$state==='ready'?'pending':'closed']);
+        return$next;
     }
 
     /** CONTROL ONLY. Generic protected inventory, monotonic; no TTL/release. */
