@@ -1,4 +1,4 @@
-name: Update four commercial hotel posts in both channels without duplicates
+name: Update Rehana and Solara existing posts in both channels
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -38,12 +38,12 @@ jobs:
           umask 077
           python3 - <<'PY'
           import pathlib,hashlib,os
-          script=pathlib.Path('tools/direct_demand/operations/update-commercial-four.php').read_text()
-          assert hashlib.sha256(script.encode()).hexdigest()=='6a67a6fabaffdccb82ddcc79081b2f6dfe72e4e8b14cd8cb80ab812f379c1041'
+          script=pathlib.Path('tools/direct_demand/operations/update-commercial-final-two.php').read_text()
+          assert hashlib.sha256(script.encode()).hexdigest()=='a0a31f6c768ada0c6feb1c19d023871cf8f4d3f1b5899b9a83d8ea43ba72a802'
           prefix="<?php\ndeclare(strict_types=1);\n"
           assert script.startswith(prefix)
-          manifest=pathlib.Path('tools/direct_demand/operations/commercial-four-update-manifest.json').read_bytes()
-          assert hashlib.sha256(manifest).hexdigest()=='db0c67bd5a2b0f18621fb8618d116edd28686ee99f83397c1f31163d5b24bca5'
+          manifest=pathlib.Path('tools/direct_demand/operations/commercial-final-two-manifest.json').read_bytes()
+          assert hashlib.sha256(manifest).hexdigest()=='72b1db3067ef61ca57abc80d6803696a5633d6ad25a98817e19120f4534fa149'
           import base64
           header=prefix+"const EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst MANIFEST_BASE64='"+base64.b64encode(manifest).decode()+"';\n"
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.php').write_text(header+script[len(prefix):])
@@ -101,15 +101,15 @@ jobs:
           lines=pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.json').read_text().splitlines()
           d=json.loads(lines[-1])
           print(json.dumps(d,ensure_ascii=False,sort_keys=True))
-          assert d['operation']=='commercial-hotel-four-update-20261101-v1' and d['mode']=='update_existing_commercial_posts'
-          assert d['ok'] is True and d['post_write_attempts']==0 and len(d['posts'])==12 and d['commercial_text_updates']==8
+          assert d['operation']=='commercial-hotel-final-two-update-20261102-v1' and d['mode']=='update_existing_remaining_commercial_posts'
+          assert d['ok'] is True and d['post_write_attempts']==0 and len(d['posts'])==4 and d['commercial_text_updates']==4 and d['configuration_write_attempts']==0 and d['button_only_edit_attempts']==0
           PY
           test "${probe_status:-0}" = 0
       - name: Retain bounded route evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-four-existing-post-updates
+          name: commercial-final-two-existing-post-updates
           path: ${{ runner.temp }}/channel-preflight.json
           retention-days: 14
           if-no-files-found: warn
