@@ -14,7 +14,7 @@ env:
   READER_SHA: a5b0d0844021a6bc744b0e3037eeb5d103e6a5e6
 jobs:
   inventory:
-    if: github.ref == 'refs/heads/audit/hotel083-effective-privilege-read-once' && github.event.created == true && github.run_attempt == 1
+    if: github.ref == 'refs/heads/audit/hotel083-effective-privilege-read-once' && github.event.before == 'a5b0d0844021a6bc744b0e3037eeb5d103e6a5e6' && github.event.created == false && github.event.deleted == false && github.event.forced == false && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
