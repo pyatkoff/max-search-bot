@@ -7,3 +7,4 @@ CREATE TABLE IF NOT EXISTS hotel_working_imports (
  origin_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
  body_bytes LONGBLOB NOT NULL, receipt_bytes LONGBLOB NOT NULL
 ) ENGINE=InnoDB;
+ALTER TABLE hotel_work_queues ADD COLUMN data_snapshot_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL;

@@ -42,7 +42,8 @@ final class HotelCollectionCanonicalService
     {
         return $this->tx('import_working',function()use($queue,$stage,$generation,$control,$request,$bytes,$sha):array{
             [$q,$h]=$this->locked($queue,$stage,true);$this->control($h,$control,$generation);self::id($request);self::sha($sha);
-            return(new HotelWorkingSnapshot($this->pdo))->import($q,$bytes,$sha,$request);
+            $result=(new HotelWorkingSnapshot($this->pdo))->import($q,$bytes,$sha,$request);
+            $this->execute('UPDATE hotel_work_queues SET data_snapshot_sha256=? WHERE queue_id=?',[$sha,$queue]);return $result;
         });
     }
     /** Control-only full byte/pointer reader, including preserved variants/history. */
@@ -158,7 +159,7 @@ final class HotelCollectionCanonicalService
             [$q,$h,$r]=$this->reviewAuthority($args);
             $candidate=$this->one('SELECT raw_bytes,raw_sha256 FROM hotel_collection_candidates WHERE queue_id=? AND operation_id=?',[$q['queue_id'],$r['producer_operation']]);
             if(!$candidate||hash('sha256',$candidate['raw_bytes'])!==$candidate['raw_sha256'])$this->deny('candidate_unavailable');
-            return ['producer_operation'=>$r['producer_operation'],'candidate'=>$candidate,'criteria_due'=>(int)$q['phase_counter']===1,'business_accepted'=>false];
+            return $this->bounded(['producer_operation'=>$r['producer_operation'],'candidate'=>$candidate,'criteria_due'=>(int)$q['phase_counter']===1,'business_accepted'=>false]);
         });
     }
     public function submitReview(array $args,array $verdict):array
@@ -263,7 +264,7 @@ final class HotelCollectionCanonicalService
             self::id($scope); self::id($sourcePacket); $keys = self::hotelKeys($hotelKeys,32); $country = $this->country($q);
             $policy = $this->policy($queue);
             if ($policy['revision'] !== $reserveRevision) $this->deny('reserve_revision_conflict');
-            $this->scopeFree($keys,$country,$policy['inventory']);
+            $this->scopeFree($keys,$country,$policy['inventory']);$this->workingScopeFree($queue,$keys);
             $document = ['queue_id'=>$queue,'operation_id'=>$operation,'stage_id'=>$stage,'country'=>$country,'scope_id'=>$scope,
                 'source_packet_id'=>$sourcePacket,'hotel_keys'=>$keys,'base_revision'=>0,'baseline_sha256'=>$q['baseline_sha256']];
             $bytes = self::json($document);
@@ -371,6 +372,10 @@ final class HotelCollectionCanonicalService
         $q=$this->one('SELECT * FROM hotel_work_queues WHERE queue_id=?'.$this->lock(),[$queue]);
         if($q===null||$q['project_key']!=='anytour'||(int)$q['admin_id']!==$this->admin||!hash_equals($q['oauth_connection_id'],$this->connection))$this->deny('access_denied');
         if(($q['write_protocol']??null)!=='journal_v1')$this->deny('protected_protocol_required');
+        if(($q['data_snapshot_sha256']??null)!==null){
+            $import=$this->one('SELECT data_sha256 FROM hotel_working_imports WHERE queue_id=?',[$queue]);
+            if(!$import||$import['data_sha256']!==$q['data_snapshot_sha256'])$this->deny('working_snapshot_unavailable');
+        }
         $stage??=$this->stage($q);
         $h=$this->one('SELECT * FROM hotel_journal_heads WHERE queue_id=? AND stage_id=?'.$this->lock(),[$queue,$stage]);
         if($h===null||$h['baseline_sha256']!==$q['baseline_sha256'])$this->deny('journal_head_unavailable');
@@ -424,7 +429,7 @@ final class HotelCollectionCanonicalService
             if($authorization['policy_sha256']!==$policy['policy_sha256'])$this->deny('reservation_snapshot_changed');
             $document=self::decode($authorization['context_bytes']);
             if($document['country']!==$this->country($queue))$this->deny('country_binding_changed');
-            $this->scopeFree($document['hotel_keys'],$document['country'],$policy['inventory']);
+            $this->scopeFree($document['hotel_keys'],$document['country'],$policy['inventory']);$this->workingScopeFree($queueId,$document['hotel_keys']);
             return $context+['operation_id'=>$opId,'stage_id'=>$head['stage_id'],'generation'=>(int)$head['generation'],'instance_id'=>$operation['instance_id'],
                 'reserve_sha256'=>$policy['policy_sha256'],'document_context'=>$document];
         };
@@ -451,6 +456,23 @@ final class HotelCollectionCanonicalService
         else $this->execute('UPDATE hotel_collection_policy SET revision=?,policy_sha256=?,policy_bytes=? WHERE queue_id=?',[$revision,$sha,$bytes,$queue]);
     }
 
+    private function workingScopeFree(string $queue,array $keys):void
+    {
+        try{$row=$this->one('SELECT body_bytes,data_sha256 FROM hotel_working_imports WHERE queue_id=?',[$queue]);}catch(PDOException $missing){
+            // Old, non-imported prototype schema retains its pre-existing contract.
+            if($this->driver==='mysql'&&($missing->errorInfo[1]??null)!==1146)throw $missing;
+            if($this->driver==='sqlite'&&!str_contains($missing->getMessage(),'no such table'))throw $missing;
+            return;
+        }
+        if(!$row)return;
+        if(hash('sha256',$row['body_bytes'])!==$row['data_sha256'])$this->deny('working_snapshot_unavailable');
+        $doc=HotelCollectionCanonicalDocument::decodeObject($row['body_bytes']);
+        $visit=function(mixed $v)use(&$visit,$keys):void{
+            if(is_string($v)&&in_array($v,$keys,true))$this->deny('imported_reserve_overlap');
+            if(is_array($v))foreach($v as$item)$visit($item);
+        };
+        foreach(['active_claims','legacy_reserved_scopes']as$group)$visit($doc['coordination'][$group]??[]);
+    }
     private function scopeFree(array $keys,string $country,array $inventory): void
     {
         foreach($inventory['entries']as$reserve)if($reserve['country']===$country&&array_intersect($keys,$reserve['hotel_keys']))$this->deny('protected_reserve_overlap');
