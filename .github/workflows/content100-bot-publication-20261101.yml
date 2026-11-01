@@ -1,4 +1,4 @@
-name: Inspect authorized AnyTour bot publication routes
+name: Configure authorized AnyTour Telegram channel
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -31,15 +31,15 @@ jobs:
           test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = "$EXPECTED_PRODUCTION_SHA"
           conclusion=$(gh api "repos/pyatkoff/max-search-bot/actions/runs/41326148772/jobs?per_page=20" --jq '[.jobs[] | select(.name=="verify")] | last | .conclusion')
           test "$conclusion" = success
-      - name: Prepare fixed read-only target inspection
+      - name: Prepare exact authorized channel configuration
         shell: bash
         run: |
           set -euo pipefail
           umask 077
           python3 - <<'PY'
           import pathlib,hashlib,os
-          script=pathlib.Path('tools/direct_demand/operations/source-routing-inspection.php').read_text()
-          assert hashlib.sha256(script.encode()).hexdigest()=='bc1b3534f597fb5e102c8c7391e6847eac335cd8e42b4b5f704fd702d7107560'
+          script=pathlib.Path('tools/direct_demand/operations/configure-anytour-telegram.php').read_text()
+          assert hashlib.sha256(script.encode()).hexdigest()=='1450c418bc2b4c29c92c10d44cb3fea62974e3644c7825bf0f424c2210ea9efe'
           prefix="<?php\ndeclare(strict_types=1);\n"
           assert script.startswith(prefix)
           header=prefix+"const EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\n"
@@ -84,7 +84,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Read only existing Telegram source and owner test binding
+      - name: Register authorized Telegram channel through canonical admin service
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -97,7 +97,7 @@ jobs:
           import pathlib,json,os
           d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.json').read_text())
           print(json.dumps(d,ensure_ascii=False,sort_keys=True))
-          assert d['operation']=='content100-bot-publication-20261101-v1' and d['mode']=='read_only_preflight'
+          assert d['operation']=='content100-bot-publication-20261101-v1' and d['mode']=='configure_authorized_telegram_channel'
           assert d['post_write_attempts']==0 and d['ok'] is True
           PY
           test "${probe_status:-0}" = 0
@@ -105,7 +105,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: content100-source-routing-metadata
+          name: content100-telegram-channel-configuration
           path: ${{ runner.temp }}/channel-preflight.json
           retention-days: 14
           if-no-files-found: warn
@@ -113,3 +113,4 @@ jobs:
         if: always()
         shell: bash
         run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-preflight.php" "$RUNNER_TEMP/channel-preflight.json"
+
