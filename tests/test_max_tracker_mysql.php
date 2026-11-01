@@ -37,6 +37,18 @@ same($rows[1]['client_id'],'1844674407370955161512345','large CID string');same(
 same($rows[2]['observed_at_unix'],strtotime('2026-01-15 12:00:00 UTC'),'winter London');same($rows[3]['observed_at_unix'],null,'ambiguous clock never guesses or loses CID');
 same($rows[4],['external_user_id'=>'404','found'=>false],'exact unknown identity');same($p->inTransaction(),false,'readonly transaction rolled back');
 same((string)$p->query('SELECT COUNT(*) FROM max_sub_links')->fetchColumn(),$before,'tracker rows unchanged');
+// The current-member page includes subscribers who have never opened a dialogue.
+$memberNow=strtotime('2026-10-16 11:00:00 UTC');
+$memberPage=$repo->currentMemberPage('98615635','0',$memberNow);
+same(array_column($memberPage['members'],'external_user_id'),['456'],'subscriber-only current registry reads existing HL9');
+same($memberPage['members'][0]['retention_checked_at_unix'],null,'absence of HL12 never proves retention');
+$p->exec("INSERT INTO max_no_unsub_goals VALUES(8801,9007199254741000,'2026-07-15 12:30:00',1)");
+$memberPage=$repo->currentMemberPage('98615635','0',$memberNow);
+same($memberPage['members'][0]['retention_checked_at_unix'],strtotime('2026-07-15 11:30:00 UTC'),'actual HL12 clock converted separately');
+same($p->inTransaction(),false,'current registry SELECT-only transaction rolled back');
+same($repo->currentMemberPage('98615635',$memberPage['next_after'],$memberNow)['members'],[],'current member cursor advances without repeating accrual');
+rejects(fn()=>MaxTrackerLookupProtocol::body('98615635',['123'],$memberNow,null,null,'0'),'member-page scope cannot mix arbitrary user lookup');
+$p->exec('DELETE FROM max_no_unsub_goals WHERE ID=8801');
 $other=$repo->lookup('999',['123']);same($other[0]['record_id'],'9007199254740993','counter filtering precedes latest');
 $p->exec("INSERT INTO max_membership_events VALUES
  (1001,'123','10',1,'2026-07-15 12:00:00'),
@@ -148,4 +160,5 @@ $p->exec(file_get_contents(dirname(__DIR__).'/migrations/068_max_membership_rece
 same((string)$p->query("SELECT membership_receipts_activated_at_unix FROM max_channel_attribution_settings WHERE project_key='anytour'")->fetchColumn(),$membershipActivation,'membership migration is idempotent and preserves prospective fence');
 same((string)$p->query("SELECT membership_receipts_outbox_cursor FROM max_channel_attribution_settings WHERE project_key='anytour'")->fetchColumn(),'9','membership migration is idempotent and preserves work cursor');
 echo 'PASS '.$checks." native MySQL tracker/queue checks\n";
+
 

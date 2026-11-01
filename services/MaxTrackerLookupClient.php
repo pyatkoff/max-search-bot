@@ -15,9 +15,44 @@ final class MaxTrackerLookupClient
         return $this->request($counterId,$users,['not_before_unix'=>$notBefore,'cutoff_unix'=>$cutoff]);
     }
 
-    private function request(string $counterId,array $users,?array $membership): array
+    /** Same authenticated SELECT-only endpoint; never an upload or identity guess. */
+    public function currentMemberPage(string $counterId,string $after): array
     {
-        $body=MaxTrackerLookupProtocol::body($counterId,$users,time(),null,$membership);
+        return $this->request($counterId,[],null,$after);
+    }
+
+    private static function validateMemberPage($d,string $counter,string $after):array
+    {
+        $p=$d['member_page']??null;
+        if(($d['ok']??null)!==true||($d['counter_id']??null)!==$counter||($d['version']??null)!==1
+            ||($d['tracker_timezone']??null)!=='Europe/London'||!is_array($p)||!is_array($p['members']??null)
+            ||!array_is_list($p['members'])||count($p['members'])>5||!is_bool($p['has_more']??null)
+            ||!is_int($p['observed_at_unix']??null)||abs(time()-$p['observed_at_unix'])>90||!is_string($p['next_after']??null))
+            throw new RuntimeException('tracker_member_page_invalid');
+        $last=$after;
+        foreach($p['members']as$r){
+            foreach(['record_id','source_id','external_user_id']as$k)
+                if(!MaxTrackerLookupProtocol::id($r[$k]??null))throw new RuntimeException('tracker_member_page_invalid');
+            if(strlen($r['record_id'])<strlen($last)||(strlen($r['record_id'])===strlen($last)&&strcmp($r['record_id'],$last)<=0)
+                ||($r['state']??null)!=='subscribed'||!is_int($r['subscribed_at_unix']??null)
+                ||$r['subscribed_at_unix']<946684800||$r['subscribed_at_unix']>$p['observed_at_unix'])
+                throw new RuntimeException('tracker_member_page_invalid');
+            if(($r['retention_checked_at_unix']??null)!==null&&(!is_int($r['retention_checked_at_unix'])
+                ||$r['retention_checked_at_unix']<$r['subscribed_at_unix']+1800
+                ||$r['retention_checked_at_unix']>$p['observed_at_unix']||!MaxTrackerLookupProtocol::id($r['retention_record_id']??null)))
+                throw new RuntimeException('tracker_member_page_invalid');
+            if(($r['attribution']['status']??null)==='known'&&(!MaxTrackerLookupProtocol::id($r['attribution']['client_id']??null,40)
+                ||($r['attribution']['basis']??null)!=='current_tracker_row_not_historical_visit'))
+                throw new RuntimeException('tracker_member_page_invalid');
+            $last=$r['record_id'];
+        }
+        if($p['next_after']!==$last)throw new RuntimeException('tracker_member_page_invalid');
+        return $p;
+    }
+
+    private function request(string $counterId,array $users,?array $membership,?string $memberAfter=null): array
+    {
+        $body=MaxTrackerLookupProtocol::body($counterId,$users,time(),null,$membership,$memberAfter);
         $signature=MaxTrackerLookupProtocol::signature($body,MaxTrackerLookupConfig::privateKey());
         $response=''; $tooLarge=false;
         $ch=curl_init(MaxTrackerLookupConfig::endpoint());
@@ -33,6 +68,7 @@ final class MaxTrackerLookupClient
         $ok=curl_exec($ch);$errno=curl_errno($ch);$status=(int)curl_getinfo($ch,CURLINFO_HTTP_CODE);curl_close($ch);
         if($ok===false||$errno!==0||$status!==200||$tooLarge)throw new RuntimeException('tracker_transport_failed');
         $d=json_decode($response,true,16,JSON_THROW_ON_ERROR|JSON_BIGINT_AS_STRING);
+        if($memberAfter!==null)return self::validateMemberPage($d,$counterId,$memberAfter);
         return ['identities'=>self::validateResponse($d,$counterId,$users),
             'membership'=>self::validateMembership($d,$users,$membership!==null)];
     }
@@ -82,3 +118,4 @@ final class MaxTrackerLookupClient
         return $out;
     }
 }
+

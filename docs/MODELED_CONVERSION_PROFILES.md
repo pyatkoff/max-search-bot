@@ -621,3 +621,47 @@ guards, null probabilities/value, immutable old versions, fixed input limits
 and ordinary processor remain unchanged. Real independently admitted people
 and separately checked early-goal delivery are still required.
 
+
+
+## Assigned business value v1 (separate from purchase probability)
+
+`ModeledConversionAssignedValue` adds a versioned private `assigned_value` to new
+ordinary profile versions. It leaves all historical frozen snapshots, purchase
+probabilities and expected-value fields untouched. The five once-per-scope weights
+are subscription 50 RUB, observed exact-period 30-minute retention 25, actual
+customer dialogue 50, substantive request 50, exact delivered-offer text reaction
+100: a complete row is 275 RUB. The suggested extra discussion weight 75 remains
+disabled. Repeating a receipt, rejoining, reading or reprocessing never adds a new
+copy of a stage; the current total is recomputed from a keyed stage map.
+
+The existing signed tracker endpoint now accepts an exclusive `member_page_after`
+mode, with at most five current HL9 members and actual HL12 observations per page,
+independent of conversations/outbox. HL10 remains the existing historical-period
+source; current registry reads do not backdate its facts. No membership is inferred
+from silence. Invalid/ambiguous clocks fail closed. Current tracker ClientID is
+labelled as current-row attribution, not a verified historical advertising visit.
+The same public-code bundle installer must install this endpoint addition before
+the new client can read it. No key, grant, endpoint host or schedule is changed.
+
+The existing private CLI gains `value-members [after]` and `value-profiles [after]`.
+The former joins only an exact unambiguous MAX private-chat binding, retaining
+subscriber-only rows when no dialogue exists. The latter pages current admitted
+MAX/TG profiles; unresolved profile identities must not be summed with membership
+rows. Both operations return private identity/evidence, so use only the existing
+admin admission/transport. They are **not** invoked as part of source tests. The
+registry is a read-time projection of existing stores: no new collector, queue,
+worker, timer, accrual table or history rewrite. It reports bounded coverage,
+unknown fields and a known subtotal; it does not claim all members were checked.
+TG membership is explicitly unavailable from the MAX-only bridge, whereas TG
+dialogue profiles remain visible. Profiles above 128 KiB are omitted rather than
+copied; a page is five profiles. No transcript or native message table is read by
+the registry. Current profile membership/role proofs remain inherited from the
+admitted builder.
+
+Offer-response coverage deliberately reuses installed exact named-price discussion
+links. Other acknowledgments/replies remain unknown until their exact linkage is
+available; a thank-you is never payment. The registry is therefore implemented as
+an explainable partial subtotal, not a claim of complete general reaction recall.
+Export stays false and conversion uploads zero. No current total is automatically
+sent to Metrika, and repeated totals must never be summed as new revenue.
+
