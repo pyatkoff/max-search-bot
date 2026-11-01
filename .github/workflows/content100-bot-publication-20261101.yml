@@ -1,4 +1,4 @@
-name: Configure authorized AnyTour Telegram channel
+name: Publish approved Rixos Telegram post with canonical button
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -31,15 +31,15 @@ jobs:
           test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = "$EXPECTED_PRODUCTION_SHA"
           conclusion=$(gh api "repos/pyatkoff/max-search-bot/actions/runs/41326148772/jobs?per_page=20" --jq '[.jobs[] | select(.name=="verify")] | last | .conclusion')
           test "$conclusion" = success
-      - name: Prepare exact authorized channel configuration
+      - name: Prepare exact approved Rixos publication
         shell: bash
         run: |
           set -euo pipefail
           umask 077
           python3 - <<'PY'
           import pathlib,hashlib,os
-          script=pathlib.Path('tools/direct_demand/operations/configure-anytour-telegram.php').read_text()
-          assert hashlib.sha256(script.encode()).hexdigest()=='1450c418bc2b4c29c92c10d44cb3fea62974e3644c7825bf0f424c2210ea9efe'
+          script=pathlib.Path('tools/direct_demand/operations/publish-authorized-rixos-telegram.php').read_text()
+          assert hashlib.sha256(script.encode()).hexdigest()=='b636853a5995be11ce58ccc1d7f95d3a3595c0199153a2edd6fa7729402b1abb'
           prefix="<?php\ndeclare(strict_types=1);\n"
           assert script.startswith(prefix)
           header=prefix+"const EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\n"
@@ -84,7 +84,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Register authorized Telegram channel through canonical admin service
+      - name: Publish approved Rixos once and verify canonical button
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -97,15 +97,15 @@ jobs:
           import pathlib,json,os
           d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.json').read_text())
           print(json.dumps(d,ensure_ascii=False,sort_keys=True))
-          assert d['operation']=='content100-bot-publication-20261101-v1' and d['mode']=='configure_authorized_telegram_channel'
-          assert d['post_write_attempts']==0 and d['ok'] is True
+          assert d['operation']=='content100-bot-publication-20261101-v1' and d['mode']=='publish_one_authorized_rixos_telegram'
+          assert d['post_write_attempts']==1 and d['ok'] is True
           PY
           test "${probe_status:-0}" = 0
       - name: Retain bounded route evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: content100-telegram-channel-configuration
+          name: content100-rixos-telegram-publication
           path: ${{ runner.temp }}/channel-preflight.json
           retention-days: 14
           if-no-files-found: warn
