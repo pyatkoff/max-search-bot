@@ -34,8 +34,14 @@ keeps the previous HOLD behavior. With a configured plan it prepares one durable
 next-stage intent, waits for fresh delivery of the existing pending event, then
 uses the existing native adapter once. UNKNOWN is never resent. A recovery plan
 becomes inert as soon as its next stage advances; it cannot repeat TR40/CENTRAL41.
-The normal server producer/reviewer path then retains its independent verdict,
-criteria cadence and atomic acceptance/queue/outbox transaction.
+On the next producer's admitted candidate plus immutable reported native run,
+cron seals the stored result, waits for a separate fresh reviewer pending event,
+dispatches the existing CENTRAL once, and waits for its independent verdict.
+An accept verdict finalizes against the server-stored assignment revision/head;
+HOLD, reject, missing run, missing bytes or UNKNOWN never starts another producer.
+Both flags govern sealing and finalization as well as sends. The normal path
+retains criteria cadence and atomic acceptance/queue/outbox. This recovery plan
+stops after that following cycle and cannot infer further country scopes.
 
 Tests use synthetic data in SQLite and the allowlisted native MySQL database:
 two adoption rollback boundaries, lost ACK, exact receipt/snapshot/reserve pins,

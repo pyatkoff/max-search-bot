@@ -62,17 +62,44 @@ final class HotelQuarantinedIntakeRuntime
         $before=$this->pdo->prepare('SELECT write_protocol FROM hotel_work_queues WHERE queue_id=?');$before->execute([$p['queue_id']]);$wasAdopted=$before->fetchColumn()==='journal_v1';
         $receipt=$service->adoptQuarantined($p['queue_id'],$p['stage_id'],$p['control_capability'],$n['request_id'],$n['acceptance_sha256'],$n['working_sha256'],$n['inventory'],$n['reserve_attestation']);
         $q=$this->pdo->prepare('SELECT stage_index,plan_sha256 FROM hotel_work_queues WHERE queue_id=?');$q->execute([$p['queue_id']]);$queue=$q->fetch(PDO::FETCH_ASSOC);
-        if(!$queue||hash('sha256',HotelNativeRecoveryContext::json([$p['queue_id'],$queue['plan_sha256'],(int)$queue['stage_index']]))!==$receipt['next_stage_id'])return 0;
-        $s=$this->pdo->prepare('SELECT event_id,state FROM hotel_collection_outbox WHERE queue_id=? AND stage_id=?');$s->execute([$p['queue_id'],$receipt['next_stage_id']]);$event=$s->fetch(PDO::FETCH_ASSOC);
-        if(!$event||!in_array($event['state'],['pending','delivered'],true))return 0;
+        $original=json_decode($r['acceptance_bytes'],true,32,JSON_THROW_ON_ERROR);$index=$original['next_stage_index'];
+        if(!$queue||!in_array((int)$queue['stage_index'],[$index,$index+1],true))return 0;
         $id=hash('sha256',HotelNativeRecoveryContext::json([$n['request_id'],'onward-intent']));
         $journal=new HotelWorkOperationJournalPrototype($this->pdo,$p['admin_id'],$p['connection_id']);
         $intent=$journal->intent($p['queue_id'],$receipt['next_stage_id'],1,$p['control_capability'],$id,$receipt['event_id'],$n['producer_task_id']);
+        if((int)$queue['stage_index']===$index+1)return$this->continueReview($p,$n,$intent,$service,$receipt['next_stage_id']);
+        $s=$this->pdo->prepare('SELECT event_id,state FROM hotel_collection_outbox WHERE queue_id=? AND stage_id=?');$s->execute([$p['queue_id'],$receipt['next_stage_id']]);$event=$s->fetch(PDO::FETCH_ASSOC);
+        if(!$event)return 0;
+        if($event['state']==='dispatch_unknown'){
+            $s=$this->pdo->prepare('SELECT o.reported_run_id FROM hotel_journal_operations o JOIN hotel_collection_candidates c ON c.queue_id=o.queue_id AND c.operation_id=o.operation_id WHERE o.queue_id=? AND o.operation_id=? AND o.instance_id IS NOT NULL');$s->execute([$p['queue_id'],$intent['operation_id']]);$run=$s->fetchColumn();
+            if(!is_string($run)||$run==='')return 0;
+            $service->sealResearch($p['queue_id'],$receipt['next_stage_id'],1,$p['control_capability'],$intent['operation_id'],$run,$p['review_task_id']);return 1;
+        }
+        if(!in_array($event['state'],['pending','delivered'],true))return 0;
         $service->prepare($p['queue_id'],$receipt['next_stage_id'],1,$p['control_capability'],$intent['operation_id'],$n['scope_id'],$n['source_packet_id'],$n['hotel_keys'],0);
         if($event['state']!=='delivered')return $wasAdopted?0:1;
         $adapter=$this->adapterFactory===null?new HotelNativeAutomationAdapter($this->pdo,$p['admin_id'],$p['connection_id'],null,$this->clock):($this->adapterFactory)($p);
         (new HotelCollectionCoordinator($this->pdo,$p['admin_id'],$p['connection_id'],$adapter,$this->clock))->dispatch($p['queue_id'],$receipt['next_stage_id'],1,$p['control_capability'],'hotel_evt_'.$event['event_id'],[
             'operation_id'=>$intent['operation_id'],'task_id'=>$n['producer_task_id'],'request_id'=>hash('sha256',HotelNativeRecoveryContext::json([$n['request_id'],'onward-dispatch'])),'worker_capability'=>$intent['worker_capability']]);
         return 1;
+    }
+    private function continueReview(array $p,array $n,array $intent,HotelCollectionCanonicalService $service,string $producerStage):int
+    {
+        $s=$this->pdo->prepare('SELECT * FROM hotel_collection_reviews WHERE queue_id=? AND producer_operation=?');$s->execute([$p['queue_id'],$intent['operation_id']]);$review=$s->fetch(PDO::FETCH_ASSOC);
+        if(!$review||$review['producer_stage']!==$producerStage||$review['review_task']!==$p['review_task_id'])throw new DomainException('quarantined_onward_review_conflict');
+        if($review['acceptance_bytes']!==null)return 0;
+        if($review['verdict_bytes']!==null){
+            $v=json_decode($review['verdict_bytes'],true,32,JSON_THROW_ON_ERROR);if($v['decision']!=='accept')return 0;
+            $s=$this->pdo->prepare('SELECT base_revision,base_snapshot_sha256 FROM hotel_collection_assignments WHERE queue_id=? AND operation_id=?');$s->execute([$p['queue_id'],$intent['operation_id']]);$a=$s->fetch(PDO::FETCH_ASSOC);
+            if(!$a)throw new DomainException('quarantined_onward_assignment_missing');
+            $service->finalizeIntake($p['queue_id'],$review['intake_stage'],1,$p['control_capability'],hash('sha256',HotelNativeRecoveryContext::json([$n['request_id'],'onward-finalize'])),hash('sha256',$review['verdict_bytes']),(int)$a['base_revision'],$a['base_snapshot_sha256']);return 1;
+        }
+        if($review['instance_id']!==null)return 0;
+        $s=$this->pdo->prepare('SELECT event_id,state FROM hotel_collection_outbox WHERE queue_id=? AND stage_id=?');$s->execute([$p['queue_id'],$review['intake_stage']]);$event=$s->fetch(PDO::FETCH_ASSOC);
+        if(!$event||$event['state']!=='delivered')return 0;
+        $receipt=json_decode($review['private_receipt'],true,32,JSON_THROW_ON_ERROR);
+        $adapter=$this->adapterFactory===null?new HotelNativeAutomationAdapter($this->pdo,$p['admin_id'],$p['connection_id'],null,$this->clock):($this->adapterFactory)($p);
+        (new HotelCollectionCoordinator($this->pdo,$p['admin_id'],$p['connection_id'],$adapter,$this->clock))->dispatch($p['queue_id'],$review['intake_stage'],1,$p['control_capability'],'hotel_evt_'.$event['event_id'],[
+            'operation_id'=>$intent['operation_id'],'task_id'=>$p['review_task_id'],'request_id'=>hash('sha256',HotelNativeRecoveryContext::json([$n['request_id'],'onward-review-dispatch'])),'worker_capability'=>$receipt['review_capability']]);return 1;
     }
 }

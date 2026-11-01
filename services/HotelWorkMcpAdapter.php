@@ -130,8 +130,8 @@ final class HotelWorkMcpAdapter
                 $attemptBinding,array_keys($attemptBinding),false],
             ['hotel_work_collection_context','Read the admitted producer assignment, pinned baseline index and typed canonical overlay for an explicitly enrolled server-owned collection. Requires current hotel authority and the exact journal capability and admitted instance. Does not decode legacy WORKING, read Library, dispatch work or establish business acceptance.',
                 $collection,array_keys($collection),true],
-            ['hotel_work_collection_candidate','Save one strictly typed candidate (at most 24 KiB of raw JSON bytes) for the admitted producer assignment. Only server-pinned scope and canonical references are accepted; no Library writes, reservation changes, queue advancement or business acceptance. An exact repeat reconciles the candidate receipt and never authorizes another run.',
-                $collection+['request_id'=>$journalId,'packet_json'=>['type'=>'string','maxLength'=>self::COLLECTION_PACKET_BYTES]],
+            ['hotel_work_collection_candidate','Save one strictly typed candidate (at most 24 KiB of raw JSON bytes) for the admitted producer assignment. On migrated fenced queues include reported_run_id from this actual native invocation; never infer it from an instance or another run. This is a worker report, not host verification. Only server-pinned scope and canonical references are accepted; no Library writes, reservation changes, queue advancement or business acceptance. An exact repeat reconciles the candidate receipt and never authorizes another run.',
+                $collection+['request_id'=>$journalId,'packet_json'=>['type'=>'string','maxLength'=>self::COLLECTION_PACKET_BYTES],'reported_run_id'=>$run],
                 [...array_keys($collection),'request_id','packet_json'],false],
         ];
         $review=['queue_id'=>$id,'stage_id'=>$sha,'generation'=>['type'=>'integer','minimum'=>1],'review_capability'=>$sha,'instance_id'=>$journalId];
@@ -188,6 +188,10 @@ final class HotelWorkMcpAdapter
         if ($isCollection) {
             $required=['queue_id','stage_id','generation','operation_id','worker_capability','instance_id'];
             if ($operation==='collection_candidate') $required=[...$required,'request_id','packet_json'];
+            if($operation==='collection_candidate'&&array_key_exists('reported_run_id',$args)){
+                if(!is_string($args['reported_run_id'])||!preg_match('/\A[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}\z/D',$args['reported_run_id']))throw new InvalidArgumentException();
+                $required[]='reported_run_id';
+            }
             if (count($args)!==count($required)||array_diff(array_keys($args),$required)) throw new InvalidArgumentException();
             foreach (['queue_id'=>'/\A[A-Za-z0-9_-]{1,80}\z/D','stage_id'=>'/\A[a-f0-9]{64}\z/D',
                 'operation_id'=>'/\A[a-f0-9]{64}\z/D','worker_capability'=>'/\A[a-f0-9]{64}\z/D',

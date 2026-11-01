@@ -226,6 +226,7 @@ final class HotelCollectionCanonicalService
             if($prior){if($prior['producer_run']!==$run||$prior['review_task']!==$reviewTask)$this->deny('review_request_conflict');return self::decode($prior['private_receipt']);}
             $this->current($q,$stage);if((int)$q['stage_index']%2!==0)$this->deny('research_stage_required');
             $op=$this->operation($q,$h,$operation,['admitted','candidate_recorded']);
+            if((int)($q['persistent_fence']??0)===1&&$op['reported_run_id']!==$run)$this->deny('reported_native_run_required');
             if($reviewTask===$op['task_id'])$this->deny('independent_reviewer_required');
             $candidate=$this->store($q,$h,$op,'control')->readCandidate($queue,$operation);
             $raw=self::decode($candidate['raw_bytes']);
@@ -380,10 +381,21 @@ final class HotelCollectionCanonicalService
     /** The only public worker write; stores a candidate, never business acceptance. */
     public function workerSubmit(array $args): array
     {
-        self::keys($args,['queue_id','stage_id','generation','operation_id','worker_capability','instance_id','request_id','packet_json']);
+        $allowed=['queue_id','stage_id','generation','operation_id','worker_capability','instance_id','request_id','packet_json'];
+        if(array_key_exists('reported_run_id',$args)){$allowed[]='reported_run_id';self::id($args['reported_run_id']);}
+        self::keys($args,$allowed);
         self::id($args['request_id'] ?? null);
         if (!is_string($args['packet_json'] ?? null) || strlen($args['packet_json']) > HotelCollectionCanonicalDocument::MAX_PACKET_BYTES) throw new InvalidArgumentException('canonical_service_packet_too_large');
-        return $this->workerCall('worker_submit',$args,static fn(HotelCollectionCanonicalStore $s,array $a):array=>$s->submitCandidate($a['queue_id'],$a['operation_id'],$a['request_id'],$a['packet_json']));
+        return $this->workerCall('worker_submit',$args,function(HotelCollectionCanonicalStore $s,array $a):array{
+            $q=$this->one('SELECT * FROM hotel_work_queues WHERE queue_id=?',[$a['queue_id']]);
+            $run=$a['reported_run_id']??null;
+            if((int)($q['persistent_fence']??0)===1&&$run===null)$this->deny('reported_native_run_required');
+            $op=$this->one('SELECT reported_run_id FROM hotel_journal_operations WHERE queue_id=? AND operation_id=?',[$a['queue_id'],$a['operation_id']]);
+            if($run!==null&&$op['reported_run_id']!==null&&$op['reported_run_id']!==$run)$this->deny('reported_native_run_conflict');
+            $result=$s->submitCandidate($a['queue_id'],$a['operation_id'],$a['request_id'],$a['packet_json']);
+            if($run!==null)$this->execute('UPDATE hotel_journal_operations SET reported_run_id=? WHERE queue_id=? AND operation_id=?',[$run,$a['queue_id'],$a['operation_id']]);
+            return$result+['reported_run_id'=>$run,'native_run_verified'=>false];
+        });
     }
 
     /** CONTROL ONLY; actual bytes for review, bounded for transport. */

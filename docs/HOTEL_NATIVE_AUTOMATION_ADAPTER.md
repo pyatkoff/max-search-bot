@@ -99,7 +99,11 @@ Generate one fresh invocation instance ID. Call `hotel_work_producer_enter` with
 the exact queue/stage/generation/operation/capability and a fixed request ID for
 that invocation. Continue only on fresh admission; a replay grants no new work.
 Read assigned context and pinned dependencies through the server tools. Preserve
-the existing research/evidence/budget rules. Submit one typed candidate; never
+the existing research/evidence/budget rules. On a migrated fenced queue, submit
+the candidate with `reported_run_id` from this actual native invocation. Missing
+run identity means HOLD; an instance ID, old run or invented value is not a
+replacement. This reported association remains `native_run_verified=false`.
+Submit one typed candidate; never
 write Library, accept, claim another stage, call run_now or resume.
 
 Native CENTRAL entry: process only `hotel_work.review_ready` for your own task ID.
