@@ -1,6 +1,15 @@
 <?php
-require_once __DIR__.'/lib/ManagerHttp.php';
 $manager2=($managerWorkspacePresentation??'')==='manager2';
+// Manager2 includes this same renderer. Redirect only the legacy HTML entry,
+// before session startup, keeping the canonical /manager/ APIs and cookie intact.
+if(!$manager2&&in_array($_SERVER['REQUEST_METHOD']??'', ['GET','HEAD'],true)){
+    $query=$_SERVER['QUERY_STRING']??'';
+    if(!is_string($query)||strlen($query)>8192||preg_match('/[\x00-\x20\x7f]/',$query))$query='';
+    header('Cache-Control: no-store');
+    header('Location: /manager2/'.($query!==''?'?'.$query:''),true,302);
+    exit;
+}
+require_once __DIR__.'/lib/ManagerHttp.php';
 require_once dirname(__DIR__).'/services/ManagerTourSelectionEditorHost.php';
 $selectionEditorEntry=$manager2?ManagerTourSelectionEditorHost::entry():null;
 $selectionEditorPackage=$selectionEditorEntry!==null?ManagerTourSelectionEditorHost::installed():null;
