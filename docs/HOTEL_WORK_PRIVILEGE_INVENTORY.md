@@ -30,7 +30,7 @@ Queries read only:
 - private identity/version and current binlog/trust flags;
 - the current account's USER_PRIVILEGES and SCHEMA_PRIVILEGES;
 - its TABLE_PRIVILEGES/TRIGGER for the 13 fixed migration083 target tables;
-- self SHOW GRANTS, reduced privately to SUPER/TRIGGER at exact scopes;
+- self SHOW GRANTS, reduced privately to SUPER/TRIGGER/explicit SET_USER_ID at exact scopes;
 - version-supported current, enabled and applicable/default/mandatory role metadata;
 - MySQL SHOW GRANTS FOR CURRENT_USER USING only verified currently enabled roles;
 - MariaDB SHOW GRANTS FOR only verified enabled roles, including inherited roles.
@@ -38,7 +38,7 @@ Queries read only:
 There is no mysql.* authentication-table access or other-account enumeration.
 Legacy self grant text can contain authentication hashes: it stays private and
 never appears in returned data, exceptions or logs. The reducer is deliberately
-not a general GRANT parser: only two privilege types and exact known scopes are
+not a general GRANT parser: only three privilege types and exact known scopes are
 recognized. REVOKE restrictions, ambiguous relevant patterns, malformed data,
 denied/unsupported reads, excessive results or incomplete inheritance produce
 UNKNOWN, not a false denial or an allow. Quoted role identifiers cannot be
@@ -66,7 +66,11 @@ where possible but effective authority remains UNKNOWN.
 
 The aggregate asks whether TRIGGER covers all13 targets and whether the
 observed binlog creation condition is satisfied by the currently effective
-SUPER or the already configured logging/trust condition. It is not a full DDL
+SUPER, the already configured logging/trust condition, or (for the exact reviewed
+MySQL8.0.46 engine) an explicit existing SET_USER_ID global grant. Static ALL
+PRIVILEGES never invents dynamic SET_USER_ID. Assigned inactive roles are excluded.
+Other MySQL8 engine versions remain UNKNOWN for this negative creation-authority
+model rather than assuming SUPER is the sole alternative. It is not a full DDL
 admission: CREATE/SELECT/other requirements, current migration state and the
 actual previous1419 are not overridden. Every result hard-codes zero role
 activation, migration/retirement attempts and false DDL/new-start admission.
@@ -96,3 +100,31 @@ The old base,19accepted batches, CENTRAL41 UNKNOWN, original receipts, migration
 and all existing write barriers are unchanged by this packet. Production remains
 HOLD until the independently reviewed read and actual authority support any
 later separately admitted canonical083 and retirement.
+
+
+## Actual one-shot result and source correction
+
+The reviewed v1 invocation4bb56ca ran once as run41348018112/job124971920799.
+It returned partial/coverage_complete=false,12queries/unknown_read_count0,
+zero current/applicable roles, direct SUPER/TRIGGER=false, binlog=true/trust=false.
+That is not proof of complete effective absence and not retirement admission.
+The zero read failures with complete active-role/session checks isolate the
+remaining uncertainty to the private self SHOW GRANTS reduction, but do not
+identify the exact unexported syntax. No particular raw grant shape is inferred.
+
+Protocol v2 adds explicit SET_USER_ID observation/reduction and a fixed
+grant_reduction.complete plus deduplicated incomplete_reasons allowlist.
+No role/account/database/grant text is added. The parser remains conservative:
+ambiguous scopes/restrictions still produce UNKNOWN, never a guessed allow.
+This correction does not change the production helper or its admission gate.
+
+Exact-version primary authority:
+https://github.com/mysql/mysql-server/blob/mysql-8.0.46/sql/sql_trigger.cc#L371
+The engine checks SUPER_ACL OR SET_USER_ID before TRIGGER coverage.
+The first inventory did not observe SET_USER_ID; no conclusion about its actual
+presence can be recovered from sanitized v1 output.
+
+The previous one-shot operator is consumed and remains pinned at4bb56ca.
+No ref reset, deletion/recreation, retry or second production read is authorized
+by this source correction. Its old fixed sanitizer rejects v2's new fields.
+Any later read needs its own exact source/payload review and admission.

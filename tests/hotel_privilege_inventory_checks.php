@@ -41,7 +41,7 @@ final class HpiPdo extends PDO
         $this->calls[]=$sql;
         if(!$this->active||!preg_match('/\A(?:SELECT|SHOW) /D',$sql))throw new RuntimeException('non_readonly_query');
         foreach($this->data['deny']??[]as$part)if(str_contains($sql,$part))throw new RuntimeException('PRIVATE_AUTH_HASH_CANARY');
-        $id=['db'=>'private_fixture','account'=>'PRIVATE_ACCOUNT_CANARY@localhost','version'=>'8.0.36',
+        $id=['db'=>'private_fixture','account'=>'PRIVATE_ACCOUNT_CANARY@localhost','version'=>'8.0.46',
             'comment'=>'MySQL Community Server - GPL','host'=>'PRIVATE_HOST_CANARY','port'=>3306,'server_id'=>7];
         $id=array_replace($id,$this->data['identity']??[]);
         if($sql===HotelWorkPrivilegeInventory::IDENTITY){
@@ -86,7 +86,7 @@ function hpiRead(array $data=[]):array
 hpiAssert(HotelWorkPrivilegeInventory::TARGETS===[...HotelWorkRetirement::TABLES,'hotel_work_lane','hotel_work_retirements'],'all_actual083_trigger_targets_in_scope');
 [$r]=hpiRead();
 hpiAssert($r['state']==='complete'&&$r['effective']['super']===false&&$r['effective']['trigger_all_targets']===false,'complete_current_absence_is_false');
-hpiAssert($r['effective']['binlog_creation_condition_satisfied']===false,'binlog_requires_effective_super');
+hpiAssert($r['effective']['binlog_creation_condition_satisfied']===false,'binlog_requires_effective_super_or_explicit_set_user_id');
 [$r]=hpiRead(['global'=>['SUPER'],'tables'=>HotelWorkPrivilegeInventory::TARGETS]);
 hpiAssert($r['effective']['super']&&$r['effective']['trigger_all_targets']&&$r['direct_observed']['table_trigger_count']===13,'table_level_trigger_coverage_not_missed');
 [$r]=hpiRead(['global'=>['SUPER'],'tables'=>array_slice(HotelWorkPrivilegeInventory::TARGETS,0,12)]);
@@ -164,6 +164,35 @@ foreach(['false_prepare','false_execute']as$failure){
     [$r]=hpiRead([$failure=>['information_schema.USER_PRIVILEGES']]);
     hpiAssert($r['direct_observed']['super']===null&&$r['effective']['super']===null,'failed_statement_result_not_empty_absence');
 }
+
+[$r]=hpiRead(['global'=>['SET_USER_ID']]);
+hpiAssert($r['operation']==='hotel083-effective-privileges-readonly-v2'
+    &&$r['direct_observed']['set_user_id']===true&&$r['effective']['super']===false
+    &&$r['effective']['set_user_id']===true&&$r['effective']['binlog_creation_condition_satisfied']===true
+    &&$r['effective']['trigger_all_targets']===false,'mysql8046_direct_dynamic_creation_authority_is_not_table_trigger_admission');
+[$r]=hpiRead(['self'=>["GRANT SET_USER_ID ON *.* TO 'PRIVATE_ACCOUNT_CANARY'@'localhost'"]]);
+hpiAssert($r['effective']['set_user_id']===true&&$r['effective']['binlog_creation_condition_satisfied']===true,'mysql8046_explicit_self_dynamic_grant_resolved');
+[$r]=hpiRead(['self'=>["GRANT ALL PRIVILEGES ON *.* TO 'PRIVATE_ACCOUNT_CANARY'@'localhost'"]]);
+hpiAssert($r['effective']['super']===true&&$r['effective']['set_user_id']===false,'static_all_does_not_fabricate_dynamic_set_user_id');
+[$r]=hpiRead(array_replace($active,['using'=>["GRANT SET_USER_ID, TRIGGER ON *.* TO 'PRIVATE_ACCOUNT_CANARY'@'localhost'"]]));
+hpiAssert($r['effective']['super']===false&&$r['effective']['set_user_id']===true
+    &&$r['effective']['trigger_all_targets']===true&&$r['effective']['binlog_creation_condition_satisfied']===true,'verified_active_role_dynamic_authority_resolved');
+[$r]=hpiRead(['applicable'=>[$assigned],'using'=>["GRANT SET_USER_ID ON *.* TO 'x'"]]);
+hpiAssert($r['effective']['set_user_id']===false&&$r['effective']['binlog_creation_condition_satisfied']===false,'inactive_role_dynamic_authority_never_inferred');
+[$r]=hpiRead(['identity'=>['version'=>'8.0.36']]);
+hpiAssert($r['effective']['set_user_id']===null&&$r['effective']['binlog_creation_condition_satisfied']===null,'unreviewed_mysql80_engine_does_not_receive_false_creation_denial');
+[$r]=hpiRead(['identity'=>['version'=>'8.4.0']]);
+hpiAssert($r['effective']['set_user_id']===null&&$r['effective']['binlog_creation_condition_satisfied']===null,'mysql84_authority_model_not_guessed_from_mysql8046');
+[$r]=hpiRead(['self'=>["GRANT TRIGGER ON ".hpiId('private%').".* TO 'x'"]]);
+hpiAssert($r['unknown_read_count']===0&&!$r['grant_reduction']['complete']
+    &&$r['grant_reduction']['incomplete_reasons']===['ambiguous_database_scope']
+    &&$r['effective']['set_user_id']===null,'successful_but_ambiguous_grant_reduction_has_private_safe_reason');
+[$r]=hpiRead(['self'=>["GRANT SELECT (private_column), TRIGGER ON private_fixture.* TO 'x'"]]);
+hpiAssert($r['grant_reduction']['incomplete_reasons']===['unsupported_privilege_list']
+    &&$r['effective']['trigger_all_targets']===null,'unsupported_privilege_list_classified_without_grant_text');
+[$r]=hpiRead(['deny'=>['SHOW GRANTS']]);
+hpiAssert($r['grant_reduction']['incomplete_reasons']===['grant_read_unavailable']
+    &&$r['effective']['set_user_id']===null,'denied_grants_dynamic_authority_stays_unknown');
 
 if(getenv('HOTEL_WORK_NATIVE_MYSQL')==='1'){
     $dsn=(string)getenv('PREPARED_REPLY_MYSQL_DSN');

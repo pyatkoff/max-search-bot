@@ -22,7 +22,7 @@ final class HotelWorkPrivilegeInventory
     /** null means UNKNOWN; all account/role/grant text remains private to this call. */
     public static function read(PDO $applicationPdo,string $expectedDatabase):array
     {
-        $base=['operation'=>'hotel083-effective-privileges-readonly-v1','read_only'=>true,
+        $base=['operation'=>'hotel083-effective-privileges-readonly-v2','read_only'=>true,
             'provided_pdo_only'=>true,'role_activation_attempts'=>0,'migration_apply_attempts'=>0,
             'retirement_attempts'=>0,'new_start_allowed'=>false,'ddl_admission'=>false];
         try {
@@ -97,47 +97,52 @@ final class HotelWorkPrivilegeInventory
         return[$flavor,$version,$supported];
     }
     private static function emptyGrants():array
-    {return['super'=>false,'trigger'=>array_fill_keys(self::TARGETS,false),'complete'=>true,'restriction'=>false];}
+    {return['super'=>false,'set_user_id'=>false,'trigger'=>array_fill_keys(self::TARGETS,false),
+        'complete'=>true,'restriction'=>false,'incomplete_reasons'=>[]];}
     private static function combine(array $a,array $b):array
     {
-        $a['super']=$a['super']||$b['super'];$a['complete']=$a['complete']&&$b['complete'];
+        $a['super']=$a['super']||$b['super'];$a['set_user_id']=$a['set_user_id']||$b['set_user_id'];
+        $a['complete']=$a['complete']&&$b['complete'];
+        $a['incomplete_reasons']=array_values(array_unique([...$a['incomplete_reasons'],...$b['incomplete_reasons']]));
         $a['restriction']=$a['restriction']||$b['restriction'];
         foreach(self::TARGETS as$t)$a['trigger'][$t]=$a['trigger'][$t]||$b['trigger'][$t];
         return$a;
     }
     /**
-     * Only SUPER/TRIGGER and exact global/schema/083-table scopes are reduced.
+     * Only SUPER/TRIGGER/SET_USER_ID and exact global/schema/083-table scopes are reduced.
      * Restrictions or ambiguous relevant scope => UNKNOWN, never an allow.
      */
     private function grants(?array $rows):array
     {
-        $out=self::emptyGrants();if($rows===null){$out['complete']=false;return$out;}
+        $out=self::emptyGrants();if($rows===null){$out['complete']=false;$out['incomplete_reasons'][]='grant_read_unavailable';return$out;}
         foreach($rows as$r){
-            if(count($r)!==1||!is_string($line=array_values($r)[0]??null)){$out['complete']=false;continue;}
-            if(preg_match('/\AREVOKE\b/i',$line)){$out['restriction']=true;$out['complete']=false;continue;}
+            if(count($r)!==1||!is_string($line=array_values($r)[0]??null)){$out['complete']=false;$out['incomplete_reasons'][]='malformed_grant_row';continue;}
+            if(preg_match('/\AREVOKE\b/i',$line)){$out['restriction']=true;$out['complete']=false;$out['incomplete_reasons'][]='restriction_statement';continue;}
             if(preg_match('/\AGRANT\s+[\x27\x22\x60]/i',$line))continue;
             if(!preg_match('/\AGRANT\s+(.+?)\s+ON\s+(.+?)\s+TO\s/is',$line,$m)){
                 // Assignments are not privileges. Active inheritance is resolved
                 // by the engine USING or the complete MariaDB ENABLED_ROLES list.
-                if(!preg_match('/\AGRANT\s+.+\s+TO\s/is',$line))$out['complete']=false;
+                if(!preg_match('/\AGRANT\s+.+\s+TO\s/is',$line)){$out['complete']=false;$out['incomplete_reasons'][]='unsupported_grant_statement';}
                 continue;
             }
-            if(!preg_match('/\A[A-Za-z_]+(?:\s+[A-Za-z_]+)*(?:\s*,\s*[A-Za-z_]+(?:\s+[A-Za-z_]+)*)*\z/D',trim($m[1]))){$out['complete']=false;continue;}
+            if(!preg_match('/\A[A-Za-z_]+(?:\s+[A-Za-z_]+)*(?:\s*,\s*[A-Za-z_]+(?:\s+[A-Za-z_]+)*)*\z/D',trim($m[1]))){$out['complete']=false;$out['incomplete_reasons'][]='unsupported_privilege_list';continue;}
             $priv=array_map(static fn($v)=>strtoupper(trim($v)),explode(',',$m[1]));
             $all=in_array('ALL PRIVILEGES',$priv,true)||in_array('ALL',$priv,true);
             $super=$all||in_array('SUPER',$priv,true);$trigger=$all||in_array('TRIGGER',$priv,true);
-            if(!$super&&!$trigger)continue;
+            // ALL does not imply dynamic SET_USER_ID; require its explicit grant.
+            $setUserId=in_array('SET_USER_ID',$priv,true);
+            if(!$super&&!$trigger&&!$setUserId)continue;
             $scope=trim($m[2]);
             if($scope==='*.*'){
-                $out['super']=$out['super']||$super;
+                $out['super']=$out['super']||$super;$out['set_user_id']=$out['set_user_id']||$setUserId;
                 if($trigger)$out['trigger']=array_fill_keys(self::TARGETS,true);
                 continue;
             }
-            if(!preg_match('/\A(\*|[A-Za-z0-9_$]+|\x60(?:[^\x60]|\x60\x60)+\x60)\.(\*|[A-Za-z0-9_$]+|\x60(?:[^\x60]|\x60\x60)+\x60)\z/D',$scope,$s)){$out['complete']=false;continue;}
+            if(!preg_match('/\A(\*|[A-Za-z0-9_$]+|\x60(?:[^\x60]|\x60\x60)+\x60)\.(\*|[A-Za-z0-9_$]+|\x60(?:[^\x60]|\x60\x60)+\x60)\z/D',$scope,$s)){$out['complete']=false;$out['incomplete_reasons'][]='unsupported_relevant_scope';continue;}
             $decode=static fn($v)=>str_starts_with($v,chr(96))?str_replace(chr(96).chr(96),chr(96),substr($v,1,-1)):$v;
             $db=$decode($s[1]);$table=$decode($s[2]);
             if($db!==$this->database){
-                if(strpbrk($db,"%_\\")!==false)$out['complete']=false;
+                if(strpbrk($db,"%_\\")!==false){$out['complete']=false;$out['incomplete_reasons'][]='ambiguous_database_scope';}
                 continue;
             }
             if($trigger){
@@ -168,17 +173,18 @@ final class HotelWorkPrivilegeInventory
         $binlog=$logging?self::flag($logging['binlog']??null):null;
         $trust=$logging?self::flag($logging['trust_creators']??null):null;
         $grantee="CONCAT(QUOTE(?),'@',QUOTE(?))";
-        $global=$this->privilegeRows($this->rows("SELECT PRIVILEGE_TYPE FROM information_schema.USER_PRIVILEGES WHERE GRANTEE=$grantee AND PRIVILEGE_TYPE IN ('SUPER','TRIGGER') LIMIT 3",$account,2),['SUPER','TRIGGER']);
+        $global=$this->privilegeRows($this->rows("SELECT PRIVILEGE_TYPE FROM information_schema.USER_PRIVILEGES WHERE GRANTEE=$grantee AND PRIVILEGE_TYPE IN ('SUPER','TRIGGER','SET_USER_ID') LIMIT 4",$account,3),['SUPER','TRIGGER','SET_USER_ID']);
         $schema=$this->privilegeRows($this->rows("SELECT PRIVILEGE_TYPE FROM information_schema.SCHEMA_PRIVILEGES WHERE GRANTEE=$grantee AND TABLE_SCHEMA=? AND PRIVILEGE_TYPE='TRIGGER' LIMIT 2",[...$account,$this->database],1),['TRIGGER']);
         $placeholders=implode(',',array_fill(0,count(self::TARGETS),'?'));
         $tables=$this->privilegeRows($this->rows("SELECT TABLE_NAME,PRIVILEGE_TYPE FROM information_schema.TABLE_PRIVILEGES WHERE GRANTEE=$grantee AND TABLE_SCHEMA=? AND TABLE_NAME IN ($placeholders) AND PRIVILEGE_TYPE='TRIGGER' LIMIT 14",[...$account,$this->database,...self::TARGETS],13),['TRIGGER'],true);
         $contains=static function(?array$rows,string$p):?bool{
             if($rows===null)return null;foreach($rows as$r)if($r['PRIVILEGE_TYPE']===$p)return true;return false;
         };
-        $direct=['super'=>$contains($global,'SUPER'),'global_trigger'=>$contains($global,'TRIGGER'),
+        $direct=['super'=>$contains($global,'SUPER'),'set_user_id'=>$contains($global,'SET_USER_ID'),'global_trigger'=>$contains($global,'TRIGGER'),
             'schema_trigger'=>$contains($schema,'TRIGGER'),'table_trigger_count'=>$tables===null?null:count($tables)];
         $effective=$this->grants($this->rows('SHOW GRANTS'));
         if($direct['super']===true)$effective['super']=true;
+        if($direct['set_user_id']===true)$effective['set_user_id']=true;
         if($direct['global_trigger']===true||$direct['schema_trigger']===true)$effective['trigger']=array_fill_keys(self::TARGETS,true);
         foreach($tables??[]as$r)$effective['trigger'][$r['TABLE_NAME']]=true;
         $roleSupported=$supported&&($flavor==='mariadb'||version_compare($version,'8.0.0','>='));
@@ -255,11 +261,24 @@ final class HotelWorkPrivilegeInventory
             &&$roles['unchanged_after_read']===true;
         $perTarget=[];foreach(self::TARGETS as$t)$perTarget[$t]=$coverage?$effective['trigger'][$t]:null;
         $all=$coverage?!in_array(false,$perTarget,true):null;$super=$coverage?$effective['super']:null;
-        $binlogCondition=!$supported||$binlog===null||$trust===null?null:(!$binlog||$trust?true:$super);
+        $setUserId=$coverage?$effective['set_user_id']:null;
+        // Exact observed engine source was verified; other MySQL8 versions stay
+        // UNKNOWN for a negative SUPER-only binlog-authority decision.
+        $mysql80=$flavor==='mysql'&&$version==='8.0.46';
+        $mysqlUnmodelled=$flavor==='mysql'&&version_compare($version??'0','8.0.0','>=')&&!$mysql80;
+        $binlogCondition=null;
+        if($supported&&$binlog!==null&&$trust!==null){
+            if(!$binlog||$trust||$super===true)$binlogCondition=true;
+            elseif($mysql80&&$super===false&&$setUserId!==null)$binlogCondition=$setUserId;
+            elseif(!$mysql80&&!$mysqlUnmodelled)$binlogCondition=$super;
+        }
         return['state'=>$coverage&&$this->unknown===0?'complete':'partial','flavor'=>$flavor,'version'=>$version,
             'target'=>['database_matches_expected'=>true,'same_session_after_read'=>$same,'private_binding_sha256'=>$fingerprint],
             'target_table_count'=>count(self::TARGETS),'direct_observed'=>$direct,'roles'=>$roles,
-            'effective'=>['coverage_complete'=>$coverage,'super'=>$super,'trigger_by_target'=>$perTarget,'trigger_all_targets'=>$all,
+            'grant_reduction'=>['complete'=>$effective['complete'],
+                'incomplete_reasons'=>array_values(array_unique($effective['incomplete_reasons']))],
+            'effective'=>['coverage_complete'=>$coverage,'super'=>$super,
+                'set_user_id'=>$mysql80?$setUserId:null,'trigger_by_target'=>$perTarget,'trigger_all_targets'=>$all,
                 'binary_logging_enabled'=>$binlog,'trust_function_creators_enabled'=>$trust,'binlog_creation_condition_satisfied'=>$binlogCondition],
             'restriction_observed'=>$effective['restriction'],'query_count'=>$this->queries,'unknown_read_count'=>$this->unknown];
     }
