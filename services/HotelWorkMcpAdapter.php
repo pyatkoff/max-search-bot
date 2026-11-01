@@ -1,19 +1,23 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__.'/ManagerPreparationOAuth.php';
+require_once __DIR__.'/HotelWorkQueueFactory.php';
 
 /** Hotel metadata tools only. The canonical MCP owner enforces the hotel grant. */
 final class HotelWorkMcpAdapter
 {
+    public const COLLECTION_PACKET_BYTES = 24576; // Fits the existing 192 KiB HTTP envelope even escaped.
     public const NAMES = ['hotel_work_create','hotel_work_status','hotel_work_claim',
         'hotel_work_started','hotel_work_complete','hotel_work_release','hotel_work_skip_research',
         'hotel_work_handoff_preflight','hotel_work_handoff_connection','hotel_work_resolve_existing_run',
         'hotel_work_delivery_repair_preflight','hotel_work_repair_delivery',
         'hotel_work_execution_attempt_preflight','hotel_work_prepare_execution_attempt',
-        'hotel_work_enter_execution_attempt','hotel_work_bind_execution_attempt'];
+        'hotel_work_enter_execution_attempt','hotel_work_bind_execution_attempt',
+        'hotel_work_collection_context','hotel_work_collection_candidate'];
 
     public function __construct(private PDO $pdo, private $store = null, private $clock = null,
-        private ?HotelWorkEventService $events = null, private string $oauthProfile = ManagerPreparationOAuth::PROFILE_LEGACY)
+        private ?HotelWorkEventService $events = null, private string $oauthProfile = ManagerPreparationOAuth::PROFILE_LEGACY,
+        private ?bool $journalProtection = null)
     {
         if (!in_array($oauthProfile,[ManagerPreparationOAuth::PROFILE_LEGACY,ManagerPreparationOAuth::PROFILE_HOTELS],true)) throw new InvalidArgumentException('invalid_hotel_oauth_profile');
     }
@@ -24,6 +28,9 @@ final class HotelWorkMcpAdapter
         $sha=['type'=>'string','pattern'=>'^[a-f0-9]{64}$'];
         $nullableSha=['type'=>['string','null'],'pattern'=>'^[a-f0-9]{64}$'];
         $run=['type'=>'string','pattern'=>'^[A-Za-z0-9_-]{1,128}$'];
+        $journalId=['type'=>'string','pattern'=>'^[A-Za-z0-9_.:-]{1,128}$'];
+        $collection=['queue_id'=>$id,'stage_id'=>$sha,'generation'=>['type'=>'integer','minimum'=>1],
+            'operation_id'=>$sha,'worker_capability'=>$sha,'instance_id'=>$journalId];
         $claim=['queue_id'=>$id,'stage_id'=>$sha,'claim_key'=>$sha];
         $repairIdentity=['queue_id'=>$id,'stage_id'=>$sha,'baseline_sha256'=>$sha,
             'expected_caller_connection_id'=>['type'=>'string','pattern'=>'^[a-f0-9]{32}$']];
@@ -121,6 +128,11 @@ final class HotelWorkMcpAdapter
                 $attemptEntry,array_keys($attemptEntry),false],
             ['hotel_work_bind_execution_attempt','Append one authenticated-owner association between the winning token/instance, its actual native producer run and exact saved packet after independently checking the native result. Preserve canonical current_run_id and UNKNOWN request origin. This association is not HOST authentication or a dispatch. Complete must use the actual producer ID, exact packet and returned association digest; never label new output as the earlier HOLD run.',
                 $attemptBinding,array_keys($attemptBinding),false],
+            ['hotel_work_collection_context','Read the admitted producer assignment, pinned baseline index and typed canonical overlay for an explicitly enrolled server-owned collection. Requires current hotel authority and the exact journal capability and admitted instance. Does not decode legacy WORKING, read Library, dispatch work or establish business acceptance.',
+                $collection,array_keys($collection),true],
+            ['hotel_work_collection_candidate','Save one strictly typed candidate (at most 24 KiB of raw JSON bytes) for the admitted producer assignment. Only server-pinned scope and canonical references are accepted; no Library writes, reservation changes, queue advancement or business acceptance. An exact repeat reconciles the candidate receipt and never authorizes another run.',
+                $collection+['request_id'=>$journalId,'packet_json'=>['type'=>'string','maxLength'=>self::COLLECTION_PACKET_BYTES]],
+                [...array_keys($collection),'request_id','packet_json'],false],
         ];
         $out=[];
         foreach ($definitions as [$name,$description,$properties,$required,$readOnly]) {
@@ -136,8 +148,25 @@ final class HotelWorkMcpAdapter
     public function call(string $name,array $args,int $admin,string $connection): array
     {
         if (!in_array($name,self::NAMES,true)||$admin<=0||!preg_match('/\A[a-f0-9]{32}\z/D',$connection)) throw new InvalidArgumentException();
-        if (strlen(json_encode($args,JSON_THROW_ON_ERROR))>16384) throw new InvalidArgumentException();
         $operation=substr($name,strlen('hotel_work_'));
+        $isCollection=in_array($operation,['collection_context','collection_candidate'],true);
+        // A JSON string may expand sixfold on the wire; the raw packet has its own byte cap.
+        $wireLimit=$operation==='collection_candidate'?6*self::COLLECTION_PACKET_BYTES+4096:16384;
+        if (strlen(json_encode($args,JSON_THROW_ON_ERROR))>$wireLimit) throw new InvalidArgumentException();
+        if ($isCollection) {
+            $required=['queue_id','stage_id','generation','operation_id','worker_capability','instance_id'];
+            if ($operation==='collection_candidate') $required=[...$required,'request_id','packet_json'];
+            if (count($args)!==count($required)||array_diff(array_keys($args),$required)) throw new InvalidArgumentException();
+            foreach (['queue_id'=>'/\A[A-Za-z0-9_-]{1,80}\z/D','stage_id'=>'/\A[a-f0-9]{64}\z/D',
+                'operation_id'=>'/\A[a-f0-9]{64}\z/D','worker_capability'=>'/\A[a-f0-9]{64}\z/D',
+                'instance_id'=>'/\A[A-Za-z0-9_.:-]{1,128}\z/D'] as $field=>$pattern) {
+                if (!is_string($args[$field])||!preg_match($pattern,$args[$field])) throw new InvalidArgumentException();
+            }
+            if (!is_int($args['generation'])||$args['generation']<1) throw new InvalidArgumentException();
+            if ($operation==='collection_candidate'&&(!is_string($args['request_id'])
+                ||!preg_match('/\A[A-Za-z0-9_.:-]{1,128}\z/D',$args['request_id'])
+                ||!is_string($args['packet_json'])||strlen($args['packet_json'])>self::COLLECTION_PACKET_BYTES)) throw new InvalidArgumentException();
+        }
         $attemptFields=['queue_id','stage_id','baseline_sha256','expected_caller_connection_id','expected_current_run_id'];
         $attemptAllowed=match ($operation) {
             'execution_attempt_preflight'=>$attemptFields,
@@ -194,10 +223,14 @@ final class HotelWorkMcpAdapter
         }
         try {
             if (is_callable($this->store)) $result=($this->store)($operation,$arguments);
-            else {
+            elseif ($isCollection) {
+                require_once __DIR__.'/HotelCollectionCanonicalService.php';
+                $service=new HotelCollectionCanonicalService($this->pdo,$admin,$connection,$this->clock);
+                $result=$operation==='collection_context'?$service->workerRead($args):$service->workerSubmit($args);
+            } else {
                 if ($this->store===null) {
                     require_once __DIR__.'/HotelWorkQueue.php';
-                    $this->store=new HotelWorkQueue($this->pdo,$this->clock);
+                    $this->store=HotelWorkQueueFactory::create($this->pdo,$this->clock,$this->journalProtection);
                 }
                 $result=$this->store->$operation(...$arguments);
             }

@@ -51,6 +51,7 @@ final class HotelWorkQueue
                 return $this->project($row)+['created'=>false];
             }
             if ($lane['queue_id']!==null) throw new HotelWorkQueueConflict('hotel_lane_busy');
+            if ($this->legacyAcceptanceGuard!==null) ($this->legacyAcceptanceGuard)($admin,$connection,$id,self::hash([$id,$plan,0]));
             $now=$this->now();
             $this->execute('INSERT INTO hotel_work_queues (queue_id,project_key,admin_id,oauth_connection_id,mode,batch_limit,start_country,initial_phase_counter,phase_counter,baseline_sha256,plan_sha256,stage_index,state,accepted_batches,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,0,?,0,?,?)',
                 [$id,self::PROJECT,$admin,$connection,$mode,$limit,$country,$counter,$counter,$baseline,$plan,'ready',$now,$now]);
@@ -93,6 +94,7 @@ final class HotelWorkQueue
                 if (!hash_equals($prior['request_sha256'],$request)) throw new HotelWorkQueueConflict('delivery_repair_conflict');
                 return $this->deliveryRepairResult($row,$prior,'already_recorded');
             }
+            $this->legacyWrite($row);
             $preflight=$this->deliveryRepairPreflight($row,$lane,$stage,$baseline);
             if (!$preflight['eligible']) throw new HotelWorkQueueConflict($preflight['reason']);
             foreach ($preflight['pins'] as $field=>$value)
@@ -133,6 +135,7 @@ final class HotelWorkQueue
                 return $this->project($row)+['claim_status'=>'already_claimed_do_not_replay'];
             }
             if ($row['state']!=='ready') throw new HotelWorkQueueConflict('not_ready');
+            $this->legacyWrite($row);
             $this->execute('UPDATE hotel_work_queues SET state=?,claim_sha256=?,watchdog_due_at=?,updated_at=? WHERE queue_id=?',['claimed',$claim,$this->date($this->timestamp()+self::WATCHDOG_SECONDS),$this->now(),$id]);
             return $this->project($this->owned($id,$admin,$connection))+['claim_status'=>'claimed'];
         });
@@ -144,8 +147,7 @@ final class HotelWorkQueue
         $run=self::runId($args['run_id']??null);
         return $this->transaction(function() use($id,$stage,$claim,$run,$admin,$connection): array {
             $lane=$this->lane(true);$row=$this->owned($id,$admin,$connection,true);$this->ownsLane($row,$lane);
-            // Dormant opt-in prototype bridge. Production factories pass null.
-            if ($this->legacyAcceptanceGuard!==null) ($this->legacyAcceptanceGuard)($admin,$connection,$id,$stage);
+            $this->legacyWrite($row);
             $this->claimed($row,$stage,$claim);
             if ($row['current_run_id']!==null&&!hash_equals($row['current_run_id'],$run)) throw new HotelWorkQueueConflict('run_conflict');
             if ($row['current_run_id']===null) $this->execute('UPDATE hotel_work_queues SET current_run_id=?,watchdog_due_at=?,updated_at=? WHERE queue_id=?',[$run,$this->date($this->timestamp()+self::WATCHDOG_SECONDS),$this->now(),$id]);
@@ -173,7 +175,7 @@ final class HotelWorkQueue
                 return $this->project($row)+['completion_status'=>'already_recorded','receipt_sha256'=>$hash];
             }
             // Exact immutable receipt replay above is read-only, never admission.
-            if ($this->legacyAcceptanceGuard!==null) ($this->legacyAcceptanceGuard)($admin,$connection,$id,$stage);
+            $this->legacyWrite($row);
             $this->ownsLane($row,$lane);$this->claimed($row,$stage,$claim);
             $execution=$this->executionCompletionAssociation($row,$stage,$association,$receipt);
             if (($execution===null&&$row['current_run_id']!==$receipt['run_id'])
@@ -265,6 +267,7 @@ final class HotelWorkQueue
                 return $this->project($row)+['handoff_status'=>'already_recorded']
                     +($mode==='claim_authority'?['authority_only'=>true,'dispatch_allowed'=>false]:[]);
             }
+            $this->legacyWrite($row);
             $this->executionBlockMutation($row,$stage);
             if ($this->one('SELECT handoff_sha256 FROM hotel_work_connection_handoffs WHERE queue_id=? AND old_connection_id=? AND old_connection_id<>new_connection_id LIMIT 1',[$id,$newConnection])) {
                 throw new HotelWorkQueueConflict('binding_relinquished');
@@ -325,6 +328,7 @@ final class HotelWorkQueue
                 if (!hash_equals($prior['resolution_sha256'],$resolution)) throw new HotelWorkQueueConflict('resolution_conflict');
                 return $this->project($row)+['resolution_status'=>'already_resolved','receipt_sha256'=>$receiptHash];
             }
+            $this->legacyWrite($row);
             $this->executionBlockMutation($row,$stage);
             $this->sameStage($row,$stage);$this->ownsLane($row,$lane);
             if ($row['state']!=='unknown'||!hash_equals((string)$row['claim_sha256'],$claim)) throw new HotelWorkQueueConflict('unknown_claim_mismatch');
@@ -377,6 +381,7 @@ final class HotelWorkQueue
                 $verify();
                 return $this->project($row)+['skip_status'=>'already_recorded','skip_sha256'=>$skip,'dispatch_allowed'=>false,'external_run_cancelled'=>false];
             }
+            $this->legacyWrite($row);
             $this->executionBlockMutation($row,$stage);
             if (!hash_equals($row['oauth_connection_id'],$old)) throw new DomainException('hotel_work_access_denied');
             if ($this->one('SELECT handoff_sha256 FROM hotel_work_connection_handoffs WHERE queue_id=? AND old_connection_id=? AND old_connection_id<>new_connection_id LIMIT 1',[$id,$connection]))
@@ -419,6 +424,7 @@ final class HotelWorkQueue
         return $this->transaction(function() use($id,$stage,$admin,$connection): array {
             $lane=$this->lane(true);$row=$this->owned($id,$admin,$connection,true);$this->sameStage($row,$stage);
             if ($row['state']==='released') return $this->project($row);
+            $this->legacyWrite($row);
             $this->ownsLane($row,$lane);
             if ($row['state']!=='ready'||$row['claim_sha256']!==null||$row['current_run_id']!==null) throw new HotelWorkQueueConflict('not_known_idle');
             $this->execute('UPDATE hotel_work_queues SET state=?,updated_at=? WHERE queue_id=?',['released',$this->now(),$id]);
@@ -441,6 +447,8 @@ final class HotelWorkQueue
         $id=self::queueId($queueId);
         return $this->transaction(function() use($id,$admin,$connection): ?array {
             $lane=$this->lane(true);$row=$this->owned($id,$admin,$connection,true);
+            // Also fence emission of actionable old events, even when no SQL write is due.
+            $this->legacyWrite($row);
             if (in_array($row['state'],['claimed','unknown'],true)) {
                 $this->ownsLane($row,$lane);
                 if ($row['watchdog_due_at']===null) {
@@ -475,6 +483,7 @@ final class HotelWorkQueue
             $now=$this->now();
             if (in_array($row['state'],['claimed','unknown'],true)) {
                 if ($row['last_watch_ack']===$eventId) return $this->project($row);
+                $this->legacyWrite($row);
                 if ($eventId!==$this->watchEventId($row)||$row['watchdog_due_at']===null||$row['watchdog_due_at']>$now) throw new HotelWorkQueueConflict('stale_event');
                 if ((int)$row['watchdog_epoch']>=self::MAX_STAGE_INDEX) throw new HotelWorkQueueConflict('watchdog_limit_reached');
                 $this->execute('UPDATE hotel_work_queues SET last_watch_ack=?,watchdog_epoch=watchdog_epoch+1,watchdog_due_at=?,updated_at=? WHERE queue_id=?',[$eventId,$this->date($this->timestamp()+self::WATCHDOG_SECONDS),$now,$id]);
@@ -483,13 +492,37 @@ final class HotelWorkQueue
             if ($row['state']!=='ready') throw new HotelWorkQueueConflict('stale_event');
             $row=$this->effectiveDeliveryRow($row);
             if ($eventId===$this->eventId($row,false)) {
+                if ($row['event_ack']===$eventId) return $this->project($row);
+                $this->legacyWrite($row);
                 if ($row['event_ack']===null) $this->updateDeliveryCursor($row,['event_ack'=>$eventId,'delivered_at'=>$now,
                     'claim_deadline'=>$this->date($this->timestamp()+self::CLAIM_DEADLINE_SECONDS),'updated_at'=>$now]);
             } elseif ($eventId===$this->eventId($row,true)&&$row['attention_at']!==null) {
+                if ($row['attention_ack']===$eventId&&($row['write_protocol']??'legacy')!=='legacy') return $this->project($row);
+                $this->legacyWrite($row);
                 $this->updateDeliveryCursor($row,['attention_ack'=>$eventId,'updated_at'=>$now]);
             } else throw new HotelWorkQueueConflict('stale_event');
             return $this->project($this->owned($id,$admin,$connection));
         });
+    }
+
+    /** Mandatory sticky policy, evaluated from the current locked queue row.
+     * No optional factory flag or cached object can downgrade an enrolled queue.
+     * Old schemas are legacy-only: enrollment refuses to run without the marker.
+     */
+    private function legacyWrite(array $row): void
+    {
+        $protocol=array_key_exists('write_protocol',$row)?$row['write_protocol']:'legacy';
+        if ($protocol!=='legacy') {
+            if ($protocol!=='journal_v1') throw new HotelWorkQueueConflict('journal_protection_unavailable');
+            try {
+                $head=$this->one('SELECT stage_id FROM hotel_journal_heads WHERE queue_id=? ORDER BY stage_id LIMIT 1'.$this->lock(),[$row['queue_id']]);
+            } catch (Throwable $unavailable) {
+                throw new HotelWorkQueueConflict('journal_protection_unavailable');
+            }
+            if ($head===null) throw new HotelWorkQueueConflict('journal_protection_unavailable');
+            throw new HotelWorkQueueConflict('generation_required_legacy_mutation');
+        }
+        if ($this->legacyAcceptanceGuard!==null) ($this->legacyAcceptanceGuard)((int)$row['admin_id'],$row['oauth_connection_id'],$row['queue_id'],$this->stageId($row));
     }
 
     private function project(array $row): array

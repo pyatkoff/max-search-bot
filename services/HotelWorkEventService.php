@@ -6,6 +6,7 @@ require_once __DIR__.'/ProjectConfig.php';
 require_once __DIR__.'/ManagerPreparationOAuth.php';
 require_once __DIR__.'/ManagerPreparationWebhook.php';
 require_once __DIR__.'/HotelWorkQueue.php';
+require_once __DIR__.'/HotelWorkQueueFactory.php';
 
 /** Hotel metadata events only. Receipt delivery never proves hosted work finished. */
 final class HotelWorkEventService
@@ -17,11 +18,11 @@ final class HotelWorkEventService
     private HotelWorkQueue $queue;
 
     public function __construct(?PDO $pdo=null,?ManagerPreparationWebhook $webhook=null,private $clock=null,
-        private $connectionAuthorized=null,?HotelWorkQueue $queue=null)
+        private $connectionAuthorized=null,?HotelWorkQueue $queue=null,?bool $journalProtection=null)
     {
         $this->pdo=$pdo??ConversationDb::connection();
         $this->webhook=$webhook??new ManagerPreparationWebhook();
-        $this->queue=$queue??new HotelWorkQueue($this->pdo,$clock);
+        $this->queue=$queue??HotelWorkQueueFactory::create($this->pdo,$clock,$journalProtection);
     }
 
     public function eventDefinitions(): array
@@ -271,7 +272,13 @@ final class HotelWorkEventService
                 $q=$this->pdo->prepare('SELECT * FROM hotel_work_events WHERE subscription_id=? AND lease_token=?');$q->execute([$id,$token]);$row=$q->fetch(PDO::FETCH_ASSOC);if (!$row) continue;
                 try {$this->authorize((int)$row['admin_id'],$row['oauth_connection_id']);}
                 catch (DomainException $denied) {$this->finish($id,$token,['is_active'=>0,'single_consumer_key'=>null]);++$counts['stopped'];continue;}
-                $event=$this->queue->pendingEvent((int)$row['admin_id'],$row['oauth_connection_id'],$row['queue_id']);
+                try {$event=$this->queue->pendingEvent((int)$row['admin_id'],$row['oauth_connection_id'],$row['queue_id']);}
+                catch (HotelWorkQueueConflict $blocked) {
+                    if (!in_array($blocked->reason,['generation_required_legacy_mutation','journal_protection_unavailable'],true)) throw $blocked;
+                    // Protection is not OAuth revocation or webhook failure.
+                    // Preserve frozen delivery evidence and subscription state.
+                    $this->finish($id,$token,[]);++$counts['unchanged'];continue;
+                }
                 if ($event===null||$event['name']!==$row['event_name']) {
                     $this->finish($id,$token,['pending_event_id'=>null,'pending_body'=>null,'attempts'=>0,'next_attempt_at'=>null]);++$counts['unchanged'];continue;
                 }
@@ -306,6 +313,12 @@ final class HotelWorkEventService
                     $this->finish($id,$token,['is_active'=>0,'single_consumer_key'=>null,'attempts'=>$attempts,'last_status'=>$status]);++$counts['stopped'];
                 } else {
                     $this->finish($id,$token,['attempts'=>$attempts,'last_status'=>$status,'next_attempt_at'=>self::date($this->now()+min(900,60*(2**($attempts-1))))]);++$counts['retried'];
+                }
+            } catch (HotelWorkQueueConflict $blocked) {
+                if (in_array($blocked->reason,['generation_required_legacy_mutation','journal_protection_unavailable'],true)) {
+                    $this->finish($id,$token,[]);++$counts['unchanged'];
+                } else {
+                    $this->finish($id,$token,['next_attempt_at'=>self::date($this->now()+60)]);++$counts['retried'];
                 }
             } catch (DomainException $denied) {
                 $this->finish($id,$token,['is_active'=>0,'single_consumer_key'=>null]);++$counts['stopped'];

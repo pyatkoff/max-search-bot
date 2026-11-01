@@ -3,8 +3,9 @@
 This is an isolated trial of server-owned admission and once-only canonical
 snapshot acceptance. It is **not enabled in production** and does not establish
 `BUSINESS_ACCEPTED`, native execution, a restored collection, or a live takeover.
-There is no migration, runtime DDL, MCP registration, production factory wiring,
-scheduler, launcher, provider request, or Library writer in this change.
+Forward migration `082_hotel_operation_journal.sql` is prepared but not applied.
+No live enrollment, runtime DDL, scheduler, launcher, provider request, or Library
+writer is performed by this journal. Collection APIs are documented separately.
 
 ## Authority and transaction boundary
 
@@ -16,9 +17,12 @@ operation capability. An OAuth connection and a visible generation number alone
 cannot create an intent, rotate control, admit another operation or commit data.
 Server provisioning/storage of the control secret is not implemented here.
 
-The fixture schema models four SQL tables: stage heads, operations, request ACKs
-and immutable snapshots. It is created only by tests. InnoDB locks stage heads;
-SQLite uses `BEGIN IMMEDIATE`. Each mutation and its ACK commit together. The
+The prepared schema models four journal tables plus the sticky `write_protocol`
+marker in the existing queue row. Tests alone create their isolated schema. Every
+InnoDB operation locks HOTEL lane, then current queue, then journal head; SQLite
+uses `BEGIN IMMEDIATE`. Enrollment validates current owner, lane, stage, baseline
+and idle state under those locks, and commits marker and head together. Each
+mutation and its ACK commit together. The
 same authorized request and inputs return the stored receipt; reusing a request
 with different inputs fails. A stale capability/generation fails before replay.
 Lost handover ACK recovery requires possession of the new control secret.
@@ -62,43 +66,35 @@ without a new exact-history API because once-only canonical acceptance is a
 separate server property. This does **not** guarantee once-only computation or
 cost. There is no production retry policy or autonomous dispatcher here.
 
-## Legacy mutation inventory and limits
+## Sticky legacy mutation boundary
 
-The optional third constructor argument of `HotelWorkQueue` is a narrow test
-bridge. No production factory supplies it. With the bridge injected, a new
-generation-less `started` or `complete` on an enrolled stage is rejected inside
-the Queue transaction. Exact existing immutable completion receipt readback
-remains available and writes nothing; conflicting receipt replay still fails.
+`HotelWorkQueue` enforces the queue row's `write_protocol` on each first write,
+even for a raw Queue, an object created before enrollment, or a factory called
+with false. A factory/config flag cannot downgrade an enrolled queue. Enrollment
+is internal and explicit; it refuses a schema without the marker and does not
+adopt claimed/UNKNOWN work. The marker and head commit/roll back together.
 
-Other public legacy methods are outside this bridge:
+All 14 public mutation paths, including the execution-attempt trait and cron's
+`pendingEvent`, are inventoried in `HOTEL_JOURNAL_MUTATION_INVENTORY.json`.
+`pendingEvent` is a mutator and may emit dispatch authority even without SQL
+writes. Protected queues block both; the event service treats this as nonfatal
+HOLD, preserving subscription activation and frozen delivery evidence. A callback
+already in flight cannot be cancelled by SQL locks; its later claim/ACK is fenced.
 
-| Methods | Existing role; prototype coverage |
-| --- | --- |
-| `create`, `claim`, `release` | Queue/lane/claim lifecycle; not converted |
-| `handoff_connection` | OAuth ownership handoff; not converted |
-| `resolve_existing_run`, `skip_research` | Recovery/advance/skip writes; not converted |
-| `repair_delivery`, `pendingEvent`, `markEventDelivered` | Delivery cursor/recovery/ACK writes; not converted |
-| `status`, `delivery_repair_preflight`, `handoff_preflight`, `eventCandidates` | Existing read/eligibility surfaces; not journal authority |
+Exact existing receipt readback retains its original actor/request checks and
+never authorizes new work. Entry replay keeps `work_authorized=false`. Normal
+legacy rows preserve their behavior without requiring an optional journal store.
+Marked rows with missing/corrupt journal state fail closed. Read-only status and
+preflights remain diagnostic, not admission. All actual server factories use the
+same intrinsic Queue policy; optional test callbacks add checks rather than
+being the protection boundary.
 
-The existing `HotelWorkExecutionAttempts` mutations and the MCP adapter also
-remain unchanged and are not converted to journal authority. Therefore this
-prototype does **not** claim that all legacy bypasses are closed. A negative
-integration test deliberately shows a default legacy Queue factory still
-advancing its old metadata without producing a journal canonical snapshot.
-
-SQL cannot fence arbitrary direct writes to an external Library. A negative
-test allows a stale actor to overwrite a synthetic Library file and verifies
-that the independently stored SQL canonical snapshot remains unchanged. This
-is not proof of external write isolation. Current production Library readers
-still read their old source and are not redirected to the journal pointer.
-
-Production conversion needs a separate reviewed slice: provision control secrets
-through a genuinely server-owned path; implement a production migration and
-business validation; switch canonical readers; fence every legacy acceptance,
-recovery and write path; and decide safe handling of existing UNKNOWN work.
-Enrollment alone cannot serve as that conversion. No adoption or modification
-of the current live queue, workers, CENTRAL intake, checkpoints, EG skip or
-historical reservations is part of this trial.
+This does not fence old deployed binaries, privileged direct SQL, or external
+Library ACLs. Any authoritative collection consumer must use the separate
+canonical collection service with no Library fallback. The original synthetic
+journal snapshot is not a WORKING converter or business acceptance. Existing
+live queue/worker/checkpoint adoption and production migration application remain
+outside this dormant change; no hotel stage is launched here.
 
 ## Verification
 
@@ -117,3 +113,12 @@ These are local SQL/fixture tests, not HOST or live-business verification.
 The same fixture supports the existing allowlisted native MySQL test database
 environment; SQLite passing does not establish MySQL passing. Required CI stays
 unchanged. This change must remain dormant while integration remains incomplete.
+
+The existing queue regression also executes `hotel_work_journal_boundary_checks.php`
+on both SQLite and the native MySQL wrapper. It covers intrinsic raw/cached factory
+protection, all new legacy mutations, receipt-only replay, missing-store behavior,
+enrollment rollback/lost ACK, and six deterministic two-process enrollment races
+against claim, handoff and release in both orders. Event regressions cover nonfatal
+HOLD and enrollment during an already-in-flight synthetic webhook. Prepared DDL
+is exercised in test databases only. Local PHP/MySQL execution is not assumed;
+publication CI results must be inspected before claiming PASS.

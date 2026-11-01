@@ -1355,5 +1355,9 @@ foreach (['claim_first','recovery_first','old_ack_race'] as $scenario) {
 require __DIR__.'/hotel_work_skip_checks.php';
 require __DIR__.'/hotel_work_execution_attempt_checks.php';
 require __DIR__.'/hotel_work_operation_journal_checks.php';
+require __DIR__.'/hotel_work_journal_boundary_checks.php';
+require __DIR__.'/hotel_collection_canonical_document_checks.php';
+require __DIR__.'/hotel_collection_canonical_store_checks.php';
+require __DIR__.'/hotel_collection_canonical_service_checks.php';
 echo 'HOTEL WORK QUEUE: '.$checks." PASS\n";
 

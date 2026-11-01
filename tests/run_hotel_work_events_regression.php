@@ -763,6 +763,41 @@ try {
     hotelEventAssert($nested!==null&&$nested['subscriptions']===1&&$nested['accepted']===0&&$nested['retried']===0,'active_sql_lease_excludes_overlapping_sender');
     hotelEventAssert($first['accepted']===1&&count($f->requests)===1&&$f->row()['lease_token']===null&&$f->row()['lease_until']===null,'overlap_has_one_callback_and_explicit_lease_release');
     hotelEventAssert(!array_diff(array_unique($f->pdo->writes),['hotel_work_events','hotel_work_queues','hotel_work_receipts','hotel_work_lane','hotel_work_connection_handoffs','hotel_work_resolutions','hotel_work_delivery_recoveries','hotel_work_consumer_delivery_repairs']),'event_lifecycle_never_writes_business_tables');
+    // The default event factory and cached raw Queue both honor sticky enrollment.
+    require_once dirname(__DIR__).'/services/HotelWorkOperationJournalPrototype.php';
+    require_once __DIR__.'/fixtures/hotel_work_operation_journal.php';
+    foreach (['initial','recovery','missing_store'] as $mode) {
+        if ($mode==='recovery') {[$f]=hotelEventRecoveryFixture();$f->at+=60;}
+        else {$f=new HotelEventsFixture();$f->subscribe(false);}
+        hotelJournalFixtureSchema($f->pdo);$stage=$f->status()['stage_id'];
+        $journal=new HotelWorkOperationJournalPrototype($f->pdo,1,$f->connection);
+        $journal->enroll('PILOT',$stage,str_repeat('0',64),str_repeat('1',64),'event-test');
+        if ($mode==='missing_store') $f->pdo->exec('DROP TABLE hotel_journal_heads');
+        $f->requests=[];$queueBefore=$f->pdo->query('SELECT * FROM hotel_work_queues')->fetchAll(PDO::FETCH_ASSOC);
+        $recoveriesBefore=$f->pdo->query('SELECT * FROM hotel_work_delivery_recoveries')->fetchAll(PDO::FETCH_ASSOC);
+        $subscriptionsBefore=$f->pdo->query('SELECT * FROM hotel_work_events ORDER BY subscription_id')->fetchAll(PDO::FETCH_ASSOC);
+        // No injected Queue: exercises the production EventService factory path.
+        $events=new HotelWorkEventService($f->pdo,$f->webhook,fn():int=>$f->at,static fn():bool=>true,null,false);
+        $counts=$events->deliverPending();
+        $subscriptionsAfter=$f->pdo->query('SELECT * FROM hotel_work_events ORDER BY subscription_id')->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($subscriptionsBefore as &$row) unset($row['lease_token'],$row['lease_until'],$row['updated_at']);unset($row);
+        foreach ($subscriptionsAfter as &$row) unset($row['lease_token'],$row['lease_until'],$row['updated_at']);unset($row);
+        hotelEventAssert($f->requests===[]&&$counts['accepted']===0&&$counts['stopped']===0&&$counts['retried']===0,'journal_hold_is_nonfatal_without_transport_'.$mode);
+        hotelEventAssert($subscriptionsBefore===$subscriptionsAfter,'journal_hold_preserves_subscription_and_frozen_evidence_'.$mode);
+        hotelEventAssert($queueBefore===$f->pdo->query('SELECT * FROM hotel_work_queues')->fetchAll(PDO::FETCH_ASSOC)
+            &&$recoveriesBefore===$f->pdo->query('SELECT * FROM hotel_work_delivery_recoveries')->fetchAll(PDO::FETCH_ASSOC),'journal_hold_no_delivery_or_recovery_write_'.$mode);
+    }
+    // External HTTP is not a SQL transaction. If enrollment wins during an
+    // already-in-flight callback, ACK and later claim still cannot cross the fence.
+    $f=new HotelEventsFixture();$f->subscribe(false);hotelJournalFixtureSchema($f->pdo);$stage=$f->status()['stage_id'];
+    $f->deliveryHook=function()use($f,$stage):void {
+        (new HotelWorkOperationJournalPrototype($f->pdo,1,$f->connection))->enroll('PILOT',$stage,str_repeat('0',64),str_repeat('1',64),'during-callback');
+    };
+    $counts=$f->events->deliverPending();
+    hotelEventAssert(count($f->requests)===1&&$counts['accepted']===0&&$counts['stopped']===0
+        &&$f->row()['is_active']==1&&$f->pdo->query('SELECT event_ack FROM hotel_work_queues')->fetchColumn()===null,'inflight_callback_does_not_ack_or_disable_after_enrollment');
+    hotelEventReject(fn()=>$f->queue->claim(1,$f->connection,['queue_id'=>'PILOT','stage_id'=>$stage,'claim_key'=>str_repeat('b',64)]),
+        HotelWorkQueueConflict::class,'inflight_old_event_cannot_claim','generation_required_legacy_mutation');
     echo 'HOTEL WORK EVENTS: '.$checks." PASS\n";
 } catch (Throwable $error) {
     $message=$error instanceof RuntimeException&&str_starts_with($error->getMessage(),'hotel_event_assertion_failed:')?$error->getMessage():get_class($error);

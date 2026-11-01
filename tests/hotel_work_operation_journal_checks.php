@@ -168,24 +168,24 @@ $j->handover('JOURNAL',$s,1,str_repeat('1',64),str_repeat('2',64),'controller-b'
 journalNoWrite($p,fn()=>$j->intent('JOURNAL',$s,2,str_repeat('2',64),'replacement','event-2','existing-task'),'unknown_handover_fail_closed','native_effect_unknown');
 journalCheck($j->status('JOURNAL',$s)['operations'][0]['native_effect']==='unknown','handover_preserves_original_unknown');
 
-// Transactional opt-in rejection of actual legacy Queue methods, including
-// generation-less complete carrying an old-style valid receipt.
-[$p,$j,$s,$q]=journalFixture();$args=['queue_id'=>'JOURNAL','stage_id'=>$s,'claim_key'=>str_repeat('b',64)];$q->claim(1,str_repeat('a',32),$args);
-$guarded=new HotelWorkQueue($p,static fn():int=>1793500000,$j->legacyGuard($p));$legacyBefore=$p->query('SELECT * FROM hotel_work_queues')->fetchAll(PDO::FETCH_ASSOC);
-journalNoWrite($p,fn()=>$guarded->started(1,str_repeat('a',32),$args+['run_id'=>'legacy-run']),'legacy_started_rejects_converted_path','generation_required_legacy_mutation');
+// Intrinsic protection also covers a raw Queue object created before enrollment.
+[$p,$j,$s,$q]=journalFixture();$args=['queue_id'=>'JOURNAL','stage_id'=>$s,'claim_key'=>str_repeat('b',64)];
+$legacyBefore=$p->query('SELECT * FROM hotel_work_queues')->fetchAll(PDO::FETCH_ASSOC);
+journalNoWrite($p,fn()=>$q->claim(1,str_repeat('a',32),$args),'raw_legacy_claim_rejects_enrollment','generation_required_legacy_mutation');
+journalNoWrite($p,fn()=>$q->started(1,str_repeat('a',32),$args+['run_id'=>'legacy-run']),'raw_legacy_started_rejects_enrollment','generation_required_legacy_mutation');
 $legacyReceipt=['run_id'=>'legacy-run','outcome'=>'accepted_readback','packet_sha256'=>str_repeat('3',64),'readback_sha256'=>str_repeat('4',64),'ledger_sha256'=>str_repeat('5',64),'hotel_count'=>1,'record_count'=>1,'source_count'=>0,'read_update_count'=>0,'criteria'=>null];
-journalNoWrite($p,fn()=>$guarded->complete(1,str_repeat('a',32),$args+['receipt'=>$legacyReceipt]),'legacy_complete_rejects_converted_path','generation_required_legacy_mutation');
-journalCheck($legacyBefore===$p->query('SELECT * FROM hotel_work_queues')->fetchAll(PDO::FETCH_ASSOC)&&$p->query('SELECT COUNT(*) FROM hotel_work_receipts')->fetchColumn()==0,'legacy_rejection_transaction_preserves_real_queue_and_receipts');
-journalReject(fn()=>$j->enroll('JOURNAL',str_repeat('f',64),str_repeat('0',64),str_repeat('6',64),'other-owner'),'live_claimed_stage_adoption_rejected','live_adoption_not_supported');
-// Negative integration control: the default production factory is NOT switched.
-$q->started(1,str_repeat('a',32),$args+['run_id'=>'legacy-run']);$q->complete(1,str_repeat('a',32),$args+['receipt'=>$legacyReceipt]);
-journalCheck($q->status(1,str_repeat('a',32),'JOURNAL')['stage_index']===1&&$j->canonicalSnapshot('JOURNAL',$s)===null,'default_legacy_path_not_production_fenced_or_converted');
+journalNoWrite($p,fn()=>$q->complete(1,str_repeat('a',32),$args+['receipt'=>$legacyReceipt]),'raw_legacy_complete_rejects_enrollment','generation_required_legacy_mutation');
+journalCheck($legacyBefore===$p->query('SELECT * FROM hotel_work_queues')->fetchAll(PDO::FETCH_ASSOC),'legacy_rejection_preserves_real_queue');
+// An immutable historical receipt remains readable after protection. Seed only
+// synthetic history, without using a legacy mutation to bypass the new boundary.
+$stored=$legacyReceipt;ksort($stored,SORT_STRING);$stored=json_encode($stored,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+$p->prepare('INSERT INTO hotel_work_receipts(queue_id,stage_index,stage_id,receipt_sha256,receipt_json,created_at) VALUES(?,?,?,?,?,?)')->execute(['JOURNAL',0,$s,hash('sha256',$stored),$stored,'2026-11-01 00:00:00']);
 $allBefore=[$p->query('SELECT * FROM hotel_work_queues')->fetchAll(PDO::FETCH_ASSOC),$p->query('SELECT * FROM hotel_work_receipts')->fetchAll(PDO::FETCH_ASSOC),journalSnapshot($p)];
-$readback=$guarded->complete(1,str_repeat('a',32),$args+['receipt'=>$legacyReceipt]);
+$readback=$q->complete(1,str_repeat('a',32),$args+['receipt'=>$legacyReceipt]);
 journalCheck($readback['completion_status']==='already_recorded','immutable_legacy_receipt_readback_remains_available');
 journalCheck($allBefore===[$p->query('SELECT * FROM hotel_work_queues')->fetchAll(PDO::FETCH_ASSOC),$p->query('SELECT * FROM hotel_work_receipts')->fetchAll(PDO::FETCH_ASSOC),journalSnapshot($p)],'legacy_receipt_replay_no_new_admission_or_mutation');
 $conflicting=$legacyReceipt;$conflicting['packet_sha256']=str_repeat('6',64);
-journalNoWrite($p,fn()=>$guarded->complete(1,str_repeat('a',32),$args+['receipt'=>$conflicting]),'legacy_receipt_conflict_still_rejected','completion_conflict');
+journalNoWrite($p,fn()=>$q->complete(1,str_repeat('a',32),$args+['receipt'=>$conflicting]),'legacy_receipt_conflict_still_rejected','completion_conflict');
 
 // Same bytes cannot become a second canonical intake in a different stage.
 [$p,$j,$s,$q,$i]=journalCandidate();journalCommit($j,$s,$i);

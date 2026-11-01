@@ -43,8 +43,8 @@ final class HotelEventsTestPdo extends PDO
             $options[PDO::ATTR_EMULATE_PREPARES]=false;
             parent::__construct($dsn,getenv('PREPARED_REPLY_MYSQL_USER')?:null,getenv('PREPARED_REPLY_MYSQL_PASS')?:null,$options);
             if (parent::query('SELECT DATABASE()')->fetchColumn()!==$m[1]) throw new RuntimeException('unsafe_hotel_event_fixture_database');
-            foreach (['hotel_work_execution_attempt_associations','hotel_work_execution_attempt_entries','hotel_work_execution_attempts','hotel_work_consumer_delivery_repairs','hotel_work_research_skips','hotel_work_events','hotel_work_delivery_recoveries','hotel_work_resolutions','hotel_work_connection_handoffs','hotel_work_receipts','hotel_work_queues','hotel_work_lane'] as $table) parent::exec('DROP TABLE IF EXISTS '.$table);
-            foreach (['070_hotel_work_queue.sql','071_hotel_work_events.sql','072_hotel_work_recovery.sql','073_hotel_work_delivery_recoveries.sql','076_hotel_work_research_skips.sql','077_hotel_work_consumer_delivery_repairs.sql','078_hotel_work_execution_attempts.sql'] as $migration) {
+            foreach (['hotel_journal_requests','hotel_journal_snapshots','hotel_journal_operations','hotel_journal_heads','hotel_work_execution_attempt_associations','hotel_work_execution_attempt_entries','hotel_work_execution_attempts','hotel_work_consumer_delivery_repairs','hotel_work_research_skips','hotel_work_events','hotel_work_delivery_recoveries','hotel_work_resolutions','hotel_work_connection_handoffs','hotel_work_receipts','hotel_work_queues','hotel_work_lane'] as $table) parent::exec('DROP TABLE IF EXISTS '.$table);
+            foreach (['070_hotel_work_queue.sql','071_hotel_work_events.sql','072_hotel_work_recovery.sql','073_hotel_work_delivery_recoveries.sql','076_hotel_work_research_skips.sql','077_hotel_work_consumer_delivery_repairs.sql','078_hotel_work_execution_attempts.sql','082_hotel_operation_journal.sql'] as $migration) {
                 foreach (explode(';',(string)file_get_contents(dirname(__DIR__,2).'/migrations/'.$migration)) as $sql) if (trim($sql)!=='') parent::exec($sql);
             }
         } else {
@@ -53,7 +53,7 @@ final class HotelEventsTestPdo extends PDO
                 queue_id TEXT PRIMARY KEY,project_key TEXT NOT NULL,admin_id INTEGER NOT NULL,oauth_connection_id TEXT NOT NULL,
                 mode TEXT NOT NULL,batch_limit INTEGER,start_country TEXT NOT NULL,initial_phase_counter INTEGER NOT NULL,
                 phase_counter INTEGER NOT NULL,baseline_sha256 TEXT NOT NULL,plan_sha256 TEXT NOT NULL,
-                stage_index INTEGER NOT NULL DEFAULT 0,state TEXT NOT NULL,claim_sha256 TEXT,current_run_id TEXT,
+                write_protocol TEXT NOT NULL DEFAULT \'legacy\',stage_index INTEGER NOT NULL DEFAULT 0,state TEXT NOT NULL,claim_sha256 TEXT,current_run_id TEXT,
                 accepted_batches INTEGER NOT NULL DEFAULT 0,event_ack TEXT,delivered_at TEXT,claim_deadline TEXT,
                 attention_at TEXT,attention_ack TEXT,watchdog_due_at TEXT,watchdog_epoch INTEGER NOT NULL DEFAULT 0,last_watch_ack TEXT,
                 created_at TEXT NOT NULL,updated_at TEXT NOT NULL);
@@ -126,7 +126,7 @@ final class HotelEventsTestPdo extends PDO
         }
         if (preg_match('/\A\s*(?:INSERT\s+INTO|UPDATE|DELETE\s+FROM)\s+([a-z_]+)/i',$sql,$m)) {
             $table=strtolower($m[1]);
-            if (!in_array($table,['hotel_work_queues','hotel_work_receipts','hotel_work_lane','hotel_work_events','hotel_work_connection_handoffs','hotel_work_resolutions','hotel_work_delivery_recoveries','hotel_work_research_skips','hotel_work_consumer_delivery_repairs','hotel_work_execution_attempts','hotel_work_execution_attempt_entries','hotel_work_execution_attempt_associations'],true)) throw new RuntimeException('hotel_event_fixture_rejected_business_write');
+            if (!in_array($table,['hotel_work_queues','hotel_work_receipts','hotel_work_lane','hotel_work_events','hotel_work_connection_handoffs','hotel_work_resolutions','hotel_work_delivery_recoveries','hotel_work_research_skips','hotel_work_consumer_delivery_repairs','hotel_work_execution_attempts','hotel_work_execution_attempt_entries','hotel_work_execution_attempt_associations','hotel_journal_heads','hotel_journal_operations','hotel_journal_requests','hotel_journal_snapshots'],true)) throw new RuntimeException('hotel_event_fixture_rejected_business_write');
             $this->writes[]=$table;
         }
     }

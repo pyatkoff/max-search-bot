@@ -1,12 +1,19 @@
 <?php
 declare(strict_types=1);
 
-/** Test databases ONLY; deliberately not a production migration or runtime DDL. */
+/** Isolated test databases only. Native MySQL exercises the prepared forward DDL. */
 function hotelJournalFixtureSchema(PDO $pdo, bool $reset = true): void
 {
     $mysql = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql';
     if ($mysql && preg_match('/\Amaxbot_prepared_test(?:_[a-zA-Z0-9_]+)?\z/D', (string)$pdo->query('SELECT DATABASE()')->fetchColumn()) !== 1) throw new RuntimeException('unsafe_journal_fixture_database');
     if ($reset) foreach (['hotel_journal_requests','hotel_journal_snapshots','hotel_journal_operations','hotel_journal_heads'] as $table) $pdo->exec('DROP TABLE IF EXISTS '.$table);
+    if ($reset && $mysql) {
+        // HotelWorkTestPdo already applied the once-only marker ALTER.
+        foreach (explode(';',(string)file_get_contents(dirname(__DIR__,2).'/migrations/082_hotel_operation_journal.sql')) as $statement) {
+            if (trim($statement)!=='' && !preg_match('/\bALTER\s+TABLE\b/i',$statement)) $pdo->exec($statement);
+        }
+        return;
+    }
     $id = $mysql ? 'VARCHAR(128) CHARACTER SET ascii COLLATE ascii_bin' : 'TEXT';
     $sha = $mysql ? 'CHAR(64) CHARACTER SET ascii COLLATE ascii_bin' : 'TEXT';
     $blob = $mysql ? 'LONGBLOB' : 'BLOB';

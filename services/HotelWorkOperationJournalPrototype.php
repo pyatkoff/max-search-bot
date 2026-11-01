@@ -1,8 +1,9 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__.'/HotelWorkQueueFactory.php';
 
 /**
- * Dormant internal prototype. No MCP mapping, production schema or launcher.
+ * Dormant internal prototype. No MCP mapping, schema activation or launcher.
  * The constructor's admin/connection come from server authentication, not args.
  * Control capabilities belong to a server-owned path, never shared CP/status.
  * Canonical means the SQL snapshot below, NOT the existing Library catalogue.
@@ -25,18 +26,23 @@ final class HotelWorkOperationJournalPrototype
     {
         self::id($queue); self::id($stage); self::hex($baseline); self::hex($control); self::id($owner);
         return $this->tx('enroll', function () use ($queue, $stage, $baseline, $control, $owner): array {
-            $this->authorizeQueue($queue, $baseline);
+            $queueRow = $this->authorizeQueue($queue, $baseline);
+            if (!array_key_exists('write_protocol', $queueRow)) $this->reject('journal_marker_unavailable');
             $head = $this->head($queue, $stage, true);
             if ($head !== null) {
+                if ($queueRow['write_protocol'] !== 'journal_v1') $this->reject('journal_marker_mismatch');
                 $this->control($head, 1, $control);
                 if ($head['baseline_sha256'] !== $baseline || $head['owner_label'] !== $owner) $this->reject('enrollment_conflict');
                 return ['generation' => 1, 'mode' => 'dormant_prototype'];
             }
-            $queueRow = $this->one('SELECT plan_sha256,stage_index,state,claim_sha256,current_run_id FROM hotel_work_queues WHERE queue_id=?', [$queue]);
+            if (!in_array($queueRow['write_protocol'], ['legacy', 'journal_v1'], true)) $this->reject('journal_marker_mismatch');
+            if ($queueRow['write_protocol'] === 'journal_v1' && $this->one('SELECT stage_id FROM hotel_journal_heads WHERE queue_id=? ORDER BY stage_id LIMIT 1'.($this->driver === 'mysql' ? ' FOR UPDATE' : ''), [$queue]) === null) $this->reject('journal_protection_unavailable');
             if ($queueRow['state'] !== 'ready' || $queueRow['claim_sha256'] !== null || $queueRow['current_run_id'] !== null) $this->reject('live_adoption_not_supported');
+            if ($queueRow['_lane_queue'] !== $queue) $this->reject('journal_lane_not_owned');
             if (hash('sha256', self::json([$queue, $queueRow['plan_sha256'], (int)$queueRow['stage_index']])) !== $stage) $this->reject('stage_identity_mismatch');
             $this->execute('INSERT INTO hotel_journal_heads (queue_id,stage_id,baseline_sha256,generation,control_sha256,owner_label,active_operation_id,accepted_snapshot_id,hold_reason) VALUES (?,?,?,1,?,?,NULL,NULL,NULL)',
                 [$queue, $stage, $baseline, hash('sha256', $control), $owner]);
+            $this->execute('UPDATE hotel_work_queues SET write_protocol=? WHERE queue_id=?', ['journal_v1', $queue]);
             $this->hit('enrollment_written');
             return ['generation' => 1, 'mode' => 'dormant_prototype'];
         });
@@ -50,6 +56,7 @@ final class HotelWorkOperationJournalPrototype
             $head = $this->controlledHead($queue, $stage, $generation, $control);
             $input = compact('event', 'task');
             if (($old = $this->replay($head, $request, 'intent', $input)) !== null) return $old;
+            $this->currentStage($head);
             if ($head['hold_reason'] !== null) $this->reject('native_effect_unknown');
             if ($head['accepted_snapshot_id'] !== null) $this->reject('stage_already_committed');
             if ($head['active_operation_id'] !== null) $this->reject('event_already_admitted');
@@ -71,6 +78,7 @@ final class HotelWorkOperationJournalPrototype
             $head = $this->controlledHead($queue, $stage, $generation, $control);
             $input = compact('operation');
             if (($old = $this->replay($head, $request, 'dispatch', $input)) !== null) return $old;
+            $this->currentStage($head);
             $op = $this->operation($head, $operation);
             if ($op['state'] !== 'prepared') $this->reject('dispatch_effect_not_replayable');
             $this->execute('UPDATE hotel_journal_operations SET state=?,native_effect=? WHERE operation_id=?', ['native_unknown', 'unknown', $operation]);
@@ -89,6 +97,7 @@ final class HotelWorkOperationJournalPrototype
             [$head, $op] = $this->worker($queue, $stage, $generation, $operation, $capability);
             $input = compact('operation', 'instance');
             if (($old = $this->replay($head, $request, 'admit', $input)) !== null) return $old;
+            $this->currentStage($head);
             if ($op['state'] !== 'native_unknown' || $op['instance_id'] !== null) $this->reject('admission_already_spent');
             $this->execute('UPDATE hotel_journal_operations SET instance_id=?,state=? WHERE operation_id=?', [$instance, 'admitted', $operation]);
             $this->hit('admission_written');
@@ -108,6 +117,7 @@ final class HotelWorkOperationJournalPrototype
             $packet = hash('sha256', $bytes);
             $input = ['operation' => $operation, 'instance' => $instance, 'packet' => $packet, 'run' => $run, 'run_evidence' => $runEvidence];
             if (($old = $this->replay($head, $request, 'result', $input)) !== null) return $old;
+            $this->currentStage($head);
             if ($op['instance_id'] !== $instance) $this->reject('instance_mismatch');
             if ($op['candidate_sha256'] !== null) $this->reject('candidate_conflict');
             if ($op['state'] !== 'admitted') $this->reject('admission_required');
@@ -139,6 +149,7 @@ final class HotelWorkOperationJournalPrototype
             $head = $this->controlledHead($queue, $stage, $generation, $control);
             $input = compact('operation', 'reviewedPacket', 'expectedPointer');
             if (($old = $this->replay($head, $request, 'commit', $input)) !== null) return $old;
+            $this->currentStage($head);
             $op = $this->operation($head, $operation);
             if ($head['accepted_snapshot_id'] !== $expectedPointer || $head['accepted_snapshot_id'] !== null) $this->reject('canonical_pointer_conflict');
             if ($op['state'] !== 'candidate_recorded' || $op['candidate_bytes'] === null
@@ -175,6 +186,7 @@ final class HotelWorkOperationJournalPrototype
             }
             $this->control($head, $generation, $control);
             if (($old = $this->replay($head, $request, 'handover', $input)) !== null) return $old;
+            $this->currentStage($head);
             $hold = $head['hold_reason']; $active = $head['active_operation_id'];
             if ($active !== null) {
                 $op = $this->operation($head, $active);
@@ -220,23 +232,30 @@ final class HotelWorkOperationJournalPrototype
         });
     }
 
-    /** Test-only opt-in bridge. No production factory supplies this callback. */
+    /** Optional extra bridge; intrinsic Queue protection does not depend on it. */
     public function legacyGuard(PDO $pdo): callable
     {
         if ($pdo !== $this->pdo) throw new InvalidArgumentException('journal_pdo_mismatch');
-        return function (int $admin, string $connection, string $queue, string $stage): void {
-            if ($admin !== $this->admin || $connection !== $this->connection) throw new DomainException('journal_access_denied');
-            if ($this->head($queue, $stage, true) !== null) $this->reject('generation_required_legacy_mutation');
-        };
+        return HotelWorkQueueFactory::journalGuard($pdo);
     }
 
     private function requiredHead(string $queue, string $stage): array
     {
         self::id($queue); self::id($stage);
+        // Same order as legacy Queue/trait transactions, including authenticated reads.
+        $row = $this->authorizeQueue($queue);
         $head = $this->head($queue, $stage, true);
         if ($head === null) $this->reject('stage_not_enrolled');
-        $this->authorizeQueue($queue, $head['baseline_sha256']);
+        if (($row['write_protocol'] ?? null) !== 'journal_v1') $this->reject('journal_marker_mismatch');
+        if ($row['baseline_sha256'] !== $head['baseline_sha256']) $this->reject('journal_access_denied');
+        $head['_current_stage'] = hash('sha256', self::json([$queue, $row['plan_sha256'], (int)$row['stage_index']]));
+        $head['_lane_queue'] = $row['_lane_queue'];
         return $head;
+    }
+    private function currentStage(array $head): void
+    {
+        if ($head['_current_stage'] !== $head['stage_id']) $this->reject('stale_stage');
+        if ($head['_lane_queue'] !== $head['queue_id']) $this->reject('journal_lane_not_owned');
     }
     private function controlledHead(string $queue, string $stage, int $generation, string $control): array
     {
@@ -267,10 +286,17 @@ final class HotelWorkOperationJournalPrototype
     {
         return $this->one('SELECT * FROM hotel_journal_heads WHERE queue_id=? AND stage_id=?'.($lock && $this->driver === 'mysql' ? ' FOR UPDATE' : ''), [$queue, $stage]);
     }
-    private function authorizeQueue(string $queue, string $baseline): void
+    private function authorizeQueue(string $queue, ?string $baseline = null): array
     {
-        $row = $this->one('SELECT admin_id,oauth_connection_id,baseline_sha256 FROM hotel_work_queues WHERE queue_id=?', [$queue]);
-        if ($row === null || (int)$row['admin_id'] !== $this->admin || $row['oauth_connection_id'] !== $this->connection || $row['baseline_sha256'] !== $baseline) throw new DomainException('journal_access_denied');
+        $lock = $this->driver === 'mysql' ? ' FOR UPDATE' : '';
+        $lane = $this->one('SELECT queue_id FROM hotel_work_lane WHERE lane_key=?'.$lock, ['HOTEL']);
+        if ($lane === null) $this->reject('journal_lane_unavailable');
+        $row = $this->one('SELECT * FROM hotel_work_queues WHERE queue_id=?'.$lock, [$queue]);
+        if ($row === null || $row['project_key'] !== 'anytour' || (int)$row['admin_id'] !== $this->admin
+            || $row['oauth_connection_id'] !== $this->connection || ($baseline !== null && $row['baseline_sha256'] !== $baseline)) throw new DomainException('journal_access_denied');
+        $row['_lane_queue'] = $lane['queue_id'];
+        $this->hit('queue_locked');
+        return $row;
     }
     private function replay(array $head, string $request, string $method, array $input): ?array
     {

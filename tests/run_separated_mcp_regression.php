@@ -156,6 +156,54 @@ checkSplit('entry never asks a worker for the private claim key',!isset($repairT
 checkSplit('producer association is optional only on completion',
     isset($repairTools['hotel_work_complete']['inputSchema']['properties']['producer_association_sha256'])
     &&!in_array('producer_association_sha256',$repairTools['hotel_work_complete']['inputSchema']['required'],true));
+// Worker collection calls never expose control-plane bootstrap, reserve edits or commit.
+$collectionArgs=['queue_id'=>'SYNTHETIC','stage_id'=>str_repeat('a',64),'generation'=>1,
+    'operation_id'=>str_repeat('b',64),'worker_capability'=>str_repeat('c',64),'instance_id'=>'worker:instance.1'];
+foreach (['collection_context'=>$collectionArgs,'collection_candidate'=>$collectionArgs+
+    ['request_id'=>'candidate:request.1','packet_json'=>str_repeat(' ',20000).'{}']] as $operation=>$arguments) {
+    $name='hotel_work_'.$operation;
+    $result=$repairService->handle(rpcSplit('tools/call',['name'=>$name,'arguments'=>$arguments]),1,$h['connection_id'],$h['scopes']);
+    checkSplit('collection dispatch retains exact authenticated identity '.$operation,!isset($result['error'])
+        &&end($repairCalls)===[$operation,[1,$h['connection_id'],$arguments]]);
+    checkSplit('collection exact hotel scope and read hint '.$operation,
+        $repairTools[$name]['securitySchemes']===[['type'=>'oauth2','scopes'=>['hotel_work:write']]]
+        &&$repairTools[$name]['annotations']['readOnlyHint']===($operation==='collection_context')
+        &&$repairTools[$name]['inputSchema']['additionalProperties']===false);
+    foreach (['missing'=>array_diff_key($arguments,['worker_capability'=>true]),
+        'library'=>$arguments+['library_file_id'=>'untrusted'], 'scope'=>$arguments+['hotel_keys'=>['outside']],
+        'reserves'=>$arguments+['reserves'=>[]], 'provider'=>$arguments+['context_provider'=>'client'],
+        'business'=>$arguments+['business_accepted'=>true], 'generation'=>array_replace($arguments,['generation'=>'1']),
+        'capability'=>array_replace($arguments,['worker_capability'=>str_repeat('g',64)]),
+        'instance'=>array_replace($arguments,['instance_id'=>'bad instance'])] as $case=>$invalid) {
+        $before=count($repairCalls);
+        $denied=$repairService->handle(rpcSplit('tools/call',['name'=>$name,'arguments'=>$invalid]),1,$h['connection_id'],$h['scopes']);
+        checkSplit('collection rejects forged control or malformed identity '.$operation.'/'.$case,
+            isset($denied['error'])&&count($repairCalls)===$before);
+    }
+    $before=count($repairCalls);
+    $denied=$repairService->handle(rpcSplit('tools/call',['name'=>$name,'arguments'=>$arguments]),1,$r['connection_id'],$r['scopes']);
+    checkSplit('collection rejects replies audience '.$operation,isset($denied['error'])&&count($repairCalls)===$before);
+    $denied=$services['replies']->handle(rpcSplit('tools/call',['name'=>$name,'arguments'=>$arguments]),1,$r['connection_id'],$r['scopes']);
+    checkSplit('collection absent from replies surface '.$operation,($denied['error']['code']??0)===-32601);
+}
+foreach (['collection_bootstrap','collection_commit','collection_refresh_reserves','collection_prepare'] as $operation) {
+    $before=count($repairCalls);
+    $denied=$repairService->handle(rpcSplit('tools/call',['name'=>'hotel_work_'.$operation,'arguments'=>[]]),1,$h['connection_id'],$h['scopes']);
+    checkSplit('collection control is not public '.$operation,($denied['error']['code']??0)===-32601&&count($repairCalls)===$before);
+}
+$before=count($repairCalls);
+$denied=$repairService->handle(rpcSplit('tools/call',['name'=>'hotel_work_collection_candidate','arguments'=>$collectionArgs+
+    ['request_id'=>'candidate:oversize','packet_json'=>str_repeat('x',HotelWorkMcpAdapter::COLLECTION_PACKET_BYTES+1)]]),1,$h['connection_id'],$h['scopes']);
+checkSplit('collection raw packet byte bound enforced before store',isset($denied['error'])&&count($repairCalls)===$before);
+$escapedArgs=$collectionArgs+['request_id'=>'candidate:escaped','packet_json'=>str_repeat(chr(1),HotelWorkMcpAdapter::COLLECTION_PACKET_BYTES)];
+$escapedRpc=rpcSplit('tools/call',['name'=>'hotel_work_collection_candidate','arguments'=>$escapedArgs]);
+checkSplit('maximum escaped candidate fits existing HTTP budget',strlen(json_encode($escapedRpc,JSON_THROW_ON_ERROR))<196608);
+$escapedResult=$repairService->handle($escapedRpc,1,$h['connection_id'],$h['scopes']);
+checkSplit('escaped candidate within byte cap reaches typed service',!isset($escapedResult['error'])&&end($repairCalls)===['collection_candidate',[1,$h['connection_id'],$escapedArgs]]);
+$before=count($repairCalls);
+$denied=$repairService->handle(rpcSplit('tools/call',['name'=>'hotel_work_create','arguments'=>['queue_id'=>'SYNTHETIC',
+    'baseline_sha256'=>str_repeat('a',64),'padding'=>str_repeat('x',20000)]]),1,$h['connection_id'],$h['scopes']);
+checkSplit('collection wire allowance does not broaden legacy calls',isset($denied['error'])&&count($repairCalls)===$before);
 $background=new ManagerPreparationOAuth($pdo,$clock);
 checkSplit('reply cron accepts separate resource',$background->eventConnectionAuthorizedAcrossProfiles('replies',$r['connection_id'],1));
 checkSplit('hotel cron accepts separate resource',$background->eventConnectionAuthorizedAcrossProfiles('hotels',$h['connection_id'],1));

@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "class": "HotelWorkQueue",
+  "factory": "HotelWorkQueueFactory::create",
+  "server_switch": "No factory flag can downgrade sticky write_protocol=journal_v1. Enrollment is internal and explicit; no activation was performed.",
+  "activation": "No runtime switch or live enrollment performed",
+  "writes": {
+    "create": "New queues default to legacy; exact existing plan replay reads only, never overwrites the sticky marker or recreates a protected row.",
+    "claim": "Guard before new claim; existing identical claim ACK is read-only and not dispatch authority.",
+    "started": "Guard before run binding, including same-run legacy entry.",
+    "complete": "Guard before new receipt/advance; immutable exact receipt readback precedes it.",
+    "handoff_connection": "Guard after immutable prior receipt branch, before ownership/resume writes.",
+    "resolve_existing_run": "Guard after immutable resolution replay, before advancing.",
+    "skip_research": "Guard after immutable skip replay, before skip/ownership/advance.",
+    "release": "Guard before release/lane write; already released replay reads only.",
+    "repair_delivery": "Guard after immutable repair receipt replay, before new delivery generation.",
+    "pendingEvent": "Guard before automatic delivery recovery/watchdog/cursor mutation or emitting legacy dispatch.",
+    "markEventDelivered": "Guard before new event/watchdog/ACK mutation; exact existing ACK readback is no-op.",
+    "prepare_execution_attempt": "Guard after exact permit replay, before new permit.",
+    "enter_execution_attempt": "Guard after exact entry replay; old entry readback work_authorized=false.",
+    "bind_execution_attempt": "Guard after exact association replay, before immutable association insert."
+  },
+  "reads": [
+    "status",
+    "delivery_repair_preflight",
+    "handoff_preflight",
+    "eventCandidates",
+    "execution_attempt_preflight"
+  ],
+  "scope": "All public Queue writes including execution trait are intrinsically guarded for marked queues, including raw/precreated objects. Healthy legacy rows need no journal store. External privileged SQL and Library ACLs are separate boundaries."
+}

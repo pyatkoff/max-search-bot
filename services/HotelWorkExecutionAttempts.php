@@ -29,6 +29,7 @@ trait HotelWorkExecutionAttempts
                 if (!hash_equals($record['request_sha256'],$request)) throw new HotelWorkQueueConflict('execution_attempt_conflict');
                 return $this->executionPermitResult($row,$record,'already_prepared');
             }
+            $this->legacyWrite($row);
             $reason=$this->executionEligibility($row,$lane,$args,$stage);
             if ($reason!==null) throw new HotelWorkQueueConflict($reason);
             if (!hash_equals((string)$row['claim_sha256'],$claim)) throw new HotelWorkQueueConflict('claim_mismatch');
@@ -66,6 +67,7 @@ trait HotelWorkExecutionAttempts
                 if (!hash_equals($record['_entry']['request_sha256'],$request)) throw new HotelWorkQueueConflict('execution_attempt_instance_conflict');
                 return $this->executionEntryResult($row,$record,'already_entered_do_not_replay',false);
             }
+            $this->legacyWrite($row);
             $reason=$this->executionEligibility($row,$lane,$record['_audit']['request'],$stage);
             if ($reason!==null) throw new HotelWorkQueueConflict($reason);
             $this->executionCurrentClaim($row,$record);
@@ -98,6 +100,7 @@ trait HotelWorkExecutionAttempts
                 if (!hash_equals($record['_association']['request_sha256'],$request)) throw new HotelWorkQueueConflict('execution_attempt_association_conflict');
                 return $this->executionAssociationResult($row,$record,'already_recorded');
             }
+            $this->legacyWrite($row);
             $reason=$this->executionEligibility($row,$lane,$args,$stage);
             if ($reason!==null) throw new HotelWorkQueueConflict($reason);
             $this->executionCurrentClaim($row,$record);
