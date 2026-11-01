@@ -1,4 +1,4 @@
-name: Inspect exact failed publication receipt without sending
+name: Delete five explicitly rejected Telegram notes
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -38,8 +38,8 @@ jobs:
           umask 077
           python3 - <<'PY'
           import pathlib,hashlib,os
-          script=pathlib.Path('tools/direct_demand/operations/read-content100-failed-receipt.php').read_text()
-          assert hashlib.sha256(script.encode()).hexdigest()=='0d838023bb64104970a5214daeb7f3aa11be402a5816e834f5424fd253bd38d1'
+          script=pathlib.Path('tools/direct_demand/operations/delete-rejected-telegram-notes.php').read_text()
+          assert hashlib.sha256(script.encode()).hexdigest()=='40b23ad8caa42ca4e75ca08aed16626ceaae61c7721eb142627c07b67c81839d'
           prefix="<?php\ndeclare(strict_types=1);\n"
           assert script.startswith(prefix)
           header=prefix+"const EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\n"
@@ -84,7 +84,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Publish remaining approved Telegram and MAX posts with deduplication
+      - name: Delete only explicitly rejected Telegram posts16–20
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -98,15 +98,15 @@ jobs:
           lines=pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.json').read_text().splitlines()
           d=json.loads(lines[-1])
           print(json.dumps(d,ensure_ascii=False,sort_keys=True))
-          assert d['operation']=='content100-bot-publication-20261101-v1' and d['mode']=='read_failed_receipt_only'
-          assert d['ok'] is True and d['post_write_attempts']==0
+          assert d['operation']=='content100-delete-rejected-notes-20261101-v1' and d['mode']=='delete_exact_rejected_telegram_posts'
+          assert d['ok'] is True and d['post_write_attempts']==0 and len(d['deleted'])==5
           PY
           test "${probe_status:-0}" = 0
       - name: Retain bounded route evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: content100-exact-failed-receipt
+          name: content100-deleted-rejected-notes
           path: ${{ runner.temp }}/channel-preflight.json
           retention-days: 14
           if-no-files-found: warn
