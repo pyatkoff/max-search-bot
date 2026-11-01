@@ -1,4 +1,4 @@
-name: Publish remaining approved AnyTour posts without duplicates
+name: Inspect exact failed publication receipt without sending
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -15,7 +15,7 @@ jobs:
   inspect:
     if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
         with:
@@ -38,15 +38,11 @@ jobs:
           umask 077
           python3 - <<'PY'
           import pathlib,hashlib,os
-          script=pathlib.Path('tools/direct_demand/operations/publish-content100-remaining.php').read_text()
-          assert hashlib.sha256(script.encode()).hexdigest()=='02738b697fa6ecd1020323f9a0ab85401b9f55e685c669da0300328bf865f695'
+          script=pathlib.Path('tools/direct_demand/operations/read-content100-failed-receipt.php').read_text()
+          assert hashlib.sha256(script.encode()).hexdigest()=='0d838023bb64104970a5214daeb7f3aa11be402a5816e834f5424fd253bd38d1'
           prefix="<?php\ndeclare(strict_types=1);\n"
           assert script.startswith(prefix)
-          import gzip,base64
-          manifest=gzip.decompress(base64.b64decode(pathlib.Path('tools/direct_demand/operations/content100-approved-manifest.json.gz.b64').read_text()))
-          assert hashlib.sha256(manifest).hexdigest()=='1935a69da5d1fc35e108f5f578197535ae7e565dfe0ec4b24d0c7b24a0bc53f0'
-          import base64
-          header=prefix+"const EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst MANIFEST_BASE64='"+base64.b64encode(manifest).decode()+"';\n"
+          header=prefix+"const EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\n"
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.php').write_text(header+script[len(prefix):])
           PY
           php -l "$RUNNER_TEMP/channel-preflight.php"
@@ -102,15 +98,15 @@ jobs:
           lines=pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.json').read_text().splitlines()
           d=json.loads(lines[-1])
           print(json.dumps(d,ensure_ascii=False,sort_keys=True))
-          assert d['operation']=='content100-bot-publication-20261101-v1' and d['mode']=='publish_remaining_approved_content100'
-          assert d['ok'] is True and len(d['posts'])==200
+          assert d['operation']=='content100-bot-publication-20261101-v1' and d['mode']=='read_failed_receipt_only'
+          assert d['ok'] is True and d['post_write_attempts']==0
           PY
           test "${probe_status:-0}" = 0
       - name: Retain bounded route evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: content100-both-channels-publication
+          name: content100-exact-failed-receipt
           path: ${{ runner.temp }}/channel-preflight.json
           retention-days: 14
           if-no-files-found: warn
