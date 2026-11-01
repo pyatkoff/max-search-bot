@@ -34,11 +34,12 @@ final class HotelLegacyEffectQuarantine
         $input=hash('sha256',HotelNativeRecoveryContext::json([$queue,$expected,$request,$originalRun,$workingSha,$packetSha,$evidenceSha]));
         return$this->tx(function()use($queue,$expected,$request,$originalRun,$working,$workingSha,$packetSha,$evidenceSha,$input):array{
             $q=$this->c->owned($queue,true);$old=$this->c->one('SELECT * FROM hotel_legacy_effect_quarantine WHERE queue_id=?',[$queue]);
+            if(!$this->triggersReady())throw new DomainException('quarantine_database_barrier_required');
             if($old){
-                if($q['write_protocol']!==self::PROTOCOL||!hash_equals($old['request_sha256'],$input)||hash('sha256',$old['working_bytes'])!==$old['working_sha256'])throw new DomainException('quarantine_replay_conflict');
+                $original=$q;$original['write_protocol']='legacy';
+                if($q['write_protocol']!==self::PROTOCOL||!hash_equals(self::businessHash($original),$expected)||!hash_equals($old['request_sha256'],$input)||hash('sha256',$old['working_bytes'])!==$old['working_sha256'])throw new DomainException('quarantine_replay_conflict');
                 return json_decode($old['receipt_bytes'],true,32,JSON_THROW_ON_ERROR);
             }
-            if(!$this->triggersReady())throw new DomainException('quarantine_database_barrier_required');
             if(!self::eligible($q)||!hash_equals(self::businessHash($q),$expected))throw new DomainException('quarantine_business_CAS_conflict');
             // Never coexist with an enrolled canonical writer or old receipt.
             if($this->c->one('SELECT stage_id FROM hotel_journal_heads WHERE queue_id=?',[$queue])

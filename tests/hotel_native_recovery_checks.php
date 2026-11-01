@@ -88,5 +88,6 @@ hccReject(fn()=>$cached->claim(901001,$f['conn'],$late),'quarantine_cached_claim
 hccReject(fn()=>$cached->started(901001,$f['conn'],$late+['run_id'=>'old-delayed-run']),'quarantine_delayed_started_refused','legacy_run_quarantined');
 hccReject(fn()=>$cached->release(901001,$f['conn'],['queue_id'=>'COLLECTION-SERVICE','stage_id'=>$stage]),'quarantine_no_release','legacy_run_quarantined');
 hccReject(fn()=>$f['journal']->enroll('COLLECTION-SERVICE',$stage,$f['sha'],$f['control'],'controller'),'quarantine_no_journal_downgrade_or_adoption','journal_marker_mismatch');
+$p->exec('DROP TRIGGER hotel_quarantine_receipt_insert');hccReject(fn()=>$quarantine->apply(...$args),'quarantine_lost_trigger_never_reports_verified_replay','quarantine_database_barrier_required');
 $p->exec('DROP TABLE hotel_legacy_effect_quarantine');hccReject(fn()=>$cached->started(901001,$f['conn'],$late+['run_id'=>'old-delayed-run']),'quarantine_missing_store_still_fences','legacy_run_quarantined');
 echo "HOTEL NATIVE RECOVERY CHECKS PASS\n";
