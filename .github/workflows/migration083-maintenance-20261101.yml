@@ -1,0 +1,137 @@
+name: Inspect existing hotel083 administrative authority read-only
+on:
+  push:
+    branches: [audit/migration083-maintenance-20261101]
+    paths: [.github/workflows/migration083-maintenance-20261101.yml]
+permissions:
+  contents: read
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+env:
+  EXPECTED_MAIN_SHA: a8b4c2d1126b0e38d831e0ace9d75554d6e4415b
+jobs:
+  inspect:
+    if: github.ref == 'refs/heads/audit/migration083-maintenance-20261101'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify exact current main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = "$EXPECTED_MAIN_SHA"
+      - name: Setup PHP for probe syntax validation
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: Prepare existing connection and pinned host
+        env:
+          CONNECTION_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          CONNECTION_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          CONNECTION_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          raw="$CONNECTION_KEY"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' >"$RUNNER_TEMP/hotel083_key"; else printf '%s\n' "$raw" | tr -d '\r' >"$RUNNER_TEMP/hotel083_key"; fi
+          else
+            printf '%s' "$raw" | base64 --decode >"$RUNNER_TEMP/hotel083_key"
+          fi
+          ssh-keygen -y -f "$RUNNER_TEMP/hotel083_key" >/dev/null
+          python3 - <<'PY'
+          import os,re,subprocess,base64,hashlib,pathlib
+          host=os.environ['CONNECTION_HOST'];user=os.environ['CONNECTION_USER']
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',user)
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35)
+          approved=[]
+          for line in scan.stdout.splitlines():
+              fields=line.split()
+              if len(fields)<3 or fields[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':approved.append(line)
+          assert approved,'Existing host continuity mismatch; STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/hotel083_hosts').write_text('\n'.join(approved)+'\n')
+          PY
+      - name: Read sudo policy and test only the absolute inspect command
+        env:
+          CONNECTION_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          CONNECTION_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          cat >"$RUNNER_TEMP/hotel083_probe.php" <<'PHP'
+          <?php
+          declare(strict_types=1);
+          ini_set('display_errors','0');ini_set('log_errors','0');
+          $out=['operation'=>'hotel083-sudo-readonly-v1','read_only'=>true,'migration_apply_attempts'=>0,'retirement_attempts'=>0,'new_start_allowed'=>false,'process_euid'=>function_exists('posix_geteuid')?posix_geteuid():null];
+          function fixedReadCommand(array $argv):array{
+              $pipes=[];$p=@proc_open($argv,[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes);
+              if(!is_resource($p))return[127,'',''];
+              fclose($pipes[0]);$stdout=(string)stream_get_contents($pipes[1],65536);$stderr=(string)stream_get_contents($pipes[2],65536);
+              fclose($pipes[1]);fclose($pipes[2]);return[proc_close($p),$stdout,$stderr];
+          }
+          try{
+              $sudo=is_executable('/usr/bin/sudo')?'/usr/bin/sudo':(is_executable('/bin/sudo')?'/bin/sudo':null);
+              $out['sudo_present']=$sudo!==null;$out['timeout_available']=is_executable('/usr/bin/timeout');
+              if($sudo!==null&&$out['timeout_available']){
+                  [$code,$raw,$error]=fixedReadCommand(['/usr/bin/timeout','15',$sudo,'-n','-l']);
+                  $out['sudo_list_exit_code']=$code;$out['sudo_list_available']=$code===0;
+                  $out['sudo_list_password_required']=str_contains(strtolower($error),'password');
+                  $out['sudo_list_timed_out']=$code===124;
+                  $out['nopasswd_entry_observed']=$code===0&&str_contains($raw,'NOPASSWD:');
+                  $out['php_entry_observed']=$code===0&&preg_match('~/(?:usr/)?bin/php(?:[0-9.]*)?(?:\s|,|$)~m',$raw)===1;
+                  $out['mysql_entry_observed']=$code===0&&preg_match('~/(?:usr/)?bin/(?:mysql|mariadb)(?:\s|,|$)~m',$raw)===1;
+                  unset($raw,$error);
+                  [$inspectCode,$safeJson,$inspectError]=fixedReadCommand(['/usr/bin/timeout','20',$sudo,'-n','--','/usr/bin/php','/var/www/anytoour/data/www/app.anytoour.ru/tools/hotel_retirement_ops.php','inspect']);
+                  $out['absolute_inspect_exit_code']=$inspectCode;
+                  $out['absolute_inspect_password_required']=str_contains(strtolower($inspectError),'password');
+                  $out['absolute_inspect_timed_out']=$inspectCode===124;
+                  $d=json_decode($safeJson,true);unset($safeJson,$inspectError);
+                  $out['administrative_inspect_confirmed']=false;
+                  if(is_array($d)){
+                      if(is_int($d['process_euid']??null))$out['inspect_process_euid']=$d['process_euid'];
+                      if(in_array($d['reason']??null,['existing_admin_context_unavailable','retirement_server_scope_mismatch'],true))$out['inspect_reason']=$d['reason'];
+                      $providers=[];
+                      foreach(($d['existing_providers']??[])as$name=>$row){
+                          if(!is_string($name)||!preg_match('/\A(?:application|uid0_socket|existing_profile_[0-2])\z/D',$name)||!is_array($row))continue;
+                          $filtered=[];foreach(['authenticated','same_application_database','visible_super','visible_trigger','eligible']as$key)if(is_bool($row[$key]??null))$filtered[$key]=$row[$key];
+                          $providers[$name]=$filtered;
+                      }
+                      $out['providers']=$providers;
+                      $out['administrative_inspect_confirmed']=$inspectCode===0&&($d['read_only']??null)===true&&array_filter($providers,static fn($r)=>($r['eligible']??null)===true)!==[];
+                  }
+              }
+          }catch(Throwable $e){$out['probe_reason']='bounded_readonly_probe_unavailable';}
+          echo json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
+          PHP
+          php -l "$RUNNER_TEMP/hotel083_probe.php" >/dev/null
+          ssh -i "$RUNNER_TEMP/hotel083_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/hotel083_hosts" "$CONNECTION_USER@$CONNECTION_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_MAIN_SHA'; git diff --quiet; git diff --cached --quiet; /usr/bin/php" >"$RUNNER_TEMP/hotel083_sudo_inventory.json" <"$RUNNER_TEMP/hotel083_probe.php"
+          python3 - <<'PY'
+          import os,json,pathlib
+          p=pathlib.Path(os.environ['RUNNER_TEMP']+'/hotel083_sudo_inventory.json')
+          d=json.loads(p.read_text())
+          assert d['operation']=='hotel083-sudo-readonly-v1' and d['read_only'] is True
+          assert d['migration_apply_attempts']==0 and d['retirement_attempts']==0 and d['new_start_allowed'] is False
+          print(json.dumps(d,sort_keys=True))
+          PY
+      - name: Retain sanitized read-only result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hotel083-sudo-readonly-result
+          path: ${{ runner.temp }}/hotel083_sudo_inventory.json
+          retention-days: 14
+          if-no-files-found: warn
+      - name: Remove ephemeral connection files
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/hotel083_key" "$RUNNER_TEMP/hotel083_hosts" "$RUNNER_TEMP/hotel083_sudo_inventory.json" "$RUNNER_TEMP/hotel083_probe.php"
