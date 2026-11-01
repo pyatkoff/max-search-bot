@@ -78,9 +78,16 @@ hrtCheck($q->pendingEvent(1,$conn,'RETIRE-FIXTURE')===null,'retired_queue_emits_
 hrtReject(fn()=>$q->claim(1,$conn,['queue_id'=>'RETIRE-FIXTURE','stage_id'=>$pre['expected_state_sha256'],'claim_key'=>str_repeat('a',64)]),'cached_old_claim_cannot_restart');
 $new=$q->create(1,$conn,['queue_id'=>'NEW-FIXTURE-METADATA-ONLY','mode'=>'continuous','baseline_sha256'=>str_repeat('e',64)]);
 hrtCheck($new['created']===true&&$p->query("SELECT queue_id FROM hotel_work_lane WHERE lane_key='HOTEL'")->fetchColumn()==='NEW-FIXTURE-METADATA-ONLY','future_different_queue_can_use_the_freed_lane_in_fixture');
-hrtCheck($service->retire(...$args)===$result&&$p->query("SELECT queue_id FROM hotel_work_lane WHERE lane_key='HOTEL'")->fetchColumn()==='NEW-FIXTURE-METADATA-ONLY','lost_ACK_replay_never_releases_a_new_owner_lane');
+hrtCheck($service->retire(...$args)==$result&&$p->query("SELECT queue_id FROM hotel_work_lane WHERE lane_key='HOTEL'")->fetchColumn()==='NEW-FIXTURE-METADATA-ONLY','lost_ACK_replay_never_releases_a_new_owner_lane');
 $oldReplay=$q->create(1,$conn,['queue_id'=>'RETIRE-FIXTURE','mode'=>'continuous','start_country'=>'TR','phase_counter'=>0,'baseline_sha256'=>str_repeat('b',64)]);
 hrtCheck($oldReplay['state']==='retired'&&!$oldReplay['created'],'stale_create_cannot_recreate_retired_queue');
+require_once dirname(__DIR__).'/services/HotelWorkEventService.php';
+ProjectConfig::resetForTests(['id'=>'anytour','brand'=>['name'=>'AnyTour']]);$requests=0;
+$webhook=new ManagerPreparationWebhook(static function()use(&$requests):array{++$requests;return['status'=>500,'body'=>''];},static fn():array=>['93.184.216.34'],$clock);
+$events=new HotelWorkEventService($p,$webhook,$clock,static fn():bool=>true,$q);
+hrtReject(fn()=>$events->subscribe(['name'=>'hotel_work.pending','arguments'=>['project_key'=>'anytour','queue_id'=>'RETIRE-FIXTURE'],'delivery'=>['mode'=>'webhook','url'=>'https://hooks.example.com/retired','secret'=>'whsec_'.base64_encode(str_repeat('s',32))]],1,$conn),'retired_subscription_denied_before_verification');
+hrtCheck($requests===0,'retired_subscribe_makes_no_external_callback');
+$inventory=$events->subscriptionSetup(1,$conn,'RETIRE-FIXTURE');hrtCheck(($inventory['available']??null)===true,'retired_subscription_inventory_remains_readable');
 hrtCleanup($p);$p=null;$q=null;if($file!==null)@unlink($file);
 echo 'HOTEL RETIREMENT: '.$hrtChecks.' PASS (isolated fixture; no native stop or production retirement proof)'.PHP_EOL;
 

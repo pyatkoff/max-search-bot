@@ -55,7 +55,7 @@ final class HotelWorkEventService
     {
         $this->requireSetupAutocommit();
         $this->authorizeSetup($admin,$connection);
-        if(($this->queue->status($admin,$connection,$queueId)['state']??null)==='retired')throw new DomainException('hotel_queue_retired');
+        $this->queue->status($admin,$connection,$queueId);
         $this->requireSetupAutocommit();
         $now=$this->now();
         if ($now<1) throw new RuntimeException('hotel_subscription_status_unavailable');
@@ -189,7 +189,7 @@ final class HotelWorkEventService
     {
         $this->authorize($admin,$connection);
         [$id,$single,$queueId,$name,$url,$secret,$arguments]=$this->identity($params,$admin,$connection,true);
-        $this->queue->status($admin,$connection,$queueId);
+        if(($this->queue->status($admin,$connection,$queueId)['state']??null)==='retired')throw new DomainException('hotel_queue_retired');
         $ttl=$params['ttlMs']??86400000;
         if (!is_int($ttl)||$ttl<1000) throw new InvalidArgumentException();
         $ttl=min($ttl,86400000);$now=$this->now();$date=self::date($now);

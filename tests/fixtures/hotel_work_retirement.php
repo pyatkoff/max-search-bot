@@ -4,6 +4,7 @@ function hrtSchema(PDO $p):void
 {
     $mysql=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
     if($mysql&&preg_match('/\Amaxbot_prepared_test(?:_[a-zA-Z0-9_]+)?\z/D',(string)$p->query('SELECT DATABASE()')->fetchColumn())!==1)throw new RuntimeException('unsafe_retirement_fixture');
+    hrtCleanup($p);$p->exec('DROP TABLE IF EXISTS hotel_work_events');
     $event=(string)file_get_contents(dirname(__DIR__,2).'/migrations/071_hotel_work_events.sql');
     $sql=(string)file_get_contents(dirname(__DIR__,2).'/migrations/083_hotel_work_retirement.sql');
     if($mysql){foreach(explode(';',$event."\n".$sql)as$s)if(trim($s)!=='')$p->exec($s);return;}
@@ -23,6 +24,6 @@ function hrtCleanup(PDO$p):void
 {
     foreach(HotelWorkRetirement::TABLES as$i=>$t)foreach(['insert','update','delete']as$op)$p->exec('DROP TRIGGER IF EXISTS hotel_retired_'.$i.'_'.$op);
     foreach(['hotel_retired_lane_insert','hotel_retired_lane_update','hotel_retirement_immutable_update','hotel_retirement_immutable_delete']as$n)$p->exec('DROP TRIGGER IF EXISTS '.$n);
-    $p->exec('DROP TABLE hotel_work_retirements');$p->exec('DROP TABLE hotel_retirement_gate');
+    $p->exec('DROP TABLE IF EXISTS hotel_work_retirements');$p->exec('DROP TABLE IF EXISTS hotel_retirement_gate');
 }
 
