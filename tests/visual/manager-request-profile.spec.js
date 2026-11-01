@@ -102,3 +102,72 @@ for(const projectKey of ['anytour','other'])test(`actual lead-card profile entry
   const link=page.locator('[data-request-profile] a');if(projectKey==='anytour'){await expect(link).toHaveAttribute('href','/manager2/request-profile.php?conversation=11');await expect(link).toHaveAttribute('target','_blank');await expect(link).toHaveAttribute('rel','noopener')}else await expect(link).toHaveCount(0);
   await expect(page.locator('#replyText')).toHaveValue('Несохранённый ответ туристу');expect(s.calls.filter(c=>c.action==='send')).toEqual([]);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
 });
+
+async function hotelFamily(page){const party=await editField(page,'party');await party.locator('[data-value=adults]').fill('2');await party.locator('[data-value=children]').fill('1');await party.locator('[data-value=ages]').fill('12');await party.locator('[data-kind]').selectOption('customer_statement');await party.locator('[data-source]').selectOption('13');await party.locator('[data-quote]').fill('На те же даты только на 3-х, 2 взрослых и один ребёнок 12 лет.')}
+async function hotelReady(page){await ready(page);await expect(page.locator('#profileHotelFocus')).toBeVisible();await expect(page.locator('#profileHotelChoice option')).toHaveCount(2)}
+async function hotelChoose(page,id='12'){await page.locator('#profileHotelChoice').selectOption(id);await expect(page.locator('#profileHotelConfirm')).not.toBeChecked();await page.locator('#profileHotelConfirm').check()}
+async function hotelRead(page){return page.evaluate(async()=>await(await fetch('/manager/request-profile-api.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'get',conversation_id:1,csrf:'fixture-profile-csrf'})})).json())}
+for(const width of [390,430,768,1440])test(`hotel focus explicit family clarification and exact offer at ${width}px`,async({page,browserName})=>{
+  await page.setViewportSize({width,height:900});app=await setupRequestProfile(page,{mode:'hotel_focus'});await hotelReady(page);
+  await expect(page.locator('#profileHotelChoice')).toHaveValue('0');await expect(page.locator('#profileHotelConfirm')).not.toBeChecked();
+  expect(app.calls.filter(c=>c.action==='save')).toHaveLength(0);const before=await hotelRead(page);expect(before.profile.hotel_focus||null).toBeNull();
+  await hotelFamily(page);await hotelChoose(page);await expect(page.locator('#profileHotelTerms')).toContainText('Состав в предложении: 2 взр., 0 дет.');
+  await expect(page.locator('#profileHotelTerms')).toContainText('Family Suite');await expect(page.locator('#profileHotelTerms')).toContainText('RUB');
+  await save(page);const after=await hotelRead(page);expect(after.profile.hotel_focus.status).toBe('confirmed');expect(after.profile.fields.party.value).toEqual({adults:2,children:1,child_ages:[12]});expect(after.profile.fields.dates.citation.message_id).toBe(10);
+  const sent=app.calls.find(c=>c.action==='save');expect(sent.hotel_focus).toEqual({message_id:12,revision:before.hotel_focus_candidates[0].revision});
+  await expect(page.locator('#profileHotelState')).toContainText('Связь сохранена');await expect(page.locator('#profileHotelFocus')).toContainText('Цена, наличие');
+  const geometry=await page.evaluate(()=>{const terms=document.getElementById('profileHotelTerms');return {width:innerWidth,scroll:document.documentElement.scrollWidth,choice:document.getElementById('profileHotelChoice').getBoundingClientRect().height,terms:{client:terms.clientHeight,scroll:terms.scrollHeight}}});
+  const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});await page.screenshot({path:path.join(directory,`request-profile-hotel-${browserName}-${width}.png`),animations:'disabled',fullPage:true});
+  expect(geometry.scroll,JSON.stringify(geometry)).toBeLessThanOrEqual(geometry.width);expect(geometry.choice).toBeGreaterThanOrEqual(44);expect(geometry.terms.scroll,JSON.stringify(geometry)).toBeLessThanOrEqual(geometry.terms.client);
+});
+test('hotel focus followup requires a new acknowledgement without losing the family or date',async({page})=>{
+  app=await setupRequestProfile(page,{mode:'hotel_focus'});await hotelReady(page);await hotelFamily(page);await hotelChoose(page);await save(page);
+  app.mutate("INSERT INTO messages VALUES(14,1,'inbound','customer','А питание для ребёнка тоже нужно проверить.','2026-11-01 11:00:00','telegram',NULL,'tourist','synthetic-14')");
+  await page.locator('#profileRefresh').click();await expect(page.locator('#profileHotelState')).toContainText('Есть уточнения');await expect(page.locator('#profileHotelConfirm')).not.toBeChecked();
+  await expect(field(page,'party').locator('[data-value=ages]')).toHaveValue('12');await expect(field(page,'dates').locator('[data-source]')).toHaveValue('10');
+  await page.locator('#profileHotelChoice').selectOption('12');await page.locator('#profileHotelConfirm').check();await save(page);expect((await hotelRead(page)).profile.hotel_focus.status).toBe('confirmed');
+});
+test('hotel focus source revision drift clears an unsaved acknowledgement on same message context',async({page})=>{
+  app=await setupRequestProfile(page,{mode:'hotel_focus'});await hotelReady(page);await hotelChoose(page);const before=await hotelRead(page);
+  app.mutate("UPDATE manager_tour_selection_publications SET selection_json=json_set(selection_json,'$.offers[0].import_source.raw.tariff','Updated synthetic source tariff')");
+  await page.locator('#profileRefresh').click();await expect(page.locator('#profileHotelConfirm')).not.toBeChecked();const after=await hotelRead(page);
+  expect(after.context_sha256).toBe(before.context_sha256);expect(after.hotel_focus_candidates[0].revision).not.toBe(before.hotel_focus_candidates[0].revision);
+  expect(app.calls.filter(c=>c.action==='save')).toHaveLength(0);
+});
+test('hotel focus invalid party cannot resurrect explicitly unchecked or cleared confirmation',async({page})=>{
+  app=await setupRequestProfile(page,{mode:'hotel_focus'});await hotelReady(page);await hotelFamily(page);await hotelChoose(page);await save(page);
+  const party=await editField(page,'party');await party.locator('[data-value=children]').fill('');await page.locator('#profileHotelConfirm').uncheck();
+  await page.locator('#profileBoundary').selectOption('10');await expect(page.locator('#profileHotelConfirm')).not.toBeChecked();
+  await hotelFamily(page);await expect(page.locator('#profileHotelConfirm')).not.toBeChecked();await page.locator('#profileHotelChoice').selectOption('12');await page.locator('#profileHotelConfirm').check();
+  await party.locator('[data-value=children]').fill('');await page.locator('#profileHotelChoice').selectOption('0');await expect(page.locator('#profileHotelChoice')).toHaveValue('0');await expect(page.locator('#profileHotelConfirm')).not.toBeChecked();
+  await hotelFamily(page);await expect(page.locator('#profileHotelConfirm')).not.toBeChecked();await save(page);expect((await hotelRead(page)).profile.hotel_focus||null).toBeNull();
+});
+test('hotel focus explicit clear and separate trip never inherit an earlier offer',async({page})=>{
+  app=await setupRequestProfile(page,{mode:'hotel_focus'});await hotelReady(page);await hotelChoose(page);await save(page);
+  await page.locator('#profileHotelChoice').selectOption('0');await expect(page.locator('#profileHotelConfirm')).not.toBeChecked();await save(page);expect((await hotelRead(page)).profile.hotel_focus||null).toBeNull();
+  await hotelChoose(page);await save(page);const oldTrip=(await hotelRead(page)).profile.trip_id;
+  await page.locator('#profileNewTrip').check();await expect(page.locator('#profileHotelConfirm')).not.toBeChecked();await page.locator('#profileBoundary').selectOption('13');await page.locator('#profileLabel').fill('Отдельная поездка после нового запроса');
+  await expect(page.locator('#profileHotelChoice option[value="12"]')).toHaveCount(0);await save(page);const next=await hotelRead(page);expect(next.profile.trip_id).not.toBe(oldTrip);expect(next.profile.hotel_focus||null).toBeNull();expect(next.hotel_focus_candidates).toEqual([]);
+});
+test('hotel focus delayed successful save preserves a newer explicit clear',async({page})=>{
+  app=await setupRequestProfile(page,{mode:'hotel_focus'});await hotelReady(page);await hotelChoose(page);app.queue({action:'save',actual:true,hold:true});await page.locator('#profileSave').click();await expect.poll(()=>app.heldCount()).toBe(1);
+  await page.locator('#profileHotelChoice').selectOption('0');await expect(page.locator('#profileHotelConfirm')).not.toBeChecked();app.release();await expect(page.locator('#profileStatus')).toContainText('Новые правки');
+  await expect(page.locator('#profileHotelChoice')).toHaveValue('0');await expect(page.locator('#profileHotelConfirm')).not.toBeChecked();await save(page);expect((await hotelRead(page)).profile.hotel_focus||null).toBeNull();
+});
+test('hotel focus late read keeps same-source local acknowledgement and actor revocation clears terms',async({page})=>{
+  app=await setupRequestProfile(page,{mode:'hotel_focus'});await hotelReady(page);app.queue({action:'get',actual:true,hold:true});await page.locator('#profileRefresh').click();await expect.poll(()=>app.heldCount()).toBe(1);
+  await hotelChoose(page);app.release();await expect(page.locator('#profileStatus')).toContainText('Профиль загружен');await expect(page.locator('#profileHotelConfirm')).toBeChecked();
+  app.mutate('DELETE FROM manager_projects WHERE manager_id=1');await page.locator('#profileRefresh').click();await expect(page.locator('#profileApp')).toBeHidden();await expect(page.locator('#profileHotelTerms')).toBeEmpty();await expect(page.locator('#profileHotelChoice option')).toHaveCount(0);await expect(page.locator('#profileHotelConfirm')).not.toBeChecked();
+});
+test('hotel focus malformed stored confirmation never activates a property',async({page})=>{
+  app=await setupRequestProfile(page,{mode:'hotel_focus'});await hotelReady(page);
+  await page.evaluate(()=>{const key='anytour.requestProfile.1.1';sessionStorage.setItem(key,JSON.stringify({at:Date.now(),draft:{version:1,context_sha256:'0'.repeat(64),label:'stored',boundary_message_id:10,new_trip:false,fields:{},hotel_focus:{message_id:12,revision:'invalid'}}}))});
+  await page.reload();await hotelReady(page);await expect(page.locator('#profileHotelChoice')).toHaveValue('0');await expect(page.locator('#profileHotelConfirm')).not.toBeChecked();expect(app.calls.filter(c=>c.action==='save')).toHaveLength(0);
+});
+test('hotel focus same hotel and room never silently substitutes a second native tariff',async({page})=>{
+  app=await setupRequestProfile(page,{mode:'hotel_focus'});await hotelReady(page);await hotelFamily(page);await hotelChoose(page);await save(page);const first=await hotelRead(page);
+  app.secondHotelInquiry(15);await page.locator('#profileRefresh').click();await expect(page.locator('#profileHotelConfirm')).not.toBeChecked();await expect(page.locator('#profileHotelChoice')).toHaveValue('0');
+  const changed=await hotelRead(page);expect(changed.hotel_focus_candidates).toHaveLength(1);const next=changed.hotel_focus_candidates[0];expect(next.message_id).toBe(15);expect(next.hotel_ref).toEqual(first.hotel_focus_candidates[0].hotel_ref);expect(next.selected_room).toBe(first.hotel_focus_candidates[0].selected_room);expect(next.public_offer.amount).toBe('185000');expect(next.revision).not.toBe(first.hotel_focus_candidates[0].revision);
+  await page.locator('#profileHotelChoice').selectOption('15');await expect(page.locator('#profileHotelConfirm')).not.toBeChecked();await expect(page.locator('#profileHotelTerms')).toContainText('185000');await expect(page.locator('#profileHotelTerms')).toContainText('Другой перелёт');await expect(page.locator('#profileHotelTerms')).toContainText('Актуальность не подтверждена');
+  await page.locator('#profileHotelConfirm').check();await save(page);const final=await hotelRead(page);expect(final.profile.hotel_focus.status).toBe('confirmed');expect(final.profile.hotel_focus.message_id).toBe(15);expect(final.profile.fields.party.value.child_ages).toEqual([12]);
+});

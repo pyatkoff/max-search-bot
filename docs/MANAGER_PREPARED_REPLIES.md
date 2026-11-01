@@ -571,3 +571,39 @@ receipt/use nor the actual model, complete host/system/task/chat input or its
 transformations. External model input remains `unknown`. Preview, validation and
 journal reads never reconstruct that history. Automatic sending, operator modes,
 provider configuration and the existing worker schedule remain unchanged.
+
+### Hotel clarification in the current trip
+
+The request profile can explicitly confirm one exact accepted hotel offer after
+a customer's clarification. Its candidate is evidence from a retained native
+web-selection inquiry, validated by the existing hotel reference owner. Finding
+an earlier inquiry only offers a candidate to the manager; it never restores
+its facts automatically. Names, edited offer labels and client/manager opinions
+cannot establish hotel identity or become accepted research facts.
+
+In the existing request profile, the manager reviews the latest message and
+actual party/criteria, chooses the exact offer, checks the current-trip
+confirmation and saves the profile. The immutable profile version retains
+server-resolved offer and knowledge pins. A new message needs another review;
+a new trip, newer selected offer, changed source or changed knowledge cannot
+silently reuse the old confirmation. Native inquiry metadata remains separate
+from ordinary text citations and cannot become a text boundary by this feature.
+This finite scenario starts with an ordinary request before the selected-offer
+inquiry. A conversation beginning with the inquiry and having no earlier
+eligible request message still needs a separately designed boundary; it is not
+silently supported by treating inquiry metadata as customer text.
+
+Only the fresh confirmed binding can supply the hotel reference to the existing
+AI draft path after a plain clarification. The profile, exact offer, accepted
+facts, source dates, scopes and limitations then travel in the same normalized
+input captured by existing manual/prepared evidence receipts. This does not
+attest to unknown external host/model input or prove natural manager use.
+Answers must address the latest question: hard requirements are suitable,
+unsuitable or need clarification; preferences explain benefits and material
+tradeoffs. Unknown child capacity, beach conditions or meal coverage remain
+explicit checks. Hotel declarations do not verify current price, availability,
+operator room/meal equivalence or operation on future travel dates.
+
+The existing draft workflow and operator modes remain unchanged. First-cohort
+demand selection, constructor consumption and automatic sending are separate
+subsequent acceptance steps; none is activated by profile confirmation.
