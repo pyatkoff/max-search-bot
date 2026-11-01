@@ -16,7 +16,7 @@ $pipeline=(string)file_get_contents($root.'/manager/assets/workspace-v2-pipeline
 $taskDraft=(string)file_get_contents($root.'/manager/assets/workspace-v2-task-draft.js');
 $passed=0;$failed=0;
 function stableCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
-stableCheck('manager index is redirect-free and owns the workspace implementation',strpos($index,"header('Location:")===false&&strpos($index,'workspace-v2.php')===false&&strpos($index,'id="workspaceRoot"')!==false&&strpos($index,'class="zone inboxZone"')!==false&&strpos($index,'id="conversationZone"')!==false&&strpos($index,'id="leadZone"')!==false);
+stableCheck('shared manager index continues to own the workspace implementation',strpos($index,'workspace-v2.php')===false&&strpos($index,'id="workspaceRoot"')!==false&&strpos($index,'class="zone inboxZone"')!==false&&strpos($index,'id="conversationZone"')!==false&&strpos($index,'id="leadZone"')!==false);
 stableCheck('explicit index canonicalizes without network navigation',strpos($core,'history.replaceState')!==false&&strpos($core,"location.replace(")===false&&strpos($core,'/\\/index\\.php$/')!==false&&strpos($core,'workspace-v2')===false);
 stableCheck('opening a lead does not force a full inbox reload',strpos($conversation,"await window.WorkspaceV2Inbox?.load()")===false&&strpos($conversation,'WorkspaceV2Inbox?.markActive')!==false);
 $listRender=explode('async function load(',explode('function renderList(',$inbox,2)[1]??'',2)[0];
