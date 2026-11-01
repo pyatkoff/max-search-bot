@@ -1,0 +1,143 @@
+name: Apply only existing hotel migration 083 once
+on:
+  push:
+    branches: [ops/hotel083-only-20261102]
+    paths: [.github/workflows/hotel083-only-20261102.yml]
+permissions:
+  contents: read
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+env:
+  EXPECTED_MAIN_SHA: a8b4c2d1126b0e38d831e0ace9d75554d6e4415b
+jobs:
+  migrate083:
+    if: github.ref == 'refs/heads/ops/hotel083-only-20261102' && github.event.before == 'a8b4c2d1126b0e38d831e0ace9d75554d6e4415b' && github.event.created == false && github.event.deleted == false && github.event.forced == false && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify unchanged approved main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = "$EXPECTED_MAIN_SHA"
+      - name: Prepare existing connection and pinned host
+        env:
+          CONNECTION_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          CONNECTION_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          CONNECTION_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          raw="$CONNECTION_KEY"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' >"$RUNNER_TEMP/hotel083_key"; else printf '%s\n' "$raw" | tr -d '\r' >"$RUNNER_TEMP/hotel083_key"; fi
+          else
+            printf '%s' "$raw" | base64 --decode >"$RUNNER_TEMP/hotel083_key"
+          fi
+          ssh-keygen -y -f "$RUNNER_TEMP/hotel083_key" >/dev/null
+          python3 - <<'PY'
+          import os,re,subprocess,base64,hashlib,pathlib
+          host=os.environ['CONNECTION_HOST'];user=os.environ['CONNECTION_USER']
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',user)
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35)
+          approved=[]
+          for line in scan.stdout.splitlines():
+              fields=line.split()
+              if len(fields)<3 or fields[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':approved.append(line)
+          assert approved,'Existing host continuity mismatch; STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/hotel083_hosts').write_text('\n'.join(approved)+'\n')
+          PY
+      - name: Invoke only installed canonical migrate083
+        env:
+          CONNECTION_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          CONNECTION_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          set +e
+          timeout 120 ssh -i "$RUNNER_TEMP/hotel083_key" -o BatchMode=yes -o ConnectTimeout=10 -o ConnectionAttempts=1 -o IdentitiesOnly=yes -o ServerAliveInterval=10 -o ServerAliveCountMax=2 -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/hotel083_hosts" "$CONNECTION_USER@$CONNECTION_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_MAIN_SHA'; git diff --quiet; git diff --cached --quiet; test \"\$(sha256sum migrations/083_hotel_work_retirement.sql | cut -d ' ' -f 1)\" = '1d39818eb8841aa80d8427dab7cb82562b02e2d6665529e7b8515044d18562ae'; /usr/bin/php tools/hotel_retirement_ops.php migrate083" >"$RUNNER_TEMP/hotel083_only_raw.private" 2>"$RUNNER_TEMP/hotel083_only_stderr.private"
+          command_status=$?
+          set -e
+          export HOTEL083_COMMAND_STATUS="$command_status"
+          python3 - <<'PY'
+          import os,json,pathlib,re,sys
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])
+          result={'operation':'hotel083-only-v1','full_deploy':False,'retire_old_invoked':False,
+                  'new_collection_invoked':False,'app_files_written':False,'settings_changed':False}
+          ok=False
+          try:
+              p=root/'hotel083_only_raw.private';assert p.stat().st_size<=32768
+              lines=p.read_text().strip().splitlines();assert lines
+              d=json.loads(lines[-1]);assert isinstance(d,dict)
+              status=int(os.environ['HOTEL083_COMMAND_STATUS'])
+              result['server_command_exit_code']=status
+              def providers(v):
+                  assert isinstance(v,dict)
+                  out={}
+                  for name,row in v.items():
+                      assert re.fullmatch(r'(?:application|uid0_socket|existing_profile_[0-2])',name)
+                      assert isinstance(row,dict)
+                      assert set(row)<={'authenticated','same_application_database','visible_super','visible_trigger','eligible','reason'}
+                      safe={}
+                      for key,value in row.items():
+                          if key=='reason':
+                              assert value=='existing_provider_unavailable';safe[key]=value
+                          else:
+                              assert type(value) is bool;safe[key]=value
+                      out[name]=safe
+                  return out
+              state=d.get('migration083')
+              if state=='applied':
+                  assert status==0
+                  assert set(d)=={'migration083','checksum','trigger_count','existing_providers','new_privileges_granted','global_settings_changed'}
+                  assert d['checksum']=='1d39818eb8841aa80d8427dab7cb82562b02e2d6665529e7b8515044d18562ae'
+                  assert type(d['trigger_count']) is int and d['trigger_count']==37
+                  assert d['new_privileges_granted'] is False and d['global_settings_changed'] is False
+                  result.update(state='applied',checksum=d['checksum'],trigger_count=37,
+                                journal_and_barriers_verified_by_helper=True,existing_providers=providers(d['existing_providers']))
+                  ok=True
+              elif state=='already_applied':
+                  assert status==0 and set(d)=={'migration083','admin_provider_used'} and d['admin_provider_used'] is False
+                  result.update(state='HOLD',reason='migration083_journal_present_barriers_unconfirmed',
+                                migration083='already_applied',journal_verified_by_helper=True,
+                                barriers_readback_in_this_result=False)
+              else:
+                  allowed={'existing_admin_context_unavailable','retirement_server_scope_mismatch',
+                      'retirement083_source_mismatch','migration_checksum_mismatch','retirement083_pending_set_mismatch',
+                      'retirement083_partial_trigger_inventory','retirement083_journal_unconfirmed',
+                      'retirement083_barrier_unconfirmed','retirement_operation_busy','retirement_server_operation_unavailable'}
+                  assert d.get('state')=='HOLD' and d.get('reason') in allowed and status!=0
+                  assert set(d)<={'state','reason','process_euid','existing_providers','credentials_exposed','new_start_allowed'}
+                  result.update(state='HOLD',reason=d['reason'])
+                  if 'process_euid' in d:
+                      assert type(d['process_euid']) is int or d['process_euid'] is None
+                      result['process_euid']=d['process_euid']
+                  if 'existing_providers' in d:result['existing_providers']=providers(d['existing_providers'])
+          except Exception:
+              result.update(state='HOLD',reason='migration083_result_unconfirmed',reconciliation_required=True)
+          safe=json.dumps(result,sort_keys=True)+'\n'
+          (root/'hotel083_only_sanitized.json').write_text(safe)
+          print(safe,end='')
+          sys.exit(0 if ok else 1)
+          PY
+      - name: Retain only sanitized migration result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hotel083-only-result
+          path: ${{ runner.temp }}/hotel083_only_sanitized.json
+          retention-days: 14
+          if-no-files-found: ignore
+      - name: Remove ephemeral connection files
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/hotel083_key" "$RUNNER_TEMP/hotel083_hosts" "$RUNNER_TEMP/hotel083_only_raw.private" "$RUNNER_TEMP/hotel083_only_stderr.private" "$RUNNER_TEMP/hotel083_only_sanitized.json"
