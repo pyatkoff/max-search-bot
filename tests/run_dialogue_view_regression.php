@@ -66,6 +66,8 @@ dvCheck('start sent',count($m->sent),1);
 dvCheck('start first payload',$m->sent[0]['buttons'][0][0]['callback_data'],'ai_start');
 dvCheck('start second payload',$m->sent[0]['buttons'][1][0]['callback_data'],'start_search');
 dvCheck('start status',MaxSearchApi::$statuses[0],[10,64]);
+DialogueView::aiStart(10);
+dvCheck('AI prompt does not duplicate canonical wizard action',$m->sent[count($m->sent)-1]['buttons'],[]);
 
 DialogueView::country(11);
 dvCheck('country deletes previous',MaxSearchApi::$deletes,1);
