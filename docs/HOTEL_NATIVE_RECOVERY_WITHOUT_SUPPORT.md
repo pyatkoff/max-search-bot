@@ -80,7 +80,8 @@ returns the same receipt and never repeats a business action.
 
 The existing legacy write boundary refuses mutations from **cached as well as
 fresh clients**, including delayed started/complete/claim/release/handoff/repair
-paths. Journal enrollment rejects the quarantine marker; canonical service also
+paths. Exact existing-claim/immutable-receipt reconciliation stays read-only and
+grants no fresh admission or work. Journal enrollment rejects the quarantine marker; canonical service also
 refuses it. Deleting/unavailability of the snapshot table does not remove the
 sticky fence. There is no automatic downgrade, adoption, stage advance, packet
 import, acceptance, fresh worker capability or dispatch permit.
