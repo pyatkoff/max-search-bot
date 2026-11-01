@@ -1,0 +1,133 @@
+{
+  "schema": "anytour-hotel-server-restart-preparation-v1",
+  "mode": "PREPARATION_ONLY",
+  "evidence_as_of": "2026-11-02",
+  "runtime": {
+    "enabled": false,
+    "dispatch_allowed": false,
+    "replacement_dispatch_allowed": false,
+    "provider_calls_allowed": false,
+    "create_queue_allowed": false,
+    "import_apply_allowed": false,
+    "cutover_allowed": false
+  },
+  "retained_history": {
+    "old_queue_id": "HOTEL-CONTINUOUS-20261027",
+    "required_state": "retired",
+    "inherited_accepted_batches": 19,
+    "credit_new_system_for_import": 0,
+    "original_central41_outcome": "UNKNOWN",
+    "resolve_original_central41": false,
+    "restart_old_queue": false,
+    "read_old_mutable_library": false,
+    "canonical_evidence": "https://github.com/pyatkoff/max-search-bot/pull/1273#issuecomment-6565035400"
+  },
+  "execution": {
+    "scheduler": "existing_server_cron",
+    "new_schedule": false,
+    "owner": "server_state_machine",
+    "hosted_automations_required": false,
+    "producer_role": "research",
+    "reviewer_role": "independent_review",
+    "writer": "single_transactional_acceptance_service",
+    "initial_parallelism": 1,
+    "initial_live_canary_batches": 1,
+    "unknown_send_policy": "hold_and_reconcile_original_attempt",
+    "database_lock_during_network": false,
+    "customer_message_sending": false
+  },
+  "inputs": {
+    "baseline": {
+      "status": "server_ingest_not_verified",
+      "source": "operator_retained_snapshot_exact_bytes",
+      "immutable": true
+    },
+    "accepted_registry": {
+      "status": "exact_19_identity_and_scope_mapping_not_prepared",
+      "required_count": 19,
+      "source": "retired_receipt_snapshot_join_retained_working"
+    },
+    "exclusions": {
+      "status": "pending_private_manifest",
+      "include_accepted_packet_ids": true,
+      "include_packet_sha256": true,
+      "include_semantic_keys": true,
+      "include_country_hotel_question_source_keys": true,
+      "include_protected_reserves": true,
+      "quarantine_unaccepted_tr40": true
+    },
+    "dependencies": {
+      "status": "server_ingest_not_verified",
+      "required": [
+        "criteria",
+        "corpus",
+        "map",
+        "country_archives",
+        "current_instructions",
+        "reserve_inventory"
+      ]
+    },
+    "public_repository_contains_private_source_bytes": false
+  },
+  "acceptance": {
+    "candidate_immutable": true,
+    "producer_cannot_accept": true,
+    "independent_review_instance": true,
+    "transaction": [
+      "candidate_hash_and_baseline_CAS",
+      "current_reserves_and_legacy_exclusion_check",
+      "append_canonical_data_and_evidence",
+      "append_domain_receipt",
+      "increment_new_accepted_counter",
+      "advance_new_campaign_stage",
+      "append_next_outbox"
+    ],
+    "import_creates_no_research_or_acceptance": true,
+    "old_receipts_not_rewritten": true,
+    "old_unknown_not_accepted_or_cancelled": true
+  },
+  "launch_gates": [
+    {
+      "id": "G1",
+      "status": "complete",
+      "requirement": "Old queue retired; original19/receipts preserved; CENTRAL41UNKNOWN; old delivery inactive; lane free",
+      "proof": "https://github.com/pyatkoff/max-search-bot/actions/runs/41358814938"
+    },
+    {
+      "id": "G2",
+      "status": "pending",
+      "requirement": "Read-only server input inventory then private hash-pinned baseline/dependency ingest manifest"
+    },
+    {
+      "id": "G3",
+      "status": "pending",
+      "requirement": "Exact19 accepted batch identities/scopes and protected-reserve exclusion index; isolate TR40 and every unaccepted source record"
+    },
+    {
+      "id": "G4",
+      "status": "pending",
+      "requirement": "New server-only repository/store/cron/provider/review/atomic acceptance implementation with no native binding dependency"
+    },
+    {
+      "id": "G5",
+      "status": "pending",
+      "requirement": "Required SQLite/MySQL/race/fault tests and independent source review of the changed implementation"
+    },
+    {
+      "id": "G6",
+      "status": "pending",
+      "requirement": "Separately authorized release and disabled installation/readback; assess original incomplete deployment acceptance without rerunning unchanged083"
+    },
+    {
+      "id": "G7",
+      "status": "pending",
+      "requirement": "Private new campaign/scope/model/time/token/cost limits fixed; disabled dry-run proves zero external sends and no accepted-scope overlap"
+    },
+    {
+      "id": "G8",
+      "status": "not_authorized",
+      "requirement": "Explicit owner authorization to create/activate the new campaign and run one live canary before scaling"
+    }
+  ],
+  "ready_for_launch": false
+}
