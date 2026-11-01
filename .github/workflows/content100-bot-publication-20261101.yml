@@ -1,4 +1,4 @@
-name: Update Rehana and Solara existing posts in both channels
+name: Read exact Telegram owner-test context without sending
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -15,7 +15,7 @@ jobs:
   inspect:
     if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
         with:
@@ -31,21 +31,18 @@ jobs:
           test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = "$EXPECTED_PRODUCTION_SHA"
           conclusion=$(gh api "repos/pyatkoff/max-search-bot/actions/runs/41326148772/jobs?per_page=20" --jq '[.jobs[] | select(.name=="verify")] | last | .conclusion')
           test "$conclusion" = success
-      - name: Prepare fixed approved commercial captions and update-only operation
+      - name: Prepare fixed read-only target inspection
         shell: bash
         run: |
           set -euo pipefail
           umask 077
           python3 - <<'PY'
           import pathlib,hashlib,os
-          script=pathlib.Path('tools/direct_demand/operations/update-commercial-final-two.php').read_text()
-          assert hashlib.sha256(script.encode()).hexdigest()=='a0a31f6c768ada0c6feb1c19d023871cf8f4d3f1b5899b9a83d8ea43ba72a802'
+          script=pathlib.Path('tools/direct_demand/operations/tg-owner-context-read.php').read_text()
+          assert hashlib.sha256(script.encode()).hexdigest()=='734e3304732d90d4dac0a6b246ee66544d568ca6cdae841ac34228a05afa3eca'
           prefix="<?php\ndeclare(strict_types=1);\n"
           assert script.startswith(prefix)
-          manifest=pathlib.Path('tools/direct_demand/operations/commercial-final-two-manifest.json').read_bytes()
-          assert hashlib.sha256(manifest).hexdigest()=='72b1db3067ef61ca57abc80d6803696a5633d6ad25a98817e19120f4534fa149'
-          import base64
-          header=prefix+"const EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst MANIFEST_BASE64='"+base64.b64encode(manifest).decode()+"';\n"
+          header=prefix+"const EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\n"
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.php').write_text(header+script[len(prefix):])
           PY
           php -l "$RUNNER_TEMP/channel-preflight.php"
@@ -87,7 +84,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Update exact existing hotel messages and canonical buttons
+      - name: Read only exact owner conversation and current post-context metadata
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -98,18 +95,17 @@ jobs:
           ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-preflight.php" > "$RUNNER_TEMP/channel-preflight.json" || probe_status=$?
           python3 - <<'PY'
           import pathlib,json,os
-          lines=pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.json').read_text().splitlines()
-          d=json.loads(lines[-1])
+          d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.json').read_text())
           print(json.dumps(d,ensure_ascii=False,sort_keys=True))
-          assert d['operation']=='commercial-hotel-final-two-update-20261102-v1' and d['mode']=='update_existing_remaining_commercial_posts'
-          assert d['ok'] is True and d['post_write_attempts']==0 and len(d['posts'])==4 and d['commercial_text_updates']==4 and d['configuration_write_attempts']==0 and d['button_only_edit_attempts']==0
+          assert d['operation']=='tg-owner-context-read-20261102-v1' and d['mode']=='read_test_context_only'
+          assert d['post_write_attempts']==0 and d['ok'] is True
           PY
           test "${probe_status:-0}" = 0
       - name: Retain bounded route evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-final-two-existing-post-updates
+          name: tg-owner-context-read
           path: ${{ runner.temp }}/channel-preflight.json
           retention-days: 14
           if-no-files-found: warn
