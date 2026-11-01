@@ -23,7 +23,7 @@ final class HotelWorkingSnapshot
             'imported_data_snapshot_sha256'=>$expectedSha];
         $pinBytes=self::json($pins);$input=hash('sha256',$pinBytes);
         $old=$this->one('SELECT * FROM hotel_working_imports WHERE queue_id=?',[$queue['queue_id']]);
-        if($old){if($old['request_id']!==$request||$old['input_sha256']!==$input)throw new DomainException('working_import_conflict');return json_decode($old['receipt_bytes'],true,32,JSON_THROW_ON_ERROR);}
+        if($old){if(hash('sha256',$old['body_bytes'])!==$old['data_sha256'])throw new DomainException('working_snapshot_unavailable');if($old['request_id']!==$request||$old['input_sha256']!==$input)throw new DomainException('working_import_conflict');return json_decode($old['receipt_bytes'],true,32,JSON_THROW_ON_ERROR);}
         // Retain opaque bytes including all variants, origins, reserves and history.
         $receipt=$pins+['import_credit'=>0,'native_run_verified'=>false,'business_accepted'=>false];
         $this->exec('INSERT INTO hotel_working_imports(queue_id,request_id,input_sha256,data_sha256,origin_sha256,body_bytes,receipt_bytes) VALUES(?,?,?,?,?,?,?)',
@@ -38,10 +38,10 @@ final class HotelWorkingSnapshot
         $this->transaction();if($offset<0||$limit<1||$limit>16384)throw new InvalidArgumentException('working_read_limit');
         $row=$this->one('SELECT * FROM hotel_working_imports WHERE queue_id=?',[$queue]);
         if(!$row||!hash_equals($sha,$row['data_sha256'])||!hash_equals($sha,hash('sha256',$row['body_bytes'])))throw new DomainException('working_snapshot_unavailable');
-        $value=HotelCollectionCanonicalDocument::decodeObject($row['body_bytes']);
+        HotelCollectionCanonicalDocument::decodeObject($row['body_bytes']);$value=json_decode($row['body_bytes'],false,128,JSON_THROW_ON_ERROR);
         if($pointer!==''){
             if(!str_starts_with($pointer,'/')||preg_match('/~(?![01])/',$pointer))throw new InvalidArgumentException('working_pointer_invalid');
-            foreach(explode('/',substr($pointer,1))as$part){$part=str_replace(['~1','~0'],['/','~'],$part);if(!is_array($value)||!array_key_exists($part,$value))throw new DomainException('working_pointer_missing');$value=$value[$part];}
+            foreach(explode('/',substr($pointer,1))as$part){$part=str_replace(['~1','~0'],['/','~'],$part);if(is_object($value)&&property_exists($value,$part))$value=$value->$part;elseif(is_array($value)&&array_key_exists($part,$value))$value=$value[$part];else throw new DomainException('working_pointer_missing');}
         }
         // Root returns the original bytes, not a JSON reserialization.
         $bytes=$pointer===''?$row['body_bytes']:self::json($value);

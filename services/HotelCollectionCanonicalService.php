@@ -75,6 +75,59 @@ final class HotelCollectionCanonicalService
         });
     }
 
+    /** CONTROL arms delivery only for the exact ready protected stage. */
+    public function queueCycle(string $queue,string $stage,int $generation,string $control):array
+    {
+        return $this->tx('queue_cycle',function()use($queue,$stage,$generation,$control):array{
+            [$q,$h]=$this->locked($queue,$stage,true);$this->control($h,$control,$generation);
+            if($q['state']!=='ready'||$q['claim_sha256']!==null||$q['current_run_id']!==null)$this->deny('unresolved_work_cannot_arm');
+            $import=$this->one('SELECT data_sha256 FROM hotel_working_imports WHERE queue_id=?',[$queue]);if(!$import)$this->deny('working_import_required');
+            $id=hash('sha256',self::json([$queue,$stage,'protected_pending']));
+            $old=$this->one('SELECT event_id FROM hotel_collection_outbox WHERE event_id=?',[$id]);
+            if(!$old)$this->execute('INSERT INTO hotel_collection_outbox(event_id,queue_id,stage_id,state) VALUES(?,?,?,?)',[$id,$queue,$stage,'pending']);
+            return ['event_id'=>'hotel_evt_'.$id,'dispatch_authority'=>false];
+        });
+    }
+    /** Server adapter resolves task/capability from stored authority, not caller routing. */
+    public function dispatchIdentity(string $queue,string $stage,int $generation,string $control,string $operation,string $capability,string $task):array
+    {
+        return $this->tx('dispatch_identity',function()use($queue,$stage,$generation,$control,$operation,$capability,$task):array{
+            [$q,$h]=$this->locked($queue,$stage,true);$this->control($h,$control,$generation);
+            if((int)$q['stage_index']%2===1){
+                $r=$this->one('SELECT * FROM hotel_collection_reviews WHERE queue_id=? AND intake_stage=?',[$queue,$stage]);
+                if(!$r||$r['review_task']!==$task||!hash_equals($r['capability_sha256'],hash('sha256',$capability)))$this->deny('review_dispatch_identity');
+                return ['task_id'=>$task,'role'=>'reviewer'];
+            }
+            $op=$this->operation($q,$h,$operation,['prepared']);
+            if($op['task_id']!==$task||!hash_equals($op['capability_sha256'],hash('sha256',$capability)))$this->deny('producer_dispatch_identity');
+            $this->store($q,$h,$op,'control')->readAssignment($queue,$operation);
+            return ['task_id'=>$task,'role'=>'producer'];
+        });
+    }
+    /** CONTROL: once-only transport permit. Lost ACK remains UNKNOWN, never retry. */
+    public function consumeDispatch(string $queue,string $stage,int $generation,string $control,string $eventId):array
+    {
+        return $this->tx('consume_dispatch',function()use($queue,$stage,$generation,$control,$eventId):array{
+            [$q,$h]=$this->locked($queue,$stage,true);$this->control($h,$control,$generation);
+            $id=substr($eventId,10);if($eventId!=='hotel_evt_'.$id||!preg_match('/\\A[a-f0-9]{64}\\z/D',$id))$this->deny('event_identity_invalid');
+            $row=$this->one('SELECT * FROM hotel_collection_outbox WHERE event_id=? AND queue_id=? AND stage_id=?',[$id,$queue,$stage]);
+            if(!$row)$this->deny('pending_event_missing');
+            if($row['state']==='dispatch_unknown')return ['dispatch_authority'=>false,'state'=>'UNKNOWN'];
+            if($row['state']!=='delivered')$this->deny('cron_delivery_required');
+            $this->execute('UPDATE hotel_collection_outbox SET state=? WHERE event_id=?',['dispatch_unknown',$id]);
+            return ['dispatch_authority'=>true,'state'=>'UNKNOWN','event_id'=>$eventId];
+        });
+    }
+    /** Authenticated worker entry; exact receipt replay grants no fresh work. */
+    public function enterProducer(array $args,string $request):array
+    {
+        self::keys($args,['queue_id','stage_id','generation','operation_id','worker_capability','instance_id']);self::id($request);
+        // Recheck OAuth before the journal's own transaction, which rechecks queue identity.
+        $this->tx('entry_auth',function()use($args):array{$this->locked($args['queue_id'],$args['stage_id'],true);return [];});
+        require_once __DIR__.'/HotelWorkOperationJournalPrototype.php';
+        return(new HotelWorkOperationJournalPrototype($this->pdo,$this->admin,$this->connection))->admit($args['queue_id'],$args['stage_id'],$args['generation'],$args['operation_id'],$args['worker_capability'],$request,$args['instance_id']);
+    }
+
     /** CONTROL: seal producer bytes, advance only research, issue private reviewer key. */
     public function sealResearch(string $queue,string $stage,int $generation,string $control,string $operation,string $run,string $reviewTask):array
     {
@@ -95,7 +148,7 @@ final class HotelCollectionCanonicalService
             $this->execute('INSERT INTO hotel_journal_heads(queue_id,stage_id,baseline_sha256,generation,control_sha256,owner_label) VALUES(?,?,?,?,?,?)',[$queue,$next,$h['baseline_sha256'],1,$h['control_sha256'],$h['owner_label']]);
             $receipt=['intake_stage_id'=>$next,'review_capability'=>$key,'candidate_sha256'=>$candidate['raw_sha256'],'dispatch_authority'=>false];
             $this->execute('INSERT INTO hotel_collection_reviews(queue_id,intake_stage,producer_stage,producer_operation,producer_run,review_task,capability_sha256,private_receipt) VALUES(?,?,?,?,?,?,?,?)',[$queue,$next,$stage,$operation,$run,$reviewTask,hash('sha256',$key),self::json($receipt)]);
-            return $receipt;
+            return self::decode(self::json($receipt));
         });
     }
     /** Separate reviewer authority: never use the producer capability. */
@@ -136,13 +189,15 @@ final class HotelCollectionCanonicalService
             if(!$producer)$this->deny('producer_head_missing');
             $op=$this->operation($q,$producer,$r['producer_operation'],['admitted','candidate_recorded']);
             $commit=$this->store($q,$producer,$op,'control')->commit($queue,$op['operation_id'],$request,$v['candidate_sha256'],$revision,$headHash);
+            if($this->fault!==null)($this->fault)('cycle_data_committed_before_queue');
             $this->cycleReceipt($q,$stage,$v['review_run'],$v['candidate_sha256'],$v['criteria']);
             $next=$this->cycleAdvance($q,true);
+            if($next['state']==='ready')$this->execute('INSERT INTO hotel_journal_heads(queue_id,stage_id,baseline_sha256,generation,control_sha256,owner_label) VALUES(?,?,?,?,?,?)',[$queue,$this->stage($next),$h['baseline_sha256'],1,$h['control_sha256'],$h['owner_label']]);
             $accept=$commit+['intake_stage_id'=>$stage,'next_stage_id'=>$this->stage($next),'accepted_batches'=>(int)$next['accepted_batches']];
             $accept['business_accepted']=true;$bytes=self::json($accept);
             $this->execute('UPDATE hotel_collection_reviews SET acceptance_bytes=?,finalize_sha256=? WHERE queue_id=? AND intake_stage=?',[$bytes,$input,$queue,$stage]);
             $this->execute("UPDATE hotel_journal_operations SET state='snapshot_committed' WHERE operation_id=?",[$op['operation_id']]);
-            return $accept;
+            return self::decode($bytes);
         });
     }
     private function reviewAuthority(array $a):array
