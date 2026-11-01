@@ -148,6 +148,24 @@ final class ManagerAiDraftService
     private static function admitHotelReference(array $baseline, array $hotel): array
     {
         $receipt = ['status'=>'omitted','reason'=>'request_budget','admitted_claim_ids'=>[]];
+        // A reviewed historical offer only applies together with the exact
+        // current-trip profile that admitted it. Optional payload trimming or
+        // photo/selection readers must never leave its facts without that basis.
+        if (array_key_exists('request_profile_focus', $hotel)) {
+            $pin = $hotel['request_profile_focus'];
+            $profile = $baseline['request_profile'] ?? null;
+            $focus = is_array($profile) ? ($profile['hotel_focus'] ?? null) : null;
+            if (!is_string($pin) || preg_match('/\A[a-f0-9]{64}\z/D', $pin) !== 1
+                || !is_array($profile) || !is_array($focus)
+                || ($profile['status'] ?? null) !== 'fresh' || ($focus['status'] ?? null) !== 'confirmed'
+                || !is_string($profile['trip_id'] ?? null) || !is_int($profile['version'] ?? null)
+                || !is_int($focus['message_id'] ?? null) || !is_string($focus['revision'] ?? null)
+                || !hash_equals($pin, hash('sha256', json_encode([
+                    $profile['trip_id'], $profile['version'], $focus['message_id'], $focus['revision'],
+                ], ManagerRequestProfile::FLAGS)))) {
+                return [$baseline, ['status'=>'omitted','reason'=>'hotel_focus_requires_review','admitted_claim_ids'=>[]]];
+            }
+        }
         try {
             $encode = static fn(array $context): string => json_encode(
                 ManagerDraftClient::requestBody(self::instructions($context), $context),
