@@ -33,6 +33,7 @@ register_shutdown_function(static function() use (&$finished,&$stage,$trigger): 
     if (!$finished) HotelWorkHealth::record('failed',$stage,[],$trigger);
 });
 try {
+    require_once dirname(__DIR__).'/services/HotelCollectionCronRuntime.php';
     require_once dirname(__DIR__).'/config.php';
     require_once dirname(__DIR__).'/services/ProjectAccessService.php';
     require_once dirname(__DIR__).'/services/HotelWorkEventService.php';
@@ -49,12 +50,15 @@ try {
         echo "{\"ok\":true,\"state\":\"awaiting_connection\",\"provider_calls\":0}\n";exit;
     }
     $stage='delivery';$counts=$events->deliverPending();
+    // Optional configured server coordinator consumes durable delivered intents.
+    // Default is dormant; it does not enable or invoke any native worker.
+    $serverCycle=HotelCollectionCronRuntime::tick($pdo);
     if (($counts['stopped']??0)>0) {
         HotelWorkHealth::record('failed',$stage,$counts,$trigger);$finished=true;
         echo json_encode(['ok'=>false,'state'=>'delivery_stopped','counts'=>$counts,'provider_calls'=>0],JSON_THROW_ON_ERROR)."\n";exit(1);
     }
     HotelWorkHealth::record('ok','complete',$counts,$trigger);$finished=true;
-    echo json_encode(['ok'=>true,'counts'=>$counts,'provider_calls'=>0],JSON_THROW_ON_ERROR)."\n";
+    echo json_encode(['ok'=>true,'counts'=>$counts,'server_cycle'=>$serverCycle,'provider_calls'=>$serverCycle['configured']?null:0],JSON_THROW_ON_ERROR)."\n";
 } catch (Throwable $ignored) {
     HotelWorkHealth::record('failed',$stage,[],$trigger);$finished=true;
     // Fixed stage only: no SQL, exception text, queue IDs, callback or credentials.

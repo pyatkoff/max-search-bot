@@ -53,3 +53,8 @@ echo "HOTEL WORKING/CYCLE CHECKS PASS\n";
 $p->exec('DROP TABLE hotel_working_imports');
 hccReject(fn()=>$f['service']->status('COLLECTION-SERVICE'),'missing_import_store_fail_closed');
 hccReject(fn()=>$f['queue']->pendingEvent(901001,$f['conn'],'COLLECTION-SERVICE'),'missing_import_never_emits_dispatch','journal_protection_unavailable');
+
+require_once dirname(__DIR__).'/services/HotelCollectionCronRuntime.php';
+hccCheck(HotelCollectionCronRuntime::tick($p)===['configured'=>false,'processed'=>0],'existing_cron_runtime_dormant_by_default');
+$ticks=0;HotelCollectionCronRuntime::configure(static function(PDO $same)use(&$ticks,$p):int{if($same!==$p)throw new RuntimeException('wrong_connection');++$ticks;return 1;});
+hccCheck(HotelCollectionCronRuntime::tick($p)['processed']===1&&$ticks===1,'existing_cron_calls_configured_server_adapter');

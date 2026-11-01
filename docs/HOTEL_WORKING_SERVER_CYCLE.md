@@ -54,3 +54,9 @@ it must be reconciled before a ready-stage cutover or a separate adoption path
 must be implemented and reviewed. An actual native adapter and complete approved
 legacy/dependency scope preparation remain required for deployment acceptance.
 No merge, deployment, live migration, task enablement or queue creation occurs.
+
+The existing tools/hotel_work.php tick invokes HotelCollectionCronRuntime after
+signed event delivery. Trusted config.php bootstrap may register the server
+coordinator there; default is an explicit unconfigured zero-work result. Adapter
+configuration and approved scope selection are deployment prerequisites, not
+worker-supplied tool arguments. Nothing registers it in this PR.
