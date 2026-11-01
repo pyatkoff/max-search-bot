@@ -55,7 +55,7 @@ final class HotelWorkEventService
     {
         $this->requireSetupAutocommit();
         $this->authorizeSetup($admin,$connection);
-        $this->queue->status($admin,$connection,$queueId);
+        if(($this->queue->status($admin,$connection,$queueId)['state']??null)==='retired')throw new DomainException('hotel_queue_retired');
         $this->requireSetupAutocommit();
         $now=$this->now();
         if ($now<1) throw new RuntimeException('hotel_subscription_status_unavailable');
@@ -203,7 +203,7 @@ final class HotelWorkEventService
             $verified=$date;
         }
         // No lock is held over DNS/TLS or the remote challenge.
-        $this->authorize($admin,$connection);$this->queue->status($admin,$connection,$queueId);
+        $this->authorize($admin,$connection);if(($this->queue->status($admin,$connection,$queueId)['state']??null)==='retired')throw new DomainException('hotel_queue_retired');
         $expires=self::date($now+max(1,intdiv($ttl,1000)));
         $sqlite=$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='sqlite';
         if ($this->pdo->inTransaction()) throw new LogicException('hotel_event_foreign_transaction');
