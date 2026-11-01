@@ -1,4 +1,4 @@
-name: Publish approved Rixos Telegram post with canonical button
+name: Publish remaining approved AnyTour posts without duplicates
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -15,7 +15,7 @@ jobs:
   inspect:
     if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
         with:
@@ -31,18 +31,22 @@ jobs:
           test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = "$EXPECTED_PRODUCTION_SHA"
           conclusion=$(gh api "repos/pyatkoff/max-search-bot/actions/runs/41326148772/jobs?per_page=20" --jq '[.jobs[] | select(.name=="verify")] | last | .conclusion')
           test "$conclusion" = success
-      - name: Prepare exact approved Rixos publication
+      - name: Prepare fixed approved100 manifest and once-safe publisher
         shell: bash
         run: |
           set -euo pipefail
           umask 077
           python3 - <<'PY'
           import pathlib,hashlib,os
-          script=pathlib.Path('tools/direct_demand/operations/publish-authorized-rixos-telegram.php').read_text()
-          assert hashlib.sha256(script.encode()).hexdigest()=='b636853a5995be11ce58ccc1d7f95d3a3595c0199153a2edd6fa7729402b1abb'
+          script=pathlib.Path('tools/direct_demand/operations/publish-content100-remaining.php').read_text()
+          assert hashlib.sha256(script.encode()).hexdigest()=='02738b697fa6ecd1020323f9a0ab85401b9f55e685c669da0300328bf865f695'
           prefix="<?php\ndeclare(strict_types=1);\n"
           assert script.startswith(prefix)
-          header=prefix+"const EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\n"
+          import gzip,base64
+          manifest=gzip.decompress(base64.b64decode(pathlib.Path('tools/direct_demand/operations/content100-approved-manifest.json.gz.b64').read_text()))
+          assert hashlib.sha256(manifest).hexdigest()=='1935a69da5d1fc35e108f5f578197535ae7e565dfe0ec4b24d0c7b24a0bc53f0'
+          import base64
+          header=prefix+"const EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst MANIFEST_BASE64='"+base64.b64encode(manifest).decode()+"';\n"
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.php').write_text(header+script[len(prefix):])
           PY
           php -l "$RUNNER_TEMP/channel-preflight.php"
@@ -84,7 +88,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Publish approved Rixos once and verify canonical button
+      - name: Publish remaining approved Telegram and MAX posts with deduplication
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -95,17 +99,18 @@ jobs:
           ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-preflight.php" > "$RUNNER_TEMP/channel-preflight.json" || probe_status=$?
           python3 - <<'PY'
           import pathlib,json,os
-          d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.json').read_text())
+          lines=pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.json').read_text().splitlines()
+          d=json.loads(lines[-1])
           print(json.dumps(d,ensure_ascii=False,sort_keys=True))
-          assert d['operation']=='content100-bot-publication-20261101-v1' and d['mode']=='publish_one_authorized_rixos_telegram'
-          assert d['post_write_attempts']==1 and d['ok'] is True
+          assert d['operation']=='content100-bot-publication-20261101-v1' and d['mode']=='publish_remaining_approved_content100'
+          assert d['ok'] is True and len(d['posts'])==200
           PY
           test "${probe_status:-0}" = 0
       - name: Retain bounded route evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: content100-rixos-telegram-publication
+          name: content100-both-channels-publication
           path: ${{ runner.temp }}/channel-preflight.json
           retention-days: 14
           if-no-files-found: warn
