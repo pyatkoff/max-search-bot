@@ -19,10 +19,11 @@ final class HotelWorkQueue
     private const MAX_STAGE_INDEX = 1000000;
     private string $driver;
 
-    public function __construct(private PDO $pdo, private $clock = null)
+    public function __construct(private PDO $pdo, private $clock = null, private $legacyAcceptanceGuard = null)
     {
         $this->driver=(string)$pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
-        if (!in_array($this->driver,['mysql','sqlite'],true) || ($clock!==null&&!is_callable($clock))) {
+        if (!in_array($this->driver,['mysql','sqlite'],true) || ($clock!==null&&!is_callable($clock))
+            || ($legacyAcceptanceGuard!==null&&!is_callable($legacyAcceptanceGuard))) {
             throw new InvalidArgumentException('invalid_hotel_work_dependencies');
         }
     }
@@ -143,6 +144,8 @@ final class HotelWorkQueue
         $run=self::runId($args['run_id']??null);
         return $this->transaction(function() use($id,$stage,$claim,$run,$admin,$connection): array {
             $lane=$this->lane(true);$row=$this->owned($id,$admin,$connection,true);$this->ownsLane($row,$lane);
+            // Dormant opt-in prototype bridge. Production factories pass null.
+            if ($this->legacyAcceptanceGuard!==null) ($this->legacyAcceptanceGuard)($admin,$connection,$id,$stage);
             $this->claimed($row,$stage,$claim);
             if ($row['current_run_id']!==null&&!hash_equals($row['current_run_id'],$run)) throw new HotelWorkQueueConflict('run_conflict');
             if ($row['current_run_id']===null) $this->execute('UPDATE hotel_work_queues SET current_run_id=?,watchdog_due_at=?,updated_at=? WHERE queue_id=?',[$run,$this->date($this->timestamp()+self::WATCHDOG_SECONDS),$this->now(),$id]);
@@ -169,6 +172,8 @@ final class HotelWorkQueue
                     throw new HotelWorkQueueConflict('execution_attempt_association_mismatch');
                 return $this->project($row)+['completion_status'=>'already_recorded','receipt_sha256'=>$hash];
             }
+            // Exact immutable receipt replay above is read-only, never admission.
+            if ($this->legacyAcceptanceGuard!==null) ($this->legacyAcceptanceGuard)($admin,$connection,$id,$stage);
             $this->ownsLane($row,$lane);$this->claimed($row,$stage,$claim);
             $execution=$this->executionCompletionAssociation($row,$stage,$association,$receipt);
             if (($execution===null&&$row['current_run_id']!==$receipt['run_id'])

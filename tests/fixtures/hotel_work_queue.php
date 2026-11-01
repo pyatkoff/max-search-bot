@@ -96,7 +96,7 @@ final class HotelWorkTestPdo extends PDO
     public function observe(string $sql): void
     {
         if (preg_match('/\A\s*(?:INSERT\s+INTO|UPDATE|DELETE\s+FROM)\s+([a-z_]+)/i',$sql,$m)) {
-            if (!in_array(strtolower($m[1]),['hotel_work_queues','hotel_work_receipts','hotel_work_lane','hotel_work_connection_handoffs','hotel_work_resolutions','hotel_work_delivery_recoveries','hotel_work_research_skips','hotel_work_consumer_delivery_repairs','hotel_work_execution_attempts','hotel_work_execution_attempt_entries','hotel_work_execution_attempt_associations'],true)) throw new RuntimeException('hotel_fixture_rejected_business_write');
+            if (!in_array(strtolower($m[1]),['hotel_work_queues','hotel_work_receipts','hotel_work_lane','hotel_work_connection_handoffs','hotel_work_resolutions','hotel_work_delivery_recoveries','hotel_work_research_skips','hotel_work_consumer_delivery_repairs','hotel_work_execution_attempts','hotel_work_execution_attempt_entries','hotel_work_execution_attempt_associations','hotel_journal_heads','hotel_journal_operations','hotel_journal_requests','hotel_journal_snapshots'],true)) throw new RuntimeException('hotel_fixture_rejected_business_write');
             $this->writes[]=strtolower($m[1]);
         }
     }
