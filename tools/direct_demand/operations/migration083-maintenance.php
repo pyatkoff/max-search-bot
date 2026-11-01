@@ -24,7 +24,7 @@ try {
         // credential search, new grants, global-variable changes or password output.
         $binary=trim((string)shell_exec('command -v my_print_defaults 2>/dev/null'));
         require083($binary!==''&&is_executable($binary),'existing_maintenance_profile_tool_unavailable');
-        $pipes=[];$proc=proc_open([$binary,'client'],[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes);
+        $pipes=[];$proc=proc_open([$binary,'client','mysql'],[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes);
         require083(is_resource($proc),'maintenance_profile_unavailable');fclose($pipes[0]);$raw=stream_get_contents($pipes[1],65536);stream_get_contents($pipes[2],65536);fclose($pipes[1]);fclose($pipes[2]);$status=proc_close($proc);
         require083($status===0&&is_string($raw),'maintenance_profile_unavailable');
         $defaults=[];foreach(preg_split('/\r?\n/',$raw) as $line)if(preg_match('/\A--(user|password|host|port|socket)=(.*)\z/',$line,$m))$defaults[$m[1]]=$m[2];unset($raw);
