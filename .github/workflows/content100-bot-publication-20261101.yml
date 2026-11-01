@@ -10,7 +10,7 @@ concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 env:
-  EXPECTED_PRODUCTION_SHA: c100b0ac447ccecce56f2ee452b22751ae21d39c
+  EXPECTED_PRODUCTION_SHA: a8b4c2d1126b0e38d831e0ace9d75554d6e4415b
 jobs:
   inspect:
     if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
@@ -29,7 +29,7 @@ jobs:
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = "$EXPECTED_PRODUCTION_SHA"
-          conclusion=$(gh api "repos/pyatkoff/max-search-bot/actions/runs/41318183936/jobs?per_page=20" --jq '[.jobs[] | select(.name=="verify")] | last | .conclusion')
+          conclusion=$(gh api "repos/pyatkoff/max-search-bot/actions/runs/41326148772/jobs?per_page=20" --jq '[.jobs[] | select(.name=="verify")] | last | .conclusion')
           test "$conclusion" = success
       - name: Prepare fixed read-only target inspection
         shell: bash
