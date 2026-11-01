@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
-$pdo=null;$safe=false;$tables=['manager_request_profiles','manager_ai_sent_texts','messages','manager_preparation_cursors','virtual_reply_jobs','virtual_reply_cases','virtual_reply_cursors','virtual_reply_quotas','manager_assistant_decisions','manager_preparation_oauth_tokens','manager_preparation_oauth_codes','manager_preparation_oauth_grants','manager_preparation_oauth_clients','manager_preparation_events','manager_prepared_replies','manager_ai_draft_inputs','manager_ai_drafts','telegram_dialogue_messages','customer_channels','conversations','managers'];
+$pdo=null;$safe=false;$tables=['manager_prepared_reply_input_links','manager_prepared_reply_inputs','manager_request_profiles','manager_ai_sent_texts','messages','manager_preparation_cursors','virtual_reply_jobs','virtual_reply_cases','virtual_reply_cursors','virtual_reply_quotas','manager_assistant_decisions','manager_preparation_oauth_tokens','manager_preparation_oauth_codes','manager_preparation_oauth_grants','manager_preparation_oauth_clients','manager_preparation_events','manager_prepared_replies','manager_ai_draft_inputs','manager_ai_drafts','telegram_dialogue_messages','customer_channels','conversations','managers'];
 try{
     $dsn=(string)getenv('PREPARED_REPLY_MYSQL_DSN');
     if(preg_match('/\Amysql:.*(?:\Amysql:|;)dbname=(maxbot_prepared_test(?:_[a-zA-Z0-9_]+)?)(?:;|\z)/D',$dsn,$m)!==1)throw new RuntimeException('unsafe_fixture_database');
@@ -288,6 +288,28 @@ try{
         $pdo->exec("UPDATE customer_channels SET customer_id=11,channel='telegram',project_key='anytour',external_user_id='91001',external_chat_id='91011' WHERE id=71");
     }
     echo "PASS native MySQL correlated archive CAST scope excludes only bound owner peers before LIMIT\n";
+    $pdo->exec(file_get_contents(dirname(__DIR__,2).'/migrations/082_manager_prepared_reply_inputs.sql'));
+    require_once dirname(__DIR__,2).'/services/ManagerPreparedInputEvidence.php';
+    $issuedPacket=['ok'=>true,'job_id'=>str_repeat('e',64),'revision'=>str_repeat('f',64),'preparation_scope'=>'assigned_manager','latest_message_id'=>2,'context'=>$inputContext,
+        'company_knowledge'=>['facts'=>[],'revision'=>str_repeat('b',64)],'instructions'=>$inputInstructions,'instruction_revision'=>str_repeat('a',64)];
+    $issued=ManagerPreparedInputEvidence::capture($issuedPacket);
+    if(!$issued||strlen($issued->json())<=65535)throw new RuntimeException('prepared_input_large_fixture_failed');
+    $receiptId=str_repeat('1',64);
+    $receiptInsert=$pdo->prepare('INSERT INTO manager_prepared_reply_inputs(receipt_id,job_id,admin_id,connection_id,packet_json,packet_sha256,issued_at) VALUES(?,?,?,?,?,?,?)');
+    $receiptInsert->execute([$receiptId,str_repeat('e',64),1,str_repeat('a',32),$issued->json(),$issued->hash(),gmdate('Y-m-d H:i:s')]);
+    $pdo->prepare('INSERT INTO manager_prepared_reply_input_links(job_id,receipt_id) VALUES(?,?)')->execute([str_repeat('e',64),$receiptId]);
+    $issuedBefore=$pdo->query('SELECT * FROM manager_prepared_reply_inputs')->fetchAll();$linksBefore=$pdo->query('SELECT * FROM manager_prepared_reply_input_links')->fetchAll();
+    $nativeIssued=$pdo->query('SELECT packet_json,SHA2(packet_json,256) AS native_sha,OCTET_LENGTH(packet_json) AS bytes FROM manager_prepared_reply_inputs')->fetch();
+    if($nativeIssued['packet_json']!==$issued->json()||$nativeIssued['native_sha']!==$issued->hash()||(int)$nativeIssued['bytes']!==strlen($issued->json()))throw new RuntimeException('prepared_input_native_unicode_failed');
+    $pdo->exec(file_get_contents(dirname(__DIR__,2).'/migrations/082_manager_prepared_reply_inputs.sql'));
+    if($pdo->query('SELECT * FROM manager_prepared_reply_inputs')->fetchAll()!==$issuedBefore||$pdo->query('SELECT * FROM manager_prepared_reply_input_links')->fetchAll()!==$linksBefore)throw new RuntimeException('prepared_input_retry_changed_pair');
+    $duplicate=false;try{$receiptInsert->execute([$receiptId,str_repeat('e',64),1,str_repeat('a',32),$issued->json(),$issued->hash(),gmdate('Y-m-d H:i:s')]);}catch(PDOException $e){$duplicate=($e->errorInfo[1]??0)===1062;}
+    if(!$duplicate)throw new RuntimeException('prepared_receipt_duplicate_allowed');
+    $orphan=false;try{$receiptInsert->execute([str_repeat('2',64),str_repeat('9',64),1,str_repeat('a',32),$issued->json(),$issued->hash(),gmdate('Y-m-d H:i:s')]);}catch(PDOException $e){$orphan=($e->errorInfo[1]??0)===1452;}
+    if(!$orphan)throw new RuntimeException('prepared_receipt_orphan_allowed');
+    $pdo->prepare('DELETE FROM manager_prepared_replies WHERE job_id=?')->execute([str_repeat('e',64)]);
+    if((int)$pdo->query('SELECT COUNT(*) FROM manager_prepared_reply_inputs')->fetchColumn()!==0||(int)$pdo->query('SELECT COUNT(*) FROM manager_prepared_reply_input_links')->fetchColumn()!==0)throw new RuntimeException('prepared_receipt_retention_failed');
+    echo "PASS native MySQL082 exact Unicode/digests above64KiB, retry, receipt uniqueness, FK and job retention cascades\n";
     $client=str_repeat('a',48);$family=str_repeat('b',32);
     $pdo->prepare('INSERT INTO manager_preparation_oauth_clients VALUES(?,?,?,?)')->execute([$client,'https://chatgpt.com/connector_platform_oauth_redirect',str_repeat('c',64),time()]);
     $pdo->prepare('INSERT INTO manager_preparation_oauth_grants VALUES(?,?,?,?,?,?,?,?,NULL)')->execute([$family,$client,1,'anytour','https://app.anytoour.ru/manager/ai-mcp.php','queue:read prepared:write',time(),time()+3600]);

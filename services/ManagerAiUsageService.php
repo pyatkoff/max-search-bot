@@ -5,6 +5,7 @@ require_once __DIR__.'/InternalOwnerDialogueScope.php';
 require_once __DIR__.'/ManagerAiDraftFeedbackReport.php';
 require_once __DIR__.'/ManagerAiDraftService.php';
 require_once __DIR__.'/ManagerAiDraftInputEvidence.php';
+require_once __DIR__.'/ManagerPreparedInputService.php';
 
 /** Owner review of recorded real sends. Never generates, sends or acknowledges chat. */
 final class ManagerAiUsageService
@@ -107,7 +108,7 @@ final class ManagerAiUsageService
             $case=$draft?ManagerAiDraftFeedbackReport::inspectUsage($row,$draft,$row['project_key'],$now):null;
             if(!$case)return self::error('not_found');if(!hash_equals($case['case_revision'],$revision))return self::error('case_changed');
             require_once __DIR__.'/ManagerAiSentTextService.php';require_once __DIR__.'/ManagerAiUsageAssessmentService.php';
-            $original=($draft['preparation_job_id']??null)!==null?['available'=>false,'reason'=>'prepared_input_not_captured']:self::storedInput($pdo,$draft);
+            $original=($draft['preparation_job_id']??null)!==null?ManagerPreparedInputService::read($pdo,$draft):self::storedInput($pdo,$draft);
             $snapshot=ManagerAiUsageAssessmentService::snapshot($row,$draft,$case,ManagerAiSentTextService::read($pdo,$row,$draft),$original);
             $result=$write?ManagerAiUsageAssessmentService::save($pdo,$actor,$messageId,$snapshot,$input,$now->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s'))
                 :ManagerAiUsageAssessmentService::read($pdo,$actor,$messageId,$snapshot,$input['operation_id']??null);
@@ -141,7 +142,7 @@ final class ManagerAiUsageService
                 require_once __DIR__.'/ManagerAiSentTextService.php';
                 $input=ManagerAiSentTextService::read($pdo,$row,$draft);
             }else $input=($draft['preparation_job_id']??null)!==null
-                ? ['available'=>false,'reason'=>'prepared_input_not_captured']
+                ? ManagerPreparedInputService::read($pdo,$draft)
                 : self::storedInput($pdo,$draft);
             $pdo->commit();$started=false;
             if($scopes!==self::ownerScopes($actor))return self::error('forbidden');

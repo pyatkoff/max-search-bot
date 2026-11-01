@@ -7,6 +7,7 @@ require_once __DIR__.'/ManagerAiDraftService.php';
 require_once __DIR__.'/InternalOwnerDialogueScope.php';
 require_once __DIR__.'/ManagerDraftPilotCollector.php';
 require_once __DIR__.'/ManagerPreparationEligibility.php';
+require_once __DIR__.'/ManagerPreparedInputService.php';
 
 /** Private work metadata and reviewed proposals; never a transcript or delivery queue. */
 final class ManagerPreparedReplyService
@@ -331,9 +332,41 @@ final class ManagerPreparedReplyService
         } catch (Throwable $ignored) { return self::failure('job_unavailable'); }
     }
 
-    /** Imported analysis is validated locally. This path never selects a provider transport. */
-    public static function complete(string $jobId, string $expectedRevision, array $proposal): array
+    /** Called only after MCP packaging and the final surface authorization. No source writes. */
+    public static function issueInput(array $packet,array $images,int $admin,?string $connection,callable $authorize): array
     {
+        $started=false;$pdo=null;
+        try{
+            $authorize();
+            $pdo=ConversationDb::connection();
+            if($pdo->inTransaction())return self::failure('job_unavailable');
+            $e=ManagerPreparedInputEvidence::capture($packet,$images);
+            if(!$e||!ManagerPreparedInputService::identity($admin,$connection))return ['ok'=>true,'capture'=>['captured'=>false,'reason'=>'capture_unavailable']];
+            $row=self::load($pdo,$packet['job_id']);
+            if(!$row||$row['status']!=='pending'||!self::currentRow($row)||!ManagerPreparedInputService::matches($e,$row))return self::failure('job_unavailable');
+            $snapshot=self::snapshotFor($pdo,$row);
+            if(!$snapshot||$snapshot['company_knowledge']->revision()!==$packet['company_knowledge']['revision'])return self::failure('stale_context');
+            // No network read after this final authorization. The job lock also
+            // serializes the issuance cap against completions and other readers.
+            $authorize();$pdo->beginTransaction();$started=true;$fresh=self::lockedJob($pdo,$row['job_id']);
+            if(!$fresh||$fresh['status']!=='pending'||!self::currentRow($fresh)||!ManagerPreparedInputService::matches($e,$fresh))return self::failure('job_unavailable');
+            $capture=ManagerPreparedInputService::record($pdo,$fresh,$e,$admin,$connection);
+            $pdo->commit();$started=false;return ['ok'=>true,'capture'=>$capture];
+        }catch(DomainException $error){throw $error;}
+        catch(Throwable $ignored){return ['ok'=>true,'capture'=>['captured'=>false,'reason'=>'capture_unavailable']];}
+        finally{if($started&&$pdo instanceof PDO&&$pdo->inTransaction())$pdo->rollBack();}
+    }
+
+    private static function lockedJob(PDO $pdo,string $job): ?array
+    {
+        $q=$pdo->prepare('SELECT * FROM manager_prepared_replies WHERE job_id=?'.($pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?' FOR UPDATE':''));
+        $q->execute([$job]);$r=$q->fetch(PDO::FETCH_ASSOC);$q->closeCursor();return $r&&self::validRow($r)?$r:null;
+    }
+
+    /** Imported analysis is validated locally. This path never selects a provider transport. */
+    public static function complete(string $jobId, string $expectedRevision, array $proposal, ?string $inputReceipt=null, int $admin=0, ?string $connection=null, ?callable $authorize=null): array
+    {
+        $pdo=null;$started=false;
         try {
             $pdo = ConversationDb::connection();
             if ($pdo->inTransaction() || !self::revision($jobId) || !self::revision($expectedRevision)) return self::failure('invalid_job');
@@ -344,19 +377,42 @@ final class ManagerPreparedReplyService
             $json = self::validatedJson($proposal, $snapshot);
             if ($json === null) return self::failure('invalid_proposal');
             $hash = hash('sha256', $json);
-            if ($row['status'] === 'ready') return self::completed($row, $hash);
-            if ($row['status'] !== 'pending') return self::failure('job_unavailable');
-            // Validation is pure, nevertheless use a new source snapshot before persistence.
-            if (self::snapshotFor($pdo, $row) === null) return self::failure('stale_context');
-            $now = time();
-            $q = $pdo->prepare("UPDATE manager_prepared_replies SET status='ready',proposal_json=?,proposal_sha256=?,prepared_at=?,expires_at=? WHERE job_id=? AND status='pending' AND context_revision=? AND instruction_revision=? AND expires_at>?");
+            if (!in_array($row['status'],['pending','ready'],true)) return self::failure('job_unavailable');
+            // This validation snapshot is never recorded as historical worker input.
+            $snapshot=self::snapshotFor($pdo,$row);
+            if($snapshot===null)return self::failure('stale_context');
+            if($authorize!==null)$authorize();
+            $pdo->beginTransaction();$started=true;$row=self::lockedJob($pdo,$jobId);
+            if(!$row||!self::currentRow($row)||!hash_equals($row['context_revision'],$expectedRevision))return self::failure('job_unavailable');
+            if($inputReceipt!==null){
+                $e=ManagerPreparedInputService::receipt($pdo,$inputReceipt,$row,$admin,$connection);
+                if(!$e)return self::failure('invalid_input_receipt');
+                if($e->packet()['company_knowledge']['revision']!==$snapshot['company_knowledge']->revision())return self::failure('stale_context');
+            }
+            $linked=null;$captureUnknown=false;
+            if($inputReceipt!==null)$linked=ManagerPreparedInputService::linked($pdo,$jobId);
+            elseif($row['status']==='ready'){
+                try{$linked=ManagerPreparedInputService::linked($pdo,$jobId);}
+                catch(Throwable $ignored){$captureUnknown=true;}
+            }
+            if($row['status']==='ready'){
+                if($inputReceipt!==null&&$linked!==$inputReceipt)return self::failure('completion_conflict');
+                $result=self::completed($row,$hash);
+                $pdo->commit();$started=false;return $result+['input_provenance'=>$captureUnknown?'unknown':($linked===null?'not_captured':'server_issued_context')];
+            }
+            if($row['status']!=='pending'||$linked!==null)return self::failure('completion_conflict');
+            $now=time();
+            $q=$pdo->prepare("UPDATE manager_prepared_replies SET status='ready',proposal_json=?,proposal_sha256=?,prepared_at=?,expires_at=? WHERE job_id=? AND status='pending' AND context_revision=? AND instruction_revision=? AND expires_at>?");
             $q->execute([$json,$hash,self::utc($now),self::utc($now+self::TTL_SECONDS),$jobId,$expectedRevision,self::instructionRevision(),self::utc($now)]);
-            $fresh = self::load($pdo, $jobId);
-            if ($fresh === null) return self::failure('queue_unavailable');
-            $result = self::completed($fresh, $hash);
-            if ($result['ok']) $result['idempotent'] = $q->rowCount() !== 1;
-            return $result;
-        } catch (Throwable $ignored) { return self::failure('queue_unavailable'); }
+            if($q->rowCount()!==1)return self::failure('completion_conflict');
+            if($inputReceipt!==null)ManagerPreparedInputService::link($pdo,$jobId,$inputReceipt);
+            $fresh=self::load($pdo,$jobId);$result=$fresh?self::completed($fresh,$hash):self::failure('queue_unavailable');
+            if(empty($result['ok']))return $result;
+            $pdo->commit();$started=false;$result['idempotent']=false;
+            return $result+['input_provenance'=>$inputReceipt===null?'not_captured':'server_issued_context'];
+        }catch(DomainException $error){throw $error;}
+        catch(Throwable $ignored){return self::failure('queue_unavailable');}
+        finally{if($started&&$pdo instanceof PDO&&$pdo->inTransaction())$pdo->rollBack();}
     }
 
     /** Read-only cache lookup: even an old caller snapshot cannot reveal a stale proposal. */

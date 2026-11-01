@@ -67,8 +67,10 @@ final class SeparatedMcpService
                 if (array_diff(array_keys($params),['name','arguments'])) throw new InvalidArgumentException();
                 if (!in_array($params['name']??null,$tools,true)) throw new OutOfBoundsException();
                 if ($reply) {
-                    $response=$this->replies->handle(['jsonrpc'=>'2.0','id'=>$id,'method'=>$method,'params'=>$params],$admin,$connection,$this->required);
+                    $contextRead=($params['name']??null)==='get_reply_context';
+                    $response=$this->replies->handle(['jsonrpc'=>'2.0','id'=>$id,'method'=>$method,'params'=>$params],$admin,$connection,$this->required,null,$contextRead);
                     $this->authorize($admin,$connection,$scopes);
+                    if($contextRead&&array_key_exists('id',$rpc))$response=$this->replies->finalizePreparedContext($response,$admin,$connection,fn()=>$this->authorize($admin,$connection,$scopes));
                     return array_key_exists('id',$rpc)?$response:[];
                 }
                 $args=$params['arguments']??[];
