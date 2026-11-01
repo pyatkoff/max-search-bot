@@ -539,6 +539,7 @@ final class HotelWorkQueue
     private function legacyWrite(array $row): void
     {
         $protocol=array_key_exists('write_protocol',$row)?$row['write_protocol']:'legacy';
+        if ($protocol==='quarantine_v1') throw new HotelWorkQueueConflict('legacy_run_quarantined');
         if ($protocol!=='legacy') {
             if ($protocol!=='journal_v1') throw new HotelWorkQueueConflict('journal_protection_unavailable');
             try {

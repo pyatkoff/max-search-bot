@@ -1,6 +1,9 @@
 # Existing cron to existing Automations
 
 This is a dormant adapter, not an installation or native execution record.
+Read-only binding inventory/join and the limited legacy effect quarantine are
+specified in `HOTEL_NATIVE_RECOVERY_WITHOUT_SUPPORT.md`. They neither authenticate
+hidden host IDs nor grant adoption/dispatch for unresolved CENTRAL41.
 `HotelNativeAutomationAdapter` uses the already supported MCP webhook event path.
 It does not invent a public `automations.run_now` API for ChatGPT task IDs.
 No new queue, worker, timer, OAuth rotation or resume is required.
