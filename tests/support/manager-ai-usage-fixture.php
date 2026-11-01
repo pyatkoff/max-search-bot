@@ -25,6 +25,9 @@ CREATE TABLE messages(id {$idType} PRIMARY KEY,conversation_id {$idType},directi
 CREATE INDEX usage_messages ON messages(conversation_id,id);
 CREATE TABLE manager_ai_drafts(draft_id {$draftType} PRIMARY KEY,conversation_id {$idType},manager_id {$idType},project_key {$projectType},context_revision CHAR(64),instruction_revision CHAR(64),latest_message_id {$idType},proposal_json TEXT,created_at DATETIME,insert_requested_at DATETIME,preparation_job_id CHAR(64));
 CREATE TABLE manager_ai_draft_inputs(draft_id CHAR(32) PRIMARY KEY,input_json MEDIUMTEXT NOT NULL,input_sha256 CHAR(64) NOT NULL)");
+if($native){$pdo->exec(file_get_contents(dirname(__DIR__,2).'/migrations/044_manager_prepared_replies.sql'));$pdo->exec(file_get_contents(dirname(__DIR__,2).'/migrations/069_prepared_reply_open_requests.sql'));}
+else $pdo->exec("CREATE TABLE manager_prepared_replies(job_id CHAR(64) PRIMARY KEY,conversation_id INTEGER,manager_id INTEGER,project_key TEXT,context_revision TEXT,instruction_revision TEXT,latest_message_id INTEGER,status TEXT,proposal_json TEXT,proposal_sha256 TEXT,created_at TEXT,prepared_at TEXT,expires_at TEXT,purpose TEXT DEFAULT 'background')");
+require_once __DIR__.'/prepared-input-fixture.php';preparedInputFixtureSchema($pdo);
 $pdo->exec("CREATE TABLE manager_ai_sent_texts(message_id {$idType} PRIMARY KEY,draft_id CHAR(32),conversation_id {$idType},manager_id {$idType},project_key VARCHAR(64),text_value MEDIUMTEXT,text_sha256 CHAR(64))");
 if($native)$pdo->exec(file_get_contents(dirname(__DIR__,2).'/migrations/061_manager_ai_usage_reviews.sql'));
 else$pdo->exec('CREATE TABLE manager_ai_usage_reviews(manager_id INTEGER,message_id INTEGER,case_revision TEXT,reviewed_at TEXT,PRIMARY KEY(manager_id,message_id))');
@@ -46,9 +49,26 @@ UPDATE manager_ai_drafts SET insert_requested_at=NULL WHERE conversation_id=157;
 UPDATE manager_ai_drafts SET proposal_json='{broken' WHERE conversation_id=158;
 UPDATE messages SET metadata_json='{}' WHERE id=10059;
 UPDATE messages SET metadata_json='{".'"project_key":"anytour","attachments":[{"type":"image"}],"ai_draft":{"draft_id":"'.str_pad(dechex(60),32,'0',STR_PAD_LEFT).'","text_matches_proposal":false,"sent_text_sha256":"'.hash('sha256','Manager detail 60').'"}}'."' WHERE id=10060");$pdo->commit();
-self::captureInput($pdo,47);
+self::captureInput($pdo,47);if($sqlitePath===null)self::capturePreparedInput($pdo,42);
 return $pdo;
     }
+public static function capturePreparedInput(PDO $pdo,int $n): void
+{
+    $job=hash('sha256','synthetic issued context '.$n);$draft=str_pad(dechex($n),32,'0',STR_PAD_LEFT);
+    $q=$pdo->prepare('SELECT * FROM manager_ai_drafts WHERE draft_id=?');$q->execute([$draft]);$d=$q->fetch(PDO::FETCH_ASSOC);
+    $packet=['ok'=>true,'job_id'=>$job,'revision'=>$d['context_revision'],'preparation_scope'=>'assigned_manager','latest_message_id'=>(int)$d['latest_message_id'],
+        'context'=>['conversation_id'=>(int)$d['conversation_id'],'as_of_message_id'=>(int)$d['latest_message_id'],'history_incomplete'=>false,'media_unread'=>false,'selections_link_unread'=>false,'verified_company_facts'=>[],
+            'messages'=>[['id'=>(int)$d['latest_message_id'],'sender_type'=>'customer','text'=>'Question '.$n]]],
+        'company_knowledge'=>['facts'=>[],'revision'=>str_repeat('b',64)],'instructions'=>'Synthetic exact issued instructions 🧳','instruction_revision'=>$d['instruction_revision']];
+    $e=ManagerPreparedInputEvidence::capture($packet);
+    if(!$e)throw new RuntimeException('prepared_input_fixture_invalid');
+    $pdo->prepare("INSERT INTO manager_prepared_replies(job_id,conversation_id,manager_id,project_key,context_revision,instruction_revision,latest_message_id,status,proposal_json,proposal_sha256,created_at,prepared_at,expires_at) VALUES(?,?,?,?,?,?,?,'ready',?,?,?,?,?)")
+        ->execute([$job,$d['conversation_id'],$d['manager_id'],$d['project_key'],$d['context_revision'],$d['instruction_revision'],$d['latest_message_id'],$d['proposal_json'],hash('sha256',$d['proposal_json']),'2026-10-25 09:59:00','2026-10-25 10:00:00','2026-10-25 11:00:00']);
+    $pdo->prepare('UPDATE manager_ai_drafts SET preparation_job_id=? WHERE draft_id=?')->execute([$job,$draft]);
+    $r=ManagerPreparedInputService::record($pdo,['job_id'=>$job],$e,1,str_repeat('a',32));
+    if(!$r['captured'])throw new RuntimeException('prepared_receipt_fixture_invalid');
+    ManagerPreparedInputService::link($pdo,$job,$r['receipt_id']);
+}
 public static function captureInput(PDO $pdo,int $n): ManagerAiDraftInputEvidence
 {
     $context=['conversation_id'=>100+$n,'as_of_message_id'=>1000+$n,'history_incomplete'=>false,
