@@ -13,6 +13,7 @@ if($demandNative->query('SELECT DATABASE()')->fetchColumn()!==$demandMatch[1])th
 [$demandSeed]=hotelDemandFixture();
 foreach($demandSeed->query("SELECT name,sql FROM sqlite_master WHERE type='table'")->fetchAll() as $demandTable){
     $demandSql=preg_replace('/\bINTEGER\b/','BIGINT',$demandTable['sql']);
+    $demandSql=str_replace('selection_json TEXT','selection_json MEDIUMTEXT',$demandSql);
     $demandNative->exec(preg_replace('/\ACREATE TABLE /','CREATE TEMPORARY TABLE ',$demandSql));
     foreach($demandSeed->query('SELECT * FROM '.$demandTable['name'])->fetchAll() as $demandRow){
         $demandInsert=$demandNative->prepare('INSERT INTO '.$demandTable['name'].' VALUES('.implode(',',array_fill(0,count($demandRow),'?')).')');
