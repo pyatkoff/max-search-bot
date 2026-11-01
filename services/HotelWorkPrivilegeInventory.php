@@ -31,14 +31,19 @@ final class HotelWorkPrivilegeInventory
                 return $base+['state'=>'HOLD','reason'=>'unsupported_inventory_context'];
             if($applicationPdo->inTransaction())
                 return $base+['state'=>'HOLD','reason'=>'foreign_transaction'];
+            if($applicationPdo->getAttribute(PDO::ATTR_ERRMODE)!==PDO::ERRMODE_EXCEPTION)
+                return $base+['state'=>'HOLD','reason'=>'exception_mode_required'];
             $reader=new self($applicationPdo,$expectedDatabase);
-            $applicationPdo->exec('SET TRANSACTION READ ONLY');
-            $applicationPdo->beginTransaction();
-            try{$result=$reader->collect();}
-            finally{if($applicationPdo->inTransaction())$applicationPdo->rollBack();}
+            if($applicationPdo->exec('SET TRANSACTION READ ONLY')===false)throw new RuntimeException('read_transaction_unavailable');
+            try{
+                if($applicationPdo->beginTransaction()!==true)throw new RuntimeException('read_transaction_unavailable');
+                $result=$reader->collect();
+            }finally{
+                if($applicationPdo->inTransaction()&&$applicationPdo->rollBack()!==true)throw new RuntimeException('read_rollback_unconfirmed');
+            }
             return $base+$result;
         }catch(Throwable $ignored){
-            return $base+['state'=>'HOLD','reason'=>'inventory_read_unavailable'];
+            return $base+['state'=>'HOLD','reason'=>'inventory_read_unavailable','pdo_reuse_safe'=>false];
         }
     }
 
@@ -48,8 +53,11 @@ final class HotelWorkPrivilegeInventory
         if($this->queries>=32){++$this->unknown;return null;}
         ++$this->queries;
         try {
-            $s=$this->pdo->prepare($sql);$s->execute($params);$rows=[];
+            $s=$this->pdo->prepare($sql);
+            if(!($s instanceof PDOStatement))throw new RuntimeException('read_prepare_unconfirmed');
+            $rows=[];
             try{
+                if($s->execute($params)!==true)throw new RuntimeException('read_execute_unconfirmed');
                 while(($r=$s->fetch(PDO::FETCH_ASSOC))!==false){
                     if(count($rows)>=$limit){++$this->unknown;return null;}
                     foreach($r as$v){
@@ -59,7 +67,7 @@ final class HotelWorkPrivilegeInventory
                     }
                     $rows[]=$r;
                 }
-            }finally{$s->closeCursor();}
+            }finally{if($s->closeCursor()!==true)throw new RuntimeException('read_cursor_unconfirmed');}
             return $rows;
         }catch(Throwable $ignored){++$this->unknown;return null;}
     }

@@ -19,7 +19,8 @@ route limitation. Mac and Windows checking chats remain out of scope.
 
 ## Private reads and public result
 
-The reader rejects a foreign transaction, starts its own READ ONLY transaction
+The reader requires ERRMODE_EXCEPTION and rejects a foreign transaction before SQL.
+It checks prepare/execute/transaction-control return values, starts its own READ ONLY transaction
 and rolls it back. It binds DATABASE() to the trusted expected database and
 compares the private server/account/session identity again after the read.
 Only its hash is returned; account, role, database and host names are not emitted.
@@ -71,8 +72,8 @@ actual previous1419 are not overridden. Every result hard-codes zero role
 activation, migration/retirement attempts and false DDL/new-start admission.
 
 Foreign transaction, target mismatch, changed identity or changed current
-role never yields positive effective authority. A failing transaction bootstrap
-must not be reused as an ordinary application transaction.
+role never yields positive effective authority. A failing transaction bootstrap or rollback yields HOLD with pdo_reuse_safe=false;
+the caller must discard that connection rather than reuse it for application work.
 
 ## Verification and references
 

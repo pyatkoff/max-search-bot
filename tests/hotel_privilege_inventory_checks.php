@@ -12,7 +12,7 @@ final class HpiStatement extends PDOStatement
     private int $cursor=0;
     public function __construct(private HpiPdo $owner,private string $sql){}
     public function execute(?array $params=null):bool
-    {$this->rows=$this->owner->answer($this->sql,$params??[]);$this->cursor=0;return true;}
+    {if($this->owner->falseExecute($this->sql))return false;$this->rows=$this->owner->answer($this->sql,$params??[]);$this->cursor=0;return true;}
     public function fetch(int $mode=PDO::FETCH_DEFAULT,int $orientation=PDO::FETCH_ORI_NEXT,int $offset=0):mixed
     {return $this->rows[$this->cursor++]??false;}
     public function closeCursor():bool{return true;}
@@ -24,14 +24,16 @@ final class HpiPdo extends PDO
     private int $identityReads=0;
     private int $roleReads=0;
     public function __construct(public array $data=[]){}
-    public function getAttribute(int $a):mixed{return $a===PDO::ATTR_DRIVER_NAME?'mysql':null;}
+    public function getAttribute(int $a):mixed{return $a===PDO::ATTR_DRIVER_NAME?'mysql':($a===PDO::ATTR_ERRMODE?($this->data['errmode']??PDO::ERRMODE_EXCEPTION):null);}
     public function inTransaction():bool{return$this->active;}
     public function exec(string $sql):int|false
-    {if($sql!=='SET TRANSACTION READ ONLY')throw new RuntimeException('unexpected_mutation');$this->calls[]=$sql;return 0;}
-    public function beginTransaction():bool{$this->calls[]='BEGIN';return$this->active=true;}
-    public function rollBack():bool{$this->calls[]='ROLLBACK';$this->active=false;return true;}
+    {if($sql!=='SET TRANSACTION READ ONLY')throw new RuntimeException('unexpected_mutation');$this->calls[]=$sql;return ($this->data['false_exec']??false)?false:0;}
+    public function beginTransaction():bool{$this->calls[]='BEGIN';if($this->data['false_begin']??false)return false;return$this->active=true;}
+    public function rollBack():bool{$this->calls[]='ROLLBACK';if($this->data['false_rollback']??false)return false;$this->active=false;return true;}
     public function prepare(string $sql,array $options=[]):PDOStatement|false
-    {return new HpiStatement($this,$sql);}
+    {foreach($this->data['false_prepare']??[]as$part)if(str_contains($sql,$part)){$this->calls[]=$sql;return false;}return new HpiStatement($this,$sql);}
+    public function falseExecute(string $sql):bool
+    {foreach($this->data['false_execute']??[]as$part)if(str_contains($sql,$part)){$this->calls[]=$sql;return true;}return false;}
     public function quote(string $v,int $type=PDO::PARAM_STR):string|false
     {return "'".str_replace("'","''",$v)."'";}
     public function answer(string $sql,array $params):array
@@ -149,6 +151,20 @@ $p=new HpiPdo();$p->active=true;$r=HotelWorkPrivilegeInventory::read($p,'private
 hpiAssert($r['reason']==='foreign_transaction'&&$p->active&&$p->calls===[],'foreign_transaction_not_changed_or_rolled_back');
 [$r]=hpiRead(['identity'=>['db'=>'another_fixture']]);
 hpiAssert($r['reason']==='target_database_not_bound','wrong_database_stops_inventory');
+
+foreach([PDO::ERRMODE_SILENT,PDO::ERRMODE_WARNING]as$mode){
+    $p=new HpiPdo(['errmode'=>$mode]);$r=HotelWorkPrivilegeInventory::read($p,'private_fixture');
+    hpiAssert($r['reason']==='exception_mode_required'&&$p->calls===[],'incompatible_error_mode_refused_before_SQL');
+}
+foreach(['false_exec','false_begin','false_rollback']as$failure){
+    $p=new HpiPdo([$failure=>true]);$r=HotelWorkPrivilegeInventory::read($p,'private_fixture');
+    hpiAssert($r['state']==='HOLD'&&$r['pdo_reuse_safe']===false,'failed_transaction_control_never_returns_inventory');
+}
+foreach(['false_prepare','false_execute']as$failure){
+    [$r]=hpiRead([$failure=>['information_schema.USER_PRIVILEGES']]);
+    hpiAssert($r['direct_observed']['super']===null&&$r['effective']['super']===null,'failed_statement_result_not_empty_absence');
+}
+
 if(getenv('HOTEL_WORK_NATIVE_MYSQL')==='1'){
     $dsn=(string)getenv('PREPARED_REPLY_MYSQL_DSN');
     if(!preg_match('/(?:\Amysql:|;)dbname=(maxbot_prepared_test(?:_[a-zA-Z0-9_]+)?)(?:;|\z)/D',$dsn,$m))throw new RuntimeException('unsafe_inventory_fixture');
