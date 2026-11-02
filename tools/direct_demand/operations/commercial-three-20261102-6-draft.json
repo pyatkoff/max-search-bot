@@ -1,13 +1,19 @@
 {
   "operation": "commercial-hotel-three-20261102-6-v1",
-  "state": "MEDIA_VERIFIED_RELEASE_GATES_PENDING_NOT_SENT",
+  "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED",
   "hotel_catalog_ids": [
     482,
     476,
     81173
   ],
-  "confirmed_logical_materials_total": 21,
-  "new_posts": 0,
+  "confirmed_new_posts": 6,
+  "confirmed_logical_materials_total": 24,
+  "workflow_run": "https://github.com/pyatkoff/max-search-bot/actions/runs/41432911912",
   "prepared_public_manifest": "tools/direct_demand/operations/commercial-three-20261102-6-manifest.json",
-  "next": "Current main deployment and its strict TLS check must complete; then run the same finite once-only publisher."
+  "next_candidate_names": [
+    "SUNRISE Diamond Beach Resort",
+    "SUNRISE Montemare Resort",
+    "SUNRISE Remal Beach"
+  ],
+  "next_state": "NOT_STARTED"
 }
