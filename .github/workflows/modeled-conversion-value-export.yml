@@ -1,0 +1,71 @@
+name: Configure AnyTour modeled value goal
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        type: choice
+        required: true
+        default: status
+        options: [status, create-goal, enable, disable]
+      expected_sha:
+        description: Exact installed current main SHA
+        type: string
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: anytour-modeled-value-configuration
+  cancel-in-progress: false
+jobs:
+  configure:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Validate finite operation and current authoritative main
+        env:
+          VALUE_OPERATION: ${{ inputs.operation }}
+          EXPECTED_SHA: ${{ inputs.expected_sha }}
+          GH_TOKEN: ${{ github.token }}
+          REPO_NAME: ${{ github.repository }}
+          WORKFLOW_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$EXPECTED_SHA" =~ ^[a-f0-9]{40}$ ]]
+          case "$VALUE_OPERATION" in status|create-goal|enable|disable) ;; *) exit 1;; esac
+          actual="$(curl --fail --silent --show-error -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/repos/$REPO_NAME/git/ref/heads/main" | python3 -c 'import json,sys; print(json.load(sys.stdin)["object"]["sha"])')"
+          test "$actual" = "$EXPECTED_SHA"
+          test "$WORKFLOW_SHA" = "$EXPECTED_SHA"
+      - name: Prepare existing canonical server credential
+        env:
+          VALUE_SSH_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          value_key_path="$RUNNER_TEMP/value_goal_key"
+          raw="$VALUE_SSH_KEY"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$value_key_path"; else printf '%s\n' "$raw" | tr -d '\r' > "$value_key_path"; fi
+          else printf '%s' "$raw" | base64 --decode | tr -d '\r' > "$value_key_path"; fi
+          chmod 600 "$value_key_path"
+          ssh-keygen -y -f "$value_key_path" >/dev/null
+      - name: Execute exact bounded installed operation
+        env:
+          VALUE_OPERATION: ${{ inputs.operation }}
+          EXPECTED_SHA: ${{ inputs.expected_sha }}
+          VALUE_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          VALUE_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -i "$RUNNER_TEMP/value_goal_key" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$VALUE_USER@$VALUE_HOST" bash -s -- "$EXPECTED_SHA" "$VALUE_OPERATION" <<'VALUE_REMOTE'
+          set -eu
+          cd /var/www/anytoour/data/www/app.anytoour.ru
+          test "$(git rev-parse HEAD)" = "$1"
+          php tools/modeled_conversion_value_export.php "$2"
+          VALUE_REMOTE
+      - name: Remove ephemeral credential
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/value_goal_key"

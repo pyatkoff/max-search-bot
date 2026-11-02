@@ -27,6 +27,16 @@ register_shutdown_function(static function (): void {
     try {
         require_once __DIR__.'/services/ModeledConversionStream.php';
         $streamResult=ModeledConversionStream::runtimeTick();
+        // Separately authorized experimental value delivery, default OFF.
+        // Reuses this process and the existing durable conversion outbox.
+        try {
+            require_once __DIR__.'/services/ModeledConversionValueExport.php';
+            $valueDelivery=ModeledConversionValueExport::tick();
+            if(($valueDelivery['status']??'off')!=='off'){
+                require_once __DIR__.'/services/DiagnosticLogger.php';
+                DiagnosticLogger::log('modeled_conversion_value','tick',$valueDelivery);
+            }
+        } catch(Throwable $ignoredValue) { /* Existing uploader/observer result is preserved. */ }
         if(($streamResult['status']??'off')!=='off'){
             require_once __DIR__.'/services/DiagnosticLogger.php';
             DiagnosticLogger::log('modeled_conversion_stream','tick',$streamResult);
