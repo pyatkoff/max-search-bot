@@ -1,7 +1,7 @@
 {
   "operation": "commercial-hotel-batch-20261103-16-v1",
-  "state": "PRIMARY_PHOTO_INSPECTION_PENDING_NOT_SENT",
-  "goal": "Prepare up to ten verified whole hotel publications from stock25 through existing two channels.",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Publish eight ready whole hotel materials without waiting for two properties lacking a suitable general hero.",
   "boundaries": "Ten proven native catalogue identities, fixed public primary sources, existing Canva copies and publisher only. No current prices, customer reads, old publication edits or new runtime.",
   "criteria": "Real general hotel photograph, primary factual useful properties and important feature, readable AnyTour branding, canonical button and current live duplicate guard.",
   "risks": "Sentido primary page announces Aqua Park closure10Jan through28Feb2027. Radamis is one overall resort with Blue Planet/Tirana/Beach categories; do not promise beachfront rooms for every category. Samaya has a readable TUI BLUE primary page and separate retained JAZ pool12 provenance. Meraki rejected person-in-pool hero is excluded. Failed individual public page cannot block other ready materials.",
@@ -9,13 +9,212 @@
     287,
     435,
     109149,
-    62505,
     79059,
     56092,
     115918,
-    4184,
     269,
     80964
   ],
-  "baseline_logical_materials": 80
+  "baseline_logical_materials": 80,
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "hotel_id": 287,
+      "hotel": "KEMPINSKI SOMA BAY",
+      "key": "kempinski-soma-bay",
+      "aliases": [
+        "KEMPINSKI HOTEL SOMA BAY",
+        "KEMPINSKI SOMA BAY"
+      ],
+      "sources": [
+        "https://www.kempinski.com/en/hotel-soma-bay",
+        "https://www.kempinski.com/en/hotel-soma-bay/overview/services-and-facilities/beach-and-pools",
+        "https://www.kempinski.com/en/hotel-soma-bay/restaurants-bars"
+      ],
+      "text": "✈️ Kempinski Hotel Soma Bay 5★\nТур с перелётом в Хургаду 🇪🇬\n\nОтель в Сома Бэй с собственным песчаным пляжем длиной 400 м. Корпуса находятся рядом с морем 🌴\n\n💦 Ленивая река огибает семейный бассейн.\n🧒 Для детей есть отдельный бассейн.\n🫧 Большое джакузи на открытом воздухе.\n🍽️ Основной ресторан The View с морской панорамой, азиатская кухня в Bamboo Shoot и средиземноморская в Al Mar.\n\nНа пляже можно провести весь день, а вечером выбрать ресторан или бар у моря.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-kempinski-soma-bay-287-v1",
+      "text_sha256": "13e36efada9030e6ce454b8954a5ff7e872994953bf7f2566427e0ec7667318c",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/549675505dae8eeccf1fab86cf3a2779927b08ad/.github/traffic-publish/commercial-batch-20261103-16/287.png",
+      "photo_sha256": "21a26282fda6a8de680101a7d4481de7e5d615ddd3301686d89b601902a2d325",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 435,
+      "hotel": "SHERATON SOMA BAY",
+      "key": "sheraton-soma-bay",
+      "aliases": [
+        "SHERATON SOMA BAY RESORT",
+        "SHERATON SOMA BAY"
+      ],
+      "sources": [
+        "https://www.marriott.com/en-us/hotels/hrgss-sheraton-soma-bay-resort/overview/",
+        "https://www.marriott.com/en-us/hotels/hrgss-sheraton-soma-bay-resort/photos/"
+      ],
+      "text": "✈️ Sheraton Soma Bay Resort 5★\nТур с перелётом в Хургаду 🇪🇬\n\nОбновлённый отель в Сома Бэй для пляжного отпуска вдвоём или с семьёй 🌴\n\n🏖️ Собственный песчаный пляж рядом с корпусами.\n💦 Бассейны и аквапарк Soma Splash.\n🧒 Детский клуб, спортивные занятия и тренажёрный зал.\n🍽️ Четыре ресторана, в том числе итальянский L'Emporio, и бары с видом на море.\n\nВ Сома Бэй есть возможности для дайвинга, кайтсерфинга и гольфа. Отель подойдёт тем, кто хочет совмещать пляж и активный отдых.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-sheraton-soma-bay-435-v1",
+      "text_sha256": "176868725a1f1c15e32d55df659f667f8255dd3001cae2718235c3b234843e3b",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/549675505dae8eeccf1fab86cf3a2779927b08ad/.github/traffic-publish/commercial-batch-20261103-16/435.png",
+      "photo_sha256": "6fff110dec94051ab77956462d0cc12124cdcfc1cb003e7694feb625761e0a8c",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 109149,
+      "hotel": "THE BREAKERS SOMABAY",
+      "key": "breakers-soma-bay",
+      "aliases": [
+        "THE BREAKERS DIVING & SURFING LODGE",
+        "THE BREAKERS SOMABAY"
+      ],
+      "sources": [
+        "https://www.thebreakers-somabay.com/hotel/",
+        "https://www.thebreakers-somabay.com/rooms/"
+      ],
+      "text": "✈️ The Breakers Diving & Surfing Lodge\nТур с перелётом в Хургаду 🇪🇬\n\nНебольшой отель в Сома Бэй, где собираются любители дайвинга, кайтсерфинга и отдыха у моря 🤿\n\n🏡 173 номера, каждый с собственным балконом.\n🏄 Водные виды спорта, йога и тренажёрный зал.\n🍽️ Тематические ужины, бары у моря и терраса для завтрака.\n🌅 Бар и панорамная сауна на крыше.\n\nℹ️ К домашнему рифу ведёт понтон длиной 420 м. Это важная особенность для тех, кто едет плавать с маской и нырять.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-breakers-soma-bay-109149-v1",
+      "text_sha256": "d84e8f6192eb5e28f32fe5f9f6f7429c4a9a8296790485b8b269e52087624a4b",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/ea5fb18274f9da4b0d78dcf476ddc7a72fbdd20c/.github/traffic-publish/commercial-batch-20261103-16/109149.png",
+      "photo_sha256": "d11c9e44b0a0d41cae72a44ee9258f5237dc10f04ba12458d56b67a1a448d333",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 79059,
+      "hotel": "WATER VALLEY NEVERLAND",
+      "key": "albatros-water-valley",
+      "aliases": [
+        "PICKALBATROS WATER VALLEY RESORT NEVERLAND HURGHADA",
+        "WATER VALLEY NEVERLAND"
+      ],
+      "sources": [
+        "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-water-valley-resort",
+        "https://www.pickalbatros.com/water-valley-resort-neverland-hurghada"
+      ],
+      "text": "✈️ Pickalbatros Water Valley Resort\nТур с перелётом в Хургаду 🇪🇬\n\nСемейный отель в комплексе Neverland с большим выбором водных развлечений и вечерних шоу 🎡\n\n💦 Горки, водные аттракционы и бассейны Neverland.\n🎠 Развлекательная улица Midway Street с аттракционами и играми.\n🍽️ Рестораны и бары трёх отелей комплекса: Jungle, Water Valley и Alf Leila Wa Leila.\n🏡 Двухкомнатные семейные номера с двумя ванными.\n\nℹ️ До песчаного пляжа около 900 м. Каждые 30 минут ходит автобус.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-albatros-water-valley-79059-v1",
+      "text_sha256": "7f1a4f60a177c8fa0d119e58891ea3ba22ec0890b3f523c83fe0b454f82d3d86",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/549675505dae8eeccf1fab86cf3a2779927b08ad/.github/traffic-publish/commercial-batch-20261103-16/79059.png",
+      "photo_sha256": "8eaa002ef8509b960d78b1ef079525157a850615079cfd5b79af7f8022abab20",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 56092,
+      "hotel": "GRAVITY HURGHADA",
+      "key": "gravity-hotel-aqua-park-hurghada",
+      "aliases": [
+        "GRAVITY HOTEL & AQUA PARK HURGHADA",
+        "GRAVITY HURGHADA"
+      ],
+      "sources": [
+        "https://hotelsgravity.com/gravity-hotel-aqua-park-hurghada/",
+        "https://hotelsgravity.com/aqua-park-hurghada/",
+        "https://hotelsgravity.com/dining-hurghada/",
+        "https://hotelsgravity.com/gravity-hurghada-samra-bay-suite/"
+      ],
+      "text": "✈️ Gravity Hotel & Aqua Park Hurghada\nТур с перелётом в Хургаду 🇪🇬\n\nПляжный отель в Хургаде с собственной естественной лагуной. Рядом городская набережная с кафе, ресторанами и магазинами 🌴\n\n💦 Аквапарк с 10 горками для водных развлечений.\n🏖️ Собственный пляж у лагуны.\n🍽️ Основной ресторан View, итальянский La Piazza и азиатский Akina.\n🏡 Семейные номера и просторные люксы.\n\nЗдесь удобно сочетать отдых на территории с прогулками по набережной.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-gravity-hotel-aqua-park-hurghada-56092-v1",
+      "text_sha256": "23b41e7ae417d62456acf879394edb3b7669daa76a66e0d80994938cedf34608",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/549675505dae8eeccf1fab86cf3a2779927b08ad/.github/traffic-publish/commercial-batch-20261103-16/56092.png",
+      "photo_sha256": "acdc99a93860998e02a1026a82655e99c94abdbb23f4b9f5745636053d1d892d",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 115918,
+      "hotel": "RIXOS RADAMIS",
+      "key": "rixos-radamis-main",
+      "aliases": [
+        "RIXOS RADAMIS SHARM EL SHEIKH",
+        "RIXOS RADAMIS"
+      ],
+      "sources": [
+        "https://all.accor.com/hotel/C158/index.en.shtml"
+      ],
+      "text": "✈️ Rixos Radamis Sharm El Sheikh\nТур с перелётом в Шарм эль Шейх 🇪🇬\n\nБольшой семейный курорт в Набке с отдельным детским городком и насыщенной программой развлечений 🌴\n\n🧒 Rixy Kids Town с занятиями для детей.\n🎮 Игровые комнаты, спортивные кафе и занятия в течение дня.\n🍽️ Рестораны с разнообразным меню и шведским столом.\n🎭 Бассейны, вечерние шоу и развлечения на территории.\n\nℹ️ Номера находятся в разных зонах комплекса: Blue Planet, Tirana и у пляжа. Отель принимает семьи и пары.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-rixos-radamis-main-115918-v1",
+      "text_sha256": "f84bea8cb01b44b598d6116fb215834908709213f669a6d1cf6773ffc3f0dcbf",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/549675505dae8eeccf1fab86cf3a2779927b08ad/.github/traffic-publish/commercial-batch-20261103-16/115918.png",
+      "photo_sha256": "8ed7947c53d44582f001c179569759e6b78f534d5d60e0a442761ba431b30179",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 269,
+      "hotel": "TUI BLUE SAMAYA",
+      "key": "jaz-samaya",
+      "aliases": [
+        "JAZ SAMAYA RESORT (EX. IBEROTEL SAMAYA)",
+        "TUI BLUE SAMAYA",
+        "TUI BLUE Samaya",
+        "JAZ SAMAYA RESORT"
+      ],
+      "sources": [
+        "https://www.tui-blue.com/en/en/hotels/tui-blue-samaya/",
+        "https://partner.jazhotels.com/hotel/12"
+      ],
+      "text": "✈️ TUI BLUE Samaya, бывший JAZ Samaya\nТур с перелётом в Марса Алам 🇪🇬\n\nНебольшой семейный отель в бухте Корайя с собственным пляжем и домашним рифом 🐠\n\n💦 Три бассейна, в том числе детский.\n🧒 Детский клуб и игровая площадка.\n🍽️ Основной ресторан и пляжный El Sabbar.\n🏋️ Фитнес, пляжный волейбол, настольный теннис и вечерние шоу.\n\nℹ️ Для плавания и снорклинга в основном используют понтон. Вход в море с берега ограничен, для кораллового участка рекомендуют обувь для купания.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-jaz-samaya-269-v1",
+      "text_sha256": "ffab1f2c7cce1cfe87391e10cdd00cd046536da64e8b9e7c679fb1d7545e1113",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/549675505dae8eeccf1fab86cf3a2779927b08ad/.github/traffic-publish/commercial-batch-20261103-16/269.png",
+      "photo_sha256": "9e47c44e672f108e3a7b4083db554ba2eb73b46b45fd2843b3c146b104c5c256",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 80964,
+      "hotel": "MERAKI SHARM 16+",
+      "key": "meraki-sharm",
+      "aliases": [
+        "MERAKI RESORT SHARM EL SHEIKH",
+        "MERAKI SHARM 16+"
+      ],
+      "sources": [
+        "https://meraki-resort.com/ssh/",
+        "https://meraki-resort.com/about-us/",
+        "https://meraki-resort.com/ssh/activitiessharm/",
+        "https://meraki-resort.com/ssh/munchingsharm/",
+        "https://meraki-resort.com/ssh/gallery-sharm/"
+      ],
+      "text": "✈️ Meraki Resort Sharm El Sheikh 16+\nТур с перелётом в Шарм эль Шейх 🇪🇬\n\nКлубный отель в Шаркс Бэй для гостей от 16 лет. Днём пляж и отдых у бассейна, вечером музыка, шоу и вечеринки 🎶\n\n🏖️ Собственный пляж длиной 160 м.\n💦 Три бассейна на территории.\n🍽️ Рестораны Basilico, Noodle Tribe и Mumm.\n🧘 Йога, тренажёрный зал и дневные спортивные занятия.\n\nℹ️ Бассейн Utopia Beach Club предназначен для гостей люксов. Это отдельная зона с особыми условиями доступа.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-meraki-sharm-80964-v1",
+      "text_sha256": "07d43873c4205c63d8cef9771bf1eee287bef52930c7119547378b006e1fd6b1",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/ea5fb18274f9da4b0d78dcf476ddc7a72fbdd20c/.github/traffic-publish/commercial-batch-20261103-16/80964.png",
+      "photo_sha256": "e9d302e7ef622bd4344bc8d44cfc59ce49f19043807c37482aca7e949856c51a",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    }
+  ],
+  "deferred": [
+    {
+      "hotel_id": 62505,
+      "hotel": "ROBINSON SOMA BAY",
+      "key": "robinson-soma-bay",
+      "aliases": [
+        "ROBINSON SOMA BAY",
+        "ROBINSON SOMA BAY"
+      ],
+      "sources": [
+        "https://www.robinson.com/en/en/resort-holiday/egypt/soma-bay/club-details/",
+        "https://mice.robinson.com/en/clubs/soma-bay/"
+      ],
+      "text": "✈️ ROBINSON Soma Bay\nТур с перелётом в Хургаду 🇪🇬\n\nКлубный отель в Сома Бэй у песчаного пляжа длиной около 500 м. Много спорта и вечерних развлечений 🌴\n\n💦 Три бассейна, в том числе детский.\n🏄 Водные виды спорта, дайвинг, групповой фитнес и теннис.\n🍽️ Полный пансион с завтраком, обедом и ужином. Четыре ресторана и шесть баров.\n🧒 ROBY CLUB для детей от 3 лет.\n\nℹ️ Основная программа ориентирована на взрослых. Семьи с детьми тоже принимают, для ребят есть отдельные занятия.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-robinson-soma-bay-62505-v1",
+      "text_sha256": "b9bcaf4b012eb42308444affba3df78ed1762486a6040123d246d29759dc04ad",
+      "state": "DEFERRED_GENERAL_HOTEL_VIEW_REQUIRED",
+      "reason": "Corrected hero still shows the driveway, not a useful general hotel view. No send."
+    },
+    {
+      "hotel_id": 4184,
+      "hotel": "SENTIDO REEF OASIS",
+      "key": "sentido-reef-oasis-senses",
+      "aliases": [
+        "SENTIDO REEF OASIS SENSES RESORT (EX. REEF OASIS SENSES RESORT)",
+        "SENTIDO REEF OASIS"
+      ],
+      "sources": [
+        "https://www.reefoasisresorts.com/sentido-reef-oasis-senses-aqua-park-resort",
+        "https://www.sentido.com/en/Sentido-Reef-Oasis-Resort.html",
+        "https://www.reefoasisresorts.com/sentido-reef-oasis-senses-aqua-park-resort-gallery"
+      ],
+      "text": "✈️ Sentido Reef Oasis Senses\nТур с перелётом в Шарм эль Шейх 🇪🇬\n\nОтель в районе Хадаба для семейного отпуска и знакомства с рифами Красного моря 🐠\n\n🤿 Собственный пляж с домашним рифом и дайвинг школа PADI.\n🧒 Детский клуб для ребят от 4 до 12 лет и детские бассейны.\n🍽️ Основной ресторан, итальянская кухня и блюда на гриле.\n🎾 Теннис, тренажёрный зал, дневные занятия и вечерние шоу.\n\nℹ️ До пляжа около 500 м, на пути есть лестницы. Отель сообщил о закрытии аквапарка на ремонт с 10 января по 28 февраля 2027 года.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-sentido-reef-oasis-senses-4184-v1",
+      "text_sha256": "c615af5d18cbf6001817391750b4c0a81c2d2d8c488cfd61162271ccb905329a",
+      "state": "DEFERRED_GENERAL_HOTEL_VIEW_REQUIRED",
+      "reason": "Corrected hero still centres a single pool rather than a useful general hotel view. No send."
+    }
+  ]
 }
