@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261102-12-v1",
-  "state": "TWO_FACTS_READY_NATIVE_COVERS_INSPECTION_PENDING_NOT_SENT",
+  "state": "PREPARED_NOT_SENT",
   "goal": "Publish the two fact-ready hotels while the other first-choice materials remain in stock.",
   "boundaries": "Grand383 and Amara108090 only; no prices or claims about unready stock. Same authorized channels and publisher.",
   "criteria": "Real useful general hotel photos and readable AnyTour covers, exact immutable PNGs and captions, live no-duplicate registry guard before send.",
@@ -20,7 +20,12 @@
         "https://partner.jazhotels.com/hotel/58",
         "https://partner.jazhotels.com/Images/uploads/gallery/Downloads/JazGrandResta/JAZ_Grand%20Marsa_Factsheet_14052026.pdf"
       ],
-      "text": "✈️ JAZ Grand Marsa\nТур с перелётом в Марса Алам 🇪🇬\n\nОтель на берегу Красного моря с 539 номерами. На территории есть рестораны, детский клуб и спа 🌴\n\n🏖️ Собственный пляж.\n🧒 Детский клуб Jazy и игровая площадка.\n🍽️ Основной ресторан The Space и рестораны с обслуживанием по меню.\n🌅 В номерах есть балкон или терраса.\n\nℹ️ Спа, массаж и теннис оплачиваются отдельно.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет."
+      "text": "✈️ JAZ Grand Marsa\nТур с перелётом в Марса Алам 🇪🇬\n\nОтель на берегу Красного моря с 539 номерами. На территории есть рестораны, детский клуб и спа 🌴\n\n🏖️ Собственный пляж.\n🧒 Детский клуб Jazy и игровая площадка.\n🍽️ Основной ресторан The Space и рестораны с обслуживанием по меню.\n🌅 В номерах есть балкон или терраса.\n\nℹ️ Спа, массаж и теннис оплачиваются отдельно.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-jaz-grand-marsa-383-v1",
+      "text_sha256": "b0f36b362ce382420ae51f5edf54a899765768c4d99144f79d60ac644e4a40f0",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/3d8d1803364d1fecdf777629924664496f6f629d/.github/traffic-publish/commercial-batch-20261102-12/383.png",
+      "photo_sha256": "0d8a65330cd2b01c244e5038ea1aec174dd980670971385fd7ff5b9be869c753",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
     },
     {
       "hotel_id": 108090,
@@ -34,7 +39,12 @@
         "https://partner.jazhotels.com/hotel/93",
         "https://partner.jazhotels.com/Images/uploads/gallery/Downloads/Amara/JAZ_Elite_Amara_Factsheet_28042026.pdf"
       ],
-      "text": "✈️ JAZ Elite Amara 5★\nТур с перелётом в Марса Алам 🇪🇬\n\nОтель в бухте Марса Марес с песчаным пляжем. Здесь 272 номера, включая категории с выходом к бассейну ☀️\n\n🏖️ Собственный песчаный пляж.\n🧒 Детский клуб Jazy, детский бассейн и отдельный бассейн для малышей.\n🍽️ Ресторан Marasi со «шведским столом» и бары у пляжа и бассейнов.\n🏋️ Тренажёрный зал с видом на море.\n\nℹ️ Спа и дайвинг платные. У бесплатного WiFi ограничена скорость.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет."
+      "text": "✈️ JAZ Elite Amara 5★\nТур с перелётом в Марса Алам 🇪🇬\n\nОтель в бухте Марса Марес с песчаным пляжем. Здесь 272 номера, включая категории с выходом к бассейну ☀️\n\n🏖️ Собственный песчаный пляж.\n🧒 Детский клуб Jazy, детский бассейн и отдельный бассейн для малышей.\n🍽️ Ресторан Marasi со «шведским столом» и бары у пляжа и бассейнов.\n🏋️ Тренажёрный зал с видом на море.\n\nℹ️ Спа и дайвинг платные. У бесплатного WiFi ограничена скорость.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-jaz-elite-amara-108090-v1",
+      "text_sha256": "ccc5565e1551790888cb1556e6b6608836ba92d02be718e6b451eb9d3111127a",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/3d8d1803364d1fecdf777629924664496f6f629d/.github/traffic-publish/commercial-batch-20261102-12/108090.png",
+      "photo_sha256": "8f398639a56297384299f7319337db77fa65ceaf712fde41beb65df71d5ea141",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
     }
   ]
 }
