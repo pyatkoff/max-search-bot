@@ -127,8 +127,8 @@
     let changed=preparationNotice.hidden===shown;
     if(changed)preparationNotice.hidden=!shown;
     if(!shown){if(changed)window.WorkspaceV2ReplyEditor?.resize?.();return}
-    const readonly=ownerRead(),host=readonly?$('conversationZone'):$('composer');
-    const before=readonly?$('composerLocked'):[...host.children].find(node=>node.classList.contains('composerSurface')||node.classList.contains('composerMain'))||host.firstChild;
+    const readonly=ownerRead(),hosted=assistantHost(),host=hosted||(readonly?$('conversationZone'):$('composer'));
+    const before=hosted?panel:readonly?$('composerLocked'):[...host.children].find(node=>node.classList.contains('composerSurface')||node.classList.contains('composerMain'))||host.firstChild;
     if(preparationNotice.parentElement!==host){host.insertBefore(preparationNotice,before);changed=true}
     preparationNotice.classList.toggle('aiPreparationReadonly',readonly);
     const failed=attempt.phase==='failed',text=failed?(attempt.error==='preparation_queue_full'?'Очередь AI-подсказок занята. Попробуйте подготовить позже.':'Автоматическая подготовка AI-подсказки временно недоступна.'):late?'Подготовка AI-подсказки задерживается.':'AI готовит подсказку автоматически…';
@@ -251,8 +251,7 @@
   function positionPanel(reveal=false){
     if(manager2()){
       const host=assistantHost();if(!host)return;
-      const reading=readerPosition();
-      if(!view||panel.hidden){host.style.removeProperty('--m2-assistant-open-height');restoreReader(reading);return}
+      if(!view||panel.hidden){host.style.removeProperty('--m2-assistant-open-height');return}
       const parent=host.parentElement,screen=window.visualViewport?.height||innerHeight;
       let room;
       if(parent.classList.contains('m2ReplyEditorBody')){
@@ -269,8 +268,11 @@
         room=parent.clientHeight-px(style.paddingTop)-px(style.paddingBottom)-used-64-Math.max(0,children.length-1)*px(style.rowGap);
       }
       const height=Math.max(0,Math.floor(Math.min(room,screen*.38,360))),value=height+'px';
-      if(host.style.getPropertyValue('--m2-assistant-open-height')!==value)host.style.setProperty('--m2-assistant-open-height',value);
-      restoreReader(reading);
+      if(host.style.getPropertyValue('--m2-assistant-open-height')!==value){
+        const reading=readerPosition();
+        host.style.setProperty('--m2-assistant-open-height',value);
+        restoreReader(reading);
+      }
       if(reveal===true){
         const target=body.querySelector('.aiDraftText,.aiDraftEmpty')||status;
         const box=host.getBoundingClientRect(),text=target.getBoundingClientRect();
@@ -298,7 +300,7 @@
   function clearBody(){body.replaceChildren();insert.hidden=true;insert.disabled=true}
   function abortFlight(){sequence++;const previous=flight;flight=null;previous?.controller?.abort()}
   function resetSession({keepReady=false}={}){
-    const reading=readerPosition();
+    const reading=bound&&!panel.hidden?readerPosition():null;
     abortFlight();view=null;
     if(!keepReady)stopWatching();
     if(!bound)return;

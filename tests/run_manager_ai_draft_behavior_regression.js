@@ -553,6 +553,21 @@ test('metadata readiness stays inside the same assistant while private preview i
   assert.equal(h.ids.get('aiPreparationNotice').parentElement,h.ids.get('m2Assistant'));
   assert.equal(h.ids.get('replyText').value,'');pending.resolve(response(prepared()));await tick();assertNoMutations(h);
 });
+test('pending automatic preparation retains one hosted parent for own and readonly chats',async()=>{
+  for(const readonly of [false,true]){
+    let completed=false;const first=deferred(),h=await harness(data=>data.action==='prepared_status'?completed?response(readiness()):first.promise:data.action==='ensure_prepared'?response({ok:true,requested:true,preparation_state:'pending',queued:true}):response(prepared()),{manager2:true,hosted:true});
+    if(readonly){h.W.S.manager.role='admin';h.W.S.detail.owner_read=true;h.W.S.detail.supervisor_read=true;h.W.S.detail.conversation.manager_id=9;h.ids.get('composer').classList.add('hidden');h.ai.sync()}
+    first.resolve(response(automaticMiss));await tick();
+    const notice=h.ids.get('aiPreparationNotice'),host=h.ids.get('m2Assistant');
+    assert.equal(notice.hidden,false);assert.equal(notice.parentElement,host);
+    h.ai.sync();h.observe();h.ai.sync();assert.equal(notice.parentElement,host);
+    assert.equal(h.aiCalls().filter(call=>call.action==='ensure_prepared').length,1);
+    completed=true;await pollAi(h);assert.equal(notice.hidden,true);assert.equal(h.ids.get('aiDraftSuggestion').parentElement,host);
+    assert.equal(h.ids.get('aiSuggestionAccept').hidden,readonly);assert.equal(h.ids.get('replyText').value,'');
+    assert.equal(h.aiCalls().some(call=>['generate','prepared','validate'].includes(call.action)),false);assertNoMutations(h);
+  }
+});
+
 test('price-only pending work has no insertable reply and a new message invalidates its internal note',async()=>{
   const h=await harness(data=>response(data.action==='prepared_status'?readiness({should_draft:false}):prepared({should_draft:false,draft:null,next_action:'check_offer',reason:'Нет актуального расчёта на изменённую длительность.',checks:['Рассчитать Example Bay Resort на 18 дней из Самары 5 июня; состав и питание сверить с туристом, не брать из старого AI-текста.']})),{manager2:true,hosted:true});await tick();
   await h.click('aiRecommendationDetails');
@@ -576,6 +591,20 @@ test('hosted readonly content has one host and no insertion across dialog change
   assert.equal(h.ids.get('m2Assistant'),host);assert.equal(h.ids.get('conversationZone').children.filter(n=>n.id==='m2Assistant').length,1);
   await h.click('aiSuggestionDetails');await h.insert();assert.equal(h.ids.get('replyText').value,'');assertNoMutations(h);
 });
+test('closed and unchanged hosted assistant leaves transcript restoration to its reader',async()=>{
+  const h=await harness(data=>response(data.action==='prepared_status'?readiness():prepared()),{manager2:true,hosted:true});await tick();
+  let captures=0,restores=0;
+  h.window.WorkspaceV2Jump={capture(){captures++;return {anchor:'native-reader'}},restore(){restores++}};
+  h.ai.sync();h.ai.resetSession({keepReady:true});h.ai.sync();
+  assert.equal(captures,0);assert.equal(restores,0);
+  await h.generate();assert.equal(h.ids.get('aiDraftPanel').hidden,false);assert.ok(captures>0);assert.ok(restores>0);
+  const opened={captures,restores};h.ai.sync();h.ai.sync();
+  assert.deepEqual({captures,restores},opened);
+  h.ai.resetSession({keepReady:true});assert.equal(captures,opened.captures+1);assert.equal(restores,opened.restores+1);
+  const closed={captures,restores};h.ai.resetSession({keepReady:true});h.ai.sync();assert.deepEqual({captures,restores},closed);
+  assertNoMutations(h);
+});
+
 test('Escape and pagehide clear private generated content without sending or persisting it',async()=>{
   const h=await harness();await h.click('aiDraftOpen');let stopped=false;
   for(const handler of h.ids.get('aiDraftPanel').handlers.keydown)handler({key:'Escape',preventDefault(){},stopPropagation(){stopped=true}});

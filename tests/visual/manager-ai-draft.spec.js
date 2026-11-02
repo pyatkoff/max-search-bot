@@ -86,8 +86,19 @@ async function openClient(page,id,name){
 }
 async function bounded(page){
   expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
-  const bounds=await page.locator('#aiDraftPanel').evaluate(node=>{const rect=node.getBoundingClientRect();return {left:rect.left,right:rect.right,top:rect.top,bottom:rect.bottom}});
+  // The hosted panel is longer than its one outer scroller. Bound that painted
+  // surface, then prove the header, content and last action are natively reachable.
+  const hosted=await page.locator('#m2Assistant > #aiDraftPanel').count();
+  const bounds=await page.locator(hosted?'#m2Assistant':'#aiDraftPanel').evaluate(node=>{const rect=node.getBoundingClientRect();return {left:rect.left,right:rect.right,top:rect.top,bottom:rect.bottom,height:rect.height}});
   const viewport=page.viewportSize();expect(bounds.left).toBeGreaterThanOrEqual(-1);expect(bounds.right).toBeLessThanOrEqual(viewport.width+1);expect(bounds.top).toBeGreaterThanOrEqual(-1);expect(bounds.bottom).toBeLessThanOrEqual(viewport.height+1);
+  expect(bounds.height).toBeGreaterThan(0);
+  if(hosted){
+    await readAssistantSection(page,'.aiDraftClose');await expect(page.locator('.aiDraftClose')).toBeInViewport();
+    const content=await page.locator('#aiDraftPanel .aiDraftText').count()?'.aiDraftText':'#aiDraftStatus';
+    await readAssistantSection(page,content);
+    const action='#'+await page.locator('#aiDraftPanel .aiDraftActions button:not([hidden])').last().getAttribute('id');
+    await readAssistantSection(page,action);await expect(page.locator(action)).toBeInViewport();
+  }
   await page.locator('#sendReply').scrollIntoViewIfNeeded();expect(await page.locator('#sendReply').evaluate(node=>node.getBoundingClientRect().bottom)).toBeLessThanOrEqual(viewport.height+1);
 }
 async function capture(page,browserName,viewport){const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});await page.screenshot({animations:'disabled',path:path.join(directory,`ai-draft-${browserName}-${viewport.width}-${viewport.height}-preview.png`)})}
@@ -126,7 +137,13 @@ for(const viewport of [{width:390,height:420},{width:430,height:900},{width:1440
   state.setAI(async data=>data.action==='prepared'?{body:response}:{body:{ok:true,revision:'1'.repeat(64),latest_message_id:35}});
   await expect.poll(()=>!!release).toBe(true);await expect(page.locator('#m2Assistant #m2CurrentTrip')).toBeVisible();
   await page.locator('#replyFile').setInputFiles({name:'assistant-retained.txt',mimeType:'text/plain',buffer:Buffer.from('synthetic attachment')});
-  await page.locator('#messages').hover();await page.mouse.wheel(0,-250);await page.waitForTimeout(150);
+  await page.locator('#messages').hover();await page.mouse.wheel(0,-250);
+  // Native wheel animation may outlast a fixed delay in WebKit. Capture the
+  // reading anchor only after actual scroll offsets settle across paint frames.
+  await expect.poll(()=>page.locator('#messages').evaluate(async node=>{
+    const samples=[];for(let i=0;i<4;i++){await new Promise(requestAnimationFrame);samples.push(node.scrollTop)}
+    return Math.max(...samples)-Math.min(...samples);
+  })).toBeLessThanOrEqual(.1);
   const anchor=()=>page.locator('#messages').evaluate(box=>{const edge=box.getBoundingClientRect().top,row=[...box.children].find(node=>node.getBoundingClientRect().bottom>edge+1);return {key:row?.dataset.scrollMessageKey,offset:row?.getBoundingClientRect().top-edge}});
   const before=await anchor();release();await expect(page.locator('#aiDraftSuggestion')).toBeVisible();
   // The bounded helper scrolls independently on a short screen. Reach its
@@ -283,7 +300,7 @@ for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,
   await page.screenshot({animations:'disabled',path:path.join(directory,prefix+'-before.png')});
   const calls=state.statusCalls().length;
   await page.evaluate(()=>{const now=Date.now()+3600001;Date.now=()=>now;WorkspaceV2AiDraft.syncPreferences();WorkspaceV2AiDraft.sync()});
-  await expect(page.locator('#aiDraftOpen')).toHaveText('AI');await expect(notice).not.toBeVisible();
+  await expect(page.locator('#aiDraftOpen')).toHaveText('Помощник');await expect(notice).not.toBeVisible();
   await expect(reply).toBeFocused();await expect(reply).toHaveValue('Мой незаконченный ответ');await expect(page.locator('#mediaSelection')).toContainText('keep.txt');
   expect(await reply.evaluate(node=>[node.selectionStart,node.selectionEnd,node.selectionDirection,document.querySelector('#replyFile').files[0]===window.aiExpiryFile])).toEqual([1,5,'backward',true]);
   expect(state.statusCalls().length).toBe(calls);expect(state.aiCalls()).toEqual([]);
@@ -386,11 +403,12 @@ for(const width of [390,1440])test('Blocked customer has no automatic reply urge
   await expect(row).toContainText('Клиент недоступен в MAX');await expect(row).not.toHaveClass(/waitUrgent|waitWarn|needsReply/);await expect(row.locator('.leadWaitCompact,.leadReplyStatus')).toHaveCount(0);await expect(page.locator('#aiDraftSuggestion')).not.toBeVisible();expect(state.statusCalls()).toEqual([]);
   if(await page.locator('#mobileBack').isVisible())await page.locator('#mobileBack').click();await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);
   const inbox=testInfo.outputPath('blocked-inbox-'+width+'.png');await page.screenshot({animations:'disabled',path:inbox});await testInfo.attach('blocked-inbox',{body:fs.readFileSync(inbox),contentType:'image/png'});
-  if(await page.locator('#mobileBack').isVisible())await row.locator('.m2RowOpen').click();await page.locator('#m2ConversationMenuToggle').click();await page.locator('#assistantClientOpen').click();
+  if(width<=740)await page.locator('#m2MoreToggle').click();
+  await page.locator('#assistantOpen').click();await page.locator('#assistantList [data-assistant-client="11"]').click();
   await expect(page.locator('#assistantDetail .assistantUnavailable')).toBeVisible();await expect(page.locator('#assistantDetail .assistantUnavailable')).toContainText('Клиент недоступен в MAX');await expect(page.locator('#assistantDetail .assistantRecommendation')).toHaveCount(0);await expect(page.locator('#assistantDetail')).not.toContainText('Обращение без записанного ответа');await expect(page.locator('#assistantDetail')).not.toContainText('Противоречивая рекомендация из старого снимка');
   if(manualTask){await expect(page.locator('#assistantDetail .assistantTask')).toContainText('Проверить вручную сохранённый документ');await expect(page.locator('#assistantDetail .assistantTask')).toContainText('Просрочено')}else{await expect(page.locator('#assistantDetail')).toContainText('Открытых задач нет');await expect(page.locator('#assistantDetail .assistantOperational')).toHaveCount(0)}
   const assistant=testInfo.outputPath('blocked-assistant-'+width+'.png');await page.screenshot({animations:'disabled',path:assistant});await testInfo.attach('blocked-assistant',{body:fs.readFileSync(assistant),contentType:'image/png'});
-  await page.locator('#assistantClose').click();if(await page.locator('#mobileBack').isVisible())await page.locator('#mobileBack').click();state.setDeliveryBlocked(false);await page.evaluate(()=>WorkspaceV2Inbox.load({preserveScroll:true}));await expect(row).toHaveClass(/waitUrgent/);await expect(row.locator('.leadWaitCompact')).toContainText('Срочно');
+  await page.locator('#assistantClose').click();if(await page.locator('#workspaceRoot').getAttribute('data-mobile-screen')==='conversation')await page.locator('#mobileBack').click();state.setDeliveryBlocked(false);await page.evaluate(()=>WorkspaceV2Inbox.load({preserveScroll:true}));await expect(row).toHaveClass(/waitUrgent/);await expect(row.locator('.leadWaitCompact')).toContainText('Срочно');
   expect(state.aiCalls()).toEqual([]);expect(state.calls.filter(call=>['decision','set_task_completed','task_snooze','create_task'].includes(call.action))).toEqual([]);clean(state);
 });
 test('AI inline acceptance rechecks the empty composer after asynchronous preparation',async({page})=>{

@@ -56,12 +56,13 @@
 .manager2 .m2ReplyEditor .aiReadyNotice{bottom:64px}
 @media(max-width:740px){.manager2 .aiReadyNotice{right:8px;gap:7px;padding:8px;max-width:calc(100% - 16px);font-size:12px}.manager2 .aiReadyNotice button{min-height:40px}}
 .aiDraftPanel[hidden],.aiDraftPanel button[hidden]{display:none!important}
-.manager2 .m2Assistant{flex:0 1 auto;min-width:0;min-height:80px;max-height:38dvh;overflow:auto;overscroll-behavior:contain;border-bottom:1px solid #dfe6df;background:#f7f9f8}
-.manager2 .m2Assistant~#messages{min-height:64px}
+.manager2 .m2Assistant{flex:0 1 auto;min-width:0;min-height:0;max-height:38dvh;overflow:auto;overscroll-behavior:contain;border-bottom:1px solid #dfe6df;background:#f7f9f8}
+.manager2 .m2Assistant:has(>.aiDraftSuggestion:not([hidden])){min-height:80px}
+.manager2 .m2Assistant:has(>.aiDraftPanel:not([hidden]))~#messages{min-height:64px}
 .manager2 .m2Assistant:has(>.aiDraftPanel:not([hidden])){flex:0 0 var(--m2-assistant-open-height,30dvh);height:var(--m2-assistant-open-height,30dvh);min-height:0;max-height:none}
 .manager2 .m2Assistant:has(>.aiDraftPanel:not([hidden]))>.aiDraftSuggestion,.manager2 .m2Assistant:has(>.aiDraftPanel:not([hidden]))>.aiRecommendationNotice{display:none!important}
 .manager2 .m2ReplyEditorBody:has(>.m2Assistant){flex-direction:column}
-.manager2 .m2Assistant:empty{display:none}
+.manager2 .m2Assistant:not(:has(>:not([hidden]))){display:none}
 .manager2 .m2Assistant .m2CurrentTrip{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px 12px;border:0;padding:10px 16px}
 .manager2 .m2Assistant .m2RequestTitle{grid-column:1/-1;margin:0;font-size:12px;color:#52644f}
 .manager2 .m2Assistant .aiDraftSuggestion,.manager2 .m2Assistant .aiRecommendationNotice{margin:0 12px 8px}
