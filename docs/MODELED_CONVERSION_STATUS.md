@@ -260,3 +260,27 @@ model hashes/comparison capsules. Current-model namespace filtering and all othe
 parent/access/source/clock/shape checks remain. Numeric natural-save acceptance
 still requires real customer evidence and actual freeze times after installation;
 a passed regression or a nonnumeric saved block alone does not close it.
+
+### V1.4: private real-value delivery and cached session report
+
+The SAME forecasts:read/admin/project route additionally reads only the derived
+ledger of the explicitly authorized modeled-value goal678187097 on98615635.
+No OAuth grant/connection/identifier input changes.20metadata/4forecast packets
+remain; the shared64KiB/5sec budget also covers a fixed aggregate over at most201
+latest value rows and a sanitized existing-settings cache. Release reserve16KiB.
+No person/conversation/ClientID/upload ID/source ref/text or arbitrary cache field
+is copied into the response. Limits/auth are shared and checked before queries
+and on final release. No network, profile/source processing, POST or write occurs
+during this read. Existing model_calls/conversion_uploads describe this READ,
+while value_delivery contains bounded previously recorded delivery history.
+
+The suffix reports selected-row completeness, disjoint state counts/RUB sums,
+confirmed API receipt sums (including later rejected/unmatched rows), valid
+processed states, stage increment sums and fixed error categories. It does not
+sum these overlapping views as extra income. A current cached Reporting API
+aggregate establishes goal reaches/goal visits/convertedRUBRevenue by SESSION
+dates including the21day preactivation attribution window. It does not establish
+each upload's individual visit match or attribution source/campaign quality.
+Statuses sampled/forbidden/unavailable/not_recorded and age>900sec remain explicit;
+missing or stale reporting data is never fabricated as zero or exact linkage.
+Counters/values are private results, never published into Git/Actions/diagnostics.

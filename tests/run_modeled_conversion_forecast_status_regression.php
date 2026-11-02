@@ -8,11 +8,13 @@ require_once dirname(__DIR__).'/services/ModeledConversionForecastStatusReader.p
 final class ForecastV1ObservedStatement extends PDOStatement
 {
     public static bool $copied=false;
+    public static bool $valueCopied=false;
     public static mixed $afterMetadata=null;
     protected function __construct(){}
     public function fetchAll(int $mode=PDO::FETCH_DEFAULT,mixed ...$args):array
     {
         $rows=parent::fetchAll($mode,...$args);
+        if(str_contains($this->queryString,' AS reserved_rub'))self::$valueCopied=true;
         if(str_contains($this->queryString,' AS prediction_json,'))self::$copied=true;
         if(str_contains($this->queryString,' AS namespace_matches')&&is_callable(self::$afterMetadata)){
             $hook=self::$afterMetadata;self::$afterMetadata=null;$hook();
@@ -78,6 +80,63 @@ function forecastV1Read(PDO $p,?callable $auth=null,?ModeledConversionStatusBudg
 }
 function forecastV1Rows(PDO $p):array
 {return $p->query('SELECT * FROM modeled_conversion_profile_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);}
+
+function forecastValueDeliveryAssertions(PDO $p,callable $check):void
+{
+    forecastV1Schema($p);forecastV1Append($p,forecastV1Packet());$now=time();$act=$now-3600;
+    foreach(['modeled_conversion_value_export_settings','max_channel_conversion_outbox']as$table)$p->exec('DROP TABLE IF EXISTS '.$table);
+    $p->exec("CREATE TABLE modeled_conversion_value_export_settings(project_key VARCHAR(40) PRIMARY KEY,counter_id VARCHAR(20),mode VARCHAR(16),goal_id VARCHAR(20),goal_intent VARCHAR(20),activated_at_unix BIGINT,last_tick_unix BIGINT,contract_version VARCHAR(64),last_receipt_json TEXT)");
+    $p->exec("CREATE TABLE max_channel_conversion_outbox(id BIGINT PRIMARY KEY,project_key VARCHAR(40),counter_id VARCHAR(20),transport_target VARCHAR(64),value_contract VARCHAR(64),event_unix BIGINT,state VARCHAR(24),value_stage VARCHAR(40),value_rub DECIMAL(12,2),upload_id VARCHAR(20),upload_status VARCHAR(32),last_error VARCHAR(64),private_marker TEXT)");
+    $report=['status'=>'ok','goal_id'=>'678187097','currency'=>'RUB','fetched_at'=>gmdate('Y-m-d\\TH:i:s\\Z',$now),
+        'date1'=>gmdate('Y-m-d',$act-21*86400),'date2'=>gmdate('Y-m-d',$now),'goal_reaches'=>2,'goal_visits'=>1,'revenue_rub'=>2083.0,'sampled'=>false,
+        'private_marker'=>'PRIVATE_REPORT_MUST_NOT_LEAVE'];
+    $receipt=['errors'=>0,'metrika_report'=>$report];
+    $p->prepare("INSERT INTO modeled_conversion_value_export_settings VALUES('anytour','98615635','send','678187097','verified',?,?,?,?)")
+        ->execute([$act,$now,ModeledConversionValueContract::VERSION,json_encode($receipt,JSON_THROW_ON_ERROR)]);
+    $insert=$p->prepare("INSERT INTO max_channel_conversion_outbox VALUES(?,'anytour','98615635',?,?,?, ?,?,?,?,?,?,'PRIVATE_LEDGER_CLIENT_ID_MUST_NOT_LEAVE')");
+    foreach([[1,'processed','interest',1250,'501','PROCESSED',''],[2,'accepted','specific_request',833,'502','UPLOADED',''],
+        [3,'unknown','offer_discussion',2084,null,null,'upload_outcome_unknown'],[4,'pending','purchase_intent',4166,null,null,'identity_not_found']]as$row){
+        [$id,$state,$stage,$value,$upload,$status,$error]=$row;
+        $insert->execute([$id,ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION,$now-10,$state,$stage,$value,$upload,$status,$error]);
+    }
+    $p->exec("INSERT INTO max_channel_conversion_outbox VALUES(10,'foreign','98615635','anytour_modeled_value_v1','semantic_stage_value_25000_v1',$now,'accepted','agency_choice',25000,'900','PROCESSED','','FOREIGN')");
+    $p->exec("INSERT INTO max_channel_conversion_outbox VALUES(11,'anytour','999','anytour_modeled_value_v1','semantic_stage_value_25000_v1',$now,'accepted','agency_choice',25000,'901','PROCESSED','','FOREIGN')");
+    $insert->execute([12,ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION,$act-1,'accepted','agency_choice',25000,'902','PROCESSED','']);
+    $before=json_encode($p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),JSON_THROW_ON_ERROR);
+    $r=forecastV1Read($p);$d=$r['value_delivery'];
+    $check('private value suffix keeps disjoint queue states and exact incremental sums',$d['available']&&$d['window']['inspected_rows']===4&&$d['reserved_value_rub']===8333.0
+        &&$d['by_state']['unknown']['value_rub']===2084.0&&$d['by_state']['pending']['value_rub']===4166.0);
+    $check('API acceptance valid rows and visit report are separate',$d['api_accepted_receipts']['events']===2&&$d['api_accepted_receipts']['value_rub']===2083.0
+        &&$d['by_state']['processed']['events']===1&&$d['metrika_goal_report']['goal_visits']===1&&$d['metrika_goal_report']['visit_linkage']==='observed_in_goal_session_report');
+    $json=json_encode($r,JSON_THROW_ON_ERROR);
+    $check('value read returns no identities upload IDs arbitrary cached text or source markers',!str_contains($json,'PRIVATE_REPORT_MUST_NOT_LEAVE')&&!str_contains($json,'PRIVATE_LEDGER_CLIENT_ID')&&!str_contains($json,'"501"')&&!str_contains($json,'"502"'));
+    $r=forecastV1Read($p);
+    $check('repeated private read causes no queue or saved-profile mutation',$before===json_encode($p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),JSON_THROW_ON_ERROR));
+    $receipt['metrika_report']['fetched_at']=gmdate('Y-m-d\\TH:i:s\\Z',$now-901);
+    $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=?")->execute([json_encode($receipt,JSON_THROW_ON_ERROR)]);
+    $r=forecastV1Read($p);
+    $check('stale cache never confirms current visit linkage',!$r['value_delivery']['metrika_goal_report']['fresh']&&$r['value_delivery']['metrika_goal_report']['visit_linkage']==='unknown');
+    $receipt['metrika_report']=$report;$receipt['metrika_report']['status']='sampled';$receipt['metrika_report']['sampled']=true;
+    $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=?")->execute([json_encode($receipt,JSON_THROW_ON_ERROR)]);
+    $r=forecastV1Read($p);$check('sampled totals stay explicit and do not prove exact linkage',$r['value_delivery']['metrika_goal_report']['status']==='sampled'&&$r['value_delivery']['metrika_goal_report']['visit_linkage']==='unknown');
+    $receipt['metrika_report']=['status'=>'forbidden','goal_id'=>'678187097','currency'=>'RUB','fetched_at'=>$report['fetched_at'],'reason'=>'report_scope_or_counter_access'];
+    $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=?")->execute([json_encode($receipt,JSON_THROW_ON_ERROR)]);
+    $r=forecastV1Read($p);$check('missing reporting permission remains unknown rather than zero',$r['value_delivery']['metrika_goal_report']['status']==='forbidden'&&$r['value_delivery']['metrika_goal_report']['goal_visits']===null);
+    $p->exec("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=NULL");$r=forecastV1Read($p);
+    $check('missing recorded report is not an invented zero',$r['value_delivery']['metrika_goal_report']['status']==='not_recorded'&&$r['value_delivery']['metrika_goal_report']['revenue_rub']===null);
+    $oldClass=$p->getAttribute(PDO::ATTR_STATEMENT_CLASS);$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ForecastV1ObservedStatement::class]);ForecastV1ObservedStatement::$valueCopied=false;
+    $revoked=false;try{forecastV1Read($p,static function():void{if(ForecastV1ObservedStatement::$valueCopied)throw new DomainException('fixture_revoked_value');});}
+    catch(DomainException $ignored){$revoked=true;}finally{$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldClass);}
+    $check('revocation after value aggregate copy prevents all release',$revoked&&ForecastV1ObservedStatement::$valueCopied);
+    $p->exec("UPDATE max_channel_conversion_outbox SET state='unknown_untrusted_state' WHERE id=1");$r=forecastV1Read($p);
+    $check('an unclassified ledger state is unavailable not an incomplete zero',$r['value_delivery']['available']===false&&$r['value_delivery']['reason']==='invalid_ledger');
+    $p->exec("UPDATE max_channel_conversion_outbox SET state='processed' WHERE id=1");
+    for($i=100;$i<303;$i++)$insert->execute([$i,ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION,$now-10,'pending','interest',1250,null,null,'identity_not_found']);
+    $r=forecastV1Read($p);$check('value history stays bounded and does not imply complete coverage',$r['value_delivery']['window']['inspected_rows']===201&&!$r['value_delivery']['window']['complete_within_bound']);
+    $p->exec('DROP TABLE modeled_conversion_value_export_settings');$r=forecastV1Read($p);
+    $check('missing value storage preserves the independent forecast result',$r['available']&&$r['value_delivery']['available']===false&&$r['value_delivery']['reason']==='storage_unavailable');
+}
+
 function forecastV1Assertions(PDO $p,callable $check):void
 {
     forecastV1Schema($p);$a=forecastV1Packet();forecastV1Append($p,$a);forecastV1Append($p,$a);
@@ -252,6 +311,7 @@ function forecastV1Assertions(PDO $p,callable $check):void
     $p->exec('DROP TABLE modeled_conversion_profile_versions');$r=forecastV1Read($p);
     $check('missing storage remains unavailable rather than a zero forecast count',
         !$r['available']&&$r['reason']==='storage_unavailable'&&$r['saved']===null);
+    forecastValueDeliveryAssertions($p,$check);
 }
 if(realpath($_SERVER['SCRIPT_FILENAME']??'')===__FILE__){
     $p=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);$passed=0;

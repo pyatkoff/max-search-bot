@@ -137,7 +137,16 @@ async function readAssistantSection(page,selector){
 // Synthetic UI replay only: no provider call, production context or customer send.
 for(const viewport of [{width:390,height:420},{width:430,height:900},{width:1440,height:900}])test('Unified assistant preserves reading and separates reply from checks '+viewport.width+'x'+viewport.height,async({page},testInfo)=>{
   await page.setViewportSize(viewport);let release;
-  const response=prepared({draft:'Из какого города вылетаете и какой бюджет рассматриваете?',reason:'Уточнить город и бюджет, сохраняя известные условия.',checks:['Проверить пляж без сильного ветра.','Сверить реальные условия проживания.'],expires_at:new Date(Date.now()+3600000).toISOString()});
+  const response=prepared({draft:'Из какого города вылетаете и какой бюджет рассматриваете?',reason:'Уточнить город и бюджет, сохраняя известные условия.',checks:['Проверить пляж без сильного ветра.','Сверить реальные условия проживания.'],expires_at:new Date(Date.now()+3600000).toISOString(),admission:{
+    schema_version:1,decision:'manager_review',actual_send_allowed:false,
+    criteria:{
+      last_customer_question:{status:'unknown',message:'Проверьте, отвечает ли текст на последний ввод и все ещё открытые вопросы и исправления клиента.'},
+      context_currentness:{status:'pass',message:'Техническая привязка актуальна на момент проверки. Это не проверка смысла ответа.'},
+      answer_completeness:{status:'unknown',message:'Нет независимой проверки, что ответ охватывает все текущие вопросы. Ссылки на сообщения и пустой список проверок этого не доказывают.'},
+      material_conditions:{status:'unknown',message:'Нужен источник каждого существенного условия именно текущего варианта. Старое предложение, фото и сведения об отеле не подтверждают текущую цену, наличие или бронирование.'}
+    },
+    send_pause:{state:'requires_explicit_resume',explicit_resume_proven:false,message:'После ответа менеджера нужен отдельный явный допуск к возобновлению автоответов. Новый ввод клиента и правила подготовки его не заменяют.'}
+  }});
   const state=await setup(page,{readiness:true,profilePanel:true,previewHandler:async()=>{await new Promise(resolve=>{release=resolve});return {body:response}}});
   state.setAI(async data=>data.action==='prepared'?{body:response}:{body:{ok:true,revision:'1'.repeat(64),latest_message_id:35}});
   await expect.poll(()=>!!release).toBe(true);await expect(page.locator('#m2Assistant #m2CurrentTrip')).toBeVisible();
@@ -163,7 +172,9 @@ for(const viewport of [{width:390,height:420},{width:430,height:900},{width:1440
   const geometry=await page.evaluate(()=>{const r=id=>{const x=document.getElementById(id).getBoundingClientRect();return {width:x.width,height:x.height,bottom:x.bottom}};return {title:r('conversationTitle'),messages:r('messages'),reply:r('replyText'),helper:r('m2Assistant'),overflow:document.documentElement.scrollWidth-innerWidth}});
   expect(geometry.title.width).toBeGreaterThan(60);expect(geometry.messages.height).toBeGreaterThan(60);expect(geometry.reply.height).toBeGreaterThanOrEqual(32);expect(geometry.reply.bottom).toBeLessThanOrEqual(viewport.height+1);expect(geometry.helper.height).toBeLessThanOrEqual(viewport.height*.39+1);expect(geometry.overflow).toBeLessThanOrEqual(1);
   await page.locator('#m2ConversationMenuToggle').click();await page.locator('#assistantClientOpen').click();
-  await expect(page.locator('#aiDraftPanel')).toBeVisible();await expect(page.locator('#assistantDialog')).toHaveCount(0);await expect(page.locator('.aiDraftSectionTitle')).toHaveText(['Готовый ответ туристу','Проверки менеджеру']);
+  await expect(page.locator('#aiDraftPanel')).toBeVisible();await expect(page.locator('#assistantDialog')).toHaveCount(0);await expect(page.locator('.aiDraftSectionTitle')).toHaveText(['Готовый ответ туристу','Проверки менеджеру','Допуск к автоответам']);
+  await expect(page.locator('.aiDraftAdmission li')).toHaveCount(4);
+  await expect(page.locator('.aiDraftAdmission li')).toContainText(['Последний ввод клиента: Не подтверждено.','Актуальность контекста: Техническая привязка проверена.','Полнота ответа: Не подтверждено.','Подтверждение условий: Не подтверждено.']);
   await expect(page.locator('.aiDraftText')).toHaveText(response.draft);
   await expect(page.locator('#aiDraftSuggestion')).toBeHidden();
   await expect.poll(async()=>{const p=await assistantPaint(page,'.aiDraftText');return p.hit&&p.height>=Math.min(24,p.targetHeight)}).toBe(true);
@@ -173,6 +184,9 @@ for(const viewport of [{width:390,height:420},{width:430,height:900},{width:1440
   await page.screenshot({animations:'disabled',path:testInfo.outputPath('unified-assistant-answer-'+viewport.width+'-'+viewport.height+'.png')});
   await readAssistantSection(page,'.aiDraftChecks li:last-child');
   await page.screenshot({animations:'disabled',path:testInfo.outputPath('unified-assistant-checks-'+viewport.width+'-'+viewport.height+'.png')});
+  await readAssistantSection(page,'.aiDraftAdmission li:last-child');
+  await expect(page.locator('#aiDraftPanel .aiDraftBody')).toContainText('Нужна проверка менеджера. Автоотправка выключена.');
+  await page.screenshot({animations:'disabled',path:testInfo.outputPath('unified-assistant-admission-'+viewport.width+'-'+viewport.height+'.png')});
   await readAssistantSection(page,'#m2CurrentTrip strong');
   await page.screenshot({animations:'disabled',path:testInfo.outputPath('unified-assistant-request-'+viewport.width+'-'+viewport.height+'.png')});
   await page.locator('#aiDraftOpen').click();await expect(page.locator('#aiDraftPanel')).toBeHidden();
