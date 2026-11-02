@@ -78,7 +78,7 @@ https://yandex.ru/dev/metrika/ru/management/offline-conv
 
 The connected GitHub interface has no manual workflow-dispatch operation. The
 owner-authorized first launch is therefore bound to the successful ordinary
-Deploy production run whose main commit message contains#1288. No PR run or
+Deploy production run whose main commit message contains the exact [anytour-value-launch-1288] marker. No PR run or
 other release can trigger it. It waits for all seven current mandatory release
 workflows, then rechecks authoritative main and the exact installed server SHA
 before using the existing credential. No deployment/customer action is replayed.
