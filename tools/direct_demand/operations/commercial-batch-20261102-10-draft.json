@@ -1,0 +1,17 @@
+{
+  "operation": "commercial-hotel-batch-20261102-10-v1",
+  "state": "PREPARING_NOT_SENT",
+  "catalog_ids": [
+    232,
+    233,
+    13872,
+    13873,
+    280,
+    456,
+    265,
+    454,
+    21475,
+    1963
+  ],
+  "hotel_count": 10
+}

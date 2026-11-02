@@ -1,8 +1,8 @@
 import base64,html,json,re,urllib.parse,urllib.request
 from pathlib import Path
-operation='commercial-batch9-public-media-20261102-read1'
-pages=["https://www.sunrise-resorts.com/tucana-resort","https://www.sunrise-resorts.com/alma-bay-resort","https://www.sunrise-resorts.com/alora-aqua-park-resort","https://www.sunrise-resorts.com/anjum-resort","https://meraki-resort.com/hrg/","https://www.jazhotels.com/hoteldetail/25/overview","https://partner.jazhotels.com/hotel/26","https://hrewards.com/en/steigenberger-aldau-beach-hotel-hurghada","https://hrewards.com/en/steigenberger-aqua-magic-hurghada","https://hrewards.com/en/steigenberger-pure-lifestyle-hurghada"]
-hosts=set(["sunrise-resorts.com","www.sunrise-resorts.com","d1wo7kaelp5eck.cloudfront.net","meraki-resort.com","www.meraki-resort.com","jazhotels.com","www.jazhotels.com","partner.jazhotels.com","images.jazhotels.com","storage.googleapis.com","jaz-resorts.net","www.jaz-resorts.net","hrewards.com","www.hrewards.com","assets.hrewards.com"])
+operation='commercial-batch10-public-media-20261102-read1'
+pages=["https://partner.jazhotels.com/hotel/70","https://partner.jazhotels.com/hotel/60","https://partner.jazhotels.com/hotel/22","https://partner.jazhotels.com/hotel/18","https://partner.jazhotels.com/hotel/21","https://partner.jazhotels.com/hotel/10","https://partner.jazhotels.com/hotel/11","https://partner.jazhotels.com/hotel/13","https://baronhotels.com/baron-palace-sahl-hasheesh/","https://baronhotels.com/baron-resort-sharm-el-sheikh/"]
+hosts=set(["jazhotels.com","www.jazhotels.com","partner.jazhotels.com","images.jazhotels.com","storage.googleapis.com","jaz-resorts.net","www.jaz-resorts.net","baronhotels.com","www.baronhotels.com"])
 class Redirect(urllib.request.HTTPRedirectHandler):
  def redirect_request(self,req,fp,code,msg,headers,newurl):
   p=urllib.parse.urlsplit(newurl)
