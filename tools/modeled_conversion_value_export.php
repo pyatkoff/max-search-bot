@@ -6,7 +6,7 @@ require_once dirname(__DIR__).'/config.php';
 require_once dirname(__DIR__).'/services/ProjectAccessService.php';
 require_once dirname(__DIR__).'/services/ModeledConversionValueExport.php';
 try{
-    $op=$argv[1]??'status';if(count($argv)!==2||!in_array($op,['status','create-goal','enable','disable'],true))throw new RuntimeException('invalid_operation');
+    $op=$argv[1]??'status';if(count($argv)!==2||!in_array($op,['status','create-goal','enable','disable','launch-v1'],true))throw new RuntimeException('invalid_operation');
     if(ProjectConfig::projectId()!=='anytour'||!defined('METRIKA_COUNTER_ID')||(string)METRIKA_COUNTER_ID!=='98615635'
         ||!defined('METRIKA_OAUTH_TOKEN')||(string)METRIKA_OAUTH_TOKEN==='')throw new RuntimeException('value_config_unavailable');
     ProjectAccessService::initializeReadOnly();$p=ConversationDb::connection();$s=ModeledConversionValueExport::settings($p);

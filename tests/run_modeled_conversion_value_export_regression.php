@@ -193,9 +193,19 @@ function modeledValueAssertions(PDO $p,callable $check):void
     $result=$control->configure('status',$api,$now+2504);$json=json_encode($result,JSON_THROW_ON_ERROR);
     $check('operational readback contains no people refs amounts or receipts',!str_contains($json,'70101')&&!str_contains($json,'source_ref')&&!str_contains($json,'value_rub')&&!str_contains($json,'upload_id'));
 
+    modeledValueSchema($p);$wire=new ModeledValueTestWire();$api=$wire->api();$control=new ModeledConversionValueExport($p);
+    $launch=$control->configure('launch-v1',$api,$now);
+    $check('one-time accepted-release launch creates verifies and enables',$launch['mode']==='send'&&$wire->creates===1);
+    $control->configure('disable',$api,$now+1);$gets=$wire->gets;$launch=$control->configure('launch-v1',$api,$now+2);
+    $check('a repeated release cannot reenable a deliberately stopped launch',$launch['already_launched']===true&&$launch['mode']==='off'&&$wire->creates===1&&$wire->gets===$gets);
+
     modeledValueSchema($p);$wire=new ModeledValueTestWire();$wire->createUnknown=true;$api=$wire->api();$control=new ModeledConversionValueExport($p);
     $failed=false;try{$control->configure('create-goal',$api,$now);}catch(Throwable $e){$failed=true;}
     $check('ambiguous goal creation is durably held',$failed&&ModeledConversionValueExport::settings($p)['goal_intent']==='unknown'&&$wire->creates===1);
+    $created=$wire->goals[1];array_pop($wire->goals);$blocked=false;
+    try{$control->configure('create-goal',$api,$now+1);}catch(Throwable $e){$blocked=true;}
+    $check('unknown creation with no matching goal cannot repeat POST',$blocked&&$wire->creates===1&&ModeledConversionValueExport::settings($p)['goal_intent']==='unknown');
+    $wire->goals[]=$created;
     $control->configure('create-goal',$api,$now+1);
     $check('lost goal ack is recovered by GET without duplicate creation',ModeledConversionValueExport::settings($p)['goal_intent']==='verified'&&$wire->creates===1);
     $wire->goals[1]['name']='operator change';$blocked=false;

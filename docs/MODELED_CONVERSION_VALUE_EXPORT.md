@@ -63,8 +63,8 @@ destination before POST. CSV is ClientId,Target,DateTime,Price,Currency (RUB), d
 at actual value freeze and within Yandex's21day upload window. Upload acceptance,
 valid processed rows and attribution to a visit remain separate evidence.
 
-The manual `modeled-conversion-value-export.yml` operation is restricted to
-status/create-goal/enable/disable, authoritative installed current main and the
+The finite `modeled-conversion-value-export.yml` operation is restricted to
+status/create-goal/enable/disable/launch-v1, authoritative installed current main and the
 existing canonical credential. It offers no arbitrary shell/PHP/SQL input.
 It emits goal/configuration/technical delivery state only, never individual IDs,
 actual cohort counts/values, profile references, private text or API bodies.
@@ -73,3 +73,19 @@ installation gates precede the actual explicitly authorized goal operation.
 
 Sources: https://yandex.ru/dev/metrika/ru/management/openapi/goal/addGoal
 https://yandex.ru/dev/metrika/ru/management/offline-conv
+
+## Explicit first-release launch
+
+The connected GitHub interface has no manual workflow-dispatch operation. The
+owner-authorized first launch is therefore bound to the successful ordinary
+Deploy production run whose main commit message contains#1288. No PR run or
+other release can trigger it. It waits for all seven current mandatory release
+workflows, then rechecks authoritative main and the exact installed server SHA
+before using the existing credential. No deployment/customer action is replayed.
+
+launch-v1 creates/verifies the exact goal and prospectively enables once. After
+an activation timestamp exists, later launch-v1 calls are read-only metadata and
+never resume a deliberately disabled export or reset floors. A lost creation
+ack remains held and only the exact-goal GET can reconcile it; no blind POST.
+The first setup is one finite event-bound release operation, not another cron
+or recurring work plan. Future value delivery uses only the existing cron.

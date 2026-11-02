@@ -22,8 +22,14 @@ final class ModeledConversionValueExport
     /** Finite owner-authorized control; create ambiguity is durably held, never retried blindly. */
     public function configure(string $op,mixed $api,int $now):array
     {
-        if(!in_array($op,['status','create-goal','enable','disable'],true))throw new RuntimeException('invalid_operation');
+        if(!in_array($op,['status','create-goal','enable','disable','launch-v1'],true))throw new RuntimeException('invalid_operation');
         $p=$this->pdo;$s=self::settings($p);if(!$s)throw new RuntimeException('value_migration_unavailable');
+        if($op==='launch-v1'){
+            if($s['activated_at_unix']!==null)return ['ok'=>true,'operation'=>'launch-v1','already_launched'=>true,
+                'mode'=>$s['mode'],'goal_id'=>$s['goal_id'],'contract'=>ModeledConversionValueContract::VERSION];
+            $this->configure('create-goal',$api,$now);
+            $result=$this->configure('enable',$api,$now);$result['operation']='launch-v1';return $result;
+        }
         if($op==='disable'){$p->exec("UPDATE modeled_conversion_value_export_settings SET mode='off' WHERE project_key='anytour'");$goal=null;}
         else $goal=$api->modeledValueGoalStatus();
         if($op==='create-goal'){
