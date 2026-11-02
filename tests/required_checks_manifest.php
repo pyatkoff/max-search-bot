@@ -153,6 +153,7 @@ return [
         'php tests/run_archive_research_mcp_regression.php',
         'php tests/run_hotel_work_queue_regression.php',
         'php tests/run_hotel_server_cycle_regression.php',
+        'php tests/run_hotel_server_ai_provider_regression.php',
         'php tests/run_hotel_retirement_ops_regression.php',
         'php tests/run_hotel_work_oauth_regression.php',
         'php tests/run_separated_mcp_regression.php',

@@ -13,14 +13,73 @@ final class ManagerDraftClient
 
     public static function requestJson(string $instructions,array $payload,?callable $metadataObserver=null,array $images=[]): array
     {
+        if(!self::hasConfiguredKey())return ['_error'=>'provider_not_configured'];
+        if(!function_exists('curl_init'))return ['_error'=>'provider_unavailable'];
+        try{return self::requestPreparedJson(self::requestBody($instructions,$payload,$images),
+            self::MAX_REQUEST_BYTES+($images?self::MAX_IMAGE_REQUEST_BYTES:0),$metadataObserver);}
+        catch(Throwable $ignored){return ['_error'=>'provider_unavailable'];}
+    }
+
+    /** Hotel path shares the existing bounded HTTPS transport and profile unchanged. */
+    public static function requestHotelJson(string $role,string $instructions,array $payload,array $schema,?callable $observer=null): array
+    {
+        if(!self::hasConfiguredKey())return ['_error'=>'provider_not_configured'];
+        if(!function_exists('curl_init'))return ['_error'=>'provider_unavailable'];
+        try{return self::requestPreparedJson(self::hotelRequestBody($role,$instructions,$payload,$schema),self::MAX_REQUEST_BYTES,$observer,true);}
+        catch(Throwable $ignored){return ['_error'=>'provider_unavailable'];}
+    }
+
+    public static function hotelTransportAvailable(): bool
+    {return self::hasConfiguredKey()&&function_exists('curl_init');}
+
+    private static function hasConfiguredKey(): bool
+    {
+        return defined('OPENAI_API_KEY')&&is_string(OPENAI_API_KEY)&&trim(OPENAI_API_KEY)!==''
+            &&OPENAI_API_KEY!=='PASTE_OPENAI_API_KEY_HERE'&&strlen(OPENAI_API_KEY)<=4096
+            &&!preg_match('/[\\x00-\\x20\\x7F]/',OPENAI_API_KEY);
+    }
+
+    /** Pure, role-specific schema projection; no tools, images, retries or new model settings. */
+    public static function hotelRequestBody(string $role,string $instructions,array $payload,array $schema): array
+    {
+        if(!in_array($role,['producer','reviewer'],true)||($schema['type']??null)!=='object'
+            ||strlen(json_encode($schema,JSON_THROW_ON_ERROR))>32768)throw new InvalidArgumentException('invalid_hotel_schema');
+        $body=self::requestBody($instructions,$payload);
+        $body['text']['format']=['type'=>'json_schema','name'=>'hotel_server_'.$role,'strict'=>true,'schema'=>$schema];
+        if(strlen(json_encode($body,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))>self::MAX_REQUEST_BYTES)
+            throw new InvalidArgumentException('hotel_request_budget');
+        return $body;
+    }
+
+    /** Completed response plus private invocation/usage evidence, never a body/log export. */
+    public static function parseHotelResponse(string $bytes,int $httpStatus,?callable $observer=null): array
+    {
+        $meta=null;
+        $result=self::parseResponse($bytes,$httpStatus,static function(array $m)use(&$meta):void{$meta=$m;});
+        if(isset($result['_error']))return $result;
+        try{
+            $raw=json_decode($bytes,true,32,JSON_THROW_ON_ERROR);$id=$raw['id']??null;
+            if(!is_string($id)||strlen($id)>256||!preg_match('/\\Aresp_[A-Za-z0-9_-]+\\z/D',$id)||!is_array($meta)||!is_string($meta['model']??null))
+                return ['_error'=>'provider_metadata_unavailable'];
+            $usage=$meta['usage']??[];
+            foreach(['input_tokens','output_tokens','total_tokens'] as $k)
+                if(!is_int($usage[$k]??null)||$usage[$k]<0)return ['_error'=>'provider_metadata_unavailable'];
+            if($usage['total_tokens']!==$usage['input_tokens']+$usage['output_tokens'])return ['_error'=>'provider_metadata_unavailable'];
+            $meta+=['response_id'=>$id,'status'=>'completed'];
+            if($observer!==null)$observer($meta);
+            return $result;
+        }catch(Throwable $ignored){return ['_error'=>'provider_metadata_unavailable'];}
+    }
+
+    private static function requestPreparedJson(array $body,int $requestLimit,?callable $metadataObserver=null,bool $hotel=false): array
+    {
         if (!defined('OPENAI_API_KEY') || !is_string(OPENAI_API_KEY) || trim(OPENAI_API_KEY)===''
             || OPENAI_API_KEY==='PASTE_OPENAI_API_KEY_HERE' || strlen(OPENAI_API_KEY)>4096
             || preg_match('/[\x00-\x20\x7F]/',OPENAI_API_KEY)) return ['_error'=>'provider_not_configured'];
         if (!function_exists('curl_init')) return ['_error'=>'provider_unavailable'];
         try {
-            $body=self::requestBody($instructions,$payload,$images);
             $encoded=json_encode($body,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
-            if (strlen($encoded)>self::MAX_REQUEST_BYTES+($images?self::MAX_IMAGE_REQUEST_BYTES:0)) return ['_error'=>'provider_unavailable'];
+            if (strlen($encoded)>$requestLimit) return ['_error'=>'provider_unavailable'];
             $bytes='';$oversized=false;
             $handle=curl_init(self::ENDPOINT);
             if ($handle===false) return ['_error'=>'provider_unavailable'];
@@ -41,7 +100,7 @@ final class ManagerDraftClient
             if ($oversized) return ['_error'=>'provider_response_too_large'];
             if ($errno===CURLE_OPERATION_TIMEDOUT) return ['_error'=>'provider_timeout'];
             if ($success===false || $errno!==0) return ['_error'=>'provider_unavailable'];
-            return self::parseResponse($bytes,$status,$metadataObserver);
+            return $hotel?self::parseHotelResponse($bytes,$status,$metadataObserver):self::parseResponse($bytes,$status,$metadataObserver);
         } catch (Throwable $ignored) {return ['_error'=>'provider_unavailable'];}
     }
 

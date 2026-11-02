@@ -142,3 +142,15 @@ instance must implement the real adapter; the runtime selects exactly one
 persisted enabled campaign and never bootstraps or enables it. Active-mode error
 is HOLD with no legacy fallback and no fabricated zero-call claim. Inactive old
 subscriptions are no longer a prerequisite for a future server-only cycle.
+
+## Concrete existing-provider integration
+
+HotelServerAiProvider now uses ManagerDraftClient::requestHotelJson on the existing
+bounded Responses transport, with separate producer/reviewer schemas and private
+response/usage lineage. An optional local-only preflight runs before UNKNOWN or
+budget persistence. No provider is registered and flags/config remain unchanged.
+Supported research_mode is explicitly assigned_retained_excerpts, with exact
+hashed/capture-timed source slices and complete independent review coverage.
+Fresh-web acquisition and budget-policy certification are explicitly absent
+contracts, with owners in HOTEL_SERVER_AI_PROVIDER.md; they are not hidden behind
+a readiness stub or fabricated source/cost claim.

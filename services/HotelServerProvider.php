@@ -11,3 +11,9 @@ interface HotelServerProvider
     /** Must make at most one external send; UNKNOWN is already durable when called. */
     public function send(array $immutableRequest): array;
 }
+
+/** Optional local-only preparation, executed before any attempt or budget reservation. */
+interface HotelServerPreparedProvider extends HotelServerProvider
+{
+    public function preflight(array $immutableRequest): void;
+}

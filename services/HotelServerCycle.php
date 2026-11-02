@@ -84,12 +84,13 @@ final class HotelServerCycle
                 if ($principal === $producer['principal']) throw new DomainException('independent_reviewer_required');
             }
             $package = $this->package($id);
-            $r = ['schema'=>'hotel-server-attempt-v1','campaign_id'=>$id,'stage_index'=>$stage,'attempt_id'=>$attempt,'role'=>$role,
+            $r = ['research_mode'=>$plan['research_mode']??null,'schema'=>'hotel-server-attempt-v1','campaign_id'=>$id,'stage_index'=>$stage,'attempt_id'=>$attempt,'role'=>$role,
                 'principal'=>$principal,'model'=>$plan['models'][$role],'baseline_sha256'=>$c['baseline_sha256'],'inputs_sha256'=>$c['inputs_sha256'],
                 'scopes'=>$scopes,'accepted_context'=>$this->acceptedView($c,$scopes),'dependencies'=>array_map(static fn(array $s):array=>$package['stage_contexts'][HotelServerInputs::key($s)],$scopes),'criteria_sha256'=>$package['pins']['criteria'],'candidate'=>$candidate ? json_decode($candidate['candidate_bytes'],true,64,JSON_THROW_ON_ERROR) : null,
                 'candidate_sha256'=>$candidate['candidate_sha256'] ?? null, 'limits'=>$limits];
             $requestBytes = HotelServerInputs::json($r);
             if(strlen($requestBytes)>262144)throw new DomainException('bounded_assignment_projection_required');
+            if($this->provider instanceof HotelServerPreparedProvider)$this->provider->preflight($r);
             // Commit UNKNOWN and the full reservation BEFORE the caller can send anything.
             $this->exec('INSERT INTO hotel_server_attempts(attempt_id,campaign_id,stage_index,role,principal,state,baseline_sha256,request_sha256,request_bytes,result_sha256,result_bytes) VALUES(?,?,?,?,?,?,?,?,?,NULL,NULL)',
                 [$attempt,$id,$stage,$role,$principal,'unknown',$c['baseline_sha256'],hash('sha256',$requestBytes),$requestBytes]);
@@ -269,6 +270,7 @@ final class HotelServerCycle
 
     private function validatePlan(array $p): void
     {
+        if(isset($p['research_mode'])&&$p['research_mode']!=='assigned_retained_excerpts')throw new DomainException('hotel_research_mode_not_supported');
         if (!is_array($p['stages']??null) || !array_is_list($p['stages']) || count($p['stages'])<1 || count($p['stages'])>10) throw new DomainException('bounded_campaign_plan_required');
         $keys=[];
         foreach ($p['stages'] as $scopes) {
