@@ -111,6 +111,84 @@ new projection. No existing accepted/catalog records are overwritten.
 
 ## One bounded cron step
 
+### Forward handoff after a completed campaign
+
+`HotelServerCycle::bootstrapNext(predecessorId, expectedBootstrapSha256,
+expectedBaselineSha256, successorId, inputs, plan, authorized)` creates one new
+**disabled** campaign. It makes no provider call and does not change the private
+runtime, model, scheduler or old campaign plan. The ordinary `enable` operation
+remains separate. A new ID and explicit authorization are required; this is not
+an idempotent replay or a replacement for an UNKNOWN invocation.
+
+One shared HOTEL transaction checks the exact current owner, predecessor
+bootstrap/final-baseline CAS, terminal state and complete stage count. Every
+producer/reviewer must have succeeded independently; candidates, reviews,
+canonical records, receipt bytes, baseline chain and done work outboxes must
+agree. Counts and full pessimistic reservations must match the bounded plan.
+The transaction installs new immutable inputs and a compact derived seed,
+inherits dynamic exclusions, disables the predecessor and moves the lane to the
+disabled successor. Any failure rolls all of this back. Both remain disabled
+until the operator installs the matching runtime campaign/bootstrap and invokes
+the existing enable action. A crash in that interval cannot dispatch work.
+
+The unchanged historical material is checked byte-for-byte: baseline,
+accepted_mapping, quarantine_mapping, accepted_context, legacy_availability and
+reserves, plus all retained parts and their interpreted identity, retirement,
+registry and quarantine. Criteria, corpus, map, archives, instructions and
+stage_contexts may change for the new assignments. Existing global semantic keys
+still prevent recollection; inherited dynamic reserves remain exclusions. New
+labels or dates must not be used to disguise a repeated factual question.
+
+The canonical JSON seed has schema `hotel-server-continuation-seed-v1`, the
+original `retained_baseline_sha256`, and:
+
+- `predecessor`: campaign_id, bootstrap_sha256, baseline_sha256, inputs_sha256,
+  and ordered receipts containing stage_index and receipt_sha256;
+- `records`: all prior server acceptances, sorted by semantic_key, each with
+  semantic_key, campaign_id, stage_index, candidate_sha256, receipt_sha256 and
+  record_sha256.
+
+Seed records are server-derived references to immutable canonical bytes. The
+reader checks them against original candidate/reviewer/receipt/baseline/outbox
+evidence; the seed cannot certify its own acceptance. The seed is at most 1 MiB
+and is the successor's sole initial baseline row, with `parent_sha256=NULL`.
+Earlier deltas stay in their original campaigns. The existing ten-delta walk now
+ends at that campaign's own root, so repeated handoffs do not accumulate an
+unbounded delta chain. The accepted view still includes original historical
+facts plus every verified prior and current server acceptance. Import earns zero
+new credit; each successor starts its own new_accepted and budget reservations at
+zero, while all predecessor counts and evidence remain unchanged.
+
+Let `seedBytes=HotelServerInputs::json(seed)` and `seedSHA=sha256(seedBytes)`.
+The successor's bootstrap pin is:
+
+```php
+hash('sha256', HotelServerInputs::json([
+    $newInputsSha256,
+    $plan,
+    ['continuation_seed_sha256' => $seedSHA],
+]))
+```
+
+The returned disabled projection supplies this pin and the seed baseline SHA.
+Before enabling, the private operator must independently read back those exact
+bytes/pins and CAS the old runtime configuration to the new campaign/bootstrap.
+The source API never performs that filesystem write or assumes it succeeded.
+
+Pending catalog projections retain their original payloads and receipt identities.
+`HotelServerLane::acknowledgeProjection` is a fixed operation under the same HOTEL
+lock: it permits the current owner or an exact complete-and-disabled predecessor,
+verifies the canonical receipt and baseline against the payload hash, and only
+marks that exact projection outbox done. It does not relax `own`, reserve a lane
+or permit an old tick. The existing projector retains catalog-commit-first and
+lost-ACK replay ordering, so a handoff cannot strand a previously committed
+projection or create duplicate acceptance credit.
+
+The existing SQLite/native-MySQL cycle suite covers two successive handoffs after
+a ten-stage campaign, preserved partial-history disclosure, changed task inputs,
+inherited facts/reserves, exact CAS, UNKNOWN and unfinished evidence rejection,
+atomic rollback, forged seed pins, and catalog lost-ACK replay after handoff.
+
 An eventual existing-cron integration calls `tick` once. Disabled, complete, HOLD
 or UNKNOWN states send nothing. A ready step serializes admission, checks current
 accepted/reserved semantic keys and budget, writes a fresh immutable request and
