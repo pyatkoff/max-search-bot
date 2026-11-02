@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 ini_set('display_errors','0');ini_set('log_errors','0');
-$out=['operation'=>'commercial-three-material-20261102-7-read1','mode'=>'read_three_public_catalog_candidates','ok'=>false,'db_writes'=>0,'provider_calls'=>0,'message_sends'=>0];
+$out=['operation'=>'commercial-three-material-20261102-7-read2','mode'=>'read_three_public_catalog_candidates','ok'=>false,'db_writes'=>0,'provider_calls'=>0,'message_sends'=>0];
 function insist(bool $ok,string $why):void{if(!$ok)throw new RuntimeException($why);}
 try {
     if(PHP_SAPI!=='cli'||trim((string)shell_exec('git rev-parse HEAD'))!==EXPECTED_INSTALLED_SHA)throw new RuntimeException('installed_source_changed');
@@ -50,9 +50,8 @@ try {
     insist(count($countries)===1,'egypt_catalog_identity_not_unique');
     $country=(int)$countries[0]['id'];
     $groups=[
-        'diamond-beach'=>['diamond beach','даймонд бич','диамонд бич'],
-        'montemare'=>['montemare','монтемаре'],
-        'remal-beach'=>['remal beach','ремал бич'],
+        'long-beach'=>['long beach','лонг бич'],
+        'tropitel-sahl-hasheesh'=>['tropitel','тропитель'],
     ];
     $publications=ConversationDb::connection()->query("SELECT pp.post_channel_id,v.snapshot_json FROM post_publications pp JOIN post_versions v ON v.id=pp.current_version_id WHERE pp.post_channel_id IN (9,10) ORDER BY pp.id LIMIT 2000")->fetchAll(PDO::FETCH_ASSOC);
     $out['candidates']=[];

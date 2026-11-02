@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-three-20261102-7-v1",
-  "state": "DRAFT_IDENTITY_PREFLIGHT",
+  "state": "DRAFT_REPLACEMENT_THIRD_HOTEL_IDENTITY_PENDING",
   "goal": "Prepare and publish the next three complete hotel posts from retained Egypt material, once per authorized channel.",
   "boundaries": "Candidates Diamond Beach, Montemare and Remal Beach. Initial stage only reads public catalogue and channel registry data, with no provider/customer calls or writes.",
   "criteria": [
@@ -17,12 +17,29 @@
   "candidate_names": [
     "SUNRISE Diamond Beach Resort",
     "SUNRISE Montemare Resort",
-    "SUNRISE Remal Beach"
+    "Hurghada Long Beach Resort"
   ],
   "official_sources": [
     "https://www.sunrise-resorts.com/diamond-beach-resort",
     "https://www.sunrise-resorts.com/montemare-resort",
     "https://www.sunrise-resorts.com/remal-beach-resort"
   ],
-  "next": "Resolve catalogue identity and absence of duplicates, then prepare exact hotel captions and branded photo covers."
+  "next": "Resolve a unique unpublished replacement third hotel, then prepare only the chosen three full posts.",
+  "selected_catalog_ids_so_far": [
+    9373,
+    32577
+  ],
+  "skipped_candidate": {
+    "name": "Remal Beach",
+    "catalog_id": 319,
+    "reason": "Existing MAX registry name match. Do not duplicate or alter this old publication to advance a new packet.",
+    "existing_matches": {
+      "max": 1,
+      "telegram": 0
+    }
+  },
+  "identity_decisions": [
+    "Diamond9373 and Montemare32577 are the base Sharm resorts; exclude their separately named Posh Club products and unrelated Diamond hotels in Marsa Alam/Hurghada.",
+    "Remal Beach is skipped for this packet to preserve the already registered MAX post. Read only replacement candidates; do not repeat the two resolved identities."
+  ]
 }

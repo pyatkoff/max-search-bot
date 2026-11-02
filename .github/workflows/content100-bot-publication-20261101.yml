@@ -1,4 +1,4 @@
-name: Read next three hotel catalog candidates
+name: Read replacement third hotel catalog candidates
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -43,7 +43,7 @@ jobs:
           python3 - <<'PY'
           import pathlib,hashlib,os
           script=pathlib.Path('tools/direct_demand/operations/read-commercial-three-20261102-7-candidates.php').read_text()
-          assert hashlib.sha256(script.encode()).hexdigest()=='00fee807d754db6aeb0d781cf87dd7030c60073af7412eef770f60e93b73f799'
+          assert hashlib.sha256(script.encode()).hexdigest()=='fa1b2b485b5e2f3e5d567124bcffadf37ebe96394e93686d3a9079c52f8c12f3'
           prefix="<?php\ndeclare(strict_types=1);\n"
           assert script.startswith(prefix)
           header=prefix+"const EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\n"
@@ -101,8 +101,8 @@ jobs:
           import pathlib,json,os
           d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.json').read_text().splitlines()[-1])
           print(json.dumps(d,ensure_ascii=False,sort_keys=True))
-          assert d['operation']=='commercial-three-material-20261102-7-read1' and d['mode']=='read_three_public_catalog_candidates'
-          assert d['ok'] is True and len(d['candidates'])==3
+          assert d['operation']=='commercial-three-material-20261102-7-read2' and d['mode']=='read_three_public_catalog_candidates'
+          assert d['ok'] is True and len(d['candidates'])==2
           assert d['db_writes']==0 and d['provider_calls']==0 and d['message_sends']==0
           PY
           test "${probe_status:-0}" = 0
