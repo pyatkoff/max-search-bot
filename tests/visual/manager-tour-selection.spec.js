@@ -376,6 +376,64 @@ test('selection newest historical version wins when replies arrive in reverse or
 });
 
 function completeDraft(){return {title:'Отдых у моря',intro:'',offers:[{id:'a'.repeat(32),selected:true,hotel:'Синтетический отель у моря',destination:'Турция, Лара',departure:'Москва',date_from:'2027-06-05',nights:7,adults:2,child_ages:[4,4],room:'Семейный номер',meal:'Всё включено',amount:'240000',currency:'RUB',rationale:'Песчаный пляж и семейный номер',compromise:'Компактная территория',flights:'Рейсы уточняются',inclusions:'Трансфер',constraints:'Топливный сбор необходимо проверить',photos:['cover','beach','room'].map(kind=>({kind,url:'https://photos.example.org/'+kind+'.jpg',illustrative:true}))}]}}
+
+for(const width of [390,1440])test('bulk selection prices preview one atomic change without compounding at '+width,async({page,browserName})=>{
+ await page.setViewportSize({width,height:900});const original=mixedPhotoDraft();original.offers[1].selected=false;
+ const s=await fixture(page,{draft:original});await page.locator('#replyText').fill('Ответ менеджера сохраняется отдельно');await open(page,{edit:false});await page.locator('#tsBulkPrices').click();
+ const panel=page.locator('#tsBulkPrice');await expect(panel).toBeVisible();await expect(page.locator('#tsBulkItems input:checked')).toHaveCount(2);await expect(page.locator('#tsHistory')).toBeDisabled();
+ await page.locator('#tsBulkValue').fill('10');await expect(page.locator('#tsBulkPreview')).toContainText('180 000');await page.locator('#tsBulkValue').fill('5');await expect(page.locator('#tsBulkPreview')).toContainText('190 000');
+ expect(s.calls.map(x=>x.action)).toEqual(['get']);expect(s.drafts.get(11).draft).toEqual(original);expect(s.creations()).toBe(0);
+ expect(await panel.evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThanOrEqual(1);expect(await page.locator('#tsBulkApply').evaluate(el=>el.getBoundingClientRect().height)).toBeGreaterThanOrEqual(44);
+ fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-bulk-prices-${browserName}-${width}.png`)});
+ await page.setViewportSize({width,height:420});await expect(page.locator('#tsBulkApply')).toBeInViewport();await expect(page.locator('#tsBulkCancel')).toBeInViewport();await expect(page.locator('#tsClose')).toBeInViewport();
+ // A fast repeated activation is the same UI operation, not another discount.
+ await page.evaluate(()=>{const button=document.querySelector('#tsBulkApply');button.click();button.click()});
+ const expected=copy(original);expected.offers[0].amount='190000';expected.offers[2].amount='152000';await expect.poll(()=>s.drafts.get(11).draft).toEqual(expected);
+ expect(s.calls.filter(x=>x.action==='save')).toHaveLength(1);await expect(panel).toBeHidden();await page.locator('#tsClose').click();await expect(page.locator('#replyText')).toHaveValue('Ответ менеджера сохраняется отдельно');clean(s);
+});
+
+test('bulk selection prices require one currency for an amount and preserve unchosen offers',async({page})=>{
+ const original=completeDraft();original.offers.push({...copy(original.offers[0]),id:'b'.repeat(32),hotel:'Другой отель в евро',currency:'EUR',amount:'1000'});const s=await fixture(page,{draft:original});await open(page,{edit:false});await page.locator('#tsBulkPrices').click();
+ await page.locator('#tsBulkBasis').selectOption('amount');await page.locator('#tsBulkValue').fill('100');await expect(page.locator('#tsBulkError')).toContainText('в одной валюте');await expect(page.locator('#tsBulkApply')).toBeDisabled();
+ await page.locator('[data-ts-bulk-offer="'+ 'b'.repeat(32)+'"]').uncheck();await expect(page.locator('#tsBulkApply')).toBeEnabled();await page.locator('#tsBulkApply').click();await expect.poll(()=>s.drafts.get(11).draft.offers[0].amount).toBe('239900');expect(s.drafts.get(11).draft.offers[1]).toEqual(original.offers[1]);clean(s);
+});
+
+test('bulk selection prices use exact cents and preview rounding from the captured base',async({page})=>{
+ const original=completeDraft();original.offers[0].amount='1234.56';const s=await fixture(page,{draft:original});await open(page,{edit:false});await page.locator('#tsBulkPrices').click();
+ await page.locator('#tsBulkValue').fill('12,5');await expect(page.locator('#tsBulkPreview')).toContainText('1 080,24');await page.locator('#tsBulkAction').selectOption('markup');await expect(page.locator('#tsBulkPreview')).toContainText('1 388,88');
+ for(const [round,shown]of [['unit','1 389'],['ten','1 390'],['hundred','1 400'],['thousand','1 000']]){await page.locator('#tsBulkRound').selectOption(round);await expect(page.locator('#tsBulkPreview')).toContainText(shown)}
+ await page.locator('#tsBulkRound').selectOption('none');await expect(page.locator('#tsBulkPreview')).toContainText('1 388,88');expect(s.calls.map(x=>x.action)).toEqual(['get']);await page.locator('#tsBulkApply').click();await expect.poll(()=>s.drafts.get(11).draft.offers[0].amount).toBe('1388.88');clean(s);
+});
+
+test('bulk selection prices reject invalid totals atomically and cancellation does not save',async({page})=>{
+ const original=completeDraft();original.offers[0].amount='0.01';original.offers.push({...copy(original.offers[0]),id:'b'.repeat(32),hotel:'Верхняя граница цены',amount:'999999999.99'});const s=await fixture(page,{draft:original});await open(page,{edit:false});await page.locator('#tsBulkPrices').click();
+ await page.locator('#tsBulkBasis').selectOption('amount');await page.locator('#tsBulkValue').fill('1');await expect(page.locator('#tsBulkApply')).toBeDisabled();await expect(page.locator('#tsBulkError')).toContainText('больше нуля');await page.locator('#tsBulkAction').selectOption('markup');await expect(page.locator('#tsBulkApply')).toBeDisabled();await expect(page.locator('#tsBulkError')).toContainText('меньше миллиарда');
+ await page.locator('#tsBulkValue').fill('0.001');await expect(page.locator('#tsBulkError')).toContainText('до двух знаков');await page.locator('#tsBulkCancel').click();expect(s.drafts.get(11).draft).toEqual(original);expect(s.calls.map(x=>x.action)).toEqual(['get']);await expect(page.locator('#tsSave')).toBeDisabled();clean(s);
+});
+
+for(const [base,action,value,round,expected]of [['1.49','markup','0.67','unit','1'],['0.03','discount','50','none','0.02'],['99504.95','markup','1','thousand','100000']])test('bulk selection prices round the exact final total once '+base+' '+action+' '+round,async({page})=>{
+ const original=completeDraft();original.offers[0].amount=base;const s=await fixture(page,{draft:original});await open(page,{edit:false});await page.locator('#tsBulkPrices').click();await page.locator('#tsBulkAction').selectOption(action);await page.locator('#tsBulkValue').fill(value);await page.locator('#tsBulkRound').selectOption(round);await page.locator('#tsBulkApply').click();await expect.poll(()=>s.drafts.get(11).draft.offers[0].amount).toBe(expected);clean(s);
+});
+
+test('bulk selection prices respect canonical version conflicts without overwriting a colleague',async({page})=>{
+ const original=completeDraft(),s=await fixture(page,{draft:original});await open(page,{edit:false});await page.locator('#tsBulkPrices').click();const colleague=copy(original);colleague.offers[0].room='Другая подтверждённая категория';s.drafts.set(11,{version:2,draft:colleague});
+ await page.locator('#tsBulkApply').click();await expect(page.locator('#tsRecovery')).toContainText('другая версия');expect(s.drafts.get(11)).toEqual({version:2,draft:colleague});expect(s.calls.filter(x=>x.action==='save')).toHaveLength(1);await expect(page.locator('#tsBulkPrices')).toBeDisabled();clean(s);
+});
+
+test('bulk selection prices have no pending action after close and client switch',async({page})=>{
+ const original=completeDraft(),s=await fixture(page,{draft:original});await open(page,{edit:false});await page.locator('#tsBulkPrices').click();await page.locator('#tsBulkValue').fill('20');await page.evaluate(()=>{window.staleBulkApply=document.querySelector('#tsBulkApply')});await page.locator('#tsClose').click();await page.locator('#inboxList [data-conversation-id="12"]').click();await open(page);await page.evaluate(()=>window.staleBulkApply.click());
+ await expect(page.locator('#tsBulkPrice')).toBeHidden();expect(s.drafts.has(12)).toBe(false);expect(s.drafts.get(11).draft).toEqual(original);expect(s.calls.filter(x=>x.action==='save')).toHaveLength(0);clean(s);
+});
+
+test('bulk selection prices are unavailable to read-only viewers',async({page})=>{
+ const original=completeDraft(),s=await fixture(page,{draft:original,readOnly:true});await open(page,{edit:false});await expect(page.locator('#tsBulkPrices')).toBeDisabled();await expect(page.locator('#tsBulkPrice')).toBeHidden();expect(s.calls.filter(x=>x.action==='save')).toHaveLength(0);clean(s);
+});
+
+test('bulk selection prices dismiss history and fence its delayed or stale navigation',async({page})=>{
+ const original=completeDraft(),s=await fixture(page,{draft:original});await open(page,{edit:false});await page.locator('#tsPreview').click();await expect(page.locator('.tsPreviewCard')).toHaveCount(1);const publication=copy(s.publication());await page.locator('#tsEdit').click();await page.locator('#tsHistory').click();const versionButton=page.getByRole('button',{name:/Версия 1/});await expect(versionButton).toBeVisible();await versionButton.evaluate(button=>{window.staleHistoryVersion=button});
+ let release,started=false;const held=new Promise(resolve=>{release=resolve});await page.route('**/manager/tour-selections-api.php',async route=>{if(route.request().postDataJSON().action==='publication'){started=true;await held}return route.fallback()});await versionButton.click();await expect.poll(()=>started).toBe(true);await page.locator('#tsBulkPrices').click();await expect(page.locator('#tsRecovery')).toBeHidden();release();await expect.poll(()=>s.calls.filter(x=>x.action==='publication').length).toBe(1);await page.evaluate(()=>window.staleHistoryVersion.click());
+ await expect(page.locator('#tsBulkApply')).toBeEnabled();await page.locator('#tsBulkApply').click();await expect.poll(()=>s.drafts.get(11).draft.offers[0].amount).toBe('228000');expect(s.calls.filter(x=>x.action==='publication')).toHaveLength(1);expect(s.publication()).toEqual(publication);clean(s,['prepare','history','publication']);
+});
 const deliveryActions=['prepare','history','publication','send'];
 for(const width of [390,430,768,1440])test('selection customer preview and explicit send preserve composer at '+width,async({page,browserName})=>{
   await page.setViewportSize({width,height:900});const s=await fixture(page,{draft:completeDraft()});await page.locator('#replyText').fill('Мой ответ остаётся здесь');await open(page);
