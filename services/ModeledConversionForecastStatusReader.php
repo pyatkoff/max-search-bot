@@ -2,15 +2,16 @@
 declare(strict_types=1);
 require_once __DIR__.'/ModeledConversionStatusBudget.php';
 require_once __DIR__.'/ModeledConversionValueRegistry.php';
+require_once __DIR__.'/ModeledConversionValueDeliveryReader.php';
 
 /** Launch readback of current V1 derived blocks only. Never reads a transcript or runs processing. */
 final class ModeledConversionForecastStatusReader
 {
-    public const VERSION='saved_semantic_prediction_status_v1_3';
+    public const VERSION='saved_semantic_prediction_status_v1_4';
     public const METADATA_LIMIT=20;
     public const PROFILE_LIMIT=4;
     public const PROFILE_BYTES=49152;
-    private const RELEASE_RESERVE=12288;
+    private const RELEASE_RESERVE=16384;
     private const CONTINUITY_FIELDS=['preserved_ai_replies','preserved_handoff_receipts','unresolved_clock_barriers',
         'long_gap_barriers','unavailable_message_barriers','unavailable_event_barriers','other_source_barriers'];
     private bool $mysql;
@@ -25,6 +26,7 @@ final class ModeledConversionForecastStatusReader
         try{
             $this->copied=0;$out=$this->emptyResult();
             $out['state']=$this->state();
+            $out['value_delivery']=(new ModeledConversionValueDeliveryReader($this->pdo,$this->authorize,$this->budget))->read(time());
             $model=hash_file('sha256',__DIR__.'/ModeledConversionSemanticPrediction.php');
             $processor=hash_file('sha256',__DIR__.'/ModeledConversionProfiles.php');
             if(!is_string($model)||!is_string($processor))return $this->unavailable('source_unavailable');

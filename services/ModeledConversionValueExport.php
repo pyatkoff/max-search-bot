@@ -112,6 +112,17 @@ final class ModeledConversionValueExport
                 }
             }
         }catch(Throwable $ignored){$stats['errors']++;}
+        // Independent GET-only observation. A report failure never changes delivery/retry decisions.
+        $stats['metrika_report']=['status'=>'unavailable','goal_id'=>'678187097','currency'=>'RUB',
+            'fetched_at'=>gmdate('Y-m-d\\TH:i:s\\Z',$now),'reason'=>'report_unavailable'];
+        try{
+            if(($s['goal_id']??null)!=='678187097')throw new RuntimeException('report_goal_mismatch');
+            if(!$api){
+                if(!defined('METRIKA_COUNTER_ID')||(string)METRIKA_COUNTER_ID!=='98615635'||!defined('METRIKA_OAUTH_TOKEN'))throw new RuntimeException('report_config_unavailable');
+                $api=new MetrikaOfflineClient('98615635',(string)METRIKA_OAUTH_TOKEN);
+            }
+            if(method_exists($api,'modeledValueReport'))$stats['metrika_report']=$api->modeledValueReport((int)$s['activated_at_unix'],$now);
+        }catch(Throwable $ignoredReport){ /* Keep fixed unavailable, never a fabricated zero. */ }
         $q=$p->prepare("UPDATE modeled_conversion_value_export_settings SET last_tick_unix=?,last_receipt_json=? WHERE project_key='anytour'");
         $q->execute([$now,json_encode($stats,JSON_THROW_ON_ERROR)]);
         // Private counts stay in the DB; ordinary diagnostic logs get technical state only.
@@ -179,16 +190,16 @@ final class ModeledConversionValueExport
     private function resolve(array $r,array $identities,int $now,callable $gate):bool
     {
         if(!$this->eligible($r,$gate)){self::failRow($this->pdo,$r,'scope_unavailable');return false;}
-        $client=null;$record=null;$observation=null;
+        $client=null;$record=null;$observation=null;$identityReason='identity_not_found';
         if($r['platform']==='max'){
             $record=$identities[$r['external_user_id']]??null;
             if(is_array($record)&&($record['external_user_id']??null)===$r['external_user_id'])$client=$record['client_id']??null;
         }else{
             $q=$this->pdo->prepare("SELECT client_id,MIN(id) AS observation_id FROM advertising_visit_observations WHERE project_key='anytour' AND source_key='tgmini' AND platform='telegram' AND counter_id='98615635' AND external_user_id=? AND identity_status='verified' AND client_id<>'' AND visit_at_unix<=? AND observed_at_unix<=? AND received_at_unix<=? GROUP BY client_id LIMIT 2");
-            $q->execute([$r['external_user_id'],$r['event_unix'],$now,$now]);$ids=$q->fetchAll(PDO::FETCH_ASSOC);if(count($ids)===1){$client=$ids[0]['client_id'];$observation=$ids[0]['observation_id'];}
+            $q->execute([$r['external_user_id'],$r['event_unix'],$now,$now]);$ids=$q->fetchAll(PDO::FETCH_ASSOC);if(count($ids)>1)$identityReason='identity_ambiguous';if(count($ids)===1){$client=$ids[0]['client_id'];$observation=$ids[0]['observation_id'];}
         }
         if(!MaxTrackerLookupProtocol::id($client,40)){
-            $q=$this->pdo->prepare("UPDATE max_channel_conversion_outbox SET next_attempt_unix=?,last_error='identity_not_found' WHERE id=? AND state='pending'");$q->execute([$now+300,$r['id']]);return false;
+            $q=$this->pdo->prepare("UPDATE max_channel_conversion_outbox SET next_attempt_unix=?,last_error=? WHERE id=? AND state='pending'");$q->execute([$now+300,$identityReason,$r['id']]);return false;
         }
         $q=$this->pdo->prepare("UPDATE max_channel_conversion_outbox SET client_id=?,tracker_record_id=?,tracker_observed_unix=?,identity_observation_id=?,state='ready',next_attempt_unix=0,last_error='' WHERE id=? AND state='pending'");$q->execute([$client,$record['record_id']??null,$record['observed_at_unix']??null,$observation,$r['id']]);return $q->rowCount()===1;
     }
