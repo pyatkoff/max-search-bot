@@ -215,10 +215,11 @@ final class ChannelPostRegistryService
             if (!in_array($type,['image','video'],true)||!is_string($payload['token']??null)||$payload['token']==='') throw new RuntimeException('legacy_video_not_eligible');
             if ($type==='video') {
                 if (!ChannelPostIncomingAdapter::maxVideoTokenValid($payload['token'])) throw new RuntimeException('legacy_video_not_eligible');
+                if (ChannelPostIncomingAdapter::maxVideoId($payload['id']??null)==='') throw new RuntimeException('legacy_video_not_eligible');
                 $videos++;
             } elseif (!preg_match('/\A[0-9]+\z/D',(string)($payload['photo_id']??''))) throw new RuntimeException('legacy_video_not_eligible');
-            // Image credentials rotate; photo_id remains its source identity.
-            $media[]=['type'=>$type,'token'=>$type==='video'?$payload['token']:null,'photo_id'=>$type==='image'?(string)$payload['photo_id']:null];
+            // Reusable credentials rotate; explicit media IDs identify content.
+            $media[]=['type'=>$type,'video_id'=>$type==='video'?ChannelPostIncomingAdapter::maxVideoId($payload['id']):null,'photo_id'=>$type==='image'?(string)$payload['photo_id']:null];
         }
         if ($videos===0) throw new RuntimeException('legacy_video_not_eligible');
         return ['text'=>$body['text'],'markup'=>$body['markup']??[],'media'=>$media,'forward'=>$message['link']??null];
@@ -247,8 +248,22 @@ final class ChannelPostRegistryService
                 $publication = ['id' => (int)$this->pdo->lastInsertId(), 'current_version_id' => null];
             }
             $previous = $publication['current_version_id'] ? $this->fetch('SELECT * FROM post_versions WHERE id=? AND publication_id=?', [(int)$publication['current_version_id'], (int)$publication['id']]) : null;
+            $previousHash = $previous ? (string)$previous['content_hash'] : '';
+            if ($previous && $platform === 'max') {
+                $priorSnapshot = json_decode((string)$previous['snapshot_json'], true) ?: [];
+                $videoIds = ChannelPostIncomingAdapter::maxVideoIds($priorSnapshot);
+                // Compare old snapshots under the current identity contract;
+                // never rewrite their immutable hash or create work for renewal.
+                if ($videoIds !== [] && !in_array('', $videoIds, true)) {
+                    $previousHash = ChannelPostIncomingAdapter::contentFingerprint($priorSnapshot);
+                } elseif ($videoIds !== [] && ($previous['state'] === 'unknown'
+                    || in_array($previous['state'], ['claimed','write_started'], true)
+                    || $previous['claim_token'] !== null || $previous['claimed_at'] !== null)) {
+                    return $this->publication((int)$publication['id']);
+                }
+            }
             if ($providerConfigVersion !== null) {
-                if ($previous && (!hash_equals((string)$previous['content_hash'],$hash) || $previous['state'] !== 'sent'
+                if ($previous && (!hash_equals($previousHash,$hash) || $previous['state'] !== 'sent'
                     || ChannelPostIncomingAdapter::containsOnlyButton($snapshot,rtrim((string)$channel['bot_url'],'/').'?start='.rawurlencode((string)$publication['start_payload']),(string)$channel['button_text']))) return $this->publication((int)$publication['id']);
                 $snapshot['metadata']['source_event_id']='provider-read:'.hash('sha256',$messageId.'|'.$hash.'|'.($previous['id']??'new'));
             }
@@ -307,13 +322,13 @@ final class ChannelPostRegistryService
             // edit. Keep an immutable operation version, never reset UNKNOWN or
             // an in-flight write because another bot has sent an edit event.
             $keyboardCorrection = $previous && !$album && $sourceEventKey !== null
-                && $previous['state'] === 'sent' && hash_equals((string)$previous['content_hash'], $hash)
+                && $previous['state'] === 'sent' && hash_equals($previousHash, $hash)
                 && ($snapshot['metadata']['capability'] ?? '') === 'supported'
                 && !ChannelPostIncomingAdapter::containsOnlyButton($snapshot,
                     rtrim((string)$channel['bot_url'], '/') . '?start=' . rawurlencode((string)$publication['start_payload']),
                     (string)$channel['button_text']);
             // Album observations also append immutable per-member clocks when the body is unchanged.
-            if ($album || $keyboardCorrection || !$previous || !hash_equals((string)$previous['content_hash'], $hash)) {
+            if ($album || $keyboardCorrection || !$previous || !hash_equals($previousHash, $hash)) {
                 $version = $previous ? (int)$previous['version_number'] + 1 : 1;
                 $now = self::now();
                 $this->execute('INSERT INTO post_versions (publication_id,version_number,content_hash,snapshot_json,state,write_attempts,error_reason,receipt_json,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?)', [(int)$publication['id'], $version, $hash, self::json($snapshot), $albumOperation['state'], $albumOperation['write_attempts'], $albumOperation['reason'], self::json($albumOperation['receipt']), $now, $now]);
@@ -749,3 +764,4 @@ final class ChannelPostRegistryService
         return gmdate('Y-m-d H:i:s');
     }
 }
+

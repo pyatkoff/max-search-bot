@@ -82,7 +82,7 @@ final class ChannelPostReconciliationService
             }
             if(!$apply)return $safe;
             if(!$recoverUnsupportedVideo)$p=$this->registry->registerProviderObservation($identity['project_key'],$identity['bot_key'],$channel,$message,$publishedMs);
-            if(!$p||!hash_equals((string)$p['content_hash'],$hash))throw new RuntimeException('target_registration_changed');
+            if(!$p||!hash_equals(ChannelPostIncomingAdapter::contentFingerprint((array)($p['snapshot']??[])),$hash))throw new RuntimeException('target_registration_changed');
             if($p['state']==='sent'&&ChannelPostIncomingAdapter::containsOnlyButton($snapshot,ChannelPostButtonTransport::buttonUrl($p),(string)$channel['button_text']))return array_replace($safe,['state'=>'sent','already_present'=>true]);
             $result=(new ChannelPostAutomationService($this->registry,$this->transport))->processPublication($identity['project_key'],'max',$identity['bot_key'],(int)$p['publication_id'],(int)$p['version_id']);
             $safe=['ok'=>($result['state']??'')==='sent','state'=>$result['state']??'unknown','reason'=>$result['reason']??'','content_hash'=>$hash,'version_id'=>(int)$p['version_id'],'version_number'=>(int)$p['version_number'],'receipt'=>$result['receipt']??[]]+$counts;
@@ -122,3 +122,4 @@ final class ChannelPostReconciliationService
         return in_array($e->getMessage(),$known,true)?$e->getMessage():'reconciliation_unavailable';
     }
 }
+

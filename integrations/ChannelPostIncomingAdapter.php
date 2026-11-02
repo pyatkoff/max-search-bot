@@ -9,10 +9,44 @@ final class ChannelPostIncomingAdapter
     /** MAX allows twelve total attachments; images/videos reserve one for our keyboard. */
     public static function maxPhotoLimit(): int { return 11; }
 
-    /** MAX identifies a reusable video by its token, rather than a photo_id. */
+    /** A video token authorizes reuse; MAX can renew it on every read. */
     public static function maxVideoTokenValid($token): bool
     {
         return is_string($token) && preg_match('/\A[A-Za-z0-9_-]+\z/D', $token) === 1;
+    }
+
+    /** Preserve the provider's explicit payload.id without integer coercion. */
+    public static function maxVideoId($id): string
+    {
+        if (!is_int($id) && !is_string($id)) return '';
+        $id = (string)$id;
+        return preg_match('/\A[1-9][0-9]{0,19}\z/D', $id) === 1 ? $id : '';
+    }
+
+    /** Older immutable snapshots kept payload.id only inside raw_body. */
+    public static function maxVideoIds(array $snapshot): array
+    {
+        $media = (array)($snapshot['attachments'] ?? []);
+        $raw = $snapshot['raw_body']['body']['attachments'] ?? null;
+        $rawMedia = []; $bound = is_array($raw) && array_is_list($raw) && array_is_list($media);
+        if ($bound) foreach ($raw as $item) {
+            if (!is_array($item) || !is_array($item['payload'] ?? null)) { $bound = false; break; }
+            if (($item['type'] ?? '') !== 'inline_keyboard') $rawMedia[] = $item;
+        }
+        $bound = $bound && count($rawMedia) === count($media);
+        if ($bound) foreach ($media as $i => $item) {
+            if (!is_array($item) || ($item['provider'] ?? '') !== 'max'
+                || ($item['type'] ?? '') !== ($rawMedia[$i]['type'] ?? '')
+                || !is_string($item['token'] ?? null) || $item['token'] !== ($rawMedia[$i]['payload']['token'] ?? null)) { $bound = false; break; }
+        }
+        $ids = [];
+        foreach ($media as $i => $item) {
+            if (!is_array($item) || ($item['provider'] ?? '') !== 'max' || ($item['type'] ?? '') !== 'video') continue;
+            // Never override an explicitly supplied invalid normalized ID.
+            $ids[$i] = self::maxVideoId(array_key_exists('video_id', $item)
+                ? $item['video_id'] : ($bound ? ($rawMedia[$i]['payload']['id'] ?? null) : null));
+        }
+        return $ids;
     }
 
     public static function isChannelUpdate(string $platform, array $update): bool
@@ -101,7 +135,9 @@ final class ChannelPostIncomingAdapter
             if ($type === 'image') {
                 if (!preg_match('/\A[0-9]+\z/', (string)($payload['photo_id'] ?? ''))) $reason = 'image_stable_id_missing';
             } elseif ($type === 'video') {
+                $media[count($media) - 1]['video_id'] = self::maxVideoId($payload['id'] ?? null);
                 if (!self::maxVideoTokenValid($payload['token'] ?? null)) $reason = 'video_token_invalid';
+                elseif ($media[count($media) - 1]['video_id'] === '') $reason = 'video_stable_id_missing';
             } else $reason = 'unsupported_media';
         }
         if (count($media) > self::maxPhotoLimit() || count($attachments) > 12) $reason = 'attachment_limit';
@@ -156,13 +192,17 @@ final class ChannelPostIncomingAdapter
     public static function contentFingerprint(array $snapshot, string $ownedButtonUrl = '', string $botUrl = ''): string
     {
         $media = [];
-        foreach ((array)($snapshot['attachments'] ?? []) as $item) {
+        $videoIds = self::maxVideoIds($snapshot);
+        foreach ((array)($snapshot['attachments'] ?? []) as $i => $item) {
             if (!is_array($item)) continue;
             $stableId = (string)($item['photo_id'] ?? $item['file_unique_id'] ?? $item['telegram_file_id'] ?? '');
             if (($item['provider'] ?? '') === 'max' && ($item['type'] ?? '') === 'video') {
-                // Video tokens identify the uploaded clip; its playback URL can
-                // expire. Keep image and Telegram fingerprints byte-compatible.
-                $stableId = self::maxVideoTokenValid($item['token'] ?? null) ? 'video:' . hash('sha256', $item['token']) : '';
+                // Only payload.id identifies the clip. Token and URL credentials
+                // rotate independently. An unresolved old snapshot retains its
+                // exact-token fingerprint; unrelated unknown clips never merge.
+                $id = $videoIds[$i] ?? '';
+                $stableId = $id !== '' ? 'video-id:' . $id
+                    : (self::maxVideoTokenValid($item['token'] ?? null) ? 'video:' . hash('sha256', $item['token']) : '');
             }
             $media[] = [
                 'type' => $item['type'] ?? '',
@@ -242,4 +282,5 @@ final class ChannelPostIncomingAdapter
         return $channelMessage && (bool)preg_match('/\Ahttps:\/\/max\.ru\/[A-Za-z][A-Za-z0-9_]{0,63}\/[A-Za-z0-9_-]{1,100}\z/D', $url);
     }
 }
+
 
