@@ -34,7 +34,9 @@ try{
         $path=$logRoot.'/'.basename($app).'.'.$suffix;
         if(is_link($path)||!is_file($path)||!is_readable($path)){$logs[$suffix]=['available'=>false];continue;}
         $f=fopen($path,'rb');if(!$f)continue;$size=filesize($path);fseek($f,max(0,$size-131072));$tail=stream_get_contents($f,131072);fclose($f);
-        $matches=[];foreach(explode("\n",(string)$tail) as $line)if(str_contains($line,'/hotel-server-input.php')&&strlen($line)<=2048)$matches[]=$line;
+        $matches=[];foreach(explode("\n",(string)$tail) as $line)if(strlen($line)<=2048&&(str_contains($line,'/hotel-server-input.php')
+            ||str_contains($line,'HotelServerPrivateUpload.php')||str_contains($line,'5696586')||str_contains($line,'MaxRequestLen')
+            ||str_contains($line,'mod_fcgid')||str_contains($line,'Allowed memory size')))$matches[]=$line;
         $logs[$suffix]=['available'=>true,'matching_lines'=>array_slice($matches,-12)];
     }
     $payload=['schema'=>$fixed['operation'],'read_at_utc'=>gmdate('Y-m-d\TH:i:s\Z'),'files'=>$files,'upload_lock_free'=>$free,

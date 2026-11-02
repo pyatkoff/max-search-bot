@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   private_upload_readback:
-    if: github.ref == 'refs/heads/ops/hotel-server-private-activation-20261102' && github.event.before == 'a936b140900229008d77325f88bedc65edd2a1df' && github.event.created == false && github.event.deleted == false && github.event.forced == false && github.run_attempt == 1
+    if: github.ref == 'refs/heads/ops/hotel-server-private-activation-20261102' && github.event.before == '8a59aba80c76c245ba0f4f13573bd991829a9def' && github.event.created == false && github.event.deleted == false && github.event.forced == false && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -25,10 +25,10 @@ jobs:
           python3 - <<'PY'
           import os,json,pathlib,base64,hashlib
           root=pathlib.Path(os.environ['RUNNER_TEMP']);d=json.loads((root/'hotel_upload_readback_source.json').read_text())
-          assert d['encoding']=='base64' and d['sha']=='a67dc597bee4ed67ddf5f4bdd5ac3ff9c15cadfc'
+          assert d['encoding']=='base64' and d['sha']=='aeb440f12c3ffb69e47feb90df244f369c466b67'
           b=base64.b64decode(d['content']);assert len(b)<65536
           assert hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()==d['sha']
-          assert hashlib.sha256(b).hexdigest()=='97b6aee1c6603947e5d5d3694ce9a26b31892c436a9e93631d3bf284be99bfbf'
+          assert hashlib.sha256(b).hexdigest()=='0731cdfc197b508f219548874ac74c0b95079f88f9973d664b956512dd1ee0da'
           (root/'hotel_upload_readback.php').write_bytes(b)
           PY
       - uses: shivammathur/setup-php@v2
