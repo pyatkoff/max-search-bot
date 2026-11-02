@@ -62,3 +62,12 @@
 .hotelKnowledgeView a{color:#075e8a}.hotelKnowledgeView [role=status]{padding:.5rem 0}
 
 .tsKnowledge{margin:.75rem 0}.tsKnowledge .hotelKnowledgeView:empty{display:none}
+
+.tsBulkButton{min-height:44px;border:1px solid #d6e1da;background:#fff;border-radius:9px;padding:8px 11px;color:#264b3b;font:inherit}.tsBulkMode .tsLayout,.tsBulkMode .tsFooter{display:none}
+.tsBulkPrice{display:flex;flex:1;flex-direction:column;min-height:0;min-width:0}.tsBulkPrice[hidden]{display:none}
+.tsBulkBody{flex:1;min-height:0;overflow:auto;padding:16px 26px;overflow-wrap:anywhere}.tsBulkBody h3{margin:0 0 8px}.tsBulkBody p{font-size:12px;color:#556b5e}
+.tsBulkPrice input,.tsBulkPrice select,.tsBulkFooter button{min-height:44px}.tsBulkPrice fieldset{border:1px solid #d6e1da;border-radius:10px;margin:18px 0;padding:8px 14px}
+.tsBulkPrice legend{padding:0 5px}.tsBulkPrice fieldset label{display:flex;align-items:center;gap:10px;min-height:52px;padding:6px 0}.tsBulkPrice fieldset input{flex:none;width:20px;margin:0}.tsBulkPrice small{display:block;color:#68796f}
+.tsBulkRow{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 20px;padding:10px 0;border-bottom:1px solid #e5ece7}.tsBulkRow strong{font-size:13px}.tsBulkRow span{font-size:13px}
+.tsBulkFooter{display:flex;flex:none;flex-wrap:wrap;justify-content:flex-end;gap:8px;padding:12px 24px;border-top:1px solid #e5ece7;background:#fff}.tsBulkFooter button{border:1px solid #d6e1da;border-radius:9px;padding:8px 12px;font:inherit}
+@media(max-width:767px){.tsBulkButton{flex:none;min-width:44px;padding:8px;font-size:12px}.tsBulkBody{padding:12px 16px}.tsBulkFooter{padding:10px 16px calc(10px + env(safe-area-inset-bottom))}.tsBulkFooter button{flex:1}.tsBulkPrice .tsFields{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}.tsBulkMode .tsHead h2{font-size:17px}}
