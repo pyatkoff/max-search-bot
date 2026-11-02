@@ -99,7 +99,7 @@ const endpoint='tour-selections-api.php';
 let dialog=null,context=null,epoch=0,version=0,draft=null,selected='',canEdit=false,dirty=false,busy=false,loading=false,pending=null,conflict=null,timer=0,returnFocus=null,rawAges={};
 const sessions=new Map();
 let offerDetailsOpen=false,photoEditOffer='',bulkPrice=null,printProposal=null;
-let comparison=null,tripPanel=null,previewIssues=[],photoUpload=null,hotelKnowledge=null;
+let comparison=null,tripPanel=null,previewIssues=[],photoUpload=null,hotelKnowledge=null,biblioPanel=null;
 // View reads are cancellable independently of the durable send/save context.
 let publication=null,preview=false,sending=false,photoFailures=0,photoPending=0,photoEpoch=0,sharing=false,interestLoading=false,historyView=0;
 function capture(c){return host.capture(c)}
@@ -119,7 +119,7 @@ function restore(){
   try{if(!data)data=JSON.parse(sessionStorage.getItem(key())||'null')}catch(e){}
   const bounded=value=>value&&Array.isArray(value.offers)&&value.offers.length<=20&&JSON.stringify(value).length<=300000;
   // A conflict envelope can contain displayed, server and original local terms.
-  if(!data||Date.now()-Number(data.at||0)>86400000||!bounded(data.draft)||JSON.stringify(data).length>900000||data.conflict&&!bounded(data.conflict.draft)||data.comparison&&(!data.conflict||!bounded(data.comparison.draft)))return false;
+  if(!data||Date.now()-Number(data.at||0)>86400000&&data.pending?.kind!=='biblio'||!bounded(data.draft)||JSON.stringify(data).length>900000||data.conflict&&!bounded(data.conflict.draft)||data.comparison&&(!data.conflict||!bounded(data.comparison.draft)))return false;
   draft=clone(data.draft);version=Number(data.version||0);selected=String(data.selected||'');dirty=!!data.dirty;rawAges=data.rawAges||{};pending=data.pending||null;conflict=data.conflict||null;comparison=data.comparison||null;return true;
 }
 function status(text,error=false){const el=$('tsStatus');if(el){el.textContent=text;el.classList.toggle('tsError',error)}}
@@ -132,12 +132,12 @@ async function request(action,data={}){
     return token===epoch&&current(target)?result:{ok:false,error:'stale_context'};
   }catch(e){return {ok:false,error:current(target)?'network_error':'stale_context'}}finally{clearTimeout(timeout)}
 }
-function close(){clearPrint();closeBulkPrices(false);clearHotelKnowledge();historyView++;cancelPhotoUpload(false);tripPanel=null;clearTimeout(timer);timer=0;stash();if(dialog?.open)dialog.close()}
+function close(){clearPrint();closeBulkPrices(false);clearHotelKnowledge();historyView++;cancelPhotoUpload(false);tripPanel=null;biblioPanel=null;clearTimeout(timer);timer=0;stash();if(dialog?.open)dialog.close()}
 function editCurrent(){
   historyView++;preview=false;render();recovery(conflict?'conflict':pending?'pending':'');
   status(conflict?'Есть конфликт правок. Сравните версии перед сохранением.':pending?'Результат сохранения уточняется. Сначала проверьте его.':!canEdit?'Просмотр текущего черновика. Править может ответственный менеджер или администратор.':dirty?'Текущий черновик. Есть несохранённые изменения.':'Текущий черновик. Изменения не отправляют сообщения.',!!conflict||!!pending);
 }
-function suspend(){clearPrint();closeBulkPrices(false);clearHotelKnowledge();cancelPhotoUpload(false);photoEditOffer='';tripPanel=null;previewIssues=[];stash();clearTimeout(timer);timer=0;epoch++;context=null;draft=null;pending=null;conflict=null;comparison=null;dirty=false;busy=false;loading=false;canEdit=false;publication=null;preview=false;sending=false;sharing=false;if(dialog?.open)dialog.close();$('tourSelectionOpen')?.remove()}
+function suspend(){clearPrint();closeBulkPrices(false);clearHotelKnowledge();cancelPhotoUpload(false);photoEditOffer='';tripPanel=null;biblioPanel=null;previewIssues=[];stash();clearTimeout(timer);timer=0;epoch++;context=null;draft=null;pending=null;conflict=null;comparison=null;dirty=false;busy=false;loading=false;canEdit=false;publication=null;preview=false;sending=false;sharing=false;if(dialog?.open)dialog.close();$('tourSelectionOpen')?.remove()}
 function activate(){if(context&&!current())suspend();host.activate()}
 function sync(c){
   if(context&&!current())suspend();
@@ -158,6 +158,7 @@ function ensure(){
   const footer=dialog.querySelector('.tsFooter');
   const tripButton=document.createElement('button');tripButton.id='tsTripAdd';tripButton.type='button';tripButton.textContent='Добавить по условиям поездки';tripButton.onclick=showTrip;const actions=document.createElement('div');actions.className='tsImportActions';actions.append(tripButton);dialog.querySelector('.tsListHead').after(actions);
   const collector=document.createElement('button');collector.id='tsCollector';collector.type='button';collector.textContent='Сборщик туров';collector.onclick=()=>{if(current()&&canEdit)host.openCollector(context.conversation)};actions.append(collector);
+  const biblio=document.createElement('button');biblio.id='tsBiblio';biblio.type='button';biblio.textContent='Библио-Глобус';biblio.onclick=showBiblio;actions.append(biblio);
   const prices=document.createElement('button');prices.id='tsBulkPrices';prices.type='button';prices.className='tsBulkButton';prices.textContent='Цены';prices.title='Изменить несколько цен';prices.setAttribute('aria-label','Изменить несколько цен');prices.onclick=showBulkPrices;actions.append(prices);
   const bulk=document.createElement('section');bulk.id='tsBulkPrice';bulk.className='tsBulkPrice';bulk.hidden=true;bulk.setAttribute('aria-labelledby','tsBulkTitle');dialog.querySelector('.tsLayout').before(bulk);
   if(typeof host.openStandalone==='function'){const standalone=document.createElement('button');standalone.id='tsStandalone';standalone.type='button';standalone.textContent='Открыть отдельно';standalone.onclick=()=>{if(current())host.openStandalone(context.conversation)};actions.append(standalone)}
@@ -226,7 +227,61 @@ async function applyTrip(){
 }
 function newOffer(){return {id:id(),selected:true,hotel:'',destination:'',departure:'',room:'',meal:'',source_label:'',rationale:'',compromise:'',flights:'',inclusions:'',constraints:'',stars:null,nights:null,adults:null,date_from:'',child_ages:[],amount:'',currency:'RUB',source_url:'',observed_at:'',photos:[]}}
 function add(){if(!editable()||draft.offers.length>=20)return;const item=newOffer();draft.offers.push(item);selected=item.id;offerDetailsOpen=true;changed();render();$('ts-hotel')?.focus()}
-function editable(){return current()&&canEdit&&!loading&&!pending&&!conflict&&!preview&&!sending&&!photoUpload&&!bulkPrice}
+function editable(){return current()&&canEdit&&!loading&&!pending&&!conflict&&!preview&&!sending&&!photoUpload&&!bulkPrice&&!biblioPanel}
+
+function biblioError(result){return {biblio_invalid_url:'Вставьте полную ссылку на результаты поиска Библио-Глобуса с городом вылета, датами и составом.',biblio_source_unavailable:'Сайт Библио-Глобуса не ответил. Варианты в подборке сохранены.',biblio_source_changed:'Не удалось однозначно прочитать условия на странице оператора.',biblio_no_quotes:'На этой странице не найдено предложений с однозначной ценой, составом и условиями.',biblio_photos_unavailable:'Фотографии именно этого отеля не подтверждены. Вариант не добавлен.',biblio_expired:'Цена прочитана более десяти минут назад. Прочитайте предложения заново.',biblio_price_confirmation:'Подтвердите цену за весь указанный состав.',source_price_changed:'У такого варианта изменилась исходная цена. Проверьте уже сохранённый вариант.',manual_price_conflict:'У этого варианта уже есть другая ручная цена. Проверьте сохранённый вариант.',ambiguous_offer:'Похожий вариант уже есть с другими условиями. Проверьте его перед добавлением.',selection_full:'В подборке уже 20 вариантов.',connection_changed:'Клиент или запрос изменился. Откройте подборку заново.'}[result?.error]||error(result)}
+function biblioCurrent(panel){return biblioPanel===panel&&current(panel.target)&&epoch===panel.epoch&&version===panel.version&&canEdit&&!dirty&&!pending&&!conflict&&!preview&&dialog?.open}
+async function showBiblio(){
+  if(!editable()||busy||tripPanel||draft.offers.length>=20)return;
+  const token=epoch;clearTimeout(timer);if(dirty)await save();
+  if(token!==epoch||!editable()||busy||dirty||!dialog?.open)return;
+  clearHotelKnowledge();historyView++;recovery('');
+  biblioPanel={target:clone(context),epoch,version,url:'',offers:[],review:null,next:null,total:0,message:'',error:false};render();$('tsBiblioUrl')?.focus();
+}
+function biblioTerms(offer,raw){
+  const party=offer.adults+' взр.'+(offer.child_ages?.length?' · дети: '+offer.child_ages.join(', '):'');
+  return '<dl class="tsBiblioTerms">'+[['Поездка',[offer.destination,'вылет: '+offer.departure,offer.date_from,offer.nights+' ноч.'].join(' · ')],['Состав',party],['Номер',offer.room],['Питание',offer.meal],['Проживание',raw.stay_from+' — '+raw.stay_until],['Перевозка',raw.transport],['Включено',raw.services],['Состав пакета',raw.components],['Оговорки цены',raw.price_note||'Актуальность и наличие требуют проверки.']].map(([k,v])=>'<div><dt>'+esc(k)+'</dt><dd>'+esc(v)+'</dd></div>').join('')+'</dl>';
+}
+function validBiblioRow(row){return row&&typeof row.ticket==='string'&&row.ticket.length<=32768&&row.offer&&typeof row.offer.hotel==='string'&&typeof row.offer.amount==='string'&&['RUB','EUR','USD'].includes(row.offer.currency)&&Array.isArray(row.offer.child_ages)&&row.raw&&['stay_from','stay_until','transport','services','price_note'].every(k=>typeof row.raw[k]==='string')}
+function renderBiblio(){
+  const panel=biblioPanel,editor=$('tsEditor'),review=panel.review;
+  editor.innerHTML='<section class="tsBiblioPanel"><h3>Предложения Библио-Глобуса</h3><p>Прочитайте публичные результаты поиска. Проверьте состав, цену и условия выбранного предложения перед добавлением. Сообщения клиенту не отправляются.</p><label>Ссылка на результаты поиска<input id="tsBiblioUrl" type="url" maxlength="4096" autocomplete="off" placeholder="https://www.bgoperator.ru/price.shtml?…" value="'+esc(panel.url)+'"></label><button id="tsBiblioRead" class="tsPrimary" type="button">Прочитать предложения</button><p id="tsBiblioStatus" role="status" class="'+(panel.error?'tsError':'')+'">'+esc(busy?'Читаем страницу оператора…':panel.message)+'</p><div id="tsBiblioResults"></div><button id="tsBiblioCancel" type="button">Вернуться к подборке</button></section>';
+  const results=$('tsBiblioResults');
+  if(review){
+    results.innerHTML='<article><h4>'+esc(review.offer.hotel)+'</h4><div class="tsBiblioPhotos">'+review.photos.map(url=>'<img src="'+esc(url)+'" alt="Фото отеля '+esc(review.offer.hotel)+'" referrerpolicy="no-referrer">').join('')+'</div><p>Фото относятся к отелю. Категория номера по ним не подтверждена.</p>'+biblioTerms(review.offer,review.raw)+'<p><strong>Исходная цена: '+esc(overviewAmount(review.offer.amount,review.offer.currency))+'</strong></p><label>Цена для клиента, '+esc(review.offer.currency)+'<input id="tsBiblioAmount" type="text" inputmode="decimal" maxlength="12" value="'+esc(review.offer.amount)+'"></label><label class="tsTripConfirm"><input id="tsBiblioConfirm" type="checkbox"> Проверил: показанная исходная цена относится ко всему указанному составу</label><button id="tsBiblioAdd" type="button" class="tsPrimary" disabled>Добавить с фото и условиями</button><button id="tsBiblioBack" type="button">К предложениям</button></article>';
+  }else if(panel.offers.length){
+    const count=document.createElement('p');count.textContent='Прочитано предложений: '+panel.total+'. Выберите вариант для проверки фото.';results.append(count);
+    panel.offers.forEach((row,index)=>{const card=document.createElement('article');card.innerHTML='<h4>'+esc(row.offer.hotel)+'</h4><p>'+esc([row.offer.date_from,row.offer.nights+' ноч.',row.offer.room,row.offer.meal].join(' · '))+'</p><strong>'+esc(overviewAmount(row.offer.amount,row.offer.currency))+'</strong><p>'+esc(row.raw.party)+'</p>';const button=document.createElement('button');button.type='button';button.textContent='Проверить фото и условия';button.dataset.biblioChoice=String(index);button.onclick=()=>void reviewBiblio(panel,row);card.append(button);results.append(card)});
+    if(panel.next!==null){const next=document.createElement('button');next.id='tsBiblioNext';next.type='button';next.textContent='Следующие предложения';next.onclick=()=>void readBiblio(panel,panel.next);results.append(next)}
+  }
+  $('tsBiblioUrl').oninput=()=>{panel.url=$('tsBiblioUrl').value};$('tsBiblioRead').onclick=()=>void readBiblio(panel,0);
+  $('tsBiblioCancel').onclick=()=>{if(busy)return;biblioPanel=null;render()};
+  if(review){$('tsBiblioBack').onclick=()=>{if(busy)return;panel.review=null;render()};$('tsBiblioConfirm').onchange=()=>{$('tsBiblioAdd').disabled=busy||!$('tsBiblioConfirm').checked};$('tsBiblioAdd').onclick=()=>void addBiblio(panel)}
+}
+function biblioControls(){if(!biblioPanel)return;$('tsEditor')?.querySelectorAll('input,button').forEach(node=>{node.disabled=busy||loading||!biblioCurrent(biblioPanel)});if($('tsBiblioAdd'))$('tsBiblioAdd').disabled=busy||!biblioCurrent(biblioPanel)||!$('tsBiblioConfirm')?.checked;}
+async function readBiblio(panel,offset){
+  if(!biblioCurrent(panel)||busy)return;panel.url=$('tsBiblioUrl').value.trim();panel.review=null;busy=true;render();
+  const result=await request('biblio_search',{url:panel.url,offset});if(epoch!==panel.epoch)return;busy=false;if(!biblioCurrent(panel)){controls();return}
+  if(result?.ok&&result.version===panel.version&&Array.isArray(result.offers)&&result.offers.length<=20&&result.offers.every(validBiblioRow)&&Number.isInteger(result.total)&&(result.next_offset===null||Number.isInteger(result.next_offset))){panel.offers=result.offers;panel.total=result.total;panel.next=result.next_offset;panel.message='Предложения прочитаны. Цена и наличие могут измениться.';panel.error=false;}
+  else{panel.offers=[];panel.next=null;panel.message=biblioError(result);panel.error=true}render();
+}
+async function reviewBiblio(panel,row){
+  if(!biblioCurrent(panel)||busy)return;busy=true;render();const result=await request('biblio_review',{ticket:row.ticket});if(epoch!==panel.epoch)return;busy=false;if(!biblioCurrent(panel)){controls();return}
+  if(result?.ok&&result.version===panel.version&&validBiblioRow(result)&&Array.isArray(result.photos)&&result.photos.length>0&&result.photos.length<=3&&result.photos.every(x=>typeof x==='string'&&/^https:\/\/www\.bgoperator\.ru\/pr_img\/[1-9][0-9]{5,14}\/[0-9]{8}\/[1-9][0-9]{3,14}\/[A-Za-z0-9_-]{1,100}\.(jpg|jpeg|png)$/.test(x))){panel.review=result;panel.message='Проверьте условия и цену за весь состав.';panel.error=false}
+  else{panel.message=biblioError(result);panel.error=true}render();
+}
+async function addBiblio(panel){
+  if(!biblioCurrent(panel)||busy||!panel.review||!$('tsBiblioConfirm')?.checked)return;
+  let amount;try{const units=priceUnits($('tsBiblioAmount').value);if(units<=0n)throw Error();amount=String(units/100n)+(units%100n?'.'+String(units%100n).padStart(2,'0'):'')}catch(e){panel.message='Укажите положительную цену с точностью до двух знаков.';panel.error=true;$('tsBiblioStatus').textContent=panel.message;return}
+  pending={kind:'biblio',operation_id:id(),ticket:panel.review.ticket,confirm_party_price:true,manager_amount:amount};biblioPanel=null;stash();render();return submitBiblio(pending);
+}
+async function submitBiblio(command){
+  if(pending!==command||busy||!current())return;const token=epoch;busy=true;stash();controls();
+  const {kind,...data}=command,result=await request('biblio_add',data);if(token!==epoch)return;busy=false;
+  if(result?.ok){await reconcile();return}
+  if(result?.http_status&&result.http_status<500&&!['operation_mismatch','invalid_response'].includes(result.error)){pending=null;if([403,404].includes(result.http_status))canEdit=false;stash();render();status(biblioError(result),true);return}
+  stash();controls();recovery('pending');status('Результат добавления не подтверждён. Сначала проверьте сохранение; повторное добавление не запускается.',true);
+}
 function priceUnits(value){
   const text=String(value??'').trim().replace(/[\s\u00a0\u202f]/g,'').replace(',','.');
   if(!/^(?:0|[1-9][0-9]{0,8})(?:\.[0-9]{1,2})?$/.test(text))throw new Error('Нужна сумма с точностью до двух знаков.');
@@ -456,6 +511,7 @@ function render(){
   clearHotelKnowledge();
   if(!draft||!dialog)return;
   if(bulkPrice){controls();return}
+  if(biblioPanel){renderList();renderBiblio();controls();return}
   dialog.classList.toggle('tsTripMode',!!tripPanel);
   if(preview&&publication){renderPreview();controls();return}
   dialog.classList.remove('tsPreviewMode');
@@ -470,7 +526,7 @@ function render(){
   const overview=document.createElement('section');overview.id='tsOfferOverview';overview.className='tsOfferOverview';overview.setAttribute('aria-label','Обзор выбранного варианта');editor.prepend(overview);renderOfferOverview();
   const order=form.querySelector('.tsEditorHead');if(order){order.querySelector('h3').textContent='Порядок и включение';offerDetails.after(order);order.after(form.querySelector('.tsInclude'))}
   const grouping=document.createElement('section');grouping.id='tsGrouping';grouping.className='tsGrouping';editor.querySelector('.tsDetails').before(grouping);renderGrouping();
-  if(offer.import_source){const source=document.createElement('section');source.className='tsImportedSource';const title=document.createElement('h3');title.textContent='Исходные условия '+(offer.import_source.adapter==='anex-agent-v1'?'ANEX':offer.import_source.adapter==='tourvisor-snapshot-v1'?'Tourvisor':'FUN&SUN');source.append(title);for(const text of [offer.import_source.fields.amount+' '+offer.import_source.fields.currency+(offer.import_source.adapter==='tourvisor-snapshot-v1'?' за номер · менеджер подтвердил 1 номер на 2 взрослых · ':' за весь состав · ')+offer.import_source.observed_at,offer.import_source.raw.room+' · '+offer.import_source.raw.meal,'Цена со страницы. Полная стоимость, рейсы, фото и соответствие каталогу не подтверждены. Ручная сумма выше хранится отдельно.']){const p=document.createElement('p');p.textContent=text;source.append(p)}const link=document.createElement('a');link.href=offer.import_source.url;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Открыть исходный поиск';source.append(link);editor.querySelector('.tsDetails').before(source)}
+  if(offer.import_source){const source=document.createElement('section');source.className='tsImportedSource';const title=document.createElement('h3');title.textContent='Исходные условия '+({'anex-agent-v1':'ANEX','tourvisor-snapshot-v1':'Tourvisor','biblio-public-v1':'Библио-Глобус'}[offer.import_source.adapter]||'FUN&SUN');source.append(title);for(const text of [offer.import_source.fields.amount+' '+offer.import_source.fields.currency+(offer.import_source.adapter==='tourvisor-snapshot-v1'?' за номер · менеджер подтвердил 1 номер на 2 взрослых · ':' за весь состав · ')+offer.import_source.observed_at,offer.import_source.raw.room+' · '+offer.import_source.raw.meal,'Цена со страницы. Полная стоимость, рейсы, фото и соответствие каталогу не подтверждены. Ручная сумма выше хранится отдельно.']){const p=document.createElement('p');p.textContent=text;source.append(p)}const link=document.createElement('a');link.href=offer.import_source.url;link.target='_blank';link.rel='noopener noreferrer';link.textContent=offer.import_source.adapter==='biblio-public-v1'?'Карточка отеля у оператора':'Открыть исходный поиск';source.append(link);editor.querySelector('.tsDetails').before(source)}
   controls();recovery(conflict?'conflict':pending?'pending':'');
   const photoSection=document.createElement('section');photoSection.className='tsPhotoFields';
   const gallery=Array.isArray(offer.import_source?.photos),automatic=(gallery||!!offer.import_source&&offer.photos.length===0)&&photoEditOffer!==offer.id;
@@ -513,6 +569,7 @@ function controls(){
   $('tsEditor')?.querySelectorAll('input,textarea,select,[data-ts-action],[data-ts-copy-photos],[data-ts-fix-offer],[data-ts-remove-photo],[data-ts-photo-mode],#tsEmptyAdd').forEach(x=>{x.disabled=disabled||busy});
   $('tsSave').hidden=preview;$('tsPreview').hidden=preview;$('tsEdit').hidden=!preview;$('tsSend').hidden=!preview;$('tsHistory').hidden=preview;$('tsDone').hidden=!preview;
   $('tsCollector').hidden=preview;$('tsCollector').disabled=!!photoUpload||!canEdit||busy||loading||sending||sharing;
+  $('tsBiblio').hidden=preview;$('tsBiblio').disabled=disabled||busy||!!tripPanel||(draft?.offers.length||0)>=20;
   $('tsPreview').disabled=!!photoUpload||busy||loading||sending||!canEdit||!!pending||!!conflict||invalidAges();$('tsHistory').disabled=!!photoUpload||busy||loading||sending;$('tsEdit').disabled=sending;
   if(bulkPrice){$('tsHistory').disabled=true;$('tsPreview').disabled=true;}
   $('tsShare').hidden=!preview;$('tsShare').disabled=busy||loading||sending||sharing;
@@ -523,6 +580,7 @@ function controls(){
   $('tsTripAdd').hidden=preview;$('tsTripAdd').disabled=disabled||busy||!!tripPanel||(draft?.offers.length||0)>=20;
   $('tsList')?.querySelectorAll('button').forEach(x=>{x.disabled=!!photoUpload||busy});
   if(tripPanel){for(const id of ['tsAdd','tsSave','tsDone','tsPreview','tsHistory','tsCollector'])$(id).disabled=true;}
+  if(biblioPanel){for(const id of ['tsAdd','tsSave','tsDone','tsPreview','tsHistory','tsCollector','tsBulkPrices','tsTripAdd'])$(id).disabled=true;$('tsList')?.querySelectorAll('button').forEach(x=>{x.disabled=true});biblioControls();}
   const cards=publication?.cards||[],unknown=cards.some(x=>['reserved','unknown'].includes(x.state)),known=cards.some(x=>x.state==='known'),remaining=cards.filter(x=>x.state!=='delivered').length;
   $('tsSend').disabled=sending||sharing||!publication?.can_send||unknown||!remaining||photoFailures>0||photoPending>0;
   $('tsSend').textContent=sending?'Отправляем…':unknown?'Результат неизвестен':photoPending?'Загружаем фото…':known?'Проверить доставку':remaining?'Отправить варианты ('+remaining+')':'Подборка отправлена';
@@ -559,12 +617,14 @@ async function submit(command){
 async function reconcile(){
   if(!pending||busy||!current())return;busy=true;controls();const token=epoch,result=await request('operation',{operation_id:pending.operation_id});if(token!==epoch)return;busy=false;
   if(result?.ok&&result.found&&validSnapshot(result.selection)){
-    const sameVersion=result.saved_version===result.selection.version;pending=null;canEdit=result.selection.can_edit;
-    if(sameVersion){draft=clone(result.selection.draft);version=result.selection.version;rawAges={};dirty=false;conflict=null}else{conflict=result.selection;dirty=true}
-    stash();render();recovery(conflict?'conflict':'');status(sameVersion?'Сохранение подтверждено.':'Сохранение подтверждено, но затем подборку изменили. Сравните версии.',!sameVersion);return;
+    const sameVersion=result.saved_version===result.selection.version,biblio=pending.kind==='biblio';pending=null;canEdit=result.selection.can_edit;
+    // Direct source intake starts from a clean draft. Its pre-add snapshot is
+    // never a competing local edit that could delete the confirmed new offer.
+    if(sameVersion||biblio){draft=clone(result.selection.draft);version=result.selection.version;rawAges={};dirty=false;conflict=null}else{conflict=result.selection;dirty=true}
+    stash();render();recovery(conflict?'conflict':'');status(biblio?'Добавление подтверждено. Показана текущая сохранённая подборка.':sameVersion?'Сохранение подтверждено.':'Сохранение подтверждено, но затем подборку изменили. Сравните версии.',!sameVersion&&!biblio);return;
   }
   controls();recovery('pending');status(result?.ok?'Подтверждение ещё не найдено. Можно повторить тот же запрос с защитой от дублей.':error(result),true);
-  if(result?.ok&&!result.found&&validSnapshot(result.selection)&&result.selection.can_edit){const button=document.createElement('button');button.type='button';button.textContent='Повторить это сохранение';button.onclick=()=>{if(pending&&!busy&&current())void submit(pending)};$('tsRecovery').appendChild(button)}
+  if(result?.ok&&!result.found&&validSnapshot(result.selection)&&result.selection.can_edit){const button=document.createElement('button');button.type='button';button.textContent='Повторить это сохранение';button.onclick=()=>{if(pending&&!busy&&current())void(pending.kind==='biblio'?submitBiblio(pending):submit(pending))};$('tsRecovery').appendChild(button)}
 }
 function previewCaption(card){
   const text=String(card.text||''),lines=text.split('\n'),hotel=card.snapshot?.hotel;
@@ -637,7 +697,7 @@ function updateDelivery(){
   controls();
 }
 async function showPreview(){
-  if(!current()||busy||sending||pending||conflict||invalidAges())return;
+  if(!current()||busy||sending||pending||conflict||biblioPanel||invalidAges())return;
   historyView++;
   clearTimeout(timer);if(dirty)await save();if(dirty||busy||pending||conflict||!current())return;
   const token=epoch;busy=true;controls();status('Готовим предпросмотр…');const result=await request('prepare',{version});if(token!==epoch)return;busy=false;
@@ -649,12 +709,12 @@ async function showPreview(){
   status(result?.error==='incomplete_offers'?'Заполните '+(result.fields||[]).map(x=>'в варианте '+x.position+': '+x.fields.map(f=>f==='photos'&&!draft.offers.find(o=>o.id===x.offer_id)?.import_source?'три фото':names[f]||f).join(', ')).join('; ')+'.':error(result),true);controls();
 }
 async function showHistory(){
-  if(!current()||busy||sending||bulkPrice)return;const token=epoch,view=++historyView;busy=true;controls();const result=await request('history');if(token!==epoch||view!==historyView||!current()||!dialog.open)return;busy=false;controls();
+  if(!current()||busy||sending||bulkPrice||biblioPanel)return;const token=epoch,view=++historyView;busy=true;controls();const result=await request('history');if(token!==epoch||view!==historyView||!current()||!dialog.open)return;busy=false;controls();
   if(!result?.ok){status(error(result),true);return}
   const root=$('tsRecovery');root.replaceChildren();root.hidden=false;
   if(!result.publications.length){root.textContent='Пока нет подготовленных к отправке подборок.';return}
   const heading=document.createElement('p');heading.textContent='Подготовленные подборки и результаты отправки:';root.appendChild(heading);
-  for(const entry of result.publications){const button=document.createElement('button');button.type='button';button.textContent='Версия '+entry.draft_version+' · '+entry.created_at+' UTC';button.onclick=async()=>{if(!current()||!dialog.open||busy||sending||sharing||bulkPrice)return;const t=epoch,selectedView=++historyView;const read=await request('publication',{publication_id:entry.publication_id});if(t!==epoch||selectedView!==historyView||!current()||!dialog.open)return;if(read?.ok&&read.publication?.id===entry.publication_id){publication=read.publication;preview=true;render();recovery('');status('Показана сохранённая версия и результат отправки.')}else status(error(read),true)};root.appendChild(button)}
+  for(const entry of result.publications){const button=document.createElement('button');button.type='button';button.textContent='Версия '+entry.draft_version+' · '+entry.created_at+' UTC';button.onclick=async()=>{if(!current()||!dialog.open||busy||sending||sharing||bulkPrice||biblioPanel)return;const t=epoch,selectedView=++historyView;const read=await request('publication',{publication_id:entry.publication_id});if(t!==epoch||selectedView!==historyView||!current()||!dialog.open||biblioPanel)return;if(read?.ok&&read.publication?.id===entry.publication_id){publication=read.publication;preview=true;render();recovery('');status('Показана сохранённая версия и результат отправки.')}else status(error(read),true)};root.appendChild(button)}
 }
 async function showInterest(){
   if(!current()||busy||sending||sharing||interestLoading||!publication)return;

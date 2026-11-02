@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once dirname(__DIR__).'/services/ManagerAssistantService.php';
+require_once __DIR__.'/support/preparation-policy-fixture.php';
 
 final class AssistantFixtureStatement extends PDOStatement
 {
@@ -100,6 +101,7 @@ INSERT INTO lead_tasks VALUES(1,1,'Проверить варианты','2000-01
 INSERT INTO lead_tasks VALUES(2,1,'Проверить перелёт',NULL,'open',1,1,1,NULL,NULL,NULL,'2026-10-19 10:00:00','2026-10-19 10:00:00');
 INSERT INTO lead_tasks VALUES(3,1,'Уже сделано',NULL,'done',0,1,1,'2026-10-19 10:00:00',NULL,NULL,'2026-10-19 10:00:00','2026-10-19 10:00:00');
 ");
+    preparationPolicyFixtureSchema($pdo);
     $pdo->prepare('UPDATE messages SET created_at=? WHERE id=2')->execute([gmdate('Y-m-d H:i:s',time()-60)]);
     $pdo->guard=true;
     return $pdo;

@@ -148,6 +148,73 @@ final class MetrikaOfflineClient
         return ['goals'=>$receipts,'existing_goals_checked'=>count($before),'only_selected_conditions_changed'=>$apply,'goal_writes'=>count($changed),'conversion_requests'=>0];
     }
 
+
+    /** One explicitly owner-authorized experimental goal; never modifies an existing goal. */
+    public function modeledValueGoalStatus():?array
+    {
+        require_once __DIR__.'/ModeledConversionValueContract.php';
+        if($this->counter!=='98615635')throw new RuntimeException('wrong_goal_counter');
+        $matches=[];
+        foreach($this->readGoals()as$goal)foreach((array)($goal['conditions']??[])as$condition)
+            if(($condition['url']??null)===ModeledConversionValueContract::TARGET)$matches[(string)($goal['id']??'')]=$goal;
+        if(!$matches)return null;
+        if(count($matches)!==1)throw new RuntimeException('modeled_goal_conflict');
+        $goal=array_values($matches)[0];
+        if(($goal['type']??null)!=='action'||($goal['name']??null)!==ModeledConversionValueContract::NAME
+            ||!is_array($goal['conditions']??null)||count($goal['conditions'])!==1
+            ||($goal['conditions'][0]['type']??null)!=='exact'||($goal['conditions'][0]['url']??null)!==ModeledConversionValueContract::TARGET
+            ||!MaxTrackerLookupProtocol::id((string)($goal['id']??'')))throw new RuntimeException('modeled_goal_conflict');
+        return ['id'=>(string)$goal['id'],'target'=>ModeledConversionValueContract::TARGET];
+    }
+
+    /** Caller must durably reserve a single creation intent before calling this POST. */
+    public function createModeledValueGoal():array
+    {
+        $existing=$this->modeledValueGoalStatus();if($existing)return $existing+['created'=>false];
+        $before=$this->readGoals();
+        $goal=['name'=>ModeledConversionValueContract::NAME,'type'=>'action','default_price'=>0,
+            'conditions'=>[['type'=>'exact','url'=>ModeledConversionValueContract::TARGET]]];
+        $r=$this->request('POST','goals',null,['goal'=>$goal]);
+        if((int)($r['error']??0)!==0||(int)($r['http']??0)!==200)throw new RuntimeException('modeled_goal_create_unknown');
+        $actual=$this->modeledValueGoalStatus();if(!$actual)throw new RuntimeException('modeled_goal_create_unknown');
+        $after=$this->readGoals();$byId=[];foreach($after as$g)$byId[(string)($g['id']??'')]=$g;
+        if(count($after)!==count($before)+1)throw new RuntimeException('modeled_goal_readback_conflict');
+        foreach($before as$g){$id=(string)$g['id'];if(!isset($byId[$id])||$this->goalSemantics($g)!==$this->goalSemantics($byId[$id]))throw new RuntimeException('modeled_goal_readback_conflict');}
+        return $actual+['created'=>true];
+    }
+
+    public static function modeledValueCsv(array $event,int $now):string
+    {
+        require_once __DIR__.'/ModeledConversionValueContract.php';
+        $value=(string)($event['value_rub']??'');
+        if(($event['counter_id']??null)!=='98615635'||($event['project_key']??null)!=='anytour'
+            ||!ModeledConversionValueContract::isKey($event['target']??null)
+            ||($event['transport_target']??null)!==ModeledConversionValueContract::TARGET
+            ||($event['value_contract']??null)!==ModeledConversionValueContract::VERSION
+            ||!MaxTrackerLookupProtocol::id($event['client_id']??null,40)
+            ||preg_match('/\A[1-9][0-9]{0,4}(?:\.0{1,2})?\z/D',$value)!==1||(float)$value>25000
+            ||!is_numeric($event['event_unix']??null)||(int)$event['event_unix']>$now||(int)$event['event_unix']<$now-21*86400)
+            throw new InvalidArgumentException('invalid_modeled_value_event');
+        $f=fopen('php://temp','w+');fputcsv($f,['ClientId','Target','DateTime','Price','Currency']);
+        fputcsv($f,[$event['client_id'],ModeledConversionValueContract::TARGET,(string)$event['event_unix'],(string)(int)$value,'RUB']);
+        rewind($f);$csv=stream_get_contents($f);fclose($f);return $csv;
+    }
+
+    public function uploadModeledValue(array $event,int $now):array
+    {
+        if($this->counter!=='98615635')throw new RuntimeException('wrong_goal_counter');
+        $csv=self::modeledValueCsv($event,$now);
+        $r=$this->request('POST','offline_conversions/upload?type=BASIC&comment='.rawurlencode(self::comment($event)),$csv);
+        $error=(int)($r['error']??0);$http=(int)($r['http']??0);
+        if($error!==0)return ['outcome'=>in_array($error,[5,6,7],true)?'retry':'unknown','reason'=>in_array($error,[5,6,7],true)?'transport_not_sent':'upload_outcome_unknown'];
+        if(in_array($http,[420,429],true))return ['outcome'=>'retry','reason'=>'rate_limited'];
+        if($http>=400&&$http<500)return ['outcome'=>'rejected','reason'=>'api_rejected'];
+        $d=$this->decode($r);$u=$d['uploading']??null;
+        if($http>=200&&$http<300&&$this->validReceipt($u)&&(!isset($u['comment'])||$u['comment']===self::comment($event)))
+            return ['outcome'=>'accepted','upload_id'=>(string)$u['id'],'status'=>$u['status']];
+        return ['outcome'=>'unknown','reason'=>'upload_outcome_unknown'];
+    }
+
     private function selectedGoals(array $goals): array
     {
         $selected=[];

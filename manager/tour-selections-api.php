@@ -8,6 +8,7 @@ require_once dirname(__DIR__).'/services/ManagerTourSelectionShareService.php';
 require_once dirname(__DIR__).'/services/ManagerTourSelectionCollectorSession.php';
 require_once dirname(__DIR__).'/services/ManagerTourSelectionInterestService.php';
 require_once dirname(__DIR__).'/services/ManagerTourSelectionTripContext.php';
+require_once dirname(__DIR__).'/services/ManagerTourSelectionBiblioSource.php';
 ManagerHttp::startJson(); $manager=ManagerHttp::requireManager();
 if (($_SERVER['REQUEST_METHOD']??'')!=='POST') ManagerHttp::respond(['ok'=>false,'error'=>'method_not_allowed'],405);
 $data=ManagerHttp::body(); ManagerHttp::requireCsrf($data);
@@ -17,6 +18,9 @@ $id=$data['conversation_id']??null; $action=$data['action']??null;
 if (!is_int($id) || $id<=0) ManagerHttp::respond(['ok'=>false,'error'=>'invalid_conversation_id'],422);
 try {
     $result=match($action) {
+        'biblio_search'=>ManagerTourSelectionBiblioSource::search((int)$manager['id'],$id,$collectorSession,$data),
+        'biblio_review'=>ManagerTourSelectionBiblioSource::review((int)$manager['id'],$id,$collectorSession,$data),
+        'biblio_add'=>ManagerTourSelectionService::importBiblio((int)$manager['id'],$id,$collectorSession,$data),
         'collector_get'=>ManagerTourSelectionCollectorSession::view((int)$manager['id'],$id,$collectorSession,is_string($data['device_id']??null)?$data['device_id']:''),
         'collector_connect'=>ManagerTourSelectionCollectorSession::connect((int)$manager['id'],$id,$collectorSession,$data),
         'collector_revoke'=>ManagerTourSelectionCollectorSession::revoke((int)$manager['id'],$id,$collectorSession),

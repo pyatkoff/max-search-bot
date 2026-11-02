@@ -89,6 +89,64 @@ function anexCollectorScenarios(PDO $pdo,string $session,string $connection): vo
     $foreign=ManagerTourSelectionService::import(7,1,str_repeat('9',64),array_replace($command,['operation_id'=>'anex-foreign-session-0001']));deliveryCheck('ANEX uses the canonical live connection fences',$foreign['error']==='connection_changed');
 }
 
+/** Synthetic public operator markup; no copied offer, birth date or live price. */
+function biblioPublicFixture(bool $family=false): array
+{
+    $party='0010119800.0010119800'.($family?'.0010120200':'');
+    $url='https://www.bgoperator.ru/price.shtml?action=price&tid=211&flt=101&flt2=102&id_price=103&data=05.06.2027&f7=7&p='.$party.'&bfr=1';
+    $meta=['id'=>'103','info'=>['flt'=>'101','flt2'=>'102','fltName'=>'Турция','flt2Name'=>'Москва','currency'=>'EUR'],'start'=>['df'=>'05.06.2027']];
+    $buy='https://www.bgoperator.ru/zaya?'.http_build_query(['dt'=>'05.06.2027','kol'=>'7','cntr'=>'101','templ'=>'103','p'=>$party,'bfr'=>'1','otn'=>'106','otv'=>'107','prx'=>'108','sr'=>'109','c'=>'110','ins'=>'111']);
+    $html='<html><script>var data='.json_encode($meta,JSON_UNESCAPED_UNICODE).'; mods.initPf(data);</script><table class="b-pr_t"><tr class="b-pr_t_hl"><th class="c_de"><b>05.06.2027</b></th><th><div class="name" data-hid="104"><span>Лара</span><a href="/price.shtml?code=104">Синтетический Библио 4*</a></div></th><th class="h_gp" data-group="0">2 взрослых'.($family?' с 1 ребенком (47/47/7)':' (47/47)').'</th></tr><tr><td class="c_dn" title="до 12.06.2027 Суббота"><b>7</b></td><td class="c_ar">Синтетическая авиакомпания</td><td class="c_ns">Standard / DBL<br>Всё включено</td><td class="c_cn"><ul><li class="i_ft" title="Перелёт туда" urr="flight=1"></li><li class="i_an" title="Проживание с 05.06.2027 по 12.06.2027 (7 ночей)" urr="stay=104"></li><li class="i_t1" title="Групповой трансфер туда и обратно" urr="transfer=1"></li><li class="i_i1" title="Медицинская страховка 40000 EUR" urr="insurance=1"></li><li class="i_ft" title="Перелёт обратно" urr="flight=2"></li></ul></td><td class="c_pe"><div class="pe"><b class="r">123 456</b> р. <a href="'.htmlspecialchars($buy,ENT_QUOTES,'UTF-8').'" title="1234 EUR">Заказать</a></div></td></tr></table></html>';
+    $photos=array_map(static fn(int $n):string=>'https://www.bgoperator.ru/pr_img/1234567/20260101/12345/synthetic-'.$n.'.jpg',[1,2,3]);
+    $gallery='<h1 class="title title__3">Синтетический Библио 4*</h1><h1>Отель Синтетический Библио 4*</h1><nav class="b-htl_nav"><a href="?action=shw&code=104">Описание</a></nav><div class="b-htl_gry">'.implode('',array_map(static fn(string $url):string=>'<a class="link" href="'.$url.'">Фото</a>',$photos)).'</div><img src="https://other.invalid/banner.jpg">';
+    return compact('url','html','gallery','photos');
+}
+
+function biblioPublicScenarios(): void
+{
+    require_once dirname(__DIR__,2).'/services/ManagerTourSelectionBiblioSource.php';
+    $f=biblioPublicFixture();$quotes=ManagerTourSelectionBiblioSource::parse($f['html'],$f['url']);$quote=$quotes[0];
+    deliveryCheck('Biblio actual-shaped row reads displayed RUB independently of EUR metadata',count($quotes)===1&&$quote['offer']['amount']==='123456'&&$quote['offer']['currency']==='RUB'&&str_contains($quote['raw']['price_note'],'1234 EUR'));
+    deliveryCheck('Biblio captures both transport legs transfer insurance and exact stay',str_contains($quote['raw']['transport'],'2')&&str_contains($quote['raw']['services'],'трансфер')&&str_contains($quote['raw']['services'],'40000 EUR')&&$quote['raw']['stay_until']==='2027-06-12');
+    $family=biblioPublicFixture(true);$fq=ManagerTourSelectionBiblioSource::parse($family['html'],$family['url'])[0];
+    deliveryCheck('Biblio family composition preserves child age rather than eligibility ranges',$fq['offer']['adults']===2&&$fq['offer']['child_ages']===[7]);
+    $split=strpos($f['html'],'<tr><td class="c_dn"');$crossTable=substr($f['html'],0,$split).'</table><table class="b-pr_t">'.substr($f['html'],$split);$rejected=false;try{ManagerTourSelectionBiblioSource::parse($crossTable,$f['url']);}catch(RuntimeException $e){$rejected=true;}
+    deliveryCheck('Biblio cannot borrow another table hotel header for an unbound quote',$rejected);
+    foreach ([['Синтетическая авиакомпания','Другой перевозчик'],['title="1234 EUR"','title="1299 EUR"']] as [$from,$to]) {$changed=ManagerTourSelectionBiblioSource::parse(str_replace($from,$to,$f['html']),$f['url'])[0];deliveryCheck('Biblio significant displayed transport and price notes affect duplicate identity',ManagerTourSelectionImportDraft::fingerprint(ManagerTourSelectionImportDraft::source(ManagerTourSelectionImportDraft::normalize($changed)))!==ManagerTourSelectionImportDraft::fingerprint(ManagerTourSelectionImportDraft::source(ManagerTourSelectionImportDraft::normalize($quote))));}
+    deliveryCheck('Biblio canonical hotel gallery keeps only exact original hotel photos',ManagerTourSelectionBiblioSource::gallery($f['gallery'],'104','Синтетический Библио')===$f['photos']);
+    deliveryCheck('Biblio rejects gallery formats unsupported by canonical card preparation',ManagerTourSelectionBiblioSource::gallery(str_replace('.jpg','.webp',$f['gallery']),'104','Синтетический Библио')===[]);
+    foreach ([['code=104','code=999'],['Синтетический Библио 4*','Синтетический Библио ДРУГОЙ 4*']] as [$a,$b]) deliveryCheck('Biblio gallery rejects foreign binding '.$a,ManagerTourSelectionBiblioSource::gallery(str_replace($a,$b,$f['gallery']),'104','Синтетический Библио')===[]);
+    foreach (['https://www.bgoperator.ru/zaya?x=1','http://www.bgoperator.ru/price.shtml','https://user@www.bgoperator.ru/price.shtml','https://www.bgoperator.ru.evil.invalid/price.shtml',$f['url'].'&p=duplicate',$f['url'].'&token=secret',$f['url'].'#fragment',str_replace('f7=7','f7[]=7',$f['url'])] as $url) deliveryCheck('Biblio blocks noncanonical or secret URL',ManagerTourSelectionBiblioSource::searchUrl($url)===null);
+    foreach (['127.0.0.1','10.0.0.1','169.254.169.254','100.64.0.1','192.0.2.1','224.0.0.1','::1'] as $ip) deliveryCheck('Biblio rejects nonpublic resolved address '.$ip,!ManagerTourSelectionBiblioSource::publicAddress($ip));
+    foreach ([['<b class="r">123 456</b>','<b class="r">100 000</b><b class="r">123 456</b>'],['2 взрослых (47/47)','3 взрослых (47/47)'],['data-group="0"','data-group="1"'],['start":{"df":"05.06.2027"','start":{"df":"06.06.2027"'],['Standard / DBL',''],[' р. ',' unknown ']] as [$a,$b]) {
+        $failed=false;try{ManagerTourSelectionBiblioSource::parse(str_replace($a,$b,$f['html']),$f['url']);}catch(RuntimeException $e){$failed=true;}deliveryCheck('Biblio refuses ambiguous or contradictory source '.$a,$failed);
+    }
+    $pdo=deliveryDb();$session=str_repeat('1',64);$calls=[];
+    $fetch=static function(string $url)use($f,&$calls):string{$calls[]=$url;return str_contains($url,'action=price')?$f['html']:$f['gallery'];};
+    $read=ManagerTourSelectionBiblioSource::search(7,1,$session,['url'=>$f['url']],$fetch);
+    deliveryCheck('Biblio search is readonly and does not create a collector connection',$read['ok']&&count($read['offers'])===1&&ManagerTourSelectionService::get(7,1)['selection']['version']===0&&count($calls)===1);
+    $before=count($calls);$denied=ManagerTourSelectionBiblioSource::search(8,1,$session,['url'=>$f['url']],$fetch);deliveryCheck('Biblio authorization precedes any outbound read',!$denied['ok']&&count($calls)===$before);
+    $ticket=$read['offers'][0]['ticket'];
+    foreach ([[str_repeat('2',64),7,1],[$session,8,1],[$session,7,2]] as [$s,$a,$c]) deliveryCheck('Biblio signed intent cannot cross session actor or conversation',ManagerTourSelectionBiblioSource::open($ticket,$s,$a,$c,'quote')===null);
+    deliveryCheck('Biblio signed intent rejects tampering',ManagerTourSelectionBiblioSource::open($ticket.'a',$session,7,1,'quote')===null);
+    $plain=ManagerTourSelectionBiblioSource::open($ticket,$session,7,1,'quote');deliveryCheck('Biblio tickets discard source birth dates and search query',!str_contains(json_encode($plain),'001011980')&&!str_contains(json_encode($plain),'action=price'));
+    $review=ManagerTourSelectionBiblioSource::review(7,1,$session,['ticket'=>$ticket],$fetch);
+    deliveryCheck('Biblio review reads the exact hotel gallery without draft mutation',$review['ok']&&$review['photos']===$f['photos']&&ManagerTourSelectionService::get(7,1)['selection']['version']===0);
+    $ready=ManagerTourSelectionBiblioSource::open($review['ticket'],$session,7,1,'ready');deliveryCheck('Biblio photo review never extends the source price lifetime',$ready['expires']===$plain['expires']);
+    $expired=$ready;$expired['expires']=time()-1;$encoded=rtrim(strtr(base64_encode(json_encode($expired,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)),'+/','-_'),'=');$expiredToken=$encoded.'.'.hash_hmac('sha256',$encoded,'biblio-preview-v1|'.$session);
+    deliveryCheck('Biblio expiry refuses first mutation even for an authentic previously reviewed price',ManagerTourSelectionService::importBiblio(7,1,$session,['operation_id'=>'biblio-expired-first-001','ticket'=>$expiredToken,'confirm_party_price'=>true])['error']==='biblio_expired'&&ManagerTourSelectionService::get(7,1)['selection']['version']===0);
+    $command=['operation_id'=>'biblio-direct-first-001','ticket'=>$review['ticket'],'confirm_party_price'=>true,'manager_amount'=>'125000'];
+    deliveryCheck('Biblio requires explicit whole-party price confirmation',ManagerTourSelectionService::importBiblio(7,1,$session,array_replace($command,['confirm_party_price'=>false]))['error']==='biblio_price_confirmation');
+    $added=ManagerTourSelectionService::importBiblio(7,1,$session,$command);$saved=ManagerTourSelectionService::get(7,1)['selection'];
+    deliveryCheck('Biblio direct intake saves real-shaped photos all terms and separate original/manual prices',$added['ok']&&$added['state']==='added'&&count($saved['draft']['offers'])===1&&$saved['draft']['offers'][0]['amount']==='125000'&&$saved['draft']['offers'][0]['import_source']['fields']['amount']==='123456'&&count($saved['draft']['offers'][0]['photos'])===3);
+    deliveryCheck('Biblio unknown add outcome resolves exact canonical receipt without append',ManagerTourSelectionService::operation(7,1,$command['operation_id'])['found']&&ManagerTourSelectionService::importBiblio(7,1,$session,$command)['saved_version']===$saved['version']&&count(ManagerTourSelectionService::get(7,1)['selection']['draft']['offers'])===1);
+    deliveryCheck('Biblio stale preview cannot append after another save',ManagerTourSelectionService::importBiblio(7,1,$session,array_replace($command,['operation_id'=>'biblio-stale-first-001']))['error']==='draft_changed');
+    $read=ManagerTourSelectionBiblioSource::search(7,1,$session,['url'=>$f['url']],$fetch);$review=ManagerTourSelectionBiblioSource::review(7,1,$session,['ticket'=>$read['offers'][0]['ticket']],$fetch);
+    $duplicate=ManagerTourSelectionService::importBiblio(7,1,$session,['operation_id'=>'biblio-duplicate-001','ticket'=>$review['ticket'],'confirm_party_price'=>true]);
+    deliveryCheck('Biblio repeat preserves manual price and original offer without duplicate',$duplicate['state']==='already_added'&&ManagerTourSelectionService::get(7,1)['selection']['draft']===$saved['draft']);
+    $pdo->exec("UPDATE conversations SET manager_id=8 WHERE id=1");$before=count($calls);$denied=ManagerTourSelectionBiblioSource::review(7,1,$session,['ticket'=>$read['offers'][0]['ticket']],$fetch);deliveryCheck('Biblio reassigned client prevents further source reads',!$denied['ok']&&count($calls)===$before);
+}
+
 function collectorSchema(PDO $pdo): void
 {
     if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql') $pdo->exec(file_get_contents(dirname(__DIR__,2).'/migrations/057_manager_tour_selection_collectors.sql'));

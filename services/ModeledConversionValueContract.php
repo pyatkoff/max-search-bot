@@ -1,0 +1,85 @@
+<?php
+declare(strict_types=1);
+require_once __DIR__.'/ModeledConversionEarlyForecast.php';
+
+/** Owner-selected illustrative advertising value; no calibrated probability or actual income. */
+final class ModeledConversionValueContract
+{
+    public const VERSION='semantic_stage_value_25000_v1';
+    public const TARGET='anytour_modeled_value_v1';
+    public const NAME='AnyTour: оценочная ценность обращения v1';
+    public const BASE=25000;
+    public const VALUES=[1=>1250,2=>2083,3=>4167,4=>8333,5=>12500,6=>25000];
+    public const STAGES=[1=>'interest',2=>'specific_request',3=>'offer_discussion',4=>'purchase_intent',5=>'agency_choice',6=>'payment_report'];
+    public static function key(int $rank):string
+    {
+        if(!isset(self::VALUES[$rank]))throw new InvalidArgumentException('value_rank');
+        return 'anytour_value_'.$rank.'_v1';
+    }
+    public static function isKey(mixed $key):bool{return is_string($key)&&preg_match('/\Aanytour_value_[1-6]_v1\z/D',$key)===1;}
+
+    /** Consume only the immutable admitted projection; never interpret raw text or callback counts. */
+    public static function candidate(array $wrapper,array $subject,int $since,int $now):?array
+    {
+        if(($wrapper['access_status']??null)!=='allowed'||!self::sameSubject($wrapper['subject']??null,$subject)
+            ||($subject['project_key']??null)!=='anytour'||!in_array($subject['platform']??null,['max','telegram'],true))return null;
+        $s=$wrapper['contextual_signals']??[];
+        if(($s['version']??null)!==ModeledConversionEarlyForecast::VERSION
+            ||($s['extractor_sha256']??null)!==hash_file('sha256',__DIR__.'/ArchiveResearchSemanticExtractor.php')
+            ||($s['adapter_sha256']??null)!==hash_file('sha256',__DIR__.'/ModeledConversionEarlyForecast.php')
+            ||!is_array($s['events']??null)||count($s['events'])>1000)return null;
+        $frozen=self::moment($s['frozen_at']??null);$cutoff=self::moment($s['input_cutoff_at']??null);
+        if($frozen===null||$cutoff===null||$cutoff>$frozen||$frozen>$now||$frozen<$since)return null;
+        $input=$wrapper['profile']['observation_input']??[];
+        if(!self::sameSubject($input['subject']??null,$subject)||!is_array($input['evidence']??null)||count($input['evidence'])>1000)return null;
+        $refs=[];
+        foreach($input['evidence']as$e){
+            if(!is_array($e)||!in_array($e['kind']??null,['customer_message','manager_message'],true)
+                ||!self::sameSubject($e['subject']??null,$subject))continue;
+            $r=$e['references']??null;if(!is_array($r)||count($r)!==1)continue;$r=$r[0];
+            $at=self::moment($e['at']??null);$available=self::moment($e['available_at']??null);$ref=$r['id']??null;
+            if(!is_string($ref)||preg_match('/\Ajournal:[1-9][0-9]{0,19}\z/D',$ref)!==1||($r['source']??null)!=='message'
+                ||($e['id']??null)!=='message:'.$ref||($r['at']??null)!==($e['at']??null)
+                ||($r['available_at']??null)!==($e['available_at']??null)
+                ||$at===null||$available===null||$at>$available||$available>$cutoff)continue;
+            $refs[$ref]=['at'=>$at,'available'=>$available,'role'=>$e['kind']==='customer_message'?'customer':'manager'];
+        }
+        $map=['substantive_interest'=>1,'general_purchase_intent'=>4,'agency_purchase_intent'=>5,'payment_self_report'=>6,'manager_payment_ack'=>6];
+        $best=null;$contrary=false;
+        foreach($s['events']as$event){
+            if(!is_array($event))continue;$r=$refs[$event['source_ref']??'']??null;
+            if(!$r||$r['at']<$since)continue;
+            $goal=$event['goal']??null;
+            if(in_array($goal,['payment_cancellation','booking_cancellation','refund_report','purchased_elsewhere'],true)){$contrary=true;continue;}
+            $rank=is_string($goal)?($map[$goal]??null):null;
+            if($rank===null||($goal==='manager_payment_ack'?$r['role']!=='manager':$r['role']!=='customer')
+                ||!in_array($event['product']??null,['tour','unknown'],true))continue;
+            if($best===null||$rank>$best['rank'])$best=['rank'=>$rank,'stage'=>self::STAGES[$rank],'value'=>self::VALUES[$rank],
+                'event_unix'=>$frozen,'evidence_at'=>$r['at'],'evidence_available_at'=>$r['available'],'source_ref'=>$event['source_ref']];
+        }
+        $p=$wrapper['semantic_prediction']??null;
+        if(is_array($p)&&($p['status']??null)==='predicted'&&self::sameSubject($p['subject']??null,$subject)
+            &&($p['model_sha256']??null)===hash_file('sha256',__DIR__.'/ModeledConversionSemanticPrediction.php')
+            &&ModeledConversionSemanticPrediction::digestMatches($p)){
+            $rank=['substantive_dialogue'=>1,'concrete_request'=>2,'exact_offer_discussion'=>3,
+                'general_purchase_intent'=>4,'agency_purchase_intent'=>5][$p['stage']??'']??null;
+            $anchor=$p['current_request_anchor']??null;$r=$refs[$anchor??'']??null;
+            if($rank!==null&&$r&&$r['role']==='customer'&&$r['at']>=$since
+                &&($p['frozen_at']??null)===($s['frozen_at']??null)&&($best===null||$rank>$best['rank']))
+                $best=['rank'=>$rank,'stage'=>self::STAGES[$rank],'value'=>self::VALUES[$rank],'event_unix'=>$frozen,
+                    'evidence_at'=>$r['at'],'evidence_available_at'=>$r['available'],'source_ref'=>$anchor];
+        }
+        return $contrary?null:$best;
+    }
+    public static function sameSubject(mixed $a,array $b):bool
+    {
+        if(!is_array($a))return false;
+        foreach(['project_key','platform','customer_key','conversation_id']as$k)if(!isset($a[$k],$b[$k])||$a[$k]!==$b[$k])return false;
+        return true;
+    }
+    public static function moment(mixed $value):?int
+    {
+        if(!is_string($value)||preg_match('/\A\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ\z/D',$value)!==1)return null;
+        $v=strtotime($value);return $v!==false&&gmdate('Y-m-d\TH:i:s\Z',$v)===$value?$v:null;
+    }
+}

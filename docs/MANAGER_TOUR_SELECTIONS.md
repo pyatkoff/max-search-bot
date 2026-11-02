@@ -948,6 +948,40 @@ after success or failure so a later worker reconnect can obtain a fresh nonce.
 Sender and nonce checks, destination binding, queue records and original import
 operation IDs remain unchanged. No import is retried by this handshake change.
 
+### Direct Biblio-Globus intake in the protected editor
+
+The Biblio-Globus button reads a full public `www.bgoperator.ru/price.shtml`
+search-results URL containing departure, country, date range, nights and party.
+It shows at most20 quotes at a time. Selecting a quote reads that exact hotel's
+public gallery, then shows its photos, dates, room, meals, party, displayed
+price/currency, carrier, transfers, insurance and original package descriptions.
+Flight numbers, times, baggage, current availability and room-photo identity
+remain explicitly unverified when absent from the source row. Hotel-page hash
+links without a complete search/departure context are not supported inputs.
+
+The displayed RUB equivalent is distinct from a price-list EUR amount: metadata
+currency never relabels the visible price. Before adding, the manager confirms
+the price applies to the whole displayed party and may edit the client amount.
+The original price and normalized conditions stay frozen separately. No booking
+endpoint, supplier login, extension connection or queue is used by this path.
+
+Reads require current edit access before HTTP and revalidate recipient, draft
+version and context afterward. Only exact public HTTPS endpoints are fetched,
+with public DNS pinning, strict TLS, no redirects/proxy/cookies and bounded time
+and response size. Gallery originals must be JPEG/PNG from the bound hotel page;
+advertisements and unsupported formats cannot become hotel photos. Search birth
+dates or name suffixes are never retained in quote tickets or saved source URLs.
+
+Session-bound signed previews expire ten minutes after the source capture;
+gallery review does not extend this lifetime. Adding uses the existing locked
+selection transaction, version checks, duplicate rules and durable operation
+receipt. A lost response is retained per account/conversation; the editor checks
+the original receipt before offering an explicit retry of that exact command.
+A confirmed add adopts the current canonical draft, including later colleague
+edits, rather than treating the pre-add draft as an unsaved competing version.
+This flow never sends a tourist message or publishes a selection automatically.
+It does not establish the state of the separate historical Mysea operation.
+
 The actual bridge script is exercised by a source-only regression for concurrent
 signals, subsequent reconnects, failed hello recovery and sender/nonce fences.
 This reproduces a transport defect; it does not establish the historical cause

@@ -72,6 +72,9 @@ function searchInquiryProjection(mode){
     if(empty($entry['ok']))throw new RuntimeException('Synthetic native inquiry not saved');echo json_encode(TourChoiceService::forConversation($pdo,1),JSON_THROW_ON_ERROR);
   `],{cwd:root,encoding:'utf8'}));
 }
+function biblioFixture(){
+ return JSON.parse(execFileSync('php',['-r',`require getcwd().'/tests/support/manager-tour-collector.php';require getcwd().'/services/ManagerTourSelectionBiblioSource.php';$f=biblioPublicFixture(true);$o=ManagerTourSelectionBiblioSource::parse($f['html'],$f['url'])[0];$o['photos']=$f['photos'];$n=ManagerTourSelectionImportDraft::normalize($o);$offer=$n['offer'];$offer['id']=str_repeat('b',32);$offer['import_source']=ManagerTourSelectionImportDraft::source($n);echo json_encode(['url'=>$f['url'],'offer'=>$o['offer'],'raw'=>$o['raw'],'photos'=>$f['photos'],'saved'=>$offer],JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);`],{cwd:root,encoding:'utf8'}));
+}
 async function fixture(page,options={}){
   const base=await setup(page),calls=[],drafts=new Map(),receipts=new Map();let fail=options.fail||'',held=null;
   const snapshot=id=>({conversation_id:id,version:drafts.get(id)?.version||0,draft:copy(drafts.get(id)?.draft||{title:'Подборка туров',intro:'',offers:[]}),can_edit:!options.readOnly,updated_at:null,updated_by_manager_id:7});
@@ -86,6 +89,7 @@ async function fixture(page,options={}){
     const url=route.request().url(),kind=url.includes('MainPhoto')?'cover':url.includes('InsideOfTheRoom')?'room':'beach';
     return route.fulfill({contentType:'image/jpeg',body:fs.readFileSync(path.join(root,'assets/owner-tour-cards/compact-v1',kind+'.jpg'))});
   });
+  if(options.biblio)await page.route('https://www.bgoperator.ru/pr_img/**',route=>route.fulfill({contentType:'image/jpeg',body:fs.readFileSync(path.join(root,'assets/owner-tour-cards/compact-v1/cover.jpg'))}));
   const photoUploads=[],uploadedFiles=new Map();let heldUpload=null;
   await page.route(/\/manager\/tour-selection-photo\.php(?:\?|$)/,async route=>{
     if(route.request().method()==='GET'){
@@ -104,6 +108,16 @@ async function fixture(page,options={}){
   await page.route('**/manager/tour-selections-api.php',async route=>{
     const d=route.request().postDataJSON();calls.push(copy(d));expect(d.csrf).toBe('fixture-csrf');expect([11,12]).toContain(d.conversation_id);
     const reply=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
+    if(options.biblio&&d.action.startsWith('biblio_')){
+      const b=options.biblio,row={offer:copy(b.offer),raw:copy(b.raw),ticket:'quote-fixture-ticket'};
+      if(d.action==='biblio_search'){expect(d.url).toBe(b.url);if(options.holdBiblio)await new Promise(resolve=>held=resolve);return reply({ok:true,offers:[row],total:1,next_offset:null,version:snapshot(d.conversation_id).version});}
+      if(d.action==='biblio_review')return reply(options.biblioPhotosDenied?{ok:false,error:'biblio_photos_unavailable'}:{ok:true,...row,ticket:'ready-fixture-ticket',photos:copy(b.photos),version:snapshot(d.conversation_id).version},options.biblioPhotosDenied?422:200);
+      expect(d.action).toBe('biblio_add');expect(d.ticket).toBe('ready-fixture-ticket');expect(d.confirm_party_price).toBe(true);
+      if(options.biblioLoss==='before'){options.biblioLoss='';return route.abort('failed')}
+      if(!receipts.has(d.operation_id)){const before=snapshot(d.conversation_id),offer=copy(b.saved);offer.amount=d.manager_amount;const value={version:before.version+1,draft:{...before.draft,offers:[...before.draft.offers,offer]}};drafts.set(d.conversation_id,value);receipts.set(d.operation_id,copy(value));}
+      if(options.biblioLoss==='after'){options.biblioLoss='';return route.abort('failed')}
+      return reply({ok:true,state:'added',saved_version:receipts.get(d.operation_id).version,count:snapshot(d.conversation_id).draft.offers.length});
+    }
     if(d.action==='trip_context')return reply({ok:true,trip:options.trip||{state:'unbound',revision:'',fields:{},details:[],warnings:[]}});
     if(d.action==='trip_apply'){if(options.tripMode==='changed')return reply({ok:false,error:'trip_changed'},409);if(options.tripMode==='denied')return reply({ok:false,error:'forbidden'},403);if(d.confirm_current_trip!==true||d.revision!==options.trip?.revision)throw new Error('Unconfirmed trip');if(options.holdTrip)await new Promise(resolve=>held=resolve);return reply({ok:true,trip:options.trip});}
     if(d.action==='get')return reply({ok:true,selection:snapshot(d.conversation_id)});
@@ -151,6 +165,38 @@ async function fixture(page,options={}){
   return {...base,calls,drafts,receipts,snapshot,photoUploads,uploadedFiles,releaseUpload:()=>heldUpload?.(),creations:()=>creations,publication:()=>publication,heldPhotos:()=>heldPhotos.length,holdPhotos:()=>{options.holdPhotos=true},releasePhotos:()=>{options.holdPhotos=false;heldPhotos.splice(0).forEach(resolve=>resolve())},release:()=>held?.(),setFail:x=>fail=x,setTripMode:x=>options.tripMode=x};
 }
 async function open(page,{edit=true}={}){if(!await page.locator('#tourSelectionOpen').isVisible())await page.locator('#m2ConversationMenuToggle').click();await page.locator('#tourSelectionOpen').click();await expect(page.locator('#tourSelectionDialog')).toBeVisible();await expect(page.locator('#tsStatus')).toContainText(/загружен|Просмотр|Восстановлены/);if(edit&&await page.locator('#tsOfferDetails').count()&&!await page.locator('#tsOfferDetails').evaluate(el=>el.open))await page.locator('#tsOfferDetails>summary').click()}
+
+async function biblioReview(page,b){
+ await open(page,{edit:false});await page.locator('#tsBiblio').click();await page.locator('#tsBiblioUrl').fill(b.url);await page.locator('#tsBiblioRead').click();await page.locator('[data-biblio-choice]').click();await expect(page.locator('#tsBiblioAdd')).toBeDisabled();await expect(page.locator('.tsBiblioPhotos img')).toHaveCount(3);
+}
+for(const [width,height]of [[390,900],[430,900],[768,900],[1440,900],[390,420]])test(`Biblio direct quote photos terms and edited price ${width}x${height}`,async({page,browserName})=>{
+ await page.setViewportSize({width,height});const b=biblioFixture(),original=completeDraft(),s=await fixture(page,{draft:original,biblio:b});await biblioReview(page,b);
+ await expect(page.locator('.tsBiblioTerms')).toContainText('дети: 7');await expect(page.locator('.tsBiblioTerms')).toContainText('40000 EUR');await expect(page.locator('.tsBiblioTerms')).toContainText('трансфер');await expect(page.locator('#tsBiblioResults')).toContainText('123');
+ expect(s.calls.some(x=>['biblio_add','save','prepare','send','publish','collector_import'].includes(x.action))).toBe(false);
+ await page.locator('#tsBiblioAmount').fill('125 000,50');await page.locator('#tsBiblioConfirm').check();await expect(page.locator('#tsBiblioAdd')).toBeEnabled();
+ expect(await page.locator('#tourSelectionDialog').evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThanOrEqual(1);
+ for(const id of ['tsBiblioAdd','tsBiblioBack','tsBiblioCancel'])expect(await page.locator('#'+id).evaluate(el=>el.getBoundingClientRect().height)).toBeGreaterThanOrEqual(44);
+ await page.locator('#tsBiblioAdd').scrollIntoViewIfNeeded();fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`biblio-review-${browserName}-${width}x${height}.png`)});
+ await page.locator('#tsBiblioAdd').click();await expect.poll(()=>s.snapshot(11).draft.offers.length).toBe(2);await expect(page.locator('[data-ts-select]')).toHaveCount(2);expect(s.snapshot(11).draft.offers[0]).toEqual(original.offers[0]);const offer=s.snapshot(11).draft.offers[1];expect(offer.amount).toBe('125000.50');expect(offer.import_source.fields.amount).toBe('123456');expect(offer.photos).toHaveLength(3);expect(s.calls.filter(x=>x.action==='biblio_add')).toHaveLength(1);expect(s.calls.some(x=>['send','publish','collector_import'].includes(x.action))).toBe(false);await page.locator('[data-ts-select]').nth(1).click();await expect(page.locator('.tsImportedSource')).toContainText('Библио-Глобус');expect(s.errors).toEqual([]);clean(s);
+});
+for(const loss of ['before','after'])test('Biblio uncertain add reconciles before exact retry '+loss,async({page})=>{
+ const b=biblioFixture(),s=await fixture(page,{biblio:b,biblioLoss:loss});await biblioReview(page,b);await page.locator('#tsBiblioConfirm').check();await page.locator('#tsBiblioAdd').click();await expect(page.locator('#tsRecovery')).toContainText('Сервер мог сохранить');const first=copy(s.calls.find(x=>x.action==='biblio_add'));expect(s.calls.filter(x=>x.action==='biblio_add')).toHaveLength(1);
+ await page.locator('#tsClose').click();await page.reload();await expect.poll(()=>page.evaluate(()=>!!WorkspaceV2.S.workspaceBound&&!WorkspaceV2.S.booting)).toBe(true);if(!await page.locator('#tourSelectionOpen').count())await page.locator('#inboxList [data-conversation-id="11"]').click();await open(page,{edit:false});expect(s.calls.filter(x=>x.action==='biblio_add')).toHaveLength(1);await page.getByRole('button',{name:'Проверить сохранение',exact:true}).click();
+ if(loss==='before'){await page.getByRole('button',{name:'Повторить это сохранение',exact:true}).click();await expect.poll(()=>s.calls.filter(x=>x.action==='biblio_add').length).toBe(2);expect(s.calls.filter(x=>x.action==='biblio_add')[1]).toEqual(first)}
+ await expect(page.locator('#tsRecovery')).toBeHidden();expect(s.snapshot(11).draft.offers).toHaveLength(1);expect(s.calls.filter(x=>x.action==='biblio_add')).toHaveLength(loss==='after'?1:2);expect(s.calls.some(x=>['send','publish','collector_import'].includes(x.action))).toBe(false);clean(s);
+});
+test('Biblio source response cannot cross a client switch',async({page})=>{
+ const b=biblioFixture(),s=await fixture(page,{biblio:b,holdBiblio:true});await open(page,{edit:false});await page.locator('#tsBiblio').click();await page.locator('#tsBiblioUrl').fill(b.url);await page.locator('#tsBiblioRead').click();await expect.poll(()=>s.calls.some(x=>x.action==='biblio_search')).toBe(true);await page.locator('#tsClose').click();await page.locator('#inboxList [data-conversation-id="12"]').click();await open(page,{edit:false});s.release();await expect(page.locator('#tsBiblioResults')).toHaveCount(0);expect(s.drafts.has(11)).toBe(false);expect(s.drafts.has(12)).toBe(false);expect(s.calls.some(x=>['biblio_review','biblio_add','save'].includes(x.action))).toBe(false);clean(s);
+});
+test('Biblio confirmed add adopts current colleague revision without stale pre-add conflict',async({page})=>{
+ const b=biblioFixture(),s=await fixture(page,{biblio:b,biblioLoss:'after'});await biblioReview(page,b);await page.locator('#tsBiblioConfirm').check();await page.locator('#tsBiblioAdd').click();await expect(page.locator('#tsRecovery')).toContainText('Сервер мог сохранить');const current=s.snapshot(11);current.draft.offers[0].rationale='Пояснение коллеги после добавления';s.drafts.set(11,{version:current.version+1,draft:copy(current.draft)});await page.getByRole('button',{name:'Проверить сохранение',exact:true}).click();await expect(page.locator('#tsRecovery')).toBeHidden();await expect(page.locator('#tsSave')).toBeDisabled();await expect(page.locator('#ts-rationale')).toHaveValue('Пояснение коллеги после добавления');expect(s.snapshot(11).draft.offers).toHaveLength(1);expect(s.calls.filter(x=>x.action==='biblio_add')).toHaveLength(1);expect(s.calls.some(x=>x.action==='save')).toBe(false);clean(s);
+});
+test('Biblio source panel invalidates old history navigation',async({page})=>{
+ const b=biblioFixture(),s=await fixture(page,{draft:completeDraft(),biblio:b});await open(page,{edit:false});await page.locator('#tsPreview').click();await expect(page.locator('#tsSend')).toBeVisible();await page.locator('#tsEdit').click();await page.locator('#tsHistory').click();await expect(page.locator('#tsRecovery')).toContainText('Версия');await page.evaluate(()=>{window.oldBiblioHistory=document.querySelector('#tsRecovery button')});await page.locator('#tsBiblio').click();await expect(page.locator('#tsRecovery')).toBeHidden();await page.evaluate(()=>oldBiblioHistory.click());await expect(page.locator('#tsSend')).toBeHidden();await expect(page.locator('#tsShare')).toBeHidden();await expect(page.locator('#tsBiblioRead')).toBeVisible();expect(s.calls.some(x=>['publication','send','publish','biblio_add'].includes(x.action))).toBe(false);clean(s);
+});
+test('Biblio missing hotel photos keeps the selection unchanged',async({page})=>{
+ const b=biblioFixture(),original=completeDraft(),s=await fixture(page,{draft:original,biblio:b,biblioPhotosDenied:true});await open(page,{edit:false});await page.locator('#tsBiblio').click();await page.locator('#tsBiblioUrl').fill(b.url);await page.locator('#tsBiblioRead').click();await page.locator('[data-biblio-choice]').click();await expect(page.locator('#tsBiblioStatus')).toContainText('не подтверждены');await expect(page.locator('#tsBiblioAdd')).toHaveCount(0);expect(s.snapshot(11).draft).toEqual(original);expect(s.calls.some(x=>['biblio_add','save','send','publish'].includes(x.action))).toBe(false);clean(s);
+});
 
 for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420}])test('collector opens the exact selection after authorized conversation navigation '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
  await page.setViewportSize(viewport);const s=await fixture(page,{draft:completeDraft(),entry:'?selection=11&collector_actor=7#conversation=11'});
