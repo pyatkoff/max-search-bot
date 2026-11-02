@@ -1,4 +1,4 @@
-name: Inspect ten confirmed hotel primary photo sources
+name: Read seven newly resolved official hotel factsheets
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -18,12 +18,14 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Read the exact ten official hotel pages without server or provider calls
-        run: python3 tools/direct_demand/operations/inspect-hotel-media-20261102-3.py
+      - name: Read seven fixed newly resolved public PDF factsheets
+        run: |
+          python3 -m pip install --quiet pypdf==6.1.1
+          python3 tools/direct_demand/operations/inspect-hotel-media-20261102-3.py
       - name: Retain bounded public media source evidence
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-batch15-public-media-20261102-read1
+          name: commercial-batch15-new-factsheets-20261103-read1
           path: public-media-sources.json
           retention-days: 14
           if-no-files-found: error
