@@ -1,179 +1,146 @@
 <?php
 declare(strict_types=1);
-ini_set('display_errors','0');ini_set('log_errors','0');
-const CHUNK_READ_OPERATION='hotel-server-private-php82-module-readback-v1';
-const CHUNK_READ_INSTALLED='0fb9d88cd714ae951baa68f013b7a46472af06c4';
-const CHUNK_READ_ID='8e4c0372a0338bc98429d47bc0fe3327238f5be69d94c7d28dbf977647a85e35';
-const CHUNK_READ_TICKET_SHA='5e91679b20b7906686fc6f02b02841fbec615af99a3177a56d3f36e904b8dc43';
-const CHUNK_READ_PAYLOAD_SHA='a85746bce5b71d4d241777a30e6bd643efecbd512bc5a50a2b741336012e84eb';
-const CHUNK_READ_RECIPIENT_SHA='71f2b177d6baa924fa466765027c37f51a00f23f803a6d900060bf42944d237d';
+// DRAFT V2: fill installed/helper pins after the actual corrective release. Renew only the exact expired v1 ticket.
+// This is one forward renewal only. It never uploads, decrypts, imports, enables or calls a provider.
+ini_set('display_errors','0');ini_set('log_errors','0');umask(0077);
 $level=ob_get_level();ob_start(static fn(string $ignored):string=>'');
-$fixed=['operation'=>CHUNK_READ_OPERATION,'database_writes'=>0,'provider_calls'=>0,'runtime_enable_writes'=>0];
-$out=$fixed+['state'=>'HOLD','reason'=>'target_unconfirmed'];$lock=null;$target=false;
-$report=['schema'=>CHUNK_READ_OPERATION,'operation_id'=>CHUNK_READ_ID,'state'=>'HOLD','reason'=>'readback_unconfirmed',
-    'operator_provider_calls'=>0,'database_writes'=>0,'runtime_enable_writes'=>0,'server_file_writes'=>0,
-    'http_requests'=>0,'probe_php_script_executions'=>0,'module_inventory_returned'=>false,'resend_authorized'=>false];
-function chunkFail(string $why):never {throw new DomainException($why);}
-function chunkDir(string $path):void {
-    clearstatcache(true,$path);
-    if(is_link($path)||realpath($path)!==$path||!is_dir($path)||(fileperms($path)&0777)!==0700||fileowner($path)!==posix_geteuid())
-        chunkFail('private_channel_unconfirmed');
+$fixed=['operation'=>'hotel-server-private-upload-renewal-v1','database_writes'=>0,'provider_calls'=>0,'runtime_enable_writes'=>0];
+$out=$fixed+['state'=>'HOLD','reason'=>'renewal_unconfirmed'];$locks=[];
+const HOTEL_EXPECTED_INSTALLED_SHA='0fb9d88cd714ae951baa68f013b7a46472af06c4';
+const HOTEL_EXPECTED_UPLOAD_HELPER_SHA='f0180d547da2566d6cbc1fe0ef34530837e3c0c87e0a5cf9c407094ef07f4ee1';
+const HOTEL_EXPECTED_CURRENT_TICKET_SHA='5e91679b20b7906686fc6f02b02841fbec615af99a3177a56d3f36e904b8dc43';
+// Derived exactly from the complete saved sealed envelope using the executed v1 issuer array order, compact ASCII JSON + LF.
+// This is a strict before-write pin, additionally checked against the immutable v1 journal bytes; mismatch HOLDs without writes.
+const HOTEL_EXPECTED_CURRENT_RECEIPT_SHA='b00b4265da983b5f6c256baa0bdd9bb93003c4446b1c72aa16098a10a3381042';
+const HOTEL_OPERATION='8e4c0372a0338bc98429d47bc0fe3327238f5be69d94c7d28dbf977647a85e35';
+const HOTEL_PAYLOAD_BYTES=5696586;
+const HOTEL_PAYLOAD_SHA='a85746bce5b71d4d241777a30e6bd643efecbd512bc5a50a2b741336012e84eb';
+const HOTEL_RECIPIENT_SHA='71f2b177d6baa924fa466765027c37f51a00f23f803a6d900060bf42944d237d';
+const HOTEL_RECIPIENT_BASE64='LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQm9qQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FZOEFNSUlCaWdLQ0FZRUF1TjhXM1lRcGZYWmFrL0QyV2htYwo1OERmY1dWckxKUnVtWFBGTFFqYUhoY3VlQnE5elduRmY2anA4L3g5SUlaL0NaRHovdnh2ZGg3UG1TQVcvRmFhCmNpVmEySERSSm14TzNadGVCVmNuVldhdE85ajFHcmJ2QVpjL09DWXhmbHFCd3VlZXRTaWtobHFGZGVxS0RvazQKZ0tFODErdVBobDI4VW04bGVWNCtvdUxtTTlQaWM0Z0RTcUw4N3VNeUtTZTFPNWxEbVVidkptM1F5ZnMrWmZPbgpQQnVFc1V1dk1Va1ZaN2M2RnJoWTc0cEV6eVQ2TXg2WGRublZkeVora3NHY21DQXJvQVFvUHRpYTdlYnYxN1hpCnBKamd3RW9rbnRiQUFsdnF3cmJIOFg3WCtNcGVJODRFWEFoNmtKT1B4Q2o4bC9PeGIxeGRaUi93QzBEb3JRa2oKUjd5aXBENnkwbnlqV1dIZHd1Y2Q0THR5MEgzMzJjcnRueGt0R1lJZnltUlhwclpiL2NyZUhhR093MzlnSXZHVgpUOFlORlJ1MUptTDN0Ymp4bk80ZWt2SmZ2T3p3RXJWeExhaEhUMFJKQ2NaNDNhN3pnYSs5b01hRkxJSTlScUdkCkxQQVgwVDE0KzYzeXF2YXphTUxwazdVT1RqU2VkYUlHQ3hFZnV2aVZSNHB6QWdNQkFBRT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg==';
+function renewPrivateFile(string $path,int $max): string {
+    clearstatcache(true,$path);$before=lstat($path);
+    if(!is_array($before)||is_link($path)||!is_file($path)||($before['mode']&0777)!==0600||$before['uid']!==posix_geteuid()
+        ||$before['size']<1||$before['size']>$max)throw new RuntimeException('private_channel_unconfirmed');
+    $raw=file_get_contents($path);clearstatcache(true,$path);$after=lstat($path);
+    if(!is_string($raw)||strlen($raw)!==$before['size']||!is_array($after)||$before['ino']!==$after['ino']
+        ||$before['dev']!==$after['dev']||$before['size']!==$after['size']||$before['mtime']!==$after['mtime'])throw new RuntimeException('private_channel_unconfirmed');
+    return $raw;
 }
-/** Only fixed metadata and a streamed digest leave this function; file bytes never do. */
-function chunkMeta(string $path,int $max):array {
-    clearstatcache(true,$path);$s=lstat($path);if($s===false)return ['exists'=>false];
-    if(is_link($path)||!is_file($path)||($s['mode']&0777)!==0600||$s['uid']!==posix_geteuid()||$s['size']<0||$s['size']>$max)
-        chunkFail('private_channel_unconfirmed');
-    $f=fopen($path,'rb');if(!$f)chunkFail('readback_unconfirmed');
-    try{
-        $opened=fstat($f);if($s['dev']!==$opened['dev']||$s['ino']!==$opened['ino'])chunkFail('private_file_changed');
-        $ctx=hash_init('sha256');$read=hash_update_stream($ctx,$f);$sha=hash_final($ctx);$end=fstat($f);
-    }finally{fclose($f);}
-    clearstatcache(true,$path);$after=lstat($path);
-    $stable=is_array($after)&&$s['dev']===$after['dev']&&$s['ino']===$after['ino']&&$s['size']===$after['size']
-        &&$s['mtime']===$after['mtime']&&$s['ctime']===$after['ctime']&&$read===$s['size']
-        &&$end['size']===$s['size']&&$end['mtime']===$s['mtime'];
-    return ['exists'=>true,'bytes'=>$s['size'],'mode'=>decoct($s['mode']&0777),'uid'=>$s['uid'],
-        'modified_at_utc'=>gmdate('c',$s['mtime']),'changed_at_utc'=>gmdate('c',$s['ctime']),'sha256'=>$sha,'stable'=>$stable];
+function renewNewFile(string $path,string $bytes): void {
+    if(file_exists($path)||is_link($path))throw new RuntimeException('renewal_unconfirmed');
+    $f=fopen($path,'x');if(!$f)throw new RuntimeException('renewal_unconfirmed');
+    try{if(!chmod($path,0600)||fwrite($f,$bytes)!==strlen($bytes)||!fflush($f)||(function_exists('fsync')&&!fsync($f)))throw new RuntimeException('renewal_unconfirmed');}
+    finally{fclose($f);}
+    if(!hash_equals(hash('sha256',$bytes),hash('sha256',renewPrivateFile($path,max(1,strlen($bytes))))))throw new RuntimeException('renewal_unconfirmed');
 }
-/** Metadata only for the one potentially untracked root configuration file; never follow links. */
-function chunkHtaccessMeta(string $path):array {
-    clearstatcache(true,$path);$s=lstat($path);if($s===false)return ['exists'=>false];
-    $meta=['exists'=>true,'bytes'=>$s['size'],'mode'=>decoct($s['mode']&0777),'uid'=>$s['uid'],
-        'symlink'=>is_link($path),'regular_file'=>is_file($path),'hash_performed'=>false];
-    if($meta['symlink']||!$meta['regular_file']||!is_readable($path)||$s['size']<0||$s['size']>131072)return $meta;
-    $f=fopen($path,'rb');if(!$f)return $meta;
-    try{
-        $opened=fstat($f);if($opened['ino']!==$s['ino']||$opened['dev']!==$s['dev'])return $meta+['stable'=>false];
-        $ctx=hash_init('sha256');$read=hash_update_stream($ctx,$f);$sha=hash_final($ctx);$end=fstat($f);
-    }finally{fclose($f);}
-    clearstatcache(true,$path);$after=lstat($path);
-    $meta['hash_performed']=true;$meta['sha256']=$sha;
-    $meta['stable']=is_array($after)&&$s['dev']===$after['dev']&&$s['ino']===$after['ino']&&$s['size']===$after['size']
-        &&$s['mtime']===$after['mtime']&&$s['ctime']===$after['ctime']&&$read===$s['size']&&$end['size']===$s['size'];
-    return $meta;
-}
-/** Fixed file identities observed in the preceding sealed own-PHP readback. */
-function chunkPinnedPhpConfig(string $path,int $bytes,string $sha):array {
-    $m=chunkHtaccessMeta($path);
-    if(($m['exists']??false)!==true||($m['stable']??false)!==true||($m['bytes']??null)!==$bytes
-        ||!hash_equals($sha,$m['sha256']??''))chunkFail('php_config_pin_mismatch');
-    return ['bytes'=>$bytes,'sha256'=>$sha,'stable'=>true];
-}
-/** No PHP code, input script, HTTP request, inherited request environment, or output file. */
-function chunkPhp82Modules(string $app):array {
-    if(!function_exists('proc_open')||!is_executable('/usr/bin/timeout')||!is_executable('/opt/php82/bin/php-cgi'))
-        chunkFail('php82_probe_unavailable');
-    $argv=['/usr/bin/timeout','--signal=TERM','--kill-after=1s','10s','/opt/php82/bin/php-cgi','-m'];
-    $env=['PHPRC'=>'/var/www/php-bin-isp-php82/anytoour','PATH'=>'/usr/bin:/bin','LANG'=>'C','LC_ALL'=>'C'];
-    $pipes=[];$process=proc_open($argv,[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes,$app,$env,['bypass_shell'=>true]);
-    if(!is_resource($process))chunkFail('php82_probe_unavailable');
-    $out='';$err='';$exit=-1;
-    try{
-        fclose($pipes[0]);unset($pipes[0]);
-        stream_set_blocking($pipes[1],false);stream_set_blocking($pipes[2],false);
-        while(true){
-            $read=[];foreach([1,2] as $fd)if(!feof($pipes[$fd]))$read[]=$pipes[$fd];
-            if($read===[])break;
-            $write=null;$except=null;
-            $ready=stream_select($read,$write,$except,1);
-            if($ready===false)chunkFail('php82_probe_read_unconfirmed');
-            foreach($read as $stream){
-                $part=fread($stream,8192);if($part===false)chunkFail('php82_probe_read_unconfirmed');
-                if($stream===$pipes[1])$out.=$part;else $err.=$part;
-                if(strlen($out)+strlen($err)>65536)chunkFail('php82_probe_output_bounds');
-            }
-        }
-    }finally{
-        foreach($pipes as $pipe)if(is_resource($pipe))fclose($pipe);
-        $exit=proc_close($process);
-    }
-    $normalized=str_replace("\r\n","\n",$out);$lines=explode("\n",$normalized);
-    $php=array_search('[PHP Modules]',$lines,true);$zend=array_search('[Zend Modules]',$lines,true);
-    $framed=is_int($php)&&is_int($zend)&&$php<$zend;
-    $modules=$framed?array_map('trim',array_slice($lines,$php+1,$zend-$php-1)):[];
-    $result=['posix'=>$framed&&in_array('posix',$modules,true),'openssl'=>$framed&&in_array('openssl',$modules,true),
-        'hash'=>$framed&&in_array('hash',$modules,true),'json'=>$framed&&in_array('json',$modules,true),
-        'exit_code'=>$exit,'output_sha256'=>hash('sha256',"stdout\0".$out."\0stderr\0".$err)];
-    unset($out,$err,$normalized,$lines,$modules);
-    return [$result,$framed&&$exit===0];
-}
-
-function chunkSeal(array $payload):array {
-    $recipient=<<<'PUBLIC_RECIPIENT'
------BEGIN PUBLIC KEY-----
-MIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEAuN8W3YQpfXZak/D2Whmc
-58DfcWVrLJRumXPFLQjaHhcueBq9zWnFf6jp8/x9IIZ/CZDz/vxvdh7PmSAW/Faa
-ciVa2HDRJmxO3ZteBVcnVWatO9j1GrbvAZc/OCYxflqBwueetSikhlqFdeqKDok4
-gKE81+uPhl28Um8leV4+ouLmM9Pic4gDSqL87uMyKSe1O5lDmUbvJm3Qyfs+ZfOn
-PBuEsUuvMUkVZ7c6FrhY74pEzyT6Mx6XdnnVdyZ+ksGcmCAroAQoPtia7ebv17Xi
-pJjgwEokntbAAlvqwrbH8X7X+MpeI84EXAh6kJOPxCj8l/Oxb1xdZR/wC0DorQkj
-R7yipD6y0nyjWWHdwucd4Lty0H332crtnxktGYIfymRXprZb/creHaGOw39gIvGV
-T8YNFRu1JmL3tbjxnO4ekvJfvOzwErVxLahHT0RJCcZ43a7zga+9oMaFLII9RqGd
-LPAX0T14+63yqvazaMLpk7UOTjSedaIGCxEfuviVR4pzAgMBAAE=
------END PUBLIC KEY-----
-PUBLIC_RECIPIENT;
-    $recipient.="\n";if(!hash_equals(CHUNK_READ_RECIPIENT_SHA,hash('sha256',$recipient)))chunkFail('sealing_unavailable');
-    $plain=json_encode($payload,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);if(strlen($plain)>65536)chunkFail('readback_bounds_unconfirmed');
-    $key=random_bytes(32);$nonce=random_bytes(12);$tag='';$wrapped='';$aad=CHUNK_READ_OPERATION.'|'.CHUNK_READ_INSTALLED.'|'.CHUNK_READ_ID;
-    $cipher=openssl_encrypt($plain,'aes-256-gcm',$key,OPENSSL_RAW_DATA,$nonce,$tag,$aad,16);
-    if(!is_string($cipher)||strlen($tag)!==16||!openssl_public_encrypt($key,$wrapped,$recipient,OPENSSL_PKCS1_OAEP_PADDING)||strlen($wrapped)!==384)
-        chunkFail('sealing_unavailable');
-    unset($key,$plain);
-    return ['operation'=>CHUNK_READ_OPERATION,'database_writes'=>0,'provider_calls'=>0,'runtime_enable_writes'=>0,
-        'state'=>'sealed','algorithm'=>'RSA-OAEP-SHA1+A256GCM','recipient_sha256'=>CHUNK_READ_RECIPIENT_SHA,'aad'=>$aad,
-        'key'=>base64_encode($wrapped),'nonce'=>base64_encode($nonce),'tag'=>base64_encode($tag),'ciphertext'=>base64_encode($cipher),
-        'ciphertext_sha256'=>hash('sha256',$cipher)];
-}
-try {
+try{
     $app='/var/www/anytoour/data/www/app.anytoour.ru';
-    if(PHP_SAPI!=='cli'||count($argv)!==1||realpath(getcwd())!==$app||!function_exists('posix_geteuid')||posix_geteuid()!==1012)
-        chunkFail('target_unconfirmed');
-    $target=true;$report['read_at_utc']=gmdate('c');
-    $lines=[];$code=1;exec('git -C '.escapeshellarg($app).' rev-parse HEAD 2>/dev/null',$lines,$code);
-    $installed=trim(implode('',$lines));$report['installed_sha']=$installed;
-    if($code!==0||$installed!==CHUNK_READ_INSTALLED)chunkFail('installed_release_unconfirmed');
-    if(!hash_equals('f0180d547da2566d6cbc1fe0ef34530837e3c0c87e0a5cf9c407094ef07f4ee1',hash_file('sha256',$app.'/services/HotelServerPrivateUpload.php')))
-        chunkFail('installed_helper_unconfirmed');
-    $report['application_root_htaccess']=chunkHtaccessMeta($app.'/.htaccess');
-    if(($report['application_root_htaccess']['stable']??false)!==true
-        ||!hash_equals('a4c8912801aa74844279e2c2c09230e3f555da54e16a9a6a31ec3005ec9ed8ff',$report['application_root_htaccess']['sha256']??''))
-        chunkFail('installed_root_htaccess_unconfirmed');
-    $root=dirname($app).'/max-search-bot-hotel-server';$dir=$root.'/ingress-v1';chunkDir($root);chunkDir($dir);
-    $lockMeta=chunkMeta($dir.'/upload.lock',1);$report['upload_lock_metadata']=$lockMeta;
-    if(!$lockMeta['exists']||$lockMeta['bytes']!==0||$lockMeta['stable']!==true)chunkFail('existing_upload_lock_unconfirmed');
-    $lock=fopen($dir.'/upload.lock','rb');if(!$lock)chunkFail('readback_unconfirmed');
-    if(!flock($lock,LOCK_SH|LOCK_NB))chunkFail('active_upload_requires_wait');
-    $report['upload_lock_free']=true;
-    $files=[];foreach(['ticket.json'=>4096,'upload.part'=>8388608,'sealed-inputs.bin'=>8388608] as $name=>$limit)
-        $files[$name]=chunkMeta($dir.'/'.$name,$limit);
-    $report['files']=$files;
-    if(($files['ticket.json']['exists']??false)!==true||($files['ticket.json']['stable']??false)!==true
-        ||!hash_equals(CHUNK_READ_TICKET_SHA,$files['ticket.json']['sha256']??''))chunkFail('ticket_identity_unconfirmed');
-    $report['ticket_sha256_matches_renewal']=true;
-    $report['chunks_directory_present']=file_exists($dir.'/chunks')||is_link($dir.'/chunks');
-    $report['runtime_file_present']=file_exists($root.'/runtime.json')||is_link($root.'/runtime.json');
-    $report['runtime_staging_present']=file_exists($root.'/runtime.activation-20261102.part')||is_link($root.'/runtime.activation-20261102.part');
-    if($files['upload.part']['exists']||$files['sealed-inputs.bin']['exists']||$report['chunks_directory_present']
-        ||$report['runtime_file_present']||$report['runtime_staging_present'])chunkFail('new_upload_or_runtime_artifacts_hold');
-    $wrapper='/var/www/php-bin-isp-php82/anytoour/app.anytoour.ru/php';
-    $ini='/var/www/php-bin-isp-php82/anytoour/php.ini';
-    $report['known_wrapper']=chunkPinnedPhpConfig($wrapper,191,'25a01b5a4c077fff9bf95d39ef4ff30a05ff50808a3a0883ad9c30f58ac2d0c1');
-    $report['known_php_ini']=chunkPinnedPhpConfig($ini,71625,'a914159930abbdeabebceab5cbd94b7ae06cc4c6207332192ea69ec47645f356');
-    [$moduleResult,$probeOk]=chunkPhp82Modules($app);$report['php82_modules']=$moduleResult;
-    // A changed configuration or lock turns this observation into HOLD, never into a resend permission.
-    chunkPinnedPhpConfig($wrapper,191,'25a01b5a4c077fff9bf95d39ef4ff30a05ff50808a3a0883ad9c30f58ac2d0c1');
-    chunkPinnedPhpConfig($ini,71625,'a914159930abbdeabebceab5cbd94b7ae06cc4c6207332192ea69ec47645f356');
-    $after=chunkMeta($dir.'/upload.lock',1);
-    if($after!==$lockMeta)chunkFail('upload_lock_changed');
-    if(!$probeOk)chunkFail('php82_module_probe_unconfirmed');
-    $report['state']='readback';unset($report['reason']);
+    if(PHP_SAPI!=='cli'||count($argv)!==1||realpath(getcwd())!==$app||!function_exists('posix_geteuid')||posix_geteuid()!==1012)throw new RuntimeException('target_unconfirmed');
+    if(!preg_match('/\A[a-f0-9]{40}\z/D',HOTEL_EXPECTED_INSTALLED_SHA)
+        ||!preg_match('/\A[a-f0-9]{64}\z/D',HOTEL_EXPECTED_UPLOAD_HELPER_SHA))throw new RuntimeException('exact_pins_required');
+    // The workflow additionally checks the exact installed clean checkout before PHP execution.
+    if(!hash_equals(HOTEL_EXPECTED_UPLOAD_HELPER_SHA,hash_file('sha256',$app.'/services/HotelServerPrivateUpload.php')))throw new RuntimeException('target_unconfirmed');
+    $root=dirname($app).'/max-search-bot-hotel-server';$dir=$root.'/ingress-v1';$journal=$dir.'/renewal-20261102-chunks-v2';$previousJournal=$dir.'/renewal-20261102-chunks-v1';
+    foreach([$root,$dir,$previousJournal] as $p)if(is_link($p)||realpath($p)!==$p||!is_dir($p)||(fileperms($p)&0777)!==0700||fileowner($p)!==posix_geteuid())throw new RuntimeException('private_channel_unconfirmed');
+    foreach(['runtime.json','runtime.activation-20261102.part','activation-20261102'] as $name)
+        if(file_exists($root.'/'.$name)||is_link($root.'/'.$name))throw new RuntimeException('activation_already_present');
+    if(!hash_equals('137da1e625bcd005e4db69335781f0396fb44995b9668e1b35111f2307810388',hash('sha256',renewPrivateFile($dir.'/recipient.public.pem',8192))))throw new RuntimeException('private_channel_unconfirmed');
+    $lockPath=$dir.'/channel.lock';clearstatcache(true,$lockPath);
+    if(is_link($lockPath)||!is_file($lockPath)||(fileperms($lockPath)&0777)!==0600||fileowner($lockPath)!==posix_geteuid())throw new RuntimeException('private_channel_unconfirmed');
+    $channel=fopen($lockPath,'rb');if(!$channel)throw new RuntimeException('renewal_unconfirmed');$locks[]=$channel;
+    if(!flock($channel,LOCK_EX|LOCK_NB))throw new RuntimeException('active_private_operation');
+    // Existing lock only; do not create/chmod it. All current-input checks are protected before any persistent write.
+    $uploadPath=$dir.'/upload.lock';clearstatcache(true,$uploadPath);$uploadMeta=lstat($uploadPath);
+    if(!is_array($uploadMeta)||is_link($uploadPath)||!is_file($uploadPath)||($uploadMeta['mode']&0777)!==0600
+        ||$uploadMeta['uid']!==posix_geteuid()||$uploadMeta['size']!==0)throw new RuntimeException('private_channel_unconfirmed');
+    $upload=fopen($uploadPath,'rb');if(!$upload)throw new RuntimeException('renewal_unconfirmed');$locks[]=$upload;
+    $opened=fstat($upload);if($opened['dev']!==$uploadMeta['dev']||$opened['ino']!==$uploadMeta['ino'])throw new RuntimeException('private_channel_unconfirmed');
+    if(!flock($upload,LOCK_EX|LOCK_NB))throw new RuntimeException('active_private_operation');
+    // Never repeat V2, including a partial/unknown outcome. The prior V1 journal is immutable and is not changed.
+
+    if(file_exists($journal)||is_link($journal))throw new RuntimeException('existing_renewal_requires_readback');
+    foreach(['upload.part','sealed-inputs.bin','chunks','ticket.next','ticket-receipt.next'] as $name){
+        clearstatcache(true,$dir.'/'.$name);if(file_exists($dir.'/'.$name)||is_link($dir.'/'.$name))throw new RuntimeException('upload_artifacts_present');
+    }
+    require_once $app.'/config.php';require_once $app.'/services/ProjectAccessService.php';
+    ProjectAccessService::initializeReadOnly();$pdo=ConversationDb::connection();
+    if($pdo->inTransaction()||$pdo->query('SELECT 1 FROM hotel_server_campaigns LIMIT 1')->fetchColumn()!==false)throw new RuntimeException('campaign_already_present');
+    $oldTicket=renewPrivateFile($dir.'/ticket.json',4096);$oldReceipt=renewPrivateFile($dir.'/ticket-receipt.sealed.json',32768);
+    $oldTicketSha=hash('sha256',$oldTicket);$oldReceiptSha=hash('sha256',$oldReceipt);
+    if(!hash_equals(HOTEL_EXPECTED_CURRENT_TICKET_SHA,$oldTicketSha)
+        ||!hash_equals(HOTEL_EXPECTED_CURRENT_RECEIPT_SHA,$oldReceiptSha)||strlen($oldReceipt)!==2862)
+        throw new RuntimeException('prior_ticket_CAS');
+    $v1Ticket=renewPrivateFile($previousJournal.'/new-ticket.json',4096);
+    $v1Receipt=renewPrivateFile($previousJournal.'/new-ticket-receipt.sealed.json',32768);
+    if(!hash_equals($oldTicket,$v1Ticket)||!hash_equals($oldReceipt,$v1Receipt)
+        ||!hash_equals(HOTEL_EXPECTED_CURRENT_RECEIPT_SHA,hash('sha256',$v1Receipt)))throw new RuntimeException('prior_ticket_CAS');
+    unset($v1Ticket,$v1Receipt);
+    $ticket=json_decode($oldTicket,true,16,JSON_THROW_ON_ERROR);$receipt=json_decode($oldReceipt,true,16,JSON_THROW_ON_ERROR);$now=time();
+    $keys=array_keys($ticket);sort($keys);
+    if($keys!==['created_at','expires_at','operation_id','payload_bytes','payload_sha256','schema','token_sha256']
+        ||$ticket['schema']!=='hotel-server-private-upload-v1'||$ticket['operation_id']!==HOTEL_OPERATION
+        ||$ticket['payload_bytes']!==HOTEL_PAYLOAD_BYTES||$ticket['payload_sha256']!==HOTEL_PAYLOAD_SHA
+        ||!is_string($ticket['token_sha256'])||!preg_match('/\A[a-f0-9]{64}\z/D',$ticket['token_sha256'])
+        ||!is_int($ticket['created_at'])||!is_int($ticket['expires_at'])||$ticket['expires_at']>$now
+        ||$ticket['created_at']!==1793640835||$ticket['expires_at']!==1793644435
+        ||$ticket['created_at']>=$ticket['expires_at']||$ticket['expires_at']-$ticket['created_at']>3600)throw new RuntimeException('prior_ticket_CAS');
+    $oldAad='hotel-server-private-upload-renewal-v1|'.HOTEL_OPERATION.'|2c3bba988c65de4069a3cf131cbb8e93cfca06522b1bb3fc66e1507e08968c79';
+    $receiptKeys=array_keys($receipt);sort($receiptKeys);
+    $expectedReceiptKeys=['operation','database_writes','provider_calls','runtime_enable_writes','state','algorithm','recipient_sha256',
+        'aad','prior_ticket_sha256','prior_receipt_sha256','ticket_sha256','key','nonce','tag','ciphertext','ciphertext_sha256'];sort($expectedReceiptKeys);
+    if($receiptKeys!==$expectedReceiptKeys||($receipt['database_writes']??null)!==0||($receipt['provider_calls']??null)!==0
+        ||($receipt['runtime_enable_writes']??null)!==0||($receipt['algorithm']??null)!=='RSA-OAEP-SHA1+A256GCM')throw new RuntimeException('prior_ticket_CAS');
+    if(($receipt['operation']??null)!=='hotel-server-private-upload-renewal-v1'||($receipt['state']??null)!=='sealed'
+        ||($receipt['aad']??null)!==$oldAad||($receipt['ticket_sha256']??null)!==$oldTicketSha
+        ||($receipt['recipient_sha256']??null)!==HOTEL_RECIPIENT_SHA
+        ||($receipt['prior_ticket_sha256']??null)!=='2c3bba988c65de4069a3cf131cbb8e93cfca06522b1bb3fc66e1507e08968c79'
+        ||($receipt['prior_receipt_sha256']??null)!=='b15e254a1792d7b5c18d9e8ad962c38d8efa215e9d13c01b583a74add5eb1e1c')throw new RuntimeException('prior_ticket_CAS');
+    $oldParts=[];foreach(['key','nonce','tag','ciphertext'] as $name){
+        if(!is_string($receipt[$name]))throw new RuntimeException('prior_ticket_CAS');$oldParts[$name]=base64_decode($receipt[$name],true);
+        if(!is_string($oldParts[$name]))throw new RuntimeException('prior_ticket_CAS');
+    }
+    if(strlen($oldParts['key'])!==384||strlen($oldParts['nonce'])!==12||strlen($oldParts['tag'])!==16
+        ||strlen($oldParts['ciphertext'])<1||strlen($oldParts['ciphertext'])>65536
+        ||!is_string($receipt['ciphertext_sha256'])||!hash_equals($receipt['ciphertext_sha256'],hash('sha256',$oldParts['ciphertext'])))throw new RuntimeException('prior_ticket_CAS');
+    unset($oldParts);
+    $recipient=base64_decode(HOTEL_RECIPIENT_BASE64,true);
+    if(!is_string($recipient)||hash('sha256',$recipient)!==HOTEL_RECIPIENT_SHA)throw new RuntimeException('sealing_unavailable');
+    // The pre-existing channel and upload locks remain held; the prior V1 journal stays untouched.
+    if(!mkdir($journal,0700))throw new RuntimeException('renewal_unconfirmed');
+    renewNewFile($journal.'/prior-ticket.json',$oldTicket);renewNewFile($journal.'/prior-ticket-receipt.sealed.json',$oldReceipt);
+    $token=bin2hex(random_bytes(32));
+    $newTicket=['schema'=>'hotel-server-private-upload-v1','operation_id'=>HOTEL_OPERATION,'payload_bytes'=>HOTEL_PAYLOAD_BYTES,
+        'payload_sha256'=>HOTEL_PAYLOAD_SHA,'token_sha256'=>hash('sha256',$token),'created_at'=>$now,'expires_at'=>$now+3600];
+    $newBytes=json_encode($newTicket,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)."\n";$newSha=hash('sha256',$newBytes);
+    $payload=['schema'=>$fixed['operation'],'installed_sha'=>HOTEL_EXPECTED_INSTALLED_SHA,'endpoint'=>'https://app.anytoour.ru/hotel-server-input.php',
+        'operation_id'=>HOTEL_OPERATION,'prior_ticket_sha256'=>$oldTicketSha,'prior_receipt_sha256'=>$oldReceiptSha,
+        'ticket'=>$newTicket,'ticket_sha256'=>$newSha,'token'=>$token,'previous_outcome'=>'expired_current_ticket_forward_renewal_no_ingress','renewal_generation'=>2,
+        'preserved_prior_journal'=>'renewal-20261102-chunks-v1',
+        'zip_archive_available'=>class_exists('ZipArchive'),
+        'database_writes'=>0,'provider_calls'=>0,'runtime_enable_writes'=>0];
+    $aad=$fixed['operation'].'|'.HOTEL_OPERATION.'|'.$oldTicketSha;
+    $key=random_bytes(32);$nonce=random_bytes(12);$tag='';$wrapped='';$plain=json_encode($payload,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+    $cipher=openssl_encrypt($plain,'aes-256-gcm',$key,OPENSSL_RAW_DATA,$nonce,$tag,$aad,16);
+    if(!is_string($cipher)||!openssl_public_encrypt($key,$wrapped,$recipient,OPENSSL_PKCS1_OAEP_PADDING)||strlen($wrapped)!==384||strlen($tag)!==16)throw new RuntimeException('sealing_unavailable');
+    $sealed=$fixed+['state'=>'sealed','algorithm'=>'RSA-OAEP-SHA1+A256GCM','recipient_sha256'=>HOTEL_RECIPIENT_SHA,'aad'=>$aad,
+        'prior_ticket_sha256'=>$oldTicketSha,'prior_receipt_sha256'=>$oldReceiptSha,'ticket_sha256'=>$newSha,
+        'key'=>base64_encode($wrapped),'nonce'=>base64_encode($nonce),'tag'=>base64_encode($tag),
+        'ciphertext'=>base64_encode($cipher),'ciphertext_sha256'=>hash('sha256',$cipher)];
+    $sealedBytes=json_encode($sealed,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)."\n";
+    renewNewFile($journal.'/new-ticket.json',$newBytes);renewNewFile($journal.'/new-ticket-receipt.sealed.json',$sealedBytes);
+    renewNewFile($dir.'/ticket-receipt.next',$sealedBytes);renewNewFile($dir.'/ticket.next',$newBytes);
+    if(!hash_equals($oldTicketSha,hash_file('sha256',$dir.'/ticket.json'))
+        ||!hash_equals($oldReceiptSha,hash_file('sha256',$dir.'/ticket-receipt.sealed.json')))throw new RuntimeException('prior_ticket_CAS');
+    if(file_exists($root.'/runtime.json')||is_link($root.'/runtime.json')
+        ||$pdo->query('SELECT 1 FROM hotel_server_campaigns LIMIT 1')->fetchColumn()!==false)throw new RuntimeException('campaign_already_present');
+    // Receipt first; ticket last is the activation point. A crash leaves the journal held for readback, never automatic replay.
+    if(!rename($dir.'/ticket-receipt.next',$dir.'/ticket-receipt.sealed.json')||!rename($dir.'/ticket.next',$dir.'/ticket.json'))throw new RuntimeException('renewal_unconfirmed');
+    if(!hash_equals($newSha,hash('sha256',renewPrivateFile($dir.'/ticket.json',4096)))
+        ||!hash_equals(hash('sha256',$sealedBytes),hash('sha256',renewPrivateFile($dir.'/ticket-receipt.sealed.json',32768))))throw new RuntimeException('renewal_unconfirmed');
+    $out=$sealed;unset($token,$key,$plain,$payload,$oldTicket,$oldReceipt);
 }catch(Throwable $e){
-    $why=$e->getMessage();$report['reason']=preg_match('/\A[a-z][a-z0-9_]{1,100}\z/D',$why)?$why:'readback_unconfirmed';
-}finally{
-    if(is_resource($lock)){flock($lock,LOCK_UN);fclose($lock);}while(ob_get_level()>$level)ob_end_clean();
-}
-try{if($target)$out=chunkSeal($report);}
-catch(Throwable $ignored){$out=$fixed+['state'=>'HOLD','reason'=>'sealing_unavailable'];}
-echo json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),"\n";
-exit($report['state']==='readback'&&$out['state']==='sealed'?0:1);
+    $allowed=['target_unconfirmed','exact_pins_required','private_channel_unconfirmed','activation_already_present','campaign_already_present','active_private_operation',
+        'existing_renewal_requires_readback','upload_artifacts_present','prior_ticket_CAS','renewal_unconfirmed','sealing_unavailable'];
+    $out=$fixed+['state'=>'HOLD','reason'=>in_array($e->getMessage(),$allowed,true)?$e->getMessage():'renewal_unconfirmed'];
+}finally{foreach(array_reverse($locks) as $lock){flock($lock,LOCK_UN);fclose($lock);}while(ob_get_level()>$level)ob_end_clean();}
+echo json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),"\n";exit($out['state']==='sealed'?0:1);
