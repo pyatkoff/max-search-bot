@@ -1,6 +1,4 @@
-# DRAFT. Fill before/source/installed pins once after the actual PR1281 installation is accepted.
-# Publish ONLY as the two existing ops paths; do not add a workflow, branch or schedule.
-name: Renew the original expired hotel upload capability once
+name: Read the single unknown hotel chunk zero outcome once
 on:
   push:
     branches: [ops/hotel-server-private-activation-20261102]
@@ -11,50 +9,48 @@ concurrency:
   group: hotel-server-private-activation
   cancel-in-progress: false
 jobs:
-  private_ticket_renewal:
-    if: github.ref == 'refs/heads/ops/hotel-server-private-activation-20261102' && github.event.before == '11f6a9b180f60dbc803e6ac7278333f718f2deaa' && github.event.created == false && github.event.deleted == false && github.event.forced == false && github.run_attempt == 1
+  private_upload_readback:
+    if: github.ref == 'refs/heads/ops/hotel-server-private-activation-20261102' && github.event.before == '747e3add1e2f3014469271e1271bf47e02017c0b' && github.event.created == false && github.event.deleted == false && github.event.forced == false && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Pin exact renewal source before loading credentials
+      - name: Pin current application and exact private upload readback operator
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
           umask 077
-          gh api 'repos/pyatkoff/max-search-bot/contents/tools/direct_demand/operations/hotel-server-private-readiness.php?ref=${{ github.sha }}' >"$RUNNER_TEMP/hotel_renewal_source.json"
+          gh api 'repos/pyatkoff/max-search-bot/contents/tools/direct_demand/operations/hotel-server-private-readiness.php?ref=${{ github.sha }}' >"$RUNNER_TEMP/hotel_upload_readback_source.json"
           python3 - <<'PY'
-          import os,json,pathlib,base64,hashlib,re
-          root=pathlib.Path(os.environ['RUNNER_TEMP']);d=json.loads((root/'hotel_renewal_source.json').read_text())
-          expected_blob='e475e31052f7d6682ce6413e41ae5ec2bbb5e819';expected_sha='212a6561da020fa626b8e76ecc22c8dc8ced86e536887ad4b57aaec91aa1c396'
-          assert re.fullmatch('[a-f0-9]{40}',expected_blob) and re.fullmatch('[a-f0-9]{64}',expected_sha)
-          assert d['encoding']=='base64' and d['sha']==expected_blob
-          b=base64.b64decode(d['content']);assert 0<len(b)<65536 and b'__EXACT_' not in b
+          import os,json,pathlib,base64,hashlib
+          root=pathlib.Path(os.environ['RUNNER_TEMP']);d=json.loads((root/'hotel_upload_readback_source.json').read_text())
+          assert d['encoding']=='base64' and d['sha']=='018ae55cffdeb9710826d41b6b9cf7151665ba7c'
+          b=base64.b64decode(d['content']);assert len(b)<65536
           assert hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()==d['sha']
-          assert hashlib.sha256(b).hexdigest()==expected_sha
-          (root/'hotel_renewal.php').write_bytes(b)
+          assert hashlib.sha256(b).hexdigest()=='bb3daa222a609891f9061c98f5e9cd1366b343eab8a875b0c8ce97982d0bd0f1'
+          (root/'hotel_upload_readback.php').write_bytes(b)
           PY
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
           coverage: none
-      - name: Lint and refuse a foreign target before loading credentials
+      - name: Lint and refuse foreign target before loading credentials
         shell: bash
         run: |
           set -euo pipefail
-          php -l "$RUNNER_TEMP/hotel_renewal.php" >/dev/null
+          php -l "$RUNNER_TEMP/hotel_upload_readback.php" >/dev/null
           set +e
-          php "$RUNNER_TEMP/hotel_renewal.php" >"$RUNNER_TEMP/hotel_renewal_refusal.json"
+          php "$RUNNER_TEMP/hotel_upload_readback.php" >"$RUNNER_TEMP/hotel_upload_readback_refusal.json"
           status=$?
           set -e
           test "$status" -eq 1
           python3 - <<'PY'
           import os,json,pathlib
-          d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP']+'/hotel_renewal_refusal.json').read_text())
-          assert d=={'operation':'hotel-server-private-upload-renewal-v1','state':'HOLD','reason':'target_unconfirmed','database_writes':0,'provider_calls':0,'runtime_enable_writes':0}
+          d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP']+'/hotel_upload_readback_refusal.json').read_text())
+          assert d=={'operation':'hotel-server-private-chunk0-readback-v1','state':'HOLD','reason':'target_unconfirmed','database_writes':0,'provider_calls':0,'runtime_enable_writes':0}
           PY
-      - name: Prepare existing SSH connection and approved host continuity
+      - name: Prepare existing connection and approved host continuity
         env:
           CONNECTION_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
           CONNECTION_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
@@ -65,11 +61,11 @@ jobs:
           umask 077
           raw="$CONNECTION_KEY"
           if [[ "$raw" == *"PRIVATE KEY"* ]]; then
-            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' >"$RUNNER_TEMP/hotel_renewal_key"; else printf '%s\n' "$raw" | tr -d '\r' >"$RUNNER_TEMP/hotel_renewal_key"; fi
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' >"$RUNNER_TEMP/hotel_upload_readback_key"; else printf '%s\n' "$raw" | tr -d '\r' >"$RUNNER_TEMP/hotel_upload_readback_key"; fi
           else
-            printf '%s' "$raw" | base64 --decode >"$RUNNER_TEMP/hotel_renewal_key"
+            printf '%s' "$raw" | base64 --decode >"$RUNNER_TEMP/hotel_upload_readback_key"
           fi
-          ssh-keygen -y -f "$RUNNER_TEMP/hotel_renewal_key" >/dev/null
+          ssh-keygen -y -f "$RUNNER_TEMP/hotel_upload_readback_key" >/dev/null
           python3 - <<'PY'
           import os,re,subprocess,base64,hashlib,pathlib
           host=os.environ['CONNECTION_HOST'];user=os.environ['CONNECTION_USER']
@@ -84,9 +80,9 @@ jobs:
               except Exception:continue
               if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':approved.append(line)
           assert approved,'Existing host continuity mismatch; STOP'
-          pathlib.Path(os.environ['RUNNER_TEMP']+'/hotel_renewal_hosts').write_text('\n'.join(approved)+'\n')
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/hotel_upload_readback_hosts').write_text('\n'.join(approved)+'\n')
           PY
-      - name: Preserve the original ticket and issue one fresh bounded capability
+      - name: Read only fixed ingress metadata and this endpoint log lines; never resend or activate
         env:
           CONNECTION_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           CONNECTION_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -95,47 +91,47 @@ jobs:
           set -euo pipefail
           umask 077
           set +e
-          timeout 120 ssh -i "$RUNNER_TEMP/hotel_renewal_key" -o BatchMode=yes -o ConnectTimeout=10 -o ConnectionAttempts=1 -o IdentitiesOnly=yes -o ServerAliveInterval=10 -o ServerAliveCountMax=2 -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/hotel_renewal_hosts" "$CONNECTION_USER@$CONNECTION_HOST" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(git rev-parse HEAD)" = 8eb3458d46d5ed7bcf2cd87f98b7372563801833; git diff --quiet; git diff --cached --quiet; /usr/bin/php' <"$RUNNER_TEMP/hotel_renewal.php" >"$RUNNER_TEMP/hotel_renewal_raw.private" 2>"$RUNNER_TEMP/hotel_renewal_stderr.private"
+          timeout 120 ssh -i "$RUNNER_TEMP/hotel_upload_readback_key" -o BatchMode=yes -o ConnectTimeout=10 -o ConnectionAttempts=1 -o IdentitiesOnly=yes -o ServerAliveInterval=10 -o ServerAliveCountMax=2 -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/hotel_upload_readback_hosts" "$CONNECTION_USER@$CONNECTION_HOST" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; /usr/bin/php' <"$RUNNER_TEMP/hotel_upload_readback.php" >"$RUNNER_TEMP/hotel_upload_readback_raw.private" 2>"$RUNNER_TEMP/hotel_upload_readback_stderr.private"
           status=$?
           set -e
-          export HOTEL_RENEWAL_STATUS="$status"
+          export HOTEL_UPLOAD_READBACK_STATUS="$status"
           python3 - <<'PY'
-          import os,json,pathlib,base64,hashlib,re,sys
+          import os,json,pathlib,base64,hashlib,sys
           root=pathlib.Path(os.environ['RUNNER_TEMP']);ok=False
-          fixed={'operation':'hotel-server-private-upload-renewal-v1','database_writes':0,'provider_calls':0,'runtime_enable_writes':0}
-          safe=fixed|{'state':'HOLD','reason':'renewal_result_unconfirmed'}
+          safe={'operation':'hotel-server-private-chunk0-readback-v1','state':'HOLD','reason':'readback_result_unconfirmed','database_writes':0,'provider_calls':0,'runtime_enable_writes':0}
           try:
-              p=root/'hotel_renewal_raw.private';assert 0<p.stat().st_size<=98304
+              p=root/'hotel_upload_readback_raw.private';assert 0<p.stat().st_size<=98304
               d=json.loads(p.read_text());assert type(d) is dict
+              fixed={'operation':'hotel-server-private-chunk0-readback-v1','database_writes':0,'provider_calls':0,'runtime_enable_writes':0}
               for k,v in fixed.items():assert type(d[k]) is type(v) and d[k]==v
-              status=int(os.environ['HOTEL_RENEWAL_STATUS'])
+              status=int(os.environ['HOTEL_UPLOAD_READBACK_STATUS'])
               if d['state']=='sealed':
-                  assert status==0 and set(d)==set(fixed)|{'state','algorithm','recipient_sha256','aad','key','nonce','tag','ciphertext','ciphertext_sha256','ticket_sha256','prior_ticket_sha256','prior_receipt_sha256'}
+                  assert set(d)==set(fixed)|{'state','algorithm','recipient_sha256','aad','key','nonce','tag','ciphertext','ciphertext_sha256'}
                   assert d['algorithm']=='RSA-OAEP-SHA1+A256GCM' and d['recipient_sha256']=='71f2b177d6baa924fa466765027c37f51a00f23f803a6d900060bf42944d237d'
-                  for field in ['ticket_sha256','prior_ticket_sha256','prior_receipt_sha256']:assert re.fullmatch('[a-f0-9]{64}',d[field])
-                  assert d['aad']=='hotel-server-private-upload-renewal-v1|8e4c0372a0338bc98429d47bc0fe3327238f5be69d94c7d28dbf977647a85e35|'+d['prior_ticket_sha256']
+                  assert d['aad']=='hotel-server-private-chunk0-readback-v1|8eb3458d46d5ed7bcf2cd87f98b7372563801833|8e4c0372a0338bc98429d47bc0fe3327238f5be69d94c7d28dbf977647a85e35'
                   decoded={k:base64.b64decode(d[k],validate=True) for k in ['key','nonce','tag','ciphertext']}
                   assert len(decoded['key'])==384 and len(decoded['nonce'])==12 and len(decoded['tag'])==16
                   assert 0<len(decoded['ciphertext'])<=65536 and hashlib.sha256(decoded['ciphertext']).hexdigest()==d['ciphertext_sha256']
                   safe=d;ok=True
               else:
                   assert status!=0 and set(d)==set(fixed)|{'state','reason'} and d['state']=='HOLD'
-                  assert d['reason'] in {'target_unconfirmed','exact_pins_required','private_channel_unconfirmed','activation_already_present','campaign_already_present','active_private_operation','existing_renewal_requires_readback','upload_artifacts_present','prior_ticket_CAS','renewal_unconfirmed','sealing_unavailable'}
+                  assert d['reason'] in {'target_unconfirmed','sealing_unavailable','private_channel_unconfirmed','readback_unconfirmed'}
                   safe=d
           except Exception:pass
-          (root/'hotel_renewal_sealed.json').write_text(json.dumps(safe,sort_keys=True)+'\n')
-          print(json.dumps({'operation':safe['operation'],'state':safe['state'],'server_command_exit_code':int(os.environ['HOTEL_RENEWAL_STATUS']),'database_writes':0,'provider_calls':0,'runtime_enable_writes':0,'private_payload_printed':False}))
-          sys.exit(0 if ok else 1)
+          (root/'hotel_upload_readback_sealed.json').write_text(json.dumps(safe,sort_keys=True)+'\n')
+          print(json.dumps({'operation':safe['operation'],'state':safe['state'],'server_command_exit_code':int(os.environ['HOTEL_UPLOAD_READBACK_STATUS']),'database_writes':0,'provider_calls':0,'runtime_enable_writes':0,'private_payload_printed':False}))
+          sys.exit(0 if ok and int(os.environ['HOTEL_UPLOAD_READBACK_STATUS'])==0 else 1)
           PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: hotel-server-private-ticket-renewal-sealed
-          path: ${{ runner.temp }}/hotel_renewal_sealed.json
+          name: hotel-server-private-chunk0-readback-sealed
+          path: ${{ runner.temp }}/hotel_upload_readback_sealed.json
           retention-days: 7
           if-no-files-found: ignore
       - name: Remove this run's ephemeral files
         if: always()
         shell: bash
         run: |
-          rm -f "$RUNNER_TEMP/hotel_renewal_source.json" "$RUNNER_TEMP/hotel_renewal.php" "$RUNNER_TEMP/hotel_renewal_refusal.json" "$RUNNER_TEMP/hotel_renewal_key" "$RUNNER_TEMP/hotel_renewal_hosts" "$RUNNER_TEMP/hotel_renewal_raw.private" "$RUNNER_TEMP/hotel_renewal_stderr.private" "$RUNNER_TEMP/hotel_renewal_sealed.json"
+          rm -f "$RUNNER_TEMP/hotel_upload_readback_source.json" "$RUNNER_TEMP/hotel_upload_readback.php" "$RUNNER_TEMP/hotel_upload_readback_refusal.json" "$RUNNER_TEMP/hotel_upload_readback_key" "$RUNNER_TEMP/hotel_upload_readback_hosts" "$RUNNER_TEMP/hotel_upload_readback_raw.private" "$RUNNER_TEMP/hotel_upload_readback_stderr.private" "$RUNNER_TEMP/hotel_upload_readback_sealed.json"
+
