@@ -127,6 +127,15 @@ final class HotelServerCycle
             foreach (['tokens'=>'tokens_per_call','micros'=>'micros_per_call'] as $field=>$limit) {
                 if (!is_int($usage[$field]??null) || $usage[$field]<0 || $usage[$field]>$request['limits'][$limit]) throw new DomainException('provider_usage_invalid');
             }
+            if(($result['provider_outcome']??null)==='rejected'){
+                if(!is_string($result['provider_response_id']??null)||!preg_match('/\\Aresp_[A-Za-z0-9_-]{1,251}\\z/D',$result['provider_response_id'])
+                    ||!in_array($result['rejection_code']??null,['insufficient_evidence','invalid_candidate','invalid_review','invalid_response','provider_refused','provider_incomplete'],true))
+                    throw new DomainException('provider_rejection_evidence_required');
+                $this->exec("UPDATE hotel_server_attempts SET state='succeeded',result_sha256=?,result_bytes=? WHERE attempt_id=?",[$resultSha,$resultBytes,$attemptId]);
+                $this->exec("UPDATE hotel_server_outbox SET state='done' WHERE campaign_id=? AND stage_index=? AND role=?",[$id,$a['stage_index'],$a['role']]);
+                $this->exec("UPDATE hotel_server_campaigns SET state='hold' WHERE campaign_id=?",[$id]);
+                $this->fault('result_before_commit');return $this->projection($this->campaign($id));
+            }
             if ($a['role']==='producer') {
                 $candidate=$result['candidate']??null; $this->validateCandidate($candidate,$request);
                 $candidateBytes=HotelServerInputs::json($candidate); $hash=hash('sha256',$candidateBytes);

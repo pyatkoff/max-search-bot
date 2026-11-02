@@ -54,10 +54,10 @@ final class HotelServerAiProvider implements HotelServerPreparedProvider
             ?($this->client)($request['role'],$prepared['instructions'],$prepared['payload'],$prepared['schema'],$observe)
             :ManagerDraftClient::requestHotelJson($request['role'],$prepared['instructions'],$prepared['payload'],$prepared['schema'],$observe);
         // Exactly one transport invocation. Errors/refusals/timeouts never retry here.
-        if(!is_array($result)||isset($result['_error'])||!is_array($meta))throw new DomainException('hotel_provider_outcome_unconfirmed');
+        if(!is_array($result)||!is_array($meta))throw new DomainException('hotel_provider_outcome_unconfirmed');
         $id=$meta['response_id']??null;$usage=$meta['usage']??[];
         if(!is_string($id)||strlen($id)>256||!preg_match('/\Aresp_[A-Za-z0-9_-]+\z/D',$id)
-            ||isset($this->seenResponses[$id])||($meta['status']??null)!=='completed'||($meta['model']??null)!==$request['model'])
+            ||isset($this->seenResponses[$id])||!in_array($meta['status']??null,['completed','incomplete'],true)||($meta['model']??null)!==$request['model'])
             throw new DomainException('hotel_provider_invocation_unconfirmed');
         foreach(['input_tokens','output_tokens','total_tokens'] as $k)
             if(!is_int($usage[$k]??null)||$usage[$k]<0)throw new DomainException('hotel_provider_usage_unconfirmed');
@@ -73,6 +73,11 @@ final class HotelServerAiProvider implements HotelServerPreparedProvider
             'budget_attestation_sha256'=>$this->policy['budget_attestation_sha256'],
             'usage'=>['tokens'=>$usage['total_tokens'],'micros'=>$request['limits']['micros_per_call'],
                 'micros_kind'=>'full_reserved_ceiling_not_provider_invoice']];
+        if(isset($result['_error'])||$meta['status']!=='completed'){
+            $code=($result['_error']??'')==='provider_refused'?'provider_refused':($meta['status']==='incomplete'?'provider_incomplete':'invalid_response');
+            return $out+['provider_outcome'=>'rejected','rejection_code'=>$code];
+        }
+        try{
         if($request['role']==='producer'){
             $this->keys($result,['status','candidate'],'hotel_producer_shape');
             if(($result['status']??null)!=='answered'||!is_array($result['candidate']??null))throw new DomainException('hotel_insufficient_assigned_evidence');
@@ -93,6 +98,11 @@ final class HotelServerAiProvider implements HotelServerPreparedProvider
             if(count($seen)!==count($expected)||($result['approved']&&!$all))throw new DomainException('hotel_review_coverage_required');
             $out+=['approved'=>$result['approved'],'evidence'=>$result['evidence'],'review_checks'=>$result['checks'],
                 'candidate_sha256'=>$request['candidate_sha256'],'criteria_sha256'=>$request['criteria_sha256']];
+        }
+        }catch(DomainException $rejected){
+            $code=$request['role']==='producer'?'invalid_candidate':'invalid_review';
+            if($rejected->getMessage()==='hotel_insufficient_assigned_evidence')$code='insufficient_evidence';
+            return $out+['provider_outcome'=>'rejected','rejection_code'=>$code];
         }
         return $out;
     }

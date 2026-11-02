@@ -26,8 +26,12 @@ is introduced.
 
 Only completed assistant JSON plus a real response ID, actual model and consistent
 input/output/total token usage is accepted. Refusal, incomplete output, lost ACK,
-timeout, missing metadata or malformed response stays unconfirmed; the core never
-retries or refunds it automatically. Responses IDs are private invocation evidence,
+timeout or missing trustworthy invocation metadata stays UNKNOWN. A received refusal,
+incomplete generation or invalid candidate/review with verified invocation/usage
+evidence is persisted as a known rejected result: the campaign holds, no candidate
+or acceptance is created, and the response ID remains available. Transport success
+is distinct from business acceptance. The core never retries or refunds either
+outcome automatically. Responses IDs are private invocation evidence,
 not ChatGPT/native task IDs and not a native-terminal claim.
 
 ## Research means assigned retained evidence, not fresh browsing
@@ -100,7 +104,9 @@ An attestation hash is a reference to operator evidence, not a certificate verif
 These are launch gates, not reasons to leave the available source integration as
 another callback placeholder. The adapter's supplied-evidence HTTP request/parser,
 quote checks, independent coverage and once-only integration are concrete.
-A live full collector is still not claimed ready.
+A live full collector is still not claimed ready. The existing result transaction
+also records known rejected responses with their IDs/usage and zero acceptance;
+no new observation table or separate journal was introduced.
 
 ## Verification and references
 

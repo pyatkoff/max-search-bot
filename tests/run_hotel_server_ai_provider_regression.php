@@ -35,7 +35,11 @@ function haMock(object $state):callable{
             $result=['approved'=>true,'checks'=>($state->mode??'')==='partial'?[]:[['scope'=>$payload['scopes'][0],'approved'=>true,'reason'=>'Exact quoted source and assigned criteria checked']],
                 'evidence'=>'Independent assigned-source review'];
         }
-        return ManagerDraftClient::parseHotelResponse(HotelServerInputs::json(haEnvelope($result,'resp_synthetic_'.$state->calls)),200,$observer);
+        if(($state->mode??'')==='insufficient')$result=['status'=>'insufficient_evidence','candidate'=>null];
+        $envelope=haEnvelope($result,'resp_synthetic_'.$state->calls);
+        if(($state->mode??'')==='refuse')$envelope['output'][0]['content']=[['type'=>'refusal','refusal'=>'synthetic refusal']];
+        if(($state->mode??'')==='incomplete'){$envelope['status']='incomplete';$envelope['incomplete_details']=['reason'=>'max_output_tokens'];}
+        return ManagerDraftClient::parseHotelResponse(HotelServerInputs::json($envelope),200,$observer);
     };
 }
 function haCycle(array &$f,object $state,?array $views=null,?array $policy=null):HotelServerAiProvider{
@@ -82,11 +86,19 @@ $f=hsFixture();try{
     $request=json_decode($rows[0]['request_bytes'],true);haReject(fn()=>$adapter->send($request),'adapter refuses repeated same attempt in process','hotel_attempt_already_submitted');
     haCheck($state->calls===2,'no transport call on repeated attempt');
 }finally{hsCleanup($f);}
-foreach(['fabricate','partial','timeout'] as $mode){
+foreach(['fabricate','partial','insufficient','refuse','incomplete','timeout'] as $mode){
     $f=hsFixture();try{
         $state=(object)['calls'=>0,'bodies'=>[],'mode'=>$mode];haCycle($f,$state);
         if($mode==='partial')$f['cycle']->tick('NEW');
-        $r=$f['cycle']->tick('NEW');haCheck($r['state']==='unknown','failed/unverifiable provider outcome never accepted');
+        $r=$f['cycle']->tick('NEW');haCheck($r['state']===($mode==='timeout'?'unknown':'hold'),'known bad output holds with evidence; lost ACK remains UNKNOWN');
+        if($mode!=='timeout'){
+            $row=$f['p']->query(\"SELECT result_bytes FROM hotel_server_attempts WHERE result_bytes IS NOT NULL ORDER BY role DESC LIMIT 1\")->fetchColumn();$proof=json_decode($row,true);
+            haCheck($proof['provider_outcome']==='rejected'&&isset($proof['provider_response_id']),'known rejected provider response ID retained for reconciliation');
+            $f['cycle']->recordResult('NEW',$proof['attempt_id'],$proof);
+            haCheck($f['cycle']->status('NEW')['new_accepted']===0,'identical known rejection readback earns no credit');
+            $changed=$proof;$changed['provider_response_id']='resp_conflicting';
+            haReject(fn()=>$f['cycle']->recordResult('NEW',$proof['attempt_id'],$changed),'rejected result is immutable');
+        }
         $nCalls=$state->calls;$f['cycle']->tick('NEW');
         haCheck($state->calls===$nCalls&&$f['cycle']->status('NEW')['new_accepted']===0,'no retry or credit after invalid quote/partial review/lost ACK');
     }finally{hsCleanup($f);}

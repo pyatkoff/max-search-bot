@@ -54,18 +54,20 @@ final class ManagerDraftClient
     /** Completed response plus private invocation/usage evidence, never a body/log export. */
     public static function parseHotelResponse(string $bytes,int $httpStatus,?callable $observer=null): array
     {
-        $meta=null;
-        $result=self::parseResponse($bytes,$httpStatus,static function(array $m)use(&$meta):void{$meta=$m;});
-        if(isset($result['_error']))return $result;
+        $result=self::parseResponse($bytes,$httpStatus);
+        // Retain safe invocation evidence even for a known refusal/incomplete result.
+        if($httpStatus<200||$httpStatus>=300||strlen($bytes)>self::MAX_RESPONSE_BYTES)return $result;
         try{
-            $raw=json_decode($bytes,true,32,JSON_THROW_ON_ERROR);$id=$raw['id']??null;
-            if(!is_string($id)||strlen($id)>256||!preg_match('/\\Aresp_[A-Za-z0-9_-]+\\z/D',$id)||!is_array($meta)||!is_string($meta['model']??null))
-                return ['_error'=>'provider_metadata_unavailable'];
+            $raw=json_decode($bytes,true,32,JSON_THROW_ON_ERROR);$id=$raw['id']??null;$status=$raw['status']??null;
+            $meta=is_array($raw)?self::responseMetadata($raw):null;
+            if(!is_string($id)||strlen($id)>256||!preg_match('/\\Aresp_[A-Za-z0-9_-]+\\z/D',$id)
+                ||!in_array($status,['completed','incomplete'],true)||!empty($raw['error'])
+                ||!is_array($meta)||!is_string($meta['model']??null))return ['_error'=>'provider_metadata_unavailable'];
             $usage=$meta['usage']??[];
             foreach(['input_tokens','output_tokens','total_tokens'] as $k)
                 if(!is_int($usage[$k]??null)||$usage[$k]<0)return ['_error'=>'provider_metadata_unavailable'];
             if($usage['total_tokens']!==$usage['input_tokens']+$usage['output_tokens'])return ['_error'=>'provider_metadata_unavailable'];
-            $meta+=['response_id'=>$id,'status'=>'completed'];
+            $meta+=['response_id'=>$id,'status'=>$status];
             if($observer!==null)$observer($meta);
             return $result;
         }catch(Throwable $ignored){return ['_error'=>'provider_metadata_unavailable'];}
