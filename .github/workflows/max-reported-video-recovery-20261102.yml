@@ -1,0 +1,118 @@
+name: Recover two reported MAX video posts
+on:
+  push:
+    branches: [ops/max-reported-video-recovery-20261102]
+    paths:
+      - .github/workflows/max-reported-video-recovery-20261102.yml
+      - tools/direct_demand/operations/max_post_recovery_recipient_20261102.pem
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: max-reported-video-recovery-20261102
+  cancel-in-progress: false
+env:
+  EXPECTED_PRODUCTION_SHA: 9c5be6ba829e5083fd27f377887121d58492bf54
+  EXPECTED_OPERATION_PARENT: 9c5be6ba829e5083fd27f377887121d58492bf54
+  RECOVERY_MODE: preview
+  FIRST_HASH: ''
+  FIRST_VERSION: ''
+  FIRST_CONFIG: ''
+  SECOND_HASH: ''
+  SECOND_VERSION: ''
+  SECOND_CONFIG: ''
+jobs:
+  recover:
+    if: github.ref == 'refs/heads/ops/max-reported-video-recovery-20261102' && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Verify installed release and stage before credentials
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = "$EXPECTED_OPERATION_PARENT"
+          test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = "$EXPECTED_PRODUCTION_SHA"
+          php -l tools/recover_max_channel_post.php
+          openssl x509 -in tools/direct_demand/operations/max_post_recovery_recipient_20261102.pem -checkend 0 -noout
+          gh api repos/pyatkoff/max-search-bot/actions/runs/41459542422 --jq '{head_sha,status,conclusion}' > "$RUNNER_TEMP/recovery-deploy.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/41459542422/jobs --jq '[.jobs[] | select(.name=="deploy") | .steps[] | select(.name=="Sync canonical production checkout") | .conclusion] | last' > "$RUNNER_TEMP/recovery-sync.txt"
+          python3 - <<'PY'
+          import json,os
+          d=json.load(open(os.environ['RUNNER_TEMP']+'/recovery-deploy.json'))
+          assert d['head_sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+          sync=open(os.environ['RUNNER_TEMP']+'/recovery-sync.txt').read().strip()
+          assert sync=='success'
+          if os.environ['RECOVERY_MODE']=='apply':
+              assert d['status']=='completed' and d['conclusion']=='success'
+          PY
+          [[ "$RECOVERY_MODE" == preview || "$RECOVERY_MODE" == apply ]]
+          if [[ "$RECOVERY_MODE" == apply ]]; then
+            [[ "$FIRST_HASH" =~ ^[a-f0-9]{64}$ && "$SECOND_HASH" =~ ^[a-f0-9]{64}$ ]]
+            [[ "$FIRST_VERSION" =~ ^[1-9][0-9]*$ && "$SECOND_VERSION" =~ ^[1-9][0-9]*$ ]]
+            [[ "$FIRST_CONFIG" =~ ^[1-9][0-9]*$ && "$SECOND_CONFIG" =~ ^[1-9][0-9]*$ ]]
+          fi
+      - name: Run the canonical CLI once per selected post and encrypt each receipt
+        env:
+          RECOVERY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          RECOVERY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          RECOVERY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          key_file="$RUNNER_TEMP/recovery-key"
+          raw="$RECOVERY_SSH_KEY_VALUE"
+          test -n "$raw"
+          test -n "$RECOVERY_HOST"
+          test -n "$RECOVERY_USER"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key_file"; else printf '%s\n' "$raw" | tr -d '\r' > "$key_file"; fi
+          else
+            printf '%s' "$raw" | base64 --decode > "$key_file"
+          fi
+          chmod 600 "$key_file"
+          ssh-keygen -y -f "$key_file" >/dev/null
+          ssh_opts=(-i "$key_file" -o BatchMode=yes -o ConnectTimeout=15 -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$RUNNER_TEMP/recovery-known-hosts")
+          overall_status=0
+          for target in FIRST SECOND; do
+            if [[ "$target" == FIRST ]]; then
+              channel=-72182945320979; published=1793620145442
+              hash="$FIRST_HASH"; version="$FIRST_VERSION"; config="$FIRST_CONFIG"
+            else
+              channel=-68765999669267; published=1793620197203
+              hash="$SECOND_HASH"; version="$SECOND_VERSION"; config="$SECOND_CONFIG"
+            fi
+            command="php tools/recover_max_channel_post.php --expected-sha=$EXPECTED_PRODUCTION_SHA --channel-id=$channel --published-ms=$published --recover-unsupported-video"
+            if [[ "$RECOVERY_MODE" == apply ]]; then
+              command+=" --content-hash=$hash --expected-version-id=$version --expected-config-version=$config --apply"
+            fi
+            remote="set -eu; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; git diff --quiet; git diff --cached --quiet; cli_status=0; $command || cli_status=\$?; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; git diff --quiet; git diff --cached --quiet; exit \"\$cli_status\""
+            status=0
+            ssh "${ssh_opts[@]}" "$RECOVERY_USER@$RECOVERY_HOST" "$remote" 2> "$RUNNER_TEMP/recovery-$target-errors" \
+              | openssl cms -encrypt -aes-256-gcm -binary -outform DER -out "$RUNNER_TEMP/recovery-$target.cms" tools/direct_demand/operations/max_post_recovery_recipient_20261102.pem || status=$?
+            test -s "$RUNNER_TEMP/recovery-$target.cms"
+            printf 'MAX_POST_%s_CMS_BEGIN\n' "$target"
+            base64 -w 0 "$RUNNER_TEMP/recovery-$target.cms"
+            printf '\nMAX_POST_%s_CMS_END\n' "$target"
+            if [[ "$status" != 0 ]]; then
+              overall_status=1
+              if [[ "$RECOVERY_MODE" == apply ]]; then break; fi
+            fi
+          done
+          exit "$overall_status"
+      - name: Confirm main is unchanged
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = "$EXPECTED_PRODUCTION_SHA"
+      - name: Cleanup ephemeral credentials and receipts
+        if: always()
+        run: rm -f "$RUNNER_TEMP/recovery-key" "$RUNNER_TEMP/recovery-known-hosts" "$RUNNER_TEMP/recovery-FIRST-errors" "$RUNNER_TEMP/recovery-SECOND-errors" "$RUNNER_TEMP/recovery-FIRST.cms" "$RUNNER_TEMP/recovery-SECOND.cms" "$RUNNER_TEMP/recovery-deploy.json" "$RUNNER_TEMP/recovery-sync.txt"
