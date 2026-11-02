@@ -1,0 +1,122 @@
+{
+  "operation": "commercial-hotel-three-20261102-3-v1",
+  "state": "DRAFT_NOT_SENT",
+  "goal": "Prepare next unpublished trio, then publish six posts using existing bot/registry pipeline",
+  "boundaries": "No Mac access or file transfer, no new runtime uploader/controller/queue/worker, no old publication replay, no ad budget or customer changes.",
+  "criteria": "Actual genuine hotel covers in accepted brand template, fixed media hashes before sends, registry duplicate check, real photo/button/source/version receipts.",
+  "risks": [
+    "Hotel photo identity and cropped subjects",
+    "Unsupported beach or tariff claims",
+    "Duplicate/unknown sends"
+  ],
+  "baseline_logical_materials": 12,
+  "accepted_previous_evidence": "https://github.com/pyatkoff/max-search-bot/actions/runs/41401947544/artifacts/13122210580",
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "logical_id": "at-hotel-jadore-deluxe",
+      "hotel_id": 2432,
+      "hotel": "J'adore Deluxe Hotel & Spa",
+      "aliases": [
+        "j'adore deluxe",
+        "j’adore deluxe",
+        "jadore deluxe"
+      ],
+      "text": "✈️ Туры в J'adore Deluxe Hotel & Spa с перелётом\n📍 Турция, Сиде\n\nУ отеля свой пляж. До него около 350 метров.\n\n🏖 На пляже шезлонги, зонты и навесы.\n💦 Есть бассейн с пятью водными горками.\n🧸 Для детей есть клуб и игровые площадки.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "sources": [
+        {
+          "url": "https://www.jadorehotel.com/en/poolandbeach.php",
+          "supports": [
+            "350 m from sea, private beach",
+            "Beach loungers, umbrellas and canopy",
+            "Five slides"
+          ]
+        },
+        {
+          "url": "https://www.jadorehotel.com/en/miniclub.php",
+          "supports": [
+            "Kids club and playgrounds"
+          ]
+        }
+      ],
+      "photo_candidates": [
+        "https://www.jadorehotel.com/new-images/h1.jpg",
+        "https://www.jadorehotel.com/new-images/ic-sayfa-banner/plaj1.jpg",
+        "https://www.jadorehotel.com/new-images/general-area1.jpg"
+      ],
+      "photo_url": null,
+      "photo_sha256": null,
+      "media_state": "NOT_YET_VISUALLY_VERIFIED_BRANDED_COVER"
+    },
+    {
+      "logical_id": "at-hotel-dream-fun-world",
+      "hotel_id": 3726,
+      "hotel": "Dream Fun World",
+      "aliases": [
+        "dream fun world"
+      ],
+      "text": "✈️ Туры в Dream Fun World с перелётом\n📍 Турция, Сиде\n\nУ отеля свой песчаный пляж. На пляж возит автобус, поездка занимает около четырёх минут.\n\n💦 На территории есть водные горки и детский бассейн.\n🧸 Детский клуб для детей от 4 до 12 лет.\n🎵 Есть вечерние шоу и живая музыка.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "sources": [
+        {
+          "url": "https://dreamfunworld.com.tr/en/",
+          "supports": [
+            "Private sandy beach and hotel shuttle about 4 minutes",
+            "Slides and children's pool",
+            "Kids club 4 to 12",
+            "Evening shows and live music"
+          ]
+        },
+        {
+          "url": "https://dreamfunworld.com.tr/en/facility",
+          "supports": [
+            "Hotel identity, facilities and beach service"
+          ]
+        }
+      ],
+      "photo_candidates": [
+        "https://dreamfunworld.com.tr/assets/images/home/Dream_Fun_World_Ala_Carte_Restaurant_2.webp",
+        "https://dreamfunworld.com.tr/assets/images/home/Dream_Fun_World_Lower_Lobby_Bar_2.webp"
+      ],
+      "photo_url": null,
+      "photo_sha256": null,
+      "media_state": "NOT_YET_VISUALLY_VERIFIED_BRANDED_COVER"
+    },
+    {
+      "logical_id": "at-hotel-side-moon-palace",
+      "hotel_id": 3742,
+      "hotel": "Side Moon Palace",
+      "aliases": [
+        "side moon palace"
+      ],
+      "text": "✈️ Туры в Side Moon Palace с перелётом\n📍 Турция, Сиде, Соргун\n\nОтель открылся в 2024 году. Рядом находятся торговые центры Sorgun Mall и Centro Outlet.\n\n🏖 До своего пляжа около 900 метров. Туда возит автобус отеля.\n💦 Есть аквапарк с большими и детскими горками.\n🛍 До магазинов можно дойти пешком.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "sources": [
+        {
+          "url": "https://www.sidemoonpalace.com/tr",
+          "supports": [
+            "Hotel opened in 2024",
+            "Water park",
+            "Nearby shopping centers"
+          ]
+        },
+        {
+          "url": "https://sidemoonpalace.com/uploads/file/pdf/factsheet-2026-tr.pdf",
+          "supports": [
+            "2026 summer concept",
+            "900 m to private beach and shuttle",
+            "Sorgun Mall and Centro Outlet 100 m"
+          ]
+        }
+      ],
+      "photo_candidates": [
+        "https://www.sidemoonpalace.com/uploads/sliders/home_tr/outdoor-pool-267af04d33aeb7.webp",
+        "https://www.sidemoonpalace.com/uploads/sliders/home_tr/aqua-park-467e67310321e1.webp",
+        "https://www.sidemoonpalace.com/uploads/sliders/home_tr/beach-167af056fdbf78.webp"
+      ],
+      "photo_url": null,
+      "photo_sha256": null,
+      "media_state": "NOT_YET_VISUALLY_VERIFIED_BRANDED_COVER"
+    }
+  ],
+  "next": "Obtain and visually verify genuine covers through allowed cloud APIs. Bind immutable media to the existing publisher before any sends. Dream Fun World still needs a genuine exterior/overview image.",
+  "feed_limitation": "No verified cloud universal-advertising-CSV export operation is available. Do not read or migrate local Mac feeds or repurpose the visit feed. This does not block independent hotel-post preparation."
+}
