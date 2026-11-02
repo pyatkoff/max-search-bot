@@ -1,7 +1,9 @@
 # DRAFT ONLY: intended to replace the existing path on the fixed diagnostic ref, never main.
 name: Manager2 overlay context diagnostic
 on:
-  workflow_dispatch: {}
+  push:
+    branches: ['codex/manager2-overlay-ci-diagnostic-20261102']
+    paths: ['.github/workflows/manager2-preview.yml']
 permissions:
   contents: read
   packages: read
@@ -11,9 +13,10 @@ concurrency:
 jobs:
   overlay-cause:
     name: overlay-cause / chromium (diagnostic only)
-    if: ${{ github.event_name == 'workflow_dispatch' && github.repository ==
+    if: ${{ github.event_name == 'push' && github.repository ==
       'pyatkoff/max-search-bot' && github.ref ==
       'refs/heads/codex/manager2-overlay-ci-diagnostic-20261102' &&
+      github.event.before == '4289e20779ba331daf011060bd7f369f945a0ecd' &&
       github.run_attempt == 1 }}
     runs-on: ubuntu-latest
     container:
