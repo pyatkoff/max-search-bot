@@ -215,6 +215,34 @@ final class MetrikaOfflineClient
         return ['outcome'=>'unknown','reason'=>'upload_outcome_unknown'];
     }
 
+
+    /** Fixed aggregate session report for the explicitly authorized value goal. GET only, no dimensions/identities. */
+    public function modeledValueReport(int $activated,int $now):array
+    {
+        $base=['status'=>'unavailable','goal_id'=>'678187097','currency'=>'RUB',
+            'fetched_at'=>gmdate('Y-m-d\\TH:i:s\\Z',$now),'date1'=>gmdate('Y-m-d',max(946684800,$activated-21*86400)),'date2'=>'today',
+            'goal_reaches'=>null,'goal_visits'=>null,'revenue_rub'=>null,'sampled'=>null];
+        if($this->counter!=='98615635'||$activated<946684800||$activated>$now)return $base+['reason'=>'invalid_scope'];
+        $metrics=['ym:s:goal678187097reaches','ym:s:goal678187097visits','ym:s:goal678187097convertedRUBRevenue'];
+        $query=['ids'=>'98615635','metrics'=>implode(',',$metrics),'date1'=>$base['date1'],'date2'=>'today','accuracy'=>'full','limit'=>1];
+        $r=$this->request('GET','data?'.http_build_query($query,'','&',PHP_QUERY_RFC3986),null,null,true);
+        if((int)($r['error']??0)!==0)return $base+['reason'=>'transport_unavailable'];
+        $http=(int)($r['http']??0);
+        if($http===403||$http===401){$base['status']='forbidden';return $base+['reason'=>'report_scope_or_counter_access'];}
+        if($http!==200)return $base+['reason'=>'report_api_unavailable'];
+        $d=$this->decode($r);$q=$d['query']??[];$totals=$d['totals']??null;
+        $ids=is_array($q['ids']??null)?array_map('strval',$q['ids']):[];
+        if($ids!==['98615635']||($q['metrics']??null)!==$metrics||!is_array($totals)||count($totals)!==3
+            ||!is_bool($d['sampled']??null))return $base+['reason'=>'invalid_report'];
+        foreach($totals as$v)if((!is_int($v)&&!is_float($v))||!is_finite((float)$v)||$v<0||$v>1000000000000)return $base+['reason'=>'invalid_totals'];
+        if(((float)$totals[0])!==floor((float)$totals[0]))return $base+['reason'=>'invalid_counts'];
+        if(((float)$totals[1])!==floor((float)$totals[1])||$totals[1]>$totals[0])return $base+['reason'=>'invalid_counts'];
+        $base['status']=$d['sampled']?'sampled':'ok';$base['sampled']=$d['sampled'];
+        $base['goal_reaches']=(int)$totals[0];$base['goal_visits']=(int)$totals[1];$base['revenue_rub']=round((float)$totals[2],2);
+        $base['date2']=is_string($q['date2']??null)?$q['date2']:'today';
+        return $base;
+    }
+
     private function selectedGoals(array $goals): array
     {
         $selected=[];
@@ -262,18 +290,18 @@ final class MetrikaOfflineClient
         $data=json_decode((string)($response['body']??''),true,32,JSON_BIGINT_AS_STRING);return is_array($data)?$data:[];
     }
 
-    private function request(string $method,string $path,?string $csv=null,?array $json=null): array
+    private function request(string $method,string $path,?string $csv=null,?array $json=null,bool $statistics=false): array
     {
-        $url='https://api-metrika.yandex.net/management/v1/counter/'.$this->counter.'/'.$path;
+        $url='https://api-metrika.yandex.net/'.($statistics?'stat/v1/':'management/v1/counter/'.$this->counter.'/').$path;
         if($this->transport)return ($this->transport)($method,$url,$json!==null?json_encode($json,JSON_THROW_ON_ERROR):$csv);
         $temp=null;$ch=null;
         try{
-            $body='';$tooLarge=false;$ch=curl_init($url);if($ch===false)throw new RuntimeException('metrika_transport_failed');
+            $body='';$tooLarge=false;$maxResponseBytes=$statistics?65536:1048576;$ch=curl_init($url);if($ch===false)throw new RuntimeException('metrika_transport_failed');
             $options=[CURLOPT_RETURNTRANSFER=>false,CURLOPT_FOLLOWLOCATION=>false,CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS,
-                CURLOPT_CONNECTTIMEOUT=>5,CURLOPT_TIMEOUT=>30,CURLOPT_SSL_VERIFYPEER=>true,CURLOPT_SSL_VERIFYHOST=>2,
+                CURLOPT_CONNECTTIMEOUT=>$statistics?2:5,CURLOPT_TIMEOUT=>$statistics?8:30,CURLOPT_SSL_VERIFYPEER=>true,CURLOPT_SSL_VERIFYHOST=>2,
                 CURLOPT_HTTPHEADER=>['Authorization: OAuth '.$this->token,'Accept: application/json'],
-                CURLOPT_WRITEFUNCTION=>static function($ch,string $chunk)use(&$body,&$tooLarge):int{
-                    if(strlen($body)+strlen($chunk)>1048576){$tooLarge=true;return 0;}$body.=$chunk;return strlen($chunk);
+                CURLOPT_WRITEFUNCTION=>static function($ch,string $chunk)use(&$body,&$tooLarge,$maxResponseBytes):int{
+                    if(strlen($body)+strlen($chunk)>$maxResponseBytes){$tooLarge=true;return 0;}$body.=$chunk;return strlen($chunk);
                 }];
             if(in_array($method,['POST','PUT'],true)&&$json!==null){
                 $options[CURLOPT_CUSTOMREQUEST]=$method;$options[CURLOPT_POSTFIELDS]=json_encode($json,JSON_THROW_ON_ERROR);

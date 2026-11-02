@@ -89,3 +89,27 @@ never resume a deliberately disabled export or reset floors. A lost creation
 ack remains held and only the exact-goal GET can reconcile it; no blind POST.
 The first setup is one finite event-bound release operation, not another cron
 or recurring work plan. Future value delivery uses only the existing cron.
+
+## Actual delivery and session attribution audit
+
+The existing value cron also obtains one fixed GET-only Reporting API aggregate
+for goal678187097/counter98615635, no dimensions or person identifiers. It caches
+only typed goal reaches, goal visits and explicit convertedRUBRevenue, period,
+sampling and fetch time in the existing private receipt JSON. Reporting failure
+is independent of uploads:403 is unknown permission/access, never zero, and never
+blocks or resends an otherwise valid conversion. No new timer, worker or collector.
+
+The report starts21days BEFORE activation because offline values can be attached
+to earlier sessions. Reporting API dates are session dates. A report limited to
+the activation day would miss correctly linked older sessions. Goals and RUB
+totals from this unique new goal are separate from management-upload status.
+Processed/valid upload rows alone do not prove visit attribution. Reporting can
+lag; sampled/stale/missing results never become exact current linkage evidence.
+
+The same private forecasts:read/admin/project status returns a fixed derived
+value_delivery suffix. It selects at most201latest goal ledger rows inside one
+aggregate query, no raw IDs/text/receipts, and labels truncation explicitly.
+Disjoint queue states, reserved/accepted/processed RUB subtotals, incremental
+stage subtotals, upload-status and fixed error counts are separate.201rows means
+coverage might be incomplete. No global people/trip or paid-cohort rate is inferred.
+API calls occur only in the existing background value step, never during MCP.

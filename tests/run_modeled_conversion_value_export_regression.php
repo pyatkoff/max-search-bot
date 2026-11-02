@@ -61,12 +61,19 @@ final class ModeledValueTestWire
 {
     public array $goals=[['id'=>'9','type'=>'action','name'=>'unchanged','conditions'=>[['type'=>'exact','url'=>'existing_goal']]]];
     public array $csv=[];public array $receipts=[];public int $creates=0;public int $posts=0;public int $gets=0;
+    public array $reportTotals=[2,1,2083];public bool $reportSampled=false;public int $reportHttp=200;
+    public bool $reportWrongScope=false;public array $lastReportQuery=[];
     public string $postMode='accepted';public bool $createUnknown=false;public mixed $duringPost=null;
     public function request(string $method,string $url,mixed $body):array
     {
         $path=(string)parse_url($url,PHP_URL_PATH);$data=[];
         if($method==='GET')$this->gets++;
-        if(str_ends_with($path,'/goals')){
+        if($path==='/stat/v1/data'){
+            parse_str((string)parse_url($url,PHP_URL_QUERY),$query);$this->lastReportQuery=$query;
+            if($this->reportHttp!==200)return ['http'=>$this->reportHttp,'error'=>0,'body'=>'PRIVATE_REPORT_API_BODY'];
+            $data=['query'=>['ids'=>[$this->reportWrongScope?999:98615635],'metrics'=>explode(',',$query['metrics']),
+                'date1'=>$query['date1'],'date2'=>'2026-11-03'],'totals'=>$this->reportTotals,'sampled'=>$this->reportSampled];
+        }elseif(str_ends_with($path,'/goals')){
             if($method==='POST'){
                 $this->creates++;$g=json_decode($body,true,32,JSON_THROW_ON_ERROR)['goal'];$g['id']='99001';$this->goals[]=$g;
                 if($this->createUnknown)return ['error'=>28,'http'=>0,'body'=>''];
@@ -167,7 +174,8 @@ function modeledValueAssertions(PDO $p,callable $check):void
     $i=$p->prepare("INSERT INTO advertising_visit_observations(project_key,source_key,platform,counter_id,external_user_id,identity_status,client_id,visit_at_unix,observed_at_unix,received_at_unix) VALUES('anytour','tgmini','telegram','98615635','70105','verified',?,?,?,?)");
     $i->execute(['1000001',$now,$now,$now]);$i->execute(['1000002',$now,$now,$now]);
     ModeledConversionValueExport::tick($p,$lookup,$api,$now+370,$gate);
-    $check('ambiguous Telegram identity stays pending',$wire->posts===$before);
+    $check('ambiguous Telegram identity stays pending',$wire->posts===$before
+        &&$p->query("SELECT last_error FROM max_channel_conversion_outbox WHERE conversation_id=105")->fetchColumn()==='identity_ambiguous');
     $p->exec("DELETE FROM advertising_visit_observations WHERE client_id='1000002'");
     ModeledConversionValueExport::tick($p,$lookup,$api,$now+671,$gate);
     $check('unique verified Telegram identity uses same existing queue',$wire->posts===$before+1);
@@ -213,6 +221,30 @@ function modeledValueAssertions(PDO $p,callable $check):void
     $check('operator goal changes prevent activation',$blocked&&ModeledConversionValueExport::settings($p)['mode']==='off');
     $blocked=false;try{$control->configure('arbitrary-operation',$api,$now);}catch(Throwable $e){$blocked=true;}
     $check('operational surface rejects arbitrary commands',$blocked);
+
+    $wire=new ModeledValueTestWire();$api=$wire->api();$report=$api->modeledValueReport($now-8,$now);
+    $check('fixed read-only report verifies reaches visits and explicit RUB revenue',$report['status']==='ok'&&$report['goal_reaches']===2&&$report['goal_visits']===1&&$report['revenue_rub']===2083.0&&$wire->posts===0);
+    $check('session report includes the21day preactivation attribution window',$wire->lastReportQuery['date1']===gmdate('Y-m-d',$now-8-21*86400)
+        &&$wire->lastReportQuery['metrics']==='ym:s:goal678187097reaches,ym:s:goal678187097visits,ym:s:goal678187097convertedRUBRevenue');
+    $wire->reportWrongScope=true;$report=$api->modeledValueReport($now-8,$now);
+    $check('wrong counter report never becomes current goal totals',$report['status']==='unavailable'&&$report['goal_reaches']===null);
+    $wire->reportWrongScope=false;$wire->reportHttp=403;$report=$api->modeledValueReport($now-8,$now);
+    $check('report permission failure is unknown and contains no API body',$report['status']==='forbidden'&&$report['revenue_rub']===null&&!str_contains(json_encode($report),'PRIVATE_REPORT_API_BODY'));
+    $wire->reportHttp=200;$wire->reportSampled=true;$report=$api->modeledValueReport($now-8,$now);
+    $check('sampling is explicit rather than exact attribution',$report['status']==='sampled'&&$report['sampled']===true);
+    $wire->reportSampled=false;$wire->reportTotals=[0,0,0];$report=$api->modeledValueReport($now-8,$now);
+    $check('zero totals require a valid actual scoped report',$report['status']==='ok'&&$report['goal_visits']===0&&$report['revenue_rub']===0.0);
+
+    modeledValueSchema($p);$wire=new ModeledValueTestWire();$api=$wire->api();$wire->reportTotals=[0,0,0];
+    $p->prepare("UPDATE modeled_conversion_value_export_settings SET mode='send',goal_id='678187097',goal_intent='verified',activated_at_unix=? WHERE project_key='anytour'")->execute([$now-10]);
+    ModeledConversionValueExport::tick($p,new ModeledValueTestLookup(),$api,$now,$gate);
+    $saved=json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true);
+    $check('ordinary idle value step records sanitized API readback without creating events',$saved['metrika_report']['status']==='ok'&&$wire->posts===0&&(int)$p->query("SELECT COUNT(*) FROM max_channel_conversion_outbox")->fetchColumn()===0);
+    $wire->goals[]=['id'=>'678187097','name'=>ModeledConversionValueContract::NAME,'type'=>'action','conditions'=>[['type'=>'exact','url'=>ModeledConversionValueContract::TARGET]]];
+    $wire->reportHttp=403;$scope=modeledValueBinding($p,201);modeledValueSave($p,modeledValueWrapper($scope,$now+5));
+    ModeledConversionValueExport::tick($p,new ModeledValueTestLookup(),$api,$now+5,$gate);
+    $saved=json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true);
+    $check('report API failure never blocks or retries an otherwise valid upload',$wire->posts===1&&$saved['errors']===0&&$saved['metrika_report']['status']==='forbidden');
 }
 if(realpath((string)($_SERVER['SCRIPT_FILENAME']??''))===__FILE__){
     $passed=0;$check=static function(string $name,bool $ok)use(&$passed){if(!$ok)throw new RuntimeException('FAIL '.$name);$passed++;echo 'PASS '.$name.PHP_EOL;};
