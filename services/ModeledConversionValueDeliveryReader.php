@@ -18,13 +18,13 @@ final class ModeledConversionValueDeliveryReader
         try{
             $mysql=$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
             $len=$mysql?'OCTET_LENGTH(last_receipt_json)':'LENGTH(CAST(last_receipt_json AS BLOB))';
-            $rows=$this->query("SELECT mode,goal_id,goal_intent,activated_at_unix,last_tick_unix,contract_version,CASE WHEN ".$len."<=8192 THEN last_receipt_json ELSE NULL END AS receipt_json FROM modeled_conversion_value_export_settings WHERE project_key='anytour' AND counter_id='98615635' LIMIT 1",[]);
+            $rows=$this->query("SELECT mode,goal_id,goal_intent,activated_at_unix,last_tick_unix,contract_version,history_from_unix,history_until_unix,history_completed_at_unix,history_scanned,history_collected,CASE WHEN ".$len."<=8192 THEN last_receipt_json ELSE NULL END AS receipt_json FROM modeled_conversion_value_export_settings WHERE project_key='anytour' AND counter_id='98615635' LIMIT 1",[]);
             if(!$rows)return $this->unavailable('not_configured');
             $s=$rows[0];
             if(($s['goal_id']??null)!==self::GOAL||($s['contract_version']??null)!==ModeledConversionValueContract::VERSION
                 ||!in_array($s['mode']??null,['off','send'],true)||($s['goal_intent']??null)!=='verified')return $this->unavailable('configuration_unverified');
             $activation=(int)($s['activated_at_unix']??0);if($activation<946684800||$activation>$now)return $this->unavailable('activation_unavailable');
-            $columns=['COUNT(*) AS inspected','COALESCE(SUM(value_rub),0) AS reserved_rub',
+            $columns=["COALESCE(SUM(CASE WHEN value_origin='owner_day_review_v1' THEN 1 ELSE 0 END),0) AS historical_events",'COUNT(*) AS inspected','COALESCE(SUM(value_rub),0) AS reserved_rub',
                 "COALESCE(SUM(CASE WHEN upload_id IS NOT NULL AND upload_id<>'' THEN 1 ELSE 0 END),0) AS accepted_receipts",
                 "COALESCE(SUM(CASE WHEN upload_id IS NOT NULL AND upload_id<>'' THEN value_rub ELSE 0 END),0) AS accepted_receipts_rub"];
             foreach(self::STATES as$i=>$state){
@@ -37,14 +37,14 @@ final class ModeledConversionValueDeliveryReader
             }
             foreach(self::UPLOADS as$i=>$status)$columns[]="COALESCE(SUM(CASE WHEN upload_status='".$status."' THEN 1 ELSE 0 END),0) AS upload_n".$i;
             foreach(self::ERRORS as$i=>$error)$columns[]="COALESCE(SUM(CASE WHEN last_error='".$error."' THEN 1 ELSE 0 END),0) AS error_n".$i;
-            $sql='SELECT '.implode(',',$columns)." FROM (SELECT state,value_stage,value_rub,upload_id,upload_status,last_error FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635' AND transport_target=? AND value_contract=? AND event_unix>=? ORDER BY id DESC LIMIT ".self::ROW_LIMIT.') bounded_values';
+            $sql='SELECT '.implode(',',$columns)." FROM (SELECT state,value_stage,value_rub,upload_id,upload_status,last_error,value_origin FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635' AND transport_target=? AND value_contract=? AND (event_unix>=? OR (value_origin='owner_day_review_v1' AND value_reviewed_at_unix IS NOT NULL AND event_unix>=1793570400 AND event_unix<1793656800)) ORDER BY id DESC LIMIT ".self::ROW_LIMIT.') bounded_values';
             $r=$this->query($sql,[ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION,$activation])[0];
             $seen=$this->number($r['inspected'],false);
             if($seen>self::ROW_LIMIT)return $this->unavailable('invalid_ledger');
             $out=['available'=>true,'goal_id'=>self::GOAL,'counter_id'=>'98615635','target'=>ModeledConversionValueContract::TARGET,
                 'contract'=>ModeledConversionValueContract::VERSION,'currency'=>'RUB','mode'=>$s['mode'],
                 'activated_at'=>gmdate('Y-m-d\\TH:i:s\\Z',$activation),'last_tick_at'=>null,'last_tick_errors'=>null,
-                'window'=>['basis'=>'latest_goal_ledger_rows_since_activation','max_rows'=>self::ROW_LIMIT,'inspected_rows'=>$seen,
+                'window'=>['basis'=>'latest_live_and_owner_authorized_historical_goal_rows','max_rows'=>self::ROW_LIMIT,'inspected_rows'=>$seen,
                     'complete_within_bound'=>$seen<self::ROW_LIMIT],
                 'reserved_value_rub'=>$this->number($r['reserved_rub'],true),
                 'api_accepted_receipts'=>['events'=>$this->number($r['accepted_receipts'],false),'value_rub'=>$this->number($r['accepted_receipts_rub'],true)],
@@ -60,6 +60,13 @@ final class ModeledConversionValueDeliveryReader
             if(is_array($receipt)&&is_int($receipt['errors']??null)&&$receipt['errors']>=0&&$receipt['errors']<=100)$out['last_tick_errors']=$receipt['errors'];
             $tick=(int)($s['last_tick_unix']??0);if($tick>=$activation&&$tick<=$now)$out['last_tick_at']=gmdate('Y-m-d\\TH:i:s\\Z',$tick);
             $out['metrika_goal_report']=$this->report($receipt['metrika_report']??null,$activation,$now);
+            $out['historical_review']=['date'=>'2026-11-02','timezone'=>'Europe/Kaliningrad',
+                'configured'=>is_numeric($s['history_from_unix']??null)&&(int)$s['history_from_unix']===1793570400&&(int)$s['history_until_unix']===1793656800,
+                'completed'=>is_numeric($s['history_completed_at_unix']??null)&&(int)$s['history_completed_at_unix']<=$now,
+                'profiles_scanned'=>is_numeric($s['history_scanned']??null)?$this->number($s['history_scanned'],false):null,
+                'events_collected'=>is_numeric($s['history_collected']??null)?$this->number($s['history_collected'],false):null,
+                'historical_events_in_ledger_window'=>$this->number($r['historical_events'],false),
+                'not_prospective_forecasts'=>true];
             $out['interpretation']=['values'=>'owner_assigned_advertising_estimates_not_actual_income',
                 'states_are_disjoint'=>true,'accepted_receipts_include_later_rejected_or_unmatched_rows'=>true,
                 'processed_means_validated_upload_rows_not_verified_visit_linkage'=>true,

@@ -113,3 +113,44 @@ Disjoint queue states, reserved/accepted/processed RUB subtotals, incremental
 stage subtotals, upload-status and fixed error counts are separate.201rows means
 coverage might be incomplete. No global people/trip or paid-cohort rate is inferred.
 API calls occur only in the existing background value step, never during MCP.
+
+
+## Explicit historical review: yesterday first
+
+The owner separately authorized the last two weeks, starting with2Nov2026 in
+Europe/Kaliningrad. The first finite operation is launch-history-20261102:
+1793570400 <= original profile/source clocks <1793656800. Migration087 adds
+nullable historical origin/review time to the existing outbox and inactive
+cursor/ceiling/counters in existing settings. No new queue, process or timer.
+
+Only this exact historical operation accepts known admitted-profile wrapper
+versions independently of current source hashes. Original hashes/IDs/cutoffs
+remain intact. Typed roles, exact subject/reference bindings, available-at and
+day clocks, canonical semantic version, product and contrary evidence remain
+required; saved model stages pass the full canonical structural/digest validator.
+No legacy probability is published as a current early prediction. Ordinary live
+collection keeps its existing source namespace and prospective activation floor.
+
+The ordinary value tick reviews at most40 bounded metadata rows and2MiB of
+original immutable packets, at most128KiB each, then uses existing outbox identity,
+claims, receipts and UNKNOWN reconciliation. The historical high-watermark includes
+all reserved live and historical values, so repetition/overlapping stages cannot
+increase a conversation beyond its existing25000RUB cap. Current access, personal
+binding, destination gate and later contrary evidence are checked; denied/unknown
+does not become an assumed positive. No original dialogue, profile, read marker
+or customer send is changed.
+
+The conversion timestamp is when the historical advertising value is assigned,
+while value_profile_id retains the original dated evidence and
+value_reviewed_at_unix distinguishes this from a saved early forecast. It is
+neither a bank payment time nor a backdated prediction. The private reader exposes
+historical progress and includes legitimate historical rows in the same receipt
+and goal-session checks; public operational output contains technical state only.
+
+A unique anytour-value-history-1292 merge marker permits the existing finite
+configuration workflow to launch only this fixed day after all7 current release
+gates and exact-main/server checks. It never creates a goal, enables a disabled
+sender, resets activation/cursors or repeats a completed historical window.
+Remaining authorized dates require subsequent explicit finite windows; they are
+not claimed complete by this first-day operation. Positive natural upload and
+provider receipt must still be observed privately after installation.
