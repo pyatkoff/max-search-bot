@@ -1,0 +1,97 @@
+{
+  "operation": "commercial-hotel-stock-20261102-12-read1",
+  "state": "BOUNDED_CATALOG_STOCK_READ_PREPARED",
+  "goal": "Resolve up to25 candidate hotel identities and live registry duplicates in one existing read-only server invocation.",
+  "boundaries": "Fixed Egypt name aliases; no customers, provider calls, message sends, imports, new workers or pending operation replays.",
+  "criteria": "Actual active catalog names/regions/ratings; registry counts for current authorized channels; ambiguous or published matches held; no draft credited as published.",
+  "risks": "Names are candidates until exact catalog results arrive; broad aliases can return separate neighboring products.",
+  "candidate_groups": {
+    "jaz-grand-marsa": [
+      "jaz grand marsa",
+      "джаз гранд марса"
+    ],
+    "jaz-samaya": [
+      "jaz samaya",
+      "джаз самая"
+    ],
+    "jaz-elite-maraya": [
+      "jaz elite maraya",
+      "jaz maraya"
+    ],
+    "jaz-costa-mares": [
+      "jaz costa mares",
+      "джаз коста марес"
+    ],
+    "jaz-elite-amara": [
+      "jaz elite amara",
+      "jaz amara"
+    ],
+    "jaz-soma-beach": [
+      "jaz soma beach"
+    ],
+    "jaz-belvedere": [
+      "jaz belvedere"
+    ],
+    "jaz-mirabel-beach": [
+      "jaz mirabel beach"
+    ],
+    "jaz-fayrouz": [
+      "jaz fayrouz",
+      "fayrouz resort"
+    ],
+    "jaz-neo-reef-marsa": [
+      "neo reef marsa",
+      "solymar reef marsa"
+    ],
+    "steigenberger-coraya-beach": [
+      "steigenberger coraya beach",
+      "coraya beach"
+    ],
+    "steigenberger-alaya": [
+      "steigenberger alaya"
+    ],
+    "steigenberger-ras-soma": [
+      "steigenberger ras soma"
+    ],
+    "iberotel-makadi-beach": [
+      "iberotel makadi beach"
+    ],
+    "albatros-citadel": [
+      "albatros citadel",
+      "citadel resort"
+    ],
+    "albatros-sands-port-ghalib": [
+      "sands port ghalib"
+    ],
+    "albatros-palace-port-ghalib": [
+      "palace port ghalib"
+    ],
+    "albatros-oasis-port-ghalib": [
+      "oasis port ghalib"
+    ],
+    "albatros-jungle-neverland": [
+      "jungle aqua park",
+      "neverland jungle"
+    ],
+    "albatros-aqua-park-sharm": [
+      "albatros aqua park sharm"
+    ],
+    "albatros-aqua-blu-sharm": [
+      "albatros aqua blu resort sharm",
+      "albatros aqua blu sharm"
+    ],
+    "beach-albatros": [
+      "beach albatros resort"
+    ],
+    "desert-rose": [
+      "desert rose"
+    ],
+    "sunrise-remal-resort": [
+      "sunrise remal resort"
+    ],
+    "reef-oasis-beach": [
+      "reef oasis beach"
+    ]
+  },
+  "baseline_logical_materials": 54
+}
