@@ -1,12 +1,14 @@
 {
   "operation": "commercial-hotel-three-20261102-7-v1",
-  "state": "PREPARED_NOT_SENT",
+  "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED",
   "catalog_ids": [
     9373,
     32577,
     4191
   ],
   "logical_materials": 3,
-  "confirmed_total_logical_materials": 24,
-  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41437445761"
+  "new_posts": 6,
+  "reused_posts": 0,
+  "confirmed_total_logical_materials": 27,
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41437732988"
 }
