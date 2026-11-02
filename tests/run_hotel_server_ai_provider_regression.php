@@ -9,9 +9,9 @@ function haReject(callable $fn,string $label,?string $reason=null):void{
 }
 function haCount(PDO $p,string $table):int{return (int)$p->query('SELECT COUNT(*) FROM '.$table)->fetchColumn();}
 function haPolicy():array{
-    return ['source_mode'=>'assigned_retained_excerpts','model'=>ManagerDraftClient::requestBody('',[])['model'],'budget_attestation_sha256'=>hash('sha256','synthetic budget policy, not pricing'),
+    return ['source_mode'=>'assigned_retained_excerpts','model'=>ManagerDraftClient::requestBody('',[])['model'],'profile_sha256'=>hash('sha256',HotelServerInputs::json(ManagerDraftClient::hotelRuntimeProfile())),'budget_attestation_sha256'=>hash('sha256','synthetic budget policy, not pricing'),
         'valid_until'=>1800086400,'max_source_age_seconds'=>86400,'max_scopes'=>1,'request_byte_ceiling'=>ManagerDraftClient::MAX_REQUEST_BYTES,
-        'input_token_ceiling'=>50000,'principals'=>['producer'=>'synthetic-producer-policy-v1','reviewer'=>'synthetic-review-policy-v1']];
+        'input_token_ceiling'=>50000,'reserved_micros_minimum'=>10000,'principals'=>['producer'=>'synthetic-producer-policy-v1','reviewer'=>'synthetic-review-policy-v1']];
 }
 function haViews():array{
     $excerpt='Synthetic hotel evidence: a pool is available.';$source=['url'=>'https://hotel.example.test/facts','excerpt'=>$excerpt,'sha256'=>hash('sha256',$excerpt),'captured_at'=>1799999900,'kind'=>'retained_excerpt'];
@@ -68,9 +68,14 @@ haCheck(isset(ManagerDraftClient::parseHotelResponse(HotelServerInputs::json($v)
 haCheck(ManagerDraftClient::parseHotelResponse('PRIVATE_PROVIDER_BODY',500)===['_error'=>'provider_unavailable'],'provider body never leaks');
 $policy=haPolicy();$policy['principals']['reviewer']=$policy['principals']['producer'];
 haReject(fn()=>new HotelServerAiProvider($policy),'separate principal policies required');
+$badProfile=haPolicy();$badProfile['profile_sha256']=str_repeat('a',64);
+haReject(fn()=>new HotelServerAiProvider($badProfile),'existing reasoning/tier/output profile must match private policy','hotel_provider_profile_mismatch');
 $state=(object)['calls'=>0,'bodies'=>[]];$expired=haPolicy();$expired['valid_until']=1799999999;
 $adapter=new HotelServerAiProvider($expired,haMock($state),static fn()=>1800000000);
 haCheck(!$adapter->ready('producer',haPolicy()['model'])&&$state->calls===0,'expiry readiness is local and makes no calls');
+$policyA=haPolicy();$policyB=haPolicy();$policyB['max_source_age_seconds']=1000;
+$aPolicy=new HotelServerAiProvider($policyA,haMock($state),static fn()=>1800000000);$bPolicy=new HotelServerAiProvider($policyB,haMock($state),static fn()=>1800000000);
+haCheck($aPolicy->principal('producer')!==$bPolicy->principal('producer'),'policy revision is pinned in immutable attempt principal');
 
 $f=hsFixture();try{
     $state=(object)['calls'=>0,'bodies'=>[]];$adapter=haCycle($f,$state);
@@ -104,7 +109,7 @@ foreach(['fabricate','partial','insufficient','refuse','incomplete','timeout'] a
         haCheck($state->calls===$nCalls&&$f['cycle']->status('NEW')['new_accepted']===0,'no retry or credit after invalid quote/partial review/lost ACK');
     }finally{hsCleanup($f);}
 }
-foreach(['missing','stale','hash','private_url','budget'] as $mode){
+foreach(['missing','stale','hash','private_url','budget','money'] as $mode){
     $f=hsFixture();try{
         $views=haViews();$policy=haPolicy();
         $slice=json_decode($views[0]['dependencies']['archives'],true,64,JSON_THROW_ON_ERROR);
@@ -113,6 +118,7 @@ foreach(['missing','stale','hash','private_url','budget'] as $mode){
         if($mode==='hash'){$slice['sources'][0]['sha256']=str_repeat('a',64);$views[0]['dependencies']['archives']=HotelServerInputs::json($slice);}
         if($mode==='private_url'){$slice['sources'][0]['url']='https://127.0.0.1/';$views[0]['dependencies']['archives']=HotelServerInputs::json($slice);}
         if($mode==='budget')$policy['request_byte_ceiling']=100;
+        if($mode==='money')$policy['reserved_micros_minimum']=10001;
         $state=(object)['calls'=>0,'bodies'=>[]];haCycle($f,$state,$views,$policy);
         haReject(fn()=>$f['cycle']->tick('NEW'),'source or budget preflight holds before send');
         haCheck($state->calls===0&&haCount($f['p'],'hotel_server_attempts')===0,'local rejection precedes UNKNOWN/attempt/provider');

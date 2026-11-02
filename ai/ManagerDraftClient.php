@@ -39,6 +39,10 @@ final class ManagerDraftClient
             &&!preg_match('/[\\x00-\\x20\\x7F]/',OPENAI_API_KEY);
     }
 
+    /** Existing configured profile only; no key, network or settings write. */
+    public static function hotelRuntimeProfile(): array
+    { return array_intersect_key(self::requestBody('',[]),array_flip(['model','reasoning','service_tier','max_output_tokens','store'])); }
+
     /** Pure, role-specific schema projection; no tools, images, retries or new model settings. */
     public static function hotelRequestBody(string $role,string $instructions,array $payload,array $schema): array
     {

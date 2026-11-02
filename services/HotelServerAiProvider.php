@@ -11,15 +11,16 @@ final class HotelServerAiProvider implements HotelServerPreparedProvider
 {
     private array $seenResponses=[];
     private array $sentAttempts=[];
+    private string $revision;
     public function __construct(private array $policy,private $client=null,private $clock=null)
     {
         if(($policy['source_mode']??null)!=='assigned_retained_excerpts')throw new InvalidArgumentException('hotel_source_mode_required');
         if(($client!==null&&!is_callable($client))||($clock!==null&&!is_callable($clock)))throw new InvalidArgumentException('hotel_provider_configuration');
-        foreach(['budget_attestation_sha256'] as $k)HotelServerInputs::sha($policy[$k]??null);
-        foreach(['valid_until','max_source_age_seconds','max_scopes','request_byte_ceiling','input_token_ceiling'] as $k)
+        foreach(['budget_attestation_sha256','profile_sha256'] as $k)HotelServerInputs::sha($policy[$k]??null);
+        foreach(['valid_until','max_source_age_seconds','max_scopes','request_byte_ceiling','input_token_ceiling','reserved_micros_minimum'] as $k)
             if(!is_int($policy[$k]??null)||$policy[$k]<1)throw new InvalidArgumentException('hotel_provider_policy_required');
         if($policy['max_scopes']>4||$policy['request_byte_ceiling']>ManagerDraftClient::MAX_REQUEST_BYTES
-            ||$policy['input_token_ceiling']>1000000||$policy['max_source_age_seconds']>31536000)throw new InvalidArgumentException('hotel_provider_policy_bounds');
+            ||$policy['reserved_micros_minimum']>2000000000||$policy['input_token_ceiling']>1000000||$policy['max_source_age_seconds']>31536000)throw new InvalidArgumentException('hotel_provider_policy_bounds');
         foreach(['producer','reviewer'] as $role){
             $id=$policy['principals'][$role]??null;
             if(!is_string($id)||!preg_match('/\A[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}\z/D',$id))throw new InvalidArgumentException('hotel_provider_principals_required');
@@ -27,18 +28,21 @@ final class HotelServerAiProvider implements HotelServerPreparedProvider
         if($policy['principals']['producer']===$policy['principals']['reviewer'])throw new InvalidArgumentException('independent_reviewer_required');
         $profile=$this->profile();
         if(($policy['model']??null)!==$profile['model'])throw new InvalidArgumentException('hotel_provider_model_mismatch');
+        if(!hash_equals($policy['profile_sha256'],hash('sha256',HotelServerInputs::json($profile))))throw new InvalidArgumentException('hotel_provider_profile_mismatch');
+        $this->revision=hash('sha256',HotelServerInputs::json([$policy,$profile,
+            hash('sha256',self::instructions('producer')),hash('sha256',self::instructions('reviewer'))]));
     }
 
     public function ready(string $role,string $model): bool
     {
         return in_array($role,['producer','reviewer'],true)&&$model===$this->policy['model']
-            &&$this->profile()['model']===$model&&$this->now()<$this->policy['valid_until']
+            &&$this->profile()['model']===$model&&hash_equals($this->policy['profile_sha256'],hash('sha256',HotelServerInputs::json($this->profile())))&&$this->now()<$this->policy['valid_until']
             &&($this->client!==null||ManagerDraftClient::hotelTransportAvailable());
     }
     public function principal(string $role): string
     {
         if(!in_array($role,['producer','reviewer'],true))throw new DomainException('hotel_provider_role');
-        return $this->policy['principals'][$role];
+        return $this->policy['principals'][$role].':'.$this->revision;
     }
 
     /** Local only; the core invokes this before UNKNOWN/budget/outbox persistence. */
@@ -69,7 +73,7 @@ final class HotelServerAiProvider implements HotelServerPreparedProvider
         $out=['attempt_id'=>$request['attempt_id'],'principal'=>$request['principal'],
             'baseline_sha256'=>$request['baseline_sha256'],'inputs_sha256'=>$request['inputs_sha256'],
             'provider_response_id'=>$id,'provider_model'=>$meta['model'],'provider_usage'=>$usage,
-            'profile_sha256'=>hash('sha256',HotelServerInputs::json($this->profile())),
+            'profile_sha256'=>hash('sha256',HotelServerInputs::json($this->profile())),'provider_policy_sha256'=>$this->revision,
             'budget_attestation_sha256'=>$this->policy['budget_attestation_sha256'],
             'usage'=>['tokens'=>$usage['total_tokens'],'micros'=>$request['limits']['micros_per_call'],
                 'micros_kind'=>'full_reserved_ceiling_not_provider_invoice']];
@@ -174,7 +178,7 @@ final class HotelServerAiProvider implements HotelServerPreparedProvider
         $body=ManagerDraftClient::hotelRequestBody($r['role'],$instructions,$payload,$schema);
         if(strlen(json_encode($body,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))>$this->policy['request_byte_ceiling']
             ||!is_int($r['limits']['tokens_per_call']??null)||$r['limits']['tokens_per_call']<$this->policy['input_token_ceiling']+$body['max_output_tokens']
-            ||!is_int($r['limits']['micros_per_call']??null)||$r['limits']['micros_per_call']<1)throw new DomainException('hotel_provider_budget_not_admitted');
+            ||!is_int($r['limits']['micros_per_call']??null)||$r['limits']['micros_per_call']<$this->policy['reserved_micros_minimum'])throw new DomainException('hotel_provider_budget_not_admitted');
         return compact('payload','instructions','schema','sources');
     }
 
@@ -223,8 +227,7 @@ final class HotelServerAiProvider implements HotelServerPreparedProvider
 
     private function profile(): array
     {
-        $b=ManagerDraftClient::requestBody('',[]);
-        return array_intersect_key($b,array_flip(['model','reasoning','service_tier','max_output_tokens','store']));
+        return ManagerDraftClient::hotelRuntimeProfile();
     }
     private function publicHttps(string $url): bool
     {
