@@ -1,0 +1,72 @@
+{
+  "operation": "commercial-hotel-batch-20261102-13-v1",
+  "state": "TEN_IDENTITIES_CONFIRMED_FACTS_FOUND_OFFICIAL_MEDIA_PENDING_NOT_SENT",
+  "goal": "Prepare up to10 whole hotel posts from confirmed stock using primary pages with readable facts and real photos.",
+  "boundaries": "Ten exact existing native identities only; no old sends, new lookup, prices, ads or customer actions. Do not wait for unresolved JAZ PDFs.",
+  "criteria": "3–4 factual properties, important distinction/limit, true general hotel photo, accepted AnyTour cover/button, existing current publication/once safeguards.",
+  "risks": "Nearby Port Ghalib and Aqua hotels must remain distinct; shared facilities do not imply unrestricted access or free use.",
+  "baseline_logical_materials": 56,
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "hotel_id": 150,
+      "hotel": "Pickalbatros Citadel",
+      "main": "https://www.pickalbatros.com/citadel-resort-sahl-hasheesh",
+      "facts": "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-citadel-sahl-hasheesh"
+    },
+    {
+      "hotel_id": 172,
+      "hotel": "Pickalbatros Sands Port Ghalib",
+      "main": "https://www.pickalbatros.com/sands-hotel-port-ghalib",
+      "facts": "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-sands-hotel-port-ghalib"
+    },
+    {
+      "hotel_id": 275,
+      "hotel": "Pickalbatros The Palace Port Ghalib",
+      "main": "https://www.pickalbatros.com/palace-hotel-port-ghalib",
+      "facts": "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-palace-hotel-port-ghalib"
+    },
+    {
+      "hotel_id": 173,
+      "hotel": "Pickalbatros Oasis Port Ghalib",
+      "main": "https://www.pickalbatros.com/oasis-hotel-port-ghalib",
+      "facts": "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-oasis-hotel-port-ghalib"
+    },
+    {
+      "hotel_id": 110,
+      "hotel": "Pickalbatros Jungle Aqua Park",
+      "main": "https://www.pickalbatros.com/jungle-aqua-park-resort-neverland-hurghada",
+      "facts": "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-jungle-aqua-park-resort"
+    },
+    {
+      "hotel_id": 57028,
+      "hotel": "Pickalbatros Aqua Park Sharm",
+      "main": "https://www.pickalbatros.com/aqua-park-resort-sharm-el-sheikh",
+      "facts": "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-aqua-park-sharm-el-sheikh"
+    },
+    {
+      "hotel_id": 125,
+      "hotel": "Pickalbatros Aqua Blu Sharm",
+      "main": "https://www.pickalbatros.com/aqua-blu-resort-sharm-el-sheikh",
+      "facts": "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-aqua-blu-resort-sharm-el-sheikh"
+    },
+    {
+      "hotel_id": 132,
+      "hotel": "Beach Albatros Resort Hurghada",
+      "main": "https://www.pickalbatros.com/beach-albatros-resort-hurghada",
+      "facts": "https://knowledge-hub.pickalbatros.com/hotel/beach-albatros-resort"
+    },
+    {
+      "hotel_id": 178,
+      "hotel": "Desert Rose",
+      "main": "https://desertrose.com/?lang=en",
+      "facts": "https://desertrose.com/?lang=en"
+    },
+    {
+      "hotel_id": 371,
+      "hotel": "Reef Oasis Beach Resort",
+      "main": "https://www.reefoasisresorts.com/reef-oasis-beach-resorts",
+      "facts": "https://www.reefoasisresorts.com/reef-oasis-beach-resorts-facilities"
+    }
+  ]
+}
