@@ -2,6 +2,7 @@
 declare(strict_types=1);
 if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
 require_once dirname(__DIR__).'/services/ModeledConversionStream.php';
+require_once dirname(__DIR__).'/services/ModeledConversionForecastStatusReader.php';
 
 function modeledStreamSchema(PDO $p): void
 {
@@ -338,11 +339,64 @@ function modeledServiceProfileAssertions(PDO $p,callable $check):void
         &&$p->query('SELECT profile_json FROM modeled_conversion_profile_versions WHERE id='.$firstId)->fetchColumn()===$firstJson);
 }
 
+/** Actual request/reply/receipt writes and the real private reader share the same immutable packet. */
+function modeledHandoffProfileAssertions(PDO $p,callable $check):void
+{
+    modeledStreamSchema($p);modeledProfileSchema($p);$now=1793002000;
+    $source=new ModeledConversionStream($p);$profiles=new ModeledConversionProfiles($p);
+    modeledStreamMessage($p,10,11);$source->start($now);
+    modeledStreamMessage($p,11,11,'Подберите тур в Турцию на 7 ночей, 2 взрослых.');
+    modeledStreamMessage($p,12,11,'Уточните даты поездки','manager');
+    $event=static function(int $id,string $type,array $payload,int $at)use($p):void{
+        $p->prepare('INSERT INTO conversation_events VALUES (?,?,?,?,?,?)')->execute([$id,11,$type,'manager',
+            json_encode(ConversationRecordClock::stamp($payload,$at),JSON_THROW_ON_ERROR),gmdate('Y-m-d H:i:s',$at)]);
+    };
+    $event(1,'manager_message',['channel'=>'max','project_key'=>'anytour'],$now);
+    $source->tick($now+1);$profiles->start();
+    $tables=['messages','conversation_events','conversations','customer_channels','advertising_visit_observations'];
+    foreach($tables as$table)$p->exec('ALTER TABLE '.$table.' RENAME TO unavailable_'.$table);
+    try{
+        $receipt=$profiles->tick($now+2);
+        $mysql=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
+        if($mysql)$p->exec('SET SESSION TRANSACTION READ ONLY');
+        try{$read=(new ModeledConversionForecastStatusReader($p,static function():void{},new ModeledConversionStatusBudget()))->read();}
+        finally{if($mysql)$p->exec('SET SESSION TRANSACTION READ WRITE');}
+    }finally{foreach(array_reverse($tables)as$table)$p->exec('ALTER TABLE unavailable_'.$table.' RENAME TO '.$table);}
+    $v=modeledProfileLatest($p);$prediction=$v['semantic_prediction'];
+    $firstId=(int)$p->query('SELECT id FROM modeled_conversion_profile_versions ORDER BY id LIMIT 1')->fetchColumn();
+    $firstJson=$p->query('SELECT profile_json FROM modeled_conversion_profile_versions WHERE id='.$firstId)->fetchColumn();
+    $check('ordinary request manager reply and canonical receipt save a numeric immutable prediction',
+        $receipt['profiles_written']===1&&$prediction['stage']==='concrete_request'
+        &&$prediction['estimated_probability']===0.083333&&$prediction['current_customer_turn_count']===1
+        &&$v['contextual_signals']['engagement']['manager_turns']===1
+        &&$v['contextual_signals']['coverage']['prediction_source_continuity']['preserved_handoff_receipts']===1);
+    $check('actual private reader confirms the ordinary writer packet with no native source tables',
+        $read['saved']['prospective_estimates']===1&&$read['window']['invalid_blocks']===0
+        &&$read['saved']['estimated_probability_range']['minimum']===0.083333
+        &&$read['input_coverage']['profiles_with_request_anchor']===1
+        &&$read['input_coverage']['source_continuity']['preserved_handoff_receipts']['recorded_total']===1);
+    $event(2,'manager_taken',[],$now+3);$source->tick($now+4);$profiles->tick($now+5);
+    $later=modeledProfileLatest($p);
+    $check('assignment receipt keeps the early anchor percentage and prior digest without rewriting it',
+        $later['semantic_prediction']['current_request_anchor']===$prediction['current_request_anchor']
+        &&$later['semantic_prediction']['estimated_probability']===$prediction['estimated_probability']
+        &&$later['prediction_followup']['prior_prediction_digest']===$prediction['prediction_digest']
+        &&$p->query('SELECT profile_json FROM modeled_conversion_profile_versions WHERE id='.$firstId)->fetchColumn()===$firstJson);
+    modeledStreamMessage($p,13,11,'Оплату вижу','manager');
+    $event(3,'manager_message',['channel'=>'max','project_key'=>'anytour'],$now+6);
+    $source->tick($now+7);$profiles->tick($now+8);$paid=modeledProfileLatest($p);
+    $check('service receipt cannot erase actual payment wording or make old wording a future outcome',
+        $paid['semantic_prediction']['status']==='known_outcome'&&$paid['semantic_prediction']['estimated_probability']===null
+        &&$paid['contextual_signals']['goal_counts']['manager_payment_ack']>0
+        &&$paid['prediction_followup']['status']!=='observed'
+        &&$p->query('SELECT profile_json FROM modeled_conversion_profile_versions WHERE id='.$firstId)->fetchColumn()===$firstJson);
+}
+
 if(realpath($_SERVER['SCRIPT_FILENAME']??'')===__FILE__){
     $p=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
     modeledStreamSchema($p);$passed=0;
     $check=static function(string $name,bool $ok)use(&$passed){if(!$ok)throw new RuntimeException('FAIL '.$name);$passed++;echo 'PASS '.$name.PHP_EOL;};
-    modeledStreamAssertions($p,$check);modeledStreamSchedulerAssertions($check);modeledProfileAssertions($p,$check);modeledServiceProfileAssertions($p,$check);
+    modeledStreamAssertions($p,$check);modeledStreamSchedulerAssertions($check);modeledProfileAssertions($p,$check);modeledServiceProfileAssertions($p,$check);modeledHandoffProfileAssertions($p,$check);
     echo 'MODELED CONVERSION STREAM PASSED '.$passed.PHP_EOL;
 }
 

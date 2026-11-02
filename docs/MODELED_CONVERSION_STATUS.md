@@ -221,3 +221,23 @@ The same20metadata/4packet/48KiB/shared64KiB/five-second limits and final OAuth
 checks remain;12KiB is reserved for authorization and the complete response.
 No input filters, endpoint, scope, connection or native/source-table read is
 added. Natural diagnostic values remain private; source tests prove mechanics.
+
+
+### V1.2 source continuity and rejection categories
+
+The same default `forecasts:read` tool now reports
+`saved_semantic_prediction_status_v1_2`. It retains the current-model suffix,
+20metadata/4packets/48KiB bounds inside64KiB/5seconds. Optional fixed continuity
+counters come from the same selected frozen input summary: preserved AI replies,
+preserved handoff receipts and barriers caused by unresolved clock, long gap,
+unavailable message/event/other source. Every counter is a typed integer0..50;
+missing or invalid optional counters remain unknown, including older packets.
+They never manufacture intent, probability or payment evidence.
+
+Four fixed rejection categories distinguish invalid JSON, parent binding,
+prediction contract and required input summary. They carry no raw reason,
+message, event type, identifier, hash or new source query. A rejected packet is
+still omitted from numeric confirmation. Source barrier counters are not all
+semantic episode resets. Actual percentages still require a validated current
+model block and dated customer evidence; installation/CI and a fresh packet alone
+do not prove a new inquiry, model accuracy or complete channel coverage.
