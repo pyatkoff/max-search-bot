@@ -1,18 +1,19 @@
 <?php
 declare(strict_types=1);
-/* DRAFT ONLY. Read-only proof of saved first acceptance and an actual next provider result.
+/* DRAFT ONLY. One new read-only completion snapshot and exact accepted-delta export for later review.
  * No provider object/send/tick, schema/data/file mutation or scheduler operation.
  */
 const HOTEL_EXPECTED_INSTALLED_SHA='326048d7e9ee3b035699f2b5385d07e5f0b3db8d';
 const HOTEL_OPERATION='8e4c0372a0338bc98429d47bc0fe3327238f5be69d94c7d28dbf977647a85e35';
 const HOTEL_CAMPAIGN='HOTEL-SERVER-20261102';
-const HOTEL_ACTIVATION_KIND='hotel-server-private-status-v1';
+const HOTEL_ACTIVATION_KIND='hotel-server-private-completion-v1';
+const HOTEL_EXPECTED_RUNTIME_SHA='83cfad5a569b5038984f34cb48ff5cfb33f14f078c1eb64455de5bbfa691303d';
 const HOTEL_RECEIPT_RECIPIENT_SHA='71f2b177d6baa924fa466765027c37f51a00f23f803a6d900060bf42944d237d';
 ini_set('display_errors','0');ini_set('log_errors','0');
 $level=ob_get_level();ob_start(static fn(string $ignored):string=>'');$pdo=null;
 $report=['schema'=>HOTEL_ACTIVATION_KIND,'operation_id'=>HOTEL_OPERATION,'campaign_id'=>HOTEL_CAMPAIGN,
     'state'=>'HOLD','operator_provider_calls'=>0,'database_writes'=>0,'server_file_writes'=>0,
-    'first_new_acceptance_confirmed'=>false,'next_provider_call_confirmed'=>false];
+    'all_four_acceptances_confirmed'=>false,'carry_forward_ready'=>false];
 
 function hotelFail(string $reason): never { throw new DomainException($reason); }
 
@@ -159,6 +160,59 @@ function hotelCandidate(PDO $pdo,int $stage,string $producer,string $candidateSh
     if($actual!==$keys||count(array_unique($actual))!==count($actual))hotelFail('candidate_scope_unconfirmed');
     return ['row'=>$row,'document'=>$candidate,'semantic_keys'=>$actual];
 }
+/** One already accepted stage, including exact canonical bytes required for a later seed. */
+function hotelAcceptedStage(PDO $pdo,int $stage,array $receiptRow,string $previousBaseline,string $inputPin,array $plan,array $policy,string $revision,string $criteria): array {
+    $attempts=[];
+    foreach(['producer','reviewer'] as $role){
+        $row=hotelOne($pdo,'SELECT attempt_id,campaign_id,stage_index,role,principal,state,baseline_sha256,request_sha256,request_bytes,result_sha256,result_bytes FROM hotel_server_attempts WHERE campaign_id=? AND stage_index=? AND role=?',[HOTEL_CAMPAIGN,$stage,$role]);
+        if($row!==null)$attempts[$role]=hotelAttempt($pdo,$row,$stage,$role,$previousBaseline,$inputPin,$plan,$policy,$revision,$criteria);
+    }
+    $receiptBytes=hotelRowBytes($receiptRow,'receipt_bytes','receipt_sha256',65536);$receipt=hotelJson($receiptBytes);
+    hotelKeys($receipt,['schema','campaign_id','stage_index','candidate_sha256','producer_attempt','review_attempt',
+        'previous_baseline_sha256','baseline_sha256','inputs_sha256','new_acceptance_credit','historical_accepted','retained_admission']);
+    if(HotelServerInputs::json($receipt)!==$receiptBytes)hotelFail('receipt_canonical_bytes_unconfirmed');
+    if(($receipt['schema']??null)!=='hotel-server-acceptance-v1'||($receipt['campaign_id']??null)!==HOTEL_CAMPAIGN||($receipt['stage_index']??null)!==$stage
+        ||($receipt['new_acceptance_credit']??null)!==1||($receipt['historical_accepted']??null)!==19||($receipt['inputs_sha256']??null)!==$inputPin
+        ||($receipt['previous_baseline_sha256']??null)!==$previousBaseline)hotelFail('accepted_stage_unconfirmed');
+    hotelAdmission($receipt['retained_admission']??null);$newBaseline=hotelHash($receipt['baseline_sha256']??null);$candidateSha=hotelHash($receipt['candidate_sha256']??null);
+    if($newBaseline===$previousBaseline||!isset($attempts['producer'],$attempts['reviewer']))hotelFail('accepted_stage_lineage_missing');
+    $producer=$attempts['producer'];$reviewer=$attempts['reviewer'];
+    if($producer['result']===null||$reviewer['result']===null||isset($producer['result']['provider_outcome'])||isset($reviewer['result']['provider_outcome'])
+        ||$receipt['producer_attempt']!==$producer['row']['attempt_id']||$receipt['review_attempt']!==$reviewer['row']['attempt_id']
+        ||$producer['row']['attempt_id']===$reviewer['row']['attempt_id']||$producer['row']['principal']===$reviewer['row']['principal']
+        ||$producer['result']['provider_response_id']===$reviewer['result']['provider_response_id'])hotelFail('independent_provider_lineage_unconfirmed');
+    $candidate=hotelCandidate($pdo,$stage,$receipt['producer_attempt'],$candidateSha,$plan['stages'][$stage]);
+    if(HotelServerInputs::json($producer['result']['candidate']??null)!==$candidate['row']['candidate_bytes']
+        ||($reviewer['request']['candidate_sha256']??null)!==$candidateSha||HotelServerInputs::json($reviewer['request']['candidate']??null)!==$candidate['row']['candidate_bytes'])hotelFail('candidate_provider_link_unconfirmed');
+    $review=hotelOne($pdo,'SELECT campaign_id,stage_index,review_attempt,candidate_sha256,approved,review_bytes FROM hotel_server_reviews WHERE campaign_id=? AND stage_index=?',[HOTEL_CAMPAIGN,$stage]);
+    if($review===null||(int)$review['approved']!==1||$review['review_attempt']!==$receipt['review_attempt']||$review['candidate_sha256']!==$candidateSha
+        ||$review['review_bytes']!==$reviewer['row']['result_bytes']||($reviewer['result']['approved']??null)!==true
+        ||($reviewer['result']['candidate_sha256']??null)!==$candidateSha||($reviewer['result']['criteria_sha256']??null)!==$criteria
+        ||!is_string($reviewer['result']['evidence']??null)||trim($reviewer['result']['evidence'])==='')hotelFail('saved_approved_review_unconfirmed');
+    $checks=$reviewer['result']['review_checks']??null;if(!is_array($checks)||!array_is_list($checks))hotelFail('independent_scope_review_unconfirmed');$checked=[];
+    foreach($checks as $check){if(!is_array($check)||($check['approved']??null)!==true||!is_string($check['reason']??null)||trim($check['reason'])==='')hotelFail('independent_scope_review_unconfirmed');$checked[]=HotelServerInputs::key($check['scope']??[]);}
+    sort($checked);if($checked!==$candidate['semantic_keys'])hotelFail('independent_scope_review_unconfirmed');
+    $storedKeys=[];foreach($candidate['document']['records'] as $record){$key=HotelServerInputs::key($record['scope']);
+        $saved=hotelOne($pdo,'SELECT semantic_key,campaign_id,candidate_sha256,record_bytes FROM hotel_server_records WHERE semantic_key=?',[$key]);
+        if($saved===null||$saved['campaign_id']!==HOTEL_CAMPAIGN||$saved['candidate_sha256']!==$candidateSha||$saved['record_bytes']!==HotelServerInputs::json($record))hotelFail('new_accepted_record_not_saved');$storedKeys[]=$key;}
+    $delta=hotelOne($pdo,'SELECT campaign_id,baseline_sha256,parent_sha256,document_bytes FROM hotel_server_baselines WHERE campaign_id=? AND baseline_sha256=?',[HOTEL_CAMPAIGN,$newBaseline]);
+    if($delta===null||$delta['parent_sha256']!==$previousBaseline||hotelRowBytes($delta,'document_bytes','baseline_sha256',1048576)!==HotelServerInputs::json([
+        'schema'=>'hotel-server-baseline-v1','parent_sha256'=>$previousBaseline,'candidate_sha256'=>$candidateSha,'records'=>$candidate['document']['records']]))hotelFail('accepted_baseline_not_saved');
+    foreach(['producer','reviewer'] as $role){$out=hotelOutbox($pdo,$stage,$role);if($out===null||$out['state']!=='done'||$out['attempt_id']!==$attempts[$role]['row']['attempt_id'])hotelFail('accepted_outbox_lineage_unconfirmed');}
+    // Each raw canonical record occurs once in baseline_bytes. Byte spans avoid duplicate answers in the envelope.
+    $recordPins=[];$offset=0;$baselineBytes=$delta['document_bytes'];
+    foreach($candidate['document']['records'] as $record){
+        $bytes=HotelServerInputs::json($record);$at=strpos($baselineBytes,$bytes,$offset);
+        if($at===false)hotelFail('canonical_record_span_unconfirmed');$offset=$at+strlen($bytes);
+        $recordPins[]=['semantic_key'=>HotelServerInputs::key($record['scope']),'scope'=>$record['scope'],
+            'record_sha256'=>hash('sha256',$bytes),'byte_offset'=>$at,'byte_length'=>strlen($bytes)];
+    }
+    $proofs=[];foreach(['producer','reviewer'] as $role){$proofs[$role]=$attempts[$role]['proof'];unset($proofs[$role]['review_evidence']);}
+    return ['stage_index'=>$stage,'receipt_sha256'=>$receiptRow['receipt_sha256'],'receipt_bytes'=>$receiptBytes,
+        'baseline_sha256'=>$newBaseline,'parent_sha256'=>$previousBaseline,'baseline_bytes'=>$baselineBytes,
+        'candidate_sha256'=>$candidateSha,'records'=>$recordPins,'attempts'=>$proofs];
+}
+
 function hotelReadback(PDO $pdo,array $runtime,array $intent,array $admission,array $bootstrap,array $plan,array $policy,array $budget,array $manifest): array {
     $inputPin=hotelHash($admission['inputs_sha256']??null);$bootstrapPin=hotelHash($admission['bootstrap_sha256']??null);
     if(hash('sha256',HotelServerInputs::json([$inputPin,$plan]))!==$bootstrapPin||$runtime['bootstrap_sha256']!==$bootstrapPin
@@ -177,10 +231,9 @@ function hotelReadback(PDO $pdo,array $runtime,array $intent,array $admission,ar
         ||(int)$campaign['new_accepted']<0||(int)$campaign['new_accepted']>4||(int)$campaign['stage_cursor']<0||(int)$campaign['stage_cursor']>4
         ||(int)$campaign['reserved_calls']<0||(int)$campaign['reserved_calls']>8||(int)$campaign['reserved_tokens']>$plan['limits']['max_tokens']
         ||(int)$campaign['reserved_micros']>$plan['limits']['max_micros'])hotelFail('campaign_pin_unconfirmed');
-    $report=['state'=>'partial','reason'=>'first_acceptance_pending','observed_at_utc'=>gmdate('c'),'campaign_status'=>$status,
+    $report=['state'=>'partial','reason'=>'campaign_incomplete','observed_at_utc'=>gmdate('c'),'campaign_status'=>$status,
         'inputs_sha256'=>$inputPin,'bootstrap_sha256'=>$bootstrapPin,'runtime_sha256'=>$runtime['configuration_sha256'],
-        'retained_admission'=>$retained,'central41'=>'UNKNOWN','first_new_acceptance_confirmed'=>false,
-        'next_producer_attempt_exists'=>false,'next_provider_call_confirmed'=>false,'next_candidate_saved'=>false,
+        'retained_admission'=>$retained,'central41'=>'UNKNOWN','all_four_acceptances_confirmed'=>false,'carry_forward_ready'=>false,
         'cron_trigger_corroborated'=>false,'operator_provider_calls'=>0,'database_writes'=>0,'server_file_writes'=>0];
     $report['cron_health']=HotelWorkHealth::snapshot();
     $report['budget_observation']=['reserved_calls'=>(int)$campaign['reserved_calls'],'reserved_tokens'=>(int)$campaign['reserved_tokens'],
@@ -192,82 +245,88 @@ function hotelReadback(PDO $pdo,array $runtime,array $intent,array $admission,ar
         $row=hotelOne($pdo,'SELECT attempt_id,campaign_id,stage_index,role,principal,state,baseline_sha256,request_sha256,request_bytes,result_sha256,result_bytes FROM hotel_server_attempts WHERE campaign_id=? AND stage_index=? AND role=?',[HOTEL_CAMPAIGN,$current,$role]);
         if($row===null)continue;
         $observed=hotelAttempt($pdo,$row,$current,$role,$campaign['baseline_sha256'],$inputPin,$plan,$policy,$revision,$criteria);
-        $report['current_stage_attempts'][$role]=$observed['proof'];
+        $report['current_stage_attempts'][$role]=$observed['proof'];unset($report['current_stage_attempts'][$role]['review_evidence']);
         if($row['state']==='unknown')$report['current_attention_reason']='stage'.$current.'_'.$role.'_provider_outcome_unknown';
         if(($observed['result']['provider_outcome']??null)==='rejected')$report['current_attention_reason']='stage'.$current.'_'.$role.'_provider_rejected';
         if($role==='reviewer'&&($observed['result']['approved']??null)===false)$report['current_attention_reason']='stage'.$current.'_independent_review_rejected';
     }
-    $report['stage0_attempts']=[];$firstAttempts=[];
-    foreach(['producer','reviewer'] as $role){
-        $a=hotelOne($pdo,'SELECT attempt_id,campaign_id,stage_index,role,principal,state,baseline_sha256,request_sha256,request_bytes,result_sha256,result_bytes FROM hotel_server_attempts WHERE campaign_id=? AND stage_index=0 AND role=?',[HOTEL_CAMPAIGN,$role]);
-        if($a!==null){$firstAttempts[$role]=hotelAttempt($pdo,$a,0,$role,$originalBaseline,$inputPin,$plan,$policy,$revision,$criteria);$report['stage0_attempts'][$role]=$firstAttempts[$role]['proof'];}
+    if(!is_array($plan['stages']??null)||!array_is_list($plan['stages'])||count($plan['stages'])!==4
+        ||$current!==$status['stage_index']||$current!==$status['new_accepted'])hotelFail('four_stage_cursor_unconfirmed');
+    $counts=[];
+    foreach(['acceptance_receipts'=>'hotel_server_receipts','canonical_records'=>'hotel_server_records',
+        'baselines'=>'hotel_server_baselines','candidates'=>'hotel_server_candidates','reviews'=>'hotel_server_reviews',
+        'attempts'=>'hotel_server_attempts','work_outbox'=>'hotel_server_outbox','catalog_outbox'=>'hotel_server_catalog_outbox'] as $name=>$table){
+        $row=hotelOne($pdo,'SELECT COUNT(*) AS total FROM '.$table.' WHERE campaign_id=?',[HOTEL_CAMPAIGN]);
+        $counts[$name]=(int)$row['total'];
     }
-    $receiptRow=hotelOne($pdo,'SELECT campaign_id,stage_index,receipt_sha256,receipt_bytes FROM hotel_server_receipts WHERE campaign_id=? AND stage_index=0',[HOTEL_CAMPAIGN]);
-    if($receiptRow===null){
-        if($status['new_accepted']!==0)hotelFail('acceptance_receipt_missing');
-        foreach(['producer','reviewer'] as $role)if(isset($firstAttempts[$role])){
-            $a=$firstAttempts[$role];
-            if($a['row']['state']==='unknown')$report['reason']='stage0_'.$role.'_provider_outcome_unknown';
-            if(($a['result']['provider_outcome']??null)==='rejected')$report['reason']='stage0_'.$role.'_provider_rejected';
-            if($role==='reviewer'&&($a['result']['approved']??null)===false)$report['reason']='stage0_independent_review_rejected';
+    $stateCounts=hotelOne($pdo,"SELECT SUM(state='succeeded') AS succeeded,SUM(state='unknown') AS unknown_count FROM hotel_server_attempts WHERE campaign_id=?",[HOTEL_CAMPAIGN]);
+    $counts['succeeded_attempts']=(int)$stateCounts['succeeded'];$counts['unknown_attempts']=(int)$stateCounts['unknown_count'];
+    $outCounts=hotelOne($pdo,"SELECT SUM(state='done') AS done_count,SUM(state='pending') AS pending_count,SUM(state='unknown') AS unknown_count FROM hotel_server_outbox WHERE campaign_id=?",[HOTEL_CAMPAIGN]);
+    foreach(['done','pending','unknown'] as $state)$counts[$state.'_work_outbox']=(int)$outCounts[$state.'_count'];
+    $report['exact_counts']=$counts;
+    $anchor=hotelOne($pdo,'SELECT baseline_sha256,parent_sha256 FROM hotel_server_baselines WHERE campaign_id=? AND baseline_sha256=?',[HOTEL_CAMPAIGN,$originalBaseline]);
+    if($anchor===null||$anchor['parent_sha256']!==null)hotelFail('retained_baseline_anchor_unconfirmed');
+    $stages=[];$parent=$originalBaseline;$keys=[];$seenAttempts=[];$seenResponses=[];
+    $usage=['confirmed_calls'=>0,'input_tokens'=>0,'output_tokens'=>0,'total_tokens'=>0];
+    $track=static function(array $proof)use(&$seenAttempts,&$seenResponses,&$usage):void{
+        if(isset($seenAttempts[$proof['attempt_id']]))hotelFail('duplicate_attempt_identity');$seenAttempts[$proof['attempt_id']]=true;
+        if($proof['provider_call_confirmed']!==true)return;
+        if(isset($seenResponses[$proof['provider_response_id']]))hotelFail('duplicate_provider_response_identity');
+        $seenResponses[$proof['provider_response_id']]=true;$usage['confirmed_calls']++;
+        foreach(['input_tokens','output_tokens','total_tokens'] as $name)$usage[$name]+=$proof['provider_usage'][$name];
+    };
+    $report['latest_started_stage_index']=null;$report['latest_stage_attempts']=[];
+    for($stage=0;$stage<4;$stage++){
+        $row=hotelOne($pdo,'SELECT campaign_id,stage_index,receipt_sha256,receipt_bytes FROM hotel_server_receipts WHERE campaign_id=? AND stage_index=?',[HOTEL_CAMPAIGN,$stage]);
+        if($row===null)break;
+        $entry=hotelAcceptedStage($pdo,$stage,$row,$parent,$inputPin,$plan,$policy,$revision,$criteria);
+        foreach($entry['records'] as $record){
+            if(isset($keys[$record['semantic_key']]))hotelFail('duplicate_accepted_scope');$keys[$record['semantic_key']]=true;
         }
-        if($status['state']==='hold'&&$report['reason']==='first_acceptance_pending')$report['reason']='stage0_campaign_hold_without_acceptance';
-        $report['safe_continuation']='read_same_original_attempt_only_no_retry';return $report;
+        foreach($entry['attempts'] as $proof)$track($proof);
+        $parent=$entry['baseline_sha256'];$stages[]=$entry;
+        $report['latest_started_stage_index']=$stage;$report['latest_stage_attempts']=$entry['attempts'];
     }
-    $receipt=hotelJson(hotelRowBytes($receiptRow,'receipt_bytes','receipt_sha256',65536));
-    if(($receipt['schema']??null)!=='hotel-server-acceptance-v1'||($receipt['campaign_id']??null)!==HOTEL_CAMPAIGN||($receipt['stage_index']??null)!==0
-        ||($receipt['new_acceptance_credit']??null)!==1||($receipt['historical_accepted']??null)!==19||($receipt['inputs_sha256']??null)!==$inputPin
-        ||($receipt['previous_baseline_sha256']??null)!==$originalBaseline||$status['new_accepted']<1||$status['stage_index']<1)hotelFail('first_acceptance_unconfirmed');
-    hotelAdmission($receipt['retained_admission']??null);$newBaseline=hotelHash($receipt['baseline_sha256']??null);$candidateSha=hotelHash($receipt['candidate_sha256']??null);
-    if($newBaseline===$originalBaseline||!isset($firstAttempts['producer'],$firstAttempts['reviewer']))hotelFail('first_acceptance_lineage_missing');
-    $producer=$firstAttempts['producer'];$reviewer=$firstAttempts['reviewer'];
-    if($producer['result']===null||$reviewer['result']===null||isset($producer['result']['provider_outcome'])||isset($reviewer['result']['provider_outcome'])
-        ||$receipt['producer_attempt']!==$producer['row']['attempt_id']||$receipt['review_attempt']!==$reviewer['row']['attempt_id']
-        ||$producer['row']['attempt_id']===$reviewer['row']['attempt_id']||$producer['row']['principal']===$reviewer['row']['principal']
-        ||$producer['result']['provider_response_id']===$reviewer['result']['provider_response_id'])hotelFail('independent_provider_lineage_unconfirmed');
-    $candidate=hotelCandidate($pdo,0,$receipt['producer_attempt'],$candidateSha,$plan['stages'][0]);
-    if(HotelServerInputs::json($producer['result']['candidate']??null)!==$candidate['row']['candidate_bytes']
-        ||($reviewer['request']['candidate_sha256']??null)!==$candidateSha||HotelServerInputs::json($reviewer['request']['candidate']??null)!==$candidate['row']['candidate_bytes'])hotelFail('candidate_provider_link_unconfirmed');
-    $review=hotelOne($pdo,'SELECT campaign_id,stage_index,review_attempt,candidate_sha256,approved,review_bytes FROM hotel_server_reviews WHERE campaign_id=? AND stage_index=0',[HOTEL_CAMPAIGN]);
-    if($review===null||(int)$review['approved']!==1||$review['review_attempt']!==$receipt['review_attempt']||$review['candidate_sha256']!==$candidateSha
-        ||$review['review_bytes']!==$reviewer['row']['result_bytes']||($reviewer['result']['approved']??null)!==true
-        ||($reviewer['result']['candidate_sha256']??null)!==$candidateSha||($reviewer['result']['criteria_sha256']??null)!==$criteria
-        ||!is_string($reviewer['result']['evidence']??null)||trim($reviewer['result']['evidence'])==='')hotelFail('saved_approved_review_unconfirmed');
-    $checks=$reviewer['result']['review_checks']??null;if(!is_array($checks)||!array_is_list($checks))hotelFail('independent_scope_review_unconfirmed');$checked=[];
-    foreach($checks as $check){if(!is_array($check)||($check['approved']??null)!==true||!is_string($check['reason']??null)||trim($check['reason'])==='')hotelFail('independent_scope_review_unconfirmed');$checked[]=HotelServerInputs::key($check['scope']??[]);}
-    sort($checked);if($checked!==$candidate['semantic_keys'])hotelFail('independent_scope_review_unconfirmed');
-    $storedKeys=[];foreach($candidate['document']['records'] as $record){$key=HotelServerInputs::key($record['scope']);
-        $saved=hotelOne($pdo,'SELECT semantic_key,campaign_id,candidate_sha256,record_bytes FROM hotel_server_records WHERE semantic_key=?',[$key]);
-        if($saved===null||$saved['campaign_id']!==HOTEL_CAMPAIGN||$saved['candidate_sha256']!==$candidateSha||$saved['record_bytes']!==HotelServerInputs::json($record))hotelFail('new_accepted_record_not_saved');$storedKeys[]=$key;}
-    $delta=hotelOne($pdo,'SELECT campaign_id,baseline_sha256,parent_sha256,document_bytes FROM hotel_server_baselines WHERE campaign_id=? AND baseline_sha256=?',[HOTEL_CAMPAIGN,$newBaseline]);
-    if($delta===null||$delta['parent_sha256']!==$originalBaseline||hotelRowBytes($delta,'document_bytes','baseline_sha256',1048576)!==HotelServerInputs::json([
-        'schema'=>'hotel-server-baseline-v1','parent_sha256'=>$originalBaseline,'candidate_sha256'=>$candidateSha,'records'=>$candidate['document']['records']]))hotelFail('accepted_baseline_not_saved');
-    foreach(['producer','reviewer'] as $role){$out=hotelOutbox($pdo,0,$role);if($out===null||$out['state']!=='done'||$out['attempt_id']!==$firstAttempts[$role]['row']['attempt_id'])hotelFail('first_outbox_lineage_unconfirmed');}
-    $report['first_new_acceptance_confirmed']=true;$report['first_acceptance']=['receipt_sha256'=>$receiptRow['receipt_sha256'],'receipt'=>$receipt,
-        'candidate_sha256'=>$candidateSha,'saved_record_count'=>count($storedKeys),'saved_record_semantic_keys'=>$storedKeys,'baseline_sha256'=>$newBaseline,
-        'producer'=>$producer['proof'],'reviewer'=>$reviewer['proof'],'new_acceptance_credit'=>1];
-    $nextOut=hotelOutbox($pdo,1,'producer');$report['next_outbox']=$nextOut;$report['reason']='next_producer_not_created';
-    $nextRow=hotelOne($pdo,'SELECT attempt_id,campaign_id,stage_index,role,principal,state,baseline_sha256,request_sha256,request_bytes,result_sha256,result_bytes FROM hotel_server_attempts WHERE campaign_id=? AND stage_index=1 AND role=?',[HOTEL_CAMPAIGN,'producer']);
-    if($nextRow===null)return $report;
-    $report['next_producer_attempt_exists']=true;$next=hotelAttempt($pdo,$nextRow,1,'producer',$newBaseline,$inputPin,$plan,$policy,$revision,$criteria);
-    $report['next_producer']=$next['proof'];$report['reason']='next_provider_outcome_unknown';
-    if($nextOut===null||$nextOut['attempt_id']!==$nextRow['attempt_id'])hotelFail('next_outbox_attempt_unconfirmed');
-    if($next['result']===null)return $report;
-    if($nextOut['state']!=='done'||in_array($next['result']['provider_response_id'],[$producer['result']['provider_response_id'],$reviewer['result']['provider_response_id']],true))hotelFail('next_actual_provider_lineage_unconfirmed');
-    $report['next_provider_call_confirmed']=true;$report['reason']='next_provider_rejected';
-    if(isset($next['result']['provider_outcome']))return $report;
-    $nextCandidate=$next['result']['candidate']??null;if(!is_array($nextCandidate))hotelFail('next_candidate_unconfirmed');
-    $nextCandidateSha=hash('sha256',HotelServerInputs::json($nextCandidate));
-    $savedNext=hotelCandidate($pdo,1,$nextRow['attempt_id'],$nextCandidateSha,$plan['stages'][1]);
-    if($savedNext['row']['candidate_bytes']!==HotelServerInputs::json($nextCandidate))hotelFail('next_candidate_not_saved');
-    $report['next_candidate_saved']=true;$report['next_candidate_sha256']=$nextCandidateSha;$report['reason']='cron_trigger_not_corroborated';
-    $health=HotelWorkHealth::snapshot();$report['cron_health']=$health;$activationAt=strtotime((string)($intent['started_at']??''));$lastSuccess=strtotime((string)($health['last_success_at']??''));
-    $cron=($health['available']??null)===true&&($health['stale']??null)===false&&($health['trigger']??null)==='cron'
-        &&in_array($health['state']??null,['running','ok'],true)&&$activationAt!==false&&$lastSuccess!==false&&$lastSuccess>=$activationAt;
-    $report['cron_trigger_corroborated']=$cron;
-    if(!in_array($status['state'],['ready','candidate','reviewed','unknown','complete'],true)||$status['enabled']!==true){$report['reason']=$report['current_attention_reason']??'current_campaign_requires_review';return $report;}
-    if(!$cron)return $report;
-    $report['state']='confirmed';$report['reason']='first_acceptance_and_actual_next_producer_confirmed';return $report;
+    foreach($report['current_stage_attempts'] as $proof)$track($proof);
+    if($report['current_stage_attempts']!==[]){$report['latest_started_stage_index']=$current;$report['latest_stage_attempts']=$report['current_stage_attempts'];}
+    $report['actual_provider_usage']=$usage;
+    $report['current_stage_outbox']=[];
+    if($current<4)foreach(['producer','reviewer'] as $role)$report['current_stage_outbox'][$role]=hotelOutbox($pdo,$current,$role);
+    $accepted=count($stages);$plannedRecords=array_sum(array_map('count',$plan['stages']));
+    if($accepted!==$status['new_accepted']||$counts['acceptance_receipts']!==$accepted||$counts['canonical_records']!==count($keys)
+        ||$counts['baselines']!==$accepted+1||$counts['attempts']!==count($seenAttempts)
+        ||$counts['succeeded_attempts']!==$usage['confirmed_calls']||$counts['succeeded_attempts']+$counts['unknown_attempts']!==$counts['attempts']
+        ||$counts['attempts']!==(int)$campaign['reserved_calls']||$counts['attempts']>8||$counts['work_outbox']>8
+        ||$counts['candidates']>4||$counts['reviews']>4||$counts['canonical_records']>$plannedRecords
+        ||$parent!==$campaign['baseline_sha256'])hotelFail('saved_chain_counts_unconfirmed');
+    $export=['schema'=>'hotel-server-accepted-delta-export-v1','campaign_id'=>HOTEL_CAMPAIGN,'inputs_sha256'=>$inputPin,
+        'bootstrap_sha256'=>$bootstrapPin,'initial_baseline_sha256'=>$originalBaseline,'terminal_baseline_sha256'=>$parent,
+        'retained_admission'=>$retained,'stage_count'=>$accepted,'record_count'=>count($keys),
+        'record_encoding'=>'UTF-8 byte slices of each baseline_bytes, verified with record_sha256',
+        'retained_layer'=>'Reuse the original pinned retained inputs; this export contains only newly accepted deltas.',
+        'stages'=>$stages];
+    $exportBytes=HotelServerInputs::json($export);$exportSize=strlen($exportBytes);
+    $report['carry_forward_sha256']=hash('sha256',$exportBytes);$report['carry_forward_bytes']=$exportSize;
+    $report['accepted_stage_count']=$accepted;$report['saved_record_count']=count($keys);
+    $report['current_attention_reason']??=$status['state']==='hold'?'campaign_hold':null;
+    $health=$report['cron_health'];$activationAt=strtotime((string)($intent['started_at']??''));$lastSuccess=strtotime((string)($health['last_success_at']??''));
+    $report['cron_trigger_corroborated']=($health['available']??null)===true&&($health['stale']??null)===false
+        &&($health['trigger']??null)==='cron'&&in_array($health['state']??null,['running','ok'],true)
+        &&$activationAt!==false&&$lastSuccess!==false&&$lastSuccess>=$activationAt;
+    $complete=$status['state']==='complete'&&$status['enabled']===true&&$current===4&&$accepted===4
+        &&count($keys)===$plannedRecords&&$counts['attempts']===8&&$counts['succeeded_attempts']===8
+        &&$counts['unknown_attempts']===0&&$counts['candidates']===4&&$counts['reviews']===4
+        &&$counts['work_outbox']===8&&$counts['done_work_outbox']===8&&$counts['pending_work_outbox']===0&&$counts['unknown_work_outbox']===0;
+    if($exportSize>49152){$report['state']='HOLD';$report['reason']='carry_forward_export_exceeds_48k_bound';return $report;}
+    $report['carry_forward']=$export;
+    if(strlen(json_encode($report,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))>60000){
+        unset($report['carry_forward']);$report['state']='HOLD';$report['reason']='completion_report_exceeds_60k_bound';return $report;
+    }
+    $report['all_four_acceptances_confirmed']=$complete;$report['carry_forward_ready']=$complete;
+    $report['state']=$complete?'confirmed':'partial';
+    $report['reason']=$complete?'four_acceptances_and_exact_carry_forward_confirmed':($report['current_attention_reason']??'campaign_incomplete');
+    $report['safe_continuation']=$complete?'verified_complete_chain_available_for_next_campaign_review':'read_same_original_attempt_only_no_retry';
+    return $report;
 }
 
 try{
@@ -300,6 +359,7 @@ try{
         ||HotelServerInputs::json($runtime['policy'])!==HotelServerInputs::json($policy)
         ||$runtime['flags']!==['dispatch_allowed'=>true,'enabled'=>true,'replacement_dispatch_allowed'=>true])hotelFail('runtime_pin_unconfirmed');
     $runtimePin=$runtime['configuration_sha256'];
+    if(!hash_equals(HOTEL_EXPECTED_RUNTIME_SHA,$runtimePin))hotelFail('original_runtime_pin_unconfirmed');
     // Next-transaction characteristics only. This changes no persistent or session configuration.
     $pdo->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');$pdo->exec('START TRANSACTION WITH CONSISTENT SNAPSHOT, READ ONLY');
     if(!$pdo->inTransaction())hotelFail('read_only_snapshot_unconfirmed');
