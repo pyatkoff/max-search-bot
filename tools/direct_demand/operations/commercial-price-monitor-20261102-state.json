@@ -1,0 +1,22 @@
+{
+  "operation": "commercial-price-monitor-20261102-read1",
+  "state": "PREPARED_NOT_RUN",
+  "catalog_ids": [
+    9374,
+    241,
+    240,
+    268,
+    1981,
+    12111,
+    498,
+    157359,
+    1077,
+    109900,
+    28666,
+    46672,
+    111129,
+    111045,
+    1146
+  ],
+  "hotel_count": 15
+}
