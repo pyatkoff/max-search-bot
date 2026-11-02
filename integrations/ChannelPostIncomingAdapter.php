@@ -6,8 +6,14 @@ final class ChannelPostIncomingAdapter
 {
     private const MAX_JSON_BYTES = 1048576;
 
-    /** MAX allows twelve total attachments, one reserved for our keyboard. */
+    /** MAX allows twelve total attachments; images/videos reserve one for our keyboard. */
     public static function maxPhotoLimit(): int { return 11; }
+
+    /** MAX identifies a reusable video by its token, rather than a photo_id. */
+    public static function maxVideoTokenValid($token): bool
+    {
+        return is_string($token) && preg_match('/\A[A-Za-z0-9_-]+\z/D', $token) === 1;
+    }
 
     public static function isChannelUpdate(string $platform, array $update): bool
     {
@@ -92,8 +98,11 @@ final class ChannelPostIncomingAdapter
             $item = ['type' => is_string($type) ? $type : 'unsupported', 'provider' => 'max'];
             foreach (['photo_id', 'token', 'url'] as $key) if (isset($payload[$key]) && is_scalar($payload[$key])) $item[$key] = (string)$payload[$key];
             $media[] = $item;
-            if ($type !== 'image') $reason = 'unsupported_media';
-            elseif (!preg_match('/\A[0-9]+\z/', (string)($payload['photo_id'] ?? ''))) $reason = 'image_stable_id_missing';
+            if ($type === 'image') {
+                if (!preg_match('/\A[0-9]+\z/', (string)($payload['photo_id'] ?? ''))) $reason = 'image_stable_id_missing';
+            } elseif ($type === 'video') {
+                if (!self::maxVideoTokenValid($payload['token'] ?? null)) $reason = 'video_token_invalid';
+            } else $reason = 'unsupported_media';
         }
         if (count($media) > self::maxPhotoLimit() || count($attachments) > 12) $reason = 'attachment_limit';
         $channelId = self::channelId($message['recipient']['chat_id'] ?? null);
@@ -149,9 +158,15 @@ final class ChannelPostIncomingAdapter
         $media = [];
         foreach ((array)($snapshot['attachments'] ?? []) as $item) {
             if (!is_array($item)) continue;
+            $stableId = (string)($item['photo_id'] ?? $item['file_unique_id'] ?? $item['telegram_file_id'] ?? '');
+            if (($item['provider'] ?? '') === 'max' && ($item['type'] ?? '') === 'video') {
+                // Video tokens identify the uploaded clip; its playback URL can
+                // expire. Keep image and Telegram fingerprints byte-compatible.
+                $stableId = self::maxVideoTokenValid($item['token'] ?? null) ? 'video:' . hash('sha256', $item['token']) : '';
+            }
             $media[] = [
                 'type' => $item['type'] ?? '',
-                'stable_id' => (string)($item['photo_id'] ?? $item['file_unique_id'] ?? $item['telegram_file_id'] ?? ''),
+                'stable_id' => $stableId,
             ];
         }
         // The owner requests only our button on MAX and Telegram. A comment

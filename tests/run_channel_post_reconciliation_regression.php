@@ -19,8 +19,8 @@ $fixture=(require __DIR__.'/fixtures/channel_post_automation.php')['max'];
 $fixture['timestamp']=$since+1000;$fixture['url']=null;$fixture['body']['mid']='mid.missed';
 $original=$fixture;$messages=['mid.missed'=>$fixture];
 $old=$fixture;$old['timestamp']=$since-1000;$old['body']['mid']='mid.old';$messages['mid.old']=$old;
-$writes=0;$badPage=false;$failPage=false;$changeConfig=false;
-$request=static function(string $platform,string $method,string $path,array $query,?array $body)use(&$messages,&$writes,&$badPage,&$failPage,&$changeConfig,$registry,$config):array{
+$writes=0;$badPage=false;$failPage=false;$changeConfig=false;$onPage=null;
+$request=static function(string $platform,string $method,string $path,array $query,?array $body)use(&$messages,&$writes,&$badPage,&$failPage,&$changeConfig,&$onPage,$registry,$config):array{
     $good=static fn(array $data):array=>['http'=>200,'data'=>$data,'transport_error'=>false];
     if($method==='GET'&&$path==='/me')return $good(['is_bot'=>true,'username'=>'test_bot','user_id'=>1]);
     if($method==='GET'&&str_ends_with($path,'/members/me'))return $good(['is_bot'=>true,'username'=>'test_bot','user_id'=>1,'is_admin'=>true,'permissions'=>['read_all_messages','edit']]);
@@ -32,14 +32,15 @@ $request=static function(string $platform,string $method,string $path,array $que
         usort($rows,static fn(array $a,array $b):int=>$b['timestamp']<=>$a['timestamp']);
         $rows=array_slice($rows,0,$query['count']);
         if($badPage&&$rows)$rows[0]['recipient']['chat_id']=-999;
+        if($onPage!==null){$callback=$onPage;$onPage=null;$callback();}
         return $good(['messages'=>$rows]);
     }
     if($method==='GET'&&str_starts_with($path,'/messages/'))return $good($messages[substr($path,10)]);
     if($method==='PUT'&&$path==='/messages'){
         $writes++;$mid=$query['message_id'];$aa=[];
         foreach($body['attachments'] as $a){
-            if($a['type']==='image'){
-                foreach($messages[$mid]['body']['attachments']as $prior)if($prior['type']==='image'&&$prior['payload']['token']===$a['payload']['token'])$aa[]=$prior;
+            if(in_array($a['type'],['image','video'],true)){
+                foreach($messages[$mid]['body']['attachments']as $prior)if($prior['type']===$a['type']&&$prior['payload']['token']===$a['payload']['token'])$aa[]=$prior;
             }else $aa[]=$a;
         }
         $messages[$mid]['body']['attachments']=$aa;return $good(['success'=>true]);
@@ -105,4 +106,96 @@ $messages=[];$service->scan($identity,true);$now+=600000;$service->scan($identit
 $late=$original;$late['timestamp']=$now-10000;$late['body']['mid']='mid.delayed.visibility';$messages['mid.delayed.visibility']=$late;$now+=1000;
 $lateRead=$service->scan($identity,true);
 reconcileCheck('provider visibility delay is covered by the overlap without advancing or replaying webhook clocks',$lateRead['ok']&&$lateRead['registered']===1&&$writes===1);
+
+// Retained pre-video-support rows used a media fingerprint without video identity.
+// Recreate that historical fixture, not an authenticated webhook replay.
+$seedLegacy=static function(array $message)use($registry,$config):array{
+    $snapshot=ChannelPostIncomingAdapter::maxSnapshot($message);
+    $snapshot['metadata']['capability']='requires_attention';
+    $snapshot['metadata']['capability_reason']='unsupported_media';
+    $media=[];
+    foreach($snapshot['attachments']as $item)$media[]=['type'=>$item['type'],'stable_id'=>(string)($item['photo_id']??'')];
+    $snapshot['content_hash']=hash('sha256',(string)json_encode([$snapshot['text'],$snapshot['markup'],$media,[],$snapshot['metadata']['link'],''],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES));
+    $p=$registry->registerPublication('anytour','max','test_bot',$config['channel_id'],$message['body']['mid'],$snapshot);
+    $claim=$registry->claimPublication($p['publication_id'],$p['version_id']);
+    $registry->finishPublication($p['publication_id'],$p['version_id'],$claim['claim_token'],'requires_attention','unsupported_media');
+    return $registry->publication($p['publication_id']);
+};
+$video=$original;$video['timestamp']=$now+10000;$video['body']['mid']='mid.legacy.video';
+$video['body']['attachments']=[
+    $original['body']['attachments'][0],
+    ['type'=>'video','payload'=>['token'=>'fixture_original_video_1','url'=>'https://cdn.example.test/video.mp4?expires=old'],'thumbnail'=>['url'=>'https://cdn.example.test/cover.jpg'],'width'=>1080,'height'=>1920,'duration'=>30],
+];
+$messages[$video['body']['mid']]=$video;
+$legacy=$seedLegacy($video);$legacyVersion=(int)$legacy['version_id'];
+$oldRow=$pdo->query('SELECT * FROM post_versions WHERE id='.$legacyVersion)->fetch();
+$oldPublication=$pdo->query('SELECT * FROM post_publications WHERE id='.$legacy['publication_id'])->fetch();
+$beforeVersions=(int)$pdo->query('SELECT COUNT(*) FROM post_versions')->fetchColumn();
+$beforeObservations=(int)$pdo->query('SELECT COUNT(*) FROM post_observations')->fetchColumn();
+$beforeWrites=$writes;
+$currentChannel=$registry->channel('anytour','max','test_bot',$config['channel_id']);
+$videoHash=ChannelPostIncomingAdapter::contentFingerprint(ChannelPostIncomingAdapter::maxSnapshot($video));
+$ordinary=$service->recover($identity,$config['channel_id'],$video['timestamp'],$videoHash,true);
+$polled=$registry->registerProviderObservation('anytour','test_bot',$currentChannel,$video,0);
+reconcileCheck('ordinary recovery and polling do not revive a legacy unsupported video',$ordinary['state']==='requires_attention'&&$polled['version_id']===$legacyVersion&&$polled['state']==='requires_attention'&&$writes===$beforeWrites);
+$preview=$service->recover($identity,$config['channel_id'],$video['timestamp'],'',false,true);
+reconcileCheck('video opt-in preview exposes exact version config and accurate media counts without raw payloads',$preview['ok']&&$preview['legacy_video_recovery_eligible']&&$preview['eligible_version_id']===$legacyVersion&&$preview['config_version']===(int)$currentChannel['config_version']&&$preview['image_count']===1&&$preview['video_count']===1&&$preview['media_count']===2&&!isset($preview['snapshot'],$preview['start_payload'])&&$preview['database_writes']===0&&$preview['provider_writes']===0&&$beforeVersions===(int)$pdo->query('SELECT COUNT(*) FROM post_versions')->fetchColumn()&&$beforeObservations===(int)$pdo->query('SELECT COUNT(*) FROM post_observations')->fetchColumn()&&$oldRow===$pdo->query('SELECT * FROM post_versions WHERE id='.$legacyVersion)->fetch());
+$missingPin=$service->recover($identity,$config['channel_id'],$video['timestamp'],$videoHash,true,true);
+reconcileCheck('video recovery apply requires explicit old version and configuration pins',$missingPin['reason']==='exact_video_recovery_target_required'&&$writes===$beforeWrites);
+$recoverVideo=static function(string $hash)use($service,$identity,$config,$video,$legacyVersion,$currentChannel):array{
+    return $service->recover($identity,$config['channel_id'],$video['timestamp'],$hash,true,true,$legacyVersion,(int)$currentChannel['config_version']);
+};
+foreach(['token','text','markup','order','forward']as $changed){
+    $different=$video;
+    if($changed==='token')$different['body']['attachments'][1]['payload']['token']='fixture_replacement_video';
+    elseif($changed==='text')$different['body']['text'].=' Changed';
+    elseif($changed==='markup')$different['body']['markup'][0]['length']++;
+    elseif($changed==='order')$different['body']['attachments']=array_reverse($different['body']['attachments']);
+    else $different['link']['mid']='mid.other.original';
+    $messages[$video['body']['mid']]=$different;
+    $changedHash=ChannelPostIncomingAdapter::contentFingerprint(ChannelPostIncomingAdapter::maxSnapshot($different));
+    $rejected=$recoverVideo($changedHash);
+    reconcileCheck('legacy video recovery rejects changed source '.$changed,$rejected['reason']==='legacy_video_content_changed'&&$registry->publication($legacy['publication_id'])['version_id']===$legacyVersion&&$writes===$beforeWrites);
+}
+$messages[$video['body']['mid']]=$video;
+foreach([
+    ['state'=>'unknown','write_attempts'=>1,'claim_token'=>null,'claimed_at'=>null],
+    ['state'=>'claimed','write_attempts'=>0,'claim_token'=>'held','claimed_at'=>gmdate('Y-m-d H:i:s')],
+    ['state'=>'write_started','write_attempts'=>1,'claim_token'=>'held','claimed_at'=>gmdate('Y-m-d H:i:s')],
+    ['state'=>'sent','write_attempts'=>1,'claim_token'=>null,'claimed_at'=>null],
+    ['state'=>'requires_attention','write_attempts'=>1,'claim_token'=>null,'claimed_at'=>null],
+    ['state'=>'requires_attention','write_attempts'=>0,'claim_token'=>'held','claimed_at'=>gmdate('Y-m-d H:i:s')],
+]as $unsafe){
+    $q=$pdo->prepare('UPDATE post_versions SET state=?,write_attempts=?,claim_token=?,claimed_at=? WHERE id=?');
+    $q->execute([$unsafe['state'],$unsafe['write_attempts'],$unsafe['claim_token'],$unsafe['claimed_at'],$legacyVersion]);
+    $rejected=$recoverVideo($videoHash);
+    reconcileCheck('video recovery never revives '.$unsafe['state'].' writes '.$unsafe['write_attempts'].' claim '.($unsafe['claim_token']??'none'),$rejected['reason']==='legacy_video_not_eligible'&&$writes===$beforeWrites&&$beforeVersions===(int)$pdo->query('SELECT COUNT(*) FROM post_versions')->fetchColumn());
+}
+$pdo->exec("UPDATE post_versions SET state='requires_attention',write_attempts=0,claim_token=NULL,claimed_at=NULL,error_reason='unrelated_failure' WHERE id=".$legacyVersion);
+reconcileCheck('an unrelated terminal failure cannot be relabeled as a video repair',$recoverVideo($videoHash)['reason']==='legacy_video_not_eligible');
+$pdo->exec("UPDATE post_versions SET error_reason='unsupported_media' WHERE id=".$legacyVersion);
+$messages[$video['body']['mid']]['body']['attachments'][1]['payload']['url']='https://cdn.example.test/video.mp4?expires=fresh';
+$renewedImage=$video['body']['attachments'][0];$renewedImage['payload']['token']='renewed-image-token';
+$messages[$video['body']['mid']]['body']['attachments'][0]=$renewedImage;
+$recovered=$recoverVideo($videoHash);$new=$registry->publication($legacy['publication_id']);
+reconcileCheck('explicit video recovery appends one version and edits once after a fresh read',$recovered['ok']&&$recovered['state']==='sent'&&$recovered['recovered_from_version_id']===$legacyVersion&&$new['version_number']===$legacy['version_number']+1&&$new['version_id']!==$legacyVersion&&$new['write_attempts']===1&&$writes===$beforeWrites+1&&$beforeVersions+1===(int)$pdo->query('SELECT COUNT(*) FROM post_versions')->fetchColumn()&&$beforeObservations+1===(int)$pdo->query('SELECT COUNT(*) FROM post_observations')->fetchColumn());
+reconcileCheck('recovery retains the rejected row stable p token and webhook clock',$oldRow===$pdo->query('SELECT * FROM post_versions WHERE id='.$legacyVersion)->fetch()&&$new['start_payload']===$legacy['start_payload']&&$oldPublication['observed_revision_ms']===$pdo->query('SELECT observed_revision_ms FROM post_publications WHERE id='.$legacy['publication_id'])->fetchColumn()&&$new['snapshot']['metadata']['observation_kind']==='provider_read'&&$new['snapshot']['metadata']['recovered_version_id']===$legacyVersion);
+reconcileCheck('video recovery preserves caption markup forward media order and renewed image credentials',$recovered['receipt']['content_preserved']&&$recovered['receipt']['button_verified']&&$messages[$video['body']['mid']]['body']['text']===$video['body']['text']&&$messages[$video['body']['mid']]['body']['markup']===$video['body']['markup']&&$messages[$video['body']['mid']]['link']===$video['link']&&$messages[$video['body']['mid']]['body']['attachments'][0]===$renewedImage&&$messages[$video['body']['mid']]['body']['attachments'][1]['payload']['token']===$video['body']['attachments'][1]['payload']['token']&&$messages[$video['body']['mid']]['body']['attachments'][1]['duration']===30);
+reconcileCheck('repeating an old video recovery selection cannot append or write again',$recoverVideo($videoHash)['reason']==='target_version_changed'&&$writes===$beforeWrites+1&&$beforeVersions+1===(int)$pdo->query('SELECT COUNT(*) FROM post_versions')->fetchColumn());
+
+// Concurrent provider-read boundaries fence both selected version and configuration.
+$race=$video;$race['timestamp']++;$race['body']['mid']='mid.legacy.video.race';$messages[$race['body']['mid']]=$race;
+$raceOld=$seedLegacy($race);$raceHash=ChannelPostIncomingAdapter::contentFingerprint(ChannelPostIncomingAdapter::maxSnapshot($race));
+$onPage=static function()use($registry,$race,$config):void{
+    $changed=$race;$changed['body']['text'].=' New source revision';
+    $snapshot=ChannelPostIncomingAdapter::maxSnapshot($changed);$snapshot['content_hash']=ChannelPostIncomingAdapter::contentFingerprint($snapshot);
+    $registry->registerPublication('anytour','max','test_bot',$config['channel_id'],$race['body']['mid'],$snapshot);
+};
+$raced=$service->recover($identity,$config['channel_id'],$race['timestamp'],$raceHash,true,true,$raceOld['version_id'],(int)$currentChannel['config_version']);
+reconcileCheck('a successor arriving during the provider read fences the selected legacy version',$raced['reason']==='target_version_changed'&&$writes===$beforeWrites+1);
+$configRace=$video;$configRace['timestamp']+=2;$configRace['body']['mid']='mid.legacy.video.config';$messages[$configRace['body']['mid']]=$configRace;
+$configOld=$seedLegacy($configRace);$configHash=ChannelPostIncomingAdapter::contentFingerprint(ChannelPostIncomingAdapter::maxSnapshot($configRace));
+$onPage=static function()use($registry,$config,$currentChannel):void{$registry->configureChannel(array_replace($config,['expected_version'=>(int)$currentChannel['config_version'],'button_text'=>'Другая кнопка']));};
+$changedConfig=$service->recover($identity,$config['channel_id'],$configRace['timestamp'],$configHash,true,true,$configOld['version_id'],(int)$currentChannel['config_version']);
+reconcileCheck('configuration change during the provider read prevents appending or editing',$changedConfig['reason']==='channel_configuration_changed'&&$registry->publication($configOld['publication_id'])['version_id']===$configOld['version_id']&&$writes===$beforeWrites+1);
 echo "OK $passed MAX publication reconciliation checks\n";
