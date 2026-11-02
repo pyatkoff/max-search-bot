@@ -197,6 +197,8 @@ final class HotelServerCycle
         $receipt=['schema'=>'hotel-server-acceptance-v1','campaign_id'=>$id,'stage_index'=>$stage,'candidate_sha256'=>$candidate['candidate_sha256'],
             'producer_attempt'=>$producer['attempt_id'],'review_attempt'=>$reviewer['attempt_id'],'previous_baseline_sha256'=>$c['baseline_sha256'],
             'baseline_sha256'=>$newBaseline,'inputs_sha256'=>$c['inputs_sha256'],'new_acceptance_credit'=>1,'historical_accepted'=>19];
+        $admission=$this->package($id)['retained_admission']??null;
+        if ($admission!==null) $receipt['retained_admission']=$admission;
         $receiptBytes=HotelServerInputs::json($receipt); $receiptSha=hash('sha256',$receiptBytes);
         $this->exec('INSERT INTO hotel_server_receipts(campaign_id,stage_index,receipt_sha256,receipt_bytes) VALUES(?,?,?,?)',[$id,$stage,$receiptSha,$receiptBytes]);
         $next=$stage+1; $state=$next===count($plan['stages'])?'complete':'ready';
@@ -283,7 +285,7 @@ final class HotelServerCycle
     {
         $p=$this->package($c['campaign_id']); $identity=$p; unset($identity['inputs_sha256'],$identity['bytes']);
         if (hash('sha256',HotelServerInputs::json($identity))!==$c['inputs_sha256'] || $p['inputs_sha256']!==$c['inputs_sha256'] || count($p['registry'])!==19) throw new DomainException('immutable_inputs_mismatch');
-        foreach (HotelServerInputs::REQUIRED as $name) if (hash('sha256',$p['bytes'][$name])!==$p['pins'][$name]) throw new DomainException('immutable_input_bytes_mismatch');
+        foreach ($p['pins'] as $name=>$pin) if (!is_string($p['bytes'][$name]??null)||hash('sha256',$p['bytes'][$name])!==$pin) throw new DomainException('immutable_input_bytes_mismatch');
         HotelRetainedBaseline::verify($p['retained']??[],$p['bytes']['retained_parts']??[]);
         $b=$this->one('SELECT document_bytes FROM hotel_server_baselines WHERE campaign_id=? AND baseline_sha256=?',[$c['campaign_id'],$c['baseline_sha256']]);
         if (!$b || hash('sha256',$b['document_bytes'])!==$c['baseline_sha256']) throw new DomainException('baseline_bytes_mismatch');
@@ -350,7 +352,11 @@ final class HotelServerCycle
     }
     private function campaign(string $id): array { return $this->required($this->one('SELECT * FROM hotel_server_campaigns WHERE campaign_id=?',[$id])); }
     private function enqueue(string $id,int $stage,string $role): void { $this->exec('INSERT INTO hotel_server_outbox(campaign_id,stage_index,role,state,attempt_id) VALUES(?,?,?,?,NULL)',[$id,$stage,$role,'pending']); }
-    private function projection(array $c): array { return ['campaign_id'=>$c['campaign_id'],'state'=>$c['state'],'enabled'=>(int)$c['enabled']===1,'historical_accepted'=>19,'new_accepted'=>(int)$c['new_accepted'],'stage_index'=>(int)$c['stage_cursor'],'baseline_sha256'=>$c['baseline_sha256'],'bootstrap_sha256'=>$c['bootstrap_sha256']]; }
+    private function projection(array $c): array {
+        $view=['campaign_id'=>$c['campaign_id'],'state'=>$c['state'],'enabled'=>(int)$c['enabled']===1,'historical_accepted'=>19,'new_accepted'=>(int)$c['new_accepted'],'stage_index'=>(int)$c['stage_cursor'],'baseline_sha256'=>$c['baseline_sha256'],'bootstrap_sha256'=>$c['bootstrap_sha256']];
+        $admission=$this->package($c['campaign_id'])['retained_admission']??null;
+        return $admission===null?$view:$view+['retained_admission'=>$admission];
+    }
     private function lock(): string { return $this->driver==='mysql'?' FOR UPDATE':''; }
     private function now(): int { return $this->clock===null?time():($this->clock)(); }
     private function fault(string $at): void { if ($this->fault!==null) ($this->fault)($at); }

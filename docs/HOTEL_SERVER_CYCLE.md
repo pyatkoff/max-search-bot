@@ -11,7 +11,7 @@ UNKNOWN and receives no new acceptance or cancellation claim.
 `HotelServerInputs::load` reads the existing immutable retirement row on the
 application PDO and a private server manifest. It verifies the exact receipt and
 snapshot bytes, original intake receipts and any linked resolutions, producer
-packet identity, exactly 19 distinct accepted intake packets, and complete mapping
+packet identity, exactly 19 distinct accepted intake packets, and by default complete mapping
 of all 19 receipt identities to country/hotel/question/source scopes. Research,
 UNKNOWN and skipped stages earn no historical intake credit. Unaccepted source
 records, including TR40, must not be included in the private baseline or map.
@@ -33,6 +33,54 @@ the retained WORKING and exclude every unaccepted source before authorization.
 No private baseline, actual scope, input path or original receipt bytes belong in
 the public repository. The current server inventory did not verify those private
 files; production remains HOLD for inputs/scope mapping.
+
+### Explicit continuation with unavailable originals
+
+The owner may end recovery of specific unavailable legacy originals while retaining
+the saved history. This is an optional, pinned input policy; it does not silently
+relax the complete-history default or enable a campaign. Add a private manifest
+file entry named `legacy_availability` with the same path/SHA256 rules as the
+required inputs. Its UTF-8 JSON is bounded to 64 KiB and has exactly these fields:
+
+| Field | Required value |
+| --- | --- |
+| `schema` | `hotel-legacy-availability-policy-v1` |
+| `mode` | `available_confirmed` |
+| `retirement_sha256` | The exact already-authorized retirement receipt hash |
+| `owner_decision` | Nonempty bounded reference to the owner's decision |
+| `unknown_legacy_overlap_acknowledged` | Boolean `true` |
+| `new_acceptance_credit` | Integer `0` |
+| `unavailable` | Nonempty list of exact unavailable historical identities |
+
+Each unavailable identity has exactly `kind` (`accepted` or `quarantined`),
+`stage_index`, `stage_id`, `packet_sha256`, `receipt_sha256`, and
+`reason: original_unavailable`. Every identity must match the immutable retirement
+registry, with no duplicates, guessed scopes or extra fields. A decision reference
+records provenance; it is not an authentication capability. The existing explicit
+bootstrap and enable authorizations remain necessary.
+
+All nineteen historical acceptances and the full quarantine list remain in the
+immutable input package. Complete semantic mapping and accepted-context coverage
+are required for every remaining available acceptance; at least one must remain.
+Unavailable entries cannot appear in accepted_context or continuous retained
+coverage. Unlisted quarantine still requires complete mapping. The existing
+earlier-fact authority, original variants/qualifiers, protected reserves and
+incomplete/uncertain overlaps in available data retain their existing checks.
+
+The policy acknowledges an unavoidable limitation: without an original's semantic
+scope, duplication against that unavailable history cannot be ruled out. The
+explicit policy applies only to the enumerated unavailable identities. It does
+not waive other unresolved records, turn quarantined work into accepted data,
+resolve CENTRAL41, or replay any invocation. No original or history is deleted.
+
+Status and new acceptance receipts disclose `retained_admission`: available and
+unavailable acceptance counts, mapped and unavailable quarantine counts, and
+`duplicate_prevention: available_confirmed_scopes_only`. The historical count19
+is not presented as19 restored packets. The initial import still earns zero
+credit; only a new independently reviewed acceptance earns one. Policy bytes are
+included in the immutable input hash and rechecked before work. They are not sent
+to models. Synthetic cases exercise this mode through the existing loader and
+producer/reviewer/accept/next-stage path in both SQLite and native MySQL CI.
 
 ## Database and lock boundary
 
@@ -128,7 +176,9 @@ launch prerequisite until actual inputs are available.
 
 The registry also derives every producer without accepted intake from the
 retirement snapshot. Full quarantine_mapping for those exact packet/receipt
-identities is mandatory; missing mapping HOLD. Quarantined scopes are excluded
+identities is mandatory in the default complete-history mode; missing mapping
+HOLD unless the exact unavailable identity is explicitly covered by the policy
+above. Known quarantined scopes are excluded
 at assignment and acceptance, including completed-but-unaccepted TR40. Raw TR40
 records cannot be included in the accepted projection.
 

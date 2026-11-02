@@ -7,6 +7,7 @@ final class HotelServerInputs
 {
     public const OLD_QUEUE = 'HOTEL-CONTINUOUS-20261027';
     public const REQUIRED = ['baseline','criteria','corpus','map','archives','instructions','reserves','accepted_mapping','quarantine_mapping','accepted_context','stage_contexts'];
+    public const AVAILABILITY = 'legacy_availability';
     private function __construct(private array $package) {}
     public function package(): array { return $this->package; }
 
@@ -133,6 +134,56 @@ final class HotelServerInputs
         return $by;
     }
 
+    /** Explicit owner decision about unavailable originals, never acceptance or run resolution. */
+    private static function availableHistory(array $registry, array $quarantine, string $expected, array $bytes): array
+    {
+        if (!array_key_exists(self::AVAILABILITY,$bytes)) return [$registry,$quarantine,null];
+        $raw=$bytes[self::AVAILABILITY];
+        if (!is_string($raw)||$raw===''||strlen($raw)>65536) throw new DomainException('legacy_availability_policy_required');
+        $policy=json_decode($raw,true,64,JSON_THROW_ON_ERROR);
+        if (!is_array($policy)) throw new DomainException('legacy_availability_policy_required');
+        $keys=array_keys($policy);sort($keys);
+        if ($keys!==['mode','new_acceptance_credit','owner_decision','retirement_sha256','schema','unavailable','unknown_legacy_overlap_acknowledged']
+            ||($policy['schema']??null)!=='hotel-legacy-availability-policy-v1'
+            ||($policy['mode']??null)!=='available_confirmed'
+            ||($policy['retirement_sha256']??null)!==$expected
+            ||($policy['new_acceptance_credit']??null)!==0
+            ||($policy['unknown_legacy_overlap_acknowledged']??null)!==true
+            ||!is_string($policy['owner_decision']??null)||trim($policy['owner_decision'])!==$policy['owner_decision']
+            ||$policy['owner_decision']===''||strlen($policy['owner_decision'])>256
+            ||preg_match('/[\x00-\x1f\x7f]/',$policy['owner_decision'])) throw new DomainException('legacy_availability_policy_required');
+        if (!is_array($policy['unavailable'])||!array_is_list($policy['unavailable'])||!$policy['unavailable']
+            ||count($policy['unavailable'])>count($registry)+count($quarantine)) throw new DomainException('legacy_unavailable_identities_required');
+        $known=[];
+        foreach (['accepted'=>$registry,'quarantined'=>$quarantine] as $kind=>$rows) foreach ($rows as $row) {
+            $key=$kind.':'.$row['stage_id'];
+            if (isset($known[$key])) throw new DomainException('legacy_unavailable_identity_ambiguous');
+            $known[$key]=$row;
+        }
+        $omitted=[];$counts=['accepted'=>0,'quarantined'=>0];
+        foreach ($policy['unavailable'] as $entry) {
+            if (!is_array($entry)) throw new DomainException('legacy_unavailable_identity_required');
+            $keys=array_keys($entry);sort($keys);
+            if ($keys!==['kind','packet_sha256','reason','receipt_sha256','stage_id','stage_index']
+                ||!in_array($entry['kind']??null,['accepted','quarantined'],true)
+                ||($entry['reason']??null)!=='original_unavailable'
+                ||!is_string($entry['stage_id']??null)) throw new DomainException('legacy_unavailable_identity_required');
+            $key=$entry['kind'].':'.$entry['stage_id'];$row=$known[$key]??null;
+            if (!$row||isset($omitted[$key])) throw new DomainException('legacy_unavailable_identity_required');
+            foreach (['stage_index','stage_id','packet_sha256','receipt_sha256'] as $field)
+                if ($entry[$field]!==$row[$field]) throw new DomainException('legacy_unavailable_identity_mismatch');
+            $omitted[$key]=true;++$counts[$entry['kind']];
+        }
+        $available=array_values(array_filter($registry,static fn(array $r):bool=>!isset($omitted['accepted:'.$r['stage_id']])));
+        $mappedQuarantine=array_values(array_filter($quarantine,static fn(array $r):bool=>!isset($omitted['quarantined:'.$r['stage_id']])));
+        if (!$available) throw new DomainException('available_accepted_history_required');
+        return [$available,$mappedQuarantine,[
+            'mode'=>'available_confirmed','historical_accepted'=>count($registry),'available_accepted'=>count($available),
+            'unavailable_accepted'=>$counts['accepted'],'quarantine_total'=>count($quarantine),
+            'mapped_quarantine'=>count($mappedQuarantine),'unavailable_quarantine'=>$counts['quarantined'],
+            'duplicate_prevention'=>'available_confirmed_scopes_only','unknown_legacy_overlap'=>true,'new_acceptance_credit'=>0]];
+    }
+
     /** The caller supplies an existing read-only app PDO; the file root is private. */
     public static function load(PDO $app, string $expectedRetirement, string $root, string $manifestPath): self
     {
@@ -146,7 +197,9 @@ final class HotelServerInputs
         $manifest = json_decode((string)file_get_contents($realManifest), true, 64, JSON_THROW_ON_ERROR);
         if (($manifest['schema'] ?? null) !== 'hotel-server-input-manifest-v1' || !is_array($manifest['files'] ?? null)) throw new DomainException('private_manifest_required');
         $bytes = [];
-        foreach (self::REQUIRED as $name) {
+        $names=self::REQUIRED;
+        if (array_key_exists(self::AVAILABILITY,$manifest['files'])) $names[]=self::AVAILABILITY;
+        foreach ($names as $name) {
             $item = $manifest['files'][$name] ?? null; $relative = $item['path'] ?? null;
             if (!is_string($relative) || !preg_match('~\A[a-zA-Z0-9_/-]+\.[a-zA-Z0-9]+\z~D', $relative)) throw new DomainException('private_file_path');
             $path = realpath($realRoot . '/' . $relative);
@@ -169,15 +222,17 @@ final class HotelServerInputs
         $mapping = json_decode($bytes['accepted_mapping'],true,64,JSON_THROW_ON_ERROR);
         $reserves = json_decode($bytes['reserves'],true,64,JSON_THROW_ON_ERROR);
         if(!is_array($reserves)||!array_is_list($reserves))throw new DomainException('complete_private_mapping_required');
-        $excluded=[];
-        $byStage=self::mapRegistry($registry,$mapping,$excluded,'historical');
         $quarantine=self::quarantine($retirement,$expected);
-        self::mapRegistry($quarantine,json_decode($bytes['quarantine_mapping'],true,64,JSON_THROW_ON_ERROR),$excluded,'quarantined');
+        [$available,$mappedQuarantine,$admission]=self::availableHistory($registry,$quarantine,$expected,$bytes);
+        if ($admission!==null) $pins[self::AVAILABILITY]=hash('sha256',$bytes[self::AVAILABILITY]);
+        $excluded=[];
+        $byStage=self::mapRegistry($available,$mapping,$excluded,'historical');
+        self::mapRegistry($mappedQuarantine,json_decode($bytes['quarantine_mapping'],true,64,JSON_THROW_ON_ERROR),$excluded,'quarantined');
         foreach($reserves as $scope)$excluded[self::key($scope)]='protected_reserve';
         $approved=json_decode($bytes['accepted_context'],true,64,JSON_THROW_ON_ERROR);
         if(!is_array($approved)||!array_is_list($approved))throw new DomainException('approved_baseline_projection_required');
         $expectedScopes=[];
-        foreach($registry as $row)foreach($byStage[$row['stage_id']]['scopes'] as $scope)$expectedScopes[self::key($scope)]=$row;
+        foreach($available as $row)foreach($byStage[$row['stage_id']]['scopes'] as $scope)$expectedScopes[self::key($scope)]=$row;
         $seen=[];
         foreach($approved as $record){
             if(!is_array($record))throw new DomainException('approved_baseline_projection_required');
@@ -189,7 +244,7 @@ final class HotelServerInputs
             $seen[$key]=true;
         }
         if(count($seen)!==count($expectedScopes))throw new DomainException('incomplete_accepted_projection');
-        $retained=HotelRetainedBaseline::validate($bytes['baseline'],$bytes['retained_parts']??[],$registry,$approved);
+        $retained=HotelRetainedBaseline::validate($bytes['baseline'],$bytes['retained_parts']??[],$available,$approved);
         foreach($retained['exclusions'] as $key=>$kind)if(!isset($excluded[$key]))$excluded[$key]=$kind;
         $contexts=json_decode($bytes['stage_contexts'],true,64,JSON_THROW_ON_ERROR);
         if(!is_array($contexts)||!array_is_list($contexts)||!$contexts)throw new DomainException('scoped_dependency_projection_required');
@@ -207,6 +262,7 @@ final class HotelServerInputs
         }
         ksort($excluded);
         $identity=['schema'=>'hotel-server-inputs-v2','retirement_sha256'=>$expected,'pins'=>$pins,'registry'=>$registry,'quarantine'=>$quarantine,'exclusions'=>$excluded,'accepted_context'=>$approved,'stage_contexts'=>$scoped,'retained'=>$retained];
+        if ($admission!==null) $identity['retained_admission']=$admission;
         return new self($identity+['inputs_sha256'=>hash('sha256',self::json($identity)),'bytes'=>$bytes]);
     }
 
