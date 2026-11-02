@@ -1,0 +1,58 @@
+{
+  "operation": "commercial-stock-20261103-17-read1",
+  "state": "PUBLIC_PRIMARY_SOURCE_LINKS_RETAINED_CATALOG_LOOKUP_PENDING",
+  "hotels": [
+    {
+      "key": "hilton-hurghada-plaza",
+      "source_url": "https://www.hilton.com/en-gb/hotels/hrghitw-hilton-hurghada-plaza/"
+    },
+    {
+      "key": "hurghada-marriott-beach",
+      "source_url": "https://www.marriott.com/en-us/hotels/hrgeg-hurghada-marriott-beach-resort/overview/",
+      "photo_source_url": "https://www.marriott.com/en-us/hotels/hrgeg-hurghada-marriott-beach-resort/rooms/"
+    },
+    {
+      "key": "sheraton-miramar-el-gouna",
+      "source_url": "https://www.marriott.com/hotels/travel/hrgsi-sheraton-miramar-resort-el-gouna/",
+      "additional_primary_url": "https://www.elgouna.com/hotels/sheraton-miramar-resort-el-gouna",
+      "important_source_gap": "Pool refurbishment June2 through December15 is announced without a year in the returned primary excerpt. Do not invent the year or current closure state."
+    },
+    {
+      "key": "movenpick-el-gouna",
+      "source_url": "https://movenpick.accor.com/en/hotels/el-gouna/B4L7.html",
+      "important_source_gap": "Accor press release announces phased refurbishment starting2027 and repositioning as Sofitel. Do not promise unchanged future operation from the current hotel page.",
+      "additional_primary_url": "https://press.accor.com/sofitel-and-orascom-development-egypt-announce-the-signing-of-sofitel-el-gouna-a-flagship-luxury-resort-on-egypts-red-sea-coast/?lang=eng"
+    },
+    {
+      "key": "sheraton-sharm",
+      "source_url": "https://www.marriott.com/en-us/hotels/sshsi-sheraton-sharm-hotel-resort-villas-and-spa/overview/",
+      "photo_source_url": "https://www.marriott.com/en-us/hotels/sshsi-sheraton-sharm-hotel-resort-villas-and-spa/photos/"
+    },
+    {
+      "key": "renaissance-golden-view",
+      "source_url": "https://www.marriott.com/en-us/hotels/sshbr-renaissance-sharm-el-sheikh-golden-view-beach-resort/overview/?cid=NAT_google_hotel_url",
+      "photo_source_url": "https://www.marriott.com/en-us/hotels/sshbr-renaissance-sharm-el-sheikh-golden-view-beach-resort/photos/"
+    },
+    {
+      "key": "stella-di-mare-sharm",
+      "source_url": "https://stelladimare.com/beach-hotel-spa/our-hotel/",
+      "additional_primary_url": "https://stelladimare.com/beach-hotel-spa/facilities-services/spa-sports/",
+      "important_source_gap": "Different room categories have different child rules. Do not generalise villa or panoramic-room restrictions to the entire hotel."
+    },
+    {
+      "key": "continental-hurghada",
+      "source_url": "https://www.continental-hurghada.com/en",
+      "important_source_gap": "Generic accommodations paragraph says private pools; verify the concrete room category before claiming private pool access."
+    },
+    {
+      "key": "park-regency-sharm",
+      "source_url": "https://www.parkregency.net/",
+      "important_source_gap": "Regency Club experiences are separate, never generalise their rights to every room."
+    },
+    {
+      "key": "nubian-village",
+      "source_url": "https://www.nubian-hotels.com/village",
+      "important_source_gap": "Indexed official text is rich, direct web reader returned0 readable lines. Obtain a readable primary result before factual acceptance. The official text explicitly excludes Nubian Island dining from Village shared-facility access."
+    }
+  ]
+}

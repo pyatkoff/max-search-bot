@@ -1,0 +1,66 @@
+{
+  "operation": "commercial-hotel-batch-20261103-16-v1",
+  "state": "EIGHT_ACCEPTED_TWO_DEFERRED",
+  "public_source_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41539796511",
+  "native_inspection_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41542200000",
+  "corrected_native_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41543039364",
+  "published_catalog_ids": [
+    287,
+    435,
+    109149,
+    79059,
+    56092,
+    115918,
+    269,
+    80964
+  ],
+  "deferred": [
+    {
+      "hotel_id": 62505,
+      "reason": "Corrected hero still shows the driveway, not a useful general hotel view. No send.",
+      "state": "DEFERRED_GENERAL_HOTEL_VIEW_REQUIRED"
+    },
+    {
+      "hotel_id": 4184,
+      "reason": "Corrected hero still centres a single pool rather than a useful general hotel view. No send.",
+      "state": "DEFERRED_GENERAL_HOTEL_VIEW_REQUIRED"
+    }
+  ],
+  "primary_identity_notes": {
+    "samaya": "Native269 is the former JAZ Samaya, currently TUI BLUE Samaya. The retained JAZ hotel12 photo pool names TUI BLUE Samaya; current TUI BLUE page provides143 rooms and Coraya Bay location. Do not use the stale JAZ Visit Website link to Lamaya.",
+    "radamis": "Native115918 is the whole named Rixos Radamis resort. Current Accor C158 lists Blue Planet, Tirana and Beach-side room categories within that named property; no category-wide beachfront promise.",
+    "sentido": "Exact Reef Oasis chain route includes sentido-reef-oasis-senses-aqua-park-resort. The primary page announces Aqua Park closure10January through28February2027; retain this material fact for the eventual post."
+  },
+  "rejected_hero_sources": [
+    {
+      "hotel_id": 109149,
+      "filename": "The-Breakers_birdseyeview.png",
+      "reason": "Video play graphic; replaced with actual official hotel-view photo."
+    },
+    {
+      "hotel_id": 80964,
+      "filename": "Meraki-Sharm-1024x573.png",
+      "reason": "White logo; replaced with actual official exterior photograph M7A1366-HDR-copy-scaled.jpg."
+    },
+    {
+      "hotel_id": 62505,
+      "filename": "RCso16_Club_Soma_Bay_sm96_7320_1_RGB.jpg",
+      "reason": "Beach rather than a general hotel view."
+    },
+    {
+      "hotel_id": 62505,
+      "filename": "sm58_9851.jpg",
+      "reason": "Driveway rather than a general hotel view."
+    },
+    {
+      "hotel_id": 4184,
+      "filename": "Amr Ibrahim Sentido-1",
+      "reason": "Interior rather than general hotel view."
+    },
+    {
+      "hotel_id": 4184,
+      "filename": "Amr Ibrahim Sentido-Pool4",
+      "reason": "Single pool rather than a useful general hotel view."
+    }
+  ]
+}
