@@ -38,12 +38,12 @@ jobs:
           umask 077
           python3 - <<'PY'
           import pathlib,hashlib,os
-          script=pathlib.Path('tools/direct_demand/operations/publish-commercial-next-three.php').read_text()
-          assert hashlib.sha256(script.encode()).hexdigest()=='2e11fd497c6bdc157d1ac56787e536804c06d78fbe2a74d9ab5ead91c8a06078'
+          script=pathlib.Path('tools/direct_demand/operations/publish-commercial-three-20261102-2.php').read_text()
+          assert hashlib.sha256(script.encode()).hexdigest()=='626f009a3b7b55315c43211708a0c7c0ee06751505e6506dd8e106a8cb1ae320'
           prefix="<?php\ndeclare(strict_types=1);\n"
           assert script.startswith(prefix)
-          manifest=pathlib.Path('tools/direct_demand/operations/commercial-next-three-manifest.json').read_bytes()
-          assert hashlib.sha256(manifest).hexdigest()=='1b1ae3588c0dac907efaa04999f4996719fe2c0fb50ef2081aed6cac8d5a56f2'
+          manifest=pathlib.Path('tools/direct_demand/operations/commercial-three-20261102-2-manifest.json').read_bytes()
+          assert hashlib.sha256(manifest).hexdigest()=='0d3b449e3c17b2b6d3ed6af577a231ada017476dde95a2197a07cb495cbb8151'
           import base64
           header=prefix+"const EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst MANIFEST_BASE64='"+base64.b64encode(manifest).decode()+"';\n"
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.php').write_text(header+script[len(prefix):])
@@ -101,7 +101,7 @@ jobs:
           lines=pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.json').read_text().splitlines()
           d=json.loads(lines[-1])
           print(json.dumps(d,ensure_ascii=False,sort_keys=True))
-          assert d['operation']=='commercial-hotel-next-three-publish-20261102-v1' and d['mode']=='publish_approved_commercial_next_three'
+          assert d['operation']=='commercial-hotel-three-20261102-2-v1' and d['mode']=='publish_approved_commercial_next_three'
           assert d['ok'] is True and len(d['posts'])==6
           assert d['post_write_attempts']<=6 and d['new_posts']<=6
           assert len({(p['platform'],p['logical_id']) for p in d['posts']})==6
@@ -112,7 +112,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-next-three-publication
+          name: commercial-three-20261102-2-publication
           path: ${{ runner.temp }}/channel-preflight.json
           retention-days: 14
           if-no-files-found: warn

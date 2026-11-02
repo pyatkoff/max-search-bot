@@ -1,0 +1,69 @@
+{
+  "operation": "commercial-hotel-three-20261102-2-v1",
+  "owner_authorization": "Direct Pavel: publish in @any_toour and max.ru/channel_anytour, continue accepted hotel style without duplicates; subsequent direct дальше.",
+  "goal": "Three new whole-hotel posts in each existing channel, actual photo/button/source/version confirmed",
+  "boundaries": "No Mac access, no original Canva overwrite, no new controller/uploader/queue, no customer messages, campaigns or budgets.",
+  "risks": [
+    "Duplicate or unknown sends",
+    "Incorrect hotel photos",
+    "Wrong source/version or canonical button"
+  ],
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "logical_id": "at-hotel-movenpick-sharm",
+      "hotel_id": 1654,
+      "hotel": "Mövenpick Sharm El Sheikh",
+      "aliases": [
+        "mövenpick sharm",
+        "movenpick sharm",
+        "мовенпик шарм"
+      ],
+      "text": "✈️ Туры в Mövenpick Sharm El Sheikh с перелётом\n📍 Египет · Шарм-эль-Шейх, Наама-Бей\n\nПрисматриваетесь к Mövenpick с видами на Наама-Бей? Подберём перелёт и размещение под вашу поездку.\n\n🏖 Собственные песчаные пляжи с выходом к морю.\n🤿 Дайвинг-центр на территории курорта.\n🐎 Конный центр для любителей верховой езды.\n⛰ Отель на возвышенности — при подборе учтём путь от номера к пляжу.\n\nНапишите город вылета, даты и состав туристов — менеджер рассчитает стоимость тура.",
+      "text_sha256": "53417c7d041179319a73c6d1065ed4c321cf0b581c0a7610e9c4af1df91c419b",
+      "photo_sha256": "4460dc43ce9552af3be732fe943b7749df88cfc6a32f39be03f0f6064ef8b4cc",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5299afdd511d63124a4dc3094934bed3d5a943ad/.github/traffic-publish/commercial-three-20261102-2/movenpick-sharm.png",
+      "sources": [
+        "https://all.accor.com/hotel/B4L5/index.en.shtml"
+      ]
+    },
+    {
+      "logical_id": "at-hotel-jaz-neo-naama",
+      "hotel_id": 877,
+      "hotel": "JAZ Neo Naama Bay",
+      "aliases": [
+        "jaz neo naama",
+        "jaz naama bay",
+        "джаз нео наама"
+      ],
+      "text": "✈️ Туры в JAZ Neo Naama Bay с перелётом\n📍 Египет · Шарм-эль-Шейх, Наама-Бей\n\nВыбираете JAZ Neo Naama Bay, чтобы совмещать отдых с прогулками по Нааме? Подберём тур на ваши даты.\n\n🚶 Набережная и магазины Наама-Бей в пешей доступности.\n🌴 Бассейн и террасы для отдыха на территории.\n🛏 Номера с балконами.\n🏖 Доступ к пляжу через JAZ Fayrouz — условия уточним в выбранном туре.\n\nНапишите город вылета, даты и состав туристов — менеджер рассчитает стоимость тура.",
+      "text_sha256": "8bf7bfb05e915a113eaa0030539482d07f3b69f599fc192716d21b02b05fdf88",
+      "photo_sha256": "b18ccf8816b4ab7ec6417623d30028534d5fadfb98ceec7f0b19204df14475b8",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5299afdd511d63124a4dc3094934bed3d5a943ad/.github/traffic-publish/commercial-three-20261102-2/jaz-neo-naama.png",
+      "sources": [
+        "https://www.jazhotels.com/hoteldetail/7-egypt-sharm-el-sheikh-jaz-neo-naama-bay/overview",
+        "https://www.jazhotels.com/hoteldetail/7-egypt-sharm-el-sheikh-jaz-neo-naama-bay/surroundings",
+        "https://www.jazhotels.com/hoteldetail/7-egypt-sharm-el-sheikh-jaz-neo-naama-bay/rooms"
+      ]
+    },
+    {
+      "logical_id": "at-hotel-hane-family",
+      "hotel_id": 2077,
+      "hotel": "Hane Family Resort",
+      "aliases": [
+        "hane family",
+        "хане фэмили",
+        "хане фамили"
+      ],
+      "text": "✈️ Туры в Hane Family Resort с перелётом\n📍 Турция · Сиде, Эвренсеки\n\nРассматриваете Hane Family для семейного отпуска? Подберём тур с подходящим перелётом и размещением.\n\n🏖 Собственный песчаный пляж с пологим входом в море.\n💦 Бассейны и аквапарк с большими и малыми горками.\n🧸 Мини-клуб с крытой зоной и игровой площадкой.\n🚶 До пляжа нужно пройти от отеля — учтём это при выборе отдыха с детьми.\n\nНапишите город вылета, даты и состав туристов — менеджер рассчитает стоимость тура.",
+      "text_sha256": "1aa2e8207f464138d77f52d65ad87616332cf44860bbe923f829f8dadaf0a5b9",
+      "photo_sha256": "32fdfbb959e5837daf63977dd1f0c292b586c05c458bf744e63c3a5a34b55f3e",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5299afdd511d63124a4dc3094934bed3d5a943ad/.github/traffic-publish/commercial-three-20261102-2/hane-family.png",
+      "sources": [
+        "https://hanehotels.com/hane-family/en/",
+        "https://hanehotels.com/hane-family/en/service/pool",
+        "https://hanehotels.com/hane-family/en/service/activity"
+      ]
+    }
+  ]
+}
