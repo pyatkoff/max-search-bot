@@ -1,4 +1,4 @@
-name: Read the same hotel CGI ingress outcome and exact vhost directives once
+name: Read exact own Apache and explicitly referenced PHP configuration once
 on:
   push:
     branches: [ops/hotel-server-private-activation-20261102]
@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   private_upload_readback:
-    if: github.ref == 'refs/heads/ops/hotel-server-private-activation-20261102' && github.event.before == '791c21891657f410346513a50df354c97dd400c9' && github.event.created == false && github.event.deleted == false && github.event.forced == false && github.run_attempt == 1
+    if: github.ref == 'refs/heads/ops/hotel-server-private-activation-20261102' && github.event.before == '3f544322a5b4ae0958d123887d24987d0d00ddf7' && github.event.created == false && github.event.deleted == false && github.event.forced == false && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -25,10 +25,10 @@ jobs:
           python3 - <<'PY'
           import os,json,pathlib,base64,hashlib
           root=pathlib.Path(os.environ['RUNNER_TEMP']);d=json.loads((root/'hotel_upload_readback_source.json').read_text())
-          assert d['encoding']=='base64' and d['sha']=='10c4b42007cab70cfd91de413d775ca61219c1d7'
+          assert d['encoding']=='base64' and d['sha']=='6bfeefb7b34c1f6cbc6a9629e97e0aee1100a6d6'
           b=base64.b64decode(d['content']);assert len(b)<65536
           assert hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()==d['sha']
-          assert hashlib.sha256(b).hexdigest()=='9fad80520fcb5371d96e645991f583833ea76ff55bd07d3f5f1300e868715d8a'
+          assert hashlib.sha256(b).hexdigest()=='af6cf8eeb1ae01def51b0358804b6653652a8eba409353d4127a65a9b63dbef1'
           (root/'hotel_upload_readback.php').write_bytes(b)
           PY
       - uses: shivammathur/setup-php@v2
@@ -48,7 +48,7 @@ jobs:
           python3 - <<'PY'
           import os,json,pathlib
           d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP']+'/hotel_upload_readback_refusal.json').read_text())
-          assert d=={'operation':'hotel-server-private-cgi-readback-v1','state':'HOLD','reason':'target_unconfirmed','database_writes':0,'provider_calls':0,'runtime_enable_writes':0}
+          assert d=={'operation':'hotel-server-private-cgi-runtime-readback-v1','state':'HOLD','reason':'target_unconfirmed','database_writes':0,'provider_calls':0,'runtime_enable_writes':0}
           PY
       - name: Prepare existing connection and approved host continuity
         env:
@@ -98,17 +98,17 @@ jobs:
           python3 - <<'PY'
           import os,json,pathlib,base64,hashlib,sys
           root=pathlib.Path(os.environ['RUNNER_TEMP']);ok=False
-          safe={'operation':'hotel-server-private-cgi-readback-v1','state':'HOLD','reason':'readback_result_unconfirmed','database_writes':0,'provider_calls':0,'runtime_enable_writes':0}
+          safe={'operation':'hotel-server-private-cgi-runtime-readback-v1','state':'HOLD','reason':'readback_result_unconfirmed','database_writes':0,'provider_calls':0,'runtime_enable_writes':0}
           try:
               p=root/'hotel_upload_readback_raw.private';assert 0<p.stat().st_size<=98304
               d=json.loads(p.read_text());assert type(d) is dict
-              fixed={'operation':'hotel-server-private-cgi-readback-v1','database_writes':0,'provider_calls':0,'runtime_enable_writes':0}
+              fixed={'operation':'hotel-server-private-cgi-runtime-readback-v1','database_writes':0,'provider_calls':0,'runtime_enable_writes':0}
               for k,v in fixed.items():assert type(d[k]) is type(v) and d[k]==v
               status=int(os.environ['HOTEL_UPLOAD_READBACK_STATUS'])
               if d['state']=='sealed':
                   assert set(d)==set(fixed)|{'state','algorithm','recipient_sha256','aad','key','nonce','tag','ciphertext','ciphertext_sha256'}
                   assert d['algorithm']=='RSA-OAEP-SHA1+A256GCM' and d['recipient_sha256']=='71f2b177d6baa924fa466765027c37f51a00f23f803a6d900060bf42944d237d'
-                  assert d['aad']=='hotel-server-private-cgi-readback-v1|0fb9d88cd714ae951baa68f013b7a46472af06c4|8e4c0372a0338bc98429d47bc0fe3327238f5be69d94c7d28dbf977647a85e35'
+                  assert d['aad']=='hotel-server-private-cgi-runtime-readback-v1|0fb9d88cd714ae951baa68f013b7a46472af06c4|8e4c0372a0338bc98429d47bc0fe3327238f5be69d94c7d28dbf977647a85e35'
                   decoded={k:base64.b64decode(d[k],validate=True) for k in ['key','nonce','tag','ciphertext']}
                   assert len(decoded['key'])==384 and len(decoded['nonce'])==12 and len(decoded['tag'])==16
                   assert 0<len(decoded['ciphertext'])<=65536 and hashlib.sha256(decoded['ciphertext']).hexdigest()==d['ciphertext_sha256']
@@ -125,7 +125,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: hotel-server-private-cgi-readback-sealed
+          name: hotel-server-private-cgi-runtime-readback-sealed
           path: ${{ runner.temp }}/hotel_upload_readback_sealed.json
           retention-days: 7
           if-no-files-found: ignore

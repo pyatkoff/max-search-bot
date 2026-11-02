@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 ini_set('display_errors','0');ini_set('log_errors','0');
-const CHUNK_READ_OPERATION='hotel-server-private-cgi-readback-v1';
+const CHUNK_READ_OPERATION='hotel-server-private-cgi-runtime-readback-v1';
 const CHUNK_READ_INSTALLED='0fb9d88cd714ae951baa68f013b7a46472af06c4';
 const CHUNK_READ_ID='8e4c0372a0338bc98429d47bc0fe3327238f5be69d94c7d28dbf977647a85e35';
 const CHUNK_READ_TICKET_SHA='5e91679b20b7906686fc6f02b02841fbec615af99a3177a56d3f36e904b8dc43';
@@ -74,11 +74,26 @@ function chunkLogTail(string $path):array {
         'lines'=>$lines];
 }
 
-/** Read only the three named own-vhost files and explicit per-user PHP wrapper references. */
-function chunkVhostEvidence(string $path,array &$wrappers,int &$rowBudget,bool $wrapper=false):array {
+/** Follow only literal references within this user's PHP area or this exact domain's configuration. */
+function chunkOwnReference(string $path,string $kind):bool {
+    if(strlen($path)>512||!preg_match('~\A/(?:[A-Za-z0-9_.-]+/)*[A-Za-z0-9_.-]+/?\z~D',$path)
+        ||preg_match('~(?:^|/)\.{1,2}(?:/|$)~',$path))return false;
+    if($kind==='include')return preg_match('~\A/etc/(?:apache2|httpd|nginx)/~D',$path)===1
+        &&preg_match('~(?:/app\.anytoour\.ru/|/app\.anytoour\.ru\.[A-Za-z0-9_.-]+$)~D',$path)===1
+        &&str_ends_with($path,'.conf');
+    return preg_match('~\A/var/www/(?:php-bin(?:-isp-php[0-9.]+)?/anytoour(?:/|$)|anytoour/(?:data/)?(?:php-bin|\.php)(?:/|$))~D',$path)===1;
+}
+function chunkAddPhpIni(string $reference,array &$phpInis):bool {
+    $path=rtrim($reference,'/');if(basename($path)!=='php.ini')$path.='/php.ini';
+    if(!chunkOwnReference($path,'ini'))return false;
+    if(count($phpInis)<2||isset($phpInis[$path])){$phpInis[$path]=true;return true;}return false;
+}
+/** Fixed own-vhost files, then at most two explicit own includes/wrappers/PHPRC php.ini files each. */
+function chunkVhostEvidence(string $path,array &$wrappers,array &$phpInis,array &$includes,int &$rowBudget,string $kind='vhost'):array {
+    $wrapper=$kind==='wrapper';
     clearstatcache(true,$path);$s=lstat($path);
     if($s===false)return ['path'=>$path,'available'=>false,'reason'=>'absent_or_unreadable'];
-    if(is_link($path)||!is_file($path)||!is_readable($path)||$s['size']<1||$s['size']>131072)
+    if(is_link($path)||realpath($path)!==$path||!is_file($path)||!is_readable($path)||$s['size']<1||$s['size']>131072)
         return ['path'=>$path,'available'=>false,'reason'=>'bounded_regular_read_unavailable','bytes'=>$s['size'],'symlink'=>is_link($path)];
     $f=fopen($path,'rb');if(!$f)return ['path'=>$path,'available'=>false,'reason'=>'unreadable'];
     try{$opened=fstat($f);if($s['dev']!==$opened['dev']||$s['ino']!==$opened['ino'])chunkFail('vhost_file_changed');
@@ -88,7 +103,7 @@ function chunkVhostEvidence(string $path,array &$wrappers,int &$rowBudget,bool $
         ||$s['size']!==$after['size']||$s['mtime']!==$after['mtime']||$end['size']!==$s['size'])chunkFail('vhost_file_changed');
     $out=['path'=>$path,'available'=>true,'bytes'=>$s['size'],'sha256'=>hash('sha256',$raw),'stable'=>true,'selected_directives'=>[]];
     if(str_contains($raw,"\0"))return $out+['reason'=>'non_text_not_returned'];
-    if(!$wrapper&&!preg_match('/(?:ServerName|server_name)\s+[^\r\n]*\bapp\.anytoour\.ru\b/i',$raw))
+    if($kind==='vhost'&&!preg_match('/(?:ServerName|server_name)\s+[^\r\n]*\bapp\.anytoour\.ru\b/i',$raw))
         return $out+['reason'=>'own_host_marker_unconfirmed'];
     $aliases=[];$actions=[];$selected=[];$truncated=false;
     foreach(explode("\n",$raw) as $n=>$original){
@@ -96,8 +111,10 @@ function chunkVhostEvidence(string $path,array &$wrappers,int &$rowBudget,bool $
         $line=preg_replace('/\s+#.*$/','',$line);
         $row=null;$safe=null;
         if(preg_match('/\bdisable_functions\b/i',$line)){
-            $row=['directive'=>'disable_functions','posix_geteuid_disabled'=>preg_match('/(?:^|[,=;\s"\'])posix_geteuid(?:$|[,\s"\';])/i',$line)===1,
-                'other_function_names_omitted'=>true];
+            $disabled=[];foreach(['posix_geteuid','realpath','fileowner','fileperms','filesize','file_get_contents','hash_file','fopen','chmod','flock','hash_init','hash_update','hash_final','fread','fwrite','fflush','rename'] as $fn)
+                $disabled[$fn]=preg_match('/(?:^|[,=;\s"\'])'.preg_quote($fn,'/').'(?:$|[,\s"\';])/i',$line)===1;
+            $row=['directive'=>'disable_functions','posix_geteuid_disabled'=>$disabled['posix_geteuid'],
+                'upload_guard_function_disabled'=>$disabled,'other_function_names_omitted'=>true];
         }elseif(preg_match('/\bopen_basedir\b\s*(?:=|\s)\s*(.+)$/i',$line,$m)){
             $value=trim($m[1]," \t;\"'");$literal=preg_match('~\A[A-Za-z0-9_./: -]*\z~D',$value)===1;
             $allowed=null;if($literal){$allowed=$value===''||strtolower($value)==='none';
@@ -107,8 +124,20 @@ function chunkVhostEvidence(string $path,array &$wrappers,int &$rowBudget,bool $
         }elseif(preg_match('/\b(opcache\.[A-Za-z0-9_]+)\b\s*(?:=|\s)\s*([^#\r\n]+)/i',$line,$m)){
             $value=trim($m[2]," \t;\"'");$safeValue=preg_match('/\A(?:[0-9]+|on|off|true|false|yes|no)\z/iD',$value)?$value:'[nonboolean/non-numeric value omitted]';
             $row=['directive'=>$m[1],'value'=>$safeValue];
-        }elseif(preg_match('/^\s*(?:export\s+)?PHPRC\s*=\s*["\']?([\/A-Za-z0-9_.-]+)["\']?\s*;?\s*$/',$line,$m)){
-            $row=['directive'=>'PHPRC','path'=>$m[1],'referenced_ini_not_read'=>true];
+        }elseif(preg_match('/^\s*(?:export\s+)?PHPRC\s*=\s*["\']?([\/A-Za-z0-9_.-]+)["\']?\s*;?\s*$/',$line,$m)
+            ||preg_match('/^(?:FcgidInitialEnv|SetEnv)\s+PHPRC\s+["\']?([\/A-Za-z0-9_.-]+)["\']?\s*;?\s*$/i',$line,$m)){
+            $queued=chunkAddPhpIni($m[1],$phpInis);
+            $row=['directive'=>'PHPRC','path'=>$m[1],'explicit_own_ini_queued'=>$queued];
+        }elseif(preg_match('/^(?:PHPIniDir|PHPINIDir)\s+["\']?([\/A-Za-z0-9_.-]+)["\']?\s*$/i',$line,$m)){
+            $queued=chunkAddPhpIni($m[1],$phpInis);$row=['directive'=>'PHPIniDir','path'=>$m[1],'explicit_own_ini_queued'=>$queued];
+        }elseif(preg_match('/^(?:Include|IncludeOptional|include)\s+["\']?([\/A-Za-z0-9_.-]+)["\']?\s*;?\s*$/i',$line,$m)){
+            $own=chunkOwnReference($m[1],'include');
+            if($own&&(count($includes)<2||isset($includes[$m[1]])))$includes[$m[1]]=true;
+            $row=['directive'=>'include','path'=>$m[1],'own_domain_only'=>$own,'global_content_not_read'=>!$own];
+        }elseif(preg_match('/^variables_order\s*=\s*["\']?([EGPCS]+)["\']?\s*;?\s*$/i',$line,$m)){
+            $row=['directive'=>'variables_order','value'=>$m[1],'server_variables_enabled'=>stripos($m[1],'S')!==false];
+        }elseif(preg_match('/^auto_prepend_file\s*=\s*(.*)$/i',$line,$m)){
+            $value=trim($m[1]," \t;\"'");$row=['directive'=>'auto_prepend_file','configured'=>$value!==''&&strtolower($value)!=='none','path_and_content_omitted'=>true];
         }elseif(preg_match('~(?:^|[\s"\'])((?:/[A-Za-z0-9_.-]+)+/(?:php-cgi[0-9.]*|php[0-9.]*))(?:[\s"\';]|$)~',$line,$m)&&$wrapper){
             $row=['directive'=>'php_binary_reference','path'=>$m[1],'binary_not_read_or_executed'=>true];
         }elseif(preg_match('/^(CGIPassAuth|AllowOverride)\s+([A-Za-z ]+)\s*$/i',$line,$m)){
@@ -123,12 +152,12 @@ function chunkVhostEvidence(string $path,array &$wrappers,int &$rowBudget,bool $
             $safe='<Directory '.$m[1].'>';
         }elseif(preg_match('/^Options\s+([A-Za-z+\- ]+)$/i',$line,$m)&&stripos($m[1],'ExecCGI')!==false){
             $safe=$line;
-        }elseif(preg_match('~^FcgidWrapper\s+["\']?(/[A-Za-z0-9_./-]+)["\']?(?:\s|$)~i',$line,$m)){
+        }elseif(preg_match('~^(?:FcgidWrapper|FCGIWrapper)\s+["\']?(/[A-Za-z0-9_./-]+)["\']?(?:\s|$)~i',$line,$m)){
             $safe='FcgidWrapper '.$m[1];
-            if(str_starts_with($m[1],'/var/www/php-bin/anytoour/')&&!str_contains($m[1],'/../'))$wrappers[$m[1]]=true;
-        }elseif(preg_match('~^ScriptAlias\s+["\']?(/php-bin/[^"\s]*)["\']?\s+["\']?(/var/www/php-bin/anytoour/[^"\s]*)["\']?~i',$line,$m)){
-            $safe='ScriptAlias '.$m[1].' '.$m[2];$aliases[$m[1]]=$m[2];
-        }elseif(preg_match('~^Action\s+([A-Za-z0-9_/+.-]+)\s+["\']?(/php-bin/[A-Za-z0-9_./-]+)["\']?\s*$~i',$line,$m)){
+            if(chunkOwnReference($m[1],'wrapper')&&(count($wrappers)<2||isset($wrappers[$m[1]])))$wrappers[$m[1]]=true;
+        }elseif(preg_match('~^ScriptAlias\s+["\']?(/php-bin(?:-isp-php[0-9.]+)?/[^"\s]*)["\']?\s+["\']?(/[A-Za-z0-9_./-]+)["\']?~i',$line,$m)){
+            if(chunkOwnReference($m[2],'wrapper')){$safe='ScriptAlias '.$m[1].' '.$m[2];$aliases[$m[1]]=$m[2];}
+        }elseif(preg_match('~^Action\s+([A-Za-z0-9_/+.-]+)\s+["\']?(/php-bin(?:-isp-php[0-9.]+)?/[A-Za-z0-9_./-]+)["\']?\s*$~i',$line,$m)){
             $safe='Action '.$m[1].' '.$m[2];$actions[]=$m[2];
         }elseif(preg_match('/^(AddHandler|SetHandler)\s+([A-Za-z0-9_\/+.-]+)(?:\s+(\.[A-Za-z0-9. ]+))?$/i',$line,$m)
             &&preg_match('/php|cgi/i',$m[2])){
@@ -159,7 +188,7 @@ function chunkVhostEvidence(string $path,array &$wrappers,int &$rowBudget,bool $
     }
     foreach($actions as $action)foreach($aliases as $prefix=>$dest)if(str_starts_with($action,$prefix)){
         $wrapperPath=$dest.substr($action,strlen($prefix));
-        if(str_starts_with($wrapperPath,'/var/www/php-bin/anytoour/')&&!str_contains($wrapperPath,'/../'))$wrappers[$wrapperPath]=true;
+        if(chunkOwnReference($wrapperPath,'wrapper')&&(count($wrappers)<2||isset($wrappers[$wrapperPath])))$wrappers[$wrapperPath]=true;
     }
     unset($raw);$out['selected_directives']=$selected;$out['selection_truncated']=$truncated;return $out;
 }
@@ -285,17 +314,24 @@ try {
     }
     unset($error['lines']);$error['own_endpoint_rows']=$errorRows;$error['generic_unattributed_errors_excluded']=true;
     $error['time_basis']='same_host_access_log_offsets_only; no PHP timezone assumption';$report['error_log']=$error;
-    $vhostRows=[];$wrapperPaths=[];$directiveBudget=48;
-    foreach(['/etc/httpd/conf/vhosts/anytoour/app.anytoour.ru.conf',
-        '/etc/apache2/conf/vhosts/anytoour/app.anytoour.ru.conf','/etc/nginx/vhosts/anytoour/app.anytoour.ru.conf'] as $configPath)
-        $vhostRows[]=chunkVhostEvidence($configPath,$wrapperPaths,$directiveBudget);
-    $report['exact_own_vhost_configs']=$vhostRows;$wrapperRows=[];$seenWrappers=[];
-    foreach(array_keys($wrapperPaths) as $wrapperPath){
-        if(count($seenWrappers)>=2)break;$seenWrappers[]=$wrapperPath;
-        $wrapperRows[]=chunkVhostEvidence($wrapperPath,$wrapperPaths,$directiveBudget,true);
-    }
-    $report['explicit_own_php_wrapper_configs']=$wrapperRows;
+    $vhostRows=[];$wrapperPaths=[];$phpIniPaths=[];$includePaths=[];$directiveBudget=64;
+    foreach(['/etc/apache2/vhosts/anytoour/app.anytoour.ru.conf','/etc/httpd/vhosts/anytoour/app.anytoour.ru.conf',
+        '/etc/httpd/conf/vhosts/anytoour/app.anytoour.ru.conf','/etc/apache2/conf/vhosts/anytoour/app.anytoour.ru.conf',
+        '/etc/nginx/vhosts/anytoour/app.anytoour.ru.conf'] as $configPath)
+        $vhostRows[]=chunkVhostEvidence($configPath,$wrapperPaths,$phpIniPaths,$includePaths,$directiveBudget);
+    $report['exact_own_vhost_configs']=$vhostRows;$includeRows=[];
+    foreach(array_slice(array_keys($includePaths),0,2) as $includePath)
+        $includeRows[]=chunkVhostEvidence($includePath,$wrapperPaths,$phpIniPaths,$includePaths,$directiveBudget,'include');
+    $report['explicit_own_domain_includes']=$includeRows;$wrapperRows=[];
+    foreach(array_slice(array_keys($wrapperPaths),0,2) as $wrapperPath)
+        $wrapperRows[]=chunkVhostEvidence($wrapperPath,$wrapperPaths,$phpIniPaths,$includePaths,$directiveBudget,'wrapper');
+    $report['explicit_own_php_wrapper_configs']=$wrapperRows;$phpIniRows=[];
+    foreach(array_slice(array_keys($phpIniPaths),0,2) as $iniPath)
+        $phpIniRows[]=chunkVhostEvidence($iniPath,$wrapperPaths,$phpIniPaths,$includePaths,$directiveBudget,'ini');
+    $report['explicit_own_php_ini_configs']=$phpIniRows;
+    $report['config_read_bounds']=['vhost_candidates'=>5,'own_domain_includes_max'=>2,'own_wrappers_max'=>2,'explicit_PHPRC_ini_max'=>2,'selected_directives_max'=>64,'individual_file_bytes_max'=>131072];
     $report['global_configs_scanned']=false;$report['web_opcache_execution_version_proven']=false;
+    $report['actual_web_request_environment_observed']=false;
     require_once $app.'/config.php';require_once $app.'/services/ProjectAccessService.php';
     ProjectAccessService::initializeReadOnly();$pdo=ConversationDb::connection();
     if($pdo->inTransaction()||$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)!=='mysql')chunkFail('database_read_unconfirmed');
