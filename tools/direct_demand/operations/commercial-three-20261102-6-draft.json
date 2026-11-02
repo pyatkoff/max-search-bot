@@ -1,0 +1,27 @@
+{
+  "operation": "commercial-hotel-three-20261102-6-v1",
+  "state": "DRAFT_IDENTITY_PREFLIGHT",
+  "goal": "Prepare the next three complete hotel posts from retained Egypt material, then publish once per channel after all media and identity checks.",
+  "boundaries": "Candidates Mamlouk Palace, Garden Beach and White Hills. This operation is read-only catalog/registry discovery; no client data, messages, providers or prices.",
+  "criteria": [
+    "Exact existing active catalogue identity and no existing hotel publication.",
+    "Primary official sources correspond to the same physical property.",
+    "Do not count draft as sent or use prior three-cover URL permission for other images."
+  ],
+  "risks": [
+    "Hotel name homonyms, duplicate records, retained PARTIAL facts, access restrictions on private archives.",
+    "Never infer native/provider IDs from names."
+  ],
+  "baseline_logical_materials": 21,
+  "candidate_names": [
+    "SUNRISE Mamlouk Palace Resort",
+    "SUNRISE Garden Beach Resort",
+    "White Hills Resort"
+  ],
+  "official_sources": [
+    "https://www.sunrise-resorts.com/mamlouk-palace-resort",
+    "https://www.sunrise-resorts.com/garden-beach-resort",
+    "https://www.sunrise-resorts.com/white-hills-resort"
+  ],
+  "next": "Resolve actual catalog identities through the existing finite read-only server mechanism."
+}

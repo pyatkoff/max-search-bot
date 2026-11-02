@@ -1,4 +1,4 @@
-name: Publish three approved AnyTour hotels in both channels
+name: Read next three hotel catalog candidates
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -10,7 +10,7 @@ concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 env:
-  EXPECTED_PRODUCTION_SHA: a0998e8aac75413bd8fbac818485a86807df3b11
+  EXPECTED_PRODUCTION_SHA: 46f6004ff7a6155005509b0e613d650937866134
 jobs:
   inspect:
     if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
@@ -31,25 +31,22 @@ jobs:
           test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = "$EXPECTED_PRODUCTION_SHA"
           conclusion=$(gh api "repos/pyatkoff/max-search-bot/actions/runs/41326148772/jobs?per_page=20" --jq '[.jobs[] | select(.name=="verify")] | last | .conclusion')
           test "$conclusion" = success
-          test "$(gh api repos/pyatkoff/max-search-bot/actions/runs/41408885824 --jq .head_sha)" = "$EXPECTED_PRODUCTION_SHA"
-          test "$(gh api repos/pyatkoff/max-search-bot/actions/runs/41408885824 --jq .conclusion)" = success
-          test "$(gh api repos/pyatkoff/max-search-bot/actions/runs/41408885888 --jq .head_sha)" = "$EXPECTED_PRODUCTION_SHA"
-          test "$(gh api repos/pyatkoff/max-search-bot/actions/runs/41408885888 --jq .conclusion)" = success
-      - name: Prepare fixed owner-approved three-hotel manifest and once-only operation
+          test "$(gh api repos/pyatkoff/max-search-bot/actions/runs/41422313404 --jq .head_sha)" = "$EXPECTED_PRODUCTION_SHA"
+          test "$(gh api repos/pyatkoff/max-search-bot/actions/runs/41422313404 --jq .conclusion)" = success
+          test "$(gh api repos/pyatkoff/max-search-bot/actions/runs/41422313579 --jq .head_sha)" = "$EXPECTED_PRODUCTION_SHA"
+          test "$(gh api repos/pyatkoff/max-search-bot/actions/runs/41422313579 --jq .conclusion)" = success
+      - name: Prepare finite read-only hotel catalog inspection
         shell: bash
         run: |
           set -euo pipefail
           umask 077
           python3 - <<'PY'
           import pathlib,hashlib,os
-          script=pathlib.Path('tools/direct_demand/operations/publish-commercial-three-20261102-5.php').read_text()
-          assert hashlib.sha256(script.encode()).hexdigest()=='5da4cbfd4bbdf9d46b05495e91da3b0843b4ff7dfc5776b197cd77e4243383a1'
+          script=pathlib.Path('tools/direct_demand/operations/read-commercial-three-20261102-6-candidates.php').read_text()
+          assert hashlib.sha256(script.encode()).hexdigest()=='ab54c1700b97811fb80acdda5bd5be440c4846d3418ec465da505bfddcfff999'
           prefix="<?php\ndeclare(strict_types=1);\n"
           assert script.startswith(prefix)
-          manifest=pathlib.Path('tools/direct_demand/operations/commercial-three-20261102-5-manifest.json').read_bytes()
-          assert hashlib.sha256(manifest).hexdigest()=='7239f83de356fafedfa89ed007a68d83b6f33032eae78ebddbc3c48669debba6'
-          import base64
-          header=prefix+"const EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst MANIFEST_BASE64='"+base64.b64encode(manifest).decode()+"';\n"
+          header=prefix+"const EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\n"
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.php').write_text(header+script[len(prefix):])
           PY
           php -l "$RUNNER_TEMP/channel-preflight.php"
@@ -91,7 +88,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Publish exact three approved hotel posts with canonical buttons and no duplicates
+      - name: Read only the selected hotel catalog and registry identities
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -102,21 +99,18 @@ jobs:
           ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-preflight.php" > "$RUNNER_TEMP/channel-preflight.json" || probe_status=$?
           python3 - <<'PY'
           import pathlib,json,os
-          lines=pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.json').read_text().splitlines()
-          d=json.loads(lines[-1])
+          d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.json').read_text().splitlines()[-1])
           print(json.dumps(d,ensure_ascii=False,sort_keys=True))
-          assert d['operation']=='commercial-hotel-three-20261102-5-v1' and d['mode']=='publish_approved_commercial_next_three'
-          assert d['ok'] is True and len(d['posts'])==6
-          assert d['post_write_attempts']<=6 and d['new_posts']<=6
-          assert len({(p['platform'],p['logical_id']) for p in d['posts']})==6
-          assert all(p['body_photo_button_verified'] and p['button_text']=='✈️ Узнать стоимость тура' for p in d['posts'])
+          assert d['operation']=='commercial-three-material-20261102-6-read1' and d['mode']=='read_three_public_catalog_candidates'
+          assert d['ok'] is True and len(d['candidates'])==3
+          assert d['db_writes']==0 and d['provider_calls']==0 and d['message_sends']==0
           PY
           test "${probe_status:-0}" = 0
       - name: Retain bounded route evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-three-20261102-5-publication
+          name: commercial-three-20261102-6-catalog-candidates
           path: ${{ runner.temp }}/channel-preflight.json
           retention-days: 14
           if-no-files-found: warn
