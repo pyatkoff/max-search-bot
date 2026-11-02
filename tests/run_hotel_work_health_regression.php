@@ -153,6 +153,91 @@ PHP);
         $stream=fopen('php://temp','w+b');fwrite($stream,$bytes);rewind($stream);
         try{return HotelServerPrivateUpload::receive($root,$request,$stream,$uploadNow);}finally{fclose($stream);}
     };
+    // The dedicated header transports the same ticket-bound capability through ordinary CGI headers.
+    $customRequest=$uploadRequest;unset($customRequest['HTTP_AUTHORIZATION']);
+    $customRequest['HTTP_X_HOTEL_UPLOAD_CAPABILITY']=$token;
+    foreach(['missing','empty','prefixed','non_scalar','wrong_token','invalid_custom_with_valid_legacy',
+        'conflicting_legacy','invalid_legacy','empty_legacy'] as $mode){
+        [$uploadApp,$uploadDir]=$uploadFixture('custom-capability-'.$mode);$request=$customRequest;
+        if($mode==='missing')unset($request['HTTP_X_HOTEL_UPLOAD_CAPABILITY']);
+        if($mode==='empty')$request['HTTP_X_HOTEL_UPLOAD_CAPABILITY']='';
+        if($mode==='prefixed')$request['HTTP_X_HOTEL_UPLOAD_CAPABILITY']='Bearer '.$token;
+        if($mode==='non_scalar')$request['HTTP_X_HOTEL_UPLOAD_CAPABILITY']=[$token];
+        if($mode==='wrong_token')$request['HTTP_X_HOTEL_UPLOAD_CAPABILITY']=str_repeat('d',64);
+        if($mode==='invalid_custom_with_valid_legacy'){
+            $request['HTTP_X_HOTEL_UPLOAD_CAPABILITY']='invalid';$request['HTTP_AUTHORIZATION']='Bearer '.$token;
+        }
+        if($mode==='conflicting_legacy')$request['HTTP_AUTHORIZATION']='Bearer '.str_repeat('d',64);
+        if($mode==='invalid_legacy')$request['HTTP_AUTHORIZATION']='Basic invalid';
+        if($mode==='empty_legacy')$request['HTTP_AUTHORIZATION']='';
+        $result=$uploadCall($uploadApp,$request,$payload);
+        hotelHealthCheck('CGI capability rejects '.$mode.' before writing',
+            $result===['code'=>404,'body'=>['ok'=>false,'state'=>'unavailable']]
+            &&!file_exists($uploadDir.'/upload.lock')&&!file_exists($uploadDir.'/chunks')
+            &&!file_exists($uploadDir.'/upload.part')&&!file_exists($uploadDir.'/sealed-inputs.bin'));
+    }
+    foreach(['custom_only','matching_legacy'] as $mode){
+        [$uploadApp,$uploadDir]=$uploadFixture('custom-capability-'.$mode);$request=$customRequest;
+        if($mode==='matching_legacy')$request['HTTP_AUTHORIZATION']='Bearer '.$token;
+        $result=$uploadCall($uploadApp,$request,$payload);$sealed=$uploadDir.'/sealed-inputs.bin';
+        hotelHealthCheck('ticket-bound CGI capability stores exact bytes with '.$mode,
+            $result===['code'=>200,'body'=>['ok'=>true,'state'=>'stored','bytes'=>strlen($payload),'sha256'=>hash('sha256',$payload)]]
+            &&file_get_contents($sealed)===$payload&&(fileperms($sealed)&0777)===0600
+            &&!file_exists($uploadDir.'/upload.part'));
+    }
+    // Parser checks cover ambiguous/invalid process identity, not a substitute script-file owner.
+    $uidParser=new ReflectionMethod(HotelServerPrivateUpload::class,'uidFromProcStatus');$uidParser->setAccessible(true);
+    hotelHealthCheck('Linux process credentials preserve one canonical identity',
+        $uidParser->invoke(null,"Name:\tphp-cgi\nUid:\t1012\t1012\t1012\t1012\nGid:\t1012\t1012\t1012\t1012\n")===1012
+        &&$uidParser->invoke(null,"Uid:\t0\t0\t0\t0\n")===0);
+    foreach([
+        'mixed'=>"Uid:\t1012\t0\t1012\t1012\n",
+        'duplicate'=>"Uid:\t1012\t1012\t1012\t1012\nUid:\t1012\t1012\t1012\t1012\n",
+        'missing'=>"Name:\tphp-cgi\n",
+        'leading_zero'=>"Uid:\t01012\t01012\t01012\t01012\n",
+        'overflow'=>"Uid:\t4294967296\t4294967296\t4294967296\t4294967296\n",
+        'split_line'=>"Uid:\t1012\t1012\n\t1012\t1012\n",
+        'too_large'=>str_repeat('x',65537)."\nUid:\t1012\t1012\t1012\t1012\n",
+    ] as $mode=>$status)hotelHealthCheck('Linux process credentials reject '.$mode,$uidParser->invoke(null,$status)===null);
+    if(PHP_OS_FAMILY==='Linux'){
+        // Real child processes exercise receive(), with no extra fixture source file or server access.
+        $uidChild=<<<'PHP'
+require $argv[1];
+$request=json_decode(base64_decode($argv[3],true),true,32,JSON_THROW_ON_ERROR);
+$payload=base64_decode($argv[4],true);$stream=fopen('php://temp','w+b');fwrite($stream,$payload);rewind($stream);
+try{$result=HotelServerPrivateUpload::receive($argv[2],$request,$stream,(int)$argv[5]);}finally{fclose($stream);}
+echo json_encode(['posix_module'=>extension_loaded('posix'),'posix_function'=>function_exists('posix_geteuid'),
+    'fileowner_function'=>function_exists('fileowner'),'result'=>$result],JSON_THROW_ON_ERROR),"\n";
+PHP;
+        $uidChildCall=static function(string $root,array $request,string $options)use($uidChild,$payload,$uploadNow):array{
+            $lines=[];$code=-1;
+            exec(escapeshellarg(PHP_BINARY).' '.$options.' -r '.escapeshellarg($uidChild).' -- '
+                .escapeshellarg(dirname(__DIR__).'/services/HotelServerPrivateUpload.php').' '.escapeshellarg($root).' '
+                .escapeshellarg(base64_encode(json_encode($request,JSON_THROW_ON_ERROR))).' '.escapeshellarg(base64_encode($payload)).' '
+                .escapeshellarg((string)$uploadNow).' 2>&1',$lines,$code);
+            return [$code,json_decode(implode("\n",$lines),true)];
+        };
+        [$uploadApp,$uploadDir]=$uploadFixture('kernel-uid-no-posix');
+        [$code,$child]=$uidChildCall($uploadApp,$customRequest,'-n');$sealed=$uploadDir.'/sealed-inputs.bin';
+        hotelHealthCheck('real no-POSIX process retains private exact ingress storage',
+            $code===0&&($child['posix_module']??null)===false&&($child['posix_function']??null)===false
+            &&($child['result']??null)===['code'=>200,'body'=>['ok'=>true,'state'=>'stored','bytes'=>strlen($payload),'sha256'=>hash('sha256',$payload)]]
+            &&is_file($sealed)&&file_get_contents($sealed)===$payload&&(fileperms($sealed)&0777)===0600);
+        [$uploadApp,$uploadDir]=$uploadFixture('kernel-uid-ownership-unavailable');
+        [$code,$child]=$uidChildCall($uploadApp,$customRequest,'-n -d disable_functions=fileowner');
+        hotelHealthCheck('real no-POSIX process fails closed without ownership metadata',
+            $code===0&&($child['posix_module']??null)===false&&($child['fileowner_function']??null)===false
+            &&($child['result']??null)===['code'=>404,'body'=>['ok'=>false,'state'=>'unavailable']]
+            &&!file_exists($uploadDir.'/upload.lock')&&!file_exists($uploadDir.'/sealed-inputs.bin'));
+        if(extension_loaded('posix')){
+            [$uploadApp,$uploadDir]=$uploadFixture('kernel-uid-posix-explicitly-disabled');
+            [$code,$child]=$uidChildCall($uploadApp,$customRequest,'-d disable_functions=posix_geteuid');
+            hotelHealthCheck('loaded POSIX with disabled function cannot use the kernel fallback',
+                $code===0&&($child['posix_module']??null)===true&&($child['posix_function']??null)===false
+                &&($child['result']??null)===['code'=>404,'body'=>['ok'=>false,'state'=>'unavailable']]
+                &&!file_exists($uploadDir.'/upload.lock')&&!file_exists($uploadDir.'/sealed-inputs.bin'));
+        }
+    }
     foreach(['missing_ticket','wrong_token','method','plain_http','foreign_host','content_type','origin','chunked','wrong_length',
         'expired','future','long_lifetime','extra_key','size_cap','public_ticket','public_directory','ticket_symlink'] as $mode){
         [$uploadApp,$uploadDir]=$uploadFixture($mode);$request=$uploadRequest;$ticket=$uploadTicket;
@@ -291,4 +376,3 @@ PHP);
     foreach ($it as $entry) {if ($entry->isDir()&&!$entry->isLink()) rmdir($entry->getPathname());else unlink($entry->getPathname());}
     rmdir($tmp);
 }
-
