@@ -1,0 +1,45 @@
+{
+  "operation": "commercial-hotel-batch-20261103-17-v1",
+  "state": "CONTENT_VERIFIED_GENERAL_HERO_PREPARATION_NOT_SENT",
+  "goal": "Prepare the two deferred whole hotel materials while the original production release owner resolves its separate failed cron verification.",
+  "boundaries": "Native62505 ROBINSON Soma Bay and4184 Sentido Reef Oasis Senses only. Public primary hotel photographs and existing Canva working copies. No server or provider publication call, old post edits, price claim or new runtime.",
+  "criteria": "A useful real general hotel/grounds hero and readable accepted AnyTour layout, then native PNG validation. Live approval and source gates remain necessary before any later send.",
+  "risks": "Prior hero choices showed beach/driveway or interior/single pool and remain rejected. Sentido primary Aqua Park closure10Jan through28Feb2027 stays in its whole caption.",
+  "baseline_logical_materials": 88,
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "hotel_id": 62505,
+      "hotel": "ROBINSON SOMA BAY",
+      "key": "robinson-soma-bay",
+      "aliases": [
+        "ROBINSON SOMA BAY",
+        "ROBINSON SOMA BAY"
+      ],
+      "sources": [
+        "https://www.robinson.com/en/en/resort-holiday/egypt/soma-bay/club-details/",
+        "https://mice.robinson.com/en/clubs/soma-bay/"
+      ],
+      "text": "✈️ ROBINSON Soma Bay\nТур с перелётом в Хургаду 🇪🇬\n\nКлубный отель в Сома Бэй у песчаного пляжа длиной около 500 м. Много спорта и вечерних развлечений 🌴\n\n💦 Три бассейна, в том числе детский.\n🏄 Водные виды спорта, дайвинг, групповой фитнес и теннис.\n🍽️ Полный пансион с завтраком, обедом и ужином. Четыре ресторана и шесть баров.\n🧒 ROBY CLUB для детей от 3 лет.\n\nℹ️ Основная программа ориентирована на взрослых. Семьи с детьми тоже принимают, для ребят есть отдельные занятия.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-robinson-soma-bay-62505-v1",
+      "text_sha256": "b9bcaf4b012eb42308444affba3df78ed1762486a6040123d246d29759dc04ad"
+    },
+    {
+      "hotel_id": 4184,
+      "hotel": "SENTIDO REEF OASIS",
+      "key": "sentido-reef-oasis-senses",
+      "aliases": [
+        "SENTIDO REEF OASIS SENSES RESORT (EX. REEF OASIS SENSES RESORT)",
+        "SENTIDO REEF OASIS"
+      ],
+      "sources": [
+        "https://www.reefoasisresorts.com/sentido-reef-oasis-senses-aqua-park-resort",
+        "https://www.sentido.com/en/Sentido-Reef-Oasis-Resort.html",
+        "https://www.reefoasisresorts.com/sentido-reef-oasis-senses-aqua-park-resort-gallery"
+      ],
+      "text": "✈️ Sentido Reef Oasis Senses\nТур с перелётом в Шарм эль Шейх 🇪🇬\n\nОтель в районе Хадаба для семейного отпуска и знакомства с рифами Красного моря 🐠\n\n🤿 Собственный пляж с домашним рифом и дайвинг школа PADI.\n🧒 Детский клуб для ребят от 4 до 12 лет и детские бассейны.\n🍽️ Основной ресторан, итальянская кухня и блюда на гриле.\n🎾 Теннис, тренажёрный зал, дневные занятия и вечерние шоу.\n\nℹ️ До пляжа около 500 м, на пути есть лестницы. Отель сообщил о закрытии аквапарка на ремонт с 10 января по 28 февраля 2027 года.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-sentido-reef-oasis-senses-4184-v1",
+      "text_sha256": "c615af5d18cbf6001817391750b4c0a81c2d2d8c488cfd61162271ccb905329a"
+    }
+  ]
+}
