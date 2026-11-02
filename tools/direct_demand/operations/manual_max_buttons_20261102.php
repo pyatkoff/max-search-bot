@@ -66,6 +66,13 @@ try {
         // Always one readback after the sole PUT, including a lost transport response. Never retry.
         $after = repairRead($t); $afterSnapshot = ChannelPostIncomingAdapter::maxSnapshot($after);
         [$afterVideo,$afterKeyboardCount] = repairMedia($after);
+        $result['after_vs_before'] = [
+            'video_token_equal'=>$video === $afterVideo,
+            'text_equal'=>($before['body']['text'] ?? null) === ($after['body']['text'] ?? null),
+            'markup_equal'=>($before['body']['markup'] ?? null) === ($after['body']['markup'] ?? null),
+            'format_equal'=>($before['body']['format'] ?? null) === ($after['body']['format'] ?? null),
+            'link_equal'=>($before['link'] ?? null) === ($after['link'] ?? null),
+        ];
         $result['content_preserved'] = $video === $afterVideo
             && ($before['body']['text'] ?? null) === ($after['body']['text'] ?? null)
             && ($before['body']['markup'] ?? null) === ($after['body']['markup'] ?? null)

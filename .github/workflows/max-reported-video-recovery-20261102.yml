@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: false
 env:
   EXPECTED_PRODUCTION_SHA: 9c5be6ba829e5083fd27f377887121d58492bf54
-  EXPECTED_OPERATION_PARENT: 74d40ed314faa5c64b2b7210b7c27efbfc116942
+  EXPECTED_OPERATION_PARENT: 27993d13d7c63ef26bef8e79daaa8d85f7e77675
 jobs:
   recover:
     if: github.ref == 'refs/heads/ops/max-reported-video-recovery-20261102' && github.run_attempt == 1
@@ -66,7 +66,7 @@ jobs:
           ssh-keygen -y -f "$key_file" >/dev/null
           ssh_opts=(-i "$key_file" -o BatchMode=yes -o ConnectTimeout=15 -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$RUNNER_TEMP/recovery-known-hosts")
           overall_status=0
-          for target in FIRST SECOND; do
+          for target in SECOND; do
             command="MAX_REPAIR_TARGET=$target php"
             remote="set -eu; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; git diff --quiet; git diff --cached --quiet; cli_status=0; $command || cli_status=\$?; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; git diff --quiet; git diff --cached --quiet; exit \"\$cli_status\""
             status=0
