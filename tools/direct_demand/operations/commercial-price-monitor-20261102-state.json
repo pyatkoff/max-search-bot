@@ -1,6 +1,6 @@
 {
   "operation": "commercial-price-monitor-20261102-read1",
-  "state": "PREPARED_NOT_RUN_AFTER_HEADER_FIX",
+  "state": "PRICE_INPUT_READ_COMPLETE_NOT_PUBLISHED",
   "catalog_ids": [
     9374,
     241,
@@ -19,5 +19,9 @@
     1146
   ],
   "hotel_count": 15,
-  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41494604275"
+  "hotels_with_recent_observations": 3,
+  "hotels_without_recent_observations": 12,
+  "observation_count": 475,
+  "post_updates": 0,
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41494888062"
 }
