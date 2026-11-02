@@ -1,0 +1,75 @@
+{
+  "operation": "commercial-hotel-three-20261102-8-v1",
+  "state": "DRAFT_CATALOG_AND_MEDIA_PENDING",
+  "goal": "Publish three complete, useful hotel posts once per authorized channel, with real official photos and the canonical cost button.",
+  "boundaries": "Candidates SUNRISE Crystal Bay, SUNRISE Aqua Joy, SUNRISE Holidays. Read only their active public catalogue identities and registry matches before selecting. Do not modify accepted publications or contact clients.",
+  "criteria": [
+    "Exact active hotel identities, correct resorts and no existing posts in either channel.",
+    "Three visually checked covers in the accepted AnyTour template using authentic official photos.",
+    "Six confirmed posts with the right caption, photo, button and source context, recorded by the existing durable publisher."
+  ],
+  "risks": [
+    "Do not apply an adults-only rule or Posh Club privilege to the wrong property or product.",
+    "Do not guess catalogue IDs, prices, availability or included services.",
+    "New main e768a32947cdb489091083d97ae1772741089699 is being released by its owner; use its completed standard gates before any server operation. Publishing surface change must be assessed without repeating accepted user paths."
+  ],
+  "baseline_logical_materials": 27,
+  "candidate_names": [
+    "SUNRISE Crystal Bay Resort",
+    "SUNRISE Aqua Joy Resort",
+    "SUNRISE Holidays Resort"
+  ],
+  "next": "Resolve exact catalogue identities and absent live registry matches after the existing release completes; prepare the three posts from retained material and current primary sources.",
+  "official_sources": [
+    "https://www.sunrise-resorts.com/crystal-bay-resort",
+    "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/pressroom/11_cb_factsheet_july_2025.pdf",
+    "https://www.sunrise-resorts.com/aqua-joy-resort",
+    "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/pressroom/15_aj_factsheet_july_2025.pdf",
+    "https://www.sunrise-resorts.com/holidays-resort"
+  ],
+  "public_source_warning": "Holidays page factsheet link resolves to Mamlouk Palace. Do not use it or infer an admission age. Only the current Holidays page's Adults Only statement is used.",
+  "rows": [
+    {
+      "key": "crystal-bay",
+      "hotel": "SUNRISE Crystal Bay Resort",
+      "aliases": [
+        "SUNRISE Crystal Bay",
+        "Crystal Bay Resort",
+        "Санрайз Кристал Бей"
+      ],
+      "text": "✈️ Туры в SUNRISE Crystal Bay Resort с перелётом\n📍 Египет, Хургада\n\nОтель с зелёной территорией у собственной морской лагуны.\n\n🏖 Песчаный пляж прямо у отеля.\n🏊 На территории три бассейна.\n🧸 Детский клуб для детей от 3 до 12 лет.\n🍽 Есть рестораны средиземноморской, индийской и египетской кухни.\n\nЛаунж Posh Club доступен только гостям клубных номеров.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "sources": [
+        "https://www.sunrise-resorts.com/crystal-bay-resort",
+        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/pressroom/11_cb_factsheet_july_2025.pdf"
+      ]
+    },
+    {
+      "key": "aqua-joy",
+      "hotel": "SUNRISE Aqua Joy Resort",
+      "aliases": [
+        "SUNRISE Aqua Joy",
+        "Aqua Joy Resort",
+        "Санрайз Аква Джой"
+      ],
+      "text": "✈️ Туры в SUNRISE Aqua Joy Resort с перелётом\n📍 Египет, Хургада\n\nСемейный отель у моря на прогулочной улице Эль Мамша. Рядом магазины, кафе и рестораны.\n\n🏖 Собственный пляж и небольшой остров.\n💦 Аквапарк с шестью горками и отдельной детской зоной.\n🧸 Детский клуб для детей от 3 до 12 лет.\n\nНа большие горки пускают детей ростом от 120 см.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "sources": [
+        "https://www.sunrise-resorts.com/aqua-joy-resort",
+        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/pressroom/15_aj_factsheet_july_2025.pdf"
+      ]
+    },
+    {
+      "key": "holidays",
+      "hotel": "SUNRISE Holidays Resort",
+      "aliases": [
+        "SUNRISE Holidays",
+        "Holidays Resort",
+        "Санрайз Холидейз"
+      ],
+      "text": "✈️ Туры в SUNRISE Holidays Resort с перелётом\n📍 Египет, Хургада\n\nОтель для отдыха без детей у собственной морской лагуны.\n\n🏖 Есть собственный пляж.\n🏙 До центра Хургады около 500 м.\n🏊 На территории есть бассейн и тренажёрный зал.\n🍽 В ресторанах готовят блюда средиземноморской и египетской кухни.\n\nОтель работает в формате Adults Only. Для поездки с маленькими детьми он не подойдёт.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "sources": [
+        "https://www.sunrise-resorts.com/holidays-resort"
+      ],
+      "excluded_source": "The current page links a Mamlouk Palace factsheet. It is not a source for this hotel or its admission age."
+    }
+  ]
+}
