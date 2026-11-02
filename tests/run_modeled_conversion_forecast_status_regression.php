@@ -312,7 +312,67 @@ function forecastV1Assertions(PDO $p,callable $check):void
     $check('missing storage remains unavailable rather than a zero forecast count',
         !$r['available']&&$r['reason']==='storage_unavailable'&&$r['saved']===null);
     forecastValueDeliveryAssertions($p,$check);
+    forecastInputDiagnosisAssertions($p,$check);
 }
+
+function forecastInputDiagnosisAssertions(PDO $p,callable $check):void
+{
+    forecastV1Schema($p);
+    $human=forecastV1Packet('701','801',[['text'=>'Подберите тур в Турцию на 7 ночей.']],'max');
+    $human['coverage']['errors']=[];
+    // Stored Python emits an object for its omission dictionary.
+    $human['coverage']['errors']=(object)[];
+    $actions=forecastV1Packet('702','802',[['text'=>'Здравствуйте!']],'telegram');
+    $actions['contextual_signals']['engagement']['customer_turns']=0;
+    $actions['coverage']['errors']=['action_or_unknown_message_type'=>4];
+    $guided=$actions;$guided['subject']['customer_key']='703';$guided['subject']['conversation_id']='803';
+    $guided['coverage']['applied_wizard_fields']=3;
+    $unknown=$actions;$unknown['subject']['customer_key']='704';$unknown['subject']['conversation_id']='804';
+    $unknown['contextual_signals']['engagement']['customer_turns']='PRIVATE_INVALID_COUNTER';
+    $unknown['coverage']['errors']=['action_or_unknown_message_type'=>'PRIVATE_INVALID_REASON'];
+    $foreign=$human;$foreign['subject']['project_key']='foreign';
+    foreach([$human,$human,$actions,$guided,$unknown,$foreign]as$v)forecastV1Append($p,$v);
+    $before=forecastV1Rows($p);$auth=0;
+    $d=(new ModeledConversionInputDiagnosisReader($p,static function()use(&$auth):void{$auth++;},new ModeledConversionStatusBudget()))->read(1793000000);
+    $check('diverse input diagnosis deduplicates scopes and keeps channel shape groups',
+        $d['window']['inspected_versions']===5&&$d['window']['distinct_current_scopes']===4
+        &&$d['scope_counts']['max']===1&&$d['scope_counts']['telegram']===3
+        &&$d['scope_counts']['with_customer_text']===1&&$d['scope_counts']['with_wizard_applications']===1);
+    $check('invalid input counter and omission are unknown rather than promoted or zero',
+        $d['scope_counts']['unknown_customer_coverage']===1&&$d['unknown_omission_metadata_scopes']===1
+        &&$d['omission_counts']['action_or_unknown_message_type']===8);
+    $shapes=array_column($d['examples'],'input_shape');
+    $check('anonymous examples distinguish real saved human guided and unavailable input shapes',
+        in_array('customer_text',$shapes,true)&&in_array('wizard_without_customer_text',$shapes,true)
+        &&in_array('without_customer_text_or_applied_wizard',$shapes,true)&&in_array('unknown',$shapes,true));
+    $json=json_encode($d,JSON_THROW_ON_ERROR);
+    $check('input diagnosis cannot release private source text scope keys arbitrary reasons or hashes',
+        !str_contains($json,'Подберите')&&!str_contains($json,'customer_key')&&!str_contains($json,'conversation_id')
+        &&!str_contains($json,'PRIVATE_')&&!str_contains($json,$human['semantic_prediction']['prediction_digest']));
+    $check('derived-input read checks authorization and preserves every original profile',$auth>=3&&forecastV1Rows($p)===$before);
+    $check('missing checkpoint fields cannot fabricate an empty processing backlog',$d['progress']['profiles_recorded_pending_revisions']===null&&$d['progress']['saved_versions_waiting_for_value_inspection']===null);
+    $check('snapshot activation clock is explicitly separate from customer evidence',
+        $d['scope_counts']['profiles_frozen_since_value_activation']===4
+        &&$d['interpretation']['frozen_since_activation_not_new_customer_evidence']);
+    $old=$human;$old['processing']['source_sha256']=str_repeat('0',64);forecastV1Append($p,$old);forecastV1Append($p,'{invalid');
+    $d=(new ModeledConversionInputDiagnosisReader($p,static function():void{},new ModeledConversionStatusBudget()))->read();
+    $check('invalid JSON and stale namespace are explicit metadata-only categories',
+        $d['window']['invalid_json_versions']===1&&$d['window']['other_namespace_versions']===2);
+    for($i=0;$i<102;$i++)forecastV1Append($p,$actions);
+    $d=(new ModeledConversionInputDiagnosisReader($p,static function():void{},new ModeledConversionStatusBudget()))->read();
+    $check('input diagnosis never scans beyond its finite hundred-version suffix',
+        $d['window']['inspected_versions']===100&&!$d['window']['complete_within_bound']
+        &&$d['window']['distinct_current_scopes']===1&&count($d['examples'])===1);
+    $calls=0;$revoked=false;
+    try{(new ModeledConversionInputDiagnosisReader($p,static function()use(&$calls):void{if(++$calls>=2)throw new DomainException('revoked_diagnosis');},new ModeledConversionStatusBudget()))->read();}
+    catch(DomainException $ignored){$revoked=true;}
+    $check('revocation during scalar diagnosis prevents all output',$revoked);
+    $budget=new ModeledConversionStatusBudget();$budget->consumeBytes(65536);$limited=false;
+    try{(new ModeledConversionInputDiagnosisReader($p,static function():void{},$budget))->read();}
+    catch(ModeledConversionStatusLimit $e){$limited=$e->reason==='byte_limit';}
+    $check('scalar diagnosis shares the original strict byte budget',$limited);
+}
+
 if(realpath($_SERVER['SCRIPT_FILENAME']??'')===__FILE__){
     $p=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);$passed=0;
     $check=static function(string $name,bool $ok)use(&$passed):void{if(!$ok)throw new RuntimeException('FAIL '.$name);$passed++;echo 'PASS '.$name.PHP_EOL;};
