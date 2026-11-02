@@ -35,6 +35,20 @@ The stable `regression` and `screenshots` aggregate names require the selected
 current-run jobs to succeed; selector failure or an unexpected status is red.
 For non-component changes the existing full path and its screenshot proof remain.
 
+## Reject a known stale PR base before expensive jobs
+
+The active main rules require the event base commit to be an ancestor of the PR
+head. After validating both commit identities, the canonical selector checks that
+ancestry. A known stale branch exits nonzero with `base_not_in_head` and publishes
+no mode outputs, so the required aggregate fails and dependent expensive scopes
+do not start. This prevents a full green synthetic-merge run followed by a strict
+merge rejection. Integrate the accepted base first, then run the ordinary checks.
+
+This is an early rejection, never a passing/skipped replacement for required
+evidence. Manual runs retain full coverage; malformed/unavailable comparisons keep
+the existing conservative behavior. The check uses the event base and cannot
+predict a later main change, so the existing fresh publication check still applies.
+
 ## Tour-selection component
 
 The `tour-selection` scope accepts regular-file modifications within the exact
