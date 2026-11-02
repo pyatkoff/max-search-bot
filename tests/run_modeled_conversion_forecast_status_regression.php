@@ -164,9 +164,30 @@ function forecastV1Assertions(PDO $p,callable $check):void
         $r['saved']['prospective_estimates']===1&&$r['saved']['estimated_probability_range']['minimum']===0.083333
         &&$r['input_coverage']['source_continuity']['preserved_handoff_receipts']['unknown_profiles']===1
         &&$r['input_coverage']['source_continuity']['preserved_handoff_receipts']['known_profiles']===0);
+    $oldPrecision=(string)ini_get('serialize_precision');
+    try{
+        foreach(['-1','14','17']as$writer)foreach(['-1','14','17']as$reader){
+            forecastV1Schema($p);ini_set('serialize_precision',$writer);
+            $frozen=forecastV1Packet();forecastV1Append($p,$frozen);$before=forecastV1Rows($p);
+            ini_set('serialize_precision',$reader);$r=forecastV1Read($p);
+            $check('persisted numeric prediction survives producer consumer precision '.$writer.' '.$reader,
+                $r['saved']['prospective_estimates']===1&&$r['window']['invalid_blocks']===0
+                &&$r['saved']['estimated_probability_range']['minimum']===0.083333
+                &&forecastV1Rows($p)===$before&&ini_get('serialize_precision')===$reader);
+        }
+    }finally{ini_set('serialize_precision',$oldPrecision);}
+    forecastV1Schema($p);$invalidFields=$a;
+    $invalidFields['semantic_prediction']['current_customer_turn_count']='1';
+    $invalidFields['semantic_prediction']['prediction_digest']=ModeledConversionSemanticPrediction::digest($invalidFields['semantic_prediction']);
+    forecastV1Append($p,$invalidFields);$r=forecastV1Read($p);
+    $check('digest-valid invalid fields get a fixed field category without numeric confirmation',
+        $r['saved']['prospective_estimates']===0&&$r['window']['prediction_contract_reason_counts']['fields']===1
+        &&$r['window']['prediction_contract_reason_counts']['digest']===0);
     forecastV1Schema($p);$bad=$a;$bad['semantic_prediction']['estimated_probability']=0.9;forecastV1Append($p,$bad);
     $r=forecastV1Read($p);$check('tampered saved probability is not confirmed by metadata alone',
-        $r['saved']['valid_v1_versions']===0&&$r['window']['invalid_blocks']===1);
+        $r['saved']['valid_v1_versions']===0&&$r['window']['invalid_blocks']===1
+        &&$r['window']['prediction_contract_reason_counts']['digest']===1
+        &&$r['window']['prediction_contract_reason_counts']['fields']===0);
     forecastV1Schema($p);$bad=$a;$bad['semantic_prediction']['subject']['customer_key']='99';
     $bad['semantic_prediction']['prediction_digest']=ModeledConversionSemanticPrediction::digest($bad['semantic_prediction']);forecastV1Append($p,$bad);
     $r=forecastV1Read($p);$check('a correctly digested wrong subject still cannot prove a bound forecast',

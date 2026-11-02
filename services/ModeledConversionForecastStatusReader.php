@@ -6,7 +6,7 @@ require_once __DIR__.'/ModeledConversionValueRegistry.php';
 /** Launch readback of current V1 derived blocks only. Never reads a transcript or runs processing. */
 final class ModeledConversionForecastStatusReader
 {
-    public const VERSION='saved_semantic_prediction_status_v1_2';
+    public const VERSION='saved_semantic_prediction_status_v1_3';
     public const METADATA_LIMIT=20;
     public const PROFILE_LIMIT=4;
     public const PROFILE_BYTES=49152;
@@ -84,7 +84,11 @@ final class ModeledConversionForecastStatusReader
                     $out['window']['invalid_blocks']++;$out['window']['invalid_block_reason_counts']['parent_binding']++;continue;
                 }
                 $fields=ModeledConversionValueRegistry::predictionFields($p);
-                if($fields['semantic_prediction']['availability']!=='available'){$out['window']['invalid_blocks']++;$out['window']['invalid_block_reason_counts']['prediction_contract']++;continue;}
+                if($fields['semantic_prediction']['availability']!=='available'){
+                    $out['window']['invalid_blocks']++;$out['window']['invalid_block_reason_counts']['prediction_contract']++;
+                    $reason=is_array($s)&&ModeledConversionSemanticPrediction::digestMatches($s)?'fields':'digest';
+                    $out['window']['prediction_contract_reason_counts'][$reason]++;continue;
+                }
                 $s=$fields['semantic_prediction']['value'];
                 if(!$this->inputCoverage($out['input_coverage'],$p['input_summary']??null,$s)){
                     $out['window']['invalid_blocks']++;$out['window']['invalid_block_reason_counts']['input_summary']++;continue;
@@ -239,7 +243,8 @@ final class ModeledConversionForecastStatusReader
                 'other_namespace_rows'=>0,'duplicate_scope_rows'=>0,'profile_rows_read'=>0,'invalid_metadata_rows'=>0,
                 'oversize_rows'=>0,'row_limit_omissions'=>0,'byte_limit_omissions'=>0,'changed_or_missing_rows'=>0,
                 'invalid_blocks'=>0,'invalid_followup_blocks'=>0,'selected_document_bytes'=>0,
-                'invalid_block_reason_counts'=>array_fill_keys(['invalid_json','parent_binding','prediction_contract','input_summary'],0)],
+                'invalid_block_reason_counts'=>array_fill_keys(['invalid_json','parent_binding','prediction_contract','input_summary'],0),
+                'prediction_contract_reason_counts'=>['digest'=>0,'fields'=>0]],
             'saved'=>['valid_v1_versions'=>0,'prospective_estimates'=>0,'distinct_inspected_scopes'=>0,
                 'channel_counts'=>['max'=>0,'telegram'=>0],
                 'status_counts'=>array_fill_keys(['predicted','insufficient_context','known_outcome','access_denied'],0),

@@ -142,16 +142,102 @@ PHP);
     $uploadRequest=['REQUEST_METHOD'=>'POST','HTTPS'=>'on','HTTP_HOST'=>'app.anytoour.ru',
         'CONTENT_TYPE'=>'application/octet-stream','CONTENT_LENGTH'=>(string)strlen($payload),
         'HTTP_AUTHORIZATION'=>'Bearer '.$token];
-    $uploadFixture=static function(string $name)use($tmp,$uploadTicket):array{
+    $uploadFixture=static function(string $name,?string $bytes=null)use($tmp,$uploadTicket):array{
         $base=$tmp.'/upload-'.$name;$app=$base.'/app';$dir=$base.'/max-search-bot-hotel-server/ingress-v1';
         mkdir($base,0700);mkdir($app,0700);mkdir(dirname($dir),0700);mkdir($dir,0700);
-        file_put_contents($dir.'/ticket.json',json_encode($uploadTicket,JSON_THROW_ON_ERROR));chmod($dir.'/ticket.json',0600);
+        $ticket=$uploadTicket;if($bytes!==null){$ticket['payload_bytes']=strlen($bytes);$ticket['payload_sha256']=hash('sha256',$bytes);}
+        file_put_contents($dir.'/ticket.json',json_encode($ticket,JSON_THROW_ON_ERROR));chmod($dir.'/ticket.json',0600);
         return [$app,$dir];
     };
     $uploadCall=static function(string $root,array $request,string $bytes)use($uploadNow):array{
         $stream=fopen('php://temp','w+b');fwrite($stream,$bytes);rewind($stream);
         try{return HotelServerPrivateUpload::receive($root,$request,$stream,$uploadNow);}finally{fclose($stream);}
     };
+    // The dedicated header transports the same ticket-bound capability through ordinary CGI headers.
+    $customRequest=$uploadRequest;unset($customRequest['HTTP_AUTHORIZATION']);
+    $customRequest['HTTP_X_HOTEL_UPLOAD_CAPABILITY']=$token;
+    foreach(['missing','empty','prefixed','non_scalar','wrong_token','invalid_custom_with_valid_legacy',
+        'conflicting_legacy','invalid_legacy','empty_legacy'] as $mode){
+        [$uploadApp,$uploadDir]=$uploadFixture('custom-capability-'.$mode);$request=$customRequest;
+        if($mode==='missing')unset($request['HTTP_X_HOTEL_UPLOAD_CAPABILITY']);
+        if($mode==='empty')$request['HTTP_X_HOTEL_UPLOAD_CAPABILITY']='';
+        if($mode==='prefixed')$request['HTTP_X_HOTEL_UPLOAD_CAPABILITY']='Bearer '.$token;
+        if($mode==='non_scalar')$request['HTTP_X_HOTEL_UPLOAD_CAPABILITY']=[$token];
+        if($mode==='wrong_token')$request['HTTP_X_HOTEL_UPLOAD_CAPABILITY']=str_repeat('d',64);
+        if($mode==='invalid_custom_with_valid_legacy'){
+            $request['HTTP_X_HOTEL_UPLOAD_CAPABILITY']='invalid';$request['HTTP_AUTHORIZATION']='Bearer '.$token;
+        }
+        if($mode==='conflicting_legacy')$request['HTTP_AUTHORIZATION']='Bearer '.str_repeat('d',64);
+        if($mode==='invalid_legacy')$request['HTTP_AUTHORIZATION']='Basic invalid';
+        if($mode==='empty_legacy')$request['HTTP_AUTHORIZATION']='';
+        $result=$uploadCall($uploadApp,$request,$payload);
+        hotelHealthCheck('CGI capability rejects '.$mode.' before writing',
+            $result===['code'=>404,'body'=>['ok'=>false,'state'=>'unavailable']]
+            &&!file_exists($uploadDir.'/upload.lock')&&!file_exists($uploadDir.'/chunks')
+            &&!file_exists($uploadDir.'/upload.part')&&!file_exists($uploadDir.'/sealed-inputs.bin'));
+    }
+    foreach(['custom_only','matching_legacy'] as $mode){
+        [$uploadApp,$uploadDir]=$uploadFixture('custom-capability-'.$mode);$request=$customRequest;
+        if($mode==='matching_legacy')$request['HTTP_AUTHORIZATION']='Bearer '.$token;
+        $result=$uploadCall($uploadApp,$request,$payload);$sealed=$uploadDir.'/sealed-inputs.bin';
+        hotelHealthCheck('ticket-bound CGI capability stores exact bytes with '.$mode,
+            $result===['code'=>200,'body'=>['ok'=>true,'state'=>'stored','bytes'=>strlen($payload),'sha256'=>hash('sha256',$payload)]]
+            &&file_get_contents($sealed)===$payload&&(fileperms($sealed)&0777)===0600
+            &&!file_exists($uploadDir.'/upload.part'));
+    }
+    // Parser checks cover ambiguous/invalid process identity, not a substitute script-file owner.
+    $uidParser=new ReflectionMethod(HotelServerPrivateUpload::class,'uidFromProcStatus');$uidParser->setAccessible(true);
+    hotelHealthCheck('Linux process credentials preserve one canonical identity',
+        $uidParser->invoke(null,"Name:\tphp-cgi\nUid:\t1012\t1012\t1012\t1012\nGid:\t1012\t1012\t1012\t1012\n")===1012
+        &&$uidParser->invoke(null,"Uid:\t0\t0\t0\t0\n")===0);
+    foreach([
+        'mixed'=>"Uid:\t1012\t0\t1012\t1012\n",
+        'duplicate'=>"Uid:\t1012\t1012\t1012\t1012\nUid:\t1012\t1012\t1012\t1012\n",
+        'missing'=>"Name:\tphp-cgi\n",
+        'leading_zero'=>"Uid:\t01012\t01012\t01012\t01012\n",
+        'overflow'=>"Uid:\t4294967296\t4294967296\t4294967296\t4294967296\n",
+        'split_line'=>"Uid:\t1012\t1012\n\t1012\t1012\n",
+        'too_large'=>str_repeat('x',65537)."\nUid:\t1012\t1012\t1012\t1012\n",
+    ] as $mode=>$status)hotelHealthCheck('Linux process credentials reject '.$mode,$uidParser->invoke(null,$status)===null);
+    if(PHP_OS_FAMILY==='Linux'){
+        // Real child processes exercise receive(), with no extra fixture source file or server access.
+        $uidChild=<<<'PHP'
+require $argv[1];
+$request=json_decode(base64_decode($argv[3],true),true,32,JSON_THROW_ON_ERROR);
+$payload=base64_decode($argv[4],true);$stream=fopen('php://temp','w+b');fwrite($stream,$payload);rewind($stream);
+try{$result=HotelServerPrivateUpload::receive($argv[2],$request,$stream,(int)$argv[5]);}finally{fclose($stream);}
+echo json_encode(['posix_module'=>extension_loaded('posix'),'posix_function'=>function_exists('posix_geteuid'),
+    'fileowner_function'=>function_exists('fileowner'),'result'=>$result],JSON_THROW_ON_ERROR),"\n";
+PHP;
+        $uidChildCall=static function(string $root,array $request,string $options)use($uidChild,$payload,$uploadNow):array{
+            $lines=[];$code=-1;
+            exec(escapeshellarg(PHP_BINARY).' '.$options.' -r '.escapeshellarg($uidChild).' -- '
+                .escapeshellarg(dirname(__DIR__).'/services/HotelServerPrivateUpload.php').' '.escapeshellarg($root).' '
+                .escapeshellarg(base64_encode(json_encode($request,JSON_THROW_ON_ERROR))).' '.escapeshellarg(base64_encode($payload)).' '
+                .escapeshellarg((string)$uploadNow).' 2>&1',$lines,$code);
+            return [$code,json_decode(implode("\n",$lines),true)];
+        };
+        [$uploadApp,$uploadDir]=$uploadFixture('kernel-uid-no-posix');
+        [$code,$child]=$uidChildCall($uploadApp,$customRequest,'-n');$sealed=$uploadDir.'/sealed-inputs.bin';
+        hotelHealthCheck('real no-POSIX process retains private exact ingress storage',
+            $code===0&&($child['posix_module']??null)===false&&($child['posix_function']??null)===false
+            &&($child['result']??null)===['code'=>200,'body'=>['ok'=>true,'state'=>'stored','bytes'=>strlen($payload),'sha256'=>hash('sha256',$payload)]]
+            &&is_file($sealed)&&file_get_contents($sealed)===$payload&&(fileperms($sealed)&0777)===0600);
+        [$uploadApp,$uploadDir]=$uploadFixture('kernel-uid-ownership-unavailable');
+        [$code,$child]=$uidChildCall($uploadApp,$customRequest,'-n -d disable_functions=fileowner');
+        hotelHealthCheck('real no-POSIX process fails closed without ownership metadata',
+            $code===0&&($child['posix_module']??null)===false&&($child['fileowner_function']??null)===false
+            &&($child['result']??null)===['code'=>404,'body'=>['ok'=>false,'state'=>'unavailable']]
+            &&!file_exists($uploadDir.'/upload.lock')&&!file_exists($uploadDir.'/sealed-inputs.bin'));
+        if(extension_loaded('posix')){
+            [$uploadApp,$uploadDir]=$uploadFixture('kernel-uid-posix-explicitly-disabled');
+            [$code,$child]=$uidChildCall($uploadApp,$customRequest,'-d disable_functions=posix_geteuid');
+            hotelHealthCheck('loaded POSIX with disabled function cannot use the kernel fallback',
+                $code===0&&($child['posix_module']??null)===true&&($child['posix_function']??null)===false
+                &&($child['result']??null)===['code'=>404,'body'=>['ok'=>false,'state'=>'unavailable']]
+                &&!file_exists($uploadDir.'/upload.lock')&&!file_exists($uploadDir.'/sealed-inputs.bin'));
+        }
+    }
     foreach(['missing_ticket','wrong_token','method','plain_http','foreign_host','content_type','origin','chunked','wrong_length',
         'expired','future','long_lifetime','extra_key','size_cap','public_ticket','public_directory','ticket_symlink'] as $mode){
         [$uploadApp,$uploadDir]=$uploadFixture($mode);$request=$uploadRequest;$ticket=$uploadTicket;
@@ -208,6 +294,78 @@ PHP);
     symlink($uploadDir.'/sentinel',$uploadDir.'/sealed-inputs.bin');
     hotelHealthCheck('destination symlink is held without touching its target',
         $uploadCall($uploadApp,$uploadRequest,$payload)['code']===409&&file_get_contents($uploadDir.'/sentinel')==='unchanged');
+    // Exercise the real bounded-body protocol with a payload exceeding the observed FastCGI limit.
+    $pieces=[str_repeat('a',65536),str_repeat('b',65536),"last\0\xff"];$chunkPayload=implode('',$pieces);
+    $chunkRequest=static fn(int $index,string $bytes):array=>array_replace($uploadRequest,[
+        'CONTENT_LENGTH'=>(string)strlen($bytes),'HTTP_X_HOTEL_CHUNK_INDEX'=>(string)$index,
+        'HTTP_X_HOTEL_CHUNK_SHA256'=>hash('sha256',$bytes)]);
+    foreach(['missing_index','missing_hash','negative','leading_zero','out_of_range','invalid_hash','wrong_length'] as $mode){
+        [$uploadApp,$uploadDir]=$uploadFixture('chunk-header-'.$mode,$chunkPayload);$request=$chunkRequest(0,$pieces[0]);
+        if($mode==='missing_index')unset($request['HTTP_X_HOTEL_CHUNK_INDEX']);
+        if($mode==='missing_hash')unset($request['HTTP_X_HOTEL_CHUNK_SHA256']);
+        if($mode==='negative')$request['HTTP_X_HOTEL_CHUNK_INDEX']='-1';
+        if($mode==='leading_zero')$request['HTTP_X_HOTEL_CHUNK_INDEX']='00';
+        if($mode==='out_of_range')$request['HTTP_X_HOTEL_CHUNK_INDEX']='3';
+        if($mode==='invalid_hash')$request['HTTP_X_HOTEL_CHUNK_SHA256']='invalid';
+        if($mode==='wrong_length')$request['CONTENT_LENGTH']='65535';
+        hotelHealthCheck('bounded ingress rejects '.$mode.' before writing',
+            $uploadCall($uploadApp,$request,$pieces[0])['code']===404&&!file_exists($uploadDir.'/upload.lock')
+            &&!file_exists($uploadDir.'/chunks')&&!file_exists($uploadDir.'/sealed-inputs.bin'));
+    }
+    [$uploadApp,$uploadDir]=$uploadFixture('chunks-valid',$chunkPayload);$maskBefore=umask();
+    $result=$uploadCall($uploadApp,$chunkRequest(1,$pieces[1]),$pieces[1]);$chunkFile=$uploadDir.'/chunks/001.bin';
+    hotelHealthCheck('out of order fragment is retained privately without claiming full storage',
+        $result['code']===200&&$result['body']===['ok'=>true,'state'=>'chunk_stored','index'=>1,'bytes'=>65536,
+            'sha256'=>hash('sha256',$pieces[1]),'payload_sha256'=>hash('sha256',$chunkPayload)]
+        &&file_get_contents($chunkFile)===$pieces[1]&&(fileperms($chunkFile)&0777)===0600
+        &&(fileperms(dirname($chunkFile))&0777)===0700&&!file_exists($uploadDir.'/sealed-inputs.bin')&&umask()===$maskBefore);
+    $inode=fileinode($chunkFile);
+    hotelHealthCheck('completed fragment readback cannot replace its bytes',
+        $uploadCall($uploadApp,$chunkRequest(1,$pieces[1]),$pieces[1])===$result&&fileinode($chunkFile)===$inode);
+    hotelHealthCheck('different fragment under an occupied index cannot overwrite it',
+        $uploadCall($uploadApp,$chunkRequest(1,$pieces[0]),$pieces[0])['code']===409&&file_get_contents($chunkFile)===$pieces[1]);
+    $wholeRequest=array_replace($uploadRequest,['CONTENT_LENGTH'=>(string)strlen($chunkPayload)]);
+    hotelHealthCheck('whole-body mode cannot replace an unfinished fragmented transfer',
+        $uploadCall($uploadApp,$wholeRequest,$chunkPayload)['code']===409&&!file_exists($uploadDir.'/upload.part'));
+    hotelHealthCheck('last indexed fragment alone does not complete missing earlier bytes',
+        $uploadCall($uploadApp,$chunkRequest(2,$pieces[2]),$pieces[2])['body']['state']==='chunk_stored'
+        &&!file_exists($uploadDir.'/sealed-inputs.bin'));
+    $result=$uploadCall($uploadApp,$chunkRequest(0,$pieces[0]),$pieces[0]);$sealed=$uploadDir.'/sealed-inputs.bin';
+    hotelHealthCheck('bounded requests assemble the exact pinned file in index order',
+        $result['code']===200&&$result['body']===['ok'=>true,'state'=>'stored','bytes'=>strlen($chunkPayload),'sha256'=>hash('sha256',$chunkPayload)]
+        &&file_get_contents($sealed)===$chunkPayload&&(fileperms($sealed)&0777)===0600&&!file_exists($uploadDir.'/upload.part'));
+    $inode=fileinode($sealed);
+    hotelHealthCheck('assembled full-file readback does not restart or overwrite',
+        $uploadCall($uploadApp,$chunkRequest(2,$pieces[2]),$pieces[2])===$result&&fileinode($sealed)===$inode);
+    foreach(['short'=>substr($pieces[0],1),'long'=>$pieces[0].'x','wrong_hash'=>$pieces[1]] as $mode=>$bytes){
+        [$uploadApp,$uploadDir]=$uploadFixture('chunk-body-'.$mode,$chunkPayload);
+        $result=$uploadCall($uploadApp,$chunkRequest(0,$pieces[0]),$bytes);$partial=$uploadDir.'/chunks/000.bin.part';
+        $before=file_get_contents($partial);
+        hotelHealthCheck('failed '.$mode.' fragment is preserved and cannot be restarted',
+            $result['code']===409&&!file_exists($uploadDir.'/sealed-inputs.bin')&&(fileperms($partial)&0777)===0600
+            &&$uploadCall($uploadApp,$chunkRequest(0,$pieces[0]),$pieces[0])['code']===409&&file_get_contents($partial)===$before);
+    }
+    [$uploadApp,$uploadDir]=$uploadFixture('chunk-full-hash',$chunkPayload.'x');
+    $uploadCall($uploadApp,$chunkRequest(0,$pieces[0]),$pieces[0]);$uploadCall($uploadApp,$chunkRequest(1,$pieces[1]),$pieces[1]);
+    $wrongLast=$pieces[2].'y';$result=$uploadCall($uploadApp,$chunkRequest(2,$wrongLast),$wrongLast);
+    hotelHealthCheck('individual fragment hashes never substitute for the full ticket pin',
+        $result['code']===409&&!file_exists($uploadDir.'/sealed-inputs.bin')
+        &&file_get_contents($uploadDir.'/upload.part')===$chunkPayload.'y'
+        &&$uploadCall($uploadApp,$chunkRequest(2,$pieces[2].'x'),$pieces[2].'x')['code']===409);
+    foreach(['directory','file'] as $mode){
+        [$uploadApp,$uploadDir]=$uploadFixture('chunk-symlink-'.$mode,$chunkPayload);
+        mkdir($uploadDir.'/sentinel-dir',0700);file_put_contents($uploadDir.'/sentinel-dir/sentinel','unchanged');
+        if($mode==='directory')symlink($uploadDir.'/sentinel-dir',$uploadDir.'/chunks');
+        else{mkdir($uploadDir.'/chunks',0700);symlink($uploadDir.'/sentinel-dir/sentinel',$uploadDir.'/chunks/000.bin');}
+        hotelHealthCheck('fragment '.$mode.' symlink is held without touching its target',
+            $uploadCall($uploadApp,$chunkRequest(0,$pieces[0]),$pieces[0])['code']===409
+            &&file_get_contents($uploadDir.'/sentinel-dir/sentinel')==='unchanged'&&!file_exists($uploadDir.'/sealed-inputs.bin'));
+    }
+    [$uploadApp,$uploadDir]=$uploadFixture('chunk-after-whole-partial',$chunkPayload);
+    $uploadCall($uploadApp,$wholeRequest,'unfinished');$partial=$uploadDir.'/upload.part';$before=file_get_contents($partial);
+    hotelHealthCheck('fragment mode never takes over an existing whole-file partial',
+        $uploadCall($uploadApp,$chunkRequest(0,$pieces[0]),$pieces[0])['code']===409
+        &&file_get_contents($partial)===$before&&!file_exists($uploadDir.'/chunks'));
     file_put_contents($app.'/fail','1');$out=[];$code=-1;
     exec(escapeshellarg(PHP_BINARY).' '.escapeshellarg($app.'/tools/hotel_work.php').' status 2>&1',$out,$code);
     hotelHealthCheck('status does not bootstrap application',$code===0&&json_decode(implode("\n",$out),true)['provider_calls']===0);
@@ -218,4 +376,3 @@ PHP);
     foreach ($it as $entry) {if ($entry->isDir()&&!$entry->isLink()) rmdir($entry->getPathname());else unlink($entry->getPathname());}
     rmdir($tmp);
 }
-
