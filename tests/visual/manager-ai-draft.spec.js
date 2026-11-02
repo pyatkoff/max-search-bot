@@ -511,13 +511,13 @@ test('AI server context_stale409 blocks explicit insertion',async({page})=>{
   await page.locator('#replyText').fill('Свой текст');await page.locator('#aiDraftOpen').click();await expect(page.locator('#aiDraftInsert')).toBeEnabled();await page.locator('#aiDraftInsert').click();
   await expect(page.locator('#aiDraftStatus')).toContainText('Переписка изменилась');await expect(page.locator('#aiDraftInsert')).not.toBeVisible();await expect(page.locator('#replyText')).toHaveValue('Свой текст');expect(state.aiCalls()).toHaveLength(2);clean(state);
 });
-for(const change of ['arrival','same-ID edit'])test('AI rejects a '+change+' while the cached reply is pending',async({page})=>{
+for(const change of ['arrival','same-ID edit'])test('AI rejects a '+change+' while the cached reply is pending',withTransitionDiagnostics(async({page})=>{
   const state=await setup(page);let release;state.setAI(async()=>{await new Promise(resolve=>{release=resolve});return {body:prepared()}});
   await page.locator('#replyText').fill('Свой текст');await page.locator('#aiDraftOpen').click();await expect.poll(()=>!!release).toBe(true);
   if(change==='arrival')state.messages.get(11).push({id:36,sender_type:'customer',text:'Синтетическое новое требование',created_at:'2026-10-17 12:01:00'});else state.messages.get(11)[34].text='Синтетическое исправленное требование';
   await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible());await expect(page.locator('#aiDraftStatus')).toContainText('Переписка изменилась');release();
   await expect(page.locator('#aiDraftInsert')).not.toBeVisible();await expect(page.locator('#replyText')).toHaveValue('Свой текст');expect(state.aiCalls()).toHaveLength(1);clean(state);
-});
+}));
 test('AI validation preserves text edited while waiting and does not execute proposal HTML',async({page})=>{
   const state=await setup(page);let release;const draft='<img src=x onerror="throw 1"> Литерал';
   state.setAI(async data=>{if(data.action==='prepared')return {body:prepared({draft})};await new Promise(resolve=>{release=resolve});return {body:{ok:true,revision:'1'.repeat(64),latest_message_id:35}}});

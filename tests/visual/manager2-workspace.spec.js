@@ -1,3 +1,4 @@
+const {withTransitionDiagnostics}=require('./fixtures/transition-diagnostics');
 const {test,expect}=require('@playwright/test');
 const {execFileSync}=require('node:child_process');
 const fs=require('node:fs');
@@ -423,7 +424,7 @@ for(const width of [390,430,768,1440])test.describe('Manager2 '+width,()=>{
     await page.getByLabel('Действия с диалогом',{exact:true}).press('Enter');await expect(page.getByRole('button',{name:'Закрыть обращение',exact:true})).toBeVisible();await page.getByLabel('Действия с диалогом',{exact:true}).press('Escape');await expect(page.getByRole('button',{name:'Закрыть обращение',exact:true})).not.toBeVisible();
     await noOverflow(page);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
   });
-  test('task mutations, keyboard-height composer, sales controls and notification dialog remain usable',async({page,browserName})=>{
+  test('task mutations, keyboard-height composer, sales controls and notification dialog remain usable',withTransitionDiagnostics(async({page,browserName})=>{
     const s=await setup(page);await openLead(page);await showCard(page);
     await page.locator('.m2TaskCreate>summary').click();await page.locator('#leadTaskTitle').fill('Черновик задачи');
     await page.locator('.m2TaskCreate>summary').click();await expect(page.locator('.m2TaskCreate')).toHaveAttribute('open');
@@ -443,7 +444,7 @@ for(const width of [390,430,768,1440])test.describe('Manager2 '+width,()=>{
     await openAccount(page);await expect(page.locator('#m2Notifications')).toBeVisible();await expect(page.locator('#notificationStatus')).toBeVisible();await page.locator('[data-enable-push]').click();
     await expect(page.locator('#notificationStatus')).toHaveClass(/\bok\b/);await expect(page.locator('#notificationStatus')).toContainText('Уведомления включены');expect(s.calls.filter(c=>c.action==='subscribe')).toHaveLength(1);await capture(page,browserName,width,'notifications');
     await page.locator('#m2NotificationsClose').click();await accountFocusReturned(page);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
-  });
+  }));
 });
 for(const width of [390,430])for(const role of ['manager','admin'])test('Manager2 mobile primary navigation and More retain working role controls '+role+' '+width,async({page,browserName})=>{
   await page.setViewportSize({width,height:900});const s=await setup(page,{role});
@@ -692,7 +693,10 @@ async function editorGeometry(page){
   await expect.poll(()=>page.locator('#composer').evaluate(el=>el.getAnimations({subtree:true}).filter(animation=>['height','width','padding-bottom'].includes(animation.transitionProperty)&&animation.playState==='running').length)).toBe(0);
   return page.locator('#replyText').evaluate(el=>{
     const css=getComputedStyle(el),rect=el.getBoundingClientRect();
-    return {height:rect.height,width:rect.width,left:rect.left,lines:(rect.height-parseFloat(css.paddingTop)-parseFloat(css.paddingBottom)-parseFloat(css.borderTopWidth)-parseFloat(css.borderBottomWidth))/parseFloat(css.lineHeight)};
+    // The conversation can still be sliding into view. Measure the field's
+    // own alignment inside its surface, independently of that shared transform.
+    const surface=el.closest('.composerSurface').getBoundingClientRect();
+    return {height:rect.height,width:rect.width,left:rect.left,leftInSurface:rect.left-surface.left,lines:(rect.height-parseFloat(css.paddingTop)-parseFloat(css.paddingBottom)-parseFloat(css.borderTopWidth)-parseFloat(css.borderBottomWidth))/parseFloat(css.lineHeight)};
   });
 }
 async function controlsInsideVisualViewport(page,ids){
@@ -794,7 +798,7 @@ test('Manager2 reply editor grows and preserves its native draft '+viewport.widt
   const reply=page.locator('#replyText'),dialog=page.locator('#m2ReplyEditor');
   const empty=await editorGeometry(page);await reply.focus();const focused=await editorGeometry(page);
   const narrow=viewport.width<=740;
-  const stablePhoneWidth=geometry=>{expect(Math.abs(geometry.width-empty.width)).toBeLessThanOrEqual(1);expect(Math.abs(geometry.left-empty.left)).toBeLessThanOrEqual(1)};
+  const stablePhoneWidth=geometry=>{expect(Math.abs(geometry.width-empty.width)).toBeLessThanOrEqual(1);expect(Math.abs(geometry.leftInSurface-empty.leftInSurface)).toBeLessThanOrEqual(1)};
   const compact=await page.evaluate(()=>{const text=document.querySelector('#replyText').getBoundingClientRect(),actions=document.querySelector('#composer .composerActions').getBoundingClientRect(),surface=document.querySelector('#composer .composerSurface').getBoundingClientRect();return {textRight:text.right,textBottom:text.bottom,textWidth:text.width,surfaceWidth:surface.width,actionsLeft:actions.left,actionsTop:actions.top,overlapY:text.bottom>actions.top&&text.top<actions.bottom}});
   if(narrow){expect(compact.actionsTop).toBeGreaterThanOrEqual(compact.textBottom-1);expect(compact.textWidth).toBeGreaterThan(compact.surfaceWidth*.9)}
   else{expect(compact.textRight).toBeLessThanOrEqual(compact.actionsLeft+1);expect(compact.overlapY).toBe(true)}

@@ -1,9 +1,13 @@
 'use strict';
 const path=require('node:path');
 const TARGETS=new Map([
-  ['manager-ai-draft.spec.js','current-trip panel closes on conversation and account change, ignores late profile reads'],
-  ['manager-assistant.spec.js','Manager assistant unifies list and current-client advice without touching reply 390'],
-  ['manager-manual-groups.spec.js','manual group 390: one name creates a tab; two pointer/keyboard actions add or remove without replacing the conversation']
+  ['manager-ai-draft.spec.js',new Set([
+    'current-trip panel closes on conversation and account change, ignores late profile reads',
+    'AI rejects a same-ID edit while the cached reply is pending'
+  ])],
+  ['manager-assistant.spec.js',new Set(['Manager assistant unifies list and current-client advice without touching reply 390'])],
+  ['manager-manual-groups.spec.js',new Set(['manual group 390: one name creates a tab; two pointer/keyboard actions add or remove without replacing the conversation'])],
+  ['manager2-workspace.spec.js',new Set(['task mutations, keyboard-height composer, sales controls and notification dialog remain usable'])]
 ]);
 const MAX_EVENTS=96,MAX_CONTEXTS=32,MAX_OUTPUT=24576;
 function safeUrl(value){
@@ -110,7 +114,8 @@ async function finish(state,page,testInfo,completed){
  */
 function withTransitionDiagnostics(body){
   return async function transitionObserved({page,context,browserName},testInfo){
-    if(TARGETS.get(path.basename(testInfo.file))!==testInfo.title)return body({page,context,browserName},testInfo);
+    const file=path.basename(testInfo.file);
+    if(!TARGETS.get(file)?.has(testInfo.title)||file==='manager2-workspace.spec.js'&&!testInfo.titlePath.includes('Manager2 1440'))return body({page,context,browserName},testInfo);
     const state=await start(page,context,browserName);let completed=false;
     try{const value=await body({page,context,browserName},testInfo);completed=true;return value}
     finally{await finish(state,page,testInfo,completed)}
