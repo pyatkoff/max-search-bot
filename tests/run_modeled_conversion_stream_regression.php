@@ -183,21 +183,88 @@ function modeledProfileAssertions(PDO $p,callable $check): void
         ($privateReceipt['snapshots']??null)===1&&($privateReceipt['initial_observations']??null)===1
         &&!isset($r['early_forecast'])&&($r['early_forecast_version']??null)===ModeledConversionEarlyForecast::VERSION);
     $firstForecastCursor=$v['early_forecast']['first_snapshot_journal_cursor'];
+    $initialPrediction=$v['semantic_prediction']??[];
+    $initialFollowup=$v['prediction_followup']??[];
+    $initialProfileId=(int)$p->query('SELECT id FROM modeled_conversion_profile_versions ORDER BY id LIMIT 1')->fetchColumn();
+    $initialProfileSql='SELECT profile_json FROM modeled_conversion_profile_versions WHERE id='.$initialProfileId;
+    $initialProfileJson=$p->query($initialProfileSql)->fetchColumn();
+    $check('the committed profile stores a private heuristic prediction and followup together',
+        ($initialPrediction['version']??null)==='semantic_purchase_heuristic_v1'
+        &&($initialPrediction['status']??null)==='predicted'
+        &&is_string($initialPrediction['prediction_at']??null)
+        &&($initialPrediction['prediction_at']??null)===($initialPrediction['frozen_at']??null)
+        &&$initialPrediction['prediction_at']>=$v['profile']['prediction_at']
+        &&preg_match('/\\A[a-f0-9]{64}\\z/D',(string)($initialPrediction['prediction_digest']??''))===1
+        &&in_array($initialFollowup['status']??null,['waiting','unknown'],true)
+        &&array_key_exists('prior_prediction_digest',$initialFollowup)
+        &&$initialFollowup['prior_prediction_digest']===null);
+    $check('heuristic prediction preserves legacy null probabilities and assigned business value',
+        $v['profile']['purchase_anywhere_probability']===null&&$v['profile']['purchase_with_us_probability']===null
+        &&$v['profile']['expected_commission_rub']===null&&$v['profile']['expected_value_rub']===null
+        &&$v['early_forecast']['purchase_with_us']['probability']===null
+        &&$v['early_forecast']['expected_value_rub']===null
+        &&$v['assigned_value']['known_subtotal_rub']===100
+        &&$v['assigned_value']['stages']['dialogue']['status']==='awarded'
+        &&$v['assigned_value']['stages']['specific_request']['status']==='awarded'
+        &&$v['assigned_value']['stages']['offer_reply']['status']==='unknown'
+        &&!$v['assigned_value']['export_allowed']&&$v['assigned_value']['conversion_uploads']===0);
+    $check('runtime telemetry and status omit the saved private prediction and followup',
+        !str_contains(json_encode([$r,$profiles->status()]),'"semantic_prediction"')
+        &&!str_contains(json_encode([$r,$profiles->status()]),'"prediction_followup"')
+        &&!str_contains(json_encode([$r,$profiles->status()]),$initialPrediction['prediction_digest']));
     $check('runtime profile keeps unknown trip target and all monetary values null',$v['profile']['trip_status']==='unknown'&&!$v['profile']['target_admission']['eligible']&&$v['profile']['expected_value_rub']===null);
     $check('profile status exposes aggregate receipt without private text or native identities',!str_contains(json_encode($profiles->status()),'Бюджет')&&!str_contains(json_encode($profiles->status()),'conversation_id'));
     $check('profile retry and empty tick append no duplicate version',$profiles->tick($now+3)['profiles_written']===0&&(int)$p->query('SELECT COUNT(*) FROM modeled_conversion_profile_versions')->fetchColumn()===1);
-    $p->exec("UPDATE messages SET text='Бюджет до 300 тыс на всех' WHERE id=11");modeledStreamMessage($p,12,11,'Стоимость 700000 рублей','manager');modeledStreamMessage($p,13,11,'Давайте бронировать');
+    $check('an idle tick leaves the original prediction and followup bytes unchanged',$p->query($initialProfileSql)->fetchColumn()===$initialProfileJson);
+    // Reuse the later manager quote before editing the request, retaining its original anchor.
+    modeledStreamMessage($p,12,11,'Стоимость 700000 рублей','manager');$s->tick($now+3);$managerUpdateReceipt=$profiles->tick($now+3);
+    $sameRequest=modeledProfileLatest($p);$sameFollowup=$sameRequest['prediction_followup']??[];
+    $check('a later profile compares against the earliest saved prediction for the same request',
+        ($sameRequest['semantic_prediction']['current_request_anchor']??null)===($initialPrediction['current_request_anchor']??null)
+        &&($sameFollowup['prior_prediction_digest']??null)===$initialPrediction['prediction_digest']
+        &&($sameFollowup['prior_prediction_at']??null)===$initialPrediction['prediction_at']
+        &&array_key_exists('prior_estimated_probability',$sameFollowup)
+        &&$sameFollowup['prior_estimated_probability']===$initialPrediction['estimated_probability']
+        &&in_array($sameFollowup['status']??null,['waiting','unknown'],true)
+        &&$sameRequest['assigned_value']['known_subtotal_rub']===100
+        &&$p->query($initialProfileSql)->fetchColumn()===$initialProfileJson);
+    $p->exec("UPDATE messages SET text='Бюджет до 300 тыс на всех' WHERE id=11");modeledStreamMessage($p,13,11,'Давайте бронировать');
     $p->exec("UPDATE messages SET metadata_json='{\"type\":\"callback\"}' WHERE id=13");$s->tick($now+4);$profiles->tick($now+5);$v=modeledProfileLatest($p);
     $check('later profiles preserve first forecast identity and exclude callback raw intent',
         $v['early_forecast']['snapshot_kind']==='updated_observation'
         &&$v['early_forecast']['first_snapshot_journal_cursor']===$firstForecastCursor
         &&$v['contextual_signals']['goal_counts']['agency_purchase_intent']===0);
     $check('edited customer facts update while manager quote and callback do not raise purchase intent',$v['profile']['fields']['budget']['value']['maximum']===300000&&$v['profile']['current_stage']['value']!=='booking_intent'&&count($v['profile']['manager_quotes'])===1);
+    $check('later source edits preserve the original frozen prediction digest and profile',
+        $p->query($initialProfileSql)->fetchColumn()===$initialProfileJson
+        &&($v['semantic_prediction']['version']??null)==='semantic_purchase_heuristic_v1'
+        &&is_array($v['prediction_followup']??null)
+        &&$v['assigned_value']['known_subtotal_rub']===100);
     $p->exec("UPDATE messages SET text='Бюджет до 400 тыс на всех' WHERE id=11");$s->tick($now+6);
     $sourceCount=$p->query('SELECT COUNT(*) FROM modeled_conversion_stream_versions')->fetchColumn();$cursor=$p->query('SELECT journal_cursor FROM modeled_conversion_profiles_state')->fetchColumn();$count=$p->query('SELECT COUNT(*) FROM modeled_conversion_profile_versions')->fetchColumn();$index=$p->query("SELECT journal_id FROM modeled_conversion_profile_sources WHERE source_id=11 AND source_kind='message'")->fetchColumn();
+    $beforeRollbackProfile=modeledProfileLatest($p);
     try{$profiles->tick($now+7,static function(){throw new RuntimeException('profile_rollback_fixture');});$ok=false;}catch(Throwable $e){$ok=$e->getMessage()==='profile_rollback_fixture';}
     $check('profile failure rolls back source references versions and checkpoint together',$ok&&$sourceCount===$p->query('SELECT COUNT(*) FROM modeled_conversion_stream_versions')->fetchColumn()&&$cursor===$p->query('SELECT journal_cursor FROM modeled_conversion_profiles_state')->fetchColumn()&&$count===$p->query('SELECT COUNT(*) FROM modeled_conversion_profile_versions')->fetchColumn()&&$index===$p->query("SELECT journal_id FROM modeled_conversion_profile_sources WHERE source_id=11 AND source_kind='message'")->fetchColumn());
-    $check('retry after profile rollback extracts and commits exactly once',$profiles->tick($now+8)['profiles_written']===1&&modeledProfileLatest($p)['profile']['fields']['budget']['value']['maximum']===400000);
+    $afterRollbackProfile=modeledProfileLatest($p);
+    $check('rollback preserves the prior prediction and followup as one committed profile',
+        ($afterRollbackProfile['semantic_prediction']??null)===($beforeRollbackProfile['semantic_prediction']??null)
+        &&($afterRollbackProfile['prediction_followup']??null)===($beforeRollbackProfile['prediction_followup']??null)
+        &&$p->query($initialProfileSql)->fetchColumn()===$initialProfileJson);
+    $retryReceipt=$profiles->tick($now+8);$retryProfile=modeledProfileLatest($p);
+    $check('retry after profile rollback extracts and commits exactly once',$retryReceipt['profiles_written']===1&&$retryProfile['profile']['fields']['budget']['value']['maximum']===400000);
+    $check('retry commits prediction followup and legacy values together without private telemetry',
+        ($retryProfile['semantic_prediction']['version']??null)==='semantic_purchase_heuristic_v1'
+        &&is_array($retryProfile['prediction_followup']??null)
+        &&$retryProfile['profile']['purchase_anywhere_probability']===null
+        &&$retryProfile['profile']['purchase_with_us_probability']===null
+        &&$retryProfile['profile']['expected_value_rub']===null
+        &&$retryProfile['early_forecast']['purchase_with_us']['probability']===null
+        &&$retryProfile['early_forecast']['expected_value_rub']===null
+        &&$retryProfile['assigned_value']['known_subtotal_rub']===100
+        &&$p->query($initialProfileSql)->fetchColumn()===$initialProfileJson
+        &&!str_contains(json_encode([$managerUpdateReceipt,$retryReceipt,$profiles->status()]),'"semantic_prediction"')
+        &&!str_contains(json_encode([$managerUpdateReceipt,$retryReceipt,$profiles->status()]),'"prediction_followup"')
+        &&!str_contains(json_encode([$managerUpdateReceipt,$retryReceipt,$profiles->status()]),$initialPrediction['prediction_digest']));
     $raw=$p->query("SELECT snapshot_json FROM modeled_conversion_stream_versions WHERE source_kind='message' AND source_id=11 ORDER BY id DESC LIMIT 1")->fetchColumn();$snap=json_decode($raw,true);
     $snap['payload']['text']='Бюджет до 450 тыс на всех';$legacy=$snap;unset($legacy['source_created_at_unix']);modeledProfileAppend($p,$legacy,$now+10);
     foreach([10,14,15,16]as$c){$other=$snap;$other['source_id']=(string)(100+$c);$other['conversation_id']=(string)$c;$other['customer_key']=(string)$c;modeledProfileAppend($p,$other,$now+10);}
@@ -236,11 +303,46 @@ function modeledProfileAssertions(PDO $p,callable $check): void
 }
 
 
+/** The actual admitted PHP/Python writer must retain a genuine request across canonical AI output. */
+function modeledServiceProfileAssertions(PDO $p,callable $check):void
+{
+    modeledStreamSchema($p);modeledProfileSchema($p);$now=1793002000;
+    $source=new ModeledConversionStream($p);$profiles=new ModeledConversionProfiles($p);
+    modeledStreamMessage($p,10,11);$source->start($now);
+    modeledStreamMessage($p,11,11,'Подберите тур в Турцию на 7 ночей, 2 взрослых.');
+    modeledStreamMessage($p,12,11,'Уточните даты поездки','ai');
+    $p->prepare('UPDATE messages SET metadata_json=? WHERE id=12')->execute([
+        json_encode(ConversationRecordClock::stamp([],$now),JSON_THROW_ON_ERROR)]);
+    $source->tick($now+1);$profiles->start();
+    $tables=['messages','conversation_events','conversations','customer_channels','advertising_visit_observations'];
+    foreach($tables as$table)$p->exec('ALTER TABLE '.$table.' RENAME TO unavailable_'.$table);
+    try{$receipt=$profiles->tick($now+2);}finally{foreach(array_reverse($tables)as$table)$p->exec('ALTER TABLE unavailable_'.$table.' RENAME TO '.$table);}
+    $v=modeledProfileLatest($p);$prediction=$v['semantic_prediction'];
+    $firstId=(int)$p->query('SELECT id FROM modeled_conversion_profile_versions ORDER BY id LIMIT 1')->fetchColumn();
+    $firstJson=$p->query('SELECT profile_json FROM modeled_conversion_profile_versions WHERE id='.$firstId)->fetchColumn();
+    $check('actual writer saves a numeric customer prediction after a canonical AI response',
+        $receipt['profiles_written']===1&&$prediction['status']==='predicted'
+        &&$prediction['stage']==='concrete_request'&&$prediction['estimated_probability']===0.083333
+        &&$prediction['current_customer_turn_count']===1
+        &&$v['contextual_signals']['goal_counts']['agency_purchase_intent']===0
+        &&$v['early_forecast']['purchase_with_us']['probability']===null);
+    modeledStreamMessage($p,13,11,'Варианты будут в подборке','ai');
+    $p->prepare('UPDATE messages SET metadata_json=? WHERE id=13')->execute([
+        json_encode(ConversationRecordClock::stamp([],$now+3),JSON_THROW_ON_ERROR)]);
+    $source->tick($now+4);$profiles->tick($now+5);$later=modeledProfileLatest($p);
+    $check('later AI output preserves the immutable early percentage and same-request comparison',
+        $later['semantic_prediction']['current_request_anchor']===$prediction['current_request_anchor']
+        &&$later['semantic_prediction']['estimated_probability']===$prediction['estimated_probability']
+        &&$later['prediction_followup']['prior_prediction_digest']===$prediction['prediction_digest']
+        &&$later['prediction_followup']['prior_estimated_probability']===$prediction['estimated_probability']
+        &&$p->query('SELECT profile_json FROM modeled_conversion_profile_versions WHERE id='.$firstId)->fetchColumn()===$firstJson);
+}
+
 if(realpath($_SERVER['SCRIPT_FILENAME']??'')===__FILE__){
     $p=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
     modeledStreamSchema($p);$passed=0;
     $check=static function(string $name,bool $ok)use(&$passed){if(!$ok)throw new RuntimeException('FAIL '.$name);$passed++;echo 'PASS '.$name.PHP_EOL;};
-    modeledStreamAssertions($p,$check);modeledStreamSchedulerAssertions($check);modeledProfileAssertions($p,$check);
+    modeledStreamAssertions($p,$check);modeledStreamSchedulerAssertions($check);modeledProfileAssertions($p,$check);modeledServiceProfileAssertions($p,$check);
     echo 'MODELED CONVERSION STREAM PASSED '.$passed.PHP_EOL;
 }
 

@@ -623,7 +623,26 @@ and separately checked early-goal delivery are still required.
 
 
 
-## Assigned business value v1 (separate from purchase probability)
+## Experimental assigned-value implementation and observed funnel
+
+Policy correction (2 November): 50 RUB is the desired acquisition cost of a
+subscriber. The configured 50/25/50/50/100 weights and 275 RUB sum are an
+experimental example; installation and past tests do not approve them as
+income, expected commission or an advertising price scale. DRR 10% remains
+a candidate. Current production rules and historical stored values are
+preserved by this documentation/view correction.
+
+The next analytical result is a comparable AnyTour subscriber cohort for one
+explicit period: subscriber denominator, linked substantive dialogues,
+specific requests and substantive reactions to exact delivered selections,
+with known coverage and unknown linkage. Actions/callbacks, a thank-you and
+current saved advertising IDs do not establish these semantic stages.
+Operational dialogue counts remain useful context but cannot replace the
+subscription denominator or matched semantic stages. Determine proposed
+stage acquisition prices and Metrika goals from this evidence before any
+separate advertising admission.
+
+### Existing implementation record (not approval of its experimental weights)
 
 `ModeledConversionAssignedValue` adds a versioned private `assigned_value` to new
 ordinary profile versions. It leaves all historical frozen snapshots, purchase
@@ -665,3 +684,136 @@ an explainable partial subtotal, not a claim of complete general reaction recall
 Export stays false and conversion uploads zero. No current total is automatically
 sent to Metrika, and repeated totals must never be summed as new revenue.
 
+
+## Private assigned-value viewer
+
+The administrator-only `/manager/assigned-value.php` page renders the existing
+read-time registry. Explicit `view=profiles` shows one page of admitted current
+MAX/Telegram profiles; `view=members` shows one page of MAX tracker members,
+including subscribers without a linked usable dialogue profile. Each request
+copies at most the existing five-row page and offers explicit next-page navigation.
+There is no automatic scan or combined person/revenue total.
+
+Each row presents its private scope/identifiers, explicitly experimental subtotal, all five stage
+weights and awarded/unknown status, evidence references and actual
+occurred/recorded/available/evaluated times. Unknown fields and unavailable
+sources remain explicit. A missing usable linked profile does not prove absence
+of conversation. A missing recorded timestamp is unknown. Page coverage is
+reported separately from total population coverage; an unknown denominator
+cannot produce a percentage. Telegram membership is unavailable from the
+MAX-only bridge while Telegram dialogue profiles remain eligible.
+
+The route checks the current active admin, AnyTour project and access before
+reading and rechecks session/account/project access before releasing the HTML.
+Responses are private/no-store; all values are escaped. There is no transcript
+or native message lookup, customer operation, collection tick, model call or
+advertising export. Private identifiers and registry output must never enter
+public GitHub comments, CI logs or diagnostics.
+
+The MAX members tab requires the already accepted current-member tracker bundle
+to be installed through its existing guarded route. Until then, a failed lookup
+shows unavailable and does not establish an empty cohort. Source tests prove
+presentation/auth behavior only; normal installation and separately admitted
+private real-page acceptance remain required.
+
+The guarded tracker upgrade requires `--expected-preimage`, `--bundle`,
+`--ssh-key` and `--known-hosts`. It admits only the pinned accepted target
+and an explicitly supplied checked historical source candidate; the actual
+installed predecessor is established only by the remote preimage checks.
+The existing verification public key is pinned and preserved, never replaced.
+Unexpected files, symlinks/hardlinks, type/subtree or preimage/key mismatches
+halt before staging. Endpoint-last replacement is per file, not a transactional
+directory cutover: a failure after replacement is an explicit incomplete upgrade,
+with no automatic rollback/retry. A previously failed operation is never replayed
+by this helper change.
+
+The old installer run used a standby credential and failed authentication before
+execution. The existing tracker repository has its own audit credential/route;
+that credential must stay in its original scope. Preparing this public source
+neither authorizes execution in another repository nor establishes successful
+tracker installation. A concrete separately approved runner can reuse this
+fixed upgrade without copying keys or creating a generic remote executor.
+
+
+## First contextual purchase hypothesis (2 November)
+
+The existing admitted-journal profile transaction now saves a separate
+`semantic_prediction` version `semantic_purchase_heuristic_v1` on subsequent
+ordinary processing. It is a first useful, untrained rules model, not a
+calibrated purchase probability. It does not wait for a perfect trip splitter
+or for payment validation to finish. Earlier profile versions remain immutable;
+no historical source replay, new collector, worker, timer or provider call is added.
+
+The initial hypothetical conditional payment priors are 5% for substantive
+dialogue, 8.3333% for a concrete request, 16.6667% for an exact current offer
+discussion, 33.3333% for explicit general purchase intent and 50% for explicit
+agency intent. These follow the illustrative 1,000-subscriber / 10-payment
+funnel discussed for planning; they are assumptions, not measured cohort rates.
+Two or more stated criteria families help identify a concrete request. Actual
+meaningful continuation, explicit urgency, distant planning and deferral make
+small bounded odds adjustments. Reply speed alone does not change a probability.
+A price objection plus an explicit search for cheaper alternatives is continued
+search, not abandonment. Office/payment-method questions alone do not establish
+selection of this agency.
+
+The model reuses canonical semantic events and boundary flags. Unavailable or
+edited omitted content, unresolved product/party changes, a new candidate and
+a long observation gap clear stale positive context. Only already validated
+offer receipts may bridge the existing request/offer projection. The current
+request anchor is the first meaningful journal source in the candidate segment;
+it does not prove a unique trip or new customer. Manager wording cannot create
+customer intent. Known payment, booking or closed operational outcomes suppress
+a new prospective estimate. CRM won/lost is an operational assertion and remains
+separate from payment evidence.
+
+Each saved block contains the input cutoff, actual PHP freeze time as
+`prediction_at`, information fence, progress cursor, model source hash, canonical
+subject, journal anchor, bounded feature/reason references and a stable digest.
+The horizon begins at actual freeze, not at an earlier extractor or event time.
+Private text is not copied into this block. Existing legacy purchase
+probabilities and expected monetary values remain null; no advertising scale,
+goal configuration or exporter is changed.
+
+In the same profile transaction, `prediction_followup` compares the earliest
+saved prediction with later conversation payment evidence for the exact scope
+and unchanged request anchor. Both occurrence and availability must be strictly
+after the original actual freeze and within 30 days; sources must also be later
+than its information fence and original revision 1. Edited, backdated,
+late-ingested, same-second or differently anchored evidence remains unknown.
+A self-report and manager acknowledgment are descriptive conversation evidence,
+not bank settlement. Booking, document issuance and CRM outcome alone do not
+become payment labels. Refund, cancellation or purchase elsewhere suppress a
+positive comparison. Silence and an elapsed horizon remain unknown rather than
+negative outcomes. No saved early probability is updated retroactively.
+
+The private existing registry/view displays this provisional estimate and its
+followup separately from experimental assigned monetary weights. Older profiles
+show not-yet-saved rather than zero. Synthetic source/CI checks prove rule,
+clock, storage and projection behavior only; an installed natural scheduler
+receipt is required before claiming new real predictions are being saved.
+Independent payment labels, cohort coverage, calibration, comparison with a
+stage-only baseline and advertising admission remain parallel follow-up work.
+
+
+## Live V1 correction: canonical bot responses preserve recent customer meaning
+
+Canonical MAX/Telegram messengers mirror successful ordinary bot responses as
+outbound/ai with the server recording clock. Such a known response was formerly
+handled as an unavailable source row and erased the predictor's preceding
+customer request. The corrected private projection may bridge only a copied,
+unedited revision1 AI message with exact subject/source binding, valid UTF-8,
+ordinary metadata, no forwarded context and the matching canonical recording
+clock. It must follow a meaningful customer turn by at most24hours. It cannot
+establish or renew interest, supply buying/payment evidence or turn a short
+yes into agency intent. Human source omissions, unknown messages, edits,
+invalid/legacy clocks, scope mismatches and long gaps retain their barriers.
+The canonical extractor's own prompt/link guards and offer reaction remain
+unchanged; this corrects the numeric predictor's continuity only.
+
+Actual PHP→Python→immutable profile regressions cover request→AI reply and a
+later AI update, including native source tables unavailable and preservation of
+the original estimate/digest/prior comparison. Fixed priors, source limits,
+legacy null calibrated values, payment guards and advertising settings remain
+unchanged. The model code hash records the compatible continuity correction.
+No transcript, recorder, transport, provider, queue or historical profile is
+changed; only subsequent ordinary calculations use the fix.

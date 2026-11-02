@@ -1,3 +1,4 @@
+const {withTransitionDiagnostics}=require('./fixtures/transition-diagnostics');
 const {test,expect}=require('@playwright/test');
 const fs=require('node:fs'),path=require('node:path');
 const {setup,root}=require('./fixtures/internal-notes');
@@ -320,7 +321,7 @@ async function openGlobalAssistant(page){
   await expect(entry).toBeVisible();await entry.click();
 }
 
-for(const width of [390,430,768,1440])test('Manager assistant unifies list and current-client advice without touching reply '+width,async({page,browserName})=>{
+for(const width of [390,430,768,1440])test('Manager assistant unifies list and current-client advice without touching reply '+width,withTransitionDiagnostics(async({page,browserName})=>{
   await page.setViewportSize({width,height:900});const s=await setupAssistant(page);expect(s.calls).toEqual([]);
   await openGlobalAssistant(page);await expect(page.locator('[data-assistant-client]')).toHaveCount(2);expect(s.calls.map(c=>c.action)).toEqual(['list']);await bounded(page);await capture(page,browserName,width,'list');
   await page.locator('#assistantMore').click();await expect(page.locator('[data-assistant-client]')).toHaveCount(3);await expect(page.locator('#assistantMore')).toBeHidden();expect(s.calls.at(-1).cursor).toBe('v1.'+'a'.repeat(64)+'.12');
@@ -331,10 +332,10 @@ await page.setViewportSize({width,height:420});await bounded(page);await capture
   await page.setViewportSize({width,height:900});await page.evaluate(()=>WorkspaceV2Conversation.open(11));await expect(page.locator('#replyText')).toBeEnabled();
   await page.locator('#replyText').fill('Мой незаконченный ответ');await page.locator('#replyFile').setInputFiles({name:'assistant-keep.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic retained attachment')});
   const draft=await page.locator('#replyText').inputValue(),selection=await page.locator('#mediaSelection').textContent();
-await expect(page.locator('.conversationIdentityText #assistantClientOpen')).toHaveCount(0);await page.locator('#m2ConversationMenuToggle').click();await page.locator('#assistantClientOpen').click();await expect(page.locator('#assistantDetail')).toContainText('Отмечено выполненным');expect(s.calls.filter(c=>c.action==='decision')).toHaveLength(1);await page.locator('#assistantClose').click();
+await expect(page.locator('.conversationIdentityText #assistantClientOpen')).toHaveCount(0);await page.evaluate(()=>WorkspaceV2Assistant.open(11));await expect(page.locator('#assistantDetail')).toContainText('Отмечено выполненным');expect(s.calls.filter(c=>c.action==='decision')).toHaveLength(1);await page.locator('#assistantClose').click();
   await expect(page.locator('#replyText')).toHaveValue(draft);await expect(page.locator('#mediaSelection')).toHaveText(selection);
   clean(s);
-});
+}));
 
 test('assistant does not present expired reasoning or a missing analysis as completed work',async({page})=>{
   const s=await setupAssistant(page);s.items.get(11).recommendation.expires_at=new Date(Date.now()-1000).toISOString();await openGlobalAssistant(page);await page.locator('[data-assistant-client="11"]').click();await expect(page.locator('#assistantDetail')).toContainText('Нет свежего разбора');await expect(page.locator('#assistantDetail')).toContainText('Это не означает');await expect(page.locator('#assistantDetail')).not.toContainText('Клиент выбрал два отеля');await expect(page.locator('[data-assistant-decision]')).toHaveCount(0);expect(s.calls.every(c=>['list','detail'].includes(c.action))).toBe(true);clean(s);
@@ -479,6 +480,6 @@ for(const viewport of [{width:390,height:844},{width:430,height:844},{width:768,
 for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420}])test('Owner Assistant shows all managers and preserves own draft '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
   await page.setViewportSize(viewport);const s=await setupAssistant(page,{owner:true});await page.evaluate(()=>WorkspaceV2Conversation.open(11));await page.locator('#replyText').fill('Сохранить мой незаконченный ответ');await page.locator('#replyFile').setInputFiles({name:'owner-kept.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic retained attachment')});
   if(viewport.width<768){await page.getByRole('button',{name:'Назад к диалогам',exact:true}).click();await expect(page.locator('#inboxList')).toBeVisible();}
-  await openGlobalAssistant(page);await expect(page.locator('#assistantTitle')).toHaveText('Помощник владельца');await expect(page.locator('#assistantSubtitle')).toContainText('всей команды');await expect(page.locator('[data-assistant-client="11"]')).toContainText('Светлана');await expect(page.locator('[data-assistant-client="12"]')).toContainText('Анна');await expect(page.locator('[data-assistant-client="12"]')).toContainText('Pegas');await bounded(page);await capture(page,browserName,viewport.width,'owner-list-'+viewport.height);
+  await openGlobalAssistant(page);await expect(page.locator('#assistantTitle')).toHaveText('Обзор работы владельца');await expect(page.locator('#assistantSubtitle')).toContainText('всей команды');await expect(page.locator('[data-assistant-client="11"]')).toContainText('Светлана');await expect(page.locator('[data-assistant-client="12"]')).toContainText('Анна');await expect(page.locator('[data-assistant-client="12"]')).toContainText('Pegas');await bounded(page);await capture(page,browserName,viewport.width,'owner-list-'+viewport.height);
   await page.locator('[data-assistant-client="11"]').click();await expect(page.locator('#assistantDetail')).toContainText('Светлана');await expect(page.locator('.assistantRecommendation')).toBeVisible();await expect(page.locator('[data-assistant-decision]')).toHaveCount(0);await bounded(page);await capture(page,browserName,viewport.width,'owner-detail-'+viewport.height);await page.locator('#assistantClose').click();await expect(page.locator('#replyText')).toHaveValue('Сохранить мой незаконченный ответ');await expect(page.locator('#mediaSelection')).toContainText('owner-kept.txt');clean(s);
 });

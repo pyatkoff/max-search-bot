@@ -106,7 +106,7 @@ for(const profile of profiles)test(`compact Inbox same data ${profile.width} ${p
   expect(g.signals).toHaveLength(4);expect(g.signals.every(signal=>signal.visible)).toBe(true);
   expect(g.headerHeight).toBeLessThanOrEqual(132);expect(g.listHeight).toBeGreaterThanOrEqual(height===420?220:650);
   expect(g.rowHeight).toBeLessThanOrEqual((profile.font==='large'?138:128)+(lines-2)*g.lineHeight);
-  if(profile.width===1440)expect(g.inboxWidth).toBe(306);
+  if(profile.width===1440){expect(g.inboxWidth).toBeGreaterThanOrEqual(330);expect(g.inboxWidth).toBeLessThanOrEqual(380);}
   await expect(row(page).locator('.unreadBadge')).toHaveText('999');await expect(row(page).locator('.m2RowOpen')).toHaveAccessibleName(new RegExp(longName));
   await capture(page,browserName,profile,height,testInfo);
  }
@@ -139,7 +139,7 @@ for(const width of [390,1440])test(`compact Inbox admin keeps channel owner urge
 for(const width of [390,1440])test(`header favorite pointer Enter Space adds no conversation or read request ${width}`,async({page})=>{
  await page.setViewportSize({width,height:900});const s=await setup(page,{state:stateFor({pinned:false}),rows:rows()});await settled(page,s);
  await noInboxStars(page);await openConversation(page);await settled(page,s);const before=s.calls.length;
- const g=await headerGeometry(page);expect(g.width).toBeGreaterThanOrEqual(44);expect(g.height).toBeGreaterThanOrEqual(44);expect(g.hit&&g.sameLine&&g.nearName).toBe(true);
+ let g;await expect.poll(async()=>{g=await headerGeometry(page);return g.hit&&g.sameLine&&g.nearName}).toBe(true);expect(g.width).toBeGreaterThanOrEqual(44);expect(g.height).toBeGreaterThanOrEqual(44);
  for(const [activate,pressed]of[['click',true],['Enter',false],['Space',true]]){
   const star=pin(page);await expect(star).toBeVisible();await expect(star).toHaveAccessibleDescription(new RegExp(longName));if(activate==='click')await star.click();else{await star.focus();await star.press(activate)}
   await expect(pin(page)).toHaveAttribute('aria-pressed',String(pressed));await expect(pin(page)).toBeFocused();

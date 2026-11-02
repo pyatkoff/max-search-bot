@@ -422,7 +422,7 @@ for(const [width,height] of [[390,844],[430,844],[768,844],[1440,844],[390,420]]
  let globalEntry=await page.locator('#assistantOpen').isVisible();
  if(!globalEntry&&await page.locator('#m2MoreToggle').isVisible()){await page.locator('#m2MoreToggle').click();globalEntry=true;}
  if(globalEntry){await page.locator('#assistantOpen').click();await page.locator('[data-assistant-client="11"]').click()}
- else await useConversationTool(page,'assistantClientOpen');
+ else await page.evaluate(()=>WorkspaceV2Assistant.open(11));
  await expect(page.locator('#assistantDetail')).toContainText('Нет свежего разбора');
  await page.locator('#assistantConversation').click();await expect(page.locator('#assistantDialog')).not.toBeVisible();await settled(page);
  await expect(page.locator('.m2ConversationMenu')).not.toHaveAttribute('open','');

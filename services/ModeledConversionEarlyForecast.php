@@ -4,6 +4,8 @@ declare(strict_types=1);
 require_once __DIR__.'/ArchiveResearchSemanticExtractor.php';
 require_once __DIR__.'/ManagerAiTextRedactor.php';
 require_once __DIR__.'/ModeledConversionOfferReaction.php';
+require_once __DIR__.'/ModeledConversionSemanticPrediction.php';
+require_once __DIR__.'/ConversationRecordClock.php';
 
 /**
  * Pure projection of the already admitted profile prefix.
@@ -31,6 +33,7 @@ final class ModeledConversionEarlyForecast
         $frozenAt??=time();if($frozenAt<$cutoff)self::fail('frozen_clock');
         $frozen=gmdate('Y-m-d\\TH:i:s\\Z',$frozenAt);
         $denied=($case['access_denied']??null)!==false||($wrapper['access_status']??null)!=='allowed';
+        $predictive=new ModeledConversionSemanticPrediction($subject,$at,$document['requested_at'],$frozen,$cursor,$fence);
         $admitted=[];$input=$profile['observation_input']??[];
         if(!$denied){
             if(!is_array($input['evidence']??null)||count($input['evidence'])>1000||!self::sameSubject($input['subject']??null,$subject)
@@ -92,8 +95,15 @@ final class ModeledConversionEarlyForecast
                     $flags['semantic_text_too_large']=true;$permit=null;
                 }
             }
+            $operationalKnown=!$denied&&self::knownOperationalOutcome($row,$subject,$requested);
+            if($operationalKnown)
+                $predictive->knownOperationalOutcome($ref,(int)$item['at'],(int)$row['observed_at_unix'],(int)$row['source_version_no']);
             if($permit===null||$clockUnresolved){
                 $longGap=ArchiveResearchSemanticExtractor::hasLongObservationGap($state['last'],$item['at']);
+                $serviceBridge=!$denied&&!$clockUnresolved&&!$longGap
+                    &&self::knownServiceReply($row,$subject,$requested)
+                    &&$predictive->canBridgeServiceReply((int)$item['at']);
+                if($clockUnresolved||(!$operationalKnown&&!$serviceBridge&&!$offerReaction->bridgesUnavailable($ref,$longGap)))$predictive->barrier();
                 $barrier=ArchiveResearchSemanticExtractor::step(['read_status'=>'source_unavailable','source_ref'=>$ref,'created_at'=>$item['at']],$state);
                 $state=$barrier['state'];$previous=null;$barriers++;
                 if($longGap)$flags['long_observation_gap']=true;
@@ -111,6 +121,7 @@ final class ModeledConversionEarlyForecast
             ],$state);
             $state=$result['state'];
             $offerReaction->message($ref,$role,$permit['at'],$permit['available_at'],$text,$result);
+            $predictive->observeMessage($role,$text,$ref,$permit['at'],$permit['available_at'],(int)($row['source_version_no']??0),$result);
             foreach($result['flags']as$key=>$value)if($value===true)$flags[$key]=true;
             if($result['episode_boundary']!==null){
                 $boundaries[]=['source_ref'=>$ref,'kind'=>$result['episode_boundary'],'episode'=>$state['e'],'identity'=>'unverified'];
@@ -186,7 +197,7 @@ final class ModeledConversionEarlyForecast
                 ($preferences?'offer_preference_observed_episode_unverified':'unknown'),
             'trip_status'=>'unknown','evaluation_eligible'=>false,'export_allowed'=>false,
             'meaning'=>'early_rule_candidate_not_purchase_or_payment'];
-        return [
+        $packet=[
             'contextual_signals'=>['version'=>self::VERSION,'extractor_version'=>ArchiveResearchSemanticExtractor::VERSION,
                 'extractor_sha256'=>hash_file('sha256',__DIR__.'/ArchiveResearchSemanticExtractor.php'),
                 'adapter_sha256'=>hash_file('sha256',__FILE__),'prediction_at'=>$at,
@@ -213,6 +224,8 @@ final class ModeledConversionEarlyForecast
                 'evaluation_eligible'=>false,'evaluation_reason'=>'trip_and_verified_outcome_contract_unresolved',
                 'export_allowed'=>false,'conversion_uploads'=>0,'model_calls'=>0],
         ];
+        $packet['semantic_prediction']=$predictive->finish($packet);
+        return $packet;
     }
 
     public static function emptyReceipt():array
@@ -228,6 +241,57 @@ final class ModeledConversionEarlyForecast
         $key=$f['status']==='early_assessment'?'early_assessments':$f['status'];$receipt[$key]++;
         foreach($packet['contextual_signals']['goal_counts']as$goal=>$count)$receipt['goal_counts'][$goal]+=$count;
         return $receipt;
+    }
+
+    /** A known closed operational assertion is an exclusion, never payment proof. */
+    /** Canonical AI output is not a customer omission and never supplies customer evidence. */
+    private static function knownServiceReply(array $row,array $subject,int $cutoff):bool
+    {
+        $s=$row['snapshot']??null;
+        if(($row['source_kind']??null)!=='message'||($row['source_version_no']??null)!==1||!is_array($s)
+            ||($s['source_kind']??null)!=='message'||($s['source_status']??null)!=='present'
+            ||($s['payload_status']??null)!=='copied'||!self::sameSubject($s,$subject)
+            ||(string)($s['source_id']??'')!==(string)($row['source_id']??'')
+            ||($s['source_timestamp_basis']??null)!=='canonical_recording_unix_v1')return false;
+        $p=$s['payload']??null;$raw=is_array($p)?($p['metadata_json']??null):null;
+        if(!is_array($p)||($p['direction']??null)!=='outbound'||($p['sender_type']??null)!=='ai'
+            ||!is_string($p['text']??null)||strlen($p['text'])>ArchiveResearchSemanticExtractor::MAX_TEXT_BYTES
+            ||preg_match('//u',$p['text'])!==1||!is_string($raw)||strlen($raw)>32768)return false;
+        try{
+            $meta=json_decode($raw,true,32,JSON_THROW_ON_ERROR);
+            if(!is_array($meta)||!in_array($meta['type']??null,[null,'message'],true))return false;
+            if(isset($meta['linked_message'])&&(!is_array($meta['linked_message'])
+                ||($meta['linked_message']['type']??null)!=='reply'))return false;
+            $at=ConversationRecordClock::read($raw);
+        }catch(Throwable $ignored){return false;}
+        $available=$row['observed_at_unix']??null;
+        return is_int($at)&&is_int($available)&&$at>=946684800&&$at<=$available&&$available<=$cutoff
+            &&($s['source_created_at_unix']??null)===$at;
+    }
+
+    private static function knownOperationalOutcome(array $row,array $subject,int $cutoff):bool
+    {
+        $s=$row['snapshot']??null;
+        if(($row['source_kind']??null)!=='event'||($row['source_version_no']??null)!==1||!is_array($s)
+            ||($s['source_kind']??null)!=='event'||($s['source_status']??null)!=='present'
+            ||($s['payload_status']??null)!=='copied'||!self::sameSubject($s,$subject)
+            ||(string)($s['source_id']??'')!==(string)($row['source_id']??'')
+            ||($s['source_timestamp_basis']??null)!=='canonical_recording_unix_v1')return false;
+        $payload=$s['payload']??null;$raw=is_array($payload)?($payload['payload_json']??null):null;
+        if(($payload['event_type']??null)!=='sales_pipeline_outcome_observed'||!is_string($raw)||strlen($raw)>32768)return false;
+        try{$p=json_decode($raw,true,32,JSON_THROW_ON_ERROR);}catch(Throwable $ignored){return false;}
+        if(!is_array($p)||($p['version']??null)!==1||($p['origin']??null)!=='existing_sales_pipeline'
+            ||($p['producer']??null)!=='sales_pipeline_manager_assertion'
+            ||($p['evidence_basis']??null)!=='manager_operational_assertion'
+            ||!self::sameSubject($p['scope']??null,$subject)||!in_array($p['outcome']??null,['won','lost'],true)
+            ||!in_array($p['actor_role']??null,['manager','system'],true)
+            ||($payload['actor_type']??null)!==$p['actor_role']
+            ||!is_string($p['operation_id']??null)||preg_match('/\\A[a-f0-9]{32}\\z/D',$p['operation_id'])!==1)return false;
+        foreach(['inquiry_binding','profile_id','episode_key','previous_outcome']as$key)
+            if(!array_key_exists($key,$p)||$p[$key]!==null)return false;
+        $at=ConversationRecordClock::read($raw);$available=$row['observed_at_unix']??null;
+        return is_int($at)&&is_int($available)&&$at>=946684800&&$at<=$available&&$available<=$cutoff
+            &&($s['source_created_at_unix']??null)===$at;
     }
     private static function sameSubject(mixed $value,array $subject):bool
     {
