@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-three-20261102-3-v1",
-  "state": "DRAFT_NOT_SENT",
+  "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED",
   "goal": "Prepare next unpublished trio, then publish six posts using existing bot/registry pipeline",
   "boundaries": "No Mac access or file transfer, no new runtime uploader/controller/queue/worker, no old publication replay, no ad budget or customer changes.",
   "criteria": "Actual genuine hotel covers in accepted brand template, fixed media hashes before sends, registry duplicate check, real photo/button/source/version receipts.",
@@ -118,6 +118,10 @@
       "media_state": "NOT_YET_VISUALLY_VERIFIED_BRANDED_COVER"
     }
   ],
-  "next": "Obtain and visually verify genuine covers through allowed cloud APIs. Bind immutable media to the existing publisher before any sends. Dream Fun World still needs a genuine exterior/overview image.",
-  "feed_limitation": "No verified cloud universal-advertising-CSV export operation is available. Do not read or migrate local Mac feeds or repurpose the visit feed. This does not block independent hotel-post preparation."
+  "next": "Completed. Actual message identities and bot entry data remain only in the canonical server registry and existing authenticated run artifact. Do not repeat this operation.",
+  "feed_limitation": "No verified cloud universal-advertising-CSV export operation is available. Do not read or migrate local Mac feeds or repurpose the visit feed. This does not block independent hotel-post preparation.",
+  "confirmed_logical_materials": 15,
+  "publication_run": 41408762726,
+  "evidence_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41408762726",
+  "evidence_artifact": "commercial-three-20261102-3-publication"
 }
