@@ -1,7 +1,7 @@
 import base64,html,json,re,urllib.parse,urllib.request
 from pathlib import Path
-operation='commercial-batch12-public-media-20261102-read1'
-pages=["https://partner.jazhotels.com/hotel/58","https://partner.jazhotels.com/hotel/12","https://partner.jazhotels.com/hotel/64","https://partner.jazhotels.com/hotel/67","https://partner.jazhotels.com/hotel/93","https://partner.jazhotels.com/hotel/66","https://partner.jazhotels.com/hotel/2","https://partner.jazhotels.com/hotel/5","https://partner.jazhotels.com/hotel/68","https://partner.jazhotels.com/hotel/61"]
+operation='commercial-batch12-public-media-20261102-read2'
+pages=["https://partner.jazhotels.com/hotel/58","https://partner.jazhotels.com/hotel/12","https://partner.jazhotels.com/hotel/64","https://partner.jazhotels.com/hotel/93","https://partner.jazhotels.com/hotel/66","https://partner.jazhotels.com/hotel/2","https://partner.jazhotels.com/hotel/5","https://partner.jazhotels.com/hotel/68","https://partner.jazhotels.com/hotel/61"]
 hosts=set(["jazhotels.com","www.jazhotels.com","partner.jazhotels.com","images.jazhotels.com","storage.googleapis.com","jaz-resorts.net","www.jaz-resorts.net"])
 class Redirect(urllib.request.HTTPRedirectHandler):
  def redirect_request(self,req,fp,code,msg,headers,newurl):
@@ -21,13 +21,13 @@ for url in pages:
   final=r.url
   text=raw.decode('utf-8',errors='replace').replace('\\/','/')
  candidates=[]
- for value in re.findall(r"""["'(]([^"'<>()[\]\s]+\.(?:jpe?g|png|webp)(?:\?[^"'<>()[\]\s]*)?)""",text,re.I):
-  absolute=urllib.parse.urljoin(final,html.unescape(value))
+ for value in re.findall(r"""["']([^"'<>\r\n]+\.(?:jpe?g|png|webp)(?:\?[^"'<>\r\n]*)?)["']""",text,re.I):
+  absolute=urllib.parse.quote(urllib.parse.urljoin(final,html.unescape(value.strip())),safe=':/?&=%#')
   p=urllib.parse.urlsplit(absolute)
   if p.scheme=='https' and p.hostname in hosts and not p.username and not p.password and absolute not in candidates:candidates.append(absolute)
   documents=[]
- for value in re.findall(r"""["'(]([^"'<>()[\]\s]+\.pdf(?:\?[^"'<>()[\]\s]*)?)""",text,re.I):
-  absolute=urllib.parse.urljoin(final,html.unescape(value));p=urllib.parse.urlsplit(absolute)
+ for value in re.findall(r"""["']([^"'<>\r\n]+\.pdf(?:\?[^"'<>\r\n]*)?)["']""",text,re.I):
+  absolute=urllib.parse.quote(urllib.parse.urljoin(final,html.unescape(value.strip())),safe=':/?&=%#');p=urllib.parse.urlsplit(absolute)
   if p.scheme=='https' and p.hostname in hosts and not p.username and not p.password and absolute not in documents:documents.append(absolute)
  out['pages'].append({'source_url':url,'final_url':final,'image_urls':candidates[:320],'document_urls':documents[:12]})
 out['ok']=True

@@ -1,4 +1,4 @@
-name: Inspect first ten official hotel photo pools
+name: Inspect missing photo and factsheet links with escaped filenames
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -18,12 +18,12 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Read the exact ten official hotel photo pools without server or provider calls
+      - name: Read the exact nine affected official hotel photo pools without server or provider calls
         run: python3 tools/direct_demand/operations/inspect-hotel-media-20261102-3.py
       - name: Retain bounded public media source evidence
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-batch12-public-media-20261102-read1
+          name: commercial-batch12-public-media-20261102-read2
           path: public-media-sources.json
           retention-days: 14
           if-no-files-found: error
