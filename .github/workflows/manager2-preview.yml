@@ -1,29 +1,20 @@
-name: Manager2 preview checks
-
+# DRAFT ONLY: intended to replace the existing path on the fixed diagnostic ref, never main.
+name: Manager2 overlay context diagnostic
 on:
-  push:
-    branches: ['m2-preview/**']
-    paths:
-      - '.github/browser-qa/**'
-      - 'tools/browser_qa_environment.json'
-      - 'tools/browser_qa_environment.js'
-      - 'manager/**'
-      - 'manager2/**'
-      - 'tests/visual/**'
-      - '.github/workflows/manager2-preview.yml'
-  workflow_dispatch:
-
+  workflow_dispatch: {}
 permissions:
   contents: read
   packages: read
-
 concurrency:
-  group: manager2-preview-${{ github.event_name == 'push' && github.ref || github.run_id }}
-  cancel-in-progress: ${{ github.event_name == 'push' }}
-
+  group: manager2-overlay-diagnostic-${{ github.run_id }}-${{ github.run_attempt }}
+  cancel-in-progress: false
 jobs:
-  preview-smoke:
-    name: preview-smoke / ${{ matrix.browser }}
+  overlay-cause:
+    name: overlay-cause / chromium (diagnostic only)
+    if: ${{ github.event_name == 'workflow_dispatch' && github.repository ==
+      'pyatkoff/max-search-bot' && github.ref ==
+      'refs/heads/codex/manager2-overlay-ci-diagnostic-20261102' &&
+      github.run_attempt == 1 }}
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/pyatkoff/max-search-bot-browser-qa@sha256:7b95d1abd4105d9fa3d2af76a7e3c832e5bfe6afe43d091bbe8cdc18814a9c5a
@@ -33,47 +24,51 @@ jobs:
       options: --init --shm-size=1g
     defaults:
       run:
-        shell: "bash /opt/manager2-qa/run {0}"
+        shell: bash /opt/manager2-qa/run {0}
     timeout-minutes: 8
-    strategy:
-      fail-fast: false
-      matrix:
-        browser: [chromium, webkit]
     env:
-      QA_BROWSER_IMAGE: ghcr.io/pyatkoff/max-search-bot-browser-qa@sha256:7b95d1abd4105d9fa3d2af76a7e3c832e5bfe6afe43d091bbe8cdc18814a9c5a
       TZ: UTC
+      QA_BROWSER_IMAGE: ghcr.io/pyatkoff/max-search-bot-browser-qa@sha256:7b95d1abd4105d9fa3d2af76a7e3c832e5bfe6afe43d091bbe8cdc18814a9c5a
+      NODE_PATH: /opt/manager2-qa/node_modules
+      DIAG_PRODUCT_ROOT: ${{ github.workspace }}/product
+      DIAG_OBSERVER_ROOT: ${{ github.workspace }}/diagnostic/tools/diagnostics/manager2-overlay
+      DIAG_OUTPUT_DIR: ${{ runner.temp }}/manager2-overlay-causal
+      M2_QA_SOURCE_ROOT: ${{ github.workspace }}/product
+      GIT_CONFIG_COUNT: "1"
+      GIT_CONFIG_KEY_0: safe.directory
+      GIT_CONFIG_VALUE_0: ${{ github.workspace }}/product
     steps:
-      - name: Checkout test branch
+      - name: Read reviewed diagnostic code on the isolated ref
         uses: actions/checkout@v4
-      - name: Verify the prepared native runtime
-        run: |
-          chown "$(id -u):$(id -g)" "$HOME"
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          node /opt/manager2-qa/verify-runtime.js --require-source
-      - name: Start local synthetic fixture server
+        with:
+          ref: ${{ github.sha }}
+          path: diagnostic
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Freeze the original tested product separately
+        uses: actions/checkout@v4
+        with:
+          ref: adb00d866c6c816964c1cd0ba1a2c5b208d89e9a
+          path: product
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Prepare the evidence directory
+        working-directory: product
         run: |
           set -euo pipefail
-          python3 -m http.server 4173 --bind 127.0.0.1 > "$RUNNER_TEMP/preview-server.log" 2>&1 &
-          for attempt in $(seq 1 20); do
-            if curl -fsS http://127.0.0.1:4173/tests/visual/workspace-v2-fixture.html >/dev/null; then exit 0; fi
-            sleep 1
-          done
-          cat "$RUNNER_TEMP/preview-server.log"
-          exit 1
-      # Eight existing real-shell scenarios per engine; all APIs are synthetic.
-      # This separate status never satisfies the full PR screenshots gate.
-      - name: Check mobile and desktop preview
-        env:
-          BROWSER: ${{ matrix.browser }}
-        run: npx playwright test tests/visual/manager2-workspace.spec.js --grep 'compact header keeps native tools|actual shell boots, preserves canonical paths' --browser="$BROWSER" --reporter=line --workers=1
-      - name: Upload preview screenshots
+          mkdir -p "$DIAG_OUTPUT_DIR"
+          chown "$(id -u):$(id -g)" "$HOME"
+      - name: Verify pinned runtime and execute one observed original case
+        working-directory: product
+        run: |
+          set -euo pipefail
+          node "$DIAG_OBSERVER_ROOT/run-once.cjs" --execute-once
+      - name: Preserve all diagnostic evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: manager2-preview-${{ github.sha }}-${{ matrix.browser }}
-          overwrite: true
-          path: |
-            manager2-artifacts/*.png
-            test-results/**/error-context.md
+          name: manager2-overlay-cause-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/manager2-overlay-causal/
           if-no-files-found: error
-          retention-days: 7
+          overwrite: false
+          retention-days: 14

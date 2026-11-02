@@ -1,0 +1,14 @@
+{
+  "source": "Original GitHub Actions artifact13109249330, run41368526644 attempt2 Chromiumjob125044376620; copied only current-trip case",
+  "artifactSha256": "cb93d14b531eefbd4e101c6709e101b2afc2532c4c612cf9c7e43f72841e46b2",
+  "productTestedCommit": "adb00d866c6c816964c1cd0ba1a2c5b208d89e9a",
+  "productTree": "b9bba3116eed6d8b66796f344a8ea4472184dc81",
+  "test": "tests/visual/manager-ai-draft.spec.js:845",
+  "failedAt": 854,
+  "durationMs": 701,
+  "error": "Execution context was destroyed, most likely because of a navigation.",
+  "snapshotSha256": "a34e4b37a07533be182e136f43147970aa7d51748fb10d2ed41200c986480e3e",
+  "originalFailurePng": false,
+  "originalTraceNetwork": false,
+  "data": "Synthetic fixture only"
+}

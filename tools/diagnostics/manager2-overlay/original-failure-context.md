@@ -1,0 +1,221 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e8]: Диалоги
+        - generic [ref=e9]:
+          - button "Поиск диалогов" [ref=e10] [cursor=pointer]: ⌕
+          - button "Фильтры" [ref=e11] [cursor=pointer]: ☷ Фильтры
+          - 'button "Избранное: мои диалоги" [ref=e12] [cursor=pointer]': ☆
+          - 'button "Мои вкладки: условия и настройки" [ref=e13] [cursor=pointer]': ⚙
+      - group "Очереди и личные вкладки" [ref=e15]:
+        - generic "Очередь диалогов" [ref=e16]:
+          - 'button "Новые: 2" [ref=e17] [cursor=pointer]':
+            - text: Новые
+            - generic [ref=e18] [cursor=pointer]: "2"
+          - 'button "Мои: 2" [ref=e19] [cursor=pointer]':
+            - text: Мои
+            - generic [ref=e20] [cursor=pointer]: "2"
+          - button "Все" [ref=e21] [cursor=pointer]
+      - text: ⌄
+    - list [ref=e22]:
+      - listitem [ref=e23]:
+        - generic [ref=e24]: АМ
+        - button "Открыть диалог Анна Морозова · Мой диалог" [ref=e25] [cursor=pointer]:
+          - generic [ref=e27] [cursor=pointer]:
+            - generic [ref=e28] [cursor=pointer]:
+              - 'generic "Канал клиента: Telegram" [ref=e29] [cursor=pointer]': TG
+              - generic [ref=e30] [cursor=pointer]: Анна Морозова
+              - img "Мой диалог" [ref=e31] [cursor=pointer]
+            - generic [ref=e32] [cursor=pointer]: Пожелания к поездке
+            - generic [ref=e34] [cursor=pointer]: Ждёт ответа
+      - listitem [ref=e35]:
+        - generic [ref=e36]: АИ
+        - button "Открыть диалог Алексей Иванов · Мой диалог" [ref=e37] [cursor=pointer]:
+          - generic [ref=e39] [cursor=pointer]:
+            - generic [ref=e40] [cursor=pointer]:
+              - 'generic "Канал клиента: Telegram" [ref=e41] [cursor=pointer]': TG
+              - generic [ref=e42] [cursor=pointer]: Алексей Иванов
+              - img "Мой диалог" [ref=e43] [cursor=pointer]
+            - generic [ref=e44] [cursor=pointer]: Пожелания к поездке
+            - generic [ref=e46] [cursor=pointer]: Ждёт ответа
+  - main [ref=e47]:
+    - generic [ref=e48]:
+      - generic [ref=e49]:
+        - button "Назад к диалогам" [ref=e50] [cursor=pointer]: ‹
+        - generic [ref=e51]: АИ
+        - generic [ref=e53]:
+          - button "Открыть карточку клиента" [ref=e54] [cursor=pointer]:
+            - generic [ref=e55] [cursor=pointer]: Алексей Иванов
+          - button "В избранное · только для вас" [ref=e57] [cursor=pointer]: ☆
+      - generic [ref=e58]:
+        - button "Карточка клиента" [ref=e59] [cursor=pointer]: Клиент
+        - group [ref=e60]:
+          - generic "Действия с диалогом" [ref=e61] [cursor=pointer]: ⋯
+    - region "Помощник менеджера" [ref=e62]:
+      - region "Запрос туриста" [ref=e63]:
+        - heading "Запрос туриста" [level=3] [ref=e64]
+        - generic [ref=e65]:
+          - strong [ref=e66]: Другая поездка
+          - generic [ref=e67]: 2 взр. + 1 дет. (7)
+          - status [ref=e68]: Профиль сверен с перепиской
+        - button "Условия поездки" [ref=e69] [cursor=pointer]
+    - generic [ref=e70]:
+      - generic [ref=e71]:
+        - generic [ref=e72]: Менеджер
+        - generic [ref=e73]: Синтетическое сообщение 1. Обсуждаем пожелания к поездке.
+        - generic "17.10.2026 15:00 МСК" [ref=e74]: 17.10 · 15:00
+      - generic [ref=e75]:
+        - generic [ref=e76]: Турист
+        - generic [ref=e77]: Синтетическое сообщение 2. Обсуждаем пожелания к поездке.
+        - generic "17.10.2026 15:00 МСК" [ref=e78]: 17.10 · 15:00
+      - generic [ref=e79]:
+        - generic [ref=e80]: Турист
+        - generic [ref=e81]: Синтетическое сообщение 3. Обсуждаем пожелания к поездке.
+        - generic "17.10.2026 15:00 МСК" [ref=e82]: 17.10 · 15:00
+      - generic [ref=e83]:
+        - generic [ref=e84]: Менеджер
+        - generic [ref=e85]: Синтетическое сообщение 4. Обсуждаем пожелания к поездке.
+        - generic "17.10.2026 15:00 МСК" [ref=e86]: 17.10 · 15:00
+      - generic [ref=e87]:
+        - generic [ref=e88]: Турист
+        - generic [ref=e89]: Синтетическое сообщение 5. Обсуждаем пожелания к поездке.
+        - generic "17.10.2026 15:00 МСК" [ref=e90]: 17.10 · 15:00
+      - generic [ref=e91]:
+        - generic [ref=e92]: Турист
+        - generic [ref=e93]: Синтетическое сообщение 6. Обсуждаем пожелания к поездке.
+        - generic "17.10.2026 15:00 МСК" [ref=e94]: 17.10 · 15:00
+      - generic [ref=e95]:
+        - generic [ref=e96]: Менеджер
+        - generic [ref=e97]: Синтетическое сообщение 7. Обсуждаем пожелания к поездке.
+        - generic "17.10.2026 15:00 МСК" [ref=e98]: 17.10 · 15:00
+      - generic [ref=e99]:
+        - generic [ref=e100]: Турист
+        - generic [ref=e101]: Синтетическое сообщение 8. Обсуждаем пожелания к поездке.
+        - generic "17.10.2026 15:00 МСК" [ref=e102]: 17.10 · 15:00
+      - generic [ref=e103]:
+        - generic [ref=e104]: Турист
+        - generic [ref=e105]: Синтетическое сообщение 9. Обсуждаем пожелания к поездке.
+        - generic "17.10.2026 15:00 МСК" [ref=e106]: 17.10 · 15:00
+      - generic [ref=e107]:
+        - generic [ref=e108]: Менеджер
+        - generic [ref=e109]: Синтетическое сообщение 10. Обсуждаем пожелания к поездке.
+        - generic "17.10.2026 15:00 МСК" [ref=e110]: 17.10 · 15:00
+      - generic [ref=e111]:
+        - generic [ref=e112]: Турист
+        - generic [ref=e113]: Синтетическое сообщение 11. Обсуждаем пожелания к поездке.
+        - generic "17.10.2026 15:00 МСК" [ref=e114]: 17.10 · 15:00
+      - generic [ref=e115]:
+        - generic [ref=e116]: Турист
+        - generic [ref=e117]: Синтетическое сообщение 12. Обсуждаем пожелания к поездке.
+        - generic "17.10.2026 15:00 МСК" [ref=e118]: 17.10 · 15:00
+      - generic [ref=e119]:
+        - generic [ref=e120]: Менеджер
+        - generic [ref=e121]: Синтетическое сообщение 13. Обсуждаем пожелания к поездке.
+        - generic "17.10.2026 15:00 МСК" [ref=e122]: 17.10 · 15:00
+      - generic [ref=e123]:
+        - generic [ref=e124]: Турист
+        - generic [ref=e125]: Синтетическое сообщение 14. Обсуждаем пожелания к поездке.
+        - generic "17.10.2026 15:00 МСК" [ref=e126]: 17.10 · 15:00
+      - generic [ref=e127]:
+        - generic [ref=e128]: Турист
+        - generic [ref=e129]: Синтетическое сообщение 15. Обсуждаем пожелания к поездке.
+        - generic "17.10.2026 15:00 МСК" [ref=e130]: 17.10 · 15:00
+      - generic [ref=e131]:
+        - generic [ref=e132]: Менеджер
+        - generic [ref=e133]: Синтетическое сообщение 16. Обсуждаем пожелания к поездке.
+        - generic "17.10.2026 15:00 МСК" [ref=e134]: 17.10 · 15:00
+      - generic [ref=e135]:
+        - generic [ref=e136]: Турист
+        - generic [ref=e137]: Синтетическое сообщение 17. Обсуждаем пожелания к поездке.
+        - generic "17.10.2026 15:00 МСК" [ref=e138]: 17.10 · 15:00
+      - generic [ref=e139]:
+        - generic [ref=e140]: Турист
+        - generic [ref=e141]: Синтетическое сообщение 18. Обсуждаем пожелания к поездке.
+        - generic "17.10.2026 15:00 МСК" [ref=e142]: 17.10 · 15:00
+      - generic [ref=e143]:
+        - generic [ref=e144]: Менеджер
+        - generic [ref=e145]: Синтетическое сообщение 19. Обсуждаем пожелания к поездке.
+        - generic "17.10.2026 15:00 МСК" [ref=e146]: 17.10 · 15:00
+      - generic [ref=e147]:
+        - generic [ref=e148]: Турист
+        - generic [ref=e149]: Синтетическое сообщение 20. Обсуждаем пожелания к поездке.
+        - generic "17.10.2026 15:00 МСК" [ref=e150]: 17.10 · 15:00
+      - generic [ref=e151]:
+        - generic [ref=e152]: Турист
+        - generic [ref=e153]: Синтетическое сообщение 21. Обсуждаем пожелания к поездке.
+        - generic "17.10.2026 15:00 МСК" [ref=e154]: 17.10 · 15:00
+      - generic [ref=e155]:
+        - generic [ref=e156]: Менеджер
+        - generic [ref=e157]: Синтетическое сообщение 22. Обсуждаем пожелания к поездке.
+        - generic "17.10.2026 15:00 МСК" [ref=e158]: 17.10 · 15:00
+      - generic [ref=e159]:
+        - generic [ref=e160]: Турист
+        - generic [ref=e161]: Синтетическое сообщение 23. Обсуждаем пожелания к поездке.
+        - generic "17.10.2026 15:00 МСК" [ref=e162]: 17.10 · 15:00
+      - generic [ref=e163]:
+        - generic [ref=e164]: Турист
+        - generic [ref=e165]: Синтетическое сообщение 24. Обсуждаем пожелания к поездке.
+        - generic "17.10.2026 15:00 МСК" [ref=e166]: 17.10 · 15:00
+      - generic [ref=e167]:
+        - generic [ref=e168]: Менеджер
+        - generic [ref=e169]: Синтетическое сообщение 25. Обсуждаем пожелания к поездке.
+        - generic "17.10.2026 15:00 МСК" [ref=e170]: 17.10 · 15:00
+      - generic [ref=e171]:
+        - generic [ref=e172]: Турист
+        - generic [ref=e173]: Синтетическое сообщение 26. Обсуждаем пожелания к поездке.
+        - generic "17.10.2026 15:00 МСК" [ref=e174]: 17.10 · 15:00
+      - generic [ref=e175]:
+        - generic [ref=e176]: Турист
+        - generic [ref=e177]: Синтетическое сообщение 27. Обсуждаем пожелания к поездке.
+        - generic "17.10.2026 15:00 МСК" [ref=e178]: 17.10 · 15:00
+      - generic [ref=e179]:
+        - generic [ref=e180]: Менеджер
+        - generic [ref=e181]: Синтетическое сообщение 28. Обсуждаем пожелания к поездке.
+        - generic "17.10.2026 15:00 МСК" [ref=e182]: 17.10 · 15:00
+      - generic [ref=e183]:
+        - generic [ref=e184]: Турист
+        - generic [ref=e185]: Синтетическое сообщение 29. Обсуждаем пожелания к поездке.
+        - generic "17.10.2026 15:00 МСК" [ref=e186]: 17.10 · 15:00
+      - generic [ref=e187]:
+        - generic [ref=e188]: Турист
+        - generic [ref=e189]: Синтетическое сообщение 30. Обсуждаем пожелания к поездке.
+        - generic "17.10.2026 15:00 МСК" [ref=e190]: 17.10 · 15:00
+      - generic [ref=e191]:
+        - generic [ref=e192]: Менеджер
+        - generic [ref=e193]: Синтетическое сообщение 31. Обсуждаем пожелания к поездке.
+        - generic "17.10.2026 15:00 МСК" [ref=e194]: 17.10 · 15:00
+      - generic [ref=e195]:
+        - generic [ref=e196]: Турист
+        - generic [ref=e197]: Синтетическое сообщение 32. Обсуждаем пожелания к поездке.
+        - generic "17.10.2026 15:00 МСК" [ref=e198]: 17.10 · 15:00
+      - generic [ref=e199]:
+        - generic [ref=e200]: Турист
+        - generic [ref=e201]: Синтетическое сообщение 33. Обсуждаем пожелания к поездке.
+        - generic "17.10.2026 15:00 МСК" [ref=e202]: 17.10 · 15:00
+      - generic [ref=e203]:
+        - generic [ref=e204]: Менеджер
+        - generic [ref=e205]: Синтетическое сообщение 34. Обсуждаем пожелания к поездке.
+        - generic "17.10.2026 15:00 МСК" [ref=e206]: 17.10 · 15:00
+      - generic [ref=e207]:
+        - generic [ref=e208]: Турист
+        - generic [ref=e209]: Синтетическое сообщение 35. Обсуждаем пожелания к поездке.
+        - generic "17.10.2026 15:00 МСК" [ref=e210]: 17.10 · 15:00
+    - generic [ref=e211]:
+      - generic "Быстрые ответы" [ref=e212]:
+        - button "Помощник. Запрос туриста, текст ответа и проверки менеджеру." [ref=e213] [cursor=pointer]: Помощник
+        - group "Мои быстрые ответы" [ref=e214]:
+          - generic [ref=e215]: Добавьте свои быстрые ответы
+        - button "Настроить ответы" [ref=e216] [cursor=pointer]
+      - generic [ref=e217]:
+        - textbox "Ответ клиенту" [ref=e219]
+        - generic [ref=e220]:
+          - button "Развернуть" [ref=e221] [cursor=pointer]
+          - button "Добавить смайлик" [ref=e222] [cursor=pointer]: 😊
+          - button "Прикрепить файл" [ref=e223] [cursor=pointer]: 📎
+          - button "Отправить" [ref=e224] [cursor=pointer]: Отправить➤
+  - option "В работе" [selected]
+```
