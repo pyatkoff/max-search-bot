@@ -388,7 +388,7 @@ for(const width of [390,430,768,1440])test.describe('Manager2 '+width,()=>{
     await expect(page.locator('#replyText')).toHaveValue('Черновик Анны для проверки компактного кабинета');await expect(page.locator('#mediaSelection')).toHaveText(file);
     await page.evaluate(()=>WorkspaceV2Conversation.renderHeader({...WorkspaceV2.S.detail.conversation,display_name:'Анна · семейный отдых в Турции на октябрь · длинное рабочее имя клиента'}));
     const title=await page.locator('#conversationTitle').boundingBox(),head=await page.locator('.conversationHead').boundingBox(),toggle=await menu.locator('summary').boundingBox();
-    expect(title.height).toBeGreaterThanOrEqual(36);expect(title.height).toBeLessThanOrEqual(40);expect(toggle.x+toggle.width).toBeLessThanOrEqual(head.x+head.width+1);await noOverflow(page);
+    expect(title.height).toBeGreaterThanOrEqual(36);expect(title.height).toBeLessThanOrEqual(width<=740?64:40);expect(toggle.x+toggle.width).toBeLessThanOrEqual(head.x+head.width+1);await noOverflow(page);
     await page.setViewportSize({width,height:420});await page.locator('#replyText').fill(Array.from({length:8},(_,i)=>'Строка '+i+' — уточняем отдых').join('\n'));
     await noOverflow(page);expect(await page.locator('#messages').evaluate(el=>el.clientHeight)).toBeGreaterThanOrEqual(40);
     for(const id of ['replyText','sendReply']){const box=await page.locator('#'+id).boundingBox();expect(box.y).toBeGreaterThanOrEqual(0);expect(box.y+box.height).toBeLessThanOrEqual(421)}

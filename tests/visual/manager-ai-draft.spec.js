@@ -3,29 +3,33 @@ const {execFileSync}=require('node:child_process');
 const fs=require('node:fs'),path=require('node:path');
 const root=path.resolve(__dirname,'../..'),sourceRoot=process.env.M2_QA_SOURCE_ROOT||root,origin='http://127.0.0.1:4173';
 const shell=execFileSync('php',['manager2/index.php'],{cwd:sourceRoot,encoding:'utf8'});
+const profileShell=execFileSync('php',['manager2/request-profile.php'],{cwd:sourceRoot,encoding:'utf8'});
 const {startOAuthFixture}=require('./fixtures/oauth-consent');
 const {setupAiUsage}=require('./fixtures/manager-ai-usage');
 const proposal=(changes={})=>({ok:true,should_draft:true,draft:'Какие даты поездки вам удобны?',next_action:'clarify',reason:'В запросе не указаны даты вылета.',checks:[],evidence_message_ids:[35],history_incomplete:false,revision:'1'.repeat(64),latest_message_id:35,draft_id:'d'.repeat(32),...changes});
 const prepared=(changes={})=>proposal({prepared:true,prepared_at:'2026-10-19T10:30:00Z',source:'chatgpt',draft_id:null,...changes});
 // Render the actual PHP shell and canonical assets. Every identity, message,
 // proposal and HTTP response in this fixture is synthetic and stays in loopback.
-async function setup(page,{readiness=false,automatic=false,ensureHandler=null,hideNotice=false,supervisor=false,owner=false,ownerState='manager',previewHandler=null,blocked=false,manualTask=false}={}){
+async function setup(page,{readiness=false,automatic=false,ensureHandler=null,hideNotice=false,supervisor=false,owner=false,ownerState='manager',previewHandler=null,blocked=false,manualTask=false,profilePanel=false}={}){
   const calls=[],unexpected=[],errors=[],messages=new Map();
+  let profileHandler=null,profileRevision='1'.repeat(64);const profiles=new Map();
+  const profileFor=id=>{if(!profiles.has(id))profiles.set(id,{version:1,status:'fresh',label:id===11?'Семейная поездка в Турцию':'Другая поездка',boundary_message_id:1,fields:{party:{value:{adults:2,children:1,child_ages:[7]},kind:'manager_interpretation',importance:'hard',note:''}}});return profiles.get(id);};
   let deliveryBlocked=blocked;
   let automaticComplete=false;
   let ai=async data=>data.action==='prepared'?{body:prepared()}:data.action==='generate'?{body:proposal()}:{body:{ok:true,revision:'1'.repeat(64),latest_message_id:35,draft_id:data.draft_id||null}};
   let preview=previewHandler|| (async()=>({body:prepared({should_draft:readiness!=='recommendations',draft:readiness==='recommendations'?null:proposal().draft,next_action:readiness==='recommendations'?'no_contact':'clarify',reason:readiness==='recommendations'?'Менеджер уже ответил, нового вопроса нет.':proposal().reason,expires_at:new Date(Date.now()+3600000).toISOString()})}));
   const manager={id:7,role:owner?'admin':'manager',display_name:'Мария',is_working:true,supervision_available:supervisor||owner};
-  const conversation=id=>({id,status:owner&&id===11?ownerState:'manager',manager_id:owner&&id===11&&ownerState!=='manager'?null:(supervisor||owner)&&id===11?9:7,manager_name:owner&&id===11&&ownerState!=='manager'?null:(supervisor||owner)&&id===11?'Другой менеджер':'Мария',channel:blocked&&id===11?'max':'telegram',display_name:id===11?'Анна Морозова':'Алексей Иванов',...(blocked&&id===11?{delivery_failure_category:deliveryBlocked?'suspended':null}:{})});
+  const conversation=id=>({id,...(profilePanel?{project_key:'anytour'}:{}),status:owner&&id===11?ownerState:'manager',manager_id:owner&&id===11&&ownerState!=='manager'?null:(supervisor||owner)&&id===11?9:7,manager_name:owner&&id===11&&ownerState!=='manager'?null:(supervisor||owner)&&id===11?'Другой менеджер':'Мария',channel:blocked&&id===11?'max':'telegram',display_name:id===11?'Анна Морозова':'Алексей Иванов',...(blocked&&id===11?{delivery_failure_category:deliveryBlocked?'suspended':null}:{})});
   const assistantItem=()=>({conversation_id:11,display_name:'Анна Морозова',channel:'max',project_key:'anytour',project_name:'AnyTour',manager_name:'Другой менеджер',last_message_at:'2026-10-17T12:00:00Z',delivery_suspended:deliveryBlocked,delivery_notice:deliveryBlocked?'Ответ станет доступен после новой активности клиента.':null,operational:{awaiting_manager_reply:true,due_task:manualTask},tasks:manualTask?[{id:901,title:'Проверить вручную сохранённый документ',status:'open',due_state:'overdue',overdue:true,due_at_utc:'2026-10-17 13:00:00',is_pinned:false}]:[],recommendation:deliveryBlocked?{revision:'1'.repeat(64),next_action:'answer_question',reason:'Противоречивая рекомендация из старого снимка',checks:[],prepared_at:prepared().prepared_at,expires_at:new Date(Date.now()+3600000).toISOString(),latest_message_id:35,evidence_message_ids:[35],history_incomplete:false,decision:null}:null});
   for(const id of [11,12])messages.set(id,Array.from({length:35},(_,i)=>({id:i+1,sender_type:i%3?'customer':'manager',manager_id:i%3?null:7,text:'Синтетическое сообщение '+(i+1)+'. Обсуждаем пожелания к поездке.',created_at:'2026-10-17 12:00:00'})));
   page.on('pageerror',error=>errors.push(error.message));
   await page.route('**/*',async route=>{
     const request=route.request(),url=new URL(request.url()),method=request.method();
-    const reply=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
+    const reply=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(profilePanel&&url.pathname==='/manager/ai-draft.php'&&body.revision?{...body,revision:profileRevision}:body)});
     const block=()=>{unexpected.push(method+' '+url.pathname);return route.abort()};
     if(url.origin!==origin)return block();
     if(method==='GET'&&['/manager2/','/manager2/index.php'].includes(url.pathname))return route.fulfill({contentType:'text/html',body:shell});
+    if(profilePanel&&method==='GET'&&url.pathname==='/manager2/request-profile.php')return route.fulfill({contentType:'text/html',body:profileShell});
     if(method==='GET'&&/^\/manager2?\/assets\/[\w.-]+$/.test(url.pathname))return route.fulfill({contentType:url.pathname.endsWith('.css')?'text/css':'application/javascript',body:fs.readFileSync(path.join(sourceRoot,url.pathname.slice(1)))});
     if(method==='GET'&&url.pathname==='/manager/customer-avatar.php')return route.fulfill({status:404,body:''});
     if(method==='GET'&&url.pathname==='/manager/sw.js')return route.fulfill({contentType:'application/javascript',body:''});
@@ -34,6 +38,15 @@ async function setup(page,{readiness=false,automatic=false,ensureHandler=null,hi
     if(method!=='POST'||!url.pathname.startsWith('/manager/'))return block();
     let data;try{data=request.postDataJSON()}catch{return block()}
     calls.push({path:url.pathname,...data});
+    if(profilePanel&&url.pathname==='/manager/request-profile-api.php'){
+      if(profileHandler){const held=await profileHandler(data);if(held)return reply(held.body,held.status||200);}
+      const id=Number(data.conversation_id),profile=profileFor(id);
+      if(data.action==='identity')return reply({ok:true,viewer_id:7,csrf:'fixture-csrf'});
+      expect(data.csrf).toBe('fixture-csrf');
+      if(data.action==='get')return reply({ok:true,viewer_id:7,conversation_id:id,can_edit:true,context_sha256:'a'.repeat(64),profile,sources:[{id:1,sender_type:'customer',text:'Два взрослых и ребёнок7лет, семейный отдых в Турции.'}],history:[],coverage_incomplete:false});
+      if(data.action==='save'){profile.label=data.label;profile.fields=data.fields;profile.version++;profileRevision='2'.repeat(64);return reply({ok:true,viewer_id:7,conversation_id:id,saved_version:profile.version});}
+      return reply({ok:false,error:'unexpected_profile_action'},400);
+    }
     if(url.pathname==='/manager/api.php'){
       if(['me','login'].includes(data.action))return reply({ok:true,manager,csrf:'fixture-csrf',projects:[]});
       if(data.action==='detail')return reply({ok:true,conversation:conversation(data.conversation_id),messages:messages.get(data.conversation_id),delivery_failure:deliveryBlocked&&data.conversation_id===11?{category:'suspended',message:'Клиент недоступен в MAX'}:null,supervisor_read:(supervisor||owner)&&data.conversation_id===11,owner_read:owner&&data.conversation_id===11});
@@ -64,7 +77,7 @@ async function setup(page,{readiness=false,automatic=false,ensureHandler=null,hi
   await page.goto(origin+'/manager2/index.php?qa=1');await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
   await expect.poll(()=>page.evaluate(()=>WorkspaceV2.S.workspaceBound&&!WorkspaceV2.S.booting)).toBe(true);
   await page.locator('#inboxList [data-conversation-id="11"]').click();if(supervisor||owner)await expect(page.getByRole('button',{name:'AI · Просмотр',exact:true})).toBeVisible();else{await expect(page.locator('#replyText')).toBeEnabled();await expect(page.locator('#aiDraftOpen')).toBeEnabled()}
-  return {calls,unexpected,errors,setAI:handler=>{ai=handler},setPreview:handler=>{preview=handler},setDeliveryBlocked:value=>{deliveryBlocked=value},completePreparation:()=>{automaticComplete=true},messages,aiCalls:()=>calls.filter(call=>call.path==='/manager/ai-draft.php'&&!['prepared_status','prepared_preview'].includes(call.action)),ensureCalls:()=>calls.filter(call=>call.action==='ensure_prepared'),previewCalls:()=>calls.filter(call=>call.action==='prepared_preview'),statusCalls:()=>calls.filter(call=>call.action==='prepared_status')};
+  return {calls,unexpected,errors,setProfileHandler:handler=>{profileHandler=handler},setAI:handler=>{ai=handler},setPreview:handler=>{preview=handler},setDeliveryBlocked:value=>{deliveryBlocked=value},completePreparation:()=>{automaticComplete=true},messages,aiCalls:()=>calls.filter(call=>call.path==='/manager/ai-draft.php'&&!['prepared_status','prepared_preview'].includes(call.action)),ensureCalls:()=>calls.filter(call=>call.action==='ensure_prepared'),previewCalls:()=>calls.filter(call=>call.action==='prepared_preview'),statusCalls:()=>calls.filter(call=>call.action==='prepared_status')};
 }
 function clean(state){expect(state.errors).toEqual([]);expect(state.unexpected).toEqual([]);expect(state.calls.filter(call=>['send','take','release','close','reopen'].includes(call.action))).toEqual([])}
 async function openClient(page,id,name){
@@ -73,25 +86,113 @@ async function openClient(page,id,name){
 }
 async function bounded(page){
   expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
-  const bounds=await page.locator('#aiDraftPanel').evaluate(node=>{const rect=node.getBoundingClientRect();return {left:rect.left,right:rect.right,top:rect.top,bottom:rect.bottom}});
+  // The hosted panel is longer than its one outer scroller. Bound that painted
+  // surface, then prove the header, content and last action are natively reachable.
+  const hosted=await page.locator('#m2Assistant > #aiDraftPanel').count();
+  const bounds=await page.locator(hosted?'#m2Assistant':'#aiDraftPanel').evaluate(node=>{const rect=node.getBoundingClientRect();return {left:rect.left,right:rect.right,top:rect.top,bottom:rect.bottom,height:rect.height}});
   const viewport=page.viewportSize();expect(bounds.left).toBeGreaterThanOrEqual(-1);expect(bounds.right).toBeLessThanOrEqual(viewport.width+1);expect(bounds.top).toBeGreaterThanOrEqual(-1);expect(bounds.bottom).toBeLessThanOrEqual(viewport.height+1);
+  expect(bounds.height).toBeGreaterThan(0);
+  if(hosted){
+    await readAssistantSection(page,'.aiDraftClose');await expect(page.locator('.aiDraftClose')).toBeInViewport();
+    const content=await page.locator('#aiDraftPanel .aiDraftText').count()?'.aiDraftText':'#aiDraftStatus';
+    await readAssistantSection(page,content);
+    const action='#'+await page.locator('#aiDraftPanel .aiDraftActions button:not([hidden])').last().getAttribute('id');
+    await readAssistantSection(page,action);await expect(page.locator(action)).toBeInViewport();
+  }
   await page.locator('#sendReply').scrollIntoViewIfNeeded();expect(await page.locator('#sendReply').evaluate(node=>node.getBoundingClientRect().bottom)).toBeLessThanOrEqual(viewport.height+1);
 }
 async function capture(page,browserName,viewport){const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});await page.screenshot({animations:'disabled',path:path.join(directory,`ai-draft-${browserName}-${viewport.width}-${viewport.height}-preview.png`)})}
-async function ghostFitsField(page,{allowClipping=false}={}){
-  await expect(page.locator('#aiDraftSuggestion')).toHaveClass(/aiSuggestionGhost/);
+async function replyFitsAssistant(page,{allowClipping=false}={}){
+  await expect(page.locator('#m2Assistant')).toHaveCount(1);
+  await expect(page.locator('#m2Assistant #aiDraftSuggestion')).toBeVisible();
+  await expect(page.locator('#aiDraftSuggestion')).not.toHaveClass(/aiSuggestionGhost/);
+  await expect(page.locator('#aiDraftSuggestion .aiSuggestionHead')).toBeVisible();
   await expect(page.locator('#replyText')).toHaveValue('');
-  await expect(page.locator('#aiDraftSuggestion .aiSuggestionHead')).not.toBeVisible();
   const geometry=await page.locator('#aiDraftSuggestion').evaluate(node=>{
-    const field=document.querySelector('#replyText'),text=node.querySelector('.aiSuggestionText'),rect=field.getBoundingClientRect(),hint=text.getBoundingClientRect(),footer=node.querySelector('.aiSuggestionActions').getBoundingClientRect(),fieldStyle=getComputedStyle(field),textStyle=getComputedStyle(text),placeholder=getComputedStyle(field,'::placeholder');
-    const brightness=color=>{const values=color.match(/[\d.]+/g)||[];return values.slice(0,3).reduce((sum,value)=>sum+Number(value),0)/3};
-    return {sameField:field.parentElement.contains(node),left:hint.left,top:hint.top,right:hint.right,bottom:hint.bottom,contentLeft:hint.left+parseFloat(textStyle.borderLeftWidth)+parseFloat(textStyle.paddingLeft),contentTop:hint.top+parseFloat(textStyle.borderTopWidth)+parseFloat(textStyle.paddingTop),footerLeft:footer.left,footerTop:footer.top,footerRight:footer.right,footerBottom:footer.bottom,fieldLeft:rect.left,fieldTop:rect.top,fieldRight:rect.right,fieldBottom:rect.bottom,textLeft:rect.left+parseFloat(fieldStyle.borderLeftWidth)+parseFloat(fieldStyle.paddingLeft),textTop:rect.top+parseFloat(fieldStyle.borderTopWidth)+parseFloat(fieldStyle.paddingTop),sameFont:textStyle.fontSize===fieldStyle.fontSize&&textStyle.fontFamily===fieldStyle.fontFamily&&textStyle.lineHeight===fieldStyle.lineHeight,muted:brightness(textStyle.color)>brightness(fieldStyle.color),placeholderHidden:!field.placeholder||placeholder.color==='rgba(0, 0, 0, 0)'||placeholder.opacity==='0',contentClipped:text.scrollHeight>text.clientHeight+1};
+    const host=node.closest('#m2Assistant').getBoundingClientRect(),rect=node.getBoundingClientRect(),field=document.querySelector('#replyText').getBoundingClientRect(),text=node.querySelector('.aiSuggestionText');
+    const top=Math.max(rect.top,host.top),bottom=Math.min(rect.bottom,host.bottom);
+    return {left:rect.left,right:rect.right,hostLeft:host.left,hostRight:host.right,overlap:bottom>top&&top<field.bottom&&bottom>field.top,clipped:text.scrollHeight>text.clientHeight+1};
   });
-  expect(geometry.sameField).toBe(true);expect(geometry.left).toBeGreaterThanOrEqual(geometry.fieldLeft-1);expect(geometry.right).toBeLessThanOrEqual(geometry.fieldRight+1);expect(geometry.top).toBeGreaterThanOrEqual(geometry.fieldTop-1);expect(geometry.bottom).toBeLessThanOrEqual(geometry.fieldBottom+1);
-  expect(Math.abs(geometry.contentLeft-geometry.textLeft)).toBeLessThanOrEqual(2);expect(Math.abs(geometry.contentTop-geometry.textTop)).toBeLessThanOrEqual(2);expect(geometry.sameFont).toBe(true);expect(geometry.muted).toBe(true);expect(geometry.placeholderHidden).toBe(true);
-  expect(geometry.footerLeft).toBeGreaterThanOrEqual(geometry.fieldLeft-1);expect(geometry.footerRight).toBeLessThanOrEqual(geometry.fieldRight+1);expect(geometry.footerTop).toBeGreaterThanOrEqual(geometry.bottom-1);expect(geometry.footerBottom).toBeLessThanOrEqual(geometry.fieldBottom+1);
-  if(!allowClipping)expect(geometry.contentClipped).toBe(false);
+  expect(geometry.left).toBeGreaterThanOrEqual(geometry.hostLeft-1);expect(geometry.right).toBeLessThanOrEqual(geometry.hostRight+1);expect(geometry.overlap).toBe(false);
+  if(!allowClipping)expect(geometry.clipped).toBe(false);
 }
+async function assistantPaint(page,selector){
+  return page.locator(selector).evaluate(node=>{
+    const rect=node.getBoundingClientRect(),host=node.closest('#m2Assistant').getBoundingClientRect();
+    const top=Math.max(rect.top,host.top,0),bottom=Math.min(rect.bottom,host.bottom,innerHeight),left=Math.max(rect.left,host.left),right=Math.min(rect.right,host.right);
+    const hit=bottom>top&&right>left?document.elementFromPoint((left+right)/2,(top+bottom)/2):null;
+    return {height:Math.max(0,bottom-top),targetHeight:rect.height,hostHeight:host.height,hit:!!hit&&(hit===node||node.contains(hit)),fontSize:parseFloat(getComputedStyle(node).fontSize)};
+  });
+}
+async function readAssistantSection(page,selector){
+  const host=await page.locator('#m2Assistant').boundingBox(),target=await page.locator(selector).boundingBox();
+  await page.locator('#m2Assistant').hover();await page.mouse.wheel(0,target.y+target.height/2-host.y-host.height/2);
+  await expect.poll(async()=>{const p=await assistantPaint(page,selector);return p.hit&&p.height>=Math.min(p.targetHeight,p.hostHeight-16)-1}).toBe(true);
+}
+// Synthetic UI replay only: no provider call, production context or customer send.
+for(const viewport of [{width:390,height:420},{width:430,height:900},{width:1440,height:900}])test('Unified assistant preserves reading and separates reply from checks '+viewport.width+'x'+viewport.height,async({page},testInfo)=>{
+  await page.setViewportSize(viewport);let release;
+  const response=prepared({draft:'Из какого города вылетаете и какой бюджет рассматриваете?',reason:'Уточнить город и бюджет, сохраняя известные условия.',checks:['Проверить пляж без сильного ветра.','Сверить реальные условия проживания.'],expires_at:new Date(Date.now()+3600000).toISOString()});
+  const state=await setup(page,{readiness:true,profilePanel:true,previewHandler:async()=>{await new Promise(resolve=>{release=resolve});return {body:response}}});
+  state.setAI(async data=>data.action==='prepared'?{body:response}:{body:{ok:true,revision:'1'.repeat(64),latest_message_id:35}});
+  await expect.poll(()=>!!release).toBe(true);await expect(page.locator('#m2Assistant #m2CurrentTrip')).toBeVisible();
+  await page.locator('#replyFile').setInputFiles({name:'assistant-retained.txt',mimeType:'text/plain',buffer:Buffer.from('synthetic attachment')});
+  await page.locator('#messages').hover();await page.mouse.wheel(0,-250);
+  // Native wheel animation may outlast a fixed delay in WebKit. Capture the
+  // reading anchor only after actual scroll offsets settle across paint frames.
+  await expect.poll(()=>page.locator('#messages').evaluate(async node=>{
+    const samples=[];for(let i=0;i<4;i++){await new Promise(requestAnimationFrame);samples.push(node.scrollTop)}
+    return Math.max(...samples)-Math.min(...samples);
+  })).toBeLessThanOrEqual(.1);
+  const anchor=()=>page.locator('#messages').evaluate(box=>{const edge=box.getBoundingClientRect().top,row=[...box.children].find(node=>node.getBoundingClientRect().bottom>edge+1);return {key:row?.dataset.scrollMessageKey,offset:row?.getBoundingClientRect().top-edge}});
+  const before=await anchor();release();await expect(page.locator('#aiDraftSuggestion')).toBeVisible();
+  // The bounded helper scrolls independently on a short screen. Reach its
+  // answer controls with a native wheel rather than measuring offscreen content.
+  const initialControl=await page.locator('#aiSuggestionDetails').boundingBox(),initialHelper=await page.locator('#m2Assistant').boundingBox();
+  const wheel=initialControl.y<initialHelper.y?initialControl.y-initialHelper.y-8:Math.max(0,initialControl.y+initialControl.height-initialHelper.y-initialHelper.height+8);
+  if(wheel){await page.locator('#m2Assistant').hover();await page.mouse.wheel(0,wheel);await page.waitForTimeout(150)}
+  const control=await page.locator('#aiSuggestionDetails').boundingBox(),helper=await page.locator('#m2Assistant').boundingBox();
+  expect(control.y).toBeGreaterThanOrEqual(helper.y);expect(control.y+control.height).toBeLessThanOrEqual(helper.y+helper.height);
+  await replyFitsAssistant(page);
+  await expect.poll(async()=>Math.abs((await anchor()).offset-before.offset)).toBeLessThanOrEqual(2);expect((await anchor()).key).toBe(before.key);
+  const geometry=await page.evaluate(()=>{const r=id=>{const x=document.getElementById(id).getBoundingClientRect();return {width:x.width,height:x.height,bottom:x.bottom}};return {title:r('conversationTitle'),messages:r('messages'),reply:r('replyText'),helper:r('m2Assistant'),overflow:document.documentElement.scrollWidth-innerWidth}});
+  expect(geometry.title.width).toBeGreaterThan(60);expect(geometry.messages.height).toBeGreaterThan(60);expect(geometry.reply.height).toBeGreaterThanOrEqual(32);expect(geometry.reply.bottom).toBeLessThanOrEqual(viewport.height+1);expect(geometry.helper.height).toBeLessThanOrEqual(viewport.height*.39+1);expect(geometry.overflow).toBeLessThanOrEqual(1);
+  await page.locator('#m2ConversationMenuToggle').click();await page.locator('#assistantClientOpen').click();
+  await expect(page.locator('#aiDraftPanel')).toBeVisible();await expect(page.locator('#assistantDialog')).toHaveCount(0);await expect(page.locator('.aiDraftSectionTitle')).toHaveText(['Готовый ответ туристу','Проверки менеджеру']);
+  await expect(page.locator('.aiDraftText')).toHaveText(response.draft);
+  await expect(page.locator('#aiDraftSuggestion')).toBeHidden();
+  await expect.poll(async()=>{const p=await assistantPaint(page,'.aiDraftText');return p.hit&&p.height>=Math.min(24,p.targetHeight)}).toBe(true);
+  await page.screenshot({animations:'disabled',path:testInfo.outputPath('unified-assistant-open-'+viewport.width+'-'+viewport.height+'.png')});
+  await readAssistantSection(page,'.aiDraftText');
+  expect((await assistantPaint(page,'.aiDraftText')).fontSize).toBeGreaterThanOrEqual(13);
+  await page.screenshot({animations:'disabled',path:testInfo.outputPath('unified-assistant-answer-'+viewport.width+'-'+viewport.height+'.png')});
+  await readAssistantSection(page,'.aiDraftChecks li:last-child');
+  await page.screenshot({animations:'disabled',path:testInfo.outputPath('unified-assistant-checks-'+viewport.width+'-'+viewport.height+'.png')});
+  await readAssistantSection(page,'#m2CurrentTrip strong');
+  await page.screenshot({animations:'disabled',path:testInfo.outputPath('unified-assistant-request-'+viewport.width+'-'+viewport.height+'.png')});
+  await page.locator('#aiDraftOpen').click();await expect(page.locator('#aiDraftPanel')).toBeHidden();
+  await page.locator('#aiDraftOpen').click();await expect(page.locator('.aiDraftText')).toHaveText(response.draft);
+  await expect.poll(async()=>{const p=await assistantPaint(page,'.aiDraftText');return p.hit&&p.height>=Math.min(24,p.targetHeight)}).toBe(true);
+  await expect(page.locator('#m2Assistant')).toHaveCount(1);
+  await page.locator('#replyText').click();await expect(page.locator('#replyText')).toBeFocused();
+  await page.locator('#replyText').fill('Мой неотправленный ответ');await expect(page.locator('#mediaSelection')).toContainText('assistant-retained.txt');
+  await page.locator('#m2ReplyExpand').click();await expect(page.locator('#m2ReplyEditor')).toBeVisible();
+  await page.locator('#m2ReplyCollapse').click();await expect(page.locator('#replyText')).toHaveValue('Мой неотправленный ответ');
+  await expect(page.locator('#mediaSelection')).toContainText('assistant-retained.txt');
+  await page.locator('#messages').hover();await page.mouse.wheel(0,-120);
+  const image=testInfo.outputPath('unified-assistant-'+viewport.width+'-'+viewport.height+'.png');await page.screenshot({animations:'disabled',path:image});await testInfo.attach('unified-assistant',{body:fs.readFileSync(image),contentType:'image/png'});clean(state);
+  const readonlyPage=await page.context().newPage();
+  await readonlyPage.setViewportSize(viewport);
+  const readonly=await setup(readonlyPage,{readiness:'recommendations',profilePanel:true,owner:true,previewHandler:async()=>({body:prepared({should_draft:false,draft:null,next_action:'check_offer',reason:'Нет актуального расчёта на новый срок.',checks:['Сверить состав и питание по словам туриста; рассчитать новый срок.'],expires_at:new Date(Date.now()+3600000).toISOString()})})});
+  await expect(readonlyPage.locator('#aiRecommendationNotice')).toBeVisible();await readonlyPage.locator('#aiRecommendationDetails').click();
+  await expect(readonlyPage.locator('#m2Assistant')).toHaveCount(1);await expect(readonlyPage.locator('.aiDraftText')).toHaveCount(0);await expect(readonlyPage.locator('#aiDraftInsert')).toBeHidden();await expect(readonlyPage.locator('#aiSuggestionAccept')).toBeHidden();
+  await expect.poll(async()=>{const p=await assistantPaint(readonlyPage,'.aiDraftEmpty');return p.hit&&p.height>=Math.min(24,p.targetHeight)}).toBe(true);
+  await readAssistantSection(readonlyPage,'.aiDraftChecks li:last-child');
+  await readonlyPage.screenshot({animations:'disabled',path:testInfo.outputPath('unified-assistant-readonly-'+viewport.width+'-'+viewport.height+'.png')});
+  await readAssistantSection(readonlyPage,'.aiDraftClose');await readonlyPage.locator('.aiDraftClose').click();
+  await expect(readonlyPage.locator('#aiDraftPanel')).toBeHidden();
+  clean(readonly);await readonlyPage.close();
+});
 for(const stage of ['prepared','validate'])for(const width of [430,1440])test('AI inline insertion recovery '+stage+' '+width,async({page,browserName})=>{
   const viewport={width,height:width===430?420:900};await page.setViewportSize(viewport);
   const state=await setup(page,{readiness:true});
@@ -180,7 +281,7 @@ for(const owner of [false,true])for(const width of [390,1440])test('AI opening q
   state.completePreparation();await expect(page.locator('#aiDraftSuggestion')).toBeVisible({timeout:20000});await expect(notice).not.toBeVisible();await expect(page.locator('.aiSuggestionText')).toHaveText(proposal().draft);await expect(page.locator('#aiDraftPanel')).not.toBeVisible();await expect(reply).toHaveValue('');
   await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);
   if(owner){await expect(page.locator('#aiDraftSuggestion')).toHaveClass(/aiSuggestionReadonly/);await expect(page.locator('#aiDraftSuggestion')).toContainText('Только просмотр');await expect(page.locator('#aiSuggestionAccept')).not.toBeVisible();await expect(page.locator('#composer')).not.toBeVisible()}
-  else{await ghostFitsField(page);await expect(reply).toBeFocused();await expect(page.locator('#mediaSelection')).toContainText('automatic-retained.txt');expect(await reply.evaluate(()=>document.querySelector('#replyFile').files[0]===window.syntheticAutomaticFile)).toBe(true)}
+  else{await replyFitsAssistant(page);await expect(reply).toBeFocused();await expect(page.locator('#mediaSelection')).toContainText('automatic-retained.txt');expect(await reply.evaluate(()=>document.querySelector('#replyFile').files[0]===window.syntheticAutomaticFile)).toBe(true)}
   expect(await page.evaluate(()=>window.syntheticAiButtonClicks)).toBe(0);expect(state.ensureCalls()).toHaveLength(1);expect(state.aiCalls().map(call=>call.action)).toEqual(['ensure_prepared']);expect(await page.locator('#messages .msg.manager').count()).toBe(managerRows);expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
   const ready=testInfo.outputPath('ai-auto-'+(owner?'foreign':'own')+'-'+width+'-ready.png');await page.screenshot({animations:'disabled',path:ready});await testInfo.attach('automatic-ready',{body:fs.readFileSync(ready),contentType:'image/png'});clean(state);
 });
@@ -191,7 +292,7 @@ test('AI automatic queue outage is visible without invoking manual generation',a
 for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420}])test('AI expired readiness hides before a delayed timer and preserves input '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
   await page.setViewportSize(viewport);const state=await setup(page,{readiness:true});
   const reply=page.locator('#replyText'),notice=page.locator('.aiReadyNotice');
-  await expect(page.locator('#aiDraftOpen')).toHaveText('AI — Ответ готов');await expect(page.locator('#aiDraftSuggestion')).toBeVisible();await expect(notice).not.toBeVisible();
+  await expect(page.locator('#aiDraftOpen')).toHaveText('Помощник — Ответ готов');await expect(page.locator('#aiDraftSuggestion')).toBeVisible();await expect(notice).not.toBeVisible();
   await reply.fill('Мой незаконченный ответ');await page.locator('#replyFile').setInputFiles({name:'keep.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment')});
   await reply.evaluate(node=>{node.focus();node.setSelectionRange(1,5,'backward');window.aiExpiryFile=document.querySelector('#replyFile').files[0]});
   const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});
@@ -199,7 +300,7 @@ for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,
   await page.screenshot({animations:'disabled',path:path.join(directory,prefix+'-before.png')});
   const calls=state.statusCalls().length;
   await page.evaluate(()=>{const now=Date.now()+3600001;Date.now=()=>now;WorkspaceV2AiDraft.syncPreferences();WorkspaceV2AiDraft.sync()});
-  await expect(page.locator('#aiDraftOpen')).toHaveText('AI');await expect(notice).not.toBeVisible();
+  await expect(page.locator('#aiDraftOpen')).toHaveText('Помощник');await expect(notice).not.toBeVisible();
   await expect(reply).toBeFocused();await expect(reply).toHaveValue('Мой незаконченный ответ');await expect(page.locator('#mediaSelection')).toContainText('keep.txt');
   expect(await reply.evaluate(node=>[node.selectionStart,node.selectionEnd,node.selectionDirection,document.querySelector('#replyFile').files[0]===window.aiExpiryFile])).toEqual([1,5,'backward',true]);
   expect(state.statusCalls().length).toBe(calls);expect(state.aiCalls()).toEqual([]);
@@ -209,7 +310,7 @@ for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,
 for(const width of [390,430,768,1440])test('AI automatic readiness stays quiet and fits the composer '+width,async({page,browserName})=>{
   await page.setViewportSize({width,height:900});const state=await setup(page,{readiness:true});
   const button=page.locator('#aiDraftOpen'),notice=page.locator('.aiReadyNotice');
-  await expect(button).toHaveText('AI — Ответ готов');await expect(button).toHaveAttribute('data-ai-state','prepared');await expect(button).toHaveAttribute('title',/Подготовлен автоматически.*МСК/);
+  await expect(button).toHaveText('Помощник — Ответ готов');await expect(button).toHaveAttribute('data-ai-state','prepared');await expect(button).toHaveAttribute('title',/Подготовлен автоматически.*МСК/);
   await expect(page.locator('#aiDraftSuggestion')).toBeVisible();await expect(notice).not.toBeVisible();await expect(page.locator('#aiDraftPanel')).not.toBeVisible();
   await page.locator('#replyText').fill('Мой ответ');await page.locator('#replyFile').setInputFiles({name:'keep.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment')});
   await page.locator('#replyText').focus();await page.evaluate(()=>{for(let i=0;i<5;i++)WorkspaceV2AiDraft.sync()});
@@ -228,8 +329,8 @@ for(const width of [390,430,768,1440])test('AI automatic readiness stays quiet a
 });
 for(const mode of ['hidden','recommendations'])test('AI '+mode+' keeps the ready button and explains only available recommendations',async({page})=>{
   const state=await setup(page,{readiness:mode==='recommendations'?'recommendations':true,hideNotice:mode==='hidden'});
-  await expect(page.locator('#aiDraftOpen')).toHaveText(mode==='recommendations'?'AI — Рекомендации':'AI — Ответ готов');await expect(page.locator('.aiReadyNotice')).not.toBeVisible();await expect(page.locator('#aiDraftSuggestion')).not.toBeVisible();expect(state.aiCalls()).toEqual([]);
-  if(mode==='recommendations'){await expect(page.locator('#aiRecommendationNotice')).toBeVisible();await expect(page.locator('#aiRecommendationNotice')).toContainText('AI: сейчас отвечать не нужно')}else await expect(page.locator('#aiRecommendationNotice')).not.toBeVisible();
+  await expect(page.locator('#aiDraftOpen')).toHaveText(mode==='recommendations'?'Помощник — Нужна проверка':'Помощник — Ответ готов');await expect(page.locator('.aiReadyNotice')).not.toBeVisible();await expect(page.locator('#aiDraftSuggestion')).not.toBeVisible();expect(state.aiCalls()).toEqual([]);
+  if(mode==='recommendations'){await expect(page.locator('#aiRecommendationNotice')).toBeVisible();await expect(page.locator('#aiRecommendationNotice')).toContainText('Сейчас отвечать не нужно')}else await expect(page.locator('#aiRecommendationNotice')).not.toBeVisible();
   if(mode==='hidden'){await page.evaluate(()=>WorkspaceV2PersonalWorkspace.open());await expect(page.locator('#pwHideAiReadyNotice')).toBeChecked();await page.locator('#pwClose').click();await page.locator('#aiDraftOpen').click();await expect(page.locator('#aiDraftInsert')).toBeEnabled()}
   clean(state);
 });
@@ -237,7 +338,7 @@ const explanationViewports=[{width:390,height:900},{width:430,height:900},{width
 for(const viewport of explanationViewports)for(const owner of [false,true])for(const action of ['no_contact','check_offer'])test('AI non-draft explanation '+action+' '+(owner?'owner foreign':'own')+' '+viewport.width,async({page,browserName})=>{
   await page.setViewportSize(viewport);await page.addInitScript(()=>{window.syntheticAiButtonClicks=0;document.addEventListener('click',event=>{const button=event.target.closest?.('button');if(button?.id==='aiDraftOpen'||button?.getAttribute('aria-label')==='AI · Просмотр')window.syntheticAiButtonClicks++},true)});
   const reason=action==='no_contact'?'Менеджер уже ответил. Нового вопроса нет, повторное сообщение сейчас не требуется.':'Цена и наличие ещё не подтверждены. Проверьте условия перед ответом. <img src=x onerror=alert(1)>',state=await setup(page,{readiness:'recommendations',owner,previewHandler:async()=>({body:prepared({should_draft:false,draft:null,next_action:action,reason,expires_at:new Date(Date.now()+3600000).toISOString()})})}),notice=page.locator('#aiRecommendationNotice'),reply=page.locator('#replyText');
-  await expect(notice).toBeVisible();await expect(notice.locator('strong')).toHaveText(action==='no_contact'?'AI: сейчас отвечать не нужно':'AI: перед ответом нужна проверка');await expect(notice.locator('.aiRecommendationReason')).toHaveText(reason);expect(await notice.locator('img').count()).toBe(0);await expect(page.locator('#aiDraftPanel')).not.toBeVisible();await expect(page.locator('#aiDraftSuggestion')).not.toBeVisible();await expect(reply).toHaveValue('');
+  await expect(notice).toBeVisible();await expect(notice.locator('strong')).toHaveText(action==='no_contact'?'Сейчас отвечать не нужно':'Готового ответа пока нет · Проверки менеджеру');await expect(notice.locator('.aiRecommendationReason')).toHaveText(reason);expect(await notice.locator('img').count()).toBe(0);await expect(page.locator('#aiDraftPanel')).not.toBeVisible();await expect(page.locator('#aiDraftSuggestion')).not.toBeVisible();await expect(reply).toHaveValue('');
   if(owner){await expect(notice).toHaveClass(/aiRecommendationReadonly/);await expect(page.locator('#composer')).not.toBeVisible()}else{await page.locator('#replyFile').setInputFiles({name:'recommendation-retained.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic retained File')});await reply.fill('Мой незаконченный ответ');await reply.focus();await reply.evaluate(()=>window.syntheticRecommendationFile=document.querySelector('#replyFile').files[0]);await expect(notice).toBeVisible();await expect(reply).toBeFocused()}
   await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);
   const geometry=await notice.evaluate(node=>{const r=node.getBoundingClientRect(),host=document.getElementById('conversationZone').getBoundingClientRect();return{left:r.left,right:r.right,top:r.top,bottom:r.bottom,hostLeft:host.left,hostRight:host.right}});expect(geometry.left).toBeGreaterThanOrEqual(geometry.hostLeft-1);expect(geometry.right).toBeLessThanOrEqual(geometry.hostRight+1);expect(geometry.bottom).toBeLessThanOrEqual(viewport.height+1);expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
@@ -258,7 +359,7 @@ for(const width of [390,430,768,1440])test('AI inline suggestion is visible and 
   await reply.click();await reply.evaluate(()=>{window.aiInlineFile=document.querySelector('#replyFile').files[0]});
   await expect(suggestion).toBeVisible();await expect(reply).toBeFocused();
   await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);
-  await ghostFitsField(page);
+  await replyFitsAssistant(page);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
   for(const locator of [suggestion,reply,page.locator('#sendReply')]){const box=await locator.boundingBox();expect(box.x).toBeGreaterThanOrEqual(-1);expect(box.x+box.width).toBeLessThanOrEqual(width+1);expect(box.y).toBeGreaterThanOrEqual(-1);expect(box.y+box.height).toBeLessThanOrEqual(901)}
   const image=testInfo.outputPath('ai-inline-'+browserName+'-'+width+'.png');await page.screenshot({animations:'disabled',path:image});await testInfo.attach('ai-inline-'+width,{body:fs.readFileSync(image),contentType:'image/png'});
@@ -268,13 +369,13 @@ for(const width of [390,430,768,1440])test('AI inline suggestion is visible and 
   expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('workspaceV2.replySession.v1')).drafts.find(row=>row.id===11).aiDraftId)).toBe('a'.repeat(32));
   expect(await page.locator('#replyFile').evaluate(node=>node.files[0]===window.aiInlineFile)).toBe(true);await expect(page.locator('#mediaSelection')).toContainText('inline-keep.txt');clean(state);
 });
-for(const viewport of [{width:390,height:420},{width:430,height:900},{width:768,height:900},{width:1440,height:900}])test('AI ghost text stays inside the empty native field and expanded editor '+viewport.width+'x'+viewport.height,async({page,browserName},testInfo)=>{
+for(const viewport of [{width:390,height:420},{width:430,height:900},{width:768,height:900},{width:1440,height:900}])test('AI reply stays in one assistant beside the native field and expanded editor '+viewport.width+'x'+viewport.height,async({page,browserName},testInfo)=>{
   const draft='Предлагаю сравнить два варианта на ваши даты. Первый ближе к пляжу, второй просторнее.\nУточните, пожалуйста, возраст детей и город вылета — проверим полную стоимость для вашего состава.';
   await page.setViewportSize(viewport);const state=await setup(page,{readiness:true,previewHandler:async()=>({body:prepared({draft,expires_at:new Date(Date.now()+3600000).toISOString()})})}),reply=page.locator('#replyText');
-  await expect(page.locator('.aiSuggestionText')).toHaveText(draft);await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);await ghostFitsField(page,{allowClipping:true});
+  await expect(page.locator('.aiSuggestionText')).toHaveText(draft);await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);await replyFitsAssistant(page,{allowClipping:true});
   expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
   const compact=testInfo.outputPath('ai-ghost-compact-'+browserName+'-'+viewport.width+'-'+viewport.height+'.png');await page.screenshot({animations:'disabled',path:compact});await testInfo.attach('ai-ghost-compact',{body:fs.readFileSync(compact),contentType:'image/png'});
-  await page.locator('#m2ReplyExpand').click();await expect(page.locator('#m2ReplyEditor')).toBeVisible();await ghostFitsField(page,{allowClipping:true});await expect(reply).toHaveValue('');
+  await page.locator('#m2ReplyExpand').click();await expect(page.locator('#m2ReplyEditor')).toBeVisible();await replyFitsAssistant(page,{allowClipping:true});await expect(reply).toHaveValue('');
   const expanded=testInfo.outputPath('ai-ghost-expanded-'+browserName+'-'+viewport.width+'-'+viewport.height+'.png');await page.screenshot({animations:'disabled',path:expanded});await testInfo.attach('ai-ghost-expanded',{body:fs.readFileSync(expanded),contentType:'image/png'});
   await reply.fill('Мой собственный ответ');await expect(page.locator('#aiDraftSuggestion')).not.toBeVisible();await expect(reply).toHaveValue('Мой собственный ответ');await page.locator('#m2ReplyCollapse').click();await expect(reply).toHaveValue('Мой собственный ответ');expect(state.aiCalls()).toEqual([]);clean(state);
 });
@@ -293,20 +394,21 @@ test('AI ghost dismissal restores the native empty-field placeholder without tak
 });
 test('AI ghost follows the desktop large-font preference while already visible',async({page},testInfo)=>{
   await page.setViewportSize({width:1440,height:900});const state=await setup(page,{readiness:true});await expect(page.locator('#aiDraftSuggestion')).toBeVisible();
-  await page.evaluate(()=>{document.body.classList.add('pwLargeFont');WorkspaceV2AiDraft.sync()});await expect.poll(()=>page.locator('#replyText').evaluate(node=>getComputedStyle(node).fontSize)).toBe('16px');await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);await ghostFitsField(page);
+  await page.evaluate(()=>{document.body.classList.add('pwLargeFont');WorkspaceV2AiDraft.sync()});await expect.poll(()=>page.locator('#replyText').evaluate(node=>getComputedStyle(node).fontSize)).toBe('16px');await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);await replyFitsAssistant(page);
   const image=testInfo.outputPath('ai-ghost-large-font.png');await page.screenshot({animations:'disabled',path:image});await testInfo.attach('ai-ghost-large-font',{body:fs.readFileSync(image),contentType:'image/png'});
-  await page.evaluate(()=>{document.body.classList.remove('pwLargeFont');WorkspaceV2AiDraft.sync()});await expect.poll(()=>page.locator('#replyText').evaluate(node=>getComputedStyle(node).fontSize)).toBe('14px');await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);await ghostFitsField(page);expect(state.aiCalls()).toEqual([]);clean(state);
+  await page.evaluate(()=>{document.body.classList.remove('pwLargeFont');WorkspaceV2AiDraft.sync()});await expect.poll(()=>page.locator('#replyText').evaluate(node=>getComputedStyle(node).fontSize)).toBe('14px');await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);await replyFitsAssistant(page);expect(state.aiCalls()).toEqual([]);clean(state);
 });
 for(const width of [390,1440])test('Blocked customer has no automatic reply urgency and keeps explicit tasks '+width,async({page},testInfo)=>{
   const manualTask=width===1440;await page.setViewportSize({width,height:900});const state=await setup(page,{owner:true,blocked:true,manualTask}),row=page.locator('#inboxList [data-conversation-id="11"]');
   await expect(row).toContainText('Клиент недоступен в MAX');await expect(row).not.toHaveClass(/waitUrgent|waitWarn|needsReply/);await expect(row.locator('.leadWaitCompact,.leadReplyStatus')).toHaveCount(0);await expect(page.locator('#aiDraftSuggestion')).not.toBeVisible();expect(state.statusCalls()).toEqual([]);
   if(await page.locator('#mobileBack').isVisible())await page.locator('#mobileBack').click();await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);
   const inbox=testInfo.outputPath('blocked-inbox-'+width+'.png');await page.screenshot({animations:'disabled',path:inbox});await testInfo.attach('blocked-inbox',{body:fs.readFileSync(inbox),contentType:'image/png'});
-  if(await page.locator('#mobileBack').isVisible())await row.locator('.m2RowOpen').click();await page.locator('#m2ConversationMenuToggle').click();await page.locator('#assistantClientOpen').click();
+  if(width<=740)await page.locator('#m2MoreToggle').click();
+  await page.locator('#assistantOpen').click();await page.locator('#assistantList [data-assistant-client="11"]').click();
   await expect(page.locator('#assistantDetail .assistantUnavailable')).toBeVisible();await expect(page.locator('#assistantDetail .assistantUnavailable')).toContainText('Клиент недоступен в MAX');await expect(page.locator('#assistantDetail .assistantRecommendation')).toHaveCount(0);await expect(page.locator('#assistantDetail')).not.toContainText('Обращение без записанного ответа');await expect(page.locator('#assistantDetail')).not.toContainText('Противоречивая рекомендация из старого снимка');
   if(manualTask){await expect(page.locator('#assistantDetail .assistantTask')).toContainText('Проверить вручную сохранённый документ');await expect(page.locator('#assistantDetail .assistantTask')).toContainText('Просрочено')}else{await expect(page.locator('#assistantDetail')).toContainText('Открытых задач нет');await expect(page.locator('#assistantDetail .assistantOperational')).toHaveCount(0)}
   const assistant=testInfo.outputPath('blocked-assistant-'+width+'.png');await page.screenshot({animations:'disabled',path:assistant});await testInfo.attach('blocked-assistant',{body:fs.readFileSync(assistant),contentType:'image/png'});
-  await page.locator('#assistantClose').click();if(await page.locator('#mobileBack').isVisible())await page.locator('#mobileBack').click();state.setDeliveryBlocked(false);await page.evaluate(()=>WorkspaceV2Inbox.load({preserveScroll:true}));await expect(row).toHaveClass(/waitUrgent/);await expect(row.locator('.leadWaitCompact')).toContainText('Срочно');
+  await page.locator('#assistantClose').click();if(await page.locator('#workspaceRoot').getAttribute('data-mobile-screen')==='conversation')await page.locator('#mobileBack').click();state.setDeliveryBlocked(false);await page.evaluate(()=>WorkspaceV2Inbox.load({preserveScroll:true}));await expect(row).toHaveClass(/waitUrgent/);await expect(row.locator('.leadWaitCompact')).toContainText('Срочно');
   expect(state.aiCalls()).toEqual([]);expect(state.calls.filter(call=>['decision','set_task_completed','task_snooze','create_task'].includes(call.action))).toEqual([]);clean(state);
 });
 test('AI inline acceptance rechecks the empty composer after asynchronous preparation',async({page})=>{
@@ -699,3 +801,161 @@ for(const viewport of [{width:390,height:844},{width:1440,height:900}])test('AI 
     const s=await setup(page,{admin:true});await page.locator('#supervisorAdmin summary').click();await page.locator('#grantRead').click();await expect(page.locator('#grantIdentity')).toContainText('synthetic-manager · №4');await page.locator('#grantSources input').check();await page.locator('#grantEnabled').check();await page.locator('#grantSave').click();await expect(page.locator('#grantSave')).toBeDisabled();const sent=s.calls.filter(c=>c.action==='set');expect(sent).toHaveLength(1);expect(sent[0]).toMatchObject({manager_id:4,project_id:1,source_ids:[11],enabled:true,expected_version:0});await page.locator('#grantRead').click();await expect(page.locator('#grantIdentity')).toContainText('версия прав 1');await expect(page.locator('#grantSources input')).toBeChecked();await expect(page.locator('#grantEnabled')).toBeChecked();expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
   });
 })();
+
+// New current-dialogue surface only; existing profile/AI owners remain canonical.
+for(const width of [390,1440])test(`current-trip panel keeps profile and ready reply in one dialogue ${width}`,async({page,browserName})=>{
+  await page.setViewportSize({width,height:900});
+  const state=await setup(page,{readiness:true,profilePanel:true});
+  await expect(page.locator('#m2CurrentTrip strong')).toHaveText('Семейная поездка в Турцию');
+  await expect(page.locator('#aiDraftSuggestion')).toBeVisible();
+  await page.locator('#aiSuggestionDetails').click();await expect(page.locator('#aiDraftPanel')).toBeVisible();
+  await page.locator('#replyText').fill('Мой неотправленный ответ');
+  const tabs=page.context().pages().length;
+  await page.getByRole('button',{name:'Условия поездки',exact:true}).click();
+  const embedded=page.frameLocator('#m2RequestProfilePanel iframe');
+  await expect(embedded.locator('#profileLabel')).toHaveValue('Семейная поездка в Турцию');
+  await embedded.locator('#profileLabel').fill('Декабрь: семья с ребёнком7лет');
+  await embedded.locator('#profileSave').click();
+  await expect(page.locator('#m2CurrentTrip strong')).toHaveText('Декабрь: семья с ребёнком7лет');
+  await expect(page.locator('.m2RequestProfileState')).toContainText('Профиль сохранён');
+  await expect(page.locator('#aiDraftPanel')).not.toBeVisible();
+  await expect(page.locator('#m2CurrentTrip small')).toContainText('2 взр. + 1 дет. (7)');
+  fs.mkdirSync('manager2-artifacts',{recursive:true});await page.screenshot({path:`manager2-artifacts/${browserName}-${width}-trip-profile.png`,animations:'disabled'});
+  await page.getByRole('button',{name:'Готово',exact:true}).click();
+  await expect(page.locator('#m2RequestProfilePanel')).not.toBeVisible();
+  await expect(page.locator('#replyText')).toHaveValue('Мой неотправленный ответ');
+  expect(page.context().pages()).toHaveLength(tabs);
+  await page.locator('#replyText').fill('');
+  await expect(page.locator('#aiSuggestionAccept')).toBeVisible();
+  await page.locator('#aiSuggestionAccept').click();
+  await expect(page.locator('#replyText')).toHaveValue(prepared().draft);
+  expect(state.calls.some(c=>c.action==='generate')).toBe(false);
+  expect(state.calls.filter(c=>c.action==='save'&&c.path==='/manager/request-profile-api.php')).toHaveLength(1);
+  if(width<=740)await page.locator('#m2ConversationMenuToggle').click();
+  await expect(page.locator('#tourSelectionOpen')).toBeVisible();
+  expect(await page.evaluate(()=>WorkspaceV2.S.current)).toBe(11);
+  if(width<=740)await page.locator('#m2ConversationMenuToggle').click();
+  const name=page.locator('#conversationTitle');await expect(name).toHaveText('Анна Морозова');
+  expect(await name.evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
+  const size=await page.evaluate(()=>({doc:document.documentElement.scrollWidth,viewport:innerWidth}));expect(size.doc).toBeLessThanOrEqual(size.viewport+1);
+  fs.mkdirSync('manager2-artifacts',{recursive:true});await page.screenshot({path:`manager2-artifacts/${browserName}-${width}-trip-dialogue.png`,animations:'disabled'});
+  clean(state);
+});
+
+test('current-trip panel closes on conversation and account change, ignores late profile reads',async({page})=>{
+  await page.setViewportSize({width:390,height:900});const state=await setup(page,{profilePanel:true});
+  await expect(page.locator('#m2CurrentTrip strong')).toHaveText('Семейная поездка в Турцию');
+  await page.getByRole('button',{name:'Условия поездки',exact:true}).click();
+  await expect(page.frameLocator('#m2RequestProfilePanel iframe').locator('#profileLabel')).toHaveValue('Семейная поездка в Турцию');
+  await page.locator('#m2RequestProfilePanel').evaluate(el=>el.close());
+  let release,entered;const waiting=new Promise(resolve=>{entered=resolve});
+  state.setProfileHandler(async data=>{if(data.action!=='get'||data.conversation_id!==11)return;entered();await new Promise(resolve=>{release=resolve});return {body:{ok:true,viewer_id:7,conversation_id:11,profile:{label:'OLD PRIVATE TRIP',status:'fresh'}}};});
+  await page.evaluate(()=>{WorkspaceV2.S.detail.messages.push({id:999,text:'Уточнение'});WorkspaceV2RequestProfile.sync()});await waiting;
+  await page.evaluate(()=>WorkspaceV2Conversation.open(12));release();
+  await expect(page.locator('#conversationTitle')).toHaveText('Алексей Иванов');
+  await expect(page.locator('#m2CurrentTrip strong')).toHaveText('Другая поездка');
+  await expect(page.locator('#m2RequestProfilePanel iframe')).toHaveCount(0);
+  await expect(page.locator('body')).not.toContainText('OLD PRIVATE TRIP');
+  await page.getByRole('button',{name:'Условия поездки',exact:true}).click();
+  await expect(page.locator('#m2RequestProfilePanel')).toBeVisible();
+  await page.evaluate(()=>WorkspaceV2.showAuthRecovery('Сессия изменилась'));
+  await expect(page.locator('#m2RequestProfilePanel iframe')).toHaveCount(0);await expect(page.locator('#m2CurrentTrip')).not.toBeVisible();
+  clean(state);
+});
+
+test('current-trip panel retains unsaved profile and composer and consumes browser Back once',async({page})=>{
+  await page.setViewportSize({width:390,height:900});const state=await setup(page,{profilePanel:true});
+  await page.locator('#replyText').fill('Не потерять этот ответ');
+  await page.evaluate(()=>{WorkspaceV2.S.detail.conversation.display_name='Александра Константиновна Дмитриевская';WorkspaceV2Conversation.renderHeader(WorkspaceV2.S.detail.conversation)});
+  const name=page.locator('#conversationTitle');await expect(name).toContainText('Александра');
+  expect(await name.evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
+  expect(await name.evaluate(el=>el.scrollHeight<=el.clientHeight+1)).toBe(true);
+  fs.mkdirSync('manager2-artifacts',{recursive:true});await page.screenshot({path:'manager2-artifacts/long-client-name-mobile.png',animations:'disabled'});
+  const head=await page.locator('.conversationHead').boundingBox();expect(head.height).toBeLessThan(100);
+  await page.getByRole('button',{name:'Условия поездки',exact:true}).click();
+  const profile=page.frameLocator('#m2RequestProfilePanel iframe');await expect(profile.locator('#profileLabel')).toBeVisible();
+  await profile.locator('#profileLabel').fill('Ещё не сохранённая поездка');
+  await expect(page.locator('.m2RequestProfileState')).toContainText('Есть изменения');
+  await page.goBack();await expect(page.locator('#m2RequestProfilePanel')).not.toBeVisible();
+  expect(await page.evaluate(()=>WorkspaceV2.S.current)).toBe(11);
+  expect(await page.evaluate(()=>WorkspaceV2Mobile.getScreen())).toBe('conversation');
+  await expect(page.locator('#replyText')).toHaveValue('Не потерять этот ответ');
+  await page.getByRole('button',{name:'Условия поездки',exact:true}).click();
+  await expect(profile.locator('#profileLabel')).toHaveValue('Ещё не сохранённая поездка');
+  await page.getByRole('button',{name:'Готово',exact:true}).click();
+  expect(state.calls.filter(c=>c.action==='save'&&c.path==='/manager/request-profile-api.php')).toHaveLength(0);
+  await page.locator('#conversationTitle').click();
+  await expect(page.locator('[data-request-profile] a')).toBeVisible();await page.locator('[data-request-profile] a').click();
+  await expect(profile.locator('#profileLabel')).toHaveValue('Ещё не сохранённая поездка');expect(page.context().pages()).toHaveLength(1);
+  await page.getByRole('button',{name:'Готово',exact:true}).click();await page.locator('#mobileLeadClose').click();
+  await expect(page.locator('#replyText')).toHaveValue('Не потерять этот ответ');
+  await page.locator('#m2ConversationMenuToggle').click();await expect(page.locator('.m2ConversationMenu #pwGroupOpen')).toBeVisible();
+  await page.locator('#pwGroupOpen').click();await expect(page.locator('#pwDialog')).toBeVisible();
+  await page.keyboard.press('Escape');await expect(page.locator('#pwDialog')).not.toBeVisible();
+  await expect(page.locator('#pwGroupOpen')).toBeFocused();clean(state);
+});
+
+test('current-trip panel rejects forged child notifications and unexpected account identity',async({page})=>{
+  const state=await setup(page,{profilePanel:true,readiness:true});
+  await expect(page.locator('#m2CurrentTrip strong')).toHaveText('Семейная поездка в Турцию');
+  await page.getByRole('button',{name:'Условия поездки',exact:true}).click();
+  await expect(page.frameLocator('#m2RequestProfilePanel iframe').locator('#profileLabel')).toBeVisible();
+  await page.evaluate(()=>{const old=WorkspaceV2AiDraft.resetSession;window.profileResetCount=0;WorkspaceV2AiDraft.resetSession=(...args)=>{window.profileResetCount++;return old(...args)};const f=document.querySelector('#m2RequestProfilePanel iframe'),panel=new URL(f.src).searchParams.get('panel');window.postMessage({type:'anytour.request-profile',action:'saved',panel,conversation_id:11,viewer_id:7},location.origin)});
+  await page.frameLocator('#m2RequestProfilePanel iframe').locator('body').evaluate(()=>parent.postMessage({type:'anytour.request-profile',action:'saved',panel:'f'.repeat(32),conversation_id:11,viewer_id:7},location.origin));
+  await expect.poll(()=>page.evaluate(()=>window.profileResetCount)).toBe(0);
+  await page.getByRole('button',{name:'Готово',exact:true}).click();
+  state.setProfileHandler(async data=>data.action==='identity'?{body:{ok:true,viewer_id:8,csrf:'other-account'}}:{body:{ok:true,viewer_id:8,conversation_id:11,profile:{label:'PRIVATE OTHER ACCOUNT',status:'fresh'}}});
+  await page.getByRole('button',{name:'Условия поездки',exact:true}).click();
+  await expect.poll(()=>page.evaluate(()=>WorkspaceV2.S.authExpired)).toBe(true);
+  await expect(page.locator('#m2RequestProfilePanel iframe')).toHaveCount(0);await expect(page.locator('#m2CurrentTrip')).not.toBeVisible();
+  await expect(page.locator('body')).not.toContainText('PRIVATE OTHER ACCOUNT');clean(state);
+});
+
+test('current-trip panel reconciles one uncertain profile write and invalidates the previous AI preview',async({page})=>{
+  const state=await setup(page,{profilePanel:true,readiness:true});
+  await expect(page.locator('#aiSuggestionDetails')).toBeVisible();await page.locator('#aiSuggestionDetails').click();await expect(page.locator('#aiDraftPanel')).toBeVisible();
+  let committed=null;
+  state.setProfileHandler(async data=>{
+    if(data.action==='save'){committed=data;return {body:{ok:false,error:'network_error'}};}
+    if(data.action==='operation')return {body:{ok:true,viewer_id:7,found:true,saved_version:2}};
+    if(data.action==='get'&&committed)return {body:{ok:true,viewer_id:7,conversation_id:11,can_edit:true,context_sha256:'a'.repeat(64),profile:{version:2,status:'fresh',label:committed.label,boundary_message_id:1,fields:committed.fields},sources:[{id:1,sender_type:'customer',text:'Семейный отдых'}],history:[]}};
+  });
+  await page.getByRole('button',{name:'Условия поездки',exact:true}).click();const profile=page.frameLocator('#m2RequestProfilePanel iframe');
+  await profile.locator('#profileLabel').fill('Подтверждённая запись');await profile.locator('#profileSave').click();
+  await expect(profile.locator('#profileStatus')).toContainText('Сохранение не подтверждено');
+  await profile.locator('#profileReconcile').click();await expect(profile.locator('#profileStatus')).toContainText('Запись подтверждена');
+  await expect(page.locator('#aiDraftPanel')).not.toBeVisible();await expect(page.locator('#m2CurrentTrip strong')).toHaveText('Подтверждённая запись');
+  expect(state.calls.filter(c=>c.path==='/manager/request-profile-api.php'&&c.action==='save')).toHaveLength(1);
+  expect(state.calls.filter(c=>c.path==='/manager/request-profile-api.php'&&c.action==='operation')).toHaveLength(1);clean(state);
+});
+
+test('current-trip panel cannot open after a delayed permission read and mobile Back to inbox',async({page})=>{
+  await page.setViewportSize({width:390,height:900});const state=await setup(page,{profilePanel:true});
+  await expect(page.locator('#m2CurrentTrip strong')).toHaveText('Семейная поездка в Турцию');
+  let release,entered;const waiting=new Promise(resolve=>{entered=resolve});
+  state.setProfileHandler(async data=>{if(data.action!=='get')return;entered();await new Promise(resolve=>{release=resolve});return {body:{ok:true,viewer_id:7,conversation_id:11,profile:{status:'fresh',label:'Поздний разрешённый профиль'}}};});
+  await page.getByRole('button',{name:'Условия поездки',exact:true}).click();await waiting;
+  await page.goBack();await expect.poll(()=>page.evaluate(()=>WorkspaceV2Mobile.getScreen())).toBe('inbox');release();
+  await expect(page.locator('#m2CurrentTrip strong')).toHaveText('Поздний разрешённый профиль');
+  await expect(page.locator('#m2RequestProfilePanel')).not.toBeVisible();expect(await page.evaluate(()=>WorkspaceV2Mobile.getScreen())).toBe('inbox');clean(state);
+});
+
+test('current-trip panel clears private form on canonical conversation access denial',async({page})=>{
+  const state=await setup(page,{profilePanel:true});await page.getByRole('button',{name:'Условия поездки',exact:true}).click();
+  await expect(page.frameLocator('#m2RequestProfilePanel iframe').locator('#profileLabel')).toHaveValue('Семейная поездка в Турцию');
+  await page.route('**/manager/api.php',async route=>{const data=route.request().postDataJSON();if(data?.action==='detail'&&data.conversation_id===11)return route.fulfill({status:403,contentType:'application/json',body:JSON.stringify({ok:false,error:'forbidden'})});return route.fallback();});
+  expect(await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible())).toBe(false);
+  await expect(page.locator('#m2RequestProfilePanel iframe')).toHaveCount(0);await expect(page.locator('#m2RequestProfilePanel')).not.toBeVisible();await expect(page.locator('#m2CurrentTrip')).not.toBeVisible();
+  expect(await page.locator('#m2CurrentTrip').textContent()).not.toContain('Семейная поездка');
+  await page.evaluate(()=>WorkspaceV2RequestProfile.sync());await expect(page.locator('#m2CurrentTrip')).not.toBeVisible();clean(state);
+});
+
+test('current-trip panel rechecks profile freshness after editing an existing message ID',async({page})=>{
+  const state=await setup(page,{profilePanel:true});await expect(page.locator('#m2CurrentTrip span')).toHaveText('Профиль сверен с перепиской');
+  const before=state.calls.filter(c=>c.path==='/manager/request-profile-api.php'&&c.action==='get').length;
+  state.setProfileHandler(async data=>data.action==='get'?{body:{ok:true,viewer_id:7,conversation_id:11,profile:{version:1,label:'Уточнённые основания',status:'source_changed'}}}:undefined);
+  state.messages.get(11).at(-1).text='Тот же ID: питание изменилось, отель нужно пересмотреть';
+  expect(await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible())).toBe(true);
+  await expect(page.locator('#m2CurrentTrip span')).toHaveText('Основания изменились — условия нужно сверить');
+  expect(state.calls.filter(c=>c.path==='/manager/request-profile-api.php'&&c.action==='get').length).toBeGreaterThan(before);clean(state);
+});
