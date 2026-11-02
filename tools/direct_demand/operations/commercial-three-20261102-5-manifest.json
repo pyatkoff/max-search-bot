@@ -1,0 +1,77 @@
+{
+  "operation": "commercial-hotel-three-20261102-5-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Publish only the prepared three hotel posts once in each existing authorized channel with real photos and canonical cost button.",
+  "boundaries": "Existing bot and registry route only. No customer messages, advertisements, budgets, invented prices or Mac access.",
+  "criteria": [
+    "Six provider-confirmed image posts with canonical button and correct source context.",
+    "Registry hotel/logical identity deduplication and durable once-only journal.",
+    "Real official hotel photography; plain Russian captions without dash separators."
+  ],
+  "risks": [
+    "Never replay unknown sends.",
+    "Do not mix Titanic Beach in Hurghada with other Titanic hotels.",
+    "Selected Avia official photos visually checked separately from operator model images."
+  ],
+  "baseline_logical_materials": 18,
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "logical_id": "commercial-sunrise-arabian-1554-v1",
+      "hotel_id": 1554,
+      "hotel": "SUNRISE Arabian Beach Resort",
+      "aliases": [
+        "SUNRISE Arabian",
+        "Sunrise Select Arabian",
+        "Санрайз Арабиан"
+      ],
+      "text": "✈️ Туры в SUNRISE Arabian Beach Resort с перелётом\n📍 Египет, Шарм эль Шейх, Шаркс Бей\n\nОтель на берегу Красного моря с видом на остров Тиран.\n\n🐠 У своего пляжа есть коралловый риф. К воде ведёт понтон.\n🍽 Есть рестораны арабской и международной кухни.\n🌴 Территория спускается к морю шестью террасами.\n\nБассейн Relax предназначен для гостей от 16 лет.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "text_sha256": "313b8feb2678729f668b95a67ccf8533a3155cc9248825c571fe3c939ec7c492",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/772ac7fe301468ab8649834e4d6c8b278fe4c2f0/.github/traffic-publish/commercial-three-20261102-5/sunrise-arabian.png",
+      "photo_sha256": "549671e924174d1253e4e57e3bea5f9d4592c011805010bc644918029bd946fc",
+      "sources": [
+        "https://www.sunrise-resorts.com/arabian-beach-resort",
+        "https://www.sunrise-resorts.com/arabian-beach-resort/stay/family-suite"
+      ],
+      "media_state": "OFFICIAL_REAL_PHOTOGRAPHY_VISUALLY_VERIFIED"
+    },
+    {
+      "logical_id": "commercial-titanic-beach-228-v1",
+      "hotel_id": 228,
+      "hotel": "Titanic Beach Spa & Aqua Park",
+      "aliases": [
+        "Titanic Beach",
+        "Титаник Бич"
+      ],
+      "text": "✈️ Туры в Titanic Beach Spa & Aqua Park с перелётом\n📍 Египет, Хургада\n\nБольшой семейный отель на берегу моря с аквапарком.\n\n💦 Есть водные горки и бассейн с волнами.\n🧸 Для детей есть клуб и игровая площадка.\n🏖 Свой пляж и пирс.\n\nДетей ниже 120 см на взрослые горки не пускают.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "text_sha256": "5811a23f45322334d8c384c534827e3d66273f5e2a5a63c96b0bc450091c76c3",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/772ac7fe301468ab8649834e4d6c8b278fe4c2f0/.github/traffic-publish/commercial-three-20261102-5/titanic-beach.png",
+      "photo_sha256": "d9e220f64bcb4645ff423a63ad431a95f08b71af8c5816e7f509d919c64a96d6",
+      "sources": [
+        "https://www.hwaidak-hotels.com/hotels/titanic-beach",
+        "https://joinup.lv/en/hotel/26423",
+        "https://www.bgoperator.ru/pr_img/1000512/20260420/00246693/All_Formula_Update_English_-_New.pdf"
+      ],
+      "media_state": "OFFICIAL_REAL_PHOTOGRAPHY_VISUALLY_VERIFIED"
+    },
+    {
+      "logical_id": "commercial-avia-resort-4101-v1",
+      "hotel_id": 4101,
+      "hotel": "Avia Resort Hotel & Spa",
+      "aliases": [
+        "Avia Resort",
+        "Авиа Резорт"
+      ],
+      "text": "✈️ Туры в Avia Resort Hotel & Spa с перелётом\n📍 Турция, Сиде, Гюндогду\n\nОтель с бассейном и водными горками.\n\n🧸 Для детей есть клуб и отдельный бассейн.\n🍽 Есть главный ресторан, турецкий и итальянский рестораны.\n🧖 Есть хаммам и сауна.\n\nПляж находится отдельно от отеля. Летом туда возит автобус.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "text_sha256": "713d666b4ab6fc72cbe70faedc5d2811a3f73399d7d31f5d32debe65493a2614",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/772ac7fe301468ab8649834e4d6c8b278fe4c2f0/.github/traffic-publish/commercial-three-20261102-5/avia-resort.png",
+      "photo_sha256": "3df5f89e0570ccc929e3d705dc7758f989e78b7d56b51aa5ab5acd785e806ca6",
+      "sources": [
+        "https://www.aviaresort.com/en",
+        "https://www.aviaresort.com/en/room-detail/superior-eco-room-5467",
+        "https://www.schauinsland-reisen.de/hotel/1531508-avia-resort-und-spa"
+      ],
+      "media_state": "OFFICIAL_REAL_PHOTOGRAPHY_VISUALLY_VERIFIED"
+    }
+  ]
+}
