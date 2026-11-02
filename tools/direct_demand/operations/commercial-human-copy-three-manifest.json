@@ -1,0 +1,53 @@
+{
+  "operation": "commercial-human-copy-three-20261102-v1",
+  "owner_authorization": "Direct Pavel correction in this chat: use human language, remove vague AI expressions and all em dashes/hyphen separators.",
+  "goal": "Edit only text of the six most recent hotel posts, preserving actual photo/button/token/source",
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "key": "movenpick-sharm",
+      "logical_id": "at-hotel-movenpick-sharm",
+      "hotel_id": 1654,
+      "old_text": "✈️ Туры в Mövenpick Sharm El Sheikh с перелётом\n📍 Египет · Шарм-эль-Шейх, Наама-Бей\n\nПрисматриваетесь к Mövenpick с видами на Наама-Бей? Подберём перелёт и размещение под вашу поездку.\n\n🏖 Собственные песчаные пляжи с выходом к морю.\n🤿 Дайвинг-центр на территории курорта.\n🐎 Конный центр для любителей верховой езды.\n⛰ Отель на возвышенности — при подборе учтём путь от номера к пляжу.\n\nНапишите город вылета, даты и состав туристов — менеджер рассчитает стоимость тура.",
+      "new_text": "✈️ Туры в Mövenpick Sharm El Sheikh с перелётом\n📍 Египет, Шарм, Наама Бей\n\nОтель стоит на склоне над бухтой. С территории открывается вид на море.\n\n🏖 Свои песчаные пляжи.\n🤿 Есть центр дайвинга.\n🐎 На территории есть конюшня.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "update_text": true,
+      "max_publication_id": 121,
+      "max_message_id": "mid.ffffb6caf0606fed01a19af894c82e28",
+      "max_version_id": 147,
+      "telegram_publication_id": 118,
+      "telegram_message_id": "24",
+      "telegram_version_id": 144,
+      "new_text_sha256": "a009940a9d624c8ed951d1d078cdca4ab6e7486127965be39be618b10cdeb25e"
+    },
+    {
+      "key": "jaz-neo-naama",
+      "logical_id": "at-hotel-jaz-neo-naama",
+      "hotel_id": 877,
+      "old_text": "✈️ Туры в JAZ Neo Naama Bay с перелётом\n📍 Египет · Шарм-эль-Шейх, Наама-Бей\n\nВыбираете JAZ Neo Naama Bay, чтобы совмещать отдых с прогулками по Нааме? Подберём тур на ваши даты.\n\n🚶 Набережная и магазины Наама-Бей в пешей доступности.\n🌴 Бассейн и террасы для отдыха на территории.\n🛏 Номера с балконами.\n🏖 Доступ к пляжу через JAZ Fayrouz — условия уточним в выбранном туре.\n\nНапишите город вылета, даты и состав туристов — менеджер рассчитает стоимость тура.",
+      "new_text": "✈️ Туры в JAZ Neo Naama Bay с перелётом\n📍 Египет, Шарм, Наама Бей\n\nОтель в Наама Бей. До набережной и магазинов можно дойти пешком.\n\n🌴 Бассейн и террасы на территории.\n🛏 В номерах есть балконы.\n🏖 На пляж проходят через территорию JAZ Fayrouz.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "update_text": true,
+      "max_publication_id": 122,
+      "max_message_id": "mid.ffffb6caf0606fed01a19af89eb73c4a",
+      "max_version_id": 148,
+      "telegram_publication_id": 119,
+      "telegram_message_id": "25",
+      "telegram_version_id": 145,
+      "new_text_sha256": "a47987d149c919ed1bc47f75fb40581570f557e5f3ca3801b304423f54d9bddc"
+    },
+    {
+      "key": "hane-family",
+      "logical_id": "at-hotel-hane-family",
+      "hotel_id": 2077,
+      "old_text": "✈️ Туры в Hane Family Resort с перелётом\n📍 Турция · Сиде, Эвренсеки\n\nРассматриваете Hane Family для семейного отпуска? Подберём тур с подходящим перелётом и размещением.\n\n🏖 Собственный песчаный пляж с пологим входом в море.\n💦 Бассейны и аквапарк с большими и малыми горками.\n🧸 Мини-клуб с крытой зоной и игровой площадкой.\n🚶 До пляжа нужно пройти от отеля — учтём это при выборе отдыха с детьми.\n\nНапишите город вылета, даты и состав туристов — менеджер рассчитает стоимость тура.",
+      "new_text": "✈️ Туры в Hane Family Resort с перелётом\n📍 Турция, Сиде, Эвренсеки\n\nСемейный отель в Эвренсеки, рядом с Сиде.\n\n🏖 Свой песчаный пляж. До него около трёх минут пешком.\n💦 Бассейны и водные горки.\n🧸 Детский клуб с крытой зоной и площадкой на улице.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "update_text": true,
+      "max_publication_id": 123,
+      "max_message_id": "mid.ffffb6caf0606fed01a19af8a8ba146d",
+      "max_version_id": 149,
+      "telegram_publication_id": 120,
+      "telegram_message_id": "26",
+      "telegram_version_id": 146,
+      "new_text_sha256": "c6ed20f9113e5fc1d5fa98c9ac16e3c580c447281ec5c3e5f05ec7e0c54fe0a0"
+    }
+  ]
+}
