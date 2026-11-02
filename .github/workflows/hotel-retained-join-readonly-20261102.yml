@@ -1,0 +1,137 @@
+name: Read immutable hotel acceptance mapping once
+on:
+  push:
+    branches: [ops/hotel-retained-join-readonly-20261102-root]
+    paths: [.github/workflows/hotel-retained-join-readonly-20261102.yml]
+permissions:
+  contents: read
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+jobs:
+  private_mapping:
+    if: github.ref == 'refs/heads/ops/hotel-retained-join-readonly-20261102-root' && github.event.before == '293f16166458f2c84c8be0d82fbffc4aee3674f6' && github.event.created == false && github.event.deleted == false && github.event.forced == false && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Pin current application and exact read-only operator
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = a0998e8aac75413bd8fbac818485a86807df3b11
+          gh api 'repos/pyatkoff/max-search-bot/contents/tools/direct_demand/operations/hotel-retained-join-readonly.php?ref=293f16166458f2c84c8be0d82fbffc4aee3674f6' >"$RUNNER_TEMP/hotel_join_source.json"
+          python3 - <<'PY'
+          import os,json,pathlib,base64,hashlib
+          root=pathlib.Path(os.environ['RUNNER_TEMP']);d=json.loads((root/'hotel_join_source.json').read_text())
+          assert d['encoding']=='base64' and d['sha']=='75fc1fa3356a68315e53917e7b845cebd7f5b7fb'
+          b=base64.b64decode(d['content']);assert len(b)<65536
+          assert hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()==d['sha']
+          assert hashlib.sha256(b).hexdigest()=='24c8eb03b3909e8fd86d21254c7c7e639d8c6019039e3ea57b61d30958ea5ae6'
+          (root/'hotel_join.php').write_bytes(b)
+          PY
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: Lint and refuse foreign target before loading credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -l "$RUNNER_TEMP/hotel_join.php" >/dev/null
+          set +e
+          php "$RUNNER_TEMP/hotel_join.php" >"$RUNNER_TEMP/hotel_join_refusal.json"
+          status=$?
+          set -e
+          test "$status" -eq 1
+          python3 - <<'PY'
+          import os,json,pathlib
+          d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP']+'/hotel_join_refusal.json').read_text())
+          assert d=={'operation':'hotel-retained-join-readonly-v1','state':'HOLD','reason':'target_unconfirmed','data_writes':0,'provider_calls':0,'new_queue_created':False}
+          PY
+      - name: Prepare existing connection and approved host continuity
+        env:
+          CONNECTION_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          CONNECTION_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          CONNECTION_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          raw="$CONNECTION_KEY"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' >"$RUNNER_TEMP/hotel_join_key"; else printf '%s\n' "$raw" | tr -d '\r' >"$RUNNER_TEMP/hotel_join_key"; fi
+          else
+            printf '%s' "$raw" | base64 --decode >"$RUNNER_TEMP/hotel_join_key"
+          fi
+          ssh-keygen -y -f "$RUNNER_TEMP/hotel_join_key" >/dev/null
+          python3 - <<'PY'
+          import os,re,subprocess,base64,hashlib,pathlib
+          host=os.environ['CONNECTION_HOST'];user=os.environ['CONNECTION_USER']
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',user)
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35)
+          approved=[]
+          for line in scan.stdout.splitlines():
+              f=line.split()
+              if len(f)<3 or f[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(f[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':approved.append(line)
+          assert approved,'Existing host continuity mismatch; STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/hotel_join_hosts').write_text('\n'.join(approved)+'\n')
+          PY
+      - name: Read the immutable mapping once and capture only sealed output
+        env:
+          CONNECTION_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          CONNECTION_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          set +e
+          timeout 120 ssh -i "$RUNNER_TEMP/hotel_join_key" -o BatchMode=yes -o ConnectTimeout=10 -o ConnectionAttempts=1 -o IdentitiesOnly=yes -o ServerAliveInterval=10 -o ServerAliveCountMax=2 -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/hotel_join_hosts" "$CONNECTION_USER@$CONNECTION_HOST" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(git rev-parse HEAD)" = a0998e8aac75413bd8fbac818485a86807df3b11; git diff --quiet; git diff --cached --quiet; /usr/bin/php' <"$RUNNER_TEMP/hotel_join.php" >"$RUNNER_TEMP/hotel_join_raw.private" 2>"$RUNNER_TEMP/hotel_join_stderr.private"
+          status=$?
+          set -e
+          export HOTEL_JOIN_STATUS="$status"
+          python3 - <<'PY'
+          import os,json,pathlib,base64,hashlib,sys
+          root=pathlib.Path(os.environ['RUNNER_TEMP']);ok=False
+          safe={'operation':'hotel-retained-join-readonly-v1','state':'HOLD','reason':'join_result_unconfirmed','data_writes':0,'provider_calls':0,'new_queue_created':False}
+          try:
+              p=root/'hotel_join_raw.private';assert 0<p.stat().st_size<=98304
+              d=json.loads(p.read_text());assert type(d) is dict
+              fixed={'operation':'hotel-retained-join-readonly-v1','data_writes':0,'provider_calls':0,'new_queue_created':False}
+              for k,v in fixed.items():assert type(d[k]) is type(v) and d[k]==v
+              status=int(os.environ['HOTEL_JOIN_STATUS'])
+              if d['state']=='sealed':
+                  assert status==0 and set(d)==set(fixed)|{'state','algorithm','recipient_sha256','aad','key','nonce','tag','ciphertext','ciphertext_sha256'}
+                  assert d['algorithm']=='RSA-OAEP-SHA1+A256GCM' and d['recipient_sha256']=='56f838b25c67967d6261577bc1f9bd0e689f224c6f5b042de4a4292f9067678d'
+                  assert d['aad']=='hotel-retained-join-readonly-v1|56f838b25c67967d6261577bc1f9bd0e689f224c6f5b042de4a4292f9067678d|c228ad5acb5cc4e33636a3bd62530b68de1b66fedae2ce5ed58d5f2431278585'
+                  decoded={k:base64.b64decode(d[k],validate=True) for k in ['key','nonce','tag','ciphertext']}
+                  assert len(decoded['key'])==384 and len(decoded['nonce'])==12 and len(decoded['tag'])==16
+                  assert 0<len(decoded['ciphertext'])<=65536 and hashlib.sha256(decoded['ciphertext']).hexdigest()==d['ciphertext_sha256']
+                  safe=d;ok=True
+              else:
+                  assert status!=0 and set(d)==set(fixed)|{'state','reason'} and d['state']=='HOLD'
+                  assert d['reason'] in {'target_unconfirmed','connection_unconfirmed','read_unconfirmed','snapshot_pin_mismatch','registry_pin_mismatch','projection_unconfirmed','read_transaction_unconfirmed','sealing_unavailable','join_unconfirmed'}
+                  safe=d
+          except Exception:pass
+          (root/'hotel_join_sealed.json').write_text(json.dumps(safe,sort_keys=True)+'\n')
+          print(json.dumps({'operation':safe['operation'],'state':safe['state'],'server_command_exit_code':int(os.environ['HOTEL_JOIN_STATUS']),'data_writes':0,'provider_calls':0,'new_queue_created':False,'private_payload_printed':False}))
+          sys.exit(0 if ok else 1)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hotel-retained-join-sealed
+          path: ${{ runner.temp }}/hotel_join_sealed.json
+          retention-days: 7
+          if-no-files-found: ignore
+      - name: Remove this run's ephemeral files
+        if: always()
+        shell: bash
+        run: |
+          rm -f "$RUNNER_TEMP/hotel_join_source.json" "$RUNNER_TEMP/hotel_join.php" "$RUNNER_TEMP/hotel_join_refusal.json" "$RUNNER_TEMP/hotel_join_key" "$RUNNER_TEMP/hotel_join_hosts" "$RUNNER_TEMP/hotel_join_raw.private" "$RUNNER_TEMP/hotel_join_stderr.private" "$RUNNER_TEMP/hotel_join_sealed.json"
