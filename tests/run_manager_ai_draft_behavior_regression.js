@@ -624,4 +624,11 @@ test('Escape and pagehide clear private generated content without sending or per
   assert.equal(stopped,true);assert.equal(h.ids.get('aiDraftPanel').hidden,true);await h.click('aiDraftOpen');h.events.get('pagehide')();
   assert.equal(h.ids.get('aiDraftPanel').hidden,true);assert.equal(h.ids.get('aiDraftPanel').children[2].children.length,0);assertNoMutations(h);
 });
+test('work-plan advice reads the saved proposal without generating or inserting when absent',async()=>{
+ const h=await harness(data=>response(data.action==='prepared'?{ok:true,prepared:false}:generated()));const file={name:'keep-plan.txt'};h.setFile(file);await h.draft('Мой собственный ответ');assert.equal(await h.ai.openPrepared(),false);assert.deepEqual(h.aiCalls().map(c=>c.action),['prepared']);assert.equal(h.ids.get('replyText').value,'Мой собственный ответ');assert.equal(h.getFile(),file);assert.match(h.ids.get('aiDraftStatus').textContent,/Готового ответа пока нет/);assertNoMutations(h);
+});
+test('work-plan advice displays a saved draft for editing while preserving the managers composer',async()=>{
+ const h=await harness();await h.draft('Начал писать сам');assert.equal(await h.ai.openPrepared(),true);assert.deepEqual(h.aiCalls().map(c=>c.action),['prepared']);assert.equal(h.ids.get('replyText').value,'Начал писать сам');assert.equal(h.ids.get('aiDraftPanel').hidden,false);assert.equal(h.ids.get('aiDraftInsert').hidden,false);assertNoMutations(h);
+});
+
 (async()=>{let failed=0;for(const item of cases){try{await item.run();console.log('PASS '+item.name)}catch(error){failed++;console.error('FAIL '+item.name+'\n'+error.stack)}}console.log(`TOTAL ${cases.length} | FAIL ${failed}`);process.exitCode=failed?1:0})();

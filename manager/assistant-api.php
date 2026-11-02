@@ -28,9 +28,10 @@ try {
     if ($action === 'list') {
         $cursor = $data['cursor'] ?? null;
         $limit = $data['limit'] ?? ManagerAssistantService::MAX_PAGE;
-        if (($cursor !== null && (!is_string($cursor) || strlen($cursor)>90)) || !is_int($limit)) assistantRespond(['ok'=>false,'error'=>'invalid_request']);
+        $scope = $data['scope'] ?? 'default';
+        if (($cursor !== null && (!is_string($cursor) || strlen($cursor)>90)) || !is_int($limit) || !is_string($scope)) assistantRespond(['ok'=>false,'error'=>'invalid_request']);
         session_write_close();
-        assistantRespond(ManagerAssistantService::listing($actor,$cursor,$limit));
+        assistantRespond(ManagerAssistantService::listing($actor,$cursor,$limit,$scope));
     }
     if (!in_array($action,['detail','decision'],true)) assistantRespond(['ok'=>false,'error'=>'unknown_action']);
     $cid = $data['conversation_id'] ?? null;

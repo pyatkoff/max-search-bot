@@ -28,12 +28,12 @@ function harness(){
     dispatchEvent(e){for(const fn of this.handlers[e.type]||[])fn(e);return true}
     focus(){document.activeElement=this}
     get isConnected(){return this===document.body||!!this.parentElement?.isConnected}
-    showModal(){this.open=true}close(){this.open=false}
+    showModal(){this.open=true}show(){this.open=true}close(){this.open=false}
     scrollIntoView(){}
   }
   const body=new Element('body');body.className='manager2';
   document={body,activeElement:null,createElement:tag=>new Element(tag),getElementById:id=>body.querySelector('#'+id),querySelector:s=>body.querySelector(s)};
-  const rail=new Element('nav');rail.className='m2Rail';body.appendChild(rail);const end=new Element();end.className='m2RailEnd';rail.appendChild(end);const tools=new Element();tools.className='conversationTools';body.appendChild(tools);
+  const inboxZone=new Element('aside');inboxZone.className='inboxZone';body.appendChild(inboxZone);const rail=new Element('nav');rail.className='m2Rail';body.appendChild(rail);const end=new Element();end.className='m2RailEnd';rail.appendChild(end);const tools=new Element();tools.className='conversationTools';body.appendChild(tools);
   const add=(id,tag='div')=>{const n=new Element(tag);n.id=id;body.appendChild(n);return n};
   add('replyText','textarea').value='Unsent customer reply';const file={name:'keep.txt'};add('replyFile','input').file=file;
   const S={manager:{id:7},authExpired:false,authGeneration:1,current:101,detail:{conversation:{id:101,manager_id:7,status:'manager'},messages:[{id:35,text:'Current customer request'}]}};
@@ -103,14 +103,14 @@ test('workspace owner sees team identity and cannot change another manager decis
   assert.match(h.$('assistantTitle').textContent,/владельца/);assert.match(h.$('assistantSubtitle').textContent,/всей команды/);assert.match(h.$('assistantDetail').textContent,/Другой менеджер/);assert.equal(h.$('assistantDetail').querySelector('[data-assistant-decision]'),null);h.onlyReads();
 });
 
-test('dialog menu opens the canonical reply helper while the rail retains the work overview',async()=>{
+test('dialog menu opens the canonical reply helper without a duplicate work overview',async()=>{
   const h=harness();let opened=0;h.window.WorkspaceV2AiDraft={open:()=>{opened++}};
   h.A.activate(7);h.A.bind();const button=h.$('assistantClientOpen'),menu={open:true};button.closest=()=>menu;
   button.onclick();assert.equal(opened,1);assert.equal(menu.open,false);assert.equal(h.$('assistantDialog'),null);
-  assert.match(h.$('assistantOpen').textContent,/Обзор работы/);assert.equal(h.calls.length,0);
+  assert.equal(h.$('assistantOpen'),null);assert.equal(h.calls.length,0);
 });
 test('activation is lazy and exposes current-owner controls without transport',async()=>{
-  const h=harness();h.A.activate(7);h.A.bind();assert.equal(h.calls.length,0);assert.equal(h.$('assistantOpen').disabled,false);assert.equal(h.$('assistantClientOpen').hidden,false);h.S.detail.conversation.manager_id=8;h.A.sync();assert.equal(h.$('assistantClientOpen').hidden,true);assert.equal(h.calls.length,0);
+  const h=harness();h.A.activate(7);h.A.bind();assert.equal(h.calls.length,0);assert.equal(h.$('assistantOpen'),null);assert.equal(h.$('assistantClientOpen').hidden,false);h.S.detail.conversation.manager_id=8;h.A.sync();assert.equal(h.$('assistantClientOpen').hidden,true);assert.equal(h.calls.length,0);
 });
 test('list paging retains old clients beyond the ordinary inbox cap',async()=>{
   const h=harness();h.setHook((url,action,p)=>action==='list'?{ok:true,items:[h.item(p.cursor?901:101)],has_more:!p.cursor,next_cursor:p.cursor?null:101}:undefined);h.A.activate(7);await h.A.open();await h.A.loadList(true);assert.ok(h.body.querySelector('[data-assistant-client="901"]'));assert.match(h.$('assistantCoverage').textContent,/2/);assert.equal(h.calls.at(-1).cursor,101);h.onlyReads();
@@ -213,6 +213,78 @@ test('existing dirty task editor blocks assistant mutations and same-client relo
   const h=harness();let warnings=0;h.window.WorkspaceV2Tasks={blockNavigationForDirtyDraft:()=>{warnings++;return true}};h.data.get(101).tasks=[{id:31,title:'Check supplier',status:'open',due_state:'today'}];h.A.activate(7);await h.A.open(101);await h.click('[data-assistant-task="31"]');assert.equal(h.$('assistantDialog').open,false);assert.equal(h.calls.filter(c=>c.url==='pipeline-api.php').length,0);await h.A.open(101);await h.click('#assistantConversation');assert.equal(h.$('assistantDialog').open,false);assert.equal(h.opened.length,0);assert.ok(warnings>=2);assert.equal(h.$('replyText').value,'Unsent customer reply');assert.equal(h.$('replyFile').file,h.file);h.onlyReads();
 });
 
+
+test('work plan is a separate inline view with an explicit own scope and preserves the composer',async()=>{
+ const h=harness();h.A.activate(7);await h.A.openPlan();
+ assert.equal(h.$('assistantDialog').parentElement.className,'inboxZone');assert.equal(h.$('assistantDialog').getAttribute('role'),'region');assert.equal(h.$('assistantTitle').textContent,'Мой план');
+ assert.equal(h.calls.find(c=>c.action==='list').scope,'mine');
+ await h.A.loadDetail(101);await h.click('#assistantConversation');
+ assert.equal(h.A.isPlanOpen(),true);assert.equal(h.$('replyText').value,'Unsent customer reply');assert.equal(h.$('replyFile').file,h.file);h.onlyReads();
+});
+test('work plan team scope is explicit and never survives an account change',async()=>{
+ const h=harness();h.S.manager.role='admin';h.A.activate(7);await h.A.openPlan();h.$('assistantScope').value='team';h.$('assistantScope').onchange();await new Promise(setImmediate);
+ assert.equal(h.calls.filter(c=>c.action==='list').at(-1).scope,'team');
+ h.S.manager={id:8,role:'manager'};h.S.authGeneration++;h.A.activate(8);await h.A.openPlan();
+ assert.equal(h.calls.filter(c=>c.action==='list').at(-1).scope,'mine');assert.equal(h.$('assistantScope').parentElement.hidden,true);h.onlyReads();
+});
+test('plan advice opens one canonical saved proposal without generation or insertion',async()=>{
+ const h=harness();let previews=0;h.window.WorkspaceV2AiDraft={openPrepared:async()=>{previews++;return true}};
+ h.A.activate(7);await h.A.openPlan();await h.A.loadDetail(101);await h.click('#assistantReply');
+ assert.equal(previews,1);assert.equal(h.opened.length,1);assert.equal(h.$('replyText').value,'Unsent customer reply');assert.equal(h.$('replyFile').file,h.file);h.onlyReads();
+});
+test('no-contact is an explicit plan view and is never converted to a send action',async()=>{
+ const h=harness();h.data.set(101,h.item(101,{recommendation:{...h.item().recommendation,next_action:'no_contact',should_draft:false}}));
+ h.A.activate(7);await h.A.openPlan();await h.click('[data-assistant-filter="waiting"]');
+ assert.ok(h.body.querySelector('[data-assistant-client="101"]'));await h.A.loadDetail(101);assert.equal(h.$('assistantReply'),null);assert.equal(h.$('assistantPlan'),null);h.onlyReads();
+});
+
 async function run(){let passed=0;for(const t of tests){await t.run();passed++;console.log('PASS '+t.name)}console.log('Manager assistant behavior: '+passed+' checks passed')}
-if(require.main===module)run().catch(error=>{console.error(error.stack);process.exitCode=1});
+test('inline plan keeps the protected task editor reachable and never opens another client',async()=>{
+ const h=harness();let blocks=0;h.window.WorkspaceV2Tasks={blockNavigationForDirtyDraft:()=>{blocks++;return true}};h.A.activate(7);await h.A.openPlan();await h.A.loadDetail(101);await h.click('#assistantConversation');assert.equal(h.A.isPlanOpen(),true);assert.equal(h.$('assistantDialog').parentElement.className,'inboxZone');assert.equal(h.opened.length,0);assert.equal(blocks,1);assert.equal(h.$('replyText').value,'Unsent customer reply');assert.equal(h.$('replyFile').file,h.file);h.onlyReads();
+});
+test('changing from the legacy review to My Plan never displays cached team rows during the read',async()=>{
+ const h=harness();h.S.manager.role='admin';h.A.activate(7);await h.A.open();assert.ok(h.$('assistantList').children.length);const gate=deferred();h.setHook((url,action)=>action==='list'?gate.promise:undefined);const opening=h.A.openPlan();assert.equal(h.$('assistantList').querySelector('[data-assistant-client]'),null);gate.resolve({ok:true,items:[],has_more:false});await opening;assert.equal(h.calls.at(-1).scope,'mine');h.onlyReads();
+});
+test('plan cards display the advice reason and the earliest existing task deadline',async()=>{
+ const h=harness();h.data.get(101).tasks=[{id:3,title:'Later',status:'open',due_at_utc:'2026-10-25 09:00:00'},{id:4,title:'Earlier',status:'open',due_at_utc:'2026-10-22 10:00:00'}];h.A.activate(7);await h.A.openPlan();const card=h.$('assistantList').querySelector('[data-assistant-client="101"]');assert.match(card.textContent,/Срок:/);assert.match(card.textContent,/2026-10-22/);assert.ok(card.textContent.includes(h.data.get(101).recommendation.reason));h.onlyReads();
+});
+
+// Cross-surface completion: run the canonical result and stage owners with the
+// same dependency-free DOM. No source copies, server/provider calls or sends.
+function completionHarness({initialOutcome='open',initialStage='new',canEdit=true}={}){
+ const h=harness(),host=h.document.createElement('section');host.innerHTML='<select id="leadOutcome"></select><div id="leadCloseReasonWrap"><select id="leadCloseReason"></select></div><div id="leadSaleWrap"><input id="leadSaleAmount"><input id="leadSaleDate"></div><textarea id="leadOutcomeNote"></textarea><button id="saveOutcome"></button><p id="outcomeSaveStatus"></p><p id="salesSaveStatus"></p>';h.body.appendChild(host);h.$('leadOutcome').value=initialOutcome;h.$('leadOutcome').closest=()=>null;
+ h.S.pipeline={stages:[{stage_key:'new',display_name:'Запрос',is_terminal:0,is_won:0},{stage_key:'custom_won',display_name:'Договор подписан',is_terminal:1,is_won:1},{stage_key:'custom_lost',display_name:'Не бронирует',is_terminal:1,is_won:0}]};
+ let hook=null;h.W.pipe=async(action,payload)=>{h.calls.push({action,...payload});return hook?hook(action,payload):{ok:true}};
+ const context={window:h.window,document:h.document,console};for(const file of ['workspace-v2-outcome.js','workspace-v2-pipeline.js','workspace-v2-kanban-stage.js'])vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../manager/assets/'+file),'utf8'),context);
+ const O=h.window.WorkspaceV2Outcome;O.bind({canEdit,pipeline:{stage:{stage_key:initialStage},outcome:{outcome:initialOutcome}}});return {...h,O,setWriteHook:fn=>hook=fn};
+}
+test('completing a custom terminal stage waits for one explicit atomic result save',async()=>{
+ const h=completionHarness();assert.equal(h.O.startCompletion(h.S.pipeline.stages[1]),true);assert.equal(h.$('leadOutcome').value,'won');assert.equal(h.$('leadOutcomeStage').value,'custom_won');assert.equal(h.$('leadOutcomeStageWrap').hidden,false);assert.equal(h.calls.length,0);
+ h.$('leadSaleAmount').value='250000';h.$('leadSaleDate').value='2026-11-02';await h.O.saveOutcome();assert.equal(h.calls.length,1);assert.equal(h.calls[0].action,'set_outcome');assert.equal(h.calls[0].stage_key,'custom_won');assert.equal(h.calls[0].expected_stage_key,'new');assert.equal(h.calls[0].sale_amount,'250000');assert.equal(h.O.isOutcomeDirty(),false);assert.equal(h.$('replyFile').file,h.file);assert.equal(h.$('replyText').value,'Unsent customer reply');
+});
+test('refusal requires its reason and reuses the same atomic stage/result action',async()=>{
+ const h=completionHarness();h.O.startCompletion(h.S.pipeline.stages[2]);await h.O.saveOutcome();assert.equal(h.calls.length,0);assert.match(h.$('outcomeSaveStatus').textContent,/причину/);h.$('leadCloseReason').value='price';await h.O.saveOutcome();assert.equal(h.calls.length,1);assert.equal(h.calls[0].outcome,'lost');assert.equal(h.calls[0].stage_key,'custom_lost');assert.equal(h.calls[0].close_reason,'price');
+});
+test('historical inactive stage does not block an ordinary note edit or rewrite history',async()=>{
+ const h=completionHarness({initialOutcome:'lost',initialStage:'historic_inactive'});assert.equal(h.$('leadOutcomeStageWrap').hidden,true);h.$('leadCloseReason').value='historic_reason';h.$('leadOutcomeNote').value='Дополнение к результату';h.$('leadOutcomeNote').oninput();await h.O.saveOutcome();assert.equal(h.calls.length,1);assert.equal(Object.hasOwn(h.calls[0],'stage_key'),false);assert.equal(h.calls[0].note,'Дополнение к результату');
+});
+test('completion conflict keeps the edit visible and never retries the write',async()=>{
+ const h=completionHarness();h.O.startCompletion(h.S.pipeline.stages[1]);h.setWriteHook(()=>({ok:false,error:'stage_or_result_changed'}));await h.O.saveOutcome();assert.equal(h.calls.length,1);assert.equal(h.O.isOutcomeDirty(),true);assert.match(h.$('outcomeSaveStatus').textContent,/Этап уже изменился/);assert.equal(h.$('leadOutcomeStage').value,'custom_won');
+});
+test('a pending result save cannot double-submit or clear another client state',async()=>{
+ const h=completionHarness(),gate=deferred();h.O.startCompletion(h.S.pipeline.stages[1]);h.setWriteHook(()=>gate.promise);const saving=h.O.saveOutcome();await h.O.saveOutcome();assert.equal(h.calls.length,1);h.S.current=102;h.$('outcomeSaveStatus').textContent='Новый клиент';gate.resolve({ok:true});await saving;assert.equal(h.$('outcomeSaveStatus').textContent,'Новый клиент');assert.equal(h.O.isOutcomeSaving(101),false);
+});
+test('terminal selection from the card or Sales opens completion without a stage-only write',async()=>{
+ const h=completionHarness(),stage=h.document.createElement('select');stage.value='custom_won';assert.equal(await h.window.WorkspaceV2Pipeline.saveStage(stage,'new'),false);assert.equal(stage.value,'new');assert.equal(h.calls.length,0);assert.equal(h.$('leadOutcome').value,'won');
+ h.window.WorkspaceV2Kanban={setMode:()=>{}};assert.equal(await h.window.WorkspaceV2KanbanStage.saveStage(101,'custom_lost',{previousStage:'new'}),false);assert.equal(h.calls.length,0);assert.equal(h.$('leadOutcome').value,'lost');assert.equal(h.opened.length,1);
+});
+test('read-only cards cannot start completion through the exported control',async()=>{
+ const h=completionHarness({canEdit:false});assert.equal(h.O.startCompletion(h.S.pipeline.stages[1]),false);assert.equal(h.calls.length,0);
+});
+
+test('switching sections cannot discard an open plan deadline editor',async()=>{
+ const h=harness();h.data.get(101).tasks=[{id:31,title:'Согласованный звонок',status:'open',due_at_utc:'2026-11-03 10:00:00'}];h.A.activate(7);await h.A.openPlan();await h.A.loadDetail(101);await h.click('[data-assistant-snooze="31"]');h.$('assistantDue').value='2026-11-04T10:00';assert.equal(h.A.canLeavePlan(),false);assert.equal(h.$('assistantDue').value,'2026-11-04T10:00');assert.equal(h.document.activeElement,h.$('assistantDue'));assert.match(h.$('assistantStatus').textContent,/Сохраните или отмените/);h.onlyReads();await h.click('#assistantCancelDue');assert.equal(h.A.canLeavePlan(),true);
+});
 module.exports={harness,deferred};
+
+if(require.main===module)run().catch(error=>{console.error(error.stack);process.exitCode=1});

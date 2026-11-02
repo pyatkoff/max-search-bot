@@ -554,6 +554,6 @@
     }
     sync();
   }
-  window.WorkspaceV2AiDraft={bind,sync,resetSession,syncPreferences,host:assistantHost,open:()=>{sync();if(canAnalyze())openReady()},openSupervisor:()=>{sync();if(supervisorRead())openReady()}};
+  window.WorkspaceV2AiDraft={bind,sync,resetSession,syncPreferences,host:assistantHost,open:()=>{sync();if(canAnalyze())openReady()},openPrepared:()=>{sync();return canAnalyze()?loadProposal('prepared',false):false},openSupervisor:()=>{sync();if(supervisorRead())openReady()}};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
 })();

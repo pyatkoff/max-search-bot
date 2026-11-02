@@ -8,15 +8,15 @@ let checks=0;
 function check(name,fn){fn();checks++;console.log('PASS '+name)}
 function harness(){
   const S={manager:{id:7},authExpired:false,authGeneration:1,queue:'mine',viewMode:'kanban',leadTaskFilter:'today',current:11};
-  let classWrites=0;const classes=new Set(),classList={contains:key=>classes.has(key),add:key=>{classWrites++;classes.add(key)},remove:key=>{classWrites++;classes.delete(key)}};
+  let classWrites=0;const classes=new Set(),classList={contains:key=>classes.has(key),add:key=>{classWrites++;classes.add(key)},remove:key=>{classWrites++;classes.delete(key)},toggle(key,force){const yes=force===undefined?!classes.has(key):!!force;if(yes)classes.add(key);else classes.delete(key);return yes}};
   const control=()=>({disabled:false,attrs:{},setAttribute(key,value){this.attrs[key]=value},focus(){this.focused=true},isConnected:true});
   const filterClasses=new Set(),filterPanel={classList:{contains:key=>filterClasses.has(key),add:key=>filterClasses.add(key),remove:key=>filterClasses.delete(key),toggle(key,force){const on=force===undefined?!filterClasses.has(key):force;if(on)filterClasses.add(key);else filterClasses.delete(key);return on}}};
-  const elements={workspaceRoot:{dataset:{},classList},filtersPanel:filterPanel,filtersToggle:control(),leadTaskFilter:{value:'today'},m2SectionHint:{textContent:'',hidden:true},conversationTitle:control(),mobileLeadBtn:control(),mobileLeadClose:control()};
+  const elements={workspaceRoot:{dataset:{},classList},filtersPanel:filterPanel,filtersToggle:control(),leadTaskFilter:{value:'today'},m2MoreToggle:{classList:{toggle(){}}},m2SectionHint:{textContent:'',hidden:true},conversationTitle:control(),mobileLeadBtn:control(),mobileLeadClose:control()};
   const title={textContent:''},taskFilters={open:true},taskQuickFilters={hidden:true},requests=[],mobile=[],saved=new Map(),pending=[];
   const nav=['dialogues','tasks','sales','archive'].map(name=>({dataset:{m2Nav:name},classList:{toggle(){}},setAttribute(){},removeAttribute(){}}));
-  const W={S,$:id=>elements[id],esc:String};
-  const window={WorkspaceV2:W,WorkspaceV2Kanban:{setMode:mode=>S.viewMode=mode},WorkspaceV2Inbox:{setQueue:(queue,{reload})=>{assert.equal(reload,false);S.queue=queue;return true},load:()=>{requests.push({queue:S.queue,view:S.viewMode,task:S.leadTaskFilter});return new Promise(resolve=>pending.push(resolve))}},WorkspaceV2Mobile:{showInbox:o=>mobile.push(o),isMobile:()=>false,getScreen:()=> 'conversation',showLead:()=>mobile.push('lead')}};
-  const document={body:{classList:{contains:()=>true}},addEventListener(){},querySelector:s=>s==='.inboxHead .brand'?title:s==='.m2TaskFilters'?taskFilters:s==='.m2TaskQuickFilters'?taskQuickFilters:null,querySelectorAll:s=>s==='[data-m2-nav]'?nav:[]};
+  const W={S,$:id=>elements[id],esc:String};const record=kind=>{requests.push({kind,queue:S.queue,view:S.viewMode,task:S.leadTaskFilter,filters:JSON.parse(JSON.stringify(window.Manager2Presentation?.listFilters()||null))});return new Promise(resolve=>pending.push(resolve))};
+  const window={WorkspaceV2:W,WorkspaceV2Kanban:{setMode:mode=>S.viewMode=mode},WorkspaceV2Inbox:{setQueue:(queue,{reload})=>{assert.equal(reload,false);S.queue=queue;return true},load:()=>record('inbox')},WorkspaceV2Assistant:{openPlan:()=>record('plan'),close:()=>{}},WorkspaceV2Mobile:{showInbox:o=>mobile.push(o),isMobile:()=>false,getScreen:()=> 'conversation',showLead:()=>mobile.push('lead')}};
+  const document={body:{classList:{contains:()=>true,toggle(){}}},addEventListener(){},querySelector:s=>s==='.inboxHead .brand'?title:s==='.m2TaskFilters'?taskFilters:s==='.m2TaskQuickFilters'?taskQuickFilters:null,querySelectorAll:s=>s==='[data-m2-nav]'?nav:[]};
   const context=vm.createContext({window,document,sessionStorage:{setItem:(k,v)=>saved.set(k,v)},Map,Number,String,Intl,console});
   vm.runInContext(filters,context);
   vm.runInContext(managerTime,context);
@@ -59,8 +59,8 @@ function harness(){
   for(const target of ['dialogues','tasks','archive','sales']){
     const h=harness(),p=h.navigate(target);
     check(target+' performs exactly one list request',()=>assert.equal(h.requests.length,1));
-    check(target+' uses the final queue/mode/filter in that request',()=>assert.deepEqual(h.requests[0],{queue:target==='archive'?'closed':'mine',view:target==='sales'?'kanban':'list',task:target==='sales'?'today':''}));
-    if(target!=='sales')check(target+' persists the cleared task filter',()=>assert.equal(JSON.parse([...h.saved.values()][0]).task,''));
+    check(target+' uses the final queue/mode/filter in that request',()=>assert.deepEqual(h.requests[0],{kind:target==='tasks'?'plan':'inbox',queue:target==='archive'?'closed':'mine',view:target==='sales'?'kanban':'list',task:target==='dialogues'||target==='sales'||target==='tasks'?'today':'',filters:target==='sales'?{queue:'mine',project_key:'*',source_id:0,manager_filter:'7',lead_stage_key:'',lead_tag_id:0,lead_outcome:'open',lead_task_filter:'',search:''}:null}));
+    if(target==='archive')check(target+' persists the cleared task filter',()=>assert.equal(JSON.parse([...h.saved.values()][0]).task,''));
     check(target+' shows the destination immediately',()=>assert.equal(h.elements.workspaceRoot.dataset.m2Section,target));
     if(target==='tasks')check('entering My Plan closes advanced filters without another request',()=>{assert.equal(h.taskFilters.open,false);assert.equal(h.elements.filtersPanel.classList.contains('hidden'),true);assert.equal(h.elements.filtersToggle.attrs['aria-expanded'],'false');assert.equal(h.requests.length,1)});
     h.pending[0](true);assert.equal(await p,true);
@@ -81,7 +81,7 @@ function harness(){
     const h=harness();h.S.manager=null;await h.navigate('tasks');await h.navigate('unknown');check('anonymous and invalid targets cause no request',()=>assert.equal(h.requests.length,0));
   }
   {
-    const h=harness(),p=h.navigate('tasks');check('plan section explains that clients without tasks remain visible',()=>assert.match(h.elements.m2SectionHint.textContent,/диалоги с задачами и без них/));h.pending[0](false);check('failure is returned without another hidden request',()=>assert.equal(h.requests.length,1));assert.equal(await p,false);
+    const h=harness(),p=h.navigate('tasks');check('plan section explains actions and outstanding replies',()=>assert.match(h.elements.m2SectionHint.textContent,/Следующие действия, вопросы без ответа/));h.pending[0](false);check('failure is returned without another hidden request',()=>assert.equal(h.requests.length,1));assert.equal(await p,false);
   }
   {
     const h=harness();
@@ -106,6 +106,20 @@ function harness(){
     h.presentation.openClientCard(h.elements.conversationTitle,{focus:false});
     check('mobile card opening delegates once to the existing history owner',()=>{assert.deepEqual(h.mobile,['lead']);assert.equal(h.elements.workspaceRoot.classList.contains('m2ClientCardOpen'),false);assert.equal(h.requests.length,0)});
     h.presentation.closeClientCard();check('desktop close helper does not duplicate mobile history',()=>assert.deepEqual(h.mobile,['lead']));
+  }
+  {
+    const h=harness();h.S.queue='closed';h.S.leadProjectFilter='archived-project';h.S.leadSourceFilter=91;h.S.leadSearch='old text';h.S.leadStageFilter='old-stage';h.S.leadManagerFilter='8';
+    h.window.WorkspaceV2PersonalWorkspace={selectionScope:()=> 'group:9'};
+    const p=h.navigate('sales');
+    check('Sales ignores archived personal Inbox scope and defaults to own active clients',()=>assert.deepEqual(JSON.parse(JSON.stringify(h.presentation.listFilters())),{queue:'mine',project_key:'*',source_id:0,manager_filter:'7',lead_stage_key:'',lead_tag_id:0,lead_outcome:'open',lead_task_filter:'',search:''}));
+    h.pending[0](true);await p;const back=h.navigate('dialogues');
+    check('returning from Sales retains all original Inbox filters and personal selection',()=>{assert.equal(h.S.queue,'closed');assert.equal(h.S.leadProjectFilter,'archived-project');assert.equal(h.S.leadTaskFilter,'today');assert.equal(h.S.leadSearch,'old text');assert.equal(h.presentation.listFilters(),null);assert.equal(h.window.WorkspaceV2PersonalWorkspace.selectionScope(),'group:9')});
+    h.pending[1](true);await back;
+  }
+  {
+    const h=harness(),opening=h.navigate('tasks');h.pending[0](true);await opening;h.window.WorkspaceV2Assistant.canLeavePlan=()=>false;
+    check('an open deadline editor blocks section navigation before any request or mode change',()=>assert.equal(h.requests.length,1));assert.equal(await h.navigate('sales'),false);
+    check('blocked navigation retains the Plan section and original Inbox filters',()=>{assert.equal(h.requests.length,1);assert.equal(h.elements.workspaceRoot.dataset.m2Section,'tasks');assert.equal(h.S.viewMode,'list');assert.equal(h.S.leadTaskFilter,'today')});
   }
   console.log('MANAGER2 NAVIGATION: '+checks+' PASSED');
 })().catch(error=>{console.error(error);process.exitCode=1});

@@ -11,6 +11,7 @@
   let moreNavigationReady=false;
   const moreHomes=new Map();
   let lastTabSelection='',headerPinContext='';
+  let navigationIdentity='',salesScope='mine',salesStage='',salesTask='',salesOutcome='open',salesProject='*',salesLayout='list',salesCatalog='';
   function disclosure(key,label,conversationId=Number(S.current||0)){
     const el=document.createElement('details');
     el.dataset.m2Disclosure=key;el.dataset.conversationId=String(conversationId);
@@ -328,17 +329,17 @@
     const dialog=$('m2MoreMenu');if(!dialog?.open)return;
     dialog.close();$('m2MoreToggle').setAttribute('aria-expanded','false');
     window.WorkspaceV2Mobile?.closeOverlay?.('manager2-more');
-    if(focus&&narrowNavigation()&&S.manager&&!S.authExpired)$('m2MoreToggle').focus({preventScroll:true});
+    if(focus&&S.manager&&!S.authExpired)$('m2MoreToggle').focus({preventScroll:true});
   }
   function syncMoreNavigation(){
     if(!moreNavigationReady)return;
     const narrow=narrowNavigation(),valid=!!S.manager&&!S.authExpired,dialog=$('m2MoreMenu'),items=dialog.querySelector('.m2MoreItems'),toggle=$('m2MoreToggle');
     toggle.disabled=!valid;
-    if(!narrow||!valid)closeMore({focus:false});
-    ['m2Analytics','assistantOpen','m2NotificationButton'].forEach(id=>{
+    if(!valid)closeMore({focus:false});
+    ['m2Analytics','m2NotificationButton'].forEach(id=>{
       const node=$(id);if(!node)return;
       if(!moreHomes.has(node)){const anchor=document.createComment(id+' original navigation position');node.before(anchor);moreHomes.set(node,anchor)}
-      if(narrow){if(node.parentElement!==items)items.appendChild(node)}else{const anchor=moreHomes.get(node);if(node.previousSibling!==anchor)anchor.after(node)}
+      if(node.parentElement!==items)items.appendChild(node);
     });
     const dot=document.querySelector('.m2NotificationDot'),copy=document.querySelector('.m2MoreDot');
     if(copy&&dot){const kind=['healthy','warn','error'].find(name=>dot.classList.contains(name));copy.className='m2MoreDot'+(kind?' '+kind:'')}
@@ -346,8 +347,8 @@
   function initMoreNavigation(){
     const dialog=$('m2MoreMenu'),toggle=$('m2MoreToggle');moreNavigationReady=true;
     toggle.onclick=()=>{
-      if(!narrowNavigation()||!S.manager||S.authExpired)return;
-      if(window.WorkspaceV2Mobile?.openOverlay?.('manager2-more',()=>closeMore())===false)return;
+      if(!S.manager||S.authExpired)return;
+      if(narrowNavigation()&&window.WorkspaceV2Mobile?.openOverlay?.('manager2-more',()=>closeMore())===false)return;
       dialog.showModal();toggle.setAttribute('aria-expanded','true');
       [...dialog.querySelectorAll('button,a')].find(node=>node.id!=='m2MoreClose'&&!node.hidden&&!node.disabled)?.focus({preventScroll:true});
     };
@@ -367,14 +368,53 @@
     new MutationObserver(syncMoreNavigation).observe(document.body,{attributes:true,attributeFilter:['class']});
     window.addEventListener('resize',syncMoreNavigation);syncMoreNavigation();
   }
+  function listFilters(){
+    if(section!=='sales'||!S.manager||S.authExpired)return null;
+    return {queue:salesScope==='team'&&S.manager.role==='admin'?'all':'mine',project_key:salesProject,source_id:0,
+      manager_filter:salesScope==='team'?'':String(S.manager.id),lead_stage_key:salesStage,lead_tag_id:0,
+      lead_outcome:salesOutcome,lead_task_filter:salesTask,search:''};
+  }
+  function salesCoverage(rows){
+    const node=$('m2SalesCoverage');if(node)node.textContent=(salesScope==='team'&&S.manager?.role==='admin'?'Команда. ':'Мои обращения. ')+'Показано клиентов: '+rows.length+'. Суммы относятся только к показанным клиентам.';
+  }
+  function syncSalesTools(){
+    const head=document.querySelector('.inboxHead');if(!head)return;
+    let tools=$('m2SalesTools');
+    if(!tools){
+      tools=document.createElement('section');tools.id='m2SalesTools';tools.className='m2SalesTools';tools.setAttribute('aria-label','Область продаж');
+      tools.innerHTML='<div class="m2SalesFilters"><label id="m2SalesScopeLabel" for="m2SalesScope">Клиенты<select id="m2SalesScope"><option value="mine">Мои</option><option value="team">Команда</option></select></label><label for="m2SalesProject">Проект<select id="m2SalesProject"></select></label><label for="m2SalesStage">Этап<select id="m2SalesStage"></select></label><label for="m2SalesTask">Следующий шаг<select id="m2SalesTask"><option value="">Все обращения</option><option value="overdue">Просроченные задачи</option><option value="none">Без следующего шага</option></select></label><label for="m2SalesOutcome">Результат<select id="m2SalesOutcome"><option value="open">Активные обращения</option><option value="won">Бронирования</option><option value="lost">Отказы</option><option value="">Все результаты</option></select></label></div><button id="m2SalesLayout" type="button">Показать доску</button><p id="m2SalesCoverage" role="status"></p>';
+      head.appendChild(tools);
+      for(const id of ['m2SalesScope','m2SalesProject','m2SalesStage','m2SalesTask','m2SalesOutcome'])$(id).onchange=()=>{
+        salesScope=S.manager?.role==='admin'&&$('m2SalesScope').value==='team'?'team':'mine';
+        salesProject=$('m2SalesProject').value||'*';salesStage=$('m2SalesStage').value;salesTask=$('m2SalesTask').value;salesOutcome=$('m2SalesOutcome').value;
+        void window.WorkspaceV2Inbox.load({preserveScroll:false});
+      };
+      $('m2SalesLayout').onclick=()=>{salesLayout=salesLayout==='list'?'board':'list';syncSalesTools();window.WorkspaceV2Kanban.setMode('kanban');void window.WorkspaceV2Inbox.load({preserveScroll:true});};
+    }
+    tools.hidden=section!=='sales';
+    $('m2SalesScopeLabel').hidden=S.manager?.role!=='admin';if(S.manager?.role!=='admin')salesScope='mine';
+    const catalog=JSON.stringify([S.pipeline?.stages,S.projects]);
+    if(catalog!==salesCatalog){
+      salesCatalog=catalog;
+      $('m2SalesStage').innerHTML='<option value="">Все этапы</option>'+(S.pipeline?.stages||[]).map(s=>'<option value="'+esc(s.stage_key)+'">'+esc(s.display_name)+'</option>').join('');
+      $('m2SalesProject').innerHTML='<option value="*">Все доступные проекты</option>'+(S.projects||[]).map(p=>'<option value="'+esc(p.project_key)+'">'+esc(p.display_name||p.project_key)+'</option>').join('');
+    }
+    for(const [id,value] of [['m2SalesScope',salesScope],['m2SalesProject',salesProject],['m2SalesStage',salesStage],['m2SalesTask',salesTask],['m2SalesOutcome',salesOutcome]])$(id).value=value;
+    $('workspaceRoot').classList.toggle('m2SalesList',section==='sales'&&salesLayout==='list');
+    $('m2SalesLayout').textContent=salesLayout==='list'?'Показать доску':'Показать список';
+    $('m2SalesLayout').setAttribute('aria-pressed',String(salesLayout==='board'));
+  }
   function syncNavigation(){
+    const identity=JSON.stringify([S.manager?.id,S.authGeneration,!!S.authExpired]);
+    if(identity!==navigationIdentity){navigationIdentity=identity;salesScope='mine';salesStage='';salesTask='';salesOutcome='open';salesProject='*';section='dialogues';}
     const analytics=$('m2Analytics');if(analytics){analytics.hidden=!S.manager||S.authExpired||!(S.manager.supervision_available||S.manager.role==='admin');document.body.classList.toggle('m2HasAnalytics',!analytics.hidden)}
     const personal=window.WorkspaceV2PersonalWorkspace?.selectionScope?.();
-    if(S.viewMode==='kanban')section='sales';else if(!personal&&S.queue==='closed')section='archive';else if(personal||section==='sales'||section==='archive')section='dialogues';
+    if(S.viewMode==='kanban')section='sales';else if(section!=='tasks'&&section!=='sales'){if(!personal&&S.queue==='closed')section='archive';else if(section==='archive')section='dialogues';}
     document.querySelectorAll('[data-m2-nav]').forEach(b=>{const active=b.dataset.m2Nav===section;b.classList.toggle('active',active);b.disabled=!S.manager||S.authExpired;if(active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
     const title=document.querySelector('.inboxHead .brand');if(title)title.textContent={dialogues:'Диалоги',tasks:'Мой план работы',sales:'Продажи',archive:'Архив'}[section];
-    const hint=$('m2SectionHint');if(hint){hint.textContent={tasks:'Мои диалоги с задачами и без них. Выберите срок или приоритет.',archive:'Закрытые диалоги. Результат продажи указан в карточке.'}[section]||'';hint.hidden=!hint.textContent}
+    const hint=$('m2SectionHint');if(hint){hint.textContent={tasks:'Следующие действия, вопросы без ответа и сроки существующих задач.',archive:'Закрытые диалоги. Результат продажи указан в карточке.'}[section]||'';hint.hidden=!hint.textContent}
     $('workspaceRoot').dataset.m2Section=section;
+    $('m2MoreToggle').classList.toggle('active',section==='archive');syncSalesTools();
     const quick=document.querySelector('.m2TaskQuickFilters'),shortcuts=document.querySelector('.taskShortcuts'),advanced=document.querySelector('.m2TaskFilters');
     if(quick){quick.hidden=section!=='tasks';const host=section==='tasks'?quick:advanced;if(shortcuts&&host&&shortcuts.parentElement!==host)host.appendChild(shortcuts)}
     if(advanced)advanced.hidden=section==='tasks';
@@ -383,10 +423,12 @@
   }
   async function navigate(next){
     if(!S.manager||S.authExpired||!['dialogues','tasks','sales','archive'].includes(next))return false;
+    syncNavigation();
+    if(section==='tasks'&&next!=='tasks'&&window.WorkspaceV2Assistant?.canLeavePlan?.()===false)return false;
     const generation=++navigationGeneration,authGeneration=S.authGeneration,managerId=Number(S.manager.id);
-    section=next;
+    const previous=section,returningFromPlan=previous==='tasks'&&document.activeElement?.id==='assistantClose';if(previous==='tasks'&&next!=='tasks')window.WorkspaceV2Assistant?.close({restoreFocus:false});section=next;
     window.WorkspaceV2Kanban.setMode(next==='sales'?'kanban':'list');
-    if(next!=='sales'){
+    if(next!=='sales'&&next!=='tasks'&&!(next==='dialogues'&&['sales','tasks'].includes(previous))){
       // Filters own persistence and task-queue semantics; navigation does not click legacy controls.
       window.WorkspaceV2Filters.setTaskFilter('',{reload:false});
       window.WorkspaceV2Inbox.setQueue(next==='archive'?'closed':'mine',{reload:false});
@@ -395,8 +437,9 @@
     const taskFilters=document.querySelector('.m2TaskFilters');if(taskFilters)taskFilters.open=false;
     if(next==='tasks'){$('filtersPanel')?.classList.add('hidden');$('filtersToggle')?.setAttribute('aria-expanded','false')}
     syncNavigation();
+    if(next==='tasks')return window.WorkspaceV2Assistant?.openPlan()||false;
     const loaded=await window.WorkspaceV2Inbox.load({preserveScroll:false});
-    if(generation===navigationGeneration&&!S.authExpired&&authGeneration===S.authGeneration&&managerId===Number(S.manager?.id||0))syncNavigation();
+    if(generation===navigationGeneration&&!S.authExpired&&authGeneration===S.authGeneration&&managerId===Number(S.manager?.id||0)){syncNavigation();if(returningFromPlan)document.querySelector('[data-m2-nav="dialogues"]')?.focus({preventScroll:true});}
     return loaded;
   }
   function updateClock(){const clock=$('m2Clock');if(clock){const now=new Date();clock.dateTime=now.toISOString();clock.textContent=new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(now)+' МСК'}}
@@ -450,12 +493,12 @@
     document.querySelector('.queueTabs').addEventListener('click',()=>{if(section==='tasks')section='dialogues';setTimeout(syncNavigation,0)});
     $('mobileLeadBtn').addEventListener('click',e=>{e.stopImmediatePropagation();openClientCard(e.currentTarget)});
     $('mobileLeadClose').addEventListener('click',()=>{if(!window.WorkspaceV2Mobile?.isMobile())closeClientCard()});
-    window.addEventListener('popstate',event=>{setTimeout(()=>{if(event.workspaceOverlayHandled)return;syncClientCard();if(window.WorkspaceV2Mobile?.getScreen()==='conversation'&&clientCardOpener?.isConnected)clientCardOpener.focus({preventScroll:true})},0)});
+    window.addEventListener('popstate',event=>{setTimeout(()=>{if(event.workspaceOverlayHandled)return;syncClientCard();if(section==='sales'&&window.WorkspaceV2Mobile?.getScreen()==='inbox'&&S.viewMode!=='kanban'){window.WorkspaceV2Kanban.setMode('kanban');syncNavigation();void window.WorkspaceV2Inbox.load({preserveScroll:true});}if(window.WorkspaceV2Mobile?.getScreen()==='conversation'&&clientCardOpener?.isConnected)clientCardOpener.focus({preventScroll:true})},0)});
     window.addEventListener('resize',()=>{if(window.WorkspaceV2Mobile?.isMobile()&&$('workspaceRoot').classList.contains('m2ClientCardOpen'))$('workspaceRoot').classList.remove('m2ClientCardOpen');syncClientCard()});
     $('leadZone').addEventListener('keydown',e=>{if(e.key==='Escape'&&!window.WorkspaceV2Mobile?.isMobile()&&!e.target.closest('dialog')){e.preventDefault();closeClientCard()}});
     document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!e.target.closest?.('dialog'))document.querySelectorAll('.m2ConversationMenu[open]').forEach(d=>{d.open=false;d.querySelector('summary').focus()})});
     updateClock();setInterval(updateClock,60000);syncNavigation();
   }
-  window.Manager2Presentation={enhanceLeadCard,enhanceTasks,enhanceConversationActions,focusConversationTool,registerConversationTool,conversationHistoryTarget,revealTaskDraft,budgetFact,navigate,syncNavigation,enhanceInbox,enhanceInboxMarkers,ownershipSignal,formatInboxActivity,openClientCard,closeClientCard,syncClientCard,revealInboxSearch,syncPersonalChrome};
+  window.Manager2Presentation={enhanceLeadCard,enhanceTasks,enhanceConversationActions,focusConversationTool,registerConversationTool,conversationHistoryTarget,revealTaskDraft,budgetFact,navigate,syncNavigation,listFilters,salesCoverage,enhanceInbox,enhanceInboxMarkers,ownershipSignal,formatInboxActivity,openClientCard,closeClientCard,syncClientCard,revealInboxSearch,syncPersonalChrome};
   init();
 })();
