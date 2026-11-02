@@ -98,7 +98,7 @@ const $=id=>document.getElementById(id),esc=value=>{const node=document.createEl
 const endpoint='tour-selections-api.php';
 let dialog=null,context=null,epoch=0,version=0,draft=null,selected='',canEdit=false,dirty=false,busy=false,loading=false,pending=null,conflict=null,timer=0,returnFocus=null,rawAges={};
 const sessions=new Map();
-let offerDetailsOpen=false,photoEditOffer='';
+let offerDetailsOpen=false,photoEditOffer='',bulkPrice=null;
 let comparison=null,tripPanel=null,previewIssues=[],photoUpload=null,hotelKnowledge=null;
 // View reads are cancellable independently of the durable send/save context.
 let publication=null,preview=false,sending=false,photoFailures=0,photoPending=0,photoEpoch=0,sharing=false,interestLoading=false,historyView=0;
@@ -132,12 +132,12 @@ async function request(action,data={}){
     return token===epoch&&current(target)?result:{ok:false,error:'stale_context'};
   }catch(e){return {ok:false,error:current(target)?'network_error':'stale_context'}}finally{clearTimeout(timeout)}
 }
-function close(){clearHotelKnowledge();historyView++;cancelPhotoUpload(false);tripPanel=null;clearTimeout(timer);timer=0;stash();if(dialog?.open)dialog.close()}
+function close(){closeBulkPrices(false);clearHotelKnowledge();historyView++;cancelPhotoUpload(false);tripPanel=null;clearTimeout(timer);timer=0;stash();if(dialog?.open)dialog.close()}
 function editCurrent(){
   historyView++;preview=false;render();recovery(conflict?'conflict':pending?'pending':'');
   status(conflict?'Есть конфликт правок. Сравните версии перед сохранением.':pending?'Результат сохранения уточняется. Сначала проверьте его.':!canEdit?'Просмотр текущего черновика. Править может ответственный менеджер или администратор.':dirty?'Текущий черновик. Есть несохранённые изменения.':'Текущий черновик. Изменения не отправляют сообщения.',!!conflict||!!pending);
 }
-function suspend(){clearHotelKnowledge();cancelPhotoUpload(false);photoEditOffer='';tripPanel=null;previewIssues=[];stash();clearTimeout(timer);timer=0;epoch++;context=null;draft=null;pending=null;conflict=null;comparison=null;dirty=false;busy=false;loading=false;canEdit=false;publication=null;preview=false;sending=false;sharing=false;if(dialog?.open)dialog.close();$('tourSelectionOpen')?.remove()}
+function suspend(){closeBulkPrices(false);clearHotelKnowledge();cancelPhotoUpload(false);photoEditOffer='';tripPanel=null;previewIssues=[];stash();clearTimeout(timer);timer=0;epoch++;context=null;draft=null;pending=null;conflict=null;comparison=null;dirty=false;busy=false;loading=false;canEdit=false;publication=null;preview=false;sending=false;sharing=false;if(dialog?.open)dialog.close();$('tourSelectionOpen')?.remove()}
 function activate(){if(context&&!current())suspend();host.activate()}
 function sync(c){
   if(context&&!current())suspend();
@@ -158,6 +158,8 @@ function ensure(){
   const footer=dialog.querySelector('.tsFooter');
   const tripButton=document.createElement('button');tripButton.id='tsTripAdd';tripButton.type='button';tripButton.textContent='Добавить по условиям поездки';tripButton.onclick=showTrip;const actions=document.createElement('div');actions.className='tsImportActions';actions.append(tripButton);dialog.querySelector('.tsListHead').after(actions);
   const collector=document.createElement('button');collector.id='tsCollector';collector.type='button';collector.textContent='Сборщик туров';collector.onclick=()=>{if(current()&&canEdit)host.openCollector(context.conversation)};actions.append(collector);
+  const prices=document.createElement('button');prices.id='tsBulkPrices';prices.type='button';prices.className='tsBulkButton';prices.textContent='Цены';prices.title='Изменить несколько цен';prices.setAttribute('aria-label','Изменить несколько цен');prices.onclick=showBulkPrices;actions.append(prices);
+  const bulk=document.createElement('section');bulk.id='tsBulkPrice';bulk.className='tsBulkPrice';bulk.hidden=true;bulk.setAttribute('aria-labelledby','tsBulkTitle');dialog.querySelector('.tsLayout').before(bulk);
   if(typeof host.openStandalone==='function'){const standalone=document.createElement('button');standalone.id='tsStandalone';standalone.type='button';standalone.textContent='Открыть отдельно';standalone.onclick=()=>{if(current())host.openStandalone(context.conversation)};actions.append(standalone)}
   for(const [name,label,handler] of [['tsHistory','История отправки',showHistory],['tsPreview','Предпросмотр',showPreview],['tsEdit','К редактированию',editCurrent],['tsShare','Общая ссылка',showShare],['tsSend','Отправить подборку',sendAll]]){const button=document.createElement('button');button.id=name;button.type='button';button.textContent=label;button.onclick=handler;footer.insertBefore(button,$('tsDone'))}
   const headActions=document.createElement('div');headActions.className='tsHeadActions';$('tsClose').before(headActions);headActions.append($('tsHistory'),$('tsClose'));$('tsHistory').textContent='История';$('tsHistory').setAttribute('aria-label','История отправки');
@@ -223,7 +225,70 @@ async function applyTrip(){
 }
 function newOffer(){return {id:id(),selected:true,hotel:'',destination:'',departure:'',room:'',meal:'',source_label:'',rationale:'',compromise:'',flights:'',inclusions:'',constraints:'',stars:null,nights:null,adults:null,date_from:'',child_ages:[],amount:'',currency:'RUB',source_url:'',observed_at:'',photos:[]}}
 function add(){if(!editable()||draft.offers.length>=20)return;const item=newOffer();draft.offers.push(item);selected=item.id;offerDetailsOpen=true;changed();render();$('ts-hotel')?.focus()}
-function editable(){return current()&&canEdit&&!loading&&!pending&&!conflict&&!preview&&!sending&&!photoUpload}
+function editable(){return current()&&canEdit&&!loading&&!pending&&!conflict&&!preview&&!sending&&!photoUpload&&!bulkPrice}
+function priceUnits(value){
+  const text=String(value??'').trim().replace(/[\s\u00a0\u202f]/g,'').replace(',','.');
+  if(!/^(?:0|[1-9][0-9]{0,8})(?:\.[0-9]{1,2})?$/.test(text))throw new Error('Нужна сумма с точностью до двух знаков.');
+  const [whole,part='']=text.split('.');return BigInt(whole)*100n+BigInt(part.padEnd(2,'0'));
+}
+function bulkTotal(base,action,value,basis,round){
+  const start=priceUnits(base),change=priceUnits(value),maximum=99999999999n;
+  if(start<=0n||start>maximum)throw new Error('Текущая цена не указана или недопустима.');
+  if(!['discount','markup'].includes(action)||!['percent','amount'].includes(basis))throw new Error('Выберите способ изменения цены.');
+  if(basis==='percent'&&action==='discount'&&change>10000n)throw new Error('Скидка не может превышать 100 процентов.');
+  // Keep the exact final rational amount until the one requested rounding.
+  const numerator=basis==='percent'?start*(action==='discount'?10000n-change:10000n+change):(action==='discount'?start-change:start+change)*10000n;
+  const steps={none:1n,unit:100n,ten:1000n,hundred:10000n,thousand:100000n};
+  if(!Object.hasOwn(steps,round))throw new Error('Выберите округление.');
+  const step=steps[round],quantum=step*10000n,total=((numerator+quantum/2n)/quantum)*step;
+  if(total<=0n||total>maximum)throw new Error('Итоговая цена должна быть больше нуля и меньше миллиарда.');
+  const fraction=String(total%100n).padStart(2,'0');return String(total/100n)+(fraction==='00'?'':'.'+fraction);
+}
+function bulkCurrent(){return !!bulkPrice&&current(bulkPrice.context)&&epoch===bulkPrice.epoch&&version===bulkPrice.version&&canEdit&&!busy&&!loading&&!pending&&!conflict&&!preview&&!sending&&!sharing&&!photoUpload&&bulkPrice.signature===JSON.stringify(draft)}
+function showBulkPrices(){
+  if(!editable()||busy||sharing||tripPanel||!draft.offers.length||invalidAges())return;
+  clearTimeout(timer);timer=0;clearHotelKnowledge();historyView++;recovery('');
+  bulkPrice={context:capture(),epoch,version,signature:JSON.stringify(draft),offers:clone(draft.offers)};
+  const root=$('tsBulkPrice');root.hidden=false;dialog.classList.add('tsBulkMode');
+  root.innerHTML='<div class="tsBulkBody"><h3 id="tsBulkTitle">Изменить несколько цен</h3><p>Расчёт от текущих цен на момент открытия этой формы. Смена процента и предпросмотр не накапливают скидку. Исходные цены поставщиков, условия и фотографии сохраняются.</p><div class="tsFields"><label for="tsBulkAction">Действие<select id="tsBulkAction"><option value="discount">Скидка</option><option value="markup">Наценка</option></select></label><label for="tsBulkBasis">Способ расчёта<select id="tsBulkBasis"><option value="percent">Процент</option><option value="amount">Сумма в валюте вариантов</option></select></label><label for="tsBulkValue">Размер изменения<input id="tsBulkValue" type="text" inputmode="decimal" value="5" maxlength="12"></label><label for="tsBulkRound">Округление<select id="tsBulkRound"><option value="none">До копеек / центов</option><option value="unit">До целого</option><option value="ten">До десятков</option><option value="hundred">До сотен</option><option value="thousand">До тысяч</option></select></label></div><fieldset id="tsBulkItems"><legend>Какие варианты изменить</legend>'+bulkPrice.offers.map((offer,index)=>'<label><input type="checkbox" data-ts-bulk-offer="'+esc(offer.id)+'" '+(offer.selected?'checked':'')+'><span>'+esc((index+1)+'. '+(offer.hotel||'Без названия'))+'<small>'+esc(overviewAmount(offer.amount,offer.currency))+(offer.selected?'':' · не включён в подборку')+'</small></span></label>').join('')+'</fieldset><div id="tsBulkError" class="tsError" role="status" aria-live="polite"></div><div id="tsBulkPreview" class="tsBulkPreview" aria-label="Предпросмотр изменения цен"></div><p>Изменяются только цены отмеченных вариантов. Сообщения клиенту и опубликованные версии не меняются. Повторное открытие формы начинает новый расчёт от текущих цен.</p></div><div class="tsBulkFooter"><button id="tsBulkCancel" type="button">Отмена</button><button id="tsBulkApply" type="button" class="tsPrimary">Применить</button></div>';
+  root.addEventListener('input',previewBulkPrices);root.addEventListener('change',previewBulkPrices);
+  const batch=bulkPrice;$('tsBulkCancel').onclick=()=>{if(bulkPrice===batch)closeBulkPrices()};$('tsBulkApply').onclick=()=>{if(bulkPrice===batch)applyBulkPrices()};
+  controls();$('tsBulkValue').focus();
+}
+function bulkPlan(){
+  if(!bulkCurrent())throw new Error('Подборка или доступ изменились. Закройте расчёт и откройте его заново.');
+  const ids=new Set([...$('tsBulkItems').querySelectorAll('input:checked')].map(x=>x.dataset.tsBulkOffer));
+  const offers=bulkPrice.offers.filter(x=>ids.has(x.id));if(!offers.length)throw new Error('Отметьте хотя бы один вариант.');
+  const action=$('tsBulkAction').value,basis=$('tsBulkBasis').value,value=$('tsBulkValue').value,round=$('tsBulkRound').value;
+  if(basis==='amount'&&new Set(offers.map(x=>x.currency)).size>1)throw new Error('Для изменения суммой отметьте варианты в одной валюте. Конвертация не выполняется.');
+  return offers.map(offer=>{try{return {offer,amount:bulkTotal(offer.amount,action,value,basis,round)}}catch(error){throw new Error((offer.hotel||'Вариант')+': '+error.message)}});
+}
+function previewBulkPrices(){
+  if(!bulkPrice)return;const allowed=bulkCurrent(),root=$('tsBulkPrice');
+  root.querySelectorAll('input,select').forEach(x=>{if(x.disabled!==!allowed)x.disabled=!allowed});
+  try{
+    const rows=bulkPlan(),changes=rows.filter(x=>priceUnits(x.amount)!==priceUnits(x.offer.amount)).length;
+    const message=changes?'':'Цены не изменятся. Измените параметры расчёта.',markup=rows.map(x=>'<div class="tsBulkRow"><strong>'+esc(x.offer.hotel||'Без названия')+'</strong><span>'+esc(overviewAmount(x.offer.amount,x.offer.currency))+' → <b>'+esc(overviewAmount(x.amount,x.offer.currency))+'</b></span></div>').join(''),label='Применить к вариантам: '+rows.length;
+    if($('tsBulkError').textContent!==message)$('tsBulkError').textContent=message;
+    if(bulkPrice.previewMarkup!==markup){$('tsBulkPreview').innerHTML=markup;bulkPrice.previewMarkup=markup}
+    // A select's blur/change can run between pointerdown and click in WebKit.
+    // Keep the existing button text node and layout when the plan is unchanged.
+    if($('tsBulkApply').textContent!==label)$('tsBulkApply').textContent=label;
+    if($('tsBulkApply').disabled!==!changes)$('tsBulkApply').disabled=!changes;
+  }catch(error){if($('tsBulkError').textContent!==error.message)$('tsBulkError').textContent=error.message;if(bulkPrice.previewMarkup!==undefined){$('tsBulkPreview').replaceChildren();delete bulkPrice.previewMarkup}if(!$('tsBulkApply').disabled)$('tsBulkApply').disabled=true;}
+}
+function closeBulkPrices(resume=true){
+  if(!bulkPrice)return;bulkPrice=null;const root=$('tsBulkPrice');root?.replaceChildren();if(root)root.hidden=true;dialog?.classList.remove('tsBulkMode');
+  if(resume&&current()&&dialog?.open){render();$('tsBulkPrices')?.focus();if(dirty)timer=setTimeout(()=>{if(editable()&&!busy&&!invalidAges()&&dialog?.open)void save()},900)}
+}
+function applyBulkPrices(){
+  if(!bulkPrice)return;
+  try{
+    const rows=bulkPlan();if(!rows.some(x=>priceUnits(x.amount)!==priceUnits(x.offer.amount)))return;
+    const next=clone(draft);for(const row of rows)next.offers.find(x=>x.id===row.offer.id).amount=row.amount;
+    closeBulkPrices(false);draft=next;changed();render();status('Изменены цены отмеченных вариантов: '+rows.length+'. Черновик сохраняется; клиенту ничего не отправлено.');
+  }catch(error){$('tsBulkError').textContent=error.message;$('tsBulkApply').disabled=true;}
+}
 function invalidAges(){return draft?.offers.some(x=>Object.hasOwn(rawAges,x.id)&&!validAges(rawAges[x.id]))}
 function validAges(value){const raw=String(value).trim();return raw===''||/^\d{1,2}(?:\s*,\s*\d{1,2})*$/.test(raw)&&raw.split(',').length<=12&&raw.split(',').every(x=>Number(x)>=0&&Number(x)<=17)}
 function changed(){clearHotelKnowledge();renderOfferOverview();previewIssues=[];$('tsPreviewIssues')?.remove();dirty=true;stash();status(invalidAges()?'Возраст детей укажите числами от 0 до 17 через запятую.':'Есть несохранённые изменения.',invalidAges());controls();clearTimeout(timer);timer=setTimeout(()=>{if(editable()&&!busy&&!invalidAges()&&dialog?.open)void save()},900)}
@@ -388,6 +453,7 @@ function renderOfferOverview(){
 function render(){
   clearHotelKnowledge();
   if(!draft||!dialog)return;
+  if(bulkPrice){controls();return}
   dialog.classList.toggle('tsTripMode',!!tripPanel);
   if(preview&&publication){renderPreview();controls();return}
   dialog.classList.remove('tsPreviewMode');
@@ -437,6 +503,8 @@ async function readHotelKnowledge(){
 }
 function controls(){
   if(!dialog)return;const disabled=!editable();
+  $('tsBulkPrices').disabled=disabled||busy||!!tripPanel||!(draft?.offers.length)||invalidAges();$('tsBulkPrices').hidden=preview;
+  if(bulkPrice){$('tsHistory').disabled=true;previewBulkPrices();}
   const factsButton=$('tsHotelKnowledgeRead');if(factsButton){factsButton.disabled=!canReadHotelKnowledge();factsButton.title=dirty?'Сначала сохраните изменения':'';}
   $('tsAdd').disabled=disabled||busy||(draft?.offers.length||0)>=20;$('tsSave').disabled=disabled||busy||!dirty||invalidAges();$('tsDone').disabled=busy||loading||(!preview&&invalidAges());
   $('tsSaved').textContent=photoUpload?.loading?'Загружаем фото… '+photoUpload.progress+'%':photoUpload?'Загрузка фото не подтверждена':busy?(tripPanel?'Проверяем условия поездки…':'Сохраняем…'):pending?'Результат сохранения уточняется':conflict?'Есть конфликт правок':dirty?'Не все изменения сохранены':version?(host.savedLabel||'Сохранено на сервере'):'Новый черновик';
@@ -444,6 +512,7 @@ function controls(){
   $('tsSave').hidden=preview;$('tsPreview').hidden=preview;$('tsEdit').hidden=!preview;$('tsSend').hidden=!preview;$('tsHistory').hidden=preview;$('tsDone').hidden=!preview;
   $('tsCollector').hidden=preview;$('tsCollector').disabled=!!photoUpload||!canEdit||busy||loading||sending||sharing;
   $('tsPreview').disabled=!!photoUpload||busy||loading||sending||!canEdit||!!pending||!!conflict||invalidAges();$('tsHistory').disabled=!!photoUpload||busy||loading||sending;$('tsEdit').disabled=sending;
+  if(bulkPrice){$('tsHistory').disabled=true;$('tsPreview').disabled=true;}
   $('tsShare').hidden=!preview;$('tsShare').disabled=busy||loading||sending||sharing;
   if($('tsInterest')){$('tsInterest').disabled=busy||loading||sending||sharing||interestLoading;$('tsInterest').textContent=interestLoading?'Загружаем активность…':'Активность подборки'}
   const publish=$('tsPublish');if(publish)publish.disabled=!canEdit||busy||sending||sharing||dirty||!!pending||!!conflict||photoPending>0||photoFailures>0;
@@ -539,12 +608,12 @@ async function showPreview(){
   status(result?.error==='incomplete_offers'?'Заполните '+(result.fields||[]).map(x=>'в варианте '+x.position+': '+x.fields.map(f=>f==='photos'&&!draft.offers.find(o=>o.id===x.offer_id)?.import_source?'три фото':names[f]||f).join(', ')).join('; ')+'.':error(result),true);controls();
 }
 async function showHistory(){
-  if(!current()||busy||sending)return;const token=epoch,view=++historyView;busy=true;controls();const result=await request('history');if(token!==epoch||view!==historyView||!current()||!dialog.open)return;busy=false;controls();
+  if(!current()||busy||sending||bulkPrice)return;const token=epoch,view=++historyView;busy=true;controls();const result=await request('history');if(token!==epoch||view!==historyView||!current()||!dialog.open)return;busy=false;controls();
   if(!result?.ok){status(error(result),true);return}
   const root=$('tsRecovery');root.replaceChildren();root.hidden=false;
   if(!result.publications.length){root.textContent='Пока нет подготовленных к отправке подборок.';return}
   const heading=document.createElement('p');heading.textContent='Подготовленные подборки и результаты отправки:';root.appendChild(heading);
-  for(const entry of result.publications){const button=document.createElement('button');button.type='button';button.textContent='Версия '+entry.draft_version+' · '+entry.created_at+' UTC';button.onclick=async()=>{if(!current()||!dialog.open||busy||sending||sharing)return;const t=epoch,selectedView=++historyView;const read=await request('publication',{publication_id:entry.publication_id});if(t!==epoch||selectedView!==historyView||!current()||!dialog.open)return;if(read?.ok&&read.publication?.id===entry.publication_id){publication=read.publication;preview=true;render();recovery('');status('Показана сохранённая версия и результат отправки.')}else status(error(read),true)};root.appendChild(button)}
+  for(const entry of result.publications){const button=document.createElement('button');button.type='button';button.textContent='Версия '+entry.draft_version+' · '+entry.created_at+' UTC';button.onclick=async()=>{if(!current()||!dialog.open||busy||sending||sharing||bulkPrice)return;const t=epoch,selectedView=++historyView;const read=await request('publication',{publication_id:entry.publication_id});if(t!==epoch||selectedView!==historyView||!current()||!dialog.open)return;if(read?.ok&&read.publication?.id===entry.publication_id){publication=read.publication;preview=true;render();recovery('');status('Показана сохранённая версия и результат отправки.')}else status(error(read),true)};root.appendChild(button)}
 }
 async function showInterest(){
   if(!current()||busy||sending||sharing||interestLoading||!publication)return;

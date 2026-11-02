@@ -155,6 +155,17 @@ function semanticPredictionOfferMoveTimes(array $parts,array $deltas):array
     return $parts;
 }
 
+/** Exact legacy V1 producer codec, retained only to check immutable compatibility. */
+function semanticPredictionLegacyDigest(array $value):string
+{
+    unset($value['prediction_digest']);
+    $sort=static function(array $v)use(&$sort):array{
+        if(!array_is_list($v))ksort($v,SORT_STRING);
+        foreach($v as&$item)if(is_array($item))$item=$sort($item);return$v;
+    };
+    return hash('sha256',json_encode($sort($value),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+}
+
 $tests=[];
 $tests['greeting and logistics alone provide no probability']=static function():void{
     foreach(['Здравствуйте!','Где ваш офис? Как оплатить картой?']as$text){
@@ -563,6 +574,71 @@ foreach(['payment_self_report','manager_payment_ack','booking_confirmation',
         &&$r['payment_label']===null&&$r['evidence']===[],'known_outcome_prior_'.$kind);
 }
 
+};
+
+
+$tests['canonical digest survives independent CLI and web float settings']=static function():void{
+    $old=(string)ini_get('serialize_precision');
+    try{
+        $p=semanticPredictionRun([['text'=>'Подберите тур в Турцию на 7 ночей.']]);
+        $before=$p;$given=$p['prediction_digest'];
+        ini_set('serialize_precision','14');$legacy14=semanticPredictionLegacyDigest($p);
+        ini_set('serialize_precision','17');$legacy17=semanticPredictionLegacyDigest($p);
+        semanticPredictionAssert($legacy14!==$legacy17,'legacy precision failure was not reproduced');
+        foreach(['-1','14','17']as$writer){
+            ini_set('serialize_precision',$writer);
+            $encoded=json_encode($p,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+            $copy=json_decode($encoded,true,32,JSON_THROW_ON_ERROR);
+            foreach(['-1','14','17']as$reader){
+                ini_set('serialize_precision',$reader);$setting=ini_get('serialize_precision');
+                semanticPredictionAssert(ModeledConversionSemanticPrediction::digest($copy)===$given
+                    &&ModeledConversionSemanticPrediction::digestMatches($copy),'cross-runtime digest changed '.$writer.' '.$reader);
+                semanticPredictionAssert(ini_get('serialize_precision')===$setting,'digest mutated runtime setting');
+            }
+        }
+        semanticPredictionAssert($p===$before,'digest mutated frozen prediction');
+    }finally{ini_set('serialize_precision',$old);}
+};
+$tests['legacy immutable numeric digests remain valid without current-code downgrade']=static function():void{
+    $old=(string)ini_get('serialize_precision');
+    try{
+        $p=semanticPredictionRun([['text'=>'Подберите тур в Турцию на 7 ночей.']]);
+        foreach(['-1','14','17']as$mode){
+            ini_set('serialize_precision',$mode);
+            $legacy=$p;$legacy['model_sha256']=str_repeat('a',64);
+            $legacy['prediction_digest']=semanticPredictionLegacyDigest($legacy);$before=$legacy;
+            ini_set('serialize_precision',$mode==='17'?'14':'17');
+            semanticPredictionAssert(ModeledConversionSemanticPrediction::digestMatches($legacy),'old frozen numeric digest rejected');
+            semanticPredictionAssert($legacy===$before,'legacy digest rewritten');
+            $legacy['estimated_probability']+=0.00000001;
+            semanticPredictionAssert(!ModeledConversionSemanticPrediction::digestMatches($legacy),'small legacy tamper was rounded away');
+        }
+        ini_set('serialize_precision','14');
+        $current=$p;$current['prediction_digest']=semanticPredictionLegacyDigest($current);
+        semanticPredictionAssert(!ModeledConversionSemanticPrediction::digestMatches($current),'current model accepted legacy codec downgrade');
+        $changed=$p;$changed['estimated_probability']+=0.00000001;
+        semanticPredictionAssert(!ModeledConversionSemanticPrediction::digestMatches($changed)
+            &&ModeledConversionSemanticPrediction::digest($changed)!==$p['prediction_digest'],'small current tamper lost by canonical codec');
+    }finally{ini_set('serialize_precision',$old);}
+};
+$tests['retained contrary observations cannot produce a block rejected by its own outcome contract']=static function():void{
+    $base=strtotime('2026-11-01T00:00:00Z');
+    foreach(['refund_report','payment_cancellation','booking_cancellation','purchased_elsewhere']as$kind){
+        $m=semanticPredictionNew();$state=ArchiveResearchSemanticExtractor::initialState();
+        $r=semanticPredictionResult('Подберите тур в Турцию на 7 ночей.','customer','journal:1',$base,$state);
+        $m->observeMessage('customer','Подберите тур в Турцию на 7 ночей.','journal:1',$base,$base+1,1,$r);
+        $r=['version'=>'ru_archive_contextual_v2','status'=>'scanned','flags'=>[],
+            'events'=>[['source_ref'=>'journal:2','goal'=>$kind]]];
+        $m->observeMessage($kind==='purchased_elsewhere'?'customer':'manager','Synthetic direct outcome',
+            'journal:2',$base+10,$base+11,1,$r);
+        $m->barrier();$state=ArchiveResearchSemanticExtractor::initialState();
+        $r=semanticPredictionResult('Подберите тур в Египет на 10 ночей.','customer','journal:3',$base+20,$state);
+        $m->observeMessage('customer','Подберите тур в Египет на 10 ночей.','journal:3',$base+20,$base+21,1,$r);
+        $v=$m->finish(semanticPredictionLegacy());
+        semanticPredictionAssert($v['status']==='known_outcome'&&$v['estimated_probability']===null
+            &&$v['outcome_observations'][0]['kind']===$kind
+            &&ModeledConversionSemanticPrediction::digestMatches($v),'retained outcome manufactured invalid early percentage '.$kind);
+    }
 };
 
 $failures=0;

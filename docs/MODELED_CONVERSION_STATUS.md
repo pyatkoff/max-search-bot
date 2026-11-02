@@ -241,3 +241,22 @@ still omitted from numeric confirmation. Source barrier counters are not all
 semantic episode resets. Actual percentages still require a validated current
 model block and dated customer evidence; installation/CI and a fresh packet alone
 do not prove a new inquiry, model accuracy or complete channel coverage.
+
+
+### V1.3 canonical integrity diagnosis
+
+The SAME `forecasts:read` default readback returns
+`saved_semantic_prediction_status_v1_3`. Its fixed
+`prediction_contract_reason_counts` splits already-rejected copied prediction
+blocks into `digest` or `fields`; this is additional diagnosis, not weaker
+validation or a numerical promotion. It emits no raw field/reason/hash/identifier,
+and adds no query, selected row, byte or time budget. Existing4 rejection groups
+and source-continuity counters remain.
+
+Numeric integrity is shared with the producer and parallel later-payment checker
+and is independent of CLI/web float settings. A current-model snapshot must pass
+the revised canonical verifier; the legacy numeric fallback is limited to older
+model hashes/comparison capsules. Current-model namespace filtering and all other
+parent/access/source/clock/shape checks remain. Numeric natural-save acceptance
+still requires real customer evidence and actual freeze times after installation;
+a passed regression or a nonnumeric saved block alone does not close it.

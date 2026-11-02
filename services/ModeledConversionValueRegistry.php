@@ -109,7 +109,7 @@ final class ModeledConversionValueRegistry
             if(!is_array($p)||array_is_list($p)||!self::boundedJson($p,16384)
                 ||!self::samePredictionSubject($p['subject']??null,$subject)
                 ||!self::sha($p['prediction_digest']??null)||!self::sha($p['model_sha256']??null)
-                ||!hash_equals($p['prediction_digest'],ModeledConversionSemanticPrediction::digest($p)))return null;
+                ||!ModeledConversionSemanticPrediction::digestMatches($p))return null;
             $fixed=['version'=>'semantic_purchase_heuristic_v1','mode'=>'contextual_rules_untrained',
                 'target'=>'payment_with_current_agency_30d','horizon_seconds'=>2592000,
                 'assumptions_version'=>'illustrative_funnel_2026_11_02_v1','training_status'=>'not_trained',
