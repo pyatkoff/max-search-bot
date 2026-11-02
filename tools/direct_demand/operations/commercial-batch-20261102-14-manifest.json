@@ -1,151 +1,201 @@
 {
   "operation": "commercial-hotel-batch-20261102-14-v1",
-  "state": "PREPARED_NATIVE_COVERS_INSPECTION_PENDING",
+  "state": "PREPARED_NOT_SENT",
   "goal": "Publish ten whole hotel materials from current proven stock through the existing two channels.",
   "boundaries": "Seven specific Pickalbatros resorts and three Steigenberger resorts only. No old publication edits, current prices, client actions or new runtime.",
   "criteria": "Useful verified properties and important distinction, real general hotel image, readable AnyTour cover, canonical button and live deduplication.",
   "risks": "Laguna Club uses some Laguna Vista facilities and is on the second line. Aqua Vista and Alaya service rights must not be generalized. Unavailable media does not block ready hotels.",
+  "baseline_logical_materials": 66,
+  "button_text": "✈️ Узнать стоимость тура",
   "rows": [
     {
-      "key": "albatros-royal-moderna",
       "hotel_id": 389,
       "hotel": "Pickalbatros Royal Moderna",
-      "region": "Шарм-эль-Шейх",
-      "state": "CATALOG_CONFIRMED_PRIMARY_SOURCE_AND_COVER_NOT_READY",
-      "main": "https://www.pickalbatros.com/royal-moderna-resort-sharm-el-sheikh",
-      "facts": "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-royal-moderna-resort-sharm-el-sheikh",
-      "text": "✈️ Pickalbatros Royal Moderna\nТур с перелётом в Шарм эль Шейх 🇪🇬\n\nСемейный отель в Набке с собственным пляжем и коралловым рифом 🐠\n\n💦 Аквапарк с горками для взрослых и детей.\n🧒 Детский клуб для ребят от 4 до 12 лет.\n🎾 Теннис, падел и мини гольф.\n🥐 Рестораны, фудкорт, пекарня и уголок с мороженым.\n\nℹ️ К рифу ведёт понтон длиной 600 м. На отметке 300 м есть спуск в песчаную лагуну.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "key": "albatros-royal-moderna",
+      "aliases": [
+        "Pickalbatros Royal Moderna",
+        "PICKALBATROS ROYAL MODERNA SHARM EL SHEIKH"
+      ],
       "sources": [
         "https://www.pickalbatros.com/royal-moderna-resort-sharm-el-sheikh",
         "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-royal-moderna-resort-sharm-el-sheikh"
-      ]
+      ],
+      "text": "✈️ Pickalbatros Royal Moderna\nТур с перелётом в Шарм эль Шейх 🇪🇬\n\nСемейный отель в Набке с собственным пляжем и коралловым рифом 🐠\n\n💦 Аквапарк с горками для взрослых и детей.\n🧒 Детский клуб для ребят от 4 до 12 лет.\n🎾 Теннис, падел и мини гольф.\n🥐 Рестораны, фудкорт, пекарня и уголок с мороженым.\n\nℹ️ К рифу ведёт понтон длиной 600 м. На отметке 300 м есть спуск в песчаную лагуну.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-albatros-royal-moderna-389-v1",
+      "text_sha256": "78bb5f4749d99cf6b24926c996e85e8f5e1a5a526dbd8d1cc3c1d87c0e63079a",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/389.png",
+      "photo_sha256": "060c03389c7e1355262a9d30f881e31d76d3b41ae069cfca6ca17f1c7dd4c99a",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
     },
     {
-      "key": "albatros-aqua-vista",
       "hotel_id": 109,
       "hotel": "Pickalbatros Aqua Vista",
-      "region": "Хургада",
-      "state": "CATALOG_CONFIRMED_PRIMARY_SOURCE_AND_COVER_NOT_READY",
-      "identity_note": "Exact branded PICKALBATROS row; unbranded AQUA VISTA104856 remains separate and unresolved.",
-      "main": "https://www.pickalbatros.com/aqua-vista-resort-hurghada",
-      "facts": "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-aqua-vista-resort",
-      "text": "✈️ Pickalbatros Aqua Vista 4★\nТур с перелётом в Хургаду 🇪🇬\n\nСпортивный отель для отпуска с тренировками и семейными развлечениями 🚲\n\n🏃 Беговая дорожка, площадка для тренировок и велоцентр.\n💦 Аквапарк комплекса с детскими и взрослыми горками.\n🍽️ Рестораны трёх отелей комплекса Aqua Park, Aqua Blu и Aqua Vista.\n🏡 Стандартные и семейные номера.\n\nℹ️ Отель на второй линии, на пляж ходит автобус. Олимпийский бассейн платный.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "key": "albatros-aqua-vista",
+      "aliases": [
+        "Pickalbatros Aqua Vista",
+        "PICKALBATROS AQUA VISTA RESORT"
+      ],
       "sources": [
         "https://www.pickalbatros.com/aqua-vista-resort-hurghada",
         "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-aqua-vista-resort"
-      ]
+      ],
+      "text": "✈️ Pickalbatros Aqua Vista 4★\nТур с перелётом в Хургаду 🇪🇬\n\nСпортивный отель для отпуска с тренировками и семейными развлечениями 🚲\n\n🏃 Беговая дорожка, площадка для тренировок и велоцентр.\n💦 Аквапарк комплекса с детскими и взрослыми горками.\n🍽️ Рестораны трёх отелей комплекса Aqua Park, Aqua Blu и Aqua Vista.\n🏡 Стандартные и семейные номера.\n\nℹ️ Отель на второй линии, на пляж ходит автобус. Олимпийский бассейн платный.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-albatros-aqua-vista-109-v1",
+      "text_sha256": "6c7ee45911c3a2e340039eb13f5140dcc5e3bd5f61d67ed6f0de69acf4d99b1b",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/109.png",
+      "photo_sha256": "52cf9104df60d166437fa42de713fe3d47ae1985d512fd89caed8bfa7a699983",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
     },
     {
-      "key": "albatros-laguna-vista-beach",
       "hotel_id": 293,
       "hotel": "Pickalbatros Laguna Vista",
-      "region": "Шарм-эль-Шейх",
-      "state": "CATALOG_CONFIRMED_PRIMARY_SOURCE_AND_COVER_NOT_READY",
-      "identity_note": "Current LAGUNA VISTA BEACH row; Laguna Club107965 includes Vista Garden only in its former name.",
-      "main": "https://www.pickalbatros.com/laguna-vista-hotel-sharm-el-sheikh",
-      "facts": "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-laguna-vista-hotel-sharm-el-sheikh",
-      "text": "✈️ Pickalbatros Laguna Vista 5★\nТур с перелётом в Шарм эль Шейх 🇪🇬\n\nОтель в Набке с зелёной территорией и собственным пляжем 🌴\n\n🏖️ Песчаный пляж длиной 250 м.\n💦 Аквапарк с восемью взрослыми и шестью детскими горками.\n🏊 Крытый бассейн и бассейн для серфинга.\n🎾 Теннис и падел.\n\nℹ️ Понтон длиной 550 м. По пути есть несколько спусков в песчаную лагуну. Для купания нужна обувь для кораллов.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "key": "albatros-laguna-vista-beach",
+      "aliases": [
+        "Pickalbatros Laguna Vista",
+        "PICKALBATROS LAGUNA VISTA BEACH"
+      ],
       "sources": [
         "https://www.pickalbatros.com/laguna-vista-hotel-sharm-el-sheikh",
         "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-laguna-vista-hotel-sharm-el-sheikh"
-      ]
+      ],
+      "text": "✈️ Pickalbatros Laguna Vista 5★\nТур с перелётом в Шарм эль Шейх 🇪🇬\n\nОтель в Набке с зелёной территорией и собственным пляжем 🌴\n\n🏖️ Песчаный пляж длиной 250 м.\n💦 Аквапарк с восемью взрослыми и шестью детскими горками.\n🏊 Крытый бассейн и бассейн для серфинга.\n🎾 Теннис и падел.\n\nℹ️ Понтон длиной 550 м. По пути есть несколько спусков в песчаную лагуну. Для купания нужна обувь для кораллов.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-albatros-laguna-vista-beach-293-v1",
+      "text_sha256": "0db69c778a42a1c35266968315ae91b718c15e730d5acd2a54d1786d54a9cec7",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/293.png",
+      "photo_sha256": "5cfccb91f34aea3c2d0fa1a81d59e88515b3b883b04ba5e829a776bc6ed10bed",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
     },
     {
-      "key": "albatros-laguna-club",
       "hotel_id": 107965,
       "hotel": "Pickalbatros Laguna Club",
-      "region": "Шарм-эль-Шейх",
-      "state": "CATALOG_CONFIRMED_PRIMARY_SOURCE_AND_COVER_NOT_READY",
-      "main": "https://www.pickalbatros.com/laguna-club-resort-sharm-el-sheikh",
-      "facts": "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-laguna-club-family-resort",
-      "text": "✈️ Pickalbatros Laguna Club\nТур с перелётом в Шарм эль Шейх 🇪🇬\n\nСемейный отель в Набке. В соседнем Laguna Vista для гостей открыты бассейны и аквапарк ☀️\n\n💦 Три взрослых и два детских бассейна в самом Laguna Club.\n🍽️ Ресторан Colonies и дополнительные рестораны и бары в Laguna Vista.\n🎢 Доступ к аквапарку и бассейну для серфинга в Laguna Vista.\n🎾 Теннис и падел на территории Laguna Vista.\n\nℹ️ Laguna Club на второй линии. Пляж находится у Laguna Vista, до него ходит автобус.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "key": "albatros-laguna-club",
+      "aliases": [
+        "Pickalbatros Laguna Club",
+        "PICKALBATROS LAGUNA CLUB RESORT (EX. ALBATROS LAGUNA VISTA GARDEN)"
+      ],
       "sources": [
         "https://www.pickalbatros.com/laguna-club-resort-sharm-el-sheikh",
         "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-laguna-club-family-resort"
-      ]
+      ],
+      "text": "✈️ Pickalbatros Laguna Club\nТур с перелётом в Шарм эль Шейх 🇪🇬\n\nСемейный отель в Набке. В соседнем Laguna Vista для гостей открыты бассейны и аквапарк ☀️\n\n💦 Три взрослых и два детских бассейна в самом Laguna Club.\n🍽️ Ресторан Colonies и дополнительные рестораны и бары в Laguna Vista.\n🎢 Доступ к аквапарку и бассейну для серфинга в Laguna Vista.\n🎾 Теннис и падел на территории Laguna Vista.\n\nℹ️ Laguna Club на второй линии. Пляж находится у Laguna Vista, до него ходит автобус.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-albatros-laguna-club-107965-v1",
+      "text_sha256": "34d37379ee2ccd807ee88878694b4f21bc2a1b260066d65a2061faa9403d5b64",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/107965.png",
+      "photo_sha256": "dd09eab5372ca4358a53838cfe3db866712ea38d8274c14617f9c73f415d6504",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
     },
     {
-      "key": "albatros-royal-grand",
       "hotel_id": 393,
       "hotel": "Pickalbatros Royal Grand",
-      "region": "Шарм-эль-Шейх",
-      "state": "CATALOG_CONFIRMED_PRIMARY_SOURCE_AND_COVER_NOT_READY",
-      "main": "https://www.pickalbatros.com/royal-grand-resort-sharm-el-sheikh",
-      "facts": "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-royal-grand-sharm-el-sheikh",
-      "text": "✈️ Pickalbatros Royal Grand\nТур с перелётом в Шарм эль Шейх 🇪🇬\n\nОтель для гостей от 16 лет у кораллового рифа Turtle Bay 🐠\n\n🏖️ Собственный песчаный пляж.\n🏊 Пять бассейнов.\n🍽️ Рестораны, пляжный фудкорт и бары.\n🎾 Падел, мини гольф и тренажёры на открытом воздухе.\n\nℹ️ В море спускаются с плавучего понтона длиной 65 м. У берега кораллы, нужна специальная обувь.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "key": "albatros-royal-grand",
+      "aliases": [
+        "Pickalbatros Royal Grand",
+        "PICKALBATROS ROYAL GRAND RESORT ADULTS ONLY 16+"
+      ],
       "sources": [
         "https://www.pickalbatros.com/royal-grand-resort-sharm-el-sheikh",
         "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-royal-grand-sharm-el-sheikh"
-      ]
+      ],
+      "text": "✈️ Pickalbatros Royal Grand\nТур с перелётом в Шарм эль Шейх 🇪🇬\n\nОтель для гостей от 16 лет у кораллового рифа Turtle Bay 🐠\n\n🏖️ Собственный песчаный пляж.\n🏊 Пять бассейнов.\n🍽️ Рестораны, пляжный фудкорт и бары.\n🎾 Падел, мини гольф и тренажёры на открытом воздухе.\n\nℹ️ В море спускаются с плавучего понтона длиной 65 м. У берега кораллы, нужна специальная обувь.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-albatros-royal-grand-393-v1",
+      "text_sha256": "1fffe43835a29e4ade8006069cec0181542007b391ade805386eb56faa1b61c2",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/393.png",
+      "photo_sha256": "0794d396b4b78db075b6a745803dd55884595f712572491a47e95bc3c4474ac4",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
     },
     {
-      "key": "albatros-blu-spa",
       "hotel_id": 78898,
       "hotel": "Pickalbatros Blu Spa",
-      "region": "Хургада",
-      "state": "CATALOG_CONFIRMED_PRIMARY_SOURCE_AND_COVER_NOT_READY",
-      "main": "https://www.pickalbatros.com/blu-spa-resort-hurghada",
-      "facts": "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-blu-spa-resort",
-      "text": "✈️ Pickalbatros Blu Spa 5★\nТур с перелётом в Хургаду 🇪🇬\n\nОтель для гостей от 16 лет на берегу Красного моря. Рядом прогулочная набережная 🌴\n\n🏖️ Собственный песчаный пляж.\n🏊 Четыре открытых бассейна и крытый бассейн.\n🍽️ Четыре ресторана с разными кухнями.\n🌅 Номера с балконом или террасой, есть категории с видом на море.\n\nℹ️ Массаж и процедуры в спа оплачиваются отдельно.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "key": "albatros-blu-spa",
+      "aliases": [
+        "Pickalbatros Blu Spa",
+        "PICKALBATROS BLU SPA RESORT HURGHADA ADULTS ONLY 16+"
+      ],
       "sources": [
         "https://www.pickalbatros.com/blu-spa-resort-hurghada",
         "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-blu-spa-resort"
-      ]
+      ],
+      "text": "✈️ Pickalbatros Blu Spa 5★\nТур с перелётом в Хургаду 🇪🇬\n\nОтель для гостей от 16 лет на берегу Красного моря. Рядом прогулочная набережная 🌴\n\n🏖️ Собственный песчаный пляж.\n🏊 Четыре открытых бассейна и крытый бассейн.\n🍽️ Четыре ресторана с разными кухнями.\n🌅 Номера с балконом или террасой, есть категории с видом на море.\n\nℹ️ Массаж и процедуры в спа оплачиваются отдельно.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-albatros-blu-spa-78898-v1",
+      "text_sha256": "43fbb6fc1b33bc53a7ac23d4bf5a1d30ded66bea2257eb5532fd77c7cb84d564",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/78898.png",
+      "photo_sha256": "20ec2812e7a46b184aeeef9b0e0d693198d9f35185000c6dcc9c6ad00190693b",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
     },
     {
-      "key": "albatros-vita-portofino",
       "hotel_id": 83105,
       "hotel": "Pickalbatros Vita Resort Portofino",
-      "region": "Марса Алам",
-      "state": "CATALOG_CONFIRMED_PRIMARY_SOURCE_AND_COVER_NOT_READY",
-      "main": "https://www.pickalbatros.com/vita-resort-portofino-marsa-alam",
-      "facts": "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-vita-resort-portofino",
-      "text": "✈️ Pickalbatros Vita Resort Portofino\nТур с перелётом в Марса Алам 🇪🇬\n\nСемейный отель комплекса Portofino с домашним рифом и песчаными лагунами 🐠\n\n🏖️ Пляж длиной 1 км.\n💦 Аквапарк с 11 взрослыми и 21 детской горкой.\n🎡 Аттракционы Midway Street в комплексе Portofino.\n🎾 Теннис, падел и футбольное поле с беговой дорожкой.\n\nℹ️ На пляже есть песчаные и каменистые участки. Для захода в море нужна специальная обувь.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "key": "albatros-vita-portofino",
+      "aliases": [
+        "Pickalbatros Vita Resort Portofino",
+        "PICKALBATROS VITA RESORT PORTOFINO MARSA ALAM"
+      ],
       "sources": [
         "https://www.pickalbatros.com/vita-resort-portofino-marsa-alam",
         "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-vita-resort-portofino"
-      ]
+      ],
+      "text": "✈️ Pickalbatros Vita Resort Portofino\nТур с перелётом в Марса Алам 🇪🇬\n\nСемейный отель комплекса Portofino с домашним рифом и песчаными лагунами 🐠\n\n🏖️ Пляж длиной 1 км.\n💦 Аквапарк с 11 взрослыми и 21 детской горкой.\n🎡 Аттракционы Midway Street в комплексе Portofino.\n🎾 Теннис, падел и футбольное поле с беговой дорожкой.\n\nℹ️ На пляже есть песчаные и каменистые участки. Для захода в море нужна специальная обувь.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-albatros-vita-portofino-83105-v1",
+      "text_sha256": "213b045bf2eddfb3e79b18f885e8bf294d02b896c14c07eb6327318198136817",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/83105.png",
+      "photo_sha256": "c6168cc7a1ddd3645e6a29e0ad7c87ea536d676b012b1b8c93d394eee1f4bd40",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
     },
     {
-      "key": "alaya",
       "hotel_id": 69155,
       "hotel": "Steigenberger Resort Alaya",
-      "region": "Марса Алам",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY",
-      "main": "https://hrewards.com/en/steigenberger-resort-alaya-marsa-alam",
-      "facts": "https://hrewards.com/en/steigenberger-resort-alaya-marsa-alam",
-      "text": "✈️ Steigenberger Resort Alaya 5★\nТур с перелётом в Марса Алам 🇪🇬\n\nОтель в Мадинат Корайя для гостей от 16 лет. Для отдыха вдвоём, плавания и снорклинга ☀️\n\n🏊 Пять бассейнов.\n🐠 Выход к морю с понтона и доступ к пляжу бухты Корайя.\n🎾 Теннис, сквош и площадка для йоги.\n🏡 Есть номера с прямым выходом к бассейну.\n\nℹ️ Напитки и закуски из минибара оплачиваются отдельно.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "key": "alaya",
+      "aliases": [
+        "Steigenberger Resort Alaya",
+        "STEIGENBERGER RESORT ALAYA MARSA ALAM ADULTS ONLY"
+      ],
       "sources": [
         "https://hrewards.com/en/steigenberger-resort-alaya-marsa-alam",
         "https://partner.jazhotels.com/Images/uploads/gallery/downloads/TuiSensimarAlaya/Alaya%20Factsheet%20E%20-%202026%20.pdf"
-      ]
+      ],
+      "text": "✈️ Steigenberger Resort Alaya 5★\nТур с перелётом в Марса Алам 🇪🇬\n\nОтель в Мадинат Корайя для гостей от 16 лет. Для отдыха вдвоём, плавания и снорклинга ☀️\n\n🏊 Пять бассейнов.\n🐠 Выход к морю с понтона и доступ к пляжу бухты Корайя.\n🎾 Теннис, сквош и площадка для йоги.\n🏡 Есть номера с прямым выходом к бассейну.\n\nℹ️ Напитки и закуски из минибара оплачиваются отдельно.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-alaya-69155-v1",
+      "text_sha256": "ca817b59e0d6ddf72976e41ec1c42f72bc3abc6323b4e77bc008383c3188f023",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/69155.png",
+      "photo_sha256": "0d6beae352c643917c4aaf5190a92b9ee26a81c8d233622fb66adba65765473e",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
     },
     {
-      "key": "ras-soma",
       "hotel_id": 69409,
       "hotel": "Steigenberger Resort Ras Soma",
-      "region": "Хургада",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY",
-      "main": "https://hrewards.com/en/steigenberger-resort-ras-soma-safaga",
-      "facts": "https://hrewards.com/en/steigenberger-resort-ras-soma-safaga",
-      "text": "✈️ Steigenberger Resort Ras Soma 5★\nТур с перелётом в Хургаду 🇪🇬\n\nОтель на берегу моря в Рас Сома. На территории есть развлечения для детей и взрослых 🌴\n\n🏖️ Собственный песчаный пляж.\n🏊 Два бассейна олимпийского размера.\n🧒 Детский клуб и детский бассейн.\n🍽️ Основной ресторан и четыре ресторана с обслуживанием по меню.\n\nℹ️ Падел оплачивается отдельно.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "key": "ras-soma",
+      "aliases": [
+        "Steigenberger Resort Ras Soma",
+        "STEIGENBERGER RESORT RAS SOMA"
+      ],
       "sources": [
         "https://hrewards.com/en/steigenberger-resort-ras-soma-safaga"
-      ]
+      ],
+      "text": "✈️ Steigenberger Resort Ras Soma 5★\nТур с перелётом в Хургаду 🇪🇬\n\nОтель на берегу моря в Рас Сома. На территории есть развлечения для детей и взрослых 🌴\n\n🏖️ Собственный песчаный пляж.\n🏊 Два бассейна олимпийского размера.\n🧒 Детский клуб и детский бассейн.\n🍽️ Основной ресторан и четыре ресторана с обслуживанием по меню.\n\nℹ️ Падел оплачивается отдельно.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-ras-soma-69409-v1",
+      "text_sha256": "69bdb1432c8c7024debbda0724e49d6da282115c85153a40ec251064d2360d2c",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/69409.png",
+      "photo_sha256": "913375cf49539362a60e8ca1775222285ee848f29f2f40ab7b2249d3adac4495",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
     },
     {
-      "key": "steigenberger-coraya-beach",
       "hotel_id": 263,
       "hotel": "Steigenberger Coraya Beach",
-      "region": "Марса Алам",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY",
-      "main": "https://hrewards.com/en/steigenberger-coraya-beach-marsa-alam",
-      "facts": "https://hrewards.com/en/steigenberger-coraya-beach-marsa-alam",
-      "text": "✈️ Steigenberger Coraya Beach 5★\nТур с перелётом в Марса Алам 🇪🇬\n\nОтель в бухте Корайя с корпусами в нубийском стиле и зелёными садами 🌴\n\n🏖️ Собственный песчаный пляж длиной 800 м.\n🐠 Домашний коралловый риф для снорклинга.\n🏊 Три бассейна.\n🍽️ Четыре ресторана и бедуинская зона Al Walimah.\n\nℹ️ Отель принимает только гостей от 16 лет.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "key": "steigenberger-coraya-beach",
+      "aliases": [
+        "Steigenberger Coraya Beach",
+        "STEIGENBERGER CORAYA BEACH ADULTS ONLY 16+"
+      ],
       "sources": [
         "https://hrewards.com/en/steigenberger-coraya-beach-marsa-alam",
         "https://hrewards.com/en/destinations/egypt/marsa-alam-hotels"
-      ]
+      ],
+      "text": "✈️ Steigenberger Coraya Beach 5★\nТур с перелётом в Марса Алам 🇪🇬\n\nОтель в бухте Корайя с корпусами в нубийском стиле и зелёными садами 🌴\n\n🏖️ Собственный песчаный пляж длиной 800 м.\n🐠 Домашний коралловый риф для снорклинга.\n🏊 Три бассейна.\n🍽️ Четыре ресторана и бедуинская зона Al Walimah.\n\nℹ️ Отель принимает только гостей от 16 лет.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-steigenberger-coraya-beach-263-v1",
+      "text_sha256": "6086e9ddd67328d94a12dc11cb18e38f324a33a40c9d497715e8b3a56abfeafc",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/263.png",
+      "photo_sha256": "90589bd55e510901064ed8ccc883b21533dba0497afee01435a467f0514242eb",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
     }
   ]
 }
