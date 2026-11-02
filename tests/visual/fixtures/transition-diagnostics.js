@@ -3,7 +3,8 @@ const path=require('node:path');
 const TARGETS=new Map([
   ['manager-ai-draft.spec.js',new Set([
     'current-trip panel closes on conversation and account change, ignores late profile reads',
-    'AI rejects a same-ID edit while the cached reply is pending'
+    'AI rejects a same-ID edit while the cached reply is pending',
+    'AI rejects a arrival while the cached reply is pending'
   ])],
   ['manager-assistant.spec.js',new Set(['Manager assistant unifies list and current-client advice without touching reply 390'])],
   ['manager-manual-groups.spec.js',new Set([
