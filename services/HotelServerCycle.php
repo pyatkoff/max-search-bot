@@ -46,6 +46,50 @@ final class HotelServerCycle
         });
     }
 
+    /** Forward-only handoff. The caller supplies new tasks, never inherited accepted records.
+     * No provider or runtime configuration is touched; enable remains a separate action.
+     */
+    public function bootstrapNext(string $predecessorId, string $expectedBootstrapSha256, string $expectedBaselineSha256,
+        string $successorId, HotelServerInputs $inputs, array $plan, callable $authorized): array
+    {
+        self::id($predecessorId); self::id($successorId); $this->validatePlan($plan);
+        HotelServerInputs::sha($expectedBootstrapSha256); HotelServerInputs::sha($expectedBaselineSha256);
+        $p=$inputs->package();
+        try {
+            return $this->lane->handoff($predecessorId,$successorId,$authorized,function() use($predecessorId,$expectedBootstrapSha256,$expectedBaselineSha256,$successorId,$p,$plan): array {
+                $previous=$this->required($this->one('SELECT * FROM hotel_server_campaigns WHERE campaign_id=?'.$this->lock(),[$predecessorId]));
+                if ($previous['bootstrap_sha256']!==$expectedBootstrapSha256 || $previous['baseline_sha256']!==$expectedBaselineSha256
+                    || (int)$previous['enabled']!==1) throw new DomainException('predecessor_CAS');
+                if ($this->one('SELECT campaign_id FROM hotel_server_campaigns WHERE campaign_id=?',[$successorId])) throw new DomainException('successor_campaign_exists');
+                if ((int)$this->one('SELECT COUNT(*) AS n FROM hotel_server_campaigns WHERE enabled=1 AND campaign_id<>?',[$predecessorId])['n']!==0)
+                    throw new DomainException('one_enabled_campaign_required');
+                $this->verifyInputs($previous); $old=$this->package($predecessorId);
+                $this->sameHistory($old,$p); $evidence=$this->completedEvidence($previous);
+                $seed=['schema'=>'hotel-server-continuation-seed-v1','retained_baseline_sha256'=>$p['pins']['baseline'],
+                    'predecessor'=>['campaign_id'=>$predecessorId,'bootstrap_sha256'=>$expectedBootstrapSha256,
+                        'baseline_sha256'=>$expectedBaselineSha256,'inputs_sha256'=>$previous['inputs_sha256'],'receipts'=>$evidence['receipts']],
+                    'records'=>$evidence['records']];
+                $seedBytes=HotelServerInputs::json($seed);
+                if (strlen($seedBytes)>1048576) throw new DomainException('continuation_seed_bound');
+                $seedSha=hash('sha256',$seedBytes);
+                $bootstrap=hash('sha256',HotelServerInputs::json([$p['inputs_sha256'],$plan,['continuation_seed_sha256'=>$seedSha]]));
+                $this->exec('INSERT INTO hotel_server_campaigns(campaign_id,state,enabled,stage_cursor,new_accepted,historical_accepted,baseline_sha256,inputs_sha256,bootstrap_sha256,plan_bytes,reserved_calls,reserved_tokens,reserved_micros) VALUES(?,?,0,0,0,19,?,?,?,?,0,0,0)',
+                    [$successorId,'disabled',$seedSha,$p['inputs_sha256'],$bootstrap,HotelServerInputs::json($plan)]);
+                $this->exec('INSERT INTO hotel_server_inputs(campaign_id,inputs_sha256,package_bytes) VALUES(?,?,?)',[$successorId,$p['inputs_sha256'],HotelServerInputs::json($p)]);
+                $this->exec('INSERT INTO hotel_server_baselines(campaign_id,baseline_sha256,parent_sha256,document_bytes) VALUES(?,?,NULL,?)',[$successorId,$seedSha,$seedBytes]);
+                // Includes dynamic reserves that were added after the original immutable import.
+                $s=$this->pdo->prepare('SELECT semantic_key,kind FROM hotel_server_exclusions WHERE campaign_id=?');$s->execute([$predecessorId]);
+                $excluded=$p['exclusions'];foreach($s->fetchAll(PDO::FETCH_ASSOC) as $row)$excluded[$row['semantic_key']]=$row['kind'];$s->closeCursor();
+                foreach($excluded as $key=>$kind)$this->exec('INSERT INTO hotel_server_exclusions(campaign_id,semantic_key,kind) VALUES(?,?,?)',[$successorId,$key,$kind]);
+                foreach($plan['stages'] as $scopes)$this->safeScopes($successorId,$scopes);
+                $changed=$this->exec("UPDATE hotel_server_campaigns SET enabled=0 WHERE campaign_id=? AND enabled=1 AND state='complete' AND bootstrap_sha256=? AND baseline_sha256=?",[$predecessorId,$expectedBootstrapSha256,$expectedBaselineSha256]);
+                if($changed!==1)throw new DomainException('predecessor_CAS');
+                $next=$this->campaign($successorId);$this->verifyInputs($next);$this->enqueue($successorId,0,'producer');
+                $this->fault('handoff_before_commit');return $this->projection($next);
+            });
+        } finally { $this->inputCache=null; $this->inputCacheCampaign=null; }
+    }
+
     /** Merely calling tick on a disabled campaign does not activate it. */
     public function enable(string $id, string $bootstrapPin, callable $authorized): array
     {
@@ -238,13 +282,154 @@ final class HotelServerCycle
         return $result['bytes'];
     }
 
+    private function sameHistory(array $old,array $next): void
+    {
+        foreach(['baseline','accepted_mapping','quarantine_mapping','accepted_context','legacy_availability','reserves'] as $name)
+            if(($old['pins'][$name]??null)!==($next['pins'][$name]??null)
+                ||($old['bytes'][$name]??null)!==($next['bytes'][$name]??null))throw new DomainException('continuation_history_changed');
+        foreach(['retirement_sha256','registry','quarantine','accepted_context','retained','retained_admission','exclusions'] as $name)
+            if(HotelServerInputs::json($old[$name]??null)!==HotelServerInputs::json($next[$name]??null))throw new DomainException('continuation_history_changed');
+        $a=$old['bytes']['retained_parts'];$b=$next['bytes']['retained_parts'];ksort($a);ksort($b);
+        if($a!==$b)throw new DomainException('continuation_history_changed');
+    }
+
+    /** One root per campaign. A continuation root is bound into its bootstrap pin. */
+    private function baselineRoot(array $c,array $p): array
+    {
+        $s=$this->pdo->prepare('SELECT * FROM hotel_server_baselines WHERE campaign_id=? AND parent_sha256 IS NULL');$s->execute([$c['campaign_id']]);
+        $rows=$s->fetchAll(PDO::FETCH_ASSOC);$s->closeCursor();
+        if(count($rows)!==1||hash('sha256',$rows[0]['document_bytes'])!==$rows[0]['baseline_sha256'])throw new DomainException('baseline_root_invalid');
+        $root=$rows[0];$parts=[$c['inputs_sha256'],$this->plan($c)];$seed=null;
+        if($root['baseline_sha256']===$p['pins']['baseline']){
+            if($root['document_bytes']!==$p['bytes']['baseline'])throw new DomainException('baseline_root_invalid');
+        }else{
+            if(strlen($root['document_bytes'])>1048576)throw new DomainException('continuation_seed_bound');
+            $seed=json_decode($root['document_bytes'],true,64,JSON_THROW_ON_ERROR);
+            if(!is_array($seed)||HotelServerInputs::json($seed)!==$root['document_bytes']
+                ||($seed['schema']??null)!=='hotel-server-continuation-seed-v1'
+                ||($seed['retained_baseline_sha256']??null)!==$p['pins']['baseline']
+                ||!is_array($seed['predecessor']??null)||!is_array($seed['records']??null)||!array_is_list($seed['records']))throw new DomainException('continuation_seed_invalid');
+            $parts[]=['continuation_seed_sha256'=>$root['baseline_sha256']];
+        }
+        if(hash('sha256',HotelServerInputs::json($parts))!==$c['bootstrap_sha256'])throw new DomainException('campaign_bootstrap_conflict');
+        return $root+['seed'=>$seed];
+    }
+
+    /** Recheck canonical acceptance, not merely a complete flag or exported records. */
+    private function acceptedStage(array $c,int $stage,string $parent): array
+    {
+        $id=$c['campaign_id'];$plan=$this->plan($c);$p=$this->package($id);$candidate=$this->candidate($id,$stage);
+        $review=$this->required($this->one('SELECT * FROM hotel_server_reviews WHERE campaign_id=? AND stage_index=?',[$id,$stage]));
+        $attempts=['producer'=>$this->attempt($candidate['producer_attempt']),'reviewer'=>$this->attempt($review['review_attempt'])];$requests=[];$results=[];
+        foreach($attempts as $role=>$a){
+            $r=json_decode($a['request_bytes'],true,64,JSON_THROW_ON_ERROR);$result=json_decode($a['result_bytes']??'null',true,64,JSON_THROW_ON_ERROR);
+            if($a['campaign_id']!==$id||(int)$a['stage_index']!==$stage||$a['role']!==$role||$a['state']!=='succeeded'||$a['baseline_sha256']!==$parent
+                ||($r['inputs_sha256']??null)!==$c['inputs_sha256']||($r['criteria_sha256']??null)!==$p['pins']['criteria']||($r['model']??null)!==$plan['models'][$role]
+                ||HotelServerInputs::json($r['scopes']??null)!==HotelServerInputs::json($plan['stages'][$stage])
+                ||HotelServerInputs::json($r['limits']??null)!==HotelServerInputs::json($plan['limits'])||!is_array($result)||isset($result['provider_outcome']))throw new DomainException('predecessor_attempt_unconfirmed');
+            foreach(['attempt_id','principal','baseline_sha256'] as $field)if(($result[$field]??null)!==$a[$field])throw new DomainException('predecessor_attempt_unconfirmed');
+            if(($result['inputs_sha256']??null)!==$c['inputs_sha256'])throw new DomainException('predecessor_attempt_unconfirmed');
+            $requests[$role]=$r;$results[$role]=$result;
+        }
+        if($attempts['producer']['attempt_id']===$attempts['reviewer']['attempt_id']||$attempts['producer']['principal']===$attempts['reviewer']['principal']
+            ||($requests['producer']['candidate']??null)!==null||($requests['producer']['candidate_sha256']??null)!==null
+            ||HotelServerInputs::json($results['producer']['candidate']??null)!==$candidate['candidate_bytes']
+            ||($requests['reviewer']['candidate_sha256']??null)!==$candidate['candidate_sha256']
+            ||HotelServerInputs::json($requests['reviewer']['candidate']??null)!==$candidate['candidate_bytes']
+            ||(int)$review['approved']!==1||$review['candidate_sha256']!==$candidate['candidate_sha256']||$review['review_bytes']!==$attempts['reviewer']['result_bytes']
+            ||($results['reviewer']['approved']??null)!==true||($results['reviewer']['candidate_sha256']??null)!==$candidate['candidate_sha256']
+            ||($results['reviewer']['criteria_sha256']??null)!==$p['pins']['criteria']
+            ||!is_string($results['reviewer']['evidence']??null)||trim($results['reviewer']['evidence'])==='')throw new DomainException('predecessor_review_unconfirmed');
+        $document=json_decode($candidate['candidate_bytes'],true,64,JSON_THROW_ON_ERROR);$this->validateCandidate($document,$requests['producer']);
+        $deltaBytes=HotelServerInputs::json(['schema'=>'hotel-server-baseline-v1','parent_sha256'=>$parent,'candidate_sha256'=>$candidate['candidate_sha256'],'records'=>$document['records']]);
+        $baseline=hash('sha256',$deltaBytes);$delta=$this->required($this->one('SELECT * FROM hotel_server_baselines WHERE campaign_id=? AND baseline_sha256=?',[$id,$baseline]));
+        if($delta['parent_sha256']!==$parent||$delta['document_bytes']!==$deltaBytes)throw new DomainException('predecessor_baseline_unconfirmed');
+        $receipt=['schema'=>'hotel-server-acceptance-v1','campaign_id'=>$id,'stage_index'=>$stage,'candidate_sha256'=>$candidate['candidate_sha256'],
+            'producer_attempt'=>$attempts['producer']['attempt_id'],'review_attempt'=>$attempts['reviewer']['attempt_id'],
+            'previous_baseline_sha256'=>$parent,'baseline_sha256'=>$baseline,'inputs_sha256'=>$c['inputs_sha256'],'new_acceptance_credit'=>1,'historical_accepted'=>19];
+        if(isset($p['retained_admission']))$receipt['retained_admission']=$p['retained_admission'];
+        $row=$this->required($this->one('SELECT * FROM hotel_server_receipts WHERE campaign_id=? AND stage_index=?',[$id,$stage]));
+        if($row['receipt_bytes']!==HotelServerInputs::json($receipt)||hash('sha256',$row['receipt_bytes'])!==$row['receipt_sha256'])throw new DomainException('predecessor_receipt_unconfirmed');
+        $records=[];$values=[];
+        foreach($document['records'] as $record){
+            $key=HotelServerInputs::key($record['scope']);$bytes=HotelServerInputs::json($record);
+            $saved=$this->required($this->one('SELECT * FROM hotel_server_records WHERE semantic_key=?',[$key]));
+            if($saved['campaign_id']!==$id||$saved['candidate_sha256']!==$candidate['candidate_sha256']||$saved['record_bytes']!==$bytes)throw new DomainException('predecessor_record_unconfirmed');
+            $records[$key]=['semantic_key'=>$key,'campaign_id'=>$id,'stage_index'=>$stage,'candidate_sha256'=>$candidate['candidate_sha256'],
+                'receipt_sha256'=>$row['receipt_sha256'],'record_sha256'=>hash('sha256',$bytes)];$values[$key]=$record;
+        }
+        foreach($attempts as $role=>$a){$out=$this->required($this->one('SELECT * FROM hotel_server_outbox WHERE campaign_id=? AND stage_index=? AND role=?',[$id,$stage,$role]));
+            if($out['state']!=='done'||$out['attempt_id']!==$a['attempt_id'])throw new DomainException('predecessor_outbox_unconfirmed');}
+        $out=$this->required($this->one('SELECT * FROM hotel_server_catalog_outbox WHERE receipt_sha256=?',[$row['receipt_sha256']]));
+        if($out['campaign_id']!==$id||$out['payload_bytes']!==$deltaBytes||!in_array($out['state'],['pending','done'],true))throw new DomainException('predecessor_projection_unconfirmed');
+        return ['baseline_sha256'=>$baseline,'receipt'=>['stage_index'=>$stage,'receipt_sha256'=>$row['receipt_sha256']],'records'=>$records,'values'=>$values];
+    }
+
+    /** The flattened references stay compact; only this campaign's at most ten deltas are walked. */
+    private function completedEvidence(array $c): array
+    {
+        $plan=$this->plan($c);$this->validatePlan($plan);$n=count($plan['stages']);
+        if($c['state']!=='complete'||(int)$c['stage_cursor']!==$n||(int)$c['new_accepted']!==$n||(int)$c['historical_accepted']!==19
+            ||(int)$c['reserved_calls']!==2*$n||(int)$c['reserved_tokens']!==2*$n*$plan['limits']['tokens_per_call']
+            ||(int)$c['reserved_micros']!==2*$n*$plan['limits']['micros_per_call'])throw new DomainException('predecessor_not_complete');
+        $this->verifyInputs($c,false);$root=$this->baselineRoot($c,$this->package($c['campaign_id']));$parent=$root['baseline_sha256'];$records=[];$receipts=[];$stages=[];
+        foreach($root['seed']['records']??[] as $record){$key=HotelServerInputs::sha($record['semantic_key']??null);
+            if(isset($records[$key]))throw new DomainException('continuation_duplicate_record');$records[$key]=$record;}
+        foreach($plan['stages'] as $stage=>$scopes){
+            $e=$this->acceptedStage($c,$stage,$parent);$stages[$stage]=$e;$receipts[]=$e['receipt'];$parent=$e['baseline_sha256'];
+            foreach($e['records'] as $key=>$record){if(isset($records[$key]))throw new DomainException('continuation_duplicate_record');$records[$key]=$record;}
+        }
+        if($parent!==$c['baseline_sha256'])throw new DomainException('predecessor_baseline_unconfirmed');
+        foreach(['attempts'=>2*$n,'outbox'=>2*$n,'candidates'=>$n,'reviews'=>$n,'receipts'=>$n,'baselines'=>$n+1,
+            'catalog_outbox'=>$n,'records'=>array_sum(array_map('count',$plan['stages']))] as $table=>$expected)
+            if((int)$this->one('SELECT COUNT(*) AS n FROM hotel_server_'.$table.' WHERE campaign_id=?',[$c['campaign_id']])['n']!==$expected)throw new DomainException('predecessor_counts_unconfirmed');
+        ksort($records);return ['records'=>array_values($records),'receipts'=>$receipts,'stages'=>$stages];
+    }
+
+    private function continuationRecords(array $c,array $seed): array
+    {
+        $expected=['schema','retained_baseline_sha256','predecessor','records'];$keys=array_keys($seed);sort($keys);sort($expected);
+        if($keys!==$expected)throw new DomainException('continuation_seed_invalid');
+        $pin=$seed['predecessor'];$keys=array_keys($pin);sort($keys);$expected=['baseline_sha256','bootstrap_sha256','campaign_id','inputs_sha256','receipts'];
+        if($keys!==$expected||!is_string($pin['campaign_id'])||$pin['campaign_id']===$c['campaign_id'])throw new DomainException('continuation_predecessor_invalid');
+        self::id($pin['campaign_id']);$previous=$this->campaign($pin['campaign_id']);
+        foreach(['baseline_sha256','bootstrap_sha256','inputs_sha256'] as $field)
+            if(HotelServerInputs::sha($pin[$field])!==$previous[$field])throw new DomainException('continuation_predecessor_CAS');
+        if((int)$previous['enabled']!==0)throw new DomainException('continuation_predecessor_CAS');
+        $this->sameHistory($this->package($previous['campaign_id']),$this->package($c['campaign_id']));
+        $e=$this->completedEvidence($previous);
+        if(HotelServerInputs::json($pin['receipts'])!==HotelServerInputs::json($e['receipts'])
+            ||HotelServerInputs::json($seed['records'])!==HotelServerInputs::json($e['records']))throw new DomainException('continuation_seed_lineage');
+        $cache=[];foreach($e['stages'] as $stage=>$proof)$cache[$previous['campaign_id']."\0".$stage]=$proof;
+        $values=[];
+        foreach($seed['records'] as $record){
+            $key=HotelServerInputs::sha($record['semantic_key']??null);$owner=$record['campaign_id']??null;$stage=$record['stage_index']??null;
+            if(!is_string($owner)||!is_int($stage)||$stage<0||$stage>=10)throw new DomainException('continuation_record_invalid');
+            self::id($owner);$cacheKey=$owner."\0".$stage;
+            if(!isset($cache[$cacheKey])){
+                $origin=$this->campaign($owner);$this->verifyInputs($origin,false);
+                $receipt=$this->required($this->one('SELECT * FROM hotel_server_receipts WHERE campaign_id=? AND stage_index=?',[$owner,$stage]));
+                $body=json_decode($receipt['receipt_bytes'],true,64,JSON_THROW_ON_ERROR);
+                $cache[$cacheKey]=$this->acceptedStage($origin,$stage,HotelServerInputs::sha($body['previous_baseline_sha256']??null));
+            }
+            $proof=$cache[$cacheKey];
+            if(!isset($proof['records'][$key])||HotelServerInputs::json($record)!==HotelServerInputs::json($proof['records'][$key])||isset($values[$key]))throw new DomainException('continuation_record_unconfirmed');
+            $values[$key]=$proof['values'][$key];
+        }
+        return $values;
+    }
+
     private function acceptedView(array $c,?array $scopes): array
     {
         $p=$this->package($c['campaign_id']);$records=[];
         foreach($p['retained']['model_records'] as $r)$records[HotelServerInputs::key($r['scope'])]=$r;
         foreach($p['accepted_context'] as $r)$records[HotelServerInputs::key($r['scope'])]=$r;
+        $root=$this->baselineRoot($c,$p);
+        if($root['seed']!==null)foreach($this->continuationRecords($c,$root['seed']) as $key=>$record){
+            if(isset($records[$key]))throw new DomainException('duplicate_accepted_baseline_key');$records[$key]=$record;
+        }
         $hash=$c['baseline_sha256'];$deltas=[];$seen=[];
-        while($hash!==$p['pins']['baseline']){
+        while($hash!==$root['baseline_sha256']){
             if(isset($seen[$hash])||count($seen)>=10)throw new DomainException('baseline_chain_invalid');$seen[$hash]=true;
             $row=$this->required($this->one('SELECT * FROM hotel_server_baselines WHERE campaign_id=? AND baseline_sha256=?',[$c['campaign_id'],$hash]));
             if(!hash_equals($hash,hash('sha256',$row['document_bytes'])))throw new DomainException('baseline_bytes_mismatch');
@@ -281,7 +466,7 @@ final class HotelServerCycle
         if ($expected!==$actual || count(array_unique($actual))!==count($actual)) throw new DomainException('candidate_exact_scope_required');
     }
 
-    private function verifyInputs(array $c): void
+    private function verifyInputs(array $c,bool $verifySeed=true): void
     {
         $p=$this->package($c['campaign_id']); $identity=$p; unset($identity['inputs_sha256'],$identity['bytes']);
         if (hash('sha256',HotelServerInputs::json($identity))!==$c['inputs_sha256'] || $p['inputs_sha256']!==$c['inputs_sha256'] || count($p['registry'])!==19) throw new DomainException('immutable_inputs_mismatch');
@@ -289,6 +474,8 @@ final class HotelServerCycle
         HotelRetainedBaseline::verify($p['retained']??[],$p['bytes']['retained_parts']??[]);
         $b=$this->one('SELECT document_bytes FROM hotel_server_baselines WHERE campaign_id=? AND baseline_sha256=?',[$c['campaign_id'],$c['baseline_sha256']]);
         if (!$b || hash('sha256',$b['document_bytes'])!==$c['baseline_sha256']) throw new DomainException('baseline_bytes_mismatch');
+        $root=$this->baselineRoot($c,$p);
+        if($verifySeed&&$root['seed']!==null)$this->continuationRecords($c,$root['seed']);
     }
 
     private function safeScopes(string $id,array $scopes): void
