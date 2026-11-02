@@ -1,0 +1,102 @@
+{
+  "operation": "commercial-hotel-batch-20261102-14-v1",
+  "state": "TEN_IDENTITIES_SELECTED_PRIMARY_FACTS_READ_MEDIA_PENDING",
+  "goal": "Publish ten whole hotel materials from current proven stock through the existing two channels.",
+  "boundaries": "Seven specific Pickalbatros resorts and three Steigenberger resorts only. No old publication edits, current prices, client actions or new runtime.",
+  "criteria": "Useful verified properties and important distinction, real general hotel image, readable AnyTour cover, canonical button and live deduplication.",
+  "risks": "Laguna Club uses some Laguna Vista facilities and is on the second line. Aqua Vista and Alaya service rights must not be generalized. Unavailable media does not block ready hotels.",
+  "rows": [
+    {
+      "key": "albatros-royal-moderna",
+      "hotel_id": 389,
+      "hotel": "PICKALBATROS ROYAL MODERNA SHARM EL SHEIKH",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_PRIMARY_SOURCE_AND_COVER_NOT_READY",
+      "main": "https://www.pickalbatros.com/royal-moderna-resort-sharm-el-sheikh",
+      "facts": "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-royal-moderna-resort-sharm-el-sheikh"
+    },
+    {
+      "key": "albatros-aqua-vista",
+      "hotel_id": 109,
+      "hotel": "PICKALBATROS AQUA VISTA RESORT",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_PRIMARY_SOURCE_AND_COVER_NOT_READY",
+      "identity_note": "Exact branded PICKALBATROS row; unbranded AQUA VISTA104856 remains separate and unresolved.",
+      "main": "https://www.pickalbatros.com/aqua-vista-resort-hurghada",
+      "facts": "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-aqua-vista-resort"
+    },
+    {
+      "key": "albatros-laguna-vista-beach",
+      "hotel_id": 293,
+      "hotel": "PICKALBATROS LAGUNA VISTA BEACH",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_PRIMARY_SOURCE_AND_COVER_NOT_READY",
+      "identity_note": "Current LAGUNA VISTA BEACH row; Laguna Club107965 includes Vista Garden only in its former name.",
+      "main": "https://www.pickalbatros.com/laguna-vista-hotel-sharm-el-sheikh",
+      "facts": "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-laguna-vista-hotel-sharm-el-sheikh"
+    },
+    {
+      "key": "albatros-laguna-club",
+      "hotel_id": 107965,
+      "hotel": "PICKALBATROS LAGUNA CLUB RESORT (EX. ALBATROS LAGUNA VISTA GARDEN)",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_PRIMARY_SOURCE_AND_COVER_NOT_READY",
+      "main": "https://www.pickalbatros.com/laguna-club-resort-sharm-el-sheikh",
+      "facts": "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-laguna-club-family-resort"
+    },
+    {
+      "key": "albatros-royal-grand",
+      "hotel_id": 393,
+      "hotel": "PICKALBATROS ROYAL GRAND RESORT ADULTS ONLY 16+",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_PRIMARY_SOURCE_AND_COVER_NOT_READY",
+      "main": "https://www.pickalbatros.com/royal-grand-resort-sharm-el-sheikh",
+      "facts": "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-royal-grand-sharm-el-sheikh"
+    },
+    {
+      "key": "albatros-blu-spa",
+      "hotel_id": 78898,
+      "hotel": "PICKALBATROS BLU SPA RESORT HURGHADA ADULTS ONLY 16+",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_PRIMARY_SOURCE_AND_COVER_NOT_READY",
+      "main": "https://www.pickalbatros.com/blu-spa-resort-hurghada",
+      "facts": "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-blu-spa-resort"
+    },
+    {
+      "key": "albatros-vita-portofino",
+      "hotel_id": 83105,
+      "hotel": "PICKALBATROS VITA RESORT PORTOFINO MARSA ALAM",
+      "region": "Марса Алам",
+      "state": "CATALOG_CONFIRMED_PRIMARY_SOURCE_AND_COVER_NOT_READY",
+      "main": "https://www.pickalbatros.com/vita-resort-portofino-marsa-alam",
+      "facts": "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-vita-resort-portofino"
+    },
+    {
+      "key": "alaya",
+      "hotel_id": 69155,
+      "hotel": "STEIGENBERGER RESORT ALAYA MARSA ALAM ADULTS ONLY",
+      "region": "Марса Алам",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY",
+      "main": "https://hrewards.com/en/steigenberger-resort-alaya-marsa-alam",
+      "facts": "https://hrewards.com/en/steigenberger-resort-alaya-marsa-alam"
+    },
+    {
+      "key": "ras-soma",
+      "hotel_id": 69409,
+      "hotel": "STEIGENBERGER RESORT RAS SOMA",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY",
+      "main": "https://hrewards.com/en/steigenberger-resort-ras-soma-safaga",
+      "facts": "https://hrewards.com/en/steigenberger-resort-ras-soma-safaga"
+    },
+    {
+      "key": "steigenberger-coraya-beach",
+      "hotel_id": 263,
+      "hotel": "STEIGENBERGER CORAYA BEACH ADULTS ONLY 16+",
+      "region": "Марса Алам",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY",
+      "main": "https://hrewards.com/en/steigenberger-coraya-beach-marsa-alam",
+      "facts": "https://hrewards.com/en/steigenberger-coraya-beach-marsa-alam"
+    }
+  ]
+}

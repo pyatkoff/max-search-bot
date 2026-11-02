@@ -1,8 +1,8 @@
 import base64,html,json,re,urllib.parse,urllib.request
 from pathlib import Path
-operation='commercial-batch13-public-media-20261102-read1'
-pages=["https://www.pickalbatros.com/citadel-resort-sahl-hasheesh","https://www.pickalbatros.com/sands-hotel-port-ghalib","https://www.pickalbatros.com/palace-hotel-port-ghalib","https://www.pickalbatros.com/oasis-hotel-port-ghalib","https://www.pickalbatros.com/jungle-aqua-park-resort-neverland-hurghada","https://www.pickalbatros.com/aqua-park-resort-sharm-el-sheikh","https://www.pickalbatros.com/aqua-blu-resort-sharm-el-sheikh","https://www.pickalbatros.com/beach-albatros-resort-hurghada","https://desertrose.com/?lang=en","https://www.reefoasisresorts.com/reef-oasis-beach-resorts"]
-hosts=set(["www.pickalbatros.com","pickalbatros.com","image-tc.galaxy.tf","desertrose.com","www.desertrose.com","www.reefoasisresorts.com","reefoasisresorts.com","irp.cdn-website.com"])
+operation='commercial-batch14-public-media-20261102-read1'
+pages=["https://www.pickalbatros.com/royal-moderna-resort-sharm-el-sheikh","https://www.pickalbatros.com/aqua-vista-resort-hurghada","https://www.pickalbatros.com/laguna-vista-hotel-sharm-el-sheikh","https://www.pickalbatros.com/laguna-club-resort-sharm-el-sheikh","https://www.pickalbatros.com/royal-grand-resort-sharm-el-sheikh","https://www.pickalbatros.com/blu-spa-resort-hurghada","https://www.pickalbatros.com/vita-resort-portofino-marsa-alam","https://hrewards.com/en/steigenberger-resort-alaya-marsa-alam","https://hrewards.com/en/steigenberger-resort-ras-soma-safaga","https://hrewards.com/en/steigenberger-coraya-beach-marsa-alam"]
+hosts=set(["www.pickalbatros.com","pickalbatros.com","image-tc.galaxy.tf","hrewards.com","assets.hrewards.com"])
 class Redirect(urllib.request.HTTPRedirectHandler):
  def redirect_request(self,req,fp,code,msg,headers,newurl):
   p=urllib.parse.urlsplit(newurl)
