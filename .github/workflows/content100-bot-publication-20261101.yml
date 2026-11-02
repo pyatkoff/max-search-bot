@@ -44,7 +44,8 @@ jobs:
           import os,pathlib
           source=pathlib.Path('tools/direct_demand/operations/read-commercial-price-monitor-20261102.php').read_text()
           assert source.startswith('<?php\n') and 'message_sends' in source
-          source=source.replace('<?php\n','<?php\ndefine("EXPECTED_INSTALLED_SHA", "'+os.environ['EXPECTED_PRODUCTION_SHA']+'");\n',1)
+          assert source.count('declare(strict_types=1);')==1
+          source=source.replace('declare(strict_types=1);','declare(strict_types=1);\ndefine("EXPECTED_INSTALLED_SHA", "'+os.environ['EXPECTED_PRODUCTION_SHA']+'");',1)
           target=pathlib.Path(os.environ['RUNNER_TEMP'])/'channel-preflight.php'
           target.write_text(source)
           target.chmod(0o600)
