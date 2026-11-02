@@ -1,0 +1,99 @@
+name: Read two reported MAX posts 20261102
+
+on:
+  push:
+    branches: [ops/max-reported-post-read-20261102]
+    paths:
+      - .github/workflows/max-reported-post-diagnostic-20261102.yml
+      - tools/direct_demand/operations/read_reported_max_posts_20261102.php
+      - tools/direct_demand/operations/max_post_diagnostic_recipient_20261102.pem
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: max-reported-post-read-20261102
+  cancel-in-progress: false
+
+env:
+  EXPECTED_PRODUCTION_SHA: e768a32947cdb489091083d97ae1772741089699
+
+jobs:
+  read:
+    if: github.ref == 'refs/heads/ops/max-reported-post-read-20261102' && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Read the exact reviewed diagnostic source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+          persist-credentials: false
+
+      - name: Verify source and existing deployment before credentials
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = "$EXPECTED_PRODUCTION_SHA"
+          php -l tools/direct_demand/operations/read_reported_max_posts_20261102.php
+          openssl x509 -in tools/direct_demand/operations/max_post_diagnostic_recipient_20261102.pem -checkend 0 -noout
+          test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = "$EXPECTED_PRODUCTION_SHA"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/41438230872 --jq '{head_sha,status,conclusion,run_attempt}' > "$RUNNER_TEMP/max-post-deploy.json"
+          python3 - <<'PY'
+          import json, os
+          with open(os.environ['RUNNER_TEMP']+'/max-post-deploy.json') as f:
+              d=json.load(f)
+          assert d == {'head_sha':os.environ['EXPECTED_PRODUCTION_SHA'], 'status':'completed', 'conclusion':'success', 'run_attempt':1}
+          PY
+
+      - name: Read only the two reported posts and encrypt the receipt
+        env:
+          READ_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          READ_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          READ_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          key_file="$RUNNER_TEMP/max-post-read-key"
+          log_file="$RUNNER_TEMP/max-post-read-errors"
+          test -n "$READ_SSH_KEY_VALUE"
+          test -n "$READ_HOST"
+          test -n "$READ_USER"
+          raw="$READ_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key_file"; else printf '%s\n' "$raw" | tr -d '\r' > "$key_file"; fi
+          else
+            printf '%s' "$raw" | base64 --decode > "$key_file"
+          fi
+          chmod 600 "$key_file"
+          ssh-keygen -y -f "$key_file" >/dev/null
+          ssh_opts=(-i "$key_file" -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$RUNNER_TEMP/max-post-read-known-hosts" -o BatchMode=yes -o ConnectTimeout=15)
+          remote="set -eu; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; git diff --quiet; git diff --cached --quiet; php_status=0; php -d display_errors=stderr -d log_errors=0 || php_status=\$?; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; git diff --quiet; git diff --cached --quiet; exit \"\$php_status\""
+          status=0
+          ssh "${ssh_opts[@]}" "$READ_USER@$READ_HOST" "$remote" < tools/direct_demand/operations/read_reported_max_posts_20261102.php 2> "$log_file" \
+            | openssl cms -encrypt -aes-256-gcm -binary -outform DER -out "$RUNNER_TEMP/max-post-read.cms" tools/direct_demand/operations/max_post_diagnostic_recipient_20261102.pem || status=$?
+          test -s "$RUNNER_TEMP/max-post-read.cms"
+          printf 'MAX_POST_READ_CMS_BEGIN\n'
+          base64 -w 0 "$RUNNER_TEMP/max-post-read.cms"
+          printf '\nMAX_POST_READ_CMS_END\n'
+          exit "$status"
+
+      - name: Confirm the production source remained unchanged
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = "$EXPECTED_PRODUCTION_SHA"
+
+      - name: Remove ephemeral credentials and encrypted intermediates
+        if: always()
+        shell: bash
+        run: |
+          rm -f "$RUNNER_TEMP/max-post-read-key" "$RUNNER_TEMP/max-post-read-errors" "$RUNNER_TEMP/max-post-read-known-hosts" "$RUNNER_TEMP/max-post-read.cms" "$RUNNER_TEMP/max-post-deploy.json"
