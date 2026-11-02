@@ -10,7 +10,7 @@ concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 env:
-  EXPECTED_PRODUCTION_SHA: 326048d7e9ee3b035699f2b5385d07e5f0b3db8d
+  EXPECTED_PRODUCTION_SHA: ea70e1988b9fb0eb04c23dad12f1bc182acf5d68
 jobs:
   inspect:
     if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
@@ -29,12 +29,12 @@ jobs:
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = "$EXPECTED_PRODUCTION_SHA"
-          conclusion=$(gh api "repos/pyatkoff/max-search-bot/actions/runs/41502817812/jobs?per_page=20" --jq '[.jobs[] | select(.name=="verify")] | last | .conclusion')
+          conclusion=$(gh api "repos/pyatkoff/max-search-bot/actions/runs/41512654905/jobs?per_page=20" --jq '[.jobs[] | select(.name=="verify")] | last | .conclusion')
           test "$conclusion" = success
-          test "$(gh api repos/pyatkoff/max-search-bot/actions/runs/41502817812 --jq .head_sha)" = "$EXPECTED_PRODUCTION_SHA"
-          test "$(gh api repos/pyatkoff/max-search-bot/actions/runs/41502817812 --jq .conclusion)" = success
-          test "$(gh api repos/pyatkoff/max-search-bot/actions/runs/41502817579 --jq .head_sha)" = "$EXPECTED_PRODUCTION_SHA"
-          test "$(gh api repos/pyatkoff/max-search-bot/actions/runs/41502817579 --jq .conclusion)" = success
+          test "$(gh api repos/pyatkoff/max-search-bot/actions/runs/41512654905 --jq .head_sha)" = "$EXPECTED_PRODUCTION_SHA"
+          test "$(gh api repos/pyatkoff/max-search-bot/actions/runs/41512654905 --jq .conclusion)" = success
+          test "$(gh api repos/pyatkoff/max-search-bot/actions/runs/41512654921 --jq .head_sha)" = "$EXPECTED_PRODUCTION_SHA"
+          test "$(gh api repos/pyatkoff/max-search-bot/actions/runs/41512654921 --jq .conclusion)" = success
       - name: Prepare this exact approved four-hotel batch
         shell: bash
         run: |
