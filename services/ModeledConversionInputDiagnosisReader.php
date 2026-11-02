@@ -102,9 +102,35 @@ final class ModeledConversionInputDiagnosisReader
             }
             $selected=array_values($buckets);
             foreach($examples as$example){if(count($selected)>=8)break;if(!in_array($example,$selected,true))$selected[]=$example;}
-            $out['examples']=array_slice($selected,0,8);$this->auth();return $out;
+            $out['examples']=array_slice($selected,0,8);
+            $out['progress']=$this->progress();$this->auth();return $out;
         }catch(ModeledConversionStatusLimit $e){throw $e;}
         catch(PDOException|JsonException $ignored){$this->auth();return ['available'=>false,'reason'=>'saved_input_diagnosis_unavailable'];}
     }
+
+    /** Bounded derived checkpoint read; never advances either cursor. */
+    private function progress():array
+    {
+        $out=['profiles_recorded_pending_revisions'=>null,'saved_versions_waiting_for_value_inspection'=>null,
+            'value_backlog_complete_within_bound'=>null];
+        try{
+            $this->auth();
+            $safe="CASE WHEN JSON_VALID(last_receipt_json) THEN last_receipt_json ELSE '{}' END";
+            $get="JSON_EXTRACT(".$safe.",'$.pending_revisions')";
+            $type=$this->mysql?'JSON_TYPE('.$get.')':"json_type(".$safe.",'$.pending_revisions')";
+            $sql='SELECT CASE WHEN '.$type."='".($this->mysql?'INTEGER':'integer')."' AND ".$get.' BETWEEN 0 AND 1000000000 THEN CAST('
+                .$get.($this->mysql?' AS UNSIGNED)':' AS INTEGER)')." ELSE NULL END AS pending FROM modeled_conversion_profiles_state WHERE project_key='anytour' LIMIT 1";
+            $q=$this->budget->prepare($this->pdo,$sql);$q->execute();$row=$q->fetch(PDO::FETCH_ASSOC);$q->closeCursor();$this->auth();
+            $this->budget->consumeBytes(strlen(json_encode($row,JSON_THROW_ON_ERROR)));
+            if($row!==false&&is_numeric($row['pending']))$out['profiles_recorded_pending_revisions']=(int)$row['pending'];
+            $sql="SELECT COUNT(*) AS n FROM (SELECT v.id FROM modeled_conversion_profile_versions v JOIN modeled_conversion_value_export_settings s ON s.project_key=v.project_key"
+                ." WHERE s.project_key='anytour' AND s.counter_id='98615635' AND s.goal_id='678187097' AND v.id>s.profile_cursor ORDER BY v.id LIMIT 201) bounded_value_backlog";
+            $q=$this->budget->prepare($this->pdo,$sql);$q->execute();$row=$q->fetch(PDO::FETCH_ASSOC);$q->closeCursor();$this->auth();
+            $this->budget->consumeBytes(strlen(json_encode($row,JSON_THROW_ON_ERROR)));
+            if($row!==false&&is_numeric($row['n'])){$out['saved_versions_waiting_for_value_inspection']=(int)$row['n'];$out['value_backlog_complete_within_bound']=(int)$row['n']<201;}
+        }catch(PDOException $ignored){ /* Missing derived storage is unknown, never zero. */ }
+        return $out;
+    }
+
     private function auth():void{$this->budget->check();($this->authorize)();$this->budget->check();}
 }

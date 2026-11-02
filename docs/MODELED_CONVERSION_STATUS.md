@@ -303,3 +303,7 @@ budget, including final authorization. This diagnosis reads saved derived profil
 only: no source read, model, processing, queue write or upload. Metadata suffix
 completeness describes this finite saved-version window, not all inquiries/trips.
 Actual examples, counts and financial results remain private.
+
+Progress also reads the existing recorded profile pending-revision count and an
+at-most201-row saved-version suffix beyond the value cursor. It never returns or
+advances cursors, and missing checkpoint storage remains unknown rather than zero.

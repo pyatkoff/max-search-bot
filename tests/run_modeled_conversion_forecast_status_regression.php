@@ -350,6 +350,7 @@ function forecastInputDiagnosisAssertions(PDO $p,callable $check):void
         !str_contains($json,'Подберите')&&!str_contains($json,'customer_key')&&!str_contains($json,'conversation_id')
         &&!str_contains($json,'PRIVATE_')&&!str_contains($json,$human['semantic_prediction']['prediction_digest']));
     $check('derived-input read checks authorization and preserves every original profile',$auth>=3&&forecastV1Rows($p)===$before);
+    $check('missing checkpoint fields cannot fabricate an empty processing backlog',$d['progress']['profiles_recorded_pending_revisions']===null&&$d['progress']['saved_versions_waiting_for_value_inspection']===null);
     $check('snapshot activation clock is explicitly separate from customer evidence',
         $d['scope_counts']['profiles_frozen_since_value_activation']===4
         &&$d['interpretation']['frozen_since_activation_not_new_customer_evidence']);
