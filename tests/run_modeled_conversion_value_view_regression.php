@@ -145,7 +145,7 @@ $check(str_contains($profileHtml,'Прогноз ещё не сохранён')&
     'older profiles explicitly have no saved prediction rather than a zero probability');
 $check($predictionRow['known_subtotal_rub']===$profile['known_subtotal_rub']
     &&$predictionRow['stages']===$profile['stages'],'projection never changes experimental weights or awards');
-foreach(['digest','subject','raw_reason','raw_field','oversize','future_evidence','model_hash','fence']as$invalid){
+foreach(['digest','subject','raw_reason','raw_field','oversize','future_evidence','model_hash','fence','known_outcome_probability']as$invalid){
     $bad=$predictionWrapper;
     if($invalid==='digest')$bad['semantic_prediction']['estimated_probability']=0.9;
     if($invalid==='subject')$bad['semantic_prediction']['subject']['customer_key']='18';
@@ -155,6 +155,10 @@ foreach(['digest','subject','raw_reason','raw_field','oversize','future_evidence
     if($invalid==='future_evidence')$bad['semantic_prediction']['evidence'][0]['available_at']='2026-11-02T09:00:01Z';
     if($invalid==='model_hash')$bad['semantic_prediction']['model_sha256']='unknown';
     if($invalid==='fence')$bad['semantic_prediction']['source_fence_journal_id']='100';
+    if($invalid==='known_outcome_probability')$bad['semantic_prediction']['outcome_observations']=[
+        ['kind'=>'document_issuance','source_ref'=>'journal:151','occurred_at'=>'2026-11-02T08:01:00Z',
+            'available_at'=>'2026-11-02T08:01:01Z','source_version_no'=>1],
+    ];
     if($invalid!=='digest')$bad['semantic_prediction']['prediction_digest']=ModeledConversionSemanticPrediction::digest($bad['semantic_prediction']);
     $badFields=ModeledConversionValueRegistry::predictionFields($bad);
     $check($badFields['semantic_prediction']['availability']==='unavailable'
@@ -243,12 +247,16 @@ $check($currentFields['prediction_followup']['availability']==='available'
     'eligible later self report is displayed with the immutable earlier prediction');
 $check(str_contains($currentHtml,'не рассчитывается')&&str_contains($currentHtml,'без банковской проверки')
     &&str_contains($currentHtml,'не считается неоплатой'),'known outcome suppresses current P and comparison remains diagnostic');
-foreach(['reason','clock','reference','probability']as$invalid){
+foreach(['reason','clock','reference','probability','edited_anchor']as$invalid){
     $bad=$currentWrapper;
     if($invalid==='reason')$bad['prediction_followup']['reason']=$attack;
     if($invalid==='clock')$bad['prediction_followup']['evidence'][0]['available_at']='2026-11-03T11:00:01Z';
     if($invalid==='reference')$bad['prediction_followup']['evidence'][0]['source_ref']='journal:202';
     if($invalid==='probability')$bad['prediction_followup']['prior_estimated_probability']=$attack;
+    if($invalid==='edited_anchor'){
+        $bad['semantic_prediction']['anchor_source_version_no']=2;
+        $bad['semantic_prediction']['prediction_digest']=ModeledConversionSemanticPrediction::digest($bad['semantic_prediction']);
+    }
     $badFields=ModeledConversionValueRegistry::predictionFields($bad);
     $badPage=$currentPage;$badPage['rows']=[array_replace($profile,$badFields)];
     $check($badFields['prediction_followup']['availability']==='unavailable'

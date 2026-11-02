@@ -140,7 +140,7 @@ final class ModeledConversionValueRegistry
             if(!in_array($p['status'],['predicted','insufficient_context','known_outcome','access_denied'],true)
                 ||($p['stage']!==null&&!array_key_exists($p['stage'],$priors)))return null;
             if($p['status']==='predicted'){
-                if($anchor===null||$p['stage']===null||$p['base_probability']!==$priors[$p['stage']]
+                if($anchor===null||$p['stage']===null||$p['outcome_observations']!==[]||$p['base_probability']!==$priors[$p['stage']]
                     ||!self::probability($p['estimated_probability'])||!self::number($p['hypothesis_odds_multiplier'])
                     ||$p['hypothesis_odds_multiplier']<0.25||$p['hypothesis_odds_multiplier']>1.3)return null;
             }elseif($p['base_probability']!==null||$p['estimated_probability']!==null||$p['hypothesis_odds_multiplier']!==null)return null;
