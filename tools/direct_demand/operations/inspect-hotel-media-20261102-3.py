@@ -1,8 +1,8 @@
 import base64,html,json,re,urllib.parse,urllib.request
 from pathlib import Path
-operation='commercial-three-media-20261102-4-read1'
-pages=["https://voxmarisresort.com/about-us/","https://voxmarisresort.com/","https://www.clubaquaplaza.com/","https://www.clubaquaplaza.com/galeri","https://www.akrahotels.com/en/hotels/akra-antalya/","https://www.akrahotels.com/en/hotels/akra-antalya/beach-and-pools/"]
-hosts=set(["voxmarisresort.com","www.voxmarisresort.com","clubaquaplaza.com","www.clubaquaplaza.com","akrahotels.com","www.akrahotels.com","akrahotels-gvhpewgeadfsftcj.a01.azurefd.net"])
+operation='commercial-three-media-20261102-5-read1'
+pages=["https://www.sunrise-resorts.com/arabian-beach-resort","https://www.sunrise-resorts.com/arabian-beach-resort/stay/family-suite","https://www.hwaidak-hotels.com/hotels/titanic-beach","https://www.aviaresort.com/en","https://www.aviaresort.com/en/room-detail/superior-eco-room-5467"]
+hosts=set(["sunrise-resorts.com","www.sunrise-resorts.com","d1wo7kaelp5eck.cloudfront.net","www.hwaidak-hotels.com","hwaidak-hotels.com","storage.googleapis.com","www.aviaresort.com","aviaresort.com","cdn.extranetwork.com"])
 class Redirect(urllib.request.HTTPRedirectHandler):
  def redirect_request(self,req,fp,code,msg,headers,newurl):
   p=urllib.parse.urlsplit(newurl)

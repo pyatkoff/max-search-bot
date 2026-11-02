@@ -1,0 +1,66 @@
+{
+  "operation": "commercial-hotel-three-20261102-5-v1",
+  "state": "DRAFT_NOT_SENT",
+  "goal": "Publish three complete hotel posts with official real photos and canonical cost button, once in each existing channel.",
+  "boundaries": "Only accepted hotel catalogue objects 1554, 228, 4101. No invented price or availability, no ads or customer contact, no Mac access.",
+  "criteria": [
+    "Six actual provider-confirmed hotel posts, photo and canonical button, no hotel duplicates.",
+    "Plain Russian, emoji, accepted branded cover; no dash punctuation or filler.",
+    "Exact source resolution and receipts retained in existing server operation, without exporting them into the repository."
+  ],
+  "risks": [
+    "Titanic Beach is in Hurghada, not Titanic Resort or Titanic Palace and not the Turkish Titanic chain.",
+    "Sunrise Arabian official pool counts conflict within its page; do not publish a count.",
+    "Avia official location is Gündoğdu; quarantined SEAMELIA PDF is not evidence. Do not invent beach distance or transfer intervals from conflicting sources."
+  ],
+  "baseline_logical_materials": 18,
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "logical_id": "commercial-sunrise-arabian-1554-v1",
+      "hotel_id": 1554,
+      "hotel": "SUNRISE Arabian Beach Resort",
+      "aliases": [
+        "SUNRISE Arabian",
+        "Sunrise Select Arabian",
+        "Санрайз Арабиан"
+      ],
+      "sources": [
+        "https://www.sunrise-resorts.com/arabian-beach-resort",
+        "https://www.sunrise-resorts.com/arabian-beach-resort/stay/family-suite"
+      ],
+      "state": "DRAFT_MEDIA_PENDING"
+    },
+    {
+      "logical_id": "commercial-titanic-beach-228-v1",
+      "hotel_id": 228,
+      "hotel": "Titanic Beach Spa & Aqua Park",
+      "aliases": [
+        "Titanic Beach",
+        "Титаник Бич"
+      ],
+      "sources": [
+        "https://www.hwaidak-hotels.com/hotels/titanic-beach",
+        "https://joinup.lv/en/hotel/26423",
+        "https://www.bgoperator.ru/pr_img/1000512/20260420/00246693/All_Formula_Update_English_-_New.pdf"
+      ],
+      "state": "DRAFT_MEDIA_PENDING"
+    },
+    {
+      "logical_id": "commercial-avia-resort-4101-v1",
+      "hotel_id": 4101,
+      "hotel": "Avia Resort Hotel & Spa",
+      "aliases": [
+        "Avia Resort",
+        "Авиа Резорт"
+      ],
+      "sources": [
+        "https://www.aviaresort.com/en",
+        "https://www.aviaresort.com/en/room-detail/superior-eco-room-5467",
+        "https://www.schauinsland-reisen.de/hotel/1531508-avia-resort-und-spa"
+      ],
+      "state": "DRAFT_MEDIA_PENDING"
+    }
+  ],
+  "next": "Prepare official photo selection and human hotel captions. Review branded copies before the existing once-only publication operation."
+}
