@@ -98,7 +98,10 @@ final class ManagerPreparationPolicy
         if(!$pdo->inTransaction())throw new LogicException('policy_lock_requires_transaction');
         $suffix=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?' FOR UPDATE':'';
         if((int)$row['manager_id']>0){
-            $q=$pdo->prepare('SELECT id FROM managers WHERE id=? AND is_active=1'.$suffix);$q->execute([(int)$row['manager_id']]);
+            // Lock the policy owner for serialization, not as a second viewer
+            // authorization gate. Canonical snapshots allow authorized admins
+            // to inspect an inactive owner's dialogue without taking it.
+            $q=$pdo->prepare('SELECT id FROM managers WHERE id=?'.$suffix);$q->execute([(int)$row['manager_id']]);
         }else{
             $q=$pdo->prepare('SELECT id FROM projects WHERE project_key=?'.$suffix);$q->execute([$row['project_key']]);
         }
