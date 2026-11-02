@@ -1,0 +1,211 @@
+{
+  "operation": "commercial-hotel-stock-20261102-12",
+  "state": "TWENTY_FIVE_IDENTITIES_CONFIRMED_CONTENT_AND_COVERS_PENDING",
+  "hotel_count": 25,
+  "catalog_ids": [
+    383,
+    269,
+    67897,
+    75725,
+    108090,
+    73342,
+    278,
+    281,
+    246,
+    384,
+    263,
+    267,
+    150,
+    172,
+    275,
+    173,
+    110,
+    57028,
+    125,
+    178,
+    371,
+    132,
+    69155,
+    69409,
+    4184
+  ],
+  "candidates": [
+    {
+      "key": "jaz-grand-marsa",
+      "hotel_id": 383,
+      "hotel": "JAZ GRAND MARSA (EX. JAZ GRAND RESTA)",
+      "region": "Марса Алам",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "jaz-samaya",
+      "hotel_id": 269,
+      "hotel": "JAZ SAMAYA RESORT (EX. IBEROTEL SAMAYA)",
+      "region": "Марса Алам",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "jaz-elite-maraya",
+      "hotel_id": 67897,
+      "hotel": "JAZ MARAYA",
+      "region": "Марса Алам",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "jaz-costa-mares",
+      "hotel_id": 75725,
+      "hotel": "JAZ COSTA MARES ADULT ONLY (EX. IBEROTEL COSTA MARES)",
+      "region": "Марса Алам",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "jaz-elite-amara",
+      "hotel_id": 108090,
+      "hotel": "JAZ ELITE AMARA",
+      "region": "Марса Алам",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "jaz-soma-beach",
+      "hotel_id": 73342,
+      "hotel": "JAZ SOMA BEACH (EX. SOLYMAR SOMA BEACH)",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "jaz-belvedere",
+      "hotel_id": 278,
+      "hotel": "JAZ BELVEDERE",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "jaz-mirabel-beach",
+      "hotel_id": 281,
+      "hotel": "JAZ MIRABEL BEACH",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "jaz-fayrouz",
+      "hotel_id": 246,
+      "hotel": "JAZ FAYROUZ RESORT (EX. HILTON SHARM FAYROUZ RESORT)",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "jaz-neo-reef-marsa",
+      "hotel_id": 384,
+      "hotel": "JAZ NEO REEF MARSA (EX. SOLYMAR REEF MARSA)",
+      "region": "Марса Алам",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "steigenberger-coraya-beach",
+      "hotel_id": 263,
+      "hotel": "STEIGENBERGER CORAYA BEACH ADULTS ONLY 16+",
+      "region": "Марса Алам",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "iberotel-makadi-beach",
+      "hotel_id": 267,
+      "hotel": "IBEROTEL MAKADI BEACH",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "albatros-citadel",
+      "hotel_id": 150,
+      "hotel": "PICKALBATROS CITADEL RESORT SAHL HASHEESH",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "albatros-sands-port-ghalib",
+      "hotel_id": 172,
+      "hotel": "PICKALBATROS SANDS PORT GHALIB",
+      "region": "Марса Алам",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "albatros-palace-port-ghalib",
+      "hotel_id": 275,
+      "hotel": "PICKALBATROS THE PALACE PORT GHALIB",
+      "region": "Марса Алам",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "albatros-oasis-port-ghalib",
+      "hotel_id": 173,
+      "hotel": "PICKALBATROS OASIS PORT GHALIB",
+      "region": "Марса Алам",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "albatros-jungle-neverland",
+      "hotel_id": 110,
+      "hotel": "PICKALBATROS JUNGLE AQUA PARK RESORT NEVERLAND",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "albatros-aqua-park-sharm",
+      "hotel_id": 57028,
+      "hotel": "PICKALBATROS AQUA PARK SHARM",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "albatros-aqua-blu-sharm",
+      "hotel_id": 125,
+      "hotel": "PICKALBATROS AQUA BLU RESORT SHARM EL SHEIKH",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "desert-rose",
+      "hotel_id": 178,
+      "hotel": "DESERT ROSE RESORT",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "reef-oasis-beach",
+      "hotel_id": 371,
+      "hotel": "REEF OASIS BEACH RESORT",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "beach-albatros-hurghada",
+      "hotel_id": 132,
+      "hotel": "BEACH ALBATROS RESORT HURGADA",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "alaya",
+      "hotel_id": 69155,
+      "hotel": "STEIGENBERGER RESORT ALAYA MARSA ALAM ADULTS ONLY",
+      "region": "Марса Алам",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "ras-soma",
+      "hotel_id": 69409,
+      "hotel": "STEIGENBERGER RESORT RAS SOMA",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "sentido-reef-oasis-senses",
+      "hotel_id": 4184,
+      "hotel": "SENTIDO REEF OASIS SENSES RESORT (EX. REEF OASIS SENSES RESORT)",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    }
+  ],
+  "catalog_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41517612012",
+  "followup_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41518049588"
+}

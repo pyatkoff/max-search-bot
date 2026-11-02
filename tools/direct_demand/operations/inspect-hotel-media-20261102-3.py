@@ -1,8 +1,8 @@
 import base64,html,json,re,urllib.parse,urllib.request
 from pathlib import Path
-operation='commercial-batch11-public-media-20261102-read1'
-pages=["https://all.accor.com/hotel/B1J0/index.en.shtml","https://all.accor.com/hotel/B1J8/index.en.shtml","https://www.pickalbatros.com/dana-beach-resort-hurghada","https://www.pickalbatros.com/white-beach-resort-hurghada","https://meraki-resort.com/ssh/gallery-sharm/"]
-hosts=set(["all.accor.com","www.ahstatic.com","image-tc.galaxy.tf","www.pickalbatros.com","pickalbatros.com","meraki-resort.com","www.meraki-resort.com"])
+operation='commercial-batch12-public-media-20261102-read1'
+pages=["https://partner.jazhotels.com/hotel/58","https://partner.jazhotels.com/hotel/12","https://partner.jazhotels.com/hotel/64","https://partner.jazhotels.com/hotel/67","https://partner.jazhotels.com/hotel/93","https://partner.jazhotels.com/hotel/66","https://partner.jazhotels.com/hotel/2","https://partner.jazhotels.com/hotel/5","https://partner.jazhotels.com/hotel/68","https://partner.jazhotels.com/hotel/61"]
+hosts=set(["jazhotels.com","www.jazhotels.com","partner.jazhotels.com","images.jazhotels.com","storage.googleapis.com","jaz-resorts.net","www.jaz-resorts.net"])
 class Redirect(urllib.request.HTTPRedirectHandler):
  def redirect_request(self,req,fp,code,msg,headers,newurl):
   p=urllib.parse.urlsplit(newurl)
@@ -29,7 +29,7 @@ for url in pages:
  for value in re.findall(r"""["'(]([^"'<>()[\]\s]+\.pdf(?:\?[^"'<>()[\]\s]*)?)""",text,re.I):
   absolute=urllib.parse.urljoin(final,html.unescape(value));p=urllib.parse.urlsplit(absolute)
   if p.scheme=='https' and p.hostname in hosts and not p.username and not p.password and absolute not in documents:documents.append(absolute)
- out['pages'].append({'source_url':url,'final_url':final,'image_urls':candidates[:70],'document_urls':documents[:12]})
+ out['pages'].append({'source_url':url,'final_url':final,'image_urls':candidates[:320],'document_urls':documents[:12]})
 out['ok']=True
 Path('public-media-sources.json').write_text(json.dumps(out,ensure_ascii=False,indent=2)+'\n')
 print(json.dumps(out,ensure_ascii=False))

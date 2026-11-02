@@ -1,0 +1,91 @@
+{
+  "operation": "commercial-hotel-batch-20261102-12-v1",
+  "state": "TEN_IDENTITIES_CONFIRMED_OFFICIAL_MEDIA_LOOKUP_PENDING_NOT_SENT",
+  "goal": "Prepare the first ten whole hotel posts from the confirmed stock25.",
+  "boundaries": "Official photo pools only at this stage. No messages, prices, provider calls or production connection.",
+  "criteria": "Exact hotel identity, verified whole-hotel facts and real useful general photos, readable AnyTour cover, immutable checked PNG before the existing guarded send.",
+  "risks": "The catalogue rating field is a review score, not a star category; never infer stars from it. Samaya is now branded TUI BLUE in the official photo pool; physical identity must stay explicit. Text and cover are not ready yet.",
+  "baseline_logical_materials": 54,
+  "rows": [
+    {
+      "hotel_id": 383,
+      "key": "jaz-grand-marsa",
+      "hotel": "JAZ GRAND MARSA (EX. JAZ GRAND RESTA)",
+      "region": "Марса Алам",
+      "photo_pool_url": "https://partner.jazhotels.com/hotel/58",
+      "state": "IDENTITY_CONFIRMED_PRIMARY_MEDIA_PENDING"
+    },
+    {
+      "hotel_id": 269,
+      "key": "jaz-samaya",
+      "hotel": "JAZ SAMAYA RESORT (EX. IBEROTEL SAMAYA)",
+      "region": "Марса Алам",
+      "photo_pool_url": "https://partner.jazhotels.com/hotel/12",
+      "state": "IDENTITY_CONFIRMED_PRIMARY_MEDIA_PENDING"
+    },
+    {
+      "hotel_id": 67897,
+      "key": "jaz-elite-maraya",
+      "hotel": "JAZ MARAYA",
+      "region": "Марса Алам",
+      "photo_pool_url": "https://partner.jazhotels.com/hotel/64",
+      "state": "IDENTITY_CONFIRMED_PRIMARY_MEDIA_PENDING"
+    },
+    {
+      "hotel_id": 75725,
+      "key": "jaz-costa-mares",
+      "hotel": "JAZ COSTA MARES ADULT ONLY (EX. IBEROTEL COSTA MARES)",
+      "region": "Марса Алам",
+      "photo_pool_url": "https://partner.jazhotels.com/hotel/67",
+      "state": "IDENTITY_CONFIRMED_PRIMARY_MEDIA_PENDING"
+    },
+    {
+      "hotel_id": 108090,
+      "key": "jaz-elite-amara",
+      "hotel": "JAZ ELITE AMARA",
+      "region": "Марса Алам",
+      "photo_pool_url": "https://partner.jazhotels.com/hotel/93",
+      "state": "IDENTITY_CONFIRMED_PRIMARY_MEDIA_PENDING"
+    },
+    {
+      "hotel_id": 73342,
+      "key": "jaz-soma-beach",
+      "hotel": "JAZ SOMA BEACH (EX. SOLYMAR SOMA BEACH)",
+      "region": "Хургада",
+      "photo_pool_url": "https://partner.jazhotels.com/hotel/66",
+      "state": "IDENTITY_CONFIRMED_PRIMARY_MEDIA_PENDING"
+    },
+    {
+      "hotel_id": 278,
+      "key": "jaz-belvedere",
+      "hotel": "JAZ BELVEDERE",
+      "region": "Шарм-эль-Шейх",
+      "photo_pool_url": "https://partner.jazhotels.com/hotel/2",
+      "state": "IDENTITY_CONFIRMED_PRIMARY_MEDIA_PENDING"
+    },
+    {
+      "hotel_id": 281,
+      "key": "jaz-mirabel-beach",
+      "hotel": "JAZ MIRABEL BEACH",
+      "region": "Шарм-эль-Шейх",
+      "photo_pool_url": "https://partner.jazhotels.com/hotel/5",
+      "state": "IDENTITY_CONFIRMED_PRIMARY_MEDIA_PENDING"
+    },
+    {
+      "hotel_id": 246,
+      "key": "jaz-fayrouz",
+      "hotel": "JAZ FAYROUZ RESORT (EX. HILTON SHARM FAYROUZ RESORT)",
+      "region": "Шарм-эль-Шейх",
+      "photo_pool_url": "https://partner.jazhotels.com/hotel/68",
+      "state": "IDENTITY_CONFIRMED_PRIMARY_MEDIA_PENDING"
+    },
+    {
+      "hotel_id": 384,
+      "key": "jaz-neo-reef-marsa",
+      "hotel": "JAZ NEO REEF MARSA (EX. SOLYMAR REEF MARSA)",
+      "region": "Марса Алам",
+      "photo_pool_url": "https://partner.jazhotels.com/hotel/61",
+      "state": "IDENTITY_CONFIRMED_PRIMARY_MEDIA_PENDING"
+    }
+  ]
+}
