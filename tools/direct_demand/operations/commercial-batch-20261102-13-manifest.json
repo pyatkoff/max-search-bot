@@ -1,7 +1,13 @@
 {
   "operation": "commercial-hotel-batch-20261102-13-v1",
-  "state": "TEN_IDENTITIES_CONFIRMED_FACTS_FOUND_OFFICIAL_MEDIA_PENDING_NOT_SENT",
-  "goal": "Prepare up to10 whole hotel posts from confirmed stock using primary pages with readable facts and real photos.",
+  "state": "PREPARED_NATIVE_COVERS_INSPECTION_PENDING",
+  "goal": {
+    "operation": "commercial-hotel-batch-20261102-13-v1",
+    "goal": "Prepare up to10 whole hotel posts from confirmed stock using primary pages with readable facts and real photos.",
+    "boundaries": "Ten exact existing native identities only; no old sends, new lookup, prices, ads or customer actions. Do not wait for unresolved JAZ PDFs.",
+    "criteria": "3–4 factual properties, important distinction/limit, true general hotel photo, accepted AnyTour cover/button, existing current publication/once safeguards.",
+    "risks": "Nearby Port Ghalib and Aqua hotels must remain distinct; shared facilities do not imply unrestricted access or free use."
+  },
   "boundaries": "Ten exact existing native identities only; no old sends, new lookup, prices, ads or customer actions. Do not wait for unresolved JAZ PDFs.",
   "criteria": "3–4 factual properties, important distinction/limit, true general hotel photo, accepted AnyTour cover/button, existing current publication/once safeguards.",
   "risks": "Nearby Port Ghalib and Aqua hotels must remain distinct; shared facilities do not imply unrestricted access or free use.",
@@ -12,61 +18,173 @@
       "hotel_id": 150,
       "hotel": "Pickalbatros Citadel",
       "main": "https://www.pickalbatros.com/citadel-resort-sahl-hasheesh",
-      "facts": "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-citadel-sahl-hasheesh"
+      "facts": "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-citadel-sahl-hasheesh",
+      "text": "✈️ Pickalbatros Citadel 5★\nТур с перелётом в Хургаду 🇪🇬\n\nОтель в Сахл Хашиш с каменными башнями, набережной и видом на Красное море 🌴\n\n🏖️ Собственный пляж длиной 1,6 км.\n🐠 Домашний коралловый риф.\n🌊 Песчаная лагуна и две искусственные морские лагуны для купания.\n🧒 Детский клуб Alba.\n\nℹ️ На берегу есть песчаные и каменистые участки и кораллы.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "sources": [
+        "https://www.pickalbatros.com/citadel-resort-sahl-hasheesh",
+        "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-citadel-sahl-hasheesh"
+      ],
+      "official_photography": {
+        "hero": "https://image-tc.galaxy.tf/wijpeg-93dz3ee2isxjb49fdd4dbnjm/overview.jpg",
+        "left": "https://image-tc.galaxy.tf/wijpeg-4nggyubxlh898s2dmpudq87ci/beach-overview.jpg",
+        "right": "https://image-tc.galaxy.tf/wijpeg-epawhguqmu7palmjizi785zln/standard-room-sea-view-1.jpg?width=991"
+      }
     },
     {
       "hotel_id": 172,
       "hotel": "Pickalbatros Sands Port Ghalib",
       "main": "https://www.pickalbatros.com/sands-hotel-port-ghalib",
-      "facts": "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-sands-hotel-port-ghalib"
+      "facts": "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-sands-hotel-port-ghalib",
+      "text": "✈️ Pickalbatros Sands Port Ghalib 5★\nТур с перелётом в Марса Алам 🇪🇬\n\nОтель в Порт Галиб с оформлением в арабском стиле. Рядом море и набережная с магазинами и ресторанами 🌴\n\n💦 Аквапарки для взрослых и детей.\n🧒 Детский клуб Alba.\n🎾 Теннис и падел.\n🏡 В номерах есть балкон или терраса.\n\nℹ️ Вид на море есть не во всех номерах. Есть и категории с видом на сад.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "sources": [
+        "https://www.pickalbatros.com/sands-hotel-port-ghalib",
+        "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-sands-hotel-port-ghalib"
+      ],
+      "official_photography": {
+        "hero": "https://image-tc.galaxy.tf/wijpeg-2yv4ve5x9wcbgjk883al1eiqz/ariel-views10.jpg?width=1920",
+        "left": "https://image-tc.galaxy.tf/wijpeg-c9cnu6wwawprlzdqdpq6s0iie/over-views-28.jpg?width=1920",
+        "right": "https://image-tc.galaxy.tf/wijpeg-dvriuq2oncfgdcqi1hw888fqv/deluxe-room-lagoon-view-2.jpg?width=991"
+      }
     },
     {
       "hotel_id": 275,
       "hotel": "Pickalbatros The Palace Port Ghalib",
       "main": "https://www.pickalbatros.com/palace-hotel-port-ghalib",
-      "facts": "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-palace-hotel-port-ghalib"
+      "facts": "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-palace-hotel-port-ghalib",
+      "text": "✈️ Pickalbatros The Palace Port Ghalib 5★\nТур с перелётом в Марса Алам 🇪🇬\n\nПляжный отель в Порт Галиб. Днём можно отдыхать у моря и лагуны, вечером гулять по набережной у марины ☀️\n\n🏖️ Собственный песчаный пляж длиной 250 м.\n🌊 Морская лагуна на территории комплекса.\n💦 Аквапарк с горками для взрослых и детей.\n🧒 Детский клуб Alba.\n\nℹ️ К рифу выходят с понтона длиной 150 м. Для купания нужна обувь для кораллов.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "sources": [
+        "https://www.pickalbatros.com/palace-hotel-port-ghalib",
+        "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-palace-hotel-port-ghalib"
+      ],
+      "official_photography": {
+        "hero": "https://image-tc.galaxy.tf/wijpeg-4bf8c92dixb8d0lw8sr6v1ikf/over-views-14.jpg?width=1920",
+        "left": "https://image-tc.galaxy.tf/wijpeg-9i9mayc0qmigkw1c0icwv97xk/over-views-23.jpg?width=1920",
+        "right": "https://image-tc.galaxy.tf/wijpeg-ci5klj4bptiwxycaskji0xhz8/deluxe-room-pool-and-sea-view-1.jpg?width=991"
+      }
     },
     {
       "hotel_id": 173,
       "hotel": "Pickalbatros Oasis Port Ghalib",
       "main": "https://www.pickalbatros.com/oasis-hotel-port-ghalib",
-      "facts": "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-oasis-hotel-port-ghalib"
+      "facts": "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-oasis-hotel-port-ghalib",
+      "text": "✈️ Pickalbatros Oasis Port Ghalib 5★\nТур с перелётом в Марса Алам 🇪🇬\n\nОтель в Порт Галиб рядом с морем и прогулочной набережной 🌴\n\n🌊 Морская лагуна на территории комплекса.\n💦 Аквапарк с горками для взрослых и детей.\n🛟 Ленивая река.\n🍽️ Рестораны Souq El Hana и Soprano.\n\nℹ️ В море заходят с понтона. У берега есть кораллы, нужна специальная обувь.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "sources": [
+        "https://www.pickalbatros.com/oasis-hotel-port-ghalib",
+        "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-oasis-hotel-port-ghalib"
+      ],
+      "official_photography": {
+        "hero": "https://image-tc.galaxy.tf/wijpeg-5gdw3jb0etluvtkzwdh84dura/ariel-views2.jpg?width=1920",
+        "left": "https://image-tc.galaxy.tf/wijpeg-2parzybnhz3xj3r7devm8n9mr/over-views-24.jpg?width=1920",
+        "right": "https://image-tc.galaxy.tf/wijpeg-5dp9852wvay2p9iegklkpp3hv/deluxe-room-garden-view1.jpg?width=991"
+      }
     },
     {
       "hotel_id": 110,
       "hotel": "Pickalbatros Jungle Aqua Park",
       "main": "https://www.pickalbatros.com/jungle-aqua-park-resort-neverland-hurghada",
-      "facts": "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-jungle-aqua-park-resort"
+      "facts": "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-jungle-aqua-park-resort",
+      "text": "✈️ Pickalbatros Jungle Aqua Park 4★\nТур с перелётом в Хургаду 🇪🇬\n\nСемейный отель в комплексе Neverland. Здесь горки, аттракционы и вечерние шоу 🎡\n\n💦 Большой аквапарк Neverland.\n🎢 Развлечения Midway Street, VR и роллердром.\n🍽️ Разные кухни в ресторанах комплекса, есть пекарня.\n🏡 Невысокие двухэтажные корпуса и семейные номера.\n\nℹ️ Отель на второй линии. До пляжа 900 м, на него возит автобус от отеля.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "sources": [
+        "https://www.pickalbatros.com/jungle-aqua-park-resort-neverland-hurghada",
+        "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-jungle-aqua-park-resort"
+      ],
+      "official_photography": {
+        "hero": "https://image-tc.galaxy.tf/wijpeg-ajj6tm3edo9yhxdey59abl25u/aerial-over-views-3.jpg",
+        "left": "https://image-tc.galaxy.tf/wijpeg-6uj07jmqxejxe38op25ce6oiz/aqua-park-2.jpg?width=1920",
+        "right": "https://image-tc.galaxy.tf/wijpeg-4vt7w7m8zjkuatnwm93b3vi8u/entrance-1.jpg?width=1920"
+      }
     },
     {
       "hotel_id": 57028,
       "hotel": "Pickalbatros Aqua Park Sharm",
       "main": "https://www.pickalbatros.com/aqua-park-resort-sharm-el-sheikh",
-      "facts": "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-aqua-park-sharm-el-sheikh"
+      "facts": "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-aqua-park-sharm-el-sheikh",
+      "text": "✈️ Pickalbatros Aqua Park Sharm\nТур с перелётом в Шарм эль Шейх 🇪🇬\n\nСемейный отель для отпуска с горками, аттракционами и вечерними развлечениями ☀️\n\n💦 Аквапарк с детскими горками и водными играми.\n🎡 Аттракционы Midway Street.\n🧒 Детский клуб Alba для ребят от 4 до 12 лет.\n🍽️ Четыре ресторана и три фудкорта.\n\nℹ️ Пляж находится у Albatros Sharm Resort, в 1,2 км от отеля. На пляж возит автобус.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "sources": [
+        "https://www.pickalbatros.com/aqua-park-resort-sharm-el-sheikh",
+        "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-aqua-park-sharm-el-sheikh"
+      ],
+      "official_photography": {
+        "hero": "https://image-tc.galaxy.tf/wijpeg-1vtxzcv0x0nh2b1kjg8j9q371/pickalbatros-aqua-park-resort-in-sharm-el-sheikh.jpg",
+        "left": "https://image-tc.galaxy.tf/wijpeg-4f5wda4u7d0oh5ke0769kmwlw/aqua-park_wide.jpg?crop=0%2C104%2C2000%2C1125&width=1920",
+        "right": "https://image-tc.galaxy.tf/wijpeg-14dazv0u20dhssi2pjasgkq88/standard-room-garden-view-2.jpg?width=991"
+      }
     },
     {
       "hotel_id": 125,
       "hotel": "Pickalbatros Aqua Blu Sharm",
       "main": "https://www.pickalbatros.com/aqua-blu-resort-sharm-el-sheikh",
-      "facts": "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-aqua-blu-resort-sharm-el-sheikh"
+      "facts": "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-aqua-blu-resort-sharm-el-sheikh",
+      "text": "✈️ Pickalbatros Aqua Blu Sharm 4★\nТур с перелётом в Шарм эль Шейх 🇪🇬\n\nСемейный отель с аквапарком и развлечениями на территории 🎡\n\n💦 Горки для взрослых и детей.\n🛟 Волновой бассейн и ленивая река.\n🚲 Аттракционы Midway Street и семейные велосипеды.\n🍦 Пекарня и уголок с мороженым.\n\nℹ️ До пляжа Albatros Sharm Resort 650 м. Между отелем и пляжем ходит автобус.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "sources": [
+        "https://www.pickalbatros.com/aqua-blu-resort-sharm-el-sheikh",
+        "https://knowledge-hub.pickalbatros.com/hotel/pickalbatros-aqua-blu-resort-sharm-el-sheikh"
+      ],
+      "official_photography": {
+        "hero": "https://image-tc.galaxy.tf/wijpeg-c8a7ad4lzl87xf0upbdwe7fit/overview.jpg?width=1920",
+        "left": "https://image-tc.galaxy.tf/wijpeg-97gj72e4eh5mr8d4cmlacp4me/aqua-park-19.jpg",
+        "right": "https://image-tc.galaxy.tf/wijpeg-1gqw3vy3tvpyqaflyycwrws5b/standard-garden-view-1.jpg?width=991"
+      }
     },
     {
       "hotel_id": 132,
       "hotel": "Beach Albatros Resort Hurghada",
       "main": "https://www.pickalbatros.com/beach-albatros-resort-hurghada",
-      "facts": "https://knowledge-hub.pickalbatros.com/hotel/beach-albatros-resort"
+      "facts": "https://knowledge-hub.pickalbatros.com/hotel/beach-albatros-resort",
+      "text": "✈️ Beach Albatros Resort 4★\nТур с перелётом в Хургаду 🇪🇬\n\nОтель на берегу моря с основным корпусом и отдельными бунгало 🌴\n\n🏖️ Песчаный пляж длиной 250 м с пологим входом в море.\n💦 Аквапарк с горками для взрослых и детей.\n🥐 Разные кухни в ресторанах и круглосуточная пекарня.\n🎭 Анимация и вечерние шоу.\n\nℹ️ В двухэтажных бунгало нет лифтов.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "sources": [
+        "https://www.pickalbatros.com/beach-albatros-resort-hurghada",
+        "https://knowledge-hub.pickalbatros.com/hotel/beach-albatros-resort"
+      ],
+      "official_photography": {
+        "hero": "https://image-tc.galaxy.tf/wijpeg-bi7k46ucuxvdhy1d5w1jojhfm/uberblick.jpg",
+        "left": "https://image-tc.galaxy.tf/wijpeg-81futwz2kk0fr9aw9nee6hqu8/beach-overview-3.jpg?width=1920",
+        "right": "https://image-tc.galaxy.tf/wijpeg-9a9dx4iqjri0n5u7ddyykifth/standard-room-pool-view-1.jpg?width=991"
+      }
     },
     {
       "hotel_id": 178,
       "hotel": "Desert Rose",
       "main": "https://desertrose.com/?lang=en",
-      "facts": "https://desertrose.com/?lang=en"
+      "facts": "https://desertrose.com/?lang=en",
+      "text": "✈️ Desert Rose\nТур с перелётом в Хургаду 🇪🇬\n\nОтель с зелёными садами, лагуной и песчаным пляжем на Красном море 🌴\n\n🏖️ Пляж и лагуна для отдыха у воды.\n💦 Три бассейна и аквапарк.\n🍽️ The Palm со «шведским столом», мексиканский Ranchero и французский Le Bistro.\n\nℹ️ Вид на море есть не во всех номерах. Есть номера с видом на сад, бассейны и лагуну.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "sources": [
+        "https://desertrose.com/?lang=en"
+      ],
+      "official_photography": {
+        "hero": "https://desertrose.com/uploads/9adc949908ffdff68794b7afda9f7bd0.jpg",
+        "left": "https://desertrose.com/uploads/91094df6224432b120856e5d05b12776.jpg",
+        "right": "https://desertrose.com/uploads/aa33dcd91cb481296a494346b75da07f.jpg"
+      }
     },
     {
       "hotel_id": 371,
       "hotel": "Reef Oasis Beach Resort",
       "main": "https://www.reefoasisresorts.com/reef-oasis-beach-resorts",
-      "facts": "https://www.reefoasisresorts.com/reef-oasis-beach-resorts-facilities"
+      "facts": "https://www.reefoasisresorts.com/reef-oasis-beach-resorts-facilities",
+      "text": "✈️ Reef Oasis Beach Resort\nТур с перелётом в Шарм эль Шейх 🇪🇬\n\nОтель в Хадабе на песчаном пляже у Temple Reef 🐠\n\n🤿 Риф для снорклинга и дайвинг центр.\n💦 Бассейны и аквапарк.\n🍽️ Рестораны и кафе на территории.\n🎭 Вечерние развлечения.\n\nℹ️ На официальном сайте объявлен ремонт аквапарка с 10 января по 28 февраля 2027 года.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "sources": [
+        "https://www.reefoasisresorts.com/reef-oasis-beach-resorts",
+        "https://www.reefoasisresorts.com/reef-oasis-beach-resorts-facilities"
+      ],
+      "official_photography": {
+        "hero": "https://irp.cdn-website.com//672c5cde/dms3rep/multi/opt/Amr%2B%2BIbrahim%2B-%2BBeach%2BResort%2B1-1920w.jpg?jxl&v=jxl",
+        "left": "https://irp.cdn-website.com/672c5cde/dms3rep/multi/_-r.patti_9451.jpg",
+        "right": "https://irp.cdn-website.com/672c5cde/dms3rep/multi/_-r.patti_8441.jpg"
+      }
     }
-  ]
+  ],
+  "hotel_ids": [
+    150,
+    172,
+    275,
+    173,
+    110,
+    57028,
+    125,
+    132,
+    178,
+    371
+  ],
+  "sends": 0
 }

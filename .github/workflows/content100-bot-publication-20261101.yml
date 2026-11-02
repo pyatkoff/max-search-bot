@@ -1,4 +1,4 @@
-name: Inspect ten confirmed hotel primary photo sources
+name: Inspect ten native AnyTour covers for batch13
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -12,18 +12,27 @@ jobs:
   inspect:
     if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        cover_group: [0, 1, 2, 3]
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Read the exact ten official hotel pages without server or provider calls
-        run: python3 tools/direct_demand/operations/inspect-hotel-media-20261102-3.py
-      - name: Retain bounded public media source evidence
+      - name: Inspect only the exact authorized native Canva PNG group
+        env:
+          COVER_GROUP: ${{ matrix.cover_group }}
+        run: python3 tools/direct_demand/operations/inspect-canva-covers-20261102-3.py
+      - name: Retain bounded native image evidence
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-batch13-public-media-20261102-read1
-          path: public-media-sources.json
+          name: commercial-batch13-native-covers-group-${{ matrix.cover_group }}
+          path: |
+            native-cover-receipt.json
+            covers/
           retention-days: 14
           if-no-files-found: error
