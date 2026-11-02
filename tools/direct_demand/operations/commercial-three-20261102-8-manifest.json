@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-three-20261102-8-v1",
-  "state": "PREPARED_NATIVE_COVERS_INSPECTION_PENDING",
+  "state": "PREPARED_NOT_SENT",
   "goal": "Publish three complete, useful hotel posts once per authorized channel, with real official photos and the canonical cost button.",
   "boundaries": "Candidates SUNRISE Crystal Bay, SUNRISE Aqua Joy, SUNRISE Holidays. Read only their active public catalogue identities and registry matches before selecting. Do not modify accepted publications or contact clients.",
   "criteria": [
@@ -52,7 +52,9 @@
       "hotel_id": 416,
       "logical_id": "commercial-sunrise-crystal-bay-416-v1",
       "text_sha256": "34fe1892c54d7bd3c42d065f819818a5997cbd4ce2b42ae1d72ab05f79c123f6",
-      "media_state": "NATIVE_COVER_NOT_YET_VERIFIED"
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/b30693513125825518d856e4fc972bd42d3cd550/.github/traffic-publish/commercial-three-20261102-8/sunrise-crystal-bay.png",
+      "photo_sha256": "f27b6590e7496fb1602c868a2208356be2035d1ba7a1e4e5f3b2362cf06f40fa"
     },
     {
       "key": "aqua-joy",
@@ -70,7 +72,9 @@
       "hotel_id": 12112,
       "logical_id": "commercial-sunrise-aqua-joy-12112-v1",
       "text_sha256": "be29893d116c6e84f7d09b1a6526dfcc8823c0f374a7907a5762f4a74339e429",
-      "media_state": "NATIVE_COVER_NOT_YET_VERIFIED"
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/b30693513125825518d856e4fc972bd42d3cd550/.github/traffic-publish/commercial-three-20261102-8/sunrise-aqua-joy.png",
+      "photo_sha256": "7e5555a776a6cd07dea691474bc7fff36745dc89c909620e594d45252762e4d0"
     },
     {
       "key": "holidays",
@@ -88,7 +92,9 @@
       "hotel_id": 478,
       "logical_id": "commercial-sunrise-holidays-478-v1",
       "text_sha256": "5ae5a6bbadfbfda460547a4ca3a7b7adc70397be28e3b0f46013daa38214250f",
-      "media_state": "NATIVE_COVER_NOT_YET_VERIFIED"
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/b30693513125825518d856e4fc972bd42d3cd550/.github/traffic-publish/commercial-three-20261102-8/sunrise-holidays.png",
+      "photo_sha256": "24a14aba5231de6386c64a008b68f28082ff22e7509ac691ee29493bd20016ab"
     }
   ]
 }
