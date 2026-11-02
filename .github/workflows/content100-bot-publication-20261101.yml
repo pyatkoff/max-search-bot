@@ -1,4 +1,4 @@
-name: Inspect missing photo and factsheet links with escaped filenames
+name: Read eight exact official hotel factsheets
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -18,12 +18,16 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Read the exact nine affected official hotel photo pools without server or provider calls
+      - name: Prepare temporary public PDF text parser
+        run: python3 -m pip install --disable-pip-version-check --quiet --target "$RUNNER_TEMP/pdf-deps" 'pypdf>=5,<7'
+      - name: Read only the eight exact public factsheets
+        env:
+          PYTHONPATH: ${{ runner.temp }}/pdf-deps
         run: python3 tools/direct_demand/operations/inspect-hotel-media-20261102-3.py
-      - name: Retain bounded public media source evidence
+      - name: Retain bounded public facts
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-batch12-public-media-20261102-read2
-          path: public-media-sources.json
+          name: commercial-batch12-facts-20261102-read1
+          path: public-hotel-facts.json
           retention-days: 14
           if-no-files-found: error
