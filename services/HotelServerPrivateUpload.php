@@ -5,6 +5,7 @@ declare(strict_types=1);
 final class HotelServerPrivateUpload
 {
     public const MAX_BYTES=8388608;
+    public const CHUNK_BYTES=65536;
 
     /** The administrator creates ticket.json through the existing private server channel. */
     public static function receive(string $appRoot,array $server,$input,?int $now=null): array
@@ -36,9 +37,18 @@ final class HotelServerPrivateUpload
                 ||$ticket['expires_at']<=$now||$ticket['expires_at']-$ticket['created_at']>3600
                 ||!is_int($ticket['payload_bytes'])||$ticket['payload_bytes']<1||$ticket['payload_bytes']>self::MAX_BYTES
                 ||!hash_equals($ticket['token_sha256'],hash('sha256',$auth[1])))return $deny;
+            $chunk=null;$chunkSha=null;$expectedLength=$ticket['payload_bytes'];
+            if(array_key_exists('HTTP_X_HOTEL_CHUNK_INDEX',$server)||array_key_exists('HTTP_X_HOTEL_CHUNK_SHA256',$server)){
+                $index=$server['HTTP_X_HOTEL_CHUNK_INDEX']??null;$chunkSha=$server['HTTP_X_HOTEL_CHUNK_SHA256']??null;
+                if(!is_string($index)||!preg_match('/\A(?:0|[1-9][0-9]{0,2})\z/D',$index)
+                    ||!is_string($chunkSha)||!preg_match('/\A[a-f0-9]{64}\z/D',$chunkSha))return $deny;
+                $chunk=(int)$index;
+                if($chunk>=(int)ceil($ticket['payload_bytes']/self::CHUNK_BYTES))return $deny;
+                $expectedLength=min(self::CHUNK_BYTES,$ticket['payload_bytes']-$chunk*self::CHUNK_BYTES);
+            }
             $length=$server['CONTENT_LENGTH']??null;
             if(!is_string($length)||!preg_match('/\A[1-9][0-9]{0,7}\z/D',$length)
-                ||(int)$length!==$ticket['payload_bytes'])return $deny;
+                ||(int)$length!==$expectedLength)return $deny;
             $lockPath=$dir.'/upload.lock';if(is_link($lockPath)||(file_exists($lockPath)&&!self::privateFile($lockPath)))return $deny;
             $mask=umask(0077);
             $lock=fopen($lockPath,'c');if(!$lock||!chmod($lockPath,0600)||!flock($lock,LOCK_EX|LOCK_NB))return $deny;
@@ -52,6 +62,8 @@ final class HotelServerPrivateUpload
             }
             // A partial upload has a known owner. It is never replaced/restarted by another HTTP call.
             if(file_exists($partial)||is_link($partial))return $hold;
+            if($chunk!==null)return self::chunk($dir,$ticket,$input,$chunk,$chunkSha,$expectedLength);
+            if(file_exists($dir.'/chunks')||is_link($dir.'/chunks'))return $hold;
             $output=fopen($partial,'x');if(!$output||!chmod($partial,0600))return $hold;
             $hash=hash_init('sha256');$count=0;
             while(!feof($input)){
@@ -73,6 +85,58 @@ final class HotelServerPrivateUpload
             if(is_resource($lock)){flock($lock,LOCK_UN);fclose($lock);}
             if($mask!==null)umask($mask);
         }
+    }
+
+    /** Fixed small request bodies also work behind the observed 128 KiB FastCGI boundary. */
+    private static function chunk(string $dir,array $ticket,$input,int $index,string $sha,int $bytes): array
+    {
+        $hold=['code'=>409,'body'=>['ok'=>false,'state'=>'payload_unconfirmed']];$chunks=$dir.'/chunks';
+        if(!file_exists($chunks)&&!is_link($chunks)&&!mkdir($chunks,0700))return $hold;
+        clearstatcache(true,$chunks);
+        if(is_link($chunks)||realpath($chunks)!==$chunks||!is_dir($chunks)||(fileperms($chunks)&0777)!==0700||fileowner($chunks)!==posix_geteuid())return $hold;
+        $path=$chunks.'/'.sprintf('%03d',$index).'.bin';
+        if(!self::writeChunk($input,$path,$bytes,$sha))return $hold;
+        $count=(int)ceil($ticket['payload_bytes']/self::CHUNK_BYTES);$paths=[];$missing=false;
+        for($i=0;$i<$count;$i++){
+            $p=$chunks.'/'.sprintf('%03d',$i).'.bin';
+            if(file_exists($p.'.part')||is_link($p.'.part'))return $hold;
+            if(!file_exists($p)&&!is_link($p)){$missing=true;continue;}
+            $size=min(self::CHUNK_BYTES,$ticket['payload_bytes']-$i*self::CHUNK_BYTES);
+            if(!self::privateFile($p)||filesize($p)!==$size)return $hold;$paths[]=$p;
+        }
+        if($missing)return ['code'=>200,'body'=>['ok'=>true,'state'=>'chunk_stored','index'=>$index,'bytes'=>$bytes,'sha256'=>$sha,'payload_sha256'=>$ticket['payload_sha256']]];
+        $partial=$dir.'/upload.part';$final=$dir.'/sealed-inputs.bin';$out=fopen($partial,'x');
+        if(!$out)return $hold;
+        try{
+            if(!chmod($partial,0600))return $hold;$hash=hash_init('sha256');$written=0;
+            foreach($paths as $p){
+                $raw=file_get_contents($p);if(!is_string($raw)||strlen($raw)>self::CHUNK_BYTES)return $hold;
+                if(fwrite($out,$raw)!==strlen($raw))return $hold;$written+=strlen($raw);hash_update($hash,$raw);
+            }
+            if($written!==$ticket['payload_bytes']||!hash_equals($ticket['payload_sha256'],hash_final($hash))
+                ||!fflush($out)||(function_exists('fsync')&&!fsync($out)))return $hold;
+        }finally{fclose($out);}
+        if(!rename($partial,$final)||!self::privateFile($final)||filesize($final)!==$ticket['payload_bytes']
+            ||!hash_equals($ticket['payload_sha256'],hash_file('sha256',$final)))return $hold;
+        return self::stored($ticket);
+    }
+
+    /** A failed fragment remains present. A completed fragment can only be read back exactly. */
+    private static function writeChunk($input,string $path,int $bytes,string $sha): bool
+    {
+        if(file_exists($path)||is_link($path))return self::privateFile($path)&&filesize($path)===$bytes&&hash_equals($sha,hash_file('sha256',$path));
+        $partial=$path.'.part';if(file_exists($partial)||is_link($partial))return false;
+        $out=fopen($partial,'x');if(!$out)return false;
+        try{
+            if(!chmod($partial,0600))return false;$hash=hash_init('sha256');$count=0;
+            while(!feof($input)){
+                $raw=fread($input,min(self::CHUNK_BYTES,$bytes-$count+1));
+                if(!is_string($raw)||($raw===''&&!feof($input)))return false;$count+=strlen($raw);
+                if($count>$bytes||($raw!==''&&fwrite($out,$raw)!==strlen($raw)))return false;hash_update($hash,$raw);
+            }
+            if($count!==$bytes||!hash_equals($sha,hash_final($hash))||!fflush($out)||(function_exists('fsync')&&!fsync($out)))return false;
+        }finally{fclose($out);}
+        return rename($partial,$path)&&self::privateFile($path)&&filesize($path)===$bytes&&hash_equals($sha,hash_file('sha256',$path));
     }
 
     private static function stored(array $ticket): array
