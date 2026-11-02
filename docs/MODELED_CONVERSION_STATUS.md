@@ -284,3 +284,22 @@ each upload's individual visit match or attribution source/campaign quality.
 Statuses sampled/forbidden/unavailable/not_recorded and age>900sec remain explicit;
 missing or stale reporting data is never fabricated as zero or exact linkage.
 Counters/values are private results, never published into Git/Actions/diagnostics.
+
+### V1.5: diverse saved-input diagnosis
+
+The same private route additionally projects fixed scalar counters from at most
+100 newest immutable versions, separately from the original20metadata/4validated
+forecast packets. It deduplicates the newest version of each current model/processor
+scope and reports human/wizard/recorded action coverage, recorded (unvalidated)
+semantic statuses and fixed adapter omission categories. Up to8 anonymous examples
+prefer different channels/input shapes. No text, person/conversation/journal/visit
+identifier or arbitrary saved string is returned. Invalid/missing
+counters stay unknown; omitted reasons are zero only for an existing object with
+that key absent. A frozen profile after activation does not prove new customer
+evidence. These counters cannot confirm a prediction or create advertising value.
+
+The100 scalar rows are query-side whitelisted and charged to the SAME64KiB/five-second
+budget, including final authorization. This diagnosis reads saved derived profiles
+only: no source read, model, processing, queue write or upload. Metadata suffix
+completeness describes this finite saved-version window, not all inquiries/trips.
+Actual examples, counts and financial results remain private.
