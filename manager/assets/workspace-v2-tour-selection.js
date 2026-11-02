@@ -265,13 +265,17 @@ function bulkPlan(){
 }
 function previewBulkPrices(){
   if(!bulkPrice)return;const allowed=bulkCurrent(),root=$('tsBulkPrice');
-  root.querySelectorAll('input,select').forEach(x=>{x.disabled=!allowed});
+  root.querySelectorAll('input,select').forEach(x=>{if(x.disabled!==!allowed)x.disabled=!allowed});
   try{
     const rows=bulkPlan(),changes=rows.filter(x=>priceUnits(x.amount)!==priceUnits(x.offer.amount)).length;
-    $('tsBulkError').textContent=changes?'':'Цены не изменятся. Измените параметры расчёта.';
-    $('tsBulkPreview').innerHTML=rows.map(x=>'<div class="tsBulkRow"><strong>'+esc(x.offer.hotel||'Без названия')+'</strong><span>'+esc(overviewAmount(x.offer.amount,x.offer.currency))+' → <b>'+esc(overviewAmount(x.amount,x.offer.currency))+'</b></span></div>').join('');
-    $('tsBulkApply').textContent='Применить к вариантам: '+rows.length;$('tsBulkApply').disabled=!changes;
-  }catch(error){$('tsBulkError').textContent=error.message;$('tsBulkPreview').replaceChildren();$('tsBulkApply').disabled=true;}
+    const message=changes?'':'Цены не изменятся. Измените параметры расчёта.',markup=rows.map(x=>'<div class="tsBulkRow"><strong>'+esc(x.offer.hotel||'Без названия')+'</strong><span>'+esc(overviewAmount(x.offer.amount,x.offer.currency))+' → <b>'+esc(overviewAmount(x.amount,x.offer.currency))+'</b></span></div>').join(''),label='Применить к вариантам: '+rows.length;
+    if($('tsBulkError').textContent!==message)$('tsBulkError').textContent=message;
+    if(bulkPrice.previewMarkup!==markup){$('tsBulkPreview').innerHTML=markup;bulkPrice.previewMarkup=markup}
+    // A select's blur/change can run between pointerdown and click in WebKit.
+    // Keep the existing button text node and layout when the plan is unchanged.
+    if($('tsBulkApply').textContent!==label)$('tsBulkApply').textContent=label;
+    if($('tsBulkApply').disabled!==!changes)$('tsBulkApply').disabled=!changes;
+  }catch(error){if($('tsBulkError').textContent!==error.message)$('tsBulkError').textContent=error.message;if(bulkPrice.previewMarkup!==undefined){$('tsBulkPreview').replaceChildren();delete bulkPrice.previewMarkup}if(!$('tsBulkApply').disabled)$('tsBulkApply').disabled=true;}
 }
 function closeBulkPrices(resume=true){
   if(!bulkPrice)return;bulkPrice=null;const root=$('tsBulkPrice');root?.replaceChildren();if(root)root.hidden=true;dialog?.classList.remove('tsBulkMode');

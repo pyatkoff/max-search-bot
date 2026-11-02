@@ -384,10 +384,10 @@ for(const width of [390,1440])test('bulk selection prices preview one atomic cha
  await page.locator('#tsBulkValue').fill('10');await expect(page.locator('#tsBulkPreview')).toContainText('180 000');await page.locator('#tsBulkValue').fill('5');await expect(page.locator('#tsBulkPreview')).toContainText('190 000');
  expect(s.calls.map(x=>x.action)).toEqual(['get']);expect(s.drafts.get(11).draft).toEqual(original);expect(s.creations()).toBe(0);
  expect(await panel.evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThanOrEqual(1);expect(await page.locator('#tsBulkApply').evaluate(el=>el.getBoundingClientRect().height)).toBeGreaterThanOrEqual(44);
- fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-bulk-prices-${browserName}-${width}.png`)});
+ fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-selection-bulk-prices-${browserName}-${width}.png`)});
  await page.setViewportSize({width,height:420});await expect(page.locator('#tsBulkApply')).toBeInViewport();await expect(page.locator('#tsBulkCancel')).toBeInViewport();await expect(page.locator('#tsClose')).toBeInViewport();
  // A fast repeated activation is the same UI operation, not another discount.
- await page.evaluate(()=>{const button=document.querySelector('#tsBulkApply');button.click();button.click()});
+ await page.evaluate(()=>{window.usedBulkApply=document.querySelector('#tsBulkApply')});await page.locator('#tsBulkApply').click();await page.evaluate(()=>window.usedBulkApply.click());
  const expected=copy(original);expected.offers[0].amount='190000';expected.offers[2].amount='152000';await expect.poll(()=>s.drafts.get(11).draft).toEqual(expected);
  expect(s.calls.filter(x=>x.action==='save')).toHaveLength(1);await expect(panel).toBeHidden();await page.locator('#tsClose').click();await expect(page.locator('#replyText')).toHaveValue('Ответ менеджера сохраняется отдельно');clean(s);
 });
