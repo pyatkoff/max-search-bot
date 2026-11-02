@@ -323,6 +323,7 @@ return [
         'php tests/run_modeled_conversion_stream_regression.php',
         'php tests/run_modeled_conversion_early_forecast_regression.php',
         'php tests/run_modeled_conversion_semantic_prediction_regression.php',
+        'php tests/run_modeled_conversion_forecast_status_regression.php',
         'php tests/run_modeled_conversion_value_view_regression.php',
         'python3 tests/test_max_attribution_lookup_installer.py',
         'php tests/run_modeled_conversion_status_regression.php',

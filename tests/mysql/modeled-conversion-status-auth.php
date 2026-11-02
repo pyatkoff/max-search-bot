@@ -3,6 +3,7 @@ declare(strict_types=1);
 if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
 require_once dirname(__DIR__,2).'/services/ManagerPreparationMcpService.php';
 require_once dirname(__DIR__).'/run_modeled_conversion_status_regression.php';
+require_once dirname(__DIR__).'/run_modeled_conversion_forecast_status_regression.php';
 
 /** Real migrations and real OAuth/dispatcher/reader; only a fresh disposable database. */
 function forecastNativeAuthGrant(ManagerPreparationOAuth $oauth,string $client,string $scope,string $resource=ManagerPreparationOAuth::RESOURCE):array
@@ -143,6 +144,8 @@ function forecastNativeAuthRegression():void
         $payment=forecastStatusPacket([['text'=>'Подберите тур'],['text'=>'Оплатила'],['role'=>'manager','text'=>'Оплату вижу']]);
         forecastStatusAppend($pdo,forecastStatusScope($payment,'9','11'),'anytour','9','11');
         for($i=0;$i<25;$i++)forecastStatusAppend($pdo,forecastNativeEmptyUpdate((string)(100+$i)));
+        // A new current-model/processor V1 packet proves the new default reader without replaying old ordinal strata.
+        forecastV1Append($pdo,forecastV1Packet('10','12',extractionDelay:17));
         $before=forecastNativeAuthSnapshot($pdo);
         $phase='real_bearer_dispatch_reader';
         forecastNativeReadOnly($pdo,static function()use($pdo,$oauth,$forecast,$combined,$legacy,$denied,$check):void{
@@ -152,19 +155,13 @@ function forecastNativeAuthRegression():void
             foreach([$forecast,$combined]as$i=>$grant){
                 [$response,$afterBearer,$afterRead]=forecastNativeAuthDispatch($pdo,$grant);
                 $saved=$response['result']['structuredContent']??[];
-                $check('real dispatcher reads persisted early signals with grant variant '.$i,
-                    ($saved['available']??false)&&($saved['confirmation']??null)==='saved_early_assessment_with_signals'
-                    &&($saved['saved']['paired_snapshots']??null)===3
-                    &&($saved['saved']['early_assessments_with_signals']??null)===1
-                    &&($saved['saved']['distinct_conversation_scopes']??null)===3
-                    &&($saved['saved']['customer_context_snapshots']??null)===3
-                    &&($saved['saved']['goal_counts']['substantive_interest']??0)>0
-                    &&($saved['saved']['goal_counts']['agency_purchase_intent']??0)>0
-                    &&($saved['stage_checks']['general_purchase_intent']['validated_saved_evidence']??false)
-                    &&($saved['stage_checks']['agency_purchase_intent']['validated_saved_evidence']??false)
-                    &&($saved['stage_checks']['agency_purchase_intent']['early_assessment']??null)===true
-                    &&($saved['stage_checks']['payment_evidence']['validated_saved_evidence']??false)
-                    &&($saved['stage_checks']['payment_evidence']['early_assessment']??null)===false
+                $check('real dispatcher reads new saved V1 percentages with grant variant '.$i,
+                    ($saved['available']??false)&&($saved['reader_version']??null)===ModeledConversionForecastStatusReader::VERSION
+                    &&($saved['confirmation']??null)==='saved_prospective_estimates'
+                    &&($saved['saved']['prospective_estimates']??null)===1
+                    &&($saved['saved']['valid_v1_versions']??null)===1
+                    &&($saved['saved']['estimated_probability_range']['minimum']??null)===0.083333
+                    &&($saved['saved']['channel_counts']['telegram']??null)===1
                     &&($saved['state']['last_tick_status']??null)==='idle');
                 $check('one budget includes real bearer repeated authorization and reader variant '.$i,
                     $afterBearer<65536&&$afterRead<$afterBearer&&$afterRead>=4096
@@ -172,7 +169,7 @@ function forecastNativeAuthRegression():void
             }
             [$response]=forecastNativeAuthDispatch($pdo,$forecast);
             $check('same granted bearer reads again without renewed consent',
-                ($response['result']['structuredContent']['saved']['paired_snapshots']??null)===3);
+                ($response['result']['structuredContent']['saved']['prospective_estimates']??null)===1);
             [$response]=forecastNativeAuthDispatch($pdo,$legacy);
             $challenge=$response['result']['_meta']['mcp/www_authenticate'][0]??'';
             $check('old real grant receives explicit scope union without a private result',
