@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-three-20261102-8-v1",
-  "state": "DRAFT_CATALOG_AND_MEDIA_PENDING",
+  "state": "PREPARED_NATIVE_COVERS_INSPECTION_PENDING",
   "goal": "Publish three complete, useful hotel posts once per authorized channel, with real official photos and the canonical cost button.",
   "boundaries": "Candidates SUNRISE Crystal Bay, SUNRISE Aqua Joy, SUNRISE Holidays. Read only their active public catalogue identities and registry matches before selecting. Do not modify accepted publications or contact clients.",
   "criteria": [
@@ -19,7 +19,7 @@
     "SUNRISE Aqua Joy Resort",
     "SUNRISE Holidays Resort"
   ],
-  "next": "Resolve exact catalogue identities and absent live registry matches after the existing release completes; prepare the three posts from retained material and current primary sources.",
+  "next": "Create and inspect exactly three branded covers for the unique unpublished hotels, then dispatch six guarded posts.",
   "official_sources": [
     "https://www.sunrise-resorts.com/crystal-bay-resort",
     "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/pressroom/11_cb_factsheet_july_2025.pdf",
@@ -28,6 +28,13 @@
     "https://www.sunrise-resorts.com/holidays-resort"
   ],
   "public_source_warning": "Holidays page factsheet link resolves to Mamlouk Palace. Do not use it or infer an admission age. Only the current Holidays page's Adults Only statement is used.",
+  "selected_catalog_ids": [
+    416,
+    12112,
+    478
+  ],
+  "identity_read_run": "https://github.com/pyatkoff/max-search-bot/actions/runs/41455737166",
+  "button_text": "✈️ Узнать стоимость тура",
   "rows": [
     {
       "key": "crystal-bay",
@@ -41,7 +48,11 @@
       "sources": [
         "https://www.sunrise-resorts.com/crystal-bay-resort",
         "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/pressroom/11_cb_factsheet_july_2025.pdf"
-      ]
+      ],
+      "hotel_id": 416,
+      "logical_id": "commercial-sunrise-crystal-bay-416-v1",
+      "text_sha256": "34fe1892c54d7bd3c42d065f819818a5997cbd4ce2b42ae1d72ab05f79c123f6",
+      "media_state": "NATIVE_COVER_NOT_YET_VERIFIED"
     },
     {
       "key": "aqua-joy",
@@ -55,7 +66,11 @@
       "sources": [
         "https://www.sunrise-resorts.com/aqua-joy-resort",
         "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/pressroom/15_aj_factsheet_july_2025.pdf"
-      ]
+      ],
+      "hotel_id": 12112,
+      "logical_id": "commercial-sunrise-aqua-joy-12112-v1",
+      "text_sha256": "be29893d116c6e84f7d09b1a6526dfcc8823c0f374a7907a5762f4a74339e429",
+      "media_state": "NATIVE_COVER_NOT_YET_VERIFIED"
     },
     {
       "key": "holidays",
@@ -65,11 +80,15 @@
         "Holidays Resort",
         "Санрайз Холидейз"
       ],
-      "text": "✈️ Туры в SUNRISE Holidays Resort с перелётом\n📍 Египет, Хургада\n\nОтель для отдыха без детей у собственной морской лагуны.\n\n🏖 Есть собственный пляж.\n🏙 До центра Хургады около 500 м.\n🏊 На территории есть бассейн и тренажёрный зал.\n🍽 В ресторанах готовят блюда средиземноморской и египетской кухни.\n\nОтель работает в формате Adults Only. Для поездки с маленькими детьми он не подойдёт.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "text": "✈️ Туры в SUNRISE Holidays Resort с перелётом\n📍 Египет, Хургада\n\nОтель у собственной морской лагуны, недалеко от центра Хургады.\n\n🏖 Есть собственный пляж.\n🏙 До центра Хургады около 500 м.\n🏊 На территории есть бассейн и тренажёрный зал.\n🍽 В ресторанах готовят блюда средиземноморской и египетской кухни.\n\nОтель принимает гостей от 16 лет.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
       "sources": [
         "https://www.sunrise-resorts.com/holidays-resort"
       ],
-      "excluded_source": "The current page links a Mamlouk Palace factsheet. It is not a source for this hotel or its admission age."
+      "excluded_source": "The current page links a Mamlouk Palace factsheet. It is not a source for this hotel or its admission age.",
+      "hotel_id": 478,
+      "logical_id": "commercial-sunrise-holidays-478-v1",
+      "text_sha256": "5ae5a6bbadfbfda460547a4ca3a7b7adc70397be28e3b0f46013daa38214250f",
+      "media_state": "NATIVE_COVER_NOT_YET_VERIFIED"
     }
   ]
 }
