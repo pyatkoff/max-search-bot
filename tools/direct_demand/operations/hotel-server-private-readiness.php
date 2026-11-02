@@ -1,22 +1,22 @@
 <?php
 declare(strict_types=1);
 ini_set('display_errors','0');ini_set('log_errors','0');
-const CHUNK_READ_OPERATION='hotel-server-private-chunk0-readback-v1';
-const CHUNK_READ_INSTALLED='8eb3458d46d5ed7bcf2cd87f98b7372563801833';
+const CHUNK_READ_OPERATION='hotel-server-private-cgi-readback-v1';
+const CHUNK_READ_INSTALLED='0fb9d88cd714ae951baa68f013b7a46472af06c4';
 const CHUNK_READ_ID='8e4c0372a0338bc98429d47bc0fe3327238f5be69d94c7d28dbf977647a85e35';
 const CHUNK_READ_TICKET_SHA='5e91679b20b7906686fc6f02b02841fbec615af99a3177a56d3f36e904b8dc43';
 const CHUNK_READ_PAYLOAD_SHA='a85746bce5b71d4d241777a30e6bd643efecbd512bc5a50a2b741336012e84eb';
 const CHUNK_READ_FIRST_SHA='fa65d127d3dba4b8d76cb320b1f71f2290b2fefd362ec488f87789d37da43275';
 const CHUNK_READ_RECIPIENT_SHA='71f2b177d6baa924fa466765027c37f51a00f23f803a6d900060bf42944d237d';
-const CHUNK_READ_WINDOW_FROM=1793641690; // 2026-11-02T17:48:10Z.
-const CHUNK_READ_WINDOW_TO=1793641790;   // 2026-11-02T17:49:50Z.
+const CHUNK_READ_WINDOW_FROM=1793642985; // 2026-11-02T18:09:45Z.
+const CHUNK_READ_WINDOW_TO=1793643045;   // 2026-11-02T18:10:45Z.
 $level=ob_get_level();ob_start(static fn(string $ignored):string=>'');
 $fixed=['operation'=>CHUNK_READ_OPERATION,'database_writes'=>0,'provider_calls'=>0,'runtime_enable_writes'=>0];
 $out=$fixed+['state'=>'HOLD','reason'=>'target_unconfirmed'];$lock=null;$pdo=null;$target=false;
 $report=['schema'=>CHUNK_READ_OPERATION,'operation_id'=>CHUNK_READ_ID,'state'=>'HOLD','reason'=>'readback_unconfirmed',
     'operator_provider_calls'=>0,'database_writes'=>0,'runtime_enable_writes'=>0,'server_file_writes'=>0,
     'resend_authorized'=>false,'window_utc'=>['from'=>gmdate('c',CHUNK_READ_WINDOW_FROM),'to'=>gmdate('c',CHUNK_READ_WINDOW_TO)],
-    'client_attempt'=>['index'=>0,'bytes'=>65536,'sha256'=>CHUNK_READ_FIRST_SHA,'started_at_utc'=>'2026-11-02T17:48:20.800954Z','client_outcome'=>'UNKNOWN_HTTPError']];
+    'client_attempt'=>['index'=>0,'bytes'=>65536,'sha256'=>CHUNK_READ_FIRST_SHA,'started_at_utc'=>'2026-11-02T18:09:57.494058Z','client_outcome'=>'HTTP404_handler_unavailable_terminal','http_status'=>404,'response_body_sha256'=>'0467ddb0c0de6540c5fbc15b6137de5b88ccaf91ea32090e6bcdb4dfe6dcc0d4']];
 function chunkFail(string $why):never {throw new DomainException($why);}
 function chunkDir(string $path):void {
     clearstatcache(true,$path);
@@ -38,7 +38,7 @@ function chunkMeta(string $path,int $max):array {
         &&$s['mtime']===$after['mtime']&&$s['ctime']===$after['ctime']&&$read===$s['size']
         &&$end['size']===$s['size']&&$end['mtime']===$s['mtime'];
     return ['exists'=>true,'bytes'=>$s['size'],'mode'=>decoct($s['mode']&0777),'uid'=>$s['uid'],
-        'modified_at_utc'=>gmdate('c',$s['mtime']),'sha256'=>$sha,'stable'=>$stable];
+        'modified_at_utc'=>gmdate('c',$s['mtime']),'changed_at_utc'=>gmdate('c',$s['ctime']),'sha256'=>$sha,'stable'=>$stable];
 }
 /** Metadata only for the one potentially untracked root configuration file; never follow links. */
 function chunkHtaccessMeta(string $path):array {
@@ -73,6 +73,97 @@ function chunkLogTail(string $path):array {
         'identity_stable'=>is_array($after)&&$s['dev']===$after['dev']&&$s['ino']===$after['ino']&&$s['ino']===$end['ino'],
         'lines'=>$lines];
 }
+
+/** Read only the three named own-vhost files and explicit per-user PHP wrapper references. */
+function chunkVhostEvidence(string $path,array &$wrappers,int &$rowBudget,bool $wrapper=false):array {
+    clearstatcache(true,$path);$s=lstat($path);
+    if($s===false)return ['path'=>$path,'available'=>false,'reason'=>'absent_or_unreadable'];
+    if(is_link($path)||!is_file($path)||!is_readable($path)||$s['size']<1||$s['size']>131072)
+        return ['path'=>$path,'available'=>false,'reason'=>'bounded_regular_read_unavailable','bytes'=>$s['size'],'symlink'=>is_link($path)];
+    $f=fopen($path,'rb');if(!$f)return ['path'=>$path,'available'=>false,'reason'=>'unreadable'];
+    try{$opened=fstat($f);if($s['dev']!==$opened['dev']||$s['ino']!==$opened['ino'])chunkFail('vhost_file_changed');
+        $raw=stream_get_contents($f,131073);$end=fstat($f);}finally{fclose($f);}
+    clearstatcache(true,$path);$after=lstat($path);
+    if(!is_string($raw)||strlen($raw)!==$s['size']||!is_array($after)||$s['dev']!==$after['dev']||$s['ino']!==$after['ino']
+        ||$s['size']!==$after['size']||$s['mtime']!==$after['mtime']||$end['size']!==$s['size'])chunkFail('vhost_file_changed');
+    $out=['path'=>$path,'available'=>true,'bytes'=>$s['size'],'sha256'=>hash('sha256',$raw),'stable'=>true,'selected_directives'=>[]];
+    if(str_contains($raw,"\0"))return $out+['reason'=>'non_text_not_returned'];
+    if(!$wrapper&&!preg_match('/(?:ServerName|server_name)\s+[^\r\n]*\bapp\.anytoour\.ru\b/i',$raw))
+        return $out+['reason'=>'own_host_marker_unconfirmed'];
+    $aliases=[];$actions=[];$selected=[];$truncated=false;
+    foreach(explode("\n",$raw) as $n=>$original){
+        $line=trim($original);if($line===''||str_starts_with($line,'#')||str_starts_with($line,';')||strlen($line)>2048)continue;
+        $line=preg_replace('/\s+#.*$/','',$line);
+        $row=null;$safe=null;
+        if(preg_match('/\bdisable_functions\b/i',$line)){
+            $row=['directive'=>'disable_functions','posix_geteuid_disabled'=>preg_match('/(?:^|[,=;\s"\'])posix_geteuid(?:$|[,\s"\';])/i',$line)===1,
+                'other_function_names_omitted'=>true];
+        }elseif(preg_match('/\bopen_basedir\b\s*(?:=|\s)\s*(.+)$/i',$line,$m)){
+            $value=trim($m[1]," \t;\"'");$literal=preg_match('~\A[A-Za-z0-9_./: -]*\z~D',$value)===1;
+            $allowed=null;if($literal){$allowed=$value===''||strtolower($value)==='none';
+                foreach(explode(':',$value) as $base){$base=trim($base);if($base==='/')$allowed=true;$base=rtrim($base,'/');if($base!==''&&($base==='/var/www/anytoour/data/www/max-search-bot-hotel-server'
+                    ||str_starts_with('/var/www/anytoour/data/www/max-search-bot-hotel-server/',$base.'/')))$allowed=true;}}
+            $row=['directive'=>'open_basedir','literal_private_sibling_allowed'=>$allowed,'value'=>$literal?substr($value,0,256):'[nonliteral value omitted]'];
+        }elseif(preg_match('/\b(opcache\.[A-Za-z0-9_]+)\b\s*(?:=|\s)\s*([^#\r\n]+)/i',$line,$m)){
+            $value=trim($m[2]," \t;\"'");$safeValue=preg_match('/\A(?:[0-9]+|on|off|true|false|yes|no)\z/iD',$value)?$value:'[nonboolean/non-numeric value omitted]';
+            $row=['directive'=>$m[1],'value'=>$safeValue];
+        }elseif(preg_match('/^\s*(?:export\s+)?PHPRC\s*=\s*["\']?([\/A-Za-z0-9_.-]+)["\']?\s*;?\s*$/',$line,$m)){
+            $row=['directive'=>'PHPRC','path'=>$m[1],'referenced_ini_not_read'=>true];
+        }elseif(preg_match('~(?:^|[\s"\'])((?:/[A-Za-z0-9_.-]+)+/(?:php-cgi[0-9.]*|php[0-9.]*))(?:[\s"\';]|$)~',$line,$m)&&$wrapper){
+            $row=['directive'=>'php_binary_reference','path'=>$m[1],'binary_not_read_or_executed'=>true];
+        }elseif(preg_match('/^(CGIPassAuth|AllowOverride)\s+([A-Za-z ]+)\s*$/i',$line,$m)){
+            $safe=$m[1].' '.$m[2];
+        }elseif(preg_match('/^FcgidPassHeader\s+(Authorization|HTTPS|X-Forwarded-Proto|X-HTTPS)\s*$/i',$line,$m)){
+            $safe='FcgidPassHeader '.$m[1];
+        }elseif(preg_match('/^(?:AssignUserID|SuexecUserGroup|UserGroup|User|Group)\s+[A-Za-z0-9_. -]+\s*$/i',$line)){
+            $safe=$line;
+        }elseif(preg_match('~^(DocumentRoot|root)\s+["\']?(/[A-Za-z0-9_./-]+)["\']?\s*;?\s*$~i',$line,$m)){
+            $safe=$m[1].' '.$m[2];
+        }elseif(preg_match('~^<Directory\s+["\']?(/var/www/anytoour/data/www/app\.anytoour\.ru/?)["\']?>$~i',$line,$m)){
+            $safe='<Directory '.$m[1].'>';
+        }elseif(preg_match('/^Options\s+([A-Za-z+\- ]+)$/i',$line,$m)&&stripos($m[1],'ExecCGI')!==false){
+            $safe=$line;
+        }elseif(preg_match('~^FcgidWrapper\s+["\']?(/[A-Za-z0-9_./-]+)["\']?(?:\s|$)~i',$line,$m)){
+            $safe='FcgidWrapper '.$m[1];
+            if(str_starts_with($m[1],'/var/www/php-bin/anytoour/')&&!str_contains($m[1],'/../'))$wrappers[$m[1]]=true;
+        }elseif(preg_match('~^ScriptAlias\s+["\']?(/php-bin/[^"\s]*)["\']?\s+["\']?(/var/www/php-bin/anytoour/[^"\s]*)["\']?~i',$line,$m)){
+            $safe='ScriptAlias '.$m[1].' '.$m[2];$aliases[$m[1]]=$m[2];
+        }elseif(preg_match('~^Action\s+([A-Za-z0-9_/+.-]+)\s+["\']?(/php-bin/[A-Za-z0-9_./-]+)["\']?\s*$~i',$line,$m)){
+            $safe='Action '.$m[1].' '.$m[2];$actions[]=$m[2];
+        }elseif(preg_match('/^(AddHandler|SetHandler)\s+([A-Za-z0-9_\/+.-]+)(?:\s+(\.[A-Za-z0-9. ]+))?$/i',$line,$m)
+            &&preg_match('/php|cgi/i',$m[2])){
+            $safe=substr($line,0,256);
+        }elseif(preg_match('~^(?:<VirtualHost|Listen|listen|proxy_pass|fastcgi_pass|ProxyPass)\b.*(?:127\.0\.0\.1|\[::1\]|localhost)~i',$line)){
+            if(preg_match('~(?:https?://)?(?:127\.0\.0\.1|\[::1\]|localhost)(?::[0-9]{1,5})?~i',$line,$m)){
+                preg_match('/^<?([A-Za-z_]+)/',$line,$name);$safe=($name[1]??'loopback').' '.$m[0];
+            }
+        }elseif(preg_match('/^(proxy_set_header|fastcgi_param|FcgidInitialEnv|SetEnv)\s+(Authorization|HTTP_AUTHORIZATION|HTTPS|X-Forwarded-Proto|X-HTTPS)\s+(.+)$/i',$line,$m)){
+            $value=trim($m[3]," \t;\"'");$tokens=preg_split('/\s+/',$value);$ok=true;
+            foreach($tokens as $token)if(!preg_match('/\A(?:\$[A-Za-z_][A-Za-z0-9_]*|%\{[A-Za-z0-9_:.-]+\}|https?|on|off|[01]|if_not_empty)\z/iD',$token))$ok=false;
+            $safe=$m[1].' '.$m[2].' '.($ok?$value:'[literal value omitted]');
+        }elseif(preg_match('/^(SetEnvIfNoCase|SetEnvIf)\s+(Authorization|X-Forwarded-Proto|X-HTTPS|HTTPS)\s+/i',$line,$m)){
+            $safe=$m[1].' '.$m[2].' [pattern omitted]';
+            if(preg_match('/\b(HTTP_AUTHORIZATION|HTTPS)=([^\s;]+)/',$line,$assignment)){
+                $v=trim($assignment[2],"\"'");$ok=preg_match('/\A(?:\$[0-9]|%\{[A-Za-z0-9_:.-]+\}|on|off|[01])\z/iD',$v);
+                $safe.=' '.$assignment[1].'='.($ok?$v:'[literal value omitted]');
+            }
+        }elseif(preg_match('/^(RewriteCond|RewriteRule)\s+/i',$line,$m)&&preg_match('/AUTHORIZATION|HTTPS|X-Forwarded-Proto|X-HTTPS/i',$line)){
+            preg_match_all('/%\{(?:HTTP:Authorization|HTTP:X-Forwarded-Proto|HTTP:X-HTTPS|HTTPS)\}/i',$line,$vars);
+            $safe=$m[1].' '.implode(' ',array_unique($vars[0])).' [patterns/targets omitted]';
+            if(preg_match('/\bE=(HTTP_AUTHORIZATION|HTTPS):(%\{[A-Za-z0-9_:.-]+\}|on|off|[01])(?=,|\]|$)/i',$line,$e))$safe.=' E='.$e[1].':'.$e[2];
+        }
+        if($row===null&&$safe!==null)$row=['directive_line'=>substr($safe,0,384)];
+        if($row!==null){
+            if($rowBudget<1){$truncated=true;break;}$rowBudget--;$selected[]=['line_number'=>$n+1]+$row;
+        }
+    }
+    foreach($actions as $action)foreach($aliases as $prefix=>$dest)if(str_starts_with($action,$prefix)){
+        $wrapperPath=$dest.substr($action,strlen($prefix));
+        if(str_starts_with($wrapperPath,'/var/www/php-bin/anytoour/')&&!str_contains($wrapperPath,'/../'))$wrappers[$wrapperPath]=true;
+    }
+    unset($raw);$out['selected_directives']=$selected;$out['selection_truncated']=$truncated;return $out;
+}
+
 function chunkSeal(array $payload):array {
     $recipient=<<<'PUBLIC_RECIPIENT'
 -----BEGIN PUBLIC KEY-----
@@ -110,6 +201,9 @@ try {
     if(!hash_equals('f0180d547da2566d6cbc1fe0ef34530837e3c0c87e0a5cf9c407094ef07f4ee1',hash_file('sha256',$app.'/services/HotelServerPrivateUpload.php')))
         chunkFail('installed_helper_unconfirmed');
     $report['application_root_htaccess']=chunkHtaccessMeta($app.'/.htaccess');
+    $report['expected_root_htaccess_sha256']='a4c8912801aa74844279e2c2c09230e3f555da54e16a9a6a31ec3005ec9ed8ff';
+    $report['root_htaccess_matches_installed_source']=($report['application_root_htaccess']['stable']??false)===true
+        &&hash_equals($report['expected_root_htaccess_sha256'],$report['application_root_htaccess']['sha256']??'');
     $root=dirname($app).'/max-search-bot-hotel-server';$dir=$root.'/ingress-v1';chunkDir($root);chunkDir($dir);
     $lockMeta=chunkMeta($dir.'/upload.lock',1);$report['upload_lock_metadata']=$lockMeta;
     if(!$lockMeta['exists']||$lockMeta['bytes']!==0||$lockMeta['stable']!==true)chunkFail('existing_upload_lock_unconfirmed');
@@ -191,6 +285,17 @@ try {
     }
     unset($error['lines']);$error['own_endpoint_rows']=$errorRows;$error['generic_unattributed_errors_excluded']=true;
     $error['time_basis']='same_host_access_log_offsets_only; no PHP timezone assumption';$report['error_log']=$error;
+    $vhostRows=[];$wrapperPaths=[];$directiveBudget=48;
+    foreach(['/etc/httpd/conf/vhosts/anytoour/app.anytoour.ru.conf',
+        '/etc/apache2/conf/vhosts/anytoour/app.anytoour.ru.conf','/etc/nginx/vhosts/anytoour/app.anytoour.ru.conf'] as $configPath)
+        $vhostRows[]=chunkVhostEvidence($configPath,$wrapperPaths,$directiveBudget);
+    $report['exact_own_vhost_configs']=$vhostRows;$wrapperRows=[];$seenWrappers=[];
+    foreach(array_keys($wrapperPaths) as $wrapperPath){
+        if(count($seenWrappers)>=2)break;$seenWrappers[]=$wrapperPath;
+        $wrapperRows[]=chunkVhostEvidence($wrapperPath,$wrapperPaths,$directiveBudget,true);
+    }
+    $report['explicit_own_php_wrapper_configs']=$wrapperRows;
+    $report['global_configs_scanned']=false;$report['web_opcache_execution_version_proven']=false;
     require_once $app.'/config.php';require_once $app.'/services/ProjectAccessService.php';
     ProjectAccessService::initializeReadOnly();$pdo=ConversationDb::connection();
     if($pdo->inTransaction()||$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)!=='mysql')chunkFail('database_read_unconfirmed');
@@ -210,7 +315,7 @@ try {
     elseif($partial['exists'])$observation='chunk0_partial_observed_hold';
     elseif($first['exists'])$observation=$first['bytes']===65536&&hash_equals(CHUNK_READ_FIRST_SHA,$first['sha256'])?'chunk0_stored_observed':'foreign_or_partial_chunk0_hold';
     elseif($chunkEntries===[]&&$report['ticket_sha256_matches_renewal'])$observation='chunk0_absent_observed';
-    $report['server_observation']=$observation;$report['http_outcome_proven_by_client']=false;
+    $report['server_observation']=$observation;$report['http_outcome_proven_by_client']=true;
     $report['log_absence_is_not_proof_of_safe_resend']=true;$report['state']='readback';unset($report['reason']);
 }catch(Throwable $e){
     $why=$e->getMessage();$report['reason']=preg_match('/\A[a-z][a-z0-9_]{1,100}\z/D',$why)?$why:'readback_unconfirmed';
