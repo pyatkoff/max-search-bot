@@ -90,7 +90,24 @@ async function setup(page,{total=500,media=false,syntheticSend=false,holdLead=fa
 function clean(state,{sends=0}={}){expect(state.unexpected).toEqual([]);expect(state.errors).toEqual([]);expect(state.sends).toHaveLength(sends)}
 async function open(page,id=11){if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()&&WorkspaceV2Mobile.getScreen()!=='inbox'))await page.locator('#mobileBack').click();await page.locator('#inboxList [data-conversation-id="'+id+'"]').click();await expect(page.locator('#conversationTitle')).toHaveText(id===11?'Синтетический клиент А':'Синтетический клиент Б');await settled(page)}
 async function settled(page){await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));if(await page.evaluate(()=>innerWidth<=430&&WorkspaceV2Mobile.isMobile()))await expect.poll(async()=>Math.round((await page.locator('#conversationZone').boundingBox()).x)).toBe(0)}
-async function refresh(page){await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible());await settled(page)}
+async function refresh(page){
+ // Invoke once; read settlement without transporting a live async value through CDP.
+ await page.evaluate(()=>{
+  const state={document,settled:false,rejected:false,error:null};
+  window.__qaHistoryRefresh=state;
+  state.promise=WorkspaceV2Conversation.refreshVisible();
+  state.promise.then(()=>{state.settled=true},error=>{state.rejected=true;state.error=error;state.settled=true});
+ });
+ await expect.poll(()=>page.evaluate(()=>!window.__qaHistoryRefresh||window.__qaHistoryRefresh.settled)).toBe(true);
+ const result=await page.evaluate(()=>{
+  const state=window.__qaHistoryRefresh;
+  delete window.__qaHistoryRefresh;
+  if(state?.rejected)throw state.error;
+  return {sameDocument:state?.document===document};
+ });
+ expect(result).toEqual({sameDocument:true});
+ await settled(page);
+}
 async function revealConversationTool(page,id){const button=page.locator('#'+id),menu=button.locator('xpath=ancestor::details[1]');if(await menu.count()&&!await menu.evaluate(el=>el.open))await menu.locator('summary').click();await expect(button).toBeVisible();return button}
 async function useConversationTool(page,id){await (await revealConversationTool(page,id)).click()}
 async function anchor(page){return page.locator('#messages').evaluate(box=>{const top=box.getBoundingClientRect().top,row=[...box.querySelectorAll('.msg')].find(n=>n.getBoundingClientRect().bottom>top+1);return{id:row?.dataset.scrollMessageKey,offset:row?.getBoundingClientRect().top-top}})}

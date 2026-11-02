@@ -19,7 +19,7 @@ async function openPersonal(page){
  const screen=await page.evaluate(()=>WorkspaceV2Mobile.isMobile()?WorkspaceV2Mobile.getScreen():'desktop');
  if(screen==='conversation')await page.locator('#mobileLeadBtn').click();
  if(screen==='conversation'||screen==='lead')await page.locator('#pwClientOpen').click();else await page.locator('#m2WorkspaceSettings').click();
- await expect(page.locator('#pwDialog')).toBeVisible();await expect(page.locator('#pwDialog')).toContainText('Видно только вам');
+ await expect(page.locator('#pwDialog')).toBeVisible();await expect(page.locator('#pwDialog')).toContainText('Настройки рабочего места и автоподготовки черновиков.');await expect(page.locator('#pwGroups')).toHaveAttribute('aria-label','Личные группы');
 }
 async function closePersonal(page){await page.locator('#pwClose').click();await expect(page.locator('#pwDialog')).not.toBeVisible();if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()&&WorkspaceV2Mobile.getScreen()==='lead'))await page.locator('#mobileLeadClose').click()}
 async function createLabel(page,name){await page.locator('#pwNewLabel').click();await page.locator('#pwLabelName').fill(name);await page.locator('#pwLabelSave').click();await expect(page.locator('#pwLabelEditor')).toHaveCount(0)}

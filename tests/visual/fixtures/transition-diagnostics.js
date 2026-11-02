@@ -3,10 +3,14 @@ const path=require('node:path');
 const TARGETS=new Map([
   ['manager-ai-draft.spec.js',new Set([
     'current-trip panel closes on conversation and account change, ignores late profile reads',
-    'AI rejects a same-ID edit while the cached reply is pending'
+    'AI rejects a same-ID edit while the cached reply is pending',
+    'AI rejects a arrival while the cached reply is pending'
   ])],
   ['manager-assistant.spec.js',new Set(['Manager assistant unifies list and current-client advice without touching reply 390'])],
-  ['manager-manual-groups.spec.js',new Set(['manual group 390: one name creates a tab; two pointer/keyboard actions add or remove without replacing the conversation'])],
+  ['manager-manual-groups.spec.js',new Set([
+    'manual group 390: one name creates a tab; two pointer/keyboard actions add or remove without replacing the conversation',
+    'manual group 430: one name creates a tab; two pointer/keyboard actions add or remove without replacing the conversation'
+  ])],
   ['manager2-workspace.spec.js',new Set(['task mutations, keyboard-height composer, sales controls and notification dialog remain usable'])]
 ]);
 const MAX_EVENTS=96,MAX_CONTEXTS=32,MAX_OUTPUT=24576;

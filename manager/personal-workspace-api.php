@@ -16,6 +16,7 @@ if (!is_string($action)) ManagerHttp::respond(['ok'=>false,'error'=>'unknown_act
 try {
     $result=match($action) {
         'snapshot'=>ManagerPersonalWorkspaceService::snapshot($actor),
+        'queue_preparation_snapshot'=>ManagerPersonalWorkspaceService::queuePolicy($actor),
         'list'=>ManagerPersonalWorkspaceService::list($actor,$data),
         'operation'=>ManagerPersonalWorkspaceService::operation($actor,is_string($data['operation_id']??null)?$data['operation_id']:''),
         default=>ManagerPersonalWorkspaceService::mutate($actor,$action,$data),

@@ -9,11 +9,12 @@ const cases=[];function test(name,run){cases.push({name,run})}
 const generated=(changes={})=>({ok:true,should_draft:true,draft:'Уточните удобные даты поездки.',next_action:'clarify',reason:'В запросе нет даты вылета.',checks:['Проверить состав туристов'],evidence_message_ids:[8],history_incomplete:false,revision:'synthetic-revision-1',latest_message_id:8,...changes});
 const preparedAt=new Date().toISOString(),expiresAt=new Date(Date.now()+3600000).toISOString();
 const prepared=(changes={})=>({...generated(),prepared:true,prepared_at:preparedAt,expires_at:expiresAt,source:'chatgpt',...changes});
-async function harness(handler=()=>response(prepared()),{manager2=false,hosted=false}={}){
+async function harness(handler=()=>response(prepared()),{manager2=false,hosted=false,policyDuration=null}={}){
   const h=createHarness();await h.start();
   const form=h.ids.get('composer'),reply=h.ids.get('replyText'),prototype=Object.getPrototypeOf(reply);
   prototype.setSelectionRange=function(start,end,direction='none'){this.selectionStart=Math.min(start,this.value.length);this.selectionEnd=Math.min(end,this.value.length);this.selectionDirection=direction};
   prototype.focus=function(){h.document.activeElement=this};
+  prototype.prepend=function(...nodes){for(const node of nodes.reverse())this.insertBefore(node,this.firstChild)};
   prototype.getAttribute=function(name){return this[name]??null};
   // Deterministic DOM APIs for behavior execution, not a layout/paint oracle.
   // Actual sizing, clipping and native input remain browser-fixture checks.
@@ -55,6 +56,7 @@ async function harness(handler=()=>response(prepared()),{manager2=false,hosted=f
   h.document.readyState='complete';
   const aiTimers=new Map();let timerId=0,now=Date.now();
   if(manager2)h.document.body.classList.add('manager2');
+  if(policyDuration!==null){const until=now+policyDuration;h.window.WorkspaceV2PersonalWorkspace={preparationPermission:()=>({allowed:now<until,token:'synthetic-timed-rule',until})};}
   h.window.setTimeout=(fn,ms)=>{const id=++timerId;aiTimers.set(id,{fn,ms});return id};
   h.window.clearTimeout=id=>aiTimers.delete(id);
   h.aiTimers=aiTimers;h.advanceAiClock=ms=>{now+=ms};
@@ -135,6 +137,17 @@ test('pending automatic preparation becomes a truthful delay after the bounded o
   const h=await harness(data=>response(data.action==='prepared_status'?automaticMiss:{ok:true,requested:true,preparation_state:'pending',queued:true}),{manager2:true});await tick();const calls=h.aiCalls().length;
   h.advanceAiClock(600001);await pollAi(h);assert.equal(h.aiCalls().length,calls);assert.match(h.ids.get('aiPreparationNotice').children[0].textContent,/задерживается/);assert.equal(h.ids.get('aiPreparationRetry').hidden,false);
   await h.click('aiPreparationRetry');assert.equal(h.aiCalls().filter(call=>call.action==='ensure_prepared').length,2);assert.match(h.ids.get('aiPreparationNotice').children[0].textContent,/готовит подсказку автоматически/);assert.equal(h.aiCalls().some(call=>call.action==='generate'),false);assertNoMutations(h);
+});
+test('explicit preparation retry retains the policy deadline and rejects late passive work',async()=>{
+  let attempts=0;const late=deferred(),h=await harness(data=>data.action==='prepared_status'?response(automaticMiss):data.action==='ensure_prepared'?++attempts===1?response({ok:false,error:'preparation_unavailable'},503):late.promise:response(prepared()),{manager2:true,policyDuration:120000});await tick();
+  const file={name:'keep-policy-deadline.txt'},reply=h.ids.get('replyText');h.setFile(file);reply.focus();
+  h.advanceAiClock(110000);await h.click('aiPreparationRetry');
+  assert.equal(attempts,2);assert.ok([...h.aiTimers.values()].some(timer=>timer.ms===10000),'retry must retain the remaining ten seconds, not extend it to ten minutes');
+  h.advanceAiClock(10000);h.ai.sync();await tick();const count=h.aiCalls().length;
+  late.resolve(response({ok:true,requested:true,preparation_state:'ready',queued:true}));await tick();h.ai.sync();await tick();
+  assert.equal(h.aiCalls().length,count);assert.equal(h.ids.get('aiDraftSuggestion').hidden,true);assert.equal(h.ids.get('aiPreparationNotice').hidden,true);
+  await h.draft('Свой незаконченный ответ');h.ai.sync();await tick();
+  assert.equal(reply.value,'Свой незаконченный ответ');assert.equal(h.getFile(),file);assert.equal(h.aiCalls().some(call=>call.action==='generate'),false);assertNoMutations(h);
 });
 test('a fresh visible opening after the pending attempt expires re-ensures once and keeps the current observer bounded',async()=>{
   const h=await harness(data=>response(data.action==='prepared_status'?automaticMiss:{ok:true,requested:true,preparation_state:'pending',queued:true}),{manager2:true});await tick();h.advanceAiClock(600001);await pollAi(h);assert.equal(h.aiCalls().filter(call=>call.action==='ensure_prepared').length,1);
