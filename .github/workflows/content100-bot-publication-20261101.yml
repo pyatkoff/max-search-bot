@@ -1,10 +1,10 @@
 name: Publish four approved AnyTour hotels in both channels
 on:
   push:
-    branches: [audit/confourt100-bot-publication-20261101]
-    paths: [.github/workflows/confourt100-bot-publication-20261101.yml]
+    branches: [audit/content100-bot-publication-20261101]
+    paths: [.github/workflows/content100-bot-publication-20261101.yml]
 permissions:
-  confourts: read
+  contents: read
   actions: read
 concurrency:
   group: anytour-authorized-channel-publication
@@ -13,7 +13,7 @@ env:
   EXPECTED_PRODUCTION_SHA: 0fb9d88cd714ae951baa68f013b7a46472af06c4
 jobs:
   inspect:
-    if: github.ref == 'refs/heads/audit/confourt100-bot-publication-20261101'
+    if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -115,7 +115,7 @@ jobs:
         with:
           name: commercial-batch-20261102-11-publication
           path: ${{ runner.temp }}/channel-preflight.json
-          refourtion-days: 14
+          retention-days: 14
           if-no-files-found: warn
       - name: Remove ephemeral connection and script files
         if: always()
