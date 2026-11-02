@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { execFileSync } = require('node:child_process');
+const { execFileSync, spawnSync } = require('node:child_process');
 const { classifyChanges, parseRawDiff, oauthSpecOnlyChange, editorManifestVersionOnlyChange } = require('../tools/ci_change_scope');
 const selector = path.resolve(__dirname, '../tools/ci_change_scope.js');
 const oauth = 'manager/ai-oauth.php';
@@ -227,6 +227,32 @@ try {
   check(run(event(base), { GITHUB_EVENT_PATH: path.join(temp, 'missing.json') }), 'full', 'missing event file');
   check(run(event(base), { GITHUB_EVENT_NAME: 'push' }), 'full', 'push event never narrows');
   check(run(event(base), { GITHUB_EVENT_NAME: '' }), 'full', 'missing event name never narrows');
+  // A green synthetic merge is insufficient for the repository's strict
+  // required checks when the PR branch itself predates main. Fail before scopes.
+  git(['reset', '--hard', '-q', base]); git(['clean', '-fdq']);
+  put('docs/unrelated-ci-base.txt', 'accepted independent base update\n');
+  git(['add', '-A']); git(['commit', '-qm', 'advance main independently']);
+  const advancedBase = git(['rev-parse', 'HEAD']);
+  git(['reset', '--hard', '-q', base]); git(['clean', '-fdq']);
+  put(oauth, 'candidate on the previous base\n');
+  git(['add', '-A']); git(['commit', '-qm', 'stale PR candidate']);
+  const staleHead = git(['rev-parse', 'HEAD']);
+  const staleEvent = { pull_request: { base: { sha: advancedBase }, head: { sha: staleHead } } };
+  fs.writeFileSync(eventPath, JSON.stringify(staleEvent));
+  fs.writeFileSync(outputPath, '');
+  const blocked = spawnSync(process.execPath, [selector], { cwd: temp, encoding: 'utf8',
+    env: { ...process.env, GITHUB_EVENT_NAME: 'pull_request', GITHUB_EVENT_PATH: eventPath, GITHUB_OUTPUT: outputPath } });
+  check(blocked.status, 1, 'stale branch is a failing gate, not success or a full retry');
+  const blockedResult = JSON.parse(blocked.stdout);
+  check(blockedResult.blocked, true, 'known stale ancestry is explicit');
+  check(blockedResult.reason, 'base_not_in_head', 'diagnosis identifies the required update');
+  check(fs.readFileSync(outputPath, 'utf8'), '', 'blocked scope cannot publish a usable mode');
+  check(blocked.stderr.includes('integrate the current main'), true, 'stale branch explains its next action');
+  check(run(staleEvent, { GITHUB_EVENT_NAME: 'workflow_dispatch' }), 'full', 'standalone manual runs retain full coverage');
+  git(['merge', '--no-edit', advancedBase]);
+  check(run({ pull_request: { base: { sha: advancedBase }, head: { sha: git(['rev-parse', 'HEAD']) } } }),
+    'oauth', 'after integrating main, the unchanged candidate follows its ordinary scope');
+
   const brokenHead = git(['rev-parse', 'HEAD']);
   const brokenTree = git(['rev-parse', `${brokenHead}^{tree}`]);
   fs.unlinkSync(path.join(temp, '.git', 'objects', brokenTree.slice(0, 2), brokenTree.slice(2)));
