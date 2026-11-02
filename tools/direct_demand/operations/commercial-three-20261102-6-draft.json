@@ -1,103 +1,13 @@
 {
   "operation": "commercial-hotel-three-20261102-6-v1",
-  "state": "CANVA_LINK_TRANSFER_AND_HISTORY_APPROVED_NATIVE_INSPECTION_PENDING_NOT_SENT",
-  "goal": "Prepare the next three complete hotel posts from retained Egypt material, then publish once per channel after all media and identity checks.",
-  "boundaries": "Candidates Mamlouk Palace, Garden Beach and White Hills. This operation is read-only catalog/registry discovery; no client data, messages, providers or prices.",
-  "criteria": [
-    "Exact existing active catalogue identity and no existing hotel publication.",
-    "Primary official sources correspond to the same physical property.",
-    "Do not count draft as sent or use prior three-cover URL permission for other images."
+  "state": "MEDIA_VERIFIED_RELEASE_GATES_PENDING_NOT_SENT",
+  "hotel_catalog_ids": [
+    482,
+    476,
+    81173
   ],
-  "risks": [
-    "Hotel name homonyms, duplicate records, retained PARTIAL facts, access restrictions on private archives.",
-    "Never infer native/provider IDs from names."
-  ],
-  "baseline_logical_materials": 21,
-  "candidate_names": [
-    "SUNRISE Mamlouk Palace Resort",
-    "SUNRISE Garden Beach Resort",
-    "White Hills Resort"
-  ],
-  "official_sources": [
-    "https://www.sunrise-resorts.com/mamlouk-palace-resort",
-    "https://www.sunrise-resorts.com/garden-beach-resort",
-    "https://www.sunrise-resorts.com/white-hills-resort"
-  ],
-  "next": "Inspect exact native cover bytes and layout, freeze permitted public PNGs, then publish through existing bot route after current release and source gates.",
-  "rows": [
-    {
-      "logical_id": "commercial-mamlouk-palace-482-v1",
-      "hotel_id": 482,
-      "hotel": "SUNRISE Mamlouk Palace Resort",
-      "aliases": [
-        "Mamlouk Palace",
-        "Мамлюк Палас"
-      ],
-      "source_url": "https://www.sunrise-resorts.com/mamlouk-palace-resort",
-      "text": "✈️ Туры в SUNRISE Mamlouk Palace Resort с перелётом\n📍 Египет, Хургада\n\nОтель в восточном стиле на собственном песчаном пляже.\n\n🏊 На территории два бассейна.\n🧸 Детский клуб для детей от 3 до 12 лет.\n🍽 Есть пять ресторанов.\n\nАквапарк находится в соседнем отеле.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
-      "text_sha256": "21aba9686672939c155bfae4348293cefbec0fa89490869161a4e8bbde27f4ac",
-      "photo_candidates": [
-        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/647db271bf3b1.jpg/1920x1080/fit/80/9ab9313038b406f69d551d1d63d6c87b.jpg",
-        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/64e752a146706.jpg/1920x1080/fit/80/37e73c5f7cac99aa1cb3fcc4a8f2eac6.jpg",
-        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/64bf9e5988e8e.jpg/1920x1080/fit/80/3c9a42ab9a3a84b98f093dca935e1f0d.jpg"
-      ],
-      "media_state": "OFFICIAL_PHOTO_SELECTION_PENDING_BRANDED_PREVIEW"
-    },
-    {
-      "logical_id": "commercial-garden-beach-476-v1",
-      "hotel_id": 476,
-      "hotel": "SUNRISE Garden Beach Resort",
-      "aliases": [
-        "SUNRISE Garden Beach",
-        "Garden Beach Resort",
-        "Гарден Бич"
-      ],
-      "source_url": "https://www.sunrise-resorts.com/garden-beach-resort",
-      "text": "✈️ Туры в SUNRISE Garden Beach Resort с перелётом\n📍 Египет, Хургада\n\nОтель на собственном песчаном пляже с большой зелёной территорией.\n\n💦 На территории есть аквапарк.\n🧸 Для детей есть клуб и семейный бассейн.\n🌴 На пляже есть отдельная зона только для взрослых.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
-      "text_sha256": "e8e2770ab02fde77a46cf9023eb860a1150aa7e62d4c7ed4799eb9d8bfd900b9",
-      "photo_candidates": [
-        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/647db14b8c8e6.jpg/1920x1080/fit/80/6ee71d1efc4be56d0f75bd4d9ca5f02e.jpg",
-        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/647db14b61690.jpg/1920x1080/fit/80/889fb457e7e56ecd212ff8d268a7d497.jpg",
-        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/64be7a388783a.JPG/1920x1080/fit/80/1a9b20b92747b7adf06e8442a65e7ce8.jpg"
-      ],
-      "media_state": "OFFICIAL_PHOTO_SELECTION_PENDING_BRANDED_PREVIEW"
-    },
-    {
-      "logical_id": "commercial-white-hills-81173-v1",
-      "hotel_id": 81173,
-      "hotel": "White Hills Resort",
-      "aliases": [
-        "White Hills Resort",
-        "SUNRISE White Hills",
-        "Уайт Хиллс",
-        "Вайт Хиллс"
-      ],
-      "source_url": "https://www.sunrise-resorts.com/white-hills-resort",
-      "text": "✈️ Туры в White Hills Resort с перелётом\n📍 Египет, Шарм эль Шейх, Рас Насрани\n\nСемейный отель с собственным пляжем на берегу Красного моря.\n\n🏊 На территории семь бассейнов.\n🍽 Есть шесть ресторанов.\n🧸 Есть детский клуб.\n\nБассейн Posh Pool и лаунж Posh Club Lounge доступны только гостям Posh Club.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
-      "text_sha256": "951fd0d5c7fd95ddbfc8ece49fd51cded70e7490a48ca88da0ddb6f5b390a017",
-      "photo_candidates": [
-        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/646cbb1bc72ed.jpg/1920x1080/fit/80/871d46508a5481e007ed82bd21ccc10a.jpg",
-        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/649468c6f06e2.jpg/1920x1080/fit/80/393d6ef2701491e2cc1e06f8ba7b5a4c.jpg",
-        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/64f8288e6b62c.jpg/1920x1080/fit/80/0ef400263c5a731f316fee9b9bd3760f.jpg"
-      ],
-      "media_state": "OFFICIAL_PHOTO_SELECTION_PENDING_BRANDED_PREVIEW",
-      "sources": [
-        "https://www.sunrise-resorts.com/white-hills-resort",
-        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/pressroom/26_wh_factsheet_october_2023.pdf"
-      ],
-      "source_limit": "Official linked factsheet is October2023. Use only clearly published Posh Club facility scope, no current tariff, availability, seasonal operation or universal privilege claim."
-    }
-  ],
-  "identity_decisions": [
-    "Mamlouk482 in Hurghada matches official Mamlouk Palace; the Cairo hotel105864 is unrelated.",
-    "White Hills81173 is the base resort. Posh Club111423 is a separately named catalogue product; no automatic privileges or identity merge.",
-    "Garden Beach476 is the unique active match in Hurghada."
-  ],
-  "catalog_evidence": {
-    "run": "https://github.com/pyatkoff/max-search-bot/actions/runs/41424323736",
-    "db_writes": 0,
-    "provider_calls": 0,
-    "existing_hotel_publication_matches_in_both_channels": 0
-  },
-  "permission_scope": "Owner explicitly approved Canva cover URLs in existing Actions and audit branch/history for this and subsequent hotel covers under this AnyTour publishing task. Does not authorize unrelated private data exports."
+  "confirmed_logical_materials_total": 21,
+  "new_posts": 0,
+  "prepared_public_manifest": "tools/direct_demand/operations/commercial-three-20261102-6-manifest.json",
+  "next": "Current main deployment and its strict TLS check must complete; then run the same finite once-only publisher."
 }

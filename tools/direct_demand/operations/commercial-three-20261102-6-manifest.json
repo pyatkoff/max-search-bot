@@ -1,0 +1,74 @@
+{
+  "operation": "commercial-hotel-three-20261102-6-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Publish these three complete hotel posts once in each existing authorized channel, preserving their source context and canonical cost button.",
+  "boundaries": "Mamlouk482, Garden476, WhiteHills81173; existing bot, registry and once-only mechanism. No advertisements, client contact, prices or Mac access.",
+  "criteria": [
+    "Six provider-confirmed photo posts with correct text, canonical button and source resolution.",
+    "No duplicate hotel or logical material, and no retry of an unknown send.",
+    "Real official photographs and readable AnyTour branding; simple Russian without dash separators."
+  ],
+  "risks": [
+    "Do not merge Cairo Mamlouk or the Posh Club catalogue product with the chosen base resorts.",
+    "Mandatory current release, host and TLS gates must pass before server writes."
+  ],
+  "baseline_logical_materials": 21,
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "logical_id": "commercial-mamlouk-palace-482-v1",
+      "hotel_id": 482,
+      "hotel": "SUNRISE Mamlouk Palace Resort",
+      "aliases": [
+        "Mamlouk Palace",
+        "Мамлюк Палас"
+      ],
+      "text": "✈️ Туры в SUNRISE Mamlouk Palace Resort с перелётом\n📍 Египет, Хургада\n\nОтель в восточном стиле на собственном песчаном пляже.\n\n🏊 На территории два бассейна.\n🧸 Детский клуб для детей от 3 до 12 лет.\n🍽 Есть пять ресторанов.\n\nАквапарк находится в соседнем отеле.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "text_sha256": "21aba9686672939c155bfae4348293cefbec0fa89490869161a4e8bbde27f4ac",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5e54b08b752d613893294503ed3d802001ef5620/.github/traffic-publish/commercial-three-20261102-6/mamlouk-palace.png",
+      "photo_sha256": "7a2467e2fd950fa561c2c3f7efa928bf4a0f65dfa8d4ec17c1beb3e13b77168b",
+      "sources": [
+        "https://www.sunrise-resorts.com/mamlouk-palace-resort"
+      ],
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "logical_id": "commercial-garden-beach-476-v1",
+      "hotel_id": 476,
+      "hotel": "SUNRISE Garden Beach Resort",
+      "aliases": [
+        "SUNRISE Garden Beach",
+        "Garden Beach Resort",
+        "Гарден Бич"
+      ],
+      "text": "✈️ Туры в SUNRISE Garden Beach Resort с перелётом\n📍 Египет, Хургада\n\nОтель на собственном песчаном пляже с большой зелёной территорией.\n\n💦 На территории есть аквапарк.\n🧸 Для детей есть клуб и семейный бассейн.\n🌴 На пляже есть отдельная зона только для взрослых.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "text_sha256": "e8e2770ab02fde77a46cf9023eb860a1150aa7e62d4c7ed4799eb9d8bfd900b9",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5e54b08b752d613893294503ed3d802001ef5620/.github/traffic-publish/commercial-three-20261102-6/garden-beach.png",
+      "photo_sha256": "79fa71e2f1149ac776bb1759bfaa2f7120c4b5fb18db7d27cc0170c18a884851",
+      "sources": [
+        "https://www.sunrise-resorts.com/garden-beach-resort"
+      ],
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "logical_id": "commercial-white-hills-81173-v1",
+      "hotel_id": 81173,
+      "hotel": "White Hills Resort",
+      "aliases": [
+        "White Hills Resort",
+        "SUNRISE White Hills",
+        "Уайт Хиллс",
+        "Вайт Хиллс"
+      ],
+      "text": "✈️ Туры в White Hills Resort с перелётом\n📍 Египет, Шарм эль Шейх, Рас Насрани\n\nСемейный отель с собственным пляжем на берегу Красного моря.\n\n🏊 На территории семь бассейнов.\n🍽 Есть шесть ресторанов.\n🧸 Есть детский клуб.\n\nБассейн Posh Pool и лаунж Posh Club Lounge доступны только гостям Posh Club.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "text_sha256": "951fd0d5c7fd95ddbfc8ece49fd51cded70e7490a48ca88da0ddb6f5b390a017",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5e54b08b752d613893294503ed3d802001ef5620/.github/traffic-publish/commercial-three-20261102-6/white-hills.png",
+      "photo_sha256": "72e15ba54ba54b4379a14bc328a0f455fa1213f4f7c29952201c9f39464b0ca8",
+      "sources": [
+        "https://www.sunrise-resorts.com/white-hills-resort",
+        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/pressroom/26_wh_factsheet_october_2023.pdf"
+      ],
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    }
+  ]
+}
