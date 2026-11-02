@@ -12,7 +12,7 @@ final class ModeledConversionStatusMcpAdapter
     {
         $security=[['type'=>'oauth2','scopes'=>[ManagerPreparationOAuth::FORECAST_SCOPE]]];
         return [['name'=>self::NAME,
-            'description'=>'Read a bounded private aggregate check of already saved AnyTour live signals and early ordinal forecasts. Checks immutable derived profile snapshots, not customer transcripts. Coverage is limited to the reported window; an idle latest tick is not proof that no forecast was saved. Read-only: no capture, manual tick, customer send, source/read-marker change, model call or advertising export.',
+            'description'=>'Read a bounded private aggregate check of already saved AnyTour V1 contextual purchase hypotheses and later payment-evidence comparisons. Checks immutable derived profile snapshots, not customer transcripts. Coverage is limited to the reported window; an idle latest tick is not proof that no forecast was saved. Read-only: no capture, manual tick, customer send, source/read-marker change, model call or advertising export.',
             'inputSchema'=>['type'=>'object','properties'=>(object)[],'additionalProperties'=>false],
             'annotations'=>['readOnlyHint'=>true,'destructiveHint'=>false,'idempotentHint'=>true,'openWorldHint'=>false],
             'securitySchemes'=>$security,'_meta'=>['securitySchemes'=>$security]]];
@@ -24,8 +24,8 @@ final class ModeledConversionStatusMcpAdapter
         $budget->check();$authorize();
         if(is_callable($this->store))$result=($this->store)($admin,$connection,$budget);
         else{
-            require_once __DIR__.'/ModeledConversionStatusReader.php';
-            $reader=$this->store??new ModeledConversionStatusReader($this->pdo,$authorize,$budget);
+            require_once __DIR__.'/ModeledConversionForecastStatusReader.php';
+            $reader=$this->store??new ModeledConversionForecastStatusReader($this->pdo,$authorize,$budget);
             $result=$reader->read();
         }
         $budget->check();$authorize();$budget->check();

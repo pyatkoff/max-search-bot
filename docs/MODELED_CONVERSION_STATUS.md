@@ -160,3 +160,42 @@ willingness or unique tourists/trips. An absent stage means no eligible saved
 nominee was found at the fence, not that no such real dialogue or purchase exists
 in the archive. Archive semantic research is a separate read-only interpretation;
 its ephemeral labels are not persisted live signals or early forecasts.
+
+
+## V1 launch readback on the same granted tool
+
+After the contextual V1 installation, the default store of the existing
+get_modeled_conversion_status tool is ModeledConversionForecastStatusReader,
+returning saved_semantic_prediction_status_v1. The name, empty argument
+schema, forecast scope, OAuth admission, repeated final authorization and
+shared64KiB/five-second budget remain unchanged. No connection is replaced.
+The older V3 reader remains available in source/tests but this operation does
+not invoke its historical targeted-stratum query or retry its consumed read.
+
+The new operation takes a fixed newest20 immutable AnyTour MAX/Telegram profile
+version suffix before JSON inspection. Only semantic_purchase_heuristic_v1
+blocks with the exact installed model and processor hashes can be copied.
+One latest matching version per scope is inspected, at most four, within48KiB
+raw projected packets and the shared64KiB selected-query/protocol budget.
+Metadata without a matching V1 namespace is not a source-payload read.
+Selection is neither a corpus scan nor a population/cohort estimate, and it
+does not search older history to replace an absent or invalid example.
+
+The copied projection contains only the new prediction, its saved followup,
+and fixed bindings required for the canonical registry/digest validation.
+It does not copy transcript, native messages, arbitrary factual profile fields,
+old ordinal evidence, person records or advertising visits. Fixed aggregate
+counts, per-channel/status/stage counts, probability min/max, actual freeze and
+input-cutoff and latest customer-feature occurrence/availability ranges, later-payment-evidence counts and explicit omissions are
+returned privately. Individual scope IDs, source refs, hashes/digests and text
+do not leave the server. An idle zero batch is not zero historical saves.
+
+A saved current-model prediction is evidence of persisted V1 computation,
+not a verified new person/trip or calibration. A fresh snapshot alone may be backlog; natural launch acceptance must also compare its validated customer-feature clocks with the actual installation time. A saved followup is conversation
+payment evidence, not bank reconciliation. Unknown/no payment does not become
+a negative label. Missing storage, byte/time exhaustion, invalid or oversized
+blocks, denied access and missing natural new traffic retain their distinct
+meanings. Existing read-only MySQL and real OAuth/MCP regression fixtures prove
+mechanics; only a separately authorized post-install natural read establishes
+actual new saved runtime forecasts. No manual tick, replay or customer action
+may be used to manufacture that evidence.

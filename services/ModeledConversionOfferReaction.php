@@ -48,6 +48,12 @@ final class ModeledConversionOfferReaction
         }
     }
 
+    /** Existing validated event receipts may preserve request context for other private projections. */
+    public function bridgesUnavailable(string $ref,bool $longGap):bool
+    {
+        return !$this->disabled&&!$longGap&&isset($this->known[$ref]);
+    }
+
     public function unavailable(string $ref,bool $longGap):void
     {
         if($this->disabled)return;
