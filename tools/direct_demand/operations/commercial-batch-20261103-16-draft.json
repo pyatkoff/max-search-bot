@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261103-16-v1",
-  "state": "PREPARED_NOT_SENT",
+  "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED",
   "hotel_catalog_ids": [
     287,
     435,
@@ -12,5 +12,7 @@
     80964
   ],
   "logical_materials": 8,
-  "expected_posts": 16
+  "new_posts": 16,
+  "reused_posts": 0,
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41543628060"
 }
