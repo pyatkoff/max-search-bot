@@ -100,7 +100,10 @@ final class ModeledConversionEarlyForecast
                 $predictive->knownOperationalOutcome($ref,(int)$item['at'],(int)$row['observed_at_unix'],(int)$row['source_version_no']);
             if($permit===null||$clockUnresolved){
                 $longGap=ArchiveResearchSemanticExtractor::hasLongObservationGap($state['last'],$item['at']);
-                if($clockUnresolved||(!$operationalKnown&&!$offerReaction->bridgesUnavailable($ref,$longGap)))$predictive->barrier();
+                $serviceBridge=!$denied&&!$clockUnresolved&&!$longGap
+                    &&self::knownServiceReply($row,$subject,$requested)
+                    &&$predictive->canBridgeServiceReply((int)$item['at']);
+                if($clockUnresolved||(!$operationalKnown&&!$serviceBridge&&!$offerReaction->bridgesUnavailable($ref,$longGap)))$predictive->barrier();
                 $barrier=ArchiveResearchSemanticExtractor::step(['read_status'=>'source_unavailable','source_ref'=>$ref,'created_at'=>$item['at']],$state);
                 $state=$barrier['state'];$previous=null;$barriers++;
                 if($longGap)$flags['long_observation_gap']=true;
@@ -241,6 +244,31 @@ final class ModeledConversionEarlyForecast
     }
 
     /** A known closed operational assertion is an exclusion, never payment proof. */
+    /** Canonical AI output is not a customer omission and never supplies customer evidence. */
+    private static function knownServiceReply(array $row,array $subject,int $cutoff):bool
+    {
+        $s=$row['snapshot']??null;
+        if(($row['source_kind']??null)!=='message'||($row['source_version_no']??null)!==1||!is_array($s)
+            ||($s['source_kind']??null)!=='message'||($s['source_status']??null)!=='present'
+            ||($s['payload_status']??null)!=='copied'||!self::sameSubject($s,$subject)
+            ||(string)($s['source_id']??'')!==(string)($row['source_id']??'')
+            ||($s['source_timestamp_basis']??null)!=='canonical_recording_unix_v1')return false;
+        $p=$s['payload']??null;$raw=is_array($p)?($p['metadata_json']??null):null;
+        if(!is_array($p)||($p['direction']??null)!=='outbound'||($p['sender_type']??null)!=='ai'
+            ||!is_string($p['text']??null)||strlen($p['text'])>ArchiveResearchSemanticExtractor::MAX_TEXT_BYTES
+            ||preg_match('//u',$p['text'])!==1||!is_string($raw)||strlen($raw)>32768)return false;
+        try{
+            $meta=json_decode($raw,true,32,JSON_THROW_ON_ERROR);
+            if(!is_array($meta)||!in_array($meta['type']??null,[null,'message'],true))return false;
+            if(isset($meta['linked_message'])&&(!is_array($meta['linked_message'])
+                ||($meta['linked_message']['type']??null)!=='reply'))return false;
+            $at=ConversationRecordClock::read($raw);
+        }catch(Throwable $ignored){return false;}
+        $available=$row['observed_at_unix']??null;
+        return is_int($at)&&is_int($available)&&$at>=946684800&&$at<=$available&&$available<=$cutoff
+            &&($s['source_created_at_unix']??null)===$at;
+    }
+
     private static function knownOperationalOutcome(array $row,array $subject,int $cutoff):bool
     {
         $s=$row['snapshot']??null;

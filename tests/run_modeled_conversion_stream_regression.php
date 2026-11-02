@@ -303,11 +303,46 @@ function modeledProfileAssertions(PDO $p,callable $check): void
 }
 
 
+/** The actual admitted PHP/Python writer must retain a genuine request across canonical AI output. */
+function modeledServiceProfileAssertions(PDO $p,callable $check):void
+{
+    modeledStreamSchema($p);modeledProfileSchema($p);$now=1793002000;
+    $source=new ModeledConversionStream($p);$profiles=new ModeledConversionProfiles($p);
+    modeledStreamMessage($p,10,11);$source->start($now);
+    modeledStreamMessage($p,11,11,'Подберите тур в Турцию на 7 ночей, 2 взрослых.');
+    modeledStreamMessage($p,12,11,'Уточните даты поездки','ai');
+    $p->prepare('UPDATE messages SET metadata_json=? WHERE id=12')->execute([
+        json_encode(ConversationRecordClock::stamp([],$now),JSON_THROW_ON_ERROR)]);
+    $source->tick($now+1);$profiles->start();
+    $tables=['messages','conversation_events','conversations','customer_channels','advertising_visit_observations'];
+    foreach($tables as$table)$p->exec('ALTER TABLE '.$table.' RENAME TO unavailable_'.$table);
+    try{$receipt=$profiles->tick($now+2);}finally{foreach(array_reverse($tables)as$table)$p->exec('ALTER TABLE unavailable_'.$table.' RENAME TO '.$table);}
+    $v=modeledProfileLatest($p);$prediction=$v['semantic_prediction'];
+    $firstId=(int)$p->query('SELECT id FROM modeled_conversion_profile_versions ORDER BY id LIMIT 1')->fetchColumn();
+    $firstJson=$p->query('SELECT profile_json FROM modeled_conversion_profile_versions WHERE id='.$firstId)->fetchColumn();
+    $check('actual writer saves a numeric customer prediction after a canonical AI response',
+        $receipt['profiles_written']===1&&$prediction['status']==='predicted'
+        &&$prediction['stage']==='concrete_request'&&$prediction['estimated_probability']===0.083333
+        &&$prediction['current_customer_turn_count']===1
+        &&$v['contextual_signals']['goal_counts']['agency_purchase_intent']===0
+        &&$v['early_forecast']['purchase_with_us']['probability']===null);
+    modeledStreamMessage($p,13,11,'Варианты будут в подборке','ai');
+    $p->prepare('UPDATE messages SET metadata_json=? WHERE id=13')->execute([
+        json_encode(ConversationRecordClock::stamp([],$now+3),JSON_THROW_ON_ERROR)]);
+    $source->tick($now+4);$profiles->tick($now+5);$later=modeledProfileLatest($p);
+    $check('later AI output preserves the immutable early percentage and same-request comparison',
+        $later['semantic_prediction']['current_request_anchor']===$prediction['current_request_anchor']
+        &&$later['semantic_prediction']['estimated_probability']===$prediction['estimated_probability']
+        &&$later['prediction_followup']['prior_prediction_digest']===$prediction['prediction_digest']
+        &&$later['prediction_followup']['prior_estimated_probability']===$prediction['estimated_probability']
+        &&$p->query('SELECT profile_json FROM modeled_conversion_profile_versions WHERE id='.$firstId)->fetchColumn()===$firstJson);
+}
+
 if(realpath($_SERVER['SCRIPT_FILENAME']??'')===__FILE__){
     $p=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
     modeledStreamSchema($p);$passed=0;
     $check=static function(string $name,bool $ok)use(&$passed){if(!$ok)throw new RuntimeException('FAIL '.$name);$passed++;echo 'PASS '.$name.PHP_EOL;};
-    modeledStreamAssertions($p,$check);modeledStreamSchedulerAssertions($check);modeledProfileAssertions($p,$check);
+    modeledStreamAssertions($p,$check);modeledStreamSchedulerAssertions($check);modeledProfileAssertions($p,$check);modeledServiceProfileAssertions($p,$check);
     echo 'MODELED CONVERSION STREAM PASSED '.$passed.PHP_EOL;
 }
 

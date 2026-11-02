@@ -56,6 +56,7 @@ function forecastV1Packet(string $customer='7',string $conversation='9',array $m
     $wrapper['prediction_followup']=ModeledConversionPredictionFollowup::compare($wrapper['semantic_prediction'],null);
     $wrapper['processing']=['version'=>'admitted_journal_profiles_v1_2','source_sha256'=>hash_file('sha256',dirname(__DIR__).'/services/ModeledConversionProfiles.php'),
         'journal_cursor'=>$document['journal_cursor'],'source_fence_journal_id'=>$document['source_fence_journal_id']];
+    $wrapper['coverage']['applied_wizard_fields']=0;
     $wrapper['private_fixture_sentinel']='PRIVATE_UNRELATED_PROFILE_MUST_NOT_BE_COPIED';
     return $wrapper;
 }
@@ -90,6 +91,15 @@ function forecastV1Assertions(PDO $p,callable $check):void
     $check('V1 read reports separate channels and skips repeated scope versions',
         $r['saved']['channel_counts']===['max'=>1,'telegram'=>1]&&$r['window']['duplicate_scope_rows']===1
         &&$r['saved']['distinct_inspected_scopes']===2);
+    $check('input coverage reports frozen human turns and anchors without reinterpreting source text',
+        $r['input_coverage']['validated_profiles']===2
+        &&$r['input_coverage']['admitted_customer_turns']===2
+        &&$r['input_coverage']['admitted_manager_turns']===0
+        &&$r['input_coverage']['linking_disabled_profiles']===0&&$r['input_coverage']['linking_metadata_unknown_profiles']===0
+        &&$r['input_coverage']['profiles_with_request_anchor']===2
+        &&$r['input_coverage']['meaningful_customer_turns']===2
+        &&$r['input_coverage']['wizard_applications']['known_profiles']===2
+        &&$r['input_coverage']['wizard_applications']['recorded_total']===0);
     $check('V1 read retains actual freeze and input cutoff as different clocks',
         $r['saved']['prediction_at_range']['earliest']==='2026-10-26T08:40:00Z'
         &&$r['saved']['input_cutoff_at_range']['earliest']==='2026-10-26T08:23:20Z');
@@ -119,6 +129,22 @@ function forecastV1Assertions(PDO $p,callable $check):void
     $r=forecastV1Read($p);
     $check('a parent row using input time instead of the saved extraction clock is rejected',
         $r['saved']['valid_v1_versions']===0&&$r['window']['invalid_blocks']===1);
+    forecastV1Schema($p);$guided=forecastV1Packet(messages:[['text'=>'Здравствуйте!']]);
+    $guided['coverage']['applied_wizard_fields']=2;
+    $guided['contextual_signals']['coverage']['context_linking_disabled']=true;
+    $guided['coverage']['errors']['action_or_unknown_message_type']=3;
+    forecastV1Append($p,$guided);$r=forecastV1Read($p);
+    $check('recorded guided and action counters cannot manufacture a purchase probability',
+        $r['saved']['prospective_estimates']===0&&$r['saved']['status_counts']['insufficient_context']===1
+        &&$r['input_coverage']['wizard_applications']['recorded_total']===2
+        &&$r['input_coverage']['action_or_unknown_type_rows']['recorded_total']===3
+        &&$r['input_coverage']['profiles_with_request_anchor']===0
+        &&$r['input_coverage']['linking_disabled_profiles']===1);
+    forecastV1Schema($p);$wrongSummary=$a;$wrongSummary['contextual_signals']['engagement']['customer_turns']='1';
+    forecastV1Append($p,$wrongSummary);$r=forecastV1Read($p);
+    $check('untrusted counter types cannot corroborate an otherwise digest-valid model block',
+        $r['saved']['valid_v1_versions']===0&&$r['window']['invalid_blocks']===1
+        &&$r['input_coverage']['invalid_summary_profiles']===1);
     forecastV1Schema($p);$bad=$a;$bad['semantic_prediction']['estimated_probability']=0.9;forecastV1Append($p,$bad);
     $r=forecastV1Read($p);$check('tampered saved probability is not confirmed by metadata alone',
         $r['saved']['valid_v1_versions']===0&&$r['window']['invalid_blocks']===1);

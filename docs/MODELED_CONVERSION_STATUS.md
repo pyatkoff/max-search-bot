@@ -199,3 +199,25 @@ meanings. Existing read-only MySQL and real OAuth/MCP regression fixtures prove
 mechanics; only a separately authorized post-install natural read establishes
 actual new saved runtime forecasts. No manual tick, replay or customer action
 may be used to manufacture that evidence.
+
+
+## Readback V1.1: fixed input-coverage diagnosis
+
+saved_semantic_prediction_status_v1_1 additionally projects only fixed typed
+counters from the same selected current-model profile packets: admitted
+customer/manager turns, saved ordinal status and three positive event counters,
+validated wizard-application count and recorded action/unknown-type count.
+These frozen parent counters are reconciled with the model's current customer
+turn count; malformed required counters cannot corroborate a model block.
+Missing optional counters stay unknown, not zero observations.
+
+The result separately reports current meaningful turns, request anchors,
+context resets and the recorded linking-disabled flag. These explain whether
+the scorer actually received human text or only other updates. They do not
+replay messages, establish a unique trip, reinterpret a callback as intent or
+promote a probability from a counter. Query-side integer/boolean/enum guards
+prevent arbitrary saved strings or objects from entering this projection.
+The same20metadata/4packet/48KiB/shared64KiB/five-second limits and final OAuth
+checks remain;12KiB is reserved for authorization and the complete response.
+No input filters, endpoint, scope, connection or native/source-table read is
+added. Natural diagnostic values remain private; source tests prove mechanics.
