@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261102-9-v1",
-  "state": "INVENTORY_25_AND_SOURCE_COMPATIBILITY_PENDING",
+  "state": "INVENTORY_25_CONFIRMED_CONTENT_PREPARATION",
   "goal": "Prepare up to 25 exact unpublished hotels, then publish up to 10 ready full hotel posts in both authorized channels through the existing bounded publisher.",
   "boundaries": "No customers, advertisement campaigns, old publication replay, video recovery, owner hotel import or new runtime service. This phase only reads the selected public catalogue/registry and prepares existing templates.",
   "criteria": [
@@ -41,5 +41,228 @@
     "albatros-dana",
     "albatros-white"
   ],
-  "next": "Complete exact release gate, validate the changed frozen template, and read only these 25 catalogue/registry candidate groups."
+  "next": "Prepare the first up-to-ten complete human captions and real branded covers; catalogue identity alone is not a publishable post.",
+  "catalog_ids": [
+    77914,
+    237,
+    32575,
+    112914,
+    64895,
+    262,
+    12117,
+    232,
+    233,
+    13872,
+    13873,
+    280,
+    456,
+    265,
+    454,
+    12119,
+    26044,
+    66150,
+    21475,
+    1963,
+    358,
+    37668,
+    174,
+    55574,
+    80964
+  ],
+  "first_candidate_ids": [
+    77914,
+    237,
+    32575,
+    112914,
+    64895,
+    262,
+    12117,
+    12119,
+    26044,
+    66150
+  ],
+  "inventory_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41465100411",
+  "inventory": [
+    {
+      "key": "tucana",
+      "hotel_id": 77914,
+      "hotel": "SUNRISE TUCANA RESORT",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "alma-bay",
+      "hotel_id": 237,
+      "hotel": "SUNRISE ALMA BAY RESORT (EX. GRAND SEAS BY SUNRISE)",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "alora",
+      "hotel_id": 32575,
+      "hotel": "SUNRISE ALORA AQUA PARK RESORT (EX. CAESAR PALACE)",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "anjum",
+      "hotel_id": 112914,
+      "hotel": "SUNRISE ANJUM RESORT",
+      "region": "Марса Алам",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "meraki",
+      "hotel_id": 64895,
+      "hotel": "MERAKI RESORT ADULTS ONLY 16+",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "jaz-aquamarine",
+      "hotel_id": 262,
+      "hotel": "JAZ AQUAMARINE RESORT (EX. IBEROTEL AQUAMARINE RESORT)",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "jaz-bluemarine",
+      "hotel_id": 12117,
+      "hotel": "JAZ BLUEMARINE",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "jaz-casa-beach",
+      "hotel_id": 232,
+      "hotel": "JAZ ELITE CASA DEL MAR BEACH (EX. JAZ CASA DEL MAR BEACH)",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "jaz-casa-resort",
+      "hotel_id": 233,
+      "hotel": "JAZ CASA DEL MAR RESORT",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "jaz-makadina",
+      "hotel_id": 13872,
+      "hotel": "JAZ MAKADINA",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "jaz-makadi-oasis",
+      "hotel_id": 13873,
+      "hotel": "JAZ MAKADI OASIS RESORT & CLUB (EX. IBEROTEL MAKADI OASIS CLUB)",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "jaz-makadi-star",
+      "hotel_id": 280,
+      "hotel": "JAZ MAKADI STAR & SPA",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "jaz-dar-el-madina",
+      "hotel_id": 456,
+      "hotel": "JAZ NEO DAR EL MADINA",
+      "region": "Марса Алам",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "jaz-lamaya",
+      "hotel_id": 265,
+      "hotel": "JAZ LAMAYA RESORT (EX. IBEROTEL LAMAYA RESORT)",
+      "region": "Марса Алам",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "jaz-solaya",
+      "hotel_id": 454,
+      "hotel": "JAZ SOLAYA (EX. SOL Y MAR SOLAYA)",
+      "region": "Марса Алам",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "steigenberger-aldau",
+      "hotel_id": 12119,
+      "hotel": "STEIGENBERGER AL DAU BEACH",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "steigenberger-aqua-magic",
+      "hotel_id": 26044,
+      "hotel": "STEIGENBERGER AQUA MAGIC",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "steigenberger-pure",
+      "hotel_id": 66150,
+      "hotel": "STEIGENBERGER PURE LIFE STYLE ADULTS ONLY 16+",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "baron-palace",
+      "hotel_id": 21475,
+      "hotel": "BARON PALACE RESORT SAHL HASHEESH",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "baron-resort",
+      "hotel_id": 1963,
+      "hotel": "BARON RESORT",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "rixos-sharm",
+      "hotel_id": 358,
+      "hotel": "RIXOS SHARM EL SHEIKH ADULTS ONLY",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "rixos-seagate",
+      "hotel_id": 37668,
+      "hotel": "RIXOS PREMIUM SEAGATE",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "albatros-dana",
+      "hotel_id": 174,
+      "hotel": "PICKALBATROS DANA BEACH RESORT",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "albatros-white",
+      "hotel_id": 55574,
+      "hotel": "PICKALBATROS WHITE BEACH RESORT",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "meraki-sharm",
+      "hotel_id": 80964,
+      "hotel": "MERAKI RESORT SHARM EL SHEIKH ADULTS ONLY 16+",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    }
+  ],
+  "identity_decisions": [
+    "Use base Tucana77914, not Posh131347; Alma237 in Hurghada, not Palma Bay123243 in Matrouh.",
+    "Meraki64895 Hurghada and80964 Sharm are distinct physical hotels; both have zero target-channel matches.",
+    "Use base Rixos Sharm358, not Club Prive110289.",
+    "The broad Albatros Palace alias matches an already published Palace Sharm post; skip this entire ambiguous group without rereading or changing accepted posts."
+  ]
 }
