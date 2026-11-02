@@ -38,17 +38,20 @@
   },
   "inputs": {
     "baseline": {
-      "status": "server_ingest_not_verified",
+      "status": "not_found_in_bounded_known_server_locations",
       "source": "operator_retained_snapshot_exact_bytes",
       "immutable": true
     },
     "accepted_registry": {
-      "status": "exact_19_identity_and_scope_mapping_not_prepared",
+      "status": "19_receipt_packet_identities_verified_scope_mapping_pending",
       "required_count": 19,
-      "source": "retired_receipt_snapshot_join_retained_working"
+      "source": "retired_receipt_snapshot_join_retained_working",
+      "verified_receipt_rows": 39,
+      "distinct_accepted_packets": 19,
+      "proof": "https://github.com/pyatkoff/max-search-bot/actions/runs/41397804125"
     },
     "exclusions": {
-      "status": "pending_private_manifest",
+      "status": "packet_registry_verified_semantic_scope_mapping_pending",
       "include_accepted_packet_ids": true,
       "include_packet_sha256": true,
       "include_semantic_keys": true,
@@ -57,7 +60,7 @@
       "quarantine_unaccepted_tr40": true
     },
     "dependencies": {
-      "status": "server_ingest_not_verified",
+      "status": "not_located_in_bounded_known_server_locations",
       "required": [
         "criteria",
         "corpus",
@@ -96,12 +99,12 @@
     {
       "id": "G2",
       "status": "pending",
-      "requirement": "Read-only server input inventory then private hash-pinned baseline/dependency ingest manifest"
+      "requirement": "Read-only server check completed; retained bytes not located in bounded known paths. Need actual private server input manifest and hash-pinned ingestion"
     },
     {
       "id": "G3",
       "status": "pending",
-      "requirement": "Exact19 accepted batch identities/scopes and protected-reserve exclusion index; isolate TR40 and every unaccepted source record"
+      "requirement": "19 accepted receipt/packet identities verified from immutable snapshot. Need private complete hotel/question/source scope mapping and reserve index; isolate unaccepted TR40"
     },
     {
       "id": "G4",
