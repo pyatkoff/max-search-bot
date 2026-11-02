@@ -1,0 +1,90 @@
+{
+  "operation": "commercial-hotel-batch-20261103-15-v1",
+  "state": "UP_TO_TEN_PRIMARY_SOURCES_PENDING_NOT_SENT",
+  "goal": "Publish fact-ready hotel materials from current stock, up to10, without holding ready properties for inaccessible descriptions.",
+  "boundaries": "Ten exact existing native identities, fixed public primary pages and existing publisher only. No old sends, price figures, customer reads or new runtime.",
+  "criteria": "Whole human hotel posts with3–4 useful verified facts, important feature, real hotel photos and readable AnyTour cover, canonical button, guarded current deduplication.",
+  "risks": "JAZ website text extraction returns header/gallery only. Inspect fixed official source materials, never treat missing text or a search snippet as full factual acceptance. Storage/Firebase token URLs are excluded.",
+  "rows": [
+    {
+      "key": "steigenberger-alcazar",
+      "hotel_id": 43204,
+      "hotel": "STEIGENBERGER ALCAZAR",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_PRIMARY_OBJECT_AND_CONTENT_NOT_READY",
+      "source_url": "https://hrewards.com/en/steigenberger-alcazar-el-sheikh"
+    },
+    {
+      "key": "steigenberger-makadi",
+      "hotel_id": 13870,
+      "hotel": "STEIGENBERGER MAKADI ADULTS ONLY",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_PRIMARY_OBJECT_AND_CONTENT_NOT_READY",
+      "source_url": "https://hrewards.com/en/steigenberger-makadi-safaga"
+    },
+    {
+      "key": "jaz-dahabeya",
+      "hotel_id": 264,
+      "hotel": "JAZ DAHABEYA (EX. IBEROTEL DAHABEYA)",
+      "region": "Дахаб",
+      "state": "CATALOG_CONFIRMED_PRIMARY_OBJECT_AND_CONTENT_NOT_READY",
+      "source_url": "https://partner.jazhotels.com/hotel/28"
+    },
+    {
+      "key": "jaz-neo-saraya-palms",
+      "hotel_id": 13869,
+      "hotel": "JAZ NEO SARAYA PALMS (EX. JAZ MAKADI SARAYA PALMS)",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_PRIMARY_OBJECT_AND_CONTENT_NOT_READY",
+      "source_url": "https://partner.jazhotels.com/hotel/19"
+    },
+    {
+      "key": "jaz-sharm-dreams",
+      "hotel_id": 245,
+      "hotel": "JAZ SHARM DREAMS RESORT",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_PRIMARY_OBJECT_AND_CONTENT_NOT_READY",
+      "source_url": "https://partner.jazhotels.com/hotel/69"
+    },
+    {
+      "key": "jaz-elite-palace",
+      "hotel_id": 12114,
+      "hotel": "JAZ ELITE PALACE ADULTS ONLY 16+ (EX. IBEROTEL PALACE ADULTS ONLY)",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_PRIMARY_OBJECT_AND_CONTENT_NOT_READY",
+      "source_url": "https://partner.jazhotels.com/hotel/1"
+    },
+    {
+      "key": "jaz-neo-sharks-bay",
+      "hotel_id": 1983,
+      "hotel": "JAZ NEO SHARKS BAY (EX. JAZ SHARKS BAY)",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_PRIMARY_OBJECT_AND_CONTENT_NOT_READY",
+      "source_url": "https://partner.jazhotels.com/hotel/8"
+    },
+    {
+      "key": "iberotel-makadi-beach",
+      "hotel_id": 267,
+      "hotel": "IBEROTEL MAKADI BEACH",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY",
+      "source_url": "https://partner.jazhotels.com/hotel/15"
+    },
+    {
+      "key": "jaz-elite-asteria",
+      "hotel_id": 111801,
+      "hotel": "JAZ ELITE ASTERIA",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_PRIMARY_OBJECT_AND_CONTENT_NOT_READY",
+      "source_url": "https://partner.jazhotels.com/hotel/92"
+    },
+    {
+      "key": "jaz-elite-maraya",
+      "hotel_id": 67897,
+      "hotel": "JAZ MARAYA",
+      "region": "Марса Алам",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY",
+      "source_url": "https://www.jazhotels.com/hoteldetail/55-egypt-marsa-alam-jaz-elite-maraya/overview"
+    }
+  ]
+}
