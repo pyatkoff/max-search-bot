@@ -7,6 +7,7 @@ function haCheck(bool $ok,string $label):void{global $n;++$n;if(!$ok)throw new R
 function haReject(callable $fn,string $label,?string $reason=null):void{
     try{$fn();}catch(Throwable $e){haCheck($reason===null||$reason===$e->getMessage(),$label.':'.$e->getMessage());return;}haCheck(false,$label);
 }
+function haCount(PDO $p,string $table):int{return (int)$p->query('SELECT COUNT(*) FROM '.$table)->fetchColumn();}
 function haPolicy():array{
     return ['source_mode'=>'assigned_retained_excerpts','model'=>ManagerDraftClient::requestBody('',[])['model'],'budget_attestation_sha256'=>hash('sha256','synthetic budget policy, not pricing'),
         'valid_until'=>1800086400,'max_source_age_seconds'=>86400,'max_scopes'=>1,'request_byte_ceiling'=>ManagerDraftClient::MAX_REQUEST_BYTES,
@@ -114,7 +115,7 @@ foreach(['missing','stale','hash','private_url','budget'] as $mode){
         if($mode==='budget')$policy['request_byte_ceiling']=100;
         $state=(object)['calls'=>0,'bodies'=>[]];haCycle($f,$state,$views,$policy);
         haReject(fn()=>$f['cycle']->tick('NEW'),'source or budget preflight holds before send');
-        haCheck($state->calls===0&&hsCount($f['p'],'hotel_server_attempts')===0,'local rejection precedes UNKNOWN/attempt/provider');
+        haCheck($state->calls===0&&haCount($f['p'],'hotel_server_attempts')===0,'local rejection precedes UNKNOWN/attempt/provider');
     }finally{hsCleanup($f);}
 }
 
@@ -125,7 +126,7 @@ $f=hsFixture();try{
     $b=$f['cycle']->bootstrap('NEW',hsInputs(null,haViews()),$plan,static fn()=>true);
     $f['cycle']->enable('NEW',$b['bootstrap_sha256'],static fn()=>true);
     haReject(fn()=>$f['cycle']->tick('NEW'),'no silent fresh-web substitution','hotel_fresh_source_method_unavailable');
-    haCheck($state->calls===0&&hsCount($f['p'],'hotel_server_attempts')===0,'unsupported research mode refuses before provider or persistence');
+    haCheck($state->calls===0&&haCount($f['p'],'hotel_server_attempts')===0,'unsupported research mode refuses before provider or persistence');
 }finally{hsCleanup($f);}
 
 echo 'HOTEL SERVER AI ADAPTER: '.$n." PASS (synthetic transport only; real provider calls0)\n";
