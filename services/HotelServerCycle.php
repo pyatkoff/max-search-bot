@@ -33,12 +33,12 @@ final class HotelServerCycle
                 return $this->projection($c);
             }
             $baseline = $p['pins']['baseline'];
-            $this->exec('INSERT INTO hotel_server_campaigns(campaign_id,state,enabled,cursor,new_accepted,historical_accepted,baseline_sha256,inputs_sha256,bootstrap_sha256,plan_bytes,reserved_calls,reserved_tokens,reserved_micros) VALUES(?,?,0,0,0,19,?,?,?,?,0,0,0)',
+            $this->exec('INSERT INTO hotel_server_campaigns(campaign_id,state,enabled,stage_cursor,new_accepted,historical_accepted,baseline_sha256,inputs_sha256,bootstrap_sha256,plan_bytes,reserved_calls,reserved_tokens,reserved_micros) VALUES(?,?,0,0,0,19,?,?,?,?,0,0,0)',
                 [$id,'disabled',$baseline,$p['inputs_sha256'],$bootstrap,$planBytes]);
             $this->exec('INSERT INTO hotel_server_inputs(campaign_id,inputs_sha256,package_bytes) VALUES(?,?,?)',[$id,$p['inputs_sha256'],$bytes]);
             $this->exec('INSERT INTO hotel_server_baselines(campaign_id,baseline_sha256,parent_sha256,document_bytes) VALUES(?,?,NULL,?)',[$id,$baseline,$p['bytes']['baseline']]);
             foreach ($p['exclusions'] as $key=>$kind) $this->exec('INSERT INTO hotel_server_exclusions(campaign_id,semantic_key,kind) VALUES(?,?,?)',[$id,$key,$kind]);
-            $this->safeScopes($id,$plan['stages'][0]);
+            foreach($plan['stages'] as $scopes)$this->safeScopes($id,$scopes);
             $this->enqueue($id,0,'producer'); $this->fault('bootstrap_before_commit');
             return $this->projection($this->campaign($id));
         });
@@ -66,7 +66,7 @@ final class HotelServerCycle
             if ($c['state'] === 'unknown') return $this->projection($c); // even after deadline/lease expiry
             if ($c['state'] === 'reviewed') return $this->acceptLocked($c);
             $plan = $this->plan($c); $this->verifyInputs($c); $this->readyProvider($plan);
-            $stage = (int)$c['cursor']; $scopes = $plan['stages'][$stage]; $this->safeScopes($id,$scopes);
+            $stage = (int)$c['stage_cursor']; $scopes = $plan['stages'][$stage]; $this->safeScopes($id,$scopes);
             $out = $this->one("SELECT * FROM hotel_server_outbox WHERE campaign_id=? AND stage_index=? AND state='pending'".$this->lock(),[$id,$stage]);
             if (!$out) throw new DomainException('pending_outbox_required');
             $role = $out['role']; $limits = $plan['limits'];
@@ -86,9 +86,10 @@ final class HotelServerCycle
             $package = $this->package($id);
             $r = ['schema'=>'hotel-server-attempt-v1','campaign_id'=>$id,'stage_index'=>$stage,'attempt_id'=>$attempt,'role'=>$role,
                 'principal'=>$principal,'model'=>$plan['models'][$role],'baseline_sha256'=>$c['baseline_sha256'],'inputs_sha256'=>$c['inputs_sha256'],
-                'scopes'=>$scopes,'input_bytes'=>$package['bytes'],'candidate'=>$candidate ? json_decode($candidate['candidate_bytes'],true,64,JSON_THROW_ON_ERROR) : null,
+                'scopes'=>$scopes,'accepted_context'=>$this->acceptedView($c,$scopes),'dependencies'=>array_map(static fn(array $s):array=>$package['stage_contexts'][HotelServerInputs::key($s)],$scopes),'criteria_sha256'=>$package['pins']['criteria'],'candidate'=>$candidate ? json_decode($candidate['candidate_bytes'],true,64,JSON_THROW_ON_ERROR) : null,
                 'candidate_sha256'=>$candidate['candidate_sha256'] ?? null, 'limits'=>$limits];
             $requestBytes = HotelServerInputs::json($r);
+            if(strlen($requestBytes)>262144)throw new DomainException('bounded_assignment_projection_required');
             // Commit UNKNOWN and the full reservation BEFORE the caller can send anything.
             $this->exec('INSERT INTO hotel_server_attempts(attempt_id,campaign_id,stage_index,role,principal,state,baseline_sha256,request_sha256,request_bytes,result_sha256,result_bytes) VALUES(?,?,?,?,?,?,?,?,?,NULL,NULL)',
                 [$attempt,$id,$stage,$role,$principal,'unknown',$c['baseline_sha256'],hash('sha256',$requestBytes),$requestBytes]);
@@ -117,7 +118,7 @@ final class HotelServerCycle
                 if ($a['result_sha256']!==$resultSha) throw new DomainException('immutable_result_conflict');
                 return $this->projection($c);
             }
-            if ($a['state']!=='unknown' || $c['state']!=='unknown' || (int)$c['cursor']!==(int)$a['stage_index']
+            if ($a['state']!=='unknown' || $c['state']!=='unknown' || (int)$c['stage_cursor']!==(int)$a['stage_index']
                 || $c['baseline_sha256']!==$a['baseline_sha256']) throw new DomainException('attempt_CAS');
             if (($result['attempt_id']??null)!==$attemptId || ($result['principal']??null)!==$a['principal']
                 || ($result['baseline_sha256']??null)!==$a['baseline_sha256'] || ($result['inputs_sha256']??null)!==$c['inputs_sha256']) throw new DomainException('result_lineage_mismatch');
@@ -164,7 +165,7 @@ final class HotelServerCycle
 
     private function acceptLocked(array $c): array
     {
-        $id=$c['campaign_id']; $stage=(int)$c['cursor']; $plan=$this->plan($c); $this->verifyInputs($c);
+        $id=$c['campaign_id']; $stage=(int)$c['stage_cursor']; $plan=$this->plan($c); $this->verifyInputs($c);
         $candidate=$this->candidate($id,$stage); $producer=$this->attempt($candidate['producer_attempt']);
         $review=$this->one('SELECT * FROM hotel_server_reviews WHERE campaign_id=? AND stage_index=?'.$this->lock(),[$id,$stage]);
         if (!$review || (int)$review['approved']!==1 || $review['candidate_sha256']!==$candidate['candidate_sha256']) throw new DomainException('accepted_independent_review_required');
@@ -187,7 +188,7 @@ final class HotelServerCycle
         $receiptBytes=HotelServerInputs::json($receipt); $receiptSha=hash('sha256',$receiptBytes);
         $this->exec('INSERT INTO hotel_server_receipts(campaign_id,stage_index,receipt_sha256,receipt_bytes) VALUES(?,?,?,?)',[$id,$stage,$receiptSha,$receiptBytes]);
         $next=$stage+1; $state=$next===count($plan['stages'])?'complete':'ready';
-        $s=$this->exec('UPDATE hotel_server_campaigns SET baseline_sha256=?,cursor=?,new_accepted=new_accepted+1,state=? WHERE campaign_id=? AND baseline_sha256=? AND cursor=? AND state=?',[$newBaseline,$next,$state,$id,$c['baseline_sha256'],$stage,'reviewed']);
+        $s=$this->exec('UPDATE hotel_server_campaigns SET baseline_sha256=?,stage_cursor=?,new_accepted=new_accepted+1,state=? WHERE campaign_id=? AND baseline_sha256=? AND stage_cursor=? AND state=?',[$newBaseline,$next,$state,$id,$c['baseline_sha256'],$stage,'reviewed']);
         if ($s!==1) throw new DomainException('baseline_CAS');
         if ($state==='ready') $this->enqueue($id,$next,'producer');
         $this->exec('INSERT INTO hotel_server_catalog_outbox(receipt_sha256,campaign_id,payload_bytes,state) VALUES(?,?,?,?)',[$receiptSha,$id,$baselineBytes,'pending']);
@@ -195,14 +196,51 @@ final class HotelServerCycle
         return $this->projection($this->campaign($id))+['receipt_sha256'=>$receiptSha];
     }
 
+
+    /** Complete verified accepted view. Raw retained bytes are never model input. */
+    public function readAccepted(string $id): array
+    {
+        return $this->tx($id,function(?array $c):array{
+            $c=$this->required($c);$this->verifyInputs($c);return $this->acceptedView($c,null);
+        });
+    }
+
+    private function acceptedView(array $c,?array $scopes): array
+    {
+        $p=$this->package($c['campaign_id']);$records=[];
+        foreach($p['accepted_context'] as $r)$records[HotelServerInputs::key($r['scope'])]=$r;
+        $hash=$c['baseline_sha256'];$deltas=[];$seen=[];
+        while($hash!==$p['pins']['baseline']){
+            if(isset($seen[$hash])||count($seen)>=10)throw new DomainException('baseline_chain_invalid');$seen[$hash]=true;
+            $row=$this->required($this->one('SELECT * FROM hotel_server_baselines WHERE campaign_id=? AND baseline_sha256=?',[$c['campaign_id'],$hash]));
+            if(!hash_equals($hash,hash('sha256',$row['document_bytes'])))throw new DomainException('baseline_bytes_mismatch');
+            $d=json_decode($row['document_bytes'],true,64,JSON_THROW_ON_ERROR);
+            if(($d['schema']??null)!=='hotel-server-baseline-v1'||($d['parent_sha256']??null)!==$row['parent_sha256']||!is_array($d['records']??null)||!array_is_list($d['records']))throw new DomainException('baseline_chain_invalid');
+            HotelServerInputs::sha($row['parent_sha256']);$deltas[]=$d['records'];$hash=$row['parent_sha256'];
+        }
+        foreach(array_reverse($deltas) as $delta)foreach($delta as $r){
+            $key=HotelServerInputs::key($r['scope']??[]);if(isset($records[$key]))throw new DomainException('duplicate_accepted_baseline_key');$records[$key]=$r;
+        }
+        ksort($records);
+        if($scopes!==null){
+            $hotels=[];foreach($scopes as $s)$hotels[$s['country']."\0".$s['hotel']]=true;
+            $records=array_filter($records,static fn(array $r):bool=>isset($hotels[$r['scope']['country']."\0".$r['scope']['hotel']]));
+        }
+        $view=['schema'=>'hotel-server-accepted-view-v1','baseline_sha256'=>$c['baseline_sha256'],'retained_baseline_sha256'=>$p['pins']['baseline'],'records'=>array_values($records)];
+        return $view+['view_sha256'=>hash('sha256',HotelServerInputs::json($view))];
+    }
+
     private function validateCandidate(mixed $candidate,array $request): void
     {
         if (!is_array($candidate) || ($candidate['schema']??null)!=='hotel-server-candidate-v1' || !is_array($candidate['records']??null)
             || !array_is_list($candidate['records']) || !$candidate['records'] || strlen(HotelServerInputs::json($candidate))>1048576) throw new DomainException('candidate_document_required');
+        $keys=array_keys($candidate);sort($keys);if($keys!==['records','schema'])throw new DomainException('strict_candidate_document_required');
         $expected=array_map([HotelServerInputs::class,'key'],$request['scopes']); $actual=[];
         foreach ($candidate['records'] as $r) {
+            if(!is_array($r))throw new DomainException('strict_candidate_record_required');$keys=array_keys($r);sort($keys);if($keys!==['answer','evidence','scope'])throw new DomainException('strict_candidate_record_required');
             $actual[]=HotelServerInputs::key($r['scope']??[]);
             if (!is_string($r['answer']??null) || trim($r['answer'])==='' || strlen($r['answer'])>32768 || !is_array($r['evidence']??null) || !array_is_list($r['evidence']) || !$r['evidence']) throw new DomainException('candidate_answer_evidence_required');
+            foreach($r['evidence'] as $e){if(!is_array($e))throw new DomainException('candidate_source_evidence_required');$keys=array_keys($e);sort($keys);if($keys!==['quote','url'])throw new DomainException('strict_candidate_source_required');}
             foreach ($r['evidence'] as $e) if (!is_array($e) || !is_string($e['url']??null) || !filter_var($e['url'],FILTER_VALIDATE_URL) || !str_starts_with($e['url'],'https://') || !is_string($e['quote']??null) || trim($e['quote'])==='') throw new DomainException('candidate_source_evidence_required');
         }
         sort($expected); sort($actual);
@@ -220,8 +258,10 @@ final class HotelServerCycle
 
     private function safeScopes(string $id,array $scopes): void
     {
+        $package=$this->package($id);
         foreach ($scopes as $scope) {
             $key=HotelServerInputs::key($scope);
+            if(!isset($package['stage_contexts'][$key]))throw new DomainException('scoped_dependency_projection_required');
             if ($this->one('SELECT semantic_key FROM hotel_server_exclusions WHERE campaign_id=? AND semantic_key=?',[$id,$key])
                 || $this->one('SELECT semantic_key FROM hotel_server_records WHERE semantic_key=?',[$key])) throw new DomainException('accepted_or_reserved_scope');
         }
@@ -269,7 +309,7 @@ final class HotelServerCycle
     }
     private function campaign(string $id): array { return $this->required($this->one('SELECT * FROM hotel_server_campaigns WHERE campaign_id=?',[$id])); }
     private function enqueue(string $id,int $stage,string $role): void { $this->exec('INSERT INTO hotel_server_outbox(campaign_id,stage_index,role,state,attempt_id) VALUES(?,?,?,?,NULL)',[$id,$stage,$role,'pending']); }
-    private function projection(array $c): array { return ['campaign_id'=>$c['campaign_id'],'state'=>$c['state'],'enabled'=>(int)$c['enabled']===1,'historical_accepted'=>19,'new_accepted'=>(int)$c['new_accepted'],'stage_index'=>(int)$c['cursor'],'baseline_sha256'=>$c['baseline_sha256'],'bootstrap_sha256'=>$c['bootstrap_sha256']]; }
+    private function projection(array $c): array { return ['campaign_id'=>$c['campaign_id'],'state'=>$c['state'],'enabled'=>(int)$c['enabled']===1,'historical_accepted'=>19,'new_accepted'=>(int)$c['new_accepted'],'stage_index'=>(int)$c['stage_cursor'],'baseline_sha256'=>$c['baseline_sha256'],'bootstrap_sha256'=>$c['bootstrap_sha256']]; }
     private function lock(): string { return $this->driver==='mysql'?' FOR UPDATE':''; }
     private function now(): int { return $this->clock===null?time():($this->clock)(); }
     private function fault(string $at): void { if ($this->fault!==null) ($this->fault)($at); }

@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS hotel_server_campaigns (
  campaign_id VARBINARY(80) NOT NULL PRIMARY KEY,
  state VARCHAR(16) NOT NULL,
  enabled INTEGER NOT NULL DEFAULT 0,
- cursor INTEGER NOT NULL DEFAULT 0,
+ stage_cursor INTEGER NOT NULL DEFAULT 0,
  new_accepted INTEGER NOT NULL DEFAULT 0,
  historical_accepted INTEGER NOT NULL DEFAULT 19,
  baseline_sha256 CHAR(64) NOT NULL,

@@ -115,4 +115,63 @@ $f=hsFixture();$children=[];try {
     $dupes=$f['p']->query('SELECT role,COUNT(*) n FROM hotel_server_attempts GROUP BY role HAVING COUNT(*)>1')->fetchAll();hsCheck($dupes===[],'SQL unique stage/role admission across actual processes');
 }finally{foreach($children as [$p,$pipes]){foreach($pipes as $pipe)if(is_resource($pipe))fclose($pipe);if(is_resource($p)){proc_terminate($p);proc_close($p);}}hsCleanup($f);}
 
+
+// Source review regressions: executable quarantine and the current accepted view.
+$ret=hsLegacy();$pin=hash('sha256',$ret['receipt_bytes']);$held=HotelServerInputs::quarantine($ret,$pin);
+hsCheck(count($held)===1&&$held[0]['stage_index']===40,'unaccepted TR40 research is quarantined, not credited');
+$p=hsInputs()->package();$bytes=$p['bytes'];$bytes['quarantine_mapping']='[]';
+hsReject(fn()=>HotelServerInputs::validate($ret,$pin,$bytes),'missing TR40 mapping is HOLD');
+$bytes=$p['bytes'];$badView=json_decode($bytes['accepted_context'],true);
+$badView[]=['scope'=>hsScope('TR40-held'),'answer'=>'unaccepted injected source','packet_sha256'=>$held[0]['packet_sha256'],'receipt_sha256'=>$held[0]['receipt_sha256']];
+$bytes['accepted_context']=HotelServerInputs::json($badView);
+hsReject(fn()=>HotelServerInputs::validate($ret,$pin,$bytes),'unaccepted record cannot enter accepted projection');
+$f=hsFixture();try{
+    $plan=hsPlan();$plan['stages'][0]=[hsScope('TR40-held')];
+    hsReject(fn()=>hsBoot($f,$plan),'TR40 cannot be assigned for repeated research');
+    hsCheck(hsCount($f['p'],'hotel_server_attempts')===0,'TR40 rejection sends nothing');
+}finally{hsCleanup($f);}
+$f=hsFixture();try{
+    $plan=hsPlan();$plan['stages'][1]=[$plan['stages'][0][0]];$plan['stages'][1][0]['question']='followup-question';
+    hsBoot($f,$plan);hsEnable($f);
+    for($i=0;$i<3;$i++)$f['cycle']->tick('NEW');
+    $first=$f['cycle']->readAccepted('NEW');hsCheck(count($first['records'])===20,'full current accepted reader retains 19 plus one new record');
+    $head=$f['cycle']->status('NEW')['baseline_sha256'];$f['cycle']->tick('NEW');$r=$f['provider']->requests[2];
+    hsCheck($r['baseline_sha256']===$head&&$r['accepted_context']['baseline_sha256']===$head,'second producer reads its current pinned base');
+    hsCheck(count($r['accepted_context']['records'])===1&&$r['accepted_context']['records'][0]['answer']==='Synthetic fixture answer','following producer sees first accepted fact for its hotel');
+    hsCheck(!isset($r['input_bytes'])&&!str_contains(HotelServerInputs::json($r),'synthetic original baseline bytes'),'raw retained WORKING not sent to model');
+    hsCheck(count($r['dependencies'])===1&&$r['dependencies'][0]['scope']===$plan['stages'][1][0],'only assigned dependency projection is sent');
+    hsCheck(strlen(HotelServerInputs::json($r))<=262144,'assignment bounded before durable send');
+}finally{hsCleanup($f);}
+$f=hsFixture();try{
+    $plan=hsPlan(1);$views=[];$scopes=[];
+    for($i=0;$i<32;$i++){
+        $scope=hsScope('large-'.$i);$scopes[]=$scope;
+        $views[]=['scope'=>$scope,'dependencies'=>array_fill_keys(['archives','corpus','criteria','instructions','map'],str_repeat('x',8192))];
+    }
+    $plan['stages'][0]=$scopes;$f['cycle']->bootstrap('NEW',hsInputs(null,$views),$plan,static fn()=>true);hsEnable($f);
+    hsReject(fn()=>$f['cycle']->tick('NEW'),'oversized projection holds before attempt');
+    hsCheck(count($f['provider']->requests)===0&&hsCount($f['p'],'hotel_server_attempts')===0,'no send or reserved attempt on oversized request');
+}finally{hsCleanup($f);}
+
+
+require_once dirname(__DIR__).'/services/HotelServerCronRuntime.php';
+$factoryCalls=0;$factory=static function()use(&$factoryCalls):array{++$factoryCalls;throw new RuntimeException('must_not_be_called');};
+foreach([[],['enabled'=>true],['enabled'=>true,'dispatch_allowed'=>true],['enabled'=>true,'dispatch_allowed'=>true,'replacement_dispatch_allowed'=>'true'],['enabled'=>false,'dispatch_allowed'=>true,'replacement_dispatch_allowed'=>true],['enabled'=>true,'dispatch_allowed'=>null,'replacement_dispatch_allowed'=>true]] as $flags)
+    hsCheck(HotelServerCronRuntime::tick($flags,$factory)===['handled'=>false,'state'=>'disabled','provider_calls'=>0],'strict missing/mismatched flags refuse before context');
+hsCheck($factoryCalls===0,'disabled flags make zero factory/SQL/provider calls');
+$flags=['enabled'=>true,'dispatch_allowed'=>true,'replacement_dispatch_allowed'=>true];
+hsCheck(HotelServerCronRuntime::tick($flags,static fn()=>[])['state']==='hold','unconfigured provider holds without legacy fallback');
+$f=hsFixture();try{
+    hsBoot($f);hsEnable($f);
+    // There is deliberately no hotel_work_events table/active legacy subscription.
+    $runtime=HotelServerCronRuntime::tick($flags,static fn()=>['pdo'=>$f['p'],'provider'=>$f['provider'],'clock'=>static fn()=>1800000000]);
+    hsCheck($runtime['handled']===true&&$runtime['state']==='candidate'&&count($f['provider']->requests)===1,'server cron reaches producer without legacy event subscriptions');
+    $f['provider']->loseAck=true;HotelServerCronRuntime::tick($flags,static fn()=>['pdo'=>$f['p'],'provider'=>$f['provider'],'clock'=>static fn()=>1800000000]);
+    $n=count($f['provider']->requests);
+    HotelServerCronRuntime::tick($flags,static fn()=>['pdo'=>$f['p'],'provider'=>$f['provider'],'clock'=>static fn()=>1800000000]);
+    hsCheck(count($f['provider']->requests)===$n,'runtime UNKNOWN never sends again');
+}finally{hsCleanup($f);}
+$cli=(string)file_get_contents(dirname(__DIR__).'/tools/hotel_work.php');
+hsCheck(strpos($cli,'HotelServerCronRuntime::tick')<strpos($cli,'hasActiveSubscriptions'),'server hook precedes legacy subscription gate');
+
 echo 'HOTEL SERVER CYCLE '.(getenv('HOTEL_WORK_NATIVE_MYSQL')==='1'?'NATIVE MYSQL':'SQLITE').': '.$hsChecks." PASS\n";

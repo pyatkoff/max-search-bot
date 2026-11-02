@@ -104,3 +104,41 @@ adapters and capabilities, current required CI and independent source review,
 separately authorized disabled installation/readback, then explicit campaign scope
 and budget and zero-send dry run. A single live canary requires its own later
 authorization. This PR does not claim those gates passed.
+
+## Source review corrections after the first packet
+
+The first native MySQL run41402913343 failed on reserved column name CURSOR.
+The draft084 and every query now use stage_cursor; no production084 was applied.
+
+Immutable raw input bytes are retained as cold evidence. Model requests never
+receive the raw package. A separate required accepted_context projection binds
+every declared historical scope to its accepted packet and receipt. The current
+reader verifies the entire baseline chain and combines those historical records
+with every new accepted delta. Assigned model views select only the requested
+hotels and carry current baseline and derived view hashes. Required stage_contexts
+supply bounded scope-specific criteria/corpus/map/archive-index/instruction
+projections; assignments larger than256KiB HOLD before attempt creation.
+
+The archives entry is a bounded approved index/projection, not a claim to hold
+all original country ZIP bytes. Those original retained files must remain in the
+separate private source inventory. The current loader still has a4MiB per-entry
+limit; a real larger WORKING or raw archive cannot be silently sliced and called
+a full input import. Full-byte staging/format conversion and its review remain a
+launch prerequisite until actual inputs are available.
+
+The registry also derives every producer without accepted intake from the
+retirement snapshot. Full quarantine_mapping for those exact packet/receipt
+identities is mandatory; missing mapping HOLD. Quarantined scopes are excluded
+at assignment and acceptance, including completed-but-unaccepted TR40. Raw TR40
+records cannot be included in the accepted projection.
+
+tools/hotel_work.php now contains a dormant HotelServerCronRuntime hook before
+the legacy hasActiveSubscriptions gate. Three trusted bootstrap flags
+HOTEL_SERVER_CYCLE_ENABLED, HOTEL_SERVER_DISPATCH_ALLOWED and
+HOTEL_SERVER_REPLACEMENT_DISPATCH_ALLOWED must each be boolean true. Missing,
+null, strings or false return disabled before loading context/reading new tables.
+No configuration is changed by the PR. A private ANYTOUR_HOTEL_SERVER_PROVIDER
+instance must implement the real adapter; the runtime selects exactly one
+persisted enabled campaign and never bootstraps or enables it. Active-mode error
+is HOLD with no legacy fallback and no fabricated zero-call claim. Inactive old
+subscriptions are no longer a prerequisite for a future server-only cycle.

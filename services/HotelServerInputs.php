@@ -5,7 +5,7 @@ declare(strict_types=1);
 final class HotelServerInputs
 {
     public const OLD_QUEUE = 'HOTEL-CONTINUOUS-20261027';
-    public const REQUIRED = ['baseline','criteria','corpus','map','archives','instructions','reserves','accepted_mapping'];
+    public const REQUIRED = ['baseline','criteria','corpus','map','archives','instructions','reserves','accepted_mapping','quarantine_mapping','accepted_context','stage_contexts'];
     private function __construct(private array $package) {}
     public function package(): array { return $this->package; }
 
@@ -91,6 +91,47 @@ final class HotelServerInputs
         return $accepted;
     }
 
+
+    /** Every unpaired producer remains excluded, including completed-but-unaccepted TR40. */
+    public static function quarantine(array $retirement, string $expected): array
+    {
+        $accepted = array_fill_keys(array_column(self::registry($retirement,$expected),'packet_sha256'),true);
+        $snapshot = json_decode($retirement['snapshot_bytes'],true,64,JSON_THROW_ON_ERROR);
+        $resolutions=[]; foreach($snapshot['hotel_work_resolutions']??[] as $r)$resolutions[(int)$r['stage_index']]=$r;
+        $out=[];
+        foreach($snapshot['hotel_work_receipts']??[] as $r){
+            $i=(int)$r['stage_index']; if($i%2!==0)continue;
+            $effective=$resolutions[$i]??$r; $body=json_decode($effective['receipt_json'],true,64,JSON_THROW_ON_ERROR);
+            $packet=$body['packet_sha256']??null;
+            if($packet!==null)self::sha($packet);
+            if($packet!==null&&isset($accepted[$packet]))continue;
+            $out[]=['stage_index'=>$i,'stage_id'=>$r['stage_id'],'packet_sha256'=>$packet,'receipt_sha256'=>$effective['receipt_sha256']];
+        }
+        usort($out,static fn(array $a,array $b):int=>$a['stage_index']<=>$b['stage_index']);
+        return $out;
+    }
+
+    private static function mapRegistry(array $rows, mixed $mapping, array &$excluded, string $kind): array
+    {
+        if(!is_array($mapping)||!array_is_list($mapping)||count($mapping)!==count($rows))throw new DomainException('complete_'.$kind.'_mapping_required');
+        $by=[];
+        foreach($mapping as $m){
+            if(!is_array($m)||!is_string($m['stage_id']??null)||isset($by[$m['stage_id']])||!is_array($m['scopes']??null)||!array_is_list($m['scopes'])||!$m['scopes'])throw new DomainException('invalid_private_mapping');
+            $by[$m['stage_id']]=$m;
+        }
+        $scopeBindings=[];
+        foreach($rows as $r){
+            $m=$by[$r['stage_id']]??null;if(!$m)throw new DomainException('mapping_stage_missing');
+            foreach(['packet_sha256','receipt_sha256'] as $field)if(!array_key_exists($field,$m)||$m[$field]!==$r[$field])throw new DomainException('mapping_not_bound_to_accepted_receipt');
+            foreach($m['scopes'] as $scope){
+                $key=self::key($scope);
+                if(isset($scopeBindings[$key])&&$scopeBindings[$key]!==$r['stage_id'])throw new DomainException('ambiguous_legacy_scope');
+                $scopeBindings[$key]=$r['stage_id'];$excluded[$key]=$kind;
+            }
+        }
+        return $by;
+    }
+
     /** The caller supplies an existing read-only app PDO; the file root is private. */
     public static function load(PDO $app, string $expectedRetirement, string $root, string $manifestPath): self
     {
@@ -99,7 +140,7 @@ final class HotelServerInputs
         if (!$retirement) throw new DomainException('retirement_missing');
         $realRoot = realpath($root); $realManifest = realpath($manifestPath);
         if (!$realRoot || !$realManifest || !self::inside($realManifest, $realRoot)) throw new DomainException('private_manifest_missing');
-        $public = realpath((string)($_SERVER['DOCUMENT_ROOT'] ?? ''));
+        $public = realpath(dirname(__DIR__));
         if ($public && ($realRoot === $public || self::inside($realRoot, $public))) throw new DomainException('private_inputs_under_document_root');
         $manifest = json_decode((string)file_get_contents($realManifest), true, 64, JSON_THROW_ON_ERROR);
         if (($manifest['schema'] ?? null) !== 'hotel-server-input-manifest-v1' || !is_array($manifest['files'] ?? null)) throw new DomainException('private_manifest_required');
@@ -123,22 +164,43 @@ final class HotelServerInputs
             if (!is_string($bytes[$name] ?? null) || $bytes[$name] === '' || strlen($bytes[$name]) > 4194304) throw new DomainException('complete_private_inputs_required');
             $pins[$name] = hash('sha256', $bytes[$name]);
         }
-        $mapping = json_decode($bytes['accepted_mapping'], true, 64, JSON_THROW_ON_ERROR);
-        $reserves = json_decode($bytes['reserves'], true, 64, JSON_THROW_ON_ERROR);
-        if (!is_array($mapping) || !array_is_list($mapping) || count($mapping) !== 19 || !is_array($reserves) || !array_is_list($reserves)) throw new DomainException('complete_private_mapping_required');
-        $byStage = []; $excluded = [];
-        foreach ($mapping as $m) {
-            if (!is_array($m) || isset($byStage[$m['stage_id'] ?? '']) || !is_array($m['scopes'] ?? null) || !array_is_list($m['scopes']) || !$m['scopes']) throw new DomainException('invalid_private_mapping');
-            foreach ($m['scopes'] as $scope) $excluded[self::key($scope)] = 'historical';
-            $byStage[$m['stage_id']] = $m;
+        $mapping = json_decode($bytes['accepted_mapping'],true,64,JSON_THROW_ON_ERROR);
+        $reserves = json_decode($bytes['reserves'],true,64,JSON_THROW_ON_ERROR);
+        if(!is_array($reserves)||!array_is_list($reserves))throw new DomainException('complete_private_mapping_required');
+        $excluded=[];
+        $byStage=self::mapRegistry($registry,$mapping,$excluded,'historical');
+        $quarantine=self::quarantine($retirement,$expected);
+        self::mapRegistry($quarantine,json_decode($bytes['quarantine_mapping'],true,64,JSON_THROW_ON_ERROR),$excluded,'quarantined');
+        foreach($reserves as $scope)$excluded[self::key($scope)]='protected_reserve';
+        $approved=json_decode($bytes['accepted_context'],true,64,JSON_THROW_ON_ERROR);
+        if(!is_array($approved)||!array_is_list($approved))throw new DomainException('approved_baseline_projection_required');
+        $expectedScopes=[];
+        foreach($registry as $row)foreach($byStage[$row['stage_id']]['scopes'] as $scope)$expectedScopes[self::key($scope)]=$row;
+        $seen=[];
+        foreach($approved as $record){
+            if(!is_array($record))throw new DomainException('approved_baseline_projection_required');
+            $keys=array_keys($record);sort($keys);
+            if($keys!==['answer','packet_sha256','receipt_sha256','scope'])throw new DomainException('strict_accepted_projection_required');
+            $key=self::key($record['scope']??[]);$r=$expectedScopes[$key]??null;
+            if(!$r||isset($seen[$key])||!is_string($record['answer']??null)||$record['answer']===''||strlen($record['answer'])>32768)throw new DomainException('unaccepted_baseline_projection');
+            foreach(['packet_sha256','receipt_sha256'] as $field)if(($record[$field]??null)!==$r[$field])throw new DomainException('baseline_projection_lineage');
+            $seen[$key]=true;
         }
-        foreach ($registry as $r) {
-            $m = $byStage[$r['stage_id']] ?? [];
-            foreach (['packet_sha256','receipt_sha256'] as $f) if (($m[$f] ?? null) !== $r[$f]) throw new DomainException('mapping_not_bound_to_accepted_receipt');
+        if(count($seen)!==count($expectedScopes))throw new DomainException('incomplete_accepted_projection');
+        $contexts=json_decode($bytes['stage_contexts'],true,64,JSON_THROW_ON_ERROR);
+        if(!is_array($contexts)||!array_is_list($contexts)||!$contexts)throw new DomainException('scoped_dependency_projection_required');
+        $scoped=[];
+        foreach($contexts as $view){
+            $key=self::key($view['scope']??[]);
+            if(isset($scoped[$key])||!is_array($view['dependencies']??null))throw new DomainException('scoped_dependency_projection_required');
+            $deps=$view['dependencies'];$keys=array_keys($deps);sort($keys);$required=['archives','corpus','criteria','instructions','map'];
+            if($keys!==$required)throw new DomainException('complete_scoped_dependencies_required');
+            foreach($deps as $text)if(!is_string($text)||$text===''||strlen($text)>8192)throw new DomainException('bounded_scoped_dependency_required');
+            $scoped[$key]=$view;
         }
-        foreach ($reserves as $scope) $excluded[self::key($scope)] = 'protected_reserve';
-        ksort($excluded); $identity = ['schema'=>'hotel-server-inputs-v1','retirement_sha256'=>$expected,'pins'=>$pins,'registry'=>$registry,'exclusions'=>$excluded];
-        return new self($identity + ['inputs_sha256'=>hash('sha256', self::json($identity)), 'bytes'=>$bytes]);
+        ksort($excluded);
+        $identity=['schema'=>'hotel-server-inputs-v1','retirement_sha256'=>$expected,'pins'=>$pins,'registry'=>$registry,'quarantine'=>$quarantine,'exclusions'=>$excluded,'accepted_context'=>$approved,'stage_contexts'=>$scoped];
+        return new self($identity+['inputs_sha256'=>hash('sha256',self::json($identity)),'bytes'=>$bytes]);
     }
 
     private static function inside(string $path, string $root): bool

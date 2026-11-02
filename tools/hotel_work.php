@@ -38,6 +38,19 @@ try {
     require_once dirname(__DIR__).'/services/HotelWorkEventService.php';
     ProjectAccessService::initializeReadOnly();
     $pdo=ConversationDb::connection();
+    // New server mode is evaluated BEFORE the legacy subscription prerequisite.
+    // Missing/mismatched flags do not load a provider or query the new schema.
+    require_once dirname(__DIR__).'/services/HotelServerCronRuntime.php';
+    $server=HotelServerCronRuntime::tick([
+        'enabled'=>defined('HOTEL_SERVER_CYCLE_ENABLED')?HOTEL_SERVER_CYCLE_ENABLED:false,
+        'dispatch_allowed'=>defined('HOTEL_SERVER_DISPATCH_ALLOWED')?HOTEL_SERVER_DISPATCH_ALLOWED:false,
+        'replacement_dispatch_allowed'=>defined('HOTEL_SERVER_REPLACEMENT_DISPATCH_ALLOWED')?HOTEL_SERVER_REPLACEMENT_DISPATCH_ALLOWED:false,
+    ],static fn():array=>['pdo'=>$pdo,'provider'=>$GLOBALS['ANYTOUR_HOTEL_SERVER_PROVIDER']??null]);
+    if($server['handled']){
+        $ok=$server['state']!=='hold';
+        HotelWorkHealth::record($ok?'ok':'failed','server_cycle',[],$trigger);$finished=true;
+        echo json_encode(['ok'=>$ok,'state'=>$server['state'],'server_cycle'=>true],JSON_THROW_ON_ERROR)."\n";exit($ok?0:1);
+    }
     $events=new HotelWorkEventService($pdo,connectionAuthorized:
         static fn(string $connection,int $admin,array $required):bool=>$required===[ManagerPreparationOAuth::HOTEL_SCOPE]
             &&(new ManagerPreparationOAuth($pdo))->eventConnectionAuthorizedAcrossProfiles('hotels',$connection,$admin));

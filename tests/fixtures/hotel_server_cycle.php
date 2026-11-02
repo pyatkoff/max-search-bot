@@ -11,19 +11,28 @@ function hsLegacy(): array
         $r=['outcome'=>'accepted_readback','packet_sha256'=>hash('sha256','packet-'.intdiv($i,2))]; $bytes=HotelServerInputs::json($r);
         $rows[]=['queue_id'=>HotelServerInputs::OLD_QUEUE,'stage_index'=>$i,'stage_id'=>hash('sha256','stage-'.$i),'receipt_sha256'=>hash('sha256',$bytes),'receipt_json'=>$bytes];
     }
-    $bytes=HotelServerInputs::json(['outcome'=>'unknown','packet_sha256'=>null]);
-    $rows[]=['queue_id'=>HotelServerInputs::OLD_QUEUE,'stage_index'=>41,'stage_id'=>hash('sha256','CENTRAL41'),'receipt_sha256'=>hash('sha256',$bytes),'receipt_json'=>$bytes];
+    $bytes=HotelServerInputs::json(['outcome'=>'accepted_readback','packet_sha256'=>hash('sha256','unaccepted-TR40')]);
+    $rows[]=['queue_id'=>HotelServerInputs::OLD_QUEUE,'stage_index'=>40,'stage_id'=>hash('sha256','TR40'),'receipt_sha256'=>hash('sha256',$bytes),'receipt_json'=>$bytes];
     $snapshot=HotelServerInputs::json(['hotel_work_receipts'=>$rows,'hotel_work_resolutions'=>[]]);
-    $receipt=HotelServerInputs::json(['queue_id'=>HotelServerInputs::OLD_QUEUE,'state'=>'retired','accepted_batches'=>19,'acceptance_credit'=>0,'snapshot_sha256'=>hash('sha256',$snapshot)]);
+    $receipt=HotelServerInputs::json(['queue_id'=>HotelServerInputs::OLD_QUEUE,'state'=>'retired','accepted_batches'=>19,'acceptance_credit'=>0,'original_operation_outcome'=>'UNKNOWN','snapshot_sha256'=>hash('sha256',$snapshot)]);
     return ['snapshot_bytes'=>$snapshot,'original_state_sha256'=>hash('sha256',$snapshot),'receipt_bytes'=>$receipt];
 }
-function hsInputs(?array $mapping=null): HotelServerInputs
+function hsInputs(?array $mapping=null,?array $contexts=null): HotelServerInputs
 {
     $ret=hsLegacy(); $pin=hash('sha256',$ret['receipt_bytes']); $registry=HotelServerInputs::registry($ret,$pin);
     $mapping??=array_map(static fn(array $r): array=>$r+['scopes'=>[hsScope('old-'.$r['stage_index'])]],$registry);
     $bytes=array_fill_keys(HotelServerInputs::REQUIRED,'synthetic immutable input');
     $bytes['baseline']='synthetic original baseline bytes; never modified';
     $bytes['accepted_mapping']=HotelServerInputs::json($mapping); $bytes['reserves']=HotelServerInputs::json([hsScope('reserve')]);
+    $held=HotelServerInputs::quarantine($ret,$pin);
+    $bytes['quarantine_mapping']=HotelServerInputs::json(array_map(static fn(array $r):array=>$r+['scopes'=>[hsScope('TR40-held')]],$held));
+    $bytes['accepted_context']=HotelServerInputs::json(array_map(static fn(array $r):array=>['scope'=>hsScope('old-'.$r['stage_index']),'answer'=>'Previously accepted synthetic history','packet_sha256'=>$r['packet_sha256'],'receipt_sha256'=>$r['receipt_sha256']],$registry));
+    if($contexts===null){
+        $contexts=[];
+        foreach(['new-0','new-1','reserve','old-1','TR40-held'] as $hotel)$contexts[]=['scope'=>hsScope($hotel),'dependencies'=>array_fill_keys(['archives','corpus','criteria','instructions','map'],'Assigned synthetic projection')];
+        $follow=hsScope('new-0');$follow['question']='followup-question';$contexts[]=['scope'=>$follow,'dependencies'=>array_fill_keys(['archives','corpus','criteria','instructions','map'],'Assigned followup projection')];
+    }
+    $bytes['stage_contexts']=HotelServerInputs::json($contexts);
     return HotelServerInputs::validate($ret,$pin,$bytes);
 }
 function hsPlan(int $stages=2): array
@@ -48,7 +57,7 @@ final class HotelServerFixtureProvider implements HotelServerProvider
         $this->requests[]=$r;
         $result=['attempt_id'=>$r['attempt_id'],'principal'=>$r['principal'],'baseline_sha256'=>$r['baseline_sha256'],'inputs_sha256'=>$r['inputs_sha256'],'usage'=>['tokens'=>17,'micros'=>9]];
         if($r['role']==='producer') $result['candidate']=['schema'=>'hotel-server-candidate-v1','records'=>array_map(static fn(array $scope): array=>['scope'=>$scope,'answer'=>'Synthetic fixture answer','evidence'=>[['url'=>'https://example.invalid/fixture','quote'=>'Synthetic evidence only']]],$r['scopes'])];
-        else $result+=['candidate_sha256'=>$r['candidate_sha256'],'criteria_sha256'=>hash('sha256',$r['input_bytes']['criteria']),'approved'=>true,'evidence'=>'Independent synthetic criteria review'];
+        else $result+=['candidate_sha256'=>$r['candidate_sha256'],'criteria_sha256'=>$r['criteria_sha256'],'approved'=>true,'evidence'=>'Independent synthetic criteria review'];
         $this->results[]=$result;
         if($this->onSend!==null)($this->onSend)();
         if($this->loseAck) throw new RuntimeException('synthetic_lost_ACK');
