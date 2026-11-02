@@ -1,4 +1,4 @@
-name: Read eight exact official hotel factsheets
+name: Inspect two fact-ready native AnyTour hotel covers
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -12,22 +12,27 @@ jobs:
   inspect:
     if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        cover_group: [0]
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Prepare temporary public PDF text parser
-        run: python3 -m pip install --disable-pip-version-check --quiet --target "$RUNNER_TEMP/pdf-deps" 'pypdf>=5,<7'
-      - name: Read only the eight exact public factsheets
+      - name: Inspect only the exact authorized native Canva PNG group
         env:
-          PYTHONPATH: ${{ runner.temp }}/pdf-deps
-        run: python3 tools/direct_demand/operations/inspect-hotel-media-20261102-3.py
-      - name: Retain bounded public facts
+          COVER_GROUP: ${{ matrix.cover_group }}
+        run: python3 tools/direct_demand/operations/inspect-canva-covers-20261102-3.py
+      - name: Retain bounded native image evidence
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-batch12-facts-20261102-read1
-          path: public-hotel-facts.json
+          name: commercial-batch12-native-covers-group-${{ matrix.cover_group }}
+          path: |
+            native-cover-receipt.json
+            covers/
           retention-days: 14
           if-no-files-found: error

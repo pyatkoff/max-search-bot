@@ -1,91 +1,40 @@
 {
   "operation": "commercial-hotel-batch-20261102-12-v1",
-  "state": "TEN_IDENTITIES_CONFIRMED_OFFICIAL_MEDIA_LOOKUP_PENDING_NOT_SENT",
-  "goal": "Prepare the first ten whole hotel posts from the confirmed stock25.",
-  "boundaries": "Official photo pools only at this stage. No messages, prices, provider calls or production connection.",
-  "criteria": "Exact hotel identity, verified whole-hotel facts and real useful general photos, readable AnyTour cover, immutable checked PNG before the existing guarded send.",
-  "risks": "The catalogue rating field is a review score, not a star category; never infer stars from it. Samaya is now branded TUI BLUE in the official photo pool; physical identity must stay explicit. Text and cover are not ready yet.",
+  "state": "TWO_FACTS_READY_NATIVE_COVERS_INSPECTION_PENDING_NOT_SENT",
+  "goal": "Publish the two fact-ready hotels while the other first-choice materials remain in stock.",
+  "boundaries": "Grand383 and Amara108090 only; no prices or claims about unready stock. Same authorized channels and publisher.",
+  "criteria": "Real useful general hotel photos and readable AnyTour covers, exact immutable PNGs and captions, live no-duplicate registry guard before send.",
+  "risks": "Other hotel fact PDFs were unavailable or unextractable; an empty extraction cannot be accepted as facts. Samaya's old website link redirects to Lamaya and is not a source for Samaya.",
   "baseline_logical_materials": 54,
+  "button_text": "✈️ Узнать стоимость тура",
   "rows": [
     {
       "hotel_id": 383,
+      "hotel": "JAZ Grand Marsa",
       "key": "jaz-grand-marsa",
-      "hotel": "JAZ GRAND MARSA (EX. JAZ GRAND RESTA)",
-      "region": "Марса Алам",
-      "photo_pool_url": "https://partner.jazhotels.com/hotel/58",
-      "state": "IDENTITY_CONFIRMED_PRIMARY_MEDIA_PENDING"
-    },
-    {
-      "hotel_id": 269,
-      "key": "jaz-samaya",
-      "hotel": "JAZ SAMAYA RESORT (EX. IBEROTEL SAMAYA)",
-      "region": "Марса Алам",
-      "photo_pool_url": "https://partner.jazhotels.com/hotel/12",
-      "state": "IDENTITY_CONFIRMED_PRIMARY_MEDIA_PENDING"
-    },
-    {
-      "hotel_id": 67897,
-      "key": "jaz-elite-maraya",
-      "hotel": "JAZ MARAYA",
-      "region": "Марса Алам",
-      "photo_pool_url": "https://partner.jazhotels.com/hotel/64",
-      "state": "IDENTITY_CONFIRMED_PRIMARY_MEDIA_PENDING"
-    },
-    {
-      "hotel_id": 75725,
-      "key": "jaz-costa-mares",
-      "hotel": "JAZ COSTA MARES ADULT ONLY (EX. IBEROTEL COSTA MARES)",
-      "region": "Марса Алам",
-      "photo_pool_url": "https://partner.jazhotels.com/hotel/67",
-      "state": "IDENTITY_CONFIRMED_PRIMARY_MEDIA_PENDING"
+      "aliases": [
+        "JAZ Grand Marsa",
+        "JAZ GRAND MARSA (EX. JAZ GRAND RESTA)"
+      ],
+      "sources": [
+        "https://partner.jazhotels.com/hotel/58",
+        "https://partner.jazhotels.com/Images/uploads/gallery/Downloads/JazGrandResta/JAZ_Grand%20Marsa_Factsheet_14052026.pdf"
+      ],
+      "text": "✈️ JAZ Grand Marsa\nТур с перелётом в Марса Алам 🇪🇬\n\nОтель на берегу Красного моря с 539 номерами. На территории есть рестораны, детский клуб и спа 🌴\n\n🏖️ Собственный пляж.\n🧒 Детский клуб Jazy и игровая площадка.\n🍽️ Основной ресторан The Space и рестораны с обслуживанием по меню.\n🌅 В номерах есть балкон или терраса.\n\nℹ️ Спа, массаж и теннис оплачиваются отдельно.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет."
     },
     {
       "hotel_id": 108090,
+      "hotel": "JAZ Elite Amara",
       "key": "jaz-elite-amara",
-      "hotel": "JAZ ELITE AMARA",
-      "region": "Марса Алам",
-      "photo_pool_url": "https://partner.jazhotels.com/hotel/93",
-      "state": "IDENTITY_CONFIRMED_PRIMARY_MEDIA_PENDING"
-    },
-    {
-      "hotel_id": 73342,
-      "key": "jaz-soma-beach",
-      "hotel": "JAZ SOMA BEACH (EX. SOLYMAR SOMA BEACH)",
-      "region": "Хургада",
-      "photo_pool_url": "https://partner.jazhotels.com/hotel/66",
-      "state": "IDENTITY_CONFIRMED_PRIMARY_MEDIA_PENDING"
-    },
-    {
-      "hotel_id": 278,
-      "key": "jaz-belvedere",
-      "hotel": "JAZ BELVEDERE",
-      "region": "Шарм-эль-Шейх",
-      "photo_pool_url": "https://partner.jazhotels.com/hotel/2",
-      "state": "IDENTITY_CONFIRMED_PRIMARY_MEDIA_PENDING"
-    },
-    {
-      "hotel_id": 281,
-      "key": "jaz-mirabel-beach",
-      "hotel": "JAZ MIRABEL BEACH",
-      "region": "Шарм-эль-Шейх",
-      "photo_pool_url": "https://partner.jazhotels.com/hotel/5",
-      "state": "IDENTITY_CONFIRMED_PRIMARY_MEDIA_PENDING"
-    },
-    {
-      "hotel_id": 246,
-      "key": "jaz-fayrouz",
-      "hotel": "JAZ FAYROUZ RESORT (EX. HILTON SHARM FAYROUZ RESORT)",
-      "region": "Шарм-эль-Шейх",
-      "photo_pool_url": "https://partner.jazhotels.com/hotel/68",
-      "state": "IDENTITY_CONFIRMED_PRIMARY_MEDIA_PENDING"
-    },
-    {
-      "hotel_id": 384,
-      "key": "jaz-neo-reef-marsa",
-      "hotel": "JAZ NEO REEF MARSA (EX. SOLYMAR REEF MARSA)",
-      "region": "Марса Алам",
-      "photo_pool_url": "https://partner.jazhotels.com/hotel/61",
-      "state": "IDENTITY_CONFIRMED_PRIMARY_MEDIA_PENDING"
+      "aliases": [
+        "JAZ Elite Amara",
+        "JAZ ELITE AMARA"
+      ],
+      "sources": [
+        "https://partner.jazhotels.com/hotel/93",
+        "https://partner.jazhotels.com/Images/uploads/gallery/Downloads/Amara/JAZ_Elite_Amara_Factsheet_28042026.pdf"
+      ],
+      "text": "✈️ JAZ Elite Amara 5★\nТур с перелётом в Марса Алам 🇪🇬\n\nОтель в бухте Марса Марес с песчаным пляжем. Здесь 272 номера, включая категории с выходом к бассейну ☀️\n\n🏖️ Собственный песчаный пляж.\n🧒 Детский клуб Jazy, детский бассейн и отдельный бассейн для малышей.\n🍽️ Ресторан Marasi со «шведским столом» и бары у пляжа и бассейнов.\n🏋️ Тренажёрный зал с видом на море.\n\nℹ️ Спа и дайвинг платные. У бесплатного WiFi ограничена скорость.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет."
     }
   ]
 }
