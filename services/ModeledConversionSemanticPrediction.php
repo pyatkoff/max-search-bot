@@ -154,8 +154,8 @@ final class ModeledConversionSemanticPrediction
         // Known operational outcomes are a conservative global exclusion, never bank truth.
     }
 
-    /** A verified bot reply may preserve, never establish or refresh, recent customer meaning. */
-    public function canBridgeServiceReply(int $occurred):bool
+    /** A verified service reply or handoff receipt may preserve, never establish or refresh, recent customer meaning. */
+    public function canPreserveCustomerContext(int $occurred):bool
     {
         return $this->anchor!==null&&$this->lastMeaningfulAt!==null
             &&$occurred>=$this->lastMeaningfulAt&&$occurred-$this->lastMeaningfulAt<=86400;

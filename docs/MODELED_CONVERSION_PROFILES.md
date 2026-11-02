@@ -817,3 +817,27 @@ legacy null calibrated values, payment guards and advertising settings remain
 unchanged. The model code hash records the compatible continuity correction.
 No transcript, recorder, transport, provider, queue or historical profile is
 changed; only subsequent ordinary calculations use the fix.
+
+
+### Canonical manager and handoff receipts preserve recent customer meaning
+
+The numeric predictor also recognizes the exact immutable canonical envelopes
+of `manager_message`, `manager_taken`, `manager_request`,
+`manager_request_deferred` and `waiting_manager`. Actor, payload shape, same
+subject, source revision1, copied status and the original recording/availability
+clocks must agree. These receipts may preserve an existing customer anchor only
+within24hours of the last meaningful customer turn. They do not create or renew
+interest, read summary words as intent, or erase known payment observations.
+Edits, unknown events/payloads, outcome events, other subjects and invalid clocks
+retain their existing barriers. The canonical human extractor still treats the
+receipt as unavailable semantic content, so a bare yes is not booking intent.
+
+Saved `contextual_signals.coverage.prediction_source_continuity` contains only
+fixed counts of preserved AI replies/handoff receipts and unavailable-source
+barriers. It describes source handling, not trip identity or purchase evidence;
+model semantic episode boundaries remain in their separate reset count. The
+ordinary SQLite/native-MySQL regression writes request, actual manager text and
+canonical receipt, hides native tables, and verifies the same immutable packet
+through the real private reader. Assignment preserves its early digest; actual
+payment wording excludes a new prediction without becoming a future payment if
+it predates the freeze. No source messages, queues, priors or export rules change.

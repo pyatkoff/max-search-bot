@@ -100,6 +100,10 @@ function forecastV1Assertions(PDO $p,callable $check):void
         &&$r['input_coverage']['meaningful_customer_turns']===2
         &&$r['input_coverage']['wizard_applications']['known_profiles']===2
         &&$r['input_coverage']['wizard_applications']['recorded_total']===0);
+    $check('source continuity exposes fixed saved counters independently of purchase scoring',
+        $r['input_coverage']['source_continuity']['preserved_handoff_receipts']['known_profiles']===2
+        &&$r['input_coverage']['source_continuity']['preserved_handoff_receipts']['recorded_total']===0
+        &&array_sum($r['window']['invalid_block_reason_counts'])===0);
     $check('V1 read retains actual freeze and input cutoff as different clocks',
         $r['saved']['prediction_at_range']['earliest']==='2026-10-26T08:40:00Z'
         &&$r['saved']['input_cutoff_at_range']['earliest']==='2026-10-26T08:23:20Z');
@@ -144,7 +148,22 @@ function forecastV1Assertions(PDO $p,callable $check):void
     forecastV1Append($p,$wrongSummary);$r=forecastV1Read($p);
     $check('untrusted counter types cannot corroborate an otherwise digest-valid model block',
         $r['saved']['valid_v1_versions']===0&&$r['window']['invalid_blocks']===1
-        &&$r['input_coverage']['invalid_summary_profiles']===1);
+        &&$r['input_coverage']['invalid_summary_profiles']===1
+        &&$r['window']['invalid_block_reason_counts']['input_summary']===1);
+    forecastV1Schema($p);$missingContinuity=$a;
+    unset($missingContinuity['contextual_signals']['coverage']['prediction_source_continuity']);
+    forecastV1Append($p,$missingContinuity);$r=forecastV1Read($p);
+    $check('older frozen input without continuity metadata remains explicitly unknown',
+        $r['saved']['prospective_estimates']===1
+        &&$r['input_coverage']['source_continuity']['preserved_handoff_receipts']['unknown_profiles']===1
+        &&$r['input_coverage']['source_continuity']['preserved_handoff_receipts']['known_profiles']===0);
+    forecastV1Schema($p);$wrongContinuity=$a;
+    $wrongContinuity['contextual_signals']['coverage']['prediction_source_continuity']['preserved_handoff_receipts']='1';
+    forecastV1Append($p,$wrongContinuity);$r=forecastV1Read($p);
+    $check('mistyped optional source counters cannot corroborate continuity or alter the saved probability',
+        $r['saved']['prospective_estimates']===1&&$r['saved']['estimated_probability_range']['minimum']===0.083333
+        &&$r['input_coverage']['source_continuity']['preserved_handoff_receipts']['unknown_profiles']===1
+        &&$r['input_coverage']['source_continuity']['preserved_handoff_receipts']['known_profiles']===0);
     forecastV1Schema($p);$bad=$a;$bad['semantic_prediction']['estimated_probability']=0.9;forecastV1Append($p,$bad);
     $r=forecastV1Read($p);$check('tampered saved probability is not confirmed by metadata alone',
         $r['saved']['valid_v1_versions']===0&&$r['window']['invalid_blocks']===1);

@@ -71,6 +71,8 @@ final class ModeledConversionEarlyForecast
         if(($case['window_limited']??null)!==false)$flags['window_limited']=true;
         $counts=array_fill_keys(ArchiveResearchSemanticExtractor::goalIds(),0);
         $turns=['customer'=>0,'manager'=>0];$replySeconds=[];$previous=null;$barriers=0;$matched=0;$semanticOmissions=[];
+        $predictionContinuity=array_fill_keys(['preserved_ai_replies','preserved_handoff_receipts','unresolved_clock_barriers',
+            'long_gap_barriers','unavailable_message_barriers','unavailable_event_barriers','other_source_barriers'],0);
         foreach($rows as$item){
             $row=$item['row'];$ref=$item['ref'];$snap=$row['snapshot']??[];$permit=$admitted[$ref]??null;
             if($denied)$permit=null;
@@ -100,10 +102,18 @@ final class ModeledConversionEarlyForecast
                 $predictive->knownOperationalOutcome($ref,(int)$item['at'],(int)$row['observed_at_unix'],(int)$row['source_version_no']);
             if($permit===null||$clockUnresolved){
                 $longGap=ArchiveResearchSemanticExtractor::hasLongObservationGap($state['last'],$item['at']);
-                $serviceBridge=!$denied&&!$clockUnresolved&&!$longGap
-                    &&self::knownServiceReply($row,$subject,$requested)
-                    &&$predictive->canBridgeServiceReply((int)$item['at']);
-                if($clockUnresolved||(!$operationalKnown&&!$serviceBridge&&!$offerReaction->bridgesUnavailable($ref,$longGap)))$predictive->barrier();
+                $serviceKind=null;
+                if(!$denied&&!$clockUnresolved&&!$longGap){
+                    if(self::knownServiceReply($row,$subject,$requested))$serviceKind='preserved_ai_replies';
+                    elseif(self::knownServiceEvent($row,$subject,$requested))$serviceKind='preserved_handoff_receipts';
+                }
+                $serviceBridge=$serviceKind!==null&&$predictive->canPreserveCustomerContext((int)$item['at']);
+                if($clockUnresolved||(!$operationalKnown&&!$serviceBridge&&!$offerReaction->bridgesUnavailable($ref,$longGap))){
+                    $predictive->barrier();
+                    $reason=$clockUnresolved?'unresolved_clock_barriers':($longGap?'long_gap_barriers':
+                        match($row['source_kind']??null){'message'=>'unavailable_message_barriers','event'=>'unavailable_event_barriers',default=>'other_source_barriers'});
+                    $predictionContinuity[$reason]++;
+                }elseif($serviceBridge)$predictionContinuity[$serviceKind]++;
                 $barrier=ArchiveResearchSemanticExtractor::step(['read_status'=>'source_unavailable','source_ref'=>$ref,'created_at'=>$item['at']],$state);
                 $state=$barrier['state'];$previous=null;$barriers++;
                 if($longGap)$flags['long_observation_gap']=true;
@@ -153,7 +163,8 @@ final class ModeledConversionEarlyForecast
         $coverage=['trip_status'=>'unknown','episode_identity'=>'unverified','source_history_complete'=>false,
             'window_limited'=>($case['window_limited']??null)!==false,'media_contents_read'=>false,
             'context_barriers'=>$barriers,'context_linking_disabled'=>$clockUnresolved,'semantic_omissions'=>$semanticOmissions,
-            'source_revision_chronology_unresolved'=>isset($wrapper['coverage']['errors']['source_revision_chronology_unresolved'])];
+            'source_revision_chronology_unresolved'=>isset($wrapper['coverage']['errors']['source_revision_chronology_unresolved']),
+            'prediction_source_continuity'=>$predictionContinuity];
         // This early semantic target is independent of the 30-day purchase hypothesis.
         // Only the canonical adapter's joined, already available immutable offer
         // receipts can establish a preference; sending alone never upgrades it.
@@ -243,7 +254,6 @@ final class ModeledConversionEarlyForecast
         return $receipt;
     }
 
-    /** A known closed operational assertion is an exclusion, never payment proof. */
     /** Canonical AI output is not a customer omission and never supplies customer evidence. */
     private static function knownServiceReply(array $row,array $subject,int $cutoff):bool
     {
@@ -269,6 +279,42 @@ final class ModeledConversionEarlyForecast
             &&($s['source_created_at_unix']??null)===$at;
     }
 
+    /** Typed canonical delivery/handoff receipts contain no new customer meaning. */
+    private static function knownServiceEvent(array $row,array $subject,int $cutoff):bool
+    {
+        $s=$row['snapshot']??null;
+        if(($row['source_kind']??null)!=='event'||($row['source_version_no']??null)!==1||!is_array($s)
+            ||($s['source_kind']??null)!=='event'||($s['source_status']??null)!=='present'
+            ||($s['payload_status']??null)!=='copied'||!self::sameSubject($s,$subject)
+            ||(string)($s['source_id']??'')!==(string)($row['source_id']??'')
+            ||($s['source_timestamp_basis']??null)!=='canonical_recording_unix_v1')return false;
+        $payload=$s['payload']??null;$raw=is_array($payload)?($payload['payload_json']??null):null;
+        $type=$payload['event_type']??null;$actor=$payload['actor_type']??null;
+        $actors=['manager_message'=>['manager'],'manager_taken'=>['manager'],
+            'manager_request'=>['ai','system'],'manager_request_deferred'=>['ai'],'waiting_manager'=>['customer']];
+        if(!is_string($type)||!isset($actors[$type])||!in_array($actor,$actors[$type],true)||!is_string($raw)||strlen($raw)>32768)return false;
+        try{
+            $p=json_decode($raw,true,32,JSON_THROW_ON_ERROR);$at=ConversationRecordClock::read($raw);
+            if(!is_array($p)||array_is_list($p))return false;
+            unset($p['_recorded_clock']);ksort($p);$keys=array_keys($p);
+            if($type==='manager_message'){
+                if($keys!==['channel','project_key']||$p['channel']!==$subject['platform']||$p['project_key']!=='anytour')return false;
+            }elseif($type==='manager_taken'){
+                if($p!==[])return false;
+            }else{
+                $withSummary=$keys===['from_tours','manager_available','summary','within_working_hours'];
+                $withSource=$keys===['manager_available','source','within_working_hours'];
+                if((!$withSummary&&!$withSource)||!is_bool($p['manager_available'])||!is_bool($p['within_working_hours']))return false;
+                if($withSummary&&(!is_bool($p['from_tours'])||!is_string($p['summary'])||strlen($p['summary'])>4096||preg_match('//u',$p['summary'])!==1))return false;
+                if($withSource&&(!is_string($p['source'])||strlen($p['source'])>64||preg_match('//u',$p['source'])!==1))return false;
+            }
+        }catch(Throwable $ignored){return false;}
+        $available=$row['observed_at_unix']??null;
+        return is_int($at)&&is_int($available)&&$at>=946684800&&$at<=$available&&$available<=$cutoff
+            &&($s['source_created_at_unix']??null)===$at;
+    }
+
+    /** A known closed operational assertion is an exclusion, never payment proof. */
     private static function knownOperationalOutcome(array $row,array $subject,int $cutoff):bool
     {
         $s=$row['snapshot']??null;

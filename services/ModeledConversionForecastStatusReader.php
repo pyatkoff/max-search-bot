@@ -6,11 +6,13 @@ require_once __DIR__.'/ModeledConversionValueRegistry.php';
 /** Launch readback of current V1 derived blocks only. Never reads a transcript or runs processing. */
 final class ModeledConversionForecastStatusReader
 {
-    public const VERSION='saved_semantic_prediction_status_v1_1';
+    public const VERSION='saved_semantic_prediction_status_v1_2';
     public const METADATA_LIMIT=20;
     public const PROFILE_LIMIT=4;
     public const PROFILE_BYTES=49152;
     private const RELEASE_RESERVE=12288;
+    private const CONTINUITY_FIELDS=['preserved_ai_replies','preserved_handoff_receipts','unresolved_clock_barriers',
+        'long_gap_barriers','unavailable_message_barriers','unavailable_event_barriers','other_source_barriers'];
     private bool $mysql;
     private int $copied=0;
     public function __construct(private PDO $pdo,private $authorize,private ModeledConversionStatusBudget $budget)
@@ -68,7 +70,7 @@ final class ModeledConversionForecastStatusReader
                     $p=json_decode($body[0]['binding_json'],true,32,JSON_THROW_ON_ERROR);
                     $p['semantic_prediction']=json_decode($body[0]['prediction_json']??'null',true,32,JSON_THROW_ON_ERROR);
                     $p['prediction_followup']=json_decode($body[0]['followup_json']??'null',true,32,JSON_THROW_ON_ERROR);
-                }catch(JsonException $ignored){$out['window']['invalid_blocks']++;continue;}
+                }catch(JsonException $ignored){$out['window']['invalid_blocks']++;$out['window']['invalid_block_reason_counts']['invalid_json']++;continue;}
                 $subject=['project_key'=>'anytour','platform'=>$row['platform'],
                     'customer_key'=>(string)$row['customer_key'],'conversation_id'=>(string)$row['conversation_id']];
                 $s=$p['semantic_prediction']??null;
@@ -79,13 +81,13 @@ final class ModeledConversionForecastStatusReader
                     ||($p['processing']['source_fence_journal_id']??null)!==($s['source_fence_journal_id']??null)
                     ||($s['profile_prediction_at']??null)!==gmdate('Y-m-d\TH:i:s\Z',(int)$row['observed_at_unix'])
                     ||!is_string($s['frozen_at']??null)||($frozen=strtotime($s['frozen_at']))===false||$frozen>time()){
-                    $out['window']['invalid_blocks']++;continue;
+                    $out['window']['invalid_blocks']++;$out['window']['invalid_block_reason_counts']['parent_binding']++;continue;
                 }
                 $fields=ModeledConversionValueRegistry::predictionFields($p);
-                if($fields['semantic_prediction']['availability']!=='available'){$out['window']['invalid_blocks']++;continue;}
+                if($fields['semantic_prediction']['availability']!=='available'){$out['window']['invalid_blocks']++;$out['window']['invalid_block_reason_counts']['prediction_contract']++;continue;}
                 $s=$fields['semantic_prediction']['value'];
                 if(!$this->inputCoverage($out['input_coverage'],$p['input_summary']??null,$s)){
-                    $out['window']['invalid_blocks']++;continue;
+                    $out['window']['invalid_blocks']++;$out['window']['invalid_block_reason_counts']['input_summary']++;continue;
                 }
 
                 $out['saved']['valid_v1_versions']++;$out['saved']['channel_counts'][$row['platform']]++;
@@ -146,6 +148,7 @@ final class ModeledConversionForecastStatusReader
     {
         $s=fn(string $k):string=>"JSON_EXTRACT(profile_json,'$.".$k."')";
         $status=$this->scalar('early_forecast.status');
+        $continuity=implode('',array_map(fn(string $k):string=>",'".$k."',".$this->boundedCount('contextual_signals.coverage.prediction_source_continuity.'.$k,50),self::CONTINUITY_FIELDS));
         $summary="JSON_OBJECT('customer_turns',".$this->boundedCount('contextual_signals.engagement.customer_turns',50)
             .",'manager_turns',".$this->boundedCount('contextual_signals.engagement.manager_turns',50)
             .",'substantive_interest',".$this->boundedCount('contextual_signals.goal_counts.substantive_interest',800)
@@ -154,7 +157,7 @@ final class ModeledConversionForecastStatusReader
             .",'linking_disabled',".$this->boundedBoolean('contextual_signals.coverage.context_linking_disabled')
             .",'wizard_applications',".$this->boundedCount('coverage.applied_wizard_fields',50)
             .",'action_or_unknown_type_rows',".$this->boundedCount('coverage.errors.action_or_unknown_message_type',1000)
-            .",'legacy_status',CASE WHEN ".$status." IN ('early_assessment','target_already_observed','no_usable_customer_context','access_denied') THEN ".$status." ELSE NULL END)";
+            .",'legacy_status',CASE WHEN ".$status." IN ('early_assessment','target_already_observed','no_usable_customer_context','access_denied') THEN ".$status." ELSE NULL END".$continuity.")";
         return ['prediction_json'=>$s('semantic_prediction'),'followup_json'=>$s('prediction_followup'),
             'binding_json'=>"JSON_OBJECT('access_status',".$s('access_status').",'subject',JSON_OBJECT('project_key',".$s('subject.project_key')
                 .",'platform',".$s('subject.platform').",'customer_key',".$s('subject.customer_key').",'conversation_id',".$s('subject.conversation_id')
@@ -204,6 +207,11 @@ final class ModeledConversionForecastStatusReader
         $out['meaningful_customer_turns']+=$prediction['features']['meaningful_customer_turns'];
         $out['context_reset_count']+=($prediction['features']['context_barriers']??0);
         if($prediction['current_request_anchor']!==null)$out['profiles_with_request_anchor']++;
+        foreach(self::CONTINUITY_FIELDS as$k){
+            $v=$raw[$k]??null;
+            if(is_int($v)&&$v>=0&&$v<=50){$out['source_continuity'][$k]['known_profiles']++;$out['source_continuity'][$k]['recorded_total']+=$v;}
+            else $out['source_continuity'][$k]['unknown_profiles']++;
+        }
         foreach(['wizard_applications'=>50,'action_or_unknown_type_rows'=>1000]as$k=>$max){
             $v=$raw[$k]??null;
             if(is_int($v)&&$v>=0&&$v<=$max){$out[$k]['known_profiles']++;$out[$k]['recorded_total']+=$v;}
@@ -230,7 +238,8 @@ final class ModeledConversionForecastStatusReader
                 'metadata_limit'=>20,'metadata_rows'=>0,'metadata_limit_reached'=>false,'current_v1_candidates'=>0,
                 'other_namespace_rows'=>0,'duplicate_scope_rows'=>0,'profile_rows_read'=>0,'invalid_metadata_rows'=>0,
                 'oversize_rows'=>0,'row_limit_omissions'=>0,'byte_limit_omissions'=>0,'changed_or_missing_rows'=>0,
-                'invalid_blocks'=>0,'invalid_followup_blocks'=>0,'selected_document_bytes'=>0],
+                'invalid_blocks'=>0,'invalid_followup_blocks'=>0,'selected_document_bytes'=>0,
+                'invalid_block_reason_counts'=>array_fill_keys(['invalid_json','parent_binding','prediction_contract','input_summary'],0)],
             'saved'=>['valid_v1_versions'=>0,'prospective_estimates'=>0,'distinct_inspected_scopes'=>0,
                 'channel_counts'=>['max'=>0,'telegram'=>0],
                 'status_counts'=>array_fill_keys(['predicted','insufficient_context','known_outcome','access_denied'],0),
@@ -249,7 +258,8 @@ final class ModeledConversionForecastStatusReader
                 'recorded_goal_counts'=>array_fill_keys(['substantive_interest','general_purchase_intent','agency_purchase_intent'],0),
                 'current_customer_turns'=>0,'meaningful_customer_turns'=>0,'profiles_with_request_anchor'=>0,'context_reset_count'=>0,
                 'wizard_applications'=>['known_profiles'=>0,'unknown_profiles'=>0,'recorded_total'=>0],
-                'action_or_unknown_type_rows'=>['known_profiles'=>0,'unknown_profiles'=>0,'recorded_total'=>0]],
+                'action_or_unknown_type_rows'=>['known_profiles'=>0,'unknown_profiles'=>0,'recorded_total'=>0],
+                'source_continuity'=>array_fill_keys(self::CONTINUITY_FIELDS,['known_profiles'=>0,'unknown_profiles'=>0,'recorded_total'=>0])],
             'interpretation'=>['basis'=>'bounded_saved_versions_not_new_people_or_trips','new_inquiry_identity_verified'=>false,
                 'idle_tick_does_not_mean_no_saved_forecasts'=>true,'last_error_is_historical'=>true,
                 'probabilities'=>'untrained_illustrative_hypotheses','payment'=>'conversation_evidence_not_bank_settlement',

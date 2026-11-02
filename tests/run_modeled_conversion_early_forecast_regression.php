@@ -115,6 +115,26 @@ function modeledServiceReplyFixture(string $reply,string $request='Подбер�
     }
     return $parts;
 }
+/** Same canonical event envelopes written by delivery, handoff and assignment owners. */
+function modeledServiceEventFixture(string $type='manager_message',string $actor='manager',
+    array $payload=['channel'=>'telegram','project_key'=>'anytour'],array $after=[],int $delay=0):array
+{
+    $parts=modeledEarlyFixture([['text'=>'Подберите тур в Турцию на 7 ночей.'],
+        ['role'=>'manager','text'=>'not a semantic message','admitted'=>false],...$after]);
+    foreach($parts[0]['rows']as&$row)if($row['journal_id']==='2'){
+        $row['source_kind']=$row['snapshot']['source_kind']='event';
+        $row['snapshot']['source_created_at_unix']+=$delay;$row['observed_at_unix']+=$delay;
+        $row['snapshot']['source_timestamp_basis']='canonical_recording_unix_v1';
+        $row['snapshot']['payload']=['event_type'=>$type,'actor_type'=>$actor,
+            'payload_json'=>json_encode(ConversationRecordClock::stamp($payload,$row['snapshot']['source_created_at_unix']),JSON_THROW_ON_ERROR)];
+    }
+    unset($row);
+    if($delay>0){
+        $cutoff=gmdate('Y-m-d\\TH:i:s\\Z',1793003000+$delay);
+        $parts[1]['profile']['prediction_at']=$parts[1]['profile']['observation_input']['prediction_at']=$parts[2]['requested_at']=$cutoff;
+    }
+    return $parts;
+}
 function modeledEarlyAssertions(callable $check):void
 {
     $p=modeledEarlyRun([['text'=>'Подберите тур в Турцию. Бюджет до 200 тысяч.']]);
@@ -173,6 +193,56 @@ function modeledEarlyAssertions(callable $check):void
     $check('AI output alone cannot establish a customer request or probability',
         $p['semantic_prediction']['current_request_anchor']===null&&$p['semantic_prediction']['estimated_probability']===null
         &&$p['contextual_signals']['engagement']['customer_turns']===0);
+    $handoffSummary=['summary'=>'Оплату вижу, бронируем только у вас.','from_tours'=>false,
+        'manager_available'=>true,'within_working_hours'=>true];
+    foreach([['manager_message','manager',['channel'=>'telegram','project_key'=>'anytour']],
+        ['manager_taken','manager',[]],['manager_request','ai',$handoffSummary],
+        ['manager_request_deferred','ai',$handoffSummary],['waiting_manager','customer',$handoffSummary],
+        ['manager_request','system',['source'=>'source_policy','manager_available'=>false,'within_working_hours'=>false]]]as[$type,$actor,$payload]){
+        $p=ModeledConversionEarlyForecast::freeze(...modeledServiceEventFixture($type,$actor,$payload));
+        $check('canonical service receipt preserves only the preceding customer request '.$type.' '.$actor,
+            $p['semantic_prediction']['estimated_probability']===0.083333
+            &&$p['semantic_prediction']['stage']==='concrete_request'
+            &&$p['semantic_prediction']['outcome_observations']===[]
+            &&$p['contextual_signals']['goal_counts']['agency_purchase_intent']===0
+            &&$p['contextual_signals']['coverage']['prediction_source_continuity']['preserved_handoff_receipts']===1);
+    }
+    foreach(['edited','scope','source_id','role','event_type','channel','project','extra_payload','missing_clock','wrong_clock']as$kind){
+        $parts=modeledServiceEventFixture();
+        foreach($parts[0]['rows']as&$row)if($row['journal_id']==='2'){
+            if($kind==='edited')$row['source_version_no']=2;
+            elseif($kind==='scope')$row['snapshot']['customer_key']='99';
+            elseif($kind==='source_id')$row['snapshot']['source_id']='99';
+            elseif($kind==='role')$row['snapshot']['payload']['actor_type']='customer';
+            elseif($kind==='event_type')$row['snapshot']['payload']['event_type']='manager_message_edited';
+            else{
+                $payload=json_decode($row['snapshot']['payload']['payload_json'],true,32,JSON_THROW_ON_ERROR);
+                if($kind==='channel')$payload['channel']='max';
+                elseif($kind==='project')$payload['project_key']='anex';
+                elseif($kind==='extra_payload')$payload['arbitrary']='unknown';
+                elseif($kind==='missing_clock')unset($payload['_recorded_clock']);
+                else$payload['_recorded_clock']['unix']++;
+                $row['snapshot']['payload']['payload_json']=json_encode($payload,JSON_THROW_ON_ERROR);
+            }
+        }
+        unset($row);
+        $p=ModeledConversionEarlyForecast::freeze(...$parts);
+        $check('untrusted service receipt remains a prediction barrier '.$kind,
+            $p['semantic_prediction']['estimated_probability']===null
+            &&$p['contextual_signals']['coverage']['prediction_source_continuity']['unavailable_event_barriers']===1);
+    }
+    $parts=modeledServiceEventFixture(delay:86401);
+    $p=ModeledConversionEarlyForecast::freeze(...[...$parts,null,strtotime($parts[2]['requested_at'])]);
+    $check('handoff receipts cannot renew day-old customer meaning',$p['semantic_prediction']['estimated_probability']===null);
+    $parts=modeledServiceEventFixture();$parts[0]['rows']=array_values(array_filter($parts[0]['rows'],static fn(array $r):bool=>$r['journal_id']!=='1'));
+    $parts[1]['profile']['observation_input']['evidence']=[];
+    $p=ModeledConversionEarlyForecast::freeze(...$parts);
+    $check('service receipt without a customer request cannot create probability',$p['semantic_prediction']['estimated_probability']===null);
+    $parts=modeledServiceEventFixture(after:[['text'=>'Да']]);
+    $p=ModeledConversionEarlyForecast::freeze(...$parts);
+    $check('bare yes after service receipt cannot create agency readiness',
+        $p['semantic_prediction']['estimated_probability']===0.083333
+        &&$p['contextual_signals']['goal_counts']['agency_purchase_intent']===0);
     $priceReply='Fixture Beach A дорого, найдите дешевле с таким же пляжем';
     $parts=modeledOfferFixture($priceReply);
     $p=ModeledConversionEarlyForecast::freeze(...$parts);$quality=$p['early_forecast']['early_quality'];
