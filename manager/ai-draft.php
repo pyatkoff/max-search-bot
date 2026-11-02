@@ -55,7 +55,12 @@ try {
         aiDraftRespond(['ok'=>false,'error'=>'context_stale']);
     }
     $automaticPreparation = !$supervisor || !empty($before['owner_read']);
+    $automaticRead=in_array($action,['ensure_prepared','prepared_status','prepared_preview'],true);
+    $policy=$automaticRead&&$automaticPreparation?ManagerPreparationPolicy::effective(ConversationDb::connection(),$owner,$cid,(string)$before['project_key']):null;
+    if($policy!==null)$automaticPreparation=$automaticPreparation&&$policy['allowed'];
+    $policyProjection=$policy!==null?['preparation_policy'=>$policy]:[];
     if ($action === 'ensure_prepared') {
+        if($policy!==null&&!$policy['allowed'])aiDraftRespond(['ok'=>true,'requested'=>false,'queued'=>false,'preparation_state'=>'paused']+$policyProjection);
         if (!$automaticPreparation) aiDraftRespond(['ok'=>false,'error'=>'forbidden']);
         // Opening an authorized chat requests work through the existing ChatGPT
         // connection. This path never selects the manual model/API transport.
@@ -85,14 +90,14 @@ try {
         if (empty($requested['ok'])) aiDraftRespond($requested);
         aiDraftRespond(['ok'=>true,'requested'=>true,
             'queued'=>($requested['preparation_state']??'')==='pending',
-            'preparation_state'=>$requested['preparation_state']]+$projection);
+            'preparation_state'=>$requested['preparation_state']]+$projection+$policyProjection);
     }
     $passivePreview=$action==='prepared_preview';
     if ($action === 'prepared' || $action === 'prepared_status' || $passivePreview) {
         // This only retrieves a separately prepared, current-context proposal.
         // It never invokes the model or changes the manager's composer/read state.
         session_write_close();
-        $prepared=ManagerPreparedReplyService::prepared($cid,$owner,$before);
+        $prepared=ManagerPreparedReplyService::prepared($cid,$owner,$before,$action!=='prepared');
         if($supervisor||$passivePreview){
             if (!session_start(['read_and_close'=>true]) || ManagerHttp::managerId() !== $actor
                 || !ManagerRequestContext::validCsrf((string)$data['csrf'])) aiDraftRespond(['ok'=>false,'error'=>'unauthorized']);
@@ -103,12 +108,12 @@ try {
         if ($action === 'prepared_status') {
             // Same canonical freshness/ownership/expiry checks, without returning
             // the private proposal or a job identity to the readiness observer.
-            if (empty($prepared['prepared'])) aiDraftRespond(['ok'=>true,'prepared'=>false,'automatic_preparation'=>$automaticPreparation]);
+            if (empty($prepared['prepared'])) aiDraftRespond(['ok'=>true,'prepared'=>false,'automatic_preparation'=>$automaticPreparation]+$policyProjection);
             aiDraftRespond(['ok'=>true,'prepared'=>true,
                 'should_draft'=>$prepared['proposal']['should_draft'],
                 'revision'=>$prepared['revision'],'latest_message_id'=>$prepared['latest_message_id'],
                 'prepared_at'=>$prepared['prepared_at'],'expires_at'=>$prepared['expires_at'],
-                'preparation_source'=>$prepared['preparation_source'],'automatic_preparation'=>$automaticPreparation]+$projection);
+                'preparation_source'=>$prepared['preparation_source'],'automatic_preparation'=>$automaticPreparation]+$projection+$policyProjection);
         }
         if (!empty($prepared['prepared'])&&is_array($prepared['proposal']??null)) {
             $proposal=$prepared['proposal'];unset($prepared['proposal']);
@@ -123,9 +128,9 @@ try {
             $prepared['draft_id']=!$supervisor&&!$passivePreview&&is_string($jobId)
                 ? ManagerAiDraftFeedbackService::record($cid,$actor,$after,$proposal,$jobId) : null;
             if($passivePreview)unset($prepared['job_id']);
-            aiDraftRespond($proposal+$prepared+$projection);
+            aiDraftRespond($proposal+$prepared+$projection+$policyProjection);
         }
-        aiDraftRespond($prepared+$projection);
+        aiDraftRespond($prepared+$projection+$policyProjection);
     }
     if ($action === 'validate') {
         $revision = $data['revision'] ?? null;

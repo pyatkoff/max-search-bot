@@ -6,8 +6,9 @@ require_once __DIR__.'/ConversationDb.php';
 require_once __DIR__.'/ManagerConversationService.php';
 require_once __DIR__.'/ManagerQueueProjectionService.php';
 require_once __DIR__.'/ManagerLeadInboxService.php';
+require_once __DIR__.'/ManagerPreparationPolicy.php';
 
-/** Account-owned presentation preferences. Never writes messages or business state. */
+/** Account-owned workspace/preparation preferences. Never sends or changes ownership. */
 final class ManagerPersonalWorkspaceService
 {
     private const MAX_TABS=12;
@@ -15,7 +16,12 @@ final class ManagerPersonalWorkspaceService
     private const MAX_MEMBERSHIPS=2000;
     private const MAX_PINS=200;
     private const MAX_BYTES=65536;
-    private const ACTIONS=['tab_save','tab_delete','tab_reorder','label_save','label_delete','label_membership','group_create','group_rename','group_delete','group_membership','pin','settings'];
+    private const ACTIONS=['tab_save','tab_delete','tab_reorder','label_save','label_delete','label_membership','group_create','group_rename','group_delete','group_membership','pin','settings','preparation_policy','queue_preparation_policy'];
+
+    public static function queuePolicy(int $actor): array
+    {
+        return ManagerPreparationPolicy::queueView(ConversationDb::connection(),$actor,ProjectConfig::projectId());
+    }
 
     public static function snapshot(int $actor): array
     {
@@ -32,8 +38,10 @@ final class ManagerPersonalWorkspaceService
         if (!self::validOperationId($operationId)) return self::error('invalid_operation_id');
         // Read receipt before state: state may advance, never regress behind receipt.
         $receipt=self::receipt($pdo,$actor,$operationId);
+        if(!empty($receipt['result']['queue_policy_operation'])&&!ManagerPreparationPolicy::queueAllowed($pdo,$actor,ProjectConfig::projectId()))return self::error('forbidden');
         $current=self::view(self::read($pdo,$actor));
         $result=$receipt===null?null:array_merge($receipt['result'],['version'=>$current['version'],'state'=>$current['state']]);
+        if(!empty($receipt['result']['queue_policy_operation']))$result+=self::queuePolicy($actor);
         return $current+['found'=>$receipt!==null,'result'=>$result];
     }
 
@@ -42,10 +50,11 @@ final class ManagerPersonalWorkspaceService
         $pdo=ConversationDb::connection();
         if (!self::active($pdo,$actor)) return self::error('unauthorized');
         if (!in_array($action,self::ACTIONS,true)) return self::error('unknown_action');
+        if($action==='queue_preparation_policy'&&!ManagerPreparationPolicy::queueAllowed($pdo,$actor,ProjectConfig::projectId()))return self::error('forbidden');
         $operationId=$input['operation_id']??null;
         if (!is_string($operationId)||!self::validOperationId($operationId)) return self::error('invalid_operation_id');
         if (!isset($input['expected_version'])||!is_int($input['expected_version'])||$input['expected_version']<0) return self::error('invalid_version');
-        $fields=['expected_version','id','tab','ids','name','conversation_id','label_id','enabled','settings'];
+        $fields=['expected_version','id','tab','ids','name','conversation_id','label_id','enabled','settings','scope','until_utc','expected_queue_version'];
         $command=['action'=>$action];
         foreach ($fields as $field) if (array_key_exists($field,$input)) $command[$field]=$input[$field];
         $hash=hash('sha256',self::json(self::canonical($command)));
@@ -56,6 +65,7 @@ final class ManagerPersonalWorkspaceService
             $pdo->beginTransaction();
             try {
                 if (!self::active($pdo,$actor,true)) {$pdo->rollBack();return self::error('unauthorized');}
+                if($action==='queue_preparation_policy'&&!ManagerPreparationPolicy::queueAllowed($pdo,$actor,ProjectConfig::projectId())){$pdo->rollBack();return self::error('forbidden');}
                 $q=$pdo->prepare('INSERT INTO manager_personal_workspace_operations (manager_id,operation_id,request_hash,created_at) VALUES (?,?,?,?)');
                 $q->execute([$actor,$operationId,$hash,gmdate('Y-m-d H:i:s')]);
                 $record=self::read($pdo,$actor,true);
@@ -78,6 +88,7 @@ final class ManagerPersonalWorkspaceService
                 $q=$pdo->prepare('UPDATE manager_personal_workspace_operations SET result_json=? WHERE manager_id=? AND operation_id=?');
                 $q->execute([self::json($result),$actor,$operationId]);
                 $response=array_merge($result,['version'=>$record['version'],'state'=>self::publicState($record['state'])]);
+                if(!empty($result['queue_policy_operation']))$response+=self::queuePolicy($actor);
                 $pdo->commit();
                 return $response;
             } catch (Throwable $e) {
@@ -153,6 +164,22 @@ final class ManagerPersonalWorkspaceService
 
     private static function apply(int $actor, string $action, array $input, array &$state): array
     {
+        if($action==='queue_preparation_policy')return ManagerPreparationPolicy::mutateQueue(ConversationDb::connection(),$actor,ProjectConfig::projectId(),$input)+['queue_policy_operation'=>true];
+        if($action==='preparation_policy'){
+            ProjectAccessService::initializeReadOnly();
+            if(!ProjectAccessService::canAccess($actor,ProjectConfig::projectId()))return self::error('forbidden');
+            if(in_array($input['scope']??null,['conversation','clear'],true)){
+                $cid=$input['conversation_id']??null;
+                if(!is_int($cid)||$cid<=0)return self::error('invalid_conversation_id');
+                $conversation=ManagerConversationService::visibleConversation($cid,$actor);
+                if(!$conversation||(int)$conversation['manager_id']!==$actor||$conversation['status']!=='manager'
+                    ||$conversation['project_key']!==ProjectConfig::projectId()
+                    ||(ManagerDeliveryStateService::activeFailure($cid)['category']??null)==='suspended')return self::error('forbidden');
+            }
+            try{$state['ai_preparation']=ManagerPreparationPolicy::apply($state['ai_preparation']??null,$input);}
+            catch(InvalidArgumentException $e){return self::error($e->getMessage());}
+            return ['ok'=>true];
+        }
         if ($action==='settings') {
             $settings=$input['settings']??null;
             if (!is_array($settings)||array_diff(array_keys($settings),['start_tab','density','font','ai_ready_notice'])) return self::error('invalid_settings');
@@ -360,11 +387,14 @@ final class ManagerPersonalWorkspaceService
 
     private static function replay(PDO $pdo, int $actor, array $receipt, string $hash): array
     {
+        if(!empty($receipt['result']['queue_policy_operation'])&&!ManagerPreparationPolicy::queueAllowed($pdo,$actor,ProjectConfig::projectId()))return self::error('forbidden');
         $current=self::view(self::read($pdo,$actor));
-        return array_merge(hash_equals($receipt['hash'],$hash)?$receipt['result']:self::error('operation_mismatch'),['version'=>$current['version'],'state'=>$current['state']]);
+        $result=array_merge(hash_equals($receipt['hash'],$hash)?$receipt['result']:self::error('operation_mismatch'),['version'=>$current['version'],'state'=>$current['state']]);
+        if(!empty($receipt['result']['queue_policy_operation']))$result+=self::queuePolicy($actor);
+        return $result;
     }
 
-    private static function publicState(array $state): array {return ['tabs'=>$state['tabs'],'labels'=>$state['labels'],'members'=>(object)$state['members'],'pins'=>$state['pins'],'settings'=>$state['settings']];}
+    private static function publicState(array $state): array {return ['tabs'=>$state['tabs'],'labels'=>$state['labels'],'members'=>(object)$state['members'],'pins'=>$state['pins'],'settings'=>$state['settings']]+(array_key_exists('ai_preparation',$state)?['ai_preparation'=>$state['ai_preparation']]:[]);}
     private static function view(array $record): array {return ['ok'=>true,'version'=>$record['version'],'state'=>self::publicState($record['state'])];}
     private static function error(string $error): array {return ['ok'=>false,'error'=>$error];}
     private static function find(array $items, int $id): ?array {foreach ($items as $item) if ($item['id']===$id) return $item;return null;}

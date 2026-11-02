@@ -3,7 +3,7 @@
   if(!W)return;
   const {S,$}=W;
   let bound=false,view=null,flight=null,sequence=0;
-  let button,panel,status,body,insert,retry;
+  let button,panel,status,body,insert,retry,preparationSettings;
   let ready=null,watch=null,statusFlight=null,watchTimer=null,expiryTimer=null,notice,noticeLabel;
   let suggestion,suggestionText,suggestionLabel,suggestionAccept;
   let preparationNotice,preparationLabel,preparationRetry;
@@ -109,8 +109,9 @@
     if(recommendationReason.textContent!==ready.reason){recommendationReason.textContent=ready.reason;changed=true}
     if(changed)window.WorkspaceV2ReplyEditor?.resize?.();
   }
+  function preparationPermission(){return window.WorkspaceV2PersonalWorkspace?.preparationPermission?.()||{allowed:true,token:'legacy',until:null}}
   function automaticEligible(saved){
-    return !!saved&&watch===saved&&currentSnapshot(saved.snapshot)&&visible()&&window.WorkspaceV2PersonalWorkspace?.showAiReadyNotice?.()!==false&&(ownerRead()||canCompose()&&$('replyText').value==='');
+    return !!saved&&watch===saved&&preparationPermission().allowed&&saved.policyToken===preparationPermission().token&&currentSnapshot(saved.snapshot)&&visible()&&window.WorkspaceV2PersonalWorkspace?.showAiReadyNotice?.()!==false&&(ownerRead()||canCompose()&&$('replyText').value==='');
   }
   function syncAutomaticIdentity(){
     const identity=JSON.stringify([S.manager?.id,S.authGeneration,!!S.authExpired]);
@@ -118,7 +119,7 @@
   }
   function automaticKey(saved){
     const {conversationId,managerId,authGeneration}=saved.snapshot.context;
-    return JSON.stringify([conversationId,managerId,authGeneration,saved.snapshot.latest,saved.snapshot.owner,saved.snapshot.messages]);
+    return JSON.stringify([conversationId,managerId,authGeneration,saved.snapshot.latest,saved.snapshot.owner,saved.snapshot.messages,saved.policyToken]);
   }
   function syncPreparation(){
     if(!preparationNotice)return;
@@ -141,7 +142,8 @@
   function retryAutomatic(){
     const saved=watch;
     if(!automaticEligible(saved)||flight||statusFlight)return;
-    automaticAttempts.delete(automaticKey(saved));saved.automatic=null;saved.until=Date.now()+600000;
+    const permission=preparationPermission();
+    automaticAttempts.delete(automaticKey(saved));saved.automatic=null;saved.until=Math.min(Date.now()+600000,permission.until||Infinity);
     window.clearTimeout?.(saved.deadlineTimer);saved.deadlineTimer=null;
     void readStatus(saved);
   }
@@ -161,6 +163,7 @@
     try{
       const result=await W.request('ai-draft.php','ensure_prepared',{conversation_id:saved.snapshot.context.conversationId,latest_message_id:saved.snapshot.latest},{signal:current.controller?.signal,isCurrent});
       if(!isCurrent())return;
+      if(result?.preparation_policy?.allowed===false){saved.blocked=true;if(ready?.kind!=='generated')clearReady();return}
       if(result?.http_status===403||result?.http_status===404){saved.blocked=true;clearReady();resetSession({keepReady:true});return}
       if(result?.ok===true&&(result.requested===true||result.queued===true)){
         attempt.phase='pending';saved.refreshStatus=result.preparation_state==='ready';
@@ -197,17 +200,18 @@
     renderButton();
   }
   function abortStatusRead(){const previous=statusFlight;statusFlight=null;previous?.controller?.abort();window.clearTimeout?.(watchTimer);watchTimer=null}
-  function stopWatching(){syncAutomaticIdentity();abortStatusRead();window.clearTimeout?.(watch?.deadlineTimer);watch=null;clearReady();syncPreparation()}
+  function stopWatching({keepManual=false}={}){syncAutomaticIdentity();abortStatusRead();window.clearTimeout?.(watch?.deadlineTimer);watch=null;if(!keepManual||ready?.kind!=='generated')clearReady();syncPreparation()}
   function scheduleStatus(saved){
-    if(watch!==saved||saved.blocked||!visible()||!currentSnapshot(saved.snapshot)||Date.now()>=saved.until)return;
-    window.clearTimeout?.(watchTimer);watchTimer=window.setTimeout?.(()=>{watchTimer=null;void readStatus(saved)},15000);
+    if(watch!==saved||saved.blocked||!preparationPermission().allowed||saved.policyToken!==preparationPermission().token||!visible()||!currentSnapshot(saved.snapshot)||Date.now()>=saved.until)return;
+    window.clearTimeout?.(watchTimer);watchTimer=window.setTimeout?.(()=>{watchTimer=null;void readStatus(saved)},Math.max(1,Math.min(15000,saved.until-Date.now())));
   }
   async function readStatus(saved){
+    if(!preparationPermission().allowed||saved.policyToken!==preparationPermission().token){if(watch===saved)stopWatching({keepManual:true});return}
     if(watch===saved&&Date.now()>=saved.until){syncPreparation();return}
     if(watch!==saved||saved.blocked||!visible()||!currentSnapshot(saved.snapshot)||Date.now()>=saved.until||statusFlight)return;
     if(flight){scheduleStatus(saved);return}
     const current={controller:typeof AbortController==='function'?new AbortController():null};statusFlight=current;
-    const isCurrent=()=>watch===saved&&statusFlight===current&&visible()&&currentSnapshot(saved.snapshot);
+    const isCurrent=()=>watch===saved&&statusFlight===current&&preparationPermission().allowed&&saved.policyToken===preparationPermission().token&&visible()&&currentSnapshot(saved.snapshot);
     try{
       const result=await W.request('ai-draft.php','prepared_status',{conversation_id:saved.snapshot.context.conversationId,latest_message_id:saved.snapshot.latest},{signal:current.controller?.signal,isCurrent});
       if(!isCurrent())return;
@@ -221,7 +225,7 @@
             const proposal=await W.request('ai-draft.php','prepared_preview',{conversation_id:saved.snapshot.context.conversationId,latest_message_id:saved.snapshot.latest},{signal:current.controller?.signal,isCurrent});
             if(!isCurrent())return;
             if(proposal?.http_status===403||proposal?.http_status===404){saved.blocked=true;clearReady();resetSession({keepReady:true});return}
-            if(hasReadyProposal(proposal,saved.snapshot)&&proposal.prepared===true&&proposal.should_draft===result.should_draft&&proposal.revision===result.revision&&proposal.prepared_at===result.prepared_at)rememberReady(proposal,saved.snapshot,'prepared');
+            if((!result.preparation_policy||proposal.preparation_policy?.allowed===true&&proposal.preparation_policy.binding===result.preparation_policy.binding)&&hasReadyProposal(proposal,saved.snapshot)&&proposal.prepared===true&&proposal.should_draft===result.should_draft&&proposal.revision===result.revision&&proposal.prepared_at===result.prepared_at)rememberReady(proposal,saved.snapshot,'prepared');
             else clearReady();
           }
         }
@@ -237,8 +241,10 @@
     syncAutomaticIdentity();
     // A server predating the new preference does not advertise readiness support.
     if(!manager2()||!(canCompose()||ownerRead())||!visible()||window.WorkspaceV2PersonalWorkspace?.supportsAiReadiness?.()===false){stopWatching();return}
-    if(watch&&currentSnapshot(watch.snapshot))return;
-    stopWatching();watch={snapshot:snapshot(),until:Date.now()+600000};void readStatus(watch);
+    const permission=preparationPermission();
+    if(!permission.allowed){stopWatching({keepManual:true});return}
+    if(watch&&watch.policyToken===permission.token&&currentSnapshot(watch.snapshot))return;
+    stopWatching({keepManual:true});watch={snapshot:snapshot(),policyToken:permission.token,until:Math.min(Date.now()+600000,permission.until||Infinity)};void readStatus(watch);
   }
   function selection(){const reply=$('replyText');return {start:reply.selectionStart,end:reply.selectionEnd,direction:reply.selectionDirection,top:reply.scrollTop,left:reply.scrollLeft}}
   function restoreSelection(saved){
@@ -329,6 +335,7 @@
     if(view&&(!canAnalyze()||!sameContext(view.snapshot.context))){resetSession();return}
     if(view&&!currentSnapshot(view.snapshot))stale();
     const disabled=!canAnalyze()||!!flight;if(button.disabled!==disabled)button.disabled=disabled;
+    if(preparationSettings){const c=S.detail?.conversation;preparationSettings.hidden=!!$('m2ReplyEditor')?.open||!(Number(c?.id)===Number(S.current)&&(Number(c.manager_id)===Number(S.manager?.id)&&c.status==='manager'||ownerRead()&&Number(c.manager_id||0)===0));}
     syncWatch();renderButton();
     positionPanel();
   }
@@ -530,6 +537,7 @@
       const hide=document.createElement('button');hide.type='button';hide.textContent='×';hide.setAttribute('aria-label','Скрыть уведомление AI');hide.addEventListener('click',dismissNotice);notice.appendChild(hide);form.appendChild(notice);
       document.addEventListener('visibilitychange',()=>{if(!visible())stopWatching();else sync()});
     }
+    const settingsHost=assistantHost();if(settingsHost){preparationSettings=document.createElement('button');preparationSettings.id='aiPreparationSettings';preparationSettings.type='button';preparationSettings.className='aiPreparationSettings';preparationSettings.textContent='Автоподготовка';preparationSettings.addEventListener('click',()=>void window.WorkspaceV2PersonalWorkspace?.openPreparation?.(preparationSettings));settingsHost.prepend(preparationSettings);}
     bound=true;button.addEventListener('click',()=>{if(view&&!view.stale)close();else openReady()});dismiss.addEventListener('click',()=>close());
     retry.addEventListener('click',()=>void loadProposal(view?.retryAction==='prepared'?'prepared':'generate'));insert.addEventListener('click',()=>void insertDraft());
     panel.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();close()}});

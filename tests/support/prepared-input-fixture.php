@@ -3,6 +3,7 @@ declare(strict_types=1);
 /** Disposable fixtures only. Production schema is migration 082. */
 function preparedInputFixtureSchema(PDO $pdo): void
 {
+    require_once __DIR__.'/preparation-policy-fixture.php';preparationPolicyFixtureSchema($pdo);
     if($pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'){
         $pdo->exec(file_get_contents(dirname(__DIR__,2).'/migrations/082_manager_prepared_reply_inputs.sql'));return;
     }

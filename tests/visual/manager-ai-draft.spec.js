@@ -11,8 +11,9 @@ const proposal=(changes={})=>({ok:true,should_draft:true,draft:'Какие да�
 const prepared=(changes={})=>proposal({prepared:true,prepared_at:'2026-10-19T10:30:00Z',source:'chatgpt',draft_id:null,...changes});
 // Render the actual PHP shell and canonical assets. Every identity, message,
 // proposal and HTTP response in this fixture is synthetic and stays in loopback.
-async function setup(page,{readiness=false,automatic=false,ensureHandler=null,hideNotice=false,supervisor=false,owner=false,ownerState='manager',previewHandler=null,blocked=false,manualTask=false,profilePanel=false}={}){
+async function setup(page,{readiness=false,automatic=false,ensureHandler=null,hideNotice=false,supervisor=false,owner=false,ownerState='manager',previewHandler=null,blocked=false,manualTask=false,profilePanel=false,preparationControls=false}={}){
   const calls=[],unexpected=[],errors=[],messages=new Map();
+  let preparationHandler=null;const personal=require('./fixtures/personal-workspace-default').emptyPersonalWorkspaceSnapshot();
   let profileHandler=null,profileRevision='1'.repeat(64);const profiles=new Map();
   const profileFor=id=>{if(!profiles.has(id))profiles.set(id,{version:1,status:'fresh',label:id===11?'Семейная поездка в Турцию':'Другая поездка',boundary_message_id:1,fields:{party:{value:{adults:2,children:1,child_ages:[7]},kind:'manager_interpretation',importance:'hard',note:''}}});return profiles.get(id);};
   let deliveryBlocked=blocked;
@@ -61,7 +62,10 @@ async function setup(page,{readiness=false,automatic=false,ensureHandler=null,hi
       if(data.action==='detail')return reply({ok:true,can_edit_pipeline:true,pipeline:{stage:null,tags:[],stage_history:[],outcome:{outcome:'open'}},tasks:[],trip:{},contact:{},source:{},handoff:{}});
     }
     if(url.pathname==='/manager/quick-replies-api.php'&&data.action==='toolbar')return reply({ok:true,replies:[],version:'1'.repeat(64),max_replies:100});
-    if(url.pathname==='/manager/personal-workspace-api.php'&&data.action==='snapshot'){const snapshot=require('./fixtures/personal-workspace-default').emptyPersonalWorkspaceSnapshot();snapshot.state.settings.ai_ready_notice=hideNotice?'hide':'show';return reply(snapshot);}
+    if(url.pathname==='/manager/personal-workspace-api.php'){
+      if(data.action==='snapshot'){const snapshot=preparationControls?personal:require('./fixtures/personal-workspace-default').emptyPersonalWorkspaceSnapshot();snapshot.state.settings.ai_ready_notice=hideNotice?'hide':'show';return reply(snapshot);}
+      if(preparationControls&&preparationHandler){const result=await preparationHandler(data);if(result?.abort)return route.abort('failed');if(result)return reply(result.body,result.status||200);}
+    }
     if(url.pathname==='/manager/post-context-api.php'&&data.action==='detail')return reply({ok:true,conversation_id:data.conversation_id,context:{current:null,history:[]}});
     if(url.pathname==='/manager/push-status.php')return reply({ok:true,push_status:{is_working:true,notification_path_usable:false,healthy_subscription_count:0,notification_path_reason:'no_subscription'}});
     if(url.pathname==='/manager/notification-events.php')return reply({ok:true,cursor:0,events:[]});
@@ -78,7 +82,7 @@ async function setup(page,{readiness=false,automatic=false,ensureHandler=null,hi
   await page.goto(origin+'/manager2/index.php?qa=1');await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
   await expect.poll(()=>page.evaluate(()=>WorkspaceV2.S.workspaceBound&&!WorkspaceV2.S.booting)).toBe(true);
   await page.locator('#inboxList [data-conversation-id="11"]').click();if(supervisor||owner)await expect(page.getByRole('button',{name:'AI · Просмотр',exact:true})).toBeVisible();else{await expect(page.locator('#replyText')).toBeEnabled();await expect(page.locator('#aiDraftOpen')).toBeEnabled()}
-  return {calls,unexpected,errors,setProfileHandler:handler=>{profileHandler=handler},setAI:handler=>{ai=handler},setPreview:handler=>{preview=handler},setDeliveryBlocked:value=>{deliveryBlocked=value},completePreparation:()=>{automaticComplete=true},messages,aiCalls:()=>calls.filter(call=>call.path==='/manager/ai-draft.php'&&!['prepared_status','prepared_preview'].includes(call.action)),ensureCalls:()=>calls.filter(call=>call.action==='ensure_prepared'),previewCalls:()=>calls.filter(call=>call.action==='prepared_preview'),statusCalls:()=>calls.filter(call=>call.action==='prepared_status')};
+  return {calls,unexpected,errors,personal,setPreparationHandler:handler=>{preparationHandler=handler},setProfileHandler:handler=>{profileHandler=handler},setAI:handler=>{ai=handler},setPreview:handler=>{preview=handler},setDeliveryBlocked:value=>{deliveryBlocked=value},completePreparation:()=>{automaticComplete=true},messages,aiCalls:()=>calls.filter(call=>call.path==='/manager/ai-draft.php'&&!['prepared_status','prepared_preview'].includes(call.action)),ensureCalls:()=>calls.filter(call=>call.action==='ensure_prepared'),previewCalls:()=>calls.filter(call=>call.action==='prepared_preview'),statusCalls:()=>calls.filter(call=>call.action==='prepared_status')};
 }
 function clean(state){expect(state.errors).toEqual([]);expect(state.unexpected).toEqual([]);expect(state.calls.filter(call=>['send','take','release','close','reopen'].includes(call.action))).toEqual([])}
 async function openClient(page,id,name){
@@ -959,4 +963,81 @@ test('current-trip panel rechecks profile freshness after editing an existing me
   expect(await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible())).toBe(true);
   await expect(page.locator('#m2CurrentTrip span')).toHaveText('Основания изменились — условия нужно сверить');
   expect(state.calls.filter(c=>c.path==='/manager/request-profile-api.php'&&c.action==='get').length).toBeGreaterThan(before);clean(state);
+});
+
+
+// New preparation controls use the actual personal-workspace/assistant assets.
+// Synthetic API state only: no provider, customer send or production session.
+for(const width of [390,1440])test('Manager2 preparation controls preserve the native reply and save scope and deadline '+width,async({page})=>{
+ await page.setViewportSize({width,height:900});const state=await setup(page,{preparationControls:true});
+ let saved;
+ state.setPreparationHandler(async data=>{
+  if(data.action!=='preparation_policy')return;
+  saved=data;const until=data.until_utc||null;
+  state.personal.version++;state.personal.state.ai_preparation={next_rule_version:2,all:data.scope==='all'?{enabled:data.enabled,until_utc:until,version:1}:null,conversations:data.scope==='conversation'?{'11':{enabled:data.enabled,until_utc:until,version:1}}:{}};
+  return {body:{...state.personal,ok:true}};
+ });
+ await page.locator('#replyText').fill('Мой точный ответ');await page.locator('#replyFile').setInputFiles({name:'keep.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic File')});
+ await page.locator('#replyText').evaluate(node=>{node.setSelectionRange(2,8,'backward');window.preparationNative={reply:node,form:document.getElementById('composer'),input:document.getElementById('replyFile'),file:document.getElementById('replyFile').files[0],selection:[node.selectionStart,node.selectionEnd,node.selectionDirection]}});
+ await page.locator('#aiPreparationSettings').click();await expect(page.locator('#pwPreparation')).toBeVisible();
+ await page.locator('#pwPreparationScope').selectOption('all');await page.locator('#pwPreparationMode').selectOption('enabled');
+ await page.locator('#pwPreparationTerm').selectOption('until');const deadline=new Date(Date.now()+3600000+2*3600000).toISOString().slice(0,16);
+ await page.locator('#pwPreparationUntil').fill(deadline);await page.locator('#pwPreparationSave').click();
+ await expect(page.locator('#pwStatus')).toHaveText('Автоподготовка настроена.');expect(saved).toMatchObject({action:'preparation_policy',scope:'all',enabled:true,expected_version:0});
+ expect(saved.until_utc).toBe(new Date(deadline+':00+02:00').toISOString().slice(0,19).replace('T',' '));
+ await expect(page.locator('#pwPreparationEffective')).toContainText('Включена до');await expect(page.locator('#pwPreparationEffective')).toContainText('Калининград');
+ await page.locator('#pwClose').click();await expect(page.locator('#replyText')).toHaveValue('Мой точный ответ');await expect(page.locator('#mediaSelection')).toContainText('keep.txt');
+ expect(await page.evaluate(()=>{const p=preparationNative,r=document.getElementById('replyText');return {same:r===p.reply&&document.getElementById('composer')===p.form&&document.getElementById('replyFile')===p.input&&document.getElementById('replyFile').files[0]===p.file,selection:[r.selectionStart,r.selectionEnd,r.selectionDirection],expected:p.selection}})).toEqual({same:true,selection:[2,8,'backward'],expected:[2,8,'backward']});
+ clean(state);
+});
+
+test('Manager2 preparation unknown-write recovery and exclusions leave manual AI and files intact',async({page})=>{
+ const state=await setup(page,{preparationControls:true});let saved,committed;
+ state.setPreparationHandler(async data=>{
+  if(data.action==='preparation_policy'){
+   saved=data;state.personal.version++;
+   state.personal.state.ai_preparation={next_rule_version:2,all:null,conversations:{'11':{enabled:false,until_utc:null,version:1}}};committed={...state.personal,ok:true};return {abort:true};
+  }
+  if(data.action==='operation')return {body:{...state.personal,found:true,result:committed}};
+ });
+ await page.locator('#replyText').fill('Свой черновик');await page.locator('#replyFile').setInputFiles({name:'retained.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic file')});
+ await page.locator('#aiPreparationSettings').click();await page.locator('#pwPreparationMode').selectOption('disabled');await page.locator('#pwPreparationSave').click();
+ await expect(page.locator('#pwStatus')).toContainText('Исход сохранения неизвестен');await expect(page.locator('#pwPreparationSave')).toBeDisabled();
+ await page.locator('#pwCheckOperation').click();await expect(page.locator('#pwStatus')).toHaveText('Автоподготовка настроена.');await expect(page.locator('#pwPreparationEffective')).toContainText('выключена');
+ expect(state.calls.filter(call=>call.action==='preparation_policy')).toHaveLength(1);expect(state.calls.find(call=>call.action==='operation').operation_id).toBe(saved.operation_id);
+ await page.locator('#pwClose').click();await page.locator('#aiDraftOpen').click();await expect(page.locator('#aiDraftInsert')).toBeEnabled();
+ await expect(page.locator('#replyText')).toHaveValue('Свой черновик');await expect(page.locator('#mediaSelection')).toContainText('retained.txt');clean(state);
+});
+
+test('Manager2 preparation queue control uses admin queue CAS and the same operation recovery',async({page})=>{
+ const state=await setup(page,{owner:true,ownerState:'waiting_manager',preparationControls:true});let saved;
+ const queue={project_key:'anytour',version:0,rule:null};
+ state.setPreparationHandler(async data=>{
+  if(data.action==='queue_preparation_snapshot')return {body:{ok:true,queue_policy:queue}};
+  if(data.action==='queue_preparation_policy'){saved=data;queue.version++;queue.rule={next_rule_version:2,all:{enabled:data.enabled,until_utc:null,version:1},conversations:{}};return {body:{...state.personal,ok:true,queue_policy:queue}};}
+ });
+ await page.locator('#aiPreparationSettings').click();await expect(page.locator('#pwPreparationScope option[value="queue"]')).toHaveCount(1);
+ await page.locator('#pwPreparationScope').selectOption('queue');await page.locator('#pwPreparationMode').selectOption('enabled');await page.locator('#pwPreparationSave').click();
+ await expect(page.locator('#pwStatus')).toHaveText('Автоподготовка настроена.');expect(saved).toMatchObject({action:'queue_preparation_policy',scope:'all',expected_queue_version:0,enabled:true});
+ await expect(page.locator('#pwPreparationEffective')).toContainText('Включена постоянно');clean(state);
+});
+
+test('Manager2 preparation expiry is visible and manual AI stays available',async({page})=>{
+ const state=await setup(page,{preparationControls:true});
+ state.personal.version=1;state.personal.state.ai_preparation={next_rule_version:2,all:{enabled:true,until_utc:new Date(Date.now()-60000).toISOString().slice(0,19).replace('T',' '),version:1},conversations:{}};
+ await page.locator('#aiPreparationSettings').click();await expect(page.locator('#pwPreparationEffective')).toContainText('Срок истёк');
+ await page.locator('#pwClose').click();await page.locator('#aiDraftOpen').click();await expect(page.locator('#aiDraftInsert')).toBeEnabled();
+ expect(state.calls.filter(call=>['preparation_policy','queue_preparation_policy'].includes(call.action))).toEqual([]);clean(state);
+});
+
+test('Manager2 preparation late save cannot replace a changed account policy',async({page})=>{
+ const state=await setup(page,{preparationControls:true});let release,entered=false;
+ const oldResult={ok:true,version:1,state:{...state.personal.state,ai_preparation:{next_rule_version:2,all:{enabled:false,until_utc:null,version:1},conversations:{}}}};
+ state.setPreparationHandler(async data=>{if(data.action==='preparation_policy'){entered=true;await new Promise(resolve=>{release=resolve});return {body:oldResult}}});
+ await page.locator('#aiPreparationSettings').click();await page.locator('#pwPreparationScope').selectOption('all');await page.locator('#pwPreparationMode').selectOption('disabled');await page.locator('#pwPreparationSave').click();
+ await expect.poll(()=>entered).toBe(true);
+ await page.evaluate(async()=>{WorkspaceV2.S.manager={...WorkspaceV2.S.manager,id:8};WorkspaceV2.S.authGeneration++;await WorkspaceV2PersonalWorkspace.activate(8)});
+ const completed=page.waitForResponse(response=>response.url().endsWith('/manager/personal-workspace-api.php')&&response.request().postDataJSON()?.action==='preparation_policy');release();await completed;
+ expect(await page.evaluate(()=>WorkspaceV2PersonalWorkspace.preparationPermission(12,8).mode)).toBe('legacy');
+ await expect(page.locator('#pwDialog')).not.toBeVisible();expect(state.calls.filter(call=>call.action==='preparation_policy')).toHaveLength(1);clean(state);
 });

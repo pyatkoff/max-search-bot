@@ -99,3 +99,9 @@
 .manager2 .m2ReplyEditor .aiDraftPanel{bottom:64px;max-height:calc(100% - 82px)}
 @media(max-width:740px){.aiDraftPanel{left:6px;right:6px;padding:10px;max-height:min(48dvh,var(--ai-draft-room,360px))}.aiDraftPanel button{min-height:40px}.aiDraftHead{top:-10px}}
 @media(max-height:540px){.aiDraftPanel{max-height:min(52dvh,var(--ai-draft-room,360px))}.manager2 .m2ReplyEditor .aiDraftPanel{bottom:56px;max-height:calc(100% - 66px)}}
+
+/* Existing assistant/settings, same canonical composer and submit owner. */
+.manager2 .aiPreparationSettings{align-self:flex-start;min-height:36px;padding:6px 10px;border:1px solid #dfe6d7;border-radius:8px;background:#f7f9f4;color:#425d40;font:inherit;font-size:13px;cursor:pointer}
+.manager2 .aiPreparationSettings[hidden]{display:none}
+#pwPreparation{scroll-margin-top:12px}
+#pwPreparation .pwEditor button{min-height:40px}
