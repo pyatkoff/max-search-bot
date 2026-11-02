@@ -1,8 +1,8 @@
 {
   "operation": "commercial-scale-500-20261102-v1",
-  "state": "OFFLINE_BATCH_PREPARER_CHECKED_NOT_LIVE",
+  "state": "FIRST_TEN_HOTEL_LIVE_BATCH_ACCEPTED",
   "target_logical_materials": 500,
-  "confirmed_logical_materials": 30,
+  "confirmed_logical_materials": 40,
   "preparation_buffer": 25,
   "max_hotels_per_send": 10,
   "max_channel_posts_per_send": 20,
@@ -14,10 +14,11 @@
     "Immutable manifest and approved finite hotel list, with current production/source/host/TLS/schema/rights gates before send."
   ],
   "not_ready": [
-    "The bounded preparation passed 14 controlled checks and PHP syntax for 1,3,10 hotels. A live larger batch remains unaccepted until actual provider receipts exist.",
-    "500 catalogue entries are not 500 accepted posts; candidate or unverified source material cannot count as ready.",
-    "Existing Canva copy/editing preparation still supplies the approved covers; unavailable autofill must not be retried."
+    "The remaining460 materials have not been published; catalogue inventory alone does not count as ready content.",
+    "The hotel advertising feed export and live price integration remain separate incomplete work.",
+    "Existing approved Canva preparation and the guarded publisher remain the publication route."
   ],
   "next": "Validate the bounded offline preparer, prepare the next ready material batch, then use the existing guarded server route with its exact finite approved scope.",
-  "validation_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41462211210"
+  "validation_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41462211210",
+  "live_validation_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41473426350"
 }

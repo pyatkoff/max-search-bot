@@ -1,5 +1,5 @@
 {
-  "state": "CATALOG_IDENTITIES_CONFIRMED_NOT_ALL_CONTENT_READY",
+  "state": "TEN_PUBLISHED_FIFTEEN_CONTENT_PENDING",
   "catalog_ids": [
     77914,
     237,
@@ -33,49 +33,49 @@
       "hotel_id": 77914,
       "hotel": "SUNRISE TUCANA RESORT",
       "region": "Хургада",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+      "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED"
     },
     {
       "key": "alma-bay",
       "hotel_id": 237,
       "hotel": "SUNRISE ALMA BAY RESORT (EX. GRAND SEAS BY SUNRISE)",
       "region": "Хургада",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+      "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED"
     },
     {
       "key": "alora",
       "hotel_id": 32575,
       "hotel": "SUNRISE ALORA AQUA PARK RESORT (EX. CAESAR PALACE)",
       "region": "Хургада",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+      "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED"
     },
     {
       "key": "anjum",
       "hotel_id": 112914,
       "hotel": "SUNRISE ANJUM RESORT",
       "region": "Марса Алам",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+      "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED"
     },
     {
       "key": "meraki",
       "hotel_id": 64895,
       "hotel": "MERAKI RESORT ADULTS ONLY 16+",
       "region": "Хургада",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+      "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED"
     },
     {
       "key": "jaz-aquamarine",
       "hotel_id": 262,
       "hotel": "JAZ AQUAMARINE RESORT (EX. IBEROTEL AQUAMARINE RESORT)",
       "region": "Хургада",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+      "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED"
     },
     {
       "key": "jaz-bluemarine",
       "hotel_id": 12117,
       "hotel": "JAZ BLUEMARINE",
       "region": "Хургада",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+      "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED"
     },
     {
       "key": "jaz-casa-beach",
@@ -138,21 +138,21 @@
       "hotel_id": 12119,
       "hotel": "STEIGENBERGER AL DAU BEACH",
       "region": "Хургада",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+      "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED"
     },
     {
       "key": "steigenberger-aqua-magic",
       "hotel_id": 26044,
       "hotel": "STEIGENBERGER AQUA MAGIC",
       "region": "Хургада",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+      "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED"
     },
     {
       "key": "steigenberger-pure",
       "hotel_id": 66150,
       "hotel": "STEIGENBERGER PURE LIFE STYLE ADULTS ONLY 16+",
       "region": "Хургада",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+      "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED"
     },
     {
       "key": "baron-palace",
@@ -204,5 +204,6 @@
       "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
     }
   ],
-  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41465100411"
+  "catalog_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41465100411",
+  "publication_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41473426350"
 }
