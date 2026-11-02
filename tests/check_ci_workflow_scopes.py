@@ -24,6 +24,26 @@ def gate_passes(job, env):
     step = job['steps'][-1]
     return subprocess.run(['bash', '-e', '-c', step['run']], env={**os.environ, **env}, capture_output=True).returncode == 0
 
+# Required regression owns PR policy validation. Known companions omit only
+# the identical selftest prelude, never their selector or native checks.
+scope_steps = load('ci-change-scope.yml')['jobs']['scope']['steps']
+policy_steps = [step for step in scope_steps if step.get('name') == 'Verify CI selection rules']
+check(len(policy_steps) == 1, 'exactly one canonical policy validation step')
+policy = policy_steps[0]
+check(policy.get('if') == "github.event_name != 'pull_request' || !contains(fromJSON('[\"Workspace V2 visual QA\",\"Workspace incoming sound\",\"Channel post context\"]'), github.workflow)", 'only known PR companions may omit duplicate policy validation')
+check(not policy.get('continue-on-error', False), 'policy validation failures remain fatal')
+for command in ['node tests/run_ci_change_scope_regression.js', 'node tests/run_oauth_browser_report_regression.js', 'python3 tests/check_ci_workflow_scopes.py']:
+    check(command in policy['run'], 'required policy validation retains ' + command)
+selection_steps = [step for step in scope_steps if step.get('id') == 'scope']
+check(len(selection_steps) == 1 and not selection_steps[0].get('if') and not selection_steps[0].get('continue-on-error', False), 'every caller must run the fail-closed selector')
+check(load('regression-tests.yml')['name'] == 'Regression tests', 'required regression always owns PR policy validation')
+for filename, name in [('workspace-v2-visual-qa.yml', 'Workspace V2 visual QA'), ('workspace-sound.yml', 'Workspace incoming sound'), ('channel-post-context.yml', 'Channel post context')]:
+    check(load(filename)['name'] == name, 'known companion name changed: ' + filename)
+for filename in ['regression-tests.yml', 'workspace-sound.yml', 'channel-post-context.yml', 'manager-personal-capacity.yml']:
+    concurrency = load(filename).get('concurrency', {})
+    check(concurrency.get('cancel-in-progress') == "${{ github.event_name == 'pull_request' }}", 'only superseded PRs may be cancelled: ' + filename)
+    check(concurrency.get('group') == "ci-${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('run-{0}-{1}', github.run_id, github.run_attempt) }}", 'PR/workflow isolation and unique manual runs required: ' + filename)
+
 check(set(regression['regression']['needs']) == {'change-scope','inventory','php-syntax','required','prepared-mysql','oauth'}, 'regression must await all branches')
 check(set(visual['screenshots']['needs']) == {'change-scope','full-screenshots','oauth-browser','tour-browser'}, 'visual aggregate must await all profile branches')
 for name in ['regression-tests.yml','workspace-v2-visual-qa.yml','workspace-sound.yml','channel-post-context.yml']:

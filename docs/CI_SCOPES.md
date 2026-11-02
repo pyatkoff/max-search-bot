@@ -184,7 +184,21 @@ manifests fail. Each fresh browser part records its actual attempt. Successful
 older parts retain theirs, and the existing exact union/PNG/report gates remain.
 This fixes partial reruns without relabelling previous-head results as current.
 
-Selector, report-validation and workflow dependency/result regression tests run
-before every scope decision. Manual runs and production deployment verification
-retain the canonical full suite. No branch rule, application behavior, runtime
+Every PR runs selector, report-validation and workflow dependency/result selftests
+once in the required regression workflow. Its canonical scope job must succeed
+before the required `regression` aggregate can pass. The three named PR companions
+(visual QA, incoming sound and post context) omit only that identical prelude;
+each still computes its own complete base/head scope and runs its selected native
+checks. Unknown callers and standalone manual runs retain the selftests. Renaming
+a caller never silently opts it out. This reduces four identical PR validation
+preludes to one when all four workflows start; it does not reuse an older result
+or reduce the product test inventory.
+
+Regression, sound, post-context and capacity workflows cancel only superseded
+read-only runs of the same PR and workflow. Manual runs have unique run/attempt
+groups; main pushes and deployment workflows are not in those groups. Current-head
+checks still have to pass before merge. This releases runners occupied by stale
+heads without treating a cancelled run as passing evidence.
+
+Manual runs and production deployment verification retain the canonical full suite. No branch rule, application behavior, runtime
 configuration, data, migrations or authorization policy is changed.
