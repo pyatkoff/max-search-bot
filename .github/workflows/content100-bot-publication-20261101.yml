@@ -1,4 +1,4 @@
-name: Inspect public hotel photo sources
+name: Inspect native AnyTour promotional covers
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -18,13 +18,15 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Read fixed public hotel sources without server credentials or publication
-        run: python3 tools/direct_demand/operations/inspect-hotel-media-20261102-3.py
-      - name: Retain bounded public source data
+      - name: Inspect three native cover images without provider or server writes
+        run: python3 tools/direct_demand/operations/inspect-canva-covers-20261102-3.py
+      - name: Retain native media receipt
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-three-20261102-3-public-media-sources
-          path: public-media-sources.json
+          name: commercial-three-20261102-3-native-covers
+          path: |
+            native-cover-receipt.json
+            covers/
           retention-days: 14
           if-no-files-found: warn
