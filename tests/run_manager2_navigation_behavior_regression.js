@@ -24,7 +24,23 @@ function harness(){
   vm.runInContext(presentation.replace('  init();',''),context);
   return {S,elements,title,taskFilters,taskQuickFilters,requests,mobile,saved,pending,navigate:window.Manager2Presentation.navigate,presentation:window.Manager2Presentation,window,classWrites:()=>classWrites};
 }
+async function explicitDialoguesReturnCheck(){
+  const settle=async(h,target)=>{const before=h.requests.length,p=h.navigate(target);assert.equal(h.requests.length,before+1,'One load per explicit destination');assert.equal(h.elements.workspaceRoot.dataset.m2Section,target,'Immediate explicit destination');h.pending[before](true);await p;assert.equal(h.elements.workspaceRoot.dataset.m2Section,target,'Settled explicit destination');};
+  const h=harness();h.S.leadProjectFilter='project-a';h.S.leadSourceFilter=91;h.S.leadSearch='Начатый поиск';h.S.leadManagerFilter='8';h.S.leadStageFilter='proposal';
+  const text={value:'Неотправленный ответ'},file={files:[{name:'keep.pdf'}]};h.elements.replyText=text;h.elements.replyFile=file;
+  for(const target of ['sales','archive','sales','tasks','sales','dialogues'])await settle(h,target);
+  assert.equal(h.S.queue,'mine');assert.equal(h.S.leadProjectFilter,'project-a');assert.equal(h.S.leadSourceFilter,91);assert.equal(h.S.leadSearch,'Начатый поиск');assert.equal(h.S.leadManagerFilter,'8');assert.equal(h.S.leadStageFilter,'proposal');assert.equal(h.S.leadTaskFilter,'');assert.equal(h.elements.replyText,text);assert.equal(text.value,'Неотправленный ответ');assert.equal(h.elements.replyFile,file);assert.equal(file.files[0].name,'keep.pdf');
+  for(const queue of ['mine','all','waiting','closed'])for(const entry of ['sales','tasks']){
+    const q=harness();q.S.viewMode='list';Object.assign(q.S,{queue,leadProjectFilter:'project-b',leadSourceFilter:92,leadSearch:'Сохранённый поиск',leadManagerFilter:'7',leadStageFilter:'selection',leadTaskFilter:'today'});
+    if(queue==='closed')q.window.WorkspaceV2PersonalWorkspace={selectionScope:()=> 'group:9'};
+    const before=JSON.stringify(q.S);await settle(q,entry);await settle(q,'dialogues');
+    assert.equal(JSON.stringify(q.S),before,'Returning preserves ordinary Inbox queue/project/task filters');if(queue==='closed')assert.equal(q.window.WorkspaceV2PersonalWorkspace.selectionScope(),'group:9');
+  }
+  check('explicit Dialogues return clears inherited Archive queue and preserves ordinary Inbox filters and composer',()=>assert.equal(h.requests.length,6));
+}
+
 (async()=>{
+  if(process.argv.includes('--dialogues-return-only')){await explicitDialoguesReturnCheck();console.log('MANAGER2 NAVIGATION TARGET: '+checks+' PASSED');return;}
   {
     const h=harness(),moves=[],pin={},markers={children:[pin]},identity={appendChild:node=>moves.push(node)};
     const node={querySelector:selector=>selector==='.pwRowMarkers'?markers:selector==='.leadIdentity'?identity:null};
@@ -121,5 +137,6 @@ function harness(){
     check('an open deadline editor blocks section navigation before any request or mode change',()=>assert.equal(h.requests.length,1));assert.equal(await h.navigate('sales'),false);
     check('blocked navigation retains the Plan section and original Inbox filters',()=>{assert.equal(h.requests.length,1);assert.equal(h.elements.workspaceRoot.dataset.m2Section,'tasks');assert.equal(h.S.viewMode,'list');assert.equal(h.S.leadTaskFilter,'today')});
   }
+  await explicitDialoguesReturnCheck();
   console.log('MANAGER2 NAVIGATION: '+checks+' PASSED');
 })().catch(error=>{console.error(error);process.exitCode=1});

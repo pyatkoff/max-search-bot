@@ -433,6 +433,11 @@
       window.WorkspaceV2Filters.setTaskFilter('',{reload:false});
       window.WorkspaceV2Inbox.setQueue(next==='archive'?'closed':'mine',{reload:false});
     }
+    // Returning from a secondary view must not turn an explicit Dialogues
+    // destination back into Archive. Other Inbox filters and personal scopes stay.
+    if(next==='dialogues'&&S.queue==='closed'&&!window.WorkspaceV2PersonalWorkspace?.selectionScope?.()){
+      window.WorkspaceV2Inbox.setQueue('mine',{reload:false});
+    }
     window.WorkspaceV2Mobile?.showInbox({historyMode:'replace'});
     const taskFilters=document.querySelector('.m2TaskFilters');if(taskFilters)taskFilters.open=false;
     if(next==='tasks'){$('filtersPanel')?.classList.add('hidden');$('filtersToggle')?.setAttribute('aria-expanded','false')}
