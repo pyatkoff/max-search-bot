@@ -1,0 +1,111 @@
+name: Configure AnyTour modeled value goal
+on:
+  workflow_run:
+    workflows: [Deploy production]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      operation:
+        type: choice
+        required: true
+        default: status
+        options: [status, create-goal, enable, disable, launch-v1]
+      expected_sha:
+        description: Exact installed current main SHA
+        type: string
+        required: true
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: anytour-modeled-value-configuration
+  cancel-in-progress: false
+jobs:
+  configure:
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && contains(github.event.workflow_run.head_commit.message, '[anytour-value-launch-1288]')))
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Validate finite operation and current authoritative main
+        env:
+          VALUE_OPERATION: ${{ github.event_name == 'workflow_run' && 'launch-v1' || inputs.operation }}
+          EXPECTED_SHA: ${{ github.event.workflow_run.head_sha || inputs.expected_sha }}
+          GH_TOKEN: ${{ github.token }}
+          REPO_NAME: ${{ github.repository }}
+          WORKFLOW_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$EXPECTED_SHA" =~ ^[a-f0-9]{40}$ ]]
+          case "$VALUE_OPERATION" in status|create-goal|enable|disable|launch-v1) ;; *) exit 1;; esac
+          actual="$(curl --fail --silent --show-error -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/repos/$REPO_NAME/git/ref/heads/main" | python3 -c 'import json,sys; print(json.load(sys.stdin)["object"]["sha"])')"
+          test "$actual" = "$EXPECTED_SHA"
+          test "$WORKFLOW_SHA" = "$EXPECTED_SHA"
+      - name: Wait for successful mandatory checks of this exact installed release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_SHA: ${{ github.event.workflow_run.head_sha || inputs.expected_sha }}
+          REPO_NAME: ${{ github.repository }}
+          VALUE_OPERATION: ${{ github.event_name == 'workflow_run' && 'launch-v1' || inputs.operation }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$VALUE_OPERATION" == "status" || "$VALUE_OPERATION" == "disable" ]]; then exit 0; fi
+          python3 - <<'VALUE_GATES'
+          import json, os, time, urllib.request
+          required = {'.github/workflows/deploy.yml', '.github/workflows/max-production-health.yml',
+                      '.github/workflows/max-tls-preflight.yml', '.github/workflows/telegram-production-health.yml',
+                      '.github/workflows/live-session-diagnostics.yml', '.github/workflows/publish-conversation-diagnostics.yml',
+                      '.github/workflows/tour-selection-host.yml'}
+          base = 'https://api.github.com/repos/' + os.environ['REPO_NAME']
+          headers = {'Authorization': 'Bearer ' + os.environ['GH_TOKEN'], 'Accept': 'application/vnd.github+json'}
+          for attempt in range(41):
+              with urllib.request.urlopen(urllib.request.Request(base + '/git/ref/heads/main', headers=headers), timeout=20) as r:
+                  actual = json.load(r)['object']['sha']
+              if actual != os.environ['EXPECTED_SHA']:
+                  raise SystemExit('authoritative main changed; no configuration operation')
+              with urllib.request.urlopen(urllib.request.Request(base + '/actions/runs?head_sha=' + actual + '&per_page=100', headers=headers), timeout=20) as r:
+                  runs = json.load(r)['workflow_runs']
+              latest = {}
+              for run in sorted(runs, key=lambda r: r['id'], reverse=True):
+                  latest.setdefault(run['path'], run)
+              if all(p in latest and latest[p]['status'] == 'completed' and latest[p]['conclusion'] == 'success' for p in required):
+                  print('mandatory_current_release_gates=accepted')
+                  break
+              if attempt == 40:
+                  raise SystemExit('mandatory current gates unavailable; no configuration operation')
+              print('mandatory_current_release_gates=waiting', flush=True)
+              time.sleep(20)
+          VALUE_GATES
+      - name: Prepare existing canonical server credential
+        env:
+          VALUE_SSH_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          value_key_path="$RUNNER_TEMP/value_goal_key"
+          raw="$VALUE_SSH_KEY"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$value_key_path"; else printf '%s\n' "$raw" | tr -d '\r' > "$value_key_path"; fi
+          else printf '%s' "$raw" | base64 --decode | tr -d '\r' > "$value_key_path"; fi
+          chmod 600 "$value_key_path"
+          ssh-keygen -y -f "$value_key_path" >/dev/null
+      - name: Execute exact bounded installed operation
+        env:
+          VALUE_OPERATION: ${{ github.event_name == 'workflow_run' && 'launch-v1' || inputs.operation }}
+          EXPECTED_SHA: ${{ github.event.workflow_run.head_sha || inputs.expected_sha }}
+          VALUE_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          VALUE_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -i "$RUNNER_TEMP/value_goal_key" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$VALUE_USER@$VALUE_HOST" bash -s -- "$EXPECTED_SHA" "$VALUE_OPERATION" <<'VALUE_REMOTE'
+          set -eu
+          cd /var/www/anytoour/data/www/app.anytoour.ru
+          test "$(git rev-parse HEAD)" = "$1"
+          php tools/modeled_conversion_value_export.php "$2"
+          VALUE_REMOTE
+      - name: Remove ephemeral credential
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/value_goal_key"

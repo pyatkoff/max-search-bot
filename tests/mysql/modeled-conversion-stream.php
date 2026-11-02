@@ -4,6 +4,7 @@ if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
 require_once dirname(__DIR__).'/run_modeled_conversion_stream_regression.php';
 require_once dirname(__DIR__).'/run_modeled_conversion_status_regression.php';
 require_once dirname(__DIR__).'/run_modeled_conversion_forecast_status_regression.php';
+require_once dirname(__DIR__).'/run_modeled_conversion_value_export_regression.php';
 $admin=null;$p=null;$other=null;$safe=false;$failed=false;
 try{
     $dsn=(string)getenv('PREPARED_REPLY_MYSQL_DSN');
@@ -41,6 +42,7 @@ try{
     modeledHandoffProfileAssertions($p,$check);
     forecastStatusSchema($p);forecastStatusAssertions($p,$check);
     forecastV1Assertions($p,$check);
+    modeledValueAssertions($p,$check);
     echo 'MODELED CONVERSION STREAM NATIVE MYSQL PASSED '.$passed.PHP_EOL;
 }catch(Throwable $e){fwrite(STDERR,'FAIL modeled stream native MySQL '.get_class($e).PHP_EOL);$failed=true;}
 finally{

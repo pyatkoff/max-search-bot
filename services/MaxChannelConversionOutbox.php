@@ -197,7 +197,7 @@ final class MaxChannelConversionOutbox
     public function pending(int $now,int $limit=25,string $platform='max'): array
     {
         $limit=max(1,min(25,$limit));
-        $q=$this->pdo->prepare("SELECT * FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635' AND state='pending' AND next_attempt_unix<=?".$this->platformWhere($platform)." ORDER BY id LIMIT ".$limit);
+        $q=$this->pdo->prepare("SELECT * FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635' AND state='pending' AND target IN ('max_bot_activity_start','max_manager_reply','max_customer_reply_after_manager','max_manager_request') AND next_attempt_unix<=?".$this->platformWhere($platform)." ORDER BY id LIMIT ".$limit);
         $q->execute([$now]);return $q->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -252,7 +252,7 @@ final class MaxChannelConversionOutbox
     {
         if(!in_array($state,['ready','accepted','unknown'],true))throw new InvalidArgumentException('invalid_state');
         $active=$state==='ready'?" AND target IN ('max_bot_activity_start','max_manager_request','max_customer_reply_after_manager') AND transport_target=target":'';
-        $q=$this->pdo->prepare("SELECT * FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635' AND state=? AND next_attempt_unix<=?".$active.$this->platformWhere($platform)." ORDER BY id LIMIT ".max(1,min(10,$limit)));
+        $q=$this->pdo->prepare("SELECT * FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635' AND state=? AND target IN ('max_bot_activity_start','max_manager_reply','max_customer_reply_after_manager','max_manager_request') AND next_attempt_unix<=?".$active.$this->platformWhere($platform)." ORDER BY id LIMIT ".max(1,min(10,$limit)));
         $q->execute([$state,$now]);return $q->fetchAll(PDO::FETCH_ASSOC);
     }
 
