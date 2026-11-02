@@ -191,12 +191,15 @@ final class HotelServerInputs
         if(!is_array($contexts)||!array_is_list($contexts)||!$contexts)throw new DomainException('scoped_dependency_projection_required');
         $scoped=[];
         foreach($contexts as $view){
+            if(!is_array($view))throw new DomainException('strict_stage_context_required');
+            $outer=array_keys($view);sort($outer);
+            if($outer!==['dependencies','scope'])throw new DomainException('strict_stage_context_required');
             $key=self::key($view['scope']??[]);
             if(isset($scoped[$key])||!is_array($view['dependencies']??null))throw new DomainException('scoped_dependency_projection_required');
             $deps=$view['dependencies'];$keys=array_keys($deps);sort($keys);$required=['archives','corpus','criteria','instructions','map'];
             if($keys!==$required)throw new DomainException('complete_scoped_dependencies_required');
             foreach($deps as $text)if(!is_string($text)||$text===''||strlen($text)>8192)throw new DomainException('bounded_scoped_dependency_required');
-            $scoped[$key]=$view;
+            $scoped[$key]=['scope'=>$view['scope'],'dependencies'=>$deps];
         }
         ksort($excluded);
         $identity=['schema'=>'hotel-server-inputs-v1','retirement_sha256'=>$expected,'pins'=>$pins,'registry'=>$registry,'quarantine'=>$quarantine,'exclusions'=>$excluded,'accepted_context'=>$approved,'stage_contexts'=>$scoped];

@@ -174,4 +174,13 @@ $f=hsFixture();try{
 $cli=(string)file_get_contents(dirname(__DIR__).'/tools/hotel_work.php');
 hsCheck(strpos($cli,'HotelServerCronRuntime::tick')<strpos($cli,'hasActiveSubscriptions'),'server hook precedes legacy subscription gate');
 
+
+$f=hsFixture();try{
+    $ret=hsLegacy();$pin=hash('sha256',$ret['receipt_bytes']);$bytes=hsInputs()->package()['bytes'];
+    $views=json_decode($bytes['stage_contexts'],true,64,JSON_THROW_ON_ERROR);
+    $views[0]['extra_raw']='UNACCEPTED_CANARY';$bytes['stage_contexts']=HotelServerInputs::json($views);
+    hsReject(fn()=>$f['cycle']->bootstrap('NEW',HotelServerInputs::validate($ret,$pin,$bytes),hsPlan(),static fn()=>true),'outer raw context field rejected','strict_stage_context_required');
+    hsCheck(hsCount($f['p'],'hotel_server_campaigns')===0&&hsCount($f['p'],'hotel_server_attempts')===0&&count($f['provider']->requests)===0,'extra raw field cannot persist an assignment or send');
+}finally{hsCleanup($f);}
+
 echo 'HOTEL SERVER CYCLE '.(getenv('HOTEL_WORK_NATIVE_MYSQL')==='1'?'NATIVE MYSQL':'SQLITE').': '.$hsChecks." PASS\n";
