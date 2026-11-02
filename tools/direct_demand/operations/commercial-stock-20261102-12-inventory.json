@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-stock-20261102-12",
-  "state": "TWENTY_FIVE_IDENTITIES_CONFIRMED_CONTENT_AND_COVERS_PENDING",
+  "state": "TWO_PUBLISHED_TWENTY_THREE_IDENTITIES_CONTENT_PENDING",
   "hotel_count": 25,
   "catalog_ids": [
     383,
@@ -35,7 +35,7 @@
       "hotel_id": 383,
       "hotel": "JAZ GRAND MARSA (EX. JAZ GRAND RESTA)",
       "region": "Марса Алам",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+      "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED"
     },
     {
       "key": "jaz-samaya",
@@ -63,7 +63,7 @@
       "hotel_id": 108090,
       "hotel": "JAZ ELITE AMARA",
       "region": "Марса Алам",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+      "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED"
     },
     {
       "key": "jaz-soma-beach",
@@ -207,5 +207,8 @@
     }
   ],
   "catalog_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41517612012",
-  "followup_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41518049588"
+  "followup_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41518049588",
+  "published_hotel_count": 2,
+  "unpublished_hotel_count": 23,
+  "publication_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41521482701"
 }
