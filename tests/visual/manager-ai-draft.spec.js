@@ -519,20 +519,22 @@ for(const change of ['arrival','same-ID edit'])test('AI rejects a '+change+' whi
   const state=await setup(page);let release;state.setAI(async()=>{await new Promise(resolve=>{release=resolve});return {body:prepared()}});
   await page.locator('#replyText').fill('Свой текст');await page.locator('#aiDraftOpen').click();await expect.poll(()=>!!release).toBe(true);
   if(change==='arrival')state.messages.get(11).push({id:36,sender_type:'customer',text:'Синтетическое новое требование',created_at:'2026-10-17 12:01:00'});else state.messages.get(11)[34].text='Синтетическое исправленное требование';
-  // Keep the awaited page promise reachable until CDP has returned its result.
-  // Playwright1.55 rewrites several protocol errors as context destruction.
-  // A real navigation/rejection still fails; do not retry or swallow it.
-  const refreshed=await page.evaluate(()=>{
-    const promise=WorkspaceV2Conversation.refreshVisible();
-    window.__qaPendingAiRefresh={promise,document};
-    return promise;
+  // Invoke once in the page; do not return a live async value through CDP.
+  // Read its settled result separately, preserving rejection and document checks.
+  await page.evaluate(()=>{
+    const state={document,settled:false,value:null,error:null};
+    window.__qaPendingAiRefresh=state;
+    state.promise=WorkspaceV2Conversation.refreshVisible();
+    state.promise.then(value=>{state.value=value;state.settled=true},error=>{state.error=error;state.settled=true});
   });
-  expect(refreshed).toBe(true);
-  expect(await page.evaluate(()=>{
-    const sameDocument=window.__qaPendingAiRefresh?.document===document;
+  await expect.poll(()=>page.evaluate(()=>!window.__qaPendingAiRefresh||window.__qaPendingAiRefresh.settled)).toBe(true);
+  const result=await page.evaluate(()=>{
+    const state=window.__qaPendingAiRefresh;
     delete window.__qaPendingAiRefresh;
-    return sameDocument;
-  })).toBe(true);
+    if(state?.error)throw state.error;
+    return {refreshed:state?.value===true,sameDocument:state?.document===document};
+  });
+  expect(result).toEqual({refreshed:true,sameDocument:true});
   await expect(page.locator('#aiDraftStatus')).toContainText('Переписка изменилась');release();
   await expect(page.locator('#aiDraftInsert')).not.toBeVisible();await expect(page.locator('#replyText')).toHaveValue('Свой текст');expect(state.aiCalls()).toHaveLength(1);clean(state);
 }));
