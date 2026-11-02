@@ -147,10 +147,14 @@ neither a bank payment time nor a backdated prediction. The private reader expos
 historical progress and includes legitimate historical rows in the same receipt
 and goal-session checks; public operational output contains technical state only.
 
-A unique anytour-value-history-1292 merge marker permits the existing finite
+A unique anytour-value-history-1293 merge marker permits the existing finite
 configuration workflow to launch only this fixed day after all7 current release
 gates and exact-main/server checks. It never creates a goal, enables a disabled
 sender, resets activation/cursors or repeats a completed historical window.
 Remaining authorized dates require subsequent explicit finite windows; they are
 not claimed complete by this first-day operation. Positive natural upload and
 provider receipt must still be observed privately after installation.
+
+Historical progress keeps fixed private reason counters for inspected customer
+text, qualifying signal, invalid packet, absent day signal, current binding/scope
+hold and already-reserved value. Unknown counters remain null in the reader.

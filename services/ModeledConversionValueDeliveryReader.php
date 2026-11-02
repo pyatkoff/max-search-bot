@@ -18,7 +18,7 @@ final class ModeledConversionValueDeliveryReader
         try{
             $mysql=$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
             $len=$mysql?'OCTET_LENGTH(last_receipt_json)':'LENGTH(CAST(last_receipt_json AS BLOB))';
-            $rows=$this->query("SELECT mode,goal_id,goal_intent,activated_at_unix,last_tick_unix,contract_version,history_from_unix,history_until_unix,history_completed_at_unix,history_scanned,history_collected,CASE WHEN ".$len."<=8192 THEN last_receipt_json ELSE NULL END AS receipt_json FROM modeled_conversion_value_export_settings WHERE project_key='anytour' AND counter_id='98615635' LIMIT 1",[]);
+            $rows=$this->query("SELECT mode,goal_id,goal_intent,activated_at_unix,last_tick_unix,contract_version,history_from_unix,history_until_unix,history_completed_at_unix,history_scanned,history_collected,history_stats_json,CASE WHEN ".$len."<=8192 THEN last_receipt_json ELSE NULL END AS receipt_json FROM modeled_conversion_value_export_settings WHERE project_key='anytour' AND counter_id='98615635' LIMIT 1",[]);
             if(!$rows)return $this->unavailable('not_configured');
             $s=$rows[0];
             if(($s['goal_id']??null)!==self::GOAL||($s['contract_version']??null)!==ModeledConversionValueContract::VERSION
@@ -67,6 +67,12 @@ final class ModeledConversionValueDeliveryReader
                 'events_collected'=>is_numeric($s['history_collected']??null)?$this->number($s['history_collected'],false):null,
                 'historical_events_in_ledger_window'=>$this->number($r['historical_events'],false),
                 'not_prospective_forecasts'=>true];
+            $historyReasons=is_string($s['history_stats_json']??null)?json_decode($s['history_stats_json'],true):null;
+            $out['historical_review']['reason_counts']=[];
+            foreach(['customer_text_profiles','eligible_signal_profiles','invalid_packet','no_day_signal','binding_or_scope_held','already_reserved']as$key){
+                $v=is_array($historyReasons)?($historyReasons[$key]??null):null;
+                $out['historical_review']['reason_counts'][$key]=is_int($v)&&$v>=0&&$v<=1000000000?$v:null;
+            }
             $out['interpretation']=['values'=>'owner_assigned_advertising_estimates_not_actual_income',
                 'states_are_disjoint'=>true,'accepted_receipts_include_later_rejected_or_unmatched_rows'=>true,
                 'processed_means_validated_upload_rows_not_verified_visit_linkage'=>true,

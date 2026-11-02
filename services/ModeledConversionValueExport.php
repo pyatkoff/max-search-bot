@@ -196,25 +196,30 @@ final class ModeledConversionValueExport
                 ." FROM modeled_conversion_profile_versions WHERE project_key='anytour' AND id>? AND id<=? AND observed_at_unix>=? AND observed_at_unix<? ORDER BY id LIMIT 40");
             $q->execute([$s['history_cursor'],$s['history_ceiling'],$since,$until]);$rows=$q->fetchAll(PDO::FETCH_ASSOC);
             $after=(string)$s['history_cursor'];$written=0;$scanned=0;$bytes=0;$limited=false;
+            $reasons=json_decode((string)($s['history_stats_json']??'{}'),true);
+            $keys=['customer_text_profiles','eligible_signal_profiles','invalid_packet','no_day_signal','binding_or_scope_held','already_reserved'];
+            $reasons=is_array($reasons)?array_intersect_key($reasons,array_fill_keys($keys,true)):[];
+            foreach($keys as$key)if(!is_int($reasons[$key]??null)||$reasons[$key]<0)$reasons[$key]=0;
             foreach($rows as$r){
                 $size=(int)$r['profile_bytes'];
                 if($size<=131072&&$bytes+$size>2097152){$limited=true;break;}
                 $after=(string)$r['id'];$scanned++;
-                if($size<1||$size>131072)continue;
+                if($size<1||$size>131072){$reasons['invalid_packet']++;continue;}
                 $payload=$p->prepare("SELECT profile_json FROM modeled_conversion_profile_versions WHERE project_key='anytour' AND id=?");
                 $payload->execute([$r['id']]);$json=$payload->fetchColumn();
-                if(!is_string($json)||strlen($json)!==$size)continue;$bytes+=strlen($json);
-                try{$w=json_decode($json,true,64,JSON_THROW_ON_ERROR);}catch(Throwable $ignored){continue;}
-                if(ModeledConversionValueContract::moment($w['profile']['prediction_at']??null)!==(int)$r['observed_at_unix'])continue;
+                if(!is_string($json)||strlen($json)!==$size){$reasons['invalid_packet']++;continue;}$bytes+=strlen($json);
+                try{$w=json_decode($json,true,64,JSON_THROW_ON_ERROR);}catch(Throwable $ignored){$reasons['invalid_packet']++;continue;}
+                if(ModeledConversionValueContract::moment($w['profile']['prediction_at']??null)!==(int)$r['observed_at_unix']){$reasons['invalid_packet']++;continue;}
                 $subject=['project_key'=>'anytour','platform'=>$r['platform'],'customer_key'=>(string)$r['customer_key'],'conversation_id'=>(string)$r['conversation_id']];
+                foreach($w['profile']['observation_input']['evidence']??[]as$input)if(($input['kind']??null)==='customer_message'){$reasons['customer_text_profiles']++;break;}
                 $candidate=ModeledConversionValueContract::historicalCandidate($w,$subject,$since,$until,$now);
-                if(!$candidate)continue;
+                if(!$candidate){$reasons['no_day_signal']++;continue;}$reasons['eligible_signal_profiles']++;
                 $binding=$this->binding($r['conversation_id'],$r['platform']);
                 if(!$binding||(string)$binding['customer_id']!==(string)$r['customer_key']||!$gate($binding['external_chat_id'])
-                    ||!$this->historyScopeAllowed((string)$r['conversation_id'],$r['platform']))continue;
+                    ||!$this->historyScopeAllowed((string)$r['conversation_id'],$r['platform'])){$reasons['binding_or_scope_held']++;continue;}
                 $q=$p->prepare("SELECT COALESCE(SUM(value_rub),0) FROM max_channel_conversion_outbox WHERE project_key='anytour' AND conversation_id=? AND transport_target=? AND value_contract=?");
                 $q->execute([$r['conversation_id'],ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION]);
-                $delta=$candidate['value']-(int)$q->fetchColumn();if($delta<=0)continue;
+                $delta=$candidate['value']-(int)$q->fetchColumn();if($delta<=0){$reasons['already_reserved']++;continue;}
                 $insert=$mysql?'INSERT IGNORE':'INSERT OR IGNORE';
                 $q=$p->prepare($insert." INTO max_channel_conversion_outbox(project_key,conversation_id,external_user_id,counter_id,target,transport_target,event_unix,platform,identity_source_key,value_rub,value_profile_id,value_stage,value_contract,value_origin,value_reviewed_at_unix)"
                     ." VALUES('anytour',?,?,'98615635',?,?,?,?,?,?,?,?,?,'owner_day_review_v1',?)");
@@ -224,8 +229,8 @@ final class ModeledConversionValueExport
                 $written+=$q->rowCount()===1?1:0;
             }
             $done=!$limited&&count($rows)<40;
-            $q=$p->prepare("UPDATE modeled_conversion_value_export_settings SET history_cursor=?,history_scanned=history_scanned+?,history_collected=history_collected+?,history_completed_at_unix=? WHERE project_key='anytour'");
-            $q->execute([$after,$scanned,$written,$done?$now:null]);$p->commit();return $written;
+            $q=$p->prepare("UPDATE modeled_conversion_value_export_settings SET history_cursor=?,history_scanned=history_scanned+?,history_collected=history_collected+?,history_completed_at_unix=?,history_stats_json=? WHERE project_key='anytour'");
+            $q->execute([$after,$scanned,$written,$done?$now:null,json_encode($reasons,JSON_THROW_ON_ERROR)]);$p->commit();return $written;
         }catch(Throwable $error){if($p->inTransaction())$p->rollBack();throw $error;}
     }
     private function historyScopeAllowed(string $conversation,string $platform):bool

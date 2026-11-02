@@ -22,13 +22,13 @@ concurrency:
   cancel-in-progress: false
 jobs:
   configure:
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && (contains(github.event.workflow_run.head_commit.message, '[anytour-value-launch-1288]') || contains(github.event.workflow_run.head_commit.message, '[anytour-value-history-1292]'))))
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && (contains(github.event.workflow_run.head_commit.message, '[anytour-value-launch-1288]') || contains(github.event.workflow_run.head_commit.message, '[anytour-value-history-1293]'))))
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - name: Validate finite operation and current authoritative main
         env:
-          VALUE_OPERATION: ${{ github.event_name == 'workflow_run' && (contains(github.event.workflow_run.head_commit.message, '[anytour-value-history-1292]') && 'launch-history-20261102' || 'launch-v1') || inputs.operation }}
+          VALUE_OPERATION: ${{ github.event_name == 'workflow_run' && (contains(github.event.workflow_run.head_commit.message, '[anytour-value-history-1293]') && 'launch-history-20261102' || 'launch-v1') || inputs.operation }}
           EXPECTED_SHA: ${{ github.event.workflow_run.head_sha || inputs.expected_sha }}
           GH_TOKEN: ${{ github.token }}
           REPO_NAME: ${{ github.repository }}
@@ -46,7 +46,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           EXPECTED_SHA: ${{ github.event.workflow_run.head_sha || inputs.expected_sha }}
           REPO_NAME: ${{ github.repository }}
-          VALUE_OPERATION: ${{ github.event_name == 'workflow_run' && (contains(github.event.workflow_run.head_commit.message, '[anytour-value-history-1292]') && 'launch-history-20261102' || 'launch-v1') || inputs.operation }}
+          VALUE_OPERATION: ${{ github.event_name == 'workflow_run' && (contains(github.event.workflow_run.head_commit.message, '[anytour-value-history-1293]') && 'launch-history-20261102' || 'launch-v1') || inputs.operation }}
         shell: bash
         run: |
           set -euo pipefail
@@ -92,7 +92,7 @@ jobs:
           ssh-keygen -y -f "$value_key_path" >/dev/null
       - name: Execute exact bounded installed operation
         env:
-          VALUE_OPERATION: ${{ github.event_name == 'workflow_run' && (contains(github.event.workflow_run.head_commit.message, '[anytour-value-history-1292]') && 'launch-history-20261102' || 'launch-v1') || inputs.operation }}
+          VALUE_OPERATION: ${{ github.event_name == 'workflow_run' && (contains(github.event.workflow_run.head_commit.message, '[anytour-value-history-1293]') && 'launch-history-20261102' || 'launch-v1') || inputs.operation }}
           EXPECTED_SHA: ${{ github.event.workflow_run.head_sha || inputs.expected_sha }}
           VALUE_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           VALUE_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
