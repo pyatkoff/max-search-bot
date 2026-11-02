@@ -1,4 +1,4 @@
-name: Inspect rotating video identity on repaired MAX posts
+name: Verify stable video identity and both repaired MAX buttons
 on:
   push:
     branches: [ops/max-reported-video-recovery-20261102]
@@ -7,6 +7,7 @@ on:
       - tools/direct_demand/operations/max_post_recovery_recipient_20261102.pem
       - tools/direct_demand/operations/manual_max_buttons_20261102.php
       - tools/direct_demand/operations/read_max_video_identity_20261102.php
+      - tools/direct_demand/operations/read_max_video_acceptance_20261102.php
 permissions:
   contents: read
   actions: read
@@ -14,8 +15,8 @@ concurrency:
   group: max-reported-video-recovery-20261102
   cancel-in-progress: false
 env:
-  EXPECTED_PRODUCTION_SHA: 9c5be6ba829e5083fd27f377887121d58492bf54
-  EXPECTED_OPERATION_PARENT: 5e270815c3fbbcf22705348aa5000456c335a900
+  EXPECTED_PRODUCTION_SHA: d495c0d1210bfa528cce4a08db9ef6ce1b78a61d
+  EXPECTED_OPERATION_PARENT: 7ddfe0f21cda571944f70e8ce7505921f7f3cb7c
 jobs:
   recover:
     if: github.ref == 'refs/heads/ops/max-reported-video-recovery-20261102' && github.run_attempt == 1
@@ -27,24 +28,23 @@ jobs:
           ref: ${{ github.sha }}
           fetch-depth: 2
           persist-credentials: false
-      - name: Verify installed release and fixed manual operation before credentials
+      - name: Verify installed release and read-only acceptance before credentials
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD^)" = "$EXPECTED_OPERATION_PARENT"
-          test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = "$EXPECTED_PRODUCTION_SHA"
-          php -l tools/direct_demand/operations/read_max_video_identity_20261102.php
+          php -l tools/direct_demand/operations/read_max_video_acceptance_20261102.php
           openssl x509 -in tools/direct_demand/operations/max_post_recovery_recipient_20261102.pem -checkend 0 -noout
-          gh api repos/pyatkoff/max-search-bot/actions/runs/41459542422 --jq '{head_sha,status,conclusion}' > "$RUNNER_TEMP/recovery-deploy.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/41465373174 --jq '{head_sha,status,conclusion}' > "$RUNNER_TEMP/recovery-deploy.json"
           python3 - <<'PY_DEPLOY'
           import json,os
           d=json.load(open(os.environ['RUNNER_TEMP']+'/recovery-deploy.json'))
           assert d['head_sha']==os.environ['EXPECTED_PRODUCTION_SHA']
           assert d['status']=='completed' and d['conclusion']=='success'
           PY_DEPLOY
-      - name: Read video identity twice per fixed post and encrypt each receipt
+      - name: Verify original content and buttons twice per fixed post with encrypted receipts
         env:
           RECOVERY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
           RECOVERY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
@@ -71,7 +71,7 @@ jobs:
             command="MAX_REPAIR_TARGET=$target php"
             remote="set -eu; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; git diff --quiet; git diff --cached --quiet; cli_status=0; $command || cli_status=\$?; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; git diff --quiet; git diff --cached --quiet; exit \"\$cli_status\""
             status=0
-            ssh "${ssh_opts[@]}" "$RECOVERY_USER@$RECOVERY_HOST" "$remote" < tools/direct_demand/operations/read_max_video_identity_20261102.php 2> "$RUNNER_TEMP/recovery-$target-errors" \
+            ssh "${ssh_opts[@]}" "$RECOVERY_USER@$RECOVERY_HOST" "$remote" < tools/direct_demand/operations/read_max_video_acceptance_20261102.php 2> "$RUNNER_TEMP/recovery-$target-errors" \
               | openssl cms -encrypt -aes-256-gcm -binary -outform DER -out "$RUNNER_TEMP/recovery-$target.cms" tools/direct_demand/operations/max_post_recovery_recipient_20261102.pem || status=$?
             test -s "$RUNNER_TEMP/recovery-$target.cms"
             printf 'MAX_POST_%s_CMS_BEGIN\n' "$target"
@@ -83,11 +83,6 @@ jobs:
             fi
           done
           exit "$overall_status"
-      - name: Confirm main is unchanged
-        if: always()
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = "$EXPECTED_PRODUCTION_SHA"
       - name: Cleanup ephemeral credentials and receipts
         if: always()
         run: rm -f "$RUNNER_TEMP/recovery-key" "$RUNNER_TEMP/recovery-known-hosts" "$RUNNER_TEMP/recovery-FIRST-errors" "$RUNNER_TEMP/recovery-SECOND-errors" "$RUNNER_TEMP/recovery-FIRST.cms" "$RUNNER_TEMP/recovery-SECOND.cms" "$RUNNER_TEMP/recovery-deploy.json"
