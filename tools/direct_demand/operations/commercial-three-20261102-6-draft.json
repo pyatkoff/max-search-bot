@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-three-20261102-6-v1",
-  "state": "AWAITING_CANVA_LINK_STORAGE_PERMISSION_NOT_SENT",
+  "state": "CANVA_LINK_TRANSFER_AND_HISTORY_APPROVED_NATIVE_INSPECTION_PENDING_NOT_SENT",
   "goal": "Prepare the next three complete hotel posts from retained Egypt material, then publish once per channel after all media and identity checks.",
   "boundaries": "Candidates Mamlouk Palace, Garden Beach and White Hills. This operation is read-only catalog/registry discovery; no client data, messages, providers or prices.",
   "criteria": [
@@ -23,7 +23,7 @@
     "https://www.sunrise-resorts.com/garden-beach-resort",
     "https://www.sunrise-resorts.com/white-hills-resort"
   ],
-  "next": "Await the existing explicit question in this chat about temporary Canva links for Mamlouk482, Garden476 and WhiteHills81173. Then inspect only these native PNGs, freeze public cover bytes and complete the final manifest before any send.",
+  "next": "Inspect exact native cover bytes and layout, freeze permitted public PNGs, then publish through existing bot route after current release and source gates.",
   "rows": [
     {
       "logical_id": "commercial-mamlouk-palace-482-v1",
@@ -99,5 +99,5 @@
     "provider_calls": 0,
     "existing_hotel_publication_matches_in_both_channels": 0
   },
-  "permission_scope": "Prior native Canva URL persistence permission covered only1554/228/4101. No signed URL for the new packet has been exported into GitHub."
+  "permission_scope": "Owner explicitly approved Canva cover URLs in existing Actions and audit branch/history for this and subsequent hotel covers under this AnyTour publishing task. Does not authorize unrelated private data exports."
 }
