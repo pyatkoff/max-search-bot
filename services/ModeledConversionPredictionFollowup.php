@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__.'/ModeledConversionSemanticPrediction.php';
 
 /**
  * Pure diagnostic comparison of two immutable, admitted prediction blocks.
@@ -187,12 +188,10 @@ final class ModeledConversionPredictionFollowup
                 ||isset($seen[$key]))return false;
             $seen[$key]=true;
         }
-        // Canonicalize a copy: MySQL JSON may reorder object keys. Lists retain
-        // their order; original saved fields and the original array are untouched.
-        $copy=$value;unset($copy['prediction_digest']);
-        $json=json_encode(self::canonical($copy),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+        // Bound the unchanged saved block; use the producer's shared digest verifier
+        // across native key order and CLI/web numeric formatting.
         $whole=json_encode(self::canonical($value),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
-        return strlen($whole)<=16384&&hash_equals($value['prediction_digest'],hash('sha256',$json));
+        return strlen($whole)<=16384&&ModeledConversionSemanticPrediction::digestMatches($value);
     }
 
     private static function canonical(array $value):array

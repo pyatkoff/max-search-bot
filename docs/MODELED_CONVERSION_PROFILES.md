@@ -841,3 +841,36 @@ canonical receipt, hides native tables, and verifies the same immutable packet
 through the real private reader. Assignment preserves its early digest; actual
 payment wording excludes a new prediction without becoming a future payment if
 it predates the freeze. No source messages, queues, priors or export rules change.
+
+
+### Stable numeric integrity across the writer and private reader
+
+The model digest now uses sorted object keys and an explicit locale-independent
+17-significant-digit spelling for finite floats. It is independent of the
+producer/consumer `serialize_precision` setting and changes no runtime ini or
+configuration. Numbers remain numeric in the saved profile; values are neither
+rounded for verification nor overwritten. All digest consumers, including the
+pure registry and subsequent-payment comparison, use the same verifier.
+
+The PHP [JSON manual](https://www.php.net/manual/en/function.json-encode.php)
+documents the runtime float-format dependency; the explicit `h` formatting is
+documented by [sprintf](https://www.php.net/manual/en/function.sprintf.php).
+The model source hash identifies the revised codec. For an earlier model hash,
+or an existing minimal legacy comparison capsule without that field, the verifier
+also recognizes the former six-decimal V1 JSON spelling. This fallback permits
+only the prior bounded finite six-decimal numeric domain; current-model blocks
+cannot downgrade to it. Original frozen JSON/digests are never rewritten. Existing
+scope, field, clock, role and payment checks still apply; current readback still
+selects only the current model namespace.
+
+Retained contrary outcome observations survive source barriers. A model with any
+such retained outcome cannot emit `predicted` with nonempty outcome observations,
+which its existing registry contract already rejects. It emits a known-outcome
+exclusion without inventing a numerical zero or a future payment. This does not
+resolve trip identity or convert a conversation statement into bank settlement.
+
+Regression covers the reproduced legacy precision14/17 mismatch, all9 writer /
+reader combinations of-1/14/17 through SQLite/native JSON storage, unchanged
+rows/settings, legacy frozen digests, current-code downgrade rejection and
+sub-six-decimal tampering. No priors, factual Python, native transcript, queues,
+calibration or monetary/export rule changes.
