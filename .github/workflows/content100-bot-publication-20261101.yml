@@ -1,4 +1,4 @@
-name: Simplify latest three hotel captions without dash punctuation
+name: Apply plain-language correction to nine early hotels
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -38,12 +38,12 @@ jobs:
           umask 077
           python3 - <<'PY'
           import pathlib,hashlib,os
-          script=pathlib.Path('tools/direct_demand/operations/update-human-copy-three.php').read_text()
-          assert hashlib.sha256(script.encode()).hexdigest()=='c6650553049480d04744c47ea887739bdd4eb420d94603f201aea336e7861704'
+          script=pathlib.Path('tools/direct_demand/operations/update-human-copy-early-nine.php').read_text()
+          assert hashlib.sha256(script.encode()).hexdigest()=='6507fa9cb6a10bf63d82f30fd99a2b48bca01e51e5564b3aa2a9fed468907159'
           prefix="<?php\ndeclare(strict_types=1);\n"
           assert script.startswith(prefix)
-          manifest=pathlib.Path('tools/direct_demand/operations/commercial-human-copy-three-manifest.json').read_bytes()
-          assert hashlib.sha256(manifest).hexdigest()=='12895ba6ece377f9fc545c57764e12c51d3d84178d1a0cce9f660942d067912b'
+          manifest=pathlib.Path('tools/direct_demand/operations/commercial-human-copy-early-nine-manifest.json').read_bytes()
+          assert hashlib.sha256(manifest).hexdigest()=='6f7338695126d04d77cba5517bf973738c428f1588938ae796dc6b44ac0537b4'
           import base64
           header=prefix+"const EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst MANIFEST_BASE64='"+base64.b64encode(manifest).decode()+"';\n"
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.php').write_text(header+script[len(prefix):])
@@ -101,11 +101,11 @@ jobs:
           lines=pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.json').read_text().splitlines()
           d=json.loads(lines[-1])
           print(json.dumps(d,ensure_ascii=False,sort_keys=True))
-          assert d['operation']=='commercial-human-copy-three-20261102-v1' and d['mode']=='update_existing_three_human_copy'
-          assert d['ok'] is True and len(d['posts'])==6
-          assert d['new_posts_created']==0 and d['commercial_text_updates']==6
+          assert d['operation']=='commercial-human-copy-early-nine-20261102-v1' and d['mode']=='update_existing_early_nine_human_copy'
+          assert d['ok'] is True and len(d['posts'])==18
+          assert d['new_posts_created']==0 and d['commercial_text_updates']==18
           assert d['configuration_write_attempts']==0 and d['button_only_edit_attempts']==0
-          assert len({(p['platform'],p['logical_id']) for p in d['posts']})==6
+          assert len({(p['platform'],p['logical_id']) for p in d['posts']})==18
           assert all(p['body_photo_button_verified'] and p['existing_message_reused'] and p['button_text']=='✈️ Узнать стоимость тура' for p in d['posts'])
           PY
           test "${probe_status:-0}" = 0
@@ -113,7 +113,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-human-copy-three-update
+          name: commercial-human-copy-early-nine-update
           path: ${{ runner.temp }}/channel-preflight.json
           retention-days: 14
           if-no-files-found: warn
