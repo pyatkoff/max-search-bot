@@ -109,7 +109,7 @@
     {
       "id": "G4",
       "status": "pending",
-      "requirement": "New server-only repository/store/cron/provider/review/atomic acceptance implementation with no native binding dependency"
+      "requirement": "Dormant server core, scoped current-base reader, quarantine, existing-cron hook and atomic acceptance prepared. Real private provider/fetch adapters and complete retained-input staging remain prerequisites"
     },
     {
       "id": "G5",
@@ -132,5 +132,13 @@
       "requirement": "Explicit owner authorization to create/activate the new campaign and run one live canary before scaling"
     }
   ],
-  "ready_for_launch": false
+  "ready_for_launch": false,
+  "implementation": {
+    "dormant_core_prepared": true,
+    "current_accepted_reader": true,
+    "mandatory_unaccepted_quarantine": true,
+    "existing_cron_disabled_hook": true,
+    "real_private_provider_configured": false,
+    "live_input_import_verified": false
+  }
 }

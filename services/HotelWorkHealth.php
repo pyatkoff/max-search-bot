@@ -6,7 +6,7 @@ require_once __DIR__.'/DiagnosticLogger.php';
 /** Bounded, private operational checkpoint; never contains jobs, payloads or credentials. */
 final class HotelWorkHealth
 {
-    private const STAGES = ['bootstrap','subscription','delivery','complete'];
+    private const STAGES = ['bootstrap','subscription','delivery','server_cycle','complete'];
     private const COUNTS = ['subscriptions','accepted','retried','stopped','unchanged'];
 
     public static function record(string $state, string $stage, array $counts = [], string $trigger = 'manual'): void

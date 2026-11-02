@@ -40,6 +40,8 @@ try {
     $v=new HotelWorkCronVerifier(1000);$rejected=false;
     try {$v->observe($sample(1020,'failed'),1025);} catch(RuntimeException $e) {$rejected=$e->getMessage()==='hotel_cron_worker_failed';}
     hotelHealthCheck('failed fresh worker fails scheduled proof',$rejected);
+    HotelWorkHealth::record('ok','server_cycle');
+    hotelHealthCheck('server cycle stage is a bounded observable outcome',HotelWorkHealth::snapshot()['stage']==='server_cycle');
     $raw=file_get_contents($file);HotelWorkHealth::record('PRIVATE','PRIVATE');
     hotelHealthCheck('unknown categories rejected',file_get_contents($file)===$raw);
     $injected=json_decode($raw,true)+['callback_url'=>'PRIVATE CALLBACK'];$injected['counts']['queue_id']='PRIVATE';
@@ -54,7 +56,7 @@ try {
     // Execute the real CLI in a synthetic application; no production bootstrap.
     $app=$tmp.'/app';mkdir($app,0700);mkdir($app.'/tools',0700);mkdir($app.'/services',0700);
     copy(dirname(__DIR__).'/tools/hotel_work.php',$app.'/tools/hotel_work.php');
-    foreach (['HotelWorkHealth','DiagnosticLogger'] as $name) copy(dirname(__DIR__).'/services/'.$name.'.php',$app.'/services/'.$name.'.php');
+    foreach (['HotelWorkHealth','DiagnosticLogger','HotelServerCronRuntime','HotelServerCycle','HotelServerInputs','HotelServerLane','HotelServerProvider'] as $name) copy(dirname(__DIR__).'/services/'.$name.'.php',$app.'/services/'.$name.'.php');
     foreach (['ProjectAccessService','HotelWorkEventService'] as $name) file_put_contents($app.'/services/'.$name.'.php','<?php');
     file_put_contents($app.'/config.php', <<<'PHP'
 <?php
