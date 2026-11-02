@@ -1,0 +1,8 @@
+{
+  "operation": "commercial-stock-monitor-20261102-14-v1",
+  "state": "PREPARED_NOT_ROLLED_OUT",
+  "goal": "Add twelve proven new stock native identities to the existing monitor.",
+  "boundaries": "Only existing helper and focused smoke, separate immutable cohort. No search dispatch, budgets, locks, schedules, runtime owners or current observations changed.",
+  "criteria": "577 input IDs, byte-identical all older target groups, pending stock29 search resumed, missing new stock cannot block or credit older cohorts.",
+  "risks": "Catalog IDs are native, not legacy AnyTour IDs. Settings are not observations or publication-ready prices."
+}
