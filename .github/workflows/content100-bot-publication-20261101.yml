@@ -1,4 +1,4 @@
-name: Read the ten selected official hotel media sources
+name: Inspect ten authorized commercial hotel covers
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -12,21 +12,29 @@ jobs:
   inspect:
     runs-on: ubuntu-latest
     timeout-minutes: 6
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        group: [0, 1, 2, 3]
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Read only the finite official pages for the next hotel batch
+      - name: Read only this finite group of approved native PNGs
+        env:
+          COVER_GROUP: ${{ matrix.group }}
         shell: bash
         run: |
           set -euo pipefail
-          python3 tools/direct_demand/operations/inspect-hotel-media-20261102-3.py
-      - name: Retain public promotional cover observations
+          python3 tools/direct_demand/operations/inspect-canva-covers-20261102-3.py
+      - name: Retain the public cover bytes and observation
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-batch9-public-media
+          name: commercial-batch9-native-covers-${{ matrix.group }}
           path: |
-            public-media-sources.json
+            native-cover-receipt.json
+            covers/
           retention-days: 14

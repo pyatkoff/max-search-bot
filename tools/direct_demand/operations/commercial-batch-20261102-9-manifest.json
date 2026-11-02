@@ -1,0 +1,186 @@
+{
+  "operation": "commercial-hotel-batch-20261102-9-v1",
+  "state": "NATIVE_COVERS_PENDING",
+  "goal": "Prepare up to 25 exact unpublished hotels, then publish up to 10 ready full hotel posts in both authorized channels through the existing bounded publisher.",
+  "boundaries": "No customers, advertisement campaigns, old publication replay, video recovery, owner hotel import or new runtime service. This phase only reads the selected public catalogue/registry and prepares existing templates.",
+  "criteria": [
+    "Exact unique active catalogue objects and absent target-channel publications.",
+    "Ready full human captions and authentic accepted branded covers for each selected hotel.",
+    "A live batch is accepted only after 2*N actual photo/body/button/source receipts."
+  ],
+  "risks": [
+    "Main9c5be changed four pinned publishing service blobs and the incoming adapter for MAX videos. Image/Telegram paths are unchanged in the reviewed diff; update only exact reviewed service pins and preserve original runtime guards.",
+    "The first TLS attempt stopped before installation of9c5be; after completed deploy, rerun only that failed gate if no existing rerun is active.",
+    "Some new resort photos may be renders or future opening material; omit unready hotels rather than inventing readiness or holding the other hotels."
+  ],
+  "baseline_logical_materials": 30,
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "hotel_id": 77914,
+      "key": "tucana",
+      "hotel": "SUNRISE Tucana Resort",
+      "logical_id": "commercial-tucana-77914-v1",
+      "aliases": [
+        "SUNRISE Tucana Resort",
+        "SUNRISE TUCANA RESORT"
+      ],
+      "text": "✈️ Туры в SUNRISE Tucana Resort с перелётом\n📍 Египет, Макади Бей\n\nОтель на берегу моря в бухте Макади Бей.\n\n🏖 Собственный пляж.\n🍽 Рестораны с обслуживанием по меню и кухнями разных стран.\n🧸 Детский клуб для детей от 3 до 12 лет.\n🏊 На территории три бассейна.\n\nУслуги Posh Club доступны только гостям отдельных категорий сьютов.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "sources": [
+        "https://www.sunrise-resorts.com/tucana-resort",
+        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/pressroom/18_tu_factsheet_april_2026.pdf"
+      ],
+      "media_state": "COVER_NOT_YET_PREPARED",
+      "text_sha256": "d7ff46e3319dcd1c3b5797f84e72a581334395c0687e034024799a495c34cfbc"
+    },
+    {
+      "hotel_id": 237,
+      "key": "alma-bay",
+      "hotel": "SUNRISE Alma Bay Resort",
+      "logical_id": "commercial-alma-bay-237-v1",
+      "aliases": [
+        "SUNRISE Alma Bay Resort",
+        "SUNRISE ALMA BAY RESORT"
+      ],
+      "text": "✈️ Туры в SUNRISE Alma Bay Resort с перелётом\n📍 Египет, Хургада\n\nСемейный отель со своим пляжем и длинным пирсом.\n\n💦 Есть аквапарк и три бассейна.\n🧸 Детский клуб для детей от 3 до 12 лет.\n🍽 На территории три ресторана.\n\nСпа и массаж оплачиваются отдельно.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "sources": [
+        "https://www.sunrise-resorts.com/alma-bay-resort",
+        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/pressroom/16_al_factsheet_febraury_2026_1.pdf"
+      ],
+      "media_state": "COVER_NOT_YET_PREPARED",
+      "text_sha256": "9d526ac08bdb9a6b753eadf3a64ee07f4810fbf08853aa917dd58936dab48b64"
+    },
+    {
+      "hotel_id": 32575,
+      "key": "alora",
+      "hotel": "SUNRISE Alora Aqua Park Resort",
+      "logical_id": "commercial-alora-32575-v1",
+      "aliases": [
+        "SUNRISE Alora Aqua Park Resort",
+        "SUNRISE ALORA AQUA PARK RESORT"
+      ],
+      "text": "✈️ Туры в SUNRISE Alora Aqua Park Resort с перелётом\n📍 Египет, Хургада\n\nПляжный отель с большим аквапарком.\n\n💦 В аквапарке 16 горок.\n🏊 На территории есть семейные бассейны и отдельные бассейны для взрослых.\n🧸 Для детей работает клуб.\n🍽 Есть пять ресторанов с обслуживанием по меню.\n\nНа большие горки пускают детей ростом от 120 см.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "sources": [
+        "https://www.sunrise-resorts.com/alora-aqua-park-resort",
+        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/pressroom/110_alo_factsheet_november_2025.pdf"
+      ],
+      "media_state": "COVER_NOT_YET_PREPARED",
+      "text_sha256": "d3944a1330dff2c76e153ae64acf6a8b7c38d6e6530d157e28b36795f2efe830"
+    },
+    {
+      "hotel_id": 112914,
+      "key": "anjum",
+      "hotel": "SUNRISE Anjum Resort",
+      "logical_id": "commercial-anjum-112914-v1",
+      "aliases": [
+        "SUNRISE Anjum Resort",
+        "SUNRISE ANJUM RESORT"
+      ],
+      "text": "✈️ Туры в SUNRISE Anjum Resort с перелётом\n📍 Египет, Марса Алам\n\nОтель на берегу Красного моря в Рас Дори.\n\n🏖 Собственный пляж.\n🏊 На территории пять бассейнов.\n🧸 Для детей есть клуб.\n🍽 Работают три ресторана.\n\nСпа и массаж оплачиваются отдельно.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "sources": [
+        "https://www.sunrise-resorts.com/anjum-resort",
+        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/pressroom/81_anjum_factsheet_july_2025.pdf"
+      ],
+      "media_state": "COVER_NOT_YET_PREPARED",
+      "text_sha256": "8812d350f00673b7dd520bed006bd690b39b979de19dc43d7457c83e7d3fb80f"
+    },
+    {
+      "hotel_id": 64895,
+      "key": "meraki",
+      "hotel": "Meraki Resort Hurghada",
+      "logical_id": "commercial-meraki-64895-v1",
+      "aliases": [
+        "Meraki Resort Hurghada",
+        "MERAKI RESORT ADULTS ONLY 16+"
+      ],
+      "text": "✈️ Туры в Meraki Resort Hurghada с перелётом\n📍 Египет, Хургада\n\nПляжный отель с музыкой, танцами и вечерними вечеринками.\n\n🏖 Длинный пляж на Красном море.\n🎶 Тематические вечеринки и клубная программа.\n🍽 Есть греческий и египетский рестораны.\n🏊 Бассейн Euphoria на территории отеля.\n\nОтель принимает гостей от 16 лет.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "sources": [
+        "https://meraki-resort.com/hrg/"
+      ],
+      "media_state": "COVER_NOT_YET_PREPARED",
+      "text_sha256": "d40fdf5caa66510d698dd9ce51955760fa2d8ad03c1691162e75dc887bce7580"
+    },
+    {
+      "hotel_id": 262,
+      "key": "jaz-aquamarine",
+      "hotel": "JAZ Aquamarine",
+      "logical_id": "commercial-jaz-aquamarine-262-v1",
+      "aliases": [
+        "JAZ Aquamarine",
+        "JAZ AQUAMARINE RESORT"
+      ],
+      "text": "✈️ Туры в JAZ Aquamarine с перелётом\n📍 Египет, Хургада\n\nБольшой семейный отель у моря в южной части Хургады.\n\n💦 Аквапарк с горками для взрослых и детей.\n🧸 Детский клуб.\n🎭 Вечерние шоу в театре Fantasia и живая музыка.\n🏖 Песчаный пляж.\n\nДайвинг и водные развлечения оплачиваются отдельно.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "sources": [
+        "https://www.jazhotels.com/hoteldetail/25/overview",
+        "https://www.jaz-resorts.net/uploads/hotels/factsheets/en/jaz-aquamarine.pdf"
+      ],
+      "media_state": "COVER_NOT_YET_PREPARED",
+      "text_sha256": "7a36a4e9b0a00857bee8a0fba22680c64b651936990f86643fbfa17cd36d8fbe"
+    },
+    {
+      "hotel_id": 12117,
+      "key": "jaz-bluemarine",
+      "hotel": "JAZ Bluemarine",
+      "logical_id": "commercial-jaz-bluemarine-12117-v1",
+      "aliases": [
+        "JAZ Bluemarine",
+        "JAZ BLUEMARINE"
+      ],
+      "text": "✈️ Туры в JAZ Bluemarine с перелётом\n📍 Египет, Хургада\n\nСемейный отель с просторными номерами.\n\n🏊 Три бассейна.\n💦 Есть аквапарк и детский бассейн.\n🧸 Детский клуб Jazy.\n🍽 Основной ресторан Zela’a работает с самообслуживанием.\n\nНа пляже мелководье. Рестораны Amaya, Corallo и Sofra оплачиваются отдельно.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "sources": [
+        "https://partner.jazhotels.com/hotel/26",
+        "https://partner.jazhotels.com/Images/uploads/gallery/Downloads/JazBluemarineResort/JAZ_Bluemarine_Factsheet_11052026.pdf"
+      ],
+      "media_state": "COVER_NOT_YET_PREPARED",
+      "text_sha256": "7d40d1ccba5226716e2aef9f5ac4aa19d3d1d403ca20a0eb78447c1a5ef3c16a"
+    },
+    {
+      "hotel_id": 12119,
+      "key": "steigenberger-aldau",
+      "hotel": "Steigenberger ALDAU Beach",
+      "logical_id": "commercial-steigenberger-aldau-12119-v1",
+      "aliases": [
+        "Steigenberger ALDAU Beach",
+        "STEIGENBERGER AL DAU BEACH"
+      ],
+      "text": "✈️ Туры в Steigenberger ALDAU Beach с перелётом\n📍 Египет, Хургада\n\nОтель прямо на берегу Красного моря, с садами между корпусами.\n\n🛏 После обновления в отеле только сьюты.\n🌊 Большинство номеров с видом на море.\n♿ Есть оборудованные номера для гостей с ограниченной подвижностью.\n🏖 К пляжу ведут пандусы.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "sources": [
+        "https://hrewards.com/en/steigenberger-aldau-beach-hotel-hurghada"
+      ],
+      "media_state": "COVER_NOT_YET_PREPARED",
+      "text_sha256": "880a8635e7be7d72f3483be45c7152be867c640b6f9e576847b6ef51d277b9c7"
+    },
+    {
+      "hotel_id": 26044,
+      "key": "steigenberger-aqua-magic",
+      "hotel": "Steigenberger Aqua Magic",
+      "logical_id": "commercial-steigenberger-aqua-magic-26044-v1",
+      "aliases": [
+        "Steigenberger Aqua Magic",
+        "STEIGENBERGER AQUA MAGIC"
+      ],
+      "text": "✈️ Туры в Steigenberger Aqua Magic с перелётом\n📍 Египет, Хургада\n\nСемейный отель с аквапарком на прогулочной улице Хургады.\n\n💦 Водные горки и ленивая река.\n🍽 Пять ресторанов.\n🧸 Детские клубы и игровая площадка.\n\nПляж находится за променадом, у соседнего Steigenberger ALDAU Beach.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "sources": [
+        "https://hrewards.com/en/steigenberger-aqua-magic-hurghada"
+      ],
+      "media_state": "COVER_NOT_YET_PREPARED",
+      "text_sha256": "6386c7c9c2630924e90f9044c1196150efdffda4404c3218467060899b800902"
+    },
+    {
+      "hotel_id": 66150,
+      "key": "steigenberger-pure",
+      "hotel": "Steigenberger Pure Lifestyle",
+      "logical_id": "commercial-steigenberger-pure-66150-v1",
+      "aliases": [
+        "Steigenberger Pure Lifestyle",
+        "STEIGENBERGER PURE LIFE STYLE ADULTS ONLY 16+"
+      ],
+      "text": "✈️ Туры в Steigenberger Pure Lifestyle с перелётом\n📍 Египет, Хургада\n\nОтель в белых тонах с музыкой и вечеринками.\n\n🛁 Есть сьюты с джакузи и сьюты с выходом к бассейну.\n🎶 Диджеи, живая музыка и вечеринки у бассейна.\n🌴 На территории есть открытые бассейны.\n\nОтель принимает гостей от 16 лет.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "sources": [
+        "https://hrewards.com/en/steigenberger-pure-lifestyle-hurghada"
+      ],
+      "media_state": "COVER_NOT_YET_PREPARED",
+      "text_sha256": "5f7bf2a4fb65beff8d723b8ba8b21743548ddaa12c56658db43ec070885a0291"
+    }
+  ]
+}
