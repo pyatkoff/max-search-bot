@@ -5,7 +5,7 @@ from urllib.parse import urlsplit
 
 MAX_BATCH=10
 TEMPLATE_PATH='tools/direct_demand/operations/commercial-batch-template-20261102.php'
-TEMPLATE_SHA='d7a23db22f99f37d59496a043b85567e24601eac4e6bb31590c6d2610408454d'
+TEMPLATE_SHA='34228db195c0dd65da65ab002756c4df77970da2124f9152465fcedacad3f53f'
 TEMPLATE_OPERATION='commercial-hotel-three-20261102-8-v1'
 PREFIX="<?php\ndeclare(strict_types=1);\n"
 COUNT_ANCHOR="count($payload['rows']??[])===3"

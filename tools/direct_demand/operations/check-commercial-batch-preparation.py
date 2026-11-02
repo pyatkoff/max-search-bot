@@ -15,7 +15,7 @@ def fixture(n):
 
 def approved(m):
  raw=(json.dumps(m,ensure_ascii=False)+'\n').encode()
- return raw,{'schema_version':1,'operation':m['operation'],'expected_installed_sha':'9c5be6ba829e5083fd27f377887121d58492bf54','hotel_ids':[r['hotel_id'] for r in m['rows']],'manifest_sha256':hashlib.sha256(raw).hexdigest()}
+ return raw,{'schema_version':1,'operation':m['operation'],'expected_installed_sha':'150783297f86d3a5325a346cd07a43921ca71c00','hotel_ids':[r['hotel_id'] for r in m['rows']],'manifest_sha256':hashlib.sha256(raw).hexdigest()}
 
 class Checks(unittest.TestCase):
  def accepted(self,n):
