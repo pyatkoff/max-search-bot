@@ -1,0 +1,8 @@
+{
+  "operation": "commercial-stock-monitor-20261102-15-v1",
+  "state": "PREPARED_NOT_ROLLED_OUT",
+  "goal": "Include nine missing proven native stock IDs in the existing price collector;12114 is already in the original owner roster.",
+  "boundaries": "Only existing helper and focused smoke, separate immutable cohort. No dispatch, schedule, budget, lock, transport, observed prices or channel changes.",
+  "criteria": "586 total monitor IDs; old492/15/29/29/12 targets byte-identical; stock12 search resumes; missing new stock cannot credit or block older input.",
+  "risks": "Monitor inclusion is not supplier availability, a full-price verification or publication acceptance. Fanara native12107 covers Resort & Residence."
+}
