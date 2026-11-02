@@ -27,6 +27,7 @@ final class ModeledConversionSemanticPrediction
     private ?array $anchorEvidence=null;
     private int $customerTurns=0;
     private int $meaningfulTurns=0;
+    private ?int $lastMeaningfulAt=null;
     private array $positives=[];
     private array $criteria=[];
     private array $evidence=[];
@@ -119,7 +120,7 @@ final class ModeledConversionSemanticPrediction
                 $this->anchor=$ref;$this->anchorVersion=$sourceVersion;
                 $this->anchorEvidence=['feature'=>'current_request_anchor',...$meta];
             }
-            $this->meaningfulTurns++;
+            $this->meaningfulTurns++;$this->lastMeaningfulAt=$occurred;
             foreach($goals as$goal=>$yes){$this->positives[$goal]=true;$this->evidence($goal,$meta);}
             foreach($families as$family){$this->criteria[$family]=true;$this->evidence('criteria_'.$family,$meta);}
             if($comp){$this->comparison=true;$this->evidence('explicit_comparison',$meta);}
@@ -145,12 +146,19 @@ final class ModeledConversionSemanticPrediction
     public function barrier():void
     {
         $this->anchor=null;$this->anchorVersion=null;$this->anchorEvidence=null;
-        $this->customerTurns=0;$this->meaningfulTurns=0;$this->positives=[];$this->criteria=[];
+        $this->customerTurns=0;$this->meaningfulTurns=0;$this->lastMeaningfulAt=null;$this->positives=[];$this->criteria=[];
         $this->evidence=[];$this->messages=[];$this->currentOutcome=false;
         $this->urgency=false;$this->longRange=false;$this->deferred=false;$this->declined=false;
         $this->comparison=false;$this->modification=false;$this->priceAlternative=false;
         $this->barriers=min(1000000,$this->barriers+1);
         // Known operational outcomes are a conservative global exclusion, never bank truth.
+    }
+
+    /** A verified bot reply may preserve, never establish or refresh, recent customer meaning. */
+    public function canBridgeServiceReply(int $occurred):bool
+    {
+        return $this->anchor!==null&&$this->lastMeaningfulAt!==null
+            &&$occurred>=$this->lastMeaningfulAt&&$occurred-$this->lastMeaningfulAt<=86400;
     }
 
     public function knownOperationalOutcome(string $ref,int $occurred,int $available,int $sourceVersion):void

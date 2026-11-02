@@ -6,10 +6,11 @@ require_once __DIR__.'/ModeledConversionValueRegistry.php';
 /** Launch readback of current V1 derived blocks only. Never reads a transcript or runs processing. */
 final class ModeledConversionForecastStatusReader
 {
-    public const VERSION='saved_semantic_prediction_status_v1';
+    public const VERSION='saved_semantic_prediction_status_v1_1';
     public const METADATA_LIMIT=20;
     public const PROFILE_LIMIT=4;
     public const PROFILE_BYTES=49152;
+    private const RELEASE_RESERVE=12288;
     private bool $mysql;
     private int $copied=0;
     public function __construct(private PDO $pdo,private $authorize,private ModeledConversionStatusBudget $budget)
@@ -49,7 +50,7 @@ final class ModeledConversionForecastStatusReader
                 $size=(int)$row['packet_bytes'];
                 if($size<2||$size>self::PROFILE_BYTES){$out['window']['oversize_rows']++;continue;}
                 if($out['window']['profile_rows_read']>=self::PROFILE_LIMIT){$out['window']['row_limit_omissions']++;continue;}
-                if($this->copied+$size>self::PROFILE_BYTES||$size*2+2048>$this->budget->remainingBytes()-8192){
+                if($this->copied+$size>self::PROFILE_BYTES||$size*2+2048>$this->budget->remainingBytes()-self::RELEASE_RESERVE){
                     $out['window']['byte_limit_omissions']++;continue;
                 }
                 $columns=[];
@@ -83,6 +84,10 @@ final class ModeledConversionForecastStatusReader
                 $fields=ModeledConversionValueRegistry::predictionFields($p);
                 if($fields['semantic_prediction']['availability']!=='available'){$out['window']['invalid_blocks']++;continue;}
                 $s=$fields['semantic_prediction']['value'];
+                if(!$this->inputCoverage($out['input_coverage'],$p['input_summary']??null,$s)){
+                    $out['window']['invalid_blocks']++;continue;
+                }
+
                 $out['saved']['valid_v1_versions']++;$out['saved']['channel_counts'][$row['platform']]++;
                 $out['saved']['status_counts'][$s['status']]++;
                 if($s['stage']!==null)$out['saved']['stage_counts'][$s['stage']]++;
@@ -140,12 +145,71 @@ final class ModeledConversionForecastStatusReader
     private function parts():array
     {
         $s=fn(string $k):string=>"JSON_EXTRACT(profile_json,'$.".$k."')";
+        $status=$this->scalar('early_forecast.status');
+        $summary="JSON_OBJECT('customer_turns',".$this->boundedCount('contextual_signals.engagement.customer_turns',50)
+            .",'manager_turns',".$this->boundedCount('contextual_signals.engagement.manager_turns',50)
+            .",'substantive_interest',".$this->boundedCount('contextual_signals.goal_counts.substantive_interest',800)
+            .",'general_purchase_intent',".$this->boundedCount('contextual_signals.goal_counts.general_purchase_intent',800)
+            .",'agency_purchase_intent',".$this->boundedCount('contextual_signals.goal_counts.agency_purchase_intent',800)
+            .",'linking_disabled',".$this->boundedBoolean('contextual_signals.coverage.context_linking_disabled')
+            .",'wizard_applications',".$this->boundedCount('coverage.applied_wizard_fields',50)
+            .",'action_or_unknown_type_rows',".$this->boundedCount('coverage.errors.action_or_unknown_message_type',1000)
+            .",'legacy_status',CASE WHEN ".$status." IN ('early_assessment','target_already_observed','no_usable_customer_context','access_denied') THEN ".$status." ELSE NULL END)";
         return ['prediction_json'=>$s('semantic_prediction'),'followup_json'=>$s('prediction_followup'),
             'binding_json'=>"JSON_OBJECT('access_status',".$s('access_status').",'subject',JSON_OBJECT('project_key',".$s('subject.project_key')
                 .",'platform',".$s('subject.platform').",'customer_key',".$s('subject.customer_key').",'conversation_id',".$s('subject.conversation_id')
                 ."),'profile',JSON_OBJECT('prediction_at',".$s('profile.prediction_at')
                 ."),'processing',JSON_OBJECT('source_sha256',".$s('processing.source_sha256').",'journal_cursor',".$s('processing.journal_cursor')
-                .",'source_fence_journal_id',".$s('processing.source_fence_journal_id')."))"];
+                .",'source_fence_journal_id',".$s('processing.source_fence_journal_id')."),'input_summary',".$summary.")"];
+    }
+    private function boundedCount(string $path,int $maximum):string
+    {
+        $value="JSON_EXTRACT(profile_json,'$.".$path."')";
+        $type=$this->mysql?'JSON_TYPE('.$value.')':"JSON_TYPE(profile_json,'$.".$path."')";
+        $integer=$this->mysql?"'INTEGER'":"'integer'";$cast=$this->mysql?'SIGNED':'INTEGER';
+        return 'CASE WHEN '.$type.'='.$integer.' AND CAST('.$value.' AS '.$cast.') BETWEEN 0 AND '.$maximum
+            .' THEN CAST('.$value.' AS '.$cast.') ELSE NULL END';
+    }
+    private function boundedBoolean(string $path):string
+    {
+        $value="JSON_EXTRACT(profile_json,'$.".$path."')";
+        if($this->mysql)return "CASE WHEN JSON_TYPE(".$value.")='BOOLEAN' THEN CASE WHEN JSON_UNQUOTE(".$value.")='true' THEN 1 ELSE 0 END ELSE NULL END";
+        $type="JSON_TYPE(profile_json,'$.".$path."')";
+        return "CASE WHEN ".$type."='true' THEN 1 WHEN ".$type."='false' THEN 0 ELSE NULL END";
+    }
+    /** Reconcile fixed saved counters; they describe input coverage, never create intent or probability. */
+    private function inputCoverage(array &$out,mixed $raw,array $prediction):bool
+    {
+        $limits=['customer_turns'=>50,'manager_turns'=>50,'substantive_interest'=>800,
+            'general_purchase_intent'=>800,'agency_purchase_intent'=>800];
+        if(!is_array($raw)){$out['invalid_summary_profiles']++;return false;}
+        $valid=true;
+        foreach($limits as$k=>$max)if(!is_int($raw[$k]??null)||$raw[$k]<0||$raw[$k]>$max)$valid=false;
+        if(!$valid||$raw['customer_turns']+$raw['manager_turns']>50
+            ||$raw['substantive_interest']+$raw['general_purchase_intent']+$raw['agency_purchase_intent']>800
+            ||!in_array($raw['legacy_status']??null,['early_assessment','target_already_observed','no_usable_customer_context','access_denied'],true)
+            ||$prediction['current_customer_turn_count']>$raw['customer_turns']
+            ||($prediction['status']==='predicted'&&$raw['legacy_status']!=='early_assessment')){
+            $out['invalid_summary_profiles']++;return false;
+        }
+        $out['validated_profiles']++;$out['admitted_customer_turns']+=$raw['customer_turns'];
+        $out['admitted_manager_turns']+=$raw['manager_turns'];
+        if($raw['customer_turns']>0)$out['profiles_with_admitted_customer_text']++;
+        if($raw['customer_turns']+$raw['manager_turns']===0)$out['profiles_without_admitted_human_text']++;
+        $out['legacy_status_counts'][$raw['legacy_status']]++;
+        if(in_array($raw['linking_disabled']??null,[0,1],true))$out['linking_disabled_profiles']+=$raw['linking_disabled'];
+        else $out['linking_metadata_unknown_profiles']++;
+        foreach(['substantive_interest','general_purchase_intent','agency_purchase_intent']as$k)$out['recorded_goal_counts'][$k]+=$raw[$k];
+        $out['current_customer_turns']+=$prediction['current_customer_turn_count'];
+        $out['meaningful_customer_turns']+=$prediction['features']['meaningful_customer_turns'];
+        $out['context_reset_count']+=($prediction['features']['context_barriers']??0);
+        if($prediction['current_request_anchor']!==null)$out['profiles_with_request_anchor']++;
+        foreach(['wizard_applications'=>50,'action_or_unknown_type_rows'=>1000]as$k=>$max){
+            $v=$raw[$k]??null;
+            if(is_int($v)&&$v>=0&&$v<=$max){$out[$k]['known_profiles']++;$out[$k]['recorded_total']+=$v;}
+            else $out[$k]['unknown_profiles']++;
+        }
+        return true;
     }
     private function scalar(string $path):string
     {$v="JSON_EXTRACT(profile_json,'$.".$path."')";return $this->mysql?'JSON_UNQUOTE('.$v.')':$v;}
@@ -177,6 +241,15 @@ final class ModeledConversionForecastStatusReader
                 'customer_evidence_occurred_at_range'=>['earliest'=>null,'latest'=>null],
                 'customer_evidence_available_at_range'=>['earliest'=>null,'latest'=>null],
                 'followup_status_counts'=>['waiting'=>0,'unknown'=>0,'observed'=>0],'later_payment_evidence_versions'=>0],
+            'input_coverage'=>['basis'=>'recorded_frozen_counters_not_replayed_source_or_purchase_evidence',
+                'validated_profiles'=>0,'invalid_summary_profiles'=>0,'admitted_customer_turns'=>0,'admitted_manager_turns'=>0,
+                'profiles_with_admitted_customer_text'=>0,'profiles_without_admitted_human_text'=>0,
+                'linking_disabled_profiles'=>0,'linking_metadata_unknown_profiles'=>0,
+                'legacy_status_counts'=>array_fill_keys(['early_assessment','target_already_observed','no_usable_customer_context','access_denied'],0),
+                'recorded_goal_counts'=>array_fill_keys(['substantive_interest','general_purchase_intent','agency_purchase_intent'],0),
+                'current_customer_turns'=>0,'meaningful_customer_turns'=>0,'profiles_with_request_anchor'=>0,'context_reset_count'=>0,
+                'wizard_applications'=>['known_profiles'=>0,'unknown_profiles'=>0,'recorded_total'=>0],
+                'action_or_unknown_type_rows'=>['known_profiles'=>0,'unknown_profiles'=>0,'recorded_total'=>0]],
             'interpretation'=>['basis'=>'bounded_saved_versions_not_new_people_or_trips','new_inquiry_identity_verified'=>false,
                 'idle_tick_does_not_mean_no_saved_forecasts'=>true,'last_error_is_historical'=>true,
                 'probabilities'=>'untrained_illustrative_hypotheses','payment'=>'conversation_evidence_not_bank_settlement',

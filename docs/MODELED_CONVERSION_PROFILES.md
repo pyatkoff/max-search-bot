@@ -793,3 +793,27 @@ clock, storage and projection behavior only; an installed natural scheduler
 receipt is required before claiming new real predictions are being saved.
 Independent payment labels, cohort coverage, calibration, comparison with a
 stage-only baseline and advertising admission remain parallel follow-up work.
+
+
+## Live V1 correction: canonical bot responses preserve recent customer meaning
+
+Canonical MAX/Telegram messengers mirror successful ordinary bot responses as
+outbound/ai with the server recording clock. Such a known response was formerly
+handled as an unavailable source row and erased the predictor's preceding
+customer request. The corrected private projection may bridge only a copied,
+unedited revision1 AI message with exact subject/source binding, valid UTF-8,
+ordinary metadata, no forwarded context and the matching canonical recording
+clock. It must follow a meaningful customer turn by at most24hours. It cannot
+establish or renew interest, supply buying/payment evidence or turn a short
+yes into agency intent. Human source omissions, unknown messages, edits,
+invalid/legacy clocks, scope mismatches and long gaps retain their barriers.
+The canonical extractor's own prompt/link guards and offer reaction remain
+unchanged; this corrects the numeric predictor's continuity only.
+
+Actual PHP→Python→immutable profile regressions cover request→AI reply and a
+later AI update, including native source tables unavailable and preservation of
+the original estimate/digest/prior comparison. Fixed priors, source limits,
+legacy null calibrated values, payment guards and advertising settings remain
+unchanged. The model code hash records the compatible continuity correction.
+No transcript, recorder, transport, provider, queue or historical profile is
+changed; only subsequent ordinary calculations use the fix.

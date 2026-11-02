@@ -97,6 +97,24 @@ function modeledOfferMoveTimes(array $parts,array $deltas):array
     $parts[2]['requested_at']=$cutoff;
     return $parts;
 }
+/** Known outbound AI uses the canonical recorder's role and recording-clock envelope. */
+function modeledServiceReplyFixture(string $reply,string $request='Подберите тур в Турцию на 7 ночей.',array $after=[],int $delay=0):array
+{
+    $parts=modeledEarlyFixture([['text'=>$request],['role'=>'manager','text'=>$reply,'admitted'=>false],...$after]);
+    foreach($parts[0]['rows']as&$row)if($row['journal_id']==='2'){
+        $row['snapshot']['source_created_at_unix']+=$delay;$row['observed_at_unix']+=$delay;
+        $recorded=$row['snapshot']['source_created_at_unix'];
+        $row['snapshot']['source_timestamp_basis']='canonical_recording_unix_v1';
+        $row['snapshot']['payload']=['direction'=>'outbound','sender_type'=>'ai','text'=>$reply,
+            'metadata_json'=>json_encode(ConversationRecordClock::stamp([],$recorded),JSON_THROW_ON_ERROR)];
+    }
+    unset($row);
+    if($delay>0){
+        $cutoff=gmdate('Y-m-d\TH:i:s\Z',1793003000+$delay);
+        $parts[1]['profile']['prediction_at']=$parts[1]['profile']['observation_input']['prediction_at']=$parts[2]['requested_at']=$cutoff;
+    }
+    return $parts;
+}
 function modeledEarlyAssertions(callable $check):void
 {
     $p=modeledEarlyRun([['text'=>'Подберите тур в Турцию. Бюджет до 200 тысяч.']]);
@@ -106,6 +124,55 @@ function modeledEarlyAssertions(callable $check):void
         &&$f['early_quality']['trip_status']==='unknown'
         &&!$f['early_quality']['evaluation_eligible']&&!$f['early_quality']['export_allowed']
         &&$f['early_quality']['specific_offer_preferences']===[]);
+    $service=modeledServiceReplyFixture('Готовы забронировать, оплату вижу.');
+    $p=ModeledConversionEarlyForecast::freeze(...$service);$prediction=$p['semantic_prediction'];
+    $check('a verified AI reply preserves the customer request without supplying intent or payment',
+        $prediction['status']==='predicted'&&$prediction['stage']==='concrete_request'
+        &&$prediction['base_probability']===0.083333&&$prediction['current_request_anchor']==='journal:1'
+        &&$prediction['current_customer_turn_count']===1&&$prediction['outcome_observations']===[]
+        &&$p['contextual_signals']['engagement']['manager_turns']===0
+        &&$p['contextual_signals']['goal_counts']['manager_payment_ack']===0
+        &&$p['contextual_signals']['goal_counts']['agency_purchase_intent']===0
+        &&$p['early_forecast']['purchase_with_us']['probability']===null);
+    $p=ModeledConversionEarlyForecast::freeze(...modeledServiceReplyFixture('Давайте бронировать?',after:[['text'=>'Да']]));
+    $check('a short yes after excluded AI text cannot become agency purchase intent',
+        $p['semantic_prediction']['stage']==='concrete_request'
+        &&$p['contextual_signals']['goal_counts']['agency_purchase_intent']===0
+        &&$p['semantic_prediction']['base_probability']===0.083333);
+    foreach(['edited','scope','source_id','direction','role','forward','metadata_type','missing_clock','wrong_clock','oversize']as$kind){
+        $changed=$service;
+        foreach($changed[0]['rows']as&$row)if($row['journal_id']==='2'){
+            if($kind==='edited')$row['source_version_no']=2;
+            elseif($kind==='scope')$row['snapshot']['customer_key']='99';
+            elseif($kind==='source_id')$row['snapshot']['source_id']='99';
+            elseif($kind==='direction')$row['snapshot']['payload']['direction']='inbound';
+            elseif($kind==='role')$row['snapshot']['payload']['sender_type']='system';
+            elseif($kind==='oversize')$row['snapshot']['payload']['text']=str_repeat('x',ArchiveResearchSemanticExtractor::MAX_TEXT_BYTES+1);
+            else{
+                $meta=json_decode($row['snapshot']['payload']['metadata_json'],true,32,JSON_THROW_ON_ERROR);
+                if($kind==='forward')$meta['linked_message']=['type'=>'forward'];
+                elseif($kind==='metadata_type')$meta['type']='callback';
+                elseif($kind==='missing_clock')$meta=[];
+                else$meta['_recorded_clock']['unix']++;
+                $row['snapshot']['payload']['metadata_json']=json_encode($meta,JSON_THROW_ON_ERROR);
+            }
+        }
+        unset($row);
+        $p=ModeledConversionEarlyForecast::freeze(...$changed);
+        $check('untrusted service content still breaks prediction continuity '.$kind,
+            $p['semantic_prediction']['estimated_probability']===null&&$p['semantic_prediction']['current_request_anchor']===null);
+    }
+    $changed=modeledServiceReplyFixture('Служебный ответ',delay:86401);
+    $p=ModeledConversionEarlyForecast::freeze(...[...$changed,null,strtotime($changed[2]['requested_at'])]);
+    $check('service replies cannot renew meaningful customer interest beyond one day',
+        $p['semantic_prediction']['estimated_probability']===null);
+    $changed=modeledServiceReplyFixture('Купим только у вас');
+    $changed[0]['rows']=array_values(array_filter($changed[0]['rows'],static fn(array $r):bool=>$r['journal_id']!=='1'));
+    $changed[1]['profile']['observation_input']['evidence']=[];
+    $p=ModeledConversionEarlyForecast::freeze(...$changed);
+    $check('AI output alone cannot establish a customer request or probability',
+        $p['semantic_prediction']['current_request_anchor']===null&&$p['semantic_prediction']['estimated_probability']===null
+        &&$p['contextual_signals']['engagement']['customer_turns']===0);
     $priceReply='Fixture Beach A дорого, найдите дешевле с таким же пляжем';
     $parts=modeledOfferFixture($priceReply);
     $p=ModeledConversionEarlyForecast::freeze(...$parts);$quality=$p['early_forecast']['early_quality'];
