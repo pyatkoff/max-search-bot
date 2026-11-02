@@ -1,4 +1,4 @@
-name: Publish three approved AnyTour hotels in both channels
+name: Read next three hotel catalog candidates
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -35,21 +35,18 @@ jobs:
           test "$(gh api repos/pyatkoff/max-search-bot/actions/runs/41431072846 --jq .conclusion)" = success
           test "$(gh api repos/pyatkoff/max-search-bot/actions/runs/41431072836 --jq .head_sha)" = "$EXPECTED_PRODUCTION_SHA"
           test "$(gh api repos/pyatkoff/max-search-bot/actions/runs/41431072836 --jq .conclusion)" = success
-      - name: Prepare fixed owner-approved three-hotel manifest and once-only operation
+      - name: Prepare finite read-only hotel catalog inspection
         shell: bash
         run: |
           set -euo pipefail
           umask 077
           python3 - <<'PY'
           import pathlib,hashlib,os
-          script=pathlib.Path('tools/direct_demand/operations/publish-commercial-three-20261102-6.php').read_text()
-          assert hashlib.sha256(script.encode()).hexdigest()=='fb887d9e2a8840417d6a2b0fce77d214b1a68c042a87c49a244375d3d52eead1'
+          script=pathlib.Path('tools/direct_demand/operations/read-commercial-three-20261102-7-candidates.php').read_text()
+          assert hashlib.sha256(script.encode()).hexdigest()=='00fee807d754db6aeb0d781cf87dd7030c60073af7412eef770f60e93b73f799'
           prefix="<?php\ndeclare(strict_types=1);\n"
           assert script.startswith(prefix)
-          manifest=pathlib.Path('tools/direct_demand/operations/commercial-three-20261102-6-manifest.json').read_bytes()
-          assert hashlib.sha256(manifest).hexdigest()=='e627c00d7550a07f6fa6d78c672d9c0e3d0c7feb4fabb2b238d80cbd0e4ea8d6'
-          import base64
-          header=prefix+"const EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst MANIFEST_BASE64='"+base64.b64encode(manifest).decode()+"';\n"
+          header=prefix+"const EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\n"
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.php').write_text(header+script[len(prefix):])
           PY
           php -l "$RUNNER_TEMP/channel-preflight.php"
@@ -91,7 +88,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Publish exact three approved hotel posts with canonical buttons and no duplicates
+      - name: Read only the selected hotel catalog and registry identities
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -102,21 +99,18 @@ jobs:
           ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-preflight.php" > "$RUNNER_TEMP/channel-preflight.json" || probe_status=$?
           python3 - <<'PY'
           import pathlib,json,os
-          lines=pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.json').read_text().splitlines()
-          d=json.loads(lines[-1])
+          d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.json').read_text().splitlines()[-1])
           print(json.dumps(d,ensure_ascii=False,sort_keys=True))
-          assert d['operation']=='commercial-hotel-three-20261102-6-v1' and d['mode']=='publish_approved_commercial_next_three'
-          assert d['ok'] is True and len(d['posts'])==6
-          assert d['post_write_attempts']<=6 and d['new_posts']<=6
-          assert len({(p['platform'],p['logical_id']) for p in d['posts']})==6
-          assert all(p['body_photo_button_verified'] and p['button_text']=='✈️ Узнать стоимость тура' for p in d['posts'])
+          assert d['operation']=='commercial-three-material-20261102-7-read1' and d['mode']=='read_three_public_catalog_candidates'
+          assert d['ok'] is True and len(d['candidates'])==3
+          assert d['db_writes']==0 and d['provider_calls']==0 and d['message_sends']==0
           PY
           test "${probe_status:-0}" = 0
       - name: Retain bounded route evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-three-20261102-6-publication
+          name: commercial-three-20261102-7-catalog-candidates
           path: ${{ runner.temp }}/channel-preflight.json
           retention-days: 14
           if-no-files-found: warn

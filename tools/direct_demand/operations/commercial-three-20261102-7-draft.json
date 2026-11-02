@@ -1,0 +1,28 @@
+{
+  "operation": "commercial-hotel-three-20261102-7-v1",
+  "state": "DRAFT_IDENTITY_PREFLIGHT",
+  "goal": "Prepare and publish the next three complete hotel posts from retained Egypt material, once per authorized channel.",
+  "boundaries": "Candidates Diamond Beach, Montemare and Remal Beach. Initial stage only reads public catalogue and channel registry data, with no provider/customer calls or writes.",
+  "criteria": [
+    "Resolve exact active catalogue identities and physical properties.",
+    "No existing publication for the chosen hotels in either channel.",
+    "Real official hotel photos, full human captions and canonical cost button before any send."
+  ],
+  "risks": [
+    "Do not confuse Remal Beach with Remal Resort.",
+    "Do not infer an adults-only hotel or future service rights from old branding or one facility's rule.",
+    "No native/provider IDs, prices or availability may be guessed."
+  ],
+  "baseline_logical_materials": 24,
+  "candidate_names": [
+    "SUNRISE Diamond Beach Resort",
+    "SUNRISE Montemare Resort",
+    "SUNRISE Remal Beach"
+  ],
+  "official_sources": [
+    "https://www.sunrise-resorts.com/diamond-beach-resort",
+    "https://www.sunrise-resorts.com/montemare-resort",
+    "https://www.sunrise-resorts.com/remal-beach-resort"
+  ],
+  "next": "Resolve catalogue identity and absence of duplicates, then prepare exact hotel captions and branded photo covers."
+}
