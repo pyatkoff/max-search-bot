@@ -119,70 +119,70 @@
       "hotel_id": 150,
       "hotel": "PICKALBATROS CITADEL RESORT SAHL HASHEESH",
       "region": "Хургада",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+      "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED"
     },
     {
       "key": "albatros-sands-port-ghalib",
       "hotel_id": 172,
       "hotel": "PICKALBATROS SANDS PORT GHALIB",
       "region": "Марса Алам",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+      "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED"
     },
     {
       "key": "albatros-palace-port-ghalib",
       "hotel_id": 275,
       "hotel": "PICKALBATROS THE PALACE PORT GHALIB",
       "region": "Марса Алам",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+      "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED"
     },
     {
       "key": "albatros-oasis-port-ghalib",
       "hotel_id": 173,
       "hotel": "PICKALBATROS OASIS PORT GHALIB",
       "region": "Марса Алам",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+      "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED"
     },
     {
       "key": "albatros-jungle-neverland",
       "hotel_id": 110,
       "hotel": "PICKALBATROS JUNGLE AQUA PARK RESORT NEVERLAND",
       "region": "Хургада",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+      "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED"
     },
     {
       "key": "albatros-aqua-park-sharm",
       "hotel_id": 57028,
       "hotel": "PICKALBATROS AQUA PARK SHARM",
       "region": "Шарм-эль-Шейх",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+      "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED"
     },
     {
       "key": "albatros-aqua-blu-sharm",
       "hotel_id": 125,
       "hotel": "PICKALBATROS AQUA BLU RESORT SHARM EL SHEIKH",
       "region": "Шарм-эль-Шейх",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+      "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED"
     },
     {
       "key": "desert-rose",
       "hotel_id": 178,
       "hotel": "DESERT ROSE RESORT",
       "region": "Хургада",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+      "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED"
     },
     {
       "key": "reef-oasis-beach",
       "hotel_id": 371,
       "hotel": "REEF OASIS BEACH RESORT",
       "region": "Шарм-эль-Шейх",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+      "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED"
     },
     {
       "key": "beach-albatros-hurghada",
       "hotel_id": 132,
       "hotel": "BEACH ALBATROS RESORT HURGADA",
       "region": "Хургада",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+      "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED"
     },
     {
       "key": "alaya",
@@ -208,7 +208,7 @@
   ],
   "catalog_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41517612012",
   "followup_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41518049588",
-  "published_hotel_count": 2,
-  "unpublished_hotel_count": 23,
-  "publication_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41521482701"
+  "published_hotel_count": 12,
+  "unpublished_hotel_count": 13,
+  "publication_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41526574736"
 }
