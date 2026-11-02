@@ -1,4 +1,4 @@
-name: Inspect three next hotel official media sources
+name: Inspect SUNRISE Titanic and Avia native covers
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -17,15 +17,17 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Inspect fixed public source pages without server or bot access
+      - name: Inspect exact native covers without server or bot access
         shell: bash
         run: |
           set -euo pipefail
-          python3 tools/direct_demand/operations/inspect-hotel-media-20261102-3.py
+          python3 tools/direct_demand/operations/inspect-canva-covers-20261102-3.py
       - name: Retain public source observations
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-three-20261102-5-public-photo-sources
-          path: public-media-sources.json
+          name: commercial-three-20261102-5-native-covers
+          path: |
+            native-cover-receipt.json
+            covers/
           retention-days: 14
