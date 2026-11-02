@@ -1,0 +1,189 @@
+{
+  "operation": "commercial-stock-20261102-14-read1",
+  "state": "CATALOG_STOCK25_CONFIRMED_CONTENT_PENDING",
+  "hotel_count": 25,
+  "ready_for_send_count": 0,
+  "candidates": [
+    {
+      "key": "jaz-samaya",
+      "hotel_id": 269,
+      "hotel": "JAZ SAMAYA RESORT (EX. IBEROTEL SAMAYA)",
+      "region": "Марса Алам",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "jaz-elite-maraya",
+      "hotel_id": 67897,
+      "hotel": "JAZ MARAYA",
+      "region": "Марса Алам",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "jaz-costa-mares",
+      "hotel_id": 75725,
+      "hotel": "JAZ COSTA MARES ADULT ONLY (EX. IBEROTEL COSTA MARES)",
+      "region": "Марса Алам",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "jaz-soma-beach",
+      "hotel_id": 73342,
+      "hotel": "JAZ SOMA BEACH (EX. SOLYMAR SOMA BEACH)",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "jaz-belvedere",
+      "hotel_id": 278,
+      "hotel": "JAZ BELVEDERE",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "jaz-mirabel-beach",
+      "hotel_id": 281,
+      "hotel": "JAZ MIRABEL BEACH",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "jaz-fayrouz",
+      "hotel_id": 246,
+      "hotel": "JAZ FAYROUZ RESORT (EX. HILTON SHARM FAYROUZ RESORT)",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "jaz-neo-reef-marsa",
+      "hotel_id": 384,
+      "hotel": "JAZ NEO REEF MARSA (EX. SOLYMAR REEF MARSA)",
+      "region": "Марса Алам",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "steigenberger-coraya-beach",
+      "hotel_id": 263,
+      "hotel": "STEIGENBERGER CORAYA BEACH ADULTS ONLY 16+",
+      "region": "Марса Алам",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "iberotel-makadi-beach",
+      "hotel_id": 267,
+      "hotel": "IBEROTEL MAKADI BEACH",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "alaya",
+      "hotel_id": 69155,
+      "hotel": "STEIGENBERGER RESORT ALAYA MARSA ALAM ADULTS ONLY",
+      "region": "Марса Алам",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "ras-soma",
+      "hotel_id": 69409,
+      "hotel": "STEIGENBERGER RESORT RAS SOMA",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "sentido-reef-oasis-senses",
+      "hotel_id": 4184,
+      "hotel": "SENTIDO REEF OASIS SENSES RESORT (EX. REEF OASIS SENSES RESORT)",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "albatros-royal-moderna",
+      "hotel_id": 389,
+      "hotel": "PICKALBATROS ROYAL MODERNA SHARM EL SHEIKH",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_PRIMARY_SOURCE_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "albatros-aqua-vista",
+      "hotel_id": 109,
+      "hotel": "PICKALBATROS AQUA VISTA RESORT",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_PRIMARY_SOURCE_AND_COVER_NOT_READY",
+      "identity_note": "Exact branded PICKALBATROS row; unbranded AQUA VISTA104856 remains separate and unresolved."
+    },
+    {
+      "key": "albatros-laguna-vista-beach",
+      "hotel_id": 293,
+      "hotel": "PICKALBATROS LAGUNA VISTA BEACH",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_PRIMARY_SOURCE_AND_COVER_NOT_READY",
+      "identity_note": "Current LAGUNA VISTA BEACH row; Laguna Club107965 includes Vista Garden only in its former name."
+    },
+    {
+      "key": "albatros-laguna-club",
+      "hotel_id": 107965,
+      "hotel": "PICKALBATROS LAGUNA CLUB RESORT (EX. ALBATROS LAGUNA VISTA GARDEN)",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_PRIMARY_SOURCE_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "albatros-royal-grand",
+      "hotel_id": 393,
+      "hotel": "PICKALBATROS ROYAL GRAND RESORT ADULTS ONLY 16+",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_PRIMARY_SOURCE_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "albatros-blu-spa",
+      "hotel_id": 78898,
+      "hotel": "PICKALBATROS BLU SPA RESORT HURGHADA ADULTS ONLY 16+",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_PRIMARY_SOURCE_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "albatros-vita-portofino",
+      "hotel_id": 83105,
+      "hotel": "PICKALBATROS VITA RESORT PORTOFINO MARSA ALAM",
+      "region": "Марса Алам",
+      "state": "CATALOG_CONFIRMED_PRIMARY_SOURCE_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "albatros-water-valley",
+      "hotel_id": 79059,
+      "hotel": "PICKALBATROS WATER VALLEY RESORT NEVERLAND HURGHADA",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_PRIMARY_SOURCE_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "rixos-radamis-main",
+      "hotel_id": 115918,
+      "hotel": "RIXOS RADAMIS SHARM EL SHEIKH",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_PRIMARY_SOURCE_AND_COVER_NOT_READY",
+      "identity_note": "Main RIXOS RADAMIS current catalog row; Blue Planet/Tirana/Beach products remain separate. Primary object scope required before preparation."
+    },
+    {
+      "key": "gravity-hotel-aqua-park-hurghada",
+      "hotel_id": 56092,
+      "hotel": "GRAVITY HOTEL & AQUA PARK HURGHADA",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_PRIMARY_SOURCE_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "meraki-sharm",
+      "hotel_id": 80964,
+      "hotel": "MERAKI RESORT SHARM EL SHEIKH",
+      "region": "Шарм эль Шейх",
+      "state": "REQUIRES_NEW_REAL_GENERAL_HOTEL_HERO",
+      "identity_source": "commercial-batch-20261102-9-inventory.json"
+    },
+    {
+      "key": "beach-albatros-marsa",
+      "hotel_id": 107,
+      "hotel": "BEACH ALBATROS RESORT MARSA ALAM",
+      "region": "Марса Алам",
+      "state": "CATALOG_CONFIRMED_PRIMARY_SOURCE_AND_COVER_NOT_READY",
+      "identity_source": "commercial-stock-20261102-12-inventory.json"
+    }
+  ],
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41527269560"
+}

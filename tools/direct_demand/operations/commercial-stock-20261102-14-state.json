@@ -1,8 +1,18 @@
 {
   "operation": "commercial-stock-20261102-14-read1",
-  "state": "READ_ONLY_LOOKUP_PREPARED",
-  "goal": "Refill stock after batch13 using one bounded catalog and existing publication registry read.",
-  "boundaries": "Sixteen finite hotel names, Egypt only, existing channels only. No provider calls, customer reads, DB changes or sends.",
-  "criteria": "Actual active native IDs and names, city, current registry matches; no guessed identities or publication credit.",
-  "risks": "Aqua Blu and Sea World names can identify different resorts. Keep every actual catalog match distinct."
+  "state": "CATALOG_READ_COMPLETE",
+  "hotel_catalog_ids": [
+    389,
+    109,
+    293,
+    107965,
+    393,
+    78898,
+    83105,
+    79059,
+    115918,
+    56092
+  ],
+  "confirmed_stock_count": 25,
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41527269560"
 }
