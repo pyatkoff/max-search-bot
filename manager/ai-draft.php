@@ -8,6 +8,7 @@ require_once dirname(__DIR__).'/services/ManagerAiDraftContextService.php';
 require_once dirname(__DIR__).'/services/ManagerAiDraftService.php';
 require_once dirname(__DIR__).'/services/ManagerAiDraftFeedbackService.php';
 require_once dirname(__DIR__).'/services/ManagerPreparedReplyService.php';
+require_once dirname(__DIR__).'/services/ManagerAiReplyAdmission.php';
 
 ManagerHttp::startJson();
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
@@ -127,6 +128,11 @@ try {
             $jobId=$prepared['job_id']??null;
             $prepared['draft_id']=!$supervisor&&!$passivePreview&&is_string($jobId)
                 ? ManagerAiDraftFeedbackService::record($cid,$actor,$after,$proposal,$jobId) : null;
+            $observed=ManagerPreparedReplyService::admission($cid,$actor,$after,$prepared,$proposal);
+            // A newly observed access/context loss keeps the canonical refusal.
+            // Semantic unknown alone never blocks the existing manual flow.
+            if(empty($observed['ok']))aiDraftRespond(['ok'=>false,'error'=>$observed['error']??'context_unavailable']);
+            $prepared['admission']=$observed['admission'];
             if($passivePreview)unset($prepared['job_id']);
             aiDraftRespond($proposal+$prepared+$projection+$policyProjection);
         }
@@ -156,6 +162,7 @@ try {
     // for the model: Inbox, logout and reassignment must remain independent.
     session_write_close();
     $inputEvidence = null;
+    $generationInstructionRevision=hash('sha256',ManagerAiDraftService::instructions());
     $proposal = ManagerAiDraftService::generate($before['context'], null, $before['company_knowledge'] ?? null,
         static fn(): ManagerSelectionSnapshot => ManagerSelectionSnapshot::read($before), $before['reference_context'] ?? null,
         isset($before['photo_context'])?static fn(array $context):?array=>$before['photo_context']->read($context):null,
@@ -178,7 +185,10 @@ try {
     // Persist the bounded proposal and its captured input after fresh authorization.
     // A feedback outage must not discard an otherwise usable suggestion.
     $draftId = $supervisor?null:ManagerAiDraftFeedbackService::record($cid,$actor,$after,$proposal,null,$inputEvidence);
+    try{$admission=ManagerAiReplyAdmission::manual($actor,$before,$after,$proposal,$inputEvidence,$generationInstructionRevision,hash('sha256',ManagerAiDraftService::instructions()),$draftId,time());}
+    catch(Throwable $ignored){$admission=ManagerAiReplyAdmission::unavailable();}
     aiDraftRespond($proposal + [
+        'admission'=>$admission,
         'revision'=>$after['revision'],
         'latest_message_id'=>$after['latest_message_id'],
         'draft_id'=>$draftId,

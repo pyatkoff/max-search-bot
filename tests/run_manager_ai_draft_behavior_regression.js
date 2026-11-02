@@ -624,6 +624,28 @@ test('Escape and pagehide clear private generated content without sending or per
   assert.equal(stopped,true);assert.equal(h.ids.get('aiDraftPanel').hidden,true);await h.click('aiDraftOpen');h.events.get('pagehide')();
   assert.equal(h.ids.get('aiDraftPanel').hidden,true);assert.equal(h.ids.get('aiDraftPanel').children[2].children.length,0);assertNoMutations(h);
 });
+const admissionText=node=>String(node?.textContent||'')+Array.from(node?.children||[],admissionText).join(' ');
+const admissionFixture=()=>({schema_version:1,decision:'manager_review',actual_send_allowed:false,criteria:{
+ last_customer_question:{status:'unknown',message:'Проверьте последний ввод и открытые вопросы.'},
+ context_currentness:{status:'pass',message:'Только техническая привязка.'},
+ answer_completeness:{status:'unknown',message:'Независимая полнота не подтверждена.'},
+ material_conditions:{status:'unknown',message:'Нужен источник условий текущего варианта.'}},send_pause:{state:'requires_explicit_resume',message:'После ответа менеджера нужно явное возобновление.'}});
+test('admission reasons appear in the existing manager-check panel and retain text and File',async()=>{
+ const h=await harness(()=>response(prepared({admission:admissionFixture()})));const file={name:'admission-retained.txt'};h.setFile(file);await h.draft('Мой незаконченный ответ');await h.generate();
+ const list=h.ids.get('aiDraftPanel').querySelector('.aiDraftAdmission');assert.ok(list);assert.equal(list.children.length,4);assert.match(admissionText(list),/Последний ввод клиента/);assert.match(admissionText(list),/Полнота ответа/);assert.match(admissionText(list),/Подтверждение условий/);assert.match(admissionText(h.ids.get('aiDraftPanel')),/Автоотправка выключена/);assert.equal(h.ids.get('replyText').value,'Мой незаконченный ответ');assert.equal(h.getFile(),file);assert.deepEqual(h.aiCalls().map(c=>c.action),['prepared']);assertNoMutations(h);
+});
+test('admission manager-review state does not block explicit manual insertion or touch File',async()=>{
+ const h=await harness(data=>response(data.action==='validate'?{ok:true,revision:'synthetic-revision-1',latest_message_id:8}:prepared({admission:admissionFixture()})));const file={name:'manual-admission.txt'};h.setFile(file);await h.draft('Свой текст');await h.generate();await h.insert();assert.ok(h.ids.get('replyText').value.includes('Свой текст'));assert.ok(h.ids.get('replyText').value.includes(generated().draft));assert.equal(h.getFile(),file);assert.deepEqual(h.aiCalls().map(c=>c.action),['prepared','validate']);assertNoMutations(h);
+});
+test('admission does not render a caller-style automatic approval as a valid decision',async()=>{
+ const forged={...admissionFixture(),decision:'approved',actual_send_allowed:true};const h=await harness(()=>response(prepared({admission:forged})));await h.generate();assert.equal(h.ids.get('aiDraftPanel').querySelector('.aiDraftAdmission'),null);assert.equal(h.ids.get('replyText').value,'');assertNoMutations(h);
+});
+test('admission keeps no-contact informational without an insert action or send',async()=>{
+ const h=await harness(()=>response(prepared({should_draft:false,draft:null,next_action:'no_contact',admission:admissionFixture()})));await h.generate();assert.equal(h.ids.get('aiDraftInsert').hidden,true);assert.equal(h.ids.get('aiDraftPanel').querySelector('.aiDraftAdmission').children.length,4);assert.equal(h.ids.get('replyText').value,'');assert.equal(h.aiCalls().some(c=>c.action==='validate'||c.action==='generate'),false);assertNoMutations(h);
+});
+test('admission metadata from a late response cannot survive a newer customer input',async()=>{
+ const pending=deferred(),h=await harness(()=>pending.promise);await h.draft('Сохранённый ответ');await h.generate();h.W.S.detail.messages.push({id:9,sender_type:'customer',text:'Изменение запроса'});h.ai.sync();const old=admissionFixture();old.criteria.material_conditions.message='OLD_ADMISSION_CANARY';pending.resolve(response(prepared({admission:old})));await tick();assert.equal(admissionText(h.ids.get('aiDraftPanel')).includes('OLD_ADMISSION_CANARY'),false);assert.equal(h.ids.get('replyText').value,'Сохранённый ответ');assertNoMutations(h);
+});
 test('work-plan advice reads the saved proposal without generating or inserting when absent',async()=>{
  const h=await harness(data=>response(data.action==='prepared'?{ok:true,prepared:false}:generated()));const file={name:'keep-plan.txt'};h.setFile(file);await h.draft('Мой собственный ответ');assert.equal(await h.ai.openPrepared(),false);assert.deepEqual(h.aiCalls().map(c=>c.action),['prepared']);assert.equal(h.ids.get('replyText').value,'Мой собственный ответ');assert.equal(h.getFile(),file);assert.match(h.ids.get('aiDraftStatus').textContent,/Готового ответа пока нет/);assertNoMutations(h);
 });
@@ -631,4 +653,4 @@ test('work-plan advice displays a saved draft for editing while preserving the m
  const h=await harness();await h.draft('Начал писать сам');assert.equal(await h.ai.openPrepared(),true);assert.deepEqual(h.aiCalls().map(c=>c.action),['prepared']);assert.equal(h.ids.get('replyText').value,'Начал писать сам');assert.equal(h.ids.get('aiDraftPanel').hidden,false);assert.equal(h.ids.get('aiDraftInsert').hidden,false);assertNoMutations(h);
 });
 
-(async()=>{let failed=0;for(const item of cases){try{await item.run();console.log('PASS '+item.name)}catch(error){failed++;console.error('FAIL '+item.name+'\n'+error.stack)}}console.log(`TOTAL ${cases.length} | FAIL ${failed}`);process.exitCode=failed?1:0})();
+(async()=>{const selected=process.argv.includes('--admission-only')?cases.filter(item=>item.name.startsWith('admission ')):cases;let failed=0;for(const item of selected){try{await item.run();console.log('PASS '+item.name)}catch(error){failed++;console.error('FAIL '+item.name+'\n'+error.stack)}}console.log(`TOTAL ${selected.length} | FAIL ${failed}`);process.exitCode=failed?1:0})();

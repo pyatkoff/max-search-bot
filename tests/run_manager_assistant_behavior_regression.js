@@ -238,7 +238,7 @@ test('no-contact is an explicit plan view and is never converted to a send actio
  assert.ok(h.body.querySelector('[data-assistant-client="101"]'));await h.A.loadDetail(101);assert.equal(h.$('assistantReply'),null);assert.equal(h.$('assistantPlan'),null);h.onlyReads();
 });
 
-async function run(){let passed=0;for(const t of tests){await t.run();passed++;console.log('PASS '+t.name)}console.log('Manager assistant behavior: '+passed+' checks passed')}
+async function run(){const selected=process.argv.includes('--ux-review-only')?tests.filter(t=>t.name.startsWith('ux review ')):tests;let passed=0;for(const t of selected){await t.run();passed++;console.log('PASS '+t.name)}console.log('Manager assistant behavior: '+passed+' checks passed')}
 test('inline plan keeps the protected task editor reachable and never opens another client',async()=>{
  const h=harness();let blocks=0;h.window.WorkspaceV2Tasks={blockNavigationForDirtyDraft:()=>{blocks++;return true}};h.A.activate(7);await h.A.openPlan();await h.A.loadDetail(101);await h.click('#assistantConversation');assert.equal(h.A.isPlanOpen(),true);assert.equal(h.$('assistantDialog').parentElement.className,'inboxZone');assert.equal(h.opened.length,0);assert.equal(blocks,1);assert.equal(h.$('replyText').value,'Unsent customer reply');assert.equal(h.$('replyFile').file,h.file);h.onlyReads();
 });
@@ -285,6 +285,20 @@ test('read-only cards cannot start completion through the exported control',asyn
 test('switching sections cannot discard an open plan deadline editor',async()=>{
  const h=harness();h.data.get(101).tasks=[{id:31,title:'Согласованный звонок',status:'open',due_at_utc:'2026-11-03 10:00:00'}];h.A.activate(7);await h.A.openPlan();await h.A.loadDetail(101);await h.click('[data-assistant-snooze="31"]');h.$('assistantDue').value='2026-11-04T10:00';assert.equal(h.A.canLeavePlan(),false);assert.equal(h.$('assistantDue').value,'2026-11-04T10:00');assert.equal(h.document.activeElement,h.$('assistantDue'));assert.match(h.$('assistantStatus').textContent,/Сохраните или отмените/);h.onlyReads();await h.click('#assistantCancelDue');assert.equal(h.A.canLeavePlan(),true);
 });
+
+for(const initialScope of ['mine','team'])test('ux review scope change preserves an unsaved deadline from '+initialScope,async()=>{
+ const h=harness();h.S.manager.role='admin';h.data.get(101).tasks=[{id:31,title:'Согласованный звонок',status:'open',due_at_utc:'2026-11-03 10:00:00'}];h.A.activate(7);await h.A.openPlan();
+ if(initialScope==='team'){h.$('assistantScope').value='team';h.$('assistantScope').onchange();await new Promise(setImmediate)}
+ await h.A.loadDetail(101);await h.click('[data-assistant-snooze="31"]');const input=h.$('assistantDue'),form=h.$('assistantTaskEditor').querySelector('form');input.value='2026-11-04T10:00';const before=h.calls.length;
+ const nextScope=initialScope==='mine'?'team':'mine';h.$('assistantScope').value=nextScope;h.$('assistantScope').onchange();await new Promise(setImmediate);
+ assert.equal(h.$('assistantScope').value,initialScope);assert.equal(h.$('assistantDue'),input);assert.equal(h.$('assistantTaskEditor').querySelector('form'),form);assert.equal(input.isConnected,true);assert.equal(input.value,'2026-11-04T10:00');assert.equal(h.document.activeElement,input);assert.equal(h.calls.length,before);assert.match(h.$('assistantStatus').textContent,/Сохраните или отмените/);assert.equal(h.$('replyText').value,'Unsent customer reply');assert.equal(h.$('replyFile').file,h.file);
+ await h.click('#assistantCancelDue');h.$('assistantScope').value=nextScope;h.$('assistantScope').onchange();await new Promise(setImmediate);assert.equal(h.calls.at(-1).scope,nextScope);assert.equal(h.$('assistantScope').value,nextScope);h.onlyReads();
+});
+test('ux review unanswered message stays neutral even when the latest input is thanks',async()=>{
+ const h=harness();h.S.detail.messages=[{id:34,text:'А какая цена на 14 ночей?'},{id:35,text:'Спасибо'}];h.data.set(101,h.item(101,{recommendation:null,operational:{awaiting_manager_reply:true}}));h.A.activate(7);await h.A.openPlan();const card=h.$('assistantList').querySelector('[data-assistant-client="101"]');assert.match(card.textContent,/Разобрать сообщение клиента/);assert.match(card.textContent,/Есть обращение без записанного ответа/);assert.doesNotMatch(card.textContent,/Ответить на вопрос клиента|Есть вопрос без ответа/);
+ await h.A.loadDetail(101);assert.match(h.$('assistantDetail').textContent,/нужен ли ответ/);h.data.set(101,h.item(101,{operational:{awaiting_manager_reply:true},recommendation:{...h.item().recommendation,next_action:'no_contact'}}));await h.A.loadDetail(101);await h.click('[data-assistant-filter="waiting"]');const waiting=h.$('assistantList').querySelector('[data-assistant-client="101"]');assert.match(waiting.textContent,/Сейчас не писать/);assert.doesNotMatch(waiting.textContent,/Разобрать сообщение/);assert.equal(h.$('assistantReply'),null);assert.equal(h.$('replyText').value,'Unsent customer reply');assert.equal(h.$('replyFile').file,h.file);h.onlyReads();
+});
+
 module.exports={harness,deferred};
 
 if(require.main===module)run().catch(error=>{console.error(error.stack);process.exitCode=1});

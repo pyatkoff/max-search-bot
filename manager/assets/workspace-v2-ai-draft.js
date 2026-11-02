@@ -362,10 +362,24 @@
       const list=addText('ul','aiDraftChecks','');
       for(const check of result.checks){const text=readable(check);if(!text)continue;const item=document.createElement('li');item.textContent=text;list.appendChild(item)}
     }
+    renderAdmission(result.admission);
     const prepared=result.prepared===true&&result.should_draft?'Ответ подготовлен заранее. ':'';
     status.textContent=prepared+(result.should_draft?'Проверьте текст. Добавим в конец ответа.':rawAction==='no_contact'?'Сейчас отвечать не нужно.':'Перед ответом нужно проверить данные. Причина и следующий шаг — ниже.');
     if(supervisorRead())status.textContent=(S.detail?.owner_read?'Режим владельца':'Просмотр руководителя')+' · Ответственный: '+(S.detail?.conversation?.manager_name||'Без назначения')+'. Просмотр не считается использованием или отправкой ответа.';
     retry.textContent=result.should_draft?'Другой вариант':'Повторить подготовку';
+  }
+  function renderAdmission(admission){
+    if(admission?.schema_version!==1||admission.decision!=='manager_review'||admission.actual_send_allowed!==false)return;
+    addText('h3','aiDraftSectionTitle','Допуск к автоответам');
+    addText('p','aiDraftWarning','Нужна проверка менеджера. Автоотправка выключена.');
+    const labels={last_customer_question:'Последний ввод клиента',context_currentness:'Актуальность контекста',answer_completeness:'Полнота ответа',material_conditions:'Подтверждение условий'};
+    const list=addText('ul','aiDraftAdmission','');
+    for(const [key,label] of Object.entries(labels)){
+      const criterion=admission.criteria?.[key],item=document.createElement('li');
+      const state=key==='context_currentness'&&criterion?.status==='pass'?'Техническая привязка проверена':criterion?.status==='fail'?'Нужна актуализация':'Не подтверждено';
+      item.textContent=label+': '+state+'. '+(typeof criterion?.message==='string'?criterion.message.slice(0,1200):'Нужна проверка менеджера.');list.appendChild(item);
+    }
+    if(typeof admission.send_pause?.message==='string')addText('p','aiDraftWarning',admission.send_pause.message.slice(0,1200));
   }
   function failure(result,action){
     clearBody();view.result=null;

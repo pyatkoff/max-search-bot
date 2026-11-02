@@ -27,7 +27,7 @@ try {
     $loader = "<?php\nrequire_once ".var_export($fixture,true).";\n";
     file_put_contents($tmp.'/config.php', $loader.'$GLOBALS["manager_ai_http_fixture_directory"] = '.var_export($tmp,true).";\n");
     foreach (['ManagerAuthService','ManagerConversationAccessPolicy','ManagerAiDraftContextService','ManagerAiDraftService','ManagerAiDraftFeedbackService','ManagerPreparedReplyService','ManagerPreparationMcpService'] as $service) file_put_contents($tmp.'/services/'.$service.'.php',$loader);
-    foreach (['manager/ai-draft.php','manager/lib/ManagerHttp.php','services/ManagerRequestContext.php'] as $source) copy($root.'/'.$source,$tmp.'/'.$source);
+    foreach (['manager/ai-draft.php','manager/lib/ManagerHttp.php','services/ManagerRequestContext.php','services/ManagerAiReplyAdmission.php','services/ManagerAiDraftInputEvidence.php'] as $source) copy($root.'/'.$source,$tmp.'/'.$source);
     managerAiEndpointCheck('isolated app executes exact current endpoint bytes',hash_file('sha256',$root.'/manager/ai-draft.php') === hash_file('sha256',$tmp.'/manager/ai-draft.php'));
     file_put_contents($tmp.'/manager/fixture-session.php', '<?php require dirname(__DIR__)."/config.php";require __DIR__."/lib/ManagerHttp.php";ManagerHttp::startJson();$_SESSION["manager_id"]=7;$_SESSION["csrf"]="synthetic-csrf";ManagerHttp::respond(["ok"=>true]);');
     $proposal = ['ok'=>true,'should_draft'=>true,'draft'=>'Здравствуйте! Какие даты вылета вам подходят?',
@@ -60,7 +60,20 @@ try {
         usleep(10000);
     }
     if (!$ready) throw new RuntimeException('Loopback fixture did not start');
-    $request = static fn(array $data = [],string $cookie = '',string $method = 'POST'): array=>managerAiHttpFixtureRequest($address,'/manager/ai-draft.php',$data,$cookie,$method);
+    $request = static function(array $data = [],string $cookie = '',string $method = 'POST')use($address):array{
+        $response=managerAiHttpFixtureRequest($address,'/manager/ai-draft.php',$data,$cookie,$method);
+        $json=$response['json'];$full=($json['ok']??false)===true&&array_key_exists('draft',$json);
+        if($full){
+            $a=$json['admission']??null;
+            if(!is_array($a)||($a['decision']??null)!=='manager_review'||($a['actual_send_allowed']??null)!==false
+                ||array_keys($a['criteria']??[])!==['last_customer_question','context_currentness','answer_completeness','material_conditions'])throw new RuntimeException('FAIL additive admission contract');
+            foreach($a['criteria']as$key=>$criterion)if(!in_array($criterion['status']??null,$key==='context_currentness'?['pass','fail','unknown']:['unknown','fail'],true)||!is_string($criterion['message']??null)||$criterion['message']==='')throw new RuntimeException('FAIL admission cannot invent semantic approval');
+            // Keep every existing exact proposal/metadata assertion. Only the
+            // separately checked additive decision is projected alongside it.
+            $response['admission']=$a;unset($response['json']['admission']);
+        }elseif(isset($json['admission']))throw new RuntimeException('FAIL admission leaked into error or lightweight readiness');
+        return $response;
+    };
     $login = static fn(): string=>managerAiHttpFixtureRequest($address,'/manager/fixture-session.php',[],'','GET')['cookie'];
     $body = ['action'=>'generate','csrf'=>'synthetic-csrf','conversation_id'=>42,'latest_message_id'=>10];
     $expectError = static function(string $name,array $response,int $status,string $error): void {
@@ -114,6 +127,7 @@ try {
     $ready=$request($prepared,$cookie);
     managerAiEndpointCheck('prepared action returns only current owner cache result',
         $ready['status']===200&&$ready['json']===$cached);
+    managerAiEndpointCheck('selected prepared reply carries a separate closed admission decision',$ready['admission']['actual_send_allowed']===false&&$ready['admission']['decision']==='manager_review');
     $assertNoProvider('prepared hit has zero provider calls');
     managerAiEndpointCheck('explicit preview records the exact prepared job after fresh authorization',
         (array_reverse($events())[0]??null)===['event'=>'feedback_record','conversation_id'=>42,'manager_id'=>7,'revision'=>$baseState['revision'],'latest_message_id'=>10,'preparation_job_id'=>str_repeat('a',64)]);
@@ -282,6 +296,9 @@ try {
     managerAiEndpointCheck('exception details never enter response or server log',!str_contains($thrown['body'].file_get_contents($tmp.'/server.log'),'SYNTHETIC_PROVIDER_DETAIL_MUST_STAY_PRIVATE'));
     $writeState(); $clearEvents(); $valid = $request($body+['manager_id'=>8,
         'verified_company_facts'=>[['text'=>'UNTRUSTED_COMPANY_FACT']], 'project_key'=>'anex'],$cookie); $flow = $events();
+    managerAiEndpointCheck('selected manual reply carries a separate closed admission decision',$valid['admission']['actual_send_allowed']===false&&$valid['admission']['decision']==='manager_review');
+    $forged=$request($body+['admission'=>['decision'=>'approved','actual_send_allowed'=>true]],$cookie);
+    managerAiEndpointCheck('caller admission JSON is ignored at the canonical boundary',$forged['admission']['decision']==='manager_review'&&$forged['admission']['actual_send_allowed']===false);
     managerAiEndpointCheck('valid proposal passes with server revision, latest ID and draft identity',$valid['status'] === 200 && $valid['json'] === $proposal+['revision'=>$baseState['revision'],'latest_message_id'=>10,'draft_id'=>str_repeat('d',32)]);
     managerAiEndpointCheck('feedback persistence follows fresh post-provider authorization',array_column($flow,'event') === ['initialize_read_only','auth','snapshot','provider','snapshot','feedback_record']
         && $flow[5]['manager_id']===7 && $flow[5]['conversation_id']===42 && $flow[5]['revision']===$baseState['revision']);
