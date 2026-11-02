@@ -25,6 +25,9 @@ function preparationControlsCases(): void
     $foreignAdmin=$mutate(2,['scope'=>'conversation','conversation_id'=>101,'enabled'=>true]);
     $check('admin read authority does not configure another manager dialogue',!$foreignAdmin['ok']&&$foreignAdmin['error']==='forbidden');
     $snapshot=preparedReplySnapshot();$a=preparedReplyQueue($snapshot);
+    $enabledInventory=ManagerPreparedReplyService::pending(1);
+    $check('explicit enabled policy retains its stored binding in worker inventory',
+        $enabledInventory['ok']&&count($enabledInventory['jobs'])===1&&$enabledInventory['jobs'][0]['job_id']===$a);
     $same=$mutate(1,['scope'=>'all','enabled'=>true]);
     $check('saving the same rule is a no-op, not another model admission',$same['ok']&&$same['version']===$on['version']&&preparedReplyQueue($snapshot)===$a);
     $packet=ManagerPreparedReplyService::context($a);$images=$packet['image_inputs'];unset($packet['image_inputs']);$authorize=static function():void{};$connection=str_repeat('b',32);

@@ -75,10 +75,7 @@ final class ManagerPreparationPolicy
         else{
             $q=$pdo->prepare('SELECT state_json FROM manager_personal_workspace_states WHERE manager_id=?');$q->execute([$owner]);
             $json=$q->fetchColumn();$q->closeCursor();
-            $state=$json===false?[]:json_decode((string)$json,true,32,JSON_THROW_ON_ERROR);
-            if(!is_array($state)||array_key_exists('ai_preparation',$state)&&!is_array($state['ai_preparation']))throw new RuntimeException('invalid_preparation_storage');
-            $policy=$state['ai_preparation']??null;
-            if($policy!==null&&!is_array($policy))throw new RuntimeException('invalid_preparation_storage');
+            $policy=self::personalPolicy($json);
         }
         return self::resolve($policy,$owner,$cid,$project,$now);
     }
@@ -98,11 +95,21 @@ final class ManagerPreparationPolicy
     {
         if(($row['policy_current_project']??null)!==$row['project_key']||(int)($row['policy_current_owner']??0)!==(int)$row['manager_id'])return false;
         if(($row['purpose']??'background')==='background'&&($row['policy_current_status']??null)!==((int)$row['manager_id']===0?'waiting_manager':'manager'))return false;
-        $json=(int)$row['manager_id']>0?($row['policy_personal_json']??null):
-            (($row['policy_current_owner']===null&&$row['policy_current_status']==='waiting_manager')?($row['policy_queue_json']??null):null);
-        $policy=$json===null?null:json_decode((string)$json,true,32,JSON_THROW_ON_ERROR);
+        if((int)$row['manager_id']>0)$policy=self::personalPolicy($row['policy_personal_json']??null);
+        else{
+            $json=($row['policy_current_owner']===null&&$row['policy_current_status']==='waiting_manager')?($row['policy_queue_json']??null):null;
+            $policy=$json===null?null:json_decode((string)$json,true,32,JSON_THROW_ON_ERROR);
+        }
         if($policy!==null&&!is_array($policy))throw new RuntimeException('invalid_preparation_storage');
         return self::decisionMatches(self::resolve($policy,(int)$row['manager_id'],(int)$row['conversation_id'],(string)$row['project_key'],$now),$row);
+    }
+
+    /** Preserve stored JSON key order: it is part of existing policy bindings. */
+    private static function personalPolicy($json): ?array
+    {
+        $state=$json===false||$json===null?[]:json_decode((string)$json,true,32,JSON_THROW_ON_ERROR);
+        if(!is_array($state)||array_key_exists('ai_preparation',$state)&&!is_array($state['ai_preparation']))throw new RuntimeException('invalid_preparation_storage');
+        return $state['ai_preparation']??null;
     }
 
     private static function decisionMatches(array $decision,array $row): bool
