@@ -1,8 +1,15 @@
 {
   "operation": "commercial-price-monitor-20261102-native-meals-read1",
-  "state": "PREPARED_NOT_READ",
-  "goal": "Read the exact existing public native Tourvisor meals gateway to resolve monitor meal IDs.",
-  "boundaries": "One fixed HTTPS GET through the established public gateway, no tour search, auth headers, customer data, server connection or message edit.",
-  "criteria": "HTTP200 JSON and exact native IDs with public names. No inference from canonical meal IDs.",
-  "risks": "The gateway can be unavailable or require access. Stop on any redirect, denial or unrecognized response. This does not prove price total or availability."
+  "state": "NATIVE_MEAL_LABELS_CONFIRMED_PRICE_NOT_PUBLISHED",
+  "native_meal_catalog_ids": [
+    2,
+    3,
+    4,
+    5,
+    7,
+    9
+  ],
+  "native_meal_count": 6,
+  "message_price_updates": 0,
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41527602876"
 }
