@@ -1,0 +1,53 @@
+{
+  "operation": "commercial-hotel-batch-20261102-11-v1",
+  "state": "TEXT_PREPARED_MEDIA_PENDING_NOT_SENT",
+  "goal": "Prepare five whole hotel posts with authentic official photos in accepted AnyTour style.",
+  "boundaries": "Existing five native identities and two authorized channels only; no provider sends in this preparation; no price claims.",
+  "criteria": "True hotel photos, readable brand cover, verified PNG, current registry/once guards before any send, exactly two confirmed posts per selected hotel.",
+  "risks": "Official image links still require visual confirmation; no draft is ready for publication.",
+  "baseline_logical_materials": 50,
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "hotel_id": 358,
+      "hotel": "Rixos Sharm El Sheikh",
+      "sources": [
+        "https://all.accor.com/hotel/B1J0/index.en.shtml"
+      ],
+      "text": "✈️ Rixos Sharm El Sheikh 5★\nТур с перелётом в Шарм-эль-Шейх 🇪🇬\n\nОтель в бухте Набк для отдыха без детей. Днём здесь пляж и спа, вечером живая музыка, вечеринки и диджеи 🎶\n\n🏖️ Свой песчаный пляж.\n🍽️ Концепция «Ультра всё включено», основной ресторан и рестораны с обслуживанием по меню.\n💦 Семь бассейнов.\n🧖 Спа Anjana.\n\n🔞 Отель принимает гостей от 18 лет. Для поездки с маленькими детьми нужен другой вариант.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет."
+    },
+    {
+      "hotel_id": 37668,
+      "hotel": "Rixos Premium Seagate",
+      "sources": [
+        "https://all.accor.com/hotel/B1J8/index.en.shtml"
+      ],
+      "text": "✈️ Rixos Premium Seagate 5★\nТур с перелётом в Шарм-эль-Шейх 🇪🇬\n\nСемейный отель в бухте Набк. Здесь можно провести отпуск на пляже, кататься с горок и ходить на вечерние шоу 🌴\n\n🏖️ Собственный пляж на Красном море.\n💦 Аквапарк Aquaventure.\n🧒 Детский клуб Rixy.\n🍽️ Рестораны и бары, концепция «Всё включено».\n\nℹ️ Номера с названием Aqua находятся на второй линии. Это другая часть комплекса, не корпуса у пляжа.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет."
+    },
+    {
+      "hotel_id": 174,
+      "hotel": "Pickalbatros Dana Beach Resort",
+      "sources": [
+        "https://www.pickalbatros.com/dana-beach-resort-hurghada"
+      ],
+      "text": "✈️ Pickalbatros Dana Beach Resort 5★\nТур с перелётом в Хургаду 🇪🇬\n\nБольшой семейный отель с невысокими корпусами, зеленью и лагунами между ними 🌴\n\n🏖️ Свой песчаный пляж.\n💦 Аквапарки для взрослых и детей.\n🧒 Детский клуб Alba.\n🎾 Теннис, падел и спортивные площадки.\n\nℹ️ Территория занимает 181 000 м². Корпуса трёхэтажные и стоят в разных её частях.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет."
+    },
+    {
+      "hotel_id": 55574,
+      "hotel": "Pickalbatros White Beach Resort",
+      "sources": [
+        "https://www.pickalbatros.com/white-beach-resort-hurghada"
+      ],
+      "text": "✈️ Pickalbatros White Beach Resort 5★\nТур с перелётом в Хургаду 🇪🇬\n\nОтель у моря для поездки с детьми. На территории есть горки, детский клуб и спортивные площадки ☀️\n\n🏖️ Песчаный пляж длиной 150 метров.\n💦 Детский аквапарк.\n🧒 Клуб Alba для детей от 4 до 12 лет.\n⛳ Мини-гольф.\n\nℹ️ Не все номера смотрят на море. Вид зависит от выбранной категории номера.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет."
+    },
+    {
+      "hotel_id": 80964,
+      "hotel": "Meraki Resort Sharm",
+      "sources": [
+        "https://meraki-resort.com/ssh/",
+        "https://meraki-resort.com/ssh/gallery-sharm/"
+      ],
+      "text": "✈️ Meraki Resort Sharm 5★\nТур с перелётом в Шарм-эль-Шейх 🇪🇬\n\nОтель на берегу Красного моря с богемным оформлением и активной ночной жизнью 🎶\n\n🏖️ Пляж и пляжные бары.\n🍽️ Рестораны с обслуживанием по меню, в том числе итальянский Basilico и азиатский Noodle Tribe.\n💦 Бассейны Floaters и Utopia.\n🎉 Вечеринки и музыка по вечерам.\n\n🔞 Гостей принимают с 16 лет. Здесь любят вечеринки, это важно для тех, кто ищет тихий отпуск.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет."
+    }
+  ]
+}
