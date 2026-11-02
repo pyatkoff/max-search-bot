@@ -113,6 +113,8 @@ $seedLegacy=static function(array $message)use($registry,$config):array{
     $snapshot=ChannelPostIncomingAdapter::maxSnapshot($message);
     $snapshot['metadata']['capability']='requires_attention';
     $snapshot['metadata']['capability_reason']='unsupported_media';
+    foreach($snapshot['attachments']as &$item)if($item['type']==='video')unset($item['video_id']);
+    unset($item);
     $media=[];
     foreach($snapshot['attachments']as $item)$media[]=['type'=>$item['type'],'stable_id'=>(string)($item['photo_id']??'')];
     $snapshot['content_hash']=hash('sha256',(string)json_encode([$snapshot['text'],$snapshot['markup'],$media,[],$snapshot['metadata']['link'],''],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES));
@@ -124,7 +126,7 @@ $seedLegacy=static function(array $message)use($registry,$config):array{
 $video=$original;$video['timestamp']=$now+10000;$video['body']['mid']='mid.legacy.video';
 $video['body']['attachments']=[
     $original['body']['attachments'][0],
-    ['type'=>'video','payload'=>['token'=>'fixture_original_video_1','url'=>'https://cdn.example.test/video.mp4?expires=old'],'thumbnail'=>['url'=>'https://cdn.example.test/cover.jpg'],'width'=>1080,'height'=>1920,'duration'=>30],
+    ['type'=>'video','payload'=>['id'=>12345678901234,'token'=>'fixture_original_video_1','url'=>'https://cdn.example.test/video.mp4?expires=old'],'thumbnail'=>['url'=>'https://cdn.example.test/cover.jpg'],'width'=>1080,'height'=>1920,'duration'=>30],
 ];
 $messages[$video['body']['mid']]=$video;
 $legacy=$seedLegacy($video);$legacyVersion=(int)$legacy['version_id'];
@@ -145,9 +147,9 @@ reconcileCheck('video recovery apply requires explicit old version and configura
 $recoverVideo=static function(string $hash)use($service,$identity,$config,$video,$legacyVersion,$currentChannel):array{
     return $service->recover($identity,$config['channel_id'],$video['timestamp'],$hash,true,true,$legacyVersion,(int)$currentChannel['config_version']);
 };
-foreach(['token','text','markup','order','forward']as $changed){
+foreach(['video_id','text','markup','order','forward']as $changed){
     $different=$video;
-    if($changed==='token')$different['body']['attachments'][1]['payload']['token']='fixture_replacement_video';
+    if($changed==='video_id')$different['body']['attachments'][1]['payload']['id']=12345678901235;
     elseif($changed==='text')$different['body']['text'].=' Changed';
     elseif($changed==='markup')$different['body']['markup'][0]['length']++;
     elseif($changed==='order')$different['body']['attachments']=array_reverse($different['body']['attachments']);
@@ -175,12 +177,13 @@ $pdo->exec("UPDATE post_versions SET state='requires_attention',write_attempts=0
 reconcileCheck('an unrelated terminal failure cannot be relabeled as a video repair',$recoverVideo($videoHash)['reason']==='legacy_video_not_eligible');
 $pdo->exec("UPDATE post_versions SET error_reason='unsupported_media' WHERE id=".$legacyVersion);
 $messages[$video['body']['mid']]['body']['attachments'][1]['payload']['url']='https://cdn.example.test/video.mp4?expires=fresh';
+$messages[$video['body']['mid']]['body']['attachments'][1]['payload']['token']='fixture_rotated_video_token';
 $renewedImage=$video['body']['attachments'][0];$renewedImage['payload']['token']='renewed-image-token';
 $messages[$video['body']['mid']]['body']['attachments'][0]=$renewedImage;
 $recovered=$recoverVideo($videoHash);$new=$registry->publication($legacy['publication_id']);
 reconcileCheck('explicit video recovery appends one version and edits once after a fresh read',$recovered['ok']&&$recovered['state']==='sent'&&$recovered['recovered_from_version_id']===$legacyVersion&&$new['version_number']===$legacy['version_number']+1&&$new['version_id']!==$legacyVersion&&$new['write_attempts']===1&&$writes===$beforeWrites+1&&$beforeVersions+1===(int)$pdo->query('SELECT COUNT(*) FROM post_versions')->fetchColumn()&&$beforeObservations+1===(int)$pdo->query('SELECT COUNT(*) FROM post_observations')->fetchColumn());
 reconcileCheck('recovery retains the rejected row stable p token and webhook clock',$oldRow===$pdo->query('SELECT * FROM post_versions WHERE id='.$legacyVersion)->fetch()&&$new['start_payload']===$legacy['start_payload']&&$oldPublication['observed_revision_ms']===$pdo->query('SELECT observed_revision_ms FROM post_publications WHERE id='.$legacy['publication_id'])->fetchColumn()&&$new['snapshot']['metadata']['observation_kind']==='provider_read'&&$new['snapshot']['metadata']['recovered_version_id']===$legacyVersion);
-reconcileCheck('video recovery preserves caption markup forward media order and renewed image credentials',$recovered['receipt']['content_preserved']&&$recovered['receipt']['button_verified']&&$messages[$video['body']['mid']]['body']['text']===$video['body']['text']&&$messages[$video['body']['mid']]['body']['markup']===$video['body']['markup']&&$messages[$video['body']['mid']]['link']===$video['link']&&$messages[$video['body']['mid']]['body']['attachments'][0]===$renewedImage&&$messages[$video['body']['mid']]['body']['attachments'][1]['payload']['token']===$video['body']['attachments'][1]['payload']['token']&&$messages[$video['body']['mid']]['body']['attachments'][1]['duration']===30);
+reconcileCheck('video recovery preserves caption markup forward media order and uses renewed image and video credentials',$recovered['receipt']['content_preserved']&&$recovered['receipt']['button_verified']&&$messages[$video['body']['mid']]['body']['text']===$video['body']['text']&&$messages[$video['body']['mid']]['body']['markup']===$video['body']['markup']&&$messages[$video['body']['mid']]['link']===$video['link']&&$messages[$video['body']['mid']]['body']['attachments'][0]===$renewedImage&&$messages[$video['body']['mid']]['body']['attachments'][1]['payload']['token']==='fixture_rotated_video_token'&&$messages[$video['body']['mid']]['body']['attachments'][1]['duration']===30);
 reconcileCheck('repeating an old video recovery selection cannot append or write again',$recoverVideo($videoHash)['reason']==='target_version_changed'&&$writes===$beforeWrites+1&&$beforeVersions+1===(int)$pdo->query('SELECT COUNT(*) FROM post_versions')->fetchColumn());
 
 // Concurrent provider-read boundaries fence both selected version and configuration.
@@ -199,3 +202,4 @@ $onPage=static function()use($registry,$config,$currentChannel):void{$registry->
 $changedConfig=$service->recover($identity,$config['channel_id'],$configRace['timestamp'],$configHash,true,true,$configOld['version_id'],(int)$currentChannel['config_version']);
 reconcileCheck('configuration change during the provider read prevents appending or editing',$changedConfig['reason']==='channel_configuration_changed'&&$registry->publication($configOld['publication_id'])['version_id']===$configOld['version_id']&&$writes===$beforeWrites+1);
 echo "OK $passed MAX publication reconciliation checks\n";
+

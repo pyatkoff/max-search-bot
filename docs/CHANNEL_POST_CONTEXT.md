@@ -33,15 +33,24 @@ invitation paths, other hosts, credentials and URL parameters stay unavailable.
   null. No undocumented permalink decoder is used.
 - MAX re-reads the post before its single attachments-only edit, preserving text,
   markup and every ordered photo/video identity. Images retain their stable photo
-  ID; videos require the original nonempty provider media token. A video token is
-  treated as opaque and hashed for content comparison; changing it blocks the
-  edit, while a refreshed playback URL alone does not. The fresh provider token
+  ID; videos require the explicit positive `payload.id` and a valid reusable
+  token. The clip ID identifies content; MAX can renew the opaque token and
+  playback URL on every read. Neither credential is decoded or treated as a
+  stable clip ID. A changed video ID blocks the edit. The fresh provider token
   reuses the existing video without downloading or uploading it. Existing channel keyboards are
   deliberately replaced with exactly one AnyTour URL button on both platforms,
   including other bots' comment or callback buttons (owner instruction 2026-10-15).
   Telegram edits reply markup only. MAX audio/files and Telegram non-photo media
   remain `requires_attention` without a provider write; a missing or invalid MAX
-  video token also blocks the edit. A video is never reconstructed from its URL.
+  video token or stable ID also blocks the edit. A video is never reconstructed from its URL.
+  The explicit video `payload.id` was observed in authenticated stored webhooks
+  and repeated MAX reads on 2026-11-02; the published MAX schema currently omits
+  that field. Missing or malformed IDs therefore fail closed.
+  Old snapshots may recover their video ID from their retained `raw_body` only
+  when normalized media and raw media match in count, type, order and tokens.
+  Comparisons use that identity without rewriting old snapshot/hash rows or
+  creating a new operation just because a credential changed. Unresolved old
+  video identity cannot reopen an UNKNOWN or held operation.
 - New explicit entries use the source's existing handling policy. Existing
   assigned/waiting conversations keep their manager and routing source; a new
   post only updates publication context. Original paid MAX attribution survives.
@@ -238,7 +247,7 @@ and installed SHA.
 Recovery requires the current immutable version to be `requires_attention` with
 `unsupported_media`, no attempted provider write and no active claim. Both the
 saved original and fresh provider message must be a supported MAX video post
-with identical text, markup, forward context and ordered media tokens/IDs under
+with identical text, markup, forward context and ordered stable media IDs under
 the current adapter. A changed video or configuration rejects the operation.
 The transaction appends a fresh provider observation and version, keeps the old
 rejection and existing publication/start token intact, then uses the established
@@ -249,3 +258,4 @@ and unsupported media outside this explicit video recovery remain unchanged.
 The provider contracts are [Message](https://dev.max.ru/docs-api/objects/Message)
 and [PUT /messages](https://dev.max.ru/docs-api/methods/PUT/messages/): existing
 video attachments are reused through `payload.token`, alongside the keyboard.
+

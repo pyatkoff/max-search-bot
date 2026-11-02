@@ -54,7 +54,7 @@ final class ChannelPostAutomationService
             $targetEvent = !$telegramAlbum || ($original['metadata']['actual_message_id'] ?? null) === ($observedTarget['metadata']['actual_message_id'] ?? null);
             if ($targetEvent && ($original['metadata']['capability'] ?? '') === 'supported'
                 && ChannelPostIncomingAdapter::containsOnlyButton($original, $url, $label)
-                && ($telegramAlbum || ($publication['content_hash'] ?? '') === $snapshot['content_hash'])
+                && ($telegramAlbum || ChannelPostIncomingAdapter::contentFingerprint((array)$publication['snapshot']) === $snapshot['content_hash'])
                 && ChannelPostIncomingAdapter::contentFingerprint($original, $url, (string)$channel['bot_url']) === ChannelPostIncomingAdapter::contentFingerprint($observedTarget, $url, (string)$channel['bot_url'])) {
                 $registry->confirmObservedButton($publicationId, $versionId, ['event_id' => $event['source_event_id'], 'verified' => true, 'reconciled' => ($publication['state'] ?? '') === 'unknown']);
                 return ['recognized' => true, 'queued' => false, 'state' => 'sent', 'publication_id' => $publicationId, 'version_id' => $versionId];
@@ -154,3 +154,4 @@ final class ChannelPostAutomationService
         return hash('sha256', (string)json_encode($identity));
     }
 }
+

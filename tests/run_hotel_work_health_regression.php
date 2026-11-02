@@ -3,6 +3,7 @@ declare(strict_types=1);
 require_once dirname(__DIR__).'/services/HotelWorkHealth.php';
 require_once dirname(__DIR__).'/services/HotelWorkCronVerifier.php';
 require_once dirname(__DIR__).'/services/HotelServerRuntimeConfig.php';
+require_once dirname(__DIR__).'/services/HotelServerPrivateUpload.php';
 
 $tmp=sys_get_temp_dir().'/hotel-health-'.bin2hex(random_bytes(6));mkdir($tmp,0700);
 DiagnosticLogger::setFile($tmp.'/structured.log');$file=$tmp.'/hotel_work_health.json';$passed=0;
@@ -133,6 +134,80 @@ PHP);
             &&!str_contains(implode("\n",$out),'PRIVATE'));
     }
     unlink($runtimeFile);rmdir($runtimeDir);
+    // The HTTP ingress can only retain one administrator-pinned opaque file; it never imports it.
+    $payload="synthetic sealed bytes\0\xff";$token=str_repeat('b',64);$uploadNow=1800000000;
+    $uploadTicket=['schema'=>'hotel-server-private-upload-v1','operation_id'=>str_repeat('c',64),
+        'payload_bytes'=>strlen($payload),'payload_sha256'=>hash('sha256',$payload),
+        'token_sha256'=>hash('sha256',$token),'created_at'=>$uploadNow-1,'expires_at'=>$uploadNow+300];
+    $uploadRequest=['REQUEST_METHOD'=>'POST','HTTPS'=>'on','HTTP_HOST'=>'app.anytoour.ru',
+        'CONTENT_TYPE'=>'application/octet-stream','CONTENT_LENGTH'=>(string)strlen($payload),
+        'HTTP_AUTHORIZATION'=>'Bearer '.$token];
+    $uploadFixture=static function(string $name)use($tmp,$uploadTicket):array{
+        $base=$tmp.'/upload-'.$name;$app=$base.'/app';$dir=$base.'/max-search-bot-hotel-server/ingress-v1';
+        mkdir($base,0700);mkdir($app,0700);mkdir(dirname($dir),0700);mkdir($dir,0700);
+        file_put_contents($dir.'/ticket.json',json_encode($uploadTicket,JSON_THROW_ON_ERROR));chmod($dir.'/ticket.json',0600);
+        return [$app,$dir];
+    };
+    $uploadCall=static function(string $root,array $request,string $bytes)use($uploadNow):array{
+        $stream=fopen('php://temp','w+b');fwrite($stream,$bytes);rewind($stream);
+        try{return HotelServerPrivateUpload::receive($root,$request,$stream,$uploadNow);}finally{fclose($stream);}
+    };
+    foreach(['missing_ticket','wrong_token','method','plain_http','foreign_host','content_type','origin','chunked','wrong_length',
+        'expired','future','long_lifetime','extra_key','size_cap','public_ticket','public_directory','ticket_symlink'] as $mode){
+        [$uploadApp,$uploadDir]=$uploadFixture($mode);$request=$uploadRequest;$ticket=$uploadTicket;
+        if($mode==='wrong_token')$request['HTTP_AUTHORIZATION']='Bearer '.str_repeat('d',64);
+        if($mode==='method')$request['REQUEST_METHOD']='GET';
+        if($mode==='plain_http')$request['HTTPS']='off';
+        if($mode==='foreign_host')$request['HTTP_HOST']='other.example';
+        if($mode==='content_type')$request['CONTENT_TYPE']='text/plain';
+        if($mode==='origin')$request['HTTP_ORIGIN']='https://other.example';
+        if($mode==='chunked')$request['HTTP_TRANSFER_ENCODING']='chunked';
+        if($mode==='wrong_length')$request['CONTENT_LENGTH']='1';
+        if($mode==='expired')$ticket['expires_at']=$uploadNow;
+        if($mode==='future')$ticket['created_at']=$uploadNow+1;
+        if($mode==='long_lifetime')$ticket['expires_at']=$ticket['created_at']+3601;
+        if($mode==='extra_key')$ticket['target_path']='PRIVATE ARBITRARY PATH';
+        if($mode==='size_cap'){$ticket['payload_bytes']=HotelServerPrivateUpload::MAX_BYTES+1;$request['CONTENT_LENGTH']=(string)$ticket['payload_bytes'];}
+        file_put_contents($uploadDir.'/ticket.json',json_encode($ticket,JSON_THROW_ON_ERROR));
+        if($mode==='missing_ticket')unlink($uploadDir.'/ticket.json');
+        if($mode==='public_ticket')chmod($uploadDir.'/ticket.json',0644);
+        if($mode==='public_directory')chmod($uploadDir,0755);
+        if($mode==='ticket_symlink'){rename($uploadDir.'/ticket.json',$uploadDir.'/target');symlink($uploadDir.'/target',$uploadDir.'/ticket.json');}
+        $result=$uploadCall($uploadApp,$request,$payload);
+        hotelHealthCheck('private ingress rejects '.$mode.' before writing',
+            $result===['code'=>404,'body'=>['ok'=>false,'state'=>'unavailable']]
+            &&!file_exists($uploadDir.'/upload.part')&&!file_exists($uploadDir.'/sealed-inputs.bin')&&!file_exists($uploadDir.'/upload.lock'));
+    }
+    [$uploadApp,$uploadDir]=$uploadFixture('valid');$maskBefore=umask();
+    $result=$uploadCall($uploadApp,$uploadRequest,$payload);$sealed=$uploadDir.'/sealed-inputs.bin';
+    hotelHealthCheck('exact sealed ingress bytes survive private atomic storage',
+        $result['code']===200&&$result['body']['state']==='stored'&&$result['body']['bytes']===strlen($payload)
+        &&$result['body']['sha256']===hash('sha256',$payload)&&file_get_contents($sealed)===$payload
+        &&(fileperms($sealed)&0777)===0600&&!file_exists($uploadDir.'/upload.part')
+        &&!str_starts_with(realpath($sealed),realpath($uploadApp).'/')&&umask()===$maskBefore);
+    $inode=fileinode($sealed);
+    hotelHealthCheck('same completed ingress is read back without replacing bytes',
+        $uploadCall($uploadApp,$uploadRequest,$payload)===$result&&fileinode($sealed)===$inode&&file_get_contents($sealed)===$payload);
+    file_put_contents($sealed,'unchanged conflicting bytes');
+    hotelHealthCheck('existing different payload is held and not overwritten',
+        $uploadCall($uploadApp,$uploadRequest,$payload)['code']===409&&file_get_contents($sealed)==='unchanged conflicting bytes');
+    foreach(['short'=>substr($payload,1),'long'=>$payload.'x','different'=>str_repeat('x',strlen($payload))] as $mode=>$bytes){
+        [$uploadApp,$uploadDir]=$uploadFixture('payload-'.$mode);
+        $result=$uploadCall($uploadApp,$uploadRequest,$bytes);$partial=$uploadDir.'/upload.part';
+        $before=file_get_contents($partial);
+        hotelHealthCheck('incomplete '.$mode.' upload is held without automatic restart',
+            $result['code']===409&&!file_exists($uploadDir.'/sealed-inputs.bin')&&(fileperms($partial)&0777)===0600
+            &&$uploadCall($uploadApp,$uploadRequest,$payload)['code']===409&&file_get_contents($partial)===$before);
+    }
+    [$uploadApp,$uploadDir]=$uploadFixture('lock');$uploadLock=fopen($uploadDir.'/upload.lock','c');chmod($uploadDir.'/upload.lock',0600);
+    flock($uploadLock,LOCK_EX);
+    hotelHealthCheck('active upload is never taken over',
+        $uploadCall($uploadApp,$uploadRequest,$payload)['code']===404&&!file_exists($uploadDir.'/upload.part'));
+    flock($uploadLock,LOCK_UN);fclose($uploadLock);
+    [$uploadApp,$uploadDir]=$uploadFixture('destination-symlink');file_put_contents($uploadDir.'/sentinel','unchanged');
+    symlink($uploadDir.'/sentinel',$uploadDir.'/sealed-inputs.bin');
+    hotelHealthCheck('destination symlink is held without touching its target',
+        $uploadCall($uploadApp,$uploadRequest,$payload)['code']===409&&file_get_contents($uploadDir.'/sentinel')==='unchanged');
     file_put_contents($app.'/fail','1');$out=[];$code=-1;
     exec(escapeshellarg(PHP_BINARY).' '.escapeshellarg($app.'/tools/hotel_work.php').' status 2>&1',$out,$code);
     hotelHealthCheck('status does not bootstrap application',$code===0&&json_decode(implode("\n",$out),true)['provider_calls']===0);

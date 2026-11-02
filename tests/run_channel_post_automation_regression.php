@@ -617,9 +617,8 @@ foreach (['timeout_applied','timeout_unapplied'] as $mode) {
     channelPostCheck('album lost response never repeats PUT', $p->writes(),1);
 }
 
-// MAX videos use their reusable media token as identity; URL/thumbnail expiry
-// must not substitute another clip or require downloading/re-uploading it.
-$videoAttachment = ['type'=>'video','payload'=>['token'=>'fixture-private-video-token_A1','url'=>'https://cdn.example.test/video?expires=1'],
+// MAX renews video tokens and URLs while preserving explicit payload.id.
+$videoAttachment = ['type'=>'video','payload'=>['id'=>12345678901234,'token'=>'fixture-private-video-token_A1','url'=>'https://cdn.example.test/video?expires=1'],
     'thumbnail'=>['url'=>'https://cdn.example.test/video-thumb?expires=1'],'width'=>1920,'height'=>1080,'duration'=>37];
 $videoPost = channelPostMaxAlbum($fixtures['max'],0);
 $videoPost['body']['mid'] = 'mid.video-only';
@@ -649,14 +648,16 @@ foreach (['video-only'=>$videoPost,'mixed'=>$mixedVideoPost] as $videoKind=>$vid
 }
 $videoHash=ChannelPostIncomingAdapter::contentFingerprint(ChannelPostIncomingAdapter::maxSnapshot($videoPost));
 $videoRenewed=$videoPost;
+$videoRenewed['body']['attachments'][0]['payload']['token']='fixture-private-video-token_B2';
+$videoRenewed['body']['attachments'][0]['payload']['id']='12345678901234';
 $videoRenewed['body']['attachments'][0]['payload']['url']='https://cdn.example.test/video?expires=2';
 $videoRenewed['body']['attachments'][0]['thumbnail']['url']='https://cdn.example.test/video-thumb?expires=2';
-channelPostCheck('MAX renewed video playback and thumbnail URLs keep clip identity',ChannelPostIncomingAdapter::contentFingerprint(ChannelPostIncomingAdapter::maxSnapshot($videoRenewed)),$videoHash);
+channelPostCheck('MAX renewed token playback and thumbnail URLs keep numeric or string clip identity',ChannelPostIncomingAdapter::contentFingerprint(ChannelPostIncomingAdapter::maxSnapshot($videoRenewed)),$videoHash);
 [$videoStore,$videoProvider,$videoTransport,$videoService]=channelPostScenario($videoPost);
 channelPostReceive($videoService,$videoPost);$videoProvider->message=$videoRenewed;
 channelPostCheck('MAX fresh renewed video URLs still permit exact-token edit',channelPostRun($videoService)[0]['state']??'','sent');
-$videoChanged=$videoPost;$videoChanged['body']['attachments'][0]['payload']['token']='fixture-different-video';
-channelPostCheck('MAX different video token changes content identity',ChannelPostIncomingAdapter::contentFingerprint(ChannelPostIncomingAdapter::maxSnapshot($videoChanged))!==$videoHash);
+$videoChanged=$videoPost;$videoChanged['body']['attachments'][0]['payload']['id']=12345678901235;
+channelPostCheck('MAX different video ID changes identity even with the same reusable token',ChannelPostIncomingAdapter::contentFingerprint(ChannelPostIncomingAdapter::maxSnapshot($videoChanged))!==$videoHash);
 [$videoStore,$videoProvider,$videoTransport,$videoService]=channelPostScenario($videoPost);
 channelPostReceive($videoService,$videoPost);$videoProvider->message=$videoChanged;
 channelPostCheck('MAX changed clip before edit is rejected without PUT',[channelPostRun($videoService)[0]['reason']??'',$videoProvider->writes()],['post_changed_since_event',0]);
@@ -666,6 +667,24 @@ foreach ([null,'',123,true,'bad token','bad/token',"bad-token\n",['unexpected']]
     $videoInvalid=channelPostReceive($videoService,$invalidVideo);
     channelPostCheck('MAX invalid or missing video identity requires attention before provider access',[$videoInvalid['state'],$videoInvalid['reason'],count($videoProvider->calls)],['requires_attention','video_token_invalid',0]);
 }
+foreach ([null,'',0,-1,true,12345678901234.0,'012345678901234','+12345678901234','1e14','12345678901234 ','123456789012345678901',[]] as $invalidVideoId) {
+    $invalidVideo=$videoPost;$invalidVideo['body']['attachments'][0]['payload']['id']=$invalidVideoId;
+    [$videoStore,$videoProvider,$videoTransport,$videoService]=channelPostScenario($invalidVideo);
+    $videoInvalid=channelPostReceive($videoService,$invalidVideo);
+    channelPostCheck('MAX missing or malformed stable video ID fails before provider access',[$videoInvalid['state'],$videoInvalid['reason'],count($videoProvider->calls)],['requires_attention','video_stable_id_missing',0]);
+}
+[$videoStore,$videoProvider,$videoTransport,$videoService]=channelPostScenario($videoPost);
+$rotatingObserved=channelPostReceive($videoService,$videoPost);
+$videoProvider->onRead=static function()use($videoProvider):void{
+    $videoProvider->message['body']['attachments'][0]['payload']['token']='fixture-rotated-read-'.count($videoProvider->calls);
+    $videoProvider->message['body']['attachments'][0]['payload']['url']='https://renewed-cdn.example.test/video?read='.count($videoProvider->calls);
+};
+$rotatingResult=channelPostRun($videoService)[0];
+$rotatingWrite=array_values(array_filter($videoProvider->calls,static fn($c)=>$c['method']==='PUT'))[0];
+channelPostCheck('MAX video token rotation before and after PUT preserves the same clip',[$rotatingResult['state'],$rotatingResult['receipt']['content_preserved'],$rotatingResult['receipt']['button_verified'],$videoProvider->writes()],['sent',true,true,1]);
+channelPostCheck('MAX edit uses the exact token obtained immediately before PUT',$rotatingWrite['body']['attachments'][0]['payload']['token'],'fixture-rotated-read-3');
+$rotatingSelf=channelPostReceive($videoService,$videoProvider->message,'max',true);
+channelPostCheck('MAX rotated-token self edit does not create another version or PUT',[$rotatingSelf['version_id'],channelPostRun($videoService),$videoProvider->writes()],[$rotatingObserved['version_id'],[],1]);
 foreach ([10,11] as $mixedPhotoCount) {
     $videoBoundary=channelPostMaxAlbum($fixtures['max'],$mixedPhotoCount);
     array_splice($videoBoundary['body']['attachments'],1,0,[$videoAttachment]);
@@ -684,7 +703,7 @@ foreach (['timeout_applied','timeout_unapplied'] as $videoMode) {
 }
 [$videoStore,$videoProvider,$videoTransport,$videoService]=channelPostScenario($videoPost);
 channelPostReceive($videoService,$videoPost);
-$videoProvider->onRead=static function()use($videoProvider):void{if($videoProvider->writes()>0)$videoProvider->message['body']['attachments'][0]['payload']['token']='fixture-unexpected-video-after-edit';};
+$videoProvider->onRead=static function()use($videoProvider):void{if($videoProvider->writes()>0)$videoProvider->message['body']['attachments'][0]['payload']['id']=12345678901236;};
 $videoResult=channelPostRun($videoService);
 channelPostCheck('MAX changed video in post-edit readback cannot be marked preserved',[$videoResult[0]['state']??'',$videoResult[0]['receipt']['content_preserved']??null],['unknown',false]);
 channelPostRun($videoService);
@@ -698,6 +717,49 @@ $durableVideoSaved=$actualRegistry->publication($durableVideoObserved['publicati
 channelPostCheck('actual registry stores video edit receipt with one durable write',[$durableVideoResult['state'],$durableVideoSaved['state'],$durableVideoSaved['write_attempts']],['sent','sent',1]);
 channelPostCheck('actual immutable video snapshot retains complete original message',$durableVideoSaved['snapshot']['raw_body'],$durableVideo);
 channelPostCheck('actual video self-edit keeps original version and token',channelPostReceive($durableVideoService,$durableVideoProvider->message,'max',true)['version_id'],$durableVideoObserved['version_id']);
+
+// Historical snapshots and hashes stay immutable during the token-to-ID change.
+$legacyVideoSnapshot=ChannelPostIncomingAdapter::maxSnapshot($videoPost);
+unset($legacyVideoSnapshot['attachments'][0]['video_id']);
+channelPostCheck('old normalized video safely recovers its ID from bound raw media',ChannelPostIncomingAdapter::contentFingerprint($legacyVideoSnapshot),$videoHash);
+foreach (['token','count','type','order'] as $brokenBinding) {
+    $unbound=ChannelPostIncomingAdapter::maxSnapshot($mixedVideoPost);
+    unset($unbound['attachments'][1]['video_id']);
+    if($brokenBinding==='token')$unbound['raw_body']['body']['attachments'][1]['payload']['token']='unbound-token';
+    elseif($brokenBinding==='count')array_pop($unbound['attachments']);
+    elseif($brokenBinding==='type')$unbound['raw_body']['body']['attachments'][1]['type']='image';
+    else $unbound['raw_body']['body']['attachments']=array_reverse($unbound['raw_body']['body']['attachments']);
+    channelPostCheck('legacy raw video ID rejects mismatched '.$brokenBinding.' binding',ChannelPostIncomingAdapter::maxVideoIds($unbound)[1]??null,'');
+}
+foreach (['sent','unknown','claimed','write_started','unresolved_unknown'] as $legacyState) {
+    $legacyMessage=$videoPost;$legacyMessage['body']['mid']='mid.legacy-token-hash-'.$legacyState;
+    $legacySnapshot=ChannelPostIncomingAdapter::maxSnapshot($legacyMessage);
+    unset($legacySnapshot['attachments'][0]['video_id']);
+    if($legacyState==='unresolved_unknown')unset($legacySnapshot['raw_body']['body']['attachments'][0]['payload']['id']);
+    $opaqueSnapshot=$legacySnapshot;unset($opaqueSnapshot['raw_body']);
+    $legacySnapshot['content_hash']=ChannelPostIncomingAdapter::contentFingerprint($opaqueSnapshot);
+    $legacyPost=$actualRegistry->registerPublication('anytour','max','id9704048781_1_bot',(string)$legacyMessage['recipient']['chat_id'],$legacyMessage['body']['mid'],$legacySnapshot);
+    $state=$legacyState==='unresolved_unknown'?'unknown':$legacyState;$held=in_array($state,['claimed','write_started'],true);
+    $q=$pdo->prepare('UPDATE post_versions SET state=?,write_attempts=?,claim_token=?,claimed_at=? WHERE id=?');
+    $q->execute([$state,$state==='claimed'?0:1,$held?'fixture-held':null,$held?gmdate('Y-m-d H:i:s'):null,$legacyPost['version_id']]);
+    $rowBefore=$pdo->query('SELECT * FROM post_versions WHERE id='.(int)$legacyPost['version_id'])->fetch();
+    $incoming=$legacyMessage;$incoming['body']['attachments'][0]['payload']['token']='fixture-renewed-'.$legacyState;
+    if($state==='sent')$incoming['body']['attachments']=[ $incoming['body']['attachments'][0], ['type'=>'inline_keyboard','payload'=>['buttons'=>[[['type'=>'link','text'=>'Рассчитать на мои даты','url'=>ChannelPostButtonTransport::buttonUrl($legacyPost)]]]]] ];
+    $incomingSnapshot=ChannelPostIncomingAdapter::fromUpdate('max',channelPostUpdate($incoming,'max',true))['snapshot'];
+    $incomingSnapshot['content_hash']=ChannelPostIncomingAdapter::contentFingerprint($incomingSnapshot);
+    $same=$actualRegistry->registerPublication('anytour','max','id9704048781_1_bot',(string)$incoming['recipient']['chat_id'],$incoming['body']['mid'],$incomingSnapshot);
+    channelPostCheck('token fingerprint upgrade retains '.$legacyState.' operation without replay',[$same['version_id'],$same['state'],$same['start_payload']],[$legacyPost['version_id'],$state,$legacyPost['start_payload']]);
+    channelPostCheck('token fingerprint upgrade never rewrites immutable '.$legacyState.' snapshot or hash',$pdo->query('SELECT * FROM post_versions WHERE id='.(int)$legacyPost['version_id'])->fetch(),$rowBefore);
+    if($legacyState==='unknown') {
+        $incoming['body']['attachments']=[ $incoming['body']['attachments'][0], ['type'=>'inline_keyboard','payload'=>['buttons'=>[[['type'=>'link','text'=>'Рассчитать на мои даты','url'=>ChannelPostButtonTransport::buttonUrl($legacyPost)]]]]] ];
+        $legacyProvider=new FixturePostProvider($incoming);
+        $legacyService=new ChannelPostAutomationService($actualRegistry,new ChannelPostButtonTransport([$legacyProvider,'request']));
+        $confirmed=channelPostReceive($legacyService,$incoming,'max',true);
+        channelPostCheck('authenticated own button confirms old token-hash UNKNOWN without a provider request',[$confirmed['state'],$confirmed['version_id'],count($legacyProvider->calls),$actualRegistry->publication($legacyPost['publication_id'])['write_attempts']],['sent',$legacyPost['version_id'],0,1]);
+        $confirmedRow=$pdo->query('SELECT * FROM post_versions WHERE id='.(int)$legacyPost['version_id'])->fetch();
+        channelPostCheck('old UNKNOWN confirmation preserves its original snapshot and hash',[$confirmedRow['snapshot_json'],$confirmedRow['content_hash']],[$rowBefore['snapshot_json'],$rowBefore['content_hash']]);
+    }
+}
 
 foreach (['max','telegram'] as $platform) {
     [$s,$p,$tr,$svc]=channelPostScenario($fixtures[$platform],$platform);
@@ -845,4 +907,5 @@ foreach(['max','telegram'] as $platform){
 
 echo 'Channel post automation: ' . $passed . ' passed, ' . $failed . ' failed' . PHP_EOL;
 exit($failed === 0 ? 0 : 1);
+
 
