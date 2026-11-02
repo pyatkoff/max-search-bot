@@ -103,8 +103,8 @@ jobs:
           lines=pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.json').read_text().splitlines()
           d=json.loads(lines[-1])
           print(json.dumps(d,ensure_ascii=False,sort_keys=True))
-          assert d['operation']=='commercial-hotel-stock-20261102-12-read1' and d['mode']=='read_public_catalog_candidates'
-          assert d['ok'] is True and len(d['candidates'])==25
+          assert d['operation']=='commercial-hotel-stock-20261102-12-read2' and d['mode']=='read_public_catalog_candidates'
+          assert d['ok'] is True and len(d['candidates'])==3
           assert d['provider_calls']==0 and d['message_sends']==0 and d['db_writes']==0
           PY
           test "${probe_status:-0}" = 0
@@ -112,7 +112,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-hotel-stock-20261102-12-read1
+          name: commercial-hotel-stock-20261102-12-read2
           path: ${{ runner.temp }}/channel-preflight.json
           retention-days: 14
           if-no-files-found: warn

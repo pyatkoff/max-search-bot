@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 ini_set('display_errors','0');ini_set('log_errors','0');
-$out=['operation'=>'commercial-hotel-stock-20261102-12-read1','mode'=>'read_public_catalog_candidates','ok'=>false,'db_writes'=>0,'provider_calls'=>0,'message_sends'=>0];
+$out=['operation'=>'commercial-hotel-stock-20261102-12-read2','mode'=>'read_public_catalog_candidates','ok'=>false,'db_writes'=>0,'provider_calls'=>0,'message_sends'=>0];
 function insist(bool $ok,string $why):void{if(!$ok)throw new RuntimeException($why);}
 try {
     if(PHP_SAPI!=='cli'||trim((string)shell_exec('git rev-parse HEAD'))!==EXPECTED_INSTALLED_SHA)throw new RuntimeException('installed_source_changed');
@@ -50,31 +50,9 @@ try {
     insist(count($countries)===1,'egypt_catalog_identity_not_unique');
     $country=(int)$countries[0]['id'];
     $groups=[
-        "jaz-grand-marsa"=>["jaz grand marsa","джаз гранд марса"],
-        "jaz-samaya"=>["jaz samaya","джаз самая"],
-        "jaz-elite-maraya"=>["jaz elite maraya","jaz maraya"],
-        "jaz-costa-mares"=>["jaz costa mares","джаз коста марес"],
-        "jaz-elite-amara"=>["jaz elite amara","jaz amara"],
-        "jaz-soma-beach"=>["jaz soma beach"],
-        "jaz-belvedere"=>["jaz belvedere"],
-        "jaz-mirabel-beach"=>["jaz mirabel beach"],
-        "jaz-fayrouz"=>["jaz fayrouz","fayrouz resort"],
-        "jaz-neo-reef-marsa"=>["neo reef marsa","solymar reef marsa"],
-        "steigenberger-coraya-beach"=>["steigenberger coraya beach","coraya beach"],
-        "steigenberger-alaya"=>["steigenberger alaya"],
-        "steigenberger-ras-soma"=>["steigenberger ras soma"],
-        "iberotel-makadi-beach"=>["iberotel makadi beach"],
-        "albatros-citadel"=>["albatros citadel","citadel resort"],
-        "albatros-sands-port-ghalib"=>["sands port ghalib"],
-        "albatros-palace-port-ghalib"=>["palace port ghalib"],
-        "albatros-oasis-port-ghalib"=>["oasis port ghalib"],
-        "albatros-jungle-neverland"=>["jungle aqua park","neverland jungle"],
-        "albatros-aqua-park-sharm"=>["albatros aqua park sharm"],
-        "albatros-aqua-blu-sharm"=>["albatros aqua blu resort sharm","albatros aqua blu sharm"],
-        "beach-albatros"=>["beach albatros resort"],
-        "desert-rose"=>["desert rose"],
-        "sunrise-remal-resort"=>["sunrise remal resort"],
-        "reef-oasis-beach"=>["reef oasis beach"],
+        "alaya"=>["alaya"],
+        "ras-soma"=>["ras soma"],
+        "sentido-reef-oasis-senses"=>["sentido reef oasis senses"],
     ];
     $publications=ConversationDb::connection()->query("SELECT pp.post_channel_id,v.snapshot_json FROM post_publications pp JOIN post_versions v ON v.id=pp.current_version_id WHERE pp.post_channel_id IN (9,10) ORDER BY pp.id LIMIT 2000")->fetchAll(PDO::FETCH_ASSOC);
     $out['candidates']=[];
