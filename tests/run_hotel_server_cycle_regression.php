@@ -183,4 +183,7 @@ $f=hsFixture();try{
     hsCheck(hsCount($f['p'],'hotel_server_campaigns')===0&&hsCount($f['p'],'hotel_server_attempts')===0&&count($f['provider']->requests)===0,'extra raw field cannot persist an assignment or send');
 }finally{hsCleanup($f);}
 
+require __DIR__.'/fixtures/hotel_retained_baseline_cases.php';
+
 echo 'HOTEL SERVER CYCLE '.(getenv('HOTEL_WORK_NATIVE_MYSQL')==='1'?'NATIVE MYSQL':'SQLITE').': '.$hsChecks." PASS\n";
+

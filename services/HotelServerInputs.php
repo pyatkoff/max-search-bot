@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__.'/HotelRetainedBaseline.php';
 
 /** Private, immutable input ingestion. This class never writes old queue state. */
 final class HotelServerInputs
@@ -153,6 +154,7 @@ final class HotelServerInputs
             $bytes[$name] = file_get_contents($path);
             if (!is_string($bytes[$name]) || !hash_equals(self::sha($item['sha256'] ?? null), hash('sha256', $bytes[$name]))) throw new DomainException('private_file_hash');
         }
+        $bytes['retained_parts']=HotelRetainedBaseline::load($bytes['baseline'],$realRoot);
         return self::validate($retirement, $expectedRetirement, $bytes);
     }
 
@@ -187,6 +189,8 @@ final class HotelServerInputs
             $seen[$key]=true;
         }
         if(count($seen)!==count($expectedScopes))throw new DomainException('incomplete_accepted_projection');
+        $retained=HotelRetainedBaseline::validate($bytes['baseline'],$bytes['retained_parts']??[],$registry,$approved);
+        foreach($retained['exclusions'] as $key=>$kind)if(!isset($excluded[$key]))$excluded[$key]=$kind;
         $contexts=json_decode($bytes['stage_contexts'],true,64,JSON_THROW_ON_ERROR);
         if(!is_array($contexts)||!array_is_list($contexts)||!$contexts)throw new DomainException('scoped_dependency_projection_required');
         $scoped=[];
@@ -202,10 +206,11 @@ final class HotelServerInputs
             $scoped[$key]=['scope'=>$view['scope'],'dependencies'=>$deps];
         }
         ksort($excluded);
-        $identity=['schema'=>'hotel-server-inputs-v1','retirement_sha256'=>$expected,'pins'=>$pins,'registry'=>$registry,'quarantine'=>$quarantine,'exclusions'=>$excluded,'accepted_context'=>$approved,'stage_contexts'=>$scoped];
+        $identity=['schema'=>'hotel-server-inputs-v2','retirement_sha256'=>$expected,'pins'=>$pins,'registry'=>$registry,'quarantine'=>$quarantine,'exclusions'=>$excluded,'accepted_context'=>$approved,'stage_contexts'=>$scoped,'retained'=>$retained];
         return new self($identity+['inputs_sha256'=>hash('sha256',self::json($identity)),'bytes'=>$bytes]);
     }
 
     private static function inside(string $path, string $root): bool
     { return str_starts_with(str_replace('\\','/',$path), rtrim(str_replace('\\','/',$root),'/') . '/'); }
 }
+

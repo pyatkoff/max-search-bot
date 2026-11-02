@@ -11,6 +11,8 @@ require_once __DIR__.'/HotelServerProvider.php';
 final class HotelServerCycle
 {
     private string $driver;
+    private ?array $inputCache = null;
+    private ?string $inputCacheCampaign = null;
     public function __construct(private PDO $pdo, private HotelServerLane $lane, private ?HotelServerProvider $provider = null,
         private $clock = null, private $fault = null)
     {
@@ -207,7 +209,7 @@ final class HotelServerCycle
     }
 
 
-    /** Complete verified accepted view. Raw retained bytes are never model input. */
+    /** Verified receipt facts plus bounded explicit earlier facts with their original qualifiers. */
     public function readAccepted(string $id): array
     {
         return $this->tx($id,function(?array $c):array{
@@ -215,9 +217,29 @@ final class HotelServerCycle
         });
     }
 
+    /** Private, bounded access to all original variants, including unadmitted facts and sources. */
+    public function readRetained(string $id,string $family,int $offset=0,int $limit=50): array
+    {
+        return $this->tx($id,function(?array $c)use($family,$offset,$limit):array{
+            $c=$this->required($c);$this->verifyInputs($c);$p=$this->package($c['campaign_id']);
+            return ['baseline_sha256'=>$c['baseline_sha256'],'inputs_sha256'=>$c['inputs_sha256']]
+                +HotelRetainedBaseline::page($p['retained'],$p['bytes']['retained_parts'],$family,$offset,$limit);
+        });
+    }
+
+    public function readRetainedDocument(string $id,string $file): string
+    {
+        $result=$this->tx($id,function(?array $c)use($file):array{
+            $c=$this->required($c);$this->verifyInputs($c);$p=$this->package($c['campaign_id']);
+            return ['bytes'=>HotelRetainedBaseline::document($p['retained'],$p['bytes']['retained_parts'],$file)];
+        });
+        return $result['bytes'];
+    }
+
     private function acceptedView(array $c,?array $scopes): array
     {
         $p=$this->package($c['campaign_id']);$records=[];
+        foreach($p['retained']['model_records'] as $r)$records[HotelServerInputs::key($r['scope'])]=$r;
         foreach($p['accepted_context'] as $r)$records[HotelServerInputs::key($r['scope'])]=$r;
         $hash=$c['baseline_sha256'];$deltas=[];$seen=[];
         while($hash!==$p['pins']['baseline']){
@@ -262,6 +284,7 @@ final class HotelServerCycle
         $p=$this->package($c['campaign_id']); $identity=$p; unset($identity['inputs_sha256'],$identity['bytes']);
         if (hash('sha256',HotelServerInputs::json($identity))!==$c['inputs_sha256'] || $p['inputs_sha256']!==$c['inputs_sha256'] || count($p['registry'])!==19) throw new DomainException('immutable_inputs_mismatch');
         foreach (HotelServerInputs::REQUIRED as $name) if (hash('sha256',$p['bytes'][$name])!==$p['pins'][$name]) throw new DomainException('immutable_input_bytes_mismatch');
+        HotelRetainedBaseline::verify($p['retained']??[],$p['bytes']['retained_parts']??[]);
         $b=$this->one('SELECT document_bytes FROM hotel_server_baselines WHERE campaign_id=? AND baseline_sha256=?',[$c['campaign_id'],$c['baseline_sha256']]);
         if (!$b || hash('sha256',$b['document_bytes'])!==$c['baseline_sha256']) throw new DomainException('baseline_bytes_mismatch');
     }
@@ -271,6 +294,7 @@ final class HotelServerCycle
         $package=$this->package($id);
         foreach ($scopes as $scope) {
             $key=HotelServerInputs::key($scope);
+            HotelRetainedBaseline::assertScope($package['retained'],$scope);
             if(!isset($package['stage_contexts'][$key]))throw new DomainException('scoped_dependency_projection_required');
             if ($this->one('SELECT semantic_key FROM hotel_server_exclusions WHERE campaign_id=? AND semantic_key=?',[$id,$key])
                 || $this->one('SELECT semantic_key FROM hotel_server_records WHERE semantic_key=?',[$key])) throw new DomainException('accepted_or_reserved_scope');
@@ -298,12 +322,18 @@ final class HotelServerCycle
     private function tx(string $id,callable $f): array
     {
         self::id($id);
-        return $this->lane->own($id,function() use($id,$f): array {
-            $c=$this->one('SELECT * FROM hotel_server_campaigns WHERE campaign_id=?'.$this->lock(),[$id]);
-            return $f($c);
-        });
+        try {
+            return $this->lane->own($id,function() use($id,$f): array {
+                $c=$this->one('SELECT * FROM hotel_server_campaigns WHERE campaign_id=?'.$this->lock(),[$id]);
+                return $f($c);
+            });
+        } finally { $this->inputCache=null; $this->inputCacheCampaign=null; }
     }
-    private function package(string $id): array { return json_decode($this->required($this->one('SELECT package_bytes FROM hotel_server_inputs WHERE campaign_id=?',[$id]))['package_bytes'],true,64,JSON_THROW_ON_ERROR); }
+    private function package(string $id): array {
+        if($this->inputCache!==null&&$this->inputCacheCampaign===$id)return $this->inputCache;
+        $this->inputCache=json_decode($this->required($this->one('SELECT package_bytes FROM hotel_server_inputs WHERE campaign_id=?',[$id]))['package_bytes'],true,64,JSON_THROW_ON_ERROR);
+        $this->inputCacheCampaign=$id;return $this->inputCache;
+    }
     private function plan(array $c): array { return json_decode($c['plan_bytes'],true,64,JSON_THROW_ON_ERROR); }
     private function candidate(string $id,int $stage): array {
         $c=$this->required($this->one('SELECT * FROM hotel_server_candidates WHERE campaign_id=? AND stage_index=?'.$this->lock(),[$id,$stage]));
@@ -329,3 +359,4 @@ final class HotelServerCycle
     private function exec(string $sql,array $args): int { $s=$this->pdo->prepare($sql); $s->execute($args); return $s->rowCount(); }
     private static function id(string $id): void { if ($id===HotelServerInputs::OLD_QUEUE || !preg_match('/\A[A-Za-z0-9][A-Za-z0-9_-]{0,79}\z/D',$id)) throw new DomainException('new_campaign_id_required'); }
 }
+

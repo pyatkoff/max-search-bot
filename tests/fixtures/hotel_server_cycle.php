@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once dirname(__DIR__,2).'/services/HotelServerCycle.php';
 require_once dirname(__DIR__,2).'/services/HotelServerCatalogProjector.php';
+require_once __DIR__.'/hotel_retained_baseline.php';
 
 function hsScope(string $hotel): array { return ['country'=>'ZZ','hotel'=>$hotel,'question'=>'synthetic-question','source'=>'synthetic-source']; }
 function hsLegacy(): array
@@ -22,7 +23,7 @@ function hsInputs(?array $mapping=null,?array $contexts=null): HotelServerInputs
     $ret=hsLegacy(); $pin=hash('sha256',$ret['receipt_bytes']); $registry=HotelServerInputs::registry($ret,$pin);
     $mapping??=array_map(static fn(array $r): array=>$r+['scopes'=>[hsScope('old-'.$r['stage_index'])]],$registry);
     $bytes=array_fill_keys(HotelServerInputs::REQUIRED,'synthetic immutable input');
-    $bytes['baseline']='synthetic original baseline bytes; never modified';
+    [$bytes['baseline'],$bytes['retained_parts']]=hrBundle();
     $bytes['accepted_mapping']=HotelServerInputs::json($mapping); $bytes['reserves']=HotelServerInputs::json([hsScope('reserve')]);
     $held=HotelServerInputs::quarantine($ret,$pin);
     $bytes['quarantine_mapping']=HotelServerInputs::json(array_map(static fn(array $r):array=>$r+['scopes'=>[hsScope('TR40-held')]],$held));
@@ -112,3 +113,4 @@ function hsCleanup(array &$f): void
     $f['admin']=null;
     foreach(glob($f['dir'].'/*')?:[] as $file) unlink($file);rmdir($f['dir']);
 }
+
