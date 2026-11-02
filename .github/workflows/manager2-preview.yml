@@ -32,7 +32,6 @@ jobs:
       NODE_PATH: /opt/manager2-qa/node_modules
       DIAG_PRODUCT_ROOT: ${{ github.workspace }}/product
       DIAG_OBSERVER_ROOT: ${{ github.workspace }}/diagnostic/tools/diagnostics/manager2-overlay
-      DIAG_OUTPUT_DIR: ${{ runner.temp }}/manager2-overlay-causal
       M2_QA_SOURCE_ROOT: ${{ github.workspace }}/product
       GIT_CONFIG_COUNT: "1"
       GIT_CONFIG_KEY_0: safe.directory
@@ -54,9 +53,12 @@ jobs:
           persist-credentials: false
       - name: Prepare the evidence directory
         working-directory: product
+        env:
+          DIAG_OUTPUT_DIR: ${{ runner.temp }}/manager2-overlay-causal
         run: |
           set -euo pipefail
           mkdir -p "$DIAG_OUTPUT_DIR"
+          printf 'DIAG_OUTPUT_DIR=%s\n' "$DIAG_OUTPUT_DIR" >> "$GITHUB_ENV"
           chown "$(id -u):$(id -g)" "$HOME"
       - name: Verify pinned runtime and execute one observed original case
         working-directory: product
