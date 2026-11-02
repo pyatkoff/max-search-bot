@@ -1,0 +1,22 @@
+{
+  "operation": "commercial-scale-500-20261102-v1",
+  "state": "OFFLINE_BATCH_PREPARER_PENDING",
+  "target_logical_materials": 500,
+  "confirmed_logical_materials": 30,
+  "preparation_buffer": 25,
+  "max_hotels_per_send": 10,
+  "max_channel_posts_per_send": 20,
+  "scope": "Existing Telegram/MAX bot publisher and durable once accounting. No new runtime service, queue, controller, uploader or worker.",
+  "ready_requires": [
+    "Exact active catalogue identity and live duplicate check.",
+    "Complete human hotel text with primary sources and known material limits.",
+    "Real official photographs, accepted AnyTour cover, native PNG and visual checks.",
+    "Immutable manifest and approved finite hotel list, with current production/source/host/TLS/schema/rights gates before send."
+  ],
+  "not_ready": [
+    "The larger batch has not yet been used for a live send.",
+    "500 catalogue entries are not 500 accepted posts; candidate or unverified source material cannot count as ready.",
+    "Existing Canva copy/editing preparation still supplies the approved covers; unavailable autofill must not be retried."
+  ],
+  "next": "Validate the bounded offline preparer, prepare the next ready material batch, then use the existing guarded server route with its exact finite approved scope."
+}
