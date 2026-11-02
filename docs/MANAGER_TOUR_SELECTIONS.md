@@ -1,5 +1,25 @@
 # Manager2 tour selection constructor
 
+## Print the exact preview (editor 0.2.8)
+
+In a ready preview or a saved historical version, **Печать / PDF** opens the
+browser's print dialog in the same page. Choose a printer or Save as PDF there.
+The print document contains the frozen title/version and each canonical card's
+text, price, conditions and all available photos, in their original order.
+It does not reconstruct terms from the current editable draft, expose private
+notes/conversation text, publish a link, send a message or open another tab.
+The current card renderer is reused; no extra claims about room photos are added.
+
+Printing waits for all preview photos to load successfully. The actual loaded
+image nodes are temporarily moved into the print document, avoiding a second
+private-photo fetch. Closing/cancelling printing restores those nodes; editing,
+closing the editor or switching client removes the print document. Cancelling
+the browser dialog changes no draft, sent version or delivery result. The
+protected tours iframe adds only the standard `allow-modals` capability needed
+for `window.print`; existing origin, account, CSP and navigation fences remain.
+Synthetic browser print-media evidence is separate from a real installed-device
+print or an independent manager acceptance.
+
 ## Manager overview and editing
 
 Opening a saved selection starts with the selected offer's hotel, date/nights,

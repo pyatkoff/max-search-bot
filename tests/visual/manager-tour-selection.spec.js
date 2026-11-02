@@ -1405,7 +1405,50 @@ test('imported photo correction pending upload cannot write to the next client',
  await expect(page.locator('#tsEmptyAdd')).toBeVisible();expect(s.drafts.has(12)).toBe(false);expect(s.calls.filter(x=>x.action==='save')).toHaveLength(0);expect(s.drafts.get(11).draft).toEqual(draft);clean(s);
 });
 
+for(const width of [390,1440])test('selection print uses exact frozen cards and loaded photos without a tab or write at '+width,async({page,browserName})=>{
+ await page.setViewportSize({width,height:900});const draft=completeDraft();draft.offers.push({...copy(draft.offers[0]),id:'b'.repeat(32),hotel:'Второй синтетический отель',amount:'123456.78',currency:'EUR'});
+ const s=await fixture(page,{draft});await page.locator('#replyText').fill('PRIVATE COMPOSER MUST NOT PRINT');await open(page);await expect(page.locator('#tsPrint')).toBeHidden();await page.locator('#tsPreview').click();await expect(page.locator('#tsPrint')).toBeEnabled();
+ const calls=copy(s.calls),original=copy(s.publication()),before=copy(s.drafts.get(11)),pages=page.context().pages().length;
+ const requests=[];page.on('request',req=>requests.push(req.url()));
+ await page.evaluate(()=>{window.printCalls=0;window.print=()=>{printCalls++};window.previewImages=Array.from(document.querySelectorAll('.tsPhotos img'))});
+ await page.locator('#tsPrint').click();expect(await page.evaluate(()=>printCalls)).toBe(1);expect(s.calls).toEqual(calls);expect(s.creations()).toBe(0);expect(s.drafts.get(11)).toEqual(before);expect(page.context().pages()).toHaveLength(pages);expect(requests).toEqual([]);
+ expect(await page.locator('.tsPrintOffer .tsCardText').allTextContents()).toEqual(original.cards.map(card=>card.text));await expect(page.locator('.tsPrintVersion')).toHaveText('Версия подборки 1');
+ expect(await page.evaluate(()=>previewImages.every(img=>img.closest('.tsPrintProposal')&&img.complete&&img.naturalWidth>0))).toBe(true);
+ await page.emulateMedia({media:'print'});await expect(page.locator('.tsPrintProposal')).toBeVisible();await expect(page.locator('.tsShell')).toBeHidden();await expect(page.locator('#replyText')).toBeHidden();await expect(page.locator('.tsPrintProposal')).not.toContainText('PRIVATE COMPOSER');
+ await expect(page.locator('.tsPrintPhotos img')).toHaveCount(6);expect(await page.locator('.tsPrintPhotos img').evaluateAll(imgs=>imgs.every(img=>getComputedStyle(img).display!=='none'&&img.getBoundingClientRect().width>0))).toBe(true);
+ expect(await page.locator('.tsPrintProposal').evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
+ fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',fullPage:true,path:path.join(root,'manager2-artifacts',`tour-selection-print-${browserName}-${width}.png`)});
+ await page.evaluate(()=>window.dispatchEvent(new Event('afterprint')));await page.emulateMedia({media:'screen'});await expect(page.locator('.tsPrintProposal')).toHaveCount(0);await expect(page.locator('#tsPrint')).toBeEnabled();
+ expect(await page.evaluate(()=>previewImages.every(img=>img.closest('.tsPreviewCard')))).toBe(true);await page.locator('#tsEdit').click();await page.locator('#tsClose').click();await expect(page.locator('#replyText')).toHaveValue('PRIVATE COMPOSER MUST NOT PRINT');expect(s.calls).toEqual(calls);clean(s,deliveryActions);
+});
+for(const failed of [false,true])test('selection print blocks '+(failed?'broken':'pending')+' preview photos',async({page})=>{
+ const s=await fixture(page,{draft:completeDraft(),holdPhotos:!failed,photoError:failed});await open(page);await page.locator('#tsPreview').click();await expect(page.locator('.tsPreviewCard')).toHaveCount(1);await expect(page.locator('#tsPrint')).toBeDisabled();
+ await page.evaluate(()=>{window.printCalls=0;window.print=()=>{printCalls++};document.getElementById('tsPrint').click()});expect(await page.evaluate(()=>printCalls)).toBe(0);
+ if(!failed){s.releasePhotos();await expect(page.locator('#tsPrint')).toBeEnabled()}else await expect(page.locator('#tsStatus')).toContainText('Не удалось загрузить фото');clean(s,deliveryActions);
+});
+test('selection readonly history prints original terms after the editable draft changed',async({page})=>{
+ const options={draft:completeDraft()},s=await fixture(page,options);await open(page);await page.locator('#tsPreview').click();await expect(page.locator('#tsPrint')).toBeEnabled();const original=copy(s.publication());await page.locator('#tsEdit').click();await page.locator('#ts-hotel').fill('NEW PRIVATE DRAFT');await save(page);await page.locator('#tsClose').click();options.readOnly=true;await open(page);
+ await page.locator('#tsHistory').click();await page.getByRole('button',{name:/Версия 1 ·/}).click();await expect(page.locator('#tsPrint')).toBeEnabled();const before=copy(s.calls);await page.evaluate(()=>{window.print=()=>{}});await page.locator('#tsPrint').click();expect(await page.locator('.tsPrintOffer .tsCardText').allTextContents()).toEqual(original.cards.map(card=>card.text));await expect(page.locator('.tsPrintProposal')).not.toContainText('NEW PRIVATE DRAFT');expect(s.calls).toEqual(before);expect(s.drafts.get(11).draft.offers[0].hotel).toBe('NEW PRIVATE DRAFT');expect(s.creations()).toBe(0);clean(s,deliveryActions);
+});
+test('selection print is removed on client switch and old button cannot print the next client',async({page})=>{
+ const s=await fixture(page,{draft:completeDraft()});await open(page);await page.locator('#tsPreview').click();await expect(page.locator('#tsPrint')).toBeEnabled();await page.evaluate(()=>{window.printCalls=0;window.print=()=>{printCalls++};window.oldPrintButton=document.getElementById('tsPrint')});await page.locator('#tsPrint').click();await expect(page.locator('.tsPrintProposal')).toHaveCount(1);await page.locator('#tsClose').click();await expect(page.locator('.tsPrintProposal')).toHaveCount(0);await page.locator('#inboxList [data-conversation-id="12"]').click();await open(page);await page.evaluate(()=>oldPrintButton.click());expect(await page.evaluate(()=>printCalls)).toBe(1);await expect(page.locator('.tsPrintProposal')).toHaveCount(0);expect(s.drafts.has(12)).toBe(false);clean(s,deliveryActions);
+});
+
 const {privateEditor}=require('./fixtures/selection-private-editor');
+test('protected tours iframe permits same-frame explicit printing without opening another page',async({page})=>{
+ const s=await privateEditor(page,{draft:completeDraft()}),f=s.editor;const prepareCalls=[];
+ await page.route('**/manager/tour-selection-editor-api.php',async route=>{
+  const d=route.request().postDataJSON();if(d.action!=='prepare')return route.fallback();expect(d.csrf).toBe('private-csrf');expect(d.editor_actor).toBe(7);expect(d.conversation_id).toBe(11);prepareCalls.push(copy(d));
+  const built=JSON.parse(execFileSync('php',['-r',`require 'services/ManagerTourSelectionPublicationDraft.php'; $b=ManagerTourSelectionPublicationDraft::build(json_decode(stream_get_contents(STDIN),true)); foreach($b['offers'] as &$o)$o['card']=TourOfferCardRenderer::render($o['snapshot'],$o['presentation'],'tour_like_1_'.str_repeat('a',24)); echo json_encode($b,JSON_THROW_ON_ERROR);`],{cwd:root,input:JSON.stringify(s.snapshot().draft),encoding:'utf8'}));
+  return route.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,publication:{id:'a'.repeat(32),draft_version:1,title:built.title,channel:'telegram',can_send:true,cards:built.offers.map((o,index)=>({index,state:'pending',text:o.card.plain_text,snapshot:o.snapshot,photos:o.presentation.photos.map(p=>p.url)}))}})});
+ });
+ await page.route('https://photos.example.org/*.jpg',route=>route.fulfill({contentType:'image/jpeg',body:fs.readFileSync(path.join(root,'assets/owner-tour-cards/compact-v1/cover.jpg'))}));
+ await expect(f.locator('#tsStatus')).toContainText('загружен');await f.locator('#tsPreview').click();await expect(f.locator('#tsPrint')).toBeEnabled();expect(prepareCalls).toHaveLength(1);expect(await page.locator('iframe').evaluate(el=>el.sandbox.contains('allow-modals'))).toBe(true);
+ const pages=page.context().pages().length,frame=page.frames().find(x=>x.url().startsWith('https://app.anytoour.ru/manager/tour-selection-editor.php'));
+ // Observe the native beforeprint event: do not stub window.print in this
+ // sandbox case, otherwise a silent modal-policy suppression would be hidden.
+ await frame.evaluate(()=>{window.beforePrintCount=0;window.addEventListener('beforeprint',()=>beforePrintCount++)});await f.locator('#tsPrint').click();await expect.poll(()=>frame.evaluate(()=>beforePrintCount)).toBe(1);expect(page.context().pages()).toHaveLength(pages);expect(s.calls.every(x=>['me','editor_context','get'].includes(x.action))).toBe(true);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
 for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420},{width:430,height:420}])test('private editor uses the same protected core in tours iframe '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
  await page.setViewportSize(viewport);const s=await privateEditor(page,{draft:completeDraft()}),f=s.editor;await f.locator('#tsOfferDetails>summary').click();
  await expect(f.locator('#ts-hotel')).toHaveValue('Синтетический отель у моря');await expect(f.locator('#ts-amount')).toHaveValue('240000');

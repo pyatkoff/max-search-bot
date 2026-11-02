@@ -63,6 +63,21 @@
 
 .tsKnowledge{margin:.75rem 0}.tsKnowledge .hotelKnowledgeView:empty{display:none}
 
+#tsPrint{min-height:44px}.tsPrintProposal{display:none}
+@media print{
+  @page{size:A4;margin:14mm}
+  body.tsPrinting{margin:0!important;background:#fff!important;color:#18312b!important}
+  body.tsPrinting>*:not(#tourSelectionDialog){display:none!important}
+  body.tsPrinting #tourSelectionDialog{position:static!important;display:block!important;inset:auto!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;width:auto!important;min-width:0!important;max-width:none!important;height:auto!important;max-height:none!important;overflow:visible!important;background:#fff!important}
+  body.tsPrinting #tourSelectionDialog::backdrop{display:none}
+  body.tsPrinting #tourSelectionDialog>.tsShell{display:none!important}
+  body.tsPrinting .tsPrintProposal{display:block!important;font:11pt/1.5 Arial,sans-serif;overflow-wrap:anywhere}
+  .tsPrintBrand{font-weight:bold;color:#087654;font-size:18pt;margin:0 0 4mm}.tsPrintProposal h1{font-size:23pt;line-height:1.2;margin:0 0 3mm}.tsPrintVersion{font-size:9pt;color:#52695c;margin:0 0 6mm}
+  .tsPrintOffer{margin:0 0 8mm;border-top:1px solid #ccd9d0;padding-top:5mm}.tsPrintOffer h2{font-size:12pt;margin:0 0 3mm;break-after:avoid}
+  .tsPrintPhotos{display:flex;gap:2mm;break-inside:avoid}.tsPrintPhotos figure{flex:1;min-width:0;margin:0}.tsPrintPhotos img{display:block!important;width:100%!important;height:44mm!important;object-fit:cover;position:static!important;opacity:1!important}.tsPrintPhotos figcaption{font-size:8pt;color:#52695c;margin-top:1mm}
+  .tsPrintProposal .tsCardText{white-space:pre-wrap;font-size:11pt;line-height:1.5;margin:4mm 0;overflow-wrap:anywhere}.tsPrintProposal .tsCardTitle{font-size:16pt}.tsPrintProposal .tsCardPrice{font-size:17pt}.tsPrintNotice{font-size:9pt;color:#52695c}
+}
+
 .tsBulkButton{min-height:44px;border:1px solid #d6e1da;background:#fff;border-radius:9px;padding:8px 11px;color:#264b3b;font:inherit}.tsBulkMode .tsLayout,.tsBulkMode .tsFooter{display:none}
 .tsBulkPrice{display:flex;flex:1;flex-direction:column;min-height:0;min-width:0}.tsBulkPrice[hidden]{display:none}
 .tsBulkBody{flex:1;min-height:0;overflow:auto;padding:16px 26px;overflow-wrap:anywhere}.tsBulkBody h3{margin:0 0 8px}.tsBulkBody p{font-size:12px;color:#556b5e}
