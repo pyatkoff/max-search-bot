@@ -183,7 +183,7 @@ final class ModeledConversionSemanticPrediction
         }
         $status='predicted';
         if($legacyStatus==='access_denied')$status='access_denied';
-        elseif($this->operationalOutcome||$this->currentOutcome||$legacyStatus==='target_already_observed')$status='known_outcome';
+        elseif($this->operationalOutcome||$this->currentOutcome||$this->outcomes!==[]||$legacyStatus==='target_already_observed')$status='known_outcome';
         elseif($legacyStatus!=='early_assessment'||$base===null)$status='insufficient_context';
         $reasons=[];$odds=1.0;
         if($stage!==null)$reasons[]='illustrative_prior_'.$stage;
@@ -238,12 +238,50 @@ final class ModeledConversionSemanticPrediction
         return $p;
     }
 
-    /** Stable through native JSON storage, which may reorder object keys. */
+    /** Stable across native JSON object order and CLI/web float-format settings. */
     public static function digest(array $prediction):string
     {
         unset($prediction['prediction_digest']);
-        return hash('sha256',json_encode(self::ordered($prediction),
-            JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+        return hash('sha256',self::encodeDigestValue(self::ordered($prediction),false));
+    }
+
+    /** Earlier V1 hashes/capsules may use six-decimal JSON; current code cannot downgrade its codec. */
+    public static function digestMatches(array $prediction):bool
+    {
+        try{
+            $given=$prediction['prediction_digest']??null;
+            if(!is_string($given)||preg_match('/\\A[a-f0-9]{64}\\z/D',$given)!==1)return false;
+            if(hash_equals($given,self::digest($prediction)))return true;
+            $current=hash_file('sha256',__FILE__);
+            if(!is_string($current))return false;
+            if(array_key_exists('model_sha256',$prediction)&&(!is_string($prediction['model_sha256'])
+                ||$prediction['model_sha256']===$current))return false;
+            unset($prediction['prediction_digest']);
+            return hash_equals($given,hash('sha256',self::encodeDigestValue(self::ordered($prediction),true)));
+        }catch(Throwable $ignored){return false;}
+    }
+
+    /** Explicit finite-float spelling: no global/request ini or locale mutation. */
+    private static function encodeDigestValue(mixed $value,bool $legacySixDecimals):string
+    {
+        if(is_array($value)){
+            $list=array_is_list($value);$parts=[];
+            foreach($value as$key=>$item){
+                $encoded=self::encodeDigestValue($item,$legacySixDecimals);
+                $parts[]=$list?$encoded:json_encode((string)$key,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR).':'.$encoded;
+            }
+            return ($list?'[':'{').implode(',',$parts).($list?']':'}');
+        }
+        if(is_float($value)){
+            if(!is_finite($value))self::fail('digest_float');
+            if($legacySixDecimals){
+                if($value!==round($value,6)||abs($value)>1.3)self::fail('legacy_digest_precision');
+                return rtrim(rtrim(sprintf('%.6F',$value),'0'),'.');
+            }
+            return sprintf('%.17h',$value);
+        }
+        if(!is_int($value)&&!is_bool($value)&&!is_string($value)&&$value!==null)self::fail('digest_type');
+        return json_encode($value,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
     }
 
     private function currentOfferDiscussion(mixed $quality):?array
