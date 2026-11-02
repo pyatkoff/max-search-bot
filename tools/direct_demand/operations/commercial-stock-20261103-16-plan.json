@@ -1,0 +1,8 @@
+{
+  "operation": "commercial-stock-20261103-16-read1",
+  "state": "BOUNDED_IDENTITY_READ_PREPARED",
+  "goal": "Replenish the hotel preparation reserve after the current four hotel publication.",
+  "boundaries": "Four finite hotel names, active Egypt catalogue and existing two-channel registry only. No provider calls, customer data or changes to monitoring targets.",
+  "criteria": "Exact active catalogue hotel and resort, clear product identity, no live registry match before adding to reserve. Primary facts and real cover remain separate requirements.",
+  "risks": "Similar names do not prove identical products. Existing publications or ambiguous identities must be excluded."
+}
