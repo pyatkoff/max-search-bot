@@ -1,0 +1,224 @@
+{
+  "operation": "commercial-hotel-batch-20261102-10-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Publish ten complete hotel materials in both existing channels.",
+  "boundaries": "Existing bot publisher and registry only. No customer messages, advertisement changes, duplicate sends, owner imports or new runtime services.",
+  "criteria": [
+    "Ten exact previously resolved catalog identities.",
+    "Official real hotel photos in visually verified branded covers and concise factual captions.",
+    "Twenty actual confirmed posts with canonical buttons and source context."
+  ],
+  "risks": [
+    "Wrong physical hotel or mismatched photo.",
+    "Existing live duplicate or active/UNKNOWN operation.",
+    "Source, host, TLS, schema or channel rights mismatch."
+  ],
+  "baseline_logical_materials": 40,
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "hotel_id": 232,
+      "key": "jaz-casa-beach",
+      "hotel": "JAZ Elite Casa del Mar Beach",
+      "region": "Хургада",
+      "logical_id": "commercial-jaz-casa-beach-232-v1",
+      "aliases": [
+        "JAZ Elite Casa del Mar Beach",
+        "JAZ ELITE CASA DEL MAR BEACH (EX. JAZ CASA DEL MAR BEACH)"
+      ],
+      "text": "✈️ Туры в JAZ Elite Casa del Mar Beach с перелётом\n📍 Египет, Хургада\n\nОтель на берегу моря, рядом с прогулочной улицей Хургады.\n\n🏖 Собственный песчаный пляж.\n🏊 Шесть бассейнов, в том числе бассейн с видом на море и отдельные детские бассейны.\n🧸 Детский клуб и игровая площадка.\n💆 Спа Mividaspa и тренажёрный зал.\n\nДайвинг и водные виды спорта оплачиваются отдельно.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "sources": [
+        "https://www.jazhotels.com/hoteldetail/57/overview",
+        "https://partner.jazhotels.com/hotel/70"
+      ],
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "text_sha256": "c37e1f71b9ba34932176ac578d2200287cf3d51affb9002e6d9ad76fe1a56e2e",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-casa-beach.png",
+      "photo_sha256": "fab68a53df9c08c9adcce0316eca535fa4887869f16f4bd567ac6703ac3260fd"
+    },
+    {
+      "hotel_id": 233,
+      "key": "jaz-casa-resort",
+      "hotel": "JAZ Casa del Mar Resort",
+      "region": "Хургада",
+      "logical_id": "commercial-jaz-casa-resort-233-v1",
+      "aliases": [
+        "JAZ Casa del Mar Resort",
+        "JAZ CASA DEL MAR RESORT"
+      ],
+      "text": "✈️ Туры в JAZ Casa del Mar Resort с перелётом\n📍 Египет, Хургада\n\nОтель у прогулочной улицы с магазинами и ресторанами.\n\n🏊 Два бассейна для взрослых.\n💦 Для детей есть бассейн с горками.\n🍽 На территории работают рестораны и бары.\n💆 Есть спа и турецкая баня.\n\nВажно при бронировании: у JAZ Casa del Mar Resort категория 4★. JAZ Elite Casa del Mar Beach 5★ работает как отдельный отель.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "sources": [
+        "https://www.jazhotels.com/hoteldetail/60/overview",
+        "https://partner.jazhotels.com/Images/uploads/gallery/Downloads/JAZCasaDelMar/JAZ_Casa%20del%20Mar_Factsheet_29022026.pdf",
+        "https://partner.jazhotels.com/hotel/60"
+      ],
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "text_sha256": "14d984e8cf6c50093cb1783218a7eecadfed17d4bf327069e34638b32bd94149",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-casa-resort.png",
+      "photo_sha256": "0127cfb4ca1a728f0a0c86d04873fcbedc1bf5b8b9a83cf8e65006d7e7d6b0fd"
+    },
+    {
+      "hotel_id": 13872,
+      "key": "jaz-makadina",
+      "hotel": "JAZ Makadina",
+      "region": "Макади Бей",
+      "logical_id": "commercial-jaz-makadina-13872-v1",
+      "aliases": [
+        "JAZ Makadina",
+        "JAZ MAKADINA"
+      ],
+      "text": "✈️ Туры в JAZ Makadina с перелётом\n📍 Египет, Макади Бей\n\nПляжный отель в Мадинат Макади, рядом с магазинами и ресторанами Souk Makadi.\n\n🏖 Собственный песчаный пляж.\n🏊 Два взрослых бассейна и отдельный детский.\n🧸 Детский клуб и игровая площадка.\n🎭 Дневная анимация и вечерние представления.\n\nБольшой аквапарк Makadi Water World находится отдельно от отеля, примерно в 3 км.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "sources": [
+        "https://www.jazhotels.com/hoteldetail/22-egypt-hurghada-madinat-makadi-jaz-makadina/overview",
+        "https://partner.jazhotels.com/hotel/22"
+      ],
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "text_sha256": "53cb0440559b0feb14d6769666b919b54a2038ca427f767b88e5471a167086a7",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-makadina.png",
+      "photo_sha256": "a7cf3287cd481553cd0aa33cbd081051d9c43361de49187e2326b7a8e23a03f3"
+    },
+    {
+      "hotel_id": 13873,
+      "key": "jaz-makadi-oasis",
+      "hotel": "JAZ Makadi Oasis Resort & Club",
+      "region": "Макади Бей",
+      "logical_id": "commercial-jaz-makadi-oasis-13873-v1",
+      "aliases": [
+        "JAZ Makadi Oasis Resort & Club",
+        "JAZ MAKADI OASIS RESORT & CLUB (EX. IBEROTEL MAKADI OASIS CLUB)"
+      ],
+      "text": "✈️ Туры в JAZ Makadi Oasis Resort & Club с перелётом\n📍 Египет, Макади Бей\n\nОтель в Мадинат Макади с невысокими корпусами и бассейнами среди пальм.\n\n🍽 Завтраки, обеды и ужины в Al Hambra проходят по системе «шведский стол».\n🧸 Есть детский клуб Jazy.\n🏖 На пляже работает бар с напитками и закусками.\n🛍 Поблизости находятся магазины и рестораны Souk Makadi.\n\nАквапарк Makadi Water World расположен отдельно. От отеля до него ходит шаттл.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "sources": [
+        "https://www.jazhotels.com/hoteldetail/18-egypt-hurghada-makadi-bay-jaz-makadi-oasis-resort/dining",
+        "https://www.jazhotels.com/hoteldetail/18-egypt-hurghada-madinat-makadi-jaz-makadi-oasis-resort/surroundings",
+        "https://partner.jazhotels.com/hotel/18"
+      ],
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "text_sha256": "d4934c150e13e6f6dc1c526e5f75d50a9f7462c0eb642eb7a52ba3204e435d91",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-makadi-oasis.png",
+      "photo_sha256": "d9cd3dfa9d4f298b68a5433b06bae685f671086cf6efbddee40833ddb8ac1e2f"
+    },
+    {
+      "hotel_id": 280,
+      "key": "jaz-makadi-star",
+      "hotel": "JAZ Makadi Star & Spa",
+      "region": "Макади Бей",
+      "logical_id": "commercial-jaz-makadi-star-280-v1",
+      "aliases": [
+        "JAZ Makadi Star & Spa",
+        "JAZ MAKADI STAR & SPA"
+      ],
+      "text": "✈️ Туры в JAZ Makadi Star & Spa с перелётом\n📍 Египет, Макади Бей\n\nОтель для взрослых в Мадинат Макади.\n\n🏊 Есть бассейны, один подогревают зимой.\n🏖 Собственный участок песчаного пляжа.\n🛍 Рядом магазины и рестораны Souk Makadi.\n💆 В Мадинат Макади работает спа Mividaspa.\n\nОтель принимает гостей от 16 лет. До пляжа около 400 метров. Услуги Mividaspa оплачиваются отдельно.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "sources": [
+        "https://partner.jazhotels.com/Images/uploads/gallery/Downloads/JazMakadiStarSpa/JAZ%20MAKADI%20STAR%20AND%20SPA%20ALL%20INCLUSIVE%20.pdf",
+        "https://partner.jazhotels.com/hotel/21"
+      ],
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "text_sha256": "5ea959ec503b80552ec921aacc1dfaea6c2cbb8337c857941ddf964a5f591e42",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-makadi-star.png",
+      "photo_sha256": "67d934d9d6b2be686748640e569988dfbe3470f27fdc479f597aa5ef47a272a4"
+    },
+    {
+      "hotel_id": 456,
+      "key": "jaz-dar-el-madina",
+      "hotel": "JAZ Neo Dar El Madina",
+      "region": "Марса Алам, бухта Корайя",
+      "logical_id": "commercial-jaz-dar-el-madina-456-v1",
+      "aliases": [
+        "JAZ Neo Dar El Madina",
+        "JAZ NEO DAR EL MADINA"
+      ],
+      "text": "✈️ Туры в JAZ Neo Dar El Madina с перелётом\n📍 Египет, Марса Алам, бухта Корайя\n\nОтель в Мадинат Корайя для семейного отдыха и поездок к рифам Красного моря.\n\n🏖 Гостям доступен песчаный пляж.\n🏊 Взрослый и детский бассейны подогревают зимой.\n🧸 Есть детский клуб и игровая площадка.\n💦 Рядом находится аквапарк Aqua Coraya.\n\nСауна, джакузи и спа Mividaspa находятся в соседнем JAZ Solaya.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "sources": [
+        "https://www.jazhotels.com/hoteldetail/10-egypt-marsa-alam-jaz-dar-el-madina/overview",
+        "https://www.jazhotels.com/hoteldetail/10/activities",
+        "https://partner.jazhotels.com/hotel/10"
+      ],
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "text_sha256": "ff90d585f86667c4fa88fad2a06a2633e434b093100644dc460c500a3e825016",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-dar-el-madina.png",
+      "photo_sha256": "760488c3706ec3556c0cf17f4ee1c4c160fb003b85ab39f12adafb3cd77ecd52"
+    },
+    {
+      "hotel_id": 265,
+      "key": "jaz-lamaya",
+      "hotel": "JAZ Lamaya Resort",
+      "region": "Марса Алам, бухта Корайя",
+      "logical_id": "commercial-jaz-lamaya-265-v1",
+      "aliases": [
+        "JAZ Lamaya Resort",
+        "JAZ LAMAYA RESORT (EX. IBEROTEL LAMAYA RESORT)"
+      ],
+      "text": "✈️ Туры в JAZ Lamaya Resort с перелётом\n📍 Египет, Марса Алам, бухта Корайя\n\nСемейный отель у Красного моря в Мадинат Корайя.\n\n🏊 Четыре бассейна, есть детский бассейн с горками.\n🧸 Детский клуб и игровая площадка.\n🤿 В дайвинг центре организуют погружения и выезды к рифам.\n🏋️ Есть тренажёрный зал, проходят занятия йогой и аэробикой.\n\nБольшой аквапарк Aqua Coraya находится за территорией отеля, примерно в 150 метрах.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "sources": [
+        "https://www.jazhotels.com/hoteldetail/11-egypt-marsa-alam-jaz-lamaya-resort/overview?currency=EUR",
+        "https://partner.jazhotels.com/hotel/11"
+      ],
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "text_sha256": "778b22ef82696473a518bc212a9ae178058c00aa3e086302e36d3d347f1fee5c",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-lamaya.png",
+      "photo_sha256": "ab9a0b4a25bd3f33aa1a4fab4bbf24c118a84688f9649c4c225513ec72a5a9d8"
+    },
+    {
+      "hotel_id": 454,
+      "key": "jaz-solaya",
+      "hotel": "JAZ Solaya",
+      "region": "Марса Алам, бухта Корайя",
+      "logical_id": "commercial-jaz-solaya-454-v1",
+      "aliases": [
+        "JAZ Solaya",
+        "JAZ SOLAYA (EX. SOL Y MAR SOLAYA)"
+      ],
+      "text": "✈️ Туры в JAZ Solaya с перелётом\n📍 Египет, Марса Алам, бухта Корайя\n\nОтель у моря в Мадинат Корайя. Здесь можно отдыхать на пляже и плавать с маской у рифа.\n\n🏊 Три взрослых бассейна и один детский. Зимой их подогревают.\n🧸 Детский клуб и игровая площадка.\n🎭 Вечерние представления и живая музыка.\n🏋️ Есть тренажёрный зал и дорожка для пробежек у пляжа.\n\nОбычный WiFi ограничен по скорости. Быстрый интернет оплачивается отдельно.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "sources": [
+        "https://www.jazhotels.com/hoteldetail/13-egypt-marsa-alam-jaz-solaya/activities",
+        "https://partner.jazhotels.com/Images/uploads/gallery/Downloads/new/050306Jaz%20Solaya%20Fact%20Sheet%202024.pdf",
+        "https://partner.jazhotels.com/hotel/13"
+      ],
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "text_sha256": "d9e50b44bb873400d8ed753fd8eecffb12d841701a79b444b285c0f25b71e527",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-solaya.png",
+      "photo_sha256": "266c555c4f39c66fe914ecb3c4192cf0f7bc42e83bd75fb3bdab0c815267891c"
+    },
+    {
+      "hotel_id": 21475,
+      "key": "baron-palace",
+      "hotel": "Baron Palace Sahl Hasheesh",
+      "region": "Сахл Хашиш",
+      "logical_id": "commercial-baron-palace-21475-v1",
+      "aliases": [
+        "Baron Palace Sahl Hasheesh",
+        "BARON PALACE RESORT SAHL HASHEESH"
+      ],
+      "text": "✈️ Туры в Baron Palace Sahl Hasheesh с перелётом\n📍 Египет, Сахл Хашиш\n\nОтель с дворцовыми арками и куполами прямо у Красного моря.\n\n🏖 Собственный песчаный пляж длиной 600 метров.\n🏊 Семь бассейнов.\n🍽 Есть итальянский ресторан Bella Vista и ресторан морепродуктов Infinity.\n💆 Спа с турецкой баней и фитнес центр.\n\nЯпонский ресторан Mikado принимает только взрослых. Посещение оплачивается отдельно.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "sources": [
+        "https://baronhotels.com/baron-palace-sahl-hasheesh/",
+        "https://baronhotels.com/to_book/family-sea-view-suite-2/"
+      ],
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "text_sha256": "0d2a3d5e493c5bc25d9f802542056faef82d596e4712b7baeebc3d61f30a8cdb",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/baron-palace.png",
+      "photo_sha256": "c6f7b1c8a31130c87742a5c47693e53339951ea96dd2c1b6200e0f8474f1f48b"
+    },
+    {
+      "hotel_id": 1963,
+      "key": "baron-resort",
+      "hotel": "Baron Resort Sharm El Sheikh",
+      "region": "Шарм эль Шейх",
+      "logical_id": "commercial-baron-resort-1963-v1",
+      "aliases": [
+        "Baron Resort Sharm El Sheikh",
+        "BARON RESORT"
+      ],
+      "text": "✈️ Туры в Baron Resort Sharm El Sheikh с перелётом\n📍 Египет, Шарм эль Шейх\n\nОтель у моря для семейного отдыха и снорклинга.\n\n🏖 Собственный пляж.\n🤿 У берега есть коралловый риф.\n🍽 На территории работает Oasis BBQ & Seafood с блюдами на гриле и морепродуктами.\n💆 Есть спа.\n\nОтдельное крыло Lagoon Wing принимает гостей от 16 лет. Для отдыха с детьми нужны номера в основной части отеля.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "sources": [
+        "https://baronhotels.com/baron-resort-sharm-el-sheikh/",
+        "https://www.tripadvisor.co.uk/FAQ_Answers-g297555-d633226-t1185593-Hello_Is_there_a_reef_close_to_the_hotel_beach.html"
+      ],
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "text_sha256": "d6efa74e553f8f7ca7175aacb810ef9cb2b179573c3aa2faf1cf8f06023d3800",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/baron-resort.png",
+      "photo_sha256": "cdf99761c24f8d0095c1c2bfc2d9bd0c617569183d58201a102af2fb03971649"
+    }
+  ]
+}
