@@ -1,4 +1,4 @@
-name: Publish ten approved AnyTour hotels in both channels
+name: Inspect bounded catalog stock for next AnyTour batch
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -35,20 +35,19 @@ jobs:
           test "$(gh api repos/pyatkoff/max-search-bot/actions/runs/41522474171 --jq .conclusion)" = success
           test "$(gh api repos/pyatkoff/max-search-bot/actions/runs/41522474219 --jq .head_sha)" = "$EXPECTED_PRODUCTION_SHA"
           test "$(gh api repos/pyatkoff/max-search-bot/actions/runs/41522474219 --jq .conclusion)" = success
-      - name: Prepare this exact approved ten-hotel batch
+      - name: Prepare bounded read-only stock inspection
         shell: bash
         run: |
           set -euo pipefail
           umask 077
           python3 - <<'PY'
-          import hashlib,json,os,pathlib
-          base=pathlib.Path('tools/direct_demand/operations')
-          assert hashlib.sha256((base/'prepare-commercial-batch.py').read_bytes()).hexdigest()=='216e1b5ce439a3c68553c4925cac1a499a16d9f3433b2a13c1b15e07574adbdf'
-          approval=json.loads((base/'commercial-batch-20261102-14-approval.json').read_text())
-          assert approval['expected_installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA']
-          assert approval['operation']=='commercial-hotel-batch-20261102-14-v1' and len(approval['hotel_ids'])==10
+          import os,pathlib
+          source=pathlib.Path('tools/direct_demand/operations/read-commercial-stock-20261102-15-candidates.php').read_text()
+          prefix="<?php\ndeclare(strict_types=1);\n"
+          assert source.startswith(prefix)
+          header=prefix+"const EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\n"
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.php').write_text(header+source[len(prefix):])
           PY
-          python3 tools/direct_demand/operations/prepare-commercial-batch.py --manifest tools/direct_demand/operations/commercial-batch-20261102-14-manifest.json --approval tools/direct_demand/operations/commercial-batch-20261102-14-approval.json --output "$RUNNER_TEMP/channel-preflight.php"
           php -l "$RUNNER_TEMP/channel-preflight.php"
       - name: Prepare existing server connection
         env:
@@ -88,7 +87,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Publish the exact ten approved hotel posts with canonical buttons and no duplicates
+      - name: Read finite hotel identities and existing registry matches only
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -102,18 +101,16 @@ jobs:
           lines=pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.json').read_text().splitlines()
           d=json.loads(lines[-1])
           print(json.dumps(d,ensure_ascii=False,sort_keys=True))
-          assert d['operation']=='commercial-hotel-batch-20261102-14-v1' and d['mode']=='publish_approved_commercial_batch'
-          assert d['ok'] is True and len(d['posts'])==20
-          assert d['post_write_attempts']<=20 and d['new_posts']<=20
-          assert len({(p['platform'],p['logical_id']) for p in d['posts']})==20
-          assert all(p['body_photo_button_verified'] and p['button_text']=='✈️ Узнать стоимость тура' for p in d['posts'])
+          assert d['operation']=='commercial-stock-20261102-15-read1' and d['mode']=='read_bounded_public_catalog_stock'
+          assert d['ok'] is True and len(d['candidates'])==12
+          assert d['db_writes']==0 and d['provider_calls']==0 and d['message_sends']==0
           PY
           test "${probe_status:-0}" = 0
       - name: Retain bounded route evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-batch-20261102-14-publication
+          name: commercial-stock-20261102-15-candidates
           path: ${{ runner.temp }}/channel-preflight.json
           retention-days: 14
           if-no-files-found: warn

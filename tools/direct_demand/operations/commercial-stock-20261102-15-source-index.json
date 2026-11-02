@@ -1,0 +1,50 @@
+{
+  "operation": "commercial-stock-20261102-15-read1",
+  "state": "NAMES_ONLY_NOT_READY",
+  "sources": [
+    {
+      "key": "jaz-dahabeya",
+      "url": "https://partner.jazhotels.com/hotel/28"
+    },
+    {
+      "key": "jaz-fanara-resort",
+      "url": "https://partner.jazhotels.com/hotel/4"
+    },
+    {
+      "key": "jaz-fanara-residence",
+      "url": "https://partner.jazhotels.com/hotel/3"
+    },
+    {
+      "key": "jaz-neo-saraya-palms",
+      "url": "https://partner.jazhotels.com/hotel/19"
+    },
+    {
+      "key": "jaz-sharm-dreams",
+      "url": "https://partner.jazhotels.com/hotel/69"
+    },
+    {
+      "key": "steigenberger-alcazar",
+      "url": "https://hrewards.com/en/steigenberger-alcazar-el-sheikh"
+    },
+    {
+      "key": "steigenberger-makadi",
+      "url": "https://hrewards.com/en/steigenberger-makadi-safaga"
+    },
+    {
+      "key": "jaz-mirabel-park-and-club",
+      "url": "https://partner.jazhotels.com/hotel/6"
+    },
+    {
+      "key": "jaz-elite-palace",
+      "url": "https://partner.jazhotels.com/Images/uploads/gallery/downloads/IberotelPalace/JAZ%20Elite%20Palace%20Factsheet.pdf"
+    },
+    {
+      "key": "jaz-neo-sharks-bay",
+      "url": "https://partner.jazhotels.com/brands/1"
+    },
+    {
+      "key": "jaz-elite-asteria",
+      "url": "https://partner.jazhotels.com/hotel/92"
+    }
+  ]
+}
