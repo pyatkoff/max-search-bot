@@ -52,6 +52,9 @@ final class ManagerPreparationPolicy
         $entry=$policy['conversations'][(string)$cid]??null;
         $own=$entry!==null&&!($entry['inherit']??false);
         $rule=$own?$entry:$policy['all'];
+        // A first exception in another dialogue does not change this legacy
+        // binding. An explicit inherit tombstone still fences off/clear ABA.
+        if($rule===null&&$entry===null)return self::resolve(null,$owner,$cid,$project,$now);
         $scope=$owner===0?'queue':($own?'conversation':($rule===null?'legacy':'all'));
         $expired=$rule!==null&&$rule['until_utc']!==null&&self::timestamp($rule['until_utc'])<=$now;
         $allowed=$rule===null||($rule['enabled']&&!$expired);
@@ -87,6 +90,23 @@ final class ManagerPreparationPolicy
         if(!$conversation||$conversation['project_key']!==$row['project_key']||(int)($conversation['manager_id']??0)!==(int)$row['manager_id'])return false;
         if(($row['purpose']??'background')==='background'&&$conversation['status']!==((int)$row['manager_id']===0?'waiting_manager':'manager'))return false;
         $decision=self::effective($pdo,(int)$row['manager_id'],(int)$row['conversation_id'],(string)$row['project_key'],$now);
+        return self::decisionMatches($decision,$row);
+    }
+
+    /** Policy metadata is selected with the bounded inventory, never N+1 reads. */
+    public static function matchesInventory(array $row,?int $now=null): bool
+    {
+        if(($row['policy_current_project']??null)!==$row['project_key']||(int)($row['policy_current_owner']??0)!==(int)$row['manager_id'])return false;
+        if(($row['purpose']??'background')==='background'&&($row['policy_current_status']??null)!==((int)$row['manager_id']===0?'waiting_manager':'manager'))return false;
+        $json=(int)$row['manager_id']>0?($row['policy_personal_json']??null):
+            (($row['policy_current_owner']===null&&$row['policy_current_status']==='waiting_manager')?($row['policy_queue_json']??null):null);
+        $policy=$json===null?null:json_decode((string)$json,true,32,JSON_THROW_ON_ERROR);
+        if($policy!==null&&!is_array($policy))throw new RuntimeException('invalid_preparation_storage');
+        return self::decisionMatches(self::resolve($policy,(int)$row['manager_id'],(int)$row['conversation_id'],(string)$row['project_key'],$now),$row);
+    }
+
+    private static function decisionMatches(array $decision,array $row): bool
+    {
         $bound=$row['preparation_policy_revision']??null;
         return $decision['allowed']&&($bound===null?$decision['binding']===null:
             is_string($bound)&&is_string($decision['binding'])&&hash_equals($bound,$decision['binding']));

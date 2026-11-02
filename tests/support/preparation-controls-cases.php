@@ -114,6 +114,28 @@ function preparationControlsCases(): void
     $afterHuman=preparedReplySnapshot();$next=preparedReplyQueue($afterHuman);
     $check('new customer input after a human reply retains ordinary drafting',$next!==$assignedJob&&ManagerPreparedReplyService::complete($next,$afterHuman['revision'],preparedReplyProposal(['evidence_message_ids'=>[4]]))['ok']);
 
+    // A first per-dialog exception must not invalidate untouched legacy work,
+    // nor let old disabled candidates hide an eligible row behind the limit.
+    $pdo=preparedReplyFixture();$pdo->preferenceWrites=true;
+    $first=preparedReplySnapshot();$firstJob=preparedReplyQueue($first);
+    $pdo->mutate("INSERT INTO conversations SELECT 102,customer_id,project_key,source_id,channel,entry_channel,attribution_region,attribution_campaign,status,lead_stage_key,manager_id,started_at,last_message_at,closed_at,'SECOND SYNTHETIC',is_test FROM conversations WHERE id=101");
+    $pdo->guard=false;
+    $pdo->exec("INSERT INTO messages SELECT 3,102,direction,sender_type,text,created_at,channel,metadata_json,sender_id,external_message_id FROM messages WHERE id=2");
+    $pdo->guard=true;
+    $second=ManagerAiDraftContextService::snapshot(102,1);
+    $queued=ManagerPreparedReplyService::enqueue([preparedReplyRow($second,['conversation_id'=>102])]);$secondJob=$queued['job_ids'][0]??'';
+    if($secondJob==='')throw new RuntimeException('FAIL second synthetic preparation fixture');
+    $firstCreated=gmdate('Y-m-d H:i:s',time()-120);$secondCreated=gmdate('Y-m-d H:i:s',time()-60);
+    $q=$pdo->prepare('UPDATE manager_prepared_replies SET created_at=? WHERE job_id=?');$q->execute([$firstCreated,$firstJob]);$q->execute([$secondCreated,$secondJob]);
+    $state=ManagerPersonalWorkspaceService::snapshot(1);
+    $excluded=ManagerPersonalWorkspaceService::mutate(1,'preparation_policy',['scope'=>'conversation','conversation_id'=>101,'enabled'=>false,'expected_version'=>$state['version'],'operation_id'=>'preparation-first-exception']);
+    $pdo->executed=[];$inventory=ManagerPreparedReplyService::pending(1);$reads=count($pdo->executed);
+    $check('first exception preserves another legacy binding and bounded one-query progress',
+        $excluded['ok']&&$inventory['ok']&&count($inventory['jobs'])===1&&$inventory['jobs'][0]['job_id']===$secondJob
+        &&$reads===1&&ManagerPreparationPolicy::effective($pdo,1,102,'anytour')['binding']===null
+        &&!array_key_exists('policy_personal_json',$inventory['jobs'][0])
+        &&!ManagerPreparedReplyService::complete($firstJob,$first['revision'],preparedReplyProposal())['ok']);
+
     if($pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'){
         // A second plain connection preserves this disposable fixture instead
         // of invoking PreparedReplyPdo's destructive constructor/reset.

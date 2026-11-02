@@ -277,14 +277,14 @@ final class ManagerPreparedReplyService
             $pdo=ConversationDb::connection();
             if($pdo->inTransaction())return self::failure('queue_unavailable');
             $now=self::utc(time());
-            $base="SELECT j.job_id,j.conversation_id,j.manager_id,j.project_key,j.context_revision,j.instruction_revision,j.latest_message_id,j.created_at,j.expires_at,j.purpose,j.requested_by_manager_id,j.viewer_access_revision,j.preparation_policy_revision FROM manager_prepared_replies j WHERE j.project_key=? AND j.status='pending' AND j.created_at<=? AND j.expires_at>? AND j.instruction_revision=?"
+            $base="SELECT j.job_id,j.conversation_id,j.manager_id,j.project_key,j.context_revision,j.instruction_revision,j.latest_message_id,j.created_at,j.expires_at,j.purpose,j.requested_by_manager_id,j.viewer_access_revision,j.preparation_policy_revision,pc.manager_id AS policy_current_owner,pc.status AS policy_current_status,pc.project_key AS policy_current_project,JSON_EXTRACT(ps.state_json,'$.ai_preparation') AS policy_personal_json,pq.rule_json AS policy_queue_json FROM manager_prepared_replies j LEFT JOIN conversations pc ON pc.id=j.conversation_id LEFT JOIN manager_personal_workspace_states ps ON ps.manager_id=j.manager_id LEFT JOIN manager_preparation_queue_policies pq ON pq.project_key=j.project_key WHERE j.project_key=? AND j.status='pending' AND j.created_at<=? AND j.expires_at>? AND j.instruction_revision=?"
                 .' AND j.latest_message_id=(SELECT MAX(pm.id) FROM messages pm WHERE pm.conversation_id=j.conversation_id)';
             $background=$base." AND j.purpose='background' AND EXISTS (SELECT 1 FROM conversations c LEFT JOIN managers m ON m.id=c.manager_id WHERE c.id=j.conversation_id AND c.project_key=j.project_key AND c.is_test=0 AND NOT ".InternalOwnerDialogueScope::conversationSql('c')." AND ((c.manager_id=j.manager_id AND c.status='manager' AND m.is_active=1) OR (j.manager_id=0 AND c.manager_id IS NULL AND c.status='waiting_manager' AND EXISTS (SELECT 1 FROM managers a JOIN manager_projects ap ON ap.manager_id=a.id JOIN projects p ON p.id=ap.project_id WHERE a.is_active=1 AND a.role='admin' AND p.is_active=1 AND p.project_key=j.project_key))))"
                 .' AND '.ManagerPreparationEligibility::sql('j.conversation_id',(string)$pdo->getAttribute(PDO::ATTR_DRIVER_NAME));
             // Metadata-only current requester/project/source scope. Histories,
             // precise context and access revisions are rechecked in context/save.
             $opened=$base." AND j.purpose='open_chat' AND EXISTS (SELECT 1 FROM conversations c JOIN managers r ON r.id=j.requested_by_manager_id JOIN manager_projects rp ON rp.manager_id=r.id JOIN projects p ON p.id=rp.project_id WHERE c.id=j.conversation_id AND c.project_key=j.project_key AND p.project_key=c.project_key AND p.is_active=1 AND r.is_active=1 AND COALESCE(c.manager_id,0)=j.manager_id AND ((c.status='manager' AND c.manager_id=r.id) OR r.role='admin'))";
-            $order=' ORDER BY j.created_at,j.job_id LIMIT '.$limit;
+            $order=' ORDER BY j.created_at,j.job_id LIMIT '.self::MAX_PENDING;
             // Each lane is bounded before union. Interleaving prevents a full
             // archive backlog hiding an opened chat, or opening chats starving
             // ordinary preparation. One empty lane fills from the other.
@@ -298,7 +298,8 @@ final class ManagerPreparedReplyService
             $lanes=['open_chat'=>[],'background'=>[]];
             foreach($q->fetchAll(PDO::FETCH_ASSOC) as $row){
                 if(!self::validRow($row))continue;
-                if(!ManagerPreparationPolicy::matchesJob($pdo,$row))continue;
+                if(!ManagerPreparationPolicy::matchesInventory($row))continue;
+                foreach(['policy_current_owner','policy_current_status','policy_current_project','policy_personal_json','policy_queue_json'] as $field)unset($row[$field]);
                 if(self::openRequest($row)&&count($lanes['open_chat'])>=$limit)continue;
                 if(self::openRequest($row)&&!self::openMetadataAllowed($row))continue;
                 foreach(['conversation_id','manager_id','latest_message_id'] as $field)$row[$field]=(int)$row[$field];
