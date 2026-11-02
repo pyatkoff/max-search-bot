@@ -1,98 +1,19 @@
 {
   "operation": "commercial-hotel-three-20261102-4-v1",
-  "state": "PREPARED_NOT_SENT",
-  "goal": "Prepare and publish three complete hotel posts in the accepted AnyTour style, once in each existing channel.",
-  "boundaries": "Vox Maris 3737, Club Aqua Plaza 477, Akra Antalya 516. Real official hotel photos, existing bot/registry only. No customer messages, advertisements, budgets, Mac access or invented prices. Price-monitor connection is not implemented by this content packet.",
-  "criteria": [
-    "Six confirmed image posts with canonical cost button, exact source and unique hotel/logical identity.",
-    "Plain Russian, emoji and accepted cover. No dash punctuation or empty promises.",
-    "Actual provider receipts and source resolution retained only in canonical private registry and existing authenticated artifact."
+  "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED",
+  "hotel_catalog_ids": [
+    3737,
+    477,
+    516
   ],
-  "risks": [
-    "Wrong property photo, unsupported service inclusion, unknown send result or duplicate hotel.",
-    "Current main advanced; 21 publishing blobs are unchanged, production deploy 41408885824 succeeded. Preserve exact installed source and mandatory gates.",
-    "Vox Maris admits guests aged 16 and above. Club Aqua Plaza Family Room maximum is four, not an inferred five. Akra beach platform and outdoor season explicitly stated; no all-inclusive or guaranteed temperature claim."
+  "confirmed_new_posts": 6,
+  "confirmed_logical_materials_total": 18,
+  "workflow_run": "https://github.com/pyatkoff/max-search-bot/actions/runs/41412368841",
+  "prepared_public_manifest": "tools/direct_demand/operations/commercial-three-20261102-4-manifest.json",
+  "next_candidates_catalog_ids": [
+    1554,
+    228,
+    4101
   ],
-  "baseline_logical_materials": 15,
-  "button_text": "✈️ Узнать стоимость тура",
-  "rows": [
-    {
-      "logical_id": "commercial-vox-maris-3737-v1",
-      "hotel_id": 3737,
-      "hotel": "Vox Maris Resort",
-      "aliases": [
-        "Vox Maris",
-        "Вокс Марис"
-      ],
-      "sources": [
-        "https://voxmarisresort.com/about-us/",
-        "https://voxmarisresort.com/gastronomy/",
-        "https://voxmarisresort.com/entertainment/"
-      ],
-      "state": "PREPARED_NOT_SENT",
-      "text": "✈️ Туры в Vox Maris Resort с перелётом\n📍 Турция, Сиде\n\nОтель открылся в 2024 году и принимает гостей от 16 лет.\n\n🏖 До пляжа около 700 метров.\n🍰 Есть кондитерская и ресторан на пляже.\n🎵 По вечерам проходят шоу, играет живая музыка. Есть дискотека.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
-      "text_sha256": "2abcf9d5c5c92d76872ad0e920f7e228d2b846229dee7cb5d61f1333624f1c78",
-      "photo_candidates": [
-        "https://voxmarisresort.com/wp-content/uploads/2024/07/POOL-2.webp",
-        "https://voxmarisresort.com/wp-content/uploads/2024/07/SWIMM-UP-ROOM1.webp",
-        "https://voxmarisresort.com/wp-content/uploads/2024/07/BUFFET10.webp"
-      ],
-      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5f5a0504a74d22f5e6b167a01a36d9be8edf4a8f/.github/traffic-publish/commercial-three-20261102-4/vox-maris.png",
-      "photo_sha256": "4900667c7f39f0dc903fe645db76d0bc7aebf740b6f875c6b0f3434d61534ecb",
-      "media_state": "NATIVE_COVER_VISUALLY_VERIFIED"
-    },
-    {
-      "logical_id": "commercial-club-aqua-plaza-477-v1",
-      "hotel_id": 477,
-      "hotel": "Club Aqua Plaza",
-      "aliases": [
-        "Club Aqua Plaza",
-        "Клуб Аква Плаза"
-      ],
-      "sources": [
-        "https://www.clubaquaplaza.com/",
-        "https://www.clubaquaplaza.com/konaklama-icerik/10/aile-odasi",
-        "https://www.clubaquaplaza.com/aktivite",
-        "https://www.clubaquaplaza.com/sss"
-      ],
-      "state": "PREPARED_NOT_SENT",
-      "text": "✈️ Туры в Club Aqua Plaza с перелётом\n📍 Турция, Аланья, Окурджалар\n\nОтель на берегу моря со своим пляжем и аквапарком Aqua Fun City.\n\n💦 Есть водные горки для взрослых и детей.\n🧸 Для детей работают клуб и игровые площадки.\n🎭 Вечером проходят шоу в амфитеатре.\n\nСемейные номера с двумя спальнями рассчитаны максимум на четверых.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
-      "text_sha256": "35793ab27756be8eb48a373afa696fc6bddd886838aad5d1a7e7f47c101ecaac",
-      "photo_candidates": [
-        "https://www.clubaquaplaza.com/Uploads/havuzlar.jpg",
-        "https://www.clubaquaplaza.com/Uploads/haber_resim/tmp/20260402_LJ5QYKVN7Z.jpg",
-        "https://www.clubaquaplaza.com/Uploads/odalar.jpg"
-      ],
-      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5f5a0504a74d22f5e6b167a01a36d9be8edf4a8f/.github/traffic-publish/commercial-three-20261102-4/club-aqua-plaza.png",
-      "photo_sha256": "7b24216a4128fea469bfd1e26a3715e2c492ebe65246556791801248ba7cc3eb",
-      "media_state": "NATIVE_COVER_VISUALLY_VERIFIED"
-    },
-    {
-      "logical_id": "commercial-akra-antalya-516-v1",
-      "hotel_id": 516,
-      "hotel": "Akra Antalya",
-      "aliases": [
-        "Akra Antalya",
-        "Akra Barut",
-        "Акра Анталья"
-      ],
-      "sources": [
-        "https://www.akrahotels.com/en/hotels/akra-antalya/",
-        "https://www.akrahotels.com/en/hotels/akra-antalya/beach-and-pools/",
-        "https://www.akrahotels.com/en/hotels/akra-antalya/spa-wellness/"
-      ],
-      "state": "PREPARED_NOT_SENT",
-      "text": "✈️ Туры в Akra Antalya с перелётом\n📍 Турция, Анталья\n\nГородской отель на скалистом берегу с видом на море и горы.\n\n🌊 К морю спускаются на лифте отеля. Вместо песчаного пляжа здесь платформа.\n🏊 Есть открытые и крытый бассейны.\n🧖 Есть хаммам и сауна.\n\nПляж и открытые бассейны работают с апреля по ноябрь. Даты открытия и закрытия зависят от погоды.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
-      "text_sha256": "67f63bf6df807e02e5046c575ae0ff9bb78115bae5a764d6cc5140715d727400",
-      "photo_candidates": [
-        "https://akrahotels-gvhpewgeadfsftcj.a01.azurefd.net/newakraweb/media/typlnrak/akra-antalya-anasayfa-card.jpg",
-        "https://akrahotels-gvhpewgeadfsftcj.a01.azurefd.net/newakraweb/media/ivsn1cwm/akra-antalya-plaj-havuz-card.jpg",
-        "https://akrahotels-gvhpewgeadfsftcj.a01.azurefd.net/newakraweb/media/ab4hxnub/akra-antalya-anasayfa-odalar-card.jpg"
-      ],
-      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5f5a0504a74d22f5e6b167a01a36d9be8edf4a8f/.github/traffic-publish/commercial-three-20261102-4/akra-antalya.png",
-      "photo_sha256": "28faf11f355ab480e1927b286db5a6248ead080b28f2365209e0c63b58a3924b",
-      "media_state": "NATIVE_COVER_VISUALLY_VERIFIED"
-    }
-  ],
-  "next": "Publish only this new three-hotel packet through the existing once-only server operation after strict runtime, registry and rights preflight."
+  "next_state": "NOT_STARTED"
 }
