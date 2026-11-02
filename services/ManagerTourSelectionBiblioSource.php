@@ -9,6 +9,15 @@ final class ManagerTourSelectionBiblioSource
     public const MAX_BYTES=2097152;
     private const ORIGIN='https://www.bgoperator.ru';
 
+    /** The cookie/session ID is known to its owner, so it is never a signing secret. */
+    public static function sessionKey(array &$state,string $sessionHash): string
+    {
+        if (!preg_match('/\A[a-f0-9]{64}\z/D',$sessionHash)) throw new InvalidArgumentException('Invalid source session binding');
+        $field='tour_selection_biblio_signing_secret';
+        if (!is_string($state[$field]??null) || !preg_match('/\A[a-f0-9]{64}\z/D',$state[$field])) $state[$field]=bin2hex(random_bytes(32));
+        return hash_hmac('sha256','biblio-source-session-v1|'.$sessionHash,$state[$field]);
+    }
+
     public static function search(int $actor,int $conversation,string $session,array $data,?callable $fetch=null): array
     {
         $context=ManagerTourSelectionService::sourceContext($actor,$conversation);

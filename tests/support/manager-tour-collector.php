@@ -121,18 +121,24 @@ function biblioPublicScenarios(): void
     foreach ([['<b class="r">123 456</b>','<b class="r">100 000</b><b class="r">123 456</b>'],['2 взрослых (47/47)','3 взрослых (47/47)'],['data-group="0"','data-group="1"'],['start":{"df":"05.06.2027"','start":{"df":"06.06.2027"'],['Standard / DBL',''],[' р. ',' unknown ']] as [$a,$b]) {
         $failed=false;try{ManagerTourSelectionBiblioSource::parse(str_replace($a,$b,$f['html']),$f['url']);}catch(RuntimeException $e){$failed=true;}deliveryCheck('Biblio refuses ambiguous or contradictory source '.$a,$failed);
     }
-    $pdo=deliveryDb();$session=str_repeat('1',64);$calls=[];
+    $pdo=deliveryDb();$cookieHash=hash('sha256','synthetic-public-cookie');$serverState=[];$session=ManagerTourSelectionBiblioSource::sessionKey($serverState,$cookieHash);$calls=[];
+    deliveryCheck('Biblio signer is server-private and stable within the same authenticated session',$session!==$cookieHash&&$session===ManagerTourSelectionBiblioSource::sessionKey($serverState,$cookieHash));
+    $otherState=[];deliveryCheck('Biblio signer changes across independently stored sessions and cookie rotation',$session!==ManagerTourSelectionBiblioSource::sessionKey($otherState,$cookieHash)&&$session!==ManagerTourSelectionBiblioSource::sessionKey($serverState,hash('sha256','rotated-public-cookie')));
     $fetch=static function(string $url)use($f,&$calls):string{$calls[]=$url;return str_contains($url,'action=price')?$f['html']:$f['gallery'];};
-    $read=ManagerTourSelectionBiblioSource::search(7,1,$session,['url'=>$f['url']],$fetch);
+    $read=ManagerTourSelectionBiblioSource::search(7,1,$session,['url'=>$f['url'],'signing_key'=>$cookieHash,'tour_selection_biblio_signing_secret'=>$cookieHash],$fetch);
     deliveryCheck('Biblio search is readonly and does not create a collector connection',$read['ok']&&count($read['offers'])===1&&ManagerTourSelectionService::get(7,1)['selection']['version']===0&&count($calls)===1);
     $before=count($calls);$denied=ManagerTourSelectionBiblioSource::search(8,1,$session,['url'=>$f['url']],$fetch);deliveryCheck('Biblio authorization precedes any outbound read',!$denied['ok']&&count($calls)===$before);
     $ticket=$read['offers'][0]['ticket'];
+    deliveryCheck('Biblio client key fields cannot override the private session signer',ManagerTourSelectionBiblioSource::open($ticket,$cookieHash,7,1,'quote')===null&&ManagerTourSelectionBiblioSource::open($ticket,$session,7,1,'quote')!==null);
     foreach ([[str_repeat('2',64),7,1],[$session,8,1],[$session,7,2]] as [$s,$a,$c]) deliveryCheck('Biblio signed intent cannot cross session actor or conversation',ManagerTourSelectionBiblioSource::open($ticket,$s,$a,$c,'quote')===null);
     deliveryCheck('Biblio signed intent rejects tampering',ManagerTourSelectionBiblioSource::open($ticket.'a',$session,7,1,'quote')===null);
     $plain=ManagerTourSelectionBiblioSource::open($ticket,$session,7,1,'quote');deliveryCheck('Biblio tickets discard source birth dates and search query',!str_contains(json_encode($plain),'001011980')&&!str_contains(json_encode($plain),'action=price'));
     $review=ManagerTourSelectionBiblioSource::review(7,1,$session,['ticket'=>$ticket],$fetch);
+    deliveryCheck('Biblio public responses export neither private session secret nor derived key',!str_contains(json_encode([$read,$review]),$serverState['tour_selection_biblio_signing_secret'])&&!str_contains(json_encode([$read,$review]),$session));
     deliveryCheck('Biblio review reads the exact hotel gallery without draft mutation',$review['ok']&&$review['photos']===$f['photos']&&ManagerTourSelectionService::get(7,1)['selection']['version']===0);
     $ready=ManagerTourSelectionBiblioSource::open($review['ticket'],$session,7,1,'ready');deliveryCheck('Biblio photo review never extends the source price lifetime',$ready['expires']===$plain['expires']);
+    $forged=$ready;$forged['observation']['offer']['amount']='111111';$forged['observation']['raw']['price']='111111 RUB';$encoded=rtrim(strtr(base64_encode(json_encode($forged,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)),'+/','-_'),'=');$forgedToken=$encoded.'.'.hash_hmac('sha256',$encoded,'biblio-preview-v1|'.$cookieHash);
+    deliveryCheck('Biblio cookie owner cannot forge a server-observed source price',ManagerTourSelectionBiblioSource::open($forgedToken,$session,7,1,'ready')===null&&ManagerTourSelectionService::importBiblio(7,1,$session,['operation_id'=>'biblio-cookie-forgery-001','ticket'=>$forgedToken,'confirm_party_price'=>true])['error']==='biblio_expired'&&ManagerTourSelectionService::get(7,1)['selection']['version']===0);
     $expired=$ready;$expired['expires']=time()-1;$encoded=rtrim(strtr(base64_encode(json_encode($expired,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)),'+/','-_'),'=');$expiredToken=$encoded.'.'.hash_hmac('sha256',$encoded,'biblio-preview-v1|'.$session);
     deliveryCheck('Biblio expiry refuses first mutation even for an authentic previously reviewed price',ManagerTourSelectionService::importBiblio(7,1,$session,['operation_id'=>'biblio-expired-first-001','ticket'=>$expiredToken,'confirm_party_price'=>true])['error']==='biblio_expired'&&ManagerTourSelectionService::get(7,1)['selection']['version']===0);
     $command=['operation_id'=>'biblio-direct-first-001','ticket'=>$review['ticket'],'confirm_party_price'=>true,'manager_amount'=>'125000'];

@@ -972,6 +972,9 @@ and response size. Gallery originals must be JPEG/PNG from the bound hotel page;
 advertisements and unsupported formats cannot become hotel photos. Search birth
 dates or name suffixes are never retained in quote tickets or saved source URLs.
 
+Previews use a server-private random session secret bound to the current PHP
+session. A client-visible cookie/session ID or its hash is not a signing secret;
+neither the private secret nor its derived key is returned to the browser.
 Session-bound signed previews expire ten minutes after the source capture;
 gallery review does not extend this lifetime. Adding uses the existing locked
 selection transaction, version checks, duplicate rules and durable operation
