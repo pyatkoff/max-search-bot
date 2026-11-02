@@ -8,6 +8,20 @@
   let suggestion,suggestionText,suggestionLabel,suggestionAccept;
   let preparationNotice,preparationLabel,preparationRetry;
   let recommendationNotice,recommendationTitle,recommendationReason;
+  function assistantHost(){
+    if(!manager2())return null;
+    const head=document.querySelector('#conversationZone .conversationHead');
+    if(!head)return null;
+    let host=$('m2Assistant');
+    if(!host){
+      host=document.createElement('section');host.id='m2Assistant';host.className='m2Assistant';
+      host.setAttribute('aria-label','Помощник менеджера');head.after(host);
+    }
+    const editor=$('m2ReplyEditor'),expanded=editor?.open?editor.querySelector('.m2ReplyEditorBody'):null;
+    if(expanded&&host.parentElement!==expanded)expanded.insertBefore(host,expanded.firstChild);
+    else if(!expanded&&host.parentElement!==head.parentElement)head.after(host);
+    return host;
+  }
   const automaticAttempts=new Map();
   let automaticIdentity='';
   let placeholder='',suggestionLargeFont=null;
@@ -43,7 +57,7 @@
   }
   function syncSuggestion(){
     if(!suggestion)return;
-    const shown=suggestionAvailable(),readonly=ownerRead(),reply=$('replyText'),form=$('composer'),ghost=shown&&!readonly;
+    const shown=suggestionAvailable(),readonly=ownerRead(),reply=$('replyText'),form=$('composer'),hosted=assistantHost(),ghost=shown&&!readonly&&!hosted;
     let layoutChanged=suggestion.hidden===shown;
     const largeFont=document.body.classList.contains('pwLargeFont');
     if(suggestionLargeFont!==largeFont){suggestionLargeFont=largeFont;if(ghost)layoutChanged=true}
@@ -56,12 +70,12 @@
       if(layoutChanged)window.WorkspaceV2ReplyEditor?.resize?.();
       return;
     }
-    const host=readonly?$('conversationZone'):reply.parentElement,before=readonly?$('composerLocked'):reply;
+    const host=hosted||(readonly?$('conversationZone'):reply.parentElement),before=hosted?panel:(readonly?$('composerLocked'):reply);
     if(host&&suggestion.parentElement!==host){host.insertBefore(suggestion,before);layoutChanged=true}
     suggestion.classList.toggle('aiSuggestionReadonly',readonly);
-    suggestion.classList.toggle('aiSuggestionGhost',!readonly);
+    suggestion.classList.toggle('aiSuggestionGhost',ghost);
     if(suggestionText.textContent!==ready.draft){suggestionText.textContent=ready.draft;layoutChanged=true}
-    const label=readonly?'AI-подсказка · Только просмотр · '+(S.detail?.conversation?.manager_name||'Без назначения'):'AI-подсказка';
+    const label=readonly?'Готовый ответ туристу · Только просмотр · '+(S.detail?.conversation?.manager_name||'Без назначения'):'Готовый ответ туристу';
     if(suggestionLabel.textContent!==label)suggestionLabel.textContent=label;
     suggestionAccept.hidden=readonly;suggestionAccept.disabled=readonly;
     if(layoutChanged)window.WorkspaceV2ReplyEditor?.resize?.();
@@ -86,11 +100,11 @@
       if(changed)window.WorkspaceV2ReplyEditor?.resize?.();
       return;
     }
-    const readonly=ownerRead(),host=readonly?$('conversationZone'):$('composer');
-    const before=readonly?$('composerLocked'):[...host.children].find(node=>node.classList.contains('composerSurface')||node.classList.contains('composerMain'))||host.firstChild;
+    const readonly=ownerRead(),hosted=assistantHost(),host=hosted||(readonly?$('conversationZone'):$('composer'));
+    const before=hosted?panel:readonly?$('composerLocked'):[...host.children].find(node=>node.classList.contains('composerSurface')||node.classList.contains('composerMain'))||host.firstChild;
     if(recommendationNotice.parentElement!==host){host.insertBefore(recommendationNotice,before);changed=true}
     recommendationNotice.classList.toggle('aiRecommendationReadonly',readonly);
-    const title=ready.next_action==='no_contact'?'AI: сейчас отвечать не нужно':'AI: перед ответом нужна проверка';
+    const title=ready.next_action==='no_contact'?'Сейчас отвечать не нужно':'Готового ответа пока нет · Проверки менеджеру';
     if(recommendationTitle.textContent!==title){recommendationTitle.textContent=title;changed=true}
     if(recommendationReason.textContent!==ready.reason){recommendationReason.textContent=ready.reason;changed=true}
     if(changed)window.WorkspaceV2ReplyEditor?.resize?.();
@@ -113,8 +127,8 @@
     let changed=preparationNotice.hidden===shown;
     if(changed)preparationNotice.hidden=!shown;
     if(!shown){if(changed)window.WorkspaceV2ReplyEditor?.resize?.();return}
-    const readonly=ownerRead(),host=readonly?$('conversationZone'):$('composer');
-    const before=readonly?$('composerLocked'):[...host.children].find(node=>node.classList.contains('composerSurface')||node.classList.contains('composerMain'))||host.firstChild;
+    const readonly=ownerRead(),hosted=assistantHost(),host=hosted||(readonly?$('conversationZone'):$('composer'));
+    const before=hosted?panel:readonly?$('composerLocked'):[...host.children].find(node=>node.classList.contains('composerSurface')||node.classList.contains('composerMain'))||host.firstChild;
     if(preparationNotice.parentElement!==host){host.insertBefore(preparationNotice,before);changed=true}
     preparationNotice.classList.toggle('aiPreparationReadonly',readonly);
     const failed=attempt.phase==='failed',text=failed?(attempt.error==='preparation_queue_full'?'Очередь AI-подсказок занята. Попробуйте подготовить позже.':'Автоматическая подготовка AI-подсказки временно недоступна.'):late?'Подготовка AI-подсказки задерживается.':'AI готовит подсказку автоматически…';
@@ -161,12 +175,12 @@
   }
   function renderButton(){
     if(!bound||!manager2())return;
-    let state='idle',label='AI',hint='Подготовить ответ по переписке, исходному посту и фото.';
+    let state='idle',label='Помощник',hint='Запрос туриста, текст ответа и проверки менеджеру.';
     if(ready&&currentSnapshot(ready.snapshot)&&ready.expires>Date.now()){
-      state=ready.kind;label=ready.should_draft?'AI — Ответ готов':'AI — Рекомендации';
+      state=ready.kind;label=ready.should_draft?'Помощник — Ответ готов':'Помощник — Нужна проверка';
       hint=(state==='prepared'?'Подготовлен автоматически':'Сформирован по нажатию')+(timeLabel(ready.prepared_at)?': '+timeLabel(ready.prepared_at):'')+'. Нажмите, чтобы проверить '+(ready.should_draft?'черновик.':'рекомендации.');
-    }else if(view?.stale){state='stale';label='AI — Обновить';hint='Переписка изменилась. Прежний черновик нужно обновить.'}
-    if(flight){state='loading';label=flight.action==='generate'?'AI — Готовим ответ':'AI — Проверяем';hint=flight.action==='generate'?'Готовим новый вариант по вашему нажатию.':'Проверяем готовый ответ и актуальность переписки.'}
+    }else if(view?.stale){state='stale';label='Помощник — Обновить';hint='Переписка изменилась. Прежний черновик нужно обновить.'}
+    if(flight){state='loading';label=flight.action==='generate'?'Помощник — Готовим ответ':'Помощник — Проверяем';hint=flight.action==='generate'?'Готовим новый вариант по вашему нажатию.':'Проверяем готовый ответ и актуальность переписки.'}
     if(button.textContent!==label)button.textContent=label;
     button.dataset.aiState=state;button.title=hint;button.setAttribute('aria-label',label+'. '+hint);syncPreferences();
   }
@@ -232,7 +246,43 @@
     reply.focus({preventScroll:true});reply.setSelectionRange(saved.start,saved.end,saved.direction);reply.scrollTop=saved.top;reply.scrollLeft=saved.left;
   }
   function rememberSelection(){if(view)view.selection=selection()}
-  function positionPanel(){
+  const readerPosition=()=>manager2()?window.WorkspaceV2Jump?.capture?.():null;
+  function restoreReader(position){if(position)window.WorkspaceV2Jump?.restore?.(position,{preserveScroll:true})}
+  function positionPanel(reveal=false){
+    if(manager2()){
+      const host=assistantHost();if(!host)return;
+      if(!view||panel.hidden){host.style.removeProperty('--m2-assistant-open-height');return}
+      const parent=host.parentElement,screen=window.visualViewport?.height||innerHeight;
+      let room;
+      if(parent.classList.contains('m2ReplyEditorBody')){
+        // The existing editor keeps its one native composer and its own scroll.
+        room=parent.clientHeight-Math.min(180,parent.clientHeight*.55);
+      }else{
+        const px=value=>parseFloat(value)||0,style=getComputedStyle(parent);
+        const children=[...parent.children].filter(node=>{
+          const css=getComputedStyle(node);return css.display!=='none'&&!['absolute','fixed'].includes(css.position);
+        });
+        const used=children.filter(node=>node!==host&&node.id!=='messages').reduce((sum,node)=>{
+          const css=getComputedStyle(node);return sum+node.getBoundingClientRect().height+px(css.marginTop)+px(css.marginBottom);
+        },0);
+        room=parent.clientHeight-px(style.paddingTop)-px(style.paddingBottom)-used-64-Math.max(0,children.length-1)*px(style.rowGap);
+      }
+      const height=Math.max(0,Math.floor(Math.min(room,screen*.38,360))),value=height+'px';
+      if(host.style.getPropertyValue('--m2-assistant-open-height')!==value){
+        const reading=readerPosition();
+        host.style.setProperty('--m2-assistant-open-height',value);
+        restoreReader(reading);
+      }
+      if(reveal===true){
+        const target=body.querySelector('.aiDraftText,.aiDraftEmpty')||status;
+        const box=host.getBoundingClientRect(),text=target.getBoundingClientRect();
+        if(text.top<box.top||text.bottom>box.bottom){
+          // Reveal the answer inside this one scroller, not the transcript.
+          host.scrollTop+=text.top-box.top-Math.min(24,host.clientHeight*.25);
+        }
+      }
+      return;
+    }
     if(!view||panel.hidden)return;
     if(supervisorRead())return;
     const rect=$('composer').getBoundingClientRect?.();if(!rect)return;
@@ -250,10 +300,11 @@
   function clearBody(){body.replaceChildren();insert.hidden=true;insert.disabled=true}
   function abortFlight(){sequence++;const previous=flight;flight=null;previous?.controller?.abort()}
   function resetSession({keepReady=false}={}){
+    const reading=bound&&!panel.hidden?readerPosition():null;
     abortFlight();view=null;
     if(!keepReady)stopWatching();
     if(!bound)return;
-    panel.hidden=true;status.textContent='';clearBody();button.setAttribute('aria-expanded','false');setBusy(false);
+    panel.hidden=true;status.textContent='';clearBody();button.setAttribute('aria-expanded','false');setBusy(false);positionPanel();restoreReader(reading);
   }
   function close(restoreFocus=true){
     const previous=view,mayFocus=previous&&sameContext(previous.snapshot.context)&&canCompose();
@@ -268,8 +319,11 @@
   }
   function sync(){
     if(!bound)return;
-    const supervised=supervisorRead(),host=supervised?$('conversationZone'):$('composer');
+    const supervised=supervisorRead(),host=assistantHost()||(supervised?$('conversationZone'):$('composer'));
     if(host&&panel.parentElement!==host)host.appendChild(panel);
+    if(host?.id==='m2Assistant')for(const item of [notice,preparationNotice]){
+      if(item&&item.parentElement!==host)host.insertBefore(item,panel);
+    }
     panel.classList.toggle('aiDraftSupervisor',supervised);
     $('conversationZone')?.classList.toggle('aiDraftSupervisorHost',supervised);
     if(view&&(!canAnalyze()||!sameContext(view.snapshot.context))){resetSession();return}
@@ -290,7 +344,10 @@
     clearBody();
     const actions={clarify:'Уточнить запрос',answer_question:'Ответить на вопрос',check_offer:'Проверить данные',prepare_selection:'Подготовить подборку',no_contact:'Сейчас не писать'};
     const rawAction=readable(result.next_action),action=actions[rawAction]||rawAction,reason=readable(result.reason);
+    addText('h3','aiDraftSectionTitle','Готовый ответ туристу');
     if(result.should_draft){addText('p','aiDraftText',result.draft);insert.hidden=!canCompose()}
+    else addText('p','aiDraftEmpty','Готового ответа пока нет. Сначала выполните следующий шаг.');
+    addText('h3','aiDraftSectionTitle','Проверки менеджеру');
     if(action)addText('p','aiDraftAction',action);
     if(reason)addText('p','aiDraftReason',reason);
     if(result.history_incomplete)addText('p','aiDraftWarning','В доступной истории есть пропуски. Проверьте контекст перед ответом.');
@@ -320,7 +377,7 @@
   }
   function openReady(){
     if((ready?.kind==='generated'||ready?.should_draft===false)&&ready.expires>Date.now()&&currentSnapshot(ready.snapshot)&&hasReadyProposal(ready,ready.snapshot)){
-      const result=ready;abortStatusRead();abortFlight();view={snapshot:result.snapshot,selection:selection(),result,stale:false};panel.hidden=false;button.setAttribute('aria-expanded','true');renderResult(result);setBusy(false);positionPanel();panel.focus({preventScroll:true});if(watch)scheduleStatus(watch);return;
+      const reading=readerPosition(),result=ready;abortStatusRead();abortFlight();view={snapshot:result.snapshot,selection:selection(),result,stale:false};panel.hidden=false;button.setAttribute('aria-expanded','true');renderResult(result);setBusy(false);positionPanel(true);panel.focus({preventScroll:true});restoreReader(reading);if(watch)scheduleStatus(watch);return;
     }
     void loadProposal('prepared',true);
   }
@@ -328,10 +385,10 @@
     if(!canAnalyze()||flight)return false;
     const recovery=action==='prepared'&&view?.retryAction==='prepared';
     abortStatusRead();dismissNotice();
-    const saved=snapshot(),savedSelection=selection();abortFlight();
+    const saved=snapshot(),savedSelection=selection(),reading=readerPosition();abortFlight();
     view={snapshot:saved,selection:savedSelection,result:null,stale:false,...(recovery?{retryAction:'prepared'}:{})};
     panel.hidden=false;button.setAttribute('aria-expanded','true');clearBody();retry.textContent=recovery?'Повторить проверку':'Повторить подготовку';status.textContent=recovery?'Проверяем AI-подсказку…':'Читаем переписку и фото, готовим ответ…';
-    const current={ticket:sequence,action,controller:typeof AbortController==='function'?new AbortController():null};flight=current;setBusy(true);positionPanel();panel.focus({preventScroll:true});
+    const current={ticket:sequence,action,controller:typeof AbortController==='function'?new AbortController():null};flight=current;setBusy(true);positionPanel(true);panel.focus({preventScroll:true});restoreReader(reading);
     const isCurrent=()=>flight===current&&current.ticket===sequence&&!!view&&currentSnapshot(saved);
     try{
       const request=kind=>W.request('ai-draft.php',kind,{conversation_id:saved.context.conversationId,latest_message_id:saved.latest},{signal:current.controller?.signal,isCurrent});
@@ -354,7 +411,7 @@
       // Both sources carry server-owned provenance through fresh validation.
       delete view.retryAction;view.result=result;renderResult(view.result);rememberReady(view.result,saved,action==='prepared'?'prepared':'generated');return true;
     }catch(error){if(isCurrent())failure(null,action);else sync();return false}
-    finally{if(flight===current){flight=null;setBusy(false);if(watch)scheduleStatus(watch)}}
+    finally{if(flight===current){flight=null;setBusy(false);positionPanel(true);if(watch)scheduleStatus(watch)}}
   }
   function showInsertionIssue(saved,message,result=null,changed=false){
     if(!visible()||!canCompose()||!sameContext(saved.context)||result&&!currentSnapshot(saved))return false;
@@ -435,13 +492,13 @@
     const form=$('composer'),reply=$('replyText'),quick=$('quickRepliesOpen'),row=quick?.parentElement;
     if(!form||!reply||!row||!conversation())return;
     placeholder=reply.getAttribute('placeholder')||'';
-    button=document.createElement('button');button.id='aiDraftOpen';button.type='button';button.className='aiDraftOpen';button.textContent='AI';
-    button.setAttribute('aria-label','Подготовить ответ с AI');button.setAttribute('aria-controls','aiDraftPanel');button.setAttribute('aria-expanded','false');
+    button=document.createElement('button');button.id='aiDraftOpen';button.type='button';button.className='aiDraftOpen';button.textContent='Помощник';
+    button.setAttribute('aria-label','Открыть помощника');button.setAttribute('aria-controls','aiDraftPanel');button.setAttribute('aria-expanded','false');
     row.insertBefore(button,row.firstChild);
     panel=document.createElement('section');panel.id='aiDraftPanel';panel.className='aiDraftPanel';panel.hidden=true;panel.tabIndex=-1;
     panel.setAttribute('role','region');panel.setAttribute('aria-labelledby','aiDraftTitle');
     const head=document.createElement('div');head.className='aiDraftHead';
-    const title=document.createElement('strong');title.id='aiDraftTitle';title.textContent='Черновик ответа';head.appendChild(title);
+    const title=document.createElement('strong');title.id='aiDraftTitle';title.textContent='Помощник';head.appendChild(title);
     const dismiss=document.createElement('button');dismiss.type='button';dismiss.className='aiDraftClose';dismiss.textContent='Закрыть';head.appendChild(dismiss);panel.appendChild(head);
     status=document.createElement('p');status.id='aiDraftStatus';status.className='aiDraftStatus';status.setAttribute('role','status');status.setAttribute('aria-live','polite');panel.appendChild(status);
     body=document.createElement('div');body.className='aiDraftBody';panel.appendChild(body);
@@ -489,6 +546,6 @@
     }
     sync();
   }
-  window.WorkspaceV2AiDraft={bind,sync,resetSession,syncPreferences,openSupervisor:()=>{sync();if(supervisorRead())openReady()}};
+  window.WorkspaceV2AiDraft={bind,sync,resetSession,syncPreferences,host:assistantHost,open:()=>{sync();if(canAnalyze())openReady()},openSupervisor:()=>{sync();if(supervisorRead())openReady()}};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
 })();

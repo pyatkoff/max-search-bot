@@ -115,8 +115,11 @@
       // Suggested text is presentation only. The native draft remains empty
       // until an explicit Tab/click passes the existing fresh-context checks.
       measure.textContent=(suggested||reply.value)+'\u200b';
-      measure.style.width=Math.max(40,width-actionWidth-gap)+'px';
-      multiline=!!suggested||measure.scrollHeight+border>minimum+line*.4||reply.value.includes('\n')||details.some(el=>el.getBoundingClientRect().height>0);
+      // Keep phone typing full width from the first character. Controls stay
+      // below the draft, so wrapping or Return only changes its height.
+      const narrow=window.matchMedia('(max-width:740px)').matches;
+      measure.style.width=Math.max(40,narrow?width:width-actionWidth-gap)+'px';
+      multiline=narrow||!!suggested||measure.scrollHeight+border>minimum+line*.4||reply.value.includes('\n')||details.some(el=>el.getBoundingClientRect().height>0);
       form.classList.toggle('m2ReplyMultiline',multiline);
       measure.style.width=Math.max(40,multiline?width:width-actionWidth-gap)+'px';
       desired=measure.scrollHeight+border+ghostFooter;

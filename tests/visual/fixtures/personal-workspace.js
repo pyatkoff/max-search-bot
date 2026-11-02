@@ -71,6 +71,9 @@ async function setup(page,options={}){
    return route.fulfill({status:404,body:''});
   }
   if(method==='POST'&&d.csrf!=='fixture-csrf'&&!['me','login'].includes(d.action))throw new Error('Canonical CSRF missing: '+url.pathname+' '+d.action);
+  // Existing unrelated feature fixtures explicitly lack a profile snapshot.
+  // Accept only the new optional read; keep all writes/other actions rejected.
+  if(url.pathname==='/manager/request-profile-api.php'&&d.action==='get')return reply({ok:false,error:'profile_unavailable'},503);
   if(url.pathname==='/manager/api.php'){
    if(d.action==='me'||d.action==='login')return reply({ok:true,manager:clone(manager),csrf:'fixture-csrf',projects:[]});
    if(d.action==='detail'&&visibleIds.has(Number(d.conversation_id)))return reply({ok:true,conversation:conv(d.conversation_id),messages,delivery_failure:null,has_manager_reply:true,history:{has_more:false,before_id:1,page_size:200,mode:'latest'}});
