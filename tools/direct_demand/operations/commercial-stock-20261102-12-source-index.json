@@ -1,0 +1,176 @@
+{
+  "state": "PUBLIC_PRIMARY_SOURCES_DISCOVERED_FACTUAL_ACCEPTANCE_SEPARATE",
+  "source_runs": [
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41518399431",
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41518907307",
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41519677841"
+  ],
+  "hotels": [
+    {
+      "hotel_id": 383,
+      "catalog_name": "JAZ GRAND MARSA (EX. JAZ GRAND RESTA)",
+      "region": "Марса Алам",
+      "photo_pool_url": "https://partner.jazhotels.com/hotel/58",
+      "factsheet_url": "https://partner.jazhotels.com/Images/uploads/gallery/Downloads/JazGrandResta/JAZ_Grand%20Marsa_Factsheet_14052026.pdf",
+      "state": "PUBLISHED_VERIFIED",
+      "pdf_read_state": "WEB_PUBLIC_TEXT_READ",
+      "photo_candidates": [],
+      "photo_candidates_visually_verified": true
+    },
+    {
+      "hotel_id": 269,
+      "catalog_name": "JAZ SAMAYA RESORT (EX. IBEROTEL SAMAYA)",
+      "region": "Марса Алам",
+      "photo_pool_url": "https://partner.jazhotels.com/hotel/12",
+      "factsheet_url": null,
+      "state": "CURRENT_FACT_SOURCE_REQUIRED_OLD_VISIT_LINK_REDIRECTS_TO_LAMAYA",
+      "pdf_read_state": "NO_FACTSHEET_FOUND",
+      "photo_candidates": [
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/jazsamaya/9422_TUI%20BLUE%20Samaya%20_AC2949068_TB-SAMAYA-POOL-050.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/jazsamaya/5951_TUI%20BLUE%20Samaya%20_AC2949068_TB-SAMAYA-POOL-051.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/jazsamaya/16628_TUI%20BLUE%20Samaya%20_AC2949068_TB-SAMAYA-POOL-052.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/jazsamaya/264_TUI%20BLUE%20Samaya%20_AC2949068_TB-SAMAYA-POOL-053.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/jazsamaya/14197_TUI%20BLUE%20Samaya%20_AC2949068_TB-SAMAYA-POOL-054.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/jazsamaya/11720_TUI%20BLUE%20Samaya%20_AC2949068_TB-SAMAYA-Superior-Pool-View-Room-102.jpg"
+      ],
+      "photo_candidates_visually_verified": false
+    },
+    {
+      "hotel_id": 67897,
+      "catalog_name": "JAZ MARAYA",
+      "region": "Марса Алам",
+      "photo_pool_url": "https://partner.jazhotels.com/hotel/64",
+      "factsheet_url": "https://partner.jazhotels.com/Images/uploads/gallery/Downloads/new/050346Jaz%20Maraya%20Fact%20Sheet%202024.pdf",
+      "state": "FACTS_PENDING",
+      "pdf_read_state": "DOCUMENT_UNAVAILABLE",
+      "photo_candidates": [
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/JazMaraya/Overview-2-20199412.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/JazMaraya/Overview-20199412.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/JazMaraya/1428_Jaz%20Maraya_Maraya%20Overview.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/JazMaraya/Exterior-202112114.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/JazMaraya/Deluxe-Family-Room-Garden-View-20199412.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/JazMaraya/Deluxe-Family-Room-Pool-View-20199412.jpg"
+      ],
+      "photo_candidates_visually_verified": false
+    },
+    {
+      "hotel_id": 75725,
+      "catalog_name": "JAZ COSTA MARES ADULT ONLY (EX. IBEROTEL COSTA MARES)",
+      "region": "Марса Алам",
+      "photo_pool_url": "https://partner.jazhotels.com/hotel/67",
+      "factsheet_url": "https://partner.jazhotels.com/Images/uploads/gallery/Downloads/IberotelCostaMares/JAZ_CostaMares_Factsheet_14052026.pdf",
+      "state": "FACTS_PENDING",
+      "pdf_read_state": "DOCUMENT_UNAVAILABLE",
+      "photo_candidates": [
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/IberotelCostaMares/Hotel-Overview-20227616.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/IberotelCostaMares/overview-1-202112716.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/IberotelCostaMares/overview-2-202112716.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/IberotelCostaMares/Beach-2022102713.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/IberotelCostaMares/Beach-Bar-outdoor-202112716.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/IberotelCostaMares/Beach-Restaurant-202112716.jpg"
+      ],
+      "photo_candidates_visually_verified": false
+    },
+    {
+      "hotel_id": 108090,
+      "catalog_name": "JAZ ELITE AMARA",
+      "region": "Марса Алам",
+      "photo_pool_url": "https://partner.jazhotels.com/hotel/93",
+      "factsheet_url": "https://partner.jazhotels.com/Images/uploads/gallery/Downloads/Amara/JAZ_Elite_Amara_Factsheet_28042026.pdf",
+      "state": "PUBLISHED_VERIFIED",
+      "pdf_read_state": "PUBLIC_TEXT_EXTRACTED",
+      "photo_candidates": [],
+      "photo_candidates_visually_verified": true
+    },
+    {
+      "hotel_id": 73342,
+      "catalog_name": "JAZ SOMA BEACH (EX. SOLYMAR SOMA BEACH)",
+      "region": "Хургада",
+      "photo_pool_url": "https://partner.jazhotels.com/hotel/66",
+      "factsheet_url": "https://partner.jazhotels.com/Images/uploads/gallery/Downloads/SolYMarSomaBeach/JAZ%20Soma%20Beach%20Factsheet_14052026.pdf",
+      "state": "FACTS_PENDING",
+      "pdf_read_state": "DOCUMENT_UNAVAILABLE",
+      "photo_candidates": [
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/SolYMarSomaBeach/Hotel-Overview-1-2020113011.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/SolYMarSomaBeach/Hotel-Overview-2-2020113011.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/SolYMarSomaBeach/Bar-10-Terrace-202161714.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/SolYMarSomaBeach/Aqua-Snacks-Bar-Indoor-2022659.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/SolYMarSomaBeach/Aqua-Snacks-Bar-Indoor-20226152.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/SolYMarSomaBeach/Aqua-Snacks-Bar-Outdoor-20226152.jpg"
+      ],
+      "photo_candidates_visually_verified": false
+    },
+    {
+      "hotel_id": 278,
+      "catalog_name": "JAZ BELVEDERE",
+      "region": "Шарм-эль-Шейх",
+      "photo_pool_url": "https://partner.jazhotels.com/hotel/2",
+      "factsheet_url": "https://partner.jazhotels.com/Images/uploads/gallery/Downloads/jazbelvedere/JAZ%20Belvedere%20Factsheet.pdf",
+      "state": "FACTS_PENDING",
+      "pdf_read_state": "DOCUMENT_UNAVAILABLE",
+      "photo_candidates": [
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/jazbelvedere/Morning-Overview-202211289.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/jazbelvedere/Night-Overview-202211289.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/jazbelvedere/Beach-202191913.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/jazbelvedere/Superior-Family-twin-bed-garden-view-20232418.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/jazbelvedere/Superior-Family-twin-bed-pool-view-20232418.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/jazbelvedere/Superior-Family-twin-bed-sea-view-20232418.jpg"
+      ],
+      "photo_candidates_visually_verified": false
+    },
+    {
+      "hotel_id": 281,
+      "catalog_name": "JAZ MIRABEL BEACH",
+      "region": "Шарм-эль-Шейх",
+      "photo_pool_url": "https://partner.jazhotels.com/hotel/5",
+      "factsheet_url": "https://partner.jazhotels.com/Images/uploads/gallery/Downloads/jazmirabelbeach/JAZ%20Mirabel%20Beach%20Factsheet.pdf",
+      "state": "FACTS_PENDING",
+      "pdf_read_state": "DOCUMENT_UNAVAILABLE",
+      "photo_candidates": [
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/jazmirabelbeach/Overview-2-20185216.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/jazmirabelbeach/Overview-20185216.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/JazMirabelBeach/Aqua-park1-20222214.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/jazmirabelbeach/Al-Zaytoun-Main-Restaurant-20185216.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/JazMirabelBeach/Superior-Twin-Bed-%20Garden-view.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/JazMirabelBeach/Junior-Suite-Living-Room--2022278.jpg"
+      ],
+      "photo_candidates_visually_verified": false
+    },
+    {
+      "hotel_id": 246,
+      "catalog_name": "JAZ FAYROUZ RESORT (EX. HILTON SHARM FAYROUZ RESORT)",
+      "region": "Шарм-эль-Шейх",
+      "photo_pool_url": "https://partner.jazhotels.com/hotel/68",
+      "factsheet_url": "https://partner.jazhotels.com/Images/uploads/gallery/Downloads/FayrouzResort/JAZ%20Fayrouz%20Factsheet.pdf",
+      "state": "FACTS_PENDING",
+      "pdf_read_state": "DOCUMENT_UNAVAILABLE",
+      "photo_candidates": [
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/new/061132Hotel%20Overview.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/new/061130Flamb%C3%A9%20Pool%20Bar.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/new/071122Superior%20Family%20Room%2C%20Twin%20Bed%2C%20Pool%20View.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/new/071156Superior%20Family%20Room%2C%20TwinBed%2C%20Garden%20View.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/new/071134Superior%20Room%2C%20TwinBed%2C%20Pool%20View.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/FayrouzResort/19096_Jaz%20Fayrouz%20Resort_Superior%20Queen%20bed%20pool%20view.jpg"
+      ],
+      "photo_candidates_visually_verified": false
+    },
+    {
+      "hotel_id": 384,
+      "catalog_name": "JAZ NEO REEF MARSA (EX. SOLYMAR REEF MARSA)",
+      "region": "Марса Алам",
+      "photo_pool_url": "https://partner.jazhotels.com/hotel/61",
+      "factsheet_url": "https://partner.jazhotels.com/Images/uploads/gallery/Downloads/new/080132Solymar%20Reef%20Marsa%20Fact%20Sheet%20Jan%202024.pdf",
+      "state": "FACTS_PENDING",
+      "pdf_read_state": "PUBLIC_PDF_NO_READABLE_TEXT",
+      "photo_candidates": [
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/SuneoClubReefMarsa/Morninng-Overview1.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/SuneoClubReefMarsa/Morning-Overview2.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/SuneoClubReefMarsa/Hotel-Overview-202272813.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/SuneoClubReefMarsa/Beach-Overview-202282414.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/SuneoClubReefMarsa/Pool-Overview-202272813.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/SuneoClubReefMarsa/Overview--2018121111.jpg"
+      ],
+      "photo_candidates_visually_verified": false
+    }
+  ]
+}
