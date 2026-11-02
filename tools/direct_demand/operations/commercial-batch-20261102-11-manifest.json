@@ -1,10 +1,10 @@
 {
   "operation": "commercial-hotel-batch-20261102-11-v1",
-  "state": "TEXT_PREPARED_NATIVE_COVERS_INSPECTION_PENDING",
-  "goal": "Prepare five whole hotel posts with authentic official photos in accepted AnyTour style.",
-  "boundaries": "Existing five native identities and two authorized channels only; no provider sends in this preparation; no price claims.",
-  "criteria": "True hotel photos, readable brand cover, verified PNG, current registry/once guards before any send, exactly two confirmed posts per selected hotel.",
-  "risks": "Official image links still require visual confirmation; no draft is ready for publication.",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Publish four complete hotel materials in Telegram and MAX, reusing existing registry and durable once controls.",
+  "boundaries": "Four exact native hotels and the two already authorized channels only. No price, ad or customer-message changes.",
+  "criteria": "Exactly eight confirmed photo/body/canonical-button posts; existing duplicates and unresolved outcomes stop before any replay.",
+  "risks": "Provider outcomes must remain in canonical server receipts; the staged manifest is not a publication result.",
   "baseline_logical_materials": 50,
   "button_text": "✈️ Узнать стоимость тура",
   "rows": [
@@ -14,7 +14,16 @@
       "sources": [
         "https://all.accor.com/hotel/B1J0/index.en.shtml"
       ],
-      "text": "✈️ Rixos Sharm El Sheikh 5★\nТур с перелётом в Шарм эль Шейх 🇪🇬\n\nОтель в бухте Набк для отдыха без детей. Днём здесь пляж и спа, вечером живая музыка, вечеринки и диджеи 🎶\n\n🏖️ Свой песчаный пляж.\n🍽️ Концепция «Ультра всё включено», основной ресторан и рестораны с обслуживанием по меню.\n💦 Семь бассейнов.\n🧖 Спа Anjana.\n\n🔞 Отель принимает гостей от 18 лет. Для поездки с маленькими детьми нужен другой вариант.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет."
+      "text": "✈️ Rixos Sharm El Sheikh 5★\nТур с перелётом в Шарм эль Шейх 🇪🇬\n\nОтель в бухте Набк для отдыха без детей. Днём здесь пляж и спа, вечером живая музыка, вечеринки и диджеи 🎶\n\n🏖️ Свой песчаный пляж.\n🍽️ Концепция «Ультра всё включено», основной ресторан и рестораны с обслуживанием по меню.\n💦 Семь бассейнов.\n🧖 Спа Anjana.\n\n🔞 Отель принимает гостей от 18 лет. Для поездки с маленькими детьми нужен другой вариант.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-rixos-sharm-358-v1",
+      "aliases": [
+        "Rixos Sharm El Sheikh",
+        "RIXOS SHARM EL SHEIKH ADULTS ONLY"
+      ],
+      "text_sha256": "fae5347b4572642e7f4b17534dc5f4152ed82808bea922783a01a140425d19eb",
+      "photo_sha256": "d0374f659bda4b85f902ae1e7ea8099722e1e2ae49d6aa79b136e9a130f7595e",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7bc700a98e8388be2d64a99433fa46ea90b996c4/.github/traffic-publish/commercial-batch-20261102-11/358.png",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
     },
     {
       "hotel_id": 37668,
@@ -22,7 +31,16 @@
       "sources": [
         "https://all.accor.com/hotel/B1J8/index.en.shtml"
       ],
-      "text": "✈️ Rixos Premium Seagate 5★\nТур с перелётом в Шарм эль Шейх 🇪🇬\n\nСемейный отель в бухте Набк. Здесь можно провести отпуск на пляже, кататься с горок и ходить на вечерние шоу 🌴\n\n🏖️ Собственный пляж на Красном море.\n💦 Аквапарк Aquaventure.\n🧒 Детский клуб Rixy.\n🍽️ Рестораны и бары, концепция «Всё включено».\n\nℹ️ Номера с названием Aqua находятся на второй линии. Это другая часть комплекса, не корпуса у пляжа.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет."
+      "text": "✈️ Rixos Premium Seagate 5★\nТур с перелётом в Шарм эль Шейх 🇪🇬\n\nСемейный отель в бухте Набк. Здесь можно провести отпуск на пляже, кататься с горок и ходить на вечерние шоу 🌴\n\n🏖️ Собственный пляж на Красном море.\n💦 Аквапарк Aquaventure.\n🧒 Детский клуб Rixy.\n🍽️ Рестораны и бары, концепция «Всё включено».\n\nℹ️ Номера с названием Aqua находятся на второй линии. Это другая часть комплекса, не корпуса у пляжа.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-rixos-seagate-37668-v1",
+      "aliases": [
+        "Rixos Premium Seagate",
+        "RIXOS PREMIUM SEAGATE"
+      ],
+      "text_sha256": "807f9094712457c5d1d1d40a45c7357c8c7963eedc3435a1267df52454745c62",
+      "photo_sha256": "526ccbe7b4fa78bd34ea62d1d57f6f9880307fba7301a41b2c6ee2533b447e45",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7bc700a98e8388be2d64a99433fa46ea90b996c4/.github/traffic-publish/commercial-batch-20261102-11/37668.png",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
     },
     {
       "hotel_id": 174,
@@ -30,7 +48,16 @@
       "sources": [
         "https://www.pickalbatros.com/dana-beach-resort-hurghada"
       ],
-      "text": "✈️ Pickalbatros Dana Beach Resort 5★\nТур с перелётом в Хургаду 🇪🇬\n\nБольшой семейный отель с невысокими корпусами, зеленью и лагунами между ними 🌴\n\n🏖️ Свой песчаный пляж.\n💦 Аквапарки для взрослых и детей.\n🧒 Детский клуб Alba.\n🎾 Теннис, падел и спортивные площадки.\n\nℹ️ Территория занимает 181 000 м². Корпуса трёхэтажные и стоят в разных её частях.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет."
+      "text": "✈️ Pickalbatros Dana Beach Resort 5★\nТур с перелётом в Хургаду 🇪🇬\n\nБольшой семейный отель с невысокими корпусами, зеленью и лагунами между ними 🌴\n\n🏖️ Свой песчаный пляж.\n💦 Аквапарки для взрослых и детей.\n🧒 Детский клуб Alba.\n🎾 Теннис, падел и спортивные площадки.\n\nℹ️ Территория занимает 181 000 м². Корпуса трёхэтажные и стоят в разных её частях.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-albatros-dana-174-v1",
+      "aliases": [
+        "Pickalbatros Dana Beach",
+        "PICKALBATROS DANA BEACH RESORT"
+      ],
+      "text_sha256": "4cae8b60356992ebbb69f7d4e54bb5be6a1f330430e44352ba08646017971ac9",
+      "photo_sha256": "f3fb54425c7b9d841af70f8fd7fdfd939dc4cf41442f5a416c6f4f048b2e16c7",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7bc700a98e8388be2d64a99433fa46ea90b996c4/.github/traffic-publish/commercial-batch-20261102-11/174.png",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
     },
     {
       "hotel_id": 55574,
@@ -38,16 +65,23 @@
       "sources": [
         "https://www.pickalbatros.com/white-beach-resort-hurghada"
       ],
-      "text": "✈️ Pickalbatros White Beach Resort 5★\nТур с перелётом в Хургаду 🇪🇬\n\nОтель у моря для поездки с детьми. На территории есть горки, детский клуб и спортивные площадки ☀️\n\n🏖️ Песчаный пляж длиной 150 метров.\n💦 Детский аквапарк.\n🧒 Клуб Alba для детей от 4 до 12 лет.\n⛳ Минигольф.\n\nℹ️ Не все номера смотрят на море. Вид зависит от выбранной категории номера.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет."
-    },
+      "text": "✈️ Pickalbatros White Beach Resort 5★\nТур с перелётом в Хургаду 🇪🇬\n\nОтель у моря для поездки с детьми. На территории есть горки, детский клуб и спортивные площадки ☀️\n\n🏖️ Песчаный пляж длиной 150 метров.\n💦 Детский аквапарк.\n🧒 Клуб Alba для детей от 4 до 12 лет.\n⛳ Минигольф.\n\nℹ️ Не все номера смотрят на море. Вид зависит от выбранной категории номера.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-albatros-white-55574-v1",
+      "aliases": [
+        "Pickalbatros White Beach",
+        "PICKALBATROS WHITE BEACH RESORT"
+      ],
+      "text_sha256": "4482f61123645b32a4f59ccd734e5d42ecc7cec0e0112341322f1fc28b21aa44",
+      "photo_sha256": "68f77c79f8dc3cf8411cb7cb1897a158db85f9c9a9cee496a38556548d49bdf1",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7bc700a98e8388be2d64a99433fa46ea90b996c4/.github/traffic-publish/commercial-batch-20261102-11/55574.png",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    }
+  ],
+  "deferred": [
     {
       "hotel_id": 80964,
-      "hotel": "Meraki Resort Sharm",
-      "sources": [
-        "https://meraki-resort.com/ssh/",
-        "https://meraki-resort.com/ssh/gallery-sharm/"
-      ],
-      "text": "✈️ Meraki Resort Sharm 5★\nТур с перелётом в Шарм эль Шейх 🇪🇬\n\nОтель на берегу Красного моря с богемным оформлением и активной ночной жизнью 🎶\n\n🏖️ Пляж и пляжные бары.\n🍽️ Рестораны с обслуживанием по меню, в том числе итальянский Basilico и азиатский Noodle Tribe.\n💦 Бассейны Floaters и Utopia.\n🎉 Вечеринки и музыка по вечерам.\n\n🔞 Гостей принимают с 16 лет. Здесь любят вечеринки, это важно для тех, кто ищет тихий отпуск.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет."
+      "state": "DEFERRED_GENERAL_VIEW_REQUIRED",
+      "reason": "The inspected main photo shows a person in a pool rather than a useful general hotel view. Do not delay the other four or publish this placeholder."
     }
   ]
 }
