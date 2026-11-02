@@ -126,7 +126,9 @@ function preparedInputNativeRace(): void
     $a=$issue()['capture']['receipt_id'];$b=$issue()['capture']['receipt_id'];
     $dir=sys_get_temp_dir().'/prepared-input-race-'.bin2hex(random_bytes(8));mkdir($dir,0700);$children=[];
     try{
-        $pdo->beginTransaction();$q=$pdo->prepare('SELECT * FROM manager_prepared_replies WHERE job_id=? FOR UPDATE');$q->execute([$job]);$q->fetch();$q->closeCursor();
+        // Hold the first canonical lock. Both children must reach and contend on
+        // the policy-owner lock before either can proceed to the job lock.
+        $pdo->beginTransaction();$q=$pdo->prepare('SELECT id FROM managers WHERE id=? FOR UPDATE');$q->execute([1]);$q->fetch();$q->closeCursor();
         foreach(['a'=>$a,'b'=>$b] as $name=>$id){
             $process=proc_open([PHP_BINARY,__DIR__.'/prepared-input-child.php'],[['pipe','r'],['pipe','w'],['pipe','w']],$pipes);
             if(!is_resource($process))throw new RuntimeException('FAIL native receipt process spawn');
