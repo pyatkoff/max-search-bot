@@ -23,6 +23,20 @@ function managerAiHttpFixtureEvent(string $event, array $data = []): void
     file_put_contents(managerAiHttpFixtureDirectory().'/events.jsonl', json_encode(['event'=>$event]+$data)."\n", FILE_APPEND|LOCK_EX);
 }
 
+// Synthetic policy dependency; real policy/CAS/DB behavior is covered by the
+// SQLite/native preparation suite. This fixture executes the HTTP/session seam.
+final class ConversationDb
+{
+    public static function connection(): ?PDO { return null; }
+}
+final class ManagerPreparationPolicy
+{
+    public static function effective($pdo,int $owner,int $cid,string $project): array
+    {
+        return managerAiHttpFixtureState()['preparation_policy']??['allowed'=>true,'binding'=>null,'mode'=>'legacy','scope'=>'legacy','until_utc'=>null];
+    }
+}
+
 final class ProjectAccessService
 {
     public static function initializeReadOnly(): void
@@ -82,7 +96,7 @@ final class ManagerAiDraftContextService
         if (!$state['access']) return ['ok'=>false,'error'=>'forbidden'];
         if ($state['context_error'] !== '') return ['ok'=>false,'error'=>$state['context_error']];
         return [
-            'ok'=>true,'revision'=>$state['revision'],'latest_message_id'=>$state['latest_message_id'],
+            'ok'=>true,'project_key'=>'anytour','revision'=>$state['revision'],'latest_message_id'=>$state['latest_message_id'],
             'company_knowledge'=>ManagerCompanyKnowledge::forProject('anytour', new DateTimeImmutable('2026-10-18T00:00:00Z')),
             'reference_context'=>(object)['synthetic_revision'=>$state['revision']],
             'photo_context'=>new class { public function read(array $context): array { return ['context'=>$context,'images'=>[['type'=>'input_image']]]; } },
@@ -110,7 +124,7 @@ final class ManagerPreparedReplyService
         return managerAiHttpFixtureState()['ensure_result']??['ok'=>true,'requested'=>true,'preparation_state'=>'pending'];
     }
 
-    public static function prepared(int $cid,int $actor,array $snapshot):array
+    public static function prepared(int $cid,int $actor,array $snapshot,bool $passive=false):array
     {
         managerAiHttpFixtureEvent('prepared_read',['conversation_id'=>$cid,'manager_id'=>$actor,
             'session_closed'=>session_status()!==PHP_SESSION_ACTIVE]);
@@ -122,6 +136,7 @@ final class ManagerPreparedReplyService
                 usleep(10000);
             }
         }
+        if($passive&&(managerAiHttpFixtureState()['preparation_policy']['allowed']??true)===false)return ['ok'=>true,'prepared'=>false];
         return managerAiHttpFixtureState()['prepared_result']??['ok'=>true,'prepared'=>false];
     }
 }

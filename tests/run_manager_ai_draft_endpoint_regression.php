@@ -44,6 +44,8 @@ try {
     $events = static function() use ($tmp): array {
         return array_map(static fn(string $line): array=>json_decode($line,true),file($tmp.'/events.jsonl',FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES) ?: []);
     };
+    $legacyPolicy=['allowed'=>true,'binding'=>null,'mode'=>'legacy','scope'=>'legacy','until_utc'=>null];
+    $policyProjection=['preparation_policy'=>$legacyPolicy];
     $writeState(); $clearEvents();
     $socket = stream_socket_server('tcp://127.0.0.1:0',$errno,$error);
     if (!$socket) throw new RuntimeException('Cannot allocate loopback fixture');
@@ -125,7 +127,7 @@ try {
     managerAiEndpointCheck('readiness returns current metadata without proposal, job ID or customer text',
         $readyStatus['status']===200&&$readyStatus['json']===['ok'=>true,'prepared'=>true,'should_draft'=>true,
             'revision'=>$baseState['revision'],'latest_message_id'=>10,'prepared_at'=>'2026-10-19 10:00:00',
-            'expires_at'=>'2026-10-19 11:00:00','preparation_source'=>'chatgpt_assistant','automatic_preparation'=>true]);
+            'expires_at'=>'2026-10-19 11:00:00','preparation_source'=>'chatgpt_assistant','automatic_preparation'=>true]+$policyProjection);
     $assertNoProvider('automatic readiness never calls the provider');
     managerAiEndpointCheck('automatic readiness never records feedback',!in_array('feedback_record',array_column($events(),'event'),true));
     $previewRequest=array_replace($body,['action'=>'prepared_preview']);
@@ -133,7 +135,7 @@ try {
     $inlinePreview=$request($previewRequest,$cookie);
     managerAiEndpointCheck('passive preview returns full current proposal without private job identity',
         $inlinePreview['status']===200&&$inlinePreview['json']===array_replace(array_diff_key($cached,['job_id'=>true]),
-            ['draft_id'=>null,'expires_at'=>'2026-10-19 11:00:00','preparation_source'=>'chatgpt_assistant']));
+            ['draft_id'=>null,'expires_at'=>'2026-10-19 11:00:00','preparation_source'=>'chatgpt_assistant'])+$policyProjection);
     $assertNoProvider('passive full-text preview never calls provider');
     managerAiEndpointCheck('passive full-text preview never records use or insertion feedback',
         !array_intersect(['feedback_record','feedback_insert_request'],array_column($events(),'event')));
@@ -142,7 +144,7 @@ try {
         &&(array_values(array_filter($events(),static fn(array $event):bool=>$event['event']==='prepared_read'))[0]['session_closed']??false));
     $writeState();$clearEvents();
     managerAiEndpointCheck('passive cache miss stays explicit with no feedback',
-        $request($previewRequest,$cookie)['json']===['ok'=>true,'prepared'=>false]
+        $request($previewRequest,$cookie)['json']===(['ok'=>true,'prepared'=>false]+$policyProjection)
         &&!array_intersect(['provider','feedback_record','feedback_insert_request'],array_column($events(),'event')));
     $writeState(['context_error'=>'reply_not_allowed']);$clearEvents();
     $expectError('passive preview refuses unauthorized foreign chat',$request($previewRequest,$cookie),403,'reply_not_allowed');
@@ -171,11 +173,27 @@ try {
     $writeState();$clearEvents();
     $missingStatus=$request($statusRequest,$cookie);
     managerAiEndpointCheck('cache miss advertises automatic preparation without queuing on passive read',
-        $missingStatus['json']===['ok'=>true,'prepared'=>false,'automatic_preparation'=>true]
+        $missingStatus['json']===(['ok'=>true,'prepared'=>false,'automatic_preparation'=>true]+$policyProjection)
         &&!array_intersect(['preparation_requested','preparation_event','provider'],array_column($events(),'event')));
+    foreach(['disabled','expired'] as $mode){
+        $pausedPolicy=['allowed'=>false,'binding'=>str_repeat('f',64),'mode'=>$mode,'scope'=>'conversation','until_utc'=>$mode==='expired'?'2020-01-01 00:00:00':null];
+        $writeState(['preparation_policy'=>$pausedPolicy,'prepared_result'=>$statusStored]);$clearEvents();
+        $paused=$request($ensure,$cookie);
+        managerAiEndpointCheck($mode.' policy pauses automatic queueing before subscription or provider work',
+            $paused['status']===200&&$paused['json']===(['ok'=>true,'requested'=>false,'queued'=>false,'preparation_state'=>'paused','preparation_policy'=>$pausedPolicy])
+            &&!array_intersect(['preparation_connection','preparation_requested','preparation_event','provider'],array_column($events(),'event')));
+        $clearEvents();$pausedStatus=$request($statusRequest,$cookie);
+        managerAiEndpointCheck($mode.' policy exposes exact paused metadata without passive text or feedback',
+            $pausedStatus['json']===['ok'=>true,'prepared'=>false,'automatic_preparation'=>false,'preparation_policy'=>$pausedPolicy]
+            &&!in_array('feedback_record',array_column($events(),'event'),true));
+        $writeState(['preparation_policy'=>$pausedPolicy,'prepared_result'=>$stored]);$clearEvents();
+        managerAiEndpointCheck($mode.' policy retains explicit saved manual reply',
+            $request($prepared,$cookie)['json']===$cached&&!in_array('provider',array_column($events(),'event'),true));
+    }
+    $writeState();
     $clearEvents();$automatic=$request($ensure+['viewer_id'=>999,'manager_id'=>888],$cookie);$automaticEvents=$events();
     managerAiEndpointCheck('chat opening requests the authenticated viewer through the existing queue',
-        $automatic['status']===200&&$automatic['json']===['ok'=>true,'requested'=>true,'queued'=>true,'preparation_state'=>'pending']
+        $automatic['status']===200&&$automatic['json']===(['ok'=>true,'requested'=>true,'queued'=>true,'preparation_state'=>'pending']+$policyProjection)
         &&array_column($automaticEvents,'event')===['initialize_read_only','auth','snapshot','preparation_connection','preparation_requested','preparation_event','snapshot']
         &&$automaticEvents[4]['viewer_id']===7&&$automaticEvents[4]['owner_id']===7);
     managerAiEndpointCheck('queue creation and callback release the session lock',
@@ -186,7 +204,7 @@ try {
         !array_intersect(['provider','feedback_record','feedback_insert_request'],array_column($automaticEvents,'event')));
     $writeState(['ensure_result'=>['ok'=>true,'requested'=>true,'preparation_state'=>'ready']]);$clearEvents();
     managerAiEndpointCheck('already ready request avoids another worker event',
-        $request($ensure,$cookie)['json']===['ok'=>true,'requested'=>true,'queued'=>false,'preparation_state'=>'ready']
+        $request($ensure,$cookie)['json']===(['ok'=>true,'requested'=>true,'queued'=>false,'preparation_state'=>'ready']+$policyProjection)
         &&!in_array('preparation_event',array_column($events(),'event'),true));
     $writeState(['preparation_connected'=>false]);$clearEvents();
     $expectError('disconnected preparation fails truthfully',$request($ensure,$cookie),503,'preparation_unavailable');
@@ -198,14 +216,14 @@ try {
         !array_intersect(['preparation_event','provider'],array_column($events(),'event')));
     $writeState(['delivery_throws'=>true]);$clearEvents();
     managerAiEndpointCheck('callback outage retains queued work for the existing cron retry',
-        $request($ensure,$cookie)['json']===['ok'=>true,'requested'=>true,'queued'=>true,'preparation_state'=>'pending']
+        $request($ensure,$cookie)['json']===(['ok'=>true,'requested'=>true,'queued'=>true,'preparation_state'=>'pending']+$policyProjection)
         &&count(array_filter($events(),static fn($e)=>$e['event']==='preparation_requested'))===1);
     foreach(['legacy','replies'] as $profile){
         $writeState(['preparation_profile'=>$profile]);$clearEvents();
         $admitted=$request($ensure+['oauth_profile'=>'hotels','connection_id'=>str_repeat('f',32)],$cookie);
         $admittedEvents=$events();$authority=array_values(array_filter($admittedEvents,static fn($e)=>$e['event']==='preparation_authority'));
         managerAiEndpointCheck('automatic preparation and immediate delivery use canonical reply authority '.$profile,
-            $admitted['status']===200&&$admitted['json']===['ok'=>true,'requested'=>true,'queued'=>true,'preparation_state'=>'pending']
+            $admitted['status']===200&&$admitted['json']===(['ok'=>true,'requested'=>true,'queued'=>true,'preparation_state'=>'pending']+$policyProjection)
             &&$authority===[['event'=>'preparation_authority','domain'=>'replies','profile'=>$profile],
                 ['event'=>'preparation_authority','domain'=>'replies','profile'=>$profile]]
             &&count(array_filter($admittedEvents,static fn($e)=>$e['event']==='preparation_requested'))===1

@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+require_once __DIR__.'/ManagerPreparationPolicy.php';
 
 /** Automatic preparation policy only. Manual AI retains its canonical scope. */
 final class ManagerPreparationEligibility
@@ -57,9 +58,12 @@ final class ManagerPreparationEligibility
     /** Completed input stays handled after TTL or reference/instruction changes. */
     public static function handled(PDO $pdo,int $cid,int $actor,string $project,string $input,bool $pending=false): ?string
     {
+        $policy=ManagerPreparationPolicy::effective($pdo,$actor,$cid,$project);
+        if(!$policy['allowed'])return null;
         $q=$pdo->prepare("SELECT job_id,status,proposal_json,proposal_sha256 FROM manager_prepared_replies WHERE conversation_id=? AND manager_id=? AND project_key=? AND purpose='background' AND customer_input_revision=? AND (status='ready'"
-            .($pending?" OR (status='pending' AND expires_at>?)":'').') ORDER BY created_at DESC,job_id DESC LIMIT 1');
+            .($pending?" OR (status='pending' AND expires_at>?)":'').') AND (preparation_policy_revision=? OR (preparation_policy_revision IS NULL AND ? IS NULL)) ORDER BY created_at DESC,job_id DESC LIMIT 1');
         $args=[$cid,$actor,$project,$input];if($pending)$args[]=gmdate('Y-m-d H:i:s');
+        array_push($args,$policy['binding'],$policy['binding']);
         $q->execute($args);$row=$q->fetch(PDO::FETCH_ASSOC);if(!$row)return null;
         if($row['status']==='ready'&&(!is_string($row['proposal_json'])||!is_string($row['proposal_sha256'])
             ||!hash_equals($row['proposal_sha256'],hash('sha256',$row['proposal_json']))))return null;

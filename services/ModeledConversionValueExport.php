@@ -62,6 +62,7 @@ final class ModeledConversionValueExport
 
     public static function tick(?PDO $pdo=null,mixed $lookup=null,mixed $api=null,?int $now=null,?callable $gate=null):array
     {
+        if($pdo===null&&ProjectConfig::projectId()!=='anytour')return ['status'=>'off'];
         $s=self::settings($pdo);if(!$s||$s['mode']!=='send')return ['status'=>'off'];
         $p=$pdo??ConversationDb::connection();$now??=time();$self=new self($p);
         if(!$gate)$gate=static function(string $chat):bool{
@@ -128,7 +129,7 @@ final class ModeledConversionValueExport
                 $candidate=ModeledConversionValueContract::candidate($w,$subject,(int)$s['activated_at_unix'],$now);
                 if(!$candidate)continue;
                 $binding=$this->binding($r['conversation_id'],$r['platform']);
-                if(!$binding||!$gate($binding['external_chat_id']))continue;
+                if(!$binding||(string)$binding['customer_id']!==(string)$r['customer_key']||!$gate($binding['external_chat_id']))continue;
                 $q=$this->pdo->prepare("SELECT COALESCE(SUM(value_rub),0) FROM max_channel_conversion_outbox WHERE project_key='anytour' AND conversation_id=? AND transport_target=? AND value_contract=?");
                 $q->execute([$r['conversation_id'],ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION]);
                 $reserved=(int)$q->fetchColumn();$delta=$candidate['value']-$reserved;if($delta<=0)continue;
@@ -145,7 +146,7 @@ final class ModeledConversionValueExport
     private function binding(mixed $id,string $platform):?array
     {
         if(!in_array($platform,['max','telegram'],true))return null;
-        $q=$this->pdo->prepare("SELECT c.external_chat_id,cc.external_user_id,cc.external_chat_id AS user_chat FROM conversations c JOIN customer_channels cc ON cc.id=c.customer_channel_id AND cc.customer_id=c.customer_id AND cc.project_key=c.project_key AND cc.channel=c.channel WHERE c.id=? AND c.project_key='anytour' AND c.channel=? AND c.is_test=0 AND NOT ".InternalOwnerDialogueScope::conversationSql('c'));
+        $q=$this->pdo->prepare("SELECT c.customer_id,c.external_chat_id,cc.external_user_id,cc.external_chat_id AS user_chat FROM conversations c JOIN customer_channels cc ON cc.id=c.customer_channel_id AND cc.customer_id=c.customer_id AND cc.project_key=c.project_key AND cc.channel=c.channel WHERE c.id=? AND c.project_key='anytour' AND c.channel=? AND c.is_test=0 AND NOT ".InternalOwnerDialogueScope::conversationSql('c'));
         $q->execute([$id,$platform]);$r=$q->fetch(PDO::FETCH_ASSOC);
         if(!$r||!MaxTrackerLookupProtocol::id((string)$r['external_user_id']))return null;
         $chat=$platform==='max'?'-'.$r['external_user_id']:$r['external_user_id'];
@@ -155,7 +156,8 @@ final class ModeledConversionValueExport
     {
         if(($r['project_key']??null)!=='anytour'||($r['counter_id']??null)!=='98615635'
             ||!ModeledConversionValueContract::isKey($r['target']??null)||($r['transport_target']??null)!==ModeledConversionValueContract::TARGET
-            ||($r['value_contract']??null)!==ModeledConversionValueContract::VERSION)return false;
+            ||($r['value_contract']??null)!==ModeledConversionValueContract::VERSION
+            ||($r['identity_source_key']??null)!==(($r['platform']??null)==='telegram'?'tgmini':'max_tracker'))return false;
         $b=$this->binding($r['conversation_id'],$r['platform']);
         if(!$b||(string)$b['external_user_id']!==(string)$r['external_user_id']||!$gate($b['external_chat_id']))return false;
         $safe="CASE WHEN JSON_VALID(profile_json) THEN profile_json ELSE '{}' END";
@@ -171,18 +173,18 @@ final class ModeledConversionValueExport
     private function resolve(array $r,array $identities,int $now,callable $gate):bool
     {
         if(!$this->eligible($r,$gate)){self::failRow($this->pdo,$r,'scope_unavailable');return false;}
-        $client=null;$record=null;
+        $client=null;$record=null;$observation=null;
         if($r['platform']==='max'){
             $record=$identities[$r['external_user_id']]??null;
             if(is_array($record)&&($record['external_user_id']??null)===$r['external_user_id'])$client=$record['client_id']??null;
         }else{
             $q=$this->pdo->prepare("SELECT client_id,MIN(id) AS observation_id FROM advertising_visit_observations WHERE project_key='anytour' AND source_key='tgmini' AND platform='telegram' AND counter_id='98615635' AND external_user_id=? AND identity_status='verified' AND client_id<>'' AND visit_at_unix<=? AND observed_at_unix<=? AND received_at_unix<=? GROUP BY client_id LIMIT 2");
-            $q->execute([$r['external_user_id'],$r['event_unix'],$now,$now]);$ids=$q->fetchAll(PDO::FETCH_ASSOC);if(count($ids)===1)$client=$ids[0]['client_id'];
+            $q->execute([$r['external_user_id'],$r['event_unix'],$now,$now]);$ids=$q->fetchAll(PDO::FETCH_ASSOC);if(count($ids)===1){$client=$ids[0]['client_id'];$observation=$ids[0]['observation_id'];}
         }
         if(!MaxTrackerLookupProtocol::id($client,40)){
             $q=$this->pdo->prepare("UPDATE max_channel_conversion_outbox SET next_attempt_unix=?,last_error='identity_not_found' WHERE id=? AND state='pending'");$q->execute([$now+300,$r['id']]);return false;
         }
-        $q=$this->pdo->prepare("UPDATE max_channel_conversion_outbox SET client_id=?,state='ready',next_attempt_unix=0,last_error='' WHERE id=? AND state='pending'");$q->execute([$client,$r['id']]);return $q->rowCount()===1;
+        $q=$this->pdo->prepare("UPDATE max_channel_conversion_outbox SET client_id=?,tracker_record_id=?,tracker_observed_unix=?,identity_observation_id=?,state='ready',next_attempt_unix=0,last_error='' WHERE id=? AND state='pending'");$q->execute([$client,$record['record_id']??null,$record['observed_at_unix']??null,$observation,$r['id']]);return $q->rowCount()===1;
     }
     private static function failRow(PDO $p,array $r,string $reason):void
     {

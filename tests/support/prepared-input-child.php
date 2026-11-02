@@ -7,7 +7,7 @@ final class PreparedInputRacePdo extends PDO
     public string $signal='';
     public function prepare(string $query,array $options=[]): PDOStatement|false
     {
-        if($query==='SELECT * FROM manager_prepared_replies WHERE job_id=? FOR UPDATE'&&$this->signal!=='')file_put_contents($this->signal,'ready');
+        if($query==='SELECT id FROM managers WHERE id=? FOR UPDATE'&&$this->signal!=='')file_put_contents($this->signal,'ready');
         return parent::prepare($query,$options);
     }
 }
