@@ -260,6 +260,7 @@ function renderBiblio(){
     const images=Array.from(results.querySelectorAll('.tsBiblioPhotos img'));
     const updated=()=>{if(biblioPanel===panel&&panel.review===review&&images.every(img=>img.isConnected&&results.contains(img)))biblioControls()};
     images.forEach(img=>{img.onload=updated;img.onerror=updated});
+    const amount=$('tsBiblioAmount');amount.onfocus=()=>{if(biblioCurrent(panel)&&panel.review===review&&amount.isConnected)amount.scrollIntoView({block:'nearest',inline:'nearest'})};
     $('tsBiblioBack').onclick=()=>{if(busy)return;panel.review=null;render()};$('tsBiblioConfirm').onchange=biblioControls;$('tsBiblioAdd').onclick=()=>void addBiblio(panel);
   }
 }
