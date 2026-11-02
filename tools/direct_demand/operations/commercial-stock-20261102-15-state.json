@@ -1,8 +1,18 @@
 {
   "operation": "commercial-stock-20261102-15-read1",
-  "state": "READ_ONLY_LOOKUP_PREPARED",
-  "goal": "Refill the fifteen remaining candidates to at least25 after batch14 without reopening old publications.",
-  "boundaries": "Twelve new finite candidate names from current official JAZ/H Rewards sources, Egypt only. Read catalog and existing registry only; no provider calls, client data, DB changes or sends.",
-  "criteria": "Actual active native ID, hotel name and city, current duplicates checked. Similar resort/Residence/Park/Club products need exact object proof before preparation.",
-  "risks": "Some brand names have changed. Photo pools can combine Mirabel Park and Club; that is not proof of identical property rights or publication readiness."
+  "state": "CATALOG_READ_COMPLETE",
+  "hotel_catalog_ids": [
+    264,
+    12107,
+    13869,
+    245,
+    43204,
+    13870,
+    282,
+    12114,
+    1983,
+    111801
+  ],
+  "confirmed_stock_count": 25,
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41532640369"
 }
