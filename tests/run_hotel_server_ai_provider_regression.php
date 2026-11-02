@@ -93,7 +93,7 @@ foreach(['fabricate','partial','insufficient','refuse','incomplete','timeout'] a
         if($mode==='partial')$f['cycle']->tick('NEW');
         $r=$f['cycle']->tick('NEW');haCheck($r['state']===($mode==='timeout'?'unknown':'hold'),'known bad output holds with evidence; lost ACK remains UNKNOWN');
         if($mode!=='timeout'){
-            $row=$f['p']->query(\"SELECT result_bytes FROM hotel_server_attempts WHERE result_bytes IS NOT NULL ORDER BY role DESC LIMIT 1\")->fetchColumn();$proof=json_decode($row,true);
+            $row=$f['p']->query("SELECT result_bytes FROM hotel_server_attempts WHERE result_bytes IS NOT NULL ORDER BY role DESC LIMIT 1")->fetchColumn();$proof=json_decode($row,true);
             haCheck($proof['provider_outcome']==='rejected'&&isset($proof['provider_response_id']),'known rejected provider response ID retained for reconciliation');
             $f['cycle']->recordResult('NEW',$proof['attempt_id'],$proof);
             haCheck($f['cycle']->status('NEW')['new_accepted']===0,'identical known rejection readback earns no credit');
@@ -129,4 +129,4 @@ $f=hsFixture();try{
     haCheck($state->calls===0&&haCount($f['p'],'hotel_server_attempts')===0,'unsupported research mode refuses before provider or persistence');
 }finally{hsCleanup($f);}
 
-echo 'HOTEL SERVER AI ADAPTER: '.$n." PASS (synthetic transport only; real provider calls0)\n";
+echo 'HOTEL SERVER AI ADAPTER '.(getenv('HOTEL_WORK_NATIVE_MYSQL')==='1'?'NATIVE MYSQL':'SQLITE').': '.$n." PASS (synthetic transport only; real provider calls0)\n";
