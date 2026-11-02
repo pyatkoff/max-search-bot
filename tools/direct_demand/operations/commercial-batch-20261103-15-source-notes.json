@@ -1,0 +1,55 @@
+{
+  "operation": "commercial-hotel-batch-20261103-15-v1",
+  "state": "PUBLIC_PRIMARY_SOURCE_READS_CLOSED",
+  "public_media_read_run": "https://github.com/pyatkoff/max-search-bot/actions/runs/41535974710",
+  "new_pdf_read_run": "https://github.com/pyatkoff/max-search-bot/actions/runs/41536585181",
+  "accepted_native_png_run": "https://github.com/pyatkoff/max-search-bot/actions/runs/41537165827",
+  "published_catalog_ids": [
+    43204,
+    13870,
+    1983,
+    111801
+  ],
+  "deferred": [
+    {
+      "hotel_id": 264,
+      "source_url": "https://partner.jazhotels.com/Images/uploads/gallery/Downloads/jazdahabeya/JAZ%20Dahabeya%20Factsheet.pdf",
+      "state": "DOCUMENT_UNAVAILABLE",
+      "reason": "AssertionError",
+      "next_method": "Do not repeat this unchanged bounded PDF request. Use a different specific readable primary source or accepted owner material. Assertion cause was not established."
+    },
+    {
+      "hotel_id": 13869,
+      "source_url": "https://partner.jazhotels.com/Images/uploads/gallery/Downloads/jazmakadisarayapalms/JAZ%20Neo%20Saraya%20Palms%20Factsheet.pdf",
+      "state": "DOCUMENT_UNAVAILABLE",
+      "reason": "AssertionError",
+      "next_method": "Do not repeat this unchanged bounded PDF request. Use a different specific readable primary source or accepted owner material. Assertion cause was not established."
+    },
+    {
+      "hotel_id": 245,
+      "source_url": "https://partner.jazhotels.com/Images/uploads/gallery/Downloads/SharmDreamsResort/JAZ%20Sharm%20Dreams%20Factsheet.pdf",
+      "state": "DOCUMENT_UNAVAILABLE",
+      "reason": "AssertionError",
+      "next_method": "Do not repeat this unchanged bounded PDF request. Use a different specific readable primary source or accepted owner material. Assertion cause was not established."
+    },
+    {
+      "hotel_id": 12114,
+      "source_url": "https://partner.jazhotels.com/Images/uploads/gallery/Downloads/IberotelPalace/JAZ%20Elite%20Palace%20Factsheet.pdf",
+      "state": "DOCUMENT_UNAVAILABLE",
+      "reason": "AssertionError",
+      "next_method": "Do not repeat this unchanged bounded PDF request. Use a different specific readable primary source or accepted owner material. Assertion cause was not established."
+    },
+    {
+      "hotel_id": 267,
+      "source_url": "https://partner.jazhotels.com/Images/uploads/gallery/Downloads/iberotelmakadibeach/Iberotel%20Makadi%20Beach%20by%20JAZ%20Factsheet.pdf%20%281%29.pdf",
+      "state": "DOCUMENT_UNAVAILABLE",
+      "reason": "AssertionError",
+      "next_method": "Do not repeat this unchanged bounded PDF request. Use a different specific readable primary source or accepted owner material. Assertion cause was not established."
+    }
+  ],
+  "maraya": {
+    "hotel_id": 67897,
+    "state": "PRIMARY_PAGE_HEADER_GALLERY_ONLY_NO_NEW_FACTS",
+    "next_method": "Use retained official gallery URLs; do not repeat unchanged page extraction or old failed factsheet."
+  }
+}
