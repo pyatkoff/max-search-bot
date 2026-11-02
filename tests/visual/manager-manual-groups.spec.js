@@ -1,3 +1,4 @@
+const {withTransitionDiagnostics}=require('./fixtures/transition-diagnostics');
 const {test,expect}=require('@playwright/test');
 const fs=require('node:fs'),path=require('node:path');
 const {setup,root,emptyState}=require('./fixtures/personal-workspace');
@@ -63,7 +64,7 @@ async function readEarlier(page){
  console.log('MANUAL_GROUP_READING_READY '+JSON.stringify(await page.evaluate(()=>({width:innerWidth,following:WorkspaceV2Jump.isFollowingLatest(),scroll:document.getElementById('messages').scrollTop,distance:WorkspaceV2Jump.distanceFromLatest()}))));
 }
 
-for(const width of [390,430,768,1440])test(`manual group ${width}: one name creates a tab; two pointer/keyboard actions add or remove without replacing the conversation`,async({page,browserName})=>{
+for(const width of [390,430,768,1440])test(`manual group ${width}: one name creates a tab; two pointer/keyboard actions add or remove without replacing the conversation`,withTransitionDiagnostics(async({page,browserName})=>{
  await page.setViewportSize({width,height:900});const s=await setup(page);await settled(page,s);
  // Personal groups are created through settings, with only a name to enter.
  await createGroup(page);await expect(page.locator('#pwGroupName')).toBeFocused();await expect(page.locator('#pwDialog input:not([type="hidden"]):visible')).toHaveCount(1);await expect(page.locator('#pwDialog select:visible')).toHaveCount(0);
@@ -77,7 +78,7 @@ for(const width of [390,430,768,1440])test(`manual group ${width}: one name crea
  // The same two actions work from a keyboard, including a short screen.
  await page.setViewportSize({width,height:420});await showGroupControl(page);await page.locator('#pwGroupOpen').focus();await page.keyboard.press('Enter');const remove=page.locator(`[data-pw-group-membership="${created.id}"]`);await expect(remove).toContainText('Убрать');await remove.scrollIntoViewIfNeeded();await expect(remove).toBeInViewport();await bounded(page);await capture(page,browserName,width,'picker-short');await remove.focus();await page.keyboard.press('Enter');await expect.poll(()=>s.account(7).state.members[String(created.group_label_id)]||[]).toEqual([]);if(await page.locator('#pwDialog').isVisible())await page.keyboard.press('Escape');await expect(page.locator('#pwDialog')).toBeHidden();await expect(page.locator('#pwGroupOpen')).toBeFocused();
  expect(writes(s)).toHaveLength(writeCount+2);expect(writes(s).at(-1)).toMatchObject({action:'group_membership',enabled:false});expect(details(s)).toHaveLength(readCount);expect(lists(s)).toHaveLength(listCount);expect((await drafts(page)).text).toBe(before.text);expect((await drafts(page)).media).toBe(before.media);await page.setViewportSize({width,height:900});await capture(page,browserName,width,'removed');clean(s);
-});
+}));
 
 test('manual group selection is sticky after read/reply/close and is separate from filter tabs and canonical source/search filters',async({page})=>{
  const state=stateWithGroup([11,12,13]);state.tabs.push({id:30,name:'Ждут ответа',queues:['mine'],channels:[],source_ids:[],label_ids:[],reply_needed:true,pinned_only:false});

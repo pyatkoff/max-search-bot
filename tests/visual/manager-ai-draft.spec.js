@@ -1,3 +1,4 @@
+const {withTransitionDiagnostics}=require('./fixtures/transition-diagnostics');
 const {test,expect}=require('@playwright/test');
 const {execFileSync}=require('node:child_process');
 const fs=require('node:fs'),path=require('node:path');
@@ -842,7 +843,7 @@ for(const width of [390,1440])test(`current-trip panel keeps profile and ready r
   clean(state);
 });
 
-test('current-trip panel closes on conversation and account change, ignores late profile reads',async({page})=>{
+test('current-trip panel closes on conversation and account change, ignores late profile reads',withTransitionDiagnostics(async({page})=>{
   await page.setViewportSize({width:390,height:900});const state=await setup(page,{profilePanel:true});
   await expect(page.locator('#m2CurrentTrip strong')).toHaveText('Семейная поездка в Турцию');
   await page.getByRole('button',{name:'Условия поездки',exact:true}).click();
@@ -861,7 +862,7 @@ test('current-trip panel closes on conversation and account change, ignores late
   await page.evaluate(()=>WorkspaceV2.showAuthRecovery('Сессия изменилась'));
   await expect(page.locator('#m2RequestProfilePanel iframe')).toHaveCount(0);await expect(page.locator('#m2CurrentTrip')).not.toBeVisible();
   clean(state);
-});
+}));
 
 test('current-trip panel retains unsaved profile and composer and consumes browser Back once',async({page})=>{
   await page.setViewportSize({width:390,height:900});const state=await setup(page,{profilePanel:true});
