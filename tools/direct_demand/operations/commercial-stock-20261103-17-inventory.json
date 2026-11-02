@@ -1,0 +1,134 @@
+{
+  "operation": "commercial-stock-20261103-17-read1",
+  "state": "SEVENTEEN_CONFIRMED_NEW_LOOKUP_RELEASE_WAIT",
+  "hotel_count": 17,
+  "target_hotel_count": 25,
+  "ready_for_send_count": 0,
+  "candidates": [
+    {
+      "key": "jaz-elite-maraya",
+      "hotel_id": 67897,
+      "hotel": "JAZ MARAYA",
+      "region": "Марса Алам",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "jaz-costa-mares",
+      "hotel_id": 75725,
+      "hotel": "JAZ COSTA MARES ADULT ONLY (EX. IBEROTEL COSTA MARES)",
+      "region": "Марса Алам",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "jaz-soma-beach",
+      "hotel_id": 73342,
+      "hotel": "JAZ SOMA BEACH (EX. SOLYMAR SOMA BEACH)",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "jaz-belvedere",
+      "hotel_id": 278,
+      "hotel": "JAZ BELVEDERE",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "jaz-mirabel-beach",
+      "hotel_id": 281,
+      "hotel": "JAZ MIRABEL BEACH",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "jaz-fayrouz",
+      "hotel_id": 246,
+      "hotel": "JAZ FAYROUZ RESORT (EX. HILTON SHARM FAYROUZ RESORT)",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "jaz-neo-reef-marsa",
+      "hotel_id": 384,
+      "hotel": "JAZ NEO REEF MARSA (EX. SOLYMAR REEF MARSA)",
+      "region": "Марса Алам",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "iberotel-makadi-beach",
+      "hotel_id": 267,
+      "hotel": "IBEROTEL MAKADI BEACH",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "sentido-reef-oasis-senses",
+      "hotel_id": 4184,
+      "hotel": "SENTIDO REEF OASIS SENSES RESORT (EX. REEF OASIS SENSES RESORT)",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "beach-albatros-marsa",
+      "hotel_id": 107,
+      "hotel": "BEACH ALBATROS RESORT MARSA ALAM",
+      "region": "Марса Алам",
+      "state": "CATALOG_CONFIRMED_PRIMARY_SOURCE_AND_COVER_NOT_READY",
+      "identity_source": "commercial-stock-20261102-12-inventory.json"
+    },
+    {
+      "key": "jaz-dahabeya",
+      "hotel_id": 264,
+      "hotel": "JAZ DAHABEYA (EX. IBEROTEL DAHABEYA)",
+      "region": "Дахаб",
+      "state": "CATALOG_CONFIRMED_PRIMARY_OBJECT_AND_CONTENT_NOT_READY"
+    },
+    {
+      "key": "jaz-fanara-resort",
+      "hotel_id": 12107,
+      "hotel": "JAZ FANARA RESORT & RESIDENCE (EX. IBEROTEL CLUB)",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_PRIMARY_OBJECT_AND_CONTENT_NOT_READY",
+      "identity_note": "Native12107 combines Resort & Residence; primary gallery4 and gallery3 are separate. Resolve exact tour product before any post."
+    },
+    {
+      "key": "jaz-neo-saraya-palms",
+      "hotel_id": 13869,
+      "hotel": "JAZ NEO SARAYA PALMS (EX. JAZ MAKADI SARAYA PALMS)",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_PRIMARY_OBJECT_AND_CONTENT_NOT_READY"
+    },
+    {
+      "key": "jaz-sharm-dreams",
+      "hotel_id": 245,
+      "hotel": "JAZ SHARM DREAMS RESORT",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_PRIMARY_OBJECT_AND_CONTENT_NOT_READY"
+    },
+    {
+      "key": "jaz-mirabel-club",
+      "hotel_id": 282,
+      "hotel": "JAZ MIRABEL CLUB",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_PRIMARY_OBJECT_AND_CONTENT_NOT_READY",
+      "identity_note": "Primary photo pool6 combines Park & Club. Do not substitute active Park12109 or combined103125 for Club282."
+    },
+    {
+      "key": "jaz-elite-palace",
+      "hotel_id": 12114,
+      "hotel": "JAZ ELITE PALACE ADULTS ONLY 16+ (EX. IBEROTEL PALACE ADULTS ONLY)",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_PRIMARY_OBJECT_AND_CONTENT_NOT_READY"
+    },
+    {
+      "key": "robinson-soma-bay",
+      "hotel_id": 62505,
+      "hotel": "ROBINSON SOMA BAY",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_PRIMARY_SOURCE_AND_COVER_NOT_READY"
+    }
+  ],
+  "new_name_lookup_count": 12,
+  "new_name_lookup_state": "STOPPED_AT_SOURCE_GATE_BEFORE_SSH_NO_NEW_IDENTITIES_CONFIRMED",
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41543931293"
+}

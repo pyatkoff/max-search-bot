@@ -1,0 +1,7 @@
+{
+  "operation": "commercial-stock-20261103-17-read1",
+  "state": "SOURCE_RELEASE_WAIT_BEFORE_SERVER_READ",
+  "hotel_catalog_ids": [],
+  "confirmed_new_identities": 0,
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41543931293"
+}
