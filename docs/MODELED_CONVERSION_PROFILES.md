@@ -623,7 +623,26 @@ and separately checked early-goal delivery are still required.
 
 
 
-## Assigned business value v1 (separate from purchase probability)
+## Experimental assigned-value implementation and observed funnel
+
+Policy correction (2 November): 50 RUB is the desired acquisition cost of a
+subscriber. The configured 50/25/50/50/100 weights and 275 RUB sum are an
+experimental example; installation and past tests do not approve them as
+income, expected commission or an advertising price scale. DRR 10% remains
+a candidate. Current production rules and historical stored values are
+preserved by this documentation/view correction.
+
+The next analytical result is a comparable AnyTour subscriber cohort for one
+explicit period: subscriber denominator, linked substantive dialogues,
+specific requests and substantive reactions to exact delivered selections,
+with known coverage and unknown linkage. Actions/callbacks, a thank-you and
+current saved advertising IDs do not establish these semantic stages.
+Operational dialogue counts remain useful context but cannot replace the
+subscription denominator or matched semantic stages. Determine proposed
+stage acquisition prices and Metrika goals from this evidence before any
+separate advertising admission.
+
+### Existing implementation record (not approval of its experimental weights)
 
 `ModeledConversionAssignedValue` adds a versioned private `assigned_value` to new
 ordinary profile versions. It leaves all historical frozen snapshots, purchase
@@ -665,3 +684,52 @@ an explainable partial subtotal, not a claim of complete general reaction recall
 Export stays false and conversion uploads zero. No current total is automatically
 sent to Metrika, and repeated totals must never be summed as new revenue.
 
+
+## Private assigned-value viewer
+
+The administrator-only `/manager/assigned-value.php` page renders the existing
+read-time registry. Explicit `view=profiles` shows one page of admitted current
+MAX/Telegram profiles; `view=members` shows one page of MAX tracker members,
+including subscribers without a linked usable dialogue profile. Each request
+copies at most the existing five-row page and offers explicit next-page navigation.
+There is no automatic scan or combined person/revenue total.
+
+Each row presents its private scope/identifiers, explicitly experimental subtotal, all five stage
+weights and awarded/unknown status, evidence references and actual
+occurred/recorded/available/evaluated times. Unknown fields and unavailable
+sources remain explicit. A missing usable linked profile does not prove absence
+of conversation. A missing recorded timestamp is unknown. Page coverage is
+reported separately from total population coverage; an unknown denominator
+cannot produce a percentage. Telegram membership is unavailable from the
+MAX-only bridge while Telegram dialogue profiles remain eligible.
+
+The route checks the current active admin, AnyTour project and access before
+reading and rechecks session/account/project access before releasing the HTML.
+Responses are private/no-store; all values are escaped. There is no transcript
+or native message lookup, customer operation, collection tick, model call or
+advertising export. Private identifiers and registry output must never enter
+public GitHub comments, CI logs or diagnostics.
+
+The MAX members tab requires the already accepted current-member tracker bundle
+to be installed through its existing guarded route. Until then, a failed lookup
+shows unavailable and does not establish an empty cohort. Source tests prove
+presentation/auth behavior only; normal installation and separately admitted
+private real-page acceptance remain required.
+
+The guarded tracker upgrade requires `--expected-preimage`, `--bundle`,
+`--ssh-key` and `--known-hosts`. It admits only the pinned accepted target
+and an explicitly supplied checked historical source candidate; the actual
+installed predecessor is established only by the remote preimage checks.
+The existing verification public key is pinned and preserved, never replaced.
+Unexpected files, symlinks/hardlinks, type/subtree or preimage/key mismatches
+halt before staging. Endpoint-last replacement is per file, not a transactional
+directory cutover: a failure after replacement is an explicit incomplete upgrade,
+with no automatic rollback/retry. A previously failed operation is never replayed
+by this helper change.
+
+The old installer run used a standby credential and failed authentication before
+execution. The existing tracker repository has its own audit credential/route;
+that credential must stay in its original scope. Preparing this public source
+neither authorizes execution in another repository nor establishes successful
+tracker installation. A concrete separately approved runner can reuse this
+fixed upgrade without copying keys or creating a generic remote executor.
