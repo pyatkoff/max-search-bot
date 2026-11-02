@@ -13,12 +13,17 @@ The current card renderer is reused; no extra claims about room photos are added
 Printing waits for all preview photos to load successfully. The actual loaded
 image nodes are temporarily moved into the print document, avoiding a second
 private-photo fetch. Closing/cancelling printing restores those nodes; editing,
-closing the editor or switching client removes the print document. Cancelling
+closing the editor or switching client removes the print document. If the browser
+does not emit print lifecycle events, **Вернуть предпросмотр** restores the same
+loaded images explicitly; no timeout guesses whether printing completed. Cancelling
 the browser dialog changes no draft, sent version or delivery result. The
 protected tours iframe adds only the standard `allow-modals` capability needed
 for `window.print`; existing origin, account, CSP and navigation fences remain.
 Synthetic browser print-media evidence is separate from a real installed-device
-print or an independent manager acceptance.
+print or an independent manager acceptance. Chromium requires the real native
+`beforeprint` event. The WebKit CI host is compared to an ordinary native control
+in the same protected iframe; a missing lifecycle in both phases is recorded as
+unconfirmed printing, while exact layout/dispatch/recovery are checked separately.
 
 ## Manager overview and editing
 

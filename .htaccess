@@ -1,0 +1,7 @@
+# Preserve the upload capability header for this dedicated hotel PHP/CGI endpoint only.
+# The application still validates the capability, operation, payload and private ownership.
+<IfModule mod_setenvif.c>
+    <Files "hotel-server-input.php">
+        SetEnvIfNoCase Authorization "^(.+)$" HTTP_AUTHORIZATION=$1
+    </Files>
+</IfModule>

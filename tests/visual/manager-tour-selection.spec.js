@@ -1417,6 +1417,7 @@ for(const width of [390,1440])test('selection print uses exact frozen cards and 
  await page.emulateMedia({media:'print'});await expect(page.locator('.tsPrintProposal')).toBeVisible();await expect(page.locator('.tsShell')).toBeHidden();await expect(page.locator('#replyText')).toBeHidden();await expect(page.locator('.tsPrintProposal')).not.toContainText('PRIVATE COMPOSER');
  await expect(page.locator('.tsPrintPhotos img')).toHaveCount(6);expect(await page.locator('.tsPrintPhotos img').evaluateAll(imgs=>imgs.every(img=>getComputedStyle(img).display!=='none'&&img.getBoundingClientRect().width>0))).toBe(true);
  expect(await page.locator('.tsPrintProposal').evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
+ expect(await page.locator('.tsPrintProposal').evaluate(el=>{const r=el.getBoundingClientRect();return r.left>=-1&&r.right<=innerWidth+1})).toBe(true);
  fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',fullPage:true,path:path.join(root,'manager2-artifacts',`tour-selection-print-${browserName}-${width}.png`)});
  await page.evaluate(()=>window.dispatchEvent(new Event('afterprint')));await page.emulateMedia({media:'screen'});await expect(page.locator('.tsPrintProposal')).toHaveCount(0);await expect(page.locator('#tsPrint')).toBeEnabled();
  expect(await page.evaluate(()=>previewImages.every(img=>img.closest('.tsPreviewCard')))).toBe(true);await page.locator('#tsEdit').click();await page.locator('#tsClose').click();await expect(page.locator('#replyText')).toHaveValue('PRIVATE COMPOSER MUST NOT PRINT');expect(s.calls).toEqual(calls);clean(s,deliveryActions);
@@ -1435,8 +1436,22 @@ test('selection print is removed on client switch and old button cannot print th
 });
 
 const {privateEditor}=require('./fixtures/selection-private-editor');
-test('protected tours iframe permits same-frame explicit printing without opening another page',async({page})=>{
+test('protected tours iframe compares native print lifecycle with a same-frame control and recovers without events',async({page,browserName},testInfo)=>{
  const s=await privateEditor(page,{draft:completeDraft()}),f=s.editor;const prepareCalls=[];
+ const frame=page.frames().find(x=>x.url().startsWith('https://app.anytoour.ru/manager/tour-selection-editor.php'));
+ await expect(f.locator('#tsStatus')).toContainText('загружен');
+ // Both phases call through the real native function on an ordinary user click.
+ // Observe each for the same bounded window: WebKit's CI host may emit no
+ // printing events even for this control. That is never a successful print claim.
+ await frame.evaluate(()=>{
+  window.printDiagnostic={phase:'control',control:{calls:0,before:0,after:0},proposal:{calls:0,before:0,after:0}};
+  const nativePrint=window.print.bind(window);window.print=()=>{printDiagnostic[printDiagnostic.phase].calls++;return nativePrint()};
+  addEventListener('beforeprint',()=>printDiagnostic[printDiagnostic.phase].before++);addEventListener('afterprint',()=>printDiagnostic[printDiagnostic.phase].after++);
+  const control=document.createElement('button');control.id='nativePrintControl';control.textContent='Synthetic native print control';control.onclick=()=>window.print();document.getElementById('tourSelectionDialog').append(control);
+ });
+ await f.locator('#nativePrintControl').click();await frame.evaluate(()=>new Promise(resolve=>setTimeout(resolve,5000)));
+ const control=await frame.evaluate(()=>({...printDiagnostic.control}));expect(control.calls).toBe(1);expect([0,1]).toContain(control.before);if(browserName==='chromium')expect(control.before).toBe(1);
+ await frame.evaluate(()=>{document.getElementById('nativePrintControl').remove();printDiagnostic.phase='proposal'});
  await page.route('**/manager/tour-selection-editor-api.php',async route=>{
   const d=route.request().postDataJSON();if(d.action!=='prepare')return route.fallback();expect(d.csrf).toBe('private-csrf');expect(d.editor_actor).toBe(7);expect(d.conversation_id).toBe(11);prepareCalls.push(copy(d));
   const built=JSON.parse(execFileSync('php',['-r',`require 'services/ManagerTourSelectionPublicationDraft.php'; $b=ManagerTourSelectionPublicationDraft::build(json_decode(stream_get_contents(STDIN),true)); foreach($b['offers'] as &$o)$o['card']=TourOfferCardRenderer::render($o['snapshot'],$o['presentation'],'tour_like_1_'.str_repeat('a',24)); echo json_encode($b,JSON_THROW_ON_ERROR);`],{cwd:root,input:JSON.stringify(s.snapshot().draft),encoding:'utf8'}));
@@ -1444,10 +1459,14 @@ test('protected tours iframe permits same-frame explicit printing without openin
  });
  await page.route('https://photos.example.org/*.jpg',route=>route.fulfill({contentType:'image/jpeg',body:fs.readFileSync(path.join(root,'assets/owner-tour-cards/compact-v1/cover.jpg'))}));
  await expect(f.locator('#tsStatus')).toContainText('загружен');await f.locator('#tsPreview').click();await expect(f.locator('#tsPrint')).toBeEnabled();expect(prepareCalls).toHaveLength(1);expect(await page.locator('iframe').evaluate(el=>el.sandbox.contains('allow-modals'))).toBe(true);
- const pages=page.context().pages().length,frame=page.frames().find(x=>x.url().startsWith('https://app.anytoour.ru/manager/tour-selection-editor.php'));
- // Observe the native beforeprint event: do not stub window.print in this
- // sandbox case, otherwise a silent modal-policy suppression would be hidden.
- await frame.evaluate(()=>{window.beforePrintCount=0;window.addEventListener('beforeprint',()=>beforePrintCount++)});await f.locator('#tsPrint').click();await expect.poll(()=>frame.evaluate(()=>beforePrintCount)).toBe(1);expect(page.context().pages()).toHaveLength(pages);expect(s.calls.every(x=>['me','editor_context','get'].includes(x.action))).toBe(true);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+ const pages=page.context().pages().length;await frame.evaluate(()=>{window.printImages=Array.from(document.querySelectorAll('.tsPhotos img'))});await f.locator('#tsPrint').click();await frame.evaluate(()=>new Promise(resolve=>setTimeout(resolve,5000)));
+ const observed=await frame.evaluate(()=>({native:printDiagnostic,temporary:!!document.querySelector('.tsPrintProposal')}));expect(observed.native.proposal.calls).toBe(1);expect(observed.native.proposal.before).toBe(control.before);if(browserName==='chromium')expect(observed.native.proposal.before).toBe(1);
+ await testInfo.attach('native-print-control-'+browserName,{contentType:'application/json',body:Buffer.from(JSON.stringify({browser:browserName,observationMs:5000,...observed,actualPrintOrPdfConfirmed:false}))});
+ // Independently exercise no-event recovery in both engines. This separate
+ // controlled non-returning lifecycle is not used to claim native acceptance.
+ if(observed.temporary)await f.locator('#tsPrint').click();await expect(f.locator('.tsPrintProposal')).toHaveCount(0);await expect(f.locator('#tsPrint')).toHaveText('Печать / PDF');
+ await frame.evaluate(()=>{window.print=()=>{}});await f.locator('#tsPrint').click();await expect(f.locator('#tsPrint')).toHaveText('Вернуть предпросмотр');await f.locator('#tsPrint').click();await expect(f.locator('.tsPrintProposal')).toHaveCount(0);expect(await frame.evaluate(()=>printImages.every(img=>img.closest('.tsPreviewCard')))).toBe(true);await expect(f.locator('#tsPrint')).toBeEnabled();
+ expect(page.context().pages()).toHaveLength(pages);expect(s.calls.every(x=>['me','editor_context','get'].includes(x.action))).toBe(true);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
 });
 for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420},{width:430,height:420}])test('private editor uses the same protected core in tours iframe '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
  await page.setViewportSize(viewport);const s=await privateEditor(page,{draft:completeDraft()}),f=s.editor;await f.locator('#tsOfferDetails>summary').click();

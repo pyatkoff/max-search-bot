@@ -516,7 +516,7 @@ function controls(){
   $('tsPreview').disabled=!!photoUpload||busy||loading||sending||!canEdit||!!pending||!!conflict||invalidAges();$('tsHistory').disabled=!!photoUpload||busy||loading||sending;$('tsEdit').disabled=sending;
   if(bulkPrice){$('tsHistory').disabled=true;$('tsPreview').disabled=true;}
   $('tsShare').hidden=!preview;$('tsShare').disabled=busy||loading||sending||sharing;
-  $('tsPrint').hidden=!preview;$('tsPrint').disabled=!canPrint();
+  const printLabel=printProposal?'Вернуть предпросмотр':'Печать / PDF';$('tsPrint').hidden=!preview;if($('tsPrint').textContent!==printLabel)$('tsPrint').textContent=printLabel;$('tsPrint').disabled=printProposal?!current():!canPrint();
   if($('tsInterest')){$('tsInterest').disabled=busy||loading||sending||sharing||interestLoading;$('tsInterest').textContent=interestLoading?'Загружаем активность…':'Активность подборки'}
   const publish=$('tsPublish');if(publish)publish.disabled=!canEdit||busy||sending||sharing||dirty||!!pending||!!conflict||photoPending>0||photoFailures>0;
   if(sharing){$('tsEdit').disabled=true;$('tsDone').disabled=true}else $('tsDone').disabled=false;
@@ -583,6 +583,9 @@ function clearPrint(){
   printProposal.root.remove();printProposal=null;document.body.classList.remove('tsPrinting');
 }
 function printPreview(){
+  // Some browser hosts do not emit a print lifecycle. Keep an explicit way to
+  // restore the same photos, without guessing that printing finished by timeout.
+  if(printProposal){clearPrint();controls();return}
   if(!canPrint())return;
   // Print only the immutable, currently displayed publication. Move already
   // loaded images, so opening the print dialog never re-fetches private photos.
