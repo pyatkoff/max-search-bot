@@ -1,0 +1,103 @@
+{
+  "operation": "commercial-hotel-three-20261102-7-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Prepare and publish the next three complete hotel posts from retained Egypt material, once per authorized channel.",
+  "boundaries": "Only Diamond9373, Montemare32577 and Tropitel Sahl Hasheesh4191. Preserve the existing Remal MAX post. Prepare three complete captions and real branded covers before the guarded six-post send.",
+  "criteria": [
+    "Resolve exact active catalogue identities and physical properties.",
+    "No existing publication for the chosen hotels in either channel.",
+    "Real official hotel photos, full human captions and canonical cost button before any send."
+  ],
+  "risks": [
+    "Keep Posh Club-only rights separate from the standard hotel.",
+    "Use exact official photos and facility restrictions; do not invent current price or free services.",
+    "Check both registries again inside the guarded send, never replay an active or unknown operation."
+  ],
+  "baseline_logical_materials": 24,
+  "candidate_names": [
+    "SUNRISE Diamond Beach Resort",
+    "SUNRISE Montemare Resort",
+    "Tropitel Sahl Hasheesh"
+  ],
+  "official_sources": [
+    "https://www.sunrise-resorts.com/diamond-beach-resort",
+    "https://www.sunrise-resorts.com/montemare-resort",
+    "https://www.tropitelhotels.com/tropitel-sahl-hasheesh"
+  ],
+  "next": "Prepare the Tropitel cover from its official gallery, inspect all three native PNGs, then publish once per channel.",
+  "skipped_candidate": {
+    "name": "Remal Beach",
+    "catalog_id": 319,
+    "reason": "Existing MAX registry name match. Do not duplicate or alter this old publication to advance a new packet.",
+    "existing_matches": {
+      "max": 1,
+      "telegram": 0
+    }
+  },
+  "identity_decisions": [
+    "Diamond9373 and Montemare32577 are the base Sharm resorts; exclude their separately named Posh Club products and unrelated Diamond hotels in Marsa Alam/Hurghada.",
+    "Remal Beach is skipped for this packet to preserve the already registered MAX post. Read only replacement candidates; do not repeat the two resolved identities."
+  ],
+  "selected_catalog_ids": [
+    9373,
+    32577,
+    4191
+  ],
+  "postponed_candidate": {
+    "catalog_id": 247,
+    "reason": "The official Long Beach site loads media through application modules; two bounded reads did not resolve usable official photo URLs. Retain identity evidence and use the already resolved exact Tropitel Sahl Hasheesh4191 instead. Do not repeat this Long Beach diagnostic loop."
+  },
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "hotel_id": 9373,
+      "hotel": "SUNRISE Diamond Beach Resort",
+      "logical_id": "commercial-sunrise-diamond-beach-9373-v1",
+      "aliases": [
+        "SUNRISE Diamond Beach",
+        "Diamond Beach Resort",
+        "Санрайз Даймонд Бич"
+      ],
+      "text": "✈️ Туры в SUNRISE Diamond Beach Resort с перелётом\n📍 Египет, Шарм эль Шейх\n\nОтель в Хадабе с зелёной территорией и собственным пляжем.\n\n💦 Есть аквапарк и четыре бассейна.\n🧸 Для детей работает детский клуб.\n🍽 В ресторанах готовят блюда итальянской, египетской и индийской кухни.\n\nРесторан Felucca с морепродуктами платный.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "sources": [
+        "https://www.sunrise-resorts.com/diamond-beach-resort",
+        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/pressroom/23_db_factsheet_july_2025.pdf"
+      ],
+      "text_sha256": "b049ea9c389d303085e158a7aec273bb1bedc925ef29885b403f3a2358994c60",
+      "media_state": "NATIVE_COVER_NOT_YET_VERIFIED"
+    },
+    {
+      "hotel_id": 32577,
+      "hotel": "SUNRISE Montemare Resort",
+      "logical_id": "commercial-sunrise-montemare-32577-v1",
+      "aliases": [
+        "SUNRISE Montemare",
+        "Montemare Resort",
+        "Санрайз Монтемаре"
+      ],
+      "text": "✈️ Туры в SUNRISE Montemare Resort с перелётом\n📍 Египет, Шарм эль Шейх\n\nОтель в Хадабе с собственным пляжем и видом на Красное море.\n\n💦 Аквапарк с шестью горками.\n🧸 Детский клуб Kids Planet для детей от 4 до 12 лет.\n🍽 Есть рестораны итальянской, азиатской и египетской кухни.\n\nНа большие горки пускают детей ростом от 120 см. Для малышей есть отдельная игровая зона с горками.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "sources": [
+        "https://www.sunrise-resorts.com/montemare-resort",
+        "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/pressroom/22_mm_factsheet_july_2026.pdf"
+      ],
+      "text_sha256": "798844b527a6bebd2c339924df2a5f12fb34a4918fe0b42790ad8db93fe4e734",
+      "media_state": "NATIVE_COVER_NOT_YET_VERIFIED"
+    },
+    {
+      "hotel_id": 4191,
+      "hotel": "Tropitel Sahl Hasheesh",
+      "logical_id": "commercial-tropitel-sahl-hasheesh-4191-v1",
+      "aliases": [
+        "Tropitel Sahl Hasheesh",
+        "Тропитель Сахль Хашиш"
+      ],
+      "text": "✈️ Туры в Tropitel Sahl Hasheesh с перелётом\n📍 Египет, Сахль Хашиш\n\nОтель у моря с собственным пляжем. Вдоль берега проходит прогулочная набережная.\n\n💦 Есть бассейны и водные горки.\n🧸 Для детей есть клуб и игровая площадка.\n🎾 На территории два теннисных корта.\n🍽 В ресторанах готовят блюда итальянской, мексиканской и индийской кухни.\n\nДетский клуб рассчитан на детей от 4 до 12 лет.\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "sources": [
+        "https://www.tropitelhotels.com/tropitel-sahl-hasheesh",
+        "https://www.tropitelhotels.com/tropitel-sahl-hasheesh/activities"
+      ],
+      "text_sha256": "b4efca7b081c15060618db00e647fea83f459256b4c42b24890832be61ee5297",
+      "media_state": "NATIVE_COVER_NOT_YET_VERIFIED"
+    }
+  ]
+}

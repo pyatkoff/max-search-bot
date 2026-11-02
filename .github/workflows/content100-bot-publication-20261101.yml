@@ -1,4 +1,4 @@
-name: Read Long Beach public site media bundle
+name: Inspect next three authorized AnyTour covers
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -17,16 +17,17 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Read only fixed official hotel photo sources
+      - name: Inspect exact native covers without server or bot access
         shell: bash
         run: |
           set -euo pipefail
-          python3 tools/direct_demand/operations/inspect-hotel-media-20261102-3.py
+          python3 tools/direct_demand/operations/inspect-canva-covers-20261102-3.py
       - name: Retain public promotional cover observations
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-three-20261102-7-long-beach-media
+          name: commercial-three-20261102-7-native-covers
           path: |
-            public-media-sources.json
+            native-cover-receipt.json
+            covers/
           retention-days: 14
