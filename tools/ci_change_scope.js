@@ -192,6 +192,14 @@ function selectScope(env = process.env) {
         return full('invalid_commit_ref');
       }
     }
+    // Protect-main requires the current event base to be an ancestor of the
+    // PR head. A known stale branch cannot merge even after a green test-merge;
+    // reject it before scheduling expensive scopes, never mark it successful.
+    try { git(['merge-base', '--is-ancestor', base, head]); }
+    catch (error) {
+      if (error.status === 1) return { ...full('base_not_in_head'), blocked: true };
+      throw error;
+    }
     const changes = parseRawDiff(git(['diff', '--raw', '-z', '--no-renames', '--no-abbrev', base, head]));
     const result = classifyChanges(changes);
     const browserSpec = 'tests/visual/manager-ai-draft.spec.js';
@@ -211,7 +219,13 @@ function selectScope(env = process.env) {
 
 if (require.main === module) {
   const result = selectScope();
-  if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, `mode=${result.mode}\ntour-proof=${result.proveTourSelection === true}\n`);
+  if (result.blocked) {
+    // No mode output: dependent jobs must not turn a blocked PR into a skip/pass.
+    process.stderr.write('PR branch is behind its event base; integrate the current main before final CI.\n');
+    process.exitCode = 1;
+  } else if (process.env.GITHUB_OUTPUT) {
+    fs.appendFileSync(process.env.GITHUB_OUTPUT, `mode=${result.mode}\ntour-proof=${result.proveTourSelection === true}\n`);
+  }
   process.stdout.write(`${JSON.stringify(result)}\n`);
 }
 
