@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "name": "anytour-selection-editor",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "contract": "tour-selection-editor-host-v1",
   "files": {
     "editor.js": "manager/assets/workspace-v2-tour-selection.js",
