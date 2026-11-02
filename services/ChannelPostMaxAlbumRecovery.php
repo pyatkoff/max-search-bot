@@ -29,6 +29,8 @@ final class ChannelPostMaxAlbumRecovery
             $snapshot=ChannelPostIncomingAdapter::maxSnapshot($message);
             self::check(is_array($snapshot)&&($snapshot['metadata']['capability']??'')==='supported','fresh_post_unsupported');
             $hash=ChannelPostIncomingAdapter::contentFingerprint($snapshot,'',(string)$old['channel']['bot_url']);
+            // New supported formats must not widen this reviewed six-photo recovery.
+            self::check(hash_equals(ChannelPostIncomingAdapter::contentFingerprint((array)$old['snapshot']),$hash),'target_content_changed');
             self::check(!hash_equals((string)$old['content_hash'],$hash),'new_snapshot_version_required');
             $observedAt=(string)(int)floor(microtime(true)*1000);
             $snapshot['content_hash']=$hash;
