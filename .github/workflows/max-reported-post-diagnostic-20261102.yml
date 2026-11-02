@@ -1,4 +1,4 @@
-name: Read two reported MAX posts 20261102
+name: Resolve the remaining reported MAX post 20261102
 
 on:
   push:
@@ -18,6 +18,7 @@ concurrency:
 
 env:
   EXPECTED_PRODUCTION_SHA: e768a32947cdb489091083d97ae1772741089699
+  EXPECTED_DIAGNOSTIC_PARENT: 6b8b8952139da2a0ff8447be21b0d21993777043
 
 jobs:
   read:
@@ -38,7 +39,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD^)" = "$EXPECTED_PRODUCTION_SHA"
+          test "$(git rev-parse HEAD^)" = "$EXPECTED_DIAGNOSTIC_PARENT"
           php -l tools/direct_demand/operations/read_reported_max_posts_20261102.php
           openssl x509 -in tools/direct_demand/operations/max_post_diagnostic_recipient_20261102.pem -checkend 0 -noout
           test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = "$EXPECTED_PRODUCTION_SHA"
@@ -50,7 +51,7 @@ jobs:
           assert d == {'head_sha':os.environ['EXPECTED_PRODUCTION_SHA'], 'status':'completed', 'conclusion':'success', 'run_attempt':1}
           PY
 
-      - name: Read only the two reported posts and encrypt the receipt
+      - name: Resolve only the remaining reported post and encrypt the receipt
         env:
           READ_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
           READ_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
