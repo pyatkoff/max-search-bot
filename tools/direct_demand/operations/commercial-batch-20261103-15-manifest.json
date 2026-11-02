@@ -1,90 +1,86 @@
 {
   "operation": "commercial-hotel-batch-20261103-15-v1",
-  "state": "UP_TO_TEN_PRIMARY_SOURCES_PENDING_NOT_SENT",
-  "goal": "Publish fact-ready hotel materials from current stock, up to10, without holding ready properties for inaccessible descriptions.",
-  "boundaries": "Ten exact existing native identities, fixed public primary pages and existing publisher only. No old sends, price figures, customer reads or new runtime.",
-  "criteria": "Whole human hotel posts with3–4 useful verified facts, important feature, real hotel photos and readable AnyTour cover, canonical button, guarded current deduplication.",
-  "risks": "JAZ website text extraction returns header/gallery only. Inspect fixed official source materials, never treat missing text or a search snippet as full factual acceptance. Storage/Firebase token URLs are excluded.",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Publish four whole verified hotel materials through the existing two channels.",
+  "boundaries": "Four exact native catalogue hotels. No price claims, old publication edits, customer reads or new runtime.",
+  "criteria": "Verified useful facts and important hotel feature, real general hotel photos, readable AnyTour cover, canonical button and current live deduplication.",
+  "risks": "Neo Sharks Bay beach access is at JAZ Belvedere. Makadi is16+ and uses a daily beach shuttle. Asteria current2026 factsheet proves actual opening since2025; render images cannot be used.",
+  "baseline_logical_materials": 76,
+  "button_text": "✈️ Узнать стоимость тура",
   "rows": [
     {
-      "key": "steigenberger-alcazar",
       "hotel_id": 43204,
-      "hotel": "STEIGENBERGER ALCAZAR",
-      "region": "Шарм-эль-Шейх",
-      "state": "CATALOG_CONFIRMED_PRIMARY_OBJECT_AND_CONTENT_NOT_READY",
-      "source_url": "https://hrewards.com/en/steigenberger-alcazar-el-sheikh"
+      "hotel": "Steigenberger Alcazar",
+      "key": "steigenberger-alcazar",
+      "aliases": [
+        "Steigenberger Alcazar",
+        "STEIGENBERGER ALCAZAR"
+      ],
+      "sources": [
+        "https://hrewards.com/en/steigenberger-alcazar-el-sheikh"
+      ],
+      "text": "✈️ Steigenberger Alcazar\nТур с перелётом в Шарм эль Шейх 🇪🇬\n\nОтель в бухте Набк с собственным пляжем, семейными номерами и большой программой развлечений 🌴\n\n💦 Три бассейна, два детских бассейна и детский клуб.\n🍽️ Два основных ресторана и пять ресторанов разных кухонь.\n🎾 Теннис, йога, пляжный волейбол и стрельба из лука.\n🎶 Вечером живая музыка и фольклорные шоу.\n\nℹ️ В семейных номерах есть отдельная гостиная с дополнительными спальными местами. В отеле также есть спа с сауной и парной.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-steigenberger-alcazar-43204-v1",
+      "text_sha256": "16e3b1a2b619fa9de37c3433f7fe9518dbcf10246ca453588e9d5ad56b36af6a",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4d4b1ec194d8a078ccb827772908dcfd55cb792a/.github/traffic-publish/commercial-batch-20261103-15/43204.png",
+      "photo_sha256": "fe3754248b987909d9f3c824f2385ac10b0f1a34e18389d23fa61f2918e3e2a8",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
     },
     {
-      "key": "steigenberger-makadi",
       "hotel_id": 13870,
-      "hotel": "STEIGENBERGER MAKADI ADULTS ONLY",
-      "region": "Хургада",
-      "state": "CATALOG_CONFIRMED_PRIMARY_OBJECT_AND_CONTENT_NOT_READY",
-      "source_url": "https://hrewards.com/en/steigenberger-makadi-safaga"
+      "hotel": "Steigenberger Makadi",
+      "key": "steigenberger-makadi",
+      "aliases": [
+        "Steigenberger Makadi",
+        "STEIGENBERGER MAKADI ADULTS ONLY"
+      ],
+      "sources": [
+        "https://hrewards.com/en/steigenberger-makadi-safaga"
+      ],
+      "text": "✈️ Steigenberger Makadi 16+\nТур с перелётом в Хургаду 🇪🇬\n\nНебольшой отель для взрослых в Мадинат Макади. Здесь 83 номера и 10 люксов, рядом поле для гольфа ⛳\n\n🏡 Номера с балконом или террасой, виды на залив, бассейн или гольф поле.\n🍽️ Два ресторана и бар для спокойных вечеров.\n💦 Открытый бассейн с зоной отдыха.\n🧖 Спа, сауна, джакузи и тренажёрный зал.\n\nℹ️ До песчаного пляжа ходит ежедневный шаттл. Отель принимает гостей от 16 лет.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-steigenberger-makadi-13870-v1",
+      "text_sha256": "cc693d9bf6b89de208f4a1097042d0217c577b1dc4a9f4cb734aa6fad02c8f02",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4d4b1ec194d8a078ccb827772908dcfd55cb792a/.github/traffic-publish/commercial-batch-20261103-15/13870.png",
+      "photo_sha256": "41d10fb70d470f4b1a4102b086ef47e3c58f01b1018c375d3e8ff429eb377c39",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
     },
     {
-      "key": "jaz-dahabeya",
-      "hotel_id": 264,
-      "hotel": "JAZ DAHABEYA (EX. IBEROTEL DAHABEYA)",
-      "region": "Дахаб",
-      "state": "CATALOG_CONFIRMED_PRIMARY_OBJECT_AND_CONTENT_NOT_READY",
-      "source_url": "https://partner.jazhotels.com/hotel/28"
-    },
-    {
-      "key": "jaz-neo-saraya-palms",
-      "hotel_id": 13869,
-      "hotel": "JAZ NEO SARAYA PALMS (EX. JAZ MAKADI SARAYA PALMS)",
-      "region": "Хургада",
-      "state": "CATALOG_CONFIRMED_PRIMARY_OBJECT_AND_CONTENT_NOT_READY",
-      "source_url": "https://partner.jazhotels.com/hotel/19"
-    },
-    {
-      "key": "jaz-sharm-dreams",
-      "hotel_id": 245,
-      "hotel": "JAZ SHARM DREAMS RESORT",
-      "region": "Шарм-эль-Шейх",
-      "state": "CATALOG_CONFIRMED_PRIMARY_OBJECT_AND_CONTENT_NOT_READY",
-      "source_url": "https://partner.jazhotels.com/hotel/69"
-    },
-    {
-      "key": "jaz-elite-palace",
-      "hotel_id": 12114,
-      "hotel": "JAZ ELITE PALACE ADULTS ONLY 16+ (EX. IBEROTEL PALACE ADULTS ONLY)",
-      "region": "Шарм-эль-Шейх",
-      "state": "CATALOG_CONFIRMED_PRIMARY_OBJECT_AND_CONTENT_NOT_READY",
-      "source_url": "https://partner.jazhotels.com/hotel/1"
-    },
-    {
-      "key": "jaz-neo-sharks-bay",
       "hotel_id": 1983,
-      "hotel": "JAZ NEO SHARKS BAY (EX. JAZ SHARKS BAY)",
-      "region": "Шарм-эль-Шейх",
-      "state": "CATALOG_CONFIRMED_PRIMARY_OBJECT_AND_CONTENT_NOT_READY",
-      "source_url": "https://partner.jazhotels.com/hotel/8"
+      "hotel": "JAZ Neo Sharks Bay",
+      "key": "jaz-neo-sharks-bay",
+      "aliases": [
+        "JAZ Neo Sharks Bay",
+        "JAZ NEO SHARKS BAY (EX. JAZ SHARKS BAY)"
+      ],
+      "sources": [
+        "https://partner.jazhotels.com/hotel/8",
+        "https://partner.jazhotels.com/Images/uploads/gallery/Downloads/solymarsharksbay/JAZ%20Neo%20Sharks%20Bay%20Factsheet.pdf"
+      ],
+      "text": "✈️ JAZ Neo Sharks Bay\nТур с перелётом в Шарм эль Шейх 🇪🇬\n\nНебольшой отель на 138 номеров в районе Шаркс Бэй. Подойдёт для отпуска с семьёй и отдыха у бассейна 🌴\n\n💦 Взрослый и детский бассейны, у бассейна есть открытое джакузи.\n🧒 Детский клуб и игровая площадка.\n🏓 Тренажёрный зал, настольный теннис и дневные развлечения.\n🍽️ Основной ресторан Barracuda, снек бар Dolphin и лобби бар Marlin.\n\nℹ️ Гости пользуются пляжной зоной в JAZ Belvedere. Это важно знать при выборе отеля для отдыха у моря.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-jaz-neo-sharks-bay-1983-v1",
+      "text_sha256": "a6ccf768554a7c183346d3c0c3d9115625296adffa5d80a4e9d4d0003fe3436b",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4d4b1ec194d8a078ccb827772908dcfd55cb792a/.github/traffic-publish/commercial-batch-20261103-15/1983.png",
+      "photo_sha256": "c407b854ad54c2c9c4cf3c71a6927549bd6ec2cdecf41a7c22236e331001c2f3",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
     },
     {
-      "key": "iberotel-makadi-beach",
-      "hotel_id": 267,
-      "hotel": "IBEROTEL MAKADI BEACH",
-      "region": "Хургада",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY",
-      "source_url": "https://partner.jazhotels.com/hotel/15"
-    },
-    {
-      "key": "jaz-elite-asteria",
       "hotel_id": 111801,
-      "hotel": "JAZ ELITE ASTERIA",
-      "region": "Хургада",
-      "state": "CATALOG_CONFIRMED_PRIMARY_OBJECT_AND_CONTENT_NOT_READY",
-      "source_url": "https://partner.jazhotels.com/hotel/92"
-    },
-    {
-      "key": "jaz-elite-maraya",
-      "hotel_id": 67897,
-      "hotel": "JAZ MARAYA",
-      "region": "Марса Алам",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY",
-      "source_url": "https://www.jazhotels.com/hoteldetail/55-egypt-marsa-alam-jaz-elite-maraya/overview"
+      "hotel": "JAZ Elite Asteria",
+      "key": "jaz-elite-asteria",
+      "aliases": [
+        "JAZ Elite Asteria",
+        "JAZ ELITE ASTERIA"
+      ],
+      "sources": [
+        "https://partner.jazhotels.com/hotel/92",
+        "https://partner.jazhotels.com/Images/uploads/gallery/Downloads/MagicWorldSerenaBeachClub/JAZ_Elite_Asteria_Factsheet_27042026.pdf"
+      ],
+      "text": "✈️ JAZ Elite Asteria\nТур с перелётом в Хургаду 🇪🇬\n\nСовременный семейный отель на побережье Сахль Хашиша. Принимает гостей с лета 2025 года 🌴\n\n💦 Четыре бассейна, детский бассейн и аквапарк.\n🧒 Клуб Jazy для детей, семейные номера и вечерние программы в амфитеатре.\n🍽️ Основной ресторан Aurora и пять ресторанов разных кухонь.\n🏋️ Тренажёрный зал, настольный теннис и площадка для падела.\n\n🐠 У отеля пляж длиной 250 м и коралловый риф. Спа и водные виды спорта оплачиваются отдельно.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-jaz-elite-asteria-111801-v1",
+      "text_sha256": "4f1e637c90bc7c8e1137053762cc1e36f56c60201be48ead6bbacaf171689ab0",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4d4b1ec194d8a078ccb827772908dcfd55cb792a/.github/traffic-publish/commercial-batch-20261103-15/111801.png",
+      "photo_sha256": "b0d53b030d305312ad0a49c16c4f3304e1c8ee1abac776be6cb07f30847d7005",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
     }
   ]
 }
