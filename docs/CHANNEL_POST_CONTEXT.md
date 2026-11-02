@@ -2,8 +2,8 @@
 
 An administrator connects a channel once in `/manager/publications.php`, selects
 an existing active source with `manager` or `ask` handling, and enables automatic
-buttons. SMM then publishes ordinary posts with text or photographs (up to 11 in one MAX
-post, or 10 in a Telegram media group). The bot
+buttons. SMM then publishes ordinary posts with text or photographs, or MAX videos
+(up to 11 images/videos in one MAX post, or 10 photos in a Telegram media group). The bot
 receives the authenticated channel update, stores its exact content, and replaces any existing channel keyboard with only
 the native URL button `Рассчитать на мои даты` to that same post.
 
@@ -32,11 +32,16 @@ invitation paths, other hosts, credentials and URL parameters stay unavailable.
 - MAX uses its actual webhook MID, including private channels whose API URL is
   null. No undocumented permalink decoder is used.
 - MAX re-reads the post before its single attachments-only edit, preserving text,
-  markup and every ordered stable photo ID. Existing channel keyboards are
+  markup and every ordered photo/video identity. Images retain their stable photo
+  ID; videos require the original nonempty provider media token. A video token is
+  treated as opaque and hashed for content comparison; changing it blocks the
+  edit, while a refreshed playback URL alone does not. The fresh provider token
+  reuses the existing video without downloading or uploading it. Existing channel keyboards are
   deliberately replaced with exactly one AnyTour URL button on both platforms,
   including other bots' comment or callback buttons (owner instruction 2026-10-15).
-  Telegram edits reply markup only. Non-photo media remain `requires_attention`
-  without a provider write.
+  Telegram edits reply markup only. MAX audio/files and Telegram non-photo media
+  remain `requires_attention` without a provider write; a missing or invalid MAX
+  video token also blocks the edit. A video is never reconstructed from its URL.
 - New explicit entries use the source's existing handling policy. Existing
   assigned/waiting conversations keep their manager and routing source; a new
   post only updates publication context. Original paid MAX attribution survives.
@@ -56,7 +61,7 @@ invitation paths, other hosts, credentials and URL parameters stay unavailable.
   an authenticated edited-channel event, otherwise administrator attention.
 - MAX may include `quote` markup spans in a webhook while GET omits them. The
   pre-edit comparison accepts only complete omission of valid quote spans, with
-  exact text, stable photographs, forward context and every other markup span
+  exact text, ordered media identities, forward context and every other markup span
   unchanged. A partly changed quote list, malformed spans, changed links or other
   formatting still block the edit. The button edit sends attachments only and
   preserves the fresh provider content. Post-edit readback stays exact, including
@@ -147,7 +152,9 @@ button processing. Private image cache files are outside the document root, with
 `MAX_SEARCH_CHANNEL_POST_MEDIA_DIR` can select a durable private directory.
 The default cache is `/tmp/max-search-bot-channel-post-images`, limited to 512
 files/128 MiB; new images are refused when full, without replacing old versions.
-Images are limited to 5 MiB JPEG/PNG/WebP. Video, GIF and SVG are unsupported.
+Images are limited to 5 MiB JPEG/PNG/WebP. Video, GIF and SVG previews are unsupported.
+MAX video posts retain their original text, publication link and private snapshot;
+the existing manager card links to the original post for video playback.
 
 If a saved provider URL has expired, MAX refreshes it only when the actual MID
 still contains the recorded stable photo ID; Telegram resolves the saved file
@@ -210,10 +217,35 @@ Preview mode makes no database or provider writes, including lease expiration.
 A separately authorized existing post can be selected exactly by channel and
 provider publication timestamp with `tools/recover_max_channel_post.php`.
 Supply the installed clean `--expected-sha`, `--channel-id` and exact
-`--published-ms`. The default preview returns a content fingerprint and photo
-count. Apply additionally requires that fingerprint as `--content-hash` and
+`--published-ms`. The default preview returns a content fingerprint and separate
+photo, video and total-media counts. Apply additionally requires that fingerprint as `--content-hash` and
 `--apply`; it re-reads the same unique provider post and uses the existing
 claim/one-write/readback path. It preserves the original caption, markup,
-forward context and ordered photographs. No permalink decoder, global queue
+forward context and ordered photographs/videos. No permalink decoder, global queue
 reset, customer send, webhook reconfiguration or historical event replay occurs.
 Migration040 and existing publication records remain in place on rollback.
+
+## Exact recovery of a previously unsupported MAX video
+
+The ordinary worker does not revive historical rejected jobs. For an owner-selected
+post already rejected by the former photo-only adapter, use the existing exact-post
+recovery CLI with `--recover-unsupported-video` in preview mode first. Preview is
+read-only and reports eligibility together with the current version/configuration
+selectors. Apply requires the preview's `--content-hash`, `--expected-version-id`
+and `--expected-config-version`, in addition to the same exact channel, timestamp
+and installed SHA.
+
+Recovery requires the current immutable version to be `requires_attention` with
+`unsupported_media`, no attempted provider write and no active claim. Both the
+saved original and fresh provider message must be a supported MAX video post
+with identical text, markup, forward context and ordered media tokens/IDs under
+the current adapter. A changed video or configuration rejects the operation.
+The transaction appends a fresh provider observation and version, keeps the old
+rejection and existing publication/start token intact, then uses the established
+single-write/readback transport. It never fabricates a webhook event or resets
+UNKNOWN, in-flight or previously attempted operations. Ordinary reconciliation
+and unsupported media outside this explicit video recovery remain unchanged.
+
+The provider contracts are [Message](https://dev.max.ru/docs-api/objects/Message)
+and [PUT /messages](https://dev.max.ru/docs-api/methods/PUT/messages/): existing
+video attachments are reused through `payload.token`, alongside the keyboard.
