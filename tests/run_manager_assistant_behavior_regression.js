@@ -5,7 +5,7 @@ const vm=require('node:vm');
 
 // Dependency-free DOM behavior harness. Production code owns all assistant
 // state and transport decisions; this deliberately makes no layout claim.
-function harness({legacy=false}={}){
+function harness(){
   let document;
   const decode=v=>String(v).replace(/&(?:amp|lt|gt|quot|#39);/g,s=>({'&amp;':'&','&lt;':'<','&gt;':'>','&quot;':'"','&#39;':"'"}[s]));
   class Element{
@@ -31,7 +31,7 @@ function harness({legacy=false}={}){
     showModal(){this.open=true}show(){this.open=true}close(){this.open=false}
     scrollIntoView(){}
   }
-  const body=new Element('body');body.className=legacy?'':'manager2';
+  const body=new Element('body');body.className='manager2';
   document={body,activeElement:null,createElement:tag=>new Element(tag),getElementById:id=>body.querySelector('#'+id),querySelector:s=>body.querySelector(s)};
   const inboxZone=new Element('aside');inboxZone.className='inboxZone';body.appendChild(inboxZone);const rail=new Element('nav');rail.className='m2Rail';body.appendChild(rail);const end=new Element();end.className='m2RailEnd';rail.appendChild(end);const tools=new Element();tools.className='conversationTools';body.appendChild(tools);
   const add=(id,tag='div')=>{const n=new Element(tag);n.id=id;body.appendChild(n);return n};
@@ -87,11 +87,10 @@ test('assistant return delegates loaded-history preservation to the canonical co
   assert.equal(h.$('replyText').value,'Unsent customer reply');assert.equal(h.$('replyFile').file,h.file);h.onlyReads();
 });
 
-test('opening a conversation dismisses its menu but explicit Close restores the opener',async()=>{
-  const h=harness({legacy:true});h.A.activate(7);h.A.bind();
-  const button=h.$('assistantClientOpen'),menu={open:false};button.closest=()=>menu;button.focus();
-  await h.A.open(101);await h.click('#assistantConversation');assert.equal(menu.open,false,'Navigation must not reopen the menu over the retained history');
-  button.focus();await h.A.open(101);await h.click('#assistantClose');assert.equal(menu.open,true);assert.equal(h.document.activeElement,button);h.onlyReads();
+test('entry review navigation leaves focus to the conversation owner and explicit Close restores the native reply',async()=>{
+  const h=harness();h.A.activate(7);h.A.bind();const input=h.$('replyText');let focuses=0;const nativeFocus=input.focus.bind(input);input.focus=()=>{focuses++;nativeFocus()};input.focus();
+  await h.A.open(101);const before=focuses;await h.click('#assistantConversation');assert.equal(focuses,before,'Navigation must not force focus to an old launcher');
+  input.focus();await h.A.open(101);await h.click('#assistantClose');assert.equal(h.document.activeElement,input);assert.equal(focuses,before+2);assert.equal(input.value,'Unsent customer reply');assert.equal(h.$('replyFile').file,h.file);h.onlyReads();
 });
 
 for(const [screen,id,mode] of [['conversation',101,'none'],['conversation',102,'push'],['inbox',101,'push'],['lead',101,'push']])test('assistant navigation preserves the canonical history boundary '+screen+' '+id,async()=>{
@@ -103,15 +102,15 @@ test('workspace owner sees team identity and cannot change another manager decis
   assert.match(h.$('assistantTitle').textContent,/владельца/);assert.match(h.$('assistantSubtitle').textContent,/всей команды/);assert.match(h.$('assistantDetail').textContent,/Другой менеджер/);assert.equal(h.$('assistantDetail').querySelector('[data-assistant-decision]'),null);h.onlyReads();
 });
 
-test('dialog menu opens the canonical reply helper without a duplicate work overview',async()=>{
-  const h=harness({legacy:true});let opened=0;h.window.WorkspaceV2AiDraft={open:()=>{opened++}};
-  h.A.activate(7);h.A.bind();const button=h.$('assistantClientOpen'),menu={open:true};button.closest=()=>menu;
-  button.onclick();assert.equal(opened,1);assert.equal(menu.open,false);assert.equal(h.$('assistantDialog'),null);
-  assert.equal(h.$('assistantOpen'),null);assert.equal(h.calls.length,0);
+test('entry review binding keeps the canonical reply helper and creates no duplicate menu launcher',async()=>{
+  const h=harness();let opened=0;const replyHelper={open:()=>{opened++}};h.window.WorkspaceV2AiDraft=replyHelper;h.A.activate(7);h.A.bind();
+  assert.equal(h.$('assistantClientOpen'),null);assert.equal(h.window.WorkspaceV2AiDraft,replyHelper);assert.equal(opened,0);assert.equal(h.$('assistantDialog'),null);assert.equal(h.$('assistantOpen'),null);assert.equal(h.calls.length,0);
 });
-test('activation is lazy and exposes current-owner controls without transport',async()=>{
-  const h=harness({legacy:true});h.A.activate(7);h.A.bind();assert.equal(h.calls.length,0);assert.equal(h.$('assistantOpen'),null);assert.equal(h.$('assistantClientOpen').hidden,false);h.S.detail.conversation.manager_id=8;h.A.sync();assert.equal(h.$('assistantClientOpen').hidden,true);assert.equal(h.calls.length,0);
+test('entry review activation remains lazy when current client ownership changes',async()=>{
+  const h=harness();h.A.activate(7);h.A.bind();assert.equal(h.calls.length,0);assert.equal(h.$('assistantOpen'),null);assert.equal(h.$('assistantClientOpen'),null);
+  h.S.detail.conversation.manager_id=8;h.A.sync();assert.equal(h.$('assistantClientOpen'),null);assert.equal(h.calls.length,0);assert.equal(h.$('replyText').value,'Unsent customer reply');assert.equal(h.$('replyFile').file,h.file);
 });
+
 test('list paging retains old clients beyond the ordinary inbox cap',async()=>{
   const h=harness();h.setHook((url,action,p)=>action==='list'?{ok:true,items:[h.item(p.cursor?901:101)],has_more:!p.cursor,next_cursor:p.cursor?null:101}:undefined);h.A.activate(7);await h.A.open();await h.A.loadList(true);assert.ok(h.body.querySelector('[data-assistant-client="901"]'));assert.match(h.$('assistantCoverage').textContent,/2/);assert.equal(h.calls.at(-1).cursor,101);h.onlyReads();
 });
@@ -238,7 +237,7 @@ test('no-contact is an explicit plan view and is never converted to a send actio
  assert.ok(h.body.querySelector('[data-assistant-client="101"]'));await h.A.loadDetail(101);assert.equal(h.$('assistantReply'),null);assert.equal(h.$('assistantPlan'),null);h.onlyReads();
 });
 
-async function run(){const selected=process.argv.includes('--daily-flow-only')?tests.filter(t=>t.name.startsWith('daily flow ')):process.argv.includes('--ux-review-only')?tests.filter(t=>t.name.startsWith('ux review ')):tests;let passed=0;for(const t of selected){await t.run();passed++;console.log('PASS '+t.name)}console.log('Manager assistant behavior: '+passed+' checks passed')}
+async function run(){const selected=process.argv.includes('--entry-review-only')?tests.filter(t=>t.name.startsWith('entry review ')):process.argv.includes('--daily-flow-only')?tests.filter(t=>t.name.startsWith('daily flow ')):process.argv.includes('--ux-review-only')?tests.filter(t=>t.name.startsWith('ux review ')):tests;let passed=0;for(const t of selected){await t.run();passed++;console.log('PASS '+t.name)}console.log('Manager assistant behavior: '+passed+' checks passed')}
 test('inline plan keeps the protected task editor reachable and never opens another client',async()=>{
  const h=harness();let blocks=0;h.window.WorkspaceV2Tasks={blockNavigationForDirtyDraft:()=>{blocks++;return true}};h.A.activate(7);await h.A.openPlan();await h.A.loadDetail(101);await h.click('#assistantConversation');assert.equal(h.A.isPlanOpen(),true);assert.equal(h.$('assistantDialog').parentElement.className,'inboxZone');assert.equal(h.opened.length,0);assert.equal(blocks,1);assert.equal(h.$('replyText').value,'Unsent customer reply');assert.equal(h.$('replyFile').file,h.file);h.onlyReads();
 });

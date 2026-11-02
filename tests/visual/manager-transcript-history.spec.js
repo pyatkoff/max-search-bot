@@ -401,12 +401,14 @@ for(const status of [200,401])test('notification navigation late detail cannot r
 });
 
 const olderDetails=state=>state.calls.filter(c=>c.path==='/manager/api.php'&&c.action==='detail'&&Number(c.before_id)>0);
-async function prepareRetainedHistory(page,{width=1440,height=844,holdLead=false,viaNext=false,notificationState=''}={}){
- await page.setViewportSize({width,height});const state=await setup(page,{total:800,media:true,holdLead,waiting:viaNext,notificationState});
- if(viaNext){
+async function prepareRetainedHistory(page,{width=1440,height=844,holdLead=false,stackedHistory=false,notificationState=''}={}){
+ await page.setViewportSize({width,height});const state=await setup(page,{total:800,media:true,holdLead,waiting:stackedHistory,notificationState});
+ if(stackedHistory){
   await open(page,12);await page.locator('#replyText').fill('Черновик клиента Б перед переходом');
   await page.locator('#replyFile').setInputFiles({name:'original-B.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic B file')});
-  await useConversationTool(page,'nextWaitingConversation');await expect(page.locator('#conversationTitle')).toHaveText('Синтетический клиент А');await settled(page);
+  // Build the same B -> A conversation stack through its canonical owner.
+  // Visiting Inbox here would replace the history entry this Back/Forward test needs.
+  await page.evaluate(()=>WorkspaceV2Conversation.open(11));await expect(page.locator('#conversationTitle')).toHaveText('Синтетический клиент А');await settled(page);
  }else await open(page);
  await page.evaluate(()=>WorkspaceV2Conversation.loadOlder());await expect(page.locator('#messages .msg')).toHaveCount(400);
  await page.locator('#replyText').fill('Точный черновик после неудачного перехода\nПродолжаем отвечать клиенту А');
@@ -535,7 +537,7 @@ async function settleBackClient(page,state,old,status){
  await(await received).finished();await settled(page);
 }
 for(const [width,height] of [[390,844],[430,844],[768,844],[390,420]])for(const status of [200,401])test('mobile history superseded Back '+status+' retains the current transcript before and after native Forward at '+width+'x'+height,async({page,browserName})=>{
- const saved=await prepareRetainedHistory(page,{width,height,viaNext:true}),{state}=saved;
+ const saved=await prepareRetainedHistory(page,{width,height,stackedHistory:true}),{state}=saved;
  const history=await page.evaluate(()=>WorkspaceV2History.getState()),generation=await page.evaluate(()=>WorkspaceV2.S.authGeneration);
  const {old,before,length}=await backPastPendingClient(page,state);
  await expect(page.locator('#managerAuthRecovery')).toBeHidden();expect(await page.evaluate(()=>WorkspaceV2.S.current)).toBe(11);
@@ -556,7 +558,7 @@ for(const [width,height] of [[390,844],[430,844],[768,844],[390,420]])for(const 
  await screenshot(page,browserName,width,'mobile-back-'+status+'-'+height);clean(state);
 });
 for(const width of [390,1440])for(const status of [200,401,500])test('mobile history obsolete Back '+status+' cannot hide a newer client at '+width,async({page,browserName})=>{
- const saved=await prepareRetainedHistory(page,{width:390,viaNext:true}),{state}=saved;
+ const saved=await prepareRetainedHistory(page,{width:390,stackedHistory:true}),{state}=saved;
  const {old}=await backPastPendingClient(page,state);
  if(width===1440)await page.setViewportSize({width,height:844});
  await page.locator('#inboxList [data-conversation-id="12"] .m2RowOpen').click();await expect(page.locator('#conversationTitle')).toHaveText('Синтетический клиент Б');

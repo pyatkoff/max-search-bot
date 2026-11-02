@@ -324,11 +324,15 @@ test('loaded client photo stays independent from native conversation and favorit
  expect(s.calls.filter(c=>c.path==='/manager/api.php'&&c.action==='detail')).toHaveLength(1);expect(writes(s)).toHaveLength(0);clean(s);
 });
 
-test('Alt+J still activates the canonical next attention conversation once',async({page})=>{
+test('removed Alt+J keeps the current client and explicit row selection opens once',async({page})=>{
  await page.setViewportSize({width:1440,height:900});const s=await setup(page,{state:stateFor({pinned:false}),rows:rows()});await settled(page,s);
- await page.locator('#m2InboxSearchToggle').focus();await page.keyboard.press('Alt+j');await expect(page.locator('#conversationTitle')).toHaveText(longName);await settled(page,s);
+ await page.locator('#m2InboxSearchToggle').focus();await page.keyboard.press('Alt+j');await settled(page,s);
+ expect(s.calls.filter(c=>c.path==='/manager/api.php'&&c.action==='detail')).toHaveLength(0);expect(await page.evaluate(()=>Number(WorkspaceV2.S.current||0))).toBe(0);
+ await row(page).locator('.m2RowOpen').press('Enter');await expect(page.locator('#conversationTitle')).toHaveText(longName);await settled(page,s);
  expect(s.calls.filter(c=>c.path==='/manager/api.php'&&c.action==='detail').map(c=>c.conversation_id)).toEqual([11]);
- await page.locator('#conversationTitle').focus();await page.keyboard.press('Alt+j');await expect(page.locator('#conversationTitle')).toHaveText('Синтетический клиент 1');await settled(page,s);
+ await page.locator('#conversationTitle').focus();await page.keyboard.press('Alt+j');await settled(page,s);await expect(page.locator('#conversationTitle')).toHaveText(longName);
+ expect(s.calls.filter(c=>c.path==='/manager/api.php'&&c.action==='detail').map(c=>c.conversation_id)).toEqual([11]);
+ await page.locator('#inboxList [data-conversation-id="12"] .m2RowOpen').press('Enter');await expect(page.locator('#conversationTitle')).toHaveText('Синтетический клиент 1');await settled(page,s);
  expect(s.calls.filter(c=>c.path==='/manager/api.php'&&c.action==='detail').map(c=>c.conversation_id)).toEqual([11,12]);expect(writes(s)).toHaveLength(0);clean(s);
 });
 
