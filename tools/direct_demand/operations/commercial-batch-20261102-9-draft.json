@@ -1,0 +1,45 @@
+{
+  "operation": "commercial-hotel-batch-20261102-9-v1",
+  "state": "INVENTORY_25_AND_SOURCE_COMPATIBILITY_PENDING",
+  "goal": "Prepare up to 25 exact unpublished hotels, then publish up to 10 ready full hotel posts in both authorized channels through the existing bounded publisher.",
+  "boundaries": "No customers, advertisement campaigns, old publication replay, video recovery, owner hotel import or new runtime service. This phase only reads the selected public catalogue/registry and prepares existing templates.",
+  "criteria": [
+    "Exact unique active catalogue objects and absent target-channel publications.",
+    "Ready full human captions and authentic accepted branded covers for each selected hotel.",
+    "A live batch is accepted only after 2*N actual photo/body/button/source receipts."
+  ],
+  "risks": [
+    "Main9c5be changed four pinned publishing service blobs and the incoming adapter for MAX videos. Image/Telegram paths are unchanged in the reviewed diff; update only exact reviewed service pins and preserve original runtime guards.",
+    "The first TLS attempt stopped before installation of9c5be; after completed deploy, rerun only that failed gate if no existing rerun is active.",
+    "Some new resort photos may be renders or future opening material; omit unready hotels rather than inventing readiness or holding the other hotels."
+  ],
+  "baseline_logical_materials": 30,
+  "candidate_groups": [
+    "tucana",
+    "alma-bay",
+    "alora",
+    "anjum",
+    "meraki",
+    "jaz-aquamarine",
+    "jaz-bluemarine",
+    "jaz-casa-beach",
+    "jaz-casa-resort",
+    "jaz-makadina",
+    "jaz-makadi-oasis",
+    "jaz-makadi-star",
+    "jaz-dar-el-madina",
+    "jaz-lamaya",
+    "jaz-solaya",
+    "steigenberger-aldau",
+    "steigenberger-aqua-magic",
+    "steigenberger-pure",
+    "baron-palace",
+    "baron-resort",
+    "rixos-sharm",
+    "rixos-seagate",
+    "albatros-palace",
+    "albatros-dana",
+    "albatros-white"
+  ],
+  "next": "Complete exact release gate, validate the changed frozen template, and read only these 25 catalogue/registry candidate groups."
+}

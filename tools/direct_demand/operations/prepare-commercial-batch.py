@@ -4,8 +4,8 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 MAX_BATCH=10
-TEMPLATE_PATH='tools/direct_demand/operations/publish-commercial-three-20261102-8.php'
-TEMPLATE_SHA='6f204256b2d321bac0ccc6429192004aeb813f17c6fc4404db9b5d3071bfdeb7'
+TEMPLATE_PATH='tools/direct_demand/operations/commercial-batch-template-20261102.php'
+TEMPLATE_SHA='d7a23db22f99f37d59496a043b85567e24601eac4e6bb31590c6d2610408454d'
 TEMPLATE_OPERATION='commercial-hotel-three-20261102-8-v1'
 PREFIX="<?php\ndeclare(strict_types=1);\n"
 COUNT_ANCHOR="count($payload['rows']??[])===3"
