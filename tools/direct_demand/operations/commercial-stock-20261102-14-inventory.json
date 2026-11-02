@@ -1,6 +1,6 @@
 {
   "operation": "commercial-stock-20261102-14-read1",
-  "state": "CATALOG_STOCK25_CONFIRMED_CONTENT_PENDING",
+  "state": "FIFTEEN_CANDIDATES_REMAIN_AFTER_BATCH14",
   "hotel_count": 25,
   "ready_for_send_count": 0,
   "candidates": [
@@ -65,7 +65,7 @@
       "hotel_id": 263,
       "hotel": "STEIGENBERGER CORAYA BEACH ADULTS ONLY 16+",
       "region": "Марса Алам",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+      "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED"
     },
     {
       "key": "iberotel-makadi-beach",
@@ -79,14 +79,14 @@
       "hotel_id": 69155,
       "hotel": "STEIGENBERGER RESORT ALAYA MARSA ALAM ADULTS ONLY",
       "region": "Марса Алам",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+      "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED"
     },
     {
       "key": "ras-soma",
       "hotel_id": 69409,
       "hotel": "STEIGENBERGER RESORT RAS SOMA",
       "region": "Хургада",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+      "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED"
     },
     {
       "key": "sentido-reef-oasis-senses",
@@ -100,14 +100,14 @@
       "hotel_id": 389,
       "hotel": "PICKALBATROS ROYAL MODERNA SHARM EL SHEIKH",
       "region": "Шарм-эль-Шейх",
-      "state": "CATALOG_CONFIRMED_PRIMARY_SOURCE_AND_COVER_NOT_READY"
+      "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED"
     },
     {
       "key": "albatros-aqua-vista",
       "hotel_id": 109,
       "hotel": "PICKALBATROS AQUA VISTA RESORT",
       "region": "Хургада",
-      "state": "CATALOG_CONFIRMED_PRIMARY_SOURCE_AND_COVER_NOT_READY",
+      "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED",
       "identity_note": "Exact branded PICKALBATROS row; unbranded AQUA VISTA104856 remains separate and unresolved."
     },
     {
@@ -115,7 +115,7 @@
       "hotel_id": 293,
       "hotel": "PICKALBATROS LAGUNA VISTA BEACH",
       "region": "Шарм-эль-Шейх",
-      "state": "CATALOG_CONFIRMED_PRIMARY_SOURCE_AND_COVER_NOT_READY",
+      "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED",
       "identity_note": "Current LAGUNA VISTA BEACH row; Laguna Club107965 includes Vista Garden only in its former name."
     },
     {
@@ -123,28 +123,28 @@
       "hotel_id": 107965,
       "hotel": "PICKALBATROS LAGUNA CLUB RESORT (EX. ALBATROS LAGUNA VISTA GARDEN)",
       "region": "Шарм-эль-Шейх",
-      "state": "CATALOG_CONFIRMED_PRIMARY_SOURCE_AND_COVER_NOT_READY"
+      "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED"
     },
     {
       "key": "albatros-royal-grand",
       "hotel_id": 393,
       "hotel": "PICKALBATROS ROYAL GRAND RESORT ADULTS ONLY 16+",
       "region": "Шарм-эль-Шейх",
-      "state": "CATALOG_CONFIRMED_PRIMARY_SOURCE_AND_COVER_NOT_READY"
+      "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED"
     },
     {
       "key": "albatros-blu-spa",
       "hotel_id": 78898,
       "hotel": "PICKALBATROS BLU SPA RESORT HURGHADA ADULTS ONLY 16+",
       "region": "Хургада",
-      "state": "CATALOG_CONFIRMED_PRIMARY_SOURCE_AND_COVER_NOT_READY"
+      "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED"
     },
     {
       "key": "albatros-vita-portofino",
       "hotel_id": 83105,
       "hotel": "PICKALBATROS VITA RESORT PORTOFINO MARSA ALAM",
       "region": "Марса Алам",
-      "state": "CATALOG_CONFIRMED_PRIMARY_SOURCE_AND_COVER_NOT_READY"
+      "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED"
     },
     {
       "key": "albatros-water-valley",
@@ -185,5 +185,8 @@
       "identity_source": "commercial-stock-20261102-12-inventory.json"
     }
   ],
-  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41527269560"
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41527269560",
+  "published_hotel_count": 10,
+  "unpublished_hotel_count": 15,
+  "publication_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41531531706"
 }
