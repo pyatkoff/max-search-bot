@@ -41,19 +41,30 @@ try {
     // New server mode is evaluated BEFORE the legacy subscription prerequisite.
     // Missing/mismatched flags do not load a provider or query the new schema.
     require_once dirname(__DIR__).'/services/HotelServerCronRuntime.php';
-    $server=HotelServerCronRuntime::tick([
+    require_once dirname(__DIR__).'/services/HotelServerRuntimeConfig.php';
+    $privateRuntime=HotelServerRuntimeConfig::load(dirname(__DIR__));
+    if($privateRuntime!==null){
+        foreach(['HOTEL_SERVER_CYCLE_ENABLED','HOTEL_SERVER_DISPATCH_ALLOWED','HOTEL_SERVER_REPLACEMENT_DISPATCH_ALLOWED'] as $flag)
+            if(defined($flag))throw new DomainException('hotel_runtime_configuration_conflict');
+        foreach(['ANYTOUR_HOTEL_SERVER_PROVIDER','ANYTOUR_HOTEL_SERVER_AI_POLICY'] as $name)
+            if(array_key_exists($name,$GLOBALS))throw new DomainException('hotel_runtime_configuration_conflict');
+    }
+    $server=HotelServerCronRuntime::tick($privateRuntime['flags']??[
         'enabled'=>defined('HOTEL_SERVER_CYCLE_ENABLED')?HOTEL_SERVER_CYCLE_ENABLED:false,
         'dispatch_allowed'=>defined('HOTEL_SERVER_DISPATCH_ALLOWED')?HOTEL_SERVER_DISPATCH_ALLOWED:false,
         'replacement_dispatch_allowed'=>defined('HOTEL_SERVER_REPLACEMENT_DISPATCH_ALLOWED')?HOTEL_SERVER_REPLACEMENT_DISPATCH_ALLOWED:false,
-    ],static function()use($pdo):array{
+    ],static function()use($pdo,$privateRuntime):array{
         $provider=$GLOBALS['ANYTOUR_HOTEL_SERVER_PROVIDER']??null;
-        if($provider===null&&array_key_exists('ANYTOUR_HOTEL_SERVER_AI_POLICY',$GLOBALS)){
+        if($provider===null&&($privateRuntime!==null||array_key_exists('ANYTOUR_HOTEL_SERVER_AI_POLICY',$GLOBALS))){
             require_once dirname(__DIR__).'/services/HotelServerAiProvider.php';
-            $policy=$GLOBALS['ANYTOUR_HOTEL_SERVER_AI_POLICY'];
+            $policy=$privateRuntime['policy']??$GLOBALS['ANYTOUR_HOTEL_SERVER_AI_POLICY'];
             if(!is_array($policy))throw new DomainException('hotel_provider_policy_required');
             $provider=new HotelServerAiProvider($policy);
         }
-        return ['pdo'=>$pdo,'provider'=>$provider];
+        $context=['pdo'=>$pdo,'provider'=>$provider];
+        if($privateRuntime!==null)$context+=['expected_campaign_id'=>$privateRuntime['campaign_id'],
+            'expected_bootstrap_sha256'=>$privateRuntime['bootstrap_sha256']];
+        return $context;
     });
     if($server['handled']){
         $ok=$server['state']!=='hold';
@@ -82,3 +93,4 @@ try {
     // Fixed stage only: no SQL, exception text, queue IDs, callback or credentials.
     fwrite(STDERR,json_encode(['ok'=>false,'state'=>'unavailable','stage'=>$stage,'provider_calls'=>0],JSON_THROW_ON_ERROR)."\n");exit(1);
 }
+

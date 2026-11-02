@@ -199,6 +199,10 @@ final class ChannelPostButtonTransport
                 self::check(is_string($payload['token'] ?? null) && $payload['token'] !== '', 'image_token_missing');
                 // Preserve every original image and its order; never import a URL.
                 $out[] = ['type'=>'image', 'payload'=>['token'=>$payload['token']]];
+            } elseif ($type === 'video') {
+                self::check(ChannelPostIncomingAdapter::maxVideoTokenValid($payload['token'] ?? null), 'video_token_invalid');
+                // Reuse the exact clip from the fresh message, without upload or download.
+                $out[] = ['type'=>'video', 'payload'=>['token'=>$payload['token']]];
             } elseif ($type !== 'inline_keyboard') {
                 throw new ChannelPostTransportFailure('unsupported_media');
             }

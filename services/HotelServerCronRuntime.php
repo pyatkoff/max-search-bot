@@ -16,11 +16,16 @@ final class HotelServerCronRuntime
             $p=$v['pdo'];
             if($p->inTransaction()||$p->getAttribute(PDO::ATTR_ERRMODE)!==PDO::ERRMODE_EXCEPTION)
                 return ['handled'=>true,'state'=>'hold','reason'=>'server_context_unavailable'];
-            $s=$p->query('SELECT campaign_id FROM hotel_server_campaigns WHERE enabled=1 LIMIT 2');
-            $ids=$s->fetchAll(PDO::FETCH_COLUMN);$s->closeCursor();
-            if(count($ids)!==1)return ['handled'=>true,'state'=>'hold','reason'=>'one_enabled_campaign_required'];
+            $s=$p->query('SELECT campaign_id,bootstrap_sha256 FROM hotel_server_campaigns WHERE enabled=1 LIMIT 2');
+            $rows=$s->fetchAll(PDO::FETCH_ASSOC);$s->closeCursor();
+            if(count($rows)!==1)return ['handled'=>true,'state'=>'hold','reason'=>'one_enabled_campaign_required'];
+            if(array_key_exists('expected_campaign_id',$v)||array_key_exists('expected_bootstrap_sha256',$v)){
+                if(($v['expected_campaign_id']??null)!==$rows[0]['campaign_id']
+                    ||($v['expected_bootstrap_sha256']??null)!==$rows[0]['bootstrap_sha256'])
+                    return ['handled'=>true,'state'=>'hold','reason'=>'server_campaign_pin_mismatch'];
+            }
             $cycle=new HotelServerCycle($p,new HotelServerLane($p),$v['provider'],$v['clock']??null);
-            $result=$cycle->tick($ids[0]);
+            $result=$cycle->tick($rows[0]['campaign_id']);
             return ['handled'=>true,'state'=>$result['state'],'historical_accepted'=>$result['historical_accepted']??19,'new_accepted'=>$result['new_accepted']??null];
         }catch(Throwable $ignored){
             // A send could have happened. Never claim zero calls or fall back to legacy.
@@ -28,3 +33,4 @@ final class HotelServerCronRuntime
         }
     }
 }
+

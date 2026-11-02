@@ -124,7 +124,7 @@ final class FixturePostProvider
                 if ($platform === 'max') {
                     $original = $this->message['body']['attachments']; $mapped = [];
                     foreach ($body['attachments'] as $attachment) {
-                        if ($attachment['type'] === 'image') foreach ($original as $old) if (($old['type'] ?? '') === 'image' && $old['payload']['token'] === $attachment['payload']['token']) $attachment = $old;
+                        if (in_array($attachment['type'], ['image','video'], true)) foreach ($original as $old) if (($old['type'] ?? '') === $attachment['type'] && $old['payload']['token'] === $attachment['payload']['token']) $attachment = $old;
                         $mapped[] = $attachment;
                     }
                     $this->message['body']['attachments'] = $mapped;
@@ -402,12 +402,13 @@ channelPostCheck('explicit rejected version does not repeat write', channelPostR
 foreach (['max', 'telegram'] as $platform) {
     [$store, $provider, $transport, $service] = channelPostScenario($fixtures[$platform], $platform);
     $unsupported = $fixtures[$platform];
-    if ($platform === 'max') $unsupported['body']['attachments'][0] = ['type' => 'video', 'payload' => ['token' => 'fixture-video']];
+    $unsupportedType = $platform === 'max' ? 'audio' : 'video';
+    if ($platform === 'max') $unsupported['body']['attachments'][0] = ['type' => 'audio', 'payload' => ['token' => 'fixture-audio']];
     else { unset($unsupported['photo']); $unsupported['video'] = ['file_id' => 'fixture-video']; }
     $r = channelPostReceive($service, $unsupported, $platform);
-    channelPostCheck($platform . ' unsupported video stored as attention', $r['recognized'] && $r['state'] === 'requires_attention');
-    channelPostCheck($platform . ' unsupported video does not call provider', count($provider->calls), 0);
-    channelPostCheck($platform . ' unsupported video not fake queued success', $r['queued'], false);
+    channelPostCheck($platform . ' unsupported ' . $unsupportedType . ' stored as attention', $r['recognized'] && $r['state'] === 'requires_attention');
+    channelPostCheck($platform . ' unsupported ' . $unsupportedType . ' does not call provider', count($provider->calls), 0);
+    channelPostCheck($platform . ' unsupported ' . $unsupportedType . ' not fake queued success', $r['queued'], false);
 }
 [$store, $provider, $transport, $service] = channelPostScenario($fixtures['telegram'], 'telegram');
 $album = $fixtures['telegram']; $album['media_group_id'] = 'album-91';
@@ -602,7 +603,7 @@ channelPostCheck('stale album cannot write', $p->writes(),0);
 $bad=$album; unset($bad['body']['attachments'][5]['payload']['photo_id']);
 [$s,$p,$tr,$svc]=channelPostScenario($bad); $r=channelPostReceive($svc,$bad);
 channelPostCheck('bad last album image is not hidden by album support', [$r['reason'] ?? '',count($p->calls)],['image_stable_id_missing',0]);
-$bad=$album; $bad['body']['attachments'][5]=['type'=>'video','payload'=>['token'=>'fixture-video']];
+$bad=$album; $bad['body']['attachments'][5]=['type'=>'audio','payload'=>['token'=>'fixture-audio']];
 [$s,$p,$tr,$svc]=channelPostScenario($bad); $r=channelPostReceive($svc,$bad);
 channelPostCheck('mixed album keeps unsupported-media guard', [$r['reason'] ?? '',count($p->calls)],['unsupported_media',0]);
 [$s,$p,$tr,$svc]=channelPostScenario($album); channelPostReceive($svc,$album);
@@ -615,6 +616,89 @@ foreach (['timeout_applied','timeout_unapplied'] as $mode) {
     channelPostRun($svc);
     channelPostCheck('album lost response never repeats PUT', $p->writes(),1);
 }
+
+// MAX videos use their reusable media token as identity; URL/thumbnail expiry
+// must not substitute another clip or require downloading/re-uploading it.
+$videoAttachment = ['type'=>'video','payload'=>['token'=>'fixture-private-video-token_A1','url'=>'https://cdn.example.test/video?expires=1'],
+    'thumbnail'=>['url'=>'https://cdn.example.test/video-thumb?expires=1'],'width'=>1920,'height'=>1080,'duration'=>37];
+$videoPost = channelPostMaxAlbum($fixtures['max'],0);
+$videoPost['body']['mid'] = 'mid.video-only';
+array_unshift($videoPost['body']['attachments'],$videoAttachment);
+$mixedVideoPost = channelPostMaxAlbum($fixtures['max'],2);
+$mixedVideoPost['body']['mid'] = 'mid.image-video-image';
+array_splice($mixedVideoPost['body']['attachments'],1,0,[$videoAttachment]);
+foreach (['video-only'=>$videoPost,'mixed'=>$mixedVideoPost] as $videoKind=>$videoMessage) {
+    [$videoStore,$videoProvider,$videoTransport,$videoService]=channelPostScenario($videoMessage);
+    $videoObserved=channelPostReceive($videoService,$videoMessage);
+    channelPostCheck('MAX '.$videoKind.' is queued without provider requests',[$videoObserved['state'],count($videoProvider->calls)],['pending',0]);
+    $videoResult=channelPostRun($videoService);
+    channelPostCheck('MAX '.$videoKind.' receives a verified button with one bounded edit',[$videoResult[0]['state']??'',$videoProvider->writes(),count($videoProvider->calls)],['sent',1,5]);
+    $beforeMedia=array_values(array_filter($videoMessage['body']['attachments'],static fn($a)=>$a['type']!=='inline_keyboard'));
+    $afterMedia=array_values(array_filter($videoProvider->message['body']['attachments'],static fn($a)=>$a['type']!=='inline_keyboard'));
+    channelPostCheck('MAX '.$videoKind.' preserves exact media and order including video metadata',$afterMedia,$beforeMedia);
+    channelPostCheck('MAX '.$videoKind.' preserves caption markup and forward context',[$videoProvider->message['body']['text'],$videoProvider->message['body']['markup'],$videoProvider->message['link']],[$videoMessage['body']['text'],$videoMessage['body']['markup'],$videoMessage['link']]);
+    $videoWrite=array_values(array_filter($videoProvider->calls,static fn($c)=>$c['method']==='PUT'))[0];
+    $writtenMedia=array_slice($videoWrite['body']['attachments'],0,-1);
+    channelPostCheck('MAX '.$videoKind.' sends only existing typed tokens and a keyboard',array_keys($videoWrite['body'])===['attachments']&&$writtenMedia===array_map(static fn($a)=>['type'=>$a['type'],'payload'=>['token'=>$a['payload']['token']]],$beforeMedia));
+    $videoOwn=ChannelPostButtonTransport::buttonUrl(array_values($videoStore->posts)[0]);
+    channelPostCheck('MAX '.$videoKind.' has only its unique button',ChannelPostIncomingAdapter::containsOnlyButton(ChannelPostIncomingAdapter::maxSnapshot($videoProvider->message),$videoOwn,'Рассчитать на мои даты'));
+    channelPostCheck('MAX '.$videoKind.' snapshot retains complete original video metadata',array_values($videoStore->posts)[0]['snapshot']['raw_body'],$videoMessage);
+    channelPostCheck('MAX '.$videoKind.' receipt does not expose media tokens',strpos(json_encode($videoResult),'fixture-private')===false);
+    $videoSelf=channelPostReceive($videoService,$videoProvider->message,'max',true);
+    channelPostCheck('MAX '.$videoKind.' self-edit keeps version and never repeats PUT',[$videoSelf['version_id'],channelPostRun($videoService),$videoProvider->writes()],[$videoObserved['version_id'],[],1]);
+}
+$videoHash=ChannelPostIncomingAdapter::contentFingerprint(ChannelPostIncomingAdapter::maxSnapshot($videoPost));
+$videoRenewed=$videoPost;
+$videoRenewed['body']['attachments'][0]['payload']['url']='https://cdn.example.test/video?expires=2';
+$videoRenewed['body']['attachments'][0]['thumbnail']['url']='https://cdn.example.test/video-thumb?expires=2';
+channelPostCheck('MAX renewed video playback and thumbnail URLs keep clip identity',ChannelPostIncomingAdapter::contentFingerprint(ChannelPostIncomingAdapter::maxSnapshot($videoRenewed)),$videoHash);
+[$videoStore,$videoProvider,$videoTransport,$videoService]=channelPostScenario($videoPost);
+channelPostReceive($videoService,$videoPost);$videoProvider->message=$videoRenewed;
+channelPostCheck('MAX fresh renewed video URLs still permit exact-token edit',channelPostRun($videoService)[0]['state']??'','sent');
+$videoChanged=$videoPost;$videoChanged['body']['attachments'][0]['payload']['token']='fixture-different-video';
+channelPostCheck('MAX different video token changes content identity',ChannelPostIncomingAdapter::contentFingerprint(ChannelPostIncomingAdapter::maxSnapshot($videoChanged))!==$videoHash);
+[$videoStore,$videoProvider,$videoTransport,$videoService]=channelPostScenario($videoPost);
+channelPostReceive($videoService,$videoPost);$videoProvider->message=$videoChanged;
+channelPostCheck('MAX changed clip before edit is rejected without PUT',[channelPostRun($videoService)[0]['reason']??'',$videoProvider->writes()],['post_changed_since_event',0]);
+foreach ([null,'',123,true,'bad token','bad/token',"bad-token\n",['unexpected']] as $invalidVideoToken) {
+    $invalidVideo=$videoPost;$invalidVideo['body']['attachments'][0]['payload']['token']=$invalidVideoToken;
+    [$videoStore,$videoProvider,$videoTransport,$videoService]=channelPostScenario($invalidVideo);
+    $videoInvalid=channelPostReceive($videoService,$invalidVideo);
+    channelPostCheck('MAX invalid or missing video identity requires attention before provider access',[$videoInvalid['state'],$videoInvalid['reason'],count($videoProvider->calls)],['requires_attention','video_token_invalid',0]);
+}
+foreach ([10,11] as $mixedPhotoCount) {
+    $videoBoundary=channelPostMaxAlbum($fixtures['max'],$mixedPhotoCount);
+    array_splice($videoBoundary['body']['attachments'],1,0,[$videoAttachment]);
+    [$videoStore,$videoProvider,$videoTransport,$videoService]=channelPostScenario($videoBoundary);
+    $videoBoundaryResult=channelPostReceive($videoService,$videoBoundary);
+    if($mixedPhotoCount===10)channelPostCheck('MAX ten photos and one video reserve the twelfth slot for the button',channelPostRun($videoService)[0]['state']??'','sent');
+    else channelPostCheck('MAX twelve mixed media cannot silently lose an attachment',[$videoBoundaryResult['state'],$videoBoundaryResult['reason'],$videoProvider->writes()],['requires_attention','attachment_limit',0]);
+}
+foreach (['timeout_applied','timeout_unapplied'] as $videoMode) {
+    [$videoStore,$videoProvider,$videoTransport,$videoService]=channelPostScenario($videoPost);
+    channelPostReceive($videoService,$videoPost);$videoProvider->mode=$videoMode;
+    $videoResult=channelPostRun($videoService);
+    channelPostCheck('MAX video lost response has honest readback outcome',$videoResult[0]['state']??'',$videoMode==='timeout_applied'?'sent':'unknown');
+    channelPostRun($videoService);
+    channelPostCheck('MAX video lost response never repeats PUT',$videoProvider->writes(),1);
+}
+[$videoStore,$videoProvider,$videoTransport,$videoService]=channelPostScenario($videoPost);
+channelPostReceive($videoService,$videoPost);
+$videoProvider->onRead=static function()use($videoProvider):void{if($videoProvider->writes()>0)$videoProvider->message['body']['attachments'][0]['payload']['token']='fixture-unexpected-video-after-edit';};
+$videoResult=channelPostRun($videoService);
+channelPostCheck('MAX changed video in post-edit readback cannot be marked preserved',[$videoResult[0]['state']??'',$videoResult[0]['receipt']['content_preserved']??null],['unknown',false]);
+channelPostRun($videoService);
+channelPostCheck('MAX mismatched video readback never triggers another PUT',$videoProvider->writes(),1);
+$durableVideo=$videoPost;$durableVideo['body']['mid']='mid.video-durable-registry';
+$durableVideoProvider=new FixturePostProvider($durableVideo);
+$durableVideoService=new ChannelPostAutomationService($actualRegistry,new ChannelPostButtonTransport([$durableVideoProvider,'request']));
+$durableVideoObserved=channelPostReceive($durableVideoService,$durableVideo);
+$durableVideoResult=$durableVideoService->processPublication('anytour','max','id9704048781_1_bot',$durableVideoObserved['publication_id'],$durableVideoObserved['version_id']);
+$durableVideoSaved=$actualRegistry->publication($durableVideoObserved['publication_id']);
+channelPostCheck('actual registry stores video edit receipt with one durable write',[$durableVideoResult['state'],$durableVideoSaved['state'],$durableVideoSaved['write_attempts']],['sent','sent',1]);
+channelPostCheck('actual immutable video snapshot retains complete original message',$durableVideoSaved['snapshot']['raw_body'],$durableVideo);
+channelPostCheck('actual video self-edit keeps original version and token',channelPostReceive($durableVideoService,$durableVideoProvider->message,'max',true)['version_id'],$durableVideoObserved['version_id']);
+
 foreach (['max','telegram'] as $platform) {
     [$s,$p,$tr,$svc]=channelPostScenario($fixtures[$platform],$platform);
     channelPostReceive($svc,$fixtures[$platform],$platform); channelPostRun($svc,$platform);

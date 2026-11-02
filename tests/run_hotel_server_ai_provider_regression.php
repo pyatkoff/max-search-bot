@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__.'/fixtures/hotel_server_cycle.php';
 require_once dirname(__DIR__).'/services/HotelServerAiProvider.php';
+require_once dirname(__DIR__).'/services/HotelServerCronRuntime.php';
 $n=0;
 function haCheck(bool $ok,string $label):void{global $n;++$n;if(!$ok)throw new RuntimeException('HOTEL AI FAIL:'.$label);}
 function haReject(callable $fn,string $label,?string $reason=null):void{
@@ -135,4 +136,27 @@ $f=hsFixture();try{
     haCheck($state->calls===0&&haCount($f['p'],'hotel_server_attempts')===0,'unsupported research mode refuses before provider or persistence');
 }finally{hsCleanup($f);}
 
+$f=hsFixture();try{
+    $state=(object)['calls'=>0,'bodies'=>[]];$adapter=haCycle($f,$state);
+    $pin=$f['cycle']->status('NEW')['bootstrap_sha256'];
+    $flags=['enabled'=>true,'dispatch_allowed'=>true,'replacement_dispatch_allowed'=>true];
+    $context=['pdo'=>$f['p'],'provider'=>$adapter,'clock'=>static fn()=>1800000000,
+        'expected_campaign_id'=>'NEW','expected_bootstrap_sha256'=>$pin];
+    foreach(['foreign_campaign','foreign_bootstrap','missing_bootstrap','missing_campaign'] as $mode){
+        $bad=$context;
+        if($mode==='foreign_campaign')$bad['expected_campaign_id']='ANOTHER';
+        if($mode==='foreign_bootstrap')$bad['expected_bootstrap_sha256']=str_repeat('0',64);
+        if($mode==='missing_bootstrap')unset($bad['expected_bootstrap_sha256']);
+        if($mode==='missing_campaign')unset($bad['expected_campaign_id']);
+        $r=HotelServerCronRuntime::tick($flags,static fn()=>$bad);
+        haCheck($r['handled']&&$r['state']==='hold'&&$r['reason']==='server_campaign_pin_mismatch',
+            'private runtime '.$mode.' cannot select another campaign');
+        haCheck($state->calls===0&&haCount($f['p'],'hotel_server_attempts')===0,'campaign pin check precedes persistence and provider');
+    }
+    $r=HotelServerCronRuntime::tick($flags,static fn()=>$context);
+    haCheck($r['state']==='candidate'&&$state->calls===1&&haCount($f['p'],'hotel_server_attempts')===1,
+        'exact private runtime binding reaches the same existing single-send cycle');
+}finally{hsCleanup($f);}
+
 echo 'HOTEL SERVER AI ADAPTER '.(getenv('HOTEL_WORK_NATIVE_MYSQL')==='1'?'NATIVE MYSQL':'SQLITE').': '.$n." PASS (synthetic transport only; real provider calls0)\n";
+

@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once dirname(__DIR__).'/services/HotelWorkHealth.php';
 require_once dirname(__DIR__).'/services/HotelWorkCronVerifier.php';
+require_once dirname(__DIR__).'/services/HotelServerRuntimeConfig.php';
 
 $tmp=sys_get_temp_dir().'/hotel-health-'.bin2hex(random_bytes(6));mkdir($tmp,0700);
 DiagnosticLogger::setFile($tmp.'/structured.log');$file=$tmp.'/hotel_work_health.json';$passed=0;
@@ -56,7 +57,7 @@ try {
     // Execute the real CLI in a synthetic application; no production bootstrap.
     $app=$tmp.'/app';mkdir($app,0700);mkdir($app.'/tools',0700);mkdir($app.'/services',0700);
     copy(dirname(__DIR__).'/tools/hotel_work.php',$app.'/tools/hotel_work.php');
-    foreach (['HotelWorkHealth','DiagnosticLogger','HotelServerCronRuntime','HotelServerCycle','HotelServerInputs','HotelRetainedBaseline','HotelServerLane','HotelServerProvider'] as $name) copy(dirname(__DIR__).'/services/'.$name.'.php',$app.'/services/'.$name.'.php');
+    foreach (['HotelWorkHealth','DiagnosticLogger','HotelServerCronRuntime','HotelServerRuntimeConfig','HotelServerCycle','HotelServerInputs','HotelRetainedBaseline','HotelServerLane','HotelServerProvider'] as $name) copy(dirname(__DIR__).'/services/'.$name.'.php',$app.'/services/'.$name.'.php');
     foreach (['ProjectAccessService','HotelWorkEventService'] as $name) file_put_contents($app.'/services/'.$name.'.php','<?php');
     file_put_contents($app.'/config.php', <<<'PHP'
 <?php
@@ -98,6 +99,40 @@ PHP);
     exec('HOTEL_WORK_TRIGGER=cron '.escapeshellarg(PHP_BINARY).' '.escapeshellarg($app.'/tools/hotel_work.php').' tick 2>&1',$out,$code);
     $row=json_decode((string)file_get_contents($checkpoint),true);
     hotelHealthCheck('installed cron marker captured by real CLI',$code===0&&($row['trigger']??null)==='cron');
+    $runtimeDir=$tmp.'/max-search-bot-hotel-server';$runtimeFile=$runtimeDir.'/runtime.json';
+    hotelHealthCheck('absent private runtime file preserves dormant configuration',HotelServerRuntimeConfig::load($app)===null);
+    mkdir($runtimeDir,0700);
+    $runtime=['schema'=>'hotel-server-runtime-v1','campaign_id'=>'synthetic-campaign','bootstrap_sha256'=>str_repeat('a',64),
+        'flags'=>['enabled'=>false,'dispatch_allowed'=>false,'replacement_dispatch_allowed'=>false],
+        'policy'=>['synthetic'=>'PRIVATE POLICY']];
+    $writeRuntime=static function(array|string $v)use($runtimeFile):void{
+        file_put_contents($runtimeFile,is_array($v)?json_encode($v,JSON_THROW_ON_ERROR):$v);chmod($runtimeFile,0600);clearstatcache();
+    };
+    $writeRuntime($runtime);$loaded=HotelServerRuntimeConfig::load($app);
+    hotelHealthCheck('private JSON pins exact campaign without enabling or constructing a provider',
+        $loaded['campaign_id']==='synthetic-campaign'&&$loaded['flags']['enabled']===false
+        &&$loaded['configuration_sha256']===hash_file('sha256',$runtimeFile));
+    foreach(['string_flag','foreign_key','broken_json','oversized','public_permissions','symlink'] as $mode){
+        $bad=$runtime;
+        if($mode==='string_flag')$bad['flags']['enabled']='true';
+        if($mode==='foreign_key')$bad['arbitrary_include']='PRIVATE PHP PATH';
+        $writeRuntime($mode==='broken_json'?'{PRIVATE':($mode==='oversized'?str_repeat('x',65537):$bad));
+        if($mode==='public_permissions'){chmod($runtimeFile,0644);clearstatcache();}
+        if($mode==='symlink'){rename($runtimeFile,$runtimeDir.'/target');symlink($runtimeDir.'/target',$runtimeFile);}
+        $rejected=false;try{HotelServerRuntimeConfig::load($app);}catch(Throwable $e){$rejected=true;}
+        hotelHealthCheck('unsafe private runtime '.$mode.' is rejected',$rejected);
+        if($mode==='symlink'){unlink($runtimeFile);unlink($runtimeDir.'/target');}
+    }
+    // The real CLI must hold before legacy delivery or provider construction on bad/conflicting config.
+    foreach(['conflicting'=>$runtime,'malformed'=>'{PRIVATE RUNTIME ERROR'] as $mode=>$input){
+        $writeRuntime($input);$out=[];$code=-1;
+        exec(escapeshellarg(PHP_BINARY).' '.escapeshellarg($app.'/tools/hotel_work.php').' tick 2>&1',$out,$code);
+        $row=json_decode((string)file_get_contents($checkpoint),true);
+        hotelHealthCheck('actual CLI '.$mode.' runtime fails closed before delivery',
+            $code===1&&$row['state']==='failed'&&$row['stage']==='bootstrap'
+            &&!str_contains(implode("\n",$out),'PRIVATE'));
+    }
+    unlink($runtimeFile);rmdir($runtimeDir);
     file_put_contents($app.'/fail','1');$out=[];$code=-1;
     exec(escapeshellarg(PHP_BINARY).' '.escapeshellarg($app.'/tools/hotel_work.php').' status 2>&1',$out,$code);
     hotelHealthCheck('status does not bootstrap application',$code===0&&json_decode(implode("\n",$out),true)['provider_calls']===0);
@@ -108,3 +143,4 @@ PHP);
     foreach ($it as $entry) {if ($entry->isDir()&&!$entry->isLink()) rmdir($entry->getPathname());else unlink($entry->getPathname());}
     rmdir($tmp);
 }
+
