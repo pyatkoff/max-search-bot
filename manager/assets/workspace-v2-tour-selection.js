@@ -248,7 +248,7 @@ function renderBiblio(){
   editor.innerHTML='<section class="tsBiblioPanel"><h3>Предложения Библио-Глобуса</h3><p>Прочитайте публичные результаты поиска. Проверьте состав, цену и условия выбранного предложения перед добавлением. Сообщения клиенту не отправляются.</p><label>Ссылка на результаты поиска<input id="tsBiblioUrl" type="url" maxlength="4096" autocomplete="off" placeholder="https://www.bgoperator.ru/price.shtml?…" value="'+esc(panel.url)+'"></label><button id="tsBiblioRead" class="tsPrimary" type="button">Прочитать предложения</button><p id="tsBiblioStatus" role="status" class="'+(panel.error?'tsError':'')+'">'+esc(busy?'Читаем страницу оператора…':panel.message)+'</p><div id="tsBiblioResults"></div><button id="tsBiblioCancel" type="button">Вернуться к подборке</button></section>';
   const results=$('tsBiblioResults');
   if(review){
-    results.innerHTML='<article><h4>'+esc(review.offer.hotel)+'</h4><div class="tsBiblioPhotos">'+review.photos.map(url=>'<img src="'+esc(url)+'" alt="Фото отеля '+esc(review.offer.hotel)+'" referrerpolicy="no-referrer">').join('')+'</div><p>Фото относятся к отелю. Категория номера по ним не подтверждена.</p>'+biblioTerms(review.offer,review.raw)+'<p><strong>Исходная цена: '+esc(overviewAmount(review.offer.amount,review.offer.currency))+'</strong></p><label>Цена для клиента, '+esc(review.offer.currency)+'<input id="tsBiblioAmount" type="text" inputmode="decimal" maxlength="12" value="'+esc(review.offer.amount)+'"></label><label class="tsTripConfirm"><input id="tsBiblioConfirm" type="checkbox"> Проверил: показанная исходная цена относится ко всему указанному составу</label><button id="tsBiblioAdd" type="button" class="tsPrimary" disabled>Добавить с фото и условиями</button><button id="tsBiblioBack" type="button">К предложениям</button></article>';
+    results.innerHTML='<article><h4>'+esc(review.offer.hotel+(review.offer.stars?' '+review.offer.stars+'*':''))+'</h4><p><strong>Исходная цена: '+esc(overviewAmount(review.offer.amount,review.offer.currency))+'</strong><br>'+esc(review.offer.adults+' взр.'+(review.offer.child_ages.length?' · дети: '+review.offer.child_ages.join(', '):'')+' · '+review.offer.date_from+' · '+review.offer.nights+' ноч.')+'</p><div class="tsBiblioPhotos">'+review.photos.map(url=>'<img src="'+esc(url)+'" alt="Фото отеля '+esc(review.offer.hotel)+'" referrerpolicy="no-referrer">').join('')+'</div><p id="tsBiblioPhotoStatus" role="status"></p><p>Фото относятся к отелю. Категория номера по ним не подтверждена.</p>'+biblioTerms(review.offer,review.raw)+'<p><strong>Исходная цена: '+esc(overviewAmount(review.offer.amount,review.offer.currency))+'</strong></p><label>Цена для клиента, '+esc(review.offer.currency)+'<input id="tsBiblioAmount" type="text" inputmode="decimal" maxlength="12" value="'+esc(review.offer.amount)+'"></label><label class="tsTripConfirm"><input id="tsBiblioConfirm" type="checkbox"> Проверил: показанная исходная цена относится ко всему указанному составу</label><button id="tsBiblioAdd" type="button" class="tsPrimary" disabled>Добавить с фото и условиями</button><button id="tsBiblioBack" type="button">К предложениям</button></article>';
   }else if(panel.offers.length){
     const count=document.createElement('p');count.textContent='Прочитано предложений: '+panel.total+'. Выберите вариант для проверки фото.';results.append(count);
     panel.offers.forEach((row,index)=>{const card=document.createElement('article');card.innerHTML='<h4>'+esc(row.offer.hotel)+'</h4><p>'+esc([row.offer.date_from,row.offer.nights+' ноч.',row.offer.room,row.offer.meal].join(' · '))+'</p><strong>'+esc(overviewAmount(row.offer.amount,row.offer.currency))+'</strong><p>'+esc(row.raw.party)+'</p>';const button=document.createElement('button');button.type='button';button.textContent='Проверить фото и условия';button.dataset.biblioChoice=String(index);button.onclick=()=>void reviewBiblio(panel,row);card.append(button);results.append(card)});
@@ -256,9 +256,20 @@ function renderBiblio(){
   }
   $('tsBiblioUrl').oninput=()=>{panel.url=$('tsBiblioUrl').value};$('tsBiblioRead').onclick=()=>void readBiblio(panel,0);
   $('tsBiblioCancel').onclick=()=>{if(busy)return;biblioPanel=null;render()};
-  if(review){$('tsBiblioBack').onclick=()=>{if(busy)return;panel.review=null;render()};$('tsBiblioConfirm').onchange=()=>{$('tsBiblioAdd').disabled=busy||!$('tsBiblioConfirm').checked};$('tsBiblioAdd').onclick=()=>void addBiblio(panel)}
+  if(review){
+    const images=Array.from(results.querySelectorAll('.tsBiblioPhotos img'));
+    const updated=()=>{if(biblioPanel===panel&&panel.review===review&&images.every(img=>img.isConnected&&results.contains(img)))biblioControls()};
+    images.forEach(img=>{img.onload=updated;img.onerror=updated});
+    $('tsBiblioBack').onclick=()=>{if(busy)return;panel.review=null;render()};$('tsBiblioConfirm').onchange=biblioControls;$('tsBiblioAdd').onclick=()=>void addBiblio(panel);
+  }
 }
-function biblioControls(){if(!biblioPanel)return;$('tsEditor')?.querySelectorAll('input,button').forEach(node=>{node.disabled=busy||loading||!biblioCurrent(biblioPanel)});if($('tsBiblioAdd'))$('tsBiblioAdd').disabled=busy||!biblioCurrent(biblioPanel)||!$('tsBiblioConfirm')?.checked;}
+function biblioImageReady(img){return img.complete&&img.naturalWidth>=100&&img.naturalHeight>=100&&img.naturalWidth<=12000&&img.naturalHeight<=12000&&img.naturalWidth*img.naturalHeight<=24000000}
+function biblioPhotosReady(panel){const photos=panel?.review?.photos,images=Array.from($('tsEditor')?.querySelectorAll('.tsBiblioPhotos img')||[]);return !!photos?.length&&images.length===photos.length&&images.every((img,index)=>img.isConnected&&img.getAttribute('src')===photos[index]&&biblioImageReady(img))}
+function biblioControls(){
+  if(!biblioPanel)return;$('tsEditor')?.querySelectorAll('input,button').forEach(node=>{node.disabled=busy||loading||!biblioCurrent(biblioPanel)});
+  const ready=biblioPhotosReady(biblioPanel),note=$('tsBiblioPhotoStatus');if(note){const failed=Array.from($('tsEditor').querySelectorAll('.tsBiblioPhotos img')).some(img=>img.complete&&!biblioImageReady(img)),text=ready?'Фотографии загружены.':failed?'Не все фотографии доступны или подходят для подборки. Выберите другое предложение или прочитайте фото заново. Вариант не добавлен.':'Загружаем фотографии…';if(note.textContent!==text)note.textContent=text;note.classList.toggle('tsError',failed)}
+  if($('tsBiblioAdd'))$('tsBiblioAdd').disabled=busy||!biblioCurrent(biblioPanel)||!$('tsBiblioConfirm')?.checked||!ready;
+}
 async function readBiblio(panel,offset){
   if(!biblioCurrent(panel)||busy)return;panel.url=$('tsBiblioUrl').value.trim();panel.review=null;busy=true;render();
   const result=await request('biblio_search',{url:panel.url,offset});if(epoch!==panel.epoch)return;busy=false;if(!biblioCurrent(panel)){controls();return}
@@ -271,7 +282,7 @@ async function reviewBiblio(panel,row){
   else{panel.message=biblioError(result);panel.error=true}render();
 }
 async function addBiblio(panel){
-  if(!biblioCurrent(panel)||busy||!panel.review||!$('tsBiblioConfirm')?.checked)return;
+  if(!biblioCurrent(panel)||busy||!panel.review||!$('tsBiblioConfirm')?.checked||!biblioPhotosReady(panel))return;
   let amount;try{const units=priceUnits($('tsBiblioAmount').value);if(units<=0n)throw Error();amount=String(units/100n)+(units%100n?'.'+String(units%100n).padStart(2,'0'):'')}catch(e){panel.message='Укажите положительную цену с точностью до двух знаков.';panel.error=true;$('tsBiblioStatus').textContent=panel.message;return}
   pending={kind:'biblio',operation_id:id(),ticket:panel.review.ticket,confirm_party_price:true,manager_amount:amount};biblioPanel=null;stash();render();return submitBiblio(pending);
 }
@@ -510,6 +521,7 @@ function render(){
   clearPrint();
   clearHotelKnowledge();
   if(!draft||!dialog)return;
+  dialog.classList.toggle('tsBiblioMode',!!biblioPanel);
   if(bulkPrice){controls();return}
   if(biblioPanel){renderList();renderBiblio();controls();return}
   dialog.classList.toggle('tsTripMode',!!tripPanel);
