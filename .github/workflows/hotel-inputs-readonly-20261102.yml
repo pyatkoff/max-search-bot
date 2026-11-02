@@ -1,0 +1,155 @@
+name: Read retained hotel inputs once without changes
+on:
+  push:
+    branches: [ops/hotel-inputs-readonly-20261102]
+    paths: [.github/workflows/hotel-inputs-readonly-20261102.yml]
+permissions:
+  contents: read
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+jobs:
+  inventory:
+    if: github.ref == 'refs/heads/ops/hotel-inputs-readonly-20261102' && github.event.before == 'a8b4c2d1126b0e38d831e0ace9d75554d6e4415b' && github.event.created == false && github.event.deleted == false && github.event.forced == false && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Pin unchanged application and readonly source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = a8b4c2d1126b0e38d831e0ace9d75554d6e4415b
+          gh api 'repos/pyatkoff/max-search-bot/contents/tools/direct_demand/operations/hotel-retained-inputs-readonly.php?ref=e1d36d6fd165c15ce0c12240002404f67ea45d8d' >"$RUNNER_TEMP/hotel_input_source.json"
+          python3 - <<'PY'
+          import os,json,pathlib,base64,hashlib
+          root=pathlib.Path(os.environ['RUNNER_TEMP']);d=json.loads((root/'hotel_input_source.json').read_text())
+          assert d['encoding']=='base64' and d['sha']=='dbddf7868417e360cfe1978c06dc4033d76af741'
+          b=base64.b64decode(d['content']);assert len(b)<16384
+          assert hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()==d['sha']
+          (root/'hotel_input.php').write_bytes(b)
+          PY
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: Lint and foreign-target refusal before credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -l "$RUNNER_TEMP/hotel_input.php" >/dev/null
+          set +e
+          php "$RUNNER_TEMP/hotel_input.php" >"$RUNNER_TEMP/hotel_input_refusal.json"
+          status=$?
+          set -e
+          test "$status" -eq 1
+          python3 - <<'PY'
+          import os,json,pathlib
+          d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP']+'/hotel_input_refusal.json').read_text())
+          assert d['operation']=='hotel-retained-inputs-readonly-v1'
+          assert d['state']=='HOLD' and d['reason']=='target_unconfirmed'
+          assert d['data_writes']==0 and d['provider_calls']==0 and d['new_queue_created'] is False
+          PY
+      - name: Prepare existing connection and pinned host
+        env:
+          CONNECTION_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          CONNECTION_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          CONNECTION_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          raw="$CONNECTION_KEY"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' >"$RUNNER_TEMP/hotel_input_key"; else printf '%s\n' "$raw" | tr -d '\r' >"$RUNNER_TEMP/hotel_input_key"; fi
+          else
+            printf '%s' "$raw" | base64 --decode >"$RUNNER_TEMP/hotel_input_key"
+          fi
+          ssh-keygen -y -f "$RUNNER_TEMP/hotel_input_key" >/dev/null
+          python3 - <<'PY'
+          import os,re,subprocess,base64,hashlib,pathlib
+          host=os.environ['CONNECTION_HOST'];user=os.environ['CONNECTION_USER']
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',user)
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35)
+          approved=[]
+          for line in scan.stdout.splitlines():
+              fields=line.split()
+              if len(fields)<3 or fields[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':approved.append(line)
+          assert approved,'Existing host continuity mismatch; STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/hotel_input_hosts').write_text('\n'.join(approved)+'\n')
+          PY
+      - name: Read only retained metadata and known input files
+        env:
+          CONNECTION_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          CONNECTION_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          set +e
+          timeout 120 ssh -i "$RUNNER_TEMP/hotel_input_key" -o BatchMode=yes -o ConnectTimeout=10 -o ConnectionAttempts=1 -o IdentitiesOnly=yes -o ServerAliveInterval=10 -o ServerAliveCountMax=2 -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/hotel_input_hosts" "$CONNECTION_USER@$CONNECTION_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = a8b4c2d1126b0e38d831e0ace9d75554d6e4415b; git diff --quiet; git diff --cached --quiet; /usr/bin/php" <"$RUNNER_TEMP/hotel_input.php" >"$RUNNER_TEMP/hotel_input_raw.private" 2>"$RUNNER_TEMP/hotel_input_stderr.private"
+          status=$?
+          set -e
+          export HOTEL_INPUT_COMMAND_STATUS="$status"
+          python3 - <<'PY'
+          import os,json,pathlib,re,sys
+          root=pathlib.Path(os.environ['RUNNER_TEMP']);ok=False
+          out={'operation':'hotel-retained-inputs-readonly-v1','state':'HOLD','reason':'inventory_result_unconfirmed','data_writes':0,'provider_calls':0}
+          try:
+              p=root/'hotel_input_raw.private';assert p.stat().st_size<16384
+              d=json.loads(p.read_text());assert type(d) is dict
+              fixed={'operation':'hotel-retained-inputs-readonly-v1','provider_calls':0,'data_writes':0,'new_queue_created':False,'CENTRAL41':'UNKNOWN'}
+              for k,v in fixed.items():assert type(d[k]) is type(v) and d[k]==v
+              out=dict(fixed);out['state']=d['state'];out['server_command_exit_code']=int(os.environ['HOTEL_INPUT_COMMAND_STATUS'])
+              if d['state']=='inventory_complete':
+                  ints=['original_receipt_count','resolution_count','unresolved_receipt_count','accepted_batch_count','accepted_packet_count','known_locations_readable','known_locations_unreadable']
+                  truekeys=['target_binding_confirmed','retirement_snapshot_verified','receipt_hashes_verified']
+                  falsekeys=['scope_mapping_verified','semantic_exclusions_ready','search_complete_for_server','map_location_verified','input_bytes_exported']
+                  assert set(d)==set(fixed)|set(ints)|set(truekeys)|set(falsekeys)|{'state','accepted_registry_sha256','bounded_file_matches'}
+                  assert out['server_command_exit_code']==0
+                  for k in ints:assert type(d[k]) is int and 0<=d[k]<=512;out[k]=d[k]
+                  assert d['accepted_batch_count']==19 and d['accepted_packet_count']==19
+                  for k in truekeys:assert d[k] is True;out[k]=True
+                  for k in falsekeys:assert d[k] is False;out[k]=False
+                  assert re.fullmatch('[a-f0-9]{64}',d['accepted_registry_sha256'])
+                  out['accepted_registry_sha256']=d['accepted_registry_sha256']
+                  assert type(d['bounded_file_matches']) is list and len(d['bounded_file_matches'])<=64
+                  matches=[]
+                  for f in d['bounded_file_matches']:
+                      assert type(f) is dict and type(f['kind']) is int and 0<=f['kind']<=7
+                      if f['status']=='hashed':
+                          assert set(f)=={'kind','status','bytes','sha256','retained_backup_match'}
+                          assert type(f['bytes']) is int and 0<f['bytes']<=536870912 and re.fullmatch('[a-f0-9]{64}',f['sha256'])
+                          assert f['retained_backup_match'] is None or type(f['retained_backup_match']) is bool
+                      else:
+                          assert set(f)=={'kind','status'} and f['status'] in ['unreadable_or_not_regular','hash_budget_exceeded']
+                      matches.append(f)
+                  out['bounded_file_matches']=matches;ok=True
+              else:
+                  assert d['state']=='HOLD' and out['server_command_exit_code']!=0
+                  reasons={'target_unconfirmed','connection_unconfirmed','retirement_snapshot_unconfirmed','retirement_receipt_unconfirmed','receipt_hash_mismatch','resolution_binding_mismatch','accepted_registry_unconfirmed','read_transaction_unconfirmed','input_changed_during_read','inventory_unconfirmed'}
+                  assert d['reason'] in reasons;out['reason']=d['reason']
+          except Exception:
+              out={'operation':'hotel-retained-inputs-readonly-v1','state':'HOLD','reason':'inventory_result_unconfirmed','data_writes':0,'provider_calls':0}
+          safe=json.dumps(out,sort_keys=True)+'\n';print(safe,end='')
+          (root/'hotel_input_sanitized.json').write_text(safe)
+          sys.exit(0 if ok else 1)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hotel-retained-inputs-sanitized
+          path: ${{ runner.temp }}/hotel_input_sanitized.json
+          retention-days: 14
+          if-no-files-found: ignore
+      - name: Remove ephemeral runner files only
+        if: always()
+        shell: bash
+        run: |
+          rm -f "$RUNNER_TEMP/hotel_input_source.json" "$RUNNER_TEMP/hotel_input.php" "$RUNNER_TEMP/hotel_input_refusal.json" "$RUNNER_TEMP/hotel_input_key" "$RUNNER_TEMP/hotel_input_hosts" "$RUNNER_TEMP/hotel_input_raw.private" "$RUNNER_TEMP/hotel_input_stderr.private" "$RUNNER_TEMP/hotel_input_sanitized.json"
