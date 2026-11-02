@@ -1,46 +1,12 @@
 {
   "operation": "commercial-hotel-three-20261102-7-v1",
-  "state": "DRAFT_MEDIA_PENDING",
-  "goal": "Prepare and publish the next three complete hotel posts from retained Egypt material, once per authorized channel.",
-  "boundaries": "Only Diamond9373, Montemare32577 and Long Beach247. Preserve the existing Remal MAX post. Prepare three complete hotel captions and native covers before any six-post send.",
-  "criteria": [
-    "Resolve exact active catalogue identities and physical properties.",
-    "No existing publication for the chosen hotels in either channel.",
-    "Real official hotel photos, full human captions and canonical cost button before any send."
-  ],
-  "risks": [
-    "Keep Posh Club-only rights separate from the standard hotel.",
-    "Use exact official photos and facility restrictions; do not invent current price or free services.",
-    "Check both registries again inside the guarded send, never replay an active or unknown operation."
-  ],
-  "baseline_logical_materials": 24,
-  "candidate_names": [
-    "SUNRISE Diamond Beach Resort",
-    "SUNRISE Montemare Resort",
-    "Hurghada Long Beach Resort"
-  ],
-  "official_sources": [
-    "https://www.sunrise-resorts.com/diamond-beach-resort",
-    "https://www.sunrise-resorts.com/montemare-resort",
-    "https://www.hurghada-longbeach.com/"
-  ],
-  "next": "Prepare official hotel photos and three human captions, inspect the branded native PNGs, then publish once per authorized channel.",
-  "skipped_candidate": {
-    "name": "Remal Beach",
-    "catalog_id": 319,
-    "reason": "Existing MAX registry name match. Do not duplicate or alter this old publication to advance a new packet.",
-    "existing_matches": {
-      "max": 1,
-      "telegram": 0
-    }
-  },
-  "identity_decisions": [
-    "Diamond9373 and Montemare32577 are the base Sharm resorts; exclude their separately named Posh Club products and unrelated Diamond hotels in Marsa Alam/Hurghada.",
-    "Remal Beach is skipped for this packet to preserve the already registered MAX post. Read only replacement candidates; do not repeat the two resolved identities."
-  ],
-  "selected_catalog_ids": [
+  "state": "PREPARED_NOT_SENT",
+  "catalog_ids": [
     9373,
     32577,
-    247
-  ]
+    4191
+  ],
+  "logical_materials": 3,
+  "confirmed_total_logical_materials": 24,
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41437445761"
 }

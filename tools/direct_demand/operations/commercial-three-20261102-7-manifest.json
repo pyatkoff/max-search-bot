@@ -64,7 +64,9 @@
         "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/pressroom/23_db_factsheet_july_2025.pdf"
       ],
       "text_sha256": "b049ea9c389d303085e158a7aec273bb1bedc925ef29885b403f3a2358994c60",
-      "media_state": "NATIVE_COVER_NOT_YET_VERIFIED"
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4e94c65ace4f6886bb9986c70645e3d72a625aed/.github/traffic-publish/commercial-three-20261102-7/sunrise-diamond-beach.png",
+      "photo_sha256": "cba1c3cc24a1d74f4d920355e70f4db7dfd6c3e2fa76569596336d082e8d2e75"
     },
     {
       "hotel_id": 32577,
@@ -81,7 +83,9 @@
         "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/pressroom/22_mm_factsheet_july_2026.pdf"
       ],
       "text_sha256": "798844b527a6bebd2c339924df2a5f12fb34a4918fe0b42790ad8db93fe4e734",
-      "media_state": "NATIVE_COVER_NOT_YET_VERIFIED"
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4e94c65ace4f6886bb9986c70645e3d72a625aed/.github/traffic-publish/commercial-three-20261102-7/sunrise-montemare.png",
+      "photo_sha256": "e9d5dcce928337698c4cb76b3ea20e55f3ced5c1e6b040ed34712873e47f6c32"
     },
     {
       "hotel_id": 4191,
@@ -97,7 +101,9 @@
         "https://www.tropitelhotels.com/tropitel-sahl-hasheesh/activities"
       ],
       "text_sha256": "b4efca7b081c15060618db00e647fea83f459256b4c42b24890832be61ee5297",
-      "media_state": "NATIVE_COVER_NOT_YET_VERIFIED"
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4e94c65ace4f6886bb9986c70645e3d72a625aed/.github/traffic-publish/commercial-three-20261102-7/tropitel-sahl-hasheesh.png",
+      "photo_sha256": "b0379a5c82d849725f114129a35beb9c6fb742a1d30515320e6a277ff9da831d"
     }
   ]
 }
