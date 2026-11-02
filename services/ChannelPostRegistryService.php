@@ -141,6 +141,89 @@ final class ChannelPostRegistryService
         return $this->registerObservation($projectKey,'max',$botKey,(string)$channel['channel_id'],$mid,$snapshot,(int)$channel['config_version']);
     }
 
+    /** Explicit recovery only: a legacy video rejection is never reset or replayed. */
+    public function recoverUnsupportedMaxVideoObservation(string $projectKey, string $botKey, array $observedChannel, array $message, int $expectedVersionId, string $expectedHash, bool $apply=false): array
+    {
+        if (($observedChannel['platform']??'')!=='max'||($apply&&$expectedVersionId<=0)||$expectedVersionId<0
+            ||!preg_match('/\A[a-f0-9]{64}\z/D',$expectedHash)) throw new RuntimeException('exact_video_recovery_target_required');
+        $mid=$message['body']['mid']??null;
+        $stamp=$message['timestamp']??null;
+        if (!is_string($mid)||!preg_match('/\A[A-Za-z0-9_.-]{1,191}\z/D',$mid)
+            ||($message['recipient']['chat_type']??'')!=='channel'
+            ||(string)($message['recipient']['chat_id']??'')!==(string)($observedChannel['channel_id']??'')
+            ||(!is_int($stamp)&&!is_string($stamp))||!preg_match('/\A[1-9][0-9]{0,15}\z/D',(string)$stamp)) throw new RuntimeException('provider_page_identity_mismatch');
+        $snapshot=ChannelPostIncomingAdapter::maxSnapshot($message);
+        if (!$snapshot||($snapshot['metadata']['capability']??'')!=='supported') throw new RuntimeException('unsupported_post');
+        $hash=ChannelPostIncomingAdapter::contentFingerprint($snapshot);
+        if (!hash_equals($expectedHash,$hash)) throw new RuntimeException('target_content_changed');
+        $content=self::maxVideoRecoveryContent($message);
+        return $this->transaction(function () use ($projectKey,$botKey,$observedChannel,$message,$mid,$stamp,$snapshot,$hash,$content,$expectedVersionId,$apply): array {
+            $channel=$this->channel($projectKey,'max',$botKey,(string)$observedChannel['channel_id'],true,true);
+            if (!$channel||(int)$channel['id']!==(int)($observedChannel['id']??0)
+                ||(int)$channel['config_version']!==(int)($observedChannel['config_version']??0)) throw new RuntimeException('channel_configuration_changed');
+            $publication=$this->fetch('SELECT * FROM post_publications WHERE post_channel_id=? AND external_message_id=?'.$this->lock(),[(int)$channel['id'],$mid]);
+            if (!$publication||(int)$publication['source_id']!==(int)$channel['source_id']||!$publication['current_version_id']) throw new RuntimeException('legacy_video_not_eligible');
+            $previous=$this->fetch('SELECT * FROM post_versions WHERE id=? AND publication_id=?'.$this->lock(),[(int)$publication['current_version_id'],(int)$publication['id']]);
+            if (!$previous||($expectedVersionId>0&&(int)$previous['id']!==$expectedVersionId)) throw new RuntimeException('target_version_changed');
+            if ($previous['state']!=='requires_attention'||$previous['error_reason']!=='unsupported_media'
+                ||(int)$previous['write_attempts']!==0||$previous['claim_token']!==null||$previous['claimed_at']!==null) throw new RuntimeException('legacy_video_not_eligible');
+            // An older ambiguous or still-held operation also fences this publication.
+            $held=$this->fetch("SELECT id FROM post_versions WHERE publication_id=? AND (state IN ('claimed','write_started','unknown') OR claim_token IS NOT NULL OR claimed_at IS NOT NULL) LIMIT 1".$this->lock(),[(int)$publication['id']]);
+            if ($held) throw new RuntimeException('legacy_video_not_eligible');
+            $legacy=json_decode((string)$previous['snapshot_json'],true);
+            if (!is_array($legacy)||($legacy['metadata']['capability']??'')!=='requires_attention'
+                ||($legacy['metadata']['capability_reason']??'')!=='unsupported_media'||!is_array($legacy['raw_body']??null)) throw new RuntimeException('legacy_video_not_eligible');
+            $raw=$legacy['raw_body'];
+            if (($raw['body']['mid']??'')!==$mid||($raw['recipient']['chat_type']??'')!=='channel'
+                ||(string)($raw['recipient']['chat_id']??'')!==(string)$channel['channel_id']
+                ||(string)($raw['timestamp']??'')!==(string)$stamp) throw new RuntimeException('legacy_video_content_changed');
+            $normalized=ChannelPostIncomingAdapter::maxSnapshot($raw);
+            if (!$normalized||($normalized['metadata']['capability']??'')!=='supported'
+                ||self::canonicalArray(self::maxVideoRecoveryContent($raw))!==self::canonicalArray($content)
+                ||!hash_equals(ChannelPostIncomingAdapter::contentFingerprint($legacy),ChannelPostIncomingAdapter::contentFingerprint($normalized))
+                ||!hash_equals(ChannelPostIncomingAdapter::contentFingerprint($normalized),$hash)) throw new RuntimeException('legacy_video_content_changed');
+            if (!$apply) return $this->publication((int)$publication['id'])??throw new RuntimeException('target_registration_changed');
+            $next=self::snapshot($snapshot);
+            $observation='provider-read:video-recovery:'.(int)$publication['id'].':'.(int)$previous['id'].':'.$hash;
+            $next['metadata']['observation_kind']='provider_read';
+            $next['metadata']['recovery_kind']='unsupported_max_video';
+            $next['metadata']['recovered_version_id']=(int)$previous['id'];
+            $next['metadata']['source_revision_ms']=(string)$stamp;
+            $next['metadata']['source_event_id']=$observation;
+            $next=self::snapshot($next);
+            $now=self::now();
+            $this->execute("INSERT INTO post_versions (publication_id,version_number,content_hash,snapshot_json,state,write_attempts,error_reason,receipt_json,created_at,updated_at) VALUES (?,?,?,?,'pending',0,'','[]',?,?)",[(int)$publication['id'],(int)$previous['version_number']+1,$hash,self::json($next),$now,$now]);
+            $versionId=(int)$this->pdo->lastInsertId();
+            if ($this->execute('UPDATE post_publications SET current_version_id=? WHERE id=? AND current_version_id=?',[$versionId,(int)$publication['id'],(int)$previous['id']])!==1) throw new RuntimeException('target_version_changed');
+            $this->execute('INSERT INTO post_observations (publication_id,source_event_key,version_id,created_at) VALUES (?,?,?,?)',[(int)$publication['id'],hash('sha256',$observation),$versionId,$now]);
+            // Retain the rejected row, p_ token and authenticated webhook clock verbatim.
+            return $this->publication((int)$publication['id'])??throw new RuntimeException('target_registration_changed');
+        });
+    }
+
+    /** Compare source media identities, not expiring URLs or replaceable keyboards. */
+    private static function maxVideoRecoveryContent(array $message): array
+    {
+        $body=$message['body']??null;
+        if (!is_array($body)||!array_key_exists('text',$body)||(!is_string($body['text'])&&$body['text']!==null)
+            ||!is_array($body['attachments']??null)||!array_is_list($body['attachments'])) throw new RuntimeException('legacy_video_not_eligible');
+        $media=[];$videos=0;
+        foreach ($body['attachments'] as $item) {
+            if (!is_array($item)||!is_array($item['payload']??null)) throw new RuntimeException('legacy_video_not_eligible');
+            $type=$item['type']??'';$payload=$item['payload'];
+            if ($type==='inline_keyboard') continue;
+            if (!in_array($type,['image','video'],true)||!is_string($payload['token']??null)||$payload['token']==='') throw new RuntimeException('legacy_video_not_eligible');
+            if ($type==='video') {
+                if (!ChannelPostIncomingAdapter::maxVideoTokenValid($payload['token'])) throw new RuntimeException('legacy_video_not_eligible');
+                $videos++;
+            } elseif (!preg_match('/\A[0-9]+\z/D',(string)($payload['photo_id']??''))) throw new RuntimeException('legacy_video_not_eligible');
+            // Image credentials rotate; photo_id remains its source identity.
+            $media[]=['type'=>$type,'token'=>$type==='video'?$payload['token']:null,'photo_id'=>$type==='image'?(string)$payload['photo_id']:null];
+        }
+        if ($videos===0) throw new RuntimeException('legacy_video_not_eligible');
+        return ['text'=>$body['text'],'markup'=>$body['markup']??[],'media'=>$media,'forward'=>$message['link']??null];
+    }
+
     private function registerObservation(string $projectKey, string $platform, string $botKey, string $channelId, string $messageId, array $snapshot, ?int $providerConfigVersion=null): ?array
     {
         $messageId = self::identity($messageId, 191);

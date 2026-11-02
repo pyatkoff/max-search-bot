@@ -54,13 +54,16 @@ final class ChannelPostReconciliationService
     }
 
     /** Exact owner-selected publication; preview makes zero database/provider writes. */
-    public function recover(array $identity, string $channelId, int $publishedMs, string $expectedHash='', bool $apply=false): array
+    public function recover(array $identity, string $channelId, int $publishedMs, string $expectedHash='', bool $apply=false, bool $recoverUnsupportedVideo=false, int $expectedVersionId=0, int $expectedConfigVersion=0): array
     {
         try {
             self::identity($identity);
             if($publishedMs<=0||($apply&&!preg_match('/\A[a-f0-9]{64}\z/',$expectedHash)))throw new RuntimeException('exact_target_required');
+            if($expectedVersionId<0||$expectedConfigVersion<0||(!$recoverUnsupportedVideo&&($expectedVersionId!==0||$expectedConfigVersion!==0))
+                ||($recoverUnsupportedVideo&&$apply&&($expectedVersionId<=0||$expectedConfigVersion<=0)))throw new RuntimeException('exact_video_recovery_target_required');
             $channel=$this->registry->channel($identity['project_key'],'max',$identity['bot_key'],$channelId);
             if(!$channel)throw new RuntimeException('channel_not_enabled');
+            if($expectedConfigVersion>0&&(int)$channel['config_version']!==$expectedConfigVersion)throw new RuntimeException('channel_configuration_changed');
             $this->verify($channel);
             $messages=$this->page((string)$channel['channel_id'],$publishedMs,$publishedMs);
             if(count($messages)!==1)throw new RuntimeException('exact_target_not_unique');
@@ -68,13 +71,23 @@ final class ChannelPostReconciliationService
             if(!$snapshot||($snapshot['metadata']['capability']??'')!=='supported')throw new RuntimeException('unsupported_post');
             $hash=ChannelPostIncomingAdapter::contentFingerprint($snapshot);
             if($expectedHash!==''&&!hash_equals($expectedHash,$hash))throw new RuntimeException('target_content_changed');
-            $safe=['ok'=>true,'state'=>'preview','content_hash'=>$hash,'image_count'=>count($snapshot['attachments']),'published_ms'=>$publishedMs,'database_writes'=>0,'provider_writes'=>0];
+            $counts=['image_count'=>0,'video_count'=>0,'media_count'=>count($snapshot['attachments'])];
+            foreach($snapshot['attachments'] as $media)if(in_array($media['type']??'', ['image','video'],true))$counts[$media['type'].'_count']++;
+            $safe=['ok'=>true,'state'=>'preview','content_hash'=>$hash,'published_ms'=>$publishedMs,'database_writes'=>0,'provider_writes'=>0]+$counts;
+            if($recoverUnsupportedVideo) {
+                $p=$this->registry->recoverUnsupportedMaxVideoObservation($identity['project_key'],$identity['bot_key'],$channel,$message,$expectedVersionId,$hash,$apply);
+                $safe['legacy_video_recovery_eligible']=true;
+                $safe['eligible_version_id']=$apply?$expectedVersionId:(int)$p['version_id'];
+                $safe['config_version']=(int)$channel['config_version'];
+            }
             if(!$apply)return $safe;
-            $p=$this->registry->registerProviderObservation($identity['project_key'],$identity['bot_key'],$channel,$message,$publishedMs);
+            if(!$recoverUnsupportedVideo)$p=$this->registry->registerProviderObservation($identity['project_key'],$identity['bot_key'],$channel,$message,$publishedMs);
             if(!$p||!hash_equals((string)$p['content_hash'],$hash))throw new RuntimeException('target_registration_changed');
             if($p['state']==='sent'&&ChannelPostIncomingAdapter::containsOnlyButton($snapshot,ChannelPostButtonTransport::buttonUrl($p),(string)$channel['button_text']))return array_replace($safe,['state'=>'sent','already_present'=>true]);
             $result=(new ChannelPostAutomationService($this->registry,$this->transport))->processPublication($identity['project_key'],'max',$identity['bot_key'],(int)$p['publication_id'],(int)$p['version_id']);
-            return ['ok'=>($result['state']??'')==='sent','state'=>$result['state']??'unknown','reason'=>$result['reason']??'','content_hash'=>$hash,'image_count'=>count($snapshot['attachments']),'version_number'=>(int)$p['version_number'],'receipt'=>$result['receipt']??[]];
+            $safe=['ok'=>($result['state']??'')==='sent','state'=>$result['state']??'unknown','reason'=>$result['reason']??'','content_hash'=>$hash,'version_id'=>(int)$p['version_id'],'version_number'=>(int)$p['version_number'],'receipt'=>$result['receipt']??[]]+$counts;
+            if($recoverUnsupportedVideo)$safe['recovered_from_version_id']=$expectedVersionId;
+            return $safe;
         } catch(Throwable $e) {return ['ok'=>false,'state'=>'requires_attention','reason'=>self::reason($e)];}
     }
 
@@ -105,7 +118,7 @@ final class ChannelPostReconciliationService
     }
     private static function reason(Throwable $e): string
     {
-        $known=['channel_configuration_changed','provider_channel_verification_failed','provider_page_unavailable','provider_page_identity_mismatch','pagination_boundary_requires_attention','reconciliation_claim_changed','exact_target_required','channel_not_enabled','exact_target_not_unique','unsupported_post','target_content_changed','target_registration_changed','canonical_identity_required'];
+        $known=['channel_configuration_changed','provider_channel_verification_failed','provider_page_unavailable','provider_page_identity_mismatch','pagination_boundary_requires_attention','reconciliation_claim_changed','exact_target_required','exact_video_recovery_target_required','channel_not_enabled','exact_target_not_unique','unsupported_post','target_content_changed','target_registration_changed','target_version_changed','legacy_video_not_eligible','legacy_video_content_changed','canonical_identity_required'];
         return in_array($e->getMessage(),$known,true)?$e->getMessage():'reconciliation_unavailable';
     }
 }
