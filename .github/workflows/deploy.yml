@@ -102,7 +102,7 @@ jobs:
           status="$(curl --max-time 15 -sS -o /dev/null -I -w '%{http_code}' 'https://app.anytoour.ru/structured_events.log')"
           case "$status" in 403|404) ;; *) echo "Public structured log containment failed: HTTP $status" >&2; exit 1;; esac
 
-      - name: Apply database migrations
+      - name: Apply database migrations and fence the old hotel contour
         id: migration
         if: steps.sync.outcome == 'success'
         continue-on-error: true
@@ -112,7 +112,22 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ssh -i "$RUNNER_TEMP/deploy_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$DEPLOY_USER@$DEPLOY_HOST" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; php tools/conversation_db.php migrate'
+          ssh -i "$RUNNER_TEMP/deploy_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$DEPLOY_USER@$DEPLOY_HOST" '
+            set -e
+            cd /var/www/anytoour/data/www/app.anytoour.ru
+            run_hotel_op() {
+              rc=0
+              /usr/bin/php tools/hotel_retirement_ops.php "$1" || rc=$?
+              if [ "$rc" -eq 3 ] && [ "$(id -u)" -ne 0 ] && command -v sudo >/dev/null 2>&1; then
+                sudo -n -- /usr/bin/php tools/hotel_retirement_ops.php "$1"
+              else
+                return "$rc"
+              fi
+            }
+            run_hotel_op migrate083
+            php tools/conversation_db.php migrate
+            run_hotel_op retire-old
+          '
 
       - name: Reconcile canonical MAX webhook ownership
         id: max_webhook_reconcile
