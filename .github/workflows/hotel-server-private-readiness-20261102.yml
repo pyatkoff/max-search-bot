@@ -1,4 +1,4 @@
-name: Activate the same privately verified hotel campaign once
+name: Read the first hotel acceptance and actual next producer evidence
 on:
   push:
     branches: [ops/hotel-server-private-activation-20261102]
@@ -9,28 +9,28 @@ concurrency:
   group: hotel-server-private-activation
   cancel-in-progress: false
 jobs:
-  private_activation:
-    if: github.ref == 'refs/heads/ops/hotel-server-private-activation-20261102' && github.event.before == '42c1a086220a5c6256f88a8362b8f1d68825eb2b' && github.event.created == false && github.event.deleted == false && github.event.forced == false && github.run_attempt == 1
+  private_status:
+    if: github.ref == 'refs/heads/ops/hotel-server-private-activation-20261102' && github.event.before == '8dead9dd497a46180273a63dabd0da890d173d66' && github.event.created == false && github.event.deleted == false && github.event.forced == false && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Pin the exact bounded activation operator
+      - name: Pin the exact bounded read-only status operator
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
           umask 077
-          gh api 'repos/pyatkoff/max-search-bot/contents/tools/direct_demand/operations/hotel-server-private-readiness.php?ref=${{ github.sha }}' >"$RUNNER_TEMP/hotel_activation_source.json"
+          gh api 'repos/pyatkoff/max-search-bot/contents/tools/direct_demand/operations/hotel-server-private-readiness.php?ref=${{ github.sha }}' >"$RUNNER_TEMP/hotel_status_source.json"
           python3 - <<'PY'
           import os,json,pathlib,base64,hashlib
-          root=pathlib.Path(os.environ['RUNNER_TEMP']);d=json.loads((root/'hotel_activation_source.json').read_text())
-          assert d['encoding']=='base64' and d['sha']=='1940299187568911b1bf14a8cb803dd005b79361'
+          root=pathlib.Path(os.environ['RUNNER_TEMP']);d=json.loads((root/'hotel_status_source.json').read_text())
+          assert d['encoding']=='base64' and d['sha']=='a02ee0bfff00d3672d4f1942fa7b716c9862a7e9'
           b=base64.b64decode(d['content']);assert len(b)<65536
           assert hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()==d['sha']
-          assert hashlib.sha256(b).hexdigest()=='03d0094eb02586cdff24a1c170d5de1cb076573d49f0f6793c86233451748a45'
+          assert hashlib.sha256(b).hexdigest()=='e9b606325866ab47ccafaa69c40f4aecf909a5a6d241162f06666b9171bc3948'
           assert b'__PIN_' not in b
-          (root/'hotel_activation.php').write_bytes(b)
+          (root/'hotel_status.php').write_bytes(b)
           PY
       - uses: shivammathur/setup-php@v2
         with:
@@ -40,16 +40,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          php -l "$RUNNER_TEMP/hotel_activation.php" >/dev/null
+          php -l "$RUNNER_TEMP/hotel_status.php" >/dev/null
           set +e
-          php "$RUNNER_TEMP/hotel_activation.php" >"$RUNNER_TEMP/hotel_activation_refusal.json"
+          php "$RUNNER_TEMP/hotel_status.php" >"$RUNNER_TEMP/hotel_status_refusal.json"
           status=$?
           set -e
           test "$status" -eq 1
           python3 - <<'PY'
           import os,json,pathlib
-          d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP']+'/hotel_activation_refusal.json').read_text())
-          assert d=={'operation':'hotel-server-private-activation-v1','state':'HOLD','reason':'target_unconfirmed','operator_provider_calls':0}
+          d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP']+'/hotel_status_refusal.json').read_text())
+          assert d=={'operation':'hotel-server-private-status-v1','state':'HOLD','reason':'target_unconfirmed','operator_provider_calls':0}
           PY
       - name: Prepare the existing administrator connection and approved host continuity
         env:
@@ -62,11 +62,11 @@ jobs:
           umask 077
           raw="$CONNECTION_KEY"
           if [[ "$raw" == *"PRIVATE KEY"* ]]; then
-            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' >"$RUNNER_TEMP/hotel_activation_key"; else printf '%s\n' "$raw" | tr -d '\r' >"$RUNNER_TEMP/hotel_activation_key"; fi
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' >"$RUNNER_TEMP/hotel_status_key"; else printf '%s\n' "$raw" | tr -d '\r' >"$RUNNER_TEMP/hotel_status_key"; fi
           else
-            printf '%s' "$raw" | base64 --decode >"$RUNNER_TEMP/hotel_activation_key"
+            printf '%s' "$raw" | base64 --decode >"$RUNNER_TEMP/hotel_status_key"
           fi
-          ssh-keygen -y -f "$RUNNER_TEMP/hotel_activation_key" >/dev/null
+          ssh-keygen -y -f "$RUNNER_TEMP/hotel_status_key" >/dev/null
           python3 - <<'PY'
           import os,re,subprocess,base64,hashlib,pathlib
           host=os.environ['CONNECTION_HOST'];user=os.environ['CONNECTION_USER']
@@ -81,9 +81,9 @@ jobs:
               except Exception:continue
               if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':approved.append(line)
           assert approved,'Existing host continuity mismatch; STOP'
-          pathlib.Path(os.environ['RUNNER_TEMP']+'/hotel_activation_hosts').write_text('\n'.join(approved)+'\n')
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/hotel_status_hosts').write_text('\n'.join(approved)+'\n')
           PY
-      - name: Activate exact retained inputs once; provider execution belongs only to the existing cron
+      - name: Read saved acceptance and next actual producer evidence once
         env:
           CONNECTION_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           CONNECTION_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -92,44 +92,44 @@ jobs:
           set -euo pipefail
           umask 077
           set +e
-          timeout 150 ssh -i "$RUNNER_TEMP/hotel_activation_key" -o BatchMode=yes -o ConnectTimeout=10 -o ConnectionAttempts=1 -o IdentitiesOnly=yes -o ServerAliveInterval=10 -o ServerAliveCountMax=2 -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/hotel_activation_hosts" "$CONNECTION_USER@$CONNECTION_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; HOTEL_OPERATION_RUN_ID='${{ github.run_id }}' /usr/bin/php" <"$RUNNER_TEMP/hotel_activation.php" >"$RUNNER_TEMP/hotel_activation_raw.private" 2>"$RUNNER_TEMP/hotel_activation_stderr.private"
+          timeout 150 ssh -i "$RUNNER_TEMP/hotel_status_key" -o BatchMode=yes -o ConnectTimeout=10 -o ConnectionAttempts=1 -o IdentitiesOnly=yes -o ServerAliveInterval=10 -o ServerAliveCountMax=2 -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/hotel_status_hosts" "$CONNECTION_USER@$CONNECTION_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; HOTEL_OPERATION_RUN_ID='${{ github.run_id }}' /usr/bin/php" <"$RUNNER_TEMP/hotel_status.php" >"$RUNNER_TEMP/hotel_status_raw.private" 2>"$RUNNER_TEMP/hotel_status_stderr.private"
           status=$?
           set -e
-          export HOTEL_ACTIVATION_STATUS="$status"
+          export HOTEL_STATUS_STATUS="$status"
           python3 - <<'PY'
           import os,json,pathlib,base64,hashlib,sys
-          root=pathlib.Path(os.environ['RUNNER_TEMP']);ok=False;status=int(os.environ['HOTEL_ACTIVATION_STATUS'])
-          safe={'operation':'hotel-server-private-activation-v1','state':'HOLD','reason':'activation_result_unconfirmed','operator_provider_calls':0}
+          root=pathlib.Path(os.environ['RUNNER_TEMP']);ok=False;status=int(os.environ['HOTEL_STATUS_STATUS'])
+          safe={'operation':'hotel-server-private-status-v1','state':'HOLD','reason':'readback_result_unconfirmed','operator_provider_calls':0}
           try:
-              p=root/'hotel_activation_raw.private';assert 0<p.stat().st_size<=98304
+              p=root/'hotel_status_raw.private';assert 0<p.stat().st_size<=98304
               d=json.loads(p.read_text());assert type(d) is dict
-              assert d['operation']=='hotel-server-private-activation-v1' and type(d['operator_provider_calls']) is int and d['operator_provider_calls']==0
+              assert d['operation']=='hotel-server-private-status-v1' and type(d['operator_provider_calls']) is int and d['operator_provider_calls']==0
               if d['state']=='sealed':
                   assert set(d)=={'operation','state','operator_provider_calls','algorithm','recipient_sha256','aad','key','nonce','tag','ciphertext','ciphertext_sha256'}
                   assert d['algorithm']=='RSA-OAEP-SHA1+A256GCM' and d['recipient_sha256']=='71f2b177d6baa924fa466765027c37f51a00f23f803a6d900060bf42944d237d'
-                  assert d['aad']=='hotel-server-private-activation-v1|326048d7e9ee3b035699f2b5385d07e5f0b3db8d|8e4c0372a0338bc98429d47bc0fe3327238f5be69d94c7d28dbf977647a85e35'
+                  assert d['aad']=='hotel-server-private-status-v1|326048d7e9ee3b035699f2b5385d07e5f0b3db8d|8e4c0372a0338bc98429d47bc0fe3327238f5be69d94c7d28dbf977647a85e35'
                   decoded={k:base64.b64decode(d[k],validate=True) for k in ['key','nonce','tag','ciphertext']}
                   assert len(decoded['key'])==384 and len(decoded['nonce'])==12 and len(decoded['tag'])==16
                   assert 0<len(decoded['ciphertext'])<=65536 and hashlib.sha256(decoded['ciphertext']).hexdigest()==d['ciphertext_sha256']
                   safe=d;ok=True
               else:
                   assert status!=0 and set(d)=={'operation','state','reason','operator_provider_calls'} and d['state']=='HOLD'
-                  assert d['reason'] in {'target_unconfirmed','sealed_activation_result_unconfirmed'}
+                  assert d['reason'] in {'target_unconfirmed','sealed_readback_result_unconfirmed'}
                   safe=d
           except Exception:pass
-          (root/'hotel_activation_sealed.json').write_text(json.dumps(safe,sort_keys=True)+'\n')
+          (root/'hotel_status_sealed.json').write_text(json.dumps(safe,sort_keys=True)+'\n')
           print(json.dumps({'operation':safe['operation'],'sealed_result':ok,'server_command_exit_code':status,'operator_provider_calls':0,'private_payload_printed':False}))
           sys.exit(0 if ok and status==0 else 1)
           PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: hotel-server-private-activation-sealed
-          path: ${{ runner.temp }}/hotel_activation_sealed.json
+          name: hotel-server-private-status-sealed
+          path: ${{ runner.temp }}/hotel_status_sealed.json
           retention-days: 7
           if-no-files-found: ignore
       - name: Remove only this run's ephemeral files
         if: always()
         shell: bash
         run: |
-          rm -f "$RUNNER_TEMP/hotel_activation_source.json" "$RUNNER_TEMP/hotel_activation.php" "$RUNNER_TEMP/hotel_activation_refusal.json" "$RUNNER_TEMP/hotel_activation_key" "$RUNNER_TEMP/hotel_activation_hosts" "$RUNNER_TEMP/hotel_activation_raw.private" "$RUNNER_TEMP/hotel_activation_stderr.private" "$RUNNER_TEMP/hotel_activation_sealed.json"
+          rm -f "$RUNNER_TEMP/hotel_status_source.json" "$RUNNER_TEMP/hotel_status.php" "$RUNNER_TEMP/hotel_status_refusal.json" "$RUNNER_TEMP/hotel_status_key" "$RUNNER_TEMP/hotel_status_hosts" "$RUNNER_TEMP/hotel_status_raw.private" "$RUNNER_TEMP/hotel_status_stderr.private" "$RUNNER_TEMP/hotel_status_sealed.json"
