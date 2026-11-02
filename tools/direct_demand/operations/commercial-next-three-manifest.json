@@ -1,0 +1,48 @@
+{
+  "operation": "commercial-hotel-next-three-publish-20261102-v1",
+  "owner_authorization": "Direct Pavel message in this chat 2026-11-02: publish this three in Telegram and MAX; continue same style without duplicates.",
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "logical_id": "at-hotel-makadi",
+      "hotel_id": 81,
+      "hotel": "Pickalbatros Makadi Resort",
+      "aliases": [
+        "albatros makadi",
+        "pickalbatros makadi",
+        "makadi resort"
+      ],
+      "text": "✈️ Туры в Pickalbatros Makadi Resort с перелётом\n📍 Египет · Макади-Бей\n\nВыбираете Makadi Resort для семейного отпуска? Подберём тур с перелётом под ваши даты.\n\n🏖 Собственный пляж и лагуна с морской водой.\n💦 Аквапарки для взрослых и детей.\n🧸 Детский клуб и зоны спокойного отдыха.\n🐠 К рифу ведёт понтон — учтём это при подборе отдыха для вашей семьи.\n\nНапишите город вылета, даты и состав туристов — менеджер рассчитает стоимость тура.",
+      "text_sha256": "f7eb98970c834d222251474bdcb093de7faa12449c4f2caccef57b971d8fee4e",
+      "photo_sha256": "50f4857148e7f8cc32e497b3a2ade950d974e38068df4621aa33e260ae068505",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/632a52081dc4dd904115564099d6b89f8554a054/.github/traffic-publish/commercial-next-three-20261102/makadi.png"
+    },
+    {
+      "logical_id": "at-hotel-happy-life",
+      "hotel_id": 80,
+      "hotel": "Happy Life Village Dahab",
+      "aliases": [
+        "happy life village",
+        "happy life dahab"
+      ],
+      "text": "✈️ Туры в Happy Life Village Dahab с перелётом\n📍 Египет · Дахаб\n\nПрисматриваетесь к Happy Life Village? Подберём тур для отпуска у Красного моря на фоне гор Синая.\n\n🌊 Отель на побережье, в долине Конай.\n🏔 Горы Синая рядом с территорией.\n🤿 Дайвинг-локации в пешей доступности.\n🍽 Есть варианты Half Board и All Inclusive — питание зависит от выбранного тура.\n\nНапишите город вылета, даты и состав туристов — менеджер рассчитает стоимость тура.",
+      "text_sha256": "5e8cc8d39f2d080acbb788245ae8059e7185a23e95a9d353898057972ccc905b",
+      "photo_sha256": "78596f823b1ab093037032187a808365d7cb0f73841a5ee9d633697df2ae6714",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/632a52081dc4dd904115564099d6b89f8554a054/.github/traffic-publish/commercial-next-three-20261102/happy-life.png"
+    },
+    {
+      "logical_id": "at-hotel-jaz-saraya",
+      "hotel_id": 99,
+      "hotel": "JAZ Makadi Saraya Resort",
+      "aliases": [
+        "jaz makadi saraya",
+        "jaz saraya",
+        "джаз макади сарая"
+      ],
+      "text": "✈️ Туры в JAZ Makadi Saraya Resort с перелётом\n📍 Египет · Макади-Бей\n\nРассматриваете Saraya для поездки в Макади? Подберём перелёт и размещение под ваши планы.\n\n🐠 Пляж Макади с доступом к рифу.\n🌴 Бассейны и дневные и вечерние развлечения.\n👨‍👩‍👧‍👦 Семейные категории и апартаменты с гостиной.\n🚶 Отель на второй линии: до пляжа нужно пройти.\n\nНапишите город вылета, даты и состав туристов — менеджер рассчитает стоимость тура.",
+      "text_sha256": "dce307ac9e64333548f98d247e5d541661be51f14818523aaa437ef55754f6b0",
+      "photo_sha256": "280c7bc6be78966c9cd3c997a70fe4eec5ff905eebea113857fba96a709206d4",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/632a52081dc4dd904115564099d6b89f8554a054/.github/traffic-publish/commercial-next-three-20261102/jaz-saraya.png"
+    }
+  ]
+}
