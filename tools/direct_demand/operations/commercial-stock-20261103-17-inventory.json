@@ -66,7 +66,7 @@
       "hotel_id": 4184,
       "hotel": "SENTIDO REEF OASIS SENSES RESORT (EX. REEF OASIS SENSES RESORT)",
       "region": "Шарм-эль-Шейх",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+      "state": "CONTENT_VERIFIED_GENERAL_HOTEL_HERO_DEFERRED"
     },
     {
       "key": "beach-albatros-marsa",
@@ -125,7 +125,7 @@
       "hotel_id": 62505,
       "hotel": "ROBINSON SOMA BAY",
       "region": "Хургада",
-      "state": "CATALOG_CONFIRMED_PRIMARY_SOURCE_AND_COVER_NOT_READY"
+      "state": "CONTENT_VERIFIED_GENERAL_HOTEL_HERO_DEFERRED"
     }
   ],
   "new_name_lookup_count": 12,

@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261103-17-v1",
-  "state": "CONTENT_VERIFIED_GENERAL_HERO_PREPARATION_NOT_SENT",
+  "state": "CONTENT_VERIFIED_MEDIA_DEFERRED_NOT_SENT",
   "goal": "Prepare the two deferred whole hotel materials while the original production release owner resolves its separate failed cron verification.",
   "boundaries": "Native62505 ROBINSON Soma Bay and4184 Sentido Reef Oasis Senses only. Public primary hotel photographs and existing Canva working copies. No server or provider publication call, old post edits, price claim or new runtime.",
   "criteria": "A useful real general hotel/grounds hero and readable accepted AnyTour layout, then native PNG validation. Live approval and source gates remain necessary before any later send.",
@@ -22,7 +22,16 @@
       ],
       "text": "✈️ ROBINSON Soma Bay\nТур с перелётом в Хургаду 🇪🇬\n\nКлубный отель в Сома Бэй у песчаного пляжа длиной около 500 м. Много спорта и вечерних развлечений 🌴\n\n💦 Три бассейна, в том числе детский.\n🏄 Водные виды спорта, дайвинг, групповой фитнес и теннис.\n🍽️ Полный пансион с завтраком, обедом и ужином. Четыре ресторана и шесть баров.\n🧒 ROBY CLUB для детей от 3 лет.\n\nℹ️ Основная программа ориентирована на взрослых. Семьи с детьми тоже принимают, для ребят есть отдельные занятия.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
       "logical_id": "commercial-robinson-soma-bay-62505-v1",
-      "text_sha256": "b9bcaf4b012eb42308444affba3df78ed1762486a6040123d246d29759dc04ad"
+      "text_sha256": "b9bcaf4b012eb42308444affba3df78ed1762486a6040123d246d29759dc04ad",
+      "state": "DEFERRED_GENERAL_HOTEL_PHOTOGRAPH_REQUIRED",
+      "rejected_native_png": {
+        "sha256": "4dae25a12b7c4eb18193670eb932e30beb6c37deeaa3905bea3833d876fd8985",
+        "bytes": 816216,
+        "width": 600,
+        "height": 600
+      },
+      "rejection_reason": "Current official main-pool photograph is dominated by one pool and foreground guests. It does not show enough of the hotel and grounds for the requested main cover.",
+      "next_input": "A different verified official broad hotel or grounds photograph. Do not re-export this rejected hero or repeat the same page lookup without a new candidate."
     },
     {
       "hotel_id": 4184,
@@ -39,7 +48,23 @@
       ],
       "text": "✈️ Sentido Reef Oasis Senses\nТур с перелётом в Шарм эль Шейх 🇪🇬\n\nОтель в районе Хадаба для семейного отпуска и знакомства с рифами Красного моря 🐠\n\n🤿 Собственный пляж с домашним рифом и дайвинг школа PADI.\n🧒 Детский клуб для ребят от 4 до 12 лет и детские бассейны.\n🍽️ Основной ресторан, итальянская кухня и блюда на гриле.\n🎾 Теннис, тренажёрный зал, дневные занятия и вечерние шоу.\n\nℹ️ До пляжа около 500 м, на пути есть лестницы. Отель сообщил о закрытии аквапарка на ремонт с 10 января по 28 февраля 2027 года.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
       "logical_id": "commercial-sentido-reef-oasis-senses-4184-v1",
-      "text_sha256": "c615af5d18cbf6001817391750b4c0a81c2d2d8c488cfd61162271ccb905329a"
+      "text_sha256": "c615af5d18cbf6001817391750b4c0a81c2d2d8c488cfd61162271ccb905329a",
+      "state": "DEFERRED_GENERAL_HOTEL_PHOTOGRAPH_REQUIRED",
+      "rejected_native_png": {
+        "sha256": "d20eb09d2114b90f3cfe020f2a3c9e7b1b04df1c91e75fa9e297efdc07daef86",
+        "bytes": 812915,
+        "width": 600,
+        "height": 600
+      },
+      "rejection_reason": "Current official evening photograph is dominated by one pool and a single low building. It does not show the requested general hotel and grounds view.",
+      "next_input": "A different verified official broad hotel or grounds photograph. Do not re-export this rejected hero or repeat the same page lookup without a new candidate."
     }
-  ]
+  ],
+  "ready_for_send_count": 0,
+  "new_posts": 0,
+  "provider_send_attempts": 0,
+  "native_inspection_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41545499859",
+  "native_inspection_state": "TWO_PNG_VALID_BUT_HERO_COMPOSITION_REJECTED",
+  "temporary_canva_transactions": "EXACT_TWO_CANCELLED",
+  "public_png_frozen_count": 0
 }
