@@ -78,6 +78,11 @@ max_source_age_seconds; max_scopes<=4; request_byte_ceiling within the existing
 client cap; input_token_ceiling; reserved_micros_minimum; budget_attestation_sha256; and source_mode.
 Principal identities include a digest of the full policy, runtime profile and both
 role instructions, so an assumption change cannot reuse the old assignment identity.
+The existing CLI lazily constructs this concrete adapter from the private
+ANYTOUR_HOTEL_SERVER_AI_POLICY only inside the already-gated context callback.
+An explicitly supplied existing provider retains precedence; broken configuration
+never falls back to legacy dispatch. With flags disabled, even an invalid policy
+is not constructed and the old CLI route remains unchanged.
 There is no provider availability probe in ready/preflight. A default real client
 is unavailable without the existing configured key/cURL; offline tests inject an
 explicit synthetic transport. That injection does not configure the runtime.

@@ -45,7 +45,16 @@ try {
         'enabled'=>defined('HOTEL_SERVER_CYCLE_ENABLED')?HOTEL_SERVER_CYCLE_ENABLED:false,
         'dispatch_allowed'=>defined('HOTEL_SERVER_DISPATCH_ALLOWED')?HOTEL_SERVER_DISPATCH_ALLOWED:false,
         'replacement_dispatch_allowed'=>defined('HOTEL_SERVER_REPLACEMENT_DISPATCH_ALLOWED')?HOTEL_SERVER_REPLACEMENT_DISPATCH_ALLOWED:false,
-    ],static fn():array=>['pdo'=>$pdo,'provider'=>$GLOBALS['ANYTOUR_HOTEL_SERVER_PROVIDER']??null]);
+    ],static function()use($pdo):array{
+        $provider=$GLOBALS['ANYTOUR_HOTEL_SERVER_PROVIDER']??null;
+        if($provider===null&&array_key_exists('ANYTOUR_HOTEL_SERVER_AI_POLICY',$GLOBALS)){
+            require_once dirname(__DIR__).'/services/HotelServerAiProvider.php';
+            $policy=$GLOBALS['ANYTOUR_HOTEL_SERVER_AI_POLICY'];
+            if(!is_array($policy))throw new DomainException('hotel_provider_policy_required');
+            $provider=new HotelServerAiProvider($policy);
+        }
+        return ['pdo'=>$pdo,'provider'=>$provider];
+    });
     if($server['handled']){
         $ok=$server['state']!=='hold';
         HotelWorkHealth::record($ok?'ok':'failed','server_cycle',[],$trigger);$finished=true;

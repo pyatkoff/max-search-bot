@@ -61,6 +61,8 @@ try {
     file_put_contents($app.'/config.php', <<<'PHP'
 <?php
 if (is_file(__DIR__.'/fail')) throw new RuntimeException('PRIVATE BOOTSTRAP ERROR');
+// A disabled collector must not construct even an invalid private AI policy.
+$GLOBALS['ANYTOUR_HOTEL_SERVER_AI_POLICY']=['invalid_private_policy'=>'PRIVATE POLICY MUST NOT LOAD'];
 class ProjectAccessService {public static function initializeReadOnly(){}}
 class ConversationDb {public static function connection(){return null;}}
 class ManagerPreparationOAuth {
