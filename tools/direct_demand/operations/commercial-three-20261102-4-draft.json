@@ -1,0 +1,64 @@
+{
+  "operation": "commercial-hotel-three-20261102-4-v1",
+  "state": "DRAFT_NOT_SENT",
+  "goal": "Prepare and publish three complete hotel posts in the accepted AnyTour style, once in each existing channel.",
+  "boundaries": "Vox Maris 3737, Club Aqua Plaza 477, Akra Antalya 516. Real official hotel photos, existing bot/registry only. No customer messages, advertisements, budgets, Mac access or invented prices. Price-monitor connection is not implemented by this content packet.",
+  "criteria": [
+    "Six confirmed image posts with canonical cost button, exact source and unique hotel/logical identity.",
+    "Plain Russian, emoji and accepted cover. No dash punctuation or empty promises.",
+    "Actual provider receipts and source resolution retained only in canonical private registry and existing authenticated artifact."
+  ],
+  "risks": [
+    "Wrong property photo, unsupported service inclusion, unknown send result or duplicate hotel.",
+    "Current main advanced; 21 publishing blobs are unchanged, production deploy 41408885824 succeeded. Preserve exact installed source and mandatory gates."
+  ],
+  "baseline_logical_materials": 15,
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "logical_id": "commercial-vox-maris-3737-v1",
+      "hotel_id": 3737,
+      "hotel": "Vox Maris Resort",
+      "aliases": [
+        "Vox Maris",
+        "Вокс Марис"
+      ],
+      "sources": [
+        "https://voxmarisresort.com/about-us/",
+        "https://voxmarisresort.com/gastronomy/"
+      ],
+      "state": "DRAFT_MEDIA_PENDING"
+    },
+    {
+      "logical_id": "commercial-club-aqua-plaza-477-v1",
+      "hotel_id": 477,
+      "hotel": "Club Aqua Plaza",
+      "aliases": [
+        "Club Aqua Plaza",
+        "Клуб Аква Плаза"
+      ],
+      "sources": [
+        "https://www.clubaquaplaza.com/",
+        "https://www.clubaquaplaza.com/konaklama-icerik/10/aile-odasi"
+      ],
+      "state": "DRAFT_MEDIA_PENDING"
+    },
+    {
+      "logical_id": "commercial-akra-antalya-516-v1",
+      "hotel_id": 516,
+      "hotel": "Akra Antalya",
+      "aliases": [
+        "Akra Antalya",
+        "Akra Barut",
+        "Акра Анталья"
+      ],
+      "sources": [
+        "https://www.akrahotels.com/en/hotels/akra-antalya/",
+        "https://www.akrahotels.com/en/hotels/akra-antalya/beach-and-pools/",
+        "https://www.akrahotels.com/en/hotels/akra-antalya/spa-wellness/"
+      ],
+      "state": "DRAFT_MEDIA_PENDING"
+    }
+  ],
+  "next": "Read official photo URLs through existing bounded cloud preparation, finish hotel captions and inspect branded Canva copies before any send."
+}
