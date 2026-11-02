@@ -32,11 +32,7 @@ final class HotelServerCatalogProjector
             $this->hotels->commit();
         } catch(Throwable $e) { if ($this->hotels->inTransaction()) $this->hotels->rollBack(); throw $e; }
         if ($this->fault!==null) ($this->fault)('projection_after_catalog_commit');
-        $this->lane->own($campaign,function() use($receipt,$hash): void {
-            $s=$this->app->prepare('SELECT payload_bytes FROM hotel_server_catalog_outbox WHERE receipt_sha256=?'); $s->execute([$receipt]);
-            if (hash('sha256',(string)$s->fetchColumn())!==$hash) throw new DomainException('projection_ack_CAS');
-            $s=$this->app->prepare("UPDATE hotel_server_catalog_outbox SET state='done' WHERE receipt_sha256=?"); $s->execute([$receipt]);
-        });
+        $this->lane->acknowledgeProjection($campaign,$receipt,$hash);
         return ['state'=>'projected','receipt_sha256'=>$receipt];
     }
 }
