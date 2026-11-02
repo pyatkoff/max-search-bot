@@ -1,17 +1,17 @@
 {
   "operation": "commercial-hotel-three-20261102-7-v1",
-  "state": "DRAFT_REPLACEMENT_THIRD_HOTEL_IDENTITY_PENDING",
+  "state": "DRAFT_MEDIA_PENDING",
   "goal": "Prepare and publish the next three complete hotel posts from retained Egypt material, once per authorized channel.",
-  "boundaries": "Candidates Diamond Beach, Montemare and Remal Beach. Initial stage only reads public catalogue and channel registry data, with no provider/customer calls or writes.",
+  "boundaries": "Only Diamond9373, Montemare32577 and Long Beach247. Preserve the existing Remal MAX post. Prepare three complete hotel captions and native covers before any six-post send.",
   "criteria": [
     "Resolve exact active catalogue identities and physical properties.",
     "No existing publication for the chosen hotels in either channel.",
     "Real official hotel photos, full human captions and canonical cost button before any send."
   ],
   "risks": [
-    "Do not confuse Remal Beach with Remal Resort.",
-    "Do not infer an adults-only hotel or future service rights from old branding or one facility's rule.",
-    "No native/provider IDs, prices or availability may be guessed."
+    "Keep Posh Club-only rights separate from the standard hotel.",
+    "Use exact official photos and facility restrictions; do not invent current price or free services.",
+    "Check both registries again inside the guarded send, never replay an active or unknown operation."
   ],
   "baseline_logical_materials": 24,
   "candidate_names": [
@@ -22,13 +22,9 @@
   "official_sources": [
     "https://www.sunrise-resorts.com/diamond-beach-resort",
     "https://www.sunrise-resorts.com/montemare-resort",
-    "https://www.sunrise-resorts.com/remal-beach-resort"
+    "https://www.hurghada-longbeach.com/"
   ],
-  "next": "Resolve a unique unpublished replacement third hotel, then prepare only the chosen three full posts.",
-  "selected_catalog_ids_so_far": [
-    9373,
-    32577
-  ],
+  "next": "Prepare official hotel photos and three human captions, inspect the branded native PNGs, then publish once per authorized channel.",
   "skipped_candidate": {
     "name": "Remal Beach",
     "catalog_id": 319,
@@ -41,5 +37,10 @@
   "identity_decisions": [
     "Diamond9373 and Montemare32577 are the base Sharm resorts; exclude their separately named Posh Club products and unrelated Diamond hotels in Marsa Alam/Hurghada.",
     "Remal Beach is skipped for this packet to preserve the already registered MAX post. Read only replacement candidates; do not repeat the two resolved identities."
+  ],
+  "selected_catalog_ids": [
+    9373,
+    32577,
+    247
   ]
 }

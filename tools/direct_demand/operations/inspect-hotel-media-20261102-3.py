@@ -1,8 +1,8 @@
 import base64,html,json,re,urllib.parse,urllib.request
 from pathlib import Path
-operation='commercial-three-media-20261102-5-read1'
-pages=["https://www.sunrise-resorts.com/arabian-beach-resort","https://www.sunrise-resorts.com/arabian-beach-resort/stay/family-suite","https://www.hwaidak-hotels.com/hotels/titanic-beach","https://www.aviaresort.com/en","https://www.aviaresort.com/en/room-detail/superior-eco-room-5467"]
-hosts=set(["sunrise-resorts.com","www.sunrise-resorts.com","d1wo7kaelp5eck.cloudfront.net","www.hwaidak-hotels.com","hwaidak-hotels.com","storage.googleapis.com","www.aviaresort.com","aviaresort.com","cdn.extranetwork.com"])
+operation='commercial-three-media-20261102-7-read1'
+pages=["https://www.sunrise-resorts.com/diamond-beach-resort","https://www.sunrise-resorts.com/montemare-resort","https://www.hurghada-longbeach.com/"]
+hosts=set(["sunrise-resorts.com","www.sunrise-resorts.com","d1wo7kaelp5eck.cloudfront.net","www.hurghada-longbeach.com","hurghada-longbeach.com"])
 class Redirect(urllib.request.HTTPRedirectHandler):
  def redirect_request(self,req,fp,code,msg,headers,newurl):
   p=urllib.parse.urlsplit(newurl)
@@ -25,7 +25,9 @@ for url in pages:
   absolute=urllib.parse.urljoin(final,html.unescape(value))
   p=urllib.parse.urlsplit(absolute)
   if p.scheme=='https' and p.hostname in hosts and not p.username and not p.password and absolute not in candidates:candidates.append(absolute)
- out['pages'].append({'source_url':url,'final_url':final,'image_urls':candidates[:80]})
+ body=html.unescape(re.sub('<[^>]+>',' ',re.sub(r'<(script|style)\\b[^>]*>.*?</\\1>','',text,flags=re.S|re.I)))
+ body=re.sub(r'\\s+',' ',body)
+ out['pages'].append({'source_url':url,'final_url':final,'image_urls':candidates[:80],'public_body':body[-18000:] if 'longbeach' in final else ''})
 out['ok']=True
 Path('public-media-sources.json').write_text(json.dumps(out,ensure_ascii=False,indent=2)+'\n')
 print(json.dumps(out,ensure_ascii=False))
