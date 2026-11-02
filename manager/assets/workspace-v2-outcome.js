@@ -42,7 +42,7 @@ function startCompletion(stage){
  $('leadCloseReasonWrap')?.classList.toggle('hidden',outcome.value!=='lost');$('leadSaleWrap')?.classList.toggle('hidden',outcome.value!=='won');
  syncCompletionStage();setOutcomeDirty(true);
  const details=outcome.closest('details');if(details)details.open=true;
- window.Manager2Presentation?.openClientCard?.($('mobileLeadBtn'));
+ window.Manager2Presentation?.openClientCard?.($('conversationTitle'));
  outcome.scrollIntoView?.({block:'nearest'});(outcome.value==='lost'?$('leadCloseReason'):$('leadSaleAmount'))?.focus({preventScroll:true});return true;
 }
 

@@ -229,7 +229,7 @@
   function closeClientCard(){
     if(window.WorkspaceV2Mobile?.isMobile())return; // Mobile owns its existing Back/history operation.
     $('workspaceRoot')?.classList.remove('m2ClientCardOpen');syncClientCard();
-    const target=clientCardOpener?.isConnected?clientCardOpener:$('mobileLeadBtn');target?.focus({preventScroll:true});
+    const target=clientCardOpener?.isConnected&&clientCardOpener.id!=='mobileLeadBtn'?clientCardOpener:$('conversationTitle');target?.focus({preventScroll:true});
   }
   function revealInboxSearch({focus=true}={}){
     if(!S.manager||S.authExpired)return false;
@@ -265,7 +265,7 @@
     for(let el=form.parentElement;el;el=el.parentElement)if(el instanceof HTMLDetailsElement)el.open=true;
     const mobile=window.WorkspaceV2Mobile;
     if(mobile?.isMobile()&&mobile.getScreen()==='inbox')mobile.conversationOpened(S.current);
-    openClientCard($('mobileLeadBtn'),{focus:false});
+    openClientCard($('conversationTitle'),{focus:false});
   }
   function syncConversationMenu(){
     if(!conversationMenu)return;
@@ -273,6 +273,7 @@
     if(conversationMenu.hidden){conversationMenu.open=false;conversationMenuActions?.replaceChildren()}
   }
   function focusConversationTool(id){
+    if(id==='ceOpen'){const events=$('ceOpen');if(!events||events.hidden||events.disabled)return false;if(!clientCardIsOpen())openClientCard($('conversationTitle'),{focus:false});events.focus({preventScroll:true});return true;}
     const button=conversationToolButtons.find(el=>el.id===id&&el.isConnected)||(id==='conversationLoadOlder'&&conversationMenuHistory?.contains($(id))?$(id):null);
     if(!button||!conversationMenu||conversationMenu.hidden)return false;
     // Canonical feature owners return to their original bound button. Reveal
@@ -281,6 +282,7 @@
   }
   function registerConversationTool(button){
     if(!button||conversationToolButtons.includes(button))return false;
+    if(button.id==='ceOpen'){const host=document.querySelector('.leadHeaderActions');if(!host)return false;if(button.parentElement!==host)host.appendChild(button);button.textContent='История клиента';return true;}
     if(!conversationMenu)initConversationMenu();
     if(!conversationMenuActions)return false;
     conversationToolButtons.push(button);
@@ -293,7 +295,7 @@
     conversationMenu=document.createElement('details');conversationMenu.className='m2ConversationMenu';conversationMenu.hidden=true;
     const summary=document.createElement('summary');summary.id='m2ConversationMenuToggle';summary.textContent='⋯';summary.setAttribute('aria-label','Действия с диалогом');conversationMenu.appendChild(summary);
     const items=document.createElement('div');
-    ['conversationSearchOpen','nextWaitingConversation'].forEach(id=>{
+    ['conversationSearchOpen'].forEach(id=>{
       const button=$(id);if(!button)return;
       conversationToolButtons.push(button);items.appendChild(button);
       button.addEventListener('click',()=>conversationMenu.open=false);
@@ -397,7 +399,7 @@
     if(catalog!==salesCatalog){
       salesCatalog=catalog;
       $('m2SalesStage').innerHTML='<option value="">Все этапы</option>'+(S.pipeline?.stages||[]).map(s=>'<option value="'+esc(s.stage_key)+'">'+esc(s.display_name)+'</option>').join('');
-      $('m2SalesProject').innerHTML='<option value="*">Все доступные проекты</option>'+(S.projects||[]).map(p=>'<option value="'+esc(p.project_key)+'">'+esc(p.display_name||p.project_key)+'</option>').join('');
+      $('m2SalesProject').innerHTML='<option value="*">Все проекты</option>'+(S.projects||[]).map(p=>'<option value="'+esc(p.project_key)+'">'+esc(p.display_name||p.project_key)+'</option>').join('');
     }
     for(const [id,value] of [['m2SalesScope',salesScope],['m2SalesProject',salesProject],['m2SalesStage',salesStage],['m2SalesTask',salesTask],['m2SalesOutcome',salesOutcome]])$(id).value=value;
     $('workspaceRoot').classList.toggle('m2SalesList',section==='sales'&&salesLayout==='list');
@@ -469,7 +471,7 @@
     const quick=document.createElement('div');quick.className='m2TaskQuickFilters';quick.hidden=true;hint.after(quick);
     const attach=document.querySelector('.attachBtn');
     if(attach){attach.tabIndex=0;attach.setAttribute('role','button');attach.setAttribute('aria-label','Прикрепить файл');attach.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();const input=$('replyFile');if(input&&!input.disabled)input.click()}})}
-    $('mobileLeadBtn').textContent='Клиент';$('mobileLeadBtn').setAttribute('aria-label','Карточка клиента');
+    $('mobileLeadBtn').hidden=true;$('mobileLeadBtn').tabIndex=-1;$('mobileLeadBtn').setAttribute('aria-hidden','true');
     const clientCardClose=$('mobileLeadClose');clientCardClose.textContent='×';clientCardClose.title='Закрыть карточку клиента';clientCardClose.setAttribute('aria-label','Закрыть карточку клиента');
     const clientCardHeader=document.querySelector('.leadZone>.zoneHead');clientCardHeader.insertBefore(clientCardClose,clientCardHeader.querySelector('.leadHeaderActions'));
     const header=document.querySelector('.leadZone .brand');if(header)header.textContent='Карточка клиента';

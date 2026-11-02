@@ -201,7 +201,8 @@ for(const width of [390,430,768,1440])test.describe('Messenger layout '+width,()
     // Drain that initial request before measuring the disclosure's zero extra reads.
     await expect.poll(()=>fixture.calls.filter(call=>call.action==='edit_candidates').length).toBe(1);await settle(fixture);
     const before=fixture.calls.length;
-    for(const opener of ['#conversationTitle','#mobileLeadBtn']){
+    await expect(page.locator('#mobileLeadBtn')).toBeHidden();
+    for(const opener of ['#conversationTitle']){
       await page.locator(opener).press('Enter');
       await expect(card).toBeVisible();
       await expect(page.locator('#mobileLeadClose')).toBeVisible();
@@ -216,7 +217,7 @@ for(const width of [390,430,768,1440])test.describe('Messenger layout '+width,()
       await expect(page.locator('#mediaSelection')).toHaveText(attachment);
     }
     await title.focus();await page.keyboard.press('Alt+l');await expect(card).toBeVisible();
-    await page.locator('#mobileLeadClose').click();await expect(card).not.toBeVisible();await expect(page.locator('#mobileLeadBtn')).toBeFocused();
+    await page.locator('#mobileLeadClose').click();await expect(card).not.toBeVisible();await expect(page.locator('#conversationTitle')).toBeFocused();
     const actions=page.getByLabel('Действия с диалогом',{exact:true});await actions.press('Enter');
     await expect(page.getByRole('button',{name:'Закрыть обращение',exact:true})).toBeVisible();
     await expect(page.getByRole('button',{name:'Закрыть',exact:true})).toHaveCount(0);

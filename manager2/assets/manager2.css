@@ -386,3 +386,25 @@ body.manager2{--ws-accent:#25624f;--ws-accent-soft:#e9f3ed;--ws-text:#233c34;--w
 .manager2 .workspace[data-m2-section=sales] .m2SalesTools{grid-column:1/-1}
 .manager2 .workspace.m2SalesList #kanbanBoard:not(:has(.kanbanCard))::after{content:"По этим фильтрам обращений нет.";display:block;padding:24px 12px;text-align:center;color:var(--ws-text-secondary,#617168);font-size:14px}
 .manager2 .assistantPlanView .assistantCardReason{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;line-height:1.5}
+
+/* One client-card entry and one compact request summary in the conversation. */
+.manager2 #mobileLeadBtn{display:none!important}
+.manager2 .m2ClientCardButton{min-height:36px;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:4px}
+.manager2 .leadHeaderActions #ceOpen{min-height:44px}
+.manager2 .m2CurrentTrip{display:block;padding:0;border-bottom:1px solid var(--m2-line)}
+.manager2 .m2CurrentTrip>summary{display:grid;gap:3px;padding:10px 16px 10px 30px;position:relative;min-height:44px;cursor:pointer;list-style:none}
+.manager2 .m2CurrentTrip>summary:before{content:'›';position:absolute;left:13px;top:10px;font-size:18px}
+.manager2 .m2CurrentTrip[open]>summary:before{transform:rotate(90deg)}
+.manager2 .m2CurrentTrip .m2RequestTitle{font-size:12px;font-weight:600;color:#52674e}
+.manager2 .m2CurrentTrip strong[hidden]{display:none}
+.manager2 .m2CurrentTrip small{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;font-size:13px;line-height:1.4}
+.manager2 .m2CurrentTrip>.m2RequestContent{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:0 16px 12px 30px}
+.manager2 .m2RequestContent>span{flex:1;min-width:140px;font-size:12px}
+.manager2 .m2RequestSource{flex:0 0 100%;min-width:0}
+.manager2 .m2RequestSource .handoffContext{margin:0;padding:0;border:0;background:none}
+.manager2 .m2RequestSource .handoffContext>details>summary{min-height:44px;display:flex;align-items:center;font-size:12px}
+@media(max-width:740px){.manager2 .conversationHead .actionBtn,.manager2 .m2ConversationMenu>summary{min-height:44px}.manager2 .m2ConversationMenu>summary{width:44px}.manager2 .m2CurrentTrip>summary{padding-right:10px}.manager2 .m2CurrentTrip>.m2RequestContent{padding-right:10px}.manager2 .postContextToggle{min-height:44px}}
+
+.manager2 .m2CurrentTrip:not([open])>.m2RequestContent{display:none}
+
+@media(max-width:740px){.manager2 .m2ClientCardButton{min-height:44px}}

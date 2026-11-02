@@ -129,7 +129,7 @@ async function openLead(page,id=11){
   await page.locator('#inboxList [data-conversation-id="'+id+'"] .m2RowOpen').click();
   await expect(page.locator('#conversationTitle')).toHaveText(id===11?'Анна Морозова':'Алексей Иванов');
 }
-async function showCard(page){if(!await page.locator('#leadZone').isVisible()||await page.evaluate(()=>WorkspaceV2Mobile.isMobile()&&WorkspaceV2Mobile.getScreen()!=='lead')){await page.locator('#mobileLeadBtn').click();if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()))await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-mobile-screen','lead');else await expect(page.locator('#workspaceRoot')).toHaveClass(/m2ClientCardOpen/)}}
+async function showCard(page){if(!await page.locator('#leadZone').isVisible()||await page.evaluate(()=>WorkspaceV2Mobile.isMobile()&&WorkspaceV2Mobile.getScreen()!=='lead')){await page.locator('#conversationTitle').click();if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()))await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-mobile-screen','lead');else await expect(page.locator('#workspaceRoot')).toHaveClass(/m2ClientCardOpen/)}}
 async function showChat(page){if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()&&WorkspaceV2Mobile.getScreen()==='lead')||await page.locator('#workspaceRoot').evaluate(el=>el.classList.contains('m2ClientCardOpen'))){await page.locator('#mobileLeadClose').click();if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()))await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-mobile-screen','conversation');else await expect(page.locator('#workspaceRoot')).not.toHaveClass(/m2ClientCardOpen/)}}
 async function openAccount(page){
   const account=page.locator('#m2NotificationButton');
@@ -376,18 +376,18 @@ for(const width of [390,430,768,1440])test.describe('Manager2 '+width,()=>{
     expect((await page.locator('.conversationHead').boundingBox()).height).toBeLessThanOrEqual(63);
     await expect(menu).not.toHaveAttribute('open');await expect(search).not.toBeVisible();await expect(next).not.toBeVisible();
     expect(await page.locator('#messages').evaluate(el=>el.clientHeight)).toBeGreaterThanOrEqual(500);
-    await page.evaluate(()=>{window.fixtureNativeConversationTools=['conversationSearchOpen','nextWaitingConversation'].map(id=>document.getElementById(id))});
+    await page.evaluate(()=>{window.fixtureNativeConversationTools=['conversationSearchOpen'].map(id=>document.getElementById(id))});
     await page.locator('#replyText').fill('Черновик Анны для проверки компактного кабинета');
     await page.locator('#replyFile').setInputFiles({name:'compact-Anna.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic file, never sent')});
     const file=await page.locator('#mediaSelection').textContent();
-    await menu.locator('summary').press('Enter');await expect(search).toBeVisible();await expect(next).toBeVisible();
+    await menu.locator('summary').press('Enter');await expect(search).toBeVisible();await expect(next).toHaveCount(0);
     await search.click();await expect(menu).not.toHaveAttribute('open');await expect(page.locator('#conversationSearchInput')).toBeFocused();
     await page.locator('#conversationSearchInput').fill('у моря');await page.locator('#conversationSearchInput').press('Escape');
     await expect(search).toBeFocused();await expect(search).toBeVisible();await expect(menu).toHaveAttribute('open');
     await menu.locator('summary').press('Escape');await expect(menu.locator('summary')).toBeFocused();
     await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible());await openLead(page,12);await openLead(page,11);
     expect(await page.evaluate(()=>fixtureNativeConversationTools.every(el=>document.getElementById(el.id)===el&&el.isConnected))).toBe(true);
-    await expect(search).toHaveCount(1);await expect(next).toHaveCount(1);
+    await expect(search).toHaveCount(1);await expect(next).toHaveCount(0);
     await expect(page.locator('#replyText')).toHaveValue('Черновик Анны для проверки компактного кабинета');await expect(page.locator('#mediaSelection')).toHaveText(file);
     await page.evaluate(()=>WorkspaceV2Conversation.renderHeader({...WorkspaceV2.S.detail.conversation,display_name:'Анна · семейный отдых в Турции на октябрь · длинное рабочее имя клиента'}));
     const title=await page.locator('#conversationTitle').boundingBox(),head=await page.locator('.conversationHead').boundingBox(),toggle=await menu.locator('summary').boundingBox();

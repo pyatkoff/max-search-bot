@@ -5,7 +5,7 @@ const vm=require('node:vm');
 
 // Dependency-free DOM behavior harness. Production code owns all assistant
 // state and transport decisions; this deliberately makes no layout claim.
-function harness(){
+function harness({legacy=false}={}){
   let document;
   const decode=v=>String(v).replace(/&(?:amp|lt|gt|quot|#39);/g,s=>({'&amp;':'&','&lt;':'<','&gt;':'>','&quot;':'"','&#39;':"'"}[s]));
   class Element{
@@ -31,7 +31,7 @@ function harness(){
     showModal(){this.open=true}show(){this.open=true}close(){this.open=false}
     scrollIntoView(){}
   }
-  const body=new Element('body');body.className='manager2';
+  const body=new Element('body');body.className=legacy?'':'manager2';
   document={body,activeElement:null,createElement:tag=>new Element(tag),getElementById:id=>body.querySelector('#'+id),querySelector:s=>body.querySelector(s)};
   const inboxZone=new Element('aside');inboxZone.className='inboxZone';body.appendChild(inboxZone);const rail=new Element('nav');rail.className='m2Rail';body.appendChild(rail);const end=new Element();end.className='m2RailEnd';rail.appendChild(end);const tools=new Element();tools.className='conversationTools';body.appendChild(tools);
   const add=(id,tag='div')=>{const n=new Element(tag);n.id=id;body.appendChild(n);return n};
@@ -88,7 +88,7 @@ test('assistant return delegates loaded-history preservation to the canonical co
 });
 
 test('opening a conversation dismisses its menu but explicit Close restores the opener',async()=>{
-  const h=harness();h.A.activate(7);h.A.bind();
+  const h=harness({legacy:true});h.A.activate(7);h.A.bind();
   const button=h.$('assistantClientOpen'),menu={open:false};button.closest=()=>menu;button.focus();
   await h.A.open(101);await h.click('#assistantConversation');assert.equal(menu.open,false,'Navigation must not reopen the menu over the retained history');
   button.focus();await h.A.open(101);await h.click('#assistantClose');assert.equal(menu.open,true);assert.equal(h.document.activeElement,button);h.onlyReads();
@@ -104,13 +104,13 @@ test('workspace owner sees team identity and cannot change another manager decis
 });
 
 test('dialog menu opens the canonical reply helper without a duplicate work overview',async()=>{
-  const h=harness();let opened=0;h.window.WorkspaceV2AiDraft={open:()=>{opened++}};
+  const h=harness({legacy:true});let opened=0;h.window.WorkspaceV2AiDraft={open:()=>{opened++}};
   h.A.activate(7);h.A.bind();const button=h.$('assistantClientOpen'),menu={open:true};button.closest=()=>menu;
   button.onclick();assert.equal(opened,1);assert.equal(menu.open,false);assert.equal(h.$('assistantDialog'),null);
   assert.equal(h.$('assistantOpen'),null);assert.equal(h.calls.length,0);
 });
 test('activation is lazy and exposes current-owner controls without transport',async()=>{
-  const h=harness();h.A.activate(7);h.A.bind();assert.equal(h.calls.length,0);assert.equal(h.$('assistantOpen'),null);assert.equal(h.$('assistantClientOpen').hidden,false);h.S.detail.conversation.manager_id=8;h.A.sync();assert.equal(h.$('assistantClientOpen').hidden,true);assert.equal(h.calls.length,0);
+  const h=harness({legacy:true});h.A.activate(7);h.A.bind();assert.equal(h.calls.length,0);assert.equal(h.$('assistantOpen'),null);assert.equal(h.$('assistantClientOpen').hidden,false);h.S.detail.conversation.manager_id=8;h.A.sync();assert.equal(h.$('assistantClientOpen').hidden,true);assert.equal(h.calls.length,0);
 });
 test('list paging retains old clients beyond the ordinary inbox cap',async()=>{
   const h=harness();h.setHook((url,action,p)=>action==='list'?{ok:true,items:[h.item(p.cursor?901:101)],has_more:!p.cursor,next_cursor:p.cursor?null:101}:undefined);h.A.activate(7);await h.A.open();await h.A.loadList(true);assert.ok(h.body.querySelector('[data-assistant-client="901"]'));assert.match(h.$('assistantCoverage').textContent,/2/);assert.equal(h.calls.at(-1).cursor,101);h.onlyReads();
@@ -238,7 +238,7 @@ test('no-contact is an explicit plan view and is never converted to a send actio
  assert.ok(h.body.querySelector('[data-assistant-client="101"]'));await h.A.loadDetail(101);assert.equal(h.$('assistantReply'),null);assert.equal(h.$('assistantPlan'),null);h.onlyReads();
 });
 
-async function run(){const selected=process.argv.includes('--ux-review-only')?tests.filter(t=>t.name.startsWith('ux review ')):tests;let passed=0;for(const t of selected){await t.run();passed++;console.log('PASS '+t.name)}console.log('Manager assistant behavior: '+passed+' checks passed')}
+async function run(){const selected=process.argv.includes('--daily-flow-only')?tests.filter(t=>t.name.startsWith('daily flow ')):process.argv.includes('--ux-review-only')?tests.filter(t=>t.name.startsWith('ux review ')):tests;let passed=0;for(const t of selected){await t.run();passed++;console.log('PASS '+t.name)}console.log('Manager assistant behavior: '+passed+' checks passed')}
 test('inline plan keeps the protected task editor reachable and never opens another client',async()=>{
  const h=harness();let blocks=0;h.window.WorkspaceV2Tasks={blockNavigationForDirtyDraft:()=>{blocks++;return true}};h.A.activate(7);await h.A.openPlan();await h.A.loadDetail(101);await h.click('#assistantConversation');assert.equal(h.A.isPlanOpen(),true);assert.equal(h.$('assistantDialog').parentElement.className,'inboxZone');assert.equal(h.opened.length,0);assert.equal(blocks,1);assert.equal(h.$('replyText').value,'Unsent customer reply');assert.equal(h.$('replyFile').file,h.file);h.onlyReads();
 });
@@ -298,6 +298,9 @@ test('ux review unanswered message stays neutral even when the latest input is t
  const h=harness();h.S.detail.messages=[{id:34,text:'А какая цена на 14 ночей?'},{id:35,text:'Спасибо'}];h.data.set(101,h.item(101,{recommendation:null,operational:{awaiting_manager_reply:true}}));h.A.activate(7);await h.A.openPlan();const card=h.$('assistantList').querySelector('[data-assistant-client="101"]');assert.match(card.textContent,/Разобрать сообщение клиента/);assert.match(card.textContent,/Есть обращение без записанного ответа/);assert.doesNotMatch(card.textContent,/Ответить на вопрос клиента|Есть вопрос без ответа/);
  await h.A.loadDetail(101);assert.match(h.$('assistantDetail').textContent,/нужен ли ответ/);h.data.set(101,h.item(101,{operational:{awaiting_manager_reply:true},recommendation:{...h.item().recommendation,next_action:'no_contact'}}));await h.A.loadDetail(101);await h.click('[data-assistant-filter="waiting"]');const waiting=h.$('assistantList').querySelector('[data-assistant-client="101"]');assert.match(waiting.textContent,/Сейчас не писать/);assert.doesNotMatch(waiting.textContent,/Разобрать сообщение/);assert.equal(h.$('assistantReply'),null);assert.equal(h.$('replyText').value,'Unsent customer reply');assert.equal(h.$('replyFile').file,h.file);h.onlyReads();
 });
+
+
+test('daily flow Manager2 exposes one canonical reply helper without a duplicate menu entry',async()=>{const h=harness();h.A.activate(7);h.A.bind();assert.equal(h.$('assistantClientOpen'),null);assert.equal(h.calls.length,0);h.onlyReads();});
 
 module.exports={harness,deferred};
 

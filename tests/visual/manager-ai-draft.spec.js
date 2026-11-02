@@ -129,6 +129,7 @@ async function assistantPaint(page,selector){
     return {height:Math.max(0,bottom-top),targetHeight:rect.height,hostHeight:host.height,hit:!!hit&&(hit===node||node.contains(hit)),fontSize:parseFloat(getComputedStyle(node).fontSize)};
   });
 }
+async function openRequestProfile(page){const row=page.locator('#m2CurrentTrip');if(!await row.evaluate(el=>el.open))await row.locator(':scope > summary').click();await page.getByRole('button',{name:'Уточнить запрос',exact:true}).click();}
 async function readAssistantSection(page,selector){
   const host=await page.locator('#m2Assistant').boundingBox(),target=await page.locator(selector).boundingBox();
   await page.locator('#m2Assistant').hover();await page.mouse.wheel(0,target.y+target.height/2-host.y-host.height/2);
@@ -171,7 +172,7 @@ for(const viewport of [{width:390,height:420},{width:430,height:900},{width:1440
   await expect.poll(async()=>Math.abs((await anchor()).offset-before.offset)).toBeLessThanOrEqual(2);expect((await anchor()).key).toBe(before.key);
   const geometry=await page.evaluate(()=>{const r=id=>{const x=document.getElementById(id).getBoundingClientRect();return {width:x.width,height:x.height,bottom:x.bottom}};return {title:r('conversationTitle'),messages:r('messages'),reply:r('replyText'),helper:r('m2Assistant'),overflow:document.documentElement.scrollWidth-innerWidth}});
   expect(geometry.title.width).toBeGreaterThan(60);expect(geometry.messages.height).toBeGreaterThan(60);expect(geometry.reply.height).toBeGreaterThanOrEqual(32);expect(geometry.reply.bottom).toBeLessThanOrEqual(viewport.height+1);expect(geometry.helper.height).toBeLessThanOrEqual(viewport.height*.39+1);expect(geometry.overflow).toBeLessThanOrEqual(1);
-  await page.locator('#m2ConversationMenuToggle').click();await page.locator('#assistantClientOpen').click();
+  await expect(page.locator('#assistantClientOpen')).toHaveCount(0);await page.locator('#aiDraftOpen').click();
   await expect(page.locator('#aiDraftPanel')).toBeVisible();await expect(page.locator('#assistantDialog')).toHaveCount(0);await expect(page.locator('.aiDraftSectionTitle')).toHaveText(['Готовый ответ туристу','Проверки менеджеру','Допуск к автоответам']);
   await expect(page.locator('.aiDraftAdmission li')).toHaveCount(4);
   await expect(page.locator('.aiDraftAdmission li')).toContainText(['Последний ввод клиента: Не подтверждено.','Актуальность контекста: Техническая привязка проверена.','Полнота ответа: Не подтверждено.','Подтверждение условий: Не подтверждено.']);
@@ -186,7 +187,8 @@ for(const viewport of [{width:390,height:420},{width:430,height:900},{width:1440
   await page.screenshot({animations:'disabled',path:testInfo.outputPath('unified-assistant-checks-'+viewport.width+'-'+viewport.height+'.png')});
   await readAssistantSection(page,'.aiDraftAdmission li:last-child');
   await expect(page.locator('#aiDraftPanel .aiDraftBody')).toContainText('Нужна проверка менеджера. Автоотправка выключена.');
-  await page.screenshot({animations:'disabled',path:testInfo.outputPath('unified-assistant-admission-'+viewport.width+'-'+viewport.height+'.png')});
+  fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});
+  await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts','unified-assistant-admission-'+viewport.width+'-'+viewport.height+'.png')});
   await readAssistantSection(page,'#m2CurrentTrip strong');
   await page.screenshot({animations:'disabled',path:testInfo.outputPath('unified-assistant-request-'+viewport.width+'-'+viewport.height+'.png')});
   await page.locator('#aiDraftOpen').click();await expect(page.locator('#aiDraftPanel')).toBeHidden();
@@ -845,7 +847,7 @@ for(const width of [390,1440])test(`current-trip panel keeps profile and ready r
   await page.locator('#aiSuggestionDetails').click();await expect(page.locator('#aiDraftPanel')).toBeVisible();
   await page.locator('#replyText').fill('Мой неотправленный ответ');
   const tabs=page.context().pages().length;
-  await page.getByRole('button',{name:'Условия поездки',exact:true}).click();
+  await openRequestProfile(page);
   const embedded=page.frameLocator('#m2RequestProfilePanel iframe');
   await expect(embedded.locator('#profileLabel')).toHaveValue('Семейная поездка в Турцию');
   await embedded.locator('#profileLabel').fill('Декабрь: семья с ребёнком7лет');
@@ -879,7 +881,7 @@ for(const width of [390,1440])test(`current-trip panel keeps profile and ready r
 test('current-trip panel closes on conversation and account change, ignores late profile reads',withTransitionDiagnostics(async({page})=>{
   await page.setViewportSize({width:390,height:900});const state=await setup(page,{profilePanel:true});
   await expect(page.locator('#m2CurrentTrip strong')).toHaveText('Семейная поездка в Турцию');
-  await page.getByRole('button',{name:'Условия поездки',exact:true}).click();
+  await openRequestProfile(page);
   await expect(page.frameLocator('#m2RequestProfilePanel iframe').locator('#profileLabel')).toHaveValue('Семейная поездка в Турцию');
   await page.locator('#m2RequestProfilePanel').evaluate(el=>el.close());
   let release,entered;const waiting=new Promise(resolve=>{entered=resolve});
@@ -890,7 +892,7 @@ test('current-trip panel closes on conversation and account change, ignores late
   await expect(page.locator('#m2CurrentTrip strong')).toHaveText('Другая поездка');
   await expect(page.locator('#m2RequestProfilePanel iframe')).toHaveCount(0);
   await expect(page.locator('body')).not.toContainText('OLD PRIVATE TRIP');
-  await page.getByRole('button',{name:'Условия поездки',exact:true}).click();
+  await openRequestProfile(page);
   await expect(page.locator('#m2RequestProfilePanel')).toBeVisible();
   await page.evaluate(()=>WorkspaceV2.showAuthRecovery('Сессия изменилась'));
   await expect(page.locator('#m2RequestProfilePanel iframe')).toHaveCount(0);await expect(page.locator('#m2CurrentTrip')).not.toBeVisible();
@@ -906,7 +908,7 @@ test('current-trip panel retains unsaved profile and composer and consumes brows
   expect(await name.evaluate(el=>el.scrollHeight<=el.clientHeight+1)).toBe(true);
   fs.mkdirSync('manager2-artifacts',{recursive:true});await page.screenshot({path:'manager2-artifacts/long-client-name-mobile.png',animations:'disabled'});
   const head=await page.locator('.conversationHead').boundingBox();expect(head.height).toBeLessThan(100);
-  await page.getByRole('button',{name:'Условия поездки',exact:true}).click();
+  await openRequestProfile(page);
   const profile=page.frameLocator('#m2RequestProfilePanel iframe');await expect(profile.locator('#profileLabel')).toBeVisible();
   await profile.locator('#profileLabel').fill('Ещё не сохранённая поездка');
   await expect(page.locator('.m2RequestProfileState')).toContainText('Есть изменения');
@@ -914,7 +916,7 @@ test('current-trip panel retains unsaved profile and composer and consumes brows
   expect(await page.evaluate(()=>WorkspaceV2.S.current)).toBe(11);
   expect(await page.evaluate(()=>WorkspaceV2Mobile.getScreen())).toBe('conversation');
   await expect(page.locator('#replyText')).toHaveValue('Не потерять этот ответ');
-  await page.getByRole('button',{name:'Условия поездки',exact:true}).click();
+  await openRequestProfile(page);
   await expect(profile.locator('#profileLabel')).toHaveValue('Ещё не сохранённая поездка');
   await page.getByRole('button',{name:'Готово',exact:true}).click();
   expect(state.calls.filter(c=>c.action==='save'&&c.path==='/manager/request-profile-api.php')).toHaveLength(0);
@@ -932,14 +934,14 @@ test('current-trip panel retains unsaved profile and composer and consumes brows
 test('current-trip panel rejects forged child notifications and unexpected account identity',async({page})=>{
   const state=await setup(page,{profilePanel:true,readiness:true});
   await expect(page.locator('#m2CurrentTrip strong')).toHaveText('Семейная поездка в Турцию');
-  await page.getByRole('button',{name:'Условия поездки',exact:true}).click();
+  await openRequestProfile(page);
   await expect(page.frameLocator('#m2RequestProfilePanel iframe').locator('#profileLabel')).toBeVisible();
   await page.evaluate(()=>{const old=WorkspaceV2AiDraft.resetSession;window.profileResetCount=0;WorkspaceV2AiDraft.resetSession=(...args)=>{window.profileResetCount++;return old(...args)};const f=document.querySelector('#m2RequestProfilePanel iframe'),panel=new URL(f.src).searchParams.get('panel');window.postMessage({type:'anytour.request-profile',action:'saved',panel,conversation_id:11,viewer_id:7},location.origin)});
   await page.frameLocator('#m2RequestProfilePanel iframe').locator('body').evaluate(()=>parent.postMessage({type:'anytour.request-profile',action:'saved',panel:'f'.repeat(32),conversation_id:11,viewer_id:7},location.origin));
   await expect.poll(()=>page.evaluate(()=>window.profileResetCount)).toBe(0);
   await page.getByRole('button',{name:'Готово',exact:true}).click();
   state.setProfileHandler(async data=>data.action==='identity'?{body:{ok:true,viewer_id:8,csrf:'other-account'}}:{body:{ok:true,viewer_id:8,conversation_id:11,profile:{label:'PRIVATE OTHER ACCOUNT',status:'fresh'}}});
-  await page.getByRole('button',{name:'Условия поездки',exact:true}).click();
+  await openRequestProfile(page);
   await expect.poll(()=>page.evaluate(()=>WorkspaceV2.S.authExpired)).toBe(true);
   await expect(page.locator('#m2RequestProfilePanel iframe')).toHaveCount(0);await expect(page.locator('#m2CurrentTrip')).not.toBeVisible();
   await expect(page.locator('body')).not.toContainText('PRIVATE OTHER ACCOUNT');clean(state);
@@ -954,7 +956,7 @@ test('current-trip panel reconciles one uncertain profile write and invalidates 
     if(data.action==='operation')return {body:{ok:true,viewer_id:7,found:true,saved_version:2}};
     if(data.action==='get'&&committed)return {body:{ok:true,viewer_id:7,conversation_id:11,can_edit:true,context_sha256:'a'.repeat(64),profile:{version:2,status:'fresh',label:committed.label,boundary_message_id:1,fields:committed.fields},sources:[{id:1,sender_type:'customer',text:'Семейный отдых'}],history:[]}};
   });
-  await page.getByRole('button',{name:'Условия поездки',exact:true}).click();const profile=page.frameLocator('#m2RequestProfilePanel iframe');
+  await openRequestProfile(page);const profile=page.frameLocator('#m2RequestProfilePanel iframe');
   await profile.locator('#profileLabel').fill('Подтверждённая запись');await profile.locator('#profileSave').click();
   await expect(profile.locator('#profileStatus')).toContainText('Сохранение не подтверждено');
   await profile.locator('#profileReconcile').click();await expect(profile.locator('#profileStatus')).toContainText('Запись подтверждена');
@@ -968,14 +970,14 @@ test('current-trip panel cannot open after a delayed permission read and mobile 
   await expect(page.locator('#m2CurrentTrip strong')).toHaveText('Семейная поездка в Турцию');
   let release,entered;const waiting=new Promise(resolve=>{entered=resolve});
   state.setProfileHandler(async data=>{if(data.action!=='get')return;entered();await new Promise(resolve=>{release=resolve});return {body:{ok:true,viewer_id:7,conversation_id:11,profile:{status:'fresh',label:'Поздний разрешённый профиль'}}};});
-  await page.getByRole('button',{name:'Условия поездки',exact:true}).click();await waiting;
+  await openRequestProfile(page);await waiting;
   await page.goBack();await expect.poll(()=>page.evaluate(()=>WorkspaceV2Mobile.getScreen())).toBe('inbox');release();
   await expect(page.locator('#m2CurrentTrip strong')).toHaveText('Поздний разрешённый профиль');
   await expect(page.locator('#m2RequestProfilePanel')).not.toBeVisible();expect(await page.evaluate(()=>WorkspaceV2Mobile.getScreen())).toBe('inbox');clean(state);
 });
 
 test('current-trip panel clears private form on canonical conversation access denial',async({page})=>{
-  const state=await setup(page,{profilePanel:true});await page.getByRole('button',{name:'Условия поездки',exact:true}).click();
+  const state=await setup(page,{profilePanel:true});await openRequestProfile(page);
   await expect(page.frameLocator('#m2RequestProfilePanel iframe').locator('#profileLabel')).toHaveValue('Семейная поездка в Турцию');
   await page.route('**/manager/api.php',async route=>{const data=route.request().postDataJSON();if(data?.action==='detail'&&data.conversation_id===11)return route.fulfill({status:403,contentType:'application/json',body:JSON.stringify({ok:false,error:'forbidden'})});return route.fallback();});
   expect(await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible())).toBe(false);
@@ -985,12 +987,12 @@ test('current-trip panel clears private form on canonical conversation access de
 });
 
 test('current-trip panel rechecks profile freshness after editing an existing message ID',async({page})=>{
-  const state=await setup(page,{profilePanel:true});await expect(page.locator('#m2CurrentTrip span')).toHaveText('Профиль сверен с перепиской');
+  const state=await setup(page,{profilePanel:true});await expect(page.locator('#m2CurrentTrip .m2RequestStatus')).toHaveText('Запрос сверен с перепиской');
   const before=state.calls.filter(c=>c.path==='/manager/request-profile-api.php'&&c.action==='get').length;
   state.setProfileHandler(async data=>data.action==='get'?{body:{ok:true,viewer_id:7,conversation_id:11,profile:{version:1,label:'Уточнённые основания',status:'source_changed'}}}:undefined);
   state.messages.get(11).at(-1).text='Тот же ID: питание изменилось, отель нужно пересмотреть';
   expect(await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible())).toBe(true);
-  await expect(page.locator('#m2CurrentTrip span')).toHaveText('Основания изменились — условия нужно сверить');
+  await expect(page.locator('#m2CurrentTrip .m2RequestStatus')).toHaveText('Исходные данные изменились. Сверьте запрос.');
   expect(state.calls.filter(c=>c.path==='/manager/request-profile-api.php'&&c.action==='get').length).toBeGreaterThan(before);clean(state);
 });
 
@@ -1069,4 +1071,19 @@ test('Manager2 preparation late save cannot replace a changed account policy',as
  const completed=page.waitForResponse(response=>response.url().endsWith('/manager/personal-workspace-api.php')&&response.request().postDataJSON()?.action==='preparation_policy');release();await completed;
  expect(await page.evaluate(()=>WorkspaceV2PersonalWorkspace.preparationPermission(12,8).mode)).toBe('legacy');
  await expect(page.locator('#pwDialog')).not.toBeVisible();expect(state.calls.filter(call=>call.action==='preparation_policy')).toHaveLength(1);clean(state);
+});
+
+for(const viewport of [{width:390,height:420},{width:430,height:900},{width:1440,height:900}])test('daily manager flow keeps one request and native reply through card and Inbox '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
+ await page.setViewportSize(viewport);const state=await setup(page,{profilePanel:true});
+ state.setProfileHandler(data=>data.action==='get'?{body:{ok:true,viewer_id:7,conversation_id:Number(data.conversation_id),profile:{label:'Текущая поездка',status:'empty',fields:{}}}}:null);
+ await page.evaluate(()=>{WorkspaceV2.S.detail.handoff_context={summary:'Вылет 14.11. 7–8 ночей. Пхукет, Карон, Отель Корона4*.'};WorkspaceV2Conversation.renderHandoffContext();WorkspaceV2RequestProfile.refresh();});
+ const row=page.locator('#m2CurrentTrip');await expect(row.locator(':scope > summary')).toContainText('Запрос клиента');await expect(row.locator(':scope > summary')).toContainText('7–8 ночей');await expect(row).not.toHaveAttribute('open','');await expect(row.locator('strong')).toBeHidden();await expect(page.locator('#mobileLeadBtn')).toBeHidden();await expect(page.locator('#assistantClientOpen')).toHaveCount(0);await expect(page.locator('#nextWaitingConversation')).toHaveCount(0);
+ await page.locator('#replyText').fill('Начал отвечать клиенту сам');await page.locator('#replyFile').setInputFiles({name:'daily-flow.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic retained file, never sent')});const attachment=await page.locator('#mediaSelection').textContent();await page.evaluate(()=>{window.dailyReplyNode=document.getElementById('replyText');window.dailyFileNode=document.getElementById('replyFile');});
+ await row.locator(':scope > summary').click();await row.locator('#handoffContext summary').click();await expect(row.locator('.handoffContextSummary')).toContainText('Отель Корона4*');await expect(page.locator('#handoffContext')).toHaveCount(1);await row.locator(':scope > summary').click();
+ await page.locator('#m2ConversationMenuToggle').click();await expect(page.locator('.m2ConversationMenu #ceOpen')).toHaveCount(0);await expect(page.locator('.m2ConversationMenu #assistantClientOpen')).toHaveCount(0);await expect(page.locator('#conversationSearchOpen')).toBeVisible();await page.locator('#m2ConversationMenuToggle').press('Escape');
+ await page.locator('#conversationTitle').click();await expect(page.locator('#leadZone')).toBeVisible();await expect(page.locator('.leadHeaderActions #ceOpen')).toBeVisible();await page.locator('#mobileLeadClose').click();await expect(page.locator('#conversationTitle')).toBeFocused();await expect(page.locator('#replyText')).toHaveValue('Начал отвечать клиенту сам');await expect(page.locator('#mediaSelection')).toHaveText(attachment);
+ await page.locator('#replyText').evaluate(el=>el.blur());await page.locator('#aiDraftOpen').click();await expect(page.locator('#aiDraftPanel')).toBeVisible();await readAssistantSection(page,'#aiDraftInsert');await page.locator('#aiDraftInsert').click();const draft=await page.locator('#replyText').inputValue();expect(draft).toContain('Начал отвечать клиенту сам');expect(draft).toContain(proposal().draft);await expect(page.locator('#mediaSelection')).toHaveText(attachment);
+ for(const id of [12,11]){if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()))await page.locator('#mobileBack').click();await page.locator('#inboxList [data-conversation-id="'+id+'"]').click();await expect(page.locator('#conversationTitle')).toHaveText(id===11?'Анна Морозова':'Алексей Иванов');}
+ await expect(page.locator('#replyText')).toHaveValue(draft);await expect(page.locator('#mediaSelection')).toHaveText(attachment);expect(await page.evaluate(()=>document.getElementById('replyText')===dailyReplyNode&&document.getElementById('replyFile')===dailyFileNode)).toBe(true);expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);await expect(page.locator('#sendReply')).toBeInViewport();
+ fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts','daily-flow-'+browserName+'-'+viewport.width+'-'+viewport.height+'.png')});expect(state.calls.some(c=>c.action==='send'||c.action==='generate')).toBe(false);clean(state);
 });

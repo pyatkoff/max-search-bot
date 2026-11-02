@@ -40,6 +40,7 @@ async function explicitDialoguesReturnCheck(){
 }
 
 (async()=>{
+  if(process.argv.includes('--daily-flow-only')){await require('./support/manager-daily-flow-regression')(check);console.log('MANAGER DAILY FLOW: '+checks+' PASSED');return;}
   if(process.argv.includes('--dialogues-return-only')){await explicitDialoguesReturnCheck();console.log('MANAGER2 NAVIGATION TARGET: '+checks+' PASSED');return;}
   {
     const h=harness(),moves=[],pin={},markers={children:[pin]},identity={appendChild:node=>moves.push(node)};
@@ -138,5 +139,6 @@ async function explicitDialoguesReturnCheck(){
     check('blocked navigation retains the Plan section and original Inbox filters',()=>{assert.equal(h.requests.length,1);assert.equal(h.elements.workspaceRoot.dataset.m2Section,'tasks');assert.equal(h.S.viewMode,'list');assert.equal(h.S.leadTaskFilter,'today')});
   }
   await explicitDialoguesReturnCheck();
+  await require('./support/manager-daily-flow-regression')(check);
   console.log('MANAGER2 NAVIGATION: '+checks+' PASSED');
 })().catch(error=>{console.error(error);process.exitCode=1});

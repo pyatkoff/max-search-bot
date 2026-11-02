@@ -33,7 +33,7 @@ for(const width of [390,430,768,1440])for(const timezoneId of ['UTC','Europe/Mos
     await expect(page.locator('.leadActivityTime')).toHaveText('01.01 · 01:15');
     await expect(page.locator('.msgMeta')).toHaveText('01.01 · 01:15');
     await expect(page.locator('.msgMeta')).toHaveAttribute('title','01.01.2027 01:15 МСК');
-    if(width<=900)await page.locator('#mobileLeadBtn').click();
+    if(width<=900)await page.locator('#conversationTitle.m2ClientCardButton, #mobileLeadBtn:visible').first().click();
     await expect(page.locator('#timeStage')).toContainText('01.01 01:15');
     await page.locator('.leadStageHistoryDetails summary').click();
     await expect(page.locator('.leadStageHistoryMeta')).toHaveText('01.01.2027 01:15');
