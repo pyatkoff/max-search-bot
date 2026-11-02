@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__.'/ModeledConversionAssignedValue.php';
+require_once __DIR__.'/ModeledConversionValueRegistry.php';
 
 /** Pure HTML presentation of one already-authorized registry page; no IO or valuation. */
 final class ModeledConversionValueRegistryView
@@ -87,6 +88,7 @@ final class ModeledConversionValueRegistryView
         if($view==='profiles')$html.='<p class="warning">Это наблюдаемый префикс переписки, не подтверждённая текущая поездка и не установленный уникальный человек. Связь с подписчиком не предполагается.</p>';
         else $html.='<p>Связанный профиль: '.self::e(self::binding($row['profile_binding']??null)).'.</p>'
             .'<p class="muted">Даже связанный профиль описывает наблюдаемый префикс переписки; границы текущей поездки не подтверждены.</p>';
+        $html.=self::prediction($row);
         $html.=self::attribution($row['attribution']??null);
         $html.='<p>Тип реакции: '.self::e(self::reaction($row['reaction_type']??null)).'. Ответ не доказывает оплату.</p><div class="stages">';
         foreach(self::LABELS as$key=>$label){
@@ -111,6 +113,138 @@ final class ModeledConversionValueRegistryView
         return $html.'</div><details><summary>Стабильная единица оценки и точный охват строки</summary>'
             .'<h4>value_scope</h4><pre>'.self::e(self::json($scope)).'</pre><h4>Охват / ограничения</h4><pre>'.self::e(self::json($row['coverage']??null)).'</pre>'
             .'<p>Ссылки показаны как сохранены. Непредоставленные ревизии и времена остаются неизвестными; они не выводятся из номера снимка.</p></details></article>';
+    }
+
+
+    private static function prediction(array $row):string
+    {
+        $fields=ModeledConversionValueRegistry::predictionFieldsForView($row);
+        $capsule=$fields['semantic_prediction'];$html='<section class="prediction"><h4>Предварительный прогноз оплаты за 30 дней</h4>';
+        if($capsule['availability']!=='available'){
+            $html.='<p class="unknown">'.($capsule['availability']==='not_saved'
+                ?'Прогноз ещё не сохранён. Вероятность неизвестна; это не 0%.'
+                :'Прогноз недоступен: сохранённый блок не прошёл проверку и не показан.').'</p>';
+        }else{
+            $p=$capsule['value'];
+            $probability=$p['status']==='predicted'?number_format($p['estimated_probability']*100,2,',',' ').'%':'не рассчитывается';
+            $status=match($p['status']){
+                'predicted'=>'Предварительная гипотеза сохранена',
+                'insufficient_context'=>'Недостаточно текущего контекста',
+                'known_outcome'=>'Исход уже наблюдался; новый прогноз не рассчитывается',
+                'access_denied'=>'Контекст недоступен',
+            };
+            $html.='<p class="predictionNumber"><span>P(оплата в текущем агентстве)</span><strong>'.self::e($probability).'</strong></p>'
+                .'<p>'.self::e($status).'.</p><p class="muted">Первая оценка по смыслу переписки: правила не обучены и не откалиброваны. Новизна обращения и текущая поездка не подтверждены. Экспериментальная денежная сумма рассчитывается отдельно.</p>'
+                .'<dl><dt>Прогноз фактически сохранён</dt><dd>'.self::e($p['prediction_at']).'</dd>'
+                .'<dt>Входные данные доступны до</dt><dd>'.self::e($p['input_cutoff_at']).'</dd>'
+                .'<dt>Горизонт прогноза до</dt><dd>'.self::e($p['horizon_end_at']).'</dd>'
+                .'<dt>Начало текущего запроса</dt><dd><code>'.self::e($p['current_request_anchor']).'</code>'
+                .' · ревизия '.self::e($p['anchor_source_version_no']).' · сообщений клиента: '.$p['current_customer_turn_count'].'</dd></dl>';
+            if($p['reasons']){
+                $html.='<h5>Основания и предположения</h5><ul>';
+                foreach($p['reasons']as$reason)$html.='<li>'.self::e(self::predictionReason($reason)).'</li>';
+                $html.='</ul>';
+            }
+            if($p['evidence']){
+                $html.='<details><summary>Ссылки и время оснований прогноза</summary><ul>';
+                foreach($p['evidence']as$e)$html.='<li><code>'.self::e($e['source_ref']).'</code>'
+                    .' · '.self::e($e['occurred_at']).' · доступно '.self::e($e['available_at'])
+                    .' · ревизия '.$e['source_version_no'].'</li>';
+                $html.='</ul></details>';
+            }
+            if($p['outcome_observations']){
+                $html.='<details><summary>Отдельные наблюдения исходов</summary><p>Заявления и операционные записи не подтверждают банковскую оплату.</p><ul>';
+                foreach($p['outcome_observations']as$e)$html.='<li>'.self::e(self::outcomeKind($e['kind']))
+                    .' · <code>'.self::e($e['source_ref']).'</code> · '.self::e($e['occurred_at'])
+                    .' · доступно '.self::e($e['available_at']).' · ревизия '.$e['source_version_no'].'</li>';
+                $html.='</ul></details>';
+            }
+        }
+        $html.='</section>';
+        return$html.self::predictionFollowup($fields['prediction_followup']);
+    }
+
+
+    private static function predictionFollowup(array $capsule):string
+    {
+        $html='<section class="predictionFollowup"><h4>Сравнение с последующими сигналами</h4>';
+        if($capsule['availability']!=='available')return$html.'<p class="muted">'
+            .($capsule['availability']==='not_saved'?'Сравнение ещё не сохранено.'
+                :'Сравнение недоступно: сохранённый блок не прошёл проверку и не показан.').'</p></section>';
+        $f=$capsule['value'];
+        $reason=match($f['reason']){
+            'no_earlier_prediction'=>'Нет более раннего сохранённого прогноза',
+            'invalid_prior'=>'Более ранний прогноз не подходит для сравнения',
+            'invalid_current'=>'Текущий прогноз не подходит для сравнения',
+            'access_denied'=>'Контекст недоступен',
+            'scope_mismatch'=>'Субъекты прогнозов не совпали',
+            'request_anchor_unmatched'=>'Начало текущего запроса не совпало',
+            'edited_request_anchor'=>'Начальное сообщение запроса изменено',
+            'contrary_signal_after_prediction'=>'После прогноза есть противоречащий сигнал',
+            'edited_outcome_source'=>'Источник исхода изменён',
+            'outcome_not_strictly_after_freeze'=>'Сигнал не следует за фактическим сохранением прогноза',
+            'outcome_source_not_after_fence'=>'Источник не следует за информационной границей прогноза',
+            'outcome_not_available_at_cutoff'=>'Сигнал ещё не был доступен на момент среза',
+            'outcome_outside_horizon'=>'Сигнал находится вне горизонта прогноза',
+            'future_conversation_payment_evidence'=>'После прогноза наблюдалось сообщение об оплате',
+            'non_payment_outcome_only'=>'Есть только операционные сигналы без сообщения об оплате',
+            'horizon_elapsed_coverage_unknown'=>'Горизонт закончился; полнота наблюдения неизвестна',
+            'no_eligible_payment_evidence'=>'Подходящих последующих сообщений об оплате пока нет',
+        };
+        $status=match($f['status']){'waiting'=>'Ожидание','unknown'=>'Результат неизвестен','observed'=>'Наблюдение получено'};
+        $html.='<p><strong>'.self::e($status).'</strong> · '.self::e($reason).'.</p>'
+            .'<p class="muted">Сравниваются сохранённый прогноз и более поздние сообщения. Это диагностическое наблюдение, без банковской проверки и независимой оценки точности. Отсутствие сообщения об оплате не считается неоплатой.</p>'
+            .'<dl><dt>Сравнение сохранено</dt><dd>'.self::e($f['observed_at']).'</dd>';
+        if($f['prior_prediction_at']!==null)$html.='<dt>Более ранний прогноз</dt><dd>'.self::e($f['prior_prediction_at']).'</dd>'
+            .'<dt>Сохранённая ранее вероятность</dt><dd>'.self::e(number_format($f['prior_estimated_probability']*100,2,',',' ').'%').'</dd>'
+            .'<dt>Его горизонт до</dt><dd>'.self::e($f['horizon_end_at']).'</dd>';
+        $html.='</dl>';
+        if($f['evidence']){
+            $html.='<ul>';
+            foreach($f['evidence']as$e)$html.='<li>'.($e['label']==='self_reported_payment'
+                ?'Клиент сообщил об оплате':'Менеджер сообщил о получении денег')
+                .' · <code>'.self::e($e['source_ref']).'</code> · '.self::e($e['occurred_at'])
+                .' · доступно '.self::e($e['available_at']).' · ревизия '.$e['source_version_no'].'</li>';
+            $html.='</ul>';
+        }
+        return$html.'</section>';
+    }
+
+    private static function predictionReason(string $reason):string
+    {
+        return match($reason){
+            'illustrative_prior_substantive_dialogue'=>'Содержательный диалог: иллюстративная начальная база',
+            'illustrative_prior_concrete_request'=>'Конкретные условия поездки: иллюстративная начальная база',
+            'illustrative_prior_exact_offer_discussion'=>'Точное обсуждение предложения: иллюстративная начальная база',
+            'illustrative_prior_general_purchase_intent'=>'Прямое намерение купить: иллюстративная начальная база',
+            'illustrative_prior_agency_purchase_intent'=>'Прямой выбор этого агентства: иллюстративная начальная база',
+            'exact_current_offer_price_alternative'=>'Обсуждается цена связанного текущего предложения',
+            'price_alternative_is_continued_search'=>'Просьба найти дешевле продолжает поиск',
+            'hypothesis_near_term_urgency'=>'Близкий срок повышает оценку как рабочее предположение',
+            'hypothesis_continued_meaningful_engagement'=>'Клиент продолжает содержательное обсуждение',
+            'hypothesis_long_range_planning'=>'Дальний срок снижает оценку в пределах 30 дней',
+            'hypothesis_deferral'=>'Клиент отложил решение',
+            'hypothesis_explicit_decline'=>'Клиент прямо отказался от текущего запроса',
+            'known_outcome'=>'Уже есть наблюдение исхода; вероятность не рассчитывается',
+            'insufficient_context'=>'Недостаточно текущего контекста',
+            'access_denied'=>'Контекст недоступен',
+            'predicted'=>'Предварительная гипотеза сохранена',
+        };
+    }
+    private static function outcomeKind(string $kind):string
+    {
+        return match($kind){
+            'payment_self_report'=>'Клиент сообщил об оплате',
+            'manager_payment_ack'=>'Менеджер сообщил о получении денег',
+            'booking_confirmation'=>'Менеджер сообщил о подтверждении брони',
+            'purchase_supported_candidate'=>'Совпали сообщения о получении денег и подтверждении брони',
+            'payment_cancellation'=>'Сообщение об отмене платежа',
+            'booking_cancellation'=>'Сообщение об отмене брони',
+            'refund_report'=>'Сообщение о возврате',
+            'purchased_elsewhere'=>'Клиент сообщил о покупке в другом месте',
+            'document_issuance'=>'Сообщение о выдаче документов',
+            'known_operational_outcome'=>'Известный операционный исход CRM',
+        };
     }
 
     private static function attribution(mixed $attribution):string
@@ -200,6 +334,6 @@ final class ModeledConversionValueRegistryView
 
     private static function css():string
     {
-        return 'body{margin:0;background:#f5f6f8;color:#182334;font:16px/1.55 system-ui,sans-serif}header,main{max-width:1080px;margin:auto;padding:24px}header{padding-bottom:8px}h1{font-size:clamp(28px,5vw,40px);line-height:1.15}h2{font-size:22px}h3{font-size:19px;overflow-wrap:anywhere}h4{margin:0 0 8px}a{color:#075ab2}nav{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:22px}.button{display:inline-block;border:1px solid #b7c8dc;border-radius:9px;padding:9px 14px;background:white;text-decoration:none}.selected{background:#123f6c;color:white}.notice,.row,.error{padding:20px;border:1px solid #d9e1ea;border-radius:12px;background:white;margin:18px 0}.notice{background:#edf4fb}.notice h2{margin-top:0}.eyebrow,.muted,footer{color:#536275}.eyebrow{font-size:13px;letter-spacing:.04em}.subtotal{display:flex;align-items:center;gap:18px;flex-wrap:wrap}.subtotal strong{font-size:30px}.stages{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:14px;margin:20px 0}.stage{padding:14px;background:#f6f8fb;border:1px solid #e0e6ee;border-radius:9px}.stage p{margin:8px 0}.awarded{color:#145d39;font-weight:700}.unknown{color:#6a4c12;font-weight:600}.warning{padding-left:12px;border-left:3px solid #a06a18}.error{border-color:#c98282;background:#fff2f2}.empty{padding:18px;background:white}summary{cursor:pointer;font-weight:600}.pageCoverage{overflow-x:auto}.pageCoverage table{width:100%;border-collapse:collapse;font-size:14px}.pageCoverage th,.pageCoverage td{text-align:left;padding:10px;border-bottom:1px solid #d9e1ea;vertical-align:top}.pageCoverage thead{background:#edf4fb}pre,code,dd{overflow-wrap:anywhere;white-space:pre-wrap}pre{font-size:13px;background:#f2f4f7;padding:12px;border-radius:6px}dl{font-size:13px}dt{color:#536275;margin-top:8px}dd{margin:0}footer{font-size:14px;border-top:1px solid #d9e1ea;margin-top:26px;padding-top:12px}a:focus-visible,summary:focus-visible{outline:3px solid #df8b1f;outline-offset:3px}@media(max-width:600px){header,main{padding:16px}.row,.notice,.error{padding:15px}}';
+        return 'body{margin:0;background:#f5f6f8;color:#182334;font:16px/1.55 system-ui,sans-serif}header,main{max-width:1080px;margin:auto;padding:24px}header{padding-bottom:8px}h1{font-size:clamp(28px,5vw,40px);line-height:1.15}h2{font-size:22px}h3{font-size:19px;overflow-wrap:anywhere}h4{margin:0 0 8px}a{color:#075ab2}nav{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:22px}.button{display:inline-block;border:1px solid #b7c8dc;border-radius:9px;padding:9px 14px;background:white;text-decoration:none}.selected{background:#123f6c;color:white}.notice,.row,.error{padding:20px;border:1px solid #d9e1ea;border-radius:12px;background:white;margin:18px 0}.notice{background:#edf4fb}.notice h2{margin-top:0}.eyebrow,.muted,footer{color:#536275}.eyebrow{font-size:13px;letter-spacing:.04em}.subtotal{display:flex;align-items:center;gap:18px;flex-wrap:wrap}.subtotal strong{font-size:30px}.prediction,.predictionFollowup{padding:16px;background:#edf4fb;border:1px solid #c7d9ed;border-radius:9px;margin:18px 0}.predictionFollowup{background:#f3f5f9}.predictionNumber{display:flex;flex-wrap:wrap;align-items:center;gap:16px}.predictionNumber strong{font-size:28px}.prediction h5{font-size:15px;margin:16px 0 6px}.stages{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:14px;margin:20px 0}.stage{padding:14px;background:#f6f8fb;border:1px solid #e0e6ee;border-radius:9px}.stage p{margin:8px 0}.awarded{color:#145d39;font-weight:700}.unknown{color:#6a4c12;font-weight:600}.warning{padding-left:12px;border-left:3px solid #a06a18}.error{border-color:#c98282;background:#fff2f2}.empty{padding:18px;background:white}summary{cursor:pointer;font-weight:600}.pageCoverage{overflow-x:auto}.pageCoverage table{width:100%;border-collapse:collapse;font-size:14px}.pageCoverage th,.pageCoverage td{text-align:left;padding:10px;border-bottom:1px solid #d9e1ea;vertical-align:top}.pageCoverage thead{background:#edf4fb}pre,code,dd{overflow-wrap:anywhere;white-space:pre-wrap}pre{font-size:13px;background:#f2f4f7;padding:12px;border-radius:6px}dl{font-size:13px}dt{color:#536275;margin-top:8px}dd{margin:0}footer{font-size:14px;border-top:1px solid #d9e1ea;margin-top:26px;padding-top:12px}a:focus-visible,summary:focus-visible{outline:3px solid #df8b1f;outline-offset:3px}@media(max-width:600px){header,main{padding:16px}.row,.notice,.error{padding:15px}}';
     }
 }

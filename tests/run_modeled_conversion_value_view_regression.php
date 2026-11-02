@@ -112,5 +112,149 @@ $check(str_contains($route,'$page=null;$unavailable=true;')&&str_contains($route
 $check(!str_contains($route,'get_modeled_conversion_status')&&!str_contains($route,'->tick(')
     &&!str_contains($route,'->start(')&&!str_contains($route,'conversion_upload'),'viewer introduces no status tick start or upload operation');
 
+
+// First useful semantic prediction stays separate from the experimental money formula.
+$predictionSubject=['project_key'=>'anytour','platform'=>'telegram','conversation_id'=>'42','customer_key'=>'17'];
+$predictionBuilder=new ModeledConversionSemanticPrediction($predictionSubject,'2026-11-02T10:00:00Z',
+    '2026-11-02T09:00:00Z','2026-11-02T12:00:00Z','100','200');
+$predictionMessageAt=strtotime('2026-11-02T08:00:00Z');
+$predictionBuilder->observeMessage('customer','Подберите тур в Турцию на 7 ночей.','journal:150',
+    $predictionMessageAt,$predictionMessageAt+1,2,[
+        'version'=>'ru_archive_contextual_v2','status'=>'scanned','flags'=>[],
+        'episode_boundary'=>'first_trip_request_candidate',
+        'events'=>[['goal'=>'substantive_interest','source_ref'=>'journal:150','episode'=>1]],
+    ]);
+$predictionBlock=$predictionBuilder->finish(['early_forecast'=>['status'=>'early_assessment']]);
+$predictionWrapper=['access_status'=>'allowed','subject'=>$predictionSubject,
+    'profile'=>['prediction_at'=>'2026-11-02T10:00:00Z'],'semantic_prediction'=>$predictionBlock];
+$predictionFields=ModeledConversionValueRegistry::predictionFields($predictionWrapper);
+$check($predictionFields['semantic_prediction']['availability']==='available'
+    &&$predictionFields['semantic_prediction']['value']['prediction_digest']===$predictionBlock['prediction_digest'],
+    'private projection admits matching subject bounded digest-checked saved prediction');
+$predictionRow=array_replace($profile,$predictionFields);
+$predictionPage=$profilePage;$predictionPage['rows']=[$predictionRow];
+$predictionHtml=ModeledConversionValueRegistryView::render('profiles',$predictionPage);
+$check(str_contains($predictionHtml,'8,33%')&&str_contains($predictionHtml,'Предварительный прогноз оплаты за 30 дней')
+    &&str_contains($predictionHtml,'Экспериментальная сумма'),'provisional payment probability and experimental money rendered separately');
+$check(str_contains($predictionHtml,'2026-11-02T12:00:00Z')&&str_contains($predictionHtml,'2026-11-02T09:00:00Z')
+    &&str_contains($predictionHtml,'journal:150')&&str_contains($predictionHtml,'ревизия 2')
+    &&str_contains($predictionHtml,'Конкретные условия поездки'),'forecast actual clock cutoff anchor revision and readable reasons visible');
+$check(str_contains($predictionHtml,'правила не обучены и не откалиброваны')
+    &&str_contains($predictionHtml,'текущая поездка не подтверждены'),'training and current trip limitations explicit');
+$check(str_contains($profileHtml,'Прогноз ещё не сохранён')&&!str_contains($profileHtml,'class="predictionNumber"'),
+    'older profiles explicitly have no saved prediction rather than a zero probability');
+$check($predictionRow['known_subtotal_rub']===$profile['known_subtotal_rub']
+    &&$predictionRow['stages']===$profile['stages'],'projection never changes experimental weights or awards');
+foreach(['digest','subject','raw_reason','raw_field','oversize','future_evidence','model_hash','fence']as$invalid){
+    $bad=$predictionWrapper;
+    if($invalid==='digest')$bad['semantic_prediction']['estimated_probability']=0.9;
+    if($invalid==='subject')$bad['semantic_prediction']['subject']['customer_key']='18';
+    if($invalid==='raw_reason')$bad['semantic_prediction']['reasons']=[$attack];
+    if($invalid==='raw_field')$bad['semantic_prediction']['private_text']=$attack;
+    if($invalid==='oversize')$bad['semantic_prediction']['private_text']=str_repeat('x',16385);
+    if($invalid==='future_evidence')$bad['semantic_prediction']['evidence'][0]['available_at']='2026-11-02T09:00:01Z';
+    if($invalid==='model_hash')$bad['semantic_prediction']['model_sha256']='unknown';
+    if($invalid==='fence')$bad['semantic_prediction']['source_fence_journal_id']='100';
+    if($invalid!=='digest')$bad['semantic_prediction']['prediction_digest']=ModeledConversionSemanticPrediction::digest($bad['semantic_prediction']);
+    $badFields=ModeledConversionValueRegistry::predictionFields($bad);
+    $check($badFields['semantic_prediction']['availability']==='unavailable'
+        &&$badFields['semantic_prediction']['value']===null,'malformed forecast explicitly unavailable: '.$invalid);
+    $badPage=$predictionPage;$badPage['rows']=[array_replace($profile,$badFields)];
+    $badHtml=ModeledConversionValueRegistryView::render('profiles',$badPage);
+    $check(str_contains($badHtml,'Прогноз недоступен')&&!str_contains($badHtml,'class="predictionNumber"')
+        &&!str_contains($badHtml,'<img src=')&&!str_contains($badHtml,'<script>'),
+        'malformed forecast does not render probability or raw payload: '.$invalid);
+}
+$ordered=$predictionWrapper;
+$ordered['semantic_prediction']=array_reverse($predictionBlock,true);
+$ordered['semantic_prediction']['subject']=array_reverse($predictionBlock['subject'],true);
+$check(ModeledConversionValueRegistry::predictionFields($ordered)['semantic_prediction']['availability']==='available',
+    'projection tolerates native JSON object key ordering');
+$maxWrapper=$predictionWrapper;$maxWrapper['subject']['platform']='max';
+$maxWrapper['semantic_prediction']['subject']['platform']='max';
+$maxWrapper['semantic_prediction']['prediction_digest']=ModeledConversionSemanticPrediction::digest($maxWrapper['semantic_prediction']);
+$joined=ModeledConversionAssignedValue::merge($member,ModeledConversionAssignedValue::profile($maxWrapper));
+$joined=array_replace($joined,ModeledConversionValueRegistry::predictionFields($maxWrapper));
+$joined['profile_binding']='exact_private_chat_current_profile';
+$joinedPage=$page;$joinedPage['rows']=[$joined];
+$joinedHtml=ModeledConversionValueRegistryView::render('members',$joinedPage);
+$check(str_contains($joinedHtml,'8,33%')&&str_contains($joinedHtml,'journal:150')
+    &&$joined['known_subtotal_rub']===$member['known_subtotal_rub'],'exact merged member profiles expose prediction without changing money');
+$badCapsule=$predictionRow;$badCapsule['semantic_prediction']['value']['reasons']=[$attack];
+$badCapsule['semantic_prediction']['value']['prediction_digest']=ModeledConversionSemanticPrediction::digest($badCapsule['semantic_prediction']['value']);
+$badPage=$predictionPage;$badPage['rows']=[$badCapsule];
+$check(str_contains(ModeledConversionValueRegistryView::render('profiles',$badPage),'Прогноз недоступен'),
+    'pure renderer revalidates capsules and refuses arbitrary text codes');
+
+
+$waitingFollowup=[
+    'version'=>'semantic_purchase_followup_v1','target'=>'conversation_payment_evidence_30d_v1',
+    'meaning'=>'diagnostic_conversation_evidence_not_bank_settlement','status'=>'waiting','reason'=>'no_earlier_prediction',
+    'observed_at'=>$predictionBlock['frozen_at'],'current_request_anchor'=>$predictionBlock['current_request_anchor'],
+    'prior_prediction_digest'=>null,'prior_prediction_at'=>null,'prior_estimated_probability'=>null,
+    'horizon_seconds'=>2592000,'horizon_end_at'=>null,'evidence'=>[],'payment_label'=>null,
+    'calibrated_purchase_probability'=>null,'independent_validation'=>false,'source_history_complete'=>false,
+    'evaluation_eligible'=>false,'evaluation_reason'=>'verified_outcome_and_complete_coverage_unavailable',
+    'export_allowed'=>false,'conversion_uploads'=>0,'model_calls'=>0,
+];
+$waitingWrapper=$predictionWrapper;$waitingWrapper['prediction_followup']=$waitingFollowup;
+$waitingFields=ModeledConversionValueRegistry::predictionFields($waitingWrapper);
+$waitingPage=$predictionPage;$waitingPage['rows']=[array_replace($profile,$waitingFields)];
+$waitingHtml=ModeledConversionValueRegistryView::render('profiles',$waitingPage);
+$check($waitingFields['prediction_followup']['availability']==='available'
+    &&str_contains($waitingHtml,'Сравнение с последующими сигналами')
+    &&str_contains($waitingHtml,'Нет более раннего сохранённого прогноза'),'waiting followup is visible separately from the saved prediction');
+$check(str_contains($profileHtml,'Сравнение ещё не сохранено.'),'older profiles have explicit unsaved followup');
+$currentBuilder=new ModeledConversionSemanticPrediction($predictionSubject,'2026-11-03T11:00:00Z',
+    '2026-11-03T11:00:00Z','2026-11-03T12:00:00Z','200','300');
+$currentBuilder->observeMessage('customer','Подберите тур в Турцию на 7 ночей.','journal:150',
+    $predictionMessageAt,$predictionMessageAt+1,1,[
+        'version'=>'ru_archive_contextual_v2','status'=>'scanned','flags'=>[],
+        'episode_boundary'=>'first_trip_request_candidate',
+        'events'=>[['goal'=>'substantive_interest','source_ref'=>'journal:150','episode'=>1]],
+    ]);
+$paymentAt=strtotime('2026-11-03T10:00:00Z');
+$currentBuilder->observeMessage('customer','Оплатили тур.','journal:201',$paymentAt,$paymentAt+1,1,[
+    'version'=>'ru_archive_contextual_v2','status'=>'scanned','flags'=>[],'episode_boundary'=>null,
+    'events'=>[['goal'=>'payment_self_report','source_ref'=>'journal:201','episode'=>1]],
+]);
+$currentBlock=$currentBuilder->finish(['early_forecast'=>['status'=>'target_already_observed']]);
+$priorBlock=$predictionBlock;$priorBlock['anchor_source_version_no']=1;
+foreach($priorBlock['evidence']as&$priorEvidence)$priorEvidence['source_version_no']=1;unset($priorEvidence);
+$priorBlock['prediction_digest']=ModeledConversionSemanticPrediction::digest($priorBlock);
+$observedFollowup=$waitingFollowup;
+$observedFollowup['status']='observed';$observedFollowup['reason']='future_conversation_payment_evidence';
+$observedFollowup['observed_at']=$currentBlock['frozen_at'];
+$observedFollowup['prior_prediction_digest']=$priorBlock['prediction_digest'];
+$observedFollowup['prior_prediction_at']=$priorBlock['prediction_at'];
+$observedFollowup['prior_estimated_probability']=$priorBlock['estimated_probability'];
+$observedFollowup['horizon_end_at']=$priorBlock['horizon_end_at'];
+$observedFollowup['evidence']=[['label'=>'self_reported_payment','source_ref'=>'journal:201',
+    'occurred_at'=>'2026-11-03T10:00:00Z','available_at'=>'2026-11-03T10:00:01Z','source_version_no'=>1]];
+$currentWrapper=['access_status'=>'allowed','subject'=>$predictionSubject,
+    'profile'=>['prediction_at'=>'2026-11-03T11:00:00Z'],'semantic_prediction'=>$currentBlock,
+    'prediction_followup'=>$observedFollowup];
+$currentFields=ModeledConversionValueRegistry::predictionFields($currentWrapper);
+$currentPage=$predictionPage;$currentPage['rows']=[array_replace($profile,$currentFields)];
+$currentHtml=ModeledConversionValueRegistryView::render('profiles',$currentPage);
+$check($currentFields['prediction_followup']['availability']==='available'
+    &&str_contains($currentHtml,'Наблюдение получено')&&str_contains($currentHtml,'Сохранённая ранее вероятность')
+    &&str_contains($currentHtml,'Клиент сообщил об оплате')&&str_contains($currentHtml,'journal:201'),
+    'eligible later self report is displayed with the immutable earlier prediction');
+$check(str_contains($currentHtml,'не рассчитывается')&&str_contains($currentHtml,'без банковской проверки')
+    &&str_contains($currentHtml,'не считается неоплатой'),'known outcome suppresses current P and comparison remains diagnostic');
+foreach(['reason','clock','reference','probability']as$invalid){
+    $bad=$currentWrapper;
+    if($invalid==='reason')$bad['prediction_followup']['reason']=$attack;
+    if($invalid==='clock')$bad['prediction_followup']['evidence'][0]['available_at']='2026-11-03T11:00:01Z';
+    if($invalid==='reference')$bad['prediction_followup']['evidence'][0]['source_ref']='journal:202';
+    if($invalid==='probability')$bad['prediction_followup']['prior_estimated_probability']=$attack;
+    $badFields=ModeledConversionValueRegistry::predictionFields($bad);
+    $badPage=$currentPage;$badPage['rows']=[array_replace($profile,$badFields)];
+    $check($badFields['prediction_followup']['availability']==='unavailable'
+        &&str_contains(ModeledConversionValueRegistryView::render('profiles',$badPage),'Сравнение недоступно'),
+        'malformed followup explicitly unavailable: '.$invalid);
+}
+
 if($failures){fwrite(STDERR,implode(PHP_EOL,$failures).PHP_EOL);exit(1);}
 echo 'modeled conversion value view: '.$checks.' checks passed'.PHP_EOL;

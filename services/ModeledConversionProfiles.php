@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__.'/ModeledConversionEarlyForecast.php';
 require_once __DIR__.'/ModeledConversionAssignedValue.php';
+require_once __DIR__.'/ModeledConversionPredictionFollowup.php';
 
 /** Derived private profiles from the admitted journal; never queries native sources. */
 final class ModeledConversionProfiles
@@ -107,6 +108,9 @@ final class ModeledConversionProfiles
                     $packet=ModeledConversionEarlyForecast::freeze($case,$profile,$document,$first===false||$first===null?null:(string)$first);
                     $profile['contextual_signals']=$packet['contextual_signals'];$profile['early_forecast']=$packet['early_forecast'];
                     $profile['assigned_value']=ModeledConversionAssignedValue::profile($profile,$case);
+                    $profile['semantic_prediction']=$packet['semantic_prediction'];
+                    $priorPrediction=$this->priorSemanticPrediction($scope,$profile['semantic_prediction']);
+                    $profile['prediction_followup']=ModeledConversionPredictionFollowup::compare($profile['semantic_prediction'],$priorPrediction);
                     $forecastReceipt=ModeledConversionEarlyForecast::accumulate($forecastReceipt,$packet);
                     $profile['processing']=['version'=>self::VERSION,'source_sha256'=>hash_file('sha256',__FILE__),'journal_cursor'=>$cursor,'source_fence_journal_id'=>$fence];
                     $json=self::json($profile);
@@ -133,6 +137,31 @@ final class ModeledConversionProfiles
             throw $e;
         }
     }
+
+    /** Copy only one bounded immutable derived block; no old source/text read. */
+    private function priorSemanticPrediction(array $scope,array $current):?array
+    {
+        $anchor=$current['current_request_anchor']??null;
+        if(!is_string($anchor)||preg_match('/\\Ajournal:[1-9][0-9]{0,19}\\z/D',$anchor)!==1)return null;
+        $safe="CASE WHEN JSON_VALID(profile_json) THEN profile_json ELSE '{}' END";
+        $block="JSON_EXTRACT(".$safe.",'$.semantic_prediction')";
+        $extract=function(string $path)use($safe):string{
+            $v="JSON_EXTRACT(".$safe.",'$.semantic_prediction.".$path."')";
+            return $this->mysql?'JSON_UNQUOTE('.$v.')':$v;
+        };
+        $length=$this->mysql?'OCTET_LENGTH('.$block.')':'LENGTH(CAST('.$block.' AS BLOB))';
+        $sql='SELECT CASE WHEN '.$length.'<=16384 THEN '.$block.' ELSE NULL END AS prediction_json'
+            .' FROM modeled_conversion_profile_versions WHERE project_key=? AND platform=? AND customer_key=? AND conversation_id=?'
+            .' AND '.$extract('version').'=? AND '.$extract('status').'=? AND '.$extract('current_request_anchor').'=? ORDER BY id LIMIT 1';
+        $q=$this->q($sql,[...array_values($scope),'semantic_purchase_heuristic_v1','predicted',$anchor]);
+        $row=$q->fetch(PDO::FETCH_ASSOC);
+        if($row===false)return null;
+        $json=$row['prediction_json']??null;
+        if(!is_string($json)||strlen($json)>16384)return ['prior_read_status'=>'bounded_block_unavailable'];
+        try{$value=json_decode($json,true,64,JSON_THROW_ON_ERROR);}catch(Throwable $ignored){return ['prior_read_status'=>'invalid_derived_block'];}
+        return is_array($value)?$value:['prior_read_status'=>'invalid_derived_block'];
+    }
+
     private function read(array $meta): ?array
     {
         $key=(string)$meta['id'];if(isset($this->cache[$key]))return $this->cache[$key];

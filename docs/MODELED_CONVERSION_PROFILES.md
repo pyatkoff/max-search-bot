@@ -733,3 +733,63 @@ that credential must stay in its original scope. Preparing this public source
 neither authorizes execution in another repository nor establishes successful
 tracker installation. A concrete separately approved runner can reuse this
 fixed upgrade without copying keys or creating a generic remote executor.
+
+
+## First contextual purchase hypothesis (2 November)
+
+The existing admitted-journal profile transaction now saves a separate
+`semantic_prediction` version `semantic_purchase_heuristic_v1` on subsequent
+ordinary processing. It is a first useful, untrained rules model, not a
+calibrated purchase probability. It does not wait for a perfect trip splitter
+or for payment validation to finish. Earlier profile versions remain immutable;
+no historical source replay, new collector, worker, timer or provider call is added.
+
+The initial hypothetical conditional payment priors are 5% for substantive
+dialogue, 8.3333% for a concrete request, 16.6667% for an exact current offer
+discussion, 33.3333% for explicit general purchase intent and 50% for explicit
+agency intent. These follow the illustrative 1,000-subscriber / 10-payment
+funnel discussed for planning; they are assumptions, not measured cohort rates.
+Two or more stated criteria families help identify a concrete request. Actual
+meaningful continuation, explicit urgency, distant planning and deferral make
+small bounded odds adjustments. Reply speed alone does not change a probability.
+A price objection plus an explicit search for cheaper alternatives is continued
+search, not abandonment. Office/payment-method questions alone do not establish
+selection of this agency.
+
+The model reuses canonical semantic events and boundary flags. Unavailable or
+edited omitted content, unresolved product/party changes, a new candidate and
+a long observation gap clear stale positive context. Only already validated
+offer receipts may bridge the existing request/offer projection. The current
+request anchor is the first meaningful journal source in the candidate segment;
+it does not prove a unique trip or new customer. Manager wording cannot create
+customer intent. Known payment, booking or closed operational outcomes suppress
+a new prospective estimate. CRM won/lost is an operational assertion and remains
+separate from payment evidence.
+
+Each saved block contains the input cutoff, actual PHP freeze time as
+`prediction_at`, information fence, progress cursor, model source hash, canonical
+subject, journal anchor, bounded feature/reason references and a stable digest.
+The horizon begins at actual freeze, not at an earlier extractor or event time.
+Private text is not copied into this block. Existing legacy purchase
+probabilities and expected monetary values remain null; no advertising scale,
+goal configuration or exporter is changed.
+
+In the same profile transaction, `prediction_followup` compares the earliest
+saved prediction with later conversation payment evidence for the exact scope
+and unchanged request anchor. Both occurrence and availability must be strictly
+after the original actual freeze and within 30 days; sources must also be later
+than its information fence and original revision 1. Edited, backdated,
+late-ingested, same-second or differently anchored evidence remains unknown.
+A self-report and manager acknowledgment are descriptive conversation evidence,
+not bank settlement. Booking, document issuance and CRM outcome alone do not
+become payment labels. Refund, cancellation or purchase elsewhere suppress a
+positive comparison. Silence and an elapsed horizon remain unknown rather than
+negative outcomes. No saved early probability is updated retroactively.
+
+The private existing registry/view displays this provisional estimate and its
+followup separately from experimental assigned monetary weights. Older profiles
+show not-yet-saved rather than zero. Synthetic source/CI checks prove rule,
+clock, storage and projection behavior only; an installed natural scheduler
+receipt is required before claiming new real predictions are being saved.
+Independent payment labels, cohort coverage, calibration, comparison with a
+stage-only baseline and advertising admission remain parallel follow-up work.
