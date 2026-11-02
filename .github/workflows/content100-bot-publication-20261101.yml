@@ -43,11 +43,11 @@ jobs:
           python3 - <<'PY'
           import pathlib,hashlib,os
           script=pathlib.Path('tools/direct_demand/operations/publish-commercial-three-20261102-5.php').read_text()
-          assert hashlib.sha256(script.encode()).hexdigest()=='06e471cc6a69c6ce4194c2e77323cfedc69e72815fc3ac35dc296b57a8380cf0'
+          assert hashlib.sha256(script.encode()).hexdigest()=='5da4cbfd4bbdf9d46b05495e91da3b0843b4ff7dfc5776b197cd77e4243383a1'
           prefix="<?php\ndeclare(strict_types=1);\n"
           assert script.startswith(prefix)
           manifest=pathlib.Path('tools/direct_demand/operations/commercial-three-20261102-5-manifest.json').read_bytes()
-          assert hashlib.sha256(manifest).hexdigest()=='dd045d843175bde52eb32efe4235bfcda1795a5a72631ee1ed2d7ac3c52ed639'
+          assert hashlib.sha256(manifest).hexdigest()=='7239f83de356fafedfa89ed007a68d83b6f33032eae78ebddbc3c48669debba6'
           import base64
           header=prefix+"const EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst MANIFEST_BASE64='"+base64.b64encode(manifest).decode()+"';\n"
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.php').write_text(header+script[len(prefix):])

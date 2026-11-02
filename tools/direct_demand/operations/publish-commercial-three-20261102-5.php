@@ -89,13 +89,40 @@ try {
     $dir='/var/www/anytoour/data/channel-post-operations/commercial-hotel-three-20261102-5-v1';insist(!is_link(dirname($dir))&&!is_link($dir),'operation_directory_invalid');if(!is_dir($dir))insist(mkdir($dir,0700),'operation_directory_invalid');insist(realpath($dir)===$dir,'operation_directory_invalid');
     $batchLock=fopen($dir.'/three-hotels.lock','c');insist($batchLock&&flock($batchLock,LOCK_EX|LOCK_NB),'publication_operation_busy');
     $targets=['telegram'=>['bot'=>'anyru_bot','channel'=>'-1002262666616','source'=>'tg_anytour_msk','id'=>10],'max'=>['bot'=>'id9704048781_1_bot','channel'=>'-80492244209683','source'=>'max_anytour_msk1','id'=>9]];
+
+    // The prior owner-rejected note posts are not live duplicates. Exclude only
+    // provider-confirmed deletions with exact current registry identity/version.
+    // Read saved evidence; never repeat the delete or alter historical records.
+    $confirmedDeleted=[];
+    $legacyDir='/var/www/anytoour/data/channel-post-operations/content100-bot-publication-20261101-v1';
+    insist(is_dir($legacyDir)&&!is_link($legacyDir)&&realpath($legacyDir)===$legacyDir,'saved_deletion_evidence_unavailable');
+    $deleteFiles=glob($legacyDir.'/delete-rejected-note-*.json');
+    insist(is_array($deleteFiles)&&count($deleteFiles)===5,'saved_deletion_evidence_incomplete');
+    foreach($deleteFiles as $deleteFile){
+        insist(!is_link($deleteFile)&&realpath(dirname($deleteFile))===$legacyDir&&filesize($deleteFile)>0&&filesize($deleteFile)<=8192,'saved_deletion_file_invalid');
+        $deleted=json_decode(file_get_contents($deleteFile),true,32,JSON_THROW_ON_ERROR);
+        insist(($deleted['state']??'')==='deleted'&&($deleted['provider_confirmed']??false)===true,'saved_delete_outcome_not_confirmed');
+        $deletedMid=(string)($deleted['message_id']??'');$deletedLogical=(string)($deleted['logical_id']??'');
+        insist(preg_match('/\A[1-9][0-9]*\z/D',$deletedMid)===1&&basename($deleteFile)==='delete-rejected-note-'.$deletedMid.'.json','saved_delete_message_identity_mismatch');
+        insist(preg_match('/\Aat-h1554-[a-z0-9-]+\z/D',$deletedLogical)===1,'saved_delete_hotel_scope_changed');
+        insist((string)($deleted['channel_id']??'')===$targets['telegram']['channel'],'saved_delete_channel_mismatch');
+        $deletedId=(int)($deleted['publication_id']??0);$deletedVersion=(int)($deleted['version_id']??0);
+        insist($deletedId>0&&$deletedVersion>0&&!isset($confirmedDeleted[$deletedId]),'saved_delete_registry_identity_invalid');
+        $oldPublication=$registry->publication($deletedId);
+        insist(is_array($oldPublication)&&$oldPublication['platform']==='telegram'&&$oldPublication['bot_key']===$targets['telegram']['bot']&&$oldPublication['channel_id']===$targets['telegram']['channel']&&$oldPublication['external_message_id']===$deletedMid&&(int)$oldPublication['version_id']===$deletedVersion,'saved_delete_registry_identity_changed');
+        $savedLogical=$oldPublication['snapshot']['metadata']['logical_id']??null;
+        insist($savedLogical===null||$savedLogical===$deletedLogical,'saved_delete_logical_identity_changed');
+        $confirmedDeleted[$deletedId]=true;
+    }
+    $out['confirmed_deleted_legacy_notes_excluded']=count($confirmedDeleted);
+
     $channels=[];$existing=[];$existingHotels=[];
     foreach($targets as $platform=>$t){
         $identity=ChannelPostRuntime::identity($platform);insist(is_array($identity)&&$identity['project_key']==='anytour'&&$identity['bot_key']===$t['bot'],'configured_bot_changed');
         $c=$registry->channel('anytour',$platform,$t['bot'],$t['channel']);insist(is_array($c)&&(int)$c['id']===$t['id']&&(int)$c['config_version']===2&&$c['source_key']===$t['source']&&$c['button_text']==='✈️ Узнать стоимость тура','channel_configuration_changed');
         insist(((new ChannelPostButtonTransport())->verifyChannel($c)['state']??'')==='ready','channel_rights_not_ready');$channels[$platform]=$c;
         $q=$pdo->prepare('SELECT pp.id,v.snapshot_json FROM post_publications pp JOIN post_versions v ON v.id=pp.current_version_id WHERE pp.post_channel_id=? ORDER BY pp.id LIMIT 2000');$q->execute([$t['id']]);
-        foreach($q->fetchAll(PDO::FETCH_ASSOC) as $r){$s=json_decode($r['snapshot_json'],true);$hash=hash('sha256',(string)($s['text']??''));$existing[$platform][$hash][]=(int)$r['id'];$existingHotels[$platform][]=['id'=>(int)$r['id'],'text'=>(string)($s['text']??''),'metadata'=>(array)($s['metadata']??[])];}
+        foreach($q->fetchAll(PDO::FETCH_ASSOC) as $r){if(isset($confirmedDeleted[(int)$r['id']]))continue;$s=json_decode($r['snapshot_json'],true);$hash=hash('sha256',(string)($s['text']??''));$existing[$platform][$hash][]=(int)$r['id'];$existingHotels[$platform][]=['id'=>(int)$r['id'],'text'=>(string)($s['text']??''),'metadata'=>(array)($s['metadata']??[])];}
     }
     // One bounded preflight for this new packet; no old post rewrite or re-send.
     foreach($targets as $platform=>$t){foreach($rows as $row){

@@ -73,5 +73,11 @@
       ],
       "media_state": "OFFICIAL_REAL_PHOTOGRAPHY_VISUALLY_VERIFIED"
     }
-  ]
+  ],
+  "preflight_correction": {
+    "goal": "Do not treat provider-confirmed deleted legacy note posts as live duplicates.",
+    "boundaries": "Read existing five deletion receipts, require exact current publication identity and version; preserve all registry history and all other duplicate guards.",
+    "criteria": "Only confirmed deleted notes are excluded. Any live matching hotel or unknown deletion still stops before send.",
+    "risk": "Deleted evidence must never permit recreation of rejected note content; new whole-hotel post has its own logical ID and body."
+  }
 }
