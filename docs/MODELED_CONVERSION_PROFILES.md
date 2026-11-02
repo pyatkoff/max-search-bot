@@ -623,7 +623,26 @@ and separately checked early-goal delivery are still required.
 
 
 
-## Assigned business value v1 (separate from purchase probability)
+## Experimental assigned-value implementation and observed funnel
+
+Policy correction (2 November): 50 RUB is the desired acquisition cost of a
+subscriber. The configured 50/25/50/50/100 weights and 275 RUB sum are an
+experimental example; installation and past tests do not approve them as
+income, expected commission or an advertising price scale. DRR 10% remains
+a candidate. Current production rules and historical stored values are
+preserved by this documentation/view correction.
+
+The next analytical result is a comparable AnyTour subscriber cohort for one
+explicit period: subscriber denominator, linked substantive dialogues,
+specific requests and substantive reactions to exact delivered selections,
+with known coverage and unknown linkage. Actions/callbacks, a thank-you and
+current saved advertising IDs do not establish these semantic stages.
+Operational dialogue counts remain useful context but cannot replace the
+subscription denominator or matched semantic stages. Determine proposed
+stage acquisition prices and Metrika goals from this evidence before any
+separate advertising admission.
+
+### Existing implementation record (not approval of its experimental weights)
 
 `ModeledConversionAssignedValue` adds a versioned private `assigned_value` to new
 ordinary profile versions. It leaves all historical frozen snapshots, purchase
@@ -675,7 +694,7 @@ including subscribers without a linked usable dialogue profile. Each request
 copies at most the existing five-row page and offers explicit next-page navigation.
 There is no automatic scan or combined person/revenue total.
 
-Each row presents its private scope/identifiers, known subtotal, all five stage
+Each row presents its private scope/identifiers, explicitly experimental subtotal, all five stage
 weights and awarded/unknown status, evidence references and actual
 occurred/recorded/available/evaluated times. Unknown fields and unavailable
 sources remain explicit. A missing usable linked profile does not prove absence

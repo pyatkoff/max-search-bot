@@ -19,11 +19,11 @@ final class ModeledConversionValueRegistryView
         if(!$unavailable&&(!is_array($page)||!is_array($page['rows']??null)||!array_is_list($page['rows'])
             ||count($page['rows'])>5||!is_bool($page['has_more']??null)||!is_string($page['next_after']??null)
             ||!self::cursor($page['next_after'])||array_filter($page['rows'],static fn($r):bool=>!is_array($r))))$unavailable=true;
-        $title='Реестр назначенной ценности';
+        $title='Наблюдаемые этапы и экспериментальная оценка';
         $html='<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
             .'<title>'.$title.' · AnyTour</title><style>'.self::css().'</style></head><body><header><a href="/manager2/">AnyTour · к диалогам</a>'
             .'<p class="eyebrow">Приватный просмотр · только администратор</p><h1>'.$title.'</h1>'
-            .'<p>Текущая сумма подтверждённых весов, назначенных бизнесом. Это не вероятность покупки, выручка или комиссия.</p></header><main>'
+            .'<p>Наблюдаемые этапы показаны отдельно от экспериментальной оценки. Веса 50/25/50/50/100 и сумма 275 ₽ были примером и не утверждены как доход или денежная шкала.</p></header><main>'
             .'<nav aria-label="Источники реестра">'.self::nav('members','Подписчики MAX',$view).self::nav('profiles','Диалоги MAX / Telegram',$view).'</nav>'
             .'<section class="notice"><h2>Границы этого просмотра</h2>'
             .'<p>Один запрос показывает не более 5 строк одного источника. Общий размер доступного источника и доля полного охвата здесь неизвестны; эта страница не доказывает проверку всех подписчиков.</p>'
@@ -45,8 +45,8 @@ final class ModeledConversionValueRegistryView
             if($page['has_more'])$html.='<p><a class="button" rel="next" href="'.self::e(self::url($view,$page['next_after'])).'">Следующие до 5 строк →</a></p>';
             else $html.='<p class="muted">Источник не сообщает следующую страницу для этого курсора. Это не подтверждение полного охвата бизнеса или других источников.</p>';
         }
-        return $html.'</section><footer><p>Веса v1: 50 + 25 + 50 + 50 + 100 = 275 ₽ при наличии всех пяти оснований. Дополнительные 75 ₽ не согласованы и отключены.</p>'
-            .'<p>Экспорт выключен; денежных конверсионных отправок: 0. Времена показаны из доступных оснований; неизвестные поля не восстановлены из предположений.</p></footer></main></body></html>';
+        return $html.'</section><footer><p>Экспериментальные веса: 50 + 25 + 50 + 50 + 100 = 275 ₽ при наличии всех пяти оснований. Эта шкала не утверждена. Дополнительные 75 ₽ не согласованы и отключены.</p>'
+            .'<p>50 ₽ — желаемая цена привлечения подписчика. Допустимые цены дальнейших этапов определяются после расчёта переходов; ДРР 10% пока кандидат. Экспорт выключен; денежных конверсионных отправок: 0. Времена показаны из доступных оснований; неизвестные поля не восстановлены из предположений.</p></footer></main></body></html>';
     }
 
     private static function pageCoverage(string $view,array $rows):string
@@ -81,8 +81,8 @@ final class ModeledConversionValueRegistryView
             :'диалог №'.self::value($scope['conversation_id']??null).' · субъект №'.self::value($scope['customer_key']??null);
         $subtotal=$row['known_subtotal_rub']??null;
         $amount=is_int($subtotal)&&$subtotal>=0?(string)$subtotal.' ₽':'неизвестно';
-        $complete=($row['completeness']??null)==='all_five_awarded'?'Все пять этапов имеют основания в этой единице оценки.':'Сумма частичная: неподтверждённые этапы остаются неизвестными.';
-        $html='<article class="row"><h3>'.self::e($platformLabel.' · '.$identity).'</h3><div class="subtotal"><span>Известная сумма</span><strong>'.self::e($amount).'</strong></div>'
+        $complete=($row['completeness']??null)==='all_five_awarded'?'Наблюдаются основания всех пяти этапов. Денежная интерпретация экспериментальная.':'Экспериментальная сумма частичная; неподтверждённые этапы остаются неизвестными.';
+        $html='<article class="row"><h3>'.self::e($platformLabel.' · '.$identity).'</h3><div class="subtotal"><span>Экспериментальная сумма</span><strong>'.self::e($amount).'</strong></div>'
             .'<p>'.$complete.'</p><p class="muted">Версия правил: '.self::e($row['rules_version']??null).' · Оценка на: '.self::e($row['evaluated_at']??null).'</p>';
         if($view==='profiles')$html.='<p class="warning">Это наблюдаемый префикс переписки, не подтверждённая текущая поездка и не установленный уникальный человек. Связь с подписчиком не предполагается.</p>';
         else $html.='<p>Связанный профиль: '.self::e(self::binding($row['profile_binding']??null)).'.</p>'
@@ -93,7 +93,7 @@ final class ModeledConversionValueRegistryView
             $stage=is_array($row['stages'][$key]??null)?$row['stages'][$key]:[];
             $awarded=($stage['status']??null)==='awarded';
             $html.='<section class="stage"><h4>'.self::e($label).'</h4><p class="'.($awarded?'awarded':'unknown').'">'
-                .($awarded?'Начислено: '.ModeledConversionAssignedValue::WEIGHTS[$key].' ₽':'Неизвестно · вес при подтверждении: '.ModeledConversionAssignedValue::WEIGHTS[$key].' ₽')
+                .($awarded?'Основание есть · тестовый вес: '.ModeledConversionAssignedValue::WEIGHTS[$key].' ₽':'Неизвестно · тестовый вес при подтверждении: '.ModeledConversionAssignedValue::WEIGHTS[$key].' ₽')
                 .'</p><p>'.self::e($awarded?self::ground($key):self::unknown($key,$row,$view,$platform)).'</p>'
                 .'<details><summary>Основания и время</summary>';
             $refs=is_array($stage['source_refs']??null)?$stage['source_refs']:[];

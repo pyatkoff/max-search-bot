@@ -16,8 +16,8 @@ $page=['rules_version'=>ModeledConversionAssignedValue::VERSION,'rows'=>[$member
     'next_after'=>'7','has_more'=>true,'omitted_owner_or_test'=>0,
     'coverage'=>'bounded_current_max_members_not_complete_cohort'];
 $html=ModeledConversionValueRegistryView::render('members',$page);
-$check(str_contains($html,'<strong>'.$member['known_subtotal_rub'].' ₽</strong>'),'renders installed subtotal without another scoring formula');
-$check(str_contains($html,'неизвестными')&&str_contains($html,'Неизвестно · вес при подтверждении: 25 ₽'),'unknown retention remains unknown');
+$check(str_contains($html,'<strong>'.$member['known_subtotal_rub'].' ₽</strong>'),'renders existing experimental subtotal without another scoring formula');
+$check(str_contains($html,'неизвестными')&&str_contains($html,'Неизвестно · тестовый вес при подтверждении: 25 ₽'),'unknown retention remains unknown');
 $check(str_contains($html,'Прошедшее время и отсутствие отписки её не заменяют'),'retention gap explained');
 $check(str_contains($html,'отсутствие переписки не доказано'),'missing usable profile does not prove no dialogue');
 $check(str_contains($html,'membership:7')&&str_contains($html,'Событие произошло')&&str_contains($html,'Основание записано')
@@ -32,6 +32,9 @@ $check(str_contains($html,'Дополнительные 75 ₽ не соглас
 foreach(['Подписка','Наблюдаемое удержание через 30 минут','Первое действительное сообщение клиента','Содержательный запрос клиента','Связанный ответ на доставленное предложение']as$label)
     $check(str_contains($html,$label),'Russian stage label: '.$label);
 
+$check(str_contains($html,'Экспериментальная сумма')&&str_contains($html,'были примером')&&str_contains($html,'Эта шкала не утверждена.'),'experimental amounts are not presented as approved monetary value');
+$check(str_contains($html,'50 ₽ — желаемая цена привлечения подписчика')&&str_contains($html,'ДРР 10% пока кандидат'),'acquisition price and tentative DRR remain distinct');
+$check(!str_contains($html,'назначенных бизнесом')&&!str_contains($html,'Начислено:'),'observed stages do not assert approved accrual');
 $profile=ModeledConversionAssignedValue::profile([
     'access_status'=>'allowed','subject'=>['project_key'=>'anytour','platform'=>'telegram','conversation_id'=>'42','customer_key'=>'17'],
     'profile'=>['prediction_at'=>'2026-11-02T10:00:00Z'],
