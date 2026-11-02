@@ -14,6 +14,7 @@ async function harness(handler=()=>response(prepared()),{manager2=false,hosted=f
   const form=h.ids.get('composer'),reply=h.ids.get('replyText'),prototype=Object.getPrototypeOf(reply);
   prototype.setSelectionRange=function(start,end,direction='none'){this.selectionStart=Math.min(start,this.value.length);this.selectionEnd=Math.min(end,this.value.length);this.selectionDirection=direction};
   prototype.focus=function(){h.document.activeElement=this};
+  prototype.prepend=function(...nodes){for(const node of nodes.reverse())this.insertBefore(node,this.firstChild)};
   prototype.getAttribute=function(name){return this[name]??null};
   // Deterministic DOM APIs for behavior execution, not a layout/paint oracle.
   // Actual sizing, clipping and native input remain browser-fixture checks.
