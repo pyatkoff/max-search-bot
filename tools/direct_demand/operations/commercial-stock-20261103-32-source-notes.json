@@ -1,0 +1,142 @@
+{
+  "operation": "commercial-hotel-batch-20261103-32-v1",
+  "state": "WHOLE_CAPTIONS_DRAFTED_NOT_SENT",
+  "primary_runs": [
+    41730587068,
+    41731216178
+  ],
+  "captions": [
+    {
+      "hotel_id": 1449,
+      "hotel": "Rixos Premium Belek",
+      "key": "rixos-premium-belek",
+      "aliases": [
+        "RIXOS PREMIUM BELEK THE LAND OF LEGENDS FREE ACCESS",
+        "RIXOS PREMIUM BELEK"
+      ],
+      "sources": [
+        "https://all.accor.com/hotel/B1J5/index.en.shtml"
+      ],
+      "text": "✈️ Туры в Rixos Premium Belek с перелётом\n📍 Белек, Турция.\n\n🏖 Песчаный пляж длиной один километр.\n👧 Детский клуб Rixy.\n💪 Спортивная академия.\n🧖 Спа для отдыха после прогулок и купания.\n\n💡 Курорт расположен среди сосновых и ореховых рощ на берегу Средиземного моря.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Rixos Premium Belek."
+    },
+    {
+      "hotel_id": 1453,
+      "hotel": "Rixos Premium Tekirova",
+      "key": "rixos-premium-tekirova",
+      "aliases": [
+        "RIXOS PREMIUM TEKIROVA THE LAND OF LEGENDS FREE ACCESS",
+        "RIXOS PREMIUM TEKIROVA"
+      ],
+      "sources": [
+        "https://all.accor.com/hotel/B1J3/index.en.shtml"
+      ],
+      "text": "✈️ Туры в Rixos Premium Tekirova с перелётом\n📍 Текирова, Кемер, Турция.\n\n🏖 Курорт на берегу Средиземного моря.\n👧 Детский клуб с большой территорией.\n🏊 Аквапарк с горками.\n🌳 Есть парк приключений и спортивные занятия.\n\n💡 За курортом поднимается гора Тахталы. Варианты проживания включают номера и отдельные виллы.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Rixos Premium Tekirova."
+    },
+    {
+      "hotel_id": 109655,
+      "hotel": "Liberty Signa",
+      "key": "liberty-signa",
+      "aliases": [
+        "LIBERTY SIGNA"
+      ],
+      "sources": [
+        "https://www.libertyhotels.com/en/hotels/liberty-signa/"
+      ],
+      "text": "✈️ Туры в Liberty Signa с перелётом\n📍 Фетхие, Турция.\n\n🏖 Пляж и бассейны у Средиземного моря.\n👧 Детский клуб Libby & Berty с играми и занятиями.\n🛏 Есть семейные номера площадью 50 м² и смежные номера 66 м².\n🍽 На территории работают рестораны и бары.\n\n💡 Прямой выход к бассейну и собственный бассейн предусмотрены в отдельных категориях номеров и сьютов.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Liberty Signa."
+    },
+    {
+      "hotel_id": 9432,
+      "hotel": "Delphin Imperial Lara",
+      "key": "delphin-imperial-lara",
+      "aliases": [
+        "DELPHIN IMPERIAL LARA",
+        "DELPHIN IMPERIAL"
+      ],
+      "sources": [
+        "https://www.delphinhotel.com/faq"
+      ],
+      "text": "✈️ Туры в Delphin Imperial Lara с перелётом\n📍 Лара, Анталья, Турция.\n\n🏖 Собственный песчаный пляж.\n🏊 Зимой есть подогреваемые крытый и открытый бассейны.\n👧 Мини клуб для детей от 4 до 12 лет.\n🎨 Зимой детские занятия проходят в помещении.\n\n💡 Открытый подогреваемый бассейн работает с учётом погоды.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Delphin Imperial."
+    },
+    {
+      "hotel_id": 1451,
+      "hotel": "Delphin BE Grand Resort",
+      "key": "delphin-be-grand",
+      "aliases": [
+        "DELPHIN BE GRAND (EX. BOTANIK, RIXOS LARES)",
+        "DELPHIN BE GRAND"
+      ],
+      "sources": [
+        "https://www.delphinhotel.com/en/delphin-be-grand-resort/overview",
+        "https://www.delphinhotel.com/faq"
+      ],
+      "text": "✈️ Туры в Delphin BE Grand Resort с перелётом\n📍 Лара, Анталья, Турция.\n\n🏖 Собственный песчаный пляж.\n👧 Мини клуб для детей от 4 до 12 лет.\n💪 Фитнес центр Be Fit и теннисные корты.\n🧖 Спа с хаммамом, сауной и парной.\n\n💡 Зимний набор бассейнов и развлечений отличается от летнего. Подогреваемый открытый бассейн работает с учётом погоды.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Delphin BE Grand."
+    },
+    {
+      "hotel_id": 1151,
+      "hotel": "Delphin Palace",
+      "key": "delphin-palace",
+      "aliases": [
+        "DELPHIN PALACE DELUXE COLLECTION",
+        "DELPHIN PALACE"
+      ],
+      "sources": [
+        "https://www.delphinhotel.com/EN/delphin-palace/overview"
+      ],
+      "text": "✈️ Туры в Delphin Palace с перелётом\n📍 Лара, Анталья, Турция.\n\n🏖 Пляж прямо у отеля.\n🏊 Бассейны, водные горки и отдельный детский бассейн.\n👧 Мини клуб для детей от 4 до 12 лет.\n🧖 Спа с хаммамом, сауной и парной.\n\n💡 Отель закрыт зимой. Этот вариант подходит для поездки в летний сезон.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Delphin Palace."
+    },
+    {
+      "hotel_id": 1583,
+      "hotel": "Voyage Sorgun",
+      "key": "voyage-sorgun",
+      "aliases": [
+        "VOYAGE SORGUN"
+      ],
+      "sources": [
+        "https://www.voyagehotel.com/en/voyage-sorgun",
+        "https://www.voyagehotel.com/en/voyage-sorgun/pool-beach",
+        "https://www.voyagehotel.com/en/voyage-sorgun/gallery-detail"
+      ],
+      "text": "✈️ Туры в Voyage Sorgun с перелётом\n📍 Соргун, Сиде, Турция.\n\n🏖 Пляж с Голубым флагом.\n🏊 Есть семейные, детские и взрослые бассейны.\n👧 Детский клуб Tugi.\n🌲 Корпуса и бунгало расположены среди сосен.\n\n💡 Для семей предусмотрен отдельный пирс. Второй пирс предназначен для гостей от 16 лет.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Voyage Sorgun."
+    },
+    {
+      "hotel_id": 468,
+      "hotel": "Sultan Bey Hotel",
+      "key": "sultan-bey-el-gouna",
+      "aliases": [
+        "SULTAN BEY HOTEL"
+      ],
+      "sources": [
+        "https://www.elgouna.com/hotels/sultan-bey-hotel"
+      ],
+      "text": "✈️ Туры в Sultan Bey Hotel с перелётом\n📍 Эль Гуна, Египет.\n\n🏖 Небольшой собственный пляж у лагуны.\n🏊 Открытый бассейн.\n🛏 Номера с балконом или террасой. Для семей есть смежные номера.\n🚶 Отель находится в районе Downtown с кафе и магазинами.\n\n💡 Берег у отеля выходит к лагуне.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Sultan Bey."
+    },
+    {
+      "hotel_id": 1035,
+      "hotel": "Lara Barut Collection",
+      "key": "lara-barut-collection",
+      "aliases": [
+        "LARA BARUT COLLECTION",
+        "BAYOU LARA"
+      ],
+      "sources": [
+        "https://bayoulara.com/en"
+      ],
+      "text": "✈️ Туры в Lara Barut Collection с перелётом\n📍 Лара, Анталья, Турция.\n\n🏖 Пляж с Голубым флагом.\n🏊 На территории есть аквапарк.\n🧘 Открытая студия йоги и дорожка для пробежек.\n🧖 Спа с турецким хаммамом.\n\n💡 Виллы с собственным бассейном представлены отдельной категорией. Их особенности не относятся ко всем номерам.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Lara Barut Collection."
+    },
+    {
+      "hotel_id": 59116,
+      "hotel": "Lujo Hotel Bodrum",
+      "key": "lujo-bodrum",
+      "aliases": [
+        "LUJO HOTEL BODRUM (EX. LUJO ART & JOY)",
+        "LUJO HOTEL BODRUM"
+      ],
+      "sources": [
+        "https://lujohotel.com/en/overview",
+        "https://lujohotel.com/en/refreshing"
+      ],
+      "text": "✈️ Туры в Lujo Hotel Bodrum с перелётом\n📍 Гюверджинлик, Бодрум, Турция.\n\n🏖 Песчаный пляж протяжённостью один километр.\n🏊 Бассейны и индивидуальные занятия плаванием.\n🛶 Есть центр водных видов спорта.\n⛱ Кабаны у пляжей и пирса можно арендовать.\n\n💡 Аквапарк рассчитан на гостей от 10 лет.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Lujo Hotel Bodrum."
+    }
+  ],
+  "description_edit": false
+}

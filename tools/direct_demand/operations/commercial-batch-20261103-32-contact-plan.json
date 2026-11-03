@@ -1,0 +1,200 @@
+{
+  "operation": "commercial-batch32-bounded-primary-contact-inspection",
+  "goal": "One finite33-photo contact pass for the ten proven candidate plan",
+  "boundaries": [
+    "Only exact declared public photos; no Mac, no server/provider/DB/messages/ads/runtime",
+    "Existing HTTPS, no redirects, dimensions and5MB guards unchanged",
+    "Closed photo sets excluded; no Andiz reuse; no guessed variants"
+  ],
+  "criteria": [
+    "4groups/maxparallel2, actual bytes/format/dimensions/hash and contact pixels",
+    "All ready subset sent together after full caption and branded cover verification"
+  ],
+  "risks": [
+    "Same owner shared navigation may include other properties; target membership required",
+    "BAYOU rooms cannot confer villa rights; Delphin Palace closed winter; Lujo OG may be logo"
+  ],
+  "groups": [
+    [
+      {
+        "hotel_id": 1449,
+        "role": "g0_declared_0",
+        "url": "https://www.ahstatic.com/photos/b1j5_ho_00_p_1024x768.jpg"
+      },
+      {
+        "hotel_id": 1449,
+        "role": "g0_declared_1",
+        "url": "https://www.ahstatic.com/photos/b1j5_ho_01_p_1024x768.jpg"
+      },
+      {
+        "hotel_id": 1449,
+        "role": "g0_declared_2",
+        "url": "https://www.ahstatic.com/photos/b1j5_ho_02_p_1024x768.jpg"
+      },
+      {
+        "hotel_id": 1449,
+        "role": "g0_declared_4",
+        "url": "https://www.ahstatic.com/photos/b1j5_rotwags_00_p_1024x768.jpg"
+      },
+      {
+        "hotel_id": 1453,
+        "role": "g0_declared_0",
+        "url": "https://www.ahstatic.com/photos/b1j3_ho_00_p_1024x768.jpg"
+      },
+      {
+        "hotel_id": 1453,
+        "role": "g0_declared_1",
+        "url": "https://www.ahstatic.com/photos/b1j3_ho_01_p_1024x768.jpg"
+      },
+      {
+        "hotel_id": 1453,
+        "role": "g0_declared_2",
+        "url": "https://www.ahstatic.com/photos/b1j3_ho_02_p_1024x768.jpg"
+      },
+      {
+        "hotel_id": 1453,
+        "role": "g0_declared_4",
+        "url": "https://www.ahstatic.com/photos/b1j3_rokgags_00_p_1024x768.jpg"
+      }
+    ],
+    [
+      {
+        "hotel_id": 1035,
+        "role": "g1_target_0",
+        "url": "https://api.baruthotelsgroup.com/uploads/menu_items/bc01e1af-5b5c-b5d4-9726-634e5cdf6502/958b50a096ce14d6a319310de5621678.jpg"
+      },
+      {
+        "hotel_id": 1035,
+        "role": "g1_target_1",
+        "url": "https://api.baruthotelsgroup.com/uploads/pages/dc47548a-093b-fd5f-8172-0ef5bd8db218/a467522d8202f59966a90ec8e98003a1.jpg"
+      },
+      {
+        "hotel_id": 1035,
+        "role": "g1_target_2",
+        "url": "https://api.baruthotelsgroup.com/uploads/room_types/9d2a97ec-570a-e13b-b159-f51964d6ed66/b614d0d379a09704b0658d5077ee90b1.webp"
+      },
+      {
+        "hotel_id": 1035,
+        "role": "g1_target_3",
+        "url": "https://api.baruthotelsgroup.com/uploads/room_types/d11d50ea-2f95-15b2-87a5-21d0edbeba6e/f65310bcc680479c30696610c218b373.jpg"
+      },
+      {
+        "hotel_id": 109655,
+        "role": "g1_signa_0",
+        "url": "https://www.libertyhotels.com/wp-content/uploads/2023/07/liberty-signa-scaled.webp"
+      },
+      {
+        "hotel_id": 109655,
+        "role": "g1_signa_1",
+        "url": "https://www.libertyhotels.com/wp-content/uploads/2025/11/liberty-signa-baglantili-oda-1-1200x686.webp"
+      },
+      {
+        "hotel_id": 109655,
+        "role": "g1_signa_2",
+        "url": "https://www.libertyhotels.com/wp-content/uploads/2025/11/liberty-signa-restaurant-bar.png"
+      },
+      {
+        "hotel_id": 9432,
+        "role": "g1_imperial_0",
+        "url": "https://www.delphinhotel.com/main_pics/pages/medium/1823.jpg"
+      },
+      {
+        "hotel_id": 9432,
+        "role": "g1_imperial_1",
+        "url": "https://www.delphinhotel.com/main_pics/pages/medium/2996.png"
+      },
+      {
+        "hotel_id": 9432,
+        "role": "g1_imperial_2",
+        "url": "https://www.delphinhotel.com/main_pics/pages/medium/709.png"
+      }
+    ],
+    [
+      {
+        "hotel_id": 1451,
+        "role": "g2_delphin_0",
+        "url": "https://www.delphinhotel.com/main_pics/pages/medium/1829.jpg"
+      },
+      {
+        "hotel_id": 1451,
+        "role": "g2_delphin_1",
+        "url": "https://www.delphinhotel.com/main_pics/pages/medium/3029.png"
+      },
+      {
+        "hotel_id": 1451,
+        "role": "g2_delphin_2",
+        "url": "https://www.delphinhotel.com/main_pics/pages/medium/730.png"
+      },
+      {
+        "hotel_id": 1451,
+        "role": "g2_delphin_3",
+        "url": "https://www.delphinhotel.com/main_pics/pages/medium/3033.png"
+      },
+      {
+        "hotel_id": 1151,
+        "role": "g2_delphin_0",
+        "url": "https://www.delphinhotel.com/main_pics/pages/medium/1818.jpg"
+      },
+      {
+        "hotel_id": 1151,
+        "role": "g2_delphin_1",
+        "url": "https://www.delphinhotel.com/main_pics/pages/medium/753.png"
+      },
+      {
+        "hotel_id": 1151,
+        "role": "g2_delphin_2",
+        "url": "https://www.delphinhotel.com/main_pics/pages/medium/795.png"
+      },
+      {
+        "hotel_id": 1151,
+        "role": "g2_delphin_3",
+        "url": "https://www.delphinhotel.com/main_pics/pages/medium/801.png"
+      }
+    ],
+    [
+      {
+        "hotel_id": 1583,
+        "role": "g3_sorgun_0",
+        "url": "https://voyagecdn.blob.core.windows.net/mediafiles/medialist/637683624816267708.jpg"
+      },
+      {
+        "hotel_id": 1583,
+        "role": "g3_sorgun_1",
+        "url": "https://voyagecdn.blob.core.windows.net/mediafiles/medialist/637683625866630972.jpg"
+      },
+      {
+        "hotel_id": 1583,
+        "role": "g3_sorgun_2",
+        "url": "https://voyagecdn.blob.core.windows.net/mediafiles/VSO_Gorsel/1140x570_Beach2.jpg"
+      },
+      {
+        "hotel_id": 1583,
+        "role": "g3_sorgun_3",
+        "url": "https://voyagecdn.blob.core.windows.net/mediafiles/VSO_Gorsel/596x333_Relax_Pool.jpg"
+      },
+      {
+        "hotel_id": 59116,
+        "role": "g3_lujo_0",
+        "url": "https://lujohotel.com/opengraph-image.png"
+      },
+      {
+        "hotel_id": 59116,
+        "role": "g3_lujo_1",
+        "url": "https://lujohotel.com/assets/img/refreshing/new/service-from-bars.jpg"
+      },
+      {
+        "hotel_id": 59116,
+        "role": "g3_lujo_2",
+        "url": "https://lujohotel.com/assets/img/refreshing/new/646X384_SWIMLESSON2.jpg"
+      }
+    ]
+  ],
+  "photo_count": 33,
+  "candidate_count": 10,
+  "deferred_inputs": [
+    {
+      "hotel_id": 468,
+      "state": "NO_NEW_QUALIFYING_WHOLE_HOTEL_HERO_FROM_RETAINED_SOURCE"
+    }
+  ]
+}
