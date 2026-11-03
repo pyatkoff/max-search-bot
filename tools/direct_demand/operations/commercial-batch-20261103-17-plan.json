@@ -1,7 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261103-17-v1",
-  "state": "FOUR_ACCEPTED_MATERIALS_PLUS_FOUR_OFFLINE_PREPARATIONS_NOT_SENT",
-  "baseline_logical_materials": 88,
+  "state": "EXACT_EIGHT_HOTELS_APPROVED_FOR_EXISTING_GUARDED_PUBLISHER",
   "catalog_ids": [
     264,
     73342,
@@ -12,9 +11,9 @@
     267,
     12114
   ],
-  "goal": "Keep the four accepted materials unchanged and prepare four additional whole hotel materials from confirmed stock while the existing production release remains held.",
-  "boundaries": "Cloud preparation only. General facilities from the exact first-party TUI operator hotel descriptions; original hotel photographs from retained official JAZ photo pools. No TUI package benefits, free-service promise, current price, server connection or send. Previously accepted four PNG are never re-exported. No live approval or send is created during this preparation.",
-  "criteria": "Whole Russian captions below1024 UTF16 without dashes;3or4 supported useful hotel features and an important practical feature; proper general hotel hero; accepted AnyTour layout; exact native PNG/hash/bytes/dimensions and visual check before immutable freeze. Normal successful source/deploy/TLS and publisher dedup remain mandatory before any future live approval.",
-  "risks": "Operator descriptions are general hotel information, not rights for an AnyTour package. Do not carry over operator-specific service, inclusion, prices or future operating schedules. Beach107 currently has no exact matching current primary hotel page; Maraya shoreline descriptions conflict and require separate resolution. Two previously rejected62505/4184 remain deferred.",
-  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41545499859"
+  "goal": "Publish the eight already prepared whole hotel materials once in each authorized channel and retain canonical provider evidence.",
+  "boundaries": "Existing PHP publisher, channels9/10, canonical registry/durable once, up to16 messages. Accepted captions/native covers unchanged. No hotel cron worker, deployment rerun, pricing claim, advertising change, new runtime or Mac access.",
+  "criteria": "Exact main/installed75ea source, successful original verify/deploy41596474080 and strict TLS41596474072 attempt2,21 unchanged publishing blobs, host continuity, existing schema/rights and live hotel/logical/text/photo/receipt dedup. Exactly16 provider-confirmed records with body/photo/canonical button/source resolution after actual send.",
+  "risks": "Previous aggregate release failed in a separate hotel cron process. Do not treat an unrelated aggregate status as proof of publisher failure. Current source is independently accepted by the existing normal release; do not rerun or modify the other process. UNKNOWN/active sends remain held, not retried.",
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41596474080"
 }
