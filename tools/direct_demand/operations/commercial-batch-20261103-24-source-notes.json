@@ -1,23 +1,86 @@
 {
   "operation": "commercial-hotel-batch-20261103-24-v1",
-  "state": "ONE_WHOLE_CAPTION_PREPARED_PHOTO_ACCEPTANCE_NOT_STARTED_NOT_SENT",
-  "goal": "Prepare the next whole hotel material from the native25 reserve without holding ready objects for disputed photography.",
+  "state": "SIX_WHOLE_CAPTIONS_PREPARED_TEN_IDENTITIES_IN_GROUPED_PHOTO_INSPECTION_NOT_SENT",
+  "goal": "Increase publication throughput by preparing ten whole materials together and publishing every ready subset in one existing serial run.",
   "boundaries": [
-    "Primary public source only; no price,availability,dining or package inclusion claims",
-    "No provider calls or send in thispreparation"
+    "Use existing authorized channels,publisher,registry,durableonce andcloud workflow only",
+    "Keep all source,host,TLS,rights,UNKNOWN,dedup and native photo checks",
+    "No agents,newchats,workers,queues,transport,localMac operations orprovider searches",
+    "Do not retry rejected orblocked source URLs; defer disputed hotels"
   ],
   "criteria": [
-    "Exactnative235identityalreadycatalogued",
-    "Wholehotelcaption withusefulfacts,beachwalkfeature andnextstep",
-    "A real general view ofthishotel is required beforecover"
+    "Ten candidate hotels in one preparation plan",
+    "Reuse accepted captions and retained primary sources",
+    "One finite native image pass with at most4readonlygroups andmaxparallel2",
+    "Prepare covers for the accepted subset andsend itwithout waiting for10"
   ],
   "risks": [
-    "Owner beachillustration alt namesSivaGrandBeach; do not treat sharedimage asGrandResort beachproof or transferrights",
-    "Nearbybeach is not a directbeachfront claim",
-    "Catalogue rating not stars",
-    "Ownerfamilyillustration file namesSivaGrandBeach too; excludedfromphotoinputs. No transferof Siva photography."
+    "Fanara is the accepted combined native identity12107; poolcounts omitted and package services not transferred",
+    "MirabelClubphotos must explicitlynameClub; Parkphotos excluded",
+    "Miramar current primary now identifies a separate refurbishment zone and operational SportsPool,without inventing a year for oldnotice",
+    "Titanic public GCS photographs may be inspected; allFirebase access-token URLs excluded"
   ],
   "rows": [
+    {
+      "hotel_id": 12107,
+      "hotel": "JAZ Fanara Resort & Residence",
+      "key": "jaz-fanara-resort-residence",
+      "aliases": [
+        "JAZ FANARA RESORT & RESIDENCE (EX. IBEROTEL CLUB)"
+      ],
+      "text": "✈️ Туры в JAZ Fanara Resort & Residence с перелётом\n📍 Рас Ум эль Сид, Шарм эль Шейх.\n\n🌿 Сады и открытые бассейны.\n👧 Детский клуб для ребят от 4 до 12 лет и игровая площадка.\n🎾 Теннисные корты и площадка для пляжного волейбола.\n\n💡 Тренажёрный зал доступен гостям от 18 лет.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в JAZ Fanara.",
+      "sources": [
+        "https://www.tui.com/hotels/jaz-fanara-resort-and-residence-14556/hotelinformation/",
+        "https://partner.jazhotels.com/hotel/4",
+        "https://partner.jazhotels.com/hotel/3"
+      ],
+      "utf16": 339,
+      "source_basis": "First-party current general hotel description or retained official owner facts; no operator package inclusions,prices or availability"
+    },
+    {
+      "hotel_id": 282,
+      "hotel": "JAZ Mirabel Club",
+      "key": "jaz-mirabel-club",
+      "aliases": [
+        "JAZ MIRABEL CLUB"
+      ],
+      "text": "✈️ Туры в JAZ Mirabel Club с перелётом\n📍 Набк Бэй, Шарм эль Шейх.\n\n🏊 Открытый бассейн и детский бассейн.\n👧 Детский клуб для ребят от 4 до 12 лет и игровая площадка.\n🍽 Рестораны итальянской, азиатской и восточной кухни.\n\n💡 В Club 160 номеров в двух трёхэтажных корпусах.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в JAZ Mirabel Club.",
+      "sources": [
+        "https://www.tui.com/hotels/jaz-mirabel-club-260490/hotelinformation/",
+        "https://partner.jazhotels.com/hotel/6"
+      ],
+      "utf16": 342,
+      "source_basis": "First-party current general hotel description or retained official owner facts; no operator package inclusions,prices or availability"
+    },
+    {
+      "hotel_id": 432,
+      "hotel": "Sheraton Miramar Resort El Gouna",
+      "key": "sheraton-miramar-el-gouna",
+      "aliases": [
+        "SHERATON MIRAMAR RESORT"
+      ],
+      "text": "✈️ Туры в Sheraton Miramar Resort с перелётом\n📍 Эль Гуна, Египет.\n\n🏝 Территория на 9 островах среди лагун.\n🏖 Собственные пляжи.\n🛏 339 номеров с террасой или балконом.\n👧 Детский клуб и игровая площадка.\n\n💡 В отдельной зоне отеля идут работы по обновлению. Спортивный бассейн работает.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Sheraton Miramar.",
+      "sources": [
+        "https://www.marriott.com/en-us/hotels/hrgsi-sheraton-miramar-resort-el-gouna/overview/",
+        "https://www.marriott.com/en-us/hotels/hrgsi-sheraton-miramar-resort-el-gouna/photos/"
+      ],
+      "utf16": 357,
+      "source_basis": "First-party current general hotel description or retained official owner facts; no operator package inclusions,prices or availability"
+    },
+    {
+      "hotel_id": 382,
+      "hotel": "RENAISSANCE GOLDEN VIEW BEACH",
+      "key": "renaissance-golden-view",
+      "aliases": [
+        "RENAISSANCE GOLDEN VIEW BEACH"
+      ],
+      "text": "🐠 Renaissance Sharm El Sheikh Golden View Beach Resort\nТур с перелётом в Шарм эль Шейх, Египет.\n\n🏖️ Пляж, бассейны и дайвинг центр на территории.\n🍽️ Три ресторана и четыре бара.\n🏋️ Тренажёрный зал работает круглосуточно.\n🧒 Для детей есть игровая площадка.\n\n💡 В номерах и люксах отеля не курят.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "sources": [
+        "https://www.marriott.com/en-us/hotels/sshbr-renaissance-sharm-el-sheikh-golden-view-beach-resort/overview/"
+      ],
+      "utf16": 376,
+      "source_basis": "First-party current general hotel description or retained official owner facts; no operator package inclusions,prices or availability"
+    },
     {
       "hotel_id": 235,
       "hotel": "The Grand Resort Hurghada",
@@ -30,9 +93,29 @@
       "photo_uris": [
         "https://redseahotels.com/wp-content/uploads/2023/02/The-Grand-Resort-in-Hurghada-Egypt-by-Red-Sea-Hotels.jpg",
         "https://redseahotels.com/wp-content/uploads/2023/03/Beautiful-pools-at-the-Grand-Resort-by-Red-Sea-Hotels.jpg"
-      ]
+      ],
+      "key": "grand-resort-hurghada",
+      "aliases": [
+        "GRAND RESORT HURGHADA"
+      ],
+      "source_basis": "First-party current general hotel description or retained official owner facts; no operator package inclusions,prices or availability"
+    },
+    {
+      "hotel_id": 483,
+      "hotel": "SUNRISE Royal Makadi Resort",
+      "key": "sunrise-royal-makadi",
+      "aliases": [
+        "SUNRISE ROYAL MAKADI RESORT"
+      ],
+      "text": "✈️ Туры в SUNRISE Royal Makadi Resort с перелётом\n📍 Макади Бэй, Египет.\n\n🏖 Собственный пляж в бухте Макади.\n💦 Аквапарк с детской игровой зоной.\n👧 Детский клуб для ребят от 3 до 12 лет.\n👨‍👩‍👧‍👦 Есть Family Room площадью 55 м² с двухъярусной кроватью.\n\n💡 Тренажёрный зал доступен с 16 лет.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в SUNRISE Royal Makadi.",
+      "sources": [
+        "https://www.sunrise-resorts.com/royal-makadi-resort"
+      ],
+      "utf16": 368,
+      "source_basis": "First-party current general hotel description or retained official owner facts; no operator package inclusions,prices or availability"
     }
   ],
-  "new_posts": 0,
-  "provider_calls": 0
+  "content_draft_count": 6,
+  "ready_for_send_count": 0,
+  "new_posts": 0
 }
