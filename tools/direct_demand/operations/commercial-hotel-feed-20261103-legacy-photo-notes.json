@@ -1,0 +1,41 @@
+{
+  "operation": "commercial-hotel-feed-20261103-legacy-photos",
+  "state": "TWO_EXACT_PRIMARY_PHOTOGRAPHS_VISUALLY_ACCEPTED",
+  "images": [
+    {
+      "hotel_id": 310,
+      "image_url": "https://image-tc.galaxy.tf/wijpeg-bunhs9glqpbhgr07p92hv73nb/028-ls-landscape-104108318.jpg",
+      "image_sha256": "a739fa8310852f22af0b97552e39c446fdb2ee5c927d2d78f64e7b8f272cc6e0",
+      "width": 1920,
+      "height": 1280,
+      "bytes": 220929,
+      "source_url": "https://www.pickalbatros.com/golf-beach-resort",
+      "visual_state": "REAL_EXACT_HOTEL_OVERVIEW_ACCEPTED"
+    },
+    {
+      "hotel_id": 1971,
+      "image_url": "https://image-tc.galaxy.tf/wijpeg-43nq1ttkef5hcqekzjvfa0g4j/over-view.jpg",
+      "image_sha256": "e9cf3143b97f6cc1b3d2e693f0c5da62061a06f4e6d8245374cd94c64c83e7a7",
+      "width": 1920,
+      "height": 1280,
+      "bytes": 408089,
+      "source_url": "https://www.pickalbatros.com/palace-resort-sharm-el-sheikh",
+      "visual_state": "REAL_EXACT_HOTEL_OVERVIEW_ACCEPTED"
+    }
+  ],
+  "rejected": [
+    {
+      "hotel_id": 381,
+      "state": "SELECTED_FILE_WAS_LOGO"
+    },
+    {
+      "hotel_id": 469,
+      "state": "SELECTED_FILE_WAS_RESTAURANT_TERRACE"
+    },
+    {
+      "hotel_id": 68323,
+      "state": "SELECTED_FILE_NOT_JPEG_OR_PNG_SIGNATURE_UNDETERMINED"
+    }
+  ],
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41628385332"
+}
