@@ -162,7 +162,7 @@
   "provider_calls": 0,
   "db_writes": 0,
   "message_edits": 0,
-  "expected_installed_sha": "ce73a564ef93223e6ffb7f4b1ccac33dc12d76bc",
+  "expected_installed_sha": "117d884bef3174b7dd5976b5e354811f3edc8e83",
   "boundaries": [
     "Existing bounded authenticated read-only GHA route and accepted schema/mealcontract",
     "Explicit native country1or4 per previously proven binding; preserve15typedbridges",
@@ -177,5 +177,8 @@
   "risks": [
     "Rawsearchprice/fuel not fulltotal or availability",
     "Collector whole run failed later; do not reruncollector/repairforeignpipeline"
-  ]
+  ],
+  "source_stops": 1,
+  "original_stopped_run": 41741131160,
+  "stopped_before_server_and_provider": true
 }
