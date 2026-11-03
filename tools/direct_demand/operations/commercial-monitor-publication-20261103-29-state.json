@@ -1,0 +1,27 @@
+{
+  "operation": "commercial-monitor-publication-20261103-29",
+  "state": "MONITOR_INPUTS_MERGED_NOT_COLLECTED",
+  "catalog_ids": [
+    98723,
+    139,
+    342
+  ],
+  "monitor_inputs": 642,
+  "previous_inputs": 639,
+  "pr_url": "https://github.com/pyatkoff/poisk-turov-test/pull/4985",
+  "merge_sha": "a7b72a6aeda91e31cef7656754da43cff5276266",
+  "head_sha": "8c7338ccd2327931db353dd57afa4c91208c6fe2",
+  "ci_run_urls": [
+    "https://github.com/pyatkoff/poisk-turov-test/actions/runs/41713006443",
+    "https://github.com/pyatkoff/poisk-turov-test/actions/runs/41713006563",
+    "https://github.com/pyatkoff/poisk-turov-test/actions/runs/41713006367"
+  ],
+  "previous_targets_preserved": true,
+  "pending_searches_resumed": true,
+  "mixed_countries_preserved": true,
+  "missing_and_inactive_no_false_credit": true,
+  "production_pr_jobs": "SKIPPED",
+  "provider_calls": 0,
+  "db_writes": 0,
+  "new_prices": 0
+}
