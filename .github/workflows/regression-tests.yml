@@ -139,6 +139,10 @@ jobs:
     needs: [change-scope, inventory, php-syntax, required, prepared-mysql, oauth]
     if: always()
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    timeout-minutes: 2
     steps:
       - name: Require every gate
         env:
@@ -166,3 +170,13 @@ jobs:
               ;;
             *) exit 1 ;;
           esac
+      - name: Checkout release admission
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Respect ready release priority
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node tools/release_priority.js
