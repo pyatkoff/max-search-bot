@@ -1,0 +1,68 @@
+{
+  "operation": "commercial-hotel-batch-20261103-29-v1",
+  "state": "PRIMARY_URL_DISCOVERY_PARTIAL_NO_NEW_OWNER_HTTP_READ",
+  "sources": [
+    {
+      "hotel_id": 512,
+      "urls": [
+        "https://www.tropitelhotels.com/tropitel-dahab-oasis",
+        "https://www.tropitelhotels.com/tropitel-dahab-oasis/gallery"
+      ],
+      "notes": "Exactcurrentownerroot/galleryfound. Healthclub/sauna/steamroom/massage,kidsarea/tabletennis/minifootball/beachvolleyball,roomviewsbycategory. No directbookingdiscount/mealrights. BlueHoledistanceownerclaims5minuteswalk;do not repeat this withoutcheckingactualroute."
+    },
+    {
+      "hotel_id": 468,
+      "urls": [
+        "https://www.elgouna.com/hotels/sultan-bey-hotel"
+      ],
+      "notes": "Currentowner115rooms,balkony/terrace,lagoonorgardenviews,connectingroomswithprivatecorridor,lagoonbeach/pool/Downtown. Zeytounaaccess/transportseasondependent,notuniversalpackagebenefit. Ownerdatedearlybirddealbookingby28Oct2026closed,donttransferAnyTourmealrights/discounts."
+    },
+    {
+      "hotel_id": 253,
+      "urls": [
+        "https://www.safirhotels.com/en"
+      ],
+      "candidate_url_from_secondary_only": "https://www.safirhotels.com/en/hotel/safir-sharm-waterfalls-resort",
+      "notes": "FirstpartyrootcurrentlylistsSafirSharmWaterfalls. PropertyURLfoundinsecondaryofficiallink,verifyactualdeclaredownerhrefbeforefinitecloudread;dontguess."
+    },
+    {
+      "hotel_id": 98723,
+      "urls": [],
+      "notes": "NeedexactcurrentprimaryforseparateSharmAdultsOnly16+;notfamilyMakadi21476/olderfamilySharmproduct."
+    },
+    {
+      "hotel_id": 1962,
+      "urls": [
+        "https://baronhotels.com/baron-palms-sharm-el-sheikh/?LangId=1"
+      ],
+      "notes": "PriorHTML/6photosalreadyclosedin27,wholecaptionretained;needDIFFERENTownerhotel/groundshero,notonepoolbannerorroom/spa/underwater."
+    },
+    {
+      "hotel_id": 102774,
+      "urls": [],
+      "notes": "FRrootHTTPErrorstatusunrecordedandEN-GBgalleryTimeoutErrorclosed,doNOTrepeat. ExactownerpubliccachedgalleryimageURIsmayprovideanotherprimarymethod."
+    },
+    {
+      "hotel_id": 342,
+      "urls": [],
+      "notes": "MainownerrootreadhadValueErrorunknowncause,doNOTrepeat/claim403orsize. Needanotherexactownerpublicgallery/material."
+    },
+    {
+      "hotel_id": 254,
+      "urls": [],
+      "notes": "Wholecaption354UTF16andcurrentownerfactsretainedinnotes28. FiveimageURLsHTTP202text/htmlclosed,anotherownerphotoinputneeded."
+    },
+    {
+      "hotel_id": 139,
+      "urls": [],
+      "notes": "Currentexactowneroverviewfactsretainedfrombatch28,imagesonlyroomsandlogos. Needactualdeclaredgallerysource/overview."
+    },
+    {
+      "hotel_id": 4185,
+      "urls": [],
+      "notes": "Currentexactowneroverviewfactsretainedprivatebeach/106mjetty/kidsteenclubs. Noheroimageyet,doNOTtransferBayroomrights."
+    }
+  ],
+  "new_posts": 0,
+  "canva_imports": 0
+}

@@ -1,0 +1,17 @@
+{
+  "operation": "commercial-price-monitor-20261103-18utc-metadata",
+  "state": "NO_NEW_MATCHING_COLLECT_TOUR_OBSERVATIONS_RUN_IN_NEW_WINDOW",
+  "created_since": "2026-11-03T18:00:00Z",
+  "seen_runs": [
+    {
+      "run_id": 41693369073,
+      "name": "Build AnyTour hot inventory",
+      "state": "SUCCESS_NOT_THE_TOUR_OBSERVATIONS_COLLECTOR"
+    }
+  ],
+  "collector_log_reads": 0,
+  "retained_tuple_reads": 0,
+  "quote_calls": 0,
+  "price_edits": 0,
+  "reason": "One new-window metadata read found only a different inventory workflow. This is not a statement thatraw observationsareabsent."
+}

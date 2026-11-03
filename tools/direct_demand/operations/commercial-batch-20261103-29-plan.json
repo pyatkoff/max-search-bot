@@ -1,0 +1,88 @@
+{
+  "operation": "commercial-hotel-batch-20261103-29-v1",
+  "state": "TEN_PROVEN_NATIVE_CANDIDATES_PREPARATION_STARTED",
+  "baseline_logical_materials": 124,
+  "catalog_ids": [
+    253,
+    512,
+    1962,
+    98723,
+    468,
+    102774,
+    342,
+    254,
+    139,
+    4185
+  ],
+  "candidates": [
+    {
+      "hotel_id": 253,
+      "hotel": "SAFIR SHARM WATERFALLS (EX. HILTON)",
+      "state": "PRIMARY_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING"
+    },
+    {
+      "hotel_id": 512,
+      "hotel": "TROPITEL DAHAB OASIS",
+      "state": "PRIMARY_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING"
+    },
+    {
+      "hotel_id": 1962,
+      "hotel": "BARON PALMS RESORT ADULTS ONLY 16+",
+      "state": "PRIMARY_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING"
+    },
+    {
+      "hotel_id": 98723,
+      "hotel": "CLEOPATRA LUXURY RESORT SHARM ADULTS ONLY 16+",
+      "state": "PRIMARY_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING"
+    },
+    {
+      "hotel_id": 468,
+      "hotel": "SULTAN BEY HOTEL",
+      "state": "PRIMARY_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING"
+    },
+    {
+      "hotel_id": 102774,
+      "hotel": "HILTON LUXOR RESORT & SPA",
+      "state": "PRIMARY_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING"
+    },
+    {
+      "hotel_id": 342,
+      "hotel": "THE OBEROI SAHL HASHEESH",
+      "state": "PRIMARY_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING"
+    },
+    {
+      "hotel_id": 254,
+      "hotel": "THE THREE CORNERS SEA BEACH RESORT",
+      "state": "PRIMARY_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING"
+    },
+    {
+      "hotel_id": 139,
+      "hotel": "BRAYKA BAY RESORT",
+      "state": "PRIMARY_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING"
+    },
+    {
+      "hotel_id": 4185,
+      "hotel": "ROYAL BRAYKA BEACH RESORT",
+      "state": "PRIMARY_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING"
+    }
+  ],
+  "goal": "Prepare ten proven candidates together,inspect finite source photos in one grouped pass,then publish every ready subset up to10 in one serial run",
+  "boundaries": [
+    "No new catalogue identity guesses;all are from closed bounded native reads",
+    "Use accepted whole captions and retained sources where present",
+    "No repeat of closed failed GETs,private token URLs,old cover exports or provider readbacks",
+    "Existing publisher/registry/once and3stablepublicpostfeeds only"
+  ],
+  "criteria": [
+    "Whole primary-proven hotel captions and real hotel/grounds hero plus2supporting photographs",
+    "Several Canva covers together,all nativePNGchecks and exact cancellation",
+    "Real new paired posts and then exact previous-hash updates to same3publicfeeds"
+  ],
+  "risks": [
+    "Do not hold fresh Safir/Tropitel/SultanBey candidates for older photo gaps",
+    "SeaBeach five listed images returned202HTML;do not retry/bypass or callthem403",
+    "Hilton gallery timeout,OberoiValueErrorunknowncause andSofitelmissingexactprimary remainhonest gaps"
+  ],
+  "ready_for_send_count": 0,
+  "new_posts": 0
+}
