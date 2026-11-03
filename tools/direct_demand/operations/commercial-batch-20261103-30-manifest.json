@@ -1,0 +1,129 @@
+{
+  "operation": "commercial-hotel-batch-20261103-30-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Publish four ready whole hotel materials in both existing channels in one serial run.",
+  "boundaries": [
+    "Existingbots/channels/registry/once and serial publisher only",
+    "Exact current approved source/verify/TLS/tree21blobs and runtime source/cleanhost/rights/UNKNOWN gates",
+    "No paid calls,new workers/queues/runtime,ads or customer messages"
+  ],
+  "criteria": [
+    "Four native PNGs verified by complete bytes/chunks/hash/dimensions and actual view",
+    "Exactly8 new body/photo/button/source verified posts or explicit stop"
+  ],
+  "risks": [
+    "Do not delay these4 for six other candidate photos",
+    "If a release changes, stop before SSH/provider and prepare independently"
+  ],
+  "baseline_logical_materials": 127,
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "hotel_id": 1291,
+      "hotel": "Akra Kemer",
+      "key": "akra-kemer",
+      "aliases": [
+        "AKRA KEMER (EX. KEMER BARUT COLLECTION)",
+        "AKRA KEMER"
+      ],
+      "sources": [
+        "https://www.akrahotels.com/en/hotels/akra-kemer/beach-and-pools/"
+      ],
+      "text": "✈️ Туры в Akra Kemer с перелётом\n📍 Кемер, Турция.\n\n🏖 Собственный пляж с Голубым флагом.\n🏊 Активный бассейн и зона с водными горками.\n👧 Для детей есть отдельный открытый бассейн.\n🌿 Для спокойного отдыха есть бассейн с водопадом.\n\n💡 Зимой подогреваются крытый бассейн и бассейн аквапарка.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Akra Kemer.",
+      "logical_id": "commercial-akra-kemer-1291-v1",
+      "text_sha256": "83a0270b71fb632b94286a482c0795bdfa2fd87b87808730be93ab2a31653da4",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4dff8a584b431a173d6f9dab9de7df3c22f3f2e3/.github/traffic-publish/commercial-batch-20261103-30/1291.png",
+      "photo_sha256": "d489102f681a8b19f1bebb614ec48a28879a0234c7319d366dc18d49e2d2fe00",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 15869,
+      "hotel": "Akra Sorgun TUI Blue Sensatori",
+      "key": "akra-sorgun",
+      "aliases": [
+        "AKRA SORGUN TUI BLUE SENSATORI"
+      ],
+      "sources": [
+        "https://www.akrahotels.com/en/hotels/akra-sorgun/about-us/"
+      ],
+      "text": "✈️ Туры в Akra Sorgun TUI Blue Sensatori с перелётом\n📍 Соргун, Сиде, Турция.\n\n🏖 Собственный песчаный пляж.\n🏊 Есть семейные, детские и взрослые бассейны.\n👧 Для детей работают две открытые игровые площадки.\n🛏 Предусмотрены семейные номера и варианты для отдыха с малышами.\n\n💡 Есть зоны только для взрослых. Курорт также принимает семьи с детьми.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Akra Sorgun.",
+      "logical_id": "commercial-akra-sorgun-15869-v1",
+      "text_sha256": "b8ae4c7ee5aa670891bea9dca346de9e46f10a8fae0359db78af4ed6723ab4a1",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4dff8a584b431a173d6f9dab9de7df3c22f3f2e3/.github/traffic-publish/commercial-batch-20261103-30/15869.png",
+      "photo_sha256": "f535fbf21128eb4e6f25d3db4ca69c51e9d4dcba13692a0b0baa5bc39819ff58",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 253,
+      "hotel": "Safir Sharm Waterfalls Resort",
+      "key": "safir-sharm-waterfalls",
+      "aliases": [
+        "SAFIR SHARM WATERFALLS (EX. HILTON)",
+        "SAFIR SHARM WATERFALLS"
+      ],
+      "sources": [
+        "https://www.safirhotels.com/en/hotel/safir-sharm-waterfalls-resort"
+      ],
+      "text": "✈️ Туры в Safir Sharm Waterfalls Resort с перелётом\n📍 Рас Ум эль Сид, Шарм эль Шейх.\n\n🏖 Собственный пляж и причал.\n🏊 Семь бассейнов.\n🎾 Теннисный корт и дайвинг центр.\n🛏 Номера с балконами и видом на море или сад.\n\n💡 Курорт расположен на плато. Рядом торговый район Иль Меркато.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Safir Sharm Waterfalls.",
+      "logical_id": "commercial-safir-sharm-waterfalls-253-v1",
+      "text_sha256": "6e403a07e047556420596841d72c32dd22e94f4e7bc85925cf06c5d8725bc570",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4dff8a584b431a173d6f9dab9de7df3c22f3f2e3/.github/traffic-publish/commercial-batch-20261103-30/253.png",
+      "photo_sha256": "5fe1c8b082f87f45e9ec9a59d226eb5c237d2b120c03cd017ab5d9247586de97",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 75377,
+      "hotel": "Liberty Fabay",
+      "key": "liberty-fabay",
+      "aliases": [
+        "LIBERTY FABAY"
+      ],
+      "sources": [
+        "https://www.libertyhotels.com/en/hotels/liberty-fabay/"
+      ],
+      "text": "✈️ Туры в Liberty Fabay с перелётом\n📍 Фетхие, Турция.\n\n🏖 Пляж и бассейны с видом на острова.\n👧 Детский клуб Libby & Berty.\n🛏 Есть семейные номера с видом на море или территорию.\n🍽 На территории работают рестораны и бары.\n\n💡 Прямой выход к бассейну предусмотрен в отдельных категориях номеров.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Liberty Fabay.",
+      "logical_id": "commercial-liberty-fabay-75377-v1",
+      "text_sha256": "229d0005cc4cae00855c1b966f033029cb859d63c1dc41793bb8ec60d05d32c5",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4dff8a584b431a173d6f9dab9de7df3c22f3f2e3/.github/traffic-publish/commercial-batch-20261103-30/75377.png",
+      "photo_sha256": "7f6a63e6d139b323cf197b7aa09a38cafb346c54380d5e37e0728445dcee85e7",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    }
+  ],
+  "ready_for_send_count": 4,
+  "new_posts": 0,
+  "provider_send_attempts": 0,
+  "content_and_cover_prepared_count": 4,
+  "approved_live_send_count": 4,
+  "public_png_frozen_count": 4,
+  "native_inspection_state": "FOUR_NATIVE_PNG_VISUALLY_VERIFIED",
+  "native_inspection_run_urls": [
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41719956603",
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41720288782"
+  ],
+  "deferred": [
+    {
+      "hotel_id": 1033,
+      "state": "DIFFERENT_OVERVIEW_PHOTO_REQUIRED_NOT_SENT"
+    },
+    {
+      "hotel_id": 1031,
+      "state": "DIFFERENT_OVERVIEW_PHOTO_REQUIRED_NOT_SENT"
+    },
+    {
+      "hotel_id": 1032,
+      "state": "DIFFERENT_OVERVIEW_PHOTO_REQUIRED_NOT_SENT"
+    },
+    {
+      "hotel_id": 21673,
+      "state": "DIFFERENT_OVERVIEW_PHOTO_REQUIRED_NOT_SENT"
+    },
+    {
+      "hotel_id": 74503,
+      "state": "DIFFERENT_OVERVIEW_PHOTO_REQUIRED_NOT_SENT"
+    },
+    {
+      "hotel_id": 1582,
+      "state": "DIFFERENT_OVERVIEW_PHOTO_REQUIRED_NOT_SENT"
+    }
+  ]
+}
