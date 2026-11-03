@@ -1,0 +1,24 @@
+{
+  "operation": "commercial-monitor-stock-20261103-26",
+  "state": "NEW_COHORT_PREPARED_NOT_MERGED",
+  "goal": "Keep all published hotels and reserve25 in the existing monitor after batch25",
+  "catalog_ids": [
+    129,
+    74258
+  ],
+  "previous_inputs": 629,
+  "new_inputs": 631,
+  "boundaries": [
+    "Append separate immutable cohort; preserve prior target keys and pending searches",
+    "No new collector, cron, runtime, paid calls or transport",
+    "Native identities proven by closed country1 region15 stock25 reader"
+  ],
+  "criteria": [
+    "Native CI and actual focused631 smoke",
+    "Previous629 targets byte-identical, prior search resumes, mixed-country routes preserved, missing/inactive inputs not falsely credited"
+  ],
+  "risks": [
+    "Input configuration does not prove production collection or a price",
+    "Promotions require actual publication to remove previous stock members"
+  ]
+}

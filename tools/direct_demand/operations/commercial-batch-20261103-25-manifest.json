@@ -1,0 +1,105 @@
+{
+  "operation": "commercial-hotel-batch-20261103-25-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Publish four ready whole hotel materials in each existing authorized channel in one serial run.",
+  "boundaries": [
+    "Only existing authorized channels and active bots",
+    "Existing publisher,canonical registry and durable once; serial send",
+    "No additional chats,runtime,workers,queues,collectors or ad changes",
+    "Exact current source,host,TLS,schema,rights,UNKNOWN and live dedup gates preserved"
+  ],
+  "criteria": [
+    "One native hotel identity already proven in catalogue and registry inspection",
+    "Whole hotel caption with4useful facts and material2027renovation feature",
+    "Real official photography,readable AnyTour brand/name,nativePNG visuallyverified and frozen",
+    "Exactly2provider verified posts or explicit dedup/UNKNOWN stop"
+  ],
+  "risks": [
+    "Do not transfer operator package inclusions or price/availability claims",
+    "Swiss Inn has second-line room categories, stated inwholecaption",
+    "Fanara,Miramar,RoyalMakadi andTitanic candidates remain deferred andcannotdelay readyfour"
+  ],
+  "baseline_logical_materials": 114,
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "hotel_id": 464,
+      "hotel": "Steigenberger Golf Resort El Gouna",
+      "key": "steigenberger-golf-el-gouna",
+      "aliases": [
+        "STEIGENBERGER GOLF RESORT EL GOUNA"
+      ],
+      "text": "✈️ Туры в Steigenberger Golf Resort El Gouna с перелётом\n📍 Эль Гуна, Египет.\n\n🏊 Два основных бассейна и детский. Зимой подогревают один основной и детский.\n⛳ Поле для гольфа на 18 лунок.\n🌿 Спа и фитнес центр.\n\n💡 Пляж расположен у морской лагуны. Здесь купаются в лагуне, а не у открытого моря.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Steigenberger Golf Resort El Gouna.",
+      "sources": [
+        "https://hrewards.com/en/steigenberger-golf-resort-el-gouna"
+      ],
+      "logical_id": "commercial-steigenberger-golf-el-gouna-464-v1",
+      "text_sha256": "5fdfce905b1424532b3bdcbf9cdf52edbc836158e8c7b6e60302ee1eeb45566b",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/42f64c23041106e34e477c95c668e182ebbb874c/.github/traffic-publish/commercial-batch-20261103-25/464.png",
+      "photo_sha256": "5279ed3c2c272a6396f46866c2a286db2587fb835b0bf1b4bfec488bbf5e8138",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 103021,
+      "hotel": "The Chedi El Gouna",
+      "key": "the-chedi-el-gouna",
+      "aliases": [
+        "THE CHEDI EL GOUNA"
+      ],
+      "text": "✈️ Туры в The Chedi El Gouna с перелётом\n📍 Эль Гуна, Египет.\n\n🏖 Собственный пляж в бухте длиной 250 м.\n🏊 Два больших бассейна и бассейн для малышей. Основной и детский подогревают зимой.\n💪 Круглосуточный тренажёрный зал и спа.\n\n💡 Занятия йогой, прогулки на каяках и SUP оплачиваются отдельно.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в The Chedi El Gouna.",
+      "sources": [
+        "https://www.thechedielgouna.com/amenities",
+        "https://www.thechedielgouna.com/gallery"
+      ],
+      "logical_id": "commercial-the-chedi-el-gouna-103021-v1",
+      "text_sha256": "8ae85eb09b8b917dca63537d1e804762f8de972b2d4900fe8675e0aecf8f214d",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/42f64c23041106e34e477c95c668e182ebbb874c/.github/traffic-publish/commercial-batch-20261103-25/103021.png",
+      "photo_sha256": "7cbbfbe3e86859dcd870d564114d49c3881a04a4aa41d75ea744bc09e605c3e7",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    }
+  ],
+  "ready_for_send_count": 2,
+  "new_posts": 0,
+  "provider_send_attempts": 0,
+  "content_and_cover_prepared_count": 2,
+  "approved_live_send_count": 0,
+  "public_png_frozen_count": 2,
+  "native_inspection_state": "TWO_NATIVE_PNG_VISUALLY_VERIFIED",
+  "native_inspection_run_urls": [
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41678385848"
+  ],
+  "deferred": [
+    {
+      "hotel_id": 73343,
+      "gap": "Owner photographs show individual swim-up buildings and pools; no accepted whole property hero in this finite pass. Whole caption retained."
+    },
+    {
+      "hotel_id": 418,
+      "gap": "Old owner PDF redirects to suspended page; current owner identity/source required."
+    },
+    {
+      "hotel_id": 65779,
+      "gap": "Accepted retained aerial exists; two additional authorized exact-property photos not proven. Firebase token URLs excluded."
+    },
+    {
+      "hotel_id": 932,
+      "gap": "Accepted retained aerial exists; two additional authorized exact-property photos not proven. Firebase token URLs excluded."
+    },
+    {
+      "hotel_id": 497,
+      "gap": "Accepted retained aerial exists; two additional authorized exact-property photos not proven. Firebase token URLs excluded."
+    },
+    {
+      "hotel_id": 68907,
+      "gap": "Previous whole caption retained; exact Abu Soma gallery membership and overview still needed."
+    },
+    {
+      "hotel_id": 483,
+      "gap": "Previous whole caption retained; rejected one-pool/room images not reused."
+    },
+    {
+      "hotel_id": 432,
+      "gap": "Previous whole caption with confined refurbishment notice retained; no whole property overview."
+    }
+  ]
+}
