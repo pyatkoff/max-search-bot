@@ -1,0 +1,30 @@
+{
+  "operation": "commercial-batch27-bounded-primary-contact-inspection",
+  "state": "TWENTY_FOUR_NEW_OWNER_PHOTOS_PREPARED_NOT_READ",
+  "catalog_ids": [
+    165,
+    163,
+    1962,
+    12116,
+    102774,
+    111,
+    342,
+    254,
+    488,
+    512
+  ],
+  "photo_inputs": 24,
+  "boundaries": [
+    "Four finite readonly groups/maxparallel2, no server/provider/messages",
+    "Exact owner-declared public CDN queries only; no auth/tokens/redirects",
+    "Byte/format/dimension guards unchanged; rejected images now retain observed stage/size/type/dimensions instead of unhelpful AssertionError"
+  ],
+  "criteria": [
+    "Whole hotel or territory hero; real JPEG/PNG/WebP and exact hashes",
+    "Reject generic illustrations, icons, renders and service stock photos"
+  ],
+  "risks": [
+    "Holiday overview source list retained only portrait400x550 variants; do not guess larger URLs or let it delay ready hotels",
+    "Some images may remain unsuitable while other complete candidates proceed"
+  ]
+}
