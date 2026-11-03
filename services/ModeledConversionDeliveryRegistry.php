@@ -61,10 +61,12 @@ final class ModeledConversionDeliveryRegistry
                 'unresolved_identity'=>"(o.client_id IS NULL OR o.client_id='')"];
             $pairs=[];
             foreach(ModeledConversionValueContract::STAGES as$rank=>$stage)
-                $pairs[]="(o.target='".ModeledConversionValueContract::key($rank)."' AND o.value_stage='".$stage."')";
+                $pairs[]="(HEX(o.target)=HEX('".ModeledConversionValueContract::key($rank)."') AND HEX(o.value_stage)=HEX('".$stage."'))";
+            $stateHex=implode(',',array_map(static fn(string $state):string=>"HEX('".$state."')",self::STATES));
             $invalid="o.target IS NULL OR o.value_stage IS NULL OR NOT (".implode(' OR ',$pairs).")"
-                ." OR o.state IS NULL OR o.state NOT IN ('".implode("','",self::STATES)."')"
-                ." OR (o.value_origin IS NOT NULL AND o.value_origin NOT IN ('owner_day_review_v1','owner_fortnight_review_v1'))"
+                ." OR o.state IS NULL OR HEX(o.state) NOT IN (".$stateHex.")"
+                ." OR o.platform IS NULL OR HEX(o.platform) NOT IN (HEX('max'),HEX('telegram'))"
+                ." OR (o.value_origin IS NOT NULL AND HEX(o.value_origin) NOT IN (HEX('owner_day_review_v1'),HEX('owner_fortnight_review_v1')))"
                 ." OR o.value_rub IS NULL OR o.value_rub<=0 OR o.value_rub>25000";
             $columns=['COUNT(*) AS n','COUNT(DISTINCT o.conversation_id) AS c','COALESCE(SUM(o.value_rub),0) AS v',
                 'COALESCE(SUM(CASE WHEN '.$invalid.' THEN 1 ELSE 0 END),0) AS invalid_n'];
@@ -94,7 +96,7 @@ final class ModeledConversionDeliveryRegistry
                 $safe="CASE WHEN p.profile_json IS NOT NULL AND ".($mysql?'OCTET_LENGTH':'LENGTH')."(p.profile_json)<=131072 AND JSON_VALID(p.profile_json) THEN p.profile_json ELSE '{}' END";
                 $extract=static fn(string $path):string=>$mysql?"JSON_UNQUOTE(JSON_EXTRACT(".$safe.",'".$path."'))":"JSON_EXTRACT(".$safe.",'".$path."')";
                 $frozen="p.id IS NOT NULL AND ".$extract('$.access_status')."='allowed' AND ".$extract('$.subject.project_key')."='anytour'"
-                    ." AND ".$extract('$.subject.platform')."=o.platform"
+                    ." AND HEX(".$extract('$.subject.platform').")=HEX(o.platform)"
                     ." AND HEX(CAST(".$extract('$.subject.customer_key')." AS ".$cast."))=HEX(CAST(c.customer_id AS ".$cast."))"
                     ." AND HEX(CAST(".$extract('$.subject.conversation_id')." AS ".$cast."))=HEX(CAST(o.conversation_id AS ".$cast."))";
                 $sql='SELECT o.id,o.conversation_id,o.platform,o.target,o.event_unix,o.value_rub,o.value_stage,o.state,o.last_error,o.upload_status,'
@@ -162,11 +164,12 @@ final class ModeledConversionDeliveryRegistry
     private function base(bool $mysql,bool $profile=false):string
     {
         $cast=$mysql?'CHAR':'TEXT';$peer=$mysql?"CONCAT('-',o.external_user_id)":"'-'||o.external_user_id";
-        return 'FROM max_channel_conversion_outbox o JOIN conversations c ON c.id=o.conversation_id AND c.project_key=o.project_key AND c.channel=o.platform'
-            .' JOIN customer_channels cc ON cc.id=c.customer_channel_id AND cc.customer_id=c.customer_id AND cc.project_key=c.project_key AND cc.channel=c.channel'
+        return 'FROM max_channel_conversion_outbox o JOIN conversations c ON c.id=o.conversation_id AND HEX(c.project_key)=HEX(o.project_key) AND HEX(c.channel)=HEX(o.platform)'
+            .' JOIN customer_channels cc ON cc.id=c.customer_channel_id AND cc.customer_id=c.customer_id AND HEX(cc.project_key)=HEX(c.project_key) AND HEX(cc.channel)=HEX(c.channel)'
             .' JOIN customers cu ON cu.id=c.customer_id'
-            .($profile?' LEFT JOIN modeled_conversion_profile_versions p ON p.id=o.value_profile_id AND p.project_key=o.project_key AND p.platform=o.platform AND p.conversation_id=o.conversation_id AND p.customer_key=CAST(c.customer_id AS '.$cast.')':'')
+            .($profile?' LEFT JOIN modeled_conversion_profile_versions p ON p.id=o.value_profile_id AND HEX(p.project_key)=HEX(o.project_key) AND HEX(p.platform)=HEX(o.platform) AND p.conversation_id=o.conversation_id AND HEX(p.customer_key)=HEX(CAST(c.customer_id AS '.$cast.'))':'')
             ." WHERE o.project_key='anytour' AND o.counter_id='98615635' AND o.transport_target='anytour_modeled_value_v1' AND o.value_contract='semantic_stage_value_25000_v1'"
+            ." AND HEX(o.project_key)=HEX('anytour') AND HEX(o.transport_target)=HEX('anytour_modeled_value_v1') AND HEX(o.value_contract)=HEX('semantic_stage_value_25000_v1')"
             ." AND o.platform IN ('max','telegram') AND c.is_test=0 AND NOT ".InternalOwnerDialogueScope::conversationSql('c')
             .' AND HEX(CAST(cc.external_user_id AS '.$cast.'))=HEX(CAST(o.external_user_id AS '.$cast.'))'
             .' AND HEX(CAST(cc.external_chat_id AS '.$cast.'))=HEX(CAST(c.external_chat_id AS '.$cast.'))'

@@ -163,7 +163,7 @@ for(const width of[390,430,768,1440])test.describe('Private modeled delivery reg
   if(browserName==='chromium'&&[390,1440].includes(width))
    console.log('MVR-PREVIEW-'+width+':'+png.toString('base64'));
   await page.locator('.event-details').first().locator('summary').click();
-  await expect(page.locator('.event-details').first()).toContainText('профиле №901');
+  await expect(page.locator('.event-details').first()).toContainText('профилем №901');
   await expect(page.locator('.event-details').first()).toContainText('точное время подтверждения');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   expect(state.unexpected).toEqual([]);expect(state.errors).toEqual([]);

@@ -42,11 +42,11 @@ final class ModeledConversionDeliveryRegistryView
         }else{
             $summary=is_array($page['summary']??null)?$page['summary']:[];
             $html.='<div class="totals" aria-label="Итоги выбранного дня"><div class="total"><span>Начислено за день</span><strong>'.self::money($summary['value_rub']??null).'</strong>'
-                .'<small>'.self::integer($summary['events']??null).' начислений · '.self::integer($summary['conversations']??null).' диалогов</small></div>';
+                .'<small>Начислений: '.self::integer($summary['events']??null).' · диалогов: '.self::integer($summary['conversations']??null).'</small></div>';
             $delivery=is_array($summary['delivery']??null)?$summary['delivery']:[];
             foreach(['accepted_receipts'=>'Из них принято API','processed'=>'Из них обработано']as$key=>$label){
                 $v=is_array($delivery[$key]??null)?$delivery[$key]:[];
-                $html.='<div class="total"><span>'.$label.'</span><strong>'.self::money($v['value_rub']??null).'</strong><small>'.self::integer($v['events']??null).' начислений</small></div>';
+                $html.='<div class="total"><span>'.$label.'</span><strong>'.self::money($v['value_rub']??null).'</strong><small>Начислений: '.self::integer($v['events']??null).'</small></div>';
             }
             $html.='</div><p class="scope-note">Итоги относятся к начислениям выбранного дня. Приём и обработка могут происходить позже; эти суммы не складываются.</p>';
             $live=$summary['live']??[];$history=$summary['historical_review']??[];
@@ -128,7 +128,7 @@ final class ModeledConversionDeliveryRegistryView
             $html.='<div><dt>'.$label.'</dt><dd>'.self::moment($e[$key]??null).'</dd></div>';
         $html.='</dl><p class="ground">';
         if(($e['grounds_status']??null)==='saved_stage_profile'&&($profile=self::positiveId($e['profile_id']??null))!==null)
-            $html.='Основание: сохранённый этап в профиле №'.self::e($profile).'.';
+            $html.='Начисление связано с сохранённым профилем №'.self::e($profile).'.';
         else $html.='Подробное сохранённое основание недоступно. Начисленный этап указан выше.';
         $html.='</p><p class="muted small">'.(($e['identity_resolved']??false)===true?'Рекламная связка сохранена.':'Подтверждённая рекламная связка пока отсутствует.').'</p>';
         if(($e['api_accepted_at']??null)===null&&($e['api_receipt_present']??false)===true)
@@ -139,7 +139,7 @@ final class ModeledConversionDeliveryRegistryView
     private static function pagination(array $page,string $date,string $platform,bool $hasCursor):string
     {
         $p=is_array($page['pagination']??null)?$page['pagination']:[];
-        $html='<nav class="pagination" aria-label="Страницы реестра"><span>На странице: '.self::integer($p['shown']??null).' диалогов</span>';
+        $html='<nav class="pagination" aria-label="Страницы реестра"><span>Диалогов на странице: '.self::integer($p['shown']??null).'</span>';
         if(($p['has_more']??false)===true&&is_string($p['next_cursor']??null)&&strlen($p['next_cursor'])<=2048)
             $html.='<a class="button" rel="next" href="'.self::e(self::url($date,$platform,$p['next_cursor'])).'">Следующие диалоги →</a>';
         if($hasCursor)$html.='<a href="'.self::e(self::url($date,$platform)).'">В начало</a>';

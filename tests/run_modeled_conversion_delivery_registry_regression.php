@@ -83,6 +83,10 @@ function deliveryRegistryAssertions(PDO $p,callable $check):void
     $p->exec("UPDATE customer_channels SET external_chat_id='wrong-private-peer' WHERE id=208");
     $read=static fn(array $input=[]):array=>(new ModeledConversionDeliveryRegistry($p,$auth,$key))->read(['date'=>$date]+$input,$now);
     $before=deliveryRegistryDataDigest($p);$first=$read();
+    if(($first['available']??false)!==true){
+        $reason=in_array($first['reason']??null,['invalid_request','invalid_cursor','storage_unavailable','invalid_ledger','read_limit'],true)?$first['reason']:'unknown';
+        echo 'REGISTRY SYNTHETIC FIRST READ UNAVAILABLE reason='.$reason.PHP_EOL;
+    }
     $check('registry is an actual recorded-value read with an explicit event-day basis',
         $first['available']&&$first['basis']==='saved_value_event_unix'&&$first['timezone']==='Europe/Kaliningrad');
     $check('same-scope exact day summary counts sixty deltas and fifty-nine conversations beyond one page',
@@ -179,6 +183,12 @@ function deliveryRegistryAssertions(PDO $p,callable $check):void
     $time=0.0;$limited=(new ModeledConversionDeliveryRegistry($p,$auth,$key,static function()use(&$time):float{return $time+=2.0;}))->read(['date'=>$date],$now);
     $check('bounded execution fails closed and releases its read transaction',
         $limited===['available'=>false,'reason'=>'read_limit']&&!$p->inTransaction());
+    // Native case-insensitive column collations must not admit enum variants on an unseen page.
+    $p->exec("UPDATE max_channel_conversion_outbox SET value_stage='Interest' WHERE conversation_id=10 AND target='anytour_value_1_v1'");
+    $caseVariant=$read();
+    $check('capitalized stage on a later page invalidates first-page totals on every SQL collation',
+        $caseVariant===['available'=>false,'reason'=>'invalid_ledger']&&!$p->inTransaction());
+    $p->exec("UPDATE max_channel_conversion_outbox SET value_stage='interest' WHERE conversation_id=10 AND target='anytour_value_1_v1'");
     // Conversation 10 is below the first page; a bad row must invalidate GLOBAL totals before any page is released.
     $p->exec("UPDATE max_channel_conversion_outbox SET value_stage='unknown_stage' WHERE conversation_id=10 AND target='anytour_value_1_v1'");
     $offPageInvalid=$read();

@@ -7,14 +7,14 @@ $check=static function(bool $ok,string $name)use(&$checks,&$failures):void{$chec
 [$page,$input,$monitor]=modeledDeliveryViewFixture();
 $html=ModeledConversionDeliveryRegistryView::render($page,$input,$monitor);
 $check(str_contains($html,'Конверсии')&&str_contains($html,'Закрытый просмотр'),'private owner title');
-$check(str_contains($html,'13 333 ₽')&&str_contains($html,'2 начислений · 2 диалогов'),'whole selected-day totals');
+$check(str_contains($html,'13 333 ₽')&&str_contains($html,'Начислений: 2 · диалогов: 2'),'whole selected-day totals');
 $check(str_contains($html,'833 ₽')&&str_contains($html,'2 083 ₽'),'period increase and lifetime total remain different');
 $check(str_contains($html,'Новый поток:')&&str_contains($html,'Исторический разбор:'),'live and historical origins are distinct');
 $check(str_contains($html,'по дате')||str_contains($html,'По дате начисления'),'assignment-day basis is explicit');
 $check(str_contains($html,'По дате начисления')&&str_contains($html,'суммы не складываются'),'overlapping acceptance cohorts are explained');
 $check(str_contains($html,'method="get"')&&str_contains($html,'name="platform"')&&str_contains($html,'name="date"'),'filters perform GET only');
 $check(str_contains($html,'rel="next"')&&str_contains($html,'cursor=v1.synthetic-fixture.abcdef'),'bounded next-page cursor link');
-$check(str_contains($html,'профиле №901')&&str_contains($html,'Конкретный запрос'),'award tied to recorded stage profile');
+$check(str_contains($html,'профилем №901')&&str_contains($html,'Конкретный запрос'),'award tied to recorded stage profile');
 $check(str_contains($html,'03.11.2026 14:00:00'),'UTC times rendered in Kaliningrad timezone');
 $check(str_contains($html,'точное время подтверждения')&&str_contains($html,'Не записано'),'legacy receipt clock is not fabricated');
 $check(str_contains($html,'найдено несколько')||str_contains($html,'Найдено несколько'),'held identity has a human reason');
