@@ -1,4 +1,4 @@
-name: Inspect four different exact hotel overview candidates
+name: Inspect Savoy native cover and two fixed source image dimensions
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -16,19 +16,30 @@ jobs:
       fail-fast: false
       max-parallel: 2
       matrix:
-        media_group: [0,1]
+        inspect_group: [0,1]
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Inspect only four exact public hotel overview image files
+      - name: Inspect only selected readonly media group
         env:
-          MEDIA_GROUP: ${{ matrix.media_group }}
-        run: python3 tools/direct_demand/operations/inspect-hotel-primary-images-20261103-20.py
+          INSPECT_GROUP: ${{ matrix.inspect_group }}
+          MEDIA_GROUP: 0
+          COVER_GROUP: 0
+        run: |
+          set -euo pipefail
+          if [ "$INSPECT_GROUP" = 0 ]; then
+            python3 tools/direct_demand/operations/inspect-hotel-primary-images-20261103-20.py
+          else
+            python3 tools/direct_demand/operations/inspect-canva-covers-20261102-3.py
+          fi
       - uses: actions/upload-artifact@v4
         with:
-          name: commercial-batch20-primary-hero2-group-${{ matrix.media_group }}
-          path: primary-image-inspection.json
+          name: commercial-batch20-reviewed-media-group-${{ matrix.inspect_group }}
+          path: |
+            primary-image-inspection.json
+            native-cover-receipt.json
+            covers/
           retention-days: 14
           if-no-files-found: error
