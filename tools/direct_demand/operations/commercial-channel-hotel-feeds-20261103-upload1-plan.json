@@ -1,0 +1,45 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261103-v1",
+  "state": "THREE_PUBLIC_POST_FEEDS_BUILT_READY_FOR_STATIC_UPLOAD",
+  "goal": "Publish Telegram-only,MAX-only,and combined hotel feeds on an existing owner web host",
+  "scope_hotels": 121,
+  "image_ready_hotels": 119,
+  "image_missing_catalog_ids": [
+    381,
+    469
+  ],
+  "boundaries": [
+    "Only exact canonical sent post_url for existing AnyTour channels",
+    "No message/channel/publication/version IDs or receipts exported separately",
+    "No bot links, website hotel search links, private maps, tokens, clients or paid calls",
+    "Existing strict authenticated GHA route and server only; three staticCSVfiles,no runtime/controller/cron",
+    "Do not run weak legacy feed deployment or foreign schedules"
+  ],
+  "criteria": [
+    "Current canonical unique pair per nativehotel, both publicURLs validated",
+    "Three files with unique per-channel PropertyIDs; combined is union",
+    "Preserve image gaps explicitly; no fakeprices/availability",
+    "Publish only whitelisted public files with exact bytes/hash and HTTPSreadback"
+  ],
+  "risks": [
+    "Two hotel rows lack public durable image references; this affects image-based ad formats",
+    "A public post link opens the hotel material; price button remains in the post",
+    "No Yandex import, ad launch or budget change implied"
+  ],
+  "hosting_base_url": "https://app.anytoour.ru/feed/",
+  "feed_row_counts": [
+    121,
+    121,
+    242
+  ],
+  "canonical_read_run_urls": [
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41698180219",
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41698629936"
+  ],
+  "static_file_names": [
+    "hotel-posts-telegram.csv",
+    "hotel-posts-max.csv",
+    "hotel-posts-all.csv"
+  ],
+  "authorization": "Pavel requested upload to his hosting and clarified three feeds with links to actual Telegram/MAX posts. Only their public post destinations are exported."
+}
