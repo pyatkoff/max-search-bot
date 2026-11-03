@@ -36,6 +36,22 @@ their own full workflow SHA and the same current-main and production-SHA gates.
 Release evidence must associate automatic checks with the recorded upstream
 Deploy run and exact target SHA, rather than searching only for `push` runs.
 
+## Required scheduled-worker observations
+
+Production still requires both existing `verify-cron` commands to observe two
+new scheduled ticks, with their original interval, deadline and failure rules.
+The cron entries are reconciled serially. Once both entries pass their existing
+count checks, `tools/verify_deploy_crons.sh` starts the two read-only observers
+together and requires both to succeed. It never invokes a worker tick or provider.
+
+The pending hotel backup stays available until both results are known. A hotel
+failure restores that earlier boundary; a development-only failure preserves the
+confirmed hotel entry and restores the development boundary. A configuration
+failure before observation restores the still-unverified pair. Temporary
+snapshots and observer logs are removed; cancellation stops both child observers.
+Schedules, enable flags, business states and the verifier implementations do not
+change. A faster overlap does not waive either mandatory result.
+
 ## Required pre-merge check
 
 Run:
