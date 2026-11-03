@@ -1,0 +1,142 @@
+{
+  "operation": "commercial-hotel-batch-20261103-19-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Publish the six ready whole hotel materials once in each existing authorized channel.",
+  "boundaries": "Existing publisher,registry,durable once and two channels only. Twelve messages maximum. No new quote requests,price claims,channel settings,ad changes,new runtime or Mac access.",
+  "criteria": "Exact current48d source and original successful verify/TLS,21 unchanged publishing blobs,host continuity,schema,rights and current dedup. Exactly12 provider-confirmed records matching prepared text/photo hashes and canonical buttons/source.",
+  "risks": "The Renaissance draft lacks an accepted overall hotel hero and is deferred. Hotel-specific Club/child-category restrictions stay scoped. No unverified package inclusion or price is added.",
+  "baseline_logical_materials": 99,
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "hotel_id": 249,
+      "hotel": "HILTON PLAZA",
+      "key": "hilton-hurghada-plaza",
+      "aliases": [
+        "HILTON PLAZA",
+        "Hilton Hurghada Plaza"
+      ],
+      "sources": [
+        "https://www.hilton.com/en/hotels/hrghitw-hilton-hurghada-plaza/"
+      ],
+      "text": "🌊 Hilton Hurghada Plaza\nТур с перелётом в Хургаду, Египет.\n\n🏖️ Собственный пляж на Красном море.\n💦 Бассейны для взрослых и детей.\n🎾 Теннисные корты, тренажёрный зал и SPA.\n🍽️ Рестораны и бары на территории.\n\n💡 Из отеля есть прямой выход в торговый центр City Center Mall. Удобно, если хочется совместить пляж и прогулки по магазинам.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-hilton-hurghada-plaza-249-v1",
+      "text_sha256": "aa114c7d841ff5d30cf576b27c02f7e37038b7e247f901e3af27a69e9a19271d",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4daf5a926a75e58235980ac66de5938722dfe980/.github/traffic-publish/commercial-batch-20261103-19/249.png",
+      "photo_sha256": "30a198d59227683e0737ef69919a6076630b5f1f0c543d7746f4621cc651ef22",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 315,
+      "hotel": "HURGADA MARRIOTT BEACH RESORT",
+      "key": "hurghada-marriott-beach",
+      "aliases": [
+        "HURGADA MARRIOTT BEACH RESORT",
+        "Hurghada Marriott Beach Resort"
+      ],
+      "sources": [
+        "https://www.marriott.com/en-us/hotels/hrgeg-hurghada-marriott-beach-resort/overview/"
+      ],
+      "text": "🌴 Hurghada Marriott Beach Resort\nТур с перелётом в Хургаду, Египет.\n\n🏖️ Отель у пляжа Красного моря.\n🤿 На территории работает дайвинг центр.\n🎾 Есть теннисные корты и тренажёрный зал.\n🍽️ Пять ресторанов и два бара.\n\n💡 У отеля есть небольшой остров с рестораном Bamboo Island. С берегом его соединяет мост.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-hurghada-marriott-beach-315-v1",
+      "text_sha256": "98868543e34b695d4b0379044668cfe3583608ca2c3085c53abad906b5968a27",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4daf5a926a75e58235980ac66de5938722dfe980/.github/traffic-publish/commercial-batch-20261103-19/315.png",
+      "photo_sha256": "e8e987ee34b3677fcc8f61e465e336e249a97d64385cc6ddb5c524653c419482",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 465,
+      "hotel": "STELLA DI MARE BEACH HOTEL & SPA",
+      "key": "stella-di-mare-sharm",
+      "aliases": [
+        "STELLA DI MARE BEACH HOTEL & SPA",
+        "Stella Di Mare Beach Hotel & Spa"
+      ],
+      "sources": [
+        "https://stelladimare.com/beach-hotel-spa/our-hotel/"
+      ],
+      "text": "🌊 Stella Di Mare Beach Hotel & Spa\nТур с перелётом в Шарм эль Шейх, район Наама Бей.\n\n🤿 На территории работает дайвинг центр PADI.\n🎭 Есть дневная анимация для детей и взрослых.\n🚌 В Наама Бей ходит автобус отеля по предварительной записи.\n💦 На территории есть открытый бассейн.\n\n💡 Категории Villa и Panoramic не принимают детей. Для семей предусмотрены другие типы номеров.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-stella-di-mare-sharm-465-v1",
+      "text_sha256": "d015a0014e9a1e0f3fcabe660d0ab4459f1897e91108801dc766dce040a16f28",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4daf5a926a75e58235980ac66de5938722dfe980/.github/traffic-publish/commercial-batch-20261103-19/465.png",
+      "photo_sha256": "3cbe6907c1a0c2157aae65e45b1d13138b796af668b9f704b3afb12dd369ee57",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 272,
+      "hotel": "CONTINENTAL HOTEL HURGHADA",
+      "key": "continental-hurghada",
+      "aliases": [
+        "CONTINENTAL HOTEL HURGHADA",
+        "Continental Hotel Hurghada"
+      ],
+      "sources": [
+        "https://www.continental-hurghada.com/en",
+        "https://www.continental-hurghada.com/en/activities",
+        "https://continental-hurghada.com/en/restaurants-bars"
+      ],
+      "text": "🏖️ Continental Hotel Hurghada\nТур с перелётом в Хургаду, Египет.\n\n🌊 Собственный песчаный пляж и марина.\n🤿 Дайвинг центр находится у марины отеля.\n💦 На территории есть большой бассейн.\n🧒 Для детей работают клуб и игровая площадка.\n\n💡 Бар Sundeck на крыше предназначен только для взрослых. Сам отель принимает семьи с детьми.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-continental-hurghada-272-v1",
+      "text_sha256": "69bd35c4cc5dab2c971304ecdc07f5ae348e58aa50744990b36a03c78735f28d",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4daf5a926a75e58235980ac66de5938722dfe980/.github/traffic-publish/commercial-batch-20261103-19/272.png",
+      "photo_sha256": "a85df85a206fc8ba25e07eb5bb734ac615a88dd6934793f8e8a53ade014d3e13",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 260,
+      "hotel": "PARK REGENCY SHARM EL SHEIKH (EX. HYATT REGENCY SSH)",
+      "key": "park-regency-sharm",
+      "aliases": [
+        "PARK REGENCY SHARM EL SHEIKH (EX. HYATT REGENCY SSH)",
+        "Park Regency Sharm El Sheikh"
+      ],
+      "sources": [
+        "https://www.parkregency.net/",
+        "https://www.parkregency.net/lifestyle-activities",
+        "https://www.parkregency.net/newpage"
+      ],
+      "text": "🐠 Park Regency Sharm El Sheikh\nТур с перелётом в Шарм эль Шейх, бухта Гарденс Бей.\n\n🏖️ У отеля три пляжа.\n💦 Каскадные бассейны, ленивая река и водная горка.\n🧒 Детский клуб Oasis с игровой комнатой и собственным затенённым бассейном.\n🏋️ Тренажёрный зал и теннисные корты на территории.\n\n💡 Regency Club находится в отдельном корпусе со своими зонами отдыха. Его привилегии относятся к этой категории размещения.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-park-regency-sharm-260-v1",
+      "text_sha256": "1abdd7b81c6e2c77bff273c9eb33be2cd2374b1993bc7ba16d159015c7f65add",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4daf5a926a75e58235980ac66de5938722dfe980/.github/traffic-publish/commercial-batch-20261103-19/260.png",
+      "photo_sha256": "d419cbaf86968b25f21eef54ef14c1d94c559b41b6837c67fad72ab558559a42",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 273,
+      "hotel": "PALM ROYALE SOMA BAY (EX. SENTIDO PALM ROYALE)",
+      "key": "sentido-palm-royale",
+      "aliases": [
+        "PALM ROYALE SOMA BAY (EX. SENTIDO PALM ROYALE)",
+        "Palm Royale Soma Bay"
+      ],
+      "sources": [
+        "https://www.palmroyaleresort.com/",
+        "https://www.palmroyaleresort.com/de/accommodation"
+      ],
+      "text": "🌴 Palm Royale Soma Bay\nТур с перелётом в Сома Бей, Египет.\n\n🏖️ Собственный пляж протяжённостью 1,2 км.\n🌿 Сады занимают 70 000 м² территории.\n🍽️ Есть рестораны итальянской, азиатской, греческой и ливанской кухни.\n🛏️ Номера Superior площадью 45 м² с балконом или террасой.\n\n💡 Swim Up и Club представлены отдельными категориями. Это стоит учитывать при выборе номера.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-sentido-palm-royale-273-v1",
+      "text_sha256": "8ecdf3276f8851d30d8c7dcedd1125edd7f2a91845c9db4901be7decb06ff492",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4daf5a926a75e58235980ac66de5938722dfe980/.github/traffic-publish/commercial-batch-20261103-19/273.png",
+      "photo_sha256": "de45a5676376454a5a942a7f6de3a34f15b50c982e46081a5526eafe1054bf23",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    }
+  ],
+  "ready_for_send_count": 6,
+  "new_posts": 0,
+  "provider_send_attempts": 0,
+  "content_and_cover_prepared_count": 6,
+  "approved_live_send_count": 12,
+  "public_png_frozen_count": 6,
+  "native_inspection_state": "SIX_REAL_NATIVE_PNG_VISUALLY_VERIFIED",
+  "native_inspection_run_urls": [
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41612459663",
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41613573210"
+  ],
+  "deferred": [
+    {
+      "hotel_id": 382,
+      "state": "WHOLE_CONTENT_READY_GENERAL_HOTEL_HERO_DEFERRED_NOT_SENT"
+    }
+  ]
+}
