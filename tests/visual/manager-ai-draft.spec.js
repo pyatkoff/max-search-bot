@@ -118,6 +118,7 @@ async function replyFitsAssistant(page){
 async function assistantPaint(page,selector){return page.locator(selector).evaluate(node=>{const r=node.getBoundingClientRect(),body=node.closest('.aiDraftBody'),scroller=body&&getComputedStyle(body).overflowY!=='visible'?body:node.closest('#aiDraftPanel'),s=scroller.getBoundingClientRect(),top=Math.max(r.top,s.top,0),bottom=Math.min(r.bottom,s.bottom,innerHeight),left=Math.max(r.left,s.left,0),right=Math.min(r.right,s.right,innerWidth),hit=bottom>top&&right>left?document.elementFromPoint((left+right)/2,(top+bottom)/2):null;return {height:Math.max(0,bottom-top),targetHeight:r.height,hostHeight:s.height,hit:!!hit&&(hit===node||node.contains(hit)),fontSize:parseFloat(getComputedStyle(node).fontSize)}})}
 async function readAssistantSection(page,selector){await page.locator(selector).scrollIntoViewIfNeeded();await expect.poll(async()=>{const p=await assistantPaint(page,selector);return p.hit&&p.height>=Math.min(p.targetHeight,p.hostHeight-8)-1}).toBe(true)}
 async function openPreparationSettings(page){await page.locator('#m2ConversationMenuToggle').click();await page.locator('.m2ConversationMenu #aiPreparationSettings').click();await expect(page.locator('#pwPreparation')).toBeVisible()}
+async function openConversationMenu(page){const menu=page.locator('.m2ConversationMenu');if(!await menu.evaluate(el=>el.open))await page.locator('#m2ConversationMenuToggle').click();await expect(menu).toHaveAttribute('open','')}
 async function openRequestProfile(page){const button=page.locator('#m2RequestProfileOpen');if(!await button.isVisible())await page.locator('#m2ConversationMenuToggle').click();await button.click()}
 async function openAi(page,{owner=false}={}){await (owner?page.getByRole('button',{name:'AI · Просмотр',exact:true}):page.locator('#aiDraftOpen')).click();await expect(page.locator('#aiDraftPanel')).toBeVisible()}
 async function settled(page){await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0)}
@@ -527,7 +528,7 @@ for(const width of [390,1440])test(`current-trip panel keeps profile and ready r
   await expect(page.locator('#replyText')).toHaveValue(prepared().draft);
   expect(state.calls.some(c=>c.action==='generate')).toBe(false);
   expect(state.calls.filter(c=>c.action==='save'&&c.path==='/manager/request-profile-api.php')).toHaveLength(1);
-  if(width<=740)await page.locator('#m2ConversationMenuToggle').click();
+  if(width<=740)await openConversationMenu(page);
   await expect(page.locator('#tourSelectionOpen')).toBeVisible();
   expect(await page.evaluate(()=>WorkspaceV2.S.current)).toBe(11);
   if(width<=740)await page.locator('#m2ConversationMenuToggle').click();
@@ -585,7 +586,7 @@ test('current-trip panel retains unsaved profile and composer and consumes brows
   await expect(profile.locator('#profileLabel')).toHaveValue('Ещё не сохранённая поездка');expect(page.context().pages()).toHaveLength(1);
   await page.getByRole('button',{name:'Готово',exact:true}).click();await page.locator('#mobileLeadClose').click();
   await expect(page.locator('#replyText')).toHaveValue('Не потерять этот ответ');
-  await page.locator('#m2ConversationMenuToggle').click();await expect(page.locator('.m2ConversationMenu #pwGroupOpen')).toBeVisible();
+  await openConversationMenu(page);await expect(page.locator('.m2ConversationMenu #pwGroupOpen')).toBeVisible();
   await page.locator('#pwGroupOpen').click();await expect(page.locator('#pwDialog')).toBeVisible();
   await page.keyboard.press('Escape');await expect(page.locator('#pwDialog')).not.toBeVisible();
   await expect(page.locator('#pwGroupOpen')).toBeFocused();clean(state);
@@ -652,7 +653,8 @@ test('current-trip panel rechecks profile freshness after editing an existing me
   state.setProfileHandler(async data=>data.action==='get'?{body:{ok:true,viewer_id:7,conversation_id:11,profile:{version:1,label:'Уточнённые основания',status:'source_changed'}}}:undefined);
   state.messages.get(11).at(-1).text='Тот же ID: питание изменилось, отель нужно пересмотреть';
   expect(await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible())).toBe(true);
-  await expect(page.locator('#m2CurrentTrip .m2RequestStatus')).toHaveText('Исходные данные изменились. Сверьте запрос.');
+  await openConversationMenu(page);
+  await expect(page.locator('#m2RequestStatus')).toHaveText('Исходные данные изменились. Сверьте запрос.');await expect(page.locator('.m2ConversationMenu #m2RequestStatus')).toBeVisible();
   expect(state.calls.filter(c=>c.path==='/manager/request-profile-api.php'&&c.action==='get').length).toBeGreaterThan(before);clean(state);
 });
 
