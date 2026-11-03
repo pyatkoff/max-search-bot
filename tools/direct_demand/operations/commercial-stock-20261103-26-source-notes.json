@@ -1,0 +1,63 @@
+{
+  "operation": "commercial-stock-20261103-26-primary-notes",
+  "state": "PRIMARY_TEXT_PREPARED_PHOTOS_UNVERIFIED_NOT_SENT",
+  "catalog_ids": [
+    129,
+    74258
+  ],
+  "captions": [
+    {
+      "hotel_id": 129,
+      "hotel": "Cook's Club El Gouna",
+      "text": "✈️ Туры в Cook's Club El Gouna с перелётом\n📍 Эль Гуна, Египет.\n\n🏖 Отель у солёной морской лагуны.\n🏊 Центральный бассейн с зоной отдыха.\n🧘 Открытый зал для йоги и тренажёры на свежем воздухе.\n\n💡 Это отель для взрослых с музыкой у бассейна и вечеринками по пятницам. Для полной тишины стоит выбрать другой вариант.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Cook's Club El Gouna.",
+      "sources": [
+        "https://www.cooksclub.com/our-hotels/cooks-club-el-gouna-egypt/",
+        "https://www.cooksclub.com/our-hotels/cooks-club-el-gouna-egypt/amenities/"
+      ]
+    },
+    {
+      "hotel_id": 74258,
+      "hotel": "Casa Cook El Gouna",
+      "text": "✈️ Туры в Casa Cook El Gouna с перелётом\n📍 Эль Гуна, Египет.\n\n🏖 Собственный пляж и три открытых бассейна.\n🧘 Тренажёрный зал и открытый зал для йоги.\n🌿 Спа с хаммамом, саунами и подогреваемым бассейном.\n\n💡 Отель принимает гостей от 16 лет. Выход к общему бассейну есть у категории Swim Up, личный бассейн у отдельных вилл.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Casa Cook El Gouna.",
+      "sources": [
+        "https://casacook.com/our-hotels/casa-cook-el-gouna/",
+        "https://casacook.com/our-hotels/casa-cook-el-gouna/amenities/",
+        "https://www.elgouna.com/hotels/casa-cook"
+      ]
+    }
+  ],
+  "public_source_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41679611420",
+  "source_read_result": "All six fixed owner HTML attempts returned HTTPError; status codes were not recorded. Do not call them403 or repeat unchanged. Cached official pages are readable.",
+  "photo_refs": [
+    {
+      "hotel_id": 129,
+      "url": "https://www.cooksclub.com/wp-content/uploads/2025/07/5K3A8928-scaled.jpg"
+    },
+    {
+      "hotel_id": 129,
+      "url": "https://www.cooksclub.com/wp-content/uploads/2025/06/EG_HRG_Cooks_Club_El_Gouna_r9wd6kf_00061-scaled.jpg"
+    },
+    {
+      "hotel_id": 74258,
+      "url": "https://casacook.com/wp-content/uploads/2025/05/Canto-5K3A3770-474x600.jpg"
+    },
+    {
+      "hotel_id": 74258,
+      "url": "https://casacook.com/wp-content/uploads/2025/05/Canto-5K3A3864-474x600.jpg"
+    },
+    {
+      "hotel_id": 74258,
+      "url": "https://casacook.com/wp-content/uploads/2025/05/Canto-5K3A9342-474x600.jpg"
+    },
+    {
+      "hotel_id": 74258,
+      "url": "https://casacook.com/wp-content/uploads/2025/05/Canto-5K3A9712-474x600.jpg"
+    }
+  ],
+  "risks": [
+    "Casa Cook navigation includes Samos and other hotels; only exact ElGouna gallery membership is usable",
+    "Current Casa owner states129rooms, older100 room material not used",
+    "Cook's Club exact16+ age not established by new owner body, caption says adults without a number"
+  ],
+  "new_posts": 0
+}

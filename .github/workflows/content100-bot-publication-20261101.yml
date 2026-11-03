@@ -1,4 +1,4 @@
-name: Publish two prepared AnyTour hotels in both existing channels
+name: Link two new published hotels to the existing public hotel feed
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -38,20 +38,21 @@ jobs:
           tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
           gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
           python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
-      - name: Prepare the exact verified two-hotel batch after current release acceptance
+      - name: Prepare the two new public feed inputs with unchanged accepted guards
         shell: bash
         run: |
           set -euo pipefail
           umask 077
           python3 - <<'PY'
-          import hashlib,json,os,pathlib
-          base=pathlib.Path('tools/direct_demand/operations')
-          assert hashlib.sha256((base/'prepare-commercial-batch.py').read_bytes()).hexdigest()=='216e1b5ce439a3c68553c4925cac1a499a16d9f3433b2a13c1b15e07574adbdf'
-          approval=json.loads((base/'commercial-batch-20261103-25-approval.json').read_text())
-          assert approval['expected_installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA']
-          assert approval['operation']=='commercial-hotel-batch-20261103-25-v1' and len(approval['hotel_ids'])==2
+          import os,pathlib,base64,hashlib,json
+          source=pathlib.Path('tools/direct_demand/operations/read-commercial-hotel-feed-20261103-export8.php').read_text()
+          prefix="<?php\ndeclare(strict_types=1);\n"
+          assert source.startswith(prefix)
+          inputs=pathlib.Path('tools/direct_demand/operations/commercial-hotel-feed-20261103-export8-inputs.json').read_bytes()
+          assert [r['hotel_id'] for r in json.loads(inputs)]==[464,103021]
+          header=prefix+"const EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\n"+"const FEED_EXPORT_INPUT_B64='"+base64.b64encode(inputs).decode()+"';\n"+"const FEED_EXPORT_INPUT_SHA256='"+hashlib.sha256(inputs).hexdigest()+"';\n"
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.php').write_text(header+source[len(prefix):])
           PY
-          python3 tools/direct_demand/operations/prepare-commercial-batch.py --manifest tools/direct_demand/operations/commercial-batch-20261103-25-manifest.json --approval tools/direct_demand/operations/commercial-batch-20261103-25-approval.json --output "$RUNNER_TEMP/channel-preflight.php"
           php -l "$RUNNER_TEMP/channel-preflight.php"
       - name: Prepare existing server connection
         env:
@@ -91,7 +92,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Publish the exact approved two hotel pairs with canonical buttons and no duplicates
+      - name: Read two new canonical hotel pairs and only public catalogue fields
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -99,30 +100,31 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
+          probe_status=0
           ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-preflight.php" > "$RUNNER_TEMP/channel-preflight.json" || probe_status=$?
           python3 - <<'PY'
           import pathlib,json,os
           lines=pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.json').read_text().splitlines()
           d=json.loads(lines[-1])
-          assert d['operation']=='commercial-hotel-batch-20261103-25-v1' and d['mode']=='publish_approved_commercial_batch'
-          assert d['ok'] is True and len(d['posts'])==4
-          assert d['post_write_attempts']<=4 and d['new_posts']<=4
-          assert len({(p['platform'],p['logical_id']) for p in d['posts']})==4
-          assert all(p['body_photo_button_verified'] and p['button_text']=='✈️ Узнать стоимость тура' for p in d['posts'])
-          summary={'operation':d['operation'],'ok':d['ok'],'verified_posts':len(d['posts']),'new_posts':d['new_posts'],'post_write_attempts':d['post_write_attempts'],'reused_existing':sum(bool(p.get('reused_existing')) for p in d['posts']),'all_body_photo_button_verified':all(p['body_photo_button_verified'] for p in d['posts'])}
-          print(json.dumps(summary,ensure_ascii=False,sort_keys=True))
+          assert d['operation']=='commercial-hotel-feed-20261103-export8' and d['mode']=='read_bounded_public_hotel_feed_inputs'
+          assert d['ok'] is True and d['scope_hotels']==2 and d['feed_rows']==2 and d['deferred_count']==0
+          assert {r['hotel_id'] for r in d['rows']}=={464,103021}
+          assert d['db_writes']==d['provider_calls']==d['message_sends']==0
+          assert all(r['paired_material_count']==1 for r in d['rows'])
+          print(json.dumps(d,ensure_ascii=False,sort_keys=True))
           PY
-          test "${probe_status:-0}" = 0
+          test "$probe_status" = 0
       - name: Retain bounded route evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-batch-20261103-25-publication
-          path: ${{ runner.temp }}/channel-preflight.json
+          name: commercial-hotel-feed-20261103-export8
+          path: |
+            ${{ runner.temp }}/channel-preflight.json
           retention-days: 14
           if-no-files-found: warn
       - name: Remove ephemeral connection and script files
         if: always()
         shell: bash
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-preflight.php" "$RUNNER_TEMP/channel-preflight.json"
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-preflight.php" "$RUNNER_TEMP/channel-preflight.json" "$RUNNER_TEMP/read4-summary.json"
 

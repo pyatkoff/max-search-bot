@@ -1,0 +1,16 @@
+[
+  {
+    "hotel_id": 464,
+    "name": "Steigenberger Golf Resort El Gouna",
+    "accepted_first_line": "✈️ Туры в Steigenberger Golf Resort El Gouna с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/42f64c23041106e34e477c95c668e182ebbb874c/.github/traffic-publish/commercial-batch-20261103-25/464.png",
+    "image_sha256": "5279ed3c2c272a6396f46866c2a286db2587fb835b0bf1b4bfec488bbf5e8138"
+  },
+  {
+    "hotel_id": 103021,
+    "name": "The Chedi El Gouna",
+    "accepted_first_line": "✈️ Туры в The Chedi El Gouna с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/42f64c23041106e34e477c95c668e182ebbb874c/.github/traffic-publish/commercial-batch-20261103-25/103021.png",
+    "image_sha256": "7cbbfbe3e86859dcd870d564114d49c3881a04a4aa41d75ea744bc09e605c3e7"
+  }
+]

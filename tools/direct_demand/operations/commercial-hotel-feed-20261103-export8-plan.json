@@ -1,0 +1,23 @@
+{
+  "operation": "commercial-hotel-feed-20261103-export8",
+  "state": "PREPARED_NOT_RUN_PAIR_PUBLICATION_REQUIRED",
+  "catalog_ids": [
+    464,
+    103021
+  ],
+  "goal": "Link two newly published hotel pairs to the same static public feed",
+  "boundaries": [
+    "One bounded canonical/catalogue read after publication",
+    "Public destinations and accepted immutable photos only; no private receipts/provider readbacks",
+    "Preserve previous112 CSV rows byte-for-byte and omit price/availability"
+  ],
+  "criteria": [
+    "Two unique currently sent canonical pairs and active native country/region fields",
+    "Accepted image bytes hashes; exact CSV raw readback",
+    "No Yandex import or ad changes"
+  ],
+  "risks": [
+    "Publication not yet performed",
+    "Current source43 still deploying and needs same-version strict TLS"
+  ]
+}

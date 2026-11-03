@@ -1,0 +1,23 @@
+{
+  "operation": "commercial-monitor-stock-20261103-26",
+  "state": "MONITOR_INPUTS_MERGED_NOT_COLLECTED",
+  "catalog_ids": [
+    129,
+    74258
+  ],
+  "previous_inputs": 629,
+  "monitor_inputs": 631,
+  "pr_url": "https://github.com/pyatkoff/poisk-turov-test/pull/4981",
+  "merge_commit": "bc6de1f49c2a58831bcaa934dcc926d505acf56e",
+  "native_runs": [
+    41679081763,
+    41679081820,
+    41679081771
+  ],
+  "focused_count": 631,
+  "previous_target_preservation": 629,
+  "existing_search_resume_verified": true,
+  "production_collector_dispatched": false,
+  "price_edits": 0,
+  "new_posts": 0
+}
