@@ -319,7 +319,7 @@ function modeledDenseProfileAssertions(PDO $p,callable $check):void
         $scope=(string)(5000+$i);
         for($j=0;$j<50;$j++){
             $x=$snap;$x['source_id']=(string)(10000+$i*50+$j);$x['conversation_id']=$scope;$x['customer_key']=$scope;
-            modeledProfileAppend($p,$x,$now+2);$journal=(string)$p->lastInsertId();
+            modeledProfileAppend($p,$x,$now+2);$journal=(string)$p->query("SELECT MAX(id) FROM modeled_conversion_stream_versions WHERE project_key='anytour'")->fetchColumn();
             $p->prepare('INSERT INTO modeled_conversion_profile_sources(project_key,source_kind,source_id,platform,customer_key,conversation_id,journal_id,source_status) VALUES(?,?,?,?,?,?,?,?)')
                 ->execute(['anytour','message',$x['source_id'],$x['platform'],$scope,$scope,$journal,'present']);
             if($j===0)$contexts[]=$x;
@@ -358,7 +358,7 @@ function modeledDenseProfileAssertions(PDO $p,callable $check):void
         &&$first===$unchanged);
     // An old admitted reference larger than the remaining raw-copy budget must be omitted in SQL.
     $huge=$ninth;$huge['source_id']='20001';$huge['payload']['text']=str_repeat('x',1048577);
-    modeledProfileAppend($p,$huge,$now+7);$hugeId=(string)$p->lastInsertId();
+    modeledProfileAppend($p,$huge,$now+7);$hugeId=(string)$p->query("SELECT MAX(id) FROM modeled_conversion_stream_versions WHERE project_key='anytour'")->fetchColumn();
     $p->prepare('INSERT INTO modeled_conversion_profile_sources(project_key,source_kind,source_id,platform,customer_key,conversation_id,journal_id,source_status) VALUES(?,?,?,?,?,?,?,?)')
         ->execute(['anytour','message',$huge['source_id'],$huge['platform'],'6000','6000',$hugeId,'present']);
     $p->prepare("UPDATE modeled_conversion_profiles_state SET journal_cursor=? WHERE project_key='anytour'")->execute([$hugeId]);
