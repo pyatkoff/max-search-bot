@@ -39,8 +39,10 @@ PHP);
     file_put_contents($dir.'/services/MetrikaConversionGoalService.php',<<<'PHP'
 <?php
 class MetrikaConversionGoalService {
-    public static array $calls=[];public static bool $throws=false;
+    public static array $calls=[];public static bool $throws=false;public static array $stageCalls=[];public static array $transactionStates=[];
+    public static function salesStage(int $id,string $stage):bool {self::$stageCalls[]=[$id,$stage];self::$transactionStates[]=ConversationDb::connection()->inTransaction();return true;}
     public static function saleOutcome(int $id,string $outcome):bool {
+        self::$transactionStates[]=ConversationDb::connection()->inTransaction();
         try{$receipts=(int)ConversationDb::connection()->query('SELECT COUNT(*) FROM conversation_events')->fetchColumn();}catch(Throwable $ignored){$receipts=null;}
         self::$calls[]=['id'=>$id,'outcome'=>$outcome,'receipts_at_goal'=>$receipts];
         if(self::$throws)throw new RuntimeException('fixture_goal_failed');
@@ -133,6 +135,42 @@ PHP);
     outcomeReceiptCheck('an existing ordinary-goal exception is not newly swallowed or reordered',$threw&&outcomeReceiptCount($p)===$before);
     $before=outcomeReceiptCount($p);
     outcomeReceiptCheck('direct malformed applied-value contract remains a nonfatal coverage gap',!ModeledConversionOutcomeReceipt::observe($p,11,'won',null,7,'7.0',null)&&outcomeReceiptCount($p)===$before);
+
+    // The same authoritative service completes a sale and its custom stage in
+    // one transaction; failures cannot leave only one of the fields changed.
+    $p->exec("ALTER TABLE conversations ADD COLUMN lead_stage_key TEXT NOT NULL DEFAULT 'new'");
+    $p->exec("CREATE TABLE lead_stages(stage_key TEXT PRIMARY KEY,is_active INTEGER,is_terminal INTEGER,is_won INTEGER);
+CREATE TABLE lead_stage_history(id INTEGER PRIMARY KEY AUTOINCREMENT,conversation_id INTEGER,from_stage_key TEXT,to_stage_key TEXT,changed_by_manager_id INTEGER);
+INSERT INTO lead_stages VALUES('new',1,0,0),('custom_won',1,1,1),('custom_lost',1,1,0),('inactive_won',0,1,1)");
+    outcomeReceiptAdd($p,70);outcomeReceiptAdd($p,71);
+    MetrikaConversionGoalService::$transactionStates=[];MetrikaConversionGoalService::$throws=false;DiagnosticLogger::$throws=false;
+    $receiptBefore=outcomeReceiptCount($p);
+    $completed=SalesPipelineService::setOutcomeAndStage(70,'won',null,'fixture completion',7,'250000','2026-11-02','custom_won','new');
+    $completedRow=$p->query('SELECT lead_stage_key,lead_outcome,lead_sale_amount FROM conversations WHERE id=70')->fetch();
+    outcomeReceiptCheck('explicit completion atomically stores custom won stage and normalized sale result',$completed&&$completedRow===['lead_stage_key'=>'custom_won','lead_outcome'=>'won','lead_sale_amount'=>'250000.00']&&(int)$p->query('SELECT COUNT(*) FROM lead_stage_history')->fetchColumn()===1&&outcomeReceiptCount($p)===$receiptBefore+1);
+    outcomeReceiptCheck('completion notifies existing analytics only after commit',MetrikaConversionGoalService::$transactionStates===[false,false]);
+    $acceptedReceipt=outcomeReceiptRows($p)[$receiptBefore]['payload_json'];$receiptBefore=outcomeReceiptCount($p);
+    $goalsBefore=count(MetrikaConversionGoalService::$calls);$stagesBefore=count(MetrikaConversionGoalService::$stageCalls);
+    outcomeReceiptCheck('stale stage does not overwrite another completion',!SalesPipelineService::setOutcomeAndStage(70,'lost','not_travelling',null,7,null,null,'custom_lost','new')&&$p->query('SELECT lead_outcome FROM conversations WHERE id=70')->fetchColumn()==='won'&&outcomeReceiptCount($p)===$receiptBefore);
+    foreach([['lost','custom_won'],['won','custom_lost'],['won','inactive_won'],['open','custom_won']] as [$outcome,$stage]){
+        outcomeReceiptCheck('incompatible or inactive completion stage rejects both changes '.$outcome.'/'.$stage,!SalesPipelineService::setOutcomeAndStage(71,$outcome,$outcome==='lost'?'not_travelling':null,null,7,null,null,$stage,'new')&&$p->query('SELECT lead_outcome FROM conversations WHERE id=71')->fetchColumn()==='open'&&outcomeReceiptCount($p)===$receiptBefore);
+    }
+    $p->exec("CREATE TRIGGER completion_history_failure BEFORE INSERT ON lead_stage_history WHEN NEW.conversation_id=71 BEGIN SELECT RAISE(ABORT,'synthetic history failure'); END");
+    $historyFailed=false;try{SalesPipelineService::setOutcomeAndStage(71,'won',null,null,7,'100',null,'custom_won','new');}catch(PDOException $e){$historyFailed=true;}
+    outcomeReceiptCheck('history failure rolls back stage and result and emits no receipt or goal',$historyFailed&&!$p->inTransaction()&&$p->query('SELECT lead_stage_key FROM conversations WHERE id=71')->fetchColumn()==='new'&&$p->query('SELECT lead_outcome FROM conversations WHERE id=71')->fetchColumn()==='open'&&outcomeReceiptCount($p)===$receiptBefore&&count(MetrikaConversionGoalService::$calls)===$goalsBefore&&count(MetrikaConversionGoalService::$stageCalls)===$stagesBefore);
+    $p->exec('DROP TRIGGER completion_history_failure');
+
+    outcomeReceiptAdd($p,72);$p->exec("UPDATE conversations SET lead_stage_key='custom_won' WHERE id=72");
+    $p->exec("CREATE TRIGGER completion_ignore BEFORE UPDATE ON conversations WHEN NEW.id=72 BEGIN SELECT RAISE(IGNORE); END");
+    outcomeReceiptCheck('unconfirmed zero-row update cannot report a completed booking',!SalesPipelineService::setOutcomeAndStage(72,'won',null,null,7,'100',null,'custom_won','custom_won')&&$p->query('SELECT lead_outcome FROM conversations WHERE id=72')->fetchColumn()==='open'&&outcomeReceiptCount($p)===$receiptBefore);
+    $p->exec('DROP TRIGGER completion_ignore');
+
+    $reopened=SalesPipelineService::setOutcomeAndStage(70,'open',null,null,7,null,null,'new','custom_won');
+    outcomeReceiptCheck('explicit reopening clears sale fields with the nonterminal stage and preserves accepted history',$reopened&&$p->query('SELECT lead_outcome FROM conversations WHERE id=70')->fetchColumn()==='open'&&$p->query('SELECT lead_stage_key FROM conversations WHERE id=70')->fetchColumn()==='new'&&$p->query('SELECT lead_sale_amount FROM conversations WHERE id=70')->fetchColumn()===null&&(int)$p->query('SELECT COUNT(*) FROM lead_stage_history')->fetchColumn()===2&&outcomeReceiptRows($p)[$receiptBefore-1]['payload_json']===$acceptedReceipt);
+
+
+    // Remove only this block's synthetic records; preserve all earlier receipt assertions.
+    $p->exec('DELETE FROM conversation_events WHERE conversation_id IN (70,71,72); DELETE FROM lead_stage_history WHERE conversation_id IN (70,71,72); DELETE FROM conversations WHERE id IN (70,71,72); DELETE FROM customer_channels WHERE id IN (70,71,72)');
     $logs=count(DiagnosticLogger::$entries);$p->exec('DROP TABLE customer_channels');
     outcomeReceiptCheck('canonical scope read failure is also isolated from the successful mutation',SalesPipelineService::setOutcome(11,'open',null,null,7)&&outcomeReceiptCount($p)===$before&&count(DiagnosticLogger::$entries)===$logs+1);
 } catch(Throwable $e) {

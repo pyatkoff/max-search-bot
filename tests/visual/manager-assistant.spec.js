@@ -316,9 +316,9 @@ async function bounded(page){
 }
 async function capture(page,browser,width,label){const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});await page.screenshot({animations:'disabled',path:path.join(directory,`assistant-${browser}-${width}-${label}.png`)})}
 async function openGlobalAssistant(page){
-  const entry=page.locator('#assistantOpen');
-  if(page.viewportSize().width<=740&&!await page.locator('#m2MoreMenu').isVisible())await page.locator('#m2MoreToggle').click();
-  await expect(entry).toBeVisible();await entry.click();
+  // Retain the modal compatibility API; primary Plan journeys are below.
+  await page.locator('[data-m2-nav="tasks"]').focus();
+  await page.evaluate(()=>WorkspaceV2Assistant.open());
 }
 
 for(const width of [390,430,768,1440])test('Manager assistant unifies list and current-client advice without touching reply '+width,withTransitionDiagnostics(async({page,browserName})=>{
@@ -431,7 +431,7 @@ test('late periodic assistant reads cannot steal client navigation focus or acco
   await expect(page.locator('#assistantDetail')).not.toContainText('Устаревший ответ от предыдущего запроса.');
   await expect.poll(()=>page.evaluate(()=>({sameControl:document.activeElement===window.assistantNavigationFocus,connected:window.assistantNavigationFocus.isConnected,activeId:document.activeElement.id,selectedClient:document.querySelector('.assistantClient.isSelected')?.dataset.assistantClient||null}))).toEqual({sameControl:true,connected:true,...focused});
   if(destination==='back'){await expect(page.locator('#assistantDialog')).not.toHaveClass(/hasSelection/);await expect(page.locator('[data-assistant-client="11"]')).toBeFocused()}
-  else if(destination==='close'){await expect(page.locator('#assistantDialog')).not.toBeVisible();await expect(page.locator(page.viewportSize().width<=740?'#m2MoreToggle':'#assistantOpen')).toBeFocused()}
+  else if(destination==='close'){await expect(page.locator('#assistantDialog')).not.toBeVisible();await expect(page.locator('[data-m2-nav=tasks]')).toBeFocused()}
   else{await expect(page.locator('#assistantDetail')).toContainText('Дождаться клиента');await expect(page.locator('#assistantDetail h3')).toHaveText('Клиент выбирает отель')}
   });clean(s);
 });
@@ -482,4 +482,12 @@ for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,
   if(viewport.width<768){await page.getByRole('button',{name:'Назад к диалогам',exact:true}).click();await expect(page.locator('#inboxList')).toBeVisible();}
   await openGlobalAssistant(page);await expect(page.locator('#assistantTitle')).toHaveText('Обзор работы владельца');await expect(page.locator('#assistantSubtitle')).toContainText('всей команды');await expect(page.locator('[data-assistant-client="11"]')).toContainText('Светлана');await expect(page.locator('[data-assistant-client="12"]')).toContainText('Анна');await expect(page.locator('[data-assistant-client="12"]')).toContainText('Pegas');await bounded(page);await capture(page,browserName,viewport.width,'owner-list-'+viewport.height);
   await page.locator('[data-assistant-client="11"]').click();await expect(page.locator('#assistantDetail')).toContainText('Светлана');await expect(page.locator('.assistantRecommendation')).toBeVisible();await expect(page.locator('[data-assistant-decision]')).toHaveCount(0);await bounded(page);await capture(page,browserName,viewport.width,'owner-detail-'+viewport.height);await page.locator('#assistantClose').click();await expect(page.locator('#replyText')).toHaveValue('Сохранить мой незаконченный ответ');await expect(page.locator('#mediaSelection')).toContainText('owner-kept.txt');clean(s);
+});
+
+for(const width of [390,430,768,1440])test('primary My Plan combines actions with advice and retains reply and attachment '+width,async({page,browserName})=>{
+  await page.setViewportSize({width,height:900});const s=await setupAssistant(page);await page.evaluate(()=>WorkspaceV2Conversation.open(11));await page.locator('#replyText').fill('Мой ответ остаётся моим');await page.locator('#replyFile').setInputFiles({name:'keep-plan.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment')});
+  const media=await page.locator('#mediaSelection').textContent();if(await page.locator('#mobileBack').isVisible())await page.locator('#mobileBack').click();
+  await page.locator('[data-m2-nav=tasks]').click();await expect(page.locator('#assistantDialog')).toHaveClass(/assistantPlanView/);await expect(page.locator('#assistantTitle')).toHaveText('Мой план');await expect(page.locator('[data-assistant-client]')).toHaveCount(1);expect(s.calls.filter(c=>c.action==='list').at(-1).scope).toBe('mine');await expect(page.locator('[data-assistant-client="11"]')).toContainText(s.items.get(11).recommendation.reason);
+  await page.locator('[data-assistant-client="11"]').click();await page.locator('#assistantReply').click();await expect(page.locator('#aiDraftPanel')).toBeVisible();await expect(page.locator('#replyText')).toHaveValue('Мой ответ остаётся моим');await expect(page.locator('#mediaSelection')).toHaveText(media);
+  if(await page.locator('#mobileBack').isVisible())await page.locator('#mobileBack').click();await expect(page.locator('#assistantDetail h3')).toHaveText(s.items.get(11).display_name);await page.locator('#assistantBack').click();await page.locator('[data-assistant-filter=waiting]').click();await page.locator('[data-assistant-client="12"]').click();await expect(page.locator('#assistantDetail')).toContainText('Дождаться клиента');await expect(page.locator('#assistantReply,#assistantPlan')).toHaveCount(0);await bounded(page);await capture(page,browserName,width,'primary-plan');clean(s);
 });

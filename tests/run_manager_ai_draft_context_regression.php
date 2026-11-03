@@ -238,6 +238,20 @@ if (($argv[1]??'')==='--hotel-knowledge-read') {
     exit(0);
 }
 
+if (($argv[1]??'')==='--admission-normalization-only') {
+    require_once __DIR__.'/support/manager-ai-reply-admission-regression.php';
+    managerAiReplyAdmissionChecks(true);
+    echo 'Manager reply admission normalization: '.$passed." checks passed\n";
+    exit(0);
+}
+
+if (($argv[1]??'')==='--admission-only') {
+    require_once __DIR__.'/support/manager-ai-reply-admission-regression.php';
+    managerAiReplyAdmissionChecks();
+    echo 'Manager reply admission: '.$passed." checks passed\n";
+    exit(0);
+}
+
 if (($argv[1]??'')==='--hotel-knowledge-http') {
     require_once __DIR__.'/support/hotel-knowledge-http.php';
     hotelKnowledgeHttpChecks();
@@ -907,6 +921,8 @@ INSERT INTO catalog_countries VALUES(1,'Египет',1),(4,'Турция',1),(9
     hotelKnowledgeReadChecks();
     require_once __DIR__.'/support/hotel-knowledge-http.php';
     hotelKnowledgeHttpChecks();
+    require_once __DIR__.'/support/manager-ai-reply-admission-regression.php';
+    managerAiReplyAdmissionChecks();
     echo 'Manager AI draft context: '.$passed." checks passed\n";
 } catch (Throwable $error) {
     fwrite(STDERR, ($error instanceof RuntimeException && str_starts_with($error->getMessage(),'FAIL ') ? $error->getMessage() : 'FAIL synthetic context fixture')."\n");

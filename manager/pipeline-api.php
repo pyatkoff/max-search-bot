@@ -98,6 +98,11 @@ if($action==='set_tags'){
 }
 if($action==='set_outcome'){
     ManagerHttp::requireConversationEdit($c,$m);
+    if(array_key_exists('stage_key',$data)){
+        if(!is_string($data['stage_key'])||!isset($data['expected_stage_key'])||!is_string($data['expected_stage_key']))ManagerHttp::respond(['ok'=>false,'error'=>'invalid_stage'],422);
+        $ok=SalesPipelineService::setOutcomeAndStage($id,(string)($data['outcome']??''),isset($data['close_reason'])?(string)$data['close_reason']:null,isset($data['note'])?(string)$data['note']:null,(int)$m['id'],isset($data['sale_amount'])?(string)$data['sale_amount']:null,isset($data['sale_date'])?(string)$data['sale_date']:null,$data['stage_key'],$data['expected_stage_key']);
+        ManagerHttp::respond(['ok'=>$ok,'error'=>$ok?null:'stage_or_result_changed','pipeline'=>$ok?SalesPipelineService::conversationSnapshot($id):null],$ok?200:409);
+    }
     $ok=SalesPipelineService::setOutcome($id,(string)($data['outcome']??''),isset($data['close_reason'])?(string)$data['close_reason']:null,isset($data['note'])?(string)$data['note']:null,(int)$m['id'],isset($data['sale_amount'])?(string)$data['sale_amount']:null,isset($data['sale_date'])?(string)$data['sale_date']:null);
     ManagerHttp::respond(['ok'=>$ok,'pipeline'=>$ok?SalesPipelineService::conversationSnapshot($id):null],$ok?200:422);
 }

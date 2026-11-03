@@ -298,6 +298,18 @@ try {
 
     assistantCheck('invalid page parameters are rejected',(ManagerAssistantService::listing(1,null,21)['error']??'')==='invalid_request' && (ManagerAssistantService::listing(1,'bad')['error']??'')==='invalid_request');
 
+
+    $pdo=assistantFixture();
+    foreach([2,4] as $id)$pdo->mutate("INSERT INTO conversations SELECT $id,customer_id,project_key,source_id,channel,entry_channel,attribution_region,attribution_campaign,status,lead_stage_key,2,started_at,last_message_at,closed_at,external_chat_id,is_test FROM conversations WHERE id=1");
+    $beforePlan=assistantBusinessState($pdo);
+    $ownPlan=ManagerAssistantService::listing(2,null,1,'mine');
+    $teamPlan=ManagerAssistantService::listing(2,null,20,'team');
+    assistantCheck('admin work plan defaults can be explicitly restricted to own assigned clients',!empty($ownPlan['ok'])&&$ownPlan['coverage']['scope']==='own_active'&&count($ownPlan['items'])===1&&(int)$ownPlan['items'][0]['manager_id']===2);
+    assistantCheck('team work requires an explicit administrator scope',!empty($teamPlan['ok'])&&$teamPlan['coverage']['scope']==='team_active'&&count($teamPlan['items'])===3&&(ManagerAssistantService::listing(1,null,20,'team')['error']??'')==='forbidden');
+    $crossScope=ManagerAssistantService::listing(2,$ownPlan['next_cursor'],1,'team');
+    assistantCheck('a cursor cannot mix personal work with a team page',($crossScope['error']??'')==='list_changed'&&!isset($crossScope['items']));
+    assistantCheck('work scope reads preserve source state and reject unknown scopes',assistantBusinessState($pdo)===$beforePlan&&$pdo->businessWriteAttempts===0&&(ManagerAssistantService::listing(2,null,20,'unknown')['error']??'')==='invalid_request');
+
     $endpoint=file_get_contents(dirname(__DIR__).'/manager/assistant-api.php');
     assistantCheck('assistant endpoint requires canonical auth CSRF and POST with closed actions',str_contains($endpoint,"REQUEST_METHOD") && str_contains($endpoint,'requireManager()') && str_contains($endpoint,'requireCsrf($data)') && str_contains($endpoint,"['detail','decision']") && str_contains($endpoint,'unknown_action') && strpos($endpoint,'initializeReadOnly()')<strpos($endpoint,'requireManager()'));
 } catch (Throwable $error) {

@@ -17,7 +17,7 @@ async function recoverAccount(page,fixture,manager){
 async function openLead(page,id=11){await expect.poll(()=>page.evaluate(()=>!WorkspaceV2.S.booting)).toBe(true);if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()&&WorkspaceV2Mobile.getScreen()!=='inbox'))await page.locator('#mobileBack').click();await page.locator(`#inboxList [data-conversation-id="${id}"] .m2RowOpen`).click();await expect(page.locator('#replyText')).toBeEnabled()}
 async function openPersonal(page){
  const screen=await page.evaluate(()=>WorkspaceV2Mobile.isMobile()?WorkspaceV2Mobile.getScreen():'desktop');
- if(screen==='conversation')await page.locator('#mobileLeadBtn').click();
+ if(screen==='conversation')await page.locator('#conversationTitle.m2ClientCardButton, #mobileLeadBtn:visible').first().click();
  if(screen==='conversation'||screen==='lead')await page.locator('#pwClientOpen').click();else await page.locator('#m2WorkspaceSettings').click();
  await expect(page.locator('#pwDialog')).toBeVisible();await expect(page.locator('#pwDialog')).toContainText('Настройки рабочего места и автоподготовки черновиков.');await expect(page.locator('#pwGroups')).toHaveAttribute('aria-label','Личные группы');
 }

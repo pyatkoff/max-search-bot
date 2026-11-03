@@ -67,9 +67,10 @@ try {
         return $context;
     });
     if($server['handled']){
-        $ok=$server['state']!=='hold';
-        HotelWorkHealth::record($ok?'ok':'failed','server_cycle',[],$trigger);$finished=true;
-        echo json_encode(['ok'=>$ok,'state'=>$server['state'],'server_cycle'=>true],JSON_THROW_ON_ERROR)."\n";exit($ok?0:1);
+        $confirmedHold=$server['state']==='hold'&&($server['worker_completed']??false)===true;
+        $ok=$server['state']!=='hold'||$confirmedHold;
+        HotelWorkHealth::record($ok?'ok':'failed',$confirmedHold?'server_cycle_hold':'server_cycle',[],$trigger);$finished=true;
+        echo json_encode(['ok'=>$ok,'state'=>$server['state'],'server_cycle'=>true,'worker_completed'=>($server['worker_completed']??false)===true],JSON_THROW_ON_ERROR)."\n";exit($ok?0:1);
     }
     $events=new HotelWorkEventService($pdo,connectionAuthorized:
         static fn(string $connection,int $admin,array $required):bool=>$required===[ManagerPreparationOAuth::HOTEL_SCOPE]

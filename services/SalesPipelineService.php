@@ -17,14 +17,62 @@ class SalesPipelineService
     public static function setStage(int $id,string $key,int $actor=0): bool{$key=trim($key);if($id<=0||$key==='')return false;$pdo=ConversationDb::connection();$q=$pdo->prepare('SELECT 1 FROM lead_stages WHERE stage_key=? AND is_active=1 LIMIT 1');$q->execute([$key]);if(!$q->fetchColumn())return false;$q=$pdo->prepare('SELECT lead_stage_key FROM conversations WHERE id=? LIMIT 1');$q->execute([$id]);$current=$q->fetchColumn();if($current===false)return false;$current=(string)$current;if($current===$key)return true;$pdo->beginTransaction();try{$q=$pdo->prepare('UPDATE conversations SET lead_stage_key=? WHERE id=? AND lead_stage_key=?');$q->execute([$key,$id,$current]);if($q->rowCount()!==1){$pdo->rollBack();return self::currentStageKey($id)===$key;}$h=$pdo->prepare('INSERT INTO lead_stage_history (conversation_id,from_stage_key,to_stage_key,changed_by_manager_id) VALUES (?,?,?,?)');$h->execute([$id,$current!==''?$current:null,$key,$actor>0?$actor:null]);$pdo->commit();MetrikaConversionGoalService::salesStage($id,$key);return true;}catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw$e;}}
     public static function setTags(int $id,array $tagIds,int $actor=0): bool{if($id<=0)return false;$tagIds=array_values(array_unique(array_filter(array_map('intval',$tagIds),fn($v)=>$v>0)));$pdo=ConversationDb::connection();$pdo->beginTransaction();try{$valid=[];if($tagIds){$in=implode(',',array_fill(0,count($tagIds),'?'));$q=$pdo->prepare("SELECT id FROM lead_tags WHERE is_active=1 AND id IN ({$in})");$q->execute($tagIds);$valid=array_map('intval',array_column($q->fetchAll(),'id'));}if(count($valid)!==count($tagIds)){$pdo->rollBack();return false;}$pdo->prepare('DELETE FROM conversation_lead_tags WHERE conversation_id=? AND tag_id IN (SELECT id FROM lead_tags WHERE is_active=1)')->execute([$id]);if($valid){$ins=$pdo->prepare('INSERT INTO conversation_lead_tags (conversation_id,tag_id,added_by_manager_id) VALUES (?,?,?)');foreach($valid as $tid)$ins->execute([$id,$tid,$actor>0?$actor:null]);}$pdo->commit();return true;}catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw$e;}}
     public static function setOutcome(int $id,string $outcome,?string $reason,?string $note,int $actor,?string $saleAmount=null,?string $saleDate=null): bool{
-        $outcome=trim($outcome);if(!array_key_exists($outcome,self::outcomeOptions()))return false;$reason=trim((string)$reason);$note=trim((string)$note);
-        if($outcome==='lost'&&!self::closeReasonAllowedForConversation($id,$reason))return false;if($outcome!=='lost')$reason='';if(mb_strlen($note)>500)$note=mb_substr($note,0,500);
+        $values=self::outcomeValues($id,$outcome,$reason,$note,$saleAmount,$saleDate);if($values===null)return false;
+        [$outcome,$reason,$note,$amount,$date]=$values;
+        $pdo=ConversationDb::connection();$q=$pdo->prepare('UPDATE conversations SET lead_outcome=?,lead_close_reason=?,lead_outcome_note=?,lead_sale_amount=?,lead_sale_date=?,lead_outcome_updated_at=NOW(),lead_outcome_manager_id=? WHERE id=?');$q->execute([$outcome,$reason!==''?$reason:null,$note!==''?$note:null,$amount,$date,$actor>0?$actor:null,$id]);$ok=$q->rowCount()>0;if($ok&&$outcome==='won')MetrikaConversionGoalService::saleOutcome($id,$outcome);if($ok)ModeledConversionOutcomeReceipt::observe($pdo,$id,$outcome,$reason!==''?$reason:null,$actor,$amount,$date);return$ok;
+    }
+
+    /** One explicit completion/reopening changes both sales fields or neither. */
+    public static function setOutcomeAndStage(int $id,string $outcome,?string $reason,?string $note,int $actor,?string $saleAmount,?string $saleDate,string $stageKey,string $expectedStage): bool
+    {
+        $values=self::outcomeValues($id,$outcome,$reason,$note,$saleAmount,$saleDate);
+        if($values===null||$actor<=0||trim($stageKey)==='')return false;
+        [$outcome,$reason,$note,$amount,$date]=$values;$stageKey=trim($stageKey);
+        $pdo=ConversationDb::connection();if($pdo->inTransaction())return false;
+        $suffix=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?' FOR UPDATE':'';
+        $pdo->beginTransaction();
+        try{
+            $q=$pdo->prepare('SELECT lead_stage_key FROM conversations WHERE id=?'.$suffix);$q->execute([$id]);$previous=$q->fetchColumn();$q->closeCursor();
+            if($previous===false||(string)$previous!==$expectedStage){$pdo->rollBack();return false;}
+            $q=$pdo->prepare('SELECT is_terminal,is_won FROM lead_stages WHERE stage_key=? AND is_active=1'.$suffix);$q->execute([$stageKey]);$stage=$q->fetch(PDO::FETCH_ASSOC);$q->closeCursor();
+            $compatible=$stage&&($outcome==='open'?(int)$stage['is_terminal']===0:
+                (int)$stage['is_terminal']===1&&((int)$stage['is_won']===1)===($outcome==='won'));
+            if(!$compatible){$pdo->rollBack();return false;}
+            $q=$pdo->prepare('UPDATE conversations SET lead_stage_key=?,lead_outcome=?,lead_close_reason=?,lead_outcome_note=?,lead_sale_amount=?,lead_sale_date=?,lead_outcome_updated_at=NOW(),lead_outcome_manager_id=? WHERE id=? AND lead_stage_key=?');
+            $q->execute([$stageKey,$outcome,$reason!==''?$reason:null,$note!==''?$note:null,$amount,$date,$actor,$id,$expectedStage]);
+            $changed=$q->rowCount()>0;$stageChanged=(string)$previous!==$stageKey;
+            if(!$changed){
+                $q=$pdo->prepare('SELECT lead_stage_key,lead_outcome,lead_close_reason,lead_outcome_note,lead_sale_amount,lead_sale_date,lead_outcome_manager_id FROM conversations WHERE id=?');
+                $q->execute([$id]);$stored=$q->fetch(PDO::FETCH_ASSOC);$q->closeCursor();
+                if(!$stored||$stored['lead_stage_key']!==$stageKey||$stored['lead_outcome']!==$outcome
+                    ||$stored['lead_close_reason']!==($reason!==''?$reason:null)||$stored['lead_outcome_note']!==($note!==''?$note:null)
+                    ||$stored['lead_sale_amount']!==$amount||$stored['lead_sale_date']!==$date||(int)$stored['lead_outcome_manager_id']!==$actor){
+                    $pdo->rollBack();return false;
+                }
+            }
+            if($stageChanged){
+                $q=$pdo->prepare('INSERT INTO lead_stage_history (conversation_id,from_stage_key,to_stage_key,changed_by_manager_id) VALUES (?,?,?,?)');
+                $q->execute([$id,(string)$previous!==''?$previous:null,$stageKey,$actor]);
+            }
+            $pdo->commit();
+        }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}
+        // Existing analytics owners observe only the committed business result.
+        if($stageChanged)MetrikaConversionGoalService::salesStage($id,$stageKey);
+        if($changed&&$outcome==='won')MetrikaConversionGoalService::saleOutcome($id,$outcome);
+        if($changed)ModeledConversionOutcomeReceipt::observe($pdo,$id,$outcome,$reason!==''?$reason:null,$actor,$amount,$date);
+        return true;
+    }
+
+    private static function outcomeValues(int $id,string $outcome,?string $reason,?string $note,?string $saleAmount,?string $saleDate): ?array
+    {
+        $outcome=trim($outcome);if($id<=0||!array_key_exists($outcome,self::outcomeOptions()))return null;$reason=trim((string)$reason);$note=trim((string)$note);
+        if($outcome==='lost'&&!self::closeReasonAllowedForConversation($id,$reason))return null;if($outcome!=='lost')$reason='';if(mb_strlen($note)>500)$note=mb_substr($note,0,500);
         $amount=null;$date=null;
         if($outcome==='won'){
-            $rawAmount=trim((string)$saleAmount);if($rawAmount!==''){$rawAmount=str_replace(',','.',$rawAmount);if(!is_numeric($rawAmount))return false;$numeric=(float)$rawAmount;if($numeric<0||$numeric>9999999999.99)return false;$amount=number_format($numeric,2,'.','');}
-            $rawDate=trim((string)$saleDate);if($rawDate!==''){if(!preg_match('/^\d{4}-\d{2}-\d{2}$/',$rawDate))return false;$dt=DateTimeImmutable::createFromFormat('!Y-m-d',$rawDate);if(!$dt||$dt->format('Y-m-d')!==$rawDate)return false;$date=$rawDate;}
+            $rawAmount=trim((string)$saleAmount);if($rawAmount!==''){$rawAmount=str_replace(',','.',$rawAmount);if(!is_numeric($rawAmount))return null;$numeric=(float)$rawAmount;if($numeric<0||$numeric>9999999999.99)return null;$amount=number_format($numeric,2,'.','');}
+            $rawDate=trim((string)$saleDate);if($rawDate!==''){if(!preg_match('/^\d{4}-\d{2}-\d{2}$/',$rawDate))return null;$dt=DateTimeImmutable::createFromFormat('!Y-m-d',$rawDate);if(!$dt||$dt->format('Y-m-d')!==$rawDate)return null;$date=$rawDate;}
         }
-        $pdo=ConversationDb::connection();$q=$pdo->prepare('UPDATE conversations SET lead_outcome=?,lead_close_reason=?,lead_outcome_note=?,lead_sale_amount=?,lead_sale_date=?,lead_outcome_updated_at=NOW(),lead_outcome_manager_id=? WHERE id=?');$q->execute([$outcome,$reason!==''?$reason:null,$note!==''?$note:null,$amount,$date,$actor>0?$actor:null,$id]);$ok=$q->rowCount()>0;if($ok&&$outcome==='won')MetrikaConversionGoalService::saleOutcome($id,$outcome);if($ok)ModeledConversionOutcomeReceipt::observe($pdo,$id,$outcome,$reason!==''?$reason:null,$actor,$amount,$date);return$ok;
+        return [$outcome,$reason,$note,$amount,$date];
     }
     public static function conversationSnapshot(int $id): array{return ['stage'=>self::stageForConversation($id),'stage_history'=>self::stageHistoryForConversation($id),'tags'=>self::tagsForConversation($id),'outcome'=>self::outcomeForConversation($id)];}
     private static function closeReasonAllowedForConversation(int $id,string $reason): bool{if($id<=0||$reason==='')return false;$q=ConversationDb::connection()->prepare('SELECT c.lead_close_reason AS current_reason,r.is_active AS requested_active FROM conversations c LEFT JOIN lead_close_reasons r ON r.reason_key=? WHERE c.id=? LIMIT 1');$q->execute([$reason,$id]);$row=$q->fetch();if(!$row)return false;return(int)($row['requested_active']??0)===1||(string)($row['current_reason']??'')===$reason;}

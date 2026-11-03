@@ -7,19 +7,19 @@ const path=require('node:path');
 const root=path.resolve(__dirname,'../..'),origin='http://127.0.0.1:4173';
 // Render the actual PHP shell; no copied HTML or production traffic.
 const shell=execFileSync('php',['manager2/index.php'],{cwd:root,encoding:'utf8'});
-const stages=[['new','Новый лид'],['working','В работе'],['selection','Подбираем'],['proposal','Предложение отправлено'],['sold','Продано']].map(([stage_key,display_name],i)=>({id:i+1,stage_key,display_name,sort_order:i}));
+const stages=[['new','Новый лид'],['working','В работе'],['selection','Подбираем'],['proposal','Предложение отправлено'],['sold','Продано']].map(([stage_key,display_name],i)=>({id:i+1,stage_key,display_name,sort_order:i,is_terminal:stage_key==='sold'?1:0,is_won:stage_key==='sold'?1:0}));
 async function setup(page,{anonymous=false,otherOwner=false,role='manager',serviceEvents=false,taskResult='success',holdCreate=false,holdMetadata='',waitForInbox=true,savedFilters=null,replyAudio=false,tourChoices=null}={}){
   const pushProtocol=lifecycle(7);
   const calls=[],unexpected=[],errors=[],sends=[],pendingCreates=[],pendingMetadata=[];
   let authenticated=!anonymous,subscribed=false,currentTourChoices=tourChoices;
-  let lifecycleHandler=null,stateHandler=null,readHandler=null,logoutHandler=null;const conversationOverrides=new Map(),inboxOverrides=new Map();
+  let lifecycleHandler=null,stateHandler=null,readHandler=null,logoutHandler=null;const conversationOverrides=new Map(),inboxOverrides=new Map(),pipelineOverrides=new Map();
   const manager={id:7,role,display_name:'Мария',is_working:true};
   const tasks=[{id:21,title:'Проверить отели у моря в бюджете',status:'open',due_state:'today',due_at_utc:'2026-10-14 07:00:00',is_pinned:true,assigned_manager_name:'Мария'},{id:22,title:'Отправить подборку клиенту',status:'open',due_state:'overdue',due_at_utc:'2026-10-13 09:00:00',assigned_manager_name:'Мария'},{id:23,title:'Уточнить состав туристов',status:'done',due_state:'done',assigned_manager_name:'Мария'}];
   const conversation=id=>({id,manager_id:otherOwner?8:7,manager_name:otherOwner?'Людмила':'Мария',status:'manager',channel:'telegram',source_id:1,source_name:'AnyTour',display_name:id===11?'Анна Морозова':'Алексей Иванов',...conversationOverrides.get(id)});
   const messages=Array.from({length:35},(_,i)=>({id:i+1,sender_type:i%3===0?'manager':'customer',manager_id:i%3===0?7:null,text:i===34?'Посмотрите, пожалуйста, варианты у моря. Бюджет до 250 тысяч за всех.':'Сообщение '+(i+1)+'. Подбираем семейный отдых в Турции, обсуждаем отели и даты.',created_at:'2026-10-13 12:00:00'}));
   if(replyAudio)messages[0].attachments=[{type:'audio',name:'Тестовое аудио',url:replyEditorAudio()}];
   if(serviceEvents)messages.push({id:36,direction:'inbound',sender_type:'customer',text:'manager_after_tours',service_action:{type:'callback',label:'Клиент запросил менеджера после подбора туров',raw_payload:'manager_after_tours'},created_at:'2026-10-13 12:01:00'},{id:37,direction:'inbound',sender_type:'customer',text:'manager_after_tours',created_at:'2026-10-13 12:02:00'});
-  const lead=id=>({ok:true,can_edit_pipeline:!otherOwner,pipeline:{stage:stages[1],stage_history:[],tags:[],outcome:{outcome:'open'}},tasks:tasks.map(t=>({...t})),trip:{city:'Москва',country:'Турция',date:'24 октября',nights:'7–9',adults:2,children:1,child_ages:'8',meal:'all_inclusive',stars:'4,5',budget:{max:250000,currency:'RUB',basis:'total'}},contact:{phone:'+7 999 123-45-67'},source:{project_label:'AnyTour',origin_label:'TG · реклама',channel:'telegram'},handoff:{technical_status:'manager',manager_name:conversation(id).manager_name}});
+  const lead=id=>({ok:true,can_edit_pipeline:!otherOwner,pipeline:{stage:stages[1],stage_history:[],tags:[],outcome:{outcome:'open'},...pipelineOverrides.get(id)},tasks:tasks.map(t=>({...t})),trip:{city:'Москва',country:'Турция',date:'24 октября',nights:'7–9',adults:2,children:1,child_ages:'8',meal:'all_inclusive',stars:'4,5',budget:{max:250000,currency:'RUB',basis:'total'}},contact:{phone:'+7 999 123-45-67'},source:{project_label:'AnyTour',origin_label:'TG · реклама',channel:'telegram'},handoff:{technical_status:'manager',manager_name:conversation(id).manager_name}});
   const rows=()=>[11,12].map((id,i)=>({...conversation(id),can_edit_pipeline:!otherOwner,project_label:'AnyTour',origin_label:'TG · реклама',trip_summary:'Москва → Турция · 2 взрослых и ребёнок · 7–9 ночей',lead_stage:stages[1],lead_outcome:'open',unread_count:i?0:2,last_text:'Ждём варианты у моря',last_sender_type:'customer',last_message_at:'2026-10-13 12:00:00',next_task_id:21,next_task_title:tasks.find(t=>t.status==='open')?.title||'',next_task_due_state:'today',operational_task_due_state:'overdue',next_task_due_at_utc:'2026-10-14 07:00:00',next_task_pinned:1,contact_phone:'+7 999 123-45-67',...inboxOverrides.get(id)}));
   await page.addInitScript(savedFilters=>{
     if(!sessionStorage.getItem('manager2-fixture-initialized')){sessionStorage.clear();sessionStorage.setItem('manager2-fixture-initialized','1')}
@@ -95,6 +95,7 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
       if(data.action==='set_task_completed'){if(taskResult==='unknown')return route.abort('failed');if(taskResult==='rejected')return reply({ok:false,error:'task_not_found'});tasks.find(t=>t.id===data.task_id).status=data.completed?'done':'open';return reply({ok:true})}
       if(data.action==='set_task_pinned'){tasks.find(t=>t.id===data.task_id).is_pinned=data.pinned;return reply({ok:true})}
       if(data.action==='update_task'){Object.assign(tasks.find(t=>t.id===data.task_id),{title:data.title,due_at_utc:data.due_at});return reply({ok:true})}
+      if(data.action==='set_outcome'&&data.stage_key){pipelineOverrides.set(data.conversation_id,{stage:stages.find(stage=>stage.stage_key===data.stage_key),outcome:{outcome:data.outcome,sale_amount:data.sale_amount,sale_date:data.sale_date,note:data.note}});return reply({ok:true})}
       if(['set_stage','set_tags','set_outcome'].includes(data.action))return reply({ok:true});
     }
     if(url.pathname==='/manager/push-status.php'){
@@ -114,7 +115,7 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
     if(url.pathname==='/manager/notification-events.php')return reply({ok:true,cursor:0,events:[]});
     if(url.pathname==='/manager/assistant-api.php'&&data.action==='list'){
       if(!authenticated)return reply({ok:false,error:'unauthorized'},401);
-      expect(data.csrf).toBe('synthetic-csrf');return reply({ok:true,items:[],has_more:false,next_cursor:null});
+      expect(data.csrf).toBe('synthetic-csrf');return reply({ok:true,items:rows().filter(row=>data.scope==='team'||Number(row.manager_id)===manager.id).map(row=>({conversation_id:row.id,display_name:row.display_name,channel:row.channel,last_message_at:row.last_message_at,manager_name:row.manager_name,project_key:'anytour',project_name:'AnyTour',operational:{awaiting_manager_reply:row.delivery_failure_category!=='suspended'&&!!row.awaiting_manager_reply,due_task:row.operational_task_due_state==='overdue'},delivery_suspended:row.delivery_failure_category==='suspended',recommendation:null,tasks:row.next_task_id?[{id:row.next_task_id,title:row.next_task_title,status:'open',due_state:row.next_task_due_state,due_at_utc:row.next_task_due_at_utc}]:[]})),has_more:false,next_cursor:null});
     }
     unexpected.push(req.method()+' '+url.pathname+' '+data.action);return reply({ok:false,error:'unexpected_fixture_action'},400);
   });
@@ -128,14 +129,15 @@ async function openLead(page,id=11){
   await page.locator('#inboxList [data-conversation-id="'+id+'"] .m2RowOpen').click();
   await expect(page.locator('#conversationTitle')).toHaveText(id===11?'Анна Морозова':'Алексей Иванов');
 }
-async function showCard(page){if(!await page.locator('#leadZone').isVisible()||await page.evaluate(()=>WorkspaceV2Mobile.isMobile()&&WorkspaceV2Mobile.getScreen()!=='lead')){await page.locator('#mobileLeadBtn').click();if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()))await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-mobile-screen','lead');else await expect(page.locator('#workspaceRoot')).toHaveClass(/m2ClientCardOpen/)}}
+async function showCard(page){if(!await page.locator('#leadZone').isVisible()||await page.evaluate(()=>WorkspaceV2Mobile.isMobile()&&WorkspaceV2Mobile.getScreen()!=='lead')){await page.locator('#conversationTitle').click();if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()))await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-mobile-screen','lead');else await expect(page.locator('#workspaceRoot')).toHaveClass(/m2ClientCardOpen/)}}
 async function showChat(page){if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()&&WorkspaceV2Mobile.getScreen()==='lead')||await page.locator('#workspaceRoot').evaluate(el=>el.classList.contains('m2ClientCardOpen'))){await page.locator('#mobileLeadClose').click();if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()))await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-mobile-screen','conversation');else await expect(page.locator('#workspaceRoot')).not.toHaveClass(/m2ClientCardOpen/)}}
 async function openAccount(page){
   const account=page.locator('#m2NotificationButton');
   if(!await account.isVisible())await page.getByRole('button',{name:'Ещё',exact:true}).click();
   await account.click();
 }
-async function accountFocusReturned(page){await expect(page.viewportSize().width<=740?page.getByRole('button',{name:'Ещё',exact:true}):page.locator('#m2NotificationButton')).toBeFocused()}
+async function accountFocusReturned(page){await expect(page.getByRole('button',{name:'Ещё',exact:true})).toBeFocused()}
+async function chooseNavigation(page,target){const entry=page.locator('[data-m2-nav='+target+']');if(!await entry.isVisible())await page.locator('#m2MoreToggle').click();await entry.click()}
 async function noOverflow(page){const size=await page.evaluate(()=>({w:document.documentElement.scrollWidth,h:document.documentElement.scrollHeight,vw:innerWidth,vh:innerHeight}));expect(size.w).toBeLessThanOrEqual(size.vw+1);expect(size.h).toBeLessThanOrEqual(size.vh+1)}
 async function readable(page,selector){
   const ratio=await page.locator(selector).first().evaluate(el=>{
@@ -349,18 +351,18 @@ for(const width of [390,430,768,1440])test.describe('Manager2 '+width,()=>{
     if(width<=1100)await page.locator('#mobileBack').click();
     for(const target of ['sales','archive','sales','tasks','sales','dialogues']){
       const before=s.calls.filter(c=>c.action==='list').length;
-      await page.locator('[data-m2-nav='+target+']').click();
+      await chooseNavigation(page,target);
       await expect.poll(()=>s.calls.filter(c=>c.action==='list').length).toBe(before+1);
       await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-m2-section',target);
       await expect(page.locator('#inboxList')).toHaveAttribute('aria-busy','false');
       expect(s.calls.filter(c=>c.action==='list').length).toBe(before+1);
-      if(target!=='sales')expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('anytour.manager.workspace.filters.v1')).task)).toBe('');
+      if(target==='archive')expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('anytour.manager.workspace.filters.v1')).task)).toBe('');
       await noOverflow(page);
     }
-    await page.locator('[data-m2-nav=archive]').click();if(!await page.locator('#filtersPanel').isVisible())await page.locator('#filtersToggle').click();await expect(page.locator('#filtersPanel')).toBeVisible();await page.locator('#leadTaskFilter').selectOption('today');
+    await chooseNavigation(page,'archive');if(!await page.locator('#filtersPanel').isVisible())await page.locator('#filtersToggle').click();await expect(page.locator('#filtersPanel')).toBeVisible();await page.locator('#leadTaskFilter').selectOption('today');
     await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-m2-section','dialogues');await expect(page.locator('.inboxHead .brand')).toHaveText('Диалоги');
-    await page.locator('[data-m2-nav=tasks]').click();await expect(page.locator('.inboxHead .brand')).toHaveText('Мой план работы');await expect(page.locator('#m2SectionHint')).toContainText('диалоги с задачами и без них');
-    await page.reload();await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);expect(await page.evaluate(()=>WorkspaceV2.S.leadTaskFilter)).toBe('');
+    await page.locator('[data-m2-nav=tasks]').click();await expect(page.locator('#assistantTitle')).toHaveText('Мой план');await expect(page.locator('#assistantList [data-assistant-client]')).toHaveCount(2);
+    await page.reload();await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);expect(await page.evaluate(()=>WorkspaceV2.S.leadTaskFilter)).toBe('today');
     await openLead(page);await expect(page.locator('#replyText')).toHaveValue('Черновик сохранён при навигации');
     const quick=page.locator('.quickReplies button').first();await page.locator('#replyText').evaluate(el=>el.blur());await expect(quick).toBeVisible();const box=await quick.boundingBox(),parent=await page.locator('.quickReplies').boundingBox();expect(box.y+box.height).toBeLessThanOrEqual(parent.y+parent.height+1);
     expect(await page.locator('.leadTitle').first().evaluate(el=>parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(14);
@@ -374,18 +376,18 @@ for(const width of [390,430,768,1440])test.describe('Manager2 '+width,()=>{
     expect((await page.locator('.conversationHead').boundingBox()).height).toBeLessThanOrEqual(63);
     await expect(menu).not.toHaveAttribute('open');await expect(search).not.toBeVisible();await expect(next).not.toBeVisible();
     expect(await page.locator('#messages').evaluate(el=>el.clientHeight)).toBeGreaterThanOrEqual(500);
-    await page.evaluate(()=>{window.fixtureNativeConversationTools=['conversationSearchOpen','nextWaitingConversation'].map(id=>document.getElementById(id))});
+    await page.evaluate(()=>{window.fixtureNativeConversationTools=['conversationSearchOpen'].map(id=>document.getElementById(id))});
     await page.locator('#replyText').fill('Черновик Анны для проверки компактного кабинета');
     await page.locator('#replyFile').setInputFiles({name:'compact-Anna.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic file, never sent')});
     const file=await page.locator('#mediaSelection').textContent();
-    await menu.locator('summary').press('Enter');await expect(search).toBeVisible();await expect(next).toBeVisible();
+    await menu.locator('summary').press('Enter');await expect(search).toBeVisible();await expect(next).toHaveCount(0);
     await search.click();await expect(menu).not.toHaveAttribute('open');await expect(page.locator('#conversationSearchInput')).toBeFocused();
     await page.locator('#conversationSearchInput').fill('у моря');await page.locator('#conversationSearchInput').press('Escape');
     await expect(search).toBeFocused();await expect(search).toBeVisible();await expect(menu).toHaveAttribute('open');
     await menu.locator('summary').press('Escape');await expect(menu.locator('summary')).toBeFocused();
     await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible());await openLead(page,12);await openLead(page,11);
     expect(await page.evaluate(()=>fixtureNativeConversationTools.every(el=>document.getElementById(el.id)===el&&el.isConnected))).toBe(true);
-    await expect(search).toHaveCount(1);await expect(next).toHaveCount(1);
+    await expect(search).toHaveCount(1);await expect(next).toHaveCount(0);
     await expect(page.locator('#replyText')).toHaveValue('Черновик Анны для проверки компактного кабинета');await expect(page.locator('#mediaSelection')).toHaveText(file);
     await page.evaluate(()=>WorkspaceV2Conversation.renderHeader({...WorkspaceV2.S.detail.conversation,display_name:'Анна · семейный отдых в Турции на октябрь · длинное рабочее имя клиента'}));
     const title=await page.locator('#conversationTitle').boundingBox(),head=await page.locator('.conversationHead').boundingBox(),toggle=await menu.locator('summary').boundingBox();
@@ -440,7 +442,7 @@ for(const width of [390,430,768,1440])test.describe('Manager2 '+width,()=>{
     if(width<=1100)await page.locator('#mobileBack').click();
     await page.locator('[data-m2-nav=sales]').click();await expect(page.locator('.kanbanCard')).toHaveCount(2);await expect(page.locator('.m2BoardActions')).toHaveCount(2);await noOverflow(page);await capture(page,browserName,width,'sales');
     await page.locator('.m2BoardActions>summary').first().click();await expect(page.locator('.kanbanStageSelect').first()).toBeVisible();
-    await page.locator('[data-m2-nav=tasks]').click();await expect(page.locator('#filtersPanel')).not.toBeVisible();await expect(page.locator('.taskShortcuts')).toBeVisible();await expect(page.locator('#leadTaskFilter')).toHaveValue('');
+    await page.locator('[data-m2-nav=tasks]').click();await expect(page.locator('#filtersPanel')).not.toBeVisible();await expect(page.locator('#assistantDialog')).toHaveClass(/assistantPlanView/);await expect(page.locator('[data-assistant-filter=actions]')).toBeVisible();
     await openAccount(page);await expect(page.locator('#m2Notifications')).toBeVisible();await expect(page.locator('#notificationStatus')).toBeVisible();await page.locator('[data-enable-push]').click();
     await expect(page.locator('#notificationStatus')).toHaveClass(/\bok\b/);await expect(page.locator('#notificationStatus')).toContainText('Уведомления включены');expect(s.calls.filter(c=>c.action==='subscribe')).toHaveLength(1);await capture(page,browserName,width,'notifications');
     await page.locator('#m2NotificationsClose').click();await accountFocusReturned(page);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
@@ -460,54 +462,36 @@ for(const width of [390,430])for(const role of ['manager','admin'])test('Manager
     const visible=[...rail.querySelectorAll('[data-m2-nav],button[aria-controls]')].filter(el=>el.getClientRects().length),rect=rail.getBoundingClientRect();
     return {height:rect.height,items:visible.map(el=>{const r=el.getBoundingClientRect();return {section:el.dataset.m2Nav||'more',top:r.top,bottom:r.bottom,left:r.left,right:r.right,height:r.height}}),width:innerWidth,heightLimit:innerHeight};
   });
-  expect(geometry.items.map(item=>item.section)).toEqual(['dialogues','tasks','sales','archive','more']);
+  expect(geometry.items.map(item=>item.section)).toEqual(['dialogues','tasks','sales','more']);
   expect(geometry.height).toBeLessThanOrEqual(64);
   for(const item of geometry.items){expect(item.top).toBeGreaterThanOrEqual(geometry.items[0].top-1);expect(item.bottom).toBeLessThanOrEqual(geometry.heightLimit+1);expect(item.left).toBeGreaterThanOrEqual(-1);expect(item.right).toBeLessThanOrEqual(width+1);expect(item.height).toBeGreaterThanOrEqual(44)}
   expect(Math.max(...geometry.items.map(item=>item.top))-Math.min(...geometry.items.map(item=>item.top))).toBeLessThanOrEqual(1);
-  await page.evaluate(()=>{window.mobileCanonicalNav=['m2Analytics','assistantOpen','m2NotificationButton'].map(id=>document.getElementById(id))});
+  await page.evaluate(()=>{window.mobileCanonicalNav=['m2Analytics','m2NotificationButton'].map(id=>document.getElementById(id))});
   await more.click();await expect(panel).toBeVisible();await expect(more).toHaveAttribute('aria-expanded','true');
-  await expect(panel.locator('#assistantOpen')).toBeVisible();await expect(panel.locator('#m2NotificationButton')).toBeVisible();
+  await expect(panel.locator('[data-m2-nav=archive]')).toBeVisible();await expect(page.locator('#assistantOpen')).toHaveCount(0);await expect(panel.locator('#m2NotificationButton')).toBeVisible();
   if(role==='admin')await expect(panel.locator('#m2Analytics')).toBeVisible();else await expect(page.locator('#m2Analytics')).not.toBeVisible();
   await capture(page,browserName,width,'mobile-more-'+role);
   expect(await page.evaluate(()=>mobileCanonicalNav.every(el=>el===document.getElementById(el.id)&&el.isConnected))).toBe(true);
   await page.keyboard.press('Escape');await expect(panel).not.toBeVisible();await expect(more).toBeFocused();await expect.poll(()=>page.evaluate(()=>!!history.state?.workspaceV2Overlay)).toBe(false);
   await more.click();await expect(panel).toBeVisible();await expect.poll(()=>page.evaluate(()=>history.state?.workspaceV2Overlay?.id)).toBe('manager2-more');await page.goBack();await expect(panel).not.toBeVisible();await expect(more).toBeFocused();
-  await more.click();await page.locator('#assistantOpen').click();await expect(panel).not.toBeVisible();await expect(page.locator('#assistantDialog')).toBeVisible();
-  await page.locator('#assistantClose').click();await expect(page.locator('#assistantDialog')).not.toBeVisible();await expect(more).toBeFocused();
+  await more.click();await panel.locator('[data-m2-nav=archive]').click();await expect(panel).not.toBeVisible();await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-m2-section','archive');await expect(more).toBeFocused();
   await openAccount(page);await expect(page.locator('#m2Notifications')).toBeVisible();await expect(panel).not.toBeVisible();await page.locator('#m2NotificationsClose').click();await accountFocusReturned(page);
   await page.setViewportSize({width:1440,height:900});
-  for(const id of ['assistantOpen','m2NotificationButton'])await expect(page.locator('.m2Rail #'+id)).toBeVisible();
-  if(role==='admin')await expect(page.locator('.m2Rail #m2Analytics')).toBeVisible();
-  await expect(more).not.toBeVisible();expect(await page.evaluate(()=>mobileCanonicalNav.every(el=>el===document.getElementById(el.id)&&el.isConnected))).toBe(true);
+  await expect(more).toBeVisible();await more.click();await expect(panel.locator('#m2NotificationButton')).toBeVisible();
+  if(role==='admin')await expect(panel.locator('#m2Analytics')).toBeVisible();
+  await page.locator('#m2MoreClose').click();expect(await page.evaluate(()=>mobileCanonicalNav.every(el=>el===document.getElementById(el.id)&&el.isConnected))).toBe(true);
   await page.setViewportSize({width,height:900});await more.click();await expect(panel).toBeVisible();await page.evaluate(()=>WorkspaceV2.showAuthRecovery());await expect(panel).not.toBeVisible();await expect(more).toBeDisabled();
   expect(page.context().pages()).toHaveLength(initialPages);expect(popups).toEqual([]);expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });
-for(const width of [390,430])test('Manager2 My Plan exposes task deadlines and reply urgency without opening advanced filters '+width,async({page,browserName})=>{
-  await page.setViewportSize({width,height:900});const s=await setup(page);
-  s.setInboxRow(11,{awaiting_manager_reply:1,awaiting_first_reply:1,wait_age_seconds:360});
-  s.setInboxRow(12,{next_task_title:'Позвонить клиенту',next_task_due_state:'overdue',next_task_due_at_utc:'2026-10-13 09:00:00',next_task_pinned:0,next_task_overdue:1});
-  const before=s.calls.filter(call=>call.action==='list').length;
-  await page.locator('[data-m2-nav=tasks]').click();await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-m2-section','tasks');await expect(page.locator('#inboxList')).toHaveAttribute('aria-busy','false');
-  expect(s.calls.filter(call=>call.action==='list')).toHaveLength(before+1);
-  await expect(page.locator('#filtersPanel')).not.toBeVisible();await expect(page.locator('.taskShortcuts')).toBeVisible();
-  expect((await page.locator('.m2TaskQuickFilters').boundingBox()).height).toBeLessThanOrEqual(52);
-  for(const state of ['action','overdue','today','planned','none'])await expect(page.locator('.taskShortcuts [data-task-filter="'+state+'"]').first()).toBeVisible();
-  const first=page.locator('#inboxList [data-conversation-id="11"]'),second=page.locator('#inboxList [data-conversation-id="12"]');
-  await expect(first).toContainText('Проверить отели у моря в бюджете');await expect(first).toContainText('10:00');await expect(second).toContainText('Позвонить клиенту');await expect(second).toContainText('12:00');
-  await expect(first.locator('.leadReplyStatus')).toContainText('Ждёт ответа');await expect(first.locator('.leadWaitCompact')).toContainText('Срочно');await expect(first).toHaveClass(/waitUrgent/);
-  await expect(second.locator('.leadTaskCompact')).toHaveClass(/overdue/);
-  await capture(page,browserName,width,'my-plan-next-actions');
-  const order=await page.locator('#inboxList .leadItem').evaluateAll(items=>items.map(item=>item.dataset.conversationId));expect(order).toEqual(['11','12']);
-  for(const seconds of [179,180,299,300]){
-    s.setInboxRow(11,{wait_age_seconds:seconds});await page.evaluate(()=>WorkspaceV2Inbox.load({preserveScroll:true}));
-    const expected=seconds>=300?'urgent':seconds>=180?'warn':'normal';await expect(first.locator('.leadWaitCompact')).toHaveClass(new RegExp('\\b'+expected+'\\b'));
-    expect(await page.locator('#inboxList .leadItem').evaluateAll(items=>items.map(item=>item.dataset.conversationId))).toEqual(order);
-  }
-  s.setInboxRow(11,{delivery_failure_category:'suspended'});s.setInboxRow(12,{next_task_id:null,next_task_title:'',next_task_due_at_utc:null,next_task_due_state:'none',operational_task_due_state:'none',next_task_overdue:0});
-  await page.evaluate(()=>WorkspaceV2Inbox.load({preserveScroll:true}));await expect(first.locator('.leadReplyStatus,.leadWaitCompact')).toHaveCount(0);await expect(first).not.toHaveClass(/waitWarn|waitUrgent/);await expect(second).toContainText('Без задачи');
-  await page.locator('#filtersToggle').click();await expect(page.locator('#filtersPanel')).toBeVisible();await page.locator('[data-m2-nav=tasks]').click();await expect(page.locator('#filtersPanel')).not.toBeVisible();
-  await noOverflow(page);expect(s.calls.filter(call=>['send','set_working','take','release','close','reopen','create_task','set_task_completed','update_task','set_stage'].includes(call.action))).toEqual([]);expect(s.manager.is_working).toBe(true);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+for(const width of [390,430])test('Manager2 My Plan orders actions and deadlines independently of Inbox '+width,async({page,browserName})=>{
+  await page.setViewportSize({width,height:900});const s=await setup(page);s.setInboxRow(11,{awaiting_manager_reply:1});s.setInboxRow(12,{next_task_title:'Позвонить по договорённости',next_task_due_state:'overdue',next_task_due_at_utc:'2026-10-13 09:00:00'});
+  const before=s.calls.filter(call=>call.path==='/manager/pipeline-api.php'&&call.action==='list').length;
+  await page.locator('[data-m2-nav=tasks]').click();await expect(page.locator('#assistantList [data-assistant-client]')).toHaveCount(2);expect(s.calls.filter(call=>call.path==='/manager/pipeline-api.php'&&call.action==='list')).toHaveLength(before);await expect(page.locator('#filtersPanel')).not.toBeVisible();await expect(page.locator('#assistantTitle')).toHaveText('Мой план');
+  const first=page.locator('[data-assistant-client="11"]'),second=page.locator('[data-assistant-client="12"]');await expect(first).toContainText('Разобрать сообщение клиента');await expect(second).toContainText('Позвонить по договорённости');await expect(second).toContainText('12:00');expect(await page.locator('[data-assistant-client]').evaluateAll(items=>items.map(item=>item.dataset.assistantClient))).toEqual(['11','12']);
+  await page.locator('[data-assistant-filter=tasks]').click();await expect(first).toBeVisible();await expect(second).toBeVisible();await page.locator('[data-assistant-filter=waiting]').click();await expect(page.locator('[data-assistant-client]')).toHaveCount(0);await page.locator('[data-assistant-filter=actions]').click();await expect(first).toBeVisible();await capture(page,browserName,width,'my-plan-next-actions');await noOverflow(page);
+  expect(s.calls.filter(call=>['send','create_task','set_stage','set_outcome'].includes(call.action))).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });
+
 test('Manager2 anonymous entry uses the canonical login and does not expose another manager composer',async({page})=>{
   const s=await setup(page,{anonymous:true,otherOwner:true});await expect(page.locator('#managerAuthRecovery')).toBeVisible();
   await expect(page.locator('#managerAuthRecovery h2')).toHaveText('Вход для менеджера');await expect(page.locator('#managerAuthSubmit')).toHaveText('Войти');
@@ -1052,4 +1036,12 @@ for(const viewport of [{width:390,height:420},{width:1440,height:900}])test('Man
  await page.locator('#sendReply').click();await expect(page.locator('#replyStatus')).toContainText('повтор заблокирован');await expect(page.locator('#sendReply')).toHaveText('Проверить отправку');await expect(page.locator('#replyText')).toHaveValue('Сохранённый новый текст');await expect(page.locator('.mediaPreview img')).toHaveAttribute('src',url);
  fs.mkdirSync('send-feedback-artifacts',{recursive:true});await page.screenshot({path:`send-feedback-artifacts/${browserName}-${viewport.width}x${viewport.height}-context-refresh-failed.png`});
  detailFails=false;await page.locator('#sendReply').click();await expect(page.locator('#sendReply')).toHaveText('Отправить');await expect(page.locator('#replyStatus')).toContainText('Отправка не начата: диалог изменился');await expect(page.locator('#replyText')).toHaveValue('Сохранённый новый текст');await expect(page.locator('.mediaPreview img')).toHaveAttribute('src',url);expect(sends).toHaveLength(1);expect(receipts).toHaveLength(2);expect(receipts.every(r=>r.operation_id===sends[0].operation_id)).toBe(true);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
+
+for(const width of [390,1440])test('Sales uses explicit scope and saves custom completion in one action '+width,async({page})=>{
+  await page.setViewportSize({width,height:900});const s=await setup(page,{role:'admin'});await page.evaluate(()=>{WorkspaceV2.S.queue='closed';WorkspaceV2.S.leadSearch='Старый поиск';WorkspaceV2.S.leadProjectFilter='old-project';WorkspaceV2.S.leadTaskFilter='today'});
+  await page.locator('[data-m2-nav=sales]').click();await expect(page.locator('#m2SalesTools')).toBeVisible();await expect(page.locator('#workspaceRoot')).toHaveClass(/m2SalesList/);await expect(page.locator('#m2SalesCoverage')).toContainText('только к показанным');expect(s.calls.filter(c=>c.path==='/manager/pipeline-api.php'&&c.action==='list').at(-1)).toMatchObject({queue:'mine',project_key:'*',manager_filter:'7',lead_outcome:'open',lead_task_filter:'',search:''});
+  await page.locator('#m2SalesScope').selectOption('team');await expect.poll(()=>s.calls.filter(c=>c.path==='/manager/pipeline-api.php'&&c.action==='list').at(-1).queue).toBe('all');await page.locator('#m2SalesTask').selectOption('none');await expect.poll(()=>s.calls.filter(c=>c.path==='/manager/pipeline-api.php'&&c.action==='list').at(-1).lead_task_filter).toBe('none');
+  await page.locator('.m2BoardActions>summary').first().click();await page.locator('.kanbanStageSelect').first().selectOption('sold');await expect(page.locator('#leadOutcomeStage')).toHaveValue('sold');await expect(page.locator('#leadOutcome')).toHaveValue('won');expect(s.calls.filter(c=>['set_stage','set_outcome'].includes(c.action))).toEqual([]);
+  await page.locator('#leadSaleAmount').fill('250000');await page.locator('#leadSaleDate').fill('2026-11-02');await page.locator('#saveOutcome').click();await expect.poll(()=>s.calls.filter(c=>c.action==='set_outcome').length).toBe(1);expect(s.calls.find(c=>c.action==='set_outcome')).toMatchObject({conversation_id:11,stage_key:'sold',expected_stage_key:'working',outcome:'won',sale_amount:'250000',sale_date:'2026-11-02'});expect(s.calls.filter(c=>c.action==='set_stage')).toEqual([]);await expect(page.locator('#outcomeSaveStatus')).toContainText('Результат сохранён');expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });

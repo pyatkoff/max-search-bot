@@ -8,6 +8,7 @@ require_once __DIR__.'/InternalOwnerDialogueScope.php';
 require_once __DIR__.'/ManagerDraftPilotCollector.php';
 require_once __DIR__.'/ManagerPreparationEligibility.php';
 require_once __DIR__.'/ManagerPreparedInputService.php';
+require_once __DIR__.'/ManagerAiReplyAdmission.php';
 
 /** Private work metadata and reviewed proposals; never a transcript or delivery queue. */
 final class ManagerPreparedReplyService
@@ -477,6 +478,30 @@ final class ManagerPreparedReplyService
                 'revision'=>$fresh['revision'],'latest_message_id'=>(int)$row['latest_message_id'],
                 'prepared_at'=>$row['prepared_at'],'expires_at'=>$row['expires_at'],'preparation_source'=>'chatgpt_assistant'];
         } catch (Throwable $ignored) { return $empty; }
+    }
+
+    /** Additive, read-only metadata for a selected prepared response. Never changes the job. */
+    public static function admission(int $cid,int $viewer,array $before,array $prepared,array $proposal): array
+    {
+        try{
+            $job=$prepared['job_id']??null;
+            if(($prepared['prepared']??false)!==true||!self::revision($job))return ['ok'=>true,'admission'=>ManagerAiReplyAdmission::unavailable()];
+            $pdo=ConversationDb::connection();if($pdo->inTransaction())return ['ok'=>true,'admission'=>ManagerAiReplyAdmission::unavailable()];
+            $q=$pdo->prepare('SELECT job_id,conversation_id,manager_id,project_key,context_revision,instruction_revision,latest_message_id,status,proposal_sha256,prepared_at,expires_at,SUBSTR(proposal_json,1,32769) AS proposal_json FROM manager_prepared_replies WHERE job_id=? AND conversation_id=?');
+            $q->execute([$job,$cid]);$row=$q->fetch(PDO::FETCH_ASSOC);$q->closeCursor();
+            if(!$row||$row['status']!=='ready'||!is_string($row['proposal_json'])||strlen($row['proposal_json'])>self::MAX_PROPOSAL_BYTES
+                ||!self::revision($row['proposal_sha256'])||!hash_equals($row['proposal_sha256'],hash('sha256',$row['proposal_json'])))$row=null;
+            $archive=$row===null?['available'=>false]:ManagerPreparedInputService::read($pdo,[
+                'preparation_job_id'=>$job,'conversation_id'=>$cid,'project_key'=>$row['project_key'],
+                'latest_message_id'=>$row['latest_message_id'],'instruction_revision'=>$row['instruction_revision'],'proposal_json'=>$row['proposal_json'],
+            ]);
+            $after=ManagerAiDraftContextService::viewerSnapshot($cid,$viewer);
+            $admission=ManagerAiReplyAdmission::prepared($viewer,$before,$after,$proposal,$row,$archive,self::instructionRevision(),self::TTL_SECONDS,time());
+            if(empty($after['ok']))return ['ok'=>false,'error'=>$after['error']??'context_unavailable','admission'=>$admission];
+            if(!self::matches($after,$before['revision']??null,$before['latest_message_id']??null)
+                ||($before['viewer_access_revision']??null)!==($after['viewer_access_revision']??null))return ['ok'=>false,'error'=>'context_stale','admission'=>$admission];
+            return ['ok'=>true,'admission'=>$admission];
+        }catch(Throwable $ignored){return ['ok'=>true,'admission'=>ManagerAiReplyAdmission::unavailable()];}
     }
 
     private static function completed(array $row, string $hash): array

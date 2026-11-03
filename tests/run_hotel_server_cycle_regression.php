@@ -2,6 +2,17 @@
 declare(strict_types=1);
 require_once __DIR__.'/fixtures/hotel_server_cycle.php';
 
+if(($argv[1]??null)==='--correction-race'){
+    [$unused,$mode,$dsn,$go,$out,$payload]=array_pad($argv,6,'');$p=hsConnect($dsn);
+    $cycle=new HotelServerCycle($p,new HotelServerLane($p));
+    $correction=json_decode((string)file_get_contents($payload),true,64,JSON_THROW_ON_ERROR);
+    file_put_contents($out.'.ready','1');$until=microtime(true)+12;
+    while(!is_file($go)&&microtime(true)<$until)usleep(1000);
+    if(!is_file($go))exit(3);
+    $r=$cycle->correctRejectedFinalStage('NEW',$correction,static fn():bool=>true);
+    file_put_contents($out,HotelServerInputs::json(['state'=>$r['state']]));exit(0);
+}
+
 // Real processes contend on the shared HOTEL row before the campaign/attempt row.
 if(($argv[1]??null)==='--race') {
     [$unused,$mode,$dsn,$go,$out]=array_pad($argv,5,'');$p=hsConnect($dsn);$provider=new HotelServerFixtureProvider($p);
@@ -276,6 +287,23 @@ $f=hsFixture();try{
     HotelServerCronRuntime::tick($flags,static fn()=>['pdo'=>$f['p'],'provider'=>$f['provider'],'clock'=>static fn()=>1800000000]);
     hsCheck(count($f['provider']->requests)===$n,'runtime UNKNOWN never sends again');
 }finally{hsCleanup($f);}
+
+$f=hsFixture();try{
+    hsBoot($f);hsEnable($f);
+    $f['p']->exec("UPDATE hotel_server_campaigns SET state='hold' WHERE campaign_id='NEW'");
+    $before=$f['p']->query("SELECT * FROM hotel_server_campaigns WHERE campaign_id='NEW'")->fetch(PDO::FETCH_ASSOC);
+    $outboxBefore=$f['p']->query("SELECT * FROM hotel_server_outbox ORDER BY stage_index,role")->fetchAll(PDO::FETCH_ASSOC);
+    $runtime=HotelServerCronRuntime::tick($flags,static fn()=>['pdo'=>$f['p'],'provider'=>$f['provider'],'clock'=>static fn()=>1800000000]);
+    hsCheck($runtime['state']==='hold'&&($runtime['worker_completed']??false)===true,'confirmed stored campaign HOLD completes the worker without becoming business success');
+    hsCheck(count($f['provider']->requests)===0&&hsCount($f['p'],'hotel_server_attempts')===0
+        &&$f['p']->query("SELECT * FROM hotel_server_campaigns WHERE campaign_id='NEW'")->fetch(PDO::FETCH_ASSOC)===$before
+        &&$f['p']->query("SELECT * FROM hotel_server_outbox ORDER BY stage_index,role")->fetchAll(PDO::FETCH_ASSOC)===$outboxBefore,
+        'held recurrence preserves campaign outbox budgets and performs no provider dispatch');
+    $failed=HotelServerCronRuntime::tick($flags,static function():array{throw new RuntimeException('synthetic context failure');});
+    hsCheck($failed['state']==='hold'&&$failed['reason']==='server_tick_unconfirmed'&&($failed['worker_completed']??false)===false,
+        'unconfirmed context failures cannot receive a completion attestation');
+}finally{hsCleanup($f);}
+
 $cli=(string)file_get_contents(dirname(__DIR__).'/tools/hotel_work.php');
 hsCheck(strpos($cli,'HotelServerCronRuntime::tick')<strpos($cli,'hasActiveSubscriptions'),'server hook precedes legacy subscription gate');
 
@@ -303,5 +331,8 @@ $f=hsFixture();try{
         &&count($f['cycle']->readAccepted('NEXT')['records'])===14,'forward import preserves 19 historical,13 available,6 unavailable,1 quarantine and one prior new fact without credit');
 }finally{hsCleanup($f);}
 
+require __DIR__.'/fixtures/hotel_server_correction_cases.php';
+
 echo 'HOTEL SERVER CYCLE '.(getenv('HOTEL_WORK_NATIVE_MYSQL')==='1'?'NATIVE MYSQL':'SQLITE').': '.$hsChecks." PASS\n";
+
 

@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__.'/HotelServerCorrection.php';
 
 /** Existing application PDO only. Lock order: HOTEL lane -> campaign -> attempt.
  * The callback shares this exact PDO/transaction. No locks are held over network.
@@ -59,7 +60,8 @@ final class HotelServerLane
             if(!$out||!in_array($out['state'],['pending','done'],true)||!is_string($raw)||hash('sha256',$raw)!==$receipt
                 ||hash('sha256',$out['payload_bytes'])!==$payloadSha256)throw new DomainException('projection_ack_CAS');
             $r=json_decode($raw,true,64,JSON_THROW_ON_ERROR);
-            if(($r['schema']??null)!=='hotel-server-acceptance-v1'||($r['campaign_id']??null)!==$campaign)throw new DomainException('projection_ack_CAS');
+            if(!in_array($r['schema']??null,['hotel-server-acceptance-v1','hotel-server-correction-acceptance-v1'],true)
+                ||($r['campaign_id']??null)!==$campaign)throw new DomainException('projection_ack_CAS');
             $baseline=HotelServerInputs::sha($r['baseline_sha256']??null);
             $s=$this->app->prepare('SELECT parent_sha256,document_bytes FROM hotel_server_baselines WHERE campaign_id=? AND baseline_sha256=?');$s->execute([$campaign,$baseline]);$b=$s->fetch(PDO::FETCH_ASSOC);$s->closeCursor();
             if(!$b||$b['document_bytes']!==$out['payload_bytes']||hash('sha256',$b['document_bytes'])!==$baseline
@@ -67,8 +69,46 @@ final class HotelServerLane
             $d=json_decode($b['document_bytes'],true,64,JSON_THROW_ON_ERROR);
             if(($d['schema']??null)!=='hotel-server-baseline-v1'||($d['parent_sha256']??null)!==$b['parent_sha256']
                 ||($d['candidate_sha256']??null)!==($r['candidate_sha256']??null))throw new DomainException('projection_ack_CAS');
+            if($r['schema']==='hotel-server-correction-acceptance-v1')$this->verifyCorrectionProjection($campaign,$r,$raw,$b['document_bytes']);
             $s=$this->app->prepare("UPDATE hotel_server_catalog_outbox SET state='done' WHERE campaign_id=? AND receipt_sha256=?");$s->execute([$campaign,$receipt]);
         });
+    }
+
+    /** The new receipt is admitted only with its immutable correction and exact
+     * saved negative-review lineage, not through a schema-name whitelist alone.
+     * Called under the existing HOTEL lock; no new campaign/worker/history read.
+     */
+    private function verifyCorrectionProjection(string $campaign,array $receipt,string $receiptBytes,string $deltaBytes): void
+    {
+        $one=function(string $sql,array $args):array{
+            $s=$this->app->prepare($sql);$s->execute($args);$row=$s->fetch(PDO::FETCH_ASSOC);$s->closeCursor();
+            if(!$row)throw new DomainException('projection_correction_evidence_required');return $row;
+        };
+        $stage=$receipt['stage_index']??null;
+        if(!is_int($stage)||$stage<0||$stage>=10)throw new DomainException('projection_ack_CAS');
+        $c=$one('SELECT * FROM hotel_server_campaigns WHERE campaign_id=?',[$campaign]);
+        $input=$one('SELECT package_bytes FROM hotel_server_inputs WHERE campaign_id=?',[$campaign]);
+        $ledger=$one('SELECT * FROM hotel_server_corrections WHERE campaign_id=? AND stage_index=?',[$campaign,$stage]);
+        $candidate=$one('SELECT * FROM hotel_server_candidates WHERE campaign_id=? AND stage_index=?',[$campaign,$stage]);
+        $review=$one('SELECT * FROM hotel_server_reviews WHERE campaign_id=? AND stage_index=?',[$campaign,$stage]);
+        $producer=$one('SELECT * FROM hotel_server_attempts WHERE attempt_id=?',[$candidate['producer_attempt']]);
+        $reviewer=$one('SELECT * FROM hotel_server_attempts WHERE attempt_id=?',[$review['review_attempt']]);
+        $c['baseline_sha256']=HotelServerInputs::sha($receipt['previous_baseline_sha256']??null);
+        $package=json_decode($input['package_bytes'],true,64,JSON_THROW_ON_ERROR);
+        $plan=json_decode($c['plan_bytes'],true,64,JSON_THROW_ON_ERROR);
+        $correction=json_decode($ledger['correction_bytes'],true,64,JSON_THROW_ON_ERROR);
+        if(!is_array($package)||!is_array($plan)||!is_array($correction))throw new DomainException('projection_ack_CAS');
+        $v=HotelServerCorrection::prepare($c,$package,$plan,$producer,$reviewer,$candidate,$review,$correction);
+        foreach(['correction_bytes','correction_sha256','candidate_bytes','candidate_sha256'] as $field)
+            if($ledger[$field]!==$v[$field])throw new DomainException('projection_correction_ledger');
+        $expectedDelta=HotelServerInputs::json(['schema'=>'hotel-server-baseline-v1','parent_sha256'=>$c['baseline_sha256'],
+            'candidate_sha256'=>$v['candidate_sha256'],'records'=>$v['candidate']['records']]);
+        $expected=HotelServerCorrection::receipt($c,$stage,$v,$candidate,$producer,$reviewer,hash('sha256',$expectedDelta),$package['retained_admission']??null);
+        if($deltaBytes!==$expectedDelta||$receiptBytes!==HotelServerInputs::json($expected))throw new DomainException('projection_correction_receipt');
+        foreach(['producer'=>$producer,'reviewer'=>$reviewer] as $role=>$attempt){
+            $out=$one('SELECT state,attempt_id FROM hotel_server_outbox WHERE campaign_id=? AND stage_index=? AND role=?',[$campaign,$stage,$role]);
+            if($out['state']!=='done'||$out['attempt_id']!==$attempt['attempt_id'])throw new DomainException('projection_correction_outbox');
+        }
     }
 
     private function locked(callable $work): mixed
@@ -84,3 +124,4 @@ final class HotelServerLane
         } catch (Throwable $e) { if ($this->app->inTransaction()) $this->app->rollBack(); throw $e; }
     }
 }
+
