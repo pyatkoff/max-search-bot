@@ -1,0 +1,22 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261103-read8",
+  "goal": "Read canonical public destinations for exactly six newly published hotel pairs",
+  "boundaries": [
+    "Only allowed public fields, six first-line parameters/LIMIT13; no full snapshots/private IDs/buttons/receipts",
+    "Read-only catalog/registry; no provider calls/writes/messages; old133 pairs not re-read"
+  ],
+  "criteria": [
+    "six unique exact canonical TG/MAX pairs, accepted public images; scoped source and strict pinned server"
+  ],
+  "risks": [
+    "Only run after original batch32 successful verified delivery; unknown state resolves original run"
+  ],
+  "hotel_ids": [
+    1449,
+    1453,
+    9432,
+    1451,
+    1151,
+    1583
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "operation": "commercial-monitor-publication-20261103-32",
+  "state": "NATIVE_652_VALIDATED_PR4988_MERGE_APPROVAL_PENDING",
+  "pr_url": "https://github.com/pyatkoff/poisk-turov-test/pull/4988",
+  "head": "2e89e66fe54f35b2bc4e5101341c0dc95f1b8323",
+  "previous_inputs": 648,
+  "proposed_inputs": 652,
+  "active_inputs": 648,
+  "catalog_ids": [
+    1449,
+    1453,
+    1151,
+    1583
+  ],
+  "already_admitted": [
+    9432,
+    1451
+  ],
+  "native_runs": [
+    41733741551,
+    41733741793,
+    41733741482
+  ],
+  "focused": [
+    "2026-11-03T22:46:59.0286188Z PUBLISHED_HOTEL_MONITOR_OK namespace=typed_and_native count=652 previous648_targets=unchanged existing_search=resumed mixed_countries=preserved batch32=4 calls=0 writes=0"
+  ],
+  "merge_performed": false,
+  "auto_review_rejected": true,
+  "rejection_reason": "Explicit authorization for separate repository main-branch merge not evidenced by automatic review",
+  "approval_requested": true
+}

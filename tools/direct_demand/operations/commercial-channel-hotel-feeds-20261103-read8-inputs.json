@@ -1,0 +1,44 @@
+[
+  {
+    "hotel_id": 1449,
+    "name": "Rixos Premium Belek",
+    "accepted_first_line": "✈️ Туры в Rixos Premium Belek с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2c7aadb0eafce5c1dc5ca8d23f10a22c0e90cfdc/.github/traffic-publish/commercial-batch-20261103-32/1449.png",
+    "image_sha256": "168650c9c85e131e3f16165e635e8db12f468fdc1d081decb0ccb3654bce0e57"
+  },
+  {
+    "hotel_id": 1453,
+    "name": "Rixos Premium Tekirova",
+    "accepted_first_line": "✈️ Туры в Rixos Premium Tekirova с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2c7aadb0eafce5c1dc5ca8d23f10a22c0e90cfdc/.github/traffic-publish/commercial-batch-20261103-32/1453.png",
+    "image_sha256": "7cfc10e3ec7a058158dc68d38bf51f25465cffb05682d3e85062eebde3c5bfdd"
+  },
+  {
+    "hotel_id": 9432,
+    "name": "Delphin Imperial Lara",
+    "accepted_first_line": "✈️ Туры в Delphin Imperial Lara с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2c7aadb0eafce5c1dc5ca8d23f10a22c0e90cfdc/.github/traffic-publish/commercial-batch-20261103-32/9432.png",
+    "image_sha256": "76ba80696fc28fe24bcf3662dc9e8d4371132bebce358df48dabca496ce4fb8d"
+  },
+  {
+    "hotel_id": 1451,
+    "name": "Delphin BE Grand Resort",
+    "accepted_first_line": "✈️ Туры в Delphin BE Grand Resort с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2c7aadb0eafce5c1dc5ca8d23f10a22c0e90cfdc/.github/traffic-publish/commercial-batch-20261103-32/1451.png",
+    "image_sha256": "7b14de4c4b085e55f318721f49ee8f0a811bef8676dbab741571ee1186d20afd"
+  },
+  {
+    "hotel_id": 1151,
+    "name": "Delphin Palace",
+    "accepted_first_line": "✈️ Туры в Delphin Palace с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2c7aadb0eafce5c1dc5ca8d23f10a22c0e90cfdc/.github/traffic-publish/commercial-batch-20261103-32/1151.png",
+    "image_sha256": "186108979417d60c0a515322a3ef5ad35c028c625cfecc953c7819d09cf84814"
+  },
+  {
+    "hotel_id": 1583,
+    "name": "Voyage Sorgun",
+    "accepted_first_line": "✈️ Туры в Voyage Sorgun с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2c7aadb0eafce5c1dc5ca8d23f10a22c0e90cfdc/.github/traffic-publish/commercial-batch-20261103-32/1583.png",
+    "image_sha256": "e68d6335fc881e832d30871a2f655975736a8e44aef5bfb17195a549e72161f1"
+  }
+]
