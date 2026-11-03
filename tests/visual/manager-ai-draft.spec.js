@@ -109,14 +109,15 @@ async function bounded(page){
 }
 async function capture(page,browserName,viewport){const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});await page.screenshot({animations:'disabled',path:path.join(directory,`ai-draft-${browserName}-${viewport.width}-${viewport.height}-preview.png`)})}
 async function replyFitsAssistant(page){
-  const reply=page.locator('#replyText');await expect(reply).toBeVisible();await expect(reply).toHaveClass(/aiDraftPreview/);
+  const reply=page.locator('#replyText');await expect(reply).toBeVisible();await expect(reply).toHaveClass(/aiDraftPreview/);await settled(page);
   await expect(page.locator('#aiDraftSuggestion')).toBeHidden();await expect(page.locator('#aiDraftPanel')).toBeHidden();
   expect(await page.locator('#composer textarea').count()).toBe(1);expect(await page.locator('#composer input[type=file]').count()).toBe(1);
   const paint=await reply.evaluate(node=>{const r=node.getBoundingClientRect(),style=getComputedStyle(node),hit=document.elementFromPoint((r.left+r.right)/2,(r.top+r.bottom)/2);return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,height:r.height,font:parseFloat(style.fontSize),hit:hit===node}}),view=page.viewportSize();
   expect(paint.left).toBeGreaterThanOrEqual(-1);expect(paint.right).toBeLessThanOrEqual(view.width+1);expect(paint.top).toBeGreaterThanOrEqual(-1);expect(paint.bottom).toBeLessThanOrEqual(view.height+1);expect(paint.height).toBeGreaterThanOrEqual(32);expect(paint.font).toBeGreaterThanOrEqual(14);expect(paint.hit).toBe(true);
 }
-async function assistantPaint(page,selector){return page.locator(selector).evaluate(node=>{const r=node.getBoundingClientRect(),scroller=node.closest('.aiDraftBody')||node.closest('#aiDraftPanel'),s=scroller.getBoundingClientRect(),top=Math.max(r.top,s.top,0),bottom=Math.min(r.bottom,s.bottom,innerHeight),left=Math.max(r.left,s.left,0),right=Math.min(r.right,s.right,innerWidth),hit=bottom>top&&right>left?document.elementFromPoint((left+right)/2,(top+bottom)/2):null;return {height:Math.max(0,bottom-top),targetHeight:r.height,hostHeight:s.height,hit:!!hit&&(hit===node||node.contains(hit)),fontSize:parseFloat(getComputedStyle(node).fontSize)}})}
+async function assistantPaint(page,selector){return page.locator(selector).evaluate(node=>{const r=node.getBoundingClientRect(),body=node.closest('.aiDraftBody'),scroller=body&&getComputedStyle(body).overflowY!=='visible'?body:node.closest('#aiDraftPanel'),s=scroller.getBoundingClientRect(),top=Math.max(r.top,s.top,0),bottom=Math.min(r.bottom,s.bottom,innerHeight),left=Math.max(r.left,s.left,0),right=Math.min(r.right,s.right,innerWidth),hit=bottom>top&&right>left?document.elementFromPoint((left+right)/2,(top+bottom)/2):null;return {height:Math.max(0,bottom-top),targetHeight:r.height,hostHeight:s.height,hit:!!hit&&(hit===node||node.contains(hit)),fontSize:parseFloat(getComputedStyle(node).fontSize)}})}
 async function readAssistantSection(page,selector){await page.locator(selector).scrollIntoViewIfNeeded();await expect.poll(async()=>{const p=await assistantPaint(page,selector);return p.hit&&p.height>=Math.min(p.targetHeight,p.hostHeight-8)-1}).toBe(true)}
+async function openPreparationSettings(page){await page.locator('#m2ConversationMenuToggle').click();await page.locator('.m2ConversationMenu #aiPreparationSettings').click();await expect(page.locator('#pwPreparation')).toBeVisible()}
 async function openRequestProfile(page){const row=page.locator('#m2CurrentTrip');if(!await row.evaluate(el=>el.open))await row.locator(':scope > summary').click();await page.getByRole('button',{name:'Уточнить запрос',exact:true}).click()}
 async function openAi(page,{owner=false}={}){await (owner?page.getByRole('button',{name:'AI · Просмотр',exact:true}):page.locator('#aiDraftOpen')).click();await expect(page.locator('#aiDraftPanel')).toBeVisible()}
 async function settled(page){await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0)}
@@ -668,7 +669,7 @@ for(const width of [390,1440])test('Manager2 preparation controls preserve the n
  });
  await page.locator('#replyText').fill('Мой точный ответ');await page.locator('#replyFile').setInputFiles({name:'keep.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic File')});
  await page.locator('#replyText').evaluate(node=>{node.setSelectionRange(2,8,'backward');window.preparationNative={reply:node,form:document.getElementById('composer'),input:document.getElementById('replyFile'),file:document.getElementById('replyFile').files[0],selection:[node.selectionStart,node.selectionEnd,node.selectionDirection]}});
- await page.locator('#aiPreparationSettings').click();await expect(page.locator('#pwPreparation')).toBeVisible();
+ await openPreparationSettings(page);await expect(page.locator('#pwPreparation')).toBeVisible();
  await page.locator('#pwPreparationScope').selectOption('all');await page.locator('#pwPreparationMode').selectOption('enabled');
  await page.locator('#pwPreparationTerm').selectOption('until');const deadline=new Date(Date.now()+3600000+2*3600000).toISOString().slice(0,16);
  await page.locator('#pwPreparationUntil').fill(deadline);await page.locator('#pwPreparationSave').click();
@@ -690,7 +691,7 @@ test('Manager2 preparation unknown-write recovery and exclusions leave manual AI
   if(data.action==='operation')return {body:{...state.personal,found:true,result:committed}};
  });
  await page.locator('#replyText').fill('Свой черновик');await page.locator('#replyFile').setInputFiles({name:'retained.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic file')});
- await page.locator('#aiPreparationSettings').click();await page.locator('#pwPreparationMode').selectOption('disabled');await page.locator('#pwPreparationSave').click();
+ await openPreparationSettings(page);await page.locator('#pwPreparationMode').selectOption('disabled');await page.locator('#pwPreparationSave').click();
  await expect(page.locator('#pwStatus')).toContainText('Исход сохранения неизвестен');await expect(page.locator('#pwPreparationSave')).toBeDisabled();
  await page.locator('#pwCheckOperation').click();await expect(page.locator('#pwStatus')).toHaveText('Автоподготовка настроена.');await expect(page.locator('#pwPreparationEffective')).toContainText('выключена');
  expect(state.calls.filter(call=>call.action==='preparation_policy')).toHaveLength(1);expect(state.calls.find(call=>call.action==='operation').operation_id).toBe(saved.operation_id);
@@ -705,7 +706,7 @@ test('Manager2 preparation queue control uses admin queue CAS and the same opera
   if(data.action==='queue_preparation_snapshot')return {body:{ok:true,queue_policy:queue}};
   if(data.action==='queue_preparation_policy'){saved=data;queue.version++;queue.rule={next_rule_version:2,all:{enabled:data.enabled,until_utc:null,version:1},conversations:{}};return {body:{...state.personal,ok:true,queue_policy:queue}};}
  });
- await page.locator('#aiPreparationSettings').click();await expect(page.locator('#pwPreparationScope option[value="queue"]')).toHaveCount(1);
+ await openPreparationSettings(page);await expect(page.locator('#pwPreparationScope option[value="queue"]')).toHaveCount(1);
  await page.locator('#pwPreparationScope').selectOption('queue');await page.locator('#pwPreparationMode').selectOption('enabled');await page.locator('#pwPreparationSave').click();
  await expect(page.locator('#pwStatus')).toHaveText('Автоподготовка настроена.');expect(saved).toMatchObject({action:'queue_preparation_policy',scope:'all',expected_queue_version:0,enabled:true});
  await expect(page.locator('#pwPreparationEffective')).toContainText('Включена постоянно');clean(state);
@@ -714,7 +715,7 @@ test('Manager2 preparation queue control uses admin queue CAS and the same opera
 test('Manager2 preparation expiry is visible and manual AI stays available',async({page})=>{
  const state=await setup(page,{preparationControls:true});
  state.personal.version=1;state.personal.state.ai_preparation={next_rule_version:2,all:{enabled:true,until_utc:new Date(Date.now()-60000).toISOString().slice(0,19).replace('T',' '),version:1},conversations:{}};
- await page.locator('#aiPreparationSettings').click();await expect(page.locator('#pwPreparationEffective')).toContainText('Срок истёк');
+ await openPreparationSettings(page);await expect(page.locator('#pwPreparationEffective')).toContainText('Срок истёк');
  await page.locator('#pwClose').click();await page.locator('#aiDraftOpen').click();await expect(page.locator('#aiDraftInsert')).toBeEnabled();
  expect(state.calls.filter(call=>['preparation_policy','queue_preparation_policy'].includes(call.action))).toEqual([]);clean(state);
 });
@@ -723,7 +724,7 @@ test('Manager2 preparation late save cannot replace a changed account policy',as
  const state=await setup(page,{preparationControls:true});let release,entered=false;
  const oldResult={ok:true,version:1,state:{...state.personal.state,ai_preparation:{next_rule_version:2,all:{enabled:false,until_utc:null,version:1},conversations:{}}}};
  state.setPreparationHandler(async data=>{if(data.action==='preparation_policy'){entered=true;await new Promise(resolve=>{release=resolve});return {body:oldResult}}});
- await page.locator('#aiPreparationSettings').click();await page.locator('#pwPreparationScope').selectOption('all');await page.locator('#pwPreparationMode').selectOption('disabled');await page.locator('#pwPreparationSave').click();
+ await openPreparationSettings(page);await page.locator('#pwPreparationScope').selectOption('all');await page.locator('#pwPreparationMode').selectOption('disabled');await page.locator('#pwPreparationSave').click();
  await expect.poll(()=>entered).toBe(true);
  await page.evaluate(async()=>{WorkspaceV2.S.manager={...WorkspaceV2.S.manager,id:8};WorkspaceV2.S.authGeneration++;await WorkspaceV2PersonalWorkspace.activate(8)});
  const completed=page.waitForResponse(response=>response.url().endsWith('/manager/personal-workspace-api.php')&&response.request().postDataJSON()?.action==='preparation_policy');release();await completed;
@@ -733,11 +734,13 @@ test('Manager2 preparation late save cannot replace a changed account policy',as
 
 for(const viewport of [{width:390,height:420},{width:430,height:900},{width:1440,height:900}])test('daily manager flow keeps one request and native reply through card and Inbox '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
  await page.setViewportSize(viewport);const state=await setup(page,{profilePanel:true});
+ // Let the initial confirmed profile finish before replacing it with this empty-profile fixture.
+ await expect(page.locator('#m2CurrentTrip .m2RequestStatus')).toHaveText('Запрос сверен с перепиской');
  state.setProfileHandler(data=>data.action==='get'?{body:{ok:true,viewer_id:7,conversation_id:Number(data.conversation_id),profile:{label:'Текущая поездка',status:'empty',fields:{}}}}:null);
  await page.evaluate(()=>{WorkspaceV2.S.detail.handoff_context={summary:'Вылет 14.11. 7–8 ночей. Пхукет, Карон, Отель Корона4*.'};WorkspaceV2Conversation.renderHandoffContext();WorkspaceV2RequestProfile.refresh();});
- const row=page.locator('#m2CurrentTrip');await expect(row.locator(':scope > summary')).toContainText('Запрос клиента');await expect(row.locator(':scope > summary')).toContainText('7–8 ночей');await expect(row).not.toHaveAttribute('open','');await expect(row.locator('strong')).toBeHidden();await expect(page.locator('#mobileLeadBtn')).toBeHidden();await expect(page.locator('#assistantClientOpen')).toHaveCount(0);await expect(page.locator('#nextWaitingConversation')).toHaveCount(0);
+ const row=page.locator('#m2CurrentTrip');await expect(row.locator(':scope > summary')).toContainText('Запрос клиента');await expect(row.locator('.m2RequestStatus')).toHaveText('Сохранённого запроса пока нет. Уточните его по переписке.');await expect(row).not.toHaveAttribute('open','');await expect(row.locator('strong')).toBeHidden();await expect(page.locator('#mobileLeadBtn')).toBeHidden();await expect(page.locator('#assistantClientOpen')).toHaveCount(0);await expect(page.locator('#nextWaitingConversation')).toHaveCount(0);
  await page.locator('#replyText').fill('Начал отвечать клиенту сам');await page.locator('#replyFile').setInputFiles({name:'daily-flow.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic retained file, never sent')});const attachment=await page.locator('#mediaSelection').textContent();await page.evaluate(()=>{window.dailyReplyNode=document.getElementById('replyText');window.dailyFileNode=document.getElementById('replyFile');});
- await row.locator(':scope > summary').click();await row.locator('#handoffContext summary').click();await expect(row.locator('.handoffContextSummary')).toContainText('Отель Корона4*');await expect(page.locator('#handoffContext')).toHaveCount(1);await row.locator(':scope > summary').click();
+ await row.locator(':scope > summary').click();await row.locator('#handoffContext summary').click();await expect(row.locator('.handoffContextSummary')).toContainText('7–8 ночей');await expect(row.locator('.handoffContextSummary')).toContainText('Отель Корона4*');await expect(page.locator('#handoffContext')).toHaveCount(1);await row.locator(':scope > summary').click();
  await page.locator('#m2ConversationMenuToggle').click();await expect(page.locator('.m2ConversationMenu #ceOpen')).toHaveCount(0);await expect(page.locator('.m2ConversationMenu #assistantClientOpen')).toHaveCount(0);await expect(page.locator('#conversationSearchOpen')).toBeVisible();await page.locator('#m2ConversationMenuToggle').press('Escape');
  await page.locator('#conversationTitle').click();await expect(page.locator('#leadZone')).toBeVisible();await expect(page.locator('.leadHeaderActions #ceOpen')).toBeVisible();await page.locator('#mobileLeadClose').click();await expect(page.locator('#conversationTitle')).toBeFocused();await expect(page.locator('#replyText')).toHaveValue('Начал отвечать клиенту сам');await expect(page.locator('#mediaSelection')).toHaveText(attachment);
  await page.locator('#replyText').evaluate(el=>el.blur());await page.locator('#aiDraftOpen').click();await expect(page.locator('#aiDraftPanel')).toBeVisible();await readAssistantSection(page,'#aiDraftInsert');await page.locator('#aiDraftInsert').click();await expect(page.locator('#replyText')).toHaveValue('Начал отвечать клиенту сам\n'+proposal().draft);const draft=await page.locator('#replyText').inputValue();await expect(page.locator('#mediaSelection')).toHaveText(attachment);

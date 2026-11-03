@@ -325,7 +325,7 @@
     if(view&&(!canAnalyze()||!sameContext(view.snapshot.context))){resetSession();return}
     if(view&&!currentSnapshot(view.snapshot))stale();
     const disabled=!canAnalyze()||!!flight;if(button.disabled!==disabled)button.disabled=disabled;
-    if(preparationSettings){if(editablePreview()&&preparationSettings.parentElement!==panel)panel.appendChild(preparationSettings);const c=S.detail?.conversation;const hidden=!!$('m2ReplyEditor')?.open||!(Number(c?.id)===Number(S.current)&&(Number(c.manager_id)===Number(S.manager?.id)&&c.status==='manager'||ownerRead()&&Number(c.manager_id||0)===0));if(preparationSettings.hidden!==hidden)preparationSettings.hidden=hidden;}
+    if(preparationSettings){if(editablePreview())window.Manager2Presentation?.registerConversationTool?.(preparationSettings);const c=S.detail?.conversation;const hidden=!!$('m2ReplyEditor')?.open||!(Number(c?.id)===Number(S.current)&&(Number(c.manager_id)===Number(S.manager?.id)&&c.status==='manager'||ownerRead()&&Number(c.manager_id||0)===0));if(preparationSettings.hidden!==hidden)preparationSettings.hidden=hidden;}
     syncWatch();renderButton();
     positionPanel();
   }
@@ -558,7 +558,7 @@
       const hide=document.createElement('button');hide.type='button';hide.textContent='×';hide.setAttribute('aria-label','Скрыть уведомление AI');hide.addEventListener('click',dismissNotice);notice.appendChild(hide);form.appendChild(notice);
       document.addEventListener('visibilitychange',()=>{if(!visible())stopWatching();else sync()});
     }
-    const settingsHost=assistantHost();if(settingsHost){preparationSettings=document.createElement('button');preparationSettings.id='aiPreparationSettings';preparationSettings.type='button';preparationSettings.className='aiPreparationSettings';preparationSettings.textContent='Автоподготовка';preparationSettings.addEventListener('click',()=>void window.WorkspaceV2PersonalWorkspace?.openPreparation?.(preparationSettings));settingsHost.prepend(preparationSettings);}
+    const settingsHost=assistantHost();if(settingsHost){preparationSettings=document.createElement('button');preparationSettings.id='aiPreparationSettings';preparationSettings.type='button';preparationSettings.className='actionBtn aiPreparationSettings';preparationSettings.textContent='Автоподготовка';preparationSettings.addEventListener('click',()=>void window.WorkspaceV2PersonalWorkspace?.openPreparation?.(preparationSettings));settingsHost.prepend(preparationSettings);}
     bound=true;button.addEventListener('click',()=>{if(view&&!view.stale)close();else openReady()});dismiss.addEventListener('click',()=>close());
     retry.addEventListener('click',()=>void loadProposal(view?.retryAction==='prepared'?'prepared':'generate'));insert.addEventListener('click',()=>void insertDraft());
     panel.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();close()}});

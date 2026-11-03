@@ -108,3 +108,6 @@
 
 /* Editable AI preview in the canonical textarea; real manager input removes this origin. */
 .manager2 #composer #replyText.aiDraftPreview{color:#778679}
+
+/* A short viewport scrolls the whole details pane so status and actions cannot starve its body. */
+@media(max-height:540px){.manager2 #composer .aiDraftPanel{display:block;overflow:auto;overscroll-behavior:contain;scroll-padding:52px 0 10px}.manager2 #composer .aiDraftBody{overflow:visible}}

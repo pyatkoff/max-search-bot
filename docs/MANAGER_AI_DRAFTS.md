@@ -411,3 +411,12 @@ messages, owner/account/auth/navigation changes still invalidate it. The
 canonical server revision is separately validated before insertion, including
 history or reference edits the client has not observed. This is not a
 latest-message-ID-only freshness contract or an additional cache/send owner.
+
+## Manager2 compact composer
+
+A current ready AI answer appears as an editable preview in the existing reply
+field. Typing converts it to a manager draft; the canonical attachment and explicit
+send owner remain unchanged. Manager checks stay behind the existing AI button.
+On short screens the whole checks panel scrolls, including status and actions,
+so the checks retain readable space. Autopreparation settings are available from
+the existing conversation menu without opening or generating an AI answer.
