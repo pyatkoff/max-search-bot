@@ -1,36 +1,44 @@
 {
   "operation": "commercial-hotel-batch-20261103-20-v1",
-  "state": "CONTENT_VERIFIED_MEDIA_DEFERRED_NOT_SENT",
-  "goal": "Prepare and publish the ready whole Sindbad Club hotel material in both existing channels.",
-  "boundaries": "One proven native stock identity62504,exact current official hotel facts and three object-specific public photos. Existing Canva copy/publisher/once only. No price,package inclusion,availability or future service promises.",
-  "criteria": "Whole factual caption<=1024UTF16 with no dash/hyphen,accepted hotel-and-grounds hero,all four image fills replaced,readable branding/title,exact native PNG bytes/hash/dimensions and current source/host/TLS/schema/rights/live dedup. Publish this ready subset without waiting for Titanic supplementary imagery.",
-  "risks": "Winter heating on the official aqua-park page excludes the wave pool. Children club age not established,so no invented age limits. Do not transfer free hotel direct-booking services to the AnyTour package. Other Titanic photos with Firebase tokens are not authorized exports.",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Publish one ready whole Savoy Sharm El Sheikh material in each existing channel.",
+  "boundaries": "Existing publisher,registry,durable once and the two authorized channels only. Two messages maximum. No new quote requests,price or availability claims,new channels/runtime or Mac access.",
+  "criteria": "Exact current8d8 source and same-source accepted verify/TLS,21 unchanged publishing blobs,host continuity,schema,rights,current dedup. Exactly2 provider-confirmed posts with prepared text/photo hashes and canonical buttons/source.",
+  "risks": "Savoy408 is not Royal Savoy or Sierra. Heating and kidsclub ages come from current exact Savoy primary pages. No dining package inclusions or direct-booking benefits are transferred. Other disputed heroes remain deferred.",
+  "baseline_logical_materials": 105,
   "button_text": "✈️ Узнать стоимость тура",
   "rows": [
     {
-      "hotel_id": 62504,
-      "hotel": "Sindbad Club",
-      "key": "sindbad-club",
+      "hotel_id": 408,
+      "hotel": "Savoy Sharm El Sheikh",
+      "key": "savoy-sharm",
       "aliases": [
-        "Sindbad Club"
+        "Savoy Sharm",
+        "Savoy Sharm El Sheikh"
       ],
       "sources": [
-        "https://sindbadclub.com/facilities",
-        "https://sindbadclub.com/beach-pools",
-        "https://sindbadclub.com/aqua-park"
+        "https://www.savoy-sharm.com/savoy/hotel",
+        "https://www.savoy-sharm.com/savoy/activities/pools-beaches",
+        "https://www.savoy-sharm.com/savoy/activities/activitieskids-club"
       ],
-      "text": "✈️ Туры в Sindbad Club с перелётом\n📍 Хургада, Египет.\n\n🏖 Песчаный пляж длиной 120 м. От лобби около трёх минут пешком.\n💦 В аквапарке 7 взрослых и 8 детских горок, есть волновой бассейн.\n👧 Для детей работает клуб с играми и творческими занятиями.\n🧖 В спа есть хаммам и сауна, в отеле есть тренажёрный зал.\n\n💡 С ноября по март подогрев заявлен для бассейнов аквапарка, кроме волнового.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура с перелётом в Sindbad Club.",
-      "logical_id": "commercial-sindbad-club-62504-v1",
-      "text_sha256": "7d447df9cac3f16f2ad78cde4b41324ab73f806051bd15f2f755be572c8c7ca6"
+      "text": "✈️ Туры в Savoy Sharm El Sheikh с перелётом\n📍 Шарм эль Шейх, Египет.\n\n🏖 Пляж White Knight с возможностями для снорклинга.\n🏊 Три взрослых и два детских бассейна.\n🌴 Территория 200 000 м² с тропическими садами.\n👧 Детский клуб для ребят от 4 до 12 лет, игровая площадка и детская зона на пляже.\n\n💡 Подогреваются два взрослых бассейна, зимой ещё один детский.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Savoy.",
+      "logical_id": "commercial-savoy-sharm-408-v1",
+      "text_sha256": "905a4e85a8bee8a6db58ce23b669a861a515e16eac1197d2fcbddabb2f4a9772",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/298de73457d875d29e45797453dded34c1d7f99b/.github/traffic-publish/commercial-batch-20261103-20/408.png",
+      "photo_sha256": "b6333dec432ca78ce08c59697e47716e0dda9fd2fee1db66c1e6ba8568b5cba7",
+      "media_state": "ACCEPTED_NATIVE_PNG_FROZEN"
     }
   ],
-  "content_verified_count": 1,
-  "content_and_cover_prepared_count": 0,
-  "ready_for_send_count": 0,
-  "approved_live_send_count": 0,
+  "ready_for_send_count": 1,
   "new_posts": 0,
   "provider_send_attempts": 0,
-  "media_state": "REJECTED_GENERAL_VIEW_REQUIRED",
+  "content_and_cover_prepared_count": 1,
+  "approved_live_send_count": 1,
+  "public_png_frozen_count": 1,
+  "native_inspection_state": "ONE_SAVOY_COVER_VISUALLY_AND_BYTES_ACCEPTED",
+  "native_inspection_run_urls": [
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41624897652"
+  ],
   "deferred": [
     {
       "hotel_id": 62504,
@@ -49,6 +57,62 @@
           "reason": "Different source JPEG shows waterfront restaurant roof and sea;not an overall hotel view."
         }
       ]
+    },
+    {
+      "hotel_id": 231,
+      "state": "CONTENT_VERIFIED_GENERAL_HOTEL_HERO_PENDING",
+      "prepared_row": {
+        "hotel_id": 231,
+        "hotel": "The Grand Makadi",
+        "key": "grand-makadi",
+        "aliases": [
+          "The Grand Makadi",
+          "Grand Makadi"
+        ],
+        "sources": [
+          "https://redseahotels.com/resorts/makadi-bay/the-grand-makadi/"
+        ],
+        "text": "✈️ Туры в The Grand Makadi с перелётом\n📍 Макади Бэй, Египет.\n\n🏖 Собственный пляж и зелёная территория у моря.\n🏊 Открытый бассейн, сезонный подогрев.\n👧 Детский клуб и игровая площадка.\n👨‍👩‍👧‍👦 В категории Family Room две спальни с соединяющей дверью.\n\n💡 К домашнему рифу ведёт пирс.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в The Grand Makadi.",
+        "logical_id": "commercial-grand-makadi-231-v1",
+        "text_sha256": "fa732bdc03572e67e93d19f20d06fc531e0890bf329808c08f77d8995b24c6d2"
+      }
+    },
+    {
+      "hotel_id": 441,
+      "state": "CONTENT_VERIFIED_GENERAL_HOTEL_HERO_PENDING",
+      "prepared_row": {
+        "hotel_id": 441,
+        "hotel": "Siva Grand Beach",
+        "key": "siva-grand-beach",
+        "aliases": [
+          "Siva Grand Beach"
+        ],
+        "sources": [
+          "https://redseahotels.com/resorts/hurghada/siva-grand-beach/"
+        ],
+        "text": "✈️ Туры в Siva Grand Beach с перелётом\n📍 Хургада, Египет.\n\n🏖 Широкий песчаный пляж с пологим спуском.\n🏊 Открытый бассейн, сезонный подогрев.\n👧 Детский клуб и игровая площадка.\n🛏 Есть номера в главном корпусе и двухэтажных бунгало. Family Room с двумя соединёнными спальнями.\n\n☕ Напитки в кафе WPS оплачиваются отдельно.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Siva Grand Beach.",
+        "logical_id": "commercial-siva-grand-beach-441-v1",
+        "text_sha256": "03e77f35a8738b581f51ce43bae50f1a5b88c347f0418435d438b77b1c37b82e"
+      }
+    },
+    {
+      "hotel_id": 483,
+      "state": "CONTENT_VERIFIED_GENERAL_HOTEL_HERO_PENDING",
+      "prepared_row": {
+        "hotel_id": 483,
+        "hotel": "SUNRISE Royal Makadi Resort",
+        "key": "sunrise-royal-makadi",
+        "aliases": [
+          "SUNRISE Royal Makadi",
+          "Royal Makadi Resort"
+        ],
+        "sources": [
+          "https://www.sunrise-resorts.com/royal-makadi-resort"
+        ],
+        "text": "✈️ Туры в SUNRISE Royal Makadi Resort с перелётом\n📍 Макади Бэй, Египет.\n\n🏖 Собственный пляж в бухте Макади.\n💦 Аквапарк с детской игровой зоной.\n👧 Детский клуб для ребят от 3 до 12 лет.\n👨‍👩‍👧‍👦 Есть Family Room площадью 55 м² с двухъярусной кроватью.\n\n💡 Тренажёрный зал доступен с 16 лет.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в SUNRISE Royal Makadi.",
+        "logical_id": "commercial-sunrise-royal-makadi-483-v1",
+        "text_sha256": "c3b8ec2bb00abd208cd1c4b1db099e7f00dd1c0c4357ee68adcbbb9f2e5f5225"
+      }
     }
   ]
 }
