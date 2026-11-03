@@ -1,11 +1,11 @@
 {
   "operation": "commercial-hotel-batch-20261103-26-v1",
-  "state": "TEN_CANDIDATE_TEXT_SOURCE_PREPARATION_PHOTO_GAPS_NOT_SENT",
+  "state": "TEN_CANDIDATE_NEW_OWNER_OVERVIEWS_INSPECTION_PENDING",
   "catalog_ids": [
     129,
     74258,
     73343,
-    418,
+    432,
     65779,
     932,
     497,
@@ -29,12 +29,20 @@
   "risks": [
     "Six new owner HTML attempts returned HTTPError; status unknown, do not repeat or label403",
     "Finite photos are from exact owner-declared cached gallery URIs; no URL guessing or access-token photos",
-    "Keep ready materials moving while individual source/photo gaps remain"
+    "Keep ready materials moving while individual source/photo gaps remain",
+    "Replace disputed Serenity418 in this preparation with already catalogued Miramar432; no change to the25 identity inventory"
   ],
   "new_posts": 0,
   "ready_for_send_count": 0,
   "photo_inspection_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41680677887",
   "photo_inputs": 15,
   "raw_photos_verified": 15,
-  "hero_accepted_count": 0
+  "hero_accepted_count": 0,
+  "new_photo_pass_input_count": 16,
+  "new_photo_sources": [
+    "https://www.elgouna.com/hotels/casa-cook/rooms",
+    "https://www.elgouna.com/hotels",
+    "https://www.elgouna.com/hotels/cooks-club",
+    "https://www.amarinagroup.com/media/gallery"
+  ]
 }
