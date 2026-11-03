@@ -276,6 +276,23 @@ $f=hsFixture();try{
     HotelServerCronRuntime::tick($flags,static fn()=>['pdo'=>$f['p'],'provider'=>$f['provider'],'clock'=>static fn()=>1800000000]);
     hsCheck(count($f['provider']->requests)===$n,'runtime UNKNOWN never sends again');
 }finally{hsCleanup($f);}
+
+$f=hsFixture();try{
+    hsBoot($f);hsEnable($f);
+    $f['p']->exec("UPDATE hotel_server_campaigns SET state='hold' WHERE campaign_id='NEW'");
+    $before=$f['p']->query("SELECT * FROM hotel_server_campaigns WHERE campaign_id='NEW'")->fetch(PDO::FETCH_ASSOC);
+    $outboxBefore=$f['p']->query("SELECT * FROM hotel_server_outbox ORDER BY stage_index,role")->fetchAll(PDO::FETCH_ASSOC);
+    $runtime=HotelServerCronRuntime::tick($flags,static fn()=>['pdo'=>$f['p'],'provider'=>$f['provider'],'clock'=>static fn()=>1800000000]);
+    hsCheck($runtime['state']==='hold'&&($runtime['worker_completed']??false)===true,'confirmed stored campaign HOLD completes the worker without becoming business success');
+    hsCheck(count($f['provider']->requests)===0&&hsCount($f['p'],'hotel_server_attempts')===0
+        &&$f['p']->query("SELECT * FROM hotel_server_campaigns WHERE campaign_id='NEW'")->fetch(PDO::FETCH_ASSOC)===$before
+        &&$f['p']->query("SELECT * FROM hotel_server_outbox ORDER BY stage_index,role")->fetchAll(PDO::FETCH_ASSOC)===$outboxBefore,
+        'held recurrence preserves campaign outbox budgets and performs no provider dispatch');
+    $failed=HotelServerCronRuntime::tick($flags,static function():array{throw new RuntimeException('synthetic context failure');});
+    hsCheck($failed['state']==='hold'&&$failed['reason']==='server_tick_unconfirmed'&&($failed['worker_completed']??false)===false,
+        'unconfirmed context failures cannot receive a completion attestation');
+}finally{hsCleanup($f);}
+
 $cli=(string)file_get_contents(dirname(__DIR__).'/tools/hotel_work.php');
 hsCheck(strpos($cli,'HotelServerCronRuntime::tick')<strpos($cli,'hasActiveSubscriptions'),'server hook precedes legacy subscription gate');
 

@@ -158,3 +158,10 @@ provider receipt must still be observed privately after installation.
 Historical progress keeps fixed private reason counters for inspected customer
 text, qualifying signal, invalid packet, absent day signal, current binding/scope
 hold and already-reserved value. Unknown counters remain null in the reader.
+
+Release-dependency correction: an existing hotel campaign's confirmed safe HOLD
+is retained as server_cycle_hold in its private operational checkpoint and future
+cron proof stages. Only a normal canonical-cycle return carries worker_completed.
+Configuration/unknown/error HOLD still fails. The verifier's accepted states,
+two-future-tick timing and failure gates are unchanged; campaign state, budgets,
+queues, provider dispatch and connections are never altered by this correction.
