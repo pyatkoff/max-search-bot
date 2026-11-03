@@ -1,19 +1,19 @@
 import base64,hashlib,json,os,struct,urllib.parse,urllib.request
 from pathlib import Path
-rows=json.loads("[{\"hotel_id\":1291,\"url\":\"https://export-download.canva.com/53a724b8-e6a0-4fd9-9e1e-214de7491234/0/0001-5175157026828000961.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUH4R7NKVBA%2F20261103%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20261103T054233Z&X-Amz-Expires=60475&X-Amz-Signature=2f94f67be20b45a4de1515c0607324fb2da3b27547245daa4aaf60c67c28c44d&X-Amz-SignedHeaders=host%3Bx-amz-expected-bucket-owner&response-expires=Tue%2C%2003%20Nov%202026%2022%3A30%3A28%20GMT\"},{\"hotel_id\":15869,\"url\":\"https://export-download.canva.com/e54f8e01-8f9f-455e-b234-56a9bb19b5d4/0/0001-1744540008616701654.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUH4R7NKVBA%2F20261102%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20261102T211609Z&X-Amz-Expires=93189&X-Amz-Signature=5dbff3d34698c2ca2645fb299be20150f2fef2d331082c4011c8865b1329e382&X-Amz-SignedHeaders=host%3Bx-amz-expected-bucket-owner&response-expires=Tue%2C%2003%20Nov%202026%2023%3A09%3A18%20GMT\"},{\"hotel_id\":253,\"url\":\"https://export-download.canva.com/7a953456-d5e5-4e89-8b68-0bd7a599d5f7/0/0001-1347097345416316670.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUH4R7NKVBA%2F20261103%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20261103T184620Z&X-Amz-Expires=15806&X-Amz-Signature=8f18f78474e246d426d86338b90b0f3c6bd4165b5fcffd1456283b71a31e1781&X-Amz-SignedHeaders=host%3Bx-amz-expected-bucket-owner&response-expires=Tue%2C%2003%20Nov%202026%2023%3A09%3A46%20GMT\"},{\"hotel_id\":75377,\"url\":\"https://export-download.canva.com/796525b0-fa86-40ad-b321-935ea6081705/0/0001-5175157026759806794.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUH4R7NKVBA%2F20261103%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20261103T011114Z&X-Amz-Expires=78798&X-Amz-Signature=87244fff4a242820bfb6288cce9c8e44cf563aba62a0b42395b15c4ab8b83ae5&X-Amz-SignedHeaders=host%3Bx-amz-expected-bucket-owner&response-expires=Tue%2C%2003%20Nov%202026%2023%3A04%3A32%20GMT\"}]")
+rows=json.loads("[{\"hotel_id\":15869,\"url\":\"https://export-download.canva.com/af424ecb-d9d9-4b9b-8a8c-9807c2f286f4/0/0001-1094895764619592221.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUH4R7NKVBA%2F20261102%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20261102T231153Z&X-Amz-Expires=85803&X-Amz-Signature=cbfab192f596a3bffe48497d8c3b61b88951efe1193a1193f572bee583e54677&X-Amz-SignedHeaders=host%3Bx-amz-expected-bucket-owner&response-expires=Tue%2C%2003%20Nov%202026%2023%3A01%3A56%20GMT\"},{\"hotel_id\":253,\"url\":\"https://export-download.canva.com/59179da5-8870-4d23-be97-76bf4b99673c/0/0001-6889902583046655872.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUH4R7NKVBA%2F20261103%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20261103T183824Z&X-Amz-Expires=15541&X-Amz-Signature=83b446e460188a63b9ec5aef34fc5cbff2c130bbff72d159b799341f8b27fc86&X-Amz-SignedHeaders=host%3Bx-amz-expected-bucket-owner&response-expires=Tue%2C%2003%20Nov%202026%2022%3A57%3A25%20GMT\"}]")
 group=int(os.environ['COVER_GROUP'])
-assert group in (0,) and len(rows)==4
-rows=rows[group*4:group*4+4]
-assert 1<=len(rows)<=4
+assert group in (0,) and len(rows)==2
+rows=rows[group*2:group*2+2]
+assert 1<=len(rows)<=2
 class NoRedirect(urllib.request.HTTPRedirectHandler):
  def redirect_request(self,*args,**kwargs):raise ValueError('unexpected_asset_redirect')
 opener=urllib.request.build_opener(NoRedirect())
-out={'operation':'commercial-batch30-covers-20261103-read1','mode':'inspect_native_promotional_images_only','message_sends':0,'db_writes':0,'server_connections':0,'group':group,'covers':[]}
+out={'operation':'commercial-batch30-covers-20261103-read2','mode':'inspect_native_promotional_images_only','message_sends':0,'db_writes':0,'server_connections':0,'group':group,'covers':[]}
 Path('covers').mkdir(exist_ok=True)
 for row in rows:
  p=urllib.parse.urlsplit(row['url'])
  assert p.scheme=='https' and p.hostname=='export-download.canva.com' and p.port in (None,443) and not p.username and not p.password
- assert row['hotel_id'] in (1291,15869,253,75377)
+ assert row['hotel_id'] in (15869,253)
  with opener.open(row['url'],timeout=35) as r:
   raw=r.read(1600001)
   assert r.status==200

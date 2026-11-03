@@ -1,4 +1,4 @@
-name: Verify four prepared batch30 AnyTour covers together
+name: Verify two corrected batch30 AnyTour covers together
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -31,7 +31,7 @@ jobs:
         run: python3 tools/direct_demand/operations/inspect-canva-covers-20261102-3.py
       - uses: actions/upload-artifact@v4
         with:
-          name: commercial-batch30-covers-${{ matrix.cover_group }}
+          name: commercial-batch30-corrected-covers-${{ matrix.cover_group }}
           path: |
             native-cover-receipt.json
             covers/
