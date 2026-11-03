@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 ini_set('display_errors','0');ini_set('log_errors','0');
-$out=['operation'=>'commercial-price-monitor-20261103-quote1','mode'=>'one_existing_gateway_quote_contract','ok'=>false,'db_writes'=>0,'gateway_requests_attempted'=>0,'upstream_request_limit'=>1,'message_sends'=>0];
+$out=['operation'=>'commercial-price-monitor-20261103-quote1','mode'=>'one_existing_gateway_quote_contract','ok'=>false,'db_writes'=>0,'gateway_requests_attempted'=>0,'upstream_request_limit'=>1,'message_sends'=>0,'price_block_updates'=>0];
 function insist(bool $ok,string $why):void{if(!$ok)throw new RuntimeException($why);}
 try {
     if(PHP_SAPI!=='cli'||trim((string)shell_exec('git rev-parse HEAD'))!==EXPECTED_INSTALLED_SHA)throw new RuntimeException('installed_source_changed');
