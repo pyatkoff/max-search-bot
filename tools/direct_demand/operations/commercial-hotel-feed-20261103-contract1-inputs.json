@@ -1,0 +1,50 @@
+[
+  {
+    "hotel_id": 249,
+    "name": "HILTON PLAZA",
+    "region_id": 5,
+    "destination": "Хургада",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4daf5a926a75e58235980ac66de5938722dfe980/.github/traffic-publish/commercial-batch-20261103-19/249.png",
+    "image_sha256": "30a198d59227683e0737ef69919a6076630b5f1f0c543d7746f4621cc651ef22"
+  },
+  {
+    "hotel_id": 315,
+    "name": "HURGADA MARRIOTT BEACH RESORT",
+    "region_id": 5,
+    "destination": "Хургада",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4daf5a926a75e58235980ac66de5938722dfe980/.github/traffic-publish/commercial-batch-20261103-19/315.png",
+    "image_sha256": "e8e987ee34b3677fcc8f61e465e336e249a97d64385cc6ddb5c524653c419482"
+  },
+  {
+    "hotel_id": 465,
+    "name": "STELLA DI MARE BEACH HOTEL & SPA",
+    "region_id": 6,
+    "destination": "Шарм эль Шейх",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4daf5a926a75e58235980ac66de5938722dfe980/.github/traffic-publish/commercial-batch-20261103-19/465.png",
+    "image_sha256": "3cbe6907c1a0c2157aae65e45b1d13138b796af668b9f704b3afb12dd369ee57"
+  },
+  {
+    "hotel_id": 272,
+    "name": "CONTINENTAL HOTEL HURGHADA",
+    "region_id": 5,
+    "destination": "Хургада",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4daf5a926a75e58235980ac66de5938722dfe980/.github/traffic-publish/commercial-batch-20261103-19/272.png",
+    "image_sha256": "a85df85a206fc8ba25e07eb5bb734ac615a88dd6934793f8e8a53ade014d3e13"
+  },
+  {
+    "hotel_id": 260,
+    "name": "PARK REGENCY SHARM EL SHEIKH (EX. HYATT REGENCY SSH)",
+    "region_id": 6,
+    "destination": "Шарм эль Шейх",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4daf5a926a75e58235980ac66de5938722dfe980/.github/traffic-publish/commercial-batch-20261103-19/260.png",
+    "image_sha256": "d419cbaf86968b25f21eef54ef14c1d94c559b41b6837c67fad72ab558559a42"
+  },
+  {
+    "hotel_id": 273,
+    "name": "PALM ROYALE SOMA BAY (EX. SENTIDO PALM ROYALE)",
+    "region_id": 5,
+    "destination": "Хургада",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4daf5a926a75e58235980ac66de5938722dfe980/.github/traffic-publish/commercial-batch-20261103-19/273.png",
+    "image_sha256": "de45a5676376454a5a942a7f6de3a34f15b50c982e46081a5526eafe1054bf23"
+  }
+]
