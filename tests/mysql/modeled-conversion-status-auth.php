@@ -249,8 +249,8 @@ function forecastNativeAuthRegression():void
                 ($data['available']??false)&&($data['value_delivery']['available']??false)
                 &&($data['today_latency']['available']??false)
                 &&($data['today_latency']['profile_sample']['scopes_inspected']??null)===32
-                &&($data['saved_input_diagnosis']['window']['max_versions']??null)===25
-                &&($data['saved_input_diagnosis']['window']['inspected_versions']??null)===25
+                &&($data['saved_input_diagnosis']['window']['max_versions']??null)===100
+                &&($data['saved_input_diagnosis']['window']['inspected_versions']??null)===100
                 &&($data['saved_input_diagnosis']['window']['complete_within_bound']??true)===false
                 &&($data['saved']['valid_v1_versions']??0)>0
                 &&$afterRead>0&&$afterRead<$afterBearer

@@ -11,7 +11,6 @@ final class ModeledConversionForecastStatusReader
 {
     public const VERSION='saved_semantic_prediction_status_v1_9';
     public const METADATA_LIMIT=20;
-    public const DIAGNOSIS_LIMIT=25;
     public const PROFILE_LIMIT=4;
     public const PROFILE_BYTES=49152;
     private const RELEASE_RESERVE=16384;
@@ -32,7 +31,7 @@ final class ModeledConversionForecastStatusReader
             $out['value_delivery']=(new ModeledConversionValueDeliveryReader($this->pdo,$this->authorize,$this->budget))->read(time());
             $activation=$out['value_delivery']['activated_at']??null;
             $activation=is_string($activation)?strtotime($activation):false;
-            $out['saved_input_diagnosis']=(new ModeledConversionInputDiagnosisReader($this->pdo,$this->authorize,$this->budget))->read($activation===false?null:$activation,self::DIAGNOSIS_LIMIT);
+            $out['saved_input_diagnosis']=(new ModeledConversionInputDiagnosisReader($this->pdo,$this->authorize,$this->budget))->read($activation===false?null:$activation);
             $out['today_latency']=(new ModeledConversionLatencyReader($this->pdo,$this->authorize,$this->budget))->read(time());
             $model=hash_file('sha256',__DIR__.'/ModeledConversionSemanticPrediction.php');
             $processor=hash_file('sha256',__DIR__.'/ModeledConversionProfiles.php');

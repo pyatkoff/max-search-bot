@@ -60,13 +60,23 @@ final class ModeledConversionLatencyReader
                 ."CASE WHEN ".$stage." IN ('substantive_dialogue','concrete_request','exact_offer_discussion','general_purchase_intent','agency_purchase_intent') THEN ".$stage." ELSE NULL END AS prediction_stage"
                 ." FROM modeled_conversion_profile_versions WHERE project_key='anytour' AND platform=? AND customer_key=? AND conversation_id=?"
                 ." AND journal_cursor>=? AND observed_at_unix>=? AND observed_at_unix<=".$now." ORDER BY id LIMIT 1";
+            // One bounded statement preserves each scope's indexed lookup and avoids repeating
+            // the same budgeted authorization for every selected profile.
+            $terms=[];$bindings=[];$validScopes=[];
+            foreach($sample as$index=>$meta){
+                $valid=true;foreach(['customer_key','conversation_id']as$key)if(preg_match('/\\A[1-9][0-9]{0,19}\\z/D',(string)$meta[$key])!==1)$valid=false;
+                if(!$valid)continue;
+                $validScopes[$index]=true;
+                $terms[]='SELECT '.$index.' AS sample_index,selected_profile.* FROM ('.$profileSql.') selected_profile';
+                array_push($bindings,$meta['platform'],(string)$meta['customer_key'],(string)$meta['conversation_id'],(int)$meta['id'],(int)$meta['captured']);
+            }
+            $profiles=[];
+            if($terms)foreach($this->query(implode(' UNION ALL ',$terms),$bindings)as$profile)$profiles[(int)$profile['sample_index']]=$profile;
             $profileDelays=[];$totalDelays=[];$examples=[];
-            foreach($sample as$meta){
+            foreach($sample as$index=>$meta){
                 $out['profile_sample']['scopes_inspected']++;
-                $validScope=true;foreach(['customer_key','conversation_id']as$key)if(preg_match('/\\A[1-9][0-9]{0,19}\\z/D',(string)$meta[$key])!==1)$validScope=false;
-                if(!$validScope){$out['profile_sample']['invalid_scope_rows']++;continue;}
-                $rows=$this->query($profileSql,[$meta['platform'],(string)$meta['customer_key'],(string)$meta['conversation_id'],(int)$meta['id'],(int)$meta['captured']]);
-                $p=$rows[0]??null;
+                if(!isset($validScopes[$index])){$out['profile_sample']['invalid_scope_rows']++;continue;}
+                $p=$profiles[$index]??null;
                 if($p===null){
                     $out['profile_sample']['waiting_for_profile']++;
                     $age=$now-(int)$meta['captured'];
