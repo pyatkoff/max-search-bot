@@ -1,0 +1,187 @@
+{
+  "operation": "commercial-batch31-bounded-primary-contact-inspection",
+  "goal": "One finite contact pass for28 different exact primary photos across the current ten-candidate plan",
+  "boundaries": [
+    "Closed32batch29 and34batch30 photoURLs excluded automatically",
+    "No Andizmediaimport/publication because ownerreusepermissionnotproven",
+    "No server/provider/DB/messages/runtime/ads; unchanged dimensions/size/no redirects/HTTPS/rights guards"
+  ],
+  "criteria": [
+    "4groups maxparallel2; nativebytes/format/dimensions/SHA/contactpixels",
+    "All ready hotels proceed together after wholecaption+Canvacoveracceptance; no holding for others"
+  ],
+  "risks": [
+    "Gallerycategorynames can describe close views, image cannot be accepted byfilename alone",
+    "No largerimagevariants/guessedIDs/querystripping"
+  ],
+  "groups": [
+    [
+      {
+        "hotel_id": 1033,
+        "role": "g0_general_og",
+        "url": "https://api.baruthotelsgroup.com/uploads/pages/6e3e5919-7d5e-1915-544b-2f05dcc1ce49/d6e2fe74932d8bcf03ac176309a19dcc.webp"
+      },
+      {
+        "hotel_id": 1033,
+        "role": "g0_pool_page_og",
+        "url": "https://api.baruthotelsgroup.com/uploads/pages/65338e37-9283-7ef9-3157-662abd45c8d8/1976b0e6dda48bf111894b894fffdc1e.webp"
+      },
+      {
+        "hotel_id": 1033,
+        "role": "g0_main_pool",
+        "url": "https://api.baruthotelsgroup.com/uploads/pages/a3b80c91-9264-4417-b9e8-329d47c292b3/8bb366cbc3ffc7ca621bd7eeef6b217d.webp"
+      },
+      {
+        "hotel_id": 1033,
+        "role": "g0_relax_pool",
+        "url": "https://api.baruthotelsgroup.com/uploads/pages/40f2d1d0-ae74-45e2-bbb3-167d83ac3333/6d058c33f0437ca39f64f61917ded77c.webp"
+      },
+      {
+        "hotel_id": 1031,
+        "role": "g0_gallery_og",
+        "url": "https://api.baruthotelsgroup.com/uploads/pages/07f66fa6-66db-1db4-a0f2-743eaf074a43/2495cbeb8956613ef78efc9e3303960d.webp"
+      },
+      {
+        "hotel_id": 1031,
+        "role": "g0_root_feature",
+        "url": "https://api.baruthotelsgroup.com/uploads/pages/28e9c0c4-1fbe-4b14-a782-b668d3225a72/9a1d749befac6195129cac5fd916d930.jpg"
+      },
+      {
+        "hotel_id": 1031,
+        "role": "g0_gallery_experience3",
+        "url": "https://api.baruthotelsgroup.com/uploads/pages/00373166-4246-9aca-7b8b-1855295f0729/a050a4603218e35d48aaf39298959632.jpg"
+      },
+      {
+        "hotel_id": 1031,
+        "role": "g0_gallery_experience4",
+        "url": "https://api.baruthotelsgroup.com/uploads/pages/00373166-4246-9aca-7b8b-1855295f0729/afad0232df85765a1a5911c94ff94472.jpg"
+      }
+    ],
+    [
+      {
+        "hotel_id": 1032,
+        "role": "g1_gallery0",
+        "url": "https://api.baruthotelsgroup.com/uploads/pages/44cd5a59-71df-f571-8699-fe372a9eb493/18eef3e70195ac587d9ec7dadd17eefd.jpg"
+      },
+      {
+        "hotel_id": 1032,
+        "role": "g1_gallery1",
+        "url": "https://api.baruthotelsgroup.com/uploads/pages/44cd5a59-71df-f571-8699-fe372a9eb493/effe9a4cf9d82dd7b204fe626f53b418.jpg"
+      },
+      {
+        "hotel_id": 1032,
+        "role": "g1_gallery2",
+        "url": "https://api.baruthotelsgroup.com/uploads/pages/44cd5a59-71df-f571-8699-fe372a9eb493/ca64088f527e4861bcdf959b3f1b5c55.jpg"
+      },
+      {
+        "hotel_id": 1032,
+        "role": "g1_gallery3",
+        "url": "https://api.baruthotelsgroup.com/uploads/pages/44cd5a59-71df-f571-8699-fe372a9eb493/5affa6002a31bdfd59be0beba16a5ae1.jpg"
+      },
+      {
+        "hotel_id": 1032,
+        "role": "g1_main_extra0",
+        "url": "https://api.baruthotelsgroup.com/uploads/pages/12e0c34a-ae65-1835-d76f-b7e7e66fa130/0662483c115bab784b0fb86f17fc8e18.webp"
+      },
+      {
+        "hotel_id": 1032,
+        "role": "g1_main_extra1",
+        "url": "https://api.baruthotelsgroup.com/uploads/pages/12e0c34a-ae65-1835-d76f-b7e7e66fa130/b7af3c418b07b0d1a083c9e177378c0f.webp"
+      },
+      {
+        "hotel_id": 512,
+        "role": "g1_overview_other",
+        "url": "https://irp.cdn-website.com/7bfa4f38/dms3rep/multi/opt/Overview%2B1-1920w.jpg"
+      },
+      {
+        "hotel_id": 512,
+        "role": "g1_dahab2023",
+        "url": "https://irp.cdn-website.com/7bfa4f38/dms3rep/multi/opt/Dahab%2B2023%2B%28118%29u-1920w.jpg"
+      }
+    ],
+    [
+      {
+        "hotel_id": 74503,
+        "role": "g2_ng0",
+        "url": "https://ngphaselisbay.com/media/i34pkitt/ng-phaselis-bay-general2.jpg"
+      },
+      {
+        "hotel_id": 74503,
+        "role": "g2_ng1",
+        "url": "https://ngphaselisbay.com/media/3eepcelu/beach-slider.jpg"
+      },
+      {
+        "hotel_id": 74503,
+        "role": "g2_ng2",
+        "url": "https://ngphaselisbay.com/media/tp4aivya/beluga-bay.jpg"
+      },
+      {
+        "hotel_id": 74503,
+        "role": "g2_ng3",
+        "url": "https://ngphaselisbay.com/media/3jfls1da/ng-dji_0179.jpg"
+      },
+      {
+        "hotel_id": 74503,
+        "role": "g2_ng4",
+        "url": "https://ngphaselisbay.com/media/d2bpsbxi/ng-phaselis-bay-general-17-rev.jpg"
+      },
+      {
+        "hotel_id": 512,
+        "role": "g2_dahab0",
+        "url": "https://irp.cdn-website.com/7bfa4f38/dms3rep/multi/opt/Dahab%2B%2818%29-1920w.JPG"
+      },
+      {
+        "hotel_id": 512,
+        "role": "g2_dahab1",
+        "url": "https://irp.cdn-website.com/7bfa4f38/dms3rep/multi/opt/Dahab%2B%2811%29-1920w.JPG"
+      }
+    ],
+    [
+      {
+        "hotel_id": 1582,
+        "role": "g3_facilities_native",
+        "url": "https://voyagecdn.blob.core.windows.net/mediafiles/medialist/637685251602090528.jpg"
+      },
+      {
+        "hotel_id": 1582,
+        "role": "g3_facilities_cached",
+        "url": "https://voyagecdn.blob.core.windows.net/mediafiles/medialist/637685253176602567.jpg"
+      },
+      {
+        "hotel_id": 1582,
+        "role": "g3_sports",
+        "url": "https://voyagecdn.blob.core.windows.net/mediafiles/medialist/637685251476721814.jpg"
+      },
+      {
+        "hotel_id": 1582,
+        "role": "g3_room",
+        "url": "https://voyagecdn.blob.core.windows.net/mediafiles/medialist/637685251697734366.jpg"
+      },
+      {
+        "hotel_id": 1582,
+        "role": "g3_pool_beach",
+        "url": "https://voyagecdn.blob.core.windows.net/mediafiles/medialist/637685252232418106.jpg"
+      }
+    ]
+  ],
+  "photo_count": 28,
+  "candidate_count": 10,
+  "deferred_inputs": [
+    {
+      "hotel_id": 21673,
+      "state": "MEDIA_REUSE_PERMISSION_NOT_PROVEN"
+    },
+    {
+      "hotel_id": 75571,
+      "state": "EXACT_CURRENT_OWNER_PROPERTY_LINK_REQUIRED"
+    },
+    {
+      "hotel_id": 102774,
+      "state": "CACHED_ALTERNATE_GALLERY_CACHE_MISS_NO_NEW_PUBLIC_PIXELS"
+    },
+    {
+      "hotel_id": 468,
+      "state": "NO_DIFFERENT_QUALIFYING_OVERVIEW_SELECTED_FROM_RETAINED_SOURCE"
+    }
+  ]
+}
