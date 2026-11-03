@@ -1,173 +1,38 @@
-name: Add the exact verified Palace tour price to existing paired posts
+name: Inspect seven exact new AnyTour hotel covers
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
     paths: [.github/workflows/content100-bot-publication-20261101.yml]
 permissions:
   contents: read
-  actions: read
 concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
-env:
-  EXPECTED_PRODUCTION_SHA: d555226a084e1e28328ba4e7355a24ad8a058de7
 jobs:
   inspect:
     if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        cover_group: [0,1,2]
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Verify exact reviewed publishing conditions independently of unrelated aggregate jobs
+      - name: Inspect only the exact authorized native Canva PNG group
         env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-          evidence="$RUNNER_TEMP/commercial-source-evidence"
-          mkdir -p "$evidence"
-          gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$evidence/main.json"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/41607088488 > "$evidence/verify_run.json"
-          gh api "repos/pyatkoff/max-search-bot/actions/runs/41607088488/jobs?per_page=20" > "$evidence/verify_jobs.json"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/41607088626 > "$evidence/tls_run.json"
-          gh api "repos/pyatkoff/max-search-bot/git/commits/$EXPECTED_PRODUCTION_SHA" > "$evidence/source_commit.json"
-          tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
-          gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
-          python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
-      - name: Validate the retained quote and exact approved price edit
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          test "$GITHUB_RUN_ATTEMPT" = 1
-          umask 077
-          gh run download 41609029830 --repo pyatkoff/max-search-bot --name commercial-price-monitor-20261103-quote1 --dir "$RUNNER_TEMP/retained-quote1"
-          python3 - <<'PY'
-          import base64,copy,hashlib,json,os,pathlib,re,time
-          base=pathlib.Path('tools/direct_demand/operations')
-          raw=(base/'commercial-price-update-20261103-1-manifest.json').read_bytes()
-          manifest=json.loads(raw);approval=json.loads((base/'commercial-price-update-20261103-1-approval.json').read_text())
-          assert set(approval)=={'schema_version','operation','expected_installed_sha','hotel_ids','manifest_sha256'}
-          assert approval['schema_version']==1 and approval['hotel_ids']==[12114] and approval['operation']==manifest['operation']=='commercial-price-update-20261103-1-v1'
-          assert approval['expected_installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA'] and hashlib.sha256(raw).hexdigest()==approval['manifest_sha256']
-          saved=json.loads((pathlib.Path(os.environ['RUNNER_TEMP'])/'retained-quote1/channel-preflight.json').read_text().splitlines()[-1])
-          def validate(d,m):
-              assert d['operation']=='commercial-price-monitor-20261103-quote1' and d['catalog_id']==12114 and d['ok'] and d['http_status']==200 and d['gateway_requests_attempted']==1
-              assert d['response_sha256']==m['quote_response_sha256'] and d['response_received_epoch_utc']==m['quote_epoch_utc']
-              assert 0<=time.time()-d['response_received_epoch_utc']<=3600
-              t=d['retained_terms'];assert (t['departure_id'],t['departure_date'],t['nights'],t['adults'],t['children'],t['meal_id'],t['room_type'])==(1,'2027-01-12',7,2,0,7,'superior room with side sea view')
-              q=d['gateway_response'];assert q['error'] is None and q['info']['surcharges'] in (None,[])
-              assert q['info']['flags']=={'noTransfer':False,'noInsurance':False,'noFlight':False,'noMeal':False}
-              assert m['quote_index']==1 and len(m['rows'])==1
-              f=q['flights'][m['quote_index']]
-              assert f['price']=={'value':233755,'currency':'RUB'} and f['fuelCharge']=={'value':13862,'currency':'RUB'}
-              assert f['dateForward']=='12.01.2027' and f['dateBackward']=='19.01.2027'
-              assert len(f['forward'])==len(f['backward'])==1
-              assert f['forward'][0]['number']=='SU5955' and f['backward'][0]['number']=='SU5956'
-              assert all(x.get('onDemand') is False and x.get('noPlaces') is False for x in f['forward']+f['backward'])
-              row=m['rows'][0];assert row['hotel_id']==12114 and row['logical_id']=='commercial-jaz-elite-palace-12114-v1' and row['original_publication_operation']=='commercial-hotel-batch-20261103-17-v1'
-              assert hashlib.sha256(row['old_text'].encode()).hexdigest()==row['old_text_sha256']
-              assert hashlib.sha256(row['new_text'].encode()).hexdigest()==row['new_text_sha256'] and len(row['new_text'].encode('utf-16-le'))//2<=1024 and not re.search(r'[-\u2010-\u2015\u2212]',row['new_text'])
-              before,after=row['old_text'].split('Нажмите «✈️ Узнать стоимость тура»',1)
-              assert row['new_text'].startswith(before) and row['new_text'].endswith('Нажмите «✈️ Узнать стоимость тура»'+after)
-              assert '233 755 ₽' in row['new_text'] and '12.01.2027' in row['new_text'] and '19.01.2027' in row['new_text'] and '09:12 UTC' in row['new_text']
-              assert row['cover_sha256']=='863391e7e19e5dc6959b36d754f467c99840847426a300244246d51e9314f166'
-          validate(saved,manifest)
-          mutations=[
-              lambda d,m:d.update(catalog_id=12115),
-              lambda d,m:d['gateway_response']['flights'].__setitem__(1,copy.deepcopy(d['gateway_response']['flights'][0])),
-              lambda d,m:d['gateway_response']['flights'][1]['price'].update(value=247617),
-              lambda d,m:d['gateway_response']['flights'][1]['forward'][0].update(onDemand=True),
-              lambda d,m:d['gateway_response']['info']['flags'].update(noFlight=True),
-              lambda d,m:d.update(response_received_epoch_utc=int(time.time())-4000),
-              lambda d,m:d['gateway_response']['flights'][1]['price'].update(currency='EUR'),
-              lambda d,m:m['rows'][0].update(cover_sha256='0'*64),
-          ]
-          for mutate in mutations:
-              d=copy.deepcopy(saved);m=copy.deepcopy(manifest);mutate(d,m)
-              try:validate(d,m)
-              except AssertionError:pass
-              else:raise AssertionError('unsafe price edit preparation accepted')
-          print('PRICE_EDIT_PREPARATION_OK exact_quote=1 fuel_not_added=1 original_caption_photo=preserved controlled_rejections=8 server_calls=0')
-          source=(base/'update-commercial-price-20261103-1.php').read_text()
-          constants='\ndefine("EXPECTED_INSTALLED_SHA", "'+os.environ['EXPECTED_PRODUCTION_SHA']+'");\ndefine("APPROVED_MANIFEST_SHA256", "'+approval['manifest_sha256']+'");\ndefine("MANIFEST_BASE64", "'+base64.b64encode(raw).decode()+'");\ndefine("VERIFIED_QUOTE_RESPONSE_SHA256", "'+manifest['quote_response_sha256']+'");\ndefine("VERIFIED_QUOTE_EPOCH", '+str(manifest['quote_epoch_utc'])+');'
-          assert source.count('declare(strict_types=1);')==1
-          source=source.replace('declare(strict_types=1);','declare(strict_types=1);'+constants,1)
-          target=pathlib.Path(os.environ['RUNNER_TEMP'])/'channel-preflight.php';target.write_text(source);target.chmod(0o600)
-          PY
-          php -l "$RUNNER_TEMP/channel-preflight.php"
-      - name: Prepare existing server connection
-        env:
-          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          raw="$DEPLOY_SSH_KEY_VALUE"
-          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
-            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
-          else
-            printf '%s' "$raw" | base64 --decode > "$RUNNER_TEMP/channel_key"
-          fi
-          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
-      - name: Pin existing server host-key continuity
-        env:
-          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          python3 - <<'PY'
-          import os,re,subprocess,base64,hashlib,pathlib
-          host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER']
-          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-')
-          assert re.fullmatch(r'[A-Za-z0-9_-]+',user)
-          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35)
-          matches=[]
-          for line in scan.stdout.splitlines():
-            fields=line.split()
-            if len(fields)<3 or fields[0].startswith('#'):continue
-            try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
-            except Exception:continue
-            if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)
-          assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
-          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
-          PY
-      - name: Edit only the two existing Palace captions through canonical registry and once
-        env:
-          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-preflight.php" > "$RUNNER_TEMP/channel-preflight.json" || probe_status=$?
-          python3 - <<'PY'
-          import pathlib,json,os
-          d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.json').read_text().splitlines()[-1])
-          print(json.dumps(d,ensure_ascii=False,sort_keys=True))
-          assert d['operation']=='commercial-price-update-20261103-1-v1' and d['mode']=='update_existing_hotel_price_block' and d['ok']
-          assert d['new_posts_created']==0 and d['price_block_updates']==2 and d['content_edit_attempts']==2 and d['post_write_attempts']==2
-          assert len(d['posts'])==2 and {p['platform'] for p in d['posts']}=={'telegram','max'}
-          assert all(p['body_photo_button_verified'] and p['existing_message_reused'] and p['state']=='sent' for p in d['posts'])
-          PY
-          test "${probe_status:-0}" = 0
-      - name: Retain bounded route evidence
-        if: always()
+          COVER_GROUP: ${{ matrix.cover_group }}
+        run: python3 tools/direct_demand/operations/inspect-canva-covers-20261102-3.py
+      - name: Retain bounded native image evidence
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-price-update-20261103-1-publication
-          path: ${{ runner.temp }}/channel-preflight.json
+          name: commercial-batch19-native-group-${{ matrix.cover_group }}
+          path: |
+            native-cover-receipt.json
+            covers/
           retention-days: 14
-          if-no-files-found: warn
-      - name: Remove ephemeral connection and script files
-        if: always()
-        shell: bash
-        run: rm -f "$RUNNER_TEMP/retained-quote1/channel-preflight.json" "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-preflight.php" "$RUNNER_TEMP/channel-preflight.json"
-
+          if-no-files-found: error
