@@ -158,7 +158,7 @@ for(const width of[390,430,768,1440])test.describe('Private modeled delivery reg
   const dir=path.join(root,'manager2-artifacts');fs.mkdirSync(dir,{recursive:true});
   const file=path.join(dir,'modeled-delivery-'+browserName+'-'+width+'.png');
   const png=await page.screenshot({path:file,fullPage:true,animations:'disabled'});
-  await testInfo.attach('modeled-delivery-'+width,{path:file,contentType:'image/png'});
+  await testInfo.attach('modeled-delivery-'+width,{body:png,contentType:'image/png'});
   // Synthetic preview lets cloud-only reviewers inspect layout without Mac access.
   if(browserName==='chromium'&&[390,1440].includes(width))
    console.log('MVR-PREVIEW-'+width+':'+png.toString('base64'));
