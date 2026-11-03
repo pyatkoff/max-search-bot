@@ -1,0 +1,87 @@
+{
+  "operation": "commercial-hotel-batch-20261103-28-v1",
+  "state": "TEN_PROVEN_NATIVE_CANDIDATES_PRIMARY_PREPARATION_STARTED",
+  "goal": "Prepare ten proven catalogue candidates together and publish every ready subset up to10 in one serial run",
+  "catalog_ids": [
+    56091,
+    103124,
+    102031,
+    75571,
+    102774,
+    342,
+    254,
+    488,
+    139,
+    4185
+  ],
+  "candidates": [
+    {
+      "hotel_id": 56091,
+      "hotel": "ANCIENT SANDS GOLF RESORT & RESIDENCES",
+      "state": "PRIMARY_FACTS_AND_COMPLETE_REAL_PHOTO_SET_REQUIRED"
+    },
+    {
+      "hotel_id": 103124,
+      "hotel": "IBEROTEL LUXOR",
+      "state": "PRIMARY_FACTS_AND_COMPLETE_REAL_PHOTO_SET_REQUIRED"
+    },
+    {
+      "hotel_id": 102031,
+      "hotel": "STEIGENBERGER NILE PALACE LUXOR",
+      "state": "PRIMARY_FACTS_AND_COMPLETE_REAL_PHOTO_SET_REQUIRED"
+    },
+    {
+      "hotel_id": 75571,
+      "hotel": "SOFITEL WINTER PALACE LUXOR",
+      "state": "PRIMARY_FACTS_AND_COMPLETE_REAL_PHOTO_SET_REQUIRED"
+    },
+    {
+      "hotel_id": 102774,
+      "hotel": "HILTON LUXOR RESORT & SPA",
+      "state": "PRIMARY_FACTS_AND_COMPLETE_REAL_PHOTO_SET_REQUIRED"
+    },
+    {
+      "hotel_id": 342,
+      "hotel": "THE OBEROI SAHL HASHEESH",
+      "state": "PRIMARY_FACTS_AND_COMPLETE_REAL_PHOTO_SET_REQUIRED"
+    },
+    {
+      "hotel_id": 254,
+      "hotel": "THE THREE CORNERS SEA BEACH RESORT",
+      "state": "PRIMARY_FACTS_AND_COMPLETE_REAL_PHOTO_SET_REQUIRED"
+    },
+    {
+      "hotel_id": 488,
+      "hotel": "THE THREE CORNERS FAYROUZ PLAZA BEACH RESORT",
+      "state": "PRIMARY_FACTS_AND_COMPLETE_REAL_PHOTO_SET_REQUIRED"
+    },
+    {
+      "hotel_id": 139,
+      "hotel": "BRAYKA BAY RESORT",
+      "state": "PRIMARY_FACTS_AND_COMPLETE_REAL_PHOTO_SET_REQUIRED"
+    },
+    {
+      "hotel_id": 4185,
+      "hotel": "ROYAL BRAYKA BEACH RESORT",
+      "state": "PRIMARY_FACTS_AND_COMPLETE_REAL_PHOTO_SET_REQUIRED"
+    }
+  ],
+  "baseline_logical_materials": 121,
+  "boundaries": [
+    "No new identities guessed; all ten from accepted bounded catalogue read",
+    "Use existing purecloud grouped source/contact inspection and Canva pool",
+    "No new chats, agents, runtime, workers, queues, collector or paid calls"
+  ],
+  "criteria": [
+    "Whole captions from exact current primary sources",
+    "One finite grouped photo inspection followed by several covers together",
+    "Publish ready subset without waiting for disputed photos"
+  ],
+  "risks": [
+    "Luxor hotels must not inherit RedSea beach claims",
+    "Owner direct-booking rights do not establish AnyTour package inclusions",
+    "Configured monitoring and retained cached quotes are not availability"
+  ],
+  "ready_for_send_count": 0,
+  "new_posts": 0
+}

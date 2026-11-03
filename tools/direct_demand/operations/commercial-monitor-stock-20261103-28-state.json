@@ -1,0 +1,22 @@
+{
+  "operation": "commercial-monitor-stock-20261103-28",
+  "state": "MONITOR_INPUTS_MERGED_NOT_COLLECTED",
+  "catalog_ids": [
+    111,
+    163,
+    12116,
+    56091
+  ],
+  "previous_inputs": 632,
+  "monitor_input_count": 636,
+  "pr_url": "https://github.com/pyatkoff/poisk-turov-test/pull/4983",
+  "merge_commit": "7e7591f3ec1289e256ffe6d63f475d69dcc1fdda",
+  "run_urls": [
+    "https://github.com/pyatkoff/poisk-turov-test/actions/runs/41695075486",
+    "https://github.com/pyatkoff/poisk-turov-test/actions/runs/41695075509",
+    "https://github.com/pyatkoff/poisk-turov-test/actions/runs/41695075273"
+  ],
+  "published_hotels_covered": 121,
+  "stock_hotels_covered": 25,
+  "collected_price_assertions": 0
+}
