@@ -117,6 +117,7 @@ jobs:
 
       - name: Capture production live sessions
         env:
+          EXPECTED_SHA: ${{ steps.source.outputs.sha }}
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
         shell: bash
