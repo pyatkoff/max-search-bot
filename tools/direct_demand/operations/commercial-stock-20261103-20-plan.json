@@ -1,0 +1,18 @@
+{
+  "operation": "commercial-stock-20261103-20-read1",
+  "state": "FOURTEEN_NAME_BOUNDED_READ_PLANNED",
+  "goal": "Replenish the reserve after the ready batch and resolve native identities for the six published legacy hotel names without reopening their accepted body or delivery.",
+  "boundaries": "One existing authenticated read-only catalog/registry route,14 finite name groups,channels9/10 only. Eight new names plus six legacy titles from the exact accepted manifest. No guessed numeric IDs,provider/DB writes,customer data,post sends,old send replay or hotel-import ownership.",
+  "criteria": "Current source,verify/TLS/21 blobs,host continuity and read-only transactions. New stock only unique unposted identities;legacy registry matches are expected and are not new publication credit. Physical-object aliases and region must match,ambiguous results remain unresolved.",
+  "risks": "The six old posts have publication logical IDs,not a proven AnyTour numerical identity. Any new bridge must explicitly bind that publication logical identity to real native catalogue provenance. Do not manufacture AnyTour IDs or choose a convenient alternate product.",
+  "candidate_group_count": 14,
+  "legacy_logical_scopes": [
+    "at-hotel-golf",
+    "at-hotel-sultan",
+    "at-hotel-rixos",
+    "at-hotel-rehana",
+    "at-hotel-solara",
+    "at-hotel-palace"
+  ],
+  "new_identity_count": 0
+}
