@@ -258,4 +258,153 @@ try {
   fs.unlinkSync(path.join(temp, '.git', 'objects', brokenTree.slice(0, 2), brokenTree.slice(2)));
   check(run(event(brokenHead)), 'full', 'diff failure after commit refs validate');
 } finally { fs.rmSync(temp, { recursive: true, force: true }); }
-process.stdout.write(`CI change scope regression: ${assertions} assertions passed\n`);
+// Priority is mutable metadata, so its read-only admission can be repeated
+// without rerunning accepted source, browser or production checks.
+async function verifyReleasePriority() {
+  const { decidePriority, readOpenPulls, runGuard } = require('../tools/release_priority');
+  const repository = 'pyatkoff/max-search-bot';
+  const now = Date.parse('2026-11-03T18:20:00Z');
+  const head = 'a'.repeat(40), base = 'b'.repeat(40);
+  const context = { repository, prNumber: 1306, headSha: head, baseSha: base, now };
+  const claim = { head, base, started_at: '2026-11-03T18:10:00Z',
+    expires_at: '2026-11-03T18:30:00Z', kind: 'product' };
+  const marker = value => '<!-- anytour-release-priority:v1 ' + JSON.stringify(value) + ' -->';
+  const pr = (number, body = '', patch = {}) => ({ number, body, state: 'open', draft: false,
+    author_association: 'OWNER', head: { sha: head, repo: { full_name: repository } },
+    base: { ref: 'main', sha: base }, ...patch });
+  const target = pr(1306), ready = pr(1305, marker(claim));
+  const decide = pulls => decidePriority(pulls, context);
+  const rejects = async (action, code, message) => {
+    let observed = null;
+    try { await action(); } catch (error) { observed = error.code; }
+    check(observed, code, message);
+  };
+  check(decide([target]).allowed, true, 'no reservation does not invent a blocker');
+  check(decide([target, ready]).holder_pr, 1305, 'ready product retains priority over later candidate');
+  check(decide([target, ready]).allowed, false, 'later candidate cannot pass the release gate');
+  check(decidePriority([target, ready], { ...context, prNumber: 1305 }).allowed, true, 'holder can finish');
+  check(decide([pr(1304, marker({ ...claim, started_at: '2026-11-03T18:11:00Z' })), ready, target])
+    .holder_pr, 1305, 'time ordering precedes PR number');
+  check(decide([pr(1304, marker(claim)), ready, target]).holder_pr, 1304, 'equal times have one deterministic owner');
+
+  for (const [description, other] of [
+    ['expired', pr(1305, marker({ ...claim, expires_at: '2026-11-03T18:20:00Z' }))],
+    ['updated head', pr(1305, marker({ ...claim, head: 'c'.repeat(40) }))],
+    ['advanced base', pr(1305, marker({ ...claim, base: 'c'.repeat(40) }))],
+    ['draft', pr(1305, marker(claim), { draft: true })],
+    ['closed', pr(1305, marker(claim), { state: 'closed' })],
+    ['untrusted author', pr(1305, marker(claim), { author_association: 'CONTRIBUTOR' })],
+    ['fork', pr(1305, marker(claim), { head: { sha: head, repo: { full_name: 'outside/fork' } } })],
+    ['different base branch', pr(1305, marker(claim), { base: { ref: 'other', sha: base } })]
+  ]) check(decide([target, other]).allowed, true, description + ' cannot hold the release');
+  check(decide([target, pr(1305, 'Documentation mentions anytour-release-priority:v1 only.')]).allowed, true,
+    'mentioning the policy without a marker is not a reservation');
+  const incident = pr(1307, marker({ ...claim, kind: 'incident',
+    incident: 'https://github.com/' + repository + '/issues/1122' }));
+  check(decide([target, ready, incident]).holder_pr, 1307, 'explicit confirmed-incident reference outranks product');
+  check(decidePriority([target, ready, incident], { ...context, prNumber: 1307 }).allowed, true,
+    'incident still uses the same admission, never bypasses checks or the publisher');
+
+  for (const [body, code] of [
+    [marker({ ...claim, expires_at: '2026-11-03T19:00:00Z' }), 'invalid_window'],
+    [marker({ ...claim, started_at: '2026-11-03T18:21:00Z' }), 'invalid_window'],
+    [marker({ ...claim, expires_at: claim.started_at }), 'invalid_window'],
+    [marker({ ...claim, expires_at: '2026-02-30T18:30:00Z' }), 'invalid_window'],
+    [marker({ ...claim, expires_at: '2026-11-03T18:30:00+00:00' }), 'invalid_fields'],
+    [marker({ ...claim, head: 'short' }), 'invalid_fields'],
+    [marker({ ...claim, kind: 'cleanup' }), 'invalid_fields'],
+    [marker({ ...claim, renew: true }), 'invalid_fields'],
+    [marker({ ...claim, kind: 'incident' }), 'incident_reference_required'],
+    [marker({ ...claim, kind: 'incident', incident: 'https://github.com/other/repo/issues/1' }), 'incident_reference_required'],
+    [marker({ ...claim, incident: 'https://github.com/' + repository + '/issues/1' }), 'unexpected_incident_reference'],
+    [marker(claim) + marker(claim), 'invalid_marker'],
+    [marker(claim) + '<!-- anytour-release-priority:v1', 'invalid_marker'],
+    [marker(claim).replace(':v1', ':v2'), 'invalid_marker'],
+    ['<!-- anytour-release-priority:v1 nope -->', 'invalid_json'],
+    ['<!-- anytour-release-priority:v1 [] -->', 'invalid_claim'],
+    ['<!-- anytour-release-priority:v1', 'invalid_marker']
+  ]) await rejects(() => decide([target, pr(1305, body)]), code, 'malformed authoritative claim stops safely: ' + code);
+  await rejects(() => decide([target, target]), 'ambiguous_snapshot', 'duplicate snapshot cannot authorize a merge');
+  await rejects(() => decide([ready]), 'superseded_target', 'removed target cannot merge');
+  await rejects(() => decide([pr(1306, '', { head: { sha: 'c'.repeat(40) } })]),
+    'superseded_target', 'changed target cannot reuse a successful decision');
+  await rejects(() => decidePriority([target], { ...context, repository: '../other' }),
+    'invalid_context', 'repository identity is not an arbitrary URL');
+
+  const event = JSON.stringify({ pull_request: target });
+  const env = { GITHUB_EVENT_NAME: 'pull_request', GITHUB_REPOSITORY: repository,
+    GITHUB_EVENT_PATH: 'event.json', GITHUB_TOKEN: 'fixture-token' };
+  let calls = [];
+  const response = (value, status = 200) => ({ ok: status === 200, status, json: async () => value });
+  const fetchGood = async (url, options) => {
+    calls.push(url);
+    check(options.redirect, 'error', 'REST redirect is not an alternate host');
+    check(Boolean(options.signal), true, 'each read has cancellation');
+    return response(url.endsWith('/git/ref/heads/main') ? { object: { sha: base } } : [target, ready]);
+  };
+  const options = { env, readEvent: () => event, fetchImpl: fetchGood, now };
+  check((await runGuard(options)).allowed, false, 'CI executes fresh admission against main and open PRs');
+  check(calls.length, 2, 'one main read and one bounded PR read');
+  calls = [];
+  check((await runGuard({ ...options, admission: context,
+    env: { ...env, GITHUB_EVENT_NAME: '' }, readEvent: () => { throw Error('not used'); } })).allowed,
+    false, 'explicit pre-merge admission does not rely on an old CI event');
+  check(calls.length, 2, 'explicit admission stays read only and bounded');
+  calls = [];
+  check((await runGuard({ ...options, env: { ...env, GITHUB_EVENT_NAME: 'workflow_dispatch' } })).reason,
+    'manual_checks_only', 'manual validation does not claim merge authorization');
+  check(calls.length, 0, 'manual validation does not reread merge state');
+  await rejects(() => runGuard({ ...options, env: { ...env, GITHUB_EVENT_NAME: 'push' } }),
+    'unsupported_event', 'unknown events do not get admission');
+  await rejects(() => runGuard({ ...options, readEvent: () => 'broken' }),
+    'invalid_event', 'unreadable event cannot authorize');
+  await rejects(() => runGuard({ ...options, env: { ...env, GITHUB_TOKEN: '' } }),
+    'missing_read_capability', 'missing capability does not pass open');
+  let requests = 0;
+  await rejects(() => runGuard({ ...options, fetchImpl: async () => {
+    requests++; return response({ object: { sha: 'c'.repeat(40) } });
+  } }), 'base_changed', 'current main must match the frozen admission');
+  check(requests, 1, 'changed main stops without fetching more state');
+
+  requests = 0;
+  await rejects(() => runGuard({ ...options, fetchImpl: async () => {
+    requests++; return response({}, 429);
+  } }), 'api_http_429', 'rate limit is a stop, not a bypass');
+  check(requests, 1, 'rate limit is never retried');
+  await rejects(() => runGuard({ ...options, fetchImpl: async () => { throw Error('fixture-token must not leak'); } }),
+    'read_failed', 'network failure is sanitized and closed');
+  await rejects(() => runGuard({ ...options, fetchImpl: async () => {
+    const error = new Error('private transport detail'); error.code = 'ECONNRESET'; throw error;
+  } }), 'read_failed', 'coded transport failures cannot print private error details');
+  await rejects(() => runGuard({ ...options, fetchImpl: async () => ({
+    ok: true, json: async () => { throw Error('invalid or timed out response body'); }
+  }) }), 'invalid_api_response', 'body parsing failure is closed');
+
+  requests = 0;
+  const hundred = Array.from({ length: 100 }, (_, i) => pr(i + 1));
+  const pages = [hundred, [target, ready]];
+  check((await readOpenPulls(repository, 'fixture-token', async () => response(pages[requests++]))).length,
+    102, 'second page is read before deciding absence of priority');
+  check(requests, 2, 'pagination is bounded to returned pages');
+  requests = 0;
+  await rejects(() => readOpenPulls(repository, 'fixture-token', async () => {
+    requests++; return response(hundred);
+  }), 'snapshot_limit', 'truncated snapshot never means no priority');
+  check(requests, 3, 'snapshot limit bounds API work');
+  await rejects(() => readOpenPulls(repository, 'fixture-token', async () => response({})),
+    'invalid_api_response', 'non-array PR list is not an empty list');
+}
+
+verifyReleasePriority().then(() => {
+  const admission = spawnSync(process.execPath, [path.resolve(__dirname, '../tools/release_priority.js'),
+    '--admit', '1306', 'a'.repeat(40), 'b'.repeat(40)], {
+    encoding: 'utf8', env: { GITHUB_REPOSITORY: 'pyatkoff/max-search-bot' }
+  });
+  check(admission.status, 1, 'CLI admission without token stops before I/O');
+  check(admission.stderr.includes('missing_read_capability'), true, 'CLI admits valid arguments to the guard');
+  const invalid = spawnSync(process.execPath, [path.resolve(__dirname, '../tools/release_priority.js'), '--admit'],
+    { encoding: 'utf8', env: {} });
+  check(invalid.status, 1, 'incomplete CLI admission cannot fall back to CI success');
+  process.stdout.write('CI change scope and release priority regression: ' + assertions + ' assertions passed\n');
+}).catch(error => { process.stderr.write(String(error.stack || error) + '\n'); process.exitCode = 1; });
+
