@@ -1,0 +1,22 @@
+{
+  "operation": "commercial-batch33-covers-20261103-read1",
+  "goal": "Verify five prepared branded native PNGs in one bounded grouped run",
+  "boundaries": [
+    "Pure cloud exact Canva export URLs, no server/provider/DB/messages/Mac",
+    "Native bytes/PNG/dimensions guards unchanged; accepted only frozen, then exact txcancel"
+  ],
+  "criteria": [
+    "5 decoded PNGs by chunks/bytes/SHA/dimensions and visualreview",
+    "Hotel/logo/blueband/one-line title readable"
+  ],
+  "risks": [
+    "Unknown thumbnail dimensions require real native PNG checking"
+  ],
+  "hotel_ids": [
+    1379,
+    1133,
+    27316,
+    1559,
+    3405
+  ]
+}
