@@ -48,12 +48,12 @@ def check(raw,baseline):
 def altered(raw,change):
  root=ET.fromstring(raw);change(root.find('shop/offers'))
  return ET.tostring(root,encoding='utf-8')
-NEW_IDS=[74503,1582]
-NEW_BINDING_SHA={"1582":"73520c853bdac8a7d9d3f0bddd4701e4f25c58582242b5252f312af275a642ba","74503":"362bbdcba7385c888ff7702fced81b1a1fff4860bcfd10f963daf5eaa947ec64"}
-NEW_DESTINATIONS={"1582":"Белек","74503":"Кемер"}
-PREVIOUS_XML_SHA={"hotel-posts-telegram.xml":"9b103b4fca71fc4372cc26ff88cbb4f012a1d3056de577406af8939486916e32","hotel-posts-max.xml":"07ea819ac7db8f963f952d28e2275d15ca049947bf53ab03973645926c4a7c1b","hotel-posts-all.xml":"3bcbed36464105f5692e70151872d40ac3093afe5b7cab337e4f3e5b59852ff3"}
-CURRENT_DATE="2026-11-03 22:15"
-OLD_DATE="2026-11-03 21:24"
+NEW_IDS=[1449,1453,9432,1451,1151,1583]
+NEW_BINDING_SHA={"1151":"57e0f28f751417f56ee9e07cdd5e1757338060704a527137efe212e936b81c42","1449":"4293707b6479d3dacab616f981f334af40ebc5d188c66f791742e17d85d120de","1451":"454896ba4949ad46a96d23391c82530d7b8b5b9b132ea55e711c4e07eef27ea9","1453":"7ce791faf20cb1e5c29d05afe277f32be14b6e574fc7a0e155f81066a591f91c","1583":"83b7840e38af6b18e08b006e86e4e6218df995b2616cbb8f5388b7085ee99fca","9432":"6dd67153dd0c3bcdab5c9df0c8c513f5a6cdaf2955f5010b0bf8ee27cca02403"}
+NEW_DESTINATIONS={"1151":"Анталья","1449":"Белек","1451":"Анталья","1453":"Кемер","1583":"Сиде","9432":"Анталья"}
+PREVIOUS_XML_SHA={"hotel-posts-telegram.xml":"1ec108f33d137994745e218aa7dac4c6bd802660af2f5cba8bfa1dda34e7f672","hotel-posts-max.xml":"b14d4209e3696fe0e040b8154e4020bae26f8b34193cea045ade694128fb021b","hotel-posts-all.xml":"3e1a48277e94a09bcd94cdc973d4da09b9c1c993b536f28801655d03ffd8dc22"}
+CURRENT_DATE="2026-11-03 22:56"
+OLD_DATE="2026-11-03 22:15"
 def previous_bytes(raw,name):
  restored=raw.replace(('date="'+CURRENT_DATE+'"').encode(),('date="'+OLD_DATE+'"').encode(),1)
  prefixes=['tg'] if name.endswith('-telegram.xml') else ['max'] if name.endswith('-max.xml') else ['tg','max']
@@ -62,13 +62,13 @@ def previous_bytes(raw,name):
    pattern=rb'      <offer id="'+(platform+'_'+str(native)).encode()+rb'">.*?      </offer>\n'
    restored,count=re.subn(pattern,b'',restored,count=1,flags=re.S)
    insist(count==1,'new_offer_block_missing')
- insist(hashlib.sha256(restored).hexdigest()==PREVIOUS_XML_SHA[name],'previous131_offer_bytes_changed')
+ insist(hashlib.sha256(restored).hexdigest()==PREVIOUS_XML_SHA[name],'previous133_offer_bytes_changed')
  return restored
 def new_rows_for_baseline():
  tg={o.get('id'):o for o in ET.fromstring((BASE/'hotel-posts-telegram.xml').read_bytes()).findall('shop/offers/offer')}
  mx={o.get('id'):o for o in ET.fromstring((BASE/'hotel-posts-max.xml').read_bytes()).findall('shop/offers/offer')}
  out=[[],[]]
- manifest=json.loads(pathlib.Path('tools/direct_demand/operations/commercial-batch-20261103-31-manifest.json').read_text())
+ manifest=json.loads(pathlib.Path('tools/direct_demand/operations/commercial-batch-20261103-32-manifest.json').read_text())
  photos={str(r['hotel_id']):r['photo_url'] for r in manifest['rows']}
  for native in NEW_IDS:
   a=tg['tg_'+str(native)];b=mx['max_'+str(native)];photo=a.findtext('picture')
@@ -88,7 +88,7 @@ for platform,raw in zip(['telegram','max','all'],raws):
 new_tables=new_rows_for_baseline()
 tables[0].extend(new_tables[0]);tables[1].extend(new_tables[1]);tables[2].extend(new_tables[0]+new_tables[1])
 checked=[check(raw,base) for raw,base in zip(raws,tables)]
-insist([len(x[0]) for x in checked]==[133,133,266],'feed_scope_changed')
+insist([len(x[0]) for x in checked]==[139,139,278],'feed_scope_changed')
 insist(sorted(checked[2][0])==sorted(checked[0][0]+checked[1][0]),'combined_not_exact_union')
 insist([sorted(x[1]) for x in checked]==[[381,469],[381,469],[381,381,469,469]],'explicit_image_gaps_changed')
 
@@ -98,6 +98,6 @@ for before,after in [(b'<categoryId>1</categoryId>',b'<categoryId>2</categoryId>
  changed=raws[0].replace(before,after,1)
  insist(changed!=raws[0],'previous_fixture_not_changed')
  try:previous_bytes(changed,name)
- except ValueError as e:insist(str(e)=='previous131_offer_bytes_changed','previous_fixture_wrong_rejection')
+ except ValueError as e:insist(str(e)=='previous133_offer_bytes_changed','previous_fixture_wrong_rejection')
  else:raise ValueError('previous_fixture_not_rejected')
-print('DIRECT_YML_APPEND_PREPARATION_OK new_cases=3 offers=133,133,266 previous131_offer_bytes=unchanged union=exact title_limit=56 description_limit=81 canonical_new_bindings=2 image_gaps=2,2,4 price_fields=0 availability_fields=0 provider_calls=0 server_calls=0 writes=0')
+print('DIRECT_YML_APPEND_PREPARATION_OK new_cases=3 offers=139,139,278 previous133_offer_bytes=unchanged union=exact title_limit=56 description_limit=81 canonical_new_bindings=6 image_gaps=2,2,4 price_fields=0 availability_fields=0 provider_calls=0 server_calls=0 writes=0')

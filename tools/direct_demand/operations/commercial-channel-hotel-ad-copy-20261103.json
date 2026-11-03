@@ -931,6 +931,48 @@
       "telegram_name": "Путевки в Voyage Belek Golf & Spa",
       "max_name": "Туры в Voyage Belek Golf & Spa",
       "description": "Тур с перелётом. Белек. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 1449,
+      "short_name": "Rixos Premium Belek",
+      "telegram_name": "Путевки в Rixos Premium Belek",
+      "max_name": "Туры в Rixos Premium Belek",
+      "description": "Тур с перелётом. Белек. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 1453,
+      "short_name": "Rixos Premium Tekirova",
+      "telegram_name": "Путевки в Rixos Premium Tekirova",
+      "max_name": "Туры в Rixos Premium Tekirova",
+      "description": "Тур с перелётом. Кемер. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 9432,
+      "short_name": "Delphin Imperial Lara",
+      "telegram_name": "Путевки в Delphin Imperial Lara",
+      "max_name": "Туры в Delphin Imperial Lara",
+      "description": "Тур с перелётом. Анталья. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 1451,
+      "short_name": "Delphin BE Grand Resort",
+      "telegram_name": "Путевки в Delphin BE Grand Resort",
+      "max_name": "Туры в Delphin BE Grand Resort",
+      "description": "Тур с перелётом. Анталья. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 1151,
+      "short_name": "Delphin Palace",
+      "telegram_name": "Путевки в Delphin Palace",
+      "max_name": "Туры в Delphin Palace",
+      "description": "Тур с перелётом. Анталья. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 1583,
+      "short_name": "Voyage Sorgun",
+      "telegram_name": "Путевки в Voyage Sorgun",
+      "max_name": "Туры в Voyage Sorgun",
+      "description": "Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость."
     }
   ]
 }

@@ -1,0 +1,38 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261103-update6",
+  "goal": "Append six newly verified batch32 pairs to the same three Direct YML feeds",
+  "boundaries": [
+    "Previous133 offer blocks byte-identical; existing TGПутевки/MAXТуры and approved generic description unchanged",
+    "Only exact six new canonical public post destinations and frozen PNGs; no old provider rereads",
+    "Existing three-file ephemeral publisher and source/host/root/exact previous hash guards; no ads/DB/provider/messages/new runtime"
+  ],
+  "criteria": [
+    "139/139/278 exactunion/name-description counts and limits",
+    "Exact previous133 SHA in durable intent before atomic replacement;3 new append cases and PHP-l before SSH",
+    "One exact public HTTPS bytes readback after replacement"
+  ],
+  "risks": [
+    "No invented prices/availabletrue; two explicit image gaps381/469 remain",
+    "Description discussion unresolved; no stylistic rewrite"
+  ],
+  "files": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "rows": 139,
+      "expected_previous_sha256": "1ec108f33d137994745e218aa7dac4c6bd802660af2f5cba8bfa1dda34e7f672",
+      "sha256": "ec4cf9c863f88b0bec5b49cc77e953d0a75fd447b3d82f6095707c938a826ed1"
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "rows": 139,
+      "expected_previous_sha256": "b14d4209e3696fe0e040b8154e4020bae26f8b34193cea045ade694128fb021b",
+      "sha256": "4630dbecc21b44ae3348794da862ac107595ce91ff6069bbc407e39ea48583aa"
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "rows": 278,
+      "expected_previous_sha256": "3e1a48277e94a09bcd94cdc973d4da09b9c1c993b536f28801655d03ffd8dc22",
+      "sha256": "749a074003d2d130c5b9d88e3639a8a7ca9723b19edb674d953f4875d7557e3f"
+    }
+  ]
+}
