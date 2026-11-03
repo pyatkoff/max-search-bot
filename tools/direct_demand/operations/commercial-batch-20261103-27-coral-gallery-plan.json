@@ -1,0 +1,28 @@
+{
+  "operation": "commercial-batch27-three-coral-gallery-source-read",
+  "state": "PREPARED_NOT_READ",
+  "goal": "Extract exact hotel gallery images from the three new Coral Sea properties",
+  "catalog_ids": [
+    163,
+    165,
+    12116
+  ],
+  "sources": [
+    "https://www.coralsearesorts.com/coral-sea-holiday-resort/gallery",
+    "https://www.coralsearesorts.com/coral-sea-water-world/gallery",
+    "https://www.coralsearesorts.com/coral-sea-aqua-club/gallery"
+  ],
+  "boundaries": [
+    "New exact owner-linked gallery pages only; no repeat main page GETs",
+    "Add only the publicly declared assets.builderassets.com photo host",
+    "No provider/server/message calls or guessed asset paths"
+  ],
+  "criteria": [
+    "Exact-property public photo URLs and gallery provenance",
+    "One grouped native byte/hash/dimension/visual inspection after extraction"
+  ],
+  "risks": [
+    "Main pages proved facts but their declared photo host was absent from the initial allowlist",
+    "Do not use shared logos, book-direct benefits or another hotel photos"
+  ]
+}
