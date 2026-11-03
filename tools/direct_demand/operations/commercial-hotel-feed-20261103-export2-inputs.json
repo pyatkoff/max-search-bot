@@ -1,0 +1,842 @@
+[
+  {
+    "hotel_id": 241,
+    "name": "Pickalbatros Makadi Resort",
+    "legacy_anytour_id": 81,
+    "accepted_first_line": "✈️ Туры в Pickalbatros Makadi Resort с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/632a52081dc4dd904115564099d6b89f8554a054/.github/traffic-publish/commercial-next-three-20261102/makadi.png",
+    "image_sha256": "50f4857148e7f8cc32e497b3a2ade950d974e38068df4621aa33e260ae068505"
+  },
+  {
+    "hotel_id": 240,
+    "name": "Happy Life Village Dahab",
+    "legacy_anytour_id": 80,
+    "accepted_first_line": "✈️ Туры в Happy Life Village Dahab с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/632a52081dc4dd904115564099d6b89f8554a054/.github/traffic-publish/commercial-next-three-20261102/happy-life.png",
+    "image_sha256": "78596f823b1ab093037032187a808365d7cb0f73841a5ee9d633697df2ae6714"
+  },
+  {
+    "hotel_id": 268,
+    "name": "JAZ Makadi Saraya Resort",
+    "legacy_anytour_id": 99,
+    "accepted_first_line": "✈️ Туры в JAZ Makadi Saraya Resort с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/632a52081dc4dd904115564099d6b89f8554a054/.github/traffic-publish/commercial-next-three-20261102/jaz-saraya.png",
+    "image_sha256": "280c7bc6be78966c9cd3c997a70fe4eec5ff905eebea113857fba96a709206d4"
+  },
+  {
+    "hotel_id": 12111,
+    "name": "Mövenpick Sharm El Sheikh",
+    "legacy_anytour_id": 1654,
+    "accepted_first_line": "✈️ Туры в Mövenpick Sharm El Sheikh с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5299afdd511d63124a4dc3094934bed3d5a943ad/.github/traffic-publish/commercial-three-20261102-2/movenpick-sharm.png",
+    "image_sha256": "4460dc43ce9552af3be732fe943b7749df88cfc6a32f39be03f0f6064ef8b4cc"
+  },
+  {
+    "hotel_id": 1981,
+    "name": "JAZ Neo Naama Bay",
+    "legacy_anytour_id": 877,
+    "accepted_first_line": "✈️ Туры в JAZ Neo Naama Bay с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5299afdd511d63124a4dc3094934bed3d5a943ad/.github/traffic-publish/commercial-three-20261102-2/jaz-neo-naama.png",
+    "image_sha256": "b18ccf8816b4ab7ec6417623d30028534d5fadfb98ceec7f0b19204df14475b8"
+  },
+  {
+    "hotel_id": 28666,
+    "name": "Hane Family Resort",
+    "legacy_anytour_id": 2077,
+    "accepted_first_line": "✈️ Туры в Hane Family Resort с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5299afdd511d63124a4dc3094934bed3d5a943ad/.github/traffic-publish/commercial-three-20261102-2/hane-family.png",
+    "image_sha256": "32fdfbb959e5837daf63977dd1f0c292b586c05c458bf744e63c3a5a34b55f3e"
+  },
+  {
+    "hotel_id": 46672,
+    "name": "J'adore Deluxe Hotel & Spa",
+    "legacy_anytour_id": 2432,
+    "accepted_first_line": "✈️ Туры в J'adore Deluxe Hotel & Spa с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/a011287435ba7ce32781a71ae0ed81e6c4d8f1d9/.github/traffic-publish/commercial-three-20261102-3/jadore-deluxe.png",
+    "image_sha256": "183b72e82139e1e8edddf15bbb42eca08e52c41ce5af97ffba85ff7531e89ce7"
+  },
+  {
+    "hotel_id": 109900,
+    "name": "Dream Fun World",
+    "legacy_anytour_id": 3726,
+    "accepted_first_line": "✈️ Туры в Dream Fun World с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/a011287435ba7ce32781a71ae0ed81e6c4d8f1d9/.github/traffic-publish/commercial-three-20261102-3/dream-fun-world.png",
+    "image_sha256": "c315b20ea54513aca8436790b47c839d9d5737bbad7d8f3fe33789cc2d66ccc0"
+  },
+  {
+    "hotel_id": 111129,
+    "name": "Side Moon Palace",
+    "legacy_anytour_id": 3742,
+    "accepted_first_line": "✈️ Туры в Side Moon Palace с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/a011287435ba7ce32781a71ae0ed81e6c4d8f1d9/.github/traffic-publish/commercial-three-20261102-3/side-moon-palace.png",
+    "image_sha256": "b83c400d56719a87d6174bcf04434860d0c9d48d8f98a86aa4975eea1e9ac9cd"
+  },
+  {
+    "hotel_id": 111045,
+    "name": "Vox Maris Resort",
+    "legacy_anytour_id": 3737,
+    "accepted_first_line": "✈️ Туры в Vox Maris Resort с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5f5a0504a74d22f5e6b167a01a36d9be8edf4a8f/.github/traffic-publish/commercial-three-20261102-4/vox-maris.png",
+    "image_sha256": "4900667c7f39f0dc903fe645db76d0bc7aebf740b6f875c6b0f3434d61534ecb"
+  },
+  {
+    "hotel_id": 1077,
+    "name": "Club Aqua Plaza",
+    "legacy_anytour_id": 477,
+    "accepted_first_line": "✈️ Туры в Club Aqua Plaza с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5f5a0504a74d22f5e6b167a01a36d9be8edf4a8f/.github/traffic-publish/commercial-three-20261102-4/club-aqua-plaza.png",
+    "image_sha256": "7b24216a4128fea469bfd1e26a3715e2c492ebe65246556791801248ba7cc3eb"
+  },
+  {
+    "hotel_id": 1146,
+    "name": "Akra Antalya",
+    "legacy_anytour_id": 516,
+    "accepted_first_line": "✈️ Туры в Akra Antalya с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5f5a0504a74d22f5e6b167a01a36d9be8edf4a8f/.github/traffic-publish/commercial-three-20261102-4/akra-antalya.png",
+    "image_sha256": "28faf11f355ab480e1927b286db5a6248ead080b28f2365209e0c63b58a3924b"
+  },
+  {
+    "hotel_id": 9374,
+    "name": "SUNRISE Arabian Beach Resort",
+    "legacy_anytour_id": 1554,
+    "accepted_first_line": "✈️ Туры в SUNRISE Arabian Beach Resort с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/772ac7fe301468ab8649834e4d6c8b278fe4c2f0/.github/traffic-publish/commercial-three-20261102-5/sunrise-arabian.png",
+    "image_sha256": "549671e924174d1253e4e57e3bea5f9d4592c011805010bc644918029bd946fc"
+  },
+  {
+    "hotel_id": 498,
+    "name": "Titanic Beach Spa & Aqua Park",
+    "legacy_anytour_id": 228,
+    "accepted_first_line": "✈️ Туры в Titanic Beach Spa & Aqua Park с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/772ac7fe301468ab8649834e4d6c8b278fe4c2f0/.github/traffic-publish/commercial-three-20261102-5/titanic-beach.png",
+    "image_sha256": "d9e220f64bcb4645ff423a63ad431a95f08b71af8c5816e7f509d919c64a96d6"
+  },
+  {
+    "hotel_id": 157359,
+    "name": "Avia Resort Hotel & Spa",
+    "legacy_anytour_id": 4101,
+    "accepted_first_line": "✈️ Туры в Avia Resort Hotel & Spa с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/772ac7fe301468ab8649834e4d6c8b278fe4c2f0/.github/traffic-publish/commercial-three-20261102-5/avia-resort.png",
+    "image_sha256": "3df5f89e0570ccc929e3d705dc7758f989e78b7d56b51aa5ab5acd785e806ca6"
+  },
+  {
+    "hotel_id": 482,
+    "name": "SUNRISE Mamlouk Palace Resort",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Туры в SUNRISE Mamlouk Palace Resort с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5e54b08b752d613893294503ed3d802001ef5620/.github/traffic-publish/commercial-three-20261102-6/mamlouk-palace.png",
+    "image_sha256": "7a2467e2fd950fa561c2c3f7efa928bf4a0f65dfa8d4ec17c1beb3e13b77168b"
+  },
+  {
+    "hotel_id": 476,
+    "name": "SUNRISE Garden Beach Resort",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Туры в SUNRISE Garden Beach Resort с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5e54b08b752d613893294503ed3d802001ef5620/.github/traffic-publish/commercial-three-20261102-6/garden-beach.png",
+    "image_sha256": "79fa71e2f1149ac776bb1759bfaa2f7120c4b5fb18db7d27cc0170c18a884851"
+  },
+  {
+    "hotel_id": 81173,
+    "name": "White Hills Resort",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Туры в White Hills Resort с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5e54b08b752d613893294503ed3d802001ef5620/.github/traffic-publish/commercial-three-20261102-6/white-hills.png",
+    "image_sha256": "72e15ba54ba54b4379a14bc328a0f455fa1213f4f7c29952201c9f39464b0ca8"
+  },
+  {
+    "hotel_id": 9373,
+    "name": "SUNRISE Diamond Beach Resort",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Туры в SUNRISE Diamond Beach Resort с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4e94c65ace4f6886bb9986c70645e3d72a625aed/.github/traffic-publish/commercial-three-20261102-7/sunrise-diamond-beach.png",
+    "image_sha256": "cba1c3cc24a1d74f4d920355e70f4db7dfd6c3e2fa76569596336d082e8d2e75"
+  },
+  {
+    "hotel_id": 32577,
+    "name": "SUNRISE Montemare Resort",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Туры в SUNRISE Montemare Resort с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4e94c65ace4f6886bb9986c70645e3d72a625aed/.github/traffic-publish/commercial-three-20261102-7/sunrise-montemare.png",
+    "image_sha256": "e9d5dcce928337698c4cb76b3ea20e55f3ced5c1e6b040ed34712873e47f6c32"
+  },
+  {
+    "hotel_id": 4191,
+    "name": "Tropitel Sahl Hasheesh",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Туры в Tropitel Sahl Hasheesh с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4e94c65ace4f6886bb9986c70645e3d72a625aed/.github/traffic-publish/commercial-three-20261102-7/tropitel-sahl-hasheesh.png",
+    "image_sha256": "b0379a5c82d849725f114129a35beb9c6fb742a1d30515320e6a277ff9da831d"
+  },
+  {
+    "hotel_id": 416,
+    "name": "SUNRISE Crystal Bay Resort",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Туры в SUNRISE Crystal Bay Resort с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/b30693513125825518d856e4fc972bd42d3cd550/.github/traffic-publish/commercial-three-20261102-8/sunrise-crystal-bay.png",
+    "image_sha256": "f27b6590e7496fb1602c868a2208356be2035d1ba7a1e4e5f3b2362cf06f40fa"
+  },
+  {
+    "hotel_id": 12112,
+    "name": "SUNRISE Aqua Joy Resort",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Туры в SUNRISE Aqua Joy Resort с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/b30693513125825518d856e4fc972bd42d3cd550/.github/traffic-publish/commercial-three-20261102-8/sunrise-aqua-joy.png",
+    "image_sha256": "7e5555a776a6cd07dea691474bc7fff36745dc89c909620e594d45252762e4d0"
+  },
+  {
+    "hotel_id": 478,
+    "name": "SUNRISE Holidays Resort",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Туры в SUNRISE Holidays Resort с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/b30693513125825518d856e4fc972bd42d3cd550/.github/traffic-publish/commercial-three-20261102-8/sunrise-holidays.png",
+    "image_sha256": "24a14aba5231de6386c64a008b68f28082ff22e7509ac691ee29493bd20016ab"
+  },
+  {
+    "hotel_id": 77914,
+    "name": "SUNRISE Tucana Resort",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Туры в SUNRISE Tucana Resort с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/tucana.png",
+    "image_sha256": "307f3d7f265c97ff3b44a0e3eb04b6f8c4b91fdf3a8d35afc3d77ff9edb6b4e3"
+  },
+  {
+    "hotel_id": 237,
+    "name": "SUNRISE Alma Bay Resort",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Туры в SUNRISE Alma Bay Resort с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/alma-bay.png",
+    "image_sha256": "372f769cd6e57be4a7a43004df6d89d039b4f1d85c219a95c45cbebd948174e8"
+  },
+  {
+    "hotel_id": 32575,
+    "name": "SUNRISE Alora Aqua Park Resort",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Туры в SUNRISE Alora Aqua Park Resort с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/alora.png",
+    "image_sha256": "5642c415fc7e7356c9018ec9f880cee42472cd9235bc5d8cfc22da19b02dd4b0"
+  },
+  {
+    "hotel_id": 112914,
+    "name": "SUNRISE Anjum Resort",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Туры в SUNRISE Anjum Resort с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/anjum.png",
+    "image_sha256": "5be65e43d62640f7634c2471d643444b4eb95532e7272f5321d89f2e30046f4a"
+  },
+  {
+    "hotel_id": 64895,
+    "name": "Meraki Resort Hurghada",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Туры в Meraki Resort Hurghada с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/meraki.png",
+    "image_sha256": "fdec194b4c5e68c214c1faf605ab3b3219b47b77f0a30bc2f7150fe5829a76a0"
+  },
+  {
+    "hotel_id": 262,
+    "name": "JAZ Aquamarine",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Туры в JAZ Aquamarine с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/jaz-aquamarine.png",
+    "image_sha256": "2c9a086719c4b3cd26f9b71b02021185eec65bcf04eef726a67b5b72f673907c"
+  },
+  {
+    "hotel_id": 12117,
+    "name": "JAZ Bluemarine",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Туры в JAZ Bluemarine с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/jaz-bluemarine.png",
+    "image_sha256": "6680132190e019d8665e96f190dc8a000cd66bb5f6d534b0fc61eb0ad4f63be5"
+  },
+  {
+    "hotel_id": 12119,
+    "name": "Steigenberger ALDAU Beach",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Туры в Steigenberger ALDAU Beach с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/steigenberger-aldau.png",
+    "image_sha256": "a2d23c0fbf1585178cff53f14837df7b2086bae602254e98106c45c3fc55a3ac"
+  },
+  {
+    "hotel_id": 26044,
+    "name": "Steigenberger Aqua Magic",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Туры в Steigenberger Aqua Magic с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/steigenberger-aqua-magic.png",
+    "image_sha256": "be2024d407381a0652c71f8be965e639faf1aba63df25a178c515495efe1ce9b"
+  },
+  {
+    "hotel_id": 66150,
+    "name": "Steigenberger Pure Lifestyle",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Туры в Steigenberger Pure Lifestyle с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/steigenberger-pure.png",
+    "image_sha256": "976953feab7e508b83598a4696d023566fad5e7c620ff47d22c4acb1b65caadd"
+  },
+  {
+    "hotel_id": 232,
+    "name": "JAZ Elite Casa del Mar Beach",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Туры в JAZ Elite Casa del Mar Beach с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-casa-beach.png",
+    "image_sha256": "fab68a53df9c08c9adcce0316eca535fa4887869f16f4bd567ac6703ac3260fd"
+  },
+  {
+    "hotel_id": 233,
+    "name": "JAZ Casa del Mar Resort",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Туры в JAZ Casa del Mar Resort с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-casa-resort.png",
+    "image_sha256": "0127cfb4ca1a728f0a0c86d04873fcbedc1bf5b8b9a83cf8e65006d7e7d6b0fd"
+  },
+  {
+    "hotel_id": 13872,
+    "name": "JAZ Makadina",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Туры в JAZ Makadina с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-makadina.png",
+    "image_sha256": "a7cf3287cd481553cd0aa33cbd081051d9c43361de49187e2326b7a8e23a03f3"
+  },
+  {
+    "hotel_id": 13873,
+    "name": "JAZ Makadi Oasis Resort & Club",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Туры в JAZ Makadi Oasis Resort & Club с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-makadi-oasis.png",
+    "image_sha256": "d9cd3dfa9d4f298b68a5433b06bae685f671086cf6efbddee40833ddb8ac1e2f"
+  },
+  {
+    "hotel_id": 280,
+    "name": "JAZ Makadi Star & Spa",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Туры в JAZ Makadi Star & Spa с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-makadi-star.png",
+    "image_sha256": "67d934d9d6b2be686748640e569988dfbe3470f27fdc479f597aa5ef47a272a4"
+  },
+  {
+    "hotel_id": 456,
+    "name": "JAZ Neo Dar El Madina",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Туры в JAZ Neo Dar El Madina с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-dar-el-madina.png",
+    "image_sha256": "760488c3706ec3556c0cf17f4ee1c4c160fb003b85ab39f12adafb3cd77ecd52"
+  },
+  {
+    "hotel_id": 265,
+    "name": "JAZ Lamaya Resort",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Туры в JAZ Lamaya Resort с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-lamaya.png",
+    "image_sha256": "ab9a0b4a25bd3f33aa1a4fab4bbf24c118a84688f9649c4c225513ec72a5a9d8"
+  },
+  {
+    "hotel_id": 454,
+    "name": "JAZ Solaya",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Туры в JAZ Solaya с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-solaya.png",
+    "image_sha256": "266c555c4f39c66fe914ecb3c4192cf0f7bc42e83bd75fb3bdab0c815267891c"
+  },
+  {
+    "hotel_id": 21475,
+    "name": "Baron Palace Sahl Hasheesh",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Туры в Baron Palace Sahl Hasheesh с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/baron-palace.png",
+    "image_sha256": "c6f7b1c8a31130c87742a5c47693e53339951ea96dd2c1b6200e0f8474f1f48b"
+  },
+  {
+    "hotel_id": 1963,
+    "name": "Baron Resort Sharm El Sheikh",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Туры в Baron Resort Sharm El Sheikh с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/baron-resort.png",
+    "image_sha256": "cdf99761c24f8d0095c1c2bfc2d9bd0c617569183d58201a102af2fb03971649"
+  },
+  {
+    "hotel_id": 358,
+    "name": "Rixos Sharm El Sheikh",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Rixos Sharm El Sheikh 5★",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7bc700a98e8388be2d64a99433fa46ea90b996c4/.github/traffic-publish/commercial-batch-20261102-11/358.png",
+    "image_sha256": "d0374f659bda4b85f902ae1e7ea8099722e1e2ae49d6aa79b136e9a130f7595e"
+  },
+  {
+    "hotel_id": 37668,
+    "name": "Rixos Premium Seagate",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Rixos Premium Seagate 5★",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7bc700a98e8388be2d64a99433fa46ea90b996c4/.github/traffic-publish/commercial-batch-20261102-11/37668.png",
+    "image_sha256": "526ccbe7b4fa78bd34ea62d1d57f6f9880307fba7301a41b2c6ee2533b447e45"
+  },
+  {
+    "hotel_id": 174,
+    "name": "Pickalbatros Dana Beach Resort",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Pickalbatros Dana Beach Resort 5★",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7bc700a98e8388be2d64a99433fa46ea90b996c4/.github/traffic-publish/commercial-batch-20261102-11/174.png",
+    "image_sha256": "f3fb54425c7b9d841af70f8fd7fdfd939dc4cf41442f5a416c6f4f048b2e16c7"
+  },
+  {
+    "hotel_id": 55574,
+    "name": "Pickalbatros White Beach Resort",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Pickalbatros White Beach Resort 5★",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7bc700a98e8388be2d64a99433fa46ea90b996c4/.github/traffic-publish/commercial-batch-20261102-11/55574.png",
+    "image_sha256": "68f77c79f8dc3cf8411cb7cb1897a158db85f9c9a9cee496a38556548d49bdf1"
+  },
+  {
+    "hotel_id": 383,
+    "name": "JAZ Grand Marsa",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ JAZ Grand Marsa",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/3d8d1803364d1fecdf777629924664496f6f629d/.github/traffic-publish/commercial-batch-20261102-12/383.png",
+    "image_sha256": "0d8a65330cd2b01c244e5038ea1aec174dd980670971385fd7ff5b9be869c753"
+  },
+  {
+    "hotel_id": 108090,
+    "name": "JAZ Elite Amara",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ JAZ Elite Amara 5★",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/3d8d1803364d1fecdf777629924664496f6f629d/.github/traffic-publish/commercial-batch-20261102-12/108090.png",
+    "image_sha256": "8f398639a56297384299f7319337db77fa65ceaf712fde41beb65df71d5ea141"
+  },
+  {
+    "hotel_id": 150,
+    "name": "Pickalbatros Citadel",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Pickalbatros Citadel 5★",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/150.png",
+    "image_sha256": "f8790f4df660104da59c1e3b665989615296c7a97946180b2b680fa42d9f80ec"
+  },
+  {
+    "hotel_id": 172,
+    "name": "Pickalbatros Sands Port Ghalib",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Pickalbatros Sands Port Ghalib 5★",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/172.png",
+    "image_sha256": "29cdabc6f83eafc142de4ab941744f54e80896fdf5a787ceddba2535e28e2729"
+  },
+  {
+    "hotel_id": 275,
+    "name": "Pickalbatros The Palace Port Ghalib",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Pickalbatros The Palace Port Ghalib 5★",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/275.png",
+    "image_sha256": "b96300253c2448b4e816595e41ed47b95ddda4ac8696ba082908227d67aa98be"
+  },
+  {
+    "hotel_id": 173,
+    "name": "Pickalbatros Oasis Port Ghalib",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Pickalbatros Oasis Port Ghalib 5★",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/173.png",
+    "image_sha256": "9097bfab02417d6e7c02941c0ac43130d1917025d0a507c08ef5dba2079c2569"
+  },
+  {
+    "hotel_id": 110,
+    "name": "Pickalbatros Jungle Aqua Park",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Pickalbatros Jungle Aqua Park 4★",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/110.png",
+    "image_sha256": "b6a3fab8282487223b95c9035418873a94128b8ac396a610a432fa90a3be9234"
+  },
+  {
+    "hotel_id": 57028,
+    "name": "Pickalbatros Aqua Park Sharm",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Pickalbatros Aqua Park Sharm",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/57028.png",
+    "image_sha256": "993931a6ff49625afc42790a32f935e53858b2d6aaa7fb4f30f1041c2fa0a7c8"
+  },
+  {
+    "hotel_id": 125,
+    "name": "Pickalbatros Aqua Blu Sharm",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Pickalbatros Aqua Blu Sharm 4★",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/125.png",
+    "image_sha256": "7f21becd15db058bd64aa0f57ae3611051148fa5f2c35157e4a0a7f98e970b2f"
+  },
+  {
+    "hotel_id": 132,
+    "name": "Beach Albatros Resort Hurghada",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Beach Albatros Resort 4★",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/132.png",
+    "image_sha256": "3d232521ed00e5d3960ee53ea1b8f7ca7325d61666f6595421aeac88f2b025eb"
+  },
+  {
+    "hotel_id": 178,
+    "name": "Desert Rose",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Desert Rose",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/178.png",
+    "image_sha256": "c068b00f9197548d4b3b15b4633b51716f9569f401ce8e87179217c9382b3c7d"
+  },
+  {
+    "hotel_id": 371,
+    "name": "Reef Oasis Beach Resort",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Reef Oasis Beach Resort",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/371.png",
+    "image_sha256": "ff111f0a9da0672eb4d4b43739e4d7dd3f63efffb1c902156f99b44829278937"
+  },
+  {
+    "hotel_id": 389,
+    "name": "Pickalbatros Royal Moderna",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Pickalbatros Royal Moderna",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/389.png",
+    "image_sha256": "060c03389c7e1355262a9d30f881e31d76d3b41ae069cfca6ca17f1c7dd4c99a"
+  },
+  {
+    "hotel_id": 109,
+    "name": "Pickalbatros Aqua Vista",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Pickalbatros Aqua Vista 4★",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/109.png",
+    "image_sha256": "52cf9104df60d166437fa42de713fe3d47ae1985d512fd89caed8bfa7a699983"
+  },
+  {
+    "hotel_id": 293,
+    "name": "Pickalbatros Laguna Vista",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Pickalbatros Laguna Vista 5★",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/293.png",
+    "image_sha256": "5cfccb91f34aea3c2d0fa1a81d59e88515b3b883b04ba5e829a776bc6ed10bed"
+  },
+  {
+    "hotel_id": 107965,
+    "name": "Pickalbatros Laguna Club",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Pickalbatros Laguna Club",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/107965.png",
+    "image_sha256": "dd09eab5372ca4358a53838cfe3db866712ea38d8274c14617f9c73f415d6504"
+  },
+  {
+    "hotel_id": 393,
+    "name": "Pickalbatros Royal Grand",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Pickalbatros Royal Grand",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/393.png",
+    "image_sha256": "0794d396b4b78db075b6a745803dd55884595f712572491a47e95bc3c4474ac4"
+  },
+  {
+    "hotel_id": 78898,
+    "name": "Pickalbatros Blu Spa",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Pickalbatros Blu Spa 5★",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/78898.png",
+    "image_sha256": "20ec2812e7a46b184aeeef9b0e0d693198d9f35185000c6dcc9c6ad00190693b"
+  },
+  {
+    "hotel_id": 83105,
+    "name": "Pickalbatros Vita Resort Portofino",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Pickalbatros Vita Resort Portofino",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/83105.png",
+    "image_sha256": "c6168cc7a1ddd3645e6a29e0ad7c87ea536d676b012b1b8c93d394eee1f4bd40"
+  },
+  {
+    "hotel_id": 69155,
+    "name": "Steigenberger Resort Alaya",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Steigenberger Resort Alaya 5★",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/69155.png",
+    "image_sha256": "0d6beae352c643917c4aaf5190a92b9ee26a81c8d233622fb66adba65765473e"
+  },
+  {
+    "hotel_id": 69409,
+    "name": "Steigenberger Resort Ras Soma",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Steigenberger Resort Ras Soma 5★",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/69409.png",
+    "image_sha256": "913375cf49539362a60e8ca1775222285ee848f29f2f40ab7b2249d3adac4495"
+  },
+  {
+    "hotel_id": 263,
+    "name": "Steigenberger Coraya Beach",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Steigenberger Coraya Beach 5★",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/263.png",
+    "image_sha256": "90589bd55e510901064ed8ccc883b21533dba0497afee01435a467f0514242eb"
+  },
+  {
+    "hotel_id": 43204,
+    "name": "Steigenberger Alcazar",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Steigenberger Alcazar",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4d4b1ec194d8a078ccb827772908dcfd55cb792a/.github/traffic-publish/commercial-batch-20261103-15/43204.png",
+    "image_sha256": "fe3754248b987909d9f3c824f2385ac10b0f1a34e18389d23fa61f2918e3e2a8"
+  },
+  {
+    "hotel_id": 13870,
+    "name": "Steigenberger Makadi",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Steigenberger Makadi 16+",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4d4b1ec194d8a078ccb827772908dcfd55cb792a/.github/traffic-publish/commercial-batch-20261103-15/13870.png",
+    "image_sha256": "41d10fb70d470f4b1a4102b086ef47e3c58f01b1018c375d3e8ff429eb377c39"
+  },
+  {
+    "hotel_id": 1983,
+    "name": "JAZ Neo Sharks Bay",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ JAZ Neo Sharks Bay",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4d4b1ec194d8a078ccb827772908dcfd55cb792a/.github/traffic-publish/commercial-batch-20261103-15/1983.png",
+    "image_sha256": "c407b854ad54c2c9c4cf3c71a6927549bd6ec2cdecf41a7c22236e331001c2f3"
+  },
+  {
+    "hotel_id": 111801,
+    "name": "JAZ Elite Asteria",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ JAZ Elite Asteria",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4d4b1ec194d8a078ccb827772908dcfd55cb792a/.github/traffic-publish/commercial-batch-20261103-15/111801.png",
+    "image_sha256": "b0d53b030d305312ad0a49c16c4f3304e1c8ee1abac776be6cb07f30847d7005"
+  },
+  {
+    "hotel_id": 287,
+    "name": "KEMPINSKI SOMA BAY",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Kempinski Hotel Soma Bay 5★",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/549675505dae8eeccf1fab86cf3a2779927b08ad/.github/traffic-publish/commercial-batch-20261103-16/287.png",
+    "image_sha256": "21a26282fda6a8de680101a7d4481de7e5d615ddd3301686d89b601902a2d325"
+  },
+  {
+    "hotel_id": 435,
+    "name": "SHERATON SOMA BAY",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Sheraton Soma Bay Resort 5★",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/549675505dae8eeccf1fab86cf3a2779927b08ad/.github/traffic-publish/commercial-batch-20261103-16/435.png",
+    "image_sha256": "6fff110dec94051ab77956462d0cc12124cdcfc1cb003e7694feb625761e0a8c"
+  },
+  {
+    "hotel_id": 109149,
+    "name": "THE BREAKERS SOMABAY",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ The Breakers Diving & Surfing Lodge",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/ea5fb18274f9da4b0d78dcf476ddc7a72fbdd20c/.github/traffic-publish/commercial-batch-20261103-16/109149.png",
+    "image_sha256": "d11c9e44b0a0d41cae72a44ee9258f5237dc10f04ba12458d56b67a1a448d333"
+  },
+  {
+    "hotel_id": 79059,
+    "name": "WATER VALLEY NEVERLAND",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Pickalbatros Water Valley Resort",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/549675505dae8eeccf1fab86cf3a2779927b08ad/.github/traffic-publish/commercial-batch-20261103-16/79059.png",
+    "image_sha256": "8eaa002ef8509b960d78b1ef079525157a850615079cfd5b79af7f8022abab20"
+  },
+  {
+    "hotel_id": 56092,
+    "name": "GRAVITY HURGHADA",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Gravity Hotel & Aqua Park Hurghada",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/549675505dae8eeccf1fab86cf3a2779927b08ad/.github/traffic-publish/commercial-batch-20261103-16/56092.png",
+    "image_sha256": "acdc99a93860998e02a1026a82655e99c94abdbb23f4b9f5745636053d1d892d"
+  },
+  {
+    "hotel_id": 115918,
+    "name": "RIXOS RADAMIS",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Rixos Radamis Sharm El Sheikh",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/549675505dae8eeccf1fab86cf3a2779927b08ad/.github/traffic-publish/commercial-batch-20261103-16/115918.png",
+    "image_sha256": "8ed7947c53d44582f001c179569759e6b78f534d5d60e0a442761ba431b30179"
+  },
+  {
+    "hotel_id": 269,
+    "name": "TUI BLUE SAMAYA",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ TUI BLUE Samaya, бывший JAZ Samaya",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/549675505dae8eeccf1fab86cf3a2779927b08ad/.github/traffic-publish/commercial-batch-20261103-16/269.png",
+    "image_sha256": "9e47c44e672f108e3a7b4083db554ba2eb73b46b45fd2843b3c146b104c5c256"
+  },
+  {
+    "hotel_id": 80964,
+    "name": "MERAKI SHARM 16+",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Meraki Resort Sharm El Sheikh 16+",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/ea5fb18274f9da4b0d78dcf476ddc7a72fbdd20c/.github/traffic-publish/commercial-batch-20261103-16/80964.png",
+    "image_sha256": "e9d302e7ef622bd4344bc8d44cfc59ce49f19043807c37482aca7e949856c51a"
+  },
+  {
+    "hotel_id": 264,
+    "name": "JAZ DAHABEYA (EX. IBEROTEL DAHABEYA)",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ JAZ Dahabeya",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f2b991533a27dd4eaf06566d61ab50c378ac6ef3/.github/traffic-publish/commercial-batch-20261103-17/264.png",
+    "image_sha256": "6944c2fc43ed6427d3820925f7e6a7a18795b15a2c063a38677c39b7b69958d1"
+  },
+  {
+    "hotel_id": 73342,
+    "name": "JAZ SOMA BEACH (EX. SOLYMAR SOMA BEACH)",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ JAZ Soma Beach",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f2b991533a27dd4eaf06566d61ab50c378ac6ef3/.github/traffic-publish/commercial-batch-20261103-17/73342.png",
+    "image_sha256": "c1bb708365ecf91136345eb805e37072a7f6923426eaa04d84b8b265f42e3d03"
+  },
+  {
+    "hotel_id": 278,
+    "name": "JAZ BELVEDERE",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ JAZ Belvedere",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f2b991533a27dd4eaf06566d61ab50c378ac6ef3/.github/traffic-publish/commercial-batch-20261103-17/278.png",
+    "image_sha256": "da4307f9fb0529c987214bfa16402fd88c9e7ce4b0b606f9ea47573a4c2578cf"
+  },
+  {
+    "hotel_id": 246,
+    "name": "JAZ FAYROUZ RESORT (EX. HILTON SHARM FAYROUZ RESORT)",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ JAZ Fayrouz",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f2b991533a27dd4eaf06566d61ab50c378ac6ef3/.github/traffic-publish/commercial-batch-20261103-17/246.png",
+    "image_sha256": "d68acc6bffcdf554829cf26876caef988378f40e43260fb791beef07eff4d02d"
+  },
+  {
+    "hotel_id": 245,
+    "name": "JAZ SHARM DREAMS RESORT",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ JAZ Sharm Dreams",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/94257c246f0fa86a4a4b52a37d99dac08564554f/.github/traffic-publish/commercial-batch-20261103-17/245.png",
+    "image_sha256": "d91e02dac359d0807ca05a2be342f17c3b61607798b5943d29cc83d6533cb4cc"
+  },
+  {
+    "hotel_id": 13869,
+    "name": "JAZ NEO SARAYA PALMS (EX. JAZ MAKADI SARAYA PALMS)",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ JAZ Neo Saraya Palms",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/94257c246f0fa86a4a4b52a37d99dac08564554f/.github/traffic-publish/commercial-batch-20261103-17/13869.png",
+    "image_sha256": "84410f5985a5e86e6afbb93b09634b341751ae412faace10ef2b9a32d9e34230"
+  },
+  {
+    "hotel_id": 267,
+    "name": "IBEROTEL MAKADI BEACH",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Iberotel Makadi Beach by JAZ",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/94257c246f0fa86a4a4b52a37d99dac08564554f/.github/traffic-publish/commercial-batch-20261103-17/267.png",
+    "image_sha256": "ef777657eabd994174089e97dcd69bb32dfb9e9eda2eec97ca8edbd2c945e9a3"
+  },
+  {
+    "hotel_id": 12114,
+    "name": "JAZ ELITE PALACE ADULTS ONLY 16+ (EX. IBEROTEL PALACE ADULTS ONLY)",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ JAZ Elite Palace 16+",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/94257c246f0fa86a4a4b52a37d99dac08564554f/.github/traffic-publish/commercial-batch-20261103-17/12114.png",
+    "image_sha256": "863391e7e19e5dc6959b36d754f467c99840847426a300244246d51e9314f166"
+  },
+  {
+    "hotel_id": 384,
+    "name": "JAZ NEO REEF MARSA (EX. SOLYMAR REEF MARSA)",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "🐠 JAZ Neo Reef Marsa",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/50596593234befa16109a8430a7587a73b86f247/.github/traffic-publish/commercial-batch-20261103-18/384.png",
+    "image_sha256": "6dcb8e377cf9fdb0e1d24b9475260454089dfddb01260f07367b935cd0b47638"
+  },
+  {
+    "hotel_id": 281,
+    "name": "JAZ MIRABEL BEACH",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "🌴 JAZ Mirabel Beach",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/50596593234befa16109a8430a7587a73b86f247/.github/traffic-publish/commercial-batch-20261103-18/281.png",
+    "image_sha256": "c8dedd227aab3149b00dce79ef2eef56826a754ce5e88909489ea6343a38ec90"
+  },
+  {
+    "hotel_id": 75725,
+    "name": "JAZ COSTA MARES ADULT ONLY (EX. IBEROTEL COSTA MARES)",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "🌊 JAZ Costa Mares 16+",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/50596593234befa16109a8430a7587a73b86f247/.github/traffic-publish/commercial-batch-20261103-18/75725.png",
+    "image_sha256": "c72ac17411e977435990f9235a651aa98cbf239eff95c5184181f4d3f5c4777f"
+  },
+  {
+    "hotel_id": 249,
+    "name": "HILTON PLAZA",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "🌊 Hilton Hurghada Plaza",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4daf5a926a75e58235980ac66de5938722dfe980/.github/traffic-publish/commercial-batch-20261103-19/249.png",
+    "image_sha256": "30a198d59227683e0737ef69919a6076630b5f1f0c543d7746f4621cc651ef22"
+  },
+  {
+    "hotel_id": 315,
+    "name": "HURGADA MARRIOTT BEACH RESORT",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "🌴 Hurghada Marriott Beach Resort",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4daf5a926a75e58235980ac66de5938722dfe980/.github/traffic-publish/commercial-batch-20261103-19/315.png",
+    "image_sha256": "e8e987ee34b3677fcc8f61e465e336e249a97d64385cc6ddb5c524653c419482"
+  },
+  {
+    "hotel_id": 465,
+    "name": "STELLA DI MARE BEACH HOTEL & SPA",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "🌊 Stella Di Mare Beach Hotel & Spa",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4daf5a926a75e58235980ac66de5938722dfe980/.github/traffic-publish/commercial-batch-20261103-19/465.png",
+    "image_sha256": "3cbe6907c1a0c2157aae65e45b1d13138b796af668b9f704b3afb12dd369ee57"
+  },
+  {
+    "hotel_id": 272,
+    "name": "CONTINENTAL HOTEL HURGHADA",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "🏖️ Continental Hotel Hurghada",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4daf5a926a75e58235980ac66de5938722dfe980/.github/traffic-publish/commercial-batch-20261103-19/272.png",
+    "image_sha256": "a85df85a206fc8ba25e07eb5bb734ac615a88dd6934793f8e8a53ade014d3e13"
+  },
+  {
+    "hotel_id": 260,
+    "name": "PARK REGENCY SHARM EL SHEIKH (EX. HYATT REGENCY SSH)",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "🐠 Park Regency Sharm El Sheikh",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4daf5a926a75e58235980ac66de5938722dfe980/.github/traffic-publish/commercial-batch-20261103-19/260.png",
+    "image_sha256": "d419cbaf86968b25f21eef54ef14c1d94c559b41b6837c67fad72ab558559a42"
+  },
+  {
+    "hotel_id": 273,
+    "name": "PALM ROYALE SOMA BAY (EX. SENTIDO PALM ROYALE)",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "🌴 Palm Royale Soma Bay",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4daf5a926a75e58235980ac66de5938722dfe980/.github/traffic-publish/commercial-batch-20261103-19/273.png",
+    "image_sha256": "de45a5676376454a5a942a7f6de3a34f15b50c982e46081a5526eafe1054bf23"
+  },
+  {
+    "hotel_id": 310,
+    "name": "Pickalbatros Golf Beach Resort",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Туры в Pickalbatros Golf Beach Resort с перелётом",
+    "image_url": null,
+    "image_sha256": "1050572524d0202c42397def755cee0f5dc24f97505527508b6f4868513577a4"
+  },
+  {
+    "hotel_id": 469,
+    "name": "Sultan Gardens Resort",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Туры в Sultan Gardens Resort с перелётом",
+    "image_url": null,
+    "image_sha256": "56141ff7784bc505e2af118e20a13a699933669fbd2357823e547c9703281568"
+  },
+  {
+    "hotel_id": 67910,
+    "name": "Rixos Premium Magawish Suites & Villas",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Туры в Rixos Premium Magawish Suites & Villas с перелётом",
+    "image_url": null,
+    "image_sha256": "0b192a9ba2b1df0e291b2c6ad3f612602aac1f3d28bd10587a00f81694980bb5"
+  },
+  {
+    "hotel_id": 381,
+    "name": "Rehana Royal Beach Resort Aqua Park & Spa",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Туры в Rehana Royal Beach Resort Aqua Park & Spa с перелётом",
+    "image_url": null,
+    "image_sha256": "bd0aa82f1330253fdd14ef92cc30b9e0c553a425f6b004eef976b5fcfe61eb3b"
+  },
+  {
+    "hotel_id": 68323,
+    "name": "SUNRISE Solara Aqua Park Resort",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Туры в SUNRISE Solara Aqua Park Resort с перелётом",
+    "image_url": null,
+    "image_sha256": "d7fab29af27aab8c59b2c7af42a7327926629b56dfae2a037066d80321269f12"
+  },
+  {
+    "hotel_id": 1971,
+    "name": "Pickalbatros Palace Resort Sharm El Sheikh",
+    "legacy_anytour_id": null,
+    "accepted_first_line": "✈️ Туры в Pickalbatros Palace Resort Sharm El Sheikh с перелётом",
+    "image_url": null,
+    "image_sha256": "680ae63c453c6c958451d6825624cb7919e4c998dd1e5c8f04a3ef20ed0e5a1a"
+  }
+]
