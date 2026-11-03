@@ -1,0 +1,13 @@
+{
+  "operation": "commercial-hotel-feed-20261103-six-image-bytes-read1",
+  "state": "PRIMARY_IMAGES_IDENTIFIED_VISUAL_VERIFICATION_REQUIRED",
+  "catalog_ids": [
+    310,
+    1971,
+    381,
+    469,
+    68323,
+    67910
+  ],
+  "source_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41626956691"
+}
