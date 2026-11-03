@@ -1,7 +1,11 @@
 {
   "operation": "commercial-hotel-batch-20261103-23-v1",
-  "state": "NOT_STARTED",
-  "catalog_ids": [],
-  "prepared_count": 0,
-  "new_posts": 0
+  "state": "ONE_WHOLE_MATERIAL_COVER_NATIVE_VALIDATION_PENDING_NOT_SENT",
+  "catalog_ids": [
+    328
+  ],
+  "content_prepared_count": 1,
+  "ready_for_send_count": 0,
+  "new_posts": 0,
+  "provider_send_attempts": 0
 }

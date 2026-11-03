@@ -68,6 +68,12 @@
       "name": "Serry Beach Resort",
       "text": "✈️ Туры в Serry Beach Resort с перелётом\n📍 Хургада, Египет.\n\n🏖 Собственный песчаный пляж длиной 183 м.\n🏊 Основной и детский бассейны.\n🧒 Детский клуб Saraab Junior Club и пространство Nuba Escape.\n🏡 Для семьи есть шале с двумя спальнями.\n\n💡 Лаунж Manara доступен гостям сьютов.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Serry Beach Resort.",
       "utf16": 352
+    },
+    {
+      "hotel_id": 328,
+      "name": "Mövenpick Resort & Spa El Gouna",
+      "text": "✈️ Туры в Mövenpick El Gouna с перелётом\n📍 Эль Гуна, Египет.\n\n🏖 Полуостров с собственным пляжем и лагунами.\n🌿 Сады и 420 номеров.\n🏊 Три бассейна.\n🤿 Центры дайвинга, кайтсёрфинга и водного спорта.\n\n💡 С 2027 года запланировано поэтапное обновление отеля с переходом под бренд Sofitel.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Mövenpick El Gouna.",
+      "utf16": 358
     }
   ],
   "primary_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41658764832",
@@ -172,5 +178,11 @@
       }
     ],
     "reason": "Different stock hotel with explicitly linked owner overview photographs; other materials remain deferred."
-  }
+  },
+  "current_candidate_ids": [
+    328
+  ],
+  "current_hero_state": "REAL_OFFICIAL_AERIAL_WHOLE_HOTEL_VISUALLY_ACCEPTED_NATIVE_COVER_PENDING",
+  "movenpick_renovation_proof": "Exact Accor press announcement says phased2027renovation andSofitel conversion; included inwholecaption; notpromisedunchangedfutureoperation",
+  "current_source_photo_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41659925935"
 }
