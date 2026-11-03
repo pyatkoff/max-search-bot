@@ -1,0 +1,23 @@
+{
+  "operation": "commercial-monitor-stock-20261103-24",
+  "state": "APPEND_ONE_PROVEN_STOCK_ID_PREPARED_NOT_MERGED",
+  "catalog_ids": [
+    235
+  ],
+  "goal": "Keep the promoted native reserve identity in the existing monitor with a separate immutable cohort.",
+  "boundaries": [
+    "Keep previous624 inputs,targetkeys,pendingsearches,collector,lock,budgets andtransport unchanged",
+    "No provider calls,DBwrites,newcollectors orcron",
+    "Only helper and focusedsmoke; ordinary nativePRCI required"
+  ],
+  "criteria": [
+    "235 is absent from accepted624 includingoriginal492",
+    "Append publication_stock_20261103g_1",
+    "Prove byte-identical previous624 targets,in-flight resume,mixedcountries,missing/inactive cohort without false credit"
+  ],
+  "risks": [
+    "Monitor input admission is not a collected or publishable price"
+  ],
+  "provider_calls": 0,
+  "db_writes": 0
+}

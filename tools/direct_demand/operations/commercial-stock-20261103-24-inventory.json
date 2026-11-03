@@ -1,0 +1,227 @@
+{
+  "operation": "commercial-stock-20261103-24",
+  "state": "CATALOG_CONFIRMED_RESERVE25_MONITOR_APPEND_PENDING_CONTENT_NOT_READY",
+  "hotel_count": 25,
+  "target_hotel_count": 25,
+  "ready_for_send_count": 0,
+  "candidates": [
+    {
+      "key": "jaz-elite-maraya",
+      "hotel_id": 67897,
+      "hotel": "JAZ MARAYA",
+      "region": "Марса Алам",
+      "state": "GENERAL_AMENITIES_READ_SHORELINE_PRIMARY_PROOF_PENDING"
+    },
+    {
+      "key": "sentido-reef-oasis-senses",
+      "hotel_id": 4184,
+      "hotel": "SENTIDO REEF OASIS SENSES RESORT (EX. REEF OASIS SENSES RESORT)",
+      "region": "Шарм-эль-Шейх",
+      "state": "CONTENT_VERIFIED_GENERAL_HOTEL_HERO_DEFERRED"
+    },
+    {
+      "key": "beach-albatros-marsa",
+      "hotel_id": 107,
+      "hotel": "BEACH ALBATROS RESORT MARSA ALAM",
+      "region": "Марса Алам",
+      "state": "EXACT_CURRENT_PRIMARY_HOTEL_MATCH_REQUIRED",
+      "identity_source": "commercial-stock-20261102-12-inventory.json"
+    },
+    {
+      "key": "jaz-fanara-resort",
+      "hotel_id": 12107,
+      "hotel": "JAZ FANARA RESORT & RESIDENCE (EX. IBEROTEL CLUB)",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_PRIMARY_OBJECT_AND_CONTENT_NOT_READY",
+      "identity_note": "Native12107 combines Resort & Residence; primary gallery4 and gallery3 are separate. Resolve exact tour product before any post."
+    },
+    {
+      "key": "jaz-mirabel-club",
+      "hotel_id": 282,
+      "hotel": "JAZ MIRABEL CLUB",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_PRIMARY_OBJECT_AND_CONTENT_NOT_READY",
+      "identity_note": "Primary photo pool6 combines Park & Club. Do not substitute active Park12109 or combined103125 for Club282."
+    },
+    {
+      "key": "robinson-soma-bay",
+      "hotel_id": 62505,
+      "hotel": "ROBINSON SOMA BAY",
+      "region": "Хургада",
+      "state": "CONTENT_VERIFIED_GENERAL_HOTEL_HERO_DEFERRED"
+    },
+    {
+      "key": "sheraton-miramar-el-gouna",
+      "hotel_id": 432,
+      "hotel": "SHERATON MIRAMAR RESORT",
+      "region": "Эль Гуна",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "renaissance-golden-view",
+      "hotel_id": 382,
+      "hotel": "RENAISSANCE GOLDEN VIEW BEACH",
+      "region": "Шарм-эль-Шейх",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "nubian-village",
+      "hotel_id": 341,
+      "hotel": "NUBIAN VILLAGE",
+      "region": "Шарм-эль-Шейх",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "nubian-island",
+      "hotel_id": 340,
+      "hotel": "NUBIAN ISLAND",
+      "region": "Шарм-эль-Шейх",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "cleopatra-luxury-makadi",
+      "hotel_id": 21476,
+      "hotel": "CLEOPATRA LUXURY RESORT MAKADI BAY (EX. ALDIANA MAKADI)",
+      "region": "Хургада",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "hilton-marsa-alam-nubian",
+      "hotel_id": 4181,
+      "hotel": "HILTON MARSA ALAM NUBIAN RESORT",
+      "region": "Марса Алам",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "sunny-days-el-palacio",
+      "hotel_id": 473,
+      "hotel": "SUNNY DAYS EL PALACIO (EX. SUNNY DAYS RESORTS SPA & AQUA PARK)",
+      "region": "Хургада",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "sunrise-royal-makadi",
+      "hotel_id": 483,
+      "hotel": "SUNRISE ROYAL MAKADI RESORT",
+      "region": "Хургада",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "swiss-inn-resort-hurghada",
+      "hotel_id": 250,
+      "hotel": "SWISS INN RESORT HURGHADA (EX. HILTON RESORT)",
+      "region": "Хургада",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "sindbad-club",
+      "hotel_id": 62504,
+      "hotel": "SINDBAD CLUB",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "grand-makadi",
+      "hotel_id": 231,
+      "hotel": "GRAND MAKADI",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "makadi-spa",
+      "hotel_id": 15693,
+      "hotel": "THE MAKADI SPA ADULTS ONLY 18+",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "titanic-royal",
+      "hotel_id": 65779,
+      "hotel": "TITANIC ROYAL HOTEL",
+      "country_id": 1,
+      "region": "Хургада",
+      "region_id": 5,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "titanic-palace",
+      "hotel_id": 932,
+      "hotel": "TITANIC PALACE RESORT & SPA",
+      "country_id": 1,
+      "region": "Хургада",
+      "region_id": 5,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "titanic-resort-aqua-park",
+      "hotel_id": 497,
+      "hotel": "TITANIC RESORT & AQUA PARK",
+      "country_id": 1,
+      "region": "Хургада",
+      "region_id": 5,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "amarina-abu-soma",
+      "hotel_id": 68907,
+      "hotel": "AMARINA ABU SOMA RESORT & AQUAPARK",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_PRIMARY_PREPARATION_REQUIRED"
+    },
+    {
+      "key": "old-palace-resort",
+      "hotel_id": 343,
+      "hotel": "OLD PALACE RESORT SAHL HASHESH",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_PRIMARY_PREPARATION_REQUIRED"
+    },
+    {
+      "key": "serry-beach",
+      "hotel_id": 83563,
+      "hotel": "SERRY BEACH RESORT",
+      "country_id": 1,
+      "region_id": 5,
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_PRIMARY_PREPARATION_REQUIRED"
+    },
+    {
+      "key": "grand-resort-hurghada",
+      "hotel_id": 235,
+      "hotel": "GRAND RESORT HURGHADA",
+      "country_id": 1,
+      "region_id": 5,
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    }
+  ],
+  "additional_confirmed_candidates": [
+    {
+      "key": "grand-palace-hurghada",
+      "hotel_id": 73343,
+      "hotel": "THE GRAND PALACE ADULTS ONLY 18+",
+      "country_id": 1,
+      "region_id": 5,
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_NOT_IN_CURRENT25"
+    },
+    {
+      "key": "serenity-alpha-beach",
+      "hotel_id": 418,
+      "hotel": "SERENITY ALPHA BEACH (EX. SERENITY MAKADI BEACH)",
+      "country_id": 1,
+      "region_id": 5,
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_NOT_IN_CURRENT25"
+    }
+  ],
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41642121783"
+}
