@@ -8,15 +8,24 @@ require_once dirname(__DIR__).'/services/ManagerTourSelectionShareService.php';
 require_once dirname(__DIR__).'/services/ManagerTourSelectionCollectorSession.php';
 require_once dirname(__DIR__).'/services/ManagerTourSelectionInterestService.php';
 require_once dirname(__DIR__).'/services/ManagerTourSelectionTripContext.php';
+require_once dirname(__DIR__).'/services/ManagerTourSelectionBiblioSource.php';
 ManagerHttp::startJson(); $manager=ManagerHttp::requireManager();
 if (($_SERVER['REQUEST_METHOD']??'')!=='POST') ManagerHttp::respond(['ok'=>false,'error'=>'method_not_allowed'],405);
 $data=ManagerHttp::body(); ManagerHttp::requireCsrf($data);
 $collectorSession=hash('sha256',session_id());
+$biblioSigningKey='';
+if (in_array($data['action']??null,['biblio_search','biblio_review','biblio_add'],true)) {
+    try {$biblioSigningKey=ManagerTourSelectionBiblioSource::sessionKey($_SESSION,$collectorSession);}
+    catch (Throwable $e) {session_write_close();ManagerHttp::respond(['ok'=>false,'error'=>'storage_unavailable'],503);}
+}
 session_write_close();
 $id=$data['conversation_id']??null; $action=$data['action']??null;
 if (!is_int($id) || $id<=0) ManagerHttp::respond(['ok'=>false,'error'=>'invalid_conversation_id'],422);
 try {
     $result=match($action) {
+        'biblio_search'=>ManagerTourSelectionBiblioSource::search((int)$manager['id'],$id,$biblioSigningKey,$data),
+        'biblio_review'=>ManagerTourSelectionBiblioSource::review((int)$manager['id'],$id,$biblioSigningKey,$data),
+        'biblio_add'=>ManagerTourSelectionService::importBiblio((int)$manager['id'],$id,$biblioSigningKey,$data),
         'collector_get'=>ManagerTourSelectionCollectorSession::view((int)$manager['id'],$id,$collectorSession,is_string($data['device_id']??null)?$data['device_id']:''),
         'collector_connect'=>ManagerTourSelectionCollectorSession::connect((int)$manager['id'],$id,$collectorSession,$data),
         'collector_revoke'=>ManagerTourSelectionCollectorSession::revoke((int)$manager['id'],$id,$collectorSession),

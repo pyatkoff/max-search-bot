@@ -5,6 +5,9 @@ require_once __DIR__.'/ManagerTourSelectionService.php';
 /** Revocable connection metadata, not authentication. Every caller still has a Manager session. */
 final class ManagerTourSelectionCollectorSession
 {
+    /** Shared eligibility only; direct editor intake creates no collector connection. */
+    public static function eligible(PDO $pdo,array $conversation): bool {return self::activeBindings($pdo,$conversation);}
+
     public static function binding(array $c,array $draft): string
     {
         return hash('sha256',json_encode([array_intersect_key($c,array_flip(['id','project_key','source_id','channel','external_chat_id','customer_channel_id','manager_id','started_at'])),$draft['title']],JSON_THROW_ON_ERROR));

@@ -1,5 +1,30 @@
 # Manager2 tour selection constructor
 
+## Print the exact preview (editor 0.2.8)
+
+In a ready preview or a saved historical version, **Печать / PDF** opens the
+browser's print dialog in the same page. Choose a printer or Save as PDF there.
+The print document contains the frozen title/version and each canonical card's
+text, price, conditions and all available photos, in their original order.
+It does not reconstruct terms from the current editable draft, expose private
+notes/conversation text, publish a link, send a message or open another tab.
+The current card renderer is reused; no extra claims about room photos are added.
+
+Printing waits for all preview photos to load successfully. The actual loaded
+image nodes are temporarily moved into the print document, avoiding a second
+private-photo fetch. Closing/cancelling printing restores those nodes; editing,
+closing the editor or switching client removes the print document. If the browser
+does not emit print lifecycle events, **Вернуть предпросмотр** restores the same
+loaded images explicitly; no timeout guesses whether printing completed. Cancelling
+the browser dialog changes no draft, sent version or delivery result. The
+protected tours iframe adds only the standard `allow-modals` capability needed
+for `window.print`; existing origin, account, CSP and navigation fences remain.
+Synthetic browser print-media evidence is separate from a real installed-device
+print or an independent manager acceptance. Chromium requires the real native
+`beforeprint` event. The WebKit CI host is compared to an ordinary native control
+in the same protected iframe; a missing lifecycle in both phases is recorded as
+unconfirmed printing, while exact layout/dispatch/recovery are checked separately.
+
 ## Manager overview and editing
 
 Opening a saved selection starts with the selected offer's hotel, date/nights,
@@ -922,6 +947,43 @@ replaced, even while the page says it is connected. The shared request is cleare
 after success or failure so a later worker reconnect can obtain a fresh nonce.
 Sender and nonce checks, destination binding, queue records and original import
 operation IDs remain unchanged. No import is retried by this handshake change.
+
+### Direct Biblio-Globus intake in the protected editor
+
+The Biblio-Globus button reads a full public `www.bgoperator.ru/price.shtml`
+search-results URL containing departure, country, date range, nights and party.
+It shows at most20 quotes at a time. Selecting a quote reads that exact hotel's
+public gallery, then shows its photos, dates, room, meals, party, displayed
+price/currency, carrier, transfers, insurance and original package descriptions.
+Flight numbers, times, baggage, current availability and room-photo identity
+remain explicitly unverified when absent from the source row. Hotel-page hash
+links without a complete search/departure context are not supported inputs.
+
+The displayed RUB equivalent is distinct from a price-list EUR amount: metadata
+currency never relabels the visible price. Before adding, the manager confirms
+the price applies to the whole displayed party and may edit the client amount.
+The original price and normalized conditions stay frozen separately. No booking
+endpoint, supplier login, extension connection or queue is used by this path.
+
+Reads require current edit access before HTTP and revalidate recipient, draft
+version and context afterward. Only exact public HTTPS endpoints are fetched,
+with public DNS pinning, strict TLS, no redirects/proxy/cookies and bounded time
+and response size. Gallery originals must be JPEG/PNG from the bound hotel page;
+advertisements and unsupported formats cannot become hotel photos. Search birth
+dates or name suffixes are never retained in quote tickets or saved source URLs.
+
+Previews use a server-private random session secret bound to the current PHP
+session. A client-visible cookie/session ID or its hash is not a signing secret;
+neither the private secret nor its derived key is returned to the browser.
+Session-bound signed previews expire ten minutes after the source capture;
+gallery review does not extend this lifetime. Adding uses the existing locked
+selection transaction, version checks, duplicate rules and durable operation
+receipt. A lost response is retained per account/conversation; the editor checks
+the original receipt before offering an explicit retry of that exact command.
+A confirmed add adopts the current canonical draft, including later colleague
+edits, rather than treating the pre-add draft as an unsaved competing version.
+This flow never sends a tourist message or publishes a selection automatically.
+It does not establish the state of the separate historical Mysea operation.
 
 The actual bridge script is exercised by a source-only regression for concurrent
 signals, subsequent reconnects, failed hello recovery and sender/nonce fences.
