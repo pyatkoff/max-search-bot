@@ -1,0 +1,23 @@
+[
+  {
+    "hotel_id": 56091,
+    "name": "Ancient Sands Golf Resort & Residences",
+    "accepted_first_line": "✈️ Туры в Ancient Sands Golf Resort & Residences с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/ef112c3b171544ab5a836876f91cbb762f77ee88/.github/traffic-publish/commercial-batch-20261103-28/56091.png",
+    "image_sha256": "a9f8aed5cc822be6c25befd537ee599bf7418aca3bef0d84235a7471ec5a80a3"
+  },
+  {
+    "hotel_id": 103124,
+    "name": "Iberotel Luxor by JAZ",
+    "accepted_first_line": "✈️ Туры в Iberotel Luxor by JAZ с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/ef112c3b171544ab5a836876f91cbb762f77ee88/.github/traffic-publish/commercial-batch-20261103-28/103124.png",
+    "image_sha256": "142d3e4a0d977a8007dfd7fc4630f38c3d57a806bb6bd6b5d0eda14fdf55dc5c"
+  },
+  {
+    "hotel_id": 488,
+    "name": "Three Corners Fayrouz Plaza Beach Resort",
+    "accepted_first_line": "✈️ Туры в Three Corners Fayrouz Plaza Beach Resort с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/ef112c3b171544ab5a836876f91cbb762f77ee88/.github/traffic-publish/commercial-batch-20261103-28/488.png",
+    "image_sha256": "46b5ee6e22598367e351733deefb5642b8e5cb04128742d653cb164cee833b35"
+  }
+]
