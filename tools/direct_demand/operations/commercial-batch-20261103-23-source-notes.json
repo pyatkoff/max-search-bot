@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261103-23-v1",
-  "state": "PRIMARY_PREPARATION_NOT_SENT",
+  "state": "TWO_WHOLE_CAPTIONS_PREPARED_PRIMARY_PHOTO_ACCEPTANCE_PENDING_NOT_SENT",
   "goal": "Prepare whole materials for ready identities from stock25 and accept genuine hotel overview photography.",
   "boundaries": [
     "Only public first-party sources and existing cloud inspection workflow",
@@ -55,5 +55,58 @@
       "url": "https://www.amarinagroup.com/media/gallery",
       "purpose": "Read explicit AbuSoma gallery album mapping and allowed public CDN image references; no repeat mainpage GET"
     }
+  ],
+  "captions": [
+    {
+      "hotel_id": 343,
+      "name": "Old Palace Resort Sahl Hasheesh",
+      "text": "✈️ Туры в Old Palace Resort с перелётом\n📍 Сахл Хашиш, Египет.\n\n🏖 Песчаный пляж длиной 200 м.\n🚶 Отель стоит на набережной протяжённостью 12 км.\n🏊 Два открытых бассейна. Зимой один из них подогревают.\n🧒 Детский клуб для ребят от 5 до 12 лет.\n\n💡 Для семьи есть Family Room / Chalet площадью 53 м² с патио.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Old Palace Resort.",
+      "utf16": 377
+    },
+    {
+      "hotel_id": 83563,
+      "name": "Serry Beach Resort",
+      "text": "✈️ Туры в Serry Beach Resort с перелётом\n📍 Хургада, Египет.\n\n🏖 Собственный песчаный пляж длиной 183 м.\n🏊 Основной и детский бассейны.\n🧒 Детский клуб Saraab Junior Club и пространство Nuba Escape.\n🏡 Для семьи есть шале с двумя спальнями.\n\n💡 Лаунж Manara доступен гостям сьютов.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Serry Beach Resort.",
+      "utf16": 352
+    }
+  ],
+  "primary_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41658764832",
+  "primary_read_state": "FOUR_FIXED_PAGES_CLOUD_READ_SUCCESS",
+  "amarina_gallery": "Category1 is AbuSoma andcategory2 Queen,3Jannah proven; image membership stillnotextracted because first40contexts were navigation. Do not equate sharedgallery images with AbuSoma.",
+  "photo_inputs": [
+    [
+      {
+        "hotel_id": 343,
+        "role": "overview_home1",
+        "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort--20212216956756.jpg"
+      },
+      {
+        "hotel_id": 343,
+        "role": "overview_home2",
+        "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort--20212216957325.jpg"
+      },
+      {
+        "hotel_id": 343,
+        "role": "overview_gallery",
+        "url": "https://www.oldpalaceresort.com/images/uploads/2021141692266.jpg"
+      }
+    ],
+    [
+      {
+        "hotel_id": 83563,
+        "role": "declared_resort_hero",
+        "url": "https://www.theserry.com/Images/47%20Hotel%20Heroes/Beach%20Resort.jpg"
+      },
+      {
+        "hotel_id": 83563,
+        "role": "beach",
+        "url": "https://www.theserry.com/Images/01%20Homepage/DSC06750.jpg"
+      },
+      {
+        "hotel_id": 83563,
+        "role": "pool",
+        "url": "https://www.theserry.com/Images/01%20Homepage/Beach%20Lifestyle%20%283%29.jpg"
+      }
+    ]
   ]
 }

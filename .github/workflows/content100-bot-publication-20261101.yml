@@ -1,4 +1,4 @@
-name: Read three hotel source contexts and one exact activities page
+name: Inspect six exact public Old Palace and Serry photographs
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -22,13 +22,16 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Read only fixed official hotel descriptions and public photo references
+      - name: Inspect only fixed public owner material without server calls
         env:
           MEDIA_GROUP: ${{ matrix.media_group }}
-        run: python3 tools/direct_demand/operations/inspect-hotel-media-20261102-3.py
+        run: |
+          set -euo pipefail
+          python3 tools/direct_demand/operations/inspect-hotel-primary-images-20261103-20.py
       - uses: actions/upload-artifact@v4
         with:
-          name: commercial-batch23-primary-sources-${{ matrix.media_group }}
-          path: public-media-sources.json
+          name: commercial-batch23-owner-material-${{ matrix.media_group }}
+          path: |
+            primary-image-inspection.json
           retention-days: 14
           if-no-files-found: error
