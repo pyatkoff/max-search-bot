@@ -75,5 +75,180 @@
     "Current Casa owner states129rooms, older100 room material not used",
     "Cook's Club exact16+ age not established by new owner body, caption says adults without a number"
   ],
-  "new_posts": 0
+  "new_posts": 0,
+  "native_photo_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41680677887",
+  "raw_photos": [
+    {
+      "hotel_id": 129,
+      "role": "owner_declared0",
+      "index": 0,
+      "source_url": "https://www.cooksclub.com/wp-content/uploads/2025/07/5K3A8928-scaled.jpg",
+      "format": "JPEG",
+      "width": 2560,
+      "height": 1708,
+      "bytes": 581893,
+      "sha256": "1d27c72a6b2b5905089910a0e904ae4a1ec4822c26db54fee1404d6690a639e6"
+    },
+    {
+      "hotel_id": 129,
+      "role": "owner_declared1",
+      "index": 1,
+      "source_url": "https://www.cooksclub.com/wp-content/uploads/2025/06/EG_HRG_Cooks_Club_El_Gouna_r9wd6kf_00061-scaled.jpg",
+      "format": "JPEG",
+      "width": 2560,
+      "height": 1707,
+      "bytes": 692872,
+      "sha256": "78f8f24f4d04f4bad655c75cc69407c16c793f1e3bf1935445a7cc47dca73b56"
+    },
+    {
+      "hotel_id": 73343,
+      "role": "different_gallery0",
+      "index": 0,
+      "source_url": "https://redseahotels.com/wp-content/uploads/2021/10/The-Grand-Palace-07.jpg",
+      "format": "JPEG",
+      "width": 1440,
+      "height": 960,
+      "bytes": 124123,
+      "sha256": "48085b6fd8b9b7859b2b386fbbd847236b0f1c409518123fcf04559cbd590bb1"
+    },
+    {
+      "hotel_id": 73343,
+      "role": "different_gallery1",
+      "index": 1,
+      "source_url": "https://redseahotels.com/wp-content/uploads/2021/10/The-Grand-Palace-08.jpg",
+      "format": "JPEG",
+      "width": 1440,
+      "height": 960,
+      "bytes": 93086,
+      "sha256": "b2c2bcf3ce4822820786a95d5ebc8d37029659bca1eae03522ba8098a256eccd"
+    },
+    {
+      "hotel_id": 73343,
+      "role": "different_gallery2",
+      "index": 2,
+      "source_url": "https://redseahotels.com/wp-content/uploads/2021/10/The-Grand-Palace-09.jpg",
+      "format": "JPEG",
+      "width": 1440,
+      "height": 960,
+      "bytes": 107628,
+      "sha256": "9260d10f15852a1c27e2189a83cee62c0b013f582db8fc9f47b598282125f5f5"
+    },
+    {
+      "hotel_id": 73343,
+      "role": "different_gallery3",
+      "index": 3,
+      "source_url": "https://redseahotels.com/wp-content/uploads/2021/10/The-Grand-Palace-10.jpg",
+      "format": "JPEG",
+      "width": 1024,
+      "height": 683,
+      "bytes": 84917,
+      "sha256": "549d420af89f4f48b0a76e2ed5fc665bfbdc199f84c674b0bea689dc60164909"
+    },
+    {
+      "hotel_id": 73343,
+      "role": "different_gallery4",
+      "index": 4,
+      "source_url": "https://redseahotels.com/wp-content/uploads/2021/10/The-Grand-Palace-11.jpg",
+      "format": "JPEG",
+      "width": 1024,
+      "height": 766,
+      "bytes": 191524,
+      "sha256": "da65c517732f77e08488319a6d344589b9f87be18cd2d776470ec9bdfea67d8f"
+    },
+    {
+      "hotel_id": 74258,
+      "role": "owner_gallery0",
+      "index": 0,
+      "source_url": "https://casacook.com/wp-content/uploads/2025/05/Canto-5K3A3770-474x600.jpg",
+      "format": "JPEG",
+      "width": 474,
+      "height": 600,
+      "bytes": 44075,
+      "sha256": "72f2674bbc21603e82134cbd6b96b43b8054835bb3bafd51f4399022389b4fd5"
+    },
+    {
+      "hotel_id": 74258,
+      "role": "owner_gallery1",
+      "index": 1,
+      "source_url": "https://casacook.com/wp-content/uploads/2025/05/Canto-5K3A3864-474x600.jpg",
+      "format": "JPEG",
+      "width": 474,
+      "height": 600,
+      "bytes": 26058,
+      "sha256": "852082938cd0dfebb2d6c772cf3659d147385d03946e07a5fe7bb66621120287"
+    },
+    {
+      "hotel_id": 74258,
+      "role": "owner_gallery2",
+      "index": 2,
+      "source_url": "https://casacook.com/wp-content/uploads/2025/05/Canto-5K3A9342-474x600.jpg",
+      "format": "JPEG",
+      "width": 474,
+      "height": 600,
+      "bytes": 52550,
+      "sha256": "61a8687e6aaf3c330baa5647280743f2278003bd8d2c762e15cf63998f6fcf37"
+    },
+    {
+      "hotel_id": 74258,
+      "role": "owner_gallery3",
+      "index": 3,
+      "source_url": "https://casacook.com/wp-content/uploads/2025/05/Canto-5K3A9712-474x600.jpg",
+      "format": "JPEG",
+      "width": 474,
+      "height": 600,
+      "bytes": 46712,
+      "sha256": "d9e7e111300fb1c34319837267a63f70a381e7cb2fc0bc2d0950e0f80f0e2553"
+    },
+    {
+      "hotel_id": 74258,
+      "role": "owner_gallery4",
+      "index": 4,
+      "source_url": "https://casacook.com/wp-content/uploads/2025/05/5K3A1304-474x600.jpg",
+      "format": "JPEG",
+      "width": 474,
+      "height": 600,
+      "bytes": 40257,
+      "sha256": "5d8ea97b8a57fcf0a02ffd82263ae6ad514be53de2c65a30cfe6e517918a28ee"
+    },
+    {
+      "hotel_id": 74258,
+      "role": "owner_gallery5",
+      "index": 0,
+      "source_url": "https://casacook.com/wp-content/uploads/2025/05/5K3A1111-1-474x600.jpg",
+      "format": "JPEG",
+      "width": 474,
+      "height": 600,
+      "bytes": 24309,
+      "sha256": "086aecad27e0e26e2a23ef16acad54bd7c8e12b93a26fcd8a00fa5f461513e74"
+    },
+    {
+      "hotel_id": 74258,
+      "role": "owner_gallery6",
+      "index": 1,
+      "source_url": "https://casacook.com/wp-content/uploads/2025/05/casa-cook-el-gouna-graf-22-1-474x600.jpg",
+      "format": "JPEG",
+      "width": 474,
+      "height": 600,
+      "bytes": 28458,
+      "sha256": "6a92cc1cd4c7319cdd412519c15b6c148e195330f6fd09118332dc77c05141e3"
+    },
+    {
+      "hotel_id": 74258,
+      "role": "owner_gallery7",
+      "index": 2,
+      "source_url": "https://casacook.com/wp-content/uploads/2025/04/5K3A0753-1303x846.jpg",
+      "format": "JPEG",
+      "width": 1303,
+      "height": 846,
+      "bytes": 155464,
+      "sha256": "2093fa51cb19869c46e04e69b54b9d472312ca5b69f36b734c08e84840fe6332"
+    }
+  ],
+  "visual_review": {
+    "129": "People at pool and poolside buildings; neither whole property overview",
+    "73343": "Bar people, rooms, close entrance and garden/pools; no whole property hero",
+    "74258": "Beach, horse, architecture details, spa interiors and massage; none accepted as whole property hero"
+  },
+  "raw_photo_read_result": "All15 new source images returned verified image bytes, hashes and dimensions. The earlier six HTML HTTPErrors do not imply photo endpoints are blocked.",
+  "next_method": "Use a different declared exact-property overview, including the separate firstparty Orascom destination hotel pages. Do not repeat the six unchanged HTML GETs or these15 photos."
 }
