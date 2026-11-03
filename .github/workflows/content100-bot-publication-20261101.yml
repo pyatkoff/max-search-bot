@@ -1,4 +1,4 @@
-name: Export public hotel feed inputs for105 accepted paired materials
+name: Export public hotel feed inputs with individual URL component guards
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]

@@ -7,7 +7,7 @@ function insist(bool $ok,string $why):void{if(!$ok)throw new RuntimeException($w
 function feed_title(string $s):string{return preg_replace('/[^\pL\pN]+/u','',mb_strtolower(strtr(trim($s),['ё'=>'е','ö'=>'o','Ö'=>'o']),'UTF-8'))??'';}
 function feed_image(string $url,string $sha):bool{
  $p=parse_url($url);
- return is_array($p)&&($p['scheme']??'')==='https'&&($p['host']??'')==='raw.githubusercontent.com'&&!isset($p['query'],$p['fragment'],$p['user'],$p['pass'],$p['port'])
+ return is_array($p)&&($p['scheme']??'')==='https'&&($p['host']??'')==='raw.githubusercontent.com'&&!isset($p['query'])&&!isset($p['fragment'])&&!isset($p['user'])&&!isset($p['pass'])&&!isset($p['port'])
   &&preg_match('~\A/pyatkoff/max-search-bot/[a-f0-9]{40}/\.github/traffic-publish/[A-Za-z0-9_./-]+\.png\z~D',(string)($p['path']??''))===1&&preg_match('/\A[a-f0-9]{64}\z/D',$sha)===1;
 }
 function feed_build(array $inputs,array $hotels,array $counts):array{
@@ -35,9 +35,10 @@ if(getenv('ANYTOUR_FEED_FIXTURE')==='1'){
  $missing=$c;$missing[feed_title($r['accepted_first_line'])][10]=0;insist(count(feed_build([$r],$h,$missing)['rows'])===0,'fixture_missing_pair');
  $inactive=$h;$inactive[1146]['is_active']=0;insist(count(feed_build([$r],$inactive,$c)['rows'])===0,'fixture_inactive');
  $secret=$r;$secret['image_url'].='?token=private';insist(feed_build([$secret],$h,$c)['deferred'][0]['state']==='APPROVED_PUBLIC_IMAGE_GUARD_FAILED','fixture_signed_image');
+ foreach([$r['image_url'].'#fragment',str_replace('https://','https://user@',$r['image_url']),str_replace('raw.githubusercontent.com/','raw.githubusercontent.com:443/',$r['image_url'])] as $unsafe){$test=$r;$test['image_url']=$unsafe;insist(count(feed_build([$test],$h,$c)['rows'])===0,'fixture_url_components');}
  $absent=$r;$absent['image_url']=null;insist(feed_build([$absent],$h,$c)['deferred'][0]['state']==='DURABLE_PUBLIC_IMAGE_INPUT_MISSING','fixture_image_absent');
  $bad=$r;$bad['publication_id']=123;$rejected=false;try{feed_build([$bad],$h,$c);}catch(RuntimeException $e){$rejected=$e->getMessage()==='feed_input_private_field';}insist($rejected,'fixture_private_field');
- echo "HOTEL_FEED_EXPORT_PREPARATION_OK cases=7 native_namespace=exact public_fields=whitelisted duplicate_missing_inactive=deferred signed_images=rejected server_calls=0\n";exit;
+ echo "HOTEL_FEED_EXPORT_PREPARATION_OK cases=10 native_namespace=exact public_fields=whitelisted duplicate_missing_inactive=deferred signed_images=rejected server_calls=0\n";exit;
 }
 
 try {
