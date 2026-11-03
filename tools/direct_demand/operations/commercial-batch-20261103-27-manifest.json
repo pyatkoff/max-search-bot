@@ -1,0 +1,132 @@
+{
+  "operation": "commercial-hotel-batch-20261103-27-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Publish four ready whole hotel materials in each existing authorized channel in one serial run.",
+  "boundaries": [
+    "Existing bots/channels/registry/once only",
+    "No ad changes, new runtime, workers or queues",
+    "Only exact owner public photos; no private tokens or archives",
+    "Source/host/TLS/schema/rights/UNKNOWN/dedup gates retained"
+  ],
+  "criteria": [
+    "Four whole hotel captions <=1024 UTF16 without dashes",
+    "Exact native PNG bytes, chunks, hash, dimensions and image viewed",
+    "Four hotel pairs provider verified after durable intent and live dedup"
+  ],
+  "risks": [
+    "Holiday source is a400x552 owner portrait general view; final600x600 composition inspected, brand/title and buildings remain visible",
+    "Playhouse at AquaClub is restricted to selected operator bookings",
+    "Pool heat/weather and age/category restrictions must remain explicit",
+    "Baron and other candidates must not hold ready four"
+  ],
+  "baseline_logical_materials": 117,
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "hotel_id": 165,
+      "hotel": "Coral Sea Water World",
+      "key": "coral-sea-water-world",
+      "aliases": [
+        "CORAL SEA WATER WORLD (EX. CORAL SEA RESORT)",
+        "CORAL SEA WATER WORLD"
+      ],
+      "sources": [
+        "https://www.coralsearesorts.com/coral-sea-water-world"
+      ],
+      "text": "✈️ Туры в Coral Sea Water World с перелётом\n📍 Набк Бэй, Шарм эль Шейх.\n\n💦 Аквапарк с водными горками.\n🏊 Два больших открытых бассейна. Есть подогреваемые бассейны.\n👧 Детский клуб и мини дискотека.\n💪 Тренажёрный зал, спа и джакузи.\n\n💡 В Kids Den у детей отдельная комната с двумя односпальными кроватями.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Coral Sea Water World.",
+      "logical_id": "commercial-coral-sea-water-world-165-v1",
+      "text_sha256": "f799f81f300662b7a8b9d32d3a6327a2fd0d0804a608bf3501d4d48d31d472fc",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/b6e6ad3d06b6c0cdef1cd2822560bd5f5abcccec/.github/traffic-publish/commercial-batch-20261103-27/165.png",
+      "photo_sha256": "13b9d0da4b409e60fdeb53f1ecb02685456718f3b2fab172b7c4b9960af2d038",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 12116,
+      "hotel": "Coral Sea Aqua Club",
+      "key": "coral-sea-aqua-club",
+      "aliases": [
+        "CORAL SEA AQUA CLUB"
+      ],
+      "sources": [
+        "https://www.coralsearesorts.com/coral-sea-aqua-club"
+      ],
+      "text": "✈️ Туры в Coral Sea Aqua Club с перелётом\n📍 Набк Бэй, Шарм эль Шейх.\n\n💦 Аквапарк с горками и ленивой рекой.\n🏊 Открытый бассейн.\n💪 Тренажёрный зал, спа и джакузи.\n👨‍👩‍👧‍👦 В Kids Den отдельная детская зона с двумя кроватями.\n\n💡 Игровая зона Playhouse доступна только при бронировании через отдельных туроператоров.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Coral Sea Aqua Club.",
+      "logical_id": "commercial-coral-sea-aqua-club-12116-v1",
+      "text_sha256": "88eb38f6a477e506fce05d9978ad5c550042fc9e1a3e1ba8ba92035de9ee04f2",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/b6e6ad3d06b6c0cdef1cd2822560bd5f5abcccec/.github/traffic-publish/commercial-batch-20261103-27/12116.png",
+      "photo_sha256": "403f606bfc7f310aed470d219a81bd25f3189639aefe57ca3de595318b633930",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 111,
+      "hotel": "Pickalbatros Palace Resort Hurghada",
+      "key": "pickalbatros-palace-hurghada",
+      "aliases": [
+        "PICKALBATROS PALACE RESORT HURGHADA"
+      ],
+      "sources": [
+        "https://www.pickalbatros.com/palace-resort-hurghada",
+        "https://www.pickalbatros.com/palace-resort-hurghada/official-faq"
+      ],
+      "text": "✈️ Туры в Pickalbatros Palace Resort Hurghada с перелётом\n📍 Хургада, Египет.\n\n🏖 Собственный пляж.\n🏊 Четыре бассейна. Два подогревают с ноября по апрель в зависимости от погоды.\n💦 Пять детских водных горок для ребят от 4 до 12 лет.\n👧 Детский клуб для этого же возраста.\n\n💡 В бассейн Relax детей не допускают.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Pickalbatros Palace Hurghada.",
+      "logical_id": "commercial-pickalbatros-palace-hurghada-111-v1",
+      "text_sha256": "e5a6aa5c9a514e03de134583b3647e88c23069b0918968c63bee611bd7b34552",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/b6e6ad3d06b6c0cdef1cd2822560bd5f5abcccec/.github/traffic-publish/commercial-batch-20261103-27/111.png",
+      "photo_sha256": "78a819775c35a5a212f2c74b570b2136df593904644b979fe9601a091821dec8",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 163,
+      "hotel": "Coral Sea Holiday Resort & Aqua Park",
+      "key": "coral-sea-holiday",
+      "aliases": [
+        "CORAL SEA HOLIDAY RESORT & AQUA PARK"
+      ],
+      "sources": [
+        "https://www.coralsearesorts.com/coral-sea-holiday-resort"
+      ],
+      "text": "✈️ Туры в Coral Sea Holiday Resort & Aqua Park с перелётом\n📍 Шарм эль Шейх, Египет.\n\n💦 Аквапарк с горками и ленивой рекой.\n🏊 Два больших открытых бассейна. Есть подогреваемые бассейны.\n💪 Тренажёрный зал и спа.\n👨‍👩‍👧‍👦 В Family Suite две спальни и балкон.\n\n💡 Для выхода к бассейну прямо с террасы выбирайте категорию Swim Up.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Coral Sea Holiday.",
+      "logical_id": "commercial-coral-sea-holiday-163-v1",
+      "text_sha256": "20d09b31cb37fbf63350a8f8675be073b128c20c7803ecbce0c72e2789c01a80",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/b6e6ad3d06b6c0cdef1cd2822560bd5f5abcccec/.github/traffic-publish/commercial-batch-20261103-27/163.png",
+      "photo_sha256": "9bc540ba51ec4b4b3d2b55769e71e47dec21ba75426a34a315241f38ce6ec6a9",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    }
+  ],
+  "ready_for_send_count": 4,
+  "new_posts": 0,
+  "provider_send_attempts": 0,
+  "content_and_cover_prepared_count": 4,
+  "approved_live_send_count": 0,
+  "public_png_frozen_count": 4,
+  "native_inspection_state": "FOUR_NATIVE_PNG_VISUALLY_VERIFIED",
+  "native_inspection_run_urls": [
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41694169496"
+  ],
+  "deferred": [
+    {
+      "hotel_id": 1962,
+      "state": "FACT_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 102774,
+      "state": "FACT_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 342,
+      "state": "FACT_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 254,
+      "state": "FACT_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 488,
+      "state": "FACT_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 512,
+      "state": "FACT_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING_NOT_SENT"
+    }
+  ]
+}
