@@ -218,6 +218,7 @@ function forecastNativeAuthRegression():void
         forecastLatencyAssertions($pdo,$check);
         $pdo->exec('ALTER TABLE max_channel_conversion_outbox ADD COLUMN value_reviewed_at_unix BIGINT NULL');
         $pdo->exec('ALTER TABLE max_channel_conversion_outbox ADD COLUMN external_user_id VARCHAR(32)');
+        $pdo->exec('ALTER TABLE max_channel_conversion_outbox ADD COLUMN next_attempt_unix BIGINT DEFAULT 0');
         $pdo->exec('UPDATE max_channel_conversion_outbox SET external_user_id=CAST(conversation_id AS CHAR)');
         $pdo->exec("CREATE TABLE advertising_visit_observations(id BIGINT PRIMARY KEY,project_key VARCHAR(40),source_key VARCHAR(80),platform VARCHAR(16),counter_id VARCHAR(20),external_user_id VARCHAR(32),identity_status VARCHAR(16),client_id VARCHAR(40),visit_at_unix BIGINT,observed_at_unix BIGINT,received_at_unix BIGINT)");
         $pdo->exec("INSERT INTO advertising_visit_observations VALUES(1,'anytour','tgmini','telegram','98615635','333','verified','88000003',1793657300,1793657400,1793657500)");
@@ -244,6 +245,8 @@ function forecastNativeAuthRegression():void
                 'remaining_after_bearer'=>$afterBearer,'remaining_after_read'=>$afterRead,
                 'available'=>$data['available']??null,'value_available'=>$data['value_delivery']['available']??null,
                 'timing_available'=>$data['today_latency']['available']??null,
+                'linkage_available'=>$data['telegram_linkage']['available']??null,
+                'linkage_reason'=>$data['telegram_linkage']['reason']??null,
                 'timing_scopes'=>$data['today_latency']['profile_sample']['scopes_inspected']??null,
                 'diagnosis_limit'=>$data['saved_input_diagnosis']['window']['max_versions']??null,
                 'diagnosis_inspected'=>$data['saved_input_diagnosis']['window']['inspected_versions']??null,
