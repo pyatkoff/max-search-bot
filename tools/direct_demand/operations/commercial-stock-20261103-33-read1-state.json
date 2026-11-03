@@ -1,0 +1,96 @@
+{
+  "operation": "commercial-stock-20261103-33-read1",
+  "state": "SEVEN_UNIQUE_ACTIVE_NATIVE_CANDIDATES_REGISTRY_ZERO_VERIFIED",
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41734803384",
+  "artifact_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41734803384/artifacts/13278810589",
+  "country_id": 4,
+  "name_groups": 10,
+  "new_unique_candidates": [
+    {
+      "key": "miracle-resort",
+      "hotel_id": 1379,
+      "hotel": "MIRACLE RESORT",
+      "region": "Анталья",
+      "country_id": 4,
+      "region_id": 20,
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY"
+    },
+    {
+      "key": "concorde-deluxe",
+      "hotel_id": 1133,
+      "hotel": "CONCORDE DE LUXE RESORT",
+      "region": "Анталья",
+      "country_id": 4,
+      "region_id": 20,
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY"
+    },
+    {
+      "key": "limak-lara",
+      "hotel_id": 1338,
+      "hotel": "LIMAK LARA DE LUXE HOTEL & RESORT",
+      "region": "Анталья",
+      "country_id": 4,
+      "region_id": 20,
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY"
+    },
+    {
+      "key": "trendy-lara",
+      "hotel_id": 46670,
+      "hotel": "TRENDY LARA",
+      "region": "Анталья",
+      "country_id": 4,
+      "region_id": 20,
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY"
+    },
+    {
+      "key": "titanic-deluxe-lara",
+      "hotel_id": 1559,
+      "hotel": "TITANIC DELUXE LARA",
+      "region": "Анталья",
+      "country_id": 4,
+      "region_id": 20,
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY"
+    },
+    {
+      "key": "regnum-carya",
+      "hotel_id": 27316,
+      "hotel": "REGNUM CARYA GOLF & SPA",
+      "region": "Белек",
+      "country_id": 4,
+      "region_id": 21,
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY"
+    },
+    {
+      "key": "maxx-royal-belek",
+      "hotel_id": 3405,
+      "hotel": "MAXX ROYAL BELEK GOLF & SPA",
+      "region": "Белек",
+      "country_id": 4,
+      "region_id": 21,
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY"
+    }
+  ],
+  "unresolved": [
+    {
+      "key": "bellis-deluxe",
+      "ids": [
+        1257,
+        95563
+      ],
+      "reason": "MULTIPLE_DISTINCT_NATIVE_PRODUCTS_NOT_SELECTED"
+    },
+    {
+      "key": "ic-green-palace",
+      "reason": "NARROW_ALIASES_ZERO_NOT_PROOF_OF_ABSENCE"
+    },
+    {
+      "key": "titanic-mardan",
+      "reason": "NARROW_ALIASES_ZERO_NOT_PROOF_OF_ABSENCE"
+    }
+  ],
+  "existing_server_connections_used": true,
+  "provider_calls": 0,
+  "db_writes": 0,
+  "message_sends": 0,
+  "new_delivered_pairs": 0
+}
