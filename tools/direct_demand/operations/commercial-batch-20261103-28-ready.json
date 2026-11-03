@@ -1,0 +1,28 @@
+{
+  "operation": "commercial-hotel-batch-20261103-28-v1",
+  "state": "THREE_NATIVE_PNG_VISUALLY_VERIFIED_READY_FOR_SEND",
+  "catalog_ids": [
+    56091,
+    103124,
+    488
+  ],
+  "ready_for_send_count": 3,
+  "baseline_logical_materials": 121,
+  "new_posts": 0,
+  "native_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41704372751",
+  "source_contact_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41703132574",
+  "goal": "Publish exact three ready whole hotel materials in both existing channels with live duplicate protection",
+  "boundaries": [
+    "Existingbots/channels/registry/once and serial publisher only",
+    "Exact current approved source/verify/TLS/tree21blobs and runtime source/cleanhost/rights/UNKNOWN gates",
+    "No paid calls,new workers/queues/runtime,ads or customer messages"
+  ],
+  "criteria": [
+    "Three native PNG verified by complete bytes/chunks/hash/dimensions and actual view",
+    "Exactly6 new body/photo/button/source provider-verified posts or explicit stop"
+  ],
+  "risks": [
+    "Do not delay these3 for other candidate photos",
+    "If a production release is active,prepare independently and use only completed exact source evidence"
+  ]
+}
