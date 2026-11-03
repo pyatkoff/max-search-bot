@@ -26,7 +26,7 @@ final class HotelServerCronRuntime
             }
             $cycle=new HotelServerCycle($p,new HotelServerLane($p),$v['provider'],$v['clock']??null);
             $result=$cycle->tick($rows[0]['campaign_id']);
-            return ['handled'=>true,'state'=>$result['state'],'historical_accepted'=>$result['historical_accepted']??19,'new_accepted'=>$result['new_accepted']??null];
+            return ['handled'=>true,'state'=>$result['state'],'worker_completed'=>true,'historical_accepted'=>$result['historical_accepted']??19,'new_accepted'=>$result['new_accepted']??null];
         }catch(Throwable $ignored){
             // A send could have happened. Never claim zero calls or fall back to legacy.
             return ['handled'=>true,'state'=>'hold','reason'=>'server_tick_unconfirmed'];
