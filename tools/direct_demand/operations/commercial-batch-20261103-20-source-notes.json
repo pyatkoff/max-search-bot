@@ -1,0 +1,21 @@
+{
+  "operation": "commercial-hotel-batch-20261103-20-v1",
+  "state": "ONE_WHOLE_CAPTION_PRIMARY_VERIFIED_MEDIA_NOT_READY",
+  "hotel_id": 62504,
+  "sources": [
+    "https://sindbadclub.com/facilities",
+    "https://sindbadclub.com/beach-pools",
+    "https://sindbadclub.com/aqua-park"
+  ],
+  "facts": [
+    "Official current aqua-park page:7 adult slides and8 junior slides;November–March heating excludes wave pool.",
+    "Official beach/pools page:private120m beach,about3minutes from lobby.",
+    "Official facilities page:kidsclub,spa with hammam/sauna,gym."
+  ],
+  "photos": {
+    "hero": "https://images.squarespace-cdn.com/content/v1/687def6f61ca990db754f20c/1753364475023-837KCP18GFPY61P703XE/DJI_20250127071121_0272_D.png",
+    "left": "https://images.squarespace-cdn.com/content/v1/687def6f61ca990db754f20c/ffcbf794-fda0-42ac-b37a-2a3418c8d214/Beach%2B3.jpg",
+    "right": "https://images.squarespace-cdn.com/content/v1/687def6f61ca990db754f20c/00acf37d-79ab-40f4-a370-2d3df2e1d4bf/Junior%2BSlides.jpg"
+  },
+  "caption_utf16": 465
+}
