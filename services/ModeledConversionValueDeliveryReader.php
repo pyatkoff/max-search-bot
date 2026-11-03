@@ -18,15 +18,26 @@ final class ModeledConversionValueDeliveryReader
         try{
             $mysql=$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
             $len=$mysql?'OCTET_LENGTH(last_receipt_json)':'LENGTH(CAST(last_receipt_json AS BLOB))';
-            $rows=$this->query("SELECT mode,goal_id,goal_intent,activated_at_unix,last_tick_unix,contract_version,history_from_unix,history_until_unix,history_completed_at_unix,history_scanned,history_collected,history_stats_json,CASE WHEN ".$len."<=8192 THEN last_receipt_json ELSE NULL END AS receipt_json FROM modeled_conversion_value_export_settings WHERE project_key='anytour' AND counter_id='98615635' LIMIT 1",[]);
+            $rows=$this->query("SELECT mode,goal_id,goal_intent,activated_at_unix,last_tick_unix,contract_version,history_from_unix,history_until_unix,history_cursor,history_ceiling,history_fortnight_requested_at_unix,history_day_receipt_json,history_completed_at_unix,history_scanned,history_collected,history_stats_json,CASE WHEN ".$len."<=8192 THEN last_receipt_json ELSE NULL END AS receipt_json FROM modeled_conversion_value_export_settings WHERE project_key='anytour' AND counter_id='98615635' LIMIT 1",[]);
             if(!$rows)return $this->unavailable('not_configured');
             $s=$rows[0];
             if(($s['goal_id']??null)!==self::GOAL||($s['contract_version']??null)!==ModeledConversionValueContract::VERSION
                 ||!in_array($s['mode']??null,['off','send'],true)||($s['goal_intent']??null)!=='verified')return $this->unavailable('configuration_unverified');
             $activation=(int)($s['activated_at_unix']??0);if($activation<946684800||$activation>$now)return $this->unavailable('activation_unavailable');
-            $columns=["COALESCE(SUM(CASE WHEN value_origin='owner_day_review_v1' THEN 1 ELSE 0 END),0) AS historical_events",'COUNT(*) AS inspected','COALESCE(SUM(value_rub),0) AS reserved_rub',
+            $columns=["COALESCE(SUM(CASE WHEN value_origin IN ('owner_day_review_v1','owner_fortnight_review_v1') THEN 1 ELSE 0 END),0) AS historical_events",'COUNT(*) AS inspected','COALESCE(SUM(value_rub),0) AS reserved_rub',
                 "COALESCE(SUM(CASE WHEN upload_id IS NOT NULL AND upload_id<>'' THEN 1 ELSE 0 END),0) AS accepted_receipts",
                 "COALESCE(SUM(CASE WHEN upload_id IS NOT NULL AND upload_id<>'' THEN value_rub ELSE 0 END),0) AS accepted_receipts_rub"];
+            $columns[]='COUNT(DISTINCT conversation_id) AS conversations';
+            foreach(['with_identity'=>"client_id IS NOT NULL AND client_id<>''",'without_identity'=>"(client_id IS NULL OR client_id='')"]as$key=>$condition){
+                $columns[]="COALESCE(SUM(CASE WHEN ".$condition." THEN 1 ELSE 0 END),0) AS ".$key."_events";
+                $columns[]="COALESCE(SUM(CASE WHEN ".$condition." THEN value_rub ELSE 0 END),0) AS ".$key."_rub";
+                $columns[]="COUNT(DISTINCT CASE WHEN ".$condition." THEN conversation_id ELSE NULL END) AS ".$key."_conversations";
+            }
+            foreach(['max','telegram']as$platform){
+                $columns[]="COALESCE(SUM(CASE WHEN platform='".$platform."' THEN 1 ELSE 0 END),0) AS ".$platform."_events";
+                $columns[]="COALESCE(SUM(CASE WHEN platform='".$platform."' THEN value_rub ELSE 0 END),0) AS ".$platform."_rub";
+                $columns[]="COUNT(DISTINCT CASE WHEN platform='".$platform."' THEN conversation_id ELSE NULL END) AS ".$platform."_conversations";
+            }
             foreach(self::STATES as$i=>$state){
                 $columns[]="COALESCE(SUM(CASE WHEN state='".$state."' THEN 1 ELSE 0 END),0) AS state_n".$i;
                 $columns[]="COALESCE(SUM(CASE WHEN state='".$state."' THEN value_rub ELSE 0 END),0) AS state_v".$i;
@@ -37,7 +48,7 @@ final class ModeledConversionValueDeliveryReader
             }
             foreach(self::UPLOADS as$i=>$status)$columns[]="COALESCE(SUM(CASE WHEN upload_status='".$status."' THEN 1 ELSE 0 END),0) AS upload_n".$i;
             foreach(self::ERRORS as$i=>$error)$columns[]="COALESCE(SUM(CASE WHEN last_error='".$error."' THEN 1 ELSE 0 END),0) AS error_n".$i;
-            $sql='SELECT '.implode(',',$columns)." FROM (SELECT state,value_stage,value_rub,upload_id,upload_status,last_error,value_origin FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635' AND transport_target=? AND value_contract=? AND (event_unix>=? OR (value_origin='owner_day_review_v1' AND value_reviewed_at_unix IS NOT NULL AND event_unix>=1793570400 AND event_unix<1793656800)) ORDER BY id DESC LIMIT ".self::ROW_LIMIT.') bounded_values';
+            $sql='SELECT '.implode(',',$columns)." FROM (SELECT state,value_stage,value_rub,upload_id,upload_status,last_error,value_origin,platform,conversation_id,client_id FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635' AND transport_target=? AND value_contract=? AND (event_unix>=? OR (value_origin IN ('owner_day_review_v1','owner_fortnight_review_v1') AND value_reviewed_at_unix IS NOT NULL AND event_unix>=1793570400 AND event_unix<1793656800)) ORDER BY id DESC LIMIT ".self::ROW_LIMIT.') bounded_values';
             $r=$this->query($sql,[ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION,$activation])[0];
             $seen=$this->number($r['inspected'],false);
             if($seen>self::ROW_LIMIT)return $this->unavailable('invalid_ledger');
@@ -55,13 +66,19 @@ final class ModeledConversionValueDeliveryReader
             foreach(self::ERRORS as$i=>$error)$out['error_counts'][$error]=$this->number($r['error_n'.$i],false);
             if(array_sum(array_column($out['by_state'],'events'))!==$seen
                 ||array_sum(array_column($out['by_stage'],'events'))!==$seen)return $this->unavailable('invalid_ledger');
+            foreach(['with_identity','without_identity']as$key)$out['identity_resolution'][$key]=[
+                'events'=>$this->number($r[$key.'_events'],false),'conversations'=>$this->number($r[$key.'_conversations'],false),'value_rub'=>$this->number($r[$key.'_rub'],true)];
+            $out['conversations_in_ledger_window']=$this->number($r['conversations'],false);
+            foreach(['max','telegram']as$platform)$out['by_platform'][$platform]=[
+                'events'=>$this->number($r[$platform.'_events'],false),'conversations'=>$this->number($r[$platform.'_conversations'],false),'value_rub'=>$this->number($r[$platform.'_rub'],true)];
             $receipt=null;
             if(is_string($s['receipt_json']??null)){try{$receipt=json_decode($s['receipt_json'],true,32,JSON_THROW_ON_ERROR);}catch(JsonException $ignored){}}
             if(is_array($receipt)&&is_int($receipt['errors']??null)&&$receipt['errors']>=0&&$receipt['errors']<=100)$out['last_tick_errors']=$receipt['errors'];
             $tick=(int)($s['last_tick_unix']??0);if($tick>=$activation&&$tick<=$now)$out['last_tick_at']=gmdate('Y-m-d\\TH:i:s\\Z',$tick);
             $out['metrika_goal_report']=$this->report($receipt['metrika_report']??null,$activation,$now);
-            $out['historical_review']=['date'=>'2026-11-02','timezone'=>'Europe/Kaliningrad',
-                'configured'=>is_numeric($s['history_from_unix']??null)&&(int)$s['history_from_unix']===1793570400&&(int)$s['history_until_unix']===1793656800,
+            $out['historical_review']=['date'=>'2026-11-02','date_from'=>(int)($s['history_from_unix']??0)===1792447200?'2026-10-20':'2026-11-02','date_until_inclusive'=>'2026-11-02','timezone'=>'Europe/Kaliningrad',
+                'configured'=>ModeledConversionValueContract::historyWindow((int)($s['history_from_unix']??0),(int)($s['history_until_unix']??0)),
+                'fortnight_requested'=>is_numeric($s['history_fortnight_requested_at_unix']??null),
                 'completed'=>is_numeric($s['history_completed_at_unix']??null)&&(int)$s['history_completed_at_unix']<=$now,
                 'profiles_scanned'=>is_numeric($s['history_scanned']??null)?$this->number($s['history_scanned'],false):null,
                 'events_collected'=>is_numeric($s['history_collected']??null)?$this->number($s['history_collected'],false):null,
@@ -73,16 +90,47 @@ final class ModeledConversionValueDeliveryReader
                 $v=is_array($historyReasons)?($historyReasons[$key]??null):null;
                 $out['historical_review']['reason_counts'][$key]=is_int($v)&&$v>=0&&$v<=1000000000?$v:null;
             }
+            if($out['historical_review']['configured']){
+                $out['historical_review']['saved_cohort']=$this->cohort($s);
+                $first=is_string($s['history_day_receipt_json']??null)?json_decode($s['history_day_receipt_json'],true):null;
+                if(is_array($first)&&($first['history_from_unix']??null)==1793570400&&($first['history_until_unix']??null)==1793656800
+                    &&is_numeric($first['history_completed_at_unix']??null)&&(int)$first['history_completed_at_unix']<=$now)
+                    $out['historical_review']['first_day_receipt']=['date'=>'2026-11-02','completed'=>true,
+                        'profiles_scanned'=>$this->number($first['history_scanned'],false),'events_collected'=>$this->number($first['history_collected'],false)];
+            }
             $out['interpretation']=['values'=>'owner_assigned_advertising_estimates_not_actual_income',
                 'states_are_disjoint'=>true,'accepted_receipts_include_later_rejected_or_unmatched_rows'=>true,
                 'processed_means_validated_upload_rows_not_verified_visit_linkage'=>true,
                 'matched_upload_status_means_user_ids_matched_not_per_upload_visit_proof'=>true,
                 'goal_report_is_by_session_dates_including_pre_activation_attribution_window'=>true,
-                'per_upload_visit_match_verified'=>false,'reporting_can_lag'=>true,'no_ids_or_text_returned'=>true];
+                'identity_counts_are_stored_resolution_not_a_new_scope_check'=>true,
+                'conversations_are_not_verified_people_or_trips'=>true,'per_upload_visit_match_verified'=>false,'reporting_can_lag'=>true,'no_ids_or_text_returned'=>true];
             return $out;
         }catch(ModeledConversionStatusLimit $e){throw $e;}
         catch(PDOException $ignored){return $this->unavailable('storage_unavailable');}
         catch(UnexpectedValueException $ignored){return $this->unavailable('invalid_ledger');}
+    }
+    /** Metadata only, with an explicit finite bound; never loads transcript/profile JSON. */
+    private function cohort(array $settings):array
+    {
+        $limit=20001;
+        $q="SELECT COUNT(*) AS profiles,COUNT(DISTINCT conversation_id) AS conversations,"
+            ."COUNT(DISTINCT CASE WHEN reviewed=1 THEN conversation_id ELSE NULL END) AS reviewed_conversations,"
+            ."COALESCE(SUM(reviewed),0) AS reviewed_profiles";
+        foreach(['max','telegram']as$platform)$q.=",COUNT(DISTINCT CASE WHEN platform='".$platform."' THEN conversation_id ELSE NULL END) AS ".$platform."_conversations,"
+            ."COUNT(DISTINCT CASE WHEN platform='".$platform."' AND reviewed=1 THEN conversation_id ELSE NULL END) AS ".$platform."_reviewed_conversations";
+        $q.=" FROM (SELECT id,platform,conversation_id,CASE WHEN id<=? THEN 1 ELSE 0 END AS reviewed FROM modeled_conversion_profile_versions"
+            ." WHERE project_key='anytour' AND id<=? AND observed_at_unix>=? AND observed_at_unix<? ORDER BY id LIMIT ".$limit.") cohort_metadata";
+        $r=$this->query($q,[(int)$settings['history_cursor'],(int)$settings['history_ceiling'],(int)$settings['history_from_unix'],(int)$settings['history_until_unix']])[0];
+        $out=['basis'=>'saved_profile_metadata_not_the_full_archive','max_versions'=>$limit,
+            'versions_within_bound'=>$this->number($r['profiles'],false),'complete_within_bound'=>(int)$r['profiles']<$limit,
+            'conversations_within_bound'=>$this->number($r['conversations'],false),
+            'reviewed_conversations_within_bound'=>$this->number($r['reviewed_conversations'],false),
+            'reviewed_versions_within_bound'=>$this->number($r['reviewed_profiles'],false),'by_platform'=>[]];
+        foreach(['max','telegram']as$platform)$out['by_platform'][$platform]=[
+            'conversations'=>$this->number($r[$platform.'_conversations'],false),
+            'reviewed_conversations'=>$this->number($r[$platform.'_reviewed_conversations'],false)];
+        return $out;
     }
     private function report(mixed $r,int $activation,int $now):array
     {
