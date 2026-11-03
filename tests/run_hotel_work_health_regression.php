@@ -100,6 +100,29 @@ PHP);
     exec('HOTEL_WORK_TRIGGER=cron '.escapeshellarg(PHP_BINARY).' '.escapeshellarg($app.'/tools/hotel_work.php').' tick 2>&1',$out,$code);
     $row=json_decode((string)file_get_contents($checkpoint),true);
     hotelHealthCheck('installed cron marker captured by real CLI',$code===0&&($row['trigger']??null)==='cron');
+    // A confirmed campaign stop is not a worker crash. Unknown execution still fails.
+    $runtimeSource=file_get_contents($app.'/services/HotelServerCronRuntime.php');
+    try{
+        foreach([true,false]as$completed){
+            $result=['handled'=>true,'state'=>'hold','worker_completed'=>$completed];
+            file_put_contents($app.'/services/HotelServerCronRuntime.php',
+                '<?php final class HotelServerCronRuntime { public static function tick(array $flags,callable $context):array{return '.var_export($result,true).';}}');
+            $out=[];$code=-1;
+            exec(escapeshellarg(PHP_BINARY).' '.escapeshellarg($app.'/tools/hotel_work.php').' tick 2>&1',$out,$code);
+            $row=json_decode((string)file_get_contents($checkpoint),true);
+            $printed=json_decode(implode("\n",$out),true);
+            hotelHealthCheck('actual CLI '.($completed?'confirmed':'unconfirmed').' hold retains business state and technical truth',
+                $code===($completed?0:1)&&$row['state']===($completed?'ok':'failed')
+                &&$row['stage']===($completed?'server_cycle_hold':'server_cycle')
+                &&($printed['state']??null)==='hold'&&($printed['worker_completed']??null)===$completed);
+        }
+    }finally{file_put_contents($app.'/services/HotelServerCronRuntime.php',$runtimeSource);}
+    $v=new HotelWorkCronVerifier(1000);
+    $held=static fn(int $at):array=>array_replace($sample($at),['stage'=>'server_cycle_hold']);
+    hotelHealthCheck('one confirmed held tick is not a recurring schedule proof',$v->observe($held(1020),1025)===null);
+    $proof=$v->observe($held(1080),1085);
+    hotelHealthCheck('two safe future completions retain held business stage in recurrence proof',
+        $proof['observed_interval_seconds']===60&&$proof['first_stage']==='server_cycle_hold'&&$proof['second_stage']==='server_cycle_hold');
     $runtimeDir=$tmp.'/max-search-bot-hotel-server';$runtimeFile=$runtimeDir.'/runtime.json';
     hotelHealthCheck('absent private runtime file preserves dormant configuration',HotelServerRuntimeConfig::load($app)===null);
     mkdir($runtimeDir,0700);

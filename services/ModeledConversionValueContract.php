@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__.'/ModeledConversionEarlyForecast.php';
+require_once __DIR__.'/ModeledConversionValueRegistry.php';
 
 /** Owner-selected illustrative advertising value; no calibrated probability or actual income. */
 final class ModeledConversionValueContract
@@ -20,16 +21,33 @@ final class ModeledConversionValueContract
 
     /** Consume only the immutable admitted projection; never interpret raw text or callback counts. */
     public static function candidate(array $wrapper,array $subject,int $since,int $now):?array
+    { return self::evaluate($wrapper,$subject,$since,$now,null,false); }
+
+    /** Explicit owner-authorized day review; original saved profile is never rewritten. */
+    public static function historicalCandidate(array $wrapper,array $subject,int $since,int $until,int $now):?array
+    {
+        if($until<=$since||$until>$now||$until-$since!==86400)return null;
+        return self::evaluate($wrapper,$subject,$since,$now,$until,true);
+    }
+
+    private static function evaluate(array $wrapper,array $subject,int $since,int $now,?int $until,bool $history):?array
     {
         if(($wrapper['access_status']??null)!=='allowed'||!self::sameSubject($wrapper['subject']??null,$subject)
             ||($subject['project_key']??null)!=='anytour'||!in_array($subject['platform']??null,['max','telegram'],true))return null;
         $s=$wrapper['contextual_signals']??[];
         if(($s['version']??null)!==ModeledConversionEarlyForecast::VERSION
-            ||($s['extractor_sha256']??null)!==hash_file('sha256',__DIR__.'/ArchiveResearchSemanticExtractor.php')
-            ||($s['adapter_sha256']??null)!==hash_file('sha256',__DIR__.'/ModeledConversionEarlyForecast.php')
             ||!is_array($s['events']??null)||count($s['events'])>1000)return null;
+        if(!$history){
+            if(($s['extractor_sha256']??null)!==hash_file('sha256',__DIR__.'/ArchiveResearchSemanticExtractor.php')
+                ||($s['adapter_sha256']??null)!==hash_file('sha256',__DIR__.'/ModeledConversionEarlyForecast.php'))return null;
+        }else{
+            if(($s['extractor_version']??null)!==ArchiveResearchSemanticExtractor::VERSION
+                ||!in_array($wrapper['adapter']['version']??null,['admitted_journal_profile_v1_1','admitted_journal_profile_v1_2','admitted_journal_profile_v1_3','admitted_journal_profile_v1_4','admitted_journal_profile_v1_5'],true)
+                ||!in_array($wrapper['processing']['version']??null,['admitted_journal_profiles_v1','admitted_journal_profiles_v1_1','admitted_journal_profiles_v1_2'],true))return null;
+            foreach(['extractor_sha256','adapter_sha256']as$key)if(!is_string($s[$key]??null)||preg_match('/\\A[a-f0-9]{64}\\z/D',$s[$key])!==1)return null;
+        }
         $frozen=self::moment($s['frozen_at']??null);$cutoff=self::moment($s['input_cutoff_at']??null);
-        if($frozen===null||$cutoff===null||$cutoff>$frozen||$frozen>$now||$frozen<$since)return null;
+        if($frozen===null||$cutoff===null||$cutoff>$frozen||$frozen>$now||$frozen<$since||($until!==null&&$frozen>=$until))return null;
         $input=$wrapper['profile']['observation_input']??[];
         if(!self::sameSubject($input['subject']??null,$subject)||!is_array($input['evidence']??null)||count($input['evidence'])>1000)return null;
         $refs=[];
@@ -48,25 +66,26 @@ final class ModeledConversionValueContract
         $best=null;$contrary=false;
         foreach($s['events']as$event){
             if(!is_array($event))continue;$r=$refs[$event['source_ref']??'']??null;
-            if(!$r||$r['at']<$since)continue;
+            if(!$r||$r['at']<$since||($until!==null&&$r['at']>=$until))continue;
             $goal=$event['goal']??null;
             if(in_array($goal,['payment_cancellation','booking_cancellation','refund_report','purchased_elsewhere'],true)){$contrary=true;continue;}
             $rank=is_string($goal)?($map[$goal]??null):null;
             if($rank===null||($goal==='manager_payment_ack'?$r['role']!=='manager':$r['role']!=='customer')
                 ||!in_array($event['product']??null,['tour','unknown'],true))continue;
             if($best===null||$rank>$best['rank'])$best=['rank'=>$rank,'stage'=>self::STAGES[$rank],'value'=>self::VALUES[$rank],
-                'event_unix'=>$frozen,'evidence_at'=>$r['at'],'evidence_available_at'=>$r['available'],'source_ref'=>$event['source_ref']];
+                'event_unix'=>$history?$now:$frozen,'evidence_at'=>$r['at'],'evidence_available_at'=>$r['available'],'source_ref'=>$event['source_ref']];
         }
         $p=$wrapper['semantic_prediction']??null;
+        $checked=$history?ModeledConversionValueRegistry::predictionFields($wrapper):null;
         if(is_array($p)&&($p['status']??null)==='predicted'&&self::sameSubject($p['subject']??null,$subject)
-            &&($p['model_sha256']??null)===hash_file('sha256',__DIR__.'/ModeledConversionSemanticPrediction.php')
+            &&($history?($checked['semantic_prediction']['availability']??null)==='available':($p['model_sha256']??null)===hash_file('sha256',__DIR__.'/ModeledConversionSemanticPrediction.php'))
             &&ModeledConversionSemanticPrediction::digestMatches($p)){
             $rank=['substantive_dialogue'=>1,'concrete_request'=>2,'exact_offer_discussion'=>3,
                 'general_purchase_intent'=>4,'agency_purchase_intent'=>5][$p['stage']??'']??null;
             $anchor=$p['current_request_anchor']??null;$r=$refs[$anchor??'']??null;
             if($rank!==null&&$r&&$r['role']==='customer'&&$r['at']>=$since
                 &&($p['frozen_at']??null)===($s['frozen_at']??null)&&($best===null||$rank>$best['rank']))
-                $best=['rank'=>$rank,'stage'=>self::STAGES[$rank],'value'=>self::VALUES[$rank],'event_unix'=>$frozen,
+                $best=['rank'=>$rank,'stage'=>self::STAGES[$rank],'value'=>self::VALUES[$rank],'event_unix'=>$history?$now:$frozen,
                     'evidence_at'=>$r['at'],'evidence_available_at'=>$r['available'],'source_ref'=>$anchor];
         }
         return $contrary?null:$best;
