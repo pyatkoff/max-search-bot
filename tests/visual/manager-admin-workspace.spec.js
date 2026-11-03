@@ -124,3 +124,74 @@ test.describe('Short admin viewport',()=>{
   const state=await setup(page);await ready(page);for(const name of['projects','priority','audit','managers']){await section(page,name);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true)}await edit(page,'manager',12);await page.locator('#managerName').fill('Короткий синтетический экран');await expect(page.locator('#managerName')).toBeFocused();await page.locator('#cancelManagerEdit').scrollIntoViewIfNeeded();await expect(page.locator('#cancelManagerEdit')).toBeInViewport();await capture(page,browserName,390,'short-editor');await page.locator('#cancelManagerEdit').click();await expect(page.locator('#managerEditor')).toBeHidden();await expect(page.locator('[data-admin-edit="manager"][data-admin-id="12"]')).toBeFocused();clean(state);
  });
 });
+
+
+// The owner ledger uses the real PHP renderer with synthetic data only.
+const {execFileSync:renderDeliveryPHP}=require('node:child_process');
+function deliveryRegistryHTML(scenario='ready'){
+ const source=process.env.M2_QA_SOURCE_ROOT||root;
+ return renderDeliveryPHP('php',[path.join(source,'tests/visual/fixtures/modeled-delivery-registry.php'),scenario],{cwd:source,encoding:'utf8'});
+}
+async function openDeliveryRegistry(page,scenario='ready'){
+ const state={unexpected:[],errors:[]};
+ page.on('pageerror',e=>state.errors.push(e.message));
+ await page.route('**/*',async route=>{
+  const request=route.request(),url=new URL(request.url());
+  if(url.origin===origin&&request.method()==='GET'&&url.pathname==='/manager/assigned-value.php')
+   return route.fulfill({contentType:'text/html',body:deliveryRegistryHTML(scenario)});
+  if(url.origin===origin&&request.method()==='GET'&&url.pathname==='/favicon.ico')
+   return route.fulfill({status:204,body:''});
+  state.unexpected.push(request.method()+' '+url.pathname);return route.abort();
+ });
+ await page.goto(origin+'/manager/assigned-value.php?view=delivery');
+ return state;
+}
+for(const width of[390,430,768,1440])test.describe('Private modeled delivery registry '+width,()=>{
+ test.use({viewport:{width,height:900}});
+ test('real renderer shows reconciled awards and readable details without requests',async({page,browserName},testInfo)=>{
+  const state=await openDeliveryRegistry(page);
+  await expect(page.getByRole('heading',{name:'Конверсии',exact:true})).toBeVisible();
+  await expect(page.locator('.dialogue')).toHaveCount(2);
+  await expect(page.locator('.totals')).toContainText('13 333 ₽');
+  await expect(page.locator('.monitor')).toContainText('Регулярность подтверждена');
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  const dir=path.join(root,'manager2-artifacts');fs.mkdirSync(dir,{recursive:true});
+  const file=path.join(dir,'modeled-delivery-'+browserName+'-'+width+'.png');
+  const png=await page.screenshot({path:file,fullPage:true,animations:'disabled'});
+  await testInfo.attach('modeled-delivery-'+width,{body:png,contentType:'image/png'});
+  // Synthetic preview lets cloud-only reviewers inspect layout without Mac access.
+  if(browserName==='chromium'&&[390,1440].includes(width))
+   console.log('MVR-PREVIEW-'+width+':'+png.toString('base64'));
+  await page.locator('.event-details').first().locator('summary').click();
+  await expect(page.locator('.event-details').first()).toContainText('профилем №901');
+  await expect(page.locator('.event-details').first()).toContainText('точное время подтверждения');
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  expect(state.unexpected).toEqual([]);expect(state.errors).toEqual([]);
+ });
+ test('stale OK and unavailable ledger stay visibly distinct from success',async({page})=>{
+  let state=await openDeliveryRegistry(page,'stale');
+  await expect(page.locator('.monitor')).toContainText('Проверка устарела');
+  await expect(page.locator('.monitor')).toContainText('0 из 3 проверок');
+  await expect(page.locator('.monitor')).not.toContainText('Регулярность подтверждена');
+  expect(state.unexpected).toEqual([]);expect(state.errors).toEqual([]);
+  await page.unroute('**/*');
+  state=await openDeliveryRegistry(page,'error');
+  await expect(page.getByRole('heading',{name:'Реестр сейчас недоступен'})).toBeVisible();
+  await expect(page.locator('.dialogue')).toHaveCount(0);
+  await expect(page.locator('body')).not.toContainText('Анна');
+  expect(state.unexpected).toEqual([]);expect(state.errors).toEqual([]);
+ });
+});
+test('conversion entry is owner-only and disappears when admin identity is revoked',async({page})=>{
+ const state=await setup(page);await ready(page);
+ await expect(page.locator('#adminConversions')).toBeVisible();
+ await expect(page.locator('#adminConversions')).toHaveAttribute('href','/manager/assigned-value.php?view=delivery');
+ state.snapshots.push({ok:false,error:'forbidden'});await page.evaluate(()=>load());
+ await expect(page.locator('#adminConversions')).toBeHidden();clean(state);
+});
+test('ordinary manager cannot see the conversion entry or read admin data',async({page})=>{
+ const state=await setup(page,{me:[identity(12,'manager')]});
+ await expect(page.locator('#denied')).toContainText('Доступно только администратору');
+ await expect(page.locator('#adminConversions')).toBeHidden();
+ expect(state.calls.map(x=>x.action)).toEqual(['me']);clean(state);
+});

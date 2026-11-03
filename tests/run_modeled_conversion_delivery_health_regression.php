@@ -109,9 +109,90 @@ function deliveryClockWriterAssertions(PDO $p,callable $check):void
     $q=$p->query('SELECT * FROM max_channel_conversion_outbox WHERE conversation_id=902')->fetch(PDO::FETCH_ASSOC);
     $check('GET-only unknown reconciliation records observed receipt without another POST',$wire->posts===2&&(int)$q['value_api_accepted_at_unix']===$tick+1001&&$q['value_receipt_basis']==='get_reconciliation');
 }
+function deliveryExternalMonitorAssertions(callable $check):void
+{
+    $now=1793700000;$at=static fn(int $n):string=>gmdate('Y-m-d\TH:i:s\Z',$n);
+    $result=['schema_version'=>1,'project'=>'anytour','counter_id'=>'98615635','status'=>'ok','flags'=>[],
+        'notification'=>'quiet','ok'=>true,'private_token'=>'synthetic-do-not-return','customer_text'=>'synthetic-hidden'];
+    $source=static fn(string $id,string $event='schedule',int $attempt=1,string $sha='a'):array=>
+        ['event'=>$event,'run_id'=>$id,'run_attempt'=>$attempt,'source_sha'=>str_repeat($sha,40)];
+    $compose=static fn(array $r,?array $old,int $clock,?array $s=null):array=>
+        ModeledConversionDeliveryHealth::composeExternalReceipt($r,$old,$clock,$s);
+    $view=static fn(array $r,int $clock):array=>ModeledConversionDeliveryHealth::externalReceiptStatus($r,$clock);
+    $reject=static function(callable $f):bool{try{$f();return false;}catch(UnexpectedValueException $ignored){return true;}};
+    $old=['schema_version'=>1,'project'=>'anytour','counter_id'=>'98615635','checked_at'=>$at($now-10),
+        'status'=>'ok','flags'=>[],'notification'=>'sent','last_notification_at'=>$at($now-10)];
+    $legacy=$view($old,$now);
+    $check('legacy check is fresh without inventing scheduled execution',$legacy['fresh']&&$legacy['source_event']===null
+        &&!$legacy['scheduled']['available']&&!$legacy['scheduled']['regular']&&$legacy['scheduled']['fresh']===null);
+    $quiet=$compose($result,$old,$now,$source('100','workflow_dispatch'));
+    $check('quiet manual check retains original successful notification clock',$quiet['last_notification_at']===$at($now-10));
+    $check('receipt strips synthetic private and customer fields',!str_contains(json_encode($quiet,JSON_THROW_ON_ERROR),'synthetic-'));
+    $one=$compose($result,$quiet,$now+300,$source('101'));
+    $oneView=$view($one,$now+300);
+    $check('one natural original schedule is not regular proof',$oneView['scheduled']['success_streak']===1&&!$oneView['scheduled']['regular']);
+    $duplicate=$compose($result,$one,$now+301,$source('101'));
+    $duplicate=$compose($result,$duplicate,$now+302,$source('101'));
+    $check('same original run cannot be counted three times',count($duplicate['scheduled_checks'])===1
+        &&$view($duplicate,$now+302)['scheduled']['success_streak']===1);
+    $two=$compose($result,$one,$now+600,$source('102'));
+    $three=$compose($result,$two,$now+900,$source('103','schedule',1,'b'));
+    $third=$view($three,$now+900);
+    $check('three distinct timely original schedules establish regularity',$third['scheduled']['regular']
+        &&$third['scheduled']['success_streak']===3&&count($third['scheduled']['checks'])===3);
+    $check('ordinary source revision change does not erase real scheduled history',$third['source_sha']===str_repeat('b',40)
+        &&$third['scheduled']['checks'][0]['source_sha']===str_repeat('a',40));
+    $manual=$compose($result,$three,$now+1000,$source('104','workflow_dispatch'));
+    $deploy=$compose($result,$manual,$now+1100,$source('105','workflow_run'));
+    $check('manual and post-deploy checks do not increment or erase scheduled history',$manual['scheduled_checks']===$three['scheduled_checks']
+        &&$deploy['scheduled_checks']===$three['scheduled_checks']);
+    $lateManual=$compose($result,$deploy,$now+1801,$source('106','workflow_dispatch'));
+    $late=$view($lateManual,$now+1801);
+    $check('fresh manual check cannot hide stale scheduled monitoring',$late['fresh']&&!$late['scheduled']['fresh']&&!$late['scheduled']['regular']);
+    $gap=$compose($result,$lateManual,$now+1802,$source('107'));
+    $check('long scheduled gap resets successful streak to one',$view($gap,$now+1802)['scheduled']['success_streak']===1);
+    $rerun=$compose($result,$gap,$now+1900,$source('107','schedule',2));
+    $check('rerun attempt does not qualify as new automatic proof',$rerun['scheduled_checks']===$gap['scheduled_checks']
+        &&$rerun['source_run_attempt']===2);
+    $failed=$compose(array_replace($result,['status'=>'degraded','flags'=>['delivery_tick_stale']]),$rerun,$now+2102,$source('108'));
+    $check('scheduled health failure is retained and resets successful streak',$view($failed,$now+2102)['scheduled']['success_streak']===0
+        &&$failed['scheduled_checks'][2]['ok']===false);
+    $recovered=$compose($result,$failed,$now+2402,$source('109'));
+    $check('recovered schedule begins a new streak',$view($recovered,$now+2402)['scheduled']['success_streak']===1);
+    $unknown=$compose(array_replace($result,['notification'=>'unknown','ok'=>false]),$recovered,$now+2702,$source('110'));
+    $check('uncertain notification cannot qualify as healthy scheduled proof',$view($unknown,$now+2702)['scheduled']['success_streak']===0);
+    $recordedWithoutOrigin=$compose($result,$three,$now+1000);
+    $check('legacy caller without origin does not fabricate scheduled progress',$recordedWithoutOrigin['source_event']===null
+        &&$recordedWithoutOrigin['scheduled_checks']===$three['scheduled_checks']);
+    $sent=$compose(array_replace($result,['notification'=>'sent']),$three,$now+1000,$source('111','workflow_dispatch'));
+    $check('new confirmed notification advances only its own observation clock',$sent['last_notification_at']===$at($now+1000));
+    $check('future stored observation is rejected',$reject(static fn():array=>$view(array_replace($old,['checked_at'=>$at($now+61)]),$now)));
+    $check('future notification clock is rejected',$reject(static fn():array=>$view(array_replace($old,['last_notification_at'=>$at($now+61)]),$now)));
+    $check('foreign counter receipt is rejected',$reject(static fn():array=>$compose(array_replace($result,['counter_id'=>'999']),null,$now,$source('201'))));
+    $check('untrusted event name is rejected',$reject(static fn():array=>$compose($result,null,$now,$source('202','push'))));
+    $check('run identifier injection is rejected',$reject(static fn():array=>$compose($result,null,$now,$source('1;echo synthetic'))));
+    $check('noncanonical source SHA is rejected',$reject(static fn():array=>$compose($result,null,$now,$source('203','schedule',1,'A'))));
+    $check('partial provenance is rejected',$reject(static fn():array=>$compose($result,null,$now,['event'=>'schedule'])));
+    $bad=$three;$bad['scheduled_checks'][1]=$bad['scheduled_checks'][0];
+    $check('duplicate stored run cannot become regular proof',$reject(static fn():array=>$view($bad,$now+900)));
+    $bad=$three;$bad['scheduled_checks'][1]['run_attempt']=2;
+    $check('stored rerun cannot become original schedule proof',$reject(static fn():array=>$view($bad,$now+900)));
+    $bad=$three;$bad['scheduled_checks'][0]['checked_at']=$at($now+901);
+    $check('future or out-of-order scheduled history fails closed',$reject(static fn():array=>$view($bad,$now+900)));
+    $bad=$three;$bad['scheduled_checks'][2]['status']='degraded';
+    $check('inconsistent stored healthy marker fails closed',$reject(static fn():array=>$view($bad,$now+900)));
+    $bad=$old;$bad['last_notification_at']=$at($now-9);
+    $check('notification observation after its receipt fails closed',$reject(static fn():array=>$view($bad,$now)));
+    $bad=$old;$bad['checked_at']=$at($now+1);
+    $check('backwards recorder clock cannot overwrite valid prior state',$reject(static fn():array=>$compose($result,$bad,$now,$source('210'))));
+    $bounded=$quiet;
+    for($i=1;$i<=100;$i++)$bounded=$compose($result,$bounded,$now+300*$i,$source((string)(1000+$i)));
+    $check('long automatic operation keeps exactly three records within private file bound',count($bounded['scheduled_checks'])===3
+        &&strlen(json_encode($bounded,JSON_THROW_ON_ERROR))<=4096&&$view($bounded,$now+30000)['scheduled']['regular']);
+}
 if(realpath((string)($_SERVER['SCRIPT_FILENAME']??''))===__FILE__){
     $p=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);$passed=0;
     $check=static function(string $name,bool $ok)use(&$passed):void{if(!$ok)throw new RuntimeException('FAIL '.$name);$passed++;echo 'PASS '.$name.PHP_EOL;};
-    deliveryDailyAssertions($p,$check);deliveryHealthAssertions($p,$check);deliveryClockWriterAssertions($p,$check);
+    deliveryDailyAssertions($p,$check);deliveryHealthAssertions($p,$check);deliveryClockWriterAssertions($p,$check);deliveryExternalMonitorAssertions($check);
     echo 'MODELED DELIVERY OBSERVABILITY PASSED '.$passed.PHP_EOL;
 }

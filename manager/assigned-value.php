@@ -4,6 +4,7 @@ ini_set('display_errors','0');
 require_once dirname(__DIR__).'/config.php';
 require_once __DIR__.'/lib/ManagerHttp.php';
 require_once dirname(__DIR__).'/services/ModeledConversionValueRegistryView.php';
+require_once dirname(__DIR__).'/services/ModeledConversionDeliveryRegistryView.php';
 
 ManagerHttp::startJson();
 header('Cache-Control: private, no-store');
@@ -14,7 +15,7 @@ header('Vary: Cookie');
 header('X-Robots-Tag: noindex, nofollow, noarchive');
 header("Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'");
 
-$view='members';$after='0';
+$view='delivery';$after='0';$deliveryInput=[];$monitor=[];
 try{
     // Must precede manager lookup: auth must not invoke the legacy project UPSERT.
     ProjectAccessService::initializeReadOnly();
@@ -22,27 +23,56 @@ try{
     ManagerHttp::requireAdmin($manager);
     $actor=(int)$manager['id'];
     if(($_SERVER['REQUEST_METHOD']??'')!=='GET')ManagerHttp::respond(['ok'=>false,'error'=>'method_not_allowed'],405);
-    if($_POST||array_diff(array_keys($_GET),['view','after'])
-        ||(isset($_GET['view'])&&(!is_string($_GET['view'])||!in_array($_GET['view'],['members','profiles'],true)))
-        ||(isset($_GET['after'])&&(!is_string($_GET['after'])||preg_match('/\A(?:0|[1-9][0-9]{0,19})\z/D',$_GET['after'])!==1)))
+    $view=$_GET['view']??'delivery';
+    if(!is_string($view)||!in_array($view,['delivery','members','profiles'],true))
         ManagerHttp::respond(['ok'=>false,'error'=>'unexpected_parameters'],422);
-    $view=$_GET['view']??'members';$after=$_GET['after']??'0';
+    $allowed=$view==='delivery'?['view','date','platform','cursor']:['view','after'];
+    if($_POST||array_diff(array_keys($_GET),$allowed))
+        ManagerHttp::respond(['ok'=>false,'error'=>'unexpected_parameters'],422);
+    if($view==='delivery'){
+        foreach(['date','platform','cursor']as$key)if(isset($_GET[$key])){
+            if(!is_string($_GET[$key])||strlen($_GET[$key])>1024)
+                ManagerHttp::respond(['ok'=>false,'error'=>'unexpected_parameters'],422);
+            $deliveryInput[$key]=$_GET[$key];
+        }
+        $deliveryInput['date']=$deliveryInput['date']??(new DateTimeImmutable('now',new DateTimeZone('Europe/Kaliningrad')))->format('Y-m-d');
+        $deliveryInput['platform']=$deliveryInput['platform']??'all';
+    }else{
+        if(isset($_GET['after'])&&(!is_string($_GET['after'])||preg_match('/\A(?:0|[1-9][0-9]{0,19})\z/D',$_GET['after'])!==1))
+            ManagerHttp::respond(['ok'=>false,'error'=>'unexpected_parameters'],422);
+        $after=$_GET['after']??'0';
+    }
     if(ProjectConfig::projectId()!=='anytour')ManagerHttp::respond(['ok'=>false,'error'=>'project_unavailable'],404);
     if(!ProjectAccessService::canAccess($actor,'anytour'))ManagerHttp::respond(['ok'=>false,'error'=>'forbidden'],403);
     $pdo=ConversationDb::connection();
     if($pdo->inTransaction())throw new RuntimeException('auth_snapshot');
+    $cursorKey=hash('sha256',session_id().'|modeled-delivery-registry-v1|'.$actor);
     session_write_close();
 
     $page=null;$unavailable=false;
     try{
         require_once dirname(__DIR__).'/services/ModeledConversionValueRegistry.php';
-        $registry=new ModeledConversionValueRegistry($pdo);
-        // One explicit bounded page. No retry, background refresh or full-cohort scan.
-        if($view==='members'){
-            require_once dirname(__DIR__).'/services/MaxTrackerLookupClient.php';
-            $page=$registry->members((new MaxTrackerLookupClient())->currentMemberPage('98615635',$after));
+        if($view==='delivery'){
+            require_once dirname(__DIR__).'/services/ModeledConversionDeliveryRegistry.php';
+            require_once dirname(__DIR__).'/services/ModeledConversionDeliveryHealth.php';
+            $authorize=static function()use($actor):void{
+                $current=ManagerAuthService::byId($actor);
+                if(!$current||!ManagerAuthService::isAdmin($current)
+                    ||ProjectConfig::projectId()!=='anytour'||!ProjectAccessService::canAccess($actor,'anytour'))
+                    throw new RuntimeException('delivery_registry_access');
+            };
+            $page=(new ModeledConversionDeliveryRegistry($pdo,$authorize,$cursorKey))->read($deliveryInput,time());
+            $unavailable=($page['available']??false)!==true;
+            $monitor=ModeledConversionDeliveryHealth::externalStatus(new ModeledConversionStatusBudget(),$authorize,time());
         }else{
-            $page=$registry->profiles($after,time());
+            $registry=new ModeledConversionValueRegistry($pdo);
+            // Preserve the legacy, separately labelled research views.
+            if($view==='members'){
+                require_once dirname(__DIR__).'/services/MaxTrackerLookupClient.php';
+                $page=$registry->members((new MaxTrackerLookupClient())->currentMemberPage('98615635',$after));
+            }else{
+                $page=$registry->profiles($after,time());
+            }
         }
     }catch(Throwable $ignored){$page=null;$unavailable=true;}
 
@@ -59,9 +89,13 @@ try{
 
     http_response_code($unavailable?503:200);
     header('Content-Type: text/html; charset=utf-8');
-    echo ModeledConversionValueRegistryView::render($view,$page,$after,$unavailable);
+    echo $view==='delivery'
+        ?ModeledConversionDeliveryRegistryView::render($page,$deliveryInput,$monitor,$unavailable)
+        :ModeledConversionValueRegistryView::render($view,$page,$after,$unavailable);
 }catch(Throwable $ignored){
     http_response_code(503);
     header('Content-Type: text/html; charset=utf-8');
-    echo ModeledConversionValueRegistryView::render($view,null,$after,true);
+    echo $view==='delivery'
+        ?ModeledConversionDeliveryRegistryView::render(null,$deliveryInput,[],true)
+        :ModeledConversionValueRegistryView::render($view,null,$after,true);
 }

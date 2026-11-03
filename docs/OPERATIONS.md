@@ -251,3 +251,14 @@ are normal. The latest successful Metrika report is retained separately from its
 latest error. The private status includes a sanitized external-check receipt.
 No new production daemon, worker queue, customer send, conversation mutation,
 OAuth grant or advertising goal/value change is introduced.
+
+
+### Owner conversion ledger and check provenance
+
+Use the administrator-only /manager/assigned-value.php?view=delivery page for actual recorded monetary deltas and per-conversation drilldown. The closed page performs read-only GETs and does not trigger customer read markers, tracker calls, processing or advertising sends. Its assignment-day totals differ deliberately from the upload-day/receipt-observation/processed-observation cohorts.
+
+The external monitoring receipt now records a strictly allowlisted trusted origin from the workflow (`schedule`, `workflow_run`, `workflow_dispatch`) and exact run/attempt/source. The last three distinct original scheduled checks are retained separately from manual/postDeploy checks; regularity requires three successful checks within15-minute gaps and a fresh last scheduled check. The owner page must show stale/unknown delivery honestly, even if the last technical health was OK.
+
+The existing hourly live publisher remains at25minutes. Its lightweight canonical monitor uses the same workflow at2-59/5 minutes with independent job concurrency. Offset scheduling reduces top-of-hour contention; it does not establish a guaranteed five-minute SLA. Verify actual event=schedule runs, not merely postDeploy/manual success. Healthy checks should be quiet with unchanged last_notification_at. Do not repeat consumed activation helpers or old failed jobs to fabricate this proof.
+
+Record-source arguments are validated and quoted before the SSH command; only technical metadata is persisted in the private4KiB receipt. Recipient and bot token remain in the existing protected/encrypted path and never enter the owner HTML, public diagnostics, code or plaintext artifacts.

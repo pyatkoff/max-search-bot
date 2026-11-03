@@ -6,6 +6,7 @@ require_once dirname(__DIR__).'/run_modeled_conversion_status_regression.php';
 require_once dirname(__DIR__).'/run_modeled_conversion_forecast_status_regression.php';
 require_once dirname(__DIR__).'/run_modeled_conversion_value_export_regression.php';
 require_once dirname(__DIR__).'/run_modeled_conversion_delivery_health_regression.php';
+require_once dirname(__DIR__).'/run_modeled_conversion_delivery_registry_regression.php';
 $admin=null;$p=null;$other=null;$safe=false;$failed=false;
 try{
     $dsn=(string)getenv('PREPARED_REPLY_MYSQL_DSN');
@@ -18,7 +19,7 @@ try{
     $testDsn=str_replace('dbname=maxbot_prepared_test;','dbname=maxbot_modeled_stream_test;',$dsn);
     $p=new PDO($testDsn,$user,$pass,$opts);$other=new PDO($testDsn,$user,$pass,$opts);
     if($p->query('SELECT DATABASE()')->fetchColumn()!=='maxbot_modeled_stream_test'||$other->query('SELECT DATABASE()')->fetchColumn()!=='maxbot_modeled_stream_test')throw new RuntimeException('unsafe_fixture_database');
-    $passed=0;$check=static function(string $name,bool $ok)use(&$passed){if(!$ok)throw new RuntimeException('assertion_failed');$passed++;echo 'PASS native MySQL '.$name.PHP_EOL;};
+    $passed=0;$check=static function(string $name,bool $ok)use(&$passed){if(!$ok){fwrite(STDERR,'FAIL native MySQL '.preg_replace('/[^a-zA-Z0-9 _-]/','?',substr($name,0,220)).PHP_EOL);throw new RuntimeException('assertion_failed');}$passed++;echo 'PASS native MySQL '.$name.PHP_EOL;};
     modeledStreamSchema($p);modeledStreamAssertions($p,$check);
     // Isolate the two-transaction race from the earlier 700-row throughput case.
     // A complete bounded sweep here takes one page, so recovery has a fixed bound.
@@ -51,6 +52,7 @@ try{
     modeledValueFortnightAssertions($p,$check);
     modeledValueFairProgressAssertions($p,$check);
     deliveryDailyAssertions($p,$check);deliveryHealthAssertions($p,$check);deliveryClockWriterAssertions($p,$check);
+    deliveryRegistryAssertions($p,$check);
     echo 'MODELED CONVERSION STREAM NATIVE MYSQL PASSED '.$passed.PHP_EOL;
 }catch(Throwable $e){fwrite(STDERR,'FAIL modeled stream native MySQL '.get_class($e).PHP_EOL);$failed=true;}
 finally{
