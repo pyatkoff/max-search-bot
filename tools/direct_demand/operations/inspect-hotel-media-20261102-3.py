@@ -1,13 +1,13 @@
 import base64,html,json,os,re,urllib.parse,urllib.request
 from pathlib import Path
 from html.parser import HTMLParser
-operation='commercial-batch19-public-sources-20261103-read1'
-pages=["https://www.hilton.com/en/hotels/hrghitw-hilton-hurghada-plaza/","https://www.marriott.com/en-us/hotels/hrgeg-hurghada-marriott-beach-resort/overview/","https://www.marriott.com/en-us/hotels/sshbr-renaissance-sharm-el-sheikh-golden-view-beach-resort/overview/","https://stelladimare.com/beach-hotel-spa/our-hotel/","https://www.continental-hurghada.com/en","https://www.parkregency.net/","https://www.hilton.com/en/hotels/rmfhihi-hilton-marsa-alam-nubian-resort/","https://www.palmroyaleresort.com/","https://www.sunrise-resorts.com/royal-makadi-resort?updatelang=yes"]
+operation='commercial-batch20-public-sources-20261103-read1'
+pages=["https://redseahotels.com/resorts/makadi-bay/the-grand-makadi/","https://redseahotels.com/resorts/hurghada/siva-grand-beach/","https://redseahotels.com/resorts/makadi-bay/the-makadi-spa/","https://www.savoy-sharm.com/savoy/gallery","https://www.sunrise-resorts.com/royal-makadi-resort/gallery","https://www.swissinn.net/corporate/Photo-gallery.php?hotelid=Hurghada"]
 group=int(os.environ['MEDIA_GROUP'])
 assert group in (0,1)
-pages=pages[group*5:group*5+5]
-assert 1<=len(pages)<=5
-hosts=set(["www.hilton.com","www.marriott.com","cache.marriott.com","stelladimare.com","www.stelladimare.com","www.continental-hurghada.com","continental-hurghada.com","www.parkregency.net","parkregency.net","www.palmroyaleresort.com","palmroyaleresort.com","www.sunrise-resorts.com","sunrise-resorts.com","irp.cdn-website.com","dp-cdn.multiscreensite.com"])
+pages=pages[group*3:group*3+3]
+assert 1<=len(pages)<=3
+hosts=set(["redseahotels.com","www.redseahotels.com","www.savoy-sharm.com","savoy-sharm.com","d18slle4wlf9ku.cloudfront.net","www.sunrise-resorts.com","sunrise-resorts.com","d1wo7kaelp5eck.cloudfront.net","www.swissinn.net","swissinn.net"])
 class Redirect(urllib.request.HTTPRedirectHandler):
  def redirect_request(self,*args,**kwargs):raise ValueError('unexpected_primary_source_redirect')
 opener=urllib.request.build_opener(Redirect())
@@ -24,6 +24,7 @@ for url in pages:
   out['pages'].append({'source_url':url,'error':type(e).__name__});continue
  candidates=[]
  documents=[]
+ image_details=[]
  image_hosts=set()
  for value in re.findall(r"""["']([^"'<>\r\n]+\.(?:jpe?g|png|webp)(?:\?[^"'<>\r\n]*)?)["']""",text,re.I):
   absolute=urllib.parse.quote(urllib.parse.urljoin(final,html.unescape(value.strip())),safe=':/?&=%#')
@@ -34,6 +35,12 @@ for url in pages:
  for value in re.findall(r"""["']([^"'<>\r\n]+\.pdf(?:\?[^"'<>\r\n]*)?)["']""",text,re.I):
   absolute=urllib.parse.quote(urllib.parse.urljoin(final,html.unescape(value.strip())),safe=':/?&=%#');p=urllib.parse.urlsplit(absolute)
   if p.scheme=='https' and p.hostname in hosts and not p.username and not p.password and absolute not in documents:documents.append(absolute)
+ for tag in re.findall(r'<img\b[^>]*>',text,re.I):
+  alt=re.search(r'\balt=["\x27]([^"\x27]*)["\x27]',tag,re.I)
+  alt=html.unescape(alt.group(1)) if alt else ''
+  for value in re.findall(r'["\x27]([^"\x27<>]+\.(?:jpe?g|png|webp)(?:\?[^"\x27<>]*)?)["\x27]',tag,re.I):
+   absolute=urllib.parse.quote(urllib.parse.urljoin(final,html.unescape(value.strip())),safe=':/?&=%#')
+   if absolute in candidates:image_details.append({'url':absolute,'alt':alt[:180]})
  class Visible(HTMLParser):
   def __init__(self):super().__init__();self.skip=0;self.parts=[]
   def handle_starttag(self,tag,attrs):
@@ -44,7 +51,7 @@ for url in pages:
    if not self.skip and data.strip():self.parts.append(data.strip())
  visible=Visible();visible.feed(text)
  public_text=re.sub(r'https?://\S+','[url omitted]',' '.join(visible.parts))
- public_text=re.sub(r'\s+',' ',public_text)[:18000]
+ public_text=re.sub(r'\s+',' ',public_text)[:10000]
  title_match=re.search(r'<title[^>]*>(.*?)</title>',text,re.I|re.S)
  title=html.unescape(re.sub('<[^>]+>',' ',title_match.group(1)))[:220] if title_match else None
  website_links=[]
@@ -69,7 +76,7 @@ for url in pages:
  for body in re.findall(r'<script[^>]*(?:type=["\x27]application/(?:ld\\+)?json["\x27]|id=["\x27]__NEXT_DATA__["\x27])[^>]*>(.*?)</script>',text,re.I|re.S):
   try:selected_json(json.loads(html.unescape(body)))
   except (ValueError,TypeError):pass
- out['pages'].append({'source_url':url,'final_url':final,'page_title':title,'image_hosts':sorted(image_hosts),'image_urls':candidates[:320],'document_urls':documents[:12],'website_links':website_links[:10],'public_text':public_text,'json_fact_fragments':fragments})
+ out['pages'].append({'source_url':url,'final_url':final,'page_title':title,'image_hosts':sorted(image_hosts),'image_urls':candidates[:180],'image_details':image_details[:160],'document_urls':documents[:12],'website_links':website_links[:10],'public_text':public_text,'json_fact_fragments':fragments})
 
 out['ok']=True
 Path('public-media-sources.json').write_text(json.dumps(out,ensure_ascii=False,indent=2)+'\n')

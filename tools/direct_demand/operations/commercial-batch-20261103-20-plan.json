@@ -1,10 +1,18 @@
 {
   "operation": "commercial-hotel-batch-20261103-20-v1",
-  "goal": "Prepare and publish the ready whole Sindbad Club hotel material in both existing channels.",
-  "boundaries": "One proven native stock identity62504,exact current official hotel facts and three object-specific public photos. Existing Canva copy/publisher/once only. No price,package inclusion,availability or future service promises.",
-  "criteria": "Whole factual caption<=1024UTF16 with no dash/hyphen,accepted hotel-and-grounds hero,all four image fills replaced,readable branding/title,exact native PNG bytes/hash/dimensions and current source/host/TLS/schema/rights/live dedup. Publish this ready subset without waiting for Titanic supplementary imagery.",
-  "risks": "Winter heating on the official aqua-park page excludes the wave pool. Children club age not established,so no invented age limits. Do not transfer free hotel direct-booking services to the AnyTour package. Other Titanic photos with Firebase tokens are not authorized exports.",
+  "goal": "Prepare and publish up to five ready whole hotel materials from proven stock while retaining Sindbad as deferred.",
+  "boundaries": "Native231/441/408/250/483 already proven and monitored. Exact current primary pages and real object-specific images;existing Canva copies/publisher/once. No new catalog lookup,price,package benefit or availability claim. Deferred62504 stays unsent.",
+  "criteria": "Visual general hotel-and-grounds photo first,then complete caption,three specific photos,readable AnyTour cover,native bytes/hash/PNG and existing current send gates. Publish ready subset without waiting for disputed sources.",
+  "risks": "Grand Makadi page restaurant section is mislabelled Grand Waterworld;do not transfer those dining rights/names. Grand heading and search title differ in stars;no star claim. Makadi Spa adult-only is proven but exact age inconsistent/unproven,so deferred. Savoy not Royal Savoy/Sierra. Swiss Inn has second-line room categories. Sunrise counts7/8pools conflict;omit pool count and direct-booking benefits.",
   "hotel_ids": [
-    62504
+    231,
+    441,
+    408,
+    250,
+    483
+  ],
+  "deferred_catalog_ids": [
+    62504,
+    15693
   ]
 }

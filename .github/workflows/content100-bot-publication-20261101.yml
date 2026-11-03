@@ -1,4 +1,4 @@
-name: Inspect alternative Sindbad cover and different official aerial candidate
+name: Read six fixed primary hotel photo pages for next batch
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -10,29 +10,25 @@ concurrency:
   cancel-in-progress: false
 jobs:
   inspect:
-    if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     strategy:
       fail-fast: false
       max-parallel: 2
       matrix:
-        cover_group: [0]
+        media_group: [0,1]
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Inspect only the exact authorized native Canva PNG group
+      - name: Read only six fixed public primary pages
         env:
-          COVER_GROUP: ${{ matrix.cover_group }}
-        run: python3 tools/direct_demand/operations/inspect-canva-covers-20261102-3.py
-      - name: Retain bounded native image evidence
-        uses: actions/upload-artifact@v4
+          MEDIA_GROUP: ${{ matrix.media_group }}
+        run: python3 tools/direct_demand/operations/inspect-hotel-media-20261102-3.py
+      - uses: actions/upload-artifact@v4
         with:
-          name: commercial-batch20-corrected-group-${{ matrix.cover_group }}
-          path: |
-            native-cover-receipt.json
-            covers/
+          name: commercial-batch20-primary-group-${{ matrix.media_group }}
+          path: public-media-sources.json
           retention-days: 14
           if-no-files-found: error
