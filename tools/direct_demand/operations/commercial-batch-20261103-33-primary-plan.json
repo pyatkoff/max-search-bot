@@ -1,0 +1,41 @@
+{
+  "operation": "commercial-batch33-nine-new-primary-owner-pages",
+  "goal": "Read one finite group of nine new exact owner pages for the current ten-candidate batch",
+  "boundaries": [
+    "Pure cloud only; no Mac/server/provider/DB/messages/ads",
+    "Exact declared/discovered ownerURLs; no repeated closed GETs or guessed media URLs",
+    "Unchanged no redirects,2MBmetadata bound, safe references and per-hotel target membership"
+  ],
+  "criteria": [
+    "3readonlygroups,maxparallel2; retain all facts and exact public photo refs",
+    "Only actual hotel photos accepted later by native bytes/hash/pixels",
+    "Reuse retained whole captions for1035/109655/468"
+  ],
+  "risks": [
+    "New layout may expose shared navigation; not all images belong to target hotel",
+    "Sultan public PDF is a separate finite method, not a reason to hold ready subset"
+  ],
+  "hotel_ids": [
+    1379,
+    1133,
+    1338,
+    46670,
+    1559,
+    27316,
+    3405,
+    1035,
+    109655,
+    468
+  ],
+  "urls": [
+    "https://miraclehotel.com/en/",
+    "https://concordehotels.com/en/otels/concorde-de-luxe-resort",
+    "https://www.limakhotels.com/lara",
+    "https://trendy.com.tr/en/trendy-lara/",
+    "https://www.titanic.com.tr/titanic-deluxe-lara",
+    "https://www.regnumhotels.com/en/about-regnum-carya/",
+    "https://www.maxxroyal.com/maxx-royal-belek/gallery",
+    "https://bayoulara.com/en/gallery",
+    "https://www.libertyhotels.com/en/hotels/liberty-signa/rooms/"
+  ]
+}
