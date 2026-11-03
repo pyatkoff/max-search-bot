@@ -1,0 +1,31 @@
+{
+  "operation": "commercial-monitor-stock-20261103-18",
+  "state": "APPEND_ONLY_MONITOR_INPUT_ADDITION_PLANNED",
+  "catalog_ids": [
+    432,
+    328,
+    382,
+    341,
+    340,
+    272,
+    260,
+    21476,
+    4181,
+    273,
+    441,
+    473,
+    483,
+    408,
+    249,
+    315,
+    21477,
+    250
+  ],
+  "hotel_count": 18,
+  "existing_input_count": 590,
+  "expected_input_count": 608,
+  "goal": "Include the18 proven current-stock native identities missing from the existing collector inputs.",
+  "boundaries": "Append one immutable cohort in the existing helper. Preserve original492,all prior cohorts,target keys,pending attempts/resume,budget64,collector,lock,schedule,transport and producer pins. No provider,DB or message calls.",
+  "criteria": "Native guard,collect/sync validation plus focused additions prove exact18,previous590 targets unchanged,old stock4 resume,mixed-country boundaries and missing/inactive new input without false credit.",
+  "risks": "Catalog identity does not prove future price availability or complete supplier total. Stella465 is already in492 and must not be added again."
+}

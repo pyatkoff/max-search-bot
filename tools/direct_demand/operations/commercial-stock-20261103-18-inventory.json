@@ -1,7 +1,7 @@
 {
   "operation": "commercial-stock-20261103-18-inventory",
-  "state": "TWENTY_ONE_CONFIRMED_AFTER_THREE_PUBLISHED_FOLLOWUP_PENDING",
-  "hotel_count": 21,
+  "state": "TWENTY_FIVE_CONFIRMED_CONTENT_AND_COVERS_NOT_READY",
+  "hotel_count": 25,
   "target_hotel_count": 25,
   "ready_for_send_count": 0,
   "candidates": [
@@ -169,11 +169,66 @@
       "region": "Шарм-эль-Шейх",
       "country_id": 1,
       "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "hilton-hurghada-plaza",
+      "hotel_id": 249,
+      "hotel": "HILTON PLAZA",
+      "region": "Хургада",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "hurghada-marriott-beach",
+      "hotel_id": 315,
+      "hotel": "HURGADA MARRIOTT BEACH RESORT",
+      "region": "Хургада",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "movenpick-soma-bay",
+      "hotel_id": 21477,
+      "hotel": "MOVENPICK WATERPARK RESORT & SPA SOMA BAY",
+      "region": "Хургада",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "swiss-inn-resort-hurghada",
+      "hotel_id": 250,
+      "hotel": "SWISS INN RESORT HURGHADA (EX. HILTON RESORT)",
+      "region": "Хургада",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
     }
   ],
   "new_name_lookup_count": 20,
   "new_name_lookup_state": "BOUNDED_READ_COMPLETE_FIFTEEN_UNIQUE_NEW_IDENTITIES",
-  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41603842788",
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41605170445",
   "content_and_cover_prepared_count": 0,
-  "new_identity_count": 15
+  "new_identity_count": 19,
+  "additional_confirmed_candidates": [
+    {
+      "key": "sindbad-club",
+      "hotel_id": 62504,
+      "hotel": "SINDBAD CLUB",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_NOT_IN_CURRENT25"
+    },
+    {
+      "key": "grand-makadi",
+      "hotel_id": 231,
+      "hotel": "GRAND MAKADI",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_NOT_IN_CURRENT25"
+    },
+    {
+      "key": "makadi-spa",
+      "hotel_id": 15693,
+      "hotel": "THE MAKADI SPA ADULTS ONLY 18+",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_NOT_IN_CURRENT25"
+    }
+  ]
 }
