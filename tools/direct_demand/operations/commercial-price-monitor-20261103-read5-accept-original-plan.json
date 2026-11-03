@@ -1,0 +1,17 @@
+{
+  "operation": "commercial-price-monitor-20261103-read5-accept-original",
+  "goal": "Accept the successful original144 DB read from its immutable authenticated artifact after correcting post-processing ID validation",
+  "boundaries": [
+    "No rerun of original DB read or old captures/quotes",
+    "No full tuples/fingerprints export, safe summary only"
+  ],
+  "criteria": [
+    "New3exactscope cases preserve1146 and12114; reject old114scope and accidentalnumericmutation",
+    "Exact original operation/source/persistencecutoff/counters/144bindingorder"
+  ],
+  "risks": [
+    "Original GHA conclusion remains failure due to our wrong summary expectedlist; do not relabel wholeworkflow success"
+  ],
+  "original_run": 41741553762,
+  "original_artifact_id": 13281352387
+}

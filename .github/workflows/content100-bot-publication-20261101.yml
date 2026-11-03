@@ -1,4 +1,4 @@
-name: Inspect original retained price read5 result without another server read
+name: Accept original read5 result with exact144 identity validation
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -21,17 +21,37 @@ jobs:
           repository: pyatkoff/max-search-bot
           run-id: 41741553762
           path: ${{ runner.temp }}/original-read5
-      - name: Inspect only safe metadata from the exact original private result
+      - name: Validate new exact144 identity cases and original result without database calls
         env:
           RETAINED_PATH: ${{ runner.temp }}/original-read5
+          RUNNER_TEMP: ${{ runner.temp }}
         run: |
           python3 - <<'PY'
           import json,os,pathlib
-          root=pathlib.Path(os.environ['RETAINED_PATH'])
-          files=list(root.rglob('channel-preflight.json'));assert len(files)==1
+          expected=[241,240,268,12111,1981,28666,46672,109900,111129,111045,1077,1146,9374,498,157359,482,476,81173,9373,32577,4191,416,12112,478,77914,237,32575,112914,64895,262,12117,12119,26044,66150,232,233,13872,13873,280,456,265,454,21475,1963,358,37668,174,55574,383,108090,150,172,275,173,110,57028,125,132,178,371,389,109,293,107965,393,78898,83105,69155,69409,263,43204,13870,1983,111801,287,435,109149,79059,56092,115918,269,80964,264,73342,278,246,245,13869,267,12114,384,281,75725,249,315,465,272,260,273,469,381,408,441,21477,60589,328,282,235,382,250,464,103021,129,165,12116,111,163,310,67910,68323,1971,56091,103124,488,98723,139,342,1291,15869,253,75377,74503,1582,1449,1453,9432,1451,1151,1583,1379,1133,27316,1559,3405]
+          def accept(ids):
+              return ids==expected and len(ids)==len(set(ids))==144 and 1146 in ids and 12114 in ids
+          assert accept(expected)
+          assert not accept(expected[:114])
+          corrupt=expected.copy();corrupt[corrupt.index(1146)]=1446;corrupt[corrupt.index(12114)]=12144
+          assert not accept(corrupt)
+          print('PRICE144_ORIGINAL_VALIDATION_OK new_cases=3 correct_ids1146_12114 preserved old114scope_rejected numeric_substitution_rejected server_calls=0 provider_calls=0 writes=0')
+          files=list(pathlib.Path(os.environ['RETAINED_PATH']).rglob('channel-preflight.json'));assert len(files)==1
           d=json.loads(files[0].read_text().splitlines()[-1])
-          assert d.get('operation')=='commercial-price-monitor-20261103-read5'
-          hotels=d.get('hotels',[])
-          safe={'operation':'commercial-price-monitor-20261103-read5-original-artifact-inspection','original_run':41741553762,'original_ok':d.get('ok'),'error':d.get('error'),'original_operation':d.get('operation'),'original_mode':d.get('mode'),'completed_hotel_rows':len(hotels),'hotels_with_observations':sum(bool(h.get('observations')) for h in hotels),'observation_rows':sum(len(h.get('observations',[])) for h in hotels),'last_completed_catalog_ids':[h.get('local_tv_id') for h in hotels[-3:]],'readback_epoch_utc':d.get('readback_epoch_utc'),'schema_proof':d.get('schema_contract_proof'),'full_tuples_exported':0,'server_connections':0,'provider_calls':0,'db_writes':0,'message_edits':0}
-          print(json.dumps(safe,sort_keys=True))
+          assert d['operation']=='commercial-price-monitor-20261103-read5' and d['mode']=='read_existing_monitored_price_inputs' and d['ok'] is True
+          hotels=d['hotels'];assert accept([h['local_tv_id'] for h in hotels])
+          assert d['installed_sha']=='117d884bef3174b7dd5976b5e354811f3edc8e83'
+          assert d['created_after_persistence_epoch_utc']==1793739452
+          assert all(len(h['observations'])<=2 for h in hotels)
+          assert d['db_writes']==d['provider_calls']==d['message_sends']==d['price_block_updates']==0
+          recent=[h['local_tv_id'] for h in hotels if any(0<=d['readback_epoch_utc']-int(r.get('created_at_stored_epoch_utc') or 0)<=10800 for r in h['observations'])]
+          summary={'operation':'commercial-price-monitor-20261103-read5-accept-original','original_read_operation':d['operation'],'original_run':41741553762,'original_database_read_ok':True,'scope_hotels':len(hotels),'hotels_with_rows':sum(bool(h['observations']) for h in hotels),'candidate_rows':sum(len(h['observations']) for h in hotels),'recent_within3h_catalog_ids':recent,'identity_review_catalog_ids':[h['local_tv_id'] for h in hotels if not h.get('current_name_matches_expected',False)],'readback_epoch_utc':d['readback_epoch_utc'],'created_after_persistence_epoch_utc':1793739452,'full_total_verified':False,'full_tuples_exported':0,'additional_server_reads':0,'provider_calls':0,'db_writes':0,'message_edits':0}
+          print(json.dumps(summary,sort_keys=True))
+          pathlib.Path(os.environ['RUNNER_TEMP'],'read5-safe-summary.json').write_text(json.dumps(summary,indent=2))
           PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: commercial-price-monitor-20261103-read5-accepted-summary
+          path: ${{ runner.temp }}/read5-safe-summary.json
+          retention-days: 14
+          if-no-files-found: error
