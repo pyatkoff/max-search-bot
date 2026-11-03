@@ -1,0 +1,25 @@
+{
+  "operation": "commercial-monitor-publication-20261103-29",
+  "state": "THREE_PROVEN_NATIVE_INPUTS_PREPARED_NOT_MERGED",
+  "catalog_ids": [
+    98723,
+    139,
+    342
+  ],
+  "previous_inputs": 639,
+  "new_inputs": 642,
+  "goal": "Extend the existing monitor to the three batch29 publication candidates withacceptedphotosandwholecaptions",
+  "boundaries": [
+    "Separate immutable native cohort after actual639 dedup",
+    "Preserve all previous identities/monthlytargetkeys/pendingsearches/lock/budget64/hourly12/transport",
+    "No new collector/cron/worker/provider/quote calls"
+  ],
+  "criteria": [
+    "Native guard/collectvalidate/syncvalidate and focused642 preserve639targets and prior3resume",
+    "Mixedcountries,missingone/inactiveall produce nofalsecredit"
+  ],
+  "risks": [
+    "Configured inputs are not actual collected prices",
+    "Actual delivery counted only after publisher/provider verification"
+  ]
+}

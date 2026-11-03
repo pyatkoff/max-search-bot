@@ -1,0 +1,18 @@
+{
+  "operation": "commercial-price-monitor-20261103-20utc-metadata",
+  "state": "NEW_WINDOW_ONLY_COUNTRY_FEED_JOB_NO_NEW_TOUR_OBSERVATION_COLLECTOR_CONFIRMED",
+  "scheduled_created_from": "2026-11-03T20:00:00Z",
+  "runs": [
+    {
+      "run_url": "https://github.com/pyatkoff/poisk-turov-test/actions/runs/41709957001",
+      "name": "Build AnyTour Yandex country feeds",
+      "conclusion": "success"
+    }
+  ],
+  "logs_read": 0,
+  "retained_price_reads": 0,
+  "quote_calls": 0,
+  "post_edits": 0,
+  "provider_calls": 0,
+  "new_price_claims": 0
+}
