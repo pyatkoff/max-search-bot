@@ -1,0 +1,113 @@
+{
+  "operation": "commercial-hotel-batch-20261103-21-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Publish one whole Siva Grand Beach material in each existing authorized channel.",
+  "boundaries": "Existing publisher,registry and durable once only. Exactly two messages. Public official photography. No new price or availability claims,channels,runtime or Mac access.",
+  "criteria": "Exact approved/current source and same-source accepted verify/TLS,21 accepted publishing blobs,host continuity,schema,rights,current dedup. Exactly2 provider-confirmed posts with prepared text/photo hashes and canonical buttons/source.",
+  "risks": "Siva Grand Beach441 is the exact Hurghada property. Seasonal pool heating and paid WPS cafe drinks are preserved. Cleopatra photo HTTP403 and other disputed heroes remain deferred without holding this ready material.",
+  "baseline_logical_materials": 106,
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "hotel_id": 441,
+      "hotel": "Siva Grand Beach",
+      "key": "siva-grand-beach",
+      "aliases": [
+        "Siva Grand Beach"
+      ],
+      "sources": [
+        "https://redseahotels.com/resorts/hurghada/siva-grand-beach/"
+      ],
+      "text": "✈️ Туры в Siva Grand Beach с перелётом\n📍 Хургада, Египет.\n\n🏖 Широкий песчаный пляж с пологим спуском.\n🏊 Открытый бассейн, сезонный подогрев.\n👧 Детский клуб и игровая площадка.\n🛏 Есть номера в главном корпусе и двухэтажных бунгало. Family Room с двумя соединёнными спальнями.\n\n☕ Напитки в кафе WPS оплачиваются отдельно.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Siva Grand Beach.",
+      "logical_id": "commercial-siva-grand-beach-441-v1",
+      "text_sha256": "03e77f35a8738b581f51ce43bae50f1a5b88c347f0418435d438b77b1c37b82e",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/80c4c292ee78c7eb208aeda7659f0bea71f70d76/.github/traffic-publish/commercial-batch-20261103-21/441.png",
+      "photo_sha256": "c95aea02c0c920ec0b0d895c79aeb449a5ec59fda79e8bd62ac1fed32d71a61b",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    }
+  ],
+  "ready_for_send_count": 1,
+  "new_posts": 0,
+  "provider_send_attempts": 0,
+  "content_and_cover_prepared_count": 1,
+  "approved_live_send_count": 1,
+  "public_png_frozen_count": 1,
+  "native_inspection_state": "ONE_SIVA_COVER_VISUALLY_AND_BYTES_ACCEPTED",
+  "native_inspection_run_urls": [
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41631575995"
+  ],
+  "deferred": [
+    {
+      "hotel_id": 21476,
+      "hotel": "Cleopatra Luxury Resort Makadi Bay",
+      "key": "cleopatra-luxury-makadi",
+      "aliases": [
+        "CLEOPATRA LUXURY RESORT MAKADI BAY",
+        "CLEOPATRA LUXURY RESORT MAKADI BAY (EX. ALDIANA MAKADI)"
+      ],
+      "sources": [
+        "https://www.cleopatraluxuryhotels.com/hotel/cleopatra-luxury-resort-makadi-bay/",
+        "https://www.cleopatraluxuryhotels.com/hotel/cleopatra-luxury-resort-makadi-bay/activities/swimming-pools/",
+        "https://www.cleopatraluxuryhotels.com/hotel/cleopatra-luxury-resort-makadi-bay/activities/kids-club/"
+      ],
+      "text": "✈️ Туры в Cleopatra Luxury Resort Makadi Bay с перелётом\n📍 Макади Бэй, Египет.\n\n🏖 Курорт на берегу Красного моря.\n🏊 Восемь открытых бассейнов. Есть зимний подогрев.\n👧 Детский клуб для ребят от 4 до 12 лет, игровая комната и площадка.\n👨‍👩‍👧‍👦 Family Room площадью 77 м² с отдельными спальнями.\n\n💡 Дети младше 4 лет приходят в клуб с родителем.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Cleopatra Makadi.",
+      "state": "CONTENT_VERIFIED_OFFICIAL_PHOTO_HTTP403_NOT_SENT"
+    },
+    {
+      "hotel_id": 62504,
+      "state": "DIFFERENT_GENERAL_HOTEL_VIEW_REQUIRED",
+      "rejected_primary_sources": [
+        {
+          "url": "https://images.squarespace-cdn.com/content/v1/687def6f61ca990db754f20c/1753364475023-837KCP18GFPY61P703XE/DJI_20250127071121_0272_D.png",
+          "reason": "Native cover shows predominantly one close pool with only a strip of hotel facades."
+        },
+        {
+          "url": "https://images.squarespace-cdn.com/content/v1/687def6f61ca990db754f20c/e7f3a457-e9ee-4b5e-87f1-6a36b8f20873/Main%2BImage%2Bmin.jpg",
+          "reason": "Native cover shows a beach and no overall hotel/territory."
+        },
+        {
+          "url": "https://images.squarespace-cdn.com/content/v1/687def6f61ca990db754f20c/701b9c1c-25b1-495c-adc4-25034de2d2c9/DJI_20250129170253_0058_D.JPG",
+          "reason": "Different source JPEG shows waterfront restaurant roof and sea;not an overall hotel view."
+        }
+      ]
+    },
+    {
+      "hotel_id": 231,
+      "state": "CONTENT_VERIFIED_GENERAL_HOTEL_HERO_PENDING",
+      "prepared_row": {
+        "hotel_id": 231,
+        "hotel": "The Grand Makadi",
+        "key": "grand-makadi",
+        "aliases": [
+          "The Grand Makadi",
+          "Grand Makadi"
+        ],
+        "sources": [
+          "https://redseahotels.com/resorts/makadi-bay/the-grand-makadi/"
+        ],
+        "text": "✈️ Туры в The Grand Makadi с перелётом\n📍 Макади Бэй, Египет.\n\n🏖 Собственный пляж и зелёная территория у моря.\n🏊 Открытый бассейн, сезонный подогрев.\n👧 Детский клуб и игровая площадка.\n👨‍👩‍👧‍👦 В категории Family Room две спальни с соединяющей дверью.\n\n💡 К домашнему рифу ведёт пирс.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в The Grand Makadi.",
+        "logical_id": "commercial-grand-makadi-231-v1",
+        "text_sha256": "fa732bdc03572e67e93d19f20d06fc531e0890bf329808c08f77d8995b24c6d2"
+      }
+    },
+    {
+      "hotel_id": 483,
+      "state": "CONTENT_VERIFIED_GENERAL_HOTEL_HERO_PENDING",
+      "prepared_row": {
+        "hotel_id": 483,
+        "hotel": "SUNRISE Royal Makadi Resort",
+        "key": "sunrise-royal-makadi",
+        "aliases": [
+          "SUNRISE Royal Makadi",
+          "Royal Makadi Resort"
+        ],
+        "sources": [
+          "https://www.sunrise-resorts.com/royal-makadi-resort"
+        ],
+        "text": "✈️ Туры в SUNRISE Royal Makadi Resort с перелётом\n📍 Макади Бэй, Египет.\n\n🏖 Собственный пляж в бухте Макади.\n💦 Аквапарк с детской игровой зоной.\n👧 Детский клуб для ребят от 3 до 12 лет.\n👨‍👩‍👧‍👦 Есть Family Room площадью 55 м² с двухъярусной кроватью.\n\n💡 Тренажёрный зал доступен с 16 лет.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в SUNRISE Royal Makadi.",
+        "logical_id": "commercial-sunrise-royal-makadi-483-v1",
+        "text_sha256": "c3b8ec2bb00abd208cd1c4b1db099e7f00dd1c0c4357ee68adcbbb9f2e5f5225"
+      }
+    }
+  ]
+}
