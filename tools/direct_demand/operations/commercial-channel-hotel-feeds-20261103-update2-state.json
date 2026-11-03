@@ -1,0 +1,70 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261103-update2",
+  "state": "THREE_PUBLIC_DIRECT_YML_FEEDS_WITH_NAME_DESCRIPTION_HOSTED_HTTPS_BYTES_VERIFIED",
+  "logical_hotels": 124,
+  "offer_counts": [
+    124,
+    124,
+    248
+  ],
+  "telegram_name_prefix": "Путевки в ",
+  "max_name_prefix": "Туры в ",
+  "name_max_length": 52,
+  "description_max_length": 76,
+  "combined_exact_union": true,
+  "canonical_post_destinations_preserved": true,
+  "accepted_public_images_preserved": true,
+  "image_missing_catalog_ids": [
+    381,
+    469
+  ],
+  "price_fields": 0,
+  "availability_fields": 0,
+  "files": [
+    {
+      "bytes": 80663,
+      "content_type": "application/xml",
+      "description_count": 124,
+      "http": 200,
+      "name": "hotel-posts-telegram.xml",
+      "name_count": 124,
+      "offers": 124,
+      "public_url": "https://app.anytoour.ru/feed/hotel-posts-telegram.xml",
+      "sha256": "245f19f9f03b7b147ce3405d9998b1ea0696671043cd1c36c8b73175a5d16652"
+    },
+    {
+      "bytes": 81492,
+      "content_type": "application/xml",
+      "description_count": 124,
+      "http": 200,
+      "name": "hotel-posts-max.xml",
+      "name_count": 124,
+      "offers": 124,
+      "public_url": "https://app.anytoour.ru/feed/hotel-posts-max.xml",
+      "sha256": "64ef9f3bb8ddabb24bd6c093219a1850bd3a195bd7be2d8a2c85a3292586196b"
+    },
+    {
+      "bytes": 161782,
+      "content_type": "application/xml",
+      "description_count": 248,
+      "http": 200,
+      "name": "hotel-posts-all.xml",
+      "name_count": 248,
+      "offers": 248,
+      "public_url": "https://app.anytoour.ru/feed/hotel-posts-all.xml",
+      "sha256": "9f9e2307039e61302be5dd4b0035ab3a7603892ac8d2c555865afe12368ab0f7"
+    }
+  ],
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41708955037",
+  "native_preparation_cases": 13,
+  "intent_artifact_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41708955037/artifacts/13266841798",
+  "result_artifact_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41708955037/artifacts/13267921534",
+  "legacy_csv_files_unchanged": true,
+  "new_bot_posts": 0,
+  "provider_calls": 0,
+  "db_writes": 0,
+  "message_sends": 0,
+  "runtime_installs": 0,
+  "yandex_imported": false,
+  "ads_changed": false
+}
