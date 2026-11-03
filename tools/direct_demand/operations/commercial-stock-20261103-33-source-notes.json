@@ -1,0 +1,110 @@
+{
+  "operation": "commercial-hotel-batch-20261103-33-v1",
+  "state": "WHOLE_CAPTIONS_DRAFTED_NOT_SENT",
+  "captions": [
+    {
+      "hotel_id": 1379,
+      "hotel": "Miracle Resort",
+      "key": "miracle-resort-lara",
+      "aliases": [
+        "MIRACLE RESORT"
+      ],
+      "sources": [
+        "https://miraclehotel.com/en/"
+      ],
+      "text": "✈️ Туры в Miracle Resort с перелётом\n📍 Лара, Анталья, Турция.\n\n🏖 Собственный песчаный пляж и пирс.\n🏊 Аквапарк, детские горки и бассейн для малышей.\n👧 Детский клуб Miracle Kids с играми и мини дискотекой.\n🧖 Спа с хаммамом и сауной.\n\n💡 Есть семейные сьюты площадью 80 м². Прямой выход к бассейну предусмотрен в отдельных категориях номеров.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Miracle Resort."
+    },
+    {
+      "hotel_id": 1133,
+      "hotel": "Concorde De Luxe Resort",
+      "key": "concorde-de-luxe-lara",
+      "aliases": [
+        "CONCORDE DE LUXE RESORT"
+      ],
+      "sources": [
+        "https://concordehotels.com/en/otels/concorde-de-luxe-resort"
+      ],
+      "text": "✈️ Туры в Concorde De Luxe Resort с перелётом\n📍 Лара, Анталья, Турция.\n\n🏖 Песчаный пляж с Голубым флагом.\n👧 Детский клуб Moppet.\n🧖 Спа Carpe Diem.\n🎶 Спортивные занятия, живая музыка и вечерние шоу.\n\n💡 Дизайн отеля вдохновлён самолётом Concorde. Вид на море или город зависит от категории номера.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Concorde De Luxe."
+    },
+    {
+      "hotel_id": 1338,
+      "hotel": "Limak Lara De Luxe Hotel & Resort",
+      "key": "limak-lara-de-luxe",
+      "aliases": [
+        "LIMAK LARA DE LUXE HOTEL & RESORT",
+        "LIMAK LARA"
+      ],
+      "sources": [
+        "https://www.limakhotels.com/lara"
+      ],
+      "text": "✈️ Туры в Limak Lara De Luxe с перелётом\n📍 Лара, Анталья, Турция.\n\n🏖 Песчаный пляж у Средиземного моря.\n🏊 Бассейны на территории.\n🛏 В семейных номерах есть гостиная, спальня и две ванные комнаты.\n🍽 Рестораны с турецкой и международной кухней.\n\n💡 Архитектура и оформление отеля вдохновлены Азией.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Limak Lara."
+    },
+    {
+      "hotel_id": 1559,
+      "hotel": "Titanic Deluxe Lara",
+      "key": "titanic-deluxe-lara",
+      "aliases": [
+        "TITANIC DELUXE LARA",
+        "TITANIC BEACH LARA"
+      ],
+      "sources": [
+        "https://www.titanic.com.tr/titanic-deluxe-lara"
+      ],
+      "text": "✈️ Туры в Titanic Deluxe Lara с перелётом\n📍 Лара, Анталья, Турция.\n\n🏖 Собственный песчаный пляж в пределах территории.\n🏊 Бассейны и аквапарк.\n👧 Детский клуб для гостей от 4 до 12 лет.\n🧖 Спа BeFine и фитнес.\n\n💡 Зимой часть развлечений закрыта. Подогрев бассейнов зависит от погоды, работают крытые бассейны для взрослых и детей.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Titanic Deluxe Lara."
+    },
+    {
+      "hotel_id": 109655,
+      "hotel": "Liberty Signa",
+      "key": "liberty-signa",
+      "aliases": [
+        "LIBERTY SIGNA"
+      ],
+      "sources": [
+        "https://www.libertyhotels.com/en/hotels/liberty-signa/"
+      ],
+      "text": "✈️ Туры в Liberty Signa с перелётом\n📍 Фетхие, Турция.\n\n🏖 Пляж и бассейны у Средиземного моря.\n👧 Детский клуб Libby & Berty с играми и занятиями.\n🛏 Есть семейные номера площадью 50 м² и смежные номера 66 м².\n🍽 На территории работают рестораны и бары.\n\n💡 Прямой выход к бассейну и собственный бассейн предусмотрены в отдельных категориях номеров и сьютов.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Liberty Signa."
+    },
+    {
+      "hotel_id": 468,
+      "hotel": "Sultan Bey Hotel",
+      "key": "sultan-bey-el-gouna",
+      "aliases": [
+        "SULTAN BEY HOTEL"
+      ],
+      "sources": [
+        "https://www.elgouna.com/hotels/sultan-bey-hotel"
+      ],
+      "text": "✈️ Туры в Sultan Bey Hotel с перелётом\n📍 Эль Гуна, Египет.\n\n🏖 Небольшой собственный пляж у лагуны.\n🏊 Открытый бассейн.\n🛏 Номера с балконом или террасой. Для семей есть смежные номера.\n🚶 Отель находится в районе Downtown с кафе и магазинами.\n\n💡 Берег у отеля выходит к лагуне.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Sultan Bey."
+    },
+    {
+      "hotel_id": 1035,
+      "hotel": "Lara Barut Collection",
+      "key": "lara-barut-collection",
+      "aliases": [
+        "LARA BARUT COLLECTION",
+        "BAYOU LARA"
+      ],
+      "sources": [
+        "https://bayoulara.com/en"
+      ],
+      "text": "✈️ Туры в Lara Barut Collection с перелётом\n📍 Лара, Анталья, Турция.\n\n🏖 Пляж с Голубым флагом.\n🏊 На территории есть аквапарк.\n🧘 Открытая студия йоги и дорожка для пробежек.\n🧖 Спа с турецким хаммамом.\n\n💡 Виллы с собственным бассейном представлены отдельной категорией. Их особенности не относятся ко всем номерам.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Lara Barut Collection."
+    }
+  ],
+  "primary_run": 41736292886,
+  "deferred_source": {
+    "hotel_id": 46670,
+    "error": "ValueError",
+    "http_status": null,
+    "reason": "Cause not proven, same GET closed"
+  },
+  "sultan": {
+    "operation": "commercial-hotel-batch-20261103-33-v1",
+    "hotel_id": 468,
+    "source_url": "https://backend.elgouna.com/wp-content/uploads/2024/01/sultan-bay.pdf",
+    "state": "NEW_PUBLIC_OWNER_PDF_FETCH_403_NO_NATIVE_PIXELS",
+    "http_status": 403,
+    "repeated_fetches": 0,
+    "canva_imports": 0,
+    "new_posts": 0
+  }
+}

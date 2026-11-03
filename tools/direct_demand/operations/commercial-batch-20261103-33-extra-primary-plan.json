@@ -1,0 +1,19 @@
+{
+  "operation": "commercial-batch33-three-new-declared-target-pages",
+  "goal": "Read three new exact owner links that resolve target photo membership and whole hotel facts",
+  "boundaries": [
+    "Only actual declared links from closed nine-page read, no repeated GETs",
+    "Pure cloud bounded read only; no Mac/server/provider/writes/messages/ads"
+  ],
+  "criteria": [
+    "Concorde actual photo gallery, RegnumCarya property distinct from Crown, MaxxBelek pool/beach scope"
+  ],
+  "risks": [
+    "Shared nav or seasonal facilities are not universal rights"
+  ],
+  "urls": [
+    "https://concordehotels.com/en/otels/concorde-de-luxe-resort/media/gallery-and-video",
+    "https://www.regnumhotels.com/en/hotels/regnum-carya/",
+    "https://www.maxxroyal.com/maxx-royal-belek/experiences/pool-and-beach"
+  ]
+}

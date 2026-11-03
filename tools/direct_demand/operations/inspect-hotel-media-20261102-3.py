@@ -1,12 +1,12 @@
 import base64,html,json,os,re,urllib.parse,urllib.request
 from pathlib import Path
 from html.parser import HTMLParser
-operation='commercial-batch33-nine-new-primary-owner-pages'
-pages=["https://miraclehotel.com/en/","https://concordehotels.com/en/otels/concorde-de-luxe-resort","https://www.limakhotels.com/lara","https://trendy.com.tr/en/trendy-lara/","https://www.titanic.com.tr/titanic-deluxe-lara","https://www.regnumhotels.com/en/about-regnum-carya/","https://www.maxxroyal.com/maxx-royal-belek/gallery","https://bayoulara.com/en/gallery","https://www.libertyhotels.com/en/hotels/liberty-signa/rooms/"]
+operation='commercial-batch33-three-new-declared-target-pages'
+pages=["https://concordehotels.com/en/otels/concorde-de-luxe-resort/media/gallery-and-video","https://www.regnumhotels.com/en/hotels/regnum-carya/","https://www.maxxroyal.com/maxx-royal-belek/experiences/pool-and-beach"]
 group=int(os.environ['MEDIA_GROUP'])
-assert group in (0,1,2)
-pages=pages[group*3:group*3+3]
-assert 1<=len(pages)<=3
+assert group in (0,1)
+pages=pages[group*2:group*2+2]
+assert 1<=len(pages)<=2
 hosts=set(["www.elgouna.com","elgouna.com","cms.elgouna.com","backend.elgouna.com","www.jazhotels.com","jazhotels.com","partner.jazhotels.com","hrewards.com","www.hrewards.com","www.hilton.com","hilton.com","www.oberoihotels.com","oberoihotels.com","threecorners.com","www.threecorners.com","braykaresorts.com","www.braykaresorts.com","cdn.braykaresorts.com","www.ahstatic.com","m.ahstatic.com","assets.hiltonstatic.com","image-tc.galaxy.tf","www.tropitelhotels.com","tropitelhotels.com","irp.cdn-website.com","www.safirhotels.com","safirhotels.com","www.cleopatraluxuryhotels.com","cleopatraluxuryhotels.com","baronhotels.com","www.baronhotels.com","www.akrahotels.com","baruthemera.com","barutarum.com","bayouacanthus.com","barutandiz.com","www.libertyhotels.com","ngphaselisbay.com","www.voyagehotel.com","akrahotels-gvhpewgeadfsftcj.a01.azurefd.net","api.baruthotelsgroup.com","voyagecdn.blob.core.windows.net","www.baruthemera.com","www.barutarum.com","www.bayouacanthus.com","www.barutandiz.com","www.ngphaselisbay.com","all.accor.com","bayoulara.com","www.bayoulara.com","www.delphinhotel.com","delphinhotel.com","lujohotel.com","www.lujohotel.com","barutlara.com","www.barutlara.com","miraclehotel.com","www.miraclehotel.com","concordehotels.com","www.concordehotels.com","www.limakhotels.com","limakhotels.com","trendy.com.tr","www.trendy.com.tr","www.titanic.com.tr","titanic.com.tr","www.regnumhotels.com","regnumhotels.com","www.maxxroyal.com","maxxroyal.com"])
 class Redirect(urllib.request.HTTPRedirectHandler):
  def redirect_request(self,*args,**kwargs):raise ValueError('unexpected_primary_source_redirect')
