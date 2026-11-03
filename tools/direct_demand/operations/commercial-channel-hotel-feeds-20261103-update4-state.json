@@ -1,0 +1,54 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261103-update4",
+  "state": "THREE_PUBLIC_DIRECT_YML_FEEDS_UPDATED_TO131_HOTELS_HTTPS_BYTES_VERIFIED",
+  "hotel_count": 131,
+  "telegram_offers": 131,
+  "max_offers": 131,
+  "combined_offers": 262,
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41721586080",
+  "intent_artifact_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41721586080/artifacts/13272991506",
+  "result_artifact_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41721586080/artifacts/13271752360",
+  "files": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "public_url": "https://app.anytoour.ru/feed/hotel-posts-telegram.xml",
+      "offers": 131,
+      "bytes": 85206,
+      "sha256": "9b103b4fca71fc4372cc26ff88cbb4f012a1d3056de577406af8939486916e32",
+      "previous_sha256": "957b48c4c08fcb3ca48cbc535d5a45b593ffcce9d61a6e589db81a7bb7fd5e81"
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "public_url": "https://app.anytoour.ru/feed/hotel-posts-max.xml",
+      "offers": 131,
+      "bytes": 86077,
+      "sha256": "07ea819ac7db8f963f952d28e2275d15ca049947bf53ab03973645926c4a7c1b",
+      "previous_sha256": "b34c2754672f88667116d4a4636f243a9c1b1c994eca9dfd292c10bb269ec667"
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "public_url": "https://app.anytoour.ru/feed/hotel-posts-all.xml",
+      "offers": 262,
+      "bytes": 170910,
+      "sha256": "3bcbed36464105f5692e70151872d40ac3093afe5b7cab337e4f3e5b59852ff3",
+      "previous_sha256": "f0dbf7d47a368c69dd4a9253caeb290f0ad05044fbc7f5e4388a2d02ba0165b2"
+    }
+  ],
+  "previous127_offer_bytes": "BYTE_IDENTICAL",
+  "combined": "EXACT_UNION",
+  "name_and_description": "NATIVE_YML_TAGS_FILLED",
+  "telegram_name_prefix": "Путевки в ",
+  "max_name_prefix": "Туры в ",
+  "description_state": "EXISTING_GENERIC_COPY_UNCHANGED_UNDER_USER_DISCUSSION_FOR_BOTH_PLATFORMS",
+  "explicit_image_gap_catalog_ids": [
+    381,
+    469
+  ],
+  "native_new_append_cases": 3,
+  "server_connection_used": true,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "ads_imports": 0,
+  "installed_runtime_changes": 0
+}

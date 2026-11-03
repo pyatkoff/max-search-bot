@@ -1,0 +1,417 @@
+{
+  "operation": "commercial-stock-20261103-31",
+  "state": "CATALOG_IDENTITIES_CONFIRMED_PRIMARY_PREPARATION_REQUIRED",
+  "hotel_count": 25,
+  "target_hotel_count": 25,
+  "ready_for_send_count": 0,
+  "candidates": [
+    {
+      "key": "jaz-elite-maraya",
+      "hotel_id": 67897,
+      "hotel": "JAZ MARAYA",
+      "region": "Марса Алам",
+      "state": "GENERAL_AMENITIES_READ_SHORELINE_PRIMARY_PROOF_PENDING"
+    },
+    {
+      "key": "sentido-reef-oasis-senses",
+      "hotel_id": 4184,
+      "hotel": "SENTIDO REEF OASIS SENSES RESORT (EX. REEF OASIS SENSES RESORT)",
+      "region": "Шарм-эль-Шейх",
+      "state": "CONTENT_VERIFIED_GENERAL_HOTEL_HERO_DEFERRED"
+    },
+    {
+      "key": "beach-albatros-marsa",
+      "hotel_id": 107,
+      "hotel": "BEACH ALBATROS RESORT MARSA ALAM",
+      "region": "Марса Алам",
+      "state": "EXACT_CURRENT_PRIMARY_HOTEL_MATCH_REQUIRED",
+      "identity_source": "commercial-stock-20261102-12-inventory.json"
+    },
+    {
+      "key": "jaz-fanara-resort",
+      "hotel_id": 12107,
+      "hotel": "JAZ FANARA RESORT & RESIDENCE (EX. IBEROTEL CLUB)",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_PRIMARY_OBJECT_AND_CONTENT_NOT_READY",
+      "identity_note": "Native12107 combines Resort & Residence; primary gallery4 and gallery3 are separate. Resolve exact tour product before any post."
+    },
+    {
+      "key": "robinson-soma-bay",
+      "hotel_id": 62505,
+      "hotel": "ROBINSON SOMA BAY",
+      "region": "Хургада",
+      "state": "CONTENT_VERIFIED_GENERAL_HOTEL_HERO_DEFERRED"
+    },
+    {
+      "key": "sheraton-miramar-el-gouna",
+      "hotel_id": 432,
+      "hotel": "SHERATON MIRAMAR RESORT",
+      "region": "Эль Гуна",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "nubian-village",
+      "hotel_id": 341,
+      "hotel": "NUBIAN VILLAGE",
+      "region": "Шарм-эль-Шейх",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "nubian-island",
+      "hotel_id": 340,
+      "hotel": "NUBIAN ISLAND",
+      "region": "Шарм-эль-Шейх",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "cleopatra-luxury-makadi",
+      "hotel_id": 21476,
+      "hotel": "CLEOPATRA LUXURY RESORT MAKADI BAY (EX. ALDIANA MAKADI)",
+      "region": "Хургада",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "hilton-marsa-alam-nubian",
+      "hotel_id": 4181,
+      "hotel": "HILTON MARSA ALAM NUBIAN RESORT",
+      "region": "Марса Алам",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "sunny-days-el-palacio",
+      "hotel_id": 473,
+      "hotel": "SUNNY DAYS EL PALACIO (EX. SUNNY DAYS RESORTS SPA & AQUA PARK)",
+      "region": "Хургада",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "sunrise-royal-makadi",
+      "hotel_id": 483,
+      "hotel": "SUNRISE ROYAL MAKADI RESORT",
+      "region": "Хургада",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "sindbad-club",
+      "hotel_id": 62504,
+      "hotel": "SINDBAD CLUB",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "grand-makadi",
+      "hotel_id": 231,
+      "hotel": "GRAND MAKADI",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "makadi-spa",
+      "hotel_id": 15693,
+      "hotel": "THE MAKADI SPA ADULTS ONLY 18+",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "titanic-royal",
+      "hotel_id": 65779,
+      "hotel": "TITANIC ROYAL HOTEL",
+      "country_id": 1,
+      "region": "Хургада",
+      "region_id": 5,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "titanic-palace",
+      "hotel_id": 932,
+      "hotel": "TITANIC PALACE RESORT & SPA",
+      "country_id": 1,
+      "region": "Хургада",
+      "region_id": 5,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "titanic-resort-aqua-park",
+      "hotel_id": 497,
+      "hotel": "TITANIC RESORT & AQUA PARK",
+      "country_id": 1,
+      "region": "Хургада",
+      "region_id": 5,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "amarina-abu-soma",
+      "hotel_id": 68907,
+      "hotel": "AMARINA ABU SOMA RESORT & AQUAPARK",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_PRIMARY_PREPARATION_REQUIRED"
+    },
+    {
+      "key": "old-palace-resort",
+      "hotel_id": 343,
+      "hotel": "OLD PALACE RESORT SAHL HASHESH",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_PRIMARY_PREPARATION_REQUIRED"
+    },
+    {
+      "key": "serry-beach",
+      "hotel_id": 83563,
+      "hotel": "SERRY BEACH RESORT",
+      "country_id": 1,
+      "region_id": 5,
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_PRIMARY_PREPARATION_REQUIRED"
+    },
+    {
+      "key": "grand-palace-hurghada",
+      "hotel_id": 73343,
+      "hotel": "THE GRAND PALACE ADULTS ONLY 18+",
+      "country_id": 1,
+      "region_id": 5,
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "serenity-alpha-beach",
+      "hotel_id": 418,
+      "hotel": "SERENITY ALPHA BEACH (EX. SERENITY MAKADI BEACH)",
+      "country_id": 1,
+      "region_id": 5,
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "country_id": 1,
+      "id": 74258,
+      "is_active": 1,
+      "name": "CASA COOK EL GOUNA ADULTS ONLY",
+      "region": "Эль Гуна",
+      "region_id": 15,
+      "key": "casa-cook-el-gouna",
+      "hotel_id": 74258,
+      "hotel": "CASA COOK EL GOUNA ADULTS ONLY",
+      "state": "CATALOG_CONFIRMED_PRIMARY_PREPARATION_REQUIRED"
+    },
+    {
+      "country_id": 1,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 102031,
+      "is_active": 1,
+      "name": "STEIGENBERGER NILE PALACE LUXOR",
+      "rating": "4.30",
+      "region": "Люксор",
+      "region_id": 721,
+      "key": "steigenberger-nile-palace",
+      "hotel_id": 102031,
+      "hotel": "STEIGENBERGER NILE PALACE LUXOR",
+      "state": "CONTENT_VERIFIED_GENERAL_HOTEL_HERO_DEFERRED"
+    }
+  ],
+  "additional_confirmed_candidates": [
+    {
+      "country_id": 1,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 75571,
+      "is_active": 1,
+      "name": "SOFITEL WINTER PALACE LUXOR",
+      "rating": "0.00",
+      "region": "Люксор",
+      "region_id": 721,
+      "key": "sofitel-winter-palace",
+      "hotel_id": 75571,
+      "hotel": "SOFITEL WINTER PALACE LUXOR",
+      "state": "CATALOG_CONFIRMED_NOT_IN_CURRENT25"
+    },
+    {
+      "country_id": 1,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 102774,
+      "is_active": 1,
+      "name": "HILTON LUXOR RESORT & SPA",
+      "rating": "0.00",
+      "region": "Люксор",
+      "region_id": 721,
+      "key": "hilton-luxor",
+      "hotel_id": 102774,
+      "hotel": "HILTON LUXOR RESORT & SPA",
+      "state": "CATALOG_CONFIRMED_NOT_IN_CURRENT25"
+    },
+    {
+      "country_id": 1,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 512,
+      "is_active": 1,
+      "name": "TROPITEL DAHAB OASIS",
+      "rating": "4.60",
+      "region": "Дахаб",
+      "region_id": 10,
+      "key": "tropitel-dahab",
+      "hotel_id": 512,
+      "hotel": "TROPITEL DAHAB OASIS",
+      "state": "CATALOG_CONFIRMED_NOT_IN_CURRENT25"
+    },
+    {
+      "country_id": 1,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 1962,
+      "is_active": 1,
+      "name": "BARON PALMS RESORT ADULTS ONLY 16+",
+      "rating": "4.60",
+      "region": "Шарм-эль-Шейх",
+      "region_id": 6,
+      "key": "baron-palms",
+      "hotel_id": 1962,
+      "hotel": "BARON PALMS RESORT ADULTS ONLY 16+",
+      "state": "CATALOG_CONFIRMED_NOT_IN_CURRENT25"
+    },
+    {
+      "country_id": 1,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 468,
+      "is_active": 1,
+      "name": "SULTAN BEY HOTEL",
+      "rating": "4.60",
+      "region": "Эль Гуна",
+      "region_id": 15,
+      "key": "sultan-bey",
+      "hotel_id": 468,
+      "hotel": "SULTAN BEY HOTEL",
+      "state": "CATALOG_CONFIRMED_NOT_IN_CURRENT25"
+    },
+    {
+      "country_id": 1,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 254,
+      "is_active": 1,
+      "name": "THE THREE CORNERS SEA BEACH RESORT",
+      "rating": "4.50",
+      "region": "Марса Алам",
+      "region_id": 11,
+      "key": "three-corners-sea-beach",
+      "hotel_id": 254,
+      "hotel": "THE THREE CORNERS SEA BEACH RESORT",
+      "state": "CATALOG_CONFIRMED_NOT_IN_CURRENT25"
+    },
+    {
+      "country_id": 1,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 4185,
+      "is_active": 1,
+      "name": "ROYAL BRAYKA BEACH RESORT",
+      "rating": "4.40",
+      "region": "Марса Алам",
+      "region_id": 11,
+      "key": "royal-brayka",
+      "hotel_id": 4185,
+      "hotel": "ROYAL BRAYKA BEACH RESORT",
+      "state": "CATALOG_CONFIRMED_NOT_IN_CURRENT25"
+    },
+    {
+      "hotel_id": 1033,
+      "name": "BARUT HEMERA",
+      "country_id": 4,
+      "region_id": 23,
+      "region": "Сиде",
+      "state": "CATALOG_IDENTITY_CONFIRMED_PRIMARY_PREPARATION_REQUIRED",
+      "lookup_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41716347078",
+      "monitor_input_admitted": false
+    },
+    {
+      "hotel_id": 1032,
+      "name": "BAYOU ACANTHUS (EX. ACANTHUS CENNET BARUT COLLECTION)",
+      "country_id": 4,
+      "region_id": 23,
+      "region": "Сиде",
+      "state": "CATALOG_IDENTITY_CONFIRMED_PRIMARY_PREPARATION_REQUIRED",
+      "lookup_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41716347078",
+      "monitor_input_admitted": false
+    },
+    {
+      "hotel_id": 1031,
+      "name": "ARUM BARUT COLLECTION",
+      "country_id": 4,
+      "region_id": 23,
+      "region": "Сиде",
+      "state": "CATALOG_IDENTITY_CONFIRMED_PRIMARY_PREPARATION_REQUIRED",
+      "lookup_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41716347078",
+      "monitor_input_admitted": false
+    },
+    {
+      "hotel_id": 21673,
+      "name": "TUI BLUE BARUT ANDIZ ADULTS ONLY 16+",
+      "country_id": 4,
+      "region_id": 23,
+      "region": "Сиде",
+      "state": "CATALOG_IDENTITY_CONFIRMED_PRIMARY_PREPARATION_REQUIRED",
+      "lookup_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41716347078",
+      "monitor_input_admitted": false
+    },
+    {
+      "hotel_id": 74503,
+      "name": "NG PHASELIS BAY",
+      "country_id": 4,
+      "region_id": 22,
+      "region": "Кемер",
+      "state": "CATALOG_IDENTITY_CONFIRMED_PRIMARY_PREPARATION_REQUIRED",
+      "lookup_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41716347078",
+      "monitor_input_admitted": false
+    },
+    {
+      "hotel_id": 1582,
+      "name": "VOYAGE BELEK GOLF & SPA",
+      "country_id": 4,
+      "region_id": 21,
+      "region": "Белек",
+      "state": "CATALOG_IDENTITY_CONFIRMED_PRIMARY_PREPARATION_REQUIRED",
+      "lookup_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41716347078",
+      "monitor_input_admitted": false
+    }
+  ],
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41687660699",
+  "monitor_append_pending_catalog_ids": [],
+  "monitor_input_count": 646,
+  "published_excluded_catalog_ids": [
+    56091,
+    103124,
+    488,
+    98723,
+    139,
+    342,
+    1291,
+    15869,
+    253,
+    75377
+  ],
+  "confirmed_logical_materials": 131
+}

@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261103-30-v1",
-  "state": "FOUR_NATIVE_COVERS_VISUALLY_VERIFIED_PENDING_FREEZE_AND_SEND",
+  "state": "FOUR_HOTELS_PUBLISHED_IN_BOTH_CHANNELS_VERIFIED",
   "goal": "Publish every ready subset of ten proven candidates in existing two channels, then append public canonical links to the same three Direct YML feeds",
   "boundaries": [
     "Existing registry/durable once/strict source and pinned host route only",
@@ -265,22 +265,22 @@
     {
       "hotel_id": 1291,
       "transaction_id": "5187541924495393437",
-      "state": "OPEN_TEMPORARY_PREVIEW_NOT_COMMITTED"
+      "state": "CANCELLED_AFTER_NATIVE_PNG_FREEZE"
     },
     {
       "hotel_id": 15869,
       "transaction_id": "29794454210415201",
-      "state": "OPEN_TEMPORARY_PREVIEW_NOT_COMMITTED"
+      "state": "CANCELLED_AFTER_NATIVE_PNG_FREEZE"
     },
     {
       "hotel_id": 253,
       "transaction_id": "7376291346492897029",
-      "state": "OPEN_TEMPORARY_PREVIEW_NOT_COMMITTED"
+      "state": "CANCELLED_AFTER_NATIVE_PNG_FREEZE"
     },
     {
       "hotel_id": 75377,
       "transaction_id": "6529614612805006549",
-      "state": "OPEN_TEMPORARY_PREVIEW_NOT_COMMITTED"
+      "state": "CANCELLED_AFTER_NATIVE_PNG_FREEZE"
     }
   ],
   "native_acceptance": {
@@ -346,5 +346,9 @@
         "chunks": 24
       }
     ]
-  }
+  },
+  "open_transactions": 0,
+  "publication_run": 41720888792,
+  "actual_new_posts": 8,
+  "native_png_accepted_count": 4
 }

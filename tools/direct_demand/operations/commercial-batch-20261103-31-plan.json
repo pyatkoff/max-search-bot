@@ -1,0 +1,106 @@
+{
+  "operation": "commercial-hotel-batch-20261103-31-v1",
+  "state": "TEN_PROVEN_CANDIDATES_PLANNED_PRIMARY_AND_DIFFERENT_OVERVIEWS_REQUIRED",
+  "baseline_logical_materials": 131,
+  "catalog_ids": [
+    1033,
+    1032,
+    1031,
+    21673,
+    74503,
+    1582,
+    75571,
+    102774,
+    512,
+    468
+  ],
+  "candidates": [
+    {
+      "hotel_id": 1033,
+      "hotel": "BARUT HEMERA",
+      "country_id": 4,
+      "region_id": 23,
+      "state": "PRIMARY_CONTENT_OR_DIFFERENT_GENERAL_PHOTO_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 1032,
+      "hotel": "BAYOU ACANTHUS (EX. ACANTHUS CENNET BARUT COLLECTION)",
+      "country_id": 4,
+      "region_id": 23,
+      "state": "PRIMARY_CONTENT_OR_DIFFERENT_GENERAL_PHOTO_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 1031,
+      "hotel": "ARUM BARUT COLLECTION",
+      "country_id": 4,
+      "region_id": 23,
+      "state": "PRIMARY_CONTENT_OR_DIFFERENT_GENERAL_PHOTO_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 21673,
+      "hotel": "TUI BLUE BARUT ANDIZ ADULTS ONLY 16+",
+      "country_id": 4,
+      "region_id": 23,
+      "state": "PRIMARY_CONTENT_OR_DIFFERENT_GENERAL_PHOTO_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 74503,
+      "hotel": "NG PHASELIS BAY",
+      "country_id": 4,
+      "region_id": 22,
+      "state": "PRIMARY_CONTENT_OR_DIFFERENT_GENERAL_PHOTO_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 1582,
+      "hotel": "VOYAGE BELEK GOLF & SPA",
+      "country_id": 4,
+      "region_id": 21,
+      "state": "PRIMARY_CONTENT_OR_DIFFERENT_GENERAL_PHOTO_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 75571,
+      "hotel": "SOFITEL WINTER PALACE LUXOR",
+      "country_id": 1,
+      "region_id": 721,
+      "state": "PRIMARY_CONTENT_OR_DIFFERENT_GENERAL_PHOTO_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 102774,
+      "hotel": "HILTON LUXOR RESORT & SPA",
+      "country_id": 1,
+      "region_id": 721,
+      "state": "PRIMARY_CONTENT_OR_DIFFERENT_GENERAL_PHOTO_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 512,
+      "hotel": "TROPITEL DAHAB OASIS",
+      "country_id": 1,
+      "region_id": 10,
+      "state": "PRIMARY_CONTENT_OR_DIFFERENT_GENERAL_PHOTO_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 468,
+      "hotel": "SULTAN BEY HOTEL",
+      "country_id": 1,
+      "region_id": 15,
+      "state": "PRIMARY_CONTENT_OR_DIFFERENT_GENERAL_PHOTO_PENDING_NOT_SENT"
+    }
+  ],
+  "goal": "Prepare ten proven candidates together, inspect only different exact declared primary photographs in one finite contact pass and publish every ready subset",
+  "boundaries": [
+    "Reuse primary30retainedHTML and source-notes29/30; no repeatedclosedphotos/GETs/lookups",
+    "Exact current source/registry/once/host/rights/UNKNOWN and nativePNG acceptance before any sends",
+    "No Mac/newagents/queues/runtime/collector/ads"
+  ],
+  "criteria": [
+    "Wholecaption,exacthotel overview plus two true supporting photos",
+    "Several existingCanvacopies together,one serialsenderready subset,appendsame3YML"
+  ],
+  "risks": [
+    "Six Turkey candidates have only lower photos fromclosedcontact30",
+    "Voyage general375x375 rejected unchangedguard,NGtwofamilyphotosnotgeneral,Barutmainphotosnotwholehotel",
+    "Sofitelcurrentownerexactpropertylinknotyetresolved,Hiltonoldtimeoutsclosed"
+  ],
+  "ready_for_send_count": 0,
+  "new_posts": 0
+}
