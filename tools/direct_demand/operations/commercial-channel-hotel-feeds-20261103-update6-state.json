@@ -1,0 +1,63 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261103-update6",
+  "state": "THREE_PUBLIC_DIRECT_YML_FEEDS_UPDATED_TO139_HOTELS_HTTPS_BYTES_VERIFIED",
+  "hotel_count": 139,
+  "telegram_offers": 139,
+  "max_offers": 139,
+  "combined_offers": 278,
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41735069410",
+  "intent_artifact_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41735069410/artifacts/13277883636",
+  "result_artifact_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41735069410/artifacts/13277013848",
+  "files": [
+    {
+      "bytes": 90278,
+      "content_type": "application/xml",
+      "description_count": 139,
+      "http": 200,
+      "name": "hotel-posts-telegram.xml",
+      "name_count": 139,
+      "offers": 139,
+      "public_url": "https://app.anytoour.ru/feed/hotel-posts-telegram.xml",
+      "sha256": "ec4cf9c863f88b0bec5b49cc77e953d0a75fd447b3d82f6095707c938a826ed1",
+      "previous_sha256": "1ec108f33d137994745e218aa7dac4c6bd802660af2f5cba8bfa1dda34e7f672"
+    },
+    {
+      "bytes": 91197,
+      "content_type": "application/xml",
+      "description_count": 139,
+      "http": 200,
+      "name": "hotel-posts-max.xml",
+      "name_count": 139,
+      "offers": 139,
+      "public_url": "https://app.anytoour.ru/feed/hotel-posts-max.xml",
+      "sha256": "4630dbecc21b44ae3348794da862ac107595ce91ff6069bbc407e39ea48583aa",
+      "previous_sha256": "b14d4209e3696fe0e040b8154e4020bae26f8b34193cea045ade694128fb021b"
+    },
+    {
+      "bytes": 181102,
+      "content_type": "application/xml",
+      "description_count": 278,
+      "http": 200,
+      "name": "hotel-posts-all.xml",
+      "name_count": 278,
+      "offers": 278,
+      "public_url": "https://app.anytoour.ru/feed/hotel-posts-all.xml",
+      "sha256": "749a074003d2d130c5b9d88e3639a8a7ca9723b19edb674d953f4875d7557e3f",
+      "previous_sha256": "3e1a48277e94a09bcd94cdc973d4da09b9c1c993b536f28801655d03ffd8dc22"
+    }
+  ],
+  "previous133_offer_bytes": "BYTE_IDENTICAL",
+  "combined": "EXACT_UNION",
+  "description_state": "APPROVED_GENERIC_TEMPLATE_UNCHANGED_USER_DISCUSSION",
+  "image_gap_catalog_ids": [
+    381,
+    469
+  ],
+  "native_new_append_cases": 3,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "ads_imports": 0,
+  "installed_runtime_changes": 0,
+  "existing_server_connection_used": true
+}

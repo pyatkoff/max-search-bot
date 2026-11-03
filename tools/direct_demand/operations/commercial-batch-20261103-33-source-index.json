@@ -1,0 +1,76 @@
+{
+  "operation": "commercial-hotel-batch-20261103-33-v1",
+  "state": "PRIMARY_DISCOVERY_ONLY_NOT_NATIVE_PHOTO_ACCEPTANCE",
+  "sources": [
+    {
+      "hotel_id": 1379,
+      "urls": [
+        "https://miraclehotel.com/en/"
+      ],
+      "notes": "Owner current body mentions2026 summer building; avoid future opening claims or universal swimup rights"
+    },
+    {
+      "hotel_id": 1133,
+      "urls": [
+        "https://concordehotels.com/en/otels/concorde-de-luxe-resort"
+      ],
+      "notes": "Use group owner, not unproven similar concorddeluxe.com"
+    },
+    {
+      "hotel_id": 1338,
+      "urls": [
+        "https://www.limakhotels.com/lara"
+      ],
+      "notes": "No direct-booking perks or room-category pool rights for all guests"
+    },
+    {
+      "hotel_id": 46670,
+      "urls": [
+        "https://trendy.com.tr/en/trendy-lara/"
+      ],
+      "notes": "Exact group owner; beach access/boat scope needs primary proof, not guessed distance/time"
+    },
+    {
+      "hotel_id": 1559,
+      "urls": [
+        "https://www.titanic.com.tr/titanic-deluxe-lara"
+      ],
+      "notes": "Turkey Titanic chain; not three Egypt Hwaidak Titanic hotels; exact declared gallery links next"
+    },
+    {
+      "hotel_id": 27316,
+      "urls": [
+        "https://www.regnumhotels.com/en/about-regnum-carya/"
+      ],
+      "notes": "Separate Regnum The Crown from Carya;2025 and2025-26 PDFs are historical, no current privileges assumed"
+    },
+    {
+      "hotel_id": 3405,
+      "urls": [
+        "https://www.maxxroyal.com/maxx-royal-belek/gallery"
+      ],
+      "notes": "Exact Belek owner gallery; shared nav other resorts not target photos; villa/heli/golf rights not universal"
+    },
+    {
+      "hotel_id": 1035,
+      "urls": [
+        "https://bayoulara.com/en/gallery"
+      ],
+      "notes": "New exact declared gallery; root frame people/pool and rooms rejected as hero, shared Acanthus references require actual target membership"
+    },
+    {
+      "hotel_id": 109655,
+      "urls": [
+        "https://www.libertyhotels.com/en/hotels/liberty-signa/rooms/"
+      ],
+      "notes": "New declared page only; old main onepool/shore/room/food not whole hero; caption reusable32"
+    },
+    {
+      "hotel_id": 468,
+      "urls": [
+        "https://backend.elgouna.com/wp-content/uploads/2024/01/sultan-bay.pdf"
+      ],
+      "notes": "Public exact owner brochure not yet native bytes/view accepted; old aerial croppedtop/pool/street closed; caption notes29 reusable"
+    }
+  ]
+}

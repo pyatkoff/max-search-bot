@@ -1,0 +1,152 @@
+{
+  "operation": "commercial-hotel-batch-20261103-33-v1",
+  "state": "PREPARATION_STARTED_NOT_SENT",
+  "baseline_logical_materials": 139,
+  "goal": "Prepare ten proven candidates together and publish the ready subset in one existing serial run",
+  "boundaries": [
+    "No repeated closed source/photo sets; reuse accepted whole captions",
+    "Existing templates/bots/channels/source/rights/dedup gates; no Mac/newruntime/ads/paidcalls"
+  ],
+  "criteria": [
+    "One finite grouped primary/photo pass, several covers, ready subset up10 sent together",
+    "Only verified new channel pairs count"
+  ],
+  "risks": [
+    "Seven newly proven native identities are not ready hotel materials",
+    "Three retained candidates still need a different exact owner general hotel photograph"
+  ],
+  "hotel_ids": [
+    1379,
+    1133,
+    1338,
+    46670,
+    1559,
+    27316,
+    3405,
+    1035,
+    109655,
+    468
+  ],
+  "candidates": [
+    {
+      "key": "miracle-resort",
+      "hotel_id": 1379,
+      "hotel": "MIRACLE RESORT",
+      "region": "Анталья",
+      "country_id": 4,
+      "region_id": 20,
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY"
+    },
+    {
+      "key": "concorde-deluxe",
+      "hotel_id": 1133,
+      "hotel": "CONCORDE DE LUXE RESORT",
+      "region": "Анталья",
+      "country_id": 4,
+      "region_id": 20,
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY"
+    },
+    {
+      "key": "limak-lara",
+      "hotel_id": 1338,
+      "hotel": "LIMAK LARA DE LUXE HOTEL & RESORT",
+      "region": "Анталья",
+      "country_id": 4,
+      "region_id": 20,
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY"
+    },
+    {
+      "key": "trendy-lara",
+      "hotel_id": 46670,
+      "hotel": "TRENDY LARA",
+      "region": "Анталья",
+      "country_id": 4,
+      "region_id": 20,
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY"
+    },
+    {
+      "key": "titanic-deluxe-lara",
+      "hotel_id": 1559,
+      "hotel": "TITANIC DELUXE LARA",
+      "region": "Анталья",
+      "country_id": 4,
+      "region_id": 20,
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY"
+    },
+    {
+      "key": "regnum-carya",
+      "hotel_id": 27316,
+      "hotel": "REGNUM CARYA GOLF & SPA",
+      "region": "Белек",
+      "country_id": 4,
+      "region_id": 21,
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY"
+    },
+    {
+      "key": "maxx-royal-belek",
+      "hotel_id": 3405,
+      "hotel": "MAXX ROYAL BELEK GOLF & SPA",
+      "region": "Белек",
+      "country_id": 4,
+      "region_id": 21,
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY"
+    },
+    {
+      "country_id": 4,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 1035,
+      "is_active": 1,
+      "name": "LARA BARUT COLLECTION",
+      "rating": "4.80",
+      "region": "Анталья",
+      "region_id": 20,
+      "key": "lara-barut",
+      "hotel_id": 1035,
+      "hotel": "LARA BARUT COLLECTION",
+      "state": "CATALOG_CONFIRMED_NOT_CURRENT25_NOT_READY",
+      "monitor_input_admitted": false,
+      "lookup_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41728602616"
+    },
+    {
+      "country_id": 4,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 109655,
+      "is_active": 1,
+      "name": "LIBERTY SIGNA",
+      "rating": "4.30",
+      "region": "Фетхие",
+      "region_id": 27,
+      "key": "liberty-signa",
+      "hotel_id": 109655,
+      "hotel": "LIBERTY SIGNA",
+      "state": "CATALOG_CONFIRMED_NOT_CURRENT25_NOT_READY",
+      "monitor_input_admitted": false,
+      "lookup_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41728602616"
+    },
+    {
+      "country_id": 1,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 468,
+      "is_active": 1,
+      "name": "SULTAN BEY HOTEL",
+      "rating": "4.60",
+      "region": "Эль Гуна",
+      "region_id": 15,
+      "key": "sultan-bey",
+      "hotel_id": 468,
+      "hotel": "SULTAN BEY HOTEL",
+      "state": "CATALOG_CONFIRMED_NOT_IN_CURRENT25"
+    }
+  ],
+  "ready_for_send_count": 0,
+  "new_posts": 0
+}
