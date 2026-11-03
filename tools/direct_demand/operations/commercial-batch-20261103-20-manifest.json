@@ -3,7 +3,7 @@
   "state": "PREPARED_NOT_SENT",
   "goal": "Publish one ready whole Savoy Sharm El Sheikh material in each existing channel.",
   "boundaries": "Existing publisher,registry,durable once and the two authorized channels only. Two messages maximum. No new quote requests,price or availability claims,new channels/runtime or Mac access.",
-  "criteria": "Exact current8d8 source and same-source accepted verify/TLS,21 unchanged publishing blobs,host continuity,schema,rights,current dedup. Exactly2 provider-confirmed posts with prepared text/photo hashes and canonical buttons/source.",
+  "criteria": "Exact approved/current source and same-source accepted verify/TLS,21 accepted publishing blobs,host continuity,schema,rights,current dedup. Exactly2 provider-confirmed posts with prepared text/photo hashes and canonical buttons/source.",
   "risks": "Savoy408 is not Royal Savoy or Sierra. Heating and kidsclub ages come from current exact Savoy primary pages. No dining package inclusions or direct-booking benefits are transferred. Other disputed heroes remain deferred.",
   "baseline_logical_materials": 105,
   "button_text": "✈️ Узнать стоимость тура",
