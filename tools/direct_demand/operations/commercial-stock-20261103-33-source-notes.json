@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261103-33-v1",
-  "state": "WHOLE_CAPTIONS_DRAFTED_NOT_SENT",
+  "state": "NINE_WHOLE_CAPTIONS_DRAFTED_NOT_SENT",
   "captions": [
     {
       "hotel_id": 1379,
@@ -88,23 +88,52 @@
         "https://bayoulara.com/en"
       ],
       "text": "✈️ Туры в Lara Barut Collection с перелётом\n📍 Лара, Анталья, Турция.\n\n🏖 Пляж с Голубым флагом.\n🏊 На территории есть аквапарк.\n🧘 Открытая студия йоги и дорожка для пробежек.\n🧖 Спа с турецким хаммамом.\n\n💡 Виллы с собственным бассейном представлены отдельной категорией. Их особенности не относятся ко всем номерам.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Lara Barut Collection."
+    },
+    {
+      "hotel_id": 27316,
+      "hotel": "Regnum Carya",
+      "key": "regnum-carya-belek",
+      "aliases": [
+        "REGNUM CARYA GOLF & SPA",
+        "REGNUM CARYA"
+      ],
+      "sources": [
+        "https://www.regnumhotels.com/en/hotels/regnum-carya/"
+      ],
+      "text": "✈️ Туры в Regnum Carya с перелётом\n📍 Белек, Турция.\n\n🏖 Пляжная зона Alia Beach Club.\n👧 Детский клуб Bamboo Kids World.\n🧖 Спа Revive Wellbeing.\n🍽 Рестораны с кухнями разных стран.\n\n💡 Можно выбрать номер в основном корпусе, номер Pearl с бассейном или виллу. Условия размещения зависят от категории.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Regnum Carya."
+    },
+    {
+      "hotel_id": 3405,
+      "hotel": "Maxx Royal Belek",
+      "key": "maxx-royal-belek",
+      "aliases": [
+        "MAXX ROYAL BELEK GOLF & SPA",
+        "MAXX ROYAL BELEK GOLF RESORT",
+        "MAXX ROYAL BELEK"
+      ],
+      "sources": [
+        "https://www.maxxroyal.com/maxx-royal-belek/gallery",
+        "https://www.maxxroyal.com/maxx-royal-belek/experiences/pool-and-beach"
+      ],
+      "text": "✈️ Туры в Maxx Royal Belek с перелётом\n📍 Белек, Турция.\n\n🏖 Пляж на Средиземном море.\n🏊 Крытые бассейны для взрослых и детей.\n💦 Аквапарк с разными горками.\n🧂 Подогреваемый бассейн с морской водой для взрослых.\n\n💡 Террасные бассейны предназначены для гостей категорий Terrace Family Suite и Terrace Laguna Family Suite.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Maxx Royal Belek."
     }
   ],
-  "primary_run": 41736292886,
-  "deferred_source": {
-    "hotel_id": 46670,
-    "error": "ValueError",
-    "http_status": null,
-    "reason": "Cause not proven, same GET closed"
-  },
-  "sultan": {
-    "operation": "commercial-hotel-batch-20261103-33-v1",
-    "hotel_id": 468,
-    "source_url": "https://backend.elgouna.com/wp-content/uploads/2024/01/sultan-bay.pdf",
-    "state": "NEW_PUBLIC_OWNER_PDF_FETCH_403_NO_NATIVE_PIXELS",
-    "http_status": 403,
-    "repeated_fetches": 0,
-    "canva_imports": 0,
-    "new_posts": 0
-  }
+  "primary_runs": [
+    41736292886,
+    41736774361
+  ],
+  "deferred": [
+    {
+      "hotel_id": 1035,
+      "state": "NEW_OWNER_GALLERY_ONLY_ACCOMMODATION_GASTRONOMY_NO_GENERAL_HOTEL_HERO"
+    },
+    {
+      "hotel_id": 46670,
+      "state": "NEW_OWNER_HTML_VALUEERROR_CAUSE_UNKNOWN_NO_REPEAT"
+    },
+    {
+      "hotel_id": 468,
+      "state": "NEW_PUBLIC_PDF403_NO_PHOTO_BYPASS"
+    }
+  ]
 }

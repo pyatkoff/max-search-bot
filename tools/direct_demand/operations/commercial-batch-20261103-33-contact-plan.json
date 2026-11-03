@@ -1,0 +1,183 @@
+{
+  "operation": "commercial-batch33-bounded-primary-contact-inspection",
+  "goal": "One finite28-photo inspection for the ten-candidate batch, using only actual newly declared public photoURIs",
+  "boundaries": [
+    "4readonlygroups/maxparallel2, no server/provider/DB/messages/ads/Mac/runtime",
+    "Unchanged HTTPS allowlist/no redirects/5MB/dimensions/realformat guards; no querystripping or guessed variants",
+    "Prior closed frames excluded; reusable Signa lower photos from accepted32 need no repeated inspection"
+  ],
+  "criteria": [
+    "Actual nativebytes/hash/dimensions/contactpixels, hero shows hotel buildings/grounds",
+    "All ready subset proceed together; uncertain properties deferred"
+  ],
+  "risks": [
+    "Some declared general photos may show only one pool/room/render",
+    "RegnumCrown and BAYOUsharedgallery are separate products, no crossphoto rights"
+  ],
+  "groups": [
+    [
+      {
+        "hotel_id": 1379,
+        "role": "g0_miracle_0",
+        "url": "https://miraclehotel.com/img/slider/miracle-resort-hotel-havuz-bina.jpg"
+      },
+      {
+        "hotel_id": 1379,
+        "role": "g0_miracle_1",
+        "url": "https://miraclehotel.com/img/slider/miracle-resort-hotel-aquapark-deniz-manzara.jpg"
+      },
+      {
+        "hotel_id": 1379,
+        "role": "g0_miracle_2",
+        "url": "https://miraclehotel.com/wp-content/uploads/2025/03/PIER-1.jpg"
+      },
+      {
+        "hotel_id": 1379,
+        "role": "g0_miracle_3",
+        "url": "https://miraclehotel.com/wp-content/uploads/2025/03/STANDART-ROOM-1.jpg"
+      },
+      {
+        "hotel_id": 1338,
+        "role": "g0_limak_0",
+        "url": "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/GENEL%2BALAN%2B%282%29.jpg"
+      },
+      {
+        "hotel_id": 1338,
+        "role": "g0_limak_1",
+        "url": "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/Genel%2BAlan%2B7.png"
+      },
+      {
+        "hotel_id": 1338,
+        "role": "g0_limak_2",
+        "url": "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/JAKUZI%2BSUI%CC%87T%2BROOM3.jpg"
+      },
+      {
+        "hotel_id": 1338,
+        "role": "g0_limak_3",
+        "url": "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/Restorant.jpg"
+      }
+    ],
+    [
+      {
+        "hotel_id": 1133,
+        "role": "g1_concorde_0",
+        "url": "https://concordehotels.com/media/ty3m5y5w/image.png"
+      },
+      {
+        "hotel_id": 1133,
+        "role": "g1_concorde_1",
+        "url": "https://concordehotels.com/media/0eqnibnk/image.png"
+      },
+      {
+        "hotel_id": 1133,
+        "role": "g1_concorde_2",
+        "url": "https://concordehotels.com/media/enflz1tg/image.png"
+      },
+      {
+        "hotel_id": 1133,
+        "role": "g1_concorde_3",
+        "url": "https://concordehotels.com/media/ltjf0isa/deluxe-room-general-view-1.webp"
+      },
+      {
+        "hotel_id": 27316,
+        "role": "g1_regnum_0",
+        "url": "https://www.regnumhotels.com/media/5idlahuv/regnumcarya_generaview-01-banner-v2.jpg"
+      },
+      {
+        "hotel_id": 27316,
+        "role": "g1_regnum_1",
+        "url": "https://www.regnumhotels.com/media/huuccry4/alia_sahil_s%C4%B1cak_renk_reg25-banner.jpg"
+      },
+      {
+        "hotel_id": 27316,
+        "role": "g1_regnum_2",
+        "url": "https://www.regnumhotels.com/media/rgefe2nc/regnumcarya_mainpool-01-slider.jpg"
+      },
+      {
+        "hotel_id": 27316,
+        "role": "g1_regnum_3",
+        "url": "https://www.regnumhotels.com/media/4lfbgvy4/regnumcarya_jaderoom_seaview_bedroom-01-3-card.jpg"
+      }
+    ],
+    [
+      {
+        "hotel_id": 1559,
+        "role": "g2_titanic_0",
+        "url": "https://image-tc.galaxy.tf/wijpeg-5wc2v9t20fponc03wqg7kg3n0/titanic-beach-lara-general-view-8.jpg"
+      },
+      {
+        "hotel_id": 1559,
+        "role": "g2_titanic_1",
+        "url": "https://image-tc.galaxy.tf/wijpeg-ddp76uip3isgompm7yhid9j5p/titanic-beach-lara-general-view-4.jpg"
+      },
+      {
+        "hotel_id": 1559,
+        "role": "g2_titanic_2",
+        "url": "https://image-tc.galaxy.tf/wijpeg-bwvwfu7di3k9xml1w13zgo3jw/titanic-beach-lara-beach-5.jpg"
+      },
+      {
+        "hotel_id": 1559,
+        "role": "g2_titanic_3",
+        "url": "https://image-tc.galaxy.tf/wijpeg-6fll4hsx9oc0ib7n39avn9hs2/titanic-deluxe-lara-standart-sea-2_standard.jpg?crop=107%2C0%2C1707%2C1280&height=600&width=728"
+      },
+      {
+        "hotel_id": 3405,
+        "role": "g2_maxx_0",
+        "url": "https://www.maxxroyal.com/media/zdijandq/1600x900.jpg"
+      },
+      {
+        "hotel_id": 3405,
+        "role": "g2_maxx_1",
+        "url": "https://www.maxxroyal.com/media/klshcv15/1600x900_3.jpg"
+      },
+      {
+        "hotel_id": 3405,
+        "role": "g2_maxx_2",
+        "url": "https://www.maxxroyal.com/media/q1ibbfeq/1200x1600.jpg"
+      },
+      {
+        "hotel_id": 3405,
+        "role": "g2_maxx_3",
+        "url": "https://www.maxxroyal.com/media/sdsfo4j1/maxx-royal-belek-pools-and-sea-hero.jpeg"
+      },
+      {
+        "hotel_id": 3405,
+        "role": "g2_maxx_4",
+        "url": "https://www.maxxroyal.com/media/kivnergy/maxx-royal-belek-aquapark.jpeg"
+      },
+      {
+        "hotel_id": 3405,
+        "role": "g2_maxx_5",
+        "url": "https://www.maxxroyal.com/media/sfkncjzw/maxx-royal-belek-pavilion.jpeg"
+      }
+    ],
+    [
+      {
+        "hotel_id": 109655,
+        "role": "g3_signa_0",
+        "url": "https://www.libertyhotels.com/wp-content/uploads/2025/11/liberty-signa-slider-4.jpg"
+      },
+      {
+        "hotel_id": 109655,
+        "role": "g3_signa_1",
+        "url": "https://www.libertyhotels.com/wp-content/uploads/2025/11/liberty-signa-baglantili-oda-2-1200x686.webp"
+      }
+    ]
+  ],
+  "photo_count": 28,
+  "candidate_count": 10,
+  "deferred_inputs": [
+    {
+      "hotel_id": 1035,
+      "state": "NEW_OWNER_GALLERY_ONLY_ACCOMMODATION_GASTRONOMY_NO_GENERAL_HOTEL_HERO"
+    },
+    {
+      "hotel_id": 46670,
+      "state": "NEW_OWNER_HTML_VALUEERROR_CAUSE_UNKNOWN_NO_REPEAT"
+    },
+    {
+      "hotel_id": 468,
+      "state": "NEW_PUBLIC_PDF403_NO_PHOTO_BYPASS"
+    }
+  ]
+}
