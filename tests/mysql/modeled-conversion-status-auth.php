@@ -214,6 +214,50 @@ function forecastNativeAuthRegression():void
             });
         }finally{$pdo->exec('RENAME TABLE forecast_fixture_profiles_unavailable TO modeled_conversion_profile_versions');}
         $check('all read and fault cases preserve complete fixture state',forecastNativeAuthSnapshot($pdo)===$before);
+        $phase='composed_status_budget';
+        forecastLatencyAssertions($pdo,$check);
+        $pdo->exec('ALTER TABLE max_channel_conversion_outbox ADD COLUMN value_reviewed_at_unix BIGINT NULL');
+    $pdo->exec("CREATE TABLE modeled_conversion_value_export_settings(project_key VARCHAR(40) PRIMARY KEY,counter_id VARCHAR(20),mode VARCHAR(16),goal_id VARCHAR(20),goal_intent VARCHAR(20),activated_at_unix BIGINT,last_tick_unix BIGINT,contract_version VARCHAR(64),last_receipt_json TEXT,history_from_unix BIGINT,history_until_unix BIGINT,history_completed_at_unix BIGINT,history_scanned BIGINT,history_collected BIGINT,history_stats_json TEXT,history_cursor BIGINT,history_ceiling BIGINT,history_fortnight_requested_at_unix BIGINT,history_day_receipt_json TEXT)");
+        $pdo->prepare("INSERT INTO modeled_conversion_value_export_settings(project_key,counter_id,mode,goal_id,goal_intent,activated_at_unix,last_tick_unix,contract_version,last_receipt_json,history_from_unix,history_until_unix,history_cursor,history_ceiling) VALUES('anytour','98615635','send','678187097','verified',1793656800,?,?,'{}',1793570400,1793656800,1,30099)")->execute([time(),ModeledConversionValueContract::VERSION]);
+        // All subviews exist together: 32 sampled scopes, 100 rich saved packets and a real migrated OAuth grant.
+        $insert=$pdo->prepare("INSERT INTO modeled_conversion_profile_versions(id,project_key,platform,customer_key,conversation_id,journal_cursor,observed_at_unix,profile_json) VALUES(?,'anytour','telegram',?,?,?,?,?)");
+        for($i=0;$i<100;$i++){
+            $person=(string)(9000+$i%32);$conversation=(string)(10000+$i%32);
+            $packet=forecastV1Packet($person,$conversation);
+            $insert->execute([30000+$i,$person,$conversation,$packet['journal_cursor'],strtotime($packet['profile']['prediction_at']),json_encode($packet,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR)]);
+        }
+        $before=forecastNativeAuthSnapshot($pdo);
+        $phase='composed_dispatch_and_contract';
+        forecastNativeReadOnly($pdo,static function()use($pdo,$forecast,$check):void{
+            [$response,$afterBearer,$afterRead]=forecastNativeAuthDispatch($pdo,$forecast);
+            $data=$response['result']['structuredContent']??[];
+            // Only this disposable fixture's technical contract flags, never token/row/response contents.
+            $reason=$response['error']['data']['reason']??null;
+            echo 'COMPOSED_FIXTURE_TECHNICAL '.json_encode([
+                'error_code'=>$response['error']['code']??null,
+                'budget_reason'=>in_array($reason,['byte_limit','time_limit'],true)?$reason:null,
+                'remaining_after_bearer'=>$afterBearer,'remaining_after_read'=>$afterRead,
+                'available'=>$data['available']??null,'value_available'=>$data['value_delivery']['available']??null,
+                'timing_available'=>$data['today_latency']['available']??null,
+                'timing_scopes'=>$data['today_latency']['profile_sample']['scopes_inspected']??null,
+                'diagnosis_limit'=>$data['saved_input_diagnosis']['window']['max_versions']??null,
+                'diagnosis_inspected'=>$data['saved_input_diagnosis']['window']['inspected_versions']??null,
+                'valid_packets'=>$data['saved']['valid_v1_versions']??null,
+                'result_bytes'=>strlen(json_encode($data,JSON_THROW_ON_ERROR)),
+                'rpc_bytes'=>strlen(json_encode($response,JSON_THROW_ON_ERROR))],JSON_THROW_ON_ERROR).PHP_EOL;
+            $check('composed real OAuth read retains delivery timing and forecasts under one shared byte budget',
+                ($data['available']??false)&&($data['value_delivery']['available']??false)
+                &&($data['today_latency']['available']??false)
+                &&($data['today_latency']['profile_sample']['scopes_inspected']??null)===32
+                &&($data['saved_input_diagnosis']['window']['max_versions']??null)===100
+                &&($data['saved_input_diagnosis']['window']['inspected_versions']??null)===100
+                &&($data['saved_input_diagnosis']['window']['complete_within_bound']??true)===false
+                &&($data['saved']['valid_v1_versions']??0)>0
+                &&$afterRead>0&&$afterRead<$afterBearer
+                &&strlen(json_encode($data,JSON_THROW_ON_ERROR))<=30000
+                &&strlen(json_encode($response,JSON_THROW_ON_ERROR))<=65536);
+        });
+        $check('combined private status preserves every OAuth and saved profile row',forecastNativeAuthSnapshot($pdo)===$before);
         echo 'NATIVE FORECAST AUTH PASSED '.$passed.PHP_EOL;
     }catch(Throwable $error){
         // Fixed phases and sanitized codes only: no tokens, SQL, fixture texts or connection details.
