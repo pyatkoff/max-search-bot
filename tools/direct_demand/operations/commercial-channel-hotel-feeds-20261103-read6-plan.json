@@ -1,0 +1,17 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261103-read6",
+  "goal": "Read only public canonical post destinations and accepted public images for the four newly verified batch30 pairs",
+  "boundaries": [
+    "Exactly four accepted first lines, parameterized query LIMIT9 and minimal public projection",
+    "No provider or DB writes, no full body/snapshot/privateIDs/buttons/receipts export",
+    "Preserve all existing127 YML offers and use same static files"
+  ],
+  "criteria": [
+    "scope4/ready4/deferred0 or exact unresolved gap",
+    "Four new finite-input query preparation cases/PHP-l before server"
+  ],
+  "risks": [
+    "Current source gate may stop before server",
+    "New public feed rows only after exact canonical pairing"
+  ]
+}

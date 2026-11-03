@@ -1,0 +1,30 @@
+[
+  {
+    "hotel_id": 1291,
+    "name": "Akra Kemer",
+    "accepted_first_line": "✈️ Туры в Akra Kemer с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4dff8a584b431a173d6f9dab9de7df3c22f3f2e3/.github/traffic-publish/commercial-batch-20261103-30/1291.png",
+    "image_sha256": "d489102f681a8b19f1bebb614ec48a28879a0234c7319d366dc18d49e2d2fe00"
+  },
+  {
+    "hotel_id": 15869,
+    "name": "Akra Sorgun TUI Blue Sensatori",
+    "accepted_first_line": "✈️ Туры в Akra Sorgun TUI Blue Sensatori с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4dff8a584b431a173d6f9dab9de7df3c22f3f2e3/.github/traffic-publish/commercial-batch-20261103-30/15869.png",
+    "image_sha256": "f535fbf21128eb4e6f25d3db4ca69c51e9d4dcba13692a0b0baa5bc39819ff58"
+  },
+  {
+    "hotel_id": 253,
+    "name": "Safir Sharm Waterfalls Resort",
+    "accepted_first_line": "✈️ Туры в Safir Sharm Waterfalls Resort с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4dff8a584b431a173d6f9dab9de7df3c22f3f2e3/.github/traffic-publish/commercial-batch-20261103-30/253.png",
+    "image_sha256": "5fe1c8b082f87f45e9ec9a59d226eb5c237d2b120c03cd017ab5d9247586de97"
+  },
+  {
+    "hotel_id": 75377,
+    "name": "Liberty Fabay",
+    "accepted_first_line": "✈️ Туры в Liberty Fabay с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4dff8a584b431a173d6f9dab9de7df3c22f3f2e3/.github/traffic-publish/commercial-batch-20261103-30/75377.png",
+    "image_sha256": "7f6a63e6d139b323cf197b7aa09a38cafb346c54380d5e37e0728445dcee85e7"
+  }
+]
