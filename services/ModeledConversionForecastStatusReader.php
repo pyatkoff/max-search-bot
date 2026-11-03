@@ -5,11 +5,12 @@ require_once __DIR__.'/ModeledConversionValueRegistry.php';
 require_once __DIR__.'/ModeledConversionValueDeliveryReader.php';
 require_once __DIR__.'/ModeledConversionInputDiagnosisReader.php';
 require_once __DIR__.'/ModeledConversionLatencyReader.php';
+require_once __DIR__.'/ModeledConversionTelegramLinkageReader.php';
 
 /** Launch readback of current V1 derived blocks only. Never reads a transcript or runs processing. */
 final class ModeledConversionForecastStatusReader
 {
-    public const VERSION='saved_semantic_prediction_status_v1_9';
+    public const VERSION='saved_semantic_prediction_status_v1_10';
     public const METADATA_LIMIT=20;
     public const PROFILE_LIMIT=4;
     public const PROFILE_BYTES=49152;
@@ -128,6 +129,8 @@ final class ModeledConversionForecastStatusReader
             $out['saved']['distinct_inspected_scopes']=$out['saved']['valid_v1_versions'];
             $out['confirmation']=$out['saved']['prospective_estimates']>0?'saved_prospective_estimates':
                 ($out['saved']['valid_v1_versions']>0?'saved_v1_without_prospective_estimate':'no_v1_confirmation_in_checked_suffix');
+            $out['telegram_linkage']=$this->budget->remainingBytes()<8192?['available'=>false,'reason'=>'budget_headroom']:
+                (new ModeledConversionTelegramLinkageReader($this->pdo,$this->authorize,$this->budget))->read(time());
             $this->auth();return $out;
         }catch(ModeledConversionStatusLimit $error){throw $error;}
         catch(PDOException $ignored){return $this->unavailable('storage_unavailable');}
