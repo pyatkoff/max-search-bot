@@ -1,0 +1,74 @@
+{
+  "operation": "commercial-hotel-batch-20261103-33-v1",
+  "state": "FIVE_NATIVE_PNG_VISUALLY_VERIFIED_NOT_SENT",
+  "goal": "Freeze only the five accepted real primary hotel cover PNGs",
+  "boundaries": [
+    "No permanent Canva save, no re-export accepted covers",
+    "Only allowed public accepted PNG bytes; exact transactions cancelled afterfreeze"
+  ],
+  "criteria": [
+    "600x600 native bytes/chunks/SHA and actual view accepted",
+    "Hotel/blueband/logo/title readable"
+  ],
+  "risks": [
+    "Do not repeat accepted images"
+  ],
+  "run_id": 41738082299,
+  "covers": [
+    {
+      "kind": "cover",
+      "hotel_id": 27316,
+      "mime": "image/png",
+      "width": 600,
+      "height": 600,
+      "bytes": 802163,
+      "sha256": "5df2133fafd45e1ecff870a484ba36da3cb00ef438e5c989f5b8f932a162f627",
+      "file": "27316.png",
+      "chunks": 23
+    },
+    {
+      "kind": "cover",
+      "hotel_id": 1559,
+      "mime": "image/png",
+      "width": 600,
+      "height": 600,
+      "bytes": 800414,
+      "sha256": "9de5d4dd4916c4a5e586f3424a8dce66baaef578343307f1d361150351bc0537",
+      "file": "1559.png",
+      "chunks": 23
+    },
+    {
+      "kind": "cover",
+      "hotel_id": 3405,
+      "mime": "image/png",
+      "width": 600,
+      "height": 600,
+      "bytes": 852248,
+      "sha256": "56c737bd14622d13cf1b07c5a468dfb955e88a2dc8c49399496194e302ec1305",
+      "file": "3405.png",
+      "chunks": 24
+    },
+    {
+      "kind": "cover",
+      "hotel_id": 1379,
+      "mime": "image/png",
+      "width": 600,
+      "height": 600,
+      "bytes": 762699,
+      "sha256": "1cd9174d264c3e67d4524914435bd2fd79502296610145988b4c548070f2d35c",
+      "file": "1379.png",
+      "chunks": 22
+    },
+    {
+      "kind": "cover",
+      "hotel_id": 1133,
+      "mime": "image/png",
+      "width": 600,
+      "height": 600,
+      "bytes": 798906,
+      "sha256": "a488f4e2119d692a885c11c7930e60d049a489098e3f1d153b34ce64019fff81",
+      "file": "1133.png",
+      "chunks": 23
+    }
+  ]
+}
