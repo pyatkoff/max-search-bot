@@ -1,0 +1,24 @@
+{
+  "operation": "commercial-monitor-publication-20261103-33",
+  "goal": "Append five genuinely new batch33 native IDs to existing monitor, preserving652 admitted inputs",
+  "catalog_ids": [
+    1379,
+    1133,
+    27316,
+    1559,
+    3405
+  ],
+  "previous_inputs": 652,
+  "new_inputs": 657,
+  "boundaries": [
+    "Separate immutable publication_stock_20261103q_5 cohort after actualfull652dedup",
+    "Existing collector/cron/transport/budget64/hourly12/lock/pendingsearches preserved"
+  ],
+  "criteria": [
+    "Native guard/collect/sync focused657 preserving652 byte-identical targetkeys and batch32 resume",
+    "Mixed countries, missing1379 and inactive5 no false credit"
+  ],
+  "risks": [
+    "Configuration not fresh observation/quote or delivery"
+  ]
+}

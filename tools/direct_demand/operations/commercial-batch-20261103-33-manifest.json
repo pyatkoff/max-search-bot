@@ -1,0 +1,144 @@
+{
+  "operation": "commercial-hotel-batch-20261103-33-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Publish all five ready whole hotel materials in both existing channels in one serial run",
+  "boundaries": [
+    "Existing channels/bots/registry/once/serialapprovedpublisher only",
+    "Exact current source/verify/TLS/fulltree21blobs before SSH/provider; runtimeguards unchanged",
+    "No Mac/new workers/queues/runtime/ads/customer messages/paidcalls"
+  ],
+  "criteria": [
+    "Five native PNGs accepted by bytes/chunks/SHA/dimensions and actual view",
+    "Exactly10 verified body/photo/button/source posts or explicitstop"
+  ],
+  "risks": [
+    "Do not hold five ready for five unresolved candidates",
+    "If main moves stop before SSH/provider; after2stops concrete releasewait"
+  ],
+  "baseline_logical_materials": 139,
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "hotel_id": 1379,
+      "hotel": "Miracle Resort",
+      "key": "miracle-resort-lara",
+      "aliases": [
+        "MIRACLE RESORT"
+      ],
+      "sources": [
+        "https://miraclehotel.com/en/"
+      ],
+      "text": "✈️ Туры в Miracle Resort с перелётом\n📍 Лара, Анталья, Турция.\n\n🏖 Собственный песчаный пляж и пирс.\n🏊 Аквапарк, детские горки и бассейн для малышей.\n👧 Детский клуб Miracle Kids с играми и мини дискотекой.\n🧖 Спа с хаммамом и сауной.\n\n💡 Есть семейные сьюты площадью 80 м². Прямой выход к бассейну предусмотрен в отдельных категориях номеров.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Miracle Resort.",
+      "logical_id": "commercial-miracle-resort-lara-1379-v1",
+      "text_sha256": "419be4112a3f8125743b9cddb6380465a8dc41d4d8c1f3644eb2968f4ecbb6d2",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e271d7f69a4942e1281bd273c3866f0c9a7de41e/.github/traffic-publish/commercial-batch-20261103-33/1379.png",
+      "photo_sha256": "1cd9174d264c3e67d4524914435bd2fd79502296610145988b4c548070f2d35c",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 1133,
+      "hotel": "Concorde De Luxe Resort",
+      "key": "concorde-de-luxe-lara",
+      "aliases": [
+        "CONCORDE DE LUXE RESORT"
+      ],
+      "sources": [
+        "https://concordehotels.com/en/otels/concorde-de-luxe-resort"
+      ],
+      "text": "✈️ Туры в Concorde De Luxe Resort с перелётом\n📍 Лара, Анталья, Турция.\n\n🏖 Песчаный пляж с Голубым флагом.\n👧 Детский клуб Moppet.\n🧖 Спа Carpe Diem.\n🎶 Спортивные занятия, живая музыка и вечерние шоу.\n\n💡 Дизайн отеля вдохновлён самолётом Concorde. Вид на море или город зависит от категории номера.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Concorde De Luxe.",
+      "logical_id": "commercial-concorde-de-luxe-lara-1133-v1",
+      "text_sha256": "82d5261bbdd45822e280080cb4436477e6561260b123e66387062933713194b1",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e271d7f69a4942e1281bd273c3866f0c9a7de41e/.github/traffic-publish/commercial-batch-20261103-33/1133.png",
+      "photo_sha256": "a488f4e2119d692a885c11c7930e60d049a489098e3f1d153b34ce64019fff81",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 27316,
+      "hotel": "Regnum Carya",
+      "key": "regnum-carya-belek",
+      "aliases": [
+        "REGNUM CARYA GOLF & SPA",
+        "REGNUM CARYA"
+      ],
+      "sources": [
+        "https://www.regnumhotels.com/en/hotels/regnum-carya/"
+      ],
+      "text": "✈️ Туры в Regnum Carya с перелётом\n📍 Белек, Турция.\n\n🏖 Пляжная зона Alia Beach Club.\n👧 Детский клуб Bamboo Kids World.\n🧖 Спа Revive Wellbeing.\n🍽 Рестораны с кухнями разных стран.\n\n💡 Можно выбрать номер в основном корпусе, номер Pearl с бассейном или виллу. Условия размещения зависят от категории.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Regnum Carya.",
+      "logical_id": "commercial-regnum-carya-belek-27316-v1",
+      "text_sha256": "55768b5ecb7db324c19640b4f0334fd18237075f1da160250dd76c0c464da719",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e271d7f69a4942e1281bd273c3866f0c9a7de41e/.github/traffic-publish/commercial-batch-20261103-33/27316.png",
+      "photo_sha256": "5df2133fafd45e1ecff870a484ba36da3cb00ef438e5c989f5b8f932a162f627",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 1559,
+      "hotel": "Titanic Deluxe Lara",
+      "key": "titanic-deluxe-lara",
+      "aliases": [
+        "TITANIC DELUXE LARA",
+        "TITANIC BEACH LARA"
+      ],
+      "sources": [
+        "https://www.titanic.com.tr/titanic-deluxe-lara"
+      ],
+      "text": "✈️ Туры в Titanic Deluxe Lara с перелётом\n📍 Лара, Анталья, Турция.\n\n🏖 Собственный песчаный пляж в пределах территории.\n🏊 Бассейны и аквапарк.\n👧 Детский клуб для гостей от 4 до 12 лет.\n🧖 Спа BeFine и фитнес.\n\n💡 Зимой часть развлечений закрыта. Подогрев бассейнов зависит от погоды, работают крытые бассейны для взрослых и детей.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Titanic Deluxe Lara.",
+      "logical_id": "commercial-titanic-deluxe-lara-1559-v1",
+      "text_sha256": "fd23aec63aea2524c84bf415f3b06d8ac16a08e73735e59200f5e8d86c284a18",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e271d7f69a4942e1281bd273c3866f0c9a7de41e/.github/traffic-publish/commercial-batch-20261103-33/1559.png",
+      "photo_sha256": "9de5d4dd4916c4a5e586f3424a8dce66baaef578343307f1d361150351bc0537",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 3405,
+      "hotel": "Maxx Royal Belek",
+      "key": "maxx-royal-belek",
+      "aliases": [
+        "MAXX ROYAL BELEK GOLF & SPA",
+        "MAXX ROYAL BELEK GOLF RESORT",
+        "MAXX ROYAL BELEK"
+      ],
+      "sources": [
+        "https://www.maxxroyal.com/maxx-royal-belek/gallery",
+        "https://www.maxxroyal.com/maxx-royal-belek/experiences/pool-and-beach"
+      ],
+      "text": "✈️ Туры в Maxx Royal Belek с перелётом\n📍 Белек, Турция.\n\n🏖 Пляж на Средиземном море.\n🏊 Крытые бассейны для взрослых и детей.\n💦 Аквапарк с разными горками.\n🧂 Подогреваемый бассейн с морской водой для взрослых.\n\n💡 Террасные бассейны предназначены для гостей категорий Terrace Family Suite и Terrace Laguna Family Suite.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Maxx Royal Belek.",
+      "logical_id": "commercial-maxx-royal-belek-3405-v1",
+      "text_sha256": "b9f2d1de4ff098a38c499ba8785d9ee742e78f009786439654d06a1237463805",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e271d7f69a4942e1281bd273c3866f0c9a7de41e/.github/traffic-publish/commercial-batch-20261103-33/3405.png",
+      "photo_sha256": "56c737bd14622d13cf1b07c5a468dfb955e88a2dc8c49399496194e302ec1305",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    }
+  ],
+  "ready_for_send_count": 5,
+  "new_posts": 0,
+  "provider_send_attempts": 0,
+  "content_and_cover_prepared_count": 5,
+  "approved_live_send_count": 5,
+  "public_png_frozen_count": 5,
+  "native_inspection_state": "FIVE_NATIVE_PNG_VISUALLY_VERIFIED",
+  "native_inspection_run_urls": [
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41738082299"
+  ],
+  "deferred": [
+    {
+      "hotel_id": 1338,
+      "state": "PRIMARY_PHOTO_SCOPE_OR_HERO_NOT_ACCEPTED_NOT_SENT"
+    },
+    {
+      "hotel_id": 46670,
+      "state": "PRIMARY_PHOTO_SCOPE_OR_HERO_NOT_ACCEPTED_NOT_SENT"
+    },
+    {
+      "hotel_id": 1035,
+      "state": "PRIMARY_PHOTO_SCOPE_OR_HERO_NOT_ACCEPTED_NOT_SENT"
+    },
+    {
+      "hotel_id": 109655,
+      "state": "PRIMARY_PHOTO_SCOPE_OR_HERO_NOT_ACCEPTED_NOT_SENT"
+    },
+    {
+      "hotel_id": 468,
+      "state": "PRIMARY_PHOTO_SCOPE_OR_HERO_NOT_ACCEPTED_NOT_SENT"
+    }
+  ]
+}
