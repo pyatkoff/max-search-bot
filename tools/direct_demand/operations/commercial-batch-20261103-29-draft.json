@@ -1,0 +1,31 @@
+{
+  "operation": "commercial-hotel-batch-20261103-29-v1",
+  "state": "THREE_COVERS_PREPARED_NATIVE_ACCEPTANCE_PENDING",
+  "goal": "Prepare ten proven hotel candidates together,inspect finite primary photo references and send the whole ready subset once",
+  "boundaries": [
+    "No new catalogue identity guesses;all are from closed bounded native reads",
+    "Use accepted whole captions and retained sources where present",
+    "No repeat of closed failed GETs,private token URLs,old cover exports or provider readbacks",
+    "Existing publisher/registry/once and3stablepublicpostfeeds only",
+    "Twelve declared first-party URLs only,4readonlygroups/maxparallel2,no server/provider/DB/messages",
+    "Unchanged prior source fixtures not repeated"
+  ],
+  "criteria": [
+    "Whole primary-proven hotel captions and real hotel/grounds hero plus2supporting photographs",
+    "Several Canva covers together,all nativePNGchecks and exact cancellation",
+    "Real new paired posts and then exact previous-hash updates to same3publicfeeds"
+  ],
+  "risks": [
+    "Do not hold fresh Safir/Tropitel/SultanBey candidates for older photo gaps",
+    "SeaBeach five listed images returned202HTML;do not retry/bypass or callthem403",
+    "Hilton gallery timeout,OberoiValueErrorunknowncause andSofitelmissingexactprimary remainhonest gaps"
+  ],
+  "catalog_ids": [
+    98723,
+    139,
+    342
+  ],
+  "baseline_logical_materials": 124,
+  "ready_for_send_count": 0,
+  "new_posts": 0
+}

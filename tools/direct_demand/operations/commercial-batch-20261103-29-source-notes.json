@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261103-29-v1",
-  "state": "EIGHT_WHOLE_CAPTIONS_PREPARED_PHOTOS_NOT_ACCEPTED",
+  "state": "THREE_PHOTO_SETS_VISUALLY_ACCEPTED_COVERS_NATIVE_PENDING",
   "baseline_logical_materials": 124,
   "candidate_catalog_ids": [
     253,
@@ -139,5 +139,132 @@
     "Hilton gallery timeout,OberoiValueErrorunknowncause andSofitelmissingexactprimary remainhonest gaps"
   ],
   "ready_for_send_count": 0,
-  "new_posts": 0
+  "new_posts": 0,
+  "accepted_photo_sets": [
+    {
+      "hotel_id": 98723,
+      "photos": [
+        {
+          "hotel_id": 98723,
+          "role": "g1_overview_2023",
+          "index": 4,
+          "source_url": "https://www.cleopatraluxuryhotels.com/wp-content/uploads/sites/55/2023/07/Cleopatra-adults-only-2.jpg",
+          "format": "JPEG",
+          "width": 2200,
+          "height": 1200,
+          "bytes": 475459,
+          "sha256": "022a39114a9ba7c16c85b3db07637fabbdc3fd4fbb52e3422b58f312609af931"
+        },
+        {
+          "hotel_id": 98723,
+          "role": "g1_deluxe_room",
+          "index": 6,
+          "source_url": "https://www.cleopatraluxuryhotels.com/wp-content/uploads/sites/55/2026/11/813715978.jpg",
+          "format": "JPEG",
+          "width": 1024,
+          "height": 681,
+          "bytes": 134633,
+          "sha256": "0dca544f22a6a35dcbe795afc2047298356a9bd38f970461a3d617af9cc4e9e8"
+        },
+        {
+          "hotel_id": 98723,
+          "role": "g1_pool",
+          "index": 7,
+          "source_url": "https://www.cleopatraluxuryhotels.com/wp-content/uploads/sites/55/2026/11/photo-18.jpg",
+          "format": "JPEG",
+          "width": 856,
+          "height": 545,
+          "bytes": 199368,
+          "sha256": "fcb5cb9da215f16ae08ea5ec7fef8bad2e7481c66b01ae32b839b37447b4b8ba"
+        }
+      ]
+    },
+    {
+      "hotel_id": 139,
+      "photos": [
+        {
+          "hotel_id": 139,
+          "role": "g2_gallery_1",
+          "index": 0,
+          "source_url": "https://cdn.braykaresorts.com/images/uploads/brayka-resorts-marsa-alam-marsa-alam-brayka-bay-resort-ebd0afd3-8aba-4e27-b351-ff754e4791ff-c2b11.webp",
+          "format": "WEBP",
+          "width": 1200,
+          "height": 800,
+          "bytes": 274974,
+          "sha256": "2d594c2bd041f8157b0ec34dd7c733fde30219715b7fab18f9eed3c8c5a50146"
+        },
+        {
+          "hotel_id": 139,
+          "role": "g2_gallery_2",
+          "index": 1,
+          "source_url": "https://cdn.braykaresorts.com/images/uploads/brayka-resorts-marsa-alam-marsa-alam-brayka-bay-resort-2e144.webp",
+          "format": "WEBP",
+          "width": 1200,
+          "height": 800,
+          "bytes": 157128,
+          "sha256": "d2052640378d6014b740d340f8a72d26f10e3197092c051a8d525a0e8e767012"
+        },
+        {
+          "hotel_id": 139,
+          "role": "g2_gallery_3",
+          "index": 2,
+          "source_url": "https://cdn.braykaresorts.com/images/uploads/brayka-resorts-marsa-alam-marsa-alam-brayka-bay-resort-ca8ad.webp",
+          "format": "WEBP",
+          "width": 1200,
+          "height": 800,
+          "bytes": 156776,
+          "sha256": "8040352a6183b8e0f952ea64295c3930bb405736665e02f4a89f66c9e98cdec0"
+        }
+      ]
+    },
+    {
+      "hotel_id": 342,
+      "photos": [
+        {
+          "hotel_id": 342,
+          "role": "g3_owner_gallery_3",
+          "index": 6,
+          "source_url": "https://www.oberoihotels.com/-/media/oberoi-hotel/the-oberoi-beach-resort-sahl-hasheesh/01-welcome/1640x1292/tosh_welcome_3.jpg",
+          "format": "JPEG",
+          "width": 1640,
+          "height": 1292,
+          "bytes": 298687,
+          "sha256": "c7b4079db6033b4c42322ff541d7bd0d29287e4b05fe9e976de36c1f0a80a93c"
+        },
+        {
+          "hotel_id": 342,
+          "role": "g3_owner_gallery_1",
+          "index": 4,
+          "source_url": "https://www.oberoihotels.com/-/media/oberoi-hotel/the-oberoi-beach-resort-sahl-hasheesh/01-welcome/1640x1292/tosh_welcome_6.jpg",
+          "format": "JPEG",
+          "width": 1640,
+          "height": 1292,
+          "bytes": 177037,
+          "sha256": "fcbe9e1bcea48b1db756109295f71ad87aa8bfb6cfafecfd4daa876ac7efc649"
+        },
+        {
+          "hotel_id": 342,
+          "role": "g3_owner_gallery_4",
+          "index": 7,
+          "source_url": "https://www.oberoihotels.com/-/media/oberoi-hotel/the-oberoi-beach-resort-sahl-hasheesh/02-accommodation/1640x1292/04-deluxe-suite/tosh_ds_1.jpg",
+          "format": "JPEG",
+          "width": 1640,
+          "height": 1292,
+          "bytes": 180821,
+          "sha256": "7a3667cce5448712abeab1c1564d92c30ad948d62adb02b6bddd52bf87bdbe08"
+        }
+      ]
+    }
+  ],
+  "primary_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41710195065",
+  "contact_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41711038055",
+  "deferred_reasons": {
+    "253": "Only2exacthotelphotosaccepted;poolwomanphotohasnoconfirmedhotelcontext;beachbytes7262belowguard",
+    "254": "Prior5images202HTMLclosed,noalternateacceptedinput",
+    "468": "Aerialmostlylagoon/onepoolwithbuildingscropped,streetexteriornotgeneralview",
+    "512": "overview1poolcourt;overview6differenthighriseidentityunproven;poolfetchValueErrorunknowncause",
+    "1962": "Fournewarchitecturedetails/courtyard,notwholehotel",
+    "4185": "Fourgalleryphotosshowfootball/padelgrounds,notgeneralhoteloverview",
+    "102774": "CachedHiltonimageURIsfound,webinternal/timeout/cachemissnotvisualproof,nativeHTMLfailedclosed"
+  }
 }
