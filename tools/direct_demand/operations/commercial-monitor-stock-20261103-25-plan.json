@@ -1,0 +1,26 @@
+{
+  "operation": "commercial-monitor-stock-20261103-25",
+  "state": "FOUR_ADDITIVE_NATIVE_MONITOR_INPUTS_PREPARED_NOT_MERGED",
+  "goal": "Configure all newly promoted reserve identities in the existing monitor without changing previous625 targetkeys orsearchattempts.",
+  "boundaries": [
+    "Separate immutablecohort only",
+    "Collector,lock,budgets,transport,resume andall625priorinputs preserved",
+    "No newruntime,collector,cron orpaid/provider calls"
+  ],
+  "criteria": [
+    "Exact4nativeIDs proven incountry1catalogue andexisting registry0",
+    "All4 absent from original492plusacceptedbindings625",
+    "NativeCI and focused629 previous625 equality/resume/mixedcountry/missinginactive smoke"
+  ],
+  "risks": [
+    "Input configuration isnot a collected price"
+  ],
+  "catalog_ids": [
+    73343,
+    418,
+    464,
+    103021
+  ],
+  "provider_calls": 0,
+  "db_writes": 0
+}
