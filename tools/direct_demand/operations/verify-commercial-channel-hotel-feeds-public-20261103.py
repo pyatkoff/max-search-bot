@@ -2,7 +2,7 @@ import csv,hashlib,json,pathlib,urllib.parse,urllib.request
 class NoRedirect(urllib.request.HTTPRedirectHandler):
  def redirect_request(self,*args,**kwargs):raise ValueError('unexpected_public_feed_redirect')
 opener=urllib.request.build_opener(NoRedirect())
-report={'operation':'commercial-channel-hotel-feeds-20261103-upload1','mode':'public_https_exact_readback','provider_calls':0,'message_sends':0,'files':[]}
+report={'operation':'commercial-channel-hotel-feeds-20261103-update1','mode':'public_https_exact_readback','provider_calls':0,'message_sends':0,'files':[]}
 for name in ['hotel-posts-telegram.csv','hotel-posts-max.csv','hotel-posts-all.csv']:
  url='https://app.anytoour.ru/feed/'+name
  req=urllib.request.Request(url,headers={'Cache-Control':'no-cache','User-Agent':'AnyTour-Public-Hotel-Feed-Verify/1.0'})

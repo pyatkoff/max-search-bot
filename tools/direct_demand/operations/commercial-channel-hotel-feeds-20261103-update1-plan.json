@@ -1,6 +1,6 @@
 {
   "operation": "commercial-channel-hotel-feeds-20261103-update1",
-  "state": "PREPARED_FOR_NEXT_NEW_PAIRS_NOT_RUN",
+  "state": "EXACT_NEXT_PUBLIC_FEED_BYTES_PREPARED",
   "goal": "Update exactly the same three public post feeds after newly verified hotel pairs",
   "boundaries": [
     "Only existing strict pinned GHA route,3staticCSV,no installed runtime/controller",
@@ -37,5 +37,59 @@
     }
   ],
   "new_posts": 0,
-  "new_server_writes": 0
+  "new_server_writes": 0,
+  "logical_hotels": 124,
+  "previous_feed_row_counts": [
+    121,
+    121,
+    242
+  ],
+  "next_feed_row_counts": [
+    124,
+    124,
+    248
+  ],
+  "new_catalog_ids": [
+    56091,
+    103124,
+    488
+  ],
+  "canonical_read_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41705844894",
+  "previous_files": [
+    {
+      "name": "hotel-posts-telegram.csv",
+      "rows": 121,
+      "sha256": "10409db94653ed1df898426077841b94905d23c1db41d80ed50761f553eae09c",
+      "public_url": "https://app.anytoour.ru/feed/hotel-posts-telegram.csv"
+    },
+    {
+      "name": "hotel-posts-max.csv",
+      "rows": 121,
+      "sha256": "f6d78c160102e274ac37f66532d3dd5216d474548e7488e7a333392ecaa60ccb",
+      "public_url": "https://app.anytoour.ru/feed/hotel-posts-max.csv"
+    },
+    {
+      "name": "hotel-posts-all.csv",
+      "rows": 242,
+      "sha256": "7841524f1c2e09eb184249d04aaaee1543969c486024244ca58968cb6fc55509",
+      "public_url": "https://app.anytoour.ru/feed/hotel-posts-all.csv"
+    }
+  ],
+  "next_files": [
+    {
+      "name": "hotel-posts-telegram.csv",
+      "rows": 124,
+      "sha256": "4c919310039d86115e2480ce8a10570cfb52b3904528d7ed90ba315a6a9501ee"
+    },
+    {
+      "name": "hotel-posts-max.csv",
+      "rows": 124,
+      "sha256": "f77c160a734d7864e77a456c606e216f724d1d61940b62df4eab1fce30b5d079"
+    },
+    {
+      "name": "hotel-posts-all.csv",
+      "rows": 248,
+      "sha256": "86ac313807d7452a55e37c2ca8e3ecaa78f9e9a80b07bd5fb3a5fc1f41d73414"
+    }
+  ]
 }
