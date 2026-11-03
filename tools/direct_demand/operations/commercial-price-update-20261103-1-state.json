@@ -1,0 +1,13 @@
+{
+  "operation": "commercial-price-update-20261103-1-v1",
+  "state": "PRICE_BLOCK_EDITED_IN_BOTH_EXISTING_POSTS_VERIFIED",
+  "catalog_ids": [
+    12114
+  ],
+  "logical_hotel_price_updates": 1,
+  "price_block_updates": 2,
+  "new_posts_created": 0,
+  "post_write_attempts": 2,
+  "total_logical_materials_per_channel": 99,
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41610735854"
+}
