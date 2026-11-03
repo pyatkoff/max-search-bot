@@ -58,7 +58,7 @@ try {
     // Execute the real CLI in a synthetic application; no production bootstrap.
     $app=$tmp.'/app';mkdir($app,0700);mkdir($app.'/tools',0700);mkdir($app.'/services',0700);
     copy(dirname(__DIR__).'/tools/hotel_work.php',$app.'/tools/hotel_work.php');
-    foreach (['HotelWorkHealth','DiagnosticLogger','HotelServerCronRuntime','HotelServerRuntimeConfig','HotelServerCycle','HotelServerInputs','HotelRetainedBaseline','HotelServerLane','HotelServerProvider'] as $name) copy(dirname(__DIR__).'/services/'.$name.'.php',$app.'/services/'.$name.'.php');
+    foreach (['HotelWorkHealth','DiagnosticLogger','HotelServerCronRuntime','HotelServerRuntimeConfig','HotelServerCycle','HotelServerCorrection','HotelServerInputs','HotelRetainedBaseline','HotelServerLane','HotelServerProvider'] as $name) copy(dirname(__DIR__).'/services/'.$name.'.php',$app.'/services/'.$name.'.php');
     foreach (['ProjectAccessService','HotelWorkEventService'] as $name) file_put_contents($app.'/services/'.$name.'.php','<?php');
     file_put_contents($app.'/config.php', <<<'PHP'
 <?php
@@ -399,3 +399,4 @@ PHP;
     foreach ($it as $entry) {if ($entry->isDir()&&!$entry->isLink()) rmdir($entry->getPathname());else unlink($entry->getPathname());}
     rmdir($tmp);
 }
+
