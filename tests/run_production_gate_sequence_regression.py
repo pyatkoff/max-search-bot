@@ -120,6 +120,12 @@ def source_step(source, filename, job_name=None):
     remote_steps = [step for step in steps if 'git rev-parse HEAD' in step and 'ssh ' in step]
     check(remote_steps and all('          EXPECTED_SHA: ' + SHA_EXPRESSION in step.splitlines()
                                and '"$EXPECTED_SHA"' in step for step in remote_steps), label + 'remote installed SHA comparison remains pinned')
+    for step in steps:
+        if '        run: |' in step:
+            shell = run_block(step)
+            if '$EXPECTED_SHA' in shell or '${EXPECTED_SHA}' in shell:
+                check('          EXPECTED_SHA: ' + SHA_EXPRESSION in step.splitlines(),
+                      label + 'every strict shell EXPECTED_SHA use has an exact step environment binding')
     resolver = run_block(steps[0])
     check('${{' not in resolver and field(steps[0], 'shell') == 'bash', label + 'resolver consumes event data through shell environment, not expression interpolation')
     return resolver
