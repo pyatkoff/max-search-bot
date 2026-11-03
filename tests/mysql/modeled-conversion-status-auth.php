@@ -233,6 +233,20 @@ function forecastNativeAuthRegression():void
             $packet=forecastV1Packet($person,$conversation);
             $insert->execute([30000+$i,$person,$conversation,$packet['journal_cursor'],strtotime($packet['profile']['prediction_at']),json_encode($packet,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR)]);
         }
+        // The component above keeps its fixed Nov 3 clock and exact delay assertions.
+        // The real OAuth dispatcher reads time(); only its dense synthetic cohort
+        // must be inside the current Kaliningrad day, including its first second.
+        $composedDay=(new DateTimeImmutable('@'.time()))->setTimezone(new DateTimeZone('Europe/Kaliningrad'))->setTime(0,0);
+        $composedDayStart=$composedDay->getTimestamp();
+        $alignSource=$pdo->prepare("UPDATE modeled_conversion_stream_versions SET observed_at_unix=?,snapshot_json=JSON_SET(snapshot_json,'$.source_created_at_unix',CAST(? AS UNSIGNED)) WHERE project_key='anytour' AND source_kind='message' AND id BETWEEN 3000 AND 5004");
+        $alignSource->execute([$composedDayStart,$composedDayStart]);
+        $alignProfiles=$pdo->prepare("UPDATE modeled_conversion_profile_versions SET observed_at_unix=? WHERE project_key='anytour' AND platform='max' AND id BETWEEN 10000 AND 12687");
+        $alignProfiles->execute([$composedDayStart]);
+        $alignment=$pdo->prepare("SELECT (SELECT COUNT(*) FROM modeled_conversion_stream_versions WHERE project_key='anytour' AND source_kind='message' AND id BETWEEN 3000 AND 5004 AND observed_at_unix=? AND JSON_TYPE(JSON_EXTRACT(snapshot_json,'$.source_created_at_unix'))='INTEGER' AND CAST(JSON_UNQUOTE(JSON_EXTRACT(snapshot_json,'$.source_created_at_unix')) AS UNSIGNED)=?) AS messages,(SELECT COUNT(*) FROM modeled_conversion_profile_versions WHERE project_key='anytour' AND platform='max' AND id BETWEEN 10000 AND 12687 AND observed_at_unix=?) AS profiles");
+        $alignment->execute([$composedDayStart,$composedDayStart,$composedDayStart]);
+        $aligned=$alignment->fetch(PDO::FETCH_ASSOC);
+        $check('composed synthetic timing cohort is aligned with the real current calendar day',
+            (int)$aligned['messages']===2005&&(int)$aligned['profiles']===2688);
         $before=forecastNativeAuthSnapshot($pdo);
         $phase='composed_dispatch_and_contract';
         forecastNativeReadOnly($pdo,static function()use($pdo,$forecast,$check):void{

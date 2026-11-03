@@ -76,26 +76,51 @@ final class ModeledConversionDeliveryRegistryView
 
     private static function monitor(array $m):string
     {
-        $available=($m['available']??false)===true;$fresh=($m['fresh']??false)===true;
-        $healthy=$available&&$fresh&&($m['status']??null)==='ok'&&in_array($m['notification']??null,['sent','quiet'],true);
-        $disabled=$available&&$fresh&&($m['status']??null)==='off'&&in_array($m['notification']??null,['sent','quiet'],true);
+        $p=is_array($m['pipeline']??null)?$m['pipeline']:[];
+        $active=($p['active']??false)===true;
+        $available=$active&&($p['available']??false)===true&&($p['origin']??null)==='server_cron';
+        $fresh=$available&&($p['fresh']??false)===true;
+        $confirmed=in_array($p['notification']??null,['sent','quiet'],true);
+        $healthy=$fresh&&($p['ok']??false)===true&&($p['status']??null)==='ok'&&$confirmed;
+        $disabled=$fresh&&($p['ok']??false)===true&&($p['status']??null)==='off'&&$confirmed;
         $label=$disabled?'Отправка конверсий выключена':($healthy?'Проверка успешна':($available&&!$fresh?'Проверка устарела':($available?'Требуется внимание':'Нет подтверждённой проверки')));
         $class=$disabled?'neutral':($healthy?'good':'attention');
+        $s=is_array($p['scheduled']??null)?$p['scheduled']:[];
+        $scheduledFresh=$fresh&&($s['fresh']??false)===true;
+        $regular=($healthy||$disabled)&&$scheduledFresh&&($s['regular']??false)===true;
+        $n=$scheduledFresh&&is_int($s['success_streak']??null)?max(0,min(3,$s['success_streak'])):0;
+        $source=($p['origin']??null)==='server_cron'?'По серверному расписанию':'Тип запуска не сохранён';
+        $html='<section class="monitor" id="pipelineMonitor" aria-labelledby="monitorTitle"><div class="monitor-heading"><h2 id="monitorTitle">Контроль обработчиков</h2><span class="badge '.$class.'">'.$label.'</span></div>'
+            .'<div class="monitor-grid"><div><span class="muted">Последняя проверка обработчиков</span><strong>'.self::moment($p['checked_at']??null).'</strong><small>'.$source.'</small></div>'
+            .'<div><span class="muted">Последняя серверная проверка по расписанию</span><strong>'.self::moment($s['last_checked_at']??null).'</strong><small>'
+            .($regular?'Регулярность подтверждена':'Регулярность пока не подтверждена · '.$n.' из 3 проверок').'</small></div>'
+            .'<div><span class="muted">Последнее уведомление об обработчиках</span><strong>'.self::moment($p['last_notification_at']??null).'</strong><small>Одинаковые сбои не дублируются</small></div></div>';
+        if(($p['notification']??null)==='unknown')$html.='<p class="monitor-warning">Отправка уведомления не подтверждена. Повторная отправка приостановлена до проверки результата.</p>';
+        if(!$fresh)$html.='<p class="monitor-warning">Свежей проверки обработчиков нет. Последний сохранённый результат не подтверждает их работу сейчас.</p>';
+        $note=$active?'Серверные проверки обработчиков настроены каждые пять минут. При здоровом состоянии уведомления не отправляются.'
+            :(($p['active']??null)===false?'Серверные проверки обработчиков не подключены.':'Настройка серверных проверок не подтверждена.');
+        $html.='<p class="monitor-note">'.$note.'</p></section>';
+        return $html.self::externalMonitor($m);
+    }
+
+    private static function externalMonitor(array $m):string
+    {
+        $available=($m['available']??false)===true;$fresh=($m['fresh']??false)===true;
+        $confirmed=in_array($m['notification']??null,['sent','quiet'],true);
+        $healthy=$available&&$fresh&&($m['status']??null)==='ok'&&$confirmed;
+        $label=$healthy?'Проверка успешна':($available&&!$fresh?'Проверка устарела':($available?'Требуется внимание':'Нет подтверждённой проверки'));
         $s=is_array($m['scheduled']??null)?$m['scheduled']:[];
-        $regular=($s['regular']??false)===true&&($s['fresh']??false)===true;
-        $n=is_int($s['success_streak']??null)?max(0,min(3,$s['success_streak'])):0;
         $source=match($m['source_event']??null){
-            'schedule'=>'По расписанию', 'workflow_run'=>'После обновления приложения',
+            'schedule'=>'По расписанию GitHub', 'workflow_run'=>'После обновления приложения',
             'workflow_dispatch'=>'Проверочный запуск', default=>'Тип запуска не сохранён',
         };
-        $html='<section class="monitor" aria-labelledby="monitorTitle"><div class="monitor-heading"><h2 id="monitorTitle">Контроль работы</h2><span class="badge '.$class.'">'.$label.'</span></div>'
-            .'<div class="monitor-grid"><div><span class="muted">Последняя проверка</span><strong>'.self::moment($m['checked_at']??null).'</strong><small>'.$source.'</small></div>'
-            .'<div><span class="muted">Последняя плановая проверка</span><strong>'.self::moment($s['last_checked_at']??null).'</strong><small>'
-            .($regular?'Регулярность подтверждена':'Регулярность пока не подтверждена · '.$n.' из 3 проверок').'</small></div>'
-            .'<div><span class="muted">Последнее уведомление вам</span><strong>'.self::moment($m['last_notification_at']??null).'</strong><small>Одинаковые сбои не дублируются</small></div></div>';
-        if(($m['notification']??null)==='unknown')$html.='<p class="monitor-warning">Отправка уведомления не подтверждена. Повторная отправка приостановлена до проверки результата.</p>';
-        if(!$fresh)$html.='<p class="monitor-warning">Свежей проверки нет. Сохранённый результат не подтверждает работу мониторинга сейчас.</p>';
-        return $html.'<p class="monitor-note">Плановые проверки настроены каждые пять минут. При здоровом состоянии уведомления не отправляются.</p></section>';
+        $html='<section class="notice external-monitor" id="externalMonitor" aria-labelledby="externalMonitorTitle" style="margin-bottom:32px"><div class="monitor-heading"><h2 id="externalMonitorTitle">Внешняя проверка сервера</h2><span class="badge '.($healthy?'good':'attention').'">'.$label.'</span></div>'
+            .'<div class="monitor-grid"><div><span class="muted">Последняя внешняя проверка</span><strong>'.self::moment($m['checked_at']??null).'</strong><small>'.$source.'</small></div>'
+            .'<div><span class="muted">Последняя внешняя проверка по расписанию</span><strong>'.self::moment($s['last_checked_at']??null).'</strong><small>Расписание GitHub</small></div>'
+            .'<div><span class="muted">Последнее уведомление о сервере</span><strong>'.self::moment($m['last_notification_at']??null).'</strong><small>Доступность сервера проверяется извне</small></div></div>';
+        if(($m['notification']??null)==='unknown')$html.='<p class="monitor-warning">Отправка уведомления о сервере не подтверждена. Повторная отправка приостановлена до проверки результата.</p>';
+        if(!$available||!$fresh)$html.='<p class="monitor-warning">Свежей внешней проверки нет. Доступность сервера сейчас не подтверждена.</p>';
+        return $html.'<p class="monitor-note">GitHub может задерживать или пропускать запуски. Гарантии внешней проверки каждые пять минут нет.</p></section>';
     }
 
     private static function row(array $r):string

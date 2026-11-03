@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__.'/ModeledConversionStatusBudget.php';
+require_once __DIR__.'/ModeledConversionPipelineMonitorStatus.php';
 
 /** Fixed-scope technical health; no capture, network, customer data or mutation. */
 final class ModeledConversionDeliveryHealth
@@ -152,6 +153,9 @@ final class ModeledConversionDeliveryHealth
                 }
             }
         }
+        $out['pipeline']=$budget->remainingBytes()<12288
+            ?['available'=>false,'active'=>null,'origin'=>null,'fresh'=>false,'reason'=>'budget_headroom']
+            :ModeledConversionPipelineMonitorStatus::read($budget,$authorize,$now);
         $guard();return$out;
     }
     private static function storedExternalReceipt(array $r,int $now):array
@@ -207,7 +211,7 @@ final class ModeledConversionDeliveryHealth
     {
         $allowed=['delivery_tick_stale','profile_tick_stale','delivery_tick_errors','profile_tick_errors','profile_disabled',
             'ready_queue_stale','upload_outcome_unknown','api_row_rejected','report_unavailable','storage_unavailable',
-            'configuration_unavailable','invalid_clock','health_metadata_unavailable','monitor_transport_unavailable','monitor_source_mismatch'];
+            'configuration_unavailable','invalid_clock','health_metadata_unavailable','monitor_transport_unavailable','monitor_source_mismatch','pipeline_checker_stale','pipeline_checker_notification_unknown'];
         if(!is_array($flags)||!array_is_list($flags)||count($flags)>20)throw new UnexpectedValueException('invalid_metadata');
         foreach($flags as$flag)if(!is_string($flag)||!in_array($flag,$allowed,true))throw new UnexpectedValueException('invalid_metadata');
         return array_values(array_unique($flags));
