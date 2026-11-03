@@ -1,0 +1,70 @@
+{
+  "operation": "commercial-hotel-batch-20261103-22-v1",
+  "state": "TWO_WHOLE_MATERIALS_FROZEN_APPROVED_NOT_SENT",
+  "catalog_ids": [
+    21477,
+    60589
+  ],
+  "primary_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41634046505",
+  "photo_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41634814933",
+  "ivory_fact_sheet": {
+    "source_url": "https://partner.jazhotels.com/Images/uploads/gallery/Downloads/solymarivorysuites/JAZ%20NEO%20Ivory_factsheet_08052026.pdf",
+    "bytes": 2056388,
+    "sha256": "ab07f2c92b1ecd4a6116469bf6ec7dd664ffec054e74255b2ec9f37f13279a90",
+    "document_year": 2026,
+    "read_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41635310857",
+    "restaurant_conflict": "Breakfast-only buffet and breakfast/lunch/dinner both appear; no meal-plan or dining inclusion claim used",
+    "no_direct_beach_access": true
+  },
+  "public_copy": [
+    {
+      "hotel_id": 21477,
+      "hotel": "Mövenpick Waterpark Resort & Spa Soma Bay",
+      "text": "✈️ Туры в Mövenpick Waterpark Resort & Spa Soma Bay с перелётом\n📍 Сома Бэй, Египет.\n\n🏖 Собственный песчаный пляж у Красного моря.\n🏊 Три бассейна, в том числе детский.\n💦 Аквапарк Splash Mania с зонами для детей от 2 до 6 лет, от 6 до 12 лет и гостей старше 12 лет.\n👨‍👩‍👧‍👦 Есть семейные номера.\n\n💡 Номера Swim up предназначены только для взрослых.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Mövenpick Soma Bay.",
+      "sources": [
+        "https://all.accor.com/hotel/B4M8/index.en.shtml",
+        "https://movenpick.accor.com/en/hotels/soma-bay/B4M8.html"
+      ]
+    },
+    {
+      "hotel_id": 60589,
+      "hotel": "JAZ Neo Ivory",
+      "text": "✈️ Туры в JAZ Neo Ivory с перелётом\n📍 Хургада, Египет.\n\n🏙 Городской район Эль Каусер.\n🛏 44 сьюта и 4 апартамента с двумя спальнями.\n🏊 Открытый бассейн.\n🌿 Балконы с видом на бассейн или сад.\n\n💡 Прямого выхода на пляж у отеля нет.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в JAZ Neo Ivory.",
+      "sources": [
+        "https://partner.jazhotels.com/hotel/27",
+        "https://partner.jazhotels.com/Images/uploads/gallery/Downloads/solymarivorysuites/JAZ%20NEO%20Ivory_factsheet_08052026.pdf",
+        "https://www.jazhotels.com/hoteldetail/27-egypt-hurghada-jaz-neo-ivory"
+      ]
+    }
+  ],
+  "deferred": [
+    {
+      "hotel_id": 68907,
+      "state": "WHOLE_CAPTION_VERIFIED_GENERAL_HERO_MISSING",
+      "text": "✈️ Туры в Amarina Abu Soma Resort & Aquapark с перелётом\n📍 Абу Сома, Сафага, Египет.\n\n🏖 Собственный песчаный пляж и зелёные сады.\n💦 Аквапарк с 6 взрослыми и 3 детскими горками.\n👧 Детский клуб для ребят от 4 до 12 лет и игровая площадка.\n💪 Тренажёрный зал, спа и джакузи.\n\n💡 В Family Room детская зона отделена перегородкой. В ней свой кондиционер и телевизор.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Amarina Abu Soma.",
+      "sources": [
+        "https://www.amarinagroup.com/amarina-hotels-resorts/amarina-abu-soma-resort",
+        "https://wa-uploads.profitroom.com/amarinahotels/17532949061737_Amarina%20-%20Abo%20Soma%20Resort%20Factsheet%20-%202025.pdf"
+      ],
+      "inspected_photos": [
+        {
+          "hotel_id": 68907,
+          "role": "main_photo24",
+          "url": "https://wa-uploads.profitroom.com/amarinahotels/960x960/17381638748768_mg1699.jpg"
+        },
+        {
+          "hotel_id": 68907,
+          "role": "main_photo25",
+          "url": "https://wa-uploads.profitroom.com/amarinahotels/960x960/17348184932611_03a0438edit.jpg"
+        }
+      ],
+      "visual_states": [
+        "ROOM_ONLY_LOWER_IMAGE",
+        "ONE_POOL_ONLY_NOT_HERO"
+      ]
+    }
+  ],
+  "native_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41636149071",
+  "public_cover_count": 2,
+  "canva_transactions_open": 0
+}

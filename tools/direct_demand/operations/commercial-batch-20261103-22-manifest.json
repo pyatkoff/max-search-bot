@@ -1,0 +1,154 @@
+{
+  "operation": "commercial-hotel-batch-20261103-22-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Publish two ready whole hotel materials in each existing authorized channel.",
+  "boundaries": "Existing publisher,registry and durable once only. Exactly four messages. Official real photographs. No new price or availability claims,new channels,runtime or Mac access.",
+  "criteria": "Exact approved/current source and same-source accepted verify/TLS,21 accepted publishing blobs,host continuity,schema,rights,current dedup. Exactly4 provider-confirmed posts with approved text/photo hashes and canonical buttons/source.",
+  "risks": "Movenpick21477 is the B4M8 Soma Bay property. Swim up adults rule is category-specific. Neo Ivory60589 is an urban hotel without direct beach access. Its current2026 PDF conflicts about meal service,so no meal-plan or restaurant inclusion is claimed. Amarina general hero remains deferred.",
+  "baseline_logical_materials": 107,
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "hotel_id": 21477,
+      "hotel": "Mövenpick Waterpark Resort & Spa Soma Bay",
+      "key": "movenpick-waterpark-soma-bay",
+      "aliases": [
+        "MOVENPICK WATERPARK RESORT & SPA SOMA BAY",
+        "MÖVENPICK WATERPARK RESORT & SPA SOMA BAY",
+        "MOVENPICK RESORT SOMA BAY"
+      ],
+      "sources": [
+        "https://all.accor.com/hotel/B4M8/index.en.shtml",
+        "https://movenpick.accor.com/en/hotels/soma-bay/B4M8.html"
+      ],
+      "text": "✈️ Туры в Mövenpick Waterpark Resort & Spa Soma Bay с перелётом\n📍 Сома Бэй, Египет.\n\n🏖 Собственный песчаный пляж у Красного моря.\n🏊 Три бассейна, в том числе детский.\n💦 Аквапарк Splash Mania с зонами для детей от 2 до 6 лет, от 6 до 12 лет и гостей старше 12 лет.\n👨‍👩‍👧‍👦 Есть семейные номера.\n\n💡 Номера Swim up предназначены только для взрослых.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Mövenpick Soma Bay.",
+      "logical_id": "commercial-movenpick-waterpark-soma-bay-21477-v1",
+      "text_sha256": "ebe6a407fd1978bf6510dc2d768ee866ac76f85ec7f648231902b2005db8bd5d",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f2b59582a43aa5aae57173ce5f36cb1a593aa223/.github/traffic-publish/commercial-batch-20261103-22/21477.png",
+      "photo_sha256": "847c1993f9044d0b291e0ea2584cb53ec0299961e3a4a9f9cefddd38b96d5dcc",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 60589,
+      "hotel": "JAZ Neo Ivory",
+      "key": "jaz-neo-ivory",
+      "aliases": [
+        "JAZ NEO IVORY",
+        "JAZ NEO IVORY (EX. SOLYMAR IVORY SUITES)",
+        "SOLYMAR IVORY SUITES"
+      ],
+      "sources": [
+        "https://partner.jazhotels.com/hotel/27",
+        "https://partner.jazhotels.com/Images/uploads/gallery/Downloads/solymarivorysuites/JAZ%20NEO%20Ivory_factsheet_08052026.pdf",
+        "https://www.jazhotels.com/hoteldetail/27-egypt-hurghada-jaz-neo-ivory"
+      ],
+      "text": "✈️ Туры в JAZ Neo Ivory с перелётом\n📍 Хургада, Египет.\n\n🏙 Городской район Эль Каусер.\n🛏 44 сьюта и 4 апартамента с двумя спальнями.\n🏊 Открытый бассейн.\n🌿 Балконы с видом на бассейн или сад.\n\n💡 Прямого выхода на пляж у отеля нет.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в JAZ Neo Ivory.",
+      "logical_id": "commercial-jaz-neo-ivory-60589-v1",
+      "text_sha256": "5360fb446bfd3e1cbab31b752b412a3414ee2ac4dab84ad738a07b21276f7a5e",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f2b59582a43aa5aae57173ce5f36cb1a593aa223/.github/traffic-publish/commercial-batch-20261103-22/60589.png",
+      "photo_sha256": "8e9a20fd9048b9a54f197a08b6a04b8ec65782ce3a52d0f46e89a43a6c380dc9",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    }
+  ],
+  "ready_for_send_count": 2,
+  "new_posts": 0,
+  "provider_send_attempts": 0,
+  "content_and_cover_prepared_count": 2,
+  "approved_live_send_count": 2,
+  "public_png_frozen_count": 2,
+  "native_inspection_state": "TWO_NATIVE_PNG_COVERS_VISUALLY_AND_BYTES_ACCEPTED",
+  "native_inspection_run_urls": [
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41636149071"
+  ],
+  "deferred": [
+    {
+      "hotel_id": 68907,
+      "hotel": "Amarina Abu Soma Resort & Aquapark",
+      "key": "amarina-abu-soma",
+      "aliases": [
+        "AMARINA ABU SOMA RESORT & AQUAPARK",
+        "AMARINA ABU SOMA RESORT"
+      ],
+      "sources": [
+        "https://www.amarinagroup.com/amarina-hotels-resorts/amarina-abu-soma-resort",
+        "https://wa-uploads.profitroom.com/amarinahotels/17532949061737_Amarina%20-%20Abo%20Soma%20Resort%20Factsheet%20-%202025.pdf"
+      ],
+      "text": "✈️ Туры в Amarina Abu Soma Resort & Aquapark с перелётом\n📍 Абу Сома, Сафага, Египет.\n\n🏖 Собственный песчаный пляж и зелёные сады.\n💦 Аквапарк с 6 взрослыми и 3 детскими горками.\n👧 Детский клуб для ребят от 4 до 12 лет и игровая площадка.\n💪 Тренажёрный зал, спа и джакузи.\n\n💡 В Family Room детская зона отделена перегородкой. В ней свой кондиционер и телевизор.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Amarina Abu Soma.",
+      "logical_id": "commercial-amarina-abu-soma-68907-v1",
+      "text_sha256": "b0942ebfd14174194168bb888cc96f7babfd75da0db7c54b44c35ca3a0b83a83",
+      "state": "WHOLE_CAPTION_VERIFIED_HERO_DEFERRED_NOT_SENT"
+    },
+    {
+      "hotel_id": 21476,
+      "hotel": "Cleopatra Luxury Resort Makadi Bay",
+      "key": "cleopatra-luxury-makadi",
+      "aliases": [
+        "CLEOPATRA LUXURY RESORT MAKADI BAY",
+        "CLEOPATRA LUXURY RESORT MAKADI BAY (EX. ALDIANA MAKADI)"
+      ],
+      "sources": [
+        "https://www.cleopatraluxuryhotels.com/hotel/cleopatra-luxury-resort-makadi-bay/",
+        "https://www.cleopatraluxuryhotels.com/hotel/cleopatra-luxury-resort-makadi-bay/activities/swimming-pools/",
+        "https://www.cleopatraluxuryhotels.com/hotel/cleopatra-luxury-resort-makadi-bay/activities/kids-club/"
+      ],
+      "text": "✈️ Туры в Cleopatra Luxury Resort Makadi Bay с перелётом\n📍 Макади Бэй, Египет.\n\n🏖 Курорт на берегу Красного моря.\n🏊 Восемь открытых бассейнов. Есть зимний подогрев.\n👧 Детский клуб для ребят от 4 до 12 лет, игровая комната и площадка.\n👨‍👩‍👧‍👦 Family Room площадью 77 м² с отдельными спальнями.\n\n💡 Дети младше 4 лет приходят в клуб с родителем.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Cleopatra Makadi.",
+      "state": "CONTENT_VERIFIED_OFFICIAL_PHOTO_HTTP403_NOT_SENT"
+    },
+    {
+      "hotel_id": 62504,
+      "state": "DIFFERENT_GENERAL_HOTEL_VIEW_REQUIRED",
+      "rejected_primary_sources": [
+        {
+          "url": "https://images.squarespace-cdn.com/content/v1/687def6f61ca990db754f20c/1753364475023-837KCP18GFPY61P703XE/DJI_20250127071121_0272_D.png",
+          "reason": "Native cover shows predominantly one close pool with only a strip of hotel facades."
+        },
+        {
+          "url": "https://images.squarespace-cdn.com/content/v1/687def6f61ca990db754f20c/e7f3a457-e9ee-4b5e-87f1-6a36b8f20873/Main%2BImage%2Bmin.jpg",
+          "reason": "Native cover shows a beach and no overall hotel/territory."
+        },
+        {
+          "url": "https://images.squarespace-cdn.com/content/v1/687def6f61ca990db754f20c/701b9c1c-25b1-495c-adc4-25034de2d2c9/DJI_20250129170253_0058_D.JPG",
+          "reason": "Different source JPEG shows waterfront restaurant roof and sea;not an overall hotel view."
+        }
+      ]
+    },
+    {
+      "hotel_id": 231,
+      "state": "CONTENT_VERIFIED_GENERAL_HOTEL_HERO_PENDING",
+      "prepared_row": {
+        "hotel_id": 231,
+        "hotel": "The Grand Makadi",
+        "key": "grand-makadi",
+        "aliases": [
+          "The Grand Makadi",
+          "Grand Makadi"
+        ],
+        "sources": [
+          "https://redseahotels.com/resorts/makadi-bay/the-grand-makadi/"
+        ],
+        "text": "✈️ Туры в The Grand Makadi с перелётом\n📍 Макади Бэй, Египет.\n\n🏖 Собственный пляж и зелёная территория у моря.\n🏊 Открытый бассейн, сезонный подогрев.\n👧 Детский клуб и игровая площадка.\n👨‍👩‍👧‍👦 В категории Family Room две спальни с соединяющей дверью.\n\n💡 К домашнему рифу ведёт пирс.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в The Grand Makadi.",
+        "logical_id": "commercial-grand-makadi-231-v1",
+        "text_sha256": "fa732bdc03572e67e93d19f20d06fc531e0890bf329808c08f77d8995b24c6d2"
+      }
+    },
+    {
+      "hotel_id": 483,
+      "state": "CONTENT_VERIFIED_GENERAL_HOTEL_HERO_PENDING",
+      "prepared_row": {
+        "hotel_id": 483,
+        "hotel": "SUNRISE Royal Makadi Resort",
+        "key": "sunrise-royal-makadi",
+        "aliases": [
+          "SUNRISE Royal Makadi",
+          "Royal Makadi Resort"
+        ],
+        "sources": [
+          "https://www.sunrise-resorts.com/royal-makadi-resort"
+        ],
+        "text": "✈️ Туры в SUNRISE Royal Makadi Resort с перелётом\n📍 Макади Бэй, Египет.\n\n🏖 Собственный пляж в бухте Макади.\n💦 Аквапарк с детской игровой зоной.\n👧 Детский клуб для ребят от 3 до 12 лет.\n👨‍👩‍👧‍👦 Есть Family Room площадью 55 м² с двухъярусной кроватью.\n\n💡 Тренажёрный зал доступен с 16 лет.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в SUNRISE Royal Makadi.",
+        "logical_id": "commercial-sunrise-royal-makadi-483-v1",
+        "text_sha256": "c3b8ec2bb00abd208cd1c4b1db099e7f00dd1c0c4357ee68adcbbb9f2e5f5225"
+      }
+    }
+  ]
+}
