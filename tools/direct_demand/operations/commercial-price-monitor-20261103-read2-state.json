@@ -1,6 +1,6 @@
 {
   "operation": "commercial-price-monitor-20261103-read2",
-  "state": "RETAINED_INPUT_READ_COMPLETE_FULL_TOTAL_UNVERIFIED_PRICES_NOT_PUBLISHED",
+  "state": "RETAINED_INPUT_READ_COMPLETE_PERSISTENCE_EPOCH_PROVEN_FULL_TOTAL_UNVERIFIED",
   "catalog_ids": [
     1554,
     81,
