@@ -1,4 +1,4 @@
-name: Read six fixed primary hotel photo pages for next batch
+name: Inspect four primary hotel overview photos before design
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -22,13 +22,13 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Read only six fixed public primary pages
+      - name: Inspect only four exact public hotel overview image files
         env:
           MEDIA_GROUP: ${{ matrix.media_group }}
-        run: python3 tools/direct_demand/operations/inspect-hotel-media-20261102-3.py
+        run: python3 tools/direct_demand/operations/inspect-hotel-primary-images-20261103-20.py
       - uses: actions/upload-artifact@v4
         with:
-          name: commercial-batch20-primary-group-${{ matrix.media_group }}
-          path: public-media-sources.json
+          name: commercial-batch20-primary-hero-group-${{ matrix.media_group }}
+          path: primary-image-inspection.json
           retention-days: 14
           if-no-files-found: error

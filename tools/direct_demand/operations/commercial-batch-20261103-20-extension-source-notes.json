@@ -1,0 +1,63 @@
+{
+  "operation": "commercial-hotel-batch-20261103-20-v1",
+  "state": "FOUR_WHOLE_CAPTIONS_VERIFIED_PRIMARY_PHOTOS_REQUIRE_VISUAL_ACCEPTANCE",
+  "hotel_ids": [
+    231,
+    441,
+    408,
+    483
+  ],
+  "sources": [
+    {
+      "hotel_id": 231,
+      "sources": [
+        "https://redseahotels.com/resorts/makadi-bay/the-grand-makadi/"
+      ],
+      "photos": {
+        "hero": "https://redseahotels.com/wp-content/uploads/2023/03/The-Grand-Makadi-is-an-allinclusive-hotel-in-makadi-bay-egypt-by-red-sea-hotel.jpg",
+        "left": "https://redseahotels.com/wp-content/uploads/2023/03/Sandy-beach-at-grand-makadi.jpg",
+        "right": "https://redseahotels.com/wp-content/uploads/2023/03/Family-Room-at-the-grand-makadi-allinclusive-resort.jpg"
+      },
+      "caption_utf16": 358
+    },
+    {
+      "hotel_id": 441,
+      "sources": [
+        "https://redseahotels.com/resorts/hurghada/siva-grand-beach/"
+      ],
+      "photos": {
+        "hero": "https://redseahotels.com/wp-content/uploads/2023/03/SIva-Grand-Beach-Long-Video-Preview-Image.jpg",
+        "left": "https://redseahotels.com/wp-content/uploads/2023/02/Direct-beach-access-at-sandy-beaches-of-siva-grand-beach-hotel.jpg",
+        "right": "https://redseahotels.com/wp-content/uploads/2023/03/Family-Room-at-Siva-Grand-Beach-800x600-1.jpg"
+      },
+      "caption_utf16": 392
+    },
+    {
+      "hotel_id": 408,
+      "sources": [
+        "https://www.savoy-sharm.com/savoy/hotel",
+        "https://www.savoy-sharm.com/savoy/activities/pools-beaches",
+        "https://www.savoy-sharm.com/savoy/activities/activitieskids-club"
+      ],
+      "photos": {
+        "hero": "https://d18slle4wlf9ku.cloudfront.net/www.savoy-sharm.com-1214052867/cms/cache/v2/691ab3760578e.jpg/1920x1080/resize/80/96e59ebb068c84bef44febf7edd232e9.jpg",
+        "left": "https://d18slle4wlf9ku.cloudfront.net/www.savoy-sharm.com-1214052867/cms/cache/v2/691ab373f1e12.jpg/1920x1080/resize/80/df2afc3d2979f709629aa96f6a14f773.jpg",
+        "right": "https://d18slle4wlf9ku.cloudfront.net/www.savoy-sharm.com-1214052867/cms/cache/v2/691ab36b82637.jpg/1920x1080/resize/80/2c8c5a16f61193f59a03576415a0890a.jpg"
+      },
+      "caption_utf16": 417
+    },
+    {
+      "hotel_id": 483,
+      "sources": [
+        "https://www.sunrise-resorts.com/royal-makadi-resort"
+      ],
+      "photos": {
+        "hero": "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/647db2167f5be.jpg/1920x1080/fit/80/8af160c8e384bb52da197f927fd684e0.jpg",
+        "left": "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/64bfa16ba5db4.jpg/1920x1080/fit/80/9f38aaf7584d314a088ff2a6822f65c6.jpg",
+        "right": "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/64bfa1848e62e.jpg/1920x1080/fit/80/a9a744933c79ea9fe8252c8a9c7ebcf7.jpg"
+      },
+      "caption_utf16": 368
+    }
+  ],
+  "risks": "Grand Makadi page restaurant section is mislabelled Grand Waterworld;do not transfer those dining rights/names. Grand heading and search title differ in stars;no star claim. Makadi Spa adult-only is proven but exact age inconsistent/unproven,so deferred. Savoy not Royal Savoy/Sierra. Swiss Inn has second-line room categories. Sunrise counts7/8pools conflict;omit pool count and direct-booking benefits."
+}
