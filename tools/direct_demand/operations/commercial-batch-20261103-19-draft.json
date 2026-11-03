@@ -1,0 +1,17 @@
+{
+  "operation": "commercial-hotel-batch-20261103-19-v1",
+  "state": "SIX_MATERIALS_PREPARED_CURRENT_TLS_CHECK_REQUIRED_NOT_SENT",
+  "hotel_ids": [
+    249,
+    315,
+    465,
+    272,
+    260,
+    273
+  ],
+  "published_logical_hotels_per_channel": 99,
+  "prepared_count": 6,
+  "new_posts": 0,
+  "source_gate_stops": 1,
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41614460554"
+}

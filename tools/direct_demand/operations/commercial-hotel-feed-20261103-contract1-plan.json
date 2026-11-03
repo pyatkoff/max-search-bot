@@ -1,0 +1,7 @@
+{
+  "operation": "commercial-hotel-feed-20261103-contract1",
+  "goal": "Установить поддержанный публичный hotel destination для гостиничного рекламного фида",
+  "bounds": "Только existing public frontend/catalog contracts, без search/provider calls/private maps/локальных файлов/рекламы",
+  "criteria": "Exact URL param hotel plus country/region catalogue membership and preserved selected hotel, no fabricated price/availability",
+  "risks": "Existing select limited100 may silently discard hotel; country feed is not hotel feed. Feed not published."
+}
