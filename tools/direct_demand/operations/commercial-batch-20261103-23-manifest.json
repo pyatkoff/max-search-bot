@@ -1,0 +1,67 @@
+{
+  "operation": "commercial-hotel-batch-20261103-23-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Publish the ready whole Movenpick El Gouna material in each existing authorized channel.",
+  "boundaries": [
+    "Only existing authorized channels and active bots",
+    "Existing publisher,canonical registry and durable once; serial send",
+    "No additional chats,runtime,workers,queues,collectors or ad changes",
+    "Exact current source,host,TLS,schema,rights,UNKNOWN and live dedup gates preserved"
+  ],
+  "criteria": [
+    "One native hotel identity already proven in catalogue and registry inspection",
+    "Whole hotel caption with4useful facts and material2027renovation feature",
+    "Real official photography,readable AnyTour brand/name,nativePNG visuallyverified and frozen",
+    "Exactly2provider verified posts or explicit dedup/UNKNOWN stop"
+  ],
+  "risks": [
+    "Phased renovation andSofitel repositioning begin2027; stated incaption",
+    "No price or availability assertion",
+    "A source change beforeSSH stops the send"
+  ],
+  "baseline_logical_materials": 109,
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "hotel_id": 328,
+      "hotel": "Mövenpick Resort & Spa El Gouna",
+      "key": "movenpick-el-gouna",
+      "aliases": [
+        "MOVENPICK RESORT & SPA EL GOUNA",
+        "MÖVENPICK RESORT & SPA EL GOUNA",
+        "MOVENPICK EL GOUNA"
+      ],
+      "sources": [
+        "https://all.accor.com/hotel/B4L7/index.fr.shtml",
+        "https://movenpick.accor.com/en/africa/egypt/el-gouna/resort-el-gouna.html",
+        "https://press.accor.com/sofitel-and-orascom-development-egypt-announce-the-signing-of-sofitel-el-gouna-a-flagship-luxury-resort-on-egypts-red-sea-coast/?lang=eng"
+      ],
+      "text": "✈️ Туры в Mövenpick El Gouna с перелётом\n📍 Эль Гуна, Египет.\n\n🏖 Полуостров с собственным пляжем и лагунами.\n🌿 Сады и 420 номеров.\n🏊 Три бассейна.\n🤿 Центры дайвинга, кайтсёрфинга и водного спорта.\n\n💡 С 2027 года запланировано поэтапное обновление отеля с переходом под бренд Sofitel.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Mövenpick El Gouna.",
+      "logical_id": "commercial-movenpick-el-gouna-328-v1",
+      "text_sha256": "cf87df765abfd97ce76dc1f0df403527b61eb0acb7581835d9ccc67d378667c7",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/856ad1c1edf8ae6be9583897f435f7e509d1b660/.github/traffic-publish/commercial-batch-20261103-23/328.png",
+      "photo_sha256": "3006e59af4e40d299b5630b996a56c1c2594ca26e9734bac3d919a308ef4747d",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    }
+  ],
+  "ready_for_send_count": 1,
+  "new_posts": 0,
+  "provider_send_attempts": 0,
+  "content_and_cover_prepared_count": 1,
+  "approved_live_send_count": 1,
+  "public_png_frozen_count": 1,
+  "native_inspection_state": "CLOUD_NATIVE_BYTES_DIMENSIONS_HASH_AND_VISUAL_ACCEPTED",
+  "native_inspection_run_urls": [
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41660705251"
+  ],
+  "deferred": [
+    {
+      "hotel_id": 343,
+      "state": "WHOLE_CAPTION_PREPARED_NO_ACCEPTED_HERO_NOT_SENT"
+    },
+    {
+      "hotel_id": 83563,
+      "state": "WHOLE_CAPTION_PREPARED_NO_ACCEPTED_HERO_NOT_SENT"
+    }
+  ]
+}
