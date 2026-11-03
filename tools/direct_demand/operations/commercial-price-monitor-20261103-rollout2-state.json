@@ -1,0 +1,16 @@
+{
+  "operation": "commercial-price-monitor-20261103-rollout2",
+  "state": "MONTHLY_ROLLOUT624_RECORDED_RUN_CANCELLED_LATER_STAGE_OUTCOME_UNKNOWN_NO_NEW_PRICE_EDITS_VERIFIED",
+  "source_hotels": 624,
+  "searchable_hotels": 550,
+  "processed": 64,
+  "page_gap_processed": 8,
+  "failed": 0,
+  "partial": 0,
+  "observations_written": 13475,
+  "fresh_targets": 219,
+  "pending_targets": 2849,
+  "complete": false,
+  "new_verified_price_updates": 0,
+  "run_url": "https://github.com/pyatkoff/poisk-turov-test/actions/runs/41660175981"
+}

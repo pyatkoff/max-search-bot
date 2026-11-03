@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261103-24-v1",
-  "state": "FOUR_WHOLE_MATERIALS_CANVA_PREPARED_NATIVE_PNG_VERIFICATION_PENDING_NOT_SENT",
+  "state": "FOUR_PUBLISHED_IN_BOTH_CHANNELS_SIX_OTHER_CANDIDATES_DEFERRED",
   "goal": "Increase publication throughput by preparing ten whole materials together and publishing every ready subset in one existing serial run.",
   "boundaries": [
     "Use existing authorized channels,publisher,registry,durableonce andcloud workflow only",
@@ -132,12 +132,7 @@
   "content_draft_count": 6,
   "ready_for_send_count": 0,
   "new_posts": 0,
-  "current_prepared_catalog_ids": [
-    282,
-    235,
-    382,
-    250
-  ],
+  "current_prepared_catalog_ids": [],
   "caption_prepared_count": 7,
   "source_inspection_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41665796009",
   "contact_photo_count": 23,
@@ -148,5 +143,13 @@
     65779,
     932,
     497
-  ]
+  ],
+  "published_catalog_ids": [
+    282,
+    235,
+    382,
+    250
+  ],
+  "publication_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41669184069",
+  "canva_transactions_open": 0
 }

@@ -1,6 +1,6 @@
 {
   "operation": "commercial-stock-20261103-25",
-  "state": "CATALOG_CONFIRMED_RESERVE25_MONITOR_APPEND_PENDING_CONTENT_NOT_READY",
+  "state": "CATALOG_CONFIRMED_RESERVE25_MONITOR_CONFIGURED_CONTENT_NOT_READY",
   "hotel_count": 25,
   "target_hotel_count": 25,
   "ready_for_send_count": 0,
@@ -311,10 +311,6 @@
     }
   ],
   "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41672883597",
-  "monitor_append_pending_catalog_ids": [
-    73343,
-    418,
-    464,
-    103021
-  ]
+  "monitor_append_pending_catalog_ids": [],
+  "monitor_input_count": 629
 }

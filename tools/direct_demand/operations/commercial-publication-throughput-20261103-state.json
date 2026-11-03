@@ -1,0 +1,16 @@
+{
+  "operation": "commercial-publication-throughput-20261103",
+  "state": "BATCHED_PREPARATION_AND_FOUR_HOTEL_SERIAL_PUBLICATION_VERIFIED",
+  "catalog_ids": [
+    282,
+    235,
+    382,
+    250
+  ],
+  "candidate_hotels": 10,
+  "source_photographs_inspected": 23,
+  "prepared_and_published_hotels": 4,
+  "new_posts": 8,
+  "total_logical_materials": 114,
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41669184069"
+}

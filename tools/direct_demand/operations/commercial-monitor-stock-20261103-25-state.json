@@ -1,0 +1,14 @@
+{
+  "operation": "commercial-monitor-stock-20261103-25",
+  "state": "MONITOR_INPUTS_MERGED_NOT_COLLECTED",
+  "catalog_ids": [
+    73343,
+    418,
+    464,
+    103021
+  ],
+  "configured_inputs": 629,
+  "provider_calls": 0,
+  "db_writes": 0,
+  "run_url": "https://github.com/pyatkoff/poisk-turov-test/actions/runs/41673685213"
+}
