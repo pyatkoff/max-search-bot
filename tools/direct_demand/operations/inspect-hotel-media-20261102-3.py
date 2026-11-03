@@ -1,16 +1,30 @@
 import base64,html,json,os,re,urllib.parse,urllib.request
 from pathlib import Path
 from html.parser import HTMLParser
-operation='commercial-batch31-five-primary-source-pages'
-pages=["https://baruthemera.com/en/gallery/general","https://baruthemera.com/en/pools-beach","https://ngphaselisbay.com/en/gallery-album/","https://ngphaselisbay.com/en/bays-beach-pools/","https://www.voyagehotel.com/en/voyage-belek-spa/gallery-detail"]
+operation='commercial-batch32-twelve-primary-source-pages'
+pages=["https://all.accor.com/hotel/B1J5/index.en.shtml","https://all.accor.com/hotel/B1J3/index.en.shtml","https://bayoulara.com/en","https://www.libertyhotels.com/en/hotels/liberty-signa/","https://www.delphinhotel.com/faq","https://www.delphinhotel.com/en/delphin-be-grand-resort/overview","https://www.delphinhotel.com/EN/delphin-palace/overview","https://www.delphinhotel.com/delphin-palace-factsheet-en","https://www.voyagehotel.com/en/voyage-sorgun","https://www.voyagehotel.com/en/voyage-sorgun/pool-beach","https://www.voyagehotel.com/en/voyage-sorgun/gallery-detail","https://lujohotel.com/en/overview"]
 group=int(os.environ['MEDIA_GROUP'])
-assert group in (0,1)
+assert group in (0,1,2,3)
 pages=pages[group*3:group*3+3]
 assert 1<=len(pages)<=3
-hosts=set(["www.elgouna.com","elgouna.com","cms.elgouna.com","backend.elgouna.com","www.jazhotels.com","jazhotels.com","partner.jazhotels.com","hrewards.com","www.hrewards.com","www.hilton.com","hilton.com","www.oberoihotels.com","oberoihotels.com","threecorners.com","www.threecorners.com","braykaresorts.com","www.braykaresorts.com","cdn.braykaresorts.com","www.ahstatic.com","m.ahstatic.com","assets.hiltonstatic.com","image-tc.galaxy.tf","www.tropitelhotels.com","tropitelhotels.com","irp.cdn-website.com","www.safirhotels.com","safirhotels.com","www.cleopatraluxuryhotels.com","cleopatraluxuryhotels.com","baronhotels.com","www.baronhotels.com","www.akrahotels.com","baruthemera.com","barutarum.com","bayouacanthus.com","barutandiz.com","www.libertyhotels.com","ngphaselisbay.com","www.voyagehotel.com","akrahotels-gvhpewgeadfsftcj.a01.azurefd.net","api.baruthotelsgroup.com","voyagecdn.blob.core.windows.net","www.baruthemera.com","www.barutarum.com","www.bayouacanthus.com","www.barutandiz.com","www.ngphaselisbay.com"])
+hosts=set(["www.elgouna.com","elgouna.com","cms.elgouna.com","backend.elgouna.com","www.jazhotels.com","jazhotels.com","partner.jazhotels.com","hrewards.com","www.hrewards.com","www.hilton.com","hilton.com","www.oberoihotels.com","oberoihotels.com","threecorners.com","www.threecorners.com","braykaresorts.com","www.braykaresorts.com","cdn.braykaresorts.com","www.ahstatic.com","m.ahstatic.com","assets.hiltonstatic.com","image-tc.galaxy.tf","www.tropitelhotels.com","tropitelhotels.com","irp.cdn-website.com","www.safirhotels.com","safirhotels.com","www.cleopatraluxuryhotels.com","cleopatraluxuryhotels.com","baronhotels.com","www.baronhotels.com","www.akrahotels.com","baruthemera.com","barutarum.com","bayouacanthus.com","barutandiz.com","www.libertyhotels.com","ngphaselisbay.com","www.voyagehotel.com","akrahotels-gvhpewgeadfsftcj.a01.azurefd.net","api.baruthotelsgroup.com","voyagecdn.blob.core.windows.net","www.baruthemera.com","www.barutarum.com","www.bayouacanthus.com","www.barutandiz.com","www.ngphaselisbay.com","all.accor.com","bayoulara.com","www.bayoulara.com","www.delphinhotel.com","delphinhotel.com","lujohotel.com","www.lujohotel.com","barutlara.com","www.barutlara.com"])
 class Redirect(urllib.request.HTTPRedirectHandler):
  def redirect_request(self,*args,**kwargs):raise ValueError('unexpected_primary_source_redirect')
 opener=urllib.request.build_opener(Redirect())
+def declared_public_page_href(value,final):
+ if not isinstance(value,str) or not value.strip():return None
+ absolute=urllib.parse.urljoin(final,html.unescape(value.strip()))
+ p=urllib.parse.urlsplit(absolute);origin=urllib.parse.urlsplit(final)
+ host=(p.hostname or '').removeprefix('www.');own=(origin.hostname or '').removeprefix('www.')
+ if p.scheme!='https' or p.hostname not in hosts or host!=own or p.username or p.password or p.port is not None or p.query or p.fragment:return None
+ if re.search(r'/(?:admin|api|booking|reserve|reservation|login|register|account|payment|checkout|search|ajax|customer|user)(?:/|$)',p.path,re.I):return None
+ if re.search(r'\.(?:jpe?g|png|webp|gif|svg|pdf|zip|rar|7z|css|js|mp4|webm)(?:$|/)',p.path,re.I):return None
+ return absolute
+assert declared_public_page_href('/en/gallery','https://www.delphinhotel.com/faq')=='https://www.delphinhotel.com/en/gallery'
+assert declared_public_page_href('https://foreign.example/en/gallery','https://www.delphinhotel.com/faq') is None
+assert declared_public_page_href('/en/gallery?token=private','https://www.delphinhotel.com/faq') is None
+assert declared_public_page_href('/account/customer','https://www.delphinhotel.com/faq') is None
+print('PRIMARY_PUBLIC_PAGE_LINK_PREPARATION_OK new_cases=4 same_owner_relative_kept=1 foreign_token_account_rejected=1 http_calls=0',flush=True)
 def safe_declared_reference(value,final):
  if not isinstance(value,str) or not value.strip():return None
  joined=urllib.parse.urljoin(final,html.unescape(value.strip()))
@@ -84,9 +98,8 @@ for url in pages:
  title=html.unescape(re.sub('<[^>]+>',' ',title_match.group(1)))[:220] if title_match else None
  website_links=[]
  for value in re.findall(r'href=["\x27]([^"\x27<>]+)["\x27]',text,re.I):
-  absolute=urllib.parse.urljoin(final,html.unescape(value));p=urllib.parse.urlsplit(absolute)
-  if p.scheme=='https' and p.hostname in hosts and not p.username and not p.password and not re.search(r'token|authkey|api_key|password|firebase',absolute,re.I):
-   if p.hostname in ('www.jazhotels.com','jazhotels.com') and '/hoteldetail/' in p.path and absolute not in website_links:website_links.append(absolute)
+  absolute=declared_public_page_href(value,final)
+  if absolute and absolute not in website_links:website_links.append(absolute)
 
  def declared_public_image(value):
   if not isinstance(value,str):return None
@@ -139,7 +152,7 @@ for url in pages:
  for body in re.findall(r'<script[^>]*(?:type=["\x27]application/(?:ld\\+)?json["\x27]|id=["\x27]__NEXT_DATA__["\x27])[^>]*>(.*?)</script>',text,re.I|re.S):
   try:selected_json(json.loads(html.unescape(body)))
   except (ValueError,TypeError):pass
- out['pages'].append({'source_url':url,'final_url':final,'page_title':title,'image_hosts':sorted(image_hosts),'image_urls':candidates[:180],'declared_public_image_references':declared_references[:300],'image_details':image_details[:160],'document_urls':documents[:12],'website_links':website_links[:10],'public_text':public_text,'json_fact_fragments':fragments,'album_context':album_context,'gallery_memberships':gallery_memberships})
+ out['pages'].append({'source_url':url,'final_url':final,'page_title':title,'image_hosts':sorted(image_hosts),'image_urls':candidates[:180],'declared_public_image_references':declared_references[:300],'image_details':image_details[:160],'document_urls':documents[:12],'website_links':website_links[:30],'public_text':public_text,'json_fact_fragments':fragments,'album_context':album_context,'gallery_memberships':gallery_memberships})
 
 out['ok']=True
 if fixture_mode:

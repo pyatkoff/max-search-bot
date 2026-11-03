@@ -1,0 +1,20 @@
+{
+  "operation": "commercial-batch32-twelve-primary-source-pages",
+  "goal": "Read twelve exact newly declared primary pages together for the ten proven batch32 candidates",
+  "boundaries": [
+    "Fixed12publicpages/4groups/maxparallel2, no server/provider/DB/messages/ads",
+    "Retain safe image URL, no redirects, publicsize/host/rights guards",
+    "No re-read closed31/30/29pages, no descriptionrewrite while userdiscusses",
+    "Same-owner public page links only; foreign/reservation/account/token links excluded"
+  ],
+  "criteria": [
+    "4newmetadata privacy/source-scope fixtures before each group's GET, unchanged oldfixtures notrerun",
+    "Retain real declared photo URIs and actual gallery/property hrefs, no guessed IDs/URLs",
+    "Single finite contactpass and ready-subsetpublication follow"
+  ],
+  "risks": [
+    "Knownoldlinkextractor only retained JAZhoteldetail URLs, starving otherowner gallerydiscovery; bounded same-owner extraction fixes this specificgap",
+    "NewCDNmetadata not automaticdownloadallowlist",
+    "NativecatalogFREEACCESS/directbookingrights not AnyTourinclusion"
+  ]
+}
