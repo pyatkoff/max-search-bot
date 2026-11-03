@@ -1,4 +1,4 @@
-name: Update three public hotel post feeds after batch28
+name: Publish three Direct YML feeds with Telegram and MAX ad copy
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -38,37 +38,37 @@ jobs:
           tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
           gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
           python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
-      - name: Validate exact public CSV destinations and prepare bounded static payload
+      - name: Validate native Direct YML cases and prepare three bounded static files
         shell: bash
         run: |
           set -euo pipefail
           umask 077
-          python3 tools/direct_demand/operations/verify-commercial-channel-hotel-feeds-20261103.py
+          python3 tools/direct_demand/operations/verify-commercial-channel-hotel-feeds-yml-20261103.py
           python3 - <<'PY'
           import base64,hashlib,json,os,pathlib
           base=pathlib.Path('.github/traffic-publish')
-          names=['hotel-posts-telegram.csv','hotel-posts-max.csv','hotel-posts-all.csv']
+          names=['hotel-posts-telegram.xml','hotel-posts-max.xml','hotel-posts-all.xml']
           files=[]
-          previous_hashes={"hotel-posts-telegram.csv":"10409db94653ed1df898426077841b94905d23c1db41d80ed50761f553eae09c","hotel-posts-max.csv":"f6d78c160102e274ac37f66532d3dd5216d474548e7488e7a333392ecaa60ccb","hotel-posts-all.csv":"7841524f1c2e09eb184249d04aaaee1543969c486024244ca58968cb6fc55509"}
+          previous_hashes={name:None for name in names}
           for name,rows in zip(names,[124,124,248]):
               raw=(base/name).read_bytes()
               files.append({'name':name,'sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw),'rows':rows,'expected_previous_sha256':previous_hashes[name],'content_base64':base64.b64encode(raw).decode()})
-          data={'schema_version':2,'operation':'commercial-channel-hotel-feeds-20261103-update1','files':files}
+          data={'schema_version':2,'operation':'commercial-channel-hotel-feeds-20261103-update2','files':files}
           raw=(json.dumps(data,separators=(',',':'))+'\n').encode()
           source=pathlib.Path('tools/direct_demand/operations/publish-commercial-channel-hotel-feeds-20261103-1.php').read_text()
           prefix="<?php\ndeclare(strict_types=1);\n"
           assert source.startswith(prefix)
-          header=prefix+"const EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\n"+"const PUBLIC_STATIC_FEED_OPERATION=\'commercial-channel-hotel-feeds-20261103-update1\';\n"+"const PUBLIC_STATIC_FEED_INPUT_B64='"+base64.b64encode(raw).decode()+"';\n"+"const PUBLIC_STATIC_FEED_INPUT_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\n"
+          header=prefix+"const EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\n"+"const PUBLIC_STATIC_FEED_OPERATION=\'commercial-channel-hotel-feeds-20261103-update2\';\n"+"const PUBLIC_STATIC_FEED_INPUT_B64='"+base64.b64encode(raw).decode()+"';\n"+"const PUBLIC_STATIC_FEED_INPUT_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\n"
           temp=pathlib.Path(os.environ['RUNNER_TEMP'])
           (temp/'channel-preflight.php').write_text(header+source[len(prefix):])
-          intent={'operation':data['operation'],'state':'EXACT_THREE_PUBLIC_STATIC_FILES_INTENT_BEFORE_WRITE','source':os.environ['EXPECTED_PRODUCTION_SHA'],'files':[{k:v for k,v in f.items() if k!='content_base64'} for f in files]}
+          intent={'operation':data['operation'],'state':'EXACT_THREE_PUBLIC_DIRECT_YML_FILES_INTENT_BEFORE_WRITE','source':os.environ['EXPECTED_PRODUCTION_SHA'],'files':[{k:v for k,v in f.items() if k!='content_base64'} for f in files]}
           (temp/'static-feed-intent.json').write_text(json.dumps(intent,indent=2)+'\n')
           PY
           php -l "$RUNNER_TEMP/channel-preflight.php"
       - name: Retain exact static publication intent before any server write
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-channel-hotel-feeds-20261103-update1-intent
+          name: commercial-channel-hotel-feeds-20261103-update2-intent
           path: ${{ runner.temp }}/static-feed-intent.json
           retention-days: 14
           if-no-files-found: error
@@ -110,7 +110,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Publish only the three approved public static CSV files
+      - name: Publish only the three approved public static Direct YML files
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -123,19 +123,19 @@ jobs:
           import json,os,pathlib
           d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP'],'channel-preflight.json').read_text().splitlines()[-1])
           print(json.dumps(d,sort_keys=True))
-          assert d['ok'] is True and d['operation']=='commercial-channel-hotel-feeds-20261103-update1'
+          assert d['ok'] is True and d['operation']=='commercial-channel-hotel-feeds-20261103-update2'
           assert len(d['files'])==3 and [r['rows'] for r in d['files']]==[124,124,248]
           assert d['db_writes']==d['provider_calls']==d['message_sends']==0
           PY
           test "${probe_status:-0}" = 0
-      - name: Verify all three permanent URLs by exact public HTTPS bytes
+      - name: Verify all three permanent YML URLs by exact public HTTPS bytes
         shell: bash
-        run: python3 tools/direct_demand/operations/verify-commercial-channel-hotel-feeds-public-20261103.py
+        run: python3 tools/direct_demand/operations/verify-commercial-channel-hotel-feeds-yml-public-20261103.py
       - name: Retain bounded static publication and public readback
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-channel-hotel-feeds-20261103-update1
+          name: commercial-channel-hotel-feeds-20261103-update2
           path: |
             ${{ runner.temp }}/channel-preflight.json
             ${{ runner.temp }}/public-feed-readback.json

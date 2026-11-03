@@ -22,13 +22,13 @@ if(getenv('ANYTOUR_STATIC_FEED_UPDATE_FIXTURE')==='1'){
  echo "STATIC_FEED_UPDATE_PREPARATION_OK cases=10 exact_previous_hash=required unknown_previous=rejected missing_previous=stopped post_write_reconcile=reused provider_calls=0 server_calls=0 writes=0\n";exit;
 }
 
-$out=['operation'=>PUBLIC_STATIC_FEED_OPERATION,'mode'=>'publish_three_static_public_channel_hotel_feeds','ok'=>false,'db_writes'=>0,'provider_calls'=>0,'message_sends'=>0,'files'=>[]];
+$out=['operation'=>PUBLIC_STATIC_FEED_OPERATION,'mode'=>'publish_three_static_public_direct_yml_feeds','ok'=>false,'db_writes'=>0,'provider_calls'=>0,'message_sends'=>0,'files'=>[]];
 try{
  upload_insist(PHP_SAPI==='cli'&&trim((string)shell_exec('git rev-parse HEAD'))===EXPECTED_INSTALLED_SHA,'installed_source_changed');
  upload_insist(trim((string)shell_exec('git status --porcelain --untracked-files=no'))==='','tracked_tree_not_clean');
  $raw=base64_decode(PUBLIC_STATIC_FEED_INPUT_B64,true);upload_insist(is_string($raw)&&hash('sha256',$raw)===PUBLIC_STATIC_FEED_INPUT_SHA256,'static_input_changed');
  $input=json_decode($raw,true,16,JSON_THROW_ON_ERROR);upload_insist(array_keys($input)===['schema_version','operation','files']&&$input['schema_version']===2&&$input['operation']===$out['operation'],'static_input_schema');
- $names=['hotel-posts-telegram.csv','hotel-posts-max.csv','hotel-posts-all.csv'];upload_insist(array_column($input['files'],'name')===$names,'static_scope_changed');
+ $names=['hotel-posts-telegram.xml','hotel-posts-max.xml','hotel-posts-all.xml'];upload_insist(array_column($input['files'],'name')===$names,'static_scope_changed');
  $root=realpath(getcwd());upload_insist(is_string($root)&&$root==='/var/www/anytoour/data/www/app.anytoour.ru','document_root_changed');
  $dir=$root.'/feed';upload_insist(!is_link($dir),'feed_directory_symlink');
  if(!is_dir($dir))upload_insist(mkdir($dir,0755),'feed_directory_create_failed');
@@ -37,7 +37,9 @@ try{
  foreach($input['files'] as $r){
   upload_insist(array_keys($r)===['name','sha256','bytes','rows','expected_previous_sha256','content_base64'],'static_file_schema');
   $bytes=base64_decode((string)$r['content_base64'],true);upload_insist(is_string($bytes)&&strlen($bytes)===$r['bytes']&&hash('sha256',$bytes)===$r['sha256']&&strlen($bytes)>1000&&strlen($bytes)<1000000,'static_bytes_changed');
-  upload_insist(str_starts_with($bytes,"Property ID,Property name,Final URL,Destination name,Image URL,Category\r\n"),'static_csv_header_changed');
+  upload_insist(str_starts_with($bytes,'<?xml version="1.0" encoding="UTF-8"?>'."\n<yml_catalog date=\"")&&str_ends_with($bytes,"</yml_catalog>\n"),'static_yml_envelope_changed');
+  upload_insist(preg_match('//u',$bytes)===1&&substr_count($bytes,'<offer id="')===$r['rows']&&substr_count($bytes,'<description>')===$r['rows'],'static_yml_rows_changed');
+  upload_insist(stripos($bytes,'<!DOCTYPE')===false&&stripos($bytes,'<!ENTITY')===false&&stripos($bytes,'<price')===false&&stripos($bytes,'available=')===false,'unsafe_static_yml_content');
   $dest=$dir.'/'.$r['name'];upload_insist(!is_link($dest),'static_destination_symlink');
   upload_insist(!file_exists($dest)||is_file($dest),'static_destination_not_file');
   $current=file_exists($dest)?hash_file('sha256',$dest):null;upload_insist($current===null||is_string($current),'static_current_hash_unreadable');

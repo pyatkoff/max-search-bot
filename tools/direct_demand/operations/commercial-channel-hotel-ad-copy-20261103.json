@@ -1,0 +1,873 @@
+{
+  "schema_version": 1,
+  "hotels": [
+    {
+      "hotel_id": 241,
+      "short_name": "Pickalbatros Makadi Resort",
+      "telegram_name": "Путевки в Pickalbatros Makadi Resort",
+      "max_name": "Туры в Pickalbatros Makadi Resort",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 240,
+      "short_name": "Happy Life Village Dahab",
+      "telegram_name": "Путевки в Happy Life Village Dahab",
+      "max_name": "Туры в Happy Life Village Dahab",
+      "description": "Тур с перелётом. Дахаб. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 268,
+      "short_name": "JAZ Makadi Saraya Resort",
+      "telegram_name": "Путевки в JAZ Makadi Saraya Resort",
+      "max_name": "Туры в JAZ Makadi Saraya Resort",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 12111,
+      "short_name": "Mövenpick Sharm El Sheikh",
+      "telegram_name": "Путевки в Mövenpick Sharm El Sheikh",
+      "max_name": "Туры в Mövenpick Sharm El Sheikh",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 1981,
+      "short_name": "JAZ Neo Naama Bay",
+      "telegram_name": "Путевки в JAZ Neo Naama Bay",
+      "max_name": "Туры в JAZ Neo Naama Bay",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 28666,
+      "short_name": "Hane Family Resort",
+      "telegram_name": "Путевки в Hane Family Resort",
+      "max_name": "Туры в Hane Family Resort",
+      "description": "Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 46672,
+      "short_name": "J'adore Deluxe Hotel & Spa",
+      "telegram_name": "Путевки в J'adore Deluxe Hotel & Spa",
+      "max_name": "Туры в J'adore Deluxe Hotel & Spa",
+      "description": "Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 109900,
+      "short_name": "Dream Fun World",
+      "telegram_name": "Путевки в Dream Fun World",
+      "max_name": "Туры в Dream Fun World",
+      "description": "Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 111129,
+      "short_name": "Side Moon Palace",
+      "telegram_name": "Путевки в Side Moon Palace",
+      "max_name": "Туры в Side Moon Palace",
+      "description": "Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 111045,
+      "short_name": "Vox Maris Resort",
+      "telegram_name": "Путевки в Vox Maris Resort",
+      "max_name": "Туры в Vox Maris Resort",
+      "description": "Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 1077,
+      "short_name": "Club Aqua Plaza",
+      "telegram_name": "Путевки в Club Aqua Plaza",
+      "max_name": "Туры в Club Aqua Plaza",
+      "description": "Тур с перелётом. Аланья. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 1146,
+      "short_name": "Akra Antalya",
+      "telegram_name": "Путевки в Akra Antalya",
+      "max_name": "Туры в Akra Antalya",
+      "description": "Тур с перелётом. Анталья. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 9374,
+      "short_name": "Sunrise Arabian Beach Resort",
+      "telegram_name": "Путевки в Sunrise Arabian Beach Resort",
+      "max_name": "Туры в Sunrise Arabian Beach Resort",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 498,
+      "short_name": "Titanic Beach Spa & Aqua Park",
+      "telegram_name": "Путевки в Titanic Beach Spa & Aqua Park",
+      "max_name": "Туры в Titanic Beach Spa & Aqua Park",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 157359,
+      "short_name": "Avia Resort Hotel & Spa",
+      "telegram_name": "Путевки в Avia Resort Hotel & Spa",
+      "max_name": "Туры в Avia Resort Hotel & Spa",
+      "description": "Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 482,
+      "short_name": "Sunrise Mamlouk Palace Resort",
+      "telegram_name": "Путевки в Sunrise Mamlouk Palace Resort",
+      "max_name": "Туры в Sunrise Mamlouk Palace Resort",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 476,
+      "short_name": "Sunrise Garden Beach Resort",
+      "telegram_name": "Путевки в Sunrise Garden Beach Resort",
+      "max_name": "Туры в Sunrise Garden Beach Resort",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 81173,
+      "short_name": "White Hills Resort",
+      "telegram_name": "Путевки в White Hills Resort",
+      "max_name": "Туры в White Hills Resort",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 9373,
+      "short_name": "Sunrise Diamond Beach Resort",
+      "telegram_name": "Путевки в Sunrise Diamond Beach Resort",
+      "max_name": "Туры в Sunrise Diamond Beach Resort",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 32577,
+      "short_name": "Sunrise Montemare Resort",
+      "telegram_name": "Путевки в Sunrise Montemare Resort",
+      "max_name": "Туры в Sunrise Montemare Resort",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 4191,
+      "short_name": "Tropitel Sahl Hasheesh",
+      "telegram_name": "Путевки в Tropitel Sahl Hasheesh",
+      "max_name": "Туры в Tropitel Sahl Hasheesh",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 416,
+      "short_name": "Sunrise Crystal Bay Resort",
+      "telegram_name": "Путевки в Sunrise Crystal Bay Resort",
+      "max_name": "Туры в Sunrise Crystal Bay Resort",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 12112,
+      "short_name": "Sunrise Aqua Joy Resort",
+      "telegram_name": "Путевки в Sunrise Aqua Joy Resort",
+      "max_name": "Туры в Sunrise Aqua Joy Resort",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 478,
+      "short_name": "Sunrise Holidays Resort",
+      "telegram_name": "Путевки в Sunrise Holidays Resort",
+      "max_name": "Туры в Sunrise Holidays Resort",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 77914,
+      "short_name": "Sunrise Tucana Resort",
+      "telegram_name": "Путевки в Sunrise Tucana Resort",
+      "max_name": "Туры в Sunrise Tucana Resort",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 237,
+      "short_name": "Sunrise Alma Bay Resort",
+      "telegram_name": "Путевки в Sunrise Alma Bay Resort",
+      "max_name": "Туры в Sunrise Alma Bay Resort",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 32575,
+      "short_name": "Sunrise Alora Aqua Park Resort",
+      "telegram_name": "Путевки в Sunrise Alora Aqua Park Resort",
+      "max_name": "Туры в Sunrise Alora Aqua Park Resort",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 112914,
+      "short_name": "Sunrise Anjum Resort",
+      "telegram_name": "Путевки в Sunrise Anjum Resort",
+      "max_name": "Туры в Sunrise Anjum Resort",
+      "description": "Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 64895,
+      "short_name": "Meraki Resort Hurghada",
+      "telegram_name": "Путевки в Meraki Resort Hurghada",
+      "max_name": "Туры в Meraki Resort Hurghada",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 262,
+      "short_name": "JAZ Aquamarine",
+      "telegram_name": "Путевки в JAZ Aquamarine",
+      "max_name": "Туры в JAZ Aquamarine",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 12117,
+      "short_name": "JAZ Bluemarine",
+      "telegram_name": "Путевки в JAZ Bluemarine",
+      "max_name": "Туры в JAZ Bluemarine",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 12119,
+      "short_name": "Steigenberger ALDAU Beach",
+      "telegram_name": "Путевки в Steigenberger ALDAU Beach",
+      "max_name": "Туры в Steigenberger ALDAU Beach",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 26044,
+      "short_name": "Steigenberger Aqua Magic",
+      "telegram_name": "Путевки в Steigenberger Aqua Magic",
+      "max_name": "Туры в Steigenberger Aqua Magic",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 66150,
+      "short_name": "Steigenberger Pure Lifestyle",
+      "telegram_name": "Путевки в Steigenberger Pure Lifestyle",
+      "max_name": "Туры в Steigenberger Pure Lifestyle",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 232,
+      "short_name": "JAZ Elite Casa del Mar Beach",
+      "telegram_name": "Путевки в JAZ Elite Casa del Mar Beach",
+      "max_name": "Туры в JAZ Elite Casa del Mar Beach",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 233,
+      "short_name": "JAZ Casa del Mar Resort",
+      "telegram_name": "Путевки в JAZ Casa del Mar Resort",
+      "max_name": "Туры в JAZ Casa del Mar Resort",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 13872,
+      "short_name": "JAZ Makadina",
+      "telegram_name": "Путевки в JAZ Makadina",
+      "max_name": "Туры в JAZ Makadina",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 13873,
+      "short_name": "JAZ Makadi Oasis Resort & Club",
+      "telegram_name": "Путевки в JAZ Makadi Oasis Resort & Club",
+      "max_name": "Туры в JAZ Makadi Oasis Resort & Club",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 280,
+      "short_name": "JAZ Makadi Star & Spa",
+      "telegram_name": "Путевки в JAZ Makadi Star & Spa",
+      "max_name": "Туры в JAZ Makadi Star & Spa",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 456,
+      "short_name": "JAZ Neo Dar El Madina",
+      "telegram_name": "Путевки в JAZ Neo Dar El Madina",
+      "max_name": "Туры в JAZ Neo Dar El Madina",
+      "description": "Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 265,
+      "short_name": "JAZ Lamaya Resort",
+      "telegram_name": "Путевки в JAZ Lamaya Resort",
+      "max_name": "Туры в JAZ Lamaya Resort",
+      "description": "Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 454,
+      "short_name": "JAZ Solaya",
+      "telegram_name": "Путевки в JAZ Solaya",
+      "max_name": "Туры в JAZ Solaya",
+      "description": "Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 21475,
+      "short_name": "Baron Palace Sahl Hasheesh",
+      "telegram_name": "Путевки в Baron Palace Sahl Hasheesh",
+      "max_name": "Туры в Baron Palace Sahl Hasheesh",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 1963,
+      "short_name": "Baron Resort Sharm El Sheikh",
+      "telegram_name": "Путевки в Baron Resort Sharm El Sheikh",
+      "max_name": "Туры в Baron Resort Sharm El Sheikh",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 358,
+      "short_name": "Rixos Sharm El Sheikh",
+      "telegram_name": "Путевки в Rixos Sharm El Sheikh",
+      "max_name": "Туры в Rixos Sharm El Sheikh",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 37668,
+      "short_name": "Rixos Premium Seagate",
+      "telegram_name": "Путевки в Rixos Premium Seagate",
+      "max_name": "Туры в Rixos Premium Seagate",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 174,
+      "short_name": "Pickalbatros Dana Beach Resort",
+      "telegram_name": "Путевки в Pickalbatros Dana Beach Resort",
+      "max_name": "Туры в Pickalbatros Dana Beach Resort",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 55574,
+      "short_name": "Pickalbatros White Beach Resort",
+      "telegram_name": "Путевки в Pickalbatros White Beach Resort",
+      "max_name": "Туры в Pickalbatros White Beach Resort",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 383,
+      "short_name": "JAZ Grand Marsa",
+      "telegram_name": "Путевки в JAZ Grand Marsa",
+      "max_name": "Туры в JAZ Grand Marsa",
+      "description": "Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 108090,
+      "short_name": "JAZ Elite Amara",
+      "telegram_name": "Путевки в JAZ Elite Amara",
+      "max_name": "Туры в JAZ Elite Amara",
+      "description": "Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 150,
+      "short_name": "Pickalbatros Citadel",
+      "telegram_name": "Путевки в Pickalbatros Citadel",
+      "max_name": "Туры в Pickalbatros Citadel",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 172,
+      "short_name": "Pickalbatros Sands Port Ghalib",
+      "telegram_name": "Путевки в Pickalbatros Sands Port Ghalib",
+      "max_name": "Туры в Pickalbatros Sands Port Ghalib",
+      "description": "Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 275,
+      "short_name": "Pickalbatros The Palace Port Ghalib",
+      "telegram_name": "Путевки в Pickalbatros The Palace Port Ghalib",
+      "max_name": "Туры в Pickalbatros The Palace Port Ghalib",
+      "description": "Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 173,
+      "short_name": "Pickalbatros Oasis Port Ghalib",
+      "telegram_name": "Путевки в Pickalbatros Oasis Port Ghalib",
+      "max_name": "Туры в Pickalbatros Oasis Port Ghalib",
+      "description": "Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 110,
+      "short_name": "Pickalbatros Jungle Aqua Park",
+      "telegram_name": "Путевки в Pickalbatros Jungle Aqua Park",
+      "max_name": "Туры в Pickalbatros Jungle Aqua Park",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 57028,
+      "short_name": "Pickalbatros Aqua Park Sharm",
+      "telegram_name": "Путевки в Pickalbatros Aqua Park Sharm",
+      "max_name": "Туры в Pickalbatros Aqua Park Sharm",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 125,
+      "short_name": "Pickalbatros Aqua Blu Sharm",
+      "telegram_name": "Путевки в Pickalbatros Aqua Blu Sharm",
+      "max_name": "Туры в Pickalbatros Aqua Blu Sharm",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 132,
+      "short_name": "Beach Albatros Resort",
+      "telegram_name": "Путевки в Beach Albatros Resort",
+      "max_name": "Туры в Beach Albatros Resort",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 178,
+      "short_name": "Desert Rose",
+      "telegram_name": "Путевки в Desert Rose",
+      "max_name": "Туры в Desert Rose",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 371,
+      "short_name": "Reef Oasis Beach Resort",
+      "telegram_name": "Путевки в Reef Oasis Beach Resort",
+      "max_name": "Туры в Reef Oasis Beach Resort",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 389,
+      "short_name": "Pickalbatros Royal Moderna",
+      "telegram_name": "Путевки в Pickalbatros Royal Moderna",
+      "max_name": "Туры в Pickalbatros Royal Moderna",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 109,
+      "short_name": "Pickalbatros Aqua Vista",
+      "telegram_name": "Путевки в Pickalbatros Aqua Vista",
+      "max_name": "Туры в Pickalbatros Aqua Vista",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 293,
+      "short_name": "Pickalbatros Laguna Vista",
+      "telegram_name": "Путевки в Pickalbatros Laguna Vista",
+      "max_name": "Туры в Pickalbatros Laguna Vista",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 107965,
+      "short_name": "Pickalbatros Laguna Club",
+      "telegram_name": "Путевки в Pickalbatros Laguna Club",
+      "max_name": "Туры в Pickalbatros Laguna Club",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 393,
+      "short_name": "Pickalbatros Royal Grand",
+      "telegram_name": "Путевки в Pickalbatros Royal Grand",
+      "max_name": "Туры в Pickalbatros Royal Grand",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 78898,
+      "short_name": "Pickalbatros Blu Spa",
+      "telegram_name": "Путевки в Pickalbatros Blu Spa",
+      "max_name": "Туры в Pickalbatros Blu Spa",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 83105,
+      "short_name": "Pickalbatros Vita Resort Portofino",
+      "telegram_name": "Путевки в Pickalbatros Vita Resort Portofino",
+      "max_name": "Туры в Pickalbatros Vita Resort Portofino",
+      "description": "Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 69155,
+      "short_name": "Steigenberger Resort Alaya",
+      "telegram_name": "Путевки в Steigenberger Resort Alaya",
+      "max_name": "Туры в Steigenberger Resort Alaya",
+      "description": "Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 69409,
+      "short_name": "Steigenberger Resort Ras Soma",
+      "telegram_name": "Путевки в Steigenberger Resort Ras Soma",
+      "max_name": "Туры в Steigenberger Resort Ras Soma",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 263,
+      "short_name": "Steigenberger Coraya Beach",
+      "telegram_name": "Путевки в Steigenberger Coraya Beach",
+      "max_name": "Туры в Steigenberger Coraya Beach",
+      "description": "Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 43204,
+      "short_name": "Steigenberger Alcazar",
+      "telegram_name": "Путевки в Steigenberger Alcazar",
+      "max_name": "Туры в Steigenberger Alcazar",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 13870,
+      "short_name": "Steigenberger Makadi 16+",
+      "telegram_name": "Путевки в Steigenberger Makadi 16+",
+      "max_name": "Туры в Steigenberger Makadi 16+",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 1983,
+      "short_name": "JAZ Neo Sharks Bay",
+      "telegram_name": "Путевки в JAZ Neo Sharks Bay",
+      "max_name": "Туры в JAZ Neo Sharks Bay",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 111801,
+      "short_name": "JAZ Elite Asteria",
+      "telegram_name": "Путевки в JAZ Elite Asteria",
+      "max_name": "Туры в JAZ Elite Asteria",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 287,
+      "short_name": "Kempinski Hotel Soma Bay",
+      "telegram_name": "Путевки в Kempinski Hotel Soma Bay",
+      "max_name": "Туры в Kempinski Hotel Soma Bay",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 435,
+      "short_name": "Sheraton Soma Bay Resort",
+      "telegram_name": "Путевки в Sheraton Soma Bay Resort",
+      "max_name": "Туры в Sheraton Soma Bay Resort",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 109149,
+      "short_name": "The Breakers Soma Bay",
+      "telegram_name": "Путевки в The Breakers Soma Bay",
+      "max_name": "Туры в The Breakers Soma Bay",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 79059,
+      "short_name": "Pickalbatros Water Valley Resort",
+      "telegram_name": "Путевки в Pickalbatros Water Valley Resort",
+      "max_name": "Туры в Pickalbatros Water Valley Resort",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 56092,
+      "short_name": "Gravity Hotel & Aqua Park Hurghada",
+      "telegram_name": "Путевки в Gravity Hotel & Aqua Park Hurghada",
+      "max_name": "Туры в Gravity Hotel & Aqua Park Hurghada",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 115918,
+      "short_name": "Rixos Radamis",
+      "telegram_name": "Путевки в Rixos Radamis",
+      "max_name": "Туры в Rixos Radamis",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 269,
+      "short_name": "TUI BLUE Samaya",
+      "telegram_name": "Путевки в TUI BLUE Samaya",
+      "max_name": "Туры в TUI BLUE Samaya",
+      "description": "Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 80964,
+      "short_name": "Meraki Sharm 16+",
+      "telegram_name": "Путевки в Meraki Sharm 16+",
+      "max_name": "Туры в Meraki Sharm 16+",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 264,
+      "short_name": "JAZ Dahabeya",
+      "telegram_name": "Путевки в JAZ Dahabeya",
+      "max_name": "Туры в JAZ Dahabeya",
+      "description": "Тур с перелётом. Дахаб. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 73342,
+      "short_name": "JAZ Soma Beach",
+      "telegram_name": "Путевки в JAZ Soma Beach",
+      "max_name": "Туры в JAZ Soma Beach",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 278,
+      "short_name": "JAZ Belvedere",
+      "telegram_name": "Путевки в JAZ Belvedere",
+      "max_name": "Туры в JAZ Belvedere",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 246,
+      "short_name": "JAZ Fayrouz",
+      "telegram_name": "Путевки в JAZ Fayrouz",
+      "max_name": "Туры в JAZ Fayrouz",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 245,
+      "short_name": "JAZ Sharm Dreams",
+      "telegram_name": "Путевки в JAZ Sharm Dreams",
+      "max_name": "Туры в JAZ Sharm Dreams",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 13869,
+      "short_name": "JAZ Neo Saraya Palms",
+      "telegram_name": "Путевки в JAZ Neo Saraya Palms",
+      "max_name": "Туры в JAZ Neo Saraya Palms",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 267,
+      "short_name": "Iberotel Makadi Beach",
+      "telegram_name": "Путевки в Iberotel Makadi Beach",
+      "max_name": "Туры в Iberotel Makadi Beach",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 12114,
+      "short_name": "JAZ Elite Palace 16+",
+      "telegram_name": "Путевки в JAZ Elite Palace 16+",
+      "max_name": "Туры в JAZ Elite Palace 16+",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 384,
+      "short_name": "JAZ Neo Reef Marsa",
+      "telegram_name": "Путевки в JAZ Neo Reef Marsa",
+      "max_name": "Туры в JAZ Neo Reef Marsa",
+      "description": "Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 281,
+      "short_name": "JAZ Mirabel Beach",
+      "telegram_name": "Путевки в JAZ Mirabel Beach",
+      "max_name": "Туры в JAZ Mirabel Beach",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 75725,
+      "short_name": "JAZ Costa Mares 16+",
+      "telegram_name": "Путевки в JAZ Costa Mares 16+",
+      "max_name": "Туры в JAZ Costa Mares 16+",
+      "description": "Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 249,
+      "short_name": "Hilton Hurghada Plaza",
+      "telegram_name": "Путевки в Hilton Hurghada Plaza",
+      "max_name": "Туры в Hilton Hurghada Plaza",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 315,
+      "short_name": "Hurghada Marriott Beach Resort",
+      "telegram_name": "Путевки в Hurghada Marriott Beach Resort",
+      "max_name": "Туры в Hurghada Marriott Beach Resort",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 465,
+      "short_name": "Stella Di Mare Beach Hotel & Spa",
+      "telegram_name": "Путевки в Stella Di Mare Beach Hotel & Spa",
+      "max_name": "Туры в Stella Di Mare Beach Hotel & Spa",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 272,
+      "short_name": "Continental Hotel Hurghada",
+      "telegram_name": "Путевки в Continental Hotel Hurghada",
+      "max_name": "Туры в Continental Hotel Hurghada",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 260,
+      "short_name": "Park Regency Sharm El Sheikh",
+      "telegram_name": "Путевки в Park Regency Sharm El Sheikh",
+      "max_name": "Туры в Park Regency Sharm El Sheikh",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 273,
+      "short_name": "Palm Royale Soma Bay",
+      "telegram_name": "Путевки в Palm Royale Soma Bay",
+      "max_name": "Туры в Palm Royale Soma Bay",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 469,
+      "short_name": "Sultan Gardens Resort",
+      "telegram_name": "Путевки в Sultan Gardens Resort",
+      "max_name": "Туры в Sultan Gardens Resort",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 381,
+      "short_name": "Rehana Royal Beach Resort Aqua Park & Spa",
+      "telegram_name": "Путевки в Rehana Royal Beach Resort Aqua Park & Spa",
+      "max_name": "Туры в Rehana Royal Beach Resort Aqua Park & Spa",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 408,
+      "short_name": "Savoy Sharm El Sheikh",
+      "telegram_name": "Путевки в Savoy Sharm El Sheikh",
+      "max_name": "Туры в Savoy Sharm El Sheikh",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 441,
+      "short_name": "Siva Grand Beach",
+      "telegram_name": "Путевки в Siva Grand Beach",
+      "max_name": "Туры в Siva Grand Beach",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 21477,
+      "short_name": "Mövenpick Waterpark Resort & Spa Soma Bay",
+      "telegram_name": "Путевки в Mövenpick Waterpark Resort & Spa Soma Bay",
+      "max_name": "Туры в Mövenpick Waterpark Resort & Spa Soma Bay",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 60589,
+      "short_name": "JAZ Neo Ivory",
+      "telegram_name": "Путевки в JAZ Neo Ivory",
+      "max_name": "Туры в JAZ Neo Ivory",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 328,
+      "short_name": "Mövenpick El Gouna",
+      "telegram_name": "Путевки в Mövenpick El Gouna",
+      "max_name": "Туры в Mövenpick El Gouna",
+      "description": "Тур с перелётом. Эль Гуна. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 282,
+      "short_name": "JAZ Mirabel Club",
+      "telegram_name": "Путевки в JAZ Mirabel Club",
+      "max_name": "Туры в JAZ Mirabel Club",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 235,
+      "short_name": "The Grand Resort",
+      "telegram_name": "Путевки в The Grand Resort",
+      "max_name": "Туры в The Grand Resort",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 382,
+      "short_name": "Renaissance Golden View Beach",
+      "telegram_name": "Путевки в Renaissance Golden View Beach",
+      "max_name": "Туры в Renaissance Golden View Beach",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 250,
+      "short_name": "Swiss Inn Resort Hurghada",
+      "telegram_name": "Путевки в Swiss Inn Resort Hurghada",
+      "max_name": "Туры в Swiss Inn Resort Hurghada",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 464,
+      "short_name": "Steigenberger Golf Resort El Gouna",
+      "telegram_name": "Путевки в Steigenberger Golf Resort El Gouna",
+      "max_name": "Туры в Steigenberger Golf Resort El Gouna",
+      "description": "Тур с перелётом. Эль Гуна. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 103021,
+      "short_name": "The Chedi El Gouna",
+      "telegram_name": "Путевки в The Chedi El Gouna",
+      "max_name": "Туры в The Chedi El Gouna",
+      "description": "Тур с перелётом. Эль Гуна. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 129,
+      "short_name": "Cook's Club El Gouna 16+",
+      "telegram_name": "Путевки в Cook's Club El Gouna 16+",
+      "max_name": "Туры в Cook's Club El Gouna 16+",
+      "description": "Тур с перелётом. Эль Гуна. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 165,
+      "short_name": "Coral Sea Water World",
+      "telegram_name": "Путевки в Coral Sea Water World",
+      "max_name": "Туры в Coral Sea Water World",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 12116,
+      "short_name": "Coral Sea Aqua Club",
+      "telegram_name": "Путевки в Coral Sea Aqua Club",
+      "max_name": "Туры в Coral Sea Aqua Club",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 111,
+      "short_name": "Pickalbatros Palace Resort Hurghada",
+      "telegram_name": "Путевки в Pickalbatros Palace Resort Hurghada",
+      "max_name": "Туры в Pickalbatros Palace Resort Hurghada",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 163,
+      "short_name": "Coral Sea Holiday Resort & Aqua Park",
+      "telegram_name": "Путевки в Coral Sea Holiday Resort & Aqua Park",
+      "max_name": "Туры в Coral Sea Holiday Resort & Aqua Park",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 310,
+      "short_name": "Pickalbatros Golf Beach Resort",
+      "telegram_name": "Путевки в Pickalbatros Golf Beach Resort",
+      "max_name": "Туры в Pickalbatros Golf Beach Resort",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 67910,
+      "short_name": "Rixos Premium Magawish Suites & Villas",
+      "telegram_name": "Путевки в Rixos Premium Magawish Suites & Villas",
+      "max_name": "Туры в Rixos Premium Magawish Suites & Villas",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 68323,
+      "short_name": "Sunrise Solara Aqua Park Resort",
+      "telegram_name": "Путевки в Sunrise Solara Aqua Park Resort",
+      "max_name": "Туры в Sunrise Solara Aqua Park Resort",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 1971,
+      "short_name": "Pickalbatros Palace Resort Sharm El Sheikh",
+      "telegram_name": "Путевки в Pickalbatros Palace Resort Sharm El Sheikh",
+      "max_name": "Туры в Pickalbatros Palace Resort Sharm El Sheikh",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 56091,
+      "short_name": "Ancient Sands Golf Resort & Residences",
+      "telegram_name": "Путевки в Ancient Sands Golf Resort & Residences",
+      "max_name": "Туры в Ancient Sands Golf Resort & Residences",
+      "description": "Тур с перелётом. Эль Гуна. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 103124,
+      "short_name": "Iberotel Luxor by JAZ",
+      "telegram_name": "Путевки в Iberotel Luxor by JAZ",
+      "max_name": "Туры в Iberotel Luxor by JAZ",
+      "description": "Тур с перелётом. Люксор. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 488,
+      "short_name": "Three Corners Fayrouz Plaza Beach Resort",
+      "telegram_name": "Путевки в Three Corners Fayrouz Plaza Beach Resort",
+      "max_name": "Туры в Three Corners Fayrouz Plaza Beach Resort",
+      "description": "Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость."
+    }
+  ]
+}

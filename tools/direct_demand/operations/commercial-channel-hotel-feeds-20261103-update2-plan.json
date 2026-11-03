@@ -1,0 +1,68 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261103-update2",
+  "state": "PREPARED_NOT_UPLOADED",
+  "goal": "Publish three Yandex Direct YML offer feeds with name and description for 124 already published hotel pairs.",
+  "boundaries": [
+    "Existing strict pinned GHA route and three fixed static XML files only",
+    "Canonical public TG/MAX destinations and accepted images preserved",
+    "No provider or database writes, bot messages, ads import, budgets or strategies",
+    "Existing three CSV files unchanged; XML is the main Direct-compatible name/description format",
+    "No Mac, new runtime/controller/uploader/queue or timer"
+  ],
+  "criteria": [
+    "124 Telegram, 124 MAX, combined exact union 248 offers",
+    "Telegram name starts Путевки в; MAX name starts Туры в",
+    "name <=56, description <=81, word and punctuation limits",
+    "No fabricated prices or availability; only accepted canonical public post URLs/images",
+    "Native offline fixtures before server connection; intent artifact before write",
+    "Unknown existing XML bytes stop, accepted exact bytes reconcile safely",
+    "HTTPS200, XML type, exact content and SHA256 public readback"
+  ],
+  "risks": [
+    "Two previously accepted hotels 381/469 have no approved public image and remain explicit image gaps",
+    "Yandex import/moderation and campaign text-selection settings are not performed",
+    "Partial cross-file writes require reconciliation by original run and exact hashes"
+  ],
+  "files": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "rows": 124,
+      "sha256": "245f19f9f03b7b147ce3405d9998b1ea0696671043cd1c36c8b73175a5d16652",
+      "expected_previous_sha256": null
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "rows": 124,
+      "sha256": "64ef9f3bb8ddabb24bd6c093219a1850bd3a195bd7be2d8a2c85a3292586196b",
+      "expected_previous_sha256": null
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "rows": 248,
+      "sha256": "9f9e2307039e61302be5dd4b0035ab3a7603892ac8d2c555865afe12368ab0f7",
+      "expected_previous_sha256": null
+    }
+  ],
+  "legacy_csv_accepted_hashes": [
+    {
+      "name": "hotel-posts-telegram.csv",
+      "rows": 124,
+      "sha256": "4c919310039d86115e2480ce8a10570cfb52b3904528d7ed90ba315a6a9501ee"
+    },
+    {
+      "name": "hotel-posts-max.csv",
+      "rows": 124,
+      "sha256": "f77c160a734d7864e77a456c606e216f724d1d61940b62df4eab1fce30b5d079"
+    },
+    {
+      "name": "hotel-posts-all.csv",
+      "rows": 248,
+      "sha256": "86ac313807d7452a55e37c2ca8e3ecaa78f9e9a80b07bd5fb3a5fc1f41d73414"
+    }
+  ],
+  "official_contracts": [
+    "https://yandex.ru/support/direct/ru/feeds/requirements-yml",
+    "https://yandex.ru/support/direct/ru/unified-performance-campaign/create-product",
+    "https://yandex.ru/support/direct/ru/efficiency/text-and-title"
+  ]
+}

@@ -1,0 +1,2240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<yml_catalog date="2026-11-03 20:01">
+  <shop>
+    <name>AnyTour</name>
+    <company>AnyTour</company>
+    <url>https://app.anytoour.ru/</url>
+    <currencies><currency id="RUB" rate="1"/></currencies>
+    <categories><category id="1">Туры в отели</category></categories>
+    <offers>
+      <offer id="tg_241">
+        <url>https://t.me/any_toour/21</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/632a52081dc4dd904115564099d6b89f8554a054/.github/traffic-publish/commercial-next-three-20261102/makadi.png</picture>
+        <name>Путевки в Pickalbatros Makadi Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_241">
+        <url>https://max.ru/channel_anytour/AaGa3GMLV1E</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/632a52081dc4dd904115564099d6b89f8554a054/.github/traffic-publish/commercial-next-three-20261102/makadi.png</picture>
+        <name>Туры в Pickalbatros Makadi Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_240">
+        <url>https://t.me/any_toour/22</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/632a52081dc4dd904115564099d6b89f8554a054/.github/traffic-publish/commercial-next-three-20261102/happy-life.png</picture>
+        <name>Путевки в Happy Life Village Dahab</name>
+        <description>Тур с перелётом. Дахаб. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Дахаб</custom_label_1>
+      </offer>
+      <offer id="max_240">
+        <url>https://max.ru/channel_anytour/AaGa3G0Ba0I</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/632a52081dc4dd904115564099d6b89f8554a054/.github/traffic-publish/commercial-next-three-20261102/happy-life.png</picture>
+        <name>Туры в Happy Life Village Dahab</name>
+        <description>Тур с перелётом. Дахаб. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Дахаб</custom_label_1>
+      </offer>
+      <offer id="tg_268">
+        <url>https://t.me/any_toour/23</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/632a52081dc4dd904115564099d6b89f8554a054/.github/traffic-publish/commercial-next-three-20261102/jaz-saraya.png</picture>
+        <name>Путевки в JAZ Makadi Saraya Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_268">
+        <url>https://max.ru/channel_anytour/AaGa3Hb2aNA</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/632a52081dc4dd904115564099d6b89f8554a054/.github/traffic-publish/commercial-next-three-20261102/jaz-saraya.png</picture>
+        <name>Туры в JAZ Makadi Saraya Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_12111">
+        <url>https://t.me/any_toour/24</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/5299afdd511d63124a4dc3094934bed3d5a943ad/.github/traffic-publish/commercial-three-20261102-2/movenpick-sharm.png</picture>
+        <name>Путевки в Mövenpick Sharm El Sheikh</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_12111">
+        <url>https://max.ru/channel_anytour/AaGa-JTILig</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/5299afdd511d63124a4dc3094934bed3d5a943ad/.github/traffic-publish/commercial-three-20261102-2/movenpick-sharm.png</picture>
+        <name>Туры в Mövenpick Sharm El Sheikh</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_1981">
+        <url>https://t.me/any_toour/25</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/5299afdd511d63124a4dc3094934bed3d5a943ad/.github/traffic-publish/commercial-three-20261102-2/jaz-neo-naama.png</picture>
+        <name>Путевки в JAZ Neo Naama Bay</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_1981">
+        <url>https://max.ru/channel_anytour/AaGa-J63PEo</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/5299afdd511d63124a4dc3094934bed3d5a943ad/.github/traffic-publish/commercial-three-20261102-2/jaz-neo-naama.png</picture>
+        <name>Туры в JAZ Neo Naama Bay</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_28666">
+        <url>https://t.me/any_toour/26</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/5299afdd511d63124a4dc3094934bed3d5a943ad/.github/traffic-publish/commercial-three-20261102-2/hane-family.png</picture>
+        <name>Путевки в Hane Family Resort</name>
+        <description>Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Сиде</custom_label_1>
+      </offer>
+      <offer id="max_28666">
+        <url>https://max.ru/channel_anytour/AaGa-Ki6FG0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/5299afdd511d63124a4dc3094934bed3d5a943ad/.github/traffic-publish/commercial-three-20261102-2/hane-family.png</picture>
+        <name>Туры в Hane Family Resort</name>
+        <description>Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Сиде</custom_label_1>
+      </offer>
+      <offer id="tg_46672">
+        <url>https://t.me/any_toour/27</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/a011287435ba7ce32781a71ae0ed81e6c4d8f1d9/.github/traffic-publish/commercial-three-20261102-3/jadore-deluxe.png</picture>
+        <name>Путевки в J&apos;adore Deluxe Hotel &amp; Spa</name>
+        <description>Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Сиде</custom_label_1>
+      </offer>
+      <offer id="max_46672">
+        <url>https://max.ru/channel_anytour/AaGbPGTLPAI</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/a011287435ba7ce32781a71ae0ed81e6c4d8f1d9/.github/traffic-publish/commercial-three-20261102-3/jadore-deluxe.png</picture>
+        <name>Туры в J&apos;adore Deluxe Hotel &amp; Spa</name>
+        <description>Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Сиде</custom_label_1>
+      </offer>
+      <offer id="tg_109900">
+        <url>https://t.me/any_toour/28</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/a011287435ba7ce32781a71ae0ed81e6c4d8f1d9/.github/traffic-publish/commercial-three-20261102-3/dream-fun-world.png</picture>
+        <name>Путевки в Dream Fun World</name>
+        <description>Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Сиде</custom_label_1>
+      </offer>
+      <offer id="max_109900">
+        <url>https://max.ru/channel_anytour/AaGbPG9QBVI</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/a011287435ba7ce32781a71ae0ed81e6c4d8f1d9/.github/traffic-publish/commercial-three-20261102-3/dream-fun-world.png</picture>
+        <name>Туры в Dream Fun World</name>
+        <description>Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Сиде</custom_label_1>
+      </offer>
+      <offer id="tg_111129">
+        <url>https://t.me/any_toour/29</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/a011287435ba7ce32781a71ae0ed81e6c4d8f1d9/.github/traffic-publish/commercial-three-20261102-3/side-moon-palace.png</picture>
+        <name>Путевки в Side Moon Palace</name>
+        <description>Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Сиде</custom_label_1>
+      </offer>
+      <offer id="max_111129">
+        <url>https://max.ru/channel_anytour/AaGbPHjzPRg</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/a011287435ba7ce32781a71ae0ed81e6c4d8f1d9/.github/traffic-publish/commercial-three-20261102-3/side-moon-palace.png</picture>
+        <name>Туры в Side Moon Palace</name>
+        <description>Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Сиде</custom_label_1>
+      </offer>
+      <offer id="tg_111045">
+        <url>https://t.me/any_toour/30</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/5f5a0504a74d22f5e6b167a01a36d9be8edf4a8f/.github/traffic-publish/commercial-three-20261102-4/vox-maris.png</picture>
+        <name>Путевки в Vox Maris Resort</name>
+        <description>Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Сиде</custom_label_1>
+      </offer>
+      <offer id="max_111045">
+        <url>https://max.ru/channel_anytour/AaGbWS7jGsU</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/5f5a0504a74d22f5e6b167a01a36d9be8edf4a8f/.github/traffic-publish/commercial-three-20261102-4/vox-maris.png</picture>
+        <name>Туры в Vox Maris Resort</name>
+        <description>Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Сиде</custom_label_1>
+      </offer>
+      <offer id="tg_1077">
+        <url>https://t.me/any_toour/31</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/5f5a0504a74d22f5e6b167a01a36d9be8edf4a8f/.github/traffic-publish/commercial-three-20261102-4/club-aqua-plaza.png</picture>
+        <name>Путевки в Club Aqua Plaza</name>
+        <description>Тур с перелётом. Аланья. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Аланья</custom_label_1>
+      </offer>
+      <offer id="max_1077">
+        <url>https://max.ru/channel_anytour/AaGbWTjVf-Y</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/5f5a0504a74d22f5e6b167a01a36d9be8edf4a8f/.github/traffic-publish/commercial-three-20261102-4/club-aqua-plaza.png</picture>
+        <name>Туры в Club Aqua Plaza</name>
+        <description>Тур с перелётом. Аланья. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Аланья</custom_label_1>
+      </offer>
+      <offer id="tg_1146">
+        <url>https://t.me/any_toour/32</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/5f5a0504a74d22f5e6b167a01a36d9be8edf4a8f/.github/traffic-publish/commercial-three-20261102-4/akra-antalya.png</picture>
+        <name>Путевки в Akra Antalya</name>
+        <description>Тур с перелётом. Анталья. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Анталья</custom_label_1>
+      </offer>
+      <offer id="max_1146">
+        <url>https://max.ru/channel_anytour/AaGbWUKzSyY</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/5f5a0504a74d22f5e6b167a01a36d9be8edf4a8f/.github/traffic-publish/commercial-three-20261102-4/akra-antalya.png</picture>
+        <name>Туры в Akra Antalya</name>
+        <description>Тур с перелётом. Анталья. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Анталья</custom_label_1>
+      </offer>
+      <offer id="tg_9374">
+        <url>https://t.me/any_toour/33</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/772ac7fe301468ab8649834e4d6c8b278fe4c2f0/.github/traffic-publish/commercial-three-20261102-5/sunrise-arabian.png</picture>
+        <name>Путевки в Sunrise Arabian Beach Resort</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_9374">
+        <url>https://max.ru/channel_anytour/AaGbng1eNs0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/772ac7fe301468ab8649834e4d6c8b278fe4c2f0/.github/traffic-publish/commercial-three-20261102-5/sunrise-arabian.png</picture>
+        <name>Туры в Sunrise Arabian Beach Resort</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_498">
+        <url>https://t.me/any_toour/34</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/772ac7fe301468ab8649834e4d6c8b278fe4c2f0/.github/traffic-publish/commercial-three-20261102-5/titanic-beach.png</picture>
+        <name>Путевки в Titanic Beach Spa &amp; Aqua Park</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_498">
+        <url>https://max.ru/channel_anytour/AaGbnheCU9w</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/772ac7fe301468ab8649834e4d6c8b278fe4c2f0/.github/traffic-publish/commercial-three-20261102-5/titanic-beach.png</picture>
+        <name>Туры в Titanic Beach Spa &amp; Aqua Park</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_157359">
+        <url>https://t.me/any_toour/35</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/772ac7fe301468ab8649834e4d6c8b278fe4c2f0/.github/traffic-publish/commercial-three-20261102-5/avia-resort.png</picture>
+        <name>Путевки в Avia Resort Hotel &amp; Spa</name>
+        <description>Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Сиде</custom_label_1>
+      </offer>
+      <offer id="max_157359">
+        <url>https://max.ru/channel_anytour/AaGbniGlG9w</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/772ac7fe301468ab8649834e4d6c8b278fe4c2f0/.github/traffic-publish/commercial-three-20261102-5/avia-resort.png</picture>
+        <name>Туры в Avia Resort Hotel &amp; Spa</name>
+        <description>Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Сиде</custom_label_1>
+      </offer>
+      <offer id="tg_482">
+        <url>https://t.me/any_toour/36</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/5e54b08b752d613893294503ed3d802001ef5620/.github/traffic-publish/commercial-three-20261102-6/mamlouk-palace.png</picture>
+        <name>Путевки в Sunrise Mamlouk Palace Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_482">
+        <url>https://max.ru/channel_anytour/AaGb6MRjHEM</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/5e54b08b752d613893294503ed3d802001ef5620/.github/traffic-publish/commercial-three-20261102-6/mamlouk-palace.png</picture>
+        <name>Туры в Sunrise Mamlouk Palace Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_476">
+        <url>https://t.me/any_toour/37</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/5e54b08b752d613893294503ed3d802001ef5620/.github/traffic-publish/commercial-three-20261102-6/garden-beach.png</picture>
+        <name>Путевки в Sunrise Garden Beach Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_476">
+        <url>https://max.ru/channel_anytour/AaGb6M5sOTU</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/5e54b08b752d613893294503ed3d802001ef5620/.github/traffic-publish/commercial-three-20261102-6/garden-beach.png</picture>
+        <name>Туры в Sunrise Garden Beach Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_81173">
+        <url>https://t.me/any_toour/38</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/5e54b08b752d613893294503ed3d802001ef5620/.github/traffic-publish/commercial-three-20261102-6/white-hills.png</picture>
+        <name>Путевки в White Hills Resort</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_81173">
+        <url>https://max.ru/channel_anytour/AaGb6NgvJvM</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/5e54b08b752d613893294503ed3d802001ef5620/.github/traffic-publish/commercial-three-20261102-6/white-hills.png</picture>
+        <name>Туры в White Hills Resort</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_9373">
+        <url>https://t.me/any_toour/39</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4e94c65ace4f6886bb9986c70645e3d72a625aed/.github/traffic-publish/commercial-three-20261102-7/sunrise-diamond-beach.png</picture>
+        <name>Путевки в Sunrise Diamond Beach Resort</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_9373">
+        <url>https://max.ru/channel_anytour/AaGcCWXVRrY</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4e94c65ace4f6886bb9986c70645e3d72a625aed/.github/traffic-publish/commercial-three-20261102-7/sunrise-diamond-beach.png</picture>
+        <name>Туры в Sunrise Diamond Beach Resort</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_32577">
+        <url>https://t.me/any_toour/40</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4e94c65ace4f6886bb9986c70645e3d72a625aed/.github/traffic-publish/commercial-three-20261102-7/sunrise-montemare.png</picture>
+        <name>Путевки в Sunrise Montemare Resort</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_32577">
+        <url>https://max.ru/channel_anytour/AaGcCXAYYwg</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4e94c65ace4f6886bb9986c70645e3d72a625aed/.github/traffic-publish/commercial-three-20261102-7/sunrise-montemare.png</picture>
+        <name>Туры в Sunrise Montemare Resort</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_4191">
+        <url>https://t.me/any_toour/41</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4e94c65ace4f6886bb9986c70645e3d72a625aed/.github/traffic-publish/commercial-three-20261102-7/tropitel-sahl-hasheesh.png</picture>
+        <name>Путевки в Tropitel Sahl Hasheesh</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_4191">
+        <url>https://max.ru/channel_anytour/AaGcCXoMBpM</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4e94c65ace4f6886bb9986c70645e3d72a625aed/.github/traffic-publish/commercial-three-20261102-7/tropitel-sahl-hasheesh.png</picture>
+        <name>Туры в Tropitel Sahl Hasheesh</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_416">
+        <url>https://t.me/any_toour/42</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b30693513125825518d856e4fc972bd42d3cd550/.github/traffic-publish/commercial-three-20261102-8/sunrise-crystal-bay.png</picture>
+        <name>Путевки в Sunrise Crystal Bay Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_416">
+        <url>https://max.ru/channel_anytour/AaGck-F7KJ4</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b30693513125825518d856e4fc972bd42d3cd550/.github/traffic-publish/commercial-three-20261102-8/sunrise-crystal-bay.png</picture>
+        <name>Туры в Sunrise Crystal Bay Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_12112">
+        <url>https://t.me/any_toour/43</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b30693513125825518d856e4fc972bd42d3cd550/.github/traffic-publish/commercial-three-20261102-8/sunrise-aqua-joy.png</picture>
+        <name>Путевки в Sunrise Aqua Joy Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_12112">
+        <url>https://max.ru/channel_anytour/AaGck-ufUS0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b30693513125825518d856e4fc972bd42d3cd550/.github/traffic-publish/commercial-three-20261102-8/sunrise-aqua-joy.png</picture>
+        <name>Туры в Sunrise Aqua Joy Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_478">
+        <url>https://t.me/any_toour/44</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b30693513125825518d856e4fc972bd42d3cd550/.github/traffic-publish/commercial-three-20261102-8/sunrise-holidays.png</picture>
+        <name>Путевки в Sunrise Holidays Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_478">
+        <url>https://max.ru/channel_anytour/AaGck_VyAZM</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b30693513125825518d856e4fc972bd42d3cd550/.github/traffic-publish/commercial-three-20261102-8/sunrise-holidays.png</picture>
+        <name>Туры в Sunrise Holidays Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_77914">
+        <url>https://t.me/any_toour/45</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/tucana.png</picture>
+        <name>Путевки в Sunrise Tucana Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_77914">
+        <url>https://max.ru/channel_anytour/AaGc6ZyuFlA</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/tucana.png</picture>
+        <name>Туры в Sunrise Tucana Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_237">
+        <url>https://t.me/any_toour/46</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/alma-bay.png</picture>
+        <name>Путевки в Sunrise Alma Bay Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_237">
+        <url>https://max.ru/channel_anytour/AaGc6aZ6D-s</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/alma-bay.png</picture>
+        <name>Туры в Sunrise Alma Bay Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_32575">
+        <url>https://t.me/any_toour/47</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/alora.png</picture>
+        <name>Путевки в Sunrise Alora Aqua Park Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_32575">
+        <url>https://max.ru/channel_anytour/AaGc6bA5buw</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/alora.png</picture>
+        <name>Туры в Sunrise Alora Aqua Park Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_112914">
+        <url>https://t.me/any_toour/48</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/anjum.png</picture>
+        <name>Путевки в Sunrise Anjum Resort</name>
+        <description>Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Марса Алам</custom_label_1>
+      </offer>
+      <offer id="max_112914">
+        <url>https://max.ru/channel_anytour/AaGc6bnrGPE</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/anjum.png</picture>
+        <name>Туры в Sunrise Anjum Resort</name>
+        <description>Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Марса Алам</custom_label_1>
+      </offer>
+      <offer id="tg_64895">
+        <url>https://t.me/any_toour/49</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/meraki.png</picture>
+        <name>Путевки в Meraki Resort Hurghada</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_64895">
+        <url>https://max.ru/channel_anytour/AaGc6cPhfeQ</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/meraki.png</picture>
+        <name>Туры в Meraki Resort Hurghada</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_262">
+        <url>https://t.me/any_toour/50</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/jaz-aquamarine.png</picture>
+        <name>Путевки в JAZ Aquamarine</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_262">
+        <url>https://max.ru/channel_anytour/AaGc6c3UfW4</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/jaz-aquamarine.png</picture>
+        <name>Туры в JAZ Aquamarine</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_12117">
+        <url>https://t.me/any_toour/51</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/jaz-bluemarine.png</picture>
+        <name>Путевки в JAZ Bluemarine</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_12117">
+        <url>https://max.ru/channel_anytour/AaGc6ddcado</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/jaz-bluemarine.png</picture>
+        <name>Туры в JAZ Bluemarine</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_12119">
+        <url>https://t.me/any_toour/52</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/steigenberger-aldau.png</picture>
+        <name>Путевки в Steigenberger ALDAU Beach</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_12119">
+        <url>https://max.ru/channel_anytour/AaGc6eEdZ9U</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/steigenberger-aldau.png</picture>
+        <name>Туры в Steigenberger ALDAU Beach</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_26044">
+        <url>https://t.me/any_toour/53</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/steigenberger-aqua-magic.png</picture>
+        <name>Путевки в Steigenberger Aqua Magic</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_26044">
+        <url>https://max.ru/channel_anytour/AaGc6erBIjc</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/steigenberger-aqua-magic.png</picture>
+        <name>Туры в Steigenberger Aqua Magic</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_66150">
+        <url>https://t.me/any_toour/54</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/steigenberger-pure.png</picture>
+        <name>Путевки в Steigenberger Pure Lifestyle</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_66150">
+        <url>https://max.ru/channel_anytour/AaGc6fSGB3c</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/steigenberger-pure.png</picture>
+        <name>Туры в Steigenberger Pure Lifestyle</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_232">
+        <url>https://t.me/any_toour/55</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-casa-beach.png</picture>
+        <name>Путевки в JAZ Elite Casa del Mar Beach</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_232">
+        <url>https://max.ru/channel_anytour/AaGdPOgkYvU</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-casa-beach.png</picture>
+        <name>Туры в JAZ Elite Casa del Mar Beach</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_233">
+        <url>https://t.me/any_toour/56</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-casa-resort.png</picture>
+        <name>Путевки в JAZ Casa del Mar Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_233">
+        <url>https://max.ru/channel_anytour/AaGdPPHyfR0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-casa-resort.png</picture>
+        <name>Туры в JAZ Casa del Mar Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_13872">
+        <url>https://t.me/any_toour/57</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-makadina.png</picture>
+        <name>Путевки в JAZ Makadina</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_13872">
+        <url>https://max.ru/channel_anytour/AaGdPPvxQRQ</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-makadina.png</picture>
+        <name>Туры в JAZ Makadina</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_13873">
+        <url>https://t.me/any_toour/58</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-makadi-oasis.png</picture>
+        <name>Путевки в JAZ Makadi Oasis Resort &amp; Club</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_13873">
+        <url>https://max.ru/channel_anytour/AaGdPQXeYgY</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-makadi-oasis.png</picture>
+        <name>Туры в JAZ Makadi Oasis Resort &amp; Club</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_280">
+        <url>https://t.me/any_toour/59</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-makadi-star.png</picture>
+        <name>Путевки в JAZ Makadi Star &amp; Spa</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_280">
+        <url>https://max.ru/channel_anytour/AaGdPQ-jO1I</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-makadi-star.png</picture>
+        <name>Туры в JAZ Makadi Star &amp; Spa</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_456">
+        <url>https://t.me/any_toour/60</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-dar-el-madina.png</picture>
+        <name>Путевки в JAZ Neo Dar El Madina</name>
+        <description>Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Марса Алам</custom_label_1>
+      </offer>
+      <offer id="max_456">
+        <url>https://max.ru/channel_anytour/AaGdPRlhGzs</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-dar-el-madina.png</picture>
+        <name>Туры в JAZ Neo Dar El Madina</name>
+        <description>Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Марса Алам</custom_label_1>
+      </offer>
+      <offer id="tg_265">
+        <url>https://t.me/any_toour/61</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-lamaya.png</picture>
+        <name>Путевки в JAZ Lamaya Resort</name>
+        <description>Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Марса Алам</custom_label_1>
+      </offer>
+      <offer id="max_265">
+        <url>https://max.ru/channel_anytour/AaGdPSMVMqc</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-lamaya.png</picture>
+        <name>Туры в JAZ Lamaya Resort</name>
+        <description>Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Марса Алам</custom_label_1>
+      </offer>
+      <offer id="tg_454">
+        <url>https://t.me/any_toour/62</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-solaya.png</picture>
+        <name>Путевки в JAZ Solaya</name>
+        <description>Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Марса Алам</custom_label_1>
+      </offer>
+      <offer id="max_454">
+        <url>https://max.ru/channel_anytour/AaGdPS0HPCo</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-solaya.png</picture>
+        <name>Туры в JAZ Solaya</name>
+        <description>Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Марса Алам</custom_label_1>
+      </offer>
+      <offer id="tg_21475">
+        <url>https://t.me/any_toour/63</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/baron-palace.png</picture>
+        <name>Путевки в Baron Palace Sahl Hasheesh</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_21475">
+        <url>https://max.ru/channel_anytour/AaGdPTaZQts</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/baron-palace.png</picture>
+        <name>Туры в Baron Palace Sahl Hasheesh</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_1963">
+        <url>https://t.me/any_toour/64</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/baron-resort.png</picture>
+        <name>Путевки в Baron Resort Sharm El Sheikh</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_1963">
+        <url>https://max.ru/channel_anytour/AaGdPUBAMI8</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/baron-resort.png</picture>
+        <name>Туры в Baron Resort Sharm El Sheikh</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_358">
+        <url>https://t.me/any_toour/65</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/7bc700a98e8388be2d64a99433fa46ea90b996c4/.github/traffic-publish/commercial-batch-20261102-11/358.png</picture>
+        <name>Путевки в Rixos Sharm El Sheikh</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_358">
+        <url>https://max.ru/channel_anytour/AaGd4bFlag4</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/7bc700a98e8388be2d64a99433fa46ea90b996c4/.github/traffic-publish/commercial-batch-20261102-11/358.png</picture>
+        <name>Туры в Rixos Sharm El Sheikh</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_37668">
+        <url>https://t.me/any_toour/66</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/7bc700a98e8388be2d64a99433fa46ea90b996c4/.github/traffic-publish/commercial-batch-20261102-11/37668.png</picture>
+        <name>Путевки в Rixos Premium Seagate</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_37668">
+        <url>https://max.ru/channel_anytour/AaGd4buFOdw</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/7bc700a98e8388be2d64a99433fa46ea90b996c4/.github/traffic-publish/commercial-batch-20261102-11/37668.png</picture>
+        <name>Туры в Rixos Premium Seagate</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_174">
+        <url>https://t.me/any_toour/67</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/7bc700a98e8388be2d64a99433fa46ea90b996c4/.github/traffic-publish/commercial-batch-20261102-11/174.png</picture>
+        <name>Путевки в Pickalbatros Dana Beach Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_174">
+        <url>https://max.ru/channel_anytour/AaGd4cUkZFY</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/7bc700a98e8388be2d64a99433fa46ea90b996c4/.github/traffic-publish/commercial-batch-20261102-11/174.png</picture>
+        <name>Туры в Pickalbatros Dana Beach Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_55574">
+        <url>https://t.me/any_toour/68</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/7bc700a98e8388be2d64a99433fa46ea90b996c4/.github/traffic-publish/commercial-batch-20261102-11/55574.png</picture>
+        <name>Путевки в Pickalbatros White Beach Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_55574">
+        <url>https://max.ru/channel_anytour/AaGd4c7dGwc</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/7bc700a98e8388be2d64a99433fa46ea90b996c4/.github/traffic-publish/commercial-batch-20261102-11/55574.png</picture>
+        <name>Туры в Pickalbatros White Beach Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_383">
+        <url>https://t.me/any_toour/69</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/3d8d1803364d1fecdf777629924664496f6f629d/.github/traffic-publish/commercial-batch-20261102-12/383.png</picture>
+        <name>Путевки в JAZ Grand Marsa</name>
+        <description>Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Марса Алам</custom_label_1>
+      </offer>
+      <offer id="max_383">
+        <url>https://max.ru/channel_anytour/AaGd_x9bEBA</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/3d8d1803364d1fecdf777629924664496f6f629d/.github/traffic-publish/commercial-batch-20261102-12/383.png</picture>
+        <name>Туры в JAZ Grand Marsa</name>
+        <description>Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Марса Алам</custom_label_1>
+      </offer>
+      <offer id="tg_108090">
+        <url>https://t.me/any_toour/70</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/3d8d1803364d1fecdf777629924664496f6f629d/.github/traffic-publish/commercial-batch-20261102-12/108090.png</picture>
+        <name>Путевки в JAZ Elite Amara</name>
+        <description>Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Марса Алам</custom_label_1>
+      </offer>
+      <offer id="max_108090">
+        <url>https://max.ru/channel_anytour/AaGd_yj7K2Y</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/3d8d1803364d1fecdf777629924664496f6f629d/.github/traffic-publish/commercial-batch-20261102-12/108090.png</picture>
+        <name>Туры в JAZ Elite Amara</name>
+        <description>Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Марса Алам</custom_label_1>
+      </offer>
+      <offer id="tg_150">
+        <url>https://t.me/any_toour/71</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/150.png</picture>
+        <name>Путевки в Pickalbatros Citadel</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_150">
+        <url>https://max.ru/channel_anytour/AaGeHm38ACE</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/150.png</picture>
+        <name>Туры в Pickalbatros Citadel</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_172">
+        <url>https://t.me/any_toour/72</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/172.png</picture>
+        <name>Путевки в Pickalbatros Sands Port Ghalib</name>
+        <description>Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Марса Алам</custom_label_1>
+      </offer>
+      <offer id="max_172">
+        <url>https://max.ru/channel_anytour/AaGeHnfcJ9s</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/172.png</picture>
+        <name>Туры в Pickalbatros Sands Port Ghalib</name>
+        <description>Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Марса Алам</custom_label_1>
+      </offer>
+      <offer id="tg_275">
+        <url>https://t.me/any_toour/73</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/275.png</picture>
+        <name>Путевки в Pickalbatros The Palace Port Ghalib</name>
+        <description>Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Марса Алам</custom_label_1>
+      </offer>
+      <offer id="max_275">
+        <url>https://max.ru/channel_anytour/AaGeHoHUT8w</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/275.png</picture>
+        <name>Туры в Pickalbatros The Palace Port Ghalib</name>
+        <description>Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Марса Алам</custom_label_1>
+      </offer>
+      <offer id="tg_173">
+        <url>https://t.me/any_toour/74</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/173.png</picture>
+        <name>Путевки в Pickalbatros Oasis Port Ghalib</name>
+        <description>Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Марса Алам</custom_label_1>
+      </offer>
+      <offer id="max_173">
+        <url>https://max.ru/channel_anytour/AaGeHovGaCQ</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/173.png</picture>
+        <name>Туры в Pickalbatros Oasis Port Ghalib</name>
+        <description>Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Марса Алам</custom_label_1>
+      </offer>
+      <offer id="tg_110">
+        <url>https://t.me/any_toour/75</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/110.png</picture>
+        <name>Путевки в Pickalbatros Jungle Aqua Park</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_110">
+        <url>https://max.ru/channel_anytour/AaGeHpWbLtA</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/110.png</picture>
+        <name>Туры в Pickalbatros Jungle Aqua Park</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_57028">
+        <url>https://t.me/any_toour/76</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/57028.png</picture>
+        <name>Путевки в Pickalbatros Aqua Park Sharm</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_57028">
+        <url>https://max.ru/channel_anytour/AaGeHp92NlE</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/57028.png</picture>
+        <name>Туры в Pickalbatros Aqua Park Sharm</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_125">
+        <url>https://t.me/any_toour/77</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/125.png</picture>
+        <name>Путевки в Pickalbatros Aqua Blu Sharm</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_125">
+        <url>https://max.ru/channel_anytour/AaGeHqk9YVc</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/125.png</picture>
+        <name>Туры в Pickalbatros Aqua Blu Sharm</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_132">
+        <url>https://t.me/any_toour/78</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/132.png</picture>
+        <name>Путевки в Beach Albatros Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_132">
+        <url>https://max.ru/channel_anytour/AaGeHrVUSL0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/132.png</picture>
+        <name>Туры в Beach Albatros Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_178">
+        <url>https://t.me/any_toour/79</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/178.png</picture>
+        <name>Путевки в Desert Rose</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_178">
+        <url>https://max.ru/channel_anytour/AaGeHr8-UCw</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/178.png</picture>
+        <name>Туры в Desert Rose</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_371">
+        <url>https://t.me/any_toour/80</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/371.png</picture>
+        <name>Путевки в Reef Oasis Beach Resort</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_371">
+        <url>https://max.ru/channel_anytour/AaGeHsjldCE</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/371.png</picture>
+        <name>Туры в Reef Oasis Beach Resort</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_389">
+        <url>https://t.me/any_toour/81</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/389.png</picture>
+        <name>Путевки в Pickalbatros Royal Moderna</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_389">
+        <url>https://max.ru/channel_anytour/AaGePCsUN8U</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/389.png</picture>
+        <name>Туры в Pickalbatros Royal Moderna</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_109">
+        <url>https://t.me/any_toour/82</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/109.png</picture>
+        <name>Путевки в Pickalbatros Aqua Vista</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_109">
+        <url>https://max.ru/channel_anytour/AaGePDTZCUk</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/109.png</picture>
+        <name>Туры в Pickalbatros Aqua Vista</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_293">
+        <url>https://t.me/any_toour/83</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/293.png</picture>
+        <name>Путевки в Pickalbatros Laguna Vista</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_293">
+        <url>https://max.ru/channel_anytour/AaGePD60KYU</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/293.png</picture>
+        <name>Туры в Pickalbatros Laguna Vista</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_107965">
+        <url>https://t.me/any_toour/84</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/107965.png</picture>
+        <name>Путевки в Pickalbatros Laguna Club</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_107965">
+        <url>https://max.ru/channel_anytour/AaGePEiAVwQ</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/107965.png</picture>
+        <name>Туры в Pickalbatros Laguna Club</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_393">
+        <url>https://t.me/any_toour/85</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/393.png</picture>
+        <name>Путевки в Pickalbatros Royal Grand</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_393">
+        <url>https://max.ru/channel_anytour/AaGePFLGSr0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/393.png</picture>
+        <name>Туры в Pickalbatros Royal Grand</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_78898">
+        <url>https://t.me/any_toour/86</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/78898.png</picture>
+        <name>Путевки в Pickalbatros Blu Spa</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_78898">
+        <url>https://max.ru/channel_anytour/AaGePFyOTCg</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/78898.png</picture>
+        <name>Туры в Pickalbatros Blu Spa</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_83105">
+        <url>https://t.me/any_toour/87</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/83105.png</picture>
+        <name>Путевки в Pickalbatros Vita Resort Portofino</name>
+        <description>Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Марса Алам</custom_label_1>
+      </offer>
+      <offer id="max_83105">
+        <url>https://max.ru/channel_anytour/AaGePGaqRfA</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/83105.png</picture>
+        <name>Туры в Pickalbatros Vita Resort Portofino</name>
+        <description>Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Марса Алам</custom_label_1>
+      </offer>
+      <offer id="tg_69155">
+        <url>https://t.me/any_toour/88</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/69155.png</picture>
+        <name>Путевки в Steigenberger Resort Alaya</name>
+        <description>Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Марса Алам</custom_label_1>
+      </offer>
+      <offer id="max_69155">
+        <url>https://max.ru/channel_anytour/AaGePHAgePE</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/69155.png</picture>
+        <name>Туры в Steigenberger Resort Alaya</name>
+        <description>Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Марса Алам</custom_label_1>
+      </offer>
+      <offer id="tg_69409">
+        <url>https://t.me/any_toour/89</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/69409.png</picture>
+        <name>Путевки в Steigenberger Resort Ras Soma</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_69409">
+        <url>https://max.ru/channel_anytour/AaGePHnuApk</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/69409.png</picture>
+        <name>Туры в Steigenberger Resort Ras Soma</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_263">
+        <url>https://t.me/any_toour/90</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/263.png</picture>
+        <name>Путевки в Steigenberger Coraya Beach</name>
+        <description>Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Марса Алам</custom_label_1>
+      </offer>
+      <offer id="max_263">
+        <url>https://max.ru/channel_anytour/AaGePIPBMYk</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/263.png</picture>
+        <name>Туры в Steigenberger Coraya Beach</name>
+        <description>Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Марса Алам</custom_label_1>
+      </offer>
+      <offer id="tg_43204">
+        <url>https://t.me/any_toour/91</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4d4b1ec194d8a078ccb827772908dcfd55cb792a/.github/traffic-publish/commercial-batch-20261103-15/43204.png</picture>
+        <name>Путевки в Steigenberger Alcazar</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_43204">
+        <url>https://max.ru/channel_anytour/AaGeYQXUTJs</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4d4b1ec194d8a078ccb827772908dcfd55cb792a/.github/traffic-publish/commercial-batch-20261103-15/43204.png</picture>
+        <name>Туры в Steigenberger Alcazar</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_13870">
+        <url>https://t.me/any_toour/92</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4d4b1ec194d8a078ccb827772908dcfd55cb792a/.github/traffic-publish/commercial-batch-20261103-15/13870.png</picture>
+        <name>Путевки в Steigenberger Makadi 16+</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_13870">
+        <url>https://max.ru/channel_anytour/AaGeYQ9sC-o</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4d4b1ec194d8a078ccb827772908dcfd55cb792a/.github/traffic-publish/commercial-batch-20261103-15/13870.png</picture>
+        <name>Туры в Steigenberger Makadi 16+</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_1983">
+        <url>https://t.me/any_toour/93</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4d4b1ec194d8a078ccb827772908dcfd55cb792a/.github/traffic-publish/commercial-batch-20261103-15/1983.png</picture>
+        <name>Путевки в JAZ Neo Sharks Bay</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_1983">
+        <url>https://max.ru/channel_anytour/AaGeYRkIc6E</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4d4b1ec194d8a078ccb827772908dcfd55cb792a/.github/traffic-publish/commercial-batch-20261103-15/1983.png</picture>
+        <name>Туры в JAZ Neo Sharks Bay</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_111801">
+        <url>https://t.me/any_toour/94</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4d4b1ec194d8a078ccb827772908dcfd55cb792a/.github/traffic-publish/commercial-batch-20261103-15/111801.png</picture>
+        <name>Путевки в JAZ Elite Asteria</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_111801">
+        <url>https://max.ru/channel_anytour/AaGeYSK7AH0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4d4b1ec194d8a078ccb827772908dcfd55cb792a/.github/traffic-publish/commercial-batch-20261103-15/111801.png</picture>
+        <name>Туры в JAZ Elite Asteria</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_287">
+        <url>https://t.me/any_toour/95</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/549675505dae8eeccf1fab86cf3a2779927b08ad/.github/traffic-publish/commercial-batch-20261103-16/287.png</picture>
+        <name>Путевки в Kempinski Hotel Soma Bay</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_287">
+        <url>https://max.ru/channel_anytour/AaGeijVYf9w</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/549675505dae8eeccf1fab86cf3a2779927b08ad/.github/traffic-publish/commercial-batch-20261103-16/287.png</picture>
+        <name>Туры в Kempinski Hotel Soma Bay</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_435">
+        <url>https://t.me/any_toour/96</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/549675505dae8eeccf1fab86cf3a2779927b08ad/.github/traffic-publish/commercial-batch-20261103-16/435.png</picture>
+        <name>Путевки в Sheraton Soma Bay Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_435">
+        <url>https://max.ru/channel_anytour/AaGeij7eOTo</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/549675505dae8eeccf1fab86cf3a2779927b08ad/.github/traffic-publish/commercial-batch-20261103-16/435.png</picture>
+        <name>Туры в Sheraton Soma Bay Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_109149">
+        <url>https://t.me/any_toour/97</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/ea5fb18274f9da4b0d78dcf476ddc7a72fbdd20c/.github/traffic-publish/commercial-batch-20261103-16/109149.png</picture>
+        <name>Путевки в The Breakers Soma Bay</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_109149">
+        <url>https://max.ru/channel_anytour/AaGeikjzceE</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/ea5fb18274f9da4b0d78dcf476ddc7a72fbdd20c/.github/traffic-publish/commercial-batch-20261103-16/109149.png</picture>
+        <name>Туры в The Breakers Soma Bay</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_79059">
+        <url>https://t.me/any_toour/98</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/549675505dae8eeccf1fab86cf3a2779927b08ad/.github/traffic-publish/commercial-batch-20261103-16/79059.png</picture>
+        <name>Путевки в Pickalbatros Water Valley Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_79059">
+        <url>https://max.ru/channel_anytour/AaGeilKiHDY</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/549675505dae8eeccf1fab86cf3a2779927b08ad/.github/traffic-publish/commercial-batch-20261103-16/79059.png</picture>
+        <name>Туры в Pickalbatros Water Valley Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_56092">
+        <url>https://t.me/any_toour/99</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/549675505dae8eeccf1fab86cf3a2779927b08ad/.github/traffic-publish/commercial-batch-20261103-16/56092.png</picture>
+        <name>Путевки в Gravity Hotel &amp; Aqua Park Hurghada</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_56092">
+        <url>https://max.ru/channel_anytour/AaGeilyCad0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/549675505dae8eeccf1fab86cf3a2779927b08ad/.github/traffic-publish/commercial-batch-20261103-16/56092.png</picture>
+        <name>Туры в Gravity Hotel &amp; Aqua Park Hurghada</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_115918">
+        <url>https://t.me/any_toour/100</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/549675505dae8eeccf1fab86cf3a2779927b08ad/.github/traffic-publish/commercial-batch-20261103-16/115918.png</picture>
+        <name>Путевки в Rixos Radamis</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_115918">
+        <url>https://max.ru/channel_anytour/AaGeimaBEmc</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/549675505dae8eeccf1fab86cf3a2779927b08ad/.github/traffic-publish/commercial-batch-20261103-16/115918.png</picture>
+        <name>Туры в Rixos Radamis</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_269">
+        <url>https://t.me/any_toour/101</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/549675505dae8eeccf1fab86cf3a2779927b08ad/.github/traffic-publish/commercial-batch-20261103-16/269.png</picture>
+        <name>Путевки в TUI BLUE Samaya</name>
+        <description>Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Марса Алам</custom_label_1>
+      </offer>
+      <offer id="max_269">
+        <url>https://max.ru/channel_anytour/AaGeinA7LaI</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/549675505dae8eeccf1fab86cf3a2779927b08ad/.github/traffic-publish/commercial-batch-20261103-16/269.png</picture>
+        <name>Туры в TUI BLUE Samaya</name>
+        <description>Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Марса Алам</custom_label_1>
+      </offer>
+      <offer id="tg_80964">
+        <url>https://t.me/any_toour/102</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/ea5fb18274f9da4b0d78dcf476ddc7a72fbdd20c/.github/traffic-publish/commercial-batch-20261103-16/80964.png</picture>
+        <name>Путевки в Meraki Sharm 16+</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_80964">
+        <url>https://max.ru/channel_anytour/AaGeinoRLSQ</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/ea5fb18274f9da4b0d78dcf476ddc7a72fbdd20c/.github/traffic-publish/commercial-batch-20261103-16/80964.png</picture>
+        <name>Туры в Meraki Sharm 16+</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_264">
+        <url>https://t.me/any_toour/103</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/f2b991533a27dd4eaf06566d61ab50c378ac6ef3/.github/traffic-publish/commercial-batch-20261103-17/264.png</picture>
+        <name>Путевки в JAZ Dahabeya</name>
+        <description>Тур с перелётом. Дахаб. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Дахаб</custom_label_1>
+      </offer>
+      <offer id="max_264">
+        <url>https://max.ru/channel_anytour/AaGgW95NR9s</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/f2b991533a27dd4eaf06566d61ab50c378ac6ef3/.github/traffic-publish/commercial-batch-20261103-17/264.png</picture>
+        <name>Туры в JAZ Dahabeya</name>
+        <description>Тур с перелётом. Дахаб. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Дахаб</custom_label_1>
+      </offer>
+      <offer id="tg_73342">
+        <url>https://t.me/any_toour/104</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/f2b991533a27dd4eaf06566d61ab50c378ac6ef3/.github/traffic-publish/commercial-batch-20261103-17/73342.png</picture>
+        <name>Путевки в JAZ Soma Beach</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_73342">
+        <url>https://max.ru/channel_anytour/AaGgW-hKRzw</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/f2b991533a27dd4eaf06566d61ab50c378ac6ef3/.github/traffic-publish/commercial-batch-20261103-17/73342.png</picture>
+        <name>Туры в JAZ Soma Beach</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_278">
+        <url>https://t.me/any_toour/105</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/f2b991533a27dd4eaf06566d61ab50c378ac6ef3/.github/traffic-publish/commercial-batch-20261103-17/278.png</picture>
+        <name>Путевки в JAZ Belvedere</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_278">
+        <url>https://max.ru/channel_anytour/AaGgW_MKZBk</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/f2b991533a27dd4eaf06566d61ab50c378ac6ef3/.github/traffic-publish/commercial-batch-20261103-17/278.png</picture>
+        <name>Туры в JAZ Belvedere</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_246">
+        <url>https://t.me/any_toour/106</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/f2b991533a27dd4eaf06566d61ab50c378ac6ef3/.github/traffic-publish/commercial-batch-20261103-17/246.png</picture>
+        <name>Путевки в JAZ Fayrouz</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_246">
+        <url>https://max.ru/channel_anytour/AaGgW_zLBIc</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/f2b991533a27dd4eaf06566d61ab50c378ac6ef3/.github/traffic-publish/commercial-batch-20261103-17/246.png</picture>
+        <name>Туры в JAZ Fayrouz</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_245">
+        <url>https://t.me/any_toour/107</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/94257c246f0fa86a4a4b52a37d99dac08564554f/.github/traffic-publish/commercial-batch-20261103-17/245.png</picture>
+        <name>Путевки в JAZ Sharm Dreams</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_245">
+        <url>https://max.ru/channel_anytour/AaGgXAZ5Tak</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/94257c246f0fa86a4a4b52a37d99dac08564554f/.github/traffic-publish/commercial-batch-20261103-17/245.png</picture>
+        <name>Туры в JAZ Sharm Dreams</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_13869">
+        <url>https://t.me/any_toour/108</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/94257c246f0fa86a4a4b52a37d99dac08564554f/.github/traffic-publish/commercial-batch-20261103-17/13869.png</picture>
+        <name>Путевки в JAZ Neo Saraya Palms</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_13869">
+        <url>https://max.ru/channel_anytour/AaGgXBBBOgA</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/94257c246f0fa86a4a4b52a37d99dac08564554f/.github/traffic-publish/commercial-batch-20261103-17/13869.png</picture>
+        <name>Туры в JAZ Neo Saraya Palms</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_267">
+        <url>https://t.me/any_toour/109</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/94257c246f0fa86a4a4b52a37d99dac08564554f/.github/traffic-publish/commercial-batch-20261103-17/267.png</picture>
+        <name>Путевки в Iberotel Makadi Beach</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_267">
+        <url>https://max.ru/channel_anytour/AaGgXBr6OgI</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/94257c246f0fa86a4a4b52a37d99dac08564554f/.github/traffic-publish/commercial-batch-20261103-17/267.png</picture>
+        <name>Туры в Iberotel Makadi Beach</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_12114">
+        <url>https://t.me/any_toour/110</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/94257c246f0fa86a4a4b52a37d99dac08564554f/.github/traffic-publish/commercial-batch-20261103-17/12114.png</picture>
+        <name>Путевки в JAZ Elite Palace 16+</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_12114">
+        <url>https://max.ru/channel_anytour/AaGgXCTyDEg</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/94257c246f0fa86a4a4b52a37d99dac08564554f/.github/traffic-publish/commercial-batch-20261103-17/12114.png</picture>
+        <name>Туры в JAZ Elite Palace 16+</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_384">
+        <url>https://t.me/any_toour/111</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/50596593234befa16109a8430a7587a73b86f247/.github/traffic-publish/commercial-batch-20261103-18/384.png</picture>
+        <name>Путевки в JAZ Neo Reef Marsa</name>
+        <description>Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Марса Алам</custom_label_1>
+      </offer>
+      <offer id="max_384">
+        <url>https://max.ru/channel_anytour/AaGgkHXqIM0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/50596593234befa16109a8430a7587a73b86f247/.github/traffic-publish/commercial-batch-20261103-18/384.png</picture>
+        <name>Туры в JAZ Neo Reef Marsa</name>
+        <description>Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Марса Алам</custom_label_1>
+      </offer>
+      <offer id="tg_281">
+        <url>https://t.me/any_toour/112</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/50596593234befa16109a8430a7587a73b86f247/.github/traffic-publish/commercial-batch-20261103-18/281.png</picture>
+        <name>Путевки в JAZ Mirabel Beach</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_281">
+        <url>https://max.ru/channel_anytour/AaGgkH_KGNw</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/50596593234befa16109a8430a7587a73b86f247/.github/traffic-publish/commercial-batch-20261103-18/281.png</picture>
+        <name>Туры в JAZ Mirabel Beach</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_75725">
+        <url>https://t.me/any_toour/113</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/50596593234befa16109a8430a7587a73b86f247/.github/traffic-publish/commercial-batch-20261103-18/75725.png</picture>
+        <name>Путевки в JAZ Costa Mares 16+</name>
+        <description>Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Марса Алам</custom_label_1>
+      </offer>
+      <offer id="max_75725">
+        <url>https://max.ru/channel_anytour/AaGgkInWb2E</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/50596593234befa16109a8430a7587a73b86f247/.github/traffic-publish/commercial-batch-20261103-18/75725.png</picture>
+        <name>Туры в JAZ Costa Mares 16+</name>
+        <description>Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Марса Алам</custom_label_1>
+      </offer>
+      <offer id="tg_249">
+        <url>https://t.me/any_toour/114</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4daf5a926a75e58235980ac66de5938722dfe980/.github/traffic-publish/commercial-batch-20261103-19/249.png</picture>
+        <name>Путевки в Hilton Hurghada Plaza</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_249">
+        <url>https://max.ru/channel_anytour/AaGg3NUaRFA</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4daf5a926a75e58235980ac66de5938722dfe980/.github/traffic-publish/commercial-batch-20261103-19/249.png</picture>
+        <name>Туры в Hilton Hurghada Plaza</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_315">
+        <url>https://t.me/any_toour/115</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4daf5a926a75e58235980ac66de5938722dfe980/.github/traffic-publish/commercial-batch-20261103-19/315.png</picture>
+        <name>Путевки в Hurghada Marriott Beach Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_315">
+        <url>https://max.ru/channel_anytour/AaGg3N8BQdQ</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4daf5a926a75e58235980ac66de5938722dfe980/.github/traffic-publish/commercial-batch-20261103-19/315.png</picture>
+        <name>Туры в Hurghada Marriott Beach Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_465">
+        <url>https://t.me/any_toour/116</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4daf5a926a75e58235980ac66de5938722dfe980/.github/traffic-publish/commercial-batch-20261103-19/465.png</picture>
+        <name>Путевки в Stella Di Mare Beach Hotel &amp; Spa</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_465">
+        <url>https://max.ru/channel_anytour/AaGg3OiTOJ4</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4daf5a926a75e58235980ac66de5938722dfe980/.github/traffic-publish/commercial-batch-20261103-19/465.png</picture>
+        <name>Туры в Stella Di Mare Beach Hotel &amp; Spa</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_272">
+        <url>https://t.me/any_toour/117</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4daf5a926a75e58235980ac66de5938722dfe980/.github/traffic-publish/commercial-batch-20261103-19/272.png</picture>
+        <name>Путевки в Continental Hotel Hurghada</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_272">
+        <url>https://max.ru/channel_anytour/AaGg3PJKAB8</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4daf5a926a75e58235980ac66de5938722dfe980/.github/traffic-publish/commercial-batch-20261103-19/272.png</picture>
+        <name>Туры в Continental Hotel Hurghada</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_260">
+        <url>https://t.me/any_toour/118</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4daf5a926a75e58235980ac66de5938722dfe980/.github/traffic-publish/commercial-batch-20261103-19/260.png</picture>
+        <name>Путевки в Park Regency Sharm El Sheikh</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_260">
+        <url>https://max.ru/channel_anytour/AaGg3Pv9dF8</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4daf5a926a75e58235980ac66de5938722dfe980/.github/traffic-publish/commercial-batch-20261103-19/260.png</picture>
+        <name>Туры в Park Regency Sharm El Sheikh</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_273">
+        <url>https://t.me/any_toour/119</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4daf5a926a75e58235980ac66de5938722dfe980/.github/traffic-publish/commercial-batch-20261103-19/273.png</picture>
+        <name>Путевки в Palm Royale Soma Bay</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_273">
+        <url>https://max.ru/channel_anytour/AaGg3QWNRxc</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4daf5a926a75e58235980ac66de5938722dfe980/.github/traffic-publish/commercial-batch-20261103-19/273.png</picture>
+        <name>Туры в Palm Royale Soma Bay</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_469">
+        <url>https://t.me/any_toour/12</url>
+        <categoryId>1</categoryId>
+        <name>Путевки в Sultan Gardens Resort</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_469">
+        <url>https://max.ru/channel_anytour/AaF5iOO-R8w</url>
+        <categoryId>1</categoryId>
+        <name>Туры в Sultan Gardens Resort</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_381">
+        <url>https://t.me/any_toour/13</url>
+        <categoryId>1</categoryId>
+        <name>Путевки в Rehana Royal Beach Resort Aqua Park &amp; Spa</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_381">
+        <url>https://max.ru/channel_anytour/AaF5iPYSJTA</url>
+        <categoryId>1</categoryId>
+        <name>Туры в Rehana Royal Beach Resort Aqua Park &amp; Spa</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_408">
+        <url>https://t.me/any_toour/120</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/298de73457d875d29e45797453dded34c1d7f99b/.github/traffic-publish/commercial-batch-20261103-20/408.png</picture>
+        <name>Путевки в Savoy Sharm El Sheikh</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_408">
+        <url>https://max.ru/channel_anytour/AaGhJ7JODvU</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/298de73457d875d29e45797453dded34c1d7f99b/.github/traffic-publish/commercial-batch-20261103-20/408.png</picture>
+        <name>Туры в Savoy Sharm El Sheikh</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_441">
+        <url>https://t.me/any_toour/121</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/80c4c292ee78c7eb208aeda7659f0bea71f70d76/.github/traffic-publish/commercial-batch-20261103-21/441.png</picture>
+        <name>Путевки в Siva Grand Beach</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_441">
+        <url>https://max.ru/channel_anytour/AaGhSGS2Sy4</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/80c4c292ee78c7eb208aeda7659f0bea71f70d76/.github/traffic-publish/commercial-batch-20261103-21/441.png</picture>
+        <name>Туры в Siva Grand Beach</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_21477">
+        <url>https://t.me/any_toour/122</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/f2b59582a43aa5aae57173ce5f36cb1a593aa223/.github/traffic-publish/commercial-batch-20261103-22/21477.png</picture>
+        <name>Путевки в Mövenpick Waterpark Resort &amp; Spa Soma Bay</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_21477">
+        <url>https://max.ru/channel_anytour/AaGheEQaaTs</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/f2b59582a43aa5aae57173ce5f36cb1a593aa223/.github/traffic-publish/commercial-batch-20261103-22/21477.png</picture>
+        <name>Туры в Mövenpick Waterpark Resort &amp; Spa Soma Bay</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_60589">
+        <url>https://t.me/any_toour/123</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/f2b59582a43aa5aae57173ce5f36cb1a593aa223/.github/traffic-publish/commercial-batch-20261103-22/60589.png</picture>
+        <name>Путевки в JAZ Neo Ivory</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_60589">
+        <url>https://max.ru/channel_anytour/AaGheE3NWPA</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/f2b59582a43aa5aae57173ce5f36cb1a593aa223/.github/traffic-publish/commercial-batch-20261103-22/60589.png</picture>
+        <name>Туры в JAZ Neo Ivory</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_328">
+        <url>https://t.me/any_toour/124</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/856ad1c1edf8ae6be9583897f435f7e509d1b660/.github/traffic-publish/commercial-batch-20261103-23/328.png</picture>
+        <name>Путевки в Mövenpick El Gouna</name>
+        <description>Тур с перелётом. Эль Гуна. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Эль Гуна</custom_label_1>
+      </offer>
+      <offer id="max_328">
+        <url>https://max.ru/channel_anytour/AaGh9vEJfqU</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/856ad1c1edf8ae6be9583897f435f7e509d1b660/.github/traffic-publish/commercial-batch-20261103-23/328.png</picture>
+        <name>Туры в Mövenpick El Gouna</name>
+        <description>Тур с перелётом. Эль Гуна. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Эль Гуна</custom_label_1>
+      </offer>
+      <offer id="tg_282">
+        <url>https://t.me/any_toour/125</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/6508a9ee1f0ced32bc03bef61d3869b44764c9f8/.github/traffic-publish/commercial-batch-20261103-24/282.png</picture>
+        <name>Путевки в JAZ Mirabel Club</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_282">
+        <url>https://max.ru/channel_anytour/AaGiIcOYXpU</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/6508a9ee1f0ced32bc03bef61d3869b44764c9f8/.github/traffic-publish/commercial-batch-20261103-24/282.png</picture>
+        <name>Туры в JAZ Mirabel Club</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_235">
+        <url>https://t.me/any_toour/126</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/6508a9ee1f0ced32bc03bef61d3869b44764c9f8/.github/traffic-publish/commercial-batch-20261103-24/235.png</picture>
+        <name>Путевки в The Grand Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_235">
+        <url>https://max.ru/channel_anytour/AaGiIc2caEQ</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/6508a9ee1f0ced32bc03bef61d3869b44764c9f8/.github/traffic-publish/commercial-batch-20261103-24/235.png</picture>
+        <name>Туры в The Grand Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_382">
+        <url>https://t.me/any_toour/127</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/6508a9ee1f0ced32bc03bef61d3869b44764c9f8/.github/traffic-publish/commercial-batch-20261103-24/382.png</picture>
+        <name>Путевки в Renaissance Golden View Beach</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_382">
+        <url>https://max.ru/channel_anytour/AaGiIddbVWk</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/6508a9ee1f0ced32bc03bef61d3869b44764c9f8/.github/traffic-publish/commercial-batch-20261103-24/382.png</picture>
+        <name>Туры в Renaissance Golden View Beach</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_250">
+        <url>https://t.me/any_toour/128</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/6508a9ee1f0ced32bc03bef61d3869b44764c9f8/.github/traffic-publish/commercial-batch-20261103-24/250.png</picture>
+        <name>Путевки в Swiss Inn Resort Hurghada</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_250">
+        <url>https://max.ru/channel_anytour/AaGiIeE0Lts</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/6508a9ee1f0ced32bc03bef61d3869b44764c9f8/.github/traffic-publish/commercial-batch-20261103-24/250.png</picture>
+        <name>Туры в Swiss Inn Resort Hurghada</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_464">
+        <url>https://t.me/any_toour/129</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/42f64c23041106e34e477c95c668e182ebbb874c/.github/traffic-publish/commercial-batch-20261103-25/464.png</picture>
+        <name>Путевки в Steigenberger Golf Resort El Gouna</name>
+        <description>Тур с перелётом. Эль Гуна. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Эль Гуна</custom_label_1>
+      </offer>
+      <offer id="max_464">
+        <url>https://max.ru/channel_anytour/AaGiW44QeSI</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/42f64c23041106e34e477c95c668e182ebbb874c/.github/traffic-publish/commercial-batch-20261103-25/464.png</picture>
+        <name>Туры в Steigenberger Golf Resort El Gouna</name>
+        <description>Тур с перелётом. Эль Гуна. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Эль Гуна</custom_label_1>
+      </offer>
+      <offer id="tg_103021">
+        <url>https://t.me/any_toour/130</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/42f64c23041106e34e477c95c668e182ebbb874c/.github/traffic-publish/commercial-batch-20261103-25/103021.png</picture>
+        <name>Путевки в The Chedi El Gouna</name>
+        <description>Тур с перелётом. Эль Гуна. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Эль Гуна</custom_label_1>
+      </offer>
+      <offer id="max_103021">
+        <url>https://max.ru/channel_anytour/AaGiW5fUUg0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/42f64c23041106e34e477c95c668e182ebbb874c/.github/traffic-publish/commercial-batch-20261103-25/103021.png</picture>
+        <name>Туры в The Chedi El Gouna</name>
+        <description>Тур с перелётом. Эль Гуна. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Эль Гуна</custom_label_1>
+      </offer>
+      <offer id="tg_129">
+        <url>https://t.me/any_toour/131</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/5763bc42519d4ca3745f24220c3853147c03ae02/.github/traffic-publish/commercial-batch-20261103-26/129.png</picture>
+        <name>Путевки в Cook&apos;s Club El Gouna 16+</name>
+        <description>Тур с перелётом. Эль Гуна. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Эль Гуна</custom_label_1>
+      </offer>
+      <offer id="max_129">
+        <url>https://max.ru/channel_anytour/AaGihSzeSiA</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/5763bc42519d4ca3745f24220c3853147c03ae02/.github/traffic-publish/commercial-batch-20261103-26/129.png</picture>
+        <name>Туры в Cook&apos;s Club El Gouna 16+</name>
+        <description>Тур с перелётом. Эль Гуна. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Эль Гуна</custom_label_1>
+      </offer>
+      <offer id="tg_165">
+        <url>https://t.me/any_toour/132</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b6e6ad3d06b6c0cdef1cd2822560bd5f5abcccec/.github/traffic-publish/commercial-batch-20261103-27/165.png</picture>
+        <name>Путевки в Coral Sea Water World</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_165">
+        <url>https://max.ru/channel_anytour/AaGishvPGJA</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b6e6ad3d06b6c0cdef1cd2822560bd5f5abcccec/.github/traffic-publish/commercial-batch-20261103-27/165.png</picture>
+        <name>Туры в Coral Sea Water World</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_12116">
+        <url>https://t.me/any_toour/133</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b6e6ad3d06b6c0cdef1cd2822560bd5f5abcccec/.github/traffic-publish/commercial-batch-20261103-27/12116.png</picture>
+        <name>Путевки в Coral Sea Aqua Club</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_12116">
+        <url>https://max.ru/channel_anytour/AaGisiXvJds</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b6e6ad3d06b6c0cdef1cd2822560bd5f5abcccec/.github/traffic-publish/commercial-batch-20261103-27/12116.png</picture>
+        <name>Туры в Coral Sea Aqua Club</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_111">
+        <url>https://t.me/any_toour/134</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b6e6ad3d06b6c0cdef1cd2822560bd5f5abcccec/.github/traffic-publish/commercial-batch-20261103-27/111.png</picture>
+        <name>Путевки в Pickalbatros Palace Resort Hurghada</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_111">
+        <url>https://max.ru/channel_anytour/AaGisi-ve3Q</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b6e6ad3d06b6c0cdef1cd2822560bd5f5abcccec/.github/traffic-publish/commercial-batch-20261103-27/111.png</picture>
+        <name>Туры в Pickalbatros Palace Resort Hurghada</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_163">
+        <url>https://t.me/any_toour/135</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b6e6ad3d06b6c0cdef1cd2822560bd5f5abcccec/.github/traffic-publish/commercial-batch-20261103-27/163.png</picture>
+        <name>Путевки в Coral Sea Holiday Resort &amp; Aqua Park</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_163">
+        <url>https://max.ru/channel_anytour/AaGisjnCN7c</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b6e6ad3d06b6c0cdef1cd2822560bd5f5abcccec/.github/traffic-publish/commercial-batch-20261103-27/163.png</picture>
+        <name>Туры в Coral Sea Holiday Resort &amp; Aqua Park</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_310">
+        <url>https://t.me/any_toour/11</url>
+        <categoryId>1</categoryId>
+        <picture>https://image-tc.galaxy.tf/wijpeg-bunhs9glqpbhgr07p92hv73nb/028-ls-landscape-104108318.jpg</picture>
+        <name>Путевки в Pickalbatros Golf Beach Resort</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_310">
+        <url>https://max.ru/channel_anytour/AaF5iNrwGdY</url>
+        <categoryId>1</categoryId>
+        <picture>https://image-tc.galaxy.tf/wijpeg-bunhs9glqpbhgr07p92hv73nb/028-ls-landscape-104108318.jpg</picture>
+        <name>Туры в Pickalbatros Golf Beach Resort</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_67910">
+        <url>https://t.me/any_toour/10</url>
+        <categoryId>1</categoryId>
+        <picture>https://www.ahstatic.com/photos/b6f4_ho_00_p_1024x768.jpg</picture>
+        <name>Путевки в Rixos Premium Magawish Suites &amp; Villas</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_67910">
+        <url>https://max.ru/channel_anytour/AaF5iOyMXHU</url>
+        <categoryId>1</categoryId>
+        <picture>https://www.ahstatic.com/photos/b6f4_ho_00_p_1024x768.jpg</picture>
+        <name>Туры в Rixos Premium Magawish Suites &amp; Villas</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_68323">
+        <url>https://t.me/any_toour/14</url>
+        <categoryId>1</categoryId>
+        <picture>https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/67f3ffae5a3de.jpg/1200x630/fit/80/238e6a950d96e74d0cac4d2e2d44f808.jpg</picture>
+        <name>Путевки в Sunrise Solara Aqua Park Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_68323">
+        <url>https://max.ru/channel_anytour/AaF5iP7mCB0</url>
+        <categoryId>1</categoryId>
+        <picture>https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/67f3ffae5a3de.jpg/1200x630/fit/80/238e6a950d96e74d0cac4d2e2d44f808.jpg</picture>
+        <name>Туры в Sunrise Solara Aqua Park Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_1971">
+        <url>https://t.me/any_toour/15</url>
+        <categoryId>1</categoryId>
+        <picture>https://image-tc.galaxy.tf/wijpeg-43nq1ttkef5hcqekzjvfa0g4j/over-view.jpg</picture>
+        <name>Путевки в Pickalbatros Palace Resort Sharm El Sheikh</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_1971">
+        <url>https://max.ru/channel_anytour/AaF5iQf-GJ4</url>
+        <categoryId>1</categoryId>
+        <picture>https://image-tc.galaxy.tf/wijpeg-43nq1ttkef5hcqekzjvfa0g4j/over-view.jpg</picture>
+        <name>Туры в Pickalbatros Palace Resort Sharm El Sheikh</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_56091">
+        <url>https://t.me/any_toour/136</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/ef112c3b171544ab5a836876f91cbb762f77ee88/.github/traffic-publish/commercial-batch-20261103-28/56091.png</picture>
+        <name>Путевки в Ancient Sands Golf Resort &amp; Residences</name>
+        <description>Тур с перелётом. Эль Гуна. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Эль Гуна</custom_label_1>
+      </offer>
+      <offer id="max_56091">
+        <url>https://max.ru/channel_anytour/AaGi7ekZJf4</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/ef112c3b171544ab5a836876f91cbb762f77ee88/.github/traffic-publish/commercial-batch-20261103-28/56091.png</picture>
+        <name>Туры в Ancient Sands Golf Resort &amp; Residences</name>
+        <description>Тур с перелётом. Эль Гуна. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Эль Гуна</custom_label_1>
+      </offer>
+      <offer id="tg_103124">
+        <url>https://t.me/any_toour/137</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/ef112c3b171544ab5a836876f91cbb762f77ee88/.github/traffic-publish/commercial-batch-20261103-28/103124.png</picture>
+        <name>Путевки в Iberotel Luxor by JAZ</name>
+        <description>Тур с перелётом. Люксор. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Люксор</custom_label_1>
+      </offer>
+      <offer id="max_103124">
+        <url>https://max.ru/channel_anytour/AaGi7fLNILc</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/ef112c3b171544ab5a836876f91cbb762f77ee88/.github/traffic-publish/commercial-batch-20261103-28/103124.png</picture>
+        <name>Туры в Iberotel Luxor by JAZ</name>
+        <description>Тур с перелётом. Люксор. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Люксор</custom_label_1>
+      </offer>
+      <offer id="tg_488">
+        <url>https://t.me/any_toour/138</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/ef112c3b171544ab5a836876f91cbb762f77ee88/.github/traffic-publish/commercial-batch-20261103-28/488.png</picture>
+        <name>Путевки в Three Corners Fayrouz Plaza Beach Resort</name>
+        <description>Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Марса Алам</custom_label_1>
+      </offer>
+      <offer id="max_488">
+        <url>https://max.ru/channel_anytour/AaGi7fyyXBA</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/ef112c3b171544ab5a836876f91cbb762f77ee88/.github/traffic-publish/commercial-batch-20261103-28/488.png</picture>
+        <name>Туры в Three Corners Fayrouz Plaza Beach Resort</name>
+        <description>Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Марса Алам</custom_label_1>
+      </offer>
+    </offers>
+  </shop>
+</yml_catalog>
