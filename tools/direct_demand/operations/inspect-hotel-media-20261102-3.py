@@ -1,13 +1,13 @@
 import base64,html,json,os,re,urllib.parse,urllib.request
 from pathlib import Path
 from html.parser import HTMLParser
-operation='commercial-stock26-cooks-casa-six-primary-pages'
-pages=["https://www.cooksclub.com/our-hotels/cooks-club-el-gouna-egypt/","https://www.cooksclub.com/our-hotels/cooks-club-el-gouna-egypt/amenities/","https://www.cooksclub.com/our-hotels/cooks-club-el-gouna-egypt/gallery/","https://casacook.com/our-hotels/casa-cook-el-gouna/","https://casacook.com/our-hotels/casa-cook-el-gouna/amenities/","https://casacook.com/our-hotels/casa-cook-el-gouna/gallery/"]
+operation='commercial-batch26-primary-owner-membership-read'
+pages=["https://www.elgouna.com/hotels/casa-cook","https://www.elgouna.com/hotels/casa-cook/rooms","https://www.hwaidak-hotels.com/gallery","https://www.amarinagroup.com/media/gallery"]
 group=int(os.environ['MEDIA_GROUP'])
 assert group in (0,1)
 pages=pages[group*3:group*3+3]
 assert 1<=len(pages)<=3
-hosts=set(["www.cooksclub.com","cooksclub.com","casacook.com","www.casacook.com","busyrooms.cdnserver.net"])
+hosts=set(["www.elgouna.com","cms.elgouna.com","www.hwaidak-hotels.com","storage.googleapis.com","www.amarinagroup.com","r.profitroom.com","r.profitroom.pl","u.profitroom.com","wa-uploads.profitroom.com"])
 class Redirect(urllib.request.HTTPRedirectHandler):
  def redirect_request(self,*args,**kwargs):raise ValueError('unexpected_primary_source_redirect')
 opener=urllib.request.build_opener(Redirect())
@@ -64,6 +64,40 @@ for url in pages:
   absolute=urllib.parse.urljoin(final,html.unescape(value));p=urllib.parse.urlsplit(absolute)
   if p.scheme=='https' and p.hostname in hosts and not p.username and not p.password and not re.search(r'token|authkey|api_key|password|firebase',absolute,re.I):
    if p.hostname in ('www.jazhotels.com','jazhotels.com') and '/hoteldetail/' in p.path and absolute not in website_links:website_links.append(absolute)
+
+ def declared_public_image(value):
+  absolute=urllib.parse.quote(urllib.parse.urljoin(final,html.unescape(value.strip())),safe=':/?&=%#')
+  pp=urllib.parse.urlsplit(absolute)
+  if pp.hostname=='www.elgouna.com' and pp.path=='/_next/image':
+   original=urllib.parse.parse_qs(pp.query).get('url',[])
+   if len(original)==1:absolute=original[0];pp=urllib.parse.urlsplit(absolute)
+  if pp.scheme!='https' or pp.hostname not in hosts or pp.username or pp.password or pp.fragment or absolute.count('https://')!=1:return None
+  if 'firebasestorage' in absolute.lower() or re.search(r'(?:^|&)(?:token|access_token|api_key|auth|key)=',pp.query,re.I):return None
+  if not re.search(r'\.(?:jpe?g|png|webp)(?:\?|$)',absolute,re.I):return None
+  return absolute
+ class Membership(HTMLParser):
+  def __init__(self):super().__init__();self.stack=[];self.rows=[]
+  def handle_starttag(self,tag,attrs):
+   a=dict(attrs)
+   lineage=self.stack+[(tag,a)]
+   if tag in ('img','a','source'):
+    for key in ('src','data-src','href','data-image','data-original'):
+     uri=declared_public_image(a.get(key,''))
+     if not uri:continue
+     categories=[]
+     for _,aa in lineage:
+      for kk,vv in aa.items():
+       if kk in ('data-category','data-categories','data-album','data-gallery-category','data-filter') and vv:categories.append({kk:vv[:100]})
+     if uri not in candidates:candidates.append(uri)
+     row={'url':uri,'tag':tag,'alt':a.get('alt','')[:180],'categories':categories[-4:]}
+     if row not in self.rows:self.rows.append(row)
+   if tag not in ('area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr'):self.stack.append((tag,a))
+  def handle_endtag(self,tag):
+   for i in range(len(self.stack)-1,-1,-1):
+    if self.stack[i][0]==tag:self.stack=self.stack[:i];break
+ membership=Membership();membership.feed(text)
+ gallery_memberships=membership.rows[:500]
+
  fragments=[]
  def selected_json(v,path='',depth=0):
   if depth>14 or len(fragments)>=16:return
@@ -81,7 +115,7 @@ for url in pages:
  for body in re.findall(r'<script[^>]*(?:type=["\x27]application/(?:ld\\+)?json["\x27]|id=["\x27]__NEXT_DATA__["\x27])[^>]*>(.*?)</script>',text,re.I|re.S):
   try:selected_json(json.loads(html.unescape(body)))
   except (ValueError,TypeError):pass
- out['pages'].append({'source_url':url,'final_url':final,'page_title':title,'image_hosts':sorted(image_hosts),'image_urls':candidates[:180],'image_details':image_details[:160],'document_urls':documents[:12],'website_links':website_links[:10],'public_text':public_text,'json_fact_fragments':fragments,'album_context':album_context})
+ out['pages'].append({'source_url':url,'final_url':final,'page_title':title,'image_hosts':sorted(image_hosts),'image_urls':candidates[:180],'image_details':image_details[:160],'document_urls':documents[:12],'website_links':website_links[:10],'public_text':public_text,'json_fact_fragments':fragments,'album_context':album_context,'gallery_memberships':gallery_memberships})
 
 out['ok']=True
 Path('public-media-sources.json').write_text(json.dumps(out,ensure_ascii=False,indent=2)+'\n')

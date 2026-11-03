@@ -1,0 +1,39 @@
+{
+  "operation": "commercial-batch26-primary-owner-membership-read",
+  "state": "PREPARED_NOT_RUN",
+  "goal": "Resolve exact public overview photographs for the current ten candidate batch in one bounded pass",
+  "catalog_ids": [
+    74258,
+    68907,
+    65779,
+    932,
+    497,
+    73343,
+    231,
+    483,
+    129,
+    418
+  ],
+  "sources": [
+    "https://www.elgouna.com/hotels/casa-cook",
+    "https://www.elgouna.com/hotels/casa-cook/rooms",
+    "https://www.hwaidak-hotels.com/gallery",
+    "https://www.amarinagroup.com/media/gallery"
+  ],
+  "boundaries": [
+    "Pure cloud public primary inspection with no server/provider/message calls",
+    "No blocked URL retries; Amarina gallery uses a new explicit DOM category membership extractor",
+    "No Firebase access-token URLs, private archives or guessed asset paths",
+    "Previously rejected images not fetched again"
+  ],
+  "criteria": [
+    "Hotel-specific gallery category provenance",
+    "One finite grouped image inspection after extraction",
+    "Publish any ready subset through the existing serial publisher"
+  ],
+  "risks": [
+    "Hwaidak supplementary photos may remain token-only and unusable",
+    "Shared navigation images can belong to other properties",
+    "Some source pages can remain deferred without delaying prepared hotels"
+  ]
+}
