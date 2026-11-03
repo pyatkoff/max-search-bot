@@ -13,12 +13,13 @@ function modeledValueSchema(PDO $p):void
         $p->exec(file_get_contents(dirname(__DIR__).'/migrations/037_max_channel_conversion_outbox.sql'));
         $p->exec("ALTER TABLE max_channel_conversion_outbox ADD transport_target VARCHAR(64),ADD platform VARCHAR(16) NOT NULL DEFAULT 'max',ADD identity_source_key VARCHAR(80) NOT NULL DEFAULT '',ADD identity_observation_id BIGINT NULL");
         $p->exec(file_get_contents(dirname(__DIR__).'/migrations/086_modeled_conversion_value_export.sql'));
+        $p->exec(file_get_contents(dirname(__DIR__).'/migrations/087_modeled_conversion_value_history.sql'));
     }else{
-        $p->exec("CREATE TABLE max_channel_conversion_outbox(id $auto,project_key TEXT,conversation_id INTEGER,external_user_id TEXT,counter_id TEXT,target TEXT,transport_target TEXT,event_unix INTEGER,client_id TEXT,tracker_record_id TEXT,tracker_observed_unix INTEGER,state TEXT DEFAULT 'pending',next_attempt_unix INTEGER DEFAULT 0,claim_token TEXT,claimed_at_unix INTEGER,attempts INTEGER DEFAULT 0,upload_id TEXT,upload_status TEXT,last_error TEXT DEFAULT '',platform TEXT DEFAULT 'max',identity_source_key TEXT DEFAULT '',identity_observation_id INTEGER,value_rub NUMERIC,value_profile_id INTEGER,value_stage TEXT,value_contract TEXT,UNIQUE(project_key,conversation_id,target))");
-        $p->exec("CREATE TABLE modeled_conversion_value_export_settings(project_key TEXT PRIMARY KEY,counter_id TEXT,mode TEXT DEFAULT 'off',goal_id TEXT,goal_intent TEXT DEFAULT 'none',activated_at_unix INTEGER,profile_cursor INTEGER DEFAULT 0,base_value_rub INTEGER DEFAULT 25000,contract_version TEXT DEFAULT 'semantic_stage_value_25000_v1',last_tick_unix INTEGER,last_receipt_json TEXT)");
+        $p->exec("CREATE TABLE max_channel_conversion_outbox(id $auto,project_key TEXT,conversation_id INTEGER,external_user_id TEXT,counter_id TEXT,target TEXT,transport_target TEXT,event_unix INTEGER,client_id TEXT,tracker_record_id TEXT,tracker_observed_unix INTEGER,state TEXT DEFAULT 'pending',next_attempt_unix INTEGER DEFAULT 0,claim_token TEXT,claimed_at_unix INTEGER,attempts INTEGER DEFAULT 0,upload_id TEXT,upload_status TEXT,last_error TEXT DEFAULT '',platform TEXT DEFAULT 'max',identity_source_key TEXT DEFAULT '',identity_observation_id INTEGER,value_rub NUMERIC,value_profile_id INTEGER,value_stage TEXT,value_contract TEXT,value_origin TEXT,value_reviewed_at_unix INTEGER,UNIQUE(project_key,conversation_id,target))");
+        $p->exec("CREATE TABLE modeled_conversion_value_export_settings(project_key TEXT PRIMARY KEY,counter_id TEXT,mode TEXT DEFAULT 'off',goal_id TEXT,goal_intent TEXT DEFAULT 'none',activated_at_unix INTEGER,profile_cursor INTEGER DEFAULT 0,base_value_rub INTEGER DEFAULT 25000,contract_version TEXT DEFAULT 'semantic_stage_value_25000_v1',last_tick_unix INTEGER,last_receipt_json TEXT,history_from_unix INTEGER,history_until_unix INTEGER,history_cursor INTEGER DEFAULT 0,history_ceiling INTEGER,history_completed_at_unix INTEGER,history_scanned INTEGER DEFAULT 0,history_collected INTEGER DEFAULT 0,history_stats_json TEXT)");
         $p->exec("INSERT INTO modeled_conversion_value_export_settings(project_key,counter_id) VALUES('anytour','98615635')");
     }
-    $p->exec("CREATE TABLE modeled_conversion_profile_versions(id $auto,project_key VARCHAR(64),platform VARCHAR(16),customer_key VARCHAR(20),conversation_id BIGINT,profile_json ".($mysql?'JSON':'TEXT').")");
+    $p->exec("CREATE TABLE modeled_conversion_profile_versions(id $auto,project_key VARCHAR(64),platform VARCHAR(16),customer_key VARCHAR(20),conversation_id BIGINT,observed_at_unix BIGINT,profile_json ".($mysql?'JSON':'TEXT').")");
     $p->exec("CREATE TABLE customer_channels(id BIGINT PRIMARY KEY,customer_id BIGINT,project_key VARCHAR(64),channel VARCHAR(16),external_user_id VARCHAR(20),external_chat_id VARCHAR(32))");
     $p->exec("CREATE TABLE conversations(id BIGINT PRIMARY KEY,customer_id BIGINT,customer_channel_id BIGINT,project_key VARCHAR(64),channel VARCHAR(16),is_test INT,external_chat_id VARCHAR(32))");
     $p->exec("CREATE TABLE advertising_visit_observations(id $auto,project_key VARCHAR(64),source_key VARCHAR(80),platform VARCHAR(16),counter_id VARCHAR(20),external_user_id VARCHAR(20),identity_status VARCHAR(20),client_id VARCHAR(40),visit_at_unix BIGINT,observed_at_unix BIGINT,received_at_unix BIGINT)");
@@ -246,8 +247,63 @@ function modeledValueAssertions(PDO $p,callable $check):void
     $saved=json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true);
     $check('report API failure never blocks or retries an otherwise valid upload',$wire->posts===1&&$saved['errors']===0&&$saved['metrika_report']['status']==='forbidden');
 }
+
+function modeledValueHistoryAssertions(PDO $p,callable $check):void
+{
+    modeledValueSchema($p);$now=1793659000;$from=1793570400;$until=1793656800;$at=$from+3600;
+    $subject=modeledValueBinding($p,301);
+    $w=modeledValueWrapper($subject,$at);
+    $w['adapter']=['version'=>'admitted_journal_profile_v1_5'];
+    $w['processing']['version']='admitted_journal_profiles_v1_2';
+    $w['contextual_signals']['extractor_version']=ArchiveResearchSemanticExtractor::VERSION;
+    $w['profile']['prediction_at']=gmdate('Y-m-d\TH:i:s\Z',$at);
+    $w['contextual_signals']['adapter_sha256']=str_repeat('a',64);
+    $original=json_encode($w,JSON_THROW_ON_ERROR);modeledValueSave($p,$w);modeledValueSave($p,$w);
+    $storedProfile=$p->query('SELECT profile_json FROM modeled_conversion_profile_versions ORDER BY id LIMIT 1')->fetchColumn();
+    $p->prepare('UPDATE modeled_conversion_profile_versions SET observed_at_unix=?')->execute([$at]);
+    $candidate=ModeledConversionValueContract::historicalCandidate($w,$subject,$from,$until,$now);
+    $check('historical review retains old evidence time and dates value assignment at review',
+        $candidate!==null&&$candidate['value']===1250&&$candidate['event_unix']===$now&&$candidate['evidence_at']===$at-2&&json_encode($w,JSON_THROW_ON_ERROR)===$original);
+    $check('old source hash remains rejected by the unchanged prospective contract',
+        ModeledConversionValueContract::candidate($w,$subject,$from,$now)===null);
+    $outside=$w;$outside['contextual_signals']['frozen_at']=gmdate('Y-m-d\TH:i:s\Z',$until);
+    $check('historical review excludes a later frozen profile and non-day windows',
+        ModeledConversionValueContract::historicalCandidate($outside,$subject,$from,$until,$now)===null
+        &&ModeledConversionValueContract::historicalCandidate($w,$subject,$from,$until+1,$now)===null);
+    $bad=$w;$bad['subject']['customer_key']='999';
+    $check('historical review preserves exact subject and actual customer-role evidence',
+        ModeledConversionValueContract::historicalCandidate($bad,$subject,$from,$until,$now)===null);
+    $wire=new ModeledValueTestWire();$wire->goals[]=['id'=>'678187097','name'=>ModeledConversionValueContract::NAME,
+        'type'=>'action','conditions'=>[['type'=>'exact','url'=>ModeledConversionValueContract::TARGET]]];
+    $api=$wire->api();$control=new ModeledConversionValueExport($p);$gate=static fn(string $chat):bool=>true;
+    $p->prepare("UPDATE modeled_conversion_value_export_settings SET mode='send',goal_id='678187097',goal_intent='verified',activated_at_unix=?,profile_cursor=2")->execute([$until-60]);
+    $check('historical collection is inactive until its finite explicit configuration',$control->collectHistory($now,$gate)===0);
+    $before=ModeledConversionValueExport::settings($p);
+    $control->configure('launch-history-20261102',$api,$now);
+    $check('day configuration preserves the original prospective activation and cursor',
+        ModeledConversionValueExport::settings($p)['activated_at_unix']===$before['activated_at_unix']
+        &&ModeledConversionValueExport::settings($p)['profile_cursor']===$before['profile_cursor']);
+    $n=$control->collectHistory($now,$gate);
+    $row=$p->query("SELECT * FROM max_channel_conversion_outbox")->fetch(PDO::FETCH_ASSOC);
+    $check('historical day writes original profile provenance and one true incremental value',
+        $n===1&&(int)$row['value_rub']===1250&&$row['value_origin']==='owner_day_review_v1'
+        &&(int)$row['value_profile_id']===1&&(int)$row['value_reviewed_at_unix']===$now);
+    $control->configure('launch-history-20261102',$api,$now+1);
+    $check('relaunch and later normal ticks cannot replay the completed day',
+        $control->collectHistory($now+1,$gate)===0
+        &&(int)ModeledConversionValueExport::settings($p)['history_scanned']===2
+        &&(int)$p->query('SELECT COUNT(*) FROM max_channel_conversion_outbox')->fetchColumn()===1);
+    ModeledConversionValueExport::tick($p,new ModeledValueTestLookup(),$api,$now+2,$gate);
+    $row=$p->query("SELECT * FROM max_channel_conversion_outbox")->fetch(PDO::FETCH_ASSOC);
+    $check('historical rows use the existing actual CSV identity and receipt path',
+        $wire->posts===1&&$row['state']==='accepted'&&str_contains($wire->csv[0],',1250,RUB'));
+    $check('historical processing never edits or appends source profile versions',
+        (int)$p->query('SELECT COUNT(*) FROM modeled_conversion_profile_versions')->fetchColumn()===2
+        &&$p->query('SELECT profile_json FROM modeled_conversion_profile_versions ORDER BY id LIMIT 1')->fetchColumn()===$storedProfile);
+}
+
 if(realpath((string)($_SERVER['SCRIPT_FILENAME']??''))===__FILE__){
     $passed=0;$check=static function(string $name,bool $ok)use(&$passed){if(!$ok)throw new RuntimeException('FAIL '.$name);$passed++;echo 'PASS '.$name.PHP_EOL;};
     $p=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
-    modeledValueAssertions($p,$check);echo 'MODELED VALUE EXPORT PASSED '.$passed.PHP_EOL;
+    modeledValueAssertions($p,$check);modeledValueHistoryAssertions($p,$check);echo 'MODELED VALUE EXPORT PASSED '.$passed.PHP_EOL;
 }
