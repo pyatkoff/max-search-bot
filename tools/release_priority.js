@@ -13,6 +13,7 @@ const ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/;
 function refusal(code, pr) {
   const error = new Error('release-priority: ' + code + (pr ? ' PR#' + pr : ''));
   error.code = code;
+  error.isReleasePriorityRefusal = true;
   throw error;
 }
 
@@ -94,7 +95,7 @@ async function readJson(repository, resource, token, fetchImpl) {
     if (!response?.ok) refusal('api_http_' + Number(response?.status || 0));
     try { return await response.json(); } catch { refusal('invalid_api_response'); }
   } catch (error) {
-    if (error?.code) throw error;
+    if (error?.isReleasePriorityRefusal) throw error;
     refusal('read_failed');
   } finally { clearTimeout(deadline); }
 }

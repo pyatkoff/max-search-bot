@@ -373,6 +373,9 @@ async function verifyReleasePriority() {
   check(requests, 1, 'rate limit is never retried');
   await rejects(() => runGuard({ ...options, fetchImpl: async () => { throw Error('fixture-token must not leak'); } }),
     'read_failed', 'network failure is sanitized and closed');
+  await rejects(() => runGuard({ ...options, fetchImpl: async () => {
+    const error = new Error('private transport detail'); error.code = 'ECONNRESET'; throw error;
+  } }), 'read_failed', 'coded transport failures cannot print private error details');
   await rejects(() => runGuard({ ...options, fetchImpl: async () => ({
     ok: true, json: async () => { throw Error('invalid or timed out response body'); }
   }) }), 'invalid_api_response', 'body parsing failure is closed');
