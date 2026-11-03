@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261103-29-v1",
-  "state": "TEN_PROVEN_NATIVE_CANDIDATES_PREPARATION_STARTED",
+  "state": "TEN_CANDIDATES_FINITE_PRIMARY_SOURCE_INSPECTION_STARTED",
   "baseline_logical_materials": 124,
   "catalog_ids": [
     253,
@@ -66,12 +66,14 @@
       "state": "PRIMARY_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING"
     }
   ],
-  "goal": "Prepare ten proven candidates together,inspect finite source photos in one grouped pass,then publish every ready subset up to10 in one serial run",
+  "goal": "Prepare ten proven hotel candidates together,inspect finite primary photo references and send the whole ready subset once",
   "boundaries": [
     "No new catalogue identity guesses;all are from closed bounded native reads",
     "Use accepted whole captions and retained sources where present",
     "No repeat of closed failed GETs,private token URLs,old cover exports or provider readbacks",
-    "Existing publisher/registry/once and3stablepublicpostfeeds only"
+    "Existing publisher/registry/once and3stablepublicpostfeeds only",
+    "Twelve declared first-party URLs only,4readonlygroups/maxparallel2,no server/provider/DB/messages",
+    "Unchanged prior source fixtures not repeated"
   ],
   "criteria": [
     "Whole primary-proven hotel captions and real hotel/grounds hero plus2supporting photographs",
@@ -84,5 +86,20 @@
     "Hilton gallery timeout,OberoiValueErrorunknowncause andSofitelmissingexactprimary remainhonest gaps"
   ],
   "ready_for_send_count": 0,
-  "new_posts": 0
+  "new_posts": 0,
+  "source_inspection_operation": "commercial-batch29-twelve-primary-source-pages",
+  "primary_pages": [
+    "https://www.tropitelhotels.com/tropitel-dahab-oasis",
+    "https://www.tropitelhotels.com/tropitel-dahab-oasis/gallery",
+    "https://www.elgouna.com/hotels/sultan-bey-hotel",
+    "https://www.elgouna.com/hotels/sultan-bey-hotel/gallery",
+    "https://www.safirhotels.com/en/hotel/safir-sharm-waterfalls-resort",
+    "https://www.cleopatraluxuryhotels.com/hotel/cleopatra-luxury-resort-sharm-adults-only/",
+    "https://www.cleopatraluxuryhotels.com/hotel/cleopatra-luxury-resort-sharm-adults-only/activities/beach-access/",
+    "https://braykaresorts.com/brayka-bay-resort/gallery",
+    "https://braykaresorts.com/royal-brayka-resort/gallery",
+    "https://baronhotels.com/baron-palms-sharm-el-sheikh/baron-palms-sharm-el-sheikh/",
+    "https://www.oberoihotels.com/hotels-in-sahl-hasheesh/gallery/",
+    "https://www.cleopatraluxuryhotels.com/hotel/cleopatra-luxury-resort-sharm-adults-only/activities/swimming-pools/"
+  ]
 }

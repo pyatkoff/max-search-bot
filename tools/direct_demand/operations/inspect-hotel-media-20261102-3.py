@@ -1,13 +1,13 @@
 import base64,html,json,os,re,urllib.parse,urllib.request
 from pathlib import Path
 from html.parser import HTMLParser
-operation='commercial-batch28-twelve-primary-source-pages-v3'
-pages=["https://www.elgouna.com/hotels/ancient-sands","https://www.elgouna.com/hotels/ancient-sands/gallery","https://www.jazhotels.com/hoteldetail/14/overview","https://partner.jazhotels.com/hotel/14","https://hrewards.com/en/steigenberger-nile-palace-luxor","https://www.hilton.com/en-gb/hotels/luxhitw-hilton-luxor-resort-and-spa/gallery/","https://www.oberoihotels.com/hotels-in-sahl-hasheesh/","https://threecorners.com/red-sea/sea-beach-resort/","https://threecorners.com/red-sea/fayrouz-plaza-beach-resort/","https://threecorners.com/red-sea/fayrouz-plaza-beach-resort/gallery-for-pro/","https://braykaresorts.com/brayka-bay-resort/overview","https://braykaresorts.com/royal-brayka-resort/overview"]
+operation='commercial-batch29-twelve-primary-source-pages'
+pages=["https://www.tropitelhotels.com/tropitel-dahab-oasis","https://www.tropitelhotels.com/tropitel-dahab-oasis/gallery","https://www.elgouna.com/hotels/sultan-bey-hotel","https://www.elgouna.com/hotels/sultan-bey-hotel/gallery","https://www.safirhotels.com/en/hotel/safir-sharm-waterfalls-resort","https://www.cleopatraluxuryhotels.com/hotel/cleopatra-luxury-resort-sharm-adults-only/","https://www.cleopatraluxuryhotels.com/hotel/cleopatra-luxury-resort-sharm-adults-only/activities/beach-access/","https://braykaresorts.com/brayka-bay-resort/gallery","https://braykaresorts.com/royal-brayka-resort/gallery","https://baronhotels.com/baron-palms-sharm-el-sheikh/baron-palms-sharm-el-sheikh/","https://www.oberoihotels.com/hotels-in-sahl-hasheesh/gallery/","https://www.cleopatraluxuryhotels.com/hotel/cleopatra-luxury-resort-sharm-adults-only/activities/swimming-pools/"]
 group=int(os.environ['MEDIA_GROUP'])
 assert group in (0,1,2,3)
 pages=pages[group*3:group*3+3]
 assert 1<=len(pages)<=3
-hosts=set(["www.elgouna.com","elgouna.com","cms.elgouna.com","backend.elgouna.com","www.jazhotels.com","jazhotels.com","partner.jazhotels.com","hrewards.com","www.hrewards.com","www.hilton.com","hilton.com","www.oberoihotels.com","oberoihotels.com","threecorners.com","www.threecorners.com","braykaresorts.com","www.braykaresorts.com","cdn.braykaresorts.com","www.ahstatic.com","m.ahstatic.com","assets.hiltonstatic.com","image-tc.galaxy.tf"])
+hosts=set(["www.elgouna.com","elgouna.com","cms.elgouna.com","backend.elgouna.com","www.jazhotels.com","jazhotels.com","partner.jazhotels.com","hrewards.com","www.hrewards.com","www.hilton.com","hilton.com","www.oberoihotels.com","oberoihotels.com","threecorners.com","www.threecorners.com","braykaresorts.com","www.braykaresorts.com","cdn.braykaresorts.com","www.ahstatic.com","m.ahstatic.com","assets.hiltonstatic.com","image-tc.galaxy.tf","www.tropitelhotels.com","tropitelhotels.com","irp.cdn-website.com","www.safirhotels.com","safirhotels.com","www.cleopatraluxuryhotels.com","cleopatraluxuryhotels.com","baronhotels.com","www.baronhotels.com"])
 class Redirect(urllib.request.HTTPRedirectHandler):
  def redirect_request(self,*args,**kwargs):raise ValueError('unexpected_primary_source_redirect')
 opener=urllib.request.build_opener(Redirect())
@@ -23,15 +23,6 @@ def safe_declared_reference(value,final):
  if pp.hostname in ('localhost','127.0.0.1','::1') or pp.hostname.endswith(('.internal','.local')):return None
  if not re.search(r'\.(?:jpe?g|png|webp)(?:\?|$)',joined,re.I):return None
  return urllib.parse.quote(joined,safe=':/?&=%#')
-assert safe_declared_reference(None,'https://example.com/') is None
-assert safe_declared_reference('https://cdn.example.com/x.jpg','https://example.com/')=='https://cdn.example.com/x.jpg'
-assert safe_declared_reference('https://cdn.example.com/x.jpg?token=private','https://example.com/') is None
-assert safe_declared_reference('https://user@cdn.example.com/x.jpg','https://example.com/') is None
-assert safe_declared_reference('https://firebasestorage.googleapis.com/x.jpg','https://example.com/') is None
-assert safe_declared_reference('https://cdn.example.com/x.jpg?url=x%3Ftoken%3Dprivate','https://example.com/') is None
-assert safe_declared_reference('https://cdn.example.com/x.jpg?X-Amz-Signature=private','https://example.com/') is None
-print('DECLARED_IMAGE_REFERENCE_GUARDS_OK cases=7 network_calls=0')
-
 out={'operation':operation,'mode':'read_public_photo_sources_only','message_sends':0,'db_writes':0,'server_connections':0,'pages':[]}
 fixture_mode=os.environ.get('SOURCE_INSPECTOR_FIXTURE')=='1'
 if fixture_mode:pages=pages[:1]
