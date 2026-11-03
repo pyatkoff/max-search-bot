@@ -1,19 +1,19 @@
 import base64,hashlib,json,os,struct,urllib.parse,urllib.request
 from pathlib import Path
-rows=json.loads("[{\"hotel_id\":12114,\"url\":\"https://export-download.canva.com/b2cdce63-c7a8-4ca9-9ace-f18f4fc8ca7b/0/0001-69200888133867491.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUH4R7NKVBA%2F20261102%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20261102T171015Z&X-Amz-Expires=56753&X-Amz-Signature=33acf64efc608533b34d00b5c6c6a3673fa35f54d6c75112d1d8f3348dccd4bd&X-Amz-SignedHeaders=host%3Bx-amz-expected-bucket-owner&response-expires=Tue%2C%2003%20Nov%202026%2008%3A56%3A08%20GMT\"}]")
+rows=json.loads("[{\"hotel_id\":384,\"url\":\"https://export-download.canva.com/6ae10c69-b1f5-4d6f-a0a1-9f83f7200a19/0/0001-5681811927994096419.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUH4R7NKVBA%2F20261102%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20261102T130543Z&X-Amz-Expires=75757&X-Amz-Signature=486c0adc4196c6e1bdf58936c190777f64294c0241017d56c30198d900fd67c1&X-Amz-SignedHeaders=host%3Bx-amz-expected-bucket-owner&response-expires=Tue%2C%2003%20Nov%202026%2010%3A08%3A20%20GMT\"},{\"hotel_id\":281,\"url\":\"https://export-download.canva.com/1bda8fed-fdec-47c0-ac5b-b917c3c7e52c/0/0001-5040048983497006730.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUH4R7NKVBA%2F20261102%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20261102T150443Z&X-Amz-Expires=67686&X-Amz-Signature=164b0a7c48d18ed0b1013669bea8992e18ccbc776c72adbfe7b84a3debb0c85e&X-Amz-SignedHeaders=host%3Bx-amz-expected-bucket-owner&response-expires=Tue%2C%2003%20Nov%202026%2009%3A52%3A49%20GMT\"},{\"hotel_id\":75725,\"url\":\"https://export-download.canva.com/18a504c5-7135-47e5-b149-91fbba38d3e4/0/0001-8835457567493643111.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUH4R7NKVBA%2F20261102%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20261102T114926Z&X-Amz-Expires=80815&X-Amz-Signature=96c64df2dc9fce268a3f0c2c62d649ce54c8c2cebd9e4aecba61d42086a4db07&X-Amz-SignedHeaders=host%3Bx-amz-expected-bucket-owner&response-expires=Tue%2C%2003%20Nov%202026%2010%3A16%3A21%20GMT\"}]")
 group=int(os.environ['COVER_GROUP'])
-assert group==0 and len(rows)==1
+assert group==0 and len(rows)==3
 rows=rows[group*3:group*3+3]
 assert 1<=len(rows)<=3
 class NoRedirect(urllib.request.HTTPRedirectHandler):
  def redirect_request(self,*args,**kwargs):raise ValueError('unexpected_asset_redirect')
 opener=urllib.request.build_opener(NoRedirect())
-out={'operation':'commercial-batch17-covers-20261103-read4','mode':'inspect_native_promotional_images_only','message_sends':0,'db_writes':0,'server_connections':0,'group':group,'covers':[]}
+out={'operation':'commercial-batch18-covers-20261103-read1','mode':'inspect_native_promotional_images_only','message_sends':0,'db_writes':0,'server_connections':0,'group':group,'covers':[]}
 Path('covers').mkdir(exist_ok=True)
 for row in rows:
  p=urllib.parse.urlsplit(row['url'])
  assert p.scheme=='https' and p.hostname=='export-download.canva.com' and p.port in (None,443) and not p.username and not p.password
- assert row['hotel_id']==12114
+ assert row['hotel_id'] in (384,281,75725)
  with opener.open(row['url'],timeout=35) as r:
   raw=r.read(1600001)
   assert r.status==200
