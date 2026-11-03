@@ -220,12 +220,15 @@ Prefer forward fixes for small safe defects. For a material production break, re
 
 ## AnyTour modeled-conversion monitoring
 
-The live-session workflow retains the hourly 25-minute publisher and its
-production-live-session-diagnostics concurrency group. An additional check-only
-five-minute schedule selects the separate monitor job/concurrency group;
-it does not run the hourly conversation capture or any business processing tick.
-Both jobs preserve exact successful upstream deploy/current-main/installed-SHA
-guards before protected production access. Scheduled delivery is best effort.
+The live-session workflow retains only its hourly 25-minute publisher and
+production-live-session-diagnostics concurrency group. The single canonical
+monitor now lives in .github/workflows/modeled-conversion-monitor.yml with one
+2-59/5 schedule plus the existing successful-Deploy/manual triggers. It retains
+the repository-wide anytour-modeled-conversion-monitor concurrency group, sender
+and encrypted artifact state; there is no second notifier or bootstrap.
+It does not run conversation capture or a business processing tick. Both
+workflows preserve exact successful upstream deploy/current-main/installed-SHA
+guards before protected production access. Scheduled execution is best effort.
 
 Configure the private owner recipient only with Actions secret
 MODELED_CONVERSION_ALERT_CHAT_ID. The current server TELEGRAM_BOT_TOKEN is read
@@ -259,6 +262,10 @@ Use the administrator-only /manager/assigned-value.php?view=delivery page for ac
 
 The external monitoring receipt now records a strictly allowlisted trusted origin from the workflow (`schedule`, `workflow_run`, `workflow_dispatch`) and exact run/attempt/source. The last three distinct original scheduled checks are retained separately from manual/postDeploy checks; regularity requires three successful checks within15-minute gaps and a fresh last scheduled check. The owner page must show stale/unknown delivery honestly, even if the last technical health was OK.
 
-The existing hourly live publisher remains at25minutes. Its lightweight canonical monitor uses the same workflow at2-59/5 minutes with independent job concurrency. Offset scheduling reduces top-of-hour contention; it does not establish a guaranteed five-minute SLA. Verify actual event=schedule runs, not merely postDeploy/manual success. Healthy checks should be quiet with unchanged last_notification_at. Do not repeat consumed activation helpers or old failed jobs to fabricate this proof.
+The existing hourly live publisher remains at25minutes. The canonical monitor has its own workflow and a single2-59/5 schedule, with unchanged shared notification concurrency and retained encrypted state. This registers an independent monitoring schedule; it does not establish a guaranteed five-minute SLA. Verify three actual original event=schedule runs AND their persisted private receipts, not merely postDeploy/manual success. Healthy checks should be quiet with unchanged last_notification_at. Do not repeat consumed activation helpers or old failed jobs to fabricate this proof.
+
+Before opening notification state, a scheduled check probes the installed source. A reachable different SHA defers only when the exact current source has an identified active canonical Deploy. No receipt or scheduled success is manufactured for that deferred attempt. An unreachable server proceeds to the existing outage/retained-route path; a completed/foreign/different deployment cannot hide a source mismatch. Failure to persist the final sanitized server receipt fails the job rather than logging a green result.
+
+A read-only scheduler metadata probe confirmed the former combined workflow was active; complete event history showed sparse schedules before job creation despite valid configuration. The provider's internal trigger cause is unknown. Do not infer that an account/disabled-state issue or simple delay was proved. This extraction is accepted operationally only after three new natural persisted checks. Roll back by a normal checked revert restoring exactly one monitor owner; never keep both senders, reset artifacts or replay a send.
 
 Record-source arguments are validated and quoted before the SSH command; only technical metadata is persisted in the private4KiB receipt. Recipient and bot token remain in the existing protected/encrypted path and never enter the owner HTML, public diagnostics, code or plaintext artifacts.

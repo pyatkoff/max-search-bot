@@ -50,6 +50,7 @@ Workspace V2 at `/manager/` is the forward and current production Manager produc
 - `.github/workflows/deploy.yml` — production deployment;
 - `.github/workflows/publish-conversation-diagnostics.yml` — production diagnostics publishing;
 - `.github/workflows/live-session-diagnostics.yml` — fresh live-session artifact publishing.
+- `.github/workflows/modeled-conversion-monitor.yml` — single external conversion-health checker, scheduled receipts and private owner alerts.
 
 ### Tests
 - `tests/run_required_checks.sh` — canonical full required-suite orchestration;
