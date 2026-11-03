@@ -75,6 +75,8 @@ function deliveryHealthAssertions(PDO $p,callable $check):void
     $check('eligible ready work waiting two cycles triggers incident',in_array('ready_queue_stale',$h()['flags'],true));
     $p->exec("UPDATE max_channel_conversion_outbox SET next_attempt_unix=".($now+300)." WHERE id=2");
     $check('intentional retry delay is not eligible ready backlog',!in_array('ready_queue_stale',$h()['flags'],true));
+    $p->exec("UPDATE max_channel_conversion_outbox SET next_attempt_unix=".($now-1)." WHERE id=2");
+    $check('just eligible retry gets its full two-cycle grace',!in_array('ready_queue_stale',$h()['flags'],true));
     $p->exec("UPDATE max_channel_conversion_outbox SET state='unknown',claimed_at_unix=".($now-901)." WHERE id=2");
     $check('unresolved upload outcome is separately visible',in_array('upload_outcome_unknown',$h()['flags'],true));
     $p->exec("UPDATE modeled_conversion_value_export_settings SET last_tick_unix=".($now+1));

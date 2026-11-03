@@ -75,7 +75,7 @@ final class ModeledConversionDeliveryHealth
                 .$exists("state IN ('uploading','unknown') AND claimed_at_unix IS NOT NULL AND claimed_at_unix<=?").' AS upload_outcome_unknown,'
                 .$exists("state='failed'").' AS api_row_rejected,'
                 .$exists('(value_ready_at_unix>? OR value_api_accepted_at_unix>? OR value_processed_at_unix>? OR claimed_at_unix>?)').' AS invalid_clock';
-            $rows=$query($sql,[self::TARGET,self::CONTRACT,$now-600,$now,self::TARGET,self::CONTRACT,$now-900,
+            $rows=$query($sql,[self::TARGET,self::CONTRACT,$now-600,$now-600,self::TARGET,self::CONTRACT,$now-900,
                 self::TARGET,self::CONTRACT,self::TARGET,self::CONTRACT,$now+60,$now+60,$now+60,$now+60]);
             if(count($rows)!==1)throw new UnexpectedValueException('invalid_metadata');
             foreach(['ready_queue_stale','upload_outcome_unknown','api_row_rejected']as$key)if(self::bit($rows[0][$key]??null))$flags[]=$key;

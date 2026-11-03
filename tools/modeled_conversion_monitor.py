@@ -174,7 +174,24 @@ def message_for(pending):
         return "AnyTour: мониторинг подключён. Проверка доставки уведомлений."
     if pending["kind"] == "recovery":
         return "AnyTour: технический мониторинг — работа восстановлена."
-    return "AnyTour: обнаружена техническая проблема.\nСтатус: " + pending["health_status"] + "\nПричины: " + ", ".join(pending["flags"])
+    descriptions = {
+        "delivery_tick_stale": "Обработка конверсий не обновлялась более 15 минут.",
+        "profile_tick_stale": "Сохранение прогнозов не обновлялось более 15 минут.",
+        "delivery_tick_errors": "Обнаружена ошибка обработки конверсий.",
+        "profile_tick_errors": "Обнаружена ошибка сохранения прогнозов.",
+        "profile_disabled": "Сохранение прогнозов выключено при включённой отправке.",
+        "ready_queue_stale": "Готовые начисления ожидают отправки более двух циклов.",
+        "upload_outcome_unknown": "Результат отправки в Метрику остаётся неподтверждённым.",
+        "api_row_rejected": "Обнаружено начисление с ошибкой обработки.",
+        "report_unavailable": "Отчёт Метрики недоступен более 15 минут.",
+        "storage_unavailable": "Не удалось прочитать состояние обработки.",
+        "configuration_unavailable": "Не удалось проверить настройки мониторинга.",
+        "invalid_clock": "Обнаружено несогласованное время событий.",
+        "health_metadata_unavailable": "Не удалось проверить служебные данные.",
+        "monitor_transport_unavailable": "Независимая проверка не смогла связаться с сервером.",
+        "monitor_source_mismatch": "Не удалось подтвердить версию проверяемого сервера.",
+    }
+    return "AnyTour: обнаружена техническая проблема.\n" + "\n".join(descriptions[f] for f in pending["flags"])
 
 def send(state, recipient, wire, save, run_id, prepared_this_run=False, now=None):
     now = int(time.time()) if now is None else now

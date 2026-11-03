@@ -24,9 +24,8 @@ try{
         if($p->inTransaction())throw new RuntimeException('monitor_outer_transaction');
         if($p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'){
             $p->exec('SET SESSION TRANSACTION READ ONLY');
-            $p->exec('SET SESSION MAX_EXECUTION_TIME=4000');
         }
-        echo json_encode(ModeledConversionDeliveryHealth::collect($p,time()),JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES).PHP_EOL;
+        echo json_encode(ModeledConversionDeliveryHealth::collect($p,time(),new ModeledConversionStatusBudget()),JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES).PHP_EOL;
     }elseif($operation==='record'){
         $raw=stream_get_contents(STDIN,8193);
         if(!is_string($raw)||strlen($raw)>8192)throw new RuntimeException('monitor_record');
