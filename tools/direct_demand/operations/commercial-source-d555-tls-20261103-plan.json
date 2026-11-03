@@ -1,0 +1,9 @@
+{
+  "operation": "commercial-source-d555-tls-20261103",
+  "state": "ONE_RELEVANT_TLS_JOB_RETRY_PLANNED",
+  "goal": "Verify strict TLS for the actually changed installed source before the new price/publication operation.",
+  "boundaries": "Only failed strict-tls-preflight job125819504738 from existing run41607088626 after original deploy41607088488 completed successfully. No deploy rerun,worker/campaign action,code change,new runtime or tour request.",
+  "criteria": "Original failure log proves30 source-wait attempts on prior c71 before any certificate check. Current d555 normal deployment is successful. One existing strict TLS job retry maximum and consume its exact same-source result.",
+  "risks": "The original failure is not evidence of a certificate fault. A new failure is recorded and diagnosed once rather than bypassed or retried indefinitely.",
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41607088626"
+}
