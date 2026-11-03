@@ -412,3 +412,7 @@ body.manager2{--ws-accent:#25624f;--ws-accent-soft:#e9f3ed;--ws-text:#233c34;--w
 /* Card actions share one bounded row even in the narrow desktop side panel. */
 .manager2 .leadHeaderActions{display:grid;grid-template-columns:repeat(auto-fit,minmax(70px,1fr));gap:6px}
 .manager2 .leadHeaderActions .actionBtn{min-width:0;min-height:44px;padding:6px;white-space:normal;line-height:1.25;text-align:center}
+
+/* An empty request keeps only its existing menu action, with readable feedback. */
+.manager2 .m2RequestMenuStatus{display:block;padding:4px 10px;color:#617168;font-size:12px;line-height:1.4;white-space:normal;overflow-wrap:anywhere}
+.manager2 .m2RequestMenuStatus[hidden],.manager2 #m2RequestProfileOpen[hidden]{display:none!important}
