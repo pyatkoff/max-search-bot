@@ -59,7 +59,7 @@
       "hotel_id": 267,
       "hotel": "IBEROTEL MAKADI BEACH",
       "region": "Хургада",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+      "state": "WHOLE_CAPTION_AND_NATIVE_COVER_PREPARED_RELEASE_WAIT"
     },
     {
       "key": "sentido-reef-oasis-senses",
@@ -96,14 +96,14 @@
       "hotel_id": 13869,
       "hotel": "JAZ NEO SARAYA PALMS (EX. JAZ MAKADI SARAYA PALMS)",
       "region": "Хургада",
-      "state": "CATALOG_CONFIRMED_PRIMARY_OBJECT_AND_CONTENT_NOT_READY"
+      "state": "WHOLE_CAPTION_AND_NATIVE_COVER_PREPARED_RELEASE_WAIT"
     },
     {
       "key": "jaz-sharm-dreams",
       "hotel_id": 245,
       "hotel": "JAZ SHARM DREAMS RESORT",
       "region": "Шарм-эль-Шейх",
-      "state": "CATALOG_CONFIRMED_PRIMARY_OBJECT_AND_CONTENT_NOT_READY"
+      "state": "WHOLE_CAPTION_AND_NATIVE_COVER_PREPARED_RELEASE_WAIT"
     },
     {
       "key": "jaz-mirabel-club",
@@ -118,7 +118,7 @@
       "hotel_id": 12114,
       "hotel": "JAZ ELITE PALACE ADULTS ONLY 16+ (EX. IBEROTEL PALACE ADULTS ONLY)",
       "region": "Шарм-эль-Шейх",
-      "state": "CATALOG_CONFIRMED_PRIMARY_OBJECT_AND_CONTENT_NOT_READY"
+      "state": "WHOLE_CAPTION_AND_NATIVE_COVER_PREPARED_RELEASE_WAIT"
     },
     {
       "key": "robinson-soma-bay",
@@ -131,5 +131,5 @@
   "new_name_lookup_count": 12,
   "new_name_lookup_state": "STOPPED_AT_SOURCE_GATE_BEFORE_SSH_NO_NEW_IDENTITIES_CONFIRMED",
   "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41543931293",
-  "content_and_cover_prepared_count": 4
+  "content_and_cover_prepared_count": 8
 }

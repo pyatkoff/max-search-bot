@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261103-17-v1",
-  "state": "FOUR_ADDITIONAL_CAPTIONS_VERIFIED_MEDIA_PENDING_NOT_SENT",
+  "state": "FOUR_ADDITIONAL_PREPARED_MERGED_NOT_SENT",
   "catalog_ids": [
     245,
     13869,
@@ -84,5 +84,10 @@
     "Elite Palace is16+;reef snorkelling is reached by separately paid boat,not claimed as house reef from its sand beach."
   ],
   "message_sends": 0,
-  "server_connections": 0
+  "server_connections": 0,
+  "native_inspection_run_urls": [
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41594641442",
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41595436358"
+  ],
+  "freeze_commit": "94257c246f0fa86a4a4b52a37d99dac08564554f"
 }

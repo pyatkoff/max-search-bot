@@ -82,12 +82,91 @@
       "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f2b991533a27dd4eaf06566d61ab50c378ac6ef3/.github/traffic-publish/commercial-batch-20261103-17/246.png",
       "photo_sha256": "d68acc6bffcdf554829cf26876caef988378f40e43260fb791beef07eff4d02d",
       "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 245,
+      "hotel": "JAZ SHARM DREAMS RESORT",
+      "key": "jaz-sharm-dreams",
+      "aliases": [
+        "JAZ SHARM DREAMS RESORT",
+        "JAZ SHARM DREAMS"
+      ],
+      "sources": [
+        "https://www.tui.com/hotels/jaz-sharm-dreams-14024/hotelinformation/",
+        "https://www.ltur.com/de/urlaub/jaz-sharm-dreams-14024",
+        "https://partner.jazhotels.com/hotel/69"
+      ],
+      "text": "✈️ JAZ Sharm Dreams\nТур с перелётом в Шарм эль Шейх 🇪🇬\n\nСемейный отель в Наама Бэй с садом, бассейнами и вечерними развлечениями 🌴\n\n💦 Несколько бассейнов, в том числе детский.\n🧒 Детский клуб, игровая комната и площадка.\n🍽️ Три ресторана: шведский стол, итальянская кухня в Casa Sharm и мексиканская в Tex Mix.\n🏋️ Фитнесцентр, аквааэробика и занятия растяжкой.\n\nℹ️ Песчаный пляж отделён от отеля дорогой. По пути к морю её нужно переходить.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-jaz-sharm-dreams-245-v1",
+      "text_sha256": "055b9fd01176302407431c11868f304792cdf230ee2c0bab3c6f855964f9e9db",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/94257c246f0fa86a4a4b52a37d99dac08564554f/.github/traffic-publish/commercial-batch-20261103-17/245.png",
+      "photo_sha256": "d91e02dac359d0807ca05a2be342f17c3b61607798b5943d29cc83d6533cb4cc",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 13869,
+      "hotel": "JAZ NEO SARAYA PALMS (EX. JAZ MAKADI SARAYA PALMS)",
+      "key": "jaz-neo-saraya-palms",
+      "aliases": [
+        "JAZ NEO SARAYA PALMS (EX. JAZ MAKADI SARAYA PALMS)",
+        "JAZ NEO SARAYA PALMS"
+      ],
+      "sources": [
+        "https://www.tui.com/hotels/jaz-neo-saraya-palms-188075/hotelinformation/",
+        "https://www.ltur.com/at/urlaub/jaz-neo-saraya-palms-188075",
+        "https://partner.jazhotels.com/hotel/19"
+      ],
+      "text": "✈️ JAZ Neo Saraya Palms\nТур с перелётом в Хургаду 🇪🇬\n\nОтель в Мадинат Макади рядом с полем для гольфа. Есть студии и апартаменты 🌴\n\n💦 Бассейны Animation и Relaxing, детская зона для купания.\n🧒 Мини клуб для детей от 4 до 12 лет, игровая площадка и мини диско.\n🍽️ Международная и восточная кухня в ресторане Shams, два бара.\n🎾 Теннис, волейбол и настольный теннис.\n\nℹ️ Отель расположен в стороне от моря. До пляжа около 800 м.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-jaz-neo-saraya-palms-13869-v1",
+      "text_sha256": "2f1d14a58e4938da9189bf12cad07168a3aeb71175a3fadbacf01a3d13ac406d",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/94257c246f0fa86a4a4b52a37d99dac08564554f/.github/traffic-publish/commercial-batch-20261103-17/13869.png",
+      "photo_sha256": "84410f5985a5e86e6afbb93b09634b341751ae412faace10ef2b9a32d9e34230",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 267,
+      "hotel": "IBEROTEL MAKADI BEACH",
+      "key": "iberotel-makadi-beach",
+      "aliases": [
+        "IBEROTEL MAKADI BEACH"
+      ],
+      "sources": [
+        "https://www.tui.com/hotels/iberotel-makadi-beach-by-jaz-14560/hotelinformation/",
+        "https://www.ltur.com/de/urlaub/iberotel-makadi-beach-by-jaz-14560",
+        "https://partner.jazhotels.com/hotel/15"
+      ],
+      "text": "✈️ Iberotel Makadi Beach by JAZ\nТур с перелётом в Хургаду 🇪🇬\n\nОтель в Мадинат Макади с садом и собственным песчаным пляжем 🐠\n\n🤿 У берега есть домашний риф для снорклинга.\n🧒 Мини клуб для детей от 4 до 11 лет, игровая площадка и детский бассейн.\n🍽️ Четыре ресторана, среди них восточный Arabesque и пляжный ресторан.\n🎾 Теннис, тренажёрный зал и пляжный волейбол.\n\nℹ️ Для входа в море рекомендуют обувь для купания.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-iberotel-makadi-beach-267-v1",
+      "text_sha256": "b27869f4f73d358c9540453693f9d1fb20634ace45ef434c080544d74fa81ff7",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/94257c246f0fa86a4a4b52a37d99dac08564554f/.github/traffic-publish/commercial-batch-20261103-17/267.png",
+      "photo_sha256": "ef777657eabd994174089e97dcd69bb32dfb9e9eda2eec97ca8edbd2c945e9a3",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 12114,
+      "hotel": "JAZ ELITE PALACE ADULTS ONLY 16+ (EX. IBEROTEL PALACE ADULTS ONLY)",
+      "key": "jaz-elite-palace",
+      "aliases": [
+        "JAZ ELITE PALACE ADULTS ONLY 16+ (EX. IBEROTEL PALACE ADULTS ONLY)",
+        "JAZ ELITE PALACE 16+"
+      ],
+      "sources": [
+        "https://www.tui.com/hotels/jaz-elite-palace-adults-only-14562/hotelinformation/",
+        "https://www.ltur.com/de/urlaub/jaz-elite-palace-adults-only-14562",
+        "https://partner.jazhotels.com/hotel/1"
+      ],
+      "text": "✈️ JAZ Elite Palace 16+\nТур с перелётом в Шарм эль Шейх 🇪🇬\n\nОтель в бухте Шарм эль Майя принимает гостей от 16 лет 🌴\n\n🏖️ Собственный песчаный пляж с пологим входом в воду.\n💦 Три бассейна, в том числе крытый.\n🍽️ Четыре ресторана, среди них итальянский Toscana.\n🎾 Два теннисных корта, пляжный волейбол и настольный теннис.\n\nℹ️ К коралловому рифу для снорклинга добираются на катере. Это отдельная платная поездка.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-jaz-elite-palace-12114-v1",
+      "text_sha256": "29ba12dfc2303115cdff52b868065ebc78693d672d0558ff263494065405caec",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/94257c246f0fa86a4a4b52a37d99dac08564554f/.github/traffic-publish/commercial-batch-20261103-17/12114.png",
+      "photo_sha256": "863391e7e19e5dc6959b36d754f467c99840847426a300244246d51e9314f166",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
     }
   ],
   "ready_for_send_count": 0,
   "new_posts": 0,
   "provider_send_attempts": 0,
-  "temporary_canva_transactions": "EXACT_FOUR_CANCELLED_AFTER_FREEZE",
+  "temporary_canva_transactions": "ALL_EIGHT_EXACT_TRANSACTIONS_CANCELLED_AFTER_FREEZE",
   "deferred": [
     {
       "hotel_id": 62505,
@@ -141,10 +220,14 @@
       "next_input": "A different verified official broad hotel or grounds photograph. Do not re-export this rejected hero or repeat the same page lookup without a new candidate."
     }
   ],
-  "content_and_cover_prepared_count": 4,
+  "content_and_cover_prepared_count": 8,
   "hold_state": "SOURCE_RELEASE_WAIT",
   "approved_live_send_count": 0,
-  "native_inspection_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41552111181",
-  "native_inspection_state": "FOUR_REAL_NATIVE_PNG_VISUALLY_VERIFIED",
-  "public_png_frozen_count": 4
+  "native_inspection_state": "EIGHT_REAL_NATIVE_PNG_VISUALLY_VERIFIED",
+  "public_png_frozen_count": 8,
+  "native_inspection_run_urls": [
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41552111181",
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41594641442",
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41595436358"
+  ]
 }

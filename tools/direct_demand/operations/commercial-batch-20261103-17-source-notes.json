@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261103-17-v1",
-  "state": "FOUR_WHOLE_CAPTIONS_AND_OFFICIAL_NATIVE_COVERS_PREPARED_NOT_SENT",
+  "state": "EIGHT_WHOLE_CAPTIONS_AND_OFFICIAL_NATIVE_COVERS_PREPARED_NOT_SENT",
   "catalog_ids": [
     264,
     73342,
@@ -92,6 +92,94 @@
         "height": 600
       },
       "visually_verified": true
+    },
+    {
+      "hotel_id": 245,
+      "sources": [
+        "https://www.tui.com/hotels/jaz-sharm-dreams-14024/hotelinformation/",
+        "https://www.ltur.com/de/urlaub/jaz-sharm-dreams-14024",
+        "https://partner.jazhotels.com/hotel/69"
+      ],
+      "photo_candidates": [
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/new/061128Hotel%20Overview.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/SharmDreamsResort/Casa-Sharm-Restaurant-2021282.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/new/061123Room%20Deluxe%2C%20Queen%20Bed%2C%20Pool%20View.jpg"
+      ],
+      "caption_utf16": 523,
+      "text_sha256": "055b9fd01176302407431c11868f304792cdf230ee2c0bab3c6f855964f9e9db",
+      "native_png": {
+        "sha256": "d91e02dac359d0807ca05a2be342f17c3b61607798b5943d29cc83d6533cb4cc",
+        "bytes": 765372,
+        "width": 600,
+        "height": 600
+      },
+      "visually_verified": true
+    },
+    {
+      "hotel_id": 13869,
+      "sources": [
+        "https://www.tui.com/hotels/jaz-neo-saraya-palms-188075/hotelinformation/",
+        "https://www.ltur.com/at/urlaub/jaz-neo-saraya-palms-188075",
+        "https://partner.jazhotels.com/hotel/19"
+      ],
+      "photo_candidates": [
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/new/230940Drone%20-%20Saraya%20Palms%20Overview.png",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/new/000914Drones%20-%20Makadi%20Bay%20Beach%20Overview.png",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/new/230911Studio%20Queen%20Bed%20-%20Garden%20View.png"
+      ],
+      "caption_utf16": 509,
+      "text_sha256": "2f1d14a58e4938da9189bf12cad07168a3aeb71175a3fadbacf01a3d13ac406d",
+      "native_png": {
+        "sha256": "84410f5985a5e86e6afbb93b09634b341751ae412faace10ef2b9a32d9e34230",
+        "bytes": 823228,
+        "width": 600,
+        "height": 600
+      },
+      "visually_verified": true
+    },
+    {
+      "hotel_id": 267,
+      "sources": [
+        "https://www.tui.com/hotels/iberotel-makadi-beach-by-jaz-14560/hotelinformation/",
+        "https://www.ltur.com/de/urlaub/iberotel-makadi-beach-by-jaz-14560",
+        "https://partner.jazhotels.com/hotel/15"
+      ],
+      "photo_candidates": [
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/new/040921Drone%20-%20Iberotel%20Overview.png",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/iberotelmakadibeach/Beach-Restaurant-202161513.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/iberotelmakadibeach/Junior-Suite-010118.jpg"
+      ],
+      "caption_utf16": 497,
+      "text_sha256": "b27869f4f73d358c9540453693f9d1fb20634ace45ef434c080544d74fa81ff7",
+      "native_png": {
+        "sha256": "ef777657eabd994174089e97dcd69bb32dfb9e9eda2eec97ca8edbd2c945e9a3",
+        "bytes": 880531,
+        "width": 600,
+        "height": 600
+      },
+      "visually_verified": true
+    },
+    {
+      "hotel_id": 12114,
+      "sources": [
+        "https://www.tui.com/hotels/jaz-elite-palace-adults-only-14562/hotelinformation/",
+        "https://www.ltur.com/de/urlaub/jaz-elite-palace-adults-only-14562",
+        "https://partner.jazhotels.com/hotel/1"
+      ],
+      "photo_candidates": [
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/IberotelPalace/Hotel-Overview-Night-View-202191412.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/IberotelPalace/Beach-area-2021102015.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/IberotelPalace/Superior-Room-QUEEN-Bed-Room-Sea-View-202191915.jpg"
+      ],
+      "caption_utf16": 495,
+      "text_sha256": "29ba12dfc2303115cdff52b868065ebc78693d672d0558ff263494065405caec",
+      "native_png": {
+        "sha256": "863391e7e19e5dc6959b36d754f467c99840847426a300244246d51e9314f166",
+        "bytes": 648853,
+        "width": 600,
+        "height": 600
+      },
+      "visually_verified": true
     }
   ],
   "deferred": [
@@ -123,5 +211,23 @@
   "floor_note": "TUI Etagen1 was not translated into a one-storey building promise. The real official overview and garden/terrace description support only the published draft's garden/terraces wording.",
   "native_inspection_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41552111181",
   "freeze_commit": "f2b991533a27dd4eaf06566d61ab50c378ac6ef3",
-  "transactions": "EXACT_FOUR_CANCELLED"
+  "transactions": "ALL_EIGHT_EXACT_TRANSACTIONS_CANCELLED",
+  "additional_freeze_commit": "94257c246f0fa86a4a4b52a37d99dac08564554f",
+  "native_inspection_run_urls": [
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41552111181",
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41594641442",
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41595436358"
+  ],
+  "additional_practical_limits": [
+    "Sharm Dreams beach route crosses a road; do not omit this.",
+    "Saraya Palms is about800m from the beach; do not present it as first line or promise a free future shuttle.",
+    "Iberotel Makadi Beach waterpark/restaurant entitlements for TUI are not AnyTour package rights.",
+    "Elite Palace is16+;reef snorkelling is reached by separately paid boat,not claimed as house reef from its sand beach."
+  ],
+  "rejected_palace_hero": {
+    "source_url": "https://partner.jazhotels.com/Images/uploads/gallery/photos/IberotelPalace/9373_JAZ%20Elite%20Palace_overview.jpg",
+    "reason": "Main view showed a path/palms/beach without a useful general hotel view. Not frozen and not sent.",
+    "rejected_native_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41594641442",
+    "accepted_corrected_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41595436358"
+  }
 }
