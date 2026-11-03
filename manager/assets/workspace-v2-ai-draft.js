@@ -58,11 +58,11 @@
     const key=noticeKey(),preview=conversation()?.aiDraftPreview?.();
     const eligible=visible()&&canCompose()&&preparationPermission().allowed&&!!ready&&(ready.kind==='prepared'||ready.kind==='generated')&&ready.expires>Date.now()&&currentSnapshot(ready.snapshot)&&hasReadyProposal(ready,ready.snapshot)&&ready.should_draft&&!dismissedNotices.has(key)&&window.WorkspaceV2PersonalWorkspace?.showAiReadyNotice?.()!==false;
     if(preview&&(!eligible||preview.key!==key)){const reading=readerPosition();conversation().discardAiPreview();restoreReader(reading)}
-    if(eligible&&!flight&&!composing&&$('replyText').value===''){const reading=readerPosition();conversation().previewAiDraft?.(ready.draft,ready.snapshot.context,key);restoreReader(reading)}
+    if(eligible&&!flight&&!composing&&$('replyText').value===''){const reading=readerPosition();conversation().previewAiDraft?.(ready.draft,ready.snapshot.context,key,ready.draft_id);restoreReader(reading)}
     if(view?.result){
       const inComposer=!!conversation()?.aiDraftPreview?.();
       if(view.previewInComposer!==inComposer)renderResult(view.result);
-      if(view.result.should_draft&&canCompose())insert.hidden=inComposer;
+      if(view.result.should_draft&&canCompose()&&insert.hidden!==inComposer)insert.hidden=inComposer;
     }
   }
   function dismissNotice(){dismissedNotices.add(noticeKey());if(dismissedNotices.size>100)dismissedNotices.delete(dismissedNotices.values().next().value);hideNotice(true);syncSuggestion()}
@@ -325,7 +325,7 @@
     if(view&&(!canAnalyze()||!sameContext(view.snapshot.context))){resetSession();return}
     if(view&&!currentSnapshot(view.snapshot))stale();
     const disabled=!canAnalyze()||!!flight;if(button.disabled!==disabled)button.disabled=disabled;
-    if(preparationSettings){if(editablePreview()&&preparationSettings.parentElement!==panel)panel.appendChild(preparationSettings);const c=S.detail?.conversation;preparationSettings.hidden=!!$('m2ReplyEditor')?.open||!(Number(c?.id)===Number(S.current)&&(Number(c.manager_id)===Number(S.manager?.id)&&c.status==='manager'||ownerRead()&&Number(c.manager_id||0)===0));}
+    if(preparationSettings){if(editablePreview()&&preparationSettings.parentElement!==panel)panel.appendChild(preparationSettings);const c=S.detail?.conversation;const hidden=!!$('m2ReplyEditor')?.open||!(Number(c?.id)===Number(S.current)&&(Number(c.manager_id)===Number(S.manager?.id)&&c.status==='manager'||ownerRead()&&Number(c.manager_id||0)===0));if(preparationSettings.hidden!==hidden)preparationSettings.hidden=hidden;}
     syncWatch();renderButton();
     positionPanel();
   }

@@ -743,12 +743,33 @@ test('automatic appearance retains the canonical unresolved-token refusal',async
   const h=await harness(data=>response(data.action==='prepared_status'?readiness():prepared({draft:'Уточните {{город}}.'})),{manager2:true,hosted:true});await tick();assert.equal(h.ids.get('replyText').value,'');assert.equal(h.ids.get('replyText').classList.contains('aiDraftPreview'),false);assertNoMutations(h);
 });
 
-test('an explicit rejected send keeps AI text as a human draft after preview expiry',async()=>{
-  const h=await harness(inlineHandler,{manager2:true,hosted:true});await tick();const reply=h.ids.get('replyText'),text=reply.value;assert.equal(reply.classList.contains('aiDraftPreview'),true);
-  h.setHook((url,data)=>url==='api.php'&&data.action==='send'?response({ok:false,attempt:{state:'rejected'},failure:{category:'unavailable'}}):null);
-  await h.C.sendReply();const file={name:'retained-after-rejection.txt'};h.setFile(file);h.advanceAiClock(7200000);h.ai.sync();
-  assert.equal(reply.value,text);assert.equal(reply.classList.contains('aiDraftPreview'),false);assert.equal(h.getFile(),file);
-  assert.equal(h.calls.filter(c=>c.url==='api.php'&&c.action==='send').length,1);assert.equal(JSON.parse(h.storage.getItem('workspaceV2.replySession.v1')).drafts[0].text,text);
+test('an explicit rejected send keeps AI text and File as a human draft after expiry or new input',async()=>{
+  for(const transport of ['text','file']){
+    const h=await harness(inlineHandler,{manager2:true,hosted:true});await tick();const reply=h.ids.get('replyText'),text=reply.value,file={name:'retained-after-rejection.txt'};assert.equal(reply.classList.contains('aiDraftPreview'),true);let mediaCalls=0;
+    h.setHook((url,data)=>url==='api.php'&&data.action==='send'?response({ok:false,attempt:{state:'rejected'},failure:{category:'unavailable'}}):url==='ai-draft.php'?response({ok:true,prepared:false}):null);
+    if(transport==='file'){h.setFile(file);h.window.WorkspaceV2Media.send=async()=>{mediaCalls++;return {ok:false,confirmed_count:0,failure:{category:'unavailable'}}}}
+    await h.C.sendReply();if(transport==='text')h.setFile(file);h.advanceAiClock(7200000);h.ai.sync();
+    assert.equal(reply.value,text);assert.equal(reply.classList.contains('aiDraftPreview'),false);assert.equal(h.getFile(),file);
+    h.W.S.detail.messages.push({id:9,sender_type:'customer',text:'Новое условие'});h.ai.sync();await tick();assert.equal(reply.value,text);assert.equal(h.getFile(),file);
+    assert.equal(h.calls.filter(c=>c.url==='api.php'&&c.action==='send').length,transport==='text'?1:0);assert.equal(mediaCalls,transport==='file'?1:0);assert.equal(JSON.parse(h.storage.getItem('workspaceV2.replySession.v1')).drafts[0].text,text);
+  }
+});
+for(const phase of ['no active dialogue','open ready details'])test('unchanged current-shell sync does not rewrite observed hidden controls: '+phase,async()=>{
+  const h=await harness(inlineHandler,{manager2:true,hosted:true});await tick();let node;
+  if(phase==='no active dialogue'){h.W.S.current=0;h.W.S.detail=null;h.ai.sync();node=h.ids.get('aiPreparationSettings')}else{await h.click('aiDraftOpen');node=h.ids.get('aiDraftInsert')}
+  let hidden=node.hidden,writes=0;Object.defineProperty(node,'hidden',{configurable:true,get:()=>hidden,set:value=>{hidden=value;writes++}});
+  h.ai.sync();h.observe();h.ai.sync();assert.equal(writes,0);assertNoMutations(h);
+});
+
+test('automatic preview retains only the existing generated identity through real edit and explicit stub submit',async()=>{
+  for(const kind of ['generated','prepared']){
+    const id='b'.repeat(32),h=await harness(data=>response(kind==='prepared'?(data.action==='prepared_status'?readiness():prepared({draft_id:null})):data.action==='generate'?generated({draft_id:id}):{ok:true,prepared:false}),{manager2:true,hosted:true});await tick();if(kind==='generated')await h.click('aiDraftOpen');
+    const reply=h.ids.get('replyText');assert.equal(reply.value,generated().draft);assert.equal(reply.classList.contains('aiDraftPreview'),true);const before=h.aiCalls().length;assert.equal(JSON.parse(h.storage.getItem('workspaceV2.replySession.v1')).drafts.length,0);
+    h.ai.sync();h.observe();await h.draft('Ответ с ручной правкой');assert.equal(reply.classList.contains('aiDraftPreview'),false);
+    const stored=JSON.parse(h.storage.getItem('workspaceV2.replySession.v1')).drafts[0];assert.equal(stored.aiDraftId,kind==='generated'?id:undefined);assert.equal(h.aiCalls().length,before);assert.equal(h.aiCalls().some(c=>['prepared','validate'].includes(c.action)),false);
+    h.setHook((url,data)=>url==='api.php'&&data.action==='send'?response({ok:false,attempt:{state:'rejected'},failure:{category:'unavailable'}}):null);await h.C.sendReply();
+    const sent=h.calls.find(c=>c.url==='api.php'&&c.action==='send');assert.equal(sent.ai_draft_id,kind==='generated'?id:undefined);assert.equal(reply.value,'Ответ с ручной правкой');
+  }
 });
 
 (async()=>{const selected=process.argv.includes('--admission-only')?cases.filter(item=>item.name.startsWith('admission ')):cases;let failed=0;for(const item of selected){try{await item.run();console.log('PASS '+item.name)}catch(error){failed++;console.error('FAIL '+item.name+'\n'+error.stack)}}console.log(`TOTAL ${selected.length} | FAIL ${failed}`);process.exitCode=failed?1:0})();

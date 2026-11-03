@@ -6,8 +6,10 @@ editor or move focus/selection. Conversation owns its local preview origin. The
 untouched suggestion stays in memory and is excluded from persisted human drafts;
 real manager input removes that origin, restores normal text color and retains the
 ordinary account-scoped draft. Native File, templates, Enter/Tab and IME remain
-with their existing owners. Returning to a dialogue requires a fresh authorized
-ready read. Clearing or rejecting the same variant suppresses its reappearance
+with their existing owners. An already known valid draft_id remains a local
+source association through preview, manager edit and explicit submit; a null
+prepared_preview identity stays null without another lookup or feedback write.
+Returning to a dialogue requires a fresh authorized ready read. Clearing or rejecting the same variant suppresses its reappearance
 through polling and navigation for this session.
 
 Account, project, owner, context/message revision, personal preparation permission

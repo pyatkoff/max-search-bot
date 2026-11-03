@@ -132,11 +132,11 @@ function insertQuickReply(text,context=captureReplyContext(),aiDraftId=undefined
 // untracked AI insertion must not inherit the preceding proposal's identity.
 function insertAiDraft(text,context,aiDraftId=null){return insertQuickReply(text,context,validAiDraftId(aiDraftId)?aiDraftId:null)}
 function aiDraftPreview(){const d=drafts.get(Number(S.current));return d?.aiPreview&&d.text===$('replyText')?.value&&!d.attempt?d.aiPreview:null}
-function previewAiDraft(text,context,key){
+function previewAiDraft(text,context,key,aiDraftId=null){
   const current=captureReplyContext(),reply=$('replyText'),addition=String(text||'');
   if(!canInsertEmoji()||!context||Object.keys(current).some(k=>current[k]!==context[k])||reply.value!==''||pendingAttempt()||!addition||!key||/\{\{?[^{}\r\n]+\}\}?/.test(addition))return false;
   const position={start:reply.selectionStart,end:reply.selectionEnd,direction:reply.selectionDirection,top:reply.scrollTop,left:reply.scrollLeft};
-  reply.value=addition;saveDraft(S.current,null,{key,text:addition});autoGrow();
+  reply.value=addition;saveDraft(S.current,validAiDraftId(aiDraftId)?aiDraftId:null,{key,text:addition});autoGrow();
   // Passive appearance never focuses the editor or moves an existing selection.
   reply.setSelectionRange(position.start,position.end,position.direction);reply.scrollTop=position.top;reply.scrollLeft=position.left;return true;
 }
