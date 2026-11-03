@@ -1,0 +1,144 @@
+{
+  "operation": "commercial-hotel-batch-20261103-19-v1",
+  "state": "SEVEN_CONTENT_DRAFTS_PRIMARY_VERIFIED_COVERS_NOT_READY",
+  "goal": "Prepare up to9 whole hotel materials from proven current stock while resolving the price contract separately.",
+  "boundaries": "Fixed official public sources and real object-specific photos;existing copies/publisher only. No claimed tour price or package inclusion,private archives or server calls in media inspection.",
+  "criteria": "Whole factual captions,material practical feature,accepted hotel/grounds hero,readable brand,title,native bytes/hash/dimensions and current publication safeguards. Publish ready subset without waiting for disputed material.",
+  "risks": "Marriott minimum check-in age does not make a hotel adults-only. Hilton/Bonvoy benefits do not transfer to AnyTour packages. Park Club rights and Stella category child restrictions remain scoped.",
+  "source_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41608226099",
+  "hotels": [
+    {
+      "id": 249,
+      "title": "Hilton Hurghada Plaza",
+      "source": "https://www.hilton.com/en/hotels/hrghitw-hilton-hurghada-plaza/",
+      "text": "🌊 Hilton Hurghada Plaza\nТур с перелётом в Хургаду, Египет.\n\n🏖️ Собственный пляж на Красном море.\n💦 Бассейны для взрослых и детей.\n🎾 Теннисные корты, тренажёрный зал и SPA.\n🍽️ Рестораны и бары на территории.\n\n💡 Из отеля есть прямой выход в торговый центр City Center Mall. Удобно, если хочется совместить пляж и прогулки по магазинам.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "key": "hilton-hurghada-plaza",
+      "hotel": "HILTON PLAZA",
+      "utf16": 416,
+      "state": "CONTENT_PRIMARY_VERIFIED_NATIVE_COVER_NOT_READY",
+      "photos": {
+        "hero": "https://www.hilton.com/im/en/HRGHITW/11140012/hrghi-1889.jpg?ch=2519&cw=4500&gravity=NorthWest&impolicy=crop&rh=430&rw=768&xposition=0&yposition=240",
+        "left": "https://www.hilton.com/im/en/HRGHITW/11140078/hrghi-3241.jpg?ch=2519&cw=4500&gravity=NorthWest&impolicy=crop&rh=430&rw=768&xposition=0&yposition=240",
+        "right": "https://www.hilton.com/im/en/HRGHITW/11140049/hrghi-2434.jpg?ch=2519&cw=4500&gravity=NorthWest&impolicy=crop&rh=430&rw=768&xposition=0&yposition=240"
+      }
+    },
+    {
+      "id": 315,
+      "title": "Hurghada Marriott Beach Resort",
+      "source": "https://www.marriott.com/en-us/hotels/hrgeg-hurghada-marriott-beach-resort/overview/",
+      "text": "🌴 Hurghada Marriott Beach Resort\nТур с перелётом в Хургаду, Египет.\n\n🏖️ Отель у пляжа Красного моря.\n🤿 На территории работает дайвинг центр.\n🎾 Есть теннисные корты и тренажёрный зал.\n🍽️ Пять ресторанов и два бара.\n\n💡 У отеля есть небольшой остров с рестораном Bamboo Island. С берегом его соединяет мост.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "key": "hurghada-marriott-beach",
+      "hotel": "HURGADA MARRIOTT BEACH RESORT",
+      "utf16": 387,
+      "state": "CONTENT_PRIMARY_VERIFIED_NATIVE_COVER_NOT_READY",
+      "photos": {
+        "hero": "https://cache.marriott.com/content/dam/marriott-renditions/HRGEG/hrgeg-exterior-0072-hor-clsc.jpg?downsize=1336px%3A%2A&interpolation=progressive-bilinear&output-quality=70",
+        "left": "https://cache.marriott.com/content/dam/marriott-renditions/HRGEG/hrgeg-bar-0089-hor-clsc.jpg?downsize=1336px%3A%2A&interpolation=progressive-bilinear&output-quality=70",
+        "right": "https://cache.marriott.com/content/dam/marriott-renditions/HRGEG/hrgeg-pool-0090-hor-clsc.jpg?downsize=1336px%3A%2A&interpolation=progressive-bilinear&output-quality=70"
+      }
+    },
+    {
+      "id": 382,
+      "title": "Renaissance Golden View Beach",
+      "source": "https://www.marriott.com/en-us/hotels/sshbr-renaissance-sharm-el-sheikh-golden-view-beach-resort/overview/",
+      "text": "🐠 Renaissance Sharm El Sheikh Golden View Beach Resort\nТур с перелётом в Шарм эль Шейх, Египет.\n\n🏖️ Пляж, бассейны и дайвинг центр на территории.\n🍽️ Три ресторана и четыре бара.\n🏋️ Тренажёрный зал работает круглосуточно.\n🧒 Для детей есть игровая площадка.\n\n💡 В номерах и люксах отеля не курят.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "key": "renaissance-golden-view",
+      "hotel": "RENAISSANCE GOLDEN VIEW BEACH",
+      "utf16": 376,
+      "state": "CONTENT_PRIMARY_VERIFIED_NATIVE_COVER_NOT_READY",
+      "photos": {
+        "hero": "https://cache.marriott.com/content/dam/marriott-renditions/SSHBR/sshbr-view-0100-hor-clsc.jpg?downsize=1336px%3A%2A&interpolation=progressive-bilinear&output-quality=70",
+        "left": "https://cache.marriott.com/content/dam/marriott-renditions/SSHBR/sshbr-beach-0088-hor-wide.jpg?downsize=375px%3A%2A&interpolation=progressive-bilinear&output-quality=70",
+        "right": "https://cache.marriott.com/content/dam/marriott-renditions/SSHBR/sshbr-restaurant-view-5886-hor-wide.jpg?downsize=375px%3A%2A&interpolation=progressive-bilinear&output-quality=70"
+      }
+    },
+    {
+      "id": 465,
+      "title": "Stella Di Mare Beach Hotel & Spa",
+      "source": "https://stelladimare.com/beach-hotel-spa/our-hotel/",
+      "text": "🌊 Stella Di Mare Beach Hotel & Spa\nТур с перелётом в Шарм эль Шейх, район Наама Бей.\n\n🤿 На территории работает дайвинг центр PADI.\n🎭 Есть дневная анимация для детей и взрослых.\n🚌 В Наама Бей ходит автобус отеля по предварительной записи.\n💦 На территории есть открытый бассейн.\n\n💡 Категории Villa и Panoramic не принимают детей. Для семей предусмотрены другие типы номеров.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "key": "stella-di-mare-sharm",
+      "hotel": "STELLA DI MARE BEACH HOTEL & SPA",
+      "utf16": 455,
+      "state": "CONTENT_PRIMARY_VERIFIED_NATIVE_COVER_NOT_READY",
+      "photos": {
+        "hero": "https://stelladimare.com/wp-content/uploads/2021/12/Stella_Di_Mare_Beach_Hotel_and_Spa_Sharm_El_Sheikh_Hotel_Exterior.jpg",
+        "left": "https://stelladimare.com/wp-content/uploads/2021/12/Stella_Di_Mare_Beach_Hotel_and_Spa_Sharm_El_Sheikh_Main_pool_view.jpg",
+        "right": "https://stelladimare.com/wp-content/uploads/2021/12/Stella_Di_Mare_Beach_Hotel_and_Spa_Sharm_El_Sheikh_Barbeque_Exterior.jpg"
+      }
+    },
+    {
+      "id": 272,
+      "title": "Continental Hotel Hurghada",
+      "source": "https://www.continental-hurghada.com/en",
+      "additional": [
+        "https://www.continental-hurghada.com/en/activities",
+        "https://continental-hurghada.com/en/restaurants-bars"
+      ],
+      "text": "🏖️ Continental Hotel Hurghada\nТур с перелётом в Хургаду, Египет.\n\n🌊 Собственный песчаный пляж и марина.\n🤿 Дайвинг центр находится у марины отеля.\n💦 На территории есть большой бассейн.\n🧒 Для детей работают клуб и игровая площадка.\n\n💡 Бар Sundeck на крыше предназначен только для взрослых. Сам отель принимает семьи с детьми.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "key": "continental-hurghada",
+      "hotel": "CONTINENTAL HOTEL HURGHADA",
+      "utf16": 406,
+      "state": "CONTENT_PRIMARY_VERIFIED_NATIVE_COVER_NOT_READY",
+      "photos": {
+        "hero": "https://continental-hurghada.com/storage/app/slider/5EDTQhzr7UGsDpz69DWfeXD37vvcuRCUYBQ6mxvr.jpg",
+        "left": "https://continental-hurghada.com/storage/app/sections/jwdydDQG6SEFAdvLMY1eoelX6EGTbzJv0mZkm9Kl.jpg",
+        "right": "https://continental-hurghada.com/storage/app/main_gallery/kcxJOekoRwSejzffnoqLKlFAc3kije2eLnAflEiE.jpg"
+      }
+    },
+    {
+      "id": 260,
+      "title": "Park Regency Sharm El Sheikh",
+      "source": "https://www.parkregency.net/",
+      "additional": [
+        "https://www.parkregency.net/lifestyle-activities",
+        "https://www.parkregency.net/newpage"
+      ],
+      "text": "🐠 Park Regency Sharm El Sheikh\nТур с перелётом в Шарм эль Шейх, бухта Гарденс Бей.\n\n🏖️ У отеля три пляжа.\n💦 Каскадные бассейны, ленивая река и водная горка.\n🧒 Детский клуб Oasis с игровой комнатой и собственным затенённым бассейном.\n🏋️ Тренажёрный зал и теннисные корты на территории.\n\n💡 Regency Club находится в отдельном корпусе со своими зонами отдыха. Его привилегии относятся к этой категории размещения.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "key": "park-regency-sharm",
+      "hotel": "PARK REGENCY SHARM EL SHEIKH (EX. HYATT REGENCY SSH)",
+      "utf16": 492,
+      "state": "CONTENT_PRIMARY_VERIFIED_NATIVE_COVER_NOT_READY",
+      "photos": {
+        "hero": "https://irp.cdn-website.com/71c28a78/dms3rep/multi/opt/Park%2BRegency%2BSharm%2B4-2304w.jpg",
+        "left": "https://irp.cdn-website.com/71c28a78/dms3rep/multi/opt/Beach%2BHouse%2B6-2f96cb7e-1920w.jpg",
+        "right": "https://irp.cdn-website.com/71c28a78/dms3rep/multi/opt/Sea%2BFront%2BRoom%2B-%2BKing-98c56b11-2304w.jpg"
+      }
+    },
+    {
+      "id": 273,
+      "title": "Palm Royale Soma Bay",
+      "source": "https://www.palmroyaleresort.com/",
+      "additional": [
+        "https://www.palmroyaleresort.com/de/accommodation"
+      ],
+      "text": "🌴 Palm Royale Soma Bay\nТур с перелётом в Сома Бей, Египет.\n\n🏖️ Собственный пляж протяжённостью 1,2 км.\n🌿 Сады занимают 70 000 м² территории.\n🍽️ Есть рестораны итальянской, азиатской, греческой и ливанской кухни.\n🛏️ Номера Superior площадью 45 м² с балконом или террасой.\n\n💡 Swim Up и Club представлены отдельными категориями. Это стоит учитывать при выборе номера.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "key": "sentido-palm-royale",
+      "hotel": "PALM ROYALE SOMA BAY (EX. SENTIDO PALM ROYALE)",
+      "utf16": 447,
+      "state": "CONTENT_PRIMARY_VERIFIED_NATIVE_COVER_NOT_READY",
+      "photos": {
+        "hero": "https://irp.cdn-website.com/30543b89/dms3rep/multi/Aerial%2Bphoto%2B-%2BPalm%2BRoyale%2B1.jpg",
+        "left": "https://irp.cdn-website.com/30543b89/dms3rep/multi/opt/Main%2BSwimming%2BPool%2BOverview%2Bcopy-1920w.jpg",
+        "right": "https://irp.cdn-website.com/30543b89/dms3rep/multi/ITALIAN_RESTAURANT_01-out.jpg"
+      }
+    }
+  ],
+  "deferred": [
+    {
+      "id": 4181,
+      "state": "PRIMARY_RESTAURANT_CLOSURE_NOTICE_SCOPE_AND_DATES_REQUIRED",
+      "source": "https://www.hilton.com/en/hotels/rmfhihi-hilton-marsa-alam-nubian-resort/"
+    },
+    {
+      "id": 483,
+      "state": "PRIMARY_CDN_IMAGES_EXCLUDED_BY_FIRST_KNOWN_ALLOWLIST",
+      "source": "https://www.sunrise-resorts.com/royal-makadi-resort?updatelang=yes",
+      "exact_advertised_cdn": "d1wo7kaelp5eck.cloudfront.net"
+    }
+  ],
+  "content_draft_count": 7,
+  "content_and_cover_prepared_count": 0,
+  "ready_for_send": 0,
+  "new_posts": 0
+}
