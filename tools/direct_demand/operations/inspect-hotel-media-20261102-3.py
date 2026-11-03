@@ -1,13 +1,13 @@
 import base64,html,json,os,re,urllib.parse,urllib.request
 from pathlib import Path
 from html.parser import HTMLParser
-operation='commercial-batch22-primary-sources-20261103-read1'
-pages=["https://partner.jazhotels.com/hotel/27","https://www.jazhotels.com/hoteldetail/27-egypt-hurghada-jaz-neo-ivory","https://www.amarinagroup.com/amarina-hotels-resorts/amarina-abu-soma-resort","https://all.accor.com/hotel/B4M8/index.en.shtml","https://movenpick.accor.com/en/hotels/soma-bay/B4M8.html"]
+operation='commercial-batch23-primary-sources-20261103-read1'
+pages=["https://www.amarinagroup.com/media/gallery","https://www.theserry.com/beach-resort","https://www.oldpalaceresort.com/en/gallery/","https://www.oldpalaceresort.com/en/activities/swimming-pools/"]
 group=int(os.environ['MEDIA_GROUP'])
 assert group in (0,1)
 pages=pages[group*3:group*3+3]
 assert 1<=len(pages)<=3
-hosts=set(["partner.jazhotels.com","www.jazhotels.com","jazhotels.com","www.amarinagroup.com","amarinagroup.com","cdn.prod.website-files.com","cdn.prod.website-files.com","all.accor.com","movenpick.accor.com","www.ahstatic.com","images.ahstatic.com","assets.ahstatic.com"])
+hosts=set(["www.amarinagroup.com","amarinagroup.com","r.profitroom.com","r.profitroom.pl","u.profitroom.com","wa-uploads.profitroom.com","www.theserry.com","theserry.com","www.oldpalaceresort.com","oldpalaceresort.com"])
 class Redirect(urllib.request.HTTPRedirectHandler):
  def redirect_request(self,*args,**kwargs):raise ValueError('unexpected_primary_source_redirect')
 opener=urllib.request.build_opener(Redirect())
@@ -25,6 +25,7 @@ for url in pages:
  candidates=[]
  documents=[]
  image_details=[]
+ album_context=[]
  image_hosts=set()
  for value in re.findall(r"""["']([^"'<>\r\n]+\.(?:jpe?g|png|webp)(?:\?[^"'<>\r\n]*)?)["']""",text,re.I):
   absolute=urllib.parse.quote(urllib.parse.urljoin(final,html.unescape(value.strip())),safe=':/?&=%#')
@@ -35,6 +36,10 @@ for url in pages:
  for value in re.findall(r"""["']([^"'<>\r\n]+\.pdf(?:\?[^"'<>\r\n]*)?)["']""",text,re.I):
   absolute=urllib.parse.quote(urllib.parse.urljoin(final,html.unescape(value.strip())),safe=':/?&=%#');p=urllib.parse.urlsplit(absolute)
   if p.scheme=='https' and p.hostname in hosts and not p.username and not p.password and absolute not in documents:documents.append(absolute)
+ for marker in re.finditer(r'(?:data-category|data-filter|data-gallery|data-album|data-title|data-hotel|data-name)=["\x27][^"\x27]{1,120}["\x27]|Abu Soma|Queen Resort|Jannah Resort|Sun Resort|Star Resort',text,re.I):
+  fragment=text[max(0,marker.start()-220):marker.end()+420]
+  if not re.search(r'token|password|secret|firebase',fragment,re.I):album_context.append(fragment)
+  if len(album_context)>=40:break
  for tag in re.findall(r'<img\b[^>]*>',text,re.I):
   alt=re.search(r'\balt=["\x27]([^"\x27]*)["\x27]',tag,re.I)
   alt=html.unescape(alt.group(1)) if alt else ''
@@ -76,7 +81,7 @@ for url in pages:
  for body in re.findall(r'<script[^>]*(?:type=["\x27]application/(?:ld\\+)?json["\x27]|id=["\x27]__NEXT_DATA__["\x27])[^>]*>(.*?)</script>',text,re.I|re.S):
   try:selected_json(json.loads(html.unescape(body)))
   except (ValueError,TypeError):pass
- out['pages'].append({'source_url':url,'final_url':final,'page_title':title,'image_hosts':sorted(image_hosts),'image_urls':candidates[:180],'image_details':image_details[:160],'document_urls':documents[:12],'website_links':website_links[:10],'public_text':public_text,'json_fact_fragments':fragments})
+ out['pages'].append({'source_url':url,'final_url':final,'page_title':title,'image_hosts':sorted(image_hosts),'image_urls':candidates[:180],'image_details':image_details[:160],'document_urls':documents[:12],'website_links':website_links[:10],'public_text':public_text,'json_fact_fragments':fragments,'album_context':album_context})
 
 out['ok']=True
 Path('public-media-sources.json').write_text(json.dumps(out,ensure_ascii=False,indent=2)+'\n')

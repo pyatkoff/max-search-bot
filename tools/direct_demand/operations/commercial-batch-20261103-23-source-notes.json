@@ -1,0 +1,59 @@
+{
+  "operation": "commercial-hotel-batch-20261103-23-v1",
+  "state": "PRIMARY_PREPARATION_NOT_SENT",
+  "goal": "Prepare whole materials for ready identities from stock25 and accept genuine hotel overview photography.",
+  "boundaries": [
+    "Only public first-party sources and existing cloud inspection workflow",
+    "No provider,server,message or DB calls in media inspection",
+    "No Firebase access-token URLs,private archives or booking rights transfer"
+  ],
+  "criteria": [
+    "Exact hotel identity and3or4 useful facts with important feature",
+    "A real primary overview showing buildings and grounds",
+    "Brand/name readable and native PNG verified before any freeze/send"
+  ],
+  "risks": [
+    "Serry parent has3products; BeachResort is family andnot16+BeachHouse",
+    "Amarina gallery contains multiple hotels; album membership must be explicit",
+    "OldPalace current website retains facade painting notice22Nov2025 for estimated60days; this is not a proven current closure"
+  ],
+  "read3_outcome": "Closed new19retained scope;2oldrows in1hotel;0freshwithin3h;no quote or price edit",
+  "sources": [
+    {
+      "hotel_id": 83563,
+      "url": "https://www.theserry.com/beach-resort",
+      "facts": [
+        "183metres sandybeach",
+        "Main andchildrenpool",
+        "SaraabJuniorClub andNubaEscape",
+        "Manaralounge forSuites only"
+      ],
+      "not_transferred": [
+        "16+BeachHouse",
+        "villa privatepool",
+        "complimentarySindbadpackage rights",
+        "diningrights"
+      ]
+    },
+    {
+      "hotel_id": 343,
+      "url": "https://www.oldpalaceresort.com/en/",
+      "facts": [
+        "SahlHasheesh",
+        "200metres sandybeach",
+        "Set on12km promenade",
+        "KidsClub,FitnessCentre",
+        "Standard37sqm,FamilyRoomChalet53sqm"
+      ],
+      "photo_uris": [
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort--20212216956756.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort--20212216957325.jpg"
+      ]
+    },
+    {
+      "hotel_id": 68907,
+      "url": "https://www.amarinagroup.com/media/gallery",
+      "purpose": "Read explicit AbuSoma gallery album mapping and allowed public CDN image references; no repeat mainpage GET"
+    }
+  ]
+}
