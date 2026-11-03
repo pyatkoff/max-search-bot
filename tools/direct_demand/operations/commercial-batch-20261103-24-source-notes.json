@@ -1,0 +1,33 @@
+{
+  "operation": "commercial-hotel-batch-20261103-24-v1",
+  "state": "ONE_WHOLE_CAPTION_PREPARED_PHOTO_ACCEPTANCE_NOT_STARTED_NOT_SENT",
+  "goal": "Prepare the next whole hotel material from the native25 reserve without holding ready objects for disputed photography.",
+  "boundaries": [
+    "Primary public source only; no price,availability,dining or package inclusion claims",
+    "No provider calls or send in thispreparation"
+  ],
+  "criteria": [
+    "Exactnative235identityalreadycatalogued",
+    "Wholehotelcaption withusefulfacts,beachwalkfeature andnextstep",
+    "A real general view ofthishotel is required beforecover"
+  ],
+  "risks": [
+    "Owner beachillustration alt namesSivaGrandBeach; do not treat sharedimage asGrandResort beachproof or transferrights",
+    "Nearbybeach is not a directbeachfront claim",
+    "Catalogue rating not stars"
+  ],
+  "rows": [
+    {
+      "hotel_id": 235,
+      "hotel": "The Grand Resort Hurghada",
+      "sources": [
+        "https://redseahotels.com/resorts/hurghada/the-grand-resort/"
+      ],
+      "text": "✈️ Туры в The Grand Resort с перелётом\n📍 Хургада, Египет.\n\n🌴 Отель на туристической прогулочной улице.\n🏊 Открытые бассейны, в том числе подогреваемый для взрослых и детей.\n🧒 Детский клуб и игровая площадка.\n🛏 Семейные номера с двумя отдельными спальнями.\n\n💡 До пляжа нужно пройти пешком.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в The Grand Resort.",
+      "utf16": 361,
+      "media_state": "PRIMARY_PUBLIC_URI_CANDIDATES_NOT_NATIVE_OR_VISUALLY_ACCEPTED"
+    }
+  ],
+  "new_posts": 0,
+  "provider_calls": 0
+}
