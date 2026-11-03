@@ -1,0 +1,49 @@
+name: Read modeled monitor scheduler metadata once
+on:
+  push:
+    branches: ['ops/modeled-monitor-scheduler-preflight-20261103']
+    paths: ['.github/workflows/modeled-monitor-scheduler-preflight-20261103.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  original:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Read exact existing workflow metadata
+        uses: actions/github-script@v7
+        with:
+          retries: 0
+          script: |
+            const expected='33a6d4199e4309ed1314c29fd65e9d66976327c9';
+            if(context.repo.owner!=='pyatkoff'||context.repo.repo!=='max-search-bot'||
+                context.eventName!=='push'||context.ref!=='refs/heads/ops/modeled-monitor-scheduler-preflight-20261103'||
+                process.env.GITHUB_RUN_ATTEMPT!=='1')throw new Error('original_preflight_required');
+            const main=await github.rest.git.getRef({...context.repo,ref:'heads/main'});
+            if(main.data.object.sha!==expected)throw new Error('current_main_changed');
+            const commit=await github.rest.git.getCommit({...context.repo,commit_sha:context.sha});
+            if(commit.data.parents.length!==1||commit.data.parents[0].sha!==expected)throw new Error('original_parent_required');
+            const diff=await github.rest.repos.compareCommits({...context.repo,base:expected,head:context.sha});
+            if(diff.data.total_commits!==1||diff.data.files?.length!==1||
+                diff.data.files[0].filename!=='.github/workflows/modeled-monitor-scheduler-preflight-20261103.yml'||
+                diff.data.files[0].status!=='added')throw new Error('one_preflight_required');
+            const workflow=await github.rest.actions.getWorkflow({...context.repo,workflow_id:341564607});
+            const w=workflow.data;
+            if(w.id!==341564607||w.path!=='.github/workflows/live-session-diagnostics.yml'||
+                !['active','deleted','disabled_fork','disabled_inactivity','disabled_manually'].includes(w.state))
+              throw new Error('unexpected_workflow_metadata');
+            const result={schema_version:1,probe:'modeled_monitor_scheduler_metadata',
+              observed_at:new Date().toISOString(),expected_main:expected,workflow_id:w.id,path:w.path,
+              state:w.state,created_at:w.created_at,updated_at:w.updated_at,read_only:true};
+            const fs=require('fs'),dir=process.env.RUNNER_TEMP+'/scheduler-preflight';
+            fs.mkdirSync(dir,{recursive:true,mode:0o700});
+            fs.writeFileSync(dir+'/receipt.json',JSON.stringify(result)+'\n',{mode:0o600});
+            core.info(JSON.stringify(result));
+      - name: Retain technical scheduler metadata
+        uses: actions/upload-artifact@v4
+        with:
+          name: modeled-monitor-scheduler-metadata
+          path: ${{ runner.temp }}/scheduler-preflight/receipt.json
+          retention-days: 7
+          if-no-files-found: error
