@@ -54,7 +54,7 @@ function showPendingAttempt(state='unknown'){
 function removeReplySession(){try{sessionStorage.removeItem(replySessionKey)}catch(e){}}
 function persistReplySession(){
   if(!replySessionOwner)return false;
-  const now=Date.now(),entries=[...drafts].reverse().filter(([id,d])=>validId(id)&&(validAttempt(d.attempt)||(d.text.length<=maxStoredDraftLength&&now-d.updatedAt<draftLifetime))).sort((a,b)=>Number(!!b[1].attempt)-Number(!!a[1].attempt)||b[1].updatedAt-a[1].updatedAt).slice(0,maxStoredDrafts).map(([id,d])=>({id,text:d.text.slice(0,maxStoredDraftLength),version:d.version,updatedAt:d.updatedAt,...(validAiDraftId(d.aiDraftId)?{aiDraftId:d.aiDraftId}:{}),...(validAttempt(d.attempt)?{attempt:d.attempt}:{})}));
+  const now=Date.now(),entries=[...drafts].reverse().filter(([id,d])=>validId(id)&&(validAttempt(d.attempt)||(!d.aiPreview&&d.text.length<=maxStoredDraftLength&&now-d.updatedAt<draftLifetime))).sort((a,b)=>Number(!!b[1].attempt)-Number(!!a[1].attempt)||b[1].updatedAt-a[1].updatedAt).slice(0,maxStoredDrafts).map(([id,d])=>({id,text:d.text.slice(0,maxStoredDraftLength),version:d.version,updatedAt:d.updatedAt,...(validAiDraftId(d.aiDraftId)?{aiDraftId:d.aiDraftId}:{}),...(validAttempt(d.attempt)?{attempt:d.attempt}:{})}));
   // An unresolved fence must survive a quota failure. A stale confirmed fence
   // is safe to reconcile again; silently reviving a sendable draft is not.
   if(!entries.some(d=>d.attempt))removeReplySession();
@@ -91,7 +91,7 @@ function setRefreshStatus(text=''){let el=$('conversationRefreshStatus');if(!el&
 function setBusy(value){busy=!!value;if(busy)refreshEpoch++;applyInteractionState();window.WorkspaceV2History?.render();if(!busy)void window.WorkspaceV2History?.recoverGap?.()}
 function lifecycleBlocked(){return !!lifecycleIssue&&!S.authExpired&&lifecycleIssue.target===Number(S.current)&&lifecycleIssue.manager===Number(S.manager?.id)&&lifecycleIssue.auth===S.authGeneration}
 function deliverySuspended(){return String(S.detail?.delivery_failure?.category||'')==='suspended'}
-function applyComposerState(){const suspended=deliverySuspended(),send=$('sendReply'),reply=$('replyText'),file=$('replyFile');if(send){send.disabled=busy||(suspended&&!pendingAttempt())||!!opening||accessLost||lifecycleBlocked();send.textContent=busy?(lifecycleFlight||pendingAttempt()?'Подождите…':'Отправляем…'):pendingAttempt()?'Проверить отправку':'Отправить';send.dataset.sendPending=pendingAttempt()?'true':'false';send.setAttribute('aria-label',send.textContent);send.title=send.textContent}if(reply)reply.disabled=busy||suspended||!!opening||accessLost;if(file)file.disabled=busy||suspended||!!opening||accessLost;document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>{b.disabled=busy||suspended||!!opening||accessLost});const emoji=$('emojiToggle');if(emoji)emoji.disabled=!canInsertEmoji();if(!canInsertEmoji())closeEmojiPicker();window.WorkspaceV2ReplyEditor?.sync()}
+function applyComposerState(){const suspended=deliverySuspended(),send=$('sendReply'),reply=$('replyText'),file=$('replyFile');if(send){send.disabled=busy||(suspended&&!pendingAttempt())||!!opening||accessLost||lifecycleBlocked();send.textContent=busy?(lifecycleFlight||pendingAttempt()?'Подождите…':'Отправляем…'):pendingAttempt()?'Проверить отправку':'Отправить';send.dataset.sendPending=pendingAttempt()?'true':'false';send.setAttribute('aria-label',send.textContent);send.title=send.textContent}if(reply){reply.disabled=busy||suspended||!!opening||accessLost;reply.classList.toggle('aiDraftPreview',!!aiDraftPreview())}if(file)file.disabled=busy||suspended||!!opening||accessLost;document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>{b.disabled=busy||suspended||!!opening||accessLost});const emoji=$('emojiToggle');if(emoji)emoji.disabled=!canInsertEmoji();if(!canInsertEmoji())closeEmojiPicker();window.WorkspaceV2ReplyEditor?.sync()}
 function applyActionState(){document.querySelectorAll('[data-conversation-lifecycle]').forEach(b=>{b.disabled=busy||!!opening||accessLost||lifecycleBlocked()})}
 function applyInteractionState(){applyComposerState();applyActionState();renderLifecycleIssue()}
 // A failed request is not proof that the recipient did not receive the message.
@@ -108,14 +108,18 @@ function sendFailureNotice(failure,fallback=''){
 }
 function renderDeliveryFailure(failure,fallback=''){const el=$('deliveryFailure');if(!el)return;const f=failure||null;if(!f){el.textContent='';el.classList.add('hidden');applyInteractionState();return}const message=sendFailureNotice(f,fallback);el.textContent=message;el.classList.remove('hidden');el.classList.toggle('suspended',String(f.category||'')==='suspended');applyInteractionState()}
 function autoGrow(){if(window.WorkspaceV2ReplyEditor?.resize())return;const el=$('replyText');if(!el)return;el.style.height='auto';el.style.height=Math.min(150,Math.max(38,el.scrollHeight))+'px'}
-function saveDraft(id=S.current,aiDraftId=undefined){
+function saveDraft(id=S.current,aiDraftId=undefined,aiPreview=undefined){
   const reply=$('replyText'),key=Number(id||0);if(!reply||!key)return;
   const text=reply.value,previous=drafts.get(key),candidate=aiDraftId===undefined?previous?.aiDraftId:aiDraftId;
   const trackedId=validAiDraftId(candidate)?candidate:null;
+  // Untouched AI text is a local preview, never a persisted human draft.
+  const preview=aiPreview===undefined&&previous?.text===text?previous.aiPreview:aiPreview;
   const version=previous&&previous.text===text&&(previous.aiDraftId||null)===trackedId?previous.version:++draftSequence;
-  drafts.delete(key);if(text||previous?.attempt)drafts.set(key,{text,updatedAt:Date.now(),version,...(trackedId?{aiDraftId:trackedId}:{}),...(previous?.attempt?{attempt:previous.attempt}:{})});persistReplySession();applyComposerState();
+  drafts.delete(key);if(text||previous?.attempt)drafts.set(key,{text,updatedAt:Date.now(),version,...(trackedId?{aiDraftId:trackedId}:{}),...(preview?{aiPreview:preview}:{}),...(previous?.attempt?{attempt:previous.attempt}:{})});persistReplySession();reply.classList.toggle('aiDraftPreview',!!preview);applyComposerState();
 }
-function restoreDraft(id=S.current){const reply=$('replyText'),key=Number(id||0);if(!reply)return;reply.value=key?(drafts.get(key)?.text||''):'';autoGrow();if(pendingAttempt(key))showPendingAttempt();applyComposerState()}
+function restoreDraft(id=S.current){const reply=$('replyText'),key=Number(id||0);if(!reply)return;// Returning to a chat requires a new authorized ready read, not a stored preview.
+  if(drafts.get(key)?.aiPreview&&!pendingAttempt(key))drafts.delete(key);
+  reply.value=key?(drafts.get(key)?.text||''):'';reply.classList.remove('aiDraftPreview');autoGrow();if(pendingAttempt(key))showPendingAttempt();applyComposerState()}
 function captureReplyContext(){return {conversationId:Number(S.current||0),managerId:Number(S.manager?.id||0),authGeneration:S.authGeneration,openGeneration:openSeq}}
 function insertQuickReply(text,context=captureReplyContext(),aiDraftId=undefined){
   const current=captureReplyContext(),addition=String(text||'');
@@ -127,6 +131,19 @@ function insertQuickReply(text,context=captureReplyContext(),aiDraftId=undefined
 // This records a local source association, not acceptance or delivery. A new
 // untracked AI insertion must not inherit the preceding proposal's identity.
 function insertAiDraft(text,context,aiDraftId=null){return insertQuickReply(text,context,validAiDraftId(aiDraftId)?aiDraftId:null)}
+function aiDraftPreview(){const d=drafts.get(Number(S.current));return d?.aiPreview&&d.text===$('replyText')?.value&&!d.attempt?d.aiPreview:null}
+function previewAiDraft(text,context,key,aiDraftId=null){
+  const current=captureReplyContext(),reply=$('replyText'),addition=String(text||'');
+  if(!canInsertEmoji()||!context||Object.keys(current).some(k=>current[k]!==context[k])||reply.value!==''||pendingAttempt()||!addition||!key||/\{\{?[^{}\r\n]+\}\}?/.test(addition))return false;
+  const position={start:reply.selectionStart,end:reply.selectionEnd,direction:reply.selectionDirection,top:reply.scrollTop,left:reply.scrollLeft};
+  reply.value=addition;saveDraft(S.current,validAiDraftId(aiDraftId)?aiDraftId:null,{key,text:addition});autoGrow();
+  // Passive appearance never focuses the editor or moves an existing selection.
+  reply.setSelectionRange(position.start,position.end,position.direction);reply.scrollTop=position.top;reply.scrollLeft=position.left;return true;
+}
+function discardAiPreview(){
+  if(!aiDraftPreview())return false;
+  const reply=$('replyText');reply.value='';saveDraft(S.current,null,null);autoGrow();return true;
+}
 function addQuickReply(text){return insertQuickReply(text)}
 const replyEmojis=[
   ['😊','Улыбка'],['🙂','Лёгкая улыбка'],['😀','Радость'],['😄','Смех'],['😂','Смех до слёз'],['😉','Подмигивание'],['😍','Восхищение'],['🥰','Нежность'],
@@ -587,7 +604,9 @@ async function sendReply(reconcileAction='send_receipt'){
   if(accessLost||S.authExpired||lifecycleBlocked())return;
   const owner=replySessionOwner;let draftText=$('replyText').value;
   const target=Number(S.current||0),generation=openSeq,text=$('replyText').value.trim();let attempt=pendingAttempt(target),hasFile=!attempt&&window.WorkspaceV2Media?.hasFile();
-  saveDraft();
+  // Explicit send intent owns the text even when transport later refuses it.
+  // It is no longer an untouched suggestion that may expire.
+  saveDraft(S.current,undefined,null);
   let draftVersion=drafts.get(target)?.version,aiDraftId=drafts.get(target)?.aiDraftId;
   if(attempt){draftText=attempt.text;draftVersion=attempt.version;aiDraftId=attempt.aiDraftId;}
   const matchingDraft=()=>drafts.get(target)?.version===draftVersion&&(drafts.get(target)?.text||'')===draftText;
@@ -698,9 +717,9 @@ function bind(){
   // moving the native click target. Keep pointer focus stable; keyboard focus and
   // the native click/submit remain unchanged. Never send from a pointer-down event.
   $('sendReply')?.addEventListener('mousedown',e=>{if(e.button===0)e.preventDefault()});
-  reply.addEventListener('input',()=>{saveDraft();autoGrow()});
+  reply.addEventListener('input',()=>{saveDraft(S.current,undefined,null);autoGrow()});
   reply.addEventListener('keydown',e=>{if(!e.isComposing&&e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();form.requestSubmit()}});
   document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>b.onclick=()=>addQuickReply(b.dataset.reply))
 }
-window.WorkspaceV2Conversation={hasReadAccess:()=>!accessLost&&!S.authExpired,renderHandoffContext,invalidateMessageAccess:loseHistoryAccess,renderMessageContext,canNavigateMessages:()=>isCurrentHistory(historyContext()),acceptReadPage,bind,open,cancelPendingOpen,refreshVisible,captureRefreshContext:historyContext,activateReplySession,rememberSelection,getSavedSelection:()=>savedSelection,getOpenGeneration:()=>openSeq,suspendForAuthRecovery,resetForIdentityChange,refreshLeadData,renderMessages,loadOlder,renderHeader,renderDeliveryFailure,messageTime,sendReply,saveDraft,restoreDraft,setLoadStatus,captureReplyContext,insertQuickReply,insertAiDraft,openSearch,nextWaiting};
+window.WorkspaceV2Conversation={hasReadAccess:()=>!accessLost&&!S.authExpired,renderHandoffContext,invalidateMessageAccess:loseHistoryAccess,renderMessageContext,canNavigateMessages:()=>isCurrentHistory(historyContext()),acceptReadPage,bind,open,cancelPendingOpen,refreshVisible,captureRefreshContext:historyContext,activateReplySession,rememberSelection,getSavedSelection:()=>savedSelection,getOpenGeneration:()=>openSeq,suspendForAuthRecovery,resetForIdentityChange,refreshLeadData,renderMessages,loadOlder,renderHeader,renderDeliveryFailure,messageTime,sendReply,saveDraft,restoreDraft,setLoadStatus,captureReplyContext,insertQuickReply,insertAiDraft,previewAiDraft,discardAiPreview,aiDraftPreview,openSearch,nextWaiting};
 })();
