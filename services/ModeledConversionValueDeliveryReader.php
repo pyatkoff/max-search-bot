@@ -18,7 +18,7 @@ final class ModeledConversionValueDeliveryReader
         try{
             $mysql=$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
             $len=$mysql?'OCTET_LENGTH(last_receipt_json)':'LENGTH(CAST(last_receipt_json AS BLOB))';
-            $rows=$this->query("SELECT mode,goal_id,goal_intent,activated_at_unix,last_tick_unix,contract_version,history_from_unix,history_until_unix,history_cursor,history_ceiling,history_fortnight_requested_at_unix,history_day_receipt_json,history_completed_at_unix,history_scanned,history_collected,history_stats_json,CASE WHEN ".$len."<=8192 THEN last_receipt_json ELSE NULL END AS receipt_json FROM modeled_conversion_value_export_settings WHERE project_key='anytour' AND counter_id='98615635' LIMIT 1",[]);
+            $rows=$this->query("SELECT mode,goal_id,goal_intent,activated_at_unix,last_tick_unix,contract_version,history_from_unix,history_until_unix,history_cursor,history_ceiling,history_fortnight_requested_at_unix,history_day_receipt_json,history_completed_at_unix,history_scanned,history_collected,history_stats_json,CASE WHEN ".$len."<=8192 THEN last_receipt_json ELSE NULL END AS receipt_json,last_report_success_unix,CASE WHEN ".($mysql?'OCTET_LENGTH(last_report_success_json)':'LENGTH(CAST(last_report_success_json AS BLOB))')."<=8192 THEN last_report_success_json ELSE NULL END AS last_success_json FROM modeled_conversion_value_export_settings WHERE project_key='anytour' AND counter_id='98615635' LIMIT 1",[]);
             if(!$rows)return $this->unavailable('not_configured');
             $s=$rows[0];
             if(($s['goal_id']??null)!==self::GOAL||($s['contract_version']??null)!==ModeledConversionValueContract::VERSION
@@ -76,6 +76,10 @@ final class ModeledConversionValueDeliveryReader
             if(is_array($receipt)&&is_int($receipt['errors']??null)&&$receipt['errors']>=0&&$receipt['errors']<=100)$out['last_tick_errors']=$receipt['errors'];
             $tick=(int)($s['last_tick_unix']??0);if($tick>=$activation&&$tick<=$now)$out['last_tick_at']=gmdate('Y-m-d\\TH:i:s\\Z',$tick);
             $out['metrika_goal_report']=$this->report($receipt['metrika_report']??null,$activation,$now);
+            if(!in_array($out['metrika_goal_report']['status']??null,['ok','sampled'],true)){
+                $lastGood=is_string($s['last_success_json']??null)?json_decode($s['last_success_json'],true):null;
+                $out['last_successful_metrika_goal_report']=$this->report($lastGood,$activation,$now);
+            }
             $out['historical_review']=['date'=>'2026-11-02','date_from'=>(int)($s['history_from_unix']??0)===1792447200?'2026-10-20':'2026-11-02','date_until_inclusive'=>'2026-11-02','timezone'=>'Europe/Kaliningrad',
                 'configured'=>ModeledConversionValueContract::historyWindow((int)($s['history_from_unix']??0),(int)($s['history_until_unix']??0)),
                 'fortnight_requested'=>is_numeric($s['history_fortnight_requested_at_unix']??null),

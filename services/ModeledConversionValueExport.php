@@ -100,11 +100,12 @@ final class ModeledConversionValueExport
             'mode'=>$s['mode'],'contract'=>ModeledConversionValueContract::VERSION,'delivery'=>$last['state']??'waiting_for_signal','upload_status'=>$last['upload_status']??null];
     }
 
-    public static function tick(?PDO $pdo=null,mixed $lookup=null,mixed $api=null,?int $now=null,?callable $gate=null):array
+    public static function tick(?PDO $pdo=null,mixed $lookup=null,mixed $api=null,?int $now=null,?callable $gate=null,?callable $observationClock=null):array
     {
         if($pdo===null&&ProjectConfig::projectId()!=='anytour')return ['status'=>'off'];
         $s=self::settings($pdo);if(!$s||$s['mode']!=='send')return ['status'=>'off'];
-        $p=$pdo??ConversationDb::connection();$now??=time();$self=new self($p);
+        $p=$pdo??ConversationDb::connection();$injectedClock=$now!==null;$now??=time();$self=new self($p);
+        $clock=$observationClock??($injectedClock?static fn():int=>$now:static fn():int=>time());
         if(!$gate)$gate=static function(string $chat):bool{
             require_once dirname(__DIR__).'/maxsearchclass.php';
             return MaxSearchApi::metrikaGoalAllowed($chat);
@@ -136,13 +137,13 @@ final class ModeledConversionValueExport
                     $q->execute([$token,$now,$r['id'],$r['target'],ModeledConversionValueContract::TARGET]);
                     if($q->rowCount()!==1)continue;
                     try{$response=$api->uploadModeledValue($r,$now);}catch(Throwable $ignored){$response=['outcome'=>'unknown','reason'=>'upload_outcome_unknown'];}
-                    $repo->finish((string)$r['id'],$token,$response,$now);
+                    $self->finishObserved($repo,(string)$r['id'],$token,$response,$now,self::observedAt($clock,$now));
                     if(($response['outcome']??null)==='accepted')$repo->defer((string)$r['id'],'accepted',$now+300);
                     $key=($response['outcome']??'')==='accepted'?'accepted':(($response['outcome']??'')==='unknown'?'unknown':'errors');$stats[$key]++;
                 }
                 foreach($receipts as$r){
                     $status=$r['state']==='accepted'?$api->poll((string)$r['upload_id']):$api->findUnknown($r);
-                    if($status){$repo->status($r,$status,$now);if(($status['status']??'')==='PROCESSED')$stats['processed']++;}
+                    if($status){$self->statusObserved($repo,$r,$status,$now,self::observedAt($clock,$now));if(($status['status']??'')==='PROCESSED')$stats['processed']++;}
                     else $repo->defer((string)$r['id'],$r['state'],$now+300);
                 }
             }
@@ -158,10 +159,77 @@ final class ModeledConversionValueExport
             }
             if(method_exists($api,'modeledValueReport'))$stats['metrika_report']=$api->modeledValueReport((int)$s['activated_at_unix'],$now);
         }catch(Throwable $ignoredReport){ /* Keep fixed unavailable, never a fabricated zero. */ }
-        $q=$p->prepare("UPDATE modeled_conversion_value_export_settings SET last_tick_unix=?,last_receipt_json=? WHERE project_key='anytour'");
-        $q->execute([$now,json_encode($stats,JSON_THROW_ON_ERROR)]);
+        $report=$stats['metrika_report'];$reportOk=in_array($report['status']??null,['ok','sampled'],true);
+        $q=$p->prepare("UPDATE modeled_conversion_value_export_settings SET last_tick_unix=?,last_receipt_json=?,"
+            ."last_report_success_unix=CASE WHEN ?=1 THEN ? ELSE last_report_success_unix END,"
+            ."last_report_success_json=CASE WHEN ?=1 THEN ? ELSE last_report_success_json END,"
+            ."report_failure_since_unix=CASE WHEN ?=1 THEN NULL ELSE COALESCE(report_failure_since_unix,?) END WHERE project_key='anytour' AND (last_tick_unix IS NULL OR last_tick_unix<=?)");
+        $q->execute([$now,json_encode($stats,JSON_THROW_ON_ERROR),$reportOk?1:0,$now,$reportOk?1:0,
+            $reportOk?json_encode($report,JSON_THROW_ON_ERROR):null,$reportOk?1:0,$now,$now]);
         // Private counts stay in the DB; ordinary diagnostic logs get technical state only.
         return ['status'=>$stats['errors']?'degraded':'running','contract'=>ModeledConversionValueContract::VERSION];
+    }
+
+    private static function observedAt(callable $clock,int $notBefore):int
+    {
+        $at=$clock();
+        if(!is_int($at)||$at<$notBefore||$at>253402300799)throw new RuntimeException('delivery_observation_clock');
+        return $at;
+    }
+
+    /** No network in this transaction: receipt and its observation clock commit together. */
+    private function finishObserved(MaxChannelConversionOutbox $repo,string $id,string $token,array $response,int $tick,int $at):void
+    {
+        if($this->pdo->inTransaction())throw new RuntimeException('value_receipt_outer_transaction');
+        $this->pdo->beginTransaction();
+        try{
+            $repo->finish($id,$token,$response,$tick);
+            if(($response['outcome']??null)==='accepted'){
+                $q=$this->pdo->prepare("UPDATE max_channel_conversion_outbox SET "
+                    ."value_receipt_basis=CASE WHEN value_api_accepted_at_unix IS NULL THEN 'post_response' ELSE value_receipt_basis END,"
+                    ."value_api_accepted_at_unix=COALESCE(value_api_accepted_at_unix,?)"
+                    ." WHERE id=? AND project_key='anytour' AND counter_id='98615635' AND transport_target=? AND value_contract=?"
+                    ." AND state='accepted' AND upload_id IS NOT NULL AND upload_id<>''");
+                $q->execute([$at,$id,ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION]);
+            }
+            $this->pdo->commit();
+        }catch(Throwable $error){if($this->pdo->inTransaction())$this->pdo->rollBack();throw $error;}
+    }
+
+    private function statusObserved(MaxChannelConversionOutbox $repo,array $row,array $status,int $tick,int $at):void
+    {
+        if($this->pdo->inTransaction())throw new RuntimeException('value_status_outer_transaction');
+        $this->pdo->beginTransaction();
+        try{
+            $lock=$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?' FOR UPDATE':'';
+            $q=$this->pdo->prepare("SELECT state,upload_id FROM max_channel_conversion_outbox WHERE id=? AND project_key='anytour'"
+                ." AND counter_id='98615635' AND transport_target=? AND value_contract=?".$lock);
+            $q->execute([$row['id'],ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION]);$current=$q->fetch(PDO::FETCH_ASSOC);$q->closeCursor();
+            if(!$current||($current['state']??null)!==($row['state']??null)
+                ||(string)($current['upload_id']??'')!==(string)($row['upload_id']??'')){
+                $this->pdo->commit();return;
+            }
+            if(($current['upload_id']??null)!==null&&(string)$current['upload_id']!==''
+                &&(string)($status['id']??'')!==(string)$current['upload_id'])throw new RuntimeException('value_receipt_changed');
+            $repo->status($row,$status,$tick);
+            // A GET may first reconcile an unknown POST. Polling a legacy known
+            // receipt does not invent its missing historical acceptance time.
+            if(($current['state']??null)==='unknown'){
+                $q=$this->pdo->prepare("UPDATE max_channel_conversion_outbox SET "
+                    ."value_receipt_basis=CASE WHEN value_api_accepted_at_unix IS NULL THEN 'get_reconciliation' ELSE value_receipt_basis END,"
+                    ."value_api_accepted_at_unix=COALESCE(value_api_accepted_at_unix,?)"
+                    ." WHERE id=? AND project_key='anytour' AND counter_id='98615635' AND transport_target=? AND value_contract=?"
+                    ." AND state IN ('accepted','processed','failed','unmatched') AND upload_id IS NOT NULL AND upload_id<>''");
+                $q->execute([$at,$row['id'],ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION]);
+            }
+            if(($status['status']??null)==='PROCESSED'&&(int)($status['source_quantity']??0)===1&&(int)($status['line_quantity']??0)===1){
+                $q=$this->pdo->prepare("UPDATE max_channel_conversion_outbox SET value_receipt_basis=COALESCE(value_receipt_basis,'get_reconciliation'),value_processed_at_unix=COALESCE(value_processed_at_unix,?)"
+                    ." WHERE id=? AND project_key='anytour' AND counter_id='98615635' AND transport_target=? AND value_contract=?"
+                    ." AND state='processed' AND upload_id IS NOT NULL AND upload_id<>''");
+                $q->execute([$at,$row['id'],ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION]);
+            }
+            $this->pdo->commit();
+        }catch(Throwable $error){if($this->pdo->inTransaction())$this->pdo->rollBack();throw $error;}
     }
 
     public function collect(array $s,int $now,callable $gate):int
@@ -316,7 +384,7 @@ final class ModeledConversionValueExport
         if(!MaxTrackerLookupProtocol::id($client,40)){
             $q=$this->pdo->prepare("UPDATE max_channel_conversion_outbox SET next_attempt_unix=?,last_error=? WHERE id=? AND state='pending'");$q->execute([$now+300,$identityReason,$r['id']]);return false;
         }
-        $q=$this->pdo->prepare("UPDATE max_channel_conversion_outbox SET client_id=?,tracker_record_id=?,tracker_observed_unix=?,identity_observation_id=?,state='ready',next_attempt_unix=0,last_error='' WHERE id=? AND state='pending'");$q->execute([$client,$record['record_id']??null,$record['observed_at_unix']??null,$observation,$r['id']]);return $q->rowCount()===1;
+        $q=$this->pdo->prepare("UPDATE max_channel_conversion_outbox SET client_id=?,tracker_record_id=?,tracker_observed_unix=?,identity_observation_id=?,state='ready',value_ready_at_unix=COALESCE(value_ready_at_unix,?),next_attempt_unix=0,last_error='' WHERE id=? AND state='pending'");$q->execute([$client,$record['record_id']??null,$record['observed_at_unix']??null,$observation,$now,$r['id']]);return $q->rowCount()===1;
     }
     private static function failRow(PDO $p,array $r,string $reason):void
     {
