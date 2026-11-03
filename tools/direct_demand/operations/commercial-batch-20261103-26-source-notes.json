@@ -1,0 +1,281 @@
+{
+  "operation": "commercial-hotel-batch-20261103-26-v1",
+  "state": "ONE_COVER_PREPARED_NATIVE_VERIFICATION_PENDING_NOT_SENT",
+  "catalog_ids": [
+    129,
+    74258,
+    73343,
+    432,
+    65779,
+    932,
+    497,
+    68907,
+    231,
+    483
+  ],
+  "captions": [
+    {
+      "hotel_id": 129,
+      "hotel": "Cook's Club El Gouna 16+",
+      "text": "✈️ Туры в Cook's Club El Gouna 16+ с перелётом\n📍 Эль Гуна, Египет.\n\n🏖 Отель у солёной морской лагуны.\n🏊 Центральный бассейн с зоной отдыха.\n🧘 Открытый зал для йоги и тренажёры на свежем воздухе.\n\n💡 Отель принимает гостей от 16 лет. У бассейна звучит музыка, а по пятницам проходят вечеринки.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Cook's Club El Gouna.",
+      "sources": [
+        "https://www.cooksclub.com/our-hotels/cooks-club-el-gouna-egypt/",
+        "https://www.cooksclub.com/our-hotels/cooks-club-el-gouna-egypt/amenities/",
+        "https://www.elgouna.com/hotels/cooks-club"
+      ],
+      "key": "cooks-club-el-gouna",
+      "aliases": [
+        "COOKS CLUB EL GOUNA ADULTS ONLY 16+",
+        "COOKS CLUB EL GOUNA"
+      ]
+    },
+    {
+      "hotel_id": 74258,
+      "hotel": "Casa Cook El Gouna",
+      "text": "✈️ Туры в Casa Cook El Gouna с перелётом\n📍 Эль Гуна, Египет.\n\n🏖 Собственный пляж и три открытых бассейна.\n🧘 Тренажёрный зал и открытый зал для йоги.\n🌿 Спа с хаммамом, саунами и подогреваемым бассейном.\n\n💡 Отель принимает гостей от 16 лет. Выход к общему бассейну есть у категории Swim Up, личный бассейн у отдельных вилл.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Casa Cook El Gouna.",
+      "sources": [
+        "https://casacook.com/our-hotels/casa-cook-el-gouna/",
+        "https://casacook.com/our-hotels/casa-cook-el-gouna/amenities/",
+        "https://www.elgouna.com/hotels/casa-cook"
+      ]
+    },
+    {
+      "hotel_id": 432,
+      "hotel": "Sheraton Miramar Resort El Gouna",
+      "key": "sheraton-miramar-el-gouna",
+      "aliases": [
+        "SHERATON MIRAMAR RESORT"
+      ],
+      "sources": [
+        "https://www.elgouna.com/hotels/sheraton-miramar-resort-el-gouna",
+        "https://www.marriott.com/hotels/travel/hrgsi-sheraton-miramar-resort-el-gouna/"
+      ],
+      "text": "✈️ Туры в Sheraton Miramar Resort El Gouna с перелётом\n📍 Эль Гуна, Египет.\n\n🏝 Девять островов, соединённых деревянными мостиками.\n🏖 Собственные пляжи и открытые бассейны.\n👧 Детский клуб и игровая площадка.\n🌿 Спа и дайвинг центр.\n\n💡 В отдельной части отеля идут ремонтные работы. Спортивный бассейн работает.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Sheraton Miramar.",
+      "source_note": "Old undated pool closure notice is superseded by the accepted batch24 current Marriott notice: SportsPool operational and ongoing refurbishment confined to a separate area. New Orascom owner source verifies islands, beaches, pools, kids club, playground, spa and diving centre."
+    },
+    {
+      "hotel_id": 68907,
+      "hotel": "Amarina Abu Soma Resort & Aquapark",
+      "key": "amarina-abu-soma",
+      "aliases": [
+        "AMARINA ABU SOMA RESORT & AQUAPARK",
+        "AMARINA ABU SOMA RESORT"
+      ],
+      "sources": [
+        "https://www.amarinagroup.com/amarina-hotels-resorts/amarina-abu-soma-resort",
+        "https://wa-uploads.profitroom.com/amarinahotels/17532949061737_Amarina%20-%20Abo%20Soma%20Resort%20Factsheet%20-%202025.pdf"
+      ],
+      "text": "✈️ Туры в Amarina Abu Soma Resort & Aquapark с перелётом\n📍 Абу Сома, Сафага, Египет.\n\n🏖 Собственный песчаный пляж и зелёные сады.\n💦 Аквапарк с 6 взрослыми и 3 детскими горками.\n👧 Детский клуб для ребят от 4 до 12 лет и игровая площадка.\n💪 Тренажёрный зал, спа и джакузи.\n\n💡 В Family Room детская зона отделена перегородкой. В ней свой кондиционер и телевизор.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Amarina Abu Soma.",
+      "logical_id": "commercial-amarina-abu-soma-68907-v1",
+      "text_sha256": "b0942ebfd14174194168bb888cc96f7babfd75da0db7c54b44c35ca3a0b83a83",
+      "state": "WHOLE_CAPTION_VERIFIED_HERO_DEFERRED_NOT_SENT"
+    },
+    {
+      "hotel_id": 231,
+      "hotel": "The Grand Makadi",
+      "sources": [
+        "https://redseahotels.com/resorts/makadi-bay/the-grand-makadi/"
+      ],
+      "text": "✈️ Туры в The Grand Makadi с перелётом\n📍 Макади Бэй, Египет.\n\n🏖 Собственный пляж и зелёная территория у моря.\n🏊 Открытый бассейн, сезонный подогрев.\n👧 Детский клуб и игровая площадка.\n👨‍👩‍👧‍👦 В категории Family Room две спальни с соединяющей дверью.\n\n💡 К домашнему рифу ведёт пирс.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в The Grand Makadi."
+    },
+    {
+      "hotel_id": 483,
+      "hotel": "SUNRISE Royal Makadi Resort",
+      "sources": [
+        "https://www.sunrise-resorts.com/royal-makadi-resort"
+      ],
+      "text": "✈️ Туры в SUNRISE Royal Makadi Resort с перелётом\n📍 Макади Бэй, Египет.\n\n🏖 Собственный пляж в бухте Макади.\n💦 Аквапарк с детской игровой зоной.\n👧 Детский клуб для ребят от 3 до 12 лет.\n👨‍👩‍👧‍👦 Есть Family Room площадью 55 м² с двухъярусной кроватью.\n\n💡 Тренажёрный зал доступен с 16 лет.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в SUNRISE Royal Makadi."
+    }
+  ],
+  "primary_membership_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41682510457",
+  "category_proof": "Amarina AbuSoma category1 image membership now explicit in owner DOM; Queen/Jannah excluded",
+  "photo_contact2_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41683602907",
+  "source_images": [
+    {
+      "hotel_id": 129,
+      "role": "external_general",
+      "index": 0,
+      "source_url": "https://cms.elgouna.com/api/media/file/Cooks_Club_El_Gouna_Red_Sea_Egypt_General-0782f186.webp",
+      "format": "WEBP",
+      "width": 1680,
+      "height": 810,
+      "bytes": 313484,
+      "sha256": "dd7c3c777170590ce34b45137ed932b69e6584d9b6fc9b3a0a856ee8085eea03"
+    },
+    {
+      "hotel_id": 129,
+      "role": "exterior",
+      "index": 1,
+      "source_url": "https://cms.elgouna.com/api/media/file/Cooks_Club_El_gouna_Exterior-19-90cedaa1.webp",
+      "format": "WEBP",
+      "width": 2000,
+      "height": 1334,
+      "bytes": 207604,
+      "sha256": "141afbef7d4fadb4240caa91d0c4727ae23850d323bfcb45298c4aa4825d298c"
+    },
+    {
+      "hotel_id": 129,
+      "role": "twin_room",
+      "index": 2,
+      "source_url": "https://cms.elgouna.com/api/media/file/Cooks_Club_El_Gouna_Twin_Room_French_Window_1-2-1-ea768096.webp",
+      "format": "WEBP",
+      "width": 1680,
+      "height": 810,
+      "bytes": 239466,
+      "sha256": "324f18e9ca951272e875736ccf52050cc805a232bb4cbf3da5dae49e6ba178c6"
+    },
+    {
+      "hotel_id": 73343,
+      "role": "owner_reviews_photo",
+      "index": 4,
+      "source_url": "https://redseahotels.com/wp-content/uploads/2023/03/The-Grand-Palace-Reviews.jpg",
+      "format": "JPEG",
+      "width": 1920,
+      "height": 720,
+      "bytes": 412637,
+      "sha256": "55a356db478aa695538e3c487d0109910c9388782f2497cbd5219c70900e1d2e"
+    },
+    {
+      "hotel_id": 73343,
+      "role": "owner_new_project_photo",
+      "index": 5,
+      "source_url": "https://redseahotels.com/wp-content/uploads/2023/03/Neues-Projekt-33-1.jpg",
+      "format": "JPEG",
+      "width": 1200,
+      "height": 600,
+      "bytes": 91537,
+      "sha256": "9be2c6c4c6e77649c9e2232f9ec387e4091e4cd9cb7e21c25420bcf461f205d9"
+    },
+    {
+      "hotel_id": 68907,
+      "role": "album1_new0",
+      "index": 0,
+      "source_url": "https://wa-uploads.profitroom.com/amarinahotels/17348185027893_03a0634edit.jpg",
+      "format": "JPEG",
+      "width": 1620,
+      "height": 1080,
+      "bytes": 875285,
+      "sha256": "dbebac4c5cf77a403f4fa98d68f83c7f15ab3dcba9b5c4f865d4e0a7888a61cb"
+    },
+    {
+      "hotel_id": 68907,
+      "role": "album1_new1",
+      "index": 1,
+      "source_url": "https://wa-uploads.profitroom.com/amarinahotels/17348185047711_i6a9987edit.jpg",
+      "format": "JPEG",
+      "width": 1620,
+      "height": 1080,
+      "bytes": 615148,
+      "sha256": "ee6d4590e59f80d732ee99672bab5168264cb166b33da5fe5e32f1005745469d"
+    },
+    {
+      "hotel_id": 68907,
+      "role": "album1_new2",
+      "index": 2,
+      "source_url": "https://wa-uploads.profitroom.com/amarinahotels/17348185148615_mg2036.jpg",
+      "format": "JPEG",
+      "width": 1712,
+      "height": 1080,
+      "bytes": 399352,
+      "sha256": "780a31a3df064e049ba44fb7fbc91acade98b7c9d34973791efe1d07f59906b4"
+    },
+    {
+      "hotel_id": 68907,
+      "role": "album1_new3",
+      "index": 3,
+      "source_url": "https://wa-uploads.profitroom.com/amarinahotels/17348184916885_03a0387edit.jpg",
+      "format": "JPEG",
+      "width": 1620,
+      "height": 1080,
+      "bytes": 721305,
+      "sha256": "ccf08ed97b302d9a90c524a019e9075fc172570c12ec940c89f9fcd83d62d6cc"
+    },
+    {
+      "hotel_id": 68907,
+      "role": "album1_new4",
+      "index": 4,
+      "source_url": "https://wa-uploads.profitroom.com/amarinahotels/17348184981213_03a0598edit.jpg",
+      "format": "JPEG",
+      "width": 1920,
+      "height": 1080,
+      "bytes": 882687,
+      "sha256": "035fda3d52d8bfbc2da4c8967c1fc9261437a248b7cc0ff2bbb6f5d51043e4d7"
+    },
+    {
+      "hotel_id": 74258,
+      "role": "general_view4",
+      "index": 1,
+      "source_url": "https://cms.elgouna.com/api/media/file/Casa-Cook-El-Gouna-Hotel-Red-Sea-Egypt-General-view-4.webp",
+      "format": "WEBP",
+      "width": 1366,
+      "height": 2048,
+      "bytes": 543352,
+      "sha256": "4d20cee3d234c577ded6441d10a0e2a373688bf526bb75ba842ce2fd7ded3d90"
+    },
+    {
+      "hotel_id": 74258,
+      "role": "general_view14",
+      "index": 2,
+      "source_url": "https://cms.elgouna.com/api/media/file/Casa-Cook-El-Gouna-Hotel-Red-Sea-Egypt-General-view-14-1-2-d7fd73a2.webp",
+      "format": "WEBP",
+      "width": 750,
+      "height": 515,
+      "bytes": 30214,
+      "sha256": "f9b5bdddc6503ba3a4d15d0e3d4de18dd9adece263f176c59bf0ede30a7046cd"
+    },
+    {
+      "hotel_id": 74258,
+      "role": "junior_suite_pool",
+      "index": 3,
+      "source_url": "https://cms.elgouna.com/api/media/file/Casa-Cook-El-Gouna-Hotel-Red-Sea-Junior-suite-shared-pool-1-2654bc92.webp",
+      "format": "WEBP",
+      "width": 750,
+      "height": 515,
+      "bytes": 51304,
+      "sha256": "2e09f463dcbdf45635d7adc980975da21fec55b979c594b97de9de99b3cdb565"
+    },
+    {
+      "hotel_id": 74258,
+      "role": "pool_details",
+      "index": 4,
+      "source_url": "https://cms.elgouna.com/api/media/file/Casa_Cook_El_Gouna_pool-detail.webp",
+      "format": "WEBP",
+      "width": 2048,
+      "height": 1366,
+      "bytes": 102008,
+      "sha256": "9fd0f37d8ed99b2861b30d987e8edc556aca4d6c6e87b43821f33e2f55a13aaa"
+    }
+  ],
+  "photo_rejections": [
+    {
+      "hotel_id": 432,
+      "role": "owner_aerial_from_exact_listing",
+      "index": 3,
+      "error": "AssertionError"
+    },
+    {
+      "hotel_id": 74258,
+      "role": "aerial_from_exact_hotel_listing",
+      "index": 0,
+      "error": "AssertionError"
+    }
+  ],
+  "exact_delivered_aerial_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41684397222",
+  "exact_delivered_aerial_outcome": "Both literal owner-delivered aerial representations rejected with AssertionError; reason not recorded. No403/size/format claim. Do not repeat these four original/delivered image URLs.",
+  "hero_acceptance": {
+    "129": "exterior accepted shows hotel buildings and lagoon territory"
+  },
+  "deferred_catalog_ids": [
+    74258,
+    73343,
+    432,
+    65779,
+    932,
+    497,
+    68907,
+    231,
+    483
+  ],
+  "price_metadata_check": "One new scheduled-run metadata query created>=2026-11-03T16:00UTC returned0 runs. No retained price reread/quote call justified.",
+  "new_posts": 0
+}
