@@ -1,10 +1,10 @@
 {
   "operation": "commercial-hotel-batch-20261103-17-v1",
   "state": "PREPARED_NOT_SENT",
-  "goal": "Prepare a bounded ready subset of existing confirmed hotel stock while the production release owner resolves its failed verification.",
-  "boundaries": "Cloud preparation only. General facilities from the exact first-party TUI operator hotel descriptions; original hotel photographs from retained official JAZ photo pools. No TUI package benefits, free-service promise, current price, server connection or send.",
-  "criteria": "Whole Russian captions below1024 UTF16 without dashes;3or4 supported useful hotel features and an important practical feature; proper general hotel hero; accepted AnyTour layout; exact native PNG/hash/bytes/dimensions and visual check before immutable freeze. Normal successful source/deploy/TLS and publisher dedup remain mandatory before any future live approval.",
-  "risks": "Operator descriptions are general hotel information, not rights for an AnyTour package. Do not carry over operator-specific service, inclusion, prices or future operating schedules. Beach107 currently has no exact matching current primary hotel page; Maraya shoreline descriptions conflict and require separate resolution. Two previously rejected62505/4184 remain deferred.",
+  "goal": "Publish the eight already prepared whole hotel materials once in each authorized channel and retain canonical provider evidence.",
+  "boundaries": "Existing PHP publisher, channels9/10, canonical registry/durable once, up to16 messages. Accepted captions/native covers unchanged. No hotel cron worker, deployment rerun, pricing claim, advertising change, new runtime or Mac access.",
+  "criteria": "Exact main/installed75ea source, successful original verify/deploy41596474080 and strict TLS41596474072 attempt2,21 unchanged publishing blobs, host continuity, existing schema/rights and live hotel/logical/text/photo/receipt dedup. Exactly16 provider-confirmed records with body/photo/canonical button/source resolution after actual send.",
+  "risks": "Previous aggregate release failed in a separate hotel cron process. Do not treat an unrelated aggregate status as proof of publisher failure. Current source is independently accepted by the existing normal release; do not rerun or modify the other process. UNKNOWN/active sends remain held, not retried.",
   "baseline_logical_materials": 88,
   "button_text": "✈️ Узнать стоимость тура",
   "rows": [
@@ -163,7 +163,7 @@
       "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
     }
   ],
-  "ready_for_send_count": 0,
+  "ready_for_send_count": 8,
   "new_posts": 0,
   "provider_send_attempts": 0,
   "temporary_canva_transactions": "ALL_EIGHT_EXACT_TRANSACTIONS_CANCELLED_AFTER_FREEZE",
@@ -221,8 +221,8 @@
     }
   ],
   "content_and_cover_prepared_count": 8,
-  "hold_state": "SOURCE_RELEASE_WAIT",
-  "approved_live_send_count": 0,
+  "hold_state": "READY_WITH_CURRENT_SOURCE_HOST_TLS_SCHEMA_RIGHTS_AND_DEDUP_GATES",
+  "approved_live_send_count": 16,
   "native_inspection_state": "EIGHT_REAL_NATIVE_PNG_VISUALLY_VERIFIED",
   "public_png_frozen_count": 8,
   "native_inspection_run_urls": [
