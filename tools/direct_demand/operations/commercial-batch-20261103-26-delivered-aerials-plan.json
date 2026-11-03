@@ -1,0 +1,21 @@
+{
+  "operation": "commercial-batch26-exact-delivered-aerials",
+  "state": "PREPARED_NOT_RUN",
+  "goal": "Inspect the two literal public image representations delivered by the owner website",
+  "catalog_ids": [
+    74258,
+    432
+  ],
+  "boundaries": [
+    "Use the exact declared owner URLs and fixed q75/w3840 query, not guessed asset paths",
+    "No redirect, paid/provider/server calls or access token URLs",
+    "Do not retry the original CMS URLs that failed a guard"
+  ],
+  "criteria": [
+    "Real image bytes, dimensions, hashes and visible whole hotel overview"
+  ],
+  "risks": [
+    "Original CMS representations failed AssertionError; the exact cause was not recorded and is not labelled403 or size",
+    "These are different literal owner-declared delivered URLs, not a bypass of an access block"
+  ]
+}

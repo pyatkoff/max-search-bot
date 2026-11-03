@@ -1,14 +1,20 @@
 import base64,hashlib,io,json,math,os,urllib.parse,urllib.request
 from pathlib import Path
 from PIL import Image,ImageOps,ImageDraw
-groups=json.loads("[[{\"hotel_id\":74258,\"role\":\"aerial_from_exact_hotel_listing\",\"url\":\"https://cms.elgouna.com/api/media/file/Casa-Cook-El-Gouna-Hotel-Red-Sea-Egypt171-X2-c3a471ce.webp\"},{\"hotel_id\":74258,\"role\":\"general_view4\",\"url\":\"https://cms.elgouna.com/api/media/file/Casa-Cook-El-Gouna-Hotel-Red-Sea-Egypt-General-view-4.webp\"},{\"hotel_id\":74258,\"role\":\"general_view14\",\"url\":\"https://cms.elgouna.com/api/media/file/Casa-Cook-El-Gouna-Hotel-Red-Sea-Egypt-General-view-14-1-2-d7fd73a2.webp\"},{\"hotel_id\":74258,\"role\":\"junior_suite_pool\",\"url\":\"https://cms.elgouna.com/api/media/file/Casa-Cook-El-Gouna-Hotel-Red-Sea-Junior-suite-shared-pool-1-2654bc92.webp\"},{\"hotel_id\":74258,\"role\":\"pool_details\",\"url\":\"https://cms.elgouna.com/api/media/file/Casa_Cook_El_Gouna_pool-detail.webp\"}],[{\"hotel_id\":129,\"role\":\"external_general\",\"url\":\"https://cms.elgouna.com/api/media/file/Cooks_Club_El_Gouna_Red_Sea_Egypt_General-0782f186.webp\"},{\"hotel_id\":129,\"role\":\"exterior\",\"url\":\"https://cms.elgouna.com/api/media/file/Cooks_Club_El_gouna_Exterior-19-90cedaa1.webp\"},{\"hotel_id\":129,\"role\":\"twin_room\",\"url\":\"https://cms.elgouna.com/api/media/file/Cooks_Club_El_Gouna_Twin_Room_French_Window_1-2-1-ea768096.webp\"},{\"hotel_id\":432,\"role\":\"owner_aerial_from_exact_listing\",\"url\":\"https://cms.elgouna.com/api/media/file/1706355676-f199301a.webp\"},{\"hotel_id\":73343,\"role\":\"owner_reviews_photo\",\"url\":\"https://redseahotels.com/wp-content/uploads/2023/03/The-Grand-Palace-Reviews.jpg\"},{\"hotel_id\":73343,\"role\":\"owner_new_project_photo\",\"url\":\"https://redseahotels.com/wp-content/uploads/2023/03/Neues-Projekt-33-1.jpg\"}],[{\"hotel_id\":68907,\"role\":\"album1_new0\",\"url\":\"https://wa-uploads.profitroom.com/amarinahotels/17348185027893_03a0634edit.jpg\"},{\"hotel_id\":68907,\"role\":\"album1_new1\",\"url\":\"https://wa-uploads.profitroom.com/amarinahotels/17348185047711_i6a9987edit.jpg\"},{\"hotel_id\":68907,\"role\":\"album1_new2\",\"url\":\"https://wa-uploads.profitroom.com/amarinahotels/17348185148615_mg2036.jpg\"},{\"hotel_id\":68907,\"role\":\"album1_new3\",\"url\":\"https://wa-uploads.profitroom.com/amarinahotels/17348184916885_03a0387edit.jpg\"},{\"hotel_id\":68907,\"role\":\"album1_new4\",\"url\":\"https://wa-uploads.profitroom.com/amarinahotels/17348184981213_03a0598edit.jpg\"}]]")
-group=int(os.environ['MEDIA_GROUP']);assert 0<=group<3 and len(groups)==3
+groups=json.loads("[[{\"hotel_id\":74258,\"role\":\"exact_owner_delivered_aerial\",\"url\":\"https://www.elgouna.com/_next/image?q=75&url=https%3A%2F%2Fcms.elgouna.com%2Fapi%2Fmedia%2Ffile%2FCasa-Cook-El-Gouna-Hotel-Red-Sea-Egypt171-X2-c3a471ce.webp&w=3840\"},{\"hotel_id\":432,\"role\":\"exact_owner_delivered_aerial\",\"url\":\"https://www.elgouna.com/_next/image?q=75&url=https%3A%2F%2Fcms.elgouna.com%2Fapi%2Fmedia%2Ffile%2F1706355676-f199301a.webp&w=3840\"}]]")
+group=int(os.environ['MEDIA_GROUP']);assert group==0 and len(groups)==1
 rows=groups[group];assert 1<=len(rows)<=7
-hosts={'cms.elgouna.com','wa-uploads.profitroom.com','www.cooksclub.com','casacook.com','assets.hrewards.com','cms.elgouna.com','d31zyqkijjipvo.cloudfront.net','partner.jazhotels.com','cache.marriott.com','redseahotels.com','d1wo7kaelp5eck.cloudfront.net','www.swissinn.net','storage.googleapis.com'}
+hosts={'www.elgouna.com','cms.elgouna.com','wa-uploads.profitroom.com','www.cooksclub.com','casacook.com','assets.hrewards.com','cms.elgouna.com','d31zyqkijjipvo.cloudfront.net','partner.jazhotels.com','cache.marriott.com','redseahotels.com','d1wo7kaelp5eck.cloudfront.net','www.swissinn.net','storage.googleapis.com'}
 def safe(url):
  p=urllib.parse.urlsplit(url)
  if p.scheme!='https' or p.hostname not in hosts or p.port is not None or p.username or p.password or p.fragment or url.count('https://')!=1:return False
  if p.query:
+  if p.hostname=='www.elgouna.com':
+   if p.path!='/_next/image':return False
+   q=urllib.parse.parse_qs(p.query,strict_parsing=True)
+   if set(q)!={'q','url','w'} or q['q']!=['75'] or q['w']!=['3840'] or len(q['url'])!=1:return False
+   inner=urllib.parse.urlsplit(q['url'][0])
+   return inner.scheme=='https' and inner.hostname=='cms.elgouna.com' and inner.path.startswith('/api/media/file/') and not inner.query and not inner.fragment and not inner.username and not inner.password and inner.port is None
   if p.hostname!='cache.marriott.com':return False
   q=urllib.parse.parse_qs(p.query,strict_parsing=True)
   if not set(q).issubset({'fit','wid','downsize','interpolation','output-quality'}):return False
@@ -23,7 +29,7 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
  def redirect_request(self,*args,**kwargs):raise ValueError('unexpected_photo_redirect')
 opener=urllib.request.build_opener(NoRedirect())
 sheet=Image.new('RGB',(960,math.ceil(len(rows)/3)*270),'white');draw=ImageDraw.Draw(sheet)
-out={'operation':'commercial-batch26-new-overview-contact2','mode':'pure_cloud_public_source_inspection','group':group,'server_connections':0,'provider_calls':0,'db_writes':0,'message_sends':0,'images':[],'rejections':[]}
+out={'operation':'commercial-batch26-exact-delivered-aerials','mode':'pure_cloud_public_source_inspection','group':group,'server_connections':0,'provider_calls':0,'db_writes':0,'message_sends':0,'images':[],'rejections':[]}
 for index,row in enumerate(rows):
  x=(index%3)*320;y=(index//3)*270
  label=str(row['hotel_id'])+' '+row['role']

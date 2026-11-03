@@ -1,4 +1,4 @@
-name: Inspect16 new declared owner photographs for batch26
+name: Inspect two exact owner delivered aerial representations
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       max-parallel: 2
       matrix:
-        media_group: [0,1,2]
+        media_group: [0]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -33,7 +33,7 @@ jobs:
           python3 tools/direct_demand/operations/inspect-hotel-primary-images-20261103-20.py
       - uses: actions/upload-artifact@v4
         with:
-          name: commercial-batch26-primary-contact2-${{ matrix.media_group }}
+          name: commercial-batch26-delivered-aerials-${{ matrix.media_group }}
           path: |
             primary-image-inspection.json
             contact.png
