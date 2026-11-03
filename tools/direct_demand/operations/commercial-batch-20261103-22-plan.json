@@ -1,0 +1,12 @@
+{
+  "operation": "commercial-hotel-batch-20261103-22-v1",
+  "state": "FIVE_PRIMARY_PAGES_BOUNDED_PREPARATION_NOT_SENT",
+  "catalog_ids": [
+    60589,
+    68907,
+    21477
+  ],
+  "primary_page_count": 5,
+  "new_posts": 0,
+  "ready_for_send_count": 0
+}
