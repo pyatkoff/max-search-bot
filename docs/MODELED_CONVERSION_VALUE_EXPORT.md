@@ -165,3 +165,11 @@ cron proof stages. Only a normal canonical-cycle return carries worker_completed
 Configuration/unknown/error HOLD still fails. The verifier's accepted states,
 two-future-tick timing and failure gates are unchanged; campaign state, budgets,
 queues, provider dispatch and connections are never altered by this correction.
+
+### Finite extension after the authorized first day
+
+The owner authorized the14complete Europe/Kaliningrad days20October–2November2026. Operation `launch-history-fortnight-v1` records one durable request in the existing settings. It does not interrupt the2November scan. Only after that scan completes does the ordinary existing value tick retain its first-day receipt, expand once to the fixed14-day range, and begin a bounded review from the original immutable saved profiles. Existing live activation/cursor and all value reservations, including UNKNOWN and missing-identity rows, remain unchanged. A repeated request cannot rewind either completed scan. Migration088 is forward-only;086/087 remain immutable.
+
+Historical values are assigned at the review time and retain original profile provenance; they are not retrospective early forecasts or actual commission/bank settlements. New fortnight-origin rows use the same existing outbox, eligibility, identity, claim, API receipt/poll and UNKNOWN handling. Missing identity preserves the calculated value and cannot prevent other admissible events from uploading. No source capture, transcript edit, customer send, new scheduler/worker/queue or identity fabrication is involved.
+
+The existing private view adds metadata-only distinct-conversation/channel coverage for the configured saved-profile window (maximum20001metadata versions, explicit completeness) and bounded-ledger identity/channel counts and value sums. Repeated versions are not additional people/trips. This is coverage of retained profiles, not a claim to have reviewed the entire original archive. Stored identity resolution is not a new eligibility check. Provider acceptance, validated rows and visit linkage remain distinct.

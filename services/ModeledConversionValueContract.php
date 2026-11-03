@@ -26,8 +26,13 @@ final class ModeledConversionValueContract
     /** Explicit owner-authorized day review; original saved profile is never rewritten. */
     public static function historicalCandidate(array $wrapper,array $subject,int $since,int $until,int $now):?array
     {
-        if($until<=$since||$until>$now||$until-$since!==86400)return null;
+        if(!self::historyWindow($since,$until)||$until>$now)return null;
         return self::evaluate($wrapper,$subject,$since,$now,$until,true);
+    }
+
+    public static function historyWindow(int $since,int $until):bool
+    {
+        return $until===1793656800&&in_array($since,[1793570400,1792447200],true);
     }
 
     private static function evaluate(array $wrapper,array $subject,int $since,int $now,?int $until,bool $history):?array

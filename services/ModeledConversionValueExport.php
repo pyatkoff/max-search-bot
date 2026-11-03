@@ -22,8 +22,24 @@ final class ModeledConversionValueExport
     /** Finite owner-authorized control; create ambiguity is durably held, never retried blindly. */
     public function configure(string $op,mixed $api,int $now):array
     {
-        if(!in_array($op,['status','create-goal','enable','disable','launch-v1','launch-history-20261102'],true))throw new RuntimeException('invalid_operation');
+        if(!in_array($op,['status','create-goal','enable','disable','launch-v1','launch-history-20261102','launch-history-fortnight-v1'],true))throw new RuntimeException('invalid_operation');
         $p=$this->pdo;$s=self::settings($p);if(!$s)throw new RuntimeException('value_migration_unavailable');
+        if($op==='launch-history-fortnight-v1'){
+            $goal=$api->modeledValueGoalStatus();
+            if($s['mode']!=='send'||($goal['id']??null)!=='678187097'||$s['goal_id']!=='678187097'
+                ||$s['goal_intent']!=='verified'||$now<1793656800)throw new RuntimeException('value_goal_not_verified');
+            $p->beginTransaction();
+            try{
+                $mysql=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
+                $s=$p->query("SELECT * FROM modeled_conversion_value_export_settings WHERE project_key='anytour'".($mysql?' FOR UPDATE':''))->fetch(PDO::FETCH_ASSOC);
+                if(!$s||$s['mode']!=='send'||$s['goal_id']!=='678187097'||!ModeledConversionValueContract::historyWindow((int)($s['history_from_unix']??0),(int)($s['history_until_unix']??0)))
+                    throw new RuntimeException('value_configuration_changed');
+                // A durable request does not interrupt the first day or reset any cursor.
+                $q=$p->prepare("UPDATE modeled_conversion_value_export_settings SET history_fortnight_requested_at_unix=COALESCE(history_fortnight_requested_at_unix,?) WHERE project_key='anytour'");
+                $q->execute([$now]);$p->commit();
+            }catch(Throwable $error){if($p->inTransaction())$p->rollBack();throw $error;}
+            return ['ok'=>true,'operation'=>$op,'goal_id'=>'678187097','history_fortnight_requested'=>true,'contract'=>ModeledConversionValueContract::VERSION];
+        }
         if($op==='launch-history-20261102'){
             $goal=$api->modeledValueGoalStatus();
             if($s['mode']!=='send'||($goal['id']??null)!=='678187097'||$s['goal_id']!=='678187097'
@@ -187,10 +203,21 @@ final class ModeledConversionValueExport
         $p=$this->pdo;$mysql=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';$p->beginTransaction();
         try{
             $s=$p->query("SELECT * FROM modeled_conversion_value_export_settings WHERE project_key='anytour'".($mysql?' FOR UPDATE':''))->fetch(PDO::FETCH_ASSOC);
-            if(!$s||$s['mode']!=='send'||$s['goal_id']!=='678187097'||($s['history_from_unix']??null)===null
-                ||($s['history_completed_at_unix']??null)!==null){$p->rollBack();return 0;}
+            if(!$s||$s['mode']!=='send'||$s['goal_id']!=='678187097'||($s['history_from_unix']??null)===null){$p->rollBack();return 0;}
+            if(($s['history_completed_at_unix']??null)!==null){
+                if((int)$s['history_from_unix']!==1793570400||(int)$s['history_until_unix']!==1793656800
+                    ||(int)$s['history_completed_at_unix']>$now||($s['history_fortnight_requested_at_unix']??null)===null
+                    ||($s['history_day_receipt_json']??null)!==null){$p->rollBack();return 0;}
+                // Preserve the completed first-day receipt before the sole finite expansion.
+                $receipt=[];
+                foreach(['history_from_unix','history_until_unix','history_cursor','history_ceiling','history_completed_at_unix','history_scanned','history_collected','history_stats_json']as$key)$receipt[$key]=$s[$key];
+                $ceiling=(string)$p->query("SELECT COALESCE(MAX(id),0) FROM modeled_conversion_profile_versions WHERE project_key='anytour'")->fetchColumn();
+                $q=$p->prepare("UPDATE modeled_conversion_value_export_settings SET history_day_receipt_json=?,history_from_unix=1792447200,history_until_unix=1793656800,history_cursor=0,history_ceiling=?,history_completed_at_unix=NULL,history_scanned=0,history_collected=0,history_stats_json=NULL WHERE project_key='anytour' AND history_day_receipt_json IS NULL");
+                $q->execute([json_encode($receipt,JSON_THROW_ON_ERROR),$ceiling]);
+                $s['history_from_unix']=1792447200;$s['history_cursor']=0;$s['history_ceiling']=$ceiling;$s['history_stats_json']=null;
+            }
             $since=(int)$s['history_from_unix'];$until=(int)$s['history_until_unix'];
-            if($since!==1793570400||$until!==1793656800||$until>$now)throw new RuntimeException('value_history_window');
+            if(!ModeledConversionValueContract::historyWindow($since,$until)||$until>$now)throw new RuntimeException('value_history_window');
             $length=$mysql?'OCTET_LENGTH(profile_json)':'LENGTH(CAST(profile_json AS BLOB))';
             $q=$p->prepare("SELECT id,project_key,platform,customer_key,conversation_id,observed_at_unix,".$length." AS profile_bytes"
                 ." FROM modeled_conversion_profile_versions WHERE project_key='anytour' AND id>? AND id<=? AND observed_at_unix>=? AND observed_at_unix<? ORDER BY id LIMIT 40");
@@ -222,10 +249,10 @@ final class ModeledConversionValueExport
                 $delta=$candidate['value']-(int)$q->fetchColumn();if($delta<=0){$reasons['already_reserved']++;continue;}
                 $insert=$mysql?'INSERT IGNORE':'INSERT OR IGNORE';
                 $q=$p->prepare($insert." INTO max_channel_conversion_outbox(project_key,conversation_id,external_user_id,counter_id,target,transport_target,event_unix,platform,identity_source_key,value_rub,value_profile_id,value_stage,value_contract,value_origin,value_reviewed_at_unix)"
-                    ." VALUES('anytour',?,?,'98615635',?,?,?,?,?,?,?,?,?,'owner_day_review_v1',?)");
+                    ." VALUES('anytour',?,?,'98615635',?,?,?,?,?,?,?,?,?,?,?)");
                 $q->execute([$r['conversation_id'],$binding['external_user_id'],ModeledConversionValueContract::key($candidate['rank']),
                     ModeledConversionValueContract::TARGET,$candidate['event_unix'],$r['platform'],$r['platform']==='telegram'?'tgmini':'max_tracker',
-                    $delta,$r['id'],$candidate['stage'],ModeledConversionValueContract::VERSION,$now]);
+                    $delta,$r['id'],$candidate['stage'],ModeledConversionValueContract::VERSION,$since===1793570400?'owner_day_review_v1':'owner_fortnight_review_v1',$now]);
                 $written+=$q->rowCount()===1?1:0;
             }
             $done=!$limited&&count($rows)<40;
@@ -262,7 +289,7 @@ final class ModeledConversionValueExport
             ||!ModeledConversionValueContract::isKey($r['target']??null)||($r['transport_target']??null)!==ModeledConversionValueContract::TARGET
             ||($r['value_contract']??null)!==ModeledConversionValueContract::VERSION
             ||($r['identity_source_key']??null)!==(($r['platform']??null)==='telegram'?'tgmini':'max_tracker'))return false;
-        if(($r['value_origin']??null)==='owner_day_review_v1'&&!$this->historyScopeAllowed((string)$r['conversation_id'],$r['platform']))return false;
+        if(in_array($r['value_origin']??null,['owner_day_review_v1','owner_fortnight_review_v1'],true)&&!$this->historyScopeAllowed((string)$r['conversation_id'],$r['platform']))return false;
         $b=$this->binding($r['conversation_id'],$r['platform']);
         if(!$b||(string)$b['external_user_id']!==(string)$r['external_user_id']||!$gate($b['external_chat_id']))return false;
         $safe="CASE WHEN JSON_VALID(profile_json) THEN profile_json ELSE '{}' END";
