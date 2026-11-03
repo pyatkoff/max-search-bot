@@ -42,6 +42,7 @@ try{
     modeledHandoffProfileAssertions($p,$check);
     forecastStatusSchema($p);forecastStatusAssertions($p,$check);
     forecastV1Assertions($p,$check);
+    forecastLatencyAssertions($p,$check);
     modeledValueAssertions($p,$check);
     modeledValueHistoryAssertions($p,$check);
     modeledValueFortnightAssertions($p,$check);

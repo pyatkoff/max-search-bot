@@ -307,3 +307,11 @@ Actual examples, counts and financial results remain private.
 Progress also reads the existing recorded profile pending-revision count and an
 at-most201-row saved-version suffix beyond the value cursor. It never returns or
 advances cursors, and missing checkpoint storage remains unknown rather than zero.
+
+### Today's private timing
+
+The existing empty-argument forecasts:read status adds today_latency under the same shared64KiB/5s budget. It inspects at most2001message revisions captured on the current Europe/Kaliningrad day and at most201live value rows. Only scalar timing/status aggregates and at most6anonymous distinct message-scope examples plus6value examples leave the server. Source/profile text, customer/conversation/native/provider IDs are never returned.
+
+First customer messages persisted today are timed separately from edited messages, older messages first captured today and invalid clocks. A correlated metadata lookup finds the first later profile of the same project/platform/customer/conversation whose journal cursor covers that revision. This proves profile-save progress; it does not prove every message was admitted into a numeric prediction. Recorded prediction statuses remain descriptive, not new semantic validation. The captured suffix does not establish completeness of native source capture.
+
+Live value rows exclude owner historical review. The view reports profile→queue delay, existing upload-claim five-minute intervals and actual provider-receipt presence separately from processed rows and cached goal visits. claimed_at_unix is the existing attempt tick, not a new exact API-response timestamp. Missing clocks, pending profiles/ready rows, identity holds and incomplete bounds remain explicit. This read never captures, ticks, reclassifies, uploads or mutates anything.
