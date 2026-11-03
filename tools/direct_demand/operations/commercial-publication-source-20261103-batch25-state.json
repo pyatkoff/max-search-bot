@@ -1,0 +1,16 @@
+{
+  "operation": "commercial-publication-source-20261103-batch25",
+  "state": "CURRENT_SOURCE_VERIFIED_BY_PUBLICATION_AND_FEED",
+  "expected_installed_sha": "43dbb386de45d180ef3586b148c1409bab394ed3",
+  "deploy_run": 41677999942,
+  "verify_job": 126063715363,
+  "deploy_job": 126066338618,
+  "tls_run": 41679616281,
+  "publishing_blob_count": 21,
+  "publication_run": 41679899294,
+  "feed_run": 41680382366,
+  "source_stops": 0,
+  "our_deploy_or_tls_reruns": 0,
+  "previous_installed_source": "0b38d06c7a215f2e0e5280421bb5a296803d31be",
+  "source_read4_run": 41676293711
+}

@@ -1,0 +1,23 @@
+{
+  "operation": "commercial-hotel-feed-20261103-export8",
+  "state": "ONE_HUNDRED_FOURTEEN_PUBLISHED_HOTELS_LINKED_TWO_IMAGES_DEFERRED_NOT_IMPORTED",
+  "catalog_ids": [
+    464,
+    103021
+  ],
+  "published_hotels": 116,
+  "feed_rows": 114,
+  "previous_rows_preserved": 112,
+  "new_rows": 2,
+  "deferred_catalog_ids": [
+    381,
+    469
+  ],
+  "csv_sha256": "5257ae2b181f8fff61484f73282f7ff646f47b5481008b1edcb6bca493c01648",
+  "public_csv_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/a923186661892955eb988360886b854c30ad90a3/.github/traffic-publish/hotel-library-feed.csv",
+  "exact_raw_readback_verified": true,
+  "price_fields": 0,
+  "availability_fields": 0,
+  "yandex_imported": false,
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41680382366"
+}
