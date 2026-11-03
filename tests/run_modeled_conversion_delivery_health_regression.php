@@ -1,0 +1,117 @@
+<?php
+declare(strict_types=1);
+if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
+require_once __DIR__.'/run_modeled_conversion_value_export_regression.php';
+require_once dirname(__DIR__).'/services/ModeledConversionDailyDeliveryReader.php';
+require_once dirname(__DIR__).'/services/ModeledConversionDeliveryHealth.php';
+
+function deliveryObservationFixture(PDO $p,int $now):void
+{
+    modeledValueSchema($p);
+    $p->exec('DROP TABLE IF EXISTS modeled_conversion_profiles_state');
+    $p->exec('CREATE TABLE modeled_conversion_profiles_state(project_key VARCHAR(64) PRIMARY KEY,enabled INT,last_error_at_unix BIGINT,last_error_category VARCHAR(40),last_receipt_json TEXT)');
+    $p->prepare("INSERT INTO modeled_conversion_profiles_state VALUES('anytour',1,NULL,NULL,?)")
+        ->execute([json_encode(['status'=>'idle','observed_at_unix'=>$now,'profiles_written'=>0],JSON_THROW_ON_ERROR)]);
+    $report=['status'=>'ok','goal_id'=>'678187097','currency'=>'RUB','fetched_at'=>gmdate('Y-m-d\TH:i:s\Z',$now)];
+    $p->prepare("UPDATE modeled_conversion_value_export_settings SET mode='send',goal_id='678187097',goal_intent='verified',activated_at_unix=?,last_tick_unix=?,last_receipt_json=?,last_report_success_unix=? WHERE project_key='anytour'")
+        ->execute([$now-3600,$now,json_encode(['errors'=>0,'metrika_report'=>$report],JSON_THROW_ON_ERROR),$now]);
+}
+function deliveryObservationInsert(PDO $p,array $v):void
+{
+    $base=['project_key'=>'anytour','counter_id'=>'98615635','conversation_id'=>101,'external_user_id'=>'70001',
+        'target'=>'observation_fixture_'.($v['id']??1),'transport_target'=>'anytour_modeled_value_v1','value_contract'=>'semantic_stage_value_25000_v1',
+        'platform'=>'max','state'=>'accepted','value_rub'=>1250,'value_stage'=>'interest','event_unix'=>1793000000,
+        'upload_id'=>'5001','upload_status'=>'UPLOADED','claimed_at_unix'=>null,'value_origin'=>null,
+        'value_api_accepted_at_unix'=>null,'value_processed_at_unix'=>null,'value_receipt_basis'=>null];
+    $v=array_replace($base,$v);$keys=array_keys($v);
+    $p->prepare('INSERT INTO max_channel_conversion_outbox('.implode(',',$keys).') VALUES('.implode(',',array_fill(0,count($v),'?')).')')->execute(array_values($v));
+}
+function deliveryDailyAssertions(PDO $p,callable $check):void
+{
+    $now=1793700000;$from=1793656800;$until=$from+86400;deliveryObservationFixture($p,$now);
+    deliveryObservationInsert($p,['id'=>1,'claimed_at_unix'=>$from,'value_api_accepted_at_unix'=>$from,'value_receipt_basis'=>'post_response']);
+    deliveryObservationInsert($p,['id'=>2,'conversation_id'=>101,'value_rub'=>833,'value_stage'=>'specific_request','claimed_at_unix'=>$from+1,
+        'value_api_accepted_at_unix'=>$from+2,'value_receipt_basis'=>'post_response','value_origin'=>'owner_day_review_v1']);
+    deliveryObservationInsert($p,['id'=>3,'conversation_id'=>102,'platform'=>'telegram','value_rub'=>2083,'claimed_at_unix'=>$from-1,
+        'value_api_accepted_at_unix'=>$from+3,'value_receipt_basis'=>'post_response']);
+    deliveryObservationInsert($p,['id'=>4,'conversation_id'=>103,'claimed_at_unix'=>$from+4]);
+    deliveryObservationInsert($p,['id'=>5,'conversation_id'=>104,'claimed_at_unix'=>$from-1,'value_processed_at_unix'=>$from+5,
+        'value_receipt_basis'=>'get_reconciliation','state'=>'processed']);
+    deliveryObservationInsert($p,['id'=>6,'conversation_id'=>105,'claimed_at_unix'=>$until,'value_api_accepted_at_unix'=>$until,
+        'value_receipt_basis'=>'post_response']);
+    deliveryObservationInsert($p,['id'=>7,'conversation_id'=>106,'project_key'=>'foreign','claimed_at_unix'=>$from+1]);
+    deliveryObservationInsert($p,['id'=>8,'conversation_id'=>107,'counter_id'=>'999','claimed_at_unix'=>$from+1]);
+    deliveryObservationInsert($p,['id'=>9,'conversation_id'=>108,'transport_target'=>'foreign','claimed_at_unix'=>$from+1]);
+    $read=static fn():array=>(new ModeledConversionDailyDeliveryReader($p,static function():void{},new ModeledConversionStatusBudget()))->read($now);
+    $before=$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);$r=$read();
+    $check('daily boundary is Kaliningrad midnight in UTC',$r['available']&&$r['date']==='2026-11-03'&&$r['window']['from']==='2026-11-02T22:00:00Z');
+    $check('two increments have one exact distinct dialogue',$r['upload_claims_today']['events']===3&&$r['upload_claims_today']['conversations']===2&&$r['upload_claims_today']['value_rub']===3333);
+    $check('new receipt observation day differs from prior claim day',$r['api_receipts_observed_today']['events']===3&&$r['api_receipts_observed_today']['conversations']===2&&$r['api_receipts_observed_today']['value_rub']===4166);
+    $check('platform distinct and sums are independently counted',$r['api_receipts_observed_today']['by_platform']['telegram']['conversations']===1&&$r['api_receipts_observed_today']['by_platform']['telegram']['value_rub']===2083);
+    $check('historical origin does not change delivery day or inflate distinct',$r['api_receipts_observed_today']['historical_review']['events']===1&&$r['api_receipts_observed_today']['historical_review']['value_rub']===833);
+    $check('legacy receipt is not backdated into exact acceptance day',$r['legacy_receipts_with_claim_today']['events']===1&&$r['coverage']['api_receipts_without_observed_clock']['events']===2);
+    $check('processed observation permits unknown legacy acceptance day',$r['processed_observed_today']['events']===1&&$r['processed_observed_today']['value_rub']===1250);
+    $check('daily read preserves every stored row',$before===$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC));
+    for($i=20;$i<240;$i++)deliveryObservationInsert($p,['id'=>$i,'conversation_id'=>2000+$i,'claimed_at_unix'=>$from+10,'value_api_accepted_at_unix'=>$from+10,'value_receipt_basis'=>'post_response']);
+    $r=$read();$check('exact daily totals are not truncated at old201 window',$r['api_receipts_observed_today']['events']===223&&$r['api_receipts_observed_today']['conversations']===222);
+    $revoked=false;$calls=0;try{(new ModeledConversionDailyDeliveryReader($p,static function()use(&$calls):void{if(++$calls>=3)throw new DomainException();},new ModeledConversionStatusBudget()))->read($now);}catch(DomainException $ignored){$revoked=true;}
+    $check('revoked authorization prevents release of daily sums',$revoked);
+    deliveryObservationInsert($p,['id'=>300,'conversation_id'=>1300,'platform'=>'foreign','claimed_at_unix'=>$from+1]);
+    $check('invalid platform fails closed rather than vanishing from totals',($read()['reason']??null)==='invalid_aggregate');
+}
+function deliveryHealthAssertions(PDO $p,callable $check):void
+{
+    $now=1793700000;deliveryObservationFixture($p,$now);
+    $h=static fn():array=>ModeledConversionDeliveryHealth::collect($p,$now);
+    $check('idle healthy pipeline with no new conversions stays healthy',$h()['status']==='ok');
+    deliveryObservationInsert($p,['id'=>1,'state'=>'pending','upload_id'=>null,'last_error'=>'identity_not_found']);
+    $check('missing advertising identity does not trigger technical incident',$h()['status']==='ok');
+    $p->exec("UPDATE modeled_conversion_value_export_settings SET last_tick_unix=".($now-901));
+    $check('independent read detects stopped delivery cycle',in_array('delivery_tick_stale',$h()['flags'],true));
+    $p->exec("UPDATE modeled_conversion_value_export_settings SET last_tick_unix=$now,report_failure_since_unix=".($now-900));
+    $check('continuous report failure is distinct from retained last success',in_array('report_unavailable',$h()['flags'],true)&&$h()['last_report_success_at']===gmdate('Y-m-d\TH:i:s\Z',$now));
+    $p->exec("UPDATE modeled_conversion_value_export_settings SET report_failure_since_unix=NULL");
+    deliveryObservationInsert($p,['id'=>2,'conversation_id'=>102,'state'=>'ready','upload_id'=>null,'value_ready_at_unix'=>$now-600]);
+    $check('eligible ready work waiting two cycles triggers incident',in_array('ready_queue_stale',$h()['flags'],true));
+    $p->exec("UPDATE max_channel_conversion_outbox SET next_attempt_unix=".($now+300)." WHERE id=2");
+    $check('intentional retry delay is not eligible ready backlog',!in_array('ready_queue_stale',$h()['flags'],true));
+    $p->exec("UPDATE max_channel_conversion_outbox SET next_attempt_unix=".($now-1)." WHERE id=2");
+    $check('just eligible retry gets its full two-cycle grace',!in_array('ready_queue_stale',$h()['flags'],true));
+    $p->exec("UPDATE max_channel_conversion_outbox SET state='unknown',claimed_at_unix=".($now-901)." WHERE id=2");
+    $check('unresolved upload outcome is separately visible',in_array('upload_outcome_unknown',$h()['flags'],true));
+    $p->exec("UPDATE modeled_conversion_value_export_settings SET last_tick_unix=".($now+1));
+    $check('concurrent next-second commit is not clock failure',$h()['status']!=='unavailable');
+    $p->exec("UPDATE modeled_conversion_value_export_settings SET last_tick_unix=".($now+61));
+    $check('material future clock fails health closed',$h()['flags']===['invalid_clock']);
+    $p->exec("UPDATE modeled_conversion_value_export_settings SET mode='off'");
+    $check('explicit disabled mode does not report stopped cron',$h()['status']==='off'&&$h()['flags']===[]);
+}
+function deliveryClockWriterAssertions(PDO $p,callable $check):void
+{
+    $tick=1793743198;$observed=$tick+3;$gate=static fn(string $chat):bool=>true;
+    modeledValueSchema($p);$wire=new ModeledValueTestWire();$api=$wire->api();$control=new ModeledConversionValueExport($p);
+    $control->configure('create-goal',$api,$tick-10);$control->configure('enable',$api,$tick-9);
+    $subject=modeledValueBinding($p,901);modeledValueSave($p,modeledValueWrapper($subject,$tick));
+    ModeledConversionValueExport::tick($p,new ModeledValueTestLookup(),$api,$tick,$gate,static fn():int=>$observed);
+    $r=$p->query('SELECT * FROM max_channel_conversion_outbox')->fetch(PDO::FETCH_ASSOC);
+    $check('POST receipt stores actual injected observation across midnight',(int)$r['claimed_at_unix']===$tick&&(int)$r['value_api_accepted_at_unix']===$observed&&$r['value_receipt_basis']==='post_response');
+    ModeledConversionValueExport::tick($p,new ModeledValueTestLookup(),$api,$tick+301,$gate);
+    $r2=$p->query('SELECT * FROM max_channel_conversion_outbox')->fetch(PDO::FETCH_ASSOC);
+    $check('poll preserves acceptance clock and records first validated processing',(int)$r2['value_api_accepted_at_unix']===$observed&&(int)$r2['value_processed_at_unix']===$tick+301&&$wire->posts===1);
+    $p->exec('UPDATE max_channel_conversion_outbox SET value_api_accepted_at_unix=NULL,value_processed_at_unix=NULL,value_receipt_basis=NULL,state=\'accepted\',next_attempt_unix=0');
+    ModeledConversionValueExport::tick($p,new ModeledValueTestLookup(),$api,$tick+602,$gate);
+    $legacy=$p->query('SELECT * FROM max_channel_conversion_outbox')->fetch(PDO::FETCH_ASSOC);
+    $check('legacy polling never fabricates acceptance time',$legacy['value_api_accepted_at_unix']===null&&(int)$legacy['value_processed_at_unix']===$tick+602&&$legacy['value_receipt_basis']==='get_reconciliation');
+    $u=modeledValueBinding($p,902);modeledValueSave($p,modeledValueWrapper($u,$tick+700));$wire->postMode='unknown';
+    ModeledConversionValueExport::tick($p,new ModeledValueTestLookup(),$api,$tick+700,$gate);
+    $p->exec("UPDATE max_channel_conversion_outbox SET next_attempt_unix=0 WHERE conversation_id=902");$wire->postMode='accepted';
+    ModeledConversionValueExport::tick($p,new ModeledValueTestLookup(),$api,$tick+1001,$gate);
+    $q=$p->query('SELECT * FROM max_channel_conversion_outbox WHERE conversation_id=902')->fetch(PDO::FETCH_ASSOC);
+    $check('GET-only unknown reconciliation records observed receipt without another POST',$wire->posts===2&&(int)$q['value_api_accepted_at_unix']===$tick+1001&&$q['value_receipt_basis']==='get_reconciliation');
+}
+if(realpath((string)($_SERVER['SCRIPT_FILENAME']??''))===__FILE__){
+    $p=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);$passed=0;
+    $check=static function(string $name,bool $ok)use(&$passed):void{if(!$ok)throw new RuntimeException('FAIL '.$name);$passed++;echo 'PASS '.$name.PHP_EOL;};
+    deliveryDailyAssertions($p,$check);deliveryHealthAssertions($p,$check);deliveryClockWriterAssertions($p,$check);
+    echo 'MODELED DELIVERY OBSERVABILITY PASSED '.$passed.PHP_EOL;
+}
