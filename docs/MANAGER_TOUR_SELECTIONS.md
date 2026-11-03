@@ -2,19 +2,24 @@
 
 ## Save a preview card as an image (editor 0.2.9)
 
-Each ready preview card and saved historical card has **Сохранить вариант
-картинкой**. It prepares one local PNG, labelled with the option number and exact
+Each ready preview card and saved historical card has **Подготовить картинку**.
+It prepares one local PNG, labelled with the option number and exact
 draft version. The image contains the immutable card text, including its price,
 dates, party, room, meal and explanations, plus the already loaded hotel photos
 in their original order. It keeps the interior-example label for legacy layouts.
-The browser receives a download named `AnyTour-v<version>-variant-<number>.png`;
-the manager chooses what to do with that file.
+When encoding finishes, **Скачать картинку** is an ordinary native download link,
+named `AnyTour-v<version>-variant-<number>.png`. The manager clicks it directly;
+there is no automatic click after asynchronous encoding. **Отменить** closes the
+prepared link. Only one prepared image is retained; preparing another replaces
+it. The manager chooses what to do with the downloaded file.
 
 Export reads the displayed publication, never the current editable draft. It
 does not prepare another version, fetch supplier data or photos again, update a
 draft or delivery receipt, publish a link, send a message, or open another tab.
-Closing the editor, changing client or replacing the preview cancels a pending
-download; a detached old card cannot export a new client's version.
+Closing the editor, changing client or replacing the preview cancels encoding,
+removes the prepared link and revokes its object URL; a detached old card or link
+cannot export a new client's version. A normal download click keeps its URL alive
+briefly for native browser handling and then cleans up the prepared controls.
 
 The native browser canvas is 1080 pixels wide, at most 8192 pixels high. All text
 is measured before drawing. An overlong card produces an explanation and points
@@ -27,8 +32,9 @@ installed-browser export remain separate acceptance facts.
 Runtime callers: only the current preview card button calls `exportCardImage`;
 its closure checks the preview render/context and the handler rechecks the exact
 publication/card. Close, edit, suspension and preview replacement invalidate the
-job. Controls call only the readiness predicate. The renderer and native encoder
-have no request or state-persistence caller.
+job and its prepared URL. The download link has a synchronous context guard and
+uses the browser's native default action. Controls call only readiness predicates.
+The renderer and native encoder have no request or state-persistence caller.
 
 ## Print the exact preview (editor 0.2.8)
 

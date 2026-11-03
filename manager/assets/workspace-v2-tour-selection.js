@@ -98,7 +98,7 @@ const $=id=>document.getElementById(id),esc=value=>{const node=document.createEl
 const endpoint='tour-selections-api.php';
 let dialog=null,context=null,epoch=0,version=0,draft=null,selected='',canEdit=false,dirty=false,busy=false,loading=false,pending=null,conflict=null,timer=0,returnFocus=null,rawAges={};
 const sessions=new Map();
-let offerDetailsOpen=false,photoEditOffer='',bulkPrice=null,printProposal=null,imageExport=null;
+let offerDetailsOpen=false,photoEditOffer='',bulkPrice=null,printProposal=null,imageExport=null,imageDownload=null;
 let comparison=null,tripPanel=null,previewIssues=[],photoUpload=null,hotelKnowledge=null,biblioPanel=null;
 // View reads are cancellable independently of the durable send/save context.
 let publication=null,preview=false,sending=false,photoFailures=0,photoPending=0,photoEpoch=0,sharing=false,interestLoading=false,historyView=0;
@@ -587,7 +587,8 @@ function controls(){
   if(bulkPrice){$('tsHistory').disabled=true;$('tsPreview').disabled=true;}
   $('tsShare').hidden=!preview;$('tsShare').disabled=busy||loading||sending||sharing;
   const printLabel=printProposal?'Вернуть предпросмотр':'Печать / PDF';$('tsPrint').hidden=!preview;if($('tsPrint').textContent!==printLabel)$('tsPrint').textContent=printLabel;$('tsPrint').disabled=printProposal?!current():!canPrint();
-  for(const button of $('tsEditor')?.querySelectorAll('[data-ts-image-export]')||[]){const card=publication?.cards.find(card=>card.index===Number(button.dataset.tsImageExport));button.disabled=!!imageExport||!canExportImage(card);button.textContent=imageExport?.card===card?'Готовим изображение…':'Сохранить вариант картинкой';}
+  for(const button of $('tsEditor')?.querySelectorAll('[data-ts-image-export]')||[]){const card=publication?.cards.find(card=>card.index===Number(button.dataset.tsImageExport));button.hidden=imageDownload?.button===button;button.disabled=!!imageExport||!canExportImage(card);button.textContent=imageExport?.card===card?'Готовим изображение…':'Подготовить картинку';}
+  if(imageDownload){imageDownload.link.setAttribute('aria-disabled',String(imageDownload.dispatched||!imageDownload.matches()));imageDownload.cancel.disabled=imageDownload.dispatched;}
   if($('tsInterest')){$('tsInterest').disabled=busy||loading||sending||sharing||interestLoading;$('tsInterest').textContent=interestLoading?'Загружаем активность…':'Активность подборки'}
   const publish=$('tsPublish');if(publish)publish.disabled=!canEdit||busy||sending||sharing||dirty||!!pending||!!conflict||photoPending>0||photoFailures>0;
   if(sharing){$('tsEdit').disabled=true;$('tsDone').disabled=true}else $('tsDone').disabled=false;
@@ -651,7 +652,11 @@ function canPrint(){
   const images=Array.from($('tsEditor').querySelectorAll('.tsPhotos img'));
   return images.length===publication.cards.reduce((n,card)=>n+card.photos.length,0)&&images.every(img=>img.complete&&img.naturalWidth>0);
 }
-function cancelImageExport(){if(imageExport)imageExport.cancelled=true;imageExport=null;}
+function cancelImageExport(){
+  if(imageExport)imageExport.cancelled=true;imageExport=null;
+  const ready=imageDownload;imageDownload=null;
+  if(ready){ready.job.cancelled=true;clearTimeout(ready.timer);ready.link.removeAttribute('href');URL.revokeObjectURL(ready.url);ready.root.remove();ready.button.hidden=false;}
+}
 function exportImages(card){
   if(!card||!Number.isInteger(card.index)||card.index<0||card.index>=20)return [];
   return Array.from($('tsEditor')?.querySelectorAll('[data-ts-card="'+card.index+'"] .tsPhotos img')||[]);
@@ -714,18 +719,32 @@ function drawExportImage(card,title,version,images){
 }
 async function exportCardImage(card){
   if(imageExport||!canExportImage(card))return;
-  const job={card,epoch,publication,photoEpoch,cancelled:false};imageExport=job;controls();status('Готовим изображение показанного варианта…');let canvas=null;
-  const active=()=>imageExport===job&&!job.cancelled&&job.epoch===epoch&&job.photoEpoch===photoEpoch&&publication===job.publication&&canExportImage(card);
+  cancelImageExport();
+  const job={card,epoch,publication,photoEpoch,version:publication.draft_version,title:publication.title,index:card.index,text:card.text,photos:card.photos.slice(),cancelled:false};imageExport=job;controls();status('Готовим изображение показанного варианта…');let canvas=null;
+  const matches=()=>!job.cancelled&&job.epoch===epoch&&job.photoEpoch===photoEpoch&&publication===job.publication&&publication.draft_version===job.version&&publication.title===job.title&&card.index===job.index&&card.text===job.text&&card.photos.length===job.photos.length&&card.photos.every((url,index)=>url===job.photos[index])&&canExportImage(card);
+  const active=()=>imageExport===job&&matches();
   try{
-    canvas=drawExportImage(card,publication.title,publication.draft_version,exportImages(card));
+    canvas=drawExportImage(card,job.title,job.version,exportImages(card));
     const blob=await new Promise((resolve,reject)=>{try{canvas.toBlob(value=>value?resolve(value):reject(Error('image_export_unavailable')),'image/png')}catch(error){reject(error)}});
     if(!active())return;
-    const url=URL.createObjectURL(blob),link=document.createElement('a');
-    try{link.href=url;link.download='AnyTour-v'+publication.draft_version+'-variant-'+(card.index+1)+'.png';link.hidden=true;dialog.append(link);link.click();}
-    finally{link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
-    status('Изображение варианта передано браузеру для сохранения.');
+    const button=$('tsEditor').querySelector('[data-ts-image-export="'+job.index+'"]');if(!button?.isConnected)throw Error('image_export_unavailable');
+    const root=document.createElement('div'),link=document.createElement('a'),cancel=document.createElement('button'),url=URL.createObjectURL(blob);
+    const ready={job,root,link,cancel,url,button,matches,dispatched:false,timer:0,focus:document.activeElement===button};
+    try{
+      root.className='tsImageReady';link.className='tsImageDownload';link.dataset.tsImageDownload=String(job.index);link.href=url;link.download='AnyTour-v'+job.version+'-variant-'+(job.index+1)+'.png';link.textContent='Скачать картинку';link.setAttribute('aria-label','Скачать картинку варианта '+(job.index+1)+' версии '+job.version);
+      // The second, ordinary user click keeps the native download gesture in
+      // protected browser frames. Never dispatch an asynchronous link.click().
+      link.onclick=event=>{
+        if(imageDownload!==ready||ready.dispatched||!matches()||!link.isConnected){event.preventDefault();return;}
+        ready.dispatched=true;controls();status('Браузеру передан запрос на скачивание картинки.');
+        ready.timer=setTimeout(()=>{if(imageDownload===ready){cancelImageExport();controls();}},1000);
+      };
+      cancel.type='button';cancel.textContent='Отменить';cancel.onclick=()=>{if(imageDownload!==ready)return;const same=matches();cancelImageExport();controls();if(same){status('Подготовленная картинка закрыта.');if(button.isConnected)button.focus();}};
+      root.append(link,cancel);button.after(root);imageDownload=ready;button.hidden=true;
+    }catch(error){link.removeAttribute('href');URL.revokeObjectURL(url);root.remove();throw error;}
+    status('Картинка варианта '+(job.index+1)+' готова. Нажмите «Скачать картинку».');
   }catch(error){if(active())status(error.message==='image_export_too_long'?'Условий слишком много для одной картинки. Используйте Печать / PDF — текст не будет обрезан.':'Не удалось подготовить изображение с этими фото. Используйте Печать / PDF или попробуйте ещё раз.',true);}
-  finally{if(canvas){canvas.width=0;canvas.height=0;}if(imageExport===job){imageExport=null;controls();}}
+  finally{if(canvas){canvas.width=0;canvas.height=0;}if(imageExport===job){imageExport=null;controls();if(imageDownload?.job===job&&imageDownload.focus&&matches())imageDownload.link.focus({preventScroll:true});}}
 }
 function clearPrint(){
   if(!printProposal)return;
@@ -774,7 +793,7 @@ function renderPreview(){
     gallery.addEventListener('scroll',update,{passive:true});update();
   });
   const active=()=>imageRun===photoEpoch&&token===epoch&&preview&&publication?.id===publicationId&&current();
-  for(const card of publication.cards){const article=$('tsEditor').querySelector('[data-ts-card="'+card.index+'"]');if(!article)continue;const button=document.createElement('button');button.type='button';button.className='tsExportImage';button.dataset.tsImageExport=String(card.index);button.textContent='Сохранить вариант картинкой';button.onclick=()=>{if(active()&&button.isConnected)void exportCardImage(card)};article.querySelector('.tsLikePreview').before(button);}
+  for(const card of publication.cards){const article=$('tsEditor').querySelector('[data-ts-card="'+card.index+'"]');if(!article)continue;const button=document.createElement('button');button.type='button';button.className='tsExportImage';button.dataset.tsImageExport=String(card.index);button.textContent='Подготовить картинку';button.onclick=()=>{if(active()&&button.isConnected)void exportCardImage(card)};article.querySelector('.tsLikePreview').before(button);}
   $('tsEditor').querySelectorAll('img').forEach(img=>{
     img.addEventListener('load',()=>{if(active()){photoPending--;controls()}},{once:true});
     img.addEventListener('error',()=>{if(!active())return;photoPending--;photoFailures++;img.classList.add('tsPhotoFailed');controls();status('Не удалось загрузить фото. Вернитесь к редактированию и проверьте прямую ссылку.',true)},{once:true});
