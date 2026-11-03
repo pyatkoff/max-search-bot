@@ -10,7 +10,7 @@
       "hotel_id": 67897,
       "hotel": "JAZ MARAYA",
       "region": "Марса Алам",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+      "state": "GENERAL_AMENITIES_READ_SHORELINE_PRIMARY_PROOF_PENDING"
     },
     {
       "key": "jaz-costa-mares",
@@ -24,14 +24,14 @@
       "hotel_id": 73342,
       "hotel": "JAZ SOMA BEACH (EX. SOLYMAR SOMA BEACH)",
       "region": "Хургада",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+      "state": "WHOLE_CAPTION_AND_NATIVE_COVER_PREPARED_RELEASE_WAIT"
     },
     {
       "key": "jaz-belvedere",
       "hotel_id": 278,
       "hotel": "JAZ BELVEDERE",
       "region": "Шарм-эль-Шейх",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+      "state": "WHOLE_CAPTION_AND_NATIVE_COVER_PREPARED_RELEASE_WAIT"
     },
     {
       "key": "jaz-mirabel-beach",
@@ -45,7 +45,7 @@
       "hotel_id": 246,
       "hotel": "JAZ FAYROUZ RESORT (EX. HILTON SHARM FAYROUZ RESORT)",
       "region": "Шарм-эль-Шейх",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+      "state": "WHOLE_CAPTION_AND_NATIVE_COVER_PREPARED_RELEASE_WAIT"
     },
     {
       "key": "jaz-neo-reef-marsa",
@@ -73,7 +73,7 @@
       "hotel_id": 107,
       "hotel": "BEACH ALBATROS RESORT MARSA ALAM",
       "region": "Марса Алам",
-      "state": "CATALOG_CONFIRMED_PRIMARY_SOURCE_AND_COVER_NOT_READY",
+      "state": "EXACT_CURRENT_PRIMARY_HOTEL_MATCH_REQUIRED",
       "identity_source": "commercial-stock-20261102-12-inventory.json"
     },
     {
@@ -81,7 +81,7 @@
       "hotel_id": 264,
       "hotel": "JAZ DAHABEYA (EX. IBEROTEL DAHABEYA)",
       "region": "Дахаб",
-      "state": "CATALOG_CONFIRMED_PRIMARY_OBJECT_AND_CONTENT_NOT_READY"
+      "state": "WHOLE_CAPTION_AND_NATIVE_COVER_PREPARED_RELEASE_WAIT"
     },
     {
       "key": "jaz-fanara-resort",
@@ -130,5 +130,6 @@
   ],
   "new_name_lookup_count": 12,
   "new_name_lookup_state": "STOPPED_AT_SOURCE_GATE_BEFORE_SSH_NO_NEW_IDENTITIES_CONFIRMED",
-  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41543931293"
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41543931293",
+  "content_and_cover_prepared_count": 4
 }

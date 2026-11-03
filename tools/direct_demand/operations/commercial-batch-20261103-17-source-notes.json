@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261103-17-v1",
-  "state": "EXACT_OPERATOR_GENERAL_HOTEL_DESCRIPTIONS_READ_ORIGINAL_HOTEL_MEDIA_RETAINED",
+  "state": "FOUR_WHOLE_CAPTIONS_AND_OFFICIAL_NATIVE_COVERS_PREPARED_NOT_SENT",
   "catalog_ids": [
     264,
     73342,
@@ -20,8 +20,15 @@
         "https://partner.jazhotels.com/Images/uploads/gallery/Downloads/jazdahabeya/beach-bar-2021102014.jpg",
         "https://partner.jazhotels.com/Images/uploads/gallery/Downloads/jazdahabeya/Family-Bed-room-with-Garden-View-2021102014.jpg"
       ],
-      "caption_utf16": 516,
-      "text_sha256": "91d2575007dd989239743232db81f589aa456df600564729c20a68fe7c8f6bfd"
+      "caption_utf16": 514,
+      "text_sha256": "7c5d70e0734c883ca3ece25cb324af5473ba6c14408db5b766b7b9a2b77e54b1",
+      "native_png": {
+        "sha256": "6944c2fc43ed6427d3820925f7e6a7a18795b15a2c063a38677c39b7b69958d1",
+        "bytes": 707003,
+        "width": 600,
+        "height": 600
+      },
+      "visually_verified": true
     },
     {
       "hotel_id": 73342,
@@ -35,7 +42,14 @@
         "https://partner.jazhotels.com/Images/uploads/gallery/photos/SolYMarSomaBeach/Aqua-Snacks-Bar-Outdoor-20226152.jpg"
       ],
       "caption_utf16": 541,
-      "text_sha256": "985662572c7bb4a8e3bf639470b38f56d109e1a3b6cb75c24f5c164952ad7ab6"
+      "text_sha256": "985662572c7bb4a8e3bf639470b38f56d109e1a3b6cb75c24f5c164952ad7ab6",
+      "native_png": {
+        "sha256": "c1bb708365ecf91136345eb805e37072a7f6923426eaa04d84b8b265f42e3d03",
+        "bytes": 800527,
+        "width": 600,
+        "height": 600
+      },
+      "visually_verified": true
     },
     {
       "hotel_id": 278,
@@ -49,7 +63,14 @@
         "https://partner.jazhotels.com/Images/uploads/gallery/photos/jazbelvedere/Superior-Family-twin-bed-garden-view-20232418.jpg"
       ],
       "caption_utf16": 486,
-      "text_sha256": "2b4ae98328ab19a309874e8477938273839d9ce7f03ca15bf16b7665f9fd999b"
+      "text_sha256": "2b4ae98328ab19a309874e8477938273839d9ce7f03ca15bf16b7665f9fd999b",
+      "native_png": {
+        "sha256": "da4307f9fb0529c987214bfa16402fd88c9e7ce4b0b606f9ea47573a4c2578cf",
+        "bytes": 616893,
+        "width": 600,
+        "height": 600
+      },
+      "visually_verified": true
     },
     {
       "hotel_id": 246,
@@ -62,8 +83,15 @@
         "https://partner.jazhotels.com/Images/uploads/gallery/photos/new/061130Flamb%C3%A9%20Pool%20Bar.jpg",
         "https://partner.jazhotels.com/Images/uploads/gallery/photos/new/071122Superior%20Family%20Room%2C%20Twin%20Bed%2C%20Pool%20View.jpg"
       ],
-      "caption_utf16": 535,
-      "text_sha256": "038201aaab83a07f5a2cc80bc1b44e00dfb68f78d352d242e5277de4ff0f4115"
+      "caption_utf16": 490,
+      "text_sha256": "87b5dba1f0315bb9247f66672e6072166a856fd3718b7434f55057259fe774c8",
+      "native_png": {
+        "sha256": "d68acc6bffcdf554829cf26876caef988378f40e43260fb791beef07eff4d02d",
+        "bytes": 749630,
+        "width": 600,
+        "height": 600
+      },
+      "visually_verified": true
     }
   ],
   "deferred": [
@@ -91,5 +119,9 @@
     }
   ],
   "message_sends": 0,
-  "server_connections": 0
+  "server_connections": 0,
+  "floor_note": "TUI Etagen1 was not translated into a one-storey building promise. The real official overview and garden/terrace description support only the published draft's garden/terraces wording.",
+  "native_inspection_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41552111181",
+  "freeze_commit": "f2b991533a27dd4eaf06566d61ab50c378ac6ef3",
+  "transactions": "EXACT_FOUR_CANCELLED"
 }
