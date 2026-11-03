@@ -1,0 +1,85 @@
+{
+  "operation": "commercial-hotel-batch-20261103-32-v1",
+  "state": "SIX_NATIVE_PNG_VISUALLY_VERIFIED_NOT_SENT",
+  "goal": "Freeze only six reviewed native branded PNGs",
+  "boundaries": [
+    "Only accepted public official photography; no private source tokens/receipts",
+    "No permanent Canva save; exact current transactions cancelled after freeze"
+  ],
+  "criteria": [
+    "600x600 native PNG exact decodedbytes/chunks/hash and visual review",
+    "Six legible hotel titles/logo/bluebanner with three distinct hotel photos"
+  ],
+  "risks": [
+    "Do not re-export or reupload these accepted covers"
+  ],
+  "run_id": 41733185728,
+  "covers": [
+    {
+      "kind": "cover",
+      "hotel_id": 1449,
+      "mime": "image/png",
+      "width": 600,
+      "height": 600,
+      "bytes": 765085,
+      "sha256": "168650c9c85e131e3f16165e635e8db12f468fdc1d081decb0ccb3654bce0e57",
+      "file": "1449.png",
+      "chunks": 22
+    },
+    {
+      "kind": "cover",
+      "hotel_id": 1453,
+      "mime": "image/png",
+      "width": 600,
+      "height": 600,
+      "bytes": 767191,
+      "sha256": "7cfc10e3ec7a058158dc68d38bf51f25465cffb05682d3e85062eebde3c5bfdd",
+      "file": "1453.png",
+      "chunks": 22
+    },
+    {
+      "kind": "cover",
+      "hotel_id": 9432,
+      "mime": "image/png",
+      "width": 600,
+      "height": 600,
+      "bytes": 798014,
+      "sha256": "76ba80696fc28fe24bcf3662dc9e8d4371132bebce358df48dabca496ce4fb8d",
+      "file": "9432.png",
+      "chunks": 23
+    },
+    {
+      "kind": "cover",
+      "hotel_id": 1451,
+      "mime": "image/png",
+      "width": 600,
+      "height": 600,
+      "bytes": 802665,
+      "sha256": "7b14de4c4b085e55f318721f49ee8f0a811bef8676dbab741571ee1186d20afd",
+      "file": "1451.png",
+      "chunks": 23
+    },
+    {
+      "kind": "cover",
+      "hotel_id": 1151,
+      "mime": "image/png",
+      "width": 600,
+      "height": 600,
+      "bytes": 768070,
+      "sha256": "186108979417d60c0a515322a3ef5ad35c028c625cfecc953c7819d09cf84814",
+      "file": "1151.png",
+      "chunks": 22
+    },
+    {
+      "kind": "cover",
+      "hotel_id": 1583,
+      "mime": "image/png",
+      "width": 600,
+      "height": 600,
+      "bytes": 744806,
+      "sha256": "e68d6335fc881e832d30871a2f655975736a8e44aef5bfb17195a549e72161f1",
+      "file": "1583.png",
+      "chunks": 21
+    }
+  ]
+}
