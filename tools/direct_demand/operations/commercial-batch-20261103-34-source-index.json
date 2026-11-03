@@ -1,0 +1,73 @@
+{
+  "operation": "commercial-hotel-batch-20261103-34-v1",
+  "state": "PRIMARY_DISCOVERY_ONLY_NOT_NATIVE_PHOTO_ACCEPTANCE",
+  "sources": [
+    {
+      "hotel_id": 1416,
+      "urls": [
+        "https://www.palomahotels.com/en/paloma-oceana"
+      ],
+      "notes": "Exact current group owner property, no sister-property or privatevilla rights assumed"
+    },
+    {
+      "hotel_id": 1491,
+      "urls": [
+        "https://www.palomahotels.com/en/paloma-perissia"
+      ],
+      "notes": "Owner exact property; group nav photos not all Perissia"
+    },
+    {
+      "hotel_id": 65782,
+      "urls": [
+        "https://www.palomahotels.com/en/finesse-side",
+        "https://www.palomahotels.com/en/finesse-side/beach-and-pool"
+      ],
+      "notes": "Exact primary current property, Palomaqua/Orenda joint rights not assumed"
+    },
+    {
+      "hotel_id": 1417,
+      "urls": [
+        "https://www.palomahotels.com/en/paloma-grida"
+      ],
+      "notes": "Exact primary, current concept/photos need native check, no render acceptance"
+    },
+    {
+      "hotel_id": 1348,
+      "urls": [
+        "https://sevenseashotels.com/hotels/seven-seas-hotel-life?openGallery=true",
+        "https://sevenseashotels.com/media"
+      ],
+      "notes": "Owner exact HotelLife, not Dubai .ae/PalmerasBay/JolieBay; residence categories differ"
+    },
+    {
+      "hotel_id": 15879,
+      "urls": [
+        "https://www.belazur.com.tr/en",
+        "https://www.belazur.com.tr/en/rooms"
+      ],
+      "notes": "Owner KirmanSignature Belazur exact, no sister Kirman rights"
+    },
+    {
+      "hotel_id": 55828,
+      "urls": [
+        "https://luxuryresortbelek.selectumhotels.com/en"
+      ],
+      "notes": "Exact group property, not SelectumFamilyBelek or familycomfortside"
+    },
+    {
+      "hotel_id": 1035,
+      "urls": [],
+      "notes": "Reuse wholecaption32; newgallery33 onlyAccommodation/Gastronomy, no hero; do not repeat root/gallery/old frames"
+    },
+    {
+      "hotel_id": 109655,
+      "urls": [],
+      "notes": "Reuse wholecaption32; latestslider4 closewalkway, newconnectingroomloweronly; no repeated root/rooms/frames"
+    },
+    {
+      "hotel_id": 1338,
+      "urls": [],
+      "notes": "Reuse wholecaption33; three exact originalCDNframes got403, no repeat/alternatehost/queryversion of those same images; restaurant acceptedloweronly. Need a different public owner frame."
+    }
+  ]
+}

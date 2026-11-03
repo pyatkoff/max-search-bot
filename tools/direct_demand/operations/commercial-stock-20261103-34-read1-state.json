@@ -1,0 +1,92 @@
+{
+  "operation": "commercial-stock-20261103-34-read1",
+  "state": "SEVEN_UNIQUE_ACTIVE_NATIVE_CANDIDATES_REGISTRY_ZERO_VERIFIED",
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41738848941",
+  "artifact_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41738848941/artifacts/13278969647",
+  "country_id": 4,
+  "name_groups": 10,
+  "new_unique_candidates": [
+    {
+      "key": "paloma-oceana",
+      "hotel_id": 1416,
+      "hotel": "PALOMA OCEANA RESORT",
+      "region": "Сиде",
+      "country_id": 4,
+      "region_id": 23,
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY"
+    },
+    {
+      "key": "paloma-perissia",
+      "hotel_id": 1491,
+      "hotel": "PALOMA PERISSIA",
+      "region": "Сиде",
+      "country_id": 4,
+      "region_id": 23,
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY"
+    },
+    {
+      "key": "paloma-finesse",
+      "hotel_id": 65782,
+      "hotel": "PALOMA FINESSE SIDE",
+      "region": "Сиде",
+      "country_id": 4,
+      "region_id": 23,
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY"
+    },
+    {
+      "key": "paloma-grida",
+      "hotel_id": 1417,
+      "hotel": "PALOMA GRIDA",
+      "region": "Белек",
+      "country_id": 4,
+      "region_id": 21,
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY"
+    },
+    {
+      "key": "seven-seas-life",
+      "hotel_id": 1348,
+      "hotel": "SEVEN SEAS HOTEL LIFE (EX. OTIUM HOTEL LIFE)",
+      "region": "Кемер",
+      "country_id": 4,
+      "region_id": 22,
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY"
+    },
+    {
+      "key": "kirman-belazur",
+      "hotel_id": 15879,
+      "hotel": "KIRMAN BELAZUR RESORT & SPA",
+      "region": "Белек",
+      "country_id": 4,
+      "region_id": 21,
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY"
+    },
+    {
+      "key": "selectum-luxury",
+      "hotel_id": 55828,
+      "hotel": "SELECTUM LUXURY RESORT BELEK",
+      "region": "Белек",
+      "country_id": 4,
+      "region_id": 21,
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY"
+    }
+  ],
+  "unresolved": [
+    {
+      "key": "kirman-sidera",
+      "reason": "NARROW_ALIASES_ZERO_NOT_PROOF_OF_ABSENCE"
+    },
+    {
+      "key": "kirman-arycanda",
+      "reason": "NARROW_ALIASES_ZERO_NOT_PROOF_OF_ABSENCE"
+    },
+    {
+      "key": "selectum-family-belek",
+      "reason": "NARROW_ALIASES_ZERO_NOT_PROOF_OF_ABSENCE"
+    }
+  ],
+  "existing_server_connections_used": true,
+  "provider_calls": 0,
+  "db_writes": 0,
+  "message_sends": 0,
+  "new_delivered_pairs": 0
+}

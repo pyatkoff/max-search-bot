@@ -1,0 +1,63 @@
+{
+  "operation": "commercial-hotel-batch-20261103-33-v1",
+  "state": "FIVE_READY_COVERS_CONSUMED_BY_VERIFIED_PUBLICATION",
+  "primary_runs": [
+    41736292886,
+    41736774361
+  ],
+  "primary_gets": 12,
+  "successful_primary_pages": 11,
+  "unknown_value_error_source": "https://trendy.com.tr/en/trendy-lara/",
+  "unknown_error_cause_not_claimed": true,
+  "contact_run": 41737222318,
+  "new_photo_count": 28,
+  "actual_bytes_accepted": 25,
+  "rejections_403": [
+    {
+      "hotel_id": 1338,
+      "role": "g0_limak_0"
+    },
+    {
+      "hotel_id": 1338,
+      "role": "g0_limak_1"
+    },
+    {
+      "hotel_id": 1338,
+      "role": "g0_limak_2"
+    }
+  ],
+  "accepted_hotel_ids": [
+    1379,
+    1133,
+    27316,
+    1559,
+    3405
+  ],
+  "deferred": [
+    {
+      "hotel_id": 1338,
+      "reason": "3exactownerframes403;restaurantloweronly, no bypass/retry"
+    },
+    {
+      "hotel_id": 109655,
+      "reason": "Newslider4 closewalkway, notwholehero;connectingroomloweronly"
+    },
+    {
+      "hotel_id": 1035,
+      "reason": "Newgalleryonlyaccommodation/gastronomy;no generalhero"
+    },
+    {
+      "hotel_id": 46670,
+      "reason": "ValueErrorHTMLcauseunknown, no repeatedGET"
+    },
+    {
+      "hotel_id": 468,
+      "reason": "NewpublicPDF403,no repeat/bypass"
+    }
+  ],
+  "native_run": 41738082299,
+  "freeze": "e271d7f69a4942e1281bd273c3866f0c9a7de41e",
+  "canva_open_transactions": 0,
+  "repeated_accepted_cover_exports": 0,
+  "description_rewrites": 0
+}

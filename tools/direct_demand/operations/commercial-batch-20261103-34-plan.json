@@ -1,0 +1,144 @@
+{
+  "operation": "commercial-hotel-batch-20261103-34-v1",
+  "state": "PREPARATION_STARTED_NOT_SENT",
+  "baseline_logical_materials": 144,
+  "goal": "Prepare ten proven candidates together, finite group photo pass and one serial ready-subset publication",
+  "boundaries": [
+    "Only exact owner sources/real target photos, reuse accepted whole captions, no repeated closed GETs",
+    "Existing templates/channels/registry/source/rights/dedup gates, no Mac/newruntime/ads/paidcalls"
+  ],
+  "criteria": [
+    "Ten proven IDs, readiness separate from native identity; no draft delivery credit",
+    "Several ready covers together and all ready subset sent promptly"
+  ],
+  "risks": [
+    "Three retained hotels still lack a different approved whole hotel hero",
+    "Some owner gallery assets may be renders or another property"
+  ],
+  "hotel_ids": [
+    1416,
+    1491,
+    65782,
+    1417,
+    1348,
+    15879,
+    55828,
+    1035,
+    109655,
+    1338
+  ],
+  "candidates": [
+    {
+      "key": "paloma-oceana",
+      "hotel_id": 1416,
+      "hotel": "PALOMA OCEANA RESORT",
+      "region": "Сиде",
+      "country_id": 4,
+      "region_id": 23,
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY"
+    },
+    {
+      "key": "paloma-perissia",
+      "hotel_id": 1491,
+      "hotel": "PALOMA PERISSIA",
+      "region": "Сиде",
+      "country_id": 4,
+      "region_id": 23,
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY"
+    },
+    {
+      "key": "paloma-finesse",
+      "hotel_id": 65782,
+      "hotel": "PALOMA FINESSE SIDE",
+      "region": "Сиде",
+      "country_id": 4,
+      "region_id": 23,
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY"
+    },
+    {
+      "key": "paloma-grida",
+      "hotel_id": 1417,
+      "hotel": "PALOMA GRIDA",
+      "region": "Белек",
+      "country_id": 4,
+      "region_id": 21,
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY"
+    },
+    {
+      "key": "seven-seas-life",
+      "hotel_id": 1348,
+      "hotel": "SEVEN SEAS HOTEL LIFE (EX. OTIUM HOTEL LIFE)",
+      "region": "Кемер",
+      "country_id": 4,
+      "region_id": 22,
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY"
+    },
+    {
+      "key": "kirman-belazur",
+      "hotel_id": 15879,
+      "hotel": "KIRMAN BELAZUR RESORT & SPA",
+      "region": "Белек",
+      "country_id": 4,
+      "region_id": 21,
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY"
+    },
+    {
+      "key": "selectum-luxury",
+      "hotel_id": 55828,
+      "hotel": "SELECTUM LUXURY RESORT BELEK",
+      "region": "Белек",
+      "country_id": 4,
+      "region_id": 21,
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY"
+    },
+    {
+      "country_id": 4,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 1035,
+      "is_active": 1,
+      "name": "LARA BARUT COLLECTION",
+      "rating": "4.80",
+      "region": "Анталья",
+      "region_id": 20,
+      "key": "lara-barut",
+      "hotel_id": 1035,
+      "hotel": "LARA BARUT COLLECTION",
+      "state": "CATALOG_CONFIRMED_NOT_CURRENT25_NOT_READY",
+      "monitor_input_admitted": false,
+      "lookup_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41728602616"
+    },
+    {
+      "country_id": 4,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 109655,
+      "is_active": 1,
+      "name": "LIBERTY SIGNA",
+      "rating": "4.30",
+      "region": "Фетхие",
+      "region_id": 27,
+      "key": "liberty-signa",
+      "hotel_id": 109655,
+      "hotel": "LIBERTY SIGNA",
+      "state": "CATALOG_CONFIRMED_NOT_CURRENT25_NOT_READY",
+      "monitor_input_admitted": false,
+      "lookup_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41728602616"
+    },
+    {
+      "key": "limak-lara",
+      "hotel_id": 1338,
+      "hotel": "LIMAK LARA DE LUXE HOTEL & RESORT",
+      "region": "Анталья",
+      "country_id": 4,
+      "region_id": 20,
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY"
+    }
+  ],
+  "ready_for_send_count": 0,
+  "new_posts": 0
+}
