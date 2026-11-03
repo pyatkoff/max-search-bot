@@ -227,9 +227,24 @@ function forecastNativeAuthRegression():void
             $insert->execute([30000+$i,$person,$conversation,$packet['journal_cursor'],strtotime($packet['profile']['prediction_at']),json_encode($packet,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR)]);
         }
         $before=forecastNativeAuthSnapshot($pdo);
+        $phase='composed_dispatch_and_contract';
         forecastNativeReadOnly($pdo,static function()use($pdo,$forecast,$check):void{
             [$response,$afterBearer,$afterRead]=forecastNativeAuthDispatch($pdo,$forecast);
             $data=$response['result']['structuredContent']??[];
+            // Only this disposable fixture's technical contract flags, never token/row/response contents.
+            $reason=$response['error']['data']['reason']??null;
+            echo 'COMPOSED_FIXTURE_TECHNICAL '.json_encode([
+                'error_code'=>$response['error']['code']??null,
+                'budget_reason'=>in_array($reason,['byte_limit','time_limit'],true)?$reason:null,
+                'remaining_after_bearer'=>$afterBearer,'remaining_after_read'=>$afterRead,
+                'available'=>$data['available']??null,'value_available'=>$data['value_delivery']['available']??null,
+                'timing_available'=>$data['today_latency']['available']??null,
+                'timing_scopes'=>$data['today_latency']['profile_sample']['scopes_inspected']??null,
+                'diagnosis_limit'=>$data['saved_input_diagnosis']['window']['max_versions']??null,
+                'diagnosis_inspected'=>$data['saved_input_diagnosis']['window']['inspected_versions']??null,
+                'valid_packets'=>$data['saved']['valid_v1_versions']??null,
+                'result_bytes'=>strlen(json_encode($data,JSON_THROW_ON_ERROR)),
+                'rpc_bytes'=>strlen(json_encode($response,JSON_THROW_ON_ERROR))],JSON_THROW_ON_ERROR).PHP_EOL;
             $check('composed real OAuth read retains delivery timing and forecasts under one shared byte budget',
                 ($data['available']??false)&&($data['value_delivery']['available']??false)
                 &&($data['today_latency']['available']??false)
