@@ -720,7 +720,7 @@ function drawExportImage(card,title,version,images){
 async function exportCardImage(card){
   if(imageExport||!canExportImage(card))return;
   cancelImageExport();
-  const job={card,epoch,publication,photoEpoch,version:publication.draft_version,title:publication.title,index:card.index,text:card.text,photos:card.photos.slice(),cancelled:false};imageExport=job;controls();status('Готовим изображение показанного варианта…');let canvas=null;
+  const job={card,epoch,publication,photoEpoch,version:publication.draft_version,title:publication.title,index:card.index,text:card.text,photos:card.photos.slice(),focus:document.activeElement===$('tsEditor').querySelector('[data-ts-image-export="'+card.index+'"]'),cancelled:false};imageExport=job;controls();status('Готовим изображение показанного варианта…');let canvas=null;
   const matches=()=>!job.cancelled&&job.epoch===epoch&&job.photoEpoch===photoEpoch&&publication===job.publication&&publication.draft_version===job.version&&publication.title===job.title&&card.index===job.index&&card.text===job.text&&card.photos.length===job.photos.length&&card.photos.every((url,index)=>url===job.photos[index])&&canExportImage(card);
   const active=()=>imageExport===job&&matches();
   try{
@@ -729,7 +729,7 @@ async function exportCardImage(card){
     if(!active())return;
     const button=$('tsEditor').querySelector('[data-ts-image-export="'+job.index+'"]');if(!button?.isConnected)throw Error('image_export_unavailable');
     const root=document.createElement('div'),link=document.createElement('a'),cancel=document.createElement('button'),url=URL.createObjectURL(blob);
-    const ready={job,root,link,cancel,url,button,matches,dispatched:false,timer:0,focus:document.activeElement===button};
+    const ready={job,root,link,cancel,url,button,matches,dispatched:false,timer:0,focus:job.focus};
     try{
       root.className='tsImageReady';link.className='tsImageDownload';link.dataset.tsImageDownload=String(job.index);link.href=url;link.download='AnyTour-v'+job.version+'-variant-'+(job.index+1)+'.png';link.textContent='Скачать картинку';link.setAttribute('aria-label','Скачать картинку варианта '+(job.index+1)+' версии '+job.version);
       // The second, ordinary user click keeps the native download gesture in
@@ -744,7 +744,7 @@ async function exportCardImage(card){
     }catch(error){link.removeAttribute('href');URL.revokeObjectURL(url);root.remove();throw error;}
     status('Картинка варианта '+(job.index+1)+' готова. Нажмите «Скачать картинку».');
   }catch(error){if(active())status(error.message==='image_export_too_long'?'Условий слишком много для одной картинки. Используйте Печать / PDF — текст не будет обрезан.':'Не удалось подготовить изображение с этими фото. Используйте Печать / PDF или попробуйте ещё раз.',true);}
-  finally{if(canvas){canvas.width=0;canvas.height=0;}if(imageExport===job){imageExport=null;controls();if(imageDownload?.job===job&&imageDownload.focus&&matches())imageDownload.link.focus({preventScroll:true});}}
+  finally{if(canvas){canvas.width=0;canvas.height=0;}if(imageExport===job){imageExport=null;controls();if(imageDownload?.job===job&&imageDownload.focus&&matches()&&[document.body,imageDownload.button].includes(document.activeElement))imageDownload.link.focus({preventScroll:true});}}
 }
 function clearPrint(){
   if(!printProposal)return;
