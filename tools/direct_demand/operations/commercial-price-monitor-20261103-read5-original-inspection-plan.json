@@ -1,0 +1,14 @@
+{
+  "operation": "commercial-price-monitor-20261103-read5-original-artifact-inspection",
+  "goal": "Resolve the original failedread5 result from its retained authenticated artifact without repeating the database query",
+  "boundaries": [
+    "Exact original run41741553762 artifact only; no server/provider/DB/messages",
+    "No full tuples/fingerprints output, safe aggregate/error/catalog metadata only"
+  ],
+  "criteria": [
+    "Original operationidentity and safe error/completed rowcounts"
+  ],
+  "risks": [
+    "An assertion after SSH is not proof of completed price query or absence of matching prices"
+  ]
+}
