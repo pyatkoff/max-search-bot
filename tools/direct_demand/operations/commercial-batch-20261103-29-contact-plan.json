@@ -1,0 +1,191 @@
+{
+  "operation": "commercial-batch29-bounded-primary-contact-inspection",
+  "state": "PREPARED_NOT_VISUALLY_ACCEPTED",
+  "goal": "One finite grouped pass through32 real first-party photo candidates for ten candidate plan;prepare all ready hotels together",
+  "boundaries": [
+    "4readonlygroups/maxparallel2",
+    "No server/provider/DB/messages",
+    "No closed images repeated,no private archives/tokenURLs/alternatebuckets",
+    "Oberoi four exact public URIs declared by cached first-party gallery;HTML ValueError unknown cause,not declared403"
+  ],
+  "criteria": [
+    "Native source bytes/hash/format/dimensions and actual contact-sheet pixels",
+    "Hero shows hotel buildings and grounds;onlyvisualaccepted roles can enter Canva",
+    "Do not hold ready subset for Hilton/SeaBeach orotherdeferred"
+  ],
+  "risks": [
+    "Safir opaque filenames require visual exacthotel consistency",
+    "Cleopatra mainresort remains separate fromadultproperty",
+    "Unknowncause HTML/image failures not retroactivelylabelled"
+  ],
+  "groups": [
+    [
+      {
+        "hotel_id": 512,
+        "role": "g0_overview1",
+        "url": "https://irp.cdn-website.com/7bfa4f38/dms3rep/multi/opt/1%2BOverview-1920w.jpg"
+      },
+      {
+        "hotel_id": 512,
+        "role": "g0_overview6",
+        "url": "https://irp.cdn-website.com/7bfa4f38/dms3rep/multi/opt/overview6-1920w.jpg"
+      },
+      {
+        "hotel_id": 512,
+        "role": "g0_pool",
+        "url": "https://irp.cdn-website.com/7bfa4f38/dms3rep/multi/opt/DAHAB_POOL-1920w.png"
+      },
+      {
+        "hotel_id": 512,
+        "role": "g0_garden_room",
+        "url": "https://irp.cdn-website.com/7bfa4f38/dms3rep/multi/opt/7%2BGarden%2BRoom%2B2-1920w.jpg"
+      },
+      {
+        "hotel_id": 468,
+        "role": "g0_aerial",
+        "url": "https://cms.elgouna.com/api/media/file/aerial%20shot%20sultan%20bey-2.webp"
+      },
+      {
+        "hotel_id": 468,
+        "role": "g0_exterior",
+        "url": "https://cms.elgouna.com/api/media/file/Sultan_Bey_El_Gouna_Red_Sea_Egypt_exterior-scaled-b98494be.webp"
+      },
+      {
+        "hotel_id": 468,
+        "role": "g0_pool",
+        "url": "https://cms.elgouna.com/api/media/file/Sultan_Bey_El_Gouna_Red_Sea_Egypt_pool-scaled-6a6bd7c2.webp"
+      },
+      {
+        "hotel_id": 468,
+        "role": "g0_king_room",
+        "url": "https://cms.elgouna.com/api/media/file/Sultan_Bey_El_Gouna_Red_Sea_Egypt_King_bed-1-0d0e5ee4.webp"
+      }
+    ],
+    [
+      {
+        "hotel_id": 253,
+        "role": "g1_slider1",
+        "url": "https://www.safirhotels.com/storage/media/PcyZHvJrw1gOniJb0Boil4TrNYOPfND01F7DKl68.png"
+      },
+      {
+        "hotel_id": 253,
+        "role": "g1_slider2",
+        "url": "https://www.safirhotels.com/storage/media/WkgmPn0BHHUohFJwm5G4X8TNUF9nLu9c0qACMDm7.png"
+      },
+      {
+        "hotel_id": 253,
+        "role": "g1_beach",
+        "url": "https://www.safirhotels.com/storage/media/q5AzqJWO8AEE5FZXxOWsyDxzAEwG9ASBZonH92mk.webp"
+      },
+      {
+        "hotel_id": 253,
+        "role": "g1_pool",
+        "url": "https://www.safirhotels.com/storage/media/PsU37CGtX386RHDrniqZv6fapxgOoeSsQrGsUhcs.webp"
+      },
+      {
+        "hotel_id": 98723,
+        "role": "g1_overview_2023",
+        "url": "https://www.cleopatraluxuryhotels.com/wp-content/uploads/sites/55/2023/07/Cleopatra-adults-only-2.jpg"
+      },
+      {
+        "hotel_id": 98723,
+        "role": "g1_overview_current",
+        "url": "https://www.cleopatraluxuryhotels.com/wp-content/uploads/sites/55/2026/11/sharm-adults-gallery-0.jpg"
+      },
+      {
+        "hotel_id": 98723,
+        "role": "g1_deluxe_room",
+        "url": "https://www.cleopatraluxuryhotels.com/wp-content/uploads/sites/55/2026/11/813715978.jpg"
+      },
+      {
+        "hotel_id": 98723,
+        "role": "g1_pool",
+        "url": "https://www.cleopatraluxuryhotels.com/wp-content/uploads/sites/55/2026/11/photo-18.jpg"
+      }
+    ],
+    [
+      {
+        "hotel_id": 139,
+        "role": "g2_gallery_1",
+        "url": "https://cdn.braykaresorts.com/images/uploads/brayka-resorts-marsa-alam-marsa-alam-brayka-bay-resort-ebd0afd3-8aba-4e27-b351-ff754e4791ff-c2b11.webp"
+      },
+      {
+        "hotel_id": 139,
+        "role": "g2_gallery_2",
+        "url": "https://cdn.braykaresorts.com/images/uploads/brayka-resorts-marsa-alam-marsa-alam-brayka-bay-resort-2e144.webp"
+      },
+      {
+        "hotel_id": 139,
+        "role": "g2_gallery_3",
+        "url": "https://cdn.braykaresorts.com/images/uploads/brayka-resorts-marsa-alam-marsa-alam-brayka-bay-resort-ca8ad.webp"
+      },
+      {
+        "hotel_id": 139,
+        "role": "g2_gallery_4",
+        "url": "https://cdn.braykaresorts.com/images/uploads/brayka-resorts-marsa-alam-marsa-alam-brayka-bay-resort-653e6.webp"
+      },
+      {
+        "hotel_id": 4185,
+        "role": "g2_gallery_1",
+        "url": "https://cdn.braykaresorts.com/images/uploads/brayka-resorts-marsa-alam-marsa-alam-royal-brayka-resort-942a0.webp"
+      },
+      {
+        "hotel_id": 4185,
+        "role": "g2_gallery_2",
+        "url": "https://cdn.braykaresorts.com/images/uploads/brayka-resorts-marsa-alam-marsa-alam-royal-brayka-resort-f9a21.webp"
+      },
+      {
+        "hotel_id": 4185,
+        "role": "g2_gallery_3",
+        "url": "https://cdn.braykaresorts.com/images/uploads/brayka-resorts-marsa-alam-marsa-alam-royal-brayka-resort-7ebd0.webp"
+      },
+      {
+        "hotel_id": 4185,
+        "role": "g2_gallery_4",
+        "url": "https://cdn.braykaresorts.com/images/uploads/brayka-resorts-marsa-alam-marsa-alam-royal-brayka-resort-6389d.webp"
+      }
+    ],
+    [
+      {
+        "hotel_id": 1962,
+        "role": "g3_architecture_1",
+        "url": "https://baronhotels.com/wp-content/uploads/2024/03/gallery-architechture-baron-palms-sharm-el-sheikh-37.jpeg"
+      },
+      {
+        "hotel_id": 1962,
+        "role": "g3_architecture_2",
+        "url": "https://baronhotels.com/wp-content/uploads/2024/03/gallery-architechture-baron-palms-sharm-el-sheikh-14.jpeg"
+      },
+      {
+        "hotel_id": 1962,
+        "role": "g3_architecture_3",
+        "url": "https://baronhotels.com/wp-content/uploads/2024/03/gallery-architechture-baron-palms-sharm-el-sheikh-27.jpeg"
+      },
+      {
+        "hotel_id": 1962,
+        "role": "g3_architecture_4",
+        "url": "https://baronhotels.com/wp-content/uploads/2024/03/28_BARON-PALMS-Sharm-Al-Sheikh_Architecture-Beauty-e1726748465764.jpeg"
+      },
+      {
+        "hotel_id": 342,
+        "role": "g3_owner_gallery_1",
+        "url": "https://www.oberoihotels.com/-/media/oberoi-hotel/the-oberoi-beach-resort-sahl-hasheesh/01-welcome/1640x1292/tosh_welcome_6.jpg"
+      },
+      {
+        "hotel_id": 342,
+        "role": "g3_owner_gallery_2",
+        "url": "https://www.oberoihotels.com/-/media/oberoi-hotel/the-oberoi-beach-resort-sahl-hasheesh/01-welcome/1640x1292/tosh_welcome_5.jpg"
+      },
+      {
+        "hotel_id": 342,
+        "role": "g3_owner_gallery_3",
+        "url": "https://www.oberoihotels.com/-/media/oberoi-hotel/the-oberoi-beach-resort-sahl-hasheesh/01-welcome/1640x1292/tosh_welcome_3.jpg"
+      },
+      {
+        "hotel_id": 342,
+        "role": "g3_owner_gallery_4",
+        "url": "https://www.oberoihotels.com/-/media/oberoi-hotel/the-oberoi-beach-resort-sahl-hasheesh/02-accommodation/1640x1292/04-deluxe-suite/tosh_ds_1.jpg"
+      }
+    ]
+  ]
+}

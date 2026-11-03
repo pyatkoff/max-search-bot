@@ -1,0 +1,143 @@
+{
+  "operation": "commercial-hotel-batch-20261103-29-v1",
+  "state": "EIGHT_WHOLE_CAPTIONS_PREPARED_PHOTOS_NOT_ACCEPTED",
+  "baseline_logical_materials": 124,
+  "candidate_catalog_ids": [
+    253,
+    512,
+    1962,
+    98723,
+    468,
+    102774,
+    342,
+    254,
+    139,
+    4185
+  ],
+  "whole_captions": [
+    {
+      "hotel_id": 512,
+      "hotel": "Tropitel Dahab Oasis",
+      "key": "tropitel-dahab-oasis",
+      "aliases": [
+        "TROPITEL DAHAB OASIS"
+      ],
+      "sources": [
+        "https://www.tropitelhotels.com/tropitel-dahab-oasis"
+      ],
+      "text": "✈️ Туры в Tropitel Dahab Oasis с перелётом\n📍 Дахаб, Египет.\n\n🏖 Пляж у Красного моря и виды на Синайские горы.\n🧖 Есть сауна, парная и массаж.\n🏐 Пляжный волейбол и настольный теннис.\n👧 Детская игровая зона.\n\n💡 У берега есть кораллы. Для знакомства с рифом пригодится маска.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Tropitel Dahab Oasis."
+    },
+    {
+      "hotel_id": 468,
+      "hotel": "Sultan Bey Hotel",
+      "key": "sultan-bey-el-gouna",
+      "aliases": [
+        "SULTAN BEY HOTEL"
+      ],
+      "sources": [
+        "https://www.elgouna.com/hotels/sultan-bey-hotel"
+      ],
+      "text": "✈️ Туры в Sultan Bey Hotel с перелётом\n📍 Эль Гуна, Египет.\n\n🏖 Небольшой собственный пляж у лагуны.\n🏊 Открытый бассейн.\n🛏 Номера с балконом или террасой. Для семей есть смежные номера.\n🚶 Отель находится в районе Downtown с кафе и магазинами.\n\n💡 Берег у отеля выходит к лагуне.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Sultan Bey."
+    },
+    {
+      "hotel_id": 253,
+      "hotel": "Safir Sharm Waterfalls Resort",
+      "key": "safir-sharm-waterfalls",
+      "aliases": [
+        "SAFIR SHARM WATERFALLS (EX. HILTON)",
+        "SAFIR SHARM WATERFALLS"
+      ],
+      "sources": [
+        "https://www.safirhotels.com/en/hotel/safir-sharm-waterfalls-resort"
+      ],
+      "text": "✈️ Туры в Safir Sharm Waterfalls Resort с перелётом\n📍 Рас Ум эль Сид, Шарм эль Шейх.\n\n🏖 Собственный пляж и причал.\n🏊 Семь бассейнов.\n🎾 Теннисный корт и дайвинг центр.\n🛏 Номера с балконами и видом на море или сад.\n\n💡 Курорт расположен на плато. Рядом торговый район Иль Меркато.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Safir Sharm Waterfalls."
+    },
+    {
+      "hotel_id": 98723,
+      "hotel": "Cleopatra Luxury Resort Sharm Adults Only",
+      "key": "cleopatra-sharm-adults",
+      "aliases": [
+        "CLEOPATRA LUXURY RESORT SHARM ADULTS ONLY 16+",
+        "CLEOPATRA LUXURY RESORT SHARM ADULTS ONLY"
+      ],
+      "sources": [
+        "https://www.cleopatraluxuryhotels.com/hotel/cleopatra-luxury-resort-sharm-adults-only/",
+        "https://www.cleopatraluxuryhotels.com/hotel/cleopatra-luxury-resort-sharm-adults-only/activities/beach-access/"
+      ],
+      "text": "✈️ Туры в Cleopatra Luxury Resort Sharm Adults Only с перелётом\n📍 Набк, Шарм эль Шейх.\n\n🏊 Четыре бассейна.\n🛏 Номера площадью 52 м². Есть отдельная категория с выходом к бассейну.\n💪 Тренажёрный зал, йога и растяжка.\n\n💡 Курорт для взрослых. Пляж находится отдельно, до него ходит шаттл.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Cleopatra Luxury Sharm Adults Only."
+    },
+    {
+      "hotel_id": 139,
+      "hotel": "Brayka Bay Resort",
+      "key": "brayka-bay-resort",
+      "aliases": [
+        "BRAYKA BAY RESORT"
+      ],
+      "sources": [
+        "https://braykaresorts.com/brayka-bay-resort/overview"
+      ],
+      "text": "✈️ Туры в Brayka Bay Resort с перелётом\n📍 Марса Алам, Египет.\n\n🏖 Собственный песчаный пляж в бухте.\n🌴 Территория с садами и пальмами.\n🏊 Бассейны и занятия для детей.\n🛏 Есть семейные номера площадью 70 м².\n\n💡 У берега расположен риф. Здесь можно наблюдать морскую жизнь с маской.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Brayka Bay."
+    },
+    {
+      "hotel_id": 4185,
+      "hotel": "Royal Brayka Resort",
+      "key": "royal-brayka-resort",
+      "aliases": [
+        "ROYAL BRAYKA BEACH RESORT",
+        "ROYAL BRAYKA RESORT"
+      ],
+      "sources": [
+        "https://braykaresorts.com/royal-brayka-resort/overview"
+      ],
+      "text": "✈️ Туры в Royal Brayka Resort с перелётом\n📍 Марса Алам, Египет.\n\n🏖 Собственный песчаный пляж.\n🏊 Бассейны с террасами для отдыха.\n👧 Детский и подростковый клубы.\n🎭 Спортивные занятия и вечерние шоу.\n\n💡 В море ведёт понтон длиной 106 метров.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Royal Brayka."
+    },
+    {
+      "hotel_id": 1962,
+      "hotel": "Baron Palms Sharm El Sheikh 16+",
+      "key": "baron-palms-sharm",
+      "aliases": [
+        "BARON PALMS RESORT ADULTS ONLY 16+",
+        "BARON PALMS"
+      ],
+      "sources": [
+        "https://baronhotels.com/baron-palms-sharm-el-sheikh/?LangId=1"
+      ],
+      "text": "✈️ Туры в Baron Palms Sharm El Sheikh 16+ с перелётом\n📍 Рас Насрани, Шарм эль Шейх.\n\n🏖 До пляжа можно пройти пешком.\n🏊 Открытые бассейны среди пальм.\n🌿 Спа для отдыха после прогулок и купания.\n🛏 Есть номера Superior с видом на бассейн и номера на троих.\n\n💡 Это отель для гостей от 16 лет.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Baron Palms."
+    },
+    {
+      "hotel_id": 342,
+      "hotel": "The Oberoi Beach Resort Sahl Hasheesh",
+      "key": "oberoi-sahl-hasheesh",
+      "aliases": [
+        "THE OBEROI SAHL HASHEESH",
+        "THE OBEROI BEACH RESORT SAHL HASHEESH"
+      ],
+      "sources": [
+        "https://www.oberoihotels.com/hotels-in-sahl-hasheesh/accommodation/",
+        "https://www.oberoihotels.com/hotels-in-sahl-hasheesh/travel-information/"
+      ],
+      "text": "✈️ Туры в The Oberoi Beach Resort Sahl Hasheesh с перелётом\n📍 Сахль Хашиш, Египет.\n\n🏖 Курорт на берегу Красного моря.\n🛏 Все номера относятся к категории люкс.\n🌿 Невысокие корпуса с куполами, арками и внутренними двориками.\n🏊 Есть открытый бассейн, спа и тренажёрный зал.\n\n💡 Собственный бассейн предусмотрен только в отдельных категориях люксов.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в The Oberoi Sahl Hasheesh."
+    }
+  ],
+  "goal": "Prepare ten proven hotel candidates together,inspect finite primary photo references and send the whole ready subset once",
+  "boundaries": [
+    "No new catalogue identity guesses;all are from closed bounded native reads",
+    "Use accepted whole captions and retained sources where present",
+    "No repeat of closed failed GETs,private token URLs,old cover exports or provider readbacks",
+    "Existing publisher/registry/once and3stablepublicpostfeeds only",
+    "Twelve declared first-party URLs only,4readonlygroups/maxparallel2,no server/provider/DB/messages",
+    "Unchanged prior source fixtures not repeated"
+  ],
+  "criteria": [
+    "Whole primary-proven hotel captions and real hotel/grounds hero plus2supporting photographs",
+    "Several Canva covers together,all nativePNGchecks and exact cancellation",
+    "Real new paired posts and then exact previous-hash updates to same3publicfeeds"
+  ],
+  "risks": [
+    "Do not hold fresh Safir/Tropitel/SultanBey candidates for older photo gaps",
+    "SeaBeach five listed images returned202HTML;do not retry/bypass or callthem403",
+    "Hilton gallery timeout,OberoiValueErrorunknowncause andSofitelmissingexactprimary remainhonest gaps"
+  ],
+  "ready_for_send_count": 0,
+  "new_posts": 0
+}

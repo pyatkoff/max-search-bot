@@ -1,4 +1,4 @@
-name: Read twelve new fixed owner pages for batch29 candidates
+name: Inspect32 new owner photographs for batch29 ready subset
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -11,7 +11,7 @@ concurrency:
 jobs:
   inspect:
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       max-parallel: 2
@@ -22,13 +22,20 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Read only fixed official hotel descriptions and public photo references
+      - name: Inspect only fixed public owner material without server calls
         env:
           MEDIA_GROUP: ${{ matrix.media_group }}
-        run: python3 tools/direct_demand/operations/inspect-hotel-media-20261102-3.py
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq python3-pil
+          python3 -m py_compile tools/direct_demand/operations/inspect-hotel-primary-images-20261103-20.py
+          python3 tools/direct_demand/operations/inspect-hotel-primary-images-20261103-20.py
       - uses: actions/upload-artifact@v4
         with:
-          name: commercial-batch29-primary-sources-${{ matrix.media_group }}
-          path: public-media-sources.json
+          name: commercial-batch29-primary-contact-${{ matrix.media_group }}
+          path: |
+            primary-image-inspection.json
+            contact.png
           retention-days: 14
           if-no-files-found: error
