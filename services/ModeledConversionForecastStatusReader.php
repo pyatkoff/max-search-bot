@@ -9,7 +9,7 @@ require_once __DIR__.'/ModeledConversionLatencyReader.php';
 /** Launch readback of current V1 derived blocks only. Never reads a transcript or runs processing. */
 final class ModeledConversionForecastStatusReader
 {
-    public const VERSION='saved_semantic_prediction_status_v1_6';
+    public const VERSION='saved_semantic_prediction_status_v1_7';
     public const METADATA_LIMIT=20;
     public const PROFILE_LIMIT=4;
     public const PROFILE_BYTES=49152;

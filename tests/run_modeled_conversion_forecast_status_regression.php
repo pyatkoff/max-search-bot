@@ -429,11 +429,11 @@ function forecastLatencyAssertions(PDO $p,callable $check):void
         &&$r['messages']['persisted_today']===4&&$r['messages']['conversations']===3
         &&$r['messages']['older_source_first_captured_today']===1&&$r['messages']['invalid_clock_rows']===1);
     $check('today latency resolves the first later profile of the same exact scope',
-        $r['delays']['capture_to_profile']['observations']===3
-        &&$r['delays']['capture_to_profile']['minimum_seconds']===1.0
+        $r['delays']['capture_to_profile']['observations']===2
+        &&$r['delays']['capture_to_profile']['minimum_seconds']===600.0
         &&$r['delays']['capture_to_profile']['maximum_seconds']===1140.0
-        &&$r['messages']['waiting_for_profile']===1&&$r['by_platform']['max']['conversations']===2
-        &&$r['recorded_prediction_status_for_message_updates']['predicted']===2);
+        &&$r['profile_sample']['waiting_for_profile']===1&&$r['by_platform']['max']['conversations']===2
+        &&$r['profile_sample']['recorded_prediction_status']['predicted']===1&&$r['profile_sample']['scopes_inspected']===3);
     $check('today live value latency excludes historical review and keeps receipt distinct from processing',
         $r['live_value']['events']===3&&$r['live_value']['value_rub']===33333
         &&$r['live_value']['api_accepted_events']===2&&$r['live_value']['api_accepted_value_rub']===8333
@@ -455,6 +455,24 @@ function forecastLatencyAssertions(PDO $p,callable $check):void
     for($i=11;$i<=2015;$i++)$save($i,777,'max',100,2000,1,'anytour','manager');
     $r=$read();$check('latency metadata limit is explicit and never labels a truncated suffix as complete',
         !$r['window']['complete_within_bound']&&$r['window']['inspected_message_versions']===ModeledConversionLatencyReader::JOURNAL_LIMIT);
+    // Production-like human-message volume, many old profile versions and more
+    // distinct scopes than the explicit sample cap. All source text stays unused.
+    for($i=0;$i<2005;$i++)$save(3000+$i,4000+($i%128),'max',2000,2050);
+    $profileInsert=$p->prepare("INSERT INTO modeled_conversion_profile_versions VALUES(?,'anytour','max',?,?,?,?,?)");
+    for($i=0;$i<128;$i++){
+        $scope=4000+$i;
+        for($n=0;$n<21;$n++){
+            $profileInsert->execute([10000+$i*21+$n,(string)$scope,$scope,$n===20?5004:0,$day+($n===20?2100:2001),
+                json_encode(['semantic_prediction'=>['status'=>'predicted','stage'=>'concrete_request'],'private_marker'=>'PRIVATE_LARGE_PROFILE_NEVER_RETURN'],JSON_THROW_ON_ERROR)]);
+        }
+    }
+    $r=$read();
+    $check('large human-message cohort uses an explicit bounded distinct-scope profile sample',
+        $r['available']&&$r['messages']['conversations']===128&&$r['profile_sample']['scopes_inspected']===32
+        &&!$r['profile_sample']['complete_within_captured_window']
+        &&$r['profile_sample']['recorded_prediction_status']['predicted']===32
+        &&$r['delays']['capture_to_profile']['maximum_seconds']===50.0
+        &&!str_contains(json_encode($r,JSON_THROW_ON_ERROR),'PRIVATE_'));
     if($mysql)$p->exec('SET time_zone='.$p->quote((string)$oldTimeZone));
 }
 
