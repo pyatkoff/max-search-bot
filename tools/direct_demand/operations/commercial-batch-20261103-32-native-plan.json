@@ -1,0 +1,23 @@
+{
+  "operation": "commercial-batch32-covers-20261103-read1",
+  "goal": "Verify the six current prepared native cover PNGs together",
+  "boundaries": [
+    "Pure cloud; exact temporary Canva exports authorized; no server/provider/DB/messages",
+    "Unchanged native bytes, PNG and dimensions guards; only accepted bytes frozen and exact transactions cancelled"
+  ],
+  "criteria": [
+    "Native bytes/chunks/hash/dimensions and actual image appearance; legible one-line title/logo/blue band"
+  ],
+  "risks": [
+    "Thumbnail dimensions are unknown until native PNG verification",
+    "Do not permanently save Canva edits or repeat accepted exports"
+  ],
+  "hotel_ids": [
+    1449,
+    1453,
+    9432,
+    1451,
+    1151,
+    1583
+  ]
+}
