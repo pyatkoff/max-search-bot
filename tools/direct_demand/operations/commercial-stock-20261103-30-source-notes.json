@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261103-30-v1",
-  "state": "FOUR_WHOLE_POSTS_AND_PRIMARY_PHOTO_SETS_PREPARED_NOT_SENT",
+  "state": "FOUR_NATIVE_COVERS_VISUALLY_VERIFIED_PENDING_FREEZE_AND_SEND",
   "goal": "Publish every ready subset of ten proven candidates in existing two channels, then append public canonical links to the same three Direct YML feeds",
   "boundaries": [
     "Existing registry/durable once/strict source and pinned host route only",
@@ -282,5 +282,69 @@
       "transaction_id": "6529614612805006549",
       "state": "OPEN_TEMPORARY_PREVIEW_NOT_COMMITTED"
     }
-  ]
+  ],
+  "native_acceptance": {
+    "first_run": 41719956603,
+    "first_job": 126209793254,
+    "accepted_ids": [
+      1291,
+      75377
+    ],
+    "rejected_title_ids": [
+      15869,
+      253
+    ],
+    "corrected_run": 41720288782,
+    "corrected_job": 126210944653,
+    "corrected_ids": [
+      15869,
+      253
+    ],
+    "covers": [
+      {
+        "kind": "cover",
+        "hotel_id": 1291,
+        "mime": "image/png",
+        "width": 600,
+        "height": 600,
+        "bytes": 894475,
+        "sha256": "d489102f681a8b19f1bebb614ec48a28879a0234c7319d366dc18d49e2d2fe00",
+        "file": "1291.png",
+        "chunks": 25
+      },
+      {
+        "kind": "cover",
+        "hotel_id": 75377,
+        "mime": "image/png",
+        "width": 600,
+        "height": 600,
+        "bytes": 783348,
+        "sha256": "7f6a63e6d139b323cf197b7aa09a38cafb346c54380d5e37e0728445dcee85e7",
+        "file": "75377.png",
+        "chunks": 22
+      },
+      {
+        "kind": "cover",
+        "hotel_id": 15869,
+        "mime": "image/png",
+        "width": 600,
+        "height": 600,
+        "bytes": 757818,
+        "sha256": "f535fbf21128eb4e6f25d3db4ca69c51e9d4dcba13692a0b0baa5bc39819ff58",
+        "file": "15869.png",
+        "chunks": 22
+      },
+      {
+        "kind": "cover",
+        "hotel_id": 253,
+        "mime": "image/png",
+        "width": 600,
+        "height": 600,
+        "bytes": 858198,
+        "sha256": "5fe1c8b082f87f45e9ec9a59d226eb5c237d2b120c03cd017ab5d9247586de97",
+        "file": "253.png",
+        "chunks": 24
+      }
+    ]
+  }
 }
