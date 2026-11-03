@@ -72,6 +72,9 @@ function searchInquiryProjection(mode){
     if(empty($entry['ok']))throw new RuntimeException('Synthetic native inquiry not saved');echo json_encode(TourChoiceService::forConversation($pdo,1),JSON_THROW_ON_ERROR);
   `],{cwd:root,encoding:'utf8'}));
 }
+function biblioFixture(){
+ return JSON.parse(execFileSync('php',['-r',`require getcwd().'/tests/support/manager-tour-collector.php';require getcwd().'/services/ManagerTourSelectionBiblioSource.php';$f=biblioPublicFixture(true);$o=ManagerTourSelectionBiblioSource::parse($f['html'],$f['url'])[0];$o['photos']=$f['photos'];$n=ManagerTourSelectionImportDraft::normalize($o);$offer=$n['offer'];$offer['id']=str_repeat('b',32);$offer['import_source']=ManagerTourSelectionImportDraft::source($n);echo json_encode(['url'=>$f['url'],'offer'=>$o['offer'],'raw'=>$o['raw'],'photos'=>$f['photos'],'saved'=>$offer],JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);`],{cwd:root,encoding:'utf8'}));
+}
 async function fixture(page,options={}){
   const base=await setup(page),calls=[],drafts=new Map(),receipts=new Map();let fail=options.fail||'',held=null;
   const snapshot=id=>({conversation_id:id,version:drafts.get(id)?.version||0,draft:copy(drafts.get(id)?.draft||{title:'Подборка туров',intro:'',offers:[]}),can_edit:!options.readOnly,updated_at:null,updated_by_manager_id:7});
@@ -86,6 +89,8 @@ async function fixture(page,options={}){
     const url=route.request().url(),kind=url.includes('MainPhoto')?'cover':url.includes('InsideOfTheRoom')?'room':'beach';
     return route.fulfill({contentType:'image/jpeg',body:fs.readFileSync(path.join(root,'assets/owner-tour-cards/compact-v1',kind+'.jpg'))});
   });
+  const heldBiblioImages=[];let biblioImagesSettled=0;
+  if(options.biblio)await page.route('https://www.bgoperator.ru/pr_img/**',async route=>{const broken=options.biblioImageError===true,tiny=options.biblioTinyImages===true;if(options.holdBiblioImages)await new Promise(resolve=>heldBiblioImages.push(resolve));try{return await(broken?route.fulfill({status:404,body:''}):route.fulfill({contentType:tiny?'image/png':'image/jpeg',body:tiny?Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=','base64'):fs.readFileSync(path.join(root,'assets/owner-tour-cards/compact-v1/cover.jpg'))}))}finally{biblioImagesSettled++}});
   const photoUploads=[],uploadedFiles=new Map();let heldUpload=null;
   await page.route(/\/manager\/tour-selection-photo\.php(?:\?|$)/,async route=>{
     if(route.request().method()==='GET'){
@@ -104,6 +109,16 @@ async function fixture(page,options={}){
   await page.route('**/manager/tour-selections-api.php',async route=>{
     const d=route.request().postDataJSON();calls.push(copy(d));expect(d.csrf).toBe('fixture-csrf');expect([11,12]).toContain(d.conversation_id);
     const reply=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
+    if(options.biblio&&d.action.startsWith('biblio_')){
+      const b=options.biblio,row={offer:copy(b.offer),raw:copy(b.raw),ticket:'quote-fixture-ticket'};
+      if(d.action==='biblio_search'){expect(d.url).toBe(b.url);if(options.holdBiblio)await new Promise(resolve=>held=resolve);return reply({ok:true,offers:[row],total:1,next_offset:null,version:snapshot(d.conversation_id).version});}
+      if(d.action==='biblio_review')return reply(options.biblioPhotosDenied?{ok:false,error:'biblio_photos_unavailable'}:{ok:true,...row,ticket:'ready-fixture-ticket',photos:copy(b.photos),version:snapshot(d.conversation_id).version},options.biblioPhotosDenied?422:200);
+      expect(d.action).toBe('biblio_add');expect(d.ticket).toBe('ready-fixture-ticket');expect(d.confirm_party_price).toBe(true);
+      if(options.biblioLoss==='before'){options.biblioLoss='';return route.abort('failed')}
+      if(!receipts.has(d.operation_id)){const before=snapshot(d.conversation_id),offer=copy(b.saved);offer.amount=d.manager_amount;const value={version:before.version+1,draft:{...before.draft,offers:[...before.draft.offers,offer]}};drafts.set(d.conversation_id,value);receipts.set(d.operation_id,copy(value));}
+      if(options.biblioLoss==='after'){options.biblioLoss='';return route.abort('failed')}
+      return reply({ok:true,state:'added',saved_version:receipts.get(d.operation_id).version,count:snapshot(d.conversation_id).draft.offers.length});
+    }
     if(d.action==='trip_context')return reply({ok:true,trip:options.trip||{state:'unbound',revision:'',fields:{},details:[],warnings:[]}});
     if(d.action==='trip_apply'){if(options.tripMode==='changed')return reply({ok:false,error:'trip_changed'},409);if(options.tripMode==='denied')return reply({ok:false,error:'forbidden'},403);if(d.confirm_current_trip!==true||d.revision!==options.trip?.revision)throw new Error('Unconfirmed trip');if(options.holdTrip)await new Promise(resolve=>held=resolve);return reply({ok:true,trip:options.trip});}
     if(d.action==='get')return reply({ok:true,selection:snapshot(d.conversation_id)});
@@ -148,9 +163,61 @@ async function fixture(page,options={}){
   if(options.entry)await page.goto('http://127.0.0.1:4173/manager2/'+options.entry);
   await expect.poll(()=>page.evaluate(()=>!!WorkspaceV2.S.workspaceBound&&!WorkspaceV2.S.booting)).toBe(true);
   if(!options.entry){await page.locator('#inboxList [data-conversation-id="11"]').click();await expect(page.locator('#tourSelectionOpen')).toBeAttached()}
-  return {...base,calls,drafts,receipts,snapshot,photoUploads,uploadedFiles,releaseUpload:()=>heldUpload?.(),creations:()=>creations,publication:()=>publication,heldPhotos:()=>heldPhotos.length,holdPhotos:()=>{options.holdPhotos=true},releasePhotos:()=>{options.holdPhotos=false;heldPhotos.splice(0).forEach(resolve=>resolve())},release:()=>held?.(),setFail:x=>fail=x,setTripMode:x=>options.tripMode=x};
+  return {...base,calls,drafts,receipts,snapshot,photoUploads,uploadedFiles,releaseUpload:()=>heldUpload?.(),creations:()=>creations,publication:()=>publication,heldPhotos:()=>heldPhotos.length,holdPhotos:()=>{options.holdPhotos=true},releasePhotos:()=>{options.holdPhotos=false;heldPhotos.splice(0).forEach(resolve=>resolve())},biblioImagesHeld:()=>heldBiblioImages.length,biblioImagesSettled:()=>biblioImagesSettled,releaseBiblioImages:()=>{options.holdBiblioImages=false;heldBiblioImages.splice(0).forEach(resolve=>resolve())},release:()=>held?.(),setFail:x=>fail=x,setTripMode:x=>options.tripMode=x};
 }
 async function open(page,{edit=true}={}){if(!await page.locator('#tourSelectionOpen').isVisible())await page.locator('#m2ConversationMenuToggle').click();await page.locator('#tourSelectionOpen').click();await expect(page.locator('#tourSelectionDialog')).toBeVisible();await expect(page.locator('#tsStatus')).toContainText(/загружен|Просмотр|Восстановлены/);if(edit&&await page.locator('#tsOfferDetails').count()&&!await page.locator('#tsOfferDetails').evaluate(el=>el.open))await page.locator('#tsOfferDetails>summary').click()}
+
+async function biblioReview(page,b,{waitPhotos=true}={}){
+ await open(page,{edit:false});await page.locator('#tsBiblio').click();await page.locator('#tsBiblioUrl').fill(b.url);await page.locator('#tsBiblioRead').click();await page.locator('[data-biblio-choice]').click();await expect(page.locator('#tsBiblioAdd')).toBeDisabled();await expect(page.locator('.tsBiblioPhotos img')).toHaveCount(b.photos.length);if(waitPhotos)await expect.poll(()=>page.locator('.tsBiblioPhotos img').evaluateAll(images=>images.every(img=>img.complete&&img.naturalWidth>0))).toBe(true);
+}
+async function savedGalleryPhotos(page,s,count){
+ await expect(page.locator('#tsOfferDetails')).toBeVisible();if(!await page.locator('#tsOfferDetails').evaluate(el=>el.open))await page.locator('#tsOfferDetails > summary').click();
+ const thumbnails=page.locator('.tsAutomaticPhotos .tsUploadedThumb');await expect(thumbnails).toHaveCount(count);for(const thumb of await thumbnails.all()){await thumb.scrollIntoViewIfNeeded();await expect.poll(()=>thumb.evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true)}
+ const sources=new Set(await thumbnails.evaluateAll(images=>images.map(img=>img.currentSrc||img.src)));await expect.poll(()=>Array.from(s.pending).filter(request=>sources.has(request.url())).length).toBe(0);
+}
+for(const [width,height]of [[390,900],[430,900],[768,900],[1440,900],[390,420]])test(`Biblio direct quote photos terms and edited price ${width}x${height}`,async({page,browserName})=>{
+ await page.setViewportSize({width,height});const b=biblioFixture(),original=completeDraft(),s=await fixture(page,{draft:original,biblio:b});await biblioReview(page,b);
+ await expect(page.locator('.tsBiblioTerms')).toContainText('дети: 7');await expect(page.locator('.tsBiblioTerms')).toContainText('40000 EUR');await expect(page.locator('.tsBiblioTerms')).toContainText('трансфер');await expect(page.locator('#tsBiblioResults')).toContainText('123');
+ expect(s.calls.some(x=>['biblio_add','save','prepare','send','publish','collector_import'].includes(x.action))).toBe(false);
+ await page.locator('#tsBiblioResults article').evaluate(el=>el.scrollIntoView({block:'start'}));fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`biblio-overview-${browserName}-${width}x${height}.png`)});
+ await page.locator('#tsBiblioRead').focus();await page.keyboard.press('Tab');await expect(page.locator('#tsBiblioAmount')).toBeFocused();await page.locator('#tsBiblioAmount').fill('125 000,50');const bounds=await page.locator('#tsBiblioAmount').evaluate(el=>{const input=el.getBoundingClientRect(),viewport=el.closest('.tsEditor').getBoundingClientRect();return{top:input.top,bottom:input.bottom,viewportTop:viewport.top,viewportBottom:viewport.bottom,viewportHeight:viewport.height}});expect(bounds.viewportHeight).toBeGreaterThan(120);expect(bounds.top).toBeGreaterThanOrEqual(bounds.viewportTop-1);expect(bounds.bottom).toBeLessThanOrEqual(bounds.viewportBottom+1);await page.locator('#tsBiblioConfirm').check();await expect(page.locator('#tsBiblioAdd')).toBeEnabled();
+ expect(await page.locator('#tourSelectionDialog').evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThanOrEqual(1);
+ for(const id of ['tsBiblioAdd','tsBiblioBack','tsBiblioCancel'])expect(await page.locator('#'+id).evaluate(el=>el.getBoundingClientRect().height)).toBeGreaterThanOrEqual(44);
+ await page.locator('#tsBiblioAdd').scrollIntoViewIfNeeded();fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`biblio-review-${browserName}-${width}x${height}.png`)});
+ await page.locator('#tsBiblioAdd').click();await expect.poll(()=>s.snapshot(11).draft.offers.length).toBe(2);await expect(page.locator('[data-ts-select]')).toHaveCount(2);expect(s.snapshot(11).draft.offers[0]).toEqual(original.offers[0]);const offer=s.snapshot(11).draft.offers[1];expect(offer.amount).toBe('125000.50');expect(offer.import_source.fields.amount).toBe('123456');expect(offer.photos).toHaveLength(3);expect(s.calls.filter(x=>x.action==='biblio_add')).toHaveLength(1);expect(s.calls.some(x=>['send','publish','collector_import'].includes(x.action))).toBe(false);await page.locator('[data-ts-select]').nth(1).click();await expect(page.locator('.tsImportedSource')).toContainText('Библио-Глобус');
+ await savedGalleryPhotos(page,s,b.photos.length);
+ expect(s.errors).toEqual([]);clean(s,['biblio_search','biblio_review','biblio_add']);
+});
+for(const loss of ['before','after'])test('Biblio uncertain add reconciles before exact retry '+loss,async({page})=>{
+ const b=biblioFixture(),s=await fixture(page,{biblio:b,biblioLoss:loss});await biblioReview(page,b);await page.locator('#tsBiblioConfirm').check();await page.locator('#tsBiblioAdd').click();await expect(page.locator('#tsRecovery')).toContainText('Сервер мог сохранить');const first=copy(s.calls.find(x=>x.action==='biblio_add'));expect(s.calls.filter(x=>x.action==='biblio_add')).toHaveLength(1);
+ await page.locator('#tsClose').click();await page.reload();await expect.poll(()=>page.evaluate(()=>!!WorkspaceV2.S.workspaceBound&&!WorkspaceV2.S.booting)).toBe(true);if(!await page.locator('#tourSelectionOpen').count())await page.locator('#inboxList [data-conversation-id="11"]').click();await open(page,{edit:false});expect(s.calls.filter(x=>x.action==='biblio_add')).toHaveLength(1);await page.getByRole('button',{name:'Проверить сохранение',exact:true}).click();
+ if(loss==='before'){await page.getByRole('button',{name:'Повторить это сохранение',exact:true}).click();await expect.poll(()=>s.calls.filter(x=>x.action==='biblio_add').length).toBe(2);expect(s.calls.filter(x=>x.action==='biblio_add')[1]).toEqual(first)}
+ await expect(page.locator('#tsRecovery')).toBeHidden();expect(s.snapshot(11).draft.offers).toHaveLength(1);expect(s.calls.filter(x=>x.action==='biblio_add')).toHaveLength(loss==='after'?1:2);expect(s.calls.some(x=>['send','publish','collector_import'].includes(x.action))).toBe(false);await savedGalleryPhotos(page,s,b.photos.length);clean(s,['biblio_search','biblio_review','biblio_add']);
+});
+test('Biblio source response cannot cross a client switch',async({page})=>{
+ const b=biblioFixture(),s=await fixture(page,{biblio:b,holdBiblio:true});await open(page,{edit:false});await page.locator('#tsBiblio').click();await page.locator('#tsBiblioUrl').fill(b.url);await page.locator('#tsBiblioRead').click();await expect.poll(()=>s.calls.some(x=>x.action==='biblio_search')).toBe(true);await page.locator('#tsClose').click();await page.locator('#inboxList [data-conversation-id="12"]').click();await open(page,{edit:false});s.release();await expect(page.locator('#tsBiblioResults')).toHaveCount(0);expect(s.drafts.has(11)).toBe(false);expect(s.drafts.has(12)).toBe(false);expect(s.calls.some(x=>['biblio_review','biblio_add','save'].includes(x.action))).toBe(false);clean(s,['biblio_search']);
+});
+test('Biblio confirmed add adopts current colleague revision without stale pre-add conflict',async({page})=>{
+ const b=biblioFixture(),s=await fixture(page,{biblio:b,biblioLoss:'after'});await biblioReview(page,b);await page.locator('#tsBiblioConfirm').check();await page.locator('#tsBiblioAdd').click();await expect(page.locator('#tsRecovery')).toContainText('Сервер мог сохранить');const current=s.snapshot(11);current.draft.offers[0].rationale='Пояснение коллеги после добавления';s.drafts.set(11,{version:current.version+1,draft:copy(current.draft)});await page.getByRole('button',{name:'Проверить сохранение',exact:true}).click();await expect(page.locator('#tsRecovery')).toBeHidden();await expect(page.locator('#tsSave')).toBeDisabled();await expect(page.locator('#ts-rationale')).toHaveValue('Пояснение коллеги после добавления');expect(s.snapshot(11).draft.offers).toHaveLength(1);expect(s.calls.filter(x=>x.action==='biblio_add')).toHaveLength(1);expect(s.calls.some(x=>x.action==='save')).toBe(false);await savedGalleryPhotos(page,s,b.photos.length);clean(s,['biblio_search','biblio_review','biblio_add']);
+});
+test('Biblio source panel invalidates old history navigation',async({page})=>{
+ const b=biblioFixture(),s=await fixture(page,{draft:completeDraft(),biblio:b});await open(page,{edit:false});await page.locator('#tsPreview').click();await expect(page.locator('#tsSend')).toBeVisible();await page.locator('#tsEdit').click();await page.locator('#tsHistory').click();await expect(page.locator('#tsRecovery')).toContainText('Версия');await page.evaluate(()=>{window.oldBiblioHistory=document.querySelector('#tsRecovery button')});await page.locator('#tsBiblio').click();await expect(page.locator('#tsRecovery')).toBeHidden();await page.evaluate(()=>oldBiblioHistory.click());await expect(page.locator('#tsSend')).toBeHidden();await expect(page.locator('#tsShare')).toBeHidden();await expect(page.locator('#tsBiblioRead')).toBeVisible();expect(s.calls.some(x=>['publication','send','publish','biblio_add'].includes(x.action))).toBe(false);clean(s,['prepare','history']);
+});
+test('Biblio missing hotel photos keeps the selection unchanged',async({page})=>{
+ const b=biblioFixture(),original=completeDraft(),s=await fixture(page,{draft:original,biblio:b,biblioPhotosDenied:true});await open(page,{edit:false});await page.locator('#tsBiblio').click();await page.locator('#tsBiblioUrl').fill(b.url);await page.locator('#tsBiblioRead').click();await page.locator('[data-biblio-choice]').click();await expect(page.locator('#tsBiblioStatus')).toContainText('не подтверждены');await expect(page.locator('#tsBiblioAdd')).toHaveCount(0);expect(s.snapshot(11).draft).toEqual(original);expect(s.calls.some(x=>['biblio_add','save','send','publish'].includes(x.action))).toBe(false);clean(s,['biblio_search','biblio_review']);
+});
+test('Biblio waits for image decode without resetting the edited amount or confirmation',async({page})=>{
+ const b=biblioFixture(),s=await fixture(page,{biblio:b,holdBiblioImages:true});await biblioReview(page,b,{waitPhotos:false});await expect.poll(()=>s.biblioImagesHeld()).toBe(3);await page.locator('#tsBiblioAmount').fill('130000');await page.locator('#tsBiblioConfirm').check();await expect(page.locator('#tsBiblioAdd')).toBeDisabled();await expect(page.locator('#tsBiblioPhotoStatus')).toContainText('Загружаем');s.releaseBiblioImages();await expect(page.locator('#tsBiblioAdd')).toBeEnabled();await expect(page.locator('#tsBiblioAmount')).toHaveValue('130000');await expect(page.locator('#tsBiblioConfirm')).toBeChecked();expect(s.calls.some(x=>x.action==='biblio_add')).toBe(false);await page.locator('#tsBiblioAdd').click();await expect.poll(()=>s.snapshot(11).draft.offers[0]?.amount).toBe('130000');await savedGalleryPhotos(page,s,b.photos.length);clean(s,['biblio_search','biblio_review','biblio_add']);
+});
+for(const mode of ['broken','tiny'])test('Biblio unsuitable image blocks normal and stale handler add '+mode,async({page})=>{
+ const b=biblioFixture(),s=await fixture(page,{biblio:b,biblioImageError:mode==='broken',biblioTinyImages:mode==='tiny'});await biblioReview(page,b,{waitPhotos:false});if(mode==='tiny')await expect.poll(()=>page.locator('.tsBiblioPhotos img').evaluateAll(images=>images.every(img=>img.complete&&img.naturalWidth===1))).toBe(true);await expect(page.locator('#tsBiblioPhotoStatus')).toContainText('Не все фотографии');await page.locator('#tsBiblioConfirm').check();await expect(page.locator('#tsBiblioAdd')).toBeDisabled();await page.evaluate(()=>document.querySelector('#tsBiblioAdd').onclick());expect(s.calls.some(x=>['biblio_add','save','prepare','send','publish'].includes(x.action))).toBe(false);await expect(page.locator('#tsBiblioBack')).toBeEnabled();await page.locator('#tsBiblioBack').click();await expect(page.locator('[data-biblio-choice]')).toBeVisible();clean(s,['biblio_search','biblio_review']);
+});
+test('Biblio previous gallery failure cannot change a newly reviewed gallery',async({page})=>{
+ const b=biblioFixture(),options={biblio:b,holdBiblioImages:true,biblioImageError:true},s=await fixture(page,options);await biblioReview(page,b,{waitPhotos:false});await expect.poll(()=>s.biblioImagesHeld()).toBe(3);await page.evaluate(()=>{window.oldBiblioImages=Array.from(document.querySelectorAll('.tsBiblioPhotos img'))});await page.locator('#tsBiblioBack').click();options.holdBiblioImages=false;options.biblioImageError=false;b.photos=b.photos.map(url=>url.replace('synthetic-','next-'));await page.locator('[data-biblio-choice]').click();await expect.poll(()=>page.locator('.tsBiblioPhotos img').evaluateAll(images=>images.every(img=>img.complete&&img.naturalWidth>0))).toBe(true);await page.locator('#tsBiblioAmount').fill('140000');await page.locator('#tsBiblioConfirm').check();s.releaseBiblioImages();await expect.poll(()=>s.biblioImagesSettled()).toBe(6);await page.evaluate(()=>oldBiblioImages.forEach(img=>img.onerror?.()));await expect(page.locator('#tsBiblioAdd')).toBeEnabled();await expect(page.locator('#tsBiblioPhotoStatus')).toHaveText('Фотографии загружены.');await expect(page.locator('#tsBiblioAmount')).toHaveValue('140000');expect(s.calls.some(x=>x.action==='biblio_add')).toBe(false);clean(s,['biblio_search','biblio_review']);
+});
+for(const count of [1,2])test('Biblio accepts exactly the reviewed loaded gallery size '+count,async({page})=>{
+ const b=biblioFixture();b.photos=b.photos.slice(0,count);const s=await fixture(page,{biblio:b});await biblioReview(page,b);await page.locator('#tsBiblioConfirm').check();await expect(page.locator('#tsBiblioAdd')).toBeEnabled();expect(s.calls.some(x=>x.action==='biblio_add')).toBe(false);clean(s,['biblio_search','biblio_review']);
+});
 
 for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420}])test('collector opens the exact selection after authorized conversation navigation '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
  await page.setViewportSize(viewport);const s=await fixture(page,{draft:completeDraft(),entry:'?selection=11&collector_actor=7#conversation=11'});
@@ -187,7 +254,7 @@ for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,
   await page.locator('#replyText').fill('Мой новый ответ, который нельзя потерять');await page.locator('#replyFile').setInputFiles({name:'search3-inquiry.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic, never sent')});
   const detail=await page.evaluate(()=>JSON.parse(JSON.stringify(WorkspaceV2.S.detail)));detail.tour_choices=searchInquiryProjection(mode);
   await page.route('**/manager/api.php',route=>{const d=route.request().postDataJSON();return d.action==='detail'&&Number(d.conversation_id)===11?route.fulfill({contentType:'application/json',body:JSON.stringify(detail)}):route.fallback()});
-  expect(await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible())).toBe(true);await page.locator('#mobileLeadBtn').click();const panel=page.locator('#leadCard [data-tour-choices]');await expect(panel).toBeVisible();await panel.locator('summary').click();
+  expect(await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible())).toBe(true);await page.locator('#conversationTitle.m2ClientCardButton, #mobileLeadBtn:visible').first().click();const panel=page.locator('#leadCard [data-tour-choices]');await expect(panel).toBeVisible();await panel.locator('summary').click();
   for(const value of ['Выбранные туры из поиска','Синтетический выбранный отель у моря','Family sea view','Возраст детей: 0, 0, 12','12.06.2027','Полную стоимость и наличие необходимо подтвердить','ANEX'])await expect(panel).toContainText(value);
   if(mode==='selected'){for(const value of ['231 456,50 ₽ за всех','Outward selected 10:00 synthetic','Inward selected 19:00 synthetic'])await expect(panel).toContainText(value)}else{await expect(panel).toContainText('Цена не указана');await expect(panel).toContainText('Подбор рейсов с менеджером');await expect(panel).not.toContainText('Outward selected')}
   for(const value of ['Понравившиеся туры','record_id','anex_online:','s3_','19.06.2027'])await expect(panel).not.toContainText(value);await expect(panel.locator('button,form')).toHaveCount(0);
@@ -543,7 +610,7 @@ for(const width of [390,430,768,1440])test('Manager2 web inquiry retains exact p
   detail.tour_choices={offers:[],web_inquiries:[{variant:2,link_version:3,public_offer:{hotel:'Синтетический выбранный отель',departure:'Москва',date_from:'2027-06-12',nights:7,adults:2,children:2,room:'Именно семейный номер',meal:'Всё включено',amount:'260000.50',currency:'RUB',flights:'Рейсы уточняются',inclusions:'Трансфер',constraints:'Топливо требует проверки',rationale:'Песчаный пляж',compromise:'До пляжа 400 м',observed_at:'2026-10-23T08:00:00Z'}}]};
   await page.route('**/manager/api.php',route=>{const d=route.request().postDataJSON();return d.action==='detail'&&Number(d.conversation_id)===11?route.fulfill({contentType:'application/json',body:JSON.stringify(detail)}):route.fallback()});
   expect(await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible())).toBe(true);
-  await page.locator('#mobileLeadBtn').click();const panel=page.locator('#leadCard [data-tour-choices]');await expect(panel).toBeVisible();await panel.locator('summary').click();
+  await page.locator('#conversationTitle.m2ClientCardButton, #mobileLeadBtn:visible').first().click();const panel=page.locator('#leadCard [data-tour-choices]');await expect(panel).toBeVisible();await panel.locator('summary').click();
   for(const value of ['Обращения из веб-подборки','Синтетический выбранный отель','260 000,50 ₽ за всех','Вариант 2 · версия 3','12.06.2027','Именно семейный номер','Взрослых: 2 · детей: 2','Рейсы уточняются','Топливо требует проверки','До пляжа 400 м'])await expect(panel).toContainText(value);
   await expect(panel).not.toContainText('Понравившиеся туры');await expect(panel).not.toContainText('Возраст детей');await expect(panel.locator('button,form')).toHaveCount(0);
   // The canonical summary arrow rotates for140ms. Its transient transformed
@@ -1380,7 +1447,7 @@ test('imported gallery correction preserves sibling photos and original quote',a
  await expect(page.locator('#tsStatus')).toContainText('Фото добавлено');await expect(page.locator('#tsSaved')).toHaveText('Сохранено на сервере');
  const stored=copy(s.drafts.get(11).draft);expect(stored.offers[0].photos.slice(1)).toEqual(original.offers[0].photos.slice(1));stored.offers[0].photos=original.offers[0].photos;expect(stored).toEqual(original);
  await page.locator('[data-ts-photo-mode="auto"]').click();await expect(page.locator('.tsAutomaticPhotoStatus')).toContainText('дополнены или заменены менеджером');await expect(page.locator('.tsUploadedLabel').filter({hasText:'Из галереи источника'})).toHaveCount(2);
- expect(s.creations()).toBe(0);clean(s);
+ await savedGalleryPhotos(page,s,3);expect(s.creations()).toBe(0);clean(s);
 });
 
 test('imported empty gallery correction obeys readonly access',async({page})=>{
@@ -1405,7 +1472,69 @@ test('imported photo correction pending upload cannot write to the next client',
  await expect(page.locator('#tsEmptyAdd')).toBeVisible();expect(s.drafts.has(12)).toBe(false);expect(s.calls.filter(x=>x.action==='save')).toHaveLength(0);expect(s.drafts.get(11).draft).toEqual(draft);clean(s);
 });
 
+for(const width of [390,1440])test('selection print uses exact frozen cards and loaded photos without a tab or write at '+width,async({page,browserName})=>{
+ await page.setViewportSize({width,height:900});const draft=completeDraft();draft.offers.push({...copy(draft.offers[0]),id:'b'.repeat(32),hotel:'Второй синтетический отель',amount:'123456.78',currency:'EUR'});
+ const s=await fixture(page,{draft});await page.locator('#replyText').fill('PRIVATE COMPOSER MUST NOT PRINT');await open(page);await expect(page.locator('#tsPrint')).toBeHidden();await page.locator('#tsPreview').click();await expect(page.locator('#tsPrint')).toBeEnabled();
+ const calls=copy(s.calls),original=copy(s.publication()),before=copy(s.drafts.get(11)),pages=page.context().pages().length;
+ const requests=[];page.on('request',req=>requests.push(req.url()));
+ await page.evaluate(()=>{window.printCalls=0;window.print=()=>{printCalls++};window.previewImages=Array.from(document.querySelectorAll('.tsPhotos img'))});
+ await page.locator('#tsPrint').click();expect(await page.evaluate(()=>printCalls)).toBe(1);expect(s.calls).toEqual(calls);expect(s.creations()).toBe(0);expect(s.drafts.get(11)).toEqual(before);expect(page.context().pages()).toHaveLength(pages);expect(requests).toEqual([]);
+ expect(await page.locator('.tsPrintOffer .tsCardText').allTextContents()).toEqual(original.cards.map(card=>card.text));await expect(page.locator('.tsPrintVersion')).toHaveText('Версия подборки 1');
+ expect(await page.evaluate(()=>previewImages.every(img=>img.closest('.tsPrintProposal')&&img.complete&&img.naturalWidth>0))).toBe(true);
+ await page.emulateMedia({media:'print'});await expect(page.locator('.tsPrintProposal')).toBeVisible();await expect(page.locator('.tsShell')).toBeHidden();await expect(page.locator('#replyText')).toBeHidden();await expect(page.locator('.tsPrintProposal')).not.toContainText('PRIVATE COMPOSER');
+ await expect(page.locator('.tsPrintPhotos img')).toHaveCount(6);expect(await page.locator('.tsPrintPhotos img').evaluateAll(imgs=>imgs.every(img=>getComputedStyle(img).display!=='none'&&img.getBoundingClientRect().width>0))).toBe(true);
+ expect(await page.locator('.tsPrintProposal').evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
+ expect(await page.locator('.tsPrintProposal').evaluate(el=>{const r=el.getBoundingClientRect();return r.left>=-1&&r.right<=innerWidth+1})).toBe(true);
+ fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',fullPage:true,path:path.join(root,'manager2-artifacts',`tour-selection-print-${browserName}-${width}.png`)});
+ await page.evaluate(()=>window.dispatchEvent(new Event('afterprint')));await page.emulateMedia({media:'screen'});await expect(page.locator('.tsPrintProposal')).toHaveCount(0);await expect(page.locator('#tsPrint')).toBeEnabled();
+ expect(await page.evaluate(()=>previewImages.every(img=>img.closest('.tsPreviewCard')))).toBe(true);await page.locator('#tsEdit').click();await page.locator('#tsClose').click();await expect(page.locator('#replyText')).toHaveValue('PRIVATE COMPOSER MUST NOT PRINT');expect(s.calls).toEqual(calls);clean(s,deliveryActions);
+});
+for(const failed of [false,true])test('selection print blocks '+(failed?'broken':'pending')+' preview photos',async({page})=>{
+ const s=await fixture(page,{draft:completeDraft(),holdPhotos:!failed,photoError:failed});await open(page);await page.locator('#tsPreview').click();await expect(page.locator('.tsPreviewCard')).toHaveCount(1);await expect(page.locator('#tsPrint')).toBeDisabled();
+ await page.evaluate(()=>{window.printCalls=0;window.print=()=>{printCalls++};document.getElementById('tsPrint').click()});expect(await page.evaluate(()=>printCalls)).toBe(0);
+ if(!failed){s.releasePhotos();await expect(page.locator('#tsPrint')).toBeEnabled()}else await expect(page.locator('#tsStatus')).toContainText('Не удалось загрузить фото');clean(s,deliveryActions);
+});
+test('selection readonly history prints original terms after the editable draft changed',async({page})=>{
+ const options={draft:completeDraft()},s=await fixture(page,options);await open(page);await page.locator('#tsPreview').click();await expect(page.locator('#tsPrint')).toBeEnabled();const original=copy(s.publication());await page.locator('#tsEdit').click();await page.locator('#ts-hotel').fill('NEW PRIVATE DRAFT');await save(page);await page.locator('#tsClose').click();options.readOnly=true;await open(page);
+ await page.locator('#tsHistory').click();await page.getByRole('button',{name:/Версия 1 ·/}).click();await expect(page.locator('#tsPrint')).toBeEnabled();const before=copy(s.calls);await page.evaluate(()=>{window.print=()=>{}});await page.locator('#tsPrint').click();expect(await page.locator('.tsPrintOffer .tsCardText').allTextContents()).toEqual(original.cards.map(card=>card.text));await expect(page.locator('.tsPrintProposal')).not.toContainText('NEW PRIVATE DRAFT');expect(s.calls).toEqual(before);expect(s.drafts.get(11).draft.offers[0].hotel).toBe('NEW PRIVATE DRAFT');expect(s.creations()).toBe(0);clean(s,deliveryActions);
+});
+test('selection print is removed on client switch and old button cannot print the next client',async({page})=>{
+ const s=await fixture(page,{draft:completeDraft()});await open(page);await page.locator('#tsPreview').click();await expect(page.locator('#tsPrint')).toBeEnabled();await page.evaluate(()=>{window.printCalls=0;window.print=()=>{printCalls++};window.oldPrintButton=document.getElementById('tsPrint')});await page.locator('#tsPrint').click();await expect(page.locator('.tsPrintProposal')).toHaveCount(1);await page.locator('#tsClose').click();await expect(page.locator('.tsPrintProposal')).toHaveCount(0);await page.locator('#inboxList [data-conversation-id="12"]').click();await open(page);await page.evaluate(()=>oldPrintButton.click());expect(await page.evaluate(()=>printCalls)).toBe(1);await expect(page.locator('.tsPrintProposal')).toHaveCount(0);expect(s.drafts.has(12)).toBe(false);clean(s,deliveryActions);
+});
+
 const {privateEditor}=require('./fixtures/selection-private-editor');
+test('protected tours iframe compares native print lifecycle with a same-frame control and recovers without events',async({page,browserName},testInfo)=>{
+ const s=await privateEditor(page,{draft:completeDraft()}),f=s.editor;const prepareCalls=[];
+ const frame=page.frames().find(x=>x.url().startsWith('https://app.anytoour.ru/manager/tour-selection-editor.php'));
+ await expect(f.locator('#tsStatus')).toContainText('загружен');
+ // Both phases call through the real native function on an ordinary user click.
+ // Observe each for the same bounded window: WebKit's CI host may emit no
+ // printing events even for this control. That is never a successful print claim.
+ await frame.evaluate(()=>{
+  window.printDiagnostic={phase:'control',control:{calls:0,before:0,after:0},proposal:{calls:0,before:0,after:0}};
+  const nativePrint=window.print.bind(window);window.print=()=>{printDiagnostic[printDiagnostic.phase].calls++;return nativePrint()};
+  addEventListener('beforeprint',()=>printDiagnostic[printDiagnostic.phase].before++);addEventListener('afterprint',()=>printDiagnostic[printDiagnostic.phase].after++);
+  const control=document.createElement('button');control.id='nativePrintControl';control.textContent='Synthetic native print control';control.onclick=()=>window.print();document.getElementById('tourSelectionDialog').append(control);
+ });
+ await f.locator('#nativePrintControl').click();await frame.evaluate(()=>new Promise(resolve=>setTimeout(resolve,5000)));
+ const control=await frame.evaluate(()=>({...printDiagnostic.control}));expect(control.calls).toBe(1);expect([0,1]).toContain(control.before);if(browserName==='chromium')expect(control.before).toBe(1);
+ await frame.evaluate(()=>{document.getElementById('nativePrintControl').remove();printDiagnostic.phase='proposal'});
+ await page.route('**/manager/tour-selection-editor-api.php',async route=>{
+  const d=route.request().postDataJSON();if(d.action!=='prepare')return route.fallback();expect(d.csrf).toBe('private-csrf');expect(d.editor_actor).toBe(7);expect(d.conversation_id).toBe(11);prepareCalls.push(copy(d));
+  const built=JSON.parse(execFileSync('php',['-r',`require 'services/ManagerTourSelectionPublicationDraft.php'; $b=ManagerTourSelectionPublicationDraft::build(json_decode(stream_get_contents(STDIN),true)); foreach($b['offers'] as &$o)$o['card']=TourOfferCardRenderer::render($o['snapshot'],$o['presentation'],'tour_like_1_'.str_repeat('a',24)); echo json_encode($b,JSON_THROW_ON_ERROR);`],{cwd:root,input:JSON.stringify(s.snapshot().draft),encoding:'utf8'}));
+  return route.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,publication:{id:'a'.repeat(32),draft_version:1,title:built.title,channel:'telegram',can_send:true,cards:built.offers.map((o,index)=>({index,state:'pending',text:o.card.plain_text,snapshot:o.snapshot,photos:o.presentation.photos.map(p=>p.url)}))}})});
+ });
+ await page.route('https://photos.example.org/*.jpg',route=>route.fulfill({contentType:'image/jpeg',body:fs.readFileSync(path.join(root,'assets/owner-tour-cards/compact-v1/cover.jpg'))}));
+ await expect(f.locator('#tsStatus')).toContainText('загружен');await f.locator('#tsPreview').click();await expect(f.locator('#tsPrint')).toBeEnabled();expect(prepareCalls).toHaveLength(1);expect(await page.locator('iframe').evaluate(el=>el.sandbox.contains('allow-modals'))).toBe(true);
+ const pages=page.context().pages().length;await frame.evaluate(()=>{window.printImages=Array.from(document.querySelectorAll('.tsPhotos img'))});await f.locator('#tsPrint').click();await frame.evaluate(()=>new Promise(resolve=>setTimeout(resolve,5000)));
+ const observed=await frame.evaluate(()=>({native:printDiagnostic,temporary:!!document.querySelector('.tsPrintProposal')}));expect(observed.native.proposal.calls).toBe(1);expect(observed.native.proposal.before).toBe(control.before);if(browserName==='chromium')expect(observed.native.proposal.before).toBe(1);
+ await testInfo.attach('native-print-control-'+browserName,{contentType:'application/json',body:Buffer.from(JSON.stringify({browser:browserName,observationMs:5000,...observed,actualPrintOrPdfConfirmed:false}))});
+ // Independently exercise no-event recovery in both engines. This separate
+ // controlled non-returning lifecycle is not used to claim native acceptance.
+ if(observed.temporary)await f.locator('#tsPrint').click();await expect(f.locator('.tsPrintProposal')).toHaveCount(0);await expect(f.locator('#tsPrint')).toHaveText('Печать / PDF');
+ await frame.evaluate(()=>{window.print=()=>{}});await f.locator('#tsPrint').click();await expect(f.locator('#tsPrint')).toHaveText('Вернуть предпросмотр');await f.locator('#tsPrint').click();await expect(f.locator('.tsPrintProposal')).toHaveCount(0);expect(await frame.evaluate(()=>printImages.every(img=>img.closest('.tsPreviewCard')))).toBe(true);await expect(f.locator('#tsPrint')).toBeEnabled();
+ expect(page.context().pages()).toHaveLength(pages);expect(s.calls.every(x=>['me','editor_context','get'].includes(x.action))).toBe(true);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
 for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420},{width:430,height:420}])test('private editor uses the same protected core in tours iframe '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
  await page.setViewportSize(viewport);const s=await privateEditor(page,{draft:completeDraft()}),f=s.editor;await f.locator('#tsOfferDetails>summary').click();
  await expect(f.locator('#ts-hotel')).toHaveValue('Синтетический отель у моря');await expect(f.locator('#ts-amount')).toHaveValue('240000');

@@ -40,4 +40,29 @@ test('fresh forbidden page invalidates access through canonical guard',async()=>
 test('initial unread context seeds only the declared interval and merges canonical older coverage',async()=>{const h=history(),d=h.detail([message(10),message(20),message(1000),message(1100)]);Object.assign(d.history,{initial_unread_id:20,gap_frontier:20,gap_before_id:1000});h.S.detail={...d,messages:h.H.applyLatest(d,{reset:true})};assert.equal(h.H.getState().before_id,1000);assert.equal(h.H.getState().has_gap,true);assert.equal(h.calls.length,0);h.queue.push(h.detail([message(20),message(500),message(900)],{mode:'older'}));await h.H.loadOlder();assert.equal(h.calls[0].before_id,1000);assert.equal(h.H.getState().has_gap,false);assert.deepEqual(Array.from(h.S.detail.messages,m=>m.id),[10,20,500,900,1000,1100]);});
 test('invalid initial unread interval cannot replace the ordinary older cursor',()=>{for(const gap of [{gap_frontier:30,gap_before_id:1000},{gap_frontier:1000,gap_before_id:20},{gap_frontier:20,gap_before_id:999}]){const h=history(),d=h.detail([message(10),message(20),message(1000)]);Object.assign(d.history,{initial_unread_id:20,...gap});h.S.detail={...d,messages:h.H.applyLatest(d,{reset:true})};assert.equal(h.H.getState().has_gap,false);assert.equal(h.H.getState().before_id,10);}});
 test('a fresh expanded latest window supersedes an initial unread gap cursor and stale overlapping page',async()=>{const h=history(),d=h.detail([message(10),message(20),message(1000),message(1100)]);Object.assign(d.history,{initial_unread_id:20,gap_frontier:20,gap_before_id:1000});h.S.detail={...d,messages:h.H.applyLatest(d,{reset:true})};const pending=deferred();h.queue.push(pending.promise);const old=h.H.loadOlder();h.latest([message(800),{...message(900),text:'Fresh latest edit'},message(1100)]);assert.equal(h.H.getState().before_id,800);pending.resolve(h.detail([message(20),message(500),message(900)],{mode:'older'}));assert.equal(await old,false);assert.equal(h.S.detail.messages.find(m=>m.id===900).text,'Fresh latest edit');h.queue.push(h.detail([message(20),message(500)],{mode:'older'}));await h.H.loadOlder();assert.equal(h.calls[1].before_id,800);assert.equal(h.H.getState().has_gap,false);assert.equal(h.S.detail.messages.find(m=>m.id===900).text,'Fresh latest edit');});
+
+// Execute the actual browser helper against a VM document, without starting a
+// browser. In particular, Promise rejection reasons may be falsy values.
+async function historyRefreshBridge({reject=false,value,missing=false,replacedDocument=false}={}){
+ const spec=fs.readFileSync(path.join(__dirname,'visual/manager-transcript-history.spec.js'),'utf8');
+ const helper=spec.match(/async function refresh\(page\)\{[\s\S]*?\r?\n\}\r?\nasync function revealConversationTool/);assert.ok(helper,'Canonical helper exists');
+ const code=helper[0].slice(0,helper[0].lastIndexOf('async function revealConversationTool'));
+ let actions=0,reads=0,settles=0;const browser=vm.createContext({window:{},document:{},WorkspaceV2Conversation:{refreshVisible(){actions++;return reject?Promise.reject(value):Promise.resolve(value)}}});
+ const page={async evaluate(fn){reads++;if(reads===2){if(missing)delete browser.window.__qaHistoryRefresh;if(replacedDocument)browser.document={}}return vm.runInContext('('+fn.toString()+')()',browser)}};
+ const expect=value=>({toEqual:expected=>assert.deepEqual(JSON.parse(JSON.stringify(value)),JSON.parse(JSON.stringify(expected)))});
+ expect.poll=read=>({async toBe(expected){for(let i=0;i<5;i++){if(await read()===expected)return;await new Promise(setImmediate)}assert.fail('Settlement never observed')}});
+ const outer=vm.createContext({page,expect,settled:async()=>{settles++}});vm.runInContext(code,outer);
+ let rejected=false,reason;try{await outer.refresh(page)}catch(error){rejected=true;reason=error}
+ assert.equal(actions,1,'Polling never invokes the action again');assert.equal(reads,3,'One invocation, settlement read and exact readback');
+ return {rejected,reason,settles,browser};
+}
+test('history refresh bridge accepts true false and undefined successful results without replay',async()=>{
+ for(const value of [true,false,undefined]){const h=await historyRefreshBridge({value});assert.equal(h.rejected,false);assert.equal(h.settles,1);assert.equal(h.browser.window.__qaHistoryRefresh,undefined)}
+});
+test('history refresh bridge preserves Error and every falsy rejection reason',async()=>{
+ for(const reason of [new Error('Synthetic rejection'),undefined,null,false,0]){const h=await historyRefreshBridge({reject:true,value:reason});assert.equal(h.rejected,true);assert.equal(h.reason,reason);assert.equal(h.settles,0);assert.equal(h.browser.window.__qaHistoryRefresh,undefined)}
+});
+test('history refresh bridge fails a missing state or a different Document without retry',async()=>{
+ for(const options of [{missing:true},{replacedDocument:true}]){const h=await historyRefreshBridge(options);assert.equal(h.rejected,true);assert.equal(h.settles,0)}
+});
 (async()=>{let failures=0;for(const {name,fn}of cases){try{await fn();console.log('PASS '+name)}catch(e){failures++;console.error('FAIL '+name+'\n'+e.stack)}}console.log('TOTAL '+cases.length+' | FAIL '+failures);process.exitCode=failures?1:0})();

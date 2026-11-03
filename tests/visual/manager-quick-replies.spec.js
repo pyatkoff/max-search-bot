@@ -129,7 +129,9 @@ async function openLead(page,id=11){
  }
  await page.locator('#inboxList [data-conversation-id="'+id+'"]').click();await expect(page.locator('#composer')).toBeVisible();
 }
+async function chooseAnotherInboxClient(page){const current=await page.evaluate(()=>Number(WorkspaceV2.S.current));const target=await page.locator('#inboxList [data-conversation-id]').evaluateAll((nodes,current)=>nodes.map(n=>Number(n.dataset.conversationId)).find(id=>id!==current),current);expect(target).toBeTruthy();if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()&&WorkspaceV2Mobile.getScreen()!=='inbox'))await page.locator('#mobileBack').click();await page.locator('#inboxList [data-conversation-id="'+target+'"]').click();}
 async function useConversationTool(page,id,interaction='click'){
+ if(id==='nextWaitingConversation'&&await page.locator('body.manager2').count()){await chooseAnotherInboxClient(page);return;}
  const tool=page.locator('#'+id);await expect(tool).toHaveCount(1);
  const menu=tool.locator('xpath=ancestor::details[1]');
  if(await menu.count()&&!await menu.evaluate(el=>el.open))await menu.locator('summary').click();

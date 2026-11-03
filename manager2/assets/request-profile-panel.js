@@ -4,7 +4,9 @@
   if(!W||!document.body.classList.contains('manager2'))return;
   const {S,$}=W;
   let context=null,read=null,stamp='',sequence=0,openIntent=0,dialog=null,frame=null,nonce='',opener=null;
-  let row=null,label=null,criteria=null,state=null,button=null,dialogState=null,overlayHeld=false;
+  let row=null,label=null,criteria=null,state=null,button=null,dialogState=null,overlayHeld=false,handoffSlot=null,handoffAnchor=null;
+  function restoreHandoff(){const source=$('handoffContext');if(source&&handoffAnchor?.parentNode&&source.parentNode!==handoffAnchor.parentNode)handoffAnchor.parentNode.insertBefore(source,handoffAnchor.nextSibling);}
+  function groupHandoff(){const source=$('handoffContext');if(!source||!handoffSlot)return;if(!handoffAnchor){handoffAnchor=document.createComment('Original request context position');source.before(handoffAnchor);}if(source.parentNode!==handoffSlot)handoffSlot.appendChild(source);}
   const capture=()=>{
     const conversation=Number(S.current),manager=Number(S.manager?.id);
     const c=S.detail?.conversation;
@@ -22,27 +24,27 @@
     if(restoreFocus&&current(context)&&opener?.isConnected)opener.focus({preventScroll:true});
   }
   function reset(){
-    ++sequence;read?.abort();read=null;stamp='';context=null;close({restoreFocus:false,destroy:true});
-    if(row){row.hidden=true;label.textContent='';criteria.textContent='';state.textContent='';button.disabled=true;delete row.dataset.state;}
+    ++sequence;read?.abort();read=null;stamp='';context=null;close({restoreFocus:false,destroy:true});restoreHandoff();
+    if(row){row.hidden=true;row.open=false;label.textContent='';criteria.textContent='';state.textContent='';button.disabled=true;delete row.dataset.state;}
     if(dialogState){dialogState.textContent='';dialogState.hidden=true;}
   }
   function ensureRow(){
     if(row)return;
     const head=document.querySelector('#conversationZone .conversationHead');
     if(!head)return;
-    row=document.createElement('section');row.id='m2CurrentTrip';row.className='m2CurrentTrip';row.hidden=true;
-    row.setAttribute('aria-label','Запрос туриста');
-    const title=document.createElement('h3');title.className='m2RequestTitle';title.textContent='Запрос туриста';row.appendChild(title);
-    const copy=document.createElement('div');label=document.createElement('strong');criteria=document.createElement('small');state=document.createElement('span');
-    state.setAttribute('role','status');state.setAttribute('aria-live','polite');copy.append(label,criteria,state);
-    button=document.createElement('button');button.type='button';button.className='actionBtn';button.textContent='Условия поездки';
-    button.setAttribute('aria-haspopup','dialog');button.addEventListener('click',()=>open(button));row.append(copy,button);
+    row=document.createElement('details');row.id='m2CurrentTrip';row.className='m2CurrentTrip';row.hidden=true;
+    const summary=document.createElement('summary'),title=document.createElement('span');title.className='m2RequestTitle';title.textContent='Запрос клиента';summary.appendChild(title);
+    label=document.createElement('strong');criteria=document.createElement('small');summary.append(label,criteria);row.appendChild(summary);
+    const content=document.createElement('div');content.className='m2RequestContent';state=document.createElement('span');state.className='m2RequestStatus';state.setAttribute('role','status');state.setAttribute('aria-live','polite');content.appendChild(state);
+    button=document.createElement('button');button.type='button';button.className='actionBtn';button.textContent='Уточнить запрос';
+    button.setAttribute('aria-haspopup','dialog');button.addEventListener('click',()=>open(button));content.appendChild(button);
+    handoffSlot=document.createElement('div');handoffSlot.className='m2RequestSource';content.appendChild(handoffSlot);row.appendChild(content);
     const host=window.WorkspaceV2AiDraft?.host?.();if(host)host.insertBefore(row,host.firstChild);else head.after(row);
   }
   function render(profile){
     if(!row)return;
-    const states={fresh:'Профиль сверен с перепиской',stale:'Есть новые сообщения — условия нужно сверить',source_changed:'Основания изменились — условия нужно сверить'};
-    label.textContent=typeof profile?.label==='string'&&profile.label.trim()?profile.label:'Текущая поездка';
+    const states={fresh:'Запрос сверен с перепиской',stale:'Есть новые сообщения. Сверьте запрос.',source_changed:'Исходные данные изменились. Сверьте запрос.'};
+    const name=typeof profile?.label==='string'?profile.label.trim():'';label.textContent=name==='Текущая поездка'?'':name;label.hidden=!label.textContent;
     const party=profile?.fields?.party?.value,parts=[];
     const dates=profile?.fields?.dates?.value,budget=profile?.fields?.budget?.value;
     if(typeof dates==='string'&&dates.trim())parts.push(dates.trim());
@@ -59,14 +61,15 @@
       const field=profile?.fields?.[key];
       if(typeof field?.value==='string'&&field.value.trim())parts.push(field.value.trim()+(field.kind==='manager_interpretation'?' (версия менеджера)':''));
     }
-    criteria.textContent=parts.join(' · ');criteria.hidden=!parts.length;
-    state.textContent=states[profile?.status]||'Условия ещё нужно проверить';
+    const original=typeof S.detail?.handoff_context?.summary==='string'?S.detail.handoff_context.summary.trim():'';
+    criteria.textContent=parts.join(' · ')||original.slice(0,180)+(original.length>180?'…':'')||'Пожелания ещё не уточнены';criteria.hidden=false;
+    state.textContent=states[profile?.status]||'Сохранённого запроса пока нет. Уточните его по переписке.';
     row.dataset.state=profile?.status==='fresh'?'fresh':'review';
   }
   async function load(){
     if(!current(context))return false;
     const saved=context,ticket=++sequence;read?.abort();read=new AbortController();
-    label.textContent='Текущая поездка';criteria.textContent='';criteria.hidden=true;state.textContent='Загружаем условия…';button.disabled=false;
+    render(null);state.textContent='Загружаем запрос…';button.disabled=false;
     try{
       const r=await W.request('request-profile-api.php','get',{conversation_id:saved.conversation},
         {signal:read.signal,isCurrent:()=>ticket===sequence&&current(saved)});
@@ -83,7 +86,7 @@
     if(!next){reset();return;}
     ensureRow();if(!row)return;
     if(!same(context,next)){reset();context=next;}
-    row.hidden=false;
+    row.hidden=false;groupHandoff();
     const messages=S.detail?.messages||[];
     const nextStamp=JSON.stringify([next,messages.map(m=>[m.id,m.direction,m.sender_type,m.text,m.created_at,m.updated_at,m.metadata,m.attachments,m.deleted_at])]);
     if(stamp!==nextStamp){stamp=nextStamp;void load();}
@@ -92,7 +95,7 @@
     if(dialog)return;
     dialog=document.createElement('dialog');dialog.id='m2RequestProfilePanel';dialog.className='m2RequestProfilePanel';
     dialog.setAttribute('aria-labelledby','m2RequestProfileTitle');
-    const header=document.createElement('header'),copy=document.createElement('div'),title=document.createElement('h2');title.id='m2RequestProfileTitle';title.textContent='Условия текущей поездки';
+    const header=document.createElement('header'),copy=document.createElement('div'),title=document.createElement('h2');title.id='m2RequestProfileTitle';title.textContent='Запрос клиента';
     dialogState=document.createElement('p');dialogState.className='m2RequestProfileState';dialogState.hidden=true;dialogState.setAttribute('role','status');dialogState.setAttribute('aria-live','polite');copy.append(title,dialogState);
     const done=document.createElement('button');done.type='button';done.className='actionBtn';done.textContent='Готово';done.addEventListener('click',()=>close());
     header.append(copy,done);dialog.appendChild(header);
@@ -115,7 +118,7 @@
     }
     if(!frame){
       nonce=crypto.randomUUID().replaceAll('-','');
-      frame=document.createElement('iframe');frame.title='Профиль текущей поездки';frame.name='request-profile-'+nonce;
+      frame=document.createElement('iframe');frame.title='Уточнение запроса клиента';frame.name='request-profile-'+nonce;
       const url=new URL('/manager2/request-profile.php',location.origin);
       url.searchParams.set('conversation',String(context.conversation));url.searchParams.set('workspace','1');
       url.searchParams.set('viewer',String(context.manager));url.searchParams.set('panel',nonce);frame.src=url.href;
