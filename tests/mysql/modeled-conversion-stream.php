@@ -44,6 +44,7 @@ try{
     forecastStatusSchema($p);forecastStatusAssertions($p,$check);
     forecastV1Assertions($p,$check);
     forecastLatencyAssertions($p,$check);
+    forecastTelegramLinkageAssertions($p,$check);
     modeledValueAssertions($p,$check);
     modeledValueHistoryAssertions($p,$check);
     modeledValueFortnightAssertions($p,$check);

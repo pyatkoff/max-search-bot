@@ -485,8 +485,67 @@ function forecastLatencyAssertions(PDO $p,callable $check):void
     if($mysql)$p->exec('SET time_zone='.$p->quote((string)$oldTimeZone));
 }
 
+
+function forecastTelegramLinkageAssertions(PDO $p,callable $check):void
+{
+    foreach(['advertising_visit_observations','max_channel_conversion_outbox']as$table)$p->exec('DROP TABLE IF EXISTS '.$table);
+    $p->exec("CREATE TABLE advertising_visit_observations(id BIGINT PRIMARY KEY,project_key VARCHAR(40),source_key VARCHAR(80),platform VARCHAR(16),counter_id VARCHAR(20),external_user_id VARCHAR(32),identity_status VARCHAR(16),client_id VARCHAR(40),visit_at_unix BIGINT,observed_at_unix BIGINT,received_at_unix BIGINT)");
+    $p->exec("CREATE INDEX linkage_fixture_identity ON advertising_visit_observations(project_key,source_key,platform,counter_id,external_user_id)");
+    $p->exec("CREATE TABLE max_channel_conversion_outbox(id BIGINT PRIMARY KEY,project_key VARCHAR(40),counter_id VARCHAR(20),platform VARCHAR(16),state VARCHAR(24),transport_target VARCHAR(64),value_contract VARCHAR(64),external_user_id VARCHAR(32),event_unix BIGINT,value_rub DECIMAL(12,2),next_attempt_unix BIGINT)");
+    $now=1793700000;$event=$now-600;
+    $insert=$p->prepare("INSERT INTO max_channel_conversion_outbox VALUES(?,'anytour','98615635','telegram','pending',?,?,?,?,1250,?)");
+    for($i=101;$i<=109;$i++)$insert->execute([$i,ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION,(string)$i,$event,$i===105?$now+300:0]);
+    $observe=$p->prepare("INSERT INTO advertising_visit_observations VALUES(?,'anytour','tgmini','telegram',?,?,?,?,?,?,?)");
+    foreach([
+        [1,'98615635','102','unverified','770000001',$event-10,$event-5,$now-5],
+        [2,'98615635','103','verified','',$event-10,$event-5,$now-5],
+        [3,'98615635','104','verified','770000002',$event+10,$event+20,$now-5],
+        [4,'98615635','105','verified','770000003',$event-10,$event-5,$now-5],
+        [5,'98615635','105','verified','770000003',$event-10,$event-4,$now-4],
+        [6,'98615635','106','verified','770000004',$event-10,$event-5,$now-5],
+        [7,'98615635','106','verified','770000005',$event-10,$event-5,$now-5],
+        [8,'98615635','107','verified','770000006',$event-10,$now+1,$now+1],
+        [9,'123','108','verified','770000007',$event-10,$event-5,$now-5],
+        [10,'98615635','109','verified','770000008',$event-10,$now-10,$now-5]
+    ]as$row)$observe->execute($row);
+    $transport=static fn():array=>['initialized'=>true,'enabled'=>true,'request_public_key'=>'PRIVATE_KEY_MUST_NOT_RETURN',
+        'last_run'=>['status'=>'imported','received_at_unix'=>$now-5,'has_more'=>false,'cursor'=>'PRIVATE_CURSOR_MUST_NOT_RETURN']];
+    $before=json_encode([$p->query('SELECT * FROM advertising_visit_observations ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),
+        $p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC)],JSON_THROW_ON_ERROR);
+    $read=static fn():array=>(new ModeledConversionTelegramLinkageReader($p,static function():void{},new ModeledConversionStatusBudget(),$transport))->read($now);
+    $r=$read();
+    $check('Telegram linkage separates missing unverified empty later future unique and ambiguous observations',
+        $r['available']&&$r['pending']['events']===9&&$r['pending']['value_rub']===11250
+        &&$r['pending']['reason_counts']===['no_scoped_observation'=>2,'identity_unverified'=>1,'client_id_missing'=>1,
+            'visit_after_signal'=>1,'candidate_not_available_at_check'=>1,'unique_eligible'=>2,'ambiguous_eligible'=>1]);
+    $check('same ClientID repeats stay unique and late enrichment retains the original visit eligibility',
+        $r['pending']['unique_retry_deferred']===1&&$r['pending']['reason_counts']['unique_eligible']===2);
+    $json=json_encode($r,JSON_THROW_ON_ERROR);
+    $check('source and transport diagnostics expose only bounded counts and sanitized readiness',
+        $r['source']['rows_in_window']===9&&$r['transport']['enabled']===true
+        &&$r['transport']['last_success_at']===gmdate('Y-m-d\\TH:i:s\\Z',$now-5)
+        &&!str_contains($json,'PRIVATE_')&&!str_contains($json,'77000000')&&!str_contains($json,'external_user_id'));
+    $read();
+    $check('repeated identity diagnosis leaves observations outbox values and retry clocks byte-identical',
+        $before===json_encode([$p->query('SELECT * FROM advertising_visit_observations ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),
+            $p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC)],JSON_THROW_ON_ERROR));
+    $revoked=false;$calls=0;
+    try{(new ModeledConversionTelegramLinkageReader($p,static function()use(&$calls):void{if(++$calls>=3)throw new DomainException('revoked_fixture');},new ModeledConversionStatusBudget(),$transport))->read($now);}
+    catch(DomainException $ignored){$revoked=true;}
+    $check('revocation after identity metadata selection prevents private release',$revoked);
+    $budget=new ModeledConversionStatusBudget();$budget->consumeBytes(60000);
+    $limited=(new ModeledConversionTelegramLinkageReader($p,static function():void{},$budget,$transport))->read($now);
+    $check('optional identity diagnosis preserves endpoint headroom before source reads',$limited===['available'=>false,'reason'=>'budget_headroom']);
+    for($i=200;$i<235;$i++)$insert->execute([$i,ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION,(string)$i,$event,0]);
+    $r=$read();
+    $check('pending identity window remains explicitly bounded and incomplete at its cap',
+        $r['pending']['events']===32&&!$r['pending']['complete_within_bound']);
+    $p->exec('DROP TABLE advertising_visit_observations');$r=$read();
+    $check('missing identity storage stays explicit without changing other status contracts',$r===['available'=>false,'reason'=>'storage_unavailable']);
+}
+
 if(realpath($_SERVER['SCRIPT_FILENAME']??'')===__FILE__){
     $p=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);$passed=0;
     $check=static function(string $name,bool $ok)use(&$passed):void{if(!$ok)throw new RuntimeException('FAIL '.$name);$passed++;echo 'PASS '.$name.PHP_EOL;};
-    forecastV1Assertions($p,$check);forecastLatencyAssertions($p,$check);echo 'V1 FORECAST STATUS PASSED '.$passed.PHP_EOL;
+    forecastV1Assertions($p,$check);forecastLatencyAssertions($p,$check);forecastTelegramLinkageAssertions($p,$check);echo 'V1 FORECAST STATUS PASSED '.$passed.PHP_EOL;
 }
