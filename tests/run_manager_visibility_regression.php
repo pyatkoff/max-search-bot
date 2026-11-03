@@ -64,7 +64,7 @@ mvCheck('priority diagnostics only tail bounded structured log',strpos($producti
 mvCheck('production gate checks deployed sha',strpos($diagnostics,'production_sha_mismatch')!==false);
 mvCheck('production gate checks migration health',strpos($diagnostics,'migration_health_failed')!==false);
 mvCheck('production gate checks manager visibility',strpos($diagnostics,'manager_visibility_health_failed')!==false);
-mvCheck('live diagnostics waits for current deployed sha',strpos($liveDiagnostics,'Wait for production SHA')!==false && strpos($liveDiagnostics,'EXPECTED_SHA: ${{ github.sha }}')!==false);
+mvCheck('live diagnostics waits for pinned deployed sha',strpos($liveDiagnostics,'Wait for production SHA')!==false && strpos($liveDiagnostics,'EXPECTED_SHA: ${{ steps.source.outputs.sha }}')!==false);
 mvCheck('live diagnostics fails stale production sha',strpos($liveDiagnostics,'production_sha_mismatch')!==false);
 
 // Synthetic reproduction of the Sept21 capped-count false alarm. No live IDs.

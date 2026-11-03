@@ -12,6 +12,30 @@ Before loading deployment credentials or building a bundle, the production workf
 
 Production checkout path is documented in `README.md` and deploy workflow. Treat the repository/deploy workflow as canonical if paths change.
 
+The MAX webhook, strict MAX TLS, Telegram production webhook and live-session
+production gates run automatically after a successful `Deploy production`
+completion on `main`. They no longer race source synchronization on the same
+push. Each gate selects the upstream deploy's exact `head_sha`, records the
+upstream run ID/attempt and rejects missing or invalid provenance before preparing
+SSH credentials. A workflow-run event must identify a completed successful
+`Deploy production` from this repository's `main`, originally triggered by push
+or manual dispatch. An absent upstream SHA never falls back to the downstream
+workflow's `github.sha`.
+
+Each gate checks out that exact source, checks checkout HEAD and reuses
+`tools/verify_deploy_main_provenance.sh` for a fresh authoritative-main comparison
+before private access. Its existing production SHA equality check, bounded waits,
+TLS/webhook/smoke assertions and diagnostic sanitization remain mandatory. A
+superseded upstream SHA fails provenance; a newer default-branch SHA is not proof
+that the older deploy was checked.
+
+Manual dispatch remains available on current `main`. Live-session diagnostics
+also retain their hourly `25 * * * *` schedule and existing concurrency group;
+newer runs do not cancel an in-progress capture. Manual and scheduled runs use
+their own full workflow SHA and the same current-main and production-SHA gates.
+Release evidence must associate automatic checks with the recorded upstream
+Deploy run and exact target SHA, rather than searching only for `push` runs.
+
 ## Required pre-merge check
 
 Run:
