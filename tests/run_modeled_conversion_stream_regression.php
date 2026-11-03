@@ -268,13 +268,13 @@ function modeledProfileAssertions(PDO $p,callable $check): void
         &&!str_contains(json_encode([$managerUpdateReceipt,$retryReceipt,$profiles->status()]),$initialPrediction['prediction_digest']));
     $raw=$p->query("SELECT snapshot_json FROM modeled_conversion_stream_versions WHERE source_kind='message' AND source_id=11 ORDER BY id DESC LIMIT 1")->fetchColumn();$snap=json_decode($raw,true);
     $snap['payload']['text']='Бюджет до 450 тыс на всех';$legacy=$snap;unset($legacy['source_created_at_unix']);modeledProfileAppend($p,$legacy,$now+10);
-    foreach([10,14,15,16]as$c){$other=$snap;$other['source_id']=(string)(100+$c);$other['conversation_id']=(string)$c;$other['customer_key']=(string)$c;modeledProfileAppend($p,$other,$now+10);}
+    foreach([10,14,15,16,17,18,19,20]as$c){$other=$snap;$other['source_id']=(string)(100+$c);$other['conversation_id']=(string)$c;$other['customer_key']=(string)$c;modeledProfileAppend($p,$other,$now+10);}
     $snap['payload']['text']='Бюджет до 900 тыс на всех';modeledProfileAppend($p,$snap,$now+10);
     $future=$snap;$future['payload']['text']='Бюджет до 1000 тыс на всех';
     $r=$profiles->tick($now+11,static function()use($p,$future,$now){modeledProfileAppend($p,$future,$now+11);});
     $first=modeledProfileLatest($p);$frozen=$p->query("SELECT profile_json FROM modeled_conversion_profile_versions WHERE conversation_id='11' ORDER BY id DESC LIMIT 1")->fetchColumn();
     $frozenId=$p->query("SELECT id FROM modeled_conversion_profile_versions WHERE conversation_id='11' ORDER BY id DESC LIMIT 1")->fetchColumn();
-    $check('legacy clock is resolved by a revision already available within the information fence',$r['profiles_written']===4&&$r['pending_revisions']===2&&$first['profile']['fields']['budget']['value']['maximum']===900000&&(int)$first['processing']['source_fence_journal_id']>(int)$first['processing']['journal_cursor']);
+    $check('legacy clock is resolved by a revision already available within the information fence',$r['profiles_written']===8&&$r['pending_revisions']===2&&$first['profile']['fields']['budget']['value']['maximum']===900000&&(int)$first['processing']['source_fence_journal_id']>(int)$first['processing']['journal_cursor']);
     $r=$profiles->tick($now+12);$check('a revision appended after the information fence enters only the next prediction',$r['profiles_written']===2&&$r['pending_revisions']===0&&modeledProfileLatest($p)['profile']['fields']['budget']['value']['maximum']===1000000);
     $check('later source revisions cannot rewrite a previously frozen profile',$p->query('SELECT profile_json FROM modeled_conversion_profile_versions WHERE id='.(int)$frozenId)->fetchColumn()===$frozen);
     $p->exec('UPDATE conversations SET is_test=1 WHERE id=11');$s->tick($now+13);$profiles->tick($now+14);$v=modeledProfileLatest($p);
@@ -294,7 +294,7 @@ function modeledProfileAssertions(PDO $p,callable $check): void
     // Isolate throughput from source-reconciliation tests: all following rows are already admitted fixtures.
     for($i=0;$i<100;$i++){$c=(string)(1000+$i);$x=$snap;$x['source_id']=(string)(2000+$i);$x['conversation_id']=$c;$x['customer_key']=$c;modeledProfileAppend($p,$x,$now+20);}
     $bounded=true;$written=0;
-    for($i=0;$i<25;$i++){$r=$profiles->tick($now+21+$i);$written+=$r['profiles_written'];$bounded=$bounded&&$r['journal_rows_read']<=500&&$r['payload_bytes']<=2097152&&$r['profiles_written']<=4;}
+    for($i=0;$i<25;$i++){$r=$profiles->tick($now+21+$i);$written+=$r['profiles_written'];$bounded=$bounded&&$r['journal_rows_read']<=500&&$r['payload_bytes']<=1048576&&$r['profiles_written']<=8;}
     $check('mass journal processing keeps row byte and affected-scope limits',$bounded);
     $check('automatic bounded processing eventually profiles all100synthetic conversation scopes',$written===100&&$r['pending_revisions']===0);
     $profiles->stop();$check('stopping profile processing preserves source intake and private history',$profiles->tick($now+50)['status']==='off'&&(int)$p->query('SELECT enabled FROM modeled_conversion_stream_state')->fetchColumn()===1);
@@ -303,6 +303,70 @@ function modeledProfileAssertions(PDO $p,callable $check): void
     $check('profile processor cannot commit a caller-owned transaction',$ok);
 }
 
+
+
+/** Dense synthetic admitted context verifies useful throughput, not only the raised counter. */
+function modeledDenseProfileAssertions(PDO $p,callable $check):void
+{
+    modeledStreamSchema($p);modeledProfileSchema($p);$now=1793002000;
+    $source=new ModeledConversionStream($p);$profiles=new ModeledConversionProfiles($p);
+    modeledStreamMessage($p,10,11);$source->start($now);
+    modeledStreamMessage($p,11,11,'Подберите тур в Турцию на 7 ночей, 2 взрослых. Бюджет до 200 тыс на всех');
+    $source->tick($now+1);$profiles->start();
+    $snap=json_decode($p->query("SELECT snapshot_json FROM modeled_conversion_stream_versions WHERE source_kind='message' AND source_id=11 ORDER BY id DESC LIMIT 1")->fetchColumn(),true,64,JSON_THROW_ON_ERROR);
+    $contexts=[];$originals=[];
+    for($i=0;$i<8;$i++){
+        $scope=(string)(5000+$i);
+        for($j=0;$j<50;$j++){
+            $x=$snap;$x['source_id']=(string)(10000+$i*50+$j);$x['conversation_id']=$scope;$x['customer_key']=$scope;
+            modeledProfileAppend($p,$x,$now+2);$journal=(string)$p->lastInsertId();
+            $p->prepare('INSERT INTO modeled_conversion_profile_sources(project_key,source_kind,source_id,platform,customer_key,conversation_id,journal_id,source_status) VALUES(?,?,?,?,?,?,?,?)')
+                ->execute(['anytour','message',$x['source_id'],$x['platform'],$scope,$scope,$journal,'present']);
+            if($j===0)$contexts[]=$x;
+        }
+    }
+    $base=(int)$p->query('SELECT MAX(id) FROM modeled_conversion_stream_versions')->fetchColumn();
+    $p->prepare("UPDATE modeled_conversion_profiles_state SET journal_cursor=? WHERE project_key='anytour'")->execute([$base]);
+    foreach($contexts as$x){$x['payload']['text']='Бюджет до 300 тыс на всех';modeledProfileAppend($p,$x,$now+3);}
+    $ninth=$snap;$ninth['source_id']='20000';$ninth['customer_key']=$ninth['conversation_id']='6000';
+    modeledProfileAppend($p,$ninth,$now+3);
+    $originals=$p->query('SELECT id,revision_hash,snapshot_json FROM modeled_conversion_stream_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    $r=$profiles->tick($now+4);$receipt=$profiles->status()['last_receipt'];
+    $check('eight dense scopes with fifty references each commit in one bounded tick',
+        $r['profiles_written']===8&&$r['pending_revisions']===1&&$r['processed_revisions']===8
+        &&$r['journal_rows_read']<=500&&$r['payload_bytes']<=1048576
+        &&$receipt['early_forecast']['snapshots']===8);
+    $full=true;
+    foreach($contexts as$x){
+        $v=modeledProfileLatest($p,$x['conversation_id']);
+        $full=$full&&count($v['source_references']??[])===50&&($v['coverage']['window_limited']??true)===false
+            &&isset($v['contextual_signals'],$v['early_forecast'],$v['semantic_prediction']);
+    }
+    $check('all eight dense profiles retain the complete admitted context and frozen packets',$full);
+    if(function_exists('forecastV1Read')){
+        $read=forecastV1Read($p);
+        $check('private forecast view accepts an actual eight-profile producer receipt',
+            ($read['state']['last_batch_profiles_written']??null)===8);
+    }
+    $first=$p->query('SELECT id,profile_json FROM modeled_conversion_profile_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    $next=$profiles->tick($now+5);
+    $check('ninth scope waits at the original chronological boundary then commits once',
+        $next['profiles_written']===1&&$next['pending_revisions']===0&&$profiles->tick($now+6)['profiles_written']===0);
+    $unchanged=$p->query('SELECT id,profile_json FROM modeled_conversion_profile_versions ORDER BY id LIMIT 8')->fetchAll(PDO::FETCH_ASSOC);
+    $check('bounded throughput leaves original journal and prior profile bytes immutable',
+        $originals===$p->query('SELECT id,revision_hash,snapshot_json FROM modeled_conversion_stream_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC)
+        &&$first===$unchanged);
+    // An old admitted reference larger than the remaining raw-copy budget must be omitted in SQL.
+    $huge=$ninth;$huge['source_id']='20001';$huge['payload']['text']=str_repeat('x',1048577);
+    modeledProfileAppend($p,$huge,$now+7);$hugeId=(string)$p->lastInsertId();
+    $p->prepare('INSERT INTO modeled_conversion_profile_sources(project_key,source_kind,source_id,platform,customer_key,conversation_id,journal_id,source_status) VALUES(?,?,?,?,?,?,?,?)')
+        ->execute(['anytour','message',$huge['source_id'],$huge['platform'],'6000','6000',$hugeId,'present']);
+    $p->prepare("UPDATE modeled_conversion_profiles_state SET journal_cursor=? WHERE project_key='anytour'")->execute([$hugeId]);
+    modeledProfileAppend($p,$ninth,$now+8);$guarded=$profiles->tick($now+9);$limited=modeledProfileLatest($p,'6000');
+    $check('latest-reference SQL never copies an oversized raw snapshot on either database',
+        $guarded['profiles_written']===1&&$guarded['payload_bytes']<1048576
+        &&$limited['coverage']['window_limited']===true&&count($limited['source_references'])===1);
+}
 
 /** The actual admitted PHP/Python writer must retain a genuine request across canonical AI output. */
 function modeledServiceProfileAssertions(PDO $p,callable $check):void
@@ -396,7 +460,7 @@ if(realpath($_SERVER['SCRIPT_FILENAME']??'')===__FILE__){
     $p=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
     modeledStreamSchema($p);$passed=0;
     $check=static function(string $name,bool $ok)use(&$passed){if(!$ok)throw new RuntimeException('FAIL '.$name);$passed++;echo 'PASS '.$name.PHP_EOL;};
-    modeledStreamAssertions($p,$check);modeledStreamSchedulerAssertions($check);modeledProfileAssertions($p,$check);modeledServiceProfileAssertions($p,$check);modeledHandoffProfileAssertions($p,$check);
+    modeledStreamAssertions($p,$check);modeledStreamSchedulerAssertions($check);modeledProfileAssertions($p,$check);modeledDenseProfileAssertions($p,$check);modeledServiceProfileAssertions($p,$check);modeledHandoffProfileAssertions($p,$check);
     echo 'MODELED CONVERSION STREAM PASSED '.$passed.PHP_EOL;
 }
 

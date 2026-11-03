@@ -139,7 +139,7 @@ def profile(document, extracted_at):
     base.require(isinstance(information_fence, str) and re.fullmatch(r"[0-9]{1,20}", information_fence)
                  and re.fullmatch(r"[0-9]{1,20}", document["journal_cursor"])
                  and int(information_fence) >= int(document["journal_cursor"]), "invalid_information_fence")
-    base.require(isinstance(document["cases"], list) and len(document["cases"]) <= 4, "profile_case_limit")
+    base.require(isinstance(document["cases"], list) and len(document["cases"]) <= 8, "profile_case_limit")
     output = []; seen = set()
     for case in document["cases"]:
         base.fields(case, ("subject", "rows", "window_limited", "access_denied"))

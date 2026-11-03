@@ -1083,6 +1083,22 @@ class JournalOfferJourneyTests(unittest.TestCase):
 
 
 class JournalProfileTests(unittest.TestCase):
+    def test_eight_distinct_scopes_accepted_and_ninth_rejected(self):
+        doc = journal_document()
+        template = doc["cases"][0]
+        doc["cases"] = []
+        for n in range(8):
+            item = copy.deepcopy(template)
+            item["subject"]["customer_key"] = str(100+n)
+            item["subject"]["conversation_id"] = str(100+n)
+            doc["cases"].append(item)
+        self.assertEqual(len(journal.profile(doc, J_EXTRACT)["profiles"]), 8)
+        item = copy.deepcopy(template)
+        item["subject"]["customer_key"] = item["subject"]["conversation_id"] = "108"
+        doc["cases"].append(item)
+        with self.assertRaisesRegex(base.InvalidObservation, "profile_case_limit"):
+            journal.profile(doc, J_EXTRACT)
+
     def context_cli(self, document):
         with tempfile.NamedTemporaryFile(mode='w', suffix='.json') as handle:
             json.dump(document, handle); handle.flush()

@@ -9,9 +9,11 @@ require_once __DIR__.'/ModeledConversionPredictionFollowup.php';
 final class ModeledConversionProfiles
 {
     public const VERSION='admitted_journal_profiles_v1_2';
+    public const MAX_SCOPES=8;
     private PDO $pdo;
     private bool $mysql;
     private array $cache=[];
+    private array $sourceCache=[];
     private int $rowsRead=0;
     private int $bytesRead=0;
     public function __construct(PDO $pdo){$this->pdo=$pdo;$this->mysql=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';}
@@ -37,7 +39,7 @@ final class ModeledConversionProfiles
     public function tick(int $now,?callable $beforeCommit=null): array
     {
         if($now<946684800)self::fail('clock');
-        $this->cache=[];$this->rowsRead=0;$this->bytesRead=0;$began=microtime(true);
+        $this->cache=[];$this->sourceCache=[];$this->rowsRead=0;$this->bytesRead=0;$began=microtime(true);
         try{return $this->transaction(function()use($now,$beforeCommit,$began){
             $r=$this->state(true);
             if(!$r||!(bool)$r['enabled'])return ['status'=>'off','model_calls'=>0,'conversion_uploads'=>0];
@@ -61,7 +63,7 @@ final class ModeledConversionProfiles
                 $next=$affected;
                 if($old)$next[$this->scopeKey($this->scope($old))]=$this->scope($old);
                 if($scope)$next[$this->scopeKey($scope)]=$scope;
-                if(count($next)>4){$limited=true;break;}
+                if(count($next)>self::MAX_SCOPES){$limited=true;break;}
                 $affected=$next;
                 if($scope){
                     $values=[$scope['platform'],$scope['customer_key'],$scope['conversation_id'],$meta['id'],$status,'anytour',$meta['source_kind'],$meta['source_id']];
@@ -77,11 +79,9 @@ final class ModeledConversionProfiles
                 $denied=false;$restored=0;$rows=[];$window=(int)$stats['n']>50;
                 $refs=$this->q("SELECT source_kind,source_id,journal_id,source_status FROM modeled_conversion_profile_sources WHERE project_key=? AND platform=? AND customer_key=? AND conversation_id=? ORDER BY (source_status='scope_excluded') DESC,journal_id DESC LIMIT 50",$bind)->fetchAll(PDO::FETCH_ASSOC);
                 foreach($refs as$ref){
-                    if($this->rowsRead>=498){$window=true;break;}
+                    if($this->rowsRead>=499){$window=true;break;}
                     // Progress enumerates dirty scopes; the information fence defines available revisions.
-                    $meta=$this->q('SELECT id,source_kind,source_id,version_no,observed_at_unix,'.$this->length().' AS bytes FROM modeled_conversion_stream_versions WHERE project_key=? AND source_kind=? AND source_id=? AND id<=? ORDER BY id DESC LIMIT 1',['anytour',$ref['source_kind'],$ref['source_id'],$fence])->fetch(PDO::FETCH_ASSOC);$this->rowsRead++;
-                    if(!$meta)self::fail('missing_journal_revision');
-                    $entry=$this->read($meta);
+                    $entry=$this->readLatest($ref,$fence);
                     if($entry===null){$window=true;continue;}
                     $entry['progress_journal_id']=(string)$ref['journal_id'];
                     $snap=$entry['snapshot'];$status=$snap['source_status']??'';
@@ -126,7 +126,7 @@ final class ModeledConversionProfiles
                 'limit_reached'=>$limited||$pending>0,'coverage_errors'=>$errors,'trip_status'=>'unknown','model_calls'=>0,'conversion_uploads'=>0,
                 'early_forecast'=>$forecastReceipt,
                 'duration_ms'=>(int)round((microtime(true)-$began)*1000)];
-            if($this->rowsRead>500||$this->bytesRead>2097152)self::fail('budget');
+            if($this->rowsRead>500||$this->bytesRead>1048576)self::fail('budget');
             if($beforeCommit)$beforeCommit($receipt);
             $this->q('UPDATE modeled_conversion_profiles_state SET journal_cursor=?,ticks=ticks+1,last_receipt_json=? WHERE project_key=?',[$cursor,self::json($receipt),'anytour']);
             // Goal and readiness counts stay in the private state receipt, outside runtime telemetry.
@@ -168,8 +168,41 @@ final class ModeledConversionProfiles
         // Reserve space for JSON framing and derived references within the2MiB protocol.
         if($this->rowsRead>=499||$this->bytesRead+(int)$meta['bytes']>1048576)return null;
         $json=$this->q('SELECT snapshot_json FROM modeled_conversion_stream_versions WHERE project_key=? AND id=?',['anytour',$key])->fetchColumn();$this->rowsRead++;
+        return $this->remember($meta,$json);
+    }
+
+    /** One size-guarded read per reference; cached immutable revisions do not recopy payloads. */
+    private function readLatest(array $ref,string $fence): ?array
+    {
+        $sourceKey=$ref['source_kind'].':'.$ref['source_id'];
+        $cached=$this->sourceCache[$sourceKey]??'0';
+        $remaining=max(0,1048576-$this->bytesRead);
+        // The remaining-byte bound is an integer literal: SQLite otherwise compares PDO text binds as text.
+        $meta=$this->q('SELECT id,source_kind,source_id,version_no,observed_at_unix,'.$this->length().' AS bytes,'
+            .'CASE WHEN id=? THEN NULL WHEN '.$this->length().'<='.$remaining.' THEN snapshot_json ELSE NULL END AS snapshot_json'
+            .' FROM modeled_conversion_stream_versions WHERE project_key=? AND source_kind=? AND source_id=? AND id<=? ORDER BY id DESC LIMIT 1',
+            [$cached,'anytour',$ref['source_kind'],$ref['source_id'],$fence])->fetch(PDO::FETCH_ASSOC);
+        $this->rowsRead++;
+        if(!$meta)self::fail('missing_journal_revision');
+        $key=(string)$meta['id'];$json=$meta['snapshot_json'];
+        if(isset($this->cache[$key])){
+            if(is_string($json)){
+                $this->bytesRead+=strlen($json);
+                if($this->bytesRead>1048576)self::fail('budget');
+            }
+            return $this->cache[$key];
+        }
+        if($json===null)return null;
+        return $this->remember($meta,$json);
+    }
+
+    private function remember(array $meta,$json): array
+    {
         if(!is_string($json)||strlen($json)!==(int)$meta['bytes'])self::fail('journal_snapshot');
         $this->bytesRead+=strlen($json);
+        if($this->bytesRead>1048576)self::fail('budget');
+        $key=(string)$meta['id'];
+        $this->sourceCache[$meta['source_kind'].':'.$meta['source_id']]=$key;
         return $this->cache[$key]=['journal_id'=>$key,'source_kind'=>$meta['source_kind'],'source_id'=>(string)$meta['source_id'],
             'source_version_no'=>(int)$meta['version_no'],'observed_at_unix'=>(int)$meta['observed_at_unix'],'snapshot'=>json_decode($json,true,64,JSON_THROW_ON_ERROR)];
     }

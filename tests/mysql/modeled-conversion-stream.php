@@ -38,6 +38,7 @@ try{
     $profiles=new ModeledConversionProfiles($p);$competingProfiles=new ModeledConversionProfiles($other);$profileBlocked=false;
     $profiles->tick(1793003000,static function()use($competingProfiles,&$profileBlocked){$profileBlocked=($competingProfiles->tick(1793003000)['status']??'')==='busy';});
     $check('concurrent profile transformer cannot own the same derived checkpoint',$profileBlocked);
+    modeledDenseProfileAssertions($p,$check);
     modeledServiceProfileAssertions($p,$check);
     modeledHandoffProfileAssertions($p,$check);
     forecastStatusSchema($p);forecastStatusAssertions($p,$check);
