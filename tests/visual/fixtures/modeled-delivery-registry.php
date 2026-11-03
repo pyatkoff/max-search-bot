@@ -35,12 +35,24 @@ function modeledDeliveryViewFixture(string $scenario='ready'):array
                 'period_value_rub'=>12500,'total_value_rub'=>12500,'stage'=>'agency_choice','events'=>[$history]],
         ],
         'pagination'=>['shown'=>2,'page_size'=>25,'has_more'=>true,'next_cursor'=>'v1.synthetic-fixture.abcdef']];
-    $monitor=['available'=>true,'checked_at'=>'2026-11-03T12:11:00Z','fresh'=>true,'status'=>'ok',
-        'notification'=>'quiet','last_notification_at'=>'2026-11-03T10:17:00Z','source_event'=>'schedule',
-        'scheduled'=>['available'=>true,'last_checked_at'=>'2026-11-03T12:11:00Z','fresh'=>true,'success_streak'=>3,'regular'=>true]];
+    $checks=[];
+    foreach(['12:01:00','12:06:00','12:11:00']as$i=>$time)$checks[]=[
+        'checked_at'=>'2026-11-03T'.$time.'Z','status'=>'ok','ok'=>true,
+        'cycle_id'=>str_pad((string)($i+1),32,'0',STR_PAD_LEFT),'origin'=>'server_cron','source_sha'=>str_repeat('a',40)];
+    $pipeline=['active'=>true,'available'=>true,'checked_at'=>'2026-11-03T12:11:00Z','fresh'=>true,
+        'status'=>'ok','notification'=>'quiet','ok'=>true,'last_notification_at'=>'2026-11-03T10:17:00Z',
+        'origin'=>'server_cron','cycle_id'=>str_pad('3',32,'0',STR_PAD_LEFT),'source_sha'=>str_repeat('a',40),
+        'scheduled'=>['last_checked_at'=>'2026-11-03T12:11:00Z','fresh'=>true,
+            'success_streak'=>3,'regular'=>true,'checks'=>$checks]];
+    $monitor=['available'=>true,'checked_at'=>'2026-11-03T12:10:00Z','fresh'=>true,'status'=>'ok',
+        'notification'=>'quiet','last_notification_at'=>'2026-11-03T09:17:00Z','source_event'=>'workflow_run',
+        'scheduled'=>['available'=>false,'last_checked_at'=>null,'fresh'=>null,'success_streak'=>0,'regular'=>false,'checks'=>[]],
+        'pipeline'=>$pipeline];
     if($scenario==='stale'){
-        $monitor=array_replace($monitor,['fresh'=>false,'source_event'=>'workflow_dispatch','checked_at'=>'2026-11-03T10:17:00Z']);
-        $monitor['scheduled']=['available'=>false,'last_checked_at'=>null,'fresh'=>false,'success_streak'=>0,'regular'=>false];
+        $monitor=array_replace($monitor,['fresh'=>false,'source_event'=>'workflow_dispatch','checked_at'=>'2026-11-03T09:17:00Z']);
+        $monitor['pipeline']['fresh']=false;
+        $monitor['pipeline']['checked_at']='2026-11-03T10:17:00Z';
+        $monitor['pipeline']['scheduled']=['last_checked_at'=>null,'fresh'=>false,'success_streak'=>0,'regular'=>false,'checks'=>[]];
     }
     if($scenario==='error')$page['available']=false;
     if($scenario==='unsafe'){

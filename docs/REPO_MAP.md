@@ -50,7 +50,9 @@ Workspace V2 at `/manager/` is the forward and current production Manager produc
 - `.github/workflows/deploy.yml` — production deployment;
 - `.github/workflows/publish-conversation-diagnostics.yml` — production diagnostics publishing;
 - `.github/workflows/live-session-diagnostics.yml` — fresh live-session artifact publishing.
-- `.github/workflows/modeled-conversion-monitor.yml` — single external conversion-health checker, scheduled receipts and private owner alerts.
+- `.github/workflows/modeled-conversion-monitor.yml` — external host/source and local-heartbeat checker, with retained private owner alerts.
+- `tools/modeled_conversion_monitor_local.py` — primary OS-cron pipeline checker; shared notification logic, private role state and typed receipts.
+- `tools/modeled_conversion_monitor_handoff.py` and `.github/workflows/modeled-pipeline-monitor-activation.yml` — one controlled state/role handoff and owned cron activation; never a business tick.
 
 ### Tests
 - `tests/run_required_checks.sh` — canonical full required-suite orchestration;

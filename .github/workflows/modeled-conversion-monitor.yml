@@ -196,7 +196,7 @@ jobs:
           [[ "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]]
           root='/var/www/anytoour/data/www/app.anytoour.ru'
           ssh_opts=(-i "$RUNNER_TEMP/deploy_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10)
-          if ! ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA' && timeout 15s php tools/modeled_conversion_monitor.php health" > "$RUNNER_TEMP/monitor-health.json" 2>/dev/null; then
+          if ! ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA' && timeout 15s php tools/modeled_conversion_monitor.php availability" > "$RUNNER_TEMP/monitor-health.json" 2>/dev/null; then
             printf '%s\n' '{"schema_version":1,"project":"anytour","counter_id":"98615635","status":"unavailable","flags":["monitor_transport_unavailable"]}' > "$RUNNER_TEMP/monitor-health.json"
           fi
           if [ ! -s "$RUNNER_TEMP/monitor-cache/state.age" ]; then
@@ -219,7 +219,7 @@ jobs:
           "$RUNNER_TEMP/monitor-python/bin/python" tools/modeled_conversion_monitor.py --phase prepare \
             --health "$RUNNER_TEMP/monitor-health.json" "${route_args[@]}" \
             --cache "$RUNNER_TEMP/monitor-cache/state.age" --key-file "$RUNNER_TEMP/deploy_key" \
-            --output-cache "$RUNNER_TEMP/monitor-intent/state.age" --run-id "$GITHUB_RUN_ID" \
+            --output-cache "$RUNNER_TEMP/monitor-intent/state.age" --run-id "$GITHUB_RUN_ID" --role-mode external-adapter \
             > "$RUNNER_TEMP/monitor-decision.json" || true
           python3 - "$RUNNER_TEMP/monitor-decision.json" "$GITHUB_OUTPUT" <<'MONITOR_DECISION'
           import json,sys
@@ -253,7 +253,7 @@ jobs:
           [[ "$INTENT_ARTIFACT_ID" =~ ^[1-9][0-9]*$ ]]
           "$RUNNER_TEMP/monitor-python/bin/python" tools/modeled_conversion_monitor.py --phase send \
             --cache "$RUNNER_TEMP/monitor-intent/state.age" --key-file "$RUNNER_TEMP/deploy_key" \
-            --output-cache "$RUNNER_TEMP/monitor-final/state.age" --prepared-this-run --run-id "$GITHUB_RUN_ID" \
+            --output-cache "$RUNNER_TEMP/monitor-final/state.age" --prepared-this-run --run-id "$GITHUB_RUN_ID" --role-mode external-adapter \
             > "$RUNNER_TEMP/monitor-result.json" || true
 
       - name: Retain final encrypted state
