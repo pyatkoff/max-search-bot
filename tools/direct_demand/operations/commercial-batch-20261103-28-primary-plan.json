@@ -1,0 +1,104 @@
+{
+  "operation": "commercial-hotel-batch-20261103-28-v1",
+  "state": "TEN_CANDIDATES_FIXED_PRIMARY_READ_STARTED",
+  "goal": "Prepare ten proven catalogue candidates together and publish every ready subset up to10 in one serial run",
+  "catalog_ids": [
+    56091,
+    103124,
+    102031,
+    75571,
+    102774,
+    342,
+    254,
+    488,
+    139,
+    4185
+  ],
+  "candidates": [
+    {
+      "hotel_id": 56091,
+      "hotel": "ANCIENT SANDS GOLF RESORT & RESIDENCES",
+      "state": "PRIMARY_FACTS_AND_COMPLETE_REAL_PHOTO_SET_REQUIRED"
+    },
+    {
+      "hotel_id": 103124,
+      "hotel": "IBEROTEL LUXOR",
+      "state": "PRIMARY_FACTS_AND_COMPLETE_REAL_PHOTO_SET_REQUIRED"
+    },
+    {
+      "hotel_id": 102031,
+      "hotel": "STEIGENBERGER NILE PALACE LUXOR",
+      "state": "PRIMARY_FACTS_AND_COMPLETE_REAL_PHOTO_SET_REQUIRED"
+    },
+    {
+      "hotel_id": 75571,
+      "hotel": "SOFITEL WINTER PALACE LUXOR",
+      "state": "PRIMARY_FACTS_AND_COMPLETE_REAL_PHOTO_SET_REQUIRED"
+    },
+    {
+      "hotel_id": 102774,
+      "hotel": "HILTON LUXOR RESORT & SPA",
+      "state": "PRIMARY_FACTS_AND_COMPLETE_REAL_PHOTO_SET_REQUIRED"
+    },
+    {
+      "hotel_id": 342,
+      "hotel": "THE OBEROI SAHL HASHEESH",
+      "state": "PRIMARY_FACTS_AND_COMPLETE_REAL_PHOTO_SET_REQUIRED"
+    },
+    {
+      "hotel_id": 254,
+      "hotel": "THE THREE CORNERS SEA BEACH RESORT",
+      "state": "PRIMARY_FACTS_AND_COMPLETE_REAL_PHOTO_SET_REQUIRED"
+    },
+    {
+      "hotel_id": 488,
+      "hotel": "THE THREE CORNERS FAYROUZ PLAZA BEACH RESORT",
+      "state": "PRIMARY_FACTS_AND_COMPLETE_REAL_PHOTO_SET_REQUIRED"
+    },
+    {
+      "hotel_id": 139,
+      "hotel": "BRAYKA BAY RESORT",
+      "state": "PRIMARY_FACTS_AND_COMPLETE_REAL_PHOTO_SET_REQUIRED"
+    },
+    {
+      "hotel_id": 4185,
+      "hotel": "ROYAL BRAYKA BEACH RESORT",
+      "state": "PRIMARY_FACTS_AND_COMPLETE_REAL_PHOTO_SET_REQUIRED"
+    }
+  ],
+  "baseline_logical_materials": 121,
+  "boundaries": [
+    "No new identities guessed; all ten from accepted bounded catalogue read",
+    "Use existing purecloud grouped source/contact inspection and Canva pool",
+    "No new chats, agents, runtime, workers, queues, collector or paid calls"
+  ],
+  "criteria": [
+    "Actual current primary facts and exact declared public photo references",
+    "No provider/server/DB writes/messages/paid calls",
+    "Prepare several hotel covers and publish ready subset in one serial batch"
+  ],
+  "risks": [
+    "Sofitel current exact property page not resolved, keep deferred without waiting",
+    "Image references on unlisted CDN are references only until reviewed and explicitly allowlisted",
+    "No old failedGETs are retried"
+  ],
+  "ready_for_send_count": 0,
+  "new_posts": 0,
+  "primary_source_urls": [
+    "https://www.elgouna.com/hotels/ancient-sands",
+    "https://www.elgouna.com/hotels/ancient-sands/gallery",
+    "https://www.jazhotels.com/hoteldetail/14/overview",
+    "https://partner.jazhotels.com/hotel/14",
+    "https://hrewards.com/en/steigenberger-nile-palace-luxor",
+    "https://www.hilton.com/en-gb/hotels/luxhitw-hilton-luxor-resort-and-spa/gallery/",
+    "https://www.oberoihotels.com/hotels-in-sahl-hasheesh/",
+    "https://threecorners.com/red-sea/sea-beach-resort/",
+    "https://threecorners.com/red-sea/fayrouz-plaza-beach-resort/",
+    "https://threecorners.com/red-sea/fayrouz-plaza-beach-resort/gallery-for-pro/",
+    "https://braykaresorts.com/brayka-bay-resort/overview",
+    "https://braykaresorts.com/royal-brayka-resort/overview"
+  ],
+  "source_page_count": 12,
+  "source_groups": 4,
+  "max_parallel": 2
+}

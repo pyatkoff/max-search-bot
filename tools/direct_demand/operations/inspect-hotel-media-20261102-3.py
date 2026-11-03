@@ -1,16 +1,34 @@
 import base64,html,json,os,re,urllib.parse,urllib.request
 from pathlib import Path
 from html.parser import HTMLParser
-operation='commercial-batch27-three-coral-gallery-source-read'
-pages=["https://www.coralsearesorts.com/coral-sea-holiday-resort/gallery","https://www.coralsearesorts.com/coral-sea-water-world/gallery","https://www.coralsearesorts.com/coral-sea-aqua-club/gallery"]
+operation='commercial-batch28-twelve-primary-source-pages'
+pages=["https://www.elgouna.com/hotels/ancient-sands","https://www.elgouna.com/hotels/ancient-sands/gallery","https://www.jazhotels.com/hoteldetail/14/overview","https://partner.jazhotels.com/hotel/14","https://hrewards.com/en/steigenberger-nile-palace-luxor","https://www.hilton.com/en-gb/hotels/luxhitw-hilton-luxor-resort-and-spa/gallery/","https://www.oberoihotels.com/hotels-in-sahl-hasheesh/","https://threecorners.com/red-sea/sea-beach-resort/","https://threecorners.com/red-sea/fayrouz-plaza-beach-resort/","https://threecorners.com/red-sea/fayrouz-plaza-beach-resort/gallery-for-pro/","https://braykaresorts.com/brayka-bay-resort/overview","https://braykaresorts.com/royal-brayka-resort/overview"]
 group=int(os.environ['MEDIA_GROUP'])
-assert group in (0,1)
+assert group in (0,1,2,3)
 pages=pages[group*3:group*3+3]
 assert 1<=len(pages)<=3
-hosts=set(["www.coralsearesorts.com","coralsearesorts.com","assets.builderassets.com"])
+hosts=set(["www.elgouna.com","elgouna.com","cms.elgouna.com","backend.elgouna.com","www.jazhotels.com","jazhotels.com","partner.jazhotels.com","hrewards.com","www.hrewards.com","www.hilton.com","hilton.com","www.oberoihotels.com","oberoihotels.com","threecorners.com","www.threecorners.com","braykaresorts.com","www.braykaresorts.com","cdn.braykaresorts.com","www.ahstatic.com","m.ahstatic.com","assets.hiltonstatic.com","image-tc.galaxy.tf"])
 class Redirect(urllib.request.HTTPRedirectHandler):
  def redirect_request(self,*args,**kwargs):raise ValueError('unexpected_primary_source_redirect')
 opener=urllib.request.build_opener(Redirect())
+def safe_declared_reference(value,final):
+ if not isinstance(value,str) or not value.strip():return None
+ absolute=urllib.parse.quote(urllib.parse.urljoin(final,html.unescape(value.strip())),safe=':/?&=%#')
+ pp=urllib.parse.urlsplit(absolute)
+ decoded=urllib.parse.unquote(absolute)
+ if pp.scheme!='https' or not pp.hostname or pp.username or pp.password or pp.fragment or absolute.count('https://')!=1:return None
+ if 'firebasestorage' in decoded.lower() or re.search(r'(?:[?&])(?:token|access_token|api_key|auth|key)=',decoded,re.I):return None
+ if pp.hostname in ('localhost','127.0.0.1','::1') or pp.hostname.endswith(('.internal','.local')):return None
+ if not re.search(r'\.(?:jpe?g|png|webp)(?:\?|$)',absolute,re.I):return None
+ return absolute
+assert safe_declared_reference(None,'https://example.com/') is None
+assert safe_declared_reference('https://cdn.example.com/x.jpg','https://example.com/')=='https://cdn.example.com/x.jpg'
+assert safe_declared_reference('https://cdn.example.com/x.jpg?token=private','https://example.com/') is None
+assert safe_declared_reference('https://user@cdn.example.com/x.jpg','https://example.com/') is None
+assert safe_declared_reference('https://firebasestorage.googleapis.com/x.jpg','https://example.com/') is None
+assert safe_declared_reference('https://cdn.example.com/x.jpg?url=x%3Ftoken%3Dprivate','https://example.com/') is None
+print('DECLARED_IMAGE_REFERENCE_GUARDS_OK cases=6 network_calls=0')
+
 out={'operation':operation,'mode':'read_public_photo_sources_only','message_sends':0,'db_writes':0,'server_connections':0,'pages':[]}
 fixture_mode=os.environ.get('SOURCE_INSPECTOR_FIXTURE')=='1'
 if fixture_mode:pages=pages[:1]
@@ -20,21 +38,26 @@ for url in pages:
    raw=b'<html><img alt src="https://assets.builderassets.com/fixture.jpg"><img alt src="https://assets.builderassets.com/blocked.jpg?token=private"></html>'
    final=url
   else:
-   response=opener.open(urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'}),timeout=25)
+   parsed_source=urllib.parse.urlsplit(url)
+  assert parsed_source.scheme=='https' and parsed_source.hostname in hosts and not parsed_source.username and not parsed_source.password
+  response=opener.open(urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'}),timeout=25)
    with response as r:
     raw=r.read(2000001)
     if len(raw)>2000000:raise ValueError('source_size_limit')
     final=r.url
   text=raw.decode('utf-8',errors='replace').replace('\\/','/')
  except Exception as e:
-  out['pages'].append({'source_url':url,'error':type(e).__name__});continue
+  out['pages'].append({'source_url':url,'error':type(e).__name__,'http_status':getattr(e,'code',None)});continue
  candidates=[]
+ declared_references=[]
  documents=[]
  image_details=[]
  album_context=[]
  image_hosts=set()
  for value in re.findall(r"""["']([^"'<>\r\n]+\.(?:jpe?g|png|webp)(?:\?[^"'<>\r\n]*)?)["']""",text,re.I):
   absolute=urllib.parse.quote(urllib.parse.urljoin(final,html.unescape(value.strip())),safe=':/?&=%#')
+  public_reference=safe_declared_reference(value,final)
+  if public_reference and public_reference not in declared_references:declared_references.append(public_reference)
   p=urllib.parse.urlsplit(absolute)
   if p.scheme=='https' and not p.username and not p.password and absolute.count('https://')==1 and 'firebasestorage' not in absolute.lower():
    image_hosts.add(p.hostname)
@@ -122,7 +145,7 @@ for url in pages:
  for body in re.findall(r'<script[^>]*(?:type=["\x27]application/(?:ld\\+)?json["\x27]|id=["\x27]__NEXT_DATA__["\x27])[^>]*>(.*?)</script>',text,re.I|re.S):
   try:selected_json(json.loads(html.unescape(body)))
   except (ValueError,TypeError):pass
- out['pages'].append({'source_url':url,'final_url':final,'page_title':title,'image_hosts':sorted(image_hosts),'image_urls':candidates[:180],'image_details':image_details[:160],'document_urls':documents[:12],'website_links':website_links[:10],'public_text':public_text,'json_fact_fragments':fragments,'album_context':album_context,'gallery_memberships':gallery_memberships})
+ out['pages'].append({'source_url':url,'final_url':final,'page_title':title,'image_hosts':sorted(image_hosts),'image_urls':candidates[:180],'declared_public_image_references':declared_references[:300],'image_details':image_details[:160],'document_urls':documents[:12],'website_links':website_links[:10],'public_text':public_text,'json_fact_fragments':fragments,'album_context':album_context,'gallery_memberships':gallery_memberships})
 
 out['ok']=True
 if fixture_mode:
