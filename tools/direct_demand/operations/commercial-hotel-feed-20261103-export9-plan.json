@@ -1,0 +1,22 @@
+{
+  "operation": "commercial-hotel-feed-20261103-export9",
+  "state": "PREPARED_NOT_RUN_PUBLICATION_FIRST",
+  "catalog_ids": [
+    129
+  ],
+  "goal": "Link the newly published Cooks Club pair to the same static feed and read one finite reserve refresh scope",
+  "boundaries": [
+    "Existing bounded canonical/catalogue public-field reader",
+    "Previous114 CSV rows preserved exactly",
+    "No provider calls, price/availability claims, Yandex import or runtime change"
+  ],
+  "criteria": [
+    "One unique sent pair after provider-verified publication",
+    "One exact new immutable image and actual country/region",
+    "Short save/readback, no repeat of the old10 feed fixtures"
+  ],
+  "risks": [
+    "Publication must finish before canonical read",
+    "Pending or unknown operation cannot be replayed"
+  ]
+}

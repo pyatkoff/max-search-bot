@@ -1,17 +1,15 @@
 {
   "operation": "commercial-hotel-batch-20261103-26-v1",
-  "state": "HOST_SCAN_TEMPLATE_INDEX_CORRECTED_NO_PHP_OR_SEND_YET",
+  "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED",
   "catalog_ids": [
     129
   ],
-  "ready_for_send_count": 1,
-  "new_posts": 0,
-  "provider_calls": 0,
-  "authenticated_php_runs": 0,
-  "send_intents": 0,
+  "published_hotel_count": 1,
+  "logical_material_total": 117,
+  "new_posts": 2,
+  "reused_existing": 0,
+  "provider_send_attempts": 2,
   "source_stop_count": 1,
-  "source_stop_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41685929194",
-  "host_guard_stop_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41686697333",
-  "cause": "Count replacement incorrectly changed the accepted host-key field index from2 to1. Entire host-key continuity step restored byte-identical to the accepted previous sender; pin and strict host policy unchanged.",
-  "expected_source": "9bc4b09611aebc1b82c22054e6094adb9c6e4bff"
+  "resolved_host_template_stop_count": 1,
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41687091250"
 }
