@@ -7,6 +7,8 @@ import os
 from pathlib import Path
 import re
 import shutil
+import shlex
+import sys
 import subprocess
 import tempfile
 
@@ -86,7 +88,7 @@ def source_step(source, filename, job_name=None):
     for declaration in ('workflows: [Deploy production]', 'types: [completed]', 'branches: [main]'):
         check('    ' + declaration in events.splitlines(), label + 'missing upstream trigger ' + declaration)
     if live:
-        timer = '25 * * * *' if (job_name or 'publish') == 'publish' else '*/5 * * * *'
+        timer = '25 * * * *' if (job_name or 'publish') == 'publish' else '2-59/5 * * * *'
         expected_if = "    if: (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success') && (github.event_name != 'schedule' || github.event.schedule == '" + timer + "')"
         check(expected_if in source.splitlines(), label + 'success and exact hourly/check-only timer guard')
     else:
@@ -94,6 +96,7 @@ def source_step(source, filename, job_name=None):
               label + 'automatic job must require successful deployment')
     if live:
         check("    - cron: '25 * * * *'" in events.splitlines(), label + 'existing hourly schedule retained exactly')
+        check("    - cron: '2-59/5 * * * *'" in events.splitlines(), label + 'independent five-minute check avoids the hour boundary')
         group = 'production-live-session-diagnostics' if (job_name or 'publish') == 'publish' else 'anytour-modeled-conversion-monitor'
         check('      group: ' + group in source.splitlines()
               and '      cancel-in-progress: false' in source.splitlines(), label + 'independent active jobs must not cancel each other')
@@ -217,6 +220,75 @@ def behavior_cases(resolver, filename):
     execute(resolver, filename, 'timer cannot inspect a feature branch', {}, event='schedule', ref='refs/heads/feature/source')
 
 
+
+def monitor_record_cases(source):
+    """Execute the real final receipt step with a network-free SSH recorder."""
+    steps = [step for step in step_blocks(source)
+             if step.startswith('      - name: Record sanitized external monitoring receipt\n')]
+    check(len(steps) == 1, 'monitor: one canonical external receipt step')
+    step = steps[0]
+    expected_env = {
+        'EXPECTED_SHA': SHA_EXPRESSION,
+        'MONITOR_EVENT': '${{ github.event_name }}',
+        'MONITOR_RUN_ID': '${{ github.run_id }}',
+        'MONITOR_RUN_ATTEMPT': '${{ github.run_attempt }}',
+    }
+    for key, value in expected_env.items():
+        check('          ' + key + ': ' + value in step.splitlines(),
+              'monitor: trusted receipt context binding ' + key)
+    shell = run_block(step)
+    bash = shutil.which('bash')
+    if not bash:
+        raise RuntimeError('Existing runner bash is required')
+    cases = [
+        ({}, True),
+        ({'MONITOR_EVENT': 'workflow_run'}, True),
+        ({'MONITOR_EVENT': 'workflow_dispatch'}, True),
+        ({'MONITOR_RUN_ATTEMPT': '2'}, True),
+        ({'MONITOR_EVENT': 'push'}, False),
+        ({'MONITOR_EVENT': "schedule'; echo synthetic"}, False),
+        ({'MONITOR_RUN_ID': '01'}, False),
+        ({'MONITOR_RUN_ID': '1; echo synthetic'}, False),
+        ({'MONITOR_RUN_ATTEMPT': '0'}, False),
+        ({'MONITOR_RUN_ATTEMPT': '1 2'}, False),
+        ({'EXPECTED_SHA': 'A' * 40}, False),
+        ({'EXPECTED_SHA': DEPLOY_SHA + "'"}, False),
+    ]
+    for overrides, valid in cases:
+        with tempfile.TemporaryDirectory(prefix='monitor-receipt-source-') as temporary:
+            work = Path(temporary)
+            binary = work / 'bin'
+            binary.mkdir()
+            trace = work / 'ssh-trace.json'
+            ssh = binary / 'ssh'
+            ssh.write_text('#!' + sys.executable + '\n'
+                           'import json, os, sys\n'
+                           'with open(os.environ["SSH_TRACE"], "w", encoding="utf-8") as f:\n'
+                           '    json.dump(sys.argv[1:], f)\n', encoding='utf-8')
+            ssh.chmod(0o700)
+            (work / 'monitor-result.json').write_text('{"synthetic":true}\n', encoding='utf-8')
+            env = {'PATH': str(binary), 'LC_ALL': 'C', 'RUNNER_TEMP': str(work),
+                   'SSH_TRACE': str(trace), 'DEPLOY_USER': 'synthetic-user', 'DEPLOY_HOST': 'synthetic-host',
+                   'EXPECTED_SHA': DEPLOY_SHA, 'MONITOR_EVENT': 'schedule',
+                   'MONITOR_RUN_ID': '12345678901', 'MONITOR_RUN_ATTEMPT': '1'}
+            env.update(overrides)
+            completed = subprocess.run([bash, '--noprofile', '--norc', '-e', '-o', 'pipefail', '-c', shell],
+                                       cwd=work, env=env, text=True, capture_output=True, timeout=5)
+            if not valid:
+                check(completed.returncode != 0 and not trace.exists(),
+                      'monitor: invalid trusted context cannot reach SSH ' + repr(overrides))
+                continue
+            check(completed.returncode == 0 and trace.exists(),
+                  'monitor: valid trusted context reaches one record ' + repr(overrides))
+            args = json.loads(trace.read_text(encoding='utf-8'))
+            remote = shlex.split(args[-1])
+            record_index = remote.index('record')
+            check(remote[record_index + 1:] == [
+                '--event=' + env['MONITOR_EVENT'], '--run-id=' + env['MONITOR_RUN_ID'],
+                '--run-attempt=' + env['MONITOR_RUN_ATTEMPT'], '--source-sha=' + env['EXPECTED_SHA']],
+                'monitor: exact validated provenance remains quoted through remote command')
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root', type=Path, default=Path(__file__).resolve().parent.parent)
@@ -225,6 +297,8 @@ def main():
         source = (args.root / '.github/workflows' / filename).read_text(encoding='utf-8')
         for job_name in (('publish', 'monitor') if filename == 'live-session-diagnostics.yml' else (None,)):
             behavior_cases(source_step(source, filename, job_name), filename)
+            if filename == 'live-session-diagnostics.yml' and job_name == 'monitor':
+                monitor_record_cases(source)
     print(f'PRODUCTION GATE SEQUENCE: {CHECKS} PASS (offline real resolver execution)')
 
 

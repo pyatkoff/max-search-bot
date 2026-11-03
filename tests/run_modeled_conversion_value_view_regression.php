@@ -104,8 +104,8 @@ $check($reopen>$firstRead&&$reopen<PHP_INT_MAX
     &&str_contains(substr($route,$reopen),'ManagerHttp::managerId()!==$actor')
     &&str_contains(substr($route,$reopen),'ManagerHttp::requireAdmin($fresh)')
     &&str_contains(substr($route,$reopen),"ProjectAccessService::canAccess(".'$actor'.",'anytour')"),'session actor and live admin project access rechecked after private read');
-$check(str_contains($route,"!=='GET'")&&str_contains($route,"array_diff(array_keys(".'$_GET'."),['view','after'])")
-    &&str_contains($route,"['members','profiles']")&&str_contains($route,"{0,19}"),'GET-only strict view and bounded cursor admission');
+$check(str_contains($route,"!=='GET'")&&str_contains($route,"array_diff(array_keys(".'$_GET'."),".'$allowed'.")")
+    &&str_contains($route,"['delivery','members','profiles']")&&str_contains($route,"{0,19}"),'GET-only strict view and bounded cursor admission');
 $check(str_contains($route,'Cache-Control: private, no-store')&&str_contains($route,'X-Content-Type-Options: nosniff')
     &&str_contains($route,'Vary: Cookie')&&str_contains($route,"default-src 'none'")&&str_contains($route,"frame-ancestors 'none'"),'private cache and security headers');
 $check(str_contains($route,'$page=null;$unavailable=true;')&&str_contains($route,'http_response_code($unavailable?503:200)'),'source failure has explicit unavailable status');
