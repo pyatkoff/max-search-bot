@@ -104,7 +104,7 @@ final class HotelServerCycle
         });
     }
 
-    /** One existing-server-cron call performs at most one send OR one atomic accept. */
+    /** One cycle step performs at most one send OR one atomic accept. */
     public function tick(string $id): array
     {
         $request = $this->tx($id,function(?array $c) use($id): array {
@@ -151,6 +151,18 @@ final class HotelServerCycle
         try { $result = $this->provider->send($r); }
         catch (Throwable $e) { return ['state'=>'unknown','attempt_id'=>$r['attempt_id'],'reason'=>'provider_outcome_unknown']; }
         return $this->recordResult($id,$r['attempt_id'],$result);
+    }
+
+    /** Network-free follow-up; its exact baseline cannot accept a later stage. */
+    public function acceptReviewed(string $id,string $expectedBaselineSha256): array
+    {
+        HotelServerInputs::sha($expectedBaselineSha256);
+        return $this->tx($id,function(?array $c)use($expectedBaselineSha256):array{
+            $c=$this->required($c);
+            if((int)$c['enabled']!==1||$c['state']!=='reviewed'||$c['baseline_sha256']!==$expectedBaselineSha256)
+                return $this->projection($c);
+            return $this->acceptLocked($c);
+        });
     }
 
     /** Reconcile the SAME invocation only: never dispatch, refund or replace UNKNOWN. */
