@@ -1,0 +1,35 @@
+{
+  "operation": "commercial-hotel-batch-20261103-24-v1",
+  "state": "TEN_CANDIDATE_BATCH_PREPARATION_NOT_SENT",
+  "goal": "Increase publication throughput by preparing ten whole materials together and publishing every ready subset in one existing serial run.",
+  "boundaries": [
+    "Use existing authorized channels,publisher,registry,durableonce andcloud workflow only",
+    "Keep all source,host,TLS,rights,UNKNOWN,dedup and native photo checks",
+    "No agents,newchats,workers,queues,transport,localMac operations orprovider searches",
+    "Do not retry rejected orblocked source URLs; defer disputed hotels"
+  ],
+  "criteria": [
+    "Ten candidate hotels in one preparation plan",
+    "Reuse accepted captions and retained primary sources",
+    "One finite native image pass with at most4readonlygroups andmaxparallel2",
+    "Prepare covers for the accepted subset andsend itwithout waiting for10"
+  ],
+  "risks": [
+    "Some reserve identities have unresolved facts or overview photography; replace inpreparation instead ofholding ready hotels",
+    "A prepared card isnot a verified publication"
+  ],
+  "catalog_ids": [
+    235,
+    432,
+    382,
+    12107,
+    282,
+    65779,
+    932,
+    497,
+    483,
+    250
+  ],
+  "ready_for_send_count": 0,
+  "new_posts": 0
+}
