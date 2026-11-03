@@ -889,6 +889,34 @@
       "telegram_name": "Путевки в The Oberoi Beach Resort Sahl Hasheesh",
       "max_name": "Туры в The Oberoi Beach Resort Sahl Hasheesh",
       "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 1291,
+      "short_name": "Akra Kemer",
+      "telegram_name": "Путевки в Akra Kemer",
+      "max_name": "Туры в Akra Kemer",
+      "description": "Тур с перелётом. Кемер. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 15869,
+      "short_name": "Akra Sorgun TUI Blue Sensatori",
+      "telegram_name": "Путевки в Akra Sorgun TUI Blue Sensatori",
+      "max_name": "Туры в Akra Sorgun TUI Blue Sensatori",
+      "description": "Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 253,
+      "short_name": "Safir Sharm Waterfalls Resort",
+      "telegram_name": "Путевки в Safir Sharm Waterfalls Resort",
+      "max_name": "Туры в Safir Sharm Waterfalls Resort",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 75377,
+      "short_name": "Liberty Fabay",
+      "telegram_name": "Путевки в Liberty Fabay",
+      "max_name": "Туры в Liberty Fabay",
+      "description": "Тур с перелётом. Фетхие. Фото и особенности отеля. Узнайте стоимость."
     }
   ]
 }
