@@ -1,0 +1,10 @@
+{
+  "operation": "commercial-hotel-batch-20261103-33-v1",
+  "hotel_id": 468,
+  "source_url": "https://backend.elgouna.com/wp-content/uploads/2024/01/sultan-bay.pdf",
+  "state": "NEW_PUBLIC_OWNER_PDF_FETCH_403_NO_NATIVE_PIXELS",
+  "http_status": 403,
+  "repeated_fetches": 0,
+  "canva_imports": 0,
+  "new_posts": 0
+}
