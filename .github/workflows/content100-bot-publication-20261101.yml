@@ -1,4 +1,4 @@
-name: Read five fixed primary pages for the next hotel batch
+name: Inspect eight exact primary hotel photographs and one current Ivory factsheet
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -16,19 +16,27 @@ jobs:
       fail-fast: false
       max-parallel: 2
       matrix:
-        media_group: [0,1]
+        media_group: [0,1,2,3]
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Read only fixed official hotel descriptions and public photo references
+      - name: Inspect only fixed public owner material without server calls
         env:
           MEDIA_GROUP: ${{ matrix.media_group }}
-        run: python3 tools/direct_demand/operations/inspect-hotel-media-20261102-3.py
+        run: |
+          set -euo pipefail
+          if [ "$MEDIA_GROUP" = 3 ]; then
+            python3 tools/direct_demand/operations/inspect-public-hotel-pdf-20261103-22.py
+          else
+            python3 tools/direct_demand/operations/inspect-hotel-primary-images-20261103-20.py
+          fi
       - uses: actions/upload-artifact@v4
         with:
-          name: commercial-batch22-primary-sources-${{ matrix.media_group }}
-          path: public-media-sources.json
+          name: commercial-batch22-owner-material-${{ matrix.media_group }}
+          path: |
+            primary-image-inspection.json
+            primary-pdf-text.json
           retention-days: 14
           if-no-files-found: error
