@@ -1,0 +1,26 @@
+{
+  "operation": "commercial-monitor-stock-20261103-28",
+  "state": "FOUR_NATIVE_INPUTS_PREPARED_NOT_MERGED",
+  "goal": "Monitor three newly prepared publication identities and promoted reserve56091 via existing collector",
+  "catalog_ids": [
+    111,
+    163,
+    12116,
+    56091
+  ],
+  "previous_inputs": 632,
+  "new_inputs": 636,
+  "boundaries": [
+    "Append one immutable cohort after actual admitted632 dedup",
+    "Preserve all target keys, attempts, pending searches, lock and budgets",
+    "No new collector/cron/transport or paid/provider calls"
+  ],
+  "criteria": [
+    "Native CI plus focused636 tests preserve prior632 targets and CoralSea165 resume",
+    "Missing one and inactive all new inputs cannot falsely count or block prior targets"
+  ],
+  "risks": [
+    "Configuration is not collected price or availability",
+    "Prepared publications count only after provider verified delivery"
+  ]
+}

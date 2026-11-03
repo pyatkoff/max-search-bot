@@ -1,0 +1,9 @@
+{
+  "source": "648bb1389cd3ec853f3cf78458e02f866c30ba0e",
+  "deploy_run": 41689527412,
+  "verify_job": 126104155727,
+  "deploy_job": 126106572311,
+  "tls_run": 41690822891,
+  "tls_job": 126108617926,
+  "reason": "Four deployment ownership CI/docs/tests paths changed; publishing paths unchanged in compare; scoped gate will verify complete tree and all21 blobs before server."
+}

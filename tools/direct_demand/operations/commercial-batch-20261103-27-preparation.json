@@ -1,0 +1,39 @@
+{
+  "operation": "commercial-hotel-batch-20261103-27-v1",
+  "state": "FOUR_NATIVE_COVERS_VISUALLY_ACCEPTED_NOT_SENT",
+  "goal": "Publish ready subset from ten proven candidates in one existing serial run",
+  "boundaries": [
+    "Existing bots/channels/registry/once only",
+    "No ad changes, new runtime, workers or queues",
+    "Only exact owner public photos; no private tokens or archives",
+    "Source/host/TLS/schema/rights/UNKNOWN/dedup gates retained"
+  ],
+  "criteria": [
+    "Four whole hotel captions <=1024 UTF16 without dashes",
+    "Exact native PNG bytes, chunks, hash, dimensions and image viewed",
+    "Four hotel pairs provider verified after durable intent and live dedup"
+  ],
+  "risks": [
+    "Holiday source is a400x552 owner portrait general view; final600x600 composition inspected, brand/title and buildings remain visible",
+    "Playhouse at AquaClub is restricted to selected operator bookings",
+    "Pool heat/weather and age/category restrictions must remain explicit",
+    "Baron and other candidates must not hold ready four"
+  ],
+  "ready_hotel_ids": [
+    165,
+    12116,
+    111,
+    163
+  ],
+  "deferred_hotel_ids": [
+    1962,
+    102774,
+    342,
+    254,
+    488,
+    512
+  ],
+  "source_contact_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41692356876",
+  "native_png_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41694169496",
+  "new_posts": 0
+}
