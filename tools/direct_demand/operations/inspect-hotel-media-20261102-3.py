@@ -1,13 +1,13 @@
 import base64,html,json,os,re,urllib.parse,urllib.request
 from pathlib import Path
 from html.parser import HTMLParser
-operation='commercial-batch23-primary-sources-20261103-read1'
-pages=["https://www.amarinagroup.com/media/gallery","https://www.theserry.com/beach-resort","https://www.oldpalaceresort.com/en/gallery/","https://www.oldpalaceresort.com/en/activities/swimming-pools/"]
+operation='commercial-batch24-six-new-photo-source-pages'
+pages=["https://partner.jazhotels.com/hotel/4","https://partner.jazhotels.com/hotel/3","https://partner.jazhotels.com/hotel/6","https://www.swissinn.net/corporate/Photo-gallery.php?hotelid=Hurghada&page=2","https://www.swissinn.net/corporate/Photo-gallery.php?hotelid=Hurghada&page=3","https://www.hwaidak-hotels.com/hotels/titanic-palace"]
 group=int(os.environ['MEDIA_GROUP'])
 assert group in (0,1)
 pages=pages[group*3:group*3+3]
 assert 1<=len(pages)<=3
-hosts=set(["www.amarinagroup.com","amarinagroup.com","r.profitroom.com","r.profitroom.pl","u.profitroom.com","wa-uploads.profitroom.com","www.theserry.com","theserry.com","www.oldpalaceresort.com","oldpalaceresort.com"])
+hosts=set(["partner.jazhotels.com","www.swissinn.net","swissinn.net","www.hwaidak-hotels.com","storage.googleapis.com"])
 class Redirect(urllib.request.HTTPRedirectHandler):
  def redirect_request(self,*args,**kwargs):raise ValueError('unexpected_primary_source_redirect')
 opener=urllib.request.build_opener(Redirect())
@@ -30,7 +30,7 @@ for url in pages:
  for value in re.findall(r"""["']([^"'<>\r\n]+\.(?:jpe?g|png|webp)(?:\?[^"'<>\r\n]*)?)["']""",text,re.I):
   absolute=urllib.parse.quote(urllib.parse.urljoin(final,html.unescape(value.strip())),safe=':/?&=%#')
   p=urllib.parse.urlsplit(absolute)
-  if p.scheme=='https' and not p.username and not p.password and absolute.count('https://')==1:
+  if p.scheme=='https' and not p.username and not p.password and absolute.count('https://')==1 and 'firebasestorage' not in absolute.lower():
    image_hosts.add(p.hostname)
    if p.hostname in hosts and not re.search(r'(?:^|&)(?:token|access_token|api_key|auth|key)=',p.query,re.I) and absolute not in candidates:candidates.append(absolute)
  for value in re.findall(r"""["']([^"'<>\r\n]+\.pdf(?:\?[^"'<>\r\n]*)?)["']""",text,re.I):
