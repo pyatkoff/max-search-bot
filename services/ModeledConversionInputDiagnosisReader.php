@@ -14,8 +14,9 @@ final class ModeledConversionInputDiagnosisReader
     public function __construct(private PDO $pdo,private $authorize,private ModeledConversionStatusBudget $budget)
     {$this->mysql=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';}
 
-    public function read(?int $activated=null):array
+    public function read(?int $activated=null,int $limit=self::LIMIT):array
     {
+        if($limit<1||$limit>self::LIMIT)throw new InvalidArgumentException('diagnosis_limit');
         $this->auth();
         try{
             $model=hash_file('sha256',__DIR__.'/ModeledConversionSemanticPrediction.php');
@@ -48,13 +49,13 @@ final class ModeledConversionInputDiagnosisReader
             $sql='SELECT JSON_ARRAY('.implode(',',$columns).') AS diagnosis_json'
                 .' FROM (SELECT id,platform,customer_key,conversation_id,observed_at_unix,profile_json'
                 ." FROM modeled_conversion_profile_versions WHERE project_key='anytour' AND platform IN ('max','telegram')"
-                .' ORDER BY id DESC LIMIT '.self::LIMIT.') bounded_profiles ORDER BY id DESC';
+                .' ORDER BY id DESC LIMIT '.$limit.') bounded_profiles ORDER BY id DESC';
             $q=$this->budget->prepare($this->pdo,$sql);$q->bindValue(1,$model,PDO::PARAM_STR);$q->bindValue(2,$processor,PDO::PARAM_STR);
             $q->execute();$rows=$q->fetchAll(PDO::FETCH_ASSOC);$q->closeCursor();$this->auth();
             $bytes=strlen(json_encode($rows,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
             $this->budget->consumeBytes($bytes);
             $out=['available'=>true,'basis'=>'fixed_recent_saved_profile_counters_not_source_reinterpretation',
-                'window'=>['max_versions'=>self::LIMIT,'inspected_versions'=>count($rows),'complete_within_bound'=>count($rows)<self::LIMIT,
+                'window'=>['max_versions'=>$limit,'inspected_versions'=>count($rows),'complete_within_bound'=>count($rows)<$limit,
                     'current_namespace_versions'=>0,'other_namespace_versions'=>0,'invalid_json_versions'=>0,'distinct_current_scopes'=>0],
                 'scope_counts'=>['max'=>0,'telegram'=>0,'with_customer_text'=>0,'without_customer_text'=>0,'unknown_customer_coverage'=>0,
                     'with_wizard_applications'=>0,'without_wizard_applications'=>0,'unknown_wizard_coverage'=>0,

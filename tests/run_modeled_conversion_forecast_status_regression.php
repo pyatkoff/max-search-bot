@@ -165,7 +165,8 @@ function forecastV1Assertions(PDO $p,callable $check):void
     $p->prepare("UPDATE modeled_conversion_profiles_state SET last_receipt_json=? WHERE project_key='anytour'")->execute([json_encode(['status'=>'profiled','observed_at_unix'=>1793004000,'profiles_written'=>8],JSON_THROW_ON_ERROR)]);
     $boundedReceipt=forecastV1Read($p);
     $check('private read accepts eight written profiles without enlarging its four-packet inspection',
-        $boundedReceipt['state']['last_batch_profiles_written']===8&&$boundedReceipt['limits']['max_profile_rows']===4);
+        $boundedReceipt['state']['last_batch_profiles_written']===8&&$boundedReceipt['limits']['max_profile_rows']===4
+        &&$boundedReceipt['saved_input_diagnosis']['window']['max_versions']===25);
     $check('V1 read reports separate channels and skips repeated scope versions',
         $r['saved']['channel_counts']===['max'=>1,'telegram'=>1]&&$r['window']['duplicate_scope_rows']===1
         &&$r['saved']['distinct_inspected_scopes']===2);

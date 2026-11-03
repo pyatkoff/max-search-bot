@@ -323,3 +323,10 @@ The first live v1_6 measurement exhausted the five-second budget in the all-mess
 Profile-delay/status/waiting metrics describe that explicit32scope sample, with its own inspected count and completeness within the captured window. Capture-delay counters remain over all eligible first messages in the bounded captured suffix. Neither is a claim of complete native message capture. At most6anonymous examples (up to3slow/pending followed by the newest distinct scopes) and the independent live-value examples are returned. The v1_8 reader accepts the producer's bounded8-profile receipt; its separate4-packet validation sample is unchanged. Shared64KiB/5s limits, authorization/revocation checks, read-only queries, historic-value exclusions and API/claim/processing precision remain unchanged.
 
 The regression includes2005new human message revisions over128scopes and2688older/current profile versions; it verifies the32scope cap, exact later-profile delay, privacy and successful completion under the existing budget on SQLite/nativeMySQL. It does not claim a measured production improvement until the real private route succeeds.
+
+
+### Shared composed-read allocation (v1_9)
+
+The default composed status allocates at most25 saved versions to scalar input diagnosis, leaving room within the same64KiB for real bearer/repeated authorization, current-day32-scope timing, value delivery and the bounded current-model packet sample. Its diagnosis window reports max_versions=25, inspected versions and incomplete coverage explicitly. The standalone diagnosis retains its100-version maximum; internal limits outside1..100 are rejected. No broader population claim follows from either sample. The four-packet/48KiB maxima, total64KiB, five seconds and final authorization/envelope checks are unchanged.
+
+A disposable native MySQL regression composes actual migrated OAuth/dispatcher,100 saved packets,32 timing scopes and value-delivery tables, then checks the shared selected-data budget and both30,000-byte result/64KiB serialized RPC limits. Component-only tests remain. No token, private value, source text or native identity is logged.

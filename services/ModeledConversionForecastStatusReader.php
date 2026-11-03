@@ -9,8 +9,9 @@ require_once __DIR__.'/ModeledConversionLatencyReader.php';
 /** Launch readback of current V1 derived blocks only. Never reads a transcript or runs processing. */
 final class ModeledConversionForecastStatusReader
 {
-    public const VERSION='saved_semantic_prediction_status_v1_8';
+    public const VERSION='saved_semantic_prediction_status_v1_9';
     public const METADATA_LIMIT=20;
+    public const DIAGNOSIS_LIMIT=25;
     public const PROFILE_LIMIT=4;
     public const PROFILE_BYTES=49152;
     private const RELEASE_RESERVE=16384;
@@ -31,7 +32,7 @@ final class ModeledConversionForecastStatusReader
             $out['value_delivery']=(new ModeledConversionValueDeliveryReader($this->pdo,$this->authorize,$this->budget))->read(time());
             $activation=$out['value_delivery']['activated_at']??null;
             $activation=is_string($activation)?strtotime($activation):false;
-            $out['saved_input_diagnosis']=(new ModeledConversionInputDiagnosisReader($this->pdo,$this->authorize,$this->budget))->read($activation===false?null:$activation);
+            $out['saved_input_diagnosis']=(new ModeledConversionInputDiagnosisReader($this->pdo,$this->authorize,$this->budget))->read($activation===false?null:$activation,self::DIAGNOSIS_LIMIT);
             $out['today_latency']=(new ModeledConversionLatencyReader($this->pdo,$this->authorize,$this->budget))->read(time());
             $model=hash_file('sha256',__DIR__.'/ModeledConversionSemanticPrediction.php');
             $processor=hash_file('sha256',__DIR__.'/ModeledConversionProfiles.php');
