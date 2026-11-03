@@ -217,6 +217,11 @@ function forecastNativeAuthRegression():void
         $phase='composed_status_budget';
         forecastLatencyAssertions($pdo,$check);
         $pdo->exec('ALTER TABLE max_channel_conversion_outbox ADD COLUMN value_reviewed_at_unix BIGINT NULL');
+        $pdo->exec('ALTER TABLE max_channel_conversion_outbox ADD COLUMN external_user_id VARCHAR(32)');
+        $pdo->exec('UPDATE max_channel_conversion_outbox SET external_user_id=CAST(conversation_id AS CHAR)');
+        $pdo->exec("CREATE TABLE advertising_visit_observations(id BIGINT PRIMARY KEY,project_key VARCHAR(40),source_key VARCHAR(80),platform VARCHAR(16),counter_id VARCHAR(20),external_user_id VARCHAR(32),identity_status VARCHAR(16),client_id VARCHAR(40),visit_at_unix BIGINT,observed_at_unix BIGINT,received_at_unix BIGINT)");
+        $pdo->exec("INSERT INTO advertising_visit_observations VALUES(1,'anytour','tgmini','telegram','98615635','333','verified','88000003',1793657300,1793657400,1793657500)");
+
     $pdo->exec("CREATE TABLE modeled_conversion_value_export_settings(project_key VARCHAR(40) PRIMARY KEY,counter_id VARCHAR(20),mode VARCHAR(16),goal_id VARCHAR(20),goal_intent VARCHAR(20),activated_at_unix BIGINT,last_tick_unix BIGINT,contract_version VARCHAR(64),last_receipt_json TEXT,history_from_unix BIGINT,history_until_unix BIGINT,history_completed_at_unix BIGINT,history_scanned BIGINT,history_collected BIGINT,history_stats_json TEXT,history_cursor BIGINT,history_ceiling BIGINT,history_fortnight_requested_at_unix BIGINT,history_day_receipt_json TEXT)");
         $pdo->prepare("INSERT INTO modeled_conversion_value_export_settings(project_key,counter_id,mode,goal_id,goal_intent,activated_at_unix,last_tick_unix,contract_version,last_receipt_json,history_from_unix,history_until_unix,history_cursor,history_ceiling) VALUES('anytour','98615635','send','678187097','verified',1793656800,?,?,'{}',1793570400,1793656800,1,30099)")->execute([time(),ModeledConversionValueContract::VERSION]);
         // All subviews exist together: 32 sampled scopes, 100 rich saved packets and a real migrated OAuth grant.
@@ -249,6 +254,8 @@ function forecastNativeAuthRegression():void
                 ($data['available']??false)&&($data['value_delivery']['available']??false)
                 &&($data['today_latency']['available']??false)
                 &&($data['today_latency']['profile_sample']['scopes_inspected']??null)===32
+                &&($data['telegram_linkage']['available']??false)&&($data['telegram_linkage']['pending']['events']??null)===1
+                &&($data['telegram_linkage']['pending']['reason_counts']['unique_eligible']??null)===1
                 &&($data['saved_input_diagnosis']['window']['max_versions']??null)===100
                 &&($data['saved_input_diagnosis']['window']['inspected_versions']??null)===100
                 &&($data['saved_input_diagnosis']['window']['complete_within_bound']??true)===false
