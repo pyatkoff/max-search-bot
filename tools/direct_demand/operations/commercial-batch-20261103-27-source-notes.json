@@ -1,0 +1,94 @@
+{
+  "operation": "commercial-hotel-batch-20261103-27-v1",
+  "state": "TEN_CANDIDATE_POOL_FIVE_WHOLE_CAPTIONS_PRIMARY_PHOTO_EXTRACTION",
+  "catalog_ids": [
+    165,
+    163,
+    1962,
+    12116,
+    102774,
+    111,
+    342,
+    254,
+    488,
+    512
+  ],
+  "baseline_logical_materials": 117,
+  "new_posts": 0,
+  "ready_for_send_count": 0,
+  "prepared_whole_caption_count": 5,
+  "captions": [
+    {
+      "hotel_id": 165,
+      "hotel": "Coral Sea Water World",
+      "key": "coral-sea-water-world",
+      "aliases": [
+        "CORAL SEA WATER WORLD (EX. CORAL SEA RESORT)",
+        "CORAL SEA WATER WORLD"
+      ],
+      "sources": [
+        "https://www.coralsearesorts.com/coral-sea-water-world"
+      ],
+      "text": "✈️ Туры в Coral Sea Water World с перелётом\n📍 Набк Бэй, Шарм эль Шейх.\n\n💦 Аквапарк с водными горками.\n🏊 Два больших открытых бассейна. Есть подогреваемые бассейны.\n👧 Детский клуб и мини дискотека.\n💪 Тренажёрный зал, спа и джакузи.\n\n💡 В Kids Den у детей отдельная комната с двумя односпальными кроватями.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Coral Sea Water World."
+    },
+    {
+      "hotel_id": 163,
+      "hotel": "Coral Sea Holiday Resort & Aqua Park",
+      "key": "coral-sea-holiday",
+      "aliases": [
+        "CORAL SEA HOLIDAY RESORT & AQUA PARK"
+      ],
+      "sources": [
+        "https://www.coralsearesorts.com/coral-sea-holiday-resort"
+      ],
+      "text": "✈️ Туры в Coral Sea Holiday Resort & Aqua Park с перелётом\n📍 Шарм эль Шейх, Египет.\n\n💦 Аквапарк с горками и ленивой рекой.\n🏊 Два больших открытых бассейна. Есть подогреваемые бассейны.\n💪 Тренажёрный зал и спа.\n👨‍👩‍👧‍👦 В Family Suite две спальни и балкон.\n\n💡 Для выхода к бассейну прямо с террасы выбирайте категорию Swim Up.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Coral Sea Holiday."
+    },
+    {
+      "hotel_id": 12116,
+      "hotel": "Coral Sea Aqua Club",
+      "key": "coral-sea-aqua-club",
+      "aliases": [
+        "CORAL SEA AQUA CLUB"
+      ],
+      "sources": [
+        "https://www.coralsearesorts.com/coral-sea-aqua-club"
+      ],
+      "text": "✈️ Туры в Coral Sea Aqua Club с перелётом\n📍 Набк Бэй, Шарм эль Шейх.\n\n💦 Аквапарк с горками и ленивой рекой.\n🏊 Открытый бассейн.\n💪 Тренажёрный зал, спа и джакузи.\n👨‍👩‍👧‍👦 В Kids Den отдельная детская зона с двумя кроватями.\n\n💡 Игровая зона Playhouse доступна только при бронировании через отдельных туроператоров.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Coral Sea Aqua Club."
+    },
+    {
+      "hotel_id": 1962,
+      "hotel": "Baron Palms Sharm El Sheikh 16+",
+      "key": "baron-palms-sharm",
+      "aliases": [
+        "BARON PALMS RESORT ADULTS ONLY 16+",
+        "BARON PALMS"
+      ],
+      "sources": [
+        "https://baronhotels.com/baron-palms-sharm-el-sheikh/?LangId=1"
+      ],
+      "text": "✈️ Туры в Baron Palms Sharm El Sheikh 16+ с перелётом\n📍 Рас Насрани, Шарм эль Шейх.\n\n🏖 До пляжа можно пройти пешком.\n🏊 Открытые бассейны среди пальм.\n🌿 Спа для отдыха после прогулок и купания.\n🛏 Есть номера Superior с видом на бассейн и номера на троих.\n\n💡 Это отель для гостей от 16 лет.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Baron Palms."
+    },
+    {
+      "hotel_id": 111,
+      "hotel": "Pickalbatros Palace Resort Hurghada",
+      "key": "pickalbatros-palace-hurghada",
+      "aliases": [
+        "PICKALBATROS PALACE RESORT HURGHADA"
+      ],
+      "sources": [
+        "https://www.pickalbatros.com/palace-resort-hurghada",
+        "https://www.pickalbatros.com/palace-resort-hurghada/official-faq"
+      ],
+      "text": "✈️ Туры в Pickalbatros Palace Resort Hurghada с перелётом\n📍 Хургада, Египет.\n\n🏖 Собственный пляж.\n🏊 Четыре бассейна. Два подогревают с ноября по апрель в зависимости от погоды.\n💦 Пять детских водных горок для ребят от 4 до 12 лет.\n👧 Детский клуб для этого же возраста.\n\n💡 В бассейн Relax детей не допускают.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Pickalbatros Palace Hurghada."
+    }
+  ],
+  "primary_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41688681756",
+  "primary_photo_notes": [
+    "Coral Sea main pages proved exact facts; photo host assets.builderassets.com absent in first allowlist; use only new exact owner-linked gallery pages with this declared host",
+    "Hilton Luxor direct main page returned HTTPError without recorded status; do not label403 or repeat unchanged",
+    "Baron Palms first-party photo URLs retained; no native visual acceptance yet",
+    "Palace111 first-party Galaxy imagery includes real overviews and also icons/Unsplash; exclude those service illustrations",
+    "Coral Sea Aqua Club Playhouse is restricted to certain tour operators, no transfer of rights or general beachfront claim"
+  ],
+  "source_stop_count": 0
+}

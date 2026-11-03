@@ -1,0 +1,16 @@
+{
+  "operation": "commercial-publication-source-20261103-batch26",
+  "state": "CURRENT_SOURCE_VERIFIED_BY_PUBLICATION_AND_FEED",
+  "expected_installed_sha": "9bc4b09611aebc1b82c22054e6094adb9c6e4bff",
+  "deploy_run": 41684702838,
+  "verify_job": 126087281343,
+  "deploy_job": 126089474761,
+  "tls_run": 41686240946,
+  "publication_run": 41687091250,
+  "feed_run": 41687660699,
+  "publishing_blob_count": 21,
+  "source_stops": 1,
+  "host_template_stops": 1,
+  "our_deploy_tls_reruns": 0,
+  "source_delta": "43db..9bc only8manager workspace AI draft UI/docs/tests files; publishing blobs unchanged"
+}
