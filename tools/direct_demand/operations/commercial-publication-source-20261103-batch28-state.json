@@ -1,0 +1,8 @@
+{
+  "source": "33a6d4199e4309ed1314c29fd65e9d66976327c9",
+  "deploy_run": 41703463445,
+  "verify_job": 126152510246,
+  "deploy_job": 126155272402,
+  "tls_run": 41705082794,
+  "reason": "Normal release completed;exact source verify and strictTLS successful. Changes are CI/release-priority plus manager/ModeledConversion paths; publishing21blobs unchanged in tree gate. No deploy/TLS reruns."
+}

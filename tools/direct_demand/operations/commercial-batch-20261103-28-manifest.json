@@ -1,0 +1,117 @@
+{
+  "operation": "commercial-hotel-batch-20261103-28-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Publish all three ready whole hotel materials in both existing channels in one serial run.",
+  "boundaries": [
+    "Existingbots/channels/registry/once and serial publisher only",
+    "Exact current approved source/verify/TLS/tree21blobs and runtime source/cleanhost/rights/UNKNOWN gates",
+    "No paid calls,new workers/queues/runtime,ads or customer messages"
+  ],
+  "criteria": [
+    "Three native PNG verified by complete bytes/chunks/hash/dimensions and actual view",
+    "Exactly6 new body/photo/button/source provider-verified posts or explicit stop"
+  ],
+  "risks": [
+    "Do not delay these3 for other candidate photos",
+    "If a production release is active,prepare independently and use only completed exact source evidence"
+  ],
+  "baseline_logical_materials": 121,
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "hotel_id": 56091,
+      "hotel": "Ancient Sands Golf Resort & Residences",
+      "key": "ancient-sands-el-gouna",
+      "aliases": [
+        "ANCIENT SANDS GOLF RESORT & RESIDENCES",
+        "ANCIENT SANDS GOLF RESORT"
+      ],
+      "sources": [
+        "https://www.elgouna.com/hotels/ancient-sands"
+      ],
+      "text": "✈️ Туры в Ancient Sands Golf Resort & Residences с перелётом\n📍 Эль Гуна, Египет.\n\n⛳ Поле для гольфа на 18 лунок.\n🏊 Бассейны для отдыха на территории.\n🛏 Есть номера, апартаменты и таунхаусы.\n🌅 Отель стоит на холме с видом на лагуны.\n\n💡 Пляж находится за территорией. До него ходит трансфер от отеля.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Ancient Sands.",
+      "logical_id": "commercial-ancient-sands-el-gouna-56091-v1",
+      "text_sha256": "8004023c9eb1c47ed00f6f82d8f6c8c1210d28b1d38fd4833f1d403ada431aeb",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/ef112c3b171544ab5a836876f91cbb762f77ee88/.github/traffic-publish/commercial-batch-20261103-28/56091.png",
+      "photo_sha256": "a9f8aed5cc822be6c25befd537ee599bf7418aca3bef0d84235a7471ec5a80a3",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 103124,
+      "hotel": "Iberotel Luxor by JAZ",
+      "key": "iberotel-luxor",
+      "aliases": [
+        "IBEROTEL LUXOR",
+        "IBEROTEL LUXOR BY JAZ"
+      ],
+      "sources": [
+        "https://www.jazhotels.com/hoteldetail/14/overview",
+        "https://partner.jazhotels.com/hotel/14"
+      ],
+      "text": "✈️ Туры в Iberotel Luxor by JAZ с перелётом\n📍 Люксор, Египет.\n\n🏊 Плавучий бассейн на Ниле с зимним подогревом.\n🏛 До Луксорского храма можно дойти пешком.\n⛵ Есть прогулки по Нилу на фелуке и теплоходе Lotus Boat.\n\n💡 Для панорамы Нила выбирайте категорию номера с видом на реку.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Iberotel Luxor.",
+      "logical_id": "commercial-iberotel-luxor-103124-v1",
+      "text_sha256": "48154a0078eb7cde7e2d37b5384290f09a6be1e3476c88ae0d2c5088335a8869",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/ef112c3b171544ab5a836876f91cbb762f77ee88/.github/traffic-publish/commercial-batch-20261103-28/103124.png",
+      "photo_sha256": "142d3e4a0d977a8007dfd7fc4630f38c3d57a806bb6bd6b5d0eda14fdf55dc5c",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 488,
+      "hotel": "Three Corners Fayrouz Plaza Beach Resort",
+      "key": "three-corners-fayrouz-plaza",
+      "aliases": [
+        "THE THREE CORNERS FAYROUZ PLAZA BEACH RESORT",
+        "THREE CORNERS FAYROUZ PLAZA BEACH RESORT"
+      ],
+      "sources": [
+        "https://threecorners.com/red-sea/fayrouz-plaza-beach-resort/"
+      ],
+      "text": "✈️ Туры в Three Corners Fayrouz Plaza Beach Resort с перелётом\n📍 Марса Алам, рядом с Порт Галиб.\n\n🏖 Пляж длиной 800 м.\n🏊 Главный бассейн подогревают зимой.\n👧 Детский клуб Trixie и игровая зона.\n💪 Тренажёрный зал.\n\n💡 К зоне купания и коралловому рифу ведёт понтон длиной 368 м.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Three Corners Fayrouz Plaza.",
+      "logical_id": "commercial-three-corners-fayrouz-plaza-488-v1",
+      "text_sha256": "770dc380db7313a282e03f05651bff8491b7baf7117371601ae7f0cf1c061b6a",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/ef112c3b171544ab5a836876f91cbb762f77ee88/.github/traffic-publish/commercial-batch-20261103-28/488.png",
+      "photo_sha256": "46b5ee6e22598367e351733deefb5642b8e5cb04128742d653cb164cee833b35",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    }
+  ],
+  "ready_for_send_count": 3,
+  "new_posts": 0,
+  "provider_send_attempts": 0,
+  "content_and_cover_prepared_count": 3,
+  "approved_live_send_count": 0,
+  "public_png_frozen_count": 3,
+  "native_inspection_state": "THREE_NATIVE_PNG_VISUALLY_VERIFIED",
+  "native_inspection_run_urls": [
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41704372751"
+  ],
+  "deferred": [
+    {
+      "hotel_id": 102031,
+      "state": "FACT_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 75571,
+      "state": "FACT_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 102774,
+      "state": "FACT_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 342,
+      "state": "FACT_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 254,
+      "state": "FACT_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 139,
+      "state": "FACT_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 4185,
+      "state": "FACT_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING_NOT_SENT"
+    }
+  ]
+}
