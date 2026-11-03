@@ -1,7 +1,9 @@
 name: Publish live session diagnostics
 
 on:
-  push:
+  workflow_run:
+    workflows: [Deploy production]
+    types: [completed]
     branches: [main]
   schedule:
     - cron: '25 * * * *'
@@ -12,16 +14,67 @@ permissions:
 
 concurrency:
   group: production-live-session-diagnostics
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   publish:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Resolve exact production source
+        id: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = 'pyatkoff/max-search-bot'
+          upstream_run_id=none
+          upstream_run_attempt=none
+          case "$GITHUB_EVENT_NAME" in
+            workflow_run)
+              metadata="$(jq -er '
+                if .action == "completed"
+                  and .workflow_run.name == "Deploy production"
+                  and .workflow_run.status == "completed"
+                  and .workflow_run.conclusion == "success"
+                  and .workflow_run.head_repository.full_name == "pyatkoff/max-search-bot"
+                  and .workflow_run.head_branch == "main"
+                  and (.workflow_run.event == "push" or .workflow_run.event == "workflow_dispatch")
+                  and (.workflow_run.head_sha | type == "string" and test("^[0-9a-f]{40}$"))
+                  and (.workflow_run.id | type == "number" and . >= 1 and . == floor)
+                  and (.workflow_run.run_attempt | type == "number" and . >= 1 and . == floor)
+                then [.workflow_run.head_sha, .workflow_run.id, .workflow_run.run_attempt] | @tsv
+                else error("untrusted_production_deploy_event") end
+              ' "$GITHUB_EVENT_PATH")"
+              IFS=$'\t' read -r target_sha upstream_run_id upstream_run_attempt <<< "$metadata"
+              ;;
+            workflow_dispatch|schedule)
+              test "$GITHUB_REF" = 'refs/heads/main'
+              target_sha="$GITHUB_SHA"
+              ;;
+            *)
+              echo "Unsupported production gate event: $GITHUB_EVENT_NAME" >&2
+              exit 1
+              ;;
+          esac
+          [[ "$target_sha" =~ ^[0-9a-f]{40}$ ]]
+          printf 'sha=%s\nupstream_run_id=%s\nupstream_run_attempt=%s\n' "$target_sha" "$upstream_run_id" "$upstream_run_attempt" >> "$GITHUB_OUTPUT"
+          printf 'Selected production source: event=%s upstream_run_id=%s upstream_run_attempt=%s sha=%s\n' "$GITHUB_EVENT_NAME" "$upstream_run_id" "$upstream_run_attempt" "$target_sha"
+
+      - name: Checkout exact production source
         uses: actions/checkout@v4
         with:
+          ref: ${{ steps.source.outputs.sha }}
           fetch-depth: 0
+
+      - name: Verify exact source is current main
+        id: provenance
+        env:
+          EXPECTED_SHA: ${{ steps.source.outputs.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          bash tools/verify_deploy_main_provenance.sh
 
       - name: Prepare SSH private key
         env:
@@ -44,7 +97,7 @@ jobs:
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-          EXPECTED_SHA: ${{ github.sha }}
+          EXPECTED_SHA: ${{ steps.source.outputs.sha }}
         shell: bash
         run: |
           set -euo pipefail
