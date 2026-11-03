@@ -1,0 +1,119 @@
+{
+  "operation": "commercial-hotel-batch-20261103-32-v1",
+  "state": "TEN_PROVEN_NATIVE_CANDIDATES_PLANNED_NOT_SENT",
+  "baseline_logical_materials": 133,
+  "catalog_ids": [
+    1449,
+    1453,
+    1035,
+    109655,
+    9432,
+    1451,
+    1151,
+    1583,
+    59116,
+    468
+  ],
+  "candidates": [
+    {
+      "hotel_id": 1449,
+      "hotel": "RIXOS PREMIUM BELEK THE LAND OF LEGENDS FREE ACCESS",
+      "country_id": 4,
+      "region_id": 21,
+      "state": "PRIMARY_FACTS_AND_PHOTOS_PENDING",
+      "monitor_input_admitted": false
+    },
+    {
+      "hotel_id": 1453,
+      "hotel": "RIXOS PREMIUM TEKIROVA THE LAND OF LEGENDS FREE ACCESS",
+      "country_id": 4,
+      "region_id": 22,
+      "state": "PRIMARY_FACTS_AND_PHOTOS_PENDING",
+      "monitor_input_admitted": false
+    },
+    {
+      "hotel_id": 1035,
+      "hotel": "LARA BARUT COLLECTION",
+      "country_id": 4,
+      "region_id": 20,
+      "state": "PRIMARY_FACTS_AND_PHOTOS_PENDING",
+      "monitor_input_admitted": false
+    },
+    {
+      "hotel_id": 109655,
+      "hotel": "LIBERTY SIGNA",
+      "country_id": 4,
+      "region_id": 27,
+      "state": "PRIMARY_FACTS_AND_PHOTOS_PENDING",
+      "monitor_input_admitted": false
+    },
+    {
+      "hotel_id": 9432,
+      "hotel": "DELPHIN IMPERIAL LARA",
+      "country_id": 4,
+      "region_id": 20,
+      "state": "PRIMARY_FACTS_AND_PHOTOS_PENDING",
+      "monitor_input_admitted": true
+    },
+    {
+      "hotel_id": 1451,
+      "hotel": "DELPHIN BE GRAND (EX. BOTANIK, RIXOS LARES)",
+      "country_id": 4,
+      "region_id": 20,
+      "state": "PRIMARY_FACTS_AND_PHOTOS_PENDING",
+      "monitor_input_admitted": true
+    },
+    {
+      "hotel_id": 1151,
+      "hotel": "DELPHIN PALACE DELUXE COLLECTION",
+      "country_id": 4,
+      "region_id": 20,
+      "state": "PRIMARY_FACTS_AND_PHOTOS_PENDING",
+      "monitor_input_admitted": false
+    },
+    {
+      "hotel_id": 1583,
+      "hotel": "VOYAGE SORGUN",
+      "country_id": 4,
+      "region_id": 23,
+      "state": "PRIMARY_FACTS_AND_PHOTOS_PENDING",
+      "monitor_input_admitted": false
+    },
+    {
+      "hotel_id": 59116,
+      "hotel": "LUJO HOTEL BODRUM (EX. LUJO ART & JOY)",
+      "country_id": 4,
+      "region_id": 24,
+      "state": "PRIMARY_FACTS_AND_PHOTOS_PENDING",
+      "monitor_input_admitted": false
+    },
+    {
+      "hotel_id": 468,
+      "hotel": "SULTAN BEY HOTEL",
+      "country_id": 1,
+      "region_id": 15,
+      "state": "PRIMARY_FACTS_AND_PHOTOS_PENDING",
+      "monitor_input_admitted": false
+    }
+  ],
+  "goal": "Prepare nine new proven Turkey hotel identities plus retained SultanBey468 together, then one finite photo pass/several covers/one serial ready-subset send",
+  "boundaries": [
+    "No repeat of closedstocklookups or rejected31frames",
+    "Sungate1452/81233 ambiguousproducts not selected",
+    "No directbooking/freeLandOfLegends/access/villa/category benefits copied to all AnyTour packages",
+    "Existingchannels/once/source/host/media guards, noMac/newruntime/providerpaidcalls/ads"
+  ],
+  "criteria": [
+    "Primarywholecaption + genuine generalhotel photo +2supporting photos",
+    "NativePNGbytes/hash/view/freeze/cancel beforepublication",
+    "Appendactualnewpairs to same3YML preservingold133 and genericdescriptionwhileuserdiscusses"
+  ],
+  "risks": [
+    "DelphinPalaceownerexplicitlyclosedwinter, do not present winteravailability",
+    "DelphinImperial9432/BeGrand1451already in original648monitor, must not add duplicatecohort",
+    "Sevenothernew9IDsabsent648; inputadmissiononlyafteractualdedup/readyorcurrentstockpromotion",
+    "LaraownernewBAYOUbranding/2027concept requires current facts, not assumedfuture services"
+  ],
+  "ready_for_send_count": 0,
+  "new_posts": 0
+}

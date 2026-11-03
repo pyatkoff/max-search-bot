@@ -1,0 +1,41 @@
+{
+  "operation": "commercial-monitor-publication-20261103-31",
+  "state": "MONITOR_INPUTS_MERGED_NOT_COLLECTED",
+  "catalog_ids": [
+    74503,
+    1582
+  ],
+  "input_count": 648,
+  "previous_input_count": 646,
+  "cohort": "publication_stock_20261103o_2",
+  "pr_url": "https://github.com/pyatkoff/poisk-turov-test/pull/4987",
+  "head_sha": "ddcf67e69a72fc71d5a33006ed822d34fac75629",
+  "merge_sha": "a75b832c945aec54457f9a6644a45d18a310d058",
+  "native_runs": [
+    {
+      "run": 41727709354,
+      "job": 126236732168,
+      "type": "guard"
+    },
+    {
+      "run": 41727709388,
+      "job": 126236731833,
+      "type": "collect_validate"
+    },
+    {
+      "run": 41727709353,
+      "job": 126236731777,
+      "type": "sync_validate"
+    }
+  ],
+  "focused_evidence": [
+    "2026-11-03T22:05:57.1643313Z PUBLISHED_HOTEL_MONITOR_OK namespace=typed_and_native count=648 previous646_targets=unchanged existing_search=resumed mixed_countries=preserved batch31=2 calls=0 writes=0"
+  ],
+  "previous646_targets": "BYTE_IDENTICAL",
+  "existing_batch30_search": "RESUMED",
+  "country_groups": "PRESERVED",
+  "missing_inactive": "NO_FALSE_CREDIT",
+  "provider_calls": 0,
+  "db_writes": 0,
+  "new_collectors": 0
+}

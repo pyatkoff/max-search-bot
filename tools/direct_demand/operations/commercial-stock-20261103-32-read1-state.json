@@ -1,0 +1,31 @@
+{
+  "operation": "commercial-stock-20261103-32-read1",
+  "state": "NINE_NEW_UNIQUE_NATIVE_IDENTITIES_REGISTRY_ZERO_TWO_SUNGATE_PRODUCTS_DEFERRED",
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41728602616",
+  "artifact_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41728602616/artifacts/13275807791",
+  "country_id": 4,
+  "groups": 10,
+  "unique_registry_zero": 9,
+  "catalog_ids": [
+    1449,
+    1453,
+    1035,
+    109655,
+    9432,
+    1451,
+    1151,
+    1583,
+    59116
+  ],
+  "ambiguous_sungate": [
+    1452,
+    81233
+  ],
+  "ready_materials": 0,
+  "new_pairs": 0,
+  "provider_calls": 0,
+  "db_writes": 0,
+  "message_sends": 0,
+  "existing_server_connection_used": true,
+  "full_snapshots_read": 0
+}

@@ -1,0 +1,51 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261103-update5",
+  "state": "THREE_PUBLIC_DIRECT_YML_FEEDS_UPDATED_TO133_HOTELS_HTTPS_BYTES_VERIFIED",
+  "hotel_count": 133,
+  "telegram_offers": 133,
+  "max_offers": 133,
+  "combined_offers": 266,
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41729043554",
+  "intent_artifact_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41729043554/artifacts/13274613395",
+  "result_artifact_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41729043554/artifacts/13273713998",
+  "files": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "public_url": "https://app.anytoour.ru/feed/hotel-posts-telegram.xml",
+      "offers": 133,
+      "bytes": 86474,
+      "sha256": "1ec108f33d137994745e218aa7dac4c6bd802660af2f5cba8bfa1dda34e7f672",
+      "previous_sha256": "9b103b4fca71fc4372cc26ff88cbb4f012a1d3056de577406af8939486916e32"
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "public_url": "https://app.anytoour.ru/feed/hotel-posts-max.xml",
+      "offers": 133,
+      "bytes": 87357,
+      "sha256": "b14d4209e3696fe0e040b8154e4020bae26f8b34193cea045ade694128fb021b",
+      "previous_sha256": "07ea819ac7db8f963f952d28e2275d15ca049947bf53ab03973645926c4a7c1b"
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "public_url": "https://app.anytoour.ru/feed/hotel-posts-all.xml",
+      "offers": 266,
+      "bytes": 173458,
+      "sha256": "3e1a48277e94a09bcd94cdc973d4da09b9c1c993b536f28801655d03ffd8dc22",
+      "previous_sha256": "3bcbed36464105f5692e70151872d40ac3093afe5b7cab337e4f3e5b59852ff3"
+    }
+  ],
+  "previous131_offer_bytes": "BYTE_IDENTICAL",
+  "combined": "EXACT_UNION",
+  "description_state": "APPROVED_GENERIC_TEMPLATE_UNCHANGED_USER_DISCUSSION",
+  "image_gap_catalog_ids": [
+    381,
+    469
+  ],
+  "native_new_append_cases": 3,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "ads_imports": 0,
+  "installed_runtime_changes": 0,
+  "existing_server_connection_used": true
+}

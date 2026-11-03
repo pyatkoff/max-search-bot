@@ -1,0 +1,80 @@
+{
+  "operation": "commercial-hotel-batch-20261103-32-v1",
+  "state": "PUBLIC_PRIMARY_URL_DISCOVERY_RETAINED_NOT_READ_AS_NATIVE_FULL_PHOTOS",
+  "sources": [
+    {
+      "hotel_id": 1449,
+      "url": "https://all.accor.com/hotel/B1J5/index.en.shtml"
+    },
+    {
+      "hotel_id": 1453,
+      "url": "https://all.accor.com/hotel/B1J3/index.en.shtml"
+    },
+    {
+      "hotel_id": 1035,
+      "url": "https://bayoulara.com/en",
+      "note": "Currentownerpagefoundviaofficialbrandfamily;titleLaraBarutCollection,verifycurrentconcept,notBayouVillasallrooms"
+    },
+    {
+      "hotel_id": 1035,
+      "url": "https://barutlara.com/en/advantages-offers",
+      "note": "Ownercachedpagealreadyreadforlinks;directbookingbenefitsnotAnyTour"
+    },
+    {
+      "hotel_id": 109655,
+      "url": "https://www.libertyhotels.com/en/hotels/liberty-signa/"
+    },
+    {
+      "hotel_id": 9432,
+      "url": "https://www.delphinhotel.com/faq",
+      "note": "OwnerFAQexplicitlynamesImperial/BeGrandwinterheating;exactImperialpropertyoverviewstillunresolved,do notguessURI"
+    },
+    {
+      "hotel_id": 1451,
+      "url": "https://www.delphinhotel.com/en/delphin-be-grand-resort/overview"
+    },
+    {
+      "hotel_id": 1151,
+      "url": "https://www.delphinhotel.com/EN/delphin-palace/overview",
+      "note": "Ownerexplicitlyclosedwinter"
+    },
+    {
+      "hotel_id": 1151,
+      "url": "https://www.delphinhotel.com/delphin-palace-factsheet-en",
+      "note": "Ownerdeclares2027summerfactsheetlinks;readactualhrefnotguessPDF/privatearchive"
+    },
+    {
+      "hotel_id": 1583,
+      "url": "https://www.voyagehotel.com/en/voyage-sorgun"
+    },
+    {
+      "hotel_id": 1583,
+      "url": "https://www.voyagehotel.com/en/voyage-sorgun/pool-beach",
+      "note": "Onejetty16+only,notwholehoteladults-only"
+    },
+    {
+      "hotel_id": 1583,
+      "url": "https://www.voyagehotel.com/en/voyage-sorgun/gallery-detail"
+    },
+    {
+      "hotel_id": 59116,
+      "url": "https://lujohotel.com/en"
+    },
+    {
+      "hotel_id": 59116,
+      "url": "https://lujohotel.com/en/overview"
+    },
+    {
+      "hotel_id": 468,
+      "url": "https://backend.elgouna.com/wp-content/uploads/2024/01/sultan-bay.pdf",
+      "note": "Publicownerbrochurepotentialdifferentphoto,notyetbytes/viewaccepted;currentfactsreusefromnotes29"
+    }
+  ],
+  "risks": [
+    "Unrelatedlookalike lujootelbodrum.com NOT provenowner; use lujohotel.com",
+    "Rixos.comknownrobotsblocknotbypassed,ALLisindependentfirstparty",
+    "CatalogueFREEACCESS anddirectbookingrightsnotblanketAnyTourinclusions",
+    "DelphinBeGrandmainbody9/10restaurantsconflictomitcounts,summer/winterrightsseparate",
+    "VoyageSorgunpoolbodymentionsBelektypo, do nottransferwrongplace;16+jettyonly"
+  ]
+}
