@@ -1,0 +1,12 @@
+{
+  "operation": "commercial-stock-20261103-18-read1",
+  "state": "BOUNDED_CATALOG_READ_PLANNED",
+  "goal": "Restore reserve from9 confirmed hotels towards25 using one bounded catalog and two-channel registry read of20 names.",
+  "boundaries": "Existing authenticated route only. Egypt active public catalog identity fields and two-channel registry dedup;no client/order/provider requests,DB writes,message sends,new transport or workers.",
+  "criteria": "Exact current source,successful source verify,strict TLS,21 accepted publishing blobs,host continuity and read-only transactions. Select16 unique unposted identities,skip ambiguous or already published candidates.",
+  "risks": "Name aliases may be ambiguous or produce no match. Catalog rating is a review score. New identities do not imply verified facts,covers,send readiness or monitoring enrollment.",
+  "candidate_group_count": 20,
+  "existing_stock_count": 9,
+  "needed_count": 16,
+  "new_identity_count": 0
+}
