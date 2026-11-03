@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261103-25-v1",
-  "state": "TWO_COVERS_PREPARED_NATIVE_CHECK_PENDING_NOT_SENT",
+  "state": "TWO_NATIVE_COVERS_VISUALLY_VERIFIED_NOT_SENT",
   "catalog_ids": [
     464,
     103021,
@@ -64,7 +64,8 @@
       "width": 1262,
       "height": 710,
       "bytes": 138290,
-      "sha256": "53a33ac404bf3365b651c40e385d7a34e0553f7bf13c966cdcfc76ee1cccfd06"
+      "sha256": "53a33ac404bf3365b651c40e385d7a34e0553f7bf13c966cdcfc76ee1cccfd06",
+      "verification": "BYTES_HASH_DIMENSIONS_VERIFIED_ROLE_REVIEW_SEPARATE"
     },
     {
       "hotel_id": 464,
@@ -75,7 +76,8 @@
       "width": 2000,
       "height": 1333,
       "bytes": 291895,
-      "sha256": "673449f844b1489b23445a90fa21a8ef84158db7398dd92cf4f2d389c72986d4"
+      "sha256": "673449f844b1489b23445a90fa21a8ef84158db7398dd92cf4f2d389c72986d4",
+      "verification": "BYTES_HASH_DIMENSIONS_VERIFIED_ROLE_REVIEW_SEPARATE"
     },
     {
       "hotel_id": 464,
@@ -86,7 +88,8 @@
       "width": 2368,
       "height": 1580,
       "bytes": 514810,
-      "sha256": "a47c885e0108e3ff23344d02147595cd09c265a40bcab7b14483613fc1ea3604"
+      "sha256": "a47c885e0108e3ff23344d02147595cd09c265a40bcab7b14483613fc1ea3604",
+      "verification": "BYTES_HASH_DIMENSIONS_VERIFIED_ROLE_REVIEW_SEPARATE"
     },
     {
       "hotel_id": 464,
@@ -97,7 +100,8 @@
       "width": 2545,
       "height": 1697,
       "bytes": 388006,
-      "sha256": "7c685c4c1a93f3c036a97f371d4d4f67dc9c688ddd1912a0316db1ceb241ccb0"
+      "sha256": "7c685c4c1a93f3c036a97f371d4d4f67dc9c688ddd1912a0316db1ceb241ccb0",
+      "verification": "BYTES_HASH_DIMENSIONS_VERIFIED_ROLE_REVIEW_SEPARATE"
     },
     {
       "hotel_id": 464,
@@ -108,7 +112,8 @@
       "width": 4000,
       "height": 2250,
       "bytes": 1489441,
-      "sha256": "ef3be2a3b33f27eff7abd328aa558b760ed7324a89558b4e4ca5e44090c50a08"
+      "sha256": "ef3be2a3b33f27eff7abd328aa558b760ed7324a89558b4e4ca5e44090c50a08",
+      "verification": "BYTES_HASH_DIMENSIONS_VERIFIED_ROLE_REVIEW_SEPARATE"
     },
     {
       "hotel_id": 103021,
@@ -119,7 +124,8 @@
       "width": 1920,
       "height": 766,
       "bytes": 256208,
-      "sha256": "ce427d07821ae38538cddeee0829c9685099341564e6b5a8aaa62930d5261fd8"
+      "sha256": "ce427d07821ae38538cddeee0829c9685099341564e6b5a8aaa62930d5261fd8",
+      "verification": "BYTES_HASH_DIMENSIONS_VERIFIED_ROLE_REVIEW_SEPARATE"
     },
     {
       "hotel_id": 103021,
@@ -130,7 +136,8 @@
       "width": 1441,
       "height": 1080,
       "bytes": 173075,
-      "sha256": "f0545172765d80b7791d13bb1938d685c8448527fc10f012e17f5785924dec99"
+      "sha256": "f0545172765d80b7791d13bb1938d685c8448527fc10f012e17f5785924dec99",
+      "verification": "BYTES_HASH_DIMENSIONS_VERIFIED_ROLE_REVIEW_SEPARATE"
     },
     {
       "hotel_id": 103021,
@@ -141,7 +148,8 @@
       "width": 1441,
       "height": 1080,
       "bytes": 131576,
-      "sha256": "515de97044191f9ebf5b7a2c0bd2242d8d1b201577b435e7c2c9475d2fbbeddb"
+      "sha256": "515de97044191f9ebf5b7a2c0bd2242d8d1b201577b435e7c2c9475d2fbbeddb",
+      "verification": "BYTES_HASH_DIMENSIONS_VERIFIED_ROLE_REVIEW_SEPARATE"
     },
     {
       "hotel_id": 103021,
@@ -152,7 +160,8 @@
       "width": 1441,
       "height": 1080,
       "bytes": 198591,
-      "sha256": "fb133fcf2b6503f627bef52b990d9c51fe5a07eadc0de6778c2797543d9593ac"
+      "sha256": "fb133fcf2b6503f627bef52b990d9c51fe5a07eadc0de6778c2797543d9593ac",
+      "verification": "BYTES_HASH_DIMENSIONS_VERIFIED_ROLE_REVIEW_SEPARATE"
     },
     {
       "hotel_id": 103021,
@@ -163,7 +172,8 @@
       "width": 809,
       "height": 1080,
       "bytes": 91506,
-      "sha256": "34045e5eb993aca160d5cc9b9bd55c21ad06fde36513be90ddd462f177c8e473"
+      "sha256": "34045e5eb993aca160d5cc9b9bd55c21ad06fde36513be90ddd462f177c8e473",
+      "verification": "BYTES_HASH_DIMENSIONS_VERIFIED_ROLE_REVIEW_SEPARATE"
     },
     {
       "hotel_id": 103021,
@@ -174,7 +184,8 @@
       "width": 1441,
       "height": 1080,
       "bytes": 221541,
-      "sha256": "d900503ddb434dac192606ad084a0f0054aee2d4667db76e26680de2cdd43395"
+      "sha256": "d900503ddb434dac192606ad084a0f0054aee2d4667db76e26680de2cdd43395",
+      "verification": "BYTES_HASH_DIMENSIONS_VERIFIED_ROLE_REVIEW_SEPARATE"
     },
     {
       "hotel_id": 73343,
@@ -185,7 +196,8 @@
       "width": 1440,
       "height": 960,
       "bytes": 269727,
-      "sha256": "10bfa423ed41925c7accae54fad203f0baffc4408b0b0c3d73d1fc5c828cd2b3"
+      "sha256": "10bfa423ed41925c7accae54fad203f0baffc4408b0b0c3d73d1fc5c828cd2b3",
+      "verification": "BYTES_HASH_DIMENSIONS_VERIFIED_ROLE_REVIEW_SEPARATE"
     },
     {
       "hotel_id": 73343,
@@ -196,7 +208,8 @@
       "width": 1440,
       "height": 960,
       "bytes": 264646,
-      "sha256": "e09994eff46fe439eb21aa6f59c20bf853f457de328ab71994ffcd0fc0431942"
+      "sha256": "e09994eff46fe439eb21aa6f59c20bf853f457de328ab71994ffcd0fc0431942",
+      "verification": "BYTES_HASH_DIMENSIONS_VERIFIED_ROLE_REVIEW_SEPARATE"
     },
     {
       "hotel_id": 73343,
@@ -207,7 +220,8 @@
       "width": 1440,
       "height": 960,
       "bytes": 133134,
-      "sha256": "009a1f3ca507ca6ad7549ae8e40c765853dcd693110ab1e03eeaae1178e61368"
+      "sha256": "009a1f3ca507ca6ad7549ae8e40c765853dcd693110ab1e03eeaae1178e61368",
+      "verification": "BYTES_HASH_DIMENSIONS_VERIFIED_ROLE_REVIEW_SEPARATE"
     },
     {
       "hotel_id": 73343,
@@ -218,7 +232,8 @@
       "width": 1440,
       "height": 960,
       "bytes": 236351,
-      "sha256": "b435db43f811b5476527827c786bf0c0e189ce8d07aae54b43221f3f19169e12"
+      "sha256": "b435db43f811b5476527827c786bf0c0e189ce8d07aae54b43221f3f19169e12",
+      "verification": "BYTES_HASH_DIMENSIONS_VERIFIED_ROLE_REVIEW_SEPARATE"
     },
     {
       "hotel_id": 73343,
@@ -229,7 +244,8 @@
       "width": 1440,
       "height": 960,
       "bytes": 240282,
-      "sha256": "121c939dd7d4e177054fc5b3c3d28539812e496c97146a24ec1a2b60ed19bcd2"
+      "sha256": "121c939dd7d4e177054fc5b3c3d28539812e496c97146a24ec1a2b60ed19bcd2",
+      "verification": "BYTES_HASH_DIMENSIONS_VERIFIED_ROLE_REVIEW_SEPARATE"
     },
     {
       "hotel_id": 73343,
@@ -240,7 +256,8 @@
       "width": 1440,
       "height": 960,
       "bytes": 238770,
-      "sha256": "1bbac27f2b3d5c1b17e05c45e5650dc9dd2cde9e6e64ff873bac39cb0331e4d3"
+      "sha256": "1bbac27f2b3d5c1b17e05c45e5650dc9dd2cde9e6e64ff873bac39cb0331e4d3",
+      "verification": "BYTES_HASH_DIMENSIONS_VERIFIED_ROLE_REVIEW_SEPARATE"
     },
     {
       "hotel_id": 73343,
@@ -251,7 +268,8 @@
       "width": 800,
       "height": 450,
       "bytes": 87061,
-      "sha256": "fb1aff1db1f1199218ecb4f31b8358deb9ff3db73ad6f6b8c8df30e2a67661d9"
+      "sha256": "fb1aff1db1f1199218ecb4f31b8358deb9ff3db73ad6f6b8c8df30e2a67661d9",
+      "verification": "BYTES_HASH_DIMENSIONS_VERIFIED_ROLE_REVIEW_SEPARATE"
     },
     {
       "hotel_id": 73343,
@@ -262,7 +280,8 @@
       "width": 800,
       "height": 450,
       "bytes": 84725,
-      "sha256": "bf2c2bbfacd7e41bc46de50dc921d02f81cb33c0f0fe31b48f0c4c7bc30af56f"
+      "sha256": "bf2c2bbfacd7e41bc46de50dc921d02f81cb33c0f0fe31b48f0c4c7bc30af56f",
+      "verification": "BYTES_HASH_DIMENSIONS_VERIFIED_ROLE_REVIEW_SEPARATE"
     },
     {
       "hotel_id": 103021,
@@ -273,7 +292,8 @@
       "width": 1915,
       "height": 1080,
       "bytes": 177684,
-      "sha256": "6a6fa629403a038e7bfc57ea60db8d9689165d5cd5154600ce14c9ae04a7eb84"
+      "sha256": "6a6fa629403a038e7bfc57ea60db8d9689165d5cd5154600ce14c9ae04a7eb84",
+      "verification": "BYTES_HASH_DIMENSIONS_VERIFIED_ROLE_REVIEW_SEPARATE"
     },
     {
       "hotel_id": 464,
@@ -284,7 +304,8 @@
       "width": 2510,
       "height": 1675,
       "bytes": 536712,
-      "sha256": "3d352b6303a9bbeed126208be68b77a67bde59f832dd9cda6d3f0d2204bb4b67"
+      "sha256": "3d352b6303a9bbeed126208be68b77a67bde59f832dd9cda6d3f0d2204bb4b67",
+      "verification": "BYTES_HASH_DIMENSIONS_VERIFIED_ROLE_REVIEW_SEPARATE"
     }
   ],
   "hero_roles": {
@@ -326,5 +347,32 @@
     }
   ],
   "provider_calls": 0,
-  "new_posts": 0
+  "new_posts": 0,
+  "native_covers": [
+    {
+      "kind": "cover",
+      "hotel_id": 464,
+      "mime": "image/png",
+      "width": 600,
+      "height": 600,
+      "bytes": 584432,
+      "sha256": "5279ed3c2c272a6396f46866c2a286db2587fb835b0bf1b4bfec488bbf5e8138",
+      "file": "464.png",
+      "chunks": 17,
+      "visual_state": "ACCEPTED_WHOLE_HOTEL_TERRITORY_READABLE_BRAND_NAME"
+    },
+    {
+      "kind": "cover",
+      "hotel_id": 103021,
+      "mime": "image/png",
+      "width": 600,
+      "height": 600,
+      "bytes": 771933,
+      "sha256": "7cbbfbe3e86859dcd870d564114d49c3881a04a4aa41d75ea744bc09e605c3e7",
+      "file": "103021.png",
+      "chunks": 22,
+      "visual_state": "ACCEPTED_WHOLE_HOTEL_TERRITORY_READABLE_BRAND_NAME"
+    }
+  ],
+  "native_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41678385848"
 }
