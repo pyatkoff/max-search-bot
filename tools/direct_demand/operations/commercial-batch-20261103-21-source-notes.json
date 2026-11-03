@@ -1,0 +1,63 @@
+{
+  "operation": "commercial-hotel-batch-20261103-21-preparation",
+  "state": "PRIMARY_COPY_PREPARED_THREE_HEROES_DEFERRED",
+  "catalog_ids": [
+    231,
+    441,
+    483
+  ],
+  "public_copy": [
+    {
+      "hotel_id": 231,
+      "hotel": "The Grand Makadi",
+      "sources": [
+        "https://redseahotels.com/resorts/makadi-bay/the-grand-makadi/"
+      ],
+      "text": "✈️ Туры в The Grand Makadi с перелётом\n📍 Макади Бэй, Египет.\n\n🏖 Собственный пляж и зелёная территория у моря.\n🏊 Открытый бассейн, сезонный подогрев.\n👧 Детский клуб и игровая площадка.\n👨‍👩‍👧‍👦 В категории Family Room две спальни с соединяющей дверью.\n\n💡 К домашнему рифу ведёт пирс.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в The Grand Makadi."
+    },
+    {
+      "hotel_id": 441,
+      "hotel": "Siva Grand Beach",
+      "sources": [
+        "https://redseahotels.com/resorts/hurghada/siva-grand-beach/"
+      ],
+      "text": "✈️ Туры в Siva Grand Beach с перелётом\n📍 Хургада, Египет.\n\n🏖 Широкий песчаный пляж с пологим спуском.\n🏊 Открытый бассейн, сезонный подогрев.\n👧 Детский клуб и игровая площадка.\n🛏 Есть номера в главном корпусе и двухэтажных бунгало. Family Room с двумя соединёнными спальнями.\n\n☕ Напитки в кафе WPS оплачиваются отдельно.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Siva Grand Beach."
+    },
+    {
+      "hotel_id": 483,
+      "hotel": "SUNRISE Royal Makadi Resort",
+      "sources": [
+        "https://www.sunrise-resorts.com/royal-makadi-resort"
+      ],
+      "text": "✈️ Туры в SUNRISE Royal Makadi Resort с перелётом\n📍 Макади Бэй, Египет.\n\n🏖 Собственный пляж в бухте Макади.\n💦 Аквапарк с детской игровой зоной.\n👧 Детский клуб для ребят от 3 до 12 лет.\n👨‍👩‍👧‍👦 Есть Family Room площадью 55 м² с двухъярусной кроватью.\n\n💡 Тренажёрный зал доступен с 16 лет.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в SUNRISE Royal Makadi."
+    }
+  ],
+  "photo_plan": {
+    "231": {
+      "hero": "https://redseahotels.com/wp-content/uploads/2023/03/The-Grand-Makadi-is-an-allinclusive-hotel-in-makadi-bay-egypt-by-red-sea-hotel.jpg",
+      "left": "https://redseahotels.com/wp-content/uploads/2023/03/Sandy-beach-at-grand-makadi.jpg",
+      "right": "https://redseahotels.com/wp-content/uploads/2023/03/Family-Room-at-the-grand-makadi-allinclusive-resort.jpg"
+    },
+    "408": {
+      "hero": "https://d18slle4wlf9ku.cloudfront.net/www.savoy-sharm.com-1214052867/cms/cache/v2/691ab3760578e.jpg/1920x1080/resize/80/96e59ebb068c84bef44febf7edd232e9.jpg",
+      "left": "https://d18slle4wlf9ku.cloudfront.net/www.savoy-sharm.com-1214052867/cms/cache/v2/691ab373f1e12.jpg/1920x1080/resize/80/df2afc3d2979f709629aa96f6a14f773.jpg",
+      "right": "https://d18slle4wlf9ku.cloudfront.net/www.savoy-sharm.com-1214052867/cms/cache/v2/691ab36b82637.jpg/1920x1080/resize/80/2c8c5a16f61193f59a03576415a0890a.jpg"
+    },
+    "441": {
+      "hero": "https://redseahotels.com/wp-content/uploads/2023/03/SIva-Grand-Beach-Long-Video-Preview-Image.jpg",
+      "left": "https://redseahotels.com/wp-content/uploads/2023/02/Direct-beach-access-at-sandy-beaches-of-siva-grand-beach-hotel.jpg",
+      "right": "https://redseahotels.com/wp-content/uploads/2023/03/Family-Room-at-Siva-Grand-Beach-800x600-1.jpg"
+    },
+    "483": {
+      "hero": "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/647db2167f5be.jpg/1920x1080/fit/80/8af160c8e384bb52da197f927fd684e0.jpg",
+      "left": "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/64bfa16ba5db4.jpg/1920x1080/fit/80/9f38aaf7584d314a088ff2a6822f65c6.jpg",
+      "right": "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/64bfa1848e62e.jpg/1920x1080/fit/80/a9a744933c79ea9fe8252c8a9c7ebcf7.jpg"
+    }
+  },
+  "source_run_urls": [
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41623144071",
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41623769744",
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41624110114",
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41624897652"
+  ]
+}

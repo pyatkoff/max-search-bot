@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-feed-20261103-legacy-photos",
-  "state": "FOUR_EXACT_PRIMARY_PHOTOGRAPHS_VISUALLY_ACCEPTED",
+  "state": "FOUR_PRIMARY_OVERVIEWS_ACCEPTED_TWO_HOTEL_IMAGES_DEFERRED",
   "images": [
     {
       "hotel_id": 310,
@@ -43,14 +43,46 @@
       "visual_state": "REAL_EXACT_HOTEL_OVERVIEW_ACCEPTED"
     }
   ],
+  "rejected": [
+    {
+      "hotel_id": 381,
+      "url": "https://static.wixstatic.com/media/ba792b_95b54e203a9344ad8bf3a2a6f28f5fe2~mv2.jpg",
+      "state": "REJECTED_LOGO"
+    },
+    {
+      "hotel_id": 469,
+      "url": "https://irp.cdn-website.com/cfc540a7/dms3rep/multi/opt/Picture3-1920w.jpg",
+      "state": "REJECTED_RESTAURANT_TERRACE"
+    },
+    {
+      "hotel_id": 469,
+      "url": "https://irp.cdn-website.com/cfc540a7/dms3rep/multi/opt/Al%2BShalal%2BPool-%2B-%2B08-1920w.jpg",
+      "state": "DEFERRED_SINGLE_POOL_VIEW"
+    },
+    {
+      "hotel_id": 469,
+      "url": "https://irp.cdn-website.com/cfc540a7/dms3rep/multi/opt/Picture4-1920w.jpg",
+      "state": "REJECTED_RESTAURANT_TERRACE"
+    },
+    {
+      "hotel_id": 469,
+      "url": "https://irp.cdn-website.com/cfc540a7/dms3rep/multi/opt/Picture5-1920w.jpg",
+      "state": "REJECTED_RESTAURANT_TERRACE"
+    },
+    {
+      "hotel_id": 381,
+      "url": "https://static.wixstatic.com/media/ba792b_d1e0a6d1ed4447038160ee3e45d65c43~mv2_d_3686_1930_s_2.jpg",
+      "state": "REJECTED_SLIDE_WITH_PEOPLE_FOREGROUND"
+    }
+  ],
+  "source_run_urls": [
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41626956691",
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41628385332",
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41629054729",
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41629523665"
+  ],
   "remaining_catalog_ids": [
     381,
     469
-  ],
-  "new_rehana_candidate": {
-    "source_url": "https://www.rehanaresorts.com/rehanaroyal-gallery",
-    "declared_gallery_image": "https://static.wixstatic.com/media/ba792b_d1e0a6d1ed4447038160ee3e45d65c43~mv2_d_3686_1930_s_2.jpg/v1/fill/w_250%2Ch_130%2Cal_c%2Cq_90%2Cenc_auto/ba792b_d1e0a6d1ed4447038160ee3e45d65c43~mv2_d_3686_1930_s_2.jpg",
-    "public_original_media_url": "https://static.wixstatic.com/media/ba792b_d1e0a6d1ed4447038160ee3e45d65c43~mv2_d_3686_1930_s_2.jpg"
-  },
-  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41629054729"
+  ]
 }
