@@ -162,6 +162,10 @@ function forecastV1Assertions(PDO $p,callable $check):void
         &&$r['saved']['estimated_probability_range']['minimum']===0.083333
         &&$r['saved']['estimated_probability_range']['maximum']===0.5
         &&$r['state']['last_tick_status']==='idle'&&$r['state']['last_batch_profiles_written']===0);
+    $p->prepare("UPDATE modeled_conversion_profiles_state SET last_receipt_json=? WHERE project_key='anytour'")->execute([json_encode(['status'=>'profiled','observed_at_unix'=>1793004000,'profiles_written'=>8],JSON_THROW_ON_ERROR)]);
+    $boundedReceipt=forecastV1Read($p);
+    $check('private read accepts eight written profiles without enlarging its four-packet inspection',
+        $boundedReceipt['state']['last_batch_profiles_written']===8&&$boundedReceipt['limits']['max_profile_rows']===4);
     $check('V1 read reports separate channels and skips repeated scope versions',
         $r['saved']['channel_counts']===['max'=>1,'telegram'=>1]&&$r['window']['duplicate_scope_rows']===1
         &&$r['saved']['distinct_inspected_scopes']===2);
@@ -472,6 +476,7 @@ function forecastLatencyAssertions(PDO $p,callable $check):void
         &&!$r['profile_sample']['complete_within_captured_window']
         &&$r['profile_sample']['recorded_prediction_status']['predicted']===32
         &&$r['delays']['capture_to_profile']['maximum_seconds']===50.0
+        &&count($r['examples'])===6&&$r['example_selection']==='up_to_three_slow_or_pending_then_recent_distinct_scopes'
         &&!str_contains(json_encode($r,JSON_THROW_ON_ERROR),'PRIVATE_'));
     if($mysql)$p->exec('SET time_zone='.$p->quote((string)$oldTimeZone));
 }

@@ -480,7 +480,7 @@ failure cannot roll back intake or change the uploader result. Failed processing
 keeps references/profiles/cursor unchanged and records only a fixed aggregate
 processing_failed category; no private exception or interpreter stderr is logged.
 
-The batch reads at most40new revisions and affects at most4conversation scopes.
+The batch reads at most40new revisions and affects at most8conversation scopes. Latest journal-reference metadata and a size-guarded payload are read together, reusing immutable per-tick cached revisions without copying their payload again.
 Each factual window contains at most50latest source references. It fetches at
 most500journal rows, copies at most1MiB raw snapshots (reserving protocol framing
 within2MiB), and bounds interpreter input/output to2MiB with a5second hard process

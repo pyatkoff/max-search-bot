@@ -9,7 +9,7 @@ require_once __DIR__.'/ModeledConversionLatencyReader.php';
 /** Launch readback of current V1 derived blocks only. Never reads a transcript or runs processing. */
 final class ModeledConversionForecastStatusReader
 {
-    public const VERSION='saved_semantic_prediction_status_v1_7';
+    public const VERSION='saved_semantic_prediction_status_v1_8';
     public const METADATA_LIMIT=20;
     public const PROFILE_LIMIT=4;
     public const PROFILE_BYTES=49152;
@@ -152,7 +152,7 @@ final class ModeledConversionForecastStatusReader
         $out['last_tick_status']=$v['status'];
         if(is_int($v['observed_at_unix']??null)&&$v['observed_at_unix']>=946684800&&$v['observed_at_unix']<=time())
             $out['last_tick_at']=gmdate('Y-m-d\TH:i:s\Z',$v['observed_at_unix']);
-        if(is_int($v['profiles_written']??null)&&$v['profiles_written']>=0&&$v['profiles_written']<=4)
+        if(is_int($v['profiles_written']??null)&&$v['profiles_written']>=0&&$v['profiles_written']<=8)
             $out['last_batch_profiles_written']=$v['profiles_written'];
         return $out;
     }

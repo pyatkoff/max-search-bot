@@ -82,10 +82,17 @@ final class ModeledConversionLatencyReader
                     'profile_queue_delay_seconds'=>$this->difference($p['saved']??null,$meta['captured']),
                     'total_profile_delay_seconds'=>$this->difference($p['saved']??null,$meta['persisted']),
                     'recorded_prediction_status'=>$p['prediction_status']??'unknown','recorded_prediction_stage'=>$p['prediction_stage']??null];
-                $examples[]=['missing'=>$p===null?1:0,'delay'=>$entry['total_profile_delay_seconds']??$now-(int)$meta['persisted'],'entry'=>$entry];
+                $examples[]=['journal_id'=>(string)$meta['id'],'missing'=>$p===null?1:0,'delay'=>$entry['total_profile_delay_seconds']??$now-(int)$meta['persisted'],'entry'=>$entry];
             }
+            $recent=$examples; // Sample rows already arrive newest captured first, one per scope.
             usort($examples,static fn(array $a,array $b):int=>($b['missing']<=>$a['missing'])?:($b['delay']<=>$a['delay']));
-            foreach(array_slice($examples,0,6)as$example)$out['examples'][]=$example['entry'];
+            $selected=array_slice($examples,0,3);
+            foreach($recent as$example){
+                if(count($selected)>=6)break;
+                if(!in_array($example,$selected,true))$selected[]=$example;
+            }
+            foreach($selected as$example)$out['examples'][]=$example['entry'];
+            $out['example_selection']='up_to_three_slow_or_pending_then_recent_distinct_scopes';
             $out['delays']['capture_to_profile']=$this->sampleDelay($profileDelays);
             $out['delays']['persistence_to_profile']=$this->sampleDelay($totalDelays);
             $out['live_value']=$this->values($since,$now);
