@@ -1,0 +1,53 @@
+{
+  "operation": "commercial-hotel-batch-20261103-18-v1",
+  "state": "THREE_CONTENT_DRAFTS_PRIMARY_RECORDED_NOT_SENT",
+  "goal": "Prepare whole hotel materials while the existing current-source verify and TLS complete.",
+  "boundaries": "Retained official photo pools and exact first-party public descriptions only. No live send approval,no new Canva transaction/no photo acceptance,no assumed package inclusions or prices.",
+  "criteria": "Whole human-readable captions below1024UTF16,no dash/hyphen,proper object identity and material caveats;real hotel hero and remaining publication gates required before send.",
+  "risks": "TUI describes its own package conditions. Only general hotel features are retained. Costa body is available in exact official indexed result while direct reader has header/gallery only.",
+  "hotels": [
+    {
+      "hotel_id": 384,
+      "title": "JAZ Neo Reef Marsa",
+      "region": "Марса Алам",
+      "text": "🐠 JAZ Neo Reef Marsa\nТур с перелётом в Марса Алам, Египет.\n\nУ отеля есть домашний риф для снорклинга. На территории два бассейна, детский клуб для ребят от 4 до 12 лет и площадка для пляжного волейбола.\n\n💡 Бассейн Relaxing предназначен для взрослых. Сам отель принимает семьи с детьми.\n\nВыберите даты, город вылета и состав туристов. Нажмите кнопку, чтобы узнать стоимость тура в JAZ Neo Reef Marsa.\n\n✈️ Узнать стоимость тура",
+      "sources": [
+        "https://www.tui.com/hotels/jaz-neo-reef-marsa-126426/hotelinformation/"
+      ],
+      "source_basis": "Current first-party TUI operator general hotel description read on2026-11-03. No TUI package rights,free services or availability transferred.",
+      "photo_pool": "https://partner.jazhotels.com/hotel/61",
+      "utf16_length": 427,
+      "state": "CONTENT_DRAFT_PRIMARY_RECORDED_COVER_NOT_READY"
+    },
+    {
+      "hotel_id": 281,
+      "title": "JAZ Mirabel Beach",
+      "region": "Шарм эль Шейх",
+      "text": "🌴 JAZ Mirabel Beach\nТур с перелётом в Шарм эль Шейх, район Набк.\n\nНа территории есть аквапарк, детский клуб для ребят от 4 до 12 лет и два теннисных корта. В ресторанах представлены итальянская, восточная и азиатская кухни.\n\n💡 За краем рифа бывает сильное течение. Туроператор не рекомендует там снорклинг. Рестораны по меню требуют бронирования и оплачиваются отдельно.\n\nВыберите даты, город вылета и состав туристов. Нажмите кнопку для расчёта тура в JAZ Mirabel Beach.\n\n✈️ Узнать стоимость тура",
+      "sources": [
+        "https://www.tui.com/hotels/jaz-mirabel-beach-260492/hotelinformation/"
+      ],
+      "source_basis": "Current first-party TUI operator description for Beach only,not Club/Park/combined resort. No TUI package rights transferred. Strong-current warning and paid/reserved a-la-carte preserved.",
+      "photo_pool": "https://partner.jazhotels.com/hotel/5",
+      "utf16_length": 499,
+      "state": "CONTENT_DRAFT_PRIMARY_RECORDED_COVER_NOT_READY"
+    },
+    {
+      "hotel_id": 75725,
+      "title": "JAZ Costa Mares 16+",
+      "region": "Марса Алам",
+      "text": "🌊 JAZ Costa Mares 16+\nТур с перелётом в Марса Алам, Египет.\n\nОтель стоит у песчаного пляжа в бухте Марса Марес. Здесь 208 номеров и люксов, рестораны и бары, а рядом морская охраняемая территория для знакомства с рифами Красного моря.\n\n💡 JAZ Costa Mares принимает гостей от 16 лет. Встречу с черепахами и дюгонями нельзя гарантировать.\n\nВыберите даты, город вылета и состав туристов. Нажмите кнопку, чтобы узнать стоимость тура в JAZ Costa Mares.\n\n✈️ Узнать стоимость тура",
+      "sources": [
+        "https://www.jazhotels.com/hoteldetail/58-egypt-marsa-alam-iberotel-costa-mares/overview"
+      ],
+      "source_basis": "Exact current official JAZ indexed resort overview returns16+,208 rooms/suites,white sandy beach and marine protected area. Direct web open retains only header/gallery. No old child-club brochure or promised wildlife encounter used.",
+      "photo_pool": "https://partner.jazhotels.com/hotel/67",
+      "utf16_length": 474,
+      "state": "CONTENT_DRAFT_PRIMARY_RECORDED_COVER_NOT_READY"
+    }
+  ],
+  "content_draft_count": 3,
+  "content_and_cover_prepared_count": 0,
+  "ready_for_send": 0,
+  "new_posts": 0
+}
