@@ -1,27 +1,26 @@
 <?php
 declare(strict_types=1);
-/* One incident-mode revision of the existing private stdin reader. Saved state only.
- * No provider/tick/replay, history audit, application writes, file locks or schema initialization.
- * A fresh observation is not the original failed cron invocation: its exception may not be persisted.
+/* One same-owner final-stage correction through the existing private channel.
+ * No tick/provider/history scan, next campaign, runtime/config/scheduler write.
+ * The separate correction never replaces the original negative provider review.
  */
-const HOTEL_EXPECTED_INSTALLED_SHA='e77909a76b9df3fd5694c7a5f88993e83b3f0ed4';
-const HOTEL_OPERATION='c4e57cee31f7384714b0211b56b79f5c9f7a1c64ff88d47afcc5e8cd0d8801cb';
-const HOTEL_CAMPAIGN_OPERATION='fbbaa1ea243a9684958a5a1d4eccff2b4381e5e37d6a9594b299400722589858';
+const HOTEL_EXPECTED_INSTALLED_SHA='c71a6278edb388ba1597e65af12d532729b05b53';
+const HOTEL_OPERATION='1722ac83d29680932681969e8751b634571fd19613193e3541ed43f49ea79fd0';
 const HOTEL_CAMPAIGN='HOTEL-SERVER-20261103-B03';
-const HOTEL_ORIGINAL_DEPLOY_RUN='41543909203';
-const HOTEL_ORIGINAL_DEPLOY_JOB='125616651980';
+const HOTEL_CORRECTION_SHA='e781a9c736316e43a940ccddd8b422c6c9970a7e81bc00405190300c6c42cd56';
+const HOTEL_CAPSULE_SHA='6e94ea99e0d5f486b462bbf0885996a0375af243bb0ab76c972cec1f6bbaf5bb';
+const HOTEL_INPUT_RECIPIENT_SHA='137da1e625bcd005e4db69335781f0396fb44995b9668e1b35111f2307810388';
 const HOTEL_EXPECTED_RUNTIME_SHA='458f612752afba2debf9e7b7e66dfe695977c1a9726a6b9a0bc36896bbc1b017';
 const HOTEL_EXPECTED_BOOTSTRAP_SHA='bfe4ac73ad393cfd990654a5dccf9cb37fb5f040d327e3aa6732c0e7756b5aad';
-const HOTEL_EXPECTED_INPUTS_SHA='8bccd3235cbd0d5be625e12152c56276e2b1e2f0dd7c5e85b7cd6ec73ce089af';
-const HOTEL_EXPECTED_PLAN_SHA='7803cb45057fd2d819147a70cbd60419f2220d4aa530c0534cc0de4675431704';
-const HOTEL_STATUS_KIND='hotel-server-private-incident-v1';
+const HOTEL_STATUS_KIND='hotel-server-private-correction-v1';
 const HOTEL_RECEIPT_RECIPIENT_SHA='71f2b177d6baa924fa466765027c37f51a00f23f803a6d900060bf42944d237d';
 ini_set('display_errors','0');ini_set('log_errors','0');
-$level=ob_get_level();ob_start(static fn(string $ignored):string=>'');$pdo=null;
-$report=['schema'=>HOTEL_STATUS_KIND,'operation_id'=>HOTEL_OPERATION,'campaign_operation'=>HOTEL_CAMPAIGN_OPERATION,
-    'campaign_id'=>HOTEL_CAMPAIGN,'original_deploy_run_id'=>HOTEL_ORIGINAL_DEPLOY_RUN,'original_deploy_job_id'=>HOTEL_ORIGINAL_DEPLOY_JOB,
-    'state'=>'HOLD','operator_provider_calls'=>0,'database_writes'=>0,'server_file_writes'=>0,
-    'automatic_resume_authorized'=>false,'snapshot_is_original_failed_invocation'=>false];
+$level=ob_get_level();ob_start(static fn(string $ignored):string=>'');$pdo=null;$lock=null;
+$report=['schema'=>HOTEL_STATUS_KIND,'operation_id'=>HOTEL_OPERATION,'campaign_id'=>HOTEL_CAMPAIGN,
+    'correction_sha256'=>HOTEL_CORRECTION_SHA,'state'=>'HOLD','operator_provider_calls'=>0,
+    'database_mutation_started'=>false,'correction_committed'=>false,'mutation_outcome'=>'not_started',
+    'operator_runtime_config_writes'=>0,'operator_health_payload_writes'=>0,
+    'runtime_config_changed'=>false,'cron_changed'=>false,'new_campaign_started'=>false];
 
 function hotelFail(string $reason): never { throw new DomainException($reason); }
 
@@ -92,45 +91,10 @@ PUBLIC_RECEIPT_RECIPIENT;
     return $envelope;
 }
 
-function hotelOne(PDO $pdo,string $sql,array $args=[]): ?array {
-    if(!str_starts_with($sql,'SELECT '))hotelFail('read_only_query_required');
-    $s=$pdo->prepare($sql);$s->execute($args);$row=$s->fetch(PDO::FETCH_ASSOC);
-    if($s->fetch(PDO::FETCH_ASSOC)!==false)hotelFail('ambiguous_readback');$s->closeCursor();return $row===false?null:$row;
-}
 function hotelHash(mixed $value): string {
     if(!is_string($value)||!preg_match('/\A[a-f0-9]{64}\z/D',$value))hotelFail('saved_hash_unconfirmed');return $value;
 }
-function hotelInt(mixed $value,int $maximum=PHP_INT_MAX): int {
-    if(is_int($value))$text=(string)$value;elseif(is_string($value))$text=$value;else hotelFail('saved_integer_unconfirmed');
-    if(!preg_match('/\A(?:0|[1-9][0-9]*)\z/D',$text)||strlen($text)>strlen((string)$maximum)
-        ||(strlen($text)===strlen((string)$maximum)&&strcmp($text,(string)$maximum)>0))hotelFail('saved_integer_unconfirmed');return (int)$text;
-}
-function hotelRows(PDO $pdo,string $sql,array $args,int $maximum): array {
-    if(!str_starts_with($sql,'SELECT '))hotelFail('read_only_query_required');
-    $s=$pdo->prepare($sql);$s->execute($args);$rows=[];
-    try{while(($row=$s->fetch(PDO::FETCH_ASSOC))!==false){$rows[]=$row;if(count($rows)>$maximum)hotelFail('readback_bounds_unconfirmed');}}
-    finally{$s->closeCursor();}return $rows;
-}
-function hotelSavedHealth(string $app): array {
-    // One bounded raw read. No DiagnosticLogger, mkdir/chmod, flock or second observation.
-    $dir=dirname($app).'/max-search-bot-private-logs';
-    try{
-        hotelDir($dir);$bytes=hotelRead($dir.'/hotel_work_health.json',8192);$v=hotelJson($bytes);
-        $states=['running','ok','awaiting_connection','failed'];$stages=['bootstrap','subscription','delivery','server_cycle','complete'];
-        if(!in_array($v['state']??null,$states,true)||!in_array($v['stage']??null,$stages,true))hotelFail('health_shape_unconfirmed');
-        $out=['available'=>true,'saved_file_sha256'=>hash('sha256',$bytes),'saved_file_bytes'=>strlen($bytes),'state'=>$v['state'],'stage'=>$v['stage'],
-            'trigger'=>in_array($v['trigger']??null,['cron','manual'],true)?$v['trigger']:'unknown'];
-        foreach(['last_started_at','last_finished_at','last_success_at','last_error_at'] as $key){
-            $value=$v[$key]??null;
-            $out[$key]=is_string($value)&&preg_match('/\A[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z\z/D',$value)?$value:null;
-        }
-        $out['last_error_stage']=in_array($v['last_error_stage']??null,$stages,true)?$v['last_error_stage']:null;
-        if($out['last_started_at']===null||($out['state']!=='running'&&$out['last_finished_at']===null))hotelFail('health_timestamp_unconfirmed');
-        $at=strtotime((string)($out['state']==='running'?$out['last_started_at']:$out['last_finished_at']));$age=time()-($at===false?0:$at);
-        $out['stale']=$at===false||$age<0||$age>180;$out['age_seconds']=max(0,$age);
-        return $out;
-    }catch(Throwable $ignored){return ['available'=>false,'state'=>'unknown','reason'=>'saved_health_unconfirmed'];}
-}
+
 function hotelRuntime(string $app): array {
     $dir=dirname($app).'/max-search-bot-hotel-server';hotelDir($dir);
     $bytes=hotelRead($dir.'/runtime.json',65536,null,HOTEL_EXPECTED_RUNTIME_SHA);$runtime=hotelJson($bytes);
@@ -143,122 +107,90 @@ function hotelRuntime(string $app): array {
     return ['configuration_sha256'=>hash('sha256',$bytes),'campaign_id'=>$runtime['campaign_id'],
         'bootstrap_sha256'=>$runtime['bootstrap_sha256'],'flags'=>$runtime['flags']];
 }
-function hotelEvidence(string $value): array {
-    // Private receipt only; never emit the full provider result or request.
-    $length=strlen($value);$out=substr($value,0,2048);
-    for($i=0;$i<4&&!preg_match('//u',$out);$i++)$out=substr($out,0,-1);
-    if(!preg_match('//u',$out))hotelFail('review_evidence_unconfirmed');
-    $out=preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u',' ',$out);
-    if(!is_string($out))hotelFail('review_evidence_unconfirmed');
-    return ['text'=>$out,'original_bytes'=>$length,'sha256'=>hash('sha256',$value),'truncated'=>$length>2048];
-}
-function hotelSavedAttempt(array $row): array {
-    $id=hotelHash($row['attempt_id']??null);$stage=hotelInt($row['stage_index']??null,3);$role=$row['role']??null;$state=$row['state']??null;
-    if(($row['campaign_id']??null)!==HOTEL_CAMPAIGN||!in_array($role,['producer','reviewer'],true)
-        ||!in_array($state,['unknown','succeeded'],true))hotelFail('saved_attempt_unconfirmed');
-    $out=['attempt_id'=>$id,'stage_index'=>$stage,'role'=>$role,'state'=>$state,'baseline_sha256'=>hotelHash($row['baseline_sha256']??null),
-        'request_sha256'=>hotelHash($row['request_sha256']??null),'result_sha256'=>null,'result_bytes'=>0,'stored_cause'=>null];
-    if($state==='unknown'){
-        if(($row['result_sha256']??null)!==null||($row['result_size']??null)!==null||($row['bounded_result_bytes']??null)!==null)hotelFail('unknown_result_requires_reconciliation');
-        $out['stored_cause']='provider_outcome_unknown';return $out;
-    }
-    $size=hotelInt($row['result_size']??null,2097152);$bytes=$row['bounded_result_bytes']??null;$sha=hotelHash($row['result_sha256']??null);
-    if($size<1||!is_string($bytes)||strlen($bytes)!==$size||!hash_equals($sha,hash('sha256',$bytes)))hotelFail('saved_result_hash_unconfirmed');
-    $result=hotelJson($bytes);
-    if(($result['attempt_id']??null)!==$id||($result['principal']??null)!==($row['principal']??null)
-        ||($result['baseline_sha256']??null)!==$out['baseline_sha256']||($result['inputs_sha256']??null)!==HOTEL_EXPECTED_INPUTS_SHA)hotelFail('saved_result_lineage_unconfirmed');
-    $out['result_sha256']=$sha;$out['result_bytes']=$size;$out['result_hash_verified']=true;
-    $outcome=$result['provider_outcome']??null;
-    if($outcome!==null&&$outcome!=='rejected')hotelFail('provider_outcome_unconfirmed');
-    $out['provider_outcome']=$outcome;
-    if($outcome==='rejected'){
-        $code=$result['rejection_code']??null;
-        if(!in_array($code,['insufficient_evidence','invalid_candidate','invalid_review','invalid_response','provider_refused','provider_incomplete'],true))hotelFail('saved_rejection_unconfirmed');
-        $out['rejection_code']=$code;$out['stored_cause']='provider_rejected';
-    }
-    if(array_key_exists('approved',$result)){
-        if(!is_bool($result['approved'])||$role!=='reviewer')hotelFail('saved_review_unconfirmed');
-        $out['approved']=$result['approved'];
-        if($outcome===null&&$result['approved']===false)$out['stored_cause']='independent_review_rejected';
-    }
-    if($role==='reviewer'&&array_key_exists('evidence',$result)){
-        if(!is_string($result['evidence']))hotelFail('review_evidence_unconfirmed');$out['review_evidence']=hotelEvidence($result['evidence']);
-    }
-    return $out;
-}
-function hotelIncident(PDO $pdo): array {
-    // Fixed B03 only. No predecessors, receipts, baseline documents, accepted records or schema APIs.
-    $c=hotelOne($pdo,'SELECT campaign_id,state,enabled,stage_cursor,new_accepted,baseline_sha256,inputs_sha256,bootstrap_sha256,reserved_calls,reserved_tokens,reserved_micros,OCTET_LENGTH(plan_bytes) AS plan_size,CASE WHEN OCTET_LENGTH(plan_bytes)<=65536 THEN plan_bytes ELSE NULL END AS bounded_plan_bytes FROM hotel_server_campaigns WHERE campaign_id=?',[HOTEL_CAMPAIGN]);
-    if($c===null||$c['campaign_id']!==HOTEL_CAMPAIGN||$c['inputs_sha256']!==HOTEL_EXPECTED_INPUTS_SHA||$c['bootstrap_sha256']!==HOTEL_EXPECTED_BOOTSTRAP_SHA)hotelFail('campaign_pin_unconfirmed');
-    if(!in_array($c['state'],['disabled','ready','candidate','reviewed','hold','unknown','complete'],true))hotelFail('campaign_state_unconfirmed');
-    $stage=hotelInt($c['stage_cursor'],4);$new=hotelInt($c['new_accepted'],4);$enabled=hotelInt($c['enabled'],1)===1;
-    $planBytes=$c['bounded_plan_bytes'];$planSize=hotelInt($c['plan_size'],65536);
-    if(!is_string($planBytes)||strlen($planBytes)!==$planSize||!hash_equals(HOTEL_EXPECTED_PLAN_SHA,hash('sha256',$planBytes)))hotelFail('campaign_plan_unconfirmed');
-    $plan=hotelJson($planBytes);$limits=$plan['limits']??null;
-    if(!is_array($limits))hotelFail('campaign_limits_unconfirmed');
-    $budget=[];foreach(['max_calls','max_tokens','max_micros','tokens_per_call','micros_per_call'] as $name)$budget[$name]=hotelInt($limits[$name]??null);
-    $deadline=hotelInt($limits['deadline']??null,2000000000);
-    $budget['deadline']=$deadline;$budget['deadline_utc']=gmdate('Y-m-d\TH:i:s\Z',$deadline);
-    $budget['reserved_calls']=hotelInt($c['reserved_calls']);$budget['reserved_tokens']=hotelInt($c['reserved_tokens']);$budget['reserved_micros']=hotelInt($c['reserved_micros']);
-    $budget['deadline_reached_at_observation']=time()>=$deadline;
-    $budget['next_call_exceeds_calls']=$budget['reserved_calls']>=$budget['max_calls'];
-    $budget['next_call_exceeds_tokens']=$budget['reserved_tokens']>$budget['max_tokens']-$budget['tokens_per_call'];
-    $budget['next_call_exceeds_micros']=$budget['reserved_micros']>$budget['max_micros']-$budget['micros_per_call'];
-    $columns='attempt_id,campaign_id,stage_index,role,principal,state,baseline_sha256,request_sha256,result_sha256,OCTET_LENGTH(result_bytes) AS result_size,CASE WHEN OCTET_LENGTH(result_bytes)<=2097152 THEN result_bytes ELSE NULL END AS bounded_result_bytes';
-    $rows=hotelRows($pdo,'SELECT '.$columns." FROM hotel_server_attempts WHERE campaign_id=? AND stage_index=? ORDER BY CASE role WHEN 'producer' THEN 0 WHEN 'reviewer' THEN 1 ELSE 2 END LIMIT 3",[HOTEL_CAMPAIGN,$stage],2);
-    $attempts=[];$roles=[];
-    foreach($rows as $row){$a=hotelSavedAttempt($row);if($a['stage_index']!==$stage||isset($roles[$a['role']]))hotelFail('current_attempt_set_unconfirmed');$roles[$a['role']]=true;$attempts[]=$a;}
-    $latest=$attempts?end($attempts):null;
-    // The existing schema has no attempt timestamp. Sequential stage/role is the saved ordering, not a fabricated time.
-    if(!$attempts){
-        $row=hotelOne($pdo,'SELECT '.$columns." FROM hotel_server_attempts WHERE campaign_id=? ORDER BY stage_index DESC,CASE role WHEN 'reviewer' THEN 1 WHEN 'producer' THEN 0 ELSE 2 END DESC LIMIT 1",[HOTEL_CAMPAIGN]);
-        if($row!==null){$latest=hotelSavedAttempt($row);if($latest['stage_index']>$stage)hotelFail('latest_attempt_ahead_of_campaign');}
-    }
-    $outboxRows=hotelRows($pdo,"SELECT stage_index,role,state,attempt_id FROM hotel_server_outbox WHERE campaign_id=? AND stage_index=? ORDER BY role LIMIT 3",[HOTEL_CAMPAIGN,$stage],2);
-    $outboxes=[];$outRoles=[];
-    foreach($outboxRows as $row){
-        if(hotelInt($row['stage_index'],3)!==$stage||!in_array($row['role'],['producer','reviewer'],true)||isset($outRoles[$row['role']])
-            ||!in_array($row['state'],['pending','unknown','done'],true))hotelFail('current_outbox_unconfirmed');
-        $outRoles[$row['role']]=true;$outboxes[]=['stage_index'=>$stage,'role'=>$row['role'],'state'=>$row['state'],'attempt_id'=>$row['attempt_id']===null?null:hotelHash($row['attempt_id'])];
-    }
-    $causes=[];
-    foreach($attempts?:($latest===null?[]:[$latest]) as $a)if($a['stored_cause']!==null)$causes[]=['stage_index'=>$a['stage_index'],'role'=>$a['role'],'attempt_id'=>$a['attempt_id'],'cause'=>$a['stored_cause'],'rejection_code'=>$a['rejection_code']??null];
-    $attention=$causes?$causes[count($causes)-1]['cause']:(in_array($c['state'],['hold','unknown'],true)?'original_error_not_persisted':null);
-    return ['campaign'=>['campaign_id'=>HOTEL_CAMPAIGN,'state'=>$c['state'],'enabled'=>$enabled,'stage_index'=>$stage,'new_accepted'=>$new,
-        'baseline_sha256'=>hotelHash($c['baseline_sha256']),'inputs_sha256'=>$c['inputs_sha256'],'bootstrap_sha256'=>$c['bootstrap_sha256'],'plan_sha256'=>HOTEL_EXPECTED_PLAN_SHA],
-        'budget_at_observation'=>$budget,'current_stage_attempts'=>$attempts,'latest_saved_attempt'=>$latest,
-        'latest_ordering'=>'stage_index_then_reviewer_after_producer_no_timestamp','current_stage_outbox'=>$outboxes,
-        'stored_causes'=>$causes,'current_attention_reason'=>$attention,'original_error_detail'=>$causes?'stored_attempt_cause_available':'original_error_not_persisted',
-        'original_error_time_correlation'=>'not_persisted_in_attempt_schema','budget_flags_are_original_error_proof'=>false];
+
+function hotelCorrection(string $root): array {
+    $encoded='eyJhYWQiOiJob3RlbC1zZXJ2ZXItY29ycmVjdGlvbi1jYXBzdWxlLXYxfGU3ODFhOWM3MzYzMTZlNDNhOTQwY2NkZGQ4YjQyMmM2Yzk5NzBhN2U4MWJjMDA0MDUxOTAzMDBjNmM0MmNkNTZ8MTM3ZGExZTYyNWJjZDAwNWU0ZGI2OTMzNTc4MWYwMzk2ZmI0NDk5NWI5NjY4ZTFiMzUxMTFmMjMwNzgxMDM4OCIsImFsZ29yaXRobSI6IlJTQS1PQUVQLVNIQTErQTI1NkdDTSIsImNpcGhlcnRleHQiOiJ3WUlGTHYzc2JreGdlTnE1US95WFFXczZOZmlidkRFU2JJK3Q5ZXY3UTZkYm1qbFZkZytQYnFmc0Q2TEZ5Vmw5ZTNWRlF1ekFuWEgrYmxwVGMzb2RZaC9rRFVvTXZLWlJDZGJDS3FlWkY0d09LeHN5Umw1WHdXWHFRYkJTbFpwU3VaZGM2NXNPTmNRRGFEWFMweTgvcndqbll3WGtaaEpLbHIvUWVSVXh1YURWeCtRbHpHVFl6YmlEVE43dHBCR2d0b1JSdTNJVXc0M0tXTWtXUzdReFdLaFRmc3NrNENReVZjWmdSSzZCZytqZ0dwVTl1VkJENmFJVnBCdHpZREZGMmxmbit0REE4R3A4R3RJcm50VlJocTA5eTY1N2diUnVEY1I0ckp0aGI1U0R5ZkFPaUR3VFV6d2UvUDFycEtEMENURDBBOElxL0N2V1VxMDR3WFZwcm9lN1J5bkI2UjN3UnVJVDhFUnFVdzJlQjRpMklmOWJFK3lSWEhKRmwxbSt6TkppLytSdyttcGltZ3FuVndVTmVlYzM0T1VMR0pCdHBVeG5hZnY1NS9FUk4xRnVkWDRKbER0T0VqRDFzZzAyZTNqcU5RZGFKTDMvRFA0L1ZQTmt6K0hEdFpHUGxYakFEK1M1dWNMZ2ZmWnN5SUNQUXo5TGsyUWUwekFOZ0VIellQcnp6OEdNdWlTekFRMlZvc01wZzI2akg5eWJJekJxaTlpQW9KSjdhWjZyQXQzaTN6Qzl2dlZKTnJHb2llblVuZ0tWMENZY1MyemtsNk44aUlMcWVmbVAxTG82d3lwa3NOSkZZTUVBeU8rRkE5R3VOS1NDWFZhVGhKZENZUVg2SHFMa0pDSkExUmRndzlOMFhOQkpHenZVZWhkbFNZL01kbUZpQ2F1d1JXOXlpRHdDekI2UFNKdVdHSk9nQmszYjZJMXdOTmFVMW5vZng3TGZGTmU4YUtIR08xQ0txRTNjUkZ5MHM4V3FLSmVLNWVlZUNpWkFZcnRXcGZ6NWhoQ1ZUNEptNGQvakRzcklVR0RWY3h5dDdKZnpERUtrU2o3d0Rzam9TWHRYTjBReDFiTXF5MCtZU1ZkVkVwa0tRaEZ6ck1FbDNldENJV216SVJxT2ZwQ3NMKzZhN2dQK29GYlhJSGdyc2lnSE5kbm56NmZ1TlVCMlIvT3BhN21mdXRacmMwWFE2aFdvcDBUZUJRaXJDQnpaWkU0dDErTStSTnFCZ2dXUVFNYUNrclMrTE1qUkpBaUVnbHV3Q3NYdjV0cThHUzl0d3k5Rm9Qd1pPVXVYdVJiOHdxOFlHbnNKY1BXMTZmQlJEd0JFYjBScTNSbmtHVzlvSkJzMEtEd3Z1a3VMWnFEM2ErSlFjeko5bU4wNTFiZ0FIaDl1VmRKTWVTaHh6Tk9JT1ZERE5lcWpSajI3dkVpN1RiQ1RvYVROMm01c3MwWnlhVlVsZksraWJoSWx6SXA5KzdiS3l1SUJWcjZvQy83bWtBdkZLZXVHUGR2ZmhnRU15QXBFUlBqOC93eUtubVNnaWc4L09VSVVmS1ZoTVNSVTFQc2p5bE5UcVBDTk5RYXRRMFd6c2tWd1pEZFdMUGQzc09qdDFyOXdyVy9ZMXZsSUVvODhvOVArZGVtQWd3MU9FSDk2ZnM3UkFSUmhCYkphL1pIaEVROXZhTWlTRjFQaGxLMHdSa1I3L0pMeWpwM01nQWdhVjY5ZDlPY3Z2WWJDZXpMUEFJTVp6QVZ2Zi9kZlkrQ29VVmxVUEJXaGtwUUVPTDU0NVI2OUpTaDNFUFpuemZwV0N2Nk1XWGtWVCtaM2xVaWVOS3BNYkZSL05LMDJ5Q2MyYnlBQ2JjeEJ3SEgvK1lMcE84UnZxS1JDV2NkbmRuc25wMFBnVi90cmlTL0xudkNQNzd5Z3Rhd3A4UFVaYkhwL0pVMHlCUWxDeEpWeGFqUHEwMEtQL1A5Vis1SGJnREdTZWVvc2Y0cW1WbHJiZm90b0xxY1NGcCtwWUtwWE01NjFhd3lISlBYTWQ2SFRoRjEwNFJFQkVqcCtxU3NYcVNGMTZINmNLdGdjY1BKU2lOTTYxbjhiRGFPSGpHK3NhR21IS3RwTjB2am5KekdoNkhTNWYzUGVZb092K3poSk1IQ3NLOHQ1Wkx4bTZKRDI0bnltdk1Cam9tY2ExTExncEpUV3BwTWQxNnpwMlU0Y3hyTzJraFVMa2hoeWMwYlZZc3RRZitpcGwzNzlWMFRqTXBKeFo3cnFKeU0vcDhabWRRUXRmV0UwSkt3S3JwUko1SmQxalRpVjgzS1N5a0VrRjhIQThtZmRxaUU3d3pva2kzVUIzRXVDeXBJSFc1b3Y3YW1hQnpWMkRQOVFGbUNhOCtuU3RFVFErbXhlOUU2T1ppUUp1TlRZKzlVbHhuZzdHdVEyUDI4MVRiZlN3U1NCeUZ0WEJHemNmeUpBVC8wb0ZIVTkyQlhuaWFZSy9TbUh1VVBSV3lTemlIU1hSWTRuYUQ1Qk9zVndRV1MwQzFQejR3a3VsV0hPQS9NZEpRbzZPUk9ZNlRnZTVYcG40VU9NdTJwWXgxTmUyOFh6T1E5NkVtWitHZ3ZGQWUrSU8zTlFLQWo3dmNzQVZoVkQ3dEJSeUU0cWV0YXd0aGo1cDJSSm90ak95SkJUV09lb1pUcVNPenhMSVhIZFlzMXJHUnc4aHROQ3BQVE13V1FSZ3V2eDlaL3JzZDAzTjlJL00wUjdrSUJRZUlaWG9SWXVHVWJTYUF0emJKbXF6SzBGbEdlMzZHbVNQUDJsV2JNcEp1UkdzNXdtTHIzKzc3K29PeUVBMDFHcXVFbFJjaDRVK3NTUzlXNGMzZ2pjSGkwREFUUi9Vd0t4ZmJuaVFzVExKSjVyaGlGeDd4dDRmTXF2dU84TUMrc0x0VlZvY3lzSVZsY0ZlTXRmUjlFUkNRaW52MDl2U1k5TmhQbnAzUlMyTnFRWkJXVmxFOWtVa0YzNTFrcittQndPK1F6c0MxQmFKeUdHbHFDcFZDeTZ4VVAzQ01abUMxU3J0WkNPSnJheXJKck9TVm1aM3NUbTNpR04wcm1WVHdHZVBKdTBXcDFPSkVBNGwwSmpKR3dYMWtaR0FLNUhTU3FuVWFiSGY2eHpnMThFQWY4dXVENzJDdHZwU01FRERMVTkxTFdNM2JRRGlGV3lyMlVVVkM5RUp2cTRILzFqMDFPQjJWYk5TNXNyR3lyV3RzanZWVnREbkZCQ2xiUmlkOUVpZHk3cXpnbW4xcnU4cjV4NldzbWppMXVTbEpDc0wxT05aWVUzdC9ITnMwdUJSclNadnUzdTFkNHdvZTdMN2dMOHMvU3VTL1JRVFRLaEk1ZFpEYWQyUWo1QVozdHRkaHRpSUg1QjlHV0tUWURnOXkrTnVSMVo0NFhOWjlhWEJ0R2FIS0FUZVBDSXlhc2V5WEw4blR2OW91RnJ6dW03NjBObWhGMjhWVVlOaEk0VjZlZGs4QXoreC8wajRVMGgzdnV4Qk43Wk9WcDlwR2FoaW9Yb0xBRHFyRU9rMnlRMUFBajY3Unh4UEpJWGpFT0kzNWhoMXg3cm9MdlhYL0RUN1pROWtlaEg5TERPVGg0YjZEdFNKakYrYVBMVWpVcFM2VmtuMXN1bXFtQXREcTRBUjZaeTJnSnhGMDRtYXRmT3VPQTZmUFZzMmpMMjBYNDRqeXJEdmtFQzIyRzcyVFp5a0ExYi95Rm5OdnNpZXYzZkxiUENFN3FYSHRSRjRVdnBPWW55NHdXWTBLeEpGcXYvbHMxR1ZnbUNDQU9EcW5HdHdGOE1aVnQ5aXcyM003R1pnaXJCYUxWQVBIL1JCeEN4NG1kbUl3em9rdlc5dEMra04rUzJ5MTd5cUJwc0xObWdOZFUvK0N1QTkrMmhuZnF5T1BRc0hHYVh5dHlqRFR2aWdRR2pwREliWDZiSWtXQ2o2Njl2YmlHc0xoV1Z0ZWJqTzh3eSthdEtmaDhxUnlvWHc4TTJhWSsrS1VjZUNMeWd6cEs3SFRKOEs5MDRIbWxEY3FwWENtSWhRTm1iMWkxM2NwVUtRZGxCMllXSU5zeStpWjFidEcyK2d1ekxLMHdZUmhNTjBJM2dqcjY1NFlUZUxCMzFDSVlLbFBJcWFkeG0rMmY2TEs1VFJIMlFmeitvajFBaUhIVHl1enBXTUk1Zmc1NXMvdzV2YWJva2lZMTFEU0QwMkhVWHROdjNZWm1VQmdHSmtMTzRHY0puMFVVTm9Hc3hKK1RHUTliWVFFT2E1ZmpyV0lZRER2Z20ybktDaldDSGQrUVNiWld3aCtmVEh4Nkh3WWo3Rm1Yc2NSTFA5VnNRb1RwanFPa2tXMU51eUtxQlY0Q0lET2pqN3pIOE4xdGcvL3JINlFrU3ZSa2JqMUplMUZiTmc4MDAyUWQrS3VNcHNRdmlRYWcyaGhnSjhNZWRWNzNMeFRnMGplTXpaZEYzV1J1cHZYekJsM1dCZ2hJQXVDRUdXc1MrSDJZMGZqMzU1YVl3UGV2M2dDYmowdkI0Y0kxWHRxak1vUm55bzVGbnZEV3JHSGN2MEkvNUZxMkh2MWpwcnVmZHZwN3lxcXMrelREOGtJcmVVWEVROGR1Z0l3ZW85dktjWWNaeVZ3aldxdHFUZnhqT2lxNXhqaFlIcit5UkdIS2gzU2xjcUxoRXY4SlVxN3NRRlB5SnNuRnM4MVh2UklWVXIvSWtVOGJKcW5Wd24zNzhzOTAzM1VydWo1dkRDRzNKQjlxVkN0WjRQSHBiT3BiUnVvZ0FTMzcvNzlBRVZaWDViUWVsUWhNZkQ4TDdoYnUxclpwU2hwaTExV0FXdlZxTXB5UDlJTjR5NUdOcG9pSktMbnhoQ1pHWjNCam83VEFxTTBjeDlWL05pTVZaaE8wdTk2anBQNEU4SVpmMWJCRlNlK1pUR3RkVHRPNGttY2xmRk9kSURYNTBKYXdPK3JtTG5tODZ1a2hNbTkyZWdtQ1Y3Zng5dnBwbGhXRXVMQnZDazhMZjlyR09EWEtVak5WbnJFNjJFRjgzblNUZVdUY25CUlRWeGNoRWdyS1NVM2pjanBCTkJZMElQTkxNcktKeU9xOG9yYmtYejl3Zkc3UTB6dEd4UDFiYkZrYTFLOW90WUFwOFE3a2pRSGF5TUxWcDJrN1V5SjMwTlYzMWdBSUx2MXpXL2FETXJhdkNaNXZOd3c5UEtTSXhob0FJN1hGR0FYYzlPZE9aYWFLcmtHZHAyc09oaDZoSjRhK1RlT0RFdm1hLzBjMWtzYVE1b2hVcUNBNjVMQ0ppSmFLcXVjR01VczVXbTZEVzd5MTBMWDh2eHFaWVF4L29mWjJPaW1YWXg0OUNrdDlOQ3laR254Yk9OeXUrUXhPbFFMWDFUWHYvUHduRnpLZXYyYWdiYmlaNjFWQytlNGdSdjdrRTdtTUxHSEIvZWc1UW5QMHJsejByQ0JEWFF5OTY0OXQ4cWJleXErcmZyTFVLQ2tJQ0UvejE4M3pycko1NmJlTmQ5czNQWjF0bk05ZEpQaFh4QXZZYm1GNEw3MHoxK0hrOXdrYzQ4RlRrUGF2bS9iU3k4azhJaDA4bWNqM3RIOFFFb0RmQmo1UnJPbzlvRlVqOGQxVmUxSXpoNGRKeXNYU0loeDRDUTBjQ0d5TnZrR0xDYXloTjJpMm9WcWMzNDUrd1A1d3FvVmFBSHBGSVBOcmhyMlJEWFVNeUVRNlVzazRneWl2cXp1eWgzSng3ZkdnMFdIbkt3RnRRYjVwZkRtNGFmT0RyaHNYZExPMlYvOTBoRHBmVEZXWEJmcFJtTDExNnRhbXgwWnRrOHN6MHhyUGw0L2Mya1ZrN25KUGU3MWlxNFRTYjg4R2s5Nlp0RVM4L09DTW81N0VZZWYvL3ZoNmFRdldDSVVnbThJRmhVcHJpV2VJdTJoRUE1cU91SlcrenoxQ1crUG9icnhhdlowRTZmWUg5ZUdOU3U3Q0l0UVlQZUlwOEt5YXZlTEtzTklDY0Q0Q0Z0VVdzUW5JdGp6YXhxVy9IcTFHVXhkMmc3Y2IzRklIeFhQSFFXMUZKaHAvRW9QMDQ2K3FuOTJDMGhtalRoeEpkZC8zcWVodU83U0laTzJRM2RkRlkxcGYvL1RyQy93djE3cHluZ08weXBOZFZxSlhMMVpZMSswd3M5YVd6d2ZZVTJrd0tXelFPN0QyckpGVURJSzR2b2FETEVIUjN0bjJRQ3hueWRaV3pHbTl4WlBOQ1ppdmswZTBDSGhjbFhvU3d1ZHUxUkk2cmRxemtTSGVtYmtuQ1hjcjdOdklqVldnSmNFRUJCZjdQM1dJaG81aDl1WUtSVkJwSDgrNURrSS9wWmdyaVdjdmM0ZENMb3BaSXNkWGRieWxrR21ON0F4WDFMRjFod0xFWjBSb0RFb0hsY2pESzlLZ204OUlJMW1ETDRZYkJoZDczU2V1Z1htQ0dLTmxBaWVvcVg4Q2E2bEwzbXY3WUcxZGlaOTRpcHBPam9OTDZMSmhJZVJvRzM4K2VxeGFTRWpMcTZOTUpTSkw4K1J0eENKUmkzNGxnZjJkb1l0TEhBcDA5TjQ2RloyQnlNNk1RTTYrNjBWeURqN3UzMDQyTGhnOUdqaFJqaGJUbUtUcmRlRlVZYUhNVUVYVEhHSHVCMzROL0RjQ2hXQy94NDgyaGRtMUlTQ0t2R0RHOStCM2JEQTJZUFhLSE9NMmh0YXYvUzV5dzNFUHFocmlKU1hoYmFTSVEyN3doNXh6RkRPcGFnT3gvUjdUc0gvdW85ZW1pNFljUlZwcGxTM0tUcnRZNnNHQlh3SEVCNEZBMkpaSUxqTXJqL2F4TWZBMWxxS0NaU256UTdHeG10Q3ZzbjBZQ0I1bFk0SzZ0ZXlLTUdqanZpTlQwMEphSjI2OHozYWd4d1hyWTA5aTY1RVBvMlJObmJvWEFFdUVRcXFqUmxGZjNLTmkzZG5jOEV3WksxZDAyVmZNWVhWMTdGd2JpZjR2Rzc3bHZpN3huTytNRSt0MEtaczE0VkdYV3NBY05hTWtabURHQ3h5STErZ054UTFDcklvU2lQd1JZeVlwK2taejdJZjZaSWdnOUltUFZia0JKUGVLdmNsU1dSNFZGd1QvSlpjdTZPa1owMXcvUmF1ZlB3eVFRd3F5cSs3VFc2Q3hWakpkZDlyVW01cW9NU2ZzY2lDM3RVdlhTSWNGZ1RHODNMUSsvMVY1VjZjcEVxa2czNVB6N3FnSXhEYmxrQWFEZ2U0L1F0SjVVWWJJN2NEb3k3T2IrOWRqc0VpN29sYktPTGQyZ3VUdnF6UDhpZXFBdmI3L0lWWEJocTJXdWZnPT0iLCJjaXBoZXJ0ZXh0X3NoYTI1NiI6Ijg4MzUwNjQ1ZGIwZjk3NGIyNWEwMDI5ZGNhNzY5MDdkYjFhY2Y1ZWU0Y2UyOTIyYjk1YTRmYzcwNDY0MDNjMDMiLCJrZXkiOiJRK283aFkxa1VOWnpqV1VXSWtwWVRlOHFzOFVhVUZGdTlIb1NVQ0JTbjM3QU8xcE0zd3B3aFVVN3BNdlVkMlpadktmMnp2OFBTcHNFcGRhbkdCdmRPdFoxcmdGVnJVQWdDM21RKy9jOUtwb3hKb21EUjhjU1lBZjlRaDBWZTBZVVo2dEpCTEJ6OE5JcTY5TkJpT3NkRm1iTEgwYkhxaGNKaGVKL0FYNExISzFpOW5ldGR1dm44YWRiZ00zbGNwZXZsdkdQeHY1RG9lQlhDLzRmRkRaMVJPQlluYmpjYkQrdXQvc25HUitXQmZydTNiSUZpM1F4bU1JNFgrZzQ4QmdncllWeWVoYmNBdWRLK1Nnc0FsYmYzVjFoKzQvQ05wL3FiRTFtSXVhRGtaK1Avd0RKOGc1ckk3V0Y2ZDNpQUZFRDRXb2JCT3JFWG45ZGpGb3hncVJOYjdCYmJKSDhqcjJCVGJBRDZGek1MV2o5cE5rdjl5UlgyK3N4Y1RWM0x4clkzSldNR2VKTkV1dnovTDJXUVFRRUkwWmJmYi9JSDROREEwSllVWUwzRHdKNDJEdXpYOTByaU9hY2dFYUhDUnQ2aHhFSnk4S2Q3ZG96NkgzdWJxMVhNaHh0ZEFKYnFiNHlMRnBVc1d1UFoyajd2WXN4ZkVZSFBxbmdnMEc2ejc3NiIsIm5vbmNlIjoiUXRMcXZ4bDRIRnRzck5oViIsInBsYWludGV4dF9ieXRlcyI6NDEyOSwicGxhaW50ZXh0X3NoYTI1NiI6ImU3ODFhOWM3MzYzMTZlNDNhOTQwY2NkZGQ4YjQyMmM2Yzk5NzBhN2U4MWJjMDA0MDUxOTAzMDBjNmM0MmNkNTYiLCJyZWNpcGllbnRfc2hhMjU2IjoiMTM3ZGExZTYyNWJjZDAwNWU0ZGI2OTMzNTc4MWYwMzk2ZmI0NDk5NWI5NjY4ZTFiMzUxMTFmMjMwNzgxMDM4OCIsInNjaGVtYSI6ImhvdGVsLXNlcnZlci1jb3JyZWN0aW9uLWNhcHN1bGUtdjEiLCJ0YWciOiJVSmFVMkwyZ1V2UWdkVFVYY09NamFBPT0ifQ==';$raw=base64_decode($encoded,true);
+    if(!is_string($raw)||strlen($raw)>16384||!hash_equals(HOTEL_CAPSULE_SHA,hash('sha256',$raw)))hotelFail('correction_capsule_unconfirmed');
+    $v=hotelJson($raw);
+    hotelKeys($v,['schema','algorithm','recipient_sha256','aad','plaintext_bytes','plaintext_sha256','key','nonce','tag','ciphertext','ciphertext_sha256']);
+    $aad='hotel-server-correction-capsule-v1|'.HOTEL_CORRECTION_SHA.'|'.HOTEL_INPUT_RECIPIENT_SHA;
+    if($v['schema']!=='hotel-server-correction-capsule-v1'||$v['algorithm']!=='RSA-OAEP-SHA1+A256GCM'
+        ||$v['recipient_sha256']!==HOTEL_INPUT_RECIPIENT_SHA||$v['aad']!==$aad
+        ||$v['plaintext_sha256']!==HOTEL_CORRECTION_SHA||$v['plaintext_bytes']!==4129)hotelFail('correction_capsule_unconfirmed');
+    $d=[];foreach(['key','nonce','tag','ciphertext'] as $k){$d[$k]=is_string($v[$k])?base64_decode($v[$k],true):false;if(!is_string($d[$k]))hotelFail('correction_capsule_unconfirmed');}
+    if(strlen($d['key'])!==384||strlen($d['nonce'])!==12||strlen($d['tag'])!==16||strlen($d['ciphertext'])!==$v['plaintext_bytes']
+        ||hash('sha256',$d['ciphertext'])!==$v['ciphertext_sha256'])hotelFail('correction_capsule_unconfirmed');
+    $ingress=$root.'/ingress-v1';hotelDir($ingress);
+    $public=hotelRead($ingress.'/recipient.public.pem',4096,null,HOTEL_INPUT_RECIPIENT_SHA);
+    $private=hotelRead($ingress.'/recipient.private.pem',8192);
+    $handle=openssl_pkey_get_private($private);$details=$handle===false?false:openssl_pkey_get_details($handle);
+    if(!is_array($details)||!hash_equals(HOTEL_INPUT_RECIPIENT_SHA,hash('sha256',$details['key']??'')))hotelFail('existing_ingress_identity_unconfirmed');
+    $key='';if(!openssl_private_decrypt($d['key'],$key,$handle,OPENSSL_PKCS1_OAEP_PADDING)||strlen($key)!==32)hotelFail('correction_decrypt_unconfirmed');
+    $plain=openssl_decrypt($d['ciphertext'],'aes-256-gcm',$key,OPENSSL_RAW_DATA,$d['nonce'],$d['tag'],$aad);
+    unset($private,$handle,$key,$d,$v);
+    if(!is_string($plain)||strlen($plain)!==4129||hash('sha256',$plain)!==HOTEL_CORRECTION_SHA)hotelFail('correction_decrypt_unconfirmed');
+    $correction=hotelJson($plain);
+    if(HotelServerInputs::json($correction)!==$plain)hotelFail('correction_canonical_bytes_unconfirmed');
+    return $correction;
 }
 
 try{
     $app='/var/www/anytoour/data/www/app.anytoour.ru';$run=getenv('HOTEL_OPERATION_RUN_ID');
     if(PHP_SAPI!=='cli'||count($argv)!==1||realpath(getcwd())!==$app||!function_exists('posix_geteuid')||posix_geteuid()!==1012)hotelFail('target_unconfirmed');
     if(!is_string($run)||!preg_match('/\A[1-9][0-9]{6,20}\z/D',$run))hotelFail('invocation_unconfirmed');
-    $identity=['campaign_id'=>HOTEL_CAMPAIGN,'campaign_operation'=>HOTEL_CAMPAIGN_OPERATION,'installed_sha'=>HOTEL_EXPECTED_INSTALLED_SHA,
-        'original_deploy_job_id'=>HOTEL_ORIGINAL_DEPLOY_JOB,'original_deploy_run_id'=>HOTEL_ORIGINAL_DEPLOY_RUN,'schema'=>HOTEL_STATUS_KIND];
-    if(!hash_equals(HOTEL_OPERATION,hash('sha256',json_encode($identity,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))))hotelFail('incident_identity_unconfirmed');
+    $identity=['campaign_id'=>HOTEL_CAMPAIGN,'correction_sha256'=>HOTEL_CORRECTION_SHA,
+        'installed_sha'=>HOTEL_EXPECTED_INSTALLED_SHA,'schema'=>HOTEL_STATUS_KIND];
+    if(hash('sha256',json_encode($identity,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))!==HOTEL_OPERATION)hotelFail('correction_operation_identity');
     $report['github_run_id']=$run;$report['installed_sha']=hotelInstalled($app);hotelSeal(['state'=>'preflight','operator_provider_calls'=>0]);
-    $report['observed_at_utc']=gmdate('Y-m-d\TH:i:s\Z');$report['health']=hotelSavedHealth($app);
-    $report['runtime']=hotelRuntime($app);
-    // Direct existing PDO connection only: fresh installed ConversationDb::connection() has no schema/project initialization.
-    require_once $app.'/config.php';require_once $app.'/services/ConversationDb.php';$pdo=ConversationDb::connection();
+    $root=dirname($app).'/max-search-bot-hotel-server';hotelDir($root);hotelDir($root.'/ingress-v1');
+    $lockPath=$root.'/ingress-v1/channel.lock';hotelRead($lockPath,1,0);
+    $lock=fopen($lockPath,'rb');if(!$lock||!flock($lock,LOCK_EX|LOCK_NB))hotelFail('active_private_operation');
+    $opened=fstat($lock);clearstatcache(true,$lockPath);$actual=lstat($lockPath);
+    if(!is_array($actual)||$opened['dev']!==$actual['dev']||$opened['ino']!==$actual['ino'])hotelFail('private_admin_lock_changed');
+    $report['runtime_before']=hotelRuntime($app);
+    require_once $app.'/config.php';require_once $app.'/services/ConversationDb.php';
+    require_once $app.'/services/HotelServerCycle.php';
+    if(!method_exists(HotelServerCycle::class,'correctRejectedFinalStage'))hotelFail('correction_api_unavailable');
+    $correction=hotelCorrection($root);
+    $pdo=ConversationDb::connection();
     if($pdo->inTransaction()||$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)!=='mysql'||$pdo->getAttribute(PDO::ATTR_ERRMODE)!==PDO::ERRMODE_EXCEPTION)hotelFail('application_database_unconfirmed');
-    $pdo->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');$pdo->exec('START TRANSACTION WITH CONSISTENT SNAPSHOT, READ ONLY');
-    if(!$pdo->inTransaction())hotelFail('read_only_snapshot_unconfirmed');
-    $snapshot=hotelIncident($pdo);$pdo->rollBack();
-    hotelInstalled($app);hotelRuntime($app);
-    $report=array_replace($report,$snapshot);$report['state']='observed';$report['snapshot_finished_at_utc']=gmdate('Y-m-d\TH:i:s\Z');
-    if(($report['health']['available']??false)!==true){$report['state']='HOLD';$report['reason']='saved_health_unconfirmed';}
+    $cycle=new HotelServerCycle($pdo,new HotelServerLane($pdo),null);
+    $report['database_mutation_started']=true;$report['mutation_outcome']='in_progress';
+    $result=$cycle->correctRejectedFinalStage(HOTEL_CAMPAIGN,$correction,
+        static fn():bool=>hash('sha256',HotelServerInputs::json($correction))===HOTEL_CORRECTION_SHA);
+    $report['correction_committed']=true;$report['mutation_outcome']='committed';$report['correction_result']=$result;$report['committed_at_utc']=gmdate('Y-m-d\TH:i:s\Z');
+    if(($result['state']??null)!=='complete'||($result['stage_index']??null)!==4||($result['new_accepted']??null)!==4
+        ||($result['correction_sha256']??null)!==HOTEL_CORRECTION_SHA||($result['already_applied']??null)!==false)hotelFail('correction_original_outcome_required');
+    $s=$pdo->prepare('SELECT state,enabled,stage_cursor,new_accepted,baseline_sha256,inputs_sha256,bootstrap_sha256,reserved_calls,reserved_tokens,reserved_micros FROM hotel_server_campaigns WHERE campaign_id=?');
+    $s->execute([HOTEL_CAMPAIGN]);$saved=$s->fetch(PDO::FETCH_ASSOC);$s->closeCursor();
+    if(!$saved||$saved['state']!=='complete'||(int)$saved['enabled']!==1||(int)$saved['stage_cursor']!==4||(int)$saved['new_accepted']!==4
+        ||$saved['baseline_sha256']!==$result['baseline_sha256']||$saved['inputs_sha256']!==$correction['proposal']['inputs_sha256']
+        ||$saved['bootstrap_sha256']!==HOTEL_EXPECTED_BOOTSTRAP_SHA||(int)$saved['reserved_calls']!==8
+        ||(int)$saved['reserved_tokens']!==8417600||(int)$saved['reserved_micros']!==88000000)hotelFail('correction_postcondition_unconfirmed');
+    $report['campaign_after']=$saved;hotelInstalled($app);
+    $report['state']='correction_committed';
+    // Existing verifier only observes two natural future cron completions. It never ticks.
+    $out=[];$code=1;exec('/usr/bin/php '.escapeshellarg($app.'/tools/hotel_work.php').' verify-cron 2>&1',$out,$code);
+    $raw=implode("\n",$out);if(strlen($raw)>8192)hotelFail('correction_cron_proof_unconfirmed');
+    $proof=hotelJson($raw);$report['cron_verification']=$proof;
+    if($code!==0||($proof['ok']??null)!==true||($proof['state']??null)!=='scheduled_ticks_verified'||($proof['provider_calls']??null)!==0
+        ||($proof['proof']['first_state']??null)!=='ok'||($proof['proof']['second_state']??null)!=='ok'
+        ||($proof['proof']['first_stage']??null)!=='server_cycle'||($proof['proof']['second_stage']??null)!=='server_cycle')hotelFail('correction_cron_proof_unconfirmed');
+    $report['runtime_after']=hotelRuntime($app);hotelInstalled($app);$report['state']='corrected_and_cron_verified';$report['finished_at_utc']=gmdate('Y-m-d\TH:i:s\Z');
 }catch(Throwable $e){
-    $message=$e->getMessage();$report['state']='HOLD';$report['reason']=preg_match('/\A[a-z][a-zA-Z0-9_]{1,100}\z/D',$message)?$message:'incident_readback_unconfirmed';
+    $message=$e->getMessage();$report['state']=($report['correction_committed']??false)?'CORRECTION_COMMITTED_HOLD':'HOLD';
+    if($report['database_mutation_started']&&!$report['correction_committed']){
+        $report['mutation_outcome']=$e instanceof DomainException?'rejected_atomically':'unconfirmed_no_retry';
+        if(!($e instanceof DomainException))$report['state']='MUTATION_OUTCOME_UNCONFIRMED';
+    }
+    $report['reason']=preg_match('/\A[a-z][a-zA-Z0-9_]{1,100}\z/D',$message)?$message:'correction_outcome_unconfirmed';
 }finally{
     if($pdo instanceof PDO&&$pdo->inTransaction())try{$pdo->rollBack();}catch(Throwable $ignored){}
+    if(is_resource($lock)){flock($lock,LOCK_UN);fclose($lock);}
     while(ob_get_level()>$level)ob_end_clean();
 }
-try{
-    $envelope=($report['reason']??null)==='target_unconfirmed'
-        ?['operation'=>HOTEL_STATUS_KIND,'state'=>'HOLD','reason'=>'target_unconfirmed','operator_provider_calls'=>0]:hotelSeal($report);
+try{$envelope=($report['reason']??null)==='target_unconfirmed'
+    ?['operation'=>HOTEL_STATUS_KIND,'state'=>'HOLD','reason'=>'target_unconfirmed','operator_provider_calls'=>0]:hotelSeal($report);
 }catch(Throwable $ignored){$envelope=['operation'=>HOTEL_STATUS_KIND,'state'=>'HOLD','reason'=>'sealed_readback_result_unconfirmed','operator_provider_calls'=>0];}
-echo json_encode($envelope,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),"\n";exit($report['state']==='observed'&&$envelope['state']==='sealed'?0:1);
+echo json_encode($envelope,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),"\n";
+exit($report['state']==='corrected_and_cron_verified'&&$envelope['state']==='sealed'?0:1);
