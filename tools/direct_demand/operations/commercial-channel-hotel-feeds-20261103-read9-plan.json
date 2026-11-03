@@ -1,0 +1,54 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261103-read9",
+  "goal": "Read canonical public destinations for only five newly verified pairs, plus ten fresh candidate namegroups",
+  "boundaries": [
+    "Read-only catalog/registry;public projection only;no fullsnapshot/buttons/privateIDs/receipts",
+    "No old139 provider reads,DBwrites/messages/newruntime"
+  ],
+  "criteria": [
+    "5firstlineparameters/LIMIT11;uniqueexact TG/MAXpublicpair perhotel",
+    "Fresh country4 groups max12matches,ambiguities not forced"
+  ],
+  "risks": [
+    "Preparation and nativeidentity not deliveredpairs"
+  ],
+  "hotel_ids": [
+    1379,
+    1133,
+    27316,
+    1559,
+    3405
+  ],
+  "stock_groups": {
+    "paloma-oceana": [
+      "paloma oceana"
+    ],
+    "paloma-perissia": [
+      "paloma perissia"
+    ],
+    "paloma-finesse": [
+      "paloma finesse"
+    ],
+    "paloma-grida": [
+      "paloma grida"
+    ],
+    "seven-seas-life": [
+      "seven seas hotel life"
+    ],
+    "kirman-belazur": [
+      "kirman belazur"
+    ],
+    "kirman-sidera": [
+      "kirman sidera"
+    ],
+    "kirman-arycanda": [
+      "kirman arycanda"
+    ],
+    "selectum-family-belek": [
+      "selectum family resort belek"
+    ],
+    "selectum-luxury": [
+      "selectum luxury resort"
+    ]
+  }
+}
