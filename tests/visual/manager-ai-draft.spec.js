@@ -15,7 +15,7 @@ const prepared=(changes={})=>proposal({prepared:true,prepared_at:visualPreparedA
 async function setup(page,{readiness=false,automatic=false,ensureHandler=null,hideNotice=false,supervisor=false,owner=false,ownerState='manager',previewHandler=null,blocked=false,manualTask=false,profilePanel=false,preparationControls=false}={}){
   const calls=[],unexpected=[],errors=[],messages=new Map();
   let preparationHandler=null;const personal=require('./fixtures/personal-workspace-default').emptyPersonalWorkspaceSnapshot();
-  let profileHandler=null,profileRevision='1'.repeat(64);const profiles=new Map();
+  let profileHandler=null,profileRevision='1'.repeat(64);const profiles=new Map(),handoffContexts=new Map();
   const profileFor=id=>{if(!profiles.has(id))profiles.set(id,{version:1,status:'fresh',label:id===11?'Семейная поездка в Турцию':'Другая поездка',boundary_message_id:1,fields:{party:{value:{adults:2,children:1,child_ages:[7]},kind:'manager_interpretation',importance:'hard',note:''}}});return profiles.get(id);};
   let deliveryBlocked=blocked;
   let automaticComplete=false;
@@ -52,7 +52,7 @@ async function setup(page,{readiness=false,automatic=false,ensureHandler=null,hi
     }
     if(url.pathname==='/manager/api.php'){
       if(['me','login'].includes(data.action))return reply({ok:true,manager,csrf:'fixture-csrf',projects:[]});
-      if(data.action==='detail')return reply({ok:true,conversation:conversation(data.conversation_id),messages:messages.get(data.conversation_id),delivery_failure:deliveryBlocked&&data.conversation_id===11?{category:'suspended',message:'Клиент недоступен в MAX'}:null,supervisor_read:(supervisor||owner)&&data.conversation_id===11,owner_read:owner&&data.conversation_id===11});
+      if(data.action==='detail')return reply({ok:true,conversation:conversation(data.conversation_id),messages:messages.get(data.conversation_id),...(handoffContexts.has(Number(data.conversation_id))?{handoff_context:handoffContexts.get(Number(data.conversation_id))}:{}),delivery_failure:deliveryBlocked&&data.conversation_id===11?{category:'suspended',message:'Клиент недоступен в MAX'}:null,supervisor_read:(supervisor||owner)&&data.conversation_id===11,owner_read:owner&&data.conversation_id===11});
       if(data.action==='counts')return reply({ok:true,counts:{waiting:{count:2,unread:0},mine:{count:2}}});
       if(data.action==='edit_candidates')return reply({ok:true,messages:[],candidates:[]});
     }
@@ -83,7 +83,7 @@ async function setup(page,{readiness=false,automatic=false,ensureHandler=null,hi
   await page.goto(origin+'/manager2/index.php?qa=1');await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
   await expect.poll(()=>page.evaluate(()=>WorkspaceV2.S.workspaceBound&&!WorkspaceV2.S.booting)).toBe(true);
   await page.locator('#inboxList [data-conversation-id="11"]').click();if(supervisor||owner)await expect(page.getByRole('button',{name:'AI · Просмотр',exact:true})).toBeVisible();else{await expect(page.locator('#replyText')).toBeEnabled();await expect(page.locator('#aiDraftOpen')).toBeEnabled()}
-  return {calls,unexpected,errors,personal,setPreparationHandler:handler=>{preparationHandler=handler},setProfileHandler:handler=>{profileHandler=handler},setAI:handler=>{ai=handler},setPreview:handler=>{preview=handler},setDeliveryBlocked:value=>{deliveryBlocked=value},completePreparation:()=>{automaticComplete=true},messages,aiCalls:()=>calls.filter(call=>call.path==='/manager/ai-draft.php'&&!['prepared_status','prepared_preview'].includes(call.action)),ensureCalls:()=>calls.filter(call=>call.action==='ensure_prepared'),previewCalls:()=>calls.filter(call=>call.action==='prepared_preview'),statusCalls:()=>calls.filter(call=>call.action==='prepared_status')};
+  return {calls,unexpected,errors,personal,setHandoffContext:(id,value)=>handoffContexts.set(Number(id),value),setPreparationHandler:handler=>{preparationHandler=handler},setProfileHandler:handler=>{profileHandler=handler},setAI:handler=>{ai=handler},setPreview:handler=>{preview=handler},setDeliveryBlocked:value=>{deliveryBlocked=value},completePreparation:()=>{automaticComplete=true},messages,aiCalls:()=>calls.filter(call=>call.path==='/manager/ai-draft.php'&&!['prepared_status','prepared_preview'].includes(call.action)),ensureCalls:()=>calls.filter(call=>call.action==='ensure_prepared'),previewCalls:()=>calls.filter(call=>call.action==='prepared_preview'),statusCalls:()=>calls.filter(call=>call.action==='prepared_status')};
 }
 function clean(state){expect(state.errors).toEqual([]);expect(state.unexpected).toEqual([]);expect(state.calls.filter(call=>['send','take','release','close','reopen'].includes(call.action))).toEqual([])}
 async function openClient(page,id,name){
@@ -740,27 +740,39 @@ for(const viewport of [{width:390,height:420},{width:430,height:900},{width:1440
  // Let the initial confirmed profile finish before replacing it with this empty-profile fixture.
  await expect(page.locator('#m2CurrentTrip .m2RequestStatus')).toHaveText('Запрос сверен с перепиской');
  state.setProfileHandler(data=>data.action==='get'?{body:{ok:true,viewer_id:7,conversation_id:Number(data.conversation_id),profile:{label:'Текущая поездка',status:'empty',fields:{}}}}:null);
- await page.evaluate(()=>{WorkspaceV2.S.detail.handoff_context={summary:''};WorkspaceV2Conversation.renderHandoffContext();WorkspaceV2RequestProfile.refresh();});
+ state.setHandoffContext(11,null);expect(await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible())).toBe(true);
+ await page.evaluate(()=>WorkspaceV2RequestProfile.refresh());
  const row=page.locator('#m2CurrentTrip'),profileButton=page.locator('#m2RequestProfileOpen');
  await expect(page.locator('#m2RequestStatus')).toHaveText('Сохранённого запроса пока нет. Уточните его по переписке.');await expect(row).toBeHidden();await expect(profileButton).toHaveCount(1);
  await openRequestProfile(page);await expect(page.locator('#m2RequestProfilePanel')).toBeVisible();
  await page.locator('#m2RequestProfilePanel').getByRole('button',{name:'Готово',exact:true}).click();
  await expect(profileButton).toBeFocused();await expect(profileButton).toBeVisible();await expect(page.locator('.m2ConversationMenu')).toHaveAttribute('open','');
  await page.locator('#m2ConversationMenuToggle').press('Escape');
- await page.evaluate(()=>{WorkspaceV2.S.detail.handoff_context={summary:'Вылет 14.11. 7–8 ночей. Пхукет, Карон, Отель Корона4*.'};WorkspaceV2Conversation.renderHandoffContext();WorkspaceV2RequestProfile.refresh();});
+ state.setHandoffContext(11,{summary:'Вылет 14.11. 7–8 ночей. Пхукет, Карон, Отель Корона4*.'});
+ expect(await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible())).toBe(true);
+ await page.evaluate(()=>{WorkspaceV2Conversation.renderHandoffContext();WorkspaceV2RequestProfile.refresh();});
  await expect(row).toBeVisible();await expect(row.locator('small')).toContainText('7–8 ночей');await expect(row.locator(':scope > summary')).toContainText('Запрос клиента');await expect(row.locator('.m2RequestStatus')).toHaveText('Сохранённого запроса пока нет. Уточните его по переписке.');await expect(row).not.toHaveAttribute('open','');await expect(row.locator('strong')).toBeHidden();await expect(page.locator('#mobileLeadBtn')).toBeHidden();await expect(page.locator('#assistantClientOpen')).toHaveCount(0);await expect(page.locator('#nextWaitingConversation')).toHaveCount(0);
  await page.locator('#replyText').fill('Начал отвечать клиенту сам');await page.locator('#replyFile').setInputFiles({name:'daily-flow.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic retained file, never sent')});const attachment=await page.locator('#mediaSelection').textContent();await page.evaluate(()=>{window.dailyReplyNode=document.getElementById('replyText');window.dailyFileNode=document.getElementById('replyFile');});
- await row.locator(':scope > summary').click();await expect(row.locator('.m2RequestStatus')).toBeVisible();await settled(page);
+ await row.locator(':scope > summary').click();await expect(row.locator('.m2RequestStatus')).toBeVisible();
+ for(const selector of ['.m2RequestTitle','small','.m2RequestStatus']){await row.locator(selector).scrollIntoViewIfNeeded();await expect(row.locator(selector)).toBeInViewport()}
+ await settled(page);
  const requestLayout=await row.evaluate(el=>{
-  const box=node=>{const r=node.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom}};
+  const box=node=>{
+   const r=node.getBoundingClientRect();let left=Math.max(0,r.left),right=Math.min(innerWidth,r.right),top=Math.max(0,r.top),bottom=Math.min(innerHeight,r.bottom);
+   for(let parent=node.parentElement;parent;parent=parent.parentElement){const style=getComputedStyle(parent),p=parent.getBoundingClientRect();if(/auto|scroll|hidden|clip/.test(style.overflowX)){left=Math.max(left,p.left+parent.clientLeft);right=Math.min(right,p.left+parent.clientLeft+parent.clientWidth)}if(/auto|scroll|hidden|clip/.test(style.overflowY)){top=Math.max(top,p.top+parent.clientTop);bottom=Math.min(bottom,p.top+parent.clientTop+parent.clientHeight)}}
+   const hit=right>left&&bottom>top?document.elementFromPoint((left+right)/2,(top+bottom)/2):null;
+   return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height,paintWidth:Math.max(0,right-left),paintHeight:Math.max(0,bottom-top),hit:!!hit&&(hit===node||node.contains(hit))};
+  };
   const summary=el.querySelector(':scope > summary'),content=el.querySelector(':scope > .m2RequestContent');
   return {row:box(el),summary:box(summary),title:box(summary.querySelector('.m2RequestTitle')),criteria:box(summary.querySelector('small')),content:box(content),status:box(content.querySelector('.m2RequestStatus'))};
  });
+ fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts','request-summary-'+browserName+'-'+viewport.width+'-'+viewport.height+'.png')});
+ console.log('REQUEST_SUMMARY_GEOMETRY '+JSON.stringify({viewport,requestLayout}));
+ for(const name of ['title','criteria','status']){const target=requestLayout[name];expect(target.width,name+' width').toBeGreaterThan(0);expect(target.height,name+' height').toBeGreaterThan(0);expect(target.paintWidth,name+' viewport width').toBeGreaterThan(0);expect(target.paintHeight,name+' viewport height').toBeGreaterThan(0);expect(target.hit,name+' native hit').toBe(true)}
  expect(requestLayout.title.bottom).toBeLessThanOrEqual(requestLayout.criteria.top+1);
  expect(requestLayout.content.top).toBeGreaterThanOrEqual(requestLayout.summary.bottom-1);
  expect(requestLayout.status.top).toBeGreaterThanOrEqual(requestLayout.summary.bottom-1);
  expect(requestLayout.summary.left).toBeGreaterThanOrEqual(requestLayout.row.left-1);expect(requestLayout.content.right).toBeLessThanOrEqual(requestLayout.row.right+1);
- fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts','request-summary-'+browserName+'-'+viewport.width+'-'+viewport.height+'.png')});
  await row.locator('#handoffContext summary').click();await expect(row.locator('.handoffContextSummary')).toContainText('7–8 ночей');await expect(row.locator('.handoffContextSummary')).toContainText('Отель Корона4*');await expect(page.locator('#handoffContext')).toHaveCount(1);await row.locator(':scope > summary').click();
  await page.locator('#m2ConversationMenuToggle').click();await expect(page.locator('.m2ConversationMenu #ceOpen')).toHaveCount(0);await expect(page.locator('.m2ConversationMenu #assistantClientOpen')).toHaveCount(0);await expect(page.locator('#conversationSearchOpen')).toBeVisible();await page.locator('#m2ConversationMenuToggle').press('Escape');
  await page.locator('#conversationTitle').click();await expect(page.locator('#leadZone')).toBeVisible();await expect(page.locator('.leadHeaderActions #ceOpen')).toBeVisible();await page.locator('#mobileLeadClose').click();await expect(page.locator('#conversationTitle')).toBeFocused();await expect(page.locator('#replyText')).toHaveValue('Начал отвечать клиенту сам');await expect(page.locator('#mediaSelection')).toHaveText(attachment);
