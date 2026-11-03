@@ -1,0 +1,110 @@
+{
+  "operation": "commercial-hotel-batch-20261103-28-v1",
+  "state": "THREE_COVERS_PREPARED_NATIVE_VERIFICATION_PENDING",
+  "baseline_logical_materials": 121,
+  "candidate_catalog_ids": [
+    56091,
+    103124,
+    102031,
+    75571,
+    102774,
+    342,
+    254,
+    488,
+    139,
+    4185
+  ],
+  "prepared_catalog_ids": [
+    56091,
+    103124,
+    488
+  ],
+  "whole_captions": [
+    {
+      "hotel_id": 56091,
+      "hotel": "Ancient Sands Golf Resort & Residences",
+      "key": "ancient-sands-el-gouna",
+      "aliases": [
+        "ANCIENT SANDS GOLF RESORT & RESIDENCES",
+        "ANCIENT SANDS GOLF RESORT"
+      ],
+      "sources": [
+        "https://www.elgouna.com/hotels/ancient-sands"
+      ],
+      "text": "✈️ Туры в Ancient Sands Golf Resort & Residences с перелётом\n📍 Эль Гуна, Египет.\n\n⛳ Поле для гольфа на 18 лунок.\n🏊 Бассейны для отдыха на территории.\n🛏 Есть номера, апартаменты и таунхаусы.\n🌅 Отель стоит на холме с видом на лагуны.\n\n💡 Пляж находится за территорией. До него ходит трансфер от отеля.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Ancient Sands."
+    },
+    {
+      "hotel_id": 103124,
+      "hotel": "Iberotel Luxor by JAZ",
+      "key": "iberotel-luxor",
+      "aliases": [
+        "IBEROTEL LUXOR",
+        "IBEROTEL LUXOR BY JAZ"
+      ],
+      "sources": [
+        "https://www.jazhotels.com/hoteldetail/14/overview",
+        "https://partner.jazhotels.com/hotel/14"
+      ],
+      "text": "✈️ Туры в Iberotel Luxor by JAZ с перелётом\n📍 Люксор, Египет.\n\n🏊 Плавучий бассейн на Ниле с зимним подогревом.\n🏛 До Луксорского храма можно дойти пешком.\n⛵ Есть прогулки по Нилу на фелуке и теплоходе Lotus Boat.\n\n💡 Для панорамы Нила выбирайте категорию номера с видом на реку.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Iberotel Luxor."
+    },
+    {
+      "hotel_id": 102031,
+      "hotel": "Steigenberger Nile Palace Luxor",
+      "key": "steigenberger-nile-palace-luxor",
+      "aliases": [
+        "STEIGENBERGER NILE PALACE LUXOR",
+        "STEIGENBERGER NILE PALACE"
+      ],
+      "sources": [
+        "https://hrewards.com/en/steigenberger-nile-palace-luxor"
+      ],
+      "text": "✈️ Туры в Steigenberger Nile Palace с перелётом\n📍 Люксор, берег Нила.\n\n🏊 Подогреваемый открытый бассейн и детский бассейн.\n🌿 Спа с сауной и парной, тренажёрный зал.\n🛏 В Family Room площадью 80 м² две ванные комнаты.\n⛵ У отеля есть собственный причал.\n\n💡 Номера выходят на Нил, во двор или на город. Вид зависит от выбранной категории.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Steigenberger Nile Palace."
+    },
+    {
+      "hotel_id": 254,
+      "hotel": "Three Corners Sea Beach Resort",
+      "key": "three-corners-sea-beach",
+      "aliases": [
+        "THE THREE CORNERS SEA BEACH RESORT",
+        "THREE CORNERS SEA BEACH RESORT"
+      ],
+      "sources": [
+        "https://threecorners.com/red-sea/sea-beach-resort/"
+      ],
+      "text": "✈️ Туры в Three Corners Sea Beach Resort с перелётом\n📍 Марса Алам, Египет.\n\n💦 Аквапарк для взрослых и детей.\n👧 Детский клуб Trixie.\n💪 Тренажёрный зал и спортивные занятия.\n🛏 Есть семейные и смежные номера.\n\n💡 На пляже есть понтон, который ведёт к зоне купания и снорклинга.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Three Corners Sea Beach."
+    },
+    {
+      "hotel_id": 488,
+      "hotel": "Three Corners Fayrouz Plaza Beach Resort",
+      "key": "three-corners-fayrouz-plaza",
+      "aliases": [
+        "THE THREE CORNERS FAYROUZ PLAZA BEACH RESORT",
+        "THREE CORNERS FAYROUZ PLAZA BEACH RESORT"
+      ],
+      "sources": [
+        "https://threecorners.com/red-sea/fayrouz-plaza-beach-resort/"
+      ],
+      "text": "✈️ Туры в Three Corners Fayrouz Plaza Beach Resort с перелётом\n📍 Марса Алам, рядом с Порт Галиб.\n\n🏖 Пляж длиной 800 м.\n🏊 Главный бассейн подогревают зимой.\n👧 Детский клуб Trixie и игровая зона.\n💪 Тренажёрный зал.\n\n💡 К зоне купания и коралловому рифу ведёт понтон длиной 368 м.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Three Corners Fayrouz Plaza."
+    }
+  ],
+  "goal": "Publish all three ready whole hotel materials in one serial run after exact PNG verification",
+  "boundaries": [
+    "4readonlygroups/maxparallel2,no server/provider/DBwrites/messages",
+    "Only exact owner-declared public image URLs, no fabricated derivatives or private tokens",
+    "Unchanged source size/type/dimension guards; no old failed source reads repeated"
+  ],
+  "criteria": [
+    "NativePNG completechunks/bytes/SHA/dimensions/view accepted",
+    "Fresh exact sourceverify/TLS/tree21blobs and live installedsource/cleanhost/rights/UNKNOWN/dedup",
+    "Exactly6provider-confirmed posts in existing two channels"
+  ],
+  "risks": [
+    "Do not claim tour prices, free extras or package inclusions",
+    "AncientSands beach is off-site with shuttle",
+    "Fayrouz general dusk view is chosen; photo with model at onepool is nothero",
+    "NilePalace poolview rejected as hero;itsNileLoungePNGexceeded5MB;do not repeattheseimages",
+    "ThreeCornersSeaBeach5photoGETs returnedHTTP202 text/html, notphotos. Do not call them403 or bypass the response"
+  ],
+  "ready_for_send_count": 0,
+  "new_posts": 0
+}
