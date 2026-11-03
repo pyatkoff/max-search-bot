@@ -131,7 +131,12 @@ async function assistantPaint(page,selector){
 }
 async function openRequestProfile(page){const row=page.locator('#m2CurrentTrip');if(!await row.evaluate(el=>el.open))await row.locator(':scope > summary').click();await page.getByRole('button',{name:'Уточнить запрос',exact:true}).click();}
 async function readAssistantSection(page,selector){
-  const host=await page.locator('#m2Assistant').boundingBox(),target=await page.locator(selector).boundingBox();
+  // The panel opens before its async proposal renders the requested section.
+  let host,target;
+  await expect.poll(async()=>{
+    host=await page.locator('#m2Assistant').boundingBox();target=await page.locator(selector).boundingBox();
+    return !!host&&host.width>0&&host.height>0&&!!target&&target.width>0&&target.height>0;
+  }).toBe(true);
   await page.locator('#m2Assistant').hover();await page.mouse.wheel(0,target.y+target.height/2-host.y-host.height/2);
   await expect.poll(async()=>{const p=await assistantPaint(page,selector);return p.hit&&p.height>=Math.min(p.targetHeight,p.hostHeight-16)-1}).toBe(true);
 }
