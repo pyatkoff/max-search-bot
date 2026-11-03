@@ -341,3 +341,69 @@ The same empty-argument forecasts:read status adds telegram_linkage after packet
 Only aggregate counts/value, coverage bounds, last received time and sanitized existing receiver readiness/last-success metadata leave the server. No native IDs, ClientIDs, source cursor, key material, transcript or private path is returned. Reading existing transport status cannot initialize/enable/pull/tick the source, call a provider, resolve an outbox row or send. Missing storage/readiness and insufficient headroom remain explicit; no new OAuth capability, worker, schedule or data mutation. The shared64KiB/5s, result/RPC limits and final authorization remain.
 
 SQLite/native tests cover scope isolation, late enrichment, chronology, ambiguity, retries, privacy, immutable rows and source/window failure. The real migrated-OAuth combined fixture includes this subview alongside100saved packets,32timing scopes, value delivery and a validated current forecast.
+
+
+## Daily delivery and technical monitoring (release 1)
+
+The same empty-argument forecasts:read result includes daily_delivery. It uses
+Europe/Kaliningrad calendar boundaries converted once to UTC and direct
+COUNT(DISTINCT conversation_id) for every cohort/platform/history subset.
+It does not truncate the day at the old 201-row delivery-view bound. The fixed
+project/counter/target/value-contract scope and shared 64KiB/5s budgets apply.
+
+upload_claims_today is the current persisted claim-day cohort, including
+historical signal origins. It is not a count of HTTP attempts or API acknowledgements.
+api_receipts_observed_today and processed_observed_today use once-only first
+retained server observation clocks introduced by migration090. These are not
+internal provider event times. Old accepted rows keep NULL acceptance clocks;
+legacy_receipts_with_claim_today explicitly labels their known claim day, and
+coverage shows receipts whose acknowledgement observation day remains unknown.
+The cohorts overlap and must not be added together.
+
+A POST's guarded receipt transition and observation clock commit in one short
+transaction after the network call. An unsuccessful receipt commit remains
+uploading/unknown for GET-only recovery. Reconciled unknowns record the first
+retained GET observation. Ordinary polling of a legacy accepted row never
+backfills its unknown API-acceptance date. First validated processing may be
+observed for such a legacy row without inventing acceptance time. Repeated and
+stale polls cannot replace the retained clocks. Ordinary conversion lanes,
+goal/value/model contracts and send limits are unchanged.
+
+The last successful aggregate Metrika report is retained separately. If the
+latest attempt fails, last_successful_metrika_goal_report remains available
+with its real fetched_at/freshness and sampling marker. It is still aggregate
+session-date evidence, not per-upload visit linkage.
+
+external_monitor is a whitelisted, owner-private receipt from the independent
+scheduled check. It shows observation freshness and notification outcome, never
+recipient identity, bot credentials, message IDs, customer text or monetary values.
+The CLI-only tools/modeled_conversion_monitor.php health uses fixed read-only
+metadata queries; route emits an existing credential only into protected ephemeral
+SSH output; record stores only sanitized technical metadata outside the webroot.
+No HTTP route is provided and no customer transcript/read marker is touched.
+
+The existing live-diagnostics workflow retains its exact hourly publisher and
+adds a separate lightweight five-minute monitoring job. Separate concurrency
+groups preserve hourly captures and serialize notification state. Schedules are
+best-effort GitHub Actions execution, not a guaranteed five-minute SLA.
+A stopped business cron is observed externally; zero conversions or missing
+advertising identity alone are not failures.
+
+The owner recipient is supplied only through the protected
+MODELED_CONVERSION_ALERT_CHAT_ID Actions secret. GET verification requires that
+exact private Telegram chat. One activation message tests the authorized owner
+route. Notifications then describe technical incidents/recovery with no customer
+or financial details. An age-encrypted retained route allows notifications while
+the application server is unavailable. Encryption reuses the pinned pyrage
+runtime and a domain-separated secret derived from the protected deploy identity.
+No plaintext recipient/credential is committed, logged or uploaded.
+
+Before any send, the encrypted original intent is retained as a separate
+immutable artifact. Only the same original run/attempt1 may execute it. Final
+encrypted state preserves confirmation or UNKNOWN. A later run never blindly
+replays unresolved intent, including a crash between send and final retention.
+Missing/corrupt retained state or route/identity drift holds instead of resetting
+deduplication; if server metadata shows a previous notification, missing artifacts
+cannot bootstrap another initial message. Encrypted artifacts use seven-day
+retention and are refreshed by healthy checks. Notification UNKNOWN requires
+reconciliation, not an automatic repeated send.

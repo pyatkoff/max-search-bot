@@ -1,13 +1,39 @@
 # Manager AI reply drafts
 
-An assigned manager sees an available AI reply as muted ghost text inside the
-empty message field, with `Вставить в ответ` at its bottom. It is a presentation
-overlay: the native textarea and saved draft stay empty until explicit acceptance.
-Typing or dismissing the suggestion restores the normal placeholder. Manager2's
-existing ReplyEditor measures the ghost text and hint within the same field and
-viewport budget; long suggestions retain the full preview through `Подробнее`.
-Tab applies only while that composer has focus, without modifiers or composition;
-an existing reply is never replaced.
+In the current Manager2 shell, a fresh selected ready reply appears automatically as
+muted, editable text in the existing native textarea. It does not create another
+editor or move focus/selection. Conversation owns its local preview origin. The
+untouched suggestion stays in memory and is excluded from persisted human drafts;
+real manager input removes that origin, restores normal text color and retains the
+ordinary account-scoped draft. Native File, templates, Enter/Tab and IME remain
+with their existing owners. An already known valid draft_id remains a local
+source association through preview, manager edit and explicit submit; a null
+prepared_preview identity stays null without another lookup or feedback write.
+Returning to a dialogue requires a fresh authorized ready read. Clearing or rejecting the same variant suppresses its reappearance
+through polling and navigation for this session.
+
+Account, project, owner, context/message revision, personal preparation permission
+and TTL checks still gate automatic appearance. A changed context or expiry removes
+only untouched AI text, preserving a manager edit and the native File. Passive
+appearance does not record insertion, acceptance, a manager response or delivery.
+An older shell without the current assistant host retains its overlay and explicit
+Tab/Insert compatibility path.
+
+The compact AI button opens the existing manager-check detail panel, closed by
+default. Client text remains in the composer; the separate client-request profile
+remains in place. Opening AI reuses the same current selected ready proposal. When no current
+proposal is selected, the explicit AI action retains its existing saved-read/manual
+generation fallback; passive polling and read-only openPrepared never invoke it.
+The explicit Other variant action keeps the same manual generation route. Explicit insertion into an existing human draft still reads canonical
+provenance and validates the exact proposal before appending; it never touches File.
+
+Manual generation and the connected ChatGPT worker share
+ManagerAiDraftService::prepareInput and its assembled consultation instructions.
+The manual route calls ManagerDraftClient; the prepared route imports an externally
+produced proposal. These are distinct explicit generations, not a byte-for-byte
+answer promise. Server input receipts do not prove the worker's complete host/model
+input. Neither UI opening nor this change alters model profiles, experiments,
+worker/queue ownership, automatic sending or the four manager-review criteria.
 
 If an explicit insertion fails while reading provenance or validating the current
 context, the existing AI preview shows the error without moving editor focus.
@@ -25,45 +51,28 @@ The full preview retains the reason and checks. Accepting a prepared suggestion
 explicitly loads `prepared` to record its provenance, then uses the existing fresh
 `validate` and canonical composer insertion. It never sends the reply.
 
-Manager2 observes the selected reply-owned conversation's ready cache and, for
-the existing workspace administrator with fresh `owner_read`, accessible foreign
-conversations too. Reads run every 15 seconds for at most ten minutes per
-context/visible period. Hidden tabs, navigation, account changes and access loss
-cancel the observer. `prepared_status` returns metadata; `prepared_preview` reads
-the full current proposal without recording feedback, returning `draft_id: null`
-and no job identity. Both retain canonical auth, CSRF, fresh session/context,
-ownership and expiry checks. Passive reads never call a provider, read a selection
-page or mark messages read. On a cache miss the browser now requests
-`ensure_prepared` once for the selected authorized context. This queues scoped
-work through the existing connected ChatGPT worker and shows an inline preparation
-notice without opening a modal, focusing controls or changing the native draft.
-The observer retrieves the completed reply automatically. Opening a chat never
-falls back to the paid manual model/API transport. Missing connections and queue
-failures are shown truthfully; explicit retry requests the same queue again.
-Expiry clears the suggestion and ready button independently of the bounded
-observer. An existing own draft and hidden readiness preference suppress automatic
-requests; the workspace owner can request and view a foreign chat without taking it.
+Manager2 observes the selected reply-owned conversation and, for the workspace
+administrator with fresh owner_read, accessible foreign conversations too. Reads
+run every 15 seconds for at most ten minutes per context/visible period. Hidden
+tabs, navigation, account changes and access loss cancel the observer.
+prepared_status returns metadata; prepared_preview reads the full current proposal
+without recording feedback, returning draft_id: null and no job identity. Both
+retain canonical auth, CSRF, fresh session/context, ownership and expiry checks.
+Passive reads never call a provider, read a selection page or mark messages read.
 
-The Manager2 composer says `AI — Ответ готов` for an available draft: green for
-an automatically prepared reply, blue for a result generated by explicit click.
-Hover/accessible labels explain the source and Moscow time. Results without a
-customer draft say `AI — Рекомендации` and show a neutral explanation beside the
-composer: `Сейчас отвечать не нужно` for `no_contact`, or a verification notice
-for the other actions. The saved reason is literal text, visually bounded with
-`Подробнее` for the full result. The private full proposal is read passively for
-these results too; metadata alone cannot supply a reason. Opening the cached
-non-draft explanation creates no generation, use record or insertion request.
-It can coexist with existing typed text and never changes the draft or File.
-Inline suggestions do not open the full preview or move focus. In foreign chats,
-the owner sees the responsible manager and `Только просмотр`, without insertion
-controls or foreign feedback. Ordinary employee supervisors retain explicit AI
-opening. The personal setting `ai_ready_notice` (`show`/`hide`, default `show`)
-hides inline suggestions, the quiet readiness notice and non-draft explanations
-inside the conversation. Inbox status badges are independent. It uses existing account
-preferences, version checks and operation receipts; old JSON rows receive the
-default at read time without a migration or write. The AI button remains usable.
-Sending remains the existing manager action. The owner-authorized ChatGPT worker
-is documented in [prepared replies](MANAGER_PREPARED_REPLIES.md).
+On a cache miss, the existing ensure_prepared request queues scoped work through
+the connected ChatGPT worker. Current Manager2 keeps pending/failure details behind
+AI, with a compact accessible button state, and retrieves the completed saved reply.
+The queue, retries and personal preparation rules are unchanged. Foreign owner
+review remains read-only behind AI; ordinary supervisors retain explicit opening.
+
+The personal ai_ready_notice preference still suppresses automatic presentation.
+The AI button remains usable, while Inbox saved-state badges remain independent.
+Results without a customer draft keep their reason/checks behind AI without adding
+an outgoing text. The source and preparation time stay in accessible button hints.
+A useful partial reply may coexist with check_offer and the unchanged four-criterion
+manager_review/actual_send_allowed=false metadata. Technical currentness is not
+semantic acceptance. Sending remains the existing explicit manager action.
 
 ## Saved AI status in the Inbox
 
@@ -402,3 +411,12 @@ messages, owner/account/auth/navigation changes still invalidate it. The
 canonical server revision is separately validated before insertion, including
 history or reference edits the client has not observed. This is not a
 latest-message-ID-only freshness contract or an additional cache/send owner.
+
+## Manager2 compact composer
+
+A current ready AI answer appears as an editable preview in the existing reply
+field. Typing converts it to a manager draft; the canonical attachment and explicit
+send owner remain unchanged. Manager checks stay behind the existing AI button.
+On short screens the whole checks panel scrolls, including status and actions,
+so the checks retain readable space. Autopreparation settings are available from
+the existing conversation menu without opening or generating an AI answer.

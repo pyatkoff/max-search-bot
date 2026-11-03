@@ -6,15 +6,19 @@ require_once __DIR__.'/ModeledConversionValueDeliveryReader.php';
 require_once __DIR__.'/ModeledConversionInputDiagnosisReader.php';
 require_once __DIR__.'/ModeledConversionLatencyReader.php';
 require_once __DIR__.'/ModeledConversionTelegramLinkageReader.php';
+require_once __DIR__.'/ModeledConversionDailyDeliveryReader.php';
+require_once __DIR__.'/ModeledConversionDeliveryHealth.php';
 
 /** Launch readback of current V1 derived blocks only. Never reads a transcript or runs processing. */
 final class ModeledConversionForecastStatusReader
 {
-    public const VERSION='saved_semantic_prediction_status_v1_10';
+    public const VERSION='saved_semantic_prediction_status_v1_11';
     public const METADATA_LIMIT=20;
     public const PROFILE_LIMIT=4;
     public const PROFILE_BYTES=49152;
-    private const RELEASE_RESERVE=8192;
+    // Remaining tail is the bounded linkage query/file receipt and final authorization.
+    // Projection admission already charges twice the candidate bytes plus2KiB.
+    private const RELEASE_RESERVE=4096;
     private const CONTINUITY_FIELDS=['preserved_ai_replies','preserved_handoff_receipts','unresolved_clock_barriers',
         'long_gap_barriers','unavailable_message_barriers','unavailable_event_barriers','other_source_barriers'];
     private bool $mysql;
@@ -34,6 +38,7 @@ final class ModeledConversionForecastStatusReader
             $activation=is_string($activation)?strtotime($activation):false;
             $out['saved_input_diagnosis']=(new ModeledConversionInputDiagnosisReader($this->pdo,$this->authorize,$this->budget))->read($activation===false?null:$activation);
             $out['today_latency']=(new ModeledConversionLatencyReader($this->pdo,$this->authorize,$this->budget))->read(time());
+            $out['daily_delivery']=(new ModeledConversionDailyDeliveryReader($this->pdo,$this->authorize,$this->budget))->read(time());
             $model=hash_file('sha256',__DIR__.'/ModeledConversionSemanticPrediction.php');
             $processor=hash_file('sha256',__DIR__.'/ModeledConversionProfiles.php');
             if(!is_string($model)||!is_string($processor))return $this->unavailable('source_unavailable');
@@ -131,6 +136,7 @@ final class ModeledConversionForecastStatusReader
                 ($out['saved']['valid_v1_versions']>0?'saved_v1_without_prospective_estimate':'no_v1_confirmation_in_checked_suffix');
             $out['telegram_linkage']=$this->budget->remainingBytes()<8192?['available'=>false,'reason'=>'budget_headroom']:
                 (new ModeledConversionTelegramLinkageReader($this->pdo,$this->authorize,$this->budget))->read(time());
+            $out['external_monitor']=ModeledConversionDeliveryHealth::externalStatus($this->budget,$this->authorize,time());
             $this->auth();return $out;
         }catch(ModeledConversionStatusLimit $error){throw $error;}
         catch(PDOException $ignored){return $this->unavailable('storage_unavailable');}
