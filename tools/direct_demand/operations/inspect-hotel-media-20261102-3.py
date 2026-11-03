@@ -1,13 +1,13 @@
 import base64,html,json,os,re,urllib.parse,urllib.request
 from pathlib import Path
 from html.parser import HTMLParser
-operation='commercial-batch26-primary-owner-membership-read'
-pages=["https://www.elgouna.com/hotels/casa-cook","https://www.elgouna.com/hotels/casa-cook/rooms","https://www.hwaidak-hotels.com/gallery","https://www.amarinagroup.com/media/gallery"]
+operation='commercial-batch27-six-primary-source-pages'
+pages=["https://www.coralsearesorts.com/coral-sea-holiday-resort","https://www.coralsearesorts.com/coral-sea-water-world","https://www.coralsearesorts.com/coral-sea-aqua-club","https://baronhotels.com/baron-palms-sharm-el-sheikh/?LangId=1","https://www.hilton.com/fr/hotels/luxhitw-hilton-luxor-resort-and-spa/","https://www.pickalbatros.com/palace-resort-hurghada"]
 group=int(os.environ['MEDIA_GROUP'])
 assert group in (0,1)
 pages=pages[group*3:group*3+3]
 assert 1<=len(pages)<=3
-hosts=set(["www.elgouna.com","cms.elgouna.com","www.hwaidak-hotels.com","storage.googleapis.com","www.amarinagroup.com","r.profitroom.com","r.profitroom.pl","u.profitroom.com","wa-uploads.profitroom.com"])
+hosts=set(["www.coralsearesorts.com","coralsearesorts.com","baronhotels.com","www.baronhotels.com","www.hilton.com","hilton.com","www.pickalbatros.com","pickalbatros.com","image-tc.galaxy.tf"])
 class Redirect(urllib.request.HTTPRedirectHandler):
  def redirect_request(self,*args,**kwargs):raise ValueError('unexpected_primary_source_redirect')
 opener=urllib.request.build_opener(Redirect())

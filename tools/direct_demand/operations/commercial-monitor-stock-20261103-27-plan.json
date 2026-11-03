@@ -1,0 +1,24 @@
+{
+  "operation": "commercial-monitor-stock-20261103-27",
+  "state": "SINGLE_NEW_INPUT_PREPARED_NOT_MERGED",
+  "goal": "Monitor promoted native165 alongside all117 published and the current25 reserve identities",
+  "catalog_ids": [
+    165
+  ],
+  "previous_inputs": 631,
+  "new_inputs": 632,
+  "boundaries": [
+    "Append separate immutable cohort; preserve prior target keys and pending searches",
+    "No new collector, cron, runtime, paid calls or transport",
+    "Native identities proven by closed country1 region15 stock25 reader"
+  ],
+  "criteria": [
+    "Existing631 inputs and target keys preserved exactly",
+    "New immutable one-hotel cohort after actual native catalogue proof and admitted dedup",
+    "Native CI and focused632 smoke including old search resume, mixed countries and missing/inactive new input"
+  ],
+  "risks": [
+    "Additional18 proven candidates remain outside current stock and monitoring until promoted",
+    "Configured input is not a collected or published price"
+  ]
+}

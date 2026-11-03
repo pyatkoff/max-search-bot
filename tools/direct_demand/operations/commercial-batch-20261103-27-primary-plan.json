@@ -1,0 +1,41 @@
+{
+  "operation": "commercial-batch27-primary-source-group1",
+  "state": "TEN_CANDIDATES_SIX_PRIMARY_PAGES_PREPARED_NOT_READ",
+  "goal": "Prepare the next ten candidates from proven identities with stronger accessible primary material",
+  "catalog_ids": [
+    165,
+    163,
+    1962,
+    12116,
+    102774,
+    111,
+    342,
+    254,
+    488,
+    512
+  ],
+  "boundaries": [
+    "Existing authorizedchannels,bots,registry,durableonce andcloudworkflow only",
+    "Primary publicphotography; noFirebase access-tokenURLs orprivatearchives",
+    "No repeatingclosedreadbacks,rejectedphotos,blockedURLs oruncurrent sender",
+    "No newworkers,queues,agents,runtime orMac use"
+  ],
+  "criteria": [
+    "Whole captions with3or4facts,essentialfeature andflighttour context",
+    "One bounded groupedphotoselection pass; don'tholdreadycandidatesfordisputedones",
+    "Source/host/TLS/schema/rights/UNKNOWN/dedupguards andnativePNGverificationbeforepublication"
+  ],
+  "risks": [
+    "Current helper admission must be checked per promoted ID, not assumed",
+    "Keep legacy hard-source stock and all pending monitor keys intact",
+    "Cleopatra98723 is a separate adults product, never a substitute for family21476"
+  ],
+  "sources": [
+    "https://www.coralsearesorts.com/coral-sea-holiday-resort",
+    "https://www.coralsearesorts.com/coral-sea-water-world",
+    "https://www.coralsearesorts.com/coral-sea-aqua-club",
+    "https://baronhotels.com/baron-palms-sharm-el-sheikh/?LangId=1",
+    "https://www.hilton.com/fr/hotels/luxhitw-hilton-luxor-resort-and-spa/",
+    "https://www.pickalbatros.com/palace-resort-hurghada"
+  ]
+}
