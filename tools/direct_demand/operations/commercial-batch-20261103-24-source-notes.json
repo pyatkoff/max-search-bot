@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261103-24-v1",
-  "state": "SIX_WHOLE_CAPTIONS_PREPARED_TEN_IDENTITIES_IN_GROUPED_PHOTO_INSPECTION_NOT_SENT",
+  "state": "FOUR_WHOLE_MATERIALS_CANVA_PREPARED_NATIVE_PNG_VERIFICATION_PENDING_NOT_SENT",
   "goal": "Increase publication throughput by preparing ten whole materials together and publishing every ready subset in one existing serial run.",
   "boundaries": [
     "Use existing authorized channels,publisher,registry,durableonce andcloud workflow only",
@@ -113,9 +113,40 @@
       ],
       "utf16": 368,
       "source_basis": "First-party current general hotel description or retained official owner facts; no operator package inclusions,prices or availability"
+    },
+    {
+      "hotel_id": 250,
+      "hotel": "Swiss Inn Resort Hurghada",
+      "key": "swiss-inn-hurghada",
+      "aliases": [
+        "SWISS INN RESORT HURGHADA (EX. HILTON RESORT)"
+      ],
+      "sources": [
+        "https://swissinn.net/hotels/index.php?lang=Hurghada",
+        "https://www.swissinn.net/corporate/Photo-gallery.php?hotelid=Hurghada&page=2"
+      ],
+      "text": "✈️ Туры в Swiss Inn Resort Hurghada с перелётом\n📍 Хургада, Египет.\n\n🏖 Песчаный пляж у Красного моря.\n🛏 400 номеров и люксов.\n👨‍👩‍👧‍👦 Есть семейные варианты с двумя спальнями.\n🍽 Рестораны и бары на территории.\n\n💡 Часть категорий номеров расположена на второй линии.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Swiss Inn Resort Hurghada.",
+      "utf16": 350
     }
   ],
   "content_draft_count": 6,
   "ready_for_send_count": 0,
-  "new_posts": 0
+  "new_posts": 0,
+  "current_prepared_catalog_ids": [
+    282,
+    235,
+    382,
+    250
+  ],
+  "caption_prepared_count": 7,
+  "source_inspection_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41665796009",
+  "contact_photo_count": 23,
+  "deferred_catalog_ids": [
+    12107,
+    432,
+    483,
+    65779,
+    932,
+    497
+  ]
 }
