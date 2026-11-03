@@ -1,0 +1,15 @@
+{
+  "operation": "commercial-price-monitor-20261103-quote1",
+  "state": "SINGLE_QUOTE_RESPONSE_RETAINED_NOT_PUBLISHED",
+  "catalog_ids": [
+    12114
+  ],
+  "hotel_count": 1,
+  "gateway_requests_attempted": 1,
+  "upstream_request_limit": 1,
+  "quote_option_count": 10,
+  "db_writes": 0,
+  "message_sends": 0,
+  "price_block_updates": 0,
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41609029830"
+}

@@ -1,4 +1,4 @@
-name: Check one exact retained Palace quote through existing gateway
+name: Inspect only the retained Palace quote response
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -9,152 +9,27 @@ permissions:
 concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
-env:
-  EXPECTED_PRODUCTION_SHA: d555226a084e1e28328ba4e7355a24ad8a058de7
 jobs:
   inspect:
     if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
-          persist-credentials: false
-      - name: Verify exact reviewed publishing conditions independently of unrelated aggregate jobs
+      - name: Consume the already-retained quote without a new gateway request
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-          evidence="$RUNNER_TEMP/commercial-source-evidence"
-          mkdir -p "$evidence"
-          gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$evidence/main.json"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/41607088488 > "$evidence/verify_run.json"
-          gh api "repos/pyatkoff/max-search-bot/actions/runs/41607088488/jobs?per_page=20" > "$evidence/verify_jobs.json"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/41607088626 > "$evidence/tls_run.json"
-          gh api "repos/pyatkoff/max-search-bot/git/commits/$EXPECTED_PRODUCTION_SHA" > "$evidence/source_commit.json"
-          tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
-          gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
-          python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
-      - name: Resolve only the exact already-retained Palace candidate in runner temp
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          test "$GITHUB_RUN_ATTEMPT" = 1
-          umask 077
-          gh run download 41603842788 --repo pyatkoff/max-search-bot --name commercial-price-and-stock-20261103-read2 --dir "$RUNNER_TEMP/retained-read2"
+          gh run download 41609029830 --repo pyatkoff/max-search-bot --name commercial-price-monitor-20261103-quote1 --dir "$RUNNER_TEMP/retained-quote1"
           python3 - <<'PY'
-          import base64,json,os,pathlib
-          saved=pathlib.Path(os.environ['RUNNER_TEMP'])/'retained-read2/channel-preflight.json'
-          data=json.loads(saved.read_text().splitlines()[-1])
-          assert data['operation']=='commercial-price-monitor-20261103-read2' and data['ok']
-          hotel=next(h for h in data['hotels'] if h['anytour_id']==12114 and h['local_tv_id']==12114)
-          candidates=[r for r in hotel['observations'] if r['departure_date']=='2027-01-12' and r['nights']==7 and r['adults']==2 and r['children_count']==0 and r['currency']=='RUB']
-          assert len(candidates)==1
-          candidate=base64.b64encode(json.dumps(candidates[0],ensure_ascii=False).encode()).decode()
-          source=pathlib.Path('tools/direct_demand/operations/check-commercial-price-20261103-quote1.php').read_text()
-          assert source.count('declare(strict_types=1);')==1
-          source=source.replace('declare(strict_types=1);','declare(strict_types=1);\ndefine("EXPECTED_INSTALLED_SHA", "'+os.environ['EXPECTED_PRODUCTION_SHA']+'");\ndefine("APPROVED_CANDIDATE_B64", "'+candidate+'");',1)
-          target=pathlib.Path(os.environ['RUNNER_TEMP'])/'channel-preflight.php'
-          target.write_text(source);target.chmod(0o600)
-          intent={'operation':'commercial-price-monitor-20261103-quote1','state':'ONE_TARGETED_GATEWAY_REQUEST_INTENDED','catalog_ids':[12114],'gateway_request_limit':1,'run_url':'https://github.com/'+os.environ['GITHUB_REPOSITORY']+'/actions/runs/'+os.environ['GITHUB_RUN_ID']}
-          (pathlib.Path(os.environ['RUNNER_TEMP'])/'quote-intent.json').write_text(json.dumps(intent)+'\n')
+          import json,os,pathlib
+          d=json.loads((pathlib.Path(os.environ['RUNNER_TEMP'])/'retained-quote1/channel-preflight.json').read_text().splitlines()[-1])
+          assert d['operation']=='commercial-price-monitor-20261103-quote1' and d['gateway_requests_attempted']==1 and d['http_status']==200 and d['ok']
+          q=d['gateway_response'];assert isinstance(q,dict) and isinstance(q['flights'],list) and 1<=len(q['flights'])<=30
+          def leg(v):
+              return {'number':v.get('number'),'company_name':(v.get('company') or {}).get('name'),'plane':v.get('plane'),'class':v.get('class'),'departure':{k:v.get('departure',{}).get(k) for k in ('date','time')},'arrival':{k:v.get('arrival',{}).get(k) for k in ('date','time')},'onDemand':v.get('onDemand'),'noPlaces':v.get('noPlaces'),'baggage':v.get('baggage'),'carryOn':v.get('carryOn')}
+          rows=[{'index':i,'isDefault':f.get('isDefault'),'dateForward':f.get('dateForward'),'dateBackward':f.get('dateBackward'),'price':f.get('price'),'fuelCharge':f.get('fuelCharge'),'forward':[leg(v) for v in f.get('forward',[])],'backward':[leg(v) for v in f.get('backward',[])]} for i,f in enumerate(q['flights'])]
+          out={'operation':'commercial-price-monitor-20261103-quote1-retained-inspect','mode':'inspect_retained_quote_only','new_gateway_requests':0,'server_connections':0,'message_edits':0,'source_response_sha256':d['response_sha256'],'request_started_epoch_utc':d['request_started_epoch_utc'],'response_received_epoch_utc':d['response_received_epoch_utc'],'retained_terms':d['retained_terms'],'info':q.get('info'),'error':q.get('error'),'quotes':rows}
+          print(json.dumps(out,ensure_ascii=False))
           PY
-          php -l "$RUNNER_TEMP/channel-preflight.php"
-      - name: Retain this one exact operation intent before the external price request
-        uses: actions/upload-artifact@v4
-        with:
-          name: commercial-price-monitor-20261103-quote1-intent
-          path: ${{ runner.temp }}/quote-intent.json
-          retention-days: 14
-          if-no-files-found: error
-      - name: Prepare existing server connection
-        env:
-          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          raw="$DEPLOY_SSH_KEY_VALUE"
-          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
-            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
-          else
-            printf '%s' "$raw" | base64 --decode > "$RUNNER_TEMP/channel_key"
-          fi
-          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
-      - name: Pin existing server host-key continuity
-        env:
-          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          python3 - <<'PY'
-          import os,re,subprocess,base64,hashlib,pathlib
-          host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER']
-          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-')
-          assert re.fullmatch(r'[A-Za-z0-9_-]+',user)
-          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35)
-          matches=[]
-          for line in scan.stdout.splitlines():
-            fields=line.split()
-            if len(fields)<3 or fields[0].startswith('#'):continue
-            try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
-            except Exception:continue
-            if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)
-          assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
-          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
-          PY
-      - name: Request only this exact retained Palace quote once
-        env:
-          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-preflight.php" > "$RUNNER_TEMP/channel-preflight.json" || probe_status=$?
-          python3 - <<'PY'
-          import pathlib,json,os,re
-          d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.json').read_text().splitlines()[-1])
-          assert d['operation']=='commercial-price-monitor-20261103-quote1' and d['mode']=='one_existing_gateway_quote_contract'
-          summary={k:v for k,v in d.items() if k not in ('gateway_response','retained_terms')}
-          shape=[];fields=[]
-          def inspect(v,path='',depth=0):
-              if depth>8 or len(shape)>300:return
-              if isinstance(v,dict):
-                  shape.append({'path':path,'type':'object','keys':list(v)[:40]})
-                  for k,x in list(v.items())[:40]:
-                      if re.search(r'token|secret|authorization|customer|contact|passport|phone|email',k,re.I):continue
-                      nxt=path+'.'+k
-                      if not isinstance(x,(dict,list)) and re.search(r'price|fuel|surcharge|tax|fee|cost|currency|total|avail|actual|status|error|message|date|adult|child|night|room|meal|food',k,re.I):
-                          if isinstance(x,str) and ('http' in x.lower() or len(x)>180):continue
-                          fields.append({'path':nxt,'value':x})
-                      else:inspect(x,nxt,depth+1)
-              elif isinstance(v,list):
-                  shape.append({'path':path,'type':'array','length':len(v)})
-                  for i,x in enumerate(v[:8]):inspect(x,path+'['+str(i)+']',depth+1)
-          inspect(d.get('gateway_response'))
-          summary['quote_response_shape']=shape;summary['quote_amount_fields']=fields
-          print(json.dumps(summary,ensure_ascii=False,sort_keys=True))
-          assert d['ok'] is True and d['gateway_requests_attempted']<=1 and d['db_writes']==0 and d['message_sends']==0 and d['price_block_updates']==0
-          PY
-          test "${probe_status:-0}" = 0
-      - name: Retain bounded route evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: commercial-price-monitor-20261103-quote1
-          path: ${{ runner.temp }}/channel-preflight.json
-          retention-days: 14
-          if-no-files-found: warn
-      - name: Remove ephemeral connection and script files
-        if: always()
-        shell: bash
-        run: rm -f "$RUNNER_TEMP/quote-intent.json" "$RUNNER_TEMP/retained-read2/channel-preflight.json" "$RUNNER_TEMP/retained-read2/channel-stock.json" "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-preflight.php" "$RUNNER_TEMP/channel-preflight.json"
-
