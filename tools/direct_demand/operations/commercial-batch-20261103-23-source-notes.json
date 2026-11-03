@@ -140,5 +140,37 @@
         "url": "https://wa-uploads.profitroom.com/amarinahotels/17367526038782_abusoma.jpg"
       }
     ]
-  ]
+  ],
+  "photo_read2": {
+    "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41659447964",
+    "state": "FOUR_IMAGES_BYTES_VERIFIED_NO_HERO_VISUALLY_ACCEPTED",
+    "old_palace": "anotherentrance,onepoolwithsea,interior;nonegeneralhoteloverview",
+    "amarina": "exactabusoma.jpg depictsonebusy pool andbackgroundrooms;notacceptedhero",
+    "canva_imports": 0
+  },
+  "additional_primary": {
+    "hotel_id": 328,
+    "urls": [
+      "https://all.accor.com/hotel/B4L7/index.fr.shtml",
+      "https://movenpick.accor.com/en/africa/egypt/el-gouna/resort-el-gouna.html"
+    ],
+    "photo_inputs": [
+      {
+        "hotel_id": 328,
+        "role": "official_overview0",
+        "url": "https://www.ahstatic.com/photos/b4l7_ho_00_p_1024x768.jpg"
+      },
+      {
+        "hotel_id": 328,
+        "role": "official_overview1",
+        "url": "https://www.ahstatic.com/photos/b4l7_ho_01_p_1024x768.jpg"
+      },
+      {
+        "hotel_id": 328,
+        "role": "official_overview2",
+        "url": "https://www.ahstatic.com/photos/b4l7_ho_02_p_1024x768.jpg"
+      }
+    ],
+    "reason": "Different stock hotel with explicitly linked owner overview photographs; other materials remain deferred."
+  }
 }

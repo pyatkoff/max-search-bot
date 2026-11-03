@@ -1,13 +1,13 @@
 import base64,hashlib,json,os,struct,urllib.parse,urllib.request
 from pathlib import Path
-groups=json.loads("[[{\"hotel_id\":343,\"role\":\"gallery_overview2\",\"url\":\"https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204615720.jpg\"},{\"hotel_id\":343,\"role\":\"gallery_overview3\",\"url\":\"https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204619803.jpg\"},{\"hotel_id\":343,\"role\":\"gallery_overview4\",\"url\":\"https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204630526.jpg\"}],[{\"hotel_id\":68907,\"role\":\"declared_abusoma_gallery_photo\",\"url\":\"https://wa-uploads.profitroom.com/amarinahotels/17367526038782_abusoma.jpg\"}]]")
-group=int(os.environ['MEDIA_GROUP']);assert 0<=group<2
+groups=json.loads("[[{\"hotel_id\":328,\"role\":\"official_overview0\",\"url\":\"https://www.ahstatic.com/photos/b4l7_ho_00_p_1024x768.jpg\"},{\"hotel_id\":328,\"role\":\"official_overview1\",\"url\":\"https://www.ahstatic.com/photos/b4l7_ho_01_p_1024x768.jpg\"},{\"hotel_id\":328,\"role\":\"official_overview2\",\"url\":\"https://www.ahstatic.com/photos/b4l7_ho_02_p_1024x768.jpg\"}]]")
+group=int(os.environ['MEDIA_GROUP']);assert 0<=group<1
 rows=groups[group];assert 1<=len(rows)<=3
-hosts={'www.oldpalaceresort.com','wa-uploads.profitroom.com'}
+hosts={'www.ahstatic.com'}
 class NoRedirect(urllib.request.HTTPRedirectHandler):
  def redirect_request(self,*args,**kwargs):raise ValueError('unexpected_photo_redirect')
 opener=urllib.request.build_opener(NoRedirect())
-out={'rejections':[],'operation':'commercial-batch23-primary-photo-bytes-20261103-read2','mode':'inspect_exact_public_primary_images','server_connections':0,'message_sends':0,'db_writes':0,'images':[]}
+out={'rejections':[],'operation':'commercial-batch23-primary-photo-bytes-20261103-read3','mode':'inspect_exact_public_primary_images','server_connections':0,'message_sends':0,'db_writes':0,'images':[]}
 for row in rows:
  p=urllib.parse.urlsplit(row['url']);assert p.scheme=='https' and p.hostname in hosts and p.port is None and not p.username and not p.password and not p.query and not p.fragment
  with opener.open(row['url'],timeout=30) as r:
