@@ -333,6 +333,7 @@ return [
         'php tests/run_modeled_conversion_delivery_view_regression.php',
         'php tests/run_modeled_conversion_value_export_regression.php',
         'php tests/run_modeled_conversion_delivery_health_regression.php',
+        'php tests/run_modeled_conversion_pipeline_monitor_regression.php',
         'python3 tests/test_max_attribution_lookup_installer.py',
         'php tests/run_modeled_conversion_status_regression.php',
         'php tests/run_modeled_conversion_status_mcp_regression.php',

@@ -11,7 +11,6 @@ import time
 import urllib.request
 import uuid
 from pathlib import Path
-from pyrage import passphrase
 
 PROJECT = "anytour"
 COUNTER = "98615635"
@@ -23,9 +22,17 @@ FLAGS = {
     "upload_outcome_unknown", "api_row_rejected", "report_unavailable",
     "storage_unavailable", "configuration_unavailable", "invalid_clock",
     "health_metadata_unavailable", "monitor_transport_unavailable", "monitor_source_mismatch",
+    "pipeline_checker_stale", "pipeline_checker_notification_unknown",
 }
 ID_RE = re.compile(r"[1-9][0-9]{0,19}\Z")
 TOKEN_RE = re.compile(r"[1-9][0-9]{4,19}:[A-Za-z0-9_-]{30,100}\Z")
+
+COMMON_ROLE_FLAGS = {"configuration_unavailable", "invalid_clock", "health_metadata_unavailable"}
+EXTERNAL_ROLE_FLAGS = {"monitor_transport_unavailable", "monitor_source_mismatch",
+                       "pipeline_checker_stale", "pipeline_checker_notification_unknown"}
+ROLE_FLAGS = {"pipeline": FLAGS - EXTERNAL_ROLE_FLAGS,
+              "external": EXTERNAL_ROLE_FLAGS | COMMON_ROLE_FLAGS}
+
 
 def canonical_bytes(value):
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
@@ -35,9 +42,11 @@ def password(key_bytes):
     return hashlib.sha256(DOMAIN + normalized).hexdigest()
 
 def encode_cache(state, key_bytes):
+    from pyrage import passphrase
     return passphrase.encrypt(canonical_bytes(state), password(key_bytes))
 
 def decode_cache(ciphertext, key_bytes):
+    from pyrage import passphrase
     state = json.loads(passphrase.decrypt(ciphertext, password(key_bytes)))
     validate_state(state)
     return state
@@ -58,6 +67,8 @@ def validate_state(state):
         raise ValueError("invalid_cache_scope")
     if type(state.get("initialized")) is not bool or type(state.get("verified")) is not bool or (state["initialized"] and not state["verified"]):
         raise ValueError("invalid_cache")
+    if "role" in state and (not isinstance(state["role"], str) or state["role"] not in {"legacy", "pipeline", "external"}):
+        raise ValueError("invalid_cache_role")
     incident = state.get("incident")
     if incident is not None:
         if not isinstance(incident, dict) or incident.get("status") not in ("degraded", "unavailable") or incident.get("fingerprint") != fingerprint(incident["status"], incident.get("flags")):
@@ -71,6 +82,35 @@ def validate_state(state):
         clean_flags(pending.get("flags"))
         if not re.fullmatch(r"[0-9a-f]{32}", str(pending.get("intent_id", ""))) or not re.fullmatch(r"[1-9][0-9]*", str(pending.get("owner_run", ""))):
             raise ValueError("invalid_intent")
+
+
+def role_guard(state, role=None, flags=None):
+    cached_role = state.get("role", "legacy") if isinstance(state, dict) else "legacy"
+    requested = "legacy" if role is None else role
+    if requested not in {"legacy", "pipeline", "external"} or cached_role != requested:
+        raise ValueError("monitor_role_mismatch")
+    if requested != "legacy" and state is None:
+        raise ValueError("typed_state_required")
+    if requested == "legacy":
+        return
+    candidates = [] if flags is None else [flags]
+    for field in ("incident", "pending"):
+        value = state.get(field)
+        if value is not None:
+            candidates.append(value.get("flags"))
+    for candidate in candidates:
+        if any(flag not in ROLE_FLAGS[requested] for flag in clean_flags(candidate)):
+            raise ValueError("monitor_flag_role_mismatch")
+
+def external_adapter_role(health, state):
+    cached = state.get("role", "legacy") if isinstance(state, dict) else "legacy"
+    if cached not in {"legacy", "external"}:
+        raise ValueError("external_adapter_state_role")
+    if health is not None and isinstance(health, dict) and "monitor_scope" in health:
+        scope = health["monitor_scope"]
+        if not isinstance(scope, str) or scope not in {"legacy", "external"} or scope != cached:
+            raise ValueError("external_adapter_health_role")
+    return None if cached == "legacy" else "external"
 
 def health_view(value):
     if not scoped(value):
@@ -115,9 +155,10 @@ def verify_chat(state, wire):
     except Exception:
         return False
 
-def prepare(health, route, state, recipient, wire, run_id, bootstrap=False, now=None):
+def prepare(health, route, state, recipient, wire, run_id, bootstrap=False, now=None, role=None):
     now = int(time.time()) if now is None else now
     status, flags = health_view(health)
+    role_guard(state, role, flags)
     if not ID_RE.fullmatch(recipient):
         raise ValueError("invalid_recipient")
     original_exists = state is not None
@@ -169,10 +210,14 @@ def prepare(health, route, state, recipient, wire, run_id, bootstrap=False, now=
                         "flags": flags, "fingerprint": fingerprint(status, flags)}
     return state, result(status, flags, prepared=True)
 
-def message_for(pending):
+def message_for(pending, role=None):
     if pending["kind"] == "bootstrap":
         return "AnyTour: мониторинг подключён. Проверка доставки уведомлений."
     if pending["kind"] == "recovery":
+        if role == "pipeline":
+            return "AnyTour: обработка конверсий — работа восстановлена."
+        if role == "external":
+            return "AnyTour: внешний контроль — работа восстановлена."
         return "AnyTour: технический мониторинг — работа восстановлена."
     descriptions = {
         "delivery_tick_stale": "Обработка конверсий не обновлялась более 15 минут.",
@@ -190,13 +235,18 @@ def message_for(pending):
         "health_metadata_unavailable": "Не удалось проверить служебные данные.",
         "monitor_transport_unavailable": "Независимая проверка не смогла связаться с сервером.",
         "monitor_source_mismatch": "Не удалось подтвердить версию проверяемого сервера.",
+        "pipeline_checker_stale": "Проверка обработки конверсий не обновлялась более 15 минут.",
+        "pipeline_checker_notification_unknown": "Результат уведомления проверки обработки остаётся неподтверждённым.",
     }
-    return "AnyTour: обнаружена техническая проблема.\n" + "\n".join(descriptions[f] for f in pending["flags"])
+    prefix = {"pipeline": "AnyTour: обработка конверсий — техническая проблема.",
+              "external": "AnyTour: внешний контроль — техническая проблема."}.get(role, "AnyTour: обнаружена техническая проблема.")
+    return prefix + "\n" + "\n".join(descriptions[f] for f in pending["flags"])
 
-def send(state, recipient, wire, save, run_id, prepared_this_run=False, now=None):
+def send(state, recipient, wire, save, run_id, prepared_this_run=False, now=None, role=None):
     now = int(time.time()) if now is None else now
     state = copy.deepcopy(state)
     validate_state(state)
+    role_guard(state, role)
     if state["recipient"] != recipient:
         raise ValueError("recipient_mismatch")
     pending = state.get("pending")
@@ -210,7 +260,7 @@ def send(state, recipient, wire, save, run_id, prepared_this_run=False, now=None
     pending["state"] = "sending"
     save(state)
     try:
-        response = wire(state["token"], "sendMessage", {"chat_id": recipient, "text": message_for(pending), "disable_web_page_preview": True})
+        response = wire(state["token"], "sendMessage", {"chat_id": recipient, "text": message_for(pending, role), "disable_web_page_preview": True})
         sent = response.get("result", {})
         chat = sent.get("chat", {})
         message_id = sent.get("message_id")
@@ -267,6 +317,7 @@ def main():
     parser.add_argument("--bootstrap-test", action="store_true")
     parser.add_argument("--prepared-this-run", action="store_true")
     parser.add_argument("--run-id", required=True)
+    parser.add_argument("--role-mode", choices=("external-adapter",))
     args = parser.parse_args()
     state, key, original_cipher = None, None, None
     try:
@@ -290,12 +341,14 @@ def main():
             route = None
             if args.route and Path(args.route).exists():
                 route = json.loads(read_bounded(args.route, 4096, private=True))
-            state, output = prepare(health, route, state, recipient, telegram_wire, args.run_id, args.bootstrap_test)
+            role = external_adapter_role(health, state) if args.role_mode else None
+            state, output = prepare(health, route, state, recipient, telegram_wire, args.run_id, args.bootstrap_test, role=role)
             save(state)
         else:
             if args.bootstrap_test or args.route:
                 raise ValueError("send_arguments")
-            state, output = send(state, recipient, telegram_wire, save, args.run_id, args.prepared_this_run)
+            role = external_adapter_role(None, state) if args.role_mode else None
+            state, output = send(state, recipient, telegram_wire, save, args.run_id, args.prepared_this_run, role=role)
             save(state)
     except Exception:
         if original_cipher is not None:

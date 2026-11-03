@@ -7,3 +7,4 @@ python3 -m venv "$evidence_test_env"
 "$evidence_test_env/bin/pip" install --disable-pip-version-check --only-binary=:all: --require-hashes -q -r tools/requirements-encrypted-evidence.txt
 "$evidence_test_env/bin/python" tests/test_encrypted_dialogue_evidence.py
 "$evidence_test_env/bin/python" tests/run_modeled_conversion_monitor_test.py
+"$evidence_test_env/bin/python" tests/test_modeled_monitor_handoff.py

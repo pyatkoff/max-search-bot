@@ -1,0 +1,308 @@
+name: Activate the AnyTour pipeline monitor once
+
+on:
+  workflow_run:
+    workflows: [Monitor modeled conversion delivery]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  activate:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'workflow_run' && contains(github.event.workflow_run.head_commit.message, '[modeled-pipeline-monitor-activation-v1]')
+    concurrency:
+      group: anytour-modeled-conversion-monitor
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Resolve one original approved activation source
+        id: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$GITHUB_REPOSITORY" = 'pyatkoff/max-search-bot'
+          test "$GITHUB_EVENT_NAME" = 'workflow_run'
+          test "$GITHUB_REF" = 'refs/heads/main'
+          test "$GITHUB_RUN_ATTEMPT" = '1'
+          metadata="$(jq -er '
+            if .action == "completed"
+              and .workflow_run.name == "Monitor modeled conversion delivery"
+              and .workflow_run.workflow_id == 406167317
+              and .workflow_run.status == "completed"
+              and .workflow_run.conclusion == "success"
+              and .workflow_run.event == "workflow_run"
+              and .workflow_run.head_repository.full_name == "pyatkoff/max-search-bot"
+              and .workflow_run.head_branch == "main"
+              and (.workflow_run.head_sha | type == "string" and test("^[0-9a-f]{40}$"))
+              and (.workflow_run.id | type == "number" and . >= 1 and . == floor)
+              and .workflow_run.run_attempt == 1
+              and (.workflow_run.head_commit.message | type == "string" and contains("[modeled-pipeline-monitor-activation-v1]"))
+            then [.workflow_run.head_sha,.workflow_run.id,.workflow_run.run_attempt] | @tsv
+            else error("untrusted_pipeline_monitor_activation") end
+          ' "$GITHUB_EVENT_PATH")"
+          IFS=$'\t' read -r target_sha upstream_run_id upstream_run_attempt <<< "$metadata"
+          [[ "$target_sha" =~ ^[0-9a-f]{40}$ ]]
+          printf 'sha=%s\nupstream_run_id=%s\nupstream_run_attempt=%s\n' "$target_sha" "$upstream_run_id" "$upstream_run_attempt" >> "$GITHUB_OUTPUT"
+      - name: Checkout exact approved source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.source.outputs.sha }}
+          fetch-depth: 0
+      - name: Require current authoritative main before protected access
+        id: provenance
+        env:
+          EXPECTED_SHA: ${{ steps.source.outputs.sha }}
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          bash tools/verify_deploy_main_provenance.sh
+      - name: Prepare existing authenticated server channel
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/pipeline-key"; else printf '%s\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/pipeline-key"; fi
+          else
+            printf '%s' "$raw" | base64 --decode | tr -d '\r' > "$RUNNER_TEMP/pipeline-key"
+          fi
+          chmod 600 "$RUNNER_TEMP/pipeline-key"
+          ssh-keygen -y -f "$RUNNER_TEMP/pipeline-key" >/dev/null
+          mkdir -m 700 "$RUNNER_TEMP/pipeline-handoff" "$RUNNER_TEMP/pipeline-donor" "$RUNNER_TEMP/pipeline-external-intent" "$RUNNER_TEMP/pipeline-external-final"
+      - name: Read activation status without changing state
+        id: configured
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          EXPECTED_SHA: ${{ steps.source.outputs.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          [[ "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]]
+          ssh -i "$RUNNER_TEMP/pipeline-key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 "$DEPLOY_USER@$DEPLOY_HOST" "cd /var/www/anytoour/data/www/app.anytoour.ru && test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA' && timeout 15s /usr/bin/python3 tools/modeled_conversion_monitor_local.py --status" > "$RUNNER_TEMP/pipeline-handoff/status.json" 2>/dev/null
+          python3 - "$RUNNER_TEMP/pipeline-handoff/status.json" "$GITHUB_OUTPUT" <<'CONFIGURED'
+          import json,sys
+          with open(sys.argv[1],encoding='utf-8') as f: v=json.load(f)
+          if (v.get('schema_version')!=1 or v.get('project')!='anytour'
+              or v.get('counter_id')!='98615635' or v.get('role')!='pipeline'
+              or type(v.get('configured')) is not bool): raise SystemExit('invalid_activation_status')
+          with open(sys.argv[2],'a',encoding='utf-8') as f:
+              f.write('active='+('true' if v['configured'] else 'false')+'\n')
+          print('PIPELINE_ACTIVATION='+('already_configured' if v['configured'] else 'not_activated'))
+          CONFIGURED
+      - name: Prepare pinned encrypted evidence runtime
+        if: steps.configured.outputs.active == 'false'
+        env:
+          MODELED_CONVERSION_ALERT_CHAT_ID: ${{ secrets.MODELED_CONVERSION_ALERT_CHAT_ID }}
+        run: |
+          set -euo pipefail
+          umask 077
+          test -n "$MODELED_CONVERSION_ALERT_CHAT_ID"
+          python3 -m venv "$RUNNER_TEMP/pipeline-python"
+          "$RUNNER_TEMP/pipeline-python/bin/pip" install --disable-pip-version-check --only-binary=:all: --require-hashes -q -r tools/requirements-encrypted-evidence.txt
+      - name: Locate latest authoritative retained notification state
+        id: retained
+        if: steps.configured.outputs.active == 'false'
+        uses: actions/github-script@v7
+        with:
+          retries: 0
+          script: |
+            const names=new Set(['modeled-monitor-private-intent','modeled-monitor-private-final']);
+            let found=[];
+            for(let page=1;page<=5;page++){
+              const r=await github.rest.actions.listArtifactsForRepo({...context.repo,per_page:100,page,request:{timeout:10000}});
+              found=r.data.artifacts.filter(a=>names.has(a.name)&&!a.expired&&a.workflow_run?.head_branch==='main');
+              if(found.length||r.data.artifacts.length<100)break;
+            }
+            found.sort((a,b)=>b.created_at.localeCompare(a.created_at)||b.id-a.id);
+            if(!found.length)throw new Error('retained_notification_state_required');
+            core.setOutput('run_id',String(found[0].workflow_run.id));
+            core.setOutput('name',found[0].name);
+      - name: Download retained ciphertext only
+        if: steps.configured.outputs.active == 'false'
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ steps.retained.outputs.run_id }}
+          name: ${{ steps.retained.outputs.name }}
+          path: ${{ runner.temp }}/pipeline-donor
+      - name: Capture a healthy fixed-scope baseline
+        if: steps.configured.outputs.active == 'false'
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          EXPECTED_SHA: ${{ steps.source.outputs.sha }}
+        run: |
+          set -euo pipefail
+          umask 077
+          [[ "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]]
+          ssh -i "$RUNNER_TEMP/pipeline-key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 "$DEPLOY_USER@$DEPLOY_HOST" "cd /var/www/anytoour/data/www/app.anytoour.ru && test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA' && timeout 15s php tools/modeled_conversion_monitor.php availability" > "$RUNNER_TEMP/pipeline-handoff/health.json" 2>/dev/null
+      - name: Validate the original quiet donor and prepare typed handoff
+        id: split
+        if: steps.configured.outputs.active == 'false'
+        env:
+          MODELED_CONVERSION_ALERT_CHAT_ID: ${{ secrets.MODELED_CONVERSION_ALERT_CHAT_ID }}
+        run: |
+          set -euo pipefail
+          umask 077
+          "$RUNNER_TEMP/pipeline-python/bin/python" - <<'PREPARE_HANDOFF'
+          import copy,json,os,re,sys,time
+          from pathlib import Path
+          sys.path.insert(0,str(Path('tools').resolve()))
+          import modeled_conversion_monitor as m
+          temp=Path(os.environ['RUNNER_TEMP'])
+          health=json.loads(m.read_bounded(temp/'pipeline-handoff/health.json',32768,private=True))
+          if (not m.scoped(health) or health.get('monitor_scope')!='legacy'
+              or health.get('status') not in ('ok','off') or health.get('flags')!=[]):
+              raise SystemExit('healthy_legacy_baseline_required')
+          state=m.decode_cache(m.read_bounded(temp/'pipeline-donor/state.age',131072),m.read_bounded(temp/'pipeline-key',65536,private=True))
+          m.validate_state(state);m.role_guard(state,None)
+          previous=state.get('last_notification')
+          if (state.get('initialized') is not True or state.get('verified') is not True
+              or state.get('pending') is not None or state.get('incident') is not None
+              or state.get('recipient')!=os.environ['MODELED_CONVERSION_ALERT_CHAT_ID'].strip()
+              or not isinstance(previous,dict) or type(previous.get('confirmed_at')) is not int
+              or not 0<previous['confirmed_at']<=int(time.time())
+              or type(previous.get('message_id')) is not int or previous['message_id']<1):
+              raise SystemExit('confirmed_quiet_donor_required')
+          pipeline=copy.deepcopy(state);pipeline['role']='pipeline';m.role_guard(pipeline,'pipeline')
+          external=copy.deepcopy(state);external['role']='external';m.role_guard(external,'external')
+          if pipeline['last_notification']!=state['last_notification'] or external['last_notification']!=state['last_notification']:
+              raise SystemExit('notification_history_changed')
+          m.atomic_write(temp/'pipeline-handoff/pipeline-state.json',m.canonical_bytes(pipeline))
+          m.atomic_write(temp/'pipeline-external-intent/state.age',m.encode_cache(external,m.read_bounded(temp/'pipeline-key',65536,private=True)))
+          print('CONFIRMED_NOTIFICATION_HANDOFF=prepared')
+          PREPARE_HANDOFF
+      - name: Stage the inactive pipeline state through the protected channel
+        id: staged
+        if: steps.split.outcome == 'success'
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          EXPECTED_SHA: ${{ steps.source.outputs.sha }}
+        run: |
+          set -euo pipefail
+          umask 077
+          [[ "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$GITHUB_RUN_ID" =~ ^[1-9][0-9]{0,19}$ ]]
+          ssh -i "$RUNNER_TEMP/pipeline-key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 "$DEPLOY_USER@$DEPLOY_HOST" "cd /var/www/anytoour/data/www/app.anytoour.ru && test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA' && timeout 60s /usr/bin/python3 tools/modeled_conversion_monitor_handoff.py stage --operation '$GITHUB_RUN_ID' --source-sha '$EXPECTED_SHA'" < "$RUNNER_TEMP/pipeline-handoff/pipeline-state.json" > "$RUNNER_TEMP/pipeline-handoff/staged.json" 2>/dev/null
+          python3 - "$RUNNER_TEMP/pipeline-handoff/staged.json" <<'STAGED'
+          import json,os,sys
+          with open(sys.argv[1],encoding='utf-8') as f:v=json.load(f)
+          if (v.get('ok') is not True or v.get('staged') is not True or v.get('state_imported') is not True
+              or v.get('operation')!=os.environ['GITHUB_RUN_ID'] or v.get('source_sha')!=os.environ['EXPECTED_SHA']):
+              raise SystemExit('inactive_state_stage_unconfirmed')
+          print('PIPELINE_STATE_STAGE=confirmed')
+          STAGED
+      - name: Retain external-role ciphertext before local activation
+        id: external_ack
+        if: steps.staged.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: modeled-monitor-private-intent
+          path: ${{ runner.temp }}/pipeline-external-intent/state.age
+          retention-days: 7
+          if-no-files-found: error
+      - name: Activate only the acknowledged role handoff and its owned cron
+        id: activated
+        if: steps.external_ack.outcome == 'success'
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          EXPECTED_SHA: ${{ steps.source.outputs.sha }}
+          EXTERNAL_INTENT_ARTIFACT_ID: ${{ steps.external_ack.outputs.artifact-id }}
+        run: |
+          set -euo pipefail
+          umask 077
+          [[ "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$GITHUB_RUN_ID" =~ ^[1-9][0-9]{0,19}$ ]]
+          [[ "$EXTERNAL_INTENT_ARTIFACT_ID" =~ ^[1-9][0-9]*$ ]]
+          ssh -i "$RUNNER_TEMP/pipeline-key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 "$DEPLOY_USER@$DEPLOY_HOST" "cd /var/www/anytoour/data/www/app.anytoour.ru && test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA' && timeout 60s /usr/bin/python3 tools/modeled_conversion_monitor_handoff.py activate --operation '$GITHUB_RUN_ID' --source-sha '$EXPECTED_SHA' --external-intent-artifact '$EXTERNAL_INTENT_ARTIFACT_ID'" > "$RUNNER_TEMP/pipeline-handoff/activated.json" 2>/dev/null
+          python3 - "$RUNNER_TEMP/pipeline-handoff/activated.json" <<'ACTIVATED'
+          import json,os,sys
+          with open(sys.argv[1],encoding='utf-8') as f:v=json.load(f)
+          if (v.get('ok') is not True or v.get('activated') is not True or v.get('cron_count')!=1
+              or v.get('operation')!=os.environ['GITHUB_RUN_ID'] or v.get('source_sha')!=os.environ['EXPECTED_SHA']):
+              raise SystemExit('pipeline_cron_activation_unconfirmed')
+          print('PIPELINE_CRON_ACTIVATION=confirmed')
+          ACTIVATED
+      - name: Read the activated external scope and preserve quiet state
+        id: final
+        if: steps.activated.outcome == 'success'
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          EXPECTED_SHA: ${{ steps.source.outputs.sha }}
+          MODELED_CONVERSION_ALERT_CHAT_ID: ${{ secrets.MODELED_CONVERSION_ALERT_CHAT_ID }}
+        run: |
+          set -euo pipefail
+          umask 077
+          [[ "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]]
+          ssh -i "$RUNNER_TEMP/pipeline-key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 "$DEPLOY_USER@$DEPLOY_HOST" "cd /var/www/anytoour/data/www/app.anytoour.ru && test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA' && timeout 15s php tools/modeled_conversion_monitor.php availability" > "$RUNNER_TEMP/pipeline-handoff/external-health.json" 2>/dev/null
+          "$RUNNER_TEMP/pipeline-python/bin/python" - <<'QUIET_EXTERNAL'
+          import json,os,sys
+          from pathlib import Path
+          sys.path.insert(0,str(Path('tools').resolve()))
+          import modeled_conversion_monitor as m
+          temp=Path(os.environ['RUNNER_TEMP']);key=m.read_bounded(temp/'pipeline-key',65536,private=True)
+          health=json.loads(m.read_bounded(temp/'pipeline-handoff/external-health.json',32768,private=True))
+          if (not m.scoped(health) or health.get('monitor_scope')!='external'
+              or health.get('status') not in ('ok','off') or health.get('flags')!=[]):
+              raise SystemExit('external_control_scope_unconfirmed')
+          state=m.decode_cache(m.read_bounded(temp/'pipeline-external-intent/state.age',131072),key)
+          new,result=m.prepare(health,None,state,os.environ['MODELED_CONVERSION_ALERT_CHAT_ID'].strip(),
+              m.telegram_wire,os.environ['GITHUB_RUN_ID'],role='external')
+          if (result.get('ok') is not True or result.get('notification')!='quiet'
+              or result.get('intent_prepared') is not False or new.get('last_notification')!=state.get('last_notification')):
+              raise SystemExit('quiet_external_handoff_unconfirmed')
+          m.atomic_write(temp/'pipeline-external-final/state.age',m.encode_cache(new,key))
+          m.atomic_write(temp/'pipeline-handoff/result.json',m.canonical_bytes(result))
+          print('EXTERNAL_ROLE_HANDOFF=quiet')
+          QUIET_EXTERNAL
+      - name: Retain final encrypted external notification state
+        id: final_ack
+        if: steps.final.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: modeled-monitor-private-final
+          path: ${{ runner.temp }}/pipeline-external-final/state.age
+          retention-days: 7
+          if-no-files-found: error
+      - name: Persist the final external handoff receipt
+        if: steps.final_ack.outcome == 'success'
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          EXPECTED_SHA: ${{ steps.source.outputs.sha }}
+        run: |
+          set -euo pipefail
+          umask 077
+          [[ "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$GITHUB_RUN_ID" =~ ^[1-9][0-9]{0,19}$ ]]
+          ssh -i "$RUNNER_TEMP/pipeline-key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 "$DEPLOY_USER@$DEPLOY_HOST" "cd /var/www/anytoour/data/www/app.anytoour.ru && test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA' && timeout 15s php tools/modeled_conversion_monitor.php record --event='workflow_run' --run-id='$GITHUB_RUN_ID' --run-attempt='1' --source-sha='$EXPECTED_SHA'" < "$RUNNER_TEMP/pipeline-handoff/result.json" >/dev/null 2>/dev/null
+          echo 'PIPELINE_HANDOFF_RECEIPT=recorded'
+      - name: Retain only sanitized activation evidence
+        if: always() && steps.activated.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: modeled-pipeline-monitor-activation-receipt
+          path: |
+            ${{ runner.temp }}/pipeline-handoff/staged.json
+            ${{ runner.temp }}/pipeline-handoff/activated.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Remove private handoff data
+        if: always()
+        run: |
+          rm -f "$RUNNER_TEMP/pipeline-key"
+          rm -rf "$RUNNER_TEMP/pipeline-handoff" "$RUNNER_TEMP/pipeline-donor" "$RUNNER_TEMP/pipeline-external-intent" "$RUNNER_TEMP/pipeline-external-final" "$RUNNER_TEMP/pipeline-python"

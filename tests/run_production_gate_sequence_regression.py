@@ -166,7 +166,7 @@ def event_payload():
 
 def execute(resolver, filename, label, payload, event='workflow_run', ref='refs/heads/main',
             runner_sha=DOWNSTREAM_SHA, repository=CANONICAL_REPOSITORY, expected_sha=None,
-            upstream_id='none', upstream_attempt='none', raw_event=None):
+            upstream_id='none', upstream_attempt='none', raw_event=None, current_attempt='1'):
     bash = shutil.which('bash')
     jq = shutil.which('jq')
     if not bash or not jq:
@@ -184,7 +184,7 @@ def execute(resolver, filename, label, payload, event='workflow_run', ref='refs/
         env = {'PATH': str(binary_dir), 'LC_ALL': 'C', 'GITHUB_EVENT_NAME': event,
                'GITHUB_EVENT_PATH': str(event_file), 'GITHUB_OUTPUT': str(output_file),
                'GITHUB_REPOSITORY': repository, 'GITHUB_REF': ref, 'GITHUB_SHA': runner_sha,
-               'RUNNER_TEMP': str(work)}
+               'RUNNER_TEMP': str(work), 'GITHUB_RUN_ATTEMPT': current_attempt}
         result = subprocess.run([bash, '--noprofile', '--norc', '-e', '-o', 'pipefail', '-c', resolver],
                                 cwd=work, env=env, text=True, capture_output=True, timeout=5)
         output = output_file.read_text(encoding='utf-8')
@@ -503,6 +503,284 @@ def monitor_schedule_cases(root, sources):
     check(monitor.count(needle) == 1,
           'monitor: retained intent has one canonical send command')
 
+
+def pipeline_activation_cases(root):
+    """Execute the original activation resolver and retain its handoff boundaries."""
+    filename = 'modeled-pipeline-monitor-activation.yml'
+    source = (root / '.github/workflows' / filename).read_text(encoding='utf-8')
+    events = top_section(source, 'on')
+    check(re.findall(r'^  ([a-z_]+):', events, re.MULTILINE) == ['workflow_run'],
+          'activation: only completion of the original monitor can trigger the handoff')
+    for declaration in ('workflows: [Monitor modeled conversion delivery]', 'types: [completed]', 'branches: [main]'):
+        check('    ' + declaration in events.splitlines(), 'activation: exact upstream ' + declaration)
+    expected_if = "    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'workflow_run' && contains(github.event.workflow_run.head_commit.message, '[modeled-pipeline-monitor-activation-v1]')"
+    check(expected_if in source.splitlines(), 'activation: successful original monitor and explicit launch flag')
+    check('      group: anytour-modeled-conversion-monitor' in source.splitlines()
+          and '      cancel-in-progress: false' in source.splitlines(),
+          'activation: same serialized role handoff as the canonical external monitor')
+    steps = step_blocks(source)
+    by_id = {field(step, 'id'): i for i, step in enumerate(steps) if field(step, 'id')}
+    check(by_id.get('source') == 0, 'activation: source admission precedes every credential')
+    checkout = [i for i, step in enumerate(steps) if field(step, 'uses') == 'actions/checkout@v4']
+    provenance = by_id.get('provenance')
+    secret_steps = [i for i, step in enumerate(steps) if '$' + '{{ secrets.' in step]
+    check(len(checkout) == 1 and provenance is not None and 0 < checkout[0] < provenance
+          and secret_steps and provenance < min(secret_steps), 'activation: checkout/provenance before protected access')
+    check('          ref: ' + SHA_EXPRESSION in steps[checkout[0]].splitlines(),
+          'activation: checkout consumes only the admitted source')
+    for index in (0, checkout[0], provenance):
+        check(field(steps[index], 'if') is None and field(steps[index], 'continue-on-error') is None,
+              'activation: source boundaries cannot be skipped')
+    check('bash tools/verify_deploy_main_provenance.sh' in run_block(steps[provenance]),
+          'activation: authoritative main guard retained')
+    resolver = run_block(steps[0])
+    check('$' + '{{' not in resolver and field(steps[0], 'shell') == 'bash',
+          'activation: actual resolver reads event data without expression interpolation')
+    valid = {'action': 'completed', 'repository': {'full_name': CANONICAL_REPOSITORY},
+             'workflow_run': {'id': 12345678901, 'run_attempt': 1,
+                              'name': 'Monitor modeled conversion delivery', 'workflow_id': 406167317,
+                              'status': 'completed', 'conclusion': 'success', 'event': 'workflow_run',
+                              'head_repository': {'full_name': CANONICAL_REPOSITORY},
+                              'head_branch': 'main', 'head_sha': DEPLOY_SHA,
+                              'head_commit': {'message': 'Install reviewed monitor [modeled-pipeline-monitor-activation-v1]'}}}
+    execute(resolver, filename, 'valid launch uses exact monitor head', valid, expected_sha=DEPLOY_SHA,
+            upstream_id='12345678901', upstream_attempt='1')
+    bad_fields = {
+        'workflow_id': (None, 0, 406167318, '406167317'),
+        'name': ('Deploy production', None),
+        'head_repository': ({'full_name': 'foreign/max-search-bot'}, None),
+        'head_branch': ('feature/source', 'refs/tags/main', None),
+        'head_sha': (None, '', 'a' * 39, 'a' * 41, 'A' * 40, 'g' * 40, DEPLOY_SHA + '\n'),
+        'status': ('in_progress', 'queued', None),
+        'conclusion': ('failure', 'cancelled', None),
+        'event': ('push', 'schedule', 'workflow_dispatch'),
+        'run_attempt': (None, 0, 2, '1'),
+        'id': (None, 0, -1, 1.5, '12345678901'),
+        'head_commit': (None, {}, {'message': 'ordinary installation'}, {'message': None}, {'message': 123}),
+    }
+    for key, values in bad_fields.items():
+        for value in values:
+            payload = copy.deepcopy(valid)
+            payload['workflow_run'][key] = value
+            execute(resolver, filename, 'reject upstream ' + key + '=' + repr(value), payload)
+    missing = copy.deepcopy(valid)
+    del missing['workflow_run']['workflow_id']
+    execute(resolver, filename, 'missing upstream workflow identifier', missing)
+    execute(resolver, filename, 'missing original monitor event', {})
+    execute(resolver, filename, 'malformed event JSON', {}, raw_event='{broken')
+    started = copy.deepcopy(valid)
+    started['action'] = 'requested'
+    execute(resolver, filename, 'upstream must be completed', started)
+    execute(resolver, filename, 'foreign executing repository', valid, repository='foreign/max-search-bot')
+    execute(resolver, filename, 'tag cannot supply the activation source', valid, ref='refs/tags/main')
+    execute(resolver, filename, 'feature ref cannot supply the activation source', valid, ref='refs/heads/feature/source')
+    execute(resolver, filename, 'current run rerun cannot repeat activation', valid, current_attempt='2')
+    for event in ('push', 'schedule', 'workflow_dispatch', 'repository_dispatch'):
+        execute(resolver, filename, 'unsupported current event ' + event, valid, event=event)
+
+    record = [i for i, step in enumerate(steps)
+              if step.startswith('      - name: Persist the final external handoff receipt\n')]
+    check(len(record) == 1 and all(key in by_id for key in ('staged', 'external_ack', 'activated', 'final', 'final_ack')),
+          'activation: exactly one complete handoff and final receipt')
+    check(by_id['staged'] < by_id['external_ack'] < by_id['activated'] < by_id['final'] < by_id['final_ack'] < record[0],
+          'activation: inactive stage then external ciphertext ACK then activate then final role ACK then record')
+    guards = {'staged': "steps.split.outcome == 'success'",
+              'external_ack': "steps.staged.outcome == 'success'",
+              'activated': "steps.external_ack.outcome == 'success'",
+              'final': "steps.activated.outcome == 'success'",
+              'final_ack': "steps.final.outcome == 'success'"}
+    for key, condition in guards.items():
+        check(field(steps[by_id[key]], 'if') == condition
+              and field(steps[by_id[key]], 'continue-on-error') is None,
+              'activation: required previous ACK guards ' + key)
+    check(field(steps[record[0]], 'if') == "steps.final_ack.outcome == 'success'"
+          and field(steps[record[0]], 'continue-on-error') is None,
+          'activation: external receipt requires the final encrypted state ACK')
+    check('          EXTERNAL_INTENT_ARTIFACT_ID: ' + '$' + '{{ steps.external_ack.outputs.artifact-id }}'
+          in steps[by_id['activated']].splitlines(), 'activation: server receives the acknowledged immutable artifact identifier')
+    check(not re.search(r'--phase[ \t]+send\b', source) and not re.search(r'--cron\b', source)
+          and not re.search(r'\bm\.send\s*\(', source) and '--bootstrap-test' not in source,
+          'activation: no notification send, manual checker cycle or bootstrap test')
+
+    prefix = '$' + '{{ runner.temp }}/'
+    allowed = {prefix + 'pipeline-external-intent/state.age', prefix + 'pipeline-external-final/state.age',
+               prefix + 'pipeline-handoff/staged.json', prefix + 'pipeline-handoff/activated.json'}
+    paths = []
+    for step in steps:
+        if field(step, 'uses') != 'actions/upload-artifact@v4':
+            continue
+        lines = step.splitlines()
+        starts = [i for i, line in enumerate(lines) if re.match(r'^          path:', line)]
+        check(len(starts) == 1, 'activation: each artifact has one bounded path declaration')
+        index = starts[0]
+        value = lines[index].split('path:', 1)[1].strip()
+        if value == '|':
+            values = []
+            for line in lines[index + 1:]:
+                if not line.startswith('            '):
+                    break
+                values.append(line.strip())
+        else:
+            values = [value]
+        check(values and all(value in allowed for value in values),
+              'activation: artifacts contain only ciphertext or sanitized stage receipts')
+        paths.extend(values)
+    check(set(paths) == allowed and len(paths) == len(allowed),
+          'activation: plaintext state/key/donor files cannot enter any artifact path')
+
+
+def pipeline_cron_reconcile_cases(root):
+    """Execute the byte-exact reconciler with synthetic status and crontab only."""
+    tool = root / 'tools/reconcile_modeled_conversion_monitor_cron.sh'
+    original = tool.read_bytes()
+    text = original.decode('utf-8')
+    check(not re.search(r'/(?:usr/)?(?:s?bin)/crontab\b', text),
+          'pipeline cron: crontab lookup stays replaceable by the isolated fixture')
+    check('ssh ' not in text and 'curl ' not in text,
+          'pipeline cron: reconciliation contains no remote transport')
+    bash = shutil.which('bash')
+    if not bash or not Path('/usr/bin/python3').is_file():
+        raise RuntimeError('Existing server CI bash and system Python are required')
+    status_good = {'schema_version': 1, 'project': 'anytour', 'counter_id': '98615635',
+                   'role': 'pipeline', 'configured': True}
+    fake_status = r"""import json, os, sys
+from pathlib import Path
+with Path(os.environ['STATUS_CALLS']).open('a', encoding='utf-8') as f:
+    f.write(json.dumps(sys.argv[1:]) + '\n')
+if sys.argv[1:] != ['--status']:
+    raise SystemExit(91)
+sys.stdout.write(os.environ['SYNTHETIC_STATUS_JSON'] + '\n')
+raise SystemExit(int(os.environ.get('SYNTHETIC_STATUS_EXIT', '0')))
+"""
+    fake_crontab = r"""import json, os, sys
+from pathlib import Path
+base = Path(os.environ['CRON_FIXTURE']).resolve()
+counter = base / 'read-count'
+calls = base / 'crontab-calls.jsonl'
+table = base / 'crontab'
+def record(value):
+    with calls.open('a', encoding='utf-8') as f:
+        f.write(json.dumps(value) + '\n')
+args = sys.argv[1:]
+if args == ['-l']:
+    count = int(counter.read_text() if counter.exists() else '0') + 1
+    counter.write_text(str(count))
+    record({'kind': 'read', 'number': count})
+    if str(count) == os.environ.get('SYNTHETIC_READ_FAIL_AT'):
+        raise SystemExit(1)
+    if str(count) == os.environ.get('SYNTHETIC_DRIFT_AT'):
+        table.write_text(table.read_text() + '# synthetic foreign writer\n')
+    sys.stdout.write(table.read_text())
+    raise SystemExit(0)
+if len(args) != 1:
+    raise SystemExit(92)
+candidate = Path(args[0]).resolve()
+if base not in candidate.parents:
+    raise SystemExit(93)
+value = candidate.read_text()
+record({'kind': 'install', 'text': value})
+table.write_text(value)
+if os.environ.get('SYNTHETIC_INSTALL_FAIL_ONCE') == '1' and not (base / 'install-failed').exists():
+    (base / 'install-failed').write_text('1')
+    raise SystemExit(1)
+raise SystemExit(0)
+"""
+    cases = [
+        ('inactive empty', False, '', {}, True, False),
+        ('inactive existing owned row', False, 'owned', {}, False, False),
+        ('active preserves foreign rows', True, 'foreign', {}, True, False),
+        ('second reconciliation is idempotent', True, 'foreign', {}, True, True),
+        ('duplicate owned rows collapse to one', True, 'duplicates', {}, True, False),
+        ('malformed status JSON', True, 'foreign', {'SYNTHETIC_STATUS_JSON': '{broken'}, False, False),
+        ('status configured type mismatch', True, 'foreign', {'SYNTHETIC_STATUS_JSON': json.dumps(dict(status_good, configured='true'))}, False, False),
+        ('foreign status project', True, 'foreign', {'SYNTHETIC_STATUS_JSON': json.dumps(dict(status_good, project='foreign'))}, False, False),
+        ('status CLI failure', True, 'foreign', {'SYNTHETIC_STATUS_EXIT': '1'}, False, False),
+        ('initial crontab read failure', True, 'foreign', {'SYNTHETIC_READ_FAIL_AT': '1'}, False, False),
+        ('preinstall crontab read failure', True, 'foreign', {'SYNTHETIC_READ_FAIL_AT': '2'}, False, False),
+        ('failed install restores previous table', True, 'foreign', {'SYNTHETIC_INSTALL_FAIL_ONCE': '1'}, False, False),
+        ('concurrent foreign edit is preserved', True, 'foreign', {'SYNTHETIC_DRIFT_AT': '2'}, False, False),
+    ]
+    for name, configured, initial, overrides, valid, twice in cases:
+        with tempfile.TemporaryDirectory(prefix='pipeline-cron-fixture-') as temporary:
+            work = Path(temporary).resolve()
+            project = work / 'project'
+            tools = project / 'tools'
+            tools.mkdir(parents=True)
+            private = work / 'max-search-bot-modeled-pipeline'
+            private.mkdir(mode=0o700)
+            staging = work / 'temporary'
+            staging.mkdir(mode=0o700)
+            binary = work / 'bin'
+            binary.mkdir()
+            actual = tools / tool.name
+            actual.write_bytes(original)
+            check(actual.read_bytes() == original, 'pipeline cron: byte-exact source copied: ' + name)
+            (tools / 'modeled_conversion_monitor_local.py').write_text(fake_status, encoding='utf-8')
+            for command in ('dirname', 'mktemp', 'awk', 'stat', 'chmod', 'cmp', 'rm'):
+                executable = shutil.which(command)
+                if not executable:
+                    raise RuntimeError('Existing CI command is required: ' + command)
+                (binary / command).symlink_to(executable)
+            crontab = binary / 'crontab'
+            crontab.write_text('#!' + sys.executable + '\n' + fake_crontab, encoding='utf-8')
+            crontab.chmod(0o700)
+            owned = str(project / 'tools/modeled_conversion_monitor_local.py') + ' --cron'
+            unrelated = '# synthetic existing jobs\n* * * * * /synthetic/existing-job\n'
+            if initial == 'owned':
+                before = '*/10 * * * * ' + owned + '\n'
+            elif initial == 'duplicates':
+                before = unrelated + '# max-search-bot modeled pipeline monitor\n' + '*/10 * * * * ' + owned + '\n* * * * * ' + owned + '\n'
+            elif initial == 'foreign':
+                before = unrelated
+            else:
+                before = ''
+            table = work / 'crontab'
+            table.write_text(before, encoding='utf-8')
+            env = {'PATH': str(binary), 'LC_ALL': 'C', 'TMPDIR': str(staging),
+                   'CRON_FIXTURE': str(work), 'STATUS_CALLS': str(work / 'status-calls.jsonl'),
+                   'SYNTHETIC_STATUS_JSON': json.dumps(dict(status_good, configured=configured)),
+                   'SYNTHETIC_STATUS_EXIT': '0'}
+            env.update(overrides)
+            completed = subprocess.run([bash, '--noprofile', '--norc', str(actual)], cwd=project,
+                                       env=env, text=True, capture_output=True, timeout=10)
+            after = table.read_text(encoding='utf-8')
+            records = [json.loads(line) for line in (work / 'crontab-calls.jsonl').read_text().splitlines()] \
+                if (work / 'crontab-calls.jsonl').exists() else []
+            installs = [row for row in records if row['kind'] == 'install']
+            check((completed.returncode == 0) == valid, 'pipeline cron: actual reconcile outcome: ' + name)
+            status_calls = [json.loads(line) for line in (work / 'status-calls.jsonl').read_text().splitlines()]
+            check(status_calls == [['--status']], 'pipeline cron: never executes a manual cycle: ' + name)
+            if not valid:
+                if overrides.get('SYNTHETIC_INSTALL_FAIL_ONCE') == '1':
+                    check(after == before and len(installs) == 2 and installs[-1]['text'] == before,
+                          'pipeline cron: failed partial install restores the saved original')
+                elif overrides.get('SYNTHETIC_DRIFT_AT') == '2':
+                    check(after == before + '# synthetic foreign writer\n' and installs == [],
+                          'pipeline cron: concurrent writer is not overwritten')
+                else:
+                    check(after == before and installs == [], 'pipeline cron: refusal preserves every prior row: ' + name)
+                continue
+            if not configured:
+                check(after == before and installs == [], 'pipeline cron: inactive empty table is unchanged')
+                continue
+            canonical = ('*/5 * * * * MODELED_MONITOR_TRIGGER=cron /usr/bin/flock -n '
+                         + str(private / 'cron.lock') + ' /usr/bin/timeout 45s /usr/bin/python3 '
+                         + owned + ' >/dev/null 2>&1\n')
+            expected = unrelated + '# max-search-bot modeled pipeline monitor\n' + canonical
+            check(after == expected and sum(owned in line and not line.lstrip().startswith('#')
+                                           for line in after.splitlines()) == 1,
+                  'pipeline cron: foreign rows and exactly one owned schedule: ' + name)
+            check((private / 'cron.lock').is_file() and (private / 'cron.lock').stat().st_mode & 0o777 == 0o600,
+                  'pipeline cron: private owned lock has required permissions: ' + name)
+            if twice:
+                repeated = subprocess.run([bash, '--noprofile', '--norc', str(actual)], cwd=project,
+                                          env=env, text=True, capture_output=True, timeout=10)
+                check(repeated.returncode == 0 and table.read_text(encoding='utf-8') == after,
+                      'pipeline cron: second reconciliation is byte-idempotent')
+                status_calls = [json.loads(line) for line in (work / 'status-calls.jsonl').read_text().splitlines()]
+                check(status_calls == [['--status'], ['--status']], 'pipeline cron: repeated reconcile still never ticks')
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root', type=Path, default=Path(__file__).resolve().parent.parent)
@@ -515,6 +793,8 @@ def main():
         if filename == 'modeled-conversion-monitor.yml':
             monitor_source_ready_cases(source)
             monitor_record_cases(source)
+    pipeline_activation_cases(args.root)
+    pipeline_cron_reconcile_cases(args.root)
     print(f'PRODUCTION GATE SEQUENCE: {CHECKS} PASS (offline real resolver execution)')
 
 

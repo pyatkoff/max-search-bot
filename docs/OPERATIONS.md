@@ -220,52 +220,80 @@ Prefer forward fixes for small safe defects. For a material production break, re
 
 ## AnyTour modeled-conversion monitoring
 
-The live-session workflow retains only its hourly 25-minute publisher and
-production-live-session-diagnostics concurrency group. The single canonical
-monitor now lives in .github/workflows/modeled-conversion-monitor.yml with one
-2-59/5 schedule plus the existing successful-Deploy/manual triggers. It retains
-the repository-wide anytour-modeled-conversion-monitor concurrency group, sender
-and encrypted artifact state; there is no second notifier or bootstrap.
-It does not run conversation capture or a business processing tick. Both
-workflows preserve exact successful upstream deploy/current-main/installed-SHA
-guards before protected production access. Scheduled execution is best effort.
+The primary pipeline check runs from the existing main server's own cron every
+five minutes through tools/modeled_conversion_monitor_local.py --cron. It uses
+the SAME canonical Python prepare/send implementation as the external checker,
+with role=pipeline and an isolated private JSON state. It checks the existing
+read-only delivery/profile/queue/report metadata and sends only technical owner
+alerts. It never captures a conversation, calls a model, processes an outbox,
+changes a goal/value or sends to a customer.
 
-Configure the private owner recipient only with Actions secret
-MODELED_CONVERSION_ALERT_CHAT_ID. The current server TELEGRAM_BOT_TOKEN is read
-once over the established authenticated SSH channel for bootstrap, never printed.
-Only an age-encrypted route and notification lifecycle state are retained as
-modeled-monitor-private-intent/final artifacts, encrypted using the existing
-protected deployment identity and pinned evidence runtime. Download the latest
-intent or final, never an older final in preference to a newer uncertain intent.
-Token/recipient/key changes require explicit controlled reconciliation, not
-automatic replacement of existing route state.
+The existing modeled-conversion-monitor.yml keeps the external role. After the
+controlled cutover it checks host/source availability and the local checker's
+heartbeat, not business SQL flags. An unreachable host can still be reported
+using its retained age-encrypted route. A stale local heartbeat or uncertain
+local notification is a control-plane failure. GitHub schedule remains best
+effort and its five-minute regularity is not established by source configuration.
+Do not claim a guaranteed external detection deadline.
 
-Initial GET verification must confirm the exact owner's private chat before
-the finite activation test. Failure/recovery messages contain technical codes
-only. Persistent identical incidents stay quiet; UNKNOWN sends are not retried.
-If a previous notification exists and retained artifacts are unavailable, the
-monitor holds instead of resetting state. A bot must already be permitted to
-message the selected owner. Customer destinations are never used.
+Pipeline and external roles have disjoint business/transport flag ownership,
+separate state and receipts, and one shared notification implementation. Role
+crossloads are rejected. Configuration/clock errors retain explicit role labels.
+The protected MODELED_CONVERSION_ALERT_CHAT_ID is used only for the exact
+verified owner's private chat. Customer identifiers, transcript and financial
+values never appear in alerts, public diagnostics or artifacts.
 
-health checks the last successful delivery/profile ticks (15-minute threshold),
-eligible ready work older than two cycles, unresolved upload outcomes, rejected
-rows and continuous report failures. Missing identities and an idle valid source
-are normal. The latest successful Metrika report is retained separately from its
-latest error. The private status includes a sanitized external-check receipt.
-No new production daemon, worker queue, customer send, conversation mutation,
-OAuth grant or advertising goal/value change is introduced.
+Before activation, the availability operation retains the legacy full SQL
+check. The one-original activation workflow follows a successful original
+postDeploy monitor, requires its unique approved merge marker, exact current
+main/installed source, and shares anytour-modeled-conversion-monitor concurrency.
+It waits for legacy senders, requires an initialized/verified quiet donor with
+no pending intent or active incident, and preserves last_notification and route.
 
+Only the validated pipeline state JSON crosses the existing authenticated SSH
+channel into max-search-bot-modeled-pipeline outside the webroot. The deployment
+SSH private key stays on the GitHub runner. External-role ciphertext must be
+retained and acknowledged before activation.json and the owned cron are enabled.
+No new bootstrap/test is sent. Missing, uncertain or mismatched state holds
+instead of resetting or replaying. The activation tool cannot execute a tick.
+
+The local runtime uses private0700/0600 files, no-follow reads, one nonblocking
+lock, bounded JSON and atomic file+directory fsync before prepared/sending can
+reach Telegram. The final state is durable before a receipt. Lost delivery
+remains UNKNOWN and cannot be automatically resent. The local runtime needs
+only the Python standard library; age/pyrage is imported only by the existing
+external evidence codec. State import and activation are separate from cron.
+
+tools/reconcile_modeled_conversion_monitor_cron.sh reconciles only the activated
+owned entry, preserves all other workers, refuses an unreadable/changed crontab
+and restores its prior snapshot on a failed owned installation. Normal deploy
+calls it after the existing scheduled-worker observations. Before activation it
+does not create a timer. Crontab installation never invokes the monitor.
+
+The typed pipeline-checks.json and external last-check.json remain independent.
+Only the real guarded server-cron entry can produce scheduled pipeline evidence;
+generic runtime observations and tests do not qualify. Acceptance requires three
+distinct advancing natural cron receipts, healthy quiet outcomes and unchanged
+last_notification_at. External manual/postDeploy/schedule evidence never
+substitutes for local records, or vice versa. Release shared publication after
+original installation/activation technical closure, not after waiting for ticks.
 
 ### Owner conversion ledger and check provenance
 
 Use the administrator-only /manager/assigned-value.php?view=delivery page for actual recorded monetary deltas and per-conversation drilldown. The closed page performs read-only GETs and does not trigger customer read markers, tracker calls, processing or advertising sends. Its assignment-day totals differ deliberately from the upload-day/receipt-observation/processed-observation cohorts.
 
-The external monitoring receipt now records a strictly allowlisted trusted origin from the workflow (`schedule`, `workflow_run`, `workflow_dispatch`) and exact run/attempt/source. The last three distinct original scheduled checks are retained separately from manual/postDeploy checks; regularity requires three successful checks within15-minute gaps and a fresh last scheduled check. The owner page must show stale/unknown delivery honestly, even if the last technical health was OK.
+The external receipt retains its previous event/run/attempt/source and scheduled
+history. Its freshness is not refreshed by local checks. The nested pipeline
+status reads only private activation and technical receipt metadata, never the
+credential state. It exposes role/origin, real cycle IDs, clocks, health,
+notification and a last-three series. Three fresh healthy original server-cron
+checks with gaps no larger than fifteen minutes establish the primary series.
+Unknown origin, generic observations, stale/invalid clocks or uncertain
+notifications cannot become a green primary result. Quiet checks retain the
+previous confirmed notification time.
 
-The existing hourly live publisher remains at25minutes. The canonical monitor has its own workflow and a single2-59/5 schedule, with unchanged shared notification concurrency and retained encrypted state. This registers an independent monitoring schedule; it does not establish a guaranteed five-minute SLA. Verify three actual original event=schedule runs AND their persisted private receipts, not merely postDeploy/manual success. Healthy checks should be quiet with unchanged last_notification_at. Do not repeat consumed activation helpers or old failed jobs to fabricate this proof.
-
-Before opening notification state, a scheduled check probes the installed source. A reachable different SHA defers only when the exact current source has an identified active canonical Deploy. No receipt or scheduled success is manufactured for that deferred attempt. An unreachable server proceeds to the existing outage/retained-route path; a completed/foreign/different deployment cannot hide a source mismatch. Failure to persist the final sanitized server receipt fails the job rather than logging a green result.
-
-A read-only scheduler metadata probe confirmed the former combined workflow was active; complete event history showed sparse schedules before job creation despite valid configuration. The provider's internal trigger cause is unknown. Do not infer that an account/disabled-state issue or simple delay was proved. This extraction is accepted operationally only after three new natural persisted checks. Roll back by a normal checked revert restoring exactly one monitor owner; never keep both senders, reset artifacts or replay a send.
-
-Record-source arguments are validated and quoted before the SSH command; only technical metadata is persisted in the private4KiB receipt. Recipient and bot token remain in the existing protected/encrypted path and never enter the owner HTML, public diagnostics, code or plaintext artifacts.
+The closed owner page shows primary pipeline control and external availability
+separately. A healthy external check cannot cover missing local evidence, and a
+healthy local result cannot make external availability fresh. Keep the latter's
+best-effort limitation visible. Do not replay old helpers, accepted workflows,
+business ticks or a notification intent to manufacture proof.

@@ -19,6 +19,17 @@ try{
         $prior=is_array($old)&&(($old['last_notification_at']??null)!==null||($old['notification']??null)==='unknown');
         echo json_encode(['schema_version'=>1,'project'=>'anytour','counter_id'=>'98615635','token'=>$token,
             'previous_state_recorded'=>$prior],JSON_THROW_ON_ERROR).PHP_EOL;
+    }elseif($operation==='availability'){
+        $availability=ModeledConversionPipelineMonitorStatus::availability(time());
+        if($availability===null){
+            // No cutover marker: preserve the complete legacy SQL health check.
+            ProjectAccessService::initializeReadOnly();$p=ConversationDb::connection();
+            if($p->inTransaction())throw new RuntimeException('monitor_outer_transaction');
+            if($p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql')$p->exec('SET SESSION TRANSACTION READ ONLY');
+            $availability=ModeledConversionDeliveryHealth::collect($p,time(),new ModeledConversionStatusBudget());
+            $availability['monitor_scope']='legacy';
+        }
+        echo json_encode($availability,JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES).PHP_EOL;
     }elseif($operation==='health'){
         ProjectAccessService::initializeReadOnly();$p=ConversationDb::connection();
         if($p->inTransaction())throw new RuntimeException('monitor_outer_transaction');

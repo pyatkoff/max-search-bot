@@ -15,11 +15,23 @@ The default page reads actual recorded rows for counter98615635 / targetanytour_
 
 ### Monitoring provenance and regularity
 
-The external receipt retains technical event/run/attempt/source metadata and up to three distinct original scheduled checks. Manual and post-deployment checks never increase the scheduled success streak. A repeated run or rerun does not create another original scheduled success. A gap over900seconds, a failed/uncertain check or stale last scheduled receipt prevents regular=true. Unknown legacy provenance stays unknown.
+The primary control now uses the real main-server cron. The owner-private
+external_monitor object preserves all former external fields and adds a nested
+pipeline status. Local and external clocks, roles, histories and notification
+times remain independent. Local freshness never refreshes the external check.
 
-The owner page separates last check freshness, latest health/notification outcome, last scheduled check, scheduled proof and last personal notification. A stale saved OK or notification=unknown cannot appear as a green current success. Quiet checks preserve the time of the last confirmed notification.
+The local reader accepts only the bounded private activation.json and typed
+pipeline-checks.json: role=pipeline, origin=server_cron, distinct advancing real
+cycle IDs, valid source SHA and clocks. It never reads runtime-state.json or the
+generic runtime-observations file. Three healthy original cron receipts within
+fifteen-minute gaps and a fresh last receipt establish pipeline regular=true.
+Manual invocations, generic tests, GitHub jobs and copied IDs do not qualify.
 
-The existing live-session workflow keeps its hourly publisher at25minutes; the single check-only schedule2-59/5 belongs to modeled-conversion-monitor.yml. GitHub schedules can be delayed or dropped. Source configuration and a successful manual/postDeploy check are not proof of recurring execution. Acceptance requires three actual separate scheduled checks with advancing receipts, healthy quiet results and no extra personal test. No duplicate timer, business worker, processing tick or unknown replay is introduced.
+Pipeline business alerts and external host/heartbeat alerts reuse the same
+canonical prepare/send implementation with strict role/flag isolation. The
+external GitHub timer remains best effort; source configuration and postDeploy
+success do not prove its cadence. The page must display each status honestly,
+including stale or unknown evidence, without treating one as the other's proof.
 
 # Private verification of saved early assessments
 
@@ -434,7 +446,10 @@ retention and are refreshed by healthy checks. Notification UNKNOWN requires
 reconciliation, not an automatic repeated send.
 
 
-### Scheduled execution acceptance (3 November)
+### Earlier GitHub registration attempt (3 November)
+
+This earlier replacement did not establish recurring execution. The current
+primary server-cron control is described below; its evidence is independent.
 
 The old combined workflow's API state was active, its configured timers and job
 filters agreed, and complete schedule-event pagination found no missing new
@@ -453,3 +468,38 @@ three distinct original schedule run IDs, successful recorded technical results,
 and private readback of the matching three persisted checks. Manual/postDeploy
 checks and reruns do not qualify. Preserve prior last_notification_at on healthy
 quiet checks; do not send another bootstrap message or reset retained state.
+
+
+## Primary server-cron control and external heartbeat
+
+After the owner confirmed that only the main server is available, the primary
+checker moved to its existing OS cron. The external GitHub checker remains a
+separate best-effort observer for host/source reachability and local heartbeat.
+There is no second sender for the same business fault domain. Its provider's
+missing schedule-event cause remains unknown; extracting a new workflow did not
+produce recurring proof and is not described as a successful scheduling repair.
+
+The availability CLI keeps legacy SQL health until a controlled activation
+marker exists. Active mode performs no business SQL: it reports a stale/missing
+local checker after the first ten-minute grace, or uncertain local delivery, as
+external control-plane flags. Fresh handled business incidents belong to the
+local role. Complete main-server failure still depends on the existing external
+observer; its detection interval is not guaranteed.
+
+Activation is one original checked operation after the new postDeploy monitor.
+The current quiet initialized/verified state, no-pending/no-incident baseline and
+private owner identity are verified before typed role handoff. An immutable
+external-role ciphertext ACK precedes the local marker and one owned cron entry.
+No bootstrap, tick or send is executed by activation. No deploy key is moved to
+the application server. Unknown outcomes hold without reimport/reset/retry.
+
+The local implementation persists prepared/sending/final state with file and
+directory fsync under one private lock, preserves notification history, blocks
+replay after uncertain delivery, and writes a separate4096-byte typed receipt.
+Failure to persist a result cannot be a successful check. The private reader
+retains the existing64KiB/five-second budget, authorization checks and all
+customer/forecast/value immutability boundaries.
+
+Runtime acceptance is THREE natural server-cron receipts with different cycle
+IDs, advancing real clocks, healthy quiet results and preserved last notification.
+Do not count synthetic fixtures or the postDeploy/activation workflows.
