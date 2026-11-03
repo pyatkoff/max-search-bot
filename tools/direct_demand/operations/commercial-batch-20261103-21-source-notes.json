@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261103-21-v1",
-  "state": "SIVA_PREPARED_APPROVED_OTHERS_DEFERRED",
+  "state": "SIVA_PUBLISHED_OTHERS_MEDIA_DEFERRED",
   "catalog_ids": [
     231,
     441,
@@ -101,7 +101,14 @@
         "url": "https://www.cleopatraluxuryhotels.com/wp-content/uploads/sites/55/2023/07/Cleopatra-Luxury-Resort-Makadi-Bay-Hippo-Kids-Club-Playing-Room-2.jpg"
       }
     ],
-    "requests_repeated": 0
+    "requests_repeated": 0,
+    "blocked_roles": [
+      "hero",
+      "right"
+    ],
+    "unrequested_roles": [
+      "left"
+    ]
   },
   "gallery_read": {
     "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41630634252",
@@ -136,5 +143,15 @@
       }
     ],
     "log_processing": "Per-line BOM removed before timestamps; all original saved chunks and decoded hashes verified. No repeat HTTP request."
+  },
+  "native_cover": {
+    "hotel_id": 441,
+    "state": "PUBLIC_PNG_FROZEN_TRANSACTION_CANCELLED",
+    "width": 600,
+    "height": 600,
+    "bytes": 800423,
+    "sha256": "c95aea02c0c920ec0b0d895c79aeb449a5ec59fda79e8bd62ac1fed32d71a61b",
+    "public_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/80c4c292ee78c7eb208aeda7659f0bea71f70d76/.github/traffic-publish/commercial-batch-20261103-21/441.png",
+    "inspection_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41631575995"
   }
 }

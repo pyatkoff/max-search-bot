@@ -1,11 +1,11 @@
 {
   "operation": "commercial-hotel-batch-20261103-21-v1",
-  "state": "SIX_DIFFERENT_PRIMARY_PHOTOS_AWAITING_VISUAL_CHECK_NOT_SENT",
+  "state": "ONE_HOTEL_PUBLISHED_OTHERS_MEDIA_DEFERRED",
   "catalog_ids": [
-    231,
     441
   ],
-  "candidate_photo_count": 6,
+  "published_logical_hotels": 1,
+  "new_posts": 2,
   "ready_for_send_count": 0,
-  "new_posts": 0
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41632049701"
 }
