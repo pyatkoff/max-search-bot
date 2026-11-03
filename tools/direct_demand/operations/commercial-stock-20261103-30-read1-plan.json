@@ -1,0 +1,65 @@
+{
+  "operation": "commercial-stock-20261103-30-read1",
+  "state": "TEN_NAME_GROUPS_PREPARED_NOT_LOOKED_UP",
+  "goal": "Find a new grouped supply of ten Turkey hotel candidates after three actual new paired publications",
+  "boundaries": [
+    "Country4 proven from previously accepted nativeAkraAntalya1146;noAnyTournumericcopy",
+    "Only10fixednamegroups/max12rowsgroup/readonlycatalogandregistry",
+    "Registryprojectiononlyplatform/nativehotelmetadata/firstline,no fullsnapshots/privatebuttons/receipts/provider/messages/writes",
+    "ExistingstrictGHAserverroute/source21/TLS/hostpin",
+    "Onlyexistingworkflowcheckoutlimitedtooperationspath;noPNGblobsneededforreadonlyPHP"
+  ],
+  "criteria": [
+    "Native6newpublicprojectionfixtures/PHP-lbeforeSSH",
+    "Uniqueactivecatalogue+zero registrymatchesrequiredforpromotion",
+    "Ambiguousor0aliasesremainhonestdeferred,notnewpaircredit",
+    "No earliercataloguelookupsrepeated"
+  ],
+  "risks": [
+    "Namegroups are not proven IDs or ready materials",
+    "SparsecheckoutmustpreserveexactGITHUBSHAandalloperationfiles;existinggatesstopbeforeSSHifmissing"
+  ],
+  "catalog_country_id": 4,
+  "name_groups": {
+    "akra-kemer": [
+      "akra kemer",
+      "kemer barut"
+    ],
+    "akra-sorgun": [
+      "akra sorgun",
+      "sensatori barut sorgun"
+    ],
+    "barut-hemera": [
+      "barut hemera",
+      "hemera barut"
+    ],
+    "acanthus-cennet": [
+      "acanthus cennet"
+    ],
+    "arum-barut": [
+      "arum barut"
+    ],
+    "barut-andiz": [
+      "barut andiz",
+      "tui blue andiz"
+    ],
+    "liberty-fabay": [
+      "liberty fabay"
+    ],
+    "liberty-lara": [
+      "liberty lara"
+    ],
+    "ng-phaselis-bay": [
+      "ng phaselis bay"
+    ],
+    "voyage-belek": [
+      "voyage belek"
+    ]
+  },
+  "reason_for_checkout_delta": "Retainedupdate3joblogprovesrepositoryfetch20:40:40.776..20:43:29.839UTC=169.1seconds.Officialcheckoutv4sparseinputusesblob:none;onlyoperationfilesareneededforthisreadonlyPHP.",
+  "checkout_contract_urls": [
+    "https://github.com/actions/checkout/blob/v4/action.yml",
+    "https://github.com/actions/checkout/blob/v4/src/git-source-provider.ts"
+  ],
+  "checkout_fetch_seconds_before": 169.1
+}

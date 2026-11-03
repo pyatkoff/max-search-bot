@@ -1,0 +1,77 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261103-update3",
+  "state": "THREE_PUBLIC_DIRECT_YML_FEEDS_UPDATED_TO127_HOTELS_HTTPS_BYTES_VERIFIED",
+  "logical_hotels": 127,
+  "offer_counts": [
+    127,
+    127,
+    254
+  ],
+  "previous_offer_counts": [
+    124,
+    124,
+    248
+  ],
+  "previous_offer_bytes_preserved": true,
+  "telegram_name_prefix": "Путевки в ",
+  "max_name_prefix": "Туры в ",
+  "name_max_length": 52,
+  "description_max_length": 76,
+  "combined_exact_union": true,
+  "canonical_new_binding_count": 3,
+  "image_missing_catalog_ids": [
+    381,
+    469
+  ],
+  "files": [
+    {
+      "bytes": 82646,
+      "content_type": "application/xml",
+      "description_count": 127,
+      "http": 200,
+      "name": "hotel-posts-telegram.xml",
+      "name_count": 127,
+      "offers": 127,
+      "public_url": "https://app.anytoour.ru/feed/hotel-posts-telegram.xml",
+      "sha256": "957b48c4c08fcb3ca48cbc535d5a45b593ffcce9d61a6e589db81a7bb7fd5e81"
+    },
+    {
+      "bytes": 83493,
+      "content_type": "application/xml",
+      "description_count": 127,
+      "http": 200,
+      "name": "hotel-posts-max.xml",
+      "name_count": 127,
+      "offers": 127,
+      "public_url": "https://app.anytoour.ru/feed/hotel-posts-max.xml",
+      "sha256": "b34c2754672f88667116d4a4636f243a9c1b1c994eca9dfd292c10bb269ec667"
+    },
+    {
+      "bytes": 165766,
+      "content_type": "application/xml",
+      "description_count": 254,
+      "http": 200,
+      "name": "hotel-posts-all.xml",
+      "name_count": 254,
+      "offers": 254,
+      "public_url": "https://app.anytoour.ru/feed/hotel-posts-all.xml",
+      "sha256": "f0dbf7d47a368c69dd4a9253caeb290f0ad05044fbc7f5e4388a2d02ba0165b2"
+    }
+  ],
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41714747598",
+  "intent_artifact_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41714747598/artifacts/13269158424",
+  "result_artifact_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41714747598/artifacts/13269077126",
+  "native_new_append_cases": 3,
+  "provider_calls": 0,
+  "db_writes": 0,
+  "message_sends": 0,
+  "runtime_installs": 0,
+  "new_bot_posts": 0,
+  "yandex_imported": false,
+  "ads_changed": false,
+  "legacy_csv_counts": [
+    124,
+    124,
+    248
+  ]
+}
