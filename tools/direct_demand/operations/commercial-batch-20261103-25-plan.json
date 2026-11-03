@@ -1,0 +1,35 @@
+{
+  "operation": "commercial-hotel-batch-20261103-25-v1",
+  "state": "TEN_CANDIDATE_GROUP_PREPARATION_NOT_SENT",
+  "goal": "Prepare ten reserve candidates together andpublish any ready subset throughone existingserialrun.",
+  "catalog_ids": [
+    464,
+    103021,
+    73343,
+    418,
+    65779,
+    932,
+    497,
+    68907,
+    483,
+    432
+  ],
+  "boundaries": [
+    "Existing authorizedchannels,bots,registry,durableonce andcloudworkflow only",
+    "Primary publicphotography; noFirebase access-tokenURLs orprivatearchives",
+    "No repeatingclosedreadbacks,rejectedphotos,blockedURLs oruncurrent sender",
+    "No newworkers,queues,agents,runtime orMac use"
+  ],
+  "criteria": [
+    "Whole captions with3or4facts,essentialfeature andflighttour context",
+    "One bounded groupedphotoselection pass; don'tholdreadycandidatesfordisputedones",
+    "Source/host/TLS/schema/rights/UNKNOWN/dedupguards andnativePNGverificationbeforepublication"
+  ],
+  "risks": [
+    "SerenityownerPDF route nowredirects tosuspendedpage; currentownername may havechanged, requires firstpartyproof",
+    "Onlyone approvedrealphoto each forTitanic; additionalpublicphotos stillrequired",
+    "Somecandidate photosorcurrentfacilitiescanremain deferred"
+  ],
+  "new_posts": 0,
+  "ready_for_send_count": 0
+}

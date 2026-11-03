@@ -1,13 +1,13 @@
 import base64,html,json,os,re,urllib.parse,urllib.request
 from pathlib import Path
 from html.parser import HTMLParser
-operation='commercial-batch24-six-new-photo-source-pages'
-pages=["https://partner.jazhotels.com/hotel/4","https://partner.jazhotels.com/hotel/3","https://partner.jazhotels.com/hotel/6","https://www.swissinn.net/corporate/Photo-gallery.php?hotelid=Hurghada&page=2","https://www.swissinn.net/corporate/Photo-gallery.php?hotelid=Hurghada&page=3","https://www.hwaidak-hotels.com/hotels/titanic-palace"]
+operation='commercial-batch25-four-primary-source-pages'
+pages=["https://hrewards.com/en/steigenberger-golf-resort-el-gouna","https://www.thechedielgouna.com/gallery","https://www.elgouna.com/hotels/the-chedi-el-gouna-hotel/gallery","https://redseahotels.com/resorts/hurghada/the-grand-palace-hurghada/"]
 group=int(os.environ['MEDIA_GROUP'])
 assert group in (0,1)
 pages=pages[group*3:group*3+3]
 assert 1<=len(pages)<=3
-hosts=set(["partner.jazhotels.com","www.swissinn.net","swissinn.net","www.hwaidak-hotels.com","storage.googleapis.com"])
+hosts=set(["hrewards.com","assets.hrewards.com","www.thechedielgouna.com","thechedielgouna.com","d31zyqkijjipvo.cloudfront.net","www.elgouna.com","cms.elgouna.com","redseahotels.com"])
 class Redirect(urllib.request.HTTPRedirectHandler):
  def redirect_request(self,*args,**kwargs):raise ValueError('unexpected_primary_source_redirect')
 opener=urllib.request.build_opener(Redirect())
