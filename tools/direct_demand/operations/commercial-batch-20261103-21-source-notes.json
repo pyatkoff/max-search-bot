@@ -1,6 +1,6 @@
 {
-  "operation": "commercial-hotel-batch-20261103-21-preparation",
-  "state": "PRIMARY_COPY_PREPARED_THREE_HEROES_DEFERRED",
+  "operation": "commercial-hotel-batch-20261103-21-v1",
+  "state": "SIVA_PREPARED_APPROVED_OTHERS_DEFERRED",
   "catalog_ids": [
     231,
     441,
@@ -59,5 +59,82 @@
     "https://github.com/pyatkoff/max-search-bot/actions/runs/41623769744",
     "https://github.com/pyatkoff/max-search-bot/actions/runs/41624110114",
     "https://github.com/pyatkoff/max-search-bot/actions/runs/41624897652"
-  ]
+  ],
+  "new_primary_rows": [
+    {
+      "hotel_id": 21476,
+      "hotel": "Cleopatra Luxury Resort Makadi Bay",
+      "key": "cleopatra-luxury-makadi",
+      "aliases": [
+        "CLEOPATRA LUXURY RESORT MAKADI BAY",
+        "CLEOPATRA LUXURY RESORT MAKADI BAY (EX. ALDIANA MAKADI)"
+      ],
+      "sources": [
+        "https://www.cleopatraluxuryhotels.com/hotel/cleopatra-luxury-resort-makadi-bay/",
+        "https://www.cleopatraluxuryhotels.com/hotel/cleopatra-luxury-resort-makadi-bay/activities/swimming-pools/",
+        "https://www.cleopatraluxuryhotels.com/hotel/cleopatra-luxury-resort-makadi-bay/activities/kids-club/"
+      ],
+      "text": "✈️ Туры в Cleopatra Luxury Resort Makadi Bay с перелётом\n📍 Макади Бэй, Египет.\n\n🏖 Курорт на берегу Красного моря.\n🏊 Восемь открытых бассейнов. Есть зимний подогрев.\n👧 Детский клуб для ребят от 4 до 12 лет, игровая комната и площадка.\n👨‍👩‍👧‍👦 Family Room площадью 77 м² с отдельными спальнями.\n\n💡 Дети младше 4 лет приходят в клуб с родителем.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Cleopatra Makadi."
+    }
+  ],
+  "cleopatra_photo_state": {
+    "state": "OFFICIAL_PHOTO_HTTP403_NOT_VISUALLY_ACCEPTED",
+    "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41631350559",
+    "jobs": [
+      125901422067,
+      125901422276
+    ],
+    "photographs": [
+      {
+        "hotel_id": 21476,
+        "role": "hero",
+        "url": "https://www.cleopatraluxuryhotels.com/wp-content/uploads/sites/55/2023/07/Cleopatra-Luxury-Resort-Makadi-Bay-Exterior-6.jpg"
+      },
+      {
+        "hotel_id": 21476,
+        "role": "left",
+        "url": "https://www.cleopatraluxuryhotels.com/wp-content/uploads/sites/55/2023/07/Untitled-design-39.jpg"
+      },
+      {
+        "hotel_id": 21476,
+        "role": "right",
+        "url": "https://www.cleopatraluxuryhotels.com/wp-content/uploads/sites/55/2023/07/Cleopatra-Luxury-Resort-Makadi-Bay-Hippo-Kids-Club-Playing-Room-2.jpg"
+      }
+    ],
+    "requests_repeated": 0
+  },
+  "gallery_read": {
+    "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41630634252",
+    "states": [
+      {
+        "hotel_id": 231,
+        "photo": "fsvyld2oxg-800x600-1.jpeg",
+        "state": "REJECTED_COURTYARD"
+      },
+      {
+        "hotel_id": 231,
+        "photo": "hk79axjezl-800x600-1.jpeg",
+        "state": "REJECTED_INTERIOR"
+      },
+      {
+        "hotel_id": 441,
+        "photos": [
+          "13266884355_acb18acd0b_o-lr.jpg",
+          "13266745715_4ff8bc9a4f_o-lr-1.jpg"
+        ],
+        "state": "DIMENSION_GUARD_450X280"
+      },
+      {
+        "hotel_id": 441,
+        "photo": "Siva-Grand-Beach-01.jpg",
+        "state": "ACCEPTED_HOTEL_GROUNDS_OVERVIEW"
+      },
+      {
+        "hotel_id": 441,
+        "photo": "Siva-Grand-Beach-02.jpg",
+        "state": "LOWER_IMAGE_ONLY"
+      }
+    ],
+    "log_processing": "Per-line BOM removed before timestamps; all original saved chunks and decoded hashes verified. No repeat HTTP request."
+  }
 }
