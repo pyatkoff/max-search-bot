@@ -227,6 +227,36 @@ function pipelineMonitorStatusAssertions(callable $check):void
             &&($combined['body']['pipeline']['status']??null)==='degraded'
             &&($combined['body']['pipeline']['ok']??null)===true);
         $check('combined reader does not initialize a database',!is_file($base.'/PDO_USED')&&!is_file($base.'/ACCESS_USED'));
+        pipelineMonitorFixtureWrite($local.'/runtime-state.json',str_repeat('SYNTHETIC_RAW_STATE_MUST_NOT_BE_READ',2500));
+        $limitedScript='require '.var_export($app.'/services/ModeledConversionDeliveryHealth.php',true).';'
+            .'$budget=new ModeledConversionStatusBudget();$budget->consumeBytes(ModeledConversionStatusBudget::MAX_BYTES-8192);'
+            .'$out=ModeledConversionDeliveryHealth::externalStatus($budget,static function():void{},time());'
+            .'echo json_encode(["out"=>$out,"remaining"=>$budget->remainingBytes()],JSON_THROW_ON_ERROR);';
+        $limited=pipelineMonitorFixtureRun([PHP_BINARY,'-r',$limitedScript],$base);
+        $limitedOut=$limited['body']['out']??[];$optional=$limitedOut['pipeline']??[];
+        $check('low shared headroom preserves external status and omits only optional pipeline data',
+            $limited['code']===0&&($limitedOut['available']??false)===true
+            &&($limitedOut['status']??null)===$external['status']
+            &&($limitedOut['checked_at']??null)===$external['checked_at']
+            &&($limitedOut['last_notification_at']??null)===$external['last_notification_at']
+            &&count($optional)===5&&($optional['available']??true)===false
+            &&array_key_exists('active',$optional)&&$optional['active']===null
+            &&array_key_exists('origin',$optional)&&$optional['origin']===null
+            &&($optional['fresh']??true)===false&&($optional['reason']??null)==='budget_headroom'
+            &&($limited['body']['remaining']??null)===8192-strlen(json_encode($external,JSON_THROW_ON_ERROR))
+            &&!str_contains(json_encode($limited['body'],JSON_THROW_ON_ERROR),'SYNTHETIC_RAW_STATE')
+            &&!is_file($base.'/PDO_USED')&&!is_file($base.'/ACCESS_USED'));
+        $revokedScript='require '.var_export($app.'/services/ModeledConversionDeliveryHealth.php',true).';'
+            .'$budget=new ModeledConversionStatusBudget();$budget->consumeBytes(ModeledConversionStatusBudget::MAX_BYTES-8192);'
+            .'$calls=0;try{ModeledConversionDeliveryHealth::externalStatus($budget,static function()use(&$calls):void{'
+            .'if(++$calls===2)throw new DomainException("synthetic_final_revocation");},time());'
+            .'echo json_encode(["released"=>true],JSON_THROW_ON_ERROR);}'
+            .'catch(DomainException $ignored){echo json_encode(["released"=>false,"calls"=>$calls],JSON_THROW_ON_ERROR);}';
+        $denied=pipelineMonitorFixtureRun([PHP_BINARY,'-r',$revokedScript],$base);
+        $check('optional headroom refusal still enforces the final authorization before returning any status',
+            $denied['code']===0&&($denied['body']['released']??true)===false&&($denied['body']['calls']??null)===2
+            &&count($denied['body']??[])===2&&!is_file($base.'/PDO_USED')&&!is_file($base.'/ACCESS_USED'));
+
     }finally{pipelineMonitorFixtureRemove($base);}
 }
 if(realpath((string)($_SERVER['SCRIPT_FILENAME']??''))===__FILE__){

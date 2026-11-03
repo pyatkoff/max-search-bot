@@ -153,7 +153,9 @@ final class ModeledConversionDeliveryHealth
                 }
             }
         }
-        $out['pipeline']=ModeledConversionPipelineMonitorStatus::read($budget,$authorize,$now);
+        $out['pipeline']=$budget->remainingBytes()<12288
+            ?['available'=>false,'active'=>null,'origin'=>null,'fresh'=>false,'reason'=>'budget_headroom']
+            :ModeledConversionPipelineMonitorStatus::read($budget,$authorize,$now);
         $guard();return$out;
     }
     private static function storedExternalReceipt(array $r,int $now):array

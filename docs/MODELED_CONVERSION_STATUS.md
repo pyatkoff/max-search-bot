@@ -503,3 +503,9 @@ customer/forecast/value immutability boundaries.
 Runtime acceptance is THREE natural server-cron receipts with different cycle
 IDs, advancing real clocks, healthy quiet results and preserved last notification.
 Do not count synthetic fixtures or the postDeploy/activation workflows.
+
+The combined forecast RPC admits the optional nested pipeline file view only
+with at least12KiB of shared headroom. Otherwise it reports budget_headroom for
+that subview and preserves existing forecasts/external fields and final access
+checks. Total64KiB/five-second limits are unchanged. The dedicated owner page
+starts a separate read budget and does not depend on the composed RPC's suffix.

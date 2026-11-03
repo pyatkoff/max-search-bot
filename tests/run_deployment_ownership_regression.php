@@ -99,6 +99,7 @@ $remoteEnd = strrpos($cronSection, "\n          '");
 deploymentCronAssert($remoteStart !== false && $remoteEnd !== false, 'remote cron body must be bounded');
 $cronBody = preg_replace('/^ {12}/m', '', substr($cronSection, $remoteStart + 3, $remoteEnd - $remoteStart - 3));
 $pairSource = (string)file_get_contents($root.'/tools/verify_deploy_crons.sh');
+$monitorReconcileSource = (string)file_get_contents($root.'/tools/reconcile_modeled_conversion_monitor_cron.sh');
 $fixture = sys_get_temp_dir().'/deploy-cron-pair-'.bin2hex(random_bytes(8));
 mkdir($fixture, 0700, true);
 
@@ -124,6 +125,13 @@ echo json_encode(['observer'=>$name,'ok'=>!$failed,'provider_calls'=>0])."\n";
 exit($failed ? 1 : 0);
 PHP_FIXTURE;
 
+$monitorStatusSource = <<<'PYTHON_FIXTURE'
+import sys
+if sys.argv[1:] != ['--status']:
+    raise SystemExit(90)
+print('{"schema_version":1,"project":"anytour","counter_id":"98615635","role":"pipeline","configured":false}')
+PYTHON_FIXTURE;
+
 $crontabSource = <<<'PHP_FIXTURE'
 #!/usr/bin/env php
 <?php
@@ -146,6 +154,10 @@ try {
         $case = $fixture.'/'.$mode;
         foreach (['tools','bin','tmp','observed'] as $directory) mkdir($case.'/'.$directory, 0700, true);
         file_put_contents($case.'/tools/verify_deploy_crons.sh', $pairSource);
+        file_put_contents($case.'/tools/reconcile_modeled_conversion_monitor_cron.sh', $monitorReconcileSource);
+        file_put_contents($case.'/tools/modeled_conversion_monitor_local.py', $monitorStatusSource);
+        deploymentCronAssert(file_get_contents($case.'/tools/reconcile_modeled_conversion_monitor_cron.sh') === $monitorReconcileSource,
+            'fixture executes the byte-exact pipeline reconciler');
         file_put_contents($case.'/tools/hotel_work.php', $observerSource);
         file_put_contents($case.'/tools/development_work.php', $observerSource);
         file_put_contents($case.'/bin/crontab', $crontabSource);
@@ -198,6 +210,7 @@ try {
         deploymentCronAssert(str_contains($actual, $operatorLine), 'unrelated cron entry must survive '.$mode);
         if ($mode === 'success') {
             deploymentCronAssert((int)file_get_contents($state.'.count') === 5, 'only the existing five serial writes are performed');
+            deploymentCronAssert(str_contains($output, 'MODELED_PIPELINE_MONITOR=inactive'), 'new canonical monitor reconciliation is inactive without a cutover marker');
             deploymentCronAssert(substr_count($actual, 'HOTEL_WORK_TRIGGER=cron') === 1, 'hotel schedule remains present once');
             deploymentCronAssert(substr_count($actual, 'DEVELOPMENT_WORK_TRIGGER=cron') === 1, 'development schedule remains present once');
             deploymentCronAssert(str_contains($output, '"observer":"hotel","ok":true'), 'hotel result is required');
