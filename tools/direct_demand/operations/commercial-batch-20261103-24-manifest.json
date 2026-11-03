@@ -1,0 +1,136 @@
+{
+  "operation": "commercial-hotel-batch-20261103-24-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Publish four ready whole hotel materials in each existing authorized channel in one serial run.",
+  "boundaries": [
+    "Only existing authorized channels and active bots",
+    "Existing publisher,canonical registry and durable once; serial send",
+    "No additional chats,runtime,workers,queues,collectors or ad changes",
+    "Exact current source,host,TLS,schema,rights,UNKNOWN and live dedup gates preserved"
+  ],
+  "criteria": [
+    "One native hotel identity already proven in catalogue and registry inspection",
+    "Whole hotel caption with4useful facts and material2027renovation feature",
+    "Real official photography,readable AnyTour brand/name,nativePNG visuallyverified and frozen",
+    "Exactly2provider verified posts or explicit dedup/UNKNOWN stop"
+  ],
+  "risks": [
+    "Do not transfer operator package inclusions or price/availability claims",
+    "Swiss Inn has second-line room categories, stated inwholecaption",
+    "Fanara,Miramar,RoyalMakadi andTitanic candidates remain deferred andcannotdelay readyfour"
+  ],
+  "baseline_logical_materials": 110,
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "hotel_id": 282,
+      "hotel": "JAZ Mirabel Club",
+      "key": "jaz-mirabel-club",
+      "aliases": [
+        "JAZ MIRABEL CLUB"
+      ],
+      "text": "✈️ Туры в JAZ Mirabel Club с перелётом\n📍 Набк Бэй, Шарм эль Шейх.\n\n🏊 Открытый бассейн и детский бассейн.\n👧 Детский клуб для ребят от 4 до 12 лет и игровая площадка.\n🍽 Рестораны итальянской, азиатской и восточной кухни.\n\n💡 В Club 160 номеров в двух трёхэтажных корпусах.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в JAZ Mirabel Club.",
+      "sources": [
+        "https://www.tui.com/hotels/jaz-mirabel-club-260490/hotelinformation/",
+        "https://partner.jazhotels.com/hotel/6"
+      ],
+      "logical_id": "commercial-jaz-mirabel-club-282-v1",
+      "text_sha256": "7e12aecf00b31abc1da8b5564faa9138cf42409681077f903ba7cafa1dc5329f",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/6508a9ee1f0ced32bc03bef61d3869b44764c9f8/.github/traffic-publish/commercial-batch-20261103-24/282.png",
+      "photo_sha256": "85edf470d25b4733ae2e91fdbf85efb98cc4105c33d30282729858955ff1cdbc",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 235,
+      "hotel": "The Grand Resort Hurghada",
+      "sources": [
+        "https://redseahotels.com/resorts/hurghada/the-grand-resort/"
+      ],
+      "text": "✈️ Туры в The Grand Resort с перелётом\n📍 Хургада, Египет.\n\n🌴 Отель на туристической прогулочной улице.\n🏊 Открытые бассейны, в том числе подогреваемый для взрослых и детей.\n🧒 Детский клуб и игровая площадка.\n🛏 Семейные номера с двумя отдельными спальнями.\n\n💡 До пляжа нужно пройти пешком.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в The Grand Resort.",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "photo_uris": [
+        "https://redseahotels.com/wp-content/uploads/2023/02/The-Grand-Resort-in-Hurghada-Egypt-by-Red-Sea-Hotels.jpg",
+        "https://redseahotels.com/wp-content/uploads/2023/03/Beautiful-pools-at-the-Grand-Resort-by-Red-Sea-Hotels.jpg"
+      ],
+      "key": "grand-resort-hurghada",
+      "aliases": [
+        "GRAND RESORT HURGHADA"
+      ],
+      "logical_id": "commercial-grand-resort-hurghada-235-v1",
+      "text_sha256": "ae0ce98b2531221d47814d016bfd03047668c9bd51a2e514773bccb49b6649be",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/6508a9ee1f0ced32bc03bef61d3869b44764c9f8/.github/traffic-publish/commercial-batch-20261103-24/235.png",
+      "photo_sha256": "f7729cc4fa987ff8f22bc13d5d234b5685d672363c4ecad9a2b5cc9c3f281944"
+    },
+    {
+      "hotel_id": 382,
+      "hotel": "RENAISSANCE GOLDEN VIEW BEACH",
+      "key": "renaissance-golden-view",
+      "aliases": [
+        "RENAISSANCE GOLDEN VIEW BEACH"
+      ],
+      "text": "🐠 Renaissance Sharm El Sheikh Golden View Beach Resort\nТур с перелётом в Шарм эль Шейх, Египет.\n\n🏖️ Пляж, бассейны и дайвинг центр на территории.\n🍽️ Три ресторана и четыре бара.\n🏋️ Тренажёрный зал работает круглосуточно.\n🧒 Для детей есть игровая площадка.\n\n💡 В номерах и люксах отеля не курят.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "sources": [
+        "https://www.marriott.com/en-us/hotels/sshbr-renaissance-sharm-el-sheikh-golden-view-beach-resort/overview/"
+      ],
+      "logical_id": "commercial-renaissance-golden-view-382-v1",
+      "text_sha256": "fbeb7815f68f7ce3a897154fc53e0c4a7c1a2b7aa3be55aa607299f9d366856f",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/6508a9ee1f0ced32bc03bef61d3869b44764c9f8/.github/traffic-publish/commercial-batch-20261103-24/382.png",
+      "photo_sha256": "093303fa466b8783242c88ec9d5473650273fc474e274fb9bb3ee42e591f5297",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 250,
+      "hotel": "Swiss Inn Resort Hurghada",
+      "key": "swiss-inn-hurghada",
+      "aliases": [
+        "SWISS INN RESORT HURGHADA (EX. HILTON RESORT)"
+      ],
+      "sources": [
+        "https://swissinn.net/hotels/index.php?lang=Hurghada",
+        "https://www.swissinn.net/corporate/Photo-gallery.php?hotelid=Hurghada&page=2"
+      ],
+      "text": "✈️ Туры в Swiss Inn Resort Hurghada с перелётом\n📍 Хургада, Египет.\n\n🏖 Песчаный пляж у Красного моря.\n🛏 400 номеров и люксов.\n👨‍👩‍👧‍👦 Есть семейные варианты с двумя спальнями.\n🍽 Рестораны и бары на территории.\n\n💡 Часть категорий номеров расположена на второй линии.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Swiss Inn Resort Hurghada.",
+      "logical_id": "commercial-swiss-inn-hurghada-250-v1",
+      "text_sha256": "147cf8c42ae31d1d36914780b30d7cb36b29b34ac367bcae3da4ce9bd6131e7e",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/6508a9ee1f0ced32bc03bef61d3869b44764c9f8/.github/traffic-publish/commercial-batch-20261103-24/250.png",
+      "photo_sha256": "98b1533eb88de8e57c29d6b832f0404c4bc0265142e89386062317d88d65a796",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    }
+  ],
+  "ready_for_send_count": 4,
+  "new_posts": 0,
+  "provider_send_attempts": 0,
+  "content_and_cover_prepared_count": 4,
+  "approved_live_send_count": 4,
+  "public_png_frozen_count": 4,
+  "native_inspection_state": "CLOUD_NATIVE_BYTES_DIMENSIONS_HASH_AND_VISUAL_ACCEPTED",
+  "native_inspection_run_urls": [
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41667775557"
+  ],
+  "deferred": [
+    {
+      "hotel_id": 432,
+      "state": "FACT_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 12107,
+      "state": "FACT_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 65779,
+      "state": "FACT_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 932,
+      "state": "FACT_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 497,
+      "state": "FACT_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 483,
+      "state": "FACT_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING_NOT_SENT"
+    }
+  ]
+}
