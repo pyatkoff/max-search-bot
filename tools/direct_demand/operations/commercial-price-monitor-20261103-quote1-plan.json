@@ -1,0 +1,16 @@
+{
+  "operation": "commercial-price-monitor-20261103-quote1",
+  "state": "ONE_TARGETED_ACTUALIZATION_PLANNED_NOT_CALLED",
+  "catalog_ids": [
+    12114
+  ],
+  "hotel_count": 1,
+  "gateway_request_limit": 1,
+  "upstream_request_limit": 1,
+  "gateway_requests_attempted": 0,
+  "price_block_updates": 0,
+  "goal": "Establish the actual full-quote response for the exact retained future2A Palace candidate using the existing public gateway and provider method.",
+  "boundaries": "One call maximum for the exact candidate from authenticated read2 artifact. Revalidate retained fingerprint,terms,source,catalog activity and persistence age<=3h before HTTP. No search/continue,alternative candidate,orders/customer reads,private config export,automatic retry or post mutation.",
+  "criteria": "Current source/verify/strict TLS/21 publishing blobs/host continuity;read-only exact candidate comparison. Save durable intent before the single tariffed gateway GET. Preserve raw price/fuel and distinguish server response time from record persistence. Actual field and amount contract must be proven before any edit.",
+  "risks": "A retained tour can expire or quote may be unavailable. The documented flights method consumes request quota. A failed/UNKNOWN original attempt is resolved from its own evidence and not repeated."
+}

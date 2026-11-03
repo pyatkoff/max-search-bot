@@ -1,14 +1,15 @@
-import base64,html,json,re,urllib.parse,urllib.request
+import base64,html,json,os,re,urllib.parse,urllib.request
 from pathlib import Path
 from html.parser import HTMLParser
-operation='commercial-batch16-public-sources-20261103-read1'
-pages=["https://www.kempinski.com/en/hotel-soma-bay","https://www.marriott.com/en-us/hotels/hrgss-sheraton-soma-bay-resort/photos/","https://www.thebreakers-somabay.com/hotel/","https://www.robinson.com/en/en/resort-holiday/egypt/soma-bay/club-details/","https://mice.robinson.com/en/clubs/soma-bay/","https://www.pickalbatros.com/water-valley-resort-neverland-hurghada","https://hotelsgravity.com/gravity-hotel-aqua-park-hurghada/","https://all.accor.com/hotel/C158/index.en.shtml","https://www.reefoasisresorts.com/sentido-reef-oasis-senses-aqua-park-resort-gallery","https://www.tui-blue.com/en/en/hotels/tui-blue-samaya/"]
-hosts=set(["www.kempinski.com","storage.kempinski.com","www.marriott.com","cache.marriott.com","www.thebreakers-somabay.com","thebreakers.b-cdn.net","www.robinson.com","mice.robinson.com","www.pickalbatros.com","image-tc.galaxy.tf","hotelsgravity.com","www.hotelsgravity.com","all.accor.com","www.ahstatic.com","www.reefoasisresorts.com","irp.cdn-website.com","www.tui-blue.com","media.tui-blue.com"])
+operation='commercial-batch19-public-sources-20261103-read1'
+pages=["https://www.hilton.com/en/hotels/hrghitw-hilton-hurghada-plaza/","https://www.marriott.com/en-us/hotels/hrgeg-hurghada-marriott-beach-resort/overview/","https://www.marriott.com/en-us/hotels/sshbr-renaissance-sharm-el-sheikh-golden-view-beach-resort/overview/","https://stelladimare.com/beach-hotel-spa/our-hotel/","https://www.continental-hurghada.com/en","https://www.parkregency.net/","https://www.hilton.com/en/hotels/rmfhihi-hilton-marsa-alam-nubian-resort/","https://www.palmroyaleresort.com/","https://www.sunrise-resorts.com/royal-makadi-resort?updatelang=yes"]
+group=int(os.environ['MEDIA_GROUP'])
+assert group in (0,1)
+pages=pages[group*5:group*5+5]
+assert 1<=len(pages)<=5
+hosts=set(["www.hilton.com","www.marriott.com","cache.marriott.com","stelladimare.com","www.stelladimare.com","www.continental-hurghada.com","continental-hurghada.com","www.parkregency.net","parkregency.net","www.palmroyaleresort.com","palmroyaleresort.com","www.sunrise-resorts.com","sunrise-resorts.com","irp.cdn-website.com","dp-cdn.multiscreensite.com"])
 class Redirect(urllib.request.HTTPRedirectHandler):
- def redirect_request(self,req,fp,code,msg,headers,newurl):
-  p=urllib.parse.urlsplit(newurl)
-  if p.scheme!='https' or p.hostname not in hosts or p.username or p.password or p.port not in (None,443):raise ValueError('redirect_outside_public_sources')
-  return super().redirect_request(req,fp,code,msg,headers,newurl)
+ def redirect_request(self,*args,**kwargs):raise ValueError('unexpected_primary_source_redirect')
 opener=urllib.request.build_opener(Redirect())
 out={'operation':operation,'mode':'read_public_photo_sources_only','message_sends':0,'db_writes':0,'server_connections':0,'pages':[]}
 for url in pages:
