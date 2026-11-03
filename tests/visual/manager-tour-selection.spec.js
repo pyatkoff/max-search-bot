@@ -1565,19 +1565,24 @@ function imageDownloadPolicy(page){
  page.on('console',message=>{if(['error','warning'].includes(message.type())&&/download|sandbox|content security policy|blob:|not allowed/i.test(message.text())&&events.length<8)events.push({type:message.type(),text:safe(message.text())})});
  return()=>console.log('SYNTHETIC image-download policy '+JSON.stringify({events,frames:page.frames().slice(0,3).map(frame=>safe(frame.url()))}));
 }
-test('protected editor CSP blocks foreign frames and scripts in loaded local Blob documents',async({page})=>{
+test('protected editor CSP blocks foreign frames and executable Blob scripts',async({page})=>{
  const s=await privateEditor(page,{draft:completeDraft()});await expect(s.editor.locator('#tsStatus')).toContainText('загружен');const before=copy(s.snapshot()),calls=copy(s.calls),pages=page.context().pages().length;
- const appFrame=page.frames().find(frame=>frame.url().startsWith('https://app.anytoour.ru/manager/tour-selection-editor.php'));
- await page.addInitScript(()=>{window.blobPolicyViolations=[];document.addEventListener('securitypolicyviolation',event=>blobPolicyViolations.push({directive:event.effectiveDirective,blocked:event.blockedURI}))});
- const blobUrl=await appFrame.evaluate(()=>URL.createObjectURL(new Blob(['<!doctype html><meta charset="utf-8"><p id="inertBlobMarker">SYNTHETIC inert Blob document</p><script>window.inlineBlobRan=true</script>'],{type:'text/html'})));
- await page.evaluate(src=>{
-  window.foreignFrameBlocked=false;document.addEventListener('securitypolicyviolation',event=>{if(event.blockedURI.startsWith('https://foreign-editor.invalid'))foreignFrameBlocked=true});
-  const foreign=document.createElement('iframe');foreign.id='foreignFramePolicyProbe';foreign.src='https://foreign-editor.invalid/not-allowed';document.body.append(foreign);
-  const blob=document.createElement('iframe');blob.id='blobDocumentPolicyProbe';blob.setAttribute('sandbox',document.querySelector('iframe').getAttribute('sandbox'));blob.src=src;document.body.append(blob);
- },blobUrl);
- await expect.poll(()=>page.evaluate(()=>foreignFrameBlocked)).toBe(true);const blob=page.frameLocator('#blobDocumentPolicyProbe');await expect(blob.locator('#inertBlobMarker')).toHaveText('SYNTHETIC inert Blob document');
- const blobFrame=page.frames().find(frame=>frame.url()===blobUrl);expect(blobFrame).toBeTruthy();await expect.poll(()=>blobFrame.evaluate(()=>blobPolicyViolations.some(event=>event.blocked==='inline'&&event.directive.startsWith('script-src')))).toBe(true);expect(await blobFrame.evaluate(()=>typeof window.inlineBlobRan)).toBe('undefined');
- await page.evaluate(()=>{document.getElementById('blobDocumentPolicyProbe').remove();document.getElementById('foreignFramePolicyProbe').remove()});await appFrame.evaluate(src=>URL.revokeObjectURL(src),blobUrl);
+ const payload='window.imagePolicyProbe.ran=true';const text=await page.evaluate(async payload=>{
+  const blob=new Blob([payload],{type:'application/javascript'});window.imagePolicyProbe={foreignBlocked:false,scriptBlocked:false,violation:false,ran:false,url:URL.createObjectURL(blob)};return blob.text();
+ },payload);expect(text).toBe(payload);
+ try{
+  await page.evaluate(()=>{
+   document.addEventListener('securitypolicyviolation',event=>{
+    if(event.blockedURI.startsWith('https://foreign-editor.invalid')&&event.disposition==='enforce')imagePolicyProbe.foreignBlocked=true;
+    // CSP reports may strip non-HTTP URLs down to their scheme (CSP3 5.2/5.4).
+    if((event.blockedURI===imagePolicyProbe.url||event.blockedURI==='blob')&&event.effectiveDirective.startsWith('script-src')&&event.disposition==='enforce')imagePolicyProbe.violation=true;
+   });
+   const foreign=document.createElement('iframe');foreign.id='foreignFramePolicyProbe';foreign.src='https://foreign-editor.invalid/not-allowed';document.body.append(foreign);
+   const script=document.createElement('script');script.id='blobScriptPolicyProbe';script.src=imagePolicyProbe.url;script.onerror=()=>{imagePolicyProbe.scriptBlocked=true};document.body.append(script);
+  });
+  expect(await page.locator('#blobScriptPolicyProbe').getAttribute('src')).toBe(await page.evaluate(()=>imagePolicyProbe.url));
+  await expect.poll(()=>page.evaluate(()=>imagePolicyProbe.foreignBlocked)).toBe(true);await expect.poll(()=>page.evaluate(()=>imagePolicyProbe.scriptBlocked)).toBe(true);await expect.poll(()=>page.evaluate(()=>imagePolicyProbe.violation)).toBe(true);expect(await page.evaluate(()=>imagePolicyProbe.ran)).toBe(false);
+ }finally{await page.evaluate(()=>{document.getElementById('blobScriptPolicyProbe')?.remove();document.getElementById('foreignFramePolicyProbe')?.remove();URL.revokeObjectURL(imagePolicyProbe.url)})}
  expect(s.snapshot()).toEqual(before);expect(s.calls).toEqual(calls);expect(page.context().pages()).toHaveLength(pages);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
 });
 

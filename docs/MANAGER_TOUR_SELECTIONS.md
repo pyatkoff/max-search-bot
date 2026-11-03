@@ -39,7 +39,7 @@ The outer protected editor permits local `blob:` frame navigation for WebKit's
 native file download handling. Its fixed HTTPS editor origin, default/script/
 form/ancestor restrictions and iframe sandbox stay in place. Browser fixtures
 read the exact shipped PHP policies; a real negative control checks that foreign
-frames and inline scripts in loaded Blob documents remain blocked.
+frames and executable Blob scripts remain blocked.
 
 ## Print the exact preview (editor 0.2.8)
 
