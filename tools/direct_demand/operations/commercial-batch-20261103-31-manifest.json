@@ -1,0 +1,101 @@
+{
+  "operation": "commercial-hotel-batch-20261103-31-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Publish both ready whole hotel materials in both existing channels in one serial run.",
+  "boundaries": [
+    "Existingbots/channels/registry/once and serial publisher only",
+    "Exact current approved source/verify/TLS/tree21blobs and runtime source/cleanhost/rights/UNKNOWN gates",
+    "No paid calls,new workers/queues/runtime,ads or customer messages"
+  ],
+  "criteria": [
+    "Two native PNGs verified by bytes/chunks/hash/dimensions and appearance",
+    "Exactly4 verified new body/photo/button/source posts or explicit stop"
+  ],
+  "risks": [
+    "Do not hold these2 for eight unresolved candidates",
+    "If source moves, stop before server/provider and prepare independently"
+  ],
+  "baseline_logical_materials": 131,
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "hotel_id": 74503,
+      "hotel": "NG Phaselis Bay",
+      "key": "ng-phaselis-bay",
+      "aliases": [
+        "NG PHASELIS BAY"
+      ],
+      "sources": [
+        "https://ngphaselisbay.com/en/",
+        "https://ngphaselisbay.com/en/bays-beach-pools/"
+      ],
+      "text": "✈️ Туры в NG Phaselis Bay с перелётом\n📍 Кемер, Турция.\n\n🏖 Песчаный пляж длиной 555 метров.\n🏊 Бассейны разных форматов.\n👧 Детский клуб Beluga с занятиями и играми.\n🧖 Спа Aliva.\n\n💡 У курорта есть пляжи в бухтах Beluga и Secret Bay. Территория окружена сосновым лесом.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в NG Phaselis Bay.",
+      "logical_id": "commercial-ng-phaselis-bay-74503-v1",
+      "text_sha256": "f48422128b63b08b4746063ca512ef8b7f250d7fd39f756b3cb52315a6a1f7b5",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5e9aa17d09d0499ffd3c40c3c335318d02bfde06/.github/traffic-publish/commercial-batch-20261103-31/74503.png",
+      "photo_sha256": "4163044c8a17b30a04a2aa88a4dc01ca3a1923252c3af65430ab6027ab771fc5",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 1582,
+      "hotel": "Voyage Belek Golf & Spa",
+      "key": "voyage-belek",
+      "aliases": [
+        "VOYAGE BELEK GOLF & SPA"
+      ],
+      "sources": [
+        "https://www.voyagehotel.com/en/voyage-belek-spa"
+      ],
+      "text": "✈️ Туры в Voyage Belek Golf & Spa с перелётом\n📍 Белек, Турция.\n\n🏖 Пляж на Средиземном море.\n🏊 Бассейны и аквапарк с горками.\n👧 Детский клуб Tugi.\n🧖 Есть спа и спортивные занятия.\n\n💡 Можно выбрать размещение в корпусах или бунгало. Вид из номера и выход к бассейну зависят от категории.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Voyage Belek.",
+      "logical_id": "commercial-voyage-belek-1582-v1",
+      "text_sha256": "9b47914a9f8e10832d477b95e072fd9fb30934b4fe2c2cdf815b47eb52d35a32",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5e9aa17d09d0499ffd3c40c3c335318d02bfde06/.github/traffic-publish/commercial-batch-20261103-31/1582.png",
+      "photo_sha256": "520e6123814634bcf9cc3bd62ac8b8c6ffcfbc37b1e77bf0e95d936dd6224f36",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    }
+  ],
+  "ready_for_send_count": 2,
+  "new_posts": 0,
+  "provider_send_attempts": 0,
+  "content_and_cover_prepared_count": 2,
+  "approved_live_send_count": 2,
+  "public_png_frozen_count": 2,
+  "native_inspection_state": "TWO_NATIVE_PNG_VISUALLY_VERIFIED",
+  "native_inspection_run_urls": [
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41727457591"
+  ],
+  "deferred": [
+    {
+      "hotel_id": 1033,
+      "state": "PRIMARY_OR_DIFFERENT_APPROVED_OVERVIEW_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 1031,
+      "state": "PRIMARY_OR_DIFFERENT_APPROVED_OVERVIEW_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 1032,
+      "state": "PRIMARY_OR_DIFFERENT_APPROVED_OVERVIEW_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 512,
+      "state": "PRIMARY_OR_DIFFERENT_APPROVED_OVERVIEW_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 21673,
+      "state": "PRIMARY_OR_DIFFERENT_APPROVED_OVERVIEW_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 75571,
+      "state": "PRIMARY_OR_DIFFERENT_APPROVED_OVERVIEW_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 102774,
+      "state": "PRIMARY_OR_DIFFERENT_APPROVED_OVERVIEW_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 468,
+      "state": "PRIMARY_OR_DIFFERENT_APPROVED_OVERVIEW_PENDING_NOT_SENT"
+    }
+  ]
+}
