@@ -1,4 +1,4 @@
-name: Inspect24 declared primary photographs for the new ten candidate hotel batch
+name: Inspect24 declared owner photographs with distinct validated per-hotel roles
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]

@@ -1,6 +1,6 @@
 {
   "operation": "commercial-batch27-bounded-primary-contact-inspection",
-  "state": "TWENTY_FOUR_NEW_OWNER_PHOTOS_PREPARED_NOT_READ",
+  "state": "EXACT_UNIQUE_ROLE_INPUTS_CORRECTED_BEFORE_ANY_PHOTO_GET",
   "catalog_ids": [
     165,
     163,
@@ -26,5 +26,8 @@
   "risks": [
     "Holiday overview source list retained only portrait400x550 variants; do not guess larger URLs or let it delay ready hotels",
     "Some images may remain unsuitable while other complete candidates proceed"
-  ]
+  ],
+  "preflight_stop_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41691586045",
+  "preflight_cause": "Three Baron photo roles were duplicated across two groups. The unchanged input guard rejected all groups before HTTP. All24 roles are now unique; no guard was weakened.",
+  "source_photo_http_attempts_before_correction": 0
 }
