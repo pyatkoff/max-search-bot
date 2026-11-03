@@ -79,7 +79,7 @@ function hsSchema(PDO $p): void
     $native=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
     $p->exec('CREATE TABLE hotel_work_lane(lane_key VARCHAR(16) PRIMARY KEY,queue_id VARBINARY(80) NULL)'.($native?' ENGINE=InnoDB':''));
     $p->exec("INSERT INTO hotel_work_lane VALUES('HOTEL',NULL)");
-    foreach(['migrations/084_hotel_server_cycle.sql','migrations/hotel/084_hotel_server_projection.sql'] as $file) {
+    foreach(['migrations/084_hotel_server_cycle.sql','migrations/hotel/084_hotel_server_projection.sql','migrations/089_hotel_server_corrections.sql'] as $file) {
         $sql=(string)file_get_contents(dirname(__DIR__,2).'/'.$file);
         foreach(preg_split('/;\s*(?:\r?\n|$)/',$sql)?:[] as $statement) {
             $statement=trim($statement); if($statement==='')continue;
@@ -113,4 +113,5 @@ function hsCleanup(array &$f): void
     $f['admin']=null;
     foreach(glob($f['dir'].'/*')?:[] as $file) unlink($file);rmdir($f['dir']);
 }
+
 
