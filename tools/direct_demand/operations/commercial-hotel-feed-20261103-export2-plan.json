@@ -1,0 +1,7 @@
+{
+  "operation": "commercial-hotel-feed-20261103-export2",
+  "goal": "Expand the existing six-row static hotel feed toward all105 accepted paired hotel materials.",
+  "boundaries": "One existing bounded authenticated catalog/registry read only. Export only proven nativeID,name,country/region,public destination and approved public image/hash. No provider requests,post edits,private button/message/publication IDs,tokens,receipts,archives or customer data in public output. Existing workflows and source/host/TLS/schema gates remain.",
+  "criteria": "Exact accepted native and typed provenance,105 paired current sent materials at most,active catalog membership and public field whitelist. Match approved image references to retained accepted manifests/receipts in protected cloud memory. Preserve the six native CSV rows and omit Price/availability. Ordinary native tests for new preparation code;no new runtime.",
+  "risks": "Some early accepted photos may lack a durable public URL or typed aliases. Emit explicit deferred IDs/counts instead of guessing identity or exporting provider assets. Generic country/visit feeds are not hotel feeds. New server source is10a,unrelated HotelCron files changed;accepted verify and exact strictTLS required before readonly server call."
+}
