@@ -24,7 +24,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      # Every PR has required regression on this same merge commit. Only its
+      # scope call owns the identical policy selftests; these three known
+      # companions still run the selector. Manual/unknown callers validate.
       - name: Verify CI selection rules
+        if: github.event_name != 'pull_request' || !contains(fromJSON('["Workspace V2 visual QA","Workspace incoming sound","Channel post context"]'), github.workflow)
         run: |
           node tests/run_ci_change_scope_regression.js
           node tests/run_oauth_browser_report_regression.js
