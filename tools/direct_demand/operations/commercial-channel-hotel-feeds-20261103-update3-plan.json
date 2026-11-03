@@ -1,0 +1,67 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261103-update3",
+  "state": "PREPARED_NOT_UPLOADED",
+  "catalog_ids": [
+    98723,
+    139,
+    342
+  ],
+  "goal": "Append three newly provider-verified hotel pairs to the same three public DirectYMLfeeds",
+  "boundaries": [
+    "Existing3fixedXMLfiles/strictGHAstaticwriter/source/TLS/pinnedhost",
+    "Previous124offerbytes preserved except generationtimestamp",
+    "No prices/availability/adsimport/budgets/messages/provider/DBwrites/runtimeinstalls",
+    "OldCSVfilesremainadditional124/124/248 andunchanged"
+  ],
+  "criteria": [
+    "127TG/127MAX/254union",
+    "TGnamesПутевкив/MAXТурыв andallnamedescriptionswithinlimits",
+    "Exactnewcanonicalbindingshashes3fromread5",
+    "Intentbeforewrite/exactprevious3XMLSHAandunknownstop/fsyncatomicreplace",
+    "HTTPS200XMLandexactnewbytesSHA"
+  ],
+  "risks": [
+    "Imagegaps381/469remain2/channel4combined",
+    "Partiallywrittenmulti-fileoperationmustreconcileoriginalrun/hashes,no blindlynewoperation"
+  ],
+  "previous_files": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "rows": 124,
+      "sha256": "245f19f9f03b7b147ce3405d9998b1ea0696671043cd1c36c8b73175a5d16652"
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "rows": 124,
+      "sha256": "64ef9f3bb8ddabb24bd6c093219a1850bd3a195bd7be2d8a2c85a3292586196b"
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "rows": 248,
+      "sha256": "9f9e2307039e61302be5dd4b0035ab3a7603892ac8d2c555865afe12368ab0f7"
+    }
+  ],
+  "files": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "rows": 127,
+      "sha256": "957b48c4c08fcb3ca48cbc535d5a45b593ffcce9d61a6e589db81a7bb7fd5e81"
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "rows": 127,
+      "sha256": "b34c2754672f88667116d4a4636f243a9c1b1c994eca9dfd292c10bb269ec667"
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "rows": 254,
+      "sha256": "f0dbf7d47a368c69dd4a9253caeb290f0ad05044fbc7f5e4388a2d02ba0165b2"
+    }
+  ],
+  "canonical_public_binding_sha256": {
+    "139": "503a88fc1578e18e3f05ccc9fb10327bd430eea0a22503ff8999cefa14f0a882",
+    "342": "b48414089f0ab3557b0a72f489e8b77fbcdc9ebd2d10ece898b535f4f9e5b57e",
+    "98723": "60baba4b70b54987be4cf716eaa5287a5e657a0a75737a7a419ad176f9ee3d5d"
+  },
+  "read_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41714003631"
+}

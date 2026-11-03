@@ -868,6 +868,27 @@
       "telegram_name": "Путевки в Three Corners Fayrouz Plaza Beach Resort",
       "max_name": "Туры в Three Corners Fayrouz Plaza Beach Resort",
       "description": "Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 98723,
+      "short_name": "Cleopatra Luxury Resort Sharm Adults Only",
+      "telegram_name": "Путевки в Cleopatra Luxury Resort Sharm Adults Only",
+      "max_name": "Туры в Cleopatra Luxury Resort Sharm Adults Only",
+      "description": "Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 139,
+      "short_name": "Brayka Bay Resort",
+      "telegram_name": "Путевки в Brayka Bay Resort",
+      "max_name": "Туры в Brayka Bay Resort",
+      "description": "Тур с перелётом. Марса Алам. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 342,
+      "short_name": "The Oberoi Beach Resort Sahl Hasheesh",
+      "telegram_name": "Путевки в The Oberoi Beach Resort Sahl Hasheesh",
+      "max_name": "Туры в The Oberoi Beach Resort Sahl Hasheesh",
+      "description": "Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость."
     }
   ]
 }

@@ -53,32 +53,52 @@ def check(raw,baseline):
 def altered(raw,change):
  root=ET.fromstring(raw);change(root.find('shop/offers'))
  return ET.tostring(root,encoding='utf-8')
+NEW_IDS=[98723,139,342]
+NEW_BINDING_SHA={"139":"503a88fc1578e18e3f05ccc9fb10327bd430eea0a22503ff8999cefa14f0a882","342":"b48414089f0ab3557b0a72f489e8b77fbcdc9ebd2d10ece898b535f4f9e5b57e","98723":"60baba4b70b54987be4cf716eaa5287a5e657a0a75737a7a419ad176f9ee3d5d"}
+NEW_DESTINATIONS={"139":"Марса Алам","342":"Хургада","98723":"Шарм-эль-Шейх"}
+PREVIOUS_XML_SHA={"hotel-posts-telegram.xml":"245f19f9f03b7b147ce3405d9998b1ea0696671043cd1c36c8b73175a5d16652","hotel-posts-max.xml":"64ef9f3bb8ddabb24bd6c093219a1850bd3a195bd7be2d8a2c85a3292586196b","hotel-posts-all.xml":"9f9e2307039e61302be5dd4b0035ab3a7603892ac8d2c555865afe12368ab0f7"}
+CURRENT_DATE="2026-11-03 20:39"
+OLD_DATE='2026-11-03 20:01'
+def previous_bytes(raw,name):
+ restored=raw.replace(('date="'+CURRENT_DATE+'"').encode(),('date="'+OLD_DATE+'"').encode(),1)
+ prefixes=['tg'] if name.endswith('-telegram.xml') else ['max'] if name.endswith('-max.xml') else ['tg','max']
+ for native in NEW_IDS:
+  for platform in prefixes:
+   pattern=rb'      <offer id="'+(platform+'_'+str(native)).encode()+rb'">.*?      </offer>\n'
+   restored,count=re.subn(pattern,b'',restored,count=1,flags=re.S)
+   insist(count==1,'new_offer_block_missing')
+ insist(hashlib.sha256(restored).hexdigest()==PREVIOUS_XML_SHA[name],'previous124_offer_bytes_changed')
+ return restored
+def new_rows_for_baseline():
+ tg={o.get('id'):o for o in ET.fromstring((BASE/'hotel-posts-telegram.xml').read_bytes()).findall('shop/offers/offer')}
+ mx={o.get('id'):o for o in ET.fromstring((BASE/'hotel-posts-max.xml').read_bytes()).findall('shop/offers/offer')}
+ out=[[],[]]
+ manifest=json.loads(pathlib.Path('tools/direct_demand/operations/commercial-batch-20261103-29-manifest.json').read_text())
+ photos={str(r['hotel_id']):r['photo_url'] for r in manifest['rows']}
+ for native in NEW_IDS:
+  a=tg['tg_'+str(native)];b=mx['max_'+str(native)];photo=a.findtext('picture')
+  insist(photo==photos[str(native)]==b.findtext('picture'),'new_accepted_photo_changed')
+  raw=(json.dumps([native,a.findtext('url'),b.findtext('url'),photo],ensure_ascii=False,separators=(',',':'))+'\n').encode()
+  insist(hashlib.sha256(raw).hexdigest()==NEW_BINDING_SHA[str(native)],'new_canonical_public_binding_changed')
+  for i,o in enumerate([a,b]):
+   out[i].append({'Property ID':o.get('id'),'Property name':ADS[str(native)]['short_name'],'Final URL':o.findtext('url'),'Destination name':NEW_DESTINATIONS[str(native)],'Image URL':photo,'Category':'отель'})
+ return out
+
 tables=[load_baseline('hotel-posts-'+p+'.csv') for p in ['telegram','max','all']]
+new_tables=new_rows_for_baseline()
+tables[0].extend(new_tables[0]);tables[1].extend(new_tables[1]);tables[2].extend(new_tables[0]+new_tables[1])
 raws=[(BASE/('hotel-posts-'+p+'.xml')).read_bytes() for p in ['telegram','max','all']]
 checked=[check(raw,base) for raw,base in zip(raws,tables)]
-insist([len(x[0]) for x in checked]==[124,124,248],'feed_scope_changed')
+insist([len(x[0]) for x in checked]==[127,127,254],'feed_scope_changed')
 insist(sorted(checked[2][0])==sorted(checked[0][0]+checked[1][0]),'combined_not_exact_union')
 insist([sorted(x[1]) for x in checked]==[[381,469],[381,469],[381,381,469,469]],'explicit_image_gaps_changed')
-first=raws[0];base=tables[0]
-cases=[
- ('name_limit',lambda o:setattr(o[0].find('name'),'text','Путевки в '+'x'*50),'name_too_long'),
- ('description_limit',lambda o:setattr(o[0].find('description'),'text','я'*82),'description_too_long'),
- ('channel_title',lambda o:setattr(o[0].find('name'),'text',o[0].findtext('name').replace('Путевки в ','Туры в ')),'ad_title_changed'),
- ('private_destination',lambda o:setattr(o[0].find('url'),'text','https://app.anytoour.ru/bot?token=blocked'),'canonical_public_destination_changed'),
- ('photo_substitution',lambda o:setattr(o[0].find('picture'),'text','https://example.com/unapproved.jpg'),'accepted_photo_changed'),
- ('duplicate_id',lambda o:o[1].set('id',o[0].get('id')),'duplicate_or_unknown_offer'),
- ('invented_price',lambda o:ET.SubElement(o[0],'price').__setattr__('text','1'),'unsupported_offer_fields'),
- ('invented_availability',lambda o:o[0].set('available','true'),'unsupported_offer_attrs'),
- ('missing_description',lambda o:o[0].remove(o[0].find('description')),'unsupported_offer_fields'),
- ('wrong_channel_filter',lambda o:setattr(o[0].find('custom_label_0'),'text','max'),'channel_label_changed'),
- ('description_dash',lambda o:setattr(o[0].find('description'),'text','Тур - фото'),'dash_in_ad_copy'),
-]
-for label,change,why in cases:
- try:check(altered(first,change),base)
- except ValueError as e:insist(str(e)==why,'fixture_wrong_rejection_'+label)
- else:raise ValueError('fixture_not_rejected_'+label)
-try:check(b'<!DOCTYPE x [<!ENTITY e SYSTEM "file:///invalid">]>'+first,base)
-except ValueError as e:insist(str(e)=='external_xml_declaration','fixture_external_declaration')
-else:raise ValueError('fixture_external_not_rejected')
-insist(any('&amp;' in raw.decode() for raw in raws) and any("J'adore" in row[2] for row in checked[0][0]),'xml_escaping_roundtrip_missing')
-print('DIRECT_YML_PREPARATION_OK native_new_cases=13 offers=124,124,248 union=exact title_limit=56 description_limit=81 canonical_destinations=unchanged accepted_images=unchanged image_gaps=2,2,4 price_fields=0 availability_fields=0 provider_calls=0 server_calls=0 writes=0')
+
+for platform,raw in zip(['telegram','max','all'],raws):previous_bytes(raw,'hotel-posts-'+platform+'.xml')
+name='hotel-posts-telegram.xml'
+for before,after in [(b'<categoryId>1</categoryId>',b'<categoryId>2</categoryId>'),('Путевки в Pickalbatros Makadi Resort'.encode(),'Путевки в другой отель'.encode())]:
+ changed=raws[0].replace(before,after,1)
+ insist(changed!=raws[0],'previous_fixture_not_changed')
+ try:previous_bytes(changed,name)
+ except ValueError as e:insist(str(e)=='previous124_offer_bytes_changed','previous_fixture_wrong_rejection')
+ else:raise ValueError('previous_fixture_not_rejected')
+print('DIRECT_YML_APPEND_PREPARATION_OK new_cases=3 offers=127,127,254 previous124_offer_bytes=unchanged union=exact title_limit=56 description_limit=81 canonical_new_bindings=3 image_gaps=2,2,4 price_fields=0 availability_fields=0 provider_calls=0 server_calls=0 writes=0')
