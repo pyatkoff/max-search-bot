@@ -1,0 +1,30 @@
+{
+  "operation": "commercial-stock-20261103-26-new-primary",
+  "state": "PRIMARY_PREPARATION_ONLY_NOT_PUBLISHED_NOT_STOCK_PROMOTED",
+  "goal": "Prepare the proven next reserve identities while required current source deployment completes",
+  "catalog_ids": [
+    129,
+    74258
+  ],
+  "sources": [
+    "https://www.cooksclub.com/our-hotels/cooks-club-el-gouna-egypt/",
+    "https://www.cooksclub.com/our-hotels/cooks-club-el-gouna-egypt/amenities/",
+    "https://www.cooksclub.com/our-hotels/cooks-club-el-gouna-egypt/gallery/",
+    "https://casacook.com/our-hotels/casa-cook-el-gouna/",
+    "https://casacook.com/our-hotels/casa-cook-el-gouna/amenities/",
+    "https://casacook.com/our-hotels/casa-cook-el-gouna/gallery/"
+  ],
+  "boundaries": [
+    "Public owner pages only; no booking actions or provider calls",
+    "Exclude shared navigation images of Casa Cook Samos, Rhodes, NorthCoast and other hotels",
+    "No catalogue repeats, runtime changes or token URLs"
+  ],
+  "criteria": [
+    "Current exact-object facts and real primary photography",
+    "Whole hotel hero and native cover verification before any later publication"
+  ],
+  "risks": [
+    "Shared navigation contains unrelated hotels",
+    "Current source43 deployment active; no publication until accepted current verify and strict TLS"
+  ]
+}

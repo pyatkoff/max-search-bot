@@ -1,13 +1,13 @@
 import base64,html,json,os,re,urllib.parse,urllib.request
 from pathlib import Path
 from html.parser import HTMLParser
-operation='commercial-batch25-four-primary-source-pages'
-pages=["https://hrewards.com/en/steigenberger-golf-resort-el-gouna","https://www.thechedielgouna.com/gallery","https://www.elgouna.com/hotels/the-chedi-el-gouna-hotel/gallery","https://redseahotels.com/resorts/hurghada/the-grand-palace-hurghada/"]
+operation='commercial-stock26-cooks-casa-six-primary-pages'
+pages=["https://www.cooksclub.com/our-hotels/cooks-club-el-gouna-egypt/","https://www.cooksclub.com/our-hotels/cooks-club-el-gouna-egypt/amenities/","https://www.cooksclub.com/our-hotels/cooks-club-el-gouna-egypt/gallery/","https://casacook.com/our-hotels/casa-cook-el-gouna/","https://casacook.com/our-hotels/casa-cook-el-gouna/amenities/","https://casacook.com/our-hotels/casa-cook-el-gouna/gallery/"]
 group=int(os.environ['MEDIA_GROUP'])
 assert group in (0,1)
 pages=pages[group*3:group*3+3]
 assert 1<=len(pages)<=3
-hosts=set(["hrewards.com","assets.hrewards.com","www.thechedielgouna.com","thechedielgouna.com","d31zyqkijjipvo.cloudfront.net","www.elgouna.com","cms.elgouna.com","redseahotels.com"])
+hosts=set(["www.cooksclub.com","cooksclub.com","casacook.com","www.casacook.com","busyrooms.cdnserver.net"])
 class Redirect(urllib.request.HTTPRedirectHandler):
  def redirect_request(self,*args,**kwargs):raise ValueError('unexpected_primary_source_redirect')
 opener=urllib.request.build_opener(Redirect())
