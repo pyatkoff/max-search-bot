@@ -1,0 +1,50 @@
+{
+  "operation": "commercial-stock-20261103-33-read1",
+  "goal": "Find a fresh group of ten candidate native identities and actual publication duplicates",
+  "boundaries": [
+    "Country4 previously proven, exact new name groups only, max12catalogmatches/group",
+    "Current registry public projection/platform/hotel metadata/firstline LIMIT2000 only",
+    "Read-only existing route, no provider/DBwrites/messages or privatebody/receipts"
+  ],
+  "criteria": [
+    "Only unique active native matches with registry0 both channels may enter new preparation",
+    "Ambiguous or previously published matches excluded, no quantity credit"
+  ],
+  "risks": [
+    "Catalog identity not ready material; names can match multiple products"
+  ],
+  "groups": {
+    "bellis-deluxe": [
+      "bellis deluxe"
+    ],
+    "ic-green-palace": [
+      "ic green palace"
+    ],
+    "miracle-resort": [
+      "miracle resort"
+    ],
+    "concorde-deluxe": [
+      "concorde de luxe",
+      "concorde deluxe"
+    ],
+    "limak-lara": [
+      "limak lara"
+    ],
+    "trendy-lara": [
+      "trendy lara"
+    ],
+    "titanic-mardan": [
+      "titanic mardan"
+    ],
+    "titanic-deluxe-lara": [
+      "titanic deluxe lara",
+      "titanic beach lara"
+    ],
+    "regnum-carya": [
+      "regnum carya"
+    ],
+    "maxx-royal-belek": [
+      "maxx royal belek"
+    ]
+  }
+}

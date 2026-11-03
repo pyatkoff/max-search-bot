@@ -1,0 +1,56 @@
+{
+  "operation": "commercial-hotel-batch-20261103-32-v1",
+  "primary_runs": [
+    41730587068,
+    41731216178
+  ],
+  "primary_page_count": 16,
+  "contact_run": 41732307494,
+  "contact_photo_count": 33,
+  "contact_real_bytes": 31,
+  "rejections": [
+    {
+      "hotel_id": 59116,
+      "role": "g3_lujo_0",
+      "http_status": 404,
+      "stage": "fetch"
+    },
+    {
+      "hotel_id": 59116,
+      "role": "g3_lujo_1",
+      "http_status": 200,
+      "width": 400,
+      "height": 323,
+      "stage": "dimension_guard"
+    }
+  ],
+  "ready_ids": [
+    1449,
+    1453,
+    9432,
+    1451,
+    1151,
+    1583
+  ],
+  "deferred": [
+    {
+      "hotel_id": 1035,
+      "reason": "Target owner photos were people in sea/pool and rooms, no general hotel hero; gallery shares Acanthus assets, target membership unresolved"
+    },
+    {
+      "hotel_id": 109655,
+      "reason": "Main image shows a single pool and shore without hotel overview; room and food remain lower-only"
+    },
+    {
+      "hotel_id": 59116,
+      "reason": "OG404, bar400px failed unchanged guard, real swimlesson image is close-up people; no whole hotel hero"
+    },
+    {
+      "hotel_id": 468,
+      "reason": "No new public brochure pixels accepted, old frames not repeated"
+    }
+  ],
+  "closed_photo_repeats": 0,
+  "canva_open_transactions": 0,
+  "description_rewrites": 0
+}
