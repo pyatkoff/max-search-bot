@@ -54,7 +54,7 @@ awk -v owned="$owned" '
   {print}
 ' "$monitor_before" >"$monitor_after"
 printf '%s\n' '# max-search-bot modeled pipeline monitor' >>"$monitor_after"
-printf '*/5 * * * * MODELED_MONITOR_TRIGGER=cron /usr/bin/flock -n %s/cron.lock /usr/bin/timeout 45s /usr/bin/python3 %s/tools/modeled_conversion_monitor_local.py --cron >/dev/null 2>&1\n' "$private_dir" "$root" >>"$monitor_after"
+printf '*/5 * * * * cd "%s" && MODELED_MONITOR_TRIGGER=cron /usr/bin/flock -n %s/cron.lock /usr/bin/timeout 45s /usr/bin/python3 %s/tools/modeled_conversion_monitor_local.py --cron >/dev/null 2>&1\n' "$root" "$private_dir" "$root" >>"$monitor_after"
 crontab -l >"$monitor_current" 2>/dev/null
 if ! cmp -s "$monitor_before" "$monitor_current"; then
   echo 'modeled_pipeline_crontab_changed'

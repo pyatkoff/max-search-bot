@@ -643,8 +643,23 @@ def pipeline_cron_reconcile_cases(root):
         raise RuntimeError('Existing server CI bash and system Python are required')
     status_good = {'schema_version': 1, 'project': 'anytour', 'counter_id': '98615635',
                    'role': 'pipeline', 'configured': True}
-    fake_status = r"""import json, os, sys
+    fake_status = r"""import json, os, subprocess, sys
 from pathlib import Path
+if sys.argv[1:] == ['--cron']:
+    root = Path(__file__).resolve().parent.parent
+    lock = root.parent / 'max-search-bot-modeled-pipeline/cron.lock'
+    timeout_argv = Path('/proc/' + str(os.getppid()) + '/cmdline').read_bytes().split(b'\0')
+    timeout_argv = [arg.decode('utf-8') for arg in timeout_argv if arg]
+    lock_probe = subprocess.run(['/usr/bin/flock', '-n', str(lock), '/usr/bin/true'],
+                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=2)
+    record = {'cwd': str(Path.cwd().resolve()), 'trigger': os.environ.get('MODELED_MONITOR_TRIGGER'),
+              'argv': sys.argv[1:], 'lock_held': lock_probe.returncode == 1, 'timeout_argv': timeout_argv}
+    with Path(os.environ['TICK_CALLS']).open('a', encoding='utf-8') as f:
+        f.write(json.dumps(record) + '\n')
+    expected_timeout = ['/usr/bin/timeout', '45s', '/usr/bin/python3', str(Path(__file__).resolve()), '--cron']
+    valid = (Path.cwd().resolve() == root and record['trigger'] == 'cron'
+             and record['lock_held'] and timeout_argv == expected_timeout)
+    raise SystemExit(0 if valid else 93)
 with Path(os.environ['STATUS_CALLS']).open('a', encoding='utf-8') as f:
     f.write(json.dumps(sys.argv[1:]) + '\n')
 if sys.argv[1:] != ['--status']:
@@ -738,6 +753,7 @@ raise SystemExit(0)
             table.write_text(before, encoding='utf-8')
             env = {'PATH': str(binary), 'LC_ALL': 'C', 'TMPDIR': str(staging),
                    'CRON_FIXTURE': str(work), 'STATUS_CALLS': str(work / 'status-calls.jsonl'),
+                   'TICK_CALLS': str(work / 'tick-calls.jsonl'),
                    'SYNTHETIC_STATUS_JSON': json.dumps(dict(status_good, configured=configured)),
                    'SYNTHETIC_STATUS_EXIT': '0'}
             env.update(overrides)
@@ -763,7 +779,7 @@ raise SystemExit(0)
             if not configured:
                 check(after == before and installs == [], 'pipeline cron: inactive empty table is unchanged')
                 continue
-            canonical = ('*/5 * * * * MODELED_MONITOR_TRIGGER=cron /usr/bin/flock -n '
+            canonical = ('*/5 * * * * cd "' + str(project) + '" && MODELED_MONITOR_TRIGGER=cron /usr/bin/flock -n '
                          + str(private / 'cron.lock') + ' /usr/bin/timeout 45s /usr/bin/python3 '
                          + owned + ' >/dev/null 2>&1\n')
             expected = unrelated + '# max-search-bot modeled pipeline monitor\n' + canonical
@@ -772,6 +788,37 @@ raise SystemExit(0)
                   'pipeline cron: foreign rows and exactly one owned schedule: ' + name)
             check((private / 'cron.lock').is_file() and (private / 'cron.lock').stat().st_mode & 0o777 == 0o600,
                   'pipeline cron: private owned lock has required permissions: ' + name)
+            if name == 'active preserves foreign rows':
+                # Execute exactly the installed cron command, with only its five schedule fields removed.
+                # The synthetic target enforces the real CLI's cwd/origin guard; no provider is imported.
+                shell = shutil.which('sh')
+                if not shell or not all(Path(path).is_file() for path in
+                                        ('/usr/bin/flock', '/usr/bin/timeout', '/usr/bin/true')):
+                    raise RuntimeError('Existing CI shell, flock and timeout are required')
+                home = work / 'cron home'
+                home.mkdir()
+                rows = [line for line in after.splitlines() if owned in line and not line.lstrip().startswith('#')]
+                command = rows[0].split(None, 5)[5]
+                tick = subprocess.run([shell, '-c', command], cwd=home, env=env,
+                                      text=True, capture_output=True, timeout=5)
+                ticks = [json.loads(line) for line in (work / 'tick-calls.jsonl').read_text().splitlines()]
+                expected_timeout = ['/usr/bin/timeout', '45s', '/usr/bin/python3',
+                                    str(tools / 'modeled_conversion_monitor_local.py'), '--cron']
+                check(tick.returncode == 0 and ticks == [{
+                    'cwd': str(project), 'trigger': 'cron', 'argv': ['--cron'],
+                    'lock_held': True, 'timeout_argv': expected_timeout}],
+                    'pipeline cron: actual installed command enters canonical cwd and runs under its origin, lock and timeout')
+                prefix = 'cd "' + str(project) + '" && '
+                check(command.startswith(prefix), 'pipeline cron: canonical cwd is selected before the monitor command')
+                legacy = subprocess.run([shell, '-c', command[len(prefix):]], cwd=home, env=env,
+                                        text=True, capture_output=True, timeout=5)
+                ticks = [json.loads(line) for line in (work / 'tick-calls.jsonl').read_text().splitlines()]
+                check(legacy.returncode != 0 and len(ticks) == 2 and ticks[-1]['cwd'] == str(home)
+                      and ticks[-1]['trigger'] == 'cron' and ticks[-1]['lock_held'] is True,
+                      'pipeline cron: same target really rejects the former command from cron HOME')
+                check(table.read_text(encoding='utf-8') == after
+                      and [json.loads(line) for line in (work / 'status-calls.jsonl').read_text().splitlines()] == [['--status']],
+                      'pipeline cron: executing the synthetic job changes no installed or foreign rows and never repeats status')
             if twice:
                 repeated = subprocess.run([bash, '--noprofile', '--norc', str(actual)], cwd=project,
                                           env=env, text=True, capture_output=True, timeout=10)
