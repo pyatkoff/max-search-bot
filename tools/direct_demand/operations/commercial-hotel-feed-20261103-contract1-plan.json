@@ -1,9 +1,9 @@
 {
   "operation": "commercial-hotel-feed-20261103-contract1",
-  "goal": "Prepare six hotel-specific public feed rows from the six verified publications.",
-  "boundaries": "Existing public search/catalog contract and six accepted frozen public PNG references only. Pure cloud HTTP GET,no redirects,no browser execution,provider/search/SSH/server-admin calls,private maps or advertising changes.",
-  "criteria": "HTTP200 existing public landing and its exact linked scriptbundle;actual delivered URL hydration preserves each native hotel ID and country/region. URLs omit from so the current client does not automatically start a paid search. UTF8 CSV hotel schema with unique Property ID,name,Final URL,Destination name and accepted600px Image URL. Price omitted,not zero or claimed available.",
-  "risks": "Static source and HTTP checks do not prove a completed user search or Yandex import. Existing select caps100,but final hydration must preserve a supplied hotel even outside that initial list. No copied snapshot price. Hotel feed is distinct from country/visit export.",
+  "goal": "Save the six verified public hotel feed rows as a static CSV in the existing audit history.",
+  "boundaries": "Same proven public destination/image/catalog fields only. No private bot maps,IDs or receipts. No server runtime,collector,upload controller,advertising imports or campaign changes.",
+  "criteria": "Exact CSV bytes equal the accepted native cloud artifact;readback must preserve the same hash and six hotel IDs. Feed has no Price or availability claims. Shared native hotel IDs connect these six entries to the six verified hotel publications.",
+  "risks": "Only six of105 hotel materials are currently included. This public file is not a Yandex import or active advertising;later entries require the same public field whitelist and proven native bridge.",
   "sources": [
     "https://www.yandex.ru/support/direct/ru/feeds/requirements-other-categories",
     "https://github.com/pyatkoff/poisk-turov-test/blob/e7410086343418abe56021bd9c7fe989cfe8adee/v2/search-lifecycle-v6.js",

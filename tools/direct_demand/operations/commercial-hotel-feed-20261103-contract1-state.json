@@ -1,6 +1,17 @@
 {
   "operation": "commercial-hotel-feed-20261103-contract1",
-  "state": "PUBLIC_HOTEL_PREFILL_CONTRACT_FOUND_DESTINATION_MEMBERSHIP_UNVERIFIED",
-  "hotel_count": 0,
-  "offer_count": 0
+  "state": "SIX_HOTEL_FEED_ROWS_CLOUD_VERIFIED_STATIC_EXPORT_SAVED_NOT_IMPORTED",
+  "catalog_ids": [
+    249,
+    315,
+    465,
+    272,
+    260,
+    273
+  ],
+  "feed_rows": 6,
+  "published_logical_hotels": 105,
+  "price_fields": 0,
+  "advertising_changes": 0,
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41617485218"
 }
