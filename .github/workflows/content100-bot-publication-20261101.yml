@@ -1,22 +1,21 @@
-name: Verify six prepared batch32 AnyTour covers together
+name: Publish six prepared AnyTour hotels in both existing channels
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
     paths: [.github/workflows/content100-bot-publication-20261101.yml]
 permissions:
   contents: read
+  actions: read
 concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
+env:
+  EXPECTED_PRODUCTION_SHA: 33fe0a039f593f1fc57864e5fb47e77cb6b352f0
 jobs:
   inspect:
+    if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
     runs-on: ubuntu-latest
-    timeout-minutes: 5
-    strategy:
-      fail-fast: false
-      max-parallel: 2
-      matrix:
-        cover_group: [0,1,2]
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
@@ -25,15 +24,108 @@ jobs:
           sparse-checkout: |
             tools/direct_demand/operations
           sparse-checkout-cone-mode: true
-      - name: Verify exact native PNG bytes and dimensions without server calls
+      - name: Verify exact reviewed publishing conditions independently of unrelated aggregate jobs
         env:
-          COVER_GROUP: ${{ matrix.cover_group }}
-        run: python3 tools/direct_demand/operations/inspect-canva-covers-20261102-3.py
-      - uses: actions/upload-artifact@v4
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          evidence="$RUNNER_TEMP/commercial-source-evidence"
+          mkdir -p "$evidence"
+          gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$evidence/main.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/41729926326 > "$evidence/verify_run.json"
+          gh api "repos/pyatkoff/max-search-bot/actions/runs/41729926326/jobs?per_page=20" > "$evidence/verify_jobs.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/41731123300 > "$evidence/tls_run.json"
+          gh api "repos/pyatkoff/max-search-bot/git/commits/$EXPECTED_PRODUCTION_SHA" > "$evidence/source_commit.json"
+          tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
+          gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
+          python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
+      - name: Prepare the exact verified six-hotel batch after current release acceptance
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import hashlib,json,os,pathlib
+          base=pathlib.Path('tools/direct_demand/operations')
+          assert hashlib.sha256((base/'prepare-commercial-batch.py').read_bytes()).hexdigest()=='216e1b5ce439a3c68553c4925cac1a499a16d9f3433b2a13c1b15e07574adbdf'
+          approval=json.loads((base/'commercial-batch-20261103-32-approval.json').read_text())
+          assert approval['expected_installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+          assert approval['operation']=='commercial-hotel-batch-20261103-32-v1' and len(approval['hotel_ids'])==6
+          PY
+          python3 tools/direct_demand/operations/prepare-commercial-batch.py --manifest tools/direct_demand/operations/commercial-batch-20261103-32-manifest.json --approval tools/direct_demand/operations/commercial-batch-20261103-32-approval.json --output "$RUNNER_TEMP/channel-preflight.php"
+          php -l "$RUNNER_TEMP/channel-preflight.php"
+      - name: Prepare existing server connection
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else
+            printf '%s' "$raw" | base64 --decode > "$RUNNER_TEMP/channel_key"
+          fi
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+      - name: Pin existing server host-key continuity
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re,subprocess,base64,hashlib,pathlib
+          host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER']
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',user)
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35)
+          matches=[]
+          for line in scan.stdout.splitlines():
+            fields=line.split()
+            if len(fields)<3 or fields[0].startswith('#'):continue
+            try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
+            except Exception:continue
+            if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)
+          assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
+          PY
+      - name: Publish the exact approved six hotel pairs with canonical buttons and no duplicates
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-preflight.php" > "$RUNNER_TEMP/channel-preflight.json" || probe_status=$?
+          python3 - <<'PY'
+          import pathlib,json,os
+          lines=pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.json').read_text().splitlines()
+          d=json.loads(lines[-1])
+          assert d['operation']=='commercial-hotel-batch-20261103-32-v1' and d['mode']=='publish_approved_commercial_batch'
+          assert d['ok'] is True and len(d['posts'])==12
+          assert d['post_write_attempts']<=12 and d['new_posts']<=12
+          assert len({(p['platform'],p['logical_id']) for p in d['posts']})==12
+          assert all(p['body_photo_button_verified'] and p['button_text']=='✈️ Узнать стоимость тура' for p in d['posts'])
+          summary={'operation':d['operation'],'ok':d['ok'],'verified_posts':len(d['posts']),'new_posts':d['new_posts'],'post_write_attempts':d['post_write_attempts'],'reused_existing':sum(bool(p.get('reused_existing')) for p in d['posts']),'all_body_photo_button_verified':all(p['body_photo_button_verified'] for p in d['posts'])}
+          print(json.dumps(summary,ensure_ascii=False,sort_keys=True))
+          PY
+          test "${probe_status:-0}" = 0
+      - name: Retain bounded route evidence
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: commercial-batch32-covers-${{ matrix.cover_group }}
-          path: |
-            native-cover-receipt.json
-            covers/
+          name: commercial-batch-20261103-32-publication
+          path: ${{ runner.temp }}/channel-preflight.json
           retention-days: 14
-          if-no-files-found: error
+          if-no-files-found: warn
+      - name: Remove ephemeral connection and script files
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-preflight.php" "$RUNNER_TEMP/channel-preflight.json"
+

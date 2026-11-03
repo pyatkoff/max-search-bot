@@ -1,0 +1,28 @@
+{
+  "operation": "commercial-monitor-publication-20261103-32",
+  "goal": "Append four genuinely absent batch32 native hotel IDs to existing monitor",
+  "catalog_ids": [
+    1449,
+    1453,
+    1151,
+    1583
+  ],
+  "already_admitted": [
+    9432,
+    1451
+  ],
+  "previous_inputs": 648,
+  "new_inputs": 652,
+  "boundaries": [
+    "Separate immutable cohort publication_stock_20261103p_4, actual full648 dedup",
+    "Previous648 inputs/targetkeys/pending searches/locks/budgets/transport preserved",
+    "No collector/cron/paidcall/ads"
+  ],
+  "criteria": [
+    "Native focused652 preserves648 byte-identical targets and batch31 in-flight resume",
+    "Mixed countries/missing1449/inactive4 produce no false credit"
+  ],
+  "risks": [
+    "Monitor input configuration is not actual price or quote"
+  ]
+}

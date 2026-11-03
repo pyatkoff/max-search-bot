@@ -1,0 +1,160 @@
+{
+  "operation": "commercial-hotel-batch-20261103-32-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Publish six ready whole hotel materials in both existing channels in one serial run",
+  "boundaries": [
+    "Existing channels/bots/canonicalregistry/onceledger and serial approved publisher only",
+    "Current source/verify/TLS/fulltree21blobs before existing strictpinned server route",
+    "No new runtime/workers/queues/paidcalls/ads/customer messages"
+  ],
+  "criteria": [
+    "Six native PNGs accepted by exact bytes/chunks/hash/dimensions/appearance",
+    "Exactly12 verified new body/photo/button/source posts or explicit stop"
+  ],
+  "risks": [
+    "Do not delay six ready hotels for four unresolved candidates",
+    "Source movement stops before SSH/provider"
+  ],
+  "baseline_logical_materials": 133,
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "hotel_id": 1449,
+      "hotel": "Rixos Premium Belek",
+      "key": "rixos-premium-belek",
+      "aliases": [
+        "RIXOS PREMIUM BELEK THE LAND OF LEGENDS FREE ACCESS",
+        "RIXOS PREMIUM BELEK"
+      ],
+      "sources": [
+        "https://all.accor.com/hotel/B1J5/index.en.shtml"
+      ],
+      "text": "✈️ Туры в Rixos Premium Belek с перелётом\n📍 Белек, Турция.\n\n🏖 Песчаный пляж длиной один километр.\n👧 Детский клуб Rixy.\n💪 Спортивная академия.\n🧖 Спа для отдыха после прогулок и купания.\n\n💡 Курорт расположен среди сосновых и ореховых рощ на берегу Средиземного моря.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Rixos Premium Belek.",
+      "logical_id": "commercial-rixos-premium-belek-1449-v1",
+      "text_sha256": "4a3537789f36db3fa0a1c4bfe87f7f37105435d8670f589defb23c0ba48cae3e",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2c7aadb0eafce5c1dc5ca8d23f10a22c0e90cfdc/.github/traffic-publish/commercial-batch-20261103-32/1449.png",
+      "photo_sha256": "168650c9c85e131e3f16165e635e8db12f468fdc1d081decb0ccb3654bce0e57",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 1453,
+      "hotel": "Rixos Premium Tekirova",
+      "key": "rixos-premium-tekirova",
+      "aliases": [
+        "RIXOS PREMIUM TEKIROVA THE LAND OF LEGENDS FREE ACCESS",
+        "RIXOS PREMIUM TEKIROVA"
+      ],
+      "sources": [
+        "https://all.accor.com/hotel/B1J3/index.en.shtml"
+      ],
+      "text": "✈️ Туры в Rixos Premium Tekirova с перелётом\n📍 Текирова, Кемер, Турция.\n\n🏖 Курорт на берегу Средиземного моря.\n👧 Детский клуб с большой территорией.\n🏊 Аквапарк с горками.\n🌳 Есть парк приключений и спортивные занятия.\n\n💡 За курортом поднимается гора Тахталы. Варианты проживания включают номера и отдельные виллы.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Rixos Premium Tekirova.",
+      "logical_id": "commercial-rixos-premium-tekirova-1453-v1",
+      "text_sha256": "a267a9f63aa208e8b4a90cae97c8381d74bb3e941f43771a3ab77132aeb6e8cd",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2c7aadb0eafce5c1dc5ca8d23f10a22c0e90cfdc/.github/traffic-publish/commercial-batch-20261103-32/1453.png",
+      "photo_sha256": "7cfc10e3ec7a058158dc68d38bf51f25465cffb05682d3e85062eebde3c5bfdd",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 9432,
+      "hotel": "Delphin Imperial Lara",
+      "key": "delphin-imperial-lara",
+      "aliases": [
+        "DELPHIN IMPERIAL LARA",
+        "DELPHIN IMPERIAL"
+      ],
+      "sources": [
+        "https://www.delphinhotel.com/faq"
+      ],
+      "text": "✈️ Туры в Delphin Imperial Lara с перелётом\n📍 Лара, Анталья, Турция.\n\n🏖 Собственный песчаный пляж.\n🏊 Зимой есть подогреваемые крытый и открытый бассейны.\n👧 Мини клуб для детей от 4 до 12 лет.\n🎨 Зимой детские занятия проходят в помещении.\n\n💡 Открытый подогреваемый бассейн работает с учётом погоды.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Delphin Imperial.",
+      "logical_id": "commercial-delphin-imperial-lara-9432-v1",
+      "text_sha256": "121ef7475660da8a621e1349adc9be74fd19a163716544c80ab74fddf4b492f6",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2c7aadb0eafce5c1dc5ca8d23f10a22c0e90cfdc/.github/traffic-publish/commercial-batch-20261103-32/9432.png",
+      "photo_sha256": "76ba80696fc28fe24bcf3662dc9e8d4371132bebce358df48dabca496ce4fb8d",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 1451,
+      "hotel": "Delphin BE Grand Resort",
+      "key": "delphin-be-grand",
+      "aliases": [
+        "DELPHIN BE GRAND (EX. BOTANIK, RIXOS LARES)",
+        "DELPHIN BE GRAND"
+      ],
+      "sources": [
+        "https://www.delphinhotel.com/en/delphin-be-grand-resort/overview",
+        "https://www.delphinhotel.com/faq"
+      ],
+      "text": "✈️ Туры в Delphin BE Grand Resort с перелётом\n📍 Лара, Анталья, Турция.\n\n🏖 Собственный песчаный пляж.\n👧 Мини клуб для детей от 4 до 12 лет.\n💪 Фитнес центр Be Fit и теннисные корты.\n🧖 Спа с хаммамом, сауной и парной.\n\n💡 Зимний набор бассейнов и развлечений отличается от летнего. Подогреваемый открытый бассейн работает с учётом погоды.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Delphin BE Grand.",
+      "logical_id": "commercial-delphin-be-grand-1451-v1",
+      "text_sha256": "c417d8d96fb355eb6144abe7af63401c2a078a7c674cdbb0eadcbe4287f61f63",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2c7aadb0eafce5c1dc5ca8d23f10a22c0e90cfdc/.github/traffic-publish/commercial-batch-20261103-32/1451.png",
+      "photo_sha256": "7b14de4c4b085e55f318721f49ee8f0a811bef8676dbab741571ee1186d20afd",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 1151,
+      "hotel": "Delphin Palace",
+      "key": "delphin-palace",
+      "aliases": [
+        "DELPHIN PALACE DELUXE COLLECTION",
+        "DELPHIN PALACE"
+      ],
+      "sources": [
+        "https://www.delphinhotel.com/EN/delphin-palace/overview"
+      ],
+      "text": "✈️ Туры в Delphin Palace с перелётом\n📍 Лара, Анталья, Турция.\n\n🏖 Пляж прямо у отеля.\n🏊 Бассейны, водные горки и отдельный детский бассейн.\n👧 Мини клуб для детей от 4 до 12 лет.\n🧖 Спа с хаммамом, сауной и парной.\n\n💡 Отель закрыт зимой. Этот вариант подходит для поездки в летний сезон.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Delphin Palace.",
+      "logical_id": "commercial-delphin-palace-1151-v1",
+      "text_sha256": "2e626338a78038bf1b1d726f6226a8feee7b5ae91273f3fb8832bf9c35278270",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2c7aadb0eafce5c1dc5ca8d23f10a22c0e90cfdc/.github/traffic-publish/commercial-batch-20261103-32/1151.png",
+      "photo_sha256": "186108979417d60c0a515322a3ef5ad35c028c625cfecc953c7819d09cf84814",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 1583,
+      "hotel": "Voyage Sorgun",
+      "key": "voyage-sorgun",
+      "aliases": [
+        "VOYAGE SORGUN"
+      ],
+      "sources": [
+        "https://www.voyagehotel.com/en/voyage-sorgun",
+        "https://www.voyagehotel.com/en/voyage-sorgun/pool-beach",
+        "https://www.voyagehotel.com/en/voyage-sorgun/gallery-detail"
+      ],
+      "text": "✈️ Туры в Voyage Sorgun с перелётом\n📍 Соргун, Сиде, Турция.\n\n🏖 Пляж с Голубым флагом.\n🏊 Есть семейные, детские и взрослые бассейны.\n👧 Детский клуб Tugi.\n🌲 Корпуса и бунгало расположены среди сосен.\n\n💡 Для семей предусмотрен отдельный пирс. Второй пирс предназначен для гостей от 16 лет.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Voyage Sorgun.",
+      "logical_id": "commercial-voyage-sorgun-1583-v1",
+      "text_sha256": "49e8e7455dd57c250cc3c4341dd70890f1ae6902b9294ca434d087c0f0e9ed44",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2c7aadb0eafce5c1dc5ca8d23f10a22c0e90cfdc/.github/traffic-publish/commercial-batch-20261103-32/1583.png",
+      "photo_sha256": "e68d6335fc881e832d30871a2f655975736a8e44aef5bfb17195a549e72161f1",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    }
+  ],
+  "ready_for_send_count": 6,
+  "new_posts": 0,
+  "provider_send_attempts": 0,
+  "content_and_cover_prepared_count": 6,
+  "approved_live_send_count": 6,
+  "public_png_frozen_count": 6,
+  "native_inspection_state": "SIX_NATIVE_PNG_VISUALLY_VERIFIED",
+  "native_inspection_run_urls": [
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41733185728"
+  ],
+  "deferred": [
+    {
+      "hotel_id": 1035,
+      "state": "NO_ACCEPTED_WHOLE_HOTEL_HERO_NOT_SENT"
+    },
+    {
+      "hotel_id": 109655,
+      "state": "NO_ACCEPTED_WHOLE_HOTEL_HERO_NOT_SENT"
+    },
+    {
+      "hotel_id": 59116,
+      "state": "NO_ACCEPTED_WHOLE_HOTEL_HERO_NOT_SENT"
+    },
+    {
+      "hotel_id": 468,
+      "state": "NO_ACCEPTED_WHOLE_HOTEL_HERO_NOT_SENT"
+    }
+  ]
+}

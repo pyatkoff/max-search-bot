@@ -1,0 +1,14 @@
+{
+  "operation": "commercial-hotel-batch-20261103-32-v1",
+  "state": "READY_FOR_APPROVED_SERIAL_SEND",
+  "hotel_ids": [
+    1449,
+    1453,
+    9432,
+    1451,
+    1151,
+    1583
+  ],
+  "baseline": 133,
+  "new_posts": 0
+}
