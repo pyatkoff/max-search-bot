@@ -1,0 +1,11 @@
+{
+  "operation": "commercial-batch28-twelve-primary-source-pages-v2",
+  "state": "CLOSED_BEFORE_HTTP_NEW_REFERENCE_FIXTURE_CAUGHT_USERINFO_ENCODING",
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41701464719",
+  "reason": "New metadata reference helper quoted @ before parsing, hiding URL userinfo. Its new offline fixture stopped every group before HTTP. Parse userinfo before encoding; preserve rejection and add signed-query case. No source GET repeated.",
+  "source_http_calls": 0,
+  "server_connections": 0,
+  "provider_calls": 0,
+  "db_writes": 0,
+  "message_sends": 0
+}

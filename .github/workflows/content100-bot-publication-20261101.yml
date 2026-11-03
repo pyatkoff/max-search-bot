@@ -1,4 +1,4 @@
-name: Read twelve owner pages after parser indentation correction
+name: Read twelve owner sources with validated credential guards
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]

@@ -1,7 +1,7 @@
 import base64,html,json,os,re,urllib.parse,urllib.request
 from pathlib import Path
 from html.parser import HTMLParser
-operation='commercial-batch28-twelve-primary-source-pages-v2'
+operation='commercial-batch28-twelve-primary-source-pages-v3'
 pages=["https://www.elgouna.com/hotels/ancient-sands","https://www.elgouna.com/hotels/ancient-sands/gallery","https://www.jazhotels.com/hoteldetail/14/overview","https://partner.jazhotels.com/hotel/14","https://hrewards.com/en/steigenberger-nile-palace-luxor","https://www.hilton.com/en-gb/hotels/luxhitw-hilton-luxor-resort-and-spa/gallery/","https://www.oberoihotels.com/hotels-in-sahl-hasheesh/","https://threecorners.com/red-sea/sea-beach-resort/","https://threecorners.com/red-sea/fayrouz-plaza-beach-resort/","https://threecorners.com/red-sea/fayrouz-plaza-beach-resort/gallery-for-pro/","https://braykaresorts.com/brayka-bay-resort/overview","https://braykaresorts.com/royal-brayka-resort/overview"]
 group=int(os.environ['MEDIA_GROUP'])
 assert group in (0,1,2,3)
@@ -13,21 +13,24 @@ class Redirect(urllib.request.HTTPRedirectHandler):
 opener=urllib.request.build_opener(Redirect())
 def safe_declared_reference(value,final):
  if not isinstance(value,str) or not value.strip():return None
- absolute=urllib.parse.quote(urllib.parse.urljoin(final,html.unescape(value.strip())),safe=':/?&=%#')
- pp=urllib.parse.urlsplit(absolute)
- decoded=urllib.parse.unquote(absolute)
- if pp.scheme!='https' or not pp.hostname or pp.username or pp.password or pp.fragment or absolute.count('https://')!=1:return None
- if 'firebasestorage' in decoded.lower() or re.search(r'(?:[?&])(?:token|access_token|api_key|auth|key)=',decoded,re.I):return None
+ joined=urllib.parse.urljoin(final,html.unescape(value.strip()))
+ try:pp=urllib.parse.urlsplit(joined);port=pp.port
+ except ValueError:return None
+ decoded=urllib.parse.unquote(joined)
+ if pp.scheme!='https' or not pp.hostname or pp.username or pp.password or pp.fragment or port is not None or joined.count('https://')!=1:return None
+ if not re.fullmatch(r'[A-Za-z0-9.-]+',pp.hostname):return None
+ if 'firebasestorage' in decoded.lower() or re.search(r'(?:[?&])(?:token|access_token|api_key|auth|key|signature|sig|x-amz-signature|x-goog-signature)=',decoded,re.I):return None
  if pp.hostname in ('localhost','127.0.0.1','::1') or pp.hostname.endswith(('.internal','.local')):return None
- if not re.search(r'\.(?:jpe?g|png|webp)(?:\?|$)',absolute,re.I):return None
- return absolute
+ if not re.search(r'\.(?:jpe?g|png|webp)(?:\?|$)',joined,re.I):return None
+ return urllib.parse.quote(joined,safe=':/?&=%#')
 assert safe_declared_reference(None,'https://example.com/') is None
 assert safe_declared_reference('https://cdn.example.com/x.jpg','https://example.com/')=='https://cdn.example.com/x.jpg'
 assert safe_declared_reference('https://cdn.example.com/x.jpg?token=private','https://example.com/') is None
 assert safe_declared_reference('https://user@cdn.example.com/x.jpg','https://example.com/') is None
 assert safe_declared_reference('https://firebasestorage.googleapis.com/x.jpg','https://example.com/') is None
 assert safe_declared_reference('https://cdn.example.com/x.jpg?url=x%3Ftoken%3Dprivate','https://example.com/') is None
-print('DECLARED_IMAGE_REFERENCE_GUARDS_OK cases=6 network_calls=0')
+assert safe_declared_reference('https://cdn.example.com/x.jpg?X-Amz-Signature=private','https://example.com/') is None
+print('DECLARED_IMAGE_REFERENCE_GUARDS_OK cases=7 network_calls=0')
 
 out={'operation':operation,'mode':'read_public_photo_sources_only','message_sends':0,'db_writes':0,'server_connections':0,'pages':[]}
 fixture_mode=os.environ.get('SOURCE_INSPECTOR_FIXTURE')=='1'
