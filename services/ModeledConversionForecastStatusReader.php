@@ -9,11 +9,11 @@ require_once __DIR__.'/ModeledConversionLatencyReader.php';
 /** Launch readback of current V1 derived blocks only. Never reads a transcript or runs processing. */
 final class ModeledConversionForecastStatusReader
 {
-    public const VERSION='saved_semantic_prediction_status_v1_8';
+    public const VERSION='saved_semantic_prediction_status_v1_9';
     public const METADATA_LIMIT=20;
     public const PROFILE_LIMIT=4;
     public const PROFILE_BYTES=49152;
-    private const RELEASE_RESERVE=16384;
+    private const RELEASE_RESERVE=8192;
     private const CONTINUITY_FIELDS=['preserved_ai_replies','preserved_handoff_receipts','unresolved_clock_barriers',
         'long_gap_barriers','unavailable_message_barriers','unavailable_event_barriers','other_source_barriers'];
     private bool $mysql;

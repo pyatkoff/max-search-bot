@@ -425,7 +425,10 @@ function forecastLatencyAssertions(PDO $p,callable $check):void
         [$id,$platform,$conversation,$origin,$profile,$event,$value,$stage,$state,$identity,$upload,$claimed,$queued]=$row;
         $insert->execute([$id,$platform,$conversation,$origin,$profile,$day+$event,$value,$stage,$state,$identity,$upload,$claimed===null?null:$day+$claimed,gmdate('Y-m-d H:i:s',$day+$queued)]);
     }
-    $read=static fn():array=>(new ModeledConversionLatencyReader($p,static function():void{},new ModeledConversionStatusBudget()))->read($now);
+    $authorizationChecks=0;
+    $read=static function()use($p,$now,&$authorizationChecks):array{
+        return(new ModeledConversionLatencyReader($p,static function()use(&$authorizationChecks):void{$authorizationChecks++;},new ModeledConversionStatusBudget()))->read($now);
+    };
     $before=json_encode($p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),JSON_THROW_ON_ERROR);
     $r=$read();
     $check('today latency separates first messages edits late history and invalid clocks',
@@ -470,9 +473,10 @@ function forecastLatencyAssertions(PDO $p,callable $check):void
                 json_encode(['semantic_prediction'=>['status'=>'predicted','stage'=>'concrete_request'],'private_marker'=>'PRIVATE_LARGE_PROFILE_NEVER_RETURN'],JSON_THROW_ON_ERROR)]);
         }
     }
-    $r=$read();
+    $authorizationChecks=0;$r=$read();
     $check('large human-message cohort uses an explicit bounded distinct-scope profile sample',
         $r['available']&&$r['messages']['conversations']===128&&$r['profile_sample']['scopes_inspected']===32
+        &&$authorizationChecks<=16
         &&!$r['profile_sample']['complete_within_captured_window']
         &&$r['profile_sample']['recorded_prediction_status']['predicted']===32
         &&$r['delays']['capture_to_profile']['maximum_seconds']===50.0
