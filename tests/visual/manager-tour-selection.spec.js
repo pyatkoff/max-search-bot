@@ -1560,8 +1560,21 @@ test('selection image export measures every condition and refuses an overlong ca
 
 const {privateEditor}=require('./fixtures/selection-private-editor');
 
+function imageDownloadPolicy(page){
+ const events=[],safe=text=>text.replace(/blob:[^\s"'<>]+/g,'blob:[local]').replace(/https?:\/\/[^\s"'<>]+/g,value=>{try{const url=new URL(value);return url.origin+url.pathname}catch{return '[url]'}}).slice(0,400);
+ page.on('console',message=>{if(['error','warning'].includes(message.type())&&/download|sandbox|content security policy|blob:|not allowed/i.test(message.text())&&events.length<8)events.push({type:message.type(),text:safe(message.text())})});
+ return()=>console.log('SYNTHETIC image-download policy '+JSON.stringify({events,frames:page.frames().slice(0,3).map(frame=>safe(frame.url()))}));
+}
+test('protected tours iframe permits an ordinary native blob download control',async({page})=>{
+ const report=imageDownloadPolicy(page),s=await privateEditor(page,{draft:completeDraft()}),f=s.editor;
+ const frame=page.frames().find(frame=>frame.url().startsWith('https://app.anytoour.ru/manager/tour-selection-editor.php'));
+ await expect(f.locator('#tsStatus')).toContainText('загружен');const before=copy(s.snapshot()),calls=copy(s.calls),pages=page.context().pages().length;
+ await frame.evaluate(()=>{const link=document.createElement('a');link.id='nativeImageDownloadControl';link.href=URL.createObjectURL(new Blob(['SYNTHETIC native download control'],{type:'text/plain'}));link.download='synthetic-download-control.txt';link.textContent='Synthetic native download control';link.style.cssText='display:block;min-height:44px;padding:12px';document.getElementById('tsEditor').append(link)});
+ try{const controlReceived=page.waitForEvent('download',{timeout:5000});await f.locator('#nativeImageDownloadControl').click();const control=await controlReceived;expect(control.suggestedFilename()).toBe('synthetic-download-control.txt');expect(await control.failure()).toBe(null);await frame.evaluate(()=>{const link=document.getElementById('nativeImageDownloadControl');URL.revokeObjectURL(link.href);link.remove()});expect(s.snapshot()).toEqual(before);expect(s.calls).toEqual(calls);expect(page.context().pages()).toHaveLength(pages);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);}finally{report()}
+});
+
 test('protected tours iframe exports its immutable card using existing loaded private photos',async({page,browserName})=>{
- const s=await privateEditor(page,{draft:completeDraft()}),f=s.editor,prepareCalls=[];let photoReads=0,original=null;
+ const report=imageDownloadPolicy(page),s=await privateEditor(page,{draft:completeDraft()}),f=s.editor,prepareCalls=[];let photoReads=0,original=null;
  const frame=page.frames().find(frame=>frame.url().startsWith('https://app.anytoour.ru/manager/tour-selection-editor.php'));
  await page.route('**/manager/tour-selection-editor-api.php',async route=>{
   const d=route.request().postDataJSON();if(d.action!=='prepare')return route.fallback();expect(d.csrf).toBe('private-csrf');expect(d.editor_actor).toBe(7);expect(d.conversation_id).toBe(11);prepareCalls.push(copy(d));
@@ -1570,10 +1583,8 @@ test('protected tours iframe exports its immutable card using existing loaded pr
  });
  await page.route('https://app.anytoour.ru/manager/tour-selection-photo.php?**',route=>{photoReads++;return route.fulfill({contentType:'image/jpeg',body:fs.readFileSync(path.join(root,'assets/owner-tour-cards/compact-v1/cover.jpg'))})});
  await expect(f.locator('#tsStatus')).toContainText('загружен');
- await frame.evaluate(()=>{const link=document.createElement('a');link.id='nativeImageDownloadControl';link.href=URL.createObjectURL(new Blob(['SYNTHETIC native download control'],{type:'text/plain'}));link.download='synthetic-download-control.txt';link.textContent='Synthetic native download control';link.style.cssText='display:block;min-height:44px;padding:12px';document.getElementById('tsEditor').append(link)});
- const controlReceived=page.waitForEvent('download',{timeout:5000});await f.locator('#nativeImageDownloadControl').click();const control=await controlReceived;expect(control.suggestedFilename()).toBe('synthetic-download-control.txt');expect(await control.failure()).toBe(null);await frame.evaluate(()=>{const link=document.getElementById('nativeImageDownloadControl');URL.revokeObjectURL(link.href);link.remove()});
  await f.locator('#tsPreview').click();await expect(f.locator('.tsExportImage')).toBeEnabled();expect(await page.locator('iframe').evaluate(el=>el.sandbox.contains('allow-downloads'))).toBe(true);const calls=copy(s.calls),before=copy(s.snapshot()),pages=page.context().pages().length;expect(photoReads).toBe(3);await observeImageExport(frame);
- await f.locator('.tsExportImage').click();await saveExportPng(await downloadPreparedImage(page,f),browserName,'protected');const drawn=await frame.evaluate(()=>({text:exportInk.join(' '),photos:exportPhotoSources}));expect(drawn.text.replace(/\s/g,'')).toContain(original.cards[0].text.replace(/\s/g,''));expect(drawn.photos).toEqual(original.cards[0].photos);expect(photoReads).toBe(3);expect(s.snapshot()).toEqual(before);expect(s.calls).toEqual(calls);expect(prepareCalls).toHaveLength(1);expect(page.context().pages()).toHaveLength(pages);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+ await f.locator('.tsExportImage').click();try{await saveExportPng(await downloadPreparedImage(page,f),browserName,'protected')}finally{report()};const drawn=await frame.evaluate(()=>({text:exportInk.join(' '),photos:exportPhotoSources}));expect(drawn.text.replace(/\s/g,'')).toContain(original.cards[0].text.replace(/\s/g,''));expect(drawn.photos).toEqual(original.cards[0].photos);expect(photoReads).toBe(3);expect(s.snapshot()).toEqual(before);expect(s.calls).toEqual(calls);expect(prepareCalls).toHaveLength(1);expect(page.context().pages()).toHaveLength(pages);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
 });
 test('protected tours iframe compares native print lifecycle with a same-frame control and recovers without events',async({page,browserName},testInfo)=>{
  const s=await privateEditor(page,{draft:completeDraft()}),f=s.editor;const prepareCalls=[];
