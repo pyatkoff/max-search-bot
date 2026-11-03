@@ -1,0 +1,13 @@
+{
+  "operation": "commercial-price-monitor-20261103-post652-metadata",
+  "state": "NO_NEW_SCHEDULED_RUN_IN_EXACT_POST_APPROVAL_WINDOW",
+  "query": "event=schedule created>=2026-11-03T23:05:00Z per_page=12",
+  "read_utc": "2026-11-03T23:12:38Z",
+  "run_count": 0,
+  "normal652collector_confirmed": false,
+  "retained_tuple_reads": 0,
+  "source_provider_calls": 0,
+  "paid_quotes": 0,
+  "message_edits": 0,
+  "limitations": "This exact metadata result does not imply absence of all raw observations or availability; no unchanged window repetition"
+}
