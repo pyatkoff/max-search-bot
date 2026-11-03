@@ -1,0 +1,11 @@
+{
+  "operation": "commercial-stock-20261103-18-read2",
+  "state": "SEVEN_NAME_FOLLOWUP_PLANNED",
+  "goal": "Reach reserve25 after the three prepared hotels are published. Preserve the15 accepted new identities from the prior bounded read.",
+  "boundaries": "One follow-up existing read-only catalog/registry route. Three unmatched name groups use specific corrected aliases and four additional names. Do not repeat accepted15,resolve ambiguous Sheraton or Fort products by choosing a convenient ID,contact customers or call providers.",
+  "criteria": "Exact source/verify/TLS/21 blobs and read-only DB transactions. Add at most4 exact unique unposted identities after batch18. Skip ambiguous/missing matches.",
+  "risks": "Corrected aliases may still fail. No actual catalogue ID is assumed by hotel name. Primary object facts and covers remain required for any new publication.",
+  "candidate_group_count": 7,
+  "prior_unique_new_count": 15,
+  "new_identity_count": 0
+}
