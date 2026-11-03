@@ -1,9 +1,9 @@
 {
   "operation": "commercial-stock-20261103-18-inventory",
-  "state": "TWENTY_FOUR_CONFIRMED_THREE_PREPARED_NOT_SENT",
-  "hotel_count": 24,
+  "state": "TWENTY_ONE_CONFIRMED_AFTER_THREE_PUBLISHED_FOLLOWUP_PENDING",
+  "hotel_count": 21,
   "target_hotel_count": 25,
-  "ready_for_send_count": 3,
+  "ready_for_send_count": 0,
   "candidates": [
     {
       "key": "jaz-elite-maraya",
@@ -11,27 +11,6 @@
       "hotel": "JAZ MARAYA",
       "region": "Марса Алам",
       "state": "GENERAL_AMENITIES_READ_SHORELINE_PRIMARY_PROOF_PENDING"
-    },
-    {
-      "key": "jaz-costa-mares",
-      "hotel_id": 75725,
-      "hotel": "JAZ COSTA MARES ADULT ONLY (EX. IBEROTEL COSTA MARES)",
-      "region": "Марса Алам",
-      "state": "CONTENT_AND_NATIVE_COVER_PREPARED_NOT_SENT"
-    },
-    {
-      "key": "jaz-mirabel-beach",
-      "hotel_id": 281,
-      "hotel": "JAZ MIRABEL BEACH",
-      "region": "Шарм-эль-Шейх",
-      "state": "CONTENT_AND_NATIVE_COVER_PREPARED_NOT_SENT"
-    },
-    {
-      "key": "jaz-neo-reef-marsa",
-      "hotel_id": 384,
-      "hotel": "JAZ NEO REEF MARSA (EX. SOLYMAR REEF MARSA)",
-      "region": "Марса Алам",
-      "state": "CONTENT_AND_NATIVE_COVER_PREPARED_NOT_SENT"
     },
     {
       "key": "sentido-reef-oasis-senses",
@@ -195,6 +174,6 @@
   "new_name_lookup_count": 20,
   "new_name_lookup_state": "BOUNDED_READ_COMPLETE_FIFTEEN_UNIQUE_NEW_IDENTITIES",
   "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41603842788",
-  "content_and_cover_prepared_count": 3,
+  "content_and_cover_prepared_count": 0,
   "new_identity_count": 15
 }
