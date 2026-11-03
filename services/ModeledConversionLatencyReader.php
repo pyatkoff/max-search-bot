@@ -27,62 +27,86 @@ final class ModeledConversionLatencyReader
                 .$get('platform')." AS platform,".$get('customer_key')." AS customer_key,".$get('conversation_id')." AS conversation_id"
                 ." FROM (".$journal.") j WHERE j.version_no=1 AND ".$get('project_key')."='anytour' AND ".$get('source_status')."='present'"
                 ." AND ".$get('platform')." IN ('max','telegram') AND ".$get('payload.direction')."='inbound' AND ".$get('payload.sender_type')."='customer'";
-            $profileSafe="CASE WHEN JSON_VALID(p.profile_json) THEN p.profile_json ELSE '{}' END";
-            $status=$this->scalar($profileSafe,'semantic_prediction.status');
-            $stage=$this->scalar($profileSafe,'semantic_prediction.stage');
-            $measured="SELECT b.*,p.id AS profile_id,p.observed_at_unix AS saved,"
-                ."CASE WHEN ".$status." IN ('predicted','insufficient_context','known_outcome','access_denied') THEN ".$status." ELSE 'unknown' END AS prediction_status,"
-                ."CASE WHEN ".$stage." IN ('substantive_dialogue','concrete_request','exact_offer_discussion','general_purchase_intent','agency_purchase_intent') THEN ".$stage." ELSE NULL END AS prediction_stage"
-                ." FROM (".$base.") b LEFT JOIN modeled_conversion_profile_versions p ON p.id=(SELECT p0.id FROM modeled_conversion_profile_versions p0"
-                ." WHERE p0.project_key='anytour' AND p0.platform=b.platform AND p0.customer_key=b.customer_key AND p0.conversation_id=b.conversation_id"
-                ." AND p0.journal_cursor>=b.id AND p0.observed_at_unix>=b.captured AND p0.observed_at_unix<=".$now." ORDER BY p0.id LIMIT 1)";
             $valid="persisted>=".$since." AND persisted<=captured";
             $columns=['COUNT(*) AS initial_customer_message_rows',
                 "COALESCE(SUM(CASE WHEN ".$valid." THEN 1 ELSE 0 END),0) AS current_rows",
                 "COUNT(DISTINCT CASE WHEN ".$valid." THEN conversation_id ELSE NULL END) AS current_conversations",
                 "COALESCE(SUM(CASE WHEN persisted<".$since." THEN 1 ELSE 0 END),0) AS older_source_rows",
                 "COALESCE(SUM(CASE WHEN persisted IS NULL OR persisted>captured THEN 1 ELSE 0 END),0) AS invalid_clock_rows",
-                "COALESCE(SUM(CASE WHEN ".$valid." AND profile_id IS NULL THEN 1 ELSE 0 END),0) AS waiting_profile_rows",
-                "MAX(CASE WHEN ".$valid." AND profile_id IS NULL THEN ".$now."-captured ELSE NULL END) AS oldest_waiting_seconds",
                 "(SELECT COUNT(*) FROM (".$journal.") counted_journal) AS inspected_versions"];
             foreach(['max','telegram']as$platform)$columns[]="COUNT(DISTINCT CASE WHEN ".$valid." AND platform='".$platform."' THEN conversation_id ELSE NULL END) AS ".$platform."_conversations";
-            foreach(['predicted','insufficient_context','known_outcome','access_denied','unknown']as$name)$columns[]="COALESCE(SUM(CASE WHEN ".$valid." AND profile_id IS NOT NULL AND prediction_status='".$name."' THEN 1 ELSE 0 END),0) AS status_".$name;
-            foreach(['persistence_to_capture'=>'captured-persisted','capture_to_profile'=>'saved-captured','persistence_to_profile'=>'saved-persisted']as$key=>$expression){
-                $condition=$valid.($key==='persistence_to_capture'?'':' AND profile_id IS NOT NULL');
-                $columns=array_merge($columns,$this->delayColumns($key,$expression,$condition));
-            }
-            $r=$this->query('SELECT '.implode(',',$columns).' FROM ('.$measured.') measured')[0];
+            $columns=array_merge($columns,$this->delayColumns('persistence_to_capture','captured-persisted',$valid));
+            $r=$this->query('SELECT '.implode(',',$columns).' FROM ('.$base.') messages')[0];
             $out=['available'=>true,'date'=>$day->format('Y-m-d'),'timezone'=>'Europe/Kaliningrad',
                 'basis'=>'server_persistence_and_immutable_capture_profile_metadata_not_device_send_time',
                 'window'=>['max_message_versions'=>self::JOURNAL_LIMIT,'inspected_message_versions'=>$this->count($r['inspected_versions']),
                     'complete_within_bound'=>(int)$r['inspected_versions']<self::JOURNAL_LIMIT],
                 'messages'=>['first_customer_message_rows'=>$this->count($r['initial_customer_message_rows']),
                     'persisted_today'=>$this->count($r['current_rows']),'conversations'=>$this->count($r['current_conversations']),
-                    'older_source_first_captured_today'=>$this->count($r['older_source_rows']),'invalid_clock_rows'=>$this->count($r['invalid_clock_rows']),
-                    'waiting_for_profile'=>$this->count($r['waiting_profile_rows']),'oldest_waiting_seconds'=>$this->nullable($r['oldest_waiting_seconds'])],
-                'by_platform'=>[],'recorded_prediction_status_for_message_updates'=>[],'delays'=>[],'examples'=>[]];
+                    'older_source_first_captured_today'=>$this->count($r['older_source_rows']),'invalid_clock_rows'=>$this->count($r['invalid_clock_rows'])],
+                'by_platform'=>[],'profile_sample'=>['max_scopes'=>32,'scopes_inspected'=>0,'selection'=>'latest_first_customer_message_per_recent_distinct_scope',
+                    'complete_within_captured_window'=>(int)$r['current_conversations']<=32,'waiting_for_profile'=>0,'oldest_waiting_seconds'=>null,
+                    'invalid_scope_rows'=>0,'recorded_prediction_status'=>array_fill_keys(['predicted','insufficient_context','known_outcome','access_denied','unknown'],0)],
+                'delays'=>['persistence_to_capture'=>$this->delay($r,'persistence_to_capture')],'examples'=>[]];
             foreach(['max','telegram']as$platform)$out['by_platform'][$platform]=['conversations'=>$this->count($r[$platform.'_conversations'])];
-            foreach(['predicted','insufficient_context','known_outcome','access_denied','unknown']as$name)$out['recorded_prediction_status_for_message_updates'][$name]=$this->count($r['status_'.$name]);
-            foreach(['persistence_to_capture','capture_to_profile','persistence_to_profile']as$key)$out['delays'][$key]=$this->delay($r,$key);
-            // One latest message per conversation; missing and slow profiles remain visible.
-            $ranked="SELECT x.*,ROW_NUMBER() OVER(PARTITION BY platform,customer_key,conversation_id ORDER BY id DESC) AS scope_row FROM (".$measured.") x WHERE ".$valid;
-            $examples=$this->query("SELECT platform,persisted,captured,saved,prediction_status,prediction_stage FROM (".$ranked.") latest"
-                ." WHERE scope_row=1 ORDER BY CASE WHEN saved IS NULL THEN 0 ELSE 1 END,COALESCE(saved,".$now.")-persisted DESC,captured DESC LIMIT 6");
-            foreach($examples as$e)$out['examples'][]=['platform'=>$e['platform'],'persisted_at'=>$this->at($e['persisted']),
-                'captured_at'=>$this->at($e['captured']),'profile_saved_at'=>$this->at($e['saved']),
-                'capture_delay_seconds'=>$this->difference($e['captured'],$e['persisted']),
-                'profile_queue_delay_seconds'=>$this->difference($e['saved'],$e['captured']),
-                'total_profile_delay_seconds'=>$this->difference($e['saved'],$e['persisted']),
-                'recorded_prediction_status'=>$e['prediction_status'],'recorded_prediction_stage'=>$e['prediction_stage']];
+            // Aggregate capture counters need no profile join. Only distinct recent scopes
+            // use parameter-bound indexed lookups; JSON collations cannot force a global scan.
+            $ranked="SELECT b.*,ROW_NUMBER() OVER(PARTITION BY platform,customer_key,conversation_id ORDER BY id DESC) AS scope_row FROM (".$base.") b WHERE ".$valid;
+            $sample=$this->query("SELECT id,platform,customer_key,conversation_id,persisted,captured FROM (".$ranked.") latest"
+                ." WHERE scope_row=1 ORDER BY captured DESC,id DESC LIMIT 32");
+            $profileSafe="CASE WHEN JSON_VALID(profile_json) THEN profile_json ELSE '{}' END";
+            $status=$this->scalar($profileSafe,'semantic_prediction.status');$stage=$this->scalar($profileSafe,'semantic_prediction.stage');
+            $profileSql="SELECT observed_at_unix AS saved,CASE WHEN ".$status." IN ('predicted','insufficient_context','known_outcome','access_denied') THEN ".$status." ELSE 'unknown' END AS prediction_status,"
+                ."CASE WHEN ".$stage." IN ('substantive_dialogue','concrete_request','exact_offer_discussion','general_purchase_intent','agency_purchase_intent') THEN ".$stage." ELSE NULL END AS prediction_stage"
+                ." FROM modeled_conversion_profile_versions WHERE project_key='anytour' AND platform=? AND customer_key=? AND conversation_id=?"
+                ." AND journal_cursor>=? AND observed_at_unix>=? AND observed_at_unix<=".$now." ORDER BY id LIMIT 1";
+            $profileDelays=[];$totalDelays=[];$examples=[];
+            foreach($sample as$meta){
+                $out['profile_sample']['scopes_inspected']++;
+                $validScope=true;foreach(['customer_key','conversation_id']as$key)if(preg_match('/\\A[1-9][0-9]{0,19}\\z/D',(string)$meta[$key])!==1)$validScope=false;
+                if(!$validScope){$out['profile_sample']['invalid_scope_rows']++;continue;}
+                $rows=$this->query($profileSql,[$meta['platform'],(string)$meta['customer_key'],(string)$meta['conversation_id'],(int)$meta['id'],(int)$meta['captured']]);
+                $p=$rows[0]??null;
+                if($p===null){
+                    $out['profile_sample']['waiting_for_profile']++;
+                    $age=$now-(int)$meta['captured'];
+                    $out['profile_sample']['oldest_waiting_seconds']=max($out['profile_sample']['oldest_waiting_seconds']??0,$age);
+                }else{
+                    $out['profile_sample']['recorded_prediction_status'][$p['prediction_status']]++;
+                    $profileDelays[]=(int)$p['saved']-(int)$meta['captured'];
+                    $totalDelays[]=(int)$p['saved']-(int)$meta['persisted'];
+                }
+                $entry=['platform'=>$meta['platform'],'persisted_at'=>$this->at($meta['persisted']),
+                    'captured_at'=>$this->at($meta['captured']),'profile_saved_at'=>$this->at($p['saved']??null),
+                    'capture_delay_seconds'=>$this->difference($meta['captured'],$meta['persisted']),
+                    'profile_queue_delay_seconds'=>$this->difference($p['saved']??null,$meta['captured']),
+                    'total_profile_delay_seconds'=>$this->difference($p['saved']??null,$meta['persisted']),
+                    'recorded_prediction_status'=>$p['prediction_status']??'unknown','recorded_prediction_stage'=>$p['prediction_stage']??null];
+                $examples[]=['missing'=>$p===null?1:0,'delay'=>$entry['total_profile_delay_seconds']??$now-(int)$meta['persisted'],'entry'=>$entry];
+            }
+            usort($examples,static fn(array $a,array $b):int=>($b['missing']<=>$a['missing'])?:($b['delay']<=>$a['delay']));
+            foreach(array_slice($examples,0,6)as$example)$out['examples'][]=$example['entry'];
+            $out['delays']['capture_to_profile']=$this->sampleDelay($profileDelays);
+            $out['delays']['persistence_to_profile']=$this->sampleDelay($totalDelays);
             $out['live_value']=$this->values($since,$now);
             $out['interpretation']=['edits_not_timed_from_original_creation'=>true,'captured_suffix_not_all_native_messages'=>true,
+                'profile_delay_is_a_bounded_recent_distinct_scope_sample'=>true,
                 'profile_saved_is_not_proof_each_message_was_admitted_as_a_feature'=>true,
-                'recorded_status_is_not_new_semantic_validation'=>true,'missing_profile_does_not_prove_queued_processing'=>true,'historical_value_review_excluded'=>true,
-                'upload_time_is_existing_claim_tick_not_exact_api_response_time'=>true,
+                'recorded_status_is_not_new_semantic_validation'=>true,'missing_profile_does_not_prove_queued_processing'=>true,
+                'historical_value_review_excluded'=>true,'upload_time_is_existing_claim_tick_not_exact_api_response_time'=>true,
                 'api_receipt_processed_and_visits_are_separate'=>true,'no_ids_or_text_returned'=>true];
             $this->auth();return $out;
         }catch(ModeledConversionStatusLimit $e){throw $e;}
         catch(PDOException|UnexpectedValueException $ignored){$this->auth();return ['available'=>false,'reason'=>'today_latency_storage_or_clock_unavailable'];}
+    }
+
+    private function sampleDelay(array $values):array
+    {
+        $out=['basis'=>'latest_message_per_sampled_distinct_scope','observations'=>count($values),
+            'minimum_seconds'=>$values?(float)min($values):null,'average_seconds'=>$values?round(array_sum($values)/count($values),1):null,
+            'maximum_seconds'=>$values?(float)max($values):null];
+        foreach([60,300,600,900]as$bound)$out['within_'.$bound.'_seconds']=count(array_filter($values,static fn(int $v):bool=>$v<=$bound));
+        return $out;
     }
 
     private function values(int $since,int $now):array
@@ -160,9 +184,9 @@ final class ModeledConversionLatencyReader
     {return is_numeric($later)&&is_numeric($earlier)&&(int)$later>=(int)$earlier?(int)$later-(int)$earlier:null;}
     private function at(mixed $n):?string
     {return is_numeric($n)&&(int)$n>=946684800?gmdate('Y-m-d\\TH:i:s\\Z',(int)$n):null;}
-    private function query(string $sql):array
+    private function query(string $sql,array $args=[]):array
     {
-        $this->auth();$q=$this->budget->prepare($this->pdo,$sql);$q->execute();$rows=$q->fetchAll(PDO::FETCH_ASSOC);$q->closeCursor();
+        $this->auth();$q=$this->budget->prepare($this->pdo,$sql);foreach($args as$i=>$v)$q->bindValue($i+1,$v,is_int($v)?PDO::PARAM_INT:PDO::PARAM_STR);$q->execute();$rows=$q->fetchAll(PDO::FETCH_ASSOC);$q->closeCursor();
         $this->budget->consumeBytes(strlen(json_encode($rows,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)));$this->auth();return $rows;
     }
     private function auth():void{$this->budget->check();($this->authorize)();$this->budget->check();}
