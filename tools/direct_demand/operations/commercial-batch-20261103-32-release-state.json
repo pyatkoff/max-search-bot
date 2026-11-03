@@ -1,0 +1,55 @@
+{
+  "operation": "commercial-hotel-batch-20261103-32-v1",
+  "state": "EXACT_CURRENT_RELEASE_READY_FOR_ORIGINAL_OPERATION",
+  "source": "ce73a564ef93223e6ffb7f4b1ccac33dc12d76bc",
+  "verify_run": 41733326924,
+  "verify_job": 126256015193,
+  "deploy_job": 126258215714,
+  "tls_run": 41734405863,
+  "reruns": 0,
+  "source_stops": 1,
+  "original_stop_before_ssh_provider": true,
+  "changed_paths_since_previous_accepted": [
+    "manager/assets/workspace-v2-ai-draft.css",
+    "manager2/assets/manager2.css",
+    "manager2/assets/request-profile-panel.js",
+    "tests/visual/manager-ai-draft.spec.js",
+    "tests/visual/manager-manual-groups.spec.js",
+    ".github/workflows/deploy.yml",
+    ".github/workflows/modeled-conversion-monitor.yml",
+    ".github/workflows/modeled-pipeline-monitor-activation.yml",
+    "docs/MODELED_CONVERSION_STATUS.md",
+    "docs/OPERATIONS.md",
+    "docs/REPO_MAP.md",
+    "services/ModeledConversionDeliveryHealth.php",
+    "services/ModeledConversionDeliveryRegistryView.php",
+    "services/ModeledConversionPipelineMonitorStatus.php",
+    "tests/mysql/modeled-conversion-status-auth.php",
+    "tests/required_checks_manifest.php",
+    "tests/run_deployment_ownership_regression.php",
+    "tests/run_encrypted_dialogue_evidence.sh",
+    "tests/run_modeled_conversion_delivery_view_regression.php",
+    "tests/run_modeled_conversion_monitor_test.py",
+    "tests/run_modeled_conversion_pipeline_monitor_regression.php",
+    "tests/run_production_gate_sequence_regression.py",
+    "tests/test_modeled_monitor_handoff.py",
+    "tests/visual/fixtures/modeled-delivery-registry.php",
+    "tools/modeled_conversion_monitor.php",
+    "tools/modeled_conversion_monitor.py",
+    "tools/modeled_conversion_monitor_handoff.py",
+    "tools/modeled_conversion_monitor_local.py",
+    "tools/modeled_conversion_monitor_runtime.py",
+    "tools/reconcile_modeled_conversion_monitor_cron.sh"
+  ],
+  "publishing_surface": "21 accepted blobs enforced by scoped gate before server",
+  "goal": "Resume original six-hotel operation after current release completion",
+  "boundaries": [
+    "No foreign deployment fixes, no bypass of active-source/TLS/blob checks"
+  ],
+  "criteria": [
+    "Current exact main and terminal original verify/deploy plus strictTLS; runtime checks unchanged"
+  ],
+  "risks": [
+    "Second main movement requires specific release wait, no endless repins"
+  ]
+}

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "operation": "commercial-hotel-batch-20261103-32-v1",
-  "expected_installed_sha": "33fe0a039f593f1fc57864e5fb47e77cb6b352f0",
+  "expected_installed_sha": "ce73a564ef93223e6ffb7f4b1ccac33dc12d76bc",
   "hotel_ids": [
     1449,
     1453,
