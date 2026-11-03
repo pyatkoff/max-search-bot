@@ -30,25 +30,35 @@ try{
         $raw=stream_get_contents(STDIN,8193);
         if(!is_string($raw)||strlen($raw)>8192)throw new RuntimeException('monitor_record');
         $r=json_decode($raw,true,16,JSON_THROW_ON_ERROR);
-        if(!is_array($r)||($r['schema_version']??null)!==1||($r['project']??null)!=='anytour'
-            ||!in_array($r['status']??null,['ok','off','degraded','unavailable'],true)
-            ||!in_array($r['notification']??null,['quiet','sent','unknown'],true)||!is_array($r['flags']??null)||count($r['flags'])>20)
-            throw new RuntimeException('monitor_record');
-        $allowed=['delivery_tick_stale','profile_tick_stale','delivery_tick_errors','profile_tick_errors','profile_disabled',
-            'ready_queue_stale','upload_outcome_unknown','api_row_rejected','report_unavailable','storage_unavailable',
-            'configuration_unavailable','invalid_clock','health_metadata_unavailable','monitor_transport_unavailable','monitor_source_mismatch'];
-        foreach($r['flags']as$flag)if(!is_string($flag)||!in_array($flag,$allowed,true))throw new RuntimeException('monitor_record');
+        if(!is_array($r))throw new RuntimeException('monitor_record');
+        $source=null;$options=[];
+        foreach(array_slice($argv,2)as$arg){
+            if(!is_string($arg)||preg_match('/\A--(event|run-id|run-attempt|source-sha)=(.+)\z/D',$arg,$m)!==1
+                ||array_key_exists($m[1],$options))throw new RuntimeException('monitor_record_source');
+            $options[$m[1]]=$m[2];
+        }
+        if($options!==[]){
+            if(count($options)!==4||preg_match('/\A[1-9][0-9]{0,5}\z/D',$options['run-attempt']??'')!==1)
+                throw new RuntimeException('monitor_record_source');
+            $source=['event'=>$options['event']??null,'run_id'=>$options['run-id']??null,
+                'run_attempt'=>(int)$options['run-attempt'],'source_sha'=>$options['source-sha']??null];
+        }
         $dir=dirname(__DIR__,2).'/max-search-bot-modeled-monitor';
         if(is_link($dir)||(!is_dir($dir)&&!mkdir($dir,0700,true)))throw new RuntimeException('monitor_storage');
         if((fileperms($dir)&0777)!==0700)throw new RuntimeException('monitor_storage');
         $path=$dir.'/last-check.json';if(is_link($path))throw new RuntimeException('monitor_storage');
-        $old=is_file($path)&&filesize($path)<=4096?json_decode((string)file_get_contents($path),true):null;
-        $out=['schema_version'=>1,'project'=>'anytour','counter_id'=>'98615635','checked_at'=>gmdate('Y-m-d\TH:i:s\Z'),
-            'status'=>$r['status'],'flags'=>array_values(array_unique($r['flags'])),'notification'=>$r['notification'],
-            'last_notification_at'=>$r['notification']==='sent'?gmdate('Y-m-d\TH:i:s\Z'):($old['last_notification_at']??null)];
+        $old=null;
+        if(is_file($path)){
+            if(filesize($path)>4096)throw new RuntimeException('monitor_storage');
+            $old=json_decode((string)file_get_contents($path),true,16,JSON_THROW_ON_ERROR);
+            if(!is_array($old))throw new RuntimeException('monitor_storage');
+        }
+        $out=ModeledConversionDeliveryHealth::composeExternalReceipt($r,$old,time(),$source);
+        $encoded=json_encode($out,JSON_THROW_ON_ERROR);
+        if(strlen($encoded)>4096)throw new RuntimeException('monitor_storage');
         $tmp=tempnam($dir,'.check-');if($tmp===false)throw new RuntimeException('monitor_storage');
         try{
-            if(!chmod($tmp,0600)||file_put_contents($tmp,json_encode($out,JSON_THROW_ON_ERROR),LOCK_EX)===false||!rename($tmp,$path))
+            if(!chmod($tmp,0600)||file_put_contents($tmp,$encoded,LOCK_EX)===false||!rename($tmp,$path))
                 throw new RuntimeException('monitor_storage');
         }finally{if(is_file($tmp))unlink($tmp);}
         echo '{"schema_version":1,"recorded":true}'.PHP_EOL;

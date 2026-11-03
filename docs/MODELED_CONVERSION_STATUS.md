@@ -1,3 +1,26 @@
+## Private owner delivery registry
+
+The canonical closed page is /manager/assigned-value.php?view=delivery, also linked as «Конверсии» from the existing administrator area. The link is hidden until current administrator identity is accepted and hidden again on refusal. The server independently requires an active existing admin, AnyTour project access and the same current session actor before and after reading. Ordinary managers do not gain access. There is no new role, named-login exception, grant, password or manager-workspace entry.
+
+The default page reads actual recorded rows for counter98615635 / targetanytour_modeled_value_v1 / contractsemantic_stage_value_25000_v1. Former members/profiles views remain explicit legacy research views and are not the delivery ledger.
+
+- Day means the saved assignment/export event clock (`event_unix`) in Europe/Kaliningrad. This differs from the existing daily upload-claim, first API-observation and processing-observation cohorts.
+- One row is one conversation: name, platform, selected-day delta, lifetime reserved value under the same contract and strongest selected-day stage. It is not a proven unique tourist or verified trip.
+- Expanded rows contain the up to six real stage awards, current state/allowlisted hold reason, origin, independent lifecycle clocks and exact frozen-profile metadata. A saved-stage profile is not a quotation or fresh interpretation of the transcript. Missing or invalid profile grounds remain unavailable.
+- Day totals and visible rows share the same exact project/counter/contract/current binding/test/internal-owner predicate. Invalid stage/target/state/origin/value anywhere in the selected-day scope withholds all totals before the first page.
+- API-receipt and processed values overlap. Receipt acceptance, successful upload processing and individual advertising-visit linkage remain distinct. Legacy unknown acknowledgement clocks are never backfilled from claim/updated time.
+- Pagination reads 25 conversations with a signed cursor bound to current session/actor, date, platform, upper ID and event cutoff; expires after one hour. States and authorization are fresh per read. Upper ID/event cutoff does not freeze late commits or later scope changes across separate requests.
+- The separate HTML reader has a 512KiB/5s budget, four first-page/three subsequent bounded SELECTs, read-only transaction and post-transaction authorization. Existing MCP limits/scopes remain unchanged.
+- HTML escapes private names, exposes no advertising/native peer identifiers or raw profile JSON, performs no network calls and does not open the workspace detail/read-marker API. The page uses GET forms and a manual refresh only.
+
+### Monitoring provenance and regularity
+
+The external receipt retains technical event/run/attempt/source metadata and up to three distinct original scheduled checks. Manual and post-deployment checks never increase the scheduled success streak. A repeated run or rerun does not create another original scheduled success. A gap over900seconds, a failed/uncertain check or stale last scheduled receipt prevents regular=true. Unknown legacy provenance stays unknown.
+
+The owner page separates last check freshness, latest health/notification outcome, last scheduled check, scheduled proof and last personal notification. A stale saved OK or notification=unknown cannot appear as a green current success. Quiet checks preserve the time of the last confirmed notification.
+
+The existing live-session workflow keeps its hourly publisher at25minutes; the single check-only schedule2-59/5 belongs to modeled-conversion-monitor.yml. GitHub schedules can be delayed or dropped. Source configuration and a successful manual/postDeploy check are not proof of recurring execution. Acceptance requires three actual separate scheduled checks with advancing receipts, healthy quiet results and no extra personal test. No duplicate timer, business worker, processing tick or unknown replay is introduced.
+
 # Private verification of saved early assessments
 
 The `get_modeled_conversion_status` MCP tool verifies a bounded window of
@@ -382,10 +405,12 @@ metadata queries; route emits an existing credential only into protected ephemer
 SSH output; record stores only sanitized technical metadata outside the webroot.
 No HTTP route is provided and no customer transcript/read marker is touched.
 
-The existing live-diagnostics workflow retains its exact hourly publisher and
-adds a separate lightweight five-minute monitoring job. Separate concurrency
-groups preserve hourly captures and serialize notification state. Schedules are
-best-effort GitHub Actions execution, not a guaranteed five-minute SLA.
+The live-diagnostics workflow retains its exact hourly publisher. The single
+lightweight monitor is registered in modeled-conversion-monitor.yml with one
+2-59/5 schedule and the existing successful-Deploy/manual triggers. It keeps
+the same repository-wide notification concurrency and encrypted artifact state;
+the former workflow no longer owns a monitor job. Schedules are best-effort
+GitHub Actions execution, not a guaranteed five-minute SLA.
 A stopped business cron is observed externally; zero conversions or missing
 advertising identity alone are not failures.
 
@@ -407,3 +432,24 @@ deduplication; if server metadata shows a previous notification, missing artifac
 cannot bootstrap another initial message. Encrypted artifacts use seven-day
 retention and are refreshed by healthy checks. Notification UNKNOWN requires
 reconciliation, not an automatic repeated send.
+
+
+### Scheduled execution acceptance (3 November)
+
+The old combined workflow's API state was active, its configured timers and job
+filters agreed, and complete schedule-event pagination found no missing new
+runs. The absence was before a scheduled run existed, not a health/SSH queue
+failure. Its internal provider cause remains unknown; the independent monitor
+workflow is a bounded replacement of that registration, not a second worker.
+
+A reachable old installed SHA defers before opening notification state only if
+the exact current main has an identified active canonical Deploy. Unreachable
+servers retain the existing external transport alert path. Changed main, failed
+API metadata or untrusted deployment context cannot authorize a deferred green
+health check. Deferred installation attempts do not count toward regularity.
+
+A receipt write/SSH failure now fails the monitor job. Runtime acceptance requires
+three distinct original schedule run IDs, successful recorded technical results,
+and private readback of the matching three persisted checks. Manual/postDeploy
+checks and reruns do not qualify. Preserve prior last_notification_at on healthy
+quiet checks; do not send another bootstrap message or reset retained state.
