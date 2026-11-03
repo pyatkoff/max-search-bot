@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-11-03T10:28:00+00:00",
+    "generated_at": "2026-11-03T10:38:13+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
@@ -54,13 +54,13 @@
         }
     },
     "telegram_dialogue_delivery": {
-        "sampled_at": "2026-11-03T10:28:00Z",
+        "sampled_at": "2026-11-03T10:38:13Z",
         "available": true,
         "error": null,
         "mode": "send",
         "activated": true,
         "queue_counts": {
-            "pending": 6,
+            "pending": 8,
             "ready": 0,
             "uploading": 0,
             "accepted": 1,
@@ -71,7 +71,7 @@
             "expired": 0,
             "retired": 0
         },
-        "queue_total": 7
+        "queue_total": 9
     },
     "local_date": "2026-11-03",
     "local_day_started_at": "2026-11-03T00:00:00+02:00",
