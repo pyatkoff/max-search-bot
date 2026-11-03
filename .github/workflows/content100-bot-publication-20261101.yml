@@ -1,4 +1,4 @@
-name: Inspect eight exact primary hotel photographs and one current Ivory factsheet
+name: Read the exact already verified Neo Ivory PDF with its missing text tool installed
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -12,31 +12,21 @@ jobs:
   inspect:
     runs-on: ubuntu-latest
     timeout-minutes: 6
-    strategy:
-      fail-fast: false
-      max-parallel: 2
-      matrix:
-        media_group: [0,1,2,3]
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Inspect only fixed public owner material without server calls
-        env:
-          MEDIA_GROUP: ${{ matrix.media_group }}
+      - name: Supply the exact missing readonly PDF text dependency before any request
         run: |
-          set -euo pipefail
-          if [ "$MEDIA_GROUP" = 3 ]; then
-            python3 tools/direct_demand/operations/inspect-public-hotel-pdf-20261103-22.py
-          else
-            python3 tools/direct_demand/operations/inspect-hotel-primary-images-20261103-20.py
-          fi
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends poppler-utils
+          command -v pdftotext
+      - name: Read only one current official Neo Ivory PDF and verify its known source hash
+        run: python3 tools/direct_demand/operations/inspect-public-hotel-pdf-20261103-22.py
       - uses: actions/upload-artifact@v4
         with:
-          name: commercial-batch22-owner-material-${{ matrix.media_group }}
-          path: |
-            primary-image-inspection.json
-            primary-pdf-text.json
+          name: commercial-batch22-neo-ivory-current-factsheet
+          path: primary-pdf-text.json
           retention-days: 14
           if-no-files-found: error
