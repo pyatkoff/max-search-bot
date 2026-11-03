@@ -2,6 +2,17 @@
 declare(strict_types=1);
 require_once __DIR__.'/fixtures/hotel_server_cycle.php';
 
+if(($argv[1]??null)==='--correction-race'){
+    [$unused,$mode,$dsn,$go,$out,$payload]=array_pad($argv,6,'');$p=hsConnect($dsn);
+    $cycle=new HotelServerCycle($p,new HotelServerLane($p));
+    $correction=json_decode((string)file_get_contents($payload),true,64,JSON_THROW_ON_ERROR);
+    file_put_contents($out.'.ready','1');$until=microtime(true)+12;
+    while(!is_file($go)&&microtime(true)<$until)usleep(1000);
+    if(!is_file($go))exit(3);
+    $r=$cycle->correctRejectedFinalStage('NEW',$correction,static fn():bool=>true);
+    file_put_contents($out,HotelServerInputs::json(['state'=>$r['state']]));exit(0);
+}
+
 // Real processes contend on the shared HOTEL row before the campaign/attempt row.
 if(($argv[1]??null)==='--race') {
     [$unused,$mode,$dsn,$go,$out]=array_pad($argv,5,'');$p=hsConnect($dsn);$provider=new HotelServerFixtureProvider($p);
@@ -320,5 +331,8 @@ $f=hsFixture();try{
         &&count($f['cycle']->readAccepted('NEXT')['records'])===14,'forward import preserves 19 historical,13 available,6 unavailable,1 quarantine and one prior new fact without credit');
 }finally{hsCleanup($f);}
 
+require __DIR__.'/fixtures/hotel_server_correction_cases.php';
+
 echo 'HOTEL SERVER CYCLE '.(getenv('HOTEL_WORK_NATIVE_MYSQL')==='1'?'NATIVE MYSQL':'SQLITE').': '.$hsChecks." PASS\n";
+
 
