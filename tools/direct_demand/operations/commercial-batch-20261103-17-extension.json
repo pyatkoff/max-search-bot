@@ -1,0 +1,88 @@
+{
+  "operation": "commercial-hotel-batch-20261103-17-v1",
+  "state": "FOUR_ADDITIONAL_CAPTIONS_VERIFIED_MEDIA_PENDING_NOT_SENT",
+  "catalog_ids": [
+    245,
+    13869,
+    267,
+    12114
+  ],
+  "rows": [
+    {
+      "hotel_id": 245,
+      "hotel": "JAZ SHARM DREAMS RESORT",
+      "key": "jaz-sharm-dreams",
+      "aliases": [
+        "JAZ SHARM DREAMS RESORT",
+        "JAZ SHARM DREAMS"
+      ],
+      "sources": [
+        "https://www.tui.com/hotels/jaz-sharm-dreams-14024/hotelinformation/",
+        "https://www.ltur.com/de/urlaub/jaz-sharm-dreams-14024",
+        "https://partner.jazhotels.com/hotel/69"
+      ],
+      "text": "✈️ JAZ Sharm Dreams\nТур с перелётом в Шарм эль Шейх 🇪🇬\n\nСемейный отель в Наама Бэй с садом, бассейнами и вечерними развлечениями 🌴\n\n💦 Несколько бассейнов, в том числе детский.\n🧒 Детский клуб, игровая комната и площадка.\n🍽️ Три ресторана: шведский стол, итальянская кухня в Casa Sharm и мексиканская в Tex Mix.\n🏋️ Фитнесцентр, аквааэробика и занятия растяжкой.\n\nℹ️ Песчаный пляж отделён от отеля дорогой. По пути к морю её нужно переходить.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-jaz-sharm-dreams-245-v1",
+      "text_sha256": "055b9fd01176302407431c11868f304792cdf230ee2c0bab3c6f855964f9e9db"
+    },
+    {
+      "hotel_id": 13869,
+      "hotel": "JAZ NEO SARAYA PALMS (EX. JAZ MAKADI SARAYA PALMS)",
+      "key": "jaz-neo-saraya-palms",
+      "aliases": [
+        "JAZ NEO SARAYA PALMS (EX. JAZ MAKADI SARAYA PALMS)",
+        "JAZ NEO SARAYA PALMS"
+      ],
+      "sources": [
+        "https://www.tui.com/hotels/jaz-neo-saraya-palms-188075/hotelinformation/",
+        "https://www.ltur.com/at/urlaub/jaz-neo-saraya-palms-188075",
+        "https://partner.jazhotels.com/hotel/19"
+      ],
+      "text": "✈️ JAZ Neo Saraya Palms\nТур с перелётом в Хургаду 🇪🇬\n\nОтель в Мадинат Макади рядом с полем для гольфа. Есть студии и апартаменты 🌴\n\n💦 Бассейны Animation и Relaxing, детская зона для купания.\n🧒 Мини клуб для детей от 4 до 12 лет, игровая площадка и мини диско.\n🍽️ Международная и восточная кухня в ресторане Shams, два бара.\n🎾 Теннис, волейбол и настольный теннис.\n\nℹ️ Отель расположен в стороне от моря. До пляжа около 800 м.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-jaz-neo-saraya-palms-13869-v1",
+      "text_sha256": "2f1d14a58e4938da9189bf12cad07168a3aeb71175a3fadbacf01a3d13ac406d"
+    },
+    {
+      "hotel_id": 267,
+      "hotel": "IBEROTEL MAKADI BEACH",
+      "key": "iberotel-makadi-beach",
+      "aliases": [
+        "IBEROTEL MAKADI BEACH"
+      ],
+      "sources": [
+        "https://www.tui.com/hotels/iberotel-makadi-beach-by-jaz-14560/hotelinformation/",
+        "https://www.ltur.com/de/urlaub/iberotel-makadi-beach-by-jaz-14560",
+        "https://partner.jazhotels.com/hotel/15"
+      ],
+      "text": "✈️ Iberotel Makadi Beach by JAZ\nТур с перелётом в Хургаду 🇪🇬\n\nОтель в Мадинат Макади с садом и собственным песчаным пляжем 🐠\n\n🤿 У берега есть домашний риф для снорклинга.\n🧒 Мини клуб для детей от 4 до 11 лет, игровая площадка и детский бассейн.\n🍽️ Четыре ресторана, среди них восточный Arabesque и пляжный ресторан.\n🎾 Теннис, тренажёрный зал и пляжный волейбол.\n\nℹ️ Для входа в море рекомендуют обувь для купания.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-iberotel-makadi-beach-267-v1",
+      "text_sha256": "b27869f4f73d358c9540453693f9d1fb20634ace45ef434c080544d74fa81ff7"
+    },
+    {
+      "hotel_id": 12114,
+      "hotel": "JAZ ELITE PALACE ADULTS ONLY 16+ (EX. IBEROTEL PALACE ADULTS ONLY)",
+      "key": "jaz-elite-palace",
+      "aliases": [
+        "JAZ ELITE PALACE ADULTS ONLY 16+ (EX. IBEROTEL PALACE ADULTS ONLY)",
+        "JAZ ELITE PALACE 16+"
+      ],
+      "sources": [
+        "https://www.tui.com/hotels/jaz-elite-palace-adults-only-14562/hotelinformation/",
+        "https://www.ltur.com/de/urlaub/jaz-elite-palace-adults-only-14562",
+        "https://partner.jazhotels.com/hotel/1"
+      ],
+      "text": "✈️ JAZ Elite Palace 16+\nТур с перелётом в Шарм эль Шейх 🇪🇬\n\nОтель в бухте Шарм эль Майя принимает гостей от 16 лет 🌴\n\n🏖️ Собственный песчаный пляж с пологим входом в воду.\n💦 Три бассейна, в том числе крытый.\n🍽️ Четыре ресторана, среди них итальянский Toscana.\n🎾 Два теннисных корта, пляжный волейбол и настольный теннис.\n\nℹ️ К коралловому рифу для снорклинга добираются на катере. Это отдельная платная поездка.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-jaz-elite-palace-12114-v1",
+      "text_sha256": "29ba12dfc2303115cdff52b868065ebc78693d672d0558ff263494065405caec"
+    }
+  ],
+  "source_kind": "Exact first-party operator general hotel descriptions. No operator package entitlements, included-price claims or future service guarantee. Official JAZ media URLs were retained from source run41535974710 without new hotel-page GET.",
+  "material_risks": [
+    "Sharm Dreams beach route crosses a road; do not omit this.",
+    "Saraya Palms is about800m from the beach; do not present it as first line or promise a free future shuttle.",
+    "Iberotel Makadi Beach waterpark/restaurant entitlements for TUI are not AnyTour package rights.",
+    "Elite Palace is16+;reef snorkelling is reached by separately paid boat,not claimed as house reef from its sand beach."
+  ],
+  "message_sends": 0,
+  "server_connections": 0
+}
