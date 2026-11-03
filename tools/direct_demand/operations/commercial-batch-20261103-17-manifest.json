@@ -1,13 +1,86 @@
 {
   "operation": "commercial-hotel-batch-20261103-17-v1",
-  "state": "CONTENT_VERIFIED_MEDIA_DEFERRED_NOT_SENT",
-  "goal": "Prepare the two deferred whole hotel materials while the original production release owner resolves its separate failed cron verification.",
-  "boundaries": "Native62505 ROBINSON Soma Bay and4184 Sentido Reef Oasis Senses only. Public primary hotel photographs and existing Canva working copies. No server or provider publication call, old post edits, price claim or new runtime.",
-  "criteria": "A useful real general hotel/grounds hero and readable accepted AnyTour layout, then native PNG validation. Live approval and source gates remain necessary before any later send.",
-  "risks": "Prior hero choices showed beach/driveway or interior/single pool and remain rejected. Sentido primary Aqua Park closure10Jan through28Feb2027 stays in its whole caption.",
+  "state": "FOUR_GENERAL_HOTEL_CAPTIONS_VERIFIED_NATIVE_MEDIA_PENDING_NOT_SENT",
+  "goal": "Prepare a bounded ready subset of existing confirmed hotel stock while the production release owner resolves its failed verification.",
+  "boundaries": "Cloud preparation only. General facilities from the exact first-party TUI operator hotel descriptions; original hotel photographs from retained official JAZ photo pools. No TUI package benefits, free-service promise, current price, server connection or send.",
+  "criteria": "Whole Russian captions below1024 UTF16 without dashes;3or4 supported useful hotel features and an important practical feature; proper general hotel hero; accepted AnyTour layout; exact native PNG/hash/bytes/dimensions and visual check before immutable freeze. Normal successful source/deploy/TLS and publisher dedup remain mandatory before any future live approval.",
+  "risks": "Operator descriptions are general hotel information, not rights for an AnyTour package. Do not carry over operator-specific service, inclusion, prices or future operating schedules. Beach107 currently has no exact matching current primary hotel page; Maraya shoreline descriptions conflict and require separate resolution. Two previously rejected62505/4184 remain deferred.",
   "baseline_logical_materials": 88,
   "button_text": "✈️ Узнать стоимость тура",
   "rows": [
+    {
+      "hotel_id": 264,
+      "hotel": "JAZ DAHABEYA (EX. IBEROTEL DAHABEYA)",
+      "key": "jaz-dahabeya",
+      "aliases": [
+        "JAZ DAHABEYA (EX. IBEROTEL DAHABEYA)",
+        "JAZ DAHABEYA"
+      ],
+      "sources": [
+        "https://www.tui.com/hotels/jaz-dahabeya-39508/hotelinformation/",
+        "https://partner.jazhotels.com/hotel/28"
+      ],
+      "text": "✈️ JAZ Dahabeya\nТур с перелётом в Дахаб 🇪🇬\n\nНебольшой отель с садом. Здесь 144 номера в трёх двухэтажных корпусах 🌴\n\n💦 Основной и детский бассейны.\n🧒 Мини клуб для детей от 4 до 12 лет и игровая площадка.\n🍽️ Два ресторана и три бара, в том числе пляжный Sea Breeze.\n🏐 Тренажёрный зал, пляжный волейбол и занятия аэробикой.\n\nℹ️ Виндсёрфинг и снорклинг организуют сторонние службы за отдельную плату. Водные занятия зависят от погоды.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-jaz-dahabeya-264-v1",
+      "text_sha256": "91d2575007dd989239743232db81f589aa456df600564729c20a68fe7c8f6bfd",
+      "state": "GENERAL_HOTEL_FACTS_VERIFIED_MEDIA_PENDING"
+    },
+    {
+      "hotel_id": 73342,
+      "hotel": "JAZ SOMA BEACH (EX. SOLYMAR SOMA BEACH)",
+      "key": "jaz-soma-beach",
+      "aliases": [
+        "JAZ SOMA BEACH (EX. SOLYMAR SOMA BEACH)",
+        "JAZ SOMA BEACH"
+      ],
+      "sources": [
+        "https://www.tui.com/hotels/jaz-soma-beach-803903/hotelinformation/",
+        "https://partner.jazhotels.com/hotel/66"
+      ],
+      "text": "✈️ JAZ Soma Beach\nТур с перелётом в Хургаду 🇪🇬\n\nСемейный отель категории 4 звезды в Сома Бэй. На территории сад и вечерняя сцена 🌴\n\n💦 Два бассейна, в одном есть детская зона.\n🧒 Мини клуб для детей от 3 до 12 лет, игровая площадка и мини диско.\n🍽️ Пять ресторанов, среди них итальянский Olivo и восточный Fayrouz.\n🏓 Тренажёрный зал и настольный теннис.\n\nℹ️ Дайвинг и экскурсии для снорклинга проводят сторонние организаторы. Эти услуги оплачиваются отдельно.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-jaz-soma-beach-73342-v1",
+      "text_sha256": "985662572c7bb4a8e3bf639470b38f56d109e1a3b6cb75c24f5c164952ad7ab6",
+      "state": "GENERAL_HOTEL_FACTS_VERIFIED_MEDIA_PENDING"
+    },
+    {
+      "hotel_id": 278,
+      "hotel": "JAZ BELVEDERE",
+      "key": "jaz-belvedere",
+      "aliases": [
+        "JAZ BELVEDERE"
+      ],
+      "sources": [
+        "https://www.tui.com/hotels/jaz-belvedere-resort-59867/hotelinformation/",
+        "https://partner.jazhotels.com/hotel/2"
+      ],
+      "text": "✈️ JAZ Belvedere\nТур с перелётом в Шарм эль Шейх 🇪🇬\n\nОтель с садом и семейной программой отдыха 🌴\n\n💦 Три бассейна, в том числе отдельный детский.\n🧒 Мини клуб для детей от 4 до 12 лет, игровая площадка и мини диско.\n🍽️ Основной ресторан Rihana со шведским столом и Sayadeya с заказом по меню.\n🎾 Теннис, пляжный волейбол и настольный теннис.\n\nℹ️ В отеле есть тренажёрный зал. Его можно посещать с 14 лет.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-jaz-belvedere-278-v1",
+      "text_sha256": "2b4ae98328ab19a309874e8477938273839d9ce7f03ca15bf16b7665f9fd999b",
+      "state": "GENERAL_HOTEL_FACTS_VERIFIED_MEDIA_PENDING"
+    },
+    {
+      "hotel_id": 246,
+      "hotel": "JAZ FAYROUZ RESORT (EX. HILTON SHARM FAYROUZ RESORT)",
+      "key": "jaz-fayrouz",
+      "aliases": [
+        "JAZ FAYROUZ RESORT (EX. HILTON SHARM FAYROUZ RESORT)",
+        "JAZ FAYROUZ"
+      ],
+      "sources": [
+        "https://www.tui.com/hotels/jaz-fayrouz-95/hotelinformation/",
+        "https://partner.jazhotels.com/hotel/68"
+      ],
+      "text": "✈️ JAZ Fayrouz\nТур с перелётом в Шарм эль Шейх 🇪🇬\n\nОтель в Наама Бэй с садом и невысокими корпусами. В 38 одноэтажных зданиях расположены 210 номеров 🌴\n\n💦 Пять бассейнов, в том числе детский.\n🧒 Мини клуб для детей от 4 до 12 лет, игровая площадка и мини диско.\n🍽️ Международная и восточная кухня в Al Wadi, итальянская в ALFRESCO.\n🎶 Вечерние шоу, живая музыка и танцевальные программы.\n\nℹ️ Для посещения ресторана ALFRESCO нужна предварительная бронь.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "logical_id": "commercial-jaz-fayrouz-246-v1",
+      "text_sha256": "038201aaab83a07f5a2cc80bc1b44e00dfb68f78d352d242e5277de4ff0f4115",
+      "state": "GENERAL_HOTEL_FACTS_VERIFIED_MEDIA_PENDING"
+    }
+  ],
+  "ready_for_send_count": 0,
+  "new_posts": 0,
+  "provider_send_attempts": 0,
+  "temporary_canva_transactions": "EXACT_TWO_CANCELLED",
+  "deferred": [
     {
       "hotel_id": 62505,
       "hotel": "ROBINSON SOMA BAY",
@@ -59,12 +132,5 @@
       "rejection_reason": "Current official evening photograph is dominated by one pool and a single low building. It does not show the requested general hotel and grounds view.",
       "next_input": "A different verified official broad hotel or grounds photograph. Do not re-export this rejected hero or repeat the same page lookup without a new candidate."
     }
-  ],
-  "ready_for_send_count": 0,
-  "new_posts": 0,
-  "provider_send_attempts": 0,
-  "native_inspection_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41545499859",
-  "native_inspection_state": "TWO_PNG_VALID_BUT_HERO_COMPOSITION_REJECTED",
-  "temporary_canva_transactions": "EXACT_TWO_CANCELLED",
-  "public_png_frozen_count": 0
+  ]
 }

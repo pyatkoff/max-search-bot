@@ -1,0 +1,95 @@
+{
+  "operation": "commercial-hotel-batch-20261103-17-v1",
+  "state": "EXACT_OPERATOR_GENERAL_HOTEL_DESCRIPTIONS_READ_ORIGINAL_HOTEL_MEDIA_RETAINED",
+  "catalog_ids": [
+    264,
+    73342,
+    278,
+    246
+  ],
+  "source_kind": "Exact first-party TUI operator general hotel descriptions. Not an AnyTour package entitlement, current availability or hotel-owner future operation warranty.",
+  "rows": [
+    {
+      "hotel_id": 264,
+      "sources": [
+        "https://www.tui.com/hotels/jaz-dahabeya-39508/hotelinformation/",
+        "https://partner.jazhotels.com/hotel/28"
+      ],
+      "photo_candidates": [
+        "https://partner.jazhotels.com/Images/uploads/gallery/Downloads/jazdahabeya/15911_Jaz%20Dahabeya_Night%20Overview%20.JPG",
+        "https://partner.jazhotels.com/Images/uploads/gallery/Downloads/jazdahabeya/beach-bar-2021102014.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/Downloads/jazdahabeya/Family-Bed-room-with-Garden-View-2021102014.jpg"
+      ],
+      "caption_utf16": 516,
+      "text_sha256": "91d2575007dd989239743232db81f589aa456df600564729c20a68fe7c8f6bfd"
+    },
+    {
+      "hotel_id": 73342,
+      "sources": [
+        "https://www.tui.com/hotels/jaz-soma-beach-803903/hotelinformation/",
+        "https://partner.jazhotels.com/hotel/66"
+      ],
+      "photo_candidates": [
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/SolYMarSomaBeach/Hotel-Overview-1-2020113011.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/SolYMarSomaBeach/Hotel-Overview-2-2020113011.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/SolYMarSomaBeach/Aqua-Snacks-Bar-Outdoor-20226152.jpg"
+      ],
+      "caption_utf16": 541,
+      "text_sha256": "985662572c7bb4a8e3bf639470b38f56d109e1a3b6cb75c24f5c164952ad7ab6"
+    },
+    {
+      "hotel_id": 278,
+      "sources": [
+        "https://www.tui.com/hotels/jaz-belvedere-resort-59867/hotelinformation/",
+        "https://partner.jazhotels.com/hotel/2"
+      ],
+      "photo_candidates": [
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/jazbelvedere/Morning-Overview-202211289.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/jazbelvedere/Beach-202191913.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/jazbelvedere/Superior-Family-twin-bed-garden-view-20232418.jpg"
+      ],
+      "caption_utf16": 486,
+      "text_sha256": "2b4ae98328ab19a309874e8477938273839d9ce7f03ca15bf16b7665f9fd999b"
+    },
+    {
+      "hotel_id": 246,
+      "sources": [
+        "https://www.tui.com/hotels/jaz-fayrouz-95/hotelinformation/",
+        "https://partner.jazhotels.com/hotel/68"
+      ],
+      "photo_candidates": [
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/new/061132Hotel%20Overview.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/new/061130Flamb%C3%A9%20Pool%20Bar.jpg",
+        "https://partner.jazhotels.com/Images/uploads/gallery/photos/new/071122Superior%20Family%20Room%2C%20Twin%20Bed%2C%20Pool%20View.jpg"
+      ],
+      "caption_utf16": 535,
+      "text_sha256": "038201aaab83a07f5a2cc80bc1b44e00dfb68f78d352d242e5277de4ff0f4115"
+    }
+  ],
+  "deferred": [
+    {
+      "hotel_id": 67897,
+      "state": "SHORELINE_CONFLICT_REQUIRES_PRIMARY_HOTEL_RESOLUTION",
+      "sources": [
+        "https://www.tui.com/hotels/jaz-elite-maraya-899018/hotelinformation/",
+        "https://www.ltur.com/de/urlaub/jaz-elite-maraya-899018"
+      ],
+      "note": "TUI general amenities readable; current LTUR22Oct2026 text both says beachfront and specifies directly at sea without bathing beach/rocky shoreline. Do not invent sand entry or a pier route."
+    },
+    {
+      "hotel_id": 107,
+      "state": "NO_EXACT_CURRENT_PRIMARY_MATCH_FOUND",
+      "note": "Current official Pickalbatros contact/knowledge hub lists six Marsa Alam objects, not this catalog Beach Albatros Marsa Alam identity. Do not substitute Sea World or Beach Albatros Hurghada132."
+    }
+  ],
+  "new_method_limit": [
+    {
+      "url": "https://partner.jazhotels.com/Images/uploads/gallery/downloads/jazdahabeya/JAZ%20Dahabeya%208-pager%20Factsheet.pdf",
+      "state": "WEB_CONTENT_LENGTH_TOO_LARGE",
+      "observed_bytes": 18303899,
+      "note": "This is the new8pager only. It does not establish the cause of earlier different PDF AssertionError failures."
+    }
+  ],
+  "message_sends": 0,
+  "server_connections": 0
+}
