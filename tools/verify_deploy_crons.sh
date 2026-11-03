@@ -12,9 +12,13 @@ development_pid=
 cleanup() {
   local status=$?
   trap - EXIT HUP INT TERM
+  # Only live jobs still owned by this shell may receive a signal.
+  # A completed child PID can already have been reused by another process.
+  for pid in $(jobs -pr); do
+    kill "$pid" 2>/dev/null || true
+  done
   for pid in "$hotel_pid" "$development_pid"; do
     if [[ -n "$pid" ]]; then
-      kill "$pid" 2>/dev/null || true
       wait "$pid" 2>/dev/null || true
     fi
   done
