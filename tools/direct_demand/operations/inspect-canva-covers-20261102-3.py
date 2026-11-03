@@ -1,19 +1,19 @@
 import base64,hashlib,json,os,struct,urllib.parse,urllib.request
 from pathlib import Path
-rows=json.loads("[{\"hotel_id\":441,\"url\":\"https://export-download.canva.com/692264b3-6755-4f58-a718-2b9c5a96e11a/0/0001-422733475016078590.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUH4R7NKVBA%2F20261102%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20261102T215204Z&X-Amz-Expires=54563&X-Amz-Signature=63b6d84e4a0c2672dcab71e9e3a703434d23a232bb3dabb99b25a5b8ae5bc323&X-Amz-SignedHeaders=host%3Bx-amz-expected-bucket-owner&response-expires=Tue%2C%2003%20Nov%202026%2013%3A01%3A27%20GMT\"}]")
+rows=json.loads("[{\"hotel_id\":21477,\"url\":\"https://export-download.canva.com/e7e94b49-d5bf-452f-8ade-034c981d5afb/0/0001-2530418108838143198.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUH4R7NKVBA%2F20261102%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20261102T135708Z&X-Amz-Expires=85457&X-Amz-Signature=40bd8a4d366efbc748916b68ccaf904e48c362a1deb0b77e7604e62bfb4f9065&X-Amz-SignedHeaders=host%3Bx-amz-expected-bucket-owner&response-expires=Tue%2C%2003%20Nov%202026%2013%3A41%3A25%20GMT\"},{\"hotel_id\":60589,\"url\":\"https://export-download.canva.com/3712ff59-f926-486c-8ec4-e638d2d86d08/0/0001-5757247239440743715.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUH4R7NKVBA%2F20261103%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20261103T072957Z&X-Amz-Expires=22459&X-Amz-Signature=79842d965c38e4873fd11a15fb5aa0ac03866dfb591441deed352fb830253e67&X-Amz-SignedHeaders=host%3Bx-amz-expected-bucket-owner&response-expires=Tue%2C%2003%20Nov%202026%2013%3A44%3A16%20GMT\"}]")
 group=int(os.environ['COVER_GROUP'])
-assert group==0 and len(rows)==1
+assert group==0 and len(rows)==2
 rows=rows[group*3:group*3+3]
 assert 1<=len(rows)<=3
 class NoRedirect(urllib.request.HTTPRedirectHandler):
  def redirect_request(self,*args,**kwargs):raise ValueError('unexpected_asset_redirect')
 opener=urllib.request.build_opener(NoRedirect())
-out={'operation':'commercial-batch21-covers-20261103-read1','mode':'inspect_native_promotional_images_only','message_sends':0,'db_writes':0,'server_connections':0,'group':group,'covers':[]}
+out={'operation':'commercial-batch22-covers-20261103-read1','mode':'inspect_native_promotional_images_only','message_sends':0,'db_writes':0,'server_connections':0,'group':group,'covers':[]}
 Path('covers').mkdir(exist_ok=True)
 for row in rows:
  p=urllib.parse.urlsplit(row['url'])
  assert p.scheme=='https' and p.hostname=='export-download.canva.com' and p.port in (None,443) and not p.username and not p.password
- assert row['hotel_id'] in (441,)
+ assert row['hotel_id'] in (21477,60589)
  with opener.open(row['url'],timeout=35) as r:
   raw=r.read(1600001)
   assert r.status==200
