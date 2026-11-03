@@ -1,0 +1,13 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261103-read1",
+  "state": "CLOSED_READ_COMPLETE_READER_PLATFORM_MAPPING_CORRECTION_REQUIRED",
+  "scope_hotels": 121,
+  "ready_rows": 0,
+  "deferred_count": 121,
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41697745820",
+  "reason": "First reader incorrectly assumed registry9 meantTelegram and10 meantMAX. Use actual post_channels.platform via canonical join, not numeric position. No wrong public feeds were created.",
+  "next_operation": "commercial-channel-hotel-feeds-20261103-read2",
+  "provider_calls": 0,
+  "db_writes": 0,
+  "message_sends": 0
+}

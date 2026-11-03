@@ -45,7 +45,7 @@ jobs:
           umask 077
           python3 - <<'PY'
           import os,pathlib
-          source=pathlib.Path('tools/direct_demand/operations/read-commercial-channel-hotel-feeds-20261103-1.php').read_text()
+          source=pathlib.Path('tools/direct_demand/operations/read-commercial-channel-hotel-feeds-20261103-2.php').read_text()
           prefix="<?php\ndeclare(strict_types=1);\n"
           assert source.startswith(prefix)
           import base64,hashlib
@@ -108,7 +108,7 @@ jobs:
           lines=pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.json').read_text().splitlines()
           d=json.loads(lines[-1])
           print(json.dumps(d,ensure_ascii=False,sort_keys=True))
-          assert d['operation']=='commercial-channel-hotel-feeds-20261103-read1' and d['mode']=='read_bounded_public_channel_post_feed_inputs'
+          assert d['operation']=='commercial-channel-hotel-feeds-20261103-read2' and d['mode']=='read_bounded_public_channel_post_feed_inputs'
           assert d['ok'] is True and d['scope_hotels']==121 and d['feed_rows']+d['deferred_count']==121
           assert d['db_writes']==0 and d['provider_calls']==0 and d['message_sends']==0
           PY
@@ -117,7 +117,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-channel-hotel-feeds-20261103-read1
+          name: commercial-channel-hotel-feeds-20261103-read2
           path: |
             ${{ runner.temp }}/channel-preflight.json
           retention-days: 14
