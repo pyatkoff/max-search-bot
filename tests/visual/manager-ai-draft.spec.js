@@ -8,7 +8,8 @@ const profileShell=execFileSync('php',['manager2/request-profile.php'],{cwd:sour
 const {startOAuthFixture}=require('./fixtures/oauth-consent');
 const {setupAiUsage}=require('./fixtures/manager-ai-usage');
 const proposal=(changes={})=>({ok:true,should_draft:true,draft:'Какие даты поездки вам удобны?',next_action:'clarify',reason:'В запросе не указаны даты вылета.',checks:[],evidence_message_ids:[35],history_incomplete:false,revision:'1'.repeat(64),latest_message_id:35,draft_id:'d'.repeat(32),...changes});
-const prepared=(changes={})=>proposal({prepared:true,prepared_at:'2026-10-19T10:30:00Z',source:'chatgpt',draft_id:null,...changes});
+const visualPreparedAt=new Date().toISOString();
+const prepared=(changes={})=>proposal({prepared:true,prepared_at:visualPreparedAt,expires_at:new Date(Date.now()+3600000).toISOString(),source:'chatgpt',draft_id:null,...changes});
 // Render the actual PHP shell and canonical assets. Every identity, message,
 // proposal and HTTP response in this fixture is synthetic and stays in loopback.
 async function setup(page,{readiness=false,automatic=false,ensureHandler=null,hideNotice=false,supervisor=false,owner=false,ownerState='manager',previewHandler=null,blocked=false,manualTask=false,profilePanel=false,preparationControls=false}={}){
@@ -107,322 +108,100 @@ async function bounded(page){
   await page.locator('#sendReply').scrollIntoViewIfNeeded();expect(await page.locator('#sendReply').evaluate(node=>node.getBoundingClientRect().bottom)).toBeLessThanOrEqual(viewport.height+1);
 }
 async function capture(page,browserName,viewport){const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});await page.screenshot({animations:'disabled',path:path.join(directory,`ai-draft-${browserName}-${viewport.width}-${viewport.height}-preview.png`)})}
-async function replyFitsAssistant(page,{allowClipping=false}={}){
-  await expect(page.locator('#m2Assistant')).toHaveCount(1);
-  await expect(page.locator('#m2Assistant #aiDraftSuggestion')).toBeVisible();
-  await expect(page.locator('#aiDraftSuggestion')).not.toHaveClass(/aiSuggestionGhost/);
-  await expect(page.locator('#aiDraftSuggestion .aiSuggestionHead')).toBeVisible();
-  await expect(page.locator('#replyText')).toHaveValue('');
-  const geometry=await page.locator('#aiDraftSuggestion').evaluate(node=>{
-    const host=node.closest('#m2Assistant').getBoundingClientRect(),rect=node.getBoundingClientRect(),field=document.querySelector('#replyText').getBoundingClientRect(),text=node.querySelector('.aiSuggestionText');
-    const top=Math.max(rect.top,host.top),bottom=Math.min(rect.bottom,host.bottom);
-    return {left:rect.left,right:rect.right,hostLeft:host.left,hostRight:host.right,overlap:bottom>top&&top<field.bottom&&bottom>field.top,clipped:text.scrollHeight>text.clientHeight+1};
-  });
-  expect(geometry.left).toBeGreaterThanOrEqual(geometry.hostLeft-1);expect(geometry.right).toBeLessThanOrEqual(geometry.hostRight+1);expect(geometry.overlap).toBe(false);
-  if(!allowClipping)expect(geometry.clipped).toBe(false);
+async function replyFitsAssistant(page){
+  const reply=page.locator('#replyText');await expect(reply).toBeVisible();await expect(reply).toHaveClass(/aiDraftPreview/);
+  await expect(page.locator('#aiDraftSuggestion')).toBeHidden();await expect(page.locator('#aiDraftPanel')).toBeHidden();
+  expect(await page.locator('#composer textarea').count()).toBe(1);expect(await page.locator('#composer input[type=file]').count()).toBe(1);
+  const paint=await reply.evaluate(node=>{const r=node.getBoundingClientRect(),style=getComputedStyle(node),hit=document.elementFromPoint((r.left+r.right)/2,(r.top+r.bottom)/2);return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,height:r.height,font:parseFloat(style.fontSize),hit:hit===node}}),view=page.viewportSize();
+  expect(paint.left).toBeGreaterThanOrEqual(-1);expect(paint.right).toBeLessThanOrEqual(view.width+1);expect(paint.top).toBeGreaterThanOrEqual(-1);expect(paint.bottom).toBeLessThanOrEqual(view.height+1);expect(paint.height).toBeGreaterThanOrEqual(32);expect(paint.font).toBeGreaterThanOrEqual(14);expect(paint.hit).toBe(true);
 }
-async function assistantPaint(page,selector){
-  return page.locator(selector).evaluate(node=>{
-    const rect=node.getBoundingClientRect(),host=node.closest('#m2Assistant').getBoundingClientRect();
-    const top=Math.max(rect.top,host.top,0),bottom=Math.min(rect.bottom,host.bottom,innerHeight),left=Math.max(rect.left,host.left),right=Math.min(rect.right,host.right);
-    const hit=bottom>top&&right>left?document.elementFromPoint((left+right)/2,(top+bottom)/2):null;
-    return {height:Math.max(0,bottom-top),targetHeight:rect.height,hostHeight:host.height,hit:!!hit&&(hit===node||node.contains(hit)),fontSize:parseFloat(getComputedStyle(node).fontSize)};
-  });
-}
-async function openRequestProfile(page){const row=page.locator('#m2CurrentTrip');if(!await row.evaluate(el=>el.open))await row.locator(':scope > summary').click();await page.getByRole('button',{name:'Уточнить запрос',exact:true}).click();}
-async function readAssistantSection(page,selector){
-  // The panel opens before its async proposal renders the requested section.
-  let host,target;
-  await expect.poll(async()=>{
-    host=await page.locator('#m2Assistant').boundingBox();target=await page.locator(selector).boundingBox();
-    return !!host&&host.width>0&&host.height>0&&!!target&&target.width>0&&target.height>0;
-  }).toBe(true);
-  await page.locator('#m2Assistant').hover();await page.mouse.wheel(0,target.y+target.height/2-host.y-host.height/2);
-  await expect.poll(async()=>{const p=await assistantPaint(page,selector);return p.hit&&p.height>=Math.min(p.targetHeight,p.hostHeight-16)-1}).toBe(true);
-}
-// Synthetic UI replay only: no provider call, production context or customer send.
-for(const viewport of [{width:390,height:420},{width:430,height:900},{width:1440,height:900}])test('Unified assistant preserves reading and separates reply from checks '+viewport.width+'x'+viewport.height,async({page},testInfo)=>{
+async function assistantPaint(page,selector){return page.locator(selector).evaluate(node=>{const r=node.getBoundingClientRect(),scroller=node.closest('.aiDraftBody')||node.closest('#aiDraftPanel'),s=scroller.getBoundingClientRect(),top=Math.max(r.top,s.top,0),bottom=Math.min(r.bottom,s.bottom,innerHeight),left=Math.max(r.left,s.left,0),right=Math.min(r.right,s.right,innerWidth),hit=bottom>top&&right>left?document.elementFromPoint((left+right)/2,(top+bottom)/2):null;return {height:Math.max(0,bottom-top),targetHeight:r.height,hostHeight:s.height,hit:!!hit&&(hit===node||node.contains(hit)),fontSize:parseFloat(getComputedStyle(node).fontSize)}})}
+async function readAssistantSection(page,selector){await page.locator(selector).scrollIntoViewIfNeeded();await expect.poll(async()=>{const p=await assistantPaint(page,selector);return p.hit&&p.height>=Math.min(p.targetHeight,p.hostHeight-8)-1}).toBe(true)}
+async function openRequestProfile(page){const row=page.locator('#m2CurrentTrip');if(!await row.evaluate(el=>el.open))await row.locator(':scope > summary').click();await page.getByRole('button',{name:'Уточнить запрос',exact:true}).click()}
+async function openAi(page,{owner=false}={}){await (owner?page.getByRole('button',{name:'AI · Просмотр',exact:true}):page.locator('#aiDraftOpen')).click();await expect(page.locator('#aiDraftPanel')).toBeVisible()}
+async function settled(page){await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0)}
+const aiViewports=[{width:390,height:420},{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900}];
+// Current native UI contract replaces the removed overlay/Insert-first presentation.
+// Existing auth, stale, retry, File and manual-send boundaries remain exercised below.
+for(const viewport of aiViewports)test('Editable AI preserves reading, native input, File and manager review '+viewport.width+'x'+viewport.height,async({page},testInfo)=>{
   await page.setViewportSize(viewport);let release;
-  const response=prepared({draft:'Из какого города вылетаете и какой бюджет рассматриваете?',reason:'Уточнить город и бюджет, сохраняя известные условия.',checks:['Проверить пляж без сильного ветра.','Сверить реальные условия проживания.'],expires_at:new Date(Date.now()+3600000).toISOString(),admission:{
-    schema_version:1,decision:'manager_review',actual_send_allowed:false,
-    criteria:{
-      last_customer_question:{status:'unknown',message:'Проверьте, отвечает ли текст на последний ввод и все ещё открытые вопросы и исправления клиента.'},
-      context_currentness:{status:'pass',message:'Техническая привязка актуальна на момент проверки. Это не проверка смысла ответа.'},
-      answer_completeness:{status:'unknown',message:'Нет независимой проверки, что ответ охватывает все текущие вопросы. Ссылки на сообщения и пустой список проверок этого не доказывают.'},
-      material_conditions:{status:'unknown',message:'Нужен источник каждого существенного условия именно текущего варианта. Старое предложение, фото и сведения об отеле не подтверждают текущую цену, наличие или бронирование.'}
-    },
-    send_pause:{state:'requires_explicit_resume',explicit_resume_proven:false,message:'После ответа менеджера нужен отдельный явный допуск к возобновлению автоответов. Новый ввод клиента и правила подготовки его не заменяют.'}
-  }});
-  const state=await setup(page,{readiness:true,profilePanel:true,previewHandler:async()=>{await new Promise(resolve=>{release=resolve});return {body:response}}});
-  state.setAI(async data=>data.action==='prepared'?{body:response}:{body:{ok:true,revision:'1'.repeat(64),latest_message_id:35}});
-  await expect.poll(()=>!!release).toBe(true);await expect(page.locator('#m2Assistant #m2CurrentTrip')).toBeVisible();
-  await page.locator('#replyFile').setInputFiles({name:'assistant-retained.txt',mimeType:'text/plain',buffer:Buffer.from('synthetic attachment')});
-  await page.locator('#messages').hover();await page.mouse.wheel(0,-250);
-  // Native wheel animation may outlast a fixed delay in WebKit. Capture the
-  // reading anchor only after actual scroll offsets settle across paint frames.
-  await expect.poll(()=>page.locator('#messages').evaluate(async node=>{
-    const samples=[];for(let i=0;i<4;i++){await new Promise(requestAnimationFrame);samples.push(node.scrollTop)}
-    return Math.max(...samples)-Math.min(...samples);
-  })).toBeLessThanOrEqual(.1);
-  const anchor=()=>page.locator('#messages').evaluate(box=>{const edge=box.getBoundingClientRect().top,row=[...box.children].find(node=>node.getBoundingClientRect().bottom>edge+1);return {key:row?.dataset.scrollMessageKey,offset:row?.getBoundingClientRect().top-edge}});
-  const before=await anchor();release();await expect(page.locator('#aiDraftSuggestion')).toBeVisible();
-  // The bounded helper scrolls independently on a short screen. Reach its
-  // answer controls with a native wheel rather than measuring offscreen content.
-  const initialControl=await page.locator('#aiSuggestionDetails').boundingBox(),initialHelper=await page.locator('#m2Assistant').boundingBox();
-  const wheel=initialControl.y<initialHelper.y?initialControl.y-initialHelper.y-8:Math.max(0,initialControl.y+initialControl.height-initialHelper.y-initialHelper.height+8);
-  if(wheel){await page.locator('#m2Assistant').hover();await page.mouse.wheel(0,wheel);await page.waitForTimeout(150)}
-  const control=await page.locator('#aiSuggestionDetails').boundingBox(),helper=await page.locator('#m2Assistant').boundingBox();
-  expect(control.y).toBeGreaterThanOrEqual(helper.y);expect(control.y+control.height).toBeLessThanOrEqual(helper.y+helper.height);
-  await replyFitsAssistant(page);
+  const answer=prepared({draft:'Из какого города вылетаете и какой бюджет рассматриваете?',checks:['Проверить пляж на выбранные даты.'],admission:{schema_version:1,decision:'manager_review',actual_send_allowed:false,criteria:{last_customer_question:{status:'unknown',message:'Проверьте последний вопрос.'},context_currentness:{status:'pass',message:'Техническая привязка проверена.'},answer_completeness:{status:'unknown',message:'Проверьте полноту.'},material_conditions:{status:'unknown',message:'Нужны источники условий.'}}}});
+  const state=await setup(page,{readiness:true,profilePanel:true,previewHandler:async()=>{await new Promise(r=>{release=r});return {body:answer}}}),reply=page.locator('#replyText');
+  await expect.poll(()=>!!release).toBe(true);await page.locator('#replyFile').setInputFiles({name:'assistant-retained.txt',mimeType:'text/plain',buffer:Buffer.from('synthetic attachment')});await settled(page);
+  await page.locator('#messages').hover();await page.mouse.wheel(0,-250);await expect.poll(()=>page.locator('#messages').evaluate(async node=>{const xs=[];for(let i=0;i<4;i++){await new Promise(requestAnimationFrame);xs.push(node.scrollTop)}return Math.max(...xs)-Math.min(...xs)})).toBeLessThanOrEqual(.1);
+  const anchor=()=>page.locator('#messages').evaluate(box=>{const top=box.getBoundingClientRect().top,row=[...box.children].find(n=>n.getBoundingClientRect().bottom>top+1);return {key:row?.dataset.scrollMessageKey,offset:row?.getBoundingClientRect().top-top}}),before=await anchor();
+  await reply.focus();await reply.evaluate(node=>{window.autoUiProof={reply:node,form:document.querySelector('#composer'),file:document.querySelector('#replyFile'),attachment:document.querySelector('#mediaSelection .mediaSelectedItem')};node.setSelectionRange(0,0)});release();await expect(reply).toHaveValue(answer.draft);await replyFitsAssistant(page);await expect(reply).toBeFocused();
   await expect.poll(async()=>Math.abs((await anchor()).offset-before.offset)).toBeLessThanOrEqual(2);expect((await anchor()).key).toBe(before.key);
-  const geometry=await page.evaluate(()=>{const r=id=>{const x=document.getElementById(id).getBoundingClientRect();return {width:x.width,height:x.height,bottom:x.bottom}};return {title:r('conversationTitle'),messages:r('messages'),reply:r('replyText'),helper:r('m2Assistant'),overflow:document.documentElement.scrollWidth-innerWidth}});
-  expect(geometry.title.width).toBeGreaterThan(60);expect(geometry.messages.height).toBeGreaterThan(60);expect(geometry.reply.height).toBeGreaterThanOrEqual(32);expect(geometry.reply.bottom).toBeLessThanOrEqual(viewport.height+1);expect(geometry.helper.height).toBeLessThanOrEqual(viewport.height*.39+1);expect(geometry.overflow).toBeLessThanOrEqual(1);
-  await expect(page.locator('#assistantClientOpen')).toHaveCount(0);await page.locator('#aiDraftOpen').click();
-  await expect(page.locator('#aiDraftPanel')).toBeVisible();await expect(page.locator('#assistantDialog')).toHaveCount(0);await expect(page.locator('.aiDraftSectionTitle')).toHaveText(['Готовый ответ туристу','Проверки менеджеру','Допуск к автоответам']);
-  await expect(page.locator('.aiDraftAdmission li')).toHaveCount(4);
-  await expect(page.locator('.aiDraftAdmission li')).toContainText(['Последний ввод клиента: Не подтверждено.','Актуальность контекста: Техническая привязка проверена.','Полнота ответа: Не подтверждено.','Подтверждение условий: Не подтверждено.']);
-  await expect(page.locator('.aiDraftText')).toHaveText(response.draft);
-  await expect(page.locator('#aiDraftSuggestion')).toBeHidden();
-  await expect.poll(async()=>{const p=await assistantPaint(page,'.aiDraftText');return p.hit&&p.height>=Math.min(24,p.targetHeight)}).toBe(true);
-  await page.screenshot({animations:'disabled',path:testInfo.outputPath('unified-assistant-open-'+viewport.width+'-'+viewport.height+'.png')});
-  await readAssistantSection(page,'.aiDraftText');
-  expect((await assistantPaint(page,'.aiDraftText')).fontSize).toBeGreaterThanOrEqual(13);
-  await page.screenshot({animations:'disabled',path:testInfo.outputPath('unified-assistant-answer-'+viewport.width+'-'+viewport.height+'.png')});
-  await readAssistantSection(page,'.aiDraftChecks li:last-child');
-  await page.screenshot({animations:'disabled',path:testInfo.outputPath('unified-assistant-checks-'+viewport.width+'-'+viewport.height+'.png')});
-  await readAssistantSection(page,'.aiDraftAdmission li:last-child');
-  await expect(page.locator('#aiDraftPanel .aiDraftBody')).toContainText('Нужна проверка менеджера. Автоотправка выключена.');
-  fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});
-  await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts','unified-assistant-admission-'+viewport.width+'-'+viewport.height+'.png')});
-  await readAssistantSection(page,'#m2CurrentTrip strong');
-  await page.screenshot({animations:'disabled',path:testInfo.outputPath('unified-assistant-request-'+viewport.width+'-'+viewport.height+'.png')});
-  await page.locator('#aiDraftOpen').click();await expect(page.locator('#aiDraftPanel')).toBeHidden();
-  await page.locator('#aiDraftOpen').click();await expect(page.locator('.aiDraftText')).toHaveText(response.draft);
-  await expect.poll(async()=>{const p=await assistantPaint(page,'.aiDraftText');return p.hit&&p.height>=Math.min(24,p.targetHeight)}).toBe(true);
-  await expect(page.locator('#m2Assistant')).toHaveCount(1);
-  await page.locator('#replyText').click();await expect(page.locator('#replyText')).toBeFocused();
-  await page.locator('#replyText').fill('Мой неотправленный ответ');await expect(page.locator('#mediaSelection')).toContainText('assistant-retained.txt');
-  await page.locator('#m2ReplyExpand').click();await expect(page.locator('#m2ReplyEditor')).toBeVisible();
-  await page.locator('#m2ReplyCollapse').click();await expect(page.locator('#replyText')).toHaveValue('Мой неотправленный ответ');
-  await expect(page.locator('#mediaSelection')).toContainText('assistant-retained.txt');
-  await page.locator('#messages').hover();await page.mouse.wheel(0,-120);
-  const image=testInfo.outputPath('unified-assistant-'+viewport.width+'-'+viewport.height+'.png');await page.screenshot({animations:'disabled',path:image});await testInfo.attach('unified-assistant',{body:fs.readFileSync(image),contentType:'image/png'});clean(state);
-  const readonlyPage=await page.context().newPage();
-  await readonlyPage.setViewportSize(viewport);
-  const readonly=await setup(readonlyPage,{readiness:'recommendations',profilePanel:true,owner:true,previewHandler:async()=>({body:prepared({should_draft:false,draft:null,next_action:'check_offer',reason:'Нет актуального расчёта на новый срок.',checks:['Сверить состав и питание по словам туриста; рассчитать новый срок.'],expires_at:new Date(Date.now()+3600000).toISOString()})})});
-  await expect(readonlyPage.locator('#aiRecommendationNotice')).toBeVisible();await readonlyPage.locator('#aiRecommendationDetails').click();
-  await expect(readonlyPage.locator('#m2Assistant')).toHaveCount(1);await expect(readonlyPage.locator('.aiDraftText')).toHaveCount(0);await expect(readonlyPage.locator('#aiDraftInsert')).toBeHidden();await expect(readonlyPage.locator('#aiSuggestionAccept')).toBeHidden();
-  await expect.poll(async()=>{const p=await assistantPaint(readonlyPage,'.aiDraftEmpty');return p.hit&&p.height>=Math.min(24,p.targetHeight)}).toBe(true);
-  await readAssistantSection(readonlyPage,'.aiDraftChecks li:last-child');
-  await readonlyPage.screenshot({animations:'disabled',path:testInfo.outputPath('unified-assistant-readonly-'+viewport.width+'-'+viewport.height+'.png')});
-  await readAssistantSection(readonlyPage,'.aiDraftClose');await readonlyPage.locator('.aiDraftClose').click();
-  await expect(readonlyPage.locator('#aiDraftPanel')).toBeHidden();
-  clean(readonly);await readonlyPage.close();
+  expect(await reply.evaluate(node=>[node.selectionStart,node.selectionEnd])).toEqual([0,0]);expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('workspaceV2.replySession.v1')).drafts.some(d=>d.text))).toBe(false);
+  await expect(page.locator('#aiDraftOpen')).toHaveText('AI');await openAi(page);await expect(page.locator('#aiDraftPanel .aiDraftText')).toHaveCount(0);await expect(page.locator('.aiDraftAdmission li')).toHaveCount(4);await expect(page.locator('.aiDraftSectionTitle')).toHaveText(['Проверки менеджеру','Допуск к автоответам']);
+  await readAssistantSection(page,'.aiDraftChecks li:last-child');await readAssistantSection(page,'.aiDraftAdmission li:last-child');await bounded(page);await page.screenshot({animations:'disabled',path:testInfo.outputPath('unified-assistant-open-'+viewport.width+'-'+viewport.height+'.png')});
+  await page.locator('.aiDraftClose').click();await reply.fill('Мой неотправленный ответ');await expect(reply).not.toHaveClass(/aiDraftPreview/);const humanColor=await reply.evaluate(n=>getComputedStyle(n).color);expect(humanColor).not.toBe('rgb(119, 134, 121)');
+  await page.locator('#m2ReplyExpand').click();await expect(page.locator('#m2ReplyEditor')).toBeVisible();await page.locator('#m2ReplyCollapse').click();await expect(reply).toHaveValue('Мой неотправленный ответ');
+  await expect(page.locator('#mediaSelection')).toContainText('assistant-retained.txt');expect(await page.evaluate(()=>{const p=autoUiProof;return p.reply===document.querySelector('#replyText')&&p.form===document.querySelector('#composer')&&p.file===document.querySelector('#replyFile')&&p.attachment===document.querySelector('#mediaSelection .mediaSelectedItem')&&WorkspaceV2Media.hasFile()})).toBe(true);
+  expect(state.aiCalls()).toEqual([]);expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);clean(state);
 });
-for(const stage of ['prepared','validate'])for(const width of [430,1440])test('AI inline insertion recovery '+stage+' '+width,async({page,browserName})=>{
-  const viewport={width,height:width===430?420:900};await page.setViewportSize(viewport);
-  const state=await setup(page,{readiness:true});
-  await expect(page.locator('#aiDraftSuggestion')).toBeVisible();
-  await expect(page.locator('#aiSuggestionAccept')).toHaveText('Вставить в ответ');
-  await page.locator('#replyFile').setInputFiles({name:'insertion-recovery.txt',mimeType:'text/plain',buffer:Buffer.from('synthetic retained attachment')});
-  let failed=true;
-  state.setAI(async data=>{
-    if(data.action===stage&&failed)return {body:{ok:false,error:stage==='prepared'?'prepared_unavailable':'temporary_unavailable'},status:503};
-    return data.action==='prepared'?{body:prepared({draft_id:'d'.repeat(32),expires_at:new Date(Date.now()+3600000).toISOString()})}:{body:{ok:true,revision:'1'.repeat(64),latest_message_id:35,draft_id:data.draft_id||null}};
-  });
-  await page.locator('#replyText').focus();
-  if(width===1440)await page.locator('#replyText').press('Tab');else await page.locator('#aiSuggestionAccept').click();
-  await expect(page.locator('#aiDraftPanel')).toBeVisible();await expect(page.locator('#aiDraftStatus')).toContainText('Не удалось проверить');
-  await expect(page.locator('#aiDraftStatus')).not.toContainText('Переписка изменилась');await expect(page.locator('#replyText')).toHaveValue('');
-  if(width===1440)await expect(page.locator('#replyText')).toBeFocused();
-  await expect(page.locator('#mediaSelection')).toContainText('insertion-recovery.txt');expect(await page.evaluate(()=>WorkspaceV2Media.hasFile())).toBe(true);
-  expect(state.aiCalls().filter(call=>call.action===stage)).toHaveLength(1);expect(state.aiCalls().some(call=>call.action==='generate')).toBe(false);
-  await bounded(page);
-  const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});
-  await page.screenshot({animations:'disabled',path:path.join(directory,`ai-inline-recovery-${browserName}-${stage}-${width}-${viewport.height}.png`)});
-  failed=false;
-  if(stage==='prepared'){await expect(page.locator('#aiDraftRetry')).toHaveText('Повторить проверку');await page.locator('#aiDraftRetry').click();}
-  await expect(page.locator('#aiDraftInsert')).toBeEnabled();
-  await page.locator('#replyText').fill('Моя поправка');await page.locator('#aiDraftInsert').click();
-  await expect(page.locator('#aiDraftPanel')).toBeHidden();
-  await expect(page.locator('#replyText')).toHaveValue('Моя поправка\n'+proposal().draft);
-  await expect(page.locator('#mediaSelection')).toContainText('insertion-recovery.txt');expect(await page.evaluate(()=>WorkspaceV2Media.hasFile())).toBe(true);
-  expect(state.aiCalls().filter(call=>call.action===stage)).toHaveLength(2);expect(state.aiCalls().at(-1).draft_id).toBe('d'.repeat(32));
-  expect(state.aiCalls().some(call=>call.action==='generate')).toBe(false);clean(state);
+for(const viewport of aiViewports)for(const change of ['new message','same-ID edit','TTL','clear','Escape'])test('Editable AI invalidation '+change+' '+viewport.width+'x'+viewport.height,async({page})=>{
+  await page.setViewportSize(viewport);const state=await setup(page,{readiness:true}),reply=page.locator('#replyText');await expect(reply).toHaveValue(proposal().draft);await replyFitsAssistant(page);
+  await page.locator('#replyFile').setInputFiles({name:'retained.txt',mimeType:'text/plain',buffer:Buffer.from('synthetic File')});
+  if(change==='new message'||change==='same-ID edit'){if(change==='new message')state.messages.get(11).push({id:36,sender_type:'customer',text:'Новое условие',created_at:'2026-10-17 12:01:00'});else state.messages.get(11)[34].text='Изменённое условие';state.setPreview(async()=>({body:{ok:true,prepared:false}}));await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible())}
+  if(change==='TTL')await page.evaluate(()=>{const now=Date.now()+3600001;Date.now=()=>now;WorkspaceV2AiDraft.sync()});
+  if(change==='clear')await reply.fill('');if(change==='Escape'){await reply.focus();await reply.press('Escape');await expect(reply).toBeFocused()}
+  await expect(reply).toHaveValue('');await expect(reply).not.toHaveClass(/aiDraftPreview/);await expect(page.locator('#mediaSelection')).toContainText('retained.txt');
+  if(change==='clear'||change==='Escape'){await page.evaluate(()=>WorkspaceV2AiDraft.sync());await openAi(page);await page.locator('.aiDraftClose').click();await expect(reply).toHaveValue('')}
+  expect(state.aiCalls()).toEqual([]);clean(state);
 });
-for(const change of ['stale409','new message'])for(const width of [430,1440])test('AI validation retry offers fresh recovery after '+change+' '+width,async({page,browserName},testInfo)=>{
-  const viewport={width,height:width===430?420:900};await page.setViewportSize(viewport);
-  const state=await setup(page,{readiness:true}),reply=page.locator('#replyText');
-  await expect(page.locator('#aiDraftSuggestion')).toBeVisible();
-  await page.locator('#replyFile').setInputFiles({name:'stale-recovery.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic retained File')});
-  const attachment=page.locator('#mediaSelection .mediaFileName'),attachmentSize=page.locator('#mediaSelection .mediaFileSize');
-  await expect(attachment).toHaveText('stale-recovery.txt');const originalSize=await attachmentSize.textContent();
-  expect(await page.evaluate(()=>WorkspaceV2Media.hasFile())).toBe(true);
-  let validations=0,release;
-  state.setAI(async data=>{
-    if(data.action==='prepared')return {body:prepared({draft_id:'d'.repeat(32),expires_at:new Date(Date.now()+3600000).toISOString()})};
-    if(data.action==='generate')return {body:proposal({latest_message_id:data.latest_message_id})};
-    if(++validations===1)return {body:{ok:false,error:'temporary_unavailable'},status:503};
-    if(change==='new message'){await new Promise(resolve=>{release=resolve});return {body:{ok:true,revision:'1'.repeat(64),latest_message_id:35,draft_id:data.draft_id}}}
-    return {body:{ok:false,error:'context_stale'},status:409};
-  });
-  await reply.focus();if(width===1440)await reply.press('Tab');else await page.locator('#aiSuggestionAccept').click();
-  await expect(page.locator('#aiDraftStatus')).toContainText('Не удалось проверить контекст');
-  await expect(page.locator('#aiDraftInsert')).toHaveText('Повторить вставку');
-  await expect(page.locator('#aiDraftRetry')).not.toBeVisible();
-  await reply.fill('Мой незаконченный ответ');
-  // Keep a late successful response alive so the source guards, rather than a
-  // successful network abort, must reject it after the real detail refresh.
-  if(change==='new message')await page.evaluate(()=>{AbortController.prototype.abort=function(){}});
-  await page.locator('#aiDraftInsert').click();
-  if(change==='new message'){
-    await expect.poll(()=>!!release).toBe(true);
-    state.messages.get(11).push({id:36,sender_type:'customer',text:'Синтетическое новое условие',created_at:'2026-10-17 12:01:00'});
-    await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible());
-    await expect(page.locator('#aiDraftStatus')).toContainText('Переписка изменилась');
-    const late=page.waitForResponse(response=>response.url().endsWith('/manager/ai-draft.php')&&response.request().postDataJSON()?.action==='validate'&&response.status()===200);
-    release();expect(await (await late).finished()).toBeNull();
-  }
-  await expect(page.locator('#aiDraftPanel')).toBeVisible();await expect(page.locator('#aiDraftStatus')).toContainText('Переписка изменилась');
-  await expect(page.locator('#aiDraftInsert')).not.toBeVisible();await expect(page.locator('.aiDraftText')).toHaveCount(0);
-  const recovery=page.locator('#aiDraftRetry');await expect(recovery).toBeVisible();await expect(recovery).toBeEnabled();await expect(recovery).toHaveText('Подготовить новый ответ');
-  await expect(reply).toHaveValue('Мой незаконченный ответ');await expect(page.locator('#mediaSelection')).toContainText('stale-recovery.txt');
-  await expect(attachment).toHaveText('stale-recovery.txt');await expect(attachmentSize).toHaveText(originalSize);expect(await page.evaluate(()=>WorkspaceV2Media.hasFile())).toBe(true);
-  expect(state.aiCalls().map(call=>call.action)).toEqual(['prepared','validate','validate']);
-  await bounded(page);
-  const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});
-  const image=path.join(directory,`ai-stale-recovery-${browserName}-${change.replace(' ','-')}-${width}-${viewport.height}.png`);await page.screenshot({animations:'disabled',path:image});await testInfo.attach('ai-stale-recovery',{body:fs.readFileSync(image),contentType:'image/png'});
-  await recovery.click();await expect(page.locator('.aiDraftText')).toHaveText(proposal().draft);await expect(page.locator('#aiDraftInsert')).toBeEnabled();
-  expect(state.aiCalls().map(call=>call.action)).toEqual(['prepared','validate','validate','generate']);expect(state.aiCalls().at(-1).latest_message_id).toBe(change==='new message'?36:35);
-  await expect(reply).toHaveValue('Мой незаконченный ответ');await expect(attachment).toHaveText('stale-recovery.txt');await expect(attachmentSize).toHaveText(originalSize);expect(await page.evaluate(()=>WorkspaceV2Media.hasFile())).toBe(true);clean(state);
+
+for(const width of [390,1440])for(const change of ['new message','same-ID edit','TTL','role loss','auth generation'])test('Manager text survives ready invalidation '+change+' '+width,async({page})=>{
+  await page.setViewportSize({width,height:900});const state=await setup(page,{readiness:true}),reply=page.locator('#replyText');await expect(reply).toHaveValue(proposal().draft);await reply.fill('Мой ответ');await page.locator('#replyFile').setInputFiles({name:'human.txt',mimeType:'text/plain',buffer:Buffer.from('synthetic File')});
+  if(change==='new message'||change==='same-ID edit'){if(change==='new message')state.messages.get(11).push({id:36,sender_type:'customer',text:'Новое',created_at:'2026-10-17 12:01:00'});else state.messages.get(11)[34].text='Правка';await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible())}
+  if(change==='TTL')await page.evaluate(()=>{const now=Date.now()+3600001;Date.now=()=>now;WorkspaceV2AiDraft.sync()});
+  if(change==='role loss')await page.evaluate(()=>{WorkspaceV2.S.detail.conversation.manager_id=99;WorkspaceV2AiDraft.sync()});
+  if(change==='auth generation')await page.evaluate(()=>{WorkspaceV2.S.authGeneration++;WorkspaceV2AiDraft.sync()});
+  await expect(reply).toHaveValue('Мой ответ');await expect(reply).not.toHaveClass(/aiDraftPreview/);await expect(page.locator('#mediaSelection')).toContainText('human.txt');expect(state.aiCalls()).toEqual([]);clean(state);
 });
-for(const owner of [false,true])for(const width of [390,1440])test('AI opening queues and reveals '+(owner?'owner foreign':'own')+' automatic hint without an AI click '+width,async({page,browserName},testInfo)=>{
-  await page.setViewportSize({width,height:900});await page.addInitScript(()=>{window.syntheticAiButtonClicks=0;document.addEventListener('click',event=>{const button=event.target.closest?.('button');if(button?.id==='aiDraftOpen'||button?.getAttribute('aria-label')==='AI · Просмотр')window.syntheticAiButtonClicks++},true)});
-  const state=await setup(page,{automatic:true,owner}),notice=page.locator('#aiPreparationNotice'),reply=page.locator('#replyText');
-  await expect(notice).toBeVisible();await expect(notice).toContainText('AI готовит подсказку автоматически');await expect(page.locator('#aiDraftPanel')).not.toBeVisible();await expect(page.locator('#aiDraftSuggestion')).not.toBeVisible();await expect(reply).toHaveValue('');await expect.poll(()=>state.ensureCalls().length).toBe(1);
-  const managerRows=await page.locator('#messages .msg.manager').count();
-  if(!owner){await page.locator('#replyFile').setInputFiles({name:'automatic-retained.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic retained File')});await reply.focus();await reply.evaluate(()=>{window.syntheticAutomaticFile=document.querySelector('#replyFile').files[0]})}
-  else await expect(page.locator('#composer')).not.toBeVisible();
-  const pending=testInfo.outputPath('ai-auto-'+(owner?'foreign':'own')+'-'+width+'-pending.png');await page.screenshot({animations:'disabled',path:pending});await testInfo.attach('automatic-pending',{body:fs.readFileSync(pending),contentType:'image/png'});
-  state.completePreparation();await expect(page.locator('#aiDraftSuggestion')).toBeVisible({timeout:20000});await expect(notice).not.toBeVisible();await expect(page.locator('.aiSuggestionText')).toHaveText(proposal().draft);await expect(page.locator('#aiDraftPanel')).not.toBeVisible();await expect(reply).toHaveValue('');
-  await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);
-  if(owner){await expect(page.locator('#aiDraftSuggestion')).toHaveClass(/aiSuggestionReadonly/);await expect(page.locator('#aiDraftSuggestion')).toContainText('Только просмотр');await expect(page.locator('#aiSuggestionAccept')).not.toBeVisible();await expect(page.locator('#composer')).not.toBeVisible()}
-  else{await replyFitsAssistant(page);await expect(reply).toBeFocused();await expect(page.locator('#mediaSelection')).toContainText('automatic-retained.txt');expect(await reply.evaluate(()=>document.querySelector('#replyFile').files[0]===window.syntheticAutomaticFile)).toBe(true)}
-  expect(await page.evaluate(()=>window.syntheticAiButtonClicks)).toBe(0);expect(state.ensureCalls()).toHaveLength(1);expect(state.aiCalls().map(call=>call.action)).toEqual(['ensure_prepared']);expect(await page.locator('#messages .msg.manager').count()).toBe(managerRows);expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
-  const ready=testInfo.outputPath('ai-auto-'+(owner?'foreign':'own')+'-'+width+'-ready.png');await page.screenshot({animations:'disabled',path:ready});await testInfo.attach('automatic-ready',{body:fs.readFileSync(ready),contentType:'image/png'});clean(state);
+for(const width of [390,1440])for(const ownerState of ['manager','waiting_manager','ai','closed'])test('Owner reads foreign AI only behind AI '+ownerState+' '+width,async({page})=>{
+  await page.setViewportSize({width,height:900});const state=await setup(page,{readiness:true,owner:true,ownerState});await expect.poll(()=>state.previewCalls().length).toBe(1);await expect(page.locator('#aiDraftSuggestion')).toBeHidden();await expect(page.locator('#aiDraftPanel')).toBeHidden();await expect(page.locator('#composer')).toBeHidden();
+  await openAi(page,{owner:true});await expect(page.locator('.aiDraftText')).toHaveText(proposal().draft);await expect(page.locator('#aiDraftInsert')).toBeHidden();await expect(page.locator('#replyText')).toHaveValue('');await readAssistantSection(page,'.aiDraftText');expect(state.aiCalls()).toEqual([]);clean(state);
 });
-test('AI automatic queue outage is visible without invoking manual generation',async({page})=>{
-  await page.setViewportSize({width:390,height:900});const state=await setup(page,{automatic:true,ensureHandler:async()=>({body:{ok:false,error:'preparation_unavailable'},status:503})});
-  await expect(page.locator('#aiPreparationNotice')).toContainText('временно недоступна');await expect(page.locator('#aiPreparationRetry')).toBeVisible();await expect(page.locator('#aiDraftPanel')).not.toBeVisible();await expect(page.locator('#replyText')).toHaveValue('');expect(state.aiCalls().map(call=>call.action)).toEqual(['ensure_prepared']);clean(state);
+for(const width of [390,1440])for(const owner of [false,true])test('Automatic preparation keeps the native editor without opening AI '+owner+' '+width,async({page},testInfo)=>{
+  await page.setViewportSize({width,height:900});const state=await setup(page,{automatic:true,owner}),reply=page.locator('#replyText');await expect.poll(()=>state.ensureCalls().length).toBe(1);await expect(page.locator('#aiDraftPanel')).toBeHidden();await expect(page.locator('#aiPreparationNotice')).toBeHidden();
+  if(!owner){await page.locator('#replyFile').setInputFiles({name:'automatic.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic File')});await reply.focus()}
+  state.completePreparation();await expect.poll(()=>state.previewCalls().length,{timeout:20000}).toBe(1);
+  if(owner){await expect(reply).toHaveValue('');await expect(page.locator('#composer')).toBeHidden()}else{await expect(reply).toHaveValue(proposal().draft);await expect(reply).toBeFocused();await expect(page.locator('#mediaSelection')).toContainText('automatic.txt');await replyFitsAssistant(page)}
+  expect(state.aiCalls().map(c=>c.action)).toEqual(['ensure_prepared']);await page.screenshot({animations:'disabled',path:testInfo.outputPath('automatic-native-'+owner+'-'+width+'.png')});clean(state);
 });
-for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420}])test('AI expired readiness hides before a delayed timer and preserves input '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
-  await page.setViewportSize(viewport);const state=await setup(page,{readiness:true});
-  const reply=page.locator('#replyText'),notice=page.locator('.aiReadyNotice');
-  await expect(page.locator('#aiDraftOpen')).toHaveText('Помощник — Ответ готов');await expect(page.locator('#aiDraftSuggestion')).toBeVisible();await expect(notice).not.toBeVisible();
-  await reply.fill('Мой незаконченный ответ');await page.locator('#replyFile').setInputFiles({name:'keep.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment')});
-  await reply.evaluate(node=>{node.focus();node.setSelectionRange(1,5,'backward');window.aiExpiryFile=document.querySelector('#replyFile').files[0]});
-  const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});
-  const prefix=`ai-expiry-${browserName}-${viewport.width}-${viewport.height}`;
-  await page.screenshot({animations:'disabled',path:path.join(directory,prefix+'-before.png')});
-  const calls=state.statusCalls().length;
-  await page.evaluate(()=>{const now=Date.now()+3600001;Date.now=()=>now;WorkspaceV2AiDraft.syncPreferences();WorkspaceV2AiDraft.sync()});
-  await expect(page.locator('#aiDraftOpen')).toHaveText('Помощник');await expect(notice).not.toBeVisible();
-  await expect(reply).toBeFocused();await expect(reply).toHaveValue('Мой незаконченный ответ');await expect(page.locator('#mediaSelection')).toContainText('keep.txt');
-  expect(await reply.evaluate(node=>[node.selectionStart,node.selectionEnd,node.selectionDirection,document.querySelector('#replyFile').files[0]===window.aiExpiryFile])).toEqual([1,5,'backward',true]);
-  expect(state.statusCalls().length).toBe(calls);expect(state.aiCalls()).toEqual([]);
-  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
-  await page.screenshot({animations:'disabled',path:path.join(directory,prefix+'-after.png')});clean(state);
+test('Automatic outage is compact and does not invoke manual generation without an AI click',async({page})=>{
+  const state=await setup(page,{automatic:true,ensureHandler:async()=>({body:{ok:false,error:'preparation_unavailable'},status:503}),previewHandler:async()=>({body:{ok:true,prepared:false}})});
+  await expect(page.locator('#aiDraftOpen')).toHaveAttribute('title',/недоступна/);await expect(page.locator('#aiDraftPanel')).toBeHidden();await expect(page.locator('#replyText')).toHaveValue('');expect(state.aiCalls().map(c=>c.action)).toEqual(['ensure_prepared']);clean(state);
 });
-for(const width of [390,430,768,1440])test('AI automatic readiness stays quiet and fits the composer '+width,async({page,browserName})=>{
-  await page.setViewportSize({width,height:900});const state=await setup(page,{readiness:true});
-  const button=page.locator('#aiDraftOpen'),notice=page.locator('.aiReadyNotice');
-  await expect(button).toHaveText('Помощник — Ответ готов');await expect(button).toHaveAttribute('data-ai-state','prepared');await expect(button).toHaveAttribute('title',/Подготовлен автоматически.*МСК/);
-  await expect(page.locator('#aiDraftSuggestion')).toBeVisible();await expect(notice).not.toBeVisible();await expect(page.locator('#aiDraftPanel')).not.toBeVisible();
-  await page.locator('#replyText').fill('Мой ответ');await page.locator('#replyFile').setInputFiles({name:'keep.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment')});
-  await page.locator('#replyText').focus();await page.evaluate(()=>{for(let i=0;i<5;i++)WorkspaceV2AiDraft.sync()});
-  await expect(page.locator('#aiDraftSuggestion')).not.toBeVisible();await expect(notice).toBeVisible();await expect(page.locator('#replyText')).toBeFocused();await expect(page.locator('#replyText')).toHaveValue('Мой ответ');await expect(page.locator('#mediaSelection')).toContainText('keep.txt');
-  expect(state.aiCalls()).toEqual([]);expect(state.statusCalls().length).toBeGreaterThan(0);
-  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
-  // A readable title does not imply the native mobile slide has finished.
-  // Measure the final conversation position, preserving every geometry assertion.
-  if(width<=740)await expect.poll(()=>page.locator('#conversationZone').evaluate(el=>Math.round(el.getBoundingClientRect().left))).toBe(0);
-  // Bounds describe the settled responsive pane, not an intermediate transform.
-  // Keep the same viewport limits; wait for the actual native transition.
-  await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);
-  for(const locator of [button,notice,page.locator('#sendReply')]){const box=await locator.boundingBox();expect(box.x).toBeGreaterThanOrEqual(-1);expect(box.x+box.width).toBeLessThanOrEqual(width+1);expect(box.y+box.height).toBeLessThanOrEqual(901)}
-  const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});await page.screenshot({animations:'disabled',path:path.join(directory,`ai-ready-${browserName}-${width}.png`)});
-  await notice.getByRole('button',{name:'Посмотреть'}).click();await expect(page.locator('#aiDraftInsert')).toBeEnabled();await expect(notice).not.toBeVisible();expect(state.aiCalls().map(call=>call.action)).toEqual(['prepared']);clean(state);
+for(const width of [390,1440])for(const result of ['miss','unavailable','advice'])test('Explicit AI keeps manual fallback when no current saved reply is selected '+result+' '+width,async({page})=>{
+  await page.setViewportSize({width,height:900});const answer=result==='miss'?{ok:true,prepared:false}:result==='unavailable'?{ok:false,error:'prepared_unavailable'}:prepared({should_draft:false,draft:null,next_action:'check_offer'}),state=await setup(page,{previewHandler:async()=>({body:answer,status:result==='unavailable'?503:200})}),reply=page.locator('#replyText');
+  state.setAI(async data=>({body:data.action==='generate'?proposal():{ok:true,revision:'1'.repeat(64),latest_message_id:35,draft_id:data.draft_id}}));
+  await reply.fill('Сохранить мой текст');await page.locator('#replyFile').setInputFiles({name:'existing.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic File')});expect(state.aiCalls()).toEqual([]);await openAi(page);await expect(reply).toHaveValue('Сохранить мой текст');await expect(page.locator('.aiDraftText')).toHaveText(proposal().draft);expect(state.aiCalls().map(c=>c.action)).toEqual(['generate']);
+  await page.locator('#aiDraftInsert').click();await expect(reply).toHaveValue('Сохранить мой текст\n'+proposal().draft);await expect(page.locator('#mediaSelection')).toContainText('existing.txt');expect(state.aiCalls().map(c=>c.action)).toEqual(['generate','validate']);clean(state);
 });
-for(const mode of ['hidden','recommendations'])test('AI '+mode+' keeps the ready button and explains only available recommendations',async({page})=>{
-  const state=await setup(page,{readiness:mode==='recommendations'?'recommendations':true,hideNotice:mode==='hidden'});
-  await expect(page.locator('#aiDraftOpen')).toHaveText(mode==='recommendations'?'Помощник — Нужна проверка':'Помощник — Ответ готов');await expect(page.locator('.aiReadyNotice')).not.toBeVisible();await expect(page.locator('#aiDraftSuggestion')).not.toBeVisible();expect(state.aiCalls()).toEqual([]);
-  if(mode==='recommendations'){await expect(page.locator('#aiRecommendationNotice')).toBeVisible();await expect(page.locator('#aiRecommendationNotice')).toContainText('Сейчас отвечать не нужно')}else await expect(page.locator('#aiRecommendationNotice')).not.toBeVisible();
-  if(mode==='hidden'){await page.evaluate(()=>WorkspaceV2PersonalWorkspace.open());await expect(page.locator('#pwHideAiReadyNotice')).toBeChecked();await page.locator('#pwClose').click();await page.locator('#aiDraftOpen').click();await expect(page.locator('#aiDraftInsert')).toBeEnabled()}
-  clean(state);
+for(const width of [390,1440])for(const stage of ['success','temporary','stale'])test('Explicit insertion keeps current manual text, canonical provenance and File '+stage+' '+width,async({page})=>{
+  await page.setViewportSize({width,height:900});const answer=prepared(),state=await setup(page,{previewHandler:async()=>({body:answer})}),reply=page.locator('#replyText');let fail=stage!=='success';
+  state.setAI(async data=>data.action==='prepared'?{body:{...answer,draft_id:'a'.repeat(32)}}:fail?{body:{ok:false,error:stage==='stale'?'context_stale':'temporary_unavailable'},status:stage==='stale'?409:503}:{body:{ok:true,revision:'1'.repeat(64),latest_message_id:35,draft_id:data.draft_id}});
+  await reply.fill('Первый текст');await page.locator('#replyFile').setInputFiles({name:'insert.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic File')});await reply.evaluate(n=>n.setSelectionRange(1,5,'backward'));await openAi(page);await expect(page.locator('.aiDraftText')).toHaveText(answer.draft);await page.locator('#aiDraftInsert').click();
+  if(stage==='success'){await expect(reply).toHaveValue('Первый текст\n'+answer.draft);await expect(page.locator('#aiDraftPanel')).toBeHidden();expect(await reply.evaluate(n=>[n.selectionStart,n.selectionEnd,n.selectionDirection])).toEqual([1,5,'backward'])}
+  else{await expect(reply).toHaveValue('Первый текст');await expect(page.locator('#aiDraftStatus')).toContainText(stage==='stale'?'Переписка изменилась':'Не удалось проверить контекст');if(stage==='temporary'){fail=false;await reply.fill('Моя новая правка');await page.locator('#aiDraftInsert').click();await expect(reply).toHaveValue('Моя новая правка\n'+answer.draft)}}
+  await expect(page.locator('#mediaSelection')).toContainText('insert.txt');expect(state.aiCalls().some(c=>c.action==='generate')).toBe(false);if(stage==='success')expect(state.aiCalls().map(c=>c.action)).toEqual(['prepared','validate']);clean(state);
 });
-const explanationViewports=[{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900}];
-for(const viewport of explanationViewports)for(const owner of [false,true])for(const action of ['no_contact','check_offer'])test('AI non-draft explanation '+action+' '+(owner?'owner foreign':'own')+' '+viewport.width,async({page,browserName})=>{
-  await page.setViewportSize(viewport);await page.addInitScript(()=>{window.syntheticAiButtonClicks=0;document.addEventListener('click',event=>{const button=event.target.closest?.('button');if(button?.id==='aiDraftOpen'||button?.getAttribute('aria-label')==='AI · Просмотр')window.syntheticAiButtonClicks++},true)});
-  const reason=action==='no_contact'?'Менеджер уже ответил. Нового вопроса нет, повторное сообщение сейчас не требуется.':'Цена и наличие ещё не подтверждены. Проверьте условия перед ответом. <img src=x onerror=alert(1)>',state=await setup(page,{readiness:'recommendations',owner,previewHandler:async()=>({body:prepared({should_draft:false,draft:null,next_action:action,reason,expires_at:new Date(Date.now()+3600000).toISOString()})})}),notice=page.locator('#aiRecommendationNotice'),reply=page.locator('#replyText');
-  await expect(notice).toBeVisible();await expect(notice.locator('strong')).toHaveText(action==='no_contact'?'Сейчас отвечать не нужно':'Готового ответа пока нет · Проверки менеджеру');await expect(notice.locator('.aiRecommendationReason')).toHaveText(reason);expect(await notice.locator('img').count()).toBe(0);await expect(page.locator('#aiDraftPanel')).not.toBeVisible();await expect(page.locator('#aiDraftSuggestion')).not.toBeVisible();await expect(reply).toHaveValue('');
-  if(owner){await expect(notice).toHaveClass(/aiRecommendationReadonly/);await expect(page.locator('#composer')).not.toBeVisible()}else{await page.locator('#replyFile').setInputFiles({name:'recommendation-retained.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic retained File')});await reply.fill('Мой незаконченный ответ');await reply.focus();await reply.evaluate(()=>window.syntheticRecommendationFile=document.querySelector('#replyFile').files[0]);await expect(notice).toBeVisible();await expect(reply).toBeFocused()}
-  await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);
-  const geometry=await notice.evaluate(node=>{const r=node.getBoundingClientRect(),host=document.getElementById('conversationZone').getBoundingClientRect();return{left:r.left,right:r.right,top:r.top,bottom:r.bottom,hostLeft:host.left,hostRight:host.right}});expect(geometry.left).toBeGreaterThanOrEqual(geometry.hostLeft-1);expect(geometry.right).toBeLessThanOrEqual(geometry.hostRight+1);expect(geometry.bottom).toBeLessThanOrEqual(viewport.height+1);expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
-  const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});await page.screenshot({animations:'disabled',path:path.join(directory,`ai-explanation-${browserName}-${owner?'foreign':'own'}-${action}-${viewport.width}.png`)});
-  const previews=state.previewCalls().length;await page.locator('#aiRecommendationDetails').click();await expect(page.locator('#aiDraftPanel')).toBeVisible();await expect(page.locator('#aiDraftPanel .aiDraftReason')).toHaveText(reason);await expect(page.locator('#aiDraftInsert')).not.toBeVisible();expect(state.previewCalls().length).toBe(previews);expect(state.aiCalls()).toEqual([]);await page.locator('#aiDraftPanel .aiDraftClose').click();await expect(notice).toBeVisible();
-  if(!owner){await expect(reply).toHaveValue('Мой незаконченный ответ');await expect(page.locator('#mediaSelection')).toContainText('recommendation-retained.txt');expect(await reply.evaluate(()=>document.querySelector('#replyFile').files[0]===window.syntheticRecommendationFile)).toBe(true)}
-  expect(await page.evaluate(()=>window.syntheticAiButtonClicks)).toBe(0);expect(state.aiCalls()).toEqual([]);clean(state);
+for(const width of [390,1440])for(const change of ['navigation','new message','same-ID edit','role'])test('Late passive reply cannot fill a different context '+change+' '+width,async({page})=>{
+  await page.setViewportSize({width,height:900});let release;const state=await setup(page,{readiness:true,previewHandler:async data=>{if(data.conversation_id!==11)return {body:{ok:true,prepared:false}};await new Promise(r=>{release=r});return {body:prepared()}}}),reply=page.locator('#replyText');await expect.poll(()=>!!release).toBe(true);await page.evaluate(()=>{AbortController.prototype.abort=function(){}});
+  if(change==='navigation'){await openClient(page,12,'Алексей Иванов');await reply.fill('Другой диалог')}
+  if(change==='new message'||change==='same-ID edit'){if(change==='new message')state.messages.get(11).push({id:36,sender_type:'customer',text:'Новое',created_at:'2026-10-17 12:01:00'});else state.messages.get(11)[34].text='Поправка';state.setPreview(async()=>({body:{ok:true,prepared:false}}));await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible())}
+  if(change==='role')await page.evaluate(()=>{WorkspaceV2.S.detail.conversation.manager_id=99;WorkspaceV2AiDraft.sync()});
+  const late=page.waitForResponse(r=>r.url().endsWith('/manager/ai-draft.php')&&r.request().postDataJSON()?.action==='prepared_preview'&&r.request().postDataJSON()?.conversation_id===11);release();await (await late).finished();await expect(reply).toHaveValue(change==='navigation'?'Другой диалог':'');expect(state.aiCalls()).toEqual([]);clean(state);
 });
-test('AI no-contact explanation keeps the short mobile editor reachable',async({page})=>{
-  await page.setViewportSize({width:390,height:420});const state=await setup(page,{readiness:'recommendations'});await expect(page.locator('#aiRecommendationNotice')).toBeVisible();await page.locator('#replyText').fill('Мой ответ');await page.locator('#replyFile').setInputFiles({name:'short-advice.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic retained File')});await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);expect(await page.locator('#sendReply').evaluate(node=>node.getBoundingClientRect().bottom)).toBeLessThanOrEqual(421);expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);await expect(page.locator('#replyText')).toHaveValue('Мой ответ');expect(state.aiCalls()).toEqual([]);clean(state);
+for(const width of [390,430,768,1440])test('Editable AI keeps large fonts, expanded editor and native Tab '+width,async({page})=>{
+  await page.setViewportSize({width,height:900});const state=await setup(page,{readiness:true}),reply=page.locator('#replyText');await expect(reply).toHaveValue(proposal().draft);await replyFitsAssistant(page);await reply.focus();await reply.press('Tab');await expect(reply).not.toBeFocused();await expect(reply).toHaveValue(proposal().draft);expect(state.aiCalls()).toEqual([]);
+  await page.locator('#m2ReplyExpand').click();await expect(page.locator('#m2ReplyEditor')).toBeVisible();await replyFitsAssistant(page);await page.evaluate(()=>{document.body.classList.add('pwLargeFont');WorkspaceV2AiDraft.sync()});expect(await reply.evaluate(n=>parseFloat(getComputedStyle(n).fontSize))).toBeGreaterThanOrEqual(16);await reply.fill('Моя правка');await page.locator('#m2ReplyCollapse').click();await expect(reply).toHaveValue('Моя правка');await expect(reply).not.toHaveClass(/aiDraftPreview/);clean(state);
 });
-for(const width of [390,430,768,1440])test('AI inline suggestion is visible and Tab inserts with native provenance '+width,async({page,browserName},testInfo)=>{
-  await page.setViewportSize({width,height:900});const state=await setup(page,{readiness:true});
-  const suggestion=page.locator('#aiDraftSuggestion'),reply=page.locator('#replyText');
-  await expect(suggestion).toBeVisible();await expect(suggestion.locator('.aiSuggestionText')).toHaveText(proposal().draft);await expect(page.locator('#aiSuggestionAccept')).toHaveText('Вставить в ответ');
-  await expect(page.locator('#aiDraftPanel')).not.toBeVisible();await expect(reply).toHaveValue('');expect(state.aiCalls()).toEqual([]);expect(state.previewCalls()).toHaveLength(1);
-  await page.locator('#replyFile').setInputFiles({name:'inline-keep.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment')});
-  await reply.click();await reply.evaluate(()=>{window.aiInlineFile=document.querySelector('#replyFile').files[0]});
-  await expect(suggestion).toBeVisible();await expect(reply).toBeFocused();
-  await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);
-  await replyFitsAssistant(page);
-  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
-  for(const locator of [suggestion,reply,page.locator('#sendReply')]){const box=await locator.boundingBox();expect(box.x).toBeGreaterThanOrEqual(-1);expect(box.x+box.width).toBeLessThanOrEqual(width+1);expect(box.y).toBeGreaterThanOrEqual(-1);expect(box.y+box.height).toBeLessThanOrEqual(901)}
-  const image=testInfo.outputPath('ai-inline-'+browserName+'-'+width+'.png');await page.screenshot({animations:'disabled',path:image});await testInfo.attach('ai-inline-'+width,{body:fs.readFileSync(image),contentType:'image/png'});
-  state.setAI(async data=>data.action==='prepared'?{body:prepared({draft_id:'a'.repeat(32),expires_at:new Date(Date.now()+3600000).toISOString()})}:{body:{ok:true,revision:'1'.repeat(64),latest_message_id:35,draft_id:data.draft_id}});
-  await reply.press('Tab');await expect(reply).toHaveValue(proposal().draft);await expect(reply).toBeFocused();await expect(suggestion).not.toBeVisible();
-  expect(state.aiCalls().map(call=>call.action)).toEqual(['prepared','validate']);expect(state.aiCalls().at(-1).draft_id).toBe('a'.repeat(32));
-  expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('workspaceV2.replySession.v1')).drafts.find(row=>row.id===11).aiDraftId)).toBe('a'.repeat(32));
-  expect(await page.locator('#replyFile').evaluate(node=>node.files[0]===window.aiInlineFile)).toBe(true);await expect(page.locator('#mediaSelection')).toContainText('inline-keep.txt');clean(state);
-});
-for(const viewport of [{width:390,height:420},{width:430,height:900},{width:768,height:900},{width:1440,height:900}])test('AI reply stays in one assistant beside the native field and expanded editor '+viewport.width+'x'+viewport.height,async({page,browserName},testInfo)=>{
-  const draft='Предлагаю сравнить два варианта на ваши даты. Первый ближе к пляжу, второй просторнее.\nУточните, пожалуйста, возраст детей и город вылета — проверим полную стоимость для вашего состава.';
-  await page.setViewportSize(viewport);const state=await setup(page,{readiness:true,previewHandler:async()=>({body:prepared({draft,expires_at:new Date(Date.now()+3600000).toISOString()})})}),reply=page.locator('#replyText');
-  await expect(page.locator('.aiSuggestionText')).toHaveText(draft);await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);await replyFitsAssistant(page,{allowClipping:true});
-  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
-  const compact=testInfo.outputPath('ai-ghost-compact-'+browserName+'-'+viewport.width+'-'+viewport.height+'.png');await page.screenshot({animations:'disabled',path:compact});await testInfo.attach('ai-ghost-compact',{body:fs.readFileSync(compact),contentType:'image/png'});
-  await page.locator('#m2ReplyExpand').click();await expect(page.locator('#m2ReplyEditor')).toBeVisible();await replyFitsAssistant(page,{allowClipping:true});await expect(reply).toHaveValue('');
-  const expanded=testInfo.outputPath('ai-ghost-expanded-'+browserName+'-'+viewport.width+'-'+viewport.height+'.png');await page.screenshot({animations:'disabled',path:expanded});await testInfo.attach('ai-ghost-expanded',{body:fs.readFileSync(expanded),contentType:'image/png'});
-  await reply.fill('Мой собственный ответ');await expect(page.locator('#aiDraftSuggestion')).not.toBeVisible();await expect(reply).toHaveValue('Мой собственный ответ');await page.locator('#m2ReplyCollapse').click();await expect(reply).toHaveValue('Мой собственный ответ');expect(state.aiCalls()).toEqual([]);clean(state);
-});
-test('AI inline suggestion leaves typed text and modified Tab navigation alone',async({page})=>{
-  const state=await setup(page,{readiness:true}),reply=page.locator('#replyText'),suggestion=page.locator('#aiDraftSuggestion');await expect(suggestion).toBeVisible();
-  await reply.focus();await reply.press('Shift+Tab');await expect(reply).not.toBeFocused();await expect(reply).toHaveValue('');expect(state.aiCalls()).toEqual([]);
-  await reply.fill('Мой ответ');await expect(suggestion).not.toBeVisible();await reply.press('Tab');await expect(reply).not.toBeFocused();await expect(reply).toHaveValue('Мой ответ');expect(state.aiCalls()).toEqual([]);
-  await reply.fill('');await expect(suggestion).toBeVisible();
-  await reply.evaluate(node=>node.dispatchEvent(new KeyboardEvent('keydown',{key:'Tab',code:'Tab',isComposing:true,bubbles:true,cancelable:true})));await expect(reply).toHaveValue('');expect(state.aiCalls()).toEqual([]);
-  await page.locator('#aiSuggestionDetails').click();await expect(page.locator('#aiDraftPanel')).toBeVisible();await expect(suggestion).not.toBeVisible();clean(state);
-});
-test('AI ghost dismissal restores the native empty-field placeholder without taking focus',async({page})=>{
-  const state=await setup(page,{readiness:true}),reply=page.locator('#replyText');await expect(page.locator('#aiDraftSuggestion')).toBeVisible();await reply.click();await reply.press('Escape');
-  await expect(page.locator('#aiDraftSuggestion')).not.toBeVisible();await expect(reply).toBeFocused();await expect(reply).toHaveValue('');await expect(reply).toHaveAttribute('placeholder',/\S/);
-  expect(await reply.evaluate(node=>{const style=getComputedStyle(node,'::placeholder');return style.color!=='rgba(0, 0, 0, 0)'&&style.opacity!=='0'})).toBe(true);expect(state.aiCalls()).toEqual([]);clean(state);
-});
-test('AI ghost follows the desktop large-font preference while already visible',async({page},testInfo)=>{
-  await page.setViewportSize({width:1440,height:900});const state=await setup(page,{readiness:true});await expect(page.locator('#aiDraftSuggestion')).toBeVisible();
-  await page.evaluate(()=>{document.body.classList.add('pwLargeFont');WorkspaceV2AiDraft.sync()});await expect.poll(()=>page.locator('#replyText').evaluate(node=>getComputedStyle(node).fontSize)).toBe('16px');await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);await replyFitsAssistant(page);
-  const image=testInfo.outputPath('ai-ghost-large-font.png');await page.screenshot({animations:'disabled',path:image});await testInfo.attach('ai-ghost-large-font',{body:fs.readFileSync(image),contentType:'image/png'});
-  await page.evaluate(()=>{document.body.classList.remove('pwLargeFont');WorkspaceV2AiDraft.sync()});await expect.poll(()=>page.locator('#replyText').evaluate(node=>getComputedStyle(node).fontSize)).toBe('14px');await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);await replyFitsAssistant(page);expect(state.aiCalls()).toEqual([]);clean(state);
+for(const width of [390,1440])for(const action of ['no_contact','check_offer'])test('Saved manager checks stay behind AI without an outgoing draft '+action+' '+width,async({page})=>{
+  await page.setViewportSize({width,height:900});const reason='Сверить данные. <img src=x onerror=alert(1)>',state=await setup(page,{readiness:'recommendations',previewHandler:async()=>({body:prepared({should_draft:false,draft:null,next_action:action,reason})})}),reply=page.locator('#replyText');await expect.poll(()=>state.previewCalls().length).toBe(1);
+  await expect(page.locator('#aiRecommendationNotice')).toBeHidden();await expect(page.locator('#aiDraftPanel')).toBeHidden();await reply.fill('Мой текст');const count=state.previewCalls().length;await openAi(page);await expect(page.locator('.aiDraftReason')).toHaveText(reason);await expect(page.locator('.aiDraftReason img')).toHaveCount(0);await expect(page.locator('#aiDraftInsert')).toBeHidden();expect(state.previewCalls().length).toBe(count);await page.locator('.aiDraftClose').click();await expect(reply).toHaveValue('Мой текст');expect(state.aiCalls()).toEqual([]);clean(state);
 });
 for(const width of [390,1440])test('Blocked customer has no automatic reply urgency and keeps explicit tasks '+width,async({page},testInfo)=>{
   const manualTask=width===1440;await page.setViewportSize({width,height:900});const state=await setup(page,{owner:true,blocked:true,manualTask}),row=page.locator('#inboxList [data-conversation-id="11"]');
@@ -436,149 +215,23 @@ for(const width of [390,1440])test('Blocked customer has no automatic reply urge
   await page.locator('#assistantClose').click();if(await page.locator('#workspaceRoot').getAttribute('data-mobile-screen')==='conversation')await page.locator('#mobileBack').click();state.setDeliveryBlocked(false);await page.evaluate(()=>WorkspaceV2Inbox.load({preserveScroll:true}));await expect(row).toHaveClass(/waitUrgent/);await expect(row.locator('.leadWaitCompact')).toContainText('Срочно');
   expect(state.aiCalls()).toEqual([]);expect(state.calls.filter(call=>['decision','set_task_completed','task_snooze','create_task'].includes(call.action))).toEqual([]);clean(state);
 });
-test('AI inline acceptance rechecks the empty composer after asynchronous preparation',async({page})=>{
-  const state=await setup(page,{readiness:true}),reply=page.locator('#replyText');await expect(page.locator('#aiDraftSuggestion')).toBeVisible();let release;
-  state.setAI(async data=>{if(data.action==='prepared'){await new Promise(resolve=>{release=resolve});return {body:prepared({expires_at:new Date(Date.now()+3600000).toISOString()})}}return {body:{ok:true,revision:'1'.repeat(64),latest_message_id:35}}});
-  await reply.press('Tab');await expect.poll(()=>!!release).toBe(true);await reply.fill('Начал писать сам');release();await expect(reply).toHaveValue('Начал писать сам');
-  await expect(page.locator('#aiDraftSuggestion')).not.toBeVisible();await expect.poll(()=>state.aiCalls().map(call=>call.action)).toEqual(['prepared']);clean(state);
+
+
+for(const width of [390,1440])for(const denial of [403,404])test('Explicit prepared provenance denial retains manual text and File '+denial+' '+width,async({page})=>{
+  await page.setViewportSize({width,height:900});const state=await setup(page,{previewHandler:async()=>({body:prepared()})}),reply=page.locator('#replyText');await reply.fill('Свой текст');await page.locator('#replyFile').setInputFiles({name:'denied.txt',mimeType:'text/plain',buffer:Buffer.from('synthetic File')});state.setAI(async()=>({body:{ok:false,error:'forbidden'},status:denial}));await openAi(page);await page.locator('#aiDraftInsert').click();await expect(page.locator('#aiDraftPanel')).toBeHidden();await expect(reply).toHaveValue('Свой текст');await expect(page.locator('#mediaSelection')).toContainText('denied.txt');expect(state.aiCalls().map(c=>c.action)).toEqual(['prepared']);clean(state);
 });
-for(const ownerState of ['manager','waiting_manager','ai','closed'])test('AI owner inline preview covers foreign '+ownerState+' without insertion',async({page,browserName},testInfo)=>{
-  const width={manager:1440,waiting_manager:390,ai:768,closed:430}[ownerState];await page.setViewportSize({width,height:900});const state=await setup(page,{readiness:true,owner:true,ownerState}),suggestion=page.locator('#aiDraftSuggestion');
-  await expect(suggestion).toBeVisible();await expect(suggestion.locator('.aiSuggestionText')).toHaveText(proposal().draft);await expect(suggestion).toContainText(/Просмотр|просмотр/);
-  if(ownerState==='manager')await expect(suggestion).toContainText('Другой менеджер');await expect(page.locator('#aiSuggestionAccept')).not.toBeVisible();await expect(page.locator('#composer')).not.toBeVisible();expect(state.previewCalls()).toHaveLength(1);expect(state.aiCalls()).toEqual([]);
-  await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);
-  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);const box=await suggestion.boundingBox();expect(box.x).toBeGreaterThanOrEqual(-1);expect(box.x+box.width).toBeLessThanOrEqual(width+1);expect(box.y+box.height).toBeLessThanOrEqual(901);
-  const image=testInfo.outputPath('ai-owner-inline-'+browserName+'-'+ownerState+'.png');await page.screenshot({animations:'disabled',path:image});await testInfo.attach('ai-owner-inline-'+ownerState,{body:fs.readFileSync(image),contentType:'image/png'});
-  await suggestion.locator('.aiSuggestionText').click();await page.keyboard.press('Tab');expect(state.aiCalls()).toEqual([]);clean(state);
+for(const width of [390,1440])test('Prepared registration retry appends newer typing without generating or executing HTML '+width,async({page})=>{
+  await page.setViewportSize({width,height:900});const answer=prepared({draft:'<img src=x onerror=alert(1)> Буквальный текст'}),state=await setup(page,{previewHandler:async()=>({body:answer})}),reply=page.locator('#replyText');let release,fail=true;
+  state.setAI(async data=>{if(data.action==='prepared'){if(fail)return {body:{ok:false,error:'prepared_unavailable'},status:503};return {body:answer}}await new Promise(r=>{release=r});return {body:{ok:true,revision:'1'.repeat(64),latest_message_id:35}}});await reply.fill('Первый текст');await page.locator('#replyFile').setInputFiles({name:'retry.txt',mimeType:'text/plain',buffer:Buffer.from('synthetic File')});await openAi(page);await expect(page.locator('.aiDraftText')).toHaveText(answer.draft);await expect(page.locator('.aiDraftText img')).toHaveCount(0);await page.locator('#aiDraftInsert').click();await expect(page.locator('#aiDraftStatus')).toContainText('Не удалось проверить сохранённый');fail=false;await page.locator('#aiDraftInsert').click();await expect.poll(()=>!!release).toBe(true);await reply.fill('Новый текст');release();await expect(reply).toHaveValue('Новый текст\n'+answer.draft);await expect(page.locator('#mediaSelection')).toContainText('retry.txt');expect(state.aiCalls().map(c=>c.action)).toEqual(['prepared','prepared','validate']);clean(state);
 });
-test('AI foreign supervisor does not gain automatic inline previews',async({page})=>{
-  const state=await setup(page,{readiness:true,supervisor:true});await expect(page.locator('#aiDraftSuggestion')).not.toBeVisible();expect(state.statusCalls()).toEqual([]);expect(state.previewCalls()).toEqual([]);expect(state.aiCalls()).toEqual([]);clean(state);
+test('Late preview401 cannot expire a new dialogue while current401 retains canonical recovery',async({page})=>{
+  let release;const state=await setup(page,{previewHandler:async()=>{await new Promise(r=>{release=r});return {body:{ok:false,error:'unauthorized'},status:401}}});await page.evaluate(()=>{AbortController.prototype.abort=function(){}});await openAi(page);await expect.poll(()=>!!release).toBe(true);await openClient(page,12,'Алексей Иванов');await page.locator('#replyText').fill('Новый диалог');const late=page.waitForResponse(r=>r.url().endsWith('/manager/ai-draft.php')&&r.status()===401&&r.request().postDataJSON()?.conversation_id===11);release();await (await late).finished();await expect(page.locator('#managerAuthRecovery')).toBeHidden();await expect(page.locator('#replyText')).toHaveValue('Новый диалог');state.setPreview(async()=>({body:{ok:false,error:'unauthorized'},status:401}));await page.locator('#aiDraftOpen').click();await expect(page.locator('#managerAuthRecovery')).toBeVisible();await expect(page.locator('#replyText')).toHaveValue('Новый диалог');clean(state);
 });
-for(const change of ['navigation','new message','role loss'])test('AI inline late preview cannot survive '+change,async({page})=>{
-  let release;const state=await setup(page,{readiness:true,owner:change==='role loss',previewHandler:async data=>{if(change==='navigation'&&data.conversation_id!==11)return {body:{ok:true,prepared:false}};await new Promise(resolve=>{release=resolve});return {body:prepared({expires_at:new Date(Date.now()+3600000).toISOString()})}}});await expect.poll(()=>!!release).toBe(true);
-  let lateResponse;
-  if(change==='navigation'){
-    // Use the real selection path and deliver the original response despite
-    // cancellation; the old conversation's response must fail its owner fence.
-    await page.evaluate(()=>{AbortController.prototype.abort=function(){}});
-    await openClient(page,12,'Алексей Иванов');await page.locator('#replyText').fill('Ответ в другом чате');
-    lateResponse=page.waitForResponse(response=>response.url().endsWith('/manager/ai-draft.php')&&response.request().postDataJSON()?.action==='prepared_preview'&&response.request().postDataJSON()?.conversation_id===11);
-  }
-  else if(change==='new message'){state.messages.get(11).push({id:36,sender_type:'customer',text:'Новое требование',created_at:'2026-10-17 12:01:00'});await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible())}
-  else await page.evaluate(()=>{WorkspaceV2.S.manager.role='manager';WorkspaceV2.S.detail.owner_read=false;WorkspaceV2AiDraft.sync()});
-  release();if(lateResponse)expect(await (await lateResponse).finished()).toBeNull();await expect(page.locator('#aiDraftSuggestion')).not.toBeVisible();expect(state.aiCalls()).toEqual([]);if(change==='navigation'){await expect(page.locator('#replyText')).toHaveValue('Ответ в другом чате');await page.locator('#replyText').fill('');await expect(page.locator('#aiDraftSuggestion')).not.toBeVisible()}clean(state);
-});
-for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420}])test('AI preview and explicit insert retain the native draft, File and controls '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
-  await page.setViewportSize(viewport);const state=await setup(page);expect(state.aiCalls()).toEqual([]);
-  const reply=page.locator('#replyText'),text='  Уже набранный ответ\nс сохранёнными пробелами  ';
-  // WebKit fill changes the first leading U+0020 before any AI action on this
-  // surface. Seed exact text through the canonical native input handler.
-  await reply.evaluate((node,value)=>{node.value=value;node.dispatchEvent(new Event('input',{bubbles:true}))},text);
-  await page.locator('#replyFile').setInputFiles({name:'synthetic-plan.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment')});
-  await reply.evaluate(node=>{node.focus();node.setSelectionRange(2,12,'backward');window.aiNativeProof={reply:node,form:document.querySelector('#composer'),file:document.querySelector('#replyFile'),preview:document.querySelector('#mediaSelection .mediaSelectedItem')}});
-  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
-  // Viewport coordinates also include the mobile pane's own transform. A settled
-  // composer alone can still move with that ancestor before the first snapshot.
-  await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);
-  await expect(page.locator('#composer')).toHaveClass(/m2ReplyMultiline/);
-  await expect.poll(()=>page.locator('#composer .composerActions').evaluate(node=>{
-    const surface=node.closest('.composerSurface'),css=getComputedStyle(surface);
-    return Math.abs(node.getBoundingClientRect().left-surface.getBoundingClientRect().left-parseFloat(css.borderLeftWidth)-parseFloat(css.paddingLeft));
-  })).toBeLessThanOrEqual(1);
-  const actionBoxes=await page.locator('#composer .composerActions').boundingBox();
-  await expect(reply).toHaveValue(text);
-  await page.locator('#aiDraftOpen').click();await expect(page.locator('#aiDraftInsert')).toBeEnabled();await expect(page.locator('#aiDraftPanel')).toBeFocused();
-  await expect(page.locator('#aiDraftStatus')).toContainText('Ответ подготовлен заранее');await expect(page.locator('.aiDraftAction')).toHaveText('Уточнить запрос');await expect(reply).toHaveValue(text);await expect(page.locator('#mediaSelection')).toContainText('synthetic-plan.txt');
-  expect(state.aiCalls()).toHaveLength(1);expect(state.aiCalls()[0]).toMatchObject({action:'prepared',conversation_id:11,latest_message_id:35});
-  const previewBoxes=await page.locator('#composer .composerActions').boundingBox();expect(Math.abs(previewBoxes.y-actionBoxes.y)).toBeLessThanOrEqual(1);expect(Math.abs(previewBoxes.x-actionBoxes.x)).toBeLessThanOrEqual(1);
-  await bounded(page);await capture(page,browserName,viewport);
-  await page.locator('#aiDraftInsert').click();await expect(page.locator('#aiDraftPanel')).not.toBeVisible();await expect(reply).toHaveValue(text+'\nКакие даты поездки вам удобны?');await expect(reply).toBeFocused();
-  expect(await reply.evaluate(node=>[node.selectionStart,node.selectionEnd,node.selectionDirection])).toEqual([2,12,'backward']);
-  expect(await page.evaluate(()=>{const proof=aiNativeProof;return document.querySelector('#replyText')===proof.reply&&document.querySelector('#composer')===proof.form&&document.querySelector('#replyFile')===proof.file&&document.querySelector('#mediaSelection .mediaSelectedItem')===proof.preview&&WorkspaceV2Media.hasFile()})).toBe(true);
-  expect(state.aiCalls().map(call=>call.action)).toEqual(['prepared','validate']);
-  expect(state.aiCalls()[1].draft_id).toBeUndefined();
-  expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('workspaceV2.replySession.v1')).drafts.find(row=>row.id===11).aiDraftId)).toBeUndefined();
-  clean(state);
-});
-for(const unavailable of [false,true])test('AI cache '+(unavailable?'unavailable':'miss')+' generates on the first click and preserves text and File',async({page})=>{
-  const state=await setup(page),typed='Свой ответ  ';
-  state.setAI(async data=>data.action==='prepared'?{body:unavailable?{ok:false,error:'prepared_unavailable'}:{ok:true,prepared:false},status:unavailable?503:200}:data.action==='generate'?{body:proposal()}:{body:{ok:true,revision:'1'.repeat(64),latest_message_id:35,draft_id:data.draft_id}});
-  await page.locator('#replyText').fill(typed);await page.locator('#replyFile').setInputFiles({name:'keep.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment')});
-  // WebKit may turn the final filled space into NBSP before any AI action.
-  // Compare the native value byte-for-byte across cache read and insertion.
-  const text=await page.locator('#replyText').inputValue();expect(text.replace(/\u00a0/g,' ')).toBe(typed);
-  await page.locator('#aiDraftOpen').click();await expect(page.locator('#aiDraftInsert')).toBeEnabled();
-  await expect(page.locator('#replyText')).toHaveValue(text);await expect(page.locator('#mediaSelection')).toContainText('keep.txt');expect(state.aiCalls().map(call=>call.action)).toEqual(['prepared','generate']);
-  await expect(page.locator('#aiDraftStatus')).not.toContainText('подготовлен заранее');
-  await page.locator('#aiDraftInsert').click();await expect(page.locator('#replyText')).toHaveValue(text+'\n'+proposal().draft);expect(state.aiCalls()[2].draft_id).toBe('d'.repeat(32));
-  expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('workspaceV2.replySession.v1')).drafts.find(row=>row.id===11).aiDraftId)).toBe('d'.repeat(32));await expect(page.locator('#mediaSelection')).toContainText('keep.txt');clean(state);
-});
-test('AI stale cached cutoff never renders the text or generates a replacement',async({page})=>{
-  const state=await setup(page);state.setAI(async()=>({body:prepared({latest_message_id:34})}));await page.locator('#replyText').fill('Свой текст');await page.locator('#aiDraftOpen').click();
-  await expect(page.locator('#aiDraftStatus')).toContainText('Переписка изменилась');await expect(page.locator('.aiDraftText')).toHaveCount(0);await expect(page.locator('#replyText')).toHaveValue('Свой текст');expect(state.aiCalls().map(call=>call.action)).toEqual(['prepared']);clean(state);
-});
-test('AI reassignment discards a late successful cached reply',async({page})=>{
-  const state=await setup(page);let release;state.setAI(async()=>{await new Promise(resolve=>{release=resolve});return {body:prepared()}});
-  await page.locator('#replyText').fill('Свой текст');await page.locator('#aiDraftOpen').click();await expect.poll(()=>!!release).toBe(true);
-  await page.evaluate(()=>{WorkspaceV2.S.detail.conversation.manager_id=99;WorkspaceV2AiDraft.sync()});release();await expect(page.locator('#aiDraftPanel')).not.toBeVisible();await expect(page.locator('#aiDraftOpen')).toBeDisabled();await expect(page.locator('#replyText')).toHaveValue('Свой текст');expect(state.aiCalls().map(call=>call.action)).toEqual(['prepared']);clean(state);
-});
-test('AI no_contact and unavailable provider remain human readable without inserting',async({page})=>{
-  const state=await setup(page);await page.locator('#replyText').fill('Свой ответ');
-  state.setAI(async()=>({body:prepared({should_draft:false,draft:null,next_action:'no_contact',reason:'Турист попросил не писать.'})}));
-  await page.locator('#aiDraftOpen').click();await expect(page.locator('.aiDraftAction')).toHaveText('Сейчас не писать');await expect(page.locator('#aiDraftInsert')).not.toBeVisible();
-  await expect(page.locator('#replyText')).toHaveValue('Свой ответ');expect(state.aiCalls()).toHaveLength(1);
-  state.setAI(async()=>({body:{ok:false,error:'provider_not_configured'},status:503}));await page.locator('#aiDraftRetry').click();await expect(page.locator('#aiDraftStatus')).toContainText('AI сейчас недоступен');
-  await expect(page.locator('#aiDraftInsert')).not.toBeVisible();clean(state);
-});
-test('AI server context_stale409 blocks explicit insertion',async({page})=>{
-  const state=await setup(page);state.setAI(async data=>data.action==='prepared'?{body:prepared()}:{body:{ok:false,error:'context_stale'},status:409});
-  await page.locator('#replyText').fill('Свой текст');await page.locator('#aiDraftOpen').click();await expect(page.locator('#aiDraftInsert')).toBeEnabled();await page.locator('#aiDraftInsert').click();
-  await expect(page.locator('#aiDraftStatus')).toContainText('Переписка изменилась');await expect(page.locator('#aiDraftInsert')).not.toBeVisible();await expect(page.locator('#replyText')).toHaveValue('Свой текст');expect(state.aiCalls()).toHaveLength(2);clean(state);
-});
-for(const change of ['arrival','same-ID edit'])test('AI rejects a '+change+' while the cached reply is pending',withTransitionDiagnostics(async({page})=>{
-  const state=await setup(page);let release;state.setAI(async()=>{await new Promise(resolve=>{release=resolve});return {body:prepared()}});
-  await page.locator('#replyText').fill('Свой текст');await page.locator('#aiDraftOpen').click();await expect.poll(()=>!!release).toBe(true);
-  if(change==='arrival')state.messages.get(11).push({id:36,sender_type:'customer',text:'Синтетическое новое требование',created_at:'2026-10-17 12:01:00'});else state.messages.get(11)[34].text='Синтетическое исправленное требование';
-  // Invoke once in the page; do not return a live async value through CDP.
-  // Read its settled result separately, preserving rejection and document checks.
-  await page.evaluate(()=>{
-    const state={document,settled:false,value:null,error:null};
-    window.__qaPendingAiRefresh=state;
-    state.promise=WorkspaceV2Conversation.refreshVisible();
-    state.promise.then(value=>{state.value=value;state.settled=true},error=>{state.error=error;state.settled=true});
-  });
-  await expect.poll(()=>page.evaluate(()=>!window.__qaPendingAiRefresh||window.__qaPendingAiRefresh.settled)).toBe(true);
-  const result=await page.evaluate(()=>{
-    const state=window.__qaPendingAiRefresh;
-    delete window.__qaPendingAiRefresh;
-    if(state?.error)throw state.error;
-    return {refreshed:state?.value===true,sameDocument:state?.document===document};
-  });
-  expect(result).toEqual({refreshed:true,sameDocument:true});
-  await expect(page.locator('#aiDraftStatus')).toContainText('Переписка изменилась');release();
-  await expect(page.locator('#aiDraftInsert')).not.toBeVisible();await expect(page.locator('#replyText')).toHaveValue('Свой текст');expect(state.aiCalls()).toHaveLength(1);clean(state);
-}));
-test('AI validation preserves text edited while waiting and does not execute proposal HTML',async({page})=>{
-  const state=await setup(page);let release;const draft='<img src=x onerror="throw 1"> Литерал';
-  state.setAI(async data=>{if(data.action==='prepared')return {body:prepared({draft})};await new Promise(resolve=>{release=resolve});return {body:{ok:true,revision:'1'.repeat(64),latest_message_id:35}}});
-  await page.locator('#replyText').fill('Первый текст');await page.locator('#aiDraftOpen').click();await expect(page.locator('.aiDraftText')).toHaveText(draft);await expect(page.locator('.aiDraftText img')).toHaveCount(0);
-  await page.locator('#aiDraftInsert').click();await expect.poll(()=>!!release).toBe(true);await page.locator('#replyText').fill('Новый текст  ');release();
-  await expect(page.locator('#replyText')).toHaveValue('Новый текст  \n'+draft);await expect(page.locator('#aiDraftPanel')).not.toBeVisible();clean(state);
-});
-test('AI obsolete401 cannot expire the newly selected conversation; current401 still recovers',async({page})=>{
-  const state=await setup(page);let release;
-  // Retain the response despite cancellation, so the canonical read-owner fence
-  // rather than a successful network abort must reject the late401.
-  await page.evaluate(()=>{AbortController.prototype.abort=function(){}});
-  state.setAI(async()=>{await new Promise(resolve=>{release=resolve});return {body:{ok:false,error:'unauthorized'},status:401}});
-  await page.locator('#aiDraftOpen').click();await expect.poll(()=>!!release).toBe(true);await openClient(page,12,'Алексей Иванов');
-  await page.locator('#replyText').fill('Новый диалог');const lateResponse=page.waitForResponse(response=>response.url().endsWith('/manager/ai-draft.php')&&response.status()===401&&response.request().postDataJSON()?.conversation_id===11);release();expect(await (await lateResponse).finished()).toBeNull();await expect(page.locator('#aiDraftPanel')).not.toBeVisible();await expect(page.locator('#managerAuthRecovery')).not.toBeVisible();await expect(page.locator('#replyText')).toHaveValue('Новый диалог');
-  state.setAI(async()=>({body:{ok:false,error:'unauthorized'},status:401}));await page.locator('#aiDraftOpen').click();await expect(page.locator('#managerAuthRecovery')).toBeVisible();await expect(page.locator('#aiDraftPanel')).not.toBeVisible();await expect(page.locator('#replyText')).toHaveValue('Новый диалог');clean(state);
-});
-test('AI panel travels with the canonical expanded editor and Escape returns the existing selection',async({page})=>{
-  await page.setViewportSize({width:390,height:420});const state=await setup(page);await page.locator('#replyText').fill('Свой ответ');await page.locator('#m2ReplyExpand').click();
-  await page.locator('#replyText').evaluate(node=>node.setSelectionRange(1,5,'backward'));await page.locator('#aiDraftOpen').click();await expect(page.locator('#aiDraftInsert')).toBeEnabled();await bounded(page);
-  await page.keyboard.press('Escape');await expect(page.locator('#aiDraftPanel')).not.toBeVisible();await expect(page.locator('#m2ReplyEditor')).toBeVisible();await expect(page.locator('#replyText')).toBeFocused();expect(await page.locator('#replyText').evaluate(node=>[node.selectionStart,node.selectionEnd,node.selectionDirection])).toEqual([1,5,'backward']);clean(state);
+for(const width of [390,1440])for(const mode of ['hidden preference','policy off','ordinary supervisor'])test('Automatic editable preview respects '+mode+' '+width,async({page})=>{
+  await page.setViewportSize({width,height:900});let release;const state=await setup(page,{readiness:true,hideNotice:mode==='hidden preference',supervisor:mode==='ordinary supervisor',previewHandler:async()=>{await new Promise(r=>{release=r});return {body:prepared()}}});
+  if(mode==='ordinary supervisor'){expect(state.previewCalls()).toEqual([]);await expect(page.locator('#composer')).toBeHidden()}
+  else{await expect.poll(()=>!!release).toBe(true);if(mode==='policy off')await page.evaluate(()=>{WorkspaceV2PersonalWorkspace.preparationPermission=()=>({allowed:false,token:'fixture-off'});WorkspaceV2AiDraft.sync()});release();await expect(page.locator('#replyText')).toHaveValue('');await expect(page.locator('#aiDraftPanel')).toBeHidden()}
+  expect(state.aiCalls()).toEqual([]);clean(state);
 });
 
 for(const choice of [{decision:'allow',label:'Разрешить',width:1440},{decision:'deny',label:'Отмена',width:390},{decision:'allow',label:'Разрешить',width:430,legacy:true}])test('OAuth native '+(choice.legacy?'legacy policy control':choice.decision)+' posts the actual secure consent form and verifies callback navigation',async({browser,browserName},testInfo)=>{
@@ -848,8 +501,8 @@ for(const width of [390,1440])test(`current-trip panel keeps profile and ready r
   await page.setViewportSize({width,height:900});
   const state=await setup(page,{readiness:true,profilePanel:true});
   await expect(page.locator('#m2CurrentTrip strong')).toHaveText('Семейная поездка в Турцию');
-  await expect(page.locator('#aiDraftSuggestion')).toBeVisible();
-  await page.locator('#aiSuggestionDetails').click();await expect(page.locator('#aiDraftPanel')).toBeVisible();
+  await expect(page.locator('#replyText')).toHaveValue(prepared().draft);
+  await page.locator('#aiDraftOpen').click();await expect(page.locator('#aiDraftPanel')).toBeVisible();
   await page.locator('#replyText').fill('Мой неотправленный ответ');
   const tabs=page.context().pages().length;
   await openRequestProfile(page);
@@ -867,8 +520,8 @@ for(const width of [390,1440])test(`current-trip panel keeps profile and ready r
   await expect(page.locator('#replyText')).toHaveValue('Мой неотправленный ответ');
   expect(page.context().pages()).toHaveLength(tabs);
   await page.locator('#replyText').fill('');
-  await expect(page.locator('#aiSuggestionAccept')).toBeVisible();
-  await page.locator('#aiSuggestionAccept').click();
+  await expect(page.locator('#replyText')).toHaveValue('');
+  await page.locator('#aiDraftOpen').click();await page.locator('#aiDraftInsert').click();
   await expect(page.locator('#replyText')).toHaveValue(prepared().draft);
   expect(state.calls.some(c=>c.action==='generate')).toBe(false);
   expect(state.calls.filter(c=>c.action==='save'&&c.path==='/manager/request-profile-api.php')).toHaveLength(1);
@@ -954,7 +607,7 @@ test('current-trip panel rejects forged child notifications and unexpected accou
 
 test('current-trip panel reconciles one uncertain profile write and invalidates the previous AI preview',async({page})=>{
   const state=await setup(page,{profilePanel:true,readiness:true});
-  await expect(page.locator('#aiSuggestionDetails')).toBeVisible();await page.locator('#aiSuggestionDetails').click();await expect(page.locator('#aiDraftPanel')).toBeVisible();
+  await expect(page.locator('#replyText')).toHaveValue(prepared().draft);await page.locator('#aiDraftOpen').click();await expect(page.locator('#aiDraftPanel')).toBeVisible();
   let committed=null;
   state.setProfileHandler(async data=>{
     if(data.action==='save'){committed=data;return {body:{ok:false,error:'network_error'}};}

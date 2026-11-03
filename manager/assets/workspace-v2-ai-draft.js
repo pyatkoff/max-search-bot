@@ -22,9 +22,11 @@
     else if(!expanded&&host.parentElement!==head.parentElement)head.after(host);
     return host;
   }
+  // The current Manager2 shell uses its one native composer; older shells keep the overlay.
+  const editablePreview=()=>manager2()&&!!assistantHost();
   const automaticAttempts=new Map();
   let automaticIdentity='';
-  let placeholder='',suggestionLargeFont=null;
+  let placeholder='',suggestionLargeFont=null,composing=false;
   const dismissedNotices=new Set(),manager2=()=>document.body.classList.contains('manager2');
   const visible=()=>document.visibilityState!=='hidden';
   const conversation=()=>window.WorkspaceV2Conversation;
@@ -49,15 +51,28 @@
   function timeValue(value){const parsed=window.ManagerTime?.parse?.(value)||new Date(String(value||'').replace(' ','T')+(/(?:Z|[+-]\d{2}:?\d{2})$/.test(String(value||''))?'':'Z'));return Number.isNaN(parsed.getTime())?0:parsed.getTime()}
   function timeLabel(value){return window.ManagerTime?.format?window.ManagerTime.format(value)+' '+window.ManagerTime.label:''}
   function hideNotice(hidden){if(notice&&notice.hidden!==hidden)notice.hidden=hidden}
-  function clearReady(){ready=null;window.clearTimeout?.(expiryTimer);expiryTimer=null;hideNotice(true);syncSuggestion();syncRecommendation()}
-  function noticeKey(){return ready?JSON.stringify([S.manager?.id,S.current,ready.revision,ready.prepared_at]):''}
+  function clearReady(){conversation()?.discardAiPreview?.();ready=null;window.clearTimeout?.(expiryTimer);expiryTimer=null;hideNotice(true);syncSuggestion();syncRecommendation()}
+  function noticeKey(){return ready?JSON.stringify([S.manager?.id,S.current,ownerBinding(),ready.latest_message_id,ready.revision,ready.prepared_at]):''}
+  function syncAutomaticDraft(){
+    if(!editablePreview())return;
+    const key=noticeKey(),preview=conversation()?.aiDraftPreview?.();
+    const eligible=visible()&&canCompose()&&preparationPermission().allowed&&!!ready&&(ready.kind==='prepared'||ready.kind==='generated')&&ready.expires>Date.now()&&currentSnapshot(ready.snapshot)&&hasReadyProposal(ready,ready.snapshot)&&ready.should_draft&&!dismissedNotices.has(key)&&window.WorkspaceV2PersonalWorkspace?.showAiReadyNotice?.()!==false;
+    if(preview&&(!eligible||preview.key!==key)){const reading=readerPosition();conversation().discardAiPreview();restoreReader(reading)}
+    if(eligible&&!flight&&!composing&&$('replyText').value===''){const reading=readerPosition();conversation().previewAiDraft?.(ready.draft,ready.snapshot.context,key);restoreReader(reading)}
+    if(view?.result){
+      const inComposer=!!conversation()?.aiDraftPreview?.();
+      if(view.previewInComposer!==inComposer)renderResult(view.result);
+      if(view.result.should_draft&&canCompose())insert.hidden=inComposer;
+    }
+  }
   function dismissNotice(){dismissedNotices.add(noticeKey());if(dismissedNotices.size>100)dismissedNotices.delete(dismissedNotices.values().next().value);hideNotice(true);syncSuggestion()}
   function suggestionAvailable(){
     return !!suggestion&&manager2()&&visible()&&!!ready&&ready.expires>Date.now()&&currentSnapshot(ready.snapshot)&&validResult(ready,ready.snapshot)&&ready.should_draft&&panel.hidden&&!flight&&!dismissedNotices.has(noticeKey())&&window.WorkspaceV2PersonalWorkspace?.showAiReadyNotice?.()!==false&&(ownerRead()||canCompose()&&$('replyText').value==='');
   }
   function syncSuggestion(){
+    syncAutomaticDraft();
     if(!suggestion)return;
-    const shown=suggestionAvailable(),readonly=ownerRead(),reply=$('replyText'),form=$('composer'),hosted=assistantHost(),ghost=shown&&!readonly&&!hosted;
+    const shown=!editablePreview()&&suggestionAvailable(),readonly=ownerRead(),reply=$('replyText'),form=$('composer'),hosted=assistantHost(),ghost=shown&&!readonly&&!hosted;
     let layoutChanged=suggestion.hidden===shown;
     const largeFont=document.body.classList.contains('pwLargeFont');
     if(suggestionLargeFont!==largeFont){suggestionLargeFont=largeFont;if(ghost)layoutChanged=true}
@@ -85,14 +100,14 @@
     syncPreparation();
     syncRecommendation();
     if(!notice)return;
-    hideNotice(!canCompose()||!manager2()||!visible()||!ready||ready.kind!=='prepared'||ready.expires<=Date.now()||!ready.should_draft||!currentSnapshot(ready.snapshot)||!panel.hidden||suggestion&&!suggestion.hidden||dismissedNotices.has(noticeKey())||window.WorkspaceV2PersonalWorkspace?.showAiReadyNotice?.()===false);
+    hideNotice(editablePreview()||!canCompose()||!manager2()||!visible()||!ready||ready.kind!=='prepared'||ready.expires<=Date.now()||!ready.should_draft||!currentSnapshot(ready.snapshot)||!panel.hidden||suggestion&&!suggestion.hidden||dismissedNotices.has(noticeKey())||window.WorkspaceV2PersonalWorkspace?.showAiReadyNotice?.()===false);
   }
   function hasReadyProposal(result,saved){
     return validResult(result,saved)&&typeof result.next_action==='string'&&typeof result.reason==='string'&&Array.isArray(result.checks);
   }
   function syncRecommendation(){
     if(!recommendationNotice)return;
-    const shown=manager2()&&visible()&&!!ready&&ready.expires>Date.now()&&currentSnapshot(ready.snapshot)&&hasReadyProposal(ready,ready.snapshot)&&ready.should_draft===false&&panel.hidden&&!flight&&window.WorkspaceV2PersonalWorkspace?.showAiReadyNotice?.()!==false&&(ownerRead()||canCompose());
+    const shown=!editablePreview()&&manager2()&&visible()&&!!ready&&ready.expires>Date.now()&&currentSnapshot(ready.snapshot)&&hasReadyProposal(ready,ready.snapshot)&&ready.should_draft===false&&panel.hidden&&!flight&&window.WorkspaceV2PersonalWorkspace?.showAiReadyNotice?.()!==false&&(ownerRead()||canCompose());
     let changed=recommendationNotice.hidden===shown;
     if(changed)recommendationNotice.hidden=!shown;
     if(!shown){
@@ -124,13 +139,14 @@
   function syncPreparation(){
     if(!preparationNotice)return;
     const saved=watch,attempt=saved?.automatic,late=!!saved&&Date.now()>=saved.until;
-    const shown=!!attempt&&attempt.phase!=='complete'&&automaticEligible(saved)&&panel.hidden&&!flight&&!(ready&&currentSnapshot(ready.snapshot));
+    const shown=!!attempt&&attempt.phase!=='complete'&&automaticEligible(saved)&&(editablePreview()?!panel.hidden:panel.hidden)&&!flight&&!(ready&&currentSnapshot(ready.snapshot));
     let changed=preparationNotice.hidden===shown;
     if(changed)preparationNotice.hidden=!shown;
     if(!shown){if(changed)window.WorkspaceV2ReplyEditor?.resize?.();return}
     const readonly=ownerRead(),hosted=assistantHost(),host=hosted||(readonly?$('conversationZone'):$('composer'));
-    const before=hosted?panel:readonly?$('composerLocked'):[...host.children].find(node=>node.classList.contains('composerSurface')||node.classList.contains('composerMain'))||host.firstChild;
-    if(preparationNotice.parentElement!==host){host.insertBefore(preparationNotice,before);changed=true}
+    const before=editablePreview()?body:hosted?panel:readonly?$('composerLocked'):[...host.children].find(node=>node.classList.contains('composerSurface')||node.classList.contains('composerMain'))||host.firstChild;
+    const target=editablePreview()?panel:host;
+    if(preparationNotice.parentElement!==target){target.insertBefore(preparationNotice,before);changed=true}
     preparationNotice.classList.toggle('aiPreparationReadonly',readonly);
     const failed=attempt.phase==='failed',text=failed?(attempt.error==='preparation_queue_full'?'Очередь AI-подсказок занята. Попробуйте подготовить позже.':'Автоматическая подготовка AI-подсказки временно недоступна.'):late?'Подготовка AI-подсказки задерживается.':'AI готовит подсказку автоматически…';
     if(preparationLabel.textContent!==text){preparationLabel.textContent=text;changed=true}
@@ -184,6 +200,13 @@
       hint=(state==='prepared'?'Подготовлен автоматически':'Сформирован по нажатию')+(timeLabel(ready.prepared_at)?': '+timeLabel(ready.prepared_at):'')+'. Нажмите, чтобы проверить '+(ready.should_draft?'черновик.':'рекомендации.');
     }else if(view?.stale){state='stale';label='Помощник — Обновить';hint='Переписка изменилась. Прежний черновик нужно обновить.'}
     if(flight){state='loading';label=flight.action==='generate'?'Помощник — Готовим ответ':'Помощник — Проверяем';hint=flight.action==='generate'?'Готовим новый вариант по вашему нажатию.':'Проверяем готовый ответ и актуальность переписки.'}
+    if(editablePreview()){
+      label='AI';
+      if(!ready&&!flight&&watch?.automatic){
+        const attempt=watch.automatic;state=attempt.phase==='failed'?'error':'loading';
+        hint=attempt.phase==='failed'?'Автоподготовка недоступна. Ответ можно подготовить вручную кнопкой AI.':Date.now()>=watch.until?'Подготовка ответа задерживается.':'Ответ готовится автоматически.';
+      }
+    }
     if(button.textContent!==label)button.textContent=label;
     button.dataset.aiState=state;button.title=hint;button.setAttribute('aria-label',label+'. '+hint);syncPreferences();
   }
@@ -195,6 +218,7 @@
     const previous=ready?.kind===kind&&ready.revision===result.revision&&ready.prepared_at===result.prepared_at?ready:null;
     window.clearTimeout?.(expiryTimer);expiryTimer=null;
     ready={...previous,...result,snapshot:saved,kind,expires,prepared_at:result.prepared_at||new Date().toISOString()};
+    if(editablePreview()&&view?.result?.prepared===true&&kind==='prepared'&&hasReadyProposal(ready,saved)){view.snapshot=saved;view.result=ready;renderResult(ready)}
     const captured=ready;
     expiryTimer=window.setTimeout?.(()=>{if(ready!==captured)return;clearReady();if(view?.result?.prepared===true){view.result=null;clearBody();status.textContent='Срок хранения готового ответа истёк. Проверьте наличие нового ответа.'}renderButton()},Math.min(expires-Date.now(),2147483647));
     renderButton();
@@ -255,40 +279,6 @@
   const readerPosition=()=>manager2()?window.WorkspaceV2Jump?.capture?.():null;
   function restoreReader(position){if(position)window.WorkspaceV2Jump?.restore?.(position,{preserveScroll:true})}
   function positionPanel(reveal=false){
-    if(manager2()){
-      const host=assistantHost();if(!host)return;
-      if(!view||panel.hidden){host.style.removeProperty('--m2-assistant-open-height');return}
-      const parent=host.parentElement,screen=window.visualViewport?.height||innerHeight;
-      let room;
-      if(parent.classList.contains('m2ReplyEditorBody')){
-        // The existing editor keeps its one native composer and its own scroll.
-        room=parent.clientHeight-Math.min(180,parent.clientHeight*.55);
-      }else{
-        const px=value=>parseFloat(value)||0,style=getComputedStyle(parent);
-        const children=[...parent.children].filter(node=>{
-          const css=getComputedStyle(node);return css.display!=='none'&&!['absolute','fixed'].includes(css.position);
-        });
-        const used=children.filter(node=>node!==host&&node.id!=='messages').reduce((sum,node)=>{
-          const css=getComputedStyle(node);return sum+node.getBoundingClientRect().height+px(css.marginTop)+px(css.marginBottom);
-        },0);
-        room=parent.clientHeight-px(style.paddingTop)-px(style.paddingBottom)-used-64-Math.max(0,children.length-1)*px(style.rowGap);
-      }
-      const height=Math.max(0,Math.floor(Math.min(room,screen*.38,360))),value=height+'px';
-      if(host.style.getPropertyValue('--m2-assistant-open-height')!==value){
-        const reading=readerPosition();
-        host.style.setProperty('--m2-assistant-open-height',value);
-        restoreReader(reading);
-      }
-      if(reveal===true){
-        const target=body.querySelector('.aiDraftText,.aiDraftEmpty')||status;
-        const box=host.getBoundingClientRect(),text=target.getBoundingClientRect();
-        if(text.top<box.top||text.bottom>box.bottom){
-          // Reveal the answer inside this one scroller, not the transcript.
-          host.scrollTop+=text.top-box.top-Math.min(24,host.clientHeight*.25);
-        }
-      }
-      return;
-    }
     if(!view||panel.hidden)return;
     if(supervisorRead())return;
     const rect=$('composer').getBoundingClientRect?.();if(!rect)return;
@@ -325,7 +315,7 @@
   }
   function sync(){
     if(!bound)return;
-    const supervised=supervisorRead(),host=assistantHost()||(supervised?$('conversationZone'):$('composer'));
+    const supervised=supervisorRead(),host=editablePreview()?(supervised?$('conversationZone'):$('composer')):assistantHost()||(supervised?$('conversationZone'):$('composer'));
     if(host&&panel.parentElement!==host)host.appendChild(panel);
     if(host?.id==='m2Assistant')for(const item of [notice,preparationNotice]){
       if(item&&item.parentElement!==host)host.insertBefore(item,panel);
@@ -335,7 +325,7 @@
     if(view&&(!canAnalyze()||!sameContext(view.snapshot.context))){resetSession();return}
     if(view&&!currentSnapshot(view.snapshot))stale();
     const disabled=!canAnalyze()||!!flight;if(button.disabled!==disabled)button.disabled=disabled;
-    if(preparationSettings){const c=S.detail?.conversation;preparationSettings.hidden=!!$('m2ReplyEditor')?.open||!(Number(c?.id)===Number(S.current)&&(Number(c.manager_id)===Number(S.manager?.id)&&c.status==='manager'||ownerRead()&&Number(c.manager_id||0)===0));}
+    if(preparationSettings){if(editablePreview()&&preparationSettings.parentElement!==panel)panel.appendChild(preparationSettings);const c=S.detail?.conversation;preparationSettings.hidden=!!$('m2ReplyEditor')?.open||!(Number(c?.id)===Number(S.current)&&(Number(c.manager_id)===Number(S.manager?.id)&&c.status==='manager'||ownerRead()&&Number(c.manager_id||0)===0));}
     syncWatch();renderButton();
     positionPanel();
   }
@@ -348,12 +338,16 @@
     return '';
   }
   function renderResult(result){
+    if(view)view.previewInComposer=!!conversation()?.aiDraftPreview?.();
     clearBody();
     const actions={clarify:'Уточнить запрос',answer_question:'Ответить на вопрос',check_offer:'Проверить данные',prepare_selection:'Подготовить подборку',no_contact:'Сейчас не писать'};
     const rawAction=readable(result.next_action),action=actions[rawAction]||rawAction,reason=readable(result.reason);
-    addText('h3','aiDraftSectionTitle','Готовый ответ туристу');
-    if(result.should_draft){addText('p','aiDraftText',result.draft);insert.hidden=!canCompose()}
-    else addText('p','aiDraftEmpty','Готового ответа пока нет. Сначала выполните следующий шаг.');
+    if(!editablePreview()||!canCompose()||!conversation()?.aiDraftPreview?.()){
+      addText('h3','aiDraftSectionTitle','Готовый ответ туристу');
+      if(result.should_draft)addText('p','aiDraftText',result.draft);
+      else addText('p','aiDraftEmpty','Готового ответа пока нет. Сначала выполните следующий шаг.');
+    }
+    insert.hidden=!result.should_draft||!canCompose()||!!conversation()?.aiDraftPreview?.();
     addText('h3','aiDraftSectionTitle','Проверки менеджеру');
     if(action)addText('p','aiDraftAction',action);
     if(reason)addText('p','aiDraftReason',reason);
@@ -364,7 +358,7 @@
     }
     renderAdmission(result.admission);
     const prepared=result.prepared===true&&result.should_draft?'Ответ подготовлен заранее. ':'';
-    status.textContent=prepared+(result.should_draft?'Проверьте текст. Добавим в конец ответа.':rawAction==='no_contact'?'Сейчас отвечать не нужно.':'Перед ответом нужно проверить данные. Причина и следующий шаг — ниже.');
+    status.textContent=prepared+(result.should_draft?(editablePreview()&&conversation()?.aiDraftPreview?.()?'Черновик находится в поле ответа. Проверьте и отредактируйте его.':'Проверьте текст. Добавим в конец ответа.'):rawAction==='no_contact'?'Сейчас отвечать не нужно.':'Перед ответом нужно проверить данные. Причина и следующий шаг — ниже.');
     if(supervisorRead())status.textContent=(S.detail?.owner_read?'Режим владельца':'Просмотр руководителя')+' · Ответственный: '+(S.detail?.conversation?.manager_name||'Без назначения')+'. Просмотр не считается использованием или отправкой ответа.';
     retry.textContent=result.should_draft?'Другой вариант':'Повторить подготовку';
   }
@@ -397,7 +391,7 @@
     return result?.ok===true&&typeof result.revision==='string'&&!!result.revision&&Number.isSafeInteger(result.latest_message_id)&&result.latest_message_id===saved.latest&&typeof result.should_draft==='boolean'&&(!result.should_draft||typeof result.draft==='string'&&!!result.draft.trim());
   }
   function openReady(){
-    if((ready?.kind==='generated'||ready?.should_draft===false)&&ready.expires>Date.now()&&currentSnapshot(ready.snapshot)&&hasReadyProposal(ready,ready.snapshot)){
+    if((editablePreview()||ready?.kind==='generated'||ready?.should_draft===false)&&ready&&ready.expires>Date.now()&&currentSnapshot(ready.snapshot)&&hasReadyProposal(ready,ready.snapshot)){
       const reading=readerPosition(),result=ready;abortStatusRead();abortFlight();view={snapshot:result.snapshot,selection:selection(),result,stale:false};panel.hidden=false;button.setAttribute('aria-expanded','true');renderResult(result);setBusy(false);positionPanel(true);panel.focus({preventScroll:true});restoreReader(reading);if(watch)scheduleStatus(watch);return;
     }
     void loadProposal('prepared',true);
@@ -405,14 +399,14 @@
   async function loadProposal(action,generateIfNeeded=false){
     if(!canAnalyze()||flight)return false;
     const recovery=action==='prepared'&&view?.retryAction==='prepared';
-    abortStatusRead();dismissNotice();
+    abortStatusRead();if(!editablePreview())dismissNotice();
     const saved=snapshot(),savedSelection=selection(),reading=readerPosition();abortFlight();
     view={snapshot:saved,selection:savedSelection,result:null,stale:false,...(recovery?{retryAction:'prepared'}:{})};
     panel.hidden=false;button.setAttribute('aria-expanded','true');clearBody();retry.textContent=recovery?'Повторить проверку':'Повторить подготовку';status.textContent=recovery?'Проверяем AI-подсказку…':'Читаем переписку и фото, готовим ответ…';
     const current={ticket:sequence,action,controller:typeof AbortController==='function'?new AbortController():null};flight=current;setBusy(true);positionPanel(true);panel.focus({preventScroll:true});restoreReader(reading);
     const isCurrent=()=>flight===current&&current.ticket===sequence&&!!view&&currentSnapshot(saved);
     try{
-      const request=kind=>W.request('ai-draft.php',kind,{conversation_id:saved.context.conversationId,latest_message_id:saved.latest},{signal:current.controller?.signal,isCurrent});
+      const request=kind=>W.request('ai-draft.php',editablePreview()&&kind==='prepared'?'prepared_preview':kind,{conversation_id:saved.context.conversationId,latest_message_id:saved.latest},{signal:current.controller?.signal,isCurrent});
       let result=await request(action);
       if(!isCurrent()){sync();return false}
       const staleError=['context_changed','context_stale','stale_context','stale_revision','revision_changed'].includes(result?.error);
@@ -447,10 +441,20 @@
     sync();if(!canCompose()||!view?.result?.should_draft||flight||view.stale||!currentSnapshot(view.snapshot))return false;
     if(emptyOnly&&$('replyText').value!=='')return false;
     if(view.result.prepared===true&&view.result.expires_at&&timeValue(view.result.expires_at)<=Date.now()){stale();return false}
-    const saved=view.snapshot,result=view.result,draftId=validDraftId(view.result.draft_id)?view.result.draft_id:null;
+    const saved=view.snapshot,result=view.result;let draftId=validDraftId(result.draft_id)?result.draft_id:null;
     const current={ticket:sequence,controller:typeof AbortController==='function'?new AbortController():null};flight=current;setBusy(true);status.textContent='Проверяем, что контекст не изменился…';
     const isCurrent=()=>flight===current&&current.ticket===sequence&&view?.result===result&&currentSnapshot(saved);
     try{
+      if(editablePreview()&&result.prepared===true&&!draftId){
+        // Only this explicit insertion registers provenance; passive appearance does not.
+        const registered=await W.request('ai-draft.php','prepared',{conversation_id:saved.context.conversationId,latest_message_id:saved.latest},{signal:current.controller?.signal,isCurrent});
+        if(!isCurrent()){sync();return false}
+        if(registered?.http_status===403||registered?.http_status===404){resetSession();return false}
+        if(!validResult(registered,saved)||registered.prepared!==true||registered.revision!==result.revision||registered.draft!==result.draft||registered.prepared_at!==result.prepared_at){
+          view.insertionIssue=true;status.textContent='Не удалось проверить сохранённый AI-ответ. Текст и файлы сохранены. Повторите вставку.';return false;
+        }
+        draftId=validDraftId(registered.draft_id)?registered.draft_id:null;
+      }
       const checked=await W.request('ai-draft.php','validate',{conversation_id:saved.context.conversationId,latest_message_id:saved.latest,revision:result.revision,...(draftId?{draft_id:draftId}:{})},{signal:current.controller?.signal,isCurrent});
       if(!isCurrent()){sync();return false}
       if(checked?.ok!==true||checked.revision!==result.revision||checked.latest_message_id!==saved.latest){
@@ -513,13 +517,13 @@
     const form=$('composer'),reply=$('replyText'),quick=$('quickRepliesOpen'),row=quick?.parentElement;
     if(!form||!reply||!row||!conversation())return;
     placeholder=reply.getAttribute('placeholder')||'';
-    button=document.createElement('button');button.id='aiDraftOpen';button.type='button';button.className='aiDraftOpen';button.textContent='Помощник';
-    button.setAttribute('aria-label','Открыть помощника');button.setAttribute('aria-controls','aiDraftPanel');button.setAttribute('aria-expanded','false');
+    button=document.createElement('button');button.id='aiDraftOpen';button.type='button';button.className='aiDraftOpen';button.textContent='AI';
+    button.setAttribute('aria-label','AI · Проверки менеджеру');button.setAttribute('aria-controls','aiDraftPanel');button.setAttribute('aria-expanded','false');
     row.insertBefore(button,row.firstChild);
     panel=document.createElement('section');panel.id='aiDraftPanel';panel.className='aiDraftPanel';panel.hidden=true;panel.tabIndex=-1;
     panel.setAttribute('role','region');panel.setAttribute('aria-labelledby','aiDraftTitle');
     const head=document.createElement('div');head.className='aiDraftHead';
-    const title=document.createElement('strong');title.id='aiDraftTitle';title.textContent='Помощник';head.appendChild(title);
+    const title=document.createElement('strong');title.id='aiDraftTitle';title.textContent='AI · Проверки менеджеру';head.appendChild(title);
     const dismiss=document.createElement('button');dismiss.type='button';dismiss.className='aiDraftClose';dismiss.textContent='Закрыть';head.appendChild(dismiss);panel.appendChild(head);
     status=document.createElement('p');status.id='aiDraftStatus';status.className='aiDraftStatus';status.setAttribute('role','status');status.setAttribute('aria-live','polite');panel.appendChild(status);
     body=document.createElement('div');body.className='aiDraftBody';panel.appendChild(body);
@@ -539,11 +543,14 @@
       suggestionText=document.createElement('p');suggestionText.className='aiSuggestionText';suggestion.appendChild(suggestionText);
       const suggestionActions=document.createElement('div');suggestionActions.className='aiSuggestionActions';suggestionAccept=document.createElement('button');suggestionAccept.id='aiSuggestionAccept';suggestionAccept.type='button';suggestionAccept.textContent='Вставить в ответ';suggestionAccept.addEventListener('click',()=>void acceptSuggestion());suggestionActions.appendChild(suggestionAccept);
       const details=document.createElement('button');details.id='aiSuggestionDetails';details.type='button';details.textContent='Подробнее';details.addEventListener('click',openReady);suggestionActions.appendChild(details);suggestion.appendChild(suggestionActions);form.insertBefore(suggestion,form.querySelector('.composerSurface')||form.firstChild);
-      reply.addEventListener('input',syncPreferences);
+      reply.addEventListener('compositionstart',()=>{composing=true});
+      reply.addEventListener('compositionend',()=>{composing=false;syncPreferences()});
+      reply.addEventListener('input',()=>{if(editablePreview()&&ready)dismissNotice();else syncPreferences()});
       reply.addEventListener('keydown',event=>{
         if(event.defaultPrevented||event.isComposing||event.repeat||event.shiftKey||event.altKey||event.ctrlKey||event.metaKey||document.activeElement!==reply)return;
+        if(event.key==='Escape'&&editablePreview()&&conversation()?.aiDraftPreview?.()){event.preventDefault();event.stopPropagation();conversation().discardAiPreview();dismissNotice();return}
         if(event.key==='Escape'&&suggestionAvailable()){event.preventDefault();event.stopPropagation();dismissNotice()}
-        if(event.key==='Tab'&&suggestionAvailable()&&canCompose()){event.preventDefault();event.stopPropagation();void acceptSuggestion()}
+        if(event.key==='Tab'&&!editablePreview()&&suggestionAvailable()&&canCompose()){event.preventDefault();event.stopPropagation();void acceptSuggestion()}
       });
       notice=document.createElement('div');notice.id='aiReadyNotice';notice.className='aiReadyNotice';notice.hidden=true;notice.setAttribute('role','status');notice.setAttribute('aria-live','polite');
       noticeLabel=document.createElement('span');noticeLabel.textContent='AI — Ответ готов';notice.appendChild(noticeLabel);

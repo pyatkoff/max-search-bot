@@ -105,3 +105,6 @@
 .manager2 .aiPreparationSettings[hidden]{display:none}
 #pwPreparation{scroll-margin-top:12px}
 #pwPreparation .pwEditor button{min-height:40px}
+
+/* Editable AI preview in the canonical textarea; real manager input removes this origin. */
+.manager2 #composer #replyText.aiDraftPreview{color:#778679}

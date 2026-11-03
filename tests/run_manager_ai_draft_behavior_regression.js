@@ -548,35 +548,31 @@ test('current401 still uses canonical recovery and preserves the existing draft 
   const h=await harness(()=>response({ok:false,error:'unauthorized'},401)),file={name:'keep.txt'};await h.draft('Свой текст');h.setFile(file);await h.click('aiDraftOpen');h.observe();
   assert.equal(h.W.S.authExpired,true);assert.equal(h.ids.get('aiDraftPanel').hidden,true);assert.equal(h.ids.get('replyText').value,'Свой текст');assert.equal(h.getFile(),file);assertNoMutations(h);
 });
-test('one hosted assistant separates a missing-information reply from internal checks',async()=>{
+test('current shell puts ready text in the native editor and keeps checks behind compact AI',async()=>{
   const draft='Из какого города вылетаете и какой бюджет рассматриваете?',checks=['Проверить защищённость пляжа от ветра на выбранные даты.'];
   const h=await harness(data=>response(data.action==='prepared_status'?readiness():prepared({draft,checks})),{manager2:true,hosted:true});await tick();
-  assert.equal(h.ids.get('aiDraftSuggestion').parentElement,h.ids.get('m2Assistant'));
-  assert.equal(h.ids.get('composer').classList.contains('aiGhostVisible'),false);
-  await h.click('aiSuggestionDetails');
-  const body=h.ids.get('aiDraftPanel').children[2];
-  assert.deepEqual(body.querySelectorAll('.aiDraftSectionTitle').map(n=>n.textContent),['Готовый ответ туристу','Проверки менеджеру']);
-  assert.equal(body.querySelector('.aiDraftText').textContent,draft);
+  assert.equal(h.ids.get('replyText').value,draft);assert.equal(h.ids.get('replyText').classList.contains('aiDraftPreview'),true);
+  assert.equal(h.ids.get('aiDraftSuggestion').hidden,true);assert.equal(h.ids.get('aiDraftPanel').hidden,true);assert.equal(h.ids.get('aiDraftOpen').textContent,'AI');
+  await h.click('aiDraftOpen');const body=h.ids.get('aiDraftPanel').children[2];
+  assert.equal(h.ids.get('aiDraftPanel').parentElement.id,'composer');assert.equal(body.querySelector('.aiDraftText'),null);
+  assert.deepEqual(body.querySelectorAll('.aiDraftSectionTitle').map(n=>n.textContent),['Проверки менеджеру']);
   assert.equal(body.querySelector('.aiDraftChecks').children[0].textContent,checks[0]);
-  assert.equal(h.aiCalls().some(c=>c.action==='generate'),false);assertNoMutations(h);
+  assert.deepEqual(h.aiCalls().map(c=>c.action),['prepared_status','prepared_preview']);assertNoMutations(h);
 });
-test('metadata readiness stays inside the same assistant while private preview is pending',async()=>{
-  const pending=deferred();const h=await harness(data=>data.action==='prepared_preview'?pending.promise:response(readiness()),{manager2:true,hosted:true});await tick();
-  assert.equal(h.ids.get('aiReadyNotice').parentElement,h.ids.get('m2Assistant'));
-  assert.equal(h.ids.get('aiPreparationNotice').parentElement,h.ids.get('m2Assistant'));
-  assert.equal(h.ids.get('replyText').value,'');pending.resolve(response(prepared()));await tick();assertNoMutations(h);
+
+test('current shell does not fill from metadata alone or show a transcript card',async()=>{
+  const pending=deferred(),h=await harness(data=>data.action==='prepared_preview'?pending.promise:response(readiness()),{manager2:true,hosted:true});await tick();
+  assert.equal(h.ids.get('aiReadyNotice').hidden,true);assert.equal(h.ids.get('aiPreparationNotice').hidden,true);assert.equal(h.ids.get('aiDraftPanel').hidden,true);
+  assert.equal(h.ids.get('replyText').value,'');pending.resolve(response(prepared()));await tick();assert.equal(h.ids.get('replyText').value,generated().draft);assertNoMutations(h);
 });
-test('pending automatic preparation retains one hosted parent for own and readonly chats',async()=>{
+
+test('current shell keeps pending work compact and only its owner receives editable text',async()=>{
   for(const readonly of [false,true]){
     let completed=false;const first=deferred(),h=await harness(data=>data.action==='prepared_status'?completed?response(readiness()):first.promise:data.action==='ensure_prepared'?response({ok:true,requested:true,preparation_state:'pending',queued:true}):response(prepared()),{manager2:true,hosted:true});
     if(readonly){h.W.S.manager.role='admin';h.W.S.detail.owner_read=true;h.W.S.detail.supervisor_read=true;h.W.S.detail.conversation.manager_id=9;h.ids.get('composer').classList.add('hidden');h.ai.sync()}
-    first.resolve(response(automaticMiss));await tick();
-    const notice=h.ids.get('aiPreparationNotice'),host=h.ids.get('m2Assistant');
-    assert.equal(notice.hidden,false);assert.equal(notice.parentElement,host);
-    h.ai.sync();h.observe();h.ai.sync();assert.equal(notice.parentElement,host);
-    assert.equal(h.aiCalls().filter(call=>call.action==='ensure_prepared').length,1);
-    completed=true;await pollAi(h);assert.equal(notice.hidden,true);assert.equal(h.ids.get('aiDraftSuggestion').parentElement,host);
-    assert.equal(h.ids.get('aiSuggestionAccept').hidden,readonly);assert.equal(h.ids.get('replyText').value,'');
+    first.resolve(response(automaticMiss));await tick();assert.equal(h.ids.get('aiPreparationNotice').hidden,true);assert.equal(h.ids.get('aiDraftPanel').hidden,true);
+    h.ai.sync();h.observe();assert.equal(h.aiCalls().filter(call=>call.action==='ensure_prepared').length,1);
+    completed=true;await pollAi(h);assert.equal(h.ids.get('aiDraftSuggestion').hidden,true);assert.equal(h.ids.get('replyText').value,readonly?'':generated().draft);
     assert.equal(h.aiCalls().some(call=>['generate','prepared','validate'].includes(call.action)),false);assertNoMutations(h);
   }
 });
@@ -589,21 +585,23 @@ test('price-only pending work has no insertable reply and a new message invalida
   h.W.S.detail.messages.push({id:9,sender_type:'customer',text:'Изменились даты.'});h.ai.sync();
   assert.equal(body.children.length,0);assert.equal(h.aiCalls().some(c=>c.action==='generate'),false);assertNoMutations(h);
 });
-test('a useful partial answer remains insertable while price checking stays an independent action',async()=>{
+test('a useful partial answer is editable while price checking stays behind AI',async()=>{
   const draft='В опубликованном описании этого номера две отдельные спальни.';
-  const h=await harness(data=>response(data.action==='prepared_status'?readiness():data.action==='validate'?{ok:true,revision:'synthetic-revision-1',latest_message_id:8,draft_id:'a'.repeat(32)}:prepared({draft,next_action:'check_offer',checks:['Проверить актуальную полную цену на новые даты.']})),{manager2:true,hosted:true});await tick();
-  await h.click('aiSuggestionDetails');assert.equal(h.ids.get('aiDraftInsert').hidden,false);
+  const h=await harness(data=>response(data.action==='prepared_status'?readiness():prepared({draft,next_action:'check_offer',checks:['Проверить актуальную полную цену на новые даты.']})),{manager2:true,hosted:true});await tick();
+  assert.equal(h.ids.get('replyText').value,draft);await h.click('aiDraftOpen');assert.equal(h.ids.get('aiDraftInsert').hidden,true);
   assert.equal(h.ids.get('aiDraftPanel').children[2].querySelector('.aiDraftAction').textContent,'Проверить данные');
-  await h.insert();assert.equal(h.ids.get('replyText').value,draft);assertNoMutations(h);
+  assert.equal(h.aiCalls().some(c=>c.action==='validate'),false);assertNoMutations(h);
 });
-test('hosted readonly content has one host and no insertion across dialog changes',async()=>{
+
+test('current shell keeps foreign AI readonly behind its button across dialog changes',async()=>{
   const h=await harness(data=>response(data.action==='prepared_status'?readiness():prepared()),{manager2:true,hosted:true});await tick();
   h.W.S.manager.role='admin';h.W.S.detail.owner_read=true;h.W.S.detail.conversation.manager_id=9;h.ai.sync();await tick();
-  const host=h.ids.get('m2Assistant');assert.equal(h.ids.get('aiSuggestionAccept').hidden,true);
-  h.W.S.current=12;h.W.S.detail.conversation.id=12;h.ai.sync();await tick();
-  assert.equal(h.ids.get('m2Assistant'),host);assert.equal(h.ids.get('conversationZone').children.filter(n=>n.id==='m2Assistant').length,1);
-  await h.click('aiSuggestionDetails');await h.insert();assert.equal(h.ids.get('replyText').value,'');assertNoMutations(h);
+  assert.equal(h.ids.get('replyText').value,'');assert.equal(h.ids.get('aiDraftSuggestion').hidden,true);
+  const host=h.ids.get('m2Assistant');h.W.S.current=12;h.W.S.detail.conversation.id=12;h.ai.sync();await tick();
+  assert.equal(h.ids.get('m2Assistant'),host);await h.click('aiDraftOpen');assert.equal(h.ids.get('aiDraftInsert').hidden,true);
+  await h.insert();assert.equal(h.ids.get('replyText').value,'');assertNoMutations(h);
 });
+
 test('closed and unchanged hosted assistant leaves transcript restoration to its reader',async()=>{
   const h=await harness(data=>response(data.action==='prepared_status'?readiness():prepared()),{manager2:true,hosted:true});await tick();
   let captures=0,restores=0;
@@ -651,6 +649,98 @@ test('work-plan advice reads the saved proposal without generating or inserting 
 });
 test('work-plan advice displays a saved draft for editing while preserving the managers composer',async()=>{
  const h=await harness();await h.draft('Начал писать сам');assert.equal(await h.ai.openPrepared(),true);assert.deepEqual(h.aiCalls().map(c=>c.action),['prepared']);assert.equal(h.ids.get('replyText').value,'Начал писать сам');assert.equal(h.ids.get('aiDraftPanel').hidden,false);assert.equal(h.ids.get('aiDraftInsert').hidden,false);assertNoMutations(h);
+});
+
+
+test('automatic editable appearance keeps native File, focus, caret and human storage untouched',async()=>{
+  const pending=deferred(),h=await harness(data=>data.action==='prepared_preview'?pending.promise:response(readiness()),{manager2:true,hosted:true});await tick();
+  const file={name:'native-file.txt'},reply=h.ids.get('replyText'),focus=h.ids.get('quickRepliesOpen');h.setFile(file);focus.focus();reply.scrollTop=17;reply.scrollLeft=3;
+  pending.resolve(response(prepared()));await tick();assert.equal(reply.value,generated().draft);assert.equal(h.getFile(),file);assert.equal(h.document.activeElement,focus);
+  assert.equal(reply.selectionStart,0);assert.equal(reply.selectionEnd,0);assert.equal(reply.scrollTop,17);assert.equal(reply.scrollLeft,3);
+  const stored=JSON.parse(h.storage.getItem('workspaceV2.replySession.v1'));assert.equal(stored.drafts.length,0);
+  assert.equal(h.ids.get('composer').querySelectorAll('textarea').length,1);assert.equal(h.ids.get('composer').querySelectorAll('input').length,1);
+  assert.deepEqual(h.aiCalls().map(c=>c.action),['prepared_status','prepared_preview']);assertNoMutations(h);
+});
+test('real manager editing promotes AI preview to a normal persistent draft and survives newer customer input',async()=>{
+  const h=await harness(inlineHandler,{manager2:true,hosted:true});await tick();const file={name:'human.txt'};h.setFile(file);
+  await h.draft('Мой исправленный ответ');assert.equal(h.ids.get('replyText').classList.contains('aiDraftPreview'),false);
+  assert.equal(JSON.parse(h.storage.getItem('workspaceV2.replySession.v1')).drafts[0].text,'Мой исправленный ответ');
+  h.W.S.detail.messages.push({id:9,sender_type:'customer',text:'Новый вопрос'});h.ai.sync();await tick();
+  assert.equal(h.ids.get('replyText').value,'Мой исправленный ответ');assert.equal(h.getFile(),file);assertNoMutations(h);
+});
+test('clearing the same AI variant does not reinsert it after polls, opening AI or returning to the dialogue',async()=>{
+  const h=await harness(inlineHandler,{manager2:true,hosted:true});await tick();await h.draft('');await pollAi(h);h.ai.sync();assert.equal(h.ids.get('replyText').value,'');
+  await h.click('aiDraftOpen');await h.close();assert.equal(h.ids.get('replyText').value,'');
+  await h.C.open(102);h.ai.sync();await h.C.open(101);h.W.S.detail.messages=[{id:5,sender_type:'manager',text:'Synthetic previous reply'},{id:8,sender_type:'customer',text:'Synthetic request'}];h.ai.sync();await tick();
+  assert.equal(h.ids.get('replyText').value,'');assert.equal(h.aiCalls().some(c=>c.action==='generate'),false);assertNoMutations(h);
+});
+test('Escape rejects only untouched AI text and does not turn Enter or Tab into automatic acceptance',async()=>{
+  const h=await harness(inlineHandler,{manager2:true,hosted:true});await tick();const reply=h.ids.get('replyText'),file={name:'retain.txt'};h.setFile(file);reply.focus();
+  let event=await pressInline(h,{key:'Tab'});assert.equal(event.prevented,false);
+  event=await pressInline(h,{key:'Escape'});assert.equal(event.prevented,true);assert.equal(reply.value,'');assert.equal(h.getFile(),file);
+  await pollAi(h);assert.equal(reply.value,'');assert.equal(h.aiCalls().some(c=>['prepared','validate','generate'].includes(c.action)),false);assertNoMutations(h);
+});
+for(const change of ['new message','edited customer message','project','source','owner','policy off','hidden preference','TTL'])test('untouched editable AI clears on '+change+' while its File survives',async()=>{
+  const h=await harness(inlineHandler,{manager2:true,hosted:true});await tick();const file={name:'unchanged.txt'};h.setFile(file);assert.equal(h.ids.get('replyText').value,generated().draft);
+  if(change==='new message')h.W.S.detail.messages.push({id:9,sender_type:'customer',text:'New question'});
+  if(change==='edited customer message')h.W.S.detail.messages[1].text='Edited question';
+  if(change==='project')h.W.S.detail.conversation.project_key='other';
+  if(change==='source')h.W.S.detail.conversation.source_id=37;
+  if(change==='owner'){h.W.S.detail.conversation.manager_id=9;h.ids.get('composer').classList.add('hidden')}
+  if(change==='policy off')h.window.WorkspaceV2PersonalWorkspace={preparationPermission:()=>({allowed:false,token:'off'})};
+  if(change==='hidden preference')h.window.WorkspaceV2PersonalWorkspace={showAiReadyNotice:()=>false};
+  if(change==='TTL')h.advanceAiClock(7200000);
+  h.ai.sync();assert.equal(h.ids.get('replyText').value,'');assert.equal(h.ids.get('replyText').classList.contains('aiDraftPreview'),false);assert.equal(h.getFile(),file);assertNoMutations(h);
+});
+for(const change of ['navigation','message','owner','account','policy'])test('late private ready text cannot gain editable access after '+change,async()=>{
+  const pending=deferred(),h=await harness(data=>data.action==='prepared_preview'?pending.promise:response(readiness()),{manager2:true,hosted:true});await tick();
+  if(change==='navigation')await h.C.open(102);if(change==='message')h.W.S.detail.messages.push({id:9,sender_type:'customer',text:'New'});
+  if(change==='owner'){h.W.S.detail.conversation.manager_id=9;h.ids.get('composer').classList.add('hidden')}
+  if(change==='account'){h.W.S.manager.id=8;h.W.S.authGeneration++}
+  if(change==='policy')h.window.WorkspaceV2PersonalWorkspace={preparationPermission:()=>({allowed:false,token:'off'})};
+  h.ai.sync();pending.resolve(response(prepared()));await tick();assert.equal(h.ids.get('replyText').value,'');assertNoMutations(h);
+});
+test('manual text entered during passive ready read is never replaced or recolored',async()=>{
+  const pending=deferred(),h=await harness(data=>data.action==='prepared_preview'?pending.promise:response(readiness()),{manager2:true,hosted:true});await tick();await h.draft('Не менять мой текст');
+  pending.resolve(response(prepared()));await tick();assert.equal(h.ids.get('replyText').value,'Не менять мой текст');assert.equal(h.ids.get('replyText').classList.contains('aiDraftPreview'),false);assertNoMutations(h);
+});
+test('fresh saved revision may replace untouched AI but never manager edits',async()=>{
+  for(const edited of [false,true]){
+    let revision='synthetic-revision-1',draft=generated().draft;
+    const h=await harness(data=>response(data.action==='prepared_status'?readiness({revision}):prepared({revision,draft})),{manager2:true,hosted:true});await tick();
+    if(edited)await h.draft('Мой ответ');revision='synthetic-revision-2';draft='Новый сохранённый ответ';await pollAi(h);
+    assert.equal(h.ids.get('replyText').value,edited?'Мой ответ':draft);assert.equal(h.aiCalls().some(c=>c.action==='generate'),false);assertNoMutations(h);
+  }
+});
+for(const result of [{ok:true,prepared:false},{ok:false,error:'prepared_unavailable'},{...prepared(),should_draft:false,draft:null,next_action:'check_offer'}])test('explicit AI retains its manual fallback when no current saved proposal is selected '+String(result.error||result.next_action||'miss'),async()=>{
+  const h=await harness(data=>response(data.action==='prepared_status'?{ok:true,prepared:false}:data.action==='generate'?generated():result),{manager2:true,hosted:true});await tick();assert.equal(h.aiCalls().some(c=>c.action==='generate'),false);await h.click('aiDraftOpen');
+  assert.equal(h.aiCalls().filter(c=>c.action==='generate').length,1);assert.equal(h.ids.get('replyText').value,generated().draft);assert.equal(h.ids.get('replyText').classList.contains('aiDraftPreview'),true);assertNoMutations(h);
+});
+test('current-shell read-only openPrepared never invokes the manual fallback',async()=>{
+  const h=await harness(()=>response({ok:true,prepared:false}),{manager2:true,hosted:true});await tick();await h.ai.openPrepared();assert.equal(h.aiCalls().some(c=>c.action==='generate'),false);assert.equal(h.ids.get('replyText').value,'');assertNoMutations(h);
+});
+test('automatic editable text waits for native IME composition and never replaces its result',async()=>{
+  const pending=deferred(),h=await harness(data=>data.action==='prepared_preview'?pending.promise:response(readiness()),{manager2:true,hosted:true});await tick();const reply=h.ids.get('replyText');reply.focus();
+  for(const fn of reply.handlers.compositionstart||[])fn();pending.resolve(response(prepared()));await tick();assert.equal(reply.value,'');
+  await h.draft('Ручной текст через IME');for(const fn of reply.handlers.compositionend||[])fn();assert.equal(reply.value,'Ручной текст через IME');assert.equal(reply.classList.contains('aiDraftPreview'),false);assertNoMutations(h);
+});
+
+test('opening AI while the passive preview is pending does not reject its future native appearance',async()=>{
+  let reads=0;const first=deferred(),h=await harness(data=>data.action==='prepared_preview'&&++reads===1?first.promise:response(data.action==='prepared_status'?readiness():prepared()),{manager2:true,hosted:true});await tick();await h.click('aiDraftOpen');
+  assert.equal(h.ids.get('replyText').value,generated().draft);assert.equal(h.ids.get('replyText').classList.contains('aiDraftPreview'),true);assert.equal(h.aiCalls().some(c=>['generate','prepared','validate'].includes(c.action)),false);first.resolve(response(prepared()));await tick();assertNoMutations(h);
+});
+test('explicit current-shell insertion records provenance only on click and appends through Conversation',async()=>{
+  const h=await harness(inlineHandler,{manager2:true,hosted:true});await tick();const file={name:'canonical.txt'};h.setFile(file);await h.draft('Мой ответ');await h.click('aiDraftOpen');
+  assert.equal(h.aiCalls().some(c=>['prepared','validate'].includes(c.action)),false);await h.insert();assert.equal(h.ids.get('replyText').value,'Мой ответ\n'+generated().draft);assert.equal(h.getFile(),file);
+  assert.deepEqual(h.aiCalls().filter(c=>['prepared','validate'].includes(c.action)).map(c=>c.action),['prepared','validate']);assert.equal(h.aiCalls().at(-1).draft_id,'a'.repeat(32));assertNoMutations(h);
+});
+test('current saved revision updates its open manager checks without replacing human input',async()=>{
+  let revision='synthetic-revision-1',reason='Первая проверка';const h=await harness(data=>response(data.action==='prepared_status'?readiness({revision}):prepared({revision,reason})),{manager2:true,hosted:true});await tick();await h.draft('Человеческий ответ');await h.click('aiDraftOpen');
+  revision='synthetic-revision-2';reason='Новая сохранённая проверка';await pollAi(h);assert.equal(h.ids.get('aiDraftPanel').children[2].querySelector('.aiDraftReason').textContent,reason);assert.equal(h.ids.get('replyText').value,'Человеческий ответ');assertNoMutations(h);
+});
+
+test('automatic appearance retains the canonical unresolved-token refusal',async()=>{
+  const h=await harness(data=>response(data.action==='prepared_status'?readiness():prepared({draft:'Уточните {{город}}.'})),{manager2:true,hosted:true});await tick();assert.equal(h.ids.get('replyText').value,'');assert.equal(h.ids.get('replyText').classList.contains('aiDraftPreview'),false);assertNoMutations(h);
 });
 
 (async()=>{const selected=process.argv.includes('--admission-only')?cases.filter(item=>item.name.startsWith('admission ')):cases;let failed=0;for(const item of selected){try{await item.run();console.log('PASS '+item.name)}catch(error){failed++;console.error('FAIL '+item.name+'\n'+error.stack)}}console.log(`TOTAL ${selected.length} | FAIL ${failed}`);process.exitCode=failed?1:0})();
