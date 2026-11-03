@@ -1,4 +1,4 @@
-name: Inspect three new photographs for the final two feed image gaps
+name: Inspect six different official Grand Makadi and Siva gallery photographs
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       max-parallel: 2
       matrix:
-        media_group: [0,1]
+        media_group: [0,1,2]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -28,7 +28,7 @@ jobs:
         run: python3 tools/direct_demand/operations/inspect-hotel-primary-images-20261103-20.py
       - uses: actions/upload-artifact@v4
         with:
-          name: commercial-feed-final-two-images-${{ matrix.media_group }}
+          name: commercial-batch21-different-gallery-${{ matrix.media_group }}
           path: primary-image-inspection.json
           retention-days: 14
           if-no-files-found: error
