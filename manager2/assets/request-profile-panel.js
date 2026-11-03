@@ -4,7 +4,7 @@
   if(!W||!document.body.classList.contains('manager2'))return;
   const {S,$}=W;
   let context=null,read=null,stamp='',sequence=0,openIntent=0,dialog=null,frame=null,nonce='',opener=null;
-  let row=null,label=null,criteria=null,state=null,button=null,dialogState=null,overlayHeld=false,handoffSlot=null,handoffAnchor=null;
+  let row=null,label=null,criteria=null,state=null,button=null,dialogState=null,overlayHeld=false,handoffSlot=null,handoffAnchor=null,content=null,profileInMenu=false;
   function restoreHandoff(){const source=$('handoffContext');if(source&&handoffAnchor?.parentNode&&source.parentNode!==handoffAnchor.parentNode)handoffAnchor.parentNode.insertBefore(source,handoffAnchor.nextSibling);}
   function groupHandoff(){const source=$('handoffContext');if(!source||!handoffSlot)return;if(!handoffAnchor){handoffAnchor=document.createComment('Original request context position');source.before(handoffAnchor);}if(source.parentNode!==handoffSlot)handoffSlot.appendChild(source);}
   const capture=()=>{
@@ -21,11 +21,14 @@
     overlayHeld=false;
     if(dialog?.open)dialog.close();
     if(destroy){frame?.remove();frame=null;nonce='';}
-    if(restoreFocus&&current(context)&&opener?.isConnected)opener.focus({preventScroll:true});
+    if(restoreFocus&&current(context)&&opener?.isConnected){
+      if(opener===button&&profileInMenu)window.Manager2Presentation?.focusConversationTool(button.id);
+      else opener.focus({preventScroll:true});
+    }
   }
   function reset(){
     ++sequence;read?.abort();read=null;stamp='';context=null;close({restoreFocus:false,destroy:true});restoreHandoff();
-    if(row){row.hidden=true;row.open=false;label.textContent='';criteria.textContent='';state.textContent='';button.disabled=true;delete row.dataset.state;}
+    if(row){row.hidden=true;row.open=false;label.textContent='';criteria.textContent='';state.textContent='';state.hidden=true;button.disabled=true;button.hidden=true;delete row.dataset.state;}
     if(dialogState){dialogState.textContent='';dialogState.hidden=true;}
   }
   function ensureRow(){
@@ -35,11 +38,19 @@
     row=document.createElement('details');row.id='m2CurrentTrip';row.className='m2CurrentTrip';row.hidden=true;
     const summary=document.createElement('summary'),title=document.createElement('span');title.className='m2RequestTitle';title.textContent='Запрос клиента';summary.appendChild(title);
     label=document.createElement('strong');criteria=document.createElement('small');summary.append(label,criteria);row.appendChild(summary);
-    const content=document.createElement('div');content.className='m2RequestContent';state=document.createElement('span');state.className='m2RequestStatus';state.setAttribute('role','status');state.setAttribute('aria-live','polite');content.appendChild(state);
-    button=document.createElement('button');button.type='button';button.className='actionBtn';button.textContent='Уточнить запрос';
+    content=document.createElement('div');content.className='m2RequestContent';state=document.createElement('span');state.id='m2RequestStatus';state.className='m2RequestStatus';state.setAttribute('role','status');state.setAttribute('aria-live','polite');content.appendChild(state);
+    button=document.createElement('button');button.id='m2RequestProfileOpen';button.type='button';button.className='actionBtn';button.textContent='Уточнить запрос';button.hidden=true;
+    button.setAttribute('aria-describedby',state.id);
     button.setAttribute('aria-haspopup','dialog');button.addEventListener('click',()=>open(button));content.appendChild(button);
     handoffSlot=document.createElement('div');handoffSlot.className='m2RequestSource';content.appendChild(handoffSlot);row.appendChild(content);
     const host=window.WorkspaceV2AiDraft?.host?.();if(host)host.insertBefore(row,host.firstChild);else head.after(row);
+    profileInMenu=window.Manager2Presentation?.registerConversationTool(button)===true;
+  }
+  function placeSummary(){
+    row.hidden=!criteria.textContent&&profileInMenu;state.hidden=false;
+    state.classList.toggle('m2RequestMenuStatus',row.hidden);
+    if(row.hidden){row.open=false;if(state.parentElement!==button.parentElement)button.before(state);}
+    else if(state.parentElement!==content)content.prepend(state);
   }
   function render(profile){
     if(!row)return;
@@ -62,9 +73,9 @@
       if(typeof field?.value==='string'&&field.value.trim())parts.push(field.value.trim()+(field.kind==='manager_interpretation'?' (версия менеджера)':''));
     }
     const original=typeof S.detail?.handoff_context?.summary==='string'?S.detail.handoff_context.summary.trim():'';
-    criteria.textContent=parts.join(' · ')||original.slice(0,180)+(original.length>180?'…':'')||'Пожелания ещё не уточнены';criteria.hidden=false;
+    criteria.textContent=parts.join(' · ')||original.slice(0,180)+(original.length>180?'…':'');criteria.hidden=!criteria.textContent;
     state.textContent=states[profile?.status]||'Сохранённого запроса пока нет. Уточните его по переписке.';
-    row.dataset.state=profile?.status==='fresh'?'fresh':'review';
+    row.dataset.state=profile?.status==='fresh'?'fresh':'review';placeSummary();
   }
   async function load(){
     if(!current(context))return false;
@@ -86,7 +97,7 @@
     if(!next){reset();return;}
     ensureRow();if(!row)return;
     if(!same(context,next)){reset();context=next;}
-    row.hidden=false;groupHandoff();
+    button.hidden=false;placeSummary();groupHandoff();
     const messages=S.detail?.messages||[];
     const nextStamp=JSON.stringify([next,messages.map(m=>[m.id,m.direction,m.sender_type,m.text,m.created_at,m.updated_at,m.metadata,m.attachments,m.deleted_at])]);
     if(stamp!==nextStamp){stamp=nextStamp;void load();}
