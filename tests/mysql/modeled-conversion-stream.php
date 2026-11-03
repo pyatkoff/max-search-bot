@@ -45,6 +45,7 @@ try{
     modeledValueAssertions($p,$check);
     modeledValueHistoryAssertions($p,$check);
     modeledValueFortnightAssertions($p,$check);
+    modeledValueFairProgressAssertions($p,$check);
     echo 'MODELED CONVERSION STREAM NATIVE MYSQL PASSED '.$passed.PHP_EOL;
 }catch(Throwable $e){fwrite(STDERR,'FAIL modeled stream native MySQL '.get_class($e).PHP_EOL);$failed=true;}
 finally{

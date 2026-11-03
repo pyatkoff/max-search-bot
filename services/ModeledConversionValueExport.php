@@ -299,7 +299,7 @@ final class ModeledConversionValueExport
     }
     private function rows(string $state,int $now,int $limit):array
     {
-        $q=$this->pdo->prepare("SELECT * FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635' AND state=? AND transport_target=? AND value_contract=? AND next_attempt_unix<=? ORDER BY id LIMIT ".min(5,max(1,$limit)));
+        $q=$this->pdo->prepare("SELECT * FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635' AND state=? AND transport_target=? AND value_contract=? AND next_attempt_unix<=? ORDER BY next_attempt_unix,id LIMIT ".min(5,max(1,$limit)));
         $q->execute([$state,ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION,$now]);return$q->fetchAll(PDO::FETCH_ASSOC);
     }
     private function resolve(array $r,array $identities,int $now,callable $gate):bool

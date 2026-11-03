@@ -359,8 +359,30 @@ function modeledValueFortnightAssertions(PDO $p,callable $check):void
         &&ModeledConversionValueContract::historicalCandidate($old,$a,$from,$until,$until-1)===null);
 }
 
+
+function modeledValueFairProgressAssertions(PDO $p,callable $check):void
+{
+    modeledValueSchema($p);$now=1793659000;$gate=static fn(string $chat):bool=>true;
+    $wire=new ModeledValueTestWire();$wire->goals[]=['id'=>'678187097','name'=>ModeledConversionValueContract::NAME,
+        'type'=>'action','conditions'=>[['type'=>'exact','url'=>ModeledConversionValueContract::TARGET]]];
+    $api=$wire->api();$lookup=new ModeledValueTestLookup();
+    $p->prepare("UPDATE modeled_conversion_value_export_settings SET mode='send',goal_id='678187097',goal_intent='verified',activated_at_unix=?")->execute([$now-10]);
+    for($i=501;$i<=506;$i++)modeledValueSave($p,modeledValueWrapper(modeledValueBinding($p,$i,$i===506?'max':'telegram'),$now));
+    ModeledConversionValueExport::tick($p,$lookup,$api,$now,$gate);
+    $check('one full missing-identity batch preserves all values without premature sends',
+        $wire->posts===0&&(int)$p->query("SELECT COUNT(*) FROM max_channel_conversion_outbox WHERE last_error='identity_not_found'")->fetchColumn()===5);
+    ModeledConversionValueExport::tick($p,$lookup,$api,$now+300,$gate);
+    $check('later unattempted eligible row advances ahead of a repeatedly due missing batch',
+        $wire->posts===1&&$p->query("SELECT state FROM max_channel_conversion_outbox WHERE conversation_id=506")->fetchColumn()==='accepted'
+        &&(int)$p->query("SELECT SUM(value_rub) FROM max_channel_conversion_outbox WHERE state='pending'")->fetchColumn()===6250);
+    ModeledConversionValueExport::tick($p,$lookup,$api,$now+600,$gate);
+    $check('fair progress keeps missing rows and polls the accepted receipt without resending',
+        $wire->posts===1&&(int)$p->query("SELECT COUNT(*) FROM max_channel_conversion_outbox WHERE state='pending'")->fetchColumn()===5
+        &&$p->query("SELECT state FROM max_channel_conversion_outbox WHERE conversation_id=506")->fetchColumn()==='processed');
+}
+
 if(realpath((string)($_SERVER['SCRIPT_FILENAME']??''))===__FILE__){
     $passed=0;$check=static function(string $name,bool $ok)use(&$passed){if(!$ok)throw new RuntimeException('FAIL '.$name);$passed++;echo 'PASS '.$name.PHP_EOL;};
     $p=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
-    modeledValueAssertions($p,$check);modeledValueHistoryAssertions($p,$check);modeledValueFortnightAssertions($p,$check);echo 'MODELED VALUE EXPORT PASSED '.$passed.PHP_EOL;
+    modeledValueAssertions($p,$check);modeledValueHistoryAssertions($p,$check);modeledValueFortnightAssertions($p,$check);modeledValueFairProgressAssertions($p,$check);echo 'MODELED VALUE EXPORT PASSED '.$passed.PHP_EOL;
 }
