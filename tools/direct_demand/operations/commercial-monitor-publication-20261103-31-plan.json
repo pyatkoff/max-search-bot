@@ -1,0 +1,22 @@
+{
+  "operation": "commercial-monitor-publication-20261103-31",
+  "goal": "Append two prepared batch31 native hotels to the existing collector inputs",
+  "catalog_ids": [
+    74503,
+    1582
+  ],
+  "previous_inputs": 646,
+  "new_inputs": 648,
+  "boundaries": [
+    "Actualprevious646dedupconfirmed, separateimmutablecohortpublication_stock_20261103o_2",
+    "Preserve646inputorder/targetkeys/pendingsearches/collector/lock/budget64/hourly12/transport",
+    "No newcollector/cron/paidcalls"
+  ],
+  "criteria": [
+    "Nativeguard/collectvalidate/syncvalidate and focused648 preserve646targets and batch30resume",
+    "Mixedcountries,missingone,inactiveboth withoutfalsecredit"
+  ],
+  "risks": [
+    "Input configuration is not a new actualquote or delivered material"
+  ]
+}
