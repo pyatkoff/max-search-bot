@@ -1,0 +1,29 @@
+{
+  "operation": "commercial-price-monitor-20261103-read3",
+  "state": "NINETEEN_NEW_PUBLISHED_IDENTITIES_RETAINED_READ_NOT_STARTED",
+  "catalog_ids": [
+    310,
+    469,
+    67910,
+    381,
+    68323,
+    1971,
+    384,
+    281,
+    75725,
+    249,
+    315,
+    465,
+    272,
+    260,
+    273,
+    408,
+    441,
+    21477,
+    60589
+  ],
+  "scope_hotels": 19,
+  "provider_calls": 0,
+  "db_writes": 0,
+  "message_edits": 0
+}
