@@ -189,7 +189,7 @@ a ten-stage campaign, preserved partial-history disclosure, changed task inputs,
 inherited facts/reserves, exact CAS, UNKNOWN and unfinished evidence rejection,
 atomic rollback, forged seed pins, and catalog lost-ACK replay after handoff.
 
-An eventual existing-cron integration calls `tick` once. Disabled, complete, HOLD
+The existing-cron integration calls `tick` once. Disabled, complete, HOLD
 or UNKNOWN states send nothing. A ready step serializes admission, checks current
 accepted/reserved semantic keys and budget, writes a fresh immutable request and
 UNKNOWN attempt/outbox, pessimistically reserves the full per-call token/cost
@@ -201,10 +201,28 @@ must not make a network call. The private adapter must itself send at most once.
 The producer can only save a bounded, exact-scope candidate with answers and HTTPS
 source evidence. A later cron step creates a separate reviewer invocation and
 principal, pinned to candidate, baseline, immutable inputs and criteria bytes.
-Only an approved, nonempty independent review allows a later network-free accept.
+Only an approved, nonempty independent review allows a network-free accept.
 Acceptance rechecks baseline CAS, candidate/review lineage and current exclusions,
 then atomically appends canonical records, baseline, receipt, one new credit and
 the next producer outbox. Producer output/import/projection never grants credit.
+
+When that single tick returns a durable approved review, `HotelServerCronRuntime`
+calls `acceptReviewed(campaignId, expectedBaselineSha256)` once. The separate
+transaction acquires the existing HOTEL/campaign lock and enters `acceptLocked`
+only for an enabled, reviewed campaign at that exact baseline. All other states
+and stale pins return the current projection without acceptance or dispatch.
+The follow-up never calls a provider, checks provider readiness, reserves budget
+or calls `tick`. A failed acceptance rolls back its records, receipt, credit and
+outboxes while the approved reviewer result remains durable. The ordinary next
+tick can finish that local acceptance without another provider invocation.
+
+An uneventful ordinary stage therefore takes two runtime invocations instead of
+three: producer, then reviewer followed by local acceptance. Provider calls stay
+at two per stage and at most one per runtime invocation. This is a sequencing
+property, not a measured live throughput or billing improvement. The current
+`worker_completed`, confirmed HOLD and UNKNOWN reporting behavior is preserved.
+No successor, new campaign, enable/configuration change or automatic correction
+is introduced; a completed campaign remains terminal.
 
 After an uncertain external send, `recordResult` can reconcile only the exact
 original attempt. Identical saved result readback is idempotent; a different result

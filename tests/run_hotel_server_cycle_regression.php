@@ -304,6 +304,98 @@ $f=hsFixture();try{
         'unconfirmed context failures cannot receive a completion attestation');
 }finally{hsCleanup($f);}
 
+// A follow-up accepts only the exact already-reviewed baseline; it cannot dispatch.
+function hsAcceptanceSnapshot(PDO $p): array
+{
+    $tables=['campaigns'=>'campaign_id','attempts'=>'attempt_id','candidates'=>'campaign_id,stage_index',
+        'reviews'=>'campaign_id,stage_index','records'=>'semantic_key','receipts'=>'campaign_id,stage_index',
+        'baselines'=>'campaign_id,baseline_sha256','outbox'=>'campaign_id,stage_index,role','catalog_outbox'=>'receipt_sha256'];$out=[];
+    foreach($tables as $table=>$order){$s=$p->query('SELECT * FROM hotel_server_'.$table.' ORDER BY '.$order);$out[$table]=$s->fetchAll(PDO::FETCH_ASSOC);$s->closeCursor();}
+    return $out;
+}
+$f=hsFixture();$local=null;$fault=null;try{
+    $start=hsBoot($f);$pin=$start['baseline_sha256'];$local=new HotelServerCycle($f['p'],$f['lane']);
+    $before=hsAcceptanceSnapshot($f['p']);$r=$local->acceptReviewed('NEW',$pin);
+    hsCheck($r['state']==='disabled'&&hsAcceptanceSnapshot($f['p'])===$before&&count($f['provider']->requests)===0,'local accept cannot enable or reserve a disabled campaign');
+    hsEnable($f);$before=hsAcceptanceSnapshot($f['p']);$r=$local->acceptReviewed('NEW',$pin);
+    hsCheck($r['state']==='ready'&&hsAcceptanceSnapshot($f['p'])===$before&&count($f['provider']->requests)===0,'local accept cannot dispatch a ready producer');
+    $f['cycle']->tick('NEW');$before=hsAcceptanceSnapshot($f['p']);$r=$local->acceptReviewed('NEW',$pin);
+    hsCheck($r['state']==='candidate'&&hsAcceptanceSnapshot($f['p'])===$before&&count($f['provider']->requests)===1,'local accept cannot dispatch a candidate reviewer');
+    $f['cycle']->tick('NEW');$reviewed=hsAcceptanceSnapshot($f['p']);
+    hsReject(fn()=>$local->acceptReviewed('FOREIGN',$pin),'local accept cannot acquire a foreign lane','hotel_lane_not_owned');
+    $r=$local->acceptReviewed('NEW',str_repeat('0',64));
+    hsCheck($r['state']==='reviewed'&&hsAcceptanceSnapshot($f['p'])===$reviewed,'stale baseline cannot accept an approved stage');
+    $f['p']->exec("UPDATE hotel_server_campaigns SET enabled=0 WHERE campaign_id='NEW'");$disabled=hsAcceptanceSnapshot($f['p']);
+    $r=$local->acceptReviewed('NEW',$pin);
+    hsCheck($r['state']==='reviewed'&&!$r['enabled']&&hsAcceptanceSnapshot($f['p'])===$disabled,'reviewed state cannot bypass the enabled guard');
+    $f['p']->exec("UPDATE hotel_server_campaigns SET enabled=1 WHERE campaign_id='NEW'");
+    $fault=new HotelServerCycle($f['p'],$f['lane'],null,null,static function(string $at):void{
+        if($at==='accept_before_commit')throw new RuntimeException('synthetic_followup_accept_crash');});
+    hsReject(fn()=>$fault->acceptReviewed('NEW',$pin),'local acceptance fault rolls back','synthetic_followup_accept_crash');
+    hsCheck(hsAcceptanceSnapshot($f['p'])===$reviewed,'rollback preserves durable approved review and every pre-acceptance row');$fault=null;
+    $f['provider']->ready=false;$r=$local->tick('NEW');$accepted=hsAcceptanceSnapshot($f['p']);
+    hsCheck($r['state']==='ready'&&$r['stage_index']===1&&$r['new_accepted']===1
+        &&count($accepted['records'])===1&&count($accepted['receipts'])===1&&count($f['provider']->requests)===2,
+        'ordinary tick resumes durable reviewed acceptance after rollback without a provider or readiness check');
+    $old=$reviewed['campaigns'][0];$new=$accepted['campaigns'][0];
+    foreach(['state','stage_cursor','new_accepted','baseline_sha256'] as $field){unset($old[$field],$new[$field]);}
+    hsCheck($old===$new&&$accepted['attempts']===$reviewed['attempts']&&$accepted['reviews']===$reviewed['reviews'],
+        'local acceptance leaves enable plan reservations attempts and original review unchanged');
+    $local->acceptReviewed('NEW',$pin);
+    hsCheck(hsAcceptanceSnapshot($f['p'])===$accepted&&count($f['provider']->requests)===2,'duplicate follow-up neither credits again nor dispatches the next producer');
+    $f['provider']->ready=true;$f['cycle']->tick('NEW');$second=$f['cycle']->tick('NEW');$later=hsAcceptanceSnapshot($f['p']);
+    $r=$local->acceptReviewed('NEW',$pin);
+    hsCheck($r['state']==='reviewed'&&$r['new_accepted']===1&&hsAcceptanceSnapshot($f['p'])===$later,
+        'earlier baseline follow-up cannot accept a later reviewed stage');
+    $f['provider']->ready=false;$r=$local->acceptReviewed('NEW',$second['baseline_sha256']);$complete=hsAcceptanceSnapshot($f['p']);
+    hsCheck($r['state']==='complete'&&$r['new_accepted']===2&&count($complete['records'])===2
+        &&count($complete['receipts'])===2&&count($complete['attempts'])===4&&count($f['provider']->requests)===4,
+        'exact second baseline completes locally with only the original four provider sends');
+    $local->acceptReviewed('NEW',$r['baseline_sha256']);
+    hsCheck(hsAcceptanceSnapshot($f['p'])===$complete&&count($f['provider']->requests)===4,'complete campaign follow-up is a byte-preserving no-op');
+}finally{$local=null;$fault=null;hsCleanup($f);}
+
+$f=hsFixture();$local=null;try{
+    hsBoot($f);hsEnable($f);$f['provider']->loseAck=true;$f['cycle']->tick('NEW');
+    $before=hsAcceptanceSnapshot($f['p']);$local=new HotelServerCycle($f['p'],$f['lane']);
+    $r=$local->acceptReviewed('NEW',$f['cycle']->status('NEW')['baseline_sha256']);
+    hsCheck($r['state']==='unknown'&&hsAcceptanceSnapshot($f['p'])===$before&&count($f['provider']->requests)===1,
+        'local acceptance cannot resolve replace refund or resend an UNKNOWN attempt');
+}finally{$local=null;hsCleanup($f);}
+
+$f=hsFixture();$local=null;try{
+    hsBoot($f);hsEnable($f);$f['cycle']->tick('NEW');$f['provider']->loseAck=true;$f['cycle']->tick('NEW');
+    $negative=$f['provider']->results[1];$negative['approved']=false;$negative['evidence']='Synthetic independent reviewer explicitly rejects this candidate.';
+    $f['cycle']->recordResult('NEW',$negative['attempt_id'],$negative);$before=hsAcceptanceSnapshot($f['p']);
+    $local=new HotelServerCycle($f['p'],$f['lane']);$r=$local->acceptReviewed('NEW',$f['cycle']->status('NEW')['baseline_sha256']);
+    hsCheck($r['state']==='hold'&&hsAcceptanceSnapshot($f['p'])===$before&&count($f['provider']->requests)===2,
+        'negative independent review is never accepted by the follow-up');
+    $runtime=HotelServerCronRuntime::tick($flags,static fn()=>['pdo'=>$f['p'],'provider'=>$f['provider'],'clock'=>static fn()=>1800000000]);
+    hsCheck($runtime['state']==='hold'&&($runtime['worker_completed']??false)===true
+        &&hsAcceptanceSnapshot($f['p'])===$before&&count($f['provider']->requests)===2,
+        'known rejected review remains confirmed HOLD with no new attempt');
+}finally{$local=null;hsCleanup($f);}
+
+// Two stages finish in four runtime invocations, with no second dispatch in any invocation.
+$f=hsFixture();try{
+    hsBoot($f);hsEnable($f);$provider=$f['provider'];
+    $provider->onSend=static function()use($provider):void{if(count($provider->requests)%2===0)$provider->ready=false;};
+    foreach(['candidate','ready','candidate','complete'] as $i=>$expected){
+        $provider->ready=true;
+        $runtime=HotelServerCronRuntime::tick($flags,static fn()=>['pdo'=>$f['p'],'provider'=>$provider,'clock'=>static fn()=>1800000000]);
+        hsCheck($runtime['state']===$expected&&($runtime['worker_completed']??false)===true
+            &&$runtime['new_accepted']===intdiv($i+1,2)&&count($provider->requests)===$i+1,
+            'runtime invocation '.($i+1).' completes one send and its eligible local acceptance');
+    }
+    hsCheck(hsCount($f['p'],'hotel_server_records')===2&&hsCount($f['p'],'hotel_server_receipts')===2
+        &&hsCount($f['p'],'hotel_server_attempts')===4&&hsCount($f['p'],'hotel_server_outbox')===4,
+        'four runtime invocations finish two stages without hidden provider reservations or outboxes');
+    $before=hsAcceptanceSnapshot($f['p']);
+    $runtime=HotelServerCronRuntime::tick($flags,static fn()=>['pdo'=>$f['p'],'provider'=>$provider,'clock'=>static fn()=>1800000000]);
+    hsCheck($runtime['state']==='complete'&&($runtime['worker_completed']??false)===true
+        &&count($provider->requests)===4&&hsAcceptanceSnapshot($f['p'])===$before,'completed runtime remains idle even when provider readiness is unavailable');
+}finally{if(isset($provider))$provider->onSend=null;$provider=null;hsCleanup($f);}
+
 $cli=(string)file_get_contents(dirname(__DIR__).'/tools/hotel_work.php');
 hsCheck(strpos($cli,'HotelServerCronRuntime::tick')<strpos($cli,'hasActiveSubscriptions'),'server hook precedes legacy subscription gate');
 
