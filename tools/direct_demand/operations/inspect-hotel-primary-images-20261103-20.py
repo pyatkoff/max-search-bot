@@ -1,13 +1,13 @@
 import base64,hashlib,json,os,struct,urllib.parse,urllib.request
 from pathlib import Path
-rows=json.loads("[{\"hotel_id\":231,\"role\":\"hero\",\"url\":\"https://redseahotels.com/wp-content/uploads/2023/03/The-Grand-Makadi-is-an-allinclusive-hotel-in-makadi-bay-egypt-by-red-sea-hotel.jpg\"},{\"hotel_id\":408,\"role\":\"hero\",\"url\":\"https://d18slle4wlf9ku.cloudfront.net/www.savoy-sharm.com-1214052867/cms/cache/v2/691ab3760578e.jpg/1920x1080/resize/80/96e59ebb068c84bef44febf7edd232e9.jpg\"},{\"hotel_id\":441,\"role\":\"hero\",\"url\":\"https://redseahotels.com/wp-content/uploads/2023/03/SIva-Grand-Beach-Long-Video-Preview-Image.jpg\"},{\"hotel_id\":483,\"role\":\"hero\",\"url\":\"https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/647db2167f5be.jpg/1920x1080/fit/80/8af160c8e384bb52da197f927fd684e0.jpg\"}]")
+rows=json.loads("[{\"hotel_id\":231,\"role\":\"hero\",\"url\":\"https://redseahotels.com/wp-content/uploads/2023/03/The-Grand-Makadi.jpg\"},{\"hotel_id\":441,\"role\":\"hero\",\"url\":\"https://redseahotels.com/wp-content/uploads/2023/02/Siva-Grand-Beach-in-Hurghada-Egypt.jpg\"},{\"hotel_id\":483,\"role\":\"hero_candidate2\",\"url\":\"https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/64bfa16ba5db4.jpg/1920x1080/fit/80/9f38aaf7584d314a088ff2a6822f65c6.jpg\"},{\"hotel_id\":483,\"role\":\"hero_candidate3\",\"url\":\"https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/64bfa1848e62e.jpg/1920x1080/fit/80/a9a744933c79ea9fe8252c8a9c7ebcf7.jpg\"}]")
 group=int(os.environ['MEDIA_GROUP']);assert group in (0,1)
 rows=rows[group*2:group*2+2];assert len(rows)==2
 hosts={'redseahotels.com','d18slle4wlf9ku.cloudfront.net','d1wo7kaelp5eck.cloudfront.net'}
 class NoRedirect(urllib.request.HTTPRedirectHandler):
  def redirect_request(self,*args,**kwargs):raise ValueError('unexpected_photo_redirect')
 opener=urllib.request.build_opener(NoRedirect())
-out={'operation':'commercial-batch20-primary-heroes-20261103-read1','mode':'inspect_exact_public_primary_images','server_connections':0,'message_sends':0,'db_writes':0,'images':[]}
+out={'operation':'commercial-batch20-primary-heroes-20261103-read2','mode':'inspect_exact_public_primary_images','server_connections':0,'message_sends':0,'db_writes':0,'images':[]}
 for row in rows:
  p=urllib.parse.urlsplit(row['url']);assert p.scheme=='https' and p.hostname in hosts and p.port is None and not p.username and not p.password and not p.query and not p.fragment
  with opener.open(row['url'],timeout=30) as r:
