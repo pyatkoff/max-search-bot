@@ -1,0 +1,15 @@
+{
+  "operation": "commercial-hotel-feed-20261103-six-image-sources-read1",
+  "goal": "Resolve durable public image references for six already accepted hotel materials without changing their covers or posts.",
+  "boundaries": "Six fixed first-party pages only,existing pure cloud workflow,no server/provider/customer calls or private bot/receipt data. Rixos domain blocked by robots;use the separately available official Accor B6F4 page,not a workaround request to Rixos. B6F4 Suites&Villas is not C592 BayView.",
+  "criteria": "Exact native hotel310/1971/381/469/68323/67910 identity already accepted. Public object-specific image URL without credentials/tokens,and actual inspected image bytes/dimensions/view. Current105 canonical pairs need no repeat identity read. Do not hold99 ready feed rows.",
+  "risks": "Shared nav/recommended images can belong to other resorts. Golf Beach page has a Citadel wellness image;exclude it. Sultan Resort is not separate Villas74510;Rehana Royal Beach is not Rehana Sharm/Prestige;Solara68323 is not Alora32575.",
+  "catalog_ids": [
+    310,
+    1971,
+    381,
+    469,
+    68323,
+    67910
+  ]
+}

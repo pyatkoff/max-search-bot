@@ -1,13 +1,13 @@
 import base64,html,json,os,re,urllib.parse,urllib.request
 from pathlib import Path
 from html.parser import HTMLParser
-operation='commercial-batch20-public-sources-20261103-read1'
-pages=["https://redseahotels.com/resorts/makadi-bay/the-grand-makadi/","https://redseahotels.com/resorts/hurghada/siva-grand-beach/","https://redseahotels.com/resorts/makadi-bay/the-makadi-spa/","https://www.savoy-sharm.com/savoy/gallery","https://www.sunrise-resorts.com/royal-makadi-resort/gallery","https://www.swissinn.net/corporate/Photo-gallery.php?hotelid=Hurghada"]
+operation='commercial-hotel-feed-20261103-six-image-sources-read1'
+pages=["https://www.pickalbatros.com/golf-beach-resort","https://www.pickalbatros.com/palace-resort-sharm-el-sheikh","https://www.rehanaresorts.com/rehanaroyal","https://www.sultangardens.com/Gallery","https://www.sunrise-resorts.com/solara-aqua-park-resort","https://all.accor.com/hotel/B6F4/index.en.shtml?partner_id=rixos"]
 group=int(os.environ['MEDIA_GROUP'])
 assert group in (0,1)
 pages=pages[group*3:group*3+3]
 assert 1<=len(pages)<=3
-hosts=set(["redseahotels.com","www.redseahotels.com","www.savoy-sharm.com","savoy-sharm.com","d18slle4wlf9ku.cloudfront.net","www.sunrise-resorts.com","sunrise-resorts.com","d1wo7kaelp5eck.cloudfront.net","www.swissinn.net","swissinn.net"])
+hosts=set(["www.pickalbatros.com","pickalbatros.com","image-tc.galaxy.tf","www.rehanaresorts.com","rehanaresorts.com","static.wixstatic.com","www.sultangardens.com","sultangardens.com","irp.cdn-website.com","lirp.cdn-website.com","www.sunrise-resorts.com","d1wo7kaelp5eck.cloudfront.net","all.accor.com","www.ahstatic.com","images.ahstatic.com","assets.ahstatic.com"])
 class Redirect(urllib.request.HTTPRedirectHandler):
  def redirect_request(self,*args,**kwargs):raise ValueError('unexpected_primary_source_redirect')
 opener=urllib.request.build_opener(Redirect())

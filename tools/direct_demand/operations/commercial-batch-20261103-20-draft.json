@@ -1,12 +1,12 @@
 {
   "operation": "commercial-hotel-batch-20261103-20-v1",
-  "state": "ONE_READY_SAVOY_SCHEMA_CORRECTED_NOT_SENT",
+  "state": "ONE_SAVOY_PREPARED_CURRENT_RELEASE_EVIDENCE_PENDING_NOT_SENT",
   "catalog_ids": [
     408
   ],
   "prepared_count": 1,
+  "source_gate_stops": 1,
   "new_posts": 0,
   "provider_send_attempts": 0,
-  "published_logical_hotels_per_channel": 105,
-  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41625481789"
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41625984193"
 }
