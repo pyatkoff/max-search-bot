@@ -1,24 +1,24 @@
 {
     "ok": true,
-    "generated_at": "2026-11-03T10:38:13+00:00",
+    "generated_at": "2026-11-03T11:20:57+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 31,
-        "raw_sessions": 31,
+        "sessions": 32,
+        "raw_sessions": 32,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 31,
+            "resolved": 32,
             "unresolved": 0
         },
-        "started": 18,
-        "needs_collected": 7,
+        "started": 19,
+        "needs_collected": 8,
         "tours_opened": 6,
         "site_opened": 0,
         "post_tour_manager_cta_shown": 0,
-        "manager_requested": 30,
+        "manager_requested": 31,
         "manager_replied": 24,
         "customer_replied_after_manager": 8,
         "phone_received": 0,
@@ -33,7 +33,7 @@
         "drop_points": {
             "manager_replied": 16,
             "customer_replied_after_manager": 8,
-            "manager_requested": 6,
+            "manager_requested": 7,
             "tours_opened": 1
         },
         "flags": {
@@ -43,24 +43,24 @@
             "repeated_callback_input": 1
         },
         "calendar_day": {
-            "conversations_started": 17,
-            "needs_collected_from_started": 3,
+            "conversations_started": 18,
+            "needs_collected_from_started": 4,
             "tours_opened_from_started": 3,
             "site_opened": 0,
             "post_tour_manager_cta_shown": 0,
-            "manager_requested": 18,
+            "manager_requested": 19,
             "manager_replied": 20,
             "customer_replied_after_manager": 5
         }
     },
     "telegram_dialogue_delivery": {
-        "sampled_at": "2026-11-03T10:38:13Z",
+        "sampled_at": "2026-11-03T11:20:57Z",
         "available": true,
         "error": null,
         "mode": "send",
         "activated": true,
         "queue_counts": {
-            "pending": 8,
+            "pending": 13,
             "ready": 0,
             "uploading": 0,
             "accepted": 1,
@@ -71,7 +71,7 @@
             "expired": 0,
             "retired": 0
         },
-        "queue_total": 9
+        "queue_total": 14
     },
     "local_date": "2026-11-03",
     "local_day_started_at": "2026-11-03T00:00:00+02:00",
