@@ -1,0 +1,26 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261103-read5",
+  "state": "PREPARED_NOT_READ",
+  "catalog_ids": [
+    98723,
+    139,
+    342
+  ],
+  "goal": "Append only three newly published hotel pairs to all three DirectYMLfeeds",
+  "boundaries": [
+    "Existingauthenticatedreadonlyconnection/sourcehostTLS21blobgates",
+    "No providerreadback/DBwrites/messages/privateIDs/buttons",
+    "Exact first-line SQL filter for threefiniteinputs;return only firstlineandpublicpostURL,notother124bodies",
+    "Acceptedfeedfunctions/platformJOINunchanged;old12and6fixturesnotrepeated"
+  ],
+  "criteria": [
+    "Native5newtargetscopefixtures/PHP-lbeforeSSH",
+    "Scope3/ready3/uniqueactualpublicTGMAXlinksandacceptedPNG",
+    "Thenupdate3YMLwithintentandexactpreviousaccepted3XMLhashes"
+  ],
+  "risks": [
+    "Duplicatecurrentfirstlinesorunexpectedrows7stop",
+    "Noqueryimpliesavailability/price/import/ads"
+  ],
+  "reason_for_delta": "Prior reader4 fetched all current channel snapshot bodies before selecting three titles;new3scopeusesparameterizedfirstlinefilterandfirstline-onlyprojection"
+}

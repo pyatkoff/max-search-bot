@@ -1,0 +1,23 @@
+[
+  {
+    "hotel_id": 98723,
+    "name": "Cleopatra Luxury Resort Sharm Adults Only",
+    "accepted_first_line": "✈️ Туры в Cleopatra Luxury Resort Sharm Adults Only с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/05941effa615a17c9a8906c52cdaf14ff5b406a9/.github/traffic-publish/commercial-batch-20261103-29/98723.png",
+    "image_sha256": "b7447164620caa539eda1ad10b7e92aeb4a0960ede846f8a738823c1d7cf12a9"
+  },
+  {
+    "hotel_id": 139,
+    "name": "Brayka Bay Resort",
+    "accepted_first_line": "✈️ Туры в Brayka Bay Resort с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/05941effa615a17c9a8906c52cdaf14ff5b406a9/.github/traffic-publish/commercial-batch-20261103-29/139.png",
+    "image_sha256": "a8f5176fca58ee7f1ee2681e4075cdd254dac8db14c95cf00eaa607eb44929d5"
+  },
+  {
+    "hotel_id": 342,
+    "name": "The Oberoi Beach Resort Sahl Hasheesh",
+    "accepted_first_line": "✈️ Туры в The Oberoi Beach Resort Sahl Hasheesh с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/05941effa615a17c9a8906c52cdaf14ff5b406a9/.github/traffic-publish/commercial-batch-20261103-29/342.png",
+    "image_sha256": "dfe453ea8f2c5391ff529f7e21920ffda49ce508140e15e6b6075358fbf1f9d4"
+  }
+]
