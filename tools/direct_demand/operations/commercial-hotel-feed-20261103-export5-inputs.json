@@ -1,0 +1,16 @@
+[
+  {
+    "hotel_id": 21477,
+    "name": "Mövenpick Waterpark Resort & Spa Soma Bay",
+    "accepted_first_line": "✈️ Туры в Mövenpick Waterpark Resort & Spa Soma Bay с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f2b59582a43aa5aae57173ce5f36cb1a593aa223/.github/traffic-publish/commercial-batch-20261103-22/21477.png",
+    "image_sha256": "847c1993f9044d0b291e0ea2584cb53ec0299961e3a4a9f9cefddd38b96d5dcc"
+  },
+  {
+    "hotel_id": 60589,
+    "name": "JAZ Neo Ivory",
+    "accepted_first_line": "✈️ Туры в JAZ Neo Ivory с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f2b59582a43aa5aae57173ce5f36cb1a593aa223/.github/traffic-publish/commercial-batch-20261103-22/60589.png",
+    "image_sha256": "8e9a20fd9048b9a54f197a08b6a04b8ec65782ce3a52d0f46e89a43a6c380dc9"
+  }
+]
