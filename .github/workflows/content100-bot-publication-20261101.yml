@@ -1,4 +1,4 @@
-name: Inspect six exact public Old Palace and Serry photographs
+name: Inspect three other Old Palace views and the declared Abu Soma gallery photograph
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -30,7 +30,7 @@ jobs:
           python3 tools/direct_demand/operations/inspect-hotel-primary-images-20261103-20.py
       - uses: actions/upload-artifact@v4
         with:
-          name: commercial-batch23-owner-material-${{ matrix.media_group }}
+          name: commercial-batch23-owner-material-read2-${{ matrix.media_group }}
           path: |
             primary-image-inspection.json
           retention-days: 14

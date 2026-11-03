@@ -1,13 +1,13 @@
 import base64,hashlib,json,os,struct,urllib.parse,urllib.request
 from pathlib import Path
-groups=json.loads("[[{\"hotel_id\":343,\"role\":\"overview_home1\",\"url\":\"https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort--20212216956756.jpg\"},{\"hotel_id\":343,\"role\":\"overview_home2\",\"url\":\"https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort--20212216957325.jpg\"},{\"hotel_id\":343,\"role\":\"overview_gallery\",\"url\":\"https://www.oldpalaceresort.com/images/uploads/2021141692266.jpg\"}],[{\"hotel_id\":83563,\"role\":\"declared_resort_hero\",\"url\":\"https://www.theserry.com/Images/47%20Hotel%20Heroes/Beach%20Resort.jpg\"},{\"hotel_id\":83563,\"role\":\"beach\",\"url\":\"https://www.theserry.com/Images/01%20Homepage/DSC06750.jpg\"},{\"hotel_id\":83563,\"role\":\"pool\",\"url\":\"https://www.theserry.com/Images/01%20Homepage/Beach%20Lifestyle%20%283%29.jpg\"}]]")
+groups=json.loads("[[{\"hotel_id\":343,\"role\":\"gallery_overview2\",\"url\":\"https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204615720.jpg\"},{\"hotel_id\":343,\"role\":\"gallery_overview3\",\"url\":\"https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204619803.jpg\"},{\"hotel_id\":343,\"role\":\"gallery_overview4\",\"url\":\"https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204630526.jpg\"}],[{\"hotel_id\":68907,\"role\":\"declared_abusoma_gallery_photo\",\"url\":\"https://wa-uploads.profitroom.com/amarinahotels/17367526038782_abusoma.jpg\"}]]")
 group=int(os.environ['MEDIA_GROUP']);assert 0<=group<2
 rows=groups[group];assert 1<=len(rows)<=3
-hosts={'www.oldpalaceresort.com','www.theserry.com'}
+hosts={'www.oldpalaceresort.com','wa-uploads.profitroom.com'}
 class NoRedirect(urllib.request.HTTPRedirectHandler):
  def redirect_request(self,*args,**kwargs):raise ValueError('unexpected_photo_redirect')
 opener=urllib.request.build_opener(NoRedirect())
-out={'rejections':[],'operation':'commercial-batch23-primary-photo-bytes-20261103-read1','mode':'inspect_exact_public_primary_images','server_connections':0,'message_sends':0,'db_writes':0,'images':[]}
+out={'rejections':[],'operation':'commercial-batch23-primary-photo-bytes-20261103-read2','mode':'inspect_exact_public_primary_images','server_connections':0,'message_sends':0,'db_writes':0,'images':[]}
 for row in rows:
  p=urllib.parse.urlsplit(row['url']);assert p.scheme=='https' and p.hostname in hosts and p.port is None and not p.username and not p.password and not p.query and not p.fragment
  with opener.open(row['url'],timeout=30) as r:

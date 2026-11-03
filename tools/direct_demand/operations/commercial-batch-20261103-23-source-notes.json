@@ -108,5 +108,37 @@
         "url": "https://www.theserry.com/Images/01%20Homepage/Beach%20Lifestyle%20%283%29.jpg"
       }
     ]
+  ],
+  "photo_read1": {
+    "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41659084571",
+    "old_palace": "3images bytesverified; twoentrancefacades andoneinterior only, noacceptedhero",
+    "serry": "Exact BeachResort.jpgHTTP403 beforebytes; do not retry. Other2Serry inputs were notcalled andnotknown403.",
+    "canva_imports": 0
+  },
+  "next_photo_inputs": [
+    [
+      {
+        "hotel_id": 343,
+        "role": "gallery_overview2",
+        "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204615720.jpg"
+      },
+      {
+        "hotel_id": 343,
+        "role": "gallery_overview3",
+        "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204619803.jpg"
+      },
+      {
+        "hotel_id": 343,
+        "role": "gallery_overview4",
+        "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204630526.jpg"
+      }
+    ],
+    [
+      {
+        "hotel_id": 68907,
+        "role": "declared_abusoma_gallery_photo",
+        "url": "https://wa-uploads.profitroom.com/amarinahotels/17367526038782_abusoma.jpg"
+      }
+    ]
   ]
 }
