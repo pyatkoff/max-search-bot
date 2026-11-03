@@ -1,0 +1,29 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261103-v1",
+  "state": "REQUESTED_THREE_PUBLIC_POST_FEEDS_PREPARED_NOT_READ",
+  "goal": "Publish Telegram-only,MAX-only,and combined hotel feeds on an existing owner web host",
+  "scope_hotels": 121,
+  "image_ready_hotels": 119,
+  "image_missing_catalog_ids": [
+    381,
+    469
+  ],
+  "boundaries": [
+    "Only exact canonical sent post_url for existing AnyTour channels",
+    "No message/channel/publication/version IDs or receipts exported separately",
+    "No bot links, website hotel search links, private maps, tokens, clients or paid calls",
+    "Existing strict authenticated GHA route and server only; three staticCSVfiles,no runtime/controller/cron",
+    "Do not run weak legacy feed deployment or foreign schedules"
+  ],
+  "criteria": [
+    "Current canonical unique pair per nativehotel, both publicURLs validated",
+    "Three files with unique per-channel PropertyIDs; combined is union",
+    "Preserve image gaps explicitly; no fakeprices/availability",
+    "Publish only whitelisted public files with exact bytes/hash and HTTPSreadback"
+  ],
+  "risks": [
+    "Two hotel rows lack public durable image references; this affects image-based ad formats",
+    "A public post link opens the hotel material; price button remains in the post",
+    "No Yandex import, ad launch or budget change implied"
+  ]
+}
