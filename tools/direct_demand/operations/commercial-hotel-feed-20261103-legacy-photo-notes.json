@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-feed-20261103-legacy-photos",
-  "state": "TWO_EXACT_PRIMARY_PHOTOGRAPHS_VISUALLY_ACCEPTED",
+  "state": "FOUR_EXACT_PRIMARY_PHOTOGRAPHS_VISUALLY_ACCEPTED",
   "images": [
     {
       "hotel_id": 310,
@@ -21,21 +21,36 @@
       "bytes": 408089,
       "source_url": "https://www.pickalbatros.com/palace-resort-sharm-el-sheikh",
       "visual_state": "REAL_EXACT_HOTEL_OVERVIEW_ACCEPTED"
-    }
-  ],
-  "rejected": [
-    {
-      "hotel_id": 381,
-      "state": "SELECTED_FILE_WAS_LOGO"
     },
     {
-      "hotel_id": 469,
-      "state": "SELECTED_FILE_WAS_RESTAURANT_TERRACE"
+      "hotel_id": 67910,
+      "image_url": "https://www.ahstatic.com/photos/b6f4_ho_00_p_1024x768.jpg",
+      "image_sha256": "d5d901d4ff309da9fbc2f02323e84f7a13068ba2d0877f85706a8ff7f3e15d83",
+      "width": 1024,
+      "height": 768,
+      "bytes": 118233,
+      "source_url": "https://all.accor.com/hotel/B6F4/index.en.shtml?partner_id=rixos",
+      "visual_state": "REAL_EXACT_HOTEL_OVERVIEW_ACCEPTED"
     },
     {
       "hotel_id": 68323,
-      "state": "SELECTED_FILE_NOT_JPEG_OR_PNG_SIGNATURE_UNDETERMINED"
+      "image_url": "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/67f3ffae5a3de.jpg/1200x630/fit/80/238e6a950d96e74d0cac4d2e2d44f808.jpg",
+      "image_sha256": "586ba6b0c901b39ff308558fc7e4f48538b3af9438b90ad9d7efd22d5d7fb154",
+      "width": 1200,
+      "height": 630,
+      "bytes": 172266,
+      "source_url": "https://www.sunrise-resorts.com/solara-aqua-park-resort",
+      "visual_state": "REAL_EXACT_HOTEL_OVERVIEW_ACCEPTED"
     }
   ],
-  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41628385332"
+  "remaining_catalog_ids": [
+    381,
+    469
+  ],
+  "new_rehana_candidate": {
+    "source_url": "https://www.rehanaresorts.com/rehanaroyal-gallery",
+    "declared_gallery_image": "https://static.wixstatic.com/media/ba792b_d1e0a6d1ed4447038160ee3e45d65c43~mv2_d_3686_1930_s_2.jpg/v1/fill/w_250%2Ch_130%2Cal_c%2Cq_90%2Cenc_auto/ba792b_d1e0a6d1ed4447038160ee3e45d65c43~mv2_d_3686_1930_s_2.jpg",
+    "public_original_media_url": "https://static.wixstatic.com/media/ba792b_d1e0a6d1ed4447038160ee3e45d65c43~mv2_d_3686_1930_s_2.jpg"
+  },
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41629054729"
 }

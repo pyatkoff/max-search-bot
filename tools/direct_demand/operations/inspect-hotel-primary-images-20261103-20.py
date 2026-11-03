@@ -1,13 +1,13 @@
 import base64,hashlib,json,os,struct,urllib.parse,urllib.request
 from pathlib import Path
-rows=json.loads("[{\"hotel_id\":469,\"role\":\"feed\",\"url\":\"https://irp.cdn-website.com/cfc540a7/dms3rep/multi/opt/Al%2BShalal%2BPool-%2B-%2B08-1920w.jpg\"},{\"hotel_id\":67910,\"role\":\"feed\",\"url\":\"https://www.ahstatic.com/photos/b6f4_ho_00_p_1024x768.jpg\"},{\"hotel_id\":68323,\"role\":\"feed\",\"url\":\"https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/67f3ffae5a3de.jpg/1200x630/fit/80/238e6a950d96e74d0cac4d2e2d44f808.jpg\"}]")
+rows=json.loads("[{\"hotel_id\":469,\"role\":\"candidate4\",\"url\":\"https://irp.cdn-website.com/cfc540a7/dms3rep/multi/opt/Picture4-1920w.jpg\"},{\"hotel_id\":469,\"role\":\"candidate5\",\"url\":\"https://irp.cdn-website.com/cfc540a7/dms3rep/multi/opt/Picture5-1920w.jpg\"},{\"hotel_id\":381,\"role\":\"gallery_original\",\"url\":\"https://static.wixstatic.com/media/ba792b_d1e0a6d1ed4447038160ee3e45d65c43~mv2_d_3686_1930_s_2.jpg\"}]")
 group=int(os.environ['MEDIA_GROUP']);assert 0<=group<2
 rows=rows[group*2:group*2+2];assert 1<=len(rows)<=2
 hosts={'image-tc.galaxy.tf','static.wixstatic.com','irp.cdn-website.com','d1wo7kaelp5eck.cloudfront.net','www.ahstatic.com'}
 class NoRedirect(urllib.request.HTTPRedirectHandler):
  def redirect_request(self,*args,**kwargs):raise ValueError('unexpected_photo_redirect')
 opener=urllib.request.build_opener(NoRedirect())
-out={'rejections':[],'operation':'commercial-hotel-feed-20261103-four-gaps-read2','mode':'inspect_exact_public_primary_images','server_connections':0,'message_sends':0,'db_writes':0,'images':[]}
+out={'rejections':[],'operation':'commercial-hotel-feed-20261103-final-two-images-read1','mode':'inspect_exact_public_primary_images','server_connections':0,'message_sends':0,'db_writes':0,'images':[]}
 for row in rows:
  p=urllib.parse.urlsplit(row['url']);assert p.scheme=='https' and p.hostname in hosts and p.port is None and not p.username and not p.password and not p.query and not p.fragment
  with opener.open(row['url'],timeout=30) as r:
