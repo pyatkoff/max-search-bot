@@ -1,0 +1,21 @@
+{
+  "operation": "commercial-monitor-stock-20261103-20",
+  "goal": "Add six proven legacy hotel identities and six newly admitted reserve identities to the same existing monitor.",
+  "boundaries": "Only native HotelDatabase identities from accepted bounded reads and exact accepted hotel titles. Do not manufacture AnyTour IDs or alter accepted delivery/texts,old492 targets,cohorts,source pins,lock,budget,collector or transport.",
+  "criteria": "Two separate append-only immutable cohorts,620 unique inputs,byte-identical previous608 targets,existing in-flight search resume,mixed countries,missing/inactive new input without false old/new credit,native CI.",
+  "risks": "Sultan Gardens Resort469 excludes Villas74510;Magawish Suites&Villas67910 excludes Bay View152750. Input admission does not mean new collection,quote or price edits.",
+  "hotel_ids": [
+    310,
+    469,
+    67910,
+    381,
+    68323,
+    1971,
+    62504,
+    231,
+    15693,
+    65779,
+    932,
+    497
+  ]
+}
