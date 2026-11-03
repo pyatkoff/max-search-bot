@@ -1,15 +1,19 @@
 {
   "operation": "commercial-hotel-batch-20261103-17-v1",
-  "state": "OFFLINE_FOUR_EXISTING_IDENTITIES_PREPARATION_NOT_SENT",
+  "state": "FOUR_ACCEPTED_MATERIALS_PLUS_FOUR_OFFLINE_PREPARATIONS_NOT_SENT",
   "baseline_logical_materials": 88,
   "catalog_ids": [
     264,
     73342,
     278,
-    246
+    246,
+    245,
+    13869,
+    267,
+    12114
   ],
-  "goal": "Prepare four whole hotel materials from already confirmed unpublished stock while the existing release owner resolves its failed production verification.",
-  "boundaries": "Cloud preparation only. General facilities from the exact first-party TUI operator hotel descriptions; original hotel photographs from retained official JAZ photo pools. No TUI package benefits, free-service promise, current price, server connection or send.",
+  "goal": "Keep the four accepted materials unchanged and prepare four additional whole hotel materials from confirmed stock while the existing production release remains held.",
+  "boundaries": "Cloud preparation only. General facilities from the exact first-party TUI operator hotel descriptions; original hotel photographs from retained official JAZ photo pools. No TUI package benefits, free-service promise, current price, server connection or send. Previously accepted four PNG are never re-exported. No live approval or send is created during this preparation.",
   "criteria": "Whole Russian captions below1024 UTF16 without dashes;3or4 supported useful hotel features and an important practical feature; proper general hotel hero; accepted AnyTour layout; exact native PNG/hash/bytes/dimensions and visual check before immutable freeze. Normal successful source/deploy/TLS and publisher dedup remain mandatory before any future live approval.",
   "risks": "Operator descriptions are general hotel information, not rights for an AnyTour package. Do not carry over operator-specific service, inclusion, prices or future operating schedules. Beach107 currently has no exact matching current primary hotel page; Maraya shoreline descriptions conflict and require separate resolution. Two previously rejected62505/4184 remain deferred.",
   "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41545499859"
