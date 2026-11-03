@@ -1,0 +1,53 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261103-read7-stock32",
+  "goal": "Read the two new canonical public pairs and replenish the next grouped hotel candidate supply in one existing serial readonly job",
+  "boundaries": [
+    "Feed reader exactly2boundfirstlines/LIMIT5/platform/publicURL only",
+    "Stock reader10fixedcountry4groups/max12rows each/minimalpublicregistryprojection; no fullsnapshots/privateIDs/buttons/receipts",
+    "Existing source21/TLS/strict pinned host and readonlyDB transactions, no provider/DBwrites/messages or newruntime",
+    "Old133providerposts not re-read; no old lookups or fixtures repeated"
+  ],
+  "criteria": [
+    "Native3newtwoinputquerycases/PHP-l before server",
+    "Newtenstockinputassertions/PHP-l, no old6projectioncases rerun",
+    "Two existing route connections explicitly used, all results saved/authenticatedartifact"
+  ],
+  "risks": [
+    "Ambiguous/alreadyregistered matches are deferred, not forced for quantity",
+    "Candidate identities are not prepared or delivered materials"
+  ],
+  "new_stock_groups": {
+    "rixos-premium-belek": [
+      "rixos premium belek"
+    ],
+    "rixos-sungate": [
+      "rixos sungate"
+    ],
+    "rixos-premium-tekirova": [
+      "rixos premium tekirova",
+      "rixos tekirova"
+    ],
+    "lara-barut": [
+      "lara barut",
+      "barut lara"
+    ],
+    "liberty-signa": [
+      "liberty signa"
+    ],
+    "delphin-imperial": [
+      "delphin imperial"
+    ],
+    "delphin-be-grand": [
+      "delphin be grand"
+    ],
+    "delphin-palace": [
+      "delphin palace"
+    ],
+    "voyage-sorgun": [
+      "voyage sorgun"
+    ],
+    "lujo-bodrum": [
+      "lujo"
+    ]
+  }
+}

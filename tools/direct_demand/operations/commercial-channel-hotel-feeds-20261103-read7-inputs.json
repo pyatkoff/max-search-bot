@@ -1,0 +1,16 @@
+[
+  {
+    "hotel_id": 74503,
+    "name": "NG Phaselis Bay",
+    "accepted_first_line": "✈️ Туры в NG Phaselis Bay с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5e9aa17d09d0499ffd3c40c3c335318d02bfde06/.github/traffic-publish/commercial-batch-20261103-31/74503.png",
+    "image_sha256": "4163044c8a17b30a04a2aa88a4dc01ca3a1923252c3af65430ab6027ab771fc5"
+  },
+  {
+    "hotel_id": 1582,
+    "name": "Voyage Belek Golf & Spa",
+    "accepted_first_line": "✈️ Туры в Voyage Belek Golf & Spa с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5e9aa17d09d0499ffd3c40c3c335318d02bfde06/.github/traffic-publish/commercial-batch-20261103-31/1582.png",
+    "image_sha256": "520e6123814634bcf9cc3bd62ac8b8c6ffcfbc37b1e77bf0e95d936dd6224f36"
+  }
+]
