@@ -20,8 +20,8 @@ def check(condition, message):
     assert condition, message
     checks += 1
 
-def gate_passes(job, env):
-    step = job['steps'][-1]
+def gate_passes(job, env, step_name=None):
+    step = next(s for s in job['steps'] if s.get('name') == step_name) if step_name else job['steps'][-1]
     return subprocess.run(['bash', '-e', '-c', step['run']], env={**os.environ, **env}, capture_output=True).returncode == 0
 
 # Required regression owns PR policy validation. Known companions omit only
@@ -45,6 +45,23 @@ for filename in ['regression-tests.yml', 'workspace-sound.yml', 'channel-post-co
     check(concurrency.get('group') == "ci-${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('run-{0}-{1}', github.run_id, github.run_attempt) }}", 'PR/workflow isolation and unique manual runs required: ' + filename)
 
 check(set(regression['regression']['needs']) == {'change-scope','inventory','php-syntax','required','prepared-mysql','oauth'}, 'regression must await all branches')
+# Source-result aggregation and mutable release admission are separate steps.
+# Exercise every old truth-table case below against the source gate, while the
+# existing Node policy suite executes admission/failure behavior with API fixtures.
+aggregate = regression['regression']
+source_gates = [s for s in aggregate['steps'] if s.get('name') == 'Require every gate']
+admissions = [s for s in aggregate['steps'] if s.get('name') == 'Respect ready release priority']
+check(len(source_gates) == len(admissions) == 1, 'one source gate and one final release admission')
+source_gate, admission = source_gates[0], admissions[0]
+check(not source_gate.get('if') and not source_gate.get('continue-on-error', False), 'source-result failures remain fatal')
+check(aggregate['steps'].index(source_gate) < aggregate['steps'].index(admission), 'admission cannot replace source-result aggregation')
+check(admission.get('if') == "github.event_name == 'pull_request'", 'every PR needs release admission; manual validation cannot merge')
+check(admission.get('run') == 'node tools/release_priority.js' and not admission.get('continue-on-error', False), 'canonical admission executes and fails closed')
+check(not aggregate.get('continue-on-error', False), 'aggregate cannot hide admission refusal')
+check(aggregate.get('permissions') == {'contents': 'read', 'pull-requests': 'read'}, 'release admission cannot mutate GitHub state')
+check(admission.get('env', {}).get('GITHUB_TOKEN') == '${{ secrets.GITHUB_TOKEN }}', 'admission uses only the built-in read capability')
+checkout = next(s for s in aggregate['steps'] if s.get('uses') == 'actions/checkout@v4')
+check(aggregate['steps'].index(checkout) < aggregate['steps'].index(admission) and checkout.get('with', {}).get('persist-credentials') is False, 'admission reads checked source without persisted credentials')
 check(set(visual['screenshots']['needs']) == {'change-scope','full-screenshots','oauth-browser','tour-browser'}, 'visual aggregate must await all profile branches')
 for name in ['regression-tests.yml','workspace-v2-visual-qa.yml','workspace-sound.yml','channel-post-context.yml']:
     check(load(name)['jobs']['change-scope']['uses'] == './.github/workflows/ci-change-scope.yml', name + ' must use canonical selector')
@@ -167,7 +184,7 @@ for mode in ['oauth','full','tour-selection','', 'invalid']:
             cases.append({**valid,key:value})
     for env in cases:
         expected = env['SCOPE_RESULT'] == env['INVENTORY_RESULT'] == env['SYNTAX_RESULT'] == 'success' and ((mode == 'oauth' and env['OAUTH_RESULT'] == 'success' and env['REQUIRED_RESULT'] == env['PREPARED_MYSQL_RESULT'] == 'skipped') or (full_backend and env['REQUIRED_RESULT'] == env['PREPARED_MYSQL_RESULT'] == 'success' and env['OAUTH_RESULT'] == 'skipped'))
-        check(gate_passes(regression['regression'],env) == expected, 'regression gate accepted wrong results: ' + str(env))
+        check(gate_passes(regression['regression'],env,'Require every gate') == expected, 'regression gate accepted wrong results: ' + str(env))
 for mode,scope,full,oauth in itertools.product(['oauth','full','','invalid'], ['success','failure','skipped','cancelled'], ['success','failure','skipped','cancelled'], ['success','failure','skipped','cancelled']):
     env=dict(CI_MODE=mode,SCOPE_RESULT=scope,FULL_RESULT=full,OAUTH_RESULT=oauth,TOUR_RESULT='skipped',TOUR_PROOF='false')
     expected=scope=='success' and ((mode=='oauth' and oauth=='success' and full=='skipped') or (mode=='full' and full=='success' and oauth=='skipped'))
