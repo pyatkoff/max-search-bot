@@ -1,12 +1,12 @@
 import base64,html,json,os,re,urllib.parse,urllib.request
 from pathlib import Path
 from html.parser import HTMLParser
-operation='commercial-batch32-twelve-primary-source-pages'
-pages=["https://all.accor.com/hotel/B1J5/index.en.shtml","https://all.accor.com/hotel/B1J3/index.en.shtml","https://bayoulara.com/en","https://www.libertyhotels.com/en/hotels/liberty-signa/","https://www.delphinhotel.com/faq","https://www.delphinhotel.com/en/delphin-be-grand-resort/overview","https://www.delphinhotel.com/EN/delphin-palace/overview","https://www.delphinhotel.com/delphin-palace-factsheet-en","https://www.voyagehotel.com/en/voyage-sorgun","https://www.voyagehotel.com/en/voyage-sorgun/pool-beach","https://www.voyagehotel.com/en/voyage-sorgun/gallery-detail","https://lujohotel.com/en/overview"]
+operation='commercial-batch32-four-new-declared-primary-pages'
+pages=["https://www.delphinhotel.com/en/delphin-imperial","https://www.delphinhotel.com/en/delphin-be-grand-resort","https://www.delphinhotel.com/en/delphin-palace","https://lujohotel.com/en/refreshing"]
 group=int(os.environ['MEDIA_GROUP'])
-assert group in (0,1,2,3)
-pages=pages[group*3:group*3+3]
-assert 1<=len(pages)<=3
+assert group in (0,1)
+pages=pages[group*2:group*2+2]
+assert 1<=len(pages)<=2
 hosts=set(["www.elgouna.com","elgouna.com","cms.elgouna.com","backend.elgouna.com","www.jazhotels.com","jazhotels.com","partner.jazhotels.com","hrewards.com","www.hrewards.com","www.hilton.com","hilton.com","www.oberoihotels.com","oberoihotels.com","threecorners.com","www.threecorners.com","braykaresorts.com","www.braykaresorts.com","cdn.braykaresorts.com","www.ahstatic.com","m.ahstatic.com","assets.hiltonstatic.com","image-tc.galaxy.tf","www.tropitelhotels.com","tropitelhotels.com","irp.cdn-website.com","www.safirhotels.com","safirhotels.com","www.cleopatraluxuryhotels.com","cleopatraluxuryhotels.com","baronhotels.com","www.baronhotels.com","www.akrahotels.com","baruthemera.com","barutarum.com","bayouacanthus.com","barutandiz.com","www.libertyhotels.com","ngphaselisbay.com","www.voyagehotel.com","akrahotels-gvhpewgeadfsftcj.a01.azurefd.net","api.baruthotelsgroup.com","voyagecdn.blob.core.windows.net","www.baruthemera.com","www.barutarum.com","www.bayouacanthus.com","www.barutandiz.com","www.ngphaselisbay.com","all.accor.com","bayoulara.com","www.bayoulara.com","www.delphinhotel.com","delphinhotel.com","lujohotel.com","www.lujohotel.com","barutlara.com","www.barutlara.com"])
 class Redirect(urllib.request.HTTPRedirectHandler):
  def redirect_request(self,*args,**kwargs):raise ValueError('unexpected_primary_source_redirect')
@@ -20,11 +20,6 @@ def declared_public_page_href(value,final):
  if re.search(r'/(?:admin|api|booking|reserve|reservation|login|register|account|payment|checkout|search|ajax|customer|user)(?:/|$)',p.path,re.I):return None
  if re.search(r'\.(?:jpe?g|png|webp|gif|svg|pdf|zip|rar|7z|css|js|mp4|webm)(?:$|/)',p.path,re.I):return None
  return absolute
-assert declared_public_page_href('/en/gallery','https://www.delphinhotel.com/faq')=='https://www.delphinhotel.com/en/gallery'
-assert declared_public_page_href('https://foreign.example/en/gallery','https://www.delphinhotel.com/faq') is None
-assert declared_public_page_href('/en/gallery?token=private','https://www.delphinhotel.com/faq') is None
-assert declared_public_page_href('/account/customer','https://www.delphinhotel.com/faq') is None
-print('PRIMARY_PUBLIC_PAGE_LINK_PREPARATION_OK new_cases=4 same_owner_relative_kept=1 foreign_token_account_rejected=1 http_calls=0',flush=True)
 def safe_declared_reference(value,final):
  if not isinstance(value,str) or not value.strip():return None
  joined=urllib.parse.urljoin(final,html.unescape(value.strip()))

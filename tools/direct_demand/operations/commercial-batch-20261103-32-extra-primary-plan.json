@@ -1,0 +1,24 @@
+{
+  "operation": "commercial-batch32-four-new-declared-primary-pages",
+  "goal": "Use the exact newly retained same-owner property hrefs for three Delphin hotels and Lujo beach/pools, then one grouped photo inspection",
+  "boundaries": [
+    "Four new exact hrefs proven in the successful first12pages, no repeatedGET",
+    "Purecloudreadonly2groups/maxparallel2; closed4metadata fixtures notrerun on unchangedhelper",
+    "No archive/download guessing, same safeURL/HTTPS/redirect/size/rights guards"
+  ],
+  "criteria": [
+    "All replies saved as typedpublicmetadata; realphotosonlyafterfinitebyte/viewinspection",
+    "OtherreadycandidatesproceedwithoutwaitingforLujo"
+  ],
+  "risks": [
+    "Delphinpropertypagesmaystillusegenericnavimages; exacthotelmembershiprequired",
+    "Lujoopengraphmaybelogo, notassumedphoto",
+    "CurrentPalacefactsheetnativepageonlydeclared2026documents despitecached2027text, no guessed2027PDF"
+  ],
+  "pages": [
+    "https://www.delphinhotel.com/en/delphin-imperial",
+    "https://www.delphinhotel.com/en/delphin-be-grand-resort",
+    "https://www.delphinhotel.com/en/delphin-palace",
+    "https://lujohotel.com/en/refreshing"
+  ]
+}
