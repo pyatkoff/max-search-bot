@@ -69,7 +69,12 @@ def run_block(step):
     return '\n'.join(body) + '\n'
 
 
-def source_step(source, filename):
+def source_step(source, filename, job_name=None):
+    if filename == 'live-session-diagnostics.yml':
+        wanted = job_name or 'publish'
+        match = re.search(r'^  ' + re.escape(wanted) + r':\n(.*?)(?=^  [A-Za-z_][A-Za-z0-9_-]*:\n|\Z)', source, re.MULTILINE | re.DOTALL)
+        check(match is not None, filename + ': required independent job ' + wanted)
+        source = source[:source.index('\njobs:')] + '\njobs:\n' + match.group(0)
     label = filename + ': '
     events = top_section(source, 'on')
     keys = re.findall(r'^  ([a-z_]+):', events, re.MULTILINE)
@@ -80,13 +85,18 @@ def source_step(source, filename):
     check(set(keys) == expected and len(keys) == len(expected), label + 'only deploy-completion and retained explicit triggers')
     for declaration in ('workflows: [Deploy production]', 'types: [completed]', 'branches: [main]'):
         check('    ' + declaration in events.splitlines(), label + 'missing upstream trigger ' + declaration)
-    check("    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'" in source.splitlines(),
-          label + 'automatic job must require successful deployment')
+    if live:
+        timer = '25 * * * *' if (job_name or 'publish') == 'publish' else '*/5 * * * *'
+        expected_if = "    if: (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success') && (github.event_name != 'schedule' || github.event.schedule == '" + timer + "')"
+        check(expected_if in source.splitlines(), label + 'success and exact hourly/check-only timer guard')
+    else:
+        check("    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'" in source.splitlines(),
+              label + 'automatic job must require successful deployment')
     if live:
         check("    - cron: '25 * * * *'" in events.splitlines(), label + 'existing hourly schedule retained exactly')
-        concurrency = top_section(source, 'concurrency')
-        check('  group: production-live-session-diagnostics' in concurrency.splitlines()
-              and '  cancel-in-progress: false' in concurrency.splitlines(), label + 'active diagnostic capture must not be cancelled')
+        group = 'production-live-session-diagnostics' if (job_name or 'publish') == 'publish' else 'anytour-modeled-conversion-monitor'
+        check('      group: ' + group in source.splitlines()
+              and '      cancel-in-progress: false' in source.splitlines(), label + 'independent active jobs must not cancel each other')
 
     steps = step_blocks(source)
     resolvers = [i for i, step in enumerate(steps) if field(step, 'id') == 'source']
@@ -207,7 +217,8 @@ def main():
     args = parser.parse_args()
     for filename in WORKFLOWS:
         source = (args.root / '.github/workflows' / filename).read_text(encoding='utf-8')
-        behavior_cases(source_step(source, filename), filename)
+        for job_name in (('publish', 'monitor') if filename == 'live-session-diagnostics.yml' else (None,)):
+            behavior_cases(source_step(source, filename, job_name), filename)
     print(f'PRODUCTION GATE SEQUENCE: {CHECKS} PASS (offline real resolver execution)')
 
 

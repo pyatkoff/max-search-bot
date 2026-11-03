@@ -200,3 +200,38 @@ Fix code only when evidence points to code/routing integrity rather than operato
 ## Rollback posture
 
 Prefer forward fixes for small safe defects. For a material production break, revert/rollback the offending source change through Git rather than editing production in place, then verify the resulting production SHA and health again.
+
+
+## AnyTour modeled-conversion monitoring
+
+The live-session workflow retains the hourly 25-minute publisher and its
+production-live-session-diagnostics concurrency group. An additional check-only
+five-minute schedule selects the separate monitor job/concurrency group;
+it does not run the hourly conversation capture or any business processing tick.
+Both jobs preserve exact successful upstream deploy/current-main/installed-SHA
+guards before protected production access. Scheduled delivery is best effort.
+
+Configure the private owner recipient only with Actions secret
+MODELED_CONVERSION_ALERT_CHAT_ID. The current server TELEGRAM_BOT_TOKEN is read
+once over the established authenticated SSH channel for bootstrap, never printed.
+Only an age-encrypted route and notification lifecycle state are retained as
+modeled-monitor-private-intent/final artifacts, encrypted using the existing
+protected deployment identity and pinned evidence runtime. Download the latest
+intent or final, never an older final in preference to a newer uncertain intent.
+Token/recipient/key changes require explicit controlled reconciliation, not
+automatic replacement of existing route state.
+
+Initial GET verification must confirm the exact owner's private chat before
+the finite activation test. Failure/recovery messages contain technical codes
+only. Persistent identical incidents stay quiet; UNKNOWN sends are not retried.
+If a previous notification exists and retained artifacts are unavailable, the
+monitor holds instead of resetting state. A bot must already be permitted to
+message the selected owner. Customer destinations are never used.
+
+health checks the last successful delivery/profile ticks (15-minute threshold),
+eligible ready work older than two cycles, unresolved upload outcomes, rejected
+rows and continuous report failures. Missing identities and an idle valid source
+are normal. The latest successful Metrika report is retained separately from its
+latest error. The private status includes a sanitized external-check receipt.
+No new production daemon, worker queue, customer send, conversation mutation,
+OAuth grant or advertising goal/value change is introduced.
