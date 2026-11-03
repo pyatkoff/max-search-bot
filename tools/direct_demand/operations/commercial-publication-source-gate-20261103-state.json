@@ -1,0 +1,10 @@
+{
+  "operation": "commercial-publication-source-gate-20261103",
+  "state": "SCOPED_PUBLICATION_SOURCE_GATE_CHECKED",
+  "publishing_blob_count": 21,
+  "controlled_cases": 14,
+  "server_connections": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41599650092"
+}

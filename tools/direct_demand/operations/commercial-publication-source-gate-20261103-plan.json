@@ -1,9 +1,9 @@
 {
   "operation": "commercial-publication-source-gate-20261103",
-  "state": "OFFLINE_GUARD_CORRECTION_PLANNED",
+  "state": "OFFLINE_GUARD_CORRECTION_CHECKED_NOT_A_RUNTIME_CHANGE",
   "goal": "Stop treating the aggregate status of unrelated deployment jobs as the publication readiness owner.",
   "boundaries": "Pure offline validation in the existing Actions workflow. No new runtime,provider call,server write,deploy rerun,cron worker or old publication rerun.",
   "criteria": "Require the exact approved source,its verify job and strict TLS;all21 accepted publishing blobs must match. Existing runtime installed-source,clean-tree,host,schema,rights,dedup/UNKNOWN gates stay unchanged. A failed unrelated deploy aggregate alone must not veto these verified publishing conditions;bad verify/source/TLS/blob data must still stop.",
   "risks": "Only the manually reviewed exact source is admissible. This does not declare the whole failed deployment healthy or authorize another worker. Production service bytes and sealed batch adapter/template are not changed.",
-  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41597969211"
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41599650092"
 }
