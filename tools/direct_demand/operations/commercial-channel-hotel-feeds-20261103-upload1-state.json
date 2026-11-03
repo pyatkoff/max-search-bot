@@ -1,0 +1,46 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261103-upload1",
+  "state": "THREE_PUBLIC_CHANNEL_POST_FEEDS_HOSTED_HTTPS_BYTES_VERIFIED",
+  "logical_hotels": 121,
+  "feed_row_counts": [
+    121,
+    121,
+    242
+  ],
+  "image_ready_hotels": 119,
+  "image_missing_catalog_ids": [
+    381,
+    469
+  ],
+  "files": [
+    {
+      "name": "hotel-posts-telegram.csv",
+      "rows": 121,
+      "sha256": "10409db94653ed1df898426077841b94905d23c1db41d80ed50761f553eae09c",
+      "public_url": "https://app.anytoour.ru/feed/hotel-posts-telegram.csv"
+    },
+    {
+      "name": "hotel-posts-max.csv",
+      "rows": 121,
+      "sha256": "f6d78c160102e274ac37f66532d3dd5216d474548e7488e7a333392ecaa60ccb",
+      "public_url": "https://app.anytoour.ru/feed/hotel-posts-max.csv"
+    },
+    {
+      "name": "hotel-posts-all.csv",
+      "rows": 242,
+      "sha256": "7841524f1c2e09eb184249d04aaaee1543969c486024244ca58968cb6fc55509",
+      "public_url": "https://app.anytoour.ru/feed/hotel-posts-all.csv"
+    }
+  ],
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41699183398",
+  "intent_artifact_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41699183398/artifacts/13261724720",
+  "result_artifact_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41699183398/artifacts/13261099909",
+  "new_bot_posts": 0,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "runtime_installs": 0,
+  "static_files_created": 3,
+  "yandex_imported": false,
+  "ads_changed": false
+}
