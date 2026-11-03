@@ -1,5 +1,35 @@
 # Manager2 tour selection constructor
 
+## Save a preview card as an image (editor 0.2.9)
+
+Each ready preview card and saved historical card has **Сохранить вариант
+картинкой**. It prepares one local PNG, labelled with the option number and exact
+draft version. The image contains the immutable card text, including its price,
+dates, party, room, meal and explanations, plus the already loaded hotel photos
+in their original order. It keeps the interior-example label for legacy layouts.
+The browser receives a download named `AnyTour-v<version>-variant-<number>.png`;
+the manager chooses what to do with that file.
+
+Export reads the displayed publication, never the current editable draft. It
+does not prepare another version, fetch supplier data or photos again, update a
+draft or delivery receipt, publish a link, send a message, or open another tab.
+Closing the editor, changing client or replacing the preview cancels a pending
+download; a detached old card cannot export a new client's version.
+
+The native browser canvas is 1080 pixels wide, at most 8192 pixels high. All text
+is measured before drawing. An overlong card produces an explanation and points
+to **Печать / PDF**, rather than clipping its conditions. Broken, incomplete or
+browser-protected photos also produce an explanation without an empty download.
+Successful encoding means the file was offered to the browser; it does not prove
+that the manager saved or sent it. Synthetic download/layout checks and an actual
+installed-browser export remain separate acceptance facts.
+
+Runtime callers: only the current preview card button calls `exportCardImage`;
+its closure checks the preview render/context and the handler rechecks the exact
+publication/card. Close, edit, suspension and preview replacement invalidate the
+job. Controls call only the readiness predicate. The renderer and native encoder
+have no request or state-persistence caller.
+
 ## Print the exact preview (editor 0.2.8)
 
 In a ready preview or a saved historical version, **Печать / PDF** opens the

@@ -90,6 +90,7 @@ async function fixture(page,options={}){
     return route.fulfill({contentType:'image/jpeg',body:fs.readFileSync(path.join(root,'assets/owner-tour-cards/compact-v1',kind+'.jpg'))});
   });
   const heldBiblioImages=[];let biblioImagesSettled=0;
+  if(options.imageExportCrossOrigin)await page.route('https://image-export.fixture/**',route=>route.fulfill({contentType:'image/jpeg',body:fs.readFileSync(path.join(root,'assets/owner-tour-cards/compact-v1/cover.jpg'))}));
   if(options.biblio)await page.route('https://www.bgoperator.ru/pr_img/**',async route=>{const broken=options.biblioImageError===true,tiny=options.biblioTinyImages===true;if(options.holdBiblioImages)await new Promise(resolve=>heldBiblioImages.push(resolve));try{return await(broken?route.fulfill({status:404,body:''}):route.fulfill({contentType:tiny?'image/png':'image/jpeg',body:tiny?Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=','base64'):fs.readFileSync(path.join(root,'assets/owner-tour-cards/compact-v1/cover.jpg'))}))}finally{biblioImagesSettled++}});
   const photoUploads=[],uploadedFiles=new Map();let heldUpload=null;
   await page.route(/\/manager\/tour-selection-photo\.php(?:\?|$)/,async route=>{
@@ -135,7 +136,9 @@ async function fixture(page,options={}){
     if(d.action==='prepare'){
       const built=JSON.parse(execFileSync('php',['-r',`require getcwd().'/services/ManagerTourSelectionPublicationDraft.php'; $draft=json_decode(stream_get_contents(STDIN),true); $result=ManagerTourSelectionPublicationDraft::build($draft); if ($result['ok']) foreach ($result['offers'] as &$offer) $offer['card']=TourOfferCardRenderer::render($offer['snapshot'],$offer['presentation'],'tour_like_1_'.str_repeat('a',24)); echo json_encode($result,JSON_THROW_ON_ERROR);`],{cwd:root,input:JSON.stringify(snapshot(d.conversation_id).draft),encoding:'utf8'}));
       if(!built.ok)return reply(built,422);
+      if(options.imageExportLongText)built.offers[0].card.plain_text+='\n'+'Длинное условие\n'.repeat(300);
       publication=publication||{id:'a'.repeat(32),draft_version:d.version,title:built.title,channel:options.channel||'telegram',can_send:!options.readOnly,cards:built.offers.map((offer,i)=>({index:i,offer_id:i+1,state:'pending',snapshot:offer.snapshot,text:offer.card.plain_text,photos:offer.presentation.photos.map((_,p)=>'tour-selection-photo.php?publication_id='+'a'.repeat(32)+'&card='+i+'&photo='+p+'&conversation_id='+d.conversation_id),...(offer.presentation.layout==='gallery-v1'?{photo_layout:'gallery-v1'}:{})}))};
+      if(options.imageExportCrossOrigin)publication.cards[0].photos=publication.cards[0].photos.map((_,index)=>'https://image-export.fixture/photo-'+index+'.jpg');
       return reply({ok:true,publication:copy(publication)});
     }
     if(d.action==='interest')return reply(options.interest||{ok:false,error:'observations_unavailable'},options.interest?.ok?200:503);
@@ -1502,7 +1505,67 @@ test('selection print is removed on client switch and old button cannot print th
  const s=await fixture(page,{draft:completeDraft()});await open(page);await page.locator('#tsPreview').click();await expect(page.locator('#tsPrint')).toBeEnabled();await page.evaluate(()=>{window.printCalls=0;window.print=()=>{printCalls++};window.oldPrintButton=document.getElementById('tsPrint')});await page.locator('#tsPrint').click();await expect(page.locator('.tsPrintProposal')).toHaveCount(1);await page.locator('#tsClose').click();await expect(page.locator('.tsPrintProposal')).toHaveCount(0);await page.locator('#inboxList [data-conversation-id="12"]').click();await open(page);await page.evaluate(()=>oldPrintButton.click());expect(await page.evaluate(()=>printCalls)).toBe(1);await expect(page.locator('.tsPrintProposal')).toHaveCount(0);expect(s.drafts.has(12)).toBe(false);clean(s,deliveryActions);
 });
 
+async function observeImageExport(frame){
+ await frame.evaluate(()=>{
+  window.exportInk=[];window.exportPhotoSources=[];window.exportBlobUrls=new Set();
+  const text=CanvasRenderingContext2D.prototype.fillText,photo=CanvasRenderingContext2D.prototype.drawImage,create=URL.createObjectURL.bind(URL),revoke=URL.revokeObjectURL.bind(URL);
+  CanvasRenderingContext2D.prototype.fillText=function(value,...rest){exportInk.push(value);return text.call(this,value,...rest)};
+  CanvasRenderingContext2D.prototype.drawImage=function(image,...rest){exportPhotoSources.push(image.getAttribute('src'));return photo.call(this,image,...rest)};
+  URL.createObjectURL=value=>{const url=create(value);exportBlobUrls.add(url);return url};URL.revokeObjectURL=url=>{exportBlobUrls.delete(url);return revoke(url)};
+ });
+}
+async function saveExportPng(download,browserName,label){
+ const file=path.join(root,'manager2-artifacts',`tour-selection-image-${browserName}-${label}.png`);fs.mkdirSync(path.dirname(file),{recursive:true});await download.saveAs(file);
+ const bytes=fs.readFileSync(file);expect(bytes.subarray(0,8).toString('hex')).toBe('89504e470d0a1a0a');expect(bytes.readUInt32BE(16)).toBe(1080);expect(bytes.readUInt32BE(20)).toBeGreaterThan(600);expect(bytes.readUInt32BE(20)).toBeLessThanOrEqual(8192);return file;
+}
+for(const width of [390,430,768,1440])test('selection image export keeps immutable text photos and version '+width,async({page,browserName})=>{
+ await page.setViewportSize({width,height:900});const s=await fixture(page,{draft:completeDraft()});await page.locator('#replyText').fill('PRIVATE COMPOSER MUST NOT EXPORT');await open(page);await expect(page.locator('.tsExportImage')).toHaveCount(0);await page.locator('#tsPreview').click();
+ const button=page.locator('[data-ts-image-export="0"]');await expect(button).toBeEnabled();await button.scrollIntoViewIfNeeded();expect(await button.evaluate(el=>el.getBoundingClientRect().height)).toBeGreaterThanOrEqual(44);expect(await page.locator('#tourSelectionDialog').evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThanOrEqual(1);
+ const original=copy(s.publication()),before=copy(s.snapshot(11)),calls=copy(s.calls),pages=page.context().pages().length;await observeImageExport(page);
+ const received=page.waitForEvent('download');await button.click();const download=await received;expect(download.suggestedFilename()).toBe('AnyTour-v1-variant-1.png');await saveExportPng(download,browserName,String(width));
+ const drawn=await page.evaluate(()=>({text:exportInk.join(' '),photos:exportPhotoSources}));expect(drawn.text.replace(/\s/g,'')).toContain(original.cards[0].text.replace(/\s/g,''));expect(drawn.text).toContain('Версия подборки 1');expect(drawn.text).not.toContain('PRIVATE COMPOSER');expect(drawn.photos).toEqual(original.cards[0].photos);
+ expect(s.snapshot(11)).toEqual(before);expect(s.publication()).toEqual(original);expect(s.calls).toEqual(calls);expect(page.context().pages()).toHaveLength(pages);expect(s.creations()).toBe(0);await expect(button).toBeEnabled();await expect.poll(()=>page.evaluate(()=>exportBlobUrls.size)).toBe(0);clean(s,deliveryActions);
+});
+test('selection image export keeps gallery photos neutral and source price distinct',async({page,browserName})=>{
+ const b=biblioFixture(),draft={title:'Синтетическая подборка',intro:'',offers:[b.saved]};draft.offers[0].amount='130000';const s=await fixture(page,{draft});await open(page);await page.locator('#tsPreview').click();await expect(page.locator('.tsExportImage')).toBeEnabled();expect(s.publication().cards[0].photo_layout).toBe('gallery-v1');await observeImageExport(page);
+ const received=page.waitForEvent('download');await page.locator('.tsExportImage').click();await saveExportPng(await received,browserName,'gallery');const ink=await page.evaluate(()=>exportInk.join(' '));expect(ink.replace(/\s/g,'')).toContain(s.publication().cards[0].text.replace(/\s/g,''));expect(ink).not.toContain('Третье фото — пример');expect(s.snapshot(11).draft.offers[0].import_source.fields.amount).toBe('123456');expect(s.snapshot(11).draft.offers[0].amount).toBe('130000');clean(s,deliveryActions);
+});
+test('selection image export reads a historical version after the editable price changed',async({page,browserName})=>{
+ const options={draft:completeDraft()},s=await fixture(page,options);await open(page);await page.locator('#tsPreview').click();await expect(page.locator('.tsExportImage')).toBeEnabled();const original=copy(s.publication());await page.locator('#tsEdit').click();await page.locator('#ts-hotel').fill('NEW PRIVATE DRAFT');await page.locator('#ts-amount').fill('999999');await save(page);await page.locator('#tsClose').click();options.readOnly=true;await open(page);await page.locator('#tsHistory').click();await page.getByRole('button',{name:/Версия 1 ·/}).click();await expect(page.locator('.tsExportImage')).toBeEnabled();await observeImageExport(page);const calls=copy(s.calls);
+ const received=page.waitForEvent('download');await page.locator('.tsExportImage').click();await saveExportPng(await received,browserName,'history');const ink=await page.evaluate(()=>exportInk.join(' '));expect(ink.replace(/\s/g,'')).toContain(original.cards[0].text.replace(/\s/g,''));expect(ink).not.toContain('NEW PRIVATE DRAFT');expect(ink).not.toContain('999999');expect(s.snapshot(11).draft.offers[0].amount).toBe('999999');expect(s.calls).toEqual(calls);expect(s.creations()).toBe(0);clean(s,deliveryActions);
+});
+for(const failed of [false,true])test('selection image export waits for '+(failed?'broken':'pending')+' photos',async({page})=>{
+ const s=await fixture(page,{draft:completeDraft(),holdPhotos:!failed,photoError:failed});await open(page);await page.locator('#tsPreview').click();const button=page.locator('.tsExportImage');await expect(button).toBeDisabled();await page.evaluate(()=>{window.exportEncodeCalls=0;HTMLCanvasElement.prototype.toBlob=function(){exportEncodeCalls++}});await button.evaluate(el=>el.onclick());expect(await page.evaluate(()=>exportEncodeCalls)).toBe(0);
+ if(!failed){s.releasePhotos();await expect(button).toBeEnabled()}else await expect(page.locator('#tsStatus')).toContainText('Не удалось загрузить фото');clean(s,deliveryActions);
+});
+for(const mode of ['edit','client'])test('selection image export cancels its encoder on '+mode+' and ignores the detached card',async({page})=>{
+ const s=await fixture(page,{draft:completeDraft()}),downloads=[];page.on('download',download=>downloads.push(download));await open(page);await page.locator('#tsPreview').click();await expect(page.locator('.tsExportImage')).toBeEnabled();
+ await page.evaluate(()=>{window.oldExportButton=document.querySelector('.tsExportImage');window.heldExport=null;window.exportEncoderFinished=false;const encode=HTMLCanvasElement.prototype.toBlob;HTMLCanvasElement.prototype.toBlob=function(callback,...args){window.heldExport=()=>encode.call(this,blob=>{callback(blob);window.exportEncoderFinished=true},...args)}});
+ await page.locator('.tsExportImage').click();await expect.poll(()=>page.evaluate(()=>typeof heldExport)).toBe('function');
+ if(mode==='edit')await page.locator('#tsEdit').click();else{await page.locator('#tsClose').click();await page.locator('#inboxList [data-conversation-id="12"]').click();await open(page)}
+ await page.evaluate(()=>{oldExportButton.onclick();heldExport();});await expect.poll(()=>page.evaluate(()=>exportEncoderFinished)).toBe(true);expect(await page.evaluate(()=>document.querySelectorAll('a[download]').length)).toBe(0);expect(downloads).toHaveLength(0);expect(s.creations()).toBe(0);if(mode==='client')expect(s.drafts.has(12)).toBe(false);clean(s,deliveryActions);
+});
+test('selection image export refuses browser-protected photo bytes without a partial file',async({page})=>{
+ const s=await fixture(page,{draft:completeDraft(),imageExportCrossOrigin:true}),downloads=[];page.on('download',download=>downloads.push(download));await open(page);await page.locator('#tsPreview').click();await expect(page.locator('.tsExportImage')).toBeEnabled();const calls=copy(s.calls);await page.locator('.tsExportImage').click();await expect(page.locator('#tsStatus')).toContainText('Не удалось подготовить изображение');expect(downloads).toHaveLength(0);expect(s.calls).toEqual(calls);await expect(page.locator('.tsExportImage')).toBeEnabled();clean(s,deliveryActions);
+});
+test('selection image export measures every condition and refuses an overlong canvas',async({page})=>{
+ const s=await fixture(page,{draft:completeDraft(),imageExportLongText:true}),downloads=[];page.on('download',download=>downloads.push(download));await open(page);await page.locator('#tsPreview').click();await expect(page.locator('.tsExportImage')).toBeEnabled();await page.evaluate(()=>{window.exportEncodeCalls=0;HTMLCanvasElement.prototype.toBlob=function(){exportEncodeCalls++}});const original=copy(s.publication()),calls=copy(s.calls);await page.locator('.tsExportImage').click();await expect(page.locator('#tsStatus')).toContainText('текст не будет обрезан');expect(await page.evaluate(()=>exportEncodeCalls)).toBe(0);expect(downloads).toHaveLength(0);expect(s.publication()).toEqual(original);expect(s.calls).toEqual(calls);await expect(page.locator('#tsPrint')).toBeEnabled();clean(s,deliveryActions);
+});
+
 const {privateEditor}=require('./fixtures/selection-private-editor');
+
+test('protected tours iframe exports its immutable card using existing loaded private photos',async({page,browserName})=>{
+ const s=await privateEditor(page,{draft:completeDraft()}),f=s.editor,prepareCalls=[];let photoReads=0,original=null;
+ const frame=page.frames().find(frame=>frame.url().startsWith('https://app.anytoour.ru/manager/tour-selection-editor.php'));
+ await page.route('**/manager/tour-selection-editor-api.php',async route=>{
+  const d=route.request().postDataJSON();if(d.action!=='prepare')return route.fallback();expect(d.csrf).toBe('private-csrf');expect(d.editor_actor).toBe(7);expect(d.conversation_id).toBe(11);prepareCalls.push(copy(d));
+  const built=JSON.parse(execFileSync('php',['-r',`require 'services/ManagerTourSelectionPublicationDraft.php';$b=ManagerTourSelectionPublicationDraft::build(json_decode(stream_get_contents(STDIN),true));foreach($b['offers'] as &$o)$o['card']=TourOfferCardRenderer::render($o['snapshot'],$o['presentation'],'tour_like_1_'.str_repeat('a',24));echo json_encode($b,JSON_THROW_ON_ERROR);`],{cwd:root,input:JSON.stringify(s.snapshot().draft),encoding:'utf8'}));
+  original={id:'a'.repeat(32),draft_version:1,title:built.title,channel:'telegram',can_send:true,cards:built.offers.map((offer,index)=>({index,state:'pending',text:offer.card.plain_text,snapshot:offer.snapshot,photos:offer.presentation.photos.map((_,photo)=>'https://app.anytoour.ru/manager/tour-selection-photo.php?publication_id='+'a'.repeat(32)+'&card='+index+'&photo='+photo)}))};return route.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,publication:original})});
+ });
+ await page.route('https://app.anytoour.ru/manager/tour-selection-photo.php?**',route=>{photoReads++;return route.fulfill({contentType:'image/jpeg',body:fs.readFileSync(path.join(root,'assets/owner-tour-cards/compact-v1/cover.jpg'))})});
+ await expect(f.locator('#tsStatus')).toContainText('загружен');await f.locator('#tsPreview').click();await expect(f.locator('.tsExportImage')).toBeEnabled();expect(await page.locator('iframe').evaluate(el=>el.sandbox.contains('allow-downloads'))).toBe(true);const calls=copy(s.calls),before=copy(s.snapshot()),pages=page.context().pages().length;expect(photoReads).toBe(3);await observeImageExport(frame);
+ const received=page.waitForEvent('download');await f.locator('.tsExportImage').click();await saveExportPng(await received,browserName,'protected');const drawn=await frame.evaluate(()=>({text:exportInk.join(' '),photos:exportPhotoSources}));expect(drawn.text.replace(/\s/g,'')).toContain(original.cards[0].text.replace(/\s/g,''));expect(drawn.photos).toEqual(original.cards[0].photos);expect(photoReads).toBe(3);expect(s.snapshot()).toEqual(before);expect(s.calls).toEqual(calls);expect(prepareCalls).toHaveLength(1);expect(page.context().pages()).toHaveLength(pages);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
 test('protected tours iframe compares native print lifecycle with a same-frame control and recovers without events',async({page,browserName},testInfo)=>{
  const s=await privateEditor(page,{draft:completeDraft()}),f=s.editor;const prepareCalls=[];
  const frame=page.frames().find(x=>x.url().startsWith('https://app.anytoour.ru/manager/tour-selection-editor.php'));
