@@ -1,0 +1,117 @@
+{
+  "operation": "commercial-hotel-batch-20261103-29-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Publish all three ready whole hotel materials in both existing channels in one serial run.",
+  "boundaries": [
+    "Existingbots/channels/registry/once and serial publisher only",
+    "Exact current approved source/verify/TLS/tree21blobs and runtime source/cleanhost/rights/UNKNOWN gates",
+    "No paid calls,new workers/queues/runtime,ads or customer messages"
+  ],
+  "criteria": [
+    "Three native PNG verified by complete bytes/chunks/hash/dimensions and actual view",
+    "Exactly6 new body/photo/button/source provider-verified posts or explicit stop"
+  ],
+  "risks": [
+    "Do not delay these3 for other candidate photos",
+    "If a production release is active,prepare independently and use only completed exact source evidence"
+  ],
+  "baseline_logical_materials": 124,
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "hotel_id": 98723,
+      "hotel": "Cleopatra Luxury Resort Sharm Adults Only",
+      "key": "cleopatra-sharm-adults",
+      "aliases": [
+        "CLEOPATRA LUXURY RESORT SHARM ADULTS ONLY 16+",
+        "CLEOPATRA LUXURY RESORT SHARM ADULTS ONLY"
+      ],
+      "sources": [
+        "https://www.cleopatraluxuryhotels.com/hotel/cleopatra-luxury-resort-sharm-adults-only/",
+        "https://www.cleopatraluxuryhotels.com/hotel/cleopatra-luxury-resort-sharm-adults-only/activities/beach-access/"
+      ],
+      "text": "✈️ Туры в Cleopatra Luxury Resort Sharm Adults Only с перелётом\n📍 Набк, Шарм эль Шейх.\n\n🏊 Четыре бассейна.\n🛏 Номера площадью 52 м². Есть отдельная категория с выходом к бассейну.\n💪 Тренажёрный зал, йога и растяжка.\n\n💡 Курорт для взрослых. Пляж находится отдельно, до него ходит шаттл.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Cleopatra Luxury Sharm Adults Only.",
+      "logical_id": "commercial-cleopatra-sharm-adults-98723-v1",
+      "text_sha256": "6066aa8c97a974bb96e60e914042fa9c029a1fa41fcb5515addecc6b2de471c9",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/05941effa615a17c9a8906c52cdaf14ff5b406a9/.github/traffic-publish/commercial-batch-20261103-29/98723.png",
+      "photo_sha256": "b7447164620caa539eda1ad10b7e92aeb4a0960ede846f8a738823c1d7cf12a9",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 139,
+      "hotel": "Brayka Bay Resort",
+      "key": "brayka-bay-resort",
+      "aliases": [
+        "BRAYKA BAY RESORT"
+      ],
+      "sources": [
+        "https://braykaresorts.com/brayka-bay-resort/overview"
+      ],
+      "text": "✈️ Туры в Brayka Bay Resort с перелётом\n📍 Марса Алам, Египет.\n\n🏖 Собственный песчаный пляж в бухте.\n🌴 Территория с садами и пальмами.\n🏊 Бассейны и занятия для детей.\n🛏 Есть семейные номера площадью 70 м².\n\n💡 У берега расположен риф. Здесь можно наблюдать морскую жизнь с маской.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Brayka Bay.",
+      "logical_id": "commercial-brayka-bay-resort-139-v1",
+      "text_sha256": "69c1182e76f6359654dae9db6f03e2f85a394f41614a56e32a3066a15f10f911",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/05941effa615a17c9a8906c52cdaf14ff5b406a9/.github/traffic-publish/commercial-batch-20261103-29/139.png",
+      "photo_sha256": "a8f5176fca58ee7f1ee2681e4075cdd254dac8db14c95cf00eaa607eb44929d5",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 342,
+      "hotel": "The Oberoi Beach Resort Sahl Hasheesh",
+      "key": "oberoi-sahl-hasheesh",
+      "aliases": [
+        "THE OBEROI SAHL HASHEESH",
+        "THE OBEROI BEACH RESORT SAHL HASHEESH"
+      ],
+      "sources": [
+        "https://www.oberoihotels.com/hotels-in-sahl-hasheesh/accommodation/",
+        "https://www.oberoihotels.com/hotels-in-sahl-hasheesh/travel-information/"
+      ],
+      "text": "✈️ Туры в The Oberoi Beach Resort Sahl Hasheesh с перелётом\n📍 Сахль Хашиш, Египет.\n\n🏖 Курорт на берегу Красного моря.\n🛏 Все номера относятся к категории люкс.\n🌿 Невысокие корпуса с куполами, арками и внутренними двориками.\n🏊 Есть открытый бассейн, спа и тренажёрный зал.\n\n💡 Собственный бассейн предусмотрен только в отдельных категориях люксов.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в The Oberoi Sahl Hasheesh.",
+      "logical_id": "commercial-oberoi-sahl-hasheesh-342-v1",
+      "text_sha256": "4851defff978a58ab37b167cbcda8cd894996ef069dc9aa9abbb6e6700b8ee16",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/05941effa615a17c9a8906c52cdaf14ff5b406a9/.github/traffic-publish/commercial-batch-20261103-29/342.png",
+      "photo_sha256": "dfe453ea8f2c5391ff529f7e21920ffda49ce508140e15e6b6075358fbf1f9d4",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    }
+  ],
+  "ready_for_send_count": 3,
+  "new_posts": 0,
+  "provider_send_attempts": 0,
+  "content_and_cover_prepared_count": 3,
+  "approved_live_send_count": 3,
+  "public_png_frozen_count": 3,
+  "native_inspection_state": "THREE_NATIVE_PNG_VISUALLY_VERIFIED",
+  "native_inspection_run_urls": [
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41712338709"
+  ],
+  "deferred": [
+    {
+      "hotel_id": 253,
+      "state": "PRIMARY_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 512,
+      "state": "PRIMARY_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 1962,
+      "state": "PRIMARY_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 468,
+      "state": "PRIMARY_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 102774,
+      "state": "PRIMARY_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 254,
+      "state": "PRIMARY_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 4185,
+      "state": "PRIMARY_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING_NOT_SENT"
+    }
+  ]
+}

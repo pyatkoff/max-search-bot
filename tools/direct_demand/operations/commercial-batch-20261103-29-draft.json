@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261103-29-v1",
-  "state": "THREE_NATIVE_PNG_VISUALLY_VERIFIED_FROZEN_NOT_SENT",
+  "state": "THREE_READY_APPROVED_FOR_EXISTING_SERIAL_PUBLISHER_NOT_SENT",
   "goal": "Prepare ten proven hotel candidates together,inspect finite primary photo references and send the whole ready subset once",
   "boundaries": [
     "No new catalogue identity guesses;all are from closed bounded native reads",
@@ -26,10 +26,11 @@
     342
   ],
   "baseline_logical_materials": 124,
-  "ready_for_send_count": 0,
+  "ready_for_send_count": 3,
   "new_posts": 0,
   "native_inspection_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41712338709",
   "content_and_cover_prepared_count": 3,
   "public_png_frozen_count": 3,
-  "source_gate_state": "BF21_SCOPED_RELEASE_ACCEPTANCE_PENDING_NO_SEND_ATTEMPT"
+  "source_gate_state": "BF21_ORIGINAL_DEPLOY_VERIFY_TLS_SUCCESS_PUBLISHING21_BLOBS_UNCHANGED",
+  "approved_live_send_count": 3
 }
