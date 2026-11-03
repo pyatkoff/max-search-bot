@@ -1,0 +1,215 @@
+name: Observe natural modeled pipeline checks
+
+on:
+  push:
+    branches: [ops/modeled-pipeline-observe-20261104]
+
+permissions:
+  contents: read
+
+jobs:
+  observe:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.event_name == 'push' && github.ref == 'refs/heads/ops/modeled-pipeline-observe-20261104' && github.run_attempt == 1
+    concurrency:
+      group: anytour-modeled-pipeline-read-only-observe-20261104
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 27
+    env:
+      ACCEPTED_MAIN_SHA: 'ce73a564ef93223e6ffb7f4b1ccac33dc12d76bc'
+    steps:
+      - name: Checkout this one original observer commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify repository event original attempt main ancestry and sole path
+        id: provenance
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = 'pyatkoff/max-search-bot'
+          test "$GITHUB_EVENT_NAME" = 'push'
+          test "$GITHUB_REF" = 'refs/heads/ops/modeled-pipeline-observe-20261104'
+          test "$GITHUB_RUN_ATTEMPT" = '1'
+          [[ "$GITHUB_SHA" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$ACCEPTED_MAIN_SHA" =~ ^[0-9a-f]{40}$ ]]
+          jq -e --arg sha "$GITHUB_SHA" '
+            .repository.full_name=="pyatkoff/max-search-bot" and
+            .ref=="refs/heads/ops/modeled-pipeline-observe-20261104" and
+            .deleted==false and .forced==false and .after==$sha
+          ' "$GITHUB_EVENT_PATH" >/dev/null
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          read -r head parent extra < <(git rev-list --parents -n 1 HEAD)
+          test "$head" = "$GITHUB_SHA"
+          test "$parent" = "$ACCEPTED_MAIN_SHA"
+          test -z "$extra"
+          test "$(git diff --name-only "$ACCEPTED_MAIN_SHA" HEAD)" = '.github/workflows/modeled-pipeline-observe-20261104.yml'
+          test "$(git rev-parse "$ACCEPTED_MAIN_SHA:services/ModeledConversionPipelineMonitorStatus.php")" = '062c44b820f6f7c2612a259a8cd3996c7f745272'
+          test "$(git rev-parse "$ACCEPTED_MAIN_SHA:services/ModeledConversionStatusBudget.php")" = 'dab2be9be5f148b945a27df6befe60ed7f7a19be'
+          git fetch --no-tags origin '+refs/heads/main:refs/remotes/origin/main'
+          git merge-base --is-ancestor "$ACCEPTED_MAIN_SHA" refs/remotes/origin/main
+
+      - name: Prepare existing SSH credential only on the GitHub runner
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          key_file="$RUNNER_TEMP/modeled-pipeline-observe-key"
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key_file"; else printf '%s\n' "$raw" | tr -d '\r' > "$key_file"; fi
+          else
+            decoded="$(printf '%s' "$raw" | base64 --decode 2>/dev/null || true)"
+            printf '%s\n' "$decoded" | tr -d '\r' > "$key_file"
+          fi
+          chmod 600 "$key_file"
+          ssh-keygen -y -f "$key_file" >/dev/null
+
+      - name: Observe at most 31 bounded reads without running a monitor cycle
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'READ_ONLY_OBSERVER'
+          import datetime as dt,json,os,pathlib,re,subprocess,time
+          REMOTE="set -euo pipefail\nexport GIT_OPTIONAL_LOCKS=0\nroot='/var/www/anytoour/data/www/app.anytoour.ru'\ncd \"$root\"\nfence() {\n  test \"$(pwd -P)\" = \"$root\"\n  for path in services/ModeledConversionPipelineMonitorStatus.php services/ModeledConversionStatusBudget.php; do\n    test -f \"$path\"\n    test ! -L \"$path\"\n  done\n  test \"$(git hash-object -- services/ModeledConversionPipelineMonitorStatus.php)\" = '062c44b820f6f7c2612a259a8cd3996c7f745272'\n  test \"$(git hash-object -- services/ModeledConversionStatusBudget.php)\" = 'dab2be9be5f148b945a27df6befe60ed7f7a19be'\n  git diff --quiet HEAD -- services/ModeledConversionPipelineMonitorStatus.php services/ModeledConversionStatusBudget.php\n}\nfence\nresult=\"$(/usr/bin/php <<'OBSERVER_PHP'\n<?php\ndeclare(strict_types=1);\nini_set('display_errors','0');\nerror_reporting(0);\n$root='/var/www/anytoour/data/www/app.anytoour.ru';\n$project='anytour';$counter='98615635';\n$authorize=static function()use($root,$project,$counter):void {\n    if(PHP_SAPI!=='cli'||realpath((string)getcwd())!==$root||$project!=='anytour'||$counter!=='98615635')\n        throw new RuntimeException('observer_scope');\n};\ntry {\n    $authorize();\n    require_once $root.'/services/ModeledConversionPipelineMonitorStatus.php';\n    $now=time();\n    $status=ModeledConversionPipelineMonitorStatus::read(new ModeledConversionStatusBudget(),$authorize,$now);\n    $out=['schema_version'=>1,'project'=>$project,'counter_id'=>$counter,'observed_at'=>gmdate('Y-m-d\\TH:i:s\\Z',$now)];\n    foreach(['available','active','reason','origin','checked_at','fresh','status','notification',\n        'last_notification_at','source_sha','cycle_id','ok','scheduled'] as $key)$out[$key]=$status[$key];\n    $authorize();\n    echo json_encode($out,JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES),\"\\n\";\n} catch(Throwable $ignored) {\n    exit(1);\n}\nOBSERVER_PHP\n)\"\nfence\ntest \"$(printf '%s' \"$result\" | wc -c)\" -le 8192\nprintf '%s\\n' \"$result\"\n"
+          BASELINE="2026-11-03T17:17:36Z"
+          SHA=re.compile(r"[0-9a-f]{40}\Z")
+          CYCLE=re.compile(r"[0-9a-f]{32}\Z")
+          def stamp():
+              return dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+          def clock(value):
+              if not isinstance(value,str) or len(value)!=20:
+                  raise ValueError("clock")
+              parsed=dt.datetime.strptime(value,"%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=dt.timezone.utc)
+              if parsed.strftime("%Y-%m-%dT%H:%M:%SZ")!=value:
+                  raise ValueError("clock")
+              return parsed.timestamp()
+          def sha(value):
+              return isinstance(value,str) and SHA.fullmatch(value) is not None
+          def cycle(value):
+              return isinstance(value,str) and CYCLE.fullmatch(value) is not None
+          def project(raw):
+              if len(raw)>8192:
+                  raise ValueError("size")
+              value=json.loads(raw)
+              expected={"schema_version","project","counter_id","observed_at","available","active","reason",
+                        "origin","checked_at","fresh","status","notification","last_notification_at",
+                        "source_sha","cycle_id","ok","scheduled"}
+              if not isinstance(value,dict) or set(value)!=expected or value["schema_version"]!=1 or \
+                 value["project"]!="anytour" or value["counter_id"]!="98615635":
+                  raise ValueError("scope")
+              observed=clock(value["observed_at"])
+              if abs(time.time()-observed)>60:
+                  raise ValueError("clock")
+              if value["last_notification_at"] not in (None,BASELINE):
+                  return value,[],False,"notification_history_changed"
+              scheduled=value["scheduled"]
+              if not isinstance(scheduled,dict) or set(scheduled)!={"available","last_checked_at","fresh","success_streak","regular","checks"}:
+                  raise ValueError("scheduled")
+              healthy=(value["available"] is True and value["active"] is True and
+                       value["origin"]=="server_cron" and value["fresh"] is True and value["status"]=="ok" and
+                       value["ok"] is True and value["notification"]=="quiet" and
+                       value["last_notification_at"]==BASELINE and sha(value["source_sha"]) and cycle(value["cycle_id"]) and
+                       scheduled["available"] is True and scheduled["fresh"] is True and scheduled["regular"] is True and
+                       scheduled["success_streak"]==3)
+              checks=scheduled["checks"]
+              if not isinstance(checks,list) or len(checks)>3:
+                  raise ValueError("checks")
+              accepted=[]
+              if healthy:
+                  if len(checks)!=3 or value["reason"] is not None:
+                      raise ValueError("checks")
+                  previous=None
+                  seen=set()
+                  for item in checks:
+                      if not isinstance(item,dict) or set(item)!={"cycle_id","checked_at","status","ok","source_sha"} or \
+                         not cycle(item["cycle_id"]) or not sha(item["source_sha"]) or item["cycle_id"] in seen or \
+                         item["status"]!="ok" or item["ok"] is not True:
+                          raise ValueError("check")
+                      at=clock(item["checked_at"])
+                      if observed-at < -60 or observed-at>900 or (previous is not None and not 0<at-previous<=900):
+                          raise ValueError("check_clock")
+                      seen.add(item["cycle_id"]);previous=at
+                      accepted.append({key:item[key] for key in ("cycle_id","checked_at","status","ok","source_sha")})
+                  tail=checks[-1]
+                  if any(tail[key]!=value[key] for key in ("cycle_id","checked_at","status","source_sha")) or \
+                     scheduled["last_checked_at"]!=value["checked_at"]:
+                      raise ValueError("tail")
+              return value,accepted,healthy,"confirmed" if healthy else "waiting_for_natural_cycles"
+          out={"schema_version":1,"project":"anytour","counter_id":"98615635","observer_origin":"github_read_only",
+               "run_id":os.environ["GITHUB_RUN_ID"],"run_attempt":1,"source_pin":os.environ["ACCEPTED_MAIN_SHA"],
+               "read_only":True,"baseline_last_notification_at":BASELINE,"started_at":stamp(),"finished_at":None,
+               "ok":False,"reason":"not_observed","qualifying_cycles":[],"samples":[]}
+          output=pathlib.Path(os.environ["RUNNER_TEMP"])/"modeled-pipeline-observation.json"
+          exit_code=1
+          started=time.monotonic()
+          try:
+              if not re.fullmatch(r"[1-9][0-9]{0,19}",out["run_id"]) or not sha(out["source_pin"]):
+                  raise ValueError("run")
+              target=os.environ["DEPLOY_USER"]+"@"+os.environ["DEPLOY_HOST"]
+              command=["ssh","-i",str(pathlib.Path(os.environ["RUNNER_TEMP"])/"modeled-pipeline-observe-key"),
+                       "-o","BatchMode=yes","-o","StrictHostKeyChecking=no","-o","UserKnownHostsFile=/dev/null",
+                       "-o","ConnectTimeout=10",target,"timeout 12s bash -s"]
+              for index in range(31):
+                  sample={"index":index+1,"observed_at":stamp(),"outcome":"transport_or_source_unavailable"}
+                  try:
+                      result=subprocess.run(command,input=REMOTE.encode("utf-8"),stdout=subprocess.PIPE,
+                                            stderr=subprocess.DEVNULL,timeout=15,check=False)
+                      if result.returncode==0:
+                          value,checks,healthy,reason=project(result.stdout)
+                          sample.update({"outcome":reason,"checked_at":value["checked_at"],
+                                         "cycle_id":value["cycle_id"],"status":value["status"],
+                                         "fresh":value["fresh"],"notification":value["notification"],
+                                         "regular":value["scheduled"]["regular"]})
+                          out["reason"]=reason
+                          if reason=="notification_history_changed":
+                              out["samples"].append(sample)
+                              break
+                          if healthy:
+                              out["qualifying_cycles"]=checks;out["ok"]=True;exit_code=0
+                      else:
+                          out["reason"]="transport_or_source_unavailable"
+                  except (subprocess.TimeoutExpired,OSError):
+                      out["reason"]="transport_or_source_unavailable"
+                  except (ValueError,TypeError,KeyError,UnicodeError):
+                      sample["outcome"]="invalid_technical_metadata"
+                      out["reason"]="invalid_technical_metadata"
+                  out["samples"].append(sample)
+                  if out["ok"] or index==30 or time.monotonic()-started>=1500:
+                      break
+                  time.sleep(30)
+          except Exception:
+              out["reason"]="observer_unavailable"
+          finally:
+              out["finished_at"]=stamp()
+              output.write_text(json.dumps(out,sort_keys=True,separators=(",",":"))+"\n",encoding="utf-8")
+              output.chmod(0o600)
+          print(json.dumps({"ok":out["ok"],"reason":out["reason"],"natural_server_cron_cycles":len(out["qualifying_cycles"]),
+                            "qualifying_cycles":out["qualifying_cycles"],"notification_history_preserved":out["ok"]},
+                           sort_keys=True,separators=(",",":")))
+          raise SystemExit(exit_code)
+          READ_ONLY_OBSERVER
+
+      - name: Retain technical observation only
+        if: always() && steps.provenance.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: modeled-pipeline-natural-check-observation
+          path: ${{ runner.temp }}/modeled-pipeline-observation.json
+          retention-days: 3
+          if-no-files-found: error
+
+      - name: Remove ephemeral SSH credential
+        if: always()
+        shell: bash
+        run: |
+          rm -f "$RUNNER_TEMP/modeled-pipeline-observe-key"
