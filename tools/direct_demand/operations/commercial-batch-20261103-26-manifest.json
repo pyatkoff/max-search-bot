@@ -1,0 +1,94 @@
+{
+  "operation": "commercial-hotel-batch-20261103-26-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Publish four ready whole hotel materials in each existing authorized channel in one serial run.",
+  "boundaries": [
+    "Only existing authorized channels and active bots",
+    "Existing publisher,canonical registry and durable once; serial send",
+    "No additional chats,runtime,workers,queues,collectors or ad changes",
+    "Exact current source,host,TLS,schema,rights,UNKNOWN and live dedup gates preserved"
+  ],
+  "criteria": [
+    "One native hotel identity already proven in catalogue and registry inspection",
+    "Whole hotel caption with4useful facts and material2027renovation feature",
+    "Real official photography,readable AnyTour brand/name,nativePNG visuallyverified and frozen",
+    "Exactly2provider verified posts or explicit dedup/UNKNOWN stop"
+  ],
+  "risks": [
+    "Do not transfer operator package inclusions or price/availability claims",
+    "Swiss Inn has second-line room categories, stated inwholecaption",
+    "Fanara,Miramar,RoyalMakadi andTitanic candidates remain deferred andcannotdelay readyfour"
+  ],
+  "baseline_logical_materials": 116,
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "hotel_id": 129,
+      "hotel": "Cook's Club El Gouna 16+",
+      "text": "✈️ Туры в Cook's Club El Gouna 16+ с перелётом\n📍 Эль Гуна, Египет.\n\n🏖 Отель у солёной морской лагуны.\n🏊 Центральный бассейн с зоной отдыха.\n🧘 Открытый зал для йоги и тренажёры на свежем воздухе.\n\n💡 Отель принимает гостей от 16 лет. У бассейна звучит музыка, а по пятницам проходят вечеринки.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Cook's Club El Gouna.",
+      "sources": [
+        "https://www.cooksclub.com/our-hotels/cooks-club-el-gouna-egypt/",
+        "https://www.cooksclub.com/our-hotels/cooks-club-el-gouna-egypt/amenities/",
+        "https://www.elgouna.com/hotels/cooks-club"
+      ],
+      "key": "cooks-club-el-gouna",
+      "aliases": [
+        "COOKS CLUB EL GOUNA ADULTS ONLY 16+",
+        "COOKS CLUB EL GOUNA"
+      ],
+      "logical_id": "commercial-cooks-club-el-gouna-129-v1",
+      "text_sha256": "212a832055e5d27e3449c2ffd1171147ae2f493edf50e91c94a705961ea1d13c",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/5763bc42519d4ca3745f24220c3853147c03ae02/.github/traffic-publish/commercial-batch-20261103-26/129.png",
+      "photo_sha256": "451fefe90ff4fb6fcf8870015375f0d4fd555081ec259cd0d98126907093dd89",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    }
+  ],
+  "ready_for_send_count": 1,
+  "new_posts": 0,
+  "provider_send_attempts": 0,
+  "content_and_cover_prepared_count": 1,
+  "approved_live_send_count": 0,
+  "public_png_frozen_count": 1,
+  "native_inspection_state": "ONE_NATIVE_PNG_VISUALLY_VERIFIED",
+  "native_inspection_run_urls": [
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41685297370"
+  ],
+  "deferred": [
+    {
+      "hotel_id": 74258,
+      "state": "FACT_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 73343,
+      "state": "FACT_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 432,
+      "state": "FACT_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 65779,
+      "state": "FACT_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 932,
+      "state": "FACT_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 497,
+      "state": "FACT_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 68907,
+      "state": "FACT_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 231,
+      "state": "FACT_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING_NOT_SENT"
+    },
+    {
+      "hotel_id": 483,
+      "state": "FACT_OR_COMPLETE_PUBLIC_PHOTO_SET_PENDING_NOT_SENT"
+    }
+  ]
+}
