@@ -16,7 +16,9 @@ final class ModeledConversionForecastStatusReader
     public const METADATA_LIMIT=20;
     public const PROFILE_LIMIT=4;
     public const PROFILE_BYTES=49152;
-    private const RELEASE_RESERVE=8192;
+    // Remaining tail is the bounded linkage query/file receipt and final authorization.
+    // Projection admission already charges twice the candidate bytes plus2KiB.
+    private const RELEASE_RESERVE=4096;
     private const CONTINUITY_FIELDS=['preserved_ai_replies','preserved_handoff_receipts','unresolved_clock_barriers',
         'long_gap_barriers','unavailable_message_barriers','unavailable_event_barriers','other_source_barriers'];
     private bool $mysql;
