@@ -1,0 +1,154 @@
+{
+  "operation": "commercial-hotel-batch-20261103-28-v1",
+  "state": "TEN_CANDIDATES_PRIMARY_READ_DONE_22_PHOTO_CONTACT_STARTED",
+  "candidate_catalog_ids": [
+    56091,
+    103124,
+    102031,
+    75571,
+    102774,
+    342,
+    254,
+    488,
+    139,
+    4185
+  ],
+  "photo_scope_catalog_ids": [
+    56091,
+    102031,
+    103124,
+    254,
+    488
+  ],
+  "photos": [
+    {
+      "hotel_id": 56091,
+      "role": "g0_main_building",
+      "url": "https://cms.elgouna.com/api/media/file/Ancient-Sands-Golf-Resort-and-Residence-El-Gouna-Red-sea-Main-building-dba45139.webp"
+    },
+    {
+      "hotel_id": 56091,
+      "role": "g0_infinity_pool",
+      "url": "https://cms.elgouna.com/api/media/file/1703028391-7185aa4e.webp"
+    },
+    {
+      "hotel_id": 56091,
+      "role": "g0_golf_view",
+      "url": "https://cms.elgouna.com/api/media/file/_Ancient_Sands_Golf_Course_El_Gouna_Red_Sea__3_-Ghada___s_MacBook_Pro.webp"
+    },
+    {
+      "hotel_id": 56091,
+      "role": "g0_deluxe_room",
+      "url": "https://cms.elgouna.com/api/media/file/Ancient-Sands-Golf-and-Residence-El-Gouna-Red-Sea-Delux-Room-KingDeluxe_Room_3.webp"
+    },
+    {
+      "hotel_id": 102031,
+      "role": "g0_hotel_pool_view",
+      "url": "https://assets.hrewards.com/assets/562_SHR_Luxor_Nile_Palace_spa_poolview_01_5e6d125c91.JPG"
+    },
+    {
+      "hotel_id": 102031,
+      "role": "g0_family_room",
+      "url": "https://assets.hrewards.com/assets/SHR_Luxor_Nile_Palace_Family_Room_3_76c170238b.jpg"
+    },
+    {
+      "hotel_id": 102031,
+      "role": "g0_nile_lounge",
+      "url": "https://assets.hrewards.com/assets/SHR_Luxor_Nile_Palace_restaurant_Nile_Lounge_Bar_2_fe0cac8db9.png"
+    },
+    {
+      "hotel_id": 103124,
+      "role": "g1_nile_exterior",
+      "url": "https://partner.jazhotels.com/Images/uploads/gallery/photos/IberotelLuxor/Hotel-Exterior-Nile-Side-20221911.jpg"
+    },
+    {
+      "hotel_id": 103124,
+      "role": "g1_street_exterior",
+      "url": "https://partner.jazhotels.com/Images/uploads/gallery/photos/iberotelluxor/Hotel-Exterior---Street-Side-2021123015.jpg"
+    },
+    {
+      "hotel_id": 103124,
+      "role": "g1_exterior_other",
+      "url": "https://partner.jazhotels.com/Images/uploads/gallery/photos/iberotelluxor/Exterior-1-202312514.jpg"
+    },
+    {
+      "hotel_id": 103124,
+      "role": "g1_floating_pool",
+      "url": "https://partner.jazhotels.com/Images/uploads/gallery/photos/IberotelLuxor/Pool-Mornng-View-20221911.jpg"
+    },
+    {
+      "hotel_id": 103124,
+      "role": "g1_room",
+      "url": "https://partner.jazhotels.com/Images/uploads/gallery/photos/iberotelluxor/Queen-Bed---Nile-View-2021123015.jpg"
+    },
+    {
+      "hotel_id": 254,
+      "role": "g2_buildings",
+      "url": "https://threecorners.com/wp-content/uploads/2021/06/thethreecorners_redsea_marsa_alam_sea_beach_resort_buildings_2-scaled.jpg"
+    },
+    {
+      "hotel_id": 254,
+      "role": "g2_resort_overview",
+      "url": "https://threecorners.com/wp-content/uploads/2024/11/marsa-alam-sea-beach-resort-94-1024x683.jpg"
+    },
+    {
+      "hotel_id": 254,
+      "role": "g2_waterpark",
+      "url": "https://threecorners.com/wp-content/uploads/2021/06/thethreecorners_redsea_marsa_alam_sea_beach_resort_waterpark_4-1024x678.jpg"
+    },
+    {
+      "hotel_id": 254,
+      "role": "g2_family_room",
+      "url": "https://threecorners.com/wp-content/uploads/2024/09/sea-beach-family-room-1-scaled.jpg"
+    },
+    {
+      "hotel_id": 254,
+      "role": "g2_beach",
+      "url": "https://threecorners.com/wp-content/uploads/2021/06/thethreecorners_redsea_marsa_alam_sea_beach_resort_beach_6.jpg"
+    },
+    {
+      "hotel_id": 488,
+      "role": "g3_overview1",
+      "url": "https://threecorners.com/wp-content/uploads/2021/06/thethreecorners_redsea_marsa_alam_fayrouz_plaza_beach_resort_overview_1.jpg"
+    },
+    {
+      "hotel_id": 488,
+      "role": "g3_overview2",
+      "url": "https://threecorners.com/wp-content/uploads/2021/06/thethreecorners_redsea_marsa_alam_fayrouz_plaza_beach_resort_overview_2.jpg"
+    },
+    {
+      "hotel_id": 488,
+      "role": "g3_buildings",
+      "url": "https://threecorners.com/wp-content/uploads/2021/06/thethreecorners_redsea_marsa_alam_fayrouz_plaza_beach_resort_building-scaled.jpg"
+    },
+    {
+      "hotel_id": 488,
+      "role": "g3_room",
+      "url": "https://threecorners.com/wp-content/uploads/2021/06/thethreecorners_redsea_marsa_alam_fayrouz_plaza_beach_premium_room_2-scaled.jpg"
+    },
+    {
+      "hotel_id": 488,
+      "role": "g3_beach",
+      "url": "https://threecorners.com/wp-content/uploads/2021/06/thethreecorners_redsea_marsa_alam_fayrouz_plaza_resort_beach_2.jpg"
+    }
+  ],
+  "source_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41701988399",
+  "goal": "Select complete real photo sets from one finite grouped contact inspection, then prepare several branded covers together",
+  "boundaries": [
+    "4readonlygroups/maxparallel2,no server/provider/DBwrites/messages",
+    "Only exact owner-declared public image URLs, no fabricated derivatives or private tokens",
+    "Unchanged source size/type/dimension guards; no old failed source reads repeated"
+  ],
+  "criteria": [
+    "Hotel and grounds overview plus2supporting photos for each ready hotel",
+    "Real bytes/hash/dimensions and actual contact sheet view",
+    "Native new10-case exact-previous-hash static feed update fixture in group0, no server calls"
+  ],
+  "risks": [
+    "Do not use ThreeCorners shared navigation images or2026renders/privatepoolcategory for entirehotel",
+    "Ancient Sands logo excluded; named mainbuilding and current property gallery membership retained",
+    "Hilton gallery timedout;Oberoi ValueErrorunknowncause;Sofitelexactcurrentpage unresolved;Braykaoverview onlyroom images. Defer these and keep ready subset moving"
+  ],
+  "ready_for_send_count": 0,
+  "new_posts": 0
+}

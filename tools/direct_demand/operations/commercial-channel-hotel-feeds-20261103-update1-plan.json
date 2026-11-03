@@ -1,0 +1,41 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261103-update1",
+  "state": "PREPARED_FOR_NEXT_NEW_PAIRS_NOT_RUN",
+  "goal": "Update exactly the same three public post feeds after newly verified hotel pairs",
+  "boundaries": [
+    "Only existing strict pinned GHA route,3staticCSV,no installed runtime/controller",
+    "Exact accepted current SHA for each previous file required; unknown replacement or missing previous blocks",
+    "Existing121 channel rows and242 combined rows remain canonical prior input, no provider readback"
+  ],
+  "criteria": [
+    "New offline10-case native validation for accepted replacement,unknown/missing/invalid hashes and post-write reuse",
+    "New durable intent before serverwrite",
+    "Exact publicHTTPS bytes after update"
+  ],
+  "risks": [
+    "Closedupload1 is not an update route for changed content",
+    "Any unexpectedexisting file must be reconciled before changing anything"
+  ],
+  "expected_previous_files": [
+    {
+      "name": "hotel-posts-telegram.csv",
+      "rows": 121,
+      "sha256": "10409db94653ed1df898426077841b94905d23c1db41d80ed50761f553eae09c",
+      "public_url": "https://app.anytoour.ru/feed/hotel-posts-telegram.csv"
+    },
+    {
+      "name": "hotel-posts-max.csv",
+      "rows": 121,
+      "sha256": "f6d78c160102e274ac37f66532d3dd5216d474548e7488e7a333392ecaa60ccb",
+      "public_url": "https://app.anytoour.ru/feed/hotel-posts-max.csv"
+    },
+    {
+      "name": "hotel-posts-all.csv",
+      "rows": 242,
+      "sha256": "7841524f1c2e09eb184249d04aaaee1543969c486024244ca58968cb6fc55509",
+      "public_url": "https://app.anytoour.ru/feed/hotel-posts-all.csv"
+    }
+  ],
+  "new_posts": 0,
+  "new_server_writes": 0
+}
