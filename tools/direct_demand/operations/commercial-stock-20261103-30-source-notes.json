@@ -1,0 +1,286 @@
+{
+  "operation": "commercial-hotel-batch-20261103-30-v1",
+  "state": "FOUR_WHOLE_POSTS_AND_PRIMARY_PHOTO_SETS_PREPARED_NOT_SENT",
+  "goal": "Publish every ready subset of ten proven candidates in existing two channels, then append public canonical links to the same three Direct YML feeds",
+  "boundaries": [
+    "Existing registry/durable once/strict source and pinned host route only",
+    "No Mac or new runtime/controller/collector/ads changes",
+    "Public primary photography and current or next Canva previews only"
+  ],
+  "criteria": [
+    "Actual native PNG bytes/hash/appearance accepted before freeze",
+    "Exactly eight verified sends for four unique hotels, then public URL feed update",
+    "No source or photo guard weakened"
+  ],
+  "risks": [
+    "Main release may move before send, gate must stop before server calls",
+    "Six candidates still have no qualifying hotel overview; ready four proceed independently"
+  ],
+  "contact_run": 41718477076,
+  "groups": 4,
+  "photos": 34,
+  "byte_accepted": 33,
+  "dimension_rejection": {
+    "hotel_id": 1582,
+    "role": "g3_general_view",
+    "width": 375,
+    "height": 375,
+    "http": 200
+  },
+  "ready": [
+    {
+      "hotel_id": 1291,
+      "hotel": "Akra Kemer",
+      "key": "akra-kemer",
+      "aliases": [
+        "AKRA KEMER (EX. KEMER BARUT COLLECTION)",
+        "AKRA KEMER"
+      ],
+      "sources": [
+        "https://www.akrahotels.com/en/hotels/akra-kemer/beach-and-pools/"
+      ],
+      "text": "✈️ Туры в Akra Kemer с перелётом\n📍 Кемер, Турция.\n\n🏖 Собственный пляж с Голубым флагом.\n🏊 Активный бассейн и зона с водными горками.\n👧 Для детей есть отдельный открытый бассейн.\n🌿 Для спокойного отдыха есть бассейн с водопадом.\n\n💡 Зимой подогреваются крытый бассейн и бассейн аквапарка.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Akra Kemer.",
+      "photos": [
+        {
+          "hotel_id": 1291,
+          "role": "g0_general7",
+          "index": 0,
+          "source_url": "https://akrahotels-gvhpewgeadfsftcj.a01.azurefd.net/newakraweb/media/r31e05k1/akra-kemer-genel-galeri-slider-7.jpg",
+          "format": "JPEG",
+          "width": 1200,
+          "height": 600,
+          "bytes": 418202,
+          "sha256": "353b395e7c69f0dc165bba41366c220ebd50e3b2bd624532333592e49775bd89",
+          "visual_state": "REAL_OFFICIAL_PHOTOGRAPHY_VISUALLY_VERIFIED"
+        },
+        {
+          "hotel_id": 1291,
+          "role": "g0_pool",
+          "index": 2,
+          "source_url": "https://akrahotels-gvhpewgeadfsftcj.a01.azurefd.net/newakraweb/media/rivhgdqs/akra-kemer-plaj-havuz-card.jpg",
+          "format": "JPEG",
+          "width": 819,
+          "height": 669,
+          "bytes": 323866,
+          "sha256": "a385bbd83c9ad00176a10a1b3d6b92d91361ded5cbb753f2461b6cb94df80f4b",
+          "visual_state": "REAL_OFFICIAL_PHOTOGRAPHY_VISUALLY_VERIFIED"
+        },
+        {
+          "hotel_id": 1291,
+          "role": "g0_family_room",
+          "index": 3,
+          "source_url": "https://akrahotels-gvhpewgeadfsftcj.a01.azurefd.net/newakraweb/media/1uqbd1m5/akk_family-suite_01.jpg",
+          "format": "JPEG",
+          "width": 1200,
+          "height": 601,
+          "bytes": 251301,
+          "sha256": "51040e8cf72adca2eeb3065f7361f0a1cdb2d2b9ad6a813faadb8fde51d296f9",
+          "visual_state": "REAL_OFFICIAL_PHOTOGRAPHY_VISUALLY_VERIFIED"
+        }
+      ],
+      "font": 58
+    },
+    {
+      "hotel_id": 15869,
+      "hotel": "Akra Sorgun TUI Blue Sensatori",
+      "key": "akra-sorgun",
+      "aliases": [
+        "AKRA SORGUN TUI BLUE SENSATORI"
+      ],
+      "sources": [
+        "https://www.akrahotels.com/en/hotels/akra-sorgun/about-us/"
+      ],
+      "text": "✈️ Туры в Akra Sorgun TUI Blue Sensatori с перелётом\n📍 Соргун, Сиде, Турция.\n\n🏖 Собственный песчаный пляж.\n🏊 Есть семейные, детские и взрослые бассейны.\n👧 Для детей работают две открытые игровые площадки.\n🛏 Предусмотрены семейные номера и варианты для отдыха с малышами.\n\n💡 Есть зоны только для взрослых. Курорт также принимает семьи с детьми.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Akra Sorgun.",
+      "photos": [
+        {
+          "hotel_id": 15869,
+          "role": "g0_general6",
+          "index": 6,
+          "source_url": "https://akrahotels-gvhpewgeadfsftcj.a01.azurefd.net/newakraweb/media/1iadxl4o/akra-sorgun-genel-galeri-card6.jpg",
+          "format": "JPEG",
+          "width": 1200,
+          "height": 600,
+          "bytes": 285001,
+          "sha256": "57f0048e1f0923b6c8fcc07f5ea345baf8fb5d848b642c548fdd5bdd415902ab",
+          "visual_state": "REAL_OFFICIAL_PHOTOGRAPHY_VISUALLY_VERIFIED"
+        },
+        {
+          "hotel_id": 15869,
+          "role": "g0_general5",
+          "index": 5,
+          "source_url": "https://akrahotels-gvhpewgeadfsftcj.a01.azurefd.net/newakraweb/media/h1udt5do/akra-sorgun-genel-galeri-card5.jpg",
+          "format": "JPEG",
+          "width": 1200,
+          "height": 600,
+          "bytes": 278940,
+          "sha256": "fdd7598aba695f72d6195a55a99659f4673d92d0532e91d8c7199d0899fc735e",
+          "visual_state": "REAL_OFFICIAL_PHOTOGRAPHY_VISUALLY_VERIFIED"
+        },
+        {
+          "hotel_id": 15869,
+          "role": "g0_family_room",
+          "index": 7,
+          "source_url": "https://akrahotels-gvhpewgeadfsftcj.a01.azurefd.net/newakraweb/media/5mhngzi5/akra-sorgun-deniz-manzarali-aile-odasi-galeri.jpg",
+          "format": "JPEG",
+          "width": 1200,
+          "height": 600,
+          "bytes": 207389,
+          "sha256": "aeeb3703e8219e4fab6648da943405d67546f48d7b1aac200244bc655be87aec",
+          "visual_state": "REAL_OFFICIAL_PHOTOGRAPHY_VISUALLY_VERIFIED"
+        }
+      ],
+      "font": 48
+    },
+    {
+      "hotel_id": 253,
+      "hotel": "Safir Sharm Waterfalls Resort",
+      "key": "safir-sharm-waterfalls",
+      "aliases": [
+        "SAFIR SHARM WATERFALLS (EX. HILTON)",
+        "SAFIR SHARM WATERFALLS"
+      ],
+      "sources": [
+        "https://www.safirhotels.com/en/hotel/safir-sharm-waterfalls-resort"
+      ],
+      "text": "✈️ Туры в Safir Sharm Waterfalls Resort с перелётом\n📍 Рас Ум эль Сид, Шарм эль Шейх.\n\n🏖 Собственный пляж и причал.\n🏊 Семь бассейнов.\n🎾 Теннисный корт и дайвинг центр.\n🛏 Номера с балконами и видом на море или сад.\n\n💡 Курорт расположен на плато. Рядом торговый район Иль Меркато.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Safir Sharm Waterfalls.",
+      "photos": [
+        {
+          "hotel_id": 253,
+          "role": "g1_slider1",
+          "index": 0,
+          "source_url": "https://www.safirhotels.com/storage/media/PcyZHvJrw1gOniJb0Boil4TrNYOPfND01F7DKl68.png",
+          "format": "PNG",
+          "width": 1440,
+          "height": 620,
+          "bytes": 1515756,
+          "sha256": "afe2441f45a1da73961ddcffbe489e8ff0f637efcf45ecb022222127dd066e24",
+          "visual_state": "REAL_OFFICIAL_PHOTOGRAPHY_VISUALLY_VERIFIED"
+        },
+        {
+          "hotel_id": 253,
+          "role": "g1_slider2",
+          "index": 1,
+          "source_url": "https://www.safirhotels.com/storage/media/WkgmPn0BHHUohFJwm5G4X8TNUF9nLu9c0qACMDm7.png",
+          "format": "PNG",
+          "width": 1440,
+          "height": 620,
+          "bytes": 1219056,
+          "sha256": "632aad9a5b812cef7f356d8441dfc37d9ecc4d17fd7b06171e03f8ae55f1459e",
+          "visual_state": "REAL_OFFICIAL_PHOTOGRAPHY_VISUALLY_VERIFIED"
+        },
+        {
+          "hotel_id": 253,
+          "role": "g2_hotel_photo2",
+          "index": 7,
+          "source_url": "https://www.safirhotels.com/storage/media/FiUlZTxMl0o5QkHWn9IWYfDXrGtHpXbUbLEr5dfx.webp",
+          "format": "WEBP",
+          "width": 640,
+          "height": 320,
+          "bytes": 91804,
+          "sha256": "1249fe76f4db8d8e61ec8d5094ed929d047bd746df992ed3ad3b1c7db4bcea0c",
+          "visual_state": "REAL_OFFICIAL_PHOTOGRAPHY_VISUALLY_VERIFIED"
+        }
+      ],
+      "font": 48
+    },
+    {
+      "hotel_id": 75377,
+      "hotel": "Liberty Fabay",
+      "key": "liberty-fabay",
+      "aliases": [
+        "LIBERTY FABAY"
+      ],
+      "sources": [
+        "https://www.libertyhotels.com/en/hotels/liberty-fabay/"
+      ],
+      "text": "✈️ Туры в Liberty Fabay с перелётом\n📍 Фетхие, Турция.\n\n🏖 Пляж и бассейны с видом на острова.\n👧 Детский клуб Libby & Berty.\n🛏 Есть семейные номера с видом на море или территорию.\n🍽 На территории работают рестораны и бары.\n\n💡 Прямой выход к бассейну предусмотрен в отдельных категориях номеров.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Liberty Fabay.",
+      "photos": [
+        {
+          "hotel_id": 75377,
+          "role": "g3_main",
+          "index": 0,
+          "source_url": "https://www.libertyhotels.com/wp-content/uploads/2026/01/liberty-fabay-main-hotel-photo.webp",
+          "format": "WEBP",
+          "width": 2734,
+          "height": 1536,
+          "bytes": 655640,
+          "sha256": "067e68002b324cfd73cb3f664b109687871f53244f775c983b59a3ec6efb1b19",
+          "visual_state": "REAL_OFFICIAL_PHOTOGRAPHY_VISUALLY_VERIFIED"
+        },
+        {
+          "hotel_id": 75377,
+          "role": "g3_main_pool",
+          "index": 2,
+          "source_url": "https://www.libertyhotels.com/wp-content/uploads/2025/12/Liberty_Fabay_Main-Pool-scaled.jpg",
+          "format": "JPEG",
+          "width": 2560,
+          "height": 1438,
+          "bytes": 712934,
+          "sha256": "b3b9c0fd514a69ab8000c2b2327feeef8c6542af372ab6b0563490a89c2357f7",
+          "visual_state": "REAL_OFFICIAL_PHOTOGRAPHY_VISUALLY_VERIFIED"
+        },
+        {
+          "hotel_id": 75377,
+          "role": "g3_standard_room",
+          "index": 3,
+          "source_url": "https://www.libertyhotels.com/wp-content/uploads/2025/11/liberty-fabay-standart-bahce-manzarali-oda-1-780x446.webp",
+          "format": "WEBP",
+          "width": 780,
+          "height": 446,
+          "bytes": 30164,
+          "sha256": "500e8dbb4791612a670799b03da41c9a91f4ebe1377256e2db6755ef4945626d",
+          "visual_state": "REAL_OFFICIAL_PHOTOGRAPHY_VISUALLY_VERIFIED"
+        }
+      ],
+      "font": 58
+    }
+  ],
+  "deferred": [
+    {
+      "id": 1033,
+      "reason": "Main photo is ancient theatre with scooter, other photos beach/family/swimup close view; no hotel overview"
+    },
+    {
+      "id": 1031,
+      "reason": "Pool close view and interiors; no hotel overview"
+    },
+    {
+      "id": 1032,
+      "reason": "Garden, bedroom, restaurant; no hotel overview"
+    },
+    {
+      "id": 21673,
+      "reason": "All three views are room/interior categories; no hotel overview"
+    },
+    {
+      "id": 74503,
+      "reason": "Family on beach, family in room and bedroom, no hotel overview"
+    },
+    {
+      "id": 1582,
+      "reason": "General view actual375x375 failed unchanged dimension guard; beach and slides are lower only"
+    }
+  ],
+  "canva_transactions": [
+    {
+      "hotel_id": 1291,
+      "transaction_id": "5187541924495393437",
+      "state": "OPEN_TEMPORARY_PREVIEW_NOT_COMMITTED"
+    },
+    {
+      "hotel_id": 15869,
+      "transaction_id": "29794454210415201",
+      "state": "OPEN_TEMPORARY_PREVIEW_NOT_COMMITTED"
+    },
+    {
+      "hotel_id": 253,
+      "transaction_id": "7376291346492897029",
+      "state": "OPEN_TEMPORARY_PREVIEW_NOT_COMMITTED"
+    },
+    {
+      "hotel_id": 75377,
+      "transaction_id": "6529614612805006549",
+      "state": "OPEN_TEMPORARY_PREVIEW_NOT_COMMITTED"
+    }
+  ]
+}
