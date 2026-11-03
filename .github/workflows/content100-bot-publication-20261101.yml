@@ -1,4 +1,4 @@
-name: Read twelve fixed owner pages for batch28 candidate group
+name: Read twelve owner pages after parser indentation correction
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -25,7 +25,9 @@ jobs:
       - name: Read only fixed official hotel descriptions and public photo references
         env:
           MEDIA_GROUP: ${{ matrix.media_group }}
-        run: python3 tools/direct_demand/operations/inspect-hotel-media-20261102-3.py
+        run: |
+          python3 -m py_compile tools/direct_demand/operations/inspect-hotel-media-20261102-3.py
+          python3 tools/direct_demand/operations/inspect-hotel-media-20261102-3.py
       - uses: actions/upload-artifact@v4
         with:
           name: commercial-batch28-primary-sources-${{ matrix.media_group }}

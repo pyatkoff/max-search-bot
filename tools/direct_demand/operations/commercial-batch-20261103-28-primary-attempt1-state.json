@@ -1,0 +1,11 @@
+{
+  "operation": "commercial-batch28-twelve-primary-source-pages",
+  "state": "CLOSED_BEFORE_ANY_HTTP_PARSER_INDENTATION_CORRECTED",
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41700741573",
+  "reason": "New source URL allowlist check was inserted at wrong indentation inside existing fixture_mode branch. All four jobs failed Python parse before any source GET; two lines corrected.",
+  "source_http_calls": 0,
+  "server_connections": 0,
+  "provider_calls": 0,
+  "db_writes": 0,
+  "message_sends": 0
+}

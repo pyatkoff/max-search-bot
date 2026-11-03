@@ -1,7 +1,7 @@
 import base64,html,json,os,re,urllib.parse,urllib.request
 from pathlib import Path
 from html.parser import HTMLParser
-operation='commercial-batch28-twelve-primary-source-pages'
+operation='commercial-batch28-twelve-primary-source-pages-v2'
 pages=["https://www.elgouna.com/hotels/ancient-sands","https://www.elgouna.com/hotels/ancient-sands/gallery","https://www.jazhotels.com/hoteldetail/14/overview","https://partner.jazhotels.com/hotel/14","https://hrewards.com/en/steigenberger-nile-palace-luxor","https://www.hilton.com/en-gb/hotels/luxhitw-hilton-luxor-resort-and-spa/gallery/","https://www.oberoihotels.com/hotels-in-sahl-hasheesh/","https://threecorners.com/red-sea/sea-beach-resort/","https://threecorners.com/red-sea/fayrouz-plaza-beach-resort/","https://threecorners.com/red-sea/fayrouz-plaza-beach-resort/gallery-for-pro/","https://braykaresorts.com/brayka-bay-resort/overview","https://braykaresorts.com/royal-brayka-resort/overview"]
 group=int(os.environ['MEDIA_GROUP'])
 assert group in (0,1,2,3)
@@ -39,8 +39,8 @@ for url in pages:
    final=url
   else:
    parsed_source=urllib.parse.urlsplit(url)
-  assert parsed_source.scheme=='https' and parsed_source.hostname in hosts and not parsed_source.username and not parsed_source.password
-  response=opener.open(urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'}),timeout=25)
+   assert parsed_source.scheme=='https' and parsed_source.hostname in hosts and not parsed_source.username and not parsed_source.password
+   response=opener.open(urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'}),timeout=25)
    with response as r:
     raw=r.read(2000001)
     if len(raw)>2000000:raise ValueError('source_size_limit')
