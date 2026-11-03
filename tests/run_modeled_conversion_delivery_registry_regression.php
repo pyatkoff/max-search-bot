@@ -32,7 +32,7 @@ function deliveryRegistryFixtureEvent(PDO $p,int $conversation,int $rank,int $at
     $values=['anytour',$conversation,(string)(70000+$conversation),'98615635',ModeledConversionValueContract::key($rank),
         ModeledConversionValueContract::TARGET,$at,$platform,$options['value']??ModeledConversionValueContract::VALUES[$rank],
         $profile,ModeledConversionValueContract::STAGES[$rank],ModeledConversionValueContract::VERSION,$options['origin']??null,$state,
-        $receipt?'fixturePrivateClientIdentifier':null,$receipt?'fixturePrivateUploadId':null,$state==='processed'?'PROCESSED':($receipt?'UPLOADED':null),
+        $receipt?'fixturePrivateClientIdentifier':null,$receipt?'fixtureUploadId':null,$state==='processed'?'PROCESSED':($receipt?'UPLOADED':null),
         $options['error']??'', $receipt?$at+1:null,$receipt?$at+2:null,
         !empty($options['legacy_clock'])?null:($receipt?$at+3:null),$state==='processed'?$at+4:null,
         !empty($options['legacy_clock'])?null:($receipt?'post_response':null)];
@@ -128,7 +128,7 @@ function deliveryRegistryAssertions(PDO $p,callable $check):void
         $all['14']['events'][0]['grounds_status']==='profile_unavailable'&&$all['14']['events'][0]['profile_saved_at']===null);
     $serialized=json_encode($all,JSON_THROW_ON_ERROR);
     $check('no advertising identifiers upload identifiers native peers or raw JSON enter the projection',
-        !str_contains($serialized,'fixturePrivateClientIdentifier')&&!str_contains($serialized,'fixturePrivateUploadId')
+        !str_contains($serialized,'fixturePrivateClientIdentifier')&&!str_contains($serialized,'fixtureUploadId')
         &&!str_contains($serialized,'external_user_id')&&!str_contains($serialized,'profile_json'));
     $check('reader returns names as bounded data for the HTML boundary to escape',
         $all['10']['customer_name']==='Турист <img src=x onerror=alert(1)>');
