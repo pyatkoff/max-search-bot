@@ -1,6 +1,6 @@
 import base64,hashlib,json,os,struct,urllib.parse,urllib.request
 from pathlib import Path
-rows=json.loads("[{\"hotel_id\":408,\"url\":\"https://export-download.canva.com/7b2bf394-a285-4ad3-b346-3e0dd592f85a/0/0001-3287022838343782997.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUH4R7NKVBA%2F20261103%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20261103T104044Z&X-Amz-Expires=8239&X-Amz-Signature=7ccee967ceaba63f20b9e7a4d0754bacaf9d28a5193dc9a23fdf21c761270e15&X-Amz-SignedHeaders=host%3Bx-amz-expected-bucket-owner&response-expires=Tue%2C%2003%20Nov%202026%2012%3A58%3A03%20GMT\"}]")
+rows=json.loads("[{\"hotel_id\":441,\"url\":\"https://export-download.canva.com/692264b3-6755-4f58-a718-2b9c5a96e11a/0/0001-422733475016078590.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUH4R7NKVBA%2F20261102%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20261102T215204Z&X-Amz-Expires=54563&X-Amz-Signature=63b6d84e4a0c2672dcab71e9e3a703434d23a232bb3dabb99b25a5b8ae5bc323&X-Amz-SignedHeaders=host%3Bx-amz-expected-bucket-owner&response-expires=Tue%2C%2003%20Nov%202026%2013%3A01%3A27%20GMT\"}]")
 group=int(os.environ['COVER_GROUP'])
 assert group==0 and len(rows)==1
 rows=rows[group*3:group*3+3]
@@ -8,12 +8,12 @@ assert 1<=len(rows)<=3
 class NoRedirect(urllib.request.HTTPRedirectHandler):
  def redirect_request(self,*args,**kwargs):raise ValueError('unexpected_asset_redirect')
 opener=urllib.request.build_opener(NoRedirect())
-out={'operation':'commercial-batch20-covers-20261103-read3','mode':'inspect_native_promotional_images_only','message_sends':0,'db_writes':0,'server_connections':0,'group':group,'covers':[]}
+out={'operation':'commercial-batch21-covers-20261103-read1','mode':'inspect_native_promotional_images_only','message_sends':0,'db_writes':0,'server_connections':0,'group':group,'covers':[]}
 Path('covers').mkdir(exist_ok=True)
 for row in rows:
  p=urllib.parse.urlsplit(row['url'])
  assert p.scheme=='https' and p.hostname=='export-download.canva.com' and p.port in (None,443) and not p.username and not p.password
- assert row['hotel_id'] in (408,)
+ assert row['hotel_id'] in (441,)
  with opener.open(row['url'],timeout=35) as r:
   raw=r.read(1600001)
   assert r.status==200
