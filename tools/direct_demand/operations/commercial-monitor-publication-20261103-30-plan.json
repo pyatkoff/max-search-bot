@@ -1,0 +1,25 @@
+{
+  "operation": "commercial-monitor-publication-20261103-30",
+  "state": "FOUR_PROVEN_NATIVE_INPUTS_PREPARED_NOT_MERGED",
+  "catalog_ids": [
+    1291,
+    15869,
+    253,
+    75377
+  ],
+  "previous_inputs": 642,
+  "new_inputs": 646,
+  "goal": "Append four prepared batch30 hotels to the existing monitor",
+  "boundaries": [
+    "Append-only cohort after actual642 dedup",
+    "All previous targetkeys/resumes/collector/locks/budget64/hourly12/transport preserved",
+    "No new collector or paid calls"
+  ],
+  "criteria": [
+    "Native guard,collectvalidate,syncvalidate/focused646 preserve642 and resume batch29",
+    "Mixed countries/missingone/inactiveall honest"
+  ],
+  "risks": [
+    "Input configuration does not prove prices or delivery"
+  ]
+}
