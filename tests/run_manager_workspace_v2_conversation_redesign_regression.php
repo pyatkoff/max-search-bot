@@ -20,7 +20,8 @@ checkConversationUi('stale rapid-click detail response cannot overwrite newer se
 checkConversationUi('detail commit schedules shown acknowledgement without optimistic badge clearing',strpos($js,'acceptReadPage(d)')!==false&&strpos($js,"api('ack_read'")!==false&&strpos($js,'WorkspaceV2Inbox?.markRead(target)')===false);
 checkConversationUi('media and active inbox switch only after successful detail commit',($commitPos2=strpos($js,'S.current=target;S.detail={...d,lead:null}'))!==false&&($mediaPos=strpos($js,'WorkspaceV2Media?.configure(S.csrf,target)'))!==false&&($activePos=strpos($js,'WorkspaceV2Inbox?.markActive(target)'))!==false&&$commitPos2<$mediaPos&&$commitPos2<$activePos);
 checkConversationUi('composer has quick replies without auto send',strpos($page,'class="quickReplies"')!==false&&strpos($js,'b.onclick=()=>addQuickReply(b.dataset.reply)')!==false);
-$inputAutosizes=strpos($js,"reply.addEventListener('input',autoGrow)")!==false||strpos($js,"reply.addEventListener('input',()=>{saveDraft();autoGrow()})")!==false;
+$inputAutosizes=strpos($js,"reply.addEventListener('input',autoGrow)")!==false||strpos($js,"reply.addEventListener('input',()=>{saveDraft();autoGrow()})")!==false
+    ||strpos($js,"reply.addEventListener('input',()=>{saveDraft(S.current,undefined,null);autoGrow()})")!==false;
 checkConversationUi('composer autosizes and supports explicit keyboard submit',$inputAutosizes&&strpos($js,"e.metaKey||e.ctrlKey")!==false&&strpos($js,'form.requestSubmit()')!==false);
 checkConversationUi('send path preserves source-pinned text and media backends',strpos($js,'const target=Number(S.current||0),generation=openSeq,text=')!==false&&strpos($js,"api('send',{conversation_id:target,text,")!==false&&strpos($js,'WorkspaceV2Media.send(text)')!==false);
 checkConversationUi('double submit is guarded in UI',strpos($js,'if(busy)return')!==false&&strpos($js,'setBusy(true)')!==false&&strpos($js,'setBusy(false)')!==false);
