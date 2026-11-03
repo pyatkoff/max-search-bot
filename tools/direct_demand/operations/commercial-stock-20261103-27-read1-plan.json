@@ -1,0 +1,48 @@
+{
+  "operation": "commercial-stock-20261103-27-read1",
+  "state": "FINITE_CANDIDATE_SCOPE_PREPARED_NOT_READ",
+  "goal": "Build a stronger next ten-candidate preparation pool without waiting on long-standing source and photo gaps",
+  "candidate_groups": [
+    "pickalbatros-villaggio",
+    "pickalbatros-palace-hurghada",
+    "pickalbatros-sea-world",
+    "pickalbatros-aqua-blu-hurghada",
+    "pickalbatros-aqua-park-hurghada",
+    "hilton-luxor",
+    "sharm-waterfalls",
+    "doubletree-sharks-bay",
+    "tropitel-dahab",
+    "pyramisa-sahl-hasheesh",
+    "pyramisa-sharm",
+    "baron-palms",
+    "coral-sea-waterworld",
+    "coral-sea-holiday",
+    "coral-sea-aqua-club",
+    "cleopatra-sharm",
+    "sultan-bey",
+    "three-corners-ocean-view",
+    "three-corners-rihana",
+    "oberoi-sahl-hasheesh",
+    "three-corners-sea-beach",
+    "three-corners-fayrouz-plaza",
+    "brayka-bay",
+    "royal-brayka"
+  ],
+  "boundaries": [
+    "One existing bounded country1 catalogue and channel9/10 registry read, no provider/client/writes",
+    "Exclude already published names from the accepted114 roster before catalogue queries",
+    "Keep unresolved old identities and monitor inputs; no deletion or hidden acceptance credit",
+    "No new runtime, collector, worker, queue or timer"
+  ],
+  "criteria": [
+    "Only unique native matches with zero current registry aliases can be considered new",
+    "Do not choose ambiguous products for quantity",
+    "Promote after actual publication or retain as additional proven candidates; primary facts and real photos still required",
+    "Any new monitor inputs require actual admitted-ID dedup and native CI"
+  ],
+  "risks": [
+    "Name aliases can miss factual catalogue names; zero is not absence",
+    "A catalogue identity is not a prepared or published card",
+    "Some groups may resolve to already published or ambiguous products and must be skipped"
+  ]
+}
