@@ -1,0 +1,36 @@
+{
+  "operation": "commercial-hotel-batch-20261103-26-v1",
+  "state": "TEN_CANDIDATE_GROUP_PREPARATION_NOT_SENT",
+  "catalog_ids": [
+    129,
+    74258,
+    73343,
+    418,
+    65779,
+    932,
+    497,
+    68907,
+    231,
+    483
+  ],
+  "baseline_logical_materials": 116,
+  "goal": "Prepare ten reserve candidates together and publish a ready subset through the existing serial publisher",
+  "boundaries": [
+    "Existing authorizedchannels,bots,registry,durableonce andcloudworkflow only",
+    "Primary publicphotography; noFirebase access-tokenURLs orprivatearchives",
+    "No repeatingclosedreadbacks,rejectedphotos,blockedURLs oruncurrent sender",
+    "No newworkers,queues,agents,runtime orMac use"
+  ],
+  "criteria": [
+    "Whole captions with3or4facts,essentialfeature andflighttour context",
+    "One bounded groupedphotoselection pass; don'tholdreadycandidatesfordisputedones",
+    "Source/host/TLS/schema/rights/UNKNOWN/dedupguards andnativePNGverificationbeforepublication"
+  ],
+  "risks": [
+    "Six new owner HTML attempts returned HTTPError; status unknown, do not repeat or label403",
+    "Finite photos are from exact owner-declared cached gallery URIs; no URL guessing or access-token photos",
+    "Keep ready materials moving while individual source/photo gaps remain"
+  ],
+  "new_posts": 0,
+  "ready_for_send_count": 0
+}
