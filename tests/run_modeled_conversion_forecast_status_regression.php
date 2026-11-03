@@ -388,8 +388,78 @@ function forecastInputDiagnosisAssertions(PDO $p,callable $check):void
     $check('scalar diagnosis shares the original strict byte budget',$limited);
 }
 
+
+function forecastLatencyAssertions(PDO $p,callable $check):void
+{
+    foreach(['modeled_conversion_stream_versions','modeled_conversion_profile_versions','max_channel_conversion_outbox']as$table)$p->exec('DROP TABLE IF EXISTS '.$table);
+    $mysql=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
+    $p->exec("CREATE TABLE modeled_conversion_stream_versions(id BIGINT PRIMARY KEY,project_key VARCHAR(40),source_kind VARCHAR(16),source_id BIGINT,version_no INT,observed_at_unix BIGINT,snapshot_json TEXT)");
+    $p->exec("CREATE TABLE modeled_conversion_profile_versions(id BIGINT PRIMARY KEY,project_key VARCHAR(40),platform VARCHAR(16),customer_key VARCHAR(40),conversation_id BIGINT,journal_cursor BIGINT,observed_at_unix BIGINT,profile_json TEXT)");
+    $p->exec("CREATE TABLE max_channel_conversion_outbox(id BIGINT PRIMARY KEY,project_key VARCHAR(40),platform VARCHAR(16),conversation_id BIGINT,counter_id VARCHAR(20),transport_target VARCHAR(64),value_contract VARCHAR(64),value_origin VARCHAR(32),value_profile_id BIGINT,event_unix BIGINT,value_rub DECIMAL(12,2),value_stage VARCHAR(32),state VARCHAR(24),client_id VARCHAR(40),upload_id VARCHAR(40),upload_status VARCHAR(32),last_error VARCHAR(64),claimed_at_unix BIGINT,created_at DATETIME)");
+    $day=1793656800;$now=$day+43200;
+    $oldTimeZone=$mysql?$p->query('SELECT @@session.time_zone')->fetchColumn():null;
+    if($mysql)$p->exec("SET time_zone='+00:00'");
+    $save=static function(int $id,int $conversation,string $platform,int $persisted,int $captured,int $version=1,string $project='anytour',string $sender='customer',string $status='present')use($p,$day):void{
+        $snap=['project_key'=>$project,'platform'=>$platform,'customer_key'=>(string)$conversation,'conversation_id'=>(string)$conversation,
+            'source_status'=>$status,'source_created_at_unix'=>$day+$persisted,
+            'payload'=>['direction'=>$sender==='customer'?'inbound':'outbound','sender_type'=>$sender,'text'=>'PRIVATE_TOURIST_TEXT_NEVER_RETURN']];
+        $p->prepare("INSERT INTO modeled_conversion_stream_versions VALUES(?,?,'message',?,?,?,?)")->execute([$id,$project,$id,$version,$day+$captured,json_encode($snap,JSON_THROW_ON_ERROR)]);
+    };
+    $save(1,111,'max',60,120);$save(2,111,'max',200,300);$save(3,222,'max',400,450);
+    $save(4,333,'telegram',600,660);$save(5,444,'max',-100,2000,2);$save(6,555,'max',-100,2000);
+    $save(7,666,'max',100,2000,1,'foreign');$save(8,777,'max',100,2000,1,'anytour','manager');
+    $save(9,888,'max',3000,2000);$save(10,999,'max',100,2000,1,'anytour','customer','scope_excluded');
+    foreach([[1,111,'max',1,121,'predicted','substantive_dialogue'],[2,111,'max',2,900,'predicted','general_purchase_intent'],[3,333,'telegram',4,1800,'known_outcome',null]]as$row){
+        [$id,$conversation,$platform,$cursor,$at,$status,$stage]=$row;
+        $p->prepare("INSERT INTO modeled_conversion_profile_versions VALUES(?,'anytour',?,?,?,?,?,?)")->execute([$id,$platform,(string)$conversation,$conversation,$cursor,$day+$at,json_encode(['semantic_prediction'=>['status'=>$status,'stage'=>$stage],'private_marker'=>'PRIVATE_PROFILE_NEVER_RETURN'],JSON_THROW_ON_ERROR)]);
+    }
+    $insert=$p->prepare("INSERT INTO max_channel_conversion_outbox VALUES(?,'anytour',?,?,'98615635','anytour_modeled_value_v1','semantic_stage_value_25000_v1',?,?,?,?,?,?,?,?,'UPLOADED','',?,?)");
+    foreach([[1,'max',111,null,1,121,1250,'interest','accepted','88000001','PRIVATE_RECEIPT_ONE',130,122],
+        [2,'max',111,null,2,900,7083,'purchase_intent','accepted','88000001','PRIVATE_RECEIPT_TWO',1205,901],
+        [3,'telegram',333,null,3,1800,25000,'payment_report','pending',null,null,null,1801],
+        [4,'max',111,'owner_day_review_v1',2,900,4167,'offer_discussion','accepted','88000001','PRIVATE_HISTORY_RECEIPT',1300,902]]as$row){
+        [$id,$platform,$conversation,$origin,$profile,$event,$value,$stage,$state,$identity,$upload,$claimed,$queued]=$row;
+        $insert->execute([$id,$platform,$conversation,$origin,$profile,$day+$event,$value,$stage,$state,$identity,$upload,$claimed===null?null:$day+$claimed,gmdate('Y-m-d H:i:s',$day+$queued)]);
+    }
+    $read=static fn():array=>(new ModeledConversionLatencyReader($p,static function():void{},new ModeledConversionStatusBudget()))->read($now);
+    $before=json_encode($p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),JSON_THROW_ON_ERROR);
+    $r=$read();
+    $check('today latency separates first messages edits late history and invalid clocks',
+        $r['available']&&$r['date']==='2026-11-03'&&$r['messages']['first_customer_message_rows']===6
+        &&$r['messages']['persisted_today']===4&&$r['messages']['conversations']===3
+        &&$r['messages']['older_source_first_captured_today']===1&&$r['messages']['invalid_clock_rows']===1);
+    $check('today latency resolves the first later profile of the same exact scope',
+        $r['delays']['capture_to_profile']['observations']===3
+        &&$r['delays']['capture_to_profile']['minimum_seconds']===1.0
+        &&$r['delays']['capture_to_profile']['maximum_seconds']===1140.0
+        &&$r['messages']['waiting_for_profile']===1&&$r['by_platform']['max']['conversations']===2
+        &&$r['recorded_prediction_status_for_message_updates']['predicted']===2);
+    $check('today live value latency excludes historical review and keeps receipt distinct from processing',
+        $r['live_value']['events']===3&&$r['live_value']['value_rub']===33333
+        &&$r['live_value']['api_accepted_events']===2&&$r['live_value']['api_accepted_value_rub']===8333
+        &&$r['live_value']['unresolved_identity_events']===1&&$r['live_value']['processed_events']===0);
+    $check('existing claim tick precision measures same and later intervals without fabricating an API response clock',
+        $r['live_value']['accepted_upload_claim_ticks']['same_five_minute_interval']===1
+        &&$r['live_value']['accepted_upload_claim_ticks']['later_interval']===1
+        &&$r['live_value']['accepted_upload_claim_ticks']['maximum_intervals']===1.0
+        &&$r['live_value']['profile_to_queue_seconds']['maximum_seconds']===1.0);
+    $json=json_encode($r,JSON_THROW_ON_ERROR);
+    $check('today timing output contains no source text profile text native identity or provider IDs',
+        !str_contains($json,'PRIVATE_')&&!str_contains($json,'88000001')&&!str_contains($json,'customer_key')&&!str_contains($json,'conversation_id'));
+    $read();$check('repeated latency inspection never mutates delivery rows',
+        $before===json_encode($p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),JSON_THROW_ON_ERROR));
+    $revoked=false;$calls=0;
+    try{(new ModeledConversionLatencyReader($p,static function()use(&$calls):void{if(++$calls>=4)throw new DomainException();},new ModeledConversionStatusBudget()))->read($now);}
+    catch(DomainException $ignored){$revoked=true;}
+    $check('latency reads cannot expose output after authorization is revoked',$revoked);
+    for($i=11;$i<=2015;$i++)$save($i,777,'max',100,2000,1,'anytour','manager');
+    $r=$read();$check('latency metadata limit is explicit and never labels a truncated suffix as complete',
+        !$r['window']['complete_within_bound']&&$r['window']['inspected_message_versions']===ModeledConversionLatencyReader::JOURNAL_LIMIT);
+    if($mysql)$p->exec('SET time_zone='.$p->quote((string)$oldTimeZone));
+}
+
 if(realpath($_SERVER['SCRIPT_FILENAME']??'')===__FILE__){
     $p=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);$passed=0;
     $check=static function(string $name,bool $ok)use(&$passed):void{if(!$ok)throw new RuntimeException('FAIL '.$name);$passed++;echo 'PASS '.$name.PHP_EOL;};
-    forecastV1Assertions($p,$check);echo 'V1 FORECAST STATUS PASSED '.$passed.PHP_EOL;
+    forecastV1Assertions($p,$check);forecastLatencyAssertions($p,$check);echo 'V1 FORECAST STATUS PASSED '.$passed.PHP_EOL;
 }
