@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261103-20-v1",
-  "state": "ONE_WHOLE_CAPTION_PRIMARY_VERIFIED_MEDIA_NOT_READY",
+  "state": "WHOLE_CAPTION_VERIFIED_GENERAL_HOTEL_HERO_DEFERRED_NOT_SENT",
   "hotel_id": 62504,
   "sources": [
     "https://sindbadclub.com/facilities",
@@ -17,5 +17,22 @@
     "left": "https://images.squarespace-cdn.com/content/v1/687def6f61ca990db754f20c/ffcbf794-fda0-42ac-b37a-2a3418c8d214/Beach%2B3.jpg",
     "right": "https://images.squarespace-cdn.com/content/v1/687def6f61ca990db754f20c/00acf37d-79ab-40f4-a370-2d3df2e1d4bf/Junior%2BSlides.jpg"
   },
-  "caption_utf16": 465
+  "caption_utf16": 465,
+  "rejected_sources": [
+    {
+      "url": "https://images.squarespace-cdn.com/content/v1/687def6f61ca990db754f20c/1753364475023-837KCP18GFPY61P703XE/DJI_20250127071121_0272_D.png",
+      "reason": "Native cover shows predominantly one close pool with only a strip of hotel facades."
+    },
+    {
+      "url": "https://images.squarespace-cdn.com/content/v1/687def6f61ca990db754f20c/e7f3a457-e9ee-4b5e-87f1-6a36b8f20873/Main%2BImage%2Bmin.jpg",
+      "reason": "Native cover shows a beach and no overall hotel/territory."
+    },
+    {
+      "url": "https://images.squarespace-cdn.com/content/v1/687def6f61ca990db754f20c/701b9c1c-25b1-495c-adc4-25034de2d2c9/DJI_20250129170253_0058_D.JPG",
+      "reason": "Different source JPEG shows waterfront restaurant roof and sea;not an overall hotel view."
+    }
+  ],
+  "transactions_open": 0,
+  "cover_frozen_count": 0,
+  "canva_permanent_save": false
 }

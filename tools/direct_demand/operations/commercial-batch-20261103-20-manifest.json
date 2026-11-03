@@ -1,0 +1,54 @@
+{
+  "operation": "commercial-hotel-batch-20261103-20-v1",
+  "state": "CONTENT_VERIFIED_MEDIA_DEFERRED_NOT_SENT",
+  "goal": "Prepare and publish the ready whole Sindbad Club hotel material in both existing channels.",
+  "boundaries": "One proven native stock identity62504,exact current official hotel facts and three object-specific public photos. Existing Canva copy/publisher/once only. No price,package inclusion,availability or future service promises.",
+  "criteria": "Whole factual caption<=1024UTF16 with no dash/hyphen,accepted hotel-and-grounds hero,all four image fills replaced,readable branding/title,exact native PNG bytes/hash/dimensions and current source/host/TLS/schema/rights/live dedup. Publish this ready subset without waiting for Titanic supplementary imagery.",
+  "risks": "Winter heating on the official aqua-park page excludes the wave pool. Children club age not established,so no invented age limits. Do not transfer free hotel direct-booking services to the AnyTour package. Other Titanic photos with Firebase tokens are not authorized exports.",
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "hotel_id": 62504,
+      "hotel": "Sindbad Club",
+      "key": "sindbad-club",
+      "aliases": [
+        "Sindbad Club"
+      ],
+      "sources": [
+        "https://sindbadclub.com/facilities",
+        "https://sindbadclub.com/beach-pools",
+        "https://sindbadclub.com/aqua-park"
+      ],
+      "text": "✈️ Туры в Sindbad Club с перелётом\n📍 Хургада, Египет.\n\n🏖 Песчаный пляж длиной 120 м. От лобби около трёх минут пешком.\n💦 В аквапарке 7 взрослых и 8 детских горок, есть волновой бассейн.\n👧 Для детей работает клуб с играми и творческими занятиями.\n🧖 В спа есть хаммам и сауна, в отеле есть тренажёрный зал.\n\n💡 С ноября по март подогрев заявлен для бассейнов аквапарка, кроме волнового.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура с перелётом в Sindbad Club.",
+      "logical_id": "commercial-sindbad-club-62504-v1",
+      "text_sha256": "7d447df9cac3f16f2ad78cde4b41324ab73f806051bd15f2f755be572c8c7ca6"
+    }
+  ],
+  "content_verified_count": 1,
+  "content_and_cover_prepared_count": 0,
+  "ready_for_send_count": 0,
+  "approved_live_send_count": 0,
+  "new_posts": 0,
+  "provider_send_attempts": 0,
+  "media_state": "REJECTED_GENERAL_VIEW_REQUIRED",
+  "deferred": [
+    {
+      "hotel_id": 62504,
+      "state": "DIFFERENT_GENERAL_HOTEL_VIEW_REQUIRED",
+      "rejected_primary_sources": [
+        {
+          "url": "https://images.squarespace-cdn.com/content/v1/687def6f61ca990db754f20c/1753364475023-837KCP18GFPY61P703XE/DJI_20250127071121_0272_D.png",
+          "reason": "Native cover shows predominantly one close pool with only a strip of hotel facades."
+        },
+        {
+          "url": "https://images.squarespace-cdn.com/content/v1/687def6f61ca990db754f20c/e7f3a457-e9ee-4b5e-87f1-6a36b8f20873/Main%2BImage%2Bmin.jpg",
+          "reason": "Native cover shows a beach and no overall hotel/territory."
+        },
+        {
+          "url": "https://images.squarespace-cdn.com/content/v1/687def6f61ca990db754f20c/701b9c1c-25b1-495c-adc4-25034de2d2c9/DJI_20250129170253_0058_D.JPG",
+          "reason": "Different source JPEG shows waterfront restaurant roof and sea;not an overall hotel view."
+        }
+      ]
+    }
+  ]
+}
