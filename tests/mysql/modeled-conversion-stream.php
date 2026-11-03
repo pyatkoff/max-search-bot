@@ -6,6 +6,7 @@ require_once dirname(__DIR__).'/run_modeled_conversion_status_regression.php';
 require_once dirname(__DIR__).'/run_modeled_conversion_forecast_status_regression.php';
 require_once dirname(__DIR__).'/run_modeled_conversion_value_export_regression.php';
 require_once dirname(__DIR__).'/run_modeled_conversion_delivery_health_regression.php';
+require_once dirname(__DIR__).'/run_modeled_conversion_delivery_registry_regression.php';
 $admin=null;$p=null;$other=null;$safe=false;$failed=false;
 try{
     $dsn=(string)getenv('PREPARED_REPLY_MYSQL_DSN');
@@ -51,6 +52,7 @@ try{
     modeledValueFortnightAssertions($p,$check);
     modeledValueFairProgressAssertions($p,$check);
     deliveryDailyAssertions($p,$check);deliveryHealthAssertions($p,$check);deliveryClockWriterAssertions($p,$check);
+    deliveryRegistryAssertions($p,$check);
     echo 'MODELED CONVERSION STREAM NATIVE MYSQL PASSED '.$passed.PHP_EOL;
 }catch(Throwable $e){fwrite(STDERR,'FAIL modeled stream native MySQL '.get_class($e).PHP_EOL);$failed=true;}
 finally{

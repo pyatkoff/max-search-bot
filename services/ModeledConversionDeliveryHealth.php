@@ -85,6 +85,59 @@ final class ModeledConversionDeliveryHealth
         catch(UnexpectedValueException $error){$guard();$out['status']='unavailable';
             $out['flags']=[$error->getMessage()==='invalid_clock'?'invalid_clock':'health_metadata_unavailable'];return$out;}
     }
+    /** Whitelisted technical history, independent of business and notification data. */
+    public static function composeExternalReceipt(array $result,?array $previous,int $now,?array $source=null):array
+    {
+        if($now<946684800||$now>253402300799)throw new UnexpectedValueException('invalid_clock');
+        if(($result['schema_version']??null)!==1||($result['project']??null)!=='anytour'
+            ||($result['counter_id']??null)!=='98615635'
+            ||!in_array($result['status']??null,['ok','off','degraded','unavailable'],true)
+            ||!in_array($result['notification']??null,['quiet','sent','unknown'],true))
+            throw new UnexpectedValueException('invalid_metadata');
+        $flags=self::externalFlags($result['flags']??null);
+        $old=$previous===null?null:self::storedExternalReceipt($previous,$now);
+        if($old!==null&&self::isoClock($old['checked_at'],$now)>$now)throw new UnexpectedValueException('invalid_clock');
+        $origin=$source===null?null:self::externalSource($source);
+        $checks=$old['scheduled_checks']??[];
+        if($origin!==null&&$origin['event']==='schedule'&&$origin['run_attempt']===1){
+            $duplicate=false;
+            foreach($checks as$check)if($check['run_id']===$origin['run_id'])$duplicate=true;
+            if(!$duplicate){
+                if($checks!==[]&&self::isoClock($checks[count($checks)-1]['checked_at'],$now)>$now)
+                    throw new UnexpectedValueException('invalid_clock');
+                $checks[]=['checked_at'=>self::at($now),'status'=>$result['status'],
+                    'ok'=>($result['ok']??false)===true&&in_array($result['status'],['ok','off'],true)
+                        &&$flags===[]&&$result['notification']!=='unknown',
+                    'run_id'=>$origin['run_id'],'run_attempt'=>1,'source_sha'=>$origin['source_sha']];
+                $checks=array_slice($checks,-3);
+            }
+        }
+        return['schema_version'=>1,'project'=>'anytour','counter_id'=>'98615635','checked_at'=>self::at($now),
+            'status'=>$result['status'],'flags'=>$flags,'notification'=>$result['notification'],
+            'last_notification_at'=>$result['notification']==='sent'?self::at($now):($old['last_notification_at']??null),
+            'source_event'=>$origin['event']??null,'source_run_id'=>$origin['run_id']??null,
+            'source_run_attempt'=>$origin['run_attempt']??null,'source_sha'=>$origin['source_sha']??null,
+            'scheduled_checks'=>$checks];
+    }
+    /** Pure projection shared by the private reader and chronology regression. */
+    public static function externalReceiptStatus(array $receipt,int $now):array
+    {
+        $r=self::storedExternalReceipt($receipt,$now);
+        $at=self::isoClock($r['checked_at'],$now);$checks=$r['scheduled_checks'];$count=count($checks);$streak=0;
+        for($i=$count-1;$i>=0;$i--){
+            if($checks[$i]['ok']!==true)break;
+            if($i<$count-1&&self::isoClock($checks[$i+1]['checked_at'],$now)-self::isoClock($checks[$i]['checked_at'],$now)>900)break;
+            $streak++;
+        }
+        $last=$count===0?null:$checks[$count-1]['checked_at'];
+        $scheduledFresh=$last!==null&&$now-self::isoClock($last,$now)<=900;
+        return['available'=>true,'checked_at'=>$r['checked_at'],'fresh'=>$now-$at<=900,
+            'status'=>$r['status'],'notification'=>$r['notification'],'last_notification_at'=>$r['last_notification_at'],
+            'source_event'=>$r['source_event'],'source_run_id'=>$r['source_run_id'],
+            'source_run_attempt'=>$r['source_run_attempt'],'source_sha'=>$r['source_sha'],
+            'scheduled'=>['available'=>$count>0,'last_checked_at'=>$last,'fresh'=>$last===null?null:$scheduledFresh,
+                'success_streak'=>$streak,'regular'=>$streak===3&&$scheduledFresh,'checks'=>$checks]];
+    }
     /** Whitelisted receipt of the independent checker, never a credential route. */
     public static function externalStatus(ModeledConversionStatusBudget $budget,callable $authorize,int $now):array
     {
@@ -93,17 +146,71 @@ final class ModeledConversionDeliveryHealth
         $out=['available'=>false,'reason'=>'not_recorded'];
         if(!is_link($path)&&is_file($path)&&is_readable($path)&&filesize($path)<=4096){
             $raw=file_get_contents($path);if(is_string($raw)){$budget->consumeBytes(strlen($raw));$r=json_decode($raw,true,16);
-                if(is_array($r)&&($r['schema_version']??null)===1&&($r['project']??null)==='anytour'&&($r['counter_id']??null)==='98615635'
-                    &&in_array($r['status']??null,['ok','off','degraded','unavailable'],true)
-                    &&in_array($r['notification']??null,['sent','quiet','unknown'],true)){
-                    try{$at=self::isoClock($r['checked_at']??null,$now);$last=self::isoClock($r['last_notification_at']??null,$now);
-                        if($at!==null)$out=['available'=>true,'checked_at'=>self::at($at),'fresh'=>$now-$at<=900,
-                            'status'=>$r['status'],'notification'=>$r['notification'],'last_notification_at'=>self::at($last)];
-                    }catch(UnexpectedValueException $ignored){$out=['available'=>false,'reason'=>'invalid_metadata'];}
+                if(is_array($r)){
+                    try{$out=self::externalReceiptStatus($r,$now);}
+                    catch(UnexpectedValueException $ignored){$out=['available'=>false,'reason'=>'invalid_metadata'];}
                 }
             }
         }
         $guard();return$out;
+    }
+    private static function storedExternalReceipt(array $r,int $now):array
+    {
+        if(($r['schema_version']??null)!==1||($r['project']??null)!=='anytour'||($r['counter_id']??null)!=='98615635'
+            ||!in_array($r['status']??null,['ok','off','degraded','unavailable'],true)
+            ||!in_array($r['notification']??null,['quiet','sent','unknown'],true))
+            throw new UnexpectedValueException('invalid_metadata');
+        $at=self::isoClock($r['checked_at']??null,$now);
+        if($at===null)throw new UnexpectedValueException('invalid_clock');
+        $last=self::isoClock($r['last_notification_at']??null,$now);
+        if($last!==null&&$last>$at)throw new UnexpectedValueException('invalid_clock');
+        $flags=self::externalFlags($r['flags']??[]);
+        $origin=null;
+        if(($r['source_event']??null)!==null){
+            $origin=self::externalSource(['event'=>$r['source_event'],'run_id'=>$r['source_run_id']??null,
+                'run_attempt'=>$r['source_run_attempt']??null,'source_sha'=>$r['source_sha']??null]);
+        }elseif(($r['source_run_id']??null)!==null||($r['source_run_attempt']??null)!==null||($r['source_sha']??null)!==null){
+            throw new UnexpectedValueException('invalid_metadata');
+        }
+        $checks=$r['scheduled_checks']??[];
+        if(!is_array($checks)||!array_is_list($checks)||count($checks)>3)throw new UnexpectedValueException('invalid_metadata');
+        $normalized=[];$ids=[];$prior=null;
+        foreach($checks as$check){
+            if(!is_array($check)||!is_bool($check['ok']??null)
+                ||!in_array($check['status']??null,['ok','off','degraded','unavailable'],true)
+                ||($check['ok']===true&&!in_array($check['status'],['ok','off'],true)))
+                throw new UnexpectedValueException('invalid_metadata');
+            $when=self::isoClock($check['checked_at']??null,$now);
+            if($when===null||$when>$at||($prior!==null&&$when<$prior))throw new UnexpectedValueException('invalid_clock');
+            $s=self::externalSource(['event'=>'schedule','run_id'=>$check['run_id']??null,
+                'run_attempt'=>$check['run_attempt']??null,'source_sha'=>$check['source_sha']??null]);
+            if($s['run_attempt']!==1||isset($ids[$s['run_id']]))throw new UnexpectedValueException('invalid_metadata');
+            $ids[$s['run_id']]=true;$prior=$when;
+            $normalized[]=['checked_at'=>self::at($when),'status'=>$check['status'],'ok'=>$check['ok'],
+                'run_id'=>$s['run_id'],'run_attempt'=>1,'source_sha'=>$s['source_sha']];
+        }
+        return['checked_at'=>self::at($at),'status'=>$r['status'],'flags'=>$flags,'notification'=>$r['notification'],
+            'last_notification_at'=>self::at($last),'source_event'=>$origin['event']??null,
+            'source_run_id'=>$origin['run_id']??null,'source_run_attempt'=>$origin['run_attempt']??null,
+            'source_sha'=>$origin['source_sha']??null,'scheduled_checks'=>$normalized];
+    }
+    private static function externalSource(array $s):array
+    {
+        if(!in_array($s['event']??null,['schedule','workflow_run','workflow_dispatch'],true)
+            ||!is_string($s['run_id']??null)||preg_match('/\A[1-9][0-9]{0,19}\z/D',$s['run_id'])!==1
+            ||!is_int($s['run_attempt']??null)||$s['run_attempt']<1||$s['run_attempt']>999999
+            ||!is_string($s['source_sha']??null)||preg_match('/\A[0-9a-f]{40}\z/D',$s['source_sha'])!==1)
+            throw new UnexpectedValueException('invalid_metadata');
+        return['event'=>$s['event'],'run_id'=>$s['run_id'],'run_attempt'=>$s['run_attempt'],'source_sha'=>$s['source_sha']];
+    }
+    private static function externalFlags(mixed $flags):array
+    {
+        $allowed=['delivery_tick_stale','profile_tick_stale','delivery_tick_errors','profile_tick_errors','profile_disabled',
+            'ready_queue_stale','upload_outcome_unknown','api_row_rejected','report_unavailable','storage_unavailable',
+            'configuration_unavailable','invalid_clock','health_metadata_unavailable','monitor_transport_unavailable','monitor_source_mismatch'];
+        if(!is_array($flags)||!array_is_list($flags)||count($flags)>20)throw new UnexpectedValueException('invalid_metadata');
+        foreach($flags as$flag)if(!is_string($flag)||!in_array($flag,$allowed,true))throw new UnexpectedValueException('invalid_metadata');
+        return array_values(array_unique($flags));
     }
     private static function clock(mixed $v,int $now):?int
     {

@@ -84,6 +84,7 @@ function renderRuleChoices(){
   ['ruleManager','ruleType','ruleValue','ruleBonus','ruleComment','ruleActive'].forEach(id=>{const el=$(id);if(el)el.disabled=!S.priorityAvailable});
 }
 function showDenied(message,retry=false){
+  if($('adminConversions'))$('adminConversions').hidden=true;
   S.identityGeneration++;clearBusyButtons();S.manager=null;S.csrf='';$('app').classList.add('hidden');const node=$('denied');node.classList.remove('hidden');node.textContent=message;
   if(retry){const button=document.createElement('button');button.type='button';button.className='btn btnSecondary';button.textContent='Повторить загрузку';button.onclick=()=>boot();node.appendChild(button)}
   syncWriteAvailability();
@@ -97,6 +98,7 @@ async function boot(){
   }
   S.identityGeneration++;clearBusyButtons();S.ownerId=Number(j.manager.id);S.csrf=j.csrf;S.manager=j.manager;
   if(!S.confirmed.projects&&Array.isArray(j.projects)&&j.projects.length){S.data.projects=j.projects.map(p=>({...p,is_active:p.is_active??1}));S.sections.projects='partial'}
+  if($('adminConversions'))$('adminConversions').hidden=false;
   $('denied').classList.add('hidden');$('app').classList.remove('hidden');render();return load();
 }
 function failSections(){Object.keys(S.sections).forEach(name=>S.sections[name]=S.confirmed[name]?'stale':name==='projects'&&S.data.projects.length?'partial':'failed');S.projectCatalogReady=false;S.priorityAvailable=false}
