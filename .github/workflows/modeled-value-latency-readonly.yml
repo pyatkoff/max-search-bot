@@ -1,0 +1,96 @@
+name: Diagnose modeled-value timing read-only
+on:
+  push:
+    branches: [ops/anytour-latency-readonly-20261103]
+    paths: ['.github/workflows/modeled-value-latency-readonly.yml']
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Confirm the fixed authoritative main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual="$(curl --fail --silent --show-error -H "Authorization: Bearer $GH_TOKEN" https://api.github.com/repos/pyatkoff/max-search-bot/git/ref/heads/main | python3 -c 'import json,sys; print(json.load(sys.stdin)["object"]["sha"])')"
+          test "$actual" = "1a048f0c5327bcc293ba0823fbada84d1ab57319"
+      - name: Prepare existing ephemeral server credential
+        env:
+          READ_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          key_path="$RUNNER_TEMP/value_read_key"
+          if [[ "$READ_KEY" == *"PRIVATE KEY"* ]]; then
+            if [[ "$READ_KEY" == *'\n'* ]]; then printf '%b\n' "$READ_KEY" | tr -d '\r' > "$key_path"; else printf '%s\n' "$READ_KEY" | tr -d '\r' > "$key_path"; fi
+          else printf '%s' "$READ_KEY" | base64 --decode | tr -d '\r' > "$key_path"; fi
+          chmod 600 "$key_path"
+          ssh-keygen -y -f "$key_path" >/dev/null
+      - name: Read exact installed timing budget and technical query durations
+        env:
+          READ_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          READ_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          EXPECTED_SHA: 1a048f0c5327bcc293ba0823fbada84d1ab57319
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -i "$RUNNER_TEMP/value_read_key" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$READ_USER@$READ_HOST" bash -s -- "$EXPECTED_SHA" <<'READ_REMOTE'
+          set -eu
+          cd /var/www/anytoour/data/www/app.anytoour.ru
+          test "$(git rev-parse HEAD)" = "$1"
+          php <<'READ_PHP'
+          <?php
+          ini_set('display_errors','0');ini_set('log_errors','0');error_reporting(0);
+          $out=['inspection'=>'fixed_technical_read_only','provider_calls'=>0,'database_writes'=>0];$phase='bootstrap';
+          final class LatencyProbeStatement extends PDOStatement {
+              public static array $timings=[];
+              protected function __construct(){}
+              public function execute(?array $params=null):bool{
+                  $began=microtime(true);$state='ok';$sql=$this->queryString;
+                  $kind=str_contains($sql,'modeled_conversion_stream_versions')?(str_contains($sql,'ROW_NUMBER()')?'message_examples':'message_totals'):
+                      (str_contains($sql,'max_channel_conversion_outbox')?(str_contains($sql,' AS reserved_rub')?'goal_ledger':'value_timing'):'other_status');
+                  try{return parent::execute($params);}catch(Throwable $e){$state=$e instanceof PDOException?(in_array((string)$e->getCode(),['42S22','42000','HY000','70100'],true)?(string)$e->getCode():'pdo_error'):'other_error';throw $e;}
+                  finally{self::$timings[]=['query'=>$kind,'ms'=>(int)round((microtime(true)-$began)*1000),'state'=>$state];}
+              }
+          }
+          try{
+              require 'config.php';require_once 'services/ProjectAccessService.php';
+              require_once 'services/ModeledConversionLatencyReader.php';require_once 'services/ModeledConversionForecastStatusReader.php';
+              if(ProjectConfig::projectId()!=='anytour'||!defined('METRIKA_COUNTER_ID')||(string)METRIKA_COUNTER_ID!=='98615635')throw new DomainException();
+              ProjectAccessService::initializeReadOnly();$pdo=ConversationDb::connection();
+              if($pdo->inTransaction())throw new DomainException();
+              $pdo->exec('SET SESSION TRANSACTION READ ONLY');
+              $pdo->setAttribute(PDO::ATTR_STATEMENT_CLASS,[LatencyProbeStatement::class]);
+              $auth=static function():void{if(ProjectConfig::projectId()!=='anytour')throw new DomainException();};
+              foreach(['isolated','full']as$arm){
+                  $phase=$arm;LatencyProbeStatement::$timings=[];$began=microtime(true);
+                  try{
+                      $budget=new ModeledConversionStatusBudget();
+                      $reader=$arm==='isolated'?new ModeledConversionLatencyReader($pdo,$auth,$budget):new ModeledConversionForecastStatusReader($pdo,$auth,$budget);
+                      $view=$arm==='isolated'?$reader->read(time()):$reader->read();
+                      $reason=$view['reason']??null;
+                      $out[$arm]=['state'=>'completed','available'=>($view['available']??false)===true,
+                          'reason'=>in_array($reason,['today_latency_storage_or_clock_unavailable','storage_unavailable'],true)?$reason:null];
+                      if($arm==='full')$out[$arm]['latency_available']=($view['today_latency']['available']??false)===true;
+                  }catch(ModeledConversionStatusLimit $e){
+                      $out[$arm]=['state'=>'limit','reason'=>in_array($e->reason,['time_limit','byte_limit'],true)?$e->reason:'other'];
+                  }catch(Throwable $e){
+                      $out[$arm]=['state'=>'exception','class'=>get_class($e),'code_file'=>basename($e->getFile()),'line'=>$e->getLine()];
+                  }
+                  $out[$arm]['elapsed_ms']=(int)round((microtime(true)-$began)*1000);
+                  $out[$arm]['queries']=LatencyProbeStatement::$timings;
+                  if($arm==='isolated'&&(($out[$arm]['state']??null)!=='completed'||($out[$arm]['available']??false)!==true))break;
+              }
+              $out['ok']=true;
+          }catch(Throwable $e){$out['ok']=false;$out['phase']=$phase;$out['class']=get_class($e);$out['code_file']=basename($e->getFile());$out['line']=$e->getLine();}
+          echo json_encode($out,JSON_UNESCAPED_SLASHES).PHP_EOL;
+          READ_PHP
+          READ_REMOTE
+      - name: Remove ephemeral server credential
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/value_read_key"
