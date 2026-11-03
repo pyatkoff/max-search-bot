@@ -3,7 +3,7 @@
   "state": "PREPARED_NOT_SENT",
   "goal": "Publish the six ready whole hotel materials once in each existing authorized channel.",
   "boundaries": "Existing publisher,registry,durable once and two channels only. Twelve messages maximum. No new quote requests,price claims,channel settings,ad changes,new runtime or Mac access.",
-  "criteria": "Exact current48d source and original successful verify/TLS,21 unchanged publishing blobs,host continuity,schema,rights and current dedup. Exactly12 provider-confirmed records matching prepared text/photo hashes and canonical buttons/source.",
+  "criteria": "Exact current1a048 source and original successful verify/TLS,21 unchanged publishing blobs,host continuity,schema,rights and current dedup. Exactly12 provider-confirmed records matching prepared text/photo hashes and canonical buttons/source.",
   "risks": "The Renaissance draft lacks an accepted overall hotel hero and is deferred. Hotel-specific Club/child-category restrictions stay scoped. No unverified package inclusion or price is added.",
   "baseline_logical_materials": 99,
   "button_text": "✈️ Узнать стоимость тура",

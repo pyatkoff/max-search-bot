@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261103-19-v1",
-  "state": "SIX_MATERIALS_PREPARED_CURRENT_TLS_CHECK_REQUIRED_NOT_SENT",
+  "state": "SIX_MATERIALS_APPROVED_EXISTING_PUBLISHER_RUN_REQUIRED",
   "hotel_ids": [
     249,
     315,
