@@ -1,0 +1,30 @@
+[
+  {
+    "hotel_id": 165,
+    "name": "Coral Sea Water World",
+    "accepted_first_line": "✈️ Туры в Coral Sea Water World с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/b6e6ad3d06b6c0cdef1cd2822560bd5f5abcccec/.github/traffic-publish/commercial-batch-20261103-27/165.png",
+    "image_sha256": "13b9d0da4b409e60fdeb53f1ecb02685456718f3b2fab172b7c4b9960af2d038"
+  },
+  {
+    "hotel_id": 12116,
+    "name": "Coral Sea Aqua Club",
+    "accepted_first_line": "✈️ Туры в Coral Sea Aqua Club с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/b6e6ad3d06b6c0cdef1cd2822560bd5f5abcccec/.github/traffic-publish/commercial-batch-20261103-27/12116.png",
+    "image_sha256": "403f606bfc7f310aed470d219a81bd25f3189639aefe57ca3de595318b633930"
+  },
+  {
+    "hotel_id": 111,
+    "name": "Pickalbatros Palace Resort Hurghada",
+    "accepted_first_line": "✈️ Туры в Pickalbatros Palace Resort Hurghada с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/b6e6ad3d06b6c0cdef1cd2822560bd5f5abcccec/.github/traffic-publish/commercial-batch-20261103-27/111.png",
+    "image_sha256": "78a819775c35a5a212f2c74b570b2136df593904644b979fe9601a091821dec8"
+  },
+  {
+    "hotel_id": 163,
+    "name": "Coral Sea Holiday Resort & Aqua Park",
+    "accepted_first_line": "✈️ Туры в Coral Sea Holiday Resort & Aqua Park с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/b6e6ad3d06b6c0cdef1cd2822560bd5f5abcccec/.github/traffic-publish/commercial-batch-20261103-27/163.png",
+    "image_sha256": "9bc540ba51ec4b4b3d2b55769e71e47dec21ba75426a34a315241f38ce6ec6a9"
+  }
+]
