@@ -1,0 +1,28 @@
+{
+  "operation": "commercial-monitor-publication-20261103-33",
+  "state": "FIVE_NEW_PUBLISHED_HOTELS_ADMITTED_TO_EXISTING_657_MONITOR",
+  "pr_url": "https://github.com/pyatkoff/poisk-turov-test/pull/4989",
+  "head": "33c6f7447b524a5447583ab124a9580e52b44d1b",
+  "merge_commit": "3e2536d93f62abf3923ea8cd7b5a2954e2064aa8",
+  "active_inputs": 657,
+  "previous_inputs": 652,
+  "catalog_ids": [
+    1379,
+    1133,
+    27316,
+    1559,
+    3405
+  ],
+  "native_runs": [
+    41738661100,
+    41738661114,
+    41738661127
+  ],
+  "focused": [
+    "2026-11-03T23:22:44.3467035Z PUBLISHED_HOTEL_MONITOR_OK namespace=typed_and_native count=657 previous652_targets=unchanged existing_search=resumed mixed_countries=preserved batch33=5 calls=0 writes=0"
+  ],
+  "merge_performed": true,
+  "configured_published_hotels": 144,
+  "configured_current_stock": 25,
+  "actual_fresh_quotes_new": 0
+}

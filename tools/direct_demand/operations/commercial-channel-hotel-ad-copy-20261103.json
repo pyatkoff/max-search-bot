@@ -973,6 +973,41 @@
       "telegram_name": "Путевки в Voyage Sorgun",
       "max_name": "Туры в Voyage Sorgun",
       "description": "Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 1379,
+      "short_name": "Miracle Resort",
+      "telegram_name": "Путевки в Miracle Resort",
+      "max_name": "Туры в Miracle Resort",
+      "description": "Тур с перелётом. Анталья. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 1133,
+      "short_name": "Concorde De Luxe Resort",
+      "telegram_name": "Путевки в Concorde De Luxe Resort",
+      "max_name": "Туры в Concorde De Luxe Resort",
+      "description": "Тур с перелётом. Анталья. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 27316,
+      "short_name": "Regnum Carya",
+      "telegram_name": "Путевки в Regnum Carya",
+      "max_name": "Туры в Regnum Carya",
+      "description": "Тур с перелётом. Белек. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 1559,
+      "short_name": "Titanic Deluxe Lara",
+      "telegram_name": "Путевки в Titanic Deluxe Lara",
+      "max_name": "Туры в Titanic Deluxe Lara",
+      "description": "Тур с перелётом. Анталья. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 3405,
+      "short_name": "Maxx Royal Belek",
+      "telegram_name": "Путевки в Maxx Royal Belek",
+      "max_name": "Туры в Maxx Royal Belek",
+      "description": "Тур с перелётом. Белек. Фото и особенности отеля. Узнайте стоимость."
     }
   ]
 }
