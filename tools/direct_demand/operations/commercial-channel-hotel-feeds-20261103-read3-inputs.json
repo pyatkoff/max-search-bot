@@ -1,0 +1,30 @@
+[
+  {
+    "hotel_id": 310,
+    "name": "PICKALBATROS GOLF BEACH RESORT (EX. GOLF BEACH RESORT MANAGED BY RIXOS)",
+    "accepted_first_line": "✈️ Туры в Pickalbatros Golf Beach Resort с перелётом",
+    "image_url": "https://image-tc.galaxy.tf/wijpeg-bunhs9glqpbhgr07p92hv73nb/028-ls-landscape-104108318.jpg",
+    "image_sha256": "a739fa8310852f22af0b97552e39c446fdb2ee5c927d2d78f64e7b8f272cc6e0"
+  },
+  {
+    "hotel_id": 67910,
+    "name": "RIXOS PREMIUM MAGAWISH SUITES & VILLAS",
+    "accepted_first_line": "✈️ Туры в Rixos Premium Magawish Suites & Villas с перелётом",
+    "image_url": "https://www.ahstatic.com/photos/b6f4_ho_00_p_1024x768.jpg",
+    "image_sha256": "d5d901d4ff309da9fbc2f02323e84f7a13068ba2d0877f85706a8ff7f3e15d83"
+  },
+  {
+    "hotel_id": 68323,
+    "name": "SUNRISE SOLARA AQUA PARK RESORT (EX.CAESAR DREAMS RESORT BY SUNRISE)",
+    "accepted_first_line": "✈️ Туры в SUNRISE Solara Aqua Park Resort с перелётом",
+    "image_url": "https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/67f3ffae5a3de.jpg/1200x630/fit/80/238e6a950d96e74d0cac4d2e2d44f808.jpg",
+    "image_sha256": "586ba6b0c901b39ff308558fc7e4f48538b3af9438b90ad9d7efd22d5d7fb154"
+  },
+  {
+    "hotel_id": 1971,
+    "name": "PICKALBATROS PALACE RESORT SHARM EL SHEIKH (EX. CYRENE GRAND)",
+    "accepted_first_line": "✈️ Туры в Pickalbatros Palace Resort Sharm El Sheikh с перелётом",
+    "image_url": "https://image-tc.galaxy.tf/wijpeg-43nq1ttkef5hcqekzjvfa0g4j/over-view.jpg",
+    "image_sha256": "e9cf3143b97f6cc1b3d2e693f0c5da62061a06f4e6d8245374cd94c64c83e7a7"
+  }
+]

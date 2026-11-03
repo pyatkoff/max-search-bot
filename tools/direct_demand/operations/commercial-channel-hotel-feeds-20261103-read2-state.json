@@ -1,0 +1,21 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261103-read2",
+  "state": "PUBLIC_POST_LINKS_VERIFIED_117_FOUR_ACCEPTED_EXTERNAL_IMAGES_REQUIRE_EXACT_ALLOWLIST",
+  "scope_hotels": 121,
+  "ready_rows": 117,
+  "image_missing_catalog_ids": [
+    381,
+    469
+  ],
+  "remaining_catalog_ids": [
+    310,
+    67910,
+    68323,
+    1971
+  ],
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41698180219",
+  "reason": "New post-feed image validator initially accepted only immutable GitHub PNGs. Four older accepted feed images are exact public owner URLs with previously verified SHA256. Address only these four with exact URL/hash allowance, not another121 read.",
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0
+}
