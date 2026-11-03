@@ -12,13 +12,15 @@ final class ManagerAssistantService
     public const MAX_TASKS = 50;
 
     /** Cursor is a read-only ordering receipt, never an authorization capability. */
-    public static function listing(int $actor, ?string $cursor = null, int $limit = self::MAX_PAGE): array
+    public static function listing(int $actor, ?string $cursor = null, int $limit = self::MAX_PAGE, string $scope = 'default'): array
     {
         if ($actor <= 0 || $limit < 1 || $limit > self::MAX_PAGE
+            || !in_array($scope,['default','mine','team'],true)
             || ($cursor !== null && preg_match('/\Av1\.([a-f0-9]{64})\.([1-9][0-9]{0,17})\z/D',$cursor,$binding)!==1)) return self::failure('invalid_request');
         try {
             self::initialize($actor);
-            $state=self::feedState($actor);
+            if($scope==='team'&&!ManagerAuthService::isAdmin(ManagerAuthService::byId($actor)))return self::failure('forbidden');
+            $state=self::feedState($actor,$scope);
             $offset=0;
             if ($cursor!==null) {
                 $index=array_search((int)$binding[2],array_column($state['rows'],'id'),true);
@@ -31,19 +33,19 @@ final class ManagerAssistantService
             foreach($page as $row){$item=self::item($row['id'],$actor,$row);if($item!==null)$items[]=$item;}
             // Priority/access/ownership may move while saved AI is validated. Never
             // attach a continuation from a different authorized operational order.
-            if (!hash_equals($state['revision'],self::feedState($actor)['revision'])) return self::failure('list_changed');
+            if (!hash_equals($state['revision'],self::feedState($actor,$scope)['revision'])) return self::failure('list_changed');
             return ['ok'=>true,'items'=>$items,'next_cursor'=>$more&&$page?'v1.'.$state['revision'].'.'.$page[count($page)-1]['id']:null,
-                'has_more'=>$more,'coverage'=>['scope'=>$state['owner']?'team_active':'own_active','analysis'=>'current_prepared_only']];
+                'has_more'=>$more,'coverage'=>['scope'=>$state['owner']&&$scope!=='mine'?'team_active':'own_active','analysis'=>'current_prepared_only']];
         } catch (Throwable $ignored) { return self::failure('assistant_unavailable'); }
     }
 
     /** Full-scope metadata only; no transcript, prepared context or task body scan. */
-    private static function feedState(int $actor): array
+    private static function feedState(int $actor,string $scope='default'): array
     {
         $manager=ManagerAuthService::byId($actor);
         if($manager===null)throw new RuntimeException('inactive_actor');
         $owner=ManagerAuthService::isAdmin($manager);
-        $rows=self::operationalRows($actor);
+        $rows=self::operationalRows($actor,null,$scope==='mine');
         $rows=ManagerConversationAccessPolicy::visibleRows($actor,$rows);
         foreach($rows as &$row){
             $row['id']=(int)$row['id'];$row['awaiting_manager_reply']=(bool)$row['awaiting_manager_reply'];$row['delivery_suspended']=(bool)$row['delivery_suspended'];
@@ -52,11 +54,11 @@ final class ManagerAssistantService
         }unset($row);
         // Small fixed metadata for every eligible client is needed to bind mutable
         // ordering. Only the selected page hydrates names/tasks/optional saved AI.
-        $revision=hash('sha256',json_encode(['assistant_work_v2',$actor,$owner,$manager['projects'],ProjectConfig::projectId(),array_map(static fn(array $row):array=>[$row['id'],$row['project_key'],(int)$row['manager_id'],$row['status'],(int)$row['source_id'],$row['channel'],$row['awaiting_manager_reply'],$row['due_task'],$row['delivery_suspended']],$rows)],JSON_THROW_ON_ERROR));
+        $revision=hash('sha256',json_encode(['assistant_work_v2',$actor,$owner,$scope,$manager['projects'],ProjectConfig::projectId(),array_map(static fn(array $row):array=>[$row['id'],$row['project_key'],(int)$row['manager_id'],$row['status'],(int)$row['source_id'],$row['channel'],$row['awaiting_manager_reply'],$row['due_task'],$row['delivery_suspended']],$rows)],JSON_THROW_ON_ERROR));
         return ['rows'=>$rows,'revision'=>$revision,'owner'=>$owner];
     }
 
-    private static function operationalRows(int $actor,?int $id=null): array
+    private static function operationalRows(int $actor,?int $id=null,bool $ownOnly=false): array
     {
         $reply=ManagerConversationService::awaitingManagerReplySql('c');
         $suspended=ManagerDeliveryStateService::activeSuspensionSql('c');
@@ -72,6 +74,7 @@ final class ManagerAssistantService
         }else{
             $sql.="c.manager_id=? AND c.status='manager' AND c.is_test=0 AND c.project_key=?";$args=[$actor,ProjectConfig::projectId()];
         }
+        if($ownOnly&&$owner){$sql.=" AND c.manager_id=? AND c.status='manager'";$args[]=$actor;}
         if($id!==null){$sql.=' AND c.id=?';$args[]=$id;}
         $q=ConversationDb::connection()->prepare($sql.' ORDER BY awaiting_manager_reply DESC,CASE WHEN '.$due.' IS NULL THEN 1 ELSE 0 END,c.id DESC');
         $q->execute($args);return $q->fetchAll(PDO::FETCH_ASSOC);

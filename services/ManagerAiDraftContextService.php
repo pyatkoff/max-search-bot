@@ -214,7 +214,7 @@ final class ManagerAiDraftContextService
             return ['ok'=>true, 'project_key'=>(string)$conversation['project_key'], 'context'=>$context, 'revision'=>$revision, 'preparation_revision'=>$preparationRevision, 'company_knowledge'=>$knowledge,
                 'reference_context'=>$references, 'photo_context'=>$photos,
                 'selection_sources'=>array_slice($selectionLinks, -41),
-                'latest_message_id'=>$latest, 'history_incomplete'=>$incomplete];
+                'latest_message_id'=>$latest, 'history_incomplete'=>$incomplete, 'has_manager_reply'=>(bool)$detail['has_manager_reply']];
         } catch (Throwable $ignored) {
             // No SQL, source text, identity, metadata or provider payload in logs.
             return self::failure('context_unavailable');

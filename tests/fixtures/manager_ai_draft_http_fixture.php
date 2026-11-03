@@ -109,6 +109,8 @@ final class ManagerAiDraftContextService
 
 final class ManagerPreparedReplyService
 {
+    public static function admission(int $cid,int $viewer,array $before,array $prepared,array $proposal): array { return ['ok'=>true,'admission'=>ManagerAiReplyAdmission::unavailable()]; }
+
     public static function requestOnOpen(int $cid,int $viewer,array $snapshot):array
     {
         managerAiHttpFixtureEvent('preparation_requested',['conversation_id'=>$cid,'viewer_id'=>$viewer,
@@ -184,6 +186,8 @@ final class ManagerPreparationOAuth
 
 final class ManagerAiDraftService
 {
+    public static function instructions(): string { return 'Synthetic exact instructions'; }
+
     public static function generate(array $context, ?callable $provider = null, ?ManagerCompanyKnowledge $knowledge = null, ?callable $selectionReader = null, ?object $references = null, ?callable $photoReader = null, ?callable $inputObserver = null): array
     {
         $state = managerAiHttpFixtureState();
@@ -207,7 +211,7 @@ final class ManagerAiDraftService
             }
         }
         if (!empty($state['capture_input']) && $inputObserver !== null) {
-            require_once dirname(__DIR__,2).'/services/ManagerAiDraftInputEvidence.php';
+            if(!class_exists('ManagerAiDraftInputEvidence',false))require_once dirname(__DIR__,2).'/services/ManagerAiDraftInputEvidence.php';
             $evidence=ManagerAiDraftInputEvidence::capture($context+['selections_link_unread'=>false,'verified_company_facts'=>[]], 'Synthetic exact instructions');
             if ($evidence !== null) $inputObserver($evidence);
         }

@@ -264,7 +264,7 @@ function renderHandoffContext(){
   if(!handoffView||handoffView.key!==key){
     clearHandoffContext();
     const details=document.createElement('details'),title=document.createElement('summary');
-    title.textContent='Запрос туриста';details.appendChild(title);
+    title.textContent=document.body.classList.contains('manager2')?'При обращении к менеджеру':'Запрос туриста';details.appendChild(title);
     const content=document.createElement('div');content.className='handoffContextContent';
     const summary=document.createElement('div');summary.className='handoffContextSummary';content.appendChild(summary);
     const guidance=document.createElement('div');guidance.className='handoffContextGuidance';content.appendChild(guidance);
