@@ -1,10 +1,10 @@
 import base64,html,json,os,re,urllib.parse,urllib.request
 from pathlib import Path
 from html.parser import HTMLParser
-operation='commercial-hotel-feed-20261103-six-image-sources-read1'
-pages=["https://www.pickalbatros.com/golf-beach-resort","https://www.pickalbatros.com/palace-resort-sharm-el-sheikh","https://www.rehanaresorts.com/rehanaroyal","https://www.sultangardens.com/Gallery","https://www.sunrise-resorts.com/solara-aqua-park-resort","https://all.accor.com/hotel/B6F4/index.en.shtml?partner_id=rixos"]
+operation='commercial-hotel-feed-20261103-rehana-gallery-read1'
+pages=["https://www.rehanaresorts.com/rehanaroyal-gallery"]
 group=int(os.environ['MEDIA_GROUP'])
-assert group in (0,1)
+assert group==0
 pages=pages[group*3:group*3+3]
 assert 1<=len(pages)<=3
 hosts=set(["www.pickalbatros.com","pickalbatros.com","image-tc.galaxy.tf","www.rehanaresorts.com","rehanaresorts.com","static.wixstatic.com","www.sultangardens.com","sultangardens.com","irp.cdn-website.com","lirp.cdn-website.com","www.sunrise-resorts.com","d1wo7kaelp5eck.cloudfront.net","all.accor.com","www.ahstatic.com","images.ahstatic.com","assets.ahstatic.com"])
