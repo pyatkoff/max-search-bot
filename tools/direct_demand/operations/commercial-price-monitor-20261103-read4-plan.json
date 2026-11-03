@@ -1,6 +1,6 @@
 {
   "operation": "commercial-price-monitor-20261103-read4",
-  "state": "NEW624_COLLECTOR_INPUT_FRESH_RETAINED114_READ_PLANNED_NOT_STARTED",
+  "state": "FRESH114_SCOPE_PREPARED_NOT_RUN",
   "catalog_ids": [
     9374,
     241,
@@ -131,5 +131,23 @@
   "meal_dictionary_discovery": 0,
   "provider_calls": 0,
   "db_writes": 0,
-  "message_edits": 0
+  "message_edits": 0,
+  "expected_installed_sha": "0b38d06c7a215f2e0e5280421bb5a296803d31be",
+  "boundaries": [
+    "Existing bounded authenticated readonly GHA route",
+    "Exact114 published native identities andacceptedtypedbridges",
+    "Only retained rows persisted after the new624 collector start;max2/hotel",
+    "No schema,meal,provider,flight,edit orDBwrite calls",
+    "Full tuples andfingerprints retained only inexistingauthenticatedartifact"
+  ],
+  "criteria": [
+    "Current exactsource/sameversionverify/strictTLS/21publishingblobs andhost/clean tree gates",
+    "Correct2A/0children/RUB/futureterms andhonestpersistenceUTCepoch",
+    "Freshness classified without relabelling naiveobserved_at",
+    "No price publication from rawsearchprice"
+  ],
+  "risks": [
+    "Retained price/fuel are not proven fulltotal oravailability",
+    "Main may change beforeSSH; stop withoutprovidercalls"
+  ]
 }
