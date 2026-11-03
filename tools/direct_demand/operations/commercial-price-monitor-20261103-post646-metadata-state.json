@@ -1,0 +1,12 @@
+{
+  "operation": "commercial-price-monitor-20261103-post646-metadata",
+  "state": "BOUNDED_NEW_SCHEDULE_METADATA_ONLY_NO_RETAINED_PRICE_READ",
+  "reason": "New646 monitor admitted at21:18 and new scheduled window after21:20, prior20UTC metadata alreadyclosed",
+  "created_gte": "2026-11-03T21:20:00Z",
+  "runs": [],
+  "logs_read": 0,
+  "provider_calls": 0,
+  "db_writes": 0,
+  "quotes": 0,
+  "edits": 0
+}
