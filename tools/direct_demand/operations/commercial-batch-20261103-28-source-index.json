@@ -1,0 +1,79 @@
+{
+  "operation": "commercial-hotel-batch-20261103-28-v1",
+  "state": "EXACT_PRIMARY_URL_DISCOVERY_PARTIAL_NOT_READY",
+  "candidates": [
+    {
+      "hotel_id": 56091,
+      "urls": [
+        "https://www.elgouna.com/hotels/ancient-sands",
+        "https://www.elgouna.com/hotels/ancient-sands/gallery"
+      ],
+      "notes": "Owner cached current text proves golf18holes, hotel/apartments/townhouses, pools, beach off-site with shuttle. Direct booking benefits excluded. No accepted photos yet."
+    },
+    {
+      "hotel_id": 102031,
+      "urls": [
+        "https://hrewards.com/en/steigenberger-nile-palace-luxor",
+        "https://hrewards.com/en/destinations/egypt/luxor-hotels"
+      ],
+      "notes": "Use actual .com HRewards primary; do not substitute similar .pro domain. Hotel facts/photo download pending. No shoreline beach claims."
+    },
+    {
+      "hotel_id": 75571,
+      "urls": [
+        "https://all.accor.com/a/en/destination/city/hotels-luxor-v7366.html"
+      ],
+      "notes": "Accor primary city page and current participant list identifies WinterPalace1661, not Pavillon1662. Need actual declared hotel link and gallery, do not guess URL or transfer Pavillon rights."
+    },
+    {
+      "hotel_id": 103124,
+      "urls": [
+        "https://partner.jazhotels.com/Images/uploads/gallery/Downloads/new/071239Iberotel%20luxor%20Factsheet%202023.pdf"
+      ],
+      "notes": "Discovered older2023 factsheet only, not fetched this turn and not sufficient current proof. Find exact current owner page; no guesses from native103124 to partner pool."
+    },
+    {
+      "hotel_id": 254,
+      "urls": [
+        "https://threecorners.com/red-sea/sea-beach-resort/"
+      ],
+      "notes": "Current exact owner page discovered. Need finite source read and actual property images, avoid shared chain navigation."
+    },
+    {
+      "hotel_id": 488,
+      "urls": [
+        "https://threecorners.com/red-sea/fayrouz-plaza-beach-resort/",
+        "https://threecorners.com/red-sea/fayrouz-plaza-beach-resort/gallery-for-pro/"
+      ],
+      "notes": "Current exact property owner and public professional gallery discovered. Current body gives800mbeach/368mjetty/mainpool winterheat/TrixieKidsClub/gym; do not promise paid dive/spa inclusions."
+    },
+    {
+      "hotel_id": 342,
+      "urls": [
+        "https://www.oberoihotels.com/hotels-in-sahl-hasheesh/",
+        "https://www.oberoihotels.com/hotels-in-sahl-hasheesh/travel-information/"
+      ],
+      "notes": "Current primary all-suite beachfront property. Need rooms/facilities and real overview; no booking package inclusion inferred."
+    },
+    {
+      "hotel_id": 4185,
+      "urls": [
+        "https://braykaresorts.com/royal-brayka-resort/overview"
+      ],
+      "notes": "Current owner exactRoyal, private sandbeach/106mjetty stated. Do not transfer BraykaBay facilities or room rights."
+    },
+    {
+      "hotel_id": 139,
+      "urls": [],
+      "notes": "Exact current BraykaBay owner URL discovery pending; do not guess from Royal path."
+    },
+    {
+      "hotel_id": 102774,
+      "urls": [],
+      "notes": "Existing FRroot read hadHTTPError statusunrecorded; do not repeat unchanged. Need another exact current Hilton owner page/retained gallery links. SPApool16+ does not make wholehoteladults-only."
+    }
+  ],
+  "ready_for_send_count": 0,
+  "canva_imports": 0,
+  "new_posts": 0
+}
