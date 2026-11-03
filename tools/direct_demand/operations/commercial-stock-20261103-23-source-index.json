@@ -1,0 +1,49 @@
+{
+  "operation": "commercial-stock-20261103-23-primary-sources",
+  "state": "IDENTITIES_CONFIRMED_PRIMARY_PREPARATION_REQUIRED",
+  "hotels": [
+    {
+      "hotel_id": 83563,
+      "name": "SERRY BEACH RESORT",
+      "source_url": "https://www.theserry.com/beach-resort",
+      "scope": "The family beach resort, not the separate16+ sister property. Do not transfer Manara suite lounge or shared dining rights to every room or AnyTour package."
+    },
+    {
+      "hotel_id": 343,
+      "name": "OLD PALACE RESORT SAHL HASHESH",
+      "state": "EXACT_CURRENT_PRIMARY_FACTS_AND_PHOTOS_REQUIRED"
+    }
+  ],
+  "additional_confirmed_catalog_ids": [
+    235,
+    73343,
+    418
+  ],
+  "not_selected_groups": [
+    {
+      "key": "grand-hotel-hurghada",
+      "catalog_ids": [
+        229,
+        230
+      ],
+      "state": "TWO_DIFFERENT_PROPERTIES_REQUIRE_EXACT_PRIMARY_SCOPE"
+    },
+    {
+      "key": "sunrise-tucana",
+      "catalog_ids": [
+        77914,
+        131347
+      ],
+      "state": "MULTIPLE_PRODUCTS_AND_NONZERO_ALIAS_REGISTRY_MATCHES_NOT_NEW_PAIR_CREDIT"
+    },
+    {
+      "key": "serenity-alma-heights",
+      "catalog_ids": [
+        4186,
+        131233
+      ],
+      "state": "MULTIPLE_PRODUCTS_NOT_SELECTED"
+    }
+  ],
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41642121783"
+}

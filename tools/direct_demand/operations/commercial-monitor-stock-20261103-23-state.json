@@ -1,0 +1,14 @@
+{
+  "operation": "commercial-monitor-stock-20261103-23",
+  "state": "MONITOR_INPUTS_MERGED_NOT_COLLECTED",
+  "catalog_ids": [
+    343,
+    83563
+  ],
+  "input_count": 624,
+  "published_logical_hotels_configured": 109,
+  "stock_hotels_configured": 25,
+  "price_hotel_updates": 1,
+  "price_post_edits": 2,
+  "run_url": "https://github.com/pyatkoff/poisk-turov-test/actions/runs/41646626302"
+}
