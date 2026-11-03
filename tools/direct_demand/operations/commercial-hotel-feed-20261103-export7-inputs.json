@@ -1,0 +1,30 @@
+[
+  {
+    "hotel_id": 282,
+    "name": "JAZ Mirabel Club",
+    "accepted_first_line": "✈️ Туры в JAZ Mirabel Club с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/6508a9ee1f0ced32bc03bef61d3869b44764c9f8/.github/traffic-publish/commercial-batch-20261103-24/282.png",
+    "image_sha256": "85edf470d25b4733ae2e91fdbf85efb98cc4105c33d30282729858955ff1cdbc"
+  },
+  {
+    "hotel_id": 235,
+    "name": "The Grand Resort Hurghada",
+    "accepted_first_line": "✈️ Туры в The Grand Resort с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/6508a9ee1f0ced32bc03bef61d3869b44764c9f8/.github/traffic-publish/commercial-batch-20261103-24/235.png",
+    "image_sha256": "f7729cc4fa987ff8f22bc13d5d234b5685d672363c4ecad9a2b5cc9c3f281944"
+  },
+  {
+    "hotel_id": 382,
+    "name": "RENAISSANCE GOLDEN VIEW BEACH",
+    "accepted_first_line": "🐠 Renaissance Sharm El Sheikh Golden View Beach Resort",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/6508a9ee1f0ced32bc03bef61d3869b44764c9f8/.github/traffic-publish/commercial-batch-20261103-24/382.png",
+    "image_sha256": "093303fa466b8783242c88ec9d5473650273fc474e274fb9bb3ee42e591f5297"
+  },
+  {
+    "hotel_id": 250,
+    "name": "Swiss Inn Resort Hurghada",
+    "accepted_first_line": "✈️ Туры в Swiss Inn Resort Hurghada с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/6508a9ee1f0ced32bc03bef61d3869b44764c9f8/.github/traffic-publish/commercial-batch-20261103-24/250.png",
+    "image_sha256": "98b1533eb88de8e57c29d6b832f0404c4bc0265142e89386062317d88d65a796"
+  }
+]

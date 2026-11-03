@@ -1,0 +1,34 @@
+{
+  "operation": "commercial-stock-20261103-25-read1",
+  "state": "TEN_FINITE_NAME_GROUPS_PREPARED_NOT_READ",
+  "goal": "Replenish the reserve after the four actual publications, choosing unique unpublished identities with accessible primary material.",
+  "boundaries": [
+    "Existing bounded country1 HotelDatabase catalogue andchannel9/10registry route only",
+    "No provider,client,DBwrite ormessage calls",
+    "Ten namegroups once;skip ambiguous orpublishedmatches"
+  ],
+  "criteria": [
+    "Promote oldproven73343/418 withoutnewlookups",
+    "Select at least2new unique unpublished nativeidentities forreserve25",
+    "Deduplicate admitted monitor inputs beforeanycohortappend"
+  ],
+  "risks": [
+    "Catalogueidentity isnot content,photo orprice acceptance",
+    "Do not infer hotel stars fromrating"
+  ],
+  "candidate_groups": [
+    "steigenberger-golf-el-gouna",
+    "chedi-el-gouna",
+    "cooks-club-el-gouna",
+    "casa-cook-el-gouna",
+    "ancient-sands",
+    "movenpick-aswan",
+    "iberotel-luxor",
+    "steigenberger-nile-palace",
+    "sofitel-winter-palace",
+    "sofitel-old-cataract"
+  ],
+  "provider_calls": 0,
+  "db_writes": 0,
+  "message_sends": 0
+}
