@@ -1,0 +1,25 @@
+{
+  "operation": "commercial-monitor-stock-20261103-29",
+  "state": "THREE_NATIVE_INPUTS_PREPARED_NOT_MERGED",
+  "goal": "Monitor two next publication identities and one promoted reserve using the existing collector",
+  "catalog_ids": [
+    103124,
+    488,
+    102031
+  ],
+  "previous_inputs": 636,
+  "new_inputs": 639,
+  "boundaries": [
+    "Only append separate immutable cohort after actual admitted636 dedup",
+    "Preserve all previous monthly target keys,incomplete searches,lock,budget64/hourly12 and transport",
+    "No new collector,cron,worker,provider or quote calls"
+  ],
+  "criteria": [
+    "Native CI and focused639 checks preserve636 target prefix and existing prior4 search resume",
+    "Mixed countries remain separate;missing one or inactive new cohort cannot falsely count or block old636"
+  ],
+  "risks": [
+    "Configured input is not a collected or published price",
+    "New pair credit only after actual provider-verified delivery"
+  ]
+}
