@@ -223,5 +223,8 @@
       "state": "CATALOG_CONFIRMED_NOT_IN_CURRENT25"
     }
   ],
-  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41642121783"
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41642121783",
+  "monitor_append_pending_catalog_ids": [
+    235
+  ]
 }

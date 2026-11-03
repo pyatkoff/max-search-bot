@@ -1,0 +1,11 @@
+{
+  "operation": "commercial-hotel-batch-20261103-24-v1",
+  "state": "ONE_WHOLE_CAPTION_PREPARED_PUBLIC_PHOTO_URIS_KNOWN_NATIVE_CHECK_NOT_STARTED_NOT_SENT",
+  "catalog_ids": [
+    235
+  ],
+  "content_prepared_count": 1,
+  "ready_for_send_count": 0,
+  "new_posts": 0,
+  "provider_send_attempts": 0
+}

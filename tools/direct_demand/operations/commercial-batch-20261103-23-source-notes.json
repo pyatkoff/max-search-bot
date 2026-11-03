@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261103-23-v1",
-  "state": "TWO_WHOLE_CAPTIONS_PREPARED_PRIMARY_PHOTO_ACCEPTANCE_PENDING_NOT_SENT",
+  "state": "ONE_HOTEL_PUBLISHED_IN_BOTH_CHANNELS_TWO_CAPTIONS_DEFERRED_NO_HERO",
   "goal": "Prepare whole materials for ready identities from stock25 and accept genuine hotel overview photography.",
   "boundaries": [
     "Only public first-party sources and existing cloud inspection workflow",
@@ -179,10 +179,13 @@
     ],
     "reason": "Different stock hotel with explicitly linked owner overview photographs; other materials remain deferred."
   },
-  "current_candidate_ids": [
+  "current_candidate_ids": [],
+  "current_hero_state": "MÖVENPICK_NATIVE_PNG_ACCEPTED_FROZEN_AND_PUBLISHED_CLOSED",
+  "movenpick_renovation_proof": "Exact Accor press announcement says phased2027renovation andSofitel conversion; included inwholecaption; notpromisedunchangedfutureoperation",
+  "current_source_photo_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41659925935",
+  "published_catalog_ids": [
     328
   ],
-  "current_hero_state": "REAL_OFFICIAL_AERIAL_WHOLE_HOTEL_VISUALLY_ACCEPTED_NATIVE_COVER_PENDING",
-  "movenpick_renovation_proof": "Exact Accor press announcement says phased2027renovation andSofitel conversion; included inwholecaption; notpromisedunchangedfutureoperation",
-  "current_source_photo_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41659925935"
+  "canva_transactions_open": 0,
+  "publication_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41661174835"
 }
