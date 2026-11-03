@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261103-22-v1",
-  "state": "TWO_WHOLE_MATERIALS_FROZEN_APPROVED_NOT_SENT",
+  "state": "TWO_HOTELS_PUBLISHED_OTHERS_HERO_DEFERRED",
   "catalog_ids": [
     21477,
     60589
@@ -66,5 +66,6 @@
   ],
   "native_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41636149071",
   "public_cover_count": 2,
-  "canva_transactions_open": 0
+  "canva_transactions_open": 0,
+  "publication_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41639381860"
 }

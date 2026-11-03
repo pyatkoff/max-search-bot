@@ -1,0 +1,17 @@
+{
+  "operation": "commercial-hotel-feed-20261103-export5",
+  "state": "ONE_HUNDRED_SEVEN_PUBLISHED_HOTELS_LINKED_TWO_IMAGES_DEFERRED_NOT_IMPORTED",
+  "published_logical_hotels": 109,
+  "feed_rows": 107,
+  "deferred_catalog_ids": [
+    381,
+    469
+  ],
+  "deferred_count": 2,
+  "price_fields": 0,
+  "provider_calls": 0,
+  "db_writes": 0,
+  "message_sends": 0,
+  "advertising_changes": 0,
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41642121783"
+}
