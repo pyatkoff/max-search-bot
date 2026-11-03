@@ -743,4 +743,12 @@ test('automatic appearance retains the canonical unresolved-token refusal',async
   const h=await harness(data=>response(data.action==='prepared_status'?readiness():prepared({draft:'Уточните {{город}}.'})),{manager2:true,hosted:true});await tick();assert.equal(h.ids.get('replyText').value,'');assert.equal(h.ids.get('replyText').classList.contains('aiDraftPreview'),false);assertNoMutations(h);
 });
 
+test('an explicit rejected send keeps AI text as a human draft after preview expiry',async()=>{
+  const h=await harness(inlineHandler,{manager2:true,hosted:true});await tick();const reply=h.ids.get('replyText'),text=reply.value;assert.equal(reply.classList.contains('aiDraftPreview'),true);
+  h.setHook((url,data)=>url==='api.php'&&data.action==='send'?response({ok:false,attempt:{state:'rejected'},failure:{category:'unavailable'}}):null);
+  await h.C.sendReply();const file={name:'retained-after-rejection.txt'};h.setFile(file);h.advanceAiClock(7200000);h.ai.sync();
+  assert.equal(reply.value,text);assert.equal(reply.classList.contains('aiDraftPreview'),false);assert.equal(h.getFile(),file);
+  assert.equal(h.calls.filter(c=>c.url==='api.php'&&c.action==='send').length,1);assert.equal(JSON.parse(h.storage.getItem('workspaceV2.replySession.v1')).drafts[0].text,text);
+});
+
 (async()=>{const selected=process.argv.includes('--admission-only')?cases.filter(item=>item.name.startsWith('admission ')):cases;let failed=0;for(const item of selected){try{await item.run();console.log('PASS '+item.name)}catch(error){failed++;console.error('FAIL '+item.name+'\n'+error.stack)}}console.log(`TOTAL ${selected.length} | FAIL ${failed}`);process.exitCode=failed?1:0})();

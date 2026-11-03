@@ -604,7 +604,9 @@ async function sendReply(reconcileAction='send_receipt'){
   if(accessLost||S.authExpired||lifecycleBlocked())return;
   const owner=replySessionOwner;let draftText=$('replyText').value;
   const target=Number(S.current||0),generation=openSeq,text=$('replyText').value.trim();let attempt=pendingAttempt(target),hasFile=!attempt&&window.WorkspaceV2Media?.hasFile();
-  saveDraft();
+  // Explicit send intent owns the text even when transport later refuses it.
+  // It is no longer an untouched suggestion that may expire.
+  saveDraft(S.current,undefined,null);
   let draftVersion=drafts.get(target)?.version,aiDraftId=drafts.get(target)?.aiDraftId;
   if(attempt){draftText=attempt.text;draftVersion=attempt.version;aiDraftId=attempt.aiDraftId;}
   const matchingDraft=()=>drafts.get(target)?.version===draftVersion&&(drafts.get(target)?.text||'')===draftText;
