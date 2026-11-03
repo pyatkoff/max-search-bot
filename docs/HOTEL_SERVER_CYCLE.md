@@ -189,7 +189,7 @@ a ten-stage campaign, preserved partial-history disclosure, changed task inputs,
 inherited facts/reserves, exact CAS, UNKNOWN and unfinished evidence rejection,
 atomic rollback, forged seed pins, and catalog lost-ACK replay after handoff.
 
-An eventual existing-cron integration calls `tick` once. Disabled, complete, HOLD
+The existing-cron integration calls `tick` once. Disabled, complete, HOLD
 or UNKNOWN states send nothing. A ready step serializes admission, checks current
 accepted/reserved semantic keys and budget, writes a fresh immutable request and
 UNKNOWN attempt/outbox, pessimistically reserves the full per-call token/cost
@@ -201,10 +201,28 @@ must not make a network call. The private adapter must itself send at most once.
 The producer can only save a bounded, exact-scope candidate with answers and HTTPS
 source evidence. A later cron step creates a separate reviewer invocation and
 principal, pinned to candidate, baseline, immutable inputs and criteria bytes.
-Only an approved, nonempty independent review allows a later network-free accept.
+Only an approved, nonempty independent review allows a network-free accept.
 Acceptance rechecks baseline CAS, candidate/review lineage and current exclusions,
 then atomically appends canonical records, baseline, receipt, one new credit and
 the next producer outbox. Producer output/import/projection never grants credit.
+
+When that single tick returns a durable approved review, `HotelServerCronRuntime`
+calls `acceptReviewed(campaignId, expectedBaselineSha256)` once. The separate
+transaction acquires the existing HOTEL/campaign lock and enters `acceptLocked`
+only for an enabled, reviewed campaign at that exact baseline. All other states
+and stale pins return the current projection without acceptance or dispatch.
+The follow-up never calls a provider, checks provider readiness, reserves budget
+or calls `tick`. A failed acceptance rolls back its records, receipt, credit and
+outboxes while the approved reviewer result remains durable. The ordinary next
+tick can finish that local acceptance without another provider invocation.
+
+An uneventful ordinary stage therefore takes two runtime invocations instead of
+three: producer, then reviewer followed by local acceptance. Provider calls stay
+at two per stage and at most one per runtime invocation. This is a sequencing
+property, not a measured live throughput or billing improvement. The current
+`worker_completed`, confirmed HOLD and UNKNOWN reporting behavior is preserved.
+No successor, new campaign, enable/configuration change or automatic correction
+is introduced; a completed campaign remains terminal.
 
 After an uncertain external send, `recordResult` can reconcile only the exact
 original attempt. Identical saved result readback is idempotent; a different result
@@ -282,3 +300,79 @@ hashed/capture-timed source slices and complete independent review coverage.
 Fresh-web acquisition and budget-policy certification are explicitly absent
 contracts, with owners in HOTEL_SERVER_AI_PROVIDER.md; they are not hidden behind
 a readiness stub or fabricated source/cost claim.
+
+
+## Explicit correction of a known rejected final stage
+
+`HotelServerCycle::correctRejectedFinalStage(campaignId, correction, authorized)`
+adds a separately reviewed answer correction. It performs no provider call and
+never calls `tick`, creates a campaign, changes an enable flag, refunds or expands
+a reservation, changes a deadline, or writes runtime/cron configuration. The
+private authenticated caller must supply explicit authorization. Actor names and
+decision references in the evidence are provenance, not authentication tokens.
+New principal IDs use 1–256 ASCII characters: an alphanumeric first character,
+then alphanumerics or `_.:/@-`; whitespace aliases are rejected.
+
+This operation is deliberately limited to an enabled campaign in HOLD at its
+last planned stage. The preceding stage count and original two-calls-per-stage
+reservations must be complete. Both current attempts must have succeeded with
+known results and done outboxes. Provider rejection, UNKNOWN, incomplete review
+coverage, another rejected scope, a nonfinal stage, stale pins or conflicting
+accepted/protected scope all refuse the transaction. The original negative
+review must cover each assigned scope once: the target is false and every
+unchanged scope is true. No old negative result is rewritten as an approval.
+
+The correction document has schema `hotel-server-correction-v1`, a `proposal`
+and a `review`. The strict proposal supplies:
+
+- campaign/stage, bootstrap, inputs, current baseline and plan pins;
+- original producer/reviewer attempt IDs and exact request/result hashes;
+- the target four-field scope and replacement answer;
+- `context_sha256` for the canonical assigned scope/dependencies object,
+  global `criteria_sha256`, and the assigned source URL/excerpt SHA;
+- `author_principal` and `authorization_ref`.
+
+The supplemental review has schema `hotel-server-correction-review-v1`, a
+separate `principal`, `proposal_sha256`, boolean `approved: true`, concrete
+`evidence` and `review_reference`. It approves the exact answer-only
+transformation of the pinned original producer result. Its principal must differ
+from the correction author and original producer. The caller is responsible for
+establishing those actual independent identities; changing a label is not an
+independent review. Approval of a loose wording example does not approve a
+different or unhashed proposal.
+
+Only the target answer changes. Its original scope, evidence, URLs and quotes,
+and every other record remain identical in canonical bytes. Target evidence must
+still quote the exact retained excerpt at the pinned URL. This is a correction
+against existing assigned evidence, not fresh acquisition or a claim that the
+source is valid on future travel dates. The original producer/reviewer requests,
+results, candidate and negative review remain unchanged.
+
+Under the existing HOTEL/campaign lock, one transaction appends immutable
+`hotel_server_corrections` evidence, the corrected canonical records, baseline,
+`hotel-server-correction-acceptance-v1` receipt, one acceptance credit and the
+catalog outbox. It moves the last stage to `complete` without another producer
+outbox. The receipt links the original candidate and attempts to the correction
+and supplemental-review hashes. No partial writes survive an exception.
+
+The correction validates the exact current baseline document and scoped immutable
+input identity without walking accepted predecessor history. It does not query
+earlier canonical records, traverse B01/B02 campaigns or read retired-queue tables;
+current baseline bytes are checked only against the pinned boundary. Previously
+accepted data remains unchanged. This bounded mutation does not weaken the normal full-history reader
+or handoff checks: those readers understand the new receipt and independently
+reconstruct the original-to-corrected candidate plus both kinds of review proof.
+The catalog acknowledgement similarly checks the correction ledger and complete
+new receipt instead of accepting an additional schema name alone.
+
+An exact repeated correction can return the already committed receipt, after
+verifying its complete current-stage lineage, without another credit or write.
+A different proposal/review at that campaign/stage conflicts. This idempotence is
+not authorization to replay a consumed operational command. The private operator
+must retain the original mutation receipt and obey the existing operation guard.
+
+Migration089 creates only the empty append-only correction ledger and its update/
+delete rejection triggers. Deploying this source does not apply a correction or
+change any live campaign. Existing cron health and `verify-cron` remain outside
+this change; data correction completion is established by the new receipt, not
+inferred from an unrelated successful deploy or worker heartbeat.

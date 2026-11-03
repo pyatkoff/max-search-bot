@@ -182,7 +182,7 @@ test('favorite remains unavailable until its account snapshot is confirmed',asyn
  s.setHoldSnapshot(false);s.releaseSnapshot();await settled(page,s);await expect(pin(page)).toBeEnabled();await expect(pin(page)).toHaveAttribute('aria-pressed','true');clean(s);
 });
 
-async function activeDestinations(page){return page.locator('.m2TabRow .queueTabs button[data-q].active,.m2TabRow [data-pw-selection][aria-pressed="true"],#m2PinnedToggle[aria-pressed="true"],[data-m2-nav="archive"].active').evaluateAll(nodes=>nodes.filter(node=>node.getClientRects().length).map(node=>node.id==='m2PinnedToggle'?'pinned':node.dataset.q||node.dataset.pwSelection||node.dataset.m2Nav||node.id))}
+async function activeDestinations(page){return page.locator('.m2TabRow .queueTabs button[data-q].active,.m2TabRow [data-pw-selection][aria-pressed="true"],#m2PinnedToggle[aria-pressed="true"],[data-m2-nav="archive"].active,#m2MoreToggle.active').evaluateAll(nodes=>nodes.filter(node=>node.getClientRects().length).map(node=>node.id==='m2PinnedToggle'?'pinned':node.id==='m2MoreToggle'?'archive':node.dataset.q||node.dataset.pwSelection||node.dataset.m2Nav||node.id))}
 function silentWav(){const samples=80000,b=Buffer.alloc(44+samples*2);b.write('RIFF',0);b.writeUInt32LE(b.length-8,4);b.write('WAVEfmt ',8);b.writeUInt32LE(16,16);b.writeUInt16LE(1,20);b.writeUInt16LE(1,22);b.writeUInt32LE(8000,24);b.writeUInt32LE(16000,28);b.writeUInt16LE(2,32);b.writeUInt16LE(16,34);b.write('data',36);b.writeUInt32LE(samples*2,40);return b}
 for(const width of [390,1440])test(`unified queues groups favorites archive preserve reply file and audio ${width}`,async({page})=>{
  await page.setViewportSize({width,height:900});const state=stateFor({groups:6});const wav=silentWav(),messages=[{id:1,sender_type:'customer',text:'Синтетическое аудио',created_at:'2026-10-16 08:00:00',attachments:[{type:'audio',name:'synthetic.wav',url:'data:audio/wav;base64,'+wav.toString('base64')}]}];
@@ -193,8 +193,10 @@ for(const width of [390,1440])test(`unified queues groups favorites archive pres
  await page.locator('#replyText').evaluate(el=>el.setSelectionRange(2,7));await page.locator('#m2ConversationPin').click();await expect(page.locator('#m2ConversationPin')).toHaveAttribute('aria-pressed','false');
  expect(await page.locator('#replyText').evaluate(el=>[el.selectionStart,el.selectionEnd])).toEqual([2,7]);expect(await audio.evaluate(el=>el===window.compactAudioIdentity&&!el.paused&&el.currentTime>=window.compactAudioTime)).toBe(true);
  if(await page.locator('#mobileBack').isVisible())await page.locator('#mobileBack').click();
- const choose=async(selector,active)=>{const before=listCalls(s).length;await page.locator(selector).click();await settled(page,s);expect(listCalls(s)).toHaveLength(before+1);expect(await activeDestinations(page)).toEqual([active])};
+ const choose=async(selector,active)=>{const before=listCalls(s).length;if(selector.includes('archive')&&!await page.locator(selector).isVisible())await page.locator('#m2MoreToggle').click();await page.locator(selector).click();await settled(page,s);expect(listCalls(s)).toHaveLength(before+1);expect(await activeDestinations(page)).toEqual([active])};
+ await page.route('**/manager/assistant-api.php',async route=>{const data=route.request().postDataJSON();expect(data.action).toBe('list');s.calls.push({path:'/manager/assistant-api.php',...data});return route.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,items:[],has_more:false,next_cursor:null})})});
  const beforeTasks=listCalls(s).length;await page.locator('[data-m2-nav="tasks"]').click();await settled(page,s);expect(listCalls(s)).toHaveLength(beforeTasks+1);await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-m2-section','tasks');
+ await page.locator('[data-m2-nav=dialogues]').click();await settled(page,s);
  const beforeQueue=listCalls(s).length;await page.locator('.m2TabRow [data-q="all"]').click();await settled(page,s);expect(listCalls(s)).toHaveLength(beforeQueue+1);await expect(page.locator('.inboxHead .brand')).toHaveText('Диалоги');await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-m2-section','dialogues');expect(await activeDestinations(page)).toEqual(['all']);
  await choose('.m2TabRow [data-pw-selection="tab:10"]','tab:10');await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
  await expect(row(page,18)).toContainText(/закрыт/i);const beforeFavorites=listCalls(s).length;await page.locator('#m2PinnedToggle').click();await settled(page,s);expect(listCalls(s)).toHaveLength(beforeFavorites+1);expect(await activeDestinations(page)).toEqual(['pinned']);await expect(page.locator('#inboxList .leadItem')).toHaveCount(0);
@@ -322,11 +324,15 @@ test('loaded client photo stays independent from native conversation and favorit
  expect(s.calls.filter(c=>c.path==='/manager/api.php'&&c.action==='detail')).toHaveLength(1);expect(writes(s)).toHaveLength(0);clean(s);
 });
 
-test('Alt+J still activates the canonical next attention conversation once',async({page})=>{
+test('removed Alt+J keeps the current client and explicit row selection opens once',async({page})=>{
  await page.setViewportSize({width:1440,height:900});const s=await setup(page,{state:stateFor({pinned:false}),rows:rows()});await settled(page,s);
- await page.locator('#m2InboxSearchToggle').focus();await page.keyboard.press('Alt+j');await expect(page.locator('#conversationTitle')).toHaveText(longName);await settled(page,s);
+ await page.locator('#m2InboxSearchToggle').focus();await page.keyboard.press('Alt+j');await settled(page,s);
+ expect(s.calls.filter(c=>c.path==='/manager/api.php'&&c.action==='detail')).toHaveLength(0);expect(await page.evaluate(()=>Number(WorkspaceV2.S.current||0))).toBe(0);
+ await row(page).locator('.m2RowOpen').press('Enter');await expect(page.locator('#conversationTitle')).toHaveText(longName);await settled(page,s);
  expect(s.calls.filter(c=>c.path==='/manager/api.php'&&c.action==='detail').map(c=>c.conversation_id)).toEqual([11]);
- await page.locator('#conversationTitle').focus();await page.keyboard.press('Alt+j');await expect(page.locator('#conversationTitle')).toHaveText('Синтетический клиент 1');await settled(page,s);
+ await page.locator('#conversationTitle').focus();await page.keyboard.press('Alt+j');await settled(page,s);await expect(page.locator('#conversationTitle')).toHaveText(longName);
+ expect(s.calls.filter(c=>c.path==='/manager/api.php'&&c.action==='detail').map(c=>c.conversation_id)).toEqual([11]);
+ await page.locator('#inboxList [data-conversation-id="12"] .m2RowOpen').press('Enter');await expect(page.locator('#conversationTitle')).toHaveText('Синтетический клиент 1');await settled(page,s);
  expect(s.calls.filter(c=>c.path==='/manager/api.php'&&c.action==='detail').map(c=>c.conversation_id)).toEqual([11,12]);expect(writes(s)).toHaveLength(0);clean(s);
 });
 

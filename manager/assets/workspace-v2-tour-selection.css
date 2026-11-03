@@ -1,3 +1,5 @@
+#tsBiblio{display:block;width:100%;min-height:44px;padding:10px 12px;border:1px solid #b4cbbd;border-radius:10px;background:#fff;color:#193e36;font:inherit;cursor:pointer}@media(max-width:767px){.tsImportActions #tsBiblio{flex:1;min-width:0;width:auto;margin:0;padding:8px;font-size:12px;overflow-wrap:anywhere}}
+.tsBiblioMode .tsSidebar,.tsBiblioMode .tsFooter{display:none}.tsBiblioMode .tsLayout{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr)}.tsBiblioMode .tsEditor{min-height:0}
 .manager2 .tsOpen{border:1px solid #d7e3dd;border-radius:9px;padding:6px 11px;background:#fff;color:#17483d;font:600 12px inherit;cursor:pointer;white-space:nowrap}
 .manager2 .m2ConversationMenu .tsOpen{display:block;width:100%;min-height:40px;text-align:left;font-size:12px}
 .tsDialog{box-sizing:border-box;width:min(1100px,calc(100vw - 40px));height:min(850px,calc(100dvh - 40px));max-width:none;max-height:none;padding:0;border:1px solid #dce4df;border-radius:20px;color:#1d3028;background:#fff;box-shadow:0 30px 100px #11271e40;font:14px/1.45 Arial,sans-serif}
@@ -17,7 +19,7 @@
 @media(max-width:767px) and (max-height:500px){.tsHead{padding-top:10px;padding-bottom:10px}.tsHead p{display:none}.tsSidebar{padding-top:6px;padding-bottom:6px}.tsList{max-height:65px}}
 /* Short screens retain separate scroll areas: source actions stay reachable
    while the editor is guaranteed enough height for a complete focused field. */
-@media(max-width:767px) and (max-height:500px){.tsDialog:not(.tsPreviewMode):not(.tsTripMode):not(.tsConflictMode){overflow:hidden}.tsDialog:not(.tsPreviewMode):not(.tsTripMode):not(.tsConflictMode) .tsLayout{grid-template-rows:minmax(0,105px) minmax(60px,1fr);overflow:hidden}.tsDialog:not(.tsPreviewMode):not(.tsTripMode):not(.tsConflictMode) .tsSidebar,.tsDialog:not(.tsPreviewMode):not(.tsTripMode):not(.tsConflictMode) .tsEditor{overflow:auto}}
+@media(max-width:767px) and (max-height:500px){.tsDialog:not(.tsPreviewMode):not(.tsTripMode):not(.tsConflictMode):not(.tsBiblioMode){overflow:hidden}.tsDialog:not(.tsPreviewMode):not(.tsTripMode):not(.tsConflictMode):not(.tsBiblioMode) .tsLayout{grid-template-rows:minmax(0,105px) minmax(60px,1fr);overflow:hidden}.tsDialog:not(.tsPreviewMode):not(.tsTripMode):not(.tsConflictMode):not(.tsBiblioMode) .tsSidebar,.tsDialog:not(.tsPreviewMode):not(.tsTripMode):not(.tsConflictMode):not(.tsBiblioMode) .tsEditor{overflow:auto}}
 
 .tsTripPanel{max-width:640px;padding:4px 0 20px}.tsTripPanel h3{margin:0 0 12px}.tsTripPanel p,.tsTripPanel li{line-height:1.5;overflow-wrap:anywhere}.tsTripPanel ul{padding-left:22px}.tsTripPanel button{margin:8px 8px 0 0;white-space:normal;min-height:40px}.tsTripConfirm{display:flex;gap:10px;align-items:center;margin:18px 0}.tsTripConfirm input{flex:0 0 auto;width:20px;height:20px}
 
@@ -63,6 +65,22 @@
 
 .tsKnowledge{margin:.75rem 0}.tsKnowledge .hotelKnowledgeView:empty{display:none}
 
+#tsPrint{min-height:44px}.tsPrintProposal{display:none}
+@media print{
+  @page{size:A4;margin:14mm}
+  body.tsPrinting{margin:0!important;min-width:0!important;width:auto!important;max-width:none!important;height:auto!important;overflow:visible!important;background:#fff!important;color:#18312b!important}
+  body.tsPrinting>*:not(#tourSelectionDialog){display:none!important}
+  body.tsPrinting #tourSelectionDialog{position:static!important;display:block!important;inset:auto!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;width:100%!important;min-width:0!important;max-width:none!important;height:auto!important;max-height:none!important;overflow:visible!important;background:#fff!important}
+  body.tsPrinting #tourSelectionDialog::backdrop{display:none}
+  body.tsPrinting #tourSelectionDialog>.tsShell{display:none!important}
+  body.tsPrinting .tsPrintProposal{display:block!important;min-width:0;width:100%;max-width:none;font:11pt/1.5 Arial,sans-serif;overflow-wrap:anywhere}
+  .tsPrintBrand{font-weight:bold;color:#087654;font-size:18pt;margin:0 0 4mm}.tsPrintProposal h1{font-size:23pt;line-height:1.2;margin:0 0 3mm}.tsPrintVersion{font-size:9pt;color:#52695c;margin:0 0 6mm}
+  .tsPrintOffer{margin:0 0 8mm;border-top:1px solid #ccd9d0;padding-top:5mm}.tsPrintOffer h2{font-size:12pt;margin:0 0 3mm;break-after:avoid}
+  .tsPrintPhotos{display:flex;gap:2mm;break-inside:avoid}.tsPrintPhotos figure{flex:1;min-width:0;margin:0}.tsPrintPhotos img{display:block!important;width:100%!important;height:44mm!important;object-fit:cover;position:static!important;opacity:1!important}.tsPrintPhotos figcaption{font-size:8pt;color:#52695c;margin-top:1mm}
+  .tsPrintProposal .tsCardText{white-space:pre-wrap;font-size:11pt;line-height:1.5;margin:4mm 0;overflow-wrap:anywhere}.tsPrintProposal .tsCardTitle{font-size:16pt}.tsPrintProposal .tsCardPrice{font-size:17pt}.tsPrintNotice{font-size:9pt;color:#52695c}
+}
+
+.tsBiblioPanel{min-width:0;overflow-wrap:anywhere}.tsBiblioPanel h3{margin-top:0}.tsBiblioPanel label{display:flex;flex-direction:column;gap:7px;margin:14px 0}.tsBiblioPanel input{min-width:0;max-width:100%;min-height:44px;box-sizing:border-box;padding:10px;border:1px solid #cbd8d0;border-radius:8px;font:inherit}.tsBiblioPanel button{min-height:44px;max-width:100%;margin:4px 8px 4px 0;padding:10px 13px;border:1px solid #cbd8d0;border-radius:8px;font:inherit;white-space:normal}.tsBiblioPanel article{border:1px solid #d6e1da;border-radius:12px;padding:14px;margin:12px 0}.tsBiblioPanel article h4{margin:0 0 10px}.tsBiblioPanel .tsTripConfirm{flex-direction:row;align-items:center}.tsBiblioPanel .tsTripConfirm input{width:22px;flex:none}.tsBiblioPhotos{display:flex;gap:8px;overflow:auto;max-width:100%}.tsBiblioPhotos img{width:30%;min-width:90px;max-width:220px;aspect-ratio:4/3;object-fit:cover;border-radius:8px}.tsBiblioTerms{margin:14px 0}.tsBiblioTerms div{padding:8px 0;border-bottom:1px solid #e5ece7}.tsBiblioTerms dt{color:#52695c;font-size:12px}.tsBiblioTerms dd{margin:3px 0;white-space:pre-line}
 .tsBulkButton{min-height:44px;border:1px solid #d6e1da;background:#fff;border-radius:9px;padding:8px 11px;color:#264b3b;font:inherit}.tsBulkMode .tsLayout,.tsBulkMode .tsFooter{display:none}
 .tsBulkPrice{display:flex;flex:1;flex-direction:column;min-height:0;min-width:0}.tsBulkPrice[hidden]{display:none}
 .tsBulkBody{flex:1;min-height:0;overflow:auto;padding:16px 26px;overflow-wrap:anywhere}.tsBulkBody h3{margin:0 0 8px}.tsBulkBody p{font-size:12px;color:#556b5e}

@@ -98,7 +98,7 @@ test('closed profile is read-only and access revocation hides private criteria',
 });
 for(const projectKey of ['anytour','other'])test(`actual lead-card profile entry preserves reply draft for ${projectKey}`,async({page})=>{
   const {setup}=require('./fixtures/internal-notes');const s=await setup(page,{projectKey});
-  await expect.poll(()=>page.evaluate(()=>!WorkspaceV2.S.booting)).toBe(true);await page.locator('#inboxList [data-conversation-id="11"]').click();await expect(page.locator('#replyText')).toBeVisible();await page.locator('#replyText').fill('Несохранённый ответ туристу');await page.locator('#mobileLeadBtn').click();
+  await expect.poll(()=>page.evaluate(()=>!WorkspaceV2.S.booting)).toBe(true);await page.locator('#inboxList [data-conversation-id="11"]').click();await expect(page.locator('#replyText')).toBeVisible();await page.locator('#replyText').fill('Несохранённый ответ туристу');await page.locator('#conversationTitle.m2ClientCardButton, #mobileLeadBtn:visible').first().click();
   const link=page.locator('[data-request-profile] a');if(projectKey==='anytour'){await expect(link).toHaveAttribute('href','/manager2/request-profile.php?conversation=11');await expect(link).toHaveAttribute('target','_blank');await expect(link).toHaveAttribute('rel','noopener')}else await expect(link).toHaveCount(0);
   await expect(page.locator('#replyText')).toHaveValue('Несохранённый ответ туристу');expect(s.calls.filter(c=>c.action==='send')).toEqual([]);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
 });

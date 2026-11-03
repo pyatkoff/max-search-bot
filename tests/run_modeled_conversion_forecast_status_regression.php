@@ -85,31 +85,37 @@ function forecastValueDeliveryAssertions(PDO $p,callable $check):void
 {
     forecastV1Schema($p);forecastV1Append($p,forecastV1Packet());$now=time();$act=$now-3600;
     foreach(['modeled_conversion_value_export_settings','max_channel_conversion_outbox']as$table)$p->exec('DROP TABLE IF EXISTS '.$table);
-    $p->exec("CREATE TABLE modeled_conversion_value_export_settings(project_key VARCHAR(40) PRIMARY KEY,counter_id VARCHAR(20),mode VARCHAR(16),goal_id VARCHAR(20),goal_intent VARCHAR(20),activated_at_unix BIGINT,last_tick_unix BIGINT,contract_version VARCHAR(64),last_receipt_json TEXT)");
-    $p->exec("CREATE TABLE max_channel_conversion_outbox(id BIGINT PRIMARY KEY,project_key VARCHAR(40),counter_id VARCHAR(20),transport_target VARCHAR(64),value_contract VARCHAR(64),event_unix BIGINT,state VARCHAR(24),value_stage VARCHAR(40),value_rub DECIMAL(12,2),upload_id VARCHAR(20),upload_status VARCHAR(32),last_error VARCHAR(64),private_marker TEXT)");
+    $p->exec("CREATE TABLE modeled_conversion_value_export_settings(project_key VARCHAR(40) PRIMARY KEY,counter_id VARCHAR(20),mode VARCHAR(16),goal_id VARCHAR(20),goal_intent VARCHAR(20),activated_at_unix BIGINT,last_tick_unix BIGINT,contract_version VARCHAR(64),last_receipt_json TEXT,history_from_unix BIGINT,history_until_unix BIGINT,history_completed_at_unix BIGINT,history_scanned BIGINT,history_collected BIGINT,history_stats_json TEXT,history_cursor BIGINT,history_ceiling BIGINT,history_fortnight_requested_at_unix BIGINT,history_day_receipt_json TEXT)");
+    $p->exec("CREATE TABLE max_channel_conversion_outbox(id BIGINT PRIMARY KEY,project_key VARCHAR(40),counter_id VARCHAR(20),transport_target VARCHAR(64),value_contract VARCHAR(64),event_unix BIGINT,state VARCHAR(24),value_stage VARCHAR(40),value_rub DECIMAL(12,2),upload_id VARCHAR(20),upload_status VARCHAR(32),last_error VARCHAR(64),private_marker TEXT,value_origin VARCHAR(32),value_reviewed_at_unix BIGINT,platform VARCHAR(16),conversation_id BIGINT,client_id VARCHAR(40))");
     $report=['status'=>'ok','goal_id'=>'678187097','currency'=>'RUB','fetched_at'=>gmdate('Y-m-d\\TH:i:s\\Z',$now),
         'date1'=>gmdate('Y-m-d',$act-21*86400),'date2'=>gmdate('Y-m-d',$now),'goal_reaches'=>2,'goal_visits'=>1,'revenue_rub'=>2083.0,'sampled'=>false,
         'private_marker'=>'PRIVATE_REPORT_MUST_NOT_LEAVE'];
     $receipt=['errors'=>0,'metrika_report'=>$report];
-    $p->prepare("INSERT INTO modeled_conversion_value_export_settings VALUES('anytour','98615635','send','678187097','verified',?,?,?,?)")
+    $p->prepare("INSERT INTO modeled_conversion_value_export_settings(project_key,counter_id,mode,goal_id,goal_intent,activated_at_unix,last_tick_unix,contract_version,last_receipt_json) VALUES('anytour','98615635','send','678187097','verified',?,?,?,?)")
         ->execute([$act,$now,ModeledConversionValueContract::VERSION,json_encode($receipt,JSON_THROW_ON_ERROR)]);
-    $insert=$p->prepare("INSERT INTO max_channel_conversion_outbox VALUES(?,'anytour','98615635',?,?,?, ?,?,?,?,?,?,'PRIVATE_LEDGER_CLIENT_ID_MUST_NOT_LEAVE')");
+    $insert=$p->prepare("INSERT INTO max_channel_conversion_outbox(id,project_key,counter_id,transport_target,value_contract,event_unix,state,value_stage,value_rub,upload_id,upload_status,last_error,private_marker) VALUES(?,'anytour','98615635',?,?,?, ?,?,?,?,?,?,'PRIVATE_LEDGER_CLIENT_ID_MUST_NOT_LEAVE')");
     foreach([[1,'processed','interest',1250,'501','PROCESSED',''],[2,'accepted','specific_request',833,'502','UPLOADED',''],
         [3,'unknown','offer_discussion',2084,null,null,'upload_outcome_unknown'],[4,'pending','purchase_intent',4166,null,null,'identity_not_found']]as$row){
         [$id,$state,$stage,$value,$upload,$status,$error]=$row;
         $insert->execute([$id,ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION,$now-10,$state,$stage,$value,$upload,$status,$error]);
     }
-    $p->exec("INSERT INTO max_channel_conversion_outbox VALUES(10,'foreign','98615635','anytour_modeled_value_v1','semantic_stage_value_25000_v1',$now,'accepted','agency_choice',25000,'900','PROCESSED','','FOREIGN')");
-    $p->exec("INSERT INTO max_channel_conversion_outbox VALUES(11,'anytour','999','anytour_modeled_value_v1','semantic_stage_value_25000_v1',$now,'accepted','agency_choice',25000,'901','PROCESSED','','FOREIGN')");
+    $p->exec("INSERT INTO max_channel_conversion_outbox(id,project_key,counter_id,transport_target,value_contract,event_unix,state,value_stage,value_rub,upload_id,upload_status,last_error,private_marker) VALUES(10,'foreign','98615635','anytour_modeled_value_v1','semantic_stage_value_25000_v1',$now,'accepted','agency_choice',25000,'900','PROCESSED','','FOREIGN')");
+    $p->exec("INSERT INTO max_channel_conversion_outbox(id,project_key,counter_id,transport_target,value_contract,event_unix,state,value_stage,value_rub,upload_id,upload_status,last_error,private_marker) VALUES(11,'anytour','999','anytour_modeled_value_v1','semantic_stage_value_25000_v1',$now,'accepted','agency_choice',25000,'901','PROCESSED','','FOREIGN')");
     $insert->execute([12,ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION,$act-1,'accepted','agency_choice',25000,'902','PROCESSED','']);
+    $p->exec("UPDATE max_channel_conversion_outbox SET platform=CASE WHEN id<=2 THEN 'max' ELSE 'telegram' END,conversation_id=CASE WHEN id<=2 THEN 10 ELSE id END,client_id=CASE WHEN id<=3 THEN '8800000123' ELSE NULL END");
     $before=json_encode($p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),JSON_THROW_ON_ERROR);
     $r=forecastV1Read($p);$d=$r['value_delivery'];
     $check('private value suffix keeps disjoint queue states and exact incremental sums',$d['available']&&$d['window']['inspected_rows']===4&&$d['reserved_value_rub']===8333.0
         &&$d['by_state']['unknown']['value_rub']===2084.0&&$d['by_state']['pending']['value_rub']===4166.0);
     $check('API acceptance valid rows and visit report are separate',$d['api_accepted_receipts']['events']===2&&$d['api_accepted_receipts']['value_rub']===2083.0
         &&$d['by_state']['processed']['events']===1&&$d['metrika_goal_report']['goal_visits']===1&&$d['metrika_goal_report']['visit_linkage']==='observed_in_goal_session_report');
+    $check('private value counts separate identities conversations and channel coverage',
+        $d['conversations_in_ledger_window']===3&&$d['identity_resolution']['with_identity']['events']===3
+        &&$d['identity_resolution']['with_identity']['value_rub']===4167.0
+        &&$d['identity_resolution']['without_identity']['value_rub']===4166.0
+        &&$d['by_platform']['max']['conversations']===1&&$d['by_platform']['telegram']['conversations']===2);
     $json=json_encode($r,JSON_THROW_ON_ERROR);
-    $check('value read returns no identities upload IDs arbitrary cached text or source markers',!str_contains($json,'PRIVATE_REPORT_MUST_NOT_LEAVE')&&!str_contains($json,'PRIVATE_LEDGER_CLIENT_ID')&&!str_contains($json,'"501"')&&!str_contains($json,'"502"'));
+    $check('value read returns no identities upload IDs arbitrary cached text or source markers',!str_contains($json,'PRIVATE_REPORT_MUST_NOT_LEAVE')&&!str_contains($json,'PRIVATE_LEDGER_CLIENT_ID')&&!str_contains($json,'"501"')&&!str_contains($json,'"502"')&&!str_contains($json,'8800000123'));
     $r=forecastV1Read($p);
     $check('repeated private read causes no queue or saved-profile mutation',$before===json_encode($p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),JSON_THROW_ON_ERROR));
     $receipt['metrika_report']['fetched_at']=gmdate('Y-m-d\\TH:i:s\\Z',$now-901);
@@ -133,6 +139,15 @@ function forecastValueDeliveryAssertions(PDO $p,callable $check):void
     $p->exec("UPDATE max_channel_conversion_outbox SET state='processed' WHERE id=1");
     for($i=100;$i<303;$i++)$insert->execute([$i,ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION,$now-10,'pending','interest',1250,null,null,'identity_not_found']);
     $r=forecastV1Read($p);$check('value history stays bounded and does not imply complete coverage',$r['value_delivery']['window']['inspected_rows']===201&&!$r['value_delivery']['window']['complete_within_bound']);
+    $p->exec("UPDATE modeled_conversion_value_export_settings SET history_from_unix=1793570400,history_until_unix=1793656800,history_cursor=1,history_ceiling=3,history_scanned=1,history_collected=0");
+    $p->exec("UPDATE modeled_conversion_profile_versions SET observed_at_unix=1793574000");
+    $p->exec("INSERT INTO modeled_conversion_profile_versions(project_key,platform,conversation_id,observed_at_unix,profile_json) VALUES('anytour','telegram','9',1793575000,'PRIVATE_UNUSED_PROFILE'),('anytour','max','20',1793576000,'PRIVATE_UNUSED_PROFILE'),('foreign','max','99',1793577000,'PRIVATE_UNUSED_PROFILE')");
+    $r=forecastV1Read($p);$cohort=$r['value_delivery']['historical_review']['saved_cohort'];
+    $check('metadata cohort counts distinct saved dialogues rather than repeated profiles',
+        $cohort['versions_within_bound']===3&&$cohort['conversations_within_bound']===2
+        &&$cohort['reviewed_conversations_within_bound']===1&&$cohort['reviewed_versions_within_bound']===1
+        &&$cohort['by_platform']['telegram']['conversations']===1&&$cohort['by_platform']['max']['conversations']===1
+        &&$cohort['complete_within_bound']&&!str_contains(json_encode($r,JSON_THROW_ON_ERROR),'PRIVATE_UNUSED_PROFILE'));
     $p->exec('DROP TABLE modeled_conversion_value_export_settings');$r=forecastV1Read($p);
     $check('missing value storage preserves the independent forecast result',$r['available']&&$r['value_delivery']['available']===false&&$r['value_delivery']['reason']==='storage_unavailable');
 }
@@ -147,6 +162,10 @@ function forecastV1Assertions(PDO $p,callable $check):void
         &&$r['saved']['estimated_probability_range']['minimum']===0.083333
         &&$r['saved']['estimated_probability_range']['maximum']===0.5
         &&$r['state']['last_tick_status']==='idle'&&$r['state']['last_batch_profiles_written']===0);
+    $p->prepare("UPDATE modeled_conversion_profiles_state SET last_receipt_json=? WHERE project_key='anytour'")->execute([json_encode(['status'=>'profiled','observed_at_unix'=>1793004000,'profiles_written'=>8],JSON_THROW_ON_ERROR)]);
+    $boundedReceipt=forecastV1Read($p);
+    $check('private read accepts eight written profiles without enlarging its four-packet inspection',
+        $boundedReceipt['state']['last_batch_profiles_written']===8&&$boundedReceipt['limits']['max_profile_rows']===4);
     $check('V1 read reports separate channels and skips repeated scope versions',
         $r['saved']['channel_counts']===['max'=>1,'telegram'=>1]&&$r['window']['duplicate_scope_rows']===1
         &&$r['saved']['distinct_inspected_scopes']===2);
@@ -373,8 +392,97 @@ function forecastInputDiagnosisAssertions(PDO $p,callable $check):void
     $check('scalar diagnosis shares the original strict byte budget',$limited);
 }
 
+
+function forecastLatencyAssertions(PDO $p,callable $check):void
+{
+    foreach(['modeled_conversion_stream_versions','modeled_conversion_profile_versions','max_channel_conversion_outbox']as$table)$p->exec('DROP TABLE IF EXISTS '.$table);
+    $mysql=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
+    $p->exec("CREATE TABLE modeled_conversion_stream_versions(id BIGINT PRIMARY KEY,project_key VARCHAR(40),source_kind VARCHAR(16),source_id BIGINT,version_no INT,observed_at_unix BIGINT,snapshot_json TEXT)");
+    $p->exec("CREATE TABLE modeled_conversion_profile_versions(id BIGINT PRIMARY KEY,project_key VARCHAR(40),platform VARCHAR(16),customer_key VARCHAR(40),conversation_id BIGINT,journal_cursor BIGINT,observed_at_unix BIGINT,profile_json TEXT)");
+    $p->exec("CREATE TABLE max_channel_conversion_outbox(id BIGINT PRIMARY KEY,project_key VARCHAR(40),platform VARCHAR(16),conversation_id BIGINT,counter_id VARCHAR(20),transport_target VARCHAR(64),value_contract VARCHAR(64),value_origin VARCHAR(32),value_profile_id BIGINT,event_unix BIGINT,value_rub DECIMAL(12,2),value_stage VARCHAR(32),state VARCHAR(24),client_id VARCHAR(40),upload_id VARCHAR(40),upload_status VARCHAR(32),last_error VARCHAR(64),claimed_at_unix BIGINT,created_at DATETIME)");
+    $day=1793656800;$now=$day+43200;
+    $oldTimeZone=$mysql?$p->query('SELECT @@session.time_zone')->fetchColumn():null;
+    if($mysql)$p->exec("SET time_zone='+00:00'");
+    $save=static function(int $id,int $conversation,string $platform,int $persisted,int $captured,int $version=1,string $project='anytour',string $sender='customer',string $status='present')use($p,$day):void{
+        $snap=['project_key'=>$project,'platform'=>$platform,'customer_key'=>(string)$conversation,'conversation_id'=>(string)$conversation,
+            'source_status'=>$status,'source_created_at_unix'=>$day+$persisted,
+            'payload'=>['direction'=>$sender==='customer'?'inbound':'outbound','sender_type'=>$sender,'text'=>'PRIVATE_TOURIST_TEXT_NEVER_RETURN']];
+        $p->prepare("INSERT INTO modeled_conversion_stream_versions VALUES(?,?,'message',?,?,?,?)")->execute([$id,$project,$id,$version,$day+$captured,json_encode($snap,JSON_THROW_ON_ERROR)]);
+    };
+    $save(1,111,'max',60,120);$save(2,111,'max',200,300);$save(3,222,'max',400,450);
+    $save(4,333,'telegram',600,660);$save(5,444,'max',-100,2000,2);$save(6,555,'max',-100,2000);
+    $save(7,666,'max',100,2000,1,'foreign');$save(8,777,'max',100,2000,1,'anytour','manager');
+    $save(9,888,'max',3000,2000);$save(10,999,'max',100,2000,1,'anytour','customer','scope_excluded');
+    foreach([[1,111,'max',1,121,'predicted','substantive_dialogue'],[2,111,'max',2,900,'predicted','general_purchase_intent'],[3,333,'telegram',4,1800,'known_outcome',null]]as$row){
+        [$id,$conversation,$platform,$cursor,$at,$status,$stage]=$row;
+        $p->prepare("INSERT INTO modeled_conversion_profile_versions VALUES(?,'anytour',?,?,?,?,?,?)")->execute([$id,$platform,(string)$conversation,$conversation,$cursor,$day+$at,json_encode(['semantic_prediction'=>['status'=>$status,'stage'=>$stage],'private_marker'=>'PRIVATE_PROFILE_NEVER_RETURN'],JSON_THROW_ON_ERROR)]);
+    }
+    $insert=$p->prepare("INSERT INTO max_channel_conversion_outbox VALUES(?,'anytour',?,?,'98615635','anytour_modeled_value_v1','semantic_stage_value_25000_v1',?,?,?,?,?,?,?,?,'UPLOADED','',?,?)");
+    foreach([[1,'max',111,null,1,121,1250,'interest','accepted','88000001','PRIVATE_RECEIPT_ONE',130,122],
+        [2,'max',111,null,2,900,7083,'purchase_intent','accepted','88000001','PRIVATE_RECEIPT_TWO',1205,901],
+        [3,'telegram',333,null,3,1800,25000,'payment_report','pending',null,null,null,1801],
+        [4,'max',111,'owner_day_review_v1',2,900,4167,'offer_discussion','accepted','88000001','PRIVATE_HISTORY_RECEIPT',1300,902]]as$row){
+        [$id,$platform,$conversation,$origin,$profile,$event,$value,$stage,$state,$identity,$upload,$claimed,$queued]=$row;
+        $insert->execute([$id,$platform,$conversation,$origin,$profile,$day+$event,$value,$stage,$state,$identity,$upload,$claimed===null?null:$day+$claimed,gmdate('Y-m-d H:i:s',$day+$queued)]);
+    }
+    $read=static fn():array=>(new ModeledConversionLatencyReader($p,static function():void{},new ModeledConversionStatusBudget()))->read($now);
+    $before=json_encode($p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),JSON_THROW_ON_ERROR);
+    $r=$read();
+    $check('today latency separates first messages edits late history and invalid clocks',
+        $r['available']&&$r['date']==='2026-11-03'&&$r['messages']['first_customer_message_rows']===6
+        &&$r['messages']['persisted_today']===4&&$r['messages']['conversations']===3
+        &&$r['messages']['older_source_first_captured_today']===1&&$r['messages']['invalid_clock_rows']===1);
+    $check('today latency resolves the first later profile of the same exact scope',
+        $r['delays']['capture_to_profile']['observations']===2
+        &&$r['delays']['capture_to_profile']['minimum_seconds']===600.0
+        &&$r['delays']['capture_to_profile']['maximum_seconds']===1140.0
+        &&$r['profile_sample']['waiting_for_profile']===1&&$r['by_platform']['max']['conversations']===2
+        &&$r['profile_sample']['recorded_prediction_status']['predicted']===1&&$r['profile_sample']['scopes_inspected']===3);
+    $check('today live value latency excludes historical review and keeps receipt distinct from processing',
+        $r['live_value']['events']===3&&$r['live_value']['value_rub']===33333
+        &&$r['live_value']['api_accepted_events']===2&&$r['live_value']['api_accepted_value_rub']===8333
+        &&$r['live_value']['unresolved_identity_events']===1&&$r['live_value']['processed_events']===0);
+    $check('existing claim tick precision measures same and later intervals without fabricating an API response clock',
+        $r['live_value']['accepted_upload_claim_ticks']['same_five_minute_interval']===1
+        &&$r['live_value']['accepted_upload_claim_ticks']['later_interval']===1
+        &&$r['live_value']['accepted_upload_claim_ticks']['maximum_intervals']===1.0
+        &&$r['live_value']['profile_to_queue_seconds']['maximum_seconds']===1.0);
+    $json=json_encode($r,JSON_THROW_ON_ERROR);
+    $check('today timing output contains no source text profile text native identity or provider IDs',
+        !str_contains($json,'PRIVATE_')&&!str_contains($json,'88000001')&&!str_contains($json,'customer_key')&&!str_contains($json,'conversation_id'));
+    $read();$check('repeated latency inspection never mutates delivery rows',
+        $before===json_encode($p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),JSON_THROW_ON_ERROR));
+    $revoked=false;$calls=0;
+    try{(new ModeledConversionLatencyReader($p,static function()use(&$calls):void{if(++$calls>=4)throw new DomainException();},new ModeledConversionStatusBudget()))->read($now);}
+    catch(DomainException $ignored){$revoked=true;}
+    $check('latency reads cannot expose output after authorization is revoked',$revoked);
+    for($i=11;$i<=2015;$i++)$save($i,777,'max',100,2000,1,'anytour','manager');
+    $r=$read();$check('latency metadata limit is explicit and never labels a truncated suffix as complete',
+        !$r['window']['complete_within_bound']&&$r['window']['inspected_message_versions']===ModeledConversionLatencyReader::JOURNAL_LIMIT);
+    // Production-like human-message volume, many old profile versions and more
+    // distinct scopes than the explicit sample cap. All source text stays unused.
+    for($i=0;$i<2005;$i++)$save(3000+$i,4000+($i%128),'max',2000,2050);
+    $profileInsert=$p->prepare("INSERT INTO modeled_conversion_profile_versions VALUES(?,'anytour','max',?,?,?,?,?)");
+    for($i=0;$i<128;$i++){
+        $scope=4000+$i;
+        for($n=0;$n<21;$n++){
+            $profileInsert->execute([10000+$i*21+$n,(string)$scope,$scope,$n===20?5004:0,$day+($n===20?2100:2001),
+                json_encode(['semantic_prediction'=>['status'=>'predicted','stage'=>'concrete_request'],'private_marker'=>'PRIVATE_LARGE_PROFILE_NEVER_RETURN'],JSON_THROW_ON_ERROR)]);
+        }
+    }
+    $r=$read();
+    $check('large human-message cohort uses an explicit bounded distinct-scope profile sample',
+        $r['available']&&$r['messages']['conversations']===128&&$r['profile_sample']['scopes_inspected']===32
+        &&!$r['profile_sample']['complete_within_captured_window']
+        &&$r['profile_sample']['recorded_prediction_status']['predicted']===32
+        &&$r['delays']['capture_to_profile']['maximum_seconds']===50.0
+        &&count($r['examples'])===6&&$r['example_selection']==='up_to_three_slow_or_pending_then_recent_distinct_scopes'
+        &&!str_contains(json_encode($r,JSON_THROW_ON_ERROR),'PRIVATE_'));
+    if($mysql)$p->exec('SET time_zone='.$p->quote((string)$oldTimeZone));
+}
+
 if(realpath($_SERVER['SCRIPT_FILENAME']??'')===__FILE__){
     $p=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);$passed=0;
     $check=static function(string $name,bool $ok)use(&$passed):void{if(!$ok)throw new RuntimeException('FAIL '.$name);$passed++;echo 'PASS '.$name.PHP_EOL;};
-    forecastV1Assertions($p,$check);echo 'V1 FORECAST STATUS PASSED '.$passed.PHP_EOL;
+    forecastV1Assertions($p,$check);forecastLatencyAssertions($p,$check);echo 'V1 FORECAST STATUS PASSED '.$passed.PHP_EOL;
 }

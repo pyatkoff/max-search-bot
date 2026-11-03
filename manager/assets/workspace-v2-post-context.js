@@ -99,7 +99,8 @@
     if(trigger&&trigger.parentElement===host)return;
     trigger=node('button','postContextToggle');trigger.type='button';
     trigger.setAttribute('aria-haspopup','dialog');trigger.setAttribute('aria-expanded','false');trigger.setAttribute('aria-controls','conversationPostContextDialog');
-    trigger.appendChild(node('span','postContextLabel','Пост клиента'));
+    if(!document.body.classList.contains('manager2'))trigger.appendChild(node('span','postContextLabel','Пост клиента'));
+    trigger.setAttribute('aria-label','Открыть исходный пост обращения');
     photoHint=node('span','postContextPhotoHint','▧');photoHint.hidden=true;photoHint.setAttribute('aria-hidden','true');trigger.appendChild(photoHint);
     teaser=node('span','postContextTeaser');trigger.appendChild(teaser);
     const arrow=node('span','postContextArrow','›');arrow.setAttribute('aria-hidden','true');trigger.appendChild(arrow);

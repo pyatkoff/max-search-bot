@@ -3,6 +3,7 @@ declare(strict_types=1);
 require_once __DIR__.'/HotelServerInputs.php';
 require_once __DIR__.'/HotelServerLane.php';
 require_once __DIR__.'/HotelServerProvider.php';
+require_once __DIR__.'/HotelServerCorrection.php';
 
 /** Dormant library. No endpoint, cron registration, config mutation or native task binding.
  * All canonical data/receipt/baseline/credit/outbox writes share the application PDO's
@@ -103,7 +104,7 @@ final class HotelServerCycle
         });
     }
 
-    /** One existing-server-cron call performs at most one send OR one atomic accept. */
+    /** One cycle step performs at most one send OR one atomic accept. */
     public function tick(string $id): array
     {
         $request = $this->tx($id,function(?array $c) use($id): array {
@@ -150,6 +151,18 @@ final class HotelServerCycle
         try { $result = $this->provider->send($r); }
         catch (Throwable $e) { return ['state'=>'unknown','attempt_id'=>$r['attempt_id'],'reason'=>'provider_outcome_unknown']; }
         return $this->recordResult($id,$r['attempt_id'],$result);
+    }
+
+    /** Network-free follow-up; its exact baseline cannot accept a later stage. */
+    public function acceptReviewed(string $id,string $expectedBaselineSha256): array
+    {
+        HotelServerInputs::sha($expectedBaselineSha256);
+        return $this->tx($id,function(?array $c)use($expectedBaselineSha256):array{
+            $c=$this->required($c);
+            if((int)$c['enabled']!==1||$c['state']!=='reviewed'||$c['baseline_sha256']!==$expectedBaselineSha256)
+                return $this->projection($c);
+            return $this->acceptLocked($c);
+        });
     }
 
     /** Reconcile the SAME invocation only: never dispatch, refund or replace UNKNOWN. */
@@ -201,6 +214,117 @@ final class HotelServerCycle
             $this->exec('UPDATE hotel_server_campaigns SET state=? WHERE campaign_id=?',[$next,$id]);
             $this->fault('result_before_commit'); return $this->projection($this->campaign($id));
         });
+    }
+
+    /** Explicit answer-only correction of a known rejected LAST stage; zero sends.
+     * Original attempts/candidate/review remain immutable. Authorization is supplied
+     * by the private caller; the independent review packet is evidence, not access.
+     */
+    public function correctRejectedFinalStage(string $id,array $correction,callable $authorized): array
+    {
+        if($authorized()!==true)throw new DomainException('correction_not_authorized');
+        $bytes=HotelServerInputs::json($correction);
+        if(strlen($bytes)>65536)throw new DomainException('correction_document_bound');
+        return $this->tx($id,function(?array $c)use($id,$correction,$bytes):array{
+            $c=$this->required($c);$plan=$this->plan($c);$this->validatePlan($plan);$stage=$correction['proposal']['stage_index']??null;
+            if(!is_int($stage)||$stage!==count($plan['stages'])-1)throw new DomainException('correction_final_stage_required');
+            $existing=$this->one('SELECT * FROM hotel_server_corrections WHERE campaign_id=? AND stage_index=?'.$this->lock(),[$id,$stage]);
+            if($existing){
+                if($existing['correction_bytes']!==$bytes||$existing['correction_sha256']!==hash('sha256',$bytes))
+                    throw new DomainException('immutable_correction_conflict');
+                if($c['state']!=='complete'||(int)$c['stage_cursor']!==$stage+1||(int)$c['new_accepted']!==$stage+1)
+                    throw new DomainException('correction_completed_CAS');
+                $proof=$this->correctedStage($c,$stage,HotelServerInputs::sha($correction['proposal']['baseline_sha256']??null));
+                if($proof['baseline_sha256']!==$c['baseline_sha256'])throw new DomainException('correction_completed_CAS');
+                return $this->projection($c)+['receipt_sha256'=>$proof['receipt']['receipt_sha256'],'correction_sha256'=>$existing['correction_sha256'],'already_applied'=>true];
+            }
+            if($c['state']!=='hold'||(int)$c['enabled']!==1||(int)$c['stage_cursor']!==$stage||(int)$c['new_accepted']!==$stage
+                ||(int)$c['historical_accepted']!==19||(int)$c['reserved_calls']!==2*count($plan['stages'])
+                ||(int)$c['reserved_tokens']!==2*count($plan['stages'])*$plan['limits']['tokens_per_call']
+                ||(int)$c['reserved_micros']!==2*count($plan['stages'])*$plan['limits']['micros_per_call'])
+                throw new DomainException('correction_hold_CAS');
+            // The existing accepted baseline is a pinned boundary. Do not walk or
+            // reverify predecessor campaigns/accepted records for this correction.
+            $base=$this->required($this->one('SELECT document_bytes FROM hotel_server_baselines WHERE campaign_id=? AND baseline_sha256=?',[$id,$c['baseline_sha256']]));
+            if(hash('sha256',$base['document_bytes'])!==$c['baseline_sha256'])throw new DomainException('correction_baseline_bytes');
+            $proof=$this->correctionPrepared($c,$stage,$c['baseline_sha256'],$correction);$v=$proof['prepared'];
+            $this->safeScopes($id,$plan['stages'][$stage]);
+            if($this->one('SELECT stage_index FROM hotel_server_receipts WHERE campaign_id=? AND stage_index=?',[$id,$stage]))
+                throw new DomainException('correction_stage_already_accepted');
+            $this->exec('INSERT INTO hotel_server_corrections(campaign_id,stage_index,correction_sha256,correction_bytes,candidate_sha256,candidate_bytes) VALUES(?,?,?,?,?,?)',
+                [$id,$stage,$v['correction_sha256'],$v['correction_bytes'],$v['candidate_sha256'],$v['candidate_bytes']]);
+            foreach($v['candidate']['records'] as $record)$this->exec('INSERT INTO hotel_server_records(semantic_key,campaign_id,candidate_sha256,record_bytes) VALUES(?,?,?,?)',
+                [HotelServerInputs::key($record['scope']),$id,$v['candidate_sha256'],HotelServerInputs::json($record)]);
+            $delta=HotelServerInputs::json(['schema'=>'hotel-server-baseline-v1','parent_sha256'=>$c['baseline_sha256'],
+                'candidate_sha256'=>$v['candidate_sha256'],'records'=>$v['candidate']['records']]);$baseline=hash('sha256',$delta);
+            $this->exec('INSERT INTO hotel_server_baselines(campaign_id,baseline_sha256,parent_sha256,document_bytes) VALUES(?,?,?,?)',[$id,$baseline,$c['baseline_sha256'],$delta]);
+            $receipt=$this->correctionReceipt($c,$stage,$proof,$baseline);$receiptBytes=HotelServerInputs::json($receipt);$receiptSha=hash('sha256',$receiptBytes);
+            $this->exec('INSERT INTO hotel_server_receipts(campaign_id,stage_index,receipt_sha256,receipt_bytes) VALUES(?,?,?,?)',[$id,$stage,$receiptSha,$receiptBytes]);
+            $changed=$this->exec("UPDATE hotel_server_campaigns SET baseline_sha256=?,stage_cursor=?,new_accepted=new_accepted+1,state='complete' WHERE campaign_id=? AND state='hold' AND enabled=1 AND baseline_sha256=? AND stage_cursor=? AND new_accepted=?",
+                [$baseline,$stage+1,$id,$c['baseline_sha256'],$stage,$stage]);
+            if($changed!==1)throw new DomainException('correction_baseline_CAS');
+            $this->exec('INSERT INTO hotel_server_catalog_outbox(receipt_sha256,campaign_id,payload_bytes,state) VALUES(?,?,?,?)',[$receiptSha,$id,$delta,'pending']);
+            $this->fault('correction_before_commit');
+            return $this->projection($this->campaign($id))+['receipt_sha256'=>$receiptSha,'correction_sha256'=>$v['correction_sha256'],'already_applied'=>false];
+        });
+    }
+
+    /** Current-stage evidence only: no accepted history scan and no provider. */
+    private function correctionPrepared(array $c,int $stage,string $parent,array $correction): array
+    {
+        $id=$c['campaign_id'];$candidate=$this->candidate($id,$stage);
+        $review=$this->required($this->one('SELECT * FROM hotel_server_reviews WHERE campaign_id=? AND stage_index=?'.$this->lock(),[$id,$stage]));
+        $producer=$this->attempt($candidate['producer_attempt']);$reviewer=$this->attempt($review['review_attempt']);
+        $atParent=$c;$atParent['baseline_sha256']=$parent;
+        $prepared=HotelServerCorrection::prepare($atParent,$this->package($id),$this->plan($c),$producer,$reviewer,$candidate,$review,$correction);
+        $s=$this->pdo->prepare('SELECT * FROM hotel_server_outbox WHERE campaign_id=? AND stage_index=?'.$this->lock());$s->execute([$id,$stage]);
+        $outboxes=$s->fetchAll(PDO::FETCH_ASSOC);$s->closeCursor();$expected=['producer'=>$producer['attempt_id'],'reviewer'=>$reviewer['attempt_id']];
+        if(count($outboxes)!==2)throw new DomainException('correction_outbox_required');
+        foreach($outboxes as $out){
+            if(!isset($expected[$out['role']])||$out['state']!=='done'||$out['attempt_id']!==$expected[$out['role']])throw new DomainException('correction_outbox_required');
+            unset($expected[$out['role']]);
+        }
+        return compact('prepared','candidate','producer','reviewer');
+    }
+
+    private function correctionReceipt(array $c,int $stage,array $proof,string $baseline): array
+    {
+        return HotelServerCorrection::receipt($c,$stage,$proof['prepared'],$proof['candidate'],$proof['producer'],$proof['reviewer'],
+            $baseline,$this->package($c['campaign_id'])['retained_admission']??null);
+    }
+
+    /** Verify the new provenance without pretending the original rejection approved. */
+    private function correctedStage(array $c,int $stage,string $parent): array
+    {
+        $id=$c['campaign_id'];$row=$this->required($this->one('SELECT * FROM hotel_server_corrections WHERE campaign_id=? AND stage_index=?',[$id,$stage]));
+        if(hash('sha256',$row['correction_bytes'])!==$row['correction_sha256']||hash('sha256',$row['candidate_bytes'])!==$row['candidate_sha256'])
+            throw new DomainException('correction_ledger_hash');
+        $correction=json_decode($row['correction_bytes'],true,64,JSON_THROW_ON_ERROR);
+        if(!is_array($correction)||HotelServerInputs::json($correction)!==$row['correction_bytes'])throw new DomainException('correction_ledger_hash');
+        $proof=$this->correctionPrepared($c,$stage,$parent,$correction);$v=$proof['prepared'];
+        foreach(['correction_bytes','correction_sha256','candidate_bytes','candidate_sha256'] as $field)
+            if($v[$field]!==$row[$field])throw new DomainException('correction_ledger_lineage');
+        $deltaBytes=HotelServerInputs::json(['schema'=>'hotel-server-baseline-v1','parent_sha256'=>$parent,
+            'candidate_sha256'=>$v['candidate_sha256'],'records'=>$v['candidate']['records']]);$baseline=hash('sha256',$deltaBytes);
+        $delta=$this->required($this->one('SELECT * FROM hotel_server_baselines WHERE campaign_id=? AND baseline_sha256=?',[$id,$baseline]));
+        if($delta['parent_sha256']!==$parent||$delta['document_bytes']!==$deltaBytes)throw new DomainException('correction_baseline_unconfirmed');
+        $atParent=$c;$atParent['baseline_sha256']=$parent;$receipt=$this->correctionReceipt($atParent,$stage,$proof,$baseline);
+        $saved=$this->required($this->one('SELECT * FROM hotel_server_receipts WHERE campaign_id=? AND stage_index=?',[$id,$stage]));
+        if($saved['receipt_bytes']!==HotelServerInputs::json($receipt)||hash('sha256',$saved['receipt_bytes'])!==$saved['receipt_sha256'])
+            throw new DomainException('correction_receipt_unconfirmed');
+        $records=[];$values=[];
+        foreach($v['candidate']['records'] as $record){
+            $key=HotelServerInputs::key($record['scope']);$bytes=HotelServerInputs::json($record);
+            $canonical=$this->required($this->one('SELECT * FROM hotel_server_records WHERE semantic_key=?',[$key]));
+            if($canonical['campaign_id']!==$id||$canonical['candidate_sha256']!==$v['candidate_sha256']||$canonical['record_bytes']!==$bytes)
+                throw new DomainException('correction_record_unconfirmed');
+            $records[$key]=['semantic_key'=>$key,'campaign_id'=>$id,'stage_index'=>$stage,'candidate_sha256'=>$v['candidate_sha256'],
+                'receipt_sha256'=>$saved['receipt_sha256'],'record_sha256'=>hash('sha256',$bytes)];$values[$key]=$record;
+        }
+        $out=$this->required($this->one('SELECT * FROM hotel_server_catalog_outbox WHERE receipt_sha256=?',[$saved['receipt_sha256']]));
+        if($out['campaign_id']!==$id||$out['payload_bytes']!==$deltaBytes||!in_array($out['state'],['pending','done'],true))
+            throw new DomainException('correction_projection_unconfirmed');
+        return ['baseline_sha256'=>$baseline,'receipt'=>['stage_index'=>$stage,'receipt_sha256'=>$saved['receipt_sha256']],'records'=>$records,'values'=>$values];
     }
 
     /** Reserve updates serialize against assignment AND acceptance on the same campaign lock. */
@@ -318,6 +442,9 @@ final class HotelServerCycle
     /** Recheck canonical acceptance, not merely a complete flag or exported records. */
     private function acceptedStage(array $c,int $stage,string $parent): array
     {
+        $receipt=$this->required($this->one('SELECT receipt_bytes FROM hotel_server_receipts WHERE campaign_id=? AND stage_index=?',[$c['campaign_id'],$stage]));
+        $receiptBody=json_decode($receipt['receipt_bytes'],true,64,JSON_THROW_ON_ERROR);
+        if(($receiptBody['schema']??null)==='hotel-server-correction-acceptance-v1')return $this->correctedStage($c,$stage,$parent);
         $id=$c['campaign_id'];$plan=$this->plan($c);$p=$this->package($id);$candidate=$this->candidate($id,$stage);
         $review=$this->required($this->one('SELECT * FROM hotel_server_reviews WHERE campaign_id=? AND stage_index=?',[$id,$stage]));
         $attempts=['producer'=>$this->attempt($candidate['producer_attempt']),'reviewer'=>$this->attempt($review['review_attempt'])];$requests=[];$results=[];
@@ -552,4 +679,5 @@ final class HotelServerCycle
     private function exec(string $sql,array $args): int { $s=$this->pdo->prepare($sql); $s->execute($args); return $s->rowCount(); }
     private static function id(string $id): void { if ($id===HotelServerInputs::OLD_QUEUE || !preg_match('/\A[A-Za-z0-9][A-Za-z0-9_-]{0,79}\z/D',$id)) throw new DomainException('new_campaign_id_required'); }
 }
+
 

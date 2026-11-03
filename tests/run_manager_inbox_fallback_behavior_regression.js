@@ -6,18 +6,18 @@ const source = fs.readFileSync(path.join(__dirname, '../manager/assets/workspace
 
 function harness(overrides = {}, result = {ok: false, http_status: 500}) {
   const S = {queue: 'mine', leadProjectFilter: 'anytour', leadSourceFilter: 0, leadStageFilter: '', leadTagFilter: 0, leadOutcomeFilter: '', leadTaskFilter: '', leadSearch: '', ...overrides};
-  const calls = [];
+  const calls = [], pipeCalls=[];
   const element = () => ({children: [], dataset: {}, attrs: {}, className: '', innerHTML: '', classList: {toggle() {}}, replaceChildren(...children) {this.children = children;}, appendChild(child) {this.children.push(child);}, setAttribute(key, value) {this.attrs[key] = value;}});
   const list = element(); list.innerHTML = '<existing-filtered-lead>';
   const status = element();
   const elements = {inboxList: list, inboxLoadStatus: status};
   const context = {
     document: {createElement: element, querySelector: selector => selector === '#inboxList .leadItem' ? {} : null},
-    window: {WorkspaceV2: {S, $: id => elements[id] || null, pipe: async () => typeof result === 'function' ? result() : result, api: async (action, payload) => {calls.push({action, payload}); return {ok: true, conversations: [{id: 999, display_name: 'Unrelated lead'}]};}}},
+    window: {WorkspaceV2: {S, $: id => elements[id] || null, pipe: async (action,payload) => {pipeCalls.push({action,payload});return typeof result === 'function' ? result() : result;}, api: async (action, payload) => {calls.push({action, payload}); return {ok: true, conversations: [{id: 999, display_name: 'Unrelated lead'}]};}}},
   };
   vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../manager/assets/manager-time.js'),'utf8'),context);
   vm.runInNewContext(source, context);
-  return {S, calls, list, status, inbox: context.window.WorkspaceV2Inbox};
+  return {S, calls, pipeCalls, window:context.window, list, status, inbox: context.window.WorkspaceV2Inbox};
 }
 
 // Synthetic layout exposes actual scroll assignments separately from the final
@@ -79,6 +79,11 @@ function renderHarness(overrides={}) {
     await assert.rejects(h.inbox.fetchRows(), {message: 'inbox_list_failed'}, 'failed filtered request must not return an unfiltered list: ' + JSON.stringify(filter));
     assert.equal(h.calls.length, 0, 'unsupported filtered request must not use legacy list');
   }
+  const sales=harness({queue:'closed',leadSearch:'unrelated',leadProjectFilter:'archived-project'}, {ok:true,conversations:[{id:71}]});
+  const explicit={queue:'mine',project_key:'*',source_id:0,manager_filter:'7',lead_stage_key:'',lead_tag_id:0,lead_outcome:'open',lead_task_filter:'none',search:''};
+  sales.window.Manager2Presentation={listFilters:()=>explicit};sales.window.WorkspaceV2PersonalWorkspace={selectionScope:()=> 'group:9',fetchRows:()=>{throw Error('Sales must not load the personal group')}};
+  assert.equal((await sales.inbox.fetchRows())[0].id,71);assert.deepEqual(JSON.parse(JSON.stringify(sales.pipeCalls[0])),{action:'list',payload:explicit});assert.equal(sales.S.queue,'closed');assert.equal(sales.S.leadSearch,'unrelated');
+  const failedSales=harness();failedSales.window.Manager2Presentation={listFilters:()=>explicit};await assert.rejects(failedSales.inbox.fetchRows(),{message:'inbox_list_failed'});assert.equal(failedSales.calls.length,0,'failed Sales scope cannot fall back to an unfiltered Inbox');
   const basic = harness();
   assert.equal((await basic.inbox.fetchRows())[0].id, 999, 'unfiltered My queue still has basic fallback');
   assert.equal(basic.calls[0].payload.project_key, 'anytour', 'fallback preserves the original project');

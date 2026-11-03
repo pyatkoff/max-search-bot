@@ -8,6 +8,11 @@ final class ManagerTourSelectionImportDraft
     public static function normalize($input): ?array
     {
         if (!is_array($input) || array_diff(array_keys($input),['adapter','url','observed_at','quote_id','keys','offer','raw','photos'])) return null;
+        if (($input['adapter']??null)==='biblio-public-v1') {
+            require_once __DIR__.'/ManagerTourSelectionBiblioImportDraft.php';
+            $normalized=ManagerTourSelectionBiblioImportDraft::normalize($input);
+            return $normalized===null?null:self::withPhotos($input,$normalized);
+        }
         if (($input['adapter']??null)==='anex-agent-v1') {
             require_once __DIR__.'/ManagerTourSelectionAnexImportDraft.php';
             $normalized=ManagerTourSelectionAnexImportDraft::normalize($input);
@@ -103,6 +108,8 @@ final class ManagerTourSelectionImportDraft
                 if (($p['host']??'')!=='files.anextour.ru' || !preg_match('~\A/hotel/hotels/[a-z0-9_/-]+/o[1-9][0-9]*\z~D',$p['path']??'')) return null;
                 // The observed CDN explicitly binds each image to its source hotel.
                 if (!preg_match('/\A&?hotelCode='.preg_quote($normalized['keys']['hotel'],'/').'\z/D',$p['query']??'')) return null;
+            } elseif ($normalized['adapter']==='biblio-public-v1') {
+                if (!ManagerTourSelectionBiblioImportDraft::photoUrl($url)) return null;
             } else {
                 $path='~\A/hotel_pics/verybig/'.preg_quote($normalized['keys']['country'],'~').'/'.preg_quote($normalized['keys']['hotel'],'~').'-[1-9][0-9]*\.(?:jpg|jpeg|png)\z~iD';
                 if (($p['host']??'')!=='static.tourvisor.ru' || !preg_match($path,$p['path']??'') || isset($p['query'])) return null;

@@ -307,3 +307,19 @@ Actual examples, counts and financial results remain private.
 Progress also reads the existing recorded profile pending-revision count and an
 at-most201-row saved-version suffix beyond the value cursor. It never returns or
 advances cursors, and missing checkpoint storage remains unknown rather than zero.
+
+### Today's private timing
+
+The existing empty-argument forecasts:read status adds today_latency under the same shared64KiB/5s budget. It inspects at most2001message revisions captured on the current Europe/Kaliningrad day and at most201live value rows. Only scalar timing/status aggregates and at most6anonymous distinct message-scope examples plus6value examples leave the server. Source/profile text, customer/conversation/native/provider IDs are never returned.
+
+First customer messages persisted today are timed separately from edited messages, older messages first captured today and invalid clocks. A correlated metadata lookup finds the first later profile of the same project/platform/customer/conversation whose journal cursor covers that revision. This proves profile-save progress; it does not prove every message was admitted into a numeric prediction. Recorded prediction statuses remain descriptive, not new semantic validation. The captured suffix does not establish completeness of native source capture.
+
+Live value rows exclude owner historical review. The view reports profile→queue delay, existing upload-claim five-minute intervals and actual provider-receipt presence separately from processed rows and cached goal visits. claimed_at_unix is the existing attempt tick, not a new exact API-response timestamp. Missing clocks, pending profiles/ready rows, identity holds and incomplete bounds remain explicit. This read never captures, ticks, reclassifies, uploads or mutates anything.
+
+### Bounded recent-scope timing queries (reader v1_7)
+
+The first live v1_6 measurement exhausted the five-second budget in the all-message correlated profile join. This was a read-view performance defect, not evidence of forecast or delivery delay. v1_7 keeps aggregate capture counters over the same at-most2001message-version suffix, then selects the latest first customer message of at most32recent distinct scopes. Parameter-bound first-profile lookups use ordinary column collations/indexes instead of joining JSON-derived subject keys against every profile for every message.
+
+Profile-delay/status/waiting metrics describe that explicit32scope sample, with its own inspected count and completeness within the captured window. Capture-delay counters remain over all eligible first messages in the bounded captured suffix. Neither is a claim of complete native message capture. At most6anonymous examples (up to3slow/pending followed by the newest distinct scopes) and the independent live-value examples are returned. The v1_8 reader accepts the producer's bounded8-profile receipt; its separate4-packet validation sample is unchanged. Shared64KiB/5s limits, authorization/revocation checks, read-only queries, historic-value exclusions and API/claim/processing precision remain unchanged.
+
+The regression includes2005new human message revisions over128scopes and2688older/current profile versions; it verifies the32scope cap, exact later-profile delay, privacy and successful completion under the existing budget on SQLite/nativeMySQL. It does not claim a measured production improvement until the real private route succeeds.

@@ -152,14 +152,14 @@ for(const width of [390,430,768,1440])test.describe('Messenger layout '+width,()
     await expect(page.locator('#pwTabs')).toBeVisible();
     await page.locator('#pwClose').click();
     await expect(page.locator('#m2WorkspaceSettings')).toBeFocused();
-    if(width<=740)await page.getByRole('button',{name:'Ещё',exact:true}).press('Enter');
+    await page.getByRole('button',{name:'Ещё',exact:true}).press('Enter');
     await page.locator('#m2NotificationButton').press('Enter');
     await expect(page.locator('#m2Notifications')).toBeVisible();
     await expect(page.locator('#m2Notifications #managerName')).toHaveText('Мария');
     await expect(page.locator('#m2Notifications #managerShiftBtn')).toBeVisible();
     await expect(page.locator('#notificationStatus')).toBeVisible();
     await page.locator('#m2NotificationsClose').click();
-    await expect(width<=740?page.getByRole('button',{name:'Ещё',exact:true}):page.locator('#m2NotificationButton')).toBeFocused();
+    await expect(page.getByRole('button',{name:'Ещё',exact:true})).toBeFocused();
     await settle(fixture);
     expect(fixture.calls.slice(initial)).toHaveLength(1);
     expect(fixture.calls[initial]).toMatchObject({path:'/manager/push.php',action:'connections',expected_manager_id:7});
@@ -201,7 +201,8 @@ for(const width of [390,430,768,1440])test.describe('Messenger layout '+width,()
     // Drain that initial request before measuring the disclosure's zero extra reads.
     await expect.poll(()=>fixture.calls.filter(call=>call.action==='edit_candidates').length).toBe(1);await settle(fixture);
     const before=fixture.calls.length;
-    for(const opener of ['#conversationTitle','#mobileLeadBtn']){
+    await expect(page.locator('#mobileLeadBtn')).toBeHidden();
+    for(const opener of ['#conversationTitle']){
       await page.locator(opener).press('Enter');
       await expect(card).toBeVisible();
       await expect(page.locator('#mobileLeadClose')).toBeVisible();
@@ -216,7 +217,7 @@ for(const width of [390,430,768,1440])test.describe('Messenger layout '+width,()
       await expect(page.locator('#mediaSelection')).toHaveText(attachment);
     }
     await title.focus();await page.keyboard.press('Alt+l');await expect(card).toBeVisible();
-    await page.locator('#mobileLeadClose').click();await expect(card).not.toBeVisible();await expect(page.locator('#mobileLeadBtn')).toBeFocused();
+    await page.locator('#mobileLeadClose').click();await expect(card).not.toBeVisible();await expect(page.locator('#conversationTitle')).toBeFocused();
     const actions=page.getByLabel('Действия с диалогом',{exact:true});await actions.press('Enter');
     await expect(page.getByRole('button',{name:'Закрыть обращение',exact:true})).toBeVisible();
     await expect(page.getByRole('button',{name:'Закрыть',exact:true})).toHaveCount(0);

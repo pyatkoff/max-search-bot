@@ -46,7 +46,18 @@ try{
     [$code,$body]=transportHttp($url,['body'=>$req['body'],'signature'=>str_repeat('0',128)]);
     transportCheck('wrong request signature cannot read or create the journal',$code===404&&$body===''&&!is_dir($base.'/.tgmini-identity-anytour'));
     $wrong=$req;$wrong['body'].=' ';[$code,$body]=transportHttp($url,$wrong);transportCheck('body tampering rejected',$code===404&&$body==='');
-    foreach([$now-121,$now+61]as$time){$bad=AdvertisingVisitFeedProtocol::request(AdvertisingVisitTransport::SCOPE,$checkpoint,$keys['sign'],$time);[$code,$body]=transportHttp($url,$bad);transportCheck('expired or future signed request rejected',$code===404&&$body==='');}
+    // Exact boundaries use the canonical verifier with one explicit clock.
+    foreach([-120,60]as$offset){
+        $edge=AdvertisingVisitFeedProtocol::request(AdvertisingVisitTransport::SCOPE,$checkpoint,$keys['sign'],$now+$offset);
+        $checked=AdvertisingVisitFeedProtocol::authenticate($edge['body'],$edge['signature'],hex2bin($pub['request_public_key']),AdvertisingVisitTransport::SCOPE,$now);
+        transportCheck('exact valid request-time boundary accepted',$checked['issued_at_unix']===$now+$offset);
+    }
+    foreach([-121,61]as$offset){
+        $edge=AdvertisingVisitFeedProtocol::request(AdvertisingVisitTransport::SCOPE,$checkpoint,$keys['sign'],$now+$offset);
+        transportReject(static fn()=>AdvertisingVisitFeedProtocol::authenticate($edge['body'],$edge['signature'],hex2bin($pub['request_public_key']),AdvertisingVisitTransport::SCOPE,$now),'exact invalid request-time boundary rejected');
+    }
+    // HTTP crosses real process clocks; leave a clear invalid margin.
+    foreach([$now-3600,$now+3600]as$time){$bad=AdvertisingVisitFeedProtocol::request(AdvertisingVisitTransport::SCOPE,$checkpoint,$keys['sign'],$time);[$code,$body]=transportHttp($url,$bad);transportCheck('expired or future signed request rejected',$code===404&&$body==='');}
     $foreign=AdvertisingVisitTransport::SCOPE;$foreign['counter_id']='123';$bad=AdvertisingVisitFeedProtocol::request($foreign,$checkpoint,$keys['sign'],time());[$code,$body]=transportHttp($url,$bad);transportCheck('signed foreign counter cannot select another feed',$code===404&&$body==='');
     $oldRoot=$_SERVER['DOCUMENT_ROOT']??null;$_SERVER['DOCUMENT_ROOT']=$base.'/web';
     $capture=new TgminiIdentityCapture();

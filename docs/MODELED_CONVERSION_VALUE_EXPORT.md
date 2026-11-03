@@ -113,3 +113,63 @@ Disjoint queue states, reserved/accepted/processed RUB subtotals, incremental
 stage subtotals, upload-status and fixed error counts are separate.201rows means
 coverage might be incomplete. No global people/trip or paid-cohort rate is inferred.
 API calls occur only in the existing background value step, never during MCP.
+
+
+## Explicit historical review: yesterday first
+
+The owner separately authorized the last two weeks, starting with2Nov2026 in
+Europe/Kaliningrad. The first finite operation is launch-history-20261102:
+1793570400 <= original profile/source clocks <1793656800. Migration087 adds
+nullable historical origin/review time to the existing outbox and inactive
+cursor/ceiling/counters in existing settings. No new queue, process or timer.
+
+Only this exact historical operation accepts known admitted-profile wrapper
+versions independently of current source hashes. Original hashes/IDs/cutoffs
+remain intact. Typed roles, exact subject/reference bindings, available-at and
+day clocks, canonical semantic version, product and contrary evidence remain
+required; saved model stages pass the full canonical structural/digest validator.
+No legacy probability is published as a current early prediction. Ordinary live
+collection keeps its existing source namespace and prospective activation floor.
+
+The ordinary value tick reviews at most40 bounded metadata rows and2MiB of
+original immutable packets, at most128KiB each, then uses existing outbox identity,
+claims, receipts and UNKNOWN reconciliation. The historical high-watermark includes
+all reserved live and historical values, so repetition/overlapping stages cannot
+increase a conversation beyond its existing25000RUB cap. Current access, personal
+binding, destination gate and later contrary evidence are checked; denied/unknown
+does not become an assumed positive. No original dialogue, profile, read marker
+or customer send is changed.
+
+The conversion timestamp is when the historical advertising value is assigned,
+while value_profile_id retains the original dated evidence and
+value_reviewed_at_unix distinguishes this from a saved early forecast. It is
+neither a bank payment time nor a backdated prediction. The private reader exposes
+historical progress and includes legitimate historical rows in the same receipt
+and goal-session checks; public operational output contains technical state only.
+
+A unique anytour-value-history-1293 merge marker permits the existing finite
+configuration workflow to launch only this fixed day after all7 current release
+gates and exact-main/server checks. It never creates a goal, enables a disabled
+sender, resets activation/cursors or repeats a completed historical window.
+Remaining authorized dates require subsequent explicit finite windows; they are
+not claimed complete by this first-day operation. Positive natural upload and
+provider receipt must still be observed privately after installation.
+
+Historical progress keeps fixed private reason counters for inspected customer
+text, qualifying signal, invalid packet, absent day signal, current binding/scope
+hold and already-reserved value. Unknown counters remain null in the reader.
+
+Release-dependency correction: an existing hotel campaign's confirmed safe HOLD
+is retained as server_cycle_hold in its private operational checkpoint and future
+cron proof stages. Only a normal canonical-cycle return carries worker_completed.
+Configuration/unknown/error HOLD still fails. The verifier's accepted states,
+two-future-tick timing and failure gates are unchanged; campaign state, budgets,
+queues, provider dispatch and connections are never altered by this correction.
+
+### Finite extension after the authorized first day
+
+The owner authorized the14complete Europe/Kaliningrad days20October–2November2026. Operation `launch-history-fortnight-v1` records one durable request in the existing settings. It does not interrupt the2November scan. Only after that scan completes does the ordinary existing value tick retain its first-day receipt, expand once to the fixed14-day range, and begin a bounded review from the original immutable saved profiles. Existing live activation/cursor and all value reservations, including UNKNOWN and missing-identity rows, remain unchanged. A repeated request cannot rewind either completed scan. Migration088 is forward-only;086/087 remain immutable.
+
+Historical values are assigned at the review time and retain original profile provenance; they are not retrospective early forecasts or actual commission/bank settlements. New fortnight-origin rows use the same existing outbox, eligibility, identity, claim, API receipt/poll and UNKNOWN handling. Missing identity preserves the calculated value and cannot prevent other admissible events from uploading. No source capture, transcript edit, customer send, new scheduler/worker/queue or identity fabrication is involved.
+
+The existing private view adds metadata-only distinct-conversation/channel coverage for the configured saved-profile window (maximum20001metadata versions, explicit completeness) and bounded-ledger identity/channel counts and value sums. Repeated versions are not additional people/trips. This is coverage of retained profiles, not a claim to have reviewed the entire original archive. Stored identity resolution is not a new eligibility check. Provider acceptance, validated rows and visit linkage remain distinct.

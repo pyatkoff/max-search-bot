@@ -15,7 +15,7 @@ lssCheck('flagged sessions expose evidence from the same diagnostic window',strp
 lssCheck('message evidence is capped to recent tail',strpos($source,'array_slice($messages,-max(1,$limit))')!==false && strpos($source,'int $limit=24')!==false);
 lssCheck('message text is compacted and truncated',strpos($source,'mb_strlen($text)>280')!==false && strpos($source,"mb_substr(\$text,0,277).'...'")!==false);
 lssCheck('unflagged sessions do not receive message evidence',strpos($source,"if(!empty(\$session['flags']))")!==false);
-lssCheck('newer main push cancels stale diagnostics waiter',strpos($workflow,"group: production-live-session-diagnostics")!==false&&strpos($workflow,"cancel-in-progress: true")!==false);
+lssCheck('live diagnostics serializes runs without cancelling active capture',strpos($workflow,"group: production-live-session-diagnostics")!==false&&strpos($workflow,"cancel-in-progress: false")!==false);
 lssCheck('test provenance migration is explicit and immutable',strpos($migration,'ADD COLUMN is_test TINYINT(1) NOT NULL DEFAULT 0')!==false&&strpos($migration,'ADD COLUMN test_source VARCHAR(64) NULL')!==false&&strpos($migration,'ADD COLUMN test_reason VARCHAR(255) NULL')!==false);
 lssCheck('session analyzer carries explicit test provenance',strpos($analyzer,"'is_test'=>!empty(\$conversation['is_test'])")!==false&&strpos($analyzer,"'test_source'=>(string)(\$conversation['test_source']??'')")!==false);
 lssCheck('session analyzer exposes source resolution without guessing',strpos($analyzer,"'source_id'=>isset(\$conversation['source_id'])?(int)\$conversation['source_id']:null")!==false&&strpos($analyzer,"'source_resolved'=>isset(\$conversation['source_id'])&&(int)\$conversation['source_id']>0")!==false);

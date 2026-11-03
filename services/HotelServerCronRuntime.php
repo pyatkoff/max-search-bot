@@ -26,7 +26,9 @@ final class HotelServerCronRuntime
             }
             $cycle=new HotelServerCycle($p,new HotelServerLane($p),$v['provider'],$v['clock']??null);
             $result=$cycle->tick($rows[0]['campaign_id']);
-            return ['handled'=>true,'state'=>$result['state'],'historical_accepted'=>$result['historical_accepted']??19,'new_accepted'=>$result['new_accepted']??null];
+            // The review is durable before this separate local acceptance transaction.
+            if($result['state']==='reviewed')$result=$cycle->acceptReviewed($rows[0]['campaign_id'],$result['baseline_sha256']);
+            return ['handled'=>true,'state'=>$result['state'],'worker_completed'=>true,'historical_accepted'=>$result['historical_accepted']??19,'new_accepted'=>$result['new_accepted']??null];
         }catch(Throwable $ignored){
             // A send could have happened. Never claim zero calls or fall back to legacy.
             return ['handled'=>true,'state'=>'hold','reason'=>'server_tick_unconfirmed'];

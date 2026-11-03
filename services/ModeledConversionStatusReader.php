@@ -238,7 +238,7 @@ final class ModeledConversionStatusReader
         if(is_int($v['observed_at_unix']??null)&&$v['observed_at_unix']>=946684800&&$v['observed_at_unix']<=time())$out['last_tick_at']=gmdate('Y-m-d\TH:i:s\Z',$v['observed_at_unix']);
         foreach(['profiles_written'=>'last_batch_profiles_written','pending_revisions'=>'pending_revisions']as$in=>$key)
             if(is_int($v[$in]??null)&&$v[$in]>=0&&$v[$in]<=1000000000)$out[$key]=$v[$in];
-        if(($v['early_forecast']['version']??null)===ModeledConversionEarlyForecast::VERSION&&is_int($v['early_forecast']['snapshots']??null)&&$v['early_forecast']['snapshots']>=0&&$v['early_forecast']['snapshots']<=4)$out['last_batch_forecast_snapshots']=$v['early_forecast']['snapshots'];
+        if(($v['early_forecast']['version']??null)===ModeledConversionEarlyForecast::VERSION&&is_int($v['early_forecast']['snapshots']??null)&&$v['early_forecast']['snapshots']>=0&&$v['early_forecast']['snapshots']<=8)$out['last_batch_forecast_snapshots']=$v['early_forecast']['snapshots'];
         return $out;
     }
     private function paired(array $p,array $row):?array

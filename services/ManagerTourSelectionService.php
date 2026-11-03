@@ -136,7 +136,36 @@ final class ManagerTourSelectionService
         return self::importCommand($actor,$conversationId,$session,$input,true);
     }
 
-    private static function importCommand(int $actor,int $conversationId,string $session,array $input,bool $readOnly): array
+    /** Public source reads bind to the same current recipient, trip and draft. */
+    public static function sourceContext(int $actor,int $conversationId): array
+    {
+        require_once __DIR__.'/ManagerTourSelectionCollectorSession.php';
+        $context=self::context($actor,$conversationId);
+        if (isset($context['error'])) return $context;
+        if (!$context['can_edit'] || !ManagerTourSelectionCollectorSession::eligible(ConversationDb::connection(),$context['conversation'])) return self::error('forbidden');
+        $view=self::view(ConversationDb::connection(),$context);
+        return ['ok'=>true,'version'=>$view['version'],'context_hash'=>self::sourceContextHash($actor,$context['conversation'],$view['draft'])];
+    }
+
+    private static function sourceContextHash(int $actor,array $conversation,array $draft): string
+    {
+        return hash('sha256',json_encode([$actor,array_intersect_key($conversation,array_flip(['id','project_key','source_id','channel','external_chat_id','customer_channel_id','customer_id','manager_id','started_at','status'])),$draft['title']],JSON_THROW_ON_ERROR));
+    }
+
+    public static function importBiblio(int $actor,int $conversationId,string $session,array $input): array
+    {
+        require_once __DIR__.'/ManagerTourSelectionBiblioSource.php';
+        if (($input['confirm_party_price']??false)!==true) return self::error('biblio_price_confirmation');
+        // An expired, authentic intent can still reconcile its existing receipt.
+        // Expiry blocks the first write below, after the receipt lookup.
+        $ticket=ManagerTourSelectionBiblioSource::open($input['ticket']??null,$session,$actor,$conversationId,'ready',true);
+        if ($ticket===null) return self::error('biblio_expired');
+        $command=['operation_id'=>$input['operation_id']??null,'observation'=>$ticket['observation']];
+        if (array_key_exists('manager_amount',$input)) $command['manager_amount']=$input['manager_amount'];
+        return self::importCommand($actor,$conversationId,$session,$command,false,['version'=>$ticket['version'],'context_hash'=>$ticket['context_hash'],'expires'=>$ticket['expires']]);
+    }
+
+    private static function importCommand(int $actor,int $conversationId,string $session,array $input,bool $readOnly,?array $direct=null): array
     {
         require_once __DIR__.'/ManagerTourSelectionImportDraft.php';
         require_once __DIR__.'/ManagerTourSelectionCollectorSession.php';
@@ -144,6 +173,7 @@ final class ManagerTourSelectionService
         if (!is_string($operation) || !self::validOperation($operation)) return self::error('invalid_operation_id');
         $import=ManagerTourSelectionImportDraft::normalize($input['observation']??null);
         if ($import===null) return self::error('invalid_import');
+        if (($import['adapter']==='biblio-public-v1')!==($direct!==null)) return self::error('invalid_import');
         $variant=$input['as_variant']??false;
         if (!is_bool($variant)) return self::error('invalid_import');
         $managerAmount=null;
@@ -155,6 +185,7 @@ final class ManagerTourSelectionService
         }
         // Absent adjustment preserves every existing collector-v1 receipt hash.
         $intent=$managerAmount===null?['collector-v1',$conversationId,$connection,$import,$variant]:['collector-v2',$conversationId,$connection,$import,$variant,$managerAmount];
+        if ($direct!==null) $intent=['biblio-editor-v1',$conversationId,$direct,$import,$managerAmount];
         $hash=hash('sha256',json_encode($intent,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR));
         $priceAck=$managerAmount===null?[]:['manager_amount'=>$managerAmount];
         $source=ManagerTourSelectionImportDraft::source($import);
@@ -174,7 +205,9 @@ final class ManagerTourSelectionService
                 if (isset($context['error'])) {$pdo->rollBack();return $context;}
                 if (!$context['can_edit']) {$pdo->rollBack();return self::error('forbidden');}
                 $current=self::view($pdo,$context,true);
-                if (!is_string($connection) || !ManagerTourSelectionCollectorSession::authorize($pdo,$actor,$conversationId,$session,$connection,$context['conversation'],$current['draft'])) {$pdo->rollBack();return self::error('connection_changed');}
+                if ($direct===null) {
+                    if (!is_string($connection) || !ManagerTourSelectionCollectorSession::authorize($pdo,$actor,$conversationId,$session,$connection,$context['conversation'],$current['draft'])) {$pdo->rollBack();return self::error('connection_changed');}
+                } elseif (!ManagerTourSelectionCollectorSession::eligible($pdo,$context['conversation']) || !hash_equals($direct['context_hash'],self::sourceContextHash($actor,$context['conversation'],$current['draft']))) {$pdo->rollBack();return self::error('connection_changed');}
                 $receipt=self::receipt($pdo,$actor,$operation,true);
                 if ($receipt) {
                     if ((int)$receipt['conversation_id']!==$conversationId || !hash_equals($receipt['request_hash'],$hash)) {$pdo->rollBack();return self::error('operation_mismatch');}
@@ -183,6 +216,8 @@ final class ManagerTourSelectionService
                     $pdo->commit();return $result;
                 }
                 if ($readOnly) {$pdo->commit();return ['ok'=>true,'found'=>false,'count'=>count($current['draft']['offers'])]+$priceAck;}
+                if ($direct!==null && $direct['expires']<time()) {$pdo->rollBack();return self::error('biblio_expired');}
+                if ($direct!==null && $direct['version']!==$current['version']) {$pdo->rollBack();return self::error('draft_changed');}
                 $duplicate=null;
                 foreach ($current['draft']['offers'] as $old) {
                     if (!isset($old['import_source'])) continue;

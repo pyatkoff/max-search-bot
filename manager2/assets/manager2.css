@@ -364,3 +364,51 @@ body.manager2{--ws-accent:#25624f;--ws-accent-soft:#e9f3ed;--ws-text:#233c34;--w
 
 .manager2 .m2ConversationName{display:block;overflow:hidden;text-overflow:ellipsis;white-space:inherit}
 @media(max-width:740px){.manager2 .m2ConversationName{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;white-space:normal;overflow-wrap:anywhere;line-height:1.25}}
+.manager2 .m2Rail>.m2MoreToggle{display:flex}
+.manager2 .m2Rail>.m2RailEnd:empty{display:none}
+.manager2 .m2SalesTools[hidden]{display:none!important}
+.manager2 .m2SalesTools{padding:8px 0 4px;display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+.manager2 .m2SalesFilters{display:flex;flex-wrap:wrap;gap:8px;flex:1}
+.manager2 .m2SalesFilters label{display:flex;flex-direction:column;gap:5px;min-width:120px;flex:1;font-size:12px;color:var(--ws-text-secondary,#617168)}
+.manager2 .m2SalesFilters select,.manager2 #m2SalesLayout{min-height:42px;max-width:100%;border:1px solid var(--ws-border,#dce5e0);border-radius:8px;background:var(--ws-surface,#fff);color:var(--ws-text,#192c27);padding:7px 10px;font:inherit}
+.manager2 #m2SalesCoverage{flex-basis:100%;margin:0;font-size:12px;line-height:1.5;color:var(--ws-text-secondary,#617168)}
+.manager2 .workspace[data-m2-section=sales] .m2TabNavigator,.manager2 .workspace[data-m2-section=sales] .m2SelectionScope,.manager2 .workspace[data-m2-section=sales] .inboxSearchRow,.manager2 .workspace[data-m2-section=sales] #filtersPanel,.manager2 .workspace[data-m2-section=sales] .viewToggle{display:none!important}
+.manager2 .workspace.m2SalesList #kanbanBoard{display:block;overflow:auto}
+.manager2 .workspace.m2SalesList .kanbanColumn{display:contents}
+.manager2 .workspace.m2SalesList .kanbanColumn:has(>.kanbanCards>.kanbanEmpty){display:none}
+.manager2 .workspace.m2SalesList .kanbanColumn>header{position:static;min-height:0;margin:8px 0;padding:9px 12px;border-radius:8px}
+.manager2 .workspace.m2SalesList .kanbanCards{display:contents}
+.manager2 .workspace.m2SalesList .kanbanCard{margin:0 0 9px;padding:10px 12px}
+.manager2 .workspace.m2SalesList .kanbanTrip{display:none}
+@media(max-width:740px){.manager2 .m2Rail,.manager2.m2HasAnalytics .m2Rail{grid-template-columns:repeat(4,minmax(0,1fr))}.manager2 .m2SalesFilters label{min-width:calc(50% - 8px)}.manager2 .m2SalesFilters select{font-size:16px}}
+@media(min-width:741px){.manager2 .m2MoreMenu{margin:auto;max-height:calc(100dvh - 48px)}}
+
+.manager2 .workspace[data-m2-section=sales] .m2SalesTools{grid-column:1/-1}
+.manager2 .workspace.m2SalesList #kanbanBoard:not(:has(.kanbanCard))::after{content:"По этим фильтрам обращений нет.";display:block;padding:24px 12px;text-align:center;color:var(--ws-text-secondary,#617168);font-size:14px}
+.manager2 .assistantPlanView .assistantCardReason{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;line-height:1.5}
+
+/* One client-card entry and one compact request summary in the conversation. */
+.manager2 #mobileLeadBtn{display:none!important}
+.manager2 .m2ClientCardButton{min-height:36px;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:4px}
+.manager2 .leadHeaderActions #ceOpen{min-height:44px}
+.manager2 .m2CurrentTrip{display:block;padding:0;border-bottom:1px solid var(--m2-line)}
+.manager2 .m2CurrentTrip>summary{display:grid;gap:3px;padding:10px 16px 10px 30px;position:relative;min-height:44px;cursor:pointer;list-style:none}
+.manager2 .m2CurrentTrip>summary:before{content:'›';position:absolute;left:13px;top:10px;font-size:18px}
+.manager2 .m2CurrentTrip[open]>summary:before{transform:rotate(90deg)}
+.manager2 .m2CurrentTrip .m2RequestTitle{font-size:12px;font-weight:600;color:#52674e}
+.manager2 .m2CurrentTrip strong[hidden]{display:none}
+.manager2 .m2CurrentTrip small{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;font-size:13px;line-height:1.4}
+.manager2 .m2CurrentTrip>.m2RequestContent{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:0 16px 12px 30px}
+.manager2 .m2RequestContent>span{flex:1;min-width:140px;font-size:12px}
+.manager2 .m2RequestSource{flex:0 0 100%;min-width:0}
+.manager2 .m2RequestSource .handoffContext{margin:0;padding:0;border:0;background:none}
+.manager2 .m2RequestSource .handoffContext>details>summary{min-height:44px;display:flex;align-items:center;font-size:12px}
+@media(max-width:740px){.manager2 .conversationHead .actionBtn,.manager2 .m2ConversationMenu>summary{min-height:44px}.manager2 .m2ConversationMenu>summary{width:44px}.manager2 .m2CurrentTrip>summary{padding-right:10px}.manager2 .m2CurrentTrip>.m2RequestContent{padding-right:10px}.manager2 .postContextToggle{min-height:44px}}
+
+.manager2 .m2CurrentTrip:not([open])>.m2RequestContent{display:none}
+
+@media(max-width:740px){.manager2 .m2ClientCardButton{min-height:44px}}
+
+/* Card actions share one bounded row even in the narrow desktop side panel. */
+.manager2 .leadHeaderActions{display:grid;grid-template-columns:repeat(auto-fit,minmax(70px,1fr));gap:6px}
+.manager2 .leadHeaderActions .actionBtn{min-width:0;min-height:44px;padding:6px;white-space:normal;line-height:1.25;text-align:center}

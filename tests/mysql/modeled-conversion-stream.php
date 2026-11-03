@@ -38,11 +38,16 @@ try{
     $profiles=new ModeledConversionProfiles($p);$competingProfiles=new ModeledConversionProfiles($other);$profileBlocked=false;
     $profiles->tick(1793003000,static function()use($competingProfiles,&$profileBlocked){$profileBlocked=($competingProfiles->tick(1793003000)['status']??'')==='busy';});
     $check('concurrent profile transformer cannot own the same derived checkpoint',$profileBlocked);
+    modeledDenseProfileAssertions($p,$check);
     modeledServiceProfileAssertions($p,$check);
     modeledHandoffProfileAssertions($p,$check);
     forecastStatusSchema($p);forecastStatusAssertions($p,$check);
     forecastV1Assertions($p,$check);
+    forecastLatencyAssertions($p,$check);
     modeledValueAssertions($p,$check);
+    modeledValueHistoryAssertions($p,$check);
+    modeledValueFortnightAssertions($p,$check);
+    modeledValueFairProgressAssertions($p,$check);
     echo 'MODELED CONVERSION STREAM NATIVE MYSQL PASSED '.$passed.PHP_EOL;
 }catch(Throwable $e){fwrite(STDERR,'FAIL modeled stream native MySQL '.get_class($e).PHP_EOL);$failed=true;}
 finally{

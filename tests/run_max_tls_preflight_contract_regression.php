@@ -25,7 +25,7 @@ foreach (['MaxTlsConfig::strictCurlOptions()', '/subscriptions', '/uploads?type=
 foreach (['CURLOPT_POSTFIELDS', 'DELETE', '/messages'] as $forbidden) {
     maxTlsPreflightAssert(!str_contains($tool, $forbidden), 'MAX TLS preflight must not transfer a file or send/delete messages: ' . $forbidden);
 }
-foreach (['push:', 'workflow_dispatch:', 'EXPECTED_SHA', 'tools/max_tls_preflight.php --include-upload-host', '.ssl_verify_result == 0', '.upload_host.ok == true'] as $needle) {
+foreach (['workflow_run:', 'workflows: [Deploy production]', 'workflow_dispatch:', 'EXPECTED_SHA', 'tools/max_tls_preflight.php --include-upload-host', '.ssl_verify_result == 0', '.upload_host.ok == true'] as $needle) {
     maxTlsPreflightAssert(str_contains($workflow, $needle), 'MAX TLS workflow contract is missing: ' . $needle);
 }
 
