@@ -1,4 +1,4 @@
-name: Inspect exact Sindbad Club native hotel cover
+name: Inspect alternative Sindbad cover and different official aerial candidate
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -30,7 +30,7 @@ jobs:
       - name: Retain bounded native image evidence
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-batch20-native-group-${{ matrix.cover_group }}
+          name: commercial-batch20-corrected-group-${{ matrix.cover_group }}
           path: |
             native-cover-receipt.json
             covers/
