@@ -1,4 +1,4 @@
-name: Inspect six public hotel feed destinations without searches
+name: Verify public hotel feed URLs with corrected function boundaries
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]

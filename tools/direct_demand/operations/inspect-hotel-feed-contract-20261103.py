@@ -28,11 +28,11 @@ section=script[start:]
 assert "await catalogs.init();" in section and "const hydrated=hydrateUrlState();" in section
 assert section.index("await catalogs.init();")<section.index("const hydrated=hydrateUrlState();")
 def function(name):
-    match=re.search(r'function '+re.escape(name)+r'\([^]*', '') if False else re.search(r'function '+re.escape(name)+r'\(',section)
+    match=re.search(r'function '+re.escape(name)+r'\(',section)
     assert match,name
-    end=section.find('\nfunction ',match.start()+1)
-    assert end!=-1
-    return section[match.start():end]
+    boundary=re.search(r'\n(?:async )?function ',section[match.end():])
+    assert boundary,name
+    return section[match.start():match.end()+boundary.start()]
 functions='\n'.join(function(name) for name in ['params','queryValue','setField','hydrateUrlState'])
 node=pathlib.Path('tools/direct_demand/operations/check-hotel-url-hydration-20261103.js').read_text()
 proc=subprocess.run(['node','-e',node],input=json.dumps({'rows':rows,'functions':functions}),text=True,capture_output=True,timeout=15)
