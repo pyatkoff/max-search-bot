@@ -1,10 +1,10 @@
 import base64,html,json,os,re,urllib.parse,urllib.request
 from pathlib import Path
 from html.parser import HTMLParser
-operation='commercial-batch30-twelve-primary-source-pages'
-pages=["https://www.akrahotels.com/en/hotels/akra-kemer/beach-and-pools/","https://www.akrahotels.com/en/hotels/akra-kemer/gallery/","https://www.akrahotels.com/en/hotels/akra-sorgun/about-us/","https://www.akrahotels.com/en/hotels/akra-sorgun/gallery/","https://baruthemera.com/en","https://barutarum.com/","https://barutarum.com/en/gallery","https://bayouacanthus.com/","https://barutandiz.com/en/stay","https://www.libertyhotels.com/en/hotels/liberty-fabay/","https://ngphaselisbay.com/en/","https://www.voyagehotel.com/en/voyage-belek-spa"]
+operation='commercial-batch31-five-primary-source-pages'
+pages=["https://baruthemera.com/en/gallery/general","https://baruthemera.com/en/pools-beach","https://ngphaselisbay.com/en/gallery-album/","https://ngphaselisbay.com/en/bays-beach-pools/","https://www.voyagehotel.com/en/voyage-belek-spa/gallery-detail"]
 group=int(os.environ['MEDIA_GROUP'])
-assert group in (0,1,2,3)
+assert group in (0,1)
 pages=pages[group*3:group*3+3]
 assert 1<=len(pages)<=3
 hosts=set(["www.elgouna.com","elgouna.com","cms.elgouna.com","backend.elgouna.com","www.jazhotels.com","jazhotels.com","partner.jazhotels.com","hrewards.com","www.hrewards.com","www.hilton.com","hilton.com","www.oberoihotels.com","oberoihotels.com","threecorners.com","www.threecorners.com","braykaresorts.com","www.braykaresorts.com","cdn.braykaresorts.com","www.ahstatic.com","m.ahstatic.com","assets.hiltonstatic.com","image-tc.galaxy.tf","www.tropitelhotels.com","tropitelhotels.com","irp.cdn-website.com","www.safirhotels.com","safirhotels.com","www.cleopatraluxuryhotels.com","cleopatraluxuryhotels.com","baronhotels.com","www.baronhotels.com","www.akrahotels.com","baruthemera.com","barutarum.com","bayouacanthus.com","barutandiz.com","www.libertyhotels.com","ngphaselisbay.com","www.voyagehotel.com","akrahotels-gvhpewgeadfsftcj.a01.azurefd.net","api.baruthotelsgroup.com","voyagecdn.blob.core.windows.net","www.baruthemera.com","www.barutarum.com","www.bayouacanthus.com","www.barutandiz.com","www.ngphaselisbay.com"])

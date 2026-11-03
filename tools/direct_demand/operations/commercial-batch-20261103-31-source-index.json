@@ -1,0 +1,35 @@
+{
+  "operation": "commercial-hotel-batch-20261103-31-v1",
+  "goal": "Resolve different general hotel photo references for ten proven candidates while retaining prior sources and whole captions",
+  "boundaries": [
+    "Exactly five newly declared public primary pages; existing twelve30 and all29pages not re-read",
+    "No Mac/server/provider/DB/messages/ads, same safeURL/host/size/no redirects and rights constraints",
+    "Description wording unchanged while user discusses both channels"
+  ],
+  "criteria": [
+    "Finite readonly groups2/maxparallel2",
+    "Single subsequent contact pass for only different exact declared photo URIs",
+    "Ready subset not held for other unresolved photos"
+  ],
+  "risks": [
+    "NG/Voyage gallery may contain close views only, no guessed image-size variants",
+    "Hilton Bulgarian cachedgallery returned cachemiss, not native403, no repeatedfallbackloop",
+    "Sofitel exactcurrentownerproperty link still unresolved; no guessed1661URL",
+    "Andiz primary privacy page explicitly restricts reuse of its media without consent; these gallery images are not imported or published"
+  ],
+  "new_primary_pages": [
+    "https://baruthemera.com/en/gallery/general",
+    "https://baruthemera.com/en/pools-beach",
+    "https://ngphaselisbay.com/en/gallery-album/",
+    "https://ngphaselisbay.com/en/bays-beach-pools/",
+    "https://www.voyagehotel.com/en/voyage-belek-spa/gallery-detail"
+  ],
+  "reused_primary_pages": [
+    "commercial-stock-20261103-30-source-notes.json",
+    "commercial-batch-20261103-29-source-notes.json"
+  ],
+  "andiz_media_state": "OWNER_REUSE_PERMISSION_NOT_PROVEN_DEFERRED_NO_IMPORT",
+  "andiz_policy_source": "https://barutandiz.com/en/policies/privacy-policy",
+  "ready_for_send_count": 0,
+  "new_posts": 0
+}

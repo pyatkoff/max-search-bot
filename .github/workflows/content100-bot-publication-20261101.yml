@@ -1,153 +1,37 @@
-name: Append four verified batch30 hotel pairs to all Direct YML feeds
+name: Read five new fixed owner pages for batch31 candidates
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
     paths: [.github/workflows/content100-bot-publication-20261101.yml]
 permissions:
   contents: read
-  actions: read
 concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
-env:
-  EXPECTED_PRODUCTION_SHA: bf21f4c72353e2f23aa4a4a10e3c0231a930b462
 jobs:
   inspect:
-    if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 6
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        media_group: [0,1]
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
           sparse-checkout: |
-            /tools/direct_demand/operations/
-            /.github/traffic-publish/hotel-posts-telegram.xml
-            /.github/traffic-publish/hotel-posts-max.xml
-            /.github/traffic-publish/hotel-posts-all.xml
-          sparse-checkout-cone-mode: false
-      - name: Verify exact reviewed publishing conditions independently of unrelated aggregate jobs
+            tools/direct_demand/operations
+          sparse-checkout-cone-mode: true
+      - name: Read only fixed official hotel descriptions and public photo references
         env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-          evidence="$RUNNER_TEMP/commercial-source-evidence"
-          mkdir -p "$evidence"
-          gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$evidence/main.json"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/41711510637 > "$evidence/verify_run.json"
-          gh api "repos/pyatkoff/max-search-bot/actions/runs/41711510637/jobs?per_page=20" > "$evidence/verify_jobs.json"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/41712615263 > "$evidence/tls_run.json"
-          gh api "repos/pyatkoff/max-search-bot/git/commits/$EXPECTED_PRODUCTION_SHA" > "$evidence/source_commit.json"
-          tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
-          gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
-          python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
-      - name: Validate native Direct YML cases and prepare three bounded static files
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          python3 tools/direct_demand/operations/verify-commercial-channel-hotel-feeds-yml-20261103.py
-          python3 - <<'PY'
-          import base64,hashlib,json,os,pathlib
-          base=pathlib.Path('.github/traffic-publish')
-          names=['hotel-posts-telegram.xml','hotel-posts-max.xml','hotel-posts-all.xml']
-          files=[]
-          previous_hashes={"hotel-posts-telegram.xml":"957b48c4c08fcb3ca48cbc535d5a45b593ffcce9d61a6e589db81a7bb7fd5e81","hotel-posts-max.xml":"b34c2754672f88667116d4a4636f243a9c1b1c994eca9dfd292c10bb269ec667","hotel-posts-all.xml":"f0dbf7d47a368c69dd4a9253caeb290f0ad05044fbc7f5e4388a2d02ba0165b2"}
-          for name,rows in zip(names,[131,131,262]):
-              raw=(base/name).read_bytes()
-              files.append({'name':name,'sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw),'rows':rows,'expected_previous_sha256':previous_hashes[name],'content_base64':base64.b64encode(raw).decode()})
-          data={'schema_version':2,'operation':'commercial-channel-hotel-feeds-20261103-update4','files':files}
-          raw=(json.dumps(data,separators=(',',':'))+'\n').encode()
-          source=pathlib.Path('tools/direct_demand/operations/publish-commercial-channel-hotel-feeds-20261103-1.php').read_text()
-          prefix="<?php\ndeclare(strict_types=1);\n"
-          assert source.startswith(prefix)
-          header=prefix+"const EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\n"+"const PUBLIC_STATIC_FEED_OPERATION=\'commercial-channel-hotel-feeds-20261103-update4\';\n"+"const PUBLIC_STATIC_FEED_INPUT_B64='"+base64.b64encode(raw).decode()+"';\n"+"const PUBLIC_STATIC_FEED_INPUT_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\n"
-          temp=pathlib.Path(os.environ['RUNNER_TEMP'])
-          (temp/'channel-preflight.php').write_text(header+source[len(prefix):])
-          intent={'operation':data['operation'],'state':'EXACT_THREE_PUBLIC_DIRECT_YML_FILES_INTENT_BEFORE_WRITE','source':os.environ['EXPECTED_PRODUCTION_SHA'],'files':[{k:v for k,v in f.items() if k!='content_base64'} for f in files]}
-          (temp/'static-feed-intent.json').write_text(json.dumps(intent,indent=2)+'\n')
-          PY
-          php -l "$RUNNER_TEMP/channel-preflight.php"
-      - name: Retain exact static publication intent before any server write
-        uses: actions/upload-artifact@v4
+          MEDIA_GROUP: ${{ matrix.media_group }}
+        run: python3 tools/direct_demand/operations/inspect-hotel-media-20261102-3.py
+      - uses: actions/upload-artifact@v4
         with:
-          name: commercial-channel-hotel-feeds-20261103-update4-intent
-          path: ${{ runner.temp }}/static-feed-intent.json
+          name: commercial-batch31-primary-sources-${{ matrix.media_group }}
+          path: public-media-sources.json
           retention-days: 14
           if-no-files-found: error
-      - name: Prepare existing server connection
-        env:
-          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          raw="$DEPLOY_SSH_KEY_VALUE"
-          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
-            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
-          else
-            printf '%s' "$raw" | base64 --decode > "$RUNNER_TEMP/channel_key"
-          fi
-          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
-      - name: Pin existing server host-key continuity
-        env:
-          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          python3 - <<'PY'
-          import os,re,subprocess,base64,hashlib,pathlib
-          host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER']
-          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-')
-          assert re.fullmatch(r'[A-Za-z0-9_-]+',user)
-          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35)
-          matches=[]
-          for line in scan.stdout.splitlines():
-            fields=line.split()
-            if len(fields)<3 or fields[0].startswith('#'):continue
-            try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
-            except Exception:continue
-            if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)
-          assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
-          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
-          PY
-      - name: Publish only the three approved public static Direct YML files
-        env:
-          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-preflight.php" > "$RUNNER_TEMP/channel-preflight.json" || probe_status=$?
-          python3 - <<'PY'
-          import json,os,pathlib
-          d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP'],'channel-preflight.json').read_text().splitlines()[-1])
-          print(json.dumps(d,sort_keys=True))
-          assert d['ok'] is True and d['operation']=='commercial-channel-hotel-feeds-20261103-update4'
-          assert len(d['files'])==3 and [r['rows'] for r in d['files']]==[131,131,262]
-          assert d['db_writes']==d['provider_calls']==d['message_sends']==0
-          PY
-          test "${probe_status:-0}" = 0
-      - name: Verify all three permanent YML URLs by exact public HTTPS bytes
-        shell: bash
-        run: python3 tools/direct_demand/operations/verify-commercial-channel-hotel-feeds-yml-public-20261103.py
-      - name: Retain bounded static publication and public readback
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: commercial-channel-hotel-feeds-20261103-update4
-          path: |
-            ${{ runner.temp }}/channel-preflight.json
-            ${{ runner.temp }}/public-feed-readback.json
-          retention-days: 14
-          if-no-files-found: warn
-      - name: Remove ephemeral connection and input files
-        if: always()
-        shell: bash
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-preflight.php" "$RUNNER_TEMP/channel-preflight.json" "$RUNNER_TEMP/static-feed-intent.json" "$RUNNER_TEMP/public-feed-readback.json"
