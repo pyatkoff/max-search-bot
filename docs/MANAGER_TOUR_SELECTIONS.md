@@ -35,6 +35,11 @@ publication/card. Close, edit, suspension and preview replacement invalidate the
 job and its prepared URL. The download link has a synchronous context guard and
 uses the browser's native default action. Controls call only readiness predicates.
 The renderer and native encoder have no request or state-persistence caller.
+The outer protected editor permits local `blob:` frame navigation for WebKit's
+native file download handling. Its fixed HTTPS editor origin, default/script/
+form/ancestor restrictions and iframe sandbox stay in place. Browser fixtures
+read the exact shipped PHP policies; a real negative control checks that foreign
+frames and inline scripts in loaded Blob documents remain blocked.
 
 ## Print the exact preview (editor 0.2.8)
 

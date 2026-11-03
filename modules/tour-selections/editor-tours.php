@@ -2,7 +2,7 @@
 declare(strict_types=1);
 header('Cache-Control: private, no-store');header('Referrer-Policy: no-referrer');
 header('X-Robots-Tag: noindex, nofollow, noarchive');header('X-Content-Type-Options: nosniff');
-header("Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; frame-src https://app.anytoour.ru; frame-ancestors 'none'; base-uri 'none'; form-action 'none'");
+header("Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; frame-src https://app.anytoour.ru blob:; frame-ancestors 'none'; base-uri 'none'; form-action 'none'");
 if (!in_array($_SERVER['REQUEST_METHOD']??'GET',['GET','HEAD'],true)) {http_response_code(405);exit;}
 $id=$_GET['conversation_id']??'';$actor=$_GET['editor_actor']??'';
 $valid=static fn($v):bool=>is_string($v)&&preg_match('/\A[1-9][0-9]{0,14}\z/D',$v)===1;
