@@ -1,6 +1,6 @@
 {
   "operation": "commercial-price-monitor-20261103-read3",
-  "state": "NINETEEN_NEW_PUBLISHED_IDENTITIES_RETAINED_READ_NOT_STARTED",
+  "state": "NINETEEN_NEW_PUBLISHED_IDENTITIES_RETAINED_READ_PREPARED_NOT_RUN",
   "catalog_ids": [
     310,
     469,
@@ -25,5 +25,25 @@
   "scope_hotels": 19,
   "provider_calls": 0,
   "db_writes": 0,
-  "message_edits": 0
+  "message_edits": 0,
+  "goal": "Read retained price inputs for nineteen accepted published native identities absent from closed read2 scope90.",
+  "boundaries": [
+    "Existing authenticated GHA server route only",
+    "Exactly19hotels; at most2retained rows each;2adults,0children,RUB,future departures",
+    "No provider,search,flight,edit or DB write calls",
+    "Known26column/closednative meal contracts reused; no rediscovery",
+    "Private tuples and fingerprints retained only in authenticated artifact"
+  ],
+  "criteria": [
+    "Exact current source, same version verify, strict TLS, unchanged21 publishing blobs and runtime host/source/clean tree gates",
+    "19unique native identities disjoint from old90; names from accepted helper and feedcatalogue",
+    "Read-only transaction; persistenceUTCepoch is not producer observation time",
+    "No price publication until full total, actual real flights, freshness and terms are proven"
+  ],
+  "risks": [
+    "Retained price/fuel do not prove final total or availability",
+    "Persistence clock is not producer clock",
+    "A main change before SSH stops the bounded read"
+  ],
+  "expected_installed_sha": "0c3d826bc91e534c2232136df9ab9cd318d089f6"
 }
