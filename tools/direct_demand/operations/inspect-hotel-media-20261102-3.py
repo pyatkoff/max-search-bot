@@ -12,14 +12,20 @@ class Redirect(urllib.request.HTTPRedirectHandler):
  def redirect_request(self,*args,**kwargs):raise ValueError('unexpected_primary_source_redirect')
 opener=urllib.request.build_opener(Redirect())
 out={'operation':operation,'mode':'read_public_photo_sources_only','message_sends':0,'db_writes':0,'server_connections':0,'pages':[]}
+fixture_mode=os.environ.get('SOURCE_INSPECTOR_FIXTURE')=='1'
+if fixture_mode:pages=pages[:1]
 for url in pages:
  try:
-  response=opener.open(urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'}),timeout=25)
-  with response as r:
-   raw=r.read(2000001)
-   if len(raw)>2000000:raise ValueError('source_size_limit')
-   final=r.url
-   text=raw.decode('utf-8',errors='replace').replace('\\/','/')
+  if fixture_mode:
+   raw=b'<html><img alt src="https://assets.builderassets.com/fixture.jpg"><img alt src="https://assets.builderassets.com/blocked.jpg?token=private"></html>'
+   final=url
+  else:
+   response=opener.open(urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'}),timeout=25)
+   with response as r:
+    raw=r.read(2000001)
+    if len(raw)>2000000:raise ValueError('source_size_limit')
+    final=r.url
+  text=raw.decode('utf-8',errors='replace').replace('\\/','/')
  except Exception as e:
   out['pages'].append({'source_url':url,'error':type(e).__name__});continue
  candidates=[]
@@ -66,6 +72,7 @@ for url in pages:
    if p.hostname in ('www.jazhotels.com','jazhotels.com') and '/hoteldetail/' in p.path and absolute not in website_links:website_links.append(absolute)
 
  def declared_public_image(value):
+  if not isinstance(value,str):return None
   absolute=urllib.parse.quote(urllib.parse.urljoin(final,html.unescape(value.strip())),safe=':/?&=%#')
   pp=urllib.parse.urlsplit(absolute)
   if pp.hostname=='www.elgouna.com' and pp.path=='/_next/image':
@@ -89,7 +96,7 @@ for url in pages:
       for kk,vv in aa.items():
        if kk in ('data-category','data-categories','data-album','data-gallery-category','data-filter') and vv:categories.append({kk:vv[:100]})
      if uri not in candidates:candidates.append(uri)
-     row={'url':uri,'tag':tag,'alt':a.get('alt','')[:180],'categories':categories[-4:]}
+     row={'url':uri,'tag':tag,'alt':(a.get('alt') or '')[:180],'categories':categories[-4:]}
      if row not in self.rows:self.rows.append(row)
    if tag not in ('area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr'):self.stack.append((tag,a))
   def handle_endtag(self,tag):
@@ -118,5 +125,12 @@ for url in pages:
  out['pages'].append({'source_url':url,'final_url':final,'page_title':title,'image_hosts':sorted(image_hosts),'image_urls':candidates[:180],'image_details':image_details[:160],'document_urls':documents[:12],'website_links':website_links[:10],'public_text':public_text,'json_fact_fragments':fragments,'album_context':album_context,'gallery_memberships':gallery_memberships})
 
 out['ok']=True
+if fixture_mode:
+ assert len(out['pages'])==1
+ rows=out['pages'][0]['gallery_memberships']
+ assert len(rows)==1 and rows[0]['alt']=='' and rows[0]['url']=='https://assets.builderassets.com/fixture.jpg'
+ assert all('token=' not in u for u in out['pages'][0]['image_urls'])
+ print('PRIMARY_SOURCE_NULL_ALT_FIXTURE_OK public_image=kept token_query=rejected http_calls=0')
+ raise SystemExit(0)
 Path('public-media-sources.json').write_text(json.dumps(out,ensure_ascii=False,indent=2)+'\n')
 print(json.dumps(out,ensure_ascii=False))

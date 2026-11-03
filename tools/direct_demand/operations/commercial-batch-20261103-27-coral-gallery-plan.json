@@ -1,6 +1,6 @@
 {
   "operation": "commercial-batch27-three-coral-gallery-source-read",
-  "state": "PREPARED_NOT_READ",
+  "state": "NULL_ALT_PARSER_CORRECTED_RECOVERY_PREPARED",
   "goal": "Extract exact hotel gallery images from the three new Coral Sea properties",
   "catalog_ids": [
     163,
@@ -24,5 +24,8 @@
   "risks": [
     "Main pages proved facts but their declared photo host was absent from the initial allowlist",
     "Do not use shared logos, book-direct benefits or another hotel photos"
-  ]
+  ],
+  "failure_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41689560082",
+  "failure_cause": "First gallery GET succeeded, then a legal valueless alt attribute was None and slicing it raised TypeError. The other two galleries were not requested. No source photos accepted.",
+  "recovery": "One null-safe parser correction with exact offline null-alt/token-query fixture before HTTP. One new read under changed parser, no rerun of the old job."
 }

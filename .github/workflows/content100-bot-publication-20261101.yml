@@ -1,4 +1,4 @@
-name: Read three new Coral Sea galleries using their declared public photo host
+name: Read Coral Sea galleries after the exact nullable alt parser correction
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -22,6 +22,11 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
+      - name: Verify the exact null alt regression before HTTP reads
+        env:
+          MEDIA_GROUP: 0
+          SOURCE_INSPECTOR_FIXTURE: 1
+        run: python3 tools/direct_demand/operations/inspect-hotel-media-20261102-3.py
       - name: Read only fixed official hotel descriptions and public photo references
         env:
           MEDIA_GROUP: ${{ matrix.media_group }}
