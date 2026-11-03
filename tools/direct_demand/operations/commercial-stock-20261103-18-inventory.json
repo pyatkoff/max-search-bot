@@ -1,9 +1,9 @@
 {
   "operation": "commercial-stock-20261103-18-inventory",
-  "state": "NINE_CONFIRMED_REMAINING_REPLENISHMENT_REQUIRED",
-  "hotel_count": 9,
+  "state": "TWENTY_FOUR_CONFIRMED_THREE_PREPARED_NOT_SENT",
+  "hotel_count": 24,
   "target_hotel_count": 25,
-  "ready_for_send_count": 0,
+  "ready_for_send_count": 3,
   "candidates": [
     {
       "key": "jaz-elite-maraya",
@@ -17,21 +17,21 @@
       "hotel_id": 75725,
       "hotel": "JAZ COSTA MARES ADULT ONLY (EX. IBEROTEL COSTA MARES)",
       "region": "Марса Алам",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+      "state": "CONTENT_AND_NATIVE_COVER_PREPARED_NOT_SENT"
     },
     {
       "key": "jaz-mirabel-beach",
       "hotel_id": 281,
       "hotel": "JAZ MIRABEL BEACH",
       "region": "Шарм-эль-Шейх",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+      "state": "CONTENT_AND_NATIVE_COVER_PREPARED_NOT_SENT"
     },
     {
       "key": "jaz-neo-reef-marsa",
       "hotel_id": 384,
       "hotel": "JAZ NEO REEF MARSA (EX. SOLYMAR REEF MARSA)",
       "region": "Марса Алам",
-      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+      "state": "CONTENT_AND_NATIVE_COVER_PREPARED_NOT_SENT"
     },
     {
       "key": "sentido-reef-oasis-senses",
@@ -70,10 +70,131 @@
       "hotel": "ROBINSON SOMA BAY",
       "region": "Хургада",
       "state": "CONTENT_VERIFIED_GENERAL_HOTEL_HERO_DEFERRED"
+    },
+    {
+      "key": "sheraton-miramar-el-gouna",
+      "hotel_id": 432,
+      "hotel": "SHERATON MIRAMAR RESORT",
+      "region": "Эль Гуна",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "movenpick-el-gouna",
+      "hotel_id": 328,
+      "hotel": "MOVENPICK RESORT & SPA EL GOUNA",
+      "region": "Эль Гуна",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "renaissance-golden-view",
+      "hotel_id": 382,
+      "hotel": "RENAISSANCE GOLDEN VIEW BEACH",
+      "region": "Шарм-эль-Шейх",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "stella-di-mare-sharm",
+      "hotel_id": 465,
+      "hotel": "STELLA DI MARE BEACH HOTEL & SPA",
+      "region": "Шарм-эль-Шейх",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "nubian-village",
+      "hotel_id": 341,
+      "hotel": "NUBIAN VILLAGE",
+      "region": "Шарм-эль-Шейх",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "nubian-island",
+      "hotel_id": 340,
+      "hotel": "NUBIAN ISLAND",
+      "region": "Шарм-эль-Шейх",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "continental-hurghada",
+      "hotel_id": 272,
+      "hotel": "CONTINENTAL HOTEL HURGHADA",
+      "region": "Хургада",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "park-regency-sharm",
+      "hotel_id": 260,
+      "hotel": "PARK REGENCY SHARM EL SHEIKH (EX. HYATT REGENCY SSH)",
+      "region": "Шарм-эль-Шейх",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "cleopatra-luxury-makadi",
+      "hotel_id": 21476,
+      "hotel": "CLEOPATRA LUXURY RESORT MAKADI BAY (EX. ALDIANA MAKADI)",
+      "region": "Хургада",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "hilton-marsa-alam-nubian",
+      "hotel_id": 4181,
+      "hotel": "HILTON MARSA ALAM NUBIAN RESORT",
+      "region": "Марса Алам",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "sentido-palm-royale",
+      "hotel_id": 273,
+      "hotel": "PALM ROYALE SOMA BAY (EX. SENTIDO PALM ROYALE)",
+      "region": "Хургада",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "siva-grand-beach",
+      "hotel_id": 441,
+      "hotel": "SIVA GRAND BEACH",
+      "region": "Хургада",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "sunny-days-el-palacio",
+      "hotel_id": 473,
+      "hotel": "SUNNY DAYS EL PALACIO (EX. SUNNY DAYS RESORTS SPA & AQUA PARK)",
+      "region": "Хургада",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "sunrise-royal-makadi",
+      "hotel_id": 483,
+      "hotel": "SUNRISE ROYAL MAKADI RESORT",
+      "region": "Хургада",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "savoy-sharm",
+      "hotel_id": 408,
+      "hotel": "SAVOY SHARM EL SHEIKH",
+      "region": "Шарм-эль-Шейх",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
     }
   ],
-  "new_name_lookup_count": 12,
-  "new_name_lookup_state": "STOPPED_AT_SOURCE_GATE_BEFORE_SSH_NO_NEW_IDENTITIES_CONFIRMED",
-  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41543931293",
-  "content_and_cover_prepared_count": 0
+  "new_name_lookup_count": 20,
+  "new_name_lookup_state": "BOUNDED_READ_COMPLETE_FIFTEEN_UNIQUE_NEW_IDENTITIES",
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41603842788",
+  "content_and_cover_prepared_count": 3,
+  "new_identity_count": 15
 }

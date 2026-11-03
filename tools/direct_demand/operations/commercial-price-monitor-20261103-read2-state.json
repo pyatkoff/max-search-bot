@@ -1,6 +1,6 @@
 {
   "operation": "commercial-price-monitor-20261103-read2",
-  "state": "SOURCE_CHANGED_BEFORE_SERVER_READ",
+  "state": "RETAINED_INPUT_READ_COMPLETE_FULL_TOTAL_UNVERIFIED_PRICES_NOT_PUBLISHED",
   "catalog_ids": [
     1554,
     81,
@@ -94,11 +94,13 @@
     12114
   ],
   "hotel_count": 90,
-  "server_connections": 0,
-  "catalog_queries": 0,
+  "hotels_with_candidate_rows": 14,
+  "candidate_rows": 28,
+  "hotels_with_persistence_within24h": 1,
+  "full_price_tuples_verified": 0,
   "db_writes": 0,
   "provider_calls": 0,
   "message_sends": 0,
   "price_block_updates": 0,
-  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41602306164"
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41603842788"
 }

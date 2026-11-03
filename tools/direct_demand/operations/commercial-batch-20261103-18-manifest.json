@@ -1,0 +1,80 @@
+{
+  "operation": "commercial-hotel-batch-20261103-18-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Publish three whole hotel materials once in each authorized channel while preserving the canonical evidence.",
+  "boundaries": "Existing bot publisher,registry and durable once only. Six messages maximum in the two existing channels. No price claims,ad changes,new runtime,workers or Mac access.",
+  "criteria": "Exact current installed c71 source and original verify/TLS,21 accepted publishing blobs,host continuity,schema,rights and current hotel/logical/text/photo/receipt/channel dedup. Exactly6 provider-confirmed posts with approved text/photo and canonical button/source.",
+  "risks": "Operator hotel descriptions do not establish AnyTour package inclusions. Current raw monitor prices do not prove full totals. UNKNOWN or active prior sends must be resolved before any new attempt.",
+  "baseline_logical_materials": 96,
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "hotel_id": 384,
+      "hotel": "JAZ NEO REEF MARSA (EX. SOLYMAR REEF MARSA)",
+      "key": "jaz-neo-reef-marsa",
+      "aliases": [
+        "JAZ NEO REEF MARSA (EX. SOLYMAR REEF MARSA)",
+        "JAZ Neo Reef Marsa"
+      ],
+      "sources": [
+        "https://www.tui.com/hotels/jaz-neo-reef-marsa-126426/hotelinformation/",
+        "https://partner.jazhotels.com/hotel/61"
+      ],
+      "text": "🐠 JAZ Neo Reef Marsa\nТур с перелётом в Марса Алам, Египет.\n\nУ отеля есть домашний риф для снорклинга. На территории два бассейна, детский клуб для ребят от 4 до 12 лет и площадка для пляжного волейбола.\n\n💡 Бассейн Relaxing предназначен для взрослых. Сам отель принимает семьи с детьми.\n\nВыберите даты, город вылета и состав туристов. Нажмите кнопку, чтобы узнать стоимость тура в JAZ Neo Reef Marsa.\n\n✈️ Узнать стоимость тура",
+      "logical_id": "commercial-jaz-neo-reef-marsa-384-v1",
+      "text_sha256": "1d96057bfb10dfb0cb16bd90b0debf751c8af496808b676450a3f16d76bb50e6",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/50596593234befa16109a8430a7587a73b86f247/.github/traffic-publish/commercial-batch-20261103-18/384.png",
+      "photo_sha256": "6dcb8e377cf9fdb0e1d24b9475260454089dfddb01260f07367b935cd0b47638",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 281,
+      "hotel": "JAZ MIRABEL BEACH",
+      "key": "jaz-mirabel-beach",
+      "aliases": [
+        "JAZ MIRABEL BEACH",
+        "JAZ Mirabel Beach"
+      ],
+      "sources": [
+        "https://www.tui.com/hotels/jaz-mirabel-beach-260492/hotelinformation/",
+        "https://partner.jazhotels.com/hotel/5"
+      ],
+      "text": "🌴 JAZ Mirabel Beach\nТур с перелётом в Шарм эль Шейх, район Набк.\n\nНа территории есть аквапарк, детский клуб для ребят от 4 до 12 лет и два теннисных корта. В ресторанах представлены итальянская, восточная и азиатская кухни.\n\n💡 За краем рифа бывает сильное течение. Туроператор не рекомендует там снорклинг. Для ужина в ресторанах по меню нужна предварительная запись.\n\nВыберите даты, город вылета и состав туристов. Нажмите кнопку для расчёта тура в JAZ Mirabel Beach.\n\n✈️ Узнать стоимость тура",
+      "logical_id": "commercial-jaz-mirabel-beach-281-v1",
+      "text_sha256": "06df8289c71299f737344f436bd1341b5005fa721b55b57ded9acaf8e9ddf7df",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/50596593234befa16109a8430a7587a73b86f247/.github/traffic-publish/commercial-batch-20261103-18/281.png",
+      "photo_sha256": "c8dedd227aab3149b00dce79ef2eef56826a754ce5e88909489ea6343a38ec90",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 75725,
+      "hotel": "JAZ COSTA MARES ADULT ONLY (EX. IBEROTEL COSTA MARES)",
+      "key": "jaz-costa-mares",
+      "aliases": [
+        "JAZ COSTA MARES ADULT ONLY (EX. IBEROTEL COSTA MARES)",
+        "JAZ Costa Mares"
+      ],
+      "sources": [
+        "https://www.jazhotels.com/hoteldetail/58-egypt-marsa-alam-iberotel-costa-mares/overview",
+        "https://partner.jazhotels.com/hotel/67"
+      ],
+      "text": "🌊 JAZ Costa Mares 16+\nТур с перелётом в Марса Алам, Египет.\n\nОтель стоит у песчаного пляжа в бухте Марса Марес. Здесь 208 номеров и люксов, рестораны и бары, а рядом морская охраняемая территория для знакомства с рифами Красного моря.\n\n💡 JAZ Costa Mares принимает гостей от 16 лет.\n\nВыберите даты, город вылета и состав туристов. Нажмите кнопку, чтобы узнать стоимость тура в JAZ Costa Mares.\n\n✈️ Узнать стоимость тура",
+      "logical_id": "commercial-jaz-costa-mares-75725-v1",
+      "text_sha256": "7fc83d7ee0b20c8fd8219ef97e06c8f039efe3e78849e0f1d484fbcc39f22b36",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/50596593234befa16109a8430a7587a73b86f247/.github/traffic-publish/commercial-batch-20261103-18/75725.png",
+      "photo_sha256": "c72ac17411e977435990f9235a651aa98cbf239eff95c5184181f4d3f5c4777f",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    }
+  ],
+  "ready_for_send_count": 3,
+  "new_posts": 0,
+  "provider_send_attempts": 0,
+  "content_and_cover_prepared_count": 3,
+  "hold_state": "READY_WITH_CURRENT_SOURCE_HOST_TLS_SCHEMA_RIGHTS_AND_DEDUP_GATES",
+  "approved_live_send_count": 6,
+  "native_inspection_state": "THREE_REAL_NATIVE_PNG_VISUALLY_VERIFIED",
+  "public_png_frozen_count": 3,
+  "native_inspection_run_urls": [
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41603970053"
+  ]
+}
