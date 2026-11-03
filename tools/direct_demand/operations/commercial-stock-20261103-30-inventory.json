@@ -353,6 +353,96 @@
       "hotel_id": 4185,
       "hotel": "ROYAL BRAYKA BEACH RESORT",
       "state": "CATALOG_CONFIRMED_NOT_IN_CURRENT25"
+    },
+    {
+      "hotel_id": 1291,
+      "name": "AKRA KEMER (EX. KEMER BARUT COLLECTION)",
+      "country_id": 4,
+      "region_id": 22,
+      "region": "Кемер",
+      "state": "CATALOG_IDENTITY_CONFIRMED_PRIMARY_PREPARATION_REQUIRED",
+      "lookup_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41716347078",
+      "monitor_input_admitted": false
+    },
+    {
+      "hotel_id": 15869,
+      "name": "AKRA SORGUN TUI BLUE SENSATORI",
+      "country_id": 4,
+      "region_id": 23,
+      "region": "Сиде",
+      "state": "CATALOG_IDENTITY_CONFIRMED_PRIMARY_PREPARATION_REQUIRED",
+      "lookup_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41716347078",
+      "monitor_input_admitted": false
+    },
+    {
+      "hotel_id": 1033,
+      "name": "BARUT HEMERA",
+      "country_id": 4,
+      "region_id": 23,
+      "region": "Сиде",
+      "state": "CATALOG_IDENTITY_CONFIRMED_PRIMARY_PREPARATION_REQUIRED",
+      "lookup_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41716347078",
+      "monitor_input_admitted": false
+    },
+    {
+      "hotel_id": 1032,
+      "name": "BAYOU ACANTHUS (EX. ACANTHUS CENNET BARUT COLLECTION)",
+      "country_id": 4,
+      "region_id": 23,
+      "region": "Сиде",
+      "state": "CATALOG_IDENTITY_CONFIRMED_PRIMARY_PREPARATION_REQUIRED",
+      "lookup_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41716347078",
+      "monitor_input_admitted": false
+    },
+    {
+      "hotel_id": 1031,
+      "name": "ARUM BARUT COLLECTION",
+      "country_id": 4,
+      "region_id": 23,
+      "region": "Сиде",
+      "state": "CATALOG_IDENTITY_CONFIRMED_PRIMARY_PREPARATION_REQUIRED",
+      "lookup_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41716347078",
+      "monitor_input_admitted": false
+    },
+    {
+      "hotel_id": 21673,
+      "name": "TUI BLUE BARUT ANDIZ ADULTS ONLY 16+",
+      "country_id": 4,
+      "region_id": 23,
+      "region": "Сиде",
+      "state": "CATALOG_IDENTITY_CONFIRMED_PRIMARY_PREPARATION_REQUIRED",
+      "lookup_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41716347078",
+      "monitor_input_admitted": false
+    },
+    {
+      "hotel_id": 75377,
+      "name": "LIBERTY FABAY",
+      "country_id": 4,
+      "region_id": 27,
+      "region": "Фетхие",
+      "state": "CATALOG_IDENTITY_CONFIRMED_PRIMARY_PREPARATION_REQUIRED",
+      "lookup_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41716347078",
+      "monitor_input_admitted": false
+    },
+    {
+      "hotel_id": 74503,
+      "name": "NG PHASELIS BAY",
+      "country_id": 4,
+      "region_id": 22,
+      "region": "Кемер",
+      "state": "CATALOG_IDENTITY_CONFIRMED_PRIMARY_PREPARATION_REQUIRED",
+      "lookup_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41716347078",
+      "monitor_input_admitted": false
+    },
+    {
+      "hotel_id": 1582,
+      "name": "VOYAGE BELEK GOLF & SPA",
+      "country_id": 4,
+      "region_id": 21,
+      "region": "Белек",
+      "state": "CATALOG_IDENTITY_CONFIRMED_PRIMARY_PREPARATION_REQUIRED",
+      "lookup_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41716347078",
+      "monitor_input_admitted": false
     }
   ],
   "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41687660699",

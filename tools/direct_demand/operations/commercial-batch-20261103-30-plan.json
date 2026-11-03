@@ -1,0 +1,110 @@
+{
+  "operation": "commercial-hotel-batch-20261103-30-v1",
+  "state": "TEN_PROVEN_NATIVE_CANDIDATES_PRIMARY_PREPARATION_STARTED",
+  "baseline_logical_materials": 127,
+  "catalog_ids": [
+    1291,
+    15869,
+    1033,
+    1032,
+    1031,
+    21673,
+    75377,
+    74503,
+    1582,
+    253
+  ],
+  "candidates": [
+    {
+      "hotel_id": 1291,
+      "hotel": "AKRA KEMER (EX. KEMER BARUT COLLECTION)",
+      "country_id": 4,
+      "region_id": 22,
+      "state": "PRIMARY_FACTS_AND_PHOTOS_PENDING"
+    },
+    {
+      "hotel_id": 15869,
+      "hotel": "AKRA SORGUN TUI BLUE SENSATORI",
+      "country_id": 4,
+      "region_id": 23,
+      "state": "PRIMARY_FACTS_AND_PHOTOS_PENDING"
+    },
+    {
+      "hotel_id": 1033,
+      "hotel": "BARUT HEMERA",
+      "country_id": 4,
+      "region_id": 23,
+      "state": "PRIMARY_FACTS_AND_PHOTOS_PENDING"
+    },
+    {
+      "hotel_id": 1032,
+      "hotel": "BAYOU ACANTHUS (EX. ACANTHUS CENNET BARUT COLLECTION)",
+      "country_id": 4,
+      "region_id": 23,
+      "state": "PRIMARY_FACTS_AND_PHOTOS_PENDING"
+    },
+    {
+      "hotel_id": 1031,
+      "hotel": "ARUM BARUT COLLECTION",
+      "country_id": 4,
+      "region_id": 23,
+      "state": "PRIMARY_FACTS_AND_PHOTOS_PENDING"
+    },
+    {
+      "hotel_id": 21673,
+      "hotel": "TUI BLUE BARUT ANDIZ ADULTS ONLY 16+",
+      "country_id": 4,
+      "region_id": 23,
+      "state": "PRIMARY_FACTS_AND_PHOTOS_PENDING"
+    },
+    {
+      "hotel_id": 75377,
+      "hotel": "LIBERTY FABAY",
+      "country_id": 4,
+      "region_id": 27,
+      "state": "PRIMARY_FACTS_AND_PHOTOS_PENDING"
+    },
+    {
+      "hotel_id": 74503,
+      "hotel": "NG PHASELIS BAY",
+      "country_id": 4,
+      "region_id": 22,
+      "state": "PRIMARY_FACTS_AND_PHOTOS_PENDING"
+    },
+    {
+      "hotel_id": 1582,
+      "hotel": "VOYAGE BELEK GOLF & SPA",
+      "country_id": 4,
+      "region_id": 21,
+      "state": "PRIMARY_FACTS_AND_PHOTOS_PENDING"
+    },
+    {
+      "hotel_id": 253,
+      "hotel": "SAFIR SHARM WATERFALLS (EX. HILTON)",
+      "country_id": 1,
+      "region_id": 6,
+      "state": "ACCEPTED_HERO_AND_RECEPTION_NEED_ADDITIONAL_REAL_PHOTO"
+    }
+  ],
+  "goal": "Prepare ten proven candidates together and publish every ready subset up to10 in one existing serial launch",
+  "boundaries": [
+    "Nine newly proven Turkey identities plus retained Safir253,notnewreadycredits",
+    "Twelve exact declared owner pages only,4readonlygroups/maxparallel2",
+    "No server/provider/DB/messages inprimaryinspection",
+    "Retain accepted strict source/host/size/rights/URLguards andnoMac/noagents/noqueues"
+  ],
+  "criteria": [
+    "Wholecaption+real exacthotel overview and2supportingphotos",
+    "Contactsheetonefinitegroupedpass,severalCanvacovers,nativePNGacceptance/freeze/cancel",
+    "Canonicalpairedpublishingthenappendall3DirectYMLfeeds"
+  ],
+  "risks": [
+    "1032currentnativeBAYOUACANTHUSaliasoldAcanthusCennet;ownernewbrandbodyfound,checkcurrentoperatingconditions/realphotos,notrenders",
+    "AkraKemerAboutUslinkgoestocorporatepage;usingactualhotelBeachPoolsandGallery",
+    "AndizownerStayFAQincorrectlynamesHemera,do nottransferbeachfront/rights/distances",
+    "NGVIP/CIP/aircraftprivilegesnotuniversal,Libertyheaderphotosmaybelongtootherhotels",
+    "Country/regionnativeproofnotAnyTourinteger"
+  ],
+  "ready_for_send_count": 0,
+  "new_posts": 0
+}

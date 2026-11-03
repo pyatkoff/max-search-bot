@@ -1,0 +1,33 @@
+{
+  "operation": "commercial-stock-20261103-30-read1",
+  "state": "NINE_UNIQUE_UNPUBLISHED_NATIVE_IDENTITIES_CONFIRMED_ONE_NARROW_ALIAS_ZERO",
+  "catalog_ids": [
+    1291,
+    15869,
+    1033,
+    1032,
+    1031,
+    21673,
+    75377,
+    74503,
+    1582
+  ],
+  "country_id": 4,
+  "bounded_groups": 10,
+  "unique_registry_zero": 9,
+  "ready_materials": 0,
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41716347078",
+  "artifact_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41716347078/artifacts/13270440981",
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "existing_server_connection_used": true,
+  "new_native_cases": 6,
+  "registry_full_snapshots_read": 0,
+  "sparse_checkout_verified": true,
+  "checkout_fetch_and_checkout_seconds": 9.5,
+  "baseline_fetch_seconds": 169.1,
+  "zero_alias_keys": [
+    "liberty-lara"
+  ]
+}

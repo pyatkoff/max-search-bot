@@ -1,0 +1,39 @@
+{
+  "operation": "commercial-hotel-batch-20261103-30-v1",
+  "state": "TWELVE_DECLARED_PRIMARY_INPUTS_READY_NO_PHOTO_ACCEPTANCE",
+  "catalog_ids": [
+    1291,
+    15869,
+    1033,
+    1032,
+    1031,
+    21673,
+    75377,
+    74503,
+    1582,
+    253
+  ],
+  "pages": [
+    "https://www.akrahotels.com/en/hotels/akra-kemer/beach-and-pools/",
+    "https://www.akrahotels.com/en/hotels/akra-kemer/gallery/",
+    "https://www.akrahotels.com/en/hotels/akra-sorgun/about-us/",
+    "https://www.akrahotels.com/en/hotels/akra-sorgun/gallery/",
+    "https://baruthemera.com/en",
+    "https://barutarum.com/",
+    "https://barutarum.com/en/gallery",
+    "https://bayouacanthus.com/",
+    "https://barutandiz.com/en/stay",
+    "https://www.libertyhotels.com/en/hotels/liberty-fabay/",
+    "https://ngphaselisbay.com/en/",
+    "https://www.voyagehotel.com/en/voyage-belek-spa"
+  ],
+  "retained_safir_source": "https://www.safirhotels.com/en/hotel/safir-sharm-waterfalls-resort",
+  "retained_safir_note": "DoNOTrepeatHTML;heroPcyZHv/receptionWkgmPnalreadyvisuallyaccepted,onepoolwomanrejected;newadditionalhotel-imageURIneededfromretainedlist",
+  "additional_tui_brand_proof": "https://www.tui-blue.com/en/en/hotels/tui-blue-barut-andiz/",
+  "notes": [
+    "TUIBLUEcurrent16+andbeachwalkproven,cachedbrandbody;oldownerFAQHemeraignored",
+    "AkraSorgun336rooms/familyandadultzones/privatebeach/kidsplaygrounds,don'tcallentirehoteladultsonly",
+    "BAYOUAcanthusactualownerlinkedfromArumfooter,do notguessalternatebranddomains",
+    "LibertyFabayredirectprimaryprovenfinalEnglishhotelURL;don'trepeatoldredirectingrootinGHA"
+  ]
+}
