@@ -917,6 +917,20 @@
       "telegram_name": "Путевки в Liberty Fabay",
       "max_name": "Туры в Liberty Fabay",
       "description": "Тур с перелётом. Фетхие. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 74503,
+      "short_name": "NG Phaselis Bay",
+      "telegram_name": "Путевки в NG Phaselis Bay",
+      "max_name": "Туры в NG Phaselis Bay",
+      "description": "Тур с перелётом. Кемер. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "hotel_id": 1582,
+      "short_name": "Voyage Belek Golf & Spa",
+      "telegram_name": "Путевки в Voyage Belek Golf & Spa",
+      "max_name": "Туры в Voyage Belek Golf & Spa",
+      "description": "Тур с перелётом. Белек. Фото и особенности отеля. Узнайте стоимость."
     }
   ]
 }

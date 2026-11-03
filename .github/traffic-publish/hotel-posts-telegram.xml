@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<yml_catalog date="2026-11-03 21:24">
+<yml_catalog date="2026-11-03 22:15">
   <shop>
     <name>AnyTour</name>
     <company>AnyTour</company>
@@ -1183,6 +1183,24 @@
         <description>Тур с перелётом. Фетхие. Фото и особенности отеля. Узнайте стоимость.</description>
         <custom_label_0>telegram</custom_label_0>
         <custom_label_1>Фетхие</custom_label_1>
+      </offer>
+      <offer id="tg_74503">
+        <url>https://t.me/any_toour/146</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/5e9aa17d09d0499ffd3c40c3c335318d02bfde06/.github/traffic-publish/commercial-batch-20261103-31/74503.png</picture>
+        <name>Путевки в NG Phaselis Bay</name>
+        <description>Тур с перелётом. Кемер. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Кемер</custom_label_1>
+      </offer>
+      <offer id="tg_1582">
+        <url>https://t.me/any_toour/147</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/5e9aa17d09d0499ffd3c40c3c335318d02bfde06/.github/traffic-publish/commercial-batch-20261103-31/1582.png</picture>
+        <name>Путевки в Voyage Belek Golf &amp; Spa</name>
+        <description>Тур с перелётом. Белек. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Белек</custom_label_1>
       </offer>
     </offers>
   </shop>
