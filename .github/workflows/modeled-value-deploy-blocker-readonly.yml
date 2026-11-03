@@ -56,7 +56,9 @@ jobs:
               $rows=$q->fetchAll(PDO::FETCH_ASSOC);$q->closeCursor();
               $out['single_enabled_campaign']=count($rows)===1;
               if(count($rows)===1){
-                  $r=$rows[0];$limits=is_string($r['limits_json'])?json_decode($r['limits_json'],true):null;
+                  $r=$rows[0];
+                  try{require_once 'services/HotelServerCycle.php';$view=(new HotelServerCycle($pdo,new HotelServerLane($pdo)))->status($r['campaign_id']);$out['campaign_projection_readable']=($view['state']??null)===$r['state'];}catch(Throwable $ignoredProjection){$out['campaign_projection_readable']=false;}
+                  $limits=is_string($r['limits_json'])?json_decode($r['limits_json'],true):null;
                   $out['campaign_state']=in_array($r['state'],['ready','unknown','reviewed','hold','complete','disabled','author_done'],true)?$r['state']:'other';
                   $out['runtime_pin_matches']=$cfg===null?null:($cfg['campaign_id']===$r['campaign_id']&&$cfg['bootstrap_sha256']===$r['bootstrap_sha256']);
                   $out['deadline_reached']=is_int($limits['deadline']??null)?time()>=$limits['deadline']:null;
