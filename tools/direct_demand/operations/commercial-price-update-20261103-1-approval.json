@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-price-update-20261103-1-v1",
+  "expected_installed_sha": "d555226a084e1e28328ba4e7355a24ad8a058de7",
+  "hotel_ids": [
+    12114
+  ],
+  "manifest_sha256": "921418328b02f33a17b16ba9e7e907d7a00976e532460d4322bdbe532c9bd260"
+}

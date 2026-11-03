@@ -1,0 +1,26 @@
+{
+  "operation": "commercial-price-update-20261103-1-v1",
+  "state": "PREPARED_NOT_EDITED",
+  "goal": "Add the documented actualized tour price to the two existing Palace posts while preserving their whole hotel body,photo,button and source context.",
+  "boundaries": "Only native12114,one existing Telegram post and one existing MAX post. Existing registry/durable once/update transport. No new posts,quote calls,channel settings,worker,schema or runtime source change.",
+  "criteria": "Exact original caption and approved cover receipt,current live photo/button/source/rights,unique canonical prior messages,exact retained quote response hash and quote index1,verbatim quote.price.value233755RUB without adding fuel,UTC response time and original room/meal/party/dates,caption<=1024UTF16. Exactly2 verified edits.",
+  "risks": "Default flight group SU000 contains placeholder scheduling and is excluded. Use the concrete returned SU5955/SU5956 pair. Published quote is a timestamped checked price,not a lasting availability guarantee. UNKNOWN/active edit state is resolved before retry.",
+  "button_text": "✈️ Узнать стоимость тура",
+  "quote_response_sha256": "9559c385416749dcff6d5e67e04d181a8a2405680873d37fbcd7450f762a93f8",
+  "quote_index": 1,
+  "quote_epoch_utc": 1793697122,
+  "rows": [
+    {
+      "key": "jaz-elite-palace",
+      "hotel_id": 12114,
+      "logical_id": "commercial-jaz-elite-palace-12114-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261103-17-v1",
+      "old_text": "✈️ JAZ Elite Palace 16+\nТур с перелётом в Шарм эль Шейх 🇪🇬\n\nОтель в бухте Шарм эль Майя принимает гостей от 16 лет 🌴\n\n🏖️ Собственный песчаный пляж с пологим входом в воду.\n💦 Три бассейна, в том числе крытый.\n🍽️ Четыре ресторана, среди них итальянский Toscana.\n🎾 Два теннисных корта, пляжный волейбол и настольный теннис.\n\nℹ️ К коралловому рифу для снорклинга добираются на катере. Это отдельная платная поездка.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "old_text_sha256": "29ba12dfc2303115cdff52b868065ebc78693d672d0558ff263494065405caec",
+      "new_text": "✈️ JAZ Elite Palace 16+\nТур с перелётом в Шарм эль Шейх 🇪🇬\n\nОтель в бухте Шарм эль Майя принимает гостей от 16 лет 🌴\n\n🏖️ Собственный песчаный пляж с пологим входом в воду.\n💦 Три бассейна, в том числе крытый.\n🍽️ Четыре ресторана, среди них итальянский Toscana.\n🎾 Два теннисных корта, пляжный волейбол и настольный теннис.\n\nℹ️ К коралловому рифу для снорклинга добираются на катере. Это отдельная платная поездка.\n\n💰 Полная стоимость тура: 233 755 ₽ за двоих.\nВылет из Москвы 12.01.2027, возвращение 19.01.2027. 7 ночей, 2 взрослых.\nНомер Superior с боковым видом на море. Питание AI, всё включено.\nРейсы SU5955 и SU5956.\nЦена проверена 03.11.2026 в 09:12 UTC.\n\nНажмите «✈️ Узнать стоимость тура». Напишите город вылета, даты и кто едет.",
+      "new_text_sha256": "a504b588d12388e3ea41aaa227205c543d5a5e8a3a185eed91d896a53c536cea",
+      "cover_sha256": "863391e7e19e5dc6959b36d754f467c99840847426a300244246d51e9314f166",
+      "update_text": true
+    }
+  ]
+}
