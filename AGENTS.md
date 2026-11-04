@@ -80,6 +80,8 @@ Before moving `main`, preserve the bounded priority of a frozen ready product re
 
 After merge: production deploy must pass verify, SSH/sync, migrations, smoke, diagnostics and deploy telemetry. Treat diagnostic-transfer failure as deployment-health failure, not a warning.
 
+Close an admitted shared publisher automatically in the existing post-deploy tail using the [release-slot binding](docs/RELEASE_PRIORITY.md#automatic-terminal-update). Keep one existing issue #1122 record and its owner; bind that record in the existing PR before merge. Only the original exact-source deployment and all mandatory technical gates can release it. Never dispatch checks or create another record for closure. Failure, ambiguity, changed source/owner, API refusal or unknown write outcome retain the slot for its current owner; do not repeat the mutation. Separate natural monitoring or product acceptance must not retain a technically completed shared slot.
+
 Production schema changes are migrations only. Applied migrations are immutable; repairs are forward-only.
 
 ## Visual QA
