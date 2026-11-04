@@ -1,0 +1,15 @@
+{
+  "operation": "commercial-price-update-20261104-4-v1",
+  "state": "SECOND_PREPARATION_STOPPED_BEFORE_INTENT_SSH_OR_EDITS",
+  "run": 41906233796,
+  "job": 126841512058,
+  "actual_caption_trailing_newlines": 0,
+  "original_caption_closing_paragraph": "Legacy request for departure city, dates and party; exact whole paragraph retained in plan",
+  "root_cause": "Quote3 preparation assumed every original caption ended with current CTA wording; native13873 has an earlier approved closing paragraph",
+  "source_manifest_path": "tools/direct_demand/operations/commercial-batch-20261102-10-manifest.json",
+  "source_text_sha256": "d4934c150e13e6f6dc1c526e5f75d50a9f7462c0eb642eb7a52ba3204e435d91",
+  "server_calls": 0,
+  "content_edit_attempts": 0,
+  "additional_gateway_calls": 0,
+  "repair": "Bind and preserve the exact existing closing paragraph and whole old caption SHA; button and all original content retained"
+}

@@ -31,5 +31,11 @@
   "previous_prepare_stop_run": 41905885411,
   "previous_prepare_stop_before_ssh_intent_or_edits": true,
   "caption_boundary_cases": 3,
-  "caption_cta_or_bytes_requirements_unchanged": true
+  "caption_cta_or_bytes_requirements_unchanged": true,
+  "original_text_sha256": "d4934c150e13e6f6dc1c526e5f75d50a9f7462c0eb642eb7a52ba3204e435d91",
+  "original_cta": "Напишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+  "original_public_manifest_path": "tools/direct_demand/operations/commercial-batch-20261102-10-manifest.json",
+  "second_prepare_stop_run": 41906233796,
+  "second_prepare_stop_before_ssh_intent_or_edits": true,
+  "legacy_cta_preserved_byteidentically": true
 }

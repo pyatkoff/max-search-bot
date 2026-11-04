@@ -1,4 +1,4 @@
-name: Preserve original caption ending and add verified quote4 to existing posts
+name: Preserve exact legacy JAZ Makadi Oasis caption and add verified quote4
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]

@@ -32,21 +32,21 @@ for i,f in enumerate(q['flights']):
   rejected.append(i)
 assert valid,'NO_VERIFIED_REAL_ROUNDTRIP_OPTION_NO_EDIT'
 valid.sort(key=lambda x:(x[0],x[1]));amount,index,flight=valid[0]
-rawold=old['text'];assert hashlib.sha256(rawold.encode()).hexdigest()==old['text_sha256']
-def caption_parts(text):
+rawold=old['text'];assert hashlib.sha256(rawold.encode()).hexdigest()==old['text_sha256']==plan['original_text_sha256']
+def caption_parts(text,expected_cta):
  body=text.rstrip('\r\n');suffix=text[len(body):]
  prefix,cta=body.rsplit('\n',1)
- assert 'Узнать стоимость тура' in cta
+ assert cta==expected_cta and expected_cta
  return prefix,cta,suffix
-fixture='Отель\n✈️ Узнать стоимость тура'
-assert caption_parts(fixture)==('Отель','✈️ Узнать стоимость тура','')
-assert caption_parts(fixture+'\n\n')==('Отель','✈️ Узнать стоимость тура','\n\n')
-try:caption_parts('Отель\nДругой текст')
+expected_cta=plan['original_cta'];fixture='Отель\n'+expected_cta
+assert caption_parts(fixture,expected_cta)==('Отель',expected_cta,'')
+assert caption_parts(fixture+'\n\n',expected_cta)==('Отель',expected_cta,'\n\n')
+try:caption_parts('Отель\nДругой текст',expected_cta)
 except AssertionError:pass
-else:raise AssertionError('missing_original_CTA_accepted')
+else:raise AssertionError('foreign_original_CTA_accepted')
 body=rawold.rstrip('\r\n')
-print(json.dumps({'operation':'commercial-price-update-20261104-4-caption-binding','catalog_id':hid,'catalog_name':chosen['catalog_name'],'source_manifest_path':chosen['original_manifest_path'],'trailing_newline_characters':len(rawold)-len(body),'last_nonempty_line_has_required_cta':'Узнать стоимость тура' in body.split('\n')[-1],'new_caption_boundary_cases':3,'server_calls':0,'provider_calls':0}))
-before,cta,trailing=caption_parts(rawold)
+print(json.dumps({'operation':'commercial-price-update-20261104-4-caption-binding','catalog_id':hid,'catalog_name':chosen['catalog_name'],'source_manifest_path':chosen['original_manifest_path'],'trailing_newline_characters':len(rawold)-len(body),'exact_original_cta_preserved':body.split('\n')[-1]==expected_cta,'new_exact_closing_paragraph_cases':3,'server_calls':0,'provider_calls':0}))
+before,cta,trailing=caption_parts(rawold,expected_cta)
 native_meals={2:'RO',3:'BB',4:'HB',5:'FB',7:'AI',9:'UAI'}
 meal=native_meals[int(t['meal_id'])];assert chosen['retained']['native_meal_label']==meal
 room=str(t['room_type']).strip();departure=str(chosen['retained']['departure_name']).strip();assert room and departure
