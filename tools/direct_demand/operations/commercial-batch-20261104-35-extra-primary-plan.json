@@ -1,0 +1,22 @@
+{
+  "operation": "commercial-batch35-five-newly-declared-owner-pages",
+  "goal": "Resolve actual gallery and property specific beach/pool facts before one finite photo pass",
+  "boundaries": [
+    "Five new exact owner-declared URLs only; no repeat prior ten GETs",
+    "Purecloud/no server/provider/DB/messages and unchanged metadata guards"
+  ],
+  "criteria": [
+    "Three readonlygroups,maxparallel2",
+    "Gloria services/propertyphotos retained separately; no sisterrights"
+  ],
+  "risks": [
+    "Some galleryphotosmayberooms/people/renders, nativepixelsrequired"
+  ],
+  "urls": [
+    "https://dmarisbay.com/en/gallery",
+    "https://www.clubmarvy.com/en/beach-club-resort-turkey/home",
+    "https://www.gloria.com.tr/en/hotels/gloria-serenity-resort/beach-pool/",
+    "https://www.gloria.com.tr/en/hotels/gloria-verde-resort/beach-pool/",
+    "https://www.gloria.com.tr/en/hotels/gloria-golf-resort/beach-pool/"
+  ]
+}

@@ -1,6 +1,6 @@
 {
   "operation": "commercial-monitor-publication-20261104-34",
-  "state": "NATIVE_659_VALIDATED_PR4990_MERGE_APPROVAL_PENDING",
+  "state": "NATIVE_659_VALIDATED_PR4990_MERGED_AFTER_EXPLICIT_USER_APPROVAL",
   "goal": "Append two actually published native hotels to existing657 admitted monitor inputs",
   "boundaries": [
     "Separate immutable publication_stock_20261104_2 cohort only after actualfull657dedup",
@@ -17,9 +17,9 @@
     1417,
     1348
   ],
-  "active_monitor_count": 657,
+  "active_monitor_count": 659,
   "proposed_monitor_count": 659,
-  "published_hotels_covered": 144,
+  "published_hotels_covered": 146,
   "published_hotels_total": 146,
   "current_stock25_covered": true,
   "pr_url": "https://github.com/pyatkoff/poisk-turov-test/pull/4990",
@@ -33,6 +33,9 @@
   "merge_attempt": "AUTOMATIC_APPROVAL_REVIEW_REJECTED",
   "reason": "Separate main branch merge not clearly covered by explicit PR4988 approval",
   "user_question_sent": true,
-  "user_answer_pending": true,
-  "no_retry_or_bypass": true
+  "user_answer_pending": false,
+  "no_retry_or_bypass": true,
+  "user_approval": "Да, слить PR4990 и добавить оба отеля",
+  "merge_commit": "2db0515e70326a25d704da905188ef05532cd6ab",
+  "previous_rejection_resolved_by_explicit_approval": true
 }
