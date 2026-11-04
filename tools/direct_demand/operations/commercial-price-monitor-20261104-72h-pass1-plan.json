@@ -1,0 +1,32 @@
+{
+  "operation": "commercial-price-monitor-20261104-72h-pass1",
+  "goal": "Finish all newly admitted unpriced-hotel contexts from the user-approved72h historical slice in one bounded serial pass",
+  "max_age_seconds": 259200,
+  "exact_new_input_run": 41934633857,
+  "exact_new_input_artifact": 13372822872,
+  "max_distinct_hotels": 37,
+  "max_gateway_calls": 37,
+  "max_gateway_calls_per_hotel": 1,
+  "automatic_retry_allowed": false,
+  "max_db_scope_rereads": 0,
+  "max_new_posts": 0,
+  "max_price_edits_in_quote_phase": 0,
+  "expected_source": "0a80b95fa31e3a90267daa8984adae24d6aaa6bb",
+  "boundaries": [
+    "Only new69rows/37hotels from unreadhistoricalslice, no closedREAD9tuples or consumedhotels",
+    "Exactcurrentnativecountry/active/name/party/terms/fingerprint/persistence72h readonlyrevalidation per newly selected tuple",
+    "Originalcaption/logical/coverunique binding and individualdurableprivateintent before any gateway call",
+    "Full21/currentmain/deployverify/TLS/diagnostics/hostaccepted25/runtimecleangates; no collector/observer/budget/cron/transport changes",
+    "One per distinct hotel, fingerprintunique; no secondtuplefallback; UNKNOWN stops pass",
+    "Fullrawtuple/quote only authenticatedartifact; consolecounts/nativeIDs/statusonly"
+  ],
+  "criteria": [
+    "New72hquote boundarycases once(3), newexactbindingcases perinput(3), PHP-l beforeSSH",
+    "Originaltyped_bridge allowed only with exactcurrentnative/name/country/active andoriginalmanifest agree",
+    "No old30h/native/age/updaterfixtures rerun"
+  ],
+  "risks": [
+    "Older tours within72h can be unavailable; errors do not justify paidretry",
+    "Sourcechange or UNKNOWN stops; do not bypass withnewID"
+  ]
+}
