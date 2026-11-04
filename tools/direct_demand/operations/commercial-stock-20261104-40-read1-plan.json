@@ -1,6 +1,6 @@
 {
   "operation": "commercial-stock-20261104-40-read1",
-  "state": "TEN_NEW_NAMED_LOOKUP_GROUPS_NOT_NATIVE_IDENTITIES_NOT_READY",
+  "state": "PURE_CODE_VALIDATION_ONLY_CURRENT_NEW_RELEASE_FAILED_NO_SERVER_READ",
   "goal": "Find ten additional distinct unpriced unpublished Turkey hotel identities for the500material goal, without retrying closed media or old stock39lookups",
   "boundaries": {
     "country_id": 4,
@@ -71,5 +71,12 @@
   "expected_source": "2f7cff9ab66f59003af8df8a7f18ef2b93bca93d",
   "current_deploy_run": 41917839854,
   "current_tls_run": 41918925110,
-  "current_diagnostics_run": 41918925124
+  "current_diagnostics_run": 41918925124,
+  "current_new_main_not_accepted": "2dfd5249aba1419966c35f40961e650d2e982099",
+  "current_new_deploy_run": 41921002397,
+  "source_stop_run": 41921737318,
+  "source_stop_count": 1,
+  "stock40_server_reads": 0,
+  "stock40_native_cases_executed_before_source_stop": 0,
+  "full_source_gates_not_waived": true
 }
