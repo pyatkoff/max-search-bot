@@ -1,4 +1,4 @@
-name: Prepare156 hotel YML offers preserving150 existing MAX miniapp routes
+name: Prepare156 YML with exact previous150 offers and metadata preserved
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]

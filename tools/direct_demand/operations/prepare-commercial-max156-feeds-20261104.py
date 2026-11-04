@@ -38,8 +38,13 @@ for name,raw in old.items():
  assert text.count('    </offers>')==1
  outputs[name]=text.replace('    </offers>',addition+'    </offers>').encode()
 baseline={name:{'previous_sha256':PREVIOUS[name]['sha256'],'previous_blocks_sha256':{k:hashlib.sha256(v.encode()).hexdigest() for k,v in oldblocks[name].items()},'new_blocks_sha256':{k:hashlib.sha256(v.encode()).hexdigest() for k,v in blocks(raw).items() if k not in oldblocks[name]},'rows':312 if name=='hotel-posts-all.xml' else 156} for name,raw in outputs.items()}
+def outside(raw):
+ text=re.sub(r'<offers>[\s\S]*?</offers>','<offers>__OFFERS__</offers>',raw.decode(),count=1)
+ return re.sub(r'<yml_catalog date="[^"]+">','<yml_catalog date="__DATE__">',text).encode()
+for name in baseline:baseline[name]['outside_offers_sha256']=hashlib.sha256(outside(old[name])).hexdigest()
 def check(name,raw):
  b=baseline[name];assert b'<!DOCTYPE' not in raw.upper() and b'<!ENTITY' not in raw.upper()
+ assert hashlib.sha256(outside(raw)).hexdigest()==b['outside_offers_sha256']
  doc=ET.fromstring(raw);offers=doc.findall('shop/offers/offer');rb=blocks(raw)
  assert len(offers)==b['rows'] and len(rb)==len(offers) and set(rb)==set(b['previous_blocks_sha256'])|set(b['new_blocks_sha256'])
  for oid,h in {**b['previous_blocks_sha256'],**b['new_blocks_sha256']}.items():assert hashlib.sha256(rb[oid].encode()).hexdigest()==h
@@ -57,7 +62,9 @@ checked={n:check(n,r) for n,r in outputs.items()}
 assert checked['hotel-posts-all.xml']=={**checked['hotel-posts-telegram.xml'],**checked['hotel-posts-max.xml']}
 for kind in ['old_offer','wrong_bot','description']:
  sample=outputs['hotel-posts-max.xml']
- if kind=='old_offer':bad=sample.replace(b'<name>',b'<name>Changed ',1)
+ if kind=='old_offer':
+  block=next(iter(oldblocks['hotel-posts-max.xml'].values())).encode();assert block in sample
+  bad=sample.replace(block,block.replace(b'<name>',b'<name>Changed ',1),1)
  elif kind=='wrong_bot':bad=sample.replace(b'id9704048781_2_bot',b'id9704048781_1_bot',1)
  else:bad=sample.replace(b'<description>',b'<description>Changed ',1)
  try:check('hotel-posts-max.xml',bad);raise RuntimeError('BAD_APPEND_ACCEPTED')
