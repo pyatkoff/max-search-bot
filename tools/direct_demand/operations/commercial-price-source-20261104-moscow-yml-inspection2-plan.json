@@ -1,0 +1,22 @@
+{
+  "operation": "commercial-price-source-20261104-moscow-yml-inspection2",
+  "goal": "Determine whether the supplied feed's prices carry tour terms or merely advertising from-prices, using the one retained original source only",
+  "boundaries": [
+    "Original artifact13372830921/run41932708020 with exactSHA, no repeat sourceGET",
+    "Safe console schema/counts/first5publichoteloffer names only; never full publicpostdestination URLs, fullprivatequotes or tuples",
+    "No DB/provider/gateway/manualcollector/priceedits or feedwrites"
+  ],
+  "criteria": [
+    "140 originaloffers exactsourceSHA",
+    "Count positive/zero/nonnumeric prices and destination host classes",
+    "Classify presence of dates/nights/party/meal/room/flight and from-price without treating regex as final native binding"
+  ],
+  "risks": [
+    "Producer date lackstimezone; HTTP LastModified is filemodification, not perpricecheckedtime",
+    "Presence of a price/available attribute alone does not verify finalbasket or actualavailability"
+  ],
+  "source_gets": 0,
+  "db_calls": 0,
+  "gateway_calls": 0,
+  "price_edits": 0
+}

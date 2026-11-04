@@ -1,10 +1,11 @@
-name: Inspect Pavel supplied Moscow YML once without searches or price edits
+name: Inspect retained Moscow feed price terms without another source request
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
     paths: [.github/workflows/content100-bot-publication-20261101.yml]
 permissions:
   contents: read
+  actions: read
 concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
@@ -20,20 +21,24 @@ jobs:
           sparse-checkout: |
             tools/direct_demand/operations
           sparse-checkout-cone-mode: true
-      - name: Read the exact newly supplied public feed once with a strict size and time limit
+      - uses: actions/download-artifact@v4
+        with:
+          name: commercial-price-source-20261104-moscow-yml-inspection2
+          github-token: ${{ github.token }}
+          repository: pyatkoff/max-search-bot
+          run-id: 41932708020
+          path: ${{ runner.temp }}/moscow-source
+      - name: Inspect only retained public source terms and destination classes
         shell: bash
         run: |
           set -euo pipefail
-          umask 077
-          test "$GITHUB_RUN_ATTEMPT" = 1
-          python3 tools/direct_demand/operations/inspect-pavel-moscow-yml-20261104.py
+          python3 tools/direct_demand/operations/inspect-retained-moscow-yml-terms-20261104.py
       - name: Retain original public source privately with bounded schema evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-price-source-20261104-moscow-yml-inspection1
+          name: commercial-price-source-20261104-moscow-yml-inspection2
           path: |
-            ${{ runner.temp }}/moscow_any.source.xml
-            ${{ runner.temp }}/moscow-yml-inspection-summary.json
+            ${{ runner.temp }}/moscow-yml-inspection2-summary.json
           retention-days: 14
           if-no-files-found: warn
