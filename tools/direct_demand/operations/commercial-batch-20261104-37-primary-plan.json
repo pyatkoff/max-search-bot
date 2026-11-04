@@ -1,0 +1,50 @@
+{
+  "operation": "commercial-hotel-batch-20261104-37-v1",
+  "state": "TEN_FIXED_NEW_PRIMARY_OWNER_PAGES_PREPARED_NOT_SENT",
+  "goal": "Preparetennewhotelmaterials together andsendallready subset throughoneexistingserialrun",
+  "boundaries": [
+    "Use exactowner/currentprimaryfacts andrealhotelphotography",
+    "Onefinitecontactpass/severalCanvacovers;no prior36failedphotoURLs",
+    "Readinessrequirescaption+wholehero+2distinctlowers+acceptedPNG/source/dedup,notnativeID"
+  ],
+  "criteria": [
+    "WholehotelRussiancaption/flight/resort/3or4facts/feature/nextstep",
+    "Actualverifiedpairedpublicationbeforecredit"
+  ],
+  "risks": [
+    "ExactownerURLsfornewtennotyetproven",
+    "Nativealiasage/brandsnotproofcurrentownerrights;verifyTUIBLUE16+/Rixos13+withprimarybeforecaption"
+  ],
+  "baseline_logical_hotels": 150,
+  "hotel_ids": [
+    1653,
+    1659,
+    21695,
+    28668,
+    54592,
+    55205,
+    1334,
+    1142,
+    1715,
+    28327
+  ],
+  "ready_for_send_count": 0,
+  "new_posts": 0,
+  "source_index": "commercial-batch-20261104-37-source-index",
+  "initial_primary_url_count": 10,
+  "current_owner_input_scope_proven": true,
+  "native_photography_accepted": false,
+  "new_previous_frame_retries": 0,
+  "additional_goal": "Finiteprimarymetadata only; no closed miniapp inspections or historicalprice/providerreads",
+  "bounds": [
+    "No Mac; existing pure GHA public HTTPS reader only",
+    "Four readonly groups/maxparallel2; ten fixed URLs; no server/provider/DBwrites/messages",
+    "Lasttwo ownerroot/contact URLs onlydiscover exactpropertyhrefs; sharedphotosnotaccepted"
+  ],
+  "new_input_checks": {
+    "urls": 10,
+    "unique_urls": 10,
+    "whole_hotel_ids": 10,
+    "old_helper_fixtures_rerun": 0
+  }
+}
