@@ -1,6 +1,6 @@
 {
   "operation": "commercial-channel-hotel-feeds-20261104-update13",
-  "state": "PREPARING_NOT_WRITTEN",
+  "state": "PREPARED_FOR_EXACT_THREE_STATIC_FILE_REPLACEMENT",
   "goal": "Append the already published Susesi1543 pair to all three feeds after native MAX157 installation",
   "boundaries": [
     "Only three existing public XML exports",
@@ -49,5 +49,34 @@
   "read14_artifact": 13358566138,
   "max157_install_run": 41902696282,
   "max157_install_job": 126829029464,
-  "source_sha": "9678e8c617734dd3bd5054eabf3585e396e3ca12"
+  "source_sha": "9678e8c617734dd3bd5054eabf3585e396e3ca12",
+  "candidate_run": 41903834314,
+  "candidate_job": 126833021264,
+  "candidate_artifact": 13358159258,
+  "writer_sha256": "2c5afa39924770d30bb541c05d483f44569e5aeae652abcb553cff89ef1f3a6e",
+  "files": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "bytes": 101689,
+      "rows": 157,
+      "sha256": "d8c19b080a98a1704f991569398638fef3cd914d5b085b9d40b9ffd20618fff0",
+      "expected_previous_sha256": "477792e38d0d27bb5f5f41fc4930b1b39ec199e404812524bff26aa22f55007d"
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "bytes": 128237,
+      "rows": 157,
+      "sha256": "792f392a8a514ccc3cc492e5d3d9b58aa9c52c7be3ffd862c4d429c1b4f65708",
+      "expected_previous_sha256": "e6df462586f76e16ed1810d948440e15c26c9fc7a16c07e5db52ef83c7137e09"
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "bytes": 229553,
+      "rows": 314,
+      "sha256": "331ecc6c64189d6e8478aed61cd0f85ed02d412b966a0c6f5c3aa6015b5b63f8",
+      "expected_previous_sha256": "62b910d8a4e5b15c0ba25877d09b75e1f9bfabdeee17897b7d211f2662adc67d"
+    }
+  ],
+  "native_new_append_cases": 3,
+  "unchanged_old_fixtures_rerun": 0
 }

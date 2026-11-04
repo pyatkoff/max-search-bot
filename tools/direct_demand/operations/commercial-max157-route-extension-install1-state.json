@@ -1,0 +1,48 @@
+{
+  "operation": "commercial-max157-private-route-extension-20261104-38-install1",
+  "state": "INSTALLED_AND_NATIVE_VERIFIED",
+  "run_url": "https://github.com/pyatkoff/tour-max/actions/runs/41902696282",
+  "job_id": 126829029464,
+  "intent_artifact": 13359336300,
+  "intent_created_utc": "2026-11-04T20:02:23Z",
+  "result_artifact": 13359296496,
+  "result_created_utc": "2026-11-04T20:02:32Z",
+  "native_total": 157,
+  "previous156_rows_identical": true,
+  "new_native_verified": 1,
+  "new_hotel_ids": [
+    1543
+  ],
+  "private_map_direct_http": 404,
+  "result": {
+    "candidate_module_sha256": "88f2ea27bdcaeac6f1a365aaf819198460ee0fd7df8209dafb4f9f99b3cbb6f9",
+    "changed_files": [
+      "anytour-hotel-feed-routes-v157-20261104-38.private.php",
+      "anytour-hotel-feed-context.php"
+    ],
+    "checks": {
+      "counter_config_matches": true,
+      "db_writes": 0,
+      "exact_total_routes": 157,
+      "message_sends": 0,
+      "natural_signed_user_launch_verified": false,
+      "new_native_routes_verified": 1,
+      "ok": true,
+      "previous156_rows_identical": true,
+      "private_projection_http_status": 404,
+      "project_active": true,
+      "provider_calls": 0,
+      "required_post_fields_ready": true,
+      "save_calls": 0
+    },
+    "db_writes": 0,
+    "feed_writes": 0,
+    "message_sends": 0,
+    "ok": true,
+    "operation": "commercial-max157-private-route-extension-20261104-38-install1",
+    "previous_module_sha256": "3371bef92e15f595a1da4e6629a27a218029b33223ffed3735941fa53fb03ae0",
+    "provider_calls": 0,
+    "state": "INSTALLED_AND_NATIVE_VERIFIED"
+  },
+  "natural_paid_signed_launch_observed": false
+}
