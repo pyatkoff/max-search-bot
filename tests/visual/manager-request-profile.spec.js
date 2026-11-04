@@ -178,12 +178,14 @@ async function emptyPreparedRequest(page){
   await page.locator('#profileRefresh').click();await expect(page.locator('#profilePreparation')).toBeVisible();
   await expect(page.locator('#profileLabel')).toBeEmpty();
 }
-for(const width of [390,1440])test(`literal request preparation stays unsaved and source-bound at ${width}px`,async({page})=>{
+for(const width of [390,1440])test(`literal request preparation stays unsaved and source-bound at ${width}px`,async({page,browserName})=>{
   await page.setViewportSize({width,height:420});await emptyPreparedRequest(page);
   await expect(page.locator('#profileState')).toContainText('Профиль пока не создан');
   await expect(page.locator('#profilePreparation')).toContainText('Новый год');
   await expect(field(page,'dates').locator('[data-value=text]')).toBeEmpty();
   await expect(field(page,'budget').locator('[data-value=text]')).toBeEmpty();
+  const preparationShots=path.join(root,'manager2-artifacts');fs.mkdirSync(preparationShots,{recursive:true});
+  await page.locator('#profilePreparation').screenshot({path:path.join(preparationShots,`request-profile-preparation-${browserName}-${width}.png`)});
   await page.locator('#profileApplyPreparation').click();
   await expect(field(page,'dates').locator('[data-value=text]')).toHaveValue('Новый год');
   await expect(field(page,'questions').locator('[data-value=text]')).toHaveValue('Куда можно улететь на Новый год?');
