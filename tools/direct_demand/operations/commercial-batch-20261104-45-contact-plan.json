@@ -1,0 +1,193 @@
+{
+  "operation": "commercial-batch-20261104-45-contact",
+  "state": "PREPARED_NOT_EXECUTED_NOT_READY",
+  "goal": "One finite grouped18photo pass for six exact owner-bound hotels in the ten proven newstock40scope",
+  "boundaries": {
+    "baseline_published_each_channel": 159,
+    "proven_scope": [
+      47025,
+      21642,
+      948,
+      1217,
+      1369,
+      1370,
+      1368,
+      1013,
+      1531,
+      1530
+    ],
+    "photo_subset_native_ids": [
+      948,
+      1217,
+      1369,
+      1370,
+      21642,
+      47025
+    ],
+    "exact_new_photo_gets": 18,
+    "readonly_groups": 4,
+    "max_parallel": 2,
+    "server_calls": 0,
+    "db_reads": 0,
+    "db_writes": 0,
+    "provider_calls": 0,
+    "message_sends": 0
+  },
+  "criteria": [
+    "Exactnativecountry4/active/currentname/registry0both from originalstock40proof, no DBscope reread",
+    "Adalya realIMGgallerymembers only; no relativealt-derivedfakeURIs/foreignpropertyBlissassets",
+    "Melasownerstatic subdomain is explicitfixedURIallowlist with LaraONLYproperties3 andResortONLYproperties2 isolateddeclarednamespace, no arbitraryCDNmetadata permission",
+    "Allclosed≤43URL+decodedbasename exclusions retained199, allsixnewnativeproperties had0priorrawphotos",
+    "Rawtype/byte/query/redirect/dimensionguardsBYTEIDENTICAL; source/coverage/pixels mustactuallypassbeforehero/Canva",
+    "Nativewholecomplex/grounds/buildingshero only; noonepool/category/people/banner/renderforquantity"
+  ],
+  "risks": [
+    "Ownerheroassetmayberender/limitedpool; rejectifnotrealwholecomplex",
+    "Fourdeferred1368/1013/1531/1530receiveNOGET/import; Sunisnocopyrestrictionnotbypassed",
+    "Actualready subsetmustnotwaitforhardcases"
+  ],
+  "allowed_exact_hosts": [
+    "www.adalyahotels.com",
+    "static.melashotels.com"
+  ],
+  "closed_url_exclusions": 199,
+  "closed_basename_exclusions": 199,
+  "new_input_scope_cases": 3,
+  "old_image_guard_fixtures_rerun": 0,
+  "images": [
+    {
+      "hotel_id": 47025,
+      "url": "https://www.adalyahotels.com/media/btvfemm5/adalya-elite-mainpage-d-1-1.jpg",
+      "primary_source_url": "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/",
+      "role": "h47025_new45_0",
+      "scope_proof": "ExactrealIMGgallery_membershipinthisretainedpropertypage"
+    },
+    {
+      "hotel_id": 47025,
+      "url": "https://www.adalyahotels.com/media/ehody2nf/adalya-elit-mainpage-sahil-iskele-banner-d.jpg",
+      "primary_source_url": "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/",
+      "role": "h47025_new45_1",
+      "scope_proof": "ExactrealIMGgallery_membershipinthisretainedpropertypage"
+    },
+    {
+      "hotel_id": 47025,
+      "url": "https://www.adalyahotels.com/media/tfwhio43/adalya-elit-lara-anasayfa-plaj-havuz-card.jpg",
+      "primary_source_url": "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/",
+      "role": "h47025_new45_2",
+      "scope_proof": "ExactrealIMGgallery_membershipinthisretainedpropertypage"
+    },
+    {
+      "hotel_id": 21642,
+      "url": "https://www.adalyahotels.com/media/4c1bpyvu/adalya-ocean-mainpage-d-1.jpg",
+      "primary_source_url": "https://www.adalyahotels.com/en/our-hotels/adalya-ocean-deluxe/",
+      "role": "h21642_new45_0",
+      "scope_proof": "ExactrealIMGgallery_membershipinthisretainedpropertypage"
+    },
+    {
+      "hotel_id": 21642,
+      "url": "https://www.adalyahotels.com/media/muapq1bj/adalyahotels-main-page-pool-ocean-deluxe-d.jpg",
+      "primary_source_url": "https://www.adalyahotels.com/en/our-hotels/adalya-ocean-deluxe/",
+      "role": "h21642_new45_1",
+      "scope_proof": "ExactrealIMGgallery_membershipinthisretainedpropertypage"
+    },
+    {
+      "hotel_id": 21642,
+      "url": "https://www.adalyahotels.com/media/uzjfszv4/adalya-ocean-aile-odasi-list-card.jpg",
+      "primary_source_url": "https://www.adalyahotels.com/en/our-hotels/adalya-ocean-deluxe/",
+      "role": "h21642_new45_2",
+      "scope_proof": "ExactrealIMGgallery_membershipinthisretainedpropertypage"
+    },
+    {
+      "hotel_id": 948,
+      "url": "https://www.adalyahotels.com/media/wh3anohc/adalyabliss-banner-desktop-1.jpg",
+      "primary_source_url": "https://www.adalyahotels.com/en/our-hotels/adalya-bliss/",
+      "role": "h948_new45_0",
+      "scope_proof": "ExactrealIMGgallery_membershipinthisretainedpropertypage"
+    },
+    {
+      "hotel_id": 948,
+      "url": "https://www.adalyahotels.com/media/2l2kkzj5/adalyabliss-main-page-banner-2-d.jpg",
+      "primary_source_url": "https://www.adalyahotels.com/en/our-hotels/adalya-bliss/",
+      "role": "h948_new45_1",
+      "scope_proof": "ExactrealIMGgallery_membershipinthisretainedpropertypage"
+    },
+    {
+      "hotel_id": 948,
+      "url": "https://www.adalyahotels.com/media/424liw1f/adalyabliss_havuzplaj_banner_desktop-3-1.jpg",
+      "primary_source_url": "https://www.adalyahotels.com/en/our-hotels/adalya-bliss/",
+      "role": "h948_new45_2",
+      "scope_proof": "ExactrealIMGgallery_membershipinthisretainedpropertypage"
+    },
+    {
+      "hotel_id": 1217,
+      "url": "https://www.adalyahotels.com/media/v31f0not/adalya-art-side-banner-v2-1-1.jpg",
+      "primary_source_url": "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/",
+      "role": "h1217_new45_0",
+      "scope_proof": "ExactrealIMGgallery_membershipinthisretainedpropertypage"
+    },
+    {
+      "hotel_id": 1217,
+      "url": "https://www.adalyahotels.com/media/toqfnkzw/adalya-art-side-mainpage-pool-banner-d.jpg",
+      "primary_source_url": "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/",
+      "role": "h1217_new45_1",
+      "scope_proof": "ExactrealIMGgallery_membershipinthisretainedpropertypage"
+    },
+    {
+      "hotel_id": 1217,
+      "url": "https://www.adalyahotels.com/media/netnf2mv/adalya-art-side-aile-odalari-anasayfa-card.jpg",
+      "primary_source_url": "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/",
+      "role": "h1217_new45_2",
+      "scope_proof": "ExactrealIMGgallery_membershipinthisretainedpropertypage"
+    },
+    {
+      "hotel_id": 1369,
+      "url": "https://static.melashotels.com/networks/1/properties/3/multimedia/20260624062845211_org.webp",
+      "primary_source_url": "https://www.melashotels.com/en/melas-lara-hotel",
+      "role": "h1369_new45_0",
+      "owner_property_media_prefix": "https://static.melashotels.com/networks/1/properties/3/multimedia/",
+      "scope_proof": "ExactliteralURIdeclaredbythisownerpropertyroot;allstaticmediainthepageisthisonepropertynamespace"
+    },
+    {
+      "hotel_id": 1369,
+      "url": "https://static.melashotels.com/networks/1/properties/3/multimedia/20260624064827077_org.webp",
+      "primary_source_url": "https://www.melashotels.com/en/melas-lara-hotel",
+      "role": "h1369_new45_1",
+      "owner_property_media_prefix": "https://static.melashotels.com/networks/1/properties/3/multimedia/",
+      "scope_proof": "ExactliteralURIdeclaredbythisownerpropertyroot;allstaticmediainthepageisthisonepropertynamespace"
+    },
+    {
+      "hotel_id": 1369,
+      "url": "https://static.melashotels.com/networks/1/properties/3/multimedia/20260624063317988_org.webp",
+      "primary_source_url": "https://www.melashotels.com/en/melas-lara-hotel",
+      "role": "h1369_new45_2",
+      "owner_property_media_prefix": "https://static.melashotels.com/networks/1/properties/3/multimedia/",
+      "scope_proof": "ExactliteralURIdeclaredbythisownerpropertyroot;allstaticmediainthepageisthisonepropertynamespace"
+    },
+    {
+      "hotel_id": 1370,
+      "url": "https://static.melashotels.com/networks/1/properties/2/multimedia/20260403070516482_org.webp",
+      "primary_source_url": "https://www.melashotels.com/en/melas-resort-hotel",
+      "role": "h1370_new45_0",
+      "owner_property_media_prefix": "https://static.melashotels.com/networks/1/properties/2/multimedia/",
+      "scope_proof": "ExactliteralURIdeclaredbythisownerpropertyroot;allstaticmediainthepageisthisonepropertynamespace"
+    },
+    {
+      "hotel_id": 1370,
+      "url": "https://static.melashotels.com/networks/1/properties/2/multimedia/20260403070459389_org.webp",
+      "primary_source_url": "https://www.melashotels.com/en/melas-resort-hotel",
+      "role": "h1370_new45_1",
+      "owner_property_media_prefix": "https://static.melashotels.com/networks/1/properties/2/multimedia/",
+      "scope_proof": "ExactliteralURIdeclaredbythisownerpropertyroot;allstaticmediainthepageisthisonepropertynamespace"
+    },
+    {
+      "hotel_id": 1370,
+      "url": "https://static.melashotels.com/networks/1/properties/2/multimedia/20260403070902462_org.webp",
+      "primary_source_url": "https://www.melashotels.com/en/melas-resort-hotel",
+      "role": "h1370_new45_2",
+      "owner_property_media_prefix": "https://static.melashotels.com/networks/1/properties/2/multimedia/",
+      "scope_proof": "ExactliteralURIdeclaredbythisownerpropertyroot;allstaticmediainthepageisthisonepropertynamespace"
+    }
+  ],
+  "ready_for_send": 0,
+  "new_posts": 0
+}

@@ -1,0 +1,141 @@
+{
+  "operation": "commercial-stock-20261104-45-source-notes",
+  "state": "TEN_PROVEN_SCOPE_SIX_WHOLE_CAPTIONS_FOUR_DEFERRED_NO_READY",
+  "proven_scope": [
+    47025,
+    21642,
+    948,
+    1217,
+    1369,
+    1370,
+    1368,
+    1013,
+    1531,
+    1530
+  ],
+  "captions": [
+    {
+      "key": "adalya-resort",
+      "hotel_id": 948,
+      "hotel": "ADALYA BLISS (EX. ADALYA RESORT & SPA) ADULTS ONLY",
+      "region": "Сиде",
+      "country_id": 4,
+      "aliases": [
+        "ADALYA BLISS (EX. ADALYA RESORT & SPA) ADULTS ONLY",
+        "Adalya Bliss"
+      ],
+      "sources": [
+        "https://www.adalyahotels.com/en/our-hotels/adalya-bliss/"
+      ],
+      "text": "🌿 Adalya Bliss\nТур с перелётом в Турцию, Сиде\n\n👤 Формат 16+\n🏖 Пляж и бассейны\n💆 Spa и фитнес\n🎶 Вечерние выступления и шоу\n\nОтель для взрослых с акцентом на спокойный отдых и современный дизайн. Номера с джакузи и выходом к бассейну относятся к отдельным категориям.\n✈️ Узнать стоимость тура",
+      "ready_for_send": false
+    },
+    {
+      "key": "adalya-artside",
+      "hotel_id": 1217,
+      "hotel": "ADALYA ART SIDE (EX. GRAND HOTEL ARTSIDE)",
+      "region": "Сиде",
+      "country_id": 4,
+      "aliases": [
+        "ADALYA ART SIDE (EX. GRAND HOTEL ARTSIDE)",
+        "Adalya Art Side"
+      ],
+      "sources": [
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/"
+      ],
+      "text": "🌴 Adalya Art Side\nТур с перелётом в Турцию, Сиде\n\n👨‍👩‍👧‍👦 Стандартные и семейные номера\n🏖 Пляжная зона и бассейны\n🧸 Детский клуб\n💆 Spa и фитнес\n\nСемейный вариант с развлечениями для детей и зонами отдыха для взрослых.\n✈️ Узнать стоимость тура",
+      "ready_for_send": false
+    },
+    {
+      "key": "melas-lara",
+      "hotel_id": 1369,
+      "hotel": "MELAS LARA HOTEL",
+      "region": "Анталья",
+      "country_id": 4,
+      "aliases": [
+        "MELAS LARA HOTEL",
+        "Melas Lara Hotel"
+      ],
+      "sources": [
+        "https://www.melashotels.com/en/melas-lara-hotel"
+      ],
+      "text": "🌊 Melas Lara Hotel\nТур с перелётом в Турцию, Лара\n\n🏖 Собственный песчаный пляж\n🏊 Крытый бассейн с подогревом\n👨‍👩‍👧‍👦 Семейные номера 45 м² с раздельными спальными зонами\n🧸 Мини клуб для детей\n\nВариант для семейного отдыха на побережье Антальи.\n✈️ Узнать стоимость тура",
+      "ready_for_send": false
+    },
+    {
+      "key": "melas-resort",
+      "hotel_id": 1370,
+      "hotel": "MELAS RESORT HOTEL",
+      "region": "Сиде",
+      "country_id": 4,
+      "aliases": [
+        "MELAS RESORT HOTEL",
+        "Melas Resort Hotel"
+      ],
+      "sources": [
+        "https://www.melashotels.com/en/melas-resort-hotel"
+      ],
+      "text": "☀️ Melas Resort Hotel\nТур с перелётом в Турцию, Сиде\n\n🏖 Собственный пляж\n🏊 Бассейны и spa зона\n🧸 Мини клуб и занятия для детей\n🏨 Есть номера с видом на сад или море\n\nОтель для отдыха вдвоём или с семьёй рядом с морем.\n✈️ Узнать стоимость тура",
+      "ready_for_send": false
+    },
+    {
+      "key": "adalya-ocean-deluxe",
+      "hotel_id": 21642,
+      "hotel": "ADALYA OCEAN DELUXE",
+      "region": "Сиде",
+      "country_id": 4,
+      "aliases": [
+        "ADALYA OCEAN DELUXE",
+        "Adalya Ocean Deluxe"
+      ],
+      "sources": [
+        "https://www.adalyahotels.com/en/our-hotels/adalya-ocean-deluxe/"
+      ],
+      "text": "🌊 Adalya Ocean Deluxe\nТур с перелётом в Турцию, Сиде\n\n🏖 Собственный пляж и бассейны на территории\n👨‍👩‍👧‍👦 Стандартные и семейные номера\n💆 Spa зона для отдыха\n🏋️ Фитнес и дневные активности\n\nВариант для отдыха у моря с семьёй или вдвоём.\n✈️ Узнать стоимость тура",
+      "ready_for_send": false
+    },
+    {
+      "key": "adalya-elite-lara",
+      "hotel_id": 47025,
+      "hotel": "ADALYA ELITE LARA",
+      "region": "Анталья",
+      "country_id": 4,
+      "aliases": [
+        "ADALYA ELITE LARA",
+        "Adalya Elite Lara"
+      ],
+      "sources": [
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/"
+      ],
+      "text": "🌴 Adalya Elite Lara\nТур с перелётом в Турцию, Лара\n\n🏖 Собственный пляж с песком и галькой, 100 метров берега и пирс\n👨‍👩‍👧‍👦 Есть семейные номера 50 м² для размещения до четырёх гостей\n🧸 Детский клуб для ребят от 4 до 12 лет\n\nПодойдёт для семейного отдыха у моря с выбором просторных номеров.\n✈️ Узнать стоимость тура",
+      "ready_for_send": false
+    }
+  ],
+  "deferred": [
+    {
+      "hotel_id": 1368,
+      "reason": "NativeMelasHolidayvsownerClubMelasPrivebridgeunresolved; no Privephotos/rights forced"
+    },
+    {
+      "hotel_id": 1013,
+      "reason": "Ownerexplicitnocopyfooter; no photoGET/import/bypass"
+    },
+    {
+      "hotel_id": 1531,
+      "reason": "Ownerexplicitnocopyfooter; no photoGET/import/bypass"
+    },
+    {
+      "hotel_id": 1530,
+      "reason": "Exactownerpropertyhrefunresolved; no guessedURI"
+    }
+  ],
+  "source_files": [
+    "commercial-stock-20261104-40-native-projection.json",
+    "commercial-stock-20261104-40-primary-preparation1-retained.json",
+    "commercial-stock-20261104-40-primary-preparation1-notes.json",
+    "commercial-stock-20261104-40-primary-preparation2-retained.json",
+    "commercial-stock-20261104-40-primary-preparation2-notes.json"
+  ],
+  "ready_for_send": 0,
+  "new_posts": 0
+}
