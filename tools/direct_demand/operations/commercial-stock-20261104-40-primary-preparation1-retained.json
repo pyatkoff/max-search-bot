@@ -1,0 +1,1766 @@
+{
+  "operation": "commercial-stock-20261104-40-primary-preparation1",
+  "state": "EIGHT_NEW_OWNER_HTML_READS_CLOSED_NO_NATIVE_IDENTITY_OR_PHOTO_ACCEPTANCE",
+  "source_run": 41924198516,
+  "source_commit": "665cad94b23441b2854614c27bae56050bc93f2c",
+  "page_count": 8,
+  "proper_property_pages": 6,
+  "owner_directory_pages": 2,
+  "old_owner_get_repeats": 0,
+  "raw_photo_gets": 0,
+  "server_calls": 0,
+  "provider_calls": 0,
+  "db_reads": 0,
+  "new_posts": 0,
+  "pages": [
+    {
+      "source_url": "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/",
+      "final_url": "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/",
+      "page_title": "Adalya Elite Lara Hotel | Hotel in Lara Antalya, Turkey",
+      "image_hosts": [
+        "www.adalyahotels.com"
+      ],
+      "image_urls": [
+        "https://www.adalyahotels.com/images/apple-touch-icon.png",
+        "https://www.adalyahotels.com/images/favicon-32x32.png",
+        "https://www.adalyahotels.com/images/favicon-16x16.png",
+        "https://www.adalyahotels.com/media/u2gjucjf/adalya-elite-mainpage-d.jpg",
+        "https://www.adalyahotels.com/media/4sxndcfr/adalya-elite-lara-mare-kids-club.jpg",
+        "https://www.adalyahotels.com/media/cjmffhjs/adalya-elit-mainpage-spa-banner-d.jpg",
+        "https://www.adalyahotels.com/media/rnaazuve/adalya-elit-lara-gastronomi-d.jpg",
+        "https://www.adalyahotels.com/media/ehody2nf/adalya-elit-mainpage-sahil-iskele-banner-d.jpg",
+        "https://www.adalyahotels.com/media/btvfemm5/adalya-elite-mainpage-d-1-1.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/btvfemm5/adalya-elite-mainpage-d-1-1.jpg",
+        "https://www.adalyahotels.com/media/prwn1bzg/adalya-elite-otellerimiz-card-m.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/prwn1bzg/adalya-elite-otellerimiz-card-m.jpg",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-elite-mainpage-d%20%281%29%20%281%29.jpg",
+        "https://www.adalyahotels.com/media/5ggnatxa/adalya-hotels-elite-lara-accomondation-standard-sea-view-room-other-card.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/5ggnatxa/adalya-hotels-elite-lara-accomondation-standard-sea-view-room-other-card.jpg",
+        "https://www.adalyahotels.com/media/5ggnatxa/adalya-hotels-elite-lara-accomondation-standard-sea-view-room-other-card.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/Adalya-hotels-elite-lara-accomondation-standard-sea-view-room-other-card.jpg",
+        "https://www.adalyahotels.com/media/dcfduotu/adalya-hotels-elite-lara-accomondation-family-side-sea-view-room-other-card.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/dcfduotu/adalya-hotels-elite-lara-accomondation-family-side-sea-view-room-other-card.jpg",
+        "https://www.adalyahotels.com/media/dcfduotu/adalya-hotels-elite-lara-accomondation-family-side-sea-view-room-other-card.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/Adalya-hotels-elite-lara-accomondation-family-side-sea-view-room-other-card.jpg",
+        "https://www.adalyahotels.com/media/d4ydp1qv/adalya-hotels-elite-lara-accomondation-superior-suite-other-card.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/d4ydp1qv/adalya-hotels-elite-lara-accomondation-superior-suite-other-card.jpg",
+        "https://www.adalyahotels.com/media/d4ydp1qv/adalya-hotels-elite-lara-accomondation-superior-suite-other-card.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/Adalya-hotels-elite-lara-accomondation-superior-suite-other-card.jpg",
+        "https://www.adalyahotels.com/media/rnaazuve/adalya-elit-lara-gastronomi-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/rnaazuve/adalya-elit-lara-gastronomi-d.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-elit-lara-gastronomi-d.jpg",
+        "https://www.adalyahotels.com/media/fhald4pp/adalya-elit-mainpage-snackler-banner-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/fhald4pp/adalya-elit-mainpage-snackler-banner-d.jpg",
+        "https://www.adalyahotels.com/media/fhald4pp/adalya-elit-mainpage-snackler-banner-d.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-elit-mainpage-snackler-banner-d.jpg",
+        "https://www.adalyahotels.com/media/qzvjno4c/adalya-elit-mainpage-barlar-banner-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/qzvjno4c/adalya-elit-mainpage-barlar-banner-d.jpg",
+        "https://www.adalyahotels.com/media/qzvjno4c/adalya-elit-mainpage-barlar-banner-d.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-elit-mainpage-barlar-banner-d.jpg",
+        "https://www.adalyahotels.com/media/cjmffhjs/adalya-elit-mainpage-spa-banner-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/cjmffhjs/adalya-elit-mainpage-spa-banner-d.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-elit-mainpage-spa-banner-d.jpg",
+        "https://www.adalyahotels.com/media/ehody2nf/adalya-elit-mainpage-sahil-iskele-banner-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/xvof1e2k/adalya-elit-mainpage-sahil-iskele-banner-m.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/xvof1e2k/adalya-elit-mainpage-sahil-iskele-banner-m.jpg",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-elit-mainpage-sahil-iskele-banner-d.jpg",
+        "https://www.adalyahotels.com/media/tfwhio43/adalya-elit-lara-anasayfa-plaj-havuz-card.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/tfwhio43/adalya-elit-lara-anasayfa-plaj-havuz-card.jpg",
+        "https://www.adalyahotels.com/media/sn2drcjt/adalya-elit-lara-anasayfa-plaj-havuz-card-m.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/sn2drcjt/adalya-elit-lara-anasayfa-plaj-havuz-card-m.jpg",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-elit-lara-anasayfa-plaj-havuz-card.jpg",
+        "https://www.adalyahotels.com/media/udvfaocu/adalya-elit-lara-wellness-card.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/udvfaocu/adalya-elit-lara-wellness-card.jpg",
+        "https://www.adalyahotels.com/media/k5hdpuvr/adalya-elit-lara-wellness-card-m.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/k5hdpuvr/adalya-elit-lara-wellness-card-m.jpg",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-elit-lara-wellness-card.jpg",
+        "https://www.adalyahotels.com/media/3h3f2dfj/adalya-bliss-main-page-fitness-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/3h3f2dfj/adalya-bliss-main-page-fitness-d.jpg",
+        "https://www.adalyahotels.com/media/s1phi4mf/adalya-bliss-main-page-fitness-m.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/s1phi4mf/adalya-bliss-main-page-fitness-m.jpg",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-bliss-main-page-fitness-d.jpg",
+        "https://www.adalyahotels.com/media/1g1b5kag/adalya-elit-lara-show-card.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/1g1b5kag/adalya-elit-lara-show-card.jpg",
+        "https://www.adalyahotels.com/media/exshmr20/adalya-elit-lara-show-card-m.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/exshmr20/adalya-elit-lara-show-card-m.jpg",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-elit-lara-show-card.jpg",
+        "https://www.adalyahotels.com/media/m1ogimz2/adalya-elit-aktiviteler-mainpage-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/m1ogimz2/adalya-elit-aktiviteler-mainpage-d.jpg",
+        "https://www.adalyahotels.com/media/petjcdlv/adalya-elit-aktiviteler-mainpage-m.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/petjcdlv/adalya-elit-aktiviteler-mainpage-m.jpg",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-elit-aktiviteler-mainpage-d.jpg",
+        "https://www.adalyahotels.com/media/4sxndcfr/adalya-elite-lara-mare-kids-club.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/4sxndcfr/adalya-elite-lara-mare-kids-club.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-elite-lara-mare-kids-club.jpg",
+        "https://www.adalyahotels.com/media/f4lenbwh/adalya-elite-lara-mare-kids-club-m.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/f4lenbwh/adalya-elite-lara-mare-kids-club-m.jpg",
+        "https://www.adalyahotels.com/media/f4lenbwh/adalya-elite-lara-mare-kids-club-m.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-elite-lara-mare-kids-club-m.jpg"
+      ],
+      "declared_public_image_references": [
+        "https://www.adalyahotels.com/images/apple-touch-icon.png",
+        "https://www.adalyahotels.com/images/favicon-32x32.png",
+        "https://www.adalyahotels.com/images/favicon-16x16.png",
+        "https://www.adalyahotels.com/media/u2gjucjf/adalya-elite-mainpage-d.jpg",
+        "https://www.adalyahotels.com/media/4sxndcfr/adalya-elite-lara-mare-kids-club.jpg",
+        "https://www.adalyahotels.com/media/cjmffhjs/adalya-elit-mainpage-spa-banner-d.jpg",
+        "https://www.adalyahotels.com/media/rnaazuve/adalya-elit-lara-gastronomi-d.jpg",
+        "https://www.adalyahotels.com/media/ehody2nf/adalya-elit-mainpage-sahil-iskele-banner-d.jpg",
+        "https://www.adalyahotels.com/media/btvfemm5/adalya-elite-mainpage-d-1-1.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/btvfemm5/adalya-elite-mainpage-d-1-1.jpg",
+        "https://www.adalyahotels.com/media/prwn1bzg/adalya-elite-otellerimiz-card-m.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/prwn1bzg/adalya-elite-otellerimiz-card-m.jpg",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-elite-mainpage-d%20%281%29%20%281%29.jpg",
+        "https://www.adalyahotels.com/media/5ggnatxa/adalya-hotels-elite-lara-accomondation-standard-sea-view-room-other-card.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/5ggnatxa/adalya-hotels-elite-lara-accomondation-standard-sea-view-room-other-card.jpg",
+        "https://www.adalyahotels.com/media/5ggnatxa/adalya-hotels-elite-lara-accomondation-standard-sea-view-room-other-card.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/Adalya-hotels-elite-lara-accomondation-standard-sea-view-room-other-card.jpg",
+        "https://www.adalyahotels.com/media/dcfduotu/adalya-hotels-elite-lara-accomondation-family-side-sea-view-room-other-card.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/dcfduotu/adalya-hotels-elite-lara-accomondation-family-side-sea-view-room-other-card.jpg",
+        "https://www.adalyahotels.com/media/dcfduotu/adalya-hotels-elite-lara-accomondation-family-side-sea-view-room-other-card.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/Adalya-hotels-elite-lara-accomondation-family-side-sea-view-room-other-card.jpg",
+        "https://www.adalyahotels.com/media/d4ydp1qv/adalya-hotels-elite-lara-accomondation-superior-suite-other-card.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/d4ydp1qv/adalya-hotels-elite-lara-accomondation-superior-suite-other-card.jpg",
+        "https://www.adalyahotels.com/media/d4ydp1qv/adalya-hotels-elite-lara-accomondation-superior-suite-other-card.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/Adalya-hotels-elite-lara-accomondation-superior-suite-other-card.jpg",
+        "https://www.adalyahotels.com/media/rnaazuve/adalya-elit-lara-gastronomi-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/rnaazuve/adalya-elit-lara-gastronomi-d.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-elit-lara-gastronomi-d.jpg",
+        "https://www.adalyahotels.com/media/fhald4pp/adalya-elit-mainpage-snackler-banner-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/fhald4pp/adalya-elit-mainpage-snackler-banner-d.jpg",
+        "https://www.adalyahotels.com/media/fhald4pp/adalya-elit-mainpage-snackler-banner-d.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-elit-mainpage-snackler-banner-d.jpg",
+        "https://www.adalyahotels.com/media/qzvjno4c/adalya-elit-mainpage-barlar-banner-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/qzvjno4c/adalya-elit-mainpage-barlar-banner-d.jpg",
+        "https://www.adalyahotels.com/media/qzvjno4c/adalya-elit-mainpage-barlar-banner-d.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-elit-mainpage-barlar-banner-d.jpg",
+        "https://www.adalyahotels.com/media/cjmffhjs/adalya-elit-mainpage-spa-banner-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/cjmffhjs/adalya-elit-mainpage-spa-banner-d.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-elit-mainpage-spa-banner-d.jpg",
+        "https://www.adalyahotels.com/media/ehody2nf/adalya-elit-mainpage-sahil-iskele-banner-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/xvof1e2k/adalya-elit-mainpage-sahil-iskele-banner-m.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/xvof1e2k/adalya-elit-mainpage-sahil-iskele-banner-m.jpg",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-elit-mainpage-sahil-iskele-banner-d.jpg",
+        "https://www.adalyahotels.com/media/tfwhio43/adalya-elit-lara-anasayfa-plaj-havuz-card.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/tfwhio43/adalya-elit-lara-anasayfa-plaj-havuz-card.jpg",
+        "https://www.adalyahotels.com/media/sn2drcjt/adalya-elit-lara-anasayfa-plaj-havuz-card-m.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/sn2drcjt/adalya-elit-lara-anasayfa-plaj-havuz-card-m.jpg",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-elit-lara-anasayfa-plaj-havuz-card.jpg",
+        "https://www.adalyahotels.com/media/udvfaocu/adalya-elit-lara-wellness-card.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/udvfaocu/adalya-elit-lara-wellness-card.jpg",
+        "https://www.adalyahotels.com/media/k5hdpuvr/adalya-elit-lara-wellness-card-m.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/k5hdpuvr/adalya-elit-lara-wellness-card-m.jpg",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-elit-lara-wellness-card.jpg",
+        "https://www.adalyahotels.com/media/3h3f2dfj/adalya-bliss-main-page-fitness-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/3h3f2dfj/adalya-bliss-main-page-fitness-d.jpg",
+        "https://www.adalyahotels.com/media/s1phi4mf/adalya-bliss-main-page-fitness-m.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/s1phi4mf/adalya-bliss-main-page-fitness-m.jpg",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-bliss-main-page-fitness-d.jpg",
+        "https://www.adalyahotels.com/media/1g1b5kag/adalya-elit-lara-show-card.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/1g1b5kag/adalya-elit-lara-show-card.jpg",
+        "https://www.adalyahotels.com/media/exshmr20/adalya-elit-lara-show-card-m.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/exshmr20/adalya-elit-lara-show-card-m.jpg",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-elit-lara-show-card.jpg",
+        "https://www.adalyahotels.com/media/m1ogimz2/adalya-elit-aktiviteler-mainpage-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/m1ogimz2/adalya-elit-aktiviteler-mainpage-d.jpg",
+        "https://www.adalyahotels.com/media/petjcdlv/adalya-elit-aktiviteler-mainpage-m.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/petjcdlv/adalya-elit-aktiviteler-mainpage-m.jpg",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-elit-aktiviteler-mainpage-d.jpg",
+        "https://www.adalyahotels.com/media/4sxndcfr/adalya-elite-lara-mare-kids-club.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/4sxndcfr/adalya-elite-lara-mare-kids-club.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-elite-lara-mare-kids-club.jpg",
+        "https://www.adalyahotels.com/media/f4lenbwh/adalya-elite-lara-mare-kids-club-m.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/f4lenbwh/adalya-elite-lara-mare-kids-club-m.jpg",
+        "https://www.adalyahotels.com/media/f4lenbwh/adalya-elite-lara-mare-kids-club-m.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-elite-lara-mare-kids-club-m.jpg"
+      ],
+      "image_details": [
+        {
+          "url": "https://www.adalyahotels.com/media/btvfemm5/adalya-elite-mainpage-d-1-1.jpg",
+          "alt": "adalya-elite-mainpage-d (1) (1).jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-elite-mainpage-d%20%281%29%20%281%29.jpg",
+          "alt": "adalya-elite-mainpage-d (1) (1).jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/5ggnatxa/adalya-hotels-elite-lara-accomondation-standard-sea-view-room-other-card.jpg",
+          "alt": "Adalya-hotels-elite-lara-accomondation-standard-sea-view-room-other-card.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/Adalya-hotels-elite-lara-accomondation-standard-sea-view-room-other-card.jpg",
+          "alt": "Adalya-hotels-elite-lara-accomondation-standard-sea-view-room-other-card.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/dcfduotu/adalya-hotels-elite-lara-accomondation-family-side-sea-view-room-other-card.jpg",
+          "alt": "Adalya-hotels-elite-lara-accomondation-family-side-sea-view-room-other-card.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/Adalya-hotels-elite-lara-accomondation-family-side-sea-view-room-other-card.jpg",
+          "alt": "Adalya-hotels-elite-lara-accomondation-family-side-sea-view-room-other-card.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/d4ydp1qv/adalya-hotels-elite-lara-accomondation-superior-suite-other-card.jpg",
+          "alt": "Adalya-hotels-elite-lara-accomondation-superior-suite-other-card.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/Adalya-hotels-elite-lara-accomondation-superior-suite-other-card.jpg",
+          "alt": "Adalya-hotels-elite-lara-accomondation-superior-suite-other-card.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/rnaazuve/adalya-elit-lara-gastronomi-d.jpg",
+          "alt": "adalya-elit-lara-gastronomi-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-elit-lara-gastronomi-d.jpg",
+          "alt": "adalya-elit-lara-gastronomi-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/fhald4pp/adalya-elit-mainpage-snackler-banner-d.jpg",
+          "alt": "adalya-elit-mainpage-snackler-banner-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-elit-mainpage-snackler-banner-d.jpg",
+          "alt": "adalya-elit-mainpage-snackler-banner-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/qzvjno4c/adalya-elit-mainpage-barlar-banner-d.jpg",
+          "alt": "adalya-elit-mainpage-barlar-banner-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-elit-mainpage-barlar-banner-d.jpg",
+          "alt": "adalya-elit-mainpage-barlar-banner-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/cjmffhjs/adalya-elit-mainpage-spa-banner-d.jpg",
+          "alt": "adalya-elit-mainpage-spa-banner-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-elit-mainpage-spa-banner-d.jpg",
+          "alt": "adalya-elit-mainpage-spa-banner-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/ehody2nf/adalya-elit-mainpage-sahil-iskele-banner-d.jpg",
+          "alt": "adalya-elit-mainpage-sahil-iskele-banner-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-elit-mainpage-sahil-iskele-banner-d.jpg",
+          "alt": "adalya-elit-mainpage-sahil-iskele-banner-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/tfwhio43/adalya-elit-lara-anasayfa-plaj-havuz-card.jpg",
+          "alt": "adalya-elit-lara-anasayfa-plaj-havuz-card.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-elit-lara-anasayfa-plaj-havuz-card.jpg",
+          "alt": "adalya-elit-lara-anasayfa-plaj-havuz-card.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/udvfaocu/adalya-elit-lara-wellness-card.jpg",
+          "alt": "adalya-elit-lara-wellness-card.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-elit-lara-wellness-card.jpg",
+          "alt": "adalya-elit-lara-wellness-card.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/3h3f2dfj/adalya-bliss-main-page-fitness-d.jpg",
+          "alt": "adalya-bliss-main-page-fitness-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-bliss-main-page-fitness-d.jpg",
+          "alt": "adalya-bliss-main-page-fitness-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/1g1b5kag/adalya-elit-lara-show-card.jpg",
+          "alt": "adalya-elit-lara-show-card.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-elit-lara-show-card.jpg",
+          "alt": "adalya-elit-lara-show-card.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/m1ogimz2/adalya-elit-aktiviteler-mainpage-d.jpg",
+          "alt": "adalya-elit-aktiviteler-mainpage-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-elit-aktiviteler-mainpage-d.jpg",
+          "alt": "adalya-elit-aktiviteler-mainpage-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/4sxndcfr/adalya-elite-lara-mare-kids-club.jpg",
+          "alt": "adalya-elite-lara-mare-kids-club.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-elite-lara-mare-kids-club.jpg",
+          "alt": "adalya-elite-lara-mare-kids-club.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/f4lenbwh/adalya-elite-lara-mare-kids-club-m.jpg",
+          "alt": "adalya-elite-lara-mare-kids-club-m.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/adalya-elite-lara-mare-kids-club-m.jpg",
+          "alt": "adalya-elite-lara-mare-kids-club-m.jpg"
+        }
+      ],
+      "document_urls": [],
+      "website_links": [
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/",
+        "https://www.adalyahotels.com/en/",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/accommodation/",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/gastronomy/",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/2027-new-years-eve-gala-programme/",
+        "https://www.adalyahotels.com/en/adalya-all-vibe/",
+        "https://www.adalyahotels.com/otellerimiz/adalya-elite-lara/",
+        "https://www.adalyahotels.com/de/unsere-hotels/adalya-elite-lara/",
+        "https://www.adalyahotels.com/ru/our-hotels/adalya-elite-lara/",
+        "https://www.adalyahotels.com/rezervasyon/",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/beaches-pools/",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/meetings-and-events/",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/spa-wellness/",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/mare-kids-club/",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/sustainability/",
+        "https://www.adalyahotels.com/en/contact/",
+        "https://www.adalyahotels.com/",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-bliss/",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-ocean-deluxe/",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/",
+        "https://www.adalyahotels.com/rezervasyon",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/beaches-pools/beach-pier/",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/beaches-pools/aquapark/",
+        "https://www.adalyahotels.com/en/gdpr/",
+        "https://www.adalyahotels.com/en/company-policy/",
+        "https://www.adalyahotels.com/en/cookie-policy/"
+      ],
+      "album_context": [
+        "d-[16px] shadow-[0_20px_60px_rgba(0,0,0,0.25)] overflow-hidden z-[70]\">\r\n                <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-elit-lara\">Adalya Elite Lara</button>\r\n                <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-ocean-deluxe\">Adalya Ocean Deluxe</button>\r\n                <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-art-side\">Adaly",
+        "er:bg-black/5\" data-hotel=\"adalya-elit-lara\">Adalya Elite Lara</button>\r\n                <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-ocean-deluxe\">Adalya Ocean Deluxe</button>\r\n                <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-art-side\">Adalya Art Side</button>\r\n                <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-bliss\">Adalya Bliss</",
+        "-black/5\" data-hotel=\"adalya-ocean-deluxe\">Adalya Ocean Deluxe</button>\r\n                <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-art-side\">Adalya Art Side</button>\r\n                <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-bliss\">Adalya Bliss</button>\r\n              </div>\r\n            </div>\r\n\r\n            <!-- DATES -->\r\n            <div data-field=\"dates\" class=\"reservation-field relative border-r border-[#002538]/20 lg:w-[220px] flex items-ce",
+        "hover:bg-black/5\" data-hotel=\"adalya-art-side\">Adalya Art Side</button>\r\n                <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-bliss\">Adalya Bliss</button>\r\n              </div>\r\n            </div>\r\n\r\n            <!-- DATES -->\r\n            <div data-field=\"dates\" class=\"reservation-field relative border-r border-[#002538]/20 lg:w-[220px] flex items-center rounded-[99px] bg-white lg:bg-transparent px-4 py-3 lg:rounded-none lg:px-6 lg:py-4\">\r\n              <input\r\n                id=\"reservation-modal-dates\"\r\n                type=\"text\"\r\n          ",
+        "0px_60px_rgba(0,0,0,0.25)] overflow-hidden z-[70]\">\r\n                                    <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-elit-lara\">Adalya Elite Lara</button>\r\n                                    <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-ocean-deluxe\">Adalya Ocean Deluxe</button>\r\n                                    <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-bla",
+        "hotel=\"adalya-elit-lara\">Adalya Elite Lara</button>\r\n                                    <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-ocean-deluxe\">Adalya Ocean Deluxe</button>\r\n                                    <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-art-side\">Adalya Art Side</button>\r\n                                    <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" ",
+        "=\"adalya-ocean-deluxe\">Adalya Ocean Deluxe</button>\r\n                                    <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-art-side\">Adalya Art Side</button>\r\n                                    <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-bliss\">Adalya Bliss</button>\r\n                                </div>\r\n                            </div>\r\n\r\n\r\n                            <div data-field=\"dates\" class=\"reservation-field relative border-r bo",
+        "ta-hotel=\"adalya-art-side\">Adalya Art Side</button>\r\n                                    <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-bliss\">Adalya Bliss</button>\r\n                                </div>\r\n                            </div>\r\n\r\n\r\n                            <div data-field=\"dates\" class=\"reservation-field relative border-r border-[#002538]/20 w-[220px] flex items-center  bg-transparent px-6 py-4\">\r\n                                <input data-hero-dates\r\n                                       type=\"text\"\r\n                                    "
+      ],
+      "gallery_memberships": [
+        {
+          "url": "https://www.adalyahotels.com/media/btvfemm5/adalya-elite-mainpage-d-1-1.jpg",
+          "tag": "img",
+          "alt": "adalya-elite-mainpage-d (1) (1).jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/5ggnatxa/adalya-hotels-elite-lara-accomondation-standard-sea-view-room-other-card.jpg",
+          "tag": "img",
+          "alt": "Adalya-hotels-elite-lara-accomondation-standard-sea-view-room-other-card.jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/dcfduotu/adalya-hotels-elite-lara-accomondation-family-side-sea-view-room-other-card.jpg",
+          "tag": "img",
+          "alt": "Adalya-hotels-elite-lara-accomondation-family-side-sea-view-room-other-card.jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/d4ydp1qv/adalya-hotels-elite-lara-accomondation-superior-suite-other-card.jpg",
+          "tag": "img",
+          "alt": "Adalya-hotels-elite-lara-accomondation-superior-suite-other-card.jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/rnaazuve/adalya-elit-lara-gastronomi-d.jpg",
+          "tag": "img",
+          "alt": "adalya-elit-lara-gastronomi-d.jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/fhald4pp/adalya-elit-mainpage-snackler-banner-d.jpg",
+          "tag": "img",
+          "alt": "adalya-elit-mainpage-snackler-banner-d.jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/qzvjno4c/adalya-elit-mainpage-barlar-banner-d.jpg",
+          "tag": "img",
+          "alt": "adalya-elit-mainpage-barlar-banner-d.jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/cjmffhjs/adalya-elit-mainpage-spa-banner-d.jpg",
+          "tag": "img",
+          "alt": "adalya-elit-mainpage-spa-banner-d.jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/ehody2nf/adalya-elit-mainpage-sahil-iskele-banner-d.jpg",
+          "tag": "img",
+          "alt": "adalya-elit-mainpage-sahil-iskele-banner-d.jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/tfwhio43/adalya-elit-lara-anasayfa-plaj-havuz-card.jpg",
+          "tag": "img",
+          "alt": "adalya-elit-lara-anasayfa-plaj-havuz-card.jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/udvfaocu/adalya-elit-lara-wellness-card.jpg",
+          "tag": "img",
+          "alt": "adalya-elit-lara-wellness-card.jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/3h3f2dfj/adalya-bliss-main-page-fitness-d.jpg",
+          "tag": "img",
+          "alt": "adalya-bliss-main-page-fitness-d.jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/1g1b5kag/adalya-elit-lara-show-card.jpg",
+          "tag": "img",
+          "alt": "adalya-elit-lara-show-card.jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/m1ogimz2/adalya-elit-aktiviteler-mainpage-d.jpg",
+          "tag": "img",
+          "alt": "adalya-elit-aktiviteler-mainpage-d.jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/4sxndcfr/adalya-elite-lara-mare-kids-club.jpg",
+          "tag": "img",
+          "alt": "adalya-elite-lara-mare-kids-club.jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/f4lenbwh/adalya-elite-lara-mare-kids-club-m.jpg",
+          "tag": "img",
+          "alt": "adalya-elite-lara-mare-kids-club-m.jpg",
+          "categories": []
+        }
+      ]
+    },
+    {
+      "source_url": "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/",
+      "final_url": "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/",
+      "page_title": "Adalya Art Side Hotel | All-Inclusive Hotel in Side, Antalya",
+      "image_hosts": [
+        "www.adalyahotels.com"
+      ],
+      "image_urls": [
+        "https://www.adalyahotels.com/images/apple-touch-icon.png",
+        "https://www.adalyahotels.com/images/favicon-32x32.png",
+        "https://www.adalyahotels.com/images/favicon-16x16.png",
+        "https://www.adalyahotels.com/media/jn3nnhlj/adalya-art-side-banner-2.jpg",
+        "https://www.adalyahotels.com/media/v31f0not/adalya-art-side-banner-v2-1-1.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/v31f0not/adalya-art-side-banner-v2-1-1.jpg",
+        "https://www.adalyahotels.com/media/om1nxlgy/adalya-art-side-banner-v2-m-1.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/om1nxlgy/adalya-art-side-banner-v2-m-1.jpg",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-art-side-banner-v2%20%281%29%20%281%29.jpg",
+        "https://www.adalyahotels.com/media/r1bogfqk/adalya-ard-side-konaklama-anasayfa-card.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/r1bogfqk/adalya-ard-side-konaklama-anasayfa-card.jpg",
+        "https://www.adalyahotels.com/media/r1bogfqk/adalya-ard-side-konaklama-anasayfa-card.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-ard-side-konaklama-anasayfa-card.jpg",
+        "https://www.adalyahotels.com/media/netnf2mv/adalya-art-side-aile-odalari-anasayfa-card.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/netnf2mv/adalya-art-side-aile-odalari-anasayfa-card.jpg",
+        "https://www.adalyahotels.com/media/netnf2mv/adalya-art-side-aile-odalari-anasayfa-card.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-art-side-aile-odalari-anasayfa-card.jpg",
+        "https://www.adalyahotels.com/media/tejljyup/adalya-art-side-mainpage-gastronomi-card-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/tejljyup/adalya-art-side-mainpage-gastronomi-card-d.jpg",
+        "https://www.adalyahotels.com/media/tejljyup/adalya-art-side-mainpage-gastronomi-card-d.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-art-side-mainpage-gastronomi-card-d.jpg",
+        "https://www.adalyahotels.com/media/m1bdox02/adalya-art-side-mainpage-gastronomi-restoranlar-card-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/m1bdox02/adalya-art-side-mainpage-gastronomi-restoranlar-card-d.jpg",
+        "https://www.adalyahotels.com/media/m1bdox02/adalya-art-side-mainpage-gastronomi-restoranlar-card-d.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-art-side-mainpage-gastronomi-restoranlar-card-d.jpg",
+        "https://www.adalyahotels.com/media/srwpn2ov/adalya-art-side-mainpage-gastronomi-barlar-card-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/srwpn2ov/adalya-art-side-mainpage-gastronomi-barlar-card-d.jpg",
+        "https://www.adalyahotels.com/media/srwpn2ov/adalya-art-side-mainpage-gastronomi-barlar-card-d.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-art-side-mainpage-gastronomi-barlar-card-d.jpg",
+        "https://www.adalyahotels.com/media/qcbpelnk/adalya-art-side-mainpage-spa-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/qcbpelnk/adalya-art-side-mainpage-spa-d.jpg",
+        "https://www.adalyahotels.com/media/qcbpelnk/adalya-art-side-mainpage-spa-d.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-art-side-mainpage-spa-d.jpg",
+        "https://www.adalyahotels.com/media/toqfnkzw/adalya-art-side-mainpage-pool-banner-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/toqfnkzw/adalya-art-side-mainpage-pool-banner-d.jpg",
+        "https://www.adalyahotels.com/media/oqjjdfyd/adalya-art-side-mainpage-pool-banner-m.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/oqjjdfyd/adalya-art-side-mainpage-pool-banner-m.jpg",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-art-side-mainpage-pool-banner-d.jpg",
+        "https://www.adalyahotels.com/media/a1aldz4q/adalya-deluxe-ocean-billard-card-mainpage-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/a1aldz4q/adalya-deluxe-ocean-billard-card-mainpage-d.jpg",
+        "https://www.adalyahotels.com/media/oldkzgru/adalya-deluxe-ocean-billard-card-mainpage-m.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/oldkzgru/adalya-deluxe-ocean-billard-card-mainpage-m.jpg",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-deluxe-ocean-billard-card-mainpage-d.jpg",
+        "https://www.adalyahotels.com/media/xbgeef2p/adalya-bliss-main-page-boccia-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/xbgeef2p/adalya-bliss-main-page-boccia-d.jpg",
+        "https://www.adalyahotels.com/media/fspdpvmo/adalya-bliss-main-page-boccia-m.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/fspdpvmo/adalya-bliss-main-page-boccia-m.jpg",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-bliss-main-page-boccia-d.jpg",
+        "https://www.adalyahotels.com/media/3h3f2dfj/adalya-bliss-main-page-fitness-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/3h3f2dfj/adalya-bliss-main-page-fitness-d.jpg",
+        "https://www.adalyahotels.com/media/s1phi4mf/adalya-bliss-main-page-fitness-m.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/s1phi4mf/adalya-bliss-main-page-fitness-m.jpg",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-bliss-main-page-fitness-d.jpg",
+        "https://www.adalyahotels.com/media/m1ogimz2/adalya-elit-aktiviteler-mainpage-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/m1ogimz2/adalya-elit-aktiviteler-mainpage-d.jpg",
+        "https://www.adalyahotels.com/media/petjcdlv/adalya-elit-aktiviteler-mainpage-m.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/petjcdlv/adalya-elit-aktiviteler-mainpage-m.jpg",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-elit-aktiviteler-mainpage-d.jpg",
+        "https://www.adalyahotels.com/media/li5bl0gj/adalya-art-side-mainpage-kids-club-d.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/li5bl0gj/adalya-art-side-mainpage-kids-club-d.jpg",
+        "https://www.adalyahotels.com/media/li5bl0gj/adalya-art-side-mainpage-kids-club-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-art-side-mainpage-kids-club-d.jpg",
+        "https://www.adalyahotels.com/media/amnlzzmw/adalya-art-side-mainpage-kids-club-d-small.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/amnlzzmw/adalya-art-side-mainpage-kids-club-d-small.jpg",
+        "https://www.adalyahotels.com/media/amnlzzmw/adalya-art-side-mainpage-kids-club-d-small.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-art-side-mainpage-kids-club-d-small.jpg"
+      ],
+      "declared_public_image_references": [
+        "https://www.adalyahotels.com/images/apple-touch-icon.png",
+        "https://www.adalyahotels.com/images/favicon-32x32.png",
+        "https://www.adalyahotels.com/images/favicon-16x16.png",
+        "https://www.adalyahotels.com/media/jn3nnhlj/adalya-art-side-banner-2.jpg",
+        "https://www.adalyahotels.com/media/v31f0not/adalya-art-side-banner-v2-1-1.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/v31f0not/adalya-art-side-banner-v2-1-1.jpg",
+        "https://www.adalyahotels.com/media/om1nxlgy/adalya-art-side-banner-v2-m-1.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/om1nxlgy/adalya-art-side-banner-v2-m-1.jpg",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-art-side-banner-v2%20%281%29%20%281%29.jpg",
+        "https://www.adalyahotels.com/media/r1bogfqk/adalya-ard-side-konaklama-anasayfa-card.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/r1bogfqk/adalya-ard-side-konaklama-anasayfa-card.jpg",
+        "https://www.adalyahotels.com/media/r1bogfqk/adalya-ard-side-konaklama-anasayfa-card.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-ard-side-konaklama-anasayfa-card.jpg",
+        "https://www.adalyahotels.com/media/netnf2mv/adalya-art-side-aile-odalari-anasayfa-card.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/netnf2mv/adalya-art-side-aile-odalari-anasayfa-card.jpg",
+        "https://www.adalyahotels.com/media/netnf2mv/adalya-art-side-aile-odalari-anasayfa-card.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-art-side-aile-odalari-anasayfa-card.jpg",
+        "https://www.adalyahotels.com/media/tejljyup/adalya-art-side-mainpage-gastronomi-card-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/tejljyup/adalya-art-side-mainpage-gastronomi-card-d.jpg",
+        "https://www.adalyahotels.com/media/tejljyup/adalya-art-side-mainpage-gastronomi-card-d.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-art-side-mainpage-gastronomi-card-d.jpg",
+        "https://www.adalyahotels.com/media/m1bdox02/adalya-art-side-mainpage-gastronomi-restoranlar-card-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/m1bdox02/adalya-art-side-mainpage-gastronomi-restoranlar-card-d.jpg",
+        "https://www.adalyahotels.com/media/m1bdox02/adalya-art-side-mainpage-gastronomi-restoranlar-card-d.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-art-side-mainpage-gastronomi-restoranlar-card-d.jpg",
+        "https://www.adalyahotels.com/media/srwpn2ov/adalya-art-side-mainpage-gastronomi-barlar-card-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/srwpn2ov/adalya-art-side-mainpage-gastronomi-barlar-card-d.jpg",
+        "https://www.adalyahotels.com/media/srwpn2ov/adalya-art-side-mainpage-gastronomi-barlar-card-d.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-art-side-mainpage-gastronomi-barlar-card-d.jpg",
+        "https://www.adalyahotels.com/media/qcbpelnk/adalya-art-side-mainpage-spa-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/qcbpelnk/adalya-art-side-mainpage-spa-d.jpg",
+        "https://www.adalyahotels.com/media/qcbpelnk/adalya-art-side-mainpage-spa-d.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-art-side-mainpage-spa-d.jpg",
+        "https://www.adalyahotels.com/media/toqfnkzw/adalya-art-side-mainpage-pool-banner-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/toqfnkzw/adalya-art-side-mainpage-pool-banner-d.jpg",
+        "https://www.adalyahotels.com/media/oqjjdfyd/adalya-art-side-mainpage-pool-banner-m.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/oqjjdfyd/adalya-art-side-mainpage-pool-banner-m.jpg",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-art-side-mainpage-pool-banner-d.jpg",
+        "https://www.adalyahotels.com/media/a1aldz4q/adalya-deluxe-ocean-billard-card-mainpage-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/a1aldz4q/adalya-deluxe-ocean-billard-card-mainpage-d.jpg",
+        "https://www.adalyahotels.com/media/oldkzgru/adalya-deluxe-ocean-billard-card-mainpage-m.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/oldkzgru/adalya-deluxe-ocean-billard-card-mainpage-m.jpg",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-deluxe-ocean-billard-card-mainpage-d.jpg",
+        "https://www.adalyahotels.com/media/xbgeef2p/adalya-bliss-main-page-boccia-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/xbgeef2p/adalya-bliss-main-page-boccia-d.jpg",
+        "https://www.adalyahotels.com/media/fspdpvmo/adalya-bliss-main-page-boccia-m.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/fspdpvmo/adalya-bliss-main-page-boccia-m.jpg",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-bliss-main-page-boccia-d.jpg",
+        "https://www.adalyahotels.com/media/3h3f2dfj/adalya-bliss-main-page-fitness-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/3h3f2dfj/adalya-bliss-main-page-fitness-d.jpg",
+        "https://www.adalyahotels.com/media/s1phi4mf/adalya-bliss-main-page-fitness-m.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/s1phi4mf/adalya-bliss-main-page-fitness-m.jpg",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-bliss-main-page-fitness-d.jpg",
+        "https://www.adalyahotels.com/media/m1ogimz2/adalya-elit-aktiviteler-mainpage-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/m1ogimz2/adalya-elit-aktiviteler-mainpage-d.jpg",
+        "https://www.adalyahotels.com/media/petjcdlv/adalya-elit-aktiviteler-mainpage-m.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/petjcdlv/adalya-elit-aktiviteler-mainpage-m.jpg",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-elit-aktiviteler-mainpage-d.jpg",
+        "https://www.adalyahotels.com/media/li5bl0gj/adalya-art-side-mainpage-kids-club-d.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/li5bl0gj/adalya-art-side-mainpage-kids-club-d.jpg",
+        "https://www.adalyahotels.com/media/li5bl0gj/adalya-art-side-mainpage-kids-club-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-art-side-mainpage-kids-club-d.jpg",
+        "https://www.adalyahotels.com/media/amnlzzmw/adalya-art-side-mainpage-kids-club-d-small.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/amnlzzmw/adalya-art-side-mainpage-kids-club-d-small.jpg",
+        "https://www.adalyahotels.com/media/amnlzzmw/adalya-art-side-mainpage-kids-club-d-small.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-art-side-mainpage-kids-club-d-small.jpg"
+      ],
+      "image_details": [
+        {
+          "url": "https://www.adalyahotels.com/media/v31f0not/adalya-art-side-banner-v2-1-1.jpg",
+          "alt": "adalya-art-side-banner-v2 (1) (1).jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-art-side-banner-v2%20%281%29%20%281%29.jpg",
+          "alt": "adalya-art-side-banner-v2 (1) (1).jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/r1bogfqk/adalya-ard-side-konaklama-anasayfa-card.jpg",
+          "alt": "adalya-ard-side-konaklama-anasayfa-card.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-ard-side-konaklama-anasayfa-card.jpg",
+          "alt": "adalya-ard-side-konaklama-anasayfa-card.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/netnf2mv/adalya-art-side-aile-odalari-anasayfa-card.jpg",
+          "alt": "adalya-art-side-aile-odalari-anasayfa-card.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-art-side-aile-odalari-anasayfa-card.jpg",
+          "alt": "adalya-art-side-aile-odalari-anasayfa-card.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/tejljyup/adalya-art-side-mainpage-gastronomi-card-d.jpg",
+          "alt": "adalya-art-side-mainpage-gastronomi-card-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-art-side-mainpage-gastronomi-card-d.jpg",
+          "alt": "adalya-art-side-mainpage-gastronomi-card-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/m1bdox02/adalya-art-side-mainpage-gastronomi-restoranlar-card-d.jpg",
+          "alt": "adalya-art-side-mainpage-gastronomi-restoranlar-card-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-art-side-mainpage-gastronomi-restoranlar-card-d.jpg",
+          "alt": "adalya-art-side-mainpage-gastronomi-restoranlar-card-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/srwpn2ov/adalya-art-side-mainpage-gastronomi-barlar-card-d.jpg",
+          "alt": "adalya-art-side-mainpage-gastronomi-barlar-card-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-art-side-mainpage-gastronomi-barlar-card-d.jpg",
+          "alt": "adalya-art-side-mainpage-gastronomi-barlar-card-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/qcbpelnk/adalya-art-side-mainpage-spa-d.jpg",
+          "alt": "adalya-art-side-mainpage-spa-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-art-side-mainpage-spa-d.jpg",
+          "alt": "adalya-art-side-mainpage-spa-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/toqfnkzw/adalya-art-side-mainpage-pool-banner-d.jpg",
+          "alt": "adalya-art-side-mainpage-pool-banner-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-art-side-mainpage-pool-banner-d.jpg",
+          "alt": "adalya-art-side-mainpage-pool-banner-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/a1aldz4q/adalya-deluxe-ocean-billard-card-mainpage-d.jpg",
+          "alt": "adalya-deluxe-ocean-billard-card-mainpage-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-deluxe-ocean-billard-card-mainpage-d.jpg",
+          "alt": "adalya-deluxe-ocean-billard-card-mainpage-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/xbgeef2p/adalya-bliss-main-page-boccia-d.jpg",
+          "alt": "adalya-bliss-main-page-boccia-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-bliss-main-page-boccia-d.jpg",
+          "alt": "adalya-bliss-main-page-boccia-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/3h3f2dfj/adalya-bliss-main-page-fitness-d.jpg",
+          "alt": "adalya-bliss-main-page-fitness-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-bliss-main-page-fitness-d.jpg",
+          "alt": "adalya-bliss-main-page-fitness-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/m1ogimz2/adalya-elit-aktiviteler-mainpage-d.jpg",
+          "alt": "adalya-elit-aktiviteler-mainpage-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-elit-aktiviteler-mainpage-d.jpg",
+          "alt": "adalya-elit-aktiviteler-mainpage-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/li5bl0gj/adalya-art-side-mainpage-kids-club-d.jpg",
+          "alt": "adalya-art-side-mainpage-kids-club-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-art-side-mainpage-kids-club-d.jpg",
+          "alt": "adalya-art-side-mainpage-kids-club-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/amnlzzmw/adalya-art-side-mainpage-kids-club-d-small.jpg",
+          "alt": "adalya-art-side-mainpage-kids-club-d-small.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/adalya-art-side-mainpage-kids-club-d-small.jpg",
+          "alt": "adalya-art-side-mainpage-kids-club-d-small.jpg"
+        }
+      ],
+      "document_urls": [],
+      "website_links": [
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/",
+        "https://www.adalyahotels.com/en/",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/accommodation/",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/gastronomy/",
+        "https://www.adalyahotels.com/en/adalya-all-vibe/",
+        "https://www.adalyahotels.com/otellerimiz/adalya-art-side/",
+        "https://www.adalyahotels.com/de/unsere-hotels/adalya-art-side/",
+        "https://www.adalyahotels.com/ru/our-hotels/adalya-art-side/",
+        "https://www.adalyahotels.com/rezervasyon/",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/beach-pools/",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/spa-wellness/",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/mare-kids-club/",
+        "https://www.adalyahotels.com/en/contact/",
+        "https://www.adalyahotels.com/",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-bliss/",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-ocean-deluxe/",
+        "https://www.adalyahotels.com/rezervasyon",
+        "https://www.adalyahotels.com/en/gdpr/",
+        "https://www.adalyahotels.com/en/company-policy/",
+        "https://www.adalyahotels.com/en/cookie-policy/"
+      ],
+      "album_context": [
+        "d-[16px] shadow-[0_20px_60px_rgba(0,0,0,0.25)] overflow-hidden z-[70]\">\r\n                <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-elit-lara\">Adalya Elite Lara</button>\r\n                <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-ocean-deluxe\">Adalya Ocean Deluxe</button>\r\n                <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-art-side\">Adaly",
+        "er:bg-black/5\" data-hotel=\"adalya-elit-lara\">Adalya Elite Lara</button>\r\n                <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-ocean-deluxe\">Adalya Ocean Deluxe</button>\r\n                <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-art-side\">Adalya Art Side</button>\r\n                <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-bliss\">Adalya Bliss</",
+        "-black/5\" data-hotel=\"adalya-ocean-deluxe\">Adalya Ocean Deluxe</button>\r\n                <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-art-side\">Adalya Art Side</button>\r\n                <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-bliss\">Adalya Bliss</button>\r\n              </div>\r\n            </div>\r\n\r\n            <!-- DATES -->\r\n            <div data-field=\"dates\" class=\"reservation-field relative border-r border-[#002538]/20 lg:w-[220px] flex items-ce",
+        "hover:bg-black/5\" data-hotel=\"adalya-art-side\">Adalya Art Side</button>\r\n                <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-bliss\">Adalya Bliss</button>\r\n              </div>\r\n            </div>\r\n\r\n            <!-- DATES -->\r\n            <div data-field=\"dates\" class=\"reservation-field relative border-r border-[#002538]/20 lg:w-[220px] flex items-center rounded-[99px] bg-white lg:bg-transparent px-4 py-3 lg:rounded-none lg:px-6 lg:py-4\">\r\n              <input\r\n                id=\"reservation-modal-dates\"\r\n                type=\"text\"\r\n          ",
+        "0px_60px_rgba(0,0,0,0.25)] overflow-hidden z-[70]\">\r\n                                    <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-elit-lara\">Adalya Elite Lara</button>\r\n                                    <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-ocean-deluxe\">Adalya Ocean Deluxe</button>\r\n                                    <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-bla",
+        "hotel=\"adalya-elit-lara\">Adalya Elite Lara</button>\r\n                                    <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-ocean-deluxe\">Adalya Ocean Deluxe</button>\r\n                                    <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-art-side\">Adalya Art Side</button>\r\n                                    <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" ",
+        "=\"adalya-ocean-deluxe\">Adalya Ocean Deluxe</button>\r\n                                    <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-art-side\">Adalya Art Side</button>\r\n                                    <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-bliss\">Adalya Bliss</button>\r\n                                </div>\r\n                            </div>\r\n\r\n\r\n                            <div data-field=\"dates\" class=\"reservation-field relative border-r bo",
+        "ta-hotel=\"adalya-art-side\">Adalya Art Side</button>\r\n                                    <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-bliss\">Adalya Bliss</button>\r\n                                </div>\r\n                            </div>\r\n\r\n\r\n                            <div data-field=\"dates\" class=\"reservation-field relative border-r border-[#002538]/20 w-[220px] flex items-center  bg-transparent px-6 py-4\">\r\n                                <input data-hero-dates\r\n                                       type=\"text\"\r\n                                    "
+      ],
+      "gallery_memberships": [
+        {
+          "url": "https://www.adalyahotels.com/media/v31f0not/adalya-art-side-banner-v2-1-1.jpg",
+          "tag": "img",
+          "alt": "adalya-art-side-banner-v2 (1) (1).jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/r1bogfqk/adalya-ard-side-konaklama-anasayfa-card.jpg",
+          "tag": "img",
+          "alt": "adalya-ard-side-konaklama-anasayfa-card.jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/netnf2mv/adalya-art-side-aile-odalari-anasayfa-card.jpg",
+          "tag": "img",
+          "alt": "adalya-art-side-aile-odalari-anasayfa-card.jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/tejljyup/adalya-art-side-mainpage-gastronomi-card-d.jpg",
+          "tag": "img",
+          "alt": "adalya-art-side-mainpage-gastronomi-card-d.jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/m1bdox02/adalya-art-side-mainpage-gastronomi-restoranlar-card-d.jpg",
+          "tag": "img",
+          "alt": "adalya-art-side-mainpage-gastronomi-restoranlar-card-d.jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/srwpn2ov/adalya-art-side-mainpage-gastronomi-barlar-card-d.jpg",
+          "tag": "img",
+          "alt": "adalya-art-side-mainpage-gastronomi-barlar-card-d.jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/qcbpelnk/adalya-art-side-mainpage-spa-d.jpg",
+          "tag": "img",
+          "alt": "adalya-art-side-mainpage-spa-d.jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/toqfnkzw/adalya-art-side-mainpage-pool-banner-d.jpg",
+          "tag": "img",
+          "alt": "adalya-art-side-mainpage-pool-banner-d.jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/a1aldz4q/adalya-deluxe-ocean-billard-card-mainpage-d.jpg",
+          "tag": "img",
+          "alt": "adalya-deluxe-ocean-billard-card-mainpage-d.jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/xbgeef2p/adalya-bliss-main-page-boccia-d.jpg",
+          "tag": "img",
+          "alt": "adalya-bliss-main-page-boccia-d.jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/3h3f2dfj/adalya-bliss-main-page-fitness-d.jpg",
+          "tag": "img",
+          "alt": "adalya-bliss-main-page-fitness-d.jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/m1ogimz2/adalya-elit-aktiviteler-mainpage-d.jpg",
+          "tag": "img",
+          "alt": "adalya-elit-aktiviteler-mainpage-d.jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/li5bl0gj/adalya-art-side-mainpage-kids-club-d.jpg",
+          "tag": "img",
+          "alt": "adalya-art-side-mainpage-kids-club-d.jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/amnlzzmw/adalya-art-side-mainpage-kids-club-d-small.jpg",
+          "tag": "img",
+          "alt": "adalya-art-side-mainpage-kids-club-d-small.jpg",
+          "categories": []
+        }
+      ]
+    },
+    {
+      "source_url": "https://www.adalyahotels.com/en/our-hotels/",
+      "final_url": "https://www.adalyahotels.com/en/our-hotels/",
+      "page_title": "Holiday Hotels in Antalya, Side, Lara & Manavgat | Adalya Hotels",
+      "image_hosts": [
+        "www.adalyahotels.com"
+      ],
+      "image_urls": [
+        "https://www.adalyahotels.com/images/apple-touch-icon.png",
+        "https://www.adalyahotels.com/images/favicon-32x32.png",
+        "https://www.adalyahotels.com/images/favicon-16x16.png",
+        "https://www.adalyahotels.com/media/ftsptfcm/adalyahotels-main-page-otellerimiz-banner-d.jpg",
+        "https://www.adalyahotels.com/media/cykdvte5/adalyahotels-main-page-otellerimiz-banner-m.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/cykdvte5/adalyahotels-main-page-otellerimiz-banner-m.jpg",
+        "https://www.adalyahotels.com/media/ftsptfcm/adalyahotels-main-page-otellerimiz-banner-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/en/our-hotels/adalyahotels-main-page-otellerimiz-banner-d.jpg",
+        "https://www.adalyahotels.com/media/mpjd1gzt/adalyabliss_otellerimiz_mobil.png?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/mpjd1gzt/adalyabliss_otellerimiz_mobil.png",
+        "https://www.adalyahotels.com/media/edidhvbs/adalyabliss_otellerimiz_web-2-1.png?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/edidhvbs/adalyabliss_otellerimiz_web-2-1.png",
+        "https://www.adalyahotels.com/en/our-hotels/adalyabliss_otellerimiz_web%20%282%29%20%281%29.png",
+        "https://www.adalyahotels.com/media/3kbhynfm/adalya-elit-otellerimiz-card-m.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/3kbhynfm/adalya-elit-otellerimiz-card-m.jpg",
+        "https://www.adalyahotels.com/media/cgcgwbtg/adalya-elit-otellerimiz-card-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/cgcgwbtg/adalya-elit-otellerimiz-card-d.jpg",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elit-otellerimiz-card-d.jpg",
+        "https://www.adalyahotels.com/media/3s0lsgs0/adalya-deluxe-ocean-otellerimiz-card-m.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/3s0lsgs0/adalya-deluxe-ocean-otellerimiz-card-m.jpg",
+        "https://www.adalyahotels.com/media/p1tbvcmd/adalya-deluxe-ocean-otellerimiz-card-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/p1tbvcmd/adalya-deluxe-ocean-otellerimiz-card-d.jpg",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-deluxe-ocean-otellerimiz-card-d.jpg",
+        "https://www.adalyahotels.com/media/ccdl0ihn/adalya-otellerimiz-art-side-kart-m.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/ccdl0ihn/adalya-otellerimiz-art-side-kart-m.jpg",
+        "https://www.adalyahotels.com/media/b1fkvytk/adalya-otellerimiz-art-side-kart-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/b1fkvytk/adalya-otellerimiz-art-side-kart-d.jpg",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-otellerimiz-art-side-kart-d.jpg"
+      ],
+      "declared_public_image_references": [
+        "https://www.adalyahotels.com/images/apple-touch-icon.png",
+        "https://www.adalyahotels.com/images/favicon-32x32.png",
+        "https://www.adalyahotels.com/images/favicon-16x16.png",
+        "https://www.adalyahotels.com/media/ftsptfcm/adalyahotels-main-page-otellerimiz-banner-d.jpg",
+        "https://www.adalyahotels.com/media/cykdvte5/adalyahotels-main-page-otellerimiz-banner-m.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/cykdvte5/adalyahotels-main-page-otellerimiz-banner-m.jpg",
+        "https://www.adalyahotels.com/media/ftsptfcm/adalyahotels-main-page-otellerimiz-banner-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/en/our-hotels/adalyahotels-main-page-otellerimiz-banner-d.jpg",
+        "https://www.adalyahotels.com/media/mpjd1gzt/adalyabliss_otellerimiz_mobil.png?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/mpjd1gzt/adalyabliss_otellerimiz_mobil.png",
+        "https://www.adalyahotels.com/media/edidhvbs/adalyabliss_otellerimiz_web-2-1.png?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/edidhvbs/adalyabliss_otellerimiz_web-2-1.png",
+        "https://www.adalyahotels.com/en/our-hotels/adalyabliss_otellerimiz_web%20%282%29%20%281%29.png",
+        "https://www.adalyahotels.com/media/3kbhynfm/adalya-elit-otellerimiz-card-m.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/3kbhynfm/adalya-elit-otellerimiz-card-m.jpg",
+        "https://www.adalyahotels.com/media/cgcgwbtg/adalya-elit-otellerimiz-card-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/cgcgwbtg/adalya-elit-otellerimiz-card-d.jpg",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elit-otellerimiz-card-d.jpg",
+        "https://www.adalyahotels.com/media/3s0lsgs0/adalya-deluxe-ocean-otellerimiz-card-m.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/3s0lsgs0/adalya-deluxe-ocean-otellerimiz-card-m.jpg",
+        "https://www.adalyahotels.com/media/p1tbvcmd/adalya-deluxe-ocean-otellerimiz-card-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/p1tbvcmd/adalya-deluxe-ocean-otellerimiz-card-d.jpg",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-deluxe-ocean-otellerimiz-card-d.jpg",
+        "https://www.adalyahotels.com/media/ccdl0ihn/adalya-otellerimiz-art-side-kart-m.jpg?format=webp&quality=75",
+        "https://www.adalyahotels.com/media/ccdl0ihn/adalya-otellerimiz-art-side-kart-m.jpg",
+        "https://www.adalyahotels.com/media/b1fkvytk/adalya-otellerimiz-art-side-kart-d.jpg?format=webp&quality=85",
+        "https://www.adalyahotels.com/media/b1fkvytk/adalya-otellerimiz-art-side-kart-d.jpg",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-otellerimiz-art-side-kart-d.jpg"
+      ],
+      "image_details": [
+        {
+          "url": "https://www.adalyahotels.com/media/ftsptfcm/adalyahotels-main-page-otellerimiz-banner-d.jpg",
+          "alt": "adalyahotels-main-page-otellerimiz-banner-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/en/our-hotels/adalyahotels-main-page-otellerimiz-banner-d.jpg",
+          "alt": "adalyahotels-main-page-otellerimiz-banner-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/edidhvbs/adalyabliss_otellerimiz_web-2-1.png",
+          "alt": "adalyabliss_otellerimiz_web (2) (1).png"
+        },
+        {
+          "url": "https://www.adalyahotels.com/en/our-hotels/adalyabliss_otellerimiz_web%20%282%29%20%281%29.png",
+          "alt": "adalyabliss_otellerimiz_web (2) (1).png"
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/cgcgwbtg/adalya-elit-otellerimiz-card-d.jpg",
+          "alt": "adalya-elit-otellerimiz-card-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/en/our-hotels/adalya-elit-otellerimiz-card-d.jpg",
+          "alt": "adalya-elit-otellerimiz-card-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/p1tbvcmd/adalya-deluxe-ocean-otellerimiz-card-d.jpg",
+          "alt": "adalya-deluxe-ocean-otellerimiz-card-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/en/our-hotels/adalya-deluxe-ocean-otellerimiz-card-d.jpg",
+          "alt": "adalya-deluxe-ocean-otellerimiz-card-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/b1fkvytk/adalya-otellerimiz-art-side-kart-d.jpg",
+          "alt": "adalya-otellerimiz-art-side-kart-d.jpg"
+        },
+        {
+          "url": "https://www.adalyahotels.com/en/our-hotels/adalya-otellerimiz-art-side-kart-d.jpg",
+          "alt": "adalya-otellerimiz-art-side-kart-d.jpg"
+        }
+      ],
+      "document_urls": [],
+      "website_links": [
+        "https://www.adalyahotels.com/en/our-hotels/",
+        "https://www.adalyahotels.com/en/",
+        "https://www.adalyahotels.com/en/gastronomy/",
+        "https://www.adalyahotels.com/en/adalya-all-vibe/",
+        "https://www.adalyahotels.com/otellerimiz/",
+        "https://www.adalyahotels.com/de/unsere-hotels/",
+        "https://www.adalyahotels.com/ru/our-hotels/",
+        "https://www.adalyahotels.com/rezervasyon/",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-bliss/",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-ocean-deluxe/",
+        "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/",
+        "https://www.adalyahotels.com/en/about-us/",
+        "https://www.adalyahotels.com/en/sustainability/",
+        "https://www.adalyahotels.com/en/career/",
+        "https://www.adalyahotels.com/en/contact/",
+        "https://www.adalyahotels.com/rezervasyon",
+        "https://www.adalyahotels.com/en/gdpr/",
+        "https://www.adalyahotels.com/en/awards-and-ceretificates/",
+        "https://www.adalyahotels.com/en/blog/",
+        "https://www.adalyahotels.com/en/factsheet/",
+        "https://www.adalyahotels.com/en/company-policy/",
+        "https://www.adalyahotels.com/en/cookie-policy/"
+      ],
+      "album_context": [
+        "d-[16px] shadow-[0_20px_60px_rgba(0,0,0,0.25)] overflow-hidden z-[70]\">\r\n                <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-elit-lara\">Adalya Elite Lara</button>\r\n                <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-ocean-deluxe\">Adalya Ocean Deluxe</button>\r\n                <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-art-side\">Adaly",
+        "er:bg-black/5\" data-hotel=\"adalya-elit-lara\">Adalya Elite Lara</button>\r\n                <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-ocean-deluxe\">Adalya Ocean Deluxe</button>\r\n                <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-art-side\">Adalya Art Side</button>\r\n                <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-bliss\">Adalya Bliss</",
+        "-black/5\" data-hotel=\"adalya-ocean-deluxe\">Adalya Ocean Deluxe</button>\r\n                <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-art-side\">Adalya Art Side</button>\r\n                <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-bliss\">Adalya Bliss</button>\r\n              </div>\r\n            </div>\r\n\r\n            <!-- DATES -->\r\n            <div data-field=\"dates\" class=\"reservation-field relative border-r border-[#002538]/20 lg:w-[220px] flex items-ce",
+        "hover:bg-black/5\" data-hotel=\"adalya-art-side\">Adalya Art Side</button>\r\n                <button type=\"button\" class=\"w-full text-left px-5 py-3 font-nunito text-[12px] tracking-[0.02em] text-[#002538] hover:bg-black/5\" data-hotel=\"adalya-bliss\">Adalya Bliss</button>\r\n              </div>\r\n            </div>\r\n\r\n            <!-- DATES -->\r\n            <div data-field=\"dates\" class=\"reservation-field relative border-r border-[#002538]/20 lg:w-[220px] flex items-center rounded-[99px] bg-white lg:bg-transparent px-4 py-3 lg:rounded-none lg:px-6 lg:py-4\">\r\n              <input\r\n                id=\"reservation-modal-dates\"\r\n                type=\"text\"\r\n          "
+      ],
+      "gallery_memberships": [
+        {
+          "url": "https://www.adalyahotels.com/media/ftsptfcm/adalyahotels-main-page-otellerimiz-banner-d.jpg",
+          "tag": "img",
+          "alt": "adalyahotels-main-page-otellerimiz-banner-d.jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/edidhvbs/adalyabliss_otellerimiz_web-2-1.png",
+          "tag": "img",
+          "alt": "adalyabliss_otellerimiz_web (2) (1).png",
+          "categories": []
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/cgcgwbtg/adalya-elit-otellerimiz-card-d.jpg",
+          "tag": "img",
+          "alt": "adalya-elit-otellerimiz-card-d.jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/p1tbvcmd/adalya-deluxe-ocean-otellerimiz-card-d.jpg",
+          "tag": "img",
+          "alt": "adalya-deluxe-ocean-otellerimiz-card-d.jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.adalyahotels.com/media/b1fkvytk/adalya-otellerimiz-art-side-kart-d.jpg",
+          "tag": "img",
+          "alt": "adalya-otellerimiz-art-side-kart-d.jpg",
+          "categories": []
+        }
+      ]
+    },
+    {
+      "source_url": "https://www.melashotels.com/en/melas-lara-hotel",
+      "final_url": "https://www.melashotels.com/en/melas-lara-hotel",
+      "page_title": "Melas Lara Hotel | Official Website",
+      "image_hosts": [
+        "static.melashotels.com",
+        "www.melashotels.com"
+      ],
+      "image_urls": [
+        "https://www.melashotels.com/ms-icon-144x144.png",
+        "https://www.melashotels.com/apple-icon-57x57.png",
+        "https://www.melashotels.com/apple-icon-60x60.png",
+        "https://www.melashotels.com/apple-icon-72x72.png",
+        "https://www.melashotels.com/apple-icon-76x76.png",
+        "https://www.melashotels.com/apple-icon-114x114.png",
+        "https://www.melashotels.com/apple-icon-120x120.png",
+        "https://www.melashotels.com/apple-icon-144x144.png",
+        "https://www.melashotels.com/apple-icon-152x152.png",
+        "https://www.melashotels.com/apple-icon-180x180.png",
+        "https://www.melashotels.com/android-icon-192x192.png",
+        "https://www.melashotels.com/favicon-32x32.png",
+        "https://www.melashotels.com/favicon-96x96.png",
+        "https://www.melashotels.com/favicon-16x16.png",
+        "https://www.melashotels.com/en/melas-hotels-lara-banner.webp",
+        "https://www.melashotels.com/en/melas-lara-ana-sayfarestoran-banner.webp",
+        "https://www.melashotels.com/en/melas-lara-ana-sayfa-gastronomi.webp",
+        "https://www.melashotels.com/en/melas-lara-ana-sayfa-oda.webp",
+        "https://www.melashotels.com/en/melas-lara-ana-sayfa-plaj.webp",
+        "https://www.melashotels.com/en/melas-lara-ana-sayfa-havuz.webp",
+        "https://www.melashotels.com/en/STANDART_1.webp",
+        "https://www.melashotels.com/en/FAM_1.webp",
+        "https://www.melashotels.com/en/EKO_1.webp",
+        "https://www.melashotels.com/en/MELAS%20LARA_70.webp",
+        "https://www.melashotels.com/en/melas-lara-ana-sayfa-su-aktiviteleri.webp",
+        "https://www.melashotels.com/en/20260612070425765_org%20%281%29%20%282%29.webp",
+        "https://www.melashotels.com/en/melas-lara-ana-sayfa-cocuklar-icin.webp",
+        "https://www.melashotels.com/en/melas-lara-ana-sayfa-fitness.webp",
+        "https://www.melashotels.com/en/melas-lara-ana-sayfa-wellness.webp"
+      ],
+      "declared_public_image_references": [
+        "https://www.melashotels.com/ms-icon-144x144.png",
+        "https://www.melashotels.com/apple-icon-57x57.png",
+        "https://www.melashotels.com/apple-icon-60x60.png",
+        "https://www.melashotels.com/apple-icon-72x72.png",
+        "https://www.melashotels.com/apple-icon-76x76.png",
+        "https://www.melashotels.com/apple-icon-114x114.png",
+        "https://www.melashotels.com/apple-icon-120x120.png",
+        "https://www.melashotels.com/apple-icon-144x144.png",
+        "https://www.melashotels.com/apple-icon-152x152.png",
+        "https://www.melashotels.com/apple-icon-180x180.png",
+        "https://www.melashotels.com/android-icon-192x192.png",
+        "https://www.melashotels.com/favicon-32x32.png",
+        "https://www.melashotels.com/favicon-96x96.png",
+        "https://www.melashotels.com/favicon-16x16.png",
+        "https://static.melashotels.com/networks/1/properties/3/multimedia/20260624062845211_org.webp",
+        "https://static.melashotels.com/networks/1/properties/3/multimedia/20260624064827077_org.webp",
+        "https://static.melashotels.com/networks/1/properties/3/multimedia/20260624063317988_org.webp",
+        "https://static.melashotels.com/networks/1/properties/3/multimedia/20260916104301169_org.webp",
+        "https://static.melashotels.com/networks/1/properties/3/multimedia/20260430131840559_org.webp",
+        "https://static.melashotels.com/networks/1/properties/3/multimedia/20260916104604815_org.webp",
+        "https://static.melashotels.com/networks/1/properties/3/multimedia/20260430132542034_org.webp",
+        "https://static.melashotels.com/networks/1/properties/3/multimedia/20260430132702260_org.webp",
+        "https://static.melashotels.com/networks/1/properties/3/multimedia/20260430132839592_org.webp",
+        "https://www.melashotels.com/en/melas-hotels-lara-banner.webp",
+        "https://static.melashotels.com/networks/1/properties/3/multimedia/20260409101712716_org.webp",
+        "https://www.melashotels.com/en/melas-lara-ana-sayfarestoran-banner.webp",
+        "https://static.melashotels.com/networks/1/properties/3/multimedia/20260430130604025_org.webp",
+        "https://www.melashotels.com/en/melas-lara-ana-sayfa-gastronomi.webp",
+        "https://static.melashotels.com/networks/1/properties/3/multimedia/20260430125018614_org.webp",
+        "https://www.melashotels.com/en/melas-lara-ana-sayfa-oda.webp",
+        "https://static.melashotels.com/networks/1/properties/3/multimedia/20260430125028258_org.webp",
+        "https://www.melashotels.com/en/melas-lara-ana-sayfa-plaj.webp",
+        "https://static.melashotels.com/networks/1/properties/3/multimedia/20260430125018613_org.webp",
+        "https://www.melashotels.com/en/melas-lara-ana-sayfa-havuz.webp",
+        "https://static.melashotels.com/networks/1/properties/3/multimedia/20260430125018608_org.webp",
+        "https://www.melashotels.com/en/STANDART_1.webp",
+        "https://www.melashotels.com/en/FAM_1.webp",
+        "https://www.melashotels.com/en/EKO_1.webp",
+        "https://www.melashotels.com/en/MELAS%20LARA_70.webp",
+        "https://www.melashotels.com/en/melas-lara-ana-sayfa-su-aktiviteleri.webp",
+        "https://www.melashotels.com/en/20260612070425765_org%20%281%29%20%282%29.webp",
+        "https://www.melashotels.com/en/melas-lara-ana-sayfa-cocuklar-icin.webp",
+        "https://www.melashotels.com/en/melas-lara-ana-sayfa-fitness.webp",
+        "https://www.melashotels.com/en/melas-lara-ana-sayfa-wellness.webp"
+      ],
+      "image_details": [],
+      "document_urls": [],
+      "website_links": [
+        "https://www.melashotels.com/manifest.json",
+        "https://www.melashotels.com/en/melas-lara-hotel",
+        "https://www.melashotels.com/melas-lara-hotel",
+        "https://www.melashotels.com/ru/melas-lara-hotel",
+        "https://www.melashotels.com/de/melas-lara-hotel",
+        "https://www.melashotels.com/_nuxt/builds/meta/a67537fa-9d8d-4228-ba32-b9bdcae9f2df.json",
+        "https://www.melashotels.com/en/melas-lara-hotel/accommodation/standard-room",
+        "https://www.melashotels.com/en/melas-lara-hotel/accommodation/family-room",
+        "https://www.melashotels.com/en/melas-lara-hotel/accommodation/economy-room",
+        "https://www.melashotels.com/en/melas-lara-hotel/gastronomy",
+        "https://www.melashotels.com/en/melas-lara-hotel/location",
+        "https://www.melashotels.com/en/melas-lara-hotel/gallery",
+        "https://www.melashotels.com/en/melas-lara-hotel/certificates",
+        "https://www.melashotels.com/en/awards",
+        "https://www.melashotels.com/en/gdpr",
+        "https://www.melashotels.com/en/melas-lara-hotel/contact",
+        "https://www.melashotels.com/en/melas-resort-hotel",
+        "https://www.melashotels.com/en/club-melas-prive",
+        "https://www.melashotels.com/en/melas-istanbul-hotel"
+      ],
+      "album_context": [],
+      "gallery_memberships": []
+    },
+    {
+      "source_url": "https://www.melashotels.com/en/melas-resort-hotel",
+      "final_url": "https://www.melashotels.com/en/melas-resort-hotel",
+      "page_title": "Melas Resort Hotel | 5-Star Hotel in Side Antalya",
+      "image_hosts": [
+        "static.melashotels.com",
+        "www.melashotels.com"
+      ],
+      "image_urls": [
+        "https://www.melashotels.com/ms-icon-144x144.png",
+        "https://www.melashotels.com/apple-icon-57x57.png",
+        "https://www.melashotels.com/apple-icon-60x60.png",
+        "https://www.melashotels.com/apple-icon-72x72.png",
+        "https://www.melashotels.com/apple-icon-76x76.png",
+        "https://www.melashotels.com/apple-icon-114x114.png",
+        "https://www.melashotels.com/apple-icon-120x120.png",
+        "https://www.melashotels.com/apple-icon-144x144.png",
+        "https://www.melashotels.com/apple-icon-152x152.png",
+        "https://www.melashotels.com/apple-icon-180x180.png",
+        "https://www.melashotels.com/android-icon-192x192.png",
+        "https://www.melashotels.com/favicon-32x32.png",
+        "https://www.melashotels.com/favicon-96x96.png",
+        "https://www.melashotels.com/favicon-16x16.png",
+        "https://www.melashotels.com/en/melas-resort-hotel-genel-banner-yeni.webp",
+        "https://www.melashotels.com/en/_MG_8075-1%20%281%29.webp",
+        "https://www.melashotels.com/en/melas-resort-intro-bahce-manzarali-oda.webp",
+        "https://www.melashotels.com/en/melas-resort-k%C4%B1smi-deniz-manzarali-oda.webp",
+        "https://www.melashotels.com/en/melas-resort-deniz-manzarali-oda.webp",
+        "https://www.melashotels.com/en/melas-resort-genis-aile-odasi.webp",
+        "https://www.melashotels.com/en/melas-resort-intro-suit-oda.webp",
+        "https://www.melashotels.com/en/melas-resort-intro-teras-oda.webp",
+        "https://www.melashotels.com/en/12.10.2023%20ZEYT%C4%B0N%20FEST%C4%B0VAL%C4%B0%20%2813%29.webp",
+        "https://www.melashotels.com/en/melas-resort-su-aktiviteleri.webp",
+        "https://www.melashotels.com/en/melas-resort-canli-performans.webp",
+        "https://www.melashotels.com/en/melas-resort-cocuklar-icin.webp",
+        "https://www.melashotels.com/en/melas-resor-fitness.webp",
+        "https://www.melashotels.com/en/melas-resort-spa.webp",
+        "https://www.melashotels.com/en/melas-resort-gastronomi.webp",
+        "https://www.melashotels.com/en/melas-resort-odalar.webp",
+        "https://www.melashotels.com/en/melas-resort-plaj.webp",
+        "https://www.melashotels.com/en/melas-resort-havuz.webp"
+      ],
+      "declared_public_image_references": [
+        "https://www.melashotels.com/ms-icon-144x144.png",
+        "https://www.melashotels.com/apple-icon-57x57.png",
+        "https://www.melashotels.com/apple-icon-60x60.png",
+        "https://www.melashotels.com/apple-icon-72x72.png",
+        "https://www.melashotels.com/apple-icon-76x76.png",
+        "https://www.melashotels.com/apple-icon-114x114.png",
+        "https://www.melashotels.com/apple-icon-120x120.png",
+        "https://www.melashotels.com/apple-icon-144x144.png",
+        "https://www.melashotels.com/apple-icon-152x152.png",
+        "https://www.melashotels.com/apple-icon-180x180.png",
+        "https://www.melashotels.com/android-icon-192x192.png",
+        "https://www.melashotels.com/favicon-32x32.png",
+        "https://www.melashotels.com/favicon-96x96.png",
+        "https://www.melashotels.com/favicon-16x16.png",
+        "https://static.melashotels.com/networks/1/properties/2/multimedia/20260403070516482_org.webp",
+        "https://static.melashotels.com/networks/1/properties/2/multimedia/20260403070459389_org.webp",
+        "https://static.melashotels.com/networks/1/properties/2/multimedia/20260403070902462_org.webp",
+        "https://static.melashotels.com/networks/1/properties/2/multimedia/20260403071036924_org.webp",
+        "https://static.melashotels.com/networks/1/properties/2/multimedia/20260403071228387_org.webp",
+        "https://static.melashotels.com/networks/1/properties/2/multimedia/20260403071345707_org.webp",
+        "https://static.melashotels.com/networks/1/properties/2/multimedia/20260915121807681_org.webp",
+        "https://static.melashotels.com/networks/1/properties/2/multimedia/20260420085800042_org.webp",
+        "https://static.melashotels.com/networks/1/properties/2/multimedia/20260420085924182_org.webp",
+        "https://static.melashotels.com/networks/1/properties/2/multimedia/20260420090058889_org.webp",
+        "https://static.melashotels.com/networks/1/properties/2/multimedia/20260420090217745_org.webp",
+        "https://static.melashotels.com/networks/1/properties/2/multimedia/20260420090342951_org.webp",
+        "https://www.melashotels.com/en/melas-resort-hotel-genel-banner-yeni.webp",
+        "https://static.melashotels.com/networks/1/properties/2/multimedia/20260513132826451_org.webp",
+        "https://www.melashotels.com/en/_MG_8075-1%20%281%29.webp",
+        "https://static.melashotels.com/networks/1/properties/2/multimedia/20260915140828881_org.webp",
+        "https://www.melashotels.com/en/melas-resort-intro-bahce-manzarali-oda.webp",
+        "https://www.melashotels.com/en/melas-resort-k%C4%B1smi-deniz-manzarali-oda.webp",
+        "https://www.melashotels.com/en/melas-resort-deniz-manzarali-oda.webp",
+        "https://www.melashotels.com/en/melas-resort-genis-aile-odasi.webp",
+        "https://www.melashotels.com/en/melas-resort-intro-suit-oda.webp",
+        "https://www.melashotels.com/en/melas-resort-intro-teras-oda.webp",
+        "https://www.melashotels.com/en/12.10.2023%20ZEYT%C4%B0N%20FEST%C4%B0VAL%C4%B0%20%2813%29.webp",
+        "https://www.melashotels.com/en/melas-resort-su-aktiviteleri.webp",
+        "https://www.melashotels.com/en/melas-resort-canli-performans.webp",
+        "https://www.melashotels.com/en/melas-resort-cocuklar-icin.webp",
+        "https://www.melashotels.com/en/melas-resor-fitness.webp",
+        "https://www.melashotels.com/en/melas-resort-spa.webp",
+        "https://www.melashotels.com/en/melas-resort-gastronomi.webp",
+        "https://static.melashotels.com/networks/1/properties/2/multimedia/20260420084958879_org.webp",
+        "https://www.melashotels.com/en/melas-resort-odalar.webp",
+        "https://static.melashotels.com/networks/1/properties/2/multimedia/20260420084958862_org.webp",
+        "https://www.melashotels.com/en/melas-resort-plaj.webp",
+        "https://static.melashotels.com/networks/1/properties/2/multimedia/20260420084958880_org.webp",
+        "https://www.melashotels.com/en/melas-resort-havuz.webp",
+        "https://static.melashotels.com/networks/1/properties/2/multimedia/20260420084958844_org.webp"
+      ],
+      "image_details": [],
+      "document_urls": [],
+      "website_links": [
+        "https://www.melashotels.com/manifest.json",
+        "https://www.melashotels.com/en/melas-resort-hotel",
+        "https://www.melashotels.com/ru/melas-resort-hotel",
+        "https://www.melashotels.com/melas-resort-hotel",
+        "https://www.melashotels.com/de/melas-resort-hotel",
+        "https://www.melashotels.com/_nuxt/builds/meta/a67537fa-9d8d-4228-ba32-b9bdcae9f2df.json",
+        "https://www.melashotels.com/en/melas-resort-hotel/accommodation/garden-view-room",
+        "https://www.melashotels.com/en/melas-resort-hotel/accommodation/lateral-sea-view-room",
+        "https://www.melashotels.com/en/melas-resort-hotel/accommodation/sea-view-room",
+        "https://www.melashotels.com/en/melas-resort-hotel/accommodation/large-room",
+        "https://www.melashotels.com/en/melas-resort-hotel/accommodation/suite-room",
+        "https://www.melashotels.com/en/melas-resort-hotel/accommodation/terrace-room",
+        "https://www.melashotels.com/en/melas-resort-hotel/gastronomy"
+      ],
+      "album_context": [],
+      "gallery_memberships": []
+    },
+    {
+      "source_url": "https://www.melashotels.com/en",
+      "final_url": "https://www.melashotels.com/en",
+      "page_title": null,
+      "image_hosts": [
+        "static.melashotels.com",
+        "www.melashotels.com"
+      ],
+      "image_urls": [
+        "https://www.melashotels.com/ms-icon-144x144.png",
+        "https://www.melashotels.com/apple-icon-57x57.png",
+        "https://www.melashotels.com/apple-icon-60x60.png",
+        "https://www.melashotels.com/apple-icon-72x72.png",
+        "https://www.melashotels.com/apple-icon-76x76.png",
+        "https://www.melashotels.com/apple-icon-114x114.png",
+        "https://www.melashotels.com/apple-icon-120x120.png",
+        "https://www.melashotels.com/apple-icon-144x144.png",
+        "https://www.melashotels.com/apple-icon-152x152.png",
+        "https://www.melashotels.com/apple-icon-180x180.png",
+        "https://www.melashotels.com/android-icon-192x192.png",
+        "https://www.melashotels.com/favicon-32x32.png",
+        "https://www.melashotels.com/favicon-96x96.png",
+        "https://www.melashotels.com/favicon-16x16.png",
+        "https://www.melashotels.com/melas-hotels-logo.png",
+        "https://www.melashotels.com/BALAYI%20PAKET%C4%B0.webp",
+        "https://www.melashotels.com/evlilik%20yildonumu%20paketi.webp",
+        "https://www.melashotels.com/evlenme%20teklifi%20paketi.webp",
+        "https://www.melashotels.com/surdurulebilirlik.webp",
+        "https://www.melashotels.com/CLUB%20MELAS%20PRIVE%20ACILDI.webp",
+        "https://www.melashotels.com/gastronomi.webp",
+        "https://www.melashotels.com/misafirperverlik.webp",
+        "https://www.melashotels.com/aile%20dostu.webp",
+        "https://www.melashotels.com/melas%20hotels%20banner.webp",
+        "https://www.melashotels.com/melas-resort-hotel-genel-banner-yeni.webp",
+        "https://www.melashotels.com/melas-hotels-lara-banner.webp",
+        "https://www.melashotels.com/club-melas-prive-genel-banner-yeni.webp",
+        "https://www.melashotels.com/Lobby%281%29.jpg",
+        "https://www.melashotels.com/spor.webp",
+        "https://www.melashotels.com/EGLENCE.webp",
+        "https://www.melashotels.com/lezzet.webp",
+        "https://www.melashotels.com/intro-cocuklar.webp",
+        "https://www.melashotels.com/RESORT.webp",
+        "https://www.melashotels.com/doga.webp",
+        "https://www.melashotels.com/wellness.webp",
+        "https://www.melashotels.com/aile.webp",
+        "https://www.melashotels.com/cift%20tatili.webp",
+        "https://www.melashotels.com/is.webp",
+        "https://www.melashotels.com/melas-hotels-banner.webp"
+      ],
+      "declared_public_image_references": [
+        "https://www.melashotels.com/ms-icon-144x144.png",
+        "https://www.melashotels.com/apple-icon-57x57.png",
+        "https://www.melashotels.com/apple-icon-60x60.png",
+        "https://www.melashotels.com/apple-icon-72x72.png",
+        "https://www.melashotels.com/apple-icon-76x76.png",
+        "https://www.melashotels.com/apple-icon-114x114.png",
+        "https://www.melashotels.com/apple-icon-120x120.png",
+        "https://www.melashotels.com/apple-icon-144x144.png",
+        "https://www.melashotels.com/apple-icon-152x152.png",
+        "https://www.melashotels.com/apple-icon-180x180.png",
+        "https://www.melashotels.com/android-icon-192x192.png",
+        "https://www.melashotels.com/favicon-32x32.png",
+        "https://www.melashotels.com/favicon-96x96.png",
+        "https://www.melashotels.com/favicon-16x16.png",
+        "https://www.melashotels.com/melas-hotels-logo.png",
+        "https://static.melashotels.com/networks/1/properties/1/multimedia/20260730104207948_org.webp",
+        "https://static.melashotels.com/networks/1/properties/1/multimedia/20260730104418320_org.webp",
+        "https://static.melashotels.com/networks/1/properties/1/multimedia/20260730103935611_org.webp",
+        "https://static.melashotels.com/networks/1/properties/1/multimedia/20260730104439433_org.webp",
+        "https://static.melashotels.com/networks/1/properties/1/multimedia/20260730111022928_org.webp",
+        "https://static.melashotels.com/networks/1/properties/1/multimedia/20260730110851429_org.webp",
+        "https://static.melashotels.com/networks/1/properties/1/multimedia/20260730105415024_org.webp",
+        "https://static.melashotels.com/networks/1/properties/1/multimedia/20260730084608059_org.webp",
+        "https://static.melashotels.com/networks/1/properties/1/multimedia/20260730085251884_org.webp",
+        "https://static.melashotels.com/networks/1/properties/1/multimedia/20260730085510389_org.webp",
+        "https://static.melashotels.com/networks/1/properties/1/multimedia/20260730085744222_org.webp",
+        "https://static.melashotels.com/networks/1/properties/1/multimedia/20260730082747570_org.webp",
+        "https://static.melashotels.com/networks/1/properties/1/multimedia/20260730080831751_org.webp",
+        "https://static.melashotels.com/networks/1/properties/1/multimedia/20260730110546388_org.webp",
+        "https://static.melashotels.com/networks/1/properties/1/multimedia/20260730103336684_org.webp",
+        "https://static.melashotels.com/networks/1/properties/1/multimedia/20260730110104662_org.webp",
+        "https://static.melashotels.com/networks/1/properties/1/multimedia/20260730105648837_org.webp",
+        "https://static.melashotels.com/networks/1/properties/1/multimedia/20260730105905322_org.webp",
+        "https://static.melashotels.com/networks/1/properties/1/multimedia/20260730084910639_org.webp",
+        "https://static.melashotels.com/networks/1/properties/1/multimedia/20260730110339958_org.webp",
+        "https://static.melashotels.com/networks/1/properties/1/multimedia/20260730083548534_org.webp",
+        "https://static.melashotels.com/networks/1/properties/1/multimedia/20260730084306797_org.webp",
+        "https://www.melashotels.com/BALAYI%20PAKET%C4%B0.webp",
+        "https://www.melashotels.com/evlilik%20yildonumu%20paketi.webp",
+        "https://www.melashotels.com/evlenme%20teklifi%20paketi.webp",
+        "https://www.melashotels.com/surdurulebilirlik.webp",
+        "https://www.melashotels.com/CLUB%20MELAS%20PRIVE%20ACILDI.webp",
+        "https://www.melashotels.com/gastronomi.webp",
+        "https://www.melashotels.com/misafirperverlik.webp",
+        "https://www.melashotels.com/aile%20dostu.webp",
+        "https://www.melashotels.com/melas%20hotels%20banner.webp",
+        "https://static.melashotels.com/networks/1/properties/1/multimedia/20260730105111076_org.webp",
+        "https://www.melashotels.com/melas-resort-hotel-genel-banner-yeni.webp",
+        "https://static.melashotels.com/networks/1/properties/1/multimedia/20260513132715799_org.webp",
+        "https://www.melashotels.com/melas-hotels-lara-banner.webp",
+        "https://static.melashotels.com/networks/1/properties/1/multimedia/20260407135910376_org.webp",
+        "https://www.melashotels.com/club-melas-prive-genel-banner-yeni.webp",
+        "https://static.melashotels.com/networks/1/properties/1/multimedia/20260513132720633_org.webp",
+        "https://www.melashotels.com/Lobby%281%29.jpg",
+        "https://static.melashotels.com/networks/1/properties/1/multimedia/20260606100622037_org.jpg",
+        "https://static.melashotels.com/networks/1/properties/1/multimedia/20260606100622037_xl.jpg",
+        "https://static.melashotels.com/networks/1/properties/1/multimedia/20260606100622037_lg.jpg",
+        "https://static.melashotels.com/networks/1/properties/1/multimedia/20260606100622037_sm.jpg",
+        "https://static.melashotels.com/networks/1/properties/1/multimedia/20260606100622037_xs.jpg",
+        "https://www.melashotels.com/spor.webp",
+        "https://www.melashotels.com/EGLENCE.webp",
+        "https://www.melashotels.com/lezzet.webp",
+        "https://www.melashotels.com/intro-cocuklar.webp",
+        "https://www.melashotels.com/RESORT.webp",
+        "https://www.melashotels.com/doga.webp",
+        "https://www.melashotels.com/wellness.webp",
+        "https://www.melashotels.com/aile.webp",
+        "https://www.melashotels.com/cift%20tatili.webp",
+        "https://www.melashotels.com/is.webp",
+        "https://www.melashotels.com/melas-hotels-banner.webp",
+        "https://static.melashotels.com/networks/1/properties/1/multimedia/20260407135910361_org.webp"
+      ],
+      "image_details": [],
+      "document_urls": [],
+      "website_links": [
+        "https://www.melashotels.com/manifest.json",
+        "https://www.melashotels.com/en",
+        "https://www.melashotels.com",
+        "https://www.melashotels.com/de",
+        "https://www.melashotels.com/ru",
+        "https://www.melashotels.com/_nuxt/builds/meta/a67537fa-9d8d-4228-ba32-b9bdcae9f2df.json",
+        "https://www.melashotels.com/en/melas-resort-hotel",
+        "https://www.melashotels.com/en/melas-lara-hotel",
+        "https://www.melashotels.com/en/club-melas-prive",
+        "https://www.melashotels.com/en/melas-istanbul-hotel",
+        "https://www.melashotels.com/en/special-packages/honeymoon-package",
+        "https://www.melashotels.com/en/special-packages/wedding-anniversary-package",
+        "https://www.melashotels.com/en/special-packages/marriage-proposal-package",
+        "https://www.melashotels.com/en/sustainability",
+        "https://www.melashotels.com/club-melas-prive"
+      ],
+      "album_context": [],
+      "gallery_memberships": []
+    },
+    {
+      "source_url": "https://www.elitabeachresort.com/",
+      "final_url": "https://www.elitabeachresort.com/",
+      "page_title": "Sunis Elita Beach Resort Hotel & Spa",
+      "image_hosts": [
+        "www.elitabeachresort.com"
+      ],
+      "image_urls": [
+        "https://www.elitabeachresort.com/wp-content/uploads/2024/09/cropped-cropped-transparan-32x32.png",
+        "https://www.elitabeachresort.com/wp-content/uploads/2024/09/cropped-cropped-transparan-192x192.png",
+        "https://www.elitabeachresort.com/wp-content/uploads/2024/09/cropped-cropped-transparan-180x180.png",
+        "https://www.elitabeachresort.com/wp-content/uploads/2024/09/cropped-cropped-transparan-270x270.png",
+        "https://www.elitabeachresort.com/wp-content/uploads/2019/07/elita-100x48-imza.png",
+        "https://www.elitabeachresort.com/wp-content/uploads/2019/08/DJI_0923-scaled.jpg",
+        "https://www.elitabeachresort.com/wp-content/uploads/2019/08/DJI_0916-1-scaled.jpg",
+        "https://www.elitabeachresort.com/wp-content/uploads/2019/08/CTM7561-scaled.jpg",
+        "https://www.elitabeachresort.com/wp-content/uploads/2024/09/CTM7606-scaled.jpg",
+        "https://www.elitabeachresort.com/wp-content/uploads/2024/09/CTM7057-1024x683.jpg",
+        "https://www.elitabeachresort.com/wp-content/uploads/2024/09/images.png",
+        "https://www.elitabeachresort.com/wp-content/uploads/2024/09/zoover.png",
+        "https://www.elitabeachresort.com/wp-content/uploads/2024/09/tripadvisor.png",
+        "https://www.elitabeachresort.com/wp-content/uploads/2024/09/google.png",
+        "https://www.elitabeachresort.com/wp-content/uploads/2024/09/op-logo.png"
+      ],
+      "declared_public_image_references": [
+        "https://www.elitabeachresort.com/wp-content/uploads/2024/09/cropped-cropped-transparan-32x32.png",
+        "https://www.elitabeachresort.com/wp-content/uploads/2024/09/cropped-cropped-transparan-192x192.png",
+        "https://www.elitabeachresort.com/wp-content/uploads/2024/09/cropped-cropped-transparan-180x180.png",
+        "https://www.elitabeachresort.com/wp-content/uploads/2024/09/cropped-cropped-transparan-270x270.png",
+        "https://www.elitabeachresort.com/wp-content/uploads/2019/07/elita-100x48-imza.png",
+        "https://www.elitabeachresort.com/wp-content/uploads/2019/08/DJI_0923-scaled.jpg",
+        "https://www.elitabeachresort.com/wp-content/uploads/2019/08/DJI_0916-1-scaled.jpg",
+        "https://www.elitabeachresort.com/wp-content/uploads/2019/08/CTM7561-scaled.jpg",
+        "https://www.elitabeachresort.com/wp-content/uploads/2024/09/CTM7606-scaled.jpg",
+        "https://www.elitabeachresort.com/wp-content/uploads/2024/09/CTM7057-1024x683.jpg",
+        "https://www.elitabeachresort.com/wp-content/uploads/2024/09/images.png",
+        "https://www.elitabeachresort.com/wp-content/uploads/2024/09/zoover.png",
+        "https://www.elitabeachresort.com/wp-content/uploads/2024/09/tripadvisor.png",
+        "https://www.elitabeachresort.com/wp-content/uploads/2024/09/google.png",
+        "https://www.elitabeachresort.com/wp-content/uploads/2024/09/op-logo.png"
+      ],
+      "image_details": [
+        {
+          "url": "https://www.elitabeachresort.com/wp-content/uploads/2019/07/elita-100x48-imza.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.elitabeachresort.com/wp-content/uploads/2019/07/elita-100x48-imza.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.elitabeachresort.com/wp-content/uploads/2019/08/DJI_0923-scaled.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.elitabeachresort.com/wp-content/uploads/2019/08/DJI_0916-1-scaled.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.elitabeachresort.com/wp-content/uploads/2019/08/CTM7561-scaled.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.elitabeachresort.com/wp-content/uploads/2019/08/CTM7561-scaled.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.elitabeachresort.com/wp-content/uploads/2019/08/DJI_0916-1-scaled.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.elitabeachresort.com/wp-content/uploads/2019/08/DJI_0923-scaled.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.elitabeachresort.com/wp-content/uploads/2024/09/CTM7606-scaled.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.elitabeachresort.com/wp-content/uploads/2024/09/CTM7057-1024x683.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.elitabeachresort.com/wp-content/uploads/2024/09/images.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.elitabeachresort.com/wp-content/uploads/2024/09/zoover.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.elitabeachresort.com/wp-content/uploads/2024/09/tripadvisor.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.elitabeachresort.com/wp-content/uploads/2024/09/google.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.elitabeachresort.com/wp-content/uploads/2024/09/op-logo.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.elitabeachresort.com/wp-content/uploads/2019/07/elita-100x48-imza.png",
+          "alt": ""
+        }
+      ],
+      "document_urls": [],
+      "website_links": [
+        "https://www.elitabeachresort.com/index.php/feed/",
+        "https://www.elitabeachresort.com/index.php/comments/feed/",
+        "https://www.elitabeachresort.com/index.php/wp-json/",
+        "https://www.elitabeachresort.com/index.php/wp-json/wp/v2/pages/26",
+        "https://www.elitabeachresort.com/",
+        "https://www.elitabeachresort.com/+902425245535",
+        "https://www.elitabeachresort.com/index.php/odalarimiz/",
+        "https://www.elitabeachresort.com/index.php/restoran-barlar/",
+        "https://www.elitabeachresort.com",
+        "https://www.elitabeachresort.com/index.php/odullerimiz/",
+        "https://www.elitabeachresort.com/index.php/galeri/",
+        "https://www.elitabeachresort.com/index.php/iletisim/",
+        "https://www.elitabeachresort.com/index.php/yasal-bilgilendirmeler/",
+        "https://www.elitabeachresort.com/index.php/blog/",
+        "https://www.elitabeachresort.com/imunify-bot-check"
+      ],
+      "album_context": [],
+      "gallery_memberships": [
+        {
+          "url": "https://www.elitabeachresort.com/wp-content/uploads/2019/07/elita-100x48-imza.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.elitabeachresort.com/wp-content/uploads/2019/08/DJI_0923-scaled.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.elitabeachresort.com/wp-content/uploads/2019/08/DJI_0916-1-scaled.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.elitabeachresort.com/wp-content/uploads/2019/08/CTM7561-scaled.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.elitabeachresort.com/wp-content/uploads/2024/09/CTM7606-scaled.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.elitabeachresort.com/wp-content/uploads/2024/09/CTM7057-1024x683.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.elitabeachresort.com/wp-content/uploads/2024/09/images.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.elitabeachresort.com/wp-content/uploads/2024/09/zoover.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.elitabeachresort.com/wp-content/uploads/2024/09/tripadvisor.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.elitabeachresort.com/wp-content/uploads/2024/09/google.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.elitabeachresort.com/wp-content/uploads/2024/09/op-logo.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        }
+      ]
+    },
+    {
+      "source_url": "https://www.kumkoybeachresort.com/",
+      "final_url": "https://www.kumkoybeachresort.com/",
+      "page_title": "Kumköy Beach Resort Hotel – Güneş, Senin İçin Parlıyor!",
+      "image_hosts": [
+        "images.corendonresources.com",
+        "www.kumkoybeachresort.com"
+      ],
+      "image_urls": [
+        "https://www.kumkoybeachresort.com/wp-content/uploads/2019/08/cropped-Basliksiz-2-32x32.png",
+        "https://www.kumkoybeachresort.com/wp-content/uploads/2019/08/cropped-Basliksiz-2-192x192.png",
+        "https://www.kumkoybeachresort.com/wp-content/uploads/2019/08/cropped-Basliksiz-2-180x180.png",
+        "https://www.kumkoybeachresort.com/wp-content/uploads/2019/08/cropped-Basliksiz-2-270x270.png",
+        "https://www.kumkoybeachresort.com/wp-content/uploads/2024/11/kumkoy100x48-imza.png",
+        "https://www.kumkoybeachresort.com/wp-content/uploads/2019/08/DJI_0610-scaled.jpg",
+        "https://www.kumkoybeachresort.com/wp-content/uploads/2019/08/DJI_0572-scaled.jpg",
+        "https://www.kumkoybeachresort.com/wp-content/uploads/2019/08/DJI_0537-scaled.jpg",
+        "https://www.kumkoybeachresort.com/wp-content/uploads/2024/09/anasayfada-kullanilan-buyuk-bir-tanitim-gorseli-odalarin-altinda.png",
+        "https://www.kumkoybeachresort.com/wp-content/uploads/2024/09/holidaycheck.png",
+        "https://www.kumkoybeachresort.com/wp-content/uploads/2024/09/tripadvisor.png",
+        "https://www.kumkoybeachresort.com/wp-content/uploads/2024/09/zoover.png",
+        "https://www.kumkoybeachresort.com/wp-content/uploads/2024/09/google.png",
+        "https://www.kumkoybeachresort.com/wp-content/uploads/2024/09/op-logo.png",
+        "https://www.kumkoybeachresort.com/wp-content/uploads/2019/07/kumkoy100x48-imza.png"
+      ],
+      "declared_public_image_references": [
+        "https://www.kumkoybeachresort.com/wp-content/uploads/2019/08/cropped-Basliksiz-2-32x32.png",
+        "https://www.kumkoybeachresort.com/wp-content/uploads/2019/08/cropped-Basliksiz-2-192x192.png",
+        "https://www.kumkoybeachresort.com/wp-content/uploads/2019/08/cropped-Basliksiz-2-180x180.png",
+        "https://www.kumkoybeachresort.com/wp-content/uploads/2019/08/cropped-Basliksiz-2-270x270.png",
+        "https://www.kumkoybeachresort.com/wp-content/uploads/2024/11/kumkoy100x48-imza.png",
+        "https://www.kumkoybeachresort.com/wp-content/uploads/2019/08/DJI_0610-scaled.jpg",
+        "https://www.kumkoybeachresort.com/wp-content/uploads/2019/08/DJI_0572-scaled.jpg",
+        "https://www.kumkoybeachresort.com/wp-content/uploads/2019/08/DJI_0537-scaled.jpg",
+        "https://www.kumkoybeachresort.com/wp-content/uploads/2024/09/anasayfada-kullanilan-buyuk-bir-tanitim-gorseli-odalarin-altinda.png",
+        "https://www.kumkoybeachresort.com/wp-content/uploads/2024/09/holidaycheck.png",
+        "https://www.kumkoybeachresort.com/wp-content/uploads/2024/09/tripadvisor.png",
+        "https://www.kumkoybeachresort.com/wp-content/uploads/2024/09/zoover.png",
+        "https://www.kumkoybeachresort.com/wp-content/uploads/2024/09/google.png",
+        "https://www.kumkoybeachresort.com/wp-content/uploads/2024/09/op-logo.png",
+        "https://www.kumkoybeachresort.com/wp-content/uploads/2019/07/kumkoy100x48-imza.png",
+        "https://images.corendonresources.com/NL/hotel-of-the-year-award-2024-178x90.png"
+      ],
+      "image_details": [
+        {
+          "url": "https://www.kumkoybeachresort.com/wp-content/uploads/2024/11/kumkoy100x48-imza.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.kumkoybeachresort.com/wp-content/uploads/2019/08/DJI_0610-scaled.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.kumkoybeachresort.com/wp-content/uploads/2019/08/DJI_0572-scaled.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.kumkoybeachresort.com/wp-content/uploads/2019/08/DJI_0537-scaled.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.kumkoybeachresort.com/wp-content/uploads/2019/08/DJI_0572-scaled.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.kumkoybeachresort.com/wp-content/uploads/2019/08/DJI_0537-scaled.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.kumkoybeachresort.com/wp-content/uploads/2019/08/DJI_0610-scaled.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.kumkoybeachresort.com/wp-content/uploads/2024/09/anasayfada-kullanilan-buyuk-bir-tanitim-gorseli-odalarin-altinda.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.kumkoybeachresort.com/wp-content/uploads/2024/09/holidaycheck.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.kumkoybeachresort.com/wp-content/uploads/2024/09/tripadvisor.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.kumkoybeachresort.com/wp-content/uploads/2024/09/zoover.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.kumkoybeachresort.com/wp-content/uploads/2024/09/google.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.kumkoybeachresort.com/wp-content/uploads/2024/09/op-logo.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.kumkoybeachresort.com/wp-content/uploads/2019/07/kumkoy100x48-imza.png",
+          "alt": ""
+        }
+      ],
+      "document_urls": [],
+      "website_links": [
+        "https://www.kumkoybeachresort.com/index.php/feed/",
+        "https://www.kumkoybeachresort.com/index.php/comments/feed/",
+        "https://www.kumkoybeachresort.com/index.php/wp-json/",
+        "https://www.kumkoybeachresort.com/index.php/wp-json/wp/v2/pages/26",
+        "https://www.kumkoybeachresort.com/",
+        "https://www.kumkoybeachresort.com/index.php/odalar-suitler/",
+        "https://www.kumkoybeachresort.com/index.php/standart-oda-3-kisilik/",
+        "https://www.kumkoybeachresort.com/index.php/aile-odasi-b-4-kisilik/",
+        "https://www.kumkoybeachresort.com/index.php/aile-odasi-4-kisilik/",
+        "https://www.kumkoybeachresort.com/index.php/junior-suit-4-kisilik/",
+        "https://www.kumkoybeachresort.com/index.php/suit-4-kisilik/",
+        "https://www.kumkoybeachresort.com/index.php/engelli-odasi-2-kisilik/",
+        "https://www.kumkoybeachresort.com/index.php/golevi-deluxe-ekonomi/",
+        "https://www.kumkoybeachresort.com/index.php/golevi-deluxe-standart-oda/",
+        "https://www.kumkoybeachresort.com/index.php/golevi-deluxe-aile-odasi/",
+        "https://www.kumkoybeachresort.com/index.php/golevi-zemin-deluxe-aile-odasi/",
+        "https://www.kumkoybeachresort.com/index.php/golevi-suit-oda/",
+        "https://www.kumkoybeachresort.com/index.php/restoranlar/",
+        "https://www.kumkoybeachresort.com/index.php/2018-2020/",
+        "https://www.kumkoybeachresort.com/index.php/2020-2024/",
+        "https://www.kumkoybeachresort.com/index.php/2022-2023/",
+        "https://www.kumkoybeachresort.com/index.php/2023-2025/",
+        "https://www.kumkoybeachresort.com/index.php/gallery/",
+        "https://www.kumkoybeachresort.com/index.php/bize-ulasin/",
+        "https://www.kumkoybeachresort.com/index.php/cocuk-genc/",
+        "https://www.kumkoybeachresort.com/index.php/yiyecek-icecek/",
+        "https://www.kumkoybeachresort.com/index.php/havuz-kaydiraklarimiz/",
+        "https://www.kumkoybeachresort.com/index.php/spa-saglik/",
+        "https://www.kumkoybeachresort.com/index.php/aktiviteler/",
+        "https://www.kumkoybeachresort.com"
+      ],
+      "album_context": [],
+      "gallery_memberships": [
+        {
+          "url": "https://www.kumkoybeachresort.com/wp-content/uploads/2024/11/kumkoy100x48-imza.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.kumkoybeachresort.com/wp-content/uploads/2019/08/DJI_0610-scaled.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.kumkoybeachresort.com/wp-content/uploads/2019/08/DJI_0572-scaled.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.kumkoybeachresort.com/wp-content/uploads/2019/08/DJI_0537-scaled.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.kumkoybeachresort.com/wp-content/uploads/2024/09/anasayfada-kullanilan-buyuk-bir-tanitim-gorseli-odalarin-altinda.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.kumkoybeachresort.com/wp-content/uploads/2024/09/holidaycheck.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.kumkoybeachresort.com/wp-content/uploads/2024/09/tripadvisor.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.kumkoybeachresort.com/wp-content/uploads/2024/09/zoover.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.kumkoybeachresort.com/wp-content/uploads/2024/09/google.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.kumkoybeachresort.com/wp-content/uploads/2024/09/op-logo.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.kumkoybeachresort.com/wp-content/uploads/2019/07/kumkoy100x48-imza.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,135 @@
+{
+  "operation": "commercial-stock-20261104-40-primary-preparation1-notes",
+  "state": "PARAPHRASED_PRELOOKUP_FACTS_NOT_NATIVE_BINDINGS_NOT_READY",
+  "facts": [
+    {
+      "key": "adalya-elite-lara",
+      "source": "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/",
+      "native_catalog_id": null,
+      "facts": [
+        "LaraKundu, собственнаяпесчаногалечнаяпляжнаяполоса100мспирсом",
+        "Семейныеномера50м²для4гостей — отдельнаякатегория",
+        "MareKidsClub4..12, водныегоркиifunfairлетом"
+      ],
+      "constraints": [
+        "Летние5горокмин120см/3детскиеот4летНЕноябрьскаягарантия",
+        "РазовыйaLaCarteприне<7ночах/броньналичие/исключениеHalikarnas,НЕуниверсальнобесплатно",
+        "ВблокеnightlifeошибочноупомянутBliss;нельзяпереноситьчужуюпрограмму",
+        "ReservationUnexpectedErrorнедоказываетзакрытиеилидоступность"
+      ]
+    },
+    {
+      "key": "adalya-artside",
+      "source": "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/",
+      "native_catalog_id": null,
+      "facts": [
+        "Side, естьстандартныеисемейныеномера",
+        "Отдельныепляжно-бассейновыезоны,фитнес,детскийклуб"
+      ],
+      "constraints": [
+        "ВерхнееменюSafariKidsClub,контентMareKidsClub: возраст/названиеуточнитьпоотдельнойpropertyстранице",
+        "ОбщиефотоименадругихAdalyaНЕpropertyimageproof",
+        "Расстояниедопляжа/бесплатныйaLaCarte/включённыйspaнеподтверждены"
+      ]
+    },
+    {
+      "key": "adalya-owner-index",
+      "source": "https://www.adalyahotels.com/en/our-hotels/",
+      "facts": [
+        "Directoryчетырёхотелей;16+явноотноситсятолькокBliss",
+        "ФактическиобъявленquerylessOceanURIипутьBliss"
+      ],
+      "constraints": [
+        "NativeResort↔Blissещёнеподтверждено,неforce",
+        "Нельзяпереноситьвозраст/концепциюмеждупродуктами"
+      ]
+    },
+    {
+      "key": "melas-lara",
+      "source": "https://www.melashotels.com/en/melas-lara-hotel",
+      "native_catalog_id": null,
+      "facts": [
+        "СобственныйпесчаныйпляжLaraKundu",
+        "Естьбассейнсгорками,внутреннийподогреваемыйбассейн,мини-клуб",
+        "Семейныеномера45м²сраздельнымиспальнымизонами"
+      ],
+      "constraints": [
+        "ПодогревуказанТОЛЬКОвнутреннемубассейну,неuniversaloutdoorheating",
+        "AllInclusiveсоставконкретноготуранепроверен/платностьspa,aLaCarteнеподтверждена",
+        "Renovated/modernizedбезточныхдатНЕдоказательствореконструкцииилизакрытия2026"
+      ]
+    },
+    {
+      "key": "melas-resort",
+      "source": "https://www.melashotels.com/en/melas-resort-hotel",
+      "native_catalog_id": null,
+      "facts": [
+        "Side,собственныйпляж,семейныйформат/мини-клуб",
+        "Номераразличаютсяпоразмеруивиду;естьбассейны,spa,спортивныеактивности"
+      ],
+      "constraints": [
+        "Grandgrounds/sharedHolidayrightsневыводитьизобщегобренда",
+        "Неclaimheatedoutdoor/allfreewateractivities/универсальныеправаsuite"
+      ]
+    },
+    {
+      "key": "melas-owner-index",
+      "source": "https://www.melashotels.com/en",
+      "facts": [
+        "DirectoryMelasResort/Lara/ClubMelasPrive/Istanbul",
+        "ФактическиобъявленownerURI/en/club-melas-prive"
+      ],
+      "constraints": [
+        "MelasHoliday↔ClubMelasPriveпокаНЕдоказан",
+        "Reopenedбезточнойдатынеavailability/неправа2027"
+      ]
+    },
+    {
+      "key": "sunis-elita",
+      "source": "https://www.elitabeachresort.com/",
+      "native_catalog_id": null,
+      "facts": [
+        "OwnerстраницаименуетElitaBeachResort/Sunis,Кызылагач;естьоткрытыебассейны/детскиезоны"
+      ],
+      "constraints": [
+        "Ownerfooterпоказываетпрямоезапрещениекопированиясодержимого: Bu sayfanın içeriğini kopyalayamazsınız",
+        "НикакихфотоGET/imports/Canvaилиобходачерездругойhost/galleryбезотдельногоподтверждённогоreusebasis",
+        "ЭтоНЕHTTP403/неchallenge-onlypage;полученочитаемоесодержимое,нетпричинretry"
+      ]
+    },
+    {
+      "key": "sunis-kumkoy",
+      "source": "https://www.kumkoybeachresort.com/",
+      "native_catalog_id": null,
+      "facts": [
+        "OwnerSunisKumkoyBeachResort/Side,естьраздельныекатегорииосновногокорпуса/LakeHouse"
+      ],
+      "constraints": [
+        "Ownerfooterпоказываеттоже Bu sayfanın içeriğini kopyalayamazsınız:фотографиинескачивать/неimport/необходить",
+        "КатегорииLakeHouseнеуниверсальныеправа;3детские/4взрослыегоркине7бассейнов",
+        "Рейтинги/awardsнеhotelstars/неcurrent2027rights"
+      ]
+    }
+  ],
+  "new_declared_owner_hrefs": {
+    "ocean": {
+      "url": "https://www.adalyahotels.com/en/our-hotels/adalya-ocean-deluxe/",
+      "declared_by": "https://www.adalyahotels.com/en/our-hotels/",
+      "not_query_strip": true,
+      "actual_gets": 0
+    },
+    "bliss": {
+      "url": "https://www.adalyahotels.com/en/our-hotels/adalya-bliss/",
+      "declared_by": "https://www.adalyahotels.com/en/our-hotels/",
+      "actual_gets": 0
+    },
+    "club_melas_prive": {
+      "url": "https://www.melashotels.com/en/club-melas-prive",
+      "declared_by": "https://www.melashotels.com/en",
+      "actual_gets": 0
+    }
+  },
+  "full_captions_created": 0,
+  "ready_for_send": 0,
+  "new_posts": 0
+}

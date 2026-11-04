@@ -1,0 +1,50 @@
+{
+  "operation": "commercial-stock-20261104-40-primary-preparation1",
+  "state": "CLOSED_EIGHT_NEW_OWNER_HTML_READS_SIX_PROPERTIES_TWO_DIRECTORIES_NO_PHOTOS_NO_NATIVE_IDENTITIES",
+  "run": 41924198516,
+  "jobs": [
+    126904187521,
+    126904187801,
+    126904187896
+  ],
+  "source_commit": "665cad94b23441b2854614c27bae56050bc93f2c",
+  "artifacts": [
+    {
+      "id": 13369440180,
+      "name": "commercial-stock40-prelookup-primary-0"
+    },
+    {
+      "id": 13369370504,
+      "name": "commercial-stock40-prelookup-primary-1"
+    },
+    {
+      "id": 13367764175,
+      "name": "commercial-stock40-prelookup-primary-2"
+    }
+  ],
+  "new_owner_gets": 8,
+  "readable_pages": 8,
+  "proper_property_pages": 6,
+  "owner_directory_pages": 2,
+  "http403_count": 0,
+  "old_owner_get_repeats": 0,
+  "parser_functionality_unchanged": true,
+  "new_input_scope_cases": 3,
+  "old_parser_fixtures_rerun": 0,
+  "source_url_dedup_before_requests": true,
+  "raw_photo_gets": 0,
+  "canva_transactions": 0,
+  "server_calls": 0,
+  "db_reads": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "new_native_identities_proven": 0,
+  "ready_for_send": 0,
+  "new_posts": 0,
+  "owner_copy_restriction_deferred_keys": [
+    "sunis-elita",
+    "sunis-kumkoy"
+  ],
+  "new_canonical_ocean_href_declared_not_stripped": true,
+  "repeat_policy": "All8GETsCLOSED; doNOTrerunownerpass/variants. Rawphotos0/nativeIDspending. SunisownerexplicitnocopymeansNOphotoimport/bypassuntilreusebasis. DirectoryhrefsnewinputsnotautomaticGETpermission."
+}
