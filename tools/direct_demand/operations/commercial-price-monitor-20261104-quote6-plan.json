@@ -1,0 +1,40 @@
+{
+  "operation": "commercial-price-monitor-20261104-quote6",
+  "state": "EXACT_NEW_CONTEXT_PREPARATION_PENDING_CURRENT_RELEASE_ACCEPTANCE",
+  "goal": "Add one verified price to both existing posts of another unpriced published hotel from originalREAD9",
+  "boundaries": [
+    "OriginalREAD9 only, no157scopeDBreread; exclude13869/13873/109/12114/9432 and name-review6",
+    "OriginalREAD9 source9678 pinned truthfully; currentproduction independently checked",
+    "30h108000/UTCpersistence/2A0/emptychildsig/RUB/future/sourceuser_search+hot_tours preserved",
+    "One exact readonly native observation+country+active+name+terms+fingerprint revalidation",
+    "One justified existingflights only after own durableintent; automaticretryfalse",
+    "Privatefulltuple/fingerprint/quote only authenticatedartifact; no posts in quotephase"
+  ],
+  "criteria": [
+    "Currentmain2f7 deploy41917839854 must PASS verify/deploy + freshTLS + currentdiagnostics before anySSH",
+    "Full21publishingblobs/runtimeclean/hostaccepted25/schema/rights/UNKNOWN gates required",
+    "Diff626→2f7 only tests/fixtures/hotel_work_queue.php and tests/hotel_work_execution_attempt_checks.php; full21 notwaived",
+    "Originalcaption/closingparagraph derived from actualapprovedrow; exacttext/cover/logicalbinding",
+    "3newexclusioninputcases/PHP-l, oldidentity/agefixtures0"
+  ],
+  "risks": [
+    "Unknownoriginalgatewayoutcome must resolve from originaloperation; nevernewIDbypass",
+    "Cachedprice is notfinaltotal/availability, edit only after realroundtrip/fullbasketreceivedvalidated"
+  ],
+  "retained_run": 41898354901,
+  "retained_artifact": 13357152456,
+  "retained_source_sha": "9678e8c617734dd3bd5054eabf3585e396e3ca12",
+  "expected_source": "2f7cff9ab66f59003af8df8a7f18ef2b93bca93d",
+  "max_age_seconds": 108000,
+  "max_gateway_requests": 1,
+  "automatic_retry_allowed": false,
+  "excluded_consumed_hotel_ids": [
+    13869,
+    13873,
+    109,
+    12114,
+    9432
+  ],
+  "new_input_scope_cases": 3,
+  "old_age_and_identity_fixture_reruns": 0
+}
