@@ -1,0 +1,191 @@
+{
+  "operation": "commercial-batch-20261104-43-contact",
+  "state": "PREPARED_NOT_EXECUTED_NOT_READY",
+  "goal": "One finite pass of21 different declared photographs for the ten proven prepared-caption scope, with seven exact new native properties in the image subset",
+  "boundaries": {
+    "baseline_published_each_channel": 157,
+    "proven_scope": [
+      1074,
+      969,
+      975,
+      1294,
+      17480,
+      1100,
+      1402,
+      62505,
+      968,
+      65782
+    ],
+    "photo_subset_native_ids": [
+      1074,
+      969,
+      975,
+      1294,
+      17480,
+      1100,
+      1402
+    ],
+    "exact_new_photo_gets": 21,
+    "readonly_groups": 4,
+    "max_parallel": 2,
+    "server_connections": 0,
+    "db_reads": 0,
+    "db_writes": 0,
+    "provider_calls": 0,
+    "message_sends": 0
+  },
+  "criteria": [
+    "Every URL actually declared by the exact retained property root/subpage",
+    "Five exact owner photo hosts explicitly approved only for fixedproperty inputs",
+    "Known closed URLs and decoded basenames through42 excluded; seven new stock39properties had no prior rawphotoGET before exactnativebinding",
+    "Raw image/query/redirect/bytes/dimension guards byte identical",
+    "Complete contactchunks/decodedbytes/SHA/nativepixels must be reviewed before hero/cover readiness",
+    "No arbitrary KHG/sharedmetadata/CDN images/graphics merely to reachquantity"
+  ],
+  "risks": [
+    "Banners may show people/food or contain illustrations; do not force hero",
+    "Nirvana galleries had onlyglobalnavmemberships; onlytwo property-specific experience images each are requested, not a presumed completecover",
+    "ROBINSON/Park oldphotodedup notcompletefornewMICEframes; FinesseMICEconferenceimagesnotrequested"
+  ],
+  "allowed_exact_hosts": [
+    "www.guralpremier.com",
+    "www.nirvanahotels.com.tr",
+    "www.tui-blue.com",
+    "clubhotelsera.com.tr",
+    "www.orangecounty.com.tr"
+  ],
+  "new_input_scope_cases": 3,
+  "old_guard_fixtures_rerun": 0,
+  "closed_unique_url_exclusions": 178,
+  "closed_basename_exclusions": 178,
+  "images": [
+    {
+      "hotel_id": 1074,
+      "url": "https://www.guralpremier.com/Uploads/SLIDER03.jpg",
+      "primary_source_url": "https://www.guralpremier.com/en/belek",
+      "role": "h1074_new43_0"
+    },
+    {
+      "hotel_id": 1074,
+      "url": "https://www.guralpremier.com/Uploads/SLIDER02.jpg",
+      "primary_source_url": "https://www.guralpremier.com/en/belek",
+      "role": "h1074_new43_1"
+    },
+    {
+      "hotel_id": 1074,
+      "url": "https://www.guralpremier.com/Uploads/1-1.jpg",
+      "primary_source_url": "https://www.guralpremier.com/en/belek",
+      "role": "h1074_new43_2"
+    },
+    {
+      "hotel_id": 1074,
+      "url": "https://www.guralpremier.com/content/assets/images/rooms/deluxe_family_room.jpg",
+      "primary_source_url": "https://www.guralpremier.com/en/belek",
+      "role": "h1074_new43_3"
+    },
+    {
+      "hotel_id": 969,
+      "url": "https://www.guralpremier.com/Uploads/SLIDER04.jpg",
+      "primary_source_url": "https://www.guralpremier.com/en/tekirova",
+      "role": "h969_new43_4"
+    },
+    {
+      "hotel_id": 969,
+      "url": "https://www.guralpremier.com/Uploads/SLIDER01.jpg",
+      "primary_source_url": "https://www.guralpremier.com/en/tekirova",
+      "role": "h969_new43_5"
+    },
+    {
+      "hotel_id": 969,
+      "url": "https://www.guralpremier.com/Uploads/1-2.jpg",
+      "primary_source_url": "https://www.guralpremier.com/en/tekirova",
+      "role": "h969_new43_6"
+    },
+    {
+      "hotel_id": 969,
+      "url": "https://www.guralpremier.com/Uploads/Galeri/AquaPark/Tekirova/_07A0137-copy.jpg",
+      "primary_source_url": "https://www.guralpremier.com/en/tekirova/aquapark",
+      "role": "h969_new43_7"
+    },
+    {
+      "hotel_id": 975,
+      "url": "https://www.nirvanahotels.com.tr/_nuxt/img/DV-experience-top.9462ee9.jpg",
+      "primary_source_url": "https://www.nirvanahotels.com.tr/oteller/nirvana-dolce-vita",
+      "role": "h975_new43_8"
+    },
+    {
+      "hotel_id": 975,
+      "url": "https://www.nirvanahotels.com.tr/_nuxt/img/DV-experience-bottom.715bbd5.jpg",
+      "primary_source_url": "https://www.nirvanahotels.com.tr/oteller/nirvana-dolce-vita",
+      "role": "h975_new43_9"
+    },
+    {
+      "hotel_id": 1294,
+      "url": "https://www.nirvanahotels.com.tr/_nuxt/img/CP-experience-top.0fcb32b.jpg",
+      "primary_source_url": "https://www.nirvanahotels.com.tr/oteller/nirvana-cosmopolitan",
+      "role": "h1294_new43_10"
+    },
+    {
+      "hotel_id": 1294,
+      "url": "https://www.nirvanahotels.com.tr/_nuxt/img/CP-experience-bottom.073299d.jpg",
+      "primary_source_url": "https://www.nirvanahotels.com.tr/oteller/nirvana-cosmopolitan",
+      "role": "h1294_new43_11"
+    },
+    {
+      "hotel_id": 17480,
+      "url": "https://www.tui-blue.com/media/hotels/Palm_Garden/Uebersicht/overview_new_2025/tui-blue-Palm-Garden-Hotel-Overview-03186.jpg",
+      "primary_source_url": "https://www.tui-blue.com/en/en/hotels/tui-blue-palm-garden/",
+      "role": "h17480_new43_12"
+    },
+    {
+      "hotel_id": 17480,
+      "url": "https://www.tui-blue.com/media/hotels/Palm_Garden/Uebersicht/overview_new_2025/tui-blue-Palm-Garden-Garden-03184.jpg",
+      "primary_source_url": "https://www.tui-blue.com/en/en/hotels/tui-blue-palm-garden/",
+      "role": "h17480_new43_13"
+    },
+    {
+      "hotel_id": 17480,
+      "url": "https://www.tui-blue.com/media/hotels/Palm_Garden/Uebersicht/overview_new_2025/tui-blue-Palm-Garden-Architecture-04974.jpg",
+      "primary_source_url": "https://www.tui-blue.com/en/en/hotels/tui-blue-palm-garden/",
+      "role": "h17480_new43_14"
+    },
+    {
+      "hotel_id": 1100,
+      "url": "https://clubhotelsera.com.tr/wp-content/uploads/2026/08/herodikey-1-1.webp",
+      "primary_source_url": "https://clubhotelsera.com.tr/en/",
+      "role": "h1100_new43_15"
+    },
+    {
+      "hotel_id": 1100,
+      "url": "https://clubhotelsera.com.tr/wp-content/uploads/2026/08/herodikey-2.jpg",
+      "primary_source_url": "https://clubhotelsera.com.tr/en/",
+      "role": "h1100_new43_16"
+    },
+    {
+      "hotel_id": 1100,
+      "url": "https://clubhotelsera.com.tr/wp-content/uploads/2026/08/herodikey-3.webp",
+      "primary_source_url": "https://clubhotelsera.com.tr/en/",
+      "role": "h1100_new43_17"
+    },
+    {
+      "hotel_id": 1402,
+      "url": "https://www.orangecounty.com.tr/kemer/photos/orange-county-ana-sayfa-Name-37.webp",
+      "primary_source_url": "https://www.orangecounty.com.tr/kemer/en",
+      "role": "h1402_new43_18"
+    },
+    {
+      "hotel_id": 1402,
+      "url": "https://www.orangecounty.com.tr/kemer/photos/orange-county-ana-restaurant-Name-92.webp",
+      "primary_source_url": "https://www.orangecounty.com.tr/kemer/en",
+      "role": "h1402_new43_19"
+    },
+    {
+      "hotel_id": 1402,
+      "url": "https://www.orangecounty.com.tr/kemer/photos/orange-county-barlar-Name-95.webp",
+      "primary_source_url": "https://www.orangecounty.com.tr/kemer/en",
+      "role": "h1402_new43_20"
+    }
+  ],
+  "ready_for_send": 0,
+  "new_posts": 0
+}
