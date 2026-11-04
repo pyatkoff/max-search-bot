@@ -828,6 +828,108 @@ raise SystemExit(0)
                 check(status_calls == [['--status'], ['--status']], 'pipeline cron: repeated reconcile still never ticks')
 
 
+def monitor_retained_read_cases(source):
+    """Exercise the actual retained-state lookup offline; never contact GitHub."""
+    steps = [step for step in step_blocks(source) if field(step, 'id') == 'retained']
+    check(len(steps) == 1, 'monitor: one retained encrypted-state lookup')
+    step = steps[0]
+    check(field(step, 'uses') == 'actions/github-script@v7'
+          and field(step, 'if') == "steps.source_ready.outputs.ready == 'true'"
+          and field(step, 'continue-on-error') is None,
+          'monitor: retained-state lookup keeps its admission and failure boundary')
+    node = shutil.which('node')
+    if not node:
+        raise RuntimeError('Existing runner Node is required; no installation is attempted')
+    script = script_block(step)
+    check('${{' not in script, 'monitor: artifact lookup uses trusted context only')
+    harness = r"""const fs = require('fs');
+const source = JSON.parse(fs.readFileSync(0, 'utf8')).script;
+(async () => {
+
+let assertions = 0;
+function equal(actual, expected, message) {
+  assertions++;
+  if (JSON.stringify(actual) !== JSON.stringify(expected)) throw new Error(message);
+}
+function truth(value, message) {
+  assertions++;
+  if (!value) throw new Error(message);
+}
+const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
+const execute = new AsyncFunction('github', 'context', 'core', 'setTimeout', source);
+const context = {repo:{owner:'synthetic-owner',repo:'synthetic-repository'}};
+const artifact = (id, name='modeled-monitor-private-final', extra={}) => ({
+  id,name,expired:false,created_at:'2026-01-01T00:00:00Z',
+  workflow_run:{id:id+9000,head_branch:'main'},...extra
+});
+const kept = artifact(10);
+const found = {data:{artifacts:[kept]}};
+const empty = {data:{artifacts:[]}};
+const full = {data:{artifacts:Array.from({length:100},(_,i)=>artifact(i+20,'unrelated-artifact'))}};
+const failure = status => ({failure:true,status});
+const selected = {present:'true',run_id:'9010',name:'modeled-monitor-private-final'};
+const cases = [
+  ['successful retained state', [found], true, [1], 0, selected],
+  ['explicit successful empty response', [empty], true, [1], 0, {present:'false'}],
+  ['one HTTP500 then retained state', [failure(500),found], true, [1,1], 1, selected],
+  ['second HTTP500 remains failure', [failure(500),failure(500)], false, [1,1], 1, {}],
+  ['HTTP500 on later page', [full,failure(500),found], true, [1,2,2], 1, selected],
+  ['one retry budget for all pages', [failure(500),full,failure(500)], false, [1,1,2], 1, {}],
+  ['malformed response is not empty state', [{data:{}}], false, [1], 0, {}],
+  ['null list is not empty state', [{data:{artifacts:null}}], false, [1], 0, {}],
+  ['no unbounded pagination', [full,full,full,full,full], true, [1,2,3,4,5], 0, {present:'false'}],
+  ['latest matching state retained', [{data:{artifacts:[
+    artifact(10),artifact(11,'modeled-monitor-private-intent'),
+    artifact(99,'modeled-monitor-private-final',{expired:true}),
+    artifact(100,'modeled-monitor-private-final',{workflow_run:{id:9100,head_branch:'foreign'}})
+  ]}}], true, [1], 0, {present:'true',run_id:'9011',name:'modeled-monitor-private-intent'}],
+  ['recovery must still reject malformed metadata', [failure(500),{data:{}}], false, [1,1], 1, {}]
+];
+for (const status of [undefined,0,'500',400,401,403,404,408,409,422,429,501,502,503,504]) {
+  cases.push(['nonretryable status '+String(status),[failure(status)],false,[1],0,{}]);
+}
+for (const status of [401,403,429,500,503]) {
+  cases.push(['failed recovery status '+status,[failure(500),failure(status)],false,[1,1],1,{}]);
+}
+for (const [name, replies, valid, pages, retries, expectedOutputs] of cases) {
+  const requests=[], delays=[], warnings=[],outputs={};
+  const github={rest:{actions:{listArtifactsForRepo:async request=>{
+    requests.push(JSON.parse(JSON.stringify(request)));
+    truth(requests.length <= replies.length,name+': unexpected extra API call');
+    const reply=replies[requests.length-1];
+    if (reply.failure) {
+      const error=new Error('synthetic_request_error');
+      if (reply.status !== undefined) error.status=reply.status;
+      throw error;
+    }
+    return reply;
+  }}}};
+  const core={setOutput:(key,value)=>{outputs[key]=value;},warning:message=>warnings.push(message)};
+  let error;
+  try { await execute(github,context,core,(callback,delay)=>{delays.push(delay);callback();}); }
+  catch (caught) { error=caught; }
+  equal(!error,valid,name+': terminal result');
+  equal(requests.map(request=>request.page),pages,name+': requested pages');
+  equal(delays,Array(retries).fill(1000),name+': bounded retry delay');
+  equal(warnings,Array(retries).fill('GitHub artifact-list HTTP 500: retrying this read once.'),name+': sanitized warning');
+  equal(outputs,expectedOutputs,name+': no false empty or partial state on failure');
+  for (const request of requests) {
+    equal(request,{...context.repo,per_page:100,page:request.page,request:{timeout:10000}},name+': exact bounded read');
+  }
+}
+return {cases:cases.length,assertions};
+
+})().then(result => process.stdout.write(JSON.stringify(result))).catch(error => { process.stderr.write(error.message + '\n'); process.exitCode = 1; });
+"""
+    completed = subprocess.run([node, '--eval', harness], input=json.dumps({'script': script}),
+                               text=True, capture_output=True, timeout=10)
+    check(completed.returncode == 0, 'monitor: bounded artifact lookup behavior: ' + completed.stderr[:500])
+    report = json.loads(completed.stdout)
+    check(report.get('cases') == 31 and report.get('assertions', 0) >= 200,
+          'monitor: recovery, denied statuses, pagination and retained-state cases executed')
+    print('MONITOR ARTIFACT READ: ' + str(report['cases']) + ' cases, '
+          + str(report['assertions']) + ' assertions PASS (offline)')
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root', type=Path, default=Path(__file__).resolve().parent.parent)
@@ -839,6 +941,7 @@ def main():
         behavior_cases(source_step(source, filename), filename)
         if filename == 'modeled-conversion-monitor.yml':
             monitor_source_ready_cases(source)
+            monitor_retained_read_cases(source)
             monitor_record_cases(source)
     pipeline_activation_cases(args.root)
     pipeline_cron_reconcile_cases(args.root)

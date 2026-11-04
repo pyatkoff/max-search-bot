@@ -161,8 +161,21 @@ jobs:
           script: |
             const names = new Set(['modeled-monitor-private-intent', 'modeled-monitor-private-final']);
             let found = [];
+            let artifactReadRetried = false;
+            async function readArtifactPage(page) {
+              const request = {...context.repo, per_page: 100, page, request: {timeout: 10000}};
+              try {
+                return await github.rest.actions.listArtifactsForRepo(request);
+              } catch (error) {
+                if (artifactReadRetried || error?.status !== 500) throw error;
+                artifactReadRetried = true;
+                core.warning('GitHub artifact-list HTTP 500: retrying this read once.');
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                return await github.rest.actions.listArtifactsForRepo(request);
+              }
+            }
             for (let page = 1; page <= 5; page++) {
-              const r = await github.rest.actions.listArtifactsForRepo({...context.repo, per_page: 100, page});
+              const r = await readArtifactPage(page);
               found = r.data.artifacts.filter(a => names.has(a.name) && !a.expired && a.workflow_run?.head_branch === 'main');
               if (found.length || r.data.artifacts.length < 100) break;
             }
