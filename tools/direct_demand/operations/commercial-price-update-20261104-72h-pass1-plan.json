@@ -1,6 +1,6 @@
 {
   "operation": "commercial-price-update-20261104-72h-pass1",
-  "state": "OFFLINE_PREPARATION_ONLY_PROVISIONAL_CURRENT704_NOT_YET_INSTALLED_OR_ACCEPTED",
+  "state": "ACTUAL_HEALTHY_CURRENT704_APPROVED_FROZEN19_EXECUTION_NOT_YET_STARTED",
   "goal": "Apply all accepted new72h prices from the one completed28-hotel quote pass to both existing posts",
   "max_age_seconds": 259200,
   "quote_run": 41935232491,
@@ -81,12 +81,52 @@
     "Operationmustnotrerunconsumedproviderquotes or acceptedexistingpostreadbacks"
   ],
   "original_quote_installed_source": "0a80b95fa31e3a90267daa8984adae24d6aaa6bb",
-  "execution_approval": false,
+  "execution_approval": true,
   "source_stop_count": 1,
   "stopped_actual_attempt": {
     "run": 41935948717,
     "job": 126944297117,
     "reason": "approved_source_not_current",
     "before_preparer_or_intents_or_ssh_or_edits": true
-  }
+  },
+  "accepted_catalog_ids": [
+    253,
+    165,
+    389,
+    57028,
+    278,
+    260,
+    163,
+    281,
+    293,
+    245,
+    393,
+    465,
+    264,
+    107965,
+    125,
+    1451,
+    1100,
+    21477,
+    246
+  ],
+  "prepared_run": 41936372259,
+  "prepared_job": 126945721283,
+  "prepared_artifact": 13374246397,
+  "prepared_closed_case_count_per_hotel": 6,
+  "prepared_case_reruns_on_actual": 0,
+  "updater_template_sha256": "34fd3712684141fa80adcbf9377a94cd3cae0d35bf2956dfa1c162dd30979046",
+  "current_deploy_run": 41935813006,
+  "current_verify_job": 126945123369,
+  "current_deploy_job": 126945162105,
+  "current_tls_run": 41936630136,
+  "current_diagnostics_run": 41936630240,
+  "source_diff_review": [
+    "services/MaxTrackerLookupRepository.php",
+    "tests/run_max_attribution_http.py",
+    "tests/test_max_tracker_mysql.php",
+    "tools/install_max_attribution_lookup.py"
+  ],
+  "publishing21_unchanged": true,
+  "actual_edits_so_far": 0
 }

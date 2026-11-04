@@ -2,7 +2,7 @@ import json,os,pathlib,subprocess
 temp=pathlib.Path(os.environ['RUNNER_TEMP']);root=temp/'price72-pass1'
 assert os.environ['GITHUB_RUN_ATTEMPT']=='1'
 index=json.loads((root/'update-index.json').read_text());assert len(index)<=37
-sha=os.environ['EXPECTED_PRODUCTION_SHA'];assert sha=='0a80b95fa31e3a90267daa8984adae24d6aaa6bb'
+sha=os.environ['EXPECTED_PRODUCTION_SHA'];assert sha=='704ab1c4b0ee17fec46c471180fe7cfb0a6a5711'
 ssh=['ssh','-i',str(temp/'channel_key'),'-o','BatchMode=yes','-o','ConnectTimeout=10','-o','IdentitiesOnly=yes','-o','StrictHostKeyChecking=yes','-o','GlobalKnownHostsFile=/dev/null','-o','UserKnownHostsFile='+str(temp/'channel_known_hosts'),os.environ['DEPLOY_USER']+'@'+os.environ['DEPLOY_HOST']]
 remote="set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"$(git rev-parse HEAD)\" = '"+sha+"'; test -z \"$(git status --porcelain --untracked-files=no)\"; php"
 summaries=[]
