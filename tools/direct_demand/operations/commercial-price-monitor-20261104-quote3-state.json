@@ -1,0 +1,41 @@
+{
+  "operation": "commercial-price-monitor-20261104-quote3",
+  "state": "CLOSED_ONE_GATEWAY_RESPONSE_RETAINED_PENDING_PRICE_EDIT_VALIDATION",
+  "run": 41899336954,
+  "job": 126817250936,
+  "artifact": 13357487690,
+  "intent_artifact": 13357293162,
+  "source_commit": "346a58a59843fcbc4709f46bd6dec469067183ec",
+  "catalog_id": 109,
+  "summaries": [
+    {
+      "operation": "commercial-price-monitor-20261104-quote3",
+      "selected_catalog_id": 109,
+      "new_eligible_contexts": 15,
+      "max_gateway_requests": 1,
+      "provider_calls_so_far": 0
+    },
+    {
+      "automatic_retry_allowed": false,
+      "catalog_id": 109,
+      "current_availability_verified": false,
+      "error": null,
+      "full_total_verified": false,
+      "gateway_requests_attempted": 1,
+      "http_status": 200,
+      "ok": true,
+      "operation": "commercial-price-monitor-20261104-quote3",
+      "quote_state": "RESPONSE_RETAINED_AMOUNT_CONTRACT_REQUIRES_REVIEW",
+      "request_started_epoch_utc": 1793821294,
+      "response_bytes": 1497,
+      "response_received_epoch_utc": 1793821296
+    }
+  ],
+  "new_native_binding_cases": 3,
+  "old_age_cases_rerun": 0,
+  "db_writes": 0,
+  "message_edits": 0,
+  "new_posts": 0,
+  "automatic_retry_allowed": false,
+  "repeat_policy": "ONEactualcallHTTP200; neverrerunthisquote. Reuseoriginalauthenticatedresult for strictflight/basketinspection and existingpriceedit."
+}

@@ -1,0 +1,35 @@
+{
+  "operation": "commercial-price-update-20261104-3-v1",
+  "state": "PREPARED_EXACT_QUOTE3_TWO_EXISTING_POST_EDITS_NOT_SENT",
+  "goal": "Add one newly verified full tour price for native109PickalbatrosAquaVista to its original Telegram/MAXposts",
+  "boundaries": {
+    "catalog_ids": [
+      109
+    ],
+    "original_quote_run": 41899336954,
+    "original_quote_artifact": 13357487690,
+    "original_quote_intent_artifact": 13357293162,
+    "max_existing_content_edits": 2,
+    "new_posts": 0,
+    "additional_gateway_calls": 0,
+    "original_captions": "wholeoldbodyandCTAretained",
+    "photo_button_source_context": "unchanged",
+    "private_inputs_and_receipts": "authenticatedartifactonly",
+    "collector_budgets_order_transport_changes": 0
+  },
+  "criteria": [
+    "Do not rerun quote3 or consumedquote1/quote2",
+    "Rejectgatewayerror/nonemptyunknownsurcharges/missingincludedflags/noFlights/noPlaces/onDemand/placeholders/dateorparty mismatch",
+    "Take complete f.price basket asreceived; never add/subtract separately reportedfuel",
+    "Exact durable quoteSHA/time/selectedflightindex/amount/native109/logicalkey/originalmanifesthash/coverbind before edit",
+    "New3mutatedbindingcases andPHP-l beforeSSH; old8updatercasesnotrerun",
+    "Nativecurrentmain/deploy/TLS/diagnostics/full21publishingblobs/hoststepBYTEIDENTICAL/installedclean/schema/rights/registrydedup/onceledger remain",
+    "Existingupdater lock/fsync/UNKNOWNstop/preflightbodyphoto/source/token/publication/liveproviderproof preserved",
+    "Each priceblock includesdeparturecity/fullYYYYdates/nights/2adults/room/meal/fulltotal/honestUTCchecktime, caption<=1024UTF16/nohyphens"
+  ],
+  "risks": [
+    "If no verifiedrealroundtrip option or captiontoo long, stop before edits without guessing",
+    "If existingcaption/source/photo changed or writeoutcomeunknown, resolveoriginalrun; no newoperationbypass",
+    "Quote response currentavailability only atitschecktime, notguaranteeforallfutureclicks"
+  ]
+}
