@@ -1,0 +1,41 @@
+{
+  "operation": "commercial-hotel-batch-20261103-34-v1",
+  "state": "TWO_NATIVE_PNG_VISUALLY_VERIFIED_NOT_SENT",
+  "goal": "Freeze both accepted real primary photo covers",
+  "boundaries": [
+    "No permanentCanvaSave/no acceptedcoverreexport",
+    "Only allowed publicaccepted PNGbytes;exactTXcancelafterfreeze"
+  ],
+  "criteria": [
+    "600x600 decodedbytes/chunks/SHA/nativeview accepted",
+    "AnyTourlogo/bluebanner/one line hotel titlelegible"
+  ],
+  "risks": [
+    "Eightother candidatesnotready, sendtworeadywithoutwaiting"
+  ],
+  "run_id": 41744772563,
+  "covers": [
+    {
+      "kind": "cover",
+      "hotel_id": 1417,
+      "mime": "image/png",
+      "width": 600,
+      "height": 600,
+      "bytes": 854607,
+      "sha256": "cc2def40c868b593b7f1f4959f197b5b93388b9734ac632cf3479d2f2f430800",
+      "file": "1417.png",
+      "chunks": 24
+    },
+    {
+      "kind": "cover",
+      "hotel_id": 1348,
+      "mime": "image/png",
+      "width": 600,
+      "height": 600,
+      "bytes": 842826,
+      "sha256": "1dc009d626cd38550f323aa262a94cae92e9c9baed82d4a5acda8512ebb90373",
+      "file": "1348.png",
+      "chunks": 24
+    }
+  ]
+}
