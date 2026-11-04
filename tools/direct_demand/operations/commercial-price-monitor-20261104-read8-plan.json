@@ -1,6 +1,6 @@
 {
   "operation": "commercial-price-monitor-20261104-read8",
-  "state": "PLAN_ONLY_PENDING_HEALTHY_PRODUCTION_SOURCE_NO_DB_READ",
+  "state": "SOURCE_CODE_PREPARED_PURE_VALIDATION_SUBMITTED_NO_DB_READ",
   "goal": "Inspect new persisted observations for the157actuallypublishednativehotelIDs after normal670collector",
   "catalog_ids": [
     241,
@@ -196,5 +196,13 @@
     "5399rawobservations do notestablishnewpricesforanyspecificpublishedhotel",
     "No newquote/editcredit untilrealgatewayresultandactualverifiedpostedit"
   ],
-  "priority": "Read14new1543+stock39 and157routing/feedsretain linkpriority; prepareRead8independently"
+  "priority": "Read14new1543+stock39 and157routing/feedsretain linkpriority; prepareRead8independently",
+  "previous150_identity_scope_preserved": true,
+  "new_native_scope": 7,
+  "typed_bridges_preserved": 15,
+  "query_persistence_cutoff": "max(actualsource1793812524, runtimeUTCepoch minus108000)",
+  "new_scope_and_source_age_cases": 3,
+  "old14_gate_or8_updater_orold_age_cases_rerun": 0,
+  "execution_state": "Blocked until newhealthybotrelease/strictTLS/full21sourcegate, no nativeDB read/quote/editor performed",
+  "date_scope_note": "Prepared04Nov2026 future dates through02Feb2027; reassess exactdates before execution if date advances"
 }

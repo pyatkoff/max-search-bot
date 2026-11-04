@@ -1,27 +1,36 @@
 {
   "operation": "commercial-batch-20261104-40-contact",
-  "state": "SUBMITTED_IMMUTABLE_PUSH_WORKFLOW_RUN_NOT_YET_OBSERVED",
+  "state": "CLOSED_EIGHT_NATIVE_REQUESTS_TWO_GUARD_PASSES_SIX_HTTP403_READY_ZERO",
+  "run_id": 41882827807,
   "source_commit": "3b717ae6c1be3613090f705e36f628b54139b111",
-  "run_id": null,
-  "last_metadata_result_count": 0,
-  "new_distinct_original_photo_inputs": 8,
-  "hotel_ids": [
-    1338,
-    65895
+  "jobs": [
+    {
+      "id": 126759430352,
+      "conclusion": "success"
+    },
+    {
+      "id": 126759430678,
+      "conclusion": "success"
+    }
   ],
-  "readonly_groups": 2,
-  "max_parallel": 2,
-  "accepted_native_photos_observed": 0,
-  "canva_transactions": 0,
-  "ready_for_send_count": 0,
-  "new_posts": 0,
+  "different_new_original_requests": 8,
+  "guard_passes": 2,
+  "http403_rejections": 6,
+  "limak1338_originals_state": "Six exact new IRP11191c87 originals HTTP403. Closed; no reGET, optvariant/CDN/query/header/Canvaimport bypass.",
+  "orenda65895_state": "Two roomdetails, no wholehotelhero",
+  "all_contact_chunks_complete": true,
+  "decoded_bytes_sha256_verified": true,
+  "native_contact_pixels_reviewed": true,
+  "old_url_or_basename_repeats": 0,
   "raw_guards_unchanged": true,
   "query_policy_unchanged": true,
-  "old_url_or_basename_repeats": 0,
-  "new_input_host_cases_not_yet_observed": true,
+  "new_input_scope_cases_passed": 3,
+  "old_guard_fixtures_rerun": 0,
   "server_connections": 0,
   "provider_calls": 0,
   "db_writes": 0,
   "message_sends": 0,
-  "next_step": "Reconcile this exactcommit nativeworkflow metadata after real progress; do not enqueue/resubmit/rerun or replace it. Native original logs/chunks/bytes/SHA/pixels required beforeCanva."
+  "canva_transactions_opened": 0,
+  "ready_for_send_count": 0,
+  "new_posts": 0
 }
