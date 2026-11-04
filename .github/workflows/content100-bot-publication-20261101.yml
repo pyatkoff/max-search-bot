@@ -1,4 +1,4 @@
-name: Add one verified quote4 price to two existing hotel posts
+name: Preserve original caption ending and add verified quote4 to existing posts
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]

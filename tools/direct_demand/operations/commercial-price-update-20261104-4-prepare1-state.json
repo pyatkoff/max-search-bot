@@ -1,0 +1,15 @@
+{
+  "operation": "commercial-price-update-20261104-4-v1",
+  "state": "FIRST_PREPARATION_STOPPED_BEFORE_SSH_INTENT_OR_EDITS",
+  "run": 41905885411,
+  "job": 126840294244,
+  "error": "Original caption last split line did not contain required CTA",
+  "failed_before": "quote4 edit manifest, durable edit intent, SSH, provider and registry writes",
+  "server_calls": 0,
+  "post_edit_attempts": 0,
+  "price_edits": 0,
+  "new_posts": 0,
+  "additional_quotes": 0,
+  "quote4_consumed": true,
+  "repair": "Preserve original trailing newline bytes while inserting only before the exact required original CTA; actual metadata assertion remains mandatory"
+}

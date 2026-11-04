@@ -27,5 +27,9 @@
   "max_content_edits": 2,
   "max_new_posts": 0,
   "max_additional_gateway_calls": 0,
-  "source_sha": "9678e8c617734dd3bd5054eabf3585e396e3ca12"
+  "source_sha": "9678e8c617734dd3bd5054eabf3585e396e3ca12",
+  "previous_prepare_stop_run": 41905885411,
+  "previous_prepare_stop_before_ssh_intent_or_edits": true,
+  "caption_boundary_cases": 3,
+  "caption_cta_or_bytes_requirements_unchanged": true
 }

@@ -33,8 +33,20 @@ for i,f in enumerate(q['flights']):
 assert valid,'NO_VERIFIED_REAL_ROUNDTRIP_OPTION_NO_EDIT'
 valid.sort(key=lambda x:(x[0],x[1]));amount,index,flight=valid[0]
 rawold=old['text'];assert hashlib.sha256(rawold.encode()).hexdigest()==old['text_sha256']
-before,cta=rawold.rsplit('\n',1)
-assert 'Узнать стоимость тура' in cta
+def caption_parts(text):
+ body=text.rstrip('\r\n');suffix=text[len(body):]
+ prefix,cta=body.rsplit('\n',1)
+ assert 'Узнать стоимость тура' in cta
+ return prefix,cta,suffix
+fixture='Отель\n✈️ Узнать стоимость тура'
+assert caption_parts(fixture)==('Отель','✈️ Узнать стоимость тура','')
+assert caption_parts(fixture+'\n\n')==('Отель','✈️ Узнать стоимость тура','\n\n')
+try:caption_parts('Отель\nДругой текст')
+except AssertionError:pass
+else:raise AssertionError('missing_original_CTA_accepted')
+body=rawold.rstrip('\r\n')
+print(json.dumps({'operation':'commercial-price-update-20261104-4-caption-binding','catalog_id':hid,'catalog_name':chosen['catalog_name'],'source_manifest_path':chosen['original_manifest_path'],'trailing_newline_characters':len(rawold)-len(body),'last_nonempty_line_has_required_cta':'Узнать стоимость тура' in body.split('\n')[-1],'new_caption_boundary_cases':3,'server_calls':0,'provider_calls':0}))
+before,cta,trailing=caption_parts(rawold)
 native_meals={2:'RO',3:'BB',4:'HB',5:'FB',7:'AI',9:'UAI'}
 meal=native_meals[int(t['meal_id'])];assert chosen['retained']['native_meal_label']==meal
 room=str(t['room_type']).strip();departure=str(chosen['retained']['departure_name']).strip();assert room and departure
@@ -45,7 +57,7 @@ def rub(v):
 n=int(t['nights']);mod=n%100;word='ночей' if 11<=mod<=14 else ('ночь' if n%10==1 else ('ночи' if n%10 in (2,3,4) else 'ночей'))
 stamp=datetime.datetime.fromtimestamp(int(d['response_received_epoch_utc']),datetime.timezone.utc).strftime('%d.%m.%Y %H:%M UTC')
 block='✈️ Вылет: '+display(departure)+'\n📅 '+start.strftime('%d.%m.%Y')+' по '+end.strftime('%d.%m.%Y')+', '+str(n)+' '+word+'\n👥 2 взрослых\n🛏 Номер: '+display(room)+'\n🍽 Питание: '+meal+'\n💰 '+rub(amount)+' ₽ за тур\n🕒 Проверено '+stamp
-new=before+'\n\n'+block+'\n\n'+cta
+new=before+'\n\n'+block+'\n\n'+cta+trailing
 assert len(new.encode('utf-16-le'))//2<=1024 and not re.search(r'[-\u2010-\u2015\u2212]',new)
 row={'key':old['key'],'hotel_id':hid,'logical_id':old['logical_id'],'original_publication_operation':chosen['original_publication_operation'],'old_text':rawold,'old_text_sha256':old['text_sha256'],'new_text':new,'new_text_sha256':hashlib.sha256(new.encode()).hexdigest(),'cover_sha256':old['photo_sha256'],'update_text':True}
 manifest={'schema_version':1,'operation':'commercial-price-update-20261104-4-v1','state':'PREPARED_NOT_SENT','button_text':'✈️ Узнать стоимость тура','quote_origin_operation':d['operation'],'quote_response_sha256':d['response_sha256'],'quote_epoch_utc':int(d['response_received_epoch_utc']),'quote_index':index,'quote_total_amount':str(amount),'quote_currency':'RUB','fuel_separately_added':False,'rows':[row]}
@@ -58,7 +70,7 @@ def validate(saved,m):
  assert m['fuel_separately_added'] is False and len(m['rows'])==1
  r=m['rows'][0];assert r['hotel_id']==hid and r['key']==old['key'] and r['logical_id']==old['logical_id']
  assert r['old_text']==rawold and r['cover_sha256']==old['photo_sha256']
- assert r['new_text'].startswith(before+'\n\n') and r['new_text'].endswith('\n\n'+cta)
+ assert r['new_text'].startswith(before+'\n\n') and r['new_text'].endswith('\n\n'+cta+trailing)
  assert hashlib.sha256(r['old_text'].encode()).hexdigest()==r['old_text_sha256']
  assert hashlib.sha256(r['new_text'].encode()).hexdigest()==r['new_text_sha256']
 validate(d,manifest)
