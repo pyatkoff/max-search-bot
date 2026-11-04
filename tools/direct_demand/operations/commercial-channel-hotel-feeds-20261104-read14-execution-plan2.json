@@ -1,0 +1,38 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261104-read14-stock39",
+  "state": "NEW_HEALTHY_CURRENT_SOURCE_EXECUTION_SUBMITTED_NOT_DB_COMPLETION",
+  "goal": "Resolve only the already published new1543Susesipair and its privateMAXbinding, plus the original ten fixed Turkey stock39lookups after healthy9678release",
+  "boundaries": {
+    "published_native_scope": [
+      1543
+    ],
+    "public_firstline_limit": 3,
+    "private_exacturl_limit": 2,
+    "previous156_public_or_private_bindings_read": 0,
+    "stock_fixed_group_count": 10,
+    "stock_country": 4,
+    "max_stock_matches_per_group": 12,
+    "db_writes": 0,
+    "provider_calls": 0,
+    "messages": 0,
+    "full_private_bindings": "authenticatedartifactonly",
+    "console": "countsandapprovedpublicstockprojection"
+  },
+  "criteria": [
+    "Currentmain9678/originalDeploy41870011689attempt2/TLS41895849007/currentdiagnostics41895848933success/fullremote21publishingblobs",
+    "AcceptedhoststepBYTEIDENTICAL/installedsource/cleantrackedtree/schema/readonlytransactions",
+    "Original1543inputsandstock39groupsunchanged; sourceStopRead14remains1",
+    "PHP-l/exactnewinputassertions and correctedUTF8stockliteral assertion beforeSSH",
+    "Three unchangedone-scope cases alreadypassed41869381261; nofixture rerun",
+    "Zero/ambiguousnativealiases remain unresolved; lookup is not ready/material/monitorcredit"
+  ],
+  "risks": [
+    "CorrectedUTF8assert not reached previously; execution must actually pass before any stockDBread",
+    "Source can change beforeSSH; no blindrepin",
+    "No newposts or feed157claim before actualMAX157install then3filewriter+HTTPSacceptance"
+  ],
+  "expected_source": "9678e8c617734dd3bd5054eabf3585e396e3ca12",
+  "corrected_code_commit": "39efe7749f234096d2333056cbe10142118e369a",
+  "old_fixture_reruns": 0,
+  "source_stops_before_new_attempt": 1
+}
