@@ -1,8 +1,8 @@
 import base64,html,json,os,re,urllib.parse,urllib.request
 from pathlib import Path
 from html.parser import HTMLParser
-operation='commercial-batch38-ten-new-declared-owner-pages'
-pages=["https://www.palomahotels.com/en/paloma-oceana/explore","https://www.palomahotels.com/en/paloma-perissia/explore","https://www.palomahotels.com/en/finesse-side/explore","https://www.belazur.com.tr/en/pools-waterparks.html","https://luxuryresortbelek.selectumhotels.com/en/pool-and-beach/pools","https://dmarisbay.com/en/nature","https://www.dresortgocek.com/en/beaches/beach-pool","https://www.clubmarvy.com/en/beach-club-resort-turkey/photos","https://www.susesihotel.com/en/experiences/beach-pools/","https://www.corneliaresort.com/EN/Cornelia-Diamond-Luxury-Golf-Resort-Spa-Hotel-Belek-Antalya/photos-and-videos"]
+operation='commercial-batch39-ten-new-declared-owner-pages'
+pages=["https://www.palomahotels.com/en/paloma-oceana/beach-and-pool","https://www.palomahotels.com/en/paloma-perissia/beach-and-pool","https://luxuryresortbelek.selectumhotels.com/en/gallery","https://dmarisbay.com/en/gallery","https://www.dresortgocek.com/en/accommodation","https://www.clubmarvy.com/en/beach-club-resort-turkey/home","https://www.gloria.com.tr/en/hotels/gloria-verde-resort/beach-pool/","https://www.gloria.com.tr/en/hotels/gloria-golf-resort/beach-pool/","https://www.alibey.com/en/resort/beach-waterpark/pools","https://www.alibey.com/en/club/beach-waterpark"]
 group=int(os.environ['MEDIA_GROUP'])
 assert group in (0,1,2,3)
 pages=pages[group*3:group*3+3]

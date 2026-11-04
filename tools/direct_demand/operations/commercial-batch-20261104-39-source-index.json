@@ -1,0 +1,96 @@
+{
+  "operation": "commercial-batch-20261104-39-source-index",
+  "state": "TEN_NEW_DECLARED_TARGET_OWNER_HREFS_PROVEN_RETAINED_IDENTITIES",
+  "hotels": [
+    {
+      "hotel_id": 1416,
+      "native_name": "PALOMA OCEANA RESORT",
+      "country_id": 4,
+      "region_id": 23,
+      "new_declared_owner_url": "https://www.palomahotels.com/en/paloma-oceana/beach-and-pool",
+      "declared_in_retained_source": "https://www.palomahotels.com/en/paloma-oceana",
+      "state": "PROVEN_RETAINED_IDENTITY_NEW_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 1491,
+      "native_name": "PALOMA PERISSIA",
+      "country_id": 4,
+      "region_id": 23,
+      "new_declared_owner_url": "https://www.palomahotels.com/en/paloma-perissia/beach-and-pool",
+      "declared_in_retained_source": "https://www.palomahotels.com/en/paloma-perissia",
+      "state": "PROVEN_RETAINED_IDENTITY_NEW_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 55828,
+      "native_name": "SELECTUM LUXURY RESORT BELEK",
+      "country_id": 4,
+      "region_id": 21,
+      "new_declared_owner_url": "https://luxuryresortbelek.selectumhotels.com/en/gallery",
+      "declared_in_retained_source": "https://luxuryresortbelek.selectumhotels.com/en",
+      "state": "PROVEN_RETAINED_IDENTITY_NEW_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 2144,
+      "native_name": "D MARIS BAY (EX. D HOTEL MARIS)",
+      "country_id": 4,
+      "region_id": 26,
+      "new_declared_owner_url": "https://dmarisbay.com/en/gallery",
+      "declared_in_retained_source": "https://dmarisbay.com/en/nature",
+      "state": "PROVEN_RETAINED_IDENTITY_NEW_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 3469,
+      "native_name": "D RESORT GOCEK (EX. SWISSOTEL GOCEK MARINA AND RESORT)",
+      "country_id": 4,
+      "region_id": 27,
+      "new_declared_owner_url": "https://www.dresortgocek.com/en/accommodation",
+      "declared_in_retained_source": "https://www.dresortgocek.com/en/beaches/beach-pool",
+      "state": "PROVEN_RETAINED_IDENTITY_NEW_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 9321,
+      "native_name": "CLUB MARVY (EX. PALOMA CLUB SULTAN)",
+      "country_id": 4,
+      "region_id": 306,
+      "new_declared_owner_url": "https://www.clubmarvy.com/en/beach-club-resort-turkey/home",
+      "declared_in_retained_source": "https://www.clubmarvy.com/en/beach-club-resort-turkey/photos",
+      "state": "PROVEN_RETAINED_IDENTITY_NEW_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 1201,
+      "native_name": "GLORIA VERDE RESORT",
+      "country_id": 4,
+      "region_id": 21,
+      "new_declared_owner_url": "https://www.gloria.com.tr/en/hotels/gloria-verde-resort/beach-pool/",
+      "declared_in_retained_source": "https://www.gloria.com.tr/en/hotels/gloria-verde-resort/",
+      "state": "PROVEN_RETAINED_IDENTITY_NEW_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 1198,
+      "native_name": "GLORIA GOLF RESORT",
+      "country_id": 4,
+      "region_id": 21,
+      "new_declared_owner_url": "https://www.gloria.com.tr/en/hotels/gloria-golf-resort/beach-pool/",
+      "declared_in_retained_source": "https://www.gloria.com.tr/en/hotels/gloria-golf-resort/",
+      "state": "PROVEN_RETAINED_IDENTITY_NEW_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 970,
+      "native_name": "ALI BEY RESORT SORGUN",
+      "country_id": 4,
+      "region_id": 23,
+      "new_declared_owner_url": "https://www.alibey.com/en/resort/beach-waterpark/pools",
+      "declared_in_retained_source": "https://www.alibey.com/en/resort",
+      "state": "PROVEN_RETAINED_IDENTITY_NEW_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 967,
+      "native_name": "ALI BEY CLUB (EX. ALI BEY CLUB MANAVGAT)",
+      "country_id": 4,
+      "region_id": 23,
+      "new_declared_owner_url": "https://www.alibey.com/en/club/beach-waterpark",
+      "declared_in_retained_source": "https://www.alibey.com/en/club",
+      "state": "PROVEN_RETAINED_IDENTITY_NEW_PHOTOGRAPHY_PENDING"
+    }
+  ]
+}

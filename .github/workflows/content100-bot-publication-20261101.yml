@@ -1,18 +1,22 @@
-name: Inspect only retained12114 candidate dedup against closed quote1 intent
+name: Read ten different declared owner pages for retained batch39 candidates
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
     paths: [.github/workflows/content100-bot-publication-20261101.yml]
 permissions:
   contents: read
-  actions: read
 concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 jobs:
   inspect:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 6
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        media_group: [0,1,2,3]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -21,25 +25,14 @@ jobs:
           sparse-checkout: |
             tools/direct_demand/operations
           sparse-checkout-cone-mode: true
-      - uses: actions/download-artifact@v4
-        with:
-          run-id: 41786947561
-          name: commercial-price-monitor-20261104-read6
-          github-token: ${{ github.token }}
-          path: ${{ runner.temp }}/read6
-      - uses: actions/download-artifact@v4
-        with:
-          run-id: 41609029830
-          name: commercial-price-monitor-20261103-quote1-intent
-          github-token: ${{ github.token }}
-          path: ${{ runner.temp }}/oldquote1intent
-      - name: Compare only12114 retained identity freshness and fingerprint without server calls
-        run: python3 tools/direct_demand/operations/inspect-retained-price-12114-20261104-dedup1.py
+      - name: Read only fixed official hotel descriptions and public photo references
+        env:
+          MEDIA_GROUP: ${{ matrix.media_group }}
+        run: python3 tools/direct_demand/operations/inspect-hotel-media-20261102-3.py
       - uses: actions/upload-artifact@v4
         with:
-          name: commercial-price-monitor-20261104-retained12114-dedup1
+          name: commercial-batch39-primary-sources-${{ matrix.media_group }}
           path: |
-            ${{ runner.temp }}/retained12114-dedup-summary.json
-            ${{ runner.temp }}/private-quote-candidate-input.json
+            public-media-sources.json
           retention-days: 14
           if-no-files-found: error

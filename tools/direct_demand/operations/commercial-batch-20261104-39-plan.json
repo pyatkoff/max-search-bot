@@ -1,0 +1,142 @@
+{
+  "operation": "commercial-batch-20261104-39-plan",
+  "state": "TEN_PROVEN_RETAINED_IDENTITIES_NEW_OWNER_PAGES_PREPARED_NOT_DELIVERY",
+  "baseline_published_per_channel": 157,
+  "baseline_live_offers": [
+    156,
+    156,
+    312
+  ],
+  "hotel_ids": [
+    1416,
+    1491,
+    55828,
+    2144,
+    3469,
+    9321,
+    1201,
+    1198,
+    970,
+    967
+  ],
+  "ready_for_send_count": 0,
+  "new_posts": 0,
+  "goal": "Prepare a next finite group of hotel materials independently of the current production-release wait",
+  "boundaries": {
+    "new_declared_owner_pages": 10,
+    "old_page_get_repeats": 0,
+    "readonly_groups": 4,
+    "max_parallel": 2,
+    "server_connections": 0,
+    "db_reads": 0,
+    "db_writes": 0,
+    "provider_calls": 0,
+    "message_sends": 0,
+    "new_worker_or_controller": false
+  },
+  "criteria": [
+    "Use only exact new owner hrefs declared in already retained target property sources",
+    "Preserve accepted whole hotel captions and source facts; no repeated old pages/photos/failed URLs",
+    "Select distinct official real photos only after exact target membership/byte/dimension guards and native visual review; whole-hotel hero plus two usable lower photos",
+    "Build several covers and send the entire actually ready subset in one existing serial run after all source gates pass"
+  ],
+  "risks": [
+    "Owner page metadata is not approved photography or delivery",
+    "Currentmain9678 deployfailed/TLSskipped still blocks botSSH/provider/DB actions",
+    "No availability, pricing or future seasonal rights inferred"
+  ],
+  "native_parser_changed": false,
+  "old_parser_fixtures_rerun": 0,
+  "hotels": [
+    {
+      "hotel_id": 1416,
+      "native_name": "PALOMA OCEANA RESORT",
+      "country_id": 4,
+      "region_id": 23,
+      "new_declared_owner_url": "https://www.palomahotels.com/en/paloma-oceana/beach-and-pool",
+      "declared_in_retained_source": "https://www.palomahotels.com/en/paloma-oceana",
+      "state": "PROVEN_RETAINED_IDENTITY_NEW_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 1491,
+      "native_name": "PALOMA PERISSIA",
+      "country_id": 4,
+      "region_id": 23,
+      "new_declared_owner_url": "https://www.palomahotels.com/en/paloma-perissia/beach-and-pool",
+      "declared_in_retained_source": "https://www.palomahotels.com/en/paloma-perissia",
+      "state": "PROVEN_RETAINED_IDENTITY_NEW_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 55828,
+      "native_name": "SELECTUM LUXURY RESORT BELEK",
+      "country_id": 4,
+      "region_id": 21,
+      "new_declared_owner_url": "https://luxuryresortbelek.selectumhotels.com/en/gallery",
+      "declared_in_retained_source": "https://luxuryresortbelek.selectumhotels.com/en",
+      "state": "PROVEN_RETAINED_IDENTITY_NEW_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 2144,
+      "native_name": "D MARIS BAY (EX. D HOTEL MARIS)",
+      "country_id": 4,
+      "region_id": 26,
+      "new_declared_owner_url": "https://dmarisbay.com/en/gallery",
+      "declared_in_retained_source": "https://dmarisbay.com/en/nature",
+      "state": "PROVEN_RETAINED_IDENTITY_NEW_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 3469,
+      "native_name": "D RESORT GOCEK (EX. SWISSOTEL GOCEK MARINA AND RESORT)",
+      "country_id": 4,
+      "region_id": 27,
+      "new_declared_owner_url": "https://www.dresortgocek.com/en/accommodation",
+      "declared_in_retained_source": "https://www.dresortgocek.com/en/beaches/beach-pool",
+      "state": "PROVEN_RETAINED_IDENTITY_NEW_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 9321,
+      "native_name": "CLUB MARVY (EX. PALOMA CLUB SULTAN)",
+      "country_id": 4,
+      "region_id": 306,
+      "new_declared_owner_url": "https://www.clubmarvy.com/en/beach-club-resort-turkey/home",
+      "declared_in_retained_source": "https://www.clubmarvy.com/en/beach-club-resort-turkey/photos",
+      "state": "PROVEN_RETAINED_IDENTITY_NEW_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 1201,
+      "native_name": "GLORIA VERDE RESORT",
+      "country_id": 4,
+      "region_id": 21,
+      "new_declared_owner_url": "https://www.gloria.com.tr/en/hotels/gloria-verde-resort/beach-pool/",
+      "declared_in_retained_source": "https://www.gloria.com.tr/en/hotels/gloria-verde-resort/",
+      "state": "PROVEN_RETAINED_IDENTITY_NEW_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 1198,
+      "native_name": "GLORIA GOLF RESORT",
+      "country_id": 4,
+      "region_id": 21,
+      "new_declared_owner_url": "https://www.gloria.com.tr/en/hotels/gloria-golf-resort/beach-pool/",
+      "declared_in_retained_source": "https://www.gloria.com.tr/en/hotels/gloria-golf-resort/",
+      "state": "PROVEN_RETAINED_IDENTITY_NEW_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 970,
+      "native_name": "ALI BEY RESORT SORGUN",
+      "country_id": 4,
+      "region_id": 23,
+      "new_declared_owner_url": "https://www.alibey.com/en/resort/beach-waterpark/pools",
+      "declared_in_retained_source": "https://www.alibey.com/en/resort",
+      "state": "PROVEN_RETAINED_IDENTITY_NEW_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 967,
+      "native_name": "ALI BEY CLUB (EX. ALI BEY CLUB MANAVGAT)",
+      "country_id": 4,
+      "region_id": 23,
+      "new_declared_owner_url": "https://www.alibey.com/en/club/beach-waterpark",
+      "declared_in_retained_source": "https://www.alibey.com/en/club",
+      "state": "PROVEN_RETAINED_IDENTITY_NEW_PHOTOGRAPHY_PENDING"
+    }
+  ]
+}
