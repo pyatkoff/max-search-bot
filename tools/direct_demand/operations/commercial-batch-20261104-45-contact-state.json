@@ -1,0 +1,90 @@
+{
+  "operation": "commercial-batch-20261104-45-contact",
+  "state": "CLOSED_18_NEW_EXACT_PHOTO_GETS_ONE_GENERAL_BUILDING_HERO_CANDIDATE_FINAL_CROP_PENDING_NO_READY",
+  "run": 41927390576,
+  "jobs": [
+    126915237308,
+    126915237176,
+    126915237304,
+    126915236727
+  ],
+  "source_commit": "ccaa58d4180f2ee51a423436b77eb8f62e5b3b86",
+  "groups": 4,
+  "max_parallel": 2,
+  "requests": 18,
+  "byte_format_dimension_passes": 18,
+  "rejections": [],
+  "all_native_contact_bytes_sha_dimensions_pixels_verified": true,
+  "new_input_scope_cases": 3,
+  "old_guard_fixtures_rerun": 0,
+  "raw_guards_unchanged": true,
+  "known_old_url_and_decoded_basename_exclusions": 199,
+  "verdicts": [
+    {
+      "hotel_id": 21642,
+      "state": "GENERAL_HOTEL_BUILDING_OVERVIEW_SELECTED_FINAL_CROP_REQUIRES_NATIVE_VISUAL_ACCEPTANCE",
+      "hero_role": "h21642_new45_0",
+      "details": [
+        "Wide elevated view shows whole main resort building and visible grounds, not a pool-only detail",
+        "Otherframesarepoolandfamilyroom; categoryrightsnotuniversal"
+      ]
+    },
+    {
+      "hotel_id": 47025,
+      "state": "DEFERRED_NO_ACCEPTED_WHOLE_HOTEL_HERO",
+      "details": [
+        "Sloganoverclosefrontfacade/partialbuildingedges",
+        "Pierwithoutgeneralhotel",
+        "Poolzoneoverheadwithonlyroofedges"
+      ]
+    },
+    {
+      "hotel_id": 948,
+      "state": "DEFERRED_NO_ACCEPTED_WHOLE_HOTEL_HERO",
+      "details": [
+        "Loungepromobanner",
+        "Couplebeachpromobanner",
+        "Onepooloverhead"
+      ]
+    },
+    {
+      "hotel_id": 1217,
+      "state": "DEFERRED_NO_ACCEPTED_WHOLE_HOTEL_HERO",
+      "details": [
+        "Pooldominatedoverviewwithleftbuildingwingcropped",
+        "Onepoolandonebuilding",
+        "Familyroomdetail"
+      ]
+    },
+    {
+      "hotel_id": 1369,
+      "state": "DEFERRED_NO_ACCEPTED_WHOLE_HOTEL_HERO",
+      "details": [
+        "Allthreeactualstaticproperty3framesareroominteriors"
+      ]
+    },
+    {
+      "hotel_id": 1370,
+      "state": "DEFERRED_NO_ACCEPTED_WHOLE_HOTEL_HERO",
+      "details": [
+        "Allthreeactualstaticproperty2framesareroominteriors"
+      ]
+    }
+  ],
+  "owner_blocked_hotel_ids_not_requested": [
+    1013,
+    1531
+  ],
+  "legacy_unresolved_and_owner_href_unresolved_not_requested": [
+    1368,
+    1530
+  ],
+  "server_calls": 0,
+  "db_reads": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "canva_transactions": 0,
+  "ready_for_send": 0,
+  "new_posts": 0,
+  "repeat_policy": "All18URLs+decodedbasenames CLOSED. No rerun/GETsameframes/wholepassforonebadframe; one21642covermayproceedONLYif finalthumbnail preservescompletegeneralhotelbuilding. DoNOTholdactualreadyforothers."
+}
