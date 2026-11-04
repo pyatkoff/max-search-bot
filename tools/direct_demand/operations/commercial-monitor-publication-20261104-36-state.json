@@ -1,0 +1,28 @@
+{
+  "operation": "commercial-monitor-publication-20261104-36",
+  "state": "NATIVE_663_VALIDATED_PR4992_MERGE_APPROVAL_PENDING",
+  "active_inputs": 659,
+  "proposed_inputs": 663,
+  "catalog_ids": [
+    1199,
+    1464,
+    9322,
+    1672
+  ],
+  "pr_url": "https://github.com/pyatkoff/poisk-turov-test/pull/4992",
+  "reviewed_head": "9f352617bbfc85e770fec48abdfe50bf523bef80",
+  "guard_run": 41797398455,
+  "collect_validate_run": 41797398464,
+  "sync_validate_run": 41797398442,
+  "focused_job": 126464631185,
+  "previous659_targets_byteidentical": true,
+  "existing_search_resumed": true,
+  "mixed_countries_preserved": true,
+  "missing1199_no_false_credit": true,
+  "inactive_four_no_false_credit": true,
+  "focused_provider_calls": 0,
+  "focused_db_writes": 0,
+  "merge_attempts": 0,
+  "approval_question_pending": true,
+  "publications_held_for_approval": 0
+}

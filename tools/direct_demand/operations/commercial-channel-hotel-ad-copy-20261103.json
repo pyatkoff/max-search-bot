@@ -2220,6 +2220,36 @@
       "telegram_name": "Путевки в Royal Wings Hotel",
       "max_name": "Туры в Royal Wings Hotel",
       "description": "Тур с перелётом. Анталья. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "country_id": 4,
+      "destination": "Измир",
+      "hotel_id": 9322,
+      "image_missing": false,
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/85dbd81563f98892ff919e35d7148c9d63cf1b0d/.github/traffic-publish/commercial-batch-20261104-36/9322.png",
+      "max_post_url": "https://max.ru/channel_anytour/AaGll1jFUrM",
+      "name": "Paloma Pasha",
+      "region_id": 306,
+      "telegram_post_url": "https://t.me/any_toour/163",
+      "short_name": "Paloma Pasha",
+      "telegram_name": "Путевки в Paloma Pasha",
+      "max_name": "Туры в Paloma Pasha",
+      "description": "Тур с перелётом. Измир. Фото и особенности отеля. Узнайте стоимость."
+    },
+    {
+      "country_id": 4,
+      "destination": "Бодрум",
+      "hotel_id": 1672,
+      "image_missing": false,
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/85dbd81563f98892ff919e35d7148c9d63cf1b0d/.github/traffic-publish/commercial-batch-20261104-36/1672.png",
+      "max_post_url": "https://max.ru/channel_anytour/AaGll2IjOh8",
+      "name": "Kempinski Hotel Barbaros Bay",
+      "region_id": 24,
+      "telegram_post_url": "https://t.me/any_toour/164",
+      "short_name": "Kempinski Hotel Barbaros Bay",
+      "telegram_name": "Путевки в Kempinski Hotel Barbaros Bay",
+      "max_name": "Туры в Kempinski Hotel Barbaros Bay",
+      "description": "Тур с перелётом. Бодрум. Фото и особенности отеля. Узнайте стоимость."
     }
   ],
   "state": "ONE_HUNDRED_FORTY_SIX_HOTELS_AD_COPY_NATIVE_YML_INPUTS"

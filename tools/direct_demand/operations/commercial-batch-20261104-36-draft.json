@@ -1,0 +1,22 @@
+{
+  "operation": "commercial-hotel-batch-20261104-36-v1",
+  "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED",
+  "baseline_logical_hotels": 148,
+  "total_logical_hotels_each_channel": 150,
+  "catalog_ids": [
+    9322,
+    1672
+  ],
+  "new_posts": 4,
+  "attempts": 4,
+  "reused_existing": 0,
+  "verified_posts": 4,
+  "all_body_photo_button_verified": true,
+  "expected_installed_sha": "0a8f5ec6f049369e67f36372ffb8917059b9fda7",
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41796770087",
+  "job_id": 126462614603,
+  "authenticated_receipt_artifact": 13305272853,
+  "source_stops": 0,
+  "canva_transactions_open": 0,
+  "feed_state": "TWO_NEW_CANONICAL_PUBLIC_URLS_VERIFIED_UPDATE10_PENDING"
+}

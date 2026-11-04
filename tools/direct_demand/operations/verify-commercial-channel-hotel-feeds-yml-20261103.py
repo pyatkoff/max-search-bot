@@ -48,12 +48,12 @@ def check(raw,baseline):
 def altered(raw,change):
  root=ET.fromstring(raw);change(root.find('shop/offers'))
  return ET.tostring(root,encoding='utf-8')
-NEW_IDS=[1199,1464]
-NEW_BINDING_SHA={"1199":"bd7d7f58b9b1362a9185b84e715a2fe82c671aea06bec04f14cf023515f24ab9","1464":"4feb2dc993ff0e4f8547314b90fef64685620906de19f6590d486b2fe166d53a"}
-NEW_DESTINATIONS={"1199":"Белек","1464":"Анталья"}
-PREVIOUS_XML_SHA={"hotel-posts-telegram.xml":"bf5322827d432d43d7da47305553cbfe433f6e71c57a4cb520b0c2c3635d4b23","hotel-posts-max.xml":"96799bf246a72512e2c90818d6fc496318ac8a58e9e5d44fcd2945c321050dba","hotel-posts-all.xml":"946b4c5835949f4ef2dad62aa56ec563afbbddff58ce010c0bf79c1459da4837"}
-CURRENT_DATE="2026-11-04 07:22"
-OLD_DATE="2026-11-04 00:19"
+NEW_IDS=[9322,1672]
+NEW_BINDING_SHA={"1672":"386803de1a8a02f859cd91f90e8e1b088bee2ed6d3a2e019a693e23f6c30b691","9322":"4cf12459ca97c9f260fd0341f84b5c866a94198fff6aed4f486c89ab97338825"}
+NEW_DESTINATIONS={"1672":"Бодрум","9322":"Измир"}
+PREVIOUS_XML_SHA={"hotel-posts-telegram.xml":"f78eadd677d8d5363701792d6d3466142e7958518a9c3eed2b8a33385ee171bd","hotel-posts-max.xml":"2cfbb3b62220da8ab65aaf7d9936372bed6d80322b498634e75c4214ce9f6010","hotel-posts-all.xml":"9cd5c64149a0a729885133e7f516cebaf26c2fc4080d38d88073a2eedebdb635"}
+CURRENT_DATE="2026-11-04 08:11"
+OLD_DATE="2026-11-04 07:22"
 def previous_bytes(raw,name):
  restored=raw.replace(('date="'+CURRENT_DATE+'"').encode(),('date="'+OLD_DATE+'"').encode(),1)
  prefixes=['tg'] if name.endswith('-telegram.xml') else ['max'] if name.endswith('-max.xml') else ['tg','max']
@@ -62,13 +62,13 @@ def previous_bytes(raw,name):
    pattern=rb'      <offer id="'+(platform+'_'+str(native)).encode()+rb'">.*?      </offer>\n'
    restored,count=re.subn(pattern,b'',restored,count=1,flags=re.S)
    insist(count==1,'new_offer_block_missing')
- insist(hashlib.sha256(restored).hexdigest()==PREVIOUS_XML_SHA[name],'previous146_offer_bytes_changed')
+ insist(hashlib.sha256(restored).hexdigest()==PREVIOUS_XML_SHA[name],'previous148_offer_bytes_changed')
  return restored
 def new_rows_for_baseline():
  tg={o.get('id'):o for o in ET.fromstring((BASE/'hotel-posts-telegram.xml').read_bytes()).findall('shop/offers/offer')}
  mx={o.get('id'):o for o in ET.fromstring((BASE/'hotel-posts-max.xml').read_bytes()).findall('shop/offers/offer')}
  out=[[],[]]
- manifest=json.loads(pathlib.Path('tools/direct_demand/operations/commercial-batch-20261104-35-manifest.json').read_text())
+ manifest=json.loads(pathlib.Path('tools/direct_demand/operations/commercial-batch-20261104-36-manifest.json').read_text())
  photos={str(r['hotel_id']):r['photo_url'] for r in manifest['rows']}
  for native in NEW_IDS:
   a=tg['tg_'+str(native)];b=mx['max_'+str(native)];photo=a.findtext('picture')
@@ -88,7 +88,7 @@ for platform,raw in zip(['telegram','max','all'],raws):
 new_tables=new_rows_for_baseline()
 tables[0].extend(new_tables[0]);tables[1].extend(new_tables[1]);tables[2].extend(new_tables[0]+new_tables[1])
 checked=[check(raw,base) for raw,base in zip(raws,tables)]
-insist([len(x[0]) for x in checked]==[148,148,296],'feed_scope_changed')
+insist([len(x[0]) for x in checked]==[150,150,300],'feed_scope_changed')
 insist(sorted(checked[2][0])==sorted(checked[0][0]+checked[1][0]),'combined_not_exact_union')
 insist([sorted(x[1]) for x in checked]==[[381,469],[381,469],[381,381,469,469]],'explicit_image_gaps_changed')
 
@@ -98,6 +98,6 @@ for before,after in [(b'<categoryId>1</categoryId>',b'<categoryId>2</categoryId>
  changed=raws[0].replace(before,after,1)
  insist(changed!=raws[0],'previous_fixture_not_changed')
  try:previous_bytes(changed,name)
- except ValueError as e:insist(str(e)=='previous146_offer_bytes_changed','previous_fixture_wrong_rejection')
+ except ValueError as e:insist(str(e)=='previous148_offer_bytes_changed','previous_fixture_wrong_rejection')
  else:raise ValueError('previous_fixture_not_rejected')
-print('DIRECT_YML_APPEND_PREPARATION_OK new_cases=3 offers=148,148,296 previous146_offer_bytes=unchanged union=exact title_limit=56 description_limit=81 canonical_new_bindings=2 image_gaps=2,2,4 price_fields=0 availability_fields=0 provider_calls=0 server_calls=0 writes=0')
+print('DIRECT_YML_APPEND_PREPARATION_OK new_cases=3 offers=150,150,300 previous148_offer_bytes=unchanged union=exact title_limit=56 description_limit=81 canonical_new_bindings=2 image_gaps=2,2,4 price_fields=0 availability_fields=0 provider_calls=0 server_calls=0 writes=0')

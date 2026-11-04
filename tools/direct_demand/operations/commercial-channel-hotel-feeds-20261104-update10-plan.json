@@ -1,0 +1,39 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261104-update10",
+  "goal": "Appendbothnewverifiedbatch36pairs to the same three existingDirectYMLfeeds",
+  "boundaries": [
+    "Preserveprevious148offerblocksbyteidentically; approveddescriptionunchanged",
+    "Onlynewcanonical9322/1672publicURLs andacceptedfrozenPNG",
+    "Existing3staticXMLephemeralwriter/root/source/stricthost/exactprevioushashguards",
+    "No receiverrouteguess/privatepublicationIDexport/ads/import/messages/DB/providerwrites"
+  ],
+  "criteria": [
+    "150/150/300 exactunion/name-descriptioncounts/limits",
+    "Durableintent beforeatomicreplacement;new3appendcases/PHP-lbeforeSSH",
+    "OneexactpublicHTTPSbytes/SHAreadback"
+  ],
+  "risks": [
+    "FeedURLsremaindirectuntilactualbothminiappreceivermappingverified",
+    "Twoexplicitimagegaps381/469, no price/availabilityinvented"
+  ],
+  "files": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "rows": 150,
+      "expected_previous_sha256": "f78eadd677d8d5363701792d6d3466142e7958518a9c3eed2b8a33385ee171bd",
+      "sha256": "807da5b17cbda96860c952417bd880091246991e39504ba1e65520f392d70d70"
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "rows": 150,
+      "expected_previous_sha256": "2cfbb3b62220da8ab65aaf7d9936372bed6d80322b498634e75c4214ce9f6010",
+      "sha256": "a0599641898a173c2286e65d9c1ac15cfd138c2e3cf5934367e3ac2d096229f5"
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "rows": 300,
+      "expected_previous_sha256": "9cd5c64149a0a729885133e7f516cebaf26c2fc4080d38d88073a2eedebdb635",
+      "sha256": "69bf1431c18d3857e2331e90a874e49f0623824b518b0a3c181b895840700250"
+    }
+  ]
+}
