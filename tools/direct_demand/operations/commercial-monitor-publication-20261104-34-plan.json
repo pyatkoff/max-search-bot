@@ -1,0 +1,21 @@
+{
+  "operation": "commercial-monitor-publication-20261104-34",
+  "goal": "Append two actually published native hotels to existing657 admitted monitor inputs",
+  "boundaries": [
+    "Separate immutable publication_stock_20261104_2 cohort only after actualfull657dedup",
+    "Existing collector/cron/transport/budget64/hourly12/locks/pendingsearches unchanged"
+  ],
+  "criteria": [
+    "Nativeguard/collectvalidate/focused659sync preserve657targetsbyteidentical",
+    "Previousbatch33resume/mixedcountries/missing1417/inactivebothnofalsecredit"
+  ],
+  "risks": [
+    "Monitoringconfiguration isnotfreshobservation/quote/priceedit"
+  ],
+  "catalog_ids": [
+    1417,
+    1348
+  ],
+  "previous_inputs": 657,
+  "new_inputs": 659
+}

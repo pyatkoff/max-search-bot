@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261103-34-v1",
-  "state": "TWO_READY_NATIVE_COVER_INSPECTION_PENDING_NOT_SENT",
+  "state": "TWO_READY_COVERS_CONSUMED_BY_VERIFIED_PUBLICATION",
   "goal": "Use real accepted targetphotographs for all ready batch34 covers together",
   "boundaries": [
     "No permanentCanvaSave/unchangedrawandnativeguards",
@@ -207,9 +207,13 @@
       "reason": "Three403exactframesclosed,nobypass/alternativesameframe"
     }
   ],
-  "new_posts": 0,
-  "canva_transactions_open": [
-    "7271582664596620586",
-    "459888229738819001"
-  ]
+  "new_posts": 4,
+  "canva_transactions_open": [],
+  "accepted_hotel_ids": [
+    1417,
+    1348
+  ],
+  "native_run": 41744772563,
+  "freeze": "3c389a2638ae14233374cc66a75475727453fa07",
+  "canva_open_transactions": 0
 }

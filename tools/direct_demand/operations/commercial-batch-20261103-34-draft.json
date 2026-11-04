@@ -1,0 +1,32 @@
+{
+  "operation": "commercial-hotel-batch-20261103-34-v1",
+  "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED",
+  "goal": "Publish both fully prepared batch34 hotels and extend all three public post feeds",
+  "boundaries": [
+    "Existing approved serialpublisher/provider/registry only",
+    "No duplicate send/providerreadback; exact source/host guards accepted"
+  ],
+  "criteria": [
+    "4newposts/reused0/attempts4/providerbodyphotobuttonsourceverified",
+    "Both newlogicalpairs counted only after actualpublication"
+  ],
+  "risks": [
+    "Price coverage remains1of146 and description discussionpending"
+  ],
+  "hotel_ids": [
+    1417,
+    1348
+  ],
+  "new_logical_materials": 2,
+  "confirmed_logical_materials_total": 146,
+  "new_posts": 4,
+  "reused_existing": 0,
+  "verified_posts": 4,
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41745076023",
+  "artifact_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41745076023/artifacts/13283360829",
+  "sender_source": "896ad7a3ee2490f953d3906d79fa572a48b52f51",
+  "expected_installed_sha": "117d884bef3174b7dd5976b5e354811f3edc8e83",
+  "source_stops": 0,
+  "canonical_public_feed_update_pending": true,
+  "standalone_private_receipts_exported": false
+}
