@@ -344,3 +344,6 @@ require __DIR__.'/archive-research-read.php';
 
 // Real budgeted bearer, dispatcher and saved-reader path in a separate disposable database.
 require __DIR__.'/modeled-conversion-status-auth.php';
+
+// Isolated read-only acquisition statistics on a new disposable database.
+require __DIR__.'/modeled-conversion-acquisition.php';

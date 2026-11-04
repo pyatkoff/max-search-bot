@@ -509,3 +509,62 @@ with at least12KiB of shared headroom. Otherwise it reports budget_headroom for
 that subview and preserves existing forecasts/external fields and final access
 checks. Total64KiB/five-second limits are unchanged. The dedicated owner page
 starts a separate read budget and does not depend on the composed RPC's suffix.
+
+## Join to first observed substantive inquiry
+
+The existing administrator-only assigned-value page has the isolated
+`view=acquisition` surface. Its existing read-only initialization, active administrator,
+AnyTour project access, session release and final fresh authorization remain mandatory.
+The reader has its own bounded read transaction; it does not extend the already
+composed forecast RPC or its budget. Managers receive no new access.
+
+The default cohort is people whose FIRST OBSERVED saved substantive customer
+inquiry falls in the selected 30-day Kaliningrad window. The end date is inclusive;
+7 and 90 days are also available. One customer is counted once per platform;
+MAX and Telegram are separate. The minimum is taken across admitted immutable
+profile versions BEFORE applying the inquiry-date window, not from the latest
+profile, current stage, advertising outbox or the displayed financial page.
+
+The fixed rule is the saved `contextual_signals.events.goal=substantive_interest`
+linked to the exact admitted customer-message evidence and original event clock.
+A greeting, /start, callback, manager handoff or mini-app visit is not substituted.
+Edited/revised or unresolved source clocks are not backdated into a first inquiry.
+Current ownership, project/platform/customer bindings and owner/test exclusions
+are checked; a latest denied scope must not resurrect earlier saved material.
+No model or semantic extractor is rerun and no message/read marker is modified.
+
+MAX join dates come only from unambiguous saved membership receipts. Their time
+basis is the retained membership-journal event clock, whose original provider
+clock has not been independently established. Missing joins, multiple joins,
+conflicting identity and a join later than the inquiry remain explicit exclusions.
+The bridge is prospective and already-dialogue-bound; it does not cover the full
+channel membership population. A not-retained-at-30m receipt is not an exact leave
+clock. Absence of a leave does not prove uninterrupted membership.
+
+Telegram inquiry counts use the same saved semantic rule. Membership dates are
+unavailable pending the owner's later Bitrix access. This is a missing source,
+not zero subscribers, zero conversion or zero elapsed time. A verified tgmini
+visit and bot start remain different facts and never become a join proxy.
+
+Coverage is valid unambiguous join/inquiry pairs divided by all eligible inquiry
+people in that platform's cohort. It is NOT the fraction of all subscribers who
+contacted the agency. Median, nearest-rank p90 and duration bins use valid pairs
+only; empty populations have null statistics. Source profile counts, actual saved
+observation time range and the fixed report fence are returned separately.
+The source history is explicitly incomplete/prospective; this is not first-ever
+contact and does not silently include the separate 16k Telegram archive.
+
+Data queries are SELECT-only and metadata-only, in a read-only consistent
+transaction with fixed as-of/fences and repeated authorization. Hard time/byte/row
+bounds fail the whole report visibly rather than publishing a truncated minimum
+or a falsely complete denominator. No collector/profile tick, provider/tracker
+lookup, advertising send, schema migration, processing queue or credential change
+is performed by this view.
+
+The cross-backend regression exercises original event clocks, earliest historical
+versions, person/channel deduplication, membership ambiguity, unknown Telegram,
+read limits and revocation. Its MySQL fixture uses a guarded fresh disposable
+local test database after existing native cleanup. The pure view and responsive
+fixtures use synthetic aggregates only. Live acceptance checks the installed
+read-only projection and arithmetic without publishing real business totals or
+customer identifiers in the public repository.

@@ -25,7 +25,7 @@ final class ModeledConversionValueRegistryView
             .'<title>'.$title.' · AnyTour</title><style>'.self::css().'</style></head><body><header><a href="/manager2/">AnyTour · к диалогам</a>'
             .'<p class="eyebrow">Приватный просмотр · только администратор</p><h1>'.$title.'</h1>'
             .'<p>Наблюдаемые этапы показаны отдельно от экспериментальной оценки. Веса 50/25/50/50/100 и сумма 275 ₽ были примером и не утверждены как доход или денежная шкала.</p></header><main>'
-            .'<nav aria-label="Источники реестра">'.self::nav('members','Подписчики MAX',$view).self::nav('profiles','Диалоги MAX / Telegram',$view).'</nav>'
+            .'<nav aria-label="Источники реестра">'.self::nav('members','Подписчики MAX',$view).self::nav('profiles','Диалоги MAX / Telegram',$view).'<a class="button" href="/manager/assigned-value.php?view=acquisition">От вступления до обращения</a></nav>'
             .'<section class="notice"><h2>Границы этого просмотра</h2>'
             .'<p>Один запрос показывает не более 5 строк одного источника. Общий размер доступного источника и доля полного охвата здесь неизвестны; эта страница не доказывает проверку всех подписчиков.</p>'
             .'<p>Подписки Telegram недоступны из MAX-моста. Сохранённые профили диалогов Telegram видны отдельно вместе с MAX-профилями. Подписчик MAX может присутствовать без сообщений.</p>'

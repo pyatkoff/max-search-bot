@@ -331,6 +331,8 @@ return [
         'php tests/run_modeled_conversion_value_view_regression.php',
         'php tests/run_modeled_conversion_delivery_registry_regression.php',
         'php tests/run_modeled_conversion_delivery_view_regression.php',
+        'php tests/run_modeled_conversion_acquisition_stats_regression.php',
+        'php tests/run_modeled_conversion_acquisition_view_regression.php',
         'php tests/run_modeled_conversion_value_export_regression.php',
         'php tests/run_modeled_conversion_delivery_health_regression.php',
         'php tests/run_modeled_conversion_pipeline_monitor_regression.php',

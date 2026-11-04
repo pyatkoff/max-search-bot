@@ -195,3 +195,66 @@ test('ordinary manager cannot see the conversion entry or read admin data',async
  await expect(page.locator('#adminConversions')).toBeHidden();
  expect(state.calls.map(x=>x.action)).toEqual(['me']);clean(state);
 });
+
+// Aggregate acquisition timing uses the real PHP renderer and synthetic counts only.
+function acquisitionStatsHTML(scenario='ready'){
+ const source=process.env.M2_QA_SOURCE_ROOT||root;
+ return renderDeliveryPHP('php',[path.join(source,'tests/visual/fixtures/modeled-acquisition-stats.php'),scenario],{cwd:source,encoding:'utf8'});
+}
+async function openAcquisitionStats(page,scenario='ready'){
+ const state={unexpected:[],errors:[]};
+ page.on('pageerror',e=>state.errors.push(e.message));
+ await page.route('**/*',async route=>{
+  const request=route.request(),url=new URL(request.url());
+  if(url.origin===origin&&request.method()==='GET'&&url.pathname==='/manager/assigned-value.php'&&url.searchParams.get('view')==='acquisition')
+   return route.fulfill({contentType:'text/html',body:acquisitionStatsHTML(scenario)});
+  if(url.origin===origin&&request.method()==='GET'&&url.pathname==='/favicon.ico')
+   return route.fulfill({status:204,body:''});
+  state.unexpected.push(request.method()+' '+url.pathname);return route.abort();
+ });
+ await page.goto(origin+'/manager/assigned-value.php?view=acquisition');
+ return state;
+}
+for(const width of[390,430,768,1440])test.describe('Private modeled acquisition statistics '+width,()=>{
+ test.use({viewport:{width,height:900}});
+ test('real renderer distinguishes observed inquiries, paired timing and pending Telegram source',async({page,browserName},testInfo)=>{
+  const state=await openAcquisitionStats(page);
+  await expect(page.getByRole('heading',{name:'От вступления до обращения',exact:true})).toBeVisible();
+  await expect(page.locator('.channel-card')).toHaveCount(2);
+  await expect(page.locator('#channel-max')).toContainText('5 из 12');
+  await expect(page.locator('#channel-max')).toContainText('41,7%');
+  await expect(page.locator('#channel-max')).toContainText('1 дн. 1 ч.');
+  await expect(page.locator('#channel-telegram')).toContainText('Даты вступления подключим из Bitrix');
+  await expect(page.locator('#channel-telegram')).not.toContainText('Медиана');
+  await expect(page.locator('#channel-telegram')).not.toContainText('0%');
+  await expect(page.locator('select[name="period"]')).toHaveValue('30');
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  const dir=path.join(root,'manager2-artifacts');fs.mkdirSync(dir,{recursive:true});
+  const file=path.join(dir,'modeled-acquisition-'+browserName+'-'+width+'.png');
+  const png=await page.screenshot({path:file,fullPage:true,animations:'disabled'});
+  await testInfo.attach('modeled-acquisition-'+width,{body:png,contentType:'image/png'});
+  if(browserName==='chromium'&&[390,1440].includes(width))
+   console.log('MAS-PREVIEW-'+width+':'+png.toString('base64'));
+  await page.locator('.source-details summary').click();
+  await expect(page.locator('.source-details')).toContainText('Проверено сохранённых профилей: 43');
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  expect(state.unexpected).toEqual([]);expect(state.errors).toEqual([]);
+ });
+ test('empty, unknown membership and unavailable results have different meanings',async({page})=>{
+  let state=await openAcquisitionStats(page,'unknown');
+  await expect(page.locator('#channel-max')).toContainText('0 из 12');
+  await expect(page.locator('#channel-max')).toContainText('Нет подходящих пар дат');
+  await expect(page.locator('#channel-max .timing')).toHaveCount(0);
+  expect(state.unexpected).toEqual([]);expect(state.errors).toEqual([]);
+  await page.unroute('**/*');state=await openAcquisitionStats(page,'empty');
+  await expect(page.locator('.channel-card')).toHaveCount(2);
+  await expect(page.locator('#channel-max')).toContainText('В доступных данных за выбранный период таких обращений нет.');
+  await expect(page.locator('.error')).toHaveCount(0);
+  expect(state.unexpected).toEqual([]);expect(state.errors).toEqual([]);
+  await page.unroute('**/*');state=await openAcquisitionStats(page,'error');
+  await expect(page.getByRole('heading',{name:'Статистика сейчас недоступна',exact:true})).toBeVisible();
+  await expect(page.locator('.channel-card')).toHaveCount(0);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  expect(state.unexpected).toEqual([]);expect(state.errors).toEqual([]);
+ });
+});

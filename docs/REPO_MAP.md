@@ -54,6 +54,8 @@ Workspace V2 at `/manager/` is the forward and current production Manager produc
 - `tools/modeled_conversion_monitor_local.py` — primary OS-cron pipeline checker; shared notification logic, private role state and typed receipts.
 - `tools/modeled_conversion_monitor_handoff.py` and `.github/workflows/modeled-pipeline-monitor-activation.yml` — one controlled state/role handoff and owned cron activation; never a business tick.
 
+- `services/ModeledConversionAcquisitionStatsReader.php` and `ModeledConversionAcquisitionStatsView.php` — closed administrator join-to-first-observed-inquiry statistics; saved metadata only, inquiry-cohort coverage and explicitly unavailable Telegram membership pending Bitrix. Entry: `/manager/assigned-value.php?view=acquisition`; no model/provider/collector calls or writes.
+
 ### Tests
 - `tests/run_required_checks.sh` — canonical full required-suite orchestration;
 - `tests/run_required_checks_inventory_regression.php` — fails PR CI when a focused regression exists but is not attached to a required gate;
