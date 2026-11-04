@@ -1,0 +1,23 @@
+{
+  "operation": "commercial-price-monitor-20261104-published-refresh-proposal1",
+  "goal": "Prepare exact reviewable scope and request explicit permission only for the currently prohibited manual fresh collection; do not execute it",
+  "boundaries": [
+    "Pure reuse of original157READ9 scope and retained public stock39 new2 identities, no DB read",
+    "159 published IDs total, current native proof required, no name-review force",
+    "Group by proven country, up to20hotelIDs persearch, hardmax12searches",
+    "Moscow/2A0/RUB/5..14nights/next7futureUTCdeparture days",
+    "No source/provider/gateway calls, postwrites, newworkers, installed runtime, cron, budget, observer, transport changes"
+  ],
+  "criteria": [
+    "Exact159prefixunion and admitteduniqueIDs",
+    "Name-review exclusion and max12nonemptygroups",
+    "Native3new scopecases, oldfixtures0"
+  ],
+  "risks": [
+    "New manualcollection still requires explicit Pavel approval because earlier heartbeat says no manualcollect",
+    "Preparing a group does not establish availability or price; no execution implied"
+  ],
+  "manual_collection_approved": false,
+  "source_calls": 0,
+  "server_calls": 0
+}

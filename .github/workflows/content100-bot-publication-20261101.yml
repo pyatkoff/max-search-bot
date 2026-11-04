@@ -1,4 +1,4 @@
-name: Verify exact rejected flight number classification without any new quote
+name: Prepare a scoped fresh price collection proposal without source calls
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -23,22 +23,22 @@ jobs:
           sparse-checkout-cone-mode: true
       - uses: actions/download-artifact@v4
         with:
-          name: commercial-price-monitor-20261104-remaining1
+          name: commercial-price-monitor-20261104-read9
           github-token: ${{ github.token }}
           repository: pyatkoff/max-search-bot
-          run-id: 41930421093
-          path: ${{ runner.temp }}/remaining1
-      - name: Classify only the new rejected response and original declared-error categories
+          run-id: 41898354901
+          path: ${{ runner.temp }}/retained-read9
+      - name: Prepare exact public native scope and finite search limits without making searches
         shell: bash
         run: |
           set -euo pipefail
-          python3 tools/direct_demand/operations/inspect-commercial-price-20261104-remaining1.py
+          python3 tools/direct_demand/operations/prepare-published-price-refresh-proposal-20261104.py
       - name: Retain safe bounded inspection evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-price-monitor-20261104-remaining1-inspection2
+          name: commercial-price-monitor-20261104-published-refresh-proposal1
           path: |
-            ${{ runner.temp }}/price-focus-inspection.json
+            ${{ runner.temp }}/published-price-refresh-proposal.json
           retention-days: 14
           if-no-files-found: warn
