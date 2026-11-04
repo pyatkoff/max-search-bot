@@ -1,0 +1,44 @@
+[
+  {
+    "hotel_id": 1659,
+    "name": "TUI BLUE Sarigerme Park",
+    "accepted_first_line": "✈️ Туры в TUI BLUE Sarigerme Park с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/725a09df7d4fca62632c04f8ee28bec0f1edccf4/.github/traffic-publish/commercial-batch-20261104-37/1659.png",
+    "image_sha256": "a2d1a5d6fa6118c05429116be350baab63623d1d5b97116ebb211e47e3a6e434"
+  },
+  {
+    "hotel_id": 21695,
+    "name": "TUI BLUE Seno",
+    "accepted_first_line": "✈️ Туры в TUI BLUE Seno с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/725a09df7d4fca62632c04f8ee28bec0f1edccf4/.github/traffic-publish/commercial-batch-20261104-37/21695.png",
+    "image_sha256": "f888b30d155cca927f60956406cc5144bf48de1d4ee3de1f47a81a9db3d18b9f"
+  },
+  {
+    "hotel_id": 28668,
+    "name": "Rixos Premium Gocek",
+    "accepted_first_line": "✈️ Туры в Rixos Premium Gocek с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/725a09df7d4fca62632c04f8ee28bec0f1edccf4/.github/traffic-publish/commercial-batch-20261104-37/28668.png",
+    "image_sha256": "e45bc4efd941971db8d8fa604bbda1eae6a29b666a8a84ab977e002ac02835be"
+  },
+  {
+    "hotel_id": 55205,
+    "name": "Eftalia Ocean",
+    "accepted_first_line": "✈️ Туры в Eftalia Ocean с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/725a09df7d4fca62632c04f8ee28bec0f1edccf4/.github/traffic-publish/commercial-batch-20261104-37/55205.png",
+    "image_sha256": "d2f5f6880e87a375fdec8532d2a535cc597a06a040e4cfc126e63b52eb40cd12"
+  },
+  {
+    "hotel_id": 1334,
+    "name": "Leodikya Kirman Premium",
+    "accepted_first_line": "✈️ Туры в Leodikya Kirman Premium с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/725a09df7d4fca62632c04f8ee28bec0f1edccf4/.github/traffic-publish/commercial-batch-20261104-37/1334.png",
+    "image_sha256": "b3c6276e6e207a0ecd11ccdb28156d45380894813b1afdd7e02a65eab1fb0205"
+  },
+  {
+    "hotel_id": 1715,
+    "name": "Voyage Torba",
+    "accepted_first_line": "✈️ Туры в Voyage Torba с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/725a09df7d4fca62632c04f8ee28bec0f1edccf4/.github/traffic-publish/commercial-batch-20261104-37/1715.png",
+    "image_sha256": "e8432fa946d9561a701e0acaf3fbf0b2a7c893fed6239ba212125e16a03ed918"
+  }
+]

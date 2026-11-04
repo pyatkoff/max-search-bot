@@ -1,0 +1,19 @@
+{
+  "operation": "commercial-price-monitor-20261104-rollout5",
+  "state": "FIRST_NORMAL_663_SCHEDULED_COLLECTION_CONFIRMED",
+  "run_url": "https://github.com/pyatkoff/poisk-turov-test/actions/runs/41804956431",
+  "source_sha": "27842818eb823deb8eff429f07ccbb18f3aa9ef4",
+  "collect_job_id": 126489645617,
+  "collect_conclusion": "success",
+  "processed": 64,
+  "failed": 0,
+  "partial": 0,
+  "page_gap_processed": 0,
+  "observations_written": 699,
+  "fresh_targets": 246,
+  "pending_targets": 3648,
+  "complete": false,
+  "source_calls_occurred": true,
+  "db_writes_occurred": true,
+  "not_prices_for_all_663": true
+}

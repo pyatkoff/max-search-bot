@@ -1,0 +1,31 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261104-read13",
+  "goal": "Read only six newly accepted batch37 public pairs plus six MAX canonical private bindings for route extension",
+  "boundaries": {
+    "old150_pairs_read": 0,
+    "public_first_line_query_limit": 13,
+    "new_max_exact_url_binding_limit": 7,
+    "provider_calls": 0,
+    "db_writes": 0,
+    "message_sends": 0,
+    "private_output": "authenticatedartifact only"
+  },
+  "criteria": [
+    "Six unique exact accepted first lines and native active identities",
+    "MAX binding project/channel/source/postbot exact",
+    "Three new scope/native binding cases and PHP-l before SSH"
+  ],
+  "risks": [
+    "Canonical private IDs must never enter public feed/code/console",
+    "Read only after actual provider-verified publication; no repeat of old300bindings"
+  ],
+  "hotel_ids": [
+    1659,
+    21695,
+    28668,
+    55205,
+    1334,
+    1715
+  ],
+  "baseline_logical_materials": 150
+}

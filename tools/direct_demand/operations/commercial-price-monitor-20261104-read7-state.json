@@ -1,0 +1,33 @@
+{
+  "candidate_rows": 0,
+  "db_writes": 0,
+  "full_total_verified": false,
+  "hotels_with_rows": 0,
+  "identity_name_review_catalog_ids": [
+    482,
+    476,
+    81173,
+    32577,
+    478,
+    80964
+  ],
+  "message_edits": 0,
+  "ok": true,
+  "operation": "commercial-price-monitor-20261104-read7",
+  "provider_calls": 0,
+  "readback_epoch_utc": 1793786949,
+  "recent_within30h_catalog_ids": [],
+  "schema_discovery": false,
+  "scope_hotels": 150,
+  "state": "CLOSED_ZERO_MATCHING_CONTEXTS_WITH_30H_POLICY",
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41812230490",
+  "job_id": 126514051867,
+  "artifact_id": 13312209261,
+  "source_sha": "17400f819817593b3b4428b43a8dbe24b109c428",
+  "freshness_seconds": 108000,
+  "cutoff_utc_epoch": 1793783292,
+  "additional_reads_after_zero": 0,
+  "full_quotes": 0,
+  "price_edits": 0,
+  "qualification": "Exact saved predicates; not absence of all raw observations"
+}
