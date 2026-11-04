@@ -16,22 +16,21 @@ FILES = (
     'services/MaxTrackerLookupRepository.php',
     'services/MaxSubscriptionAttributionPolicy.php',
 )
-# Accepted PR1267 public code at a8b4c2d1126b0e38d831e0ace9d75554d6e4415b.
+# Forward public-code target for the HL10 history-enum correction.
 TARGET_MANIFEST = {'version': 1, 'files': {
     'lookup.php': '0ba2187b77adffdcfb2d00a9a3024d9d0899b93005768ff86aa565b958553e8e',
     'services/MaxTrackerLookupProtocol.php': 'c8a21dc7c29fb5903ea6104db6b5b57f33f118cc3a1735039bc783272b5b3a1b',
-    'services/MaxTrackerLookupRepository.php': '07bcf389b92472bb60216d498d11856e8ea8b87ff5807a8517c71d50f4aafa49',
+    'services/MaxTrackerLookupRepository.php': '84c99056bd43725ee14f812afe08bd49161708b8b37dcf72078b90a76f019d12',
     'services/MaxSubscriptionAttributionPolicy.php': '2e5b35659b1aa7159b4b2b772ba0fafd1440c98bc63786ba48e3b4f9b34ef53b',
 }}
-TARGET_RELEASE_SHA256 = '714bb8e2a129b24b520c0abe23d646670a4a20afa34937b17eae8e046926953a'
-# Canonical historical SOURCE candidate, not an assertion of installed state.
-# The caller must supply this candidate explicitly; the remote guard proves it.
+TARGET_RELEASE_SHA256 = '3cd31843b969b5945eb9497a3fed820b470682a9b47eca2934a0759189e5714d'
+# Exact public predecessor snapshot; the remote guard revalidates it before any write.
 CHECKED_PREIMAGE = {'version': 1, 'files': {
-    'lookup.php': '4d4bc139fa0252d1a95c87145c1b1583a55a7f9f8a9ca4f203d1f9e7b34eab53',
-    'services/MaxTrackerLookupProtocol.php': '92c6d703395a9dd30fc3467b6ffc8ed31cf0392f6ee3671f7397ada829c213c0',
-    'services/MaxTrackerLookupRepository.php': '73ec719fc4b48893b7a5b4a3c9c33a994f38e4897e75a4fece854eb9e35df310',
+    'lookup.php': '13f22bddafcf789ef9415c3a22e0b76f80d7a9aab67fc2be6def02901aa37d70',
+    'services/MaxTrackerLookupProtocol.php': '6bd10d2287c02bf3abe68147cbd45ebca8534686fd09d597d4d596f57b85d582',
+    'services/MaxTrackerLookupRepository.php': '0aff4027466da36b27f331d504a34b03a88ba630ea727d995ec156fa6cb2ef86',
     'services/MaxSubscriptionAttributionPolicy.php': '2e5b35659b1aa7159b4b2b772ba0fafd1440c98bc63786ba48e3b4f9b34ef53b',
-}, 'release_json_sha256': '419733c8c023feb11a977016bd7b32e682c3d4c9a089d3706744ebfb88b7b374'}
+}, 'release_json_sha256': '1f2e9be66d7524da1bda4b92bac851f44601396734d16139be4ae7fe49242075'}
 
 
 def _json(raw):

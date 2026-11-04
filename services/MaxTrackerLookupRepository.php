@@ -63,7 +63,7 @@ final class MaxTrackerLookupRepository
     {
         $historyTable=$this->tableName(10);$mainTable=$this->tableName(9);$retentionTable=$this->tableName(12);
         $sql='SELECT h.ID,h.UF_CHAT_ID,h.UF_SOURCE,h.UF_TYPE,h.UF_DATE FROM `'.$historyTable.'` h'
-            .' WHERE h.UF_CHAT_ID=? AND h.UF_TYPE IN (1,2) AND h.UF_DATE>=? AND h.UF_DATE<=?'
+            .' WHERE h.UF_CHAT_ID=? AND h.UF_TYPE IN (3,4) AND h.UF_DATE>=? AND h.UF_DATE<=?'
             .' AND EXISTS (SELECT 1 FROM b_iblock_element_property ep JOIN b_iblock_property p ON p.ID=ep.IBLOCK_PROPERTY_ID'
             ." WHERE p.IBLOCK_ID=8 AND p.CODE='YA_METRIK_ID' AND ep.IBLOCK_ELEMENT_ID=h.UF_SOURCE AND ep.VALUE=?)"
             .' ORDER BY h.UF_DATE,h.ID LIMIT 21';
@@ -99,11 +99,11 @@ final class MaxTrackerLookupRepository
             foreach($rows as$row){
                 $record=(string)$row['ID'];$type=(string)$row['UF_TYPE'];$sourceId=(string)$row['UF_SOURCE'];
                 if(!MaxTrackerLookupProtocol::id($record)||!MaxTrackerLookupProtocol::id((string)$row['UF_CHAT_ID'])
-                    ||!MaxTrackerLookupProtocol::id($sourceId)||!in_array($type,['1','2'],true)){$invalid=true;break;}
+                    ||!MaxTrackerLookupProtocol::id($sourceId)||!in_array($type,['3','4'],true)){$invalid=true;break;}
                 try{$at=MaxSubscriptionAttributionPolicy::eventTimeUnix((string)$row['UF_DATE'],$zone);}
                 catch(InvalidArgumentException $ignored){$invalid=true;break;}
                 if($at<(int)$window['not_before_unix']||$at>(int)$window['cutoff_unix'])continue;
-                if($type==='1'){
+                if($type==='3'){
                     // Repeated user_added while the same period is still open
                     // is another observation of that state, not a rejoin.
                     if(isset($open[$sourceId])&&$periods[$open[$sourceId]]['left']===null)continue;
