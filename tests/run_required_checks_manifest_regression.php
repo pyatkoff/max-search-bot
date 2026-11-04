@@ -179,6 +179,71 @@ if ($safeGate) {
     }
 }
 
+// Distinguish a source failure from mutable release admission in the existing
+// job summary. The summary must never certify a skipped/failed mandatory step.
+$sourceStep = [];
+$admissionStep = [];
+$summaryStep = [];
+preg_match('/^      - name: Require every gate\n(.*?)(?=^      - name:|\z)/ms', $workflow, $sourceStep);
+preg_match('/^      - name: Respect ready release priority\n(.*?)(?=^      - name:|\z)/ms', $workflow, $admissionStep);
+preg_match('/^      - name: Summarize source checks and release admission\n(.*?)(?=^      - name:|\z)/ms', $workflow, $summaryStep);
+manifestCheck('summary observes the original fatal source and admission steps',
+    str_contains($sourceStep[1] ?? '', "        id: source_checks\n")
+    && str_contains($admissionStep[1] ?? '', "        id: release_admission\n")
+    && !str_contains($sourceStep[1] ?? '', 'continue-on-error:')
+    && !str_contains($admissionStep[1] ?? '', 'continue-on-error:')
+    && !str_contains($sourceStep[1] ?? '', '        if:')
+    && str_contains($admissionStep[1] ?? '', "        if: github.event_name == 'pull_request'\n")
+    && str_contains($admissionStep[1] ?? '', '        run: node tools/release_priority.js'));
+$summarySource = $summaryStep[1] ?? '';
+manifestCheck('informational summary binds actual step outcomes without a token',
+    str_contains($summarySource, "        if: always()\n")
+    && str_contains($summarySource, "        continue-on-error: true\n")
+    && str_contains($summarySource, 'SOURCE_CHECK_RESULT: ${{ steps.source_checks.outcome }}')
+    && str_contains($summarySource, 'RELEASE_ADMISSION_RESULT: ${{ steps.release_admission.outcome }}')
+    && str_contains($summarySource, 'CI_EVENT_NAME: ${{ github.event_name }}')
+    && !str_contains($summarySource, 'GITHUB_TOKEN'));
+$summaryBlocks = [];
+preg_match_all('/^        run: \|\n((?: {10,}[^\n]*\n)+)/m', $summarySource, $summaryBlocks, PREG_SET_ORDER);
+$summaryScript = count($summaryBlocks) === 1 ? (string)preg_replace('/^ {10}/m', '', $summaryBlocks[0][1]) : '';
+manifestCheck('summary exposes one executable shell body', $summaryScript !== '');
+if ($summaryScript !== '') {
+    $summaryCases = 0;
+    $summaryCasesPassed = true;
+    foreach (['success', 'failure', 'skipped', 'cancelled', '', 'unknown'] as $sourceResult) {
+        foreach (['success', 'failure', 'skipped', 'cancelled', '', 'unknown'] as $admissionResult) {
+            foreach (['pull_request', 'workflow_dispatch', 'push'] as $eventName) {
+                $summaryPath = tempnam(sys_get_temp_dir(), 'ci-summary-');
+                if ($summaryPath === false) throw new RuntimeException('summary_fixture_unavailable');
+                try {
+                    $code = deployManifestGateExit($summaryScript, [
+                        'SOURCE_CHECK_RESULT' => $sourceResult,
+                        'RELEASE_ADMISSION_RESULT' => $admissionResult,
+                        'CI_EVENT_NAME' => $eventName,
+                        'GITHUB_STEP_SUMMARY' => $summaryPath,
+                    ]);
+                    $text = (string)file_get_contents($summaryPath);
+                    $sourceLabel = $sourceResult === 'success' ? 'PASSED' : ($sourceResult === 'failure' ? 'FAILED' : 'NOT CONFIRMED');
+                    $releaseLabel = 'NOT CONFIRMED';
+                    if ($sourceResult === 'success' && $eventName === 'workflow_dispatch') $releaseLabel = 'NOT REQUESTED';
+                    if ($sourceResult === 'success' && $eventName === 'pull_request') {
+                        if ($admissionResult === 'success') $releaseLabel = 'PASSED';
+                        if ($admissionResult === 'failure') $releaseLabel = 'REFUSED';
+                    }
+                    $summaryCasesPassed = $summaryCasesPassed && $code === 0
+                        && str_contains($text, 'Regression source checks: ' . $sourceLabel . '.')
+                        && str_contains($text, 'Release priority: ' . $releaseLabel . '.')
+                        && substr_count($text, 'Regression source checks: ') === 1
+                        && substr_count($text, 'Release priority: ') === 1
+                        && str_contains($text, 'This summary is informational');
+                    $summaryCases++;
+                } finally { unlink($summaryPath); }
+            }
+        }
+    }
+    manifestCheck('actual summary preserves all ' . $summaryCases . ' source/admission/event outcomes', $summaryCasesPassed);
+}
+
 $total = $passed + $failed;
 echo "\n--------------------------\nTOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";
 exit($failed ? 1 : 0);

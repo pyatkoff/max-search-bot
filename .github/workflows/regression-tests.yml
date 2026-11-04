@@ -145,6 +145,7 @@ jobs:
     timeout-minutes: 2
     steps:
       - name: Require every gate
+        id: source_checks
         env:
           SCOPE_RESULT: ${{ needs.change-scope.result }}
           CI_MODE: ${{ needs.change-scope.outputs.mode }}
@@ -176,7 +177,43 @@ jobs:
         with:
           persist-credentials: false
       - name: Respect ready release priority
+        id: release_admission
         if: github.event_name == 'pull_request'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node tools/release_priority.js
+      # Presentation only: both mandatory steps above retain their exit status.
+      # No extra job, workflow, API read or test run is needed to explain a refusal.
+      - name: Summarize source checks and release admission
+        if: always()
+        continue-on-error: true
+        env:
+          SOURCE_CHECK_RESULT: ${{ steps.source_checks.outcome }}
+          RELEASE_ADMISSION_RESULT: ${{ steps.release_admission.outcome }}
+          CI_EVENT_NAME: ${{ github.event_name }}
+        run: |
+          {
+            echo '## Regression checks and release admission'
+            case "$SOURCE_CHECK_RESULT" in
+              success) echo 'Regression source checks: PASSED.' ;;
+              failure) echo 'Regression source checks: FAILED.' ;;
+              *) echo 'Regression source checks: NOT CONFIRMED.' ;;
+            esac
+            if [ "$SOURCE_CHECK_RESULT" != success ]; then
+              echo 'Release priority: NOT CONFIRMED. Resolve the failed or incomplete source checks first.'
+            elif [ "$CI_EVENT_NAME" = workflow_dispatch ]; then
+              echo 'Release priority: NOT REQUESTED. Manual validation does not grant merge admission.'
+            elif [ "$CI_EVENT_NAME" != pull_request ]; then
+              echo 'Release priority: NOT CONFIRMED. Unsupported event.'
+            elif [ "$RELEASE_ADMISSION_RESULT" = success ]; then
+              echo 'Release priority: PASSED. This does not acquire the shared publisher or confirm installation.'
+            elif [ "$RELEASE_ADMISSION_RESULT" = failure ]; then
+              echo 'Release priority: REFUSED. Source tests passed; inspect Respect ready release priority for the actual reason.'
+              echo 'A refusal may mean another priority, a changed base, invalid metadata or an unavailable API; do not assume the queue alone is responsible.'
+              echo 'Only after a priority-only blocker clears, with source and dependencies unchanged, rerun the failed regression job rather than the whole workflow.'
+              echo 'A changed base or dependency requires its ordinary integration checks; an unresolved API failure is not permission to merge.'
+            else
+              echo 'Release priority: NOT CONFIRMED. No successful admission result exists.'
+            fi
+            echo 'This summary is informational and covers this regression workflow only. Other required checks, fresh admission and the existing publisher remain mandatory.'
+          } >> "$GITHUB_STEP_SUMMARY"
