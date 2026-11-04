@@ -33,6 +33,7 @@ final class ModeledConversionDeliveryRegistryView
             .'<div class="intro"><div><p class="eyebrow">Рекламная аналитика · доступ администратора</p><h1>Конверсии</h1>'
             .'<p class="lead">Кому, сколько и за какой сигнал начислена ценность.</p></div>'
             .'<span class="private">Закрытый просмотр</span></div>'
+            .'<nav class="scope-note" aria-label="Разделы аналитики"><a href="/manager/assigned-value.php?view=acquisition">От вступления до обращения →</a></nav>'
             .self::monitor($monitor)
             .'<section class="ledger" id="registry" aria-labelledby="ledgerTitle"><div class="section-heading"><div><h2 id="ledgerTitle">Начисления по диалогам</h2>'
             .'<p class="muted">По дате начисления. Все даты и время — Калининград.</p></div></div>'
