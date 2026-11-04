@@ -1,0 +1,119 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261104-update12",
+  "state": "THREE_PUBLIC_YML_FEEDS_UPDATED_TO156_HOTELS_WITH_MAX156_MINIAPP_ROUTES_HTTPS_BYTES_VERIFIED",
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41859340877",
+  "job_id": 126676505076,
+  "source_sha": "08f821759be6f63c324d5419c3104551313c1e79",
+  "source_deploy_run": 41851487224,
+  "source_verify_job": 126648676806,
+  "source_deploy_job": 126651505677,
+  "source_tls_run": 41852814369,
+  "intent_artifact": 13337779383,
+  "intent_created_utc": "2026-11-04T15:35:44Z",
+  "result_artifact": 13337763923,
+  "result_created_utc": "2026-11-04T15:35:55Z",
+  "source_xml_commit": "ee8643732633f836d11c6f3ce0c676c9a00ee122",
+  "writer_commit": "0df9d5341e7a0d081ee80d6b318c0a08a138fa56",
+  "previous150_offer_blocks_byteidentical": true,
+  "combined_exact_union": true,
+  "description_discussion_unresolved": true,
+  "description_rewrites": 0,
+  "price_availability_fields": 0,
+  "explicit_image_gap_hotel_ids": [
+    381,
+    469
+  ],
+  "routing": {
+    "max": "156_MINIAPP_PUBLIC_ALIAS_TO_EXACT_CANONICAL_POST",
+    "telegram": "156_DIRECT_PUBLIC_POST_URLS_PENDING_PAVEL_FILES",
+    "natural_signed_user_launch_verified": false
+  },
+  "precommit_source_change_count": 1,
+  "native_source_stop_count": 1,
+  "first_native_run_stopped_before_intent_ssh_or_write": 41851665169,
+  "concrete_08f_release_wait_closed": true,
+  "writer_result": {
+    "db_writes": 0,
+    "files": [
+      {
+        "bytes": 101057,
+        "name": "hotel-posts-telegram.xml",
+        "public_url": "https://app.anytoour.ru/feed/hotel-posts-telegram.xml",
+        "rows": 156,
+        "sha256": "477792e38d0d27bb5f5f41fc4930b1b39ec199e404812524bff26aa22f55007d",
+        "write_action": "replace"
+      },
+      {
+        "bytes": 127448,
+        "name": "hotel-posts-max.xml",
+        "public_url": "https://app.anytoour.ru/feed/hotel-posts-max.xml",
+        "rows": 156,
+        "sha256": "e6df462586f76e16ed1810d948440e15c26c9fc7a16c07e5db52ef83c7137e09",
+        "write_action": "replace"
+      },
+      {
+        "bytes": 228132,
+        "name": "hotel-posts-all.xml",
+        "public_url": "https://app.anytoour.ru/feed/hotel-posts-all.xml",
+        "rows": 312,
+        "sha256": "62b910d8a4e5b15c0ba25877d09b75e1f9bfabdeee17897b7d211f2662adc67d",
+        "write_action": "replace"
+      }
+    ],
+    "message_sends": 0,
+    "mode": "publish_three_static_public_direct_yml_feeds",
+    "ok": true,
+    "operation": "commercial-channel-hotel-feeds-20261104-update12",
+    "provider_calls": 0
+  },
+  "public_https_result": {
+    "files": [
+      {
+        "bytes": 101057,
+        "content_type": "application/xml",
+        "description_count": 156,
+        "http": 200,
+        "max_miniapp_routes": 0,
+        "name": "hotel-posts-telegram.xml",
+        "name_count": 156,
+        "offers": 156,
+        "public_url": "https://app.anytoour.ru/feed/hotel-posts-telegram.xml",
+        "sha256": "477792e38d0d27bb5f5f41fc4930b1b39ec199e404812524bff26aa22f55007d"
+      },
+      {
+        "bytes": 127448,
+        "content_type": "application/xml",
+        "description_count": 156,
+        "http": 200,
+        "max_miniapp_routes": 156,
+        "name": "hotel-posts-max.xml",
+        "name_count": 156,
+        "offers": 156,
+        "public_url": "https://app.anytoour.ru/feed/hotel-posts-max.xml",
+        "sha256": "e6df462586f76e16ed1810d948440e15c26c9fc7a16c07e5db52ef83c7137e09"
+      },
+      {
+        "bytes": 228132,
+        "content_type": "application/xml",
+        "description_count": 312,
+        "http": 200,
+        "max_miniapp_routes": 156,
+        "name": "hotel-posts-all.xml",
+        "name_count": 312,
+        "offers": 312,
+        "public_url": "https://app.anytoour.ru/feed/hotel-posts-all.xml",
+        "sha256": "62b910d8a4e5b15c0ba25877d09b75e1f9bfabdeee17897b7d211f2662adc67d"
+      }
+    ],
+    "message_sends": 0,
+    "mode": "public_https_exact_miniapp_yml_readback",
+    "ok": true,
+    "operation": "commercial-channel-hotel-feeds-20261104-update12",
+    "provider_calls": 0
+  },
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "installed_bot_runtime_writes": 0,
+  "ads_import_changes": 0
+}

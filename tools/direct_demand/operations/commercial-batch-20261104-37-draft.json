@@ -18,6 +18,8 @@
   "job_id": 126526668394,
   "all_body_photo_button_verified": true,
   "source_stop_count": 0,
-  "feeds_state": "APPEND_PENDING_MAX_PRIVATE_ROUTE_EXTENSION_FIRST",
-  "accepted_png_freeze": "725a09df7d4fca62632c04f8ee28bec0f1edccf4"
+  "feeds_state": "ALL_THREE_YML_UPDATED_TO156_VERIFIED",
+  "accepted_png_freeze": "725a09df7d4fca62632c04f8ee28bec0f1edccf4",
+  "max_runtime_routes": 156,
+  "monitor_native_ids": 669
 }

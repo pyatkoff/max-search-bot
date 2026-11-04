@@ -1,0 +1,19 @@
+{
+  "operation": "commercial-channel-hotel-miniapp-routing-20261104-review5",
+  "state": "MAX156_RUNTIME_AND_PUBLIC_FEEDS_CONFIGURED_NATIVE_VERIFIED_TG_FILES_PENDING",
+  "logical_hotels_each_channel": 156,
+  "feed_counts": [
+    156,
+    156,
+    312
+  ],
+  "max_route_extension_run": 41835696728,
+  "max_route_total": 156,
+  "feed_update_run": 41859340877,
+  "max_feed_routes": 156,
+  "combined_max_feed_routes": 156,
+  "natural_signed_user_launch_verified": false,
+  "paid_attribution_save_observed": false,
+  "tg_state": "PAVEL_WILL_SUPPLY_CURRENT_INDEX_AND_SAVE_FILES_LATER_AND_INSTALL_MANUALLY",
+  "descriptions_unchanged": true
+}

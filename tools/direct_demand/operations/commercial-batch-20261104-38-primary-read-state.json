@@ -1,0 +1,13 @@
+{
+  "operation": "commercial-batch38-ten-new-declared-owner-pages",
+  "state": "CLOSED10_SUCCESS_NATIVE_PHOTOGRAPHY_NOT_YET_INSPECTED",
+  "run_id": 41842263878,
+  "jobs": [
+    126616632179,
+    126616631646,
+    126616632136,
+    126616632460
+  ],
+  "ready_for_send": 0,
+  "new_posts": 0
+}
