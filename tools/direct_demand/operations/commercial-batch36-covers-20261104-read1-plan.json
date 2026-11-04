@@ -1,0 +1,29 @@
+{
+  "operation": "commercial-batch36-covers-20261104-read1",
+  "goal": "AcceptbothactualCanvaPNGcoversbeforefreezeandonepairsubsetsend",
+  "boundaries": [
+    "Purecloud2exacttemporaryCanvaURLs, no server/provider/messages",
+    "No closedretainedread6inspectionoraccepted35coverreexport"
+  ],
+  "criteria": [
+    "ExistingrealPNGchunks/decodedbytes/SHA/format/dims/nativeview",
+    "Bothone-linehotelname/AnyTourlogo/bluebanner/wholehero+2distinctlowersreadable"
+  ],
+  "risks": [
+    "ExportisnotpermanentCanvasave;cancelEXACTtxonlyafteracceptedfreeze"
+  ],
+  "catalog_ids": [
+    9322,
+    1672
+  ],
+  "transactions": [
+    {
+      "hotel_id": 9322,
+      "transaction_id": "2788249267680700163"
+    },
+    {
+      "hotel_id": 1672,
+      "transaction_id": "850575525582186962"
+    }
+  ]
+}

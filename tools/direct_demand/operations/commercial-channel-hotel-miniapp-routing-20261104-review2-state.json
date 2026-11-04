@@ -1,0 +1,34 @@
+{
+  "operation": "commercial-channel-hotel-miniapp-routing-20261104-review2",
+  "state": "CURRENT_PUBLIC_MAX2_CLIENT_HAS_EXACT_POST_CONTEXT_BACKEND_RELEASE_AND_FEED_BINDINGS_NOT_YET_PROVEN",
+  "goal": "Connectbothplatformminiapps to exact148hotelposts while preserving advertisingattribution",
+  "boundaries": [
+    "No fabricatedstartappURL/privatepublicationID/buttonexport",
+    "Read-onlypublicclientinspection/GitHubsource;noforeignbackend/worker/ads/registrations/configchanges"
+  ],
+  "criteria": [
+    "Provenactualreceiver/sourceversion/targetregistrymapping beforefeedURLreplacement",
+    "SeparateTGandMAXroute;correctcanonicalpostandclickcontext"
+  ],
+  "risks": [
+    "Olderbotdocsctx1notenabledstatement contradicted byactualpublicfrontend",
+    "PR46/PR211sourcecode are olderthanpublicclient:post1/Avitosupportnotpresentthere",
+    "FullHTMLSHAchangedbetweenreads withsame16574bytes;causeunknown,notcodechangeproof"
+  ],
+  "public_inspection_runs": [
+    41793809610,
+    41794384775
+  ],
+  "public_client_support": [
+    "ctx1optionalpost/offercontext",
+    "post1positivepublicationpayload",
+    "signedinitDatarequirement",
+    "publicationOnlyresponsechecks",
+    "safeChannelMAXhostvalidation"
+  ],
+  "feed_route_current": "DIRECT_CANONICAL_PUBLIC_POST_URL",
+  "feed_route_replacements": 0,
+  "publications_held_for_this": 0,
+  "provider_calls": 0,
+  "message_sends": 0
+}
