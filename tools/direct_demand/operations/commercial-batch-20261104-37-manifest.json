@@ -1,0 +1,154 @@
+{
+  "operation": "commercial-hotel-batch-20261104-37-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Publish all six ready whole hotel materials in both existing channels in one serial run",
+  "boundaries": [
+    "Existing channels/bots/registry/once/serial approved publisher only",
+    "Exact current source/verify/TLS/full tree21 blobs before SSH/provider; unchanged runtime/rights/dedup guards",
+    "No Mac/new workers/queues/runtime/ads/customer messages/paid calls"
+  ],
+  "criteria": [
+    "Six600pxnativePNGsbytes/chunks/SHA/dimensions/nativeviewaccepted",
+    "Exactly12verified body/photo/button/source posts or explicit stop"
+  ],
+  "risks": [
+    "Four deferred candidates must not delay six ready",
+    "If main changes stop before SSH/provider; after2source stops concrete release wait"
+  ],
+  "baseline_logical_materials": 150,
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "hotel_id": 1659,
+      "hotel": "TUI BLUE Sarigerme Park",
+      "key": "tui-blue-sarigerme",
+      "aliases": [
+        "TUI BLUE SARIGERME PARK"
+      ],
+      "sources": [
+        "https://www.tui-blue.com/en/en/hotels/tui-blue-sarigerme-park/"
+      ],
+      "text": "✈️ Туры в TUI BLUE Sarigerme Park с перелётом\n\nТур с перелётом в Сарыгерме, Турция.\n🌿 Сад и территория 140 000 м².\n🏖 Песчаный пляж с участком отеля.\n🏊 Три бассейна.\n🛏 Есть семейные номера.\n\n📌 Отель сезонный. Официальный сезон 2026 завершился 2 ноября.\n\nНапишите даты отдыха и кто едет.\n✈️ Узнать стоимость тура",
+      "logical_id": "commercial-tui-blue-sarigerme-1659-v1",
+      "text_sha256": "87245117dae8859f4a046928833260b7be14e3a3a4b5a3d4e857d128721b05f6",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/725a09df7d4fca62632c04f8ee28bec0f1edccf4/.github/traffic-publish/commercial-batch-20261104-37/1659.png",
+      "photo_sha256": "a2d1a5d6fa6118c05429116be350baab63623d1d5b97116ebb211e47e3a6e434",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 21695,
+      "hotel": "TUI BLUE Seno",
+      "key": "tui-blue-seno",
+      "aliases": [
+        "TUI BLUE SENO ADULTS ONLY 16+"
+      ],
+      "sources": [
+        "https://www.tui-blue.com/en/en/hotels/tui-blue-seno/"
+      ],
+      "text": "✈️ Туры в TUI BLUE Seno с перелётом\n\nТур с перелётом в Сарыгерме, Турция.\n👤 Отель для гостей от 16 лет.\n🏖 Песчаный пляж в бухте.\n🏊 Пять бассейнов, включая инфинити.\n🧖 Спа BLUE Spa.\n\n📌 Территория расположена на склоне. К пляжу есть шаттл.\n\nНапишите даты отдыха и кто едет.\n✈️ Узнать стоимость тура",
+      "logical_id": "commercial-tui-blue-seno-21695-v1",
+      "text_sha256": "7d536d1ba09cadbb71cb8cdd5e04b8ee20059da9d2a98f677b69f37c10423b0c",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/725a09df7d4fca62632c04f8ee28bec0f1edccf4/.github/traffic-publish/commercial-batch-20261104-37/21695.png",
+      "photo_sha256": "f888b30d155cca927f60956406cc5144bf48de1d4ee3de1f47a81a9db3d18b9f",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 28668,
+      "hotel": "Rixos Premium Gocek",
+      "key": "rixos-gocek",
+      "aliases": [
+        "RIXOS PREMIUM GOCEK ADULTS ONLY 13+"
+      ],
+      "sources": [
+        "https://all.accor.com/hotel/B1J7/index.en.shtml"
+      ],
+      "text": "✈️ Туры в Rixos Premium Gocek с перелётом\n\nТур с перелётом в Гёджек, регион Фетхие, Турция.\n👤 Отель принимает гостей от 13 лет.\n🏖 Собственный пляж в уединённой бухте.\n🌲 Сосновый лес и сады вокруг комплекса.\n🧖 Спа.\n\n📌 Виллы расположены отдельно от основной территории отеля.\n\nНапишите даты отдыха и кто едет.\n✈️ Узнать стоимость тура",
+      "logical_id": "commercial-rixos-gocek-28668-v1",
+      "text_sha256": "155dd972bf109dc9cb2c3f735f113e51f660ddf0bcf08cc5889b1a29875f9c27",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/725a09df7d4fca62632c04f8ee28bec0f1edccf4/.github/traffic-publish/commercial-batch-20261104-37/28668.png",
+      "photo_sha256": "e45bc4efd941971db8d8fa604bbda1eae6a29b666a8a84ab977e002ac02835be",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 55205,
+      "hotel": "Eftalia Ocean",
+      "key": "eftalia-ocean",
+      "aliases": [
+        "EFTALIA OCEAN"
+      ],
+      "sources": [
+        "https://eftaliahotels.com/en/eftalia-ocean-hotel-2/"
+      ],
+      "text": "✈️ Туры в Eftalia Ocean с перелётом\n\nТур с перелётом в Тюрклер, регион Алания, Турция.\n🏨 Большой комплекс на 682 номера.\n🍽 Главный ресторан и два ресторана à la carte.\n🛏 Есть номера Swim Up с прямым выходом в бассейн.\n\n📌 Размещение с домашними животными не предусмотрено.\n\nНапишите даты отдыха и кто едет.\n✈️ Узнать стоимость тура",
+      "logical_id": "commercial-eftalia-ocean-55205-v1",
+      "text_sha256": "44b2009ff6dc8c0f8884e14ab969c43872b5d3f4a0bf16cfee846386b4b457f0",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/725a09df7d4fca62632c04f8ee28bec0f1edccf4/.github/traffic-publish/commercial-batch-20261104-37/55205.png",
+      "photo_sha256": "d2f5f6880e87a375fdec8532d2a535cc597a06a040e4cfc126e63b52eb40cd12",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 1334,
+      "hotel": "Leodikya Kirman Premium",
+      "key": "kirman-leodikya",
+      "aliases": [
+        "LEODIKYA KIRMAN PREMIUM (EX. KIRMAN LEODIKYA RESORT)"
+      ],
+      "sources": [
+        "https://www.kirmanpremium.com/leodikya-kirman-premium/en",
+        "https://www.kirmanpremium.com/leodikya-kirman-premium/en/beach-3"
+      ],
+      "text": "✈️ Туры в Leodikya Kirman Premium с перелётом\n\nТур с перелётом в Окурджалар, регион Алания, Турция.\n🏖 Пляж длиной 200 метров, песок и галька.\n💦 Аквапарк с пятью горками и детский аквакомплекс.\n🧸 Детский клуб Kichi.\n🛏 Есть семейные номера.\n\n📌 Джакузи на террасе относится к отдельной категории номеров.\n\nНапишите даты отдыха и кто едет.\n✈️ Узнать стоимость тура",
+      "logical_id": "commercial-kirman-leodikya-1334-v1",
+      "text_sha256": "1639b3f95a92824297e2373002149a3a096ad4d43d88d71875532b8beed2f3ed",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/725a09df7d4fca62632c04f8ee28bec0f1edccf4/.github/traffic-publish/commercial-batch-20261104-37/1334.png",
+      "photo_sha256": "b3c6276e6e207a0ecd11ccdb28156d45380894813b1afdd7e02a65eab1fb0205",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 1715,
+      "hotel": "Voyage Torba",
+      "key": "voyage-torba",
+      "aliases": [
+        "VOYAGE TORBA"
+      ],
+      "sources": [
+        "https://www.voyagehotel.com/en/voyage-torba",
+        "https://www.voyagehotel.com/en/voyage-torba/pool-beach"
+      ],
+      "text": "✈️ Туры в Voyage Torba с перелётом\n\nТур с перелётом в Торбу, Бодрум, Турция.\n🏖 Песчаный пляж длиной 300 метров с Голубым флагом.\n💦 Аквапарк и отдельная детская зона с горками.\n🛏 Есть семейные категории номеров.\n\n📌 Прямой выход к бассейну относится к категориям Swim Up.\n\nНапишите даты отдыха и кто едет.\n✈️ Узнать стоимость тура",
+      "logical_id": "commercial-voyage-torba-1715-v1",
+      "text_sha256": "6a6b4a0dbad923bc05f038296768c6254f0bb92237a83447f9e6f21e920f67dd",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/725a09df7d4fca62632c04f8ee28bec0f1edccf4/.github/traffic-publish/commercial-batch-20261104-37/1715.png",
+      "photo_sha256": "e8432fa946d9561a701e0acaf3fbf0b2a7c893fed6239ba212125e16a03ed918",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    }
+  ],
+  "ready_for_send_count": 6,
+  "new_posts": 0,
+  "provider_send_attempts": 0,
+  "content_and_cover_prepared_count": 6,
+  "approved_live_send_count": 6,
+  "public_png_frozen_count": 6,
+  "native_inspection_state": "SIX_NATIVE_PNG_VISUALLY_VERIFIED",
+  "native_inspection_run_urls": [
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41814318836"
+  ],
+  "deferred": [
+    {
+      "hotel_id": 1653,
+      "reason": "Exact primary hotel page HTTP403; no accepted photography"
+    },
+    {
+      "hotel_id": 54592,
+      "reason": "Exact primary page HTTP403; expired 2026summer contract not current winter proof"
+    },
+    {
+      "hotel_id": 1142,
+      "reason": "Owner root HTTP403; exact property path unresolved"
+    },
+    {
+      "hotel_id": 28327,
+      "reason": "Two exact owner photographs HTTP200JPEG but176pxshortdimension rejected; no accepted whole hotel hero"
+    }
+  ]
+}
